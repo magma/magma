@@ -19,6 +19,8 @@ import (
 	"github.com/golang/protobuf/ptypes/empty"
 	"go.uber.org/zap"
 	"gopkg.in/alecthomas/kingpin.v2"
+
+	_ "github.com/facebookincubator/symphony/graph/ent/runtime"
 )
 
 func main() {

@@ -25,6 +25,7 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 
+	_ "github.com/facebookincubator/symphony/graph/ent/runtime"
 	_ "github.com/go-sql-driver/mysql"
 	_ "gocloud.dev/pubsub/mempubsub"
 	_ "gocloud.dev/pubsub/natspubsub"

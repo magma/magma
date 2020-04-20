@@ -13,8 +13,9 @@ import (
 
 	"github.com/facebookincubator/ent/dialect"
 	"github.com/facebookincubator/ent/dialect/sql"
-	"github.com/facebookincubator/ent/dialect/sql/schema"
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/ent/enttest"
+	"github.com/facebookincubator/symphony/graph/ent/migrate"
 	"github.com/facebookincubator/symphony/graph/event"
 	"github.com/facebookincubator/symphony/graph/graphql/directive"
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
@@ -51,8 +52,10 @@ func newResolver(t *testing.T, drv dialect.Driver, opts ...Option) *TestResolver
 	if *debug {
 		drv = dialect.Debug(drv)
 	}
-	c := ent.NewClient(ent.Driver(drv))
-	require.NoError(t, c.Schema.Create(context.Background(), schema.WithGlobalUniqueID(true)))
+	c := enttest.NewClient(t,
+		enttest.WithOptions(ent.Driver(drv)),
+		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
+	)
 
 	emitter, subscriber := event.Pipe()
 	logger := logtest.NewTestLogger(t)

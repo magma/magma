@@ -10,10 +10,10 @@ import (
 	"context"
 
 	"github.com/facebookincubator/ent/dialect/sql/schema"
-	"github.com/facebookincubator/symphony/frontier/ent"
+	"github.com/facebookincubator/symphony/pkg/ent-contrib/entgqlgen/internal/todo/ent"
 
 	// required by schema hooks.
-	_ "github.com/facebookincubator/symphony/frontier/ent/runtime"
+	_ "github.com/facebookincubator/symphony/pkg/ent-contrib/entgqlgen/internal/todo/ent/runtime"
 )
 
 type (

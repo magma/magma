@@ -9,9 +9,10 @@ import (
 
 	"github.com/facebookincubator/ent"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/ent/schema/mixin"
 )
 
-type timeMixin struct{}
+type timeMixin struct{ mixin.Schema }
 
 func (timeMixin) Fields() []ent.Field {
 	return []ent.Field{

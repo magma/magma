@@ -10,6 +10,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/ent/enttest"
 	"github.com/facebookincubator/symphony/graph/ent/migrate"
 	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
@@ -34,10 +35,10 @@ func (s *eventTestSuite) SetupSuite() {
 	s.Require().NoError(err)
 	db.SetMaxOpenConns(1)
 
-	ctx := context.Background()
-	s.client = ent.NewClient(ent.Driver(sql.OpenDB(name, db)))
-	err = s.client.Schema.Create(ctx, migrate.WithGlobalUniqueID(true))
-	s.Require().NoError(err)
+	s.client = enttest.NewClient(s.T(),
+		enttest.WithOptions(ent.Driver(sql.OpenDB(name, db))),
+		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
+	)
 	s.ctx = viewertest.NewContext(s.client)
 	s.user, _ = viewer.UserFromContext(s.ctx)
 	s.logger = logtest.NewTestLogger(s.T())
