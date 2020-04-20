@@ -9,12 +9,15 @@
  */
 
 import Router from 'express';
+import bodyParser from 'body-parser';
 import httpProxy from 'http-proxy';
 import logging from '@fbcnms/logging';
 import {getTenantId} from './utils.js';
 
 const logger = logging.getLogger(module);
 const router = Router();
+router.use(bodyParser.urlencoded({extended: false}));
+router.use('/', bodyParser.json());
 
 export function configure(transformers, proxyTarget) {
   // Configure http-proxy

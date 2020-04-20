@@ -8,8 +8,8 @@
  * @format
  */
 
-import * as streamify from 'stream-array';
 import logging from '@fbcnms/logging';
+import streamify from 'stream-array';
 import {JSONPath} from 'jsonpath-plus';
 
 const logger = logging.getLogger(module);
