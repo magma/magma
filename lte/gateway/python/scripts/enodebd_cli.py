@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 
 """
-Copyright (c) 2016-present, Facebook, Inc.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree. An additional grant
-of patent rights can be found in the PATENTS file in the same directory.
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 import argparse
@@ -104,7 +108,7 @@ def get_all_status(client, args):
     def print_enb_status(enb_status):
         print('--- eNodeB Serial:', enb_status.device_serial, '---')
         _print_str_status_line('IP Address', enb_status.ip_address)
-        _print_prop_status_line('eNodeB connected', enb_status.connected)
+        _print_prop_status_line('eNodeB Connected via TR-069', enb_status.connected)
         _print_prop_status_line('eNodeB Configured', enb_status.configured)
         _print_prop_status_line('Opstate Enabled', enb_status.opstate_enabled)
         _print_prop_status_line('RF TX on', enb_status.rf_tx_on)

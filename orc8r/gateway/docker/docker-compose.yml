@@ -34,7 +34,7 @@ services:
       - ${CONFIGS_VOLUME}:/var/opt/magma/configs
       - ${SNOWFLAKE_PATH}:/etc/snowflake
       - /var/run/docker.sock:/var/run/docker.sock
-    command: python3 -m magma.magmad.main
+    command: python3.5 -m magma.magmad.main
 
   control_proxy:
     <<: *pyservice

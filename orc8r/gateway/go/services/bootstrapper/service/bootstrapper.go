@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 // package service implements the core of bootstrapper
@@ -16,15 +21,17 @@ import (
 	"crypto/sha256"
 	"encoding/pem"
 	"fmt"
-
-	"github.com/emakeev/snowflake"
-	"github.com/golang/protobuf/ptypes"
-	"log"
 	"os"
 	"sync"
 	"time"
 
+	"github.com/emakeev/snowflake"
+	"github.com/golang/glog"
+	"github.com/golang/protobuf/ptypes"
+	"google.golang.org/grpc"
+
 	"magma/gateway/config"
+	"magma/gateway/service_registry"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/security/cert"
 	"magma/orc8r/lib/go/security/key"
@@ -56,6 +63,8 @@ type Bootstrapper struct {
 	challengeKey *ecdsa.PrivateKey
 	// if set to true - start bootstrapping even is the GW certificate is still valid
 	forceBootstrap bool
+	// if useLocalService is set - the client will use local registered bootstrapper service; fo use with unit tests
+	useLocalService bool
 }
 
 // BootstrapCompletion is a type sent to bootstrap channel (if any) on every bootstrapping attempt
@@ -68,6 +77,11 @@ type BootstrapCompletionStruct struct {
 // NewBootstrapper returns a new instance of bootstrapper with initialized configuration
 func NewBootstrapper(bootstrapCompletionChan chan interface{}) *Bootstrapper {
 	return &Bootstrapper{CompletionChan: bootstrapCompletionChan}
+}
+
+// NewLocalBootstrapper returns a new instance of bootstrapper using local service with initialized configuration
+func NewLocalBootstrapper(bootstrapCompletionChan chan interface{}) *Bootstrapper {
+	return &Bootstrapper{CompletionChan: bootstrapCompletionChan, useLocalService: true}
 }
 
 // Initialize loads HW ID & challenge key and verifies it's validity
@@ -84,7 +98,7 @@ func (b *Bootstrapper) Initialize() error {
 
 	b.HardwareId = hwId.String()
 
-	privKey, err := b.getChallengeKey()
+	privKey, err := GetChallengeKey()
 	if err != nil {
 		return err
 	}
@@ -195,7 +209,7 @@ func (b *Bootstrapper) PeriodicCheck(now time.Time) (err error) {
 		return err
 	}
 	// Done updating certificate
-	log.Printf("Successfully bootstrapped gateway '%s' with new certificate: %s and key: %s",
+	glog.Infof("Successfully bootstrapped gateway '%s' with new certificate: %s and key: %s",
 		b.HardwareId, certFile, certKeyFile)
 
 	// bootstrapped, return
@@ -241,7 +255,10 @@ func (b *Bootstrapper) RefreshConfigs() {
 // bootstrap generates new gateway key & CSR, reaches to the cloud to sign the CSR and returns new cert & key
 // NOTE: it's a responsibility of a caller to synchronise access to Bootstrapper when calling Bootstrap
 func (b *Bootstrapper) bootstrap() (*protos.Certificate, interface{}, error) {
-	var err error
+	var (
+		err  error
+		conn *grpc.ClientConn
+	)
 
 	if b.challengeKey == nil {
 		if err = b.updateChallengeKey(); err != nil {
@@ -255,7 +272,11 @@ func (b *Bootstrapper) bootstrap() (*protos.Certificate, interface{}, error) {
 	}
 
 	// Complete challenge based auth & sign CSR
-	conn, err := b.GetBootstrapperCloudConnection()
+	if b.useLocalService {
+		conn, err = service_registry.Get().GetConnection("bootstrapper")
+	} else {
+		conn, err = b.GetBootstrapperCloudConnection()
+	}
 	if err != nil {
 		return nil, nil, err
 	}
@@ -301,7 +322,7 @@ func (b *Bootstrapper) validateCert(now time.Time, cfg *config.ControlProxyCfg) 
 	}
 	crt, err := cert.LoadCert(cfg.GwCertFile)
 	if err != nil {
-		log.Printf("Failed to load certificate & key from '%s', '%s'; error: %v; will bootstrap",
+		glog.Infof("Failed to load certificate & key from '%s', '%s'; error: %v; will bootstrap",
 			cfg.GwCertFile, cfg.GwCertKeyFile, err)
 		return false
 	}
@@ -319,7 +340,7 @@ func (b *Bootstrapper) validateCert(now time.Time, cfg *config.ControlProxyCfg) 
 		// Certificate is still valid, continue
 		return true
 	}
-	log.Printf("Certificate is valid from %s to %s, current time is %s; will bootstrap",
+	glog.Infof("Certificate is valid from %s to %s, current time is %s; will bootstrap",
 		crt.NotBefore, crt.NotAfter, now)
 
 	return false

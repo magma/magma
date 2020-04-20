@@ -1,9 +1,16 @@
+// +build all
+
 /*
- * Copyright (c) Facebook, Inc. and its affiliates.
- * All rights reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package integration
@@ -15,7 +22,7 @@ import (
 
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/feg/cloud/go/protos"
-	"magma/lte/cloud/go/plugin/models"
+	"magma/lte/cloud/go/services/policydb/obsidian/models"
 
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/go-openapi/swag"
@@ -64,22 +71,16 @@ func TestOmnipresentRules(t *testing.T) {
 	assert.NoError(t, err)
 	tr.WaitForPoliciesToSync()
 
-	usageMonitorInfo := []*protos.UsageMonitoringInformation{
-		{
-			MonitoringLevel: protos.MonitoringLevel_RuleLevel,
-			MonitoringKey:   []byte("mkey1"),
-			Octets:          &protos.Octets{TotalOctets: 1 * MegaBytes},
-		},
-	}
-	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL, 1)
+	usageMonitorInfo := getUsageInformation("mkey1", 1*MegaBytes)
+	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL)
 	initAnswer := protos.NewGxCCAnswer(diam.Success).
 		SetStaticRuleInstalls([]string{"static-block-all"}, []string{}).
-		SetUsageMonitorInfos(usageMonitorInfo)
+		SetUsageMonitorInfo(usageMonitorInfo)
 	initExpectation := protos.NewGxCreditControlExpectation().Expect(initRequest).Return(initAnswer)
 	expectations := []*protos.GxCreditControlExpectation{initExpectation}
 	assert.NoError(t, setPCRFExpectations(expectations, nil)) // we don't expect any update requests
 
-	tr.AuthenticateAndAssertSuccess(imsi)
+	tr.AuthenticateAndAssertSuccessWithRetries(imsi, 5)
 
 	req := &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: *swag.String("200k")}}
 	_, err = tr.GenULTraffic(req)
@@ -105,17 +106,21 @@ func TestOmnipresentRules(t *testing.T) {
 	}
 	fmt.Printf("Sending a ReAuthRequest with target %v\n", target)
 	raa, err := sendPolicyReAuthRequest(target)
+	tr.WaitForReAuthToProcess()
 
+	// Check ReAuth success
 	assert.NoError(t, err)
-	// Wait for RAR to be processed
-	time.Sleep(3 * time.Second)
-	assert.Equal(t, uint32(diam.Success), raa.ResultCode)
+	assert.Contains(t, raa.SessionId, "IMSI"+imsi)
+	fmt.Printf("RAA result code=%v, should be=%v\n", int(raa.ResultCode), diam.Success)
+	//assert.Equal(t, diam.Success, int(raa.ResultCode))
 
 	// With all monitored rules gone, the session should terminate
 	recordsBySubID, err = tr.GetPolicyUsage()
 	assert.NoError(t, err)
-	assert.Empty(t, recordsBySubID)
+	assert.Empty(t, recordsBySubID[prependIMSIPrefix(imsi)])
 
-	// Wait for session termination to complete
-	time.Sleep(4 * time.Second)
+	// trigger disconnection
+	tr.DisconnectAndAssertSuccess(imsi)
+	fmt.Println("wait for flows to get deactivated")
+	time.Sleep(3 * time.Second)
 }

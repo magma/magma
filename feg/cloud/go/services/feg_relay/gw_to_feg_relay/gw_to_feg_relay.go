@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 // h2c server serving requests from FeG to AG.
@@ -18,7 +23,7 @@ import (
 	"strings"
 
 	"magma/feg/cloud/go/feg"
-	"magma/feg/cloud/go/plugin/models"
+	"magma/feg/cloud/go/services/feg/obsidian/models"
 	"magma/feg/cloud/go/services/health"
 	"magma/orc8r/cloud/go/http2"
 	"magma/orc8r/cloud/go/orc8r"
@@ -104,6 +109,7 @@ func (server *GatewayToFeGServer) useDispatcherHandler(
 				http.StatusBadRequest))
 		return
 	}
+	glog.V(4).Infof("Forwarding request to FeG %s via %s", fegHwId, addr)
 	// create request to dispatcher http server
 	newReq, newReqErr := createNewRequest(req, addr, fegHwId)
 	if newReqErr != nil {
@@ -142,6 +148,7 @@ func createNewRequest(req *http.Request, addr, hwId string) (*http.Request, *htt
 	if auth := strings.Split(req.Host, "-"); len(auth) > 0 {
 		newReq.Host = auth[0]
 	}
+	glog.V(4).Info("Cloned request from GW:")
 	http2.LogRequestWithVerbosity(newReq, 4)
 	return newReq, nil
 }

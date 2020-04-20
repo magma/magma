@@ -1,12 +1,19 @@
 ################################################################################
-# Copyright (c) Facebook, Inc. and its affiliates.
-# All rights reserved.
-#
+# Copyright 2020 The Magma Authors.
+
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 ################################################################################
 
 resource "tls_private_key" "eks_workers" {
+  count = var.eks_worker_group_key == null ? 1 : 0
+
   algorithm = "RSA"
 }
 
@@ -14,7 +21,7 @@ resource "aws_key_pair" "eks_workers" {
   count = var.eks_worker_group_key == null ? 1 : 0
 
   key_name_prefix = var.cluster_name
-  public_key      = tls_private_key.eks_workers.public_key_openssh
+  public_key      = tls_private_key.eks_workers[0].public_key_openssh
 }
 
 module "eks" {
@@ -37,6 +44,7 @@ module "eks" {
     key_name = var.eks_worker_group_key == null ? aws_key_pair.eks_workers[0].key_name : var.eks_worker_group_key
   }
   worker_additional_security_group_ids = concat([aws_security_group.default.id], var.eks_worker_additional_sg_ids)
+  workers_additional_policies          = var.eks_worker_additional_policy_arns
   worker_groups                        = var.eks_worker_groups
 
   map_roles = var.eks_map_roles

@@ -7,28 +7,26 @@ recreated with the same hwid and challenge key.
 ## TL;DR;
 
 ```bash
-# Copy secrets into subchart root
-$ mkdir charts/secrets/.secrets && \
-    cp -r <secrets>/* charts/secrets/.secrets/
-$ ls charts/secrets/.secrets
+# Copy gw_challenge and snowflake into temp dir
+    cp -r <secrets>/* ../temp/
+$ ls temp/
 snowflake gw_challenge.key
 
 # Apply secrets
 helm template charts/secrets \
     --name <feg release name> \
+    --set-file secrets.gwinfo.gw_challenge.key=../temp/gw_challenge.key \
+    --set-file secrets.gwinfo.snowflake=../temp/snowflake \
     --namespace magma | kubectl -n magma apply -f -
 ```
 
 ## Overview
 
 This chart installs a secret that serves as identifiers for the gateway. 
-The secrets are expected to be provided as files and placed under
-secrets subchart root.
+The secrets are expected to be provided as files and placed in temp dir.
 ```bash
-$ ls charts/secrets/.secrets
+$ ls temp/
 snowflake  gw_challenge.key
-$ pwd
-magma/feg/gateway/helm/feg
 ```
 
 ## Creating Gateway Info
@@ -60,4 +58,6 @@ their default values.
 | Parameter        | Description     | Default   |
 | ---              | ---             | ---       |
 | `create` | Set to ``true`` to create feg secrets. | `false` |
-| `secret.gwinfo` | Root relative secrets directory. | `.secrets` |
+| `secret.enabled` | Enable gwinfo secrets. | `false` |
+| `secret.gwinfo.gw_challenge.key` | gw_challenge.key file | `""` |
+| `secret.gwinfo.snowflake` | snowflake file. | `""` |

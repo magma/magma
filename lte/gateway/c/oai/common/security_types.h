@@ -5,26 +5,27 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
+ * 1. Redistributions of source code must retain the above copyright notice,
+ * this list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  *
- * The views and conclusions contained in the software and documentation are those
- * of the authors and should not be interpreted as representing official policies,
- * either expressed or implied, of the FreeBSD Project.
+ * The views and conclusions contained in the software and documentation are
+ * those of the authors and should not be interpreted as representing official
+ * policies, either expressed or implied, of the FreeBSD Project.
  */
 /*! \file security_types.h
   \brief
@@ -101,12 +102,12 @@ typedef struct {
 
 #define DISPLAY_128BITS(bUFFER)                                                \
   bUFFER[0], bUFFER[1], bUFFER[2], bUFFER[3], bUFFER[4], bUFFER[5], bUFFER[6], \
-    bUFFER[7], bUFFER[8], bUFFER[9], bUFFER[10], bUFFER[11], bUFFER[12],       \
-    bUFFER[13], bUFFER[14], bUFFER[15]
+      bUFFER[7], bUFFER[8], bUFFER[9], bUFFER[10], bUFFER[11], bUFFER[12],     \
+      bUFFER[13], bUFFER[14], bUFFER[15]
 #define DISPLAY_128BITS_2(bUFFER)                                              \
   bUFFER[16], bUFFER[17], bUFFER[18], bUFFER[19], bUFFER[20], bUFFER[21],      \
-    bUFFER[22], bUFFER[23], bUFFER[24], bUFFER[25], bUFFER[26], bUFFER[27],    \
-    bUFFER[28], bUFFER[29], bUFFER[30], bUFFER[31]
+      bUFFER[22], bUFFER[23], bUFFER[24], bUFFER[25], bUFFER[26], bUFFER[27],  \
+      bUFFER[28], bUFFER[29], bUFFER[30], bUFFER[31]
 
 #define XRES_DISPLAY(bUFFER) DISPLAY_128BITS(bUFFER)
 #define RAND_DISPLAY(bUFFER) DISPLAY_128BITS(bUFFER)
@@ -143,8 +144,8 @@ typedef enum {
   NAS_INT_ALG = 0x02,
   RRC_ENC_ALG = 0x03,
   RRC_INT_ALG = 0x04,
-  UP_ENC_ALG = 0x05,
-  UP_INT_ALG = 0x06
+  UP_ENC_ALG  = 0x05,
+  UP_INT_ALG  = 0x06
 } algorithm_type_dist_t;
 
 #endif /* FILE_SECURITY_TYPES_SEEN */

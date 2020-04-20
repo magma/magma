@@ -1,0 +1,4 @@
+ priority=2000,udp,in_port=3,tp_dst=68 actions=output:1,output:2
+ priority=1000,ip,in_port=2 actions=mod_dl_src:02:bb:5e:36:06:4b,output:3
+ priority=1000,ip,in_port=3,dl_dst=02:bb:5e:36:06:4b actions=output:2
+ priority=100 actions=NORMAL

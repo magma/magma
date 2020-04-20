@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 package config
@@ -28,7 +33,6 @@ type AtomicStore atomic.Value
 // An attempt to modify the returned struct fields may lead to unpredictable results
 // If a caller needs mutable copy of configuration, it must copy the returned object
 func (val *AtomicStore) GetCurrent(defaultCfgFactory func() StructuredConfig) StructuredConfig {
-	now := time.Now()
 	cn, ok := (*atomic.Value)(val).Load().(*cfgNode)
 	if (!ok) || cn == nil || cn.cfgPtr == nil {
 		cfg, fp, owfp := defaultCfgFactory().UpdateFromYml()
@@ -36,43 +40,30 @@ func (val *AtomicStore) GetCurrent(defaultCfgFactory func() StructuredConfig) St
 		if fcInterval < MinFreshnessCheckInterval {
 			fcInterval = MinFreshnessCheckInterval
 		}
-		cn = &cfgNode{
-			cfgPtr:                 cfg,
-			filePath:               fp,
-			owFilePath:             owfp,
-			freshnessCheckInterval: fcInterval,
-			notAfterTime:           now.Add(fcInterval),
-		}
-		(*atomic.Value)(val).Store(cn)
+		val.updateStore(cfg, fp, owfp, fcInterval)
 		return cfg
 	}
-	if cn.notAfterTime.After(now) { // refresh, if needed
+	if cn.notAfterTime.After(time.Now()) { // refresh, if needed
 		update := false
 		if len(cn.filePath) > 0 {
 			fi, serr := os.Stat(cn.filePath)
-			update = serr == nil && now.Sub(fi.ModTime()) < cn.freshnessCheckInterval
+			update = (serr == nil) && fi.ModTime().After(cn.updatedTime)
 		}
 		if (!update) && len(cn.owFilePath) > 0 {
 			fi, serr := os.Stat(cn.owFilePath)
-			update = serr == nil && now.Sub(fi.ModTime()) < cn.freshnessCheckInterval
+			update = (serr == nil) && fi.ModTime().After(cn.updatedTime)
 		}
 		if update {
 			cfg := cn.cfgPtr
 			cfg, fp, owfp := cfg.UpdateFromYml()
-			cn = &cfgNode{
-				cfgPtr: cfg, filePath: fp,
-				owFilePath:             owfp,
-				freshnessCheckInterval: cn.freshnessCheckInterval,
-				notAfterTime:           now.Add(cn.freshnessCheckInterval),
-			}
-			(*atomic.Value)(val).Store(cn)
+			val.updateStore(cfg, fp, owfp, cn.freshnessCheckInterval)
 			return cfg
 		}
 	}
 	return cn.cfgPtr
 }
 
-// OverwriteFor unconditionally swaps configs refered by val with the given config
+// Overwrite unconditionally swaps configs referred by val with the given config
 func (val *AtomicStore) Overwrite(cfg StructuredConfig) {
 	now := time.Now()
 	cn := &cfgNode{
@@ -83,10 +74,25 @@ func (val *AtomicStore) Overwrite(cfg StructuredConfig) {
 	(*atomic.Value)(val).Store(cn)
 }
 
+// updateStore stores new structured configs into atomic store cache
+func (val *AtomicStore) updateStore(cfg StructuredConfig, cfgPath, cfgOverwritePath string, chkInterval time.Duration) {
+	now := time.Now()
+	cn := &cfgNode{
+		cfgPtr:                 cfg,
+		filePath:               cfgPath,
+		owFilePath:             cfgOverwritePath,
+		freshnessCheckInterval: chkInterval,
+		updatedTime:            now,
+		notAfterTime:           now.Add(chkInterval),
+	}
+	(*atomic.Value)(val).Store(cn)
+}
+
 type cfgNode struct {
 	cfgPtr StructuredConfig
 	filePath,
 	owFilePath string
 	freshnessCheckInterval time.Duration
+	updatedTime            time.Time
 	notAfterTime           time.Time // optimization to avoid calculation on every check
 }

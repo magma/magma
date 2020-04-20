@@ -1,8 +1,14 @@
 /**
- * Copyright (c) 2017-present, Facebook, Inc.
+ * Copyright 2020 The Magma Authors.
  *
- * This source code is licensed under the MIT license found in the
+ * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 // See https://docusaurus.io/docs/site-config for all the possible
@@ -23,7 +29,7 @@ const users = [
 const siteConfig = {
   title: 'Magma', // Title for your website.
   tagline: 'Bring more people online by enabling operators with open, flexible, and extensible network solutions',
-  url: 'https://facebookincubator.github.io', // Your website URL
+  url: 'https://magma.github.io', // Your website URL
   baseUrl: '/magma/', // Base URL for your project */
   // For github.io type URLs, you would set the url and baseUrl like:
   //   url: 'https://facebook.github.io',
@@ -31,7 +37,7 @@ const siteConfig = {
 
   // Used for publishing and more
   projectName: 'magma',
-  organizationName: 'facebookincubator',
+  organizationName: 'magma',
   // For top-level user or org sites, the organization is still the same.
   // e.g., for the https://JoelMarcey.github.io site, it would be set like...
   //   organizationName: 'Facebook'
@@ -42,7 +48,7 @@ const siteConfig = {
   headerLinks: [
     {doc: 'basics/introduction', label: 'Docs'},
     {page: 'help', label: 'Help'},
-    {href: 'https://github.com/facebookincubator/magma', label: 'Github'},
+    {href: 'https://github.com/magma/magma', label: 'Github'},
   ],
 
   // If you have users set above, you add it here:
@@ -74,7 +80,7 @@ const siteConfig = {
   */
 
   // This copyright info is used in /core/Footer.js and blog RSS/Atom feeds.
-  copyright: `Copyright \u{00A9} ${new Date().getFullYear()} Facebook`,
+  copyright: `Copyright \u{00A9} ${new Date().getFullYear()} The Magma Authors`,
 
   highlight: {
     // Highlight.js theme to use for syntax highlighting in code blocks.

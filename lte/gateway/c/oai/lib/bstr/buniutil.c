@@ -25,8 +25,7 @@
  *  Scan string and return 1 if its entire contents is entirely UTF8 code
  *  points.  Otherwise return 0.
  */
-int buIsUTF8Content(const_bstring bu)
-{
+int buIsUTF8Content(const_bstring bu) {
   struct utf8Iterator iter;
 
   if (NULL == bdata(bu)) return 0;
@@ -46,12 +45,7 @@ int buIsUTF8Content(const_bstring bu)
  *  translated to errCh.
  */
 int buGetBlkUTF16(
-  /* @out */ cpUcs2 *ucs2,
-  int len,
-  cpUcs4 errCh,
-  const_bstring bu,
-  int pos)
-{
+    /* @out */ cpUcs2* ucs2, int len, cpUcs4 errCh, const_bstring bu, int pos) {
   struct tagbstring t;
   struct utf8Iterator iter;
   cpUcs4 ucs4;
@@ -86,7 +80,7 @@ int buGetBlkUTF16(
         *ucs2++ = UNICODE__CODE_POINT__REPLACEMENT_CHARACTER;
         len--;
       } else {
-        long y = ucs4 - 0x10000;
+        long y  = ucs4 - 0x10000;
         ucs2[0] = (cpUcs2)(0xD800 | (y >> 10));
         ucs2[1] = (cpUcs2)(0xDC00 | (y & 0x03FF));
         len -= 2;
@@ -128,8 +122,7 @@ UTF-32: U-000000 - U-10FFFF
  *  valid code point, then this translation will halt upon the first error
  *  and return BSTR_ERR.  Otherwise BSTR_OK is returned.
  */
-int buAppendBlkUcs4(bstring b, const cpUcs4 *bu, int len, cpUcs4 errCh)
-{
+int buAppendBlkUcs4(bstring b, const cpUcs4* bu, int len, cpUcs4 errCh) {
   int i, oldSlen;
 
   if (NULL == bu || NULL == b || 0 > len || 0 > (oldSlen = blengthe(b, -1)))
@@ -226,12 +219,7 @@ int buAppendBlkUcs4(bstring b, const cpUcs4 *bu, int len, cpUcs4 errCh)
  *  character if it is a BOM.
  */
 int buAppendBlkUTF16(
-  bstring bu,
-  const cpUcs2 *utf16,
-  int len,
-  cpUcs2 *bom,
-  cpUcs4 errCh)
-{
+    bstring bu, const cpUcs2* utf16, int len, cpUcs2* bom, cpUcs4 errCh) {
   cpUcs4 buff[TEMP_UCS4_BUFFER_SIZE];
   int cc, i, sm, oldSlen;
 
@@ -240,10 +228,11 @@ int buAppendBlkUTF16(
   if (len == 0) return BSTR_OK;
 
   oldSlen = bu->slen;
-  i = 0;
+  i       = 0;
 
   /* Check for BOM character and select endianess.  Also remove the
-	   BOM from the stream, since there is no need for it in a UTF-8 encoding. */
+           BOM from the stream, since there is no need for it in a UTF-8
+     encoding. */
   if (bom && (cpUcs2) 0xFFFE == *bom) {
     sm = 8;
   } else if (bom && (cpUcs2) 0xFEFF == *bom) {

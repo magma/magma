@@ -1,9 +1,14 @@
 /*
- * Copyright (c) Facebook, Inc. and its affiliates.
- * All rights reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package servicers_test
@@ -43,7 +48,8 @@ const (
 		"\x63\x63\x30\x30\x31\x2e\x33\x67\x70\x70\x6e\x65\x74\x77\x6f\x72" +
 		"\x6b\x2e\x6f\x72\x67"
 
-	Secret = "123456"
+	CalledStationID1 = "98-DE-D0-84-B5-47:CWF-TP-LINK_B547_5G"
+	Secret           = "123456"
 )
 
 func TestRadius(t *testing.T) {
@@ -52,7 +58,7 @@ func TestRadius(t *testing.T) {
 
 	p, err := radius.Parse([]byte(RadiusAccessChallengeEapAkaIdentityRequestPacket), []byte(Secret))
 	assert.NoError(t, err)
-	actual, err := server.HandleRadius(Imsi, p)
+	actual, err := server.HandleRadius(Imsi, CalledStationID1, p)
 	assert.NoError(t, err)
 
 	expected, err := radius.Parse([]byte(RadiusAccessRequestEapAkaIdentityResponsePacket), []byte(Secret))
@@ -73,7 +79,7 @@ func TestUserNotFound(t *testing.T) {
 	p, err := radius.Parse([]byte(RadiusAccessChallengeEapAkaIdentityRequestPacket), []byte(Secret))
 	assert.NoError(t, err)
 
-	_, err = server.HandleRadius("012345678901234", p)
+	_, err = server.HandleRadius("012345678901234", CalledStationID1, p)
 	assert.EqualError(t, err, "Error getting UE with specified IMSI: Not found")
 }
 
@@ -83,7 +89,7 @@ func TestMissingEapPacket(t *testing.T) {
 
 	p := radius.New(radius.CodeAccessChallenge, []byte(Secret))
 
-	_, err = server.HandleRadius(Imsi, p)
+	_, err = server.HandleRadius(Imsi, CalledStationID1, p)
 	assert.EqualError(t, err, "Error extracting EAP message from Radius packet: no EAP-Message attribute found")
 }
 
@@ -93,7 +99,8 @@ func TestEapToRadius(t *testing.T) {
 	eapMessage := []byte(EapIdentityResponsePacket)
 	expectedIdentifier := uint8(1)
 	expectedImsi := "001010000000091"
-	radiusP, err := server.EapToRadius(eap.Packet(eapMessage), expectedImsi, expectedIdentifier)
+	expectedCalledStationID := "98-DE-D0-84-B5-47:CWF-TP-LINK_B547_5G"
+	radiusP, err := server.EapToRadius(eap.Packet(eapMessage), expectedImsi, expectedCalledStationID, expectedIdentifier)
 	assert.NoError(t, err)
 	assert.True(t, reflect.DeepEqual(radius.CodeAccessRequest, radiusP.Code))
 	assert.True(t, reflect.DeepEqual(expectedIdentifier, radiusP.Identifier))

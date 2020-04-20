@@ -1,20 +1,25 @@
 """
-Copyright (c) 2016-present, Facebook, Inc.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree. An additional grant
-of patent rights can be found in the PATENTS file in the same directory.
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 import logging
 from typing import Any, List, Set
 from lte.protos.policydb_pb2 import AssignedPolicies, PolicyRule,\
-    ChargingRuleNameSet
+    ChargingRuleNameSet, RatingGroup
 from lte.protos.session_manager_pb2 import PolicyReAuthRequest,\
     StaticRuleInstall
 from magma.common.streamer import StreamerClient
 from orc8r.protos.streamer_pb2 import DataUpdate
+from magma.policydb.rating_group_store import RatingGroupsDict
 from magma.policydb.reauth_handler import ReAuthHandler
 from magma.policydb.rule_map_store import RuleAssignmentsDict
 from magma.policydb.rule_store import PolicyRuleDict
@@ -172,3 +177,25 @@ class RuleMappingsStreamerCallback(StreamerClient.Callback):
             # No additional usage monitoring credits
             # No QoS info
         )
+
+
+class RatingGroupsStreamerCallback(StreamerClient.Callback):
+    """
+    Callback for the rating groups streamer which persists the rating groups
+    """
+    def __init__(
+            self,
+            rating_groups_dict: RatingGroupsDict,
+    ):
+        self._rating_groups = rating_groups_dict
+
+    def get_request_args(self, stream_name: str) -> Any:
+        return None
+
+    def process_update(self, stream_name: str, updates: List[DataUpdate],
+                       resync: bool):
+        logging.info('Processing %d rating group updates', len(updates))
+        for update in updates:
+            rg = RatingGroup()
+            rg.ParseFromString(update.value)
+            self._rating_groups[update.key] = rg

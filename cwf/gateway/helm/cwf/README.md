@@ -70,7 +70,7 @@ The following table list the configurable parameters of the orchestrator chart a
 | `manifests.service` | Enable cwf service. | `True` |
 | `manifests.rbac` | Enable cwf rbac. | `True` |
 | `secrets.create` | Enable cwf secret creation | `False` |
-| `secret.gwinfo`   | Secret name containing cwf gwinfo | `cwf-secrets-gwinfo`
+| `secret.gwinfo`   | Secret name containing cwf gwinfo | `cwf-secrets-gwinfo` |
 | `cwf.type` | Gateway type argument. | `cwf` |
 | `cwf.image.docker_registry` | CWF docker registry host. | `docker.io` |
 | `cwf.image.tag` | CWF docker images tag. | `latest` |
@@ -121,13 +121,13 @@ The following table list the configurable parameters of the orchestrator chart a
     f3bc383a95db16f2e448fdf67cac133a5f9019375720b59477aebc96bacd05a9
 
     Run the following, substituting your container ID:
-    $ docker cp <container ID>:/etc/snowflake charts/secrets/.secrets
-    $ docker cp <container ID>:/var/opt/magma/certs/gw_challenge.key /charts/secrets/.secrets 
+    $ docker cp <container ID>:/etc/snowflake charts/secrets/.secrets/gwinfo
+    $ docker cp <container ID>:/var/opt/magma/certs/gw_challenge.key /charts/secrets/.secrets/gwinfo
     ```
    
     If you're instead upgrading your gateway to have persistent gwinfo,
     copy the `etc/snowflake` and `/var/opt/magma/certs/gw_challenge.key` from 
-    your gateway to `charts/secrets/.secrets` of where this chart is stored.
+    your gateway to `charts/secrets/.secrets/gwinfo` of where this chart is stored.
 
     Ensure that `secrets.create` is set to true in your vals.yaml override
 
@@ -163,5 +163,4 @@ The following table list the configurable parameters of the orchestrator chart a
    ```
 
 4. Login to NMS Dahsboard and register New Gateway
-
 

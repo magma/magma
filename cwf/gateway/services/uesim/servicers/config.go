@@ -1,9 +1,14 @@
 /*
- * Copyright (c) Facebook, Inc. and its affiliates.
- * All rights reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package servicers
@@ -38,19 +43,19 @@ func getUESimConfig() (*UESimConfig, error) {
 		glog.Error(errors.Wrap(err, "No service config found, using default config"))
 		return getDefaultUESimConfig(), nil
 	}
-	authAddr, err := uecfg.GetStringParam("radius_auth_address")
+	authAddr, err := uecfg.GetString("radius_auth_address")
 	if err != nil {
 		authAddr = defaultRadiusAuthAddress
 	}
-	acctAddr, err := uecfg.GetStringParam("radius_acct_address")
+	acctAddr, err := uecfg.GetString("radius_acct_address")
 	if err != nil {
 		acctAddr = defaultRadiusAcctAddress
 	}
-	secret, err := uecfg.GetStringParam("radius_secret")
+	secret, err := uecfg.GetString("radius_secret")
 	if err != nil {
 		secret = defaultRadiusSecret
 	}
-	brName, err := uecfg.GetStringParam("ue_bridge")
+	brName, err := uecfg.GetString("ue_bridge")
 	if err != nil {
 		brName = defaultCwagTestBr
 	}
@@ -92,7 +97,7 @@ func getBridgeMac(br string) string {
 }
 
 func getHexParam(cfg *config.ConfigMap, param string, defaultBytes []byte) []byte {
-	param, err := cfg.GetStringParam(param)
+	param, err := cfg.GetString(param)
 	if err != nil {
 		return defaultBytes
 	}

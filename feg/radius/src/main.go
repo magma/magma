@@ -1,20 +1,22 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 package main
 
 import (
-	"fbc/cwf/radius/config"
-	"fbc/cwf/radius/loader"
-	"fbc/cwf/radius/monitoring"
-	"fbc/cwf/radius/server"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"math/rand"
 	"net"
 	"net/http"
@@ -22,10 +24,20 @@ import (
 	"os"
 	"os/signal"
 	"sort"
+	"strings"
 	"syscall"
+
+	"fbc/cwf/radius/config"
+	"fbc/cwf/radius/loader"
+	"fbc/cwf/radius/monitoring"
+	"fbc/cwf/radius/server"
+
+	_ "magma/orc8r/lib/go/initflag"
 
 	"go.uber.org/zap"
 )
+
+const versionFile = "/app/VERSION"
 
 func createLogger(encoding string) (*zap.Logger, error) {
 	if encoding == "json" {
@@ -84,7 +96,10 @@ func main() {
 	}
 
 	logger = logger.With(zap.String("host", getHostIdentifier()))
-
+	if config.Monitoring.Scuba != nil {
+		logger = logger.With(zap.String("partner_shortname", config.Monitoring.Scuba.PartnerShortName))
+	}
+	logger = logger.With(zap.String("app_version", GetVersion()))
 	loader := loader.NewStaticLoader(logger)
 
 	// Create server
@@ -131,4 +146,13 @@ func getHostIdentifier() string {
 
 	// Just a random, unstable identifer
 	return fmt.Sprintf("random:%d", rand.Intn(9999999))
+}
+
+// GetVersion returns version of the app
+func GetVersion() string {
+	data, err := ioutil.ReadFile(versionFile)
+	if err != nil {
+		return "NA"
+	}
+	return strings.TrimSuffix(string(data), "\n")
 }

@@ -58,7 +58,7 @@ set(PCEF_LTE_CPP_PROTOS s1ap_state common_types)
 list(APPEND PROTO_SRCS "")
 list(APPEND PROTO_HDRS "")
 
-create_proto_dir("lte/gateway/c/oai" STATE_OUT_DIR)
+set(STATE_OUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/lte/protos/oai")
 generate_cpp_protos("${PCEF_LTE_CPP_PROTOS}" "${PROTO_SRCS}" "${PROTO_HDRS}"
         "${STATE_PROTO_DIR}" "${STATE_OUT_DIR}")
 

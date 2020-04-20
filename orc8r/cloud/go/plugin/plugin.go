@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 package plugin
@@ -11,7 +16,6 @@ package plugin
 import (
 	"fmt"
 	"io/ioutil"
-	"magma/orc8r/cloud/go/services/state/indexer"
 	"os"
 	"plugin"
 	"reflect"
@@ -22,6 +26,7 @@ import (
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/metricsd"
+	"magma/orc8r/cloud/go/services/state/indexer"
 	"magma/orc8r/cloud/go/services/streamer/providers"
 	"magma/orc8r/lib/go/registry"
 	"magma/orc8r/lib/go/service/config"
@@ -56,7 +61,7 @@ type OrchestratorPlugin interface {
 	// mconfigs to pass down to gateways.
 	GetMconfigBuilders() []configurator.MconfigBuilder
 
-	// GetMetricsProfile returns the metricsd profiles that this module
+	// GetMetricsProfiles returns the metricsd profiles that this module
 	// supplies. This will make specific configurations available for metricsd
 	// to load on startup. See MetricsProfile for additional documentation.
 	GetMetricsProfiles(metricsConfig *config.ConfigMap) []metricsd.MetricsProfile
@@ -84,7 +89,7 @@ func LoadAllPluginsFatalOnError(loader OrchestratorPluginLoader) {
 	}
 }
 
-// LoadAlPlugins loads and registers all orchestrator plugins, returning the
+// LoadAllPlugins loads and registers all orchestrator plugins, returning the
 // first error encountered during the process. Standard use-cases should pass
 // DefaultOrchestratorPluginLoader.
 //
@@ -130,16 +135,19 @@ func (DefaultOrchestratorPluginLoader) LoadPlugins() ([]OrchestratorPlugin, erro
 		if os.IsNotExist(err) {
 			return ret, nil
 		}
-		return ret, fmt.Errorf("Failed to stat plugin directory: %s", err)
+		return ret, fmt.Errorf("failed to stat plugin directory: %s", err)
 	}
 
 	files, err := ioutil.ReadDir(modulePluginDir)
 	if err != nil {
-		return ret, fmt.Errorf("Failed to read plugin directory contents: %s", err)
+		return ret, fmt.Errorf("failed to read plugin directory contents: %s", err)
 	}
 
 	for _, file := range files {
-		isPlugin := strings.HasSuffix(file.Name(), ".so") && !file.IsDir()
+		if file.IsDir() {
+			continue
+		}
+		isPlugin := strings.HasSuffix(file.Name(), ".so")
 		if !isPlugin {
 			glog.Infof("Not loading file %s in plugin directory because it does not appear to be a valid plugin", file.Name())
 			continue
@@ -147,19 +155,19 @@ func (DefaultOrchestratorPluginLoader) LoadPlugins() ([]OrchestratorPlugin, erro
 
 		p, err := plugin.Open(modulePluginDir + file.Name())
 		if err != nil {
-			return []OrchestratorPlugin{}, fmt.Errorf("Could not open plugin %s: %s", file.Name(), err)
+			return []OrchestratorPlugin{}, fmt.Errorf("could not open plugin %s: %s", file.Name(), err)
 		}
 		pluginFactory, err := p.Lookup(moduleFactoryFunction)
 		if err != nil {
 			return []OrchestratorPlugin{}, fmt.Errorf(
-				"Failed lookup for plugin factory function %s for plugin %s: %s",
+				"failed lookup for plugin factory function %s for plugin %s: %s",
 				moduleFactoryFunction, file.Name(), err,
 			)
 		}
 		castedPluginFactory, ok := pluginFactory.(func() OrchestratorPlugin)
 		if !ok {
 			return []OrchestratorPlugin{}, fmt.Errorf(
-				"Failed to cast plugin factory function from plugin %s. Expected func() OrchestratorPlugin, got %s",
+				"failed to cast plugin factory function from plugin %s. Expected func() OrchestratorPlugin, got %s",
 				file.Name(), reflect.TypeOf(pluginFactory),
 			)
 		}
@@ -168,24 +176,15 @@ func (DefaultOrchestratorPluginLoader) LoadPlugins() ([]OrchestratorPlugin, erro
 	return ret, nil
 }
 
-func registerPlugin(orc8rPlugin OrchestratorPlugin, metricsConfig *config.ConfigMap) error {
-	registry.AddServices(orc8rPlugin.GetServices()...)
-	if err := serde.RegisterSerdes(orc8rPlugin.GetSerdes()...); err != nil {
+func registerPlugin(plug OrchestratorPlugin, metricsConfig *config.ConfigMap) error {
+	if err := serde.RegisterSerdes(plug.GetSerdes()...); err != nil {
 		return err
 	}
-	if err := metricsd.RegisterMetricsProfiles(orc8rPlugin.GetMetricsProfiles(metricsConfig)...); err != nil {
+	if err := obsidian.RegisterAll(plug.GetObsidianHandlers(metricsConfig)); err != nil {
 		return err
 	}
-	if err := obsidian.RegisterAll(orc8rPlugin.GetObsidianHandlers(metricsConfig)); err != nil {
-		return err
-	}
-	if err := providers.RegisterStreamProviders(orc8rPlugin.GetStreamerProviders()...); err != nil {
-		return err
-	}
-	configurator.RegisterMconfigBuilders(orc8rPlugin.GetMconfigBuilders()...)
-	if err := indexer.RegisterAll(orc8rPlugin.GetStateIndexers()...); err != nil {
-		return err
-	}
+
+	configurator.RegisterMconfigBuilders(plug.GetMconfigBuilders()...)
 
 	return nil
 }

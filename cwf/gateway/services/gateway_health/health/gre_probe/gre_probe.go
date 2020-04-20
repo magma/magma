@@ -1,9 +1,14 @@
 /*
- * Copyright (c) Facebook, Inc. and its affiliates.
- * All rights reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package gre_probe
@@ -13,6 +18,9 @@ package gre_probe
 type GREProbe interface {
 	// Start begins the probe of the GRE endpoint(s).
 	Start() error
+
+	// Stop stops the probe of the GRE endpoint(s).
+	Stop()
 
 	// GetStatus fetches the status of the GRE probe. The GREProbeStatus
 	// returned contains slices of reachable and unreachable endpoint IPs.

@@ -1,9 +1,14 @@
 ################################################################################
-# Copyright (c) Facebook, Inc. and its affiliates.
-# All rights reserved.
-#
+# Copyright 2020 The Magma Authors.
+
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 ################################################################################
 
 resource "kubernetes_namespace" "orc8r" {
@@ -12,10 +17,16 @@ resource "kubernetes_namespace" "orc8r" {
   }
 }
 
-# external dns maps route53 to ingress rosources
+resource "kubernetes_namespace" "monitoring" {
+  metadata {
+    name = var.monitoring_kubernetes_namespace
+  }
+}
+
+# external dns maps route53 to ingress resources
 resource "helm_release" "external_dns" {
   name       = "external-dns"
-  repository = data.helm_repository.stable.id
+  repository = local.stable_helm_repo
   chart      = "external-dns"
   version    = "2.19.1"
   namespace  = "kube-system"

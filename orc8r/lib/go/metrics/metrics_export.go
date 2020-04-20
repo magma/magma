@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 package metrics
@@ -22,7 +27,7 @@ const (
 	CloudHostLabelName = "cloudHost"
 )
 
-// This method gathers metrics from prometheus' default registry,
+// GetMetrics gathers metrics from Prometheus' default registry,
 // and adds a timestamp to each metric. This method is called
 // in Service303 Server's GetMetrics rpc implementation.
 // All servicers register their metrics with the default registry

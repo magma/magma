@@ -1,9 +1,14 @@
 /*
- * Copyright (c) Facebook, Inc. and its affiliates.
- * All rights reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package plugin_test
@@ -13,11 +18,12 @@ import (
 
 	"magma/cwf/cloud/go/cwf"
 	"magma/cwf/cloud/go/plugin"
-	"magma/cwf/cloud/go/plugin/models"
 	cwfmconfig "magma/cwf/cloud/go/protos/mconfig"
+	"magma/cwf/cloud/go/services/cwf/obsidian/models"
 	fegmconfig "magma/feg/cloud/go/protos/mconfig"
 	ltemconfig "magma/lte/cloud/go/protos/mconfig"
 	"magma/orc8r/cloud/go/orc8r"
+	orc8rplugin "magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
@@ -29,6 +35,7 @@ import (
 )
 
 func TestBuilder_Build(t *testing.T) {
+	orc8rplugin.RegisterPluginForTests(t, &plugin.CwfOrchestratorPlugin{})
 	builder := &plugin.Builder{}
 
 	// empty case: no cwf associated to magmad gateway
@@ -73,7 +80,7 @@ func TestBuilder_Build(t *testing.T) {
 				SessionMs:              43200000,
 				SessionAuthenticatedMs: 5000,
 			},
-			PlmnIds: []string{},
+			PlmnIds: nil,
 		},
 		"aaa_server": &fegmconfig.AAAConfig{LogLevel: 1,
 			IdleSessionTimeoutMs: 21600000,
@@ -85,7 +92,6 @@ func TestBuilder_Build(t *testing.T) {
 			UeIpBlock:     "192.168.128.0/24", // Unused by CWF
 			NatEnabled:    false,
 			DefaultRuleId: "",
-			RelayEnabled:  true,
 			Services: []ltemconfig.PipelineD_NetworkServices{
 				ltemconfig.PipelineD_DPI,
 				ltemconfig.PipelineD_ENFORCEMENT,
@@ -105,6 +111,10 @@ func TestBuilder_Build(t *testing.T) {
 		"sessiond": &ltemconfig.SessionD{
 			LogLevel:     protos.LogLevel_INFO,
 			RelayEnabled: true,
+			WalletExhaustDetection: &ltemconfig.WalletExhaustDetection{
+				TerminateOnExhaust: true,
+				Method:             ltemconfig.WalletExhaustDetection_GxTrackedRules,
+			},
 		},
 		"redirectd": &ltemconfig.RedirectD{
 			LogLevel: protos.LogLevel_INFO,
@@ -113,10 +123,10 @@ func TestBuilder_Build(t *testing.T) {
 			LogLevel: protos.LogLevel_INFO,
 		},
 		"health": &cwfmconfig.CwfGatewayHealthConfig{
-			CpuUtilThresholdPct: 0.9,
-			MemUtilThresholdPct: 0.8,
-			GreProbeInterval:    5,
-			IcmpProbePktCount:   3,
+			CpuUtilThresholdPct: 0,
+			MemUtilThresholdPct: 0,
+			GreProbeInterval:    0,
+			IcmpProbePktCount:   0,
 			GrePeers: []*cwfmconfig.CwfGatewayHealthConfigGrePeer{
 				{Ip: "1.2.3.4/24"},
 				{Ip: "1.1.1.1/24"},
@@ -136,7 +146,7 @@ var defaultnwConfig = &models.NetworkCarrierWifiConfigs{
 			SessionMs:              43200000,
 			SessionAuthenticatedMs: 5000,
 		},
-		PlmnIds: []string{},
+		PlmnIds: nil,
 	},
 	AaaServer: &models.AaaServer{
 		IDLESessionTimeoutMs: 21600000,
@@ -158,11 +168,5 @@ var defaultgwConfig = &models.GatewayCwfConfigs{
 	IPDRExportDst: &models.IPDRExportDst{
 		IP:   "192.168.128.88",
 		Port: 2040,
-	},
-	GatewayHealthConfigs: &models.GatewayHealthConfigs{
-		CPUUtilThresholdPct:  0.9,
-		MemUtilThresholdPct:  0.8,
-		GreProbeIntervalSecs: 5,
-		IcmpProbePktCount:    3,
 	},
 }

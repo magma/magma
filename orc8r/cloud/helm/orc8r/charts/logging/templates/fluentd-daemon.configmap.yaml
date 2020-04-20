@@ -210,6 +210,23 @@ data:
       </parse>
     </filter>
 
+    <filter kubernetes.**orc8r-nginx**>
+      @type parser
+      key_name log
+
+      <parse>
+        @type multi_format
+
+        <pattern>
+          format json
+        </pattern>
+
+        <pattern>
+          format none
+        </pattern>
+      </parse>
+    </filter>
+
     <filter kubernetes.**>
       @type kubernetes_metadata
       @id filter_kube_metadata

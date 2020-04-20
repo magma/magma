@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -38,8 +34,8 @@
     to encode and decode
 
 *****************************************************************************/
-#include <string.h> // memcpy
-#include <stdlib.h> // free
+#include <string.h>  // memcpy
+#include <stdlib.h>  // free
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -81,85 +77,84 @@
  **    Others:  None                                       **
  **                                                                        **
  ***************************************************************************/
-int as_message_decode(const char *buffer, as_message_t *msg, size_t length)
-{
+int as_message_decode(const char* buffer, as_message_t* msg, size_t length) {
   OAILOG_FUNC_IN(LOG_NAS);
   int bytes;
-  uint8_t **data = NULL;
+  uint8_t** data = NULL;
 
   /*
    * Get the message type
    */
-  msg->msg_id = *(uint16_t *) (buffer);
-  bytes = sizeof(uint16_t);
+  msg->msg_id = *(uint16_t*) (buffer);
+  bytes       = sizeof(uint16_t);
 
   switch (msg->msg_id) {
     case AS_NAS_ESTABLISH_REQ:
       /*
-     * NAS signalling connection establish request
-     */
-      bytes += sizeof(nas_establish_req_t) - sizeof(uint8_t *);
+       * NAS signalling connection establish request
+       */
+      bytes += sizeof(nas_establish_req_t) - sizeof(uint8_t*);
       data = &msg->msg.nas_establish_req.initial_nas_msg->data;
       break;
 
     case AS_NAS_ESTABLISH_IND:
       /*
-     * NAS signalling connection establishment indication
-     */
-      bytes += sizeof(nas_establish_ind_t) - sizeof(uint8_t *);
+       * NAS signalling connection establishment indication
+       */
+      bytes += sizeof(nas_establish_ind_t) - sizeof(uint8_t*);
       data = &msg->msg.nas_establish_ind.initial_nas_msg->data;
       break;
 
     case AS_NAS_ESTABLISH_RSP:
       /*
-     * NAS signalling connection establishment response
-     */
-      bytes += sizeof(nas_establish_rsp_t) - sizeof(uint8_t *);
+       * NAS signalling connection establishment response
+       */
+      bytes += sizeof(nas_establish_rsp_t) - sizeof(uint8_t*);
       data = &msg->msg.nas_establish_rsp.nas_msg->data;
       break;
 
     case AS_NAS_ESTABLISH_CNF:
       /*
-     * NAS signalling connection establishment confirm
-     */
-      bytes += sizeof(nas_establish_cnf_t) - sizeof(uint8_t *);
+       * NAS signalling connection establishment confirm
+       */
+      bytes += sizeof(nas_establish_cnf_t) - sizeof(uint8_t*);
       data = &msg->msg.nas_establish_cnf.nas_msg->data;
       break;
 
     case AS_UL_INFO_TRANSFER_REQ:
       /*
-     * Uplink L3 data transfer request
-     */
-      bytes += sizeof(ul_info_transfer_req_t) - sizeof(uint8_t *);
+       * Uplink L3 data transfer request
+       */
+      bytes += sizeof(ul_info_transfer_req_t) - sizeof(uint8_t*);
       data = &msg->msg.ul_info_transfer_req.nas_msg->data;
       break;
 
     case AS_UL_INFO_TRANSFER_IND:
       /*
-     * Uplink L3 data transfer indication
-     */
-      bytes += sizeof(ul_info_transfer_ind_t) - sizeof(uint8_t *);
+       * Uplink L3 data transfer indication
+       */
+      bytes += sizeof(ul_info_transfer_ind_t) - sizeof(uint8_t*);
       data = &msg->msg.ul_info_transfer_ind.nas_msg->data;
       break;
 
     case AS_DL_INFO_TRANSFER_REQ:
       /*
-     * Downlink L3 data transfer request
-     */
-      bytes += sizeof(dl_info_transfer_req_t) - sizeof(uint8_t *);
+       * Downlink L3 data transfer request
+       */
+      bytes += sizeof(dl_info_transfer_req_t) - sizeof(uint8_t*);
       data = &msg->msg.dl_info_transfer_req.nas_msg->data;
       break;
 
     case AS_DL_INFO_TRANSFER_IND:
       /*
-     * Downlink L3 data transfer indication
-     */
-      bytes += sizeof(dl_info_transfer_ind_t) - sizeof(uint8_t *);
+       * Downlink L3 data transfer indication
+       */
+      bytes += sizeof(dl_info_transfer_ind_t) - sizeof(uint8_t*);
       data = &msg->msg.dl_info_transfer_ind.nas_msg->data;
       break;
 
     case AS_ACTIVATE_BEARER_CONTEXT_REQ:
-      bytes += sizeof(dl_info_transfer_req_t) - sizeof(uint8_t *);
+      bytes += sizeof(dl_info_transfer_req_t) - sizeof(uint8_t*);
       data = &msg->msg.activate_bearer_context_req.nas_msg->data;
       break;
 
@@ -175,15 +170,15 @@ int as_message_decode(const char *buffer, as_message_t *msg, size_t length)
     case AS_RAB_RELEASE_REQ:
     case AS_RAB_RELEASE_IND:
       /*
-     * Messages without dedicated NAS information
-     */
+       * Messages without dedicated NAS information
+       */
       bytes = length;
       break;
 
     default:
       bytes = 0;
       OAILOG_WARNING(
-        LOG_NAS, "NET-API   - AS message 0x%x is not valid", msg->msg_id);
+          LOG_NAS, "NET-API   - AS message 0x%x is not valid", msg->msg_id);
       break;
   }
 
@@ -192,18 +187,18 @@ int as_message_decode(const char *buffer, as_message_t *msg, size_t length)
       /*
        * Set the pointer to dedicated NAS information
        */
-      *data = (uint8_t *) (buffer + bytes);
+      *data = (uint8_t*) (buffer + bytes);
     }
 
     /*
      * Decode the message
      */
-    memcpy(msg, (as_message_t *) buffer, bytes);
+    memcpy(msg, (as_message_t*) buffer, bytes);
     OAILOG_FUNC_RETURN(LOG_NAS, msg->msg_id);
   }
 
   OAILOG_WARNING(
-    LOG_NAS, "NET-API   - Failed to decode AS message 0x%x", msg->msg_id);
+      LOG_NAS, "NET-API   - Failed to decode AS message 0x%x", msg->msg_id);
   OAILOG_FUNC_RETURN(LOG_NAS, RETURNerror);
 }
 
@@ -224,8 +219,8 @@ int as_message_decode(const char *buffer, as_message_t *msg, size_t length)
  **    Others:  None                                       **
  **                                                                        **
  ***************************************************************************/
-//int
-//as_message_encode (
+// int
+// as_message_encode (
 //  char *buffer,
 //  as_message_t * msg,
 //  size_t length)
@@ -392,9 +387,8 @@ int as_message_decode(const char *buffer, as_message_t *msg, size_t length)
 //    break;
 //
 //  default:
-//    OAILOG_WARNING(LOG_NAS, "NET-API   - AS message 0x%x is not valid", msg->msg_id);
-//    bytes = length;
-//    break;
+//    OAILOG_WARNING(LOG_NAS, "NET-API   - AS message 0x%x is not valid",
+//    msg->msg_id); bytes = length; break;
 //  }
 //
 //  if (length > bytes) {
@@ -420,8 +414,8 @@ int as_message_decode(const char *buffer, as_message_t *msg, size_t length)
 //    OAILOG_FUNC_RETURN (LOG_NAS, bytes);
 //  }
 //
-//  OAILOG_WARNING(LOG_NAS, "NET-API   - Failed to encode AS message 0x%x", msg->msg_id);
-//  OAILOG_FUNC_RETURN (LOG_NAS, RETURNerror);
+//  OAILOG_WARNING(LOG_NAS, "NET-API   - Failed to encode AS message 0x%x",
+//  msg->msg_id); OAILOG_FUNC_RETURN (LOG_NAS, RETURNerror);
 //}
 
 /****************************************************************************/

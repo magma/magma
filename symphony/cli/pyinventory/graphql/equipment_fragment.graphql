@@ -1,9 +1,0 @@
-fragment EquipmentFragment on Equipment {
-  id
-  externalId
-  name
-  equipmentType {
-    id
-    name
-  }
-}

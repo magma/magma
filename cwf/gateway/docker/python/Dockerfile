@@ -1,10 +1,11 @@
 # -----------------------------------------------------------------------------
 # Builder image for Magma proto files
 # -----------------------------------------------------------------------------
-FROM ubuntu:xenial AS builder
+FROM ubuntu:bionic AS builder
 
 # Install the runtime deps from apt.
-RUN apt-get -y update && apt-get -y install curl make virtualenv zip
+RUN apt-get -y update && apt-get -y install curl make virtualenv zip \
+  apt-utils software-properties-common apt-transport-https
 
 # Install protobuf compiler.
 RUN curl -Lfs https://github.com/google/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-x86_64.zip -o protoc3.zip && \
@@ -15,24 +16,30 @@ RUN curl -Lfs https://github.com/google/protobuf/releases/download/v3.1.0/protoc
   chmod -R a+Xr /usr/include/google && \
   rm -rf protoc3.zip protoc3
 
+# Install python3.5 since it's not native on bionic
+RUN apt-add-repository "ppa:deadsnakes/ppa"
+RUN apt-get -y update && apt-get -y install python3.5
+
 ENV MAGMA_ROOT /magma
 ENV PYTHON_BUILD /build/python
 ENV PIP_CACHE_HOME ~/.pipcache
 
 # Generate python proto bindings.
+COPY cwf/protos $MAGMA_ROOT/cwf/protos
 COPY feg/protos $MAGMA_ROOT/feg/protos
 COPY lte/gateway/python/defs.mk $MAGMA_ROOT/lte/gateway/python/defs.mk
 COPY lte/gateway/python/Makefile $MAGMA_ROOT/lte/gateway/python/Makefile
 COPY lte/protos $MAGMA_ROOT/lte/protos
-COPY orc8r/gateway/python/python.mk $MAGMA_ROOT/orc8r/gateway/python/python.mk
+COPY orc8r/gateway/python $MAGMA_ROOT/orc8r/gateway/python
 COPY orc8r/protos $MAGMA_ROOT/orc8r/protos
 COPY protos $MAGMA_ROOT/protos
-RUN make -C $MAGMA_ROOT/lte/gateway/python protos
+ENV PROTO_LIST orc8r_protos lte_protos feg_protos cwf_protos
+RUN make -C $MAGMA_ROOT/orc8r/gateway/python protos
 
 # -----------------------------------------------------------------------------
 # Dev/Production image
 # -----------------------------------------------------------------------------
-FROM ubuntu:xenial AS lte_gateway_python
+FROM ubuntu:bionic AS lte_gateway_python
 
 # Add the magma apt repo
 RUN apt-get update && \
@@ -40,14 +47,17 @@ RUN apt-get update && \
 COPY orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub /tmp/jfrog.pub
 COPY cwf/gateway/deploy/roles/ovs/files/magma-preferences /etc/apt/preferences.d/
 RUN apt-key add /tmp/jfrog.pub && \
-    apt-add-repository "deb https://magma.jfrog.io/magma/list/dev/ xenial main"
+    apt-add-repository "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev/ bionic main" && \
+    apt-add-repository "deb http://archive.ubuntu.com/ubuntu/ bionic-proposed restricted main multiverse universe"
 
-# Install the runtime deps from apt.
+ # Install python3.5 since it's not native on bionic
+RUN apt-add-repository "ppa:deadsnakes/ppa"
+RUN apt-get -y update && apt-get -y install python3.5
+
 RUN apt-get -y update && apt-get -y install \
     curl \
     libc-ares2 \
     libev4 \
-    libevent-openssl-2.0-5 \
     libffi-dev \
     libjansson4 \
     libjemalloc1 \
@@ -58,8 +68,8 @@ RUN apt-get -y update && apt-get -y install \
     openssl \
     pkg-config \
     python-cffi \
-    python3-aioeventlet \
     python3-pip \
+    python3.5-dev \
     redis-server \
     iptables \
     git \
@@ -69,8 +79,8 @@ RUN apt-get -y update && apt-get -y install \
     libcap-ng-dev \
     linux-headers-generic \
     netcat
-    
-RUN pip3 install \
+
+RUN python3.5 -m pip install \
     Cython \
     fire \
     envoy \
@@ -100,7 +110,13 @@ RUN pip3 install \
     click \
     pycares \
     python-dateutil \
-    jsonpickle 
+    jsonpickle
+
+COPY cwf/gateway/deploy/roles/ovs/files/nx_actions.py /usr/local/lib/python3.5/dist-packages/ryu/ofproto/
+
+# Temporary workaround to restore uplink bridge flows
+RUN mkdir -p /var/opt/magma/scripts
+COPY cwf/gateway/deploy/roles/cwag/files/add_uplink_bridge_flows.sh /var/opt/magma/scripts
 
 # Install OVS via Magma bionic pkg repo
 RUN git clone --single-branch --branch v2.12.0 https://github.com/openvswitch/ovs.git
@@ -120,16 +136,15 @@ RUN make install
 
 # Install orc8r python (magma.common required for lte python)
 COPY orc8r/gateway/python /tmp/orc8r
-RUN pip3 install /tmp/orc8r
+RUN python3.5 -m pip install /tmp/orc8r
 
 # Install lte python
 COPY lte/gateway/python /tmp/lte
-RUN pip3 install /tmp/lte
+RUN python3.5 -m pip install /tmp/lte
 
 # Copy the configs.
 COPY lte/gateway/configs /etc/magma
 COPY orc8r/gateway/configs/templates /etc/magma/templates
-COPY orc8r/cloud/docker/proxy/magma_headers.rb /etc/nghttpx/magma_headers.rb
 RUN mkdir -p /var/opt/magma/configs
 
 WORKDIR /

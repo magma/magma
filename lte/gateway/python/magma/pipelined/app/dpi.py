@@ -1,22 +1,28 @@
 """
-Copyright (c) 2016-present, Facebook, Inc.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree. An additional grant
-of patent rights can be found in the PATENTS file in the same directory.
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 import shlex
 import subprocess
+import logging
 
 from magma.pipelined.openflow import flows
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.app.base import MagmaController, ControllerType
+from magma.pipelined.app.ipfix import IPFIXController
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import Direction, DPI_REG
 from magma.pipelined.policy_converters import FlowMatchError, \
     flow_match_to_magma_match, flip_flow_match
-
+from lte.protos.pipelined_pb2 import FlowRequest
 
 from ryu.lib.packet import ether_types
 
@@ -30,6 +36,11 @@ APP_PROTOS = {"facebook_messenger": 1, "instagram": 2, "youtube": 3,
               "google_play": 102, "appstore": 103, "amazon": 104, "wechat": 105,
               "tiktok": 106, "twitter": 107, "wikipedia": 108, "yahoo": 109}
 SERVICE_IDS = {"other": 0, "chat": 1, "audio": 2, "video": 3}
+DEFAULT_DPI_ID = 0
+# Max register value
+UNCLASSIFIED_PROTO_ID = 0xFFFFFFFF
+
+LOG = logging.getLogger('pipelined.app.dpi')
 
 
 class DPIController(MagmaController):
@@ -55,6 +66,11 @@ class DPIController(MagmaController):
         self._mon_port_number = kwargs['config']['dpi']['mon_port_number']
         self._idle_timeout = kwargs['config']['dpi']['idle_timeout']
         self._bridge_name = kwargs['config']['bridge_name']
+        self._classify_app_tbl_num = \
+            self._service_manager.allocate_scratch_tables(self.APP_NAME, 1)[0]
+        self._app_set_tbl_num = self._service_manager.INTERNAL_APP_SET_TABLE_NUM
+        self._imsi_set_tbl_num = \
+            self._service_manager.INTERNAL_IMSI_SET_TABLE_NUM
         if self._dpi_enabled:
             self._create_monitor_port()
 
@@ -65,9 +81,9 @@ class DPIController(MagmaController):
         Args:
             datapath: ryu datapath struct
         """
+        self._datapath = datapath
         self.delete_all_flows(datapath)
         self._install_default_flows(datapath)
-        self._datapath = datapath
 
     def cleanup_on_disconnect(self, datapath):
         """
@@ -80,8 +96,11 @@ class DPIController(MagmaController):
 
     def delete_all_flows(self, datapath):
         flows.delete_all_flows_from_table(datapath, self.tbl_num)
+        flows.delete_all_flows_from_table(datapath, self._app_set_tbl_num)
+        flows.delete_all_flows_from_table(datapath, self._classify_app_tbl_num)
 
-    def add_classify_flow(self, flow_match, app: str, service_type: str):
+    def add_classify_flow(self, flow_match, flow_state, app: str,
+                          service_type: str):
         """
         Parse DPI output and set the register for future packets matching this
         flow. APP is split into tokens as the top level app is not supported,
@@ -89,44 +108,12 @@ class DPIController(MagmaController):
         Example we care about google traffic, but don't neccessarily want to
         classify every specific google service.
         """
+        # TODO add error return
+        if self._datapath is None:
+            return
         parser = self._datapath.ofproto_parser
-        tokens = app.split('.')
 
-        # We could be sent an app that we don't care about, just ignore it
-        if not any(app for app in tokens if app in PARENT_PROTOS
-                                         or app in APP_PROTOS):
-            self.logger.debug("Unrecognized app name %s", app)
-            return
-
-        app_match = [app for app in tokens if app in APP_PROTOS]
-        if len(app_match) > 1:
-            self.logger.warning("Found more than 1 app match in %s", app)
-            return
-
-        if (len(app_match) == 1):
-            app_id = APP_PROTOS[app_match[0]]
-            self.logger.debug("Classified %s-%s as %d", app, service_type,
-                              app_id)
-        else:
-            parent_match = [app for app in tokens if app in PARENT_PROTOS]
-            # This shoudn't happen as we confirmed the match exists
-            if len(parent_match) == 0:
-                self.logger.warning("Didn't find a match for app name %s", app)
-                return
-
-            if len(parent_match) > 1:
-                self.logger.warning("Found more than 1 parent app match in %s",
-                                    app)
-            app_id = PARENT_PROTOS[parent_match[0]]
-
-            service_id = SERVICE_IDS['other']
-            for serv in SERVICE_IDS:
-                if serv in service_type.lower():
-                    service_id = SERVICE_IDS[serv]
-                    break
-            app_id += service_id
-            self.logger.debug("Classified %s-%s as %d", app, service_type,
-                              app_id)
+        app_id = get_app_id(app, service_type)
 
         try:
             ul_match = flow_match_to_magma_match(flow_match)
@@ -136,14 +123,16 @@ class DPIController(MagmaController):
         except FlowMatchError as e:
             self.logger.error(e)
             return
-        actions = [parser.OFPActionOutput(self._mon_port_number),
-                   parser.NXActionRegLoad2(dst=DPI_REG, value=app_id)]
-        flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num,
-            ul_match, actions, priority=flows.DEFAULT_PRIORITY,
-            resubmit_table=self.next_table, idle_timeout=self._idle_timeout)
-        flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num,
-            dl_match, actions, priority=flows.DEFAULT_PRIORITY,
-            resubmit_table=self.next_table, idle_timeout=self._idle_timeout)
+
+        actions = [parser.NXActionRegLoad2(dst=DPI_REG, value=app_id)]
+        # No reason to create a flow here
+        if flow_state != FlowRequest.FLOW_CREATED:
+            flows.add_flow(self._datapath, self._classify_app_tbl_num,
+                ul_match, actions, priority=flows.DEFAULT_PRIORITY,
+                idle_timeout=self._idle_timeout)
+            flows.add_flow(self._datapath, self._classify_app_tbl_num,
+                dl_match, actions, priority=flows.DEFAULT_PRIORITY,
+                idle_timeout=self._idle_timeout)
 
     def remove_classify_flow(self, flow_match):
         try:
@@ -155,8 +144,8 @@ class DPIController(MagmaController):
             self.logger.error(e)
             return False
 
-        flows.delete_flow(self._datapath, self.tbl_num, ul_match)
-        flows.delete_flow(self._datapath, self.tbl_num, dl_match)
+        flows.delete_flow(self._datapath, self._classify_app_tbl_num, ul_match)
+
         return True
 
     def _install_default_flows(self, datapath):
@@ -168,15 +157,19 @@ class DPIController(MagmaController):
         Args:
             datapath: ryu datapath struct
         """
-        parser = datapath.ofproto_parser
+        parser = self._datapath.ofproto_parser
+
+        # Setup flows to classify & mirror to sampling port
         inbound_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
                                    direction=Direction.IN)
         outbound_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
                                     direction=Direction.OUT)
+
+        actions = [
+            parser.NXActionResubmitTable(table_id=self._classify_app_tbl_num)]
+
         if self._dpi_enabled:
-            actions = [parser.OFPActionOutput(self._mon_port_number)]
-        else:
-            actions = []
+            actions.append(parser.OFPActionOutput(self._mon_port_number))
 
         flows.add_resubmit_next_service_flow(datapath, self.tbl_num,
                                              inbound_match, actions,
@@ -186,6 +179,22 @@ class DPIController(MagmaController):
                                              outbound_match, actions,
                                              priority=flows.MINIMUM_PRIORITY,
                                              resubmit_table=self.next_table)
+
+        # Setup flows for internal IPFIX sampling
+        actions = [
+            parser.NXActionResubmitTable(table_id=self._classify_app_tbl_num)]
+
+        if self._service_manager.is_app_enabled(IPFIXController.APP_NAME):
+            flows.add_resubmit_next_service_flow(
+                self._datapath, self._app_set_tbl_num, MagmaMatch(), actions,
+                priority=flows.MINIMUM_PRIORITY,
+                resubmit_table=self._imsi_set_tbl_num)
+
+        # Setup flows for the application reg classifier tbl
+        actions = [parser.NXActionRegLoad2(dst=DPI_REG,
+                                           value=UNCLASSIFIED_PROTO_ID)]
+        flows.add_flow(datapath, self._classify_app_tbl_num, MagmaMatch(),
+                       actions, priority=flows.MINIMUM_PRIORITY)
 
     def _create_monitor_port(self):
         """
@@ -210,3 +219,44 @@ class DPIController(MagmaController):
         args = shlex.split(enable_cmd)
         ret = subprocess.call(args)
         self.logger.debug("Enabled monitor port ret %d", ret)
+
+
+def get_app_id(app: str, service_type: str) -> int:
+    """
+    Classify the app/service_type to a numeric identifier to export
+    """
+    if not app or not service_type:
+        return DEFAULT_DPI_ID
+
+    app = app.lower()
+    service_type = service_type.lower()
+    tokens = app.split('.')
+    app_match = [app for app in tokens if app in APP_PROTOS]
+    if len(app_match) > 1:
+        LOG.warning("Found more than 1 app match in %s", app)
+        return DEFAULT_DPI_ID
+
+    if (len(app_match) == 1):
+        app_id = APP_PROTOS[app_match[0]]
+        LOG.debug("Classified %s-%s as %d", app, service_type,
+                            app_id)
+        return app_id
+    parent_match = [app for app in tokens if app in PARENT_PROTOS]
+
+    # This shoudn't happen as we confirmed the match exists
+    if len(parent_match) == 0:
+        LOG.debug("Didn't find a match for app name %s", app)
+        return DEFAULT_DPI_ID
+    if len(parent_match) > 1:
+        LOG.debug("Found more than 1 parent app match in %s", app)
+        return DEFAULT_DPI_ID
+    app_id = PARENT_PROTOS[parent_match[0]]
+
+    service_id = SERVICE_IDS['other']
+    for serv in SERVICE_IDS:
+        if serv in service_type:
+            service_id = SERVICE_IDS[serv]
+            break
+    app_id += service_id
+    LOG.debug("Classified %s-%s as %d", app, service_type, app_id)
+    return app_id

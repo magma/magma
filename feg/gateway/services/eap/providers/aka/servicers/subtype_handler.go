@@ -1,17 +1,23 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 // package servicers implements EAP-AKA GRPC service
 package servicers
 
 import (
-	"log"
 	"sync"
+
+	"github.com/golang/glog"
 
 	"magma/feg/gateway/services/aaa/protos"
 	"magma/feg/gateway/services/eap"
@@ -36,7 +42,7 @@ func AddHandler(st aka.Subtype, h Handler) {
 	}
 	oldh, ok := akaHandlers.hm[st]
 	if ok && oldh != nil {
-		log.Printf("WARNING: EAP AKA Handler for subtype %d => %+v is already registered, will overwrite with %+v",
+		glog.Warningf("EAP AKA Handler for subtype %d => %+v is already registered, will overwrite with %+v",
 			st, oldh, h)
 	}
 	akaHandlers.hm[st] = h

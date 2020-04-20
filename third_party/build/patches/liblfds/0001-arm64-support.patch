@@ -1,0 +1,51 @@
+################################################################################
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+################################################################################
+
+diff --git a/liblfds/liblfds7.1.0/liblfds710/build/gcc_gnumake/Makefile b/liblfds/liblfds7.1.0/liblfds710/build/gcc_gnumake/Makefile
+index 52cd182..0558456 100644
+--- a/liblfds/liblfds7.1.0/liblfds710/build/gcc_gnumake/Makefile
++++ b/liblfds/liblfds7.1.0/liblfds710/build/gcc_gnumake/Makefile
+@@ -120,7 +120,7 @@ $(ARPATHNAME) : $(OBJECTS)
+ 	$(AR) $(ARFLAGS_OPTIONAL) $(ARFLAGS) $(ARFLAGS_MANDATORY) $(ARPATHNAME) $(OBJECTS)
+ 
+ $(SOPATHNAME) : $(OBJECTS)
+-	$(LD) $(LDFLAGS_OPTIONAL) $(LDFLAGS) $(LDFLAGS_MANDATORY) $(OBJECTS) -lgcov -lgcc -o $(SOPATHNAME)
++	$(LD) $(LDFLAGS_OPTIONAL) $(LDFLAGS) $(LDFLAGS_MANDATORY) $(OBJECTS) -lgcov -lgcc -o $(SOPATHNAME) -latomic
+ 	@ln -fs $(SOFILENAME) $(BINDIR)/$(SONAME)
+ 	@ln -fs $(SOFILENAME) $(BINDIR)/$(SOBASENAME)
+ 
+diff --git a/liblfds/liblfds7.1.0/liblfds710/inc/liblfds710/lfds710_porting_abstraction_layer_compiler.h b/liblfds/liblfds7.1.0/liblfds710/inc/liblfds710/lfds710_porting_abstraction_layer_compiler.h
+index 674aff9..91e5ebc 100644
+--- a/liblfds/liblfds7.1.0/liblfds710/inc/liblfds710/lfds710_porting_abstraction_layer_compiler.h
++++ b/liblfds/liblfds7.1.0/liblfds710/inc/liblfds710/lfds710_porting_abstraction_layer_compiler.h
+@@ -384,11 +384,18 @@
+     result = (char unsigned) __atomic_compare_exchange_n( pointer_to_destination, pointer_to_compare, new_destination, cas_strength, __ATOMIC_RELAXED, __ATOMIC_RELAXED );  \
+   }
+ 
++#if( defined __aarch64__)
++typedef __int128 unsigned __dwcas_t;
++#else
++typedef int long long unsigned __dwcas_t;
++#endif
++
++
+   // TRD : ARM and x86 have DWCAS which we can get via GCC intrinsics
+-  #if( defined __arm__ || defined __i686__ || defined __i586__ || defined __i486__ )
++  #if( defined __arm__ || defined __i686__ || defined __i586__ || defined __i486__ || defined __aarch64__ )
+     #define LFDS710_PAL_ATOMIC_DWCAS( pointer_to_destination, pointer_to_compare, pointer_to_new_destination, cas_strength, result )                                                                                                                                                          \
+     {                                                                                                                                                                                                                                                                                         \
+-      (result) = (char unsigned) __atomic_compare_exchange_n( (int long long unsigned volatile *) (pointer_to_destination), (int long long unsigned *) (pointer_to_compare), *(int long long unsigned *) (pointer_to_new_destination), (cas_strength), __ATOMIC_RELAXED, __ATOMIC_RELAXED );  \
++      (result) = (char unsigned) __atomic_compare_exchange_n( (__dwcas_t volatile *) (pointer_to_destination), (__dwcas_t *) (pointer_to_compare), *(__dwcas_t *) (pointer_to_new_destination), (cas_strength), __ATOMIC_RELAXED, __ATOMIC_RELAXED );  \
+     }
+   #endif
+ 

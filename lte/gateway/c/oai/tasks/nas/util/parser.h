@@ -2,12 +2,8 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -53,12 +49,12 @@ Description Usefull command line parser
  *  name, the usage message and a value
  */
 typedef struct {
-  const char *name;     /* Option name         */
-  const char *argument; /* Argument following the option   */
-  const char *usage;    /* Option and Argument usage     */
+  const char* name;     /* Option name         */
+  const char* argument; /* Argument following the option   */
+  const char* usage;    /* Option and Argument usage     */
 #define PARSER_OPTION_VALUE_SIZE 32
   char value[PARSER_OPTION_VALUE_SIZE]; /* Option value      */
-  char *pvalue;
+  char* pvalue;
 } parser_option_t;
 
 /* -----------------
@@ -82,10 +78,8 @@ typedef struct {
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
 
-void parser_print_usage(const parser_command_line_t *commamd_line);
+void parser_print_usage(const parser_command_line_t* commamd_line);
 int parser_get_options(
-  int argc,
-  const char **argv,
-  parser_command_line_t *commamd_line);
+    int argc, const char** argv, parser_command_line_t* commamd_line);
 
 #endif /* FILE_PARSER_SEEN*/

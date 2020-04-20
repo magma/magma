@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 package gy_test
@@ -26,11 +31,11 @@ func TestReAuthRelay(t *testing.T) {
 	handler := gy.GetGyReAuthHandler(cloudRegistry)
 
 	var rg uint32 = 1
-	assertReAuth(t, handler, sm, &rg, protos.ChargingReAuthAnswer_UPDATE_INITIATED, diam.LimitedSuccess)
-	assertReAuth(t, handler, sm, nil, protos.ChargingReAuthAnswer_UPDATE_INITIATED, diam.LimitedSuccess)
-	assertReAuth(t, handler, sm, &rg, protos.ChargingReAuthAnswer_UPDATE_NOT_NEEDED, diam.Success)
-	assertReAuth(t, handler, sm, &rg, protos.ChargingReAuthAnswer_SESSION_NOT_FOUND, diam.UnknownSessionID)
-	assertReAuth(t, handler, sm, &rg, protos.ChargingReAuthAnswer_OTHER_FAILURE, diam.UnableToComply)
+	assertReAuth(t, handler, sm, &rg, protos.ReAuthResult_UPDATE_INITIATED, diam.LimitedSuccess)
+	assertReAuth(t, handler, sm, nil, protos.ReAuthResult_UPDATE_INITIATED, diam.LimitedSuccess)
+	assertReAuth(t, handler, sm, &rg, protos.ReAuthResult_UPDATE_NOT_NEEDED, diam.Success)
+	assertReAuth(t, handler, sm, &rg, protos.ReAuthResult_SESSION_NOT_FOUND, diam.UnknownSessionID)
+	assertReAuth(t, handler, sm, &rg, protos.ReAuthResult_OTHER_FAILURE, diam.UnableToComply)
 }
 
 func assertReAuth(
@@ -38,7 +43,7 @@ func assertReAuth(
 	handler gy.ChargingReAuthHandler,
 	sm *mocks.SessionProxyResponderServer,
 	ratingGroup *uint32,
-	protoResult protos.ChargingReAuthAnswer_Result,
+	protoResult protos.ReAuthResult,
 	expectedResultCode int,
 ) {
 	imsi := "IMSI000000000000001"

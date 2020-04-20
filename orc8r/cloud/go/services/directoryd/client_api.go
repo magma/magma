@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 package directoryd
@@ -93,7 +98,7 @@ func GetIMSIForSessionID(networkID, sessionID string) (string, error) {
 		SessionID: sessionID,
 	})
 	if err != nil {
-		return "", fmt.Errorf("failed to get imsi for session ID %s under network ID %s: %s", sessionID, networkID, err)
+		return "", fmt.Errorf("failed to get IMSI for session ID %s under network ID %s: %s", sessionID, networkID, err)
 	}
 
 	return res.Imsi, nil

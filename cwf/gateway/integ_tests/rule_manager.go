@@ -1,9 +1,14 @@
 /*
- * Copyright (c) Facebook, Inc. and its affiliates.
- * All rights reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package integration
@@ -36,17 +41,44 @@ type RuleManager struct {
 	omniPresentRules []*lteProtos.AssignedPolicies
 	// Wrapper around redis operations for policyDB objects
 	policyDBWrapper *policyDBWrapper
+	// Instance name of the PCRF this rule manager is attached to
+	pcrfInstance string
 }
 
 // NewRuleManager initialized the struct
 func NewRuleManager() (*RuleManager, error) {
+	return NewRuleManagerPerInstance(MockPCRFRemote)
+}
+
+// NewRuleManagerPerInstance initialized the struct per PCRFinstance
+func NewRuleManagerPerInstance(pcrfInstance string) (*RuleManager, error) {
 	policyDBWrapper, err := initializePolicyDBWrapper()
 	if err != nil {
 		return nil, err
 	}
 	return &RuleManager{
 		policyDBWrapper: policyDBWrapper,
+		pcrfInstance:    pcrfInstance,
 	}, nil
+}
+
+// AddStaticPassAllToDBAndPCRF adds a static rule that passes all traffic to policyDB
+// storage and to the PCRF instance
+func (manager *RuleManager) AddStaticPassAllToDBAndPCRFforIMSIs(IMSIs []string, ruleID string, monitoringKey string, ratingGroup uint32, trackingType string, priority uint32) error {
+	fmt.Printf("************************* Adding a Pass-All static rule to DB and PCRF: %s\n", ruleID)
+	staticPassAll := getStaticPassAll(ruleID, monitoringKey, ratingGroup, trackingType, priority, nil)
+
+	err := manager.insertStaticRuleIntoRedis(staticPassAll)
+	if err != nil {
+		return err
+	}
+	for _, imsi := range IMSIs {
+		err = manager.AddRulesToPCRF(imsi, []string{ruleID}, []string{})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // AddStaticPassAllToDB adds a static rule that passes all traffic to policyDB
@@ -139,7 +171,7 @@ func (manager *RuleManager) RemoveInstalledRules() error {
 func (manager *RuleManager) AddUsageMonitor(imsi, monitoringKey string, volume, bytesPerGrant uint64) error {
 	fmt.Printf("************************* Adding PCRF Usage Monitor for UE with IMSI: %s\n", imsi)
 	usageMonitor := makeUsageMonitor(imsi, monitoringKey, volume, bytesPerGrant)
-	err := addPCRFUsageMonitors(usageMonitor)
+	err := addPCRFUsageMonitorsPerInstance(manager.pcrfInstance, usageMonitor)
 	if err != nil {
 		return err
 	}
@@ -183,7 +215,7 @@ func (manager *RuleManager) removeOmniPresentRuleIntoRedis(keyID string) error {
 }
 
 func (manager *RuleManager) addAccountRules(rules *fegProtos.AccountRules) error {
-	err := addPCRFRules(rules)
+	err := addPCRFRulesPerInstance(manager.pcrfInstance, rules)
 	if err != nil {
 		return err
 	}
@@ -197,7 +229,7 @@ func getAccountRulesWithDynamicPassAll(imsi, ruleID, monitoringKey string) *fegP
 		StaticRuleNames:     []string{},
 		StaticRuleBaseNames: []string{},
 		DynamicRuleDefinitions: []*fegProtos.RuleDefinition{
-			getPassAllRuleDefinition(ruleID, monitoringKey, 100),
+			getPassAllRuleDefinition(ruleID, monitoringKey, nil, 100),
 		},
 	}
 }

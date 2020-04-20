@@ -1,11 +1,17 @@
 #!/usr/bin/env python3.7
 #
-# Copyright (c) 2016-present, Facebook, Inc.
-# All rights reserved.
-#
-# This source code is licensed under the BSD-style license found in the
-# LICENSE file in the root directory of this source tree. An additional grant
-# of patent rights can be found in the PATENTS file in the same directory.
+"""
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+"""
 
 # This script creates the build context for the orc8r docker builds.
 # It first creates a tmp directory, and then copies the cloud directories
@@ -129,11 +135,14 @@ def _build_cache_if_necessary(args: argparse.Namespace) -> None:
 
 
 def _get_docker_build_args(args: argparse.Namespace) -> List[str]:
-    # noncore containers don't need the orc8r cache
+    # Noncore containers don't need the orc8r cache
     if args.noncore or args.nocache:
         ret = ['build']
     else:
         ret = ['build', '--build-arg', 'baseImage=orc8r_cache']
+        # Build only the controller container
+        if args.controller:
+            ret.append('controller')
     if args.parallel:
         ret.append('--parallel')
     return ret
@@ -149,15 +158,17 @@ def _run_docker(cmd: List[str]) -> None:
 
 
 def _copy_module(module: MagmaModule) -> None:
-    """ Copy the module dir into the build context  """
+    """ Copy module directory into the build context  """
     module_dest = _get_module_destination(module)
     dst = os.path.join(BUILD_CONTEXT, module_dest)
 
-    # Copy relevant parts of the module to the build context
+    # Copy cloud/
     shutil.copytree(
         os.path.join(module.host_path, 'cloud'),
         os.path.join(dst, 'cloud'),
     )
+
+    # Handle orc8r lib/ and gateway/go/
     if module.name == 'orc8r':
         shutil.copytree(
             os.path.join(module.host_path, 'lib'),
@@ -168,12 +179,14 @@ def _copy_module(module: MagmaModule) -> None:
             os.path.join(dst, 'gateway', 'go'),
         )
 
+    # Optionally copy tools/
     if os.path.isdir(os.path.join(module.host_path, 'tools')):
         shutil.copytree(
             os.path.join(module.host_path, 'tools'),
             os.path.join(dst, 'tools'),
         )
 
+    # Optionally copy cloud/configs/
     if os.path.isdir(os.path.join(module.host_path, 'cloud', 'configs')):
         shutil.copytree(
             os.path.join(module.host_path, 'cloud', 'configs'),
@@ -212,12 +225,14 @@ def _get_modules() -> List[MagmaModule]:
     with open(filename) as file:
         conf = yaml.safe_load(file)
         for module in conf['native_modules']:
-            mod_path = os.path.abspath(os.path.join(HOST_MAGMA_ROOT, module))
+            module_abspath = os.path.abspath(
+                os.path.join(HOST_MAGMA_ROOT, module)
+            )
             modules.append(
                 MagmaModule(
                     is_external=False,
-                    host_path=mod_path,
-                    name=os.path.basename(mod_path),
+                    host_path=module_abspath,
+                    name=os.path.basename(module_abspath),
                 ),
             )
         for ext_module in conf['external_modules']:
@@ -278,6 +293,8 @@ def _parse_args() -> argparse.Namespace:
                              '(i.e. no proxy, controller images)')
     parser.add_argument('--parallel', '-p', action='store_true',
                         help='Build containers in parallel')
+    parser.add_argument('--controller', '-c', action='store_true',
+                        help='Build only the controller supercontainer')
     args = parser.parse_args()
     return args
 

@@ -1,0 +1,32 @@
+
+---
+swagger: '2.0'
+
+info:
+  title: MME event definitions
+  description: These events occur in MME task
+  version: 1.0.0
+
+definitions:
+  attach_success:
+    type: object
+    description: Used to track when UE attaches successfully
+    properties:
+      imsi:
+        type: string
+  detach_success:
+    type: object
+    description: Used to track when UE detaches successfully
+    properties:
+      imsi:
+        type: string
+      action:
+        type: string
+  s1_setup_success:
+    type: object
+    description: Used to track establishment of S1 connection
+    properties:
+      enb_name:
+        type: string
+      enb_id:
+        type: integer

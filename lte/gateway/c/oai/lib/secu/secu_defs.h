@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,29 +26,19 @@
 #define SECU_DIRECTION_DOWNLINK 1
 
 void kdf(
-  const uint8_t *key,
-  const unsigned key_len,
-  uint8_t *s,
-  const unsigned s_len,
-  uint8_t *out,
-  const unsigned out_len);
+    const uint8_t* key, const unsigned key_len, uint8_t* s,
+    const unsigned s_len, uint8_t* out, const unsigned out_len);
 
 int derive_keNB(
-  const uint8_t *kasme_32,
-  const uint32_t nas_count,
-  uint8_t *keNB);
+    const uint8_t* kasme_32, const uint32_t nas_count, uint8_t* keNB);
 
 int derive_key_nas(
-  algorithm_type_dist_t nas_alg_type,
-  uint8_t nas_enc_alg_id,
-  const uint8_t *kasme_32,
-  uint8_t *knas);
+    algorithm_type_dist_t nas_alg_type, uint8_t nas_enc_alg_id,
+    const uint8_t* kasme_32, uint8_t* knas);
 
 int derive_NH(
-  const uint8_t *kasme_32,
-  const uint8_t *syncInput,
-  uint8_t *next_hop,
-  uint8_t *next_hop_chaining_count);
+    const uint8_t* kasme_32, const uint8_t* syncInput, uint8_t* next_hop,
+    uint8_t* next_hop_chaining_count);
 
 #define derive_key_nas_enc(aLGiD, kASME, kNAS)                                 \
   derive_key_nas(NAS_ENC_ALG, aLGiD, kASME, kNAS)
@@ -76,30 +62,26 @@ int derive_NH(
 #define SECU_DIRECTION_DOWNLINK 1
 
 typedef struct {
-  uint8_t *key;
+  uint8_t* key;
   uint32_t key_length;
   uint32_t count;
   uint8_t bearer;
   uint8_t direction;
-  uint8_t *message;
+  uint8_t* message;
   /* length in bits */
   uint32_t blength;
 } nas_stream_cipher_t;
 
 int nas_stream_encrypt_eea1(
-  nas_stream_cipher_t *const stream_cipher,
-  uint8_t *const out);
+    nas_stream_cipher_t* const stream_cipher, uint8_t* const out);
 
 int nas_stream_encrypt_eia1(
-  nas_stream_cipher_t *const stream_cipher,
-  uint8_t const out[4]);
+    nas_stream_cipher_t* const stream_cipher, uint8_t const out[4]);
 
 int nas_stream_encrypt_eea2(
-  nas_stream_cipher_t *const stream_cipher,
-  uint8_t *const out);
+    nas_stream_cipher_t* const stream_cipher, uint8_t* const out);
 
 int nas_stream_encrypt_eia2(
-  nas_stream_cipher_t *const stream_cipher,
-  uint8_t const out[4]);
+    nas_stream_cipher_t* const stream_cipher, uint8_t const out[4]);
 
 #endif /* FILE_SECU_DEFS_SEEN */

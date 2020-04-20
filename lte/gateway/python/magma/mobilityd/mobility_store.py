@@ -1,43 +1,57 @@
 """
-Copyright (c) 2018-present, Facebook, Inc.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree. An additional grant
-of patent rights can be found in the PATENTS file in the same directory.
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 from collections import defaultdict
 
-from magma.common.redis.containers import RedisHashDict, RedisSet
+from magma.common.redis.containers import RedisFlatDict, RedisHashDict, \
+    RedisSet
+from magma.common.redis.serializers import RedisSerde
 from magma.mobilityd import serialize_utils
+from magma.common.redis.containers import RedisHashDict
+from magma.common.redis.serializers import get_json_serializer, \
+    get_json_deserializer
+from magma.common.redis.client import get_default_client
+
+IPDESC_REDIS_TYPE = "mobilityd_ipdesc_record"
+IPSTATES_REDIS_TYPE = "mobilityd:ip_states:{}"
+IPBLOCKS_REDIS_TYPE = "mobilityd:assigned_ip_blocks"
+MAC_TO_IP_REDIS_TYPE = "mobilityd_mac_to_ip"
+DHCP_GW_INFO_REDIS_TYPE = "mobilityd_gw_info"
 
 
 class AssignedIpBlocksSet(RedisSet):
     def __init__(self, client):
         super().__init__(
             client,
-            "mobilityd:assigned_ip_blocks",
+            IPBLOCKS_REDIS_TYPE,
             serialize_utils.serialize_ip_block,
             serialize_utils.deserialize_ip_block,
         )
 
 
-class SIDIPsDict(RedisHashDict):
+class IPDescDict(RedisFlatDict):
     def __init__(self, client):
-        super().__init__(
-            client,
-            "mobilityd:sid_to_descriptors",
-            serialize_utils.serialize_ip_descs,
-            serialize_utils.deserialize_ip_descs,
-            default_factory=list,
-        )
+        serde = RedisSerde(IPDESC_REDIS_TYPE,
+                           serialize_utils.serialize_ip_desc,
+                           serialize_utils.deserialize_ip_desc,
+                           )
+        super().__init__(client, serde)
 
 
 def ip_states(client, key):
     """ Get Redis view of IP states. """
     redis_dict = RedisHashDict(
         client,
-        "mobilityd:ip_to_descriptor:{}".format(key),
+        IPSTATES_REDIS_TYPE.format(key),
         serialize_utils.serialize_ip_desc,
         serialize_utils.deserialize_ip_desc,
     )
@@ -55,3 +69,33 @@ class defaultdict_key(defaultdict):
             raise KeyError(key)
         self[key] = self.default_factory(key)
         return self[key]
+
+
+class MacToIP(RedisFlatDict):
+    """
+    Used for managing DHCP state of a Mac address.
+    """
+    def __init__(self):
+        client = get_default_client()
+        serde = RedisSerde(MAC_TO_IP_REDIS_TYPE,
+                           get_json_serializer(), get_json_deserializer())
+        super().__init__(client, serde)
+
+    def __missing__(self, key):
+        """Instead of throwing a key error, return None when key not found"""
+        return None
+
+
+class GatewayInfoMap(RedisFlatDict):
+    """
+    Used for mainatining uplink GW info
+    """
+    def __init__(self):
+        client = get_default_client()
+        serde = RedisSerde(DHCP_GW_INFO_REDIS_TYPE,
+                           get_json_serializer(), get_json_deserializer())
+        super().__init__(client, serde)
+
+    def __missing__(self, key):
+        """Instead of throwing a key error, return None when key not found"""
+        return None

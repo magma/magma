@@ -112,6 +112,7 @@ magma/lte/gateway/python/scripts. These are:
 5. PolicyDB: policydb_cli.py
 6. Subscriberdb: subscriber_cli.py
 7. Enodebd: enodebd_cli.py
+8. State Tracing: state_cli.py
 
 Each of these CLIs can be used in the gateway VM:
 

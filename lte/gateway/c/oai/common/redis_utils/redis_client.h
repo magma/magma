@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,6 +22,8 @@
 #include <cpp_redis/cpp_redis>
 #include <google/protobuf/message.h>
 
+#include "orc8r/protos/redis.pb.h"
+
 namespace magma {
 namespace lte {
 
@@ -39,24 +37,6 @@ class RedisClient {
    * @return response code of success / error with db connection
    */
   void init_db_connection();
-
-  /**
-   * Converts protobuf Message and parses it to string
-   * @param proto_msg
-   * @param str_to_serialize
-   */
-  int serialize(
-    const google::protobuf::Message& proto_msg,
-    std::string& str_to_serialize);
-
-  /**
-   * Takes a string and parses it to protobuf Message
-   * @param proto_msg
-   * @param str_to_deserialize
-   */
-  int deserialize(
-    google::protobuf::Message& proto_msg,
-    const std::string& str_to_deserialize);
 
   /**
    * Returns the value on redis db mapped to a key
@@ -80,17 +60,14 @@ class RedisClient {
    * @return response code of operation
    */
   int write_proto(
-    const std::string& key,
-    const google::protobuf::Message& proto_msg);
+      const std::string& key, const google::protobuf::Message& proto_msg);
 
   /**
    * Reads value from redis mapped to key and returns proto object
    * @param key
    * @return response code of operation
    */
-  int read_proto(
-    const std::string& key,
-    google::protobuf::Message& proto_msg);
+  int read_proto(const std::string& key, google::protobuf::Message& proto_msg);
 
   int clear_keys(const std::vector<std::string>& keys_to_clear);
 
@@ -101,7 +78,40 @@ class RedisClient {
  private:
   std::unique_ptr<cpp_redis::client> db_client_;
   bool is_connected_;
+
+  /**
+   * Read the wrapper RedisState value from Redis for a key
+   * @param key
+   * @param state_out
+   * @return
+   */
+  int read_redis_state(const std::string& key, orc8r::RedisState& state_out);
+
+  /**
+   * Check for existence of a key in Redis.
+   * @param key
+   * @throws std::runtime_error if the Redis call fails
+   * @return
+   */
+  bool key_exists(const std::string& key);
+
+  /**
+   * Converts protobuf Message and parses it to string
+   * @param proto_msg
+   * @param str_to_serialize
+   */
+  int serialize(
+      const google::protobuf::Message& proto_msg,
+      std::string& str_to_serialize);
+  /**
+   * Takes a string and parses it to protobuf Message
+   * @param proto_msg
+   * @param str_to_deserialize
+   */
+  int deserialize(
+      google::protobuf::Message& proto_msg,
+      const std::string& str_to_deserialize);
 };
 
-} // namespace lte
-} // namespace magma
+}  // namespace lte
+}  // namespace magma

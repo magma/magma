@@ -1,0 +1,198 @@
+---
+swagger: '2.0'
+magma-gen-meta:
+  go-package: magma/orc8r/cloud/go/services/eventd/swagger
+  dependencies:
+    - 'orc8r/cloud/go/models/swagger-common.yml'
+  temp-gen-filename: eventd-swagger.yml
+  output-dir: orc8r/cloud/go/services/eventd/obsidian
+
+info:
+  title: Events definitions and paths
+  description: Magma REST APIs
+  version: 1.0.0
+
+basePath: /magma/v1
+
+paths:
+  /events/{network_id}:
+    get:
+      summary: Query events
+      tags:
+        - Events
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: streams
+          description: Comma-separated list of streams to query
+          in: query
+          required: false
+          type: string
+        - name: events
+          description: Comma-separated list of event types to query
+          in: query
+          required: false
+          type: string
+        - name: tags
+          description: Comma-separated list of tags to query
+          in: query
+          required: false
+          type: string
+        - name: hw_ids
+          description: Comma-separated list of hardware IDs to query
+          in: query
+          required: false
+          type: string
+        - name: from
+          description: Index to start the query from
+          in: query
+          required: false
+          type: string
+        - name: size
+          description: Maximum size to limit the query result to. This defaults to 50
+          in: query
+          required: false
+          type: string
+        - name: start
+          description: Start time for the query, in RFC3339 or ISO8601 format
+          in: query
+          required: false
+          type: string
+        - name: end
+          description: End time for the query, in RFC3339 or ISO8601 format
+          in: query
+          required: false
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              - $ref: '#/definitions/event'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  # Would really prefer this to be at /events/{network_id}/count but that
+  # collides with the single stream API endpoint that we haven't deprecated yet
+  /events/{network_id}/about/count:
+    get:
+      summary: Get a count of events that match the query
+      tags:
+        - Events
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: streams
+          description: Comma-separated list of streams to query
+          in: query
+          required: false
+          type: string
+        - name: events
+          description: Comma-separated list of event types to query
+          in: query
+          required: false
+          type: string
+        - name: tags
+          description: Comma-separated list of tags to query
+          in: query
+          required: false
+          type: string
+        - name: hw_ids
+          description: Comma-separated list of hardware IDs to query
+          in: query
+          required: false
+          type: string
+        - name: start
+          description: Start time for the query, in RFC3339 or ISO8601 format
+          in: query
+          required: false
+          type: string
+        - name: end
+          description: End time for the query, in RFC3339 or ISO8601 format
+          in: query
+          required: false
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: integer
+            format: int64
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /events/{network_id}/{stream_name}:
+    get:
+      summary: Query events logged by services
+      tags:
+        - Events
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: stream_name
+          in: path
+          description: The user-specified string to categorize events
+          required: true
+          type: string
+          minLength: 1
+        - name: event_type
+          in: query
+          description: The type of event to filter the query with.
+          required: false
+          type: string
+        - name: hardware_id
+          in: query
+          description: The hardware ID to filter the query with.
+          required: false
+          type: string
+        - name: tag
+          in: query
+          description: The event tag to filter the query with.
+          required: false
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              - $ref: '#/definitions/event'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+definitions:
+  event:
+    type: object
+    required:
+      - stream_name
+      - event_type
+      - hardware_id
+      - tag
+      - timestamp
+      - value
+    properties:
+      stream_name:
+        example: fake_stream
+        minLength: 1
+        type: string
+        x-nullable: false
+      event_type:
+        example: fake_event
+        minLength: 1
+        type: string
+        x-nullable: false
+      hardware_id:
+        minLength: 1
+        type: string
+        x-nullable: false
+      tag:
+        minLength: 1
+        type: string
+        x-nullable: false
+      timestamp:
+        example: 2020-03-11T00:36:59.650093129+00:00
+        description: The timestamp in ISO 8601 format
+        minLength: 1
+        type: string
+        x-nullable: false
+      value:
+        type: object
+        x-nullable: false

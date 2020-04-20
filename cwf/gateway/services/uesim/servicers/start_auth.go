@@ -1,9 +1,14 @@
 /*
- * Copyright (c) Facebook, Inc. and its affiliates.
- * All rights reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package servicers
@@ -20,7 +25,7 @@ const (
 
 // CreateEAPIdentityRequest simulates starting the EAP-AKA authentication by sending a UE an
 // EAP Identity Request packet.
-func (srv *UESimServer) CreateEAPIdentityRequest(imsi string) (*radius.Packet, error) {
+func (srv *UESimServer) CreateEAPIdentityRequest(imsi, calledStationID string) (*radius.Packet, error) {
 	ue, err := getUE(srv.store, imsi)
 	if err != nil {
 		return nil, err
@@ -32,5 +37,5 @@ func (srv *UESimServer) CreateEAPIdentityRequest(imsi string) (*radius.Packet, e
 	}
 
 	// Set packet Identifier to 0.
-	return srv.EapToRadius(eapReponse, imsi, 0)
+	return srv.EapToRadius(eapReponse, imsi, calledStationID, 0)
 }

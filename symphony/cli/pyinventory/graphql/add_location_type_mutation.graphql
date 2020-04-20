@@ -1,9 +1,0 @@
-mutation AddLocationTypeMutation($input: AddLocationTypeInput!) {
-  addLocationType(input: $input) {
-    id
-    name
-    propertyTypes {
-      ...PropertyTypeFragment
-    }
-  }
-}

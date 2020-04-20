@@ -1,9 +1,14 @@
 /*
- * Copyright (c) Facebook, Inc. and its affiliates.
- * All rights reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package servicers
@@ -58,8 +63,9 @@ func TestGetHealthStatus(t *testing.T) {
 
 	// Simulate successful enable
 	mockSystem.On("Enable").Return(nil)
-	mockService.On("Enable", "radius").Return(nil)
-	mockService.On("Enable", "sessiond").Return(nil)
+	mockService.On("Restart", "radius").Return(nil)
+	mockService.On("Restart", "sessiond").Return(nil)
+	mockGREProbe.On("Start").Return(nil)
 	_, err = servicer.Enable(context.Background(), req)
 	assert.NoError(t, err)
 	assertMocks(t, mockGREProbe, mockSystem, mockService)
@@ -78,7 +84,9 @@ func TestGetHealthStatus(t *testing.T) {
 	// Simulate successful disable
 	disableReq := &protos.DisableMessage{}
 	mockSystem.On("Disable").Return(nil)
-	mockService.On("Disable", "radius").Return(nil)
+	mockService.On("Stop", "radius").Return(nil)
+	mockService.On("Restart", "aaa_server").Return(nil)
+	mockGREProbe.On("Stop").Return()
 	_, err = servicer.Disable(context.Background(), disableReq)
 	assert.NoError(t, err)
 	assertMocks(t, mockGREProbe, mockSystem, mockService)
@@ -104,6 +112,17 @@ func TestGetHealthStatus(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expectedStatus, health)
 	assertMocks(t, mockGREProbe, mockSystem, mockService)
+
+	// Simulate disabled, healthy
+	mockGREProbe.On("GetStatus").Return(healthyGRE).Once()
+	mockSystem.On("GetSystemStats").Return(&system_health.SystemStats{CpuUtilPct: 0.1, MemUtilPct: 0.1}, nil).Once()
+	mockService.On("GetUnhealthyServices").Return([]string{"radius"}, nil).Once()
+	expectedStatus.Health = protos.HealthStatus_HEALTHY
+	expectedStatus.HealthMessage = "gateway status appears healthy"
+	health, err = servicer.GetHealthStatus(context.Background(), req)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedStatus, health)
+	assertMocks(t, mockGREProbe, mockSystem, mockService)
 }
 
 func assertMocks(t *testing.T, probe *mockGREProbe, systemHealth *mockSystemHealth, serviceHealth *mockServiceHealth) {
@@ -121,12 +140,12 @@ func (m *mockServiceHealth) GetUnhealthyServices() ([]string, error) {
 	return args.Get(0).([]string), args.Error(1)
 }
 
-func (m *mockServiceHealth) Enable(service string) error {
+func (m *mockServiceHealth) Restart(service string) error {
 	args := m.Called(service)
 	return args.Error(0)
 }
 
-func (m *mockServiceHealth) Disable(service string) error {
+func (m *mockServiceHealth) Stop(service string) error {
 	args := m.Called(service)
 	return args.Error(0)
 }
@@ -157,6 +176,10 @@ type mockGREProbe struct {
 func (m *mockGREProbe) Start() error {
 	args := m.Called()
 	return args.Error(0)
+}
+
+func (m *mockGREProbe) Stop() {
+	_ = m.Called()
 }
 
 func (m *mockGREProbe) GetStatus() *gre_probe.GREProbeStatus {

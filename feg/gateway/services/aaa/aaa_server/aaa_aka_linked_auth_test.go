@@ -1,17 +1,23 @@
-//
-// Copyright (c) Facebook, Inc. and its affiliates.
-// All rights reserved.
-//
-// This source code is licensed under the BSD-style license found in the
-// LICENSE file in the root directory of this source tree.
-//
-
 // +build link_local_service
+
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
 
 // Package eap_router_test implements eap router unit tests
 package main_test
 
 import (
+	"os"
 	"reflect"
 	"testing"
 
@@ -28,6 +34,7 @@ import (
 
 // TestEapAkaConcurent tests EAP AKA Provider
 func TestLinkedEapAkaConcurent(t *testing.T) {
+	os.Setenv("USE_REMOTE_SWX_PROXY", "false")
 	srv, lis := test_utils.NewTestService(t, registry.ModuleName, registry.SWX_PROXY)
 	var service eap_test.SwxProxy
 	cp.RegisterSwxProxyServer(srv.GrpcServer, service)

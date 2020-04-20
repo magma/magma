@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 package servicers_test
@@ -55,7 +60,7 @@ func TestHomeSubscriberServer_GetSubscriberData(t *testing.T) {
 
 	result, err := server.GetSubscriberData(context.Background(), &id1)
 	assert.NoError(t, err)
-	assert.Equal(t, sub1, *result)
+	assert.Equal(t, sub1.String(), result.String())
 }
 
 func TestHomeSubscriberServer_UpdateSubscriber(t *testing.T) {
@@ -99,7 +104,7 @@ func TestHomeSubscriberServer_DeleteSubscriber(t *testing.T) {
 
 	result, err := server.GetSubscriberData(context.Background(), &id)
 	assert.NoError(t, err)
-	assert.Equal(t, sub, *result)
+	assert.Equal(t, sub.String(), result.String())
 
 	_, err = server.DeleteSubscriber(context.Background(), &id)
 	assert.NoError(t, err)

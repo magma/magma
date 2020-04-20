@@ -1,9 +1,14 @@
 /*
- * Copyright (c) Facebook, Inc. and its affiliates.
- * All rights reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package gre_probe
@@ -27,6 +32,7 @@ type ICMPProbe struct {
 	// Maps endpoints IPs to their current GREEndpointStatus
 	endpointStatus map[string]GREEndpointStatus
 	sync.RWMutex   // R/W lock synchronizing map endpoint status access
+	stop           chan bool
 }
 
 const (
@@ -41,6 +47,7 @@ func NewICMPProbe(endpoints []*mconfig.CwfGatewayHealthConfigGrePeer, interval u
 		Interval:       time.Duration(interval) * time.Second,
 		PktCount:       pktCount,
 		endpointStatus: map[string]GREEndpointStatus{},
+		stop:           make(chan bool),
 	}
 }
 
@@ -58,13 +65,26 @@ func (i *ICMPProbe) Start() error {
 	}
 	startProbe := func() {
 		for {
-			time.Sleep(i.Interval)
-			i.executeProbe(pingers)
+			select {
+			case <-i.stop:
+				return
+			default:
+				time.Sleep(i.Interval)
+				i.executeProbe(pingers)
+			}
 		}
 	}
 
 	go startProbe()
 	return nil
+}
+
+// Stop stops the ICMP probes of the ICMPProbe's endpoints
+func (i *ICMPProbe) Stop() {
+	i.stop <- true
+	i.Lock()
+	i.endpointStatus = map[string]GREEndpointStatus{}
+	i.Unlock()
 }
 
 // GetStatus returns the current GREEndpointStatus of each endpoint.

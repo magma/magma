@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 package servicers
@@ -57,7 +62,7 @@ func (srv *SyncRPCService) EstablishSyncRPCStream(stream protos.SyncRPCService_E
 		return err
 	}
 	if gw == nil || len(gw.HardwareId) == 0 {
-		return status.Errorf(codes.PermissionDenied, "Gateway hardware id is nil")
+		return status.Errorf(codes.PermissionDenied, "Gateway hardware ID is nil")
 	}
 	return srv.serveGwId(stream, gw.HardwareId)
 }
@@ -83,31 +88,34 @@ func newStreamCoordinator(gwId string, streamCtx context.Context) *streamCoordin
 //
 // It is called directly by the test service.
 func (srv *SyncRPCService) serveGwId(stream protos.SyncRPCService_EstablishSyncRPCStreamServer, gwId string) error {
+	start := time.Now()
+
 	coordinator := newStreamCoordinator(gwId, stream.Context())
 	queue := srv.broker.InitializeGateway(gwId)
-	glog.V(2).Infof("Initialized gateway for hwId %v\n", gwId)
-	coordinator.Wg.Add(1)
+	glog.Infof("HWID %v: initialized gateway connection", gwId)
+
+	coordinator.Wg.Add(2)
 	go srv.receiveFromStream(stream, coordinator)
-	coordinator.Wg.Add(1)
 	go srv.sendToStream(stream, queue, coordinator)
 
-	// Wait on err returned from either sendToStream or receiveFromStream goroutines.
 	err := <-coordinator.ErrChan
 	if err == nil {
-		glog.V(2).Infof("SyncRPC return for %v due to client sending EOF\n", gwId)
+		glog.Infof("HWID %v: client closed stream by sending EOF, cleaning up", gwId)
 	} else {
-		glog.Infof("SyncRPC error for %v: %v\n", gwId, err)
+		glog.Errorf("HWID %v: %v", gwId, err)
 	}
 	coordinator.Cancel()
 	coordinator.Wg.Wait()
 	srv.broker.CleanupGateway(gwId)
-	glog.V(2).Infof("Cleaned up gateway for hwId %v\n", gwId)
+	glog.Infof("HWID %v: cleanup successful, stream was alive for %v seconds", gwId, time.Since(start).Seconds())
+
 	return err
 }
 
-// sendToStream manages the SyncRPCRequest message stream. If messages are
-// available in the SyncRPCRequest queue, it will send it to the gateway.
-// Otherwise, it will send a heartbeat to the gateway after heartBeatInterval.
+// sendToStream manages the SyncRPCRequest message stream.
+// If messages are available in the SyncRPCRequest queue, it will send them
+// to the gateway. Otherwise, it will send a heartbeat to the gateway after
+// heartBeatInterval.
 func (srv *SyncRPCService) sendToStream(
 	stream protos.SyncRPCService_EstablishSyncRPCStreamServer,
 	queue chan *protos.SyncRPCRequest,
@@ -117,25 +125,25 @@ func (srv *SyncRPCService) sendToStream(
 	for {
 		select {
 		case <-coordinator.Ctx.Done():
-			coordinator.sendErrOrLog(fmt.Errorf("context cancelled in sendToStream: %v\n", coordinator.Ctx.Err()))
+			coordinator.sendErr(fmt.Errorf("HWID %v: sendToStream: context canceled: %v", coordinator.GwID, coordinator.Ctx.Err()))
 			return
 		case <-time.After(heartBeatInterval):
-			glog.V(2).Infof("sending heartBeat to hwId %v\n", coordinator.GwID)
+			glog.V(2).Infof("HWID %v: sending heartbeat", coordinator.GwID)
 			err := stream.Send(&protos.SyncRPCRequest{HeartBeat: true})
 			if err != nil {
-				coordinator.sendErrOrLog(fmt.Errorf("sendHeartBeat err: %v\n", err))
+				coordinator.sendErr(fmt.Errorf("HWID %v: sendToStream: error sending to stream (heartbeat): %v", coordinator.GwID, err))
 				return
 			}
 		case reqToSend, ok := <-queue:
 			if !ok {
-				coordinator.sendErrOrLog(fmt.Errorf("Queue is closed for hwId %v\n", coordinator.GwID))
+				coordinator.sendErr(fmt.Errorf("HWID %v: sendToStream: requests queue is closed", coordinator.GwID))
 				return
 			}
 			if reqToSend != nil {
-				glog.V(2).Infof("sending req to stream for hwId %v\n", coordinator.GwID)
+				glog.V(2).Infof("HWID %v: sending req to stream", coordinator.GwID)
 				err := stream.Send(reqToSend)
 				if err != nil {
-					coordinator.sendErrOrLog(fmt.Errorf("sendToStream err: %v\n", err))
+					coordinator.sendErr(fmt.Errorf("HWID %v: sendToStream: error sending to stream: %v", coordinator.GwID, err))
 					return
 				}
 			}
@@ -154,16 +162,16 @@ func (srv *SyncRPCService) receiveFromStream(
 		// recv() can be cancelled via ctx
 		syncRPCResp, err := RecvWithContext(coordinator.Ctx, func() (*protos.SyncRPCResponse, error) { return stream.Recv() })
 		if err == io.EOF {
-			coordinator.sendErrOrLog(nil)
+			coordinator.sendErr(nil)
 			return
 		} else if err != nil {
-			coordinator.sendErrOrLog(fmt.Errorf("receiveFromStream err: %v\n", err))
+			coordinator.sendErr(fmt.Errorf("HWID %v: receiveFromStream: error receiving from stream: %v", coordinator.GwID, err))
 			return
 		} else {
-			glog.V(2).Infof("processing response for hwId %v\n", coordinator.GwID)
+			glog.V(2).Infof("HWID %v: processing response", coordinator.GwID)
 			err := srv.processSyncRPCResp(syncRPCResp, coordinator.GwID)
 			if err != nil {
-				coordinator.sendErrOrLog(fmt.Errorf("procesSyncRPCResp err: %v\n", err))
+				coordinator.sendErr(fmt.Errorf("HWID %v: receiveFromStream: error processing stream response: %v", coordinator.GwID, err))
 				return
 			}
 		}
@@ -186,23 +194,23 @@ func (srv *SyncRPCService) processSyncRPCResp(resp *protos.SyncRPCResponse, hwId
 		err := srv.broker.ProcessGatewayResponse(resp)
 		if err != nil {
 			// No need to end the stream, just log the error.
-			glog.Errorf("err processing gateway response: %v\n", err)
+			glog.Errorf("HWID %v: error processing gateway response: %v", hwId, err)
 		}
 	} else {
-		glog.Errorf("Cannot send a non-heartbeat with invalid ReqId\n")
+		glog.Errorf("HWID %v: cannot send a non-heartbeat with invalid ReqId", hwId)
 	}
 	return nil
 }
 
-// sendErrOrLog tries to send the err to ErrChan.
-// If nobody is listening on ErrChan, log the error and return regardless.
-func (streamCoordinator *streamCoordinator) sendErrOrLog(err error) {
+// sendErr tries to send the err to stream coordinator's error channel.
+// After timing out trying to send, instead log the error and return.
+func (streamCoordinator *streamCoordinator) sendErr(err error) {
 	select {
 	case streamCoordinator.ErrChan <- err:
 		return
 	case <-time.After(time.Second):
 		if err == nil {
-			glog.V(2).Infof("Received EOF from client, return\n")
+			glog.Infof("HWID %v: client closed stream by sending EOF, cleaning up", streamCoordinator.GwID)
 		} else {
 			glog.Errorf(err.Error())
 		}

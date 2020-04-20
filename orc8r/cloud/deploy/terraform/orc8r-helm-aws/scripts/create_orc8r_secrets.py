@@ -1,9 +1,16 @@
 #!/usr/bin/env python3
-#  Copyright (c) Facebook, Inc. and its affiliates.
-#  All rights reserved.
-#
-#  This source code is licensed under the BSD-style license found in the
-#  LICENSE file in the root directory of this source tree.
+"""
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+"""
 import json
 import os.path
 import sys
@@ -39,6 +46,7 @@ def main(secret_name: str, aws_region: str, certs_dir: str):
 
 
 def create_orc8r_secrets(certs_dir: str) -> Dict[str, str]:
+    """Pull orc8r secrets from filesystem into name-mapped dict."""
     certs_dir_abs = os.path.abspath(
         os.path.expandvars(os.path.expanduser(certs_dir)),
     )
@@ -46,12 +54,8 @@ def create_orc8r_secrets(certs_dir: str) -> Dict[str, str]:
     ret = {}
     for fname in ALL_CERTS:
         full_fpath = os.path.join(certs_dir_abs, fname)
-        # admin_operator.* certs are optional
         if not os.path.isfile(full_fpath):
-            if fname not in ADMIN_CERTS:
-                raise ValueError(f'No cert {fname} found in certs directory')
-            else:
-                continue
+            raise ValueError(f'No cert {fname} found in certs directory')
         with open(full_fpath, 'r') as f:
             # readlines elements already have \n at the end
             ret[fname] = ''.join(f.readlines())
@@ -61,6 +65,7 @@ def create_orc8r_secrets(certs_dir: str) -> Dict[str, str]:
 def set_orc8r_secretsmanager(secret_name: str,
                              region: str,
                              secret_contents: Dict[str, str]):
+    """Set secret_contents in AWS Secrets Manager."""
     secret_string = json.dumps(secret_contents)
 
     session = boto3.session.Session()

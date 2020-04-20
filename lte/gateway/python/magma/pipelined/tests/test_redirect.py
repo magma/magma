@@ -1,10 +1,14 @@
 """
-Copyright (c) 2018-present, Facebook, Inc.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree. An additional grant
-of patent rights can be found in the PATENTS file in the same directory.
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 import unittest
@@ -74,12 +78,10 @@ class RedirectTest(unittest.TestCase):
                 'bridge_ip_address': cls.BRIDGE_IP_ADDRESS,
                 'nat_iface': 'eth2',
                 'enodeb_iface': 'eth1',
-                'enable_queue_pgm': False,
+                'qos': {'enable': False},
                 'clean_restart': True,
             },
-            mconfig=PipelineD(
-                relay_enabled=True
-            ),
+            mconfig=PipelineD(),
             loop=None,
             service_manager=cls.service_manager,
             integ_test=False,

@@ -1,0 +1,41 @@
+---
+################################################################################
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+################################################################################
+
+# Install Docker based on instructions in:
+# https://docs.docker.com/install/linux/docker-ce/ubuntu
+
+- name: Install utilities
+  yum:
+    name: "{{ packages }}"
+    state: present
+  vars:
+    packages:
+      - ca-certificates
+      - curl
+      - python3-pip
+      - python3-setuptools
+
+- name: Add Docker’s official GPG key
+  rpm_key:
+    key: https://download.docker.com/linux/centos/gpg
+    state: present
+
+- name: Add the stable repository for Docker
+  shell: yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+
+- name: Install the latest version of Docker CE
+  yum:
+    name: docker-ce
+    state: present
+

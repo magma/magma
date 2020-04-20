@@ -4,11 +4,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,23 +17,22 @@
  */
 #include "s1ap_state_converter.h"
 
-using magma::lte::gateway::s1ap::EnbDescription;
-using magma::lte::gateway::s1ap::S1apState;
-using magma::lte::gateway::s1ap::UeDescription;
+using magma::lte::oai::EnbDescription;
+using magma::lte::oai::S1apState;
+using magma::lte::oai::UeDescription;
 
 namespace magma {
 namespace lte {
 
 S1apStateConverter::~S1apStateConverter() = default;
-S1apStateConverter::S1apStateConverter() = default;
+S1apStateConverter::S1apStateConverter()  = default;
 
-void S1apStateConverter::state_to_proto(s1ap_state_t* state, S1apState* proto)
-{
+void S1apStateConverter::state_to_proto(s1ap_state_t* state, S1apState* proto) {
   proto->Clear();
 
   // copy over enbs
   hashtable_ts_to_proto<enb_description_t, EnbDescription>(
-    &state->enbs, proto->mutable_enbs(), enb_to_proto, LOG_S1AP);
+      &state->enbs, proto->mutable_enbs(), enb_to_proto, LOG_S1AP);
 
   // copy over mmeid2associd
   hashtable_rc_t ht_rc;
@@ -52,7 +47,7 @@ void S1apStateConverter::state_to_proto(s1ap_state_t* state, S1apState* proto)
     for (uint32_t i = 0; i < keys->num_keys; i++) {
       mmeid = (mme_ue_s1ap_id_t) keys->keys[i];
       ht_rc = hashtable_ts_get(
-        &state->mmeid2associd, (hash_key_t) mmeid, (void**) &associd);
+          &state->mmeid2associd, (hash_key_t) mmeid, (void**) &associd);
       AssertFatal(ht_rc == HASH_TABLE_OK, "mmeid not in mmeid2associd");
 
       (*mmeid2associd)[mmeid] = associd;
@@ -64,20 +59,18 @@ void S1apStateConverter::state_to_proto(s1ap_state_t* state, S1apState* proto)
 }
 
 void S1apStateConverter::proto_to_state(
-  const S1apState& proto,
-  s1ap_state_t* state)
-{
+    const S1apState& proto, s1ap_state_t* state) {
   proto_to_hashtable_ts<EnbDescription, enb_description_t>(
-    proto.enbs(), &state->enbs, proto_to_enb, LOG_S1AP);
+      proto.enbs(), &state->enbs, proto_to_enb, LOG_S1AP);
 
   hashtable_rc_t ht_rc;
   auto mmeid2associd = proto.mmeid2associd();
   for (auto const& kv : mmeid2associd) {
-    mme_ue_s1ap_id_t mmeid = (mme_ue_s1ap_id_t) kv.first;
+    mme_ue_s1ap_id_t mmeid  = (mme_ue_s1ap_id_t) kv.first;
     sctp_assoc_id_t associd = (sctp_assoc_id_t) kv.second;
 
     ht_rc = hashtable_ts_insert(
-      &state->mmeid2associd, (hash_key_t) mmeid, (void*) (uintptr_t) associd);
+        &state->mmeid2associd, (hash_key_t) mmeid, (void*) (uintptr_t) associd);
     AssertFatal(ht_rc == HASH_TABLE_OK, "failed to insert associd");
   }
 
@@ -85,9 +78,7 @@ void S1apStateConverter::proto_to_state(
 }
 
 void S1apStateConverter::enb_to_proto(
-  enb_description_t* enb,
-  gateway::s1ap::EnbDescription* proto)
-{
+    enb_description_t* enb, oai::EnbDescription* proto) {
   proto->Clear();
 
   proto->set_enb_id(enb->enb_id);
@@ -95,110 +86,90 @@ void S1apStateConverter::enb_to_proto(
   proto->set_enb_name(enb->enb_name);
   proto->set_default_paging_drx(enb->default_paging_drx);
   proto->set_nb_ue_associated(enb->nb_ue_associated);
-  proto->mutable_s1ap_enb_assoc_clean_up_timer()->set_id(
-    enb->s1ap_enb_assoc_clean_up_timer.id);
-  proto->mutable_s1ap_enb_assoc_clean_up_timer()->set_sec(
-    enb->s1ap_enb_assoc_clean_up_timer.sec);
   proto->set_sctp_assoc_id(enb->sctp_assoc_id);
   proto->set_next_sctp_stream(enb->next_sctp_stream);
   proto->set_instreams(enb->instreams);
   proto->set_outstreams(enb->outstreams);
 
-  // store ues
-  hashtable_ts_to_proto<ue_description_t, UeDescription>(
-    &enb->ue_coll, proto->mutable_ues(), ue_to_proto, LOG_S1AP);
+  // store ue_ids
+  hashtable_uint64_ts_to_proto(&enb->ue_id_coll, proto->mutable_ue_ids());
 }
 
 void S1apStateConverter::proto_to_enb(
-  const gateway::s1ap::EnbDescription& proto,
-  enb_description_t* enb)
-{
+    const oai::EnbDescription& proto, enb_description_t* enb) {
   memset(enb, 0, sizeof(*enb));
 
-  enb->enb_id = proto.enb_id();
+  enb->enb_id   = proto.enb_id();
   enb->s1_state = (mme_s1_enb_state_s) proto.s1_state();
   strncpy(enb->enb_name, proto.enb_name().c_str(), sizeof(enb->enb_name));
   enb->default_paging_drx = proto.default_paging_drx();
-  enb->nb_ue_associated = proto.nb_ue_associated();
-  enb->s1ap_enb_assoc_clean_up_timer.id =
-    proto.s1ap_enb_assoc_clean_up_timer().id();
-  enb->s1ap_enb_assoc_clean_up_timer.sec =
-    proto.s1ap_enb_assoc_clean_up_timer().sec();
-  enb->sctp_assoc_id = proto.sctp_assoc_id();
-  enb->next_sctp_stream = proto.next_sctp_stream();
-  enb->instreams = proto.instreams();
-  enb->outstreams = proto.outstreams();
+  enb->nb_ue_associated   = proto.nb_ue_associated();
+  enb->sctp_assoc_id      = proto.sctp_assoc_id();
+  enb->next_sctp_stream   = proto.next_sctp_stream();
+  enb->instreams          = proto.instreams();
+  enb->outstreams         = proto.outstreams();
 
   // load ues
   hashtable_rc_t ht_rc;
   auto ht_name = bfromcstr("s1ap_ue_coll");
 
-  hashtable_ts_init(
-    &enb->ue_coll, mme_config.max_ues, nullptr, free_wrapper, ht_name);
+  hashtable_uint64_ts_init(
+      &enb->ue_id_coll, mme_config.max_ues, nullptr, ht_name);
   bdestroy(ht_name);
 
-  auto ues = proto.ues();
-  for (auto const& kv : ues) {
-    enb_ue_s1ap_id_t enbueid = kv.first;
-    UeDescription ue_proto = kv.second;
+  auto ue_ids = proto.ue_ids();
+  for (auto const& kv : ue_ids) {
+    mme_ue_s1ap_id_t mme_ue_s1ap_id = kv.first;
+    uint64_t comp_s1ap_id           = kv.second;
 
-    ue_description_t* ue = (ue_description_t*) malloc(sizeof(*ue));
-    proto_to_ue(ue_proto, ue);
-    ue->enb = enb; // ue's are linked to parent enb
-
-    ht_rc = hashtable_ts_insert(&enb->ue_coll, (hash_key_t) enbueid, ue);
+    ht_rc = hashtable_uint64_ts_insert(
+        &enb->ue_id_coll, (hash_key_t) mme_ue_s1ap_id, comp_s1ap_id);
     if (ht_rc != HASH_TABLE_OK) {
-      OAILOG_DEBUG(LOG_S1AP, "Failed to insert ue in ue_coll hashtable");
+      OAILOG_DEBUG(
+          LOG_S1AP, "Failed to insert mme_ue_s1ap_id in ue_coll_id hashtable");
     }
   }
 }
 void S1apStateConverter::ue_to_proto(
-  const ue_description_t* ue,
-  gateway::s1ap::UeDescription* proto)
-{
+    const ue_description_t* ue, oai::UeDescription* proto) {
   proto->Clear();
 
   proto->set_s1_ue_state(ue->s1_ue_state);
   proto->set_enb_ue_s1ap_id(ue->enb_ue_s1ap_id);
   proto->set_mme_ue_s1ap_id(ue->mme_ue_s1ap_id);
+  proto->set_sctp_assoc_id(ue->sctp_assoc_id);
   proto->set_sctp_stream_recv(ue->sctp_stream_recv);
   proto->set_sctp_stream_send(ue->sctp_stream_send);
   proto->mutable_s1ap_ue_context_rel_timer()->set_id(
-    ue->s1ap_ue_context_rel_timer.id);
+      ue->s1ap_ue_context_rel_timer.id);
   proto->mutable_s1ap_ue_context_rel_timer()->set_sec(
-    ue->s1ap_ue_context_rel_timer.sec);
+      ue->s1ap_ue_context_rel_timer.sec);
 }
 void S1apStateConverter::proto_to_ue(
-  const gateway::s1ap::UeDescription& proto,
-  ue_description_t* ue)
-{
+    const oai::UeDescription& proto, ue_description_t* ue) {
   memset(ue, 0, sizeof(*ue));
 
-  ue->s1_ue_state = (s1_ue_state_s) proto.s1_ue_state();
-  ue->enb_ue_s1ap_id = proto.enb_ue_s1ap_id();
-  ue->mme_ue_s1ap_id = proto.mme_ue_s1ap_id();
-  ue->sctp_stream_recv = proto.sctp_stream_recv();
-  ue->sctp_stream_send = proto.sctp_stream_send();
-  ue->s1ap_ue_context_rel_timer.id = proto.s1ap_ue_context_rel_timer().id();
+  ue->s1_ue_state                   = (s1_ue_state_s) proto.s1_ue_state();
+  ue->enb_ue_s1ap_id                = proto.enb_ue_s1ap_id();
+  ue->mme_ue_s1ap_id                = proto.mme_ue_s1ap_id();
+  ue->sctp_assoc_id                 = proto.sctp_assoc_id();
+  ue->sctp_stream_recv              = proto.sctp_stream_recv();
+  ue->sctp_stream_send              = proto.sctp_stream_send();
+  ue->s1ap_ue_context_rel_timer.id  = proto.s1ap_ue_context_rel_timer().id();
   ue->s1ap_ue_context_rel_timer.sec = proto.s1ap_ue_context_rel_timer().sec();
 }
 
 void S1apStateConverter::s1ap_imsi_map_to_proto(
-  const s1ap_imsi_map_t* s1ap_imsi_map,
-  gateway::s1ap::S1apImsiMap* s1ap_imsi_proto)
-{
+    const s1ap_imsi_map_t* s1ap_imsi_map, oai::S1apImsiMap* s1ap_imsi_proto) {
   hashtable_uint64_ts_to_proto(
-    s1ap_imsi_map->mme_ue_id_imsi_htbl,
-    s1ap_imsi_proto->mutable_mme_ue_id_imsi_map());
+      s1ap_imsi_map->mme_ue_id_imsi_htbl,
+      s1ap_imsi_proto->mutable_mme_ue_id_imsi_map());
 }
 void S1apStateConverter::proto_to_s1ap_imsi_map(
-  const gateway::s1ap::S1apImsiMap& s1ap_imsi_proto,
-  s1ap_imsi_map_t* s1ap_imsi_map)
-{
+    const oai::S1apImsiMap& s1ap_imsi_proto, s1ap_imsi_map_t* s1ap_imsi_map) {
   proto_to_hashtable_uint64_ts(
-    s1ap_imsi_proto.mme_ue_id_imsi_map(),
-    s1ap_imsi_map->mme_ue_id_imsi_htbl);
+      s1ap_imsi_proto.mme_ue_id_imsi_map(), s1ap_imsi_map->mme_ue_id_imsi_htbl);
 }
 
-} // namespace lte
-} // namespace magma
+}  // namespace lte
+}  // namespace magma

@@ -1,10 +1,14 @@
 """
-Copyright (c) 2016-present, Facebook, Inc.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree. An additional grant
-of patent rights can be found in the PATENTS file in the same directory.
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 import os
@@ -55,6 +59,7 @@ setup(
         'scripts/generate_oai_config.py',
         'scripts/hello_cli.py',
         'scripts/mobility_cli.py',
+        'scripts/mobility_dhcp_cli.py',
         'scripts/ocs_cli.py',
         'scripts/packet_tracer_cli.py',
         'scripts/packet_ryu_cli.py',
@@ -68,6 +73,7 @@ setup(
         'scripts/subscriber_cli.py',
         'scripts/spgw_service_cli.py',
         'scripts/cpe_monitoring_cli.py',
+        'scripts/state_cli.py',
     ],
     package_data={'magma.redirectd.templates': ['*.html']},
     install_requires=[
@@ -80,10 +86,9 @@ setup(
         'lxml==4.2.1',
         'ryu>=4.30',
         'spyne==2.12.16',
-        # scapy version 2.4.2 has an issue of not having LICENSE file in pypi
-        # version resulting in error (this is a temporary fix)
-        'scapy==2.4.3rc3',
+        'scapy==2.4.3',
         'flask>=1.0.2',
+        'aioeventlet>=0.4',
         'aiodns>=1.1.1',
         'pymemoize>=1.0.2',
         'wsgiserver>=1.3',
@@ -101,6 +106,7 @@ setup(
         'eventlet>=0.24',
         'h2>=3.2.0',
         'hpack>=3.0',
+        'freezegun>=0.3.15'
     ],
     extras_require={
         'dev': [

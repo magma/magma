@@ -1,10 +1,14 @@
 """
-Copyright (c) 2018-present, Facebook, Inc.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree. An additional grant
-of patent rights can be found in the PATENTS file in the same directory.
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 import logging
@@ -15,6 +19,7 @@ from collections import namedtuple
 from concurrent.futures import Future
 
 from magma.pipelined.rule_mappers import RuleIDToNumMapper
+from magma.pipelined.internal_ip_allocator import InternalIPAllocator
 from magma.pipelined.app.base import MagmaController, ControllerType
 from magma.pipelined.tests.app.exceptions import ServiceRunningError,\
     BadConfigError
@@ -59,6 +64,9 @@ class PipelinedController(Enum):
     Arp = Controller(
         'magma.pipelined.app.arp', 'arpd'
     )
+    GY = Controller(
+        'magma.pipelined.app.gy', 'gy'
+    )
     Enforcement = Controller(
         'magma.pipelined.app.enforcement', 'enforcement'
     )
@@ -97,6 +105,9 @@ class PipelinedController(Enum):
     )
     DPI = Controller(
         'magma.pipelined.app.dpi', 'dpi'
+    )
+    UplinkBridge = Controller(
+        'magma.pipelined.app.uplink_bridge', 'uplink_bridge'
     )
 
 
@@ -174,7 +185,10 @@ class StartThread(object):
         manager.load_apps(app_lists)
         contexts = manager.create_contexts()
         contexts['sids_by_ip'] = {}     # shared by both metering apps
-        contexts['rule_id_mapper'] = RuleIDToNumMapper()
+        contexts['rule_id_mapper'] = \
+            self._test_setup.service_manager.rule_id_mapper
+        contexts['internal_ip_allocator'] = \
+            InternalIPAllocator(self._test_setup.config)
         contexts['session_rule_version_mapper'] = \
             self._test_setup.service_manager.session_rule_version_mapper
         contexts['app_futures'] = app_futures

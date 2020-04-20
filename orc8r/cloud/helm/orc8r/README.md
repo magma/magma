@@ -1,7 +1,7 @@
 # Orchestrator Helm Deployment
 
 The contents of this README have been moved to the "Deploying Orchestrator"
-section of the docs: https://facebookincubator.github.io/magma.
+section of the docs: https://magma.github.io/magma.
 
 If you're running locally in Minikube, see the section below.
 
@@ -67,16 +67,9 @@ The following table list the configurable parameters of the orchestrator chart a
 | `controller.tolerations` | If specified, the pod's tolerations. | `[]` |
 | `controller.affinity` | Assign the orchestrator proxy to run on specific nodes. | `{}` |
 | `nms.enabled` | If true, deploy the nms sub-chart | `true` |
-| `nms.magmalte.manifests.configmap` | Enable nms magmalte configmap. | `false` |
-| `nms.magmalte.manifests.secrets` | Enable nms magmalte secrets. | `false` |
-| `nms.magmalte.manifests.deployment` | Enable nms magmalte deployment. | `false` |
-| `nms.magmalte.manifests.service` | Enable nms magmalte service. | `false` |
-| `nms.magmalte.manifests.rbac` | Enable nms magmalte rbac. | `false` |
-| `nms.nginx.manifests.configmap` | Enable nms nginx configmap. | `false` |
-| `nms.nginx.manifests.secrets` | Enable nms nginx secrets. | `false` |
-| `nms.nginx.manifests.deployment` | Enable nms nginx deployment. | `false` |
-| `nms.nginx.manifests.service` | Enable nms nginx service. | `false` |
-| `nms.nginx.manifests.rbac` | Enable nms nginx rbac. | `false` |
+| `nms.nginx.create` | Enable nms nginx service. | `true` |
+| `nms.magmalte.create` | Enable nms magmalte app. | `true` |
+| `nms.rbac` | Enable rbac for nginx and magmalte app. | `false` |
 | `logging.enabled` | If true, deploy the logging sub-chart | `true` |
 
 ## Running in Minikube
@@ -106,7 +99,7 @@ mkdir -p charts/secrets/.secrets/certs
 # You need to add the following files to the certs directory:
 #   bootstrapper.key certifier.key certifier.pem vpn_ca.crt vpn_ca.key
 #   admin_operator.pem admin_operator.key.pem nms_nginx.pem nms_nginx.key.pem
-#   controller.crt controller.key rootCA.pem 
+#   controller.crt controller.key rootCA.pem
 # The controller.crt, controller.key and rootCA.pem are the certificate info
 # for your public domain name.
 # For local testing, you can do the following after running Orc8r using docker:

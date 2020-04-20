@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 package servicers
@@ -128,7 +133,7 @@ func GetConfiguredSubscribers() ([]*protos.SubscriberData, error) {
 		configMap := &config.ConfigMap{RawMap: rawMap}
 
 		// If auth_key is incorrect, skip subscriber
-		authKey, err := configMap.GetStringParam("auth_key")
+		authKey, err := configMap.GetString("auth_key")
 		if err != nil {
 			glog.Errorf("Could not add subscriber due to missing auth_key: %s", err)
 			continue
@@ -138,7 +143,7 @@ func GetConfiguredSubscribers() ([]*protos.SubscriberData, error) {
 			glog.Errorf("Could not add subscriber due to incorrect auth key format: %s", err)
 			continue
 		}
-		non3gppEnabled, err := configMap.GetBoolParam("non_3gpp_enabled")
+		non3gppEnabled, err := configMap.GetBool("non_3gpp_enabled")
 		if err != nil {
 			non3gppEnabled = true
 		}

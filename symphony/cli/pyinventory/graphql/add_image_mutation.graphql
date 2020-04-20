@@ -1,6 +1,0 @@
-mutation AddImageMutation($input: AddImageInput!) {
-  addImage(input: $input) {
-    id
-    fileName
-  }
-}

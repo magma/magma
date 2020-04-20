@@ -2,12 +2,8 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,27 +24,19 @@
 #include "dynamic_memory_check.h"
 
 void kdf(
-  const uint8_t *key,
-  const unsigned key_len,
-  uint8_t *s,
-  const unsigned s_len,
-  uint8_t *out,
-  const unsigned out_len)
-{
-  struct hmac_sha256_ctx *ctx = calloc(1, sizeof(struct hmac_sha256_ctx));
+    const uint8_t* key, const unsigned key_len, uint8_t* s,
+    const unsigned s_len, uint8_t* out, const unsigned out_len) {
+  struct hmac_sha256_ctx* ctx = calloc(1, sizeof(struct hmac_sha256_ctx));
 
-  //memset (&ctx, 0, sizeof (ctx));
+  // memset (&ctx, 0, sizeof (ctx));
   hmac_sha256_set_key(ctx, key_len, key);
   hmac_sha256_update(ctx, s_len, s);
   hmac_sha256_digest(ctx, out_len, out);
-  free_wrapper((void **) &ctx);
+  free_wrapper((void**) &ctx);
 }
 
 int derive_keNB(
-  const uint8_t *kasme_32,
-  const uint32_t nas_count,
-  uint8_t *keNB)
-{
+    const uint8_t* kasme_32, const uint32_t nas_count, uint8_t* keNB) {
   uint8_t s[7] = {0};
 
   // FC
@@ -66,11 +54,8 @@ int derive_keNB(
 }
 
 int derive_NH(
-  const uint8_t *kasme_32,
-  const uint8_t *syncInput,
-  uint8_t *next_hop,
-  uint8_t *next_hop_chaining_count)
-{
+    const uint8_t* kasme_32, const uint8_t* syncInput, uint8_t* next_hop,
+    uint8_t* next_hop_chaining_count) {
   uint8_t s[35] = {0};
 
   // FC
@@ -82,7 +67,7 @@ int derive_NH(
   /* update next hop chaining count */
   *next_hop_chaining_count += 1;
   if (*next_hop_chaining_count >= 8) {
-     *next_hop_chaining_count = 0;
+    *next_hop_chaining_count = 0;
   }
   kdf(kasme_32, 32, s, 35, next_hop, 32);
   return 0;

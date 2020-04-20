@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 package gx
@@ -22,10 +27,6 @@ import (
 	"github.com/golang/protobuf/ptypes/timestamp"
 )
 
-var eventTriggerConversionMap = map[EventTrigger]protos.EventTrigger{
-	RevalidationTimeout: protos.EventTrigger_REVALIDATION_TIMEOUT,
-}
-
 func (ccr *CreditControlRequest) FromUsageMonitorUpdate(update *protos.UsageMonitoringUpdateRequest) *CreditControlRequest {
 	ccr.SessionID = update.SessionId
 	ccr.TgppCtx = update.GetTgppCtx()
@@ -34,9 +35,12 @@ func (ccr *CreditControlRequest) FromUsageMonitorUpdate(update *protos.UsageMoni
 	ccr.IMSI = credit_control.RemoveIMSIPrefix(update.Sid)
 	ccr.IPAddr = update.UeIpv4
 	ccr.HardwareAddr = update.HardwareAddr
-	ccr.UsageReports = []*UsageReport{(&UsageReport{}).FromUsageMonitorUpdate(update.Update)}
+	if update.EventTrigger == protos.EventTrigger_USAGE_REPORT {
+		ccr.UsageReports = []*UsageReport{(&UsageReport{}).FromUsageMonitorUpdate(update.Update)}
+	}
 	ccr.RATType = GetRATType(update.RatType)
 	ccr.IPCANType = GetIPCANType(update.RatType)
+	ccr.EventTrigger = EventTrigger(update.EventTrigger)
 	return ccr
 }
 
@@ -251,12 +255,11 @@ func GetEventTriggersRelatedInfo(
 	protoEventTriggers := make([]protos.EventTrigger, 0, len(eventTriggers))
 	var protoRevalidationTime *timestamp.Timestamp
 	for _, eventTrigger := range eventTriggers {
-		if convertedEventTrigger, ok := eventTriggerConversionMap[eventTrigger]; ok {
-			protoEventTriggers = append(protoEventTriggers, convertedEventTrigger)
-			if eventTrigger == RevalidationTimeout {
-				protoRevalidationTime = ConvertToProtoTimestamp(revalidationTime)
-			}
-		} else {
+		switch eventTrigger {
+		case RevalidationTimeout:
+			protoRevalidationTime = ConvertToProtoTimestamp(revalidationTime)
+			protoEventTriggers = append(protoEventTriggers, protos.EventTrigger(eventTrigger))
+		default:
 			protoEventTriggers = append(protoEventTriggers, protos.EventTrigger_UNSUPPORTED)
 		}
 	}
@@ -288,6 +291,9 @@ func getQoSInfo(qosInfo *QosInformation) *protos.QoSInformation {
 }
 
 func (report *UsageReport) FromUsageMonitorUpdate(update *protos.UsageMonitorUpdate) *UsageReport {
+	if update == nil {
+		return report
+	}
 	report.MonitoringKey = update.MonitoringKey
 	report.Level = MonitoringLevel(update.Level)
 	report.InputOctets = update.BytesTx

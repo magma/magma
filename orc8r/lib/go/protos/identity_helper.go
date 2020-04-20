@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 // identity_helper provides Identity setter methods, missing in protobuf 3
@@ -12,9 +17,9 @@ package protos
 
 import (
 	"fmt"
-	"log"
 	"reflect"
 
+	"github.com/golang/glog"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -125,7 +130,7 @@ func (id *Identity) HashString() string {
 			if typ.Kind() == reflect.Ptr {
 				typ = typ.Elem() // dereference if ptr
 			}
-			log.Printf(
+			glog.Errorf(
 				"Magma Identity ERROR: type '%s' is missing Hashable Type Name",
 				typ.Name())
 		}

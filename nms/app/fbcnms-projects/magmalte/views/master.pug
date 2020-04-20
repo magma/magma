@@ -1,0 +1,27 @@
+// Copyright 2020 The Magma Authors.
+//
+// This source code is licensed under the BSD-style license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+doctype html
+html
+  head
+    title Magma
+    meta(charset="utf-8")
+    meta(http-equiv="x-ua-compatible" content="ie=edge")
+    meta(name="description", content="Magma NMS")
+    meta(name="viewport", content="width=device-width, initial-scale=1")
+    link(rel="shortcut icon" type="image/png" href="/nms/static/images/favicon.png")
+    link(href='https://fonts.googleapis.com/css2?family=Fira+Code:wght@500&family=Inter:wght@500;600;700&display=swap' rel='stylesheet')
+    script(src=staticDist("vendor.js", "nms"))
+    script.
+      var CONFIG = !{configJson};
+  body
+    div(id="root")
+    script(src=staticDist("master.js", "nms"))

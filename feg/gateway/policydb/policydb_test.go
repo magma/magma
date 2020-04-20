@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 package policydb_test
@@ -14,21 +19,20 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/ptypes/any"
-	"github.com/stretchr/testify/assert"
-	"google.golang.org/grpc"
-
 	"magma/feg/gateway/policydb"
 	fegstreamer "magma/gateway/streamer"
 	"magma/lte/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/streamer"
-	"magma/orc8r/cloud/go/services/streamer/providers"
 	streamer_test_init "magma/orc8r/cloud/go/services/streamer/test_init"
 	"magma/orc8r/lib/go/definitions"
 	orcprotos "magma/orc8r/lib/go/protos"
 	platform_registry "magma/orc8r/lib/go/registry"
 	"magma/orc8r/lib/go/service/config"
+
+	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/ptypes/any"
+	"github.com/stretchr/testify/assert"
+	"google.golang.org/grpc"
 )
 
 // Mock Cloud Streamer
@@ -155,7 +159,7 @@ func initOnce(t *testing.T) {
 
 func TestPolicyDBBaseNamesWithGRPC(t *testing.T) {
 	onceTestsInit.Do(func() { initOnce(t) })
-	providers.RegisterStreamProvider(&mockStreamProvider{Name: "base_names"})
+	streamer_test_init.StartNewTestProvider(t, &mockStreamProvider{Name: "base_names"})
 	dbClient := &policydb.RedisPolicyDBClient{
 		PolicyMap:      &mockObjectStore{},
 		BaseNameMap:    &mockObjectStore{},
@@ -177,7 +181,7 @@ func TestPolicyDBBaseNamesWithGRPC(t *testing.T) {
 
 func TestPolicyDBRulesWithGRPC(t *testing.T) {
 	onceTestsInit.Do(func() { initOnce(t) })
-	providers.RegisterStreamProvider(&mockStreamProvider{Name: "policydb"})
+	streamer_test_init.StartNewTestProvider(t, &mockStreamProvider{Name: "policydb"})
 	dbClient := &policydb.RedisPolicyDBClient{
 		PolicyMap:      &mockObjectStore{},
 		BaseNameMap:    &mockObjectStore{},

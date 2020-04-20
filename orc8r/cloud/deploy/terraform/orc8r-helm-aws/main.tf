@@ -1,9 +1,14 @@
 ################################################################################
-# Copyright (c) Facebook, Inc. and its affiliates.
-# All rights reserved.
-#
+# Copyright 2020 The Magma Authors.
+
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 ################################################################################
 
 data "terraform_remote_state" "current" {
@@ -20,13 +25,15 @@ locals {
 }
 
 resource "helm_release" "orc8r" {
-  name       = "orc8r"
-  namespace  = var.orc8r_kubernetes_namespace
-  repository = data.helm_repository.artifactory.id
-  chart      = "orc8r"
-  version    = var.orc8r_chart_version
-  keyring    = ""
-  timeout    = 600
+  name                = var.helm_deployment_name
+  namespace           = kubernetes_namespace.orc8r.metadata[0].name
+  repository          = var.helm_repo
+  repository_username = var.helm_user
+  repository_password = var.helm_pass
+  chart               = "orc8r"
+  version             = var.orc8r_chart_version
+  keyring             = ""
+  timeout             = 600
 
   values = [templatefile("${path.module}/templates/orc8r-values.tpl", {
     image_pull_secret = kubernetes_secret.artifactory.metadata.0.name
@@ -43,11 +50,11 @@ resource "helm_release" "orc8r" {
     nms_certs_secret = var.deploy_nms ? kubernetes_secret.nms_certs.0.metadata.0.name : kubernetes_secret.orc8r_certs.metadata.0.name
 
     controller_replicas = var.orc8r_controller_replicas
-    proxy_replicas      = var.orc8r_proxy_replicas
+    nginx_replicas      = var.orc8r_proxy_replicas
 
     controller_hostname = format("controller.%s", var.orc8r_domain_name)
     api_hostname        = format("api.%s", var.orc8r_domain_name)
-    nms_hostname        = format("nms.%s", var.orc8r_domain_name)
+    nms_hostname        = format("*.nms.%s", var.orc8r_domain_name)
 
     orc8r_db_name = var.orc8r_db_name
     orc8r_db_host = var.orc8r_db_host
@@ -62,8 +69,17 @@ resource "helm_release" "orc8r" {
     metrics_pvc_promcfg  = kubernetes_persistent_volume_claim.storage["promcfg"].metadata.0.name
     metrics_pvc_promdata = kubernetes_persistent_volume_claim.storage["promdata"].metadata.0.name
 
-    create_usergrafana      = true
-    grafana_pvc_grafanaData = kubernetes_persistent_volume_claim.storage["grafanadata"].metadata.0.name
+    create_usergrafana             = true
+    user_grafana_hostname          = format("%s-user-grafana:3000", var.helm_deployment_name)
+    grafana_pvc_grafanaData        = kubernetes_persistent_volume_claim.storage["grafanadata"].metadata.0.name
+    grafana_pvc_grafanaDatasources = kubernetes_persistent_volume_claim.storage["grafanadatasources"].metadata.0.name
+    grafana_pvc_grafanaProviders   = kubernetes_persistent_volume_claim.storage["grafanaproviders"].metadata.0.name
+    grafana_pvc_grafanaDashboards  = kubernetes_persistent_volume_claim.storage["grafanadashboards"].metadata.0.name
+
+    prometheus_cache_hostname = format("%s-prometheus-cache", var.helm_deployment_name)
+    alertmanager_hostname     = format("%s-alertmanager", var.helm_deployment_name)
+    alertmanager_url          = format("%s-alertmanager:9093", var.helm_deployment_name)
+    prometheus_url            = format("%s-prometheus:9090", var.helm_deployment_name)
   })]
 
   set_sensitive {

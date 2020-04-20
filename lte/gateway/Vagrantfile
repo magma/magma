@@ -1,11 +1,15 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
-# Copyright (c) 2018-present, Facebook, Inc.
-# All rights reserved.
-#
+# Copyright 2020 The Magma Authors.
+
 # This source code is licensed under the BSD-style license found in the
-# LICENSE file in the root directory of this source tree. An additional grant
-# of patent rights can be found in the PATENTS file in the same directory.
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 #
 
 # Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
@@ -23,7 +27,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # - updated vbguest-tool
     magma.vm.box = "fbcmagma/magma_dev"
     magma.vm.hostname = "magma-dev"
-    magma.vm.box_version = "1.0.1586316960"
+    magma.vm.box_version = "1.0.1594511934"
     magma.vbguest.auto_update = false
 
     # Create a private network, which allows host-only access to the machine
@@ -35,7 +39,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     magma.vm.provider "virtualbox" do |vb|
       vb.name = "magma-dev"
       vb.linked_clone = true
-      vb.customize ["modifyvm", :id, "--memory", "4096"]
+      vb.customize ["modifyvm", :id, "--memory", "6144"]
       vb.customize ["modifyvm", :id, "--cpus", "4"]
       vb.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
     end
@@ -60,7 +64,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     magma_trfserver.vm.network "private_network", ip: "192.168.60.144", nic_type: "82540EM"
     # iperf3 server IP.
     magma_trfserver.vm.network "private_network", ip: "192.168.129.42", nic_type: "82540EM"
-    magma_trfserver.vbguest.auto_update = false
 
     magma_trfserver.vm.provider "virtualbox" do |vb|
       vb.name = "magma-trfserver"
@@ -106,39 +109,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     magma_test.vm.provision "ansible" do |ansible|
       ansible.host_key_checking = false
       ansible.playbook = "deploy/magma_test.yml"
-      ansible.inventory_path = "deploy/hosts"
-      ansible.raw_arguments = ENV.fetch("ANSIBLE_ARGS", "").split(";") +
-                              ["--timeout=30"]
-      ansible.verbose = 'v'
-    end
-  end
-
-  config.vm.define :magma_oai, autostart: false do |magma_oai|
-    # Get our prepackaged box from the atlas cloud, based on
-    # - ubuntu/xenial64
-    # - linux kernel from debian jessie backports
-    # - updated vbguest-tool
-    magma_oai.vm.box = "fbcmagma/ubuntu"
-    magma_oai.vm.box_version = "1.3"
-    magma_oai.vm.hostname = "magma-oai"
-    magma_oai.vbguest.auto_update = false
-
-    # Create a private network, which allows host-only access to the machine
-    # using a specific IP.
-    magma_oai.vm.network "private_network", ip: "192.168.60.145", nic_type: "82540EM"
-
-    magma_oai.vm.provider "virtualbox" do |vb|
-      vb.name = "magma-oai"
-      vb.linked_clone = true
-      vb.customize ["modifyvm", :id, "--memory", "4096"]
-      vb.customize ["modifyvm", :id, "--cpus", "4"]
-      vb.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
-      vb.customize ["modifyvm", :id, "--uartmode1", "disconnected"]
-    end
-
-    magma_oai.vm.provision "ansible" do |ansible|
-      ansible.host_key_checking = false
-      ansible.playbook = "deploy/magma_oai.yml"
       ansible.inventory_path = "deploy/hosts"
       ansible.raw_arguments = ENV.fetch("ANSIBLE_ARGS", "").split(";") +
                               ["--timeout=30"]
@@ -198,4 +168,26 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # documentation for more information about their specific syntax and use.
     config.ssh.insert_key = false
   end
+
+  config.vm.define :oai_hss, autostart: false do |oai_hss|
+    oai_hss.vm.box = "ubuntu/bionic64"
+    oai_hss.vm.hostname = "oai-hss"
+    oai_hss.vm.network "public_network"
+    oai_hss.ssh.forward_agent = true
+    oai_hss.vm.box_check_update = false
+
+    # Create a private network, which allows host-only access to the machine
+    # using a specific IP.
+    oai_hss.vm.network "private_network", ip: "192.168.60.153", nic_type: "82540EM"
+    config.ssh.insert_key = false
+    oai_hss.vm.provider "virtualbox" do |vb|
+      vb.name = "oai-hss"
+      vb.linked_clone = true
+      vb.customize ["modifyvm", :id, "--memory", "4096"]
+      vb.customize ["modifyvm", :id, "--cpus", "4"]
+      vb.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+    end
+
+  end
+
 end

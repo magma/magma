@@ -1,9 +1,13 @@
-# Copyright (c) 2016-present, Facebook, Inc.
-# All rights reserved.
+# Copyright 2020 The Magma Authors.
 
 # This source code is licensed under the BSD-style license found in the
-# LICENSE file in the root directory of this source tree. An additional grant
-# of patent rights can be found in the PATENTS file in the same directory.
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 cmake_minimum_required(VERSION 3.0.2)
 
@@ -11,12 +15,34 @@ PROJECT(SessionManager)
 
 add_compile_options(-std=c++14)
 
+set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/modules")
+include(FindClangFormat)
+
 include($ENV{MAGMA_ROOT}/orc8r/gateway/c/common/CMakeProtoMacros.txt)
+
+if (NOT BUILD_TESTS)
+  # Add AddressSanitizer (asan) support for debug builds of SessionD
+  set (CMAKE_CXX_FLAGS_DEBUG
+      "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
+  set (CMAKE_LINKER_FLAGS_DEBUG
+      "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
+  # Add LeakSanitizer (lsan) support to the release build of SessionD so that
+  # we can find memory leaks in production.
+  set(CMAKE_C_FLAGS_RELWITHDEBINFO
+     "${CMAKE_C_FLAGS_RELWITHDEBINFO} -fsanitize=leak -fno-omit-frame-pointer")
+  set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO
+     "${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO} -fsanitize=leak")
+endif ()
 
 set(OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 
 set(MAGMA_LIB_DIR $ENV{C_BUILD}/magma_common)
 add_definitions(-DLOG_WITH_GLOG)
+
+message("Build type is ${CMAKE_BUILD_TYPE}")
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -Wno-unused-function")
+endif ()
 
 include_directories("${OUTPUT_DIR}")
 include_directories("${MAGMA_ROOT}/orc8r/gateway/c/common/logging")
@@ -78,6 +104,10 @@ link_directories(
 add_library(SESSION_MANAGER
     AAAClient.cpp
     AAAClient.h
+    ChargingGrant.cpp
+    ChargingGrant.h
+    EnumToString.cpp
+    EnumToString.h
     SessionManagerServer.cpp
     SessionManagerServer.h
     LocalSessionManagerHandler.cpp
@@ -108,8 +138,6 @@ add_library(SESSION_MANAGER
     DiameterCodes.cpp
     DiameterCodes.h
     CreditKey.h
-    CreditPool.cpp
-    CreditPool.h
     SessionProxyResponderHandler.cpp
     SessionProxyResponderHandler.h
     StoredState.cpp
@@ -118,12 +146,16 @@ add_library(SESSION_MANAGER
     SessionStore.h
     MemoryStoreClient.cpp
     MemoryStoreClient.h
+    Monitor.h
     RedisStoreClient.cpp
     RedisStoreClient.h
     StoreClient.h
+    MeteringReporter.cpp
+    MeteringReporter.h
+    GrpcMagmaUtils.cpp
+    GrpcMagmaUtils.h
     ${PROTO_SRCS}
-    ${PROTO_HDRS}
-    )
+    ${PROTO_HDRS})
 
 target_link_libraries(SESSION_MANAGER
   SERVICE303_LIB SERVICE_REGISTRY ASYNC_GRPC CONFIG POLICYDB EVENTD
@@ -132,6 +164,15 @@ target_link_libraries(SESSION_MANAGER
   prometheus-cpp tacopie
   )
 
+if (CLANG_FORMAT)
+  add_custom_target(
+          clang-format
+          COMMAND ${CLANG_FORMAT}
+          -style=file
+          -i
+          ${ALL_CXX_SOURCE_FILES}
+  )
+endif ()
 
 add_executable(sessiond ${PROJECT_SOURCE_DIR}/sessiond_main.cpp)
 

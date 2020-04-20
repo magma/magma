@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 // Shared diameter settings across magma cloud
@@ -177,8 +182,13 @@ func GetValue(flagName, defaultValue string) string {
 }
 
 // GetValueOrEnv returns value of the flagValue if it exists, then the environment
-// variable if it exists, or defaultValue if not
-func GetValueOrEnv(flagName, envVariable, defaultValue string) string {
+// variable if it exists, or defaultValue if not.
+// If idx parameter is passed, then if that idx > 1 defaultValue will be returned.
+// Note in case of many idx are passed, only the first idx will be checked.
+func GetValueOrEnv(flagName, envVariable, defaultValue string, idx ...int) string {
+	if len(idx) > 0 && idx[0] > 0 {
+		return defaultValue
+	}
 	flagValue := getFlagValue(flagName)
 	if len(flagValue) != 0 {
 		return flagValue
@@ -195,8 +205,13 @@ func GetValueOrEnv(flagName, envVariable, defaultValue string) string {
 }
 
 // GetBoolValueOrEnv returns value of the flagValue if it exists, then the environment
-// variable if it exists, or defaultValue if not
-func GetBoolValueOrEnv(flagName string, envVariable string, defaultValue bool) bool {
+// variable if it exists, or defaultValue if not.
+// If idx parameter is passed, then if that idx > 1 defaultValue will be returned.
+// Note in case of many idx are passed, only the first idx will be checked.
+func GetBoolValueOrEnv(flagName string, envVariable string, defaultValue bool, idx ...int) bool {
+	if len(idx) > 0 && idx[0] > 0 {
+		return defaultValue
+	}
 	flagValue := getFlagValue(flagName)
 	flagValueBool, err := strconv.ParseBool(flagValue)
 	if len(flagValue) != 0 && err == nil {

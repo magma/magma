@@ -2,12 +2,8 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -81,10 +77,8 @@ Description Defines functions executed at the ESM Service Access
  */
 
 esm_cause_t esm_recv_status(
-  emm_context_t *emm_context,
-  proc_tid_t pti,
-  ebi_t ebi,
-  const esm_status_msg *msg);
+    emm_context_t* emm_context, proc_tid_t pti, ebi_t ebi,
+    const esm_status_msg* msg);
 
 /*
  * --------------------------------------------------------------------------
@@ -96,57 +90,40 @@ esm_cause_t esm_recv_status(
  * ----------------------------
  */
 esm_cause_t esm_recv_pdn_connectivity_request(
-  emm_context_t *emm_context,
-  proc_tid_t pti,
-  ebi_t ebi,
-  const pdn_connectivity_request_msg* msg,
-  ebi_t* new_ebi,
-  bool is_standalone);
+    emm_context_t* emm_context, proc_tid_t pti, ebi_t ebi,
+    const pdn_connectivity_request_msg* msg, ebi_t* new_ebi,
+    bool is_standalone);
 
 esm_cause_t esm_recv_pdn_disconnect_request(
-  emm_context_t *emm_context,
-  proc_tid_t pti,
-  ebi_t ebi,
-  const pdn_disconnect_request_msg *msg);
+    emm_context_t* emm_context, proc_tid_t pti, ebi_t ebi,
+    const pdn_disconnect_request_msg* msg);
 
 esm_cause_t esm_recv_information_response(
-  emm_context_t *emm_context,
-  proc_tid_t pti,
-  ebi_t ebi,
-  const esm_information_response_msg *msg);
+    emm_context_t* emm_context, proc_tid_t pti, ebi_t ebi,
+    const esm_information_response_msg* msg);
 
 /*
  * Messages related to EPS bearer contexts
  * ---------------------------------------
  */
 esm_cause_t esm_recv_activate_default_eps_bearer_context_accept(
-  emm_context_t *emm_context,
-  proc_tid_t pti,
-  ebi_t ebi,
-  const activate_default_eps_bearer_context_accept_msg *msg);
+    emm_context_t* emm_context, proc_tid_t pti, ebi_t ebi,
+    const activate_default_eps_bearer_context_accept_msg* msg);
 
 esm_cause_t esm_recv_activate_default_eps_bearer_context_reject(
-  emm_context_t *emm_context,
-  proc_tid_t pti,
-  ebi_t ebi,
-  const activate_default_eps_bearer_context_reject_msg *msg);
+    emm_context_t* emm_context, proc_tid_t pti, ebi_t ebi,
+    const activate_default_eps_bearer_context_reject_msg* msg);
 
 esm_cause_t esm_recv_activate_dedicated_eps_bearer_context_accept(
-  emm_context_t *emm_context,
-  proc_tid_t pti,
-  ebi_t ebi,
-  const activate_dedicated_eps_bearer_context_accept_msg *msg);
+    emm_context_t* emm_context, proc_tid_t pti, ebi_t ebi,
+    const activate_dedicated_eps_bearer_context_accept_msg* msg);
 
 esm_cause_t esm_recv_activate_dedicated_eps_bearer_context_reject(
-  emm_context_t *emm_context,
-  proc_tid_t pti,
-  ebi_t ebi,
-  const activate_dedicated_eps_bearer_context_reject_msg *msg);
+    emm_context_t* emm_context, proc_tid_t pti, ebi_t ebi,
+    const activate_dedicated_eps_bearer_context_reject_msg* msg);
 
 esm_cause_t esm_recv_deactivate_eps_bearer_context_accept(
-  emm_context_t *emm_context,
-  proc_tid_t pti,
-  ebi_t ebi,
-  const deactivate_eps_bearer_context_accept_msg *msg);
+    emm_context_t* emm_context, proc_tid_t pti, ebi_t ebi,
+    const deactivate_eps_bearer_context_accept_msg* msg);
 
 #endif /* __ESM_RECV_H__*/

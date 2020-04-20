@@ -2,12 +2,8 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,38 +26,35 @@
 typedef uint8_t service_type_t;
 
 int encode_service_type(
-  service_type_t *servicetype,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len);
+    service_type_t* servicetype, uint8_t iei, uint8_t* buffer, uint32_t len);
 
-uint8_t encode_u8_service_type(service_type_t *servicetype);
+uint8_t encode_u8_service_type(service_type_t* servicetype);
 
 int decode_service_type(
-  service_type_t *servicetype,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len);
+    service_type_t* servicetype, uint8_t iei, uint8_t* buffer, uint32_t len);
 
 int decode_u8_service_type(
-  service_type_t *servicetype,
-  uint8_t iei,
-  uint8_t value,
-  uint32_t len);
+    service_type_t* servicetype, uint8_t iei, uint8_t value, uint32_t len);
 
 /*
   Service type value:reference 24301-af0:Table 9.9.3.27.1
 * Bits
-* 4	3	2	1	
+* 4	3	2	1
 * 0	0	0	0	mobile originating CS fallback or 1xCS fallback
 * 0	0	0	1	mobile terminating CS fallback or 1xCS fallback
-* 0	0	1	0	mobile originating CS fallback emergency call or 1xCS fallback emergency call
-* 0	0	1	1	unused; shall be interpreted as "mobile originating CS fallback or 1xCS fallback", if received by the network
-* 0	1	0	0	unused; shall be interpreted as "mobile originating CS fallback or 1xCS fallback", if received by the network
+* 0	0	1	0	mobile originating CS fallback emergency call or
+1xCS fallback emergency call
+* 0	0	1	1	unused; shall be interpreted as "mobile
+originating CS fallback or 1xCS fallback", if received by the network
+* 0	1	0	0	unused; shall be interpreted as "mobile
+originating CS fallback or 1xCS fallback", if received by the network
 * 1	0	0	0	packet services via S1
-* 1	0	0	1	unused; shall be interpreted as "packet services via S1", if received by the network
-* 1	0	1	0	unused; shall be interpreted as "packet services via S1", if received by the network
-* 1	0	1	1	unused; shall be interpreted as "packet services via S1", if received by the network
+* 1	0	0	1	unused; shall be interpreted as "packet services
+via S1", if received by the network
+* 1	0	1	0	unused; shall be interpreted as "packet services
+via S1", if received by the network
+* 1	0	1	1	unused; shall be interpreted as "packet services
+via S1", if received by the network
 */
 
 typedef enum {

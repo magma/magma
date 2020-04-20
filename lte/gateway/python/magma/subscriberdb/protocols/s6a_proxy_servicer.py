@@ -1,10 +1,14 @@
 """
-Copyright (c) 2016-present, Facebook, Inc.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree. An additional grant
-of patent rights can be found in the PATENTS file in the same directory.
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 import logging
@@ -103,24 +107,10 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
         ula.total_ambr.max_bandwidth_dl = profile.max_dl_bit_rate
         ula.all_apns_included = 0
 
-        apn = ula.apn.add()
-        apn.context_id = 0
-        apn.service_selection = "oai.ipv4"
-        apn.qos_profile.class_id = 9
-        apn.qos_profile.priority_level = 15
-        apn.qos_profile.preemption_capability = 1
-        apn.qos_profile.preemption_vulnerability = 0
-
-        apn.ambr.max_bandwidth_ul = profile.max_ul_bit_rate
-        apn.ambr.max_bandwidth_dl = profile.max_dl_bit_rate
-        apn.pdn = s6a_proxy_pb2.UpdateLocationAnswer.APNConfiguration.IPV4
-
-        # Secondary PDN
         context_id = 0
         for apn in sub_data.non_3gpp.apn_config:
             sec_apn = ula.apn.add()
-            # Context id 0 is assigned to oai.ipv4 apn. So start from 1
-            sec_apn.context_id = context_id + 1
+            sec_apn.context_id = context_id
             context_id += 1
             sec_apn.service_selection = apn.service_selection
             sec_apn.qos_profile.class_id = apn.qos_profile.class_id

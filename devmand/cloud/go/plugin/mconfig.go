@@ -1,39 +1,56 @@
 /*
-Copyright (c) 2016-present, Facebook, Inc.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree. An additional grant
-of patent rights can be found in the PATENTS file in the same directory.
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 package plugin
 
 import (
+	"magma/devmand/cloud/go/devmand"
+	"magma/devmand/cloud/go/protos/mconfig"
+	models2 "magma/devmand/cloud/go/services/devmand/obsidian/models"
 	"magma/orc8r/cloud/go/services/configurator"
+	configuratorprotos "magma/orc8r/cloud/go/services/configurator/protos"
 	merrors "magma/orc8r/lib/go/errors"
-	"orc8r/devmand/cloud/go/devmand"
-	models2 "orc8r/devmand/cloud/go/plugin/models"
-	"orc8r/devmand/cloud/go/protos/mconfig"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/ptypes"
+	"github.com/golang/protobuf/ptypes/any"
 	"github.com/pkg/errors"
 )
 
 type Builder struct{}
+type DevmandMconfigBuilderServicer struct{}
 
-func (*Builder) Build(networkID string, gatewayID string, graph configurator.EntityGraph, network configurator.Network, mconfigOut map[string]proto.Message) error {
-	devmandAgent, err := graph.GetEntity(devmand.SymphonyAgentType, gatewayID)
+func (s *DevmandMconfigBuilderServicer) Build(
+	request *configuratorprotos.BuildMconfigRequest,
+) (*configuratorprotos.BuildMconfigResponse, error) {
+	ret := &configuratorprotos.BuildMconfigResponse{
+		ConfigsByKey: map[string]*any.Any{},
+	}
+	graph, err := (configurator.EntityGraph{}).FromStorageProto(request.GetEntityGraph())
+	if err != nil {
+		return ret, err
+	}
+	devmandAgent, err := graph.GetEntity(devmand.SymphonyAgentType, request.GetGatewayId())
 	if err == merrors.ErrNotFound {
-		return nil
+		return ret, nil
 	}
 	if err != nil {
-		return errors.WithStack(err)
+		return ret, err
 	}
 
 	devices, err := graph.GetAllChildrenOfType(devmandAgent, devmand.SymphonyDeviceType)
 	if err != nil {
-		return errors.WithStack(err)
+		return ret, err
 	}
 
 	managedDevices := map[string]*mconfig.ManagedDevice{}
@@ -97,9 +114,43 @@ func (*Builder) Build(networkID string, gatewayID string, graph configurator.Ent
 		}
 		managedDevices[device.Key] = deviceMconfig
 	}
-
-	mconfigOut["devmand"] = &mconfig.DevmandGatewayConfig{
+	devmandMconfig := &mconfig.DevmandGatewayConfig{
 		ManagedDevices: managedDevices,
+	}
+	ret.ConfigsByKey["devmand"], err = ptypes.MarshalAny(devmandMconfig)
+	return ret, err
+}
+
+func (*Builder) Build(networkID string, gatewayID string, graph configurator.EntityGraph, network configurator.Network, mconfigOut map[string]proto.Message) error {
+	servicer := &DevmandMconfigBuilderServicer{}
+	networkProto, err := network.ToStorageProto()
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	graphProto, err := graph.ToStorageProto()
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	request := &configuratorprotos.BuildMconfigRequest{
+		NetworkId:   networkID,
+		GatewayId:   gatewayID,
+		EntityGraph: graphProto,
+		Network:     networkProto,
+	}
+	res, err := servicer.Build(request)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	for k, v := range res.GetConfigsByKey() {
+		mconfigMessage, err := ptypes.Empty(v)
+		if err != nil {
+			return err
+		}
+		err = ptypes.UnmarshalAny(v, mconfigMessage)
+		if err != nil {
+			return err
+		}
+		mconfigOut[k] = mconfigMessage
 	}
 	return nil
 }

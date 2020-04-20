@@ -1,9 +1,15 @@
-// Copyright (c) 2016-present, Facebook, Inc.
-// All rights reserved.
-//
-// This source code is licensed under the BSD-style license found in the
-// LICENSE file in the root directory of this source tree. An additional grant
-// of patent rights can be found in the PATENTS file in the same directory.
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
 syntax = "proto3";
 
 package feg;
@@ -37,6 +43,7 @@ message S6aConfig {
 
 message GxConfig {
     DiamClientConfig server = 1;
+    repeated DiamClientConfig servers = 2;
 }
 
 enum GyInitMethod {
@@ -48,6 +55,7 @@ enum GyInitMethod {
 message GyConfig {
     DiamClientConfig server = 1;
     GyInitMethod init_method = 2;
+    repeated DiamClientConfig servers = 3;
 }
 
 message SwxConfig {
@@ -55,6 +63,7 @@ message SwxConfig {
     // After auth, verify Non-3GPP IP Access enabled
     bool verify_authorization = 2;
     uint32 CacheTTLSeconds = 3;
+    repeated DiamClientConfig servers = 4;
 }
 
 message HSSConfig {

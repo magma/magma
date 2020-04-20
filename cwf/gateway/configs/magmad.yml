@@ -1,8 +1,14 @@
 ---
-# Copyright (c) Facebook, Inc. and its affiliates.
-# All rights reserved.
+# Copyright 2020 The Magma Authors.
+
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 #
 log_level: INFO
 
@@ -20,16 +26,19 @@ magma_services:
   - directoryd
   - policydb
   - state
+  - health
 
 # List of services that don't provide service303 interface
 non_service303_services:
   - control_proxy
   - redis
   - radius
+  - td-agent-bit
 
 # List of all possible dynamic services (enabled from gateway.mconfig)
 registered_dynamic_services:
   - redirectd
+  - td-agent-bit
 
 # list of services that are required to have meta before checking in
 # (meta = data gathered via MagmaService.register_get_status_callback())
@@ -56,11 +65,13 @@ upgrader_factory:
   module: magma.magmad.upgrade.docker_upgrader
   class: DockerUpgraderFactory
   gateway_module: cwf
+  use_proxy: False
 
 mconfig_modules:
   - orc8r.protos.mconfig.mconfigs_pb2
   - lte.protos.mconfig.mconfigs_pb2
   - feg.protos.mconfig.mconfigs_pb2
+  - cwf.protos.mconfig.mconfigs_pb2
 
 metricsd:
   log_level: INFO

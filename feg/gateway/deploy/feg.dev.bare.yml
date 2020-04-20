@@ -1,0 +1,43 @@
+---
+################################################################################
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+################################################################################
+
+# FEG baremetal config
+- name: Set up Magma Federated Gateway build environment on a local machine
+  hosts: feg_bare
+  become: yes
+  vars:
+    magma_root: /home/{{ ansible_user }}/magma
+    preburn: false
+    full_provision: true
+
+  roles:
+    - role: distro_snapshot
+      vars:
+        distro: xenial
+        distro_root: "{{ lookup('env', 'FEG_DISTRO_ARCHIVE') | regex_replace('(^.*/+|)([^/]+)\\.tar\\.gz$', '\\2') }}"
+        distro_archive: "{{ lookup('env', 'FEG_DISTRO_ARCHIVE') }}"
+        distro_sha256: "{{ lookup('env', 'FEG_DISTRO_SHA256') }}"
+    - role: gateway_dev
+      vars:
+        distribution: "xenial"
+        repo: "dev"
+        config_dir: "feg/gateway/configs"
+    - role: golang
+      vars:
+        user: "{{ ansible_user }}"
+    - role: feg_dev
+      vars:
+        user: "{{ ansible_user }}"
+        config_dir: "feg/gateway/configs"
+    - role: feg_services

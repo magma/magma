@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -39,7 +35,7 @@ extern "C" {
 
 #include <google/protobuf/map.h>
 
-#include "lte/gateway/c/oai/protos/common_types.pb.h"
+#include "lte/protos/oai/common_types.pb.h"
 
 namespace magma {
 namespace lte {
@@ -79,11 +75,10 @@ class StateConverter {
    */
   template<typename NodeType, typename ProtoMessage>
   static void hashtable_ts_to_proto(
-    hash_table_ts_t* state_ht,
-    google::protobuf::Map<unsigned int, ProtoMessage>* proto_map,
-    std::function<void(NodeType*, ProtoMessage*)> conversion_callable,
-    log_proto_t log_task_level)
-  {
+      hash_table_ts_t* state_ht,
+      google::protobuf::Map<unsigned int, ProtoMessage>* proto_map,
+      std::function<void(NodeType*, ProtoMessage*)> conversion_callable,
+      log_proto_t log_task_level) {
     hashtable_key_array_t* ht_keys = hashtable_ts_get_keys(state_ht);
     hashtable_rc_t ht_rc;
     if (ht_keys == nullptr) {
@@ -93,17 +88,15 @@ class StateConverter {
     for (uint32_t i = 0; i < ht_keys->num_keys; i++) {
       NodeType* node;
       ht_rc = hashtable_ts_get(
-        state_ht, (hash_key_t) ht_keys->keys[i], (void**) &node);
+          state_ht, (hash_key_t) ht_keys->keys[i], (void**) &node);
       if (ht_rc == HASH_TABLE_OK) {
         ProtoMessage proto;
         conversion_callable((NodeType*) node, &proto);
         (*proto_map)[ht_keys->keys[i]] = proto;
       } else {
         OAILOG_ERROR(
-          log_task_level,
-          "Key %u not found on %s hashtable",
-          ht_keys->keys[i],
-          state_ht->name->data);
+            log_task_level, "Key %u not found on %s hashtable",
+            ht_keys->keys[i], state_ht->name->data);
       }
     }
     FREE_HASHTABLE_KEY_ARRAY(ht_keys);
@@ -111,70 +104,68 @@ class StateConverter {
 
   template<typename ProtoMessage, typename NodeType>
   static void proto_to_hashtable_ts(
-    const google::protobuf::Map<unsigned int, ProtoMessage>& proto_map,
-    hash_table_ts_t* state_ht,
-    std::function<void(const ProtoMessage&, NodeType*)> conversion_callable,
-    log_proto_t log_task_level)
-  {
+      const google::protobuf::Map<unsigned int, ProtoMessage>& proto_map,
+      hash_table_ts_t* state_ht,
+      std::function<void(const ProtoMessage&, NodeType*)> conversion_callable,
+      log_proto_t log_task_level) {
     for (const auto& entry : proto_map) {
       auto proto = entry.second;
       NodeType* node_type;
       node_type = (NodeType*) calloc(1, sizeof(NodeType));
       conversion_callable(proto, node_type);
       auto ht_rc =
-        hashtable_ts_insert(state_ht, (hash_key_t) entry.first, node_type);
+          hashtable_ts_insert(state_ht, (hash_key_t) entry.first, node_type);
       if (ht_rc != HASH_TABLE_OK) {
         if (ht_rc == HASH_TABLE_INSERT_OVERWRITTEN_DATA) {
           OAILOG_INFO(LOG_SPGW_APP, "Overwriting data on key: %i", entry.first);
         } else {
           OAILOG_ERROR(
-            log_task_level,
-            "Failed to insert node on hashtable %s",
-            state_ht->name->data);
+              log_task_level, "Failed to insert node on hashtable %s",
+              state_ht->name->data);
         }
       }
     }
   }
 
   static void hashtable_uint64_ts_to_proto(
-    hash_table_uint64_ts_t* htbl,
-    google::protobuf::Map<unsigned long, unsigned long>* proto_map);
+      hash_table_uint64_ts_t* htbl,
+      google::protobuf::Map<unsigned long, unsigned long>* proto_map);
 
   static void proto_to_hashtable_uint64_ts(
-    const google::protobuf::Map<unsigned long, unsigned long>& proto_map,
-    hash_table_uint64_ts_t* state_htbl);
+      const google::protobuf::Map<unsigned long, unsigned long>& proto_map,
+      hash_table_uint64_ts_t* state_htbl);
 
-  static void guti_to_proto(const guti_t& guti_state, Guti* guti_proto);
+  static void guti_to_proto(const guti_t& guti_state, oai::Guti* guti_proto);
 
-  static void ecgi_to_proto(const ecgi_t& state_ecgi, Ecgi* ecgi_proto);
+  static void ecgi_to_proto(const ecgi_t& state_ecgi, oai::Ecgi* ecgi_proto);
 
-  static void proto_to_ecgi(const Ecgi& ecgi_proto, ecgi_t* state_ecgi);
+  static void proto_to_ecgi(const oai::Ecgi& ecgi_proto, ecgi_t* state_ecgi);
 
   static void eps_subscribed_qos_profile_to_proto(
-    const eps_subscribed_qos_profile_t& state_eps_subscribed_qos_profile,
-    EpsSubscribedQosProfile* eps_subscribed_qos_profile_proto);
-  static void ambr_to_proto(const ambr_t& state_ambr, Ambr* ambr_proto);
+      const eps_subscribed_qos_profile_t& state_eps_subscribed_qos_profile,
+      oai::EpsSubscribedQosProfile* eps_subscribed_qos_profile_proto);
+  static void ambr_to_proto(const ambr_t& state_ambr, oai::Ambr* ambr_proto);
   static void apn_configuration_to_proto(
-    const apn_configuration_t& state_apn_configuration,
-    ApnConfig* apn_config_proto);
+      const apn_configuration_t& state_apn_configuration,
+      oai::ApnConfig* apn_config_proto);
   static void apn_config_profile_to_proto(
-    const apn_config_profile_t& state_apn_config_profile,
-    ApnConfigProfile* apn_config_profile_proto);
+      const apn_config_profile_t& state_apn_config_profile,
+      oai::ApnConfigProfile* apn_config_profile_proto);
 
   static void proto_to_eps_subscribed_qos_profile(
-    const EpsSubscribedQosProfile& eps_subscribed_qos_profile_proto,
-    eps_subscribed_qos_profile_t* state_eps_subscribed_qos_profile);
-  static void proto_to_ambr(const Ambr& ambr_proto, ambr_t* state_ambr);
+      const oai::EpsSubscribedQosProfile& eps_subscribed_qos_profile_proto,
+      eps_subscribed_qos_profile_t* state_eps_subscribed_qos_profile);
+  static void proto_to_ambr(const oai::Ambr& ambr_proto, ambr_t* state_ambr);
   static void proto_to_apn_configuration(
-    const ApnConfig& apn_config_proto,
-    apn_configuration_t* state_apn_configuration);
+      const oai::ApnConfig& apn_config_proto,
+      apn_configuration_t* state_apn_configuration);
   static void proto_to_apn_config_profile(
-    const ApnConfigProfile& apn_config_profile_proto,
-    apn_config_profile_t* state_apn_config_profile);
+      const oai::ApnConfigProfile& apn_config_profile_proto,
+      apn_config_profile_t* state_apn_config_profile);
 
  private:
   static void plmn_to_chars(const plmn_t& state_plmn, char* plmn_array);
 };
 
-} // namespace lte
-} // namespace magma
+}  // namespace lte
+}  // namespace magma

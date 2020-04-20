@@ -1,9 +1,16 @@
+// +build all gy
+
 /*
- * Copyright (c) Facebook, Inc. and its affiliates.
- * All rights reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package integration
@@ -15,17 +22,11 @@ import (
 
 	cwfprotos "magma/cwf/cloud/go/protos"
 	fegprotos "magma/feg/cloud/go/protos"
-	"magma/lte/cloud/go/plugin/models"
+	"magma/lte/cloud/go/services/policydb/obsidian/models"
 
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/stretchr/testify/assert"
-)
-
-const (
-	ReAuthMaxUsageBytes   = 5 * MegaBytes
-	ReAuthMaxUsageTimeSec = 1000 // in second
-	ReAuthValidityTime    = 60   // in second
 )
 
 func TestGyReAuth(t *testing.T) {
@@ -130,8 +131,7 @@ func TestGyReAuth(t *testing.T) {
 	assert.True(t, record.BytesTx <= uint64(10*MegaBytes+Buffer), fmt.Sprintf("policy usage: %v", record))
 
 	// trigger disconnection
-	_, err = tr.Disconnect(imsi)
-	assert.NoError(t, err)
+	tr.DisconnectAndAssertSuccess(imsi)
 	fmt.Println("wait for flows to get deactivated")
 	time.Sleep(3 * time.Second)
 }

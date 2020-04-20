@@ -1,10 +1,15 @@
 """
 All rights reserved.
-Copyright (c) 2019-present, Facebook, Inc.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree. An additional grant
-of patent rights can be found in the PATENTS file in the same directory.
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 import ipaddress
 from collections import namedtuple
@@ -21,8 +26,8 @@ class AccessControlController(MagmaController):
     """
     Access control controller.
 
-    The Access control controller is responsible for enforcing the ip blacklist,
-    dropping any packets to any ipv4 addresses in the blacklist as well as
+    The Access control controller is responsible for enforcing the ip blocklist,
+    dropping any packets to any ipv4 addresses in the blocklist as well as
     enforcing a gre tunnel filter and dropping all packets that are not from
     allowed tunnels.
     """
@@ -34,7 +39,7 @@ class AccessControlController(MagmaController):
 
     AccessControlConfig = namedtuple(
         'AccessControlConfig',
-        ['setup_type', 'ip_blacklist', 'allowed_gre_peers'],
+        ['setup_type', 'ip_blocklist', 'allowed_gre_peers'],
     )
 
     def __init__(self, *args, **kwargs):
@@ -49,7 +54,7 @@ class AccessControlController(MagmaController):
     def _get_config(self, config_dict, mconfig):
         return self.AccessControlConfig(
             setup_type=config_dict['setup_type'],
-            ip_blacklist=config_dict['access_control']['ip_blacklist'],
+            ip_blocklist=config_dict['access_control']['ip_blocklist'],
             allowed_gre_peers=mconfig.allowed_gre_peers
         )
 
@@ -62,7 +67,7 @@ class AccessControlController(MagmaController):
         """
         self.delete_all_flows(datapath)
         self._install_default_flows(datapath)
-        self._install_ip_blacklist_flow(datapath)
+        self._install_ip_blocklist_flow(datapath)
         if self.config.setup_type == 'CWF':
             self._install_gre_allow_flows(datapath)
 
@@ -82,7 +87,7 @@ class AccessControlController(MagmaController):
     def _install_default_flows(self, datapath):
         """
         Adds default flows for access control.
-            For normal(ip blacklist table):
+            For normal(ip blocklist table):
                 Forward uplink to next table
                 Forward downlink to scratch table
             For scratch table:
@@ -129,19 +134,19 @@ class AccessControlController(MagmaController):
                                              priority=flows.DEFAULT_PRIORITY,
                                              resubmit_table=self.next_table)
 
-    def _install_ip_blacklist_flow(self, datapath):
+    def _install_ip_blocklist_flow(self, datapath):
         """
         Install flows to drop any packets with ip address blocks matching the
-        blacklist.
+        blocklist.
         """
-        for entry in self.config.ip_blacklist:
+        for entry in self.config.ip_blocklist:
             ip_network = ipaddress.IPv4Network(entry['ip'])
             direction = entry.get('direction', None)
             if direction is not None and \
                     direction not in [self.CONFIG_INBOUND_DIRECTION,
                                       self.CONFIG_OUTBOUND_DIRECTION]:
                 self.logger.error(
-                    'Invalid direction found in ip blacklist: %s', direction)
+                    'Invalid direction found in ip blocklist: %s', direction)
                 continue
             # If no direction is specified, both outbound and inbound traffic
             # will be dropped.

@@ -1,9 +1,14 @@
-# Copyright (c) 2016-present, Facebook, Inc.
-# All rights reserved.
+# Copyright 2020 The Magma Authors.
 
 # This source code is licensed under the BSD-style license found in the
-# LICENSE file in the root directory of this source tree. An additional grant
-# of patent rights can be found in the PATENTS file in the same directory.
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 
 include_directories("${PROJECT_SOURCE_DIR}/../common/logging")
 
@@ -12,10 +17,10 @@ include_directories("${PROJECT_SOURCE_DIR}/../common/logging")
 list(APPEND PROTO_SRCS "")
 list(APPEND PROTO_HDRS "")
 
-set(ASYNC_ORC8R_CPP_PROTOS common)
+set(ASYNC_ORC8R_CPP_PROTOS common redis eventd)
 set(ASYNC_LTE_CPP_PROTOS session_manager policydb subscriberdb mobilityd)
 set(ASYNC_LTE_GRPC_PROTOS session_manager mobilityd)
-set(ASYNC_ORC8R_GRPC_PROTOS "")
+set(ASYNC_ORC8R_GRPC_PROTOS eventd)
 
 generate_all_protos("${ASYNC_LTE_CPP_PROTOS}" "${ASYNC_ORC8R_CPP_PROTOS}"
   "${ASYNC_LTE_GRPC_PROTOS}"

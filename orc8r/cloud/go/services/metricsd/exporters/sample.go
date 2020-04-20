@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 package exporters
@@ -13,43 +18,34 @@ import (
 	"sort"
 	"strconv"
 
+	"magma/orc8r/cloud/go/services/metricsd/protos"
 	"magma/orc8r/lib/go/metrics"
 
-	dto "github.com/prometheus/client_model/go"
+	prometheus_models "github.com/prometheus/client_model/go"
 )
 
+// Sample is a flattened version of a metric providing a single name-value
+// pairing, with accompanying metadata and labels.
 type Sample struct {
 	name        string
 	value       string
 	timestampMs int64
-	labels      []*dto.LabelPair
+	labels      []*prometheus_models.LabelPair
 	// entity identifies the entity that created this sample
 	// for samples to be exported to ODS, entity has to be in the form of <ID1>.<ID2>
 	// e.g. networkId.logicalId, or cloud.host_name
 	entity string
 }
 
-func NewSample(
-	name string,
-	value string,
-	timestampMs int64,
-	labels []*dto.LabelPair,
-	entity string,
-) Sample {
-	return Sample{
-		name:        name,
-		value:       value,
-		timestampMs: timestampMs,
-		labels:      labels,
-		entity:      entity,
-	}
+func NewSample(name string, value string, timestampMs int64, labels []*prometheus_models.LabelPair, entity string) Sample {
+	return Sample{name: name, value: value, timestampMs: timestampMs, labels: labels, entity: entity}
 }
 
 func (s *Sample) Name() string {
 	return s.name
 }
 
-func (s *Sample) Labels() []*dto.LabelPair {
+func (s *Sample) Labels() []*prometheus_models.LabelPair {
 	return s.labels
 }
 
@@ -67,23 +63,23 @@ func (s *Sample) TimestampMs() int64 {
 
 // GetSamplesForMetrics takes a Metric protobuf and extracts Samples from them
 // since there may be multiple Samples per a single Metric instance
-func GetSamplesForMetrics(metricAndContext MetricAndContext, metric *dto.Metric) []Sample {
+func GetSamplesForMetrics(metricAndContext *protos.ContextualizedMetric, metric *prometheus_models.Metric) []Sample {
 	context := metricAndContext.Context
 	family := metricAndContext.Family
 	var entity string
 	labels := metric.Label
 
-	switch additionalCtx := metricAndContext.Context.AdditionalContext.(type) {
-	case *CloudMetricContext:
-		entity = fmt.Sprintf("cloud.%s", additionalCtx.CloudHost)
-	case *GatewayMetricContext:
-		entity = fmt.Sprintf("%s.%s", additionalCtx.NetworkID, additionalCtx.GatewayID)
-	case *PushedMetricContext:
+	switch additionalCtx := metricAndContext.Context.GetOriginContext().(type) {
+	case *protos.Context_CloudMetric:
+		entity = fmt.Sprintf("cloud.%s", additionalCtx.CloudMetric.CloudHost)
+	case *protos.Context_GatewayMetric:
+		entity = fmt.Sprintf("%s.%s", additionalCtx.GatewayMetric.NetworkId, additionalCtx.GatewayMetric.GatewayId)
+	case *protos.Context_PushedMetric:
 		gatewayID := popLabel(&labels, metrics.GatewayLabelName)
 		if gatewayID == "" {
-			entity = additionalCtx.NetworkID
+			entity = additionalCtx.PushedMetric.NetworkId
 		} else {
-			entity = fmt.Sprintf("%s.%s", additionalCtx.NetworkID, gatewayID)
+			entity = fmt.Sprintf("%s.%s", additionalCtx.PushedMetric.NetworkId, gatewayID)
 		}
 	}
 
@@ -92,13 +88,13 @@ func GetSamplesForMetrics(metricAndContext MetricAndContext, metric *dto.Metric)
 	sort.Sort(ByName(labels))
 
 	switch family.GetType() {
-	case dto.MetricType_COUNTER:
+	case prometheus_models.MetricType_COUNTER:
 		return getCounterSamples(name, labels, timestampMs, metric.GetCounter(), entity)
-	case dto.MetricType_GAUGE:
+	case prometheus_models.MetricType_GAUGE:
 		return getGaugeSamples(name, labels, timestampMs, metric.GetGauge(), entity)
-	case dto.MetricType_SUMMARY:
+	case prometheus_models.MetricType_SUMMARY:
 		return getSummarySamples(name, labels, timestampMs, metric.GetSummary(), entity)
-	case dto.MetricType_HISTOGRAM:
+	case prometheus_models.MetricType_HISTOGRAM:
 		return getHistogramSamples(name, labels, timestampMs, metric.GetHistogram(), entity)
 	}
 	// I don't know what this is, return empty
@@ -107,9 +103,9 @@ func GetSamplesForMetrics(metricAndContext MetricAndContext, metric *dto.Metric)
 
 // getCounterSamples will extract a single counter sample from a Counter
 func getCounterSamples(name string,
-	labels []*dto.LabelPair,
+	labels []*prometheus_models.LabelPair,
 	timestampMs int64,
-	c *dto.Counter,
+	c *prometheus_models.Counter,
 	entity string,
 ) []Sample {
 	samples := make([]Sample, 1)
@@ -125,9 +121,9 @@ func getCounterSamples(name string,
 
 // GetGaugeSamples will extract a single gauge sample from a Gauge
 func getGaugeSamples(name string,
-	labels []*dto.LabelPair,
+	labels []*prometheus_models.LabelPair,
 	timestampMs int64,
-	g *dto.Gauge,
+	g *prometheus_models.Gauge,
 	entity string,
 ) []Sample {
 	samples := make([]Sample, 1)
@@ -144,9 +140,9 @@ func getGaugeSamples(name string,
 // GetSummarySamples will extract a two samples from a Summary
 // one for count and another for sum
 func getSummarySamples(name string,
-	labels []*dto.LabelPair,
+	labels []*prometheus_models.LabelPair,
 	timestampMs int64,
-	s *dto.Summary,
+	s *prometheus_models.Summary,
 	entity string,
 ) []Sample {
 	samples := make([]Sample, 2)
@@ -169,9 +165,9 @@ func getSummarySamples(name string,
 // GetHistogramSamples will extract 2 + 2*dim(Buckets) Samples
 // for each Histogram instance
 func getHistogramSamples(name string,
-	labels []*dto.LabelPair,
+	labels []*prometheus_models.LabelPair,
 	timestampMs int64,
-	h *dto.Histogram,
+	h *prometheus_models.Histogram,
 	entity string,
 ) []Sample {
 	samples := make([]Sample, len(h.GetBucket())*2+2)
@@ -208,7 +204,7 @@ func getHistogramSamples(name string,
 	return samples
 }
 
-func popLabel(labels *[]*dto.LabelPair, labelToRemove string) string {
+func popLabel(labels *[]*prometheus_models.LabelPair, labelToRemove string) string {
 	var ret string
 	for i, label := range *labels {
 		if label.GetName() == labelToRemove {
@@ -220,13 +216,13 @@ func popLabel(labels *[]*dto.LabelPair, labelToRemove string) string {
 	return ret
 }
 
-func removeLabel(labels []*dto.LabelPair, i int) []*dto.LabelPair {
+func removeLabel(labels []*prometheus_models.LabelPair, i int) []*prometheus_models.LabelPair {
 	labels[len(labels)-1], labels[i] = labels[i], labels[len(labels)-1]
 	return labels[:len(labels)-1]
 }
 
 // ByName is an interface for sorting LabelPairs by name
-type ByName []*dto.LabelPair
+type ByName []*prometheus_models.LabelPair
 
 func (a ByName) Len() int           { return len(a) }
 func (a ByName) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }

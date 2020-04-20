@@ -1,10 +1,14 @@
 """
-Copyright (c) 2016-present, Facebook, Inc.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree. An additional grant
-of patent rights can be found in the PATENTS file in the same directory.
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 import asyncio
@@ -299,7 +303,7 @@ class BootstrapManagerTest(TestCase):
                 key_type=ChallengeKey.ECHO
             )
             self.manager._gateway_key = ec.generate_private_key(
-                ec.SECP384R1(), default_backend())
+                ec.SECP256R1(), default_backend())
             csr = self.manager._create_csr()
             response = self.manager._construct_response(challenge, csr)
 
@@ -327,7 +331,7 @@ class BootstrapManagerTest(TestCase):
                 key_type=ChallengeKey.ECHO
             )
             self.manager._gateway_key = ec.generate_private_key(
-                ec.SECP384R1(), default_backend())
+                ec.SECP256R1(), default_backend())
             csr = self.manager._create_csr()
             response = self.manager._construct_response(challenge, csr)
             # test no error
@@ -426,13 +430,13 @@ class BootstrapManagerTest(TestCase):
 
     def test__create_csr(self):
         self.manager._gateway_key = ec.generate_private_key(
-            ec.SECP384R1(), default_backend())
+            ec.SECP256R1(), default_backend())
         csr_msg = self.manager._create_csr()
         self.assertEqual(csr_msg.id.gateway.hardware_id, self.hw_id)
 
     @patch('magma.common.cert_utils.load_key')
     def test__construct_response(self, load_key_mock):
-        ecdsa_key = ec.generate_private_key(ec.SECP384R1(), default_backend())
+        ecdsa_key = ec.generate_private_key(ec.SECP256R1(), default_backend())
 
         key_types = {
             ChallengeKey.ECHO: None,
@@ -456,7 +460,7 @@ class BootstrapManagerTest(TestCase):
         challenge = b'challenge'
 
         # success case
-        private_key = ec.generate_private_key(ec.SECP384R1(), default_backend())
+        private_key = ec.generate_private_key(ec.SECP256R1(), default_backend())
         load_key_mock.return_value = private_key
         r, s = self.manager._ecdsa_sha256_response(challenge)
         r = int.from_bytes(r, 'big')

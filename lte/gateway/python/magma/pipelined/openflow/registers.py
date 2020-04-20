@@ -1,10 +1,14 @@
 """
-Copyright (c) 2019-present, Facebook, Inc.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree. An additional grant
-of patent rights can be found in the PATENTS file in the same directory.
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 from enum import IntEnum
 
@@ -12,6 +16,7 @@ from enum import IntEnum
 # Global registers:
 IMSI_REG = 'metadata'
 DIRECTION_REG = 'reg1'
+# TODO reg2 is used for enf stats rule tracking, move its declaration here
 DPI_REG = 'reg10'
 TEST_PACKET_REG = 'reg5'
 PASSTHROUGH_REG = 'reg6'
@@ -19,7 +24,7 @@ VLAN_TAG_REG = 'reg7'
 
 # Local scratch registers (These registers are reset when submitting to
 # another app):
-SCRATCH_REGS = ['reg0']
+SCRATCH_REGS = ['reg0', 'reg3']
 RULE_VERSION_REG = 'reg4'
 
 # Register values

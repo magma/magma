@@ -1,10 +1,14 @@
 """
-Copyright (c) 2019-present, Facebook, Inc.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree. An additional grant
-of patent rights can be found in the PATENTS file in the same directory.
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 from typing import List
 from abc import ABCMeta, abstractmethod
@@ -38,10 +42,6 @@ class PolicyMixin(metaclass=ABCMeta):
         self._rule_mapper = kwargs['rule_id_mapper']
         self._session_rule_version_mapper = kwargs[
             'session_rule_version_mapper']
-        self._relay_enabled = kwargs['mconfig'].relay_enabled
-        if not self._relay_enabled:
-            self.logger.info('Relay mode is not enabled, init finished')
-            self.init_finished = True
 
     def handle_restart(self,
                        requests: List[ActivateFlowsRequest]
@@ -52,6 +52,7 @@ class PolicyMixin(metaclass=ABCMeta):
         """
         if self._clean_restart:
             self.delete_all_flows(self._datapath)
+            self.cleanup_state()
             self.logger.info('Controller is in clean restart mode, remaining '
                               'flows were removed, continuing with setup.')
 
@@ -68,11 +69,11 @@ class PolicyMixin(metaclass=ABCMeta):
             self.logger.error('Setup failed: %s', err)
             return SetupFlowsResult(result=SetupFlowsResult.FAILURE)
 
-        self.logger.debug('Setting up default rules')
+        self.logger.debug('Setting up %s default rules', self.APP_NAME)
         remaining_flows = self._install_default_flows_if_not_installed(
             self._datapath, startup_flows)
 
-        self.logger.debug('Startup flows before filtering -> %s',
+        self.logger.debug('Startup flows before filstering -> %s',
             [flow.match for flow in startup_flows])
         extra_flows = self._add_missing_flows(requests, remaining_flows)
 
@@ -232,7 +233,7 @@ class PolicyMixin(metaclass=ABCMeta):
             try:
                 result = chan.get()
             except MsgChannel.Timeout:
-                return fail("No response from OVS")
+                return fail("No response from OVS policy mixin")
             if not result.ok():
                 return fail(result.exception())
 

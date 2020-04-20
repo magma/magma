@@ -1,14 +1,19 @@
 """
-Copyright (c) 2018-present, Facebook, Inc.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree. An additional grant
-of patent rights can be found in the PATENTS file in the same directory.
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 import logging
-from typing import Any, Dict  # noqa: lint doesn't handle inline typehints
+from typing import Any, Dict, \
+    Optional  # noqa: lint doesn't handle inline typehints
 
 import os
 import yaml
@@ -20,7 +25,7 @@ CONFIG_DIR = '/etc/magma'
 CONFIG_OVERRIDE_DIR = '/var/opt/magma/configs'
 
 
-def load_override_config(service_name: str) -> Any:
+def load_override_config(service_name: str) -> Optional[Any]:
     """
     Load override service configuration from the file in the override
     directory.
@@ -28,7 +33,7 @@ def load_override_config(service_name: str) -> Any:
     Args:
         service_name: service to pull configs for; name of config file
 
-    Returns: json-decoded value of the service config
+    Returns: json-decoded value of the service config, None if it's not found
 
     Raises:
         LoadConfigError:
@@ -37,7 +42,7 @@ def load_override_config(service_name: str) -> Any:
     override_file_name = _override_file_name(service_name)
     if os.path.isfile(override_file_name):
         return _load_yaml_file(override_file_name)
-    return {}
+    return None
 
 
 def save_override_config(service_name: str, cfg: Any):

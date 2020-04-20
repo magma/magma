@@ -1,10 +1,14 @@
 """
-Copyright (c) 2016-present, Facebook, Inc.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree. An additional grant
-of patent rights can be found in the PATENTS file in the same directory.
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 import unittest
@@ -69,7 +73,7 @@ class TestSecondaryPdnConnWithDedBearerDeactivateReq(unittest.TestCase):
 
             # Add dedicated bearer for default bearer 5
             print(
-                "********************** Adding dedicated bearer to oai.ipv4"
+                "********************** Adding dedicated bearer to magma.ipv4"
                 " PDN"
             )
             self._spgw_util.create_bearer(
@@ -157,7 +161,7 @@ class TestSecondaryPdnConnWithDedBearerDeactivateReq(unittest.TestCase):
                 deactv_bearer_req.bearerId,
             )
             time.sleep(5)
-            # Delete dedicated bearer of secondary PDN (oai.ipv4 apn)
+            # Delete dedicated bearer of default PDN (magma.ipv4 apn)
             self._spgw_util.delete_bearer(
                 "IMSI" + "".join([str(i) for i in req.imsi]),
                 5,

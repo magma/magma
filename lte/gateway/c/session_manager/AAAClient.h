@@ -1,15 +1,20 @@
 /**
- * Copyright (c) 2016-present, Facebook, Inc.
- * All rights reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 #pragma once
 
 #include "GRPCReceiver.h"
-
+#include "SessionState.h"
+#include "SessionStore.h"
 #include <feg/gateway/services/aaa/protos/accounting.grpc.pb.h>
 
 using grpc::Status;
@@ -25,6 +30,8 @@ class AAAClient {
   virtual bool terminate_session(
     const std::string &radius_session_id,
     const std::string &imsi) = 0;
+
+  virtual bool add_sessions(magma::lte::SessionMap &session_map) = 0;
 };
 
 /**
@@ -41,6 +48,8 @@ class AsyncAAAClient : public magma::GRPCReceiver, public AAAClient {
     const std::string &radius_session_id,
     const std::string &imsi);
 
+  bool add_sessions(magma::lte::SessionMap &session_map);
+
  private:
   static const uint32_t RESPONSE_TIMEOUT = 6; // seconds
   std::unique_ptr<accounting::Stub> stub_;
@@ -48,6 +57,9 @@ class AsyncAAAClient : public magma::GRPCReceiver, public AAAClient {
  private:
   void terminate_session_rpc(
     const terminate_session_request &request,
+    std::function<void(Status, acct_resp)> callback);
+  void add_sessions_rpc(
+    const add_sessions_request &request,
     std::function<void(Status, acct_resp)> callback);
 };
 

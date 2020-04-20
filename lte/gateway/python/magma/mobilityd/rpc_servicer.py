@@ -1,10 +1,14 @@
 """
-Copyright (c) 2016-present, Facebook, Inc.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree. An additional grant
-of patent rights can be found in the PATENTS file in the same directory.
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 import ipaddress
@@ -13,16 +17,19 @@ import logging
 import grpc
 from lte.protos.mobilityd_pb2 import AllocateIPRequest, IPAddress, IPBlock, \
     ListAddedIPBlocksResponse, ListAllocatedIPsResponse, RemoveIPBlockResponse, \
-    SubscriberIPTable
+    SubscriberIPTable, GWInfo
 from lte.protos.mobilityd_pb2_grpc import MobilityServiceServicer, \
     add_MobilityServiceServicer_to_server
 from lte.protos.subscriberdb_pb2 import SubscriberID
-
 from magma.common.rpc_utils import return_void
 from magma.subscriberdb.sid import SIDUtils
-from .ip_allocator import DuplicatedIPAllocationError, IPAllocator, \
-    IPBlockNotFoundError, IPNotInUseError, MappingNotFoundError, \
-    NoAvailableIPError, OverlappedIPBlocksError
+
+from .ip_address_man import IPAddressManager, IPNotInUseError, MappingNotFoundError
+
+from .ip_allocator_static import IPBlockNotFoundError, NoAvailableIPError, \
+    OverlappedIPBlocksError
+
+from .ip_allocator_base import DuplicatedIPAllocationError
 
 def _get_ip_block(ip_block_str):
     """ Convert string into ipaddress.ip_network. Support both IPv4 or IPv6
@@ -48,9 +55,9 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
     def __init__(self, mconfig, config):
         # TODO: consider adding gateway mconfig to decide whether to
         # persist to Redis
-        self._ipv4_allocator = IPAllocator(
-            persist_to_redis=config['persist_to_redis'],
-            redis_port=config['redis_port'])
+
+        self._ipv4_allocator = IPAddressManager(config=config,
+                                                allocator_type=mconfig.ip_allocator_type)
 
         # Load IP block from the configurable mconfig file
         # No dynamic reloading support for now, assume restart after updates
@@ -159,7 +166,7 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
             try:
                 composite_sid = SIDUtils.to_str(request.sid)
                 if request.apn:
-                    composite_sid = composite_sid + ":" + request.apn
+                    composite_sid = composite_sid + "." + request.apn
 
                 ip = self._ipv4_allocator.alloc_ip_address(composite_sid)
                 logging.info("Allocated IPv4 %s for sid %s for apn %s"
@@ -184,7 +191,7 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
                 ip = ipaddress.ip_address(request.ip.address)
                 composite_sid = SIDUtils.to_str(request.sid)
                 if request.apn:
-                    composite_sid = composite_sid + ":" + request.apn
+                    composite_sid = composite_sid + "." + request.apn
                 self._ipv4_allocator.release_ip_address(
                     composite_sid, ip)
                 logging.info("Released IPv4 %s for sid %s"
@@ -217,7 +224,7 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
     def GetIPForSubscriber(self, request, context):
         composite_sid = SIDUtils.to_str(request.sid)
         if request.apn:
-            composite_sid = composite_sid + ":" + request.apn
+            composite_sid = composite_sid + "." + request.apn
 
         ip = self._ipv4_allocator.get_ip_for_sid(composite_sid)
         if ip is None:
@@ -239,7 +246,7 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
             return SubscriberID()
         else:
             #handle composite key case
-            sid = sid.split(':')[0]
+            sid, *rest = sid.partition('.')
             return SIDUtils.to_pb(sid)
 
     def GetSubscriberIPTable(self, void, context):
@@ -250,14 +257,26 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
         csid_ip_pairs = self._ipv4_allocator.get_sid_ip_table()
         for composite_sid, ip in csid_ip_pairs:
             #handle composite sid to sid and apn mapping
-            sid_apn_tuple = composite_sid.split(':')
-            sid = SIDUtils.to_pb(sid_apn_tuple[0])
-            apn = sid_apn_tuple[1] if len(sid_apn_tuple) > 1 else None
+            sid, _, apn = composite_sid.partition('.')
+            sid_pb = SIDUtils.to_pb(sid)
             version = IPAddress.IPV4 if ip.version == 4 else IPAddress.IPV6
             ip_msg = IPAddress(version=version, address=ip.packed)
-            resp.entries.add(sid=sid, ip=ip_msg, apn=apn)
-
+            resp.entries.add(sid=sid_pb, ip=ip_msg, apn=apn)
         return resp
+
+    def GetGatewayInfo(self, void, context):
+        ip = ipaddress.ip_address(self._ipv4_allocator.get_gateway_ip_adress())
+        gw_ip = IPAddress(version=IPAddress.IPV4,
+                          address=ip.packed)
+        gw_mac = self._ipv4_allocator.get_gateway_mac_adress()
+        return GWInfo(ip=gw_ip, mac=gw_mac)
+
+    @return_void
+    def SetGatewayInfo(self, info: GWInfo, context):
+        ip = ipaddress.ip_address(info.ip.address)
+        gw_ip = str(ip)
+        gw_mac = info.mac
+        self._ipv4_allocator.set_gateway_ip_and_mac(gw_ip, gw_mac)
 
     def _ipblock_msg_to_ipblock(self, ipblock_msg, context):
         """ convert IPBlock to ipaddress.ip_network """
@@ -280,5 +299,10 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
 
 
 class IPVersionNotSupportedError(Exception):
+    """ Exception thrown when an IP version is not supported """
+    pass
+
+
+class UnknownIPAllocatorError(Exception):
     """ Exception thrown when an IP version is not supported """
     pass

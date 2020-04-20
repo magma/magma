@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -38,7 +34,7 @@ int spgw_state_init(bool persist_state, const spgw_config_t* spgw_config_p);
 // Function that frees spgw_state.
 void spgw_state_exit(void);
 // Function that returns a pointer to spgw_state.
-spgw_state_t *get_spgw_state(bool read_from_db);
+spgw_state_t* get_spgw_state(bool read_from_db);
 // Function that writes the spgw_state struct into db.
 void put_spgw_state(void);
 

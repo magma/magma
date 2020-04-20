@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -51,12 +47,11 @@ enum ControllerEventType {
 class ControllerEvent {
  public:
   ControllerEvent(
-    fluid_base::OFConnection *ofconn,
-    const ControllerEventType type);
+      fluid_base::OFConnection* ofconn, const ControllerEventType type);
 
   virtual ~ControllerEvent() {}
 
-  fluid_base::OFConnection *get_connection() const;
+  fluid_base::OFConnection* get_connection() const;
 
   const ControllerEventType get_type() const;
 
@@ -64,7 +59,7 @@ class ControllerEvent {
   const ControllerEventType type_;
 
  protected:
-  fluid_base::OFConnection *ofconn_;
+  fluid_base::OFConnection* ofconn_;
 };
 
 /**
@@ -73,20 +68,17 @@ class ControllerEvent {
 class DataEvent : public ControllerEvent {
  public:
   DataEvent(
-    fluid_base::OFConnection *ofconn,
-    fluid_base::OFHandler &ofhandler,
-    const void *data,
-    const size_t len,
-    const ControllerEventType type);
+      fluid_base::OFConnection* ofconn, fluid_base::OFHandler& ofhandler,
+      const void* data, const size_t len, const ControllerEventType type);
 
   ~DataEvent();
 
-  const uint8_t *get_data() const;
+  const uint8_t* get_data() const;
   const size_t get_length() const;
 
  private:
-  fluid_base::OFHandler &ofhandler_;
-  const uint8_t *data_;
+  fluid_base::OFHandler& ofhandler_;
+  const uint8_t* data_;
   const size_t len_;
 };
 
@@ -96,10 +88,8 @@ class DataEvent : public ControllerEvent {
 class PacketInEvent : public DataEvent {
  public:
   PacketInEvent(
-    fluid_base::OFConnection *ofconn,
-    fluid_base::OFHandler &ofhandler,
-    const void *data,
-    const size_t len);
+      fluid_base::OFConnection* ofconn, fluid_base::OFHandler& ofhandler,
+      const void* data, const size_t len);
 };
 
 /**
@@ -108,10 +98,8 @@ class PacketInEvent : public DataEvent {
 class SwitchUpEvent : public DataEvent {
  public:
   SwitchUpEvent(
-    fluid_base::OFConnection *ofconn,
-    fluid_base::OFHandler &ofhandler,
-    const void *data,
-    const size_t len);
+      fluid_base::OFConnection* ofconn, fluid_base::OFHandler& ofhandler,
+      const void* data, const size_t len);
 };
 
 /**
@@ -119,7 +107,7 @@ class SwitchUpEvent : public DataEvent {
  */
 class SwitchDownEvent : public ControllerEvent {
  public:
-  SwitchDownEvent(fluid_base::OFConnection *ofconn);
+  SwitchDownEvent(fluid_base::OFConnection* ofconn);
 };
 
 /**
@@ -128,8 +116,7 @@ class SwitchDownEvent : public ControllerEvent {
 class ErrorEvent : public ControllerEvent {
  public:
   ErrorEvent(
-    fluid_base::OFConnection *ofconn,
-    const struct ofp_error_msg *error_msg);
+      fluid_base::OFConnection* ofconn, const struct ofp_error_msg* error_msg);
 
   const uint16_t get_error_type() const;
   const uint16_t get_error_code() const;
@@ -148,7 +135,7 @@ class ExternalEvent : public ControllerEvent {
  public:
   ExternalEvent(const ControllerEventType type);
 
-  void set_of_connection(fluid_base::OFConnection *ofconn);
+  void set_of_connection(fluid_base::OFConnection* ofconn);
 };
 
 /*
@@ -157,28 +144,21 @@ class ExternalEvent : public ControllerEvent {
 class AddGTPTunnelEvent : public ExternalEvent {
  public:
   AddGTPTunnelEvent(
-    const struct in_addr ue_ip,
-    const struct in_addr enb_ip,
-    const uint32_t in_tei,
-    const uint32_t out_tei,
-    const char *imsi,
-    const struct ipv4flow_dl *dl_flow,
-    const uint32_t dl_flow_precedence);
+      const struct in_addr ue_ip, const struct in_addr enb_ip,
+      const uint32_t in_tei, const uint32_t out_tei, const char* imsi,
+      const struct ipv4flow_dl* dl_flow, const uint32_t dl_flow_precedence);
 
   AddGTPTunnelEvent(
-    const struct in_addr ue_ip,
-    const struct in_addr enb_ip,
-    const uint32_t in_tei,
-    const uint32_t out_tei,
-    const char *imsi);
+      const struct in_addr ue_ip, const struct in_addr enb_ip,
+      const uint32_t in_tei, const uint32_t out_tei, const char* imsi);
 
-  const struct in_addr &get_ue_ip() const;
-  const struct in_addr &get_enb_ip() const;
+  const struct in_addr& get_ue_ip() const;
+  const struct in_addr& get_enb_ip() const;
   const uint32_t get_in_tei() const;
   const uint32_t get_out_tei() const;
-  const std::string &get_imsi() const;
+  const std::string& get_imsi() const;
   const bool is_dl_flow_valid() const;
-  const struct ipv4flow_dl &get_dl_flow() const;
+  const struct ipv4flow_dl& get_dl_flow() const;
   const uint32_t get_dl_flow_precedence() const;
 
  private:
@@ -198,17 +178,14 @@ class AddGTPTunnelEvent : public ExternalEvent {
 class DeleteGTPTunnelEvent : public ExternalEvent {
  public:
   DeleteGTPTunnelEvent(
-    const struct in_addr ue_ip,
-    const uint32_t in_tei,
-    const struct ipv4flow_dl *dl_flow);
-  DeleteGTPTunnelEvent(
-    const struct in_addr ue_ip,
-    const uint32_t in_tei);
+      const struct in_addr ue_ip, const uint32_t in_tei,
+      const struct ipv4flow_dl* dl_flow);
+  DeleteGTPTunnelEvent(const struct in_addr ue_ip, const uint32_t in_tei);
 
-  const struct in_addr &get_ue_ip() const;
+  const struct in_addr& get_ue_ip() const;
   const uint32_t get_in_tei() const;
   const bool is_dl_flow_valid() const;
-  const struct ipv4flow_dl &get_dl_flow() const;
+  const struct ipv4flow_dl& get_dl_flow() const;
 
  private:
   const struct in_addr ue_ip_;
@@ -218,27 +195,26 @@ class DeleteGTPTunnelEvent : public ExternalEvent {
 };
 
 /*
- * Event triggered by SPGW to either Discard/Forward DL data on GTP tunnel identified by sgw-S1u TEID
- * if event_type is set to EVENT_DISCARD_DATA_ON_GTP_TUNNEL; A new rule is set to discard data for the UE
- * if event_type is set to EVENT_FORWARD_DATA_ON_GTP_TUNNEL; Shall delete the previous rule
+ * Event triggered by SPGW to either Discard/Forward DL data on GTP tunnel
+ * identified by sgw-S1u TEID if event_type is set to
+ * EVENT_DISCARD_DATA_ON_GTP_TUNNEL; A new rule is set to discard data for the
+ * UE if event_type is set to EVENT_FORWARD_DATA_ON_GTP_TUNNEL; Shall delete the
+ * previous rule
  */
 class HandleDataOnGTPTunnelEvent : public ExternalEvent {
  public:
   HandleDataOnGTPTunnelEvent(
-    const struct in_addr ue_ip,
-    const uint32_t in_tei,
-    const ControllerEventType event_type,
-    const struct ipv4flow_dl *dl_flow,
-    const uint32_t dl_flow_precedence);
+      const struct in_addr ue_ip, const uint32_t in_tei,
+      const ControllerEventType event_type, const struct ipv4flow_dl* dl_flow,
+      const uint32_t dl_flow_precedence);
   HandleDataOnGTPTunnelEvent(
-    const struct in_addr ue_ip,
-    const uint32_t in_tei,
-    const ControllerEventType event_type);
+      const struct in_addr ue_ip, const uint32_t in_tei,
+      const ControllerEventType event_type);
 
-  const struct in_addr &get_ue_ip() const;
+  const struct in_addr& get_ue_ip() const;
   const uint32_t get_in_tei() const;
   const bool is_dl_flow_valid() const;
-  const struct ipv4flow_dl &get_dl_flow() const;
+  const struct ipv4flow_dl& get_dl_flow() const;
   const uint32_t get_dl_flow_precedence() const;
 
  private:

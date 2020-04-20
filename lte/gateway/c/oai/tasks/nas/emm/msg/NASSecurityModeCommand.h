@@ -2,12 +2,8 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -54,16 +50,16 @@
 
 typedef enum security_mode_command_iei_tag {
   SECURITY_MODE_COMMAND_IMEISV_REQUEST_IEI =
-    GMM_IMEISV_REQUEST_IEI,                          /* 0xC0 = 192 */
+      GMM_IMEISV_REQUEST_IEI,                        /* 0xC0 = 192 */
   SECURITY_MODE_COMMAND_REPLAYED_NONCEUE_IEI = 0x55, /* 0x55 = 85 */
-  SECURITY_MODE_COMMAND_NONCEMME_IEI = 0x56,         /* 0x56 = 86 */
+  SECURITY_MODE_COMMAND_NONCEMME_IEI         = 0x56, /* 0x56 = 86 */
 } security_mode_command_iei;
 
 /*
  * Message name: Security mode command
- * Description: This message is sent by the network to the UE to establish NAS signalling security. See table 8.2.20.1.
- * Significance: dual
- * Direction: network to UE
+ * Description: This message is sent by the network to the UE to establish NAS
+ * signalling security. See table 8.2.20.1. Significance: dual Direction:
+ * network to UE
  */
 
 typedef struct security_mode_command_msg_tag {
@@ -82,13 +78,11 @@ typedef struct security_mode_command_msg_tag {
 } security_mode_command_msg;
 
 int decode_security_mode_command(
-  security_mode_command_msg *securitymodecommand,
-  uint8_t *buffer,
-  uint32_t len);
+    security_mode_command_msg* securitymodecommand, uint8_t* buffer,
+    uint32_t len);
 
 int encode_security_mode_command(
-  security_mode_command_msg *securitymodecommand,
-  uint8_t *buffer,
-  uint32_t len);
+    security_mode_command_msg* securitymodecommand, uint8_t* buffer,
+    uint32_t len);
 
 #endif /* ! defined(FILE_NAS_SECURITY_MODE_COMMAND_SEEN) */

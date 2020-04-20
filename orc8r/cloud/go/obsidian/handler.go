@@ -1,9 +1,14 @@
 /*
- * Copyright (c) Facebook, Inc. and its affiliates.
- * All rights reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package obsidian
@@ -156,6 +161,16 @@ func AttachAll(e *echo.Echo, m ...echo.MiddlewareFunc) {
 	}
 }
 
+// AttachHandlers attaches the provided obsidian handlers to the echo server
+func AttachHandlers(e *echo.Echo, handlers []Handler, m ...echo.MiddlewareFunc) {
+	for _, handler := range handlers {
+		ei := echoHandlerInitializers[handler.Methods]
+		if ei != nil {
+			ei(e, handler.Path, handler.HandlerFunc, m...)
+		}
+	}
+}
+
 func HttpError(err error, code ...int) *echo.HTTPError {
 	var status = http.StatusInternalServerError
 	if len(code) > 0 && code[0] >= http.StatusContinue &&
@@ -256,30 +271,6 @@ func getCert(c echo.Context) *x509.Certificate {
 		return nil
 	}
 	return r.TLS.PeerCertificates[0]
-}
-
-// DEPRECATED - use GetGatewayID, and use :gateway_id as path param
-func GetLogicalGwId(c echo.Context) (string, *echo.HTTPError) {
-	logicalGwId := c.Param("logical_ag_id")
-	if logicalGwId == "" {
-		return logicalGwId, HttpError(
-			fmt.Errorf("Invalid/Missing Gateway ID"),
-			http.StatusBadRequest)
-	}
-	return logicalGwId, nil
-}
-
-// DEPRECATED - use GetNetworkAndGatewayIDs, and use :gateway_id as path param
-func GetNetworkAndGWID(c echo.Context) (string, string, error) {
-	networkID, err := GetNetworkId(c)
-	if err != nil {
-		return "", "", err
-	}
-	gatewayID, err := GetLogicalGwId(c)
-	if err != nil {
-		return "", "", err
-	}
-	return networkID, gatewayID, nil
 }
 
 func GetNetworkAndGatewayIDs(c echo.Context) (string, string, *echo.HTTPError) {

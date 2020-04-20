@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -46,31 +42,29 @@ class S6aGatewayImpl final : public S6aGatewayService::Service {
   S6aGatewayImpl();
 
   /*
-       * Cancel Location Request
-       * S6a Command Code: 317
-       *
-       * @param context: the grpc Server context
-       * @param request: CancelLocationRequest
-       * @param response (out): CancelLocationAnswer
-       * @return grpc Status instance
-       */
+   * Cancel Location Request
+   * S6a Command Code: 317
+   *
+   * @param context: the grpc Server context
+   * @param request: CancelLocationRequest
+   * @param response (out): CancelLocationAnswer
+   * @return grpc Status instance
+   */
   grpc::Status CancelLocation(
-    ServerContext *context,
-    const CancelLocationRequest *request,
-    CancelLocationAnswer *response) override;
+      ServerContext* context, const CancelLocationRequest* request,
+      CancelLocationAnswer* response) override;
   /*
-       * Reset Request
-       * S6a Command Code: 322
-       *
-       * @param context: the grpc Server context
-       * @param request: ResetRequest
-       * @param response (out): ResetAnswer
-       * @return grpc Status instance
-       */
+   * Reset Request
+   * S6a Command Code: 322
+   *
+   * @param context: the grpc Server context
+   * @param request: ResetRequest
+   * @param response (out): ResetAnswer
+   * @return grpc Status instance
+   */
   grpc::Status Reset(
-    ServerContext *context,
-    const ResetRequest *request,
-    ResetAnswer *response) override;
+      ServerContext* context, const ResetRequest* request,
+      ResetAnswer* response) override;
 };
 
-} // namespace magma
+}  // namespace magma

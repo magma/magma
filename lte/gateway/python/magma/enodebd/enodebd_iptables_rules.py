@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 
 """
-Copyright (c) 2016-present, Facebook, Inc.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree. An additional grant
-of patent rights can be found in the PATENTS file in the same directory.
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 
@@ -104,7 +108,7 @@ async def run(cmd):
     await proc.communicate()
     if proc.returncode != 0:
         # This can happen because the NAT prerouting rule didn't exist
-        logger.info('Possible error running async subprocess: %s exited with '
+        logger.error('Possible error running async subprocess: %s exited with '
                      'return code [%d].', cmd, proc.returncode)
     return proc.returncode
 

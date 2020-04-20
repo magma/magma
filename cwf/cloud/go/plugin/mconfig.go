@@ -1,9 +1,14 @@
 /*
- * Copyright (c) Facebook, Inc. and its affiliates.
- * All rights reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package plugin
@@ -13,17 +18,20 @@ import (
 	"strings"
 
 	"magma/cwf/cloud/go/cwf"
-	"magma/cwf/cloud/go/plugin/models"
 	cwfmconfig "magma/cwf/cloud/go/protos/mconfig"
+	"magma/cwf/cloud/go/services/cwf/obsidian/models"
 	fegmconfig "magma/feg/cloud/go/protos/mconfig"
 	ltemconfig "magma/lte/cloud/go/protos/mconfig"
 	"magma/orc8r/cloud/go/services/configurator"
+	configuratorprotos "magma/orc8r/cloud/go/services/configurator/protos"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
 	orc8rmconfig "magma/orc8r/lib/go/protos/mconfig"
 
 	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/ptypes"
+	"github.com/golang/protobuf/ptypes/any"
 	"github.com/pkg/errors"
 )
 
@@ -38,6 +46,51 @@ var networkServicesByName = map[string]ltemconfig.PipelineD_NetworkServices{
 }
 
 type Builder struct{}
+type CwfMconfigBuilderServicer struct{}
+
+func (s *CwfMconfigBuilderServicer) Build(
+	request *configuratorprotos.BuildMconfigRequest,
+) (*configuratorprotos.BuildMconfigResponse, error) {
+	ret := &configuratorprotos.BuildMconfigResponse{
+		ConfigsByKey: map[string]*any.Any{},
+	}
+	network, err := (configurator.Network{}).FromStorageProto(request.GetNetwork())
+	if err != nil {
+		return ret, err
+	}
+	graph, err := (configurator.EntityGraph{}).FromStorageProto(request.GetEntityGraph())
+	if err != nil {
+		return ret, err
+	}
+	// we only build an mconfig if carrier_wifi network configs exist
+	inwConfig, found := network.Configs[cwf.CwfNetworkType]
+	if !found || inwConfig == nil {
+		return ret, nil
+	}
+	nwConfig := inwConfig.(*models.NetworkCarrierWifiConfigs)
+	gwConfig, err := graph.GetEntity(cwf.CwfGatewayType, request.GetGatewayId())
+	if err == merrors.ErrNotFound {
+		return ret, nil
+	}
+	if err != nil {
+		return ret, err
+	}
+	if gwConfig.Config == nil {
+		return ret, nil
+	}
+
+	vals, err := buildFromConfigs(nwConfig, gwConfig.Config.(*models.GatewayCwfConfigs))
+	if err != nil {
+		return ret, errors.WithStack(err)
+	}
+	for k, v := range vals {
+		ret.ConfigsByKey[k], err = ptypes.MarshalAny(v)
+		if err != nil {
+			return ret, err
+		}
+	}
+	return ret, nil
+}
 
 func (*Builder) Build(
 	networkID string,
@@ -46,29 +99,35 @@ func (*Builder) Build(
 	network configurator.Network,
 	mconfigOut map[string]proto.Message,
 ) error {
-	// we only build an mconfig if carrier_wifi network configs exist
-	inwConfig, found := network.Configs[cwf.CwfNetworkType]
-	if !found || inwConfig == nil {
-		return nil
-	}
-	nwConfig := inwConfig.(*models.NetworkCarrierWifiConfigs)
-	gwConfig, err := graph.GetEntity(cwf.CwfGatewayType, gatewayID)
-	if err == merrors.ErrNotFound {
-		return nil
-	}
+	servicer := &CwfMconfigBuilderServicer{}
+	networkProto, err := network.ToStorageProto()
 	if err != nil {
 		return errors.WithStack(err)
 	}
-	if gwConfig.Config == nil {
-		return nil
-	}
-
-	vals, err := buildFromConfigs(nwConfig, gwConfig.Config.(*models.GatewayCwfConfigs))
+	graphProto, err := graph.ToStorageProto()
 	if err != nil {
 		return errors.WithStack(err)
 	}
-	for k, v := range vals {
-		mconfigOut[k] = v
+	request := &configuratorprotos.BuildMconfigRequest{
+		NetworkId:   networkID,
+		GatewayId:   gatewayID,
+		EntityGraph: graphProto,
+		Network:     networkProto,
+	}
+	res, err := servicer.Build(request)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	for k, v := range res.GetConfigsByKey() {
+		mconfigMessage, err := ptypes.Empty(v)
+		if err != nil {
+			return err
+		}
+		err = ptypes.UnmarshalAny(v, mconfigMessage)
+		if err != nil {
+			return err
+		}
+		mconfigOut[k] = mconfigMessage
 	}
 	return nil
 }
@@ -108,7 +167,6 @@ func buildFromConfigs(nwConfig *models.NetworkCarrierWifiConfigs, gwConfig *mode
 		UeIpBlock:       DefaultUeIpBlock, // Unused by CWF
 		NatEnabled:      false,
 		DefaultRuleId:   swag.StringValue(nwConfig.DefaultRuleID),
-		RelayEnabled:    true,
 		Services:        pipelineDServices,
 		AllowedGrePeers: allowedGrePeers,
 		LiImsis:         gwConfig.LiImsis,
@@ -117,6 +175,10 @@ func buildFromConfigs(nwConfig *models.NetworkCarrierWifiConfigs, gwConfig *mode
 	ret["sessiond"] = &ltemconfig.SessionD{
 		LogLevel:     protos.LogLevel_INFO,
 		RelayEnabled: true,
+		WalletExhaustDetection: &ltemconfig.WalletExhaustDetection{
+			TerminateOnExhaust: true,
+			Method:             ltemconfig.WalletExhaustDetection_GxTrackedRules,
+		},
 	}
 	ret["redirectd"] = &ltemconfig.RedirectD{
 		LogLevel: protos.LogLevel_INFO,
@@ -134,6 +196,11 @@ func buildFromConfigs(nwConfig *models.NetworkCarrierWifiConfigs, gwConfig *mode
 		}
 		protos.FillIn(healthCfg, mc)
 		mc.GrePeers = getHealthServiceGrePeers(allowedGrePeers)
+		ret["health"] = mc
+	} else {
+		mc := &cwfmconfig.CwfGatewayHealthConfig{
+			GrePeers: getHealthServiceGrePeers(allowedGrePeers),
+		}
 		ret["health"] = mc
 	}
 	return ret, err

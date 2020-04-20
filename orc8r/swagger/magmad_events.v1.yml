@@ -1,0 +1,43 @@
+---
+swagger: '2.0'
+
+info:
+  title: Magmad events
+  description: These denote events that happen within Magmad on the AGW
+  version: 1.0.0
+
+definitions:
+  deleted_stored_mconfig:
+    type: object
+    description: The stored mconfig was deleted
+  updated_stored_mconfig:
+    type: object
+    description: The stored mconfig was updated
+  processed_updates:
+    type: object
+    description: Stream updates were successfully processed
+    properties:
+      updates:
+        type: array
+        items:
+          type: object
+          properties:
+            key:
+              type: string
+            value:
+              type: string
+              format: byte
+  restarted_services:
+    type: object
+    description: Services were restarted
+    properties:
+      services:
+        type: array
+        items:
+          type: string
+  established_sync_rpc_stream:
+    type: object
+    description: SyncRPC connection was established
+  disconnected_sync_rpc_stream:
+    type: object
+    description: SyncRPC stream was disconnected

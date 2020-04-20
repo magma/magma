@@ -1,8 +1,14 @@
 ---
-# Copyright (c) Facebook, Inc. and its affiliates.
-# All rights reserved.
+# Copyright 2020 The Magma Authors.
+
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 #
 log_level: INFO
 
@@ -10,6 +16,10 @@ log_level: INFO
 magma_services:
   - control_proxy
   - pipelined
+
+# List of services that don't provide service303 interface
+non_service303_services:
+  - control_proxy
 
 # list of services that are required to have meta before checking in
 # (meta = data gathered via MagmaService.register_get_status_callback())
@@ -29,16 +39,14 @@ bootstrap_config:
 enable_config_streamer: True
 enable_upgrade_manager: True
 enable_network_monitor: True
-enable_systemd_tailer: False
 enable_sync_rpc: True
 enable_kernel_version_checking: True
-
-systemd_tailer_poll_interval: 30 # seconds
 
 upgrader_factory:
   module: magma.magmad.upgrade.docker_upgrader
   class: DockerUpgraderFactory
-  gateway_module: cwf
+  gateway_module: xwf
+  use_proxy: False
 
 mconfig_modules:
   - orc8r.protos.mconfig.mconfigs_pb2
@@ -60,9 +68,3 @@ metricsd:
   services:
     - magmad
     - pipelined
-    - sessiond
-    - eap_aka
-    - aaa_server
-    - radiusd
-    - directoryd
-    - state

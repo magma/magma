@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 package servicers
@@ -88,7 +93,6 @@ func getCCRInitialCreditRequest(
 	imsi string,
 	pReq *protos.CreateSessionRequest,
 	keys []policydb.ChargingKey,
-	initMethod gy.InitMethod,
 ) *gy.CreditControlRequest {
 	var msgType credit_control.CreditRequestType
 	var qos *gy.QosRequestInfo
@@ -100,11 +104,7 @@ func getCCRInitialCreditRequest(
 		}
 	}
 
-	if initMethod == gy.PerKeyInit {
-		msgType = credit_control.CRTInit
-	} else {
-		msgType = credit_control.CRTUpdate
-	}
+	msgType = credit_control.CRTInit
 	usedCredits := make([]*gy.UsedCredits, 0, len(keys))
 	for _, key := range keys {
 		uc := &gy.UsedCredits{RatingGroup: key.RatingGroup}
@@ -116,7 +116,7 @@ func getCCRInitialCreditRequest(
 	}
 	return &gy.CreditControlRequest{
 		SessionID:     pReq.SessionId,
-		RequestNumber: 1,
+		RequestNumber: 0,
 		IMSI:          imsi,
 		UeIPV4:        pReq.UeIpv4,
 		SpgwIPV4:      pReq.SpgwIpv4,
@@ -286,6 +286,7 @@ func getSingleCreditResponseFromCCA(
 		ChargingKey: receivedCredit.RatingGroup,
 		Credit:      getSingleChargingCreditFromCCA(receivedCredit),
 		TgppCtx:     tgppCtx,
+		ResultCode:  answer.ResultCode,
 	}
 
 	if receivedCredit.ServiceIdentifier != nil {

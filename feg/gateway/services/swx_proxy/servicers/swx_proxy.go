@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 // Package servicers implements Swx GRPC proxy service which sends MAR/SAR messages over
@@ -70,11 +75,8 @@ type SwxProxyConfig struct {
 
 // NewSwxProxy creates a new instance of the proxy with configured cache TTL
 func NewSwxProxy(config *SwxProxyConfig) (*swxProxy, error) {
-	if config.CacheTTLSeconds < uint32(cache.DefaultGcInterval.Seconds()) {
-		config.CacheTTLSeconds = uint32(cache.DefaultTtl.Seconds())
-	}
-	cch, _ := cache.NewExt(cache.DefaultGcInterval, time.Second*time.Duration(config.CacheTTLSeconds))
-	return NewSwxProxyWithCache(config, cch)
+	cache := createCache(config)
+	return NewSwxProxyWithCache(config, cache)
 }
 
 // NewSwxProxyWithCache creates a new instance of the proxy with given cache implementation
@@ -284,4 +286,18 @@ func (s *swxProxy) GetHealthStatus(ctx context.Context, req *orcprotos.Void) (*p
 
 func (s *swxProxy) genSID(imsi string) string {
 	return s.config.ClientCfg.GenSessionIdImsi("swx", imsi)
+}
+
+// CreateCache creates a cache initialized with SWx config parameters
+func createCache(config *SwxProxyConfig) *cache.Impl {
+	fixConfigCacheMinTTL(config)
+	cch, _ := cache.NewExt(cache.DefaultGcInterval, time.Second*time.Duration(config.CacheTTLSeconds))
+	return cch
+}
+
+// fixConfigCacheMinTTL changes CacheTTLSeconds on the config if this is smaller than the default value
+func fixConfigCacheMinTTL(config *SwxProxyConfig) {
+	if config.CacheTTLSeconds < uint32(cache.DefaultGcInterval.Seconds()) {
+		config.CacheTTLSeconds = uint32(cache.DefaultTtl.Seconds())
+	}
 }

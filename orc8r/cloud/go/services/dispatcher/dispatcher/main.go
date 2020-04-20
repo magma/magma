@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 package main
@@ -36,7 +41,7 @@ func main() {
 	keepaliveParams.MaxConnectionAgeGrace = 0
 
 	// Create the service
-	srv, err := service.NewOrchestratorServiceWithOptions(
+	srv, err := service.NewOrchestratorService(
 		orc8r.ModuleName,
 		dispatcher.ServiceName,
 		grpc.KeepaliveParams(keepaliveParams),
@@ -57,14 +62,10 @@ func main() {
 	if err != nil {
 		glog.Fatalf("SyncRPCService Initialization Error: %s", err)
 	}
+	protos.RegisterSyncRPCServiceServer(srv.GrpcServer, syncRpcServicer)
 
 	// create http server
 	httpServer := httpserver.NewSyncRPCHttpServer(broker)
-
-	protos.RegisterSyncRPCServiceServer(srv.GrpcServer, syncRpcServicer)
-	srv.GrpcServer.RegisterService(protos.GetLegacyDispatcherDesc(), syncRpcServicer)
-
-	// run http server
 	go httpServer.Run(fmt.Sprintf(":%d", HttpServerPort))
 
 	err = srv.Run()

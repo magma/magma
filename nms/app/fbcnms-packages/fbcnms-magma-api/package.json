@@ -1,0 +1,13 @@
+{
+    "name": "@fbcnms/magma-api",
+    "version": "0.1.0",
+    "main": "__generated__/MagmaAPIBindings.js",
+    "scripts": {
+        "dl-only": "bin/downloadSwagger.sh",
+        "gen-only": "bin/generateAPIFromSwagger.sh",
+        "gen": "bin/downloadAndGenerateAPI.sh"
+    },
+    "devDependencies": {
+        "swagger-js-codegen": "^1.13.0"
+    }
+  }

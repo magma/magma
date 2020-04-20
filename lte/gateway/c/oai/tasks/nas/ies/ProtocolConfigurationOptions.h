@@ -2,12 +2,8 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,22 +23,18 @@
 #define PROTOCOL_CONFIGURATION_OPTIONS_MINIMUM_LENGTH PCO_MIN_LENGTH
 #define PROTOCOL_CONFIGURATION_OPTIONS_MAXIMUM_LENGTH PCO_MAX_LENGTH
 
-typedef protocol_configuration_options_t ProtocolConfigurationOptions;
+typedef protocol_configuration_options_t oai::ProtocolConfigurationOptions;
 
 int encode_ProtocolConfigurationOptions(
-  ProtocolConfigurationOptions *protocolconfigurationoptions,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len);
+    oai::ProtocolConfigurationOptions* protocolconfigurationoptions,
+    uint8_t iei, uint8_t* buffer, uint32_t len);
 
 int decode_ProtocolConfigurationOptions(
-  ProtocolConfigurationOptions *protocolconfigurationoptions,
-  const uint8_t iei,
-  const uint8_t *const buffer,
-  const uint32_t len);
+    oai::ProtocolConfigurationOptions* protocolconfigurationoptions,
+    const uint8_t iei, const uint8_t* const buffer, const uint32_t len);
 
 void dump_ProtocolConfigurationOptions_xml(
-  ProtocolConfigurationOptions *protocolconfigurationoptions,
-  uint8_t iei);
+    oai::ProtocolConfigurationOptions* protocolconfigurationoptions,
+    uint8_t iei);
 
 #endif /* PROTOCOL CONFIGURATION OPTIONS_H_ */

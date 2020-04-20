@@ -2,12 +2,8 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -47,21 +43,21 @@
 #define NW_DETACH_REQUEST_MINIMUM_LENGTH DETACH_TYPE_MINIMUM_LENGTH
 
 /*
- * Use a reserved message type to differentiate NW initiated detach and UE initiated detach
+ * Use a reserved message type to differentiate NW initiated detach and UE
+ * initiated detach
  */
-#define NW_DETACH_REQUEST 0b01000111                 // 71 = 0x47
-#define NW_DETACH_TYPE_RE_ATTACH_REQUIRED 0b00000001 // Re-attach required
+#define NW_DETACH_REQUEST 0b01000111                  // 71 = 0x47
+#define NW_DETACH_TYPE_RE_ATTACH_REQUIRED 0b00000001  // Re-attach required
 #define NW_DETACH_TYPE_RE_ATTACH_NOT_REQUIRED                                  \
-  0b00000010                                  // Re-attach not required
-#define NW_DETACH_TYPE_IMSI_DETACH 0b00000011 // IMSI Detach
+  0b00000010                                   // Re-attach not required
+#define NW_DETACH_TYPE_IMSI_DETACH 0b00000011  // IMSI Detach
 #define NW_DETACH_REQ_EMM_CAUSE_PRESENCE 0b00000001
 #define NW_DETACH_REQ_EMM_CAUSE_IEI 0x53
 
 /*
  * Message name: Detach request
- * Description: This message is sent by the UE to request the release of an EMM context.
- * Significance: dual
- * Direction: UE to network
+ * Description: This message is sent by the UE to request the release of an EMM
+ * context. Significance: dual Direction: UE to network
  */
 
 typedef struct detach_request_msg_tag {
@@ -75,14 +71,10 @@ typedef struct detach_request_msg_tag {
 } detach_request_msg;
 
 int decode_detach_request(
-  detach_request_msg *detachrequest,
-  uint8_t *buffer,
-  uint32_t len);
+    detach_request_msg* detachrequest, uint8_t* buffer, uint32_t len);
 
 int encode_detach_request(
-  detach_request_msg *detachrequest,
-  uint8_t *buffer,
-  uint32_t len);
+    detach_request_msg* detachrequest, uint8_t* buffer, uint32_t len);
 
 typedef struct nw_detach_request_msg_tag {
   /* Mandatory fields */
@@ -95,8 +87,6 @@ typedef struct nw_detach_request_msg_tag {
 } nw_detach_request_msg;
 
 int encode_nw_detach_request(
-  nw_detach_request_msg *nw_detachrequest,
-  uint8_t *buffer,
-  uint32_t len);
+    nw_detach_request_msg* nw_detachrequest, uint8_t* buffer, uint32_t len);
 
 #endif /* ! defined(FILE_DETACH_REQUEST_SEEN) */

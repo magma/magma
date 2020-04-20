@@ -1,19 +1,23 @@
 """
-Copyright (c) 2019-present, Facebook, Inc.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree. An additional grant
-of patent rights can be found in the PATENTS file in the same directory.
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 import unittest
 import warnings
 from concurrent.futures import Future
 
-from ryu.lib import hub
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
 from lte.protos.policydb_pb2 import FlowMatch
+from lte.protos.pipelined_pb2 import FlowRequest
 
 
 from magma.pipelined.tests.app.start_pipelined import (
@@ -25,15 +29,16 @@ from magma.pipelined.tests.pipelined_test_util import (
     start_ryu_app_thread,
     stop_ryu_app_thread,
     create_service_manager,
-    assert_bridge_snapshot_match,
+    SnapshotVerifier,
 )
 
 
 class DPITest(unittest.TestCase):
     BRIDGE = 'testing_br'
     IFACE = 'testing_br'
-    MAC_DEST = "5e:cc:cc:b1:49:4b"
     BRIDGE_IP = '192.168.128.1'
+    DPI_PORT = 'mon1'
+    DPI_IP = '1.1.1.1'
 
     @classmethod
     def setUpClass(cls):
@@ -69,8 +74,8 @@ class DPITest(unittest.TestCase):
                 'clean_restart': True,
                 'setup_type': 'LTE',
                 'dpi': {
-                    'enabled': False,
-                    'mon_port': 'mon1',
+                    'enabled': True,
+                    'mon_port': cls.DPI_PORT,
                     'mon_port_number': 32769,
                     'idle_timeout': 42,
                 },
@@ -82,6 +87,8 @@ class DPITest(unittest.TestCase):
         )
 
         BridgeTools.create_bridge(cls.BRIDGE, cls.IFACE)
+        BridgeTools.create_internal_iface(cls.BRIDGE, cls.DPI_PORT,
+                                          cls.DPI_IP)
 
         cls.thread = start_ryu_app_thread(test_setup)
         cls.dpi_controller = dpi_controller_reference.result()
@@ -97,6 +104,7 @@ class DPITest(unittest.TestCase):
         Test DPI classifier flows are properly added
 
         Assert:
+            1 FLOW_CREATED -> no rule added as its not classified yet
             1 App not tracked -> no rule installed(`notanAPP`)
             3 App types are matched on:
                 facebook other
@@ -104,33 +112,46 @@ class DPITest(unittest.TestCase):
                 viber audio
         """
         flow_match1 = FlowMatch(
-            ip_proto=FlowMatch.IPPROTO_TCP, ipv4_dst='45.10.0.0/24',
-            ipv4_src='1.2.3.0/24', tcp_dst=80, tcp_src=51115,
+            ip_proto=FlowMatch.IPPROTO_TCP, ipv4_dst='45.10.0.8',
+            ipv4_src='1.2.3.4', tcp_dst=80, tcp_src=51115,
             direction=FlowMatch.UPLINK
         )
         flow_match2 = FlowMatch(
-            ip_proto=FlowMatch.IPPROTO_TCP, ipv4_dst='1.10.0.0/24',
-            ipv4_src='6.2.3.0/24', tcp_dst=111, tcp_src=222,
+            ip_proto=FlowMatch.IPPROTO_TCP, ipv4_dst='1.10.0.1',
+            ipv4_src='6.2.3.1', tcp_dst=111, tcp_src=222,
             direction=FlowMatch.UPLINK
         )
         flow_match3 = FlowMatch(
             ip_proto=FlowMatch.IPPROTO_UDP, ipv4_dst='22.2.2.24',
-            ipv4_src='15.22.32.0/24', udp_src=111, udp_dst=222,
+            ipv4_src='15.22.32.2', udp_src=111, udp_dst=222,
             direction=FlowMatch.UPLINK
         )
         flow_match_for_no_proto = FlowMatch(
             ip_proto=FlowMatch.IPPROTO_UDP, ipv4_dst='1.1.1.1'
         )
+        flow_match_not_added = FlowMatch(
+            ip_proto=FlowMatch.IPPROTO_UDP, ipv4_src='22.22.22.22'
+        )
         self.dpi_controller.add_classify_flow(
-            flow_match_for_no_proto, 'notanAPP', 'null')
+            flow_match_not_added, FlowRequest.FLOW_CREATED,
+            'nickproto', 'bestproto')
         self.dpi_controller.add_classify_flow(
-            flow_match1, 'base.ip.http.facebook', 'NotReal')
+            flow_match_for_no_proto, FlowRequest.FLOW_PARTIAL_CLASSIFICATION,
+            'notanAPP', 'null')
         self.dpi_controller.add_classify_flow(
-            flow_match2, 'base.ip.https.google_gen.google_docs', 'MAGMA')
+            flow_match1, FlowRequest.FLOW_PARTIAL_CLASSIFICATION,
+            'base.ip.http.facebook', 'NotReal')
         self.dpi_controller.add_classify_flow(
-            flow_match3, 'base.ip.udp.viber', 'AudioTransfer Receiving')
-        hub.sleep(5)
-        assert_bridge_snapshot_match(self, self.BRIDGE, self.service_manager)
+            flow_match2, FlowRequest.FLOW_PARTIAL_CLASSIFICATION,
+            'base.ip.https.google_gen.google_docs', 'MAGMA',)
+        self.dpi_controller.add_classify_flow(
+            flow_match3, FlowRequest.FLOW_PARTIAL_CLASSIFICATION,
+            'base.ip.udp.viber', 'AudioTransfer Receiving',)
+
+        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
+                                             self.service_manager)
+        with snapshot_verifier:
+            pass
 
     def test_remove_app_rules(self):
         """
@@ -140,13 +161,16 @@ class DPITest(unittest.TestCase):
             Remove the facebook match flow
         """
         flow_match1 = FlowMatch(
-            ip_proto=FlowMatch.IPPROTO_TCP, ipv4_dst='45.10.0.0/24',
-            ipv4_src='1.2.3.0/24', tcp_dst=80, tcp_src=51115,
+            ip_proto=FlowMatch.IPPROTO_TCP, ipv4_dst='45.10.0.8',
+            ipv4_src='1.2.3.4', tcp_dst=80, tcp_src=51115,
             direction=FlowMatch.UPLINK
         )
         self.dpi_controller.remove_classify_flow(flow_match1)
-        hub.sleep(5)
-        assert_bridge_snapshot_match(self, self.BRIDGE, self.service_manager)
+
+        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
+                                             self.service_manager)
+        with snapshot_verifier:
+            pass
 
 
 if __name__ == "__main__":

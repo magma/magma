@@ -1,0 +1,79 @@
+{
+    "monitoring": {
+        "census": {
+            "disable_stats": true,
+            "stat_views": ["proc"]
+        }
+    },
+    "server": {
+        "sessionStorage": {
+            "storageType": "memory"
+        },
+        "secret": "123456",
+        "dedupWindow": "500ms",
+        "listeners": [
+            {
+                "name": "auth",
+                "extra": {
+                    "port": 1812
+                },
+                "type": "udp",
+                "modules": [
+                    {
+                        "name": "eap",
+                        "config": {
+                            "methods": [
+                                {
+                                    "name": "akamagma",
+                                    "config": {
+                                        "FegEndpoint": "127.0.0.1:9109"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "acct",
+                "extra": {
+                    "port": 1813
+                },
+                "type": "udp",
+                "modules": [
+                    {
+                        "name": "adaptruckus",
+                        "config": {}
+                    },
+                    {
+                        "name": "coadynamic",
+                        "config": {
+                            "Port": 3799
+                        }
+                    },
+                    {
+                      "name": "magmaacct",
+                      "config": {
+                        "FegEndpoint": "127.0.0.1:9109"
+                      }
+                    }
+                ]
+            },
+            {
+                "name": "coa_grpc",
+                "extra": {
+                    "port": 9108
+                },
+                "type": "grpc",
+                "modules": [
+                    {
+                        "name": "coadynamic",
+                        "config": {
+                            "Port": 3799
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+}
