@@ -20,6 +20,7 @@ import {useUserManagement} from '../UserManagementContext';
 
 const useStyles = makeStyles(() => ({
   root: {
+    flexGrow: 1,
     display: 'flex',
     flexDirection: 'column',
     height: '100%',
@@ -28,10 +29,11 @@ const useStyles = makeStyles(() => ({
 
 type Props = {
   user: User,
+  isForCurrentUserSettings?: ?boolean,
 };
 
 export default function UserAccountPane(props: Props) {
-  const {user} = props;
+  const {user, isForCurrentUserSettings = false} = props;
   const classes = useStyles();
   const userManagement = useUserManagement();
   const enqueueSnackbar = useEnqueueSnackbar();
@@ -43,10 +45,22 @@ export default function UserAccountPane(props: Props) {
   return (
     <div className={classes.root}>
       <UserAccountDetailsPane
-        variant={ACCOUNT_DISPLAY_VARIANTS.userDetailsCard}
+        variant={
+          isForCurrentUserSettings
+            ? ACCOUNT_DISPLAY_VARIANTS.userSettingsView
+            : ACCOUNT_DISPLAY_VARIANTS.userDetailsCard
+        }
         user={user}
-        onChange={(user, password) => {
-          userManagement.changeUserPassword(user, password).catch(handleError);
+        onChange={(user, password, currentPassword) => {
+          if (isForCurrentUserSettings && currentPassword != null) {
+            userManagement
+              .changeCurrentUserPassword(currentPassword, password)
+              .catch(handleError);
+          } else {
+            userManagement
+              .changeUserPassword(user, password)
+              .catch(handleError);
+          }
         }}
       />
     </div>

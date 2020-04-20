@@ -20,6 +20,7 @@ import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
 import LinearScaleIcon from '@material-ui/icons/LinearScale';
 import React from 'react';
 import RemoveServiceTypeMutation from '../../mutations/RemoveServiceTypeMutation';
+import ServiceEndpointDefinitionStaticTable from './ServiceEndpointDefinitionStaticTable';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {ConnectionHandler} from 'relay-runtime';
 import {createFragmentContainer, graphql} from 'react-relay';
@@ -35,7 +36,7 @@ const styles = {
   detailsContainer: {
     width: '100%',
   },
-  properties: {
+  section: {
     marginBottom: '24px',
   },
 };
@@ -59,10 +60,15 @@ class ServiceTypeItem extends React.Component<Props> {
           </ExpansionPanelSummary>
           <ExpansionPanelDetails>
             <div className={classes.detailsContainer}>
-              <div className={classes.properties}>
+              <div className={classes.section}>
                 <DynamicPropertyTypesGrid
                   key={serviceType.id}
                   propertyTypes={serviceType.propertyTypes}
+                />
+              </div>
+              <div className={classes.section}>
+                <ServiceEndpointDefinitionStaticTable
+                  serviceEndpointDefinitions={serviceType.endpointDefinitions}
                 />
               </div>
             </div>
@@ -117,6 +123,9 @@ export default withStyles(styles)(
           name
           propertyTypes {
             ...PropertyTypeFormField_propertyType
+          }
+          endpointDefinitions {
+            ...ServiceEndpointDefinitionStaticTable_serviceEndpointDefinitions
           }
           numberOfServices
         }

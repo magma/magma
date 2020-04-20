@@ -11,8 +11,8 @@
 import type {WorkOrderProjectTypesQueryResponse} from './__generated__/WorkOrderProjectTypesQuery.graphql';
 
 import AddEditProjectTypeCard from './AddEditProjectTypeCard';
-import InventoryConfigureHeader from '../InventoryConfigureHeader';
 import InventoryQueryRenderer from '../InventoryQueryRenderer';
+import InventoryView from '../InventoryViewContainer';
 import ProjectTypeCard from './ProjectTypeCard';
 import React, {useState} from 'react';
 import fbt from 'fbt';
@@ -21,18 +21,6 @@ import {graphql} from 'relay-runtime';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(() => ({
-  root: {
-    flexGrow: 1,
-    padding: '24px 16px',
-  },
-  header: {
-    margin: '0px 8px',
-  },
-  subtitle: {
-    fontSize: '14px',
-    lineHeight: '24px',
-    color: '#73839e',
-  },
   typeCards: {
     display: 'flex',
     flexWrap: 'wrap',
@@ -112,12 +100,13 @@ const WorkOrderProjectTypes = () => {
         }
 
         return (
-          <div className={classes.root}>
-            <InventoryConfigureHeader
-              className={classes.header}
-              title="Project Templates"
-              subtitle="Create and manage reusable project workflows."
-              actionButtons={[
+          <InventoryView
+            header={{
+              title: <fbt desc="">Project Templates</fbt>,
+              subtitle: (
+                <fbt desc="">Create and manage reusable project workflows.</fbt>
+              ),
+              actionButtons: [
                 {
                   title: `${fbt('Create Project Template', '')}`,
                   action: () => {
@@ -127,8 +116,8 @@ const WorkOrderProjectTypes = () => {
                     setShowAddEditCard(true);
                   },
                 },
-              ]}
-            />
+              ],
+            }}>
             <div className={classes.typeCards}>
               {(props.projectTypes?.edges ?? [])
                 .map(edge => edge.node)
@@ -142,7 +131,7 @@ const WorkOrderProjectTypes = () => {
                   </div>
                 ))}
             </div>
-          </div>
+          </InventoryView>
         );
       }}
     />

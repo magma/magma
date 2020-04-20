@@ -22,7 +22,6 @@ import MainNavListItems from './MainNavListItems';
 import React, {useCallback, useContext, useEffect, useState} from 'react';
 import RelayEnvironment from '../common/RelayEnvironment.js';
 import ServicesMain from './services/ServicesMain';
-import Settings from './Settings';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {RelayEnvironmentProvider} from 'react-relay/hooks';
 import {getProjectLinks} from '@fbcnms/projects/projects';
@@ -81,7 +80,6 @@ function Index() {
             }
           />
           <Route path={relativeUrl('/services')} component={ServicesMain} />
-          <Route path={relativeUrl('/settings')} component={Settings} />
           <Redirect exact from="/" to={relativeUrl('/inventory')} />
           <Redirect exact from="/inventory" to={relativeUrl('/inventory')} />
         </Switch>

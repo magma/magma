@@ -14,6 +14,7 @@ import * as React from 'react';
 import Text from './Text';
 import classNames from 'classnames';
 import symphony from '../../theme/symphony';
+import {joinNullableStrings} from '@fbcnms/util/strings';
 import {makeStyles} from '@material-ui/styles';
 import {useFormElementContext} from './Form/FormElementContext';
 import {useMemo} from 'react';
@@ -39,11 +40,11 @@ const useStyles = makeStyles(_theme => ({
   },
   rightIcon: {
     alignSelf: 'flex-end',
-    marginLeft: '6px',
+    marginLeft: '8px',
   },
   leftIcon: {
     alignSelf: 'flex-start',
-    marginRight: '6px',
+    marginRight: '8px',
   },
   hasRightIcon: {
     '& $buttonText': {
@@ -65,7 +66,7 @@ const useStyles = makeStyles(_theme => ({
   containedVariant: {
     height: '32px',
     minWidth: '88px',
-    padding: '4px 18px',
+    padding: '4px 12px',
     borderRadius: '4px',
     '&$hasRightIcon': {
       padding: '4px 6px 4px 12px',
@@ -303,16 +304,24 @@ const Button = (props: Props, forwardedRef: TRefFor<HTMLButtonElement>) => {
     leftIconClass = null,
     rightIcon: RightIcon = null,
     rightIconClass = null,
-    tooltip,
+    tooltip: tooltipProp,
   } = props;
   const classes = useStyles();
 
-  const {disabled: contextDisabled} = useFormElementContext();
+  const {
+    disabled: contextDisabled,
+    tooltip: contextTooltip,
+  } = useFormElementContext();
 
   const disabled = useMemo(() => disabledProp || contextDisabled, [
     disabledProp,
     contextDisabled,
   ]);
+
+  const tooltip = useMemo(
+    () => joinNullableStrings([tooltipProp, contextTooltip]),
+    [contextTooltip, tooltipProp],
+  );
 
   return (
     <button

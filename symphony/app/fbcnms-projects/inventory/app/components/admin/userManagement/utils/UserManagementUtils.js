@@ -97,18 +97,18 @@ export const GROUP_STATUSES: KeyValueEnum<UsersGroupStatus> = {
   },
 };
 
-export type UserPermissionsGroupMember = {|
+export type UserPermissionsGroupMember = $ReadOnly<{|
   +id: string,
   +authID: string,
-|};
-export type UserPermissionsGroup = {|
+|}>;
+export type UserPermissionsGroup = $ReadOnly<{|
   id: string,
   name: string,
   description: string,
   status: UsersGroupStatus,
   members: $ReadOnlyArray<UserPermissionsGroupMember>,
   memberUsers: $ReadOnlyArray<User>,
-|};
+|}>;
 type UsersReponsePart = $ElementType<
   UserManagementContextQueryResponse,
   'users',

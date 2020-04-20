@@ -10,7 +10,7 @@
 
 import type {EquipmentPort, Link} from './Equipment';
 import type {Property} from './Property';
-import type {ServiceType} from './ServiceType';
+import type {ServiceEndpointDefinition, ServiceType} from './ServiceType';
 
 export type ServiceStatus =
   | 'PENDING'
@@ -37,14 +37,10 @@ export type Customer = {
   name: string,
 };
 
-export type ServiceEndpointType = {
-  role: string,
-};
-
 export type ServiceEndpoint = {
   id: string,
   port: EquipmentPort,
-  type: ServiceEndpointType,
+  definition: ServiceEndpointDefinition,
   service: Service,
 };
 

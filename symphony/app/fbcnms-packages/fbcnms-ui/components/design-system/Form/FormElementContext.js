@@ -13,6 +13,7 @@ import React from 'react';
 export type FormElementContextValue = {
   disabled: boolean,
   hasError?: boolean,
+  tooltip?: ?string,
 };
 
 const FormElementContext = React.createContext<FormElementContextValue>({

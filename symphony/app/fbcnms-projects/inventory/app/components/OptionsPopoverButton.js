@@ -80,7 +80,7 @@ const OptionsPopoverButton = (props: Props) => {
         label: opt.caption,
         value: optIndex,
         ignorePermissions: opt.ignorePermissions,
-        hideWhenDisabled: opt.hideWhenDisabled,
+        hideOnEditLock: opt.hideOnEditLock,
       }))}
       onChange={handleOptionClick}
       menuClassName={classes.menu}

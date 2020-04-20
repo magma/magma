@@ -31,30 +31,34 @@ const FormContext = createContext<FromContextType>(DEFAULT_CONTEXT_VALUE);
 
 type Props = {
   children: React.Node,
+  ignorePermissions?: ?boolean,
 };
 
 export function FormContextProvider(props: Props) {
+  const {children, ignorePermissions = false} = props;
   const {me} = useMainContext();
 
   return (
     <FormAlertsContextProvider>
       <FormAlertsContext.Consumer>
         {alerts => {
-          alerts.editLock.check({
-            fieldId: 'System Rules',
-            fieldDisplayName: 'Read Only User',
-            value: me?.permissions.canWrite,
-            checkCallback: canWrite =>
-              canWrite
-                ? ''
-                : `${fbt(
-                    'Writing permissions are required. Contact your system administrator.',
-                    '',
-                  )}`,
-          });
+          if (ignorePermissions != true) {
+            alerts.editLock.check({
+              fieldId: 'System Rules',
+              fieldDisplayName: 'Read Only User',
+              value: me?.permissions.canWrite,
+              checkCallback: canWrite =>
+                canWrite
+                  ? ''
+                  : `${fbt(
+                      'Writing permissions are required. Contact your system administrator.',
+                      '',
+                    )}`,
+            });
+          }
           return (
             <FormContext.Provider value={{alerts}}>
-              {props.children}
+              {children}
             </FormContext.Provider>
           );
         }}

@@ -16,15 +16,7 @@ import MapIcon from '@material-ui/icons/Map';
 import ViewContainer from '@fbcnms/ui/components/design-system/View/ViewContainer';
 import {FormContextProvider} from '../common/FormContext';
 import {VARIANTS} from '@fbcnms/ui/components/design-system/View/ViewBody';
-import {makeStyles} from '@material-ui/styles';
 import {useState} from 'react';
-
-const useStyles = makeStyles(() => ({
-  root: {
-    display: 'flex',
-    height: '100%',
-  },
-}));
 
 export const DisplayOptions = {
   table: 'table',
@@ -43,7 +35,6 @@ const InventoryView = (props: Props) => {
   const viewProps: ViewContainerProps = {
     ...restProps,
   };
-  const classes = useStyles();
   const [selectedDisplayOption, setSelectedDisplayOption] = useState(
     DisplayOptions.table,
   );
@@ -80,11 +71,9 @@ const InventoryView = (props: Props) => {
     }
   }
   return (
-    <div className={classes.root}>
-      <FormContextProvider>
-        <ViewContainer {...viewProps} />
-      </FormContextProvider>
-    </div>
+    <FormContextProvider>
+      <ViewContainer {...viewProps} />
+    </FormContextProvider>
   );
 };
 

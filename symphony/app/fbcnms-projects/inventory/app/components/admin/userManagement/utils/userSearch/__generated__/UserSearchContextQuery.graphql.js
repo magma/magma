@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 3f3eddda233b70913130810614f8254b
+ * @relayHash 8cc1dc080adf6576e4309bc5ccf0e895
  */
 
 /* eslint-disable */
@@ -50,10 +50,10 @@ export type PropertyTypeInput = {|
   isMandatory?: ?boolean,
   isDeleted?: ?boolean,
 |};
-export type PermissionsGroupMembersPaneUserSearchQueryVariables = {|
+export type UserSearchContextQueryVariables = {|
   filters: $ReadOnlyArray<UserFilterInput>
 |};
-export type PermissionsGroupMembersPaneUserSearchQueryResponse = {|
+export type UserSearchContextQueryResponse = {|
   +userSearch: {|
     +users: $ReadOnlyArray<?{|
       +id: string,
@@ -75,15 +75,15 @@ export type PermissionsGroupMembersPaneUserSearchQueryResponse = {|
     |}>
   |}
 |};
-export type PermissionsGroupMembersPaneUserSearchQuery = {|
-  variables: PermissionsGroupMembersPaneUserSearchQueryVariables,
-  response: PermissionsGroupMembersPaneUserSearchQueryResponse,
+export type UserSearchContextQuery = {|
+  variables: UserSearchContextQueryVariables,
+  response: UserSearchContextQueryResponse,
 |};
 */
 
 
 /*
-query PermissionsGroupMembersPaneUserSearchQuery(
+query UserSearchContextQuery(
   $filters: [UserFilterInput!]!
 ) {
   userSearch(filters: $filters) {
@@ -247,7 +247,7 @@ return {
   "kind": "Request",
   "fragment": {
     "kind": "Fragment",
-    "name": "PermissionsGroupMembersPaneUserSearchQuery",
+    "name": "UserSearchContextQuery",
     "type": "Query",
     "metadata": null,
     "argumentDefinitions": (v0/*: any*/),
@@ -255,19 +255,19 @@ return {
   },
   "operation": {
     "kind": "Operation",
-    "name": "PermissionsGroupMembersPaneUserSearchQuery",
+    "name": "UserSearchContextQuery",
     "argumentDefinitions": (v0/*: any*/),
     "selections": (v2/*: any*/)
   },
   "params": {
     "operationKind": "query",
-    "name": "PermissionsGroupMembersPaneUserSearchQuery",
+    "name": "UserSearchContextQuery",
     "id": null,
-    "text": "query PermissionsGroupMembersPaneUserSearchQuery(\n  $filters: [UserFilterInput!]!\n) {\n  userSearch(filters: $filters) {\n    users {\n      id\n      authID\n      firstName\n      lastName\n      email\n      status\n      role\n      groups {\n        id\n        name\n      }\n      profilePhoto {\n        id\n        fileName\n        storeKey\n      }\n    }\n  }\n}\n",
+    "text": "query UserSearchContextQuery(\n  $filters: [UserFilterInput!]!\n) {\n  userSearch(filters: $filters) {\n    users {\n      id\n      authID\n      firstName\n      lastName\n      email\n      status\n      role\n      groups {\n        id\n        name\n      }\n      profilePhoto {\n        id\n        fileName\n        storeKey\n      }\n    }\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '01be0fd4e5f83a289935b03fdad95aa0';
+(node/*: any*/).hash = '5bb37306cb423f1882786165242c92f1';
 module.exports = node;

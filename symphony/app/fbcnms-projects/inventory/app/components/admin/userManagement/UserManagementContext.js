@@ -135,6 +135,17 @@ const changeUserPassword = (user: User, password: string) => {
   return updateUserInNode(user.authID, undefined, password).then(() => user);
 };
 
+const changeCurrentUserPassword = (
+  currentPassword: string,
+  newPassword: string,
+) => {
+  const payload = {
+    currentPassword,
+    newPassword,
+  };
+  return axios.post(`/user/change_password`, payload).then(() => undefined);
+};
+
 const editUser = (newUserValue: User, updater?: StoreUpdater) => {
   return new Promise<User>((resolve, reject) => {
     const callbacks: MutationCallbacks<EditUserMutationResponse> = {
@@ -295,6 +306,10 @@ type UserManagementContextValue = {
   addUser: (user: User, password: string) => Promise<User>,
   editUser: (newUserValue: User, updater?: StoreUpdater) => Promise<User>,
   changeUserPassword: (user: User, password: string) => Promise<User>,
+  changeCurrentUserPassword: (
+    currentPassword: string,
+    newPassword: string,
+  ) => Promise<void>,
   addGroup: UserPermissionsGroup => Promise<UserPermissionsGroup>,
   editGroup: UserPermissionsGroup => Promise<UserPermissionsGroup>,
   updateGroupMembers: (
@@ -312,6 +327,7 @@ const UserManagementContext = React.createContext<UserManagementContextValue>({
   addUser,
   editUser,
   changeUserPassword,
+  changeCurrentUserPassword,
   addGroup: addGroup(emptyUsersMap),
   editGroup: editGroup(emptyUsersMap),
   updateGroupMembers: updateGroupMembers(emptyUsersMap),
@@ -371,6 +387,7 @@ function ProviderWrap(props: Props) {
     addUser,
     editUser,
     changeUserPassword,
+    changeCurrentUserPassword,
     addGroup: addGroup(usersMap),
     editGroup: editGroup(usersMap),
     updateGroupMembers: updateGroupMembers(usersMap),

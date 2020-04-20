@@ -12,6 +12,7 @@ import type {User} from '../utils/UserManagementUtils';
 
 import * as React from 'react';
 import Button from '@fbcnms/ui/components/design-system/Button';
+import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import FormFieldTextInput from '../utils/FormFieldTextInput';
 import Grid from '@material-ui/core/Grid';
 import Strings from '@fbcnms/strings/Strings';
@@ -45,11 +46,12 @@ const useStyles = makeStyles(() => ({
 export const ACCOUNT_DISPLAY_VARIANTS = {
   newUserDialog: 'newUserDialog',
   userDetailsCard: 'userDetailsCard',
+  userSettingsView: 'userSettingsView',
 };
 
 type Props = {
   user: User,
-  onChange?: (user: User, password: string) => void,
+  onChange?: (user: User, password: string, currentPassword?: ?string) => void,
   variant: $Values<typeof ACCOUNT_DISPLAY_VARIANTS>,
   className?: ?string,
 };
@@ -57,6 +59,8 @@ type Props = {
 const UserAccountDetailsPane = (props: Props) => {
   const {user, onChange, className, variant} = props;
   const classes = useStyles();
+
+  const [currentPassword, setCurrentPassword] = useState<string>('');
 
   const [password, setPassword] = useState<string>('');
   const [passwordVerfication, setPasswordVerification] = useState<string>('');
@@ -85,7 +89,7 @@ const UserAccountDetailsPane = (props: Props) => {
 
   useEffect(() => {
     if (
-      variant != ACCOUNT_DISPLAY_VARIANTS.newUserDialog ||
+      variant !== ACCOUNT_DISPLAY_VARIANTS.newUserDialog ||
       onChange == null ||
       form.alerts.error.detected
     ) {
@@ -110,11 +114,9 @@ const UserAccountDetailsPane = (props: Props) => {
 
   const emailField = (
     <FormFieldTextInput
-      disabled={variant === ACCOUNT_DISPLAY_VARIANTS.userDetailsCard}
+      disabled={variant !== ACCOUNT_DISPLAY_VARIANTS.newUserDialog}
       validationId={
-        variant !== ACCOUNT_DISPLAY_VARIANTS.userDetailsCard
-          ? 'email'
-          : undefined
+        variant === ACCOUNT_DISPLAY_VARIANTS.newUserDialog ? 'email' : undefined
       }
       label={`${fbt('Email', '')}`}
       value={user.authID}
@@ -173,13 +175,28 @@ const UserAccountDetailsPane = (props: Props) => {
         </Text>
       </div>
       <div className={classes.sectionBody}>
-        {variant === ACCOUNT_DISPLAY_VARIANTS.userDetailsCard ? (
+        {variant !== ACCOUNT_DISPLAY_VARIANTS.newUserDialog ? (
           <>
             <Grid container spacing={2}>
               <Grid key="email" item xs={12} sm={6} lg={4} xl={4}>
                 {emailField}
               </Grid>
             </Grid>
+            {isEditable &&
+            variant == ACCOUNT_DISPLAY_VARIANTS.userSettingsView ? (
+              <Grid container spacing={2}>
+                <Grid key="current_password" item xs={12} sm={6} lg={4} xl={4}>
+                  <FormFieldTextInput
+                    type="password"
+                    validationId="current_password"
+                    label={`${fbt('Current Password', '')}`}
+                    value={currentPassword}
+                    onValueChanged={setCurrentPassword}
+                    immediateUpdate={true}
+                  />
+                </Grid>
+              </Grid>
+            ) : null}
             <Grid container spacing={2}>
               <Grid key="password" item xs={12} sm={6} lg={4} xl={4}>
                 {passwordField}
@@ -199,25 +216,29 @@ const UserAccountDetailsPane = (props: Props) => {
             <div className={classes.actionButtons}>
               {isEditable ? (
                 <>
-                  <Button skin="gray" onClick={exitEditMode}>
-                    {Strings.common.cancelButton}
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      if (onChange) {
-                        onChange(user, password);
-                      }
-                      exitEditMode();
-                    }}
-                    disabled={form.alerts.error.detected}
-                    title={form.alerts.error.message}>
-                    <fbt desc="">Save Changes</fbt>
-                  </Button>
+                  <FormAction>
+                    <Button skin="gray" onClick={exitEditMode}>
+                      {Strings.common.cancelButton}
+                    </Button>
+                  </FormAction>
+                  <FormAction disableOnFromError={true}>
+                    <Button
+                      onClick={() => {
+                        if (onChange) {
+                          onChange(user, password, currentPassword);
+                        }
+                        exitEditMode();
+                      }}>
+                      <fbt desc="">Save Changes</fbt>
+                    </Button>
+                  </FormAction>
                 </>
               ) : (
-                <Button onClick={() => setIsEditable(true)}>
-                  <fbt desc="">Change Password</fbt>
-                </Button>
+                <FormAction>
+                  <Button onClick={() => setIsEditable(true)}>
+                    <fbt desc="">Change Password</fbt>
+                  </Button>
+                </FormAction>
               )}
             </div>
           </>

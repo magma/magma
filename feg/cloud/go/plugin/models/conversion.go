@@ -264,7 +264,7 @@ func (m *DiameterClientConfigs) ToMconfig() *mconfig.DiamClientConfig {
 }
 
 func ToMultipleServersMconfig(server *DiameterClientConfigs, servers []*DiameterClientConfigs) []*mconfig.DiamClientConfig {
-	diamClientMconfigs := make([]*mconfig.DiamClientConfig, 0, len(servers)+1)
+	diamClientMconfigs := make([]*mconfig.DiamClientConfig, 0, len(servers) + 1)
 	// TODO: remove this clause when Server (not s) is removed from mconfg Gx and Gy protos
 	if server != nil {
 		// prepend server to Servers

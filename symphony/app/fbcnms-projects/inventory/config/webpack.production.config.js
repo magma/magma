@@ -20,5 +20,6 @@ module.exports = webpackConfig.createProductionWebpackConfig({
   entry: {
     master: [paths.resolveApp('app/master.js')],
     onboarding: [paths.resolveApp('app/onboarding.js')],
+    magma: [paths.resolveApp('app/magma.js')],
   },
 });

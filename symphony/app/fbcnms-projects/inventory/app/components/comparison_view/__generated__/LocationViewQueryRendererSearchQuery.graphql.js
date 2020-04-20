@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 236e1a2b95d35c2efc389bf6ed17f309
+ * @relayHash 8844618d6e9b1747492a09cc58aeb87d
  */
 
 /* eslint-disable */
@@ -17,7 +17,7 @@
 import type { ConcreteRequest } from 'relay-runtime';
 type PowerSearchLocationsResultsTable_locations$ref = any;
 export type FilterOperator = "CONTAINS" | "DATE_GREATER_THAN" | "DATE_LESS_THAN" | "IS" | "IS_NOT_ONE_OF" | "IS_ONE_OF" | "%future added value";
-export type LocationFilterType = "LOCATION_INST" | "LOCATION_INST_HAS_EQUIPMENT" | "LOCATION_TYPE" | "PROPERTY" | "%future added value";
+export type LocationFilterType = "LOCATION_INST" | "LOCATION_INST_EXTERNAL_ID" | "LOCATION_INST_HAS_EQUIPMENT" | "LOCATION_INST_NAME" | "LOCATION_TYPE" | "PROPERTY" | "%future added value";
 export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "float" | "gps_location" | "int" | "node" | "range" | "string" | "%future added value";
 export type LocationFilterInput = {|
   filterType: LocationFilterType,

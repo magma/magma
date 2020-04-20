@@ -93,7 +93,7 @@ export type GroupMember = $ReadOnly<{|
 |}>;
 
 export type AssigenmentButtonProp = $ReadOnly<{|
-  assigmentButton: AssigenmentButtonView,
+  assigmentButton?: ?AssigenmentButtonView,
 |}>;
 
 type Props = $ReadOnly<{|

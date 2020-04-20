@@ -96,7 +96,7 @@ const ProfileButton = (props: Props) => {
               onClick={() => {
                 GeneralLogger.info(Events.SETTINGS_CLICKED);
                 toggleProfileMenu(false);
-                history.push('/inventory/settings');
+                history.push('/admin/settings');
               }}
               component="a">
               <Text className={classes.profileItemText}>Settings</Text>

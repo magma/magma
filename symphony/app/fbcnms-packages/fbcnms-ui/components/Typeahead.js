@@ -199,17 +199,19 @@ const Typeahead = (props: Props) => {
           onSuggestionsClearRequested={emptyFunction}
           renderSuggestion={(suggestion: Suggestion) => (
             <div className={classes.suggestionRoot}>
-              <div>
-                {suggestion.render != null
-                  ? suggestion.render()
-                  : suggestion.name}
-              </div>
-              <Text
-                className={classes.suggestionType}
-                variant="caption"
-                color="gray">
-                {suggestion.type}
-              </Text>
+              {suggestion.render != null ? (
+                suggestion.render()
+              ) : (
+                <div>
+                  <Text>{suggestion.name}</Text>
+                  <Text
+                    className={classes.suggestionType}
+                    variant="caption"
+                    color="gray">
+                    {suggestion.type}
+                  </Text>
+                </div>
+              )}
             </div>
           )}
           onSuggestionSelected={(e, data) => {

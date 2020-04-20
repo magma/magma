@@ -7,6 +7,7 @@ LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
 import re
+from redis.exceptions import RedisError
 
 
 class MockRedis(object):
@@ -122,6 +123,75 @@ class MockRedis(object):
         pipe.execute()
         return func_value
 
+class MockUnavailableRedis(object):
+    """
+    MockUnavailableRedis implements a mock Redis Server that always raises
+    a connection exception
+    """
+
+    def __init__(self, host, port):
+        self.host = host
+        self.port = port
+
+    def serialize_key(self, key):
+        """ Serialize key to plaintext encoded as UTF-8 bytes. """
+        raise RedisError("mock redis error")
+
+    def deserialize_key(self, serialized):
+        """ Deserialize key from plaintext encoded as UTF-8 bytes. """
+        raise RedisError("mock redis error")
+
+    def lock(self, key):
+        raise RedisError("mock redis error")
+
+    def delete(self, key):
+        """Mock delete."""
+        raise RedisError("mock redis error")
+
+    def exists(self, key):
+        """Mock exists."""
+        raise RedisError("mock redis error")
+
+    def get(self, key):
+        """Mock get."""
+        raise RedisError("mock redis error")
+
+    def set(self, key, value):
+        """Mock set."""
+        raise RedisError("mock redis error")
+
+    def keys(self, pattern=".*"):
+        """ Mock keys with regex pattern matching."""
+        raise RedisError("mock redis error")
+
+    def hget(self, hashkey, key):
+        """Mock hget."""
+        raise RedisError("mock redis error")
+
+    def hgetall(self, hashkey):
+        """Mock hgetall."""
+        raise RedisError("mock redis error")
+
+    def hlen(self, hashkey):
+        """Mock hlen."""
+        raise RedisError("mock redis error")
+
+    def hset(self, hashkey, key, value):
+        """Mock hset."""
+        raise RedisError("mock redis error")
+
+    def hdel(self, hashkey, key):
+        """ Mock hdel"""
+        raise RedisError("mock redis error")
+
+    def pipeline(self):
+        """ Mock pipline"""
+        raise RedisError("mock redis error")
+
+    # pylint: disable=unused-argument
+    def transaction(self, func, *args, **kwargs):
+        """ Mock transaction."""
+        raise RedisError("mock redis error")
 
 class MockRedisPipeline(object):
     """Mock redis-python pipeline object. """

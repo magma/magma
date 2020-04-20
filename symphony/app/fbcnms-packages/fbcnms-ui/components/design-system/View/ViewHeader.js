@@ -159,7 +159,8 @@ const ViewHeader = React.forwardRef<FullViewHeaderProps, HTMLElement>(
               {actionButtons.map((actionButton, index) => {
                 const {
                   ignorePermissions,
-                  hideWhenDisabled,
+                  hideOnEditLock,
+                  disableOnFromError,
                   action,
                   title,
                   ...restButtonProps
@@ -168,7 +169,8 @@ const ViewHeader = React.forwardRef<FullViewHeaderProps, HTMLElement>(
                   <FormAction
                     key={`viewHeaderAction${index}`}
                     ignorePermissions={ignorePermissions}
-                    hideWhenDisabled={hideWhenDisabled}>
+                    hideOnEditLock={hideOnEditLock}
+                    disableOnFromError={disableOnFromError}>
                     <Button
                       className={classes.actionButton}
                       {...restButtonProps}

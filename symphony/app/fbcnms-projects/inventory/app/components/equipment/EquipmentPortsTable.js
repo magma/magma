@@ -316,7 +316,7 @@ const EquipmentPortsTable = (props: Props) => {
                           ))}
                         {port.serviceEndpoints.map(endpoint => (
                           <Box>{`${endpoint.service.name}: ${lowerCase(
-                            endpoint.type.role,
+                            endpoint.definition.role,
                           )}`}</Box>
                         ))}
                       </TableCell>

@@ -21,6 +21,7 @@ import PermissionsGroupsView, {
 import Strings from '@fbcnms/strings/Strings';
 import UsersView from './users/UsersView';
 import fbt from 'fbt';
+import {FormContextProvider} from '../../../common/FormContext';
 import {NEW_GROUP_DIALOG_PARAM} from './utils/UserManagementUtils';
 import {UserManagementContextProvider} from './UserManagementContext';
 import {useCallback, useContext, useMemo, useState} from 'react';
@@ -111,11 +112,13 @@ const UserManaementView = ({match}: Props) => {
 
   return (
     <UserManagementContextProvider>
-      <NavigatableViews
-        header={Strings.admin.users.viewHeader}
-        views={VIEWS}
-        routingBasePath={basePath}
-      />
+      <FormContextProvider>
+        <NavigatableViews
+          header={Strings.admin.users.viewHeader}
+          views={VIEWS}
+          routingBasePath={basePath}
+        />
+      </FormContextProvider>
       {addingNewUser && (
         <NewUserDialog
           isOpened={addingNewUser}

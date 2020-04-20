@@ -200,6 +200,12 @@ const arrayConfigs = [
     title: 'Include tab for Grafana in the Metrics page',
     enabledByDefault: false,
   },
+  {
+    id: 'service_endpoints',
+    title: 'Service Endpoints',
+    enabledByDefault: false,
+    rules: [AlwaysEnabledInTestEnvRule],
+  },
 ];
 
 const featureConfigs: {[FeatureID]: FeatureConfig} = {};
