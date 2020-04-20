@@ -21,7 +21,7 @@ import symphony from '@fbcnms/ui/theme/symphony';
 import {ProfileIcon} from '@fbcnms/ui/components/design-system/Icons/';
 import {
   UserSearchContextProvider,
-  useUserSearch,
+  useUserSearchContext,
 } from '../utils/userSearch/UserSearchContext';
 import {makeStyles} from '@material-ui/styles';
 import {useMemo} from 'react';
@@ -81,7 +81,7 @@ function SearchBar(
 ) {
   const {group} = props;
   const classes = useStyles();
-  const userSearch = useUserSearch();
+  const userSearch = useUserSearchContext();
 
   return (
     <>
