@@ -140,6 +140,13 @@ typedef enum {
     }                                                                          \
   } while (0)
 
+#define IPV6_STR_ADDR_TO_INADDR(AdDr_StR, InAdDr, MeSsAgE) \
+   do {                                                     \
+      if (inet_pton(AF_INET6, AdDr_StR, &InAdDr) <= 0) {     \
+         AssertFatal(0, MeSsAgE);                             \
+      }                                                      \
+   } while (0)
+
 #define NIPADDR(addr)                                                          \
   (uint8_t)(addr & 0x000000FF), (uint8_t)((addr & 0x0000FF00) >> 8),           \
     (uint8_t)((addr & 0x00FF0000) >> 16), (uint8_t)((addr & 0xFF000000) >> 24)

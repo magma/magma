@@ -30,6 +30,8 @@
 #include <stdlib.h>
 #include <netinet/in.h>
 #include <string.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
 
 #include "bstrlib.h"
 #include "log.h"
@@ -315,20 +317,47 @@ int pgw_process_pco_link_mtu_request(
   return pgw_pco_push_protocol_or_container_id(pco_resp, &poc_id_resp);
 }
 
-int pgw_process_pco_pcscf_ip_address_req(
+//------------------------------------------------------------------------------
+int pgw_process_pco_pcscf_ipv4_address_req(
   protocol_configuration_options_t* const pco_resp,
   const pco_protocol_or_container_id_t* const poc_id)
 {
   pco_protocol_or_container_id_t poc_id_resp = {0};
-  //TODO-Uncomment after copying P-CSCF Address from config
-  //in_addr_t pcscf_ipv4_addr;
+  in_addr_t pcscf_ipv4_addr =
+    spgw_config.pgw_config.pcscf.ipv4_addr.s_addr;
+  uint8_t pcscf_ipv4_array[4];
 
   OAILOG_DEBUG(
     LOG_SPGW_APP,
-    "PCO: Protocol identifier PCO_CI_P_CSCF_IPV4_ADDRESS_REQUEST \n");
-  poc_id_resp.id = PCO_CI_P_CSCF_IPV4_ADDRESS_REQUEST;
+    "PCO: Protocol identifier PCO_CI_P_CSCF_IPV4_ADDRESS \n");
+  poc_id_resp.id = PCO_CI_P_CSCF_IPV4_ADDRESS;
   poc_id_resp.length = 4;
-  // TODO - Copy P-CSCF Address from config
+  pcscf_ipv4_array[0] = (uint8_t)(pcscf_ipv4_addr & 0x000000FF);
+  pcscf_ipv4_array[1] = (uint8_t)((pcscf_ipv4_addr >> 8) & 0x000000FF);
+  pcscf_ipv4_array[2] = (uint8_t)((pcscf_ipv4_addr >> 16) & 0x000000FF);
+  pcscf_ipv4_array[3] = (uint8_t)((pcscf_ipv4_addr >> 24) & 0x000000FF);
+  poc_id_resp.contents = blk2bstr(pcscf_ipv4_array, sizeof(pcscf_ipv4_array));
+
+  return pgw_pco_push_protocol_or_container_id(pco_resp, &poc_id_resp);
+}
+
+//------------------------------------------------------------------------------
+int pgw_process_pco_pcscf_ipv6_address_req(
+  protocol_configuration_options_t* const pco_resp,
+  const pco_protocol_or_container_id_t* const poc_id)
+{
+  pco_protocol_or_container_id_t poc_id_resp = {0};
+  struct in6_addr pcscf_ipv6_addr =
+    spgw_config.pgw_config.pcscf.ipv6_addr;
+
+  OAILOG_DEBUG(
+    LOG_SPGW_APP,
+    "PCO: Protocol identifier PCO_CI_P_CSCF_IPV6_ADDRESS \n");
+  poc_id_resp.id = PCO_CI_P_CSCF_IPV6_ADDRESS;
+  poc_id_resp.length = 16;
+  //poc_id_resp.contents = blk2bstr(pcscf_ipv6_addr.s6_addr, sizeof(pcscf_ipv6_addr.s6_addr));
+  memcpy(poc_id_resp.contents, pcscf_ipv6_addr.s6_addr, poc_id_resp.length);
+
   return pgw_pco_push_protocol_or_container_id(pco_resp, &poc_id_resp);
 }
 
@@ -386,9 +415,13 @@ int pgw_process_pco_request(
         break;
 
       case PCO_CI_P_CSCF_IPV4_ADDRESS_REQUEST:
-        rc = pgw_process_pco_link_mtu_request(
+        rc = pgw_process_pco_pcscf_ipv4_address_req(
           pco_resp, &pco_req->protocol_or_container_ids[id]);
-        pco_ids->ci_ipv4_link_mtu_request = true;
+        break;
+
+      case PCO_CI_P_CSCF_IPV6_ADDRESS_REQUEST:
+        rc = pgw_process_pco_pcscf_ipv6_address_req(
+          pco_resp, &pco_req->protocol_or_container_ids[id]);
         break;
 
       default:

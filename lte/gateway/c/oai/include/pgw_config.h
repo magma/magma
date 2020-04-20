@@ -80,6 +80,8 @@
 #define PGW_CONFIG_STRING_APN_AMBR_DL "APN_AMBR_DL"
 #define PGW_ABORT_ON_ERROR false
 #define PGW_WARN_ON_ERROR true
+#define PGW_CONFIG_P_CSCF_IPV4_ADDRESS "P_CSCF_IPV4_ADDRESS"
+#define PGW_CONFIG_P_CSCF_IPV6_ADDRESS "P_CSCF_IPV6_ADDRESS"
 
 // may be more
 #define PGW_MAX_ALLOCATED_PDN_ADDRESSES 1024
@@ -130,6 +132,11 @@ typedef struct pgw_config_s {
     uint64_t apn_ambr_ul;
     uint64_t apn_ambr_dl;
   } pcef;
+
+  struct {
+    struct in_addr ipv4_addr;
+    struct in6_addr ipv6_addr;
+  } pcscf;
 
   STAILQ_HEAD(ipv4_pool_head_s, conf_ipv4_list_elm_s) ipv4_pool_list;
 } pgw_config_t;
