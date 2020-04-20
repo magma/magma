@@ -18,9 +18,9 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/migrate"
 	"github.com/facebookincubator/symphony/pkg/log"
 	pkgmysql "github.com/facebookincubator/symphony/pkg/mysql"
-	"go.opencensus.io/trace"
 
 	"github.com/go-sql-driver/mysql"
+	"go.opencensus.io/trace"
 	"go.uber.org/zap"
 	"gocloud.dev/server/health"
 	"gocloud.dev/server/health/sqlhealth"
