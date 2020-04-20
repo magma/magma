@@ -18742,6 +18742,7 @@ type ServiceMutation struct {
 	name              *string
 	external_id       *string
 	status            *string
+	discovery_method  *service.DiscoveryMethod
 	clearedFields     map[string]struct{}
 	_type             *int
 	cleared_type      bool
@@ -18905,6 +18906,38 @@ func (m *ServiceMutation) Status() (r string, exists bool) {
 // ResetStatus reset all changes of the status field.
 func (m *ServiceMutation) ResetStatus() {
 	m.status = nil
+}
+
+// SetDiscoveryMethod sets the discovery_method field.
+func (m *ServiceMutation) SetDiscoveryMethod(sm service.DiscoveryMethod) {
+	m.discovery_method = &sm
+}
+
+// DiscoveryMethod returns the discovery_method value in the mutation.
+func (m *ServiceMutation) DiscoveryMethod() (r service.DiscoveryMethod, exists bool) {
+	v := m.discovery_method
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearDiscoveryMethod clears the value of discovery_method.
+func (m *ServiceMutation) ClearDiscoveryMethod() {
+	m.discovery_method = nil
+	m.clearedFields[service.FieldDiscoveryMethod] = struct{}{}
+}
+
+// DiscoveryMethodCleared returns if the field discovery_method was cleared in this mutation.
+func (m *ServiceMutation) DiscoveryMethodCleared() bool {
+	_, ok := m.clearedFields[service.FieldDiscoveryMethod]
+	return ok
+}
+
+// ResetDiscoveryMethod reset all changes of the discovery_method field.
+func (m *ServiceMutation) ResetDiscoveryMethod() {
+	m.discovery_method = nil
+	delete(m.clearedFields, service.FieldDiscoveryMethod)
 }
 
 // SetTypeID sets the type edge to ServiceType by id.
@@ -19212,7 +19245,7 @@ func (m *ServiceMutation) Type() string {
 // this mutation. Note that, in order to get all numeric
 // fields that were in/decremented, call AddedFields().
 func (m *ServiceMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 6)
 	if m.create_time != nil {
 		fields = append(fields, service.FieldCreateTime)
 	}
@@ -19227,6 +19260,9 @@ func (m *ServiceMutation) Fields() []string {
 	}
 	if m.status != nil {
 		fields = append(fields, service.FieldStatus)
+	}
+	if m.discovery_method != nil {
+		fields = append(fields, service.FieldDiscoveryMethod)
 	}
 	return fields
 }
@@ -19246,6 +19282,8 @@ func (m *ServiceMutation) Field(name string) (ent.Value, bool) {
 		return m.ExternalID()
 	case service.FieldStatus:
 		return m.Status()
+	case service.FieldDiscoveryMethod:
+		return m.DiscoveryMethod()
 	}
 	return nil, false
 }
@@ -19290,6 +19328,13 @@ func (m *ServiceMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetStatus(v)
 		return nil
+	case service.FieldDiscoveryMethod:
+		v, ok := value.(service.DiscoveryMethod)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDiscoveryMethod(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Service field %s", name)
 }
@@ -19323,6 +19368,9 @@ func (m *ServiceMutation) ClearedFields() []string {
 	if m.FieldCleared(service.FieldExternalID) {
 		fields = append(fields, service.FieldExternalID)
 	}
+	if m.FieldCleared(service.FieldDiscoveryMethod) {
+		fields = append(fields, service.FieldDiscoveryMethod)
+	}
 	return fields
 }
 
@@ -19339,6 +19387,9 @@ func (m *ServiceMutation) ClearField(name string) error {
 	switch name {
 	case service.FieldExternalID:
 		m.ClearExternalID()
+		return nil
+	case service.FieldDiscoveryMethod:
+		m.ClearDiscoveryMethod()
 		return nil
 	}
 	return fmt.Errorf("unknown Service nullable field %s", name)
@@ -19363,6 +19414,9 @@ func (m *ServiceMutation) ResetField(name string) error {
 		return nil
 	case service.FieldStatus:
 		m.ResetStatus()
+		return nil
+	case service.FieldDiscoveryMethod:
+		m.ResetDiscoveryMethod()
 		return nil
 	}
 	return fmt.Errorf("unknown Service field %s", name)
