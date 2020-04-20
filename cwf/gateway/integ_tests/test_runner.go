@@ -53,8 +53,10 @@ const (
 )
 
 type TestRunner struct {
-	t     *testing.T
-	imsis map[string]bool
+	t           *testing.T
+	imsis       map[string]bool
+	activePCRFs []string
+	activeOCSs  []string
 }
 
 // imsi -> ruleID -> record
@@ -64,9 +66,7 @@ type RecordByIMSI map[string]map[string]*lteprotos.RuleRecord
 // and setting the next IMSI.
 func NewTestRunner(t *testing.T) *TestRunner {
 	fmt.Println("************************* TestRunner setup")
-	testRunner := &TestRunner{t: t}
 
-	testRunner.imsis = make(map[string]bool)
 	fmt.Printf("Adding Mock HSS service at %s:%d\n", CwagIP, HSSPort)
 	registry.AddService(MockHSSRemote, CwagIP, HSSPort)
 	fmt.Printf("Adding Mock PCRF service at %s:%d\n", CwagIP, PCRFPort)
@@ -78,6 +78,11 @@ func NewTestRunner(t *testing.T) *TestRunner {
 	fmt.Printf("Adding Redis service at %s:%d\n", CwagIP, RedisPort)
 	registry.AddService(RedisRemote, CwagIP, RedisPort)
 
+	testRunner := &TestRunner{t: t,
+		activePCRFs: []string{MockPCRFRemote},
+		activeOCSs:  []string{MockOCSRemote},
+	}
+	testRunner.imsis = make(map[string]bool)
 	return testRunner
 }
 
@@ -85,18 +90,23 @@ func NewTestRunner(t *testing.T) *TestRunner {
 // Used in scenarios that run 2 PCRFs and 2 OCSs
 func NewTestRunnerWithTwoPCRFandOCS(t *testing.T) *TestRunner {
 	tr := NewTestRunner(t)
-	fmt.Printf("Adding second Mock PCRF service at %s:%d\n", CwagIP, PCRFPort2)
+
+	fmt.Printf("Adding Mock PCRF #2 service at %s:%d\n", CwagIP, PCRFPort2)
 	registry.AddService(MockPCRFRemote2, CwagIP, PCRFPort2)
-	fmt.Printf("Adding second OCS service at %s:%d\n", CwagIP, OCSPort2)
+	fmt.Printf("Adding Mock OCS #2 service at %s:%d\n", CwagIP, OCSPort2)
 	registry.AddService(MockOCSRemote2, CwagIP, OCSPort2)
+
+	// add the extra two servers for clean up
+	tr.activePCRFs = append(tr.activePCRFs, MockPCRFRemote2)
+	tr.activeOCSs = append(tr.activeOCSs, MockOCSRemote2)
+
 	return tr
 }
 
 // ConfigUEs creates and adds the specified number of UEs and Subscribers
 // to the UE Simulator and the HSS.
 func (tr *TestRunner) ConfigUEs(numUEs int) ([]*cwfprotos.UEConfig, error) {
-	fmt.Printf("************************* Configuring %d UE(s)\n", numUEs)
-	ues := make([]*cwfprotos.UEConfig, 0)
+	IMSIs := make([]string, 0, numUEs)
 	for i := 0; i < numUEs; i++ {
 		imsi := ""
 		for {
@@ -105,6 +115,20 @@ func (tr *TestRunner) ConfigUEs(numUEs int) ([]*cwfprotos.UEConfig, error) {
 			if !present {
 				break
 			}
+		}
+		IMSIs = append(IMSIs, imsi)
+	}
+	return tr.ConfigUEsPerInstance(IMSIs, MockPCRFRemote, MockOCSRemote)
+}
+
+// ConfigUEsPerInstance same as ConfigUEs but per specific PCRF and OCS instance
+func (tr *TestRunner) ConfigUEsPerInstance(IMSIs []string, pcrfInstance, ocsInstance string) ([]*cwfprotos.UEConfig, error) {
+	fmt.Printf("************************* Configuring %d UE(s)\n", len(IMSIs))
+	ues := make([]*cwfprotos.UEConfig, 0)
+	for _, imsi := range IMSIs {
+		// If IMSIs were generated properly they should never give an error here
+		if _, present := tr.imsis[imsi]; present {
+			return nil, errors.Errorf("IMSI %s already exist in database, use generateRandomIMSIS(num, tr.imsis) to create unique list", imsi)
 		}
 		key, opc, err := getRandKeyOpcFromOp([]byte(Op))
 		if err != nil {
@@ -123,18 +147,18 @@ func (tr *TestRunner) ConfigUEs(numUEs int) ([]*cwfprotos.UEConfig, error) {
 		if err != nil {
 			return nil, errors.Wrap(err, "Error adding Subscriber to HSS")
 		}
-		err = addSubscriberToPCRF(sub.GetSid())
+		err = addSubscriberToPCRFPerInstance(pcrfInstance, sub.GetSid())
 		if err != nil {
 			return nil, errors.Wrap(err, "Error adding Subscriber to PCRF")
 		}
-		err = addSubscriberToOCS(sub.GetSid())
+		err = addSubscriberToOCSPerInstance(ocsInstance, sub.GetSid())
 		if err != nil {
 			return nil, errors.Wrap(err, "Error adding Subscriber to OCS")
 		}
 
 		ues = append(ues, ue)
-		fmt.Printf("Added UE to Simulator, HSS, PCRF, and OCS:\n"+
-			"\tIMSI: %s\tKey: %x\tOpc: %x\tSeq: %d\n", imsi, key, opc, seq)
+		fmt.Printf("Added UE to Simulator, %s, %s, and %s:\n"+
+			"\tIMSI: %s\tKey: %x\tOpc: %x\tSeq: %d\n", MockHSSRemote, pcrfInstance, ocsInstance, imsi, key, opc, seq)
 		tr.imsis[imsi] = true
 	}
 	fmt.Println("Successfully configured UE(s)")
@@ -215,15 +239,18 @@ func (tr *TestRunner) CleanUp() error {
 			return err
 		}
 	}
-	err := clearSubscribersFromPCRF()
-	if err != nil {
-		return err
+	for _, instance := range tr.activePCRFs {
+		err := clearSubscribersFromPCRFPerInstance(instance)
+		if err != nil {
+			return err
+		}
 	}
-	err = clearSubscribersFromOCS()
-	if err != nil {
-		return err
+	for _, instance := range tr.activeOCSs {
+		err := clearSubscribersFromOCSPerInstance(instance)
+		if err != nil {
+			return err
+		}
 	}
-
 	return nil
 }
 
@@ -261,6 +288,30 @@ func (tr *TestRunner) WaitForPoliciesToSync() {
 func (tr *TestRunner) WaitForReAuthToProcess() {
 	// Todo figure out the best way to figure out when RAR is processed
 	time.Sleep(3 * time.Second)
+}
+
+// generateRandomIMSIS creates a slice of unique Random IMSIs taking into consideration a previous list with IMSIS
+func generateRandomIMSIS(numIMSIs int, preExistingIMSIS map[string]interface{}) []string {
+	set := make(map[string]bool)
+	IMSIs := make([]string, 0, numIMSIs)
+	for i := 0; i < numIMSIs; i++ {
+		imsi := ""
+		for {
+			imsi = getRandomIMSI()
+			// Check if IMSI is in the preexisting list of IMSI or in the current generated list
+			presentPreExistingIMSIs := false
+			if preExistingIMSIS != nil {
+				_, presentPreExistingIMSIs = preExistingIMSIS[imsi]
+			}
+			_, present := set[imsi]
+			if !present && !presentPreExistingIMSIs {
+				break
+			}
+		}
+		set[imsi] = true
+		IMSIs = append(IMSIs, imsi)
+	}
+	return IMSIs
 }
 
 // getRandomIMSI makes a random 15-digit IMSI that is not added to the UESim or HSS.

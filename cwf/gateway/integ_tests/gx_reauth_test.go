@@ -176,6 +176,7 @@ func TestGxReAuthWithMidSessionPoliciesRemoval(t *testing.T) {
 	tr.WaitForReAuthToProcess()
 
 	// Check ReAuth success
+	assert.NotNil(t, raa)
 	assert.Contains(t, raa.SessionId, "IMSI"+imsi)
 	assert.Equal(t, diam.Success, int(raa.ResultCode))
 
