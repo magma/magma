@@ -22,17 +22,17 @@ import (
 	"magma/orc8r/lib/go/protos"
 )
 
-type serviceInfoClient struct {
-	client protos.Service303Client
-	states []*protos.State
+type serviceInfoClientState struct {
+	queryInFlight bool
+	states        []*protos.State
 }
 
 var (
-	pollerMu sync.Mutex
-	clients  map[string]*serviceInfoClient = map[string]*serviceInfoClient{}
+	pollerMu     sync.Mutex
+	clientStates map[string]*serviceInfoClientState = map[string]*serviceInfoClientState{}
 )
 
-func startServiceQuery(service string) error {
+func startServiceQuery(service string, queryMetrics bool) error {
 	conn, err := service_registry.Get().GetConnection(strings.ToUpper(service))
 	if err != nil {
 		return err
@@ -41,26 +41,43 @@ func startServiceQuery(service string) error {
 
 	pollerMu.Lock()
 	defer pollerMu.Unlock()
-	cl, ok := clients[service]
-	if !ok || cl == nil {
-		cl = &serviceInfoClient{}
-		clients[service] = cl
+
+	clState, ok := clientStates[service]
+	if !ok || clState == nil {
+		clState = &serviceInfoClientState{}
+		clientStates[service] = clState
 	}
-	if cl.client != nil {
+	if clState.queryInFlight {
 		return fmt.Errorf("'%s' fb303 client is still in use", service)
 	}
-	cl.client = client
+	clState.queryInFlight = true
+
 	go func() {
-		statesResp, err := cl.client.GetOperationalStates(context.Background(), &protos.Void{})
+		var (
+			serviceMetrics *protos.MetricsContainer
+			merr           error
+		)
 
-		pollerMu.Lock()
-		defer pollerMu.Unlock()
-
-		cl.client = nil
+		ctx := context.Background()
+		statesResp, err := client.GetOperationalStates(ctx, &protos.Void{})
 		if err != nil {
 			log.Printf("service '%s' GetServiceInfo error: %v", service, err)
-		} else {
-			cl.states = statesResp.States
+		}
+		if queryMetrics {
+			serviceMetrics, merr = client.GetMetrics(ctx, &protos.Void{})
+			if merr != nil {
+				log.Printf("service '%s' GetMetrics error: %v", service, err)
+			}
+		}
+		pollerMu.Lock()
+		clState.queryInFlight = false
+		if err == nil {
+			clState.states = statesResp.States
+		}
+		pollerMu.Unlock()
+
+		if queryMetrics && merr == nil {
+			enqueueMetrics(service, serviceMetrics)
 		}
 	}()
 	return nil
@@ -80,12 +97,12 @@ func collect() *protos.ReportStatesRequest {
 	}
 
 	pollerMu.Lock()
-	states := make([]*protos.State, 0, len(clients)+1)
+	states := make([]*protos.State, 0, 1)
 	states = append(states, gwState)
-	for _, client := range clients {
-		if client != nil && client.states != nil {
-			states = append(states, client.states...)
-			client.states = nil
+	for _, clientState := range clientStates {
+		if clientState != nil && len(clientState.states) > 0 {
+			states = append(states, clientState.states...)
+			clientState.states = nil
 		}
 	}
 	pollerMu.Unlock()

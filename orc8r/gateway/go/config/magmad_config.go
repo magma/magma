@@ -62,13 +62,13 @@ type NetworkMonitorConfig struct {
 	} `yaml:"ping_config"`
 }
 
-// NetworkMonitorConfig is upgrader_factory configuration block from magmad.yml
+// UpgraderFactory is upgrader_factory configuration block from magmad.yml
 type UpgraderFactory struct {
 	Module string `yaml:"module"`
 	Class  string `yaml:"class"`
 }
 
-// UpgraderFactory is metricsd configuration block from magmad.yml
+// Metricsd is metricsd configuration block from magmad.yml
 type Metricsd struct {
 	LogLevel        string   `yaml:"log_level"`
 	CollectInterval int      `yaml:"collect_interval"`
