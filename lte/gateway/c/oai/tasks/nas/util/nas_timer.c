@@ -53,7 +53,7 @@ void nas_timer_cleanup(void) {}
 
 //------------------------------------------------------------------------------
 long int nas_timer_start(
-    long sec, long usec, nas_timer_callback_t nas_timer_callback,
+    uint32_t sec, uint32_t usec, nas_timer_callback_t nas_timer_callback,
     void* nas_timer_callback_args) {
   long timer_id;
   nas_itti_timer_arg_t cb;
@@ -91,12 +91,12 @@ long int nas_timer_stop(long int timer_id, void** nas_timer_callback_arg) {
 
 //------------------------------------------------------------------------------
 void mme_app_nas_timer_handle_signal_expiry(
-    long timer_id, nas_itti_timer_arg_t* cb) {
+    long timer_id, nas_itti_timer_arg_t* cb, imsi64_t* imsi64) {
   OAILOG_FUNC_IN(LOG_NAS);
   if ((!timer_exists(timer_id)) || (cb->nas_timer_callback == NULL)) {
     OAILOG_ERROR(LOG_NAS, "Invalid timer id %ld \n", timer_id);
     OAILOG_FUNC_OUT(LOG_NAS);
   }
-  cb->nas_timer_callback(cb->nas_timer_callback_arg);
+  cb->nas_timer_callback(cb->nas_timer_callback_arg, imsi64);
   OAILOG_FUNC_OUT(LOG_NAS);
 }

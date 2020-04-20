@@ -2307,7 +2307,7 @@ static void mme_app_resume_mobile_reachability_timer(
   OAILOG_DEBUG(
       LOG_MME_APP,
       "Current_time :%ld time mobile reachability timer "
-      "started:%ld lapsed time:%ld remaining time:%ld\n",
+      "started:%ld lapsed time:%ld remaining time:%d\n",
       current_time, ue_mm_context_pP->time_mobile_reachability_timer_started,
       lapsed_time, ue_mm_context_pP->mobile_reachability_timer.sec);
 
