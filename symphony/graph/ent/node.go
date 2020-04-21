@@ -1954,7 +1954,7 @@ func (pp *PermissionsPolicy) Node(ctx context.Context) (node *Node, err error) {
 		ID:     pp.ID,
 		Type:   "PermissionsPolicy",
 		Fields: make([]*Field, 7),
-		Edges:  make([]*Edge, 0),
+		Edges:  make([]*Edge, 1),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(pp.CreateTime); err != nil {
@@ -2012,6 +2012,18 @@ func (pp *PermissionsPolicy) Node(ctx context.Context) (node *Node, err error) {
 		Type:  "*models.WorkforcePolicyInput",
 		Name:  "WorkforcePolicy",
 		Value: string(buf),
+	}
+	var ids []int
+	ids, err = pp.QueryGroups().
+		Select(usersgroup.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[0] = &Edge{
+		IDs:  ids,
+		Type: "UsersGroup",
+		Name: "Groups",
 	}
 	return node, nil
 }
@@ -4072,7 +4084,7 @@ func (ug *UsersGroup) Node(ctx context.Context) (node *Node, err error) {
 		ID:     ug.ID,
 		Type:   "UsersGroup",
 		Fields: make([]*Field, 5),
-		Edges:  make([]*Edge, 1),
+		Edges:  make([]*Edge, 2),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(ug.CreateTime); err != nil {
@@ -4126,6 +4138,17 @@ func (ug *UsersGroup) Node(ctx context.Context) (node *Node, err error) {
 		IDs:  ids,
 		Type: "User",
 		Name: "Members",
+	}
+	ids, err = ug.QueryPolicies().
+		Select(permissionspolicy.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		IDs:  ids,
+		Type: "PermissionsPolicy",
+		Name: "Policies",
 	}
 	return node, nil
 }

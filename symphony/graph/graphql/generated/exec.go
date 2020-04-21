@@ -609,6 +609,7 @@ type ComplexityRoot struct {
 
 	PermissionsPolicy struct {
 		Description func(childComplexity int) int
+		Groups      func(childComplexity int) int
 		ID          func(childComplexity int) int
 		IsGlobal    func(childComplexity int) int
 		Name        func(childComplexity int) int
@@ -965,6 +966,7 @@ type ComplexityRoot struct {
 		ID          func(childComplexity int) int
 		Members     func(childComplexity int) int
 		Name        func(childComplexity int) int
+		Policies    func(childComplexity int) int
 		Status      func(childComplexity int) int
 	}
 
@@ -1290,6 +1292,7 @@ type MutationResolver interface {
 }
 type PermissionsPolicyResolver interface {
 	Policy(ctx context.Context, obj *ent.PermissionsPolicy) (models.SystemPolicy, error)
+	Groups(ctx context.Context, obj *ent.PermissionsPolicy) ([]*ent.UsersGroup, error)
 }
 type ProjectResolver interface {
 	Creator(ctx context.Context, obj *ent.Project) (*string, error)
@@ -1423,6 +1426,7 @@ type UserResolver interface {
 }
 type UsersGroupResolver interface {
 	Members(ctx context.Context, obj *ent.UsersGroup) ([]*ent.User, error)
+	Policies(ctx context.Context, obj *ent.UsersGroup) ([]*ent.PermissionsPolicy, error)
 }
 type ViewerResolver interface {
 	User(ctx context.Context, obj *viewer.Viewer) (*ent.User, error)
@@ -4212,6 +4216,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PermissionsPolicy.Description(childComplexity), true
 
+	case "PermissionsPolicy.groups":
+		if e.complexity.PermissionsPolicy.Groups == nil {
+			break
+		}
+
+		return e.complexity.PermissionsPolicy.Groups(childComplexity), true
+
 	case "PermissionsPolicy.id":
 		if e.complexity.PermissionsPolicy.ID == nil {
 			break
@@ -6093,6 +6104,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UsersGroup.Name(childComplexity), true
 
+	case "UsersGroup.policies":
+		if e.complexity.UsersGroup.Policies == nil {
+			break
+		}
+
+		return e.complexity.UsersGroup.Policies(childComplexity), true
+
 	case "UsersGroup.status":
 		if e.complexity.UsersGroup.Status == nil {
 			break
@@ -6758,6 +6776,7 @@ type UsersGroup implements Node {
   description: String
   status: UsersGroupStatus!
   members: [User!]!
+  policies: [PermissionsPolicy!]!
 }
 
 type PermissionSettings {
@@ -6871,6 +6890,7 @@ type PermissionsPolicy implements Node {
   description: String
   isGlobal: Boolean!
   policy: SystemPolicy!
+  groups: [UsersGroup!]!
 }
 
 input AddPermissionsPolicyInput {
@@ -24464,6 +24484,43 @@ func (ec *executionContext) _PermissionsPolicy_policy(ctx context.Context, field
 	return ec.marshalNSystemPolicy2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐSystemPolicy(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _PermissionsPolicy_groups(ctx context.Context, field graphql.CollectedField, obj *ent.PermissionsPolicy) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "PermissionsPolicy",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.PermissionsPolicy().Groups(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.UsersGroup)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNUsersGroup2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUsersGroupᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _PortSearchResult_ports(ctx context.Context, field graphql.CollectedField, obj *models.PortSearchResult) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -33550,6 +33607,43 @@ func (ec *executionContext) _UsersGroup_members(ctx context.Context, field graph
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNUser2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUserᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UsersGroup_policies(ctx context.Context, field graphql.CollectedField, obj *ent.UsersGroup) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "UsersGroup",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.UsersGroup().Policies(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.PermissionsPolicy)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNPermissionsPolicy2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐPermissionsPolicyᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _UsersGroupConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.UsersGroupConnection) (ret graphql.Marshaler) {
@@ -45476,6 +45570,20 @@ func (ec *executionContext) _PermissionsPolicy(ctx context.Context, sel ast.Sele
 				}
 				return res
 			})
+		case "groups":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._PermissionsPolicy_groups(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -47981,6 +48089,20 @@ func (ec *executionContext) _UsersGroup(ctx context.Context, sel ast.SelectionSe
 					}
 				}()
 				res = ec._UsersGroup_members(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "policies":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._UsersGroup_policies(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -51738,6 +51860,43 @@ func (ec *executionContext) marshalNPermissionsPolicy2githubᚗcomᚋfacebookinc
 	return ec._PermissionsPolicy(ctx, sel, &v)
 }
 
+func (ec *executionContext) marshalNPermissionsPolicy2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐPermissionsPolicyᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.PermissionsPolicy) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNPermissionsPolicy2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐPermissionsPolicy(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
 func (ec *executionContext) marshalNPermissionsPolicy2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐPermissionsPolicy(ctx context.Context, sel ast.SelectionSet, v *ent.PermissionsPolicy) graphql.Marshaler {
 	if v == nil {
 		if !ec.HasError(graphql.GetResolverContext(ctx)) {
@@ -53465,6 +53624,43 @@ func (ec *executionContext) marshalNUsersGroup2ᚕᚖgithubᚗcomᚋfacebookincu
 				defer wg.Done()
 			}
 			ret[i] = ec.marshalOUsersGroup2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUsersGroup(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNUsersGroup2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUsersGroupᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.UsersGroup) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNUsersGroup2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUsersGroup(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)

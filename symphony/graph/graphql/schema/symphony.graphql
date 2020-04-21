@@ -61,6 +61,7 @@ type UsersGroup implements Node {
   description: String
   status: UsersGroupStatus!
   members: [User!]!
+  policies: [PermissionsPolicy!]!
 }
 
 type PermissionSettings {
@@ -174,6 +175,7 @@ type PermissionsPolicy implements Node {
   description: String
   isGlobal: Boolean!
   policy: SystemPolicy!
+  groups: [UsersGroup!]!
 }
 
 input AddPermissionsPolicyInput {

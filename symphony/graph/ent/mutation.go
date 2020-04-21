@@ -13683,6 +13683,8 @@ type PermissionsPolicyMutation struct {
 	inventory_policy **models.InventoryPolicyInput
 	workforce_policy **models.WorkforcePolicyInput
 	clearedFields    map[string]struct{}
+	groups           map[int]struct{}
+	removedgroups    map[int]struct{}
 }
 
 var _ ent.Mutation = (*PermissionsPolicyMutation)(nil)
@@ -13910,6 +13912,48 @@ func (m *PermissionsPolicyMutation) ResetWorkforcePolicy() {
 	delete(m.clearedFields, permissionspolicy.FieldWorkforcePolicy)
 }
 
+// AddGroupIDs adds the groups edge to UsersGroup by ids.
+func (m *PermissionsPolicyMutation) AddGroupIDs(ids ...int) {
+	if m.groups == nil {
+		m.groups = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.groups[ids[i]] = struct{}{}
+	}
+}
+
+// RemoveGroupIDs removes the groups edge to UsersGroup by ids.
+func (m *PermissionsPolicyMutation) RemoveGroupIDs(ids ...int) {
+	if m.removedgroups == nil {
+		m.removedgroups = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.removedgroups[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedGroups returns the removed ids of groups.
+func (m *PermissionsPolicyMutation) RemovedGroupsIDs() (ids []int) {
+	for id := range m.removedgroups {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// GroupsIDs returns the groups ids in the mutation.
+func (m *PermissionsPolicyMutation) GroupsIDs() (ids []int) {
+	for id := range m.groups {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetGroups reset all changes of the groups edge.
+func (m *PermissionsPolicyMutation) ResetGroups() {
+	m.groups = nil
+	m.removedgroups = nil
+}
+
 // Op returns the operation name.
 func (m *PermissionsPolicyMutation) Op() Op {
 	return m.op
@@ -14131,7 +14175,10 @@ func (m *PermissionsPolicyMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this
 // mutation.
 func (m *PermissionsPolicyMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.groups != nil {
+		edges = append(edges, permissionspolicy.EdgeGroups)
+	}
 	return edges
 }
 
@@ -14139,6 +14186,12 @@ func (m *PermissionsPolicyMutation) AddedEdges() []string {
 // the given edge name.
 func (m *PermissionsPolicyMutation) AddedIDs(name string) []ent.Value {
 	switch name {
+	case permissionspolicy.EdgeGroups:
+		ids := make([]ent.Value, 0, len(m.groups))
+		for id := range m.groups {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
@@ -14146,7 +14199,10 @@ func (m *PermissionsPolicyMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this
 // mutation.
 func (m *PermissionsPolicyMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.removedgroups != nil {
+		edges = append(edges, permissionspolicy.EdgeGroups)
+	}
 	return edges
 }
 
@@ -14154,6 +14210,12 @@ func (m *PermissionsPolicyMutation) RemovedEdges() []string {
 // the given edge name.
 func (m *PermissionsPolicyMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
+	case permissionspolicy.EdgeGroups:
+		ids := make([]ent.Value, 0, len(m.removedgroups))
+		for id := range m.removedgroups {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
@@ -14161,7 +14223,7 @@ func (m *PermissionsPolicyMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this
 // mutation.
 func (m *PermissionsPolicyMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
 	return edges
 }
 
@@ -14176,6 +14238,8 @@ func (m *PermissionsPolicyMutation) EdgeCleared(name string) bool {
 // ClearEdge clears the value for the given name. It returns an
 // error if the edge name is not defined in the schema.
 func (m *PermissionsPolicyMutation) ClearEdge(name string) error {
+	switch name {
+	}
 	return fmt.Errorf("unknown PermissionsPolicy unique edge %s", name)
 }
 
@@ -14184,6 +14248,9 @@ func (m *PermissionsPolicyMutation) ClearEdge(name string) error {
 // defined in the schema.
 func (m *PermissionsPolicyMutation) ResetEdge(name string) error {
 	switch name {
+	case permissionspolicy.EdgeGroups:
+		m.ResetGroups()
+		return nil
 	}
 	return fmt.Errorf("unknown PermissionsPolicy edge %s", name)
 }
@@ -29087,17 +29154,19 @@ func (m *UserMutation) ResetEdge(name string) error {
 // nodes in the graph.
 type UsersGroupMutation struct {
 	config
-	op             Op
-	typ            string
-	id             *int
-	create_time    *time.Time
-	update_time    *time.Time
-	name           *string
-	description    *string
-	status         *usersgroup.Status
-	clearedFields  map[string]struct{}
-	members        map[int]struct{}
-	removedmembers map[int]struct{}
+	op              Op
+	typ             string
+	id              *int
+	create_time     *time.Time
+	update_time     *time.Time
+	name            *string
+	description     *string
+	status          *usersgroup.Status
+	clearedFields   map[string]struct{}
+	members         map[int]struct{}
+	removedmembers  map[int]struct{}
+	policies        map[int]struct{}
+	removedpolicies map[int]struct{}
 }
 
 var _ ent.Mutation = (*UsersGroupMutation)(nil)
@@ -29290,6 +29359,48 @@ func (m *UsersGroupMutation) ResetMembers() {
 	m.removedmembers = nil
 }
 
+// AddPolicyIDs adds the policies edge to PermissionsPolicy by ids.
+func (m *UsersGroupMutation) AddPolicyIDs(ids ...int) {
+	if m.policies == nil {
+		m.policies = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.policies[ids[i]] = struct{}{}
+	}
+}
+
+// RemovePolicyIDs removes the policies edge to PermissionsPolicy by ids.
+func (m *UsersGroupMutation) RemovePolicyIDs(ids ...int) {
+	if m.removedpolicies == nil {
+		m.removedpolicies = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.removedpolicies[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedPolicies returns the removed ids of policies.
+func (m *UsersGroupMutation) RemovedPoliciesIDs() (ids []int) {
+	for id := range m.removedpolicies {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// PoliciesIDs returns the policies ids in the mutation.
+func (m *UsersGroupMutation) PoliciesIDs() (ids []int) {
+	for id := range m.policies {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetPolicies reset all changes of the policies edge.
+func (m *UsersGroupMutation) ResetPolicies() {
+	m.policies = nil
+	m.removedpolicies = nil
+}
+
 // Op returns the operation name.
 func (m *UsersGroupMutation) Op() Op {
 	return m.op
@@ -29463,9 +29574,12 @@ func (m *UsersGroupMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this
 // mutation.
 func (m *UsersGroupMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.members != nil {
 		edges = append(edges, usersgroup.EdgeMembers)
+	}
+	if m.policies != nil {
+		edges = append(edges, usersgroup.EdgePolicies)
 	}
 	return edges
 }
@@ -29480,6 +29594,12 @@ func (m *UsersGroupMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case usersgroup.EdgePolicies:
+		ids := make([]ent.Value, 0, len(m.policies))
+		for id := range m.policies {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
@@ -29487,9 +29607,12 @@ func (m *UsersGroupMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this
 // mutation.
 func (m *UsersGroupMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.removedmembers != nil {
 		edges = append(edges, usersgroup.EdgeMembers)
+	}
+	if m.removedpolicies != nil {
+		edges = append(edges, usersgroup.EdgePolicies)
 	}
 	return edges
 }
@@ -29504,6 +29627,12 @@ func (m *UsersGroupMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case usersgroup.EdgePolicies:
+		ids := make([]ent.Value, 0, len(m.removedpolicies))
+		for id := range m.removedpolicies {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
@@ -29511,7 +29640,7 @@ func (m *UsersGroupMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this
 // mutation.
 func (m *UsersGroupMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	return edges
 }
 
@@ -29538,6 +29667,9 @@ func (m *UsersGroupMutation) ResetEdge(name string) error {
 	switch name {
 	case usersgroup.EdgeMembers:
 		m.ResetMembers()
+		return nil
+	case usersgroup.EdgePolicies:
+		m.ResetPolicies()
 		return nil
 	}
 	return fmt.Errorf("unknown UsersGroup edge %s", name)

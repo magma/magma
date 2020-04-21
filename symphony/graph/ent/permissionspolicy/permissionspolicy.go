@@ -23,8 +23,16 @@ const (
 	FieldInventoryPolicy = "inventory_policy" // FieldWorkforcePolicy holds the string denoting the workforce_policy vertex property in the database.
 	FieldWorkforcePolicy = "workforce_policy"
 
+	// EdgeGroups holds the string denoting the groups edge name in mutations.
+	EdgeGroups = "groups"
+
 	// Table holds the table name of the permissionspolicy in the database.
 	Table = "permissions_policies"
+	// GroupsTable is the table the holds the groups relation/edge. The primary key declared below.
+	GroupsTable = "users_group_policies"
+	// GroupsInverseTable is the table name for the UsersGroup entity.
+	// It exists in this package in order to avoid circular dependency with the "usersgroup" package.
+	GroupsInverseTable = "users_groups"
 )
 
 // Columns holds all SQL columns for permissionspolicy fields.
@@ -38,6 +46,12 @@ var Columns = []string{
 	FieldInventoryPolicy,
 	FieldWorkforcePolicy,
 }
+
+var (
+	// GroupsPrimaryKey and GroupsColumn2 are the table columns denoting the
+	// primary key for the groups relation (M2M).
+	GroupsPrimaryKey = []string{"users_group_id", "permissions_policy_id"}
+)
 
 var (
 	// DefaultCreateTime holds the default value on creation for the create_time field.

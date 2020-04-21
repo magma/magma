@@ -16,6 +16,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/authz/models"
 	"github.com/facebookincubator/symphony/graph/ent/permissionspolicy"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
+	"github.com/facebookincubator/symphony/graph/ent/usersgroup"
 )
 
 // PermissionsPolicyUpdate is the builder for updating PermissionsPolicy entities.
@@ -102,6 +103,36 @@ func (ppu *PermissionsPolicyUpdate) ClearWorkforcePolicy() *PermissionsPolicyUpd
 	return ppu
 }
 
+// AddGroupIDs adds the groups edge to UsersGroup by ids.
+func (ppu *PermissionsPolicyUpdate) AddGroupIDs(ids ...int) *PermissionsPolicyUpdate {
+	ppu.mutation.AddGroupIDs(ids...)
+	return ppu
+}
+
+// AddGroups adds the groups edges to UsersGroup.
+func (ppu *PermissionsPolicyUpdate) AddGroups(u ...*UsersGroup) *PermissionsPolicyUpdate {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return ppu.AddGroupIDs(ids...)
+}
+
+// RemoveGroupIDs removes the groups edge to UsersGroup by ids.
+func (ppu *PermissionsPolicyUpdate) RemoveGroupIDs(ids ...int) *PermissionsPolicyUpdate {
+	ppu.mutation.RemoveGroupIDs(ids...)
+	return ppu
+}
+
+// RemoveGroups removes groups edges to UsersGroup.
+func (ppu *PermissionsPolicyUpdate) RemoveGroups(u ...*UsersGroup) *PermissionsPolicyUpdate {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return ppu.RemoveGroupIDs(ids...)
+}
+
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (ppu *PermissionsPolicyUpdate) Save(ctx context.Context) (int, error) {
 	if _, ok := ppu.mutation.UpdateTime(); !ok {
@@ -113,6 +144,7 @@ func (ppu *PermissionsPolicyUpdate) Save(ctx context.Context) (int, error) {
 			return 0, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
 		}
 	}
+
 	var (
 		err      error
 		affected int
@@ -245,6 +277,44 @@ func (ppu *PermissionsPolicyUpdate) sqlSave(ctx context.Context) (n int, err err
 			Column: permissionspolicy.FieldWorkforcePolicy,
 		})
 	}
+	if nodes := ppu.mutation.RemovedGroupsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   permissionspolicy.GroupsTable,
+			Columns: permissionspolicy.GroupsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: usersgroup.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ppu.mutation.GroupsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   permissionspolicy.GroupsTable,
+			Columns: permissionspolicy.GroupsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: usersgroup.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, ppu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{permissionspolicy.Label}
@@ -333,6 +403,36 @@ func (ppuo *PermissionsPolicyUpdateOne) ClearWorkforcePolicy() *PermissionsPolic
 	return ppuo
 }
 
+// AddGroupIDs adds the groups edge to UsersGroup by ids.
+func (ppuo *PermissionsPolicyUpdateOne) AddGroupIDs(ids ...int) *PermissionsPolicyUpdateOne {
+	ppuo.mutation.AddGroupIDs(ids...)
+	return ppuo
+}
+
+// AddGroups adds the groups edges to UsersGroup.
+func (ppuo *PermissionsPolicyUpdateOne) AddGroups(u ...*UsersGroup) *PermissionsPolicyUpdateOne {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return ppuo.AddGroupIDs(ids...)
+}
+
+// RemoveGroupIDs removes the groups edge to UsersGroup by ids.
+func (ppuo *PermissionsPolicyUpdateOne) RemoveGroupIDs(ids ...int) *PermissionsPolicyUpdateOne {
+	ppuo.mutation.RemoveGroupIDs(ids...)
+	return ppuo
+}
+
+// RemoveGroups removes groups edges to UsersGroup.
+func (ppuo *PermissionsPolicyUpdateOne) RemoveGroups(u ...*UsersGroup) *PermissionsPolicyUpdateOne {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return ppuo.RemoveGroupIDs(ids...)
+}
+
 // Save executes the query and returns the updated entity.
 func (ppuo *PermissionsPolicyUpdateOne) Save(ctx context.Context) (*PermissionsPolicy, error) {
 	if _, ok := ppuo.mutation.UpdateTime(); !ok {
@@ -344,6 +444,7 @@ func (ppuo *PermissionsPolicyUpdateOne) Save(ctx context.Context) (*PermissionsP
 			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
 		}
 	}
+
 	var (
 		err  error
 		node *PermissionsPolicy
@@ -473,6 +574,44 @@ func (ppuo *PermissionsPolicyUpdateOne) sqlSave(ctx context.Context) (pp *Permis
 			Type:   field.TypeJSON,
 			Column: permissionspolicy.FieldWorkforcePolicy,
 		})
+	}
+	if nodes := ppuo.mutation.RemovedGroupsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   permissionspolicy.GroupsTable,
+			Columns: permissionspolicy.GroupsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: usersgroup.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ppuo.mutation.GroupsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   permissionspolicy.GroupsTable,
+			Columns: permissionspolicy.GroupsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: usersgroup.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	pp = &PermissionsPolicy{config: ppuo.config}
 	_spec.Assign = pp.assignValues

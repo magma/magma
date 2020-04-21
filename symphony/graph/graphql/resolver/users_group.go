@@ -26,6 +26,10 @@ func (usersGroupResolver) Members(ctx context.Context, obj *ent.UsersGroup) ([]*
 	return obj.QueryMembers().All(ctx)
 }
 
+func (usersGroupResolver) Policies(ctx context.Context, obj *ent.UsersGroup) ([]*ent.PermissionsPolicy, error) {
+	return obj.QueryPolicies().All(ctx)
+}
+
 func (r mutationResolver) AddUsersGroup(ctx context.Context, input models.AddUsersGroupInput) (*ent.UsersGroup, error) {
 	client := r.ClientFrom(ctx)
 	g, err := client.UsersGroup.Create().

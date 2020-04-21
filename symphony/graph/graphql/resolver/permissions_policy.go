@@ -50,6 +50,10 @@ func (r permissionsPolicyResolver) Policy(ctx context.Context, obj *ent.Permissi
 	return r.covertToWorkforcePolicy(obj.WorkforcePolicy), nil
 }
 
+func (permissionsPolicyResolver) Groups(ctx context.Context, obj *ent.PermissionsPolicy) ([]*ent.UsersGroup, error) {
+	return obj.QueryGroups().All(ctx)
+}
+
 func (mutationResolver) AddPolicy(ctx context.Context, input models.AddPermissionsPolicyInput) (*ent.PermissionsPolicy, error) {
 	client := ent.FromContext(ctx)
 	mutation := client.PermissionsPolicy.Create().

@@ -13,6 +13,7 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/ent/permissionspolicy"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/ent/usersgroup"
@@ -87,6 +88,21 @@ func (ugu *UsersGroupUpdate) AddMembers(u ...*User) *UsersGroupUpdate {
 	return ugu.AddMemberIDs(ids...)
 }
 
+// AddPolicyIDs adds the policies edge to PermissionsPolicy by ids.
+func (ugu *UsersGroupUpdate) AddPolicyIDs(ids ...int) *UsersGroupUpdate {
+	ugu.mutation.AddPolicyIDs(ids...)
+	return ugu
+}
+
+// AddPolicies adds the policies edges to PermissionsPolicy.
+func (ugu *UsersGroupUpdate) AddPolicies(p ...*PermissionsPolicy) *UsersGroupUpdate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return ugu.AddPolicyIDs(ids...)
+}
+
 // RemoveMemberIDs removes the members edge to User by ids.
 func (ugu *UsersGroupUpdate) RemoveMemberIDs(ids ...int) *UsersGroupUpdate {
 	ugu.mutation.RemoveMemberIDs(ids...)
@@ -100,6 +116,21 @@ func (ugu *UsersGroupUpdate) RemoveMembers(u ...*User) *UsersGroupUpdate {
 		ids[i] = u[i].ID
 	}
 	return ugu.RemoveMemberIDs(ids...)
+}
+
+// RemovePolicyIDs removes the policies edge to PermissionsPolicy by ids.
+func (ugu *UsersGroupUpdate) RemovePolicyIDs(ids ...int) *UsersGroupUpdate {
+	ugu.mutation.RemovePolicyIDs(ids...)
+	return ugu
+}
+
+// RemovePolicies removes policies edges to PermissionsPolicy.
+func (ugu *UsersGroupUpdate) RemovePolicies(p ...*PermissionsPolicy) *UsersGroupUpdate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return ugu.RemovePolicyIDs(ids...)
 }
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
@@ -257,6 +288,44 @@ func (ugu *UsersGroupUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if nodes := ugu.mutation.RemovedPoliciesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   usersgroup.PoliciesTable,
+			Columns: usersgroup.PoliciesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: permissionspolicy.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ugu.mutation.PoliciesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   usersgroup.PoliciesTable,
+			Columns: usersgroup.PoliciesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: permissionspolicy.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, ugu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{usersgroup.Label}
@@ -330,6 +399,21 @@ func (uguo *UsersGroupUpdateOne) AddMembers(u ...*User) *UsersGroupUpdateOne {
 	return uguo.AddMemberIDs(ids...)
 }
 
+// AddPolicyIDs adds the policies edge to PermissionsPolicy by ids.
+func (uguo *UsersGroupUpdateOne) AddPolicyIDs(ids ...int) *UsersGroupUpdateOne {
+	uguo.mutation.AddPolicyIDs(ids...)
+	return uguo
+}
+
+// AddPolicies adds the policies edges to PermissionsPolicy.
+func (uguo *UsersGroupUpdateOne) AddPolicies(p ...*PermissionsPolicy) *UsersGroupUpdateOne {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return uguo.AddPolicyIDs(ids...)
+}
+
 // RemoveMemberIDs removes the members edge to User by ids.
 func (uguo *UsersGroupUpdateOne) RemoveMemberIDs(ids ...int) *UsersGroupUpdateOne {
 	uguo.mutation.RemoveMemberIDs(ids...)
@@ -343,6 +427,21 @@ func (uguo *UsersGroupUpdateOne) RemoveMembers(u ...*User) *UsersGroupUpdateOne 
 		ids[i] = u[i].ID
 	}
 	return uguo.RemoveMemberIDs(ids...)
+}
+
+// RemovePolicyIDs removes the policies edge to PermissionsPolicy by ids.
+func (uguo *UsersGroupUpdateOne) RemovePolicyIDs(ids ...int) *UsersGroupUpdateOne {
+	uguo.mutation.RemovePolicyIDs(ids...)
+	return uguo
+}
+
+// RemovePolicies removes policies edges to PermissionsPolicy.
+func (uguo *UsersGroupUpdateOne) RemovePolicies(p ...*PermissionsPolicy) *UsersGroupUpdateOne {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return uguo.RemovePolicyIDs(ids...)
 }
 
 // Save executes the query and returns the updated entity.
@@ -490,6 +589,44 @@ func (uguo *UsersGroupUpdateOne) sqlSave(ctx context.Context) (ug *UsersGroup, e
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if nodes := uguo.mutation.RemovedPoliciesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   usersgroup.PoliciesTable,
+			Columns: usersgroup.PoliciesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: permissionspolicy.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uguo.mutation.PoliciesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   usersgroup.PoliciesTable,
+			Columns: usersgroup.PoliciesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: permissionspolicy.FieldID,
 				},
 			},
 		}

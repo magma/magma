@@ -6,6 +6,7 @@ package schema
 
 import (
 	"github.com/facebookincubator/ent"
+	"github.com/facebookincubator/ent/schema/edge"
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/authz/models"
 )
@@ -30,5 +31,13 @@ func (PermissionsPolicy) Fields() []ent.Field {
 			Optional(),
 		field.JSON("workforce_policy", &models.WorkforcePolicyInput{}).
 			Optional(),
+	}
+}
+
+// Edges returns policy edges.
+func (PermissionsPolicy) Edges() []ent.Edge {
+	return []ent.Edge{
+		edge.From("groups", UsersGroup.Type).
+			Ref("policies"),
 	}
 }

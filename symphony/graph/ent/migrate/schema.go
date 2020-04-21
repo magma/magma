@@ -1693,6 +1693,33 @@ var (
 			},
 		},
 	}
+	// UsersGroupPoliciesColumns holds the columns for the "users_group_policies" table.
+	UsersGroupPoliciesColumns = []*schema.Column{
+		{Name: "users_group_id", Type: field.TypeInt},
+		{Name: "permissions_policy_id", Type: field.TypeInt},
+	}
+	// UsersGroupPoliciesTable holds the schema information for the "users_group_policies" table.
+	UsersGroupPoliciesTable = &schema.Table{
+		Name:       "users_group_policies",
+		Columns:    UsersGroupPoliciesColumns,
+		PrimaryKey: []*schema.Column{UsersGroupPoliciesColumns[0], UsersGroupPoliciesColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:  "users_group_policies_users_group_id",
+				Columns: []*schema.Column{UsersGroupPoliciesColumns[0]},
+
+				RefColumns: []*schema.Column{UsersGroupsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:  "users_group_policies_permissions_policy_id",
+				Columns: []*schema.Column{UsersGroupPoliciesColumns[1]},
+
+				RefColumns: []*schema.Column{PermissionsPoliciesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		ActionsRulesTable,
@@ -1743,6 +1770,7 @@ var (
 		ServiceLinksTable,
 		ServiceCustomerTable,
 		UsersGroupMembersTable,
+		UsersGroupPoliciesTable,
 	}
 )
 
@@ -1840,4 +1868,6 @@ func init() {
 	ServiceCustomerTable.ForeignKeys[1].RefTable = CustomersTable
 	UsersGroupMembersTable.ForeignKeys[0].RefTable = UsersGroupsTable
 	UsersGroupMembersTable.ForeignKeys[1].RefTable = UsersTable
+	UsersGroupPoliciesTable.ForeignKeys[0].RefTable = UsersGroupsTable
+	UsersGroupPoliciesTable.ForeignKeys[1].RefTable = PermissionsPoliciesTable
 }

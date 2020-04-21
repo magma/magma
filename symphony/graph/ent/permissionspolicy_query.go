@@ -8,6 +8,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"math"
@@ -17,6 +18,7 @@ import (
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/permissionspolicy"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
+	"github.com/facebookincubator/symphony/graph/ent/usersgroup"
 )
 
 // PermissionsPolicyQuery is the builder for querying PermissionsPolicy entities.
@@ -27,6 +29,8 @@ type PermissionsPolicyQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.PermissionsPolicy
+	// eager-loading edges.
+	withGroups *UsersGroupQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -54,6 +58,24 @@ func (ppq *PermissionsPolicyQuery) Offset(offset int) *PermissionsPolicyQuery {
 func (ppq *PermissionsPolicyQuery) Order(o ...Order) *PermissionsPolicyQuery {
 	ppq.order = append(ppq.order, o...)
 	return ppq
+}
+
+// QueryGroups chains the current query on the groups edge.
+func (ppq *PermissionsPolicyQuery) QueryGroups() *UsersGroupQuery {
+	query := &UsersGroupQuery{config: ppq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := ppq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(permissionspolicy.Table, permissionspolicy.FieldID, ppq.sqlQuery()),
+			sqlgraph.To(usersgroup.Table, usersgroup.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, permissionspolicy.GroupsTable, permissionspolicy.GroupsPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(ppq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first PermissionsPolicy entity in the query. Returns *NotFoundError when no permissionspolicy was found.
@@ -235,6 +257,17 @@ func (ppq *PermissionsPolicyQuery) Clone() *PermissionsPolicyQuery {
 	}
 }
 
+//  WithGroups tells the query-builder to eager-loads the nodes that are connected to
+// the "groups" edge. The optional arguments used to configure the query builder of the edge.
+func (ppq *PermissionsPolicyQuery) WithGroups(opts ...func(*UsersGroupQuery)) *PermissionsPolicyQuery {
+	query := &UsersGroupQuery{config: ppq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	ppq.withGroups = query
+	return ppq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -299,8 +332,11 @@ func (ppq *PermissionsPolicyQuery) prepareQuery(ctx context.Context) error {
 
 func (ppq *PermissionsPolicyQuery) sqlAll(ctx context.Context) ([]*PermissionsPolicy, error) {
 	var (
-		nodes = []*PermissionsPolicy{}
-		_spec = ppq.querySpec()
+		nodes       = []*PermissionsPolicy{}
+		_spec       = ppq.querySpec()
+		loadedTypes = [1]bool{
+			ppq.withGroups != nil,
+		}
 	)
 	_spec.ScanValues = func() []interface{} {
 		node := &PermissionsPolicy{config: ppq.config}
@@ -313,6 +349,7 @@ func (ppq *PermissionsPolicyQuery) sqlAll(ctx context.Context) ([]*PermissionsPo
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, ppq.driver, _spec); err != nil {
@@ -321,6 +358,70 @@ func (ppq *PermissionsPolicyQuery) sqlAll(ctx context.Context) ([]*PermissionsPo
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+
+	if query := ppq.withGroups; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		ids := make(map[int]*PermissionsPolicy, len(nodes))
+		for _, node := range nodes {
+			ids[node.ID] = node
+			fks = append(fks, node.ID)
+		}
+		var (
+			edgeids []int
+			edges   = make(map[int][]*PermissionsPolicy)
+		)
+		_spec := &sqlgraph.EdgeQuerySpec{
+			Edge: &sqlgraph.EdgeSpec{
+				Inverse: true,
+				Table:   permissionspolicy.GroupsTable,
+				Columns: permissionspolicy.GroupsPrimaryKey,
+			},
+			Predicate: func(s *sql.Selector) {
+				s.Where(sql.InValues(permissionspolicy.GroupsPrimaryKey[1], fks...))
+			},
+
+			ScanValues: func() [2]interface{} {
+				return [2]interface{}{&sql.NullInt64{}, &sql.NullInt64{}}
+			},
+			Assign: func(out, in interface{}) error {
+				eout, ok := out.(*sql.NullInt64)
+				if !ok || eout == nil {
+					return fmt.Errorf("unexpected id value for edge-out")
+				}
+				ein, ok := in.(*sql.NullInt64)
+				if !ok || ein == nil {
+					return fmt.Errorf("unexpected id value for edge-in")
+				}
+				outValue := int(eout.Int64)
+				inValue := int(ein.Int64)
+				node, ok := ids[outValue]
+				if !ok {
+					return fmt.Errorf("unexpected node id in edges: %v", outValue)
+				}
+				edgeids = append(edgeids, inValue)
+				edges[inValue] = append(edges[inValue], node)
+				return nil
+			},
+		}
+		if err := sqlgraph.QueryEdges(ctx, ppq.driver, _spec); err != nil {
+			return nil, fmt.Errorf(`query edges "groups": %v`, err)
+		}
+		query.Where(usersgroup.IDIn(edgeids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := edges[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected "groups" node returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Groups = append(nodes[i].Edges.Groups, n)
+			}
+		}
+	}
+
 	return nodes, nil
 }
 

@@ -16,6 +16,7 @@ import (
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/authz/models"
 	"github.com/facebookincubator/symphony/graph/ent/permissionspolicy"
+	"github.com/facebookincubator/symphony/graph/ent/usersgroup"
 )
 
 // PermissionsPolicyCreate is the builder for creating a PermissionsPolicy entity.
@@ -97,6 +98,21 @@ func (ppc *PermissionsPolicyCreate) SetInventoryPolicy(mpi *models.InventoryPoli
 func (ppc *PermissionsPolicyCreate) SetWorkforcePolicy(mpi *models.WorkforcePolicyInput) *PermissionsPolicyCreate {
 	ppc.mutation.SetWorkforcePolicy(mpi)
 	return ppc
+}
+
+// AddGroupIDs adds the groups edge to UsersGroup by ids.
+func (ppc *PermissionsPolicyCreate) AddGroupIDs(ids ...int) *PermissionsPolicyCreate {
+	ppc.mutation.AddGroupIDs(ids...)
+	return ppc
+}
+
+// AddGroups adds the groups edges to UsersGroup.
+func (ppc *PermissionsPolicyCreate) AddGroups(u ...*UsersGroup) *PermissionsPolicyCreate {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return ppc.AddGroupIDs(ids...)
 }
 
 // Save creates the PermissionsPolicy in the database.
@@ -222,6 +238,25 @@ func (ppc *PermissionsPolicyCreate) sqlSave(ctx context.Context) (*PermissionsPo
 			Column: permissionspolicy.FieldWorkforcePolicy,
 		})
 		pp.WorkforcePolicy = value
+	}
+	if nodes := ppc.mutation.GroupsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   permissionspolicy.GroupsTable,
+			Columns: permissionspolicy.GroupsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: usersgroup.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if err := sqlgraph.CreateNode(ctx, ppc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {

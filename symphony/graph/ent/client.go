@@ -3351,6 +3351,22 @@ func (c *PermissionsPolicyClient) GetX(ctx context.Context, id int) *Permissions
 	return pp
 }
 
+// QueryGroups queries the groups edge of a PermissionsPolicy.
+func (c *PermissionsPolicyClient) QueryGroups(pp *PermissionsPolicy) *UsersGroupQuery {
+	query := &UsersGroupQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := pp.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(permissionspolicy.Table, permissionspolicy.FieldID, id),
+			sqlgraph.To(usersgroup.Table, usersgroup.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, permissionspolicy.GroupsTable, permissionspolicy.GroupsPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(pp.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *PermissionsPolicyClient) Hooks() []Hook {
 	return c.hooks.PermissionsPolicy
@@ -5879,6 +5895,22 @@ func (c *UsersGroupClient) QueryMembers(ug *UsersGroup) *UserQuery {
 			sqlgraph.From(usersgroup.Table, usersgroup.FieldID, id),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, false, usersgroup.MembersTable, usersgroup.MembersPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(ug.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryPolicies queries the policies edge of a UsersGroup.
+func (c *UsersGroupClient) QueryPolicies(ug *UsersGroup) *PermissionsPolicyQuery {
+	query := &PermissionsPolicyQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := ug.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(usersgroup.Table, usersgroup.FieldID, id),
+			sqlgraph.To(permissionspolicy.Table, permissionspolicy.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, usersgroup.PoliciesTable, usersgroup.PoliciesPrimaryKey...),
 		)
 		fromV = sqlgraph.Neighbors(ug.driver.Dialect(), step)
 		return fromV, nil

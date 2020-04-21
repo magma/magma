@@ -36,6 +36,27 @@ type PermissionsPolicy struct {
 	InventoryPolicy *models.InventoryPolicyInput `json:"inventory_policy,omitempty"`
 	// WorkforcePolicy holds the value of the "workforce_policy" field.
 	WorkforcePolicy *models.WorkforcePolicyInput `json:"workforce_policy,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the PermissionsPolicyQuery when eager-loading is set.
+	Edges PermissionsPolicyEdges `json:"edges"`
+}
+
+// PermissionsPolicyEdges holds the relations/edges for other nodes in the graph.
+type PermissionsPolicyEdges struct {
+	// Groups holds the value of the groups edge.
+	Groups []*UsersGroup
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// GroupsOrErr returns the Groups value or an error if the edge
+// was not loaded in eager-loading.
+func (e PermissionsPolicyEdges) GroupsOrErr() ([]*UsersGroup, error) {
+	if e.loadedTypes[0] {
+		return e.Groups, nil
+	}
+	return nil, &NotLoadedError{edge: "groups"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -106,6 +127,11 @@ func (pp *PermissionsPolicy) assignValues(values ...interface{}) error {
 		}
 	}
 	return nil
+}
+
+// QueryGroups queries the groups edge of the PermissionsPolicy.
+func (pp *PermissionsPolicy) QueryGroups() *UsersGroupQuery {
+	return (&PermissionsPolicyClient{config: pp.config}).QueryGroups(pp)
 }
 
 // Update returns a builder for updating this PermissionsPolicy.

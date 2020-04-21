@@ -14,6 +14,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/ent/permissionspolicy"
 	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/ent/usersgroup"
 )
@@ -100,6 +101,21 @@ func (ugc *UsersGroupCreate) AddMembers(u ...*User) *UsersGroupCreate {
 		ids[i] = u[i].ID
 	}
 	return ugc.AddMemberIDs(ids...)
+}
+
+// AddPolicyIDs adds the policies edge to PermissionsPolicy by ids.
+func (ugc *UsersGroupCreate) AddPolicyIDs(ids ...int) *UsersGroupCreate {
+	ugc.mutation.AddPolicyIDs(ids...)
+	return ugc
+}
+
+// AddPolicies adds the policies edges to PermissionsPolicy.
+func (ugc *UsersGroupCreate) AddPolicies(p ...*PermissionsPolicy) *UsersGroupCreate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return ugc.AddPolicyIDs(ids...)
 }
 
 // Save creates the UsersGroup in the database.
@@ -226,6 +242,25 @@ func (ugc *UsersGroupCreate) sqlSave(ctx context.Context) (*UsersGroup, error) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ugc.mutation.PoliciesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   usersgroup.PoliciesTable,
+			Columns: usersgroup.PoliciesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: permissionspolicy.FieldID,
 				},
 			},
 		}
