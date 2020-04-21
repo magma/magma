@@ -28,6 +28,7 @@ s1aptests/test_attach_service_ue_radio_capability.py \
 s1aptests/test_attach_service_multi_ue.py \
 s1aptests/test_attach_ipv4v6_pdn_type.py \
 s1aptests/test_service_info.py \
+s1aptests/test_attach_detach_with_ovs.py \
 s1aptests/test_resync.py \
 s1aptests/test_standalone_pdn_conn_req.py \
 s1aptests/test_attach_act_dflt_ber_ctxt_rej.py \
@@ -82,7 +83,8 @@ s1aptests/test_attach_detach_multiple_secondary_pdn.py \
 s1aptests/test_attach_detach_nw_triggered_delete_secondary_pdn.py \
 s1aptests/test_attach_detach_nw_triggered_delete_last_pdn.py \
 s1aptests/test_attach_ul_udp_data.py \
-s1aptests/test_attach_ul_tcp_data.py
+s1aptests/test_attach_ul_tcp_data.py \
+s1aptests/test_attach_detach_rar_tcp_data.py
 #s1aptests/test_attach_ue_ctxt_release_cmp_delay.py \
 #s1aptests/test_attach_dl_udp_data.py \
 #s1aptests/test_attach_dl_tcp_data.py
