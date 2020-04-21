@@ -55,13 +55,6 @@ const CSVFileExport = (props: Props) => {
   const filters = props.filters?.map(f => {
     if (f.name == 'property') {
       const property = f.propertyValue;
-      if (
-        (property?.id && property.id.includes('@tmp')) ||
-        property?.id == '0'
-      ) {
-        const {id: _, ...newProp} = property;
-        return newProp;
-      }
       f.propertyValue = property;
     }
     return f;
