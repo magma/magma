@@ -15,6 +15,7 @@ import {
   GatewaysDashboard,
   InternalDashboard,
   NetworksDashboard,
+  TemplateDashboard,
 } from './dashboards/Dashboards';
 import {Organization} from '@fbcnms/sequelize-models';
 import {apiCredentials} from '../config';
@@ -460,6 +461,7 @@ export async function syncDashboards(
   const networksDB = NetworksDashboard().generate();
   const gatewaysDB = GatewaysDashboard().generate();
   const internalDB = InternalDashboard().generate();
+  const templateDB = TemplateDashboard().generate();
   const posts = [
     {
       dashboard: networksDB,
@@ -475,6 +477,12 @@ export async function syncDashboards(
     },
     {
       dashboard: internalDB,
+      folderId: 0,
+      overwrite: true,
+      message: '',
+    },
+    {
+      dashboard: templateDB,
       folderId: 0,
       overwrite: true,
       message: '',
