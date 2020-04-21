@@ -179,12 +179,15 @@ void LocalEnforcer::aggregate_records(SessionMap &session_map,
                    << " during record aggregation";
       continue;
     }
-    if (record.bytes_tx() > 0 || record.bytes_rx() > 0) {
-      MLOG(MINFO) << "";
-      MLOG(MINFO) << "Subscriber " << record.sid() << " used "
-                  << record.bytes_tx() << " tx bytes and " << record.bytes_rx()
-                  << " rx bytes for rule " << record.rule_id();
+    // only update if there's any usage to be reported
+    if (record.bytes_tx() == 0 && record.bytes_rx() == 0) {
+      continue;
     }
+
+    MLOG(MINFO) << "";
+    MLOG(MINFO) << "Subscriber " << record.sid() << " used "
+                << record.bytes_tx() << " tx bytes and " << record.bytes_rx()
+                << " rx bytes for rule " << record.rule_id();
     // Update sessions
     for (const auto &session : it->second) {
       SessionStateUpdateCriteria &uc =
