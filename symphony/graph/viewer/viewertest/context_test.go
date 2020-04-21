@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package viewertest
+package viewertest_test
 
 import (
 	"context"
@@ -10,6 +10,7 @@ import (
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/viewer"
+	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -19,10 +20,10 @@ func TestNewContext(t *testing.T) {
 		Tenant: "facebook",
 		User:   "fbuser@fb.com",
 	}
-	ctx := NewContext(
+	ctx := viewertest.NewContext(
 		context.Background(),
 		&ent.Client{},
-		WithViewer(want),
+		viewertest.WithViewer(want),
 	)
 	got := viewer.FromContext(ctx)
 	assert.Equal(t, want, got)

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package viewer
+package viewer_test
 
 import (
 	"context"
@@ -19,6 +19,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/enttest"
 	"github.com/facebookincubator/symphony/graph/ent/migrate"
 	"github.com/facebookincubator/symphony/graph/ent/user"
+	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/pkg/log"
 	"github.com/facebookincubator/symphony/pkg/testdb"
 
@@ -54,7 +55,7 @@ func TestViewerHandler(t *testing.T) {
 		{
 			name: "TestTenant",
 			prepare: func(req *http.Request) {
-				req.Header.Set(TenantHeader, "test")
+				req.Header.Set(viewer.TenantHeader, "test")
 			},
 			expect: func(t *testing.T, rec *httptest.ResponseRecorder) {
 				assert.Equal(t, http.StatusOK, rec.Code)
@@ -70,15 +71,15 @@ func TestViewerHandler(t *testing.T) {
 		},
 	}
 
-	h := TenancyHandler(
+	h := viewer.TenancyHandler(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
-			viewer := FromContext(ctx)
-			require.NotNil(t, viewer)
+			v := viewer.FromContext(ctx)
+			require.NotNil(t, v)
 			assert.NotNil(t, log.FieldsFromContext(ctx))
-			_, _ = io.WriteString(w, viewer.Tenant)
+			_, _ = io.WriteString(w, v.Tenant)
 		}),
-		NewFixedTenancy(&ent.Client{}),
+		viewer.NewFixedTenancy(&ent.Client{}),
 	)
 	for _, tc := range tests {
 		tc := tc
@@ -97,7 +98,7 @@ func TestViewerHandler(t *testing.T) {
 func TestWebSocketUpgradeHandler(t *testing.T) {
 	var upgrader websocket.Upgrader
 	srv := httptest.NewServer(
-		WebSocketUpgradeHandler(
+		viewer.WebSocketUpgradeHandler(
 			http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				if websocket.IsWebSocketUpgrade(r) {
 					conn, err := upgrader.Upgrade(w, r, nil)
@@ -124,7 +125,7 @@ func TestWebSocketUpgradeHandler(t *testing.T) {
 	})
 	t.Run("AuthenticatedUpgrade", func(t *testing.T) {
 		header := http.Header{}
-		header.Set(TenantHeader, "test")
+		header.Set(viewer.TenantHeader, "test")
 		u, _ := url.Parse(srv.URL)
 		u.Scheme = "ws"
 		conn, rsp, err := websocket.DefaultDialer.DialContext(
@@ -140,11 +141,13 @@ func TestWebSocketUpgradeHandler(t *testing.T) {
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			require.Equal(t, host, r.Header.Get("X-Forwarded-Host"))
 			if username, _, ok := r.BasicAuth(); ok {
-				err := json.NewEncoder(w).Encode(&Viewer{
-					Tenant: "test",
-					User:   username,
-					Role:   "user",
-				})
+				err := json.NewEncoder(w).Encode(
+					&viewer.Viewer{
+						Tenant: "test",
+						User:   username,
+						Role:   "user",
+					},
+				)
 				require.NoError(t, err)
 			} else if cookie, err := r.Cookie("Viewer"); err == nil {
 				data, err := base64.StdEncoding.DecodeString(cookie.Value)
@@ -161,12 +164,12 @@ func TestWebSocketUpgradeHandler(t *testing.T) {
 	t.Run("Auth", func(t *testing.T) {
 		authenticate := func(t *testing.T, authReq func(*http.Request)) {
 			var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				w.Header().Set(TenantHeader, r.Header.Get(TenantHeader))
-				w.Header().Set(UserHeader, r.Header.Get(UserHeader))
-				w.Header().Set(RoleHeader, r.Header.Get(RoleHeader))
+				w.Header().Set(viewer.TenantHeader, r.Header.Get(viewer.TenantHeader))
+				w.Header().Set(viewer.UserHeader, r.Header.Get(viewer.UserHeader))
+				w.Header().Set(viewer.RoleHeader, r.Header.Get(viewer.RoleHeader))
 				w.WriteHeader(http.StatusOK)
 			})
-			handler = WebSocketUpgradeHandler(handler, authenticator.URL)
+			handler = viewer.WebSocketUpgradeHandler(handler, authenticator.URL)
 			req := httptest.NewRequest(http.MethodGet, "/", nil)
 			req.Host = host
 			authReq(req)
@@ -175,9 +178,9 @@ func TestWebSocketUpgradeHandler(t *testing.T) {
 			rec := httptest.NewRecorder()
 			handler.ServeHTTP(rec, req)
 			require.Equal(t, http.StatusOK, rec.Code)
-			assert.Equal(t, "test", rec.Header().Get(TenantHeader))
-			assert.Equal(t, "tester", rec.Header().Get(UserHeader))
-			assert.Equal(t, "user", rec.Header().Get(RoleHeader))
+			assert.Equal(t, "test", rec.Header().Get(viewer.TenantHeader))
+			assert.Equal(t, "tester", rec.Header().Get(viewer.UserHeader))
+			assert.Equal(t, "user", rec.Header().Get(viewer.RoleHeader))
 		}
 
 		t.Run("Basic", func(t *testing.T) {
@@ -186,7 +189,7 @@ func TestWebSocketUpgradeHandler(t *testing.T) {
 			})
 		})
 		t.Run("Session", func(t *testing.T) {
-			data, err := json.Marshal(&Viewer{
+			data, err := json.Marshal(&viewer.Viewer{
 				Tenant: "test",
 				User:   "tester",
 				Role:   "user",
@@ -205,26 +208,39 @@ func TestWebSocketUpgradeHandler(t *testing.T) {
 func TestUserHandler(t *testing.T) {
 	client := newTestClient(t)
 	ctx := ent.NewContext(context.Background(), client)
-	_, err := client.User.Create().SetAuthID("simple_user").Save(ctx)
+	_, err := client.User.Create().
+		SetAuthID("simple_user").
+		Save(ctx)
 	require.NoError(t, err)
-	_, err = client.User.Create().SetAuthID("deactivated_user").SetStatus(user.StatusDEACTIVATED).Save(ctx)
+	_, err = client.User.Create().
+		SetAuthID("deactivated_user").
+		SetStatus(user.StatusDEACTIVATED).
+		Save(ctx)
 	require.NoError(t, err)
-	_, err = client.User.Create().SetAuthID("owner_user").SetRole(user.RoleOWNER).Save(ctx)
+	_, err = client.User.Create().
+		SetAuthID("owner_user").
+		SetRole(user.RoleOWNER).
+		Save(ctx)
 	require.NoError(t, err)
-	userWithGroup, err := client.User.Create().SetAuthID("user_with_group").Save(ctx)
+	userWithGroup, err := client.User.Create().
+		SetAuthID("user_with_group").
+		Save(ctx)
 	require.NoError(t, err)
-	_, err = client.UsersGroup.Create().SetName(WritePermissionGroupName).AddMembers(userWithGroup).Save(ctx)
+	_, err = client.UsersGroup.Create().
+		SetName(viewer.WritePermissionGroupName).
+		AddMembers(userWithGroup).
+		Save(ctx)
 	require.NoError(t, err)
 
 	tests := []struct {
 		name           string
-		viewer         Viewer
+		viewer         viewer.Viewer
 		expectRequest  func(*testing.T, *http.Request)
 		expectResponse func(*testing.T, *httptest.ResponseRecorder)
 	}{
 		{
 			name: "WithUserEntNotExist",
-			viewer: Viewer{
+			viewer: viewer.Viewer{
 				Tenant: "test",
 				User:   "new_user",
 				Role:   "",
@@ -240,7 +256,7 @@ func TestUserHandler(t *testing.T) {
 		},
 		{
 			name: "WithNoUserInViewer",
-			viewer: Viewer{
+			viewer: viewer.Viewer{
 				Tenant: "test",
 				User:   "",
 				Role:   "",
@@ -252,7 +268,7 @@ func TestUserHandler(t *testing.T) {
 		},
 		{
 			name: "WithDeactivatedUserEntExists",
-			viewer: Viewer{
+			viewer: viewer.Viewer{
 				Tenant: "test",
 				User:   "deactivated_user",
 				Role:   "",
@@ -265,11 +281,12 @@ func TestUserHandler(t *testing.T) {
 		},
 		{
 			name: "WithReadOnlyUserEnt",
-			viewer: Viewer{
-				Tenant:   "test",
-				User:     "simple_user",
-				Role:     "",
-				Features: NewFeatureSet(FeatureReadOnly),
+			viewer: viewer.Viewer{
+				Tenant: "test",
+				User:   "simple_user",
+				Features: viewer.NewFeatureSet(
+					viewer.FeatureReadOnly,
+				),
 			},
 			expectRequest: func(t *testing.T, r *http.Request) {
 				ctx := r.Context()
@@ -282,11 +299,12 @@ func TestUserHandler(t *testing.T) {
 		},
 		{
 			name: "WithOwnerUserEnt",
-			viewer: Viewer{
-				Tenant:   "test",
-				User:     "owner_user",
-				Role:     "",
-				Features: NewFeatureSet(FeatureReadOnly),
+			viewer: viewer.Viewer{
+				Tenant: "test",
+				User:   "owner_user",
+				Features: viewer.NewFeatureSet(
+					viewer.FeatureReadOnly,
+				),
 			},
 			expectRequest: func(t *testing.T, r *http.Request) {
 				ctx := r.Context()
@@ -301,11 +319,12 @@ func TestUserHandler(t *testing.T) {
 		},
 		{
 			name: "WithUserEntWithGroup",
-			viewer: Viewer{
-				Tenant:   "test",
-				User:     "user_with_group",
-				Role:     "",
-				Features: NewFeatureSet(FeatureReadOnly),
+			viewer: viewer.Viewer{
+				Tenant: "test",
+				User:   "user_with_group",
+				Features: viewer.NewFeatureSet(
+					viewer.FeatureReadOnly,
+				),
 			},
 			expectRequest: func(t *testing.T, r *http.Request) {
 				ctx := r.Context()
@@ -323,14 +342,14 @@ func TestUserHandler(t *testing.T) {
 	for _, tc := range tests {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			h := UserHandler{
+			h := viewer.UserHandler{
 				Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 					tc.expectRequest(t, r)
 					w.WriteHeader(http.StatusAccepted)
 				}),
 				Logger: log.NewNopLogger(),
 			}
-			ctx = NewContext(ctx, &tc.viewer)
+			ctx = viewer.NewContext(ctx, &tc.viewer)
 			req := httptest.NewRequest(http.MethodPost, "/", nil)
 			req = req.WithContext(ctx)
 			rec := httptest.NewRecorder()
@@ -343,7 +362,7 @@ func TestUserHandler(t *testing.T) {
 func TestViewerMarshalLog(t *testing.T) {
 	core, o := observer.New(zap.InfoLevel)
 	logger := zap.New(core)
-	v := &Viewer{Tenant: "test", User: "tester"}
+	v := &viewer.Viewer{Tenant: "test", User: "tester"}
 	logger.Info("viewer log test", zap.Object("viewer", v))
 
 	logs := o.TakeAll()
@@ -363,7 +382,7 @@ func (te *testExporter) ExportSpan(s *trace.SpanData) {
 }
 
 func TestViewerSpanAttributes(t *testing.T) {
-	h := TenancyHandler(
+	h := viewer.TenancyHandler(
 		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 			w.WriteHeader(http.StatusAccepted)
 		}),
@@ -389,15 +408,15 @@ func TestViewerSpanAttributes(t *testing.T) {
 		defer span.End()
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil).WithContext(ctx)
-		req.Header.Set(TenantHeader, "test")
-		req.Header.Set(UserHeader, "test")
+		req.Header.Set(viewer.TenantHeader, "test")
+		req.Header.Set(viewer.UserHeader, "test")
 		rec := httptest.NewRecorder()
 		h.ServeHTTP(rec, req)
 		assert.Equal(t, http.StatusAccepted, rec.Code)
 	})
 	t.Run("WithoutSpan", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
-		req.Header.Set(TenantHeader, "test")
+		req.Header.Set(viewer.TenantHeader, "test")
 		rec := httptest.NewRecorder()
 		assert.NotPanics(t, func() { h.ServeHTTP(rec, req) })
 		assert.Equal(t, http.StatusAccepted, rec.Code)
@@ -407,8 +426,12 @@ func TestViewerSpanAttributes(t *testing.T) {
 func TestViewerTags(t *testing.T) {
 	measure := stats.Int64("", "", stats.UnitDimensionless)
 	v := &view.View{
-		Name:        "viewer/test_tags",
-		TagKeys:     []tag.Key{KeyTenant, KeyUser, KeyRole},
+		Name: "viewer/test_tags",
+		TagKeys: []tag.Key{
+			viewer.KeyTenant,
+			viewer.KeyUser,
+			viewer.KeyRole,
+		},
 		Measure:     measure,
 		Aggregation: view.Count(),
 	}
@@ -417,11 +440,11 @@ func TestViewerTags(t *testing.T) {
 	defer view.Unregister(v)
 
 	req := httptest.NewRequest(http.MethodPost, "/", nil)
-	req.Header.Set(TenantHeader, "test-tenant")
-	req.Header.Set(UserHeader, "test-user")
-	req.Header.Set(RoleHeader, "readonly")
+	req.Header.Set(viewer.TenantHeader, "test-tenant")
+	req.Header.Set(viewer.UserHeader, "test-user")
+	req.Header.Set(viewer.RoleHeader, "readonly")
 	rec := httptest.NewRecorder()
-	TenancyHandler(
+	viewer.TenancyHandler(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			err := stats.RecordWithTags(r.Context(), nil, measure.M(1))
 			require.NoError(t, err)
@@ -445,29 +468,29 @@ func TestViewerTags(t *testing.T) {
 			return false
 		}
 	}
-	assert.Condition(t, hasTag(KeyTenant, "test-tenant"))
-	assert.Condition(t, hasTag(KeyUser, "test-user"))
-	assert.Condition(t, hasTag(KeyRole, "readonly"))
+	assert.Condition(t, hasTag(viewer.KeyTenant, "test-tenant"))
+	assert.Condition(t, hasTag(viewer.KeyUser, "test-user"))
+	assert.Condition(t, hasTag(viewer.KeyRole, "readonly"))
 }
 
 func TestViewerTenancy(t *testing.T) {
 	t.Run("WithTenancy", func(t *testing.T) {
 		var client ent.Client
-		h := TenancyHandler(
+		h := viewer.TenancyHandler(
 			http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				assert.True(t, &client == ent.FromContext(r.Context()))
 				w.WriteHeader(http.StatusAccepted)
 			}),
-			NewFixedTenancy(&client),
+			viewer.NewFixedTenancy(&client),
 		)
 		req := httptest.NewRequest(http.MethodPost, "/", nil)
-		req.Header.Set(TenantHeader, "test")
+		req.Header.Set(viewer.TenantHeader, "test")
 		rec := httptest.NewRecorder()
 		h.ServeHTTP(rec, req)
 		assert.Equal(t, http.StatusAccepted, rec.Code)
 	})
 	t.Run("WithoutTenancy", func(t *testing.T) {
-		h := TenancyHandler(
+		h := viewer.TenancyHandler(
 			http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				assert.Nil(t, ent.FromContext(r.Context()))
 				w.WriteHeader(http.StatusAccepted)
@@ -475,26 +498,26 @@ func TestViewerTenancy(t *testing.T) {
 			nil,
 		)
 		req := httptest.NewRequest(http.MethodPost, "/", nil)
-		req.Header.Set(TenantHeader, "test")
+		req.Header.Set(viewer.TenantHeader, "test")
 		rec := httptest.NewRecorder()
 		h.ServeHTTP(rec, req)
 		assert.Equal(t, http.StatusAccepted, rec.Code)
 	})
 	t.Run("WithFeatures", func(t *testing.T) {
-		h := TenancyHandler(
+		h := viewer.TenancyHandler(
 			http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				viewer := FromContext(r.Context())
-				assert.True(t, viewer.Features.Enabled("feature1"))
-				assert.True(t, viewer.Features.Enabled("feature2"))
-				assert.False(t, viewer.Features.Enabled("feature3"))
-				assert.Equal(t, "feature1,feature2", viewer.Features.String())
+				v := viewer.FromContext(r.Context())
+				assert.True(t, v.Features.Enabled("feature1"))
+				assert.True(t, v.Features.Enabled("feature2"))
+				assert.False(t, v.Features.Enabled("feature3"))
+				assert.Equal(t, "feature1,feature2", v.Features.String())
 				w.WriteHeader(http.StatusAccepted)
 			}),
 			nil,
 		)
 		req := httptest.NewRequest(http.MethodPost, "/", nil)
-		req.Header.Set(TenantHeader, "test")
-		req.Header.Set(FeaturesHeader, "feature1,feature2")
+		req.Header.Set(viewer.TenantHeader, "test")
+		req.Header.Set(viewer.FeaturesHeader, "feature1,feature2")
 		rec := httptest.NewRecorder()
 		h.ServeHTTP(rec, req)
 		assert.Equal(t, http.StatusAccepted, rec.Code)
