@@ -1,7 +1,7 @@
-From 661a46f013063941b7a90804387e0680b65bdc0d Mon Sep 17 00:00:00 2001
+From 673cae6c50266822b87bd68ae27265f3819dfeb4 Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Mon, 24 Feb 2020 04:45:17 +0000
-Subject: [PATCH 2/2] datapath: add vport-gtp for GPRS Tunneling Protocol
+Subject: [PATCH 2/8] datapath: add vport-gtp for GPRS Tunneling Protocol
 
 Add vport-gtp which uses gtp_create_flow_based_dev exported by the Linux GTP
 module to create a flow based net_device
