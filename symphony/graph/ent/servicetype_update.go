@@ -54,6 +54,20 @@ func (stu *ServiceTypeUpdate) SetNillableHasCustomer(b *bool) *ServiceTypeUpdate
 	return stu
 }
 
+// SetIsDeleted sets the is_deleted field.
+func (stu *ServiceTypeUpdate) SetIsDeleted(b bool) *ServiceTypeUpdate {
+	stu.mutation.SetIsDeleted(b)
+	return stu
+}
+
+// SetNillableIsDeleted sets the is_deleted field if the given value is not nil.
+func (stu *ServiceTypeUpdate) SetNillableIsDeleted(b *bool) *ServiceTypeUpdate {
+	if b != nil {
+		stu.SetIsDeleted(*b)
+	}
+	return stu
+}
+
 // AddServiceIDs adds the services edge to Service by ids.
 func (stu *ServiceTypeUpdate) AddServiceIDs(ids ...int) *ServiceTypeUpdate {
 	stu.mutation.AddServiceIDs(ids...)
@@ -238,6 +252,13 @@ func (stu *ServiceTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: servicetype.FieldHasCustomer,
 		})
 	}
+	if value, ok := stu.mutation.IsDeleted(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Value:  value,
+			Column: servicetype.FieldIsDeleted,
+		})
+	}
 	if nodes := stu.mutation.RemovedServicesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -386,6 +407,20 @@ func (stuo *ServiceTypeUpdateOne) SetHasCustomer(b bool) *ServiceTypeUpdateOne {
 func (stuo *ServiceTypeUpdateOne) SetNillableHasCustomer(b *bool) *ServiceTypeUpdateOne {
 	if b != nil {
 		stuo.SetHasCustomer(*b)
+	}
+	return stuo
+}
+
+// SetIsDeleted sets the is_deleted field.
+func (stuo *ServiceTypeUpdateOne) SetIsDeleted(b bool) *ServiceTypeUpdateOne {
+	stuo.mutation.SetIsDeleted(b)
+	return stuo
+}
+
+// SetNillableIsDeleted sets the is_deleted field if the given value is not nil.
+func (stuo *ServiceTypeUpdateOne) SetNillableIsDeleted(b *bool) *ServiceTypeUpdateOne {
+	if b != nil {
+		stuo.SetIsDeleted(*b)
 	}
 	return stuo
 }
@@ -570,6 +605,13 @@ func (stuo *ServiceTypeUpdateOne) sqlSave(ctx context.Context) (st *ServiceType,
 			Type:   field.TypeBool,
 			Value:  value,
 			Column: servicetype.FieldHasCustomer,
+		})
+	}
+	if value, ok := stuo.mutation.IsDeleted(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Value:  value,
+			Column: servicetype.FieldIsDeleted,
 		})
 	}
 	if nodes := stuo.mutation.RemovedServicesIDs(); len(nodes) > 0 {

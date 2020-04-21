@@ -21406,6 +21406,7 @@ type ServiceTypeMutation struct {
 	update_time                 *time.Time
 	name                        *string
 	has_customer                *bool
+	is_deleted                  *bool
 	clearedFields               map[string]struct{}
 	services                    map[int]struct{}
 	removedservices             map[int]struct{}
@@ -21529,6 +21530,25 @@ func (m *ServiceTypeMutation) HasCustomer() (r bool, exists bool) {
 // ResetHasCustomer reset all changes of the has_customer field.
 func (m *ServiceTypeMutation) ResetHasCustomer() {
 	m.has_customer = nil
+}
+
+// SetIsDeleted sets the is_deleted field.
+func (m *ServiceTypeMutation) SetIsDeleted(b bool) {
+	m.is_deleted = &b
+}
+
+// IsDeleted returns the is_deleted value in the mutation.
+func (m *ServiceTypeMutation) IsDeleted() (r bool, exists bool) {
+	v := m.is_deleted
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetIsDeleted reset all changes of the is_deleted field.
+func (m *ServiceTypeMutation) ResetIsDeleted() {
+	m.is_deleted = nil
 }
 
 // AddServiceIDs adds the services edge to Service by ids.
@@ -21671,7 +21691,7 @@ func (m *ServiceTypeMutation) Type() string {
 // this mutation. Note that, in order to get all numeric
 // fields that were in/decremented, call AddedFields().
 func (m *ServiceTypeMutation) Fields() []string {
-	fields := make([]string, 0, 4)
+	fields := make([]string, 0, 5)
 	if m.create_time != nil {
 		fields = append(fields, servicetype.FieldCreateTime)
 	}
@@ -21683,6 +21703,9 @@ func (m *ServiceTypeMutation) Fields() []string {
 	}
 	if m.has_customer != nil {
 		fields = append(fields, servicetype.FieldHasCustomer)
+	}
+	if m.is_deleted != nil {
+		fields = append(fields, servicetype.FieldIsDeleted)
 	}
 	return fields
 }
@@ -21700,6 +21723,8 @@ func (m *ServiceTypeMutation) Field(name string) (ent.Value, bool) {
 		return m.Name()
 	case servicetype.FieldHasCustomer:
 		return m.HasCustomer()
+	case servicetype.FieldIsDeleted:
+		return m.IsDeleted()
 	}
 	return nil, false
 }
@@ -21736,6 +21761,13 @@ func (m *ServiceTypeMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetHasCustomer(v)
+		return nil
+	case servicetype.FieldIsDeleted:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsDeleted(v)
 		return nil
 	}
 	return fmt.Errorf("unknown ServiceType field %s", name)
@@ -21798,6 +21830,9 @@ func (m *ServiceTypeMutation) ResetField(name string) error {
 		return nil
 	case servicetype.FieldHasCustomer:
 		m.ResetHasCustomer()
+		return nil
+	case servicetype.FieldIsDeleted:
+		m.ResetIsDeleted()
 		return nil
 	}
 	return fmt.Errorf("unknown ServiceType field %s", name)

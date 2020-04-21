@@ -1172,6 +1172,7 @@ var (
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "name", Type: field.TypeString, Unique: true},
 		{Name: "has_customer", Type: field.TypeBool},
+		{Name: "is_deleted", Type: field.TypeBool},
 	}
 	// ServiceTypesTable holds the schema information for the "service_types" table.
 	ServiceTypesTable = &schema.Table{

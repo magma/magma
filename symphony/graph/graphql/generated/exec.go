@@ -6788,7 +6788,7 @@ type PermissionSettings {
 
 enum PermissionValue
   @goModel(
-  model: "github.com/facebookincubator/symphony/graph/authz/models.PermissionValue"
+    model: "github.com/facebookincubator/symphony/graph/authz/models.PermissionValue"
   ) {
   YES
   NO

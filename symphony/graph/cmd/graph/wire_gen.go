@@ -25,6 +25,7 @@ import (
 )
 
 import (
+	_ "github.com/facebookincubator/symphony/graph/ent/runtime"
 	_ "github.com/go-sql-driver/mysql"
 	_ "gocloud.dev/pubsub/mempubsub"
 	_ "gocloud.dev/pubsub/natspubsub"
