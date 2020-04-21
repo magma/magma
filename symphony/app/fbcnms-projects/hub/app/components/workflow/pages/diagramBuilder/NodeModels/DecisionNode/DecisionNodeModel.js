@@ -1,7 +1,7 @@
-import { NodeModel } from "storm-react-diagrams";
+import { NodeModel } from "@projectstorm/react-diagrams";
 import * as _ from "lodash";
-import { DefaultPortModel } from "storm-react-diagrams";
-import { DiagramEngine } from "storm-react-diagrams";
+import { DefaultPortModel } from "@projectstorm/react-diagrams";
+import { DiagramEngine } from "@projectstorm/react-diagrams";
 import { DecisionNodePortModel } from "./DecisionNodePortModel";
 
 export class DecisionNodeModel extends NodeModel {

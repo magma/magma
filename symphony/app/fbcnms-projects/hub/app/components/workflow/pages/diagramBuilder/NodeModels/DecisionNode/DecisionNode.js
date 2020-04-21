@@ -1,5 +1,5 @@
 import * as React from "react";
-import { PortWidget } from "storm-react-diagrams";
+import { PortWidget } from "@projectstorm/react-diagrams";
 
 export class DecisionNode extends React.Component {
   constructor(props) {
@@ -25,7 +25,7 @@ export class DecisionNode extends React.Component {
           style={{ position: "absolute" }}
           dangerouslySetInnerHTML={{
             __html: `
-    
+
                 <text x="30" y="55" fill="white" font-size="13px" >decide</text>
                 <text x="0" y="10" fill="lightblue" font-size="13px" >if ${this
                   .props.node.extras.inputs.caseValueParam +

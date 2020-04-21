@@ -1,4 +1,4 @@
-import * as SRD from "storm-react-diagrams";
+import * as SRD from "@projectstorm/react-diagrams";
 import * as React from "react";
 import { DecisionNode } from "./DecisionNode";
 import { DecisionNodeModel } from "./DecisionNodeModel";

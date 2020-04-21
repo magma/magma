@@ -1,4 +1,4 @@
-import * as SRD from "storm-react-diagrams";
+import * as SRD from "@projectstorm/react-diagrams";
 import { SimplePortFactory } from "./NodeModels/SimplePortFactory";
 import { CircleStartPortModel } from "./NodeModels/StartNode/CircleStartPortModel";
 import { CircleStartNodeFactory } from "./NodeModels/StartNode/CircleStartNodeFactory";
@@ -11,9 +11,9 @@ import { JoinNodeFactory } from "./NodeModels/JoinNode/JoinNodeFactory";
 import { DecisionNodePortModel } from "./NodeModels/DecisionNode/DecisionNodePortModel";
 import { DecisionNodeFactory } from "./NodeModels/DecisionNode/DecisionNodeFactory";
 
-import { DefaultNodeFactory } from "storm-react-diagrams";
-import { DefaultLinkFactory } from "storm-react-diagrams";
-import { DefaultLabelFactory } from "storm-react-diagrams";
+import { DefaultNodeFactory } from "@projectstorm/react-diagrams";
+import { DefaultLinkFactory } from "@projectstorm/react-diagrams";
+import { DefaultLabelFactory } from "@projectstorm/react-diagrams";
 import { DefaultPortModel } from "./NodeModels/DefaultNodeModel/DefaultPortModel";
 
 export class Application {

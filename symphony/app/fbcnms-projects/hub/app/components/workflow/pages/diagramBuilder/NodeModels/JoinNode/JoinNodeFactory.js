@@ -1,4 +1,4 @@
-import * as SRD from "storm-react-diagrams";
+import * as SRD from "@projectstorm/react-diagrams";
 import { JoinNode } from "./JoinNode";
 import { JoinNodeModel } from "./JoinNodeModel";
 import * as React from "react";

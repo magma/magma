@@ -1,5 +1,5 @@
 import * as React from "react";
-import { PortWidget } from "storm-react-diagrams";
+import { PortWidget } from "@projectstorm/react-diagrams";
 
 export class JoinNode extends React.Component {
   constructor(props) {
@@ -26,7 +26,7 @@ export class JoinNode extends React.Component {
             __html: `
           <g id="Layer_1">
           </g>
-          <g id="Layer_2">                                                                  
+          <g id="Layer_2">
            <polygon fill="${this.props.node.color}" points="50 15,15 15,15 65,50 65,65 40"/>
                 <text x="26" y="45" fill="white" font-size="13px" >join</text>
           </g>

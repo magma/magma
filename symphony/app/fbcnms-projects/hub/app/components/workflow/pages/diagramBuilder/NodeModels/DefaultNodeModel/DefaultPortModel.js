@@ -1,8 +1,8 @@
 import * as _ from "lodash";
-import { PortModel } from "storm-react-diagrams";
-import { DiagramEngine } from "storm-react-diagrams";
-import { DefaultLinkModel } from "storm-react-diagrams";
-import { LinkModel } from "storm-react-diagrams";
+import { PortModel } from "@projectstorm/react-diagrams";
+import { DiagramEngine } from "@projectstorm/react-diagrams";
+import { DefaultLinkModel } from "@projectstorm/react-diagrams";
+import { LinkModel } from "@projectstorm/react-diagrams";
 
 export class DefaultPortModel extends PortModel {
   in: boolean;

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { PortWidget } from "storm-react-diagrams";
+import { PortWidget } from "@projectstorm/react-diagrams";
 
 export class CircleNodeStart extends React.Component {
   constructor(props) {

@@ -4,7 +4,7 @@ import {
   DiagramEngine,
   DefaultLinkModel,
   PortModel
-} from "storm-react-diagrams";
+} from "@projectstorm/react-diagrams";
 
 export class CircleStartPortModel extends PortModel {
   position: string | "top" | "bottom" | "left" | "right";

@@ -5,7 +5,7 @@ import { Button, Modal } from "react-bootstrap";
 import { HotKeys } from "react-hotkeys";
 import { connect } from "react-redux";
 import "semantic-ui-css/semantic.min.css";
-import { DiagramWidget, Toolkit } from "storm-react-diagrams";
+import { DiagramWidget, Toolkit } from "@projectstorm/react-diagrams";
 import * as builderActions from "../../store/actions/builder";
 import InputModal from "../workflowList/WorkflowDefs/InputModal/InputModal";
 import DetailsModal from "../workflowList/WorkflowExec/DetailsModal/DetailsModal";
@@ -22,6 +22,7 @@ import WorkflowDefModal from "./WorkflowDefModal/WorkflowDefModal";
 import { WorkflowDiagram } from "./WorkflowDiagram";
 import { HttpClient as http } from "../../common/HttpClient";
 import { conductorApiUrlPrefix, frontendUrlPrefix } from "../../constants";
+import closest from "closest";
 
 class DiagramBuilder extends Component {
   constructor(props) {
@@ -145,7 +146,7 @@ class DiagramBuilder extends Component {
 
   doubleClickListener(event) {
     let diagramModel = this.state.workflowDiagram.getDiagramModel();
-    let element = Toolkit.closest(event.target, ".node[data-nodeid]");
+    let element = closest(event.target, ".node[data-nodeid]");
     let node = null;
 
     if (element) {

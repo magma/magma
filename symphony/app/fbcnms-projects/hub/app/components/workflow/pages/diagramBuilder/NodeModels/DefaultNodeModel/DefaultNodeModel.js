@@ -1,4 +1,4 @@
-import { NodeModel, DiagramEngine, Toolkit } from "storm-react-diagrams";
+import { NodeModel, DiagramEngine, Toolkit } from "@projectstorm/react-diagrams";
 import * as _ from "lodash";
 import { DefaultPortModel } from "./DefaultPortModel";
 

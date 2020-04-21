@@ -4,7 +4,7 @@ import {
   DiagramEngine,
   PortModel,
   DefaultLinkModel
-} from "storm-react-diagrams";
+} from "@projectstorm/react-diagrams";
 
 export class JoinNodePortModel extends PortModel {
   position: string | "top" | "bottom" | "left" | "right";

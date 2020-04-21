@@ -1,7 +1,7 @@
-import { NodeModel } from "storm-react-diagrams";
+import { NodeModel } from "@projectstorm/react-diagrams";
 import { CircleEndPortModel } from "./CircleEndPortModel";
 import * as _ from "lodash";
-import { DiagramEngine } from "storm-react-diagrams";
+import { DiagramEngine } from "@projectstorm/react-diagrams";
 
 export class CircleEndNodeModel extends NodeModel {
   name: string;
