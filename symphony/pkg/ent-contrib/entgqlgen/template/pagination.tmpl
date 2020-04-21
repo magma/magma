@@ -153,7 +153,7 @@ func ({{ $receiver }} *{{ $query }}) Paginate(ctx context.Context, after *Cursor
 {{ if hasTemplate "collection" -}}
 func ({{ $receiver }} *{{ $query }}) collectConnectionFields(ctx context.Context) *{{ $query }} {
 	if field := fieldForPath(ctx, "edges", "node"); field != nil {
-		{{ $receiver }} = {{ $receiver }}.collectField(graphql.GetRequestContext(ctx), *field)
+		{{ $receiver }} = {{ $receiver }}.collectField(graphql.GetOperationContext(ctx), *field)
 	}
 	return {{ $receiver }}
 }
@@ -162,16 +162,16 @@ func ({{ $receiver }} *{{ $query }}) collectConnectionFields(ctx context.Context
 
 {{ if hasTemplate "collection" -}}
 func fieldForPath(ctx context.Context, path ...string) *graphql.CollectedField {
-	resctx := graphql.GetResolverContext(ctx)
-	if resctx == nil {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
 		return nil
 	}
-	reqctx := graphql.GetRequestContext(ctx)
-	field := resctx.Field
+	oc := graphql.GetOperationContext(ctx)
+	field := fc.Field
 
 walk:
 	for _, name := range path {
-		for _, f := range graphql.CollectFields(reqctx, field.Selections, nil) {
+		for _, f := range graphql.CollectFields(oc, field.Selections, nil) {
 			if f.Name == name {
 				field = f
 				continue walk

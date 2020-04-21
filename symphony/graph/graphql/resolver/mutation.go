@@ -43,7 +43,7 @@ import (
 	"github.com/facebookincubator/symphony/pkg/actions/core"
 
 	"github.com/pkg/errors"
-	"github.com/vektah/gqlparser/gqlerror"
+	"github.com/vektah/gqlparser/v2/gqlerror"
 	"go.uber.org/zap"
 )
 

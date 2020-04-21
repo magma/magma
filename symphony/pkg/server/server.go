@@ -174,13 +174,7 @@ func (srv *Server) ListenAndServe(addr string) error {
 			h.ServeHTTP(w, r)
 		})
 	}(h)
-	h = &ochttp.Handler{
-		Handler: h,
-		FormatSpanName: func(r *http.Request) string {
-			return r.URL.Host + r.URL.Path
-		},
-	}
-
+	h = &ochttp.Handler{Handler: h}
 	mux.Handle("/", h)
 	return srv.driver.ListenAndServe(addr, mux)
 }

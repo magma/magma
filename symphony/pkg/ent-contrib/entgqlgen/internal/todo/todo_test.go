@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/99designs/gqlgen/client"
-	"github.com/99designs/gqlgen/handler"
+	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/AlekSi/pointer"
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/symphony/pkg/ent-contrib/entgqlgen/internal/todo/ent"
@@ -53,9 +53,11 @@ func (s *todoTestSuite) SetupTest() {
 		enttest.WithOptions(ent.Driver(sql.OpenDB(name, db))),
 		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
 	)
-	s.Client = client.New(handler.GraphQL(
-		NewExecutableSchema(New(ec)),
-	))
+	s.Client = client.New(
+		handler.NewDefaultServer(
+			NewExecutableSchema(New(ec)),
+		),
+	)
 
 	var (
 		rsp struct {

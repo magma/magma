@@ -21,15 +21,11 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/equipmentpositiondefinition"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
-	"github.com/facebookincubator/symphony/graph/graphql/directive"
-	"github.com/facebookincubator/symphony/graph/graphql/generated"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
-	"github.com/facebookincubator/symphony/pkg/log/logtest"
 	"github.com/facebookincubator/symphony/pkg/orc8r"
 
 	"github.com/99designs/gqlgen/client"
-	"github.com/99designs/gqlgen/handler"
 	"github.com/AlekSi/pointer"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -268,21 +264,7 @@ func TestOrc8rStatusEquipment(t *testing.T) {
 	})
 	require.Error(t, err)
 
-	c := client.New(handler.GraphQL(
-		generated.NewExecutableSchema(
-			generated.Config{
-				Resolvers:  r,
-				Directives: directive.New(logtest.NewTestLogger(t)),
-			},
-		),
-		handler.RequestMiddleware(
-			func(ctx context.Context, next func(context.Context) []byte) []byte {
-				ctx = ent.NewContext(ctx, r.client)
-				return next(ctx)
-			},
-		),
-	))
-
+	c := newGraphClient(t, r)
 	const query = `query($id: ID!) {
 		equipment: node(id: $id) {
 			... on Equipment {

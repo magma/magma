@@ -29,9 +29,6 @@ func New(cfg config.PackageConfig) plugin.Plugin {
 	if cfg.Filename == "" {
 		cfg.Filename = "tx_generated.go"
 	}
-	if cfg.Type == "" {
-		cfg.Type = "txResolver"
-	}
 	return txgen{cfg}
 }
 
@@ -63,7 +60,7 @@ func (t txgen) GenerateCode(data *codegen.Data) error {
 		Filename:    filepath.Join(t.Package, t.Filename),
 		Data: &txgenData{
 			Object: mutation,
-			Type:   t.Type,
+			Type:   "txResolver",
 		},
 		Funcs: ttemplates.FuncMap{
 			"ResultType": func(f *codegen.Field) string {
@@ -85,6 +82,7 @@ func (t txgen) GenerateCode(data *codegen.Data) error {
 			},
 		},
 		GeneratedHeader: true,
+		Packages:        data.Config.Packages,
 	})
 }
 

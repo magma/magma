@@ -604,6 +604,10 @@ func init() {
 	servicetypeDescHasCustomer := servicetypeFields[1].Descriptor()
 	// servicetype.DefaultHasCustomer holds the default value on creation for the has_customer field.
 	servicetype.DefaultHasCustomer = servicetypeDescHasCustomer.Default.(bool)
+	// servicetypeDescIsDeleted is the schema descriptor for is_deleted field.
+	servicetypeDescIsDeleted := servicetypeFields[2].Descriptor()
+	// servicetype.DefaultIsDeleted holds the default value on creation for the is_deleted field.
+	servicetype.DefaultIsDeleted = servicetypeDescIsDeleted.Default.(bool)
 	surveyMixin := schema.Survey{}.Mixin()
 	surveyMixinFields0 := surveyMixin[0].Fields()
 	surveyFields := schema.Survey{}.Fields()
