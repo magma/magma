@@ -25,6 +25,7 @@ secrets:
 secret:
   certs: orc8r-secrets-certs
   gwinfo: cwf-secrets-gwinfo
+#  dpi_licence: cwf-secrets-dpi
 
 ## Key Values for docker inside VM
 cwf:
@@ -43,8 +44,10 @@ cwf:
   repo:
     url: https://github.com/facebookincubator/magma.git
     branch: master
-#  env: |
-#    DPI_LICENSE_NAME=123
+#  dpi:
+#    dpi_license_name: cwf01.bin
+#  env:
+#    key=value
 
 ## Key Values for VM running using virtlet runtime
 image:

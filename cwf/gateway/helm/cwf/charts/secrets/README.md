@@ -8,9 +8,9 @@ with the same hwid and challenge key.
 
 ```bash
 # Copy secrets into subchart root
-$ mkdir charts/secrets/.secrets && \
-    cp -r <secrets>/* charts/secrets/.secrets/
-$ ls charts/secrets/.secrets
+$ mkdir charts/secrets/.secrets/gwinfo && \
+    cp -r <secrets>/* charts/secrets/.secrets/gwinfo/
+$ ls charts/secrets/.secrets/gwinfo/
 snowflake gw_challenge.key
 
 # Apply secrets
@@ -25,7 +25,7 @@ This chart installs a secret that serves as identifiers for the gateway.
 The secrets are expected to be provided as files and placed under
 secrets subchart root.
 ```bash
-$ ls charts/secrets/.secrets
+$ ls charts/secrets/.secrets/gwinfo/
 snowflake  gw_challenge.key
 $ pwd
 magma/cwf/gateway/helm/cwf
