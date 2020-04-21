@@ -7,5 +7,6 @@ package viewer
 // The following strings are features that can be allowed on for specific tenants\users
 // To query if feature is allowed use FeatureSet.Enabled
 const (
-	FeatureReadOnly = "read_only_users"
+	FeatureReadOnly          = "read_only_users"
+	FeatureUserManagementDev = "user_management_dev"
 )

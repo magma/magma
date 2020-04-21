@@ -7,8 +7,9 @@ package resolver
 import (
 	"context"
 
+	"github.com/facebookincubator/symphony/graph/authz"
+
 	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer"
 )
@@ -25,17 +26,24 @@ func (viewerResolver) Permissions(ctx context.Context, obj *viewer.Viewer) (*mod
 		return nil, err
 	}
 
-	adminPolicy := models.AdministrativePolicy{
-		CanRead: u.Role == user.RoleADMIN || u.Role == user.RoleOWNER,
-	}
 	readOnly, err := viewer.IsUserReadOnly(ctx, u)
 	if err != nil {
 		return nil, err
 	}
+	policiesEnabled := viewer.FromContext(ctx).Features.Enabled(viewer.FeatureUserManagementDev)
+	inventoryPolicy := authz.NewInventoryPolicy(true, !readOnly)
+	workforcePolicy := authz.NewWorkforcePolicy(true, !readOnly)
+	if policiesEnabled {
+		// Policies are not yet implemented
+		inventoryPolicy = authz.NewInventoryPolicy(false, false)
+		workforcePolicy = authz.NewWorkforcePolicy(false, false)
+	}
 	res := models.PermissionSettings{
 		// TODO(T64743627): Deprecate CanWrite field
-		CanWrite:    !readOnly,
-		AdminPolicy: &adminPolicy,
+		CanWrite:            !readOnly,
+		AdminPolicy:         authz.NewAdministrativePolicy(u),
+		InventoryPolicy:     inventoryPolicy,
+		WorkforcePermission: workforcePolicy,
 	}
 	return &res, nil
 }

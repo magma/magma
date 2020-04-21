@@ -7,6 +7,8 @@ package resolver
 import (
 	"testing"
 
+	"github.com/facebookincubator/symphony/graph/graphql/models"
+
 	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
@@ -21,7 +23,7 @@ func TestUserOwner(t *testing.T) {
 
 	permissions, err := vr.Permissions(ctx, nil)
 	require.NoError(t, err)
-	require.Equal(t, false, permissions.AdminPolicy.CanRead)
+	require.Equal(t, &models.BasicPermissionRule{IsAllowed: models.PermissionValueNo}, permissions.AdminPolicy.Access)
 	require.Equal(t, false, permissions.CanWrite)
 }
 
@@ -39,7 +41,7 @@ func TestUserOwnerInWriteGroup(t *testing.T) {
 	require.NoError(t, err)
 	permissions, err := vr.Permissions(ctx, nil)
 	require.NoError(t, err)
-	require.Equal(t, false, permissions.AdminPolicy.CanRead)
+	require.Equal(t, &models.BasicPermissionRule{IsAllowed: models.PermissionValueNo}, permissions.AdminPolicy.Access)
 	require.Equal(t, true, permissions.CanWrite)
 }
 
@@ -55,7 +57,7 @@ func TestAdminViewer(t *testing.T) {
 	require.NoError(t, err)
 	permissions, err := vr.Permissions(ctx, nil)
 	require.NoError(t, err)
-	require.Equal(t, true, permissions.AdminPolicy.CanRead)
+	require.Equal(t, &models.BasicPermissionRule{IsAllowed: models.PermissionValueYes}, permissions.AdminPolicy.Access)
 	require.Equal(t, false, permissions.CanWrite)
 }
 
@@ -71,6 +73,6 @@ func TestOwnerViewer(t *testing.T) {
 	require.NoError(t, err)
 	permissions, err := vr.Permissions(ctx, nil)
 	require.NoError(t, err)
-	require.Equal(t, true, permissions.AdminPolicy.CanRead)
+	require.Equal(t, &models.BasicPermissionRule{IsAllowed: models.PermissionValueYes}, permissions.AdminPolicy.Access)
 	require.Equal(t, true, permissions.CanWrite)
 }

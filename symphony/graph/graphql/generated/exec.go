@@ -162,7 +162,17 @@ type ComplexityRoot struct {
 	}
 
 	AdministrativePolicy struct {
-		CanRead func(childComplexity int) int
+		Access func(childComplexity int) int
+	}
+
+	BasicPermissionRule struct {
+		IsAllowed func(childComplexity int) int
+	}
+
+	Cud struct {
+		Create func(childComplexity int) int
+		Delete func(childComplexity int) int
+		Update func(childComplexity int) int
 	}
 
 	CheckListCategory struct {
@@ -403,6 +413,16 @@ type ComplexityRoot struct {
 		URL        func(childComplexity int) int
 	}
 
+	InventoryPolicy struct {
+		Equipment     func(childComplexity int) int
+		EquipmentType func(childComplexity int) int
+		Location      func(childComplexity int) int
+		LocationType  func(childComplexity int) int
+		PortType      func(childComplexity int) int
+		Read          func(childComplexity int) int
+		ServiceType   func(childComplexity int) int
+	}
+
 	LatestPythonPackageResult struct {
 		LastBreakingPythonPackage func(childComplexity int) int
 		LastPythonPackage         func(childComplexity int) int
@@ -578,8 +598,10 @@ type ComplexityRoot struct {
 	}
 
 	PermissionSettings struct {
-		AdminPolicy func(childComplexity int) int
-		CanWrite    func(childComplexity int) int
+		AdminPolicy         func(childComplexity int) int
+		CanWrite            func(childComplexity int) int
+		InventoryPolicy     func(childComplexity int) int
+		WorkforcePermission func(childComplexity int) int
 	}
 
 	PortSearchResult struct {
@@ -1036,6 +1058,20 @@ type ComplexityRoot struct {
 	WorkOrderTypeEdge struct {
 		Cursor func(childComplexity int) int
 		Node   func(childComplexity int) int
+	}
+
+	WorkforceCud struct {
+		Assign            func(childComplexity int) int
+		Create            func(childComplexity int) int
+		Delete            func(childComplexity int) int
+		TransferOwnership func(childComplexity int) int
+		Update            func(childComplexity int) int
+	}
+
+	WorkforcePolicy struct {
+		Data      func(childComplexity int) int
+		Read      func(childComplexity int) int
+		Templates func(childComplexity int) int
 	}
 }
 
@@ -1644,12 +1680,40 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ActionsTriggersSearchResult.Results(childComplexity), true
 
-	case "AdministrativePolicy.canRead":
-		if e.complexity.AdministrativePolicy.CanRead == nil {
+	case "AdministrativePolicy.access":
+		if e.complexity.AdministrativePolicy.Access == nil {
 			break
 		}
 
-		return e.complexity.AdministrativePolicy.CanRead(childComplexity), true
+		return e.complexity.AdministrativePolicy.Access(childComplexity), true
+
+	case "BasicPermissionRule.isAllowed":
+		if e.complexity.BasicPermissionRule.IsAllowed == nil {
+			break
+		}
+
+		return e.complexity.BasicPermissionRule.IsAllowed(childComplexity), true
+
+	case "CUD.create":
+		if e.complexity.Cud.Create == nil {
+			break
+		}
+
+		return e.complexity.Cud.Create(childComplexity), true
+
+	case "CUD.delete":
+		if e.complexity.Cud.Delete == nil {
+			break
+		}
+
+		return e.complexity.Cud.Delete(childComplexity), true
+
+	case "CUD.update":
+		if e.complexity.Cud.Update == nil {
+			break
+		}
+
+		return e.complexity.Cud.Update(childComplexity), true
 
 	case "CheckListCategory.checkList":
 		if e.complexity.CheckListCategory.CheckList == nil {
@@ -2691,6 +2755,55 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Hyperlink.URL(childComplexity), true
+
+	case "InventoryPolicy.equipment":
+		if e.complexity.InventoryPolicy.Equipment == nil {
+			break
+		}
+
+		return e.complexity.InventoryPolicy.Equipment(childComplexity), true
+
+	case "InventoryPolicy.equipmentType":
+		if e.complexity.InventoryPolicy.EquipmentType == nil {
+			break
+		}
+
+		return e.complexity.InventoryPolicy.EquipmentType(childComplexity), true
+
+	case "InventoryPolicy.location":
+		if e.complexity.InventoryPolicy.Location == nil {
+			break
+		}
+
+		return e.complexity.InventoryPolicy.Location(childComplexity), true
+
+	case "InventoryPolicy.locationType":
+		if e.complexity.InventoryPolicy.LocationType == nil {
+			break
+		}
+
+		return e.complexity.InventoryPolicy.LocationType(childComplexity), true
+
+	case "InventoryPolicy.portType":
+		if e.complexity.InventoryPolicy.PortType == nil {
+			break
+		}
+
+		return e.complexity.InventoryPolicy.PortType(childComplexity), true
+
+	case "InventoryPolicy.read":
+		if e.complexity.InventoryPolicy.Read == nil {
+			break
+		}
+
+		return e.complexity.InventoryPolicy.Read(childComplexity), true
+
+	case "InventoryPolicy.serviceType":
+		if e.complexity.InventoryPolicy.ServiceType == nil {
+			break
+		}
+
+		return e.complexity.InventoryPolicy.ServiceType(childComplexity), true
 
 	case "LatestPythonPackageResult.lastBreakingPythonPackage":
 		if e.complexity.LatestPythonPackageResult.LastBreakingPythonPackage == nil {
@@ -4050,6 +4163,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.PermissionSettings.CanWrite(childComplexity), true
+
+	case "PermissionSettings.inventoryPolicy":
+		if e.complexity.PermissionSettings.InventoryPolicy == nil {
+			break
+		}
+
+		return e.complexity.PermissionSettings.InventoryPolicy(childComplexity), true
+
+	case "PermissionSettings.workforcePermission":
+		if e.complexity.PermissionSettings.WorkforcePermission == nil {
+			break
+		}
+
+		return e.complexity.PermissionSettings.WorkforcePermission(childComplexity), true
 
 	case "PortSearchResult.count":
 		if e.complexity.PortSearchResult.Count == nil {
@@ -6359,6 +6486,62 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.WorkOrderTypeEdge.Node(childComplexity), true
 
+	case "WorkforceCUD.assign":
+		if e.complexity.WorkforceCud.Assign == nil {
+			break
+		}
+
+		return e.complexity.WorkforceCud.Assign(childComplexity), true
+
+	case "WorkforceCUD.create":
+		if e.complexity.WorkforceCud.Create == nil {
+			break
+		}
+
+		return e.complexity.WorkforceCud.Create(childComplexity), true
+
+	case "WorkforceCUD.delete":
+		if e.complexity.WorkforceCud.Delete == nil {
+			break
+		}
+
+		return e.complexity.WorkforceCud.Delete(childComplexity), true
+
+	case "WorkforceCUD.transferOwnership":
+		if e.complexity.WorkforceCud.TransferOwnership == nil {
+			break
+		}
+
+		return e.complexity.WorkforceCud.TransferOwnership(childComplexity), true
+
+	case "WorkforceCUD.update":
+		if e.complexity.WorkforceCud.Update == nil {
+			break
+		}
+
+		return e.complexity.WorkforceCud.Update(childComplexity), true
+
+	case "WorkforcePolicy.data":
+		if e.complexity.WorkforcePolicy.Data == nil {
+			break
+		}
+
+		return e.complexity.WorkforcePolicy.Data(childComplexity), true
+
+	case "WorkforcePolicy.read":
+		if e.complexity.WorkforcePolicy.Read == nil {
+			break
+		}
+
+		return e.complexity.WorkforcePolicy.Read(childComplexity), true
+
+	case "WorkforcePolicy.templates":
+		if e.complexity.WorkforcePolicy.Templates == nil {
+			break
+		}
+
+		return e.complexity.WorkforcePolicy.Templates(childComplexity), true
+
 	}
 	return 0, false
 }
@@ -6515,13 +6698,55 @@ type UsersGroup implements Node {
   members: [User!]!
 }
 
-type AdministrativePolicy {
-  canRead: Boolean!
-}
-
 type PermissionSettings {
   canWrite: Boolean!
   adminPolicy: AdministrativePolicy!
+  inventoryPolicy: InventoryPolicy!
+  workforcePermission: WorkforcePolicy!
+}
+
+enum PermissionValue {
+  YES
+  NO
+  BY_CONDITION
+}
+
+type BasicPermissionRule {
+  isAllowed: PermissionValue!
+}
+
+type CUD {
+  create: BasicPermissionRule!
+  update: BasicPermissionRule!
+  delete: BasicPermissionRule!
+}
+
+type AdministrativePolicy {
+  access: BasicPermissionRule!
+}
+
+type InventoryPolicy {
+  read: BasicPermissionRule!
+  location: CUD!
+  equipment: CUD!
+  equipmentType: CUD!
+  locationType: CUD!
+  portType: CUD!
+  serviceType: CUD!
+}
+
+type WorkforceCUD {
+  create: BasicPermissionRule
+  update: BasicPermissionRule
+  delete: BasicPermissionRule
+  assign: BasicPermissionRule
+  transferOwnership: BasicPermissionRule
+}
+
+type WorkforcePolicy {
+  read: BasicPermissionRule!
+  data: WorkforceCUD!
+  templates: CUD!
 }
 
 type Viewer
@@ -12443,7 +12668,7 @@ func (ec *executionContext) _ActionsTriggersSearchResult_count(ctx context.Conte
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _AdministrativePolicy_canRead(ctx context.Context, field graphql.CollectedField, obj *models.AdministrativePolicy) (ret graphql.Marshaler) {
+func (ec *executionContext) _AdministrativePolicy_access(ctx context.Context, field graphql.CollectedField, obj *models.AdministrativePolicy) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -12462,7 +12687,7 @@ func (ec *executionContext) _AdministrativePolicy_canRead(ctx context.Context, f
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.CanRead, nil
+		return obj.Access, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -12474,10 +12699,158 @@ func (ec *executionContext) _AdministrativePolicy_canRead(ctx context.Context, f
 		}
 		return graphql.Null
 	}
-	res := resTmp.(bool)
+	res := resTmp.(*models.BasicPermissionRule)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+	return ec.marshalNBasicPermissionRule2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐBasicPermissionRule(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _BasicPermissionRule_isAllowed(ctx context.Context, field graphql.CollectedField, obj *models.BasicPermissionRule) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "BasicPermissionRule",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsAllowed, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(models.PermissionValue)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNPermissionValue2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPermissionValue(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CUD_create(ctx context.Context, field graphql.CollectedField, obj *models.Cud) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "CUD",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Create, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.BasicPermissionRule)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNBasicPermissionRule2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐBasicPermissionRule(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CUD_update(ctx context.Context, field graphql.CollectedField, obj *models.Cud) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "CUD",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Update, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.BasicPermissionRule)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNBasicPermissionRule2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐBasicPermissionRule(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CUD_delete(ctx context.Context, field graphql.CollectedField, obj *models.Cud) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "CUD",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Delete, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.BasicPermissionRule)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNBasicPermissionRule2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐBasicPermissionRule(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _CheckListCategory_id(ctx context.Context, field graphql.CollectedField, obj *ent.CheckListCategory) (ret graphql.Marshaler) {
@@ -17811,6 +18184,265 @@ func (ec *executionContext) _Hyperlink_createTime(ctx context.Context, field gra
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _InventoryPolicy_read(ctx context.Context, field graphql.CollectedField, obj *models.InventoryPolicy) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "InventoryPolicy",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Read, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.BasicPermissionRule)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNBasicPermissionRule2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐBasicPermissionRule(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _InventoryPolicy_location(ctx context.Context, field graphql.CollectedField, obj *models.InventoryPolicy) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "InventoryPolicy",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Location, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.Cud)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNCUD2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCud(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _InventoryPolicy_equipment(ctx context.Context, field graphql.CollectedField, obj *models.InventoryPolicy) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "InventoryPolicy",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Equipment, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.Cud)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNCUD2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCud(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _InventoryPolicy_equipmentType(ctx context.Context, field graphql.CollectedField, obj *models.InventoryPolicy) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "InventoryPolicy",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EquipmentType, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.Cud)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNCUD2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCud(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _InventoryPolicy_locationType(ctx context.Context, field graphql.CollectedField, obj *models.InventoryPolicy) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "InventoryPolicy",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LocationType, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.Cud)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNCUD2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCud(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _InventoryPolicy_portType(ctx context.Context, field graphql.CollectedField, obj *models.InventoryPolicy) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "InventoryPolicy",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PortType, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.Cud)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNCUD2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCud(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _InventoryPolicy_serviceType(ctx context.Context, field graphql.CollectedField, obj *models.InventoryPolicy) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "InventoryPolicy",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ServiceType, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.Cud)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNCUD2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCud(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _LatestPythonPackageResult_lastPythonPackage(ctx context.Context, field graphql.CollectedField, obj *models.LatestPythonPackageResult) (ret graphql.Marshaler) {
@@ -23383,6 +24015,80 @@ func (ec *executionContext) _PermissionSettings_adminPolicy(ctx context.Context,
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNAdministrativePolicy2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐAdministrativePolicy(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PermissionSettings_inventoryPolicy(ctx context.Context, field graphql.CollectedField, obj *models.PermissionSettings) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "PermissionSettings",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.InventoryPolicy, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.InventoryPolicy)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNInventoryPolicy2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐInventoryPolicy(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PermissionSettings_workforcePermission(ctx context.Context, field graphql.CollectedField, obj *models.PermissionSettings) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "PermissionSettings",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.WorkforcePermission, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.WorkforcePolicy)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNWorkforcePolicy2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkforcePolicy(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PortSearchResult_ports(ctx context.Context, field graphql.CollectedField, obj *models.PortSearchResult) (ret graphql.Marshaler) {
@@ -34842,6 +35548,287 @@ func (ec *executionContext) _WorkOrderTypeEdge_cursor(ctx context.Context, field
 	return ec.marshalNCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _WorkforceCUD_create(ctx context.Context, field graphql.CollectedField, obj *models.WorkforceCud) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "WorkforceCUD",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Create, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.BasicPermissionRule)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOBasicPermissionRule2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐBasicPermissionRule(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _WorkforceCUD_update(ctx context.Context, field graphql.CollectedField, obj *models.WorkforceCud) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "WorkforceCUD",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Update, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.BasicPermissionRule)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOBasicPermissionRule2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐBasicPermissionRule(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _WorkforceCUD_delete(ctx context.Context, field graphql.CollectedField, obj *models.WorkforceCud) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "WorkforceCUD",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Delete, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.BasicPermissionRule)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOBasicPermissionRule2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐBasicPermissionRule(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _WorkforceCUD_assign(ctx context.Context, field graphql.CollectedField, obj *models.WorkforceCud) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "WorkforceCUD",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Assign, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.BasicPermissionRule)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOBasicPermissionRule2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐBasicPermissionRule(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _WorkforceCUD_transferOwnership(ctx context.Context, field graphql.CollectedField, obj *models.WorkforceCud) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "WorkforceCUD",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TransferOwnership, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.BasicPermissionRule)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOBasicPermissionRule2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐBasicPermissionRule(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _WorkforcePolicy_read(ctx context.Context, field graphql.CollectedField, obj *models.WorkforcePolicy) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "WorkforcePolicy",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Read, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.BasicPermissionRule)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNBasicPermissionRule2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐBasicPermissionRule(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _WorkforcePolicy_data(ctx context.Context, field graphql.CollectedField, obj *models.WorkforcePolicy) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "WorkforcePolicy",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Data, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.WorkforceCud)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNWorkforceCUD2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkforceCud(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _WorkforcePolicy_templates(ctx context.Context, field graphql.CollectedField, obj *models.WorkforcePolicy) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "WorkforcePolicy",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Templates, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.Cud)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNCUD2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCud(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -40822,8 +41809,72 @@ func (ec *executionContext) _AdministrativePolicy(ctx context.Context, sel ast.S
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("AdministrativePolicy")
-		case "canRead":
-			out.Values[i] = ec._AdministrativePolicy_canRead(ctx, field, obj)
+		case "access":
+			out.Values[i] = ec._AdministrativePolicy_access(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var basicPermissionRuleImplementors = []string{"BasicPermissionRule"}
+
+func (ec *executionContext) _BasicPermissionRule(ctx context.Context, sel ast.SelectionSet, obj *models.BasicPermissionRule) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, basicPermissionRuleImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("BasicPermissionRule")
+		case "isAllowed":
+			out.Values[i] = ec._BasicPermissionRule_isAllowed(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var cUDImplementors = []string{"CUD"}
+
+func (ec *executionContext) _CUD(ctx context.Context, sel ast.SelectionSet, obj *models.Cud) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, cUDImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CUD")
+		case "create":
+			out.Values[i] = ec._CUD_create(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "update":
+			out.Values[i] = ec._CUD_update(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "delete":
+			out.Values[i] = ec._CUD_delete(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -42529,6 +43580,63 @@ func (ec *executionContext) _Hyperlink(ctx context.Context, sel ast.SelectionSet
 	return out
 }
 
+var inventoryPolicyImplementors = []string{"InventoryPolicy"}
+
+func (ec *executionContext) _InventoryPolicy(ctx context.Context, sel ast.SelectionSet, obj *models.InventoryPolicy) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, inventoryPolicyImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("InventoryPolicy")
+		case "read":
+			out.Values[i] = ec._InventoryPolicy_read(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "location":
+			out.Values[i] = ec._InventoryPolicy_location(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "equipment":
+			out.Values[i] = ec._InventoryPolicy_equipment(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "equipmentType":
+			out.Values[i] = ec._InventoryPolicy_equipmentType(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "locationType":
+			out.Values[i] = ec._InventoryPolicy_locationType(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "portType":
+			out.Values[i] = ec._InventoryPolicy_portType(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "serviceType":
+			out.Values[i] = ec._InventoryPolicy_serviceType(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var latestPythonPackageResultImplementors = []string{"LatestPythonPackageResult"}
 
 func (ec *executionContext) _LatestPythonPackageResult(ctx context.Context, sel ast.SelectionSet, obj *models.LatestPythonPackageResult) graphql.Marshaler {
@@ -43680,6 +44788,16 @@ func (ec *executionContext) _PermissionSettings(ctx context.Context, sel ast.Sel
 			}
 		case "adminPolicy":
 			out.Values[i] = ec._PermissionSettings_adminPolicy(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "inventoryPolicy":
+			out.Values[i] = ec._PermissionSettings_inventoryPolicy(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "workforcePermission":
+			out.Values[i] = ec._PermissionSettings_workforcePermission(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -47022,6 +48140,75 @@ func (ec *executionContext) _WorkOrderTypeEdge(ctx context.Context, sel ast.Sele
 	return out
 }
 
+var workforceCUDImplementors = []string{"WorkforceCUD"}
+
+func (ec *executionContext) _WorkforceCUD(ctx context.Context, sel ast.SelectionSet, obj *models.WorkforceCud) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, workforceCUDImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("WorkforceCUD")
+		case "create":
+			out.Values[i] = ec._WorkforceCUD_create(ctx, field, obj)
+		case "update":
+			out.Values[i] = ec._WorkforceCUD_update(ctx, field, obj)
+		case "delete":
+			out.Values[i] = ec._WorkforceCUD_delete(ctx, field, obj)
+		case "assign":
+			out.Values[i] = ec._WorkforceCUD_assign(ctx, field, obj)
+		case "transferOwnership":
+			out.Values[i] = ec._WorkforceCUD_transferOwnership(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var workforcePolicyImplementors = []string{"WorkforcePolicy"}
+
+func (ec *executionContext) _WorkforcePolicy(ctx context.Context, sel ast.SelectionSet, obj *models.WorkforcePolicy) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, workforcePolicyImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("WorkforcePolicy")
+		case "read":
+			out.Values[i] = ec._WorkforcePolicy_read(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "data":
+			out.Values[i] = ec._WorkforcePolicy_data(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "templates":
+			out.Values[i] = ec._WorkforcePolicy_templates(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var __DirectiveImplementors = []string{"__Directive"}
 
 func (ec *executionContext) ___Directive(ctx context.Context, sel ast.SelectionSet, obj *introspection.Directive) graphql.Marshaler {
@@ -47730,6 +48917,20 @@ func (ec *executionContext) marshalNAdministrativePolicy2ᚖgithubᚗcomᚋfaceb
 	return ec._AdministrativePolicy(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNBasicPermissionRule2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐBasicPermissionRule(ctx context.Context, sel ast.SelectionSet, v models.BasicPermissionRule) graphql.Marshaler {
+	return ec._BasicPermissionRule(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNBasicPermissionRule2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐBasicPermissionRule(ctx context.Context, sel ast.SelectionSet, v *models.BasicPermissionRule) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._BasicPermissionRule(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
 	return graphql.UnmarshalBoolean(v)
 }
@@ -47742,6 +48943,20 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNCUD2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCud(ctx context.Context, sel ast.SelectionSet, v models.Cud) graphql.Marshaler {
+	return ec._CUD(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCUD2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCud(ctx context.Context, sel ast.SelectionSet, v *models.Cud) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._CUD(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNCellularNetworkType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCellularNetworkType(ctx context.Context, v interface{}) (models.CellularNetworkType, error) {
@@ -49268,6 +50483,20 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 	return res
 }
 
+func (ec *executionContext) marshalNInventoryPolicy2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐInventoryPolicy(ctx context.Context, sel ast.SelectionSet, v models.InventoryPolicy) graphql.Marshaler {
+	return ec._InventoryPolicy(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNInventoryPolicy2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐInventoryPolicy(ctx context.Context, sel ast.SelectionSet, v *models.InventoryPolicy) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._InventoryPolicy(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNLink2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLink(ctx context.Context, sel ast.SelectionSet, v ent.Link) graphql.Marshaler {
 	return ec._Link(ctx, sel, &v)
 }
@@ -49809,6 +51038,15 @@ func (ec *executionContext) marshalNPermissionSettings2ᚖgithubᚗcomᚋfaceboo
 		return graphql.Null
 	}
 	return ec._PermissionSettings(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNPermissionValue2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPermissionValue(ctx context.Context, v interface{}) (models.PermissionValue, error) {
+	var res models.PermissionValue
+	return res, res.UnmarshalGQL(v)
+}
+
+func (ec *executionContext) marshalNPermissionValue2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPermissionValue(ctx context.Context, sel ast.SelectionSet, v models.PermissionValue) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalNPortFilterInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPortFilterInput(ctx context.Context, v interface{}) (models.PortFilterInput, error) {
@@ -51960,6 +53198,34 @@ func (ec *executionContext) marshalNWorkOrderTypeEdge2ᚖgithubᚗcomᚋfacebook
 	return ec._WorkOrderTypeEdge(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNWorkforceCUD2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkforceCud(ctx context.Context, sel ast.SelectionSet, v models.WorkforceCud) graphql.Marshaler {
+	return ec._WorkforceCUD(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNWorkforceCUD2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkforceCud(ctx context.Context, sel ast.SelectionSet, v *models.WorkforceCud) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._WorkforceCUD(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNWorkforcePolicy2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkforcePolicy(ctx context.Context, sel ast.SelectionSet, v models.WorkforcePolicy) graphql.Marshaler {
+	return ec._WorkforcePolicy(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNWorkforcePolicy2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkforcePolicy(ctx context.Context, sel ast.SelectionSet, v *models.WorkforcePolicy) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._WorkforcePolicy(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {
 	return ec.___Directive(ctx, sel, &v)
 }
@@ -52307,6 +53573,17 @@ func (ec *executionContext) marshalOActionsTriggersSearchResult2ᚖgithubᚗcom�
 		return graphql.Null
 	}
 	return ec._ActionsTriggersSearchResult(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOBasicPermissionRule2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐBasicPermissionRule(ctx context.Context, sel ast.SelectionSet, v models.BasicPermissionRule) graphql.Marshaler {
+	return ec._BasicPermissionRule(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOBasicPermissionRule2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐBasicPermissionRule(ctx context.Context, sel ast.SelectionSet, v *models.BasicPermissionRule) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._BasicPermissionRule(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOBoolean2bool(ctx context.Context, v interface{}) (bool, error) {

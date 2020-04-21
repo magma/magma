@@ -63,13 +63,55 @@ type UsersGroup implements Node {
   members: [User!]!
 }
 
-type AdministrativePolicy {
-  canRead: Boolean!
-}
-
 type PermissionSettings {
   canWrite: Boolean!
   adminPolicy: AdministrativePolicy!
+  inventoryPolicy: InventoryPolicy!
+  workforcePermission: WorkforcePolicy!
+}
+
+enum PermissionValue {
+  YES
+  NO
+  BY_CONDITION
+}
+
+type BasicPermissionRule {
+  isAllowed: PermissionValue!
+}
+
+type CUD {
+  create: BasicPermissionRule!
+  update: BasicPermissionRule!
+  delete: BasicPermissionRule!
+}
+
+type AdministrativePolicy {
+  access: BasicPermissionRule!
+}
+
+type InventoryPolicy {
+  read: BasicPermissionRule!
+  location: CUD!
+  equipment: CUD!
+  equipmentType: CUD!
+  locationType: CUD!
+  portType: CUD!
+  serviceType: CUD!
+}
+
+type WorkforceCUD {
+  create: BasicPermissionRule
+  update: BasicPermissionRule
+  delete: BasicPermissionRule
+  assign: BasicPermissionRule
+  transferOwnership: BasicPermissionRule
+}
+
+type WorkforcePolicy {
+  read: BasicPermissionRule!
+  data: WorkforceCUD!
+  templates: CUD!
 }
 
 type Viewer

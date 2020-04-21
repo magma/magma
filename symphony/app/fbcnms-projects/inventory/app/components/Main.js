@@ -20,6 +20,7 @@ import MainContext, {MainContextProvider} from './MainContext';
 import React from 'react';
 import SymphonyFilesUploadSnackbar from './SymphonyFilesUploadSnackbar';
 import WorkOrdersMain from './work_orders/WorkOrdersMain';
+import {PermissionValues} from './admin/userManagement/utils/UserManagementUtils';
 
 import LoadingIndicator from '../common/LoadingIndicator';
 import Settings from './settings/Settings';
@@ -40,7 +41,8 @@ export default () => (
               <Route path="/inventory" component={Inventory} />
               <Route path="/workorders" component={WorkOrdersMain} />
               <Route path="/admin/settings" component={Settings} />
-              {mainContext.me?.permissions.adminPolicy.canRead ? (
+              {mainContext.me?.permissions.adminPolicy.access.isAllowed ===
+              PermissionValues.YES ? (
                 <Route path="/admin" component={Admin} />
               ) : null}
               <Route path="/automation" component={Automation} />

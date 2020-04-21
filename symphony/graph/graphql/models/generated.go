@@ -222,7 +222,17 @@ type AddWorkOrderTypeInput struct {
 }
 
 type AdministrativePolicy struct {
-	CanRead bool `json:"canRead"`
+	Access *BasicPermissionRule `json:"access"`
+}
+
+type BasicPermissionRule struct {
+	IsAllowed PermissionValue `json:"isAllowed"`
+}
+
+type Cud struct {
+	Create *BasicPermissionRule `json:"create"`
+	Update *BasicPermissionRule `json:"update"`
+	Delete *BasicPermissionRule `json:"delete"`
 }
 
 type CheckListCategoryInput struct {
@@ -452,6 +462,16 @@ type GeneralFilterInput struct {
 	PropertyValue *PropertyTypeInput `json:"propertyValue"`
 }
 
+type InventoryPolicy struct {
+	Read          *BasicPermissionRule `json:"read"`
+	Location      *Cud                 `json:"location"`
+	Equipment     *Cud                 `json:"equipment"`
+	EquipmentType *Cud                 `json:"equipmentType"`
+	LocationType  *Cud                 `json:"locationType"`
+	PortType      *Cud                 `json:"portType"`
+	ServiceType   *Cud                 `json:"serviceType"`
+}
+
 type LatestPythonPackageResult struct {
 	LastPythonPackage         *PythonPackage `json:"lastPythonPackage"`
 	LastBreakingPythonPackage *PythonPackage `json:"lastBreakingPythonPackage"`
@@ -504,8 +524,10 @@ type NetworkTopology struct {
 }
 
 type PermissionSettings struct {
-	CanWrite    bool                  `json:"canWrite"`
-	AdminPolicy *AdministrativePolicy `json:"adminPolicy"`
+	CanWrite            bool                  `json:"canWrite"`
+	AdminPolicy         *AdministrativePolicy `json:"adminPolicy"`
+	InventoryPolicy     *InventoryPolicy      `json:"inventoryPolicy"`
+	WorkforcePermission *WorkforcePolicy      `json:"workforcePermission"`
 }
 
 type PortFilterInput struct {
@@ -846,6 +868,20 @@ type WorkOrderFilterInput struct {
 type WorkOrderSearchResult struct {
 	WorkOrders []*ent.WorkOrder `json:"workOrders"`
 	Count      int              `json:"count"`
+}
+
+type WorkforceCud struct {
+	Create            *BasicPermissionRule `json:"create"`
+	Update            *BasicPermissionRule `json:"update"`
+	Delete            *BasicPermissionRule `json:"delete"`
+	Assign            *BasicPermissionRule `json:"assign"`
+	TransferOwnership *BasicPermissionRule `json:"transferOwnership"`
+}
+
+type WorkforcePolicy struct {
+	Read      *BasicPermissionRule `json:"read"`
+	Data      *WorkforceCud        `json:"data"`
+	Templates *Cud                 `json:"templates"`
 }
 
 type CellularNetworkType string
@@ -1402,6 +1438,49 @@ func (e *LocationFilterType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e LocationFilterType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type PermissionValue string
+
+const (
+	PermissionValueYes         PermissionValue = "YES"
+	PermissionValueNo          PermissionValue = "NO"
+	PermissionValueByCondition PermissionValue = "BY_CONDITION"
+)
+
+var AllPermissionValue = []PermissionValue{
+	PermissionValueYes,
+	PermissionValueNo,
+	PermissionValueByCondition,
+}
+
+func (e PermissionValue) IsValid() bool {
+	switch e {
+	case PermissionValueYes, PermissionValueNo, PermissionValueByCondition:
+		return true
+	}
+	return false
+}
+
+func (e PermissionValue) String() string {
+	return string(e)
+}
+
+func (e *PermissionValue) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = PermissionValue(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid PermissionValue", str)
+	}
+	return nil
+}
+
+func (e PermissionValue) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

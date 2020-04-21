@@ -33,7 +33,9 @@ const MOCK_RESOLVER = {
     return {
       canWrite: 'true',
       adminPolicy: {
-        canRead: 'true',
+        access: {
+          isAllowed: 'true',
+        },
       },
     };
   },

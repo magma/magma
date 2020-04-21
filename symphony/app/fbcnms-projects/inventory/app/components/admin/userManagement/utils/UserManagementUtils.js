@@ -84,6 +84,12 @@ export type User = {|
   groups: $ReadOnlyArray<?UserGroups>,
 |};
 
+export const PermissionValues = {
+  YES: 'YES',
+  BY_CONDITION: 'BY_CONDITION',
+  NO: 'NO',
+};
+
 export const NEW_GROUP_DIALOG_PARAM = 'new';
 
 export const GROUP_STATUSES: KeyValueEnum<UsersGroupStatus> = {
