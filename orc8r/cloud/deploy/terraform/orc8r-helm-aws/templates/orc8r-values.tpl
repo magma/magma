@@ -78,10 +78,7 @@ metrics:
       tag: "${docker_tag}"
     limit: 500000
   grafana:
-    create: true
-    image:
-      repository: ${docker_registry}/grafana
-      tag: "${docker_tag}"
+    create: false
 
   userGrafana:
     image:
@@ -91,13 +88,13 @@ metrics:
     volumes:
       datasources:
         persistentVolumeClaim:
-          claimName: ${grafana_pvc_grafanaData}
+          claimName: ${grafana_pvc_grafanaDatasources}
       dashboardproviders:
         persistentVolumeClaim:
-          claimName: ${grafana_pvc_grafanaData}
+          claimName: ${grafana_pvc_grafanaProviders}
       dashboards:
         persistentVolumeClaim:
-          claimName: ${grafana_pvc_grafanaData}
+          claimName: ${grafana_pvc_grafanaDashboards}
       grafanaData:
         persistentVolumeClaim:
           claimName: ${grafana_pvc_grafanaData}

@@ -62,8 +62,11 @@ resource "helm_release" "orc8r" {
     metrics_pvc_promcfg  = kubernetes_persistent_volume_claim.storage["promcfg"].metadata.0.name
     metrics_pvc_promdata = kubernetes_persistent_volume_claim.storage["promdata"].metadata.0.name
 
-    create_usergrafana      = true
-    grafana_pvc_grafanaData = kubernetes_persistent_volume_claim.storage["grafanadata"].metadata.0.name
+    create_usergrafana             = true
+    grafana_pvc_grafanaData        = kubernetes_persistent_volume_claim.storage["grafanadata"].metadata.0.name
+    grafana_pvc_grafanaDatasources = kubernetes_persistent_volume_claim.storage["grafanadatasources"].metadata.0.name
+    grafana_pvc_grafanaProviders   = kubernetes_persistent_volume_claim.storage["grafanaproviders"].metadata.0.name
+    grafana_pvc_grafanaDashboards  = kubernetes_persistent_volume_claim.storage["grafanadashboards"].metadata.0.name
   })]
 
   set_sensitive {
