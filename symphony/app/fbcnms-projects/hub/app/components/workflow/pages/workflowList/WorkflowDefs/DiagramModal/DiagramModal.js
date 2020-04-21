@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Button, Modal } from "react-bootstrap";
 import WorkflowDia from "../../WorkflowExec/DetailsModal/WorkflowDia/WorkflowDia";
-import axios from 'axios'
+import { HttpClient as http } from "../../../../common/HttpClient";
+import { conductorApiUrlPrefix } from "../../../../constants";
 
 const DiagramModal = props => {
   const [meta, setMeta] = useState([]);
@@ -9,8 +10,8 @@ const DiagramModal = props => {
   useEffect(() => {
     const name = props.wf.split(" / ")[0];
     const version = props.wf.split(" / ")[1];
-    axios
-      .get("/workflows/metadata/workflow/" + name + "/" + version)
+    http
+      .get(conductorApiUrlPrefix + "/metadata/workflow/" + name + "/" + version)
       .then(res => {
         setMeta(res.result);
       });

@@ -1,5 +1,7 @@
 import { sortBy } from "lodash";
-import axios from 'axios';
+import { HttpClient as http } from "../../common/HttpClient";
+import { conductorApiUrlPrefix } from "../../constants";
+
 export const RECEIVE_NEW_DATA = "RECEIVE_NEW_DATA";
 export const HIERARCHY_NEW_DATA = "HIERARCHY_NEW_DATA";
 export const UPDATE_LABEL = "UPDATE_LABEL";
@@ -39,9 +41,9 @@ export const fetchNewData = (viewedPage, defaultPages) => {
   return (dispatch, getState) => {
     let q = createQuery(getState().searchReducer);
     let page = (viewedPage - 1) * defaultPages;
-    axios
+    http
       .get(
-        "/workflows/executions/?q=&h=&freeText=" +
+        conductorApiUrlPrefix + "/executions/?q=&h=&freeText=" +
           q +
           "&start=" +
           page +
@@ -72,9 +74,9 @@ export const fetchParentWorkflows = (viewedPage, defaultPages) => {
 
     const { checkedWfs, size } = getState().searchReducer;
     let q = createQuery(getState().searchReducer);
-    axios
+    http
       .get(
-        "/workflows/hierarchical/?freeText=" +
+        conductorApiUrlPrefix + "/hierarchical/?freeText=" +
           q +
           "&start=" +
           checkedWfs[page] +

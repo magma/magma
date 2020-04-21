@@ -30,14 +30,25 @@ const initialState = {
   query: "",
   labels: [],
   openCard: null,
-  functional: ["start", "end", "fork", "join", "lambda", "decision", "terminate", "http", "event", "wait"],
+  functional: [
+    { name: "start", description: "Starting point of every workflow" },
+    { name: "end", description: "Successful finish of a workflow" },
+    { name: "terminate", description: "Unsuccessful termination of a workflow" },
+    { name: "decision", description: "Conditional branching point in a workflow" },
+    { name: "fork", description: "Concurrent execution fork in a workflow" },
+    { name: "join", description: "Concurrent execution join in a workflow" },
+    { name: "http", description: "HTTP execution task" },
+    { name: "lambda", description: "Arbitrary javascript code execution task" },
+    { name: "wait", description: "Wait for a specific event before continuing" },
+    { name: "event", description: "Publish a specific event (other workflow might be waiting for)" }
+  ],
   workflowNameLock: false,
   switchSmartRouting: false,
   executedWfId: null,
   customAlert: {
     show: false,
     variant: "danger",
-    msg: ""
+    msg: "",
   },
   finalWorkflow: {
     name: "",
@@ -48,8 +59,8 @@ const initialState = {
     inputParameters: [],
     schemaVersion: 2,
     restartable: true,
-    workflowStatusListenerEnabled: false
-  }
+    workflowStatusListenerEnabled: false,
+  },
 };
 
 const reducer = (state = initialState, action) => {

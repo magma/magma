@@ -1,4 +1,3 @@
-import axios from "axios";
 import React, { Component } from "react";
 import {
   Accordion,
@@ -19,6 +18,8 @@ import WfLabels from "../../../common/WfLabels";
 import DefinitionModal from "./DefinitonModal/DefinitionModal";
 import DiagramModal from "./DiagramModal/DiagramModal";
 import InputModal from "./InputModal/InputModal";
+import { HttpClient as http } from "../../../common/HttpClient";
+import { conductorApiUrlPrefix } from "../../../constants";
 
 class WorkflowDefs extends Component {
   constructor(props) {
@@ -46,7 +47,7 @@ class WorkflowDefs extends Component {
   }
 
   componentDidMount() {
-    axios.get("/workflows/metadata/workflow").then(res => {
+    http.get(conductorApiUrlPrefix + "/metadata/workflow").then(res => {
       if (res.result) {
         let size = ~~(res.result.length / this.state.defaultPages);
         let dataset =
@@ -220,8 +221,8 @@ class WorkflowDefs extends Component {
     } else {
       data.description = "- FAVOURITE";
     }
-    axios.put("/workflows/metadata/", [data]).then(() => {
-      axios.get("/workflows/metadata/workflow").then(res => {
+    http.put(conductorApiUrlPrefix + "/metadata/", [data]).then(() => {
+      http.get(conductorApiUrlPrefix + "/metadata/workflow").then(res => {
         let dataset =
           res.result.sort((a, b) =>
             a.name > b.name ? 1 : b.name > a.name ? -1 : 0
@@ -279,14 +280,14 @@ class WorkflowDefs extends Component {
   editWorkflow() {
     const name = this.state.activeWf.split(" / ")[0];
     const version = this.state.activeWf.split(" / ")[1];
-    this.props.history.push(`/hub/workflows/builder/${name}/${version}`);
+    this.props.history.push(`/workflows/builder/${name}/${version}`);
   }
 
   deleteWorkflow() {
     const name = this.state.activeWf.split(" / ")[0];
     const version = this.state.activeWf.split(" / ")[1];
-    axios
-      .delete("/workflows/metadata/workflow/" + name + "/" + version)
+    http
+      .delete(conductorApiUrlPrefix + "/metadata/workflow/" + name + "/" + version)
       .then(() => {
         this.componentDidMount();
         let table = this.state.table;

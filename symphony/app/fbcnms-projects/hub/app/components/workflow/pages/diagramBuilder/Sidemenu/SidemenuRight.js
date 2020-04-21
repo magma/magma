@@ -119,7 +119,8 @@ const systemTasks = type => {
   }
 };
 
-const icons = task => {
+const icons = taskDef => {
+  const task = taskDef.name
   switch (task) {
     case "start":
       return (
@@ -182,14 +183,14 @@ const functional = props => {
     return (
       <Menu.Item
         as="a"
-        title={task.toUpperCase()}
+        title={task.name.toUpperCase() + " - " + task.description}
         id={`functionalNode${i}`}
         draggable={true}
         style={{ cursor: "grab" }}
         onDragStart={e => {
           e.dataTransfer.setData(
             "storm-diagram-node",
-            JSON.stringify({ type: task, wfObject: systemTasks(task) })
+            JSON.stringify({ type: task.name, wfObject: systemTasks(task.name) })
           );
         }}
       >

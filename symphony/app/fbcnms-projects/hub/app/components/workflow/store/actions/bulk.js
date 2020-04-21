@@ -1,6 +1,7 @@
-import axios from "axios";
+import { HttpClient as http } from "../../common/HttpClient";
 import { round } from "lodash/math";
 import { fetchNewData, fetchParentWorkflows } from "./searchExecs";
+import { conductorApiUrlPrefix } from "../../constants";
 
 export const IS_FLAT = "IS_FLAT";
 export const REQUEST_BULK_OPERATION = "REQUEST_BULK_OPERATION";
@@ -63,7 +64,7 @@ export const checkDeleted = (deletedWfs, workflows, defaultPages) => {
 };
 
 export const performBulkOperation = (operation, workflows, defaultPages) => {
-  const url = `/workflows/bulk/${operation}`;
+  const url = conductorApiUrlPrefix + "/bulk/" + operation;
   let deletedWfs = [];
 
   return dispatch => {
@@ -72,7 +73,7 @@ export const performBulkOperation = (operation, workflows, defaultPages) => {
       switch (operation) {
         case "retry":
         case "restart":
-          axios.post(url, workflows).then(res => {
+          http.post(url, workflows).then(res => {
             const { bulkSuccessfulResults, bulkErrorResults } = res.body.text
               ? JSON.parse(res.body.text)
               : [];
@@ -87,7 +88,7 @@ export const performBulkOperation = (operation, workflows, defaultPages) => {
           break;
         case "pause":
         case "resume":
-          axios.put(url, workflows).then(res => {
+          http.put(url, workflows).then(res => {
             const { bulkSuccessfulResults, bulkErrorResults } = res.body.text
               ? JSON.parse(res.body.text)
               : [];
@@ -101,7 +102,7 @@ export const performBulkOperation = (operation, workflows, defaultPages) => {
           });
           break;
         case "terminate":
-          axios.delete(url, workflows).then(res => {
+          http.delete(url, workflows).then(res => {
             const { bulkSuccessfulResults, bulkErrorResults } = res.body.text
               ? JSON.parse(res.body.text)
               : [];
@@ -116,7 +117,7 @@ export const performBulkOperation = (operation, workflows, defaultPages) => {
           break;
         case "delete":
           workflows.map(wf => {
-            axios.delete("/workflows/workflow/" + wf).then(() => {
+            http.delete(conductorApiUrlPrefix + "/workflow/" + wf).then(() => {
               deletedWfs.push(wf);
               dispatch(
                 updateLoadingBar(

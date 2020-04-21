@@ -21,6 +21,7 @@ import * as searchActions from "../../../store/actions/searchExecs";
 import DetailsModal from "./DetailsModal/DetailsModal";
 import WorkflowBulk from "./WorkflowBulk/WorkflowBulk";
 import "./WorkflowExec.css";
+import { HttpClient as http } from "../../../common/HttpClient";
 
 class WorkflowExec extends Component {
   constructor(props) {

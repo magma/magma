@@ -12,7 +12,9 @@ import { useDispatch, useSelector } from "react-redux";
 import { Typeahead } from "react-bootstrap-typeahead";
 import { getMountedDevices } from "../../../../store/actions/mountedDevices";
 import { storeWorkflowId } from "../../../../store/actions/builder";
-import axios from 'axios'
+import { HttpClient as http } from "../../../../common/HttpClient";
+import { conductorApiUrlPrefix } from "../../../../constants";
+
 
 const getInputs = def => {
   let matchArray = def.match(/(?<=workflow\.input\.)([a-zA-Z0-9-_]+)/gim);
@@ -72,8 +74,8 @@ function InputModal(props) {
     setName(name);
     setVersion(Number(props.wf.split(" / ")[1]));
 
-    axios
-      .get("/workflows/metadata/workflow/" + name + "/" + version)
+    http
+      .get(conductorApiUrlPrefix + "/metadata/workflow/" + name + "/" + version)
       .then(res => {
         let definition = JSON.stringify(res.result, null, 2);
         let description = res.result?.description?.split("-")[0] || "";
@@ -103,9 +105,9 @@ function InputModal(props) {
     return new Promise((resolve, reject) => {
       let waitingWfs = [];
       let q = 'status:"RUNNING"';
-      axios
+      http
         .get(
-          "/workflows/executions/?q=&h=&freeText=" +
+          conductorApiUrlPrefix + "/executions/?q=&h=&freeText=" +
             q +
             "&start=" +
             0 +
@@ -114,7 +116,7 @@ function InputModal(props) {
         .then(res => {
           let runningWfs = res.result?.hits || [];
           let promises = runningWfs.map(wf => {
-            return axios.get("/workflows/id/" + wf.workflowId);
+            return http.get(conductorApiUrlPrefix + "/id/" + wf.workflowId);
           });
 
           Promise.all(promises).then(results => {
@@ -185,7 +187,7 @@ function InputModal(props) {
       }
     }
     setStatus("Executing...");
-    axios.post("/workflows/workflow", JSON.stringify(payload)).then(res => {
+    http.post(conductorApiUrlPrefix + "/workflow", JSON.stringify(payload)).then(res => {
       setStatus(res.statusText);
       setWfId(res.body.text);
 

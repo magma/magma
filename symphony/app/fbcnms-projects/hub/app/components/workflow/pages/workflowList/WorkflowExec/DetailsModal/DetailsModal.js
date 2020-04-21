@@ -19,7 +19,8 @@ import { withRouter } from "react-router-dom";
 import TaskModal from "../../../../common/TaskModal";
 import "./DetailsModal.css";
 import WorkflowDia from "./WorkflowDia/WorkflowDia";
-import axios from 'axios'
+import { HttpClient as http } from "../../../../common/HttpClient";
+import { conductorApiUrlPrefix } from "../../../../constants";
 
 new Clipboard(".clp");
 
@@ -54,7 +55,7 @@ class DetailsModal extends Component {
   }
 
   getData() {
-    axios.get("/workflows/id/" + this.props.wfId).then(res => {
+    http.get(conductorApiUrlPrefix + "/id/" + this.props.wfId).then(res => {
       let inputsArray = [
         ...new Set(
           JSON.stringify(res.meta, null, 2).match(
@@ -93,8 +94,8 @@ class DetailsModal extends Component {
 
   executeWorkflow() {
     this.setState({ status: "Executing..." });
-    axios
-      .post("/workflows/workflow", JSON.stringify(this.state.input))
+    http
+      .post(conductorApiUrlPrefix + "/workflow", JSON.stringify(this.state.input))
       .then(res => {
         this.setState({
           status: res.statusText
@@ -184,31 +185,31 @@ class DetailsModal extends Component {
   }
 
   terminateWfs() {
-    axios.delete("/workflows/bulk/terminate", [this.state.wfId]).then(() => {
+    http.delete(conductorApiUrlPrefix + "/bulk/terminate", [this.state.wfId]).then(() => {
       this.getData();
     });
   }
 
   pauseWfs() {
-    axios.put("/workflows/bulk/pause", [this.state.wfId]).then(() => {
+    http.put(conductorApiUrlPrefix + "/bulk/pause", [this.state.wfId]).then(() => {
       this.getData();
     });
   }
 
   resumeWfs() {
-    axios.put("/workflows/bulk/resume", [this.state.wfId]).then(() => {
+    http.put(conductorApiUrlPrefix + "/bulk/resume", [this.state.wfId]).then(() => {
       this.getData();
     });
   }
 
   retryWfs() {
-    axios.post("/workflows/bulk/retry", [this.state.wfId]).then(() => {
+    http.post(conductorApiUrlPrefix + "/bulk/retry", [this.state.wfId]).then(() => {
       this.getData();
     });
   }
 
   restartWfs() {
-    axios.post("/workflows/bulk/restart", [this.state.wfId]).then(() => {
+    http.post(conductorApiUrlPrefix + "/bulk/restart", [this.state.wfId]).then(() => {
       this.getData();
     });
   }

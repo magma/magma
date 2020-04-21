@@ -29,7 +29,7 @@ const store = createStore(
 
 function App(props) {
   const hideHeader = () => {
-    return props?.setBuilderActive ? props.setBuilderActive() : null;
+    return props?.setBuilderActive ? props.setBuilderActive(true) : null;
   };
 
   return (

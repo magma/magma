@@ -1,51 +1,23 @@
-import axios from "axios";
 import { saveAs } from "file-saver";
 import React from "react";
+import { Button, Container, Tab, Tabs } from "react-bootstrap";
 import { withRouter } from "react-router-dom";
-import { Button, Container, Icon, Tab } from "semantic-ui-react";
+import { HttpClient as http } from "../../common/HttpClient";
 import WorkflowDefs from "./WorkflowDefs/WorkflowDefs";
 import WorkflowExec from "./WorkflowExec/WorkflowExec";
+import { conductorApiUrlPrefix } from "../../constants";
 
 const JSZip = require("jszip");
 
-const containerStyle = { textAlign: "left", marginTop: "20px" };
-
-const listHeader = {
-  display: "flex",
-  justifyContent: "space-between",
-  h: {
-    font: '600 30px/45px "Poppins", sans-serif',
-    color: "#282835",
-  },
-};
-
-const tabPanes = [
-  {
-    menuItem: "Definitions",
-    render: () => (
-      <Tab.Pane attached={false}>
-        <WorkflowDefs />
-      </Tab.Pane>
-    ),
-  },
-  {
-    menuItem: "Executed",
-    render: () => (
-      <Tab.Pane attached={false}>
-        <WorkflowExec />
-      </Tab.Pane>
-    ),
-  },
-];
-
 const WorkflowList = (props) => {
-  const changeUrl = (path) => {
-    props.history.push("/workflows/" + path.toLowerCase());
+  const changeUrl = (e) => {
+    props.history.push("/workflows/" + e);
   };
 
   const importFiles = (e) => {
     const files = e.currentTarget.files;
     const fileList = [];
+    let count = files.length;
 
     Object.keys(files).forEach((i) => {
       readFile(files[i]);
@@ -56,8 +28,8 @@ const WorkflowList = (props) => {
       reader.onload = (e) => {
         let definition = JSON.parse(e.target.result);
         fileList.push(definition);
-        if (!--files.length) {
-          axios.put("/workflows/metadata", fileList).then(() => {
+        if (!--count) {
+          http.put(conductorApiUrlPrefix + "/metadata", fileList).then(() => {
             window.location.reload();
           });
         }
@@ -67,7 +39,7 @@ const WorkflowList = (props) => {
   };
 
   const exportFile = () => {
-    axios.get("/workflows/metadata/workflow").then((res) => {
+    http.get(conductorApiUrlPrefix + "/metadata/workflow").then((res) => {
       const zip = new JSZip();
       let workflows = res.result || [];
 
@@ -81,6 +53,8 @@ const WorkflowList = (props) => {
     });
   };
 
+  let query = props.match.params.wfid ? props.match.params.wfid : null;
+
   const openFileUpload = () => {
     document.getElementById("upload-files").click();
     document
@@ -89,35 +63,49 @@ const WorkflowList = (props) => {
   };
 
   return (
-    <Container style={containerStyle}>
-      <div style={listHeader}>
-        <h1 style={listHeader.h}>Workflows</h1>
-        <div className="actions">
-          <Button
-            primary
-            onClick={() => props.history.push("/hub/workflows/builder")}
-          >
-            <Icon name="plus" />
-            New
-          </Button>
-          <Button onClick={openFileUpload}>
-            <Icon name="upload" />
-            Import
-          </Button>
-          <Button onClick={exportFile}>
-            <Icon name="download" />
-            Export
-          </Button>
-        </div>
-      </div>
+    <Container style={{ textAlign: "left", marginTop: "20px" }}>
+      <h1 style={{ marginBottom: "20px" }}>
+        <i style={{ color: "grey" }} className="fas fa-cogs" />
+        &nbsp;&nbsp;Workflows
+        <Button
+          variant="outline-primary"
+          style={{ marginLeft: "30px" }}
+          onClick={() => props.history.push("/workflows/builder")}
+        >
+          <i className="fas fa-plus" />
+          &nbsp;&nbsp;New
+        </Button>
+        <Button
+          variant="outline-primary"
+          style={{ marginLeft: "5px" }}
+          onClick={openFileUpload}
+        >
+          <i className="fas fa-file-import" />
+          &nbsp;&nbsp;Import
+        </Button>
+        <Button
+          variant="outline-primary"
+          style={{ marginLeft: "5px" }}
+          onClick={exportFile}
+        >
+          <i className="fas fa-file-export" />
+          &nbsp;&nbsp;Export
+        </Button>
+      </h1>
       <input id="upload-files" multiple type="file" hidden />
-      <Tab
-        menu={{ pointing: true }}
-        onTabChange={(e, data) =>
-          changeUrl(data.panes[data.activeIndex].menuItem)
-        }
-        panes={tabPanes}
-      />
+      <Tabs
+        onSelect={(e) => changeUrl(e)}
+        defaultActiveKey={props.match.params.type || "defs"}
+        style={{ marginBottom: "20px" }}
+      >
+        <Tab eventKey="defs" title="Definitions">
+          <WorkflowDefs />
+        </Tab>
+        <Tab mountOnEnter unmountOnExit eventKey="exec" title="Executed">
+          <WorkflowExec query={query} />
+        </Tab>
+        <Tab eventKey="scheduled" title="Scheduled" disabled></Tab>
+      </Tabs>
     </Container>
   );
 };

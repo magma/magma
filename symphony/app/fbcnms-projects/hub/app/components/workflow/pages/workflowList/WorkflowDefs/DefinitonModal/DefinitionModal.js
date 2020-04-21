@@ -1,17 +1,18 @@
 import React, { useEffect, useState } from "react";
-import { Modal, Button } from "react-bootstrap";
+import { Button, Modal } from "react-bootstrap";
 import Highlight from "react-highlight.js";
-import axios from 'axios'
+import { HttpClient as http } from "../../../../common/HttpClient";
+import { conductorApiUrlPrefix } from "../../../../constants";
 
-const DefinitionModal = props => {
+const DefinitionModal = (props) => {
   const [definition, setDefinition] = useState("");
 
   useEffect(() => {
     const name = props.wf.split(" / ")[0];
     const version = props.wf.split(" / ")[1];
-    axios
-      .get("/workflows/metadata/workflow/" + name + "/" + version)
-      .then(res => {
+    http
+      .get(conductorApiUrlPrefix + "/metadata/workflow/" + name + "/" + version)
+      .then((res) => {
         setDefinition(JSON.stringify(res.result, null, 2));
       });
   }, []);
