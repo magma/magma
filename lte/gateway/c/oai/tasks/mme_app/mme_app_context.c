@@ -155,6 +155,7 @@ void mme_app_ue_sgs_context_free_content(
   sgs_context_t *const sgs_context_p,
   imsi64_t imsi)
 {
+  nas_itti_timer_arg_t* timer_argP = NULL;
   if (sgs_context_p == NULL) {
     OAILOG_ERROR(
       LOG_MME_APP,
@@ -164,51 +165,66 @@ void mme_app_ue_sgs_context_free_content(
   }
   // Stop SGS Location update timer if running
   if (sgs_context_p->ts6_1_timer.id != MME_APP_TIMER_INACTIVE_ID) {
-    if (timer_remove(sgs_context_p->ts6_1_timer.id, NULL)) {
+    if (timer_remove(sgs_context_p->ts6_1_timer.id, (void**) &timer_argP)) {
       OAILOG_ERROR_UE(
         LOG_MME_APP, imsi,
         "Failed to stop SGS Location update timer for imsi\n");
+    }
+    if (timer_argP) {
+      free_wrapper((void**) &timer_argP);
     }
     sgs_context_p->ts6_1_timer.id = MME_APP_TIMER_INACTIVE_ID;
   }
   // Stop SGS EPS Detach indication timer if running
   if (sgs_context_p->ts8_timer.id != MME_APP_TIMER_INACTIVE_ID) {
-    if (timer_remove(sgs_context_p->ts8_timer.id, NULL)) {
+    if (timer_remove(sgs_context_p->ts8_timer.id, (void**) &timer_argP)) {
       OAILOG_ERROR_UE(
         LOG_MME_APP, imsi,
         "Failed to stop SGS EPS Detach Indication"
         "timer for imsi\n");
+    }
+    if (timer_argP) {
+      free_wrapper((void**) &timer_argP);
     }
     sgs_context_p->ts8_timer.id = MME_APP_TIMER_INACTIVE_ID;
   }
 
   // Stop SGS IMSI Detach indication timer if running
   if (sgs_context_p->ts9_timer.id != MME_APP_TIMER_INACTIVE_ID) {
-    if (timer_remove(sgs_context_p->ts9_timer.id, NULL)) {
+    if (timer_remove(sgs_context_p->ts9_timer.id, (void**) &timer_argP)) {
       OAILOG_ERROR_UE(
         LOG_MME_APP, imsi,
         "Failed to stop SGS IMSI Detach Indication"
         " timer for imsi\n");
     }
+    if (timer_argP) {
+      free_wrapper((void**) &timer_argP);
+    }
     sgs_context_p->ts9_timer.id = MME_APP_TIMER_INACTIVE_ID;
   }
   // Stop SGS Implicit IMSI Detach indication timer if running
   if (sgs_context_p->ts10_timer.id != MME_APP_TIMER_INACTIVE_ID) {
-    if (timer_remove(sgs_context_p->ts10_timer.id, NULL)) {
+    if (timer_remove(sgs_context_p->ts10_timer.id, (void**) &timer_argP)) {
       OAILOG_ERROR_UE(
         LOG_MME_APP, imsi,
         "Failed to stop SGS Implicit IMSI Detach"
         " Indication timer for imsi\n");
     }
+    if (timer_argP) {
+      free_wrapper((void**) &timer_argP);
+    }
     sgs_context_p->ts10_timer.id = MME_APP_TIMER_INACTIVE_ID;
   }
   // Stop SGS Implicit EPS Detach indication timer if running
   if (sgs_context_p->ts13_timer.id != MME_APP_TIMER_INACTIVE_ID) {
-    if (timer_remove(sgs_context_p->ts13_timer.id, NULL)) {
+    if (timer_remove(sgs_context_p->ts13_timer.id, (void**) &timer_argP)) {
       OAILOG_ERROR_UE(
         LOG_MME_APP, imsi,
         "Failed to stop SGS Implicit EPS Detach"
         " Indication timer for imsi\n");
+    }
+    if (timer_argP) {
+      free_wrapper((void**) &timer_argP);
     }
     sgs_context_p->ts13_timer.id = MME_APP_TIMER_INACTIVE_ID;
   }
@@ -229,26 +245,35 @@ void mme_app_ue_context_free_content(ue_mm_context_t *const ue_context_p)
   bdestroy_wrapper(&ue_context_p->msisdn);
   bdestroy_wrapper(&ue_context_p->ue_radio_capability);
   bdestroy_wrapper(&ue_context_p->apn_oi_replacement);
+  nas_itti_timer_arg_t* timer_argP = NULL;
 
   // Stop Mobile reachability timer,if running
   if (ue_context_p->mobile_reachability_timer.id != MME_APP_TIMER_INACTIVE_ID) {
-    if (timer_remove(ue_context_p->mobile_reachability_timer.id, NULL)) {
+    if (timer_remove(
+            ue_context_p->mobile_reachability_timer.id, (void**) &timer_argP)) {
       OAILOG_ERROR_UE(
         LOG_MME_APP,
         ue_context_p->emm_context._imsi64,
         "Failed to stop Mobile Reachability timer for UE id  %d \n",
         ue_context_p->mme_ue_s1ap_id);
     }
+    if (timer_argP) {
+      free_wrapper((void**) &timer_argP);
+    }
     ue_context_p->mobile_reachability_timer.id = MME_APP_TIMER_INACTIVE_ID;
   }
   // Stop Implicit detach timer,if running
   if (ue_context_p->implicit_detach_timer.id != MME_APP_TIMER_INACTIVE_ID) {
-    if (timer_remove(ue_context_p->implicit_detach_timer.id, NULL)) {
+    if (timer_remove(
+            ue_context_p->implicit_detach_timer.id, (void**) &timer_argP)) {
       OAILOG_ERROR_UE(
         LOG_MME_APP,
         ue_context_p->emm_context._imsi64,
         "Failed to stop Implicit Detach timer for UE id  %d \n",
         ue_context_p->mme_ue_s1ap_id);
+    }
+    if (timer_argP) {
+      free_wrapper((void**) &timer_argP);
     }
     ue_context_p->implicit_detach_timer.id = MME_APP_TIMER_INACTIVE_ID;
   }
@@ -257,12 +282,17 @@ void mme_app_ue_context_free_content(ue_mm_context_t *const ue_context_p)
   if (
     ue_context_p->initial_context_setup_rsp_timer.id !=
     MME_APP_TIMER_INACTIVE_ID) {
-    if (timer_remove(ue_context_p->initial_context_setup_rsp_timer.id, NULL)) {
+    if (timer_remove(
+            ue_context_p->initial_context_setup_rsp_timer.id,
+            (void**) &timer_argP)) {
       OAILOG_ERROR_UE(
         LOG_MME_APP,
         ue_context_p->emm_context._imsi64,
         "Failed to stop Initial Context Setup Rsp timer for UE id  %d \n",
         ue_context_p->mme_ue_s1ap_id);
+    }
+    if (timer_argP) {
+      free_wrapper((void**) &timer_argP);
     }
     ue_context_p->initial_context_setup_rsp_timer.id =
       MME_APP_TIMER_INACTIVE_ID;
@@ -271,24 +301,34 @@ void mme_app_ue_context_free_content(ue_mm_context_t *const ue_context_p)
   if (
     ue_context_p->ue_context_modification_timer.id !=
     MME_APP_TIMER_INACTIVE_ID) {
-    if (timer_remove(ue_context_p->ue_context_modification_timer.id, NULL)) {
+    if (timer_remove(
+            ue_context_p->ue_context_modification_timer.id,
+            (void**) &timer_argP)) {
       OAILOG_ERROR_UE(
         LOG_MME_APP,
         ue_context_p->emm_context._imsi64,
         "Failed to stop UE Context Modification timer for UE id  %d \n",
         ue_context_p->mme_ue_s1ap_id);
     }
+    if (timer_argP) {
+      free_wrapper((void**) &timer_argP);
+    }
     ue_context_p->ue_context_modification_timer.id = MME_APP_TIMER_INACTIVE_ID;
   }
 
   // Stop ULR Response timer if running
   if (ue_context_p->ulr_response_timer.id != MME_APP_TIMER_INACTIVE_ID) {
-    if (timer_remove(ue_context_p->ulr_response_timer.id, NULL)) {
+    nas_itti_timer_arg_t* timer_argP = NULL;
+    if (timer_remove(
+            ue_context_p->ulr_response_timer.id, (void**) &timer_argP)) {
       OAILOG_ERROR_UE(
         LOG_MME_APP,
         ue_context_p->emm_context._imsi64,
         "Failed to stop ULR timer for UE id %d \n",
         ue_context_p->mme_ue_s1ap_id);
+    }
+    if (timer_argP) {
+      free_wrapper((void**) &timer_argP);
     }
     ue_context_p->ulr_response_timer.id = MME_APP_TIMER_INACTIVE_ID;
   }
@@ -1703,6 +1743,7 @@ void mme_ue_context_update_ue_sig_connection_state(
   } else if (
     (ue_context_p->ecm_state == ECM_IDLE) && (new_ecm_state == ECM_CONNECTED)) {
     ue_context_p->ecm_state = ECM_CONNECTED;
+    nas_itti_timer_arg_t* timer_argP = NULL;
 
     OAILOG_DEBUG_UE(
     LOG_MME_APP,
@@ -1716,7 +1757,9 @@ void mme_ue_context_update_ue_sig_connection_state(
     // Stop Mobile reachability timer,if running
     if (
       ue_context_p->mobile_reachability_timer.id != MME_APP_TIMER_INACTIVE_ID) {
-      if (timer_remove(ue_context_p->mobile_reachability_timer.id, NULL)) {
+      if (timer_remove(
+              ue_context_p->mobile_reachability_timer.id,
+              (void**) &timer_argP)) {
         OAILOG_ERROR_UE(
           LOG_MME_APP,
           ue_context_p->emm_context._imsi64,
@@ -1724,17 +1767,24 @@ void mme_ue_context_update_ue_sig_connection_state(
           "id " MME_UE_S1AP_ID_FMT "\n",
           ue_context_p->mme_ue_s1ap_id);
       }
+      if (timer_argP) {
+        free_wrapper((void**) &timer_argP);
+      }
       ue_context_p->mobile_reachability_timer.id = MME_APP_TIMER_INACTIVE_ID;
     }
     // Stop Implicit detach timer,if running
     if (ue_context_p->implicit_detach_timer.id != MME_APP_TIMER_INACTIVE_ID) {
-      if (timer_remove(ue_context_p->implicit_detach_timer.id, NULL)) {
+      if (timer_remove(
+              ue_context_p->implicit_detach_timer.id, (void**) &timer_argP)) {
         OAILOG_ERROR_UE(
           LOG_MME_APP,
           ue_context_p->emm_context._imsi64,
           "Failed to stop Implicit Detach timer for UE id " MME_UE_S1AP_ID_FMT
           "\n",
           ue_context_p->mme_ue_s1ap_id);
+      }
+      if (timer_argP) {
+        free_wrapper((void**) &timer_argP);
       }
       ue_context_p->implicit_detach_timer.id = MME_APP_TIMER_INACTIVE_ID;
     }
@@ -1995,12 +2045,18 @@ void mme_app_handle_s1ap_ue_context_modification_fail(
   if (
     ue_context_p->ue_context_modification_timer.id !=
     MME_APP_TIMER_INACTIVE_ID) {
-    if (timer_remove(ue_context_p->ue_context_modification_timer.id, NULL)) {
+    nas_itti_timer_arg_t* timer_argP = NULL;
+    if (timer_remove(
+            ue_context_p->ue_context_modification_timer.id,
+            (void**) &timer_argP)) {
       OAILOG_ERROR_UE(
         LOG_MME_APP,
         ue_context_p->emm_context._imsi64,
         "Failed to stop UE Context Modification timer for UE id  %d \n",
         ue_context_p->mme_ue_s1ap_id);
+    }
+    if (timer_argP) {
+      free_wrapper((void**) &timer_argP);
     }
     ue_context_p->ue_context_modification_timer.id = MME_APP_TIMER_INACTIVE_ID;
   }
@@ -2040,12 +2096,18 @@ void mme_app_handle_s1ap_ue_context_modification_resp(
   if (
     ue_context_p->ue_context_modification_timer.id !=
     MME_APP_TIMER_INACTIVE_ID) {
-    if (timer_remove(ue_context_p->ue_context_modification_timer.id, NULL)) {
+    nas_itti_timer_arg_t* timer_argP = NULL;
+    if (timer_remove(
+            ue_context_p->ue_context_modification_timer.id,
+            (void**) &timer_argP)) {
       OAILOG_ERROR_UE(
         LOG_MME_APP,
         ue_context_p->emm_context._imsi64,
         "Failed to stop UE Context Modification timer for UE id  %d \n",
         ue_context_p->mme_ue_s1ap_id);
+    }
+    if (timer_argP) {
+      free_wrapper((void**) &timer_argP);
     }
     ue_context_p->ue_context_modification_timer.id = MME_APP_TIMER_INACTIVE_ID;
   }
@@ -2244,6 +2306,7 @@ static void _mme_app_handle_s1ap_ue_context_release(
   enb_s1ap_id_key_t enb_s1ap_id_key = INVALID_ENB_UE_S1AP_ID_KEY;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
+  nas_itti_timer_arg_t* timer_argP = NULL;
   mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(mme_ue_s1ap_id);
   if (!ue_mm_context) {
@@ -2323,12 +2386,17 @@ static void _mme_app_handle_s1ap_ue_context_release(
   if (
     ue_mm_context->initial_context_setup_rsp_timer.id !=
     MME_APP_TIMER_INACTIVE_ID) {
-    if (timer_remove(ue_mm_context->initial_context_setup_rsp_timer.id, NULL)) {
+    if (timer_remove(
+            ue_mm_context->initial_context_setup_rsp_timer.id,
+            (void**) &timer_argP)) {
       OAILOG_ERROR_UE(
         LOG_MME_APP,
         ue_mm_context->emm_context._imsi64,
         "Failed to stop Initial Context Setup Rsp timer for UE id  %d \n",
         ue_mm_context->mme_ue_s1ap_id);
+    }
+    if (timer_argP) {
+      free_wrapper((void**) &timer_argP);
     }
     ue_mm_context->initial_context_setup_rsp_timer.id =
       MME_APP_TIMER_INACTIVE_ID;
@@ -2339,12 +2407,17 @@ static void _mme_app_handle_s1ap_ue_context_release(
   if (
     ue_mm_context->ue_context_modification_timer.id !=
     MME_APP_TIMER_INACTIVE_ID) {
-    if (timer_remove(ue_mm_context->ue_context_modification_timer.id, NULL)) {
+    if (timer_remove(
+            ue_mm_context->ue_context_modification_timer.id,
+            (void**) &timer_argP)) {
       OAILOG_ERROR_UE(
         LOG_MME_APP,
         ue_mm_context->emm_context._imsi64,
         "Failed to stop UE Context Modification timer for UE id  %d \n",
         ue_mm_context->mme_ue_s1ap_id);
+    }
+    if (timer_argP) {
+      free_wrapper((void**) &timer_argP);
     }
     ue_mm_context->ue_context_modification_timer.id = MME_APP_TIMER_INACTIVE_ID;
   }
