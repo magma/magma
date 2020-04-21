@@ -1303,7 +1303,7 @@ type WorkOrderType implements Node {
 """
 Work Order instance - capturing information about a change in the network
 """
-type WorkOrder implements Node {
+type WorkOrder implements Node & NamedNode {
   id: ID!
   workOrderType: WorkOrderType!
   name: String!

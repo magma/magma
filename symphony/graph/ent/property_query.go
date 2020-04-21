@@ -47,6 +47,7 @@ type PropertyQuery struct {
 	withEquipmentValue *EquipmentQuery
 	withLocationValue  *LocationQuery
 	withServiceValue   *ServiceQuery
+	withWorkOrderValue *WorkOrderQuery
 	withFKs            bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -268,6 +269,24 @@ func (pq *PropertyQuery) QueryServiceValue() *ServiceQuery {
 			sqlgraph.From(property.Table, property.FieldID, pq.sqlQuery()),
 			sqlgraph.To(service.Table, service.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, property.ServiceValueTable, property.ServiceValueColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryWorkOrderValue chains the current query on the work_order_value edge.
+func (pq *PropertyQuery) QueryWorkOrderValue() *WorkOrderQuery {
+	query := &WorkOrderQuery{config: pq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(property.Table, property.FieldID, pq.sqlQuery()),
+			sqlgraph.To(workorder.Table, workorder.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, property.WorkOrderValueTable, property.WorkOrderValueColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 		return fromU, nil
@@ -575,6 +594,17 @@ func (pq *PropertyQuery) WithServiceValue(opts ...func(*ServiceQuery)) *Property
 	return pq
 }
 
+//  WithWorkOrderValue tells the query-builder to eager-loads the nodes that are connected to
+// the "work_order_value" edge. The optional arguments used to configure the query builder of the edge.
+func (pq *PropertyQuery) WithWorkOrderValue(opts ...func(*WorkOrderQuery)) *PropertyQuery {
+	query := &WorkOrderQuery{config: pq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	pq.withWorkOrderValue = query
+	return pq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -642,7 +672,7 @@ func (pq *PropertyQuery) sqlAll(ctx context.Context) ([]*Property, error) {
 		nodes       = []*Property{}
 		withFKs     = pq.withFKs
 		_spec       = pq.querySpec()
-		loadedTypes = [11]bool{
+		loadedTypes = [12]bool{
 			pq.withType != nil,
 			pq.withLocation != nil,
 			pq.withEquipment != nil,
@@ -654,9 +684,10 @@ func (pq *PropertyQuery) sqlAll(ctx context.Context) ([]*Property, error) {
 			pq.withEquipmentValue != nil,
 			pq.withLocationValue != nil,
 			pq.withServiceValue != nil,
+			pq.withWorkOrderValue != nil,
 		}
 	)
-	if pq.withType != nil || pq.withLocation != nil || pq.withEquipment != nil || pq.withService != nil || pq.withEquipmentPort != nil || pq.withLink != nil || pq.withWorkOrder != nil || pq.withProject != nil || pq.withEquipmentValue != nil || pq.withLocationValue != nil || pq.withServiceValue != nil {
+	if pq.withType != nil || pq.withLocation != nil || pq.withEquipment != nil || pq.withService != nil || pq.withEquipmentPort != nil || pq.withLink != nil || pq.withWorkOrder != nil || pq.withProject != nil || pq.withEquipmentValue != nil || pq.withLocationValue != nil || pq.withServiceValue != nil || pq.withWorkOrderValue != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -957,6 +988,31 @@ func (pq *PropertyQuery) sqlAll(ctx context.Context) ([]*Property, error) {
 			}
 			for i := range nodes {
 				nodes[i].Edges.ServiceValue = n
+			}
+		}
+	}
+
+	if query := pq.withWorkOrderValue; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Property)
+		for i := range nodes {
+			if fk := nodes[i].property_work_order_value; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(workorder.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "property_work_order_value" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.WorkOrderValue = n
 			}
 		}
 	}

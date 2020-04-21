@@ -443,6 +443,25 @@ func (pu *PropertyUpdate) SetServiceValue(s *Service) *PropertyUpdate {
 	return pu.SetServiceValueID(s.ID)
 }
 
+// SetWorkOrderValueID sets the work_order_value edge to WorkOrder by id.
+func (pu *PropertyUpdate) SetWorkOrderValueID(id int) *PropertyUpdate {
+	pu.mutation.SetWorkOrderValueID(id)
+	return pu
+}
+
+// SetNillableWorkOrderValueID sets the work_order_value edge to WorkOrder by id if the given value is not nil.
+func (pu *PropertyUpdate) SetNillableWorkOrderValueID(id *int) *PropertyUpdate {
+	if id != nil {
+		pu = pu.SetWorkOrderValueID(*id)
+	}
+	return pu
+}
+
+// SetWorkOrderValue sets the work_order_value edge to WorkOrder.
+func (pu *PropertyUpdate) SetWorkOrderValue(w *WorkOrder) *PropertyUpdate {
+	return pu.SetWorkOrderValueID(w.ID)
+}
+
 // ClearType clears the type edge to PropertyType.
 func (pu *PropertyUpdate) ClearType() *PropertyUpdate {
 	pu.mutation.ClearType()
@@ -506,6 +525,12 @@ func (pu *PropertyUpdate) ClearLocationValue() *PropertyUpdate {
 // ClearServiceValue clears the service_value edge to Service.
 func (pu *PropertyUpdate) ClearServiceValue() *PropertyUpdate {
 	pu.mutation.ClearServiceValue()
+	return pu
+}
+
+// ClearWorkOrderValue clears the work_order_value edge to WorkOrder.
+func (pu *PropertyUpdate) ClearWorkOrderValue() *PropertyUpdate {
+	pu.mutation.ClearWorkOrderValue()
 	return pu
 }
 
@@ -1124,6 +1149,41 @@ func (pu *PropertyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if pu.mutation.WorkOrderValueCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   property.WorkOrderValueTable,
+			Columns: []string{property.WorkOrderValueColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workorder.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.WorkOrderValueIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   property.WorkOrderValueTable,
+			Columns: []string{property.WorkOrderValueColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workorder.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, pu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{property.Label}
@@ -1545,6 +1605,25 @@ func (puo *PropertyUpdateOne) SetServiceValue(s *Service) *PropertyUpdateOne {
 	return puo.SetServiceValueID(s.ID)
 }
 
+// SetWorkOrderValueID sets the work_order_value edge to WorkOrder by id.
+func (puo *PropertyUpdateOne) SetWorkOrderValueID(id int) *PropertyUpdateOne {
+	puo.mutation.SetWorkOrderValueID(id)
+	return puo
+}
+
+// SetNillableWorkOrderValueID sets the work_order_value edge to WorkOrder by id if the given value is not nil.
+func (puo *PropertyUpdateOne) SetNillableWorkOrderValueID(id *int) *PropertyUpdateOne {
+	if id != nil {
+		puo = puo.SetWorkOrderValueID(*id)
+	}
+	return puo
+}
+
+// SetWorkOrderValue sets the work_order_value edge to WorkOrder.
+func (puo *PropertyUpdateOne) SetWorkOrderValue(w *WorkOrder) *PropertyUpdateOne {
+	return puo.SetWorkOrderValueID(w.ID)
+}
+
 // ClearType clears the type edge to PropertyType.
 func (puo *PropertyUpdateOne) ClearType() *PropertyUpdateOne {
 	puo.mutation.ClearType()
@@ -1608,6 +1687,12 @@ func (puo *PropertyUpdateOne) ClearLocationValue() *PropertyUpdateOne {
 // ClearServiceValue clears the service_value edge to Service.
 func (puo *PropertyUpdateOne) ClearServiceValue() *PropertyUpdateOne {
 	puo.mutation.ClearServiceValue()
+	return puo
+}
+
+// ClearWorkOrderValue clears the work_order_value edge to WorkOrder.
+func (puo *PropertyUpdateOne) ClearWorkOrderValue() *PropertyUpdateOne {
+	puo.mutation.ClearWorkOrderValue()
 	return puo
 }
 
@@ -2216,6 +2301,41 @@ func (puo *PropertyUpdateOne) sqlSave(ctx context.Context) (pr *Property, err er
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: service.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if puo.mutation.WorkOrderValueCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   property.WorkOrderValueTable,
+			Columns: []string{property.WorkOrderValueColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workorder.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.WorkOrderValueIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   property.WorkOrderValueTable,
+			Columns: []string{property.WorkOrderValueColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workorder.FieldID,
 				},
 			},
 		}

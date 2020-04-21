@@ -3936,6 +3936,22 @@ func (c *PropertyClient) QueryServiceValue(pr *Property) *ServiceQuery {
 	return query
 }
 
+// QueryWorkOrderValue queries the work_order_value edge of a Property.
+func (c *PropertyClient) QueryWorkOrderValue(pr *Property) *WorkOrderQuery {
+	query := &WorkOrderQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := pr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(property.Table, property.FieldID, id),
+			sqlgraph.To(workorder.Table, workorder.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, property.WorkOrderValueTable, property.WorkOrderValueColumn),
+		)
+		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *PropertyClient) Hooks() []Hook {
 	return c.hooks.Property

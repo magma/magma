@@ -8018,7 +8018,7 @@ type WorkOrderType implements Node {
 """
 Work Order instance - capturing information about a change in the network
 """
-type WorkOrder implements Node {
+type WorkOrder implements Node & NamedNode {
   id: ID!
   workOrderType: WorkOrderType!
   name: String!
@@ -41867,6 +41867,11 @@ func (ec *executionContext) _NamedNode(ctx context.Context, sel ast.SelectionSet
 			return graphql.Null
 		}
 		return ec._Equipment(ctx, sel, obj)
+	case *ent.WorkOrder:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._WorkOrder(ctx, sel, obj)
 	case *ent.Service:
 		if obj == nil {
 			return graphql.Null
@@ -48282,7 +48287,7 @@ func (ec *executionContext) _Viewer(ctx context.Context, sel ast.SelectionSet, o
 	return out
 }
 
-var workOrderImplementors = []string{"WorkOrder", "Node"}
+var workOrderImplementors = []string{"WorkOrder", "Node", "NamedNode"}
 
 func (ec *executionContext) _WorkOrder(ctx context.Context, sel ast.SelectionSet, obj *ent.WorkOrder) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.RequestContext, sel, workOrderImplementors)

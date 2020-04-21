@@ -214,10 +214,16 @@ func TestPropertiesForCSV(t *testing.T) {
 		Type: "node",
 	}
 
+	propInput9 := models.PropertyTypeInput{
+		Name: "Property type9",
+		Type: "node",
+	}
+
 	equipmentType, err := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
 		Name: "equipment_type",
 		Properties: []*models.PropertyTypeInput{
 			&propInput1, &propInput2, &propInput3, &propInput4, &propInput5, &propInput6, &propInput7, &propInput8,
+			&propInput9,
 		},
 	})
 	require.NoError(t, err)
@@ -229,6 +235,7 @@ func TestPropertiesForCSV(t *testing.T) {
 	propType6 := equipmentType.QueryPropertyTypes().Where(propertytype.Name("Property type6")).OnlyX(ctx)
 	propType7 := equipmentType.QueryPropertyTypes().Where(propertytype.Name("Property type7")).OnlyX(ctx)
 	propType8 := equipmentType.QueryPropertyTypes().Where(propertytype.Name("Property type8")).OnlyX(ctx)
+	propType9 := equipmentType.QueryPropertyTypes().Where(propertytype.Name("Property type9")).OnlyX(ctx)
 
 	intVal := 40
 	strVal := strVal
@@ -304,11 +311,23 @@ func TestPropertiesForCSV(t *testing.T) {
 		NodeIDValue:    &propService.ID,
 	}
 
+	propWorkOrderType, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "prop_work_order_type"})
+	require.NoError(t, err)
+	propWorkOrder, err := mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
+		Name:            "Work Order",
+		WorkOrderTypeID: propWorkOrderType.ID,
+	})
+	require.NoError(t, err)
+	prop9 := models.PropertyInput{
+		PropertyTypeID: propType9.ID,
+		NodeIDValue:    &propWorkOrder.ID,
+	}
+
 	equipment, err := mr.AddEquipment(ctx, models.AddEquipmentInput{
 		Name:       "child_equipment",
 		Type:       equipmentType.ID,
 		Location:   &location.ID,
-		Properties: []*models.PropertyInput{&prop1, &prop2, &prop3, &prop4, &prop5, &prop6, &prop7, &prop8},
+		Properties: []*models.PropertyInput{&prop1, &prop2, &prop3, &prop4, &prop5, &prop6, &prop7, &prop8, &prop9},
 	})
 	require.NoError(t, err)
 

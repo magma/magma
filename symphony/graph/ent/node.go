@@ -2220,7 +2220,7 @@ func (pr *Property) Node(ctx context.Context) (node *Node, err error) {
 		ID:     pr.ID,
 		Type:   "Property",
 		Fields: make([]*Field, 10),
-		Edges:  make([]*Edge, 11),
+		Edges:  make([]*Edge, 12),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(pr.CreateTime); err != nil {
@@ -2424,6 +2424,17 @@ func (pr *Property) Node(ctx context.Context) (node *Node, err error) {
 		IDs:  ids,
 		Type: "Service",
 		Name: "ServiceValue",
+	}
+	ids, err = pr.QueryWorkOrderValue().
+		Select(workorder.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[11] = &Edge{
+		IDs:  ids,
+		Type: "WorkOrder",
+		Name: "WorkOrderValue",
 	}
 	return node, nil
 }

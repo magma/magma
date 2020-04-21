@@ -15546,48 +15546,50 @@ func (m *ProjectTypeMutation) ResetEdge(name string) error {
 // nodes in the graph.
 type PropertyMutation struct {
 	config
-	op                     Op
-	typ                    string
-	id                     *int
-	create_time            *time.Time
-	update_time            *time.Time
-	int_val                *int
-	addint_val             *int
-	bool_val               *bool
-	float_val              *float64
-	addfloat_val           *float64
-	latitude_val           *float64
-	addlatitude_val        *float64
-	longitude_val          *float64
-	addlongitude_val       *float64
-	range_from_val         *float64
-	addrange_from_val      *float64
-	range_to_val           *float64
-	addrange_to_val        *float64
-	string_val             *string
-	clearedFields          map[string]struct{}
-	_type                  *int
-	cleared_type           bool
-	location               *int
-	clearedlocation        bool
-	equipment              *int
-	clearedequipment       bool
-	service                *int
-	clearedservice         bool
-	equipment_port         *int
-	clearedequipment_port  bool
-	link                   *int
-	clearedlink            bool
-	work_order             *int
-	clearedwork_order      bool
-	project                *int
-	clearedproject         bool
-	equipment_value        *int
-	clearedequipment_value bool
-	location_value         *int
-	clearedlocation_value  bool
-	service_value          *int
-	clearedservice_value   bool
+	op                      Op
+	typ                     string
+	id                      *int
+	create_time             *time.Time
+	update_time             *time.Time
+	int_val                 *int
+	addint_val              *int
+	bool_val                *bool
+	float_val               *float64
+	addfloat_val            *float64
+	latitude_val            *float64
+	addlatitude_val         *float64
+	longitude_val           *float64
+	addlongitude_val        *float64
+	range_from_val          *float64
+	addrange_from_val       *float64
+	range_to_val            *float64
+	addrange_to_val         *float64
+	string_val              *string
+	clearedFields           map[string]struct{}
+	_type                   *int
+	cleared_type            bool
+	location                *int
+	clearedlocation         bool
+	equipment               *int
+	clearedequipment        bool
+	service                 *int
+	clearedservice          bool
+	equipment_port          *int
+	clearedequipment_port   bool
+	link                    *int
+	clearedlink             bool
+	work_order              *int
+	clearedwork_order       bool
+	project                 *int
+	clearedproject          bool
+	equipment_value         *int
+	clearedequipment_value  bool
+	location_value          *int
+	clearedlocation_value   bool
+	service_value           *int
+	clearedservice_value    bool
+	work_order_value        *int
+	clearedwork_order_value bool
 }
 
 var _ ent.Mutation = (*PropertyMutation)(nil)
@@ -16479,6 +16481,45 @@ func (m *PropertyMutation) ResetServiceValue() {
 	m.clearedservice_value = false
 }
 
+// SetWorkOrderValueID sets the work_order_value edge to WorkOrder by id.
+func (m *PropertyMutation) SetWorkOrderValueID(id int) {
+	m.work_order_value = &id
+}
+
+// ClearWorkOrderValue clears the work_order_value edge to WorkOrder.
+func (m *PropertyMutation) ClearWorkOrderValue() {
+	m.clearedwork_order_value = true
+}
+
+// WorkOrderValueCleared returns if the edge work_order_value was cleared.
+func (m *PropertyMutation) WorkOrderValueCleared() bool {
+	return m.clearedwork_order_value
+}
+
+// WorkOrderValueID returns the work_order_value id in the mutation.
+func (m *PropertyMutation) WorkOrderValueID() (id int, exists bool) {
+	if m.work_order_value != nil {
+		return *m.work_order_value, true
+	}
+	return
+}
+
+// WorkOrderValueIDs returns the work_order_value ids in the mutation.
+// Note that ids always returns len(ids) <= 1 for unique edges, and you should use
+// WorkOrderValueID instead. It exists only for internal usage by the builders.
+func (m *PropertyMutation) WorkOrderValueIDs() (ids []int) {
+	if id := m.work_order_value; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetWorkOrderValue reset all changes of the work_order_value edge.
+func (m *PropertyMutation) ResetWorkOrderValue() {
+	m.work_order_value = nil
+	m.clearedwork_order_value = false
+}
+
 // Op returns the operation name.
 func (m *PropertyMutation) Op() Op {
 	return m.op
@@ -16844,7 +16885,7 @@ func (m *PropertyMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this
 // mutation.
 func (m *PropertyMutation) AddedEdges() []string {
-	edges := make([]string, 0, 11)
+	edges := make([]string, 0, 12)
 	if m._type != nil {
 		edges = append(edges, property.EdgeType)
 	}
@@ -16877,6 +16918,9 @@ func (m *PropertyMutation) AddedEdges() []string {
 	}
 	if m.service_value != nil {
 		edges = append(edges, property.EdgeServiceValue)
+	}
+	if m.work_order_value != nil {
+		edges = append(edges, property.EdgeWorkOrderValue)
 	}
 	return edges
 }
@@ -16929,6 +16973,10 @@ func (m *PropertyMutation) AddedIDs(name string) []ent.Value {
 		if id := m.service_value; id != nil {
 			return []ent.Value{*id}
 		}
+	case property.EdgeWorkOrderValue:
+		if id := m.work_order_value; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
@@ -16936,7 +16984,7 @@ func (m *PropertyMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this
 // mutation.
 func (m *PropertyMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 11)
+	edges := make([]string, 0, 12)
 	return edges
 }
 
@@ -16951,7 +16999,7 @@ func (m *PropertyMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this
 // mutation.
 func (m *PropertyMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 11)
+	edges := make([]string, 0, 12)
 	if m.cleared_type {
 		edges = append(edges, property.EdgeType)
 	}
@@ -16985,6 +17033,9 @@ func (m *PropertyMutation) ClearedEdges() []string {
 	if m.clearedservice_value {
 		edges = append(edges, property.EdgeServiceValue)
 	}
+	if m.clearedwork_order_value {
+		edges = append(edges, property.EdgeWorkOrderValue)
+	}
 	return edges
 }
 
@@ -17014,6 +17065,8 @@ func (m *PropertyMutation) EdgeCleared(name string) bool {
 		return m.clearedlocation_value
 	case property.EdgeServiceValue:
 		return m.clearedservice_value
+	case property.EdgeWorkOrderValue:
+		return m.clearedwork_order_value
 	}
 	return false
 }
@@ -17054,6 +17107,9 @@ func (m *PropertyMutation) ClearEdge(name string) error {
 		return nil
 	case property.EdgeServiceValue:
 		m.ClearServiceValue()
+		return nil
+	case property.EdgeWorkOrderValue:
+		m.ClearWorkOrderValue()
 		return nil
 	}
 	return fmt.Errorf("unknown Property unique edge %s", name)
@@ -17096,6 +17152,9 @@ func (m *PropertyMutation) ResetEdge(name string) error {
 		return nil
 	case property.EdgeServiceValue:
 		m.ResetServiceValue()
+		return nil
+	case property.EdgeWorkOrderValue:
+		m.ResetWorkOrderValue()
 		return nil
 	}
 	return fmt.Errorf("unknown Property edge %s", name)

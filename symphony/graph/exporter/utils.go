@@ -523,6 +523,9 @@ func propertyValue(ctx context.Context, typ string, v interface{}) (string, erro
 		if i, err := p.QueryServiceValue().OnlyID(ctx); err == nil {
 			id = i
 		}
+		if i, err := p.QueryWorkOrderValue().OnlyID(ctx); err == nil {
+			id = i
+		}
 		return strconv.Itoa(id), nil
 	default:
 		return "", errors.Errorf("type not supported %s", typ)
