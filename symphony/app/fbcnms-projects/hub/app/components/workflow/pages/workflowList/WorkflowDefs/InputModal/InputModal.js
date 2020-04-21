@@ -13,7 +13,7 @@ import { Typeahead } from "react-bootstrap-typeahead";
 import { getMountedDevices } from "../../../../store/actions/mountedDevices";
 import { storeWorkflowId } from "../../../../store/actions/builder";
 import { HttpClient as http } from "../../../../common/HttpClient";
-import { conductorApiUrlPrefix } from "../../../../constants";
+import { conductorApiUrlPrefix, frontendUrlPrefix } from "../../../../constants";
 
 
 const getInputs = def => {
@@ -355,7 +355,7 @@ function InputModal(props) {
       <Modal.Footer>
         <a
           style={{ float: "left", marginRight: "50px" }}
-          href={`/workflows/exec/${wfId}`}
+          href={`${frontendUrlPrefix}/exec/${wfId}`}
         >
           {wfId}
         </a>

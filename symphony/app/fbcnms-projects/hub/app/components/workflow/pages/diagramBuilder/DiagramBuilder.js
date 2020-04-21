@@ -21,7 +21,7 @@ import SidemenuRight from "./Sidemenu/SidemenuRight";
 import WorkflowDefModal from "./WorkflowDefModal/WorkflowDefModal";
 import { WorkflowDiagram } from "./WorkflowDiagram";
 import { HttpClient as http } from "../../common/HttpClient";
-import { conductorApiUrlPrefix } from "../../constants";
+import { conductorApiUrlPrefix, frontendUrlPrefix } from "../../constants";
 
 class DiagramBuilder extends Component {
   constructor(props) {
@@ -323,12 +323,12 @@ class DiagramBuilder extends Component {
   }
 
   redirectOnExit() {
-    this.props.history.push("/workflows/defs");
+    this.props.history.push(frontendUrlPrefix + "/defs");
     window.location.reload();
   }
 
   redirectOnNew() {
-    this.props.history.push("/hub/workflows/builder");
+    this.props.history.push(frontendUrlPrefix + "/builder");
     window.location.reload();
   }
 

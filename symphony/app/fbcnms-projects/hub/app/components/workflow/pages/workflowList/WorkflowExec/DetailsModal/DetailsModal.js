@@ -20,7 +20,7 @@ import TaskModal from "../../../../common/TaskModal";
 import "./DetailsModal.css";
 import WorkflowDia from "./WorkflowDia/WorkflowDia";
 import { HttpClient as http } from "../../../../common/HttpClient";
-import { conductorApiUrlPrefix } from "../../../../constants";
+import { conductorApiUrlPrefix, frontendUrlPrefix } from "../../../../constants";
 
 new Clipboard(".clp");
 
@@ -154,7 +154,7 @@ class DetailsModal extends Component {
                   Object.keys(this.state.subworkflows).map(item => {
                     return item === row["referenceTaskName"]
                       ? this.props.history.push(
-                          `/workflows/exec/${this.state.subworkflows[item].wfe.workflowId}`
+                          `${frontendUrlPrefix}/exec/${this.state.subworkflows[item].wfe.workflowId}`
                         )
                       : null;
                   });
@@ -444,7 +444,7 @@ class DetailsModal extends Component {
             style={{ margin: "2px", display: "inline" }}
             onClick={() =>
               this.props.history.push(
-                `/workflows/exec/${this.state.parentWfId}`
+                `${frontendUrlPrefix}/exec/${this.state.parentWfId}`
               )
             }
           >
@@ -531,7 +531,7 @@ class DetailsModal extends Component {
         <Modal.Footer>
           <a
             style={{ float: "left", marginRight: "50px" }}
-            href={`/workflows/exec/${this.state.wfIdRerun}`}
+            href={`${frontendUrlPrefix}/exec/${this.state.wfIdRerun}`}
           >
             {this.state.wfIdRerun}
           </a>

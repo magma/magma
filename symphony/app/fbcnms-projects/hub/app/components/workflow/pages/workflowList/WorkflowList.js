@@ -5,13 +5,13 @@ import { withRouter } from "react-router-dom";
 import { HttpClient as http } from "../../common/HttpClient";
 import WorkflowDefs from "./WorkflowDefs/WorkflowDefs";
 import WorkflowExec from "./WorkflowExec/WorkflowExec";
-import { conductorApiUrlPrefix } from "../../constants";
+import { conductorApiUrlPrefix, frontendUrlPrefix } from "../../constants";
 
 const JSZip = require("jszip");
 
 const WorkflowList = (props) => {
   const changeUrl = (e) => {
-    props.history.push("/workflows/" + e);
+    props.history.push(frontendUrlPrefix + "/" + e);
   };
 
   const importFiles = (e) => {
@@ -70,7 +70,7 @@ const WorkflowList = (props) => {
         <Button
           variant="outline-primary"
           style={{ marginLeft: "30px" }}
-          onClick={() => props.history.push("/workflows/builder")}
+          onClick={() => props.history.push(frontendUrlPrefix + "/builder")}
         >
           <i className="fas fa-plus" />
           &nbsp;&nbsp;New

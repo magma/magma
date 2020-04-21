@@ -19,7 +19,7 @@ import DefinitionModal from "./DefinitonModal/DefinitionModal";
 import DiagramModal from "./DiagramModal/DiagramModal";
 import InputModal from "./InputModal/InputModal";
 import { HttpClient as http } from "../../../common/HttpClient";
-import { conductorApiUrlPrefix } from "../../../constants";
+import { conductorApiUrlPrefix, frontendUrlPrefix } from "../../../constants";
 
 class WorkflowDefs extends Component {
   constructor(props) {
@@ -280,7 +280,7 @@ class WorkflowDefs extends Component {
   editWorkflow() {
     const name = this.state.activeWf.split(" / ")[0];
     const version = this.state.activeWf.split(" / ")[1];
-    this.props.history.push(`/workflows/builder/${name}/${version}`);
+    this.props.history.push(`${frontendUrlPrefix}/builder/${name}/${version}`);
   }
 
   deleteWorkflow() {

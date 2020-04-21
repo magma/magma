@@ -9,6 +9,7 @@ import buildReducer from "./store/reducers/builder";
 import bulkReducer from "./store/reducers/bulk";
 import mountedDeviceReducer from "./store/reducers/mountedDevices";
 import searchReducer from "./store/reducers/searchExecs";
+import { frontendUrlPrefix } from "./constants";
 import './css/bootstrap.min.css';
 import './css/mono-blue.min.css';
 import './css/neat.css';
@@ -37,14 +38,15 @@ function App(props) {
       <BrowserRouter>
         <Switch>
           <Route
-            path={["/hub/workflows/builder", "/hub/workflows/builder/:name/:version"]}
+            exact
+            path={[frontendUrlPrefix + "/builder", frontendUrlPrefix + "/builder/:name/:version"]}
             render={(props) => (
               <DiagramBuilder hideHeader={hideHeader} {...props} />
             )}
           />
           <Route
             exact
-            path={["/hub/workflows/:type", "/workflows/:type/:wfid", "/"]}
+            path={[frontendUrlPrefix + "/:type", frontendUrlPrefix + "/:type/:wfid", "/"]}
             component={WorkflowList}
           />
         </Switch>

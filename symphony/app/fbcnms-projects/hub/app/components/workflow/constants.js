@@ -61,3 +61,4 @@ export const taskDescriptions = {
 };
 
 export const conductorApiUrlPrefix = "/workflows";
+export const frontendUrlPrefix = "/hub/workflows";
