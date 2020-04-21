@@ -35,7 +35,7 @@ class TestAttachDetachMultipleRarTcpData(unittest.TestCase):
         """ single UE + send TCP data + detach"""
 
         """ Verify that the data is sent on 2nd dedicated bearer as it has"""
-        """ higher priority"""
+        """ matching PFs and higher priority"""
         num_ues = 1
         detach_type = [
             s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value,
