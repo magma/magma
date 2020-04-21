@@ -147,7 +147,7 @@ func TestEmptyServicesDataExport(t *testing.T) {
 	req, err := http.NewRequest(http.MethodGet, server.URL, nil)
 	require.NoError(t, err)
 
-	req.Header.Set(tenantHeader, "fb-test")
+	viewertest.SetDefaultViewerHeaders(req)
 	res, err := http.DefaultClient.Do(req)
 	require.NoError(t, err)
 	defer res.Body.Close()
@@ -182,7 +182,7 @@ func TestServicesExport(t *testing.T) {
 
 	req, err := http.NewRequest(http.MethodGet, server.URL, nil)
 	require.NoError(t, err)
-	req.Header.Set(tenantHeader, "fb-test")
+	viewertest.SetDefaultViewerHeaders(req)
 
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	prepareServiceData(ctx, t, *r)
@@ -269,7 +269,7 @@ func TestServiceWithFilters(t *testing.T) {
 
 	req, err := http.NewRequest(http.MethodGet, server.URL, nil)
 	require.NoError(t, err)
-	req.Header.Set(tenantHeader, "fb-test")
+	viewertest.SetDefaultViewerHeaders(req)
 
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	prepareServiceData(ctx, t, *r)
@@ -298,7 +298,7 @@ func TestServiceWithFilters(t *testing.T) {
 	for i, filter := range [][]byte{f1, f2} {
 		req, err := http.NewRequest("GET", server.URL, nil)
 		require.NoError(t, err)
-		req.Header.Set(tenantHeader, "fb-test")
+		viewertest.SetDefaultViewerHeaders(req)
 
 		q := req.URL.Query()
 		q.Add("filters", string(filter))

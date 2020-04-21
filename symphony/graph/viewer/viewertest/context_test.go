@@ -8,7 +8,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 
@@ -16,15 +15,18 @@ import (
 )
 
 func TestNewContext(t *testing.T) {
-	want := &viewer.Viewer{
-		Tenant: "facebook",
-		User:   "fbuser@fb.com",
-	}
+	tenantName := "facebook"
+	userName := "fbuser@fb.com"
+	c := viewertest.NewTestClient(t)
 	ctx := viewertest.NewContext(
 		context.Background(),
-		&ent.Client{},
-		viewertest.WithViewer(want),
+		c,
+		viewertest.WithTenant(tenantName),
+		viewertest.WithUser(userName),
 	)
 	got := viewer.FromContext(ctx)
-	assert.Equal(t, want, got)
+	assert.Equal(t, tenantName, got.Tenant)
+	u := got.User()
+	assert.Equal(t, userName, u.AuthID)
+	assert.Equal(t, userName, u.Email)
 }

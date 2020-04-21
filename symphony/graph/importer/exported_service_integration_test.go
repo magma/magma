@@ -228,7 +228,7 @@ func verifyServiceData(ctx context.Context, t *testing.T, r *TestImporterResolve
 	require.Equal(t, true, prop4.BoolVal)
 }
 
-func exportServiceData(ctx context.Context, t *testing.T, organization string, r *TestImporterResolver) bytes.Buffer {
+func exportServiceData(ctx context.Context, t *testing.T, r *TestImporterResolver) bytes.Buffer {
 	var buf bytes.Buffer
 	handler, err := exporter.NewHandler(logtest.NewTestLogger(t))
 	require.NoError(t, err)
@@ -242,7 +242,7 @@ func exportServiceData(ctx context.Context, t *testing.T, organization string, r
 	req, err := http.NewRequest(http.MethodGet, server.URL+"/services", &buf)
 	require.NoError(t, err)
 
-	req.Header.Set("x-auth-organization", organization)
+	viewertest.SetDefaultViewerHeaders(req)
 	resp, err := http.DefaultClient.Do(req)
 	require.NoError(t, err)
 	defer resp.Body.Close()
@@ -254,7 +254,7 @@ func exportServiceData(ctx context.Context, t *testing.T, organization string, r
 	return buf
 }
 
-func importServiceExportedData(ctx context.Context, t *testing.T, organization string, buf bytes.Buffer, contentType string, r *TestImporterResolver) int {
+func importServiceExportedData(ctx context.Context, t *testing.T, buf bytes.Buffer, contentType string, r *TestImporterResolver) int {
 	th := viewer.TenancyHandler(http.HandlerFunc(r.importer.processExportedService), viewer.NewFixedTenancy(r.client))
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		th.ServeHTTP(w, r.WithContext(ctx))
@@ -265,7 +265,7 @@ func importServiceExportedData(ctx context.Context, t *testing.T, organization s
 	req, err := http.NewRequest(http.MethodPost, server.URL, &buf)
 	require.NoError(t, err)
 
-	req.Header.Set("x-auth-organization", organization)
+	viewertest.SetDefaultViewerHeaders(req)
 	req.Header.Set("Content-Type", contentType)
 
 	resp, err := http.DefaultClient.Do(req)
@@ -280,11 +280,11 @@ func TestServiceImportDataAdd(t *testing.T) {
 		r := newImporterTestResolver(t)
 		ctx := newImportContext(viewertest.NewContext(context.Background(), r.client))
 		prepareServiceData(ctx, t, r)
-		exportedData := exportServiceData(ctx, t, tenantHeader, r)
+		exportedData := exportServiceData(ctx, t, r)
 		deleteServiceData(ctx, t, r)
 		readr := csv.NewReader(&exportedData)
 		modifiedExportedData, contentType := writeModifiedCSV(t, readr, MethodAdd, withVerify)
-		code := importServiceExportedData(ctx, t, tenantHeader, *modifiedExportedData, contentType, r)
+		code := importServiceExportedData(ctx, t, *modifiedExportedData, contentType, r)
 		verifyServiceData(ctx, t, r, withVerify)
 		require.Equal(t, http.StatusOK, code)
 	}
@@ -295,10 +295,10 @@ func TestServiceImportDataEdit(t *testing.T) {
 		r := newImporterTestResolver(t)
 		ctx := newImportContext(viewertest.NewContext(context.Background(), r.client))
 		prepareServiceData(ctx, t, r)
-		exportedData := exportServiceData(ctx, t, tenantHeader, r)
+		exportedData := exportServiceData(ctx, t, r)
 		readr := csv.NewReader(&exportedData)
 		modifiedExportedData, contentType := writeModifiedCSV(t, readr, MethodEdit, withVerify)
-		code := importServiceExportedData(ctx, t, tenantHeader, *modifiedExportedData, contentType, r)
+		code := importServiceExportedData(ctx, t, *modifiedExportedData, contentType, r)
 		verifyServiceData(ctx, t, r, withVerify)
 		require.Equal(t, http.StatusOK, code)
 	}

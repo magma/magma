@@ -17,31 +17,31 @@ import (
 	models2 "github.com/facebookincubator/symphony/graph/authz/models"
 )
 
-func TestUserOwner(t *testing.T) {
+func TestUserViewer(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	vr := r.Viewer()
 
-	permissions, err := vr.Permissions(ctx, nil)
+	v := viewer.FromContext(ctx)
+	r.client.User.UpdateOne(v.User()).SetRole(user.RoleUSER).ExecX(ctx)
+	permissions, err := vr.Permissions(ctx, v)
 	require.NoError(t, err)
 	require.Equal(t, &models.BasicPermissionRule{IsAllowed: models2.PermissionValueNo}, permissions.AdminPolicy.Access)
 	require.False(t, permissions.CanWrite)
 }
 
-func TestUserOwnerInWriteGroup(t *testing.T) {
+func TestUserViewerInWriteGroup(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	vr := r.Viewer()
 
-	u, err := viewer.UserFromContext(ctx)
-	require.NoError(t, err)
-	_, err = r.client.UsersGroup.Create().SetName(viewer.WritePermissionGroupName).AddMembers(u).Save(ctx)
-	require.NoError(t, err)
+	v := viewer.FromContext(ctx)
+	r.client.User.UpdateOne(v.User()).SetRole(user.RoleUSER).ExecX(ctx)
+	_ = r.client.UsersGroup.Create().SetName(viewer.WritePermissionGroupName).AddMembers(v.User()).SaveX(ctx)
 
-	require.NoError(t, err)
-	permissions, err := vr.Permissions(ctx, nil)
+	permissions, err := vr.Permissions(ctx, v)
 	require.NoError(t, err)
 	require.Equal(t, &models.BasicPermissionRule{IsAllowed: models2.PermissionValueNo}, permissions.AdminPolicy.Access)
 	require.True(t, permissions.CanWrite)
@@ -53,11 +53,9 @@ func TestAdminViewer(t *testing.T) {
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	vr := r.Viewer()
 
-	u, err := viewer.UserFromContext(ctx)
-	require.NoError(t, err)
-	_, err = r.client.User.UpdateOne(u).SetRole(user.RoleADMIN).Save(ctx)
-	require.NoError(t, err)
-	permissions, err := vr.Permissions(ctx, nil)
+	v := viewer.FromContext(ctx)
+	r.client.User.UpdateOne(v.User()).SetRole(user.RoleADMIN).ExecX(ctx)
+	permissions, err := vr.Permissions(ctx, v)
 	require.NoError(t, err)
 	require.Equal(t, &models.BasicPermissionRule{IsAllowed: models2.PermissionValueYes}, permissions.AdminPolicy.Access)
 	require.False(t, permissions.CanWrite)
@@ -69,11 +67,9 @@ func TestOwnerViewer(t *testing.T) {
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	vr := r.Viewer()
 
-	u, err := viewer.UserFromContext(ctx)
-	require.NoError(t, err)
-	_, err = r.client.User.UpdateOne(u).SetRole(user.RoleOWNER).Save(ctx)
-	require.NoError(t, err)
-	permissions, err := vr.Permissions(ctx, nil)
+	v := viewer.FromContext(ctx)
+	r.client.User.UpdateOne(v.User()).SetRole(user.RoleOWNER).ExecX(ctx)
+	permissions, err := vr.Permissions(ctx, v)
 	require.NoError(t, err)
 	require.Equal(t, &models.BasicPermissionRule{IsAllowed: models2.PermissionValueYes}, permissions.AdminPolicy.Access)
 	require.True(t, permissions.CanWrite)

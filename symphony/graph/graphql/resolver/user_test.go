@@ -27,13 +27,12 @@ func TestEditUser(t *testing.T) {
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
-	u, err := viewer.UserFromContext(ctx)
-	require.NoError(t, err)
+	u := viewer.FromContext(ctx).User()
 	require.Equal(t, user.StatusACTIVE, u.Status)
 	require.Empty(t, u.FirstName)
 
 	mr := r.Mutation()
-	u, err = mr.EditUser(ctx, models.EditUserInput{ID: u.ID, Status: toStatusPointer(user.StatusDEACTIVATED), FirstName: pointer.ToString("John")})
+	u, err := mr.EditUser(ctx, models.EditUserInput{ID: u.ID, Status: toStatusPointer(user.StatusDEACTIVATED), FirstName: pointer.ToString("John")})
 	require.NoError(t, err)
 	require.Equal(t, user.StatusDEACTIVATED, u.Status)
 	require.Equal(t, "John", u.FirstName)
@@ -43,8 +42,7 @@ func TestAddAndDeleteProfileImage(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
-	u, err := viewer.UserFromContext(ctx)
-	require.NoError(t, err)
+	u := viewer.FromContext(ctx).User()
 
 	mr, ur := r.Mutation(), r.User()
 	file1, err := mr.AddImage(ctx, models.AddImageInput{

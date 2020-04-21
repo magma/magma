@@ -209,10 +209,7 @@ func (r mutationResolver) internalAddWorkOrder(
 	if ownerID != nil {
 		mutation = mutation.SetOwnerID(*ownerID)
 	} else {
-		owner, err := viewer.UserFromContext(ctx)
-		if err != nil {
-			return nil, fmt.Errorf("fetching own user: %w", err)
-		}
+		owner := viewer.FromContext(ctx).User()
 		mutation = mutation.SetOwner(owner)
 	}
 	for _, clInput := range input.CheckListCategories {
@@ -779,7 +776,7 @@ func (r mutationResolver) TechnicianWorkOrderUploadData(ctx context.Context, inp
 		return nil, fmt.Errorf("querying work order %q: err %w", input.WorkOrderID, err)
 	}
 
-	user := r.Me(ctx).User
+	user := viewer.FromContext(ctx).User()
 	assignee, err := wo.Edges.AssigneeOrErr()
 	if err != nil || assignee == nil {
 		return nil, fmt.Errorf(
@@ -789,7 +786,7 @@ func (r mutationResolver) TechnicianWorkOrderUploadData(ctx context.Context, inp
 		)
 	}
 
-	if assignee.Email != user {
+	if assignee.Email != user.Email {
 		return nil, fmt.Errorf(
 			"mismatch between work order %q assginee %q and technician %q: err %w",
 			input.WorkOrderID,
@@ -829,7 +826,7 @@ func (r mutationResolver) TechnicianWorkOrderUploadData(ctx context.Context, inp
 	if _, err = r.AddComment(ctx, models.CommentInput{
 		EntityType: models.CommentEntityWorkOrder,
 		ID:         input.WorkOrderID,
-		Text:       r.Me(ctx).User + " uploaded data",
+		Text:       user.Email + " uploaded data",
 	}); err != nil {
 		return nil, fmt.Errorf("adding technician uploaded data comment: %w", err)
 	}

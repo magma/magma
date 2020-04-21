@@ -111,7 +111,7 @@ func importEquipmentFile(t *testing.T, client *ent.Client, r io.Reader, method m
 	req, err := http.NewRequest(http.MethodPost, server.URL+"/export_equipment", buf)
 	require.Nil(t, err)
 
-	req.Header.Set(tenantHeader, "fb-test")
+	viewertest.SetDefaultViewerHeaders(req)
 	req.Header.Set("Content-Type", contentType)
 
 	resp, err := http.DefaultClient.Do(req)
@@ -152,7 +152,7 @@ func prepareEquipmentAndExport(t *testing.T, r *TestExporterResolver) (context.C
 
 	req, err := http.NewRequest(http.MethodGet, server.URL, nil)
 	require.NoError(t, err)
-	req.Header.Set(tenantHeader, "fb-test")
+	viewertest.SetDefaultViewerHeaders(req)
 
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	prepareData(ctx, t, *r)

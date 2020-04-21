@@ -16,16 +16,16 @@ import (
 
 type viewerResolver struct{}
 
-func (viewerResolver) User(ctx context.Context, obj *viewer.Viewer) (*ent.User, error) {
-	return viewer.UserFromContext(ctx)
+func (viewerResolver) Email(_ context.Context, obj *viewer.Viewer) (string, error) {
+	return obj.User().Email, nil
+}
+
+func (viewerResolver) User(_ context.Context, obj *viewer.Viewer) (*ent.User, error) {
+	return obj.User(), nil
 }
 
 func (viewerResolver) Permissions(ctx context.Context, obj *viewer.Viewer) (*models.PermissionSettings, error) {
-	u, err := viewer.UserFromContext(ctx)
-	if err != nil {
-		return nil, err
-	}
-
+	u := obj.User()
 	readOnly, err := viewer.IsUserReadOnly(ctx, u)
 	if err != nil {
 		return nil, err

@@ -43,7 +43,6 @@ import (
 var debug = flag.Bool("debug", false, "run database driver on debug mode")
 
 const (
-	tenantHeader               = viewer.TenantHeader
 	equipmentTypeName          = "equipmentType"
 	equipmentType2Name         = "equipmentType2"
 	parentEquip                = "parentEquipmentName"
@@ -387,7 +386,7 @@ func prepareHandlerAndExport(t *testing.T, r *TestExporterResolver, e http.Handl
 
 	req, err := http.NewRequest(http.MethodGet, server.URL, nil)
 	require.NoError(t, err)
-	req.Header.Set(tenantHeader, "fb-test")
+	viewertest.SetDefaultViewerHeaders(req)
 
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	prepareData(ctx, t, *r)
@@ -428,7 +427,7 @@ func importLinksPortsFile(t *testing.T, client *ent.Client, r io.Reader, entity 
 	req, err := http.NewRequest(http.MethodPost, url, buf)
 	require.Nil(t, err)
 
-	req.Header.Set(tenantHeader, "fb-test")
+	viewertest.SetDefaultViewerHeaders(req)
 	req.Header.Set("Content-Type", contentType)
 	resp, err := http.DefaultClient.Do(req)
 	require.Nil(t, err)

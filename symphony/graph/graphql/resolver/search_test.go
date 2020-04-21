@@ -12,6 +12,7 @@ import (
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 
 	"github.com/99designs/gqlgen/client"
@@ -140,8 +141,8 @@ func prepareWOData(ctx context.Context, r *TestResolver, name string) woSearchDa
 	woType2, _ := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "wo_type_b"})
 	assigneeName1 := "user1@fb.com"
 	assigneeName2 := "user2@fb.com"
-	assignee1 := viewertest.CreateUserEnt(ctx, r.client, assigneeName1)
-	assignee2 := viewertest.CreateUserEnt(ctx, r.client, assigneeName2)
+	assignee1 := viewer.MustGetOrCreateUser(ctx, assigneeName1, viewer.SuperUserRole)
+	assignee2 := viewer.MustGetOrCreateUser(ctx, assigneeName2, viewer.SuperUserRole)
 	desc := "random description"
 
 	wo1, _ := mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
@@ -173,7 +174,7 @@ func prepareWOData(ctx context.Context, r *TestResolver, name string) woSearchDa
 
 	installDate := time.Now()
 	ownerName := "owner"
-	owner := viewertest.CreateUserEnt(ctx, r.client, ownerName)
+	owner := viewer.MustGetOrCreateUser(ctx, ownerName, viewer.SuperUserRole)
 	_, _ = mr.EditWorkOrder(ctx, models.EditWorkOrderInput{
 		ID:          wo1.ID,
 		Name:        wo1.Name,

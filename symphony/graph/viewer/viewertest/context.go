@@ -6,44 +6,80 @@ package viewertest
 
 import (
 	"context"
+	"testing"
 
+	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/ent/enttest"
+	"github.com/facebookincubator/symphony/graph/ent/migrate"
 	"github.com/facebookincubator/symphony/graph/viewer"
+	"github.com/facebookincubator/symphony/pkg/testdb"
+	"github.com/stretchr/testify/require"
 )
 
-// DefaultViewer defines the default viewer set by this package.
-var DefaultViewer = viewer.Viewer{
-	Tenant:   "test",
-	User:     "tester@example.com",
-	Role:     "superuser",
-	Features: viewer.NewFeatureSet(viewer.FeatureReadOnly),
+type options struct {
+	tenant   string
+	user     string
+	role     string
+	features []string
 }
 
 // Option enables viewer customization.
-type Option func(*viewer.Viewer)
+type Option func(*options)
 
-// WithViewer overrides default viewer.
-func WithViewer(override *viewer.Viewer) Option {
-	return func(v *viewer.Viewer) {
-		*v = *override
+// WithTenant overrides default tenant name.
+func WithTenant(tenant string) Option {
+	return func(o *options) {
+		o.tenant = tenant
 	}
 }
 
-func CreateUserEnt(ctx context.Context, client *ent.Client, userName string) *ent.User {
-	if client.User != nil {
-		u, _ := client.User.Create().SetAuthID(userName).SetEmail(userName).Save(ctx)
-		return u
+// WithUser overrides default user name.
+func WithUser(user string) Option {
+	return func(o *options) {
+		o.user = user
 	}
-	return nil
+}
+
+// WithRole overrides default role.
+func WithRole(role string) Option {
+	return func(o *options) {
+		o.role = role
+	}
+}
+
+// WithFeatures overrides default feature set.
+func WithFeatures(features ...string) Option {
+	return func(o *options) {
+		o.features = features
+	}
 }
 
 // NewContext returns viewer context for tests.
 func NewContext(parent context.Context, c *ent.Client, opts ...Option) context.Context {
-	v := DefaultViewer
-	for _, opt := range opts {
-		opt(&v)
+	o := &options{
+		tenant:   DefaultTenant,
+		user:     DefaultUser,
+		role:     DefaultRole,
+		features: []string{viewer.FeatureReadOnly},
 	}
-	ctx := viewer.NewContext(parent, &v)
-	CreateUserEnt(ctx, c, v.User)
-	return ent.NewContext(ctx, c)
+	for _, opt := range opts {
+		opt(o)
+	}
+	ctx := ent.NewContext(parent, c)
+	u := viewer.MustGetOrCreateUser(ctx, o.user, o.role)
+	v := viewer.New(o.tenant, u, viewer.WithFeatures(o.features...))
+	return viewer.NewContext(ctx, v)
+}
+
+// NewTestClient creates an ent test client
+func NewTestClient(t *testing.T) *ent.Client {
+	db, name, err := testdb.Open()
+	require.NoError(t, err)
+	db.SetMaxOpenConns(1)
+	drv := sql.OpenDB(name, db)
+	return enttest.NewClient(t,
+		enttest.WithOptions(ent.Driver(drv)),
+		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
+	)
 }

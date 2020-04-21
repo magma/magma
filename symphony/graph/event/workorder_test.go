@@ -11,9 +11,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
+
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
-	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -47,7 +48,7 @@ func (s *workOrderTestSuite) TestWorkOrderCreate() {
 		err := SubscribeAndListen(ctx, ListenerConfig{
 			Subscriber: s.subscriber,
 			Logger:     s.logger.Background(),
-			Tenant:     viewertest.DefaultViewer.Tenant,
+			Tenant:     viewertest.DefaultTenant,
 			Events:     events,
 			Handler: HandlerFunc(func(_ context.Context, name string, body []byte) error {
 				s.Assert().NotEmpty(body)
@@ -88,7 +89,7 @@ func (s *workOrderTestSuite) TestWorkOrderUpdateOne() {
 		err := SubscribeAndListen(ctx, ListenerConfig{
 			Subscriber: s.subscriber,
 			Logger:     s.logger.Background(),
-			Tenant:     viewertest.DefaultViewer.Tenant,
+			Tenant:     viewertest.DefaultTenant,
 			Events:     []string{WorkOrderDone},
 			Handler: HandlerFunc(func(_ context.Context, name string, body []byte) error {
 				s.Assert().Equal(WorkOrderDone, name)

@@ -35,7 +35,7 @@ func TestEmptyLocationDataExport(t *testing.T) {
 	req, err := http.NewRequest(http.MethodGet, server.URL, nil)
 	require.NoError(t, err)
 
-	req.Header.Set(tenantHeader, "fb-test")
+	viewertest.SetDefaultViewerHeaders(req)
 	res, err := http.DefaultClient.Do(req)
 	require.NoError(t, err)
 	defer res.Body.Close()
@@ -67,7 +67,7 @@ func TestLocationsExport(t *testing.T) {
 
 	req, err := http.NewRequest(http.MethodGet, server.URL, nil)
 	require.NoError(t, err)
-	req.Header.Set(tenantHeader, "fb-test")
+	viewertest.SetDefaultViewerHeaders(req)
 
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	prepareData(ctx, t, *r)
@@ -152,7 +152,7 @@ func TestExportLocationWithFilters(t *testing.T) {
 
 	req, err := http.NewRequest("GET", server.URL, nil)
 	require.NoError(t, err)
-	req.Header.Set(tenantHeader, "fb-test")
+	viewertest.SetDefaultViewerHeaders(req)
 
 	f, err := json.Marshal([]locationsFilterInput{
 		{
@@ -222,7 +222,7 @@ func TestExportLocationWithPropertyFilters(t *testing.T) {
 
 	req, err := http.NewRequest("GET", server.URL, nil)
 	require.NoError(t, err)
-	req.Header.Set(tenantHeader, "fb-test")
+	viewertest.SetDefaultViewerHeaders(req)
 
 	f, err := json.Marshal([]locationsFilterInput{
 

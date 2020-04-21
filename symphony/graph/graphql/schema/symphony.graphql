@@ -190,7 +190,6 @@ type Viewer
   @goModel(model: "github.com/facebookincubator/symphony/graph/viewer.Viewer") {
   tenant: String!
   email: String!
-    @goField(name: "user")
     @deprecated(
       reason: "Use `Viewer.user.email` instead. Will be removed on 2020-05-01"
     )

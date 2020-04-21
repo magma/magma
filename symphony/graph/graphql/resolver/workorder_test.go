@@ -177,7 +177,7 @@ func TestAddWorkOrderWithAssignee(t *testing.T) {
 	description := longWorkOrderDesc
 	location := createLocation(ctx, t, *r)
 	assigneeName := longWorkOrderAssignee
-	assignee := viewertest.CreateUserEnt(ctx, r.client, assigneeName)
+	assignee := viewer.MustGetOrCreateUser(ctx, assigneeName, viewer.SuperUserRole)
 	woType, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "example_type"})
 	require.NoError(t, err)
 	workOrder, err := mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
@@ -1839,9 +1839,8 @@ func TestTechnicianUploadDataToWorkOrder(t *testing.T) {
 	c := newGraphClient(t, r)
 
 	wo := createWorkOrder(ctx, t, *r, "Foo")
-	u, err := viewer.UserFromContext(ctx)
-	require.NoError(t, err)
-	wo, err = mr.EditWorkOrder(ctx, models.EditWorkOrderInput{
+	u := viewer.FromContext(ctx).User()
+	wo, err := mr.EditWorkOrder(ctx, models.EditWorkOrderInput{
 		ID:         wo.ID,
 		Name:       longWorkOrderName,
 		AssigneeID: &u.ID,

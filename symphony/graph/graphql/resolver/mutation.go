@@ -382,14 +382,14 @@ func (r mutationResolver) CreateCellScans(ctx context.Context, inputs []*models.
 }
 
 func (r mutationResolver) CreateSurvey(ctx context.Context, data models.SurveyCreateData) (int, error) {
-
 	client := r.ClientFrom(ctx)
+	u := viewer.FromContext(ctx).User()
 	query := client.Survey.
 		Create().
 		SetLocationID(data.LocationID).
 		SetCompletionTimestamp(time.Unix(int64(data.CompletionTimestamp), 0)).
 		SetName(data.Name).
-		SetOwnerName(r.Me(ctx).User)
+		SetOwnerName(u.Email)
 	if data.CreationTimestamp != nil {
 		query.SetCreationTimestamp(time.Unix(int64(*data.CreationTimestamp), 0))
 	}
@@ -1223,10 +1223,7 @@ func (r mutationResolver) DeleteImage(ctx context.Context, _ models.ImageEntity,
 
 func (r mutationResolver) AddComment(ctx context.Context, input models.CommentInput) (*ent.Comment, error) {
 	client := r.ClientFrom(ctx)
-	u, err := viewer.UserFromContext(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("querying user: %w", err)
-	}
+	u := viewer.FromContext(ctx).User()
 	c, err := client.Comment.Create().
 		SetAuthor(u).
 		SetText(input.Text).
@@ -3058,7 +3055,7 @@ func (r mutationResolver) TechnicianWorkOrderCheckIn(ctx context.Context, id int
 	if _, err = r.AddComment(ctx, models.CommentInput{
 		EntityType: models.CommentEntityWorkOrder,
 		ID:         id,
-		Text:       r.Me(ctx).User + " checked-in",
+		Text:       viewer.FromContext(ctx).User().Email + " checked-in",
 	}); err != nil {
 		return nil, fmt.Errorf("adding technician check-in comment: %w", err)
 	}

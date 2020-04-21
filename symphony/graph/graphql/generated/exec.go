@@ -985,6 +985,7 @@ type ComplexityRoot struct {
 	}
 
 	Viewer struct {
+		Email       func(childComplexity int) int
 		Permissions func(childComplexity int) int
 		Tenant      func(childComplexity int) int
 		User        func(childComplexity int) int
@@ -1426,6 +1427,7 @@ type UsersGroupResolver interface {
 	Policies(ctx context.Context, obj *ent.UsersGroup) ([]*ent.PermissionsPolicy, error)
 }
 type ViewerResolver interface {
+	Email(ctx context.Context, obj *viewer.Viewer) (string, error)
 	User(ctx context.Context, obj *viewer.Viewer) (*ent.User, error)
 	Permissions(ctx context.Context, obj *viewer.Viewer) (*models.PermissionSettings, error)
 }
@@ -6171,6 +6173,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Vertex.Type(childComplexity), true
 
+	case "Viewer.email":
+		if e.complexity.Viewer.Email == nil {
+			break
+		}
+
+		return e.complexity.Viewer.Email(childComplexity), true
+
 	case "Viewer.permissions":
 		if e.complexity.Viewer.Permissions == nil {
 			break
@@ -6185,7 +6194,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Viewer.Tenant(childComplexity), true
 
-	case "Viewer.email", "Viewer.user":
+	case "Viewer.user":
 		if e.complexity.Viewer.User == nil {
 			break
 		}
@@ -6892,7 +6901,6 @@ type Viewer
   @goModel(model: "github.com/facebookincubator/symphony/graph/viewer.Viewer") {
   tenant: String!
   email: String!
-    @goField(name: "user")
     @deprecated(
       reason: "Use ` + "`" + `Viewer.user.email` + "`" + ` instead. Will be removed on 2020-05-01"
     )
@@ -32195,13 +32203,13 @@ func (ec *executionContext) _Viewer_email(ctx context.Context, field graphql.Col
 		Object:   "Viewer",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.User, nil
+		return ec.resolvers.Viewer().Email(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -46164,10 +46172,19 @@ func (ec *executionContext) _Viewer(ctx context.Context, sel ast.SelectionSet, o
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "email":
-			out.Values[i] = ec._Viewer_email(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Viewer_email(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "user":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {

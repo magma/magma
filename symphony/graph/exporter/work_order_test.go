@@ -36,7 +36,7 @@ type woTestType struct {
 
 func prepareWOData(ctx context.Context, t *testing.T, r TestExporterResolver) woTestType {
 	prepareData(ctx, t, r)
-	u2 := viewertest.CreateUserEnt(ctx, r.client, "tester2@example.com")
+	u2 := viewer.MustGetOrCreateUser(ctx, "tester2@example.com", viewer.SuperUserRole)
 
 	// Add templates
 	typInput1 := models.AddWorkOrderTypeInput{
@@ -81,10 +81,7 @@ func prepareWOData(ctx context.Context, t *testing.T, r TestExporterResolver) wo
 		Name: "projTemplate",
 	}
 	projTyp, _ := r.Mutation().CreateProjectType(ctx, projTypeInput)
-
-	u, err := viewer.UserFromContext(ctx)
-	require.NoError(t, err)
-
+	u := viewer.FromContext(ctx).User()
 	// Add instances
 	projInput := models.AddProjectInput{
 		Name:      "Project 1",
@@ -162,7 +159,7 @@ func TestEmptyDataExport(t *testing.T) {
 	req, err := http.NewRequest(http.MethodGet, server.URL, nil)
 	require.NoError(t, err)
 
-	req.Header.Set(tenantHeader, "fb-test")
+	viewertest.SetDefaultViewerHeaders(req)
 	res, err := http.DefaultClient.Do(req)
 	require.NoError(t, err)
 	defer res.Body.Close()
@@ -189,7 +186,7 @@ func TestWOExport(t *testing.T) {
 
 	req, err := http.NewRequest(http.MethodGet, server.URL, nil)
 	require.NoError(t, err)
-	req.Header.Set(tenantHeader, "fb-test")
+	viewertest.SetDefaultViewerHeaders(req)
 
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	data := prepareWOData(ctx, t, *r)
@@ -216,7 +213,7 @@ func TestWOExport(t *testing.T) {
 				wo.QueryProject().OnlyX(ctx).Name,
 				models.WorkOrderStatusDone.String(),
 				"tester@example.com",
-				viewertest.DefaultViewer.User,
+				viewertest.DefaultUser,
 				models.WorkOrderPriorityHigh.String(),
 				getStringDate(time.Now()),
 				"",
@@ -233,7 +230,7 @@ func TestWOExport(t *testing.T) {
 				"",
 				models.WorkOrderStatusPlanned.String(),
 				"tester2@example.com",
-				viewertest.DefaultViewer.User,
+				viewertest.DefaultUser,
 				models.WorkOrderPriorityMedium.String(),
 				getStringDate(time.Now()),
 				"",
@@ -262,7 +259,7 @@ func TestExportWOWithFilters(t *testing.T) {
 
 	req, err := http.NewRequest(http.MethodGet, server.URL, nil)
 	require.NoError(t, err)
-	req.Header.Set(tenantHeader, "fb-test")
+	viewertest.SetDefaultViewerHeaders(req)
 
 	f, err := json.Marshal([]equipmentFilterInput{
 		{
@@ -301,7 +298,7 @@ func TestExportWOWithFilters(t *testing.T) {
 				wo.QueryProject().OnlyX(ctx).Name,
 				models.WorkOrderStatusDone.String(),
 				"tester@example.com",
-				viewertest.DefaultViewer.User,
+				viewertest.DefaultUser,
 				models.WorkOrderPriorityHigh.String(),
 				getStringDate(time.Now()),
 				"",
