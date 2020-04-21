@@ -2647,6 +2647,7 @@ func (r mutationResolver) updatePropValues(ctx context.Context, input *models.Pr
 		pu = pu.ClearEquipmentValue()
 		pu = pu.ClearLocationValue()
 		pu = pu.ClearServiceValue()
+		pu = pu.ClearWorkOrderValue()
 	}
 
 	return pu.Exec(ctx)
