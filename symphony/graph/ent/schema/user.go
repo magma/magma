@@ -8,6 +8,7 @@ import (
 	"github.com/facebookincubator/ent"
 	"github.com/facebookincubator/ent/schema/edge"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/ent/privacy"
 )
 
 // User defines the user schema.
@@ -47,5 +48,16 @@ func (User) Edges() []ent.Edge {
 			Unique(),
 		edge.From("groups", UsersGroup.Type).
 			Ref("members"),
+	}
+}
+
+// Policy returns user privacy policy.
+func (User) Policy() ent.Policy {
+	return privacy.Policy{
+		Mutation: []privacy.MutationRule{
+			privacy.DenyMutationOperationRule(
+				ent.OpDelete | ent.OpDeleteOne,
+			),
+		},
 	}
 }

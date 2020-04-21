@@ -4,5 +4,4 @@
 
 package main
 
-//go:generate sh -c "test -e ../../../tools/go/gentargets/main.go && go run ../../../tools/go/gentargets/main.go --pkgbase github.com/facebookincubator/symphony --replace github.com/facebookincubator/symphony=fbc/symphony . || true"
 //go:generate go run github.com/google/addlicense -c Facebook -y 2004-present -l bsd ./

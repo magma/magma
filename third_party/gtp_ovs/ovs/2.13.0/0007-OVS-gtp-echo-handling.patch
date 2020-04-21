@@ -1,0 +1,1442 @@
+From d5c701eeb4318839ac61322821367fd28cf90edc Mon Sep 17 00:00:00 2001
+From: Pravin B Shelar <pbshelar@fb.com>
+Date: Tue, 7 Apr 2020 08:24:19 +0000
+Subject: [PATCH 7/8] OVS: gtp echo handling
+
+response works
+
+testing done using ./tests/test-gtp 1.11.1.1 3201000a0000000000010000ff0003000a01
+
+rm pmtu update
+
+improve echo recovery
+---
+ datapath/linux/compat/gtp.c    |  30 +---
+ include/openvswitch/packets.h  |  21 ++-
+ lib/bfd.c                      |  81 ++++++++--
+ lib/bfd.h                      |   4 +-
+ lib/netdev-provider.h          |   8 +
+ lib/netdev-vport-private.h     |   1 +
+ lib/netdev-vport.c             | 265 +++++++++++++++++++++++++++++++-
+ lib/netdev.c                   |  38 +++++
+ lib/netdev.h                   |  11 ++
+ lib/packets.h                  |  12 ++
+ ofproto/ofproto-dpif-monitor.c |  13 +-
+ ofproto/ofproto-dpif-xlate.c   |  35 +++--
+ ofproto/ofproto-dpif-xlate.h   |   2 +
+ ofproto/ofproto-dpif.c         |  17 +++
+ ofproto/ofproto-dpif.h         |   2 +
+ tests/automake.mk              |   3 +
+ tests/odp.at                   |   1 +
+ tests/ofproto.at               |   4 +-
+ tests/system-common-macros.at  |  19 +++
+ tests/system-layer3-tunnels.at | 270 ++++++++++++++++++++++++++-------
+ tests/test-gtp.c               | 111 ++++++++++++++
+ tests/tunnel.at                |  28 +++-
+ 22 files changed, 863 insertions(+), 113 deletions(-)
+ create mode 100644 tests/test-gtp.c
+
+diff --git a/datapath/linux/compat/gtp.c b/datapath/linux/compat/gtp.c
+index 1fa61983d..414911df5 100644
+--- a/datapath/linux/compat/gtp.c
++++ b/datapath/linux/compat/gtp.c
+@@ -608,11 +608,10 @@ static netdev_tx_t gtp_dev_xmit_fb(struct sk_buff *skb, struct net_device *dev)
+ {
+ 	struct ip_tunnel_info *info = skb_tunnel_info(skb);
+ 	struct gtp_dev *gtp = netdev_priv(dev);
+-	struct iphdr *iph = ip_hdr(skb);
+ 	struct rtable *rt;
+ 	struct flowi4 fl4;
+ 	__be16 df;
+-	int mtu;
++        u8 ttl;
+ 
+ 	/* Read the IP destination address and resolve the PDP context.
+ 	 * Prepend PDP header with TEI/TID from PDP ctx.
+@@ -630,27 +629,8 @@ static netdev_tx_t gtp_dev_xmit_fb(struct sk_buff *skb, struct net_device *dev)
+ 	}
+ 
+ 	skb_dst_drop(skb);
+-
+-	df = iph->frag_off;
+-	if (df) {
+-		mtu = dst_mtu(&rt->dst) - dev->hard_header_len -
+-			sizeof(struct iphdr) - sizeof(struct udphdr);
+-		mtu -= sizeof(struct gtp1_header);
+-	} else {
+-		mtu = dst_mtu(&rt->dst);
+-	}
+-#ifndef HAVE_DST_OPS_CONFIRM_NEIGH
+-	rt->dst.ops->update_pmtu(&rt->dst, NULL, skb, mtu);
+-#else
+-	rt->dst.ops->update_pmtu(&rt->dst, NULL, skb, mtu, false);
+-#endif
+-
+-	if (!skb_is_gso(skb) && (iph->frag_off & htons(IP_DF)) &&
+-	    mtu < ntohs(iph->tot_len)) {
+-		netdev_dbg(dev, "packet too big, fragmentation needed\n");
+-		dev->stats.tx_carrier_errors++;
+-		goto err_rt;
+-	}
++        ttl = info->key.ttl;
++        df = info->key.tun_flags & TUNNEL_DONT_FRAGMENT ? htons(IP_DF) : 0;
+ 
+         netdev_dbg(dev, "packet with opt len %d", info->options_len);
+ 	if (info->options_len == 0) {
+@@ -670,9 +650,7 @@ static netdev_tx_t gtp_dev_xmit_fb(struct sk_buff *skb, struct net_device *dev)
+                 goto err_rt;
+         }
+ 	udp_tunnel_xmit_skb(rt, gtp->sk1u, skb,
+-			    fl4.saddr, fl4.daddr, fl4.flowi4_tos,
+-			    ip4_dst_hoplimit(&rt->dst),
+-			    0,
++			    fl4.saddr, fl4.daddr, fl4.flowi4_tos, ttl, df,
+ 			    gtp->gtph_port, gtp->gtph_port,
+ 			    true, false);
+ 
+diff --git a/include/openvswitch/packets.h b/include/openvswitch/packets.h
+index ecae3f55a..91eeee553 100644
+--- a/include/openvswitch/packets.h
++++ b/include/openvswitch/packets.h
+@@ -43,7 +43,9 @@ struct flow_tnl {
+     uint32_t erspan_idx;
+     uint8_t erspan_dir;
+     uint8_t erspan_hwid;
+-    uint8_t pad1[6];     /* Pad to 64 bits. */
++    uint8_t gtp_msg_flags;
++    uint8_t gtp_msg_type;
++    uint8_t pad1[4];     /* Pad to 64 bits. */
+     struct tun_metadata metadata;
+ };
+ 
+@@ -91,6 +93,23 @@ struct ovs_key_nsh {
+ 
+ #define FLOW_NSH_F_MASK ((1 << 2) - 1)
+ 
++/* GTP protocol stuff used by userspace. */
++struct gtp1_cntr_echo_req_header {
++    ovs_be16	    seq;
++    // we do not need rest of header.
++} __attribute__ ((packed));
++
++
++struct gtpv1_tlv {
++    uint8_t type;
++    uint8_t value;
++}__attribute__ ((packed));
++
++struct gtp1_cntr_echo_rsp_header {
++    ovs_be16	        seq;
++    struct gtpv1_tlv    recovery;
++} __attribute__ ((packed));
++
+ #ifdef __cplusplus
+ }
+ #endif
+diff --git a/lib/bfd.c b/lib/bfd.c
+index cc8c6857a..d89d35010 100644
+--- a/lib/bfd.c
++++ b/lib/bfd.c
+@@ -15,6 +15,7 @@
+ #include <config.h>
+ #include "bfd.h"
+ 
++#include <errno.h>
+ #include <sys/types.h>
+ #include <netinet/in.h>
+ #include <arpa/inet.h>
+@@ -518,6 +519,7 @@ long long int
+ bfd_wake_time(const struct bfd *bfd) OVS_EXCLUDED(mutex)
+ {
+     long long int retval;
++    bool ret;
+ 
+     if (!bfd) {
+         return LLONG_MAX;
+@@ -527,9 +529,14 @@ bfd_wake_time(const struct bfd *bfd) OVS_EXCLUDED(mutex)
+     if (bfd->flags & FLAG_FINAL) {
+         retval = 0;
+     } else {
+-        retval = bfd->next_tx;
+-        if (bfd->state > STATE_DOWN) {
+-            retval = MIN(bfd->detect_time, retval);
++        if (netdev_should_send_keep_alive_pkt(bfd->netdev, &ret) != EOPNOTSUPP) {
++            // do not change time interval for keep alive
++            retval =  time_msec() + bfd_tx_interval(bfd);
++        } else {
++            retval = bfd->next_tx;
++            if (bfd->state > STATE_DOWN) {
++                retval = MIN(bfd->detect_time, retval);
++            }
+         }
+     }
+     ovs_mutex_unlock(&mutex);
+@@ -571,20 +578,26 @@ bfd_should_send_packet(const struct bfd *bfd) OVS_EXCLUDED(mutex)
+ {
+     bool ret;
+     ovs_mutex_lock(&mutex);
+-    ret = bfd->flags & FLAG_FINAL || time_msec() >= bfd->next_tx;
++    if (netdev_should_send_keep_alive_pkt(bfd->netdev, &ret) != EOPNOTSUPP) {
++        ret = (bfd->flags & FLAG_FINAL) || ret;
++    } else {
++        ret = bfd->flags & FLAG_FINAL || time_msec() >= bfd->next_tx;
++    }
+     ovs_mutex_unlock(&mutex);
+     return ret;
+ }
+ 
+-void
++int
+ bfd_put_packet(struct bfd *bfd, struct dp_packet *p,
+-               const struct eth_addr eth_src, bool *oam) OVS_EXCLUDED(mutex)
++               const struct eth_addr eth_src, struct ofpbuf *ofpacts) OVS_EXCLUDED(mutex)
+ {
+     long long int min_tx, min_rx;
+     struct udp_header *udp;
+     struct eth_header *eth;
+     struct ip_header *ip;
+     struct msg *msg;
++    bool more_pkts = false;
++    int ret;
+ 
+     ovs_mutex_lock(&mutex);
+     if (bfd->next_tx) {
+@@ -609,6 +622,25 @@ bfd_put_packet(struct bfd *bfd, struct dp_packet *p,
+         ? eth_addr_bfd : bfd->local_eth_dst;
+     eth->eth_type = htons(ETH_TYPE_IP);
+ 
++    ret = netdev_build_keep_alive_pkt(bfd->netdev, p, ofpacts, &more_pkts);
++    VLOG_DBG("%s ret %d more_pkts %d\n",__func__, (int)ret, (int) more_pkts);
++    if (ret != EOPNOTSUPP) {
++        if (ret == 0) {
++                if (more_pkts == false) {
++                    bfd->flags &= ~FLAG_FINAL;
++                }
++                VLOG_DBG("%s: Sending GTP echo packet", bfd->name);
++                goto send_pkt;
++        }
++        // error
++        if (ret == ENOENT) {
++            bfd->flags &= ~FLAG_FINAL;
++        }
++        VLOG_DBG("%s could not build keep alive packet: %d \n",__func__, ret);
++        goto unlock;
++    }
++
++    ret = 0;
+     ip = dp_packet_put_zeros(p, sizeof *ip);
+     ip->ip_ihl_ver = IP_IHL_VER(5, 4);
+     ip->ip_tot_len = htons(sizeof *ip + sizeof *udp + sizeof *msg);
+@@ -647,13 +679,20 @@ bfd_put_packet(struct bfd *bfd, struct dp_packet *p,
+     msg->min_rx = htonl(min_rx * 1000);
+ 
+     bfd->flags &= ~FLAG_FINAL;
+-    *oam = bfd->oam;
+-
++    if (bfd->oam) {
++        const ovs_be16 flag = htons(NX_TUN_FLAG_OAM);
++        ofpact_put_set_field(ofpacts, mf_from_id(MFF_TUN_FLAGS),
++                              &flag, &flag);
++    }
+     log_msg(VLL_DBG, msg, "Sending BFD Message", bfd);
+ 
++send_pkt:
++
+     bfd->last_tx = time_msec();
+     bfd_set_next_tx(bfd);
++unlock:
+     ovs_mutex_unlock(&mutex);
++    return ret;
+ }
+ 
+ bool
+@@ -661,6 +700,14 @@ bfd_should_process_flow(const struct bfd *bfd_, const struct flow *flow,
+                         struct flow_wildcards *wc)
+ {
+     struct bfd *bfd = CONST_CAST(struct bfd *, bfd_);
++    bool res;
++
++    if (!netdev_is_keep_alive_pkt(bfd->netdev, flow, wc, &res)) {
++        if (res) {
++            bfd->flags |= FLAG_FINAL;
++        }
++        return res;
++    }
+ 
+     if (!eth_addr_is_zero(bfd->rmt_eth_dst)) {
+         memset(&wc->masks.dl_dst, 0xff, sizeof wc->masks.dl_dst);
+@@ -698,15 +745,21 @@ bfd_process_packet(struct bfd *bfd, const struct flow *flow,
+     enum flags flags;
+     uint8_t version;
+     struct msg *msg;
+-    const uint8_t *l7 = dp_packet_get_udp_payload(p);
++    const uint8_t *l7;
++
++    ovs_mutex_lock(&mutex);
++    if (netdev_process_keep_alive_pkt(bfd->netdev, flow, p) == 0) {
++        VLOG_DBG_RL(&rl, "%s: Received GTP echo packet", bfd->name);
++        goto unlock;
++    }
+ 
++    l7 = dp_packet_get_udp_payload(p);
+     if (!l7) {
+-        return; /* No UDP payload. */
++        goto unlock;     /* No UDP payload. */
+     }
+ 
+     /* This function is designed to follow section RFC 5880 6.8.6 closely. */
+ 
+-    ovs_mutex_lock(&mutex);
+     /* Increments the decay rx counter. */
+     bfd->decay_rx_ctl++;
+ 
+@@ -716,7 +769,6 @@ bfd_process_packet(struct bfd *bfd, const struct flow *flow,
+         /* XXX Should drop in the kernel to prevent DOS. */
+         goto out;
+     }
+-
+     msg = dp_packet_at(p, l7 - (uint8_t *)dp_packet_data(p), BFD_PACKET_LEN);
+     if (!msg) {
+         VLOG_INFO_RL(&rl, "%s: Received too-short BFD control message (only "
+@@ -878,6 +930,7 @@ bfd_process_packet(struct bfd *bfd, const struct flow *flow,
+ 
+ out:
+     bfd_forwarding__(bfd);
++unlock:
+     ovs_mutex_unlock(&mutex);
+ }
+ 
+@@ -956,6 +1009,10 @@ bfd_in_poll(const struct bfd *bfd) OVS_REQUIRES(mutex)
+ static void
+ bfd_poll(struct bfd *bfd) OVS_REQUIRES(mutex)
+ {
++    bool ret;
++    if (netdev_should_send_keep_alive_pkt(bfd->netdev, &ret) != EOPNOTSUPP) {
++        return;
++    }
+     if (bfd->state > STATE_DOWN && !bfd_in_poll(bfd)
+         && !(bfd->flags & FLAG_FINAL)) {
+         bfd->poll_min_tx = bfd->cfg_min_tx;
+diff --git a/lib/bfd.h b/lib/bfd.h
+index 9d32327fb..fcbd8554d 100644
+--- a/lib/bfd.h
++++ b/lib/bfd.h
+@@ -35,8 +35,8 @@ long long int bfd_wait(const struct bfd *);
+ void bfd_run(struct bfd *);
+ 
+ bool bfd_should_send_packet(const struct bfd *);
+-void bfd_put_packet(struct bfd *bfd, struct dp_packet *packet,
+-                    const struct eth_addr eth_src, bool *oam);
++int bfd_put_packet(struct bfd *bfd, struct dp_packet *packet,
++                    const struct eth_addr eth_src, struct ofpbuf *ofpacts);
+ 
+ bool bfd_should_process_flow(const struct bfd *, const struct flow *,
+                              struct flow_wildcards *);
+diff --git a/lib/netdev-provider.h b/lib/netdev-provider.h
+index 6f509424b..d3d411c21 100644
+--- a/lib/netdev-provider.h
++++ b/lib/netdev-provider.h
+@@ -833,6 +833,14 @@ struct netdev_class {
+     /* Get a block_id from the netdev.
+      * Returns the block_id or 0 if none exists for netdev. */
+     uint32_t (*get_block_id)(struct netdev *);
++
++    int (*should_send_keep_alive_pkt) (struct netdev *, bool *res);
++    int (*is_keep_alive_pkt) (struct netdev *, const struct flow *flow,
++                               struct flow_wildcards *wc, bool *res);
++    int  (*process_keep_alive_pkt) (struct netdev *, const struct flow *flow,
++                               const struct dp_packet *p);
++    int (*build_keep_alive_pkt) (struct netdev *, struct dp_packet *p,
++                                struct ofpbuf *ofpacts, bool *more_pkts);
+ };
+ 
+ int netdev_register_provider(const struct netdev_class *);
+diff --git a/lib/netdev-vport-private.h b/lib/netdev-vport-private.h
+index d89a28c66..3c82d5837 100644
+--- a/lib/netdev-vport-private.h
++++ b/lib/netdev-vport-private.h
+@@ -40,6 +40,7 @@ struct netdev_vport {
+ 
+     /* Patch Ports. */
+     char *peer;
++    struct hmap keep_alives;
+ };
+ 
+ int netdev_vport_construct(struct netdev *);
+diff --git a/lib/netdev-vport.c b/lib/netdev-vport.c
+index 8bd2d6760..bf77d044a 100644
+--- a/lib/netdev-vport.c
++++ b/lib/netdev-vport.c
+@@ -29,6 +29,7 @@
+ #include <sys/ioctl.h>
+ 
+ #include "byte-order.h"
++#include "csum.h"
+ #include "daemon.h"
+ #include "dirs.h"
+ #include "dpif.h"
+@@ -36,6 +37,7 @@
+ #include "netdev-native-tnl.h"
+ #include "netdev-provider.h"
+ #include "netdev-vport-private.h"
++#include "odp-util.h"
+ #include "openvswitch/dynamic-string.h"
+ #include "ovs-router.h"
+ #include "packets.h"
+@@ -199,6 +201,7 @@ netdev_vport_construct(struct netdev *netdev_)
+ 
+     ovs_mutex_init(&dev->mutex);
+     eth_addr_random(&dev->etheraddr);
++    hmap_init(&dev->keep_alives);
+ 
+     if (name && dpif_port && (strlen(name) > strlen(dpif_port) + 1) &&
+         (!strncmp(name, dpif_port, strlen(dpif_port)))) {
+@@ -1115,6 +1118,256 @@ netdev_vport_get_pt_mode(const struct netdev *netdev)
+ 
+ 
+ #ifdef __linux__
++
++struct keep_alive_info {
++    struct hmap_node hmap_node;
++    ovs_be32 ip_src;
++    __u8 flags;
++    int seq;
++    bool csum;
++    long long int timestamp;
++    bool need_to_send;
++    long rx_cnt;
++    long tx_cnt;
++};
++
++int keep_alive_info_max = 1000;
++
++// TODO implement LRU cache to avoid manual purge
++//
++static void
++gtp_get_remote_info(struct netdev_vport *dev, struct ds *ds)
++{
++    struct keep_alive_info *kai;
++
++    HMAP_FOR_EACH(kai, hmap_node, &dev->keep_alives) {
++        ds_put_format(ds, "\t%s: RX: %ld TX: %ld remote ip: "IP_FMT", seq %d, pending send %d\n",
++                      xastrftime_msec("%H:%M:%S.###", kai->timestamp, true), kai->rx_cnt, kai->tx_cnt,
++                      IP_ARGS(kai->ip_src), kai->seq, (int)kai->need_to_send );
++    }
++}
++
++static void
++gtp_del_remote_end_points_info(struct netdev_vport *dev)
++{
++    struct keep_alive_info *kai, *next;
++
++    HMAP_FOR_EACH_SAFE(kai, next, hmap_node, &dev->keep_alives) {
++        hmap_remove(&dev->keep_alives, &kai->hmap_node);
++        free(kai);
++    }
++}
++
++/* This function is for packet TX.
++ * currently we do not support sending keep alive packets. */
++static int gtp_should_send_keep_alive_pkt(struct netdev *netdev OVS_UNUSED, bool *res)
++{
++    *res = false;
++    return 0;
++}
++
++static int
++gtp_is_keep_alive_pkt(struct netdev *netdev, const struct flow *flow,
++                      struct flow_wildcards *wc, bool *res)
++{
++    struct netdev_vport *dev = netdev_vport_cast(netdev);
++
++    if (wc) {
++        memset(&wc->masks.tunnel.gtp_msg_type, 0xff, sizeof wc->masks.tunnel.gtp_msg_type);
++        memset(&wc->masks.tunnel.ip_dst, 0xff, sizeof wc->masks.tunnel.ip_dst);
++    }
++    
++    VLOG_DBG("gtp flags %x msg_type %d dev->tnl_cfg.dst_port %d == (%d, %d) flow "IP_FMT" cfg "IP_FMT,
++            flow->tunnel.gtp_msg_flags, flow->tunnel.gtp_msg_type, dev->tnl_cfg.dst_port,
++            flow->tunnel.tp_src, flow->tunnel.tp_dst,
++            IP_ARGS(flow->tunnel.ip_dst), IP_ARGS(in6_addr_get_mapped_ipv4(&dev->tnl_cfg.ipv6_src)));
++
++    *res = (flow->tunnel.gtp_msg_type == 1) &&                  // echo request msg type
++           (flow->tunnel.gtp_msg_flags == 0x32) &&              // needs seq in packet.
++           (flow->tunnel.ip_dst == in6_addr_get_mapped_ipv4(&dev->tnl_cfg.ipv6_src)) &&
++           (flow->tunnel.tp_src == dev->tnl_cfg.dst_port) &&
++           (flow->tunnel.tp_dst == dev->tnl_cfg.dst_port);
++    return 0;
++}
++
++static struct keep_alive_info *
++gtp_get_keep_alive_info(struct netdev *netdev, ovs_be32 ip_src)
++{
++    struct netdev_vport *dev = netdev_vport_cast(netdev);
++    struct keep_alive_info *kai;
++
++    HMAP_FOR_EACH_WITH_HASH(kai, hmap_node, hash_2words(ip_src, 0), &dev->keep_alives) {
++        if (kai->ip_src == ip_src) {
++            return kai;
++        }
++    }
++    kai = xzalloc(sizeof *kai);
++    kai->ip_src = ip_src;
++    hmap_insert(&dev->keep_alives, &kai->hmap_node, hash_2words(ip_src, 0));
++    return kai;
++}
++
++static int
++gtp_process_keep_alive_pkt(struct netdev *netdev, const struct flow *flow,
++                           const struct dp_packet *p)
++{
++    struct netdev_vport *dev = netdev_vport_cast(netdev);
++    struct keep_alive_info *kai;
++    bool is_keep_alive;
++
++    ovs_mutex_lock(&dev->mutex);
++    gtp_is_keep_alive_pkt(netdev, flow, NULL, &is_keep_alive);
++
++    VLOG_DBG("is_keep_alive %d",(int) is_keep_alive);
++    if (is_keep_alive) {
++        struct gtp1_cntr_echo_req_header *hdr;
++
++        kai = gtp_get_keep_alive_info(netdev, flow->tunnel.ip_src);
++
++        if (dp_packet_size(p) >= sizeof(struct gtp1_cntr_echo_req_header) &&
++            dp_packet_data(p) != NULL &&
++            flow->tunnel.gtp_msg_flags & GTP_FLAGS_SEQ) {
++            hdr = dp_packet_data(p);
++            kai->seq = ntohs(hdr->seq);
++            VLOG_DBG("got seq %d", kai->seq);
++        } else {
++            kai->seq++;
++        }
++        kai->timestamp = time_wall_msec();
++        kai->need_to_send = true;
++        kai->flags = flow->tunnel.gtp_msg_flags;
++        kai->csum = !!(flow->tunnel.flags & FLOW_TNL_F_CSUM);
++        kai->rx_cnt++;
++    }
++    ovs_mutex_unlock(&dev->mutex);
++
++    return 0;
++}
++
++static int
++gtp_build_keep_alive_pkt(struct netdev *netdev, struct dp_packet *p,
++                         struct ofpbuf *ofpacts, bool *more_pkts)
++{
++    struct netdev_vport *dev = netdev_vport_cast(netdev);
++    struct keep_alive_info *kai, *found = NULL;
++    struct gtp1_cntr_echo_rsp_header *hdr;
++    bool plus_one = false;
++    ovs_be32 ip_src_flow;
++    __u8 ttl;
++    __u8 tos;
++    __u8 gtp_msg_type;
++    __u8 gtp_msg_flags;
++
++    ovs_mutex_lock(&dev->mutex);
++    ip_src_flow = dev->tnl_cfg.ip_src_flow;
++
++    HMAP_FOR_EACH(kai, hmap_node, &dev->keep_alives) {
++        if (kai->need_to_send) {
++                if (found == NULL) {
++                    kai->need_to_send = false;
++                    found = kai;
++                } if (plus_one == false) {
++                    plus_one = true;
++                    break;
++                } else {
++                    break;
++                }
++        }
++    }
++
++    if (!found) {
++        ovs_mutex_unlock(&dev->mutex);
++        return ENOENT;
++    }
++    *more_pkts = plus_one;
++
++    ttl = MAXTTL;
++    tos = IPTOS_PREC_INTERNETCONTROL;
++    gtp_msg_type = 2;
++    gtp_msg_flags = found->flags;
++
++    ofpact_put_set_field(ofpacts, mf_from_id(MFF_TUN_SRC), &ip_src_flow, &ip_src_flow);
++    ofpact_put_set_field(ofpacts, mf_from_id(MFF_TUN_DST), &found->ip_src, &found->ip_src);
++    ofpact_put_set_field(ofpacts, mf_from_id(MFF_TUN_TOS), &tos, &tos);
++    ofpact_put_set_field(ofpacts, mf_from_id(MFF_TUN_TTL), &ttl, &ttl);
++    ofpact_put_set_field(ofpacts, mf_from_id(MFF_TUN_GTP_FLAGS), &gtp_msg_flags, &gtp_msg_flags);
++    ofpact_put_set_field(ofpacts, mf_from_id(MFF_TUN_GTP_MSG_TYPE), &gtp_msg_type, &gtp_msg_type);
++
++    if (found->csum || 1) {
++        __be16 csum = htons(FLOW_TNL_F_CSUM);
++        ofpact_put_set_field(ofpacts, mf_from_id(MFF_TUN_FLAGS), &csum, &csum);
++    }
++    hdr = dp_packet_put_zeros(p, sizeof *hdr);
++    hdr->seq = htons(found->seq);
++    hdr->recovery.type = 14;  //htons(0x0E00); // this is added for backward compatibility only.
++    hdr->recovery.value = 0;
++    found->tx_cnt++;
++    ovs_mutex_unlock(&dev->mutex);
++    return 0;
++}
++
++static void
++netdev_gtp_echo_remote_end_points(struct unixctl_conn *conn, int argc OVS_UNUSED,
++                             const char *argv[] OVS_UNUSED, void *aux OVS_UNUSED)
++{
++    struct ds ds = DS_EMPTY_INITIALIZER;
++    struct netdev **vports;
++    size_t i, n_vports;
++
++    int rec = 0;
++
++    vports = netdev_get_vports(&n_vports);
++    for (i = 0; i < n_vports; i++) {
++        struct netdev *netdev_ = vports[i];
++        struct netdev_vport *netdev = netdev_vport_cast(netdev_);
++
++        ds_put_format(&ds, "Tunnel port: %s\n", netdev_->name);
++        ovs_mutex_lock(&netdev->mutex);
++        /* Finds all tunnel vports. */
++        gtp_get_remote_info(netdev, &ds);
++
++        ovs_mutex_unlock(&netdev->mutex);
++
++        netdev_close(netdev_);
++        rec++;
++    }
++    free(vports);
++    if (rec) {
++        unixctl_command_reply(conn, ds_cstr(&ds));
++    } else {
++        unixctl_command_reply(conn, "None");
++    }
++    ds_destroy(&ds);
++}
++
++static void
++netdev_gtp_echo_remote_end_points_purge(struct unixctl_conn *conn, int argc OVS_UNUSED,
++                             const char *argv[] OVS_UNUSED, void *aux OVS_UNUSED)
++{
++    struct ds ds = DS_EMPTY_INITIALIZER;
++    struct netdev **vports;
++    size_t i, n_vports;
++
++    int rec = 0;
++
++    vports = netdev_get_vports(&n_vports);
++    for (i = 0; i < n_vports; i++) {
++        struct netdev *netdev_ = vports[i];
++        struct netdev_vport *netdev = netdev_vport_cast(netdev_);
++
++        ovs_mutex_lock(&netdev->mutex);
++        gtp_del_remote_end_points_info(netdev);
++        ovs_mutex_unlock(&netdev->mutex);
++
++        netdev_close(netdev_);
++        rec++;
++    }
++    free(vports);
++    unixctl_command_reply(conn, "Done");
++    ds_destroy(&ds);
++}
++
++
+ static int
+ netdev_vport_get_ifindex(const struct netdev *netdev_)
+ {
+@@ -1205,7 +1458,11 @@ netdev_vport_tunnel_register(void)
+         { "gtp_sys",
+           {
+               TUNNEL_FUNCTIONS_COMMON,
+-              .type = "gtp"
++              .type = "gtp",
++              .should_send_keep_alive_pkt = gtp_should_send_keep_alive_pkt,
++              .is_keep_alive_pkt = gtp_is_keep_alive_pkt,
++              .process_keep_alive_pkt = gtp_process_keep_alive_pkt,
++              .build_keep_alive_pkt = gtp_build_keep_alive_pkt,
+           },
+           {{NULL, NULL, 0, 0}}
+         },
+@@ -1254,6 +1511,12 @@ netdev_vport_tunnel_register(void)
+         unixctl_command_register("tnl/egress_port_range", "min max", 0, 2,
+                                  netdev_tnl_egress_port_range, NULL);
+ 
++        unixctl_command_register("tnl/gtp_echo_remote_end_points", "", 0, 0,
++                                 netdev_gtp_echo_remote_end_points, NULL);
++
++        unixctl_command_register("tnl/gtp_echo_remote_end_points_purge", "", 0, 0,
++                                 netdev_gtp_echo_remote_end_points_purge, NULL);
++
+         ovsthread_once_done(&once);
+     }
+ }
+diff --git a/lib/netdev.c b/lib/netdev.c
+index 8c44eee8e..403d91c55 100644
+--- a/lib/netdev.c
++++ b/lib/netdev.c
+@@ -2280,3 +2280,41 @@ netdev_free_custom_stats_counters(struct netdev_custom_stats *custom_stats)
+         }
+     }
+ }
++
++int netdev_should_send_keep_alive_pkt(struct netdev *netdev, bool *res)
++{
++
++    if (netdev->netdev_class->should_send_keep_alive_pkt) {
++        return netdev->netdev_class->should_send_keep_alive_pkt(netdev, res);
++    }
++    return EOPNOTSUPP;
++}
++
++int
++netdev_is_keep_alive_pkt(struct netdev *netdev, const struct flow *flow,
++                              struct flow_wildcards *wc, bool *res)
++{
++    if (netdev->netdev_class->is_keep_alive_pkt) {
++        return netdev->netdev_class->is_keep_alive_pkt(netdev, flow, wc, res);
++    }
++    return EOPNOTSUPP;
++}
++
++int
++netdev_process_keep_alive_pkt(struct netdev *netdev, const struct flow *flow,
++                                  const struct dp_packet *p)
++{
++    if (netdev->netdev_class->process_keep_alive_pkt) {
++        return netdev->netdev_class->process_keep_alive_pkt(netdev, flow, p);
++    }
++    return EOPNOTSUPP;
++}
++
++int netdev_build_keep_alive_pkt(struct netdev *netdev, struct dp_packet *p,
++                                struct ofpbuf *ofpacts, bool *more_pkts)
++{
++    if (netdev->netdev_class->build_keep_alive_pkt) {
++        return netdev->netdev_class->build_keep_alive_pkt(netdev, p, ofpacts, more_pkts);
++    }
++    return EOPNOTSUPP;
++}
+diff --git a/lib/netdev.h b/lib/netdev.h
+index 28e700098..4af645993 100644
+--- a/lib/netdev.h
++++ b/lib/netdev.h
+@@ -325,6 +325,17 @@ bool netdev_queue_dump_next(struct netdev_queue_dump *,
+                             unsigned int *queue_id, struct smap *details);
+ int netdev_queue_dump_done(struct netdev_queue_dump *);
+ 
++int netdev_should_send_keep_alive_pkt(struct netdev *, bool *res);
++
++int netdev_is_keep_alive_pkt(struct netdev *, const struct flow *flow,
++                               struct flow_wildcards *wc, bool *res);
++
++int netdev_process_keep_alive_pkt(struct netdev *, const struct flow *flow,
++                               const struct dp_packet *p);
++
++int netdev_build_keep_alive_pkt(struct netdev *, struct dp_packet *p,
++                                struct ofpbuf *ofpacts, bool *more_pkts);
++
+ /* Iterates through each queue in NETDEV, using DUMP as state.  Fills QUEUE_ID
+  * and DETAILS with information about queues.  The client must initialize and
+  * destroy DETAILS.
+diff --git a/lib/packets.h b/lib/packets.h
+index 8f3ff943d..f9aa3f8ba 100644
+--- a/lib/packets.h
++++ b/lib/packets.h
+@@ -1667,10 +1667,22 @@ enum {
+     GTP_CONTROL_PKT_INFO_V1
+ };
+ 
++/*
++ * GTP flags:
++ * 001-  ----    Version: GTP release 99: ver (1)
++ * ---1  ----    Protocol type: GTP(1)
++ * ----  0---    Reserved.
++ * ----  -1--    Extension header present.
++ * ----  --1-    Seq number is present.
++ * ----  ---1    Is N-PDU number present.
++ * */
++
+ struct gtp1_control_pkt_opts {
+     __u8	ver;
+     __u8	flags;
+     __u8	type;
+ };
+ 
++#define GTP_FLAGS_SEQ   0x02
++
+ #endif /* packets.h */
+diff --git a/ofproto/ofproto-dpif-monitor.c b/ofproto/ofproto-dpif-monitor.c
+index bb0e49091..42bf211e9 100644
+--- a/ofproto/ofproto-dpif-monitor.c
++++ b/ofproto/ofproto-dpif-monitor.c
+@@ -280,11 +280,17 @@ monitor_mport_run(struct mport *mport, struct dp_packet *packet)
+         ofproto_dpif_send_packet(mport->ofport, false, packet);
+     }
+     if (mport->bfd && bfd_should_send_packet(mport->bfd)) {
+-        bool oam;
++        uint64_t ofpacts_stub[4192 / 8];
++        struct ofpbuf ofpacts;
++        int err;
++
++        ofpbuf_use_stack(&ofpacts, ofpacts_stub, sizeof ofpacts_stub);
+ 
+         dp_packet_clear(packet);
+-        bfd_put_packet(mport->bfd, packet, mport->hw_addr, &oam);
+-        ofproto_dpif_send_packet(mport->ofport, oam, packet);
++        err = bfd_put_packet(mport->bfd, packet, mport->hw_addr, &ofpacts);
++        if (!err) {
++            ofproto_dpif_send_packet_with_acts(mport->ofport, packet, &ofpacts);
++        }
+     }
+     if (mport->lldp && lldp_should_send_packet(mport->lldp)) {
+         dp_packet_clear(packet);
+@@ -307,6 +313,7 @@ monitor_mport_run(struct mport *mport, struct dp_packet *packet)
+     next_wake_time = MIN(bfd_wake_time,
+                          cfm_wake_time);
+     next_wake_time = MIN(next_wake_time, lldp_wake_time);
++
+     heap_change(&monitor_heap, &mport->heap_node,
+                 MSEC_TO_PRIO(next_wake_time));
+ }
+diff --git a/ofproto/ofproto-dpif-xlate.c b/ofproto/ofproto-dpif-xlate.c
+index 36b40f5f3..eb15e0736 100644
+--- a/ofproto/ofproto-dpif-xlate.c
++++ b/ofproto/ofproto-dpif-xlate.c
+@@ -7915,17 +7915,14 @@ xlate_resume(struct ofproto_dpif *ofproto,
+  * May modify 'packet'.
+  * Returns 0 if successful, otherwise a positive errno value. */
+ int
+-xlate_send_packet(const struct ofport_dpif *ofport, bool oam,
+-                  struct dp_packet *packet)
++xlate_send_packet_with_acts(const struct ofport_dpif *ofport,
++                  struct dp_packet *packet, struct ofpbuf *ofpacts)
+ {
+     struct xlate_cfg *xcfg = ovsrcu_get(struct xlate_cfg *, &xcfgp);
+     struct xport *xport;
+-    uint64_t ofpacts_stub[1024 / 8];
+-    struct ofpbuf ofpacts;
+     struct flow flow;
+ 
+-    ofpbuf_use_stack(&ofpacts, ofpacts_stub, sizeof ofpacts_stub);
+-    /* Use OFPP_NONE as the in_port to avoid special packet processing. */
++
+     flow_extract(packet, &flow);
+     flow.in_port.ofp_port = OFPP_NONE;
+ 
+@@ -7934,19 +7931,31 @@ xlate_send_packet(const struct ofport_dpif *ofport, bool oam,
+         return EINVAL;
+     }
+ 
++    ofpact_put_OUTPUT(ofpacts)->port = xport->ofp_port;
++
++    /* Actions here are not referring to anything versionable (flow tables or
++     * groups) so we don't need to worry about the version here. */
++    return ofproto_dpif_execute_actions(xport->xbridge->ofproto,
++                                        OVS_VERSION_MAX, &flow, NULL,
++                                        ofpacts->data, ofpacts->size, packet);
++}
++
++int
++xlate_send_packet(const struct ofport_dpif *ofport, bool oam,
++                  struct dp_packet *packet)
++{
++    uint64_t ofpacts_stub[1024 / 8];
++    struct ofpbuf ofpacts;
++
++    ofpbuf_use_stack(&ofpacts, ofpacts_stub, sizeof ofpacts_stub);
++    /* Use OFPP_NONE as the in_port to avoid special packet processing. */
+     if (oam) {
+         const ovs_be16 flag = htons(NX_TUN_FLAG_OAM);
+         ofpact_put_set_field(&ofpacts, mf_from_id(MFF_TUN_FLAGS),
+                              &flag, &flag);
+     }
+ 
+-    ofpact_put_OUTPUT(&ofpacts)->port = xport->ofp_port;
+-
+-    /* Actions here are not referring to anything versionable (flow tables or
+-     * groups) so we don't need to worry about the version here. */
+-    return ofproto_dpif_execute_actions(xport->xbridge->ofproto,
+-                                        OVS_VERSION_MAX, &flow, NULL,
+-                                        ofpacts.data, ofpacts.size, packet);
++    return xlate_send_packet_with_acts(ofport, packet, &ofpacts);
+ }
+ 
+ void
+diff --git a/ofproto/ofproto-dpif-xlate.h b/ofproto/ofproto-dpif-xlate.h
+index 3426a27b2..5d1bd84d5 100644
+--- a/ofproto/ofproto-dpif-xlate.h
++++ b/ofproto/ofproto-dpif-xlate.h
+@@ -221,6 +221,8 @@ enum ofperr xlate_resume(struct ofproto_dpif *,
+                          struct ofpbuf *odp_actions, enum slow_path_reason *,
+                          struct flow *, struct xlate_cache *);
+ int xlate_send_packet(const struct ofport_dpif *, bool oam, struct dp_packet *);
++int xlate_send_packet_with_acts(const struct ofport_dpif *ofport,
++                  struct dp_packet *packet, struct ofpbuf *ofpacts);
+ 
+ void xlate_mac_learning_update(const struct ofproto_dpif *ofproto,
+                                ofp_port_t in_port, struct eth_addr dl_src,
+diff --git a/ofproto/ofproto-dpif.c b/ofproto/ofproto-dpif.c
+index d3cb39207..a3beddbff 100644
+--- a/ofproto/ofproto-dpif.c
++++ b/ofproto/ofproto-dpif.c
+@@ -5228,6 +5228,23 @@ ofproto_dpif_send_packet(const struct ofport_dpif *ofport, bool oam,
+     ovs_mutex_unlock(&ofproto->stats_mutex);
+     return error;
+ }
++
++int
++ofproto_dpif_send_packet_with_acts(const struct ofport_dpif *ofport, 
++                                   struct dp_packet *packet, struct ofpbuf *ofpacts)
++{
++    struct ofproto_dpif *ofproto = ofproto_dpif_cast(ofport->up.ofproto);
++    int error;
++
++    error = xlate_send_packet_with_acts(ofport, packet, ofpacts);
++
++    ovs_mutex_lock(&ofproto->stats_mutex);
++    ofproto->stats.tx_packets++;
++    ofproto->stats.tx_bytes += dp_packet_size(packet);
++    ovs_mutex_unlock(&ofproto->stats_mutex);
++    return error;
++}
++
+ 
+ /* Return the version string of the datapath that backs up
+  * this 'ofproto'.
+diff --git a/ofproto/ofproto-dpif.h b/ofproto/ofproto-dpif.h
+index c9d5df34b..e36ce9f04 100644
+--- a/ofproto/ofproto-dpif.h
++++ b/ofproto/ofproto-dpif.h
+@@ -365,6 +365,8 @@ void ofproto_dpif_send_async_msg(struct ofproto_dpif *,
+                                  struct ofproto_async_msg *);
+ int ofproto_dpif_send_packet(const struct ofport_dpif *, bool oam,
+                              struct dp_packet *);
++int ofproto_dpif_send_packet_with_acts(const struct ofport_dpif *,
++                             struct dp_packet *, struct ofpbuf *ofpacts);
+ enum ofperr ofproto_dpif_flow_mod_init_for_learn(
+     struct ofproto_dpif *, const struct ofputil_flow_mod *,
+     struct ofproto_flow_mod *);
+diff --git a/tests/automake.mk b/tests/automake.mk
+index 86e006426..2a6cbb33e 100644
+--- a/tests/automake.mk
++++ b/tests/automake.mk
+@@ -486,6 +486,9 @@ tests_test_strtok_r_SOURCES = tests/test-strtok_r.c
+ noinst_PROGRAMS += tests/test-type-props
+ tests_test_type_props_SOURCES = tests/test-type-props.c
+ 
++noinst_PROGRAMS += tests/test-gtp
++tests_test_gtp_SOURCES = tests/test-gtp.c
++
+ # Python tests.
+ CHECK_PYFILES = \
+ 	tests/appctl.py \
+diff --git a/tests/odp.at b/tests/odp.at
+index 3ab9ad62d..166407097 100644
+--- a/tests/odp.at
++++ b/tests/odp.at
+@@ -325,6 +325,7 @@ pop_vlan
+ sample(sample=9.7%,actions(1,2,3,push_vlan(vid=1,pcp=2)))
+ set(tunnel(tun_id=0xabcdef1234567890,src=1.1.1.1,dst=2.2.2.2,ttl=64,flags(df|csum|key)))
+ set(tunnel(tun_id=0xabcdef1234567890,src=1.1.1.1,dst=2.2.2.2,ttl=64,flags(key)))
++set(tunnel(tun_id=0x0,dst=1.1.1.1,ttl=64,tp_dst=2152,gtp_opt(ver=0,flags=0x32,type=0x1),flags(df|key))),pop_eth,2152
+ tnl_pop(4)
+ tnl_push(tnl_port(4),header(size=42,type=3,eth(dst=f8:bc:12:44:34:b6,src=f8:bc:12:46:58:e0,dl_type=0x0800),ipv4(src=1.1.2.88,dst=1.1.2.92,proto=47,tos=0,ttl=64,frag=0x4000),gre((flags=0x2000,proto=0x6558),key=0x1e241)),out_port(1))
+ tnl_push(tnl_port(4),header(size=46,type=3,eth(dst=f8:bc:12:44:34:b6,src=f8:bc:12:46:58:e0,dl_type=0x0800),ipv4(src=1.1.2.88,dst=1.1.2.92,proto=47,tos=0,ttl=64,frag=0x4000),gre((flags=0xa000,proto=0x6558),csum=0x0,key=0x1e241)),out_port(1))
+diff --git a/tests/ofproto.at b/tests/ofproto.at
+index 23a5e1505..02298a819 100644
+--- a/tests/ofproto.at
++++ b/tests/ofproto.at
+@@ -2350,9 +2350,9 @@ head_table () {
+       instructions: meter apply_actions clear_actions write_actions write_metadata goto_table
+       Write-Actions and Apply-Actions features:
+         actions: output group set_field strip_vlan push_vlan mod_nw_ttl dec_ttl set_mpls_ttl dec_mpls_ttl push_mpls pop_mpls set_queue
+-        supported on Set-Field: tun_{id,src,dst,ipv6_{src,dst},flags,gbp_{id,flags},erspan_{idx,ver,dir,hwid},metadata0...metadata63} metadata in_{port,port_oxm} pkt_mark ct_{mark,label} reg0...reg15 xreg0...xreg7 xxreg0...xxreg3 eth_{src,dst} vlan_{tci,vid,pcp} mpls_{label,tc,ttl} ip_{src,dst} ipv6_{src,dst,label} nw_tos ip_dscp nw_{ecn,ttl} arp_{op,spa,tpa,sha,tha} tcp_{src,dst} udp_{src,dst} sctp_{src,dst} icmp_{type,code} icmpv6_{type,code} nd_{target,sll,tll,reserved,options_type} nsh_{flags,spi,si,c1...c4,ttl}
++        supported on Set-Field: tun_{id,src,dst,ipv6_{src,dst},flags,gbp_{id,flags},erspan_{idx,ver,dir,hwid},gtp_{flags,msg_type},metadata0...metadata63} metadata in_{port,port_oxm} pkt_mark ct_{mark,label} reg0...reg15 xreg0...xreg7 xxreg0...xxreg3 eth_{src,dst} vlan_{tci,vid,pcp} mpls_{label,tc,ttl} ip_{src,dst} ipv6_{src,dst,label} nw_tos ip_dscp nw_{ecn,ttl} arp_{op,spa,tpa,sha,tha} tcp_{src,dst} udp_{src,dst} sctp_{src,dst} icmp_{type,code} icmpv6_{type,code} nd_{target,sll,tll,reserved,options_type} nsh_{flags,spi,si,c1...c4,ttl}
+     matching:
+-      arbitrary mask: dp_hash tun_{id,src,dst,ipv6_{src,dst},flags,gbp_{id,flags},erspan_{idx,ver,dir,hwid},metadata0...metadata63} metadata pkt_mark ct_{state,mark,label,nw_{src,dst},ipv6_{src,dst},tp_{src,dst}} reg0...reg15 xreg0...xreg7 xxreg0...xxreg3 eth_{src,dst} vlan_{tci,vid} ip_{src,dst} ipv6_{src,dst,label} ip_frag arp_{spa,tpa,sha,tha} tcp_{src,dst,flags} udp_{src,dst} sctp_{src,dst} nd_{target,sll,tll} nsh_{flags,c1...c4}
++      arbitrary mask: dp_hash tun_{id,src,dst,ipv6_{src,dst},flags,gbp_{id,flags},erspan_{idx,ver,dir,hwid},gtp_{flags,msg_type},metadata0...metadata63} metadata pkt_mark ct_{state,mark,label,nw_{src,dst},ipv6_{src,dst},tp_{src,dst}} reg0...reg15 xreg0...xreg7 xxreg0...xxreg3 eth_{src,dst} vlan_{tci,vid} ip_{src,dst} ipv6_{src,dst,label} ip_frag arp_{spa,tpa,sha,tha} tcp_{src,dst,flags} udp_{src,dst} sctp_{src,dst} nd_{target,sll,tll} nsh_{flags,c1...c4}
+       exact match or wildcard: recirc_id packet_type conj_id in_{port,port_oxm} actset_output ct_{zone,nw_proto} eth_type vlan_pcp mpls_{label,tc,bos,ttl} nw_{proto,tos} ip_dscp nw_{ecn,ttl} arp_op icmp_{type,code} icmpv6_{type,code} nd_{reserved,options_type} nsh_{mdtype,np,spi,si,ttl}
+ 
+ ' "$1"
+diff --git a/tests/system-common-macros.at b/tests/system-common-macros.at
+index 3643cc18d..e33bb62c9 100644
+--- a/tests/system-common-macros.at
++++ b/tests/system-common-macros.at
+@@ -160,6 +160,25 @@ m4_define([ADD_CVLAN],
+     ]
+ )
+ 
++# ADD_OVS_TUNNEL_NO_REMOTE([type], [bridge], [port], [overlay-addr],
++#                [tunnel-args])
++#
++# Add an ovs-based tunnel device in the root namespace, with name 'port' and
++# type 'type'. The tunnel device will be configured as point-to-point with the
++# 'remote-addr' as the underlay address of the remote tunnel endpoint.
++#
++# 'port will be configured with the address 'overlay-addr'.
++#
++m4_define([ADD_OVS_TUNNEL_NO_REMOTE],
++   [AT_CHECK([ovs-vsctl add-port $2 $3 -- \
++              set int $3 type=$1 options:remote_ip=flow $5])
++    AT_CHECK([ip addr add dev $2 $4])
++    AT_CHECK([ip link set dev $2 up])
++    AT_CHECK([ip link set dev $2 mtu 1450])
++    on_exit 'ip addr del dev $2 $4'
++   ]
++)
++
+ # ADD_OVS_TUNNEL([type], [bridge], [port], [remote-addr], [overlay-addr],
+ #                [tunnel-args])
+ #
+diff --git a/tests/system-layer3-tunnels.at b/tests/system-layer3-tunnels.at
+index fe8a94555..e6bb632f1 100644
+--- a/tests/system-layer3-tunnels.at
++++ b/tests/system-layer3-tunnels.at
+@@ -49,58 +49,6 @@ NS_CHECK_EXEC([at_ns0], [ping -s 3200 -q -c 3 -i 0.3 -w 2 10.1.1.2 | FORMAT_PING
+ OVS_TRAFFIC_VSWITCHD_STOP
+ AT_CLEANUP
+ 
+-AT_SETUP([layer3 - ping over GTP])
+-OVS_TRAFFIC_VSWITCHD_START([set Bridge br0 other-config:hwaddr="00:12:34:56:78:bb"])
+-OVS_CHECK_GTP_L3()
+-
+-ADD_BR([br-underlay])
+-
+-ADD_NAMESPACES(at_ns0)
+-
+-dnl Set up underlay link from host into the namespace using veth pair.
+-ADD_VETH(p0, at_ns0, br-underlay, "172.31.1.1/24")
+-AT_CHECK([ip addr add dev br-underlay "172.31.1.100/24"])
+-AT_CHECK([ip link set dev br-underlay up])
+-
+-dnl Set up tunnel endpoints on OVS outside the namespace and with a native
+-dnl linux device inside the namespace.
+-
+-ADD_OVS_TUNNEL([gtp], [br0], [at_gtp0], [172.31.1.1], [10.1.1.2/24])
+-AT_CHECK([ip neigh add 10.1.1.1 lladdr 00:12:34:56:78:aa dev br0])
+-NS_CHECK_EXEC([at_ns0], [gtp-link add at_gtp1 --sgsn &], [0], [ignore])
+-NS_CHECK_EXEC([at_ns0], [gtp-tunnel add at_gtp1 v1 0 0 10.1.1.1 172.31.1.100], [0], [ignore], [ignore])
+-NS_CHECK_EXEC([at_ns0], [ip addr add dev at_gtp1 10.1.1.1/24])
+-NS_CHECK_EXEC([at_ns0], [ip link set dev at_gtp1 mtu 1450 up])
+-NS_CHECK_EXEC([at_ns0], [ip link set dev p0 mtu 1480 up])
+-
+-AT_CHECK([ovs-ofctl add-flow br-underlay "actions=normal"])
+-
+-AT_CHECK([ovs-appctl vlog/set dbg], [0], [ignore])
+-AT_CHECK([echo 'module openvswitch +p' > /sys/kernel/debug/dynamic_debug/control])
+-
+-dnl Now add rules for OVS to forward to the tunnel and local port
+-AT_CHECK([ovs-ofctl add-flow br0 "priority=1 action=drop"])
+-AT_CHECK([ovs-ofctl add-flow br0 "priority=100 ip,nw_dst=10.1.1.1 action=output:at_gtp0"])
+-AT_CHECK([ovs-ofctl add-flow br0 "priority=100 ip,nw_dst=10.1.1.2 action=mod_dl_src:00:12:34:56:78:aa,mod_dl_dst:00:12:34:56:78:bb,local"])
+-
+-
+-dnl First, check the underlay
+-NS_CHECK_EXEC([at_ns0], [ping -q -c 3 -i 0.3 -w 2 172.31.1.100 | FORMAT_PING], [0], [dnl
+-3 packets transmitted, 3 received, 0% packet loss, time 0ms
+-])
+-
+-OVS_WAIT_UNTIL([ip netns exec at_ns0 ping -c 1 10.1.1.2])
+-dnl Okay, now check the overlay with different packet sizes
+-NS_CHECK_EXEC([at_ns0], [ping -q -c 3 -i 0.3 -w 2 10.1.1.2 | FORMAT_PING], [0], [dnl
+-3 packets transmitted, 3 received, 0% packet loss, time 0ms
+-])
+-NS_CHECK_EXEC([at_ns0], [ping -s 3200 -q -c 3 -i 0.3 -w 2 10.1.1.2 | FORMAT_PING], [0], [dnl
+-3 packets transmitted, 3 received, 0% packet loss, time 0ms
+-])
+-
+-OVS_TRAFFIC_VSWITCHD_STOP
+-AT_CLEANUP
+-
+ AT_SETUP([layer3 - ping over GRE])
+ OVS_TRAFFIC_VSWITCHD_START([set Bridge br0 other-config:hwaddr="00:12:34:56:78:bb"])
+ OVS_CHECK_GRE_L3()
+@@ -205,3 +153,221 @@ AT_CHECK([tail -1 stdout], [0],
+ 
+ OVS_VSWITCHD_STOP
+ AT_CLEANUP
++AT_SETUP([layer3 - ping over GTP])
++OVS_TRAFFIC_VSWITCHD_START([set Bridge br0 other-config:hwaddr="00:12:34:56:78:bb"])
++OVS_CHECK_GTP_L3()
++
++ADD_BR([br-underlay])
++
++ADD_NAMESPACES(at_ns0)
++
++dnl Set up underlay link from host into the namespace using veth pair.
++ADD_VETH(p0, at_ns0, br-underlay, "172.31.1.1/24")
++AT_CHECK([ip addr add dev br-underlay "172.31.1.100/24"])
++AT_CHECK([ip link set dev br-underlay up])
++
++dnl Set up tunnel endpoints on OVS outside the namespace and with a native
++dnl linux device inside the namespace.
++
++ADD_OVS_TUNNEL([gtp], [br0], [at_gtp0], [172.31.1.1], [10.1.1.2/24])
++AT_CHECK([ip neigh add 10.1.1.1 lladdr 00:12:34:56:78:aa dev br0])
++NS_CHECK_EXEC([at_ns0], [gtp-link add at_gtp1 --sgsn &], [0], [ignore])
++NS_CHECK_EXEC([at_ns0], [gtp-tunnel add at_gtp1 v1 0 0 10.1.1.1 172.31.1.100], [0], [ignore], [ignore])
++NS_CHECK_EXEC([at_ns0], [ip addr add dev at_gtp1 10.1.1.1/24])
++NS_CHECK_EXEC([at_ns0], [ip link set dev at_gtp1 mtu 1450 up])
++NS_CHECK_EXEC([at_ns0], [ip link set dev p0 mtu 1480 up])
++
++AT_CHECK([ovs-ofctl add-flow br-underlay "actions=normal"])
++
++AT_CHECK([ovs-appctl vlog/set dbg], [0], [ignore])
++AT_CHECK([echo 'module openvswitch +p' > /sys/kernel/debug/dynamic_debug/control])
++
++dnl Now add rules for OVS to forward to the tunnel and local port
++AT_CHECK([ovs-ofctl add-flow br0 "priority=1 action=drop"])
++AT_CHECK([ovs-ofctl add-flow br0 "priority=100 ip,nw_dst=10.1.1.1 action=output:at_gtp0"])
++AT_CHECK([ovs-ofctl add-flow br0 "priority=100 ip,nw_dst=10.1.1.2 action=mod_dl_src:00:12:34:56:78:aa,mod_dl_dst:00:12:34:56:78:bb,local"])
++
++
++dnl First, check the underlay
++NS_CHECK_EXEC([at_ns0], [ping -q -c 3 -i 0.3 -w 2 172.31.1.100 | FORMAT_PING], [0], [dnl
++3 packets transmitted, 3 received, 0% packet loss, time 0ms
++])
++
++OVS_WAIT_UNTIL([ip netns exec at_ns0 ping -c 1 10.1.1.2])
++dnl Okay, now check the overlay with different packet sizes
++NS_CHECK_EXEC([at_ns0], [ping -q -c 3 -i 0.3 -w 2 10.1.1.2 | FORMAT_PING], [0], [dnl
++3 packets transmitted, 3 received, 0% packet loss, time 0ms
++])
++NS_CHECK_EXEC([at_ns0], [ping -s 3200 -q -c 3 -i 0.3 -w 2 10.1.1.2 | FORMAT_PING], [0], [dnl
++3 packets transmitted, 3 received, 0% packet loss, time 0ms
++])
++
++OVS_TRAFFIC_VSWITCHD_STOP
++AT_CLEANUP
++
++AT_SETUP([layer3 - GTP echo match test])
++OVS_TRAFFIC_VSWITCHD_START([set Bridge br0 other-config:hwaddr="00:12:34:56:78:bb"])
++
++ADD_BR([br-underlay])
++
++ADD_NAMESPACES(at_ns0)
++
++dnl Set up underlay link from host into the namespace using veth pair.
++ADD_VETH(p0, at_ns0, br-underlay, "172.31.1.1/24")
++AT_CHECK([ip addr add dev br-underlay "172.31.1.100/24"])
++AT_CHECK([ip link set dev br-underlay up])
++
++dnl Set up tunnel endpoints on OVS outside the namespace and with a native
++dnl linux device inside the namespace.
++
++ADD_OVS_TUNNEL([gtp], [br0], [at_gtp0], [172.31.1.1], [10.1.1.2/24])
++AT_CHECK([ip neigh add 10.1.1.1 lladdr 00:12:34:56:78:aa dev br0])
++
++NS_CHECK_EXEC([at_ns0], [ip link set dev p0 mtu 1480 up])
++
++AT_CHECK([ovs-ofctl add-flow br-underlay "actions=normal"])
++
++dnl Now add rules for OVS to forward to the tunnel and local port
++AT_CHECK([ovs-ofctl add-flow br0 "priority=100 in_port=at_gtp0,tun_gtp_msg_type=1,tun_gtp_flags=0x32 action=drop"])
++
++dnl First, check the underlay
++NS_CHECK_EXEC([at_ns0], [ping -q -c 3 -i 0.3 -w 2 172.31.1.100 | FORMAT_PING], [0], [dnl
++3 packets transmitted, 3 received, 0% packet loss, time 0ms
++])
++
++dnl AT_CHECK([ovs-appctl vlog/set dbg], [0], [ignore])
++dnl AT_CHECK([echo 'module openvswitch +p' > /sys/kernel/debug/dynamic_debug/control])
++    
++NS_CHECK_EXEC([at_ns0], [test-gtp 172.31.1.100 3201000a0000000000010000ff0003000a01], [0], [ignore])
++
++AT_CHECK([ovs-ofctl dump-flows br0 | ofctl_strip | grep gtp_msg_flags], [0], [dnl
++ n_packets=1, n_bytes=10, priority=100,gtp_msg_flags=0x32,gtp_msg_type=0x1,in_port=1 actions=drop
++])
++
++OVS_TRAFFIC_VSWITCHD_STOP
++AT_CLEANUP
++
++AT_SETUP([layer3 - GTP echo response test])
++OVS_TRAFFIC_VSWITCHD_START([set Bridge br0 other-config:hwaddr="00:12:34:56:78:bb"])
++
++ADD_BR([br-underlay])
++
++ADD_NAMESPACES(at_ns0)
++
++dnl Set up underlay link from host into the namespace using veth pair.
++ADD_VETH(p0, at_ns0, br-underlay, "172.31.1.1/24")
++AT_CHECK([ip addr add dev br-underlay "172.31.1.100/24"])
++AT_CHECK([ip link set dev br-underlay up])
++
++dnl Set up tunnel endpoints on OVS outside the namespace and with a native
++dnl linux device inside the namespace.
++
++ADD_OVS_TUNNEL([gtp], [br0], [at_gtp0], [172.31.1.1], [10.1.1.2/24], [options:local_ip=172.31.1.100])
++AT_CHECK([ip neigh add 10.1.1.1 lladdr 00:12:34:56:78:aa dev br0])
++
++NS_CHECK_EXEC([at_ns0], [ip link set dev p0 mtu 1480 up])
++AT_CHECK([ovs-vsctl set interface at_gtp0 bfd:min_tx=500 bfd:min_rx=500])
++AT_CHECK([ovs-vsctl set interface at_gtp0 bfd:enable=true])
++
++AT_CHECK([ovs-ofctl add-flow br-underlay "actions=normal"])
++
++AT_CHECK([ovs-appctl vlog/set dbg], [0], [ignore])
++AT_CHECK([echo 'module openvswitch +p' > /sys/kernel/debug/dynamic_debug/control])
++
++AT_CHECK([ovs-appctl tnl/gtp_echo_remote_end_points], [0], [dnl
++Tunnel port: at_gtp0
++])  
++
++NS_CHECK_EXEC([at_ns0], [test-gtp 172.31.1.100 3201000a0000000000010000ff0003000a01], [0], [ignore])
++sleep 2
++AT_CHECK([ovs-appctl tnl/gtp_echo_remote_end_points | sed -e  's/^.*: RX/RX/'], [0], [dnl
++Tunnel port: at_gtp0
++RX: 1 TX: 1 remote ip: 172.31.1.1, seq 1, pending send 0
++])  
++
++NS_CHECK_EXEC([at_ns0], [tcpdump -l -n -xx -U udp -i p0 > p1.pcap &])
++sleep 1
++
++NS_CHECK_EXEC([at_ns0], [test-gtp 172.31.1.100 3201000a0000000000030000ff0003000a01], [0], [ignore])
++sleep 2
++AT_CHECK([ovs-appctl tnl/gtp_echo_remote_end_points | sed -e  's/^.*: RX/RX/'], [0], [dnl
++Tunnel port: at_gtp0
++RX: 2 TX: 2 remote ip: 172.31.1.1, seq 3, pending send 0
++])
++
++OVS_WAIT_UNTIL([cat p1.pcap | egrep "IP 172.31.1.100.2152 > 172.31.1.1.2152: UDP, length 12" 2>&1 1>/dev/null])
++OVS_WAIT_UNTIL([cat p1.pcap | egrep "0x0000:.*0800 4500"                                     2>&1 1>/dev/null])
++OVS_WAIT_UNTIL([cat p1.pcap | egrep "0x0010:.*ac1f 0164 ac1f"       2>&1 1>/dev/null])
++OVS_WAIT_UNTIL([cat p1.pcap | egrep "0x0020:  0101 0868 0868 0014 5ac9 3202 0004 0000"       2>&1 1>/dev/null])
++OVS_WAIT_UNTIL([cat p1.pcap | egrep "0x0030:  0000 0003 00e0"                                2>&1 1>/dev/null])
++
++OVS_TRAFFIC_VSWITCHD_STOP
++AT_CLEANUP
++
++AT_SETUP([layer3 - GTP echo response test multi endpoint])
++OVS_TRAFFIC_VSWITCHD_START([set Bridge br0 other-config:hwaddr="00:12:34:56:78:bb"])
++
++ADD_BR([br-underlay])
++
++ADD_NAMESPACES(at_ns0)
++ADD_NAMESPACES(at_ns1)
++
++dnl Set up underlay link from host into the namespace using veth pair.
++ADD_VETH(p0, at_ns0, br-underlay, "172.31.1.1/24")
++ADD_VETH(p1, at_ns1, br-underlay, "172.31.1.2/24")
++AT_CHECK([ip addr add dev br-underlay "172.31.1.100/24"])
++AT_CHECK([ip link set dev br-underlay up])
++
++dnl Set up tunnel endpoints on OVS outside the namespace and with a native
++dnl linux device inside the namespace.
++
++ADD_OVS_TUNNEL_NO_REMOTE([gtp], [br0], [at_gtp0], [10.1.1.2/24], [options:local_ip=172.31.1.100])
++AT_CHECK([ip neigh add 10.1.1.1 lladdr 00:12:34:56:78:aa dev br0])
++
++NS_CHECK_EXEC([at_ns0], [ip link set dev p0 mtu 1480 up])
++NS_CHECK_EXEC([at_ns1], [ip link set dev p1 mtu 1480 up])
++
++AT_CHECK([ovs-vsctl set interface at_gtp0 bfd:min_tx=500 bfd:min_rx=500])
++AT_CHECK([ovs-vsctl set interface at_gtp0 bfd:enable=true])
++
++AT_CHECK([ovs-ofctl add-flow br-underlay "actions=normal"])
++
++AT_CHECK([ovs-appctl vlog/set dbg], [0], [ignore])
++AT_CHECK([echo 'module openvswitch +p' > /sys/kernel/debug/dynamic_debug/control])
++
++AT_CHECK([ovs-appctl tnl/gtp_echo_remote_end_points], [0], [dnl
++Tunnel port: at_gtp0
++])  
++
++NS_CHECK_EXEC([at_ns0], [test-gtp 172.31.1.100 3201000a0000000000010000ff0003000a01], [0], [ignore])
++sleep 2
++AT_CHECK([ovs-appctl tnl/gtp_echo_remote_end_points | sed -e  's/^.*: RX/RX/'], [0], [dnl
++Tunnel port: at_gtp0
++RX: 1 TX: 1 remote ip: 172.31.1.1, seq 1, pending send 0
++])  
++
++NS_CHECK_EXEC([at_ns1], [test-gtp 172.31.1.100 3201000a0000000000030000ff0003000a01], [0], [ignore])
++sleep 2
++AT_CHECK([ovs-appctl tnl/gtp_echo_remote_end_points | sed -e  's/^.*: RX/RX/'], [0], [dnl
++Tunnel port: at_gtp0
++RX: 1 TX: 1 remote ip: 172.31.1.1, seq 1, pending send 0
++RX: 1 TX: 1 remote ip: 172.31.1.2, seq 3, pending send 0
++])  
++
++AT_CHECK([ovs-appctl tnl/gtp_echo_remote_end_points_purge], [0], [dnl
++Done
++])
++AT_CHECK([ovs-appctl tnl/gtp_echo_remote_end_points | sed -e  's/^.*: RX/RX/'], [0], [dnl
++Tunnel port: at_gtp0
++])  
++
++NS_CHECK_EXEC([at_ns0], [test-gtp 172.31.1.100 3201000a0000000000040000ff0003000a01], [0], [ignore])
++sleep 2
++AT_CHECK([ovs-appctl tnl/gtp_echo_remote_end_points | sed -e  's/^.*: RX/RX/'], [0], [dnl
++Tunnel port: at_gtp0
++RX: 1 TX: 1 remote ip: 172.31.1.1, seq 4, pending send 0
++])
++
++OVS_TRAFFIC_VSWITCHD_STOP
++AT_CLEANUP
++
+diff --git a/tests/test-gtp.c b/tests/test-gtp.c
+new file mode 100644
+index 000000000..aede93daf
+--- /dev/null
++++ b/tests/test-gtp.c
+@@ -0,0 +1,111 @@
++#include <config.h>
++#include <sys/types.h>
++#include <sys/socket.h>
++#include <netinet/in.h>
++#include <arpa/inet.h>
++#include <string.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <unistd.h>
++
++#define DST_PORT  2152
++#define SRC_PORT  2152
++
++
++static int
++charToHex(char ch)
++{
++        if (ch >= 'A' && ch <= 'F') {
++                return 10 + (ch - 'A');
++        }
++        if (ch >= 'a' && ch <= 'f') {
++                return 10 + (ch - 'a');
++        }
++        if (ch >= '0' && ch <= '9') {
++                return ch - '0';
++        }
++        return -1;
++}
++
++int
++main(int argc, char *argv[])
++{
++    struct sockaddr_in addr, srcaddr;
++    int fd;
++    unsigned char *msg;
++    char *str_buf;
++    char *dst_ip;
++    int len, i, j;
++
++    if (argc != 3) {
++        printf("two param expected\n");
++        exit(1);
++    }
++
++    dst_ip = argv[1];
++    printf("dst IP %s\n", dst_ip);
++    str_buf = argv[2];
++    len = strlen(str_buf);
++
++    if (len % 2) {
++        printf("len should be multiple of 2\n");
++        exit (1);
++    }
++
++    msg = calloc(1, len);
++    if (!msg) {
++        exit(1);
++    }
++    j = 0;
++    for (i = 0; i < len; i+=2) {
++
++        int d1 = charToHex(str_buf[i]);
++        if (d1 < 0) {
++                printf("buf parse error\n");
++                exit (1);
++        }
++        int d2 = charToHex(str_buf[i+1]);
++        if (d2 < 0) {
++                printf("buf parse error\n");
++                exit (1);
++        }
++        msg[j++] = (d1 << 4) | d2;
++    }
++    len = len / 2;
++
++#if 0
++    printf("%d: ", len);
++    for (i = 0; i < len; i++) {
++        printf("%x", (int)msg[i]);
++    }
++    printf("\n");
++#endif
++
++    if ((fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
++        perror("socket");
++        exit(1);
++    }
++
++    memset(&addr, 0, sizeof(addr));
++    addr.sin_family = AF_INET;
++    addr.sin_addr.s_addr = inet_addr(dst_ip);
++    addr.sin_port = htons(DST_PORT);
++
++    memset(&srcaddr, 0, sizeof(srcaddr));
++    srcaddr.sin_family = AF_INET;
++    srcaddr.sin_addr.s_addr = htonl(INADDR_ANY);
++    srcaddr.sin_port = htons(SRC_PORT);
++
++    if (bind(fd, (struct sockaddr *) &srcaddr, sizeof(srcaddr)) < 0) {
++        perror("bind");
++        exit(1);
++    }
++
++    if (sendto(fd, msg, len, 0, (struct sockaddr *) &addr,
++                sizeof(addr)) < 0) {
++        perror("sendto");
++    }
++    printf("done\n");
++    close(fd);
++    return 0;
++}
+diff --git a/tests/tunnel.at b/tests/tunnel.at
+index 76261af44..8c1a152ae 100644
+--- a/tests/tunnel.at
++++ b/tests/tunnel.at
+@@ -1090,7 +1090,7 @@ AT_CHECK([tail -1 stdout], [0],
+ OVS_VSWITCHD_STOP
+ AT_CLEANUP
+ 
+-AT_SETUP([tunnel - GTP-C using tun optios])
++AT_SETUP([tunnel - GTP-U])
+ OVS_VSWITCHD_START([add-port br0 p1 -- set Interface p1 type=gtp \
+                     options:remote_ip=1.1.1.1 options:key=flow ofport_request=1 \
+                     -- add-port br0 p2 -- set Interface p2 type=dummy \
+@@ -1117,3 +1117,29 @@ AT_CHECK([tail -1 stdout], [0],
+ ])
+ OVS_VSWITCHD_STOP
+ AT_CLEANUP
++
++AT_SETUP([tunnel - GTP-C using tun options])
++OVS_VSWITCHD_START([add-port br0 p1 -- set Interface p1 type=gtp \
++                    options:remote_ip=1.1.1.1 options:key=flow ofport_request=1 \
++                    -- add-port br0 p2 -- set Interface p2 type=dummy \
++                    ofport_request=2 ofport_request=2 \
++                    -- add-port br0 p3 -- set Interface p3 type=gtp \
++                    options:remote_ip=2.2.2.2 options:key=123 ofport_request=3])
++OVS_VSWITCHD_DISABLE_TUNNEL_PUSH_POP
++
++AT_DATA([flows.txt], [dnl
++actions=load:0x1->NXM_NX_MFF_TUN_GTP_MSG_TYPE[[]],load:0x32->NXM_NX_MFF_TUN_GTP_FLAGS[[]],output:1
++])
++AT_CHECK([ovs-ofctl add-flows br0 flows.txt])
++
++AT_CHECK([ovs-ofctl dump-flows br0], [0], [stdout])
++AT_CHECK([strip_xids < stdout | sed -n 's/duration=[[0-9]]*\.[[0-9]]*s/duration=0.0s/p' | sort], [0], [dnl
++ cookie=0x0, duration=0.0s, table=0, n_packets=0, n_bytes=0, idle_age=0, actions=load:0x1->NXM_NX_MFF_TUN_GTP_MSG_TYPE[[]],load:0x32->NXM_NX_MFF_TUN_GTP_FLAGS[[]],output:1
++])
++
++AT_CHECK([ovs-appctl ofproto/trace ovs-dummy 'in_port(2),eth(src=50:54:00:00:00:05,dst=50:54:00:00:00:07),eth_type(0x0800),ipv4(src=192.168.0.1,dst=192.168.0.2,proto=6,tos=4,ttl=128,frag=no),tcp(src=8,dst=9)'], [0], [stdout])
++AT_CHECK([tail -1 stdout], [0],
++  [Datapath actions: set(tunnel(tun_id=0x0,dst=1.1.1.1,ttl=64,tp_dst=2152,gtp_opt(ver=0,flags=0x32,type=0x1),flags(df|key))),pop_eth,2152
++])
++OVS_VSWITCHD_STOP
++AT_CLEANUP
+-- 
+2.17.1
+

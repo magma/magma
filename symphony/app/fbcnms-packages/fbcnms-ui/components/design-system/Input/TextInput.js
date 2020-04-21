@@ -22,6 +22,7 @@ import {useCallback, useContext, useMemo, useState} from 'react';
 export const KEYBOARD_KEYS = {
   CODES: {
     ENTER: 13,
+    ESC: 27,
   },
   MODIFIERS: {
     SHIFT: 'shift',
@@ -154,6 +155,7 @@ type Props = {
   onFocus?: () => void,
   onBlur?: FocusEventFn<HTMLInputElement>,
   onEnterPressed?: (e: KeyboardEvent) => void,
+  onEscPressed?: (e: KeyboardEvent) => void,
 };
 
 function TextInput(props: Props, forwardedRef: TRefFor<HTMLInputElement>) {
@@ -169,6 +171,7 @@ function TextInput(props: Props, forwardedRef: TRefFor<HTMLInputElement>) {
     onBlur,
     onChange,
     onEnterPressed,
+    onEscPressed,
     type,
     rows = 2,
     isProcessing = false,
@@ -212,13 +215,16 @@ function TextInput(props: Props, forwardedRef: TRefFor<HTMLInputElement>) {
 
   const onKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (e.keyCode !== KEYBOARD_KEYS.CODES.ENTER) {
-        return;
+      switch (e.keyCode) {
+        case KEYBOARD_KEYS.CODES.ENTER:
+          onEnterPressed && onEnterPressed(e);
+          break;
+        case KEYBOARD_KEYS.CODES.ESC:
+          onEscPressed && onEscPressed(e);
+          break;
       }
-
-      onEnterPressed && onEnterPressed(e);
     },
-    [onEnterPressed],
+    [onEnterPressed, onEscPressed],
   );
 
   const isMultiline = useMemo(() => type === 'multiline', [type]);

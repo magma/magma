@@ -9,12 +9,14 @@
  */
 
 import type {ButtonProps} from '../Button';
+import type {IconButtonProps} from '../IconButton';
 import type {PermissionHandlingProps} from '@fbcnms/ui/components/design-system/Form/FormAction';
 import type {ToggleButtonProps} from '../ToggleButton/ToggleButtonGroup';
 
 import * as React from 'react';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
+import IconButton from '../IconButton';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import ToggleButton from '../ToggleButton/ToggleButtonGroup';
 import classNames from 'classnames';
@@ -81,12 +83,23 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-export type ActionButtonProps = {|
+export type ActionRegularButtonProps = {|
   title: React.Node,
   action: () => void,
+  className?: ?string,
   ...PermissionHandlingProps,
   ...ButtonProps,
 |};
+
+export type ActionIconButtonProps = {|
+  action: () => void,
+  ...PermissionHandlingProps,
+  ...IconButtonProps,
+|};
+
+export type ActionButtonProps =
+  | ActionRegularButtonProps
+  | ActionIconButtonProps;
 
 export type ViewHeaderProps = $ReadOnly<{|
   title: React.Node,
@@ -109,6 +122,60 @@ export type FullViewHeaderProps = $ReadOnly<{|
   ...ViewHeaderActionsProps,
   ...ViewHeaderOptionsProps,
 |}>;
+
+function FormHeaderAction(props: ActionButtonProps) {
+  const {
+    ignorePermissions,
+    hideOnEditLock,
+    disableOnFromError,
+    action,
+    icon = undefined,
+    title = undefined,
+    variant = undefined,
+    disabled,
+    tooltip,
+    skin,
+    className,
+  } = props;
+  const classes = useStyles();
+
+  const buttonNode = () => {
+    if (icon != null) {
+      return (
+        <IconButton
+          className={classNames(classes.actionButton, className)}
+          icon={icon}
+          skin={skin}
+          onClick={action}
+        />
+      );
+    }
+    if (title != null) {
+      return (
+        <Button
+          className={classNames(classes.actionButton, className)}
+          skin={skin}
+          variant={variant}
+          onClick={action}>
+          {title}
+        </Button>
+      );
+    }
+
+    return null;
+  };
+
+  return (
+    <FormAction
+      ignorePermissions={ignorePermissions}
+      hideOnEditLock={hideOnEditLock}
+      disabled={disabled}
+      tooltip={tooltip}
+      disableOnFromError={disableOnFromError}>
+      {buttonNode()}
+    </FormAction>
+  );
+}
 
 const ViewHeader = React.forwardRef<FullViewHeaderProps, HTMLElement>(
   (props, ref) => {
@@ -156,30 +223,12 @@ const ViewHeader = React.forwardRef<FullViewHeaderProps, HTMLElement>(
                   [classes.collapsed]: showMinimal,
                 },
               )}>
-              {actionButtons.map((actionButton, index) => {
-                const {
-                  ignorePermissions,
-                  hideOnEditLock,
-                  disableOnFromError,
-                  action,
-                  title,
-                  ...restButtonProps
-                } = actionButton;
-                return (
-                  <FormAction
-                    key={`viewHeaderAction${index}`}
-                    ignorePermissions={ignorePermissions}
-                    hideOnEditLock={hideOnEditLock}
-                    disableOnFromError={disableOnFromError}>
-                    <Button
-                      className={classes.actionButton}
-                      {...restButtonProps}
-                      onClick={action}>
-                      {title}
-                    </Button>
-                  </FormAction>
-                );
-              })}
+              {actionButtons.map((actionButton, index) => (
+                <FormHeaderAction
+                  key={`viewHeaderAction${index}`}
+                  {...actionButton}
+                />
+              ))}
             </div>
           )}
         </div>

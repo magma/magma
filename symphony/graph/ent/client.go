@@ -288,6 +288,64 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	}, nil
 }
 
+// BeginTx returns a transactional client with options.
+func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) {
+	if _, ok := c.driver.(*txDriver); ok {
+		return nil, fmt.Errorf("ent: cannot start a transaction within a transaction")
+	}
+	tx, err := c.driver.(*sql.Driver).BeginTx(ctx, opts)
+	if err != nil {
+		return nil, fmt.Errorf("ent: starting a transaction: %v", err)
+	}
+	cfg := config{driver: &txDriver{tx: tx, drv: c.driver}, log: c.log, debug: c.debug, hooks: c.hooks}
+	return &Tx{
+		config:                      cfg,
+		ActionsRule:                 NewActionsRuleClient(cfg),
+		CheckListCategory:           NewCheckListCategoryClient(cfg),
+		CheckListItem:               NewCheckListItemClient(cfg),
+		CheckListItemDefinition:     NewCheckListItemDefinitionClient(cfg),
+		Comment:                     NewCommentClient(cfg),
+		Customer:                    NewCustomerClient(cfg),
+		Equipment:                   NewEquipmentClient(cfg),
+		EquipmentCategory:           NewEquipmentCategoryClient(cfg),
+		EquipmentPort:               NewEquipmentPortClient(cfg),
+		EquipmentPortDefinition:     NewEquipmentPortDefinitionClient(cfg),
+		EquipmentPortType:           NewEquipmentPortTypeClient(cfg),
+		EquipmentPosition:           NewEquipmentPositionClient(cfg),
+		EquipmentPositionDefinition: NewEquipmentPositionDefinitionClient(cfg),
+		EquipmentType:               NewEquipmentTypeClient(cfg),
+		File:                        NewFileClient(cfg),
+		FloorPlan:                   NewFloorPlanClient(cfg),
+		FloorPlanReferencePoint:     NewFloorPlanReferencePointClient(cfg),
+		FloorPlanScale:              NewFloorPlanScaleClient(cfg),
+		Hyperlink:                   NewHyperlinkClient(cfg),
+		Link:                        NewLinkClient(cfg),
+		Location:                    NewLocationClient(cfg),
+		LocationType:                NewLocationTypeClient(cfg),
+		Project:                     NewProjectClient(cfg),
+		ProjectType:                 NewProjectTypeClient(cfg),
+		Property:                    NewPropertyClient(cfg),
+		PropertyType:                NewPropertyTypeClient(cfg),
+		ReportFilter:                NewReportFilterClient(cfg),
+		Service:                     NewServiceClient(cfg),
+		ServiceEndpoint:             NewServiceEndpointClient(cfg),
+		ServiceEndpointDefinition:   NewServiceEndpointDefinitionClient(cfg),
+		ServiceType:                 NewServiceTypeClient(cfg),
+		Survey:                      NewSurveyClient(cfg),
+		SurveyCellScan:              NewSurveyCellScanClient(cfg),
+		SurveyQuestion:              NewSurveyQuestionClient(cfg),
+		SurveyTemplateCategory:      NewSurveyTemplateCategoryClient(cfg),
+		SurveyTemplateQuestion:      NewSurveyTemplateQuestionClient(cfg),
+		SurveyWiFiScan:              NewSurveyWiFiScanClient(cfg),
+		Technician:                  NewTechnicianClient(cfg),
+		User:                        NewUserClient(cfg),
+		UsersGroup:                  NewUsersGroupClient(cfg),
+		WorkOrder:                   NewWorkOrderClient(cfg),
+		WorkOrderDefinition:         NewWorkOrderDefinitionClient(cfg),
+		WorkOrderType:               NewWorkOrderTypeClient(cfg),
+	}, nil
+}
+
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
@@ -5640,7 +5698,8 @@ func (c *UserClient) QueryGroups(u *User) *UsersGroupQuery {
 
 // Hooks returns the client hooks.
 func (c *UserClient) Hooks() []Hook {
-	return c.hooks.User
+	hooks := c.hooks.User
+	return append(hooks[:len(hooks):len(hooks)], user.Hooks[:]...)
 }
 
 // UsersGroupClient is a client for the UsersGroup schema.

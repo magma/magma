@@ -5,7 +5,6 @@
 package todo
 
 import (
-	"context"
 	"strconv"
 	"testing"
 
@@ -14,6 +13,7 @@ import (
 	"github.com/AlekSi/pointer"
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/symphony/pkg/ent-contrib/entgqlgen/internal/todo/ent"
+	"github.com/facebookincubator/symphony/pkg/ent-contrib/entgqlgen/internal/todo/ent/enttest"
 	"github.com/facebookincubator/symphony/pkg/ent-contrib/entgqlgen/internal/todo/ent/migrate"
 	"github.com/facebookincubator/symphony/pkg/testdb"
 	"github.com/stretchr/testify/suite"
@@ -49,12 +49,10 @@ func (s *todoTestSuite) SetupTest() {
 	s.Require().NoError(err)
 	db.SetMaxOpenConns(1)
 
-	ec := ent.NewClient(ent.Driver(sql.OpenDB(name, db)))
-	err = ec.Schema.Create(
-		context.Background(),
-		migrate.WithGlobalUniqueID(true),
+	ec := enttest.NewClient(s.T(),
+		enttest.WithOptions(ent.Driver(sql.OpenDB(name, db))),
+		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
 	)
-	s.Require().NoError(err)
 	s.Client = client.New(handler.GraphQL(
 		NewExecutableSchema(New(ec)),
 	))

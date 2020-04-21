@@ -6,7 +6,7 @@ package schema
 
 import (
 	"github.com/facebookincubator/ent"
-	"github.com/facebookincubator/ent/schema/schemautil"
+	"github.com/facebookincubator/ent/schema/mixin"
 )
 
 // schema adds time mixin to underlying ents.
@@ -17,6 +17,6 @@ type schema struct {
 // Mixin returns schema mixins.
 func (schema) Mixin() []ent.Mixin {
 	return []ent.Mixin{
-		schemautil.TimeMixin{},
+		mixin.Time{},
 	}
 }

@@ -25,6 +25,7 @@ import type {
   OrgUser,
   Organization,
   PostDatasource,
+  StarDashboardResponse,
   User,
 } from './GrafanaAPIType';
 
@@ -63,6 +64,12 @@ export type GrafanaClient = {
     db: Dashboard,
     orgID: number,
   ) => GrafanaPromise<CreateDashboardResponse>,
+
+  starDashboard: (
+    dbID: number,
+    orgID: number,
+    username: string,
+  ) => GrafanaPromise<StarDashboardResponse>,
 
   getHealth: () => GrafanaPromise<GetHealthResponse>,
 };
@@ -197,6 +204,21 @@ const client = (
       method: 'POST',
       data: db,
       headers: {...constHeaders, 'X-Grafana-Org-Id': orgID.toString()},
+    });
+  },
+
+  async starDashboard(
+    dbID: number,
+    orgID: number,
+    username: string,
+  ): GrafanaPromise<StarDashboardResponse> {
+    return request({
+      url: apiURL + `/api/user/stars/dashboard/${dbID}`,
+      method: 'POST',
+      headers: {
+        'X-WEBAUTH-USER': username,
+        'X-Grafana-Org-Id': orgID.toString(),
+      },
     });
   },
 

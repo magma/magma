@@ -1,0 +1,37 @@
+From 6b80749e1b2d85ef05bec6a2a8cff9234d38bdf0 Mon Sep 17 00:00:00 2001
+From: Pravin B Shelar <pbshelar@fb.com>
+Date: Mon, 23 Mar 2020 00:38:34 +0000
+Subject: [PATCH 4/8] fix TUNNEL_ERSPAN_OPT def
+
+---
+ datapath/linux/compat/include/net/ip_tunnels.h | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/datapath/linux/compat/include/net/ip_tunnels.h b/datapath/linux/compat/include/net/ip_tunnels.h
+index da64a94ad..cd8e65953 100644
+--- a/datapath/linux/compat/include/net/ip_tunnels.h
++++ b/datapath/linux/compat/include/net/ip_tunnels.h
+@@ -9,9 +9,6 @@
+  * be used. Those needs to be explicitly defined in this header file. */
+ #include_next <net/ip_tunnels.h>
+ 
+-#ifndef TUNNEL_ERSPAN_OPT
+-#define TUNNEL_ERSPAN_OPT	__cpu_to_be16(0x4000)
+-#endif
+ #define ovs_ip_tunnel_encap ip_tunnel_encap
+ 
+ #ifndef HAVE_IP_TUNNEL_INFO_OPTS_SET_FLAGS
+@@ -507,6 +504,10 @@ static inline int iptunnel_pull_offloads(struct sk_buff *skb)
+ }
+ #endif /* USE_UPSTREAM_TUNNEL */
+ 
++#ifndef TUNNEL_ERSPAN_OPT
++#define TUNNEL_ERSPAN_OPT	__cpu_to_be16(0x4000)
++#endif
++
+ #define skb_is_encapsulated ovs_skb_is_encapsulated
+ bool ovs_skb_is_encapsulated(struct sk_buff *skb);
+ 
+-- 
+2.17.1
+

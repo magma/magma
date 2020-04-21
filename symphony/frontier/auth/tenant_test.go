@@ -10,9 +10,12 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/symphony/frontier/ent"
 	"github.com/facebookincubator/symphony/frontier/ent/enttest"
+	"github.com/facebookincubator/symphony/frontier/ent/migrate"
 	"github.com/facebookincubator/symphony/pkg/log/logtest"
+	"github.com/facebookincubator/symphony/pkg/testdb"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -34,8 +37,13 @@ func (t *testHandler) Load(ctx context.Context, name string) (*ent.Tenant, error
 }
 
 func TestTenantHandler(t *testing.T) {
-	client, err := enttest.NewClient()
+	db, name, err := testdb.Open()
 	require.NoError(t, err)
+	db.SetMaxOpenConns(1)
+	client := enttest.NewClient(t,
+		enttest.WithOptions(ent.Driver(sql.OpenDB(name, db))),
+		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
+	)
 	defer client.Close()
 
 	want, err := client.Tenant.
