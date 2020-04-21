@@ -241,3 +241,7 @@ func (r resolver) Comment() generated.CommentResolver {
 func (r resolver) ServiceEndpointDefinition() generated.ServiceEndpointDefinitionResolver {
 	return serviceEndpointTypeResolver{}
 }
+
+func (r resolver) PermissionsPolicy() generated.PermissionsPolicyResolver {
+	return permissionsPolicyResolver{}
+}

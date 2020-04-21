@@ -477,6 +477,18 @@ func (lt *LocationTypeQuery) collectField(reqctx *graphql.RequestContext, field 
 }
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (pp *PermissionsPolicyQuery) CollectFields(ctx context.Context, satisfies ...string) *PermissionsPolicyQuery {
+	if resctx := graphql.GetResolverContext(ctx); resctx != nil {
+		pp = pp.collectField(graphql.GetRequestContext(ctx), resctx.Field, satisfies...)
+	}
+	return pp
+}
+
+func (pp *PermissionsPolicyQuery) collectField(reqctx *graphql.RequestContext, field graphql.CollectedField, satisfies ...string) *PermissionsPolicyQuery {
+	return pp
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
 func (pr *ProjectQuery) CollectFields(ctx context.Context, satisfies ...string) *ProjectQuery {
 	if resctx := graphql.GetResolverContext(ctx); resctx != nil {
 		pr = pr.collectField(graphql.GetRequestContext(ctx), resctx.Field, satisfies...)

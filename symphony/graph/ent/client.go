@@ -35,6 +35,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/link"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/locationtype"
+	"github.com/facebookincubator/symphony/graph/ent/permissionspolicy"
 	"github.com/facebookincubator/symphony/graph/ent/project"
 	"github.com/facebookincubator/symphony/graph/ent/projecttype"
 	"github.com/facebookincubator/symphony/graph/ent/property"
@@ -111,6 +112,8 @@ type Client struct {
 	Location *LocationClient
 	// LocationType is the client for interacting with the LocationType builders.
 	LocationType *LocationTypeClient
+	// PermissionsPolicy is the client for interacting with the PermissionsPolicy builders.
+	PermissionsPolicy *PermissionsPolicyClient
 	// Project is the client for interacting with the Project builders.
 	Project *ProjectClient
 	// ProjectType is the client for interacting with the ProjectType builders.
@@ -191,6 +194,7 @@ func (c *Client) init() {
 	c.Link = NewLinkClient(c.config)
 	c.Location = NewLocationClient(c.config)
 	c.LocationType = NewLocationTypeClient(c.config)
+	c.PermissionsPolicy = NewPermissionsPolicyClient(c.config)
 	c.Project = NewProjectClient(c.config)
 	c.ProjectType = NewProjectTypeClient(c.config)
 	c.Property = NewPropertyClient(c.config)
@@ -264,6 +268,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Link:                        NewLinkClient(cfg),
 		Location:                    NewLocationClient(cfg),
 		LocationType:                NewLocationTypeClient(cfg),
+		PermissionsPolicy:           NewPermissionsPolicyClient(cfg),
 		Project:                     NewProjectClient(cfg),
 		ProjectType:                 NewProjectTypeClient(cfg),
 		Property:                    NewPropertyClient(cfg),
@@ -322,6 +327,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Link:                        NewLinkClient(cfg),
 		Location:                    NewLocationClient(cfg),
 		LocationType:                NewLocationTypeClient(cfg),
+		PermissionsPolicy:           NewPermissionsPolicyClient(cfg),
 		Project:                     NewProjectClient(cfg),
 		ProjectType:                 NewProjectTypeClient(cfg),
 		Property:                    NewPropertyClient(cfg),
@@ -393,6 +399,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.Link.Use(hooks...)
 	c.Location.Use(hooks...)
 	c.LocationType.Use(hooks...)
+	c.PermissionsPolicy.Use(hooks...)
 	c.Project.Use(hooks...)
 	c.ProjectType.Use(hooks...)
 	c.Property.Use(hooks...)
@@ -3264,6 +3271,89 @@ func (c *LocationTypeClient) QuerySurveyTemplateCategories(lt *LocationType) *Su
 // Hooks returns the client hooks.
 func (c *LocationTypeClient) Hooks() []Hook {
 	return c.hooks.LocationType
+}
+
+// PermissionsPolicyClient is a client for the PermissionsPolicy schema.
+type PermissionsPolicyClient struct {
+	config
+}
+
+// NewPermissionsPolicyClient returns a client for the PermissionsPolicy from the given config.
+func NewPermissionsPolicyClient(c config) *PermissionsPolicyClient {
+	return &PermissionsPolicyClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `permissionspolicy.Hooks(f(g(h())))`.
+func (c *PermissionsPolicyClient) Use(hooks ...Hook) {
+	c.hooks.PermissionsPolicy = append(c.hooks.PermissionsPolicy, hooks...)
+}
+
+// Create returns a create builder for PermissionsPolicy.
+func (c *PermissionsPolicyClient) Create() *PermissionsPolicyCreate {
+	mutation := newPermissionsPolicyMutation(c.config, OpCreate)
+	return &PermissionsPolicyCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Update returns an update builder for PermissionsPolicy.
+func (c *PermissionsPolicyClient) Update() *PermissionsPolicyUpdate {
+	mutation := newPermissionsPolicyMutation(c.config, OpUpdate)
+	return &PermissionsPolicyUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PermissionsPolicyClient) UpdateOne(pp *PermissionsPolicy) *PermissionsPolicyUpdateOne {
+	return c.UpdateOneID(pp.ID)
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PermissionsPolicyClient) UpdateOneID(id int) *PermissionsPolicyUpdateOne {
+	mutation := newPermissionsPolicyMutation(c.config, OpUpdateOne)
+	mutation.id = &id
+	return &PermissionsPolicyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for PermissionsPolicy.
+func (c *PermissionsPolicyClient) Delete() *PermissionsPolicyDelete {
+	mutation := newPermissionsPolicyMutation(c.config, OpDelete)
+	return &PermissionsPolicyDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *PermissionsPolicyClient) DeleteOne(pp *PermissionsPolicy) *PermissionsPolicyDeleteOne {
+	return c.DeleteOneID(pp.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *PermissionsPolicyClient) DeleteOneID(id int) *PermissionsPolicyDeleteOne {
+	builder := c.Delete().Where(permissionspolicy.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PermissionsPolicyDeleteOne{builder}
+}
+
+// Create returns a query builder for PermissionsPolicy.
+func (c *PermissionsPolicyClient) Query() *PermissionsPolicyQuery {
+	return &PermissionsPolicyQuery{config: c.config}
+}
+
+// Get returns a PermissionsPolicy entity by its id.
+func (c *PermissionsPolicyClient) Get(ctx context.Context, id int) (*PermissionsPolicy, error) {
+	return c.Query().Where(permissionspolicy.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PermissionsPolicyClient) GetX(ctx context.Context, id int) *PermissionsPolicy {
+	pp, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return pp
+}
+
+// Hooks returns the client hooks.
+func (c *PermissionsPolicyClient) Hooks() []Hook {
+	return c.hooks.PermissionsPolicy
 }
 
 // ProjectClient is a client for the Project schema.

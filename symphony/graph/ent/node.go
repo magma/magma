@@ -37,6 +37,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/link"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/locationtype"
+	"github.com/facebookincubator/symphony/graph/ent/permissionspolicy"
 	"github.com/facebookincubator/symphony/graph/ent/project"
 	"github.com/facebookincubator/symphony/graph/ent/projecttype"
 	"github.com/facebookincubator/symphony/graph/ent/property"
@@ -1944,6 +1945,73 @@ func (lt *LocationType) Node(ctx context.Context) (node *Node, err error) {
 		IDs:  ids,
 		Type: "SurveyTemplateCategory",
 		Name: "SurveyTemplateCategories",
+	}
+	return node, nil
+}
+
+func (pp *PermissionsPolicy) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     pp.ID,
+		Type:   "PermissionsPolicy",
+		Fields: make([]*Field, 7),
+		Edges:  make([]*Edge, 0),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(pp.CreateTime); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "time.Time",
+		Name:  "CreateTime",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(pp.UpdateTime); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "time.Time",
+		Name:  "UpdateTime",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(pp.Name); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "string",
+		Name:  "Name",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(pp.Description); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "string",
+		Name:  "Description",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(pp.IsGlobal); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "bool",
+		Name:  "IsGlobal",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(pp.InventoryPolicy); err != nil {
+		return nil, err
+	}
+	node.Fields[5] = &Field{
+		Type:  "*models.InventoryPolicyInput",
+		Name:  "InventoryPolicy",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(pp.WorkforcePolicy); err != nil {
+		return nil, err
+	}
+	node.Fields[6] = &Field{
+		Type:  "*models.WorkforcePolicyInput",
+		Name:  "WorkforcePolicy",
+		Value: string(buf),
 	}
 	return node, nil
 }
@@ -4680,6 +4748,15 @@ func (c *Client) noder(ctx context.Context, tbl string, id int) (Noder, error) {
 		n, err := c.LocationType.Query().
 			Where(locationtype.ID(id)).
 			CollectFields(ctx, "LocationType").
+			Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case permissionspolicy.Table:
+		n, err := c.PermissionsPolicy.Query().
+			Where(permissionspolicy.ID(id)).
+			CollectFields(ctx, "PermissionsPolicy").
 			Only(ctx)
 		if err != nil {
 			return nil, err

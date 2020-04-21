@@ -712,6 +712,24 @@ var (
 		PrimaryKey:  []*schema.Column{LocationTypesColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{},
 	}
+	// PermissionsPoliciesColumns holds the columns for the "permissions_policies" table.
+	PermissionsPoliciesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "is_global", Type: field.TypeBool, Nullable: true},
+		{Name: "inventory_policy", Type: field.TypeJSON, Nullable: true},
+		{Name: "workforce_policy", Type: field.TypeJSON, Nullable: true},
+	}
+	// PermissionsPoliciesTable holds the schema information for the "permissions_policies" table.
+	PermissionsPoliciesTable = &schema.Table{
+		Name:        "permissions_policies",
+		Columns:     PermissionsPoliciesColumns,
+		PrimaryKey:  []*schema.Column{PermissionsPoliciesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{},
+	}
 	// ProjectsColumns holds the columns for the "projects" table.
 	ProjectsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -1699,6 +1717,7 @@ var (
 		LinksTable,
 		LocationsTable,
 		LocationTypesTable,
+		PermissionsPoliciesTable,
 		ProjectsTable,
 		ProjectTypesTable,
 		PropertiesTable,

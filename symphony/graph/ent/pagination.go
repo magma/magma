@@ -37,6 +37,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/link"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/locationtype"
+	"github.com/facebookincubator/symphony/graph/ent/permissionspolicy"
 	"github.com/facebookincubator/symphony/graph/ent/project"
 	"github.com/facebookincubator/symphony/graph/ent/projecttype"
 	"github.com/facebookincubator/symphony/graph/ent/property"
@@ -2128,6 +2129,98 @@ func (lt *LocationTypeQuery) collectConnectionFields(ctx context.Context) *Locat
 		lt = lt.collectField(graphql.GetRequestContext(ctx), *field)
 	}
 	return lt
+}
+
+// PermissionsPolicyEdge is the edge representation of PermissionsPolicy.
+type PermissionsPolicyEdge struct {
+	Node   *PermissionsPolicy `json:"node"`
+	Cursor Cursor             `json:"cursor"`
+}
+
+// PermissionsPolicyConnection is the connection containing edges to PermissionsPolicy.
+type PermissionsPolicyConnection struct {
+	Edges    []*PermissionsPolicyEdge `json:"edges"`
+	PageInfo PageInfo                 `json:"pageInfo"`
+}
+
+// Paginate executes the query and returns a relay based cursor connection to PermissionsPolicy.
+func (pp *PermissionsPolicyQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*PermissionsPolicyConnection, error) {
+	if first != nil && last != nil {
+		return nil, ErrInvalidPagination
+	}
+	if first != nil {
+		if *first == 0 {
+			return &PermissionsPolicyConnection{
+				Edges: []*PermissionsPolicyEdge{},
+			}, nil
+		} else if *first < 0 {
+			return nil, ErrInvalidPagination
+		}
+	}
+	if last != nil {
+		if *last == 0 {
+			return &PermissionsPolicyConnection{
+				Edges: []*PermissionsPolicyEdge{},
+			}, nil
+		} else if *last < 0 {
+			return nil, ErrInvalidPagination
+		}
+	}
+
+	if after != nil {
+		pp = pp.Where(permissionspolicy.IDGT(after.ID))
+	}
+	if before != nil {
+		pp = pp.Where(permissionspolicy.IDLT(before.ID))
+	}
+	if first != nil {
+		pp = pp.Order(Asc(permissionspolicy.FieldID)).Limit(*first + 1)
+	}
+	if last != nil {
+		pp = pp.Order(Desc(permissionspolicy.FieldID)).Limit(*last + 1)
+	}
+	pp = pp.collectConnectionFields(ctx)
+
+	nodes, err := pp.All(ctx)
+	if err != nil || len(nodes) == 0 {
+		return &PermissionsPolicyConnection{
+			Edges: []*PermissionsPolicyEdge{},
+		}, err
+	}
+	if last != nil {
+		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
+			nodes[left], nodes[right] = nodes[right], nodes[left]
+		}
+	}
+
+	var conn PermissionsPolicyConnection
+	if first != nil && len(nodes) > *first {
+		conn.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && len(nodes) > *last {
+		conn.PageInfo.HasPreviousPage = true
+		nodes = nodes[1:]
+	}
+	conn.Edges = make([]*PermissionsPolicyEdge, len(nodes))
+	for i, node := range nodes {
+		conn.Edges[i] = &PermissionsPolicyEdge{
+			Node: node,
+			Cursor: Cursor{
+				ID: node.ID,
+			},
+		}
+	}
+	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
+	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
+
+	return &conn, nil
+}
+
+func (pp *PermissionsPolicyQuery) collectConnectionFields(ctx context.Context) *PermissionsPolicyQuery {
+	if field := fieldForPath(ctx, "edges", "node"); field != nil {
+		pp = pp.collectField(graphql.GetRequestContext(ctx), *field)
+	}
+	return pp
 }
 
 // ProjectEdge is the edge representation of Project.

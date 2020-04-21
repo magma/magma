@@ -19,6 +19,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
+	models1 "github.com/facebookincubator/symphony/graph/authz/models"
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/ent/usersgroup"
@@ -67,6 +68,7 @@ type ResolverRoot interface {
 	Location() LocationResolver
 	LocationType() LocationTypeResolver
 	Mutation() MutationResolver
+	PermissionsPolicy() PermissionsPolicyResolver
 	Project() ProjectResolver
 	ProjectType() ProjectTypeResolver
 	Property() PropertyResolver
@@ -519,6 +521,7 @@ type ComplexityRoot struct {
 		AddLink                                  func(childComplexity int, input models.AddLinkInput) int
 		AddLocation                              func(childComplexity int, input models.AddLocationInput) int
 		AddLocationType                          func(childComplexity int, input models.AddLocationTypeInput) int
+		AddPolicy                                func(childComplexity int, input models.AddPermissionsPolicyInput) int
 		AddReportFilter                          func(childComplexity int, input models.ReportFilterInput) int
 		AddService                               func(childComplexity int, data models.ServiceCreateData) int
 		AddServiceEndpoint                       func(childComplexity int, input models.AddServiceEndpointInput) int
@@ -602,6 +605,14 @@ type ComplexityRoot struct {
 		CanWrite            func(childComplexity int) int
 		InventoryPolicy     func(childComplexity int) int
 		WorkforcePermission func(childComplexity int) int
+	}
+
+	PermissionsPolicy struct {
+		Description func(childComplexity int) int
+		ID          func(childComplexity int) int
+		IsGlobal    func(childComplexity int) int
+		Name        func(childComplexity int) int
+		Policy      func(childComplexity int) int
 	}
 
 	PortSearchResult struct {
@@ -1275,6 +1286,10 @@ type MutationResolver interface {
 	AddReportFilter(ctx context.Context, input models.ReportFilterInput) (*ent.ReportFilter, error)
 	EditReportFilter(ctx context.Context, input models.EditReportFilterInput) (*ent.ReportFilter, error)
 	DeleteReportFilter(ctx context.Context, id int) (bool, error)
+	AddPolicy(ctx context.Context, input models.AddPermissionsPolicyInput) (*ent.PermissionsPolicy, error)
+}
+type PermissionsPolicyResolver interface {
+	Policy(ctx context.Context, obj *ent.PermissionsPolicy) (models.SystemPolicy, error)
 }
 type ProjectResolver interface {
 	Creator(ctx context.Context, obj *ent.Project) (*string, error)
@@ -3340,6 +3355,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.AddLocationType(childComplexity, args["input"].(models.AddLocationTypeInput)), true
 
+	case "Mutation.addPolicy":
+		if e.complexity.Mutation.AddPolicy == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addPolicy_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddPolicy(childComplexity, args["input"].(models.AddPermissionsPolicyInput)), true
+
 	case "Mutation.addReportFilter":
 		if e.complexity.Mutation.AddReportFilter == nil {
 			break
@@ -4177,6 +4204,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.PermissionSettings.WorkforcePermission(childComplexity), true
+
+	case "PermissionsPolicy.description":
+		if e.complexity.PermissionsPolicy.Description == nil {
+			break
+		}
+
+		return e.complexity.PermissionsPolicy.Description(childComplexity), true
+
+	case "PermissionsPolicy.id":
+		if e.complexity.PermissionsPolicy.ID == nil {
+			break
+		}
+
+		return e.complexity.PermissionsPolicy.ID(childComplexity), true
+
+	case "PermissionsPolicy.isGlobal":
+		if e.complexity.PermissionsPolicy.IsGlobal == nil {
+			break
+		}
+
+		return e.complexity.PermissionsPolicy.IsGlobal(childComplexity), true
+
+	case "PermissionsPolicy.name":
+		if e.complexity.PermissionsPolicy.Name == nil {
+			break
+		}
+
+		return e.complexity.PermissionsPolicy.Name(childComplexity), true
+
+	case "PermissionsPolicy.policy":
+		if e.complexity.PermissionsPolicy.Policy == nil {
+			break
+		}
+
+		return e.complexity.PermissionsPolicy.Policy(childComplexity), true
 
 	case "PortSearchResult.count":
 		if e.complexity.PortSearchResult.Count == nil {
@@ -6705,7 +6767,10 @@ type PermissionSettings {
   workforcePermission: WorkforcePolicy!
 }
 
-enum PermissionValue {
+enum PermissionValue
+  @goModel(
+  model: "github.com/facebookincubator/symphony/graph/authz/models.PermissionValue"
+  ) {
   YES
   NO
   BY_CONDITION
@@ -6715,10 +6780,26 @@ type BasicPermissionRule {
   isAllowed: PermissionValue!
 }
 
+input BasicPermissionRuleInput
+  @goModel(
+    model: "github.com/facebookincubator/symphony/graph/authz/models.BasicPermissionRuleInput"
+  ) {
+  isAllowed: PermissionValue!
+}
+
 type CUD {
   create: BasicPermissionRule!
   update: BasicPermissionRule!
   delete: BasicPermissionRule!
+}
+
+input BasicCUDInput
+  @goModel(
+    model: "github.com/facebookincubator/symphony/graph/authz/models.BasicCUDInput"
+  ) {
+  create: BasicPermissionRuleInput
+  update: BasicPermissionRuleInput
+  delete: BasicPermissionRuleInput
 }
 
 type AdministrativePolicy {
@@ -6735,6 +6816,19 @@ type InventoryPolicy {
   serviceType: CUD!
 }
 
+input InventoryPolicyInput
+  @goModel(
+    model: "github.com/facebookincubator/symphony/graph/authz/models.InventoryPolicyInput"
+  ) {
+  read: BasicPermissionRuleInput
+  location: BasicCUDInput
+  equipment: BasicCUDInput
+  equipmentType: BasicCUDInput
+  locationType: BasicCUDInput
+  portType: BasicCUDInput
+  serviceType: BasicCUDInput
+}
+
 type WorkforceCUD {
   create: BasicPermissionRule
   update: BasicPermissionRule
@@ -6743,10 +6837,48 @@ type WorkforceCUD {
   transferOwnership: BasicPermissionRule
 }
 
+input BasicWorkforceCUDInput
+  @goModel(
+    model: "github.com/facebookincubator/symphony/graph/authz/models.BasicWorkforceCUDInput"
+  ) {
+  create: BasicPermissionRuleInput
+  update: BasicPermissionRuleInput
+  delete: BasicPermissionRuleInput
+  assign: BasicPermissionRuleInput
+  transferOwnership: BasicPermissionRuleInput
+}
+
 type WorkforcePolicy {
   read: BasicPermissionRule!
   data: WorkforceCUD!
   templates: CUD!
+}
+
+input WorkforcePolicyInput
+  @goModel(
+    model: "github.com/facebookincubator/symphony/graph/authz/models.WorkforcePolicyInput"
+  ) {
+  read: BasicPermissionRuleInput
+  data: BasicWorkforceCUDInput
+  templates: BasicCUDInput
+}
+
+union SystemPolicy = InventoryPolicy | WorkforcePolicy
+
+type PermissionsPolicy implements Node {
+  id: ID!
+  name: String!
+  description: String
+  isGlobal: Boolean!
+  policy: SystemPolicy!
+}
+
+input AddPermissionsPolicyInput {
+  name: String!
+  description: String
+  isGlobal: Boolean
+  inventoryInput: InventoryPolicyInput
+  workforceInput: WorkforcePolicyInput
 }
 
 type Viewer
@@ -9228,6 +9360,7 @@ type Mutation {
   addReportFilter(input: ReportFilterInput!): ReportFilter!
   editReportFilter(input: EditReportFilterInput!): ReportFilter!
   deleteReportFilter(id: ID!): Boolean!
+  addPolicy(input: AddPermissionsPolicyInput!): PermissionsPolicy!
 }
 
 type Subscription {
@@ -9583,6 +9716,20 @@ func (ec *executionContext) field_Mutation_addLocation_args(ctx context.Context,
 	var arg0 models.AddLocationInput
 	if tmp, ok := rawArgs["input"]; ok {
 		arg0, err = ec.unmarshalNAddLocationInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐAddLocationInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_addPolicy_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 models.AddPermissionsPolicyInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNAddPermissionsPolicyInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐAddPermissionsPolicyInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -12736,10 +12883,10 @@ func (ec *executionContext) _BasicPermissionRule_isAllowed(ctx context.Context, 
 		}
 		return graphql.Null
 	}
-	res := resTmp.(models.PermissionValue)
+	res := resTmp.(models1.PermissionValue)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNPermissionValue2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPermissionValue(ctx, field.Selections, res)
+	return ec.marshalNPermissionValue2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋauthzᚋmodelsᚐPermissionValue(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _CUD_create(ctx context.Context, field graphql.CollectedField, obj *models.Cud) (ret graphql.Marshaler) {
@@ -23727,6 +23874,50 @@ func (ec *executionContext) _Mutation_deleteReportFilter(ctx context.Context, fi
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_addPolicy(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_addPolicy_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddPolicy(rctx, args["input"].(models.AddPermissionsPolicyInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.PermissionsPolicy)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNPermissionsPolicy2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐPermissionsPolicy(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _NetworkTopology_nodes(ctx context.Context, field graphql.CollectedField, obj *models.NetworkTopology) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -24089,6 +24280,188 @@ func (ec *executionContext) _PermissionSettings_workforcePermission(ctx context.
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNWorkforcePolicy2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkforcePolicy(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PermissionsPolicy_id(ctx context.Context, field graphql.CollectedField, obj *ent.PermissionsPolicy) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "PermissionsPolicy",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PermissionsPolicy_name(ctx context.Context, field graphql.CollectedField, obj *ent.PermissionsPolicy) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "PermissionsPolicy",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PermissionsPolicy_description(ctx context.Context, field graphql.CollectedField, obj *ent.PermissionsPolicy) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "PermissionsPolicy",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PermissionsPolicy_isGlobal(ctx context.Context, field graphql.CollectedField, obj *ent.PermissionsPolicy) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "PermissionsPolicy",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsGlobal, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PermissionsPolicy_policy(ctx context.Context, field graphql.CollectedField, obj *ent.PermissionsPolicy) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "PermissionsPolicy",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.PermissionsPolicy().Policy(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(models.SystemPolicy)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNSystemPolicy2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐSystemPolicy(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PortSearchResult_ports(ctx context.Context, field graphql.CollectedField, obj *models.PortSearchResult) (ret graphql.Marshaler) {
@@ -37682,6 +38055,48 @@ func (ec *executionContext) unmarshalInputAddLocationTypeInput(ctx context.Conte
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputAddPermissionsPolicyInput(ctx context.Context, obj interface{}) (models.AddPermissionsPolicyInput, error) {
+	var it models.AddPermissionsPolicyInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "name":
+			var err error
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "description":
+			var err error
+			it.Description, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "isGlobal":
+			var err error
+			it.IsGlobal, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "inventoryInput":
+			var err error
+			it.InventoryInput, err = ec.unmarshalOInventoryPolicyInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋauthzᚋmodelsᚐInventoryPolicyInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "workforceInput":
+			var err error
+			it.WorkforceInput, err = ec.unmarshalOWorkforcePolicyInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋauthzᚋmodelsᚐWorkforcePolicyInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputAddProjectInput(ctx context.Context, obj interface{}) (models.AddProjectInput, error) {
 	var it models.AddProjectInput
 	var asMap = obj.(map[string]interface{})
@@ -38151,6 +38566,96 @@ func (ec *executionContext) unmarshalInputAddWorkOrderTypeInput(ctx context.Cont
 		case "checkListCategories":
 			var err error
 			it.CheckListCategories, err = ec.unmarshalOCheckListCategoryInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListCategoryInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputBasicCUDInput(ctx context.Context, obj interface{}) (models1.BasicCUDInput, error) {
+	var it models1.BasicCUDInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "create":
+			var err error
+			it.Create, err = ec.unmarshalOBasicPermissionRuleInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋauthzᚋmodelsᚐBasicPermissionRuleInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "update":
+			var err error
+			it.Update, err = ec.unmarshalOBasicPermissionRuleInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋauthzᚋmodelsᚐBasicPermissionRuleInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "delete":
+			var err error
+			it.Delete, err = ec.unmarshalOBasicPermissionRuleInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋauthzᚋmodelsᚐBasicPermissionRuleInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputBasicPermissionRuleInput(ctx context.Context, obj interface{}) (models1.BasicPermissionRuleInput, error) {
+	var it models1.BasicPermissionRuleInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "isAllowed":
+			var err error
+			it.IsAllowed, err = ec.unmarshalNPermissionValue2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋauthzᚋmodelsᚐPermissionValue(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputBasicWorkforceCUDInput(ctx context.Context, obj interface{}) (models1.BasicWorkforceCUDInput, error) {
+	var it models1.BasicWorkforceCUDInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "create":
+			var err error
+			it.Create, err = ec.unmarshalOBasicPermissionRuleInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋauthzᚋmodelsᚐBasicPermissionRuleInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "update":
+			var err error
+			it.Update, err = ec.unmarshalOBasicPermissionRuleInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋauthzᚋmodelsᚐBasicPermissionRuleInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "delete":
+			var err error
+			it.Delete, err = ec.unmarshalOBasicPermissionRuleInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋauthzᚋmodelsᚐBasicPermissionRuleInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "assign":
+			var err error
+			it.Assign, err = ec.unmarshalOBasicPermissionRuleInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋauthzᚋmodelsᚐBasicPermissionRuleInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "transferOwnership":
+			var err error
+			it.TransferOwnership, err = ec.unmarshalOBasicPermissionRuleInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋauthzᚋmodelsᚐBasicPermissionRuleInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -39523,6 +40028,60 @@ func (ec *executionContext) unmarshalInputGeneralFilterInput(ctx context.Context
 		case "propertyValue":
 			var err error
 			it.PropertyValue, err = ec.unmarshalOPropertyTypeInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPropertyTypeInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputInventoryPolicyInput(ctx context.Context, obj interface{}) (models1.InventoryPolicyInput, error) {
+	var it models1.InventoryPolicyInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "read":
+			var err error
+			it.Read, err = ec.unmarshalOBasicPermissionRuleInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋauthzᚋmodelsᚐBasicPermissionRuleInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "location":
+			var err error
+			it.Location, err = ec.unmarshalOBasicCUDInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋauthzᚋmodelsᚐBasicCUDInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "equipment":
+			var err error
+			it.Equipment, err = ec.unmarshalOBasicCUDInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋauthzᚋmodelsᚐBasicCUDInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "equipmentType":
+			var err error
+			it.EquipmentType, err = ec.unmarshalOBasicCUDInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋauthzᚋmodelsᚐBasicCUDInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "locationType":
+			var err error
+			it.LocationType, err = ec.unmarshalOBasicCUDInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋauthzᚋmodelsᚐBasicCUDInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "portType":
+			var err error
+			it.PortType, err = ec.unmarshalOBasicCUDInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋauthzᚋmodelsᚐBasicCUDInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "serviceType":
+			var err error
+			it.ServiceType, err = ec.unmarshalOBasicCUDInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋauthzᚋmodelsᚐBasicCUDInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -41166,6 +41725,36 @@ func (ec *executionContext) unmarshalInputWorkOrderFilterInput(ctx context.Conte
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputWorkforcePolicyInput(ctx context.Context, obj interface{}) (models1.WorkforcePolicyInput, error) {
+	var it models1.WorkforcePolicyInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "read":
+			var err error
+			it.Read, err = ec.unmarshalOBasicPermissionRuleInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋauthzᚋmodelsᚐBasicPermissionRuleInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "data":
+			var err error
+			it.Data, err = ec.unmarshalOBasicWorkforceCUDInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋauthzᚋmodelsᚐBasicWorkforceCUDInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "templates":
+			var err error
+			it.Templates, err = ec.unmarshalOBasicCUDInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋauthzᚋmodelsᚐBasicCUDInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -41208,6 +41797,11 @@ func (ec *executionContext) _Node(ctx context.Context, sel ast.SelectionSet, obj
 			return graphql.Null
 		}
 		return ec._UsersGroup(ctx, sel, obj)
+	case *ent.PermissionsPolicy:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._PermissionsPolicy(ctx, sel, obj)
 	case *ent.Location:
 		if obj == nil {
 			return graphql.Null
@@ -41388,6 +41982,29 @@ func (ec *executionContext) _Node(ctx context.Context, sel ast.SelectionSet, obj
 			return graphql.Null
 		}
 		return ec._ActionsRule(ctx, sel, obj)
+	default:
+		panic(fmt.Errorf("unexpected type %T", obj))
+	}
+}
+
+func (ec *executionContext) _SystemPolicy(ctx context.Context, sel ast.SelectionSet, obj models.SystemPolicy) graphql.Marshaler {
+	switch obj := (obj).(type) {
+	case nil:
+		return graphql.Null
+	case models.InventoryPolicy:
+		return ec._InventoryPolicy(ctx, sel, &obj)
+	case *models.InventoryPolicy:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._InventoryPolicy(ctx, sel, obj)
+	case models.WorkforcePolicy:
+		return ec._WorkforcePolicy(ctx, sel, &obj)
+	case *models.WorkforcePolicy:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._WorkforcePolicy(ctx, sel, obj)
 	default:
 		panic(fmt.Errorf("unexpected type %T", obj))
 	}
@@ -43580,7 +44197,7 @@ func (ec *executionContext) _Hyperlink(ctx context.Context, sel ast.SelectionSet
 	return out
 }
 
-var inventoryPolicyImplementors = []string{"InventoryPolicy"}
+var inventoryPolicyImplementors = []string{"InventoryPolicy", "SystemPolicy"}
 
 func (ec *executionContext) _InventoryPolicy(ctx context.Context, sel ast.SelectionSet, obj *models.InventoryPolicy) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.RequestContext, sel, inventoryPolicyImplementors)
@@ -44691,6 +45308,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "addPolicy":
+			out.Values[i] = ec._Mutation_addPolicy(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -44801,6 +45423,59 @@ func (ec *executionContext) _PermissionSettings(ctx context.Context, sel ast.Sel
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var permissionsPolicyImplementors = []string{"PermissionsPolicy", "Node"}
+
+func (ec *executionContext) _PermissionsPolicy(ctx context.Context, sel ast.SelectionSet, obj *ent.PermissionsPolicy) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, permissionsPolicyImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PermissionsPolicy")
+		case "id":
+			out.Values[i] = ec._PermissionsPolicy_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "name":
+			out.Values[i] = ec._PermissionsPolicy_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "description":
+			out.Values[i] = ec._PermissionsPolicy_description(ctx, field, obj)
+		case "isGlobal":
+			out.Values[i] = ec._PermissionsPolicy_isGlobal(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "policy":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._PermissionsPolicy_policy(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -48172,7 +48847,7 @@ func (ec *executionContext) _WorkforceCUD(ctx context.Context, sel ast.Selection
 	return out
 }
 
-var workforcePolicyImplementors = []string{"WorkforcePolicy"}
+var workforcePolicyImplementors = []string{"WorkforcePolicy", "SystemPolicy"}
 
 func (ec *executionContext) _WorkforcePolicy(ctx context.Context, sel ast.SelectionSet, obj *models.WorkforcePolicy) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.RequestContext, sel, workforcePolicyImplementors)
@@ -48877,6 +49552,10 @@ func (ec *executionContext) unmarshalNAddLocationInput2githubᚗcomᚋfacebookin
 
 func (ec *executionContext) unmarshalNAddLocationTypeInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐAddLocationTypeInput(ctx context.Context, v interface{}) (models.AddLocationTypeInput, error) {
 	return ec.unmarshalInputAddLocationTypeInput(ctx, v)
+}
+
+func (ec *executionContext) unmarshalNAddPermissionsPolicyInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐAddPermissionsPolicyInput(ctx context.Context, v interface{}) (models.AddPermissionsPolicyInput, error) {
+	return ec.unmarshalInputAddPermissionsPolicyInput(ctx, v)
 }
 
 func (ec *executionContext) unmarshalNAddProjectInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐAddProjectInput(ctx context.Context, v interface{}) (models.AddProjectInput, error) {
@@ -51040,13 +51719,33 @@ func (ec *executionContext) marshalNPermissionSettings2ᚖgithubᚗcomᚋfaceboo
 	return ec._PermissionSettings(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNPermissionValue2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPermissionValue(ctx context.Context, v interface{}) (models.PermissionValue, error) {
-	var res models.PermissionValue
-	return res, res.UnmarshalGQL(v)
+func (ec *executionContext) unmarshalNPermissionValue2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋauthzᚋmodelsᚐPermissionValue(ctx context.Context, v interface{}) (models1.PermissionValue, error) {
+	tmp, err := graphql.UnmarshalString(v)
+	return models1.PermissionValue(tmp), err
 }
 
-func (ec *executionContext) marshalNPermissionValue2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPermissionValue(ctx context.Context, sel ast.SelectionSet, v models.PermissionValue) graphql.Marshaler {
-	return v
+func (ec *executionContext) marshalNPermissionValue2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋauthzᚋmodelsᚐPermissionValue(ctx context.Context, sel ast.SelectionSet, v models1.PermissionValue) graphql.Marshaler {
+	res := graphql.MarshalString(string(v))
+	if res == graphql.Null {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) marshalNPermissionsPolicy2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐPermissionsPolicy(ctx context.Context, sel ast.SelectionSet, v ent.PermissionsPolicy) graphql.Marshaler {
+	return ec._PermissionsPolicy(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNPermissionsPolicy2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐPermissionsPolicy(ctx context.Context, sel ast.SelectionSet, v *ent.PermissionsPolicy) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._PermissionsPolicy(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNPortFilterInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPortFilterInput(ctx context.Context, v interface{}) (models.PortFilterInput, error) {
@@ -52358,6 +53057,16 @@ func (ec *executionContext) unmarshalNSurveyWiFiScanData2ᚖgithubᚗcomᚋfaceb
 	return &res, err
 }
 
+func (ec *executionContext) marshalNSystemPolicy2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐSystemPolicy(ctx context.Context, sel ast.SelectionSet, v models.SystemPolicy) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._SystemPolicy(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNTechnician2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐTechnician(ctx context.Context, sel ast.SelectionSet, v ent.Technician) graphql.Marshaler {
 	return ec._Technician(ctx, sel, &v)
 }
@@ -53575,6 +54284,18 @@ func (ec *executionContext) marshalOActionsTriggersSearchResult2ᚖgithubᚗcom�
 	return ec._ActionsTriggersSearchResult(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalOBasicCUDInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋauthzᚋmodelsᚐBasicCUDInput(ctx context.Context, v interface{}) (models1.BasicCUDInput, error) {
+	return ec.unmarshalInputBasicCUDInput(ctx, v)
+}
+
+func (ec *executionContext) unmarshalOBasicCUDInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋauthzᚋmodelsᚐBasicCUDInput(ctx context.Context, v interface{}) (*models1.BasicCUDInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOBasicCUDInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋauthzᚋmodelsᚐBasicCUDInput(ctx, v)
+	return &res, err
+}
+
 func (ec *executionContext) marshalOBasicPermissionRule2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐBasicPermissionRule(ctx context.Context, sel ast.SelectionSet, v models.BasicPermissionRule) graphql.Marshaler {
 	return ec._BasicPermissionRule(ctx, sel, &v)
 }
@@ -53584,6 +54305,30 @@ func (ec *executionContext) marshalOBasicPermissionRule2ᚖgithubᚗcomᚋfacebo
 		return graphql.Null
 	}
 	return ec._BasicPermissionRule(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOBasicPermissionRuleInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋauthzᚋmodelsᚐBasicPermissionRuleInput(ctx context.Context, v interface{}) (models1.BasicPermissionRuleInput, error) {
+	return ec.unmarshalInputBasicPermissionRuleInput(ctx, v)
+}
+
+func (ec *executionContext) unmarshalOBasicPermissionRuleInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋauthzᚋmodelsᚐBasicPermissionRuleInput(ctx context.Context, v interface{}) (*models1.BasicPermissionRuleInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOBasicPermissionRuleInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋauthzᚋmodelsᚐBasicPermissionRuleInput(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) unmarshalOBasicWorkforceCUDInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋauthzᚋmodelsᚐBasicWorkforceCUDInput(ctx context.Context, v interface{}) (models1.BasicWorkforceCUDInput, error) {
+	return ec.unmarshalInputBasicWorkforceCUDInput(ctx, v)
+}
+
+func (ec *executionContext) unmarshalOBasicWorkforceCUDInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋauthzᚋmodelsᚐBasicWorkforceCUDInput(ctx context.Context, v interface{}) (*models1.BasicWorkforceCUDInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOBasicWorkforceCUDInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋauthzᚋmodelsᚐBasicWorkforceCUDInput(ctx, v)
+	return &res, err
 }
 
 func (ec *executionContext) unmarshalOBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
@@ -54185,6 +54930,18 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 		return graphql.Null
 	}
 	return ec.marshalOInt2int(ctx, sel, *v)
+}
+
+func (ec *executionContext) unmarshalOInventoryPolicyInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋauthzᚋmodelsᚐInventoryPolicyInput(ctx context.Context, v interface{}) (models1.InventoryPolicyInput, error) {
+	return ec.unmarshalInputInventoryPolicyInput(ctx, v)
+}
+
+func (ec *executionContext) unmarshalOInventoryPolicyInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋauthzᚋmodelsᚐInventoryPolicyInput(ctx context.Context, v interface{}) (*models1.InventoryPolicyInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOInventoryPolicyInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋauthzᚋmodelsᚐInventoryPolicyInput(ctx, v)
+	return &res, err
 }
 
 func (ec *executionContext) marshalOLatestPythonPackageResult2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐLatestPythonPackageResult(ctx context.Context, sel ast.SelectionSet, v models.LatestPythonPackageResult) graphql.Marshaler {
@@ -55527,6 +56284,18 @@ func (ec *executionContext) marshalOWorkOrderTypeConnection2ᚖgithubᚗcomᚋfa
 		return graphql.Null
 	}
 	return ec._WorkOrderTypeConnection(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOWorkforcePolicyInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋauthzᚋmodelsᚐWorkforcePolicyInput(ctx context.Context, v interface{}) (models1.WorkforcePolicyInput, error) {
+	return ec.unmarshalInputWorkforcePolicyInput(ctx, v)
+}
+
+func (ec *executionContext) unmarshalOWorkforcePolicyInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋauthzᚋmodelsᚐWorkforcePolicyInput(ctx context.Context, v interface{}) (*models1.WorkforcePolicyInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOWorkforcePolicyInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋauthzᚋmodelsᚐWorkforcePolicyInput(ctx, v)
+	return &res, err
 }
 
 func (ec *executionContext) unmarshalOYesNoResponse2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐYesNoResponse(ctx context.Context, v interface{}) (models.YesNoResponse, error) {

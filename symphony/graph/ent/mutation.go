@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/facebookincubator/symphony/graph/authz/models"
 	"github.com/facebookincubator/symphony/graph/ent/actionsrule"
 	"github.com/facebookincubator/symphony/graph/ent/checklistcategory"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
@@ -32,6 +33,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/link"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/locationtype"
+	"github.com/facebookincubator/symphony/graph/ent/permissionspolicy"
 	"github.com/facebookincubator/symphony/graph/ent/project"
 	"github.com/facebookincubator/symphony/graph/ent/projecttype"
 	"github.com/facebookincubator/symphony/graph/ent/property"
@@ -89,6 +91,7 @@ const (
 	TypeLink                        = "Link"
 	TypeLocation                    = "Location"
 	TypeLocationType                = "LocationType"
+	TypePermissionsPolicy           = "PermissionsPolicy"
 	TypeProject                     = "Project"
 	TypeProjectType                 = "ProjectType"
 	TypeProperty                    = "Property"
@@ -13663,6 +13666,526 @@ func (m *LocationTypeMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown LocationType edge %s", name)
+}
+
+// PermissionsPolicyMutation represents an operation that mutate the PermissionsPolicies
+// nodes in the graph.
+type PermissionsPolicyMutation struct {
+	config
+	op               Op
+	typ              string
+	id               *int
+	create_time      *time.Time
+	update_time      *time.Time
+	name             *string
+	description      *string
+	is_global        *bool
+	inventory_policy **models.InventoryPolicyInput
+	workforce_policy **models.WorkforcePolicyInput
+	clearedFields    map[string]struct{}
+}
+
+var _ ent.Mutation = (*PermissionsPolicyMutation)(nil)
+
+// newPermissionsPolicyMutation creates new mutation for $n.Name.
+func newPermissionsPolicyMutation(c config, op Op) *PermissionsPolicyMutation {
+	return &PermissionsPolicyMutation{
+		config:        c,
+		op:            op,
+		typ:           TypePermissionsPolicy,
+		clearedFields: make(map[string]struct{}),
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m PermissionsPolicyMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m PermissionsPolicyMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, fmt.Errorf("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the id value in the mutation. Note that, the id
+// is available only if it was provided to the builder.
+func (m *PermissionsPolicyMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// SetCreateTime sets the create_time field.
+func (m *PermissionsPolicyMutation) SetCreateTime(t time.Time) {
+	m.create_time = &t
+}
+
+// CreateTime returns the create_time value in the mutation.
+func (m *PermissionsPolicyMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.create_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetCreateTime reset all changes of the create_time field.
+func (m *PermissionsPolicyMutation) ResetCreateTime() {
+	m.create_time = nil
+}
+
+// SetUpdateTime sets the update_time field.
+func (m *PermissionsPolicyMutation) SetUpdateTime(t time.Time) {
+	m.update_time = &t
+}
+
+// UpdateTime returns the update_time value in the mutation.
+func (m *PermissionsPolicyMutation) UpdateTime() (r time.Time, exists bool) {
+	v := m.update_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetUpdateTime reset all changes of the update_time field.
+func (m *PermissionsPolicyMutation) ResetUpdateTime() {
+	m.update_time = nil
+}
+
+// SetName sets the name field.
+func (m *PermissionsPolicyMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the name value in the mutation.
+func (m *PermissionsPolicyMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetName reset all changes of the name field.
+func (m *PermissionsPolicyMutation) ResetName() {
+	m.name = nil
+}
+
+// SetDescription sets the description field.
+func (m *PermissionsPolicyMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the description value in the mutation.
+func (m *PermissionsPolicyMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearDescription clears the value of description.
+func (m *PermissionsPolicyMutation) ClearDescription() {
+	m.description = nil
+	m.clearedFields[permissionspolicy.FieldDescription] = struct{}{}
+}
+
+// DescriptionCleared returns if the field description was cleared in this mutation.
+func (m *PermissionsPolicyMutation) DescriptionCleared() bool {
+	_, ok := m.clearedFields[permissionspolicy.FieldDescription]
+	return ok
+}
+
+// ResetDescription reset all changes of the description field.
+func (m *PermissionsPolicyMutation) ResetDescription() {
+	m.description = nil
+	delete(m.clearedFields, permissionspolicy.FieldDescription)
+}
+
+// SetIsGlobal sets the is_global field.
+func (m *PermissionsPolicyMutation) SetIsGlobal(b bool) {
+	m.is_global = &b
+}
+
+// IsGlobal returns the is_global value in the mutation.
+func (m *PermissionsPolicyMutation) IsGlobal() (r bool, exists bool) {
+	v := m.is_global
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearIsGlobal clears the value of is_global.
+func (m *PermissionsPolicyMutation) ClearIsGlobal() {
+	m.is_global = nil
+	m.clearedFields[permissionspolicy.FieldIsGlobal] = struct{}{}
+}
+
+// IsGlobalCleared returns if the field is_global was cleared in this mutation.
+func (m *PermissionsPolicyMutation) IsGlobalCleared() bool {
+	_, ok := m.clearedFields[permissionspolicy.FieldIsGlobal]
+	return ok
+}
+
+// ResetIsGlobal reset all changes of the is_global field.
+func (m *PermissionsPolicyMutation) ResetIsGlobal() {
+	m.is_global = nil
+	delete(m.clearedFields, permissionspolicy.FieldIsGlobal)
+}
+
+// SetInventoryPolicy sets the inventory_policy field.
+func (m *PermissionsPolicyMutation) SetInventoryPolicy(mpi *models.InventoryPolicyInput) {
+	m.inventory_policy = &mpi
+}
+
+// InventoryPolicy returns the inventory_policy value in the mutation.
+func (m *PermissionsPolicyMutation) InventoryPolicy() (r *models.InventoryPolicyInput, exists bool) {
+	v := m.inventory_policy
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearInventoryPolicy clears the value of inventory_policy.
+func (m *PermissionsPolicyMutation) ClearInventoryPolicy() {
+	m.inventory_policy = nil
+	m.clearedFields[permissionspolicy.FieldInventoryPolicy] = struct{}{}
+}
+
+// InventoryPolicyCleared returns if the field inventory_policy was cleared in this mutation.
+func (m *PermissionsPolicyMutation) InventoryPolicyCleared() bool {
+	_, ok := m.clearedFields[permissionspolicy.FieldInventoryPolicy]
+	return ok
+}
+
+// ResetInventoryPolicy reset all changes of the inventory_policy field.
+func (m *PermissionsPolicyMutation) ResetInventoryPolicy() {
+	m.inventory_policy = nil
+	delete(m.clearedFields, permissionspolicy.FieldInventoryPolicy)
+}
+
+// SetWorkforcePolicy sets the workforce_policy field.
+func (m *PermissionsPolicyMutation) SetWorkforcePolicy(mpi *models.WorkforcePolicyInput) {
+	m.workforce_policy = &mpi
+}
+
+// WorkforcePolicy returns the workforce_policy value in the mutation.
+func (m *PermissionsPolicyMutation) WorkforcePolicy() (r *models.WorkforcePolicyInput, exists bool) {
+	v := m.workforce_policy
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearWorkforcePolicy clears the value of workforce_policy.
+func (m *PermissionsPolicyMutation) ClearWorkforcePolicy() {
+	m.workforce_policy = nil
+	m.clearedFields[permissionspolicy.FieldWorkforcePolicy] = struct{}{}
+}
+
+// WorkforcePolicyCleared returns if the field workforce_policy was cleared in this mutation.
+func (m *PermissionsPolicyMutation) WorkforcePolicyCleared() bool {
+	_, ok := m.clearedFields[permissionspolicy.FieldWorkforcePolicy]
+	return ok
+}
+
+// ResetWorkforcePolicy reset all changes of the workforce_policy field.
+func (m *PermissionsPolicyMutation) ResetWorkforcePolicy() {
+	m.workforce_policy = nil
+	delete(m.clearedFields, permissionspolicy.FieldWorkforcePolicy)
+}
+
+// Op returns the operation name.
+func (m *PermissionsPolicyMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (PermissionsPolicy).
+func (m *PermissionsPolicyMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during
+// this mutation. Note that, in order to get all numeric
+// fields that were in/decremented, call AddedFields().
+func (m *PermissionsPolicyMutation) Fields() []string {
+	fields := make([]string, 0, 7)
+	if m.create_time != nil {
+		fields = append(fields, permissionspolicy.FieldCreateTime)
+	}
+	if m.update_time != nil {
+		fields = append(fields, permissionspolicy.FieldUpdateTime)
+	}
+	if m.name != nil {
+		fields = append(fields, permissionspolicy.FieldName)
+	}
+	if m.description != nil {
+		fields = append(fields, permissionspolicy.FieldDescription)
+	}
+	if m.is_global != nil {
+		fields = append(fields, permissionspolicy.FieldIsGlobal)
+	}
+	if m.inventory_policy != nil {
+		fields = append(fields, permissionspolicy.FieldInventoryPolicy)
+	}
+	if m.workforce_policy != nil {
+		fields = append(fields, permissionspolicy.FieldWorkforcePolicy)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name.
+// The second boolean value indicates that this field was
+// not set, or was not define in the schema.
+func (m *PermissionsPolicyMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case permissionspolicy.FieldCreateTime:
+		return m.CreateTime()
+	case permissionspolicy.FieldUpdateTime:
+		return m.UpdateTime()
+	case permissionspolicy.FieldName:
+		return m.Name()
+	case permissionspolicy.FieldDescription:
+		return m.Description()
+	case permissionspolicy.FieldIsGlobal:
+		return m.IsGlobal()
+	case permissionspolicy.FieldInventoryPolicy:
+		return m.InventoryPolicy()
+	case permissionspolicy.FieldWorkforcePolicy:
+		return m.WorkforcePolicy()
+	}
+	return nil, false
+}
+
+// SetField sets the value for the given name. It returns an
+// error if the field is not defined in the schema, or if the
+// type mismatch the field type.
+func (m *PermissionsPolicyMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case permissionspolicy.FieldCreateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreateTime(v)
+		return nil
+	case permissionspolicy.FieldUpdateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdateTime(v)
+		return nil
+	case permissionspolicy.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case permissionspolicy.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case permissionspolicy.FieldIsGlobal:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsGlobal(v)
+		return nil
+	case permissionspolicy.FieldInventoryPolicy:
+		v, ok := value.(*models.InventoryPolicyInput)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetInventoryPolicy(v)
+		return nil
+	case permissionspolicy.FieldWorkforcePolicy:
+		v, ok := value.(*models.WorkforcePolicyInput)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWorkforcePolicy(v)
+		return nil
+	}
+	return fmt.Errorf("unknown PermissionsPolicy field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented
+// or decremented during this mutation.
+func (m *PermissionsPolicyMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was in/decremented
+// from a field with the given name. The second value indicates
+// that this field was not set, or was not define in the schema.
+func (m *PermissionsPolicyMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value for the given name. It returns an
+// error if the field is not defined in the schema, or if the
+// type mismatch the field type.
+func (m *PermissionsPolicyMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown PermissionsPolicy numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared
+// during this mutation.
+func (m *PermissionsPolicyMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(permissionspolicy.FieldDescription) {
+		fields = append(fields, permissionspolicy.FieldDescription)
+	}
+	if m.FieldCleared(permissionspolicy.FieldIsGlobal) {
+		fields = append(fields, permissionspolicy.FieldIsGlobal)
+	}
+	if m.FieldCleared(permissionspolicy.FieldInventoryPolicy) {
+		fields = append(fields, permissionspolicy.FieldInventoryPolicy)
+	}
+	if m.FieldCleared(permissionspolicy.FieldWorkforcePolicy) {
+		fields = append(fields, permissionspolicy.FieldWorkforcePolicy)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicates if this field was
+// cleared in this mutation.
+func (m *PermissionsPolicyMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value for the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *PermissionsPolicyMutation) ClearField(name string) error {
+	switch name {
+	case permissionspolicy.FieldDescription:
+		m.ClearDescription()
+		return nil
+	case permissionspolicy.FieldIsGlobal:
+		m.ClearIsGlobal()
+		return nil
+	case permissionspolicy.FieldInventoryPolicy:
+		m.ClearInventoryPolicy()
+		return nil
+	case permissionspolicy.FieldWorkforcePolicy:
+		m.ClearWorkforcePolicy()
+		return nil
+	}
+	return fmt.Errorf("unknown PermissionsPolicy nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation regarding the
+// given field name. It returns an error if the field is not
+// defined in the schema.
+func (m *PermissionsPolicyMutation) ResetField(name string) error {
+	switch name {
+	case permissionspolicy.FieldCreateTime:
+		m.ResetCreateTime()
+		return nil
+	case permissionspolicy.FieldUpdateTime:
+		m.ResetUpdateTime()
+		return nil
+	case permissionspolicy.FieldName:
+		m.ResetName()
+		return nil
+	case permissionspolicy.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case permissionspolicy.FieldIsGlobal:
+		m.ResetIsGlobal()
+		return nil
+	case permissionspolicy.FieldInventoryPolicy:
+		m.ResetInventoryPolicy()
+		return nil
+	case permissionspolicy.FieldWorkforcePolicy:
+		m.ResetWorkforcePolicy()
+		return nil
+	}
+	return fmt.Errorf("unknown PermissionsPolicy field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this
+// mutation.
+func (m *PermissionsPolicyMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all ids (to other nodes) that were added for
+// the given edge name.
+func (m *PermissionsPolicyMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this
+// mutation.
+func (m *PermissionsPolicyMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all ids (to other nodes) that were removed for
+// the given edge name.
+func (m *PermissionsPolicyMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this
+// mutation.
+func (m *PermissionsPolicyMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean indicates if this edge was
+// cleared in this mutation.
+func (m *PermissionsPolicyMutation) EdgeCleared(name string) bool {
+	switch name {
+	}
+	return false
+}
+
+// ClearEdge clears the value for the given name. It returns an
+// error if the edge name is not defined in the schema.
+func (m *PermissionsPolicyMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown PermissionsPolicy unique edge %s", name)
+}
+
+// ResetEdge resets all changes in the mutation regarding the
+// given edge name. It returns an error if the edge is not
+// defined in the schema.
+func (m *PermissionsPolicyMutation) ResetEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown PermissionsPolicy edge %s", name)
 }
 
 // ProjectMutation represents an operation that mutate the Projects

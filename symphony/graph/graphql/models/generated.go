@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/facebookincubator/symphony/graph/authz/models"
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/ent/usersgroup"
@@ -20,6 +21,10 @@ import (
 
 type NamedNode interface {
 	IsNamedNode()
+}
+
+type SystemPolicy interface {
+	IsSystemPolicy()
 }
 
 type ActionsAction struct {
@@ -166,6 +171,14 @@ type AddLocationTypeInput struct {
 	SurveyTemplateCategories []*SurveyTemplateCategoryInput `json:"surveyTemplateCategories"`
 }
 
+type AddPermissionsPolicyInput struct {
+	Name           string                       `json:"name"`
+	Description    *string                      `json:"description"`
+	IsGlobal       *bool                        `json:"isGlobal"`
+	InventoryInput *models.InventoryPolicyInput `json:"inventoryInput"`
+	WorkforceInput *models.WorkforcePolicyInput `json:"workforceInput"`
+}
+
 type AddProjectInput struct {
 	Name        string           `json:"name"`
 	Description *string          `json:"description"`
@@ -226,7 +239,7 @@ type AdministrativePolicy struct {
 }
 
 type BasicPermissionRule struct {
-	IsAllowed PermissionValue `json:"isAllowed"`
+	IsAllowed models.PermissionValue `json:"isAllowed"`
 }
 
 type Cud struct {
@@ -471,6 +484,8 @@ type InventoryPolicy struct {
 	PortType      *Cud                 `json:"portType"`
 	ServiceType   *Cud                 `json:"serviceType"`
 }
+
+func (InventoryPolicy) IsSystemPolicy() {}
 
 type LatestPythonPackageResult struct {
 	LastPythonPackage         *PythonPackage `json:"lastPythonPackage"`
@@ -883,6 +898,8 @@ type WorkforcePolicy struct {
 	Data      *WorkforceCud        `json:"data"`
 	Templates *Cud                 `json:"templates"`
 }
+
+func (WorkforcePolicy) IsSystemPolicy() {}
 
 type CellularNetworkType string
 
@@ -1438,49 +1455,6 @@ func (e *LocationFilterType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e LocationFilterType) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-type PermissionValue string
-
-const (
-	PermissionValueYes         PermissionValue = "YES"
-	PermissionValueNo          PermissionValue = "NO"
-	PermissionValueByCondition PermissionValue = "BY_CONDITION"
-)
-
-var AllPermissionValue = []PermissionValue{
-	PermissionValueYes,
-	PermissionValueNo,
-	PermissionValueByCondition,
-}
-
-func (e PermissionValue) IsValid() bool {
-	switch e {
-	case PermissionValueYes, PermissionValueNo, PermissionValueByCondition:
-		return true
-	}
-	return false
-}
-
-func (e PermissionValue) String() string {
-	return string(e)
-}
-
-func (e *PermissionValue) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = PermissionValue(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid PermissionValue", str)
-	}
-	return nil
-}
-
-func (e PermissionValue) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
