@@ -5,6 +5,7 @@
 package resolver
 
 import (
+	"context"
 	"testing"
 
 	"github.com/facebookincubator/symphony/graph/ent/user"
@@ -19,19 +20,19 @@ import (
 func TestUserOwner(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	vr := r.Viewer()
 
 	permissions, err := vr.Permissions(ctx, nil)
 	require.NoError(t, err)
 	require.Equal(t, &models.BasicPermissionRule{IsAllowed: models2.PermissionValueNo}, permissions.AdminPolicy.Access)
-	require.Equal(t, false, permissions.CanWrite)
+	require.False(t, permissions.CanWrite)
 }
 
 func TestUserOwnerInWriteGroup(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	vr := r.Viewer()
 
 	u, err := viewer.UserFromContext(ctx)
@@ -43,13 +44,13 @@ func TestUserOwnerInWriteGroup(t *testing.T) {
 	permissions, err := vr.Permissions(ctx, nil)
 	require.NoError(t, err)
 	require.Equal(t, &models.BasicPermissionRule{IsAllowed: models2.PermissionValueNo}, permissions.AdminPolicy.Access)
-	require.Equal(t, true, permissions.CanWrite)
+	require.True(t, permissions.CanWrite)
 }
 
 func TestAdminViewer(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	vr := r.Viewer()
 
 	u, err := viewer.UserFromContext(ctx)
@@ -59,13 +60,13 @@ func TestAdminViewer(t *testing.T) {
 	permissions, err := vr.Permissions(ctx, nil)
 	require.NoError(t, err)
 	require.Equal(t, &models.BasicPermissionRule{IsAllowed: models2.PermissionValueYes}, permissions.AdminPolicy.Access)
-	require.Equal(t, false, permissions.CanWrite)
+	require.False(t, permissions.CanWrite)
 }
 
 func TestOwnerViewer(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	vr := r.Viewer()
 
 	u, err := viewer.UserFromContext(ctx)
@@ -75,5 +76,5 @@ func TestOwnerViewer(t *testing.T) {
 	permissions, err := vr.Permissions(ctx, nil)
 	require.NoError(t, err)
 	require.Equal(t, &models.BasicPermissionRule{IsAllowed: models2.PermissionValueYes}, permissions.AdminPolicy.Access)
-	require.Equal(t, true, permissions.CanWrite)
+	require.True(t, permissions.CanWrite)
 }

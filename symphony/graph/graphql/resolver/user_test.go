@@ -5,6 +5,7 @@
 package resolver
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -24,7 +25,7 @@ func toStatusPointer(status user.Status) *user.Status {
 func TestEditUser(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	u, err := viewer.UserFromContext(ctx)
 	require.NoError(t, err)
@@ -41,7 +42,7 @@ func TestEditUser(t *testing.T) {
 func TestAddAndDeleteProfileImage(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	u, err := viewer.UserFromContext(ctx)
 	require.NoError(t, err)
 

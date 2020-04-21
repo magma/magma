@@ -87,7 +87,7 @@ func writeModifiedCSV(t *testing.T, r *csv.Reader, method method, withVerify boo
 
 	for _, l := range lines {
 		stringLine := strings.Join(l, ",")
-		fileWriter.Write([]byte(stringLine + "\n"))
+		_, _ = io.WriteString(fileWriter, stringLine+"\n")
 	}
 	ct := bw.FormDataContentType()
 	require.NoError(t, bw.Close())
@@ -154,7 +154,7 @@ func prepareEquipmentAndExport(t *testing.T, r *TestExporterResolver) (context.C
 	require.NoError(t, err)
 	req.Header.Set(tenantHeader, "fb-test")
 
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	prepareData(ctx, t, *r)
 	locs := r.client.Location.Query().AllX(ctx)
 	require.Len(t, locs, 3)

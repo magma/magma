@@ -389,7 +389,7 @@ func prepareHandlerAndExport(t *testing.T, r *TestExporterResolver, e http.Handl
 	require.NoError(t, err)
 	req.Header.Set(tenantHeader, "fb-test")
 
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	prepareData(ctx, t, *r)
 	locs := r.client.Location.Query().AllX(ctx)
 	require.Len(t, locs, 3)

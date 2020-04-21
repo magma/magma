@@ -5,6 +5,7 @@
 package exporter
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"testing"
@@ -23,7 +24,7 @@ const strVal = "defVal"
 func TestLocationHierarchy(t *testing.T) {
 	r := newExporterTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr := r.Mutation()
 	locTypeL, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{Name: "example_type_large"})
@@ -96,7 +97,7 @@ func TestLocationHierarchy(t *testing.T) {
 func TestParentHierarchy(t *testing.T) {
 	r := newExporterTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr := r.Mutation()
 	mapType := "map"
@@ -167,7 +168,7 @@ func TestParentHierarchy(t *testing.T) {
 func TestPropertiesForCSV(t *testing.T) {
 	r := newExporterTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	client := ent.FromContext(ctx)
 
 	mr := r.Mutation()
@@ -346,7 +347,7 @@ func TestPropertiesForCSV(t *testing.T) {
 func TestPropertyTypesForCSV(t *testing.T) {
 	r := newExporterTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	client := ent.FromContext(ctx)
 
 	mr := r.Mutation()
@@ -428,7 +429,7 @@ func TestPropertyTypesForCSV(t *testing.T) {
 func TestSamePropertyTypesForCSV(t *testing.T) {
 	r := newExporterTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	client := ent.FromContext(ctx)
 
 	mr := r.Mutation()

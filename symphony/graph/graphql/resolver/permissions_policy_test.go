@@ -5,6 +5,7 @@
 package resolver
 
 import (
+	"context"
 	"testing"
 
 	"github.com/AlekSi/pointer"
@@ -43,7 +44,7 @@ func getWorkforcePolicyInput() *models2.WorkforcePolicyInput {
 func TestAddInventoryPolicy(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, ppr := r.Mutation(), r.PermissionsPolicy()
 
 	inventoryPolicyInput := getInventoryPolicyInput()
@@ -75,7 +76,7 @@ func TestAddInventoryPolicy(t *testing.T) {
 func TestAddWorkOrderPolicy(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, ppr := r.Mutation(), r.PermissionsPolicy()
 
 	workforcePolicyInput := getWorkforcePolicyInput()
@@ -107,7 +108,7 @@ func TestAddWorkOrderPolicy(t *testing.T) {
 func TestAddMultipleTypesPolicy(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 
 	_, err := mr.AddPolicy(ctx, models.AddPermissionsPolicyInput{
@@ -122,7 +123,7 @@ func TestAddMultipleTypesPolicy(t *testing.T) {
 func TestAddEmptyPolicy(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 
 	_, err := mr.AddPolicy(ctx, models.AddPermissionsPolicyInput{

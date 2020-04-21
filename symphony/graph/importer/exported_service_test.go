@@ -102,7 +102,7 @@ func TestValidatePropertiesForServiceType(t *testing.T) {
 	importer := r.importer
 	q := r.importer.r.Query()
 	defer r.drv.Close()
-	ctx := newImportContext(viewertest.NewContext(r.client))
+	ctx := newImportContext(viewertest.NewContext(context.Background(), r.client))
 	data := prepareServiceTypeData(ctx, t, *r)
 
 	mr := r.importer.r.Mutation()
@@ -231,7 +231,7 @@ func TestValidateForExistingService(t *testing.T) {
 	r := newImporterTestResolver(t)
 	importer := r.importer
 	defer r.drv.Close()
-	ctx := newImportContext(viewertest.NewContext(r.client))
+	ctx := newImportContext(viewertest.NewContext(context.Background(), r.client))
 	prepareServiceTypeData(ctx, t, *r)
 
 	titleWithProperties := []string{"Service ID", "Service Name", "Service Type", "Service External ID", "Customer Name", "Customer External ID", "Status"}

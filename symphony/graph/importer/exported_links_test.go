@@ -5,6 +5,7 @@
 package importer
 
 import (
+	"context"
 	"strconv"
 	"strings"
 	"testing"
@@ -26,7 +27,7 @@ func TestLinkTitleInputValidation(t *testing.T) {
 	importer := r.importer
 	defer r.drv.Close()
 
-	ctx := newImportContext(viewertest.NewContext(r.client))
+	ctx := newImportContext(viewertest.NewContext(context.Background(), r.client))
 	prepareBasicData(ctx, t, *r)
 
 	header, _ := NewImportHeader([]string{"aa"}, ImportEntityLink)
@@ -48,7 +49,7 @@ func TestGeneralLinksEditImport(t *testing.T) {
 	importer := r.importer
 	defer r.drv.Close()
 
-	ctx := newImportContext(viewertest.NewContext(r.client))
+	ctx := newImportContext(viewertest.NewContext(context.Background(), r.client))
 	ids := preparePortTypeData(ctx, t, *r)
 	prepareSvcData(ctx, t, *r)
 
@@ -114,7 +115,7 @@ func TestGeneralLinksAddImport(t *testing.T) {
 	importer := r.importer
 	defer r.drv.Close()
 
-	ctx := newImportContext(viewertest.NewContext(r.client))
+	ctx := newImportContext(viewertest.NewContext(context.Background(), r.client))
 	ids := preparePortTypeData(ctx, t, *r)
 	def1 := r.client.EquipmentPortDefinition.GetX(ctx, ids.portDef1)
 	equipParent := r.client.Equipment.GetX(ctx, ids.equipParentID)

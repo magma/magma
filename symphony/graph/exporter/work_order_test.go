@@ -191,7 +191,7 @@ func TestWOExport(t *testing.T) {
 	require.NoError(t, err)
 	req.Header.Set(tenantHeader, "fb-test")
 
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	data := prepareWOData(ctx, t, *r)
 	require.NoError(t, err)
 	res, err := http.DefaultClient.Do(req)
@@ -252,7 +252,7 @@ func TestWOExport(t *testing.T) {
 func TestExportWOWithFilters(t *testing.T) {
 	r := newExporterTestResolver(t)
 	log := r.exporter.log
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	e := &exporter{log, woRower{log}}
 	th := viewer.TenancyHandler(e, viewer.NewFixedTenancy(r.client))
 	server := httptest.NewServer(th)

@@ -6,6 +6,7 @@
 package resolver
 
 import (
+	"context"
 	"testing"
 
 	"github.com/facebookincubator/symphony/graph/ent"
@@ -21,7 +22,7 @@ import (
 func TestAddLocationType(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
 	mapType := "map"
@@ -46,7 +47,7 @@ func TestAddLocationType(t *testing.T) {
 func TestAddLocationTypes(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
 	_, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{Name: "a"})
@@ -61,7 +62,7 @@ func TestAddLocationTypes(t *testing.T) {
 func TestAddLocationTypeWithProperties(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 
 	strValue, strIndex := "Foo", 7
@@ -102,7 +103,7 @@ func TestAddLocationTypeWithProperties(t *testing.T) {
 func TestAddLocationTypeWithEquipmentProperty(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 
 	lt, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{Name: "location_type"})
@@ -147,7 +148,7 @@ func TestAddLocationTypeWithEquipmentProperty(t *testing.T) {
 func TestAddLocationTypeWithSurveyTemplate(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 
 	question := models.SurveyTemplateQuestionInput{
@@ -181,7 +182,7 @@ func TestAddLocationTypeWithSurveyTemplate(t *testing.T) {
 func TestAddLocationTypesSameName(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
 	locType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{Name: "example_type_name"})
@@ -196,7 +197,7 @@ func TestAddLocationTypesSameName(t *testing.T) {
 func TestRemoveLocationType(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
 	locType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{Name: "example_type_name"})
@@ -218,7 +219,7 @@ func TestRemoveLocationType(t *testing.T) {
 func TestEditLocationType(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
 	locType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{Name: "example_type_name"})
@@ -252,7 +253,7 @@ func TestEditLocationType(t *testing.T) {
 func TestEditLocationTypeWithSurveyTemplate(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 
 	question := models.SurveyTemplateQuestionInput{
@@ -329,7 +330,7 @@ func TestEditLocationTypeWithSurveyTemplate(t *testing.T) {
 func TestEditLocationTypeWithProperties(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 
 	strValue := "Foo"
@@ -390,7 +391,7 @@ func TestEditLocationTypeWithProperties(t *testing.T) {
 func TestMarkLocationTypeAsSite(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
 	mapType := "map"
@@ -415,7 +416,7 @@ func TestMarkLocationTypeAsSite(t *testing.T) {
 func TestEditLocationTypesIndex(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 
 	mapType := "map"

@@ -5,6 +5,7 @@
 package resolver
 
 import (
+	"context"
 	"testing"
 
 	"github.com/facebookincubator/symphony/graph/ent"
@@ -22,7 +23,7 @@ import (
 func TestNumOfProjects(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, ptr := r.Mutation(), r.ProjectType()
 
 	pType, err := mr.CreateProjectType(ctx, models.AddProjectTypeInput{Name: "example_type"})
@@ -83,7 +84,7 @@ func TestProjectQuery(t *testing.T) {
 func TestProjectWithWorkOrders(t *testing.T) {
 	resolver := newTestResolver(t)
 	defer resolver.drv.Close()
-	ctx := viewertest.NewContext(resolver.client)
+	ctx := viewertest.NewContext(context.Background(), resolver.client)
 	mutation := resolver.Mutation()
 
 	woType, err := mutation.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "example_type_a"})
@@ -287,7 +288,7 @@ func TestEditProject(t *testing.T) {
 func TestEditProjectLocation(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 	location := createLocation(ctx, t, *r)
 	typ, err := mr.CreateProjectType(ctx, models.AddProjectTypeInput{Name: "example_type"})
@@ -454,7 +455,7 @@ func TestAddProjectWithProperties(t *testing.T) {
 func TestEditProjectType(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
 	pType, err := mr.CreateProjectType(ctx, models.AddProjectTypeInput{Name: "example_type_name"})
@@ -489,7 +490,7 @@ func TestEditProjectType(t *testing.T) {
 func TestProjectWithWorkOrdersAndProperties(t *testing.T) {
 	resolver := newTestResolver(t)
 	defer resolver.drv.Close()
-	ctx := viewertest.NewContext(resolver.client)
+	ctx := viewertest.NewContext(context.Background(), resolver.client)
 	mutation := resolver.Mutation()
 
 	strPropType := models.PropertyTypeInput{

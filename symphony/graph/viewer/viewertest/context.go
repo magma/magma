@@ -38,12 +38,12 @@ func CreateUserEnt(ctx context.Context, client *ent.Client, userName string) *en
 }
 
 // NewContext returns viewer context for tests.
-func NewContext(c *ent.Client, opts ...Option) context.Context {
+func NewContext(parent context.Context, c *ent.Client, opts ...Option) context.Context {
 	v := DefaultViewer
 	for _, opt := range opts {
 		opt(&v)
 	}
-	ctx := viewer.NewContext(context.Background(), &v)
+	ctx := viewer.NewContext(parent, &v)
 	CreateUserEnt(ctx, c, v.User)
 	return ent.NewContext(ctx, c)
 }

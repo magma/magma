@@ -5,6 +5,7 @@
 package resolver
 
 import (
+	"context"
 	"testing"
 
 	"github.com/facebookincubator/symphony/graph/ent"
@@ -18,7 +19,7 @@ import (
 func TestEditServiceType(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
 	serviceType, err := mr.AddServiceType(ctx, models.ServiceTypeCreateData{Name: "example_type_name", HasCustomer: false})
@@ -56,7 +57,7 @@ func TestEditServiceType(t *testing.T) {
 func TestEditServiceTypeWithProperties(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 
 	strValue := "Foo"

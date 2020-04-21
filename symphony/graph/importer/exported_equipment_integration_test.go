@@ -155,7 +155,7 @@ func verifyLocationsStructure(ctx context.Context, t *testing.T, r TestImporterR
 
 func TestEquipmentImportData(t *testing.T) {
 	r := newImporterTestResolver(t)
-	ctx := newImportContext(viewertest.NewContext(r.client))
+	ctx := newImportContext(viewertest.NewContext(context.Background(), r.client))
 	code := importEquipmentExportedData(ctx, t, tenantHeader, r)
 	require.Equal(t, http.StatusBadRequest, code)
 	q := r.importer.r.Query()

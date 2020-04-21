@@ -76,14 +76,14 @@ func newGraphClient(t *testing.T, resolver *TestResolver) *client.Client {
 		),
 	)
 	return client.New(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := viewertest.NewContext(resolver.client)
+		ctx := viewertest.NewContext(context.Background(), resolver.client)
 		gql.ServeHTTP(w, r.WithContext(ctx))
 	}))
 }
 
 func resolverctx(t *testing.T) (generated.ResolverRoot, context.Context) {
 	r := newTestResolver(t)
-	return r, viewertest.NewContext(r.client)
+	return r, viewertest.NewContext(context.Background(), r.client)
 }
 
 func mutationctx(t *testing.T) (generated.MutationResolver, context.Context) {

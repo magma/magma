@@ -122,7 +122,7 @@ func TestSearchServicesByName(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
 	qr, mr := r.Query(), r.Mutation()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	data := prepareServiceData(ctx, r)
 
@@ -171,7 +171,7 @@ func TestSearchServicesByStatus(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
 	qr, mr := r.Query(), r.Mutation()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	data := prepareServiceData(ctx, r)
 
@@ -229,7 +229,7 @@ func TestSearchServicesByType(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
 	qr, mr := r.Query(), r.Mutation()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	data := prepareServiceData(ctx, r)
 
@@ -282,7 +282,7 @@ func TestSearchServicesByExternalID(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
 	qr, mr := r.Query(), r.Mutation()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	data := prepareServiceData(ctx, r)
 
 	externalID1 := "S1111"
@@ -336,7 +336,7 @@ func TestSearchServicesByCustomerName(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
 	qr, mr := r.Query(), r.Mutation()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	data := prepareServiceData(ctx, r)
 
 	customerA, err := mr.AddCustomer(ctx, models.AddCustomerInput{Name: "Donald"})
@@ -393,7 +393,7 @@ func TestSearchServicesByProperties(t *testing.T) {
 	r := newTestResolver(t)
 	qr, mr := r.Query(), r.Mutation()
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	data := prepareServiceData(ctx, r)
 
@@ -440,7 +440,7 @@ func TestSearchServicesByLocations(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
 	qr, mr := r.Query(), r.Mutation()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	data := prepareServiceData(ctx, r)
 
 	loc1, _ := mr.AddLocation(ctx, models.AddLocationInput{
@@ -566,7 +566,7 @@ func TestSearchServicesByEquipmentInside(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
 	qr, mr := r.Query(), r.Mutation()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	data := prepareServiceData(ctx, r)
 
 	loc, _ := mr.AddLocation(ctx, models.AddLocationInput{

@@ -223,7 +223,7 @@ func TestPortTitleInputValidation(t *testing.T) {
 	importer := r.importer
 	defer r.drv.Close()
 
-	ctx := newImportContext(viewertest.NewContext(r.client))
+	ctx := newImportContext(viewertest.NewContext(context.Background(), r.client))
 	var (
 		portDataHeader = [...]string{"Port ID", "Port Name", "Port Type", "Equipment Name", "Equipment Type"}
 		parentsHeader  = [...]string{"Parent Equipment (3)", "Parent Equipment (2)", "Parent Equipment", "Equipment Position"}
@@ -257,7 +257,7 @@ func TestGeneralPortsImport(t *testing.T) {
 	importer := r.importer
 	defer r.drv.Close()
 
-	ctx := newImportContext(viewertest.NewContext(r.client))
+	ctx := newImportContext(viewertest.NewContext(context.Background(), r.client))
 	ids := preparePortTypeData(ctx, t, *r)
 	prepareSvcData(ctx, t, *r)
 

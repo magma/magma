@@ -103,7 +103,7 @@ func writeModifiedCSV(t *testing.T, r *csv.Reader, method method, withVerify boo
 	}
 	for _, l := range lines {
 		stringLine := strings.Join(l, ",")
-		fileWriter.Write([]byte(stringLine + "\n"))
+		_, _ = io.WriteString(fileWriter, stringLine+"\n")
 	}
 	ct := bw.FormDataContentType()
 	require.NoError(t, bw.Close())
@@ -278,7 +278,7 @@ func importServiceExportedData(ctx context.Context, t *testing.T, organization s
 func TestServiceImportDataAdd(t *testing.T) {
 	for _, withVerify := range []bool{true, false} {
 		r := newImporterTestResolver(t)
-		ctx := newImportContext(viewertest.NewContext(r.client))
+		ctx := newImportContext(viewertest.NewContext(context.Background(), r.client))
 		prepareServiceData(ctx, t, r)
 		exportedData := exportServiceData(ctx, t, tenantHeader, r)
 		deleteServiceData(ctx, t, r)
@@ -293,7 +293,7 @@ func TestServiceImportDataAdd(t *testing.T) {
 func TestServiceImportDataEdit(t *testing.T) {
 	for _, withVerify := range []bool{true, false} {
 		r := newImporterTestResolver(t)
-		ctx := newImportContext(viewertest.NewContext(r.client))
+		ctx := newImportContext(viewertest.NewContext(context.Background(), r.client))
 		prepareServiceData(ctx, t, r)
 		exportedData := exportServiceData(ctx, t, tenantHeader, r)
 		readr := csv.NewReader(&exportedData)

@@ -5,6 +5,7 @@
 package viewertest
 
 import (
+	"context"
 	"testing"
 
 	"github.com/facebookincubator/symphony/graph/ent"
@@ -18,7 +19,11 @@ func TestNewContext(t *testing.T) {
 		Tenant: "facebook",
 		User:   "fbuser@fb.com",
 	}
-	ctx := NewContext(&ent.Client{}, WithViewer(want))
+	ctx := NewContext(
+		context.Background(),
+		&ent.Client{},
+		WithViewer(want),
+	)
 	got := viewer.FromContext(ctx)
 	assert.Equal(t, want, got)
 }

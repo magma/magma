@@ -21,16 +21,18 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const serviceNameTitle = "Service Name"
-const serviceTypeTitle = "Service Type"
-const serviceExternalIDTitle = "Service External ID"
-const customerNameTitle = "Customer Name"
-const customerExternalIDTitle = "Customer External ID"
-const statusTitle = "Status"
-const strPropTitle = "service_str_prop"
-const intPropTitle = "service_int_prop"
-const boolPropTitle = "service_bool_prop"
-const floatPropTitle = "service_float_prop"
+const (
+	serviceNameTitle        = "Service Name"
+	serviceTypeTitle        = "Service Type"
+	serviceExternalIDTitle  = "Service External ID"
+	customerNameTitle       = "Customer Name"
+	customerExternalIDTitle = "Customer External ID"
+	statusTitle             = "Status"
+	strPropTitle            = "service_str_prop"
+	intPropTitle            = "service_int_prop"
+	boolPropTitle           = "service_bool_prop"
+	floatPropTitle          = "service_float_prop"
+)
 
 func pointerToServiceStatus(status models.ServiceStatus) *models.ServiceStatus {
 	return &status
@@ -182,7 +184,7 @@ func TestServicesExport(t *testing.T) {
 	require.NoError(t, err)
 	req.Header.Set(tenantHeader, "fb-test")
 
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	prepareServiceData(ctx, t, *r)
 	require.NoError(t, err)
 	res, err := http.DefaultClient.Do(req)
@@ -269,7 +271,7 @@ func TestServiceWithFilters(t *testing.T) {
 	require.NoError(t, err)
 	req.Header.Set(tenantHeader, "fb-test")
 
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	prepareServiceData(ctx, t, *r)
 	require.NoError(t, err)
 	res, err := http.DefaultClient.Do(req)
