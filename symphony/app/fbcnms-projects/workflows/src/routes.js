@@ -10,6 +10,7 @@
 
 import HttpClient from './HttpServerSide';
 import Router from 'express';
+import bodyParser from 'body-parser';
 import filter from 'lodash/fp/filter';
 import forEach from 'lodash/fp/forEach';
 import identity from 'lodash/fp/identity';
@@ -19,12 +20,15 @@ import transform from 'lodash/fp/transform';
 
 const http = HttpClient;
 
-const router = Router();
 //TODO merge with proxy
+const router = Router();
 const baseURL = 'localhost/proxy/api/';
 const baseURLWorkflow = baseURL + 'workflow/';
 const baseURLMeta = baseURL + 'metadata/';
 const baseURLTask = baseURL + 'tasks/';
+
+router.use(bodyParser.urlencoded({extended: false}));
+router.use('/', bodyParser.json());
 
 router.get('/metadata/taskdefs', async (req, res, next) => {
   try {

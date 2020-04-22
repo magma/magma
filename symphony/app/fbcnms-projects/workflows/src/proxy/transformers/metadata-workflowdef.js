@@ -15,7 +15,9 @@ import logging from '@fbcnms/logging';
 import qs from 'qs';
 import {
   GLOBAL_PREFIX,
+  INFIX_SEPARATOR,
   createProxyOptionsBuffer,
+  isAllowedSystemTask,
   withUnderscore,
 } from '../utils.js';
 
@@ -26,40 +28,42 @@ const logger = logging.getLogger(module);
 // do not contain any prefix. Prefix is added to workflowdef if input is valid.
 function sanitizeWorkflowdefBefore(tenantId, workflowdef) {
   const tenantWithUnderscore = withUnderscore(tenantId);
-  if (workflowdef.name.indexOf('_') == -1) {
-    // validate tasks
-    for (const task of workflowdef.tasks) {
-      if (task.name.indexOf(withUnderscore(GLOBAL_PREFIX)) == 0) {
-        // noop on GLOBAL_ tasks
-      } else if (task.name.indexOf('_') == -1) {
-        // noop on unprefixed tasks
-      } else {
-        logger.error(
-          `Task name must not contain underscore: '${tenantId}'` +
-            ` in ${JSON.stringify(task)}`,
-        );
-        // TODO create Exception class
-        throw 'Task name must not contain underscore';
-      }
-    }
-    // add prefix to tasks
-    for (const task of workflowdef.tasks) {
-      // if task does not start with GLOBAL_ prefix...
-      if (task.name.indexOf(withUnderscore(GLOBAL_PREFIX)) != 0) {
-        // add tenantId prefix
-        task.name = tenantWithUnderscore + task.name;
-      }
-    }
-    // add prefix to workflow
-    workflowdef.name = tenantWithUnderscore + workflowdef.name;
-  } else {
+  if (workflowdef.name.indexOf(INFIX_SEPARATOR) > -1) {
     logger.error(
-      `Workflow name must not contain underscore: '${tenantId}'` +
-        ` in ${JSON.stringify(workflowdef)}`,
+      `Workflow name must not contain '${INFIX_SEPARATOR}': '${tenantId}'` +
+        ` in '${JSON.stringify(workflowdef)}'`,
     );
     // TODO create Exception class
     throw 'Workflow name must not contain underscore';
   }
+  // validate tasks
+  for (const task of workflowdef.tasks) {
+    if (task.name.indexOf(INFIX_SEPARATOR) > -1) {
+      logger.error(
+        `Task name must not contain '${INFIX_SEPARATOR}': '${tenantId}'` +
+          ` in '${JSON.stringify(task)}'`,
+      );
+      // TODO create Exception class
+      throw 'Task name must not contain underscore';
+    }
+  }
+  // only whitelisted system tasks are allowed
+  for (const task of workflowdef.tasks) {
+    if (!isAllowedSystemTask(task)) {
+      logger.error(
+        `Task type is not allowed: '${tenantId}'` +
+          ` in '${JSON.stringify(task)}'`,
+      );
+      // TODO create Exception class
+      throw 'Task type is not allowed';
+    }
+  }
+  // add prefix to tasks
+  for (const task of workflowdef.tasks) {
+    task.name = tenantWithUnderscore + task.name;
+  }
+  // add prefix to workflow
+  workflowdef.name = tenantWithUnderscore + workflowdef.name;
 }
 
 // Utility used after getting single or all workflowdefs to remove prefix from

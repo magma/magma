@@ -18,8 +18,32 @@ const logger = logging.getLogger(module);
 // TODO: can we come up with an invalid tenant name?
 export const GLOBAL_PREFIX = 'GLOBAL';
 
+// This is used to separate tenant id from name in workflowdefs and taskdefs
+export const INFIX_SEPARATOR = '___';
+
+const SYSTEM_TASK_TYPES = [
+  'DECISION',
+  'EVENT',
+  'HTTP',
+  'SUB_WORKFLOW',
+  'FORK',
+  'FORK_JOIN_DYNAMIC',
+  'JOIN',
+  'EXCLUSIVE_JOIN',
+  'WAIT',
+  'DYNAMIC',
+  'LAMBDA',
+  'TERMINATE',
+  'KAFKA_PUBLISH',
+  'DO_WHILE',
+];
+
+export function isAllowedSystemTask(task) {
+  return SYSTEM_TASK_TYPES.includes(task.type);
+}
+
 export function withUnderscore(s) {
-  return s + '_';
+  return s + INFIX_SEPARATOR;
 }
 
 export function getTenantId(req) {

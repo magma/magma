@@ -13,6 +13,7 @@ import logging from '@fbcnms/logging';
 import qs from 'qs';
 import request from 'request';
 import {
+  INFIX_SEPARATOR,
   createProxyOptionsBuffer,
   removeTenantPrefix,
   removeTenantPrefixes,
@@ -87,9 +88,11 @@ function postWorkflowBefore(tenantId, req, res, proxyCallback) {
   }
 
   // name should not contain _
-  if (reqObj.name.indexOf('_') > -1) {
-    logger.error(`Name must not contain underscore ${JSON.stringify(reqObj)}`);
-    throw 'Name must not contain underscore'; // TODO create Exception class
+  if (reqObj.name.indexOf(INFIX_SEPARATOR) > -1) {
+    logger.error(
+      `Name must not contain '${INFIX_SEPARATOR}': '${JSON.stringify(reqObj)}'`,
+    );
+    throw 'Name must not contain INFIX_SEPARATOR'; // TODO create Exception class
   }
   // add prefix
   reqObj.name = tenantWithUnderscore + reqObj.name;
@@ -111,7 +114,6 @@ function getExecutionStatusAfter(tenantId, req, respObj) {
     workflowName: false,
     workflowType: false,
     'tasks[*].taskDefName': true,
-    'tasks[*].taskType': true,
     'tasks[*].workflowTask.name': true,
     'tasks[*].workflowTask.taskDefinition.name': true,
     'tasks[*].workflowType': false,
