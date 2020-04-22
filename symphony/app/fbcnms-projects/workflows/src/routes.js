@@ -14,10 +14,12 @@ import bodyParser from 'body-parser';
 import filter from 'lodash/fp/filter';
 import forEach from 'lodash/fp/forEach';
 import identity from 'lodash/fp/identity';
+import logging from '@fbcnms/logging';
 import map from 'lodash/fp/map';
 import moment from 'moment';
 import transform from 'lodash/fp/transform';
 
+const logger = logging.getLogger(module);
 const http = HttpClient;
 
 //TODO merge with proxy
@@ -29,15 +31,6 @@ const baseURLTask = baseURL + 'tasks/';
 
 router.use(bodyParser.urlencoded({extended: false}));
 router.use('/', bodyParser.json());
-
-router.get('/metadata/taskdefs', async (req, res, next) => {
-  try {
-    const result = await http.get(baseURLMeta + 'taskdefs', req);
-    res.status(200).send({result});
-  } catch (err) {
-    next(err);
-  }
-});
 
 router.get('/metadata/taskdefs', async (req, res, next) => {
   try {
@@ -126,6 +119,26 @@ router.put('/metadata', async (req, res, next) => {
   } catch (err) {
     res.status(400).send(err.response.body);
     next(err);
+  }
+});
+
+// Conductor only allows POST for event handler creation
+// and PUT for updating. This code works around the issue by
+// trying PUT if POST fails.
+router.post('/event', async (req, res, next) => {
+  try {
+    const result = await http.post(baseURL + 'event', req.body, req);
+    res.status(200).send(result);
+  } catch (err) {
+    logger.info(`Got exception ${JSON.stringify(err)} while POSTing event`);
+    try {
+      const result = await http.put(baseURL + 'event', req.body, req);
+      res.status(200).send(result);
+    } catch (e) {
+      logger.info(`Got exception ${JSON.stringify(e)} while PUTting event`);
+      res.status(400).send('Post and Put failed');
+      next(e);
+    }
   }
 });
 
@@ -458,6 +471,7 @@ router.get('/hierarchical', async (req, res, next) => {
   }
 });
 
+// TODO not implemented on proxy
 router.get('/queue/data', async (req, res, next) => {
   try {
     const sizes = await http.get(baseURLTask + 'queue/all', req);
