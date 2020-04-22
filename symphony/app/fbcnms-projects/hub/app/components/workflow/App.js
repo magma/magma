@@ -13,6 +13,7 @@ import { frontendUrlPrefix } from "./constants";
 import './css/bootstrap.min.css';
 import './css/mono-blue.min.css';
 import './css/neat.css';
+import './css/awesomefonts.css';
 
 const rootReducer = combineReducers({
   bulkReducer,
