@@ -93,10 +93,10 @@ gtpv2c_imsi_ie_get (
 int
 gtpv2c_imsi_ie_set (
   nw_gtpv2c_msg_handle_t * msg,
-  const Imsi_t * imsi)
+  const imsi_t * imsi)
 {
   nw_rc_t                                   rc;
-  Imsi_t                                  imsi_nbo = {0};
+  imsi_t                                  imsi_nbo = {0};
   //imsi_t                                  imsistandard;
   DevAssert (msg );
   DevAssert (imsi );
@@ -121,10 +121,10 @@ gtpv2c_imsi_ie_set (
 //  }
 
   for (int i = 0; i < IMSI_BCD8_SIZE; i++) {
-    uint8_t tmp = imsi->imsistandard.u.value[i];
-    imsi_nbo.imsistandard.u.value[i] = (tmp >> 4) | (tmp << 4);
+    uint8_t tmp = imsi->u.value[i];
+    imsi_nbo.u.value[i] = (tmp >> 4) | (tmp << 4);
   }
-  imsi_nbo.imsistandard.length = imsi->imsistandard.length;
+  imsi_nbo.length = imsi->length;
 
 //  uint8_t digits[IMSI_BCD_DIGITS_MAX+1];
 //  int j = 0;
@@ -140,8 +140,8 @@ gtpv2c_imsi_ie_set (
 //        imsi_nbo.u.value,
 //        8);
 
-  rc = nwGtpv2cMsgAddIe (*msg, NW_GTPV2C_IE_IMSI, imsi_nbo.imsistandard.length, 0, (uint8_t*)imsi_nbo.imsistandard.u.value);
-  DevAssert (NW_OK == rc);
+  rc = nwGtpv2cMsgAddIe(*msg, NW_GTPV2C_IE_IMSI, imsi_nbo.length, 0,(uint8_t *)imsi_nbo.u.value);
+  DevAssert(NW_OK == rc);
   return RETURNok;
 }
 

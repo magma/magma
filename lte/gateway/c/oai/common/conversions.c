@@ -137,3 +137,116 @@ imsi64_t imsi_to_imsi64(const imsi_t *const imsi)
   }
   return imsi64;
 }
+
+//-----------------------------------------------------------------------------
+void imsi_magma_to_oai_imsi(const Imsi_t  *Imsi, imsi_t *imsi) 
+{
+//uint8_t length = 0;
+//#define IMSI_BCD_DIGITS_MAX 15
+
+//for (int i = 0; i < length; i++) {
+
+//int ascii_to_hex(uint8_t *dst, const char *h);
+
+imsi->u.num.digit1 = Imsi->digit[0] - 0x30;
+imsi->u.num.digit2 = Imsi->digit[1] - 0x30;
+imsi->u.num.digit3 = Imsi->digit[2] - 0x30;
+imsi->u.num.digit4 = Imsi->digit[3] - 0x30;
+imsi->u.num.digit5 = Imsi->digit[4] - 0x30;
+imsi->u.num.digit6 = Imsi->digit[5] - 0x30;
+if (Imsi->length >= 7){
+imsi->u.num.digit7 = Imsi->digit[6] - 0x30;
+if (Imsi->length >= 8){
+imsi->u.num.digit8 = Imsi->digit[7] - 0x30;
+if (Imsi->length >= 9){
+imsi->u.num.digit9 = Imsi->digit[8] - 0x30;
+if (Imsi->length >= 10){
+imsi->u.num.digit10 = Imsi->digit[9] - 0x30;
+if (Imsi->length >= 11){
+imsi->u.num.digit11 = Imsi->digit[10] - 0x30;
+if (Imsi->length >= 12){
+imsi->u.num.digit12 = Imsi->digit[11] - 0x30;
+if (Imsi->length >= 13){
+imsi->u.num.digit13 = Imsi->digit[12] - 0x30;
+if (Imsi->length >= 14){
+imsi->u.num.digit14 = Imsi->digit[13] - 0x30;
+if (Imsi->length >= 15){
+imsi->u.num.digit15 = Imsi->digit[14] - 0x30;
+                   }}
+              }}
+          }}
+      }} 
+  }
+imsi->length = Imsi->length;
+  }     
+
+
+/*
+//------------------------------------------------------------------------------
+void imsi64_to_oai_imsi(uint64_t imsi64_t, imsi_t *imsi)                              \
+  {                                                                            \
+    if ((imsi64_t / 100000000000000) != 0) {                                   \
+      imsi->u.num.digit15 = imsi64_t / 100000000000000;                         \
+      imsi64_t = imsi64_t % 100000000000000;                                   \
+      imsi->u.num.digit14 = imsi64_t / 10000000000000;                          \
+      imsi64_t = imsi64_t % 10000000000000;                                    \
+      imsi->u.num.digit13 = imsi64_t / 1000000000000;                           \
+      imsi64_t = imsi64_t % 1000000000000;                                     \
+      imsi->u.num.digit12 = imsi64_t / 100000000000;                            \
+      imsi64_t = imsi64_t % 100000000000;                                      \
+      imsi->u.num.digit11 = imsi64_t / 10000000000;                             \
+      imsi64_t = imsi64_t % 10000000000;                                       \
+      imsi->u.num.digit10 = imsi64_t / 1000000000;                              \
+      imsi64_t = imsi64_t % 1000000000;                                        \
+      imsi->u.num.digit9 = imsi64_t / 100000000;                                \
+      imsi64_t = imsi64_t % 100000000;                                         \
+      imsi->u.num.digit8 = imsi64_t / 10000000;                                 \
+      imsi64_t = imsi64_t % 10000000;                                          \
+      imsi->u.num.digit7 = imsi64_t / 1000000;                                  \
+      imsi64_t = imsi64_t % 1000000;                                           \
+      imsi->u.num.digit6 = imsi64_t / 100000;                                   \
+      imsi64_t = imsi64_t % 100000;                                            \
+      imsi->u.num.digit5 = imsi64_t / 10000;                                    \
+      imsi64_t = imsi64_t % 10000;                                             \
+      imsi->u.num.digit4 = imsi64_t / 1000;                                     \
+      imsi64_t = imsi64_t % 1000;                                              \
+      imsi->u.num.digit3 = imsi64_t / 100;                                      \
+      imsi64_t = imsi64_t % 100;                                               \
+      imsi->u.num.digit2 = imsi64_t / 10;                                       \
+      imsi64_t = imsi64_t % 10;                                                \
+      imsi->u.num.digit1 = imsi64_t;                                            \
+      imsi->u.num.parity = 1;                                                   \
+      imsi->length = 15;                                    \
+    } else {                                                                   \
+      imsi->u.num.digit14 = imsi64_t / 10000000000000;                          \
+      imsi64_t = imsi64_t % 10000000000000;                                    \
+      imsi->u.num.digit13 = imsi64_t / 1000000000000;                           \
+      imsi64_t = imsi64_t % 1000000000000;                                     \
+      imsi->u.num.digit12 = imsi64_t / 100000000000;                            \
+      imsi64_t = imsi64_t % 100000000000;                                      \
+      imsi->u.num.digit11 = imsi64_t / 10000000000;                             \
+      imsi64_t = imsi64_t % 10000000000;                                       \
+      imsi->u.num.digit10 = imsi64_t / 1000000000;                              \
+      imsi64_t = imsi64_t % 1000000000;                                        \
+      imsi->u.num.digit9 = imsi64_t / 100000000;                                \
+      imsi64_t = imsi64_t % 100000000;                                         \
+      imsi->u.num.digit8 = imsi64_t / 10000000;                                 \
+      imsi64_t = imsi64_t % 10000000;                                          \
+      imsi->u.num.digit7 = imsi64_t / 1000000;                                  \
+      imsi64_t = imsi64_t % 1000000;                                           \
+      imsi->u.num.digit6 = imsi64_t / 100000;                                   \
+      imsi64_t = imsi64_t % 100000;                                            \
+      imsi->u.num.digit5 = imsi64_t / 10000;                                    \
+      imsi64_t = imsi64_t % 10000;                                             \
+      imsi->u.num.digit4 = imsi64_t / 1000;                                     \
+      imsi64_t = imsi64_t % 1000;                                              \
+      imsi->u.num.digit3 = imsi64_t / 100;                                      \
+      imsi64_t = imsi64_t % 100;                                               \
+      imsi->u.num.digit2 = imsi64_t / 10;                                       \
+      imsi64_t = imsi64_t % 10;                                                \
+      imsi->u.num.digit1 = imsi64_t;                                            \
+      imsi->u.num.parity = 0;                                                   \
+      imsi->length = 14;                                    \
+    }                                                                          \
+  }
+*/

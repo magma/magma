@@ -34,7 +34,7 @@
 #include <inttypes.h>
 
 #include "bstrlib.h"
-
+#include "conversions.h"
 #include "hashtable.h"
 #include "obj_hashtable.h"
 #include "log.h"
@@ -83,8 +83,7 @@ s11_mme_create_session_request (
    */
   rc = nwGtpv2cMsgNew (*stack_p, true, NW_GTP_CREATE_SESSION_REQ, req_p->teid, 0, &(ulp_req.hMsg));
   /** Will stay in stack until its copied into trx and sent to UE. */
-  
-  
+    
   ulp_req.u_api_info.initialReqInfo.edns_peer_ip = (struct sockaddr*)&req_p->edns_peer_ip;
   
   //OAILOG_DEBUG(LOG_S11, "ends peer ip address %p\n", (struct sockaddr*)edns_peer_ip);
@@ -92,8 +91,7 @@ s11_mme_create_session_request (
   ulp_req.u_api_info.initialReqInfo.hUlpTunnel = 0;
   ulp_req.u_api_info.initialReqInfo.hTunnel    = 0;
   
-  
-  /*
+   /*
    * Add recovery if contacting the peer for the first time
    */
   rc = nwGtpv2cMsgAddIe ((ulp_req.hMsg), NW_GTPV2C_IE_RECOVERY, 1, 0, (uint8_t *) & restart_counter);
@@ -101,10 +99,18 @@ s11_mme_create_session_request (
   /*
    * Putting the information Elements
    */
-  gtpv2c_imsi_ie_set (&(ulp_req.hMsg), &req_p->imsi);
+ 
+  //imsi64_t imsi64 = INVALID_IMSI64;
+  imsi_t imsi ;
+  //Imsi_t Imsi ;
+  //IMSI_STRING_TO_IMSI64((char*)req_p->imsi.IMSI, &imsi64);
+ //OAILOG_DEBUG(LOG_S1AP, "Received MESSAGE before\n");
+  imsi_magma_to_oai_imsi(&req_p->imsi, &imsi);
+   //OAILOG_DEBUG(LOG_S1AP, "Received MESSAGE after\n"); 
+  gtpv2c_imsi_ie_set (&(ulp_req.hMsg), &imsi);
   gtpv2c_uli_ie_set (&(ulp_req.hMsg), &req_p->uli);
   gtpv2c_rat_type_ie_set (&(ulp_req.hMsg), &req_p->rat_type);
-  gtpv2c_pdn_type_ie_set (&(ulp_req.hMsg), &req_p->pdn_type);
+  gtpv2c_pdn_type_ie_set (&(ulp_req.hMsg), &req_p->pdn_type);;
   gtpv2c_paa_ie_set(&(ulp_req.hMsg), &req_p->paa);
   gtpv2c_apn_restriction_ie_set(&(ulp_req.hMsg), 0);
   /**

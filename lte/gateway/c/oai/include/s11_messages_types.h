@@ -159,6 +159,7 @@ typedef struct itti_s11_create_session_request_s {
   ///< MME/SGSN, but not used as an identifier
   ///<     - if UE is emergency attached but IMSI is not authenticated.
   ///< The IMSI shall be included in the message on the S2b interface.
+  
 
   Msisdn_t msisdn; ///< For an E-UTRAN Initial Attach the IE shall be included
   ///< when used on the S11 interface, if provided in the

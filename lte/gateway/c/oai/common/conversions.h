@@ -463,6 +463,7 @@
     }                                                                          \
   }
 
+
 #define IMSI64_TO_STRING(iMSI64, sTRING, _imsi_len)                            \
   snprintf(                                                                    \
     sTRING, IMSI_BCD_DIGITS_MAX + 1, IMSI_64_FMT_DYN_LEN, _imsi_len, iMSI64)
@@ -637,6 +638,8 @@ imsi64_t imsi_to_imsi64(const imsi_t *const imsi);
       mObId_PtR->numOfValidImsiDigits--;                                       \
     }                                                                          \
   }
+
+void  imsi_magma_to_oai_imsi(const Imsi_t  *Imsi, imsi_t *imsi) ;
 
 /*Used to convert char* IMSI/TMSI Mobile Identity to MobileIdentity(digit) format*/
 #define MOBILE_ID_CHAR_TO_MOBILE_ID_TMSI_NAS(mObId_ChAr, mObId_PtR, tMsI_LeN)  \
