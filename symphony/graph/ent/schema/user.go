@@ -5,6 +5,8 @@
 package schema
 
 import (
+	"github.com/facebookincubator/symphony/graph/viewer"
+
 	"github.com/facebookincubator/ent"
 	"github.com/facebookincubator/ent/schema/edge"
 	"github.com/facebookincubator/ent/schema/field"
@@ -59,5 +61,12 @@ func (User) Policy() ent.Policy {
 				ent.OpDelete | ent.OpDeleteOne,
 			),
 		},
+	}
+}
+
+// Hooks of the User.
+func (User) Hooks() []ent.Hook {
+	return []ent.Hook{
+		viewer.UpdateCurrentUser(),
 	}
 }

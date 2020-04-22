@@ -6,6 +6,7 @@
 package resolver
 
 import (
+	"context"
 	"testing"
 
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
@@ -18,7 +19,7 @@ import (
 func TestAddEquipmentPortType(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
 	_, err := mr.AddEquipmentPortType(ctx, models.AddEquipmentPortTypeInput{
@@ -35,7 +36,7 @@ func TestAddEquipmentPortType(t *testing.T) {
 func TestAddEquipmentPortTypes(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
 	_, err := mr.AddEquipmentPortType(ctx, models.AddEquipmentPortTypeInput{Name: "example_type_a"})
@@ -50,7 +51,7 @@ func TestAddEquipmentPortTypes(t *testing.T) {
 func TestAddEquipmentPortTypeWithProperties(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 
 	strValue, strIndex := "Foo", 7
@@ -91,7 +92,7 @@ func TestAddEquipmentPortTypeWithProperties(t *testing.T) {
 func TestAddEquipmentPortTypeWithLinkProperties(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 
 	strValue, strIndex := "Foo", 7
@@ -132,7 +133,7 @@ func TestAddEquipmentPortTypeWithLinkProperties(t *testing.T) {
 func TestAddEquipmentPortTypesSameName(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
 	portType, err := mr.AddEquipmentPortType(ctx, models.AddEquipmentPortTypeInput{Name: "example_type_name"})
@@ -147,7 +148,7 @@ func TestAddEquipmentPortTypesSameName(t *testing.T) {
 func TestRemoveEquipmentPortType(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
 	portType, err := mr.AddEquipmentPortType(ctx, models.AddEquipmentPortTypeInput{Name: "example_type_name"})
@@ -169,7 +170,7 @@ func TestRemoveEquipmentPortType(t *testing.T) {
 func TestEditEquipmentPortType(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
 	portType, err := mr.AddEquipmentPortType(ctx, models.AddEquipmentPortTypeInput{Name: "example_type_name"})
@@ -201,7 +202,7 @@ func TestEditEquipmentPortType(t *testing.T) {
 func TestEditEquipmentPortTypeWithLinkProperties(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 
 	strValue := "Foo"
@@ -266,7 +267,7 @@ func TestEditEquipmentPortTypeWithLinkProperties(t *testing.T) {
 func TestEditEquipmentPortTypeWithLinkPropertiesSameName(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 
 	strValue := "Foo"
@@ -300,7 +301,7 @@ func TestEditEquipmentPortTypeWithLinkPropertiesSameName(t *testing.T) {
 func TestRemoveEquipmentPortTypeWithLinkedEquipmentType(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
 	portType, err := mr.AddEquipmentPortType(ctx, models.AddEquipmentPortTypeInput{

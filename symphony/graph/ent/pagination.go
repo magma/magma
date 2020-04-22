@@ -37,6 +37,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/link"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/locationtype"
+	"github.com/facebookincubator/symphony/graph/ent/permissionspolicy"
 	"github.com/facebookincubator/symphony/graph/ent/project"
 	"github.com/facebookincubator/symphony/graph/ent/projecttype"
 	"github.com/facebookincubator/symphony/graph/ent/property"
@@ -193,7 +194,7 @@ func (ar *ActionsRuleQuery) Paginate(ctx context.Context, after *Cursor, first *
 
 func (ar *ActionsRuleQuery) collectConnectionFields(ctx context.Context) *ActionsRuleQuery {
 	if field := fieldForPath(ctx, "edges", "node"); field != nil {
-		ar = ar.collectField(graphql.GetRequestContext(ctx), *field)
+		ar = ar.collectField(graphql.GetOperationContext(ctx), *field)
 	}
 	return ar
 }
@@ -285,7 +286,7 @@ func (clc *CheckListCategoryQuery) Paginate(ctx context.Context, after *Cursor, 
 
 func (clc *CheckListCategoryQuery) collectConnectionFields(ctx context.Context) *CheckListCategoryQuery {
 	if field := fieldForPath(ctx, "edges", "node"); field != nil {
-		clc = clc.collectField(graphql.GetRequestContext(ctx), *field)
+		clc = clc.collectField(graphql.GetOperationContext(ctx), *field)
 	}
 	return clc
 }
@@ -377,7 +378,7 @@ func (cli *CheckListItemQuery) Paginate(ctx context.Context, after *Cursor, firs
 
 func (cli *CheckListItemQuery) collectConnectionFields(ctx context.Context) *CheckListItemQuery {
 	if field := fieldForPath(ctx, "edges", "node"); field != nil {
-		cli = cli.collectField(graphql.GetRequestContext(ctx), *field)
+		cli = cli.collectField(graphql.GetOperationContext(ctx), *field)
 	}
 	return cli
 }
@@ -469,7 +470,7 @@ func (clid *CheckListItemDefinitionQuery) Paginate(ctx context.Context, after *C
 
 func (clid *CheckListItemDefinitionQuery) collectConnectionFields(ctx context.Context) *CheckListItemDefinitionQuery {
 	if field := fieldForPath(ctx, "edges", "node"); field != nil {
-		clid = clid.collectField(graphql.GetRequestContext(ctx), *field)
+		clid = clid.collectField(graphql.GetOperationContext(ctx), *field)
 	}
 	return clid
 }
@@ -561,7 +562,7 @@ func (c *CommentQuery) Paginate(ctx context.Context, after *Cursor, first *int, 
 
 func (c *CommentQuery) collectConnectionFields(ctx context.Context) *CommentQuery {
 	if field := fieldForPath(ctx, "edges", "node"); field != nil {
-		c = c.collectField(graphql.GetRequestContext(ctx), *field)
+		c = c.collectField(graphql.GetOperationContext(ctx), *field)
 	}
 	return c
 }
@@ -653,7 +654,7 @@ func (c *CustomerQuery) Paginate(ctx context.Context, after *Cursor, first *int,
 
 func (c *CustomerQuery) collectConnectionFields(ctx context.Context) *CustomerQuery {
 	if field := fieldForPath(ctx, "edges", "node"); field != nil {
-		c = c.collectField(graphql.GetRequestContext(ctx), *field)
+		c = c.collectField(graphql.GetOperationContext(ctx), *field)
 	}
 	return c
 }
@@ -745,7 +746,7 @@ func (e *EquipmentQuery) Paginate(ctx context.Context, after *Cursor, first *int
 
 func (e *EquipmentQuery) collectConnectionFields(ctx context.Context) *EquipmentQuery {
 	if field := fieldForPath(ctx, "edges", "node"); field != nil {
-		e = e.collectField(graphql.GetRequestContext(ctx), *field)
+		e = e.collectField(graphql.GetOperationContext(ctx), *field)
 	}
 	return e
 }
@@ -837,7 +838,7 @@ func (ec *EquipmentCategoryQuery) Paginate(ctx context.Context, after *Cursor, f
 
 func (ec *EquipmentCategoryQuery) collectConnectionFields(ctx context.Context) *EquipmentCategoryQuery {
 	if field := fieldForPath(ctx, "edges", "node"); field != nil {
-		ec = ec.collectField(graphql.GetRequestContext(ctx), *field)
+		ec = ec.collectField(graphql.GetOperationContext(ctx), *field)
 	}
 	return ec
 }
@@ -929,7 +930,7 @@ func (ep *EquipmentPortQuery) Paginate(ctx context.Context, after *Cursor, first
 
 func (ep *EquipmentPortQuery) collectConnectionFields(ctx context.Context) *EquipmentPortQuery {
 	if field := fieldForPath(ctx, "edges", "node"); field != nil {
-		ep = ep.collectField(graphql.GetRequestContext(ctx), *field)
+		ep = ep.collectField(graphql.GetOperationContext(ctx), *field)
 	}
 	return ep
 }
@@ -1021,7 +1022,7 @@ func (epd *EquipmentPortDefinitionQuery) Paginate(ctx context.Context, after *Cu
 
 func (epd *EquipmentPortDefinitionQuery) collectConnectionFields(ctx context.Context) *EquipmentPortDefinitionQuery {
 	if field := fieldForPath(ctx, "edges", "node"); field != nil {
-		epd = epd.collectField(graphql.GetRequestContext(ctx), *field)
+		epd = epd.collectField(graphql.GetOperationContext(ctx), *field)
 	}
 	return epd
 }
@@ -1113,7 +1114,7 @@ func (ept *EquipmentPortTypeQuery) Paginate(ctx context.Context, after *Cursor, 
 
 func (ept *EquipmentPortTypeQuery) collectConnectionFields(ctx context.Context) *EquipmentPortTypeQuery {
 	if field := fieldForPath(ctx, "edges", "node"); field != nil {
-		ept = ept.collectField(graphql.GetRequestContext(ctx), *field)
+		ept = ept.collectField(graphql.GetOperationContext(ctx), *field)
 	}
 	return ept
 }
@@ -1205,7 +1206,7 @@ func (ep *EquipmentPositionQuery) Paginate(ctx context.Context, after *Cursor, f
 
 func (ep *EquipmentPositionQuery) collectConnectionFields(ctx context.Context) *EquipmentPositionQuery {
 	if field := fieldForPath(ctx, "edges", "node"); field != nil {
-		ep = ep.collectField(graphql.GetRequestContext(ctx), *field)
+		ep = ep.collectField(graphql.GetOperationContext(ctx), *field)
 	}
 	return ep
 }
@@ -1297,7 +1298,7 @@ func (epd *EquipmentPositionDefinitionQuery) Paginate(ctx context.Context, after
 
 func (epd *EquipmentPositionDefinitionQuery) collectConnectionFields(ctx context.Context) *EquipmentPositionDefinitionQuery {
 	if field := fieldForPath(ctx, "edges", "node"); field != nil {
-		epd = epd.collectField(graphql.GetRequestContext(ctx), *field)
+		epd = epd.collectField(graphql.GetOperationContext(ctx), *field)
 	}
 	return epd
 }
@@ -1389,7 +1390,7 @@ func (et *EquipmentTypeQuery) Paginate(ctx context.Context, after *Cursor, first
 
 func (et *EquipmentTypeQuery) collectConnectionFields(ctx context.Context) *EquipmentTypeQuery {
 	if field := fieldForPath(ctx, "edges", "node"); field != nil {
-		et = et.collectField(graphql.GetRequestContext(ctx), *field)
+		et = et.collectField(graphql.GetOperationContext(ctx), *field)
 	}
 	return et
 }
@@ -1481,7 +1482,7 @@ func (f *FileQuery) Paginate(ctx context.Context, after *Cursor, first *int, bef
 
 func (f *FileQuery) collectConnectionFields(ctx context.Context) *FileQuery {
 	if field := fieldForPath(ctx, "edges", "node"); field != nil {
-		f = f.collectField(graphql.GetRequestContext(ctx), *field)
+		f = f.collectField(graphql.GetOperationContext(ctx), *field)
 	}
 	return f
 }
@@ -1573,7 +1574,7 @@ func (fp *FloorPlanQuery) Paginate(ctx context.Context, after *Cursor, first *in
 
 func (fp *FloorPlanQuery) collectConnectionFields(ctx context.Context) *FloorPlanQuery {
 	if field := fieldForPath(ctx, "edges", "node"); field != nil {
-		fp = fp.collectField(graphql.GetRequestContext(ctx), *field)
+		fp = fp.collectField(graphql.GetOperationContext(ctx), *field)
 	}
 	return fp
 }
@@ -1665,7 +1666,7 @@ func (fprp *FloorPlanReferencePointQuery) Paginate(ctx context.Context, after *C
 
 func (fprp *FloorPlanReferencePointQuery) collectConnectionFields(ctx context.Context) *FloorPlanReferencePointQuery {
 	if field := fieldForPath(ctx, "edges", "node"); field != nil {
-		fprp = fprp.collectField(graphql.GetRequestContext(ctx), *field)
+		fprp = fprp.collectField(graphql.GetOperationContext(ctx), *field)
 	}
 	return fprp
 }
@@ -1757,7 +1758,7 @@ func (fps *FloorPlanScaleQuery) Paginate(ctx context.Context, after *Cursor, fir
 
 func (fps *FloorPlanScaleQuery) collectConnectionFields(ctx context.Context) *FloorPlanScaleQuery {
 	if field := fieldForPath(ctx, "edges", "node"); field != nil {
-		fps = fps.collectField(graphql.GetRequestContext(ctx), *field)
+		fps = fps.collectField(graphql.GetOperationContext(ctx), *field)
 	}
 	return fps
 }
@@ -1849,7 +1850,7 @@ func (h *HyperlinkQuery) Paginate(ctx context.Context, after *Cursor, first *int
 
 func (h *HyperlinkQuery) collectConnectionFields(ctx context.Context) *HyperlinkQuery {
 	if field := fieldForPath(ctx, "edges", "node"); field != nil {
-		h = h.collectField(graphql.GetRequestContext(ctx), *field)
+		h = h.collectField(graphql.GetOperationContext(ctx), *field)
 	}
 	return h
 }
@@ -1941,7 +1942,7 @@ func (l *LinkQuery) Paginate(ctx context.Context, after *Cursor, first *int, bef
 
 func (l *LinkQuery) collectConnectionFields(ctx context.Context) *LinkQuery {
 	if field := fieldForPath(ctx, "edges", "node"); field != nil {
-		l = l.collectField(graphql.GetRequestContext(ctx), *field)
+		l = l.collectField(graphql.GetOperationContext(ctx), *field)
 	}
 	return l
 }
@@ -2033,7 +2034,7 @@ func (l *LocationQuery) Paginate(ctx context.Context, after *Cursor, first *int,
 
 func (l *LocationQuery) collectConnectionFields(ctx context.Context) *LocationQuery {
 	if field := fieldForPath(ctx, "edges", "node"); field != nil {
-		l = l.collectField(graphql.GetRequestContext(ctx), *field)
+		l = l.collectField(graphql.GetOperationContext(ctx), *field)
 	}
 	return l
 }
@@ -2125,9 +2126,101 @@ func (lt *LocationTypeQuery) Paginate(ctx context.Context, after *Cursor, first 
 
 func (lt *LocationTypeQuery) collectConnectionFields(ctx context.Context) *LocationTypeQuery {
 	if field := fieldForPath(ctx, "edges", "node"); field != nil {
-		lt = lt.collectField(graphql.GetRequestContext(ctx), *field)
+		lt = lt.collectField(graphql.GetOperationContext(ctx), *field)
 	}
 	return lt
+}
+
+// PermissionsPolicyEdge is the edge representation of PermissionsPolicy.
+type PermissionsPolicyEdge struct {
+	Node   *PermissionsPolicy `json:"node"`
+	Cursor Cursor             `json:"cursor"`
+}
+
+// PermissionsPolicyConnection is the connection containing edges to PermissionsPolicy.
+type PermissionsPolicyConnection struct {
+	Edges    []*PermissionsPolicyEdge `json:"edges"`
+	PageInfo PageInfo                 `json:"pageInfo"`
+}
+
+// Paginate executes the query and returns a relay based cursor connection to PermissionsPolicy.
+func (pp *PermissionsPolicyQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*PermissionsPolicyConnection, error) {
+	if first != nil && last != nil {
+		return nil, ErrInvalidPagination
+	}
+	if first != nil {
+		if *first == 0 {
+			return &PermissionsPolicyConnection{
+				Edges: []*PermissionsPolicyEdge{},
+			}, nil
+		} else if *first < 0 {
+			return nil, ErrInvalidPagination
+		}
+	}
+	if last != nil {
+		if *last == 0 {
+			return &PermissionsPolicyConnection{
+				Edges: []*PermissionsPolicyEdge{},
+			}, nil
+		} else if *last < 0 {
+			return nil, ErrInvalidPagination
+		}
+	}
+
+	if after != nil {
+		pp = pp.Where(permissionspolicy.IDGT(after.ID))
+	}
+	if before != nil {
+		pp = pp.Where(permissionspolicy.IDLT(before.ID))
+	}
+	if first != nil {
+		pp = pp.Order(Asc(permissionspolicy.FieldID)).Limit(*first + 1)
+	}
+	if last != nil {
+		pp = pp.Order(Desc(permissionspolicy.FieldID)).Limit(*last + 1)
+	}
+	pp = pp.collectConnectionFields(ctx)
+
+	nodes, err := pp.All(ctx)
+	if err != nil || len(nodes) == 0 {
+		return &PermissionsPolicyConnection{
+			Edges: []*PermissionsPolicyEdge{},
+		}, err
+	}
+	if last != nil {
+		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
+			nodes[left], nodes[right] = nodes[right], nodes[left]
+		}
+	}
+
+	var conn PermissionsPolicyConnection
+	if first != nil && len(nodes) > *first {
+		conn.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && len(nodes) > *last {
+		conn.PageInfo.HasPreviousPage = true
+		nodes = nodes[1:]
+	}
+	conn.Edges = make([]*PermissionsPolicyEdge, len(nodes))
+	for i, node := range nodes {
+		conn.Edges[i] = &PermissionsPolicyEdge{
+			Node: node,
+			Cursor: Cursor{
+				ID: node.ID,
+			},
+		}
+	}
+	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
+	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
+
+	return &conn, nil
+}
+
+func (pp *PermissionsPolicyQuery) collectConnectionFields(ctx context.Context) *PermissionsPolicyQuery {
+	if field := fieldForPath(ctx, "edges", "node"); field != nil {
+		pp = pp.collectField(graphql.GetOperationContext(ctx), *field)
+	}
+	return pp
 }
 
 // ProjectEdge is the edge representation of Project.
@@ -2217,7 +2310,7 @@ func (pr *ProjectQuery) Paginate(ctx context.Context, after *Cursor, first *int,
 
 func (pr *ProjectQuery) collectConnectionFields(ctx context.Context) *ProjectQuery {
 	if field := fieldForPath(ctx, "edges", "node"); field != nil {
-		pr = pr.collectField(graphql.GetRequestContext(ctx), *field)
+		pr = pr.collectField(graphql.GetOperationContext(ctx), *field)
 	}
 	return pr
 }
@@ -2309,7 +2402,7 @@ func (pt *ProjectTypeQuery) Paginate(ctx context.Context, after *Cursor, first *
 
 func (pt *ProjectTypeQuery) collectConnectionFields(ctx context.Context) *ProjectTypeQuery {
 	if field := fieldForPath(ctx, "edges", "node"); field != nil {
-		pt = pt.collectField(graphql.GetRequestContext(ctx), *field)
+		pt = pt.collectField(graphql.GetOperationContext(ctx), *field)
 	}
 	return pt
 }
@@ -2401,7 +2494,7 @@ func (pr *PropertyQuery) Paginate(ctx context.Context, after *Cursor, first *int
 
 func (pr *PropertyQuery) collectConnectionFields(ctx context.Context) *PropertyQuery {
 	if field := fieldForPath(ctx, "edges", "node"); field != nil {
-		pr = pr.collectField(graphql.GetRequestContext(ctx), *field)
+		pr = pr.collectField(graphql.GetOperationContext(ctx), *field)
 	}
 	return pr
 }
@@ -2493,7 +2586,7 @@ func (pt *PropertyTypeQuery) Paginate(ctx context.Context, after *Cursor, first 
 
 func (pt *PropertyTypeQuery) collectConnectionFields(ctx context.Context) *PropertyTypeQuery {
 	if field := fieldForPath(ctx, "edges", "node"); field != nil {
-		pt = pt.collectField(graphql.GetRequestContext(ctx), *field)
+		pt = pt.collectField(graphql.GetOperationContext(ctx), *field)
 	}
 	return pt
 }
@@ -2585,7 +2678,7 @@ func (rf *ReportFilterQuery) Paginate(ctx context.Context, after *Cursor, first 
 
 func (rf *ReportFilterQuery) collectConnectionFields(ctx context.Context) *ReportFilterQuery {
 	if field := fieldForPath(ctx, "edges", "node"); field != nil {
-		rf = rf.collectField(graphql.GetRequestContext(ctx), *field)
+		rf = rf.collectField(graphql.GetOperationContext(ctx), *field)
 	}
 	return rf
 }
@@ -2677,7 +2770,7 @@ func (s *ServiceQuery) Paginate(ctx context.Context, after *Cursor, first *int, 
 
 func (s *ServiceQuery) collectConnectionFields(ctx context.Context) *ServiceQuery {
 	if field := fieldForPath(ctx, "edges", "node"); field != nil {
-		s = s.collectField(graphql.GetRequestContext(ctx), *field)
+		s = s.collectField(graphql.GetOperationContext(ctx), *field)
 	}
 	return s
 }
@@ -2769,7 +2862,7 @@ func (se *ServiceEndpointQuery) Paginate(ctx context.Context, after *Cursor, fir
 
 func (se *ServiceEndpointQuery) collectConnectionFields(ctx context.Context) *ServiceEndpointQuery {
 	if field := fieldForPath(ctx, "edges", "node"); field != nil {
-		se = se.collectField(graphql.GetRequestContext(ctx), *field)
+		se = se.collectField(graphql.GetOperationContext(ctx), *field)
 	}
 	return se
 }
@@ -2861,7 +2954,7 @@ func (sed *ServiceEndpointDefinitionQuery) Paginate(ctx context.Context, after *
 
 func (sed *ServiceEndpointDefinitionQuery) collectConnectionFields(ctx context.Context) *ServiceEndpointDefinitionQuery {
 	if field := fieldForPath(ctx, "edges", "node"); field != nil {
-		sed = sed.collectField(graphql.GetRequestContext(ctx), *field)
+		sed = sed.collectField(graphql.GetOperationContext(ctx), *field)
 	}
 	return sed
 }
@@ -2953,7 +3046,7 @@ func (st *ServiceTypeQuery) Paginate(ctx context.Context, after *Cursor, first *
 
 func (st *ServiceTypeQuery) collectConnectionFields(ctx context.Context) *ServiceTypeQuery {
 	if field := fieldForPath(ctx, "edges", "node"); field != nil {
-		st = st.collectField(graphql.GetRequestContext(ctx), *field)
+		st = st.collectField(graphql.GetOperationContext(ctx), *field)
 	}
 	return st
 }
@@ -3045,7 +3138,7 @@ func (s *SurveyQuery) Paginate(ctx context.Context, after *Cursor, first *int, b
 
 func (s *SurveyQuery) collectConnectionFields(ctx context.Context) *SurveyQuery {
 	if field := fieldForPath(ctx, "edges", "node"); field != nil {
-		s = s.collectField(graphql.GetRequestContext(ctx), *field)
+		s = s.collectField(graphql.GetOperationContext(ctx), *field)
 	}
 	return s
 }
@@ -3137,7 +3230,7 @@ func (scs *SurveyCellScanQuery) Paginate(ctx context.Context, after *Cursor, fir
 
 func (scs *SurveyCellScanQuery) collectConnectionFields(ctx context.Context) *SurveyCellScanQuery {
 	if field := fieldForPath(ctx, "edges", "node"); field != nil {
-		scs = scs.collectField(graphql.GetRequestContext(ctx), *field)
+		scs = scs.collectField(graphql.GetOperationContext(ctx), *field)
 	}
 	return scs
 }
@@ -3229,7 +3322,7 @@ func (sq *SurveyQuestionQuery) Paginate(ctx context.Context, after *Cursor, firs
 
 func (sq *SurveyQuestionQuery) collectConnectionFields(ctx context.Context) *SurveyQuestionQuery {
 	if field := fieldForPath(ctx, "edges", "node"); field != nil {
-		sq = sq.collectField(graphql.GetRequestContext(ctx), *field)
+		sq = sq.collectField(graphql.GetOperationContext(ctx), *field)
 	}
 	return sq
 }
@@ -3321,7 +3414,7 @@ func (stc *SurveyTemplateCategoryQuery) Paginate(ctx context.Context, after *Cur
 
 func (stc *SurveyTemplateCategoryQuery) collectConnectionFields(ctx context.Context) *SurveyTemplateCategoryQuery {
 	if field := fieldForPath(ctx, "edges", "node"); field != nil {
-		stc = stc.collectField(graphql.GetRequestContext(ctx), *field)
+		stc = stc.collectField(graphql.GetOperationContext(ctx), *field)
 	}
 	return stc
 }
@@ -3413,7 +3506,7 @@ func (stq *SurveyTemplateQuestionQuery) Paginate(ctx context.Context, after *Cur
 
 func (stq *SurveyTemplateQuestionQuery) collectConnectionFields(ctx context.Context) *SurveyTemplateQuestionQuery {
 	if field := fieldForPath(ctx, "edges", "node"); field != nil {
-		stq = stq.collectField(graphql.GetRequestContext(ctx), *field)
+		stq = stq.collectField(graphql.GetOperationContext(ctx), *field)
 	}
 	return stq
 }
@@ -3505,7 +3598,7 @@ func (swfs *SurveyWiFiScanQuery) Paginate(ctx context.Context, after *Cursor, fi
 
 func (swfs *SurveyWiFiScanQuery) collectConnectionFields(ctx context.Context) *SurveyWiFiScanQuery {
 	if field := fieldForPath(ctx, "edges", "node"); field != nil {
-		swfs = swfs.collectField(graphql.GetRequestContext(ctx), *field)
+		swfs = swfs.collectField(graphql.GetOperationContext(ctx), *field)
 	}
 	return swfs
 }
@@ -3597,7 +3690,7 @@ func (t *TechnicianQuery) Paginate(ctx context.Context, after *Cursor, first *in
 
 func (t *TechnicianQuery) collectConnectionFields(ctx context.Context) *TechnicianQuery {
 	if field := fieldForPath(ctx, "edges", "node"); field != nil {
-		t = t.collectField(graphql.GetRequestContext(ctx), *field)
+		t = t.collectField(graphql.GetOperationContext(ctx), *field)
 	}
 	return t
 }
@@ -3689,7 +3782,7 @@ func (u *UserQuery) Paginate(ctx context.Context, after *Cursor, first *int, bef
 
 func (u *UserQuery) collectConnectionFields(ctx context.Context) *UserQuery {
 	if field := fieldForPath(ctx, "edges", "node"); field != nil {
-		u = u.collectField(graphql.GetRequestContext(ctx), *field)
+		u = u.collectField(graphql.GetOperationContext(ctx), *field)
 	}
 	return u
 }
@@ -3781,7 +3874,7 @@ func (ug *UsersGroupQuery) Paginate(ctx context.Context, after *Cursor, first *i
 
 func (ug *UsersGroupQuery) collectConnectionFields(ctx context.Context) *UsersGroupQuery {
 	if field := fieldForPath(ctx, "edges", "node"); field != nil {
-		ug = ug.collectField(graphql.GetRequestContext(ctx), *field)
+		ug = ug.collectField(graphql.GetOperationContext(ctx), *field)
 	}
 	return ug
 }
@@ -3873,7 +3966,7 @@ func (wo *WorkOrderQuery) Paginate(ctx context.Context, after *Cursor, first *in
 
 func (wo *WorkOrderQuery) collectConnectionFields(ctx context.Context) *WorkOrderQuery {
 	if field := fieldForPath(ctx, "edges", "node"); field != nil {
-		wo = wo.collectField(graphql.GetRequestContext(ctx), *field)
+		wo = wo.collectField(graphql.GetOperationContext(ctx), *field)
 	}
 	return wo
 }
@@ -3965,7 +4058,7 @@ func (wod *WorkOrderDefinitionQuery) Paginate(ctx context.Context, after *Cursor
 
 func (wod *WorkOrderDefinitionQuery) collectConnectionFields(ctx context.Context) *WorkOrderDefinitionQuery {
 	if field := fieldForPath(ctx, "edges", "node"); field != nil {
-		wod = wod.collectField(graphql.GetRequestContext(ctx), *field)
+		wod = wod.collectField(graphql.GetOperationContext(ctx), *field)
 	}
 	return wod
 }
@@ -4057,22 +4150,22 @@ func (wot *WorkOrderTypeQuery) Paginate(ctx context.Context, after *Cursor, firs
 
 func (wot *WorkOrderTypeQuery) collectConnectionFields(ctx context.Context) *WorkOrderTypeQuery {
 	if field := fieldForPath(ctx, "edges", "node"); field != nil {
-		wot = wot.collectField(graphql.GetRequestContext(ctx), *field)
+		wot = wot.collectField(graphql.GetOperationContext(ctx), *field)
 	}
 	return wot
 }
 
 func fieldForPath(ctx context.Context, path ...string) *graphql.CollectedField {
-	resctx := graphql.GetResolverContext(ctx)
-	if resctx == nil {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
 		return nil
 	}
-	reqctx := graphql.GetRequestContext(ctx)
-	field := resctx.Field
+	oc := graphql.GetOperationContext(ctx)
+	field := fc.Field
 
 walk:
 	for _, name := range path {
-		for _, f := range graphql.CollectFields(reqctx, field.Selections, nil) {
+		for _, f := range graphql.CollectFields(oc, field.Selections, nil) {
 			if f.Name == name {
 				field = f
 				continue walk

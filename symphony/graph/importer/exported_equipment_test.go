@@ -144,7 +144,7 @@ func TestTitleLocationTypeInputValidation(t *testing.T) {
 	importer := r.importer
 	defer r.drv.Close()
 
-	ctx := newImportContext(viewertest.NewContext(r.client))
+	ctx := newImportContext(viewertest.NewContext(context.Background(), r.client))
 	ic := getImportContext(ctx)
 	var (
 		equipDataHeader = [...]string{"Equipment ID", "Equipment Name", "Equipment Type", "External ID"}
@@ -182,7 +182,7 @@ func TestTitleEquipmentTypeInputValidation(t *testing.T) {
 	importer := r.importer
 	defer r.drv.Close()
 
-	ctx := newImportContext(viewertest.NewContext(r.client))
+	ctx := newImportContext(viewertest.NewContext(context.Background(), r.client))
 	ic := getImportContext(ctx)
 	var (
 		equipDataHeader = [...]string{"Equipment ID", "Equipment Name", "Equipment Type", "External ID"}
@@ -230,7 +230,7 @@ func TestLocationHierarchy(t *testing.T) {
 	r := newImporterTestResolver(t)
 	importer := r.importer
 	defer r.drv.Close()
-	ctx := newImportContext(viewertest.NewContext(r.client))
+	ctx := newImportContext(viewertest.NewContext(context.Background(), r.client))
 
 	ids := prepareEquipmentTypeData(ctx, t, *r)
 
@@ -272,7 +272,7 @@ func TestPosition(t *testing.T) {
 	r := newImporterTestResolver(t)
 	importer := r.importer
 	defer r.drv.Close()
-	ctx := newImportContext(viewertest.NewContext(r.client))
+	ctx := newImportContext(viewertest.NewContext(context.Background(), r.client))
 	prepareEquipmentTypeData(ctx, t, *r)
 
 	pos1 := models.EquipmentPositionInput{
@@ -339,7 +339,7 @@ func TestValidatePropertiesForType(t *testing.T) {
 	importer := r.importer
 	q := r.importer.r.Query()
 	defer r.drv.Close()
-	ctx := newImportContext(viewertest.NewContext(r.client))
+	ctx := newImportContext(viewertest.NewContext(context.Background(), r.client))
 	data := prepareEquipmentTypeData(ctx, t, *r)
 
 	var (
@@ -435,7 +435,7 @@ func TestValidateForExistingEquipment(t *testing.T) {
 	r := newImporterTestResolver(t)
 	importer := r.importer
 	defer r.drv.Close()
-	ctx := newImportContext(viewertest.NewContext(r.client))
+	ctx := newImportContext(viewertest.NewContext(context.Background(), r.client))
 	prepareEquipmentTypeData(ctx, t, *r)
 
 	pos1 := models.EquipmentPositionInput{

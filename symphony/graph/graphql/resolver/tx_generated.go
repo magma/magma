@@ -1062,3 +1062,17 @@ func (tr txResolver) DeleteReportFilter(ctx context.Context, id int) (bool, erro
 	}
 	return result, nil
 }
+
+func (tr txResolver) AddPolicy(ctx context.Context, input models.AddPermissionsPolicyInput) (*ent.PermissionsPolicy, error) {
+	var result, zero *ent.PermissionsPolicy
+	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr generated.MutationResolver) (err error) {
+		result, err = mr.AddPolicy(ctx, input)
+		return
+	}); err != nil {
+		return zero, err
+	}
+	if result != nil {
+		result = result.Unwrap()
+	}
+	return result, nil
+}

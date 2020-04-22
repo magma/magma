@@ -37,6 +37,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/link"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/locationtype"
+	"github.com/facebookincubator/symphony/graph/ent/permissionspolicy"
 	"github.com/facebookincubator/symphony/graph/ent/project"
 	"github.com/facebookincubator/symphony/graph/ent/projecttype"
 	"github.com/facebookincubator/symphony/graph/ent/property"
@@ -1948,6 +1949,85 @@ func (lt *LocationType) Node(ctx context.Context) (node *Node, err error) {
 	return node, nil
 }
 
+func (pp *PermissionsPolicy) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     pp.ID,
+		Type:   "PermissionsPolicy",
+		Fields: make([]*Field, 7),
+		Edges:  make([]*Edge, 1),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(pp.CreateTime); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "time.Time",
+		Name:  "CreateTime",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(pp.UpdateTime); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "time.Time",
+		Name:  "UpdateTime",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(pp.Name); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "string",
+		Name:  "Name",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(pp.Description); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "string",
+		Name:  "Description",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(pp.IsGlobal); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "bool",
+		Name:  "IsGlobal",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(pp.InventoryPolicy); err != nil {
+		return nil, err
+	}
+	node.Fields[5] = &Field{
+		Type:  "*models.InventoryPolicyInput",
+		Name:  "InventoryPolicy",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(pp.WorkforcePolicy); err != nil {
+		return nil, err
+	}
+	node.Fields[6] = &Field{
+		Type:  "*models.WorkforcePolicyInput",
+		Name:  "WorkforcePolicy",
+		Value: string(buf),
+	}
+	var ids []int
+	ids, err = pp.QueryGroups().
+		Select(usersgroup.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[0] = &Edge{
+		IDs:  ids,
+		Type: "UsersGroup",
+		Name: "Groups",
+	}
+	return node, nil
+}
+
 func (pr *Project) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     pr.ID,
@@ -2140,7 +2220,7 @@ func (pr *Property) Node(ctx context.Context) (node *Node, err error) {
 		ID:     pr.ID,
 		Type:   "Property",
 		Fields: make([]*Field, 10),
-		Edges:  make([]*Edge, 11),
+		Edges:  make([]*Edge, 12),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(pr.CreateTime); err != nil {
@@ -2344,6 +2424,17 @@ func (pr *Property) Node(ctx context.Context) (node *Node, err error) {
 		IDs:  ids,
 		Type: "Service",
 		Name: "ServiceValue",
+	}
+	ids, err = pr.QueryWorkOrderValue().
+		Select(workorder.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[11] = &Edge{
+		IDs:  ids,
+		Type: "WorkOrder",
+		Name: "WorkOrderValue",
 	}
 	return node, nil
 }
@@ -2957,7 +3048,7 @@ func (st *ServiceType) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     st.ID,
 		Type:   "ServiceType",
-		Fields: make([]*Field, 4),
+		Fields: make([]*Field, 5),
 		Edges:  make([]*Edge, 3),
 	}
 	var buf []byte
@@ -2991,6 +3082,14 @@ func (st *ServiceType) Node(ctx context.Context) (node *Node, err error) {
 	node.Fields[3] = &Field{
 		Type:  "bool",
 		Name:  "HasCustomer",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(st.IsDeleted); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "bool",
+		Name:  "IsDeleted",
 		Value: string(buf),
 	}
 	var ids []int
@@ -4004,7 +4103,7 @@ func (ug *UsersGroup) Node(ctx context.Context) (node *Node, err error) {
 		ID:     ug.ID,
 		Type:   "UsersGroup",
 		Fields: make([]*Field, 5),
-		Edges:  make([]*Edge, 1),
+		Edges:  make([]*Edge, 2),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(ug.CreateTime); err != nil {
@@ -4058,6 +4157,17 @@ func (ug *UsersGroup) Node(ctx context.Context) (node *Node, err error) {
 		IDs:  ids,
 		Type: "User",
 		Name: "Members",
+	}
+	ids, err = ug.QueryPolicies().
+		Select(permissionspolicy.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		IDs:  ids,
+		Type: "PermissionsPolicy",
+		Name: "Policies",
 	}
 	return node, nil
 }
@@ -4680,6 +4790,15 @@ func (c *Client) noder(ctx context.Context, tbl string, id int) (Noder, error) {
 		n, err := c.LocationType.Query().
 			Where(locationtype.ID(id)).
 			CollectFields(ctx, "LocationType").
+			Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case permissionspolicy.Table:
+		n, err := c.PermissionsPolicy.Query().
+			Where(permissionspolicy.ID(id)).
+			CollectFields(ctx, "PermissionsPolicy").
 			Only(ctx)
 		if err != nil {
 			return nil, err

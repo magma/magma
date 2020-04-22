@@ -16,6 +16,7 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/ent/permissionspolicy"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/ent/usersgroup"
@@ -30,7 +31,8 @@ type UsersGroupQuery struct {
 	unique     []string
 	predicates []predicate.UsersGroup
 	// eager-loading edges.
-	withMembers *UserQuery
+	withMembers  *UserQuery
+	withPolicies *PermissionsPolicyQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -71,6 +73,24 @@ func (ugq *UsersGroupQuery) QueryMembers() *UserQuery {
 			sqlgraph.From(usersgroup.Table, usersgroup.FieldID, ugq.sqlQuery()),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, false, usersgroup.MembersTable, usersgroup.MembersPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(ugq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPolicies chains the current query on the policies edge.
+func (ugq *UsersGroupQuery) QueryPolicies() *PermissionsPolicyQuery {
+	query := &PermissionsPolicyQuery{config: ugq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := ugq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(usersgroup.Table, usersgroup.FieldID, ugq.sqlQuery()),
+			sqlgraph.To(permissionspolicy.Table, permissionspolicy.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, usersgroup.PoliciesTable, usersgroup.PoliciesPrimaryKey...),
 		)
 		fromU = sqlgraph.SetNeighbors(ugq.driver.Dialect(), step)
 		return fromU, nil
@@ -268,6 +288,17 @@ func (ugq *UsersGroupQuery) WithMembers(opts ...func(*UserQuery)) *UsersGroupQue
 	return ugq
 }
 
+//  WithPolicies tells the query-builder to eager-loads the nodes that are connected to
+// the "policies" edge. The optional arguments used to configure the query builder of the edge.
+func (ugq *UsersGroupQuery) WithPolicies(opts ...func(*PermissionsPolicyQuery)) *UsersGroupQuery {
+	query := &PermissionsPolicyQuery{config: ugq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	ugq.withPolicies = query
+	return ugq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -334,8 +365,9 @@ func (ugq *UsersGroupQuery) sqlAll(ctx context.Context) ([]*UsersGroup, error) {
 	var (
 		nodes       = []*UsersGroup{}
 		_spec       = ugq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			ugq.withMembers != nil,
+			ugq.withPolicies != nil,
 		}
 	)
 	_spec.ScanValues = func() []interface{} {
@@ -418,6 +450,69 @@ func (ugq *UsersGroupQuery) sqlAll(ctx context.Context) ([]*UsersGroup, error) {
 			}
 			for i := range nodes {
 				nodes[i].Edges.Members = append(nodes[i].Edges.Members, n)
+			}
+		}
+	}
+
+	if query := ugq.withPolicies; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		ids := make(map[int]*UsersGroup, len(nodes))
+		for _, node := range nodes {
+			ids[node.ID] = node
+			fks = append(fks, node.ID)
+		}
+		var (
+			edgeids []int
+			edges   = make(map[int][]*UsersGroup)
+		)
+		_spec := &sqlgraph.EdgeQuerySpec{
+			Edge: &sqlgraph.EdgeSpec{
+				Inverse: false,
+				Table:   usersgroup.PoliciesTable,
+				Columns: usersgroup.PoliciesPrimaryKey,
+			},
+			Predicate: func(s *sql.Selector) {
+				s.Where(sql.InValues(usersgroup.PoliciesPrimaryKey[0], fks...))
+			},
+
+			ScanValues: func() [2]interface{} {
+				return [2]interface{}{&sql.NullInt64{}, &sql.NullInt64{}}
+			},
+			Assign: func(out, in interface{}) error {
+				eout, ok := out.(*sql.NullInt64)
+				if !ok || eout == nil {
+					return fmt.Errorf("unexpected id value for edge-out")
+				}
+				ein, ok := in.(*sql.NullInt64)
+				if !ok || ein == nil {
+					return fmt.Errorf("unexpected id value for edge-in")
+				}
+				outValue := int(eout.Int64)
+				inValue := int(ein.Int64)
+				node, ok := ids[outValue]
+				if !ok {
+					return fmt.Errorf("unexpected node id in edges: %v", outValue)
+				}
+				edgeids = append(edgeids, inValue)
+				edges[inValue] = append(edges[inValue], node)
+				return nil
+			},
+		}
+		if err := sqlgraph.QueryEdges(ctx, ugq.driver, _spec); err != nil {
+			return nil, fmt.Errorf(`query edges "policies": %v`, err)
+		}
+		query.Where(permissionspolicy.IDIn(edgeids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := edges[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected "policies" node returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Policies = append(nodes[i].Edges.Policies, n)
 			}
 		}
 	}

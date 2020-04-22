@@ -35,6 +35,9 @@ const NodePropertyValue = (props: Props) => {
         case 'service':
           history.push(InventoryAPIUrls.service(value.id));
           break;
+        case 'work_order':
+          history.push(InventoryAPIUrls.workorder(value.id));
+          break;
       }
     };
 
@@ -42,6 +45,7 @@ const NodePropertyValue = (props: Props) => {
       case 'equipment':
       case 'location':
       case 'service':
+      case 'work_order':
         return (
           <Button variant="text" onClick={onNodeClicked}>
             {value.name}

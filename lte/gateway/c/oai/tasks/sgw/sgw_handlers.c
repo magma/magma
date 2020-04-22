@@ -315,7 +315,6 @@ int sgw_handle_s11_create_session_request(
       imsi64,
       "Could not create new transaction for SESSION_CREATE message\n");
     free_wrapper((void **) &new_endpoint_p);
-    new_endpoint_p = NULL;
     increment_counter(
       "spgw_create_session",
       1,
@@ -326,6 +325,7 @@ int sgw_handle_s11_create_session_request(
       "internal_software_error");
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
   }
+  free_wrapper((void**) &new_endpoint_p);
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNok);
 }
 

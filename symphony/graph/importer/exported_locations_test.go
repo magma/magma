@@ -86,7 +86,7 @@ func TestLocationTitleInputValidation(t *testing.T) {
 	importer := r.importer
 	defer r.drv.Close()
 
-	ctx := newImportContext(viewertest.NewContext(r.client))
+	ctx := newImportContext(viewertest.NewContext(context.Background(), r.client))
 	prepareBasicData(ctx, t, *r)
 
 	header, _ := NewImportHeader([]string{"aa"}, ImportEntityLocation)
@@ -114,7 +114,7 @@ func TestImportLocationHierarchy(t *testing.T) {
 	r := newImporterTestResolver(t)
 	importer := r.importer
 	defer r.drv.Close()
-	ctx := newImportContext(viewertest.NewContext(r.client))
+	ctx := newImportContext(viewertest.NewContext(context.Background(), r.client))
 
 	ids := prepareBasicData(ctx, t, *r)
 
@@ -179,7 +179,7 @@ func TestValidateLocationPropertiesForType(t *testing.T) {
 	importer := r.importer
 	q := r.importer.r.Query()
 	defer r.drv.Close()
-	ctx := newImportContext(viewertest.NewContext(r.client))
+	ctx := newImportContext(viewertest.NewContext(context.Background(), r.client))
 	data := prepareLocationTypesWithProperties(ctx, t, *r)
 
 	var (
@@ -274,7 +274,7 @@ func TestValidateForExistingLocation(t *testing.T) {
 	r := newImporterTestResolver(t)
 	importer := r.importer
 	defer r.drv.Close()
-	ctx := newImportContext(viewertest.NewContext(r.client))
+	ctx := newImportContext(viewertest.NewContext(context.Background(), r.client))
 	ids := prepareLocationTypesWithProperties(ctx, t, *r)
 
 	firstRowLocations := append(append(locationIDHeader, []string{locTypeNameL, locTypeNameM, locTypeNameS}...), locationFixedDataHeader...)

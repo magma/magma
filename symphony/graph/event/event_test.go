@@ -39,8 +39,8 @@ func (s *eventTestSuite) SetupSuite() {
 		enttest.WithOptions(ent.Driver(sql.OpenDB(name, db))),
 		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
 	)
-	s.ctx = viewertest.NewContext(s.client)
-	s.user, _ = viewer.UserFromContext(s.ctx)
+	s.ctx = viewertest.NewContext(context.Background(), s.client)
+	s.user = viewer.FromContext(s.ctx).User()
 	s.logger = logtest.NewTestLogger(s.T())
 
 	eventer := Eventer{Logger: s.logger}

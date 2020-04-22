@@ -353,6 +353,28 @@ export function InternalDashboard() {
   return db;
 }
 
+export function TemplateDashboard() {
+  const row = new Grafana.Row({title: ''});
+  row.addPanel(
+    newPanel({
+      title: 'Variable Demo',
+      targets: [
+        {expr: `cpu_percent{networkID=~"$networkID",gatewayID=~"$gatewayID"}`},
+      ],
+    }),
+  );
+  const db = new Grafana.Dashboard({
+    schemaVersion: 6,
+    title: 'Template',
+    templating: [networkTemplate(), gatewayTemplate()],
+    rows: [row],
+  });
+  db.state.editable = true;
+  db.state.description =
+    'Template dashboard with network and gateway variables preconfigured. Copy from this template to create a new dashboard which includes the networkID and gatewayID variables.';
+  return db;
+}
+
 type PanelParams = {
   title: string,
   targets: Array<{expr: string, legendFormat?: string}>,

@@ -49,6 +49,7 @@ func (ServiceType) Fields() []ent.Field {
 		field.String("name").
 			Unique(),
 		field.Bool("has_customer").Default(false),
+		field.Bool("is_deleted").Default(false),
 	}
 }
 

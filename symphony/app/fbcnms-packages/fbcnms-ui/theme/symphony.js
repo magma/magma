@@ -67,6 +67,7 @@ export default {
     white: '#FFFFFF',
     background: DARK.D10,
     disabled: `rgba(${hexToRgb(DARK.D900)},0.38)`,
+    overlay: `rgba(${hexToRgb(DARK.D900)},0.5)`,
     ...RED,
     G600: '#00AF5B',
     Y600: '#FFB63E',

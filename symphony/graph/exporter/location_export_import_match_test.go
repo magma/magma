@@ -15,6 +15,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
+
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/event"
 	"github.com/facebookincubator/symphony/graph/importer"
@@ -99,7 +101,7 @@ func importLocationsFile(t *testing.T, client *ent.Client, r io.Reader, method m
 	req, err := http.NewRequest(http.MethodPost, server.URL+"/export_locations", buf)
 	require.Nil(t, err)
 
-	req.Header.Set(tenantHeader, "fb-test")
+	viewertest.SetDefaultViewerHeaders(req)
 	req.Header.Set("Content-Type", contentType)
 
 	resp, err := http.DefaultClient.Do(req)

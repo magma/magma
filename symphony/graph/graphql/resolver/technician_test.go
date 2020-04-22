@@ -5,6 +5,7 @@
 package resolver
 
 import (
+	"context"
 	"testing"
 
 	"github.com/facebookincubator/symphony/graph/ent"
@@ -21,7 +22,7 @@ func getInput(name, email string) models.TechnicianInput {
 func TestAddTechnician(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr := r.Mutation()
 	inp := getInput("name_1", "email_1@mail.com")
@@ -41,7 +42,7 @@ func TestAddTechnician(t *testing.T) {
 func TestAddTechniciansSameName(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr := r.Mutation()
 	inp := getInput("name_1", "email_1@mail.com")

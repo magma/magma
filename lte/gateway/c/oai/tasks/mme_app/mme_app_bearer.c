@@ -662,12 +662,18 @@ imsi64_t mme_app_handle_initial_ue_message(mme_app_desc_t *mme_app_desc_p,
         if (
           ue_context_p->paging_response_timer.id !=
           MME_APP_TIMER_INACTIVE_ID) {
-          if (timer_remove(ue_context_p->paging_response_timer.id, NULL)) {
+          nas_itti_timer_arg_t* timer_argP = NULL;
+          if (timer_remove(
+                  ue_context_p->paging_response_timer.id,
+                  (void**) &timer_argP)) {
             OAILOG_ERROR_UE(
               LOG_MME_APP,
               imsi64,
               "Failed to stop paging response timer for UE id %d\n",
               ue_context_p->mme_ue_s1ap_id);
+          }
+          if (timer_argP) {
+            free_wrapper((void**) &timer_argP);
           }
           ue_context_p->paging_response_timer.id = MME_APP_TIMER_INACTIVE_ID;
         }
@@ -1294,12 +1300,18 @@ void mme_app_handle_initial_context_setup_rsp(
   if (
     ue_context_p->initial_context_setup_rsp_timer.id !=
     MME_APP_TIMER_INACTIVE_ID) {
-    if (timer_remove(ue_context_p->initial_context_setup_rsp_timer.id, NULL)) {
+    nas_itti_timer_arg_t* timer_argP = NULL;
+    if (timer_remove(
+            ue_context_p->initial_context_setup_rsp_timer.id,
+            (void**) &timer_argP)) {
       OAILOG_ERROR_UE(
         LOG_MME_APP,
         ue_context_p->emm_context._imsi64,
         "Failed to stop Initial Context Setup Rsp timer for UE id  %d \n",
         ue_context_p->mme_ue_s1ap_id);
+    }
+    if (timer_argP) {
+      free_wrapper((void**) &timer_argP);
     }
     ue_context_p->initial_context_setup_rsp_timer.id =
       MME_APP_TIMER_INACTIVE_ID;
@@ -1789,12 +1801,18 @@ void mme_app_handle_initial_context_setup_failure(
   if (
     ue_context_p->initial_context_setup_rsp_timer.id !=
     MME_APP_TIMER_INACTIVE_ID) {
-    if (timer_remove(ue_context_p->initial_context_setup_rsp_timer.id, NULL)) {
+    nas_itti_timer_arg_t* timer_argP = NULL;
+    if (timer_remove(
+            ue_context_p->initial_context_setup_rsp_timer.id,
+            (void**) &timer_argP)) {
       OAILOG_ERROR_UE(
         LOG_MME_APP,
         ue_context_p->emm_context._imsi64,
         "Failed to stop Initial Context Setup Rsp timer for UE id  %d \n",
         ue_context_p->mme_ue_s1ap_id);
+    }
+    if (timer_argP) {
+      free_wrapper((void**) &timer_argP);
     }
     ue_context_p->initial_context_setup_rsp_timer.id =
       MME_APP_TIMER_INACTIVE_ID;

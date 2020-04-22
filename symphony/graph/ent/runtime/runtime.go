@@ -31,6 +31,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/link"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/locationtype"
+	"github.com/facebookincubator/symphony/graph/ent/permissionspolicy"
 	"github.com/facebookincubator/symphony/graph/ent/project"
 	"github.com/facebookincubator/symphony/graph/ent/projecttype"
 	"github.com/facebookincubator/symphony/graph/ent/property"
@@ -407,6 +408,28 @@ func init() {
 	locationtypeDescIndex := locationtypeFields[4].Descriptor()
 	// locationtype.DefaultIndex holds the default value on creation for the index field.
 	locationtype.DefaultIndex = locationtypeDescIndex.Default.(int)
+	permissionspolicyMixin := schema.PermissionsPolicy{}.Mixin()
+	permissionspolicyMixinFields0 := permissionspolicyMixin[0].Fields()
+	permissionspolicyFields := schema.PermissionsPolicy{}.Fields()
+	_ = permissionspolicyFields
+	// permissionspolicyDescCreateTime is the schema descriptor for create_time field.
+	permissionspolicyDescCreateTime := permissionspolicyMixinFields0[0].Descriptor()
+	// permissionspolicy.DefaultCreateTime holds the default value on creation for the create_time field.
+	permissionspolicy.DefaultCreateTime = permissionspolicyDescCreateTime.Default.(func() time.Time)
+	// permissionspolicyDescUpdateTime is the schema descriptor for update_time field.
+	permissionspolicyDescUpdateTime := permissionspolicyMixinFields0[1].Descriptor()
+	// permissionspolicy.DefaultUpdateTime holds the default value on creation for the update_time field.
+	permissionspolicy.DefaultUpdateTime = permissionspolicyDescUpdateTime.Default.(func() time.Time)
+	// permissionspolicy.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	permissionspolicy.UpdateDefaultUpdateTime = permissionspolicyDescUpdateTime.UpdateDefault.(func() time.Time)
+	// permissionspolicyDescName is the schema descriptor for name field.
+	permissionspolicyDescName := permissionspolicyFields[0].Descriptor()
+	// permissionspolicy.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	permissionspolicy.NameValidator = permissionspolicyDescName.Validators[0].(func(string) error)
+	// permissionspolicyDescIsGlobal is the schema descriptor for is_global field.
+	permissionspolicyDescIsGlobal := permissionspolicyFields[2].Descriptor()
+	// permissionspolicy.DefaultIsGlobal holds the default value on creation for the is_global field.
+	permissionspolicy.DefaultIsGlobal = permissionspolicyDescIsGlobal.Default.(bool)
 	projectMixin := schema.Project{}.Mixin()
 	projectMixinFields0 := projectMixin[0].Fields()
 	projectFields := schema.Project{}.Fields()
@@ -581,6 +604,10 @@ func init() {
 	servicetypeDescHasCustomer := servicetypeFields[1].Descriptor()
 	// servicetype.DefaultHasCustomer holds the default value on creation for the has_customer field.
 	servicetype.DefaultHasCustomer = servicetypeDescHasCustomer.Default.(bool)
+	// servicetypeDescIsDeleted is the schema descriptor for is_deleted field.
+	servicetypeDescIsDeleted := servicetypeFields[2].Descriptor()
+	// servicetype.DefaultIsDeleted holds the default value on creation for the is_deleted field.
+	servicetype.DefaultIsDeleted = servicetypeDescIsDeleted.Default.(bool)
 	surveyMixin := schema.Survey{}.Mixin()
 	surveyMixinFields0 := surveyMixin[0].Fields()
 	surveyFields := schema.Survey{}.Fields()
@@ -697,6 +724,9 @@ func init() {
 			return next.Mutate(ctx, m)
 		})
 	}
+	userHooks := schema.User{}.Hooks()
+
+	user.Hooks[1] = userHooks[0]
 	userMixinFields0 := userMixin[0].Fields()
 	userFields := schema.User{}.Fields()
 	_ = userFields
