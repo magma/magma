@@ -420,6 +420,9 @@ func (seq *ServiceEndpointQuery) prepareQuery(ctx context.Context) error {
 		}
 		seq.sql = prev
 	}
+	if err := serviceendpoint.Policy.EvalQuery(ctx, seq); err != nil {
+		return err
+	}
 	return nil
 }
 

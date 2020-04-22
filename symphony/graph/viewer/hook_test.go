@@ -14,14 +14,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestUserCannotBeDeleted(t *testing.T) {
-	c := viewertest.NewTestClient(t)
-	ctx := viewertest.NewContext(context.Background(), c)
-	u := viewer.FromContext(ctx).User()
-	err := c.User.DeleteOne(u).Exec(ctx)
-	require.Error(t, err)
-}
-
 func TestUpdateUserInViewer(t *testing.T) {
 	c := viewertest.NewTestClient(t)
 	ctx := viewertest.NewContext(context.Background(), c)

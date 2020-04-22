@@ -451,6 +451,9 @@ func (sqq *SurveyQuestionQuery) prepareQuery(ctx context.Context) error {
 		}
 		sqq.sql = prev
 	}
+	if err := surveyquestion.Policy.EvalQuery(ctx, sqq); err != nil {
+		return err
+	}
 	return nil
 }
 

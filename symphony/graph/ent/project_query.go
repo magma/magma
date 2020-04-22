@@ -483,6 +483,9 @@ func (pq *ProjectQuery) prepareQuery(ctx context.Context) error {
 		}
 		pq.sql = prev
 	}
+	if err := project.Policy.EvalQuery(ctx, pq); err != nil {
+		return err
+	}
 	return nil
 }
 

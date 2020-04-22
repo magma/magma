@@ -8,6 +8,8 @@ import (
 	"github.com/facebookincubator/ent"
 	"github.com/facebookincubator/ent/schema/edge"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/authz"
+	"github.com/facebookincubator/symphony/graph/ent/privacy"
 )
 
 // UsersGroup defines the users group schema.
@@ -29,10 +31,21 @@ func (UsersGroup) Fields() []ent.Field {
 	}
 }
 
-// Edges returns user edges.
+// Edges returns UsersGroup edges.
 func (UsersGroup) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("members", User.Type),
 		edge.To("policies", PermissionsPolicy.Type),
 	}
+}
+
+// Policy returns UserGroup policies.
+func (UsersGroup) Policy() ent.Policy {
+	return wrapPolicy(privacy.Policy{
+		Mutation: privacy.MutationPolicy{
+			authz.MutationWithViewerRule(
+				authz.AllowAdminRule,
+			),
+		},
+	})
 }

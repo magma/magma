@@ -667,6 +667,9 @@ func (lq *LocationQuery) prepareQuery(ctx context.Context) error {
 		}
 		lq.sql = prev
 	}
+	if err := location.Policy.EvalQuery(ctx, lq); err != nil {
+		return err
+	}
 	return nil
 }
 

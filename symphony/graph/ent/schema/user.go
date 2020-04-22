@@ -10,6 +10,7 @@ import (
 	"github.com/facebookincubator/ent"
 	"github.com/facebookincubator/ent/schema/edge"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/authz"
 	"github.com/facebookincubator/symphony/graph/ent/privacy"
 )
 
@@ -53,15 +54,17 @@ func (User) Edges() []ent.Edge {
 	}
 }
 
-// Policy returns user privacy policy.
-func (User) Policy() ent.Policy {
-	return privacy.Policy{
-		Mutation: []privacy.MutationRule{
+func (u User) Policy() ent.Policy {
+	return wrapPolicy(privacy.Policy{
+		Mutation: privacy.MutationPolicy{
 			privacy.DenyMutationOperationRule(
 				ent.OpDelete | ent.OpDeleteOne,
 			),
+			authz.MutationWithViewerRule(
+				authz.AllowAdminRule,
+			),
 		},
-	}
+	})
 }
 
 // Hooks of the User.

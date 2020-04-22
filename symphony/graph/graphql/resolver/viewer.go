@@ -25,14 +25,13 @@ func (viewerResolver) User(_ context.Context, obj *viewer.Viewer) (*ent.User, er
 }
 
 func (viewerResolver) Permissions(ctx context.Context, obj *viewer.Viewer) (*models.PermissionSettings, error) {
-	u := obj.User()
-	readOnly, err := viewer.IsUserReadOnly(ctx, u)
+	writePermissions, err := authz.UserHasWritePermissions(ctx, obj)
 	if err != nil {
 		return nil, err
 	}
 	policiesEnabled := viewer.FromContext(ctx).Features.Enabled(viewer.FeatureUserManagementDev)
-	inventoryPolicy := authz.NewInventoryPolicy(true, !readOnly)
-	workforcePolicy := authz.NewWorkforcePolicy(true, !readOnly)
+	inventoryPolicy := authz.NewInventoryPolicy(true, writePermissions)
+	workforcePolicy := authz.NewWorkforcePolicy(true, writePermissions)
 	if policiesEnabled {
 		// Policies are not yet implemented
 		inventoryPolicy = authz.NewInventoryPolicy(false, false)
@@ -40,8 +39,8 @@ func (viewerResolver) Permissions(ctx context.Context, obj *viewer.Viewer) (*mod
 	}
 	res := models.PermissionSettings{
 		// TODO(T64743627): Deprecate CanWrite field
-		CanWrite:            !readOnly,
-		AdminPolicy:         authz.NewAdministrativePolicy(u),
+		CanWrite:            writePermissions,
+		AdminPolicy:         authz.NewAdministrativePolicy(obj.User()),
 		InventoryPolicy:     inventoryPolicy,
 		WorkforcePermission: workforcePolicy,
 	}

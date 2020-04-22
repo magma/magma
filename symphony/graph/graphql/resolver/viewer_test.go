@@ -8,6 +8,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/facebookincubator/symphony/graph/authz"
 	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer"
@@ -38,8 +39,11 @@ func TestUserViewerInWriteGroup(t *testing.T) {
 	vr := r.Viewer()
 
 	v := viewer.FromContext(ctx)
+	_ = r.client.UsersGroup.Create().
+		SetName(authz.WritePermissionGroupName).
+		AddMembers(v.User()).
+		SaveX(ctx)
 	r.client.User.UpdateOne(v.User()).SetRole(user.RoleUSER).ExecX(ctx)
-	_ = r.client.UsersGroup.Create().SetName(viewer.WritePermissionGroupName).AddMembers(v.User()).SaveX(ctx)
 
 	permissions, err := vr.Permissions(ctx, v)
 	require.NoError(t, err)

@@ -278,16 +278,6 @@ func (h UserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "user is deactivated", http.StatusForbidden)
 		return
 	}
-	// TODO(T64743627): Stop checking read only
-	readOnly, err := IsUserReadOnly(ctx, u)
-	if err != nil {
-		http.Error(w, "check is read only", http.StatusServiceUnavailable)
-		return
-	}
-	if readOnly {
-		client := ent.FromContext(ctx).ReadOnly()
-		ctx = ent.NewContext(ctx, client)
-	}
 	h.Handler.ServeHTTP(w, r.WithContext(ctx))
 }
 

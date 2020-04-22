@@ -7,7 +7,6 @@ package authz
 import (
 	models2 "github.com/facebookincubator/symphony/graph/authz/models"
 	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 )
 
@@ -64,8 +63,9 @@ func NewWorkforcePolicy(readAllowed, writeAllowed bool) *models.WorkforcePolicy 
 }
 
 func NewAdministrativePolicy(u *ent.User) *models.AdministrativePolicy {
-	allowed := u.Role == user.RoleADMIN || u.Role == user.RoleOWNER
-	return &models.AdministrativePolicy{Access: NewBasicPermissionRule(allowed)}
+	return &models.AdministrativePolicy{
+		Access: NewBasicPermissionRule(userHasAdminPermissions(u)),
+	}
 }
 
 func AppendBasicPermissionRule(rule *models.BasicPermissionRule, addRule *models2.BasicPermissionRuleInput) *models.BasicPermissionRule {
