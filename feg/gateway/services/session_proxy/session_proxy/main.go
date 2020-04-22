@@ -55,6 +55,7 @@ func main() {
 		glog.Fatalf("Error creating service: %s", err)
 	}
 
+	glog.Info("------ Reading Gx and Gy configuration ------")
 	initMethod := gy.GetInitMethod()
 
 	// Global config is shared by all the controllers
@@ -81,8 +82,12 @@ func main() {
 		glog.Fatalf("Error connecting to redis store: %s", err)
 	}
 
-	for i := 0; i < totalLen; i++ {
+	ocsDiamCfgs := gy.GetOCSConfiguration()
+	pcrfDiamCfgs := gx.GetPCRFConfiguration()
+	glog.Info("------ Done reading configuration ------")
+	glog.Info("------ Create diameter connexions ------")
 
+	for i := 0; i < totalLen; i++ {
 		controllerCfg := &servicers.SessionControllerConfig{
 			OCSConfig:        OCSConfigurations[i],
 			PCRFConfig:       PCRFConfgurations[i],
@@ -93,8 +98,8 @@ func main() {
 		controllerCfgs = append(controllerCfgs, controllerCfg)
 
 		// new copy of the configuration needed
-		ocsDiamCfg := gy.GetOCSConfiguration()[i]
-		pcrfDiamCfg := gx.GetPCRFConfiguration()[i]
+		ocsDiamCfg := ocsDiamCfgs[i]
+		pcrfDiamCfg := pcrfDiamCfgs[i]
 
 		var gxClnt *gx.GxClient
 		var gyClnt *gy.GyClient
@@ -144,10 +149,10 @@ func main() {
 		gxClnts = append(gxClnts, gxClnt)
 
 	}
+	glog.Infof("------ Done creating %d diameter connexions ------", totalLen)
 
 	// Add servicers to the service
 	sessionManager := servicers.NewCentralSessionControllers(gyClnts, gxClnts, policyDBClient, controllerCfgs)
-	//sessionManager := servicers.NewCentralSessionController(gyClnt, gxClnt, policyDBClient, controllerCfg)
 	lteprotos.RegisterCentralSessionControllerServer(srv.GrpcServer, sessionManager)
 	protos.RegisterServiceHealthServer(srv.GrpcServer, sessionManager)
 
