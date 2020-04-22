@@ -1,3 +1,9 @@
+import * as _ from "lodash";
+import defaultTo from "lodash/fp/defaultTo";
+import { HttpClient as http } from "../../common/HttpClient";
+import Workflow2Graph from "../../common/wfegraph";
+import { conductorApiUrlPrefix } from "../../constants";
+import { Application } from "./Application";
 import {
   getEndNode,
   getLinksArray,
@@ -5,20 +11,14 @@ import {
   getWfInputs,
   handleDecideNode,
   handleForkNode,
-  linkNodes
+  linkNodes,
 } from "./builder-utils";
-import * as _ from "lodash";
+import { DecisionNodeModel } from "./NodeModels/DecisionNode/DecisionNodeModel";
 import { DefaultNodeModel } from "./NodeModels/DefaultNodeModel/DefaultNodeModel";
+import { CircleEndNodeModel } from "./NodeModels/EndNode/CircleEndNodeModel";
 import { ForkNodeModel } from "./NodeModels/ForkNode/ForkNodeModel";
 import { JoinNodeModel } from "./NodeModels/JoinNode/JoinNodeModel";
-import { DecisionNodeModel } from "./NodeModels/DecisionNode/DecisionNodeModel";
 import { CircleStartNodeModel } from "./NodeModels/StartNode/CircleStartNodeModel";
-import { CircleEndNodeModel } from "./NodeModels/EndNode/CircleEndNodeModel";
-import { Application } from "./Application";
-import Workflow2Graph from "../../common/wfegraph";
-import defaultTo from "lodash/fp/defaultTo";
-import { HttpClient as http } from "../../common/HttpClient";
-import { conductorApiUrlPrefix } from "../../constants";
 
 const nodeColors = {
   subWorkflow: "rgb(34,144,255)",
@@ -28,7 +28,7 @@ const nodeColors = {
   terminateTask: "rgb(255,30,0)",
   httpTask: "rgb(80,255,163)",
   eventTask: "rgb(137,59,255)",
-  waitTask: "rgb(171,171,171)"
+  waitTask: "rgb(171,171,171)",
 };
 
 export class WorkflowDiagram {
@@ -88,14 +88,14 @@ export class WorkflowDiagram {
   }
 
   deleteSelected() {
-    _.values(this.diagramModel.getNodes()).forEach(node => {
+    _.values(this.diagramModel.getNodes()).forEach((node) => {
       if (node.isSelected()) {
         node.remove();
         this.diagramModel.removeNode(node);
       }
     });
 
-    _.values(this.diagramModel.getLinks()).forEach(link => {
+    _.values(this.diagramModel.getLinks()).forEach((link) => {
       if (link.isSelected()) {
         this.diagramModel.removeLink(link);
       }
@@ -137,7 +137,7 @@ export class WorkflowDiagram {
           .then(() => {
             resolve(definition);
           })
-          .catch(err => {
+          .catch((err) => {
             const errObject = JSON.parse(err.response.text);
             if (errObject.validationErrors) {
               reject(errObject.validationErrors[0]);
@@ -152,13 +152,13 @@ export class WorkflowDiagram {
       if (eventHandlers.length < 1) {
         resolve();
       }
-      eventHandlers.forEach(eventHandler => {
+      eventHandlers.forEach((eventHandler) => {
         http
           .post(conductorApiUrlPrefix + "/event", eventHandler)
-          .then(res => {
+          .then((res) => {
             resolve(res);
           })
-          .catch(err => {
+          .catch((err) => {
             reject(err);
           });
       });
@@ -166,11 +166,11 @@ export class WorkflowDiagram {
   }
 
   createEventHandlers(eventNodes) {
-    return eventNodes.map(node => {
+    return eventNodes.map((node) => {
       let {
         action,
         targetWorkflowId,
-        targetTaskRefName
+        targetTaskRefName,
       } = node.extras.inputs.inputParameters;
       let sink = node.extras.inputs.sink;
       let wfName = this.definition.name;
@@ -192,7 +192,7 @@ export class WorkflowDiagram {
         : targetTaskRefName;
 
       let output = {};
-      Object.entries(node.extras.inputs.inputParameters).forEach(entry => {
+      Object.entries(node.extras.inputs.inputParameters).forEach((entry) => {
         if (
           !["action", "targetTaskRefName", "targetWorkflowId"].includes(
             entry[0]
@@ -217,11 +217,11 @@ export class WorkflowDiagram {
             complete_task: {
               workflowId: targetWorkflowId,
               taskRefName: targetTaskRefName,
-              output
-            }
-          }
+              output,
+            },
+          },
         ],
-        active: true
+        active: true,
       };
     });
   }
@@ -236,7 +236,7 @@ export class WorkflowDiagram {
     const tasks = definition.tasks;
     this.clearDiagram();
 
-    tasks.forEach(task => {
+    tasks.forEach((task) => {
       this.createNode(task);
     });
 
@@ -312,11 +312,11 @@ export class WorkflowDiagram {
    * Clears canvas (removes nodes and link)
    */
   clearDiagram() {
-    _.values(this.diagramModel.getNodes()).forEach(node => {
+    _.values(this.diagramModel.getNodes()).forEach((node) => {
       this.diagramModel.removeNode(node);
     });
 
-    _.values(this.diagramModel.getLinks()).forEach(link => {
+    _.values(this.diagramModel.getLinks()).forEach((link) => {
       this.diagramModel.removeLink(link);
     });
   }
@@ -353,13 +353,13 @@ export class WorkflowDiagram {
 
     // decision special case
     if (_.last(this.definition.tasks).type === "DECISION") {
-      edges.forEach(edge => {
+      edges.forEach((edge) => {
         if (edge.to === "final" && edge.type !== "decision") {
           lastNodes.push(this.getMatchingTaskRefNode(edge.from));
         }
       });
 
-      lastNodes.forEach(node => {
+      lastNodes.forEach((node) => {
         diagramModel.addLink(this.linkNodes(node, endNode));
       });
 
@@ -453,7 +453,7 @@ export class WorkflowDiagram {
 
   getMostRightNodeX() {
     let max = 0;
-    this.getNodes().forEach(node => {
+    this.getNodes().forEach((node) => {
       if (node.x > max) {
         max = node.x;
       }
@@ -475,12 +475,12 @@ export class WorkflowDiagram {
    */
   getMatchingTaskRefNode(taskRefName) {
     return _.toArray(this.getNodes()).find(
-      x => x.extras.inputs.taskReferenceName === taskRefName
+      (x) => x.extras.inputs.taskReferenceName === taskRefName
     );
   }
 
   getMatchingTaskNameNodes(taskName) {
-    return _.toArray(this.getNodes()).filter(x => x.name === taskName);
+    return _.toArray(this.getNodes()).filter((x) => x.name === taskName);
   }
 
   /**
@@ -489,7 +489,7 @@ export class WorkflowDiagram {
   linkAllNodes() {
     const { edges } = this.getGraphState(this.definition);
 
-    edges.forEach(edge => {
+    edges.forEach((edge) => {
       if (edge.from !== "start" && edge.to !== "final") {
         switch (edge.type) {
           case "simple": {
@@ -644,7 +644,9 @@ export class WorkflowDiagram {
       lastNode = parentNode;
     }
 
-    let branchPosX = lastNode.x + 150 + k * (this.getNodeWidth(lastNode) + 50);
+    console.log(branchTask);
+    console.log(lastNode.x);
+    let branchPosX = lastNode.x + 150 + (this.getNodeWidth(lastNode) + 50);
 
     return { branchPosX, branchPosY };
   }
@@ -708,8 +710,8 @@ export class WorkflowDiagram {
 
         let branches = [
           Object.values(task.decisionCases)[0],
-          task.defaultCase
-        ].map(el => {
+          task.defaultCase,
+        ].map((el) => {
           return el === undefined ? [] : el;
         });
 
@@ -850,11 +852,13 @@ export class WorkflowDiagram {
    * selected nodes definition.
    */
   expandSelectedNodes() {
-    const selectedNodes = this.diagramModel.getSelectedItems().filter(item => {
-      return item.getType() === "default";
-    });
+    const selectedNodes = this.diagramModel
+      .getSelectedItems()
+      .filter((item) => {
+        return item.getType() === "default";
+      });
 
-    selectedNodes.forEach(selectedNode => {
+    selectedNodes.forEach((selectedNode) => {
       if (!selectedNode.extras.inputs.subWorkflowParam) {
         throw new Error("Simple task can't be expanded");
       }
@@ -867,17 +871,19 @@ export class WorkflowDiagram {
         throw new Error("Selected node is not connected.");
       }
 
-      const inputLinkParents = inputLinkArray.map(inputLink => {
+      const inputLinkParents = inputLinkArray.map((inputLink) => {
         return inputLink.sourcePort.getNode();
       });
 
-      const outputLinkParents = outputLinkArray.map(outputLink => {
+      const outputLinkParents = outputLinkArray.map((outputLink) => {
         return outputLink.targetPort.getNode();
       });
 
       http
-        .get(conductorApiUrlPrefix + "/metadata/workflow/" + name + "/" + version)
-        .then(res => {
+        .get(
+          conductorApiUrlPrefix + "/metadata/workflow/" + name + "/" + version
+        )
+        .then((res) => {
           const subworkflowDiagram = new WorkflowDiagram(
             new Application(),
             res.result,
@@ -894,7 +900,7 @@ export class WorkflowDiagram {
 
           // decision special case
           if (_.last(res.result.tasks).type === "DECISION") {
-            edges.forEach(edge => {
+            edges.forEach((edge) => {
               if (edge.to === "final") {
                 lastNodes.push(
                   subworkflowDiagram.getMatchingTaskRefNode(edge.from)
@@ -908,11 +914,11 @@ export class WorkflowDiagram {
           selectedNode.remove();
           this.diagramModel.removeNode(selectedNode);
 
-          inputLinkArray.forEach(link => {
+          inputLinkArray.forEach((link) => {
             this.diagramModel.removeLink(link);
           });
 
-          outputLinkArray.forEach(link => {
+          outputLinkArray.forEach((link) => {
             this.diagramModel.removeLink(link);
           });
 
@@ -925,8 +931,8 @@ export class WorkflowDiagram {
           });
 
           let newLinksLast = [];
-          outputLinkParents.forEach(node => {
-            lastNodes.forEach(n => {
+          outputLinkParents.forEach((node) => {
+            lastNodes.forEach((n) => {
               newLinksLast.push(linkNodes(n, node));
             });
           });
