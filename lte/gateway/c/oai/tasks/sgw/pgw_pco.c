@@ -355,8 +355,7 @@ int pgw_process_pco_pcscf_ipv6_address_req(
     "PCO: Protocol identifier PCO_CI_P_CSCF_IPV6_ADDRESS \n");
   poc_id_resp.id = PCO_CI_P_CSCF_IPV6_ADDRESS;
   poc_id_resp.length = 16;
-  //poc_id_resp.contents = blk2bstr(pcscf_ipv6_addr.s6_addr, sizeof(pcscf_ipv6_addr.s6_addr));
-  memcpy(poc_id_resp.contents, pcscf_ipv6_addr.s6_addr, poc_id_resp.length);
+  poc_id_resp.contents = blk2bstr(pcscf_ipv6_addr.s6_addr, sizeof(pcscf_ipv6_addr.s6_addr));
 
   return pgw_pco_push_protocol_or_container_id(pco_resp, &poc_id_resp);
 }

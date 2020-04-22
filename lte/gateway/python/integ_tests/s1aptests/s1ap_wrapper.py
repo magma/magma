@@ -346,7 +346,7 @@ class TestWrapper(object):
         )
         print("************* Sending deactivate EPS bearer context accept\n")
 
-    def sendPdnConnectivityReq(self, ue_id, apn):
+    def sendPdnConnectivityReq(self, ue_id, apn, volte_type=None):
         req = s1ap_types.uepdnConReq_t()
         req.ue_Id = ue_id
         # Initial Request
@@ -359,6 +359,12 @@ class TestWrapper(object):
         req.pdnAPN_pr.pdn_apn = (ctypes.c_ubyte * 100)(
             *[ctypes.c_ubyte(ord(c)) for c in apn[:100]]
         )
+        # Populate PCO if volte_attach_type is set
+        if volte_type:
+            print("********* VoLTE with", volte_type)
+            req.pco_pres = True
+            self._s1_util.populate_pco(req.protCfgOpts_pr, volte_type)
+
         self.s1_util.issue_cmd(s1ap_types.tfwCmd.UE_PDN_CONN_REQ, req)
 
         print("************* Sending Standalone PDN Connectivity Request\n")
