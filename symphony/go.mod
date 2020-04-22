@@ -17,7 +17,7 @@ require (
 	github.com/aws/aws-sdk-go v1.30.10
 	github.com/badoux/checkmail v0.0.0-20181210160741-9661bd69e9ad
 	github.com/bobesa/go-domain-util v0.0.0-20190911083921-4033b5f7dd89
-	github.com/cenkalti/backoff v2.2.1+incompatible
+	github.com/cenkalti/backoff/v4 v4.0.2
 	github.com/facebookincubator/ent v0.2.1-0.20200420155719-5f180a69547c
 	github.com/go-sql-driver/mysql v1.5.1-0.20200311113236-681ffa848bae
 	github.com/gogo/protobuf v1.3.1 // indirect
@@ -43,7 +43,7 @@ require (
 	github.com/stretchr/testify v1.5.1
 	github.com/uber/jaeger-client-go v2.22.1+incompatible // indirect
 	github.com/ugorji/go/codec v1.1.7
-	github.com/unrolled/render v1.0.2
+	github.com/unrolled/render v1.0.3
 	github.com/vektah/gqlparser/v2 v2.0.1
 	github.com/volatiletech/authboss v2.4.0+incompatible
 	go.opencensus.io v0.22.3
@@ -57,7 +57,7 @@ require (
 	golang.org/x/sync v0.0.0-20200317015054-43a5402ce75a
 	golang.org/x/sys v0.0.0-20200420163511-1957bb5e6d1f // indirect
 	golang.org/x/text v0.3.2
-	golang.org/x/tools v0.0.0-20200421042724-cfa8b22178d2 // indirect
+	golang.org/x/tools v0.0.0-20200421134321-4b6a508a9cc0 // indirect
 	golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543
 	google.golang.org/api v0.21.0 // indirect
 	google.golang.org/appengine v1.6.5 // indirect
