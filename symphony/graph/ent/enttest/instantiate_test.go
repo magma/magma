@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package ent
+package enttest
 
 import (
 	"context"
@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/pkg/testdb"
 	"github.com/stretchr/testify/require"
 )
@@ -18,12 +19,11 @@ func TestInstantiation(t *testing.T) {
 	db, name, err := testdb.Open()
 	require.NoError(t, err)
 	db.SetMaxOpenConns(1)
-	client := NewClient(Driver(sql.OpenDB(name, db)))
+	client := NewClient(t,
+		WithOptions(ent.Driver(sql.OpenDB(name, db))),
+	)
 
 	ctx := context.Background()
-	err = client.Schema.Create(ctx)
-	require.NoError(t, err)
-
 	typ := client.LocationType.
 		Create().
 		SetName("planet").

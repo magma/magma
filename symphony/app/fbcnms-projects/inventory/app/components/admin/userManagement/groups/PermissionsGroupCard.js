@@ -9,10 +9,12 @@
  */
 
 import type {UserPermissionsGroup} from '../utils/UserManagementUtils';
+import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 
 import * as React from 'react';
 import AppContext from '@fbcnms/ui/context/AppContext';
 import Breadcrumbs from '@fbcnms/ui/components/Breadcrumbs';
+import DeleteIcon from '@fbcnms/ui/components/design-system/Icons/Actions/DeleteIcon';
 import Grid from '@material-ui/core/Grid';
 import InventoryErrorBoundary from '../../../../common/InventoryErrorBoundary';
 import PermissionsGroupDetailsPane from './PermissionsGroupDetailsPane';
@@ -22,6 +24,7 @@ import Strings from '@fbcnms/strings/Strings';
 import ViewContainer from '@fbcnms/ui/components/design-system/View/ViewContainer';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
+import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {
   GROUP_STATUSES,
   NEW_GROUP_DIALOG_PARAM,
@@ -48,10 +51,11 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-type Props = {
+type Props = $ReadOnly<{|
   redirectToGroupsView: () => void,
   onClose: () => void,
-};
+  ...WithAlert,
+|}>;
 
 const initialNewGroup: UserPermissionsGroup = {
   id: '',
@@ -62,15 +66,13 @@ const initialNewGroup: UserPermissionsGroup = {
   memberUsers: [],
 };
 
-export default function PermissionsGroupCard({
-  redirectToGroupsView,
-  onClose,
-}: Props) {
+function PermissionsGroupCard(props: Props) {
+  const {redirectToGroupsView, onClose} = props;
   const classes = useStyles();
   const match = useRouteMatch();
   const {isFeatureEnabled} = useContext(AppContext);
   const userManagementDevMode = isFeatureEnabled('user_management_dev');
-  const {groups, editGroup, addGroup} = useUserManagement();
+  const {groups, editGroup, addGroup, deleteGroup} = useUserManagement();
   const groupId = match.params.id;
   const isOnNewGroup = groupId === NEW_GROUP_DIALOG_PARAM;
   const [group, setGroup] = useState<?UserPermissionsGroup>(
@@ -128,6 +130,28 @@ export default function PermissionsGroupCard({
         disableOnFromError: true,
       },
     ];
+    if (!isOnNewGroup && userManagementDevMode) {
+      actions.unshift({
+        icon: DeleteIcon,
+        action: () => {
+          if (group == null) {
+            return;
+          }
+          props
+            .confirm(
+              <fbt desc="">Are you sure you want to delete this group?</fbt>,
+            )
+            .then(confirm => {
+              if (!confirm) {
+                return;
+              }
+              return deleteGroup(group.id).then(onClose);
+            })
+            .catch(handleError);
+        },
+        skin: 'gray',
+      });
+    }
     return {
       title: <Breadcrumbs breadcrumbs={breadcrumbs} />,
       subtitle: fbt('Manage group details, members and policies', ''),
@@ -135,12 +159,15 @@ export default function PermissionsGroupCard({
     };
   }, [
     addGroup,
+    deleteGroup,
     editGroup,
     group,
     handleError,
     isOnNewGroup,
     onClose,
+    props,
     redirectToGroupsView,
+    userManagementDevMode,
   ]);
 
   if (group == null) {
@@ -174,3 +201,5 @@ export default function PermissionsGroupCard({
     </InventoryErrorBoundary>
   );
 }
+
+export default withAlert(PermissionsGroupCard);

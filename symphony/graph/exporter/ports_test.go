@@ -5,6 +5,7 @@
 package exporter
 
 import (
+	"context"
 	"encoding/csv"
 	"encoding/json"
 	"io"
@@ -50,7 +51,7 @@ func TestEmptyPortsDataExport(t *testing.T) {
 	req, err := http.NewRequest(http.MethodGet, server.URL, nil)
 	require.NoError(t, err)
 
-	req.Header.Set(tenantHeader, "fb-test")
+	viewertest.SetDefaultViewerHeaders(req)
 	res, err := http.DefaultClient.Do(req)
 	require.NoError(t, err)
 	defer res.Body.Close()
@@ -90,11 +91,11 @@ func TestPortsExport(t *testing.T) {
 	server := httptest.NewServer(th)
 	defer server.Close()
 
-	req, err := http.NewRequest("GET", server.URL, nil)
+	req, err := http.NewRequest(http.MethodGet, server.URL, nil)
 	require.NoError(t, err)
-	req.Header.Set(tenantHeader, "fb-test")
+	viewertest.SetDefaultViewerHeaders(req)
 
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	prepareData(ctx, t, *r)
 	require.NoError(t, err)
 	res, err := http.DefaultClient.Do(req)
@@ -186,7 +187,7 @@ func TestPortsExport(t *testing.T) {
 func TestPortWithFilters(t *testing.T) {
 	r := newExporterTestResolver(t)
 	log := r.exporter.log
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	e := &exporter{log, portsRower{log}}
 	th := viewer.TenancyHandler(e, viewer.NewFixedTenancy(r.client))
 	server := httptest.NewServer(th)
@@ -240,7 +241,7 @@ func TestPortWithFilters(t *testing.T) {
 	for i, filter := range [][]byte{f1, f2, f3} {
 		req, err := http.NewRequest("GET", server.URL, nil)
 		require.NoError(t, err)
-		req.Header.Set(tenantHeader, "fb-test")
+		viewertest.SetDefaultViewerHeaders(req)
 
 		q := req.URL.Query()
 		q.Add("filters", string(filter))

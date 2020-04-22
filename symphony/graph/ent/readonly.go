@@ -43,6 +43,7 @@ func (c *Client) ReadOnly() *Client {
 		Link:                        NewLinkClient(cfg),
 		Location:                    NewLocationClient(cfg),
 		LocationType:                NewLocationTypeClient(cfg),
+		PermissionsPolicy:           NewPermissionsPolicyClient(cfg),
 		Project:                     NewProjectClient(cfg),
 		ProjectType:                 NewProjectTypeClient(cfg),
 		Property:                    NewPropertyClient(cfg),

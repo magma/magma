@@ -15,13 +15,6 @@ import (
 // WritePermissionGroupName is the name of the group that its member has write permission for all symphony.
 const WritePermissionGroupName = "Write Permission"
 
-// UserFromContext returns the ent user using authID in context.
-func UserFromContext(ctx context.Context) (*ent.User, error) {
-	client := ent.FromContext(ctx)
-	v := FromContext(ctx)
-	return client.User.Query().Where(user.AuthID(v.User)).Only(ctx)
-}
-
 func IsUserReadOnly(ctx context.Context, u *ent.User) (bool, error) {
 	v := FromContext(ctx)
 	if !v.Features.Enabled(FeatureReadOnly) {

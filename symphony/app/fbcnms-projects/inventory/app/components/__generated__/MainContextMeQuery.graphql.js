@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 39fb9d2360efa44c68322e7672b35b51
+ * @relayHash a166846e4786bb912d79f7de2137d79f
  */
 
 /* eslint-disable */
@@ -15,6 +15,7 @@
 
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
+export type PermissionValue = "BY_CONDITION" | "NO" | "YES" | "%future added value";
 export type MainContextMeQueryVariables = {||};
 export type MainContextMeQueryResponse = {|
   +me: ?{|
@@ -28,7 +29,9 @@ export type MainContextMeQueryResponse = {|
     +permissions: {|
       +canWrite: boolean,
       +adminPolicy: {|
-        +canRead: boolean
+        +access: {|
+          +isAllowed: PermissionValue
+        |}
       |},
     |},
   |}
@@ -53,7 +56,9 @@ query MainContextMeQuery {
     permissions {
       canWrite
       adminPolicy {
-        canRead
+        access {
+          isAllowed
+        }
       }
     }
   }
@@ -143,11 +148,22 @@ var v0 = [
             "plural": false,
             "selections": [
               {
-                "kind": "ScalarField",
+                "kind": "LinkedField",
                 "alias": null,
-                "name": "canRead",
+                "name": "access",
+                "storageKey": null,
                 "args": null,
-                "storageKey": null
+                "concreteType": "BasicPermissionRule",
+                "plural": false,
+                "selections": [
+                  {
+                    "kind": "ScalarField",
+                    "alias": null,
+                    "name": "isAllowed",
+                    "args": null,
+                    "storageKey": null
+                  }
+                ]
               }
             ]
           }
@@ -176,11 +192,11 @@ return {
     "operationKind": "query",
     "name": "MainContextMeQuery",
     "id": null,
-    "text": "query MainContextMeQuery {\n  me {\n    user {\n      id\n      authID\n      email\n      firstName\n      lastName\n    }\n    permissions {\n      canWrite\n      adminPolicy {\n        canRead\n      }\n    }\n  }\n}\n",
+    "text": "query MainContextMeQuery {\n  me {\n    user {\n      id\n      authID\n      email\n      firstName\n      lastName\n    }\n    permissions {\n      canWrite\n      adminPolicy {\n        access {\n          isAllowed\n        }\n      }\n    }\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '59f9eef234fda5c3a036f434a7de8b80';
+(node/*: any*/).hash = 'f1a977ba665a002410f12c3df9e89af4';
 module.exports = node;

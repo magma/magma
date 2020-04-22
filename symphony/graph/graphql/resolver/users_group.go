@@ -11,8 +11,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/usersgroup"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
-
-	"github.com/vektah/gqlparser/gqlerror"
+	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
 type usersGroupResolver struct{}
@@ -24,6 +23,10 @@ func (r queryResolver) UsersGroups(ctx context.Context, after *ent.Cursor, first
 
 func (usersGroupResolver) Members(ctx context.Context, obj *ent.UsersGroup) ([]*ent.User, error) {
 	return obj.QueryMembers().All(ctx)
+}
+
+func (usersGroupResolver) Policies(ctx context.Context, obj *ent.UsersGroup) ([]*ent.PermissionsPolicy, error) {
+	return obj.QueryPolicies().All(ctx)
 }
 
 func (r mutationResolver) AddUsersGroup(ctx context.Context, input models.AddUsersGroupInput) (*ent.UsersGroup, error) {

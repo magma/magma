@@ -27,13 +27,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const (
-	tenantHeader = "x-auth-organization"
-)
-
 var locStruct map[string]*ent.Location
 
-func importEquipmentExportedData(ctx context.Context, t *testing.T, organization string, r *TestImporterResolver) int {
+func importEquipmentExportedData(ctx context.Context, t *testing.T, r *TestImporterResolver) int {
 	var buf bytes.Buffer
 	bw := multipart.NewWriter(&buf)
 	err := bw.WriteField("skip_lines", "[5,6]")
@@ -57,7 +53,7 @@ func importEquipmentExportedData(ctx context.Context, t *testing.T, organization
 	req, err := http.NewRequest(http.MethodPost, server.URL, &buf)
 	require.Nil(t, err)
 
-	req.Header.Set("x-auth-organization", organization)
+	viewertest.SetDefaultViewerHeaders(req)
 	req.Header.Set("Content-Type", contentType)
 
 	resp, err := http.DefaultClient.Do(req)
@@ -155,14 +151,14 @@ func verifyLocationsStructure(ctx context.Context, t *testing.T, r TestImporterR
 
 func TestEquipmentImportData(t *testing.T) {
 	r := newImporterTestResolver(t)
-	ctx := newImportContext(viewertest.NewContext(r.client))
-	code := importEquipmentExportedData(ctx, t, tenantHeader, r)
+	ctx := newImportContext(viewertest.NewContext(context.Background(), r.client))
+	code := importEquipmentExportedData(ctx, t, r)
 	require.Equal(t, http.StatusBadRequest, code)
 	q := r.importer.r.Query()
 
 	createLocationTypes(ctx, t, r)
 	createEquipmentTypes(ctx, r)
-	code = importEquipmentExportedData(ctx, t, tenantHeader, r)
+	code = importEquipmentExportedData(ctx, t, r)
 	require.Equal(t, 200, code)
 
 	verifyLocationsStructure(ctx, t, *r)

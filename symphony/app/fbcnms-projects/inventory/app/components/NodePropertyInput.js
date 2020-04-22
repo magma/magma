@@ -14,6 +14,7 @@ import * as React from 'react';
 import EquipmentTypeahead from './typeahead/EquipmentTypeahead';
 import LocationTypeahead from './typeahead/LocationTypeahead';
 import ServiceTypeahead from './typeahead/ServiceTypeahead';
+import WorkOrderTypeahead from './typeahead/WorkOrderTypeahead';
 
 type Props = $ReadOnly<{|
   type: string,
@@ -49,6 +50,15 @@ const NodePropertyInput = (props: Props) => {
           margin="dense"
           selectedService={value}
           onServiceSelection={onChange}
+          headline={label}
+        />
+      );
+    case 'work_order':
+      return (
+        <WorkOrderTypeahead
+          margin="dense"
+          selectedWorkOrder={value}
+          onWorkOrderSelected={onChange}
           headline={label}
         />
       );

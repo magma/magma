@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"sort"
 	"strings"
+	"sync"
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/user"
@@ -34,6 +35,9 @@ const (
 	FeaturesHeader = "x-auth-features"
 )
 
+// SuperUserRole is the highest possible role for user in system
+const SuperUserRole = "superuser"
+
 // Attributes recorded on the span of the requests.
 const (
 	TenantAttribute    = "viewer.tenant"
@@ -53,17 +57,33 @@ var (
 // FeatureSet holds the list of features of the viewer
 type FeatureSet map[string]struct{}
 
+// Option enables viewer customization.
+type Option func(*Viewer)
+
+// WithFeatures overrides default feature set.
+func WithFeatures(features ...string) Option {
+	return func(v *Viewer) {
+		v.Features = NewFeatureSet(features...)
+	}
+}
+
 // Viewer holds additional per request information.
 type Viewer struct {
-	Tenant   string     `json:"organization"`
-	User     string     `json:"email"`
-	Role     string     `json:"role"`
-	Features FeatureSet `json:"-"`
+	Tenant   string
+	Features FeatureSet
+	user     *ent.User
+	mu       sync.RWMutex
 }
 
 type UserHandler struct {
 	Handler http.Handler
 	Logger  log.Logger
+}
+
+type WebSocketHandlerRequest struct {
+	Tenant string `json:"organization"`
+	User   string `json:"email"`
+	Role   string `json:"role"`
 }
 
 // NewFeatureSet create FeatureSet from a list of features.
@@ -73,6 +93,17 @@ func NewFeatureSet(features ...string) FeatureSet {
 		set[feature] = struct{}{}
 	}
 	return set
+}
+
+func New(tenant string, user *ent.User, options ...Option) *Viewer {
+	v := &Viewer{
+		Tenant: tenant,
+		user:   user,
+	}
+	for _, option := range options {
+		option(v)
+	}
+	return v
 }
 
 // String returns the textual representation of a feature set.
@@ -94,16 +125,16 @@ func (f FeatureSet) Enabled(feature string) bool {
 // MarshalLogObject implements zapcore.ObjectMarshaler interface.
 func (v *Viewer) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 	enc.AddString("tenant", v.Tenant)
-	enc.AddString("user", v.User)
-	enc.AddString("role", v.Role)
+	enc.AddString("user", v.user.AuthID)
+	enc.AddString("role", v.user.Role.String())
 	return nil
 }
 
 func (v *Viewer) traceAttrs() []trace.Attribute {
 	return []trace.Attribute{
 		trace.StringAttribute(TenantAttribute, v.Tenant),
-		trace.StringAttribute(UserAttribute, v.User),
-		trace.StringAttribute(RoleAttribute, v.Role),
+		trace.StringAttribute(UserAttribute, v.user.AuthID),
+		trace.StringAttribute(RoleAttribute, v.user.Role.String()),
 	}
 }
 
@@ -114,10 +145,17 @@ func (v *Viewer) tags(r *http.Request) []tag.Mutator {
 	}
 	return []tag.Mutator{
 		tag.Upsert(KeyTenant, v.Tenant),
-		tag.Upsert(KeyUser, v.User),
-		tag.Upsert(KeyRole, v.Role),
+		tag.Upsert(KeyUser, v.user.AuthID),
+		tag.Upsert(KeyRole, v.user.Role.String()),
 		tag.Upsert(KeyUserAgent, userAgent),
 	}
+}
+
+// User returns the ent user of the viewer.
+func (v *Viewer) User() *ent.User {
+	v.mu.RLock()
+	defer v.mu.RUnlock()
+	return v.user
 }
 
 // WebSocketUpgradeHandler authenticates websocket upgrade requests.
@@ -160,14 +198,14 @@ func WebSocketUpgradeHandler(h http.Handler, authurl string) http.Handler {
 			return
 		}
 
-		var v Viewer
-		if err := json.NewDecoder(rsp.Body).Decode(&v); err != nil {
+		var body WebSocketHandlerRequest
+		if err := json.NewDecoder(rsp.Body).Decode(&body); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		r.Header.Set(TenantHeader, v.Tenant)
-		r.Header.Set(UserHeader, v.User)
-		r.Header.Set(RoleHeader, v.Role)
+		r.Header.Set(TenantHeader, body.Tenant)
+		r.Header.Set(UserHeader, body.User)
+		r.Header.Set(RoleHeader, body.Role)
 		h.ServeHTTP(w, r)
 	})
 }
@@ -180,66 +218,62 @@ func TenancyHandler(h http.Handler, tenancy Tenancy) http.Handler {
 			http.Error(w, "missing tenant header", http.StatusBadRequest)
 			return
 		}
-
-		v := &Viewer{
-			Tenant:   tenant,
-			User:     r.Header.Get(UserHeader),
-			Role:     r.Header.Get(RoleHeader),
-			Features: NewFeatureSet(strings.Split(r.Header.Get(FeaturesHeader), ",")...),
+		client, err := tenancy.ClientFor(r.Context(), tenant)
+		if err != nil {
+			http.Error(w, "getting tenancy client", http.StatusServiceUnavailable)
+			return
 		}
-
-		ctx := log.NewFieldsContext(r.Context(), zap.Object("viewer", v))
+		ctx := ent.NewContext(r.Context(), client)
+		u, err := GetOrCreateUser(ctx, r.Header.Get(UserHeader), r.Header.Get(RoleHeader))
+		if err != nil {
+			http.Error(w, "get user ent", http.StatusServiceUnavailable)
+			return
+		}
+		v := New(tenant, u, WithFeatures(strings.Split(r.Header.Get(FeaturesHeader), ",")...))
+		ctx = log.NewFieldsContext(ctx, zap.Object("viewer", v))
 		trace.FromContext(ctx).AddAttributes(v.traceAttrs()...)
 		ctx, _ = tag.New(ctx, v.tags(r)...)
-
 		ctx = NewContext(ctx, v)
-		if tenancy != nil {
-			client, err := tenancy.ClientFor(ctx, tenant)
-			if err != nil {
-				http.Error(w, "getting tenancy client", http.StatusServiceUnavailable)
-				return
-			}
-			ctx = ent.NewContext(ctx, client)
-		}
 		h.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
-func (h UserHandler) getOrCreateUser(ctx context.Context) (*ent.User, error) {
-	ctx, span := trace.StartSpan(ctx, "viewer.getOrCreateUser")
-	defer span.End()
-	v := FromContext(ctx)
+// GetOrCreateUser creates or returns existing user ent with given authID and role
+func GetOrCreateUser(ctx context.Context, authID string, role string) (*ent.User, error) {
 	client := ent.FromContext(ctx)
-
-	u, err := client.User.Query().Where(user.AuthID(v.User)).Only(ctx)
+	u, err := client.User.Query().Where(user.AuthID(authID)).Only(ctx)
 	if err != nil {
 		if !ent.IsNotFound(err) {
 			return nil, err
 		}
-		role := user.RoleUSER
-		if v.Role == "superuser" {
-			role = user.RoleOWNER
+		expandedRole := user.RoleUSER
+		if role == SuperUserRole {
+			expandedRole = user.RoleOWNER
 		}
-		u, err = client.User.Create().SetAuthID(v.User).SetEmail(v.User).SetRole(role).Save(ctx)
+		u, err = client.User.Create().SetAuthID(authID).SetEmail(authID).SetRole(expandedRole).Save(ctx)
 		if err != nil {
 			if !ent.IsConstraintError(err) {
 				return nil, err
 			}
-			return client.User.Query().Where(user.AuthID(v.User)).Only(ctx)
+			return client.User.Query().Where(user.AuthID(authID)).Only(ctx)
 		}
-		h.Logger.For(ctx).Info("New user created", zap.String("AuthID", v.User))
 	}
 	return u, err
+}
+
+// MustGetOrCreateUser creates or returns existing user ent with given authID and role
+func MustGetOrCreateUser(ctx context.Context, authID, role string) *ent.User {
+	u, err := GetOrCreateUser(ctx, authID, role)
+	if err != nil {
+		panic(err)
+	}
+	return u
 }
 
 // UserHandler adds users if request is from user that is not found.
 func (h UserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	u, err := h.getOrCreateUser(ctx)
-	if err != nil {
-		http.Error(w, "get user ent", http.StatusServiceUnavailable)
-		return
-	}
+	u := FromContext(ctx).User()
 	if u.Status == user.StatusDEACTIVATED {
 		http.Error(w, "user is deactivated", http.StatusForbidden)
 		return

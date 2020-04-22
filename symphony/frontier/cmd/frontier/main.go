@@ -14,8 +14,9 @@ import (
 	"github.com/facebookincubator/symphony/pkg/ctxutil"
 	"github.com/facebookincubator/symphony/pkg/log"
 	"github.com/facebookincubator/symphony/pkg/oc"
-
 	"github.com/jessevdk/go-flags"
+
+	_ "github.com/facebookincubator/symphony/frontier/ent/runtime"
 )
 
 type (

@@ -6,6 +6,7 @@
 package resolver
 
 import (
+	"context"
 	"testing"
 
 	"github.com/facebookincubator/symphony/graph/ent"
@@ -23,7 +24,7 @@ import (
 func TestAddWorkOrderType(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
 	typ, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "example_type"})
@@ -39,7 +40,7 @@ func TestAddWorkOrderType(t *testing.T) {
 func TestAddWorkOrderTypes(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
 	_, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "example_type_a"})
@@ -54,7 +55,7 @@ func TestAddWorkOrderTypes(t *testing.T) {
 func TestNumberOfWorkOrders(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, wtr := r.Mutation(), r.WorkOrderType()
 
 	woType, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "example_type"})
@@ -84,7 +85,7 @@ func TestNumberOfWorkOrders(t *testing.T) {
 func TestAddWorkOrderTypeWithDescription(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
 	typ, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{
@@ -103,7 +104,7 @@ func TestAddWorkOrderTypeWithDescription(t *testing.T) {
 func TestAddWorkOrderTypeWithProperties(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, wtr := r.Mutation(), r.WorkOrderType()
 	strValue, strIndex := "Foo", 7
@@ -148,7 +149,7 @@ func TestAddWorkOrderTypeWithProperties(t *testing.T) {
 func TestAddWorkOrderTypeWithCheckList(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, wtr := r.Mutation(), r.WorkOrderType()
 	indexValue := 1
@@ -177,7 +178,7 @@ func TestAddWorkOrderTypeWithCheckList(t *testing.T) {
 func TestAddWorkOrderTypesSameName(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
 	woType, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "example_type_name"})
@@ -192,7 +193,7 @@ func TestAddWorkOrderTypesSameName(t *testing.T) {
 func TestRemoveWorkOrderType(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
 	woType, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "example_type_name"})
@@ -214,7 +215,7 @@ func TestRemoveWorkOrderType(t *testing.T) {
 func TestEditWorkOrderType(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
 	woType, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "example_type_name"})
@@ -250,7 +251,7 @@ func TestEditWorkOrderType(t *testing.T) {
 func TestEditWorkOrderTypeWithProperties(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr := r.Mutation()
 	strValue := "Foo"
@@ -312,7 +313,7 @@ func TestEditWorkOrderTypeWithProperties(t *testing.T) {
 func TestDeleteWorkOrderTypeProperty(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr := r.Mutation()
 	strValue := "Foo"

@@ -148,6 +148,16 @@ type fixedDecisionRule struct{ err error }
 func (f fixedDecisionRule) EvalQuery(context.Context, ent.Query) error       { return f.err }
 func (f fixedDecisionRule) EvalMutation(context.Context, ent.Mutation) error { return f.err }
 
+// DenyMutationOperationRule returns a rule denying specified mutation operation.
+func DenyMutationOperationRule(op ent.Op) MutationRule {
+	return MutationRuleFunc(func(_ context.Context, m ent.Mutation) error {
+		if m.Op().Is(op) {
+			return Denyf("ent/privacy: operation %s is not allowed", m.Op())
+		}
+		return Skip
+	})
+}
+
 // The ActionsRuleQueryRuleFunc type is an adapter to allow the use of ordinary
 // functions as a query rule.
 type ActionsRuleQueryRuleFunc func(context.Context, *ent.ActionsRuleQuery) error
@@ -674,6 +684,30 @@ func (f LocationTypeMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mu
 		return f(ctx, m)
 	}
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.LocationTypeMutation", m)
+}
+
+// The PermissionsPolicyQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type PermissionsPolicyQueryRuleFunc func(context.Context, *ent.PermissionsPolicyQuery) error
+
+// EvalQuery return f(ctx, q).
+func (f PermissionsPolicyQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.PermissionsPolicyQuery); ok {
+		return f(ctx, q)
+	}
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.PermissionsPolicyQuery", q)
+}
+
+// The PermissionsPolicyMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type PermissionsPolicyMutationRuleFunc func(context.Context, *ent.PermissionsPolicyMutation) error
+
+// EvalMutation calls f(ctx, m).
+func (f PermissionsPolicyMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
+	if m, ok := m.(*ent.PermissionsPolicyMutation); ok {
+		return f(ctx, m)
+	}
+	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.PermissionsPolicyMutation", m)
 }
 
 // The ProjectQueryRuleFunc type is an adapter to allow the use of ordinary

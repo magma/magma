@@ -30,4 +30,8 @@ export const PropertyTypeLabels: {[string]: PropertyTypeInfo} = {
     featureFlag: 'services',
     isNode: true,
   },
+  work_order: {
+    label: fbt('Work Order', ''),
+    isNode: true,
+  },
 };

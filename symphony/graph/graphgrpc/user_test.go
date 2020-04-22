@@ -8,18 +8,16 @@ import (
 	"context"
 	"testing"
 
+	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/ent/enttest"
+	"github.com/facebookincubator/symphony/graph/ent/migrate"
 	"github.com/facebookincubator/symphony/graph/ent/user"
+	"github.com/facebookincubator/symphony/pkg/testdb"
 
-	"github.com/facebookincubator/ent/dialect/sql/schema"
-
+	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-
-	"github.com/facebookincubator/ent/dialect/sql"
-
-	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/pkg/testdb"
-	"github.com/stretchr/testify/require"
 )
 
 func newTestClient(t *testing.T) *ent.Client {
@@ -27,9 +25,10 @@ func newTestClient(t *testing.T) *ent.Client {
 	require.NoError(t, err)
 	db.SetMaxOpenConns(1)
 	drv := sql.OpenDB(name, db)
-	client := ent.NewClient(ent.Driver(drv))
-	require.NoError(t, client.Schema.Create(context.Background(), schema.WithGlobalUniqueID(true)))
-	return client
+	return enttest.NewClient(t,
+		enttest.WithOptions(ent.Driver(drv)),
+		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
+	)
 }
 
 func TestUserService_Create(t *testing.T) {

@@ -91,8 +91,11 @@ func (s UserService) Delete(ctx context.Context, input *UserInput) (*empty.Empty
 		return nil, status.FromContextError(err).Err()
 	}
 
-	err = client.User.Update().
-		Where(user.AuthID(input.Id)).
+	u, err := client.User.Query().Where(user.AuthID(input.Id)).Only(ctx)
+	if err != nil {
+		return nil, status.FromContextError(err).Err()
+	}
+	err = client.User.UpdateOne(u).
 		SetStatus(user.StatusDEACTIVATED).
 		Exec(ctx)
 	if err != nil {

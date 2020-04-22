@@ -18,11 +18,12 @@ import (
 
 	"github.com/facebookincubator/ent/dialect"
 	"github.com/facebookincubator/ent/dialect/sql"
-	"github.com/facebookincubator/ent/dialect/sql/schema"
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/ent/enttest"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentpositiondefinition"
+	"github.com/facebookincubator/symphony/graph/ent/migrate"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/ent/serviceendpointdefinition"
 	"github.com/facebookincubator/symphony/graph/event"
@@ -42,7 +43,6 @@ import (
 var debug = flag.Bool("debug", false, "run database driver on debug mode")
 
 const (
-	tenantHeader               = viewer.TenantHeader
 	equipmentTypeName          = "equipmentType"
 	equipmentType2Name         = "equipmentType2"
 	parentEquip                = "parentEquipmentName"
@@ -102,16 +102,15 @@ func newResolver(t *testing.T, drv dialect.Driver) *TestExporterResolver {
 	if *debug {
 		drv = dialect.Debug(drv)
 	}
-	client := ent.NewClient(ent.Driver(drv))
-	err := client.Schema.Create(context.Background(), schema.WithGlobalUniqueID(true))
-	require.NoError(t, err)
-
+	client := enttest.NewClient(t,
+		enttest.WithOptions(ent.Driver(drv)),
+		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
+	)
 	logger := logtest.NewTestLogger(t)
 	r := resolver.New(resolver.Config{
 		Logger:     logger,
 		Subscriber: event.NewNopSubscriber(),
 	})
-
 	e := exporter{logger, equipmentRower{logger}}
 	return &TestExporterResolver{r, drv, client, e}
 }
@@ -387,9 +386,9 @@ func prepareHandlerAndExport(t *testing.T, r *TestExporterResolver, e http.Handl
 
 	req, err := http.NewRequest(http.MethodGet, server.URL, nil)
 	require.NoError(t, err)
-	req.Header.Set(tenantHeader, "fb-test")
+	viewertest.SetDefaultViewerHeaders(req)
 
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	prepareData(ctx, t, *r)
 	locs := r.client.Location.Query().AllX(ctx)
 	require.Len(t, locs, 3)
@@ -428,7 +427,7 @@ func importLinksPortsFile(t *testing.T, client *ent.Client, r io.Reader, entity 
 	req, err := http.NewRequest(http.MethodPost, url, buf)
 	require.Nil(t, err)
 
-	req.Header.Set(tenantHeader, "fb-test")
+	viewertest.SetDefaultViewerHeaders(req)
 	req.Header.Set("Content-Type", contentType)
 	resp, err := http.DefaultClient.Do(req)
 	require.Nil(t, err)

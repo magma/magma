@@ -32,6 +32,7 @@ magmalte:
     mysql_db: magma
     mysql_user: magma
     mysql_pass: password
+    mysql_dialect: mysql
 
   labels: {}
 

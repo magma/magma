@@ -151,22 +151,22 @@ func (t *TodoQuery) Paginate(ctx context.Context, after *Cursor, first *int, bef
 
 func (t *TodoQuery) collectConnectionFields(ctx context.Context) *TodoQuery {
 	if field := fieldForPath(ctx, "edges", "node"); field != nil {
-		t = t.collectField(graphql.GetRequestContext(ctx), *field)
+		t = t.collectField(graphql.GetOperationContext(ctx), *field)
 	}
 	return t
 }
 
 func fieldForPath(ctx context.Context, path ...string) *graphql.CollectedField {
-	resctx := graphql.GetResolverContext(ctx)
-	if resctx == nil {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
 		return nil
 	}
-	reqctx := graphql.GetRequestContext(ctx)
-	field := resctx.Field
+	oc := graphql.GetOperationContext(ctx)
+	field := fc.Field
 
 walk:
 	for _, name := range path {
-		for _, f := range graphql.CollectFields(reqctx, field.Selections, nil) {
+		for _, f := range graphql.CollectFields(oc, field.Selections, nil) {
 			if f.Name == name {
 				field = f
 				continue walk

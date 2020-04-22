@@ -75,6 +75,20 @@ func (stc *ServiceTypeCreate) SetNillableHasCustomer(b *bool) *ServiceTypeCreate
 	return stc
 }
 
+// SetIsDeleted sets the is_deleted field.
+func (stc *ServiceTypeCreate) SetIsDeleted(b bool) *ServiceTypeCreate {
+	stc.mutation.SetIsDeleted(b)
+	return stc
+}
+
+// SetNillableIsDeleted sets the is_deleted field if the given value is not nil.
+func (stc *ServiceTypeCreate) SetNillableIsDeleted(b *bool) *ServiceTypeCreate {
+	if b != nil {
+		stc.SetIsDeleted(*b)
+	}
+	return stc
+}
+
 // AddServiceIDs adds the services edge to Service by ids.
 func (stc *ServiceTypeCreate) AddServiceIDs(ids ...int) *ServiceTypeCreate {
 	stc.mutation.AddServiceIDs(ids...)
@@ -136,6 +150,10 @@ func (stc *ServiceTypeCreate) Save(ctx context.Context) (*ServiceType, error) {
 	if _, ok := stc.mutation.HasCustomer(); !ok {
 		v := servicetype.DefaultHasCustomer
 		stc.mutation.SetHasCustomer(v)
+	}
+	if _, ok := stc.mutation.IsDeleted(); !ok {
+		v := servicetype.DefaultIsDeleted
+		stc.mutation.SetIsDeleted(v)
 	}
 	var (
 		err  error
@@ -214,6 +232,14 @@ func (stc *ServiceTypeCreate) sqlSave(ctx context.Context) (*ServiceType, error)
 			Column: servicetype.FieldHasCustomer,
 		})
 		st.HasCustomer = value
+	}
+	if value, ok := stc.mutation.IsDeleted(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Value:  value,
+			Column: servicetype.FieldIsDeleted,
+		})
+		st.IsDeleted = value
 	}
 	if nodes := stc.mutation.ServicesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

@@ -43,9 +43,11 @@ services:
       retries: 1
 
   conductor-server:
+    build:
+      context: ${FBCODE_FBC_DIR}/symphony/integration/workflows/conductor
     environment:
       - CONFIG_PROP=config.properties
-    image: frinx/fm-conductor-server:latest
+      - LOG4J_PROP=log4j-fluentd-appender.properties
     container_name: conductor-server
     links:
       - elasticsearch:es

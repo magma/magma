@@ -6,6 +6,7 @@
 package resolver
 
 import (
+	"context"
 	"testing"
 
 	"github.com/AlekSi/pointer"
@@ -21,7 +22,7 @@ import (
 func TestAddLink(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr, pr, lr, eqr := r.Mutation(), r.Query(), r.EquipmentPort(), r.Link(), r.Equipment()
 	locationType, _ := mr.AddLocationType(ctx, models.AddLocationTypeInput{Name: "location_type"})
@@ -104,7 +105,7 @@ func TestAddLink(t *testing.T) {
 func TestAddLinkWithProperties(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr, pr, lr := r.Mutation(), r.Query(), r.EquipmentPort(), r.Link()
 	locationType, _ := mr.AddLocationType(ctx, models.AddLocationTypeInput{Name: "location_type"})
@@ -204,7 +205,7 @@ func TestAddLinkWithProperties(t *testing.T) {
 func TestEditLinkWithProperties(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr, pr, lr := r.Mutation(), r.Query(), r.EquipmentPort(), r.Link()
 	locationType, _ := mr.AddLocationType(ctx, models.AddLocationTypeInput{
@@ -321,7 +322,7 @@ func TestEditLinkWithProperties(t *testing.T) {
 func TestRemoveLink(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr, pr := r.Mutation(), r.Query(), r.EquipmentPort()
 	locationType, _ := mr.AddLocationType(ctx, models.AddLocationTypeInput{
@@ -388,7 +389,7 @@ func TestRemoveLink(t *testing.T) {
 func TestAddLinkWithWorkOrder(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr, pr, wor := r.Mutation(), r.Query(), r.EquipmentPort(), r.WorkOrder()
 
@@ -465,7 +466,7 @@ func TestAddLinkWithWorkOrder(t *testing.T) {
 func TestRemoveLinkWithWorkOrder(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr, pr, wor := r.Mutation(), r.Query(), r.EquipmentPort(), r.WorkOrder()
 

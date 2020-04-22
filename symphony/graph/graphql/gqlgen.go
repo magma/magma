@@ -16,51 +16,47 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/facebookincubator/symphony/graph/graphql/plugin/txgen"
-
 	"github.com/99designs/gqlgen/api"
 	"github.com/99designs/gqlgen/codegen/config"
-	"github.com/pkg/errors"
+	"github.com/facebookincubator/symphony/graph/graphql/plugin/txgen"
 )
 
 func main() {
-	configFilename := flag.String("c", "", "config filename")
 	verbose := flag.Bool("v", false, "show logs")
 	flag.Parse()
 
 	var (
-		out bytes.Buffer
-		err error
+		output bytes.Buffer
+		err    error
 	)
 	defer func() {
 		if err != nil {
-			io.Copy(os.Stderr, &out)
+			io.Copy(os.Stderr, &output)
 			os.Exit(1)
 		}
 	}()
-
 	if !*verbose {
-		log.SetOutput(&out)
+		log.SetOutput(&output)
 	}
 
 	var cfg *config.Config
-	if *configFilename == "" {
-		cfg, err = config.LoadConfigFromDefaultLocations()
-		if os.IsNotExist(errors.Cause(err)) {
-			cfg = config.DefaultConfig()
-		}
-	} else if cfg, err = config.LoadConfig(*configFilename); err != nil {
-		log.Printf("cannot load config file: %v", err)
+	if cfg, err = config.LoadConfigFromDefaultLocations(); err != nil {
+		log.Println("cannot load config file", err)
 		return
 	}
-
 	if err = api.Generate(cfg, api.AddPlugin(
 		txgen.New(config.PackageConfig{}),
 	)); err != nil {
-		log.Printf("cannot generate code: %v", err)
+		log.Println("cannot generate code", err)
+		return
 	}
+	if err = fixupHeaders(); err != nil {
+		log.Println("cannot fixup generated headers", err)
+	}
+}
 
-	if err := filepath.Walk(".", func(path string, fi os.FileInfo, err error) error {
+func fixupHeaders() error {
+	return filepath.Walk(".", func(path string, fi os.FileInfo, err error) error {
 		if err != nil || fi.IsDir() || filepath.Ext(fi.Name()) != ".go" {
 			return err
 		}
@@ -96,7 +92,5 @@ func main() {
 			_, err = f.WriteAt(buf.Bytes(), 0)
 		}
 		return err
-	}); err != nil {
-		log.Printf("cannot fixup generated headers: %v", err)
-	}
+	})
 }

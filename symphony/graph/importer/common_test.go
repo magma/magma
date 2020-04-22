@@ -10,8 +10,9 @@ import (
 
 	"github.com/facebookincubator/ent/dialect"
 	"github.com/facebookincubator/ent/dialect/sql"
-	"github.com/facebookincubator/ent/dialect/sql/schema"
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/ent/enttest"
+	"github.com/facebookincubator/symphony/graph/ent/migrate"
 	"github.com/facebookincubator/symphony/graph/event"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/graphql/resolver"
@@ -41,10 +42,10 @@ func newImporterTestResolver(t *testing.T) *TestImporterResolver {
 }
 
 func newResolver(t *testing.T, drv dialect.Driver) *TestImporterResolver {
-	client := ent.NewClient(ent.Driver(drv))
-	err := client.Schema.Create(context.Background(), schema.WithGlobalUniqueID(true))
-	require.NoError(t, err)
-
+	client := enttest.NewClient(t,
+		enttest.WithOptions(ent.Driver(drv)),
+		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
+	)
 	r := resolver.New(resolver.Config{
 		Logger:     logtest.NewTestLogger(t),
 		Subscriber: event.NewNopSubscriber(),

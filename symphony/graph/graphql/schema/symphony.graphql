@@ -61,22 +61,135 @@ type UsersGroup implements Node {
   description: String
   status: UsersGroupStatus!
   members: [User!]!
-}
-
-type AdministrativePolicy {
-  canRead: Boolean!
+  policies: [PermissionsPolicy!]!
 }
 
 type PermissionSettings {
   canWrite: Boolean!
   adminPolicy: AdministrativePolicy!
+  inventoryPolicy: InventoryPolicy!
+  workforcePermission: WorkforcePolicy!
+}
+
+enum PermissionValue
+  @goModel(
+    model: "github.com/facebookincubator/symphony/graph/authz/models.PermissionValue"
+  ) {
+  YES
+  NO
+  BY_CONDITION
+}
+
+type BasicPermissionRule {
+  isAllowed: PermissionValue!
+}
+
+input BasicPermissionRuleInput
+  @goModel(
+    model: "github.com/facebookincubator/symphony/graph/authz/models.BasicPermissionRuleInput"
+  ) {
+  isAllowed: PermissionValue!
+}
+
+type CUD {
+  create: BasicPermissionRule!
+  update: BasicPermissionRule!
+  delete: BasicPermissionRule!
+}
+
+input BasicCUDInput
+  @goModel(
+    model: "github.com/facebookincubator/symphony/graph/authz/models.BasicCUDInput"
+  ) {
+  create: BasicPermissionRuleInput
+  update: BasicPermissionRuleInput
+  delete: BasicPermissionRuleInput
+}
+
+type AdministrativePolicy {
+  access: BasicPermissionRule!
+}
+
+type InventoryPolicy {
+  read: BasicPermissionRule!
+  location: CUD!
+  equipment: CUD!
+  equipmentType: CUD!
+  locationType: CUD!
+  portType: CUD!
+  serviceType: CUD!
+}
+
+input InventoryPolicyInput
+  @goModel(
+    model: "github.com/facebookincubator/symphony/graph/authz/models.InventoryPolicyInput"
+  ) {
+  read: BasicPermissionRuleInput
+  location: BasicCUDInput
+  equipment: BasicCUDInput
+  equipmentType: BasicCUDInput
+  locationType: BasicCUDInput
+  portType: BasicCUDInput
+  serviceType: BasicCUDInput
+}
+
+type WorkforceCUD {
+  create: BasicPermissionRule
+  update: BasicPermissionRule
+  delete: BasicPermissionRule
+  assign: BasicPermissionRule
+  transferOwnership: BasicPermissionRule
+}
+
+input BasicWorkforceCUDInput
+  @goModel(
+    model: "github.com/facebookincubator/symphony/graph/authz/models.BasicWorkforceCUDInput"
+  ) {
+  create: BasicPermissionRuleInput
+  update: BasicPermissionRuleInput
+  delete: BasicPermissionRuleInput
+  assign: BasicPermissionRuleInput
+  transferOwnership: BasicPermissionRuleInput
+}
+
+type WorkforcePolicy {
+  read: BasicPermissionRule!
+  data: WorkforceCUD!
+  templates: CUD!
+}
+
+input WorkforcePolicyInput
+  @goModel(
+    model: "github.com/facebookincubator/symphony/graph/authz/models.WorkforcePolicyInput"
+  ) {
+  read: BasicPermissionRuleInput
+  data: BasicWorkforceCUDInput
+  templates: BasicCUDInput
+}
+
+union SystemPolicy = InventoryPolicy | WorkforcePolicy
+
+type PermissionsPolicy implements Node {
+  id: ID!
+  name: String!
+  description: String
+  isGlobal: Boolean!
+  policy: SystemPolicy!
+  groups: [UsersGroup!]!
+}
+
+input AddPermissionsPolicyInput {
+  name: String!
+  description: String
+  isGlobal: Boolean
+  inventoryInput: InventoryPolicyInput
+  workforceInput: WorkforcePolicyInput
 }
 
 type Viewer
   @goModel(model: "github.com/facebookincubator/symphony/graph/viewer.Viewer") {
   tenant: String!
   email: String!
-    @goField(name: "user")
     @deprecated(
       reason: "Use `Viewer.user.email` instead. Will be removed on 2020-05-01"
     )
@@ -1189,7 +1302,7 @@ type WorkOrderType implements Node {
 """
 Work Order instance - capturing information about a change in the network
 """
-type WorkOrder implements Node {
+type WorkOrder implements Node & NamedNode {
   id: ID!
   workOrderType: WorkOrderType!
   name: String!
@@ -2551,6 +2664,7 @@ type Mutation {
   addReportFilter(input: ReportFilterInput!): ReportFilter!
   editReportFilter(input: EditReportFilterInput!): ReportFilter!
   deleteReportFilter(id: ID!): Boolean!
+  addPolicy(input: AddPermissionsPolicyInput!): PermissionsPolicy!
 }
 
 type Subscription {

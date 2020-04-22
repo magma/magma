@@ -712,6 +712,24 @@ var (
 		PrimaryKey:  []*schema.Column{LocationTypesColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{},
 	}
+	// PermissionsPoliciesColumns holds the columns for the "permissions_policies" table.
+	PermissionsPoliciesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "is_global", Type: field.TypeBool, Nullable: true},
+		{Name: "inventory_policy", Type: field.TypeJSON, Nullable: true},
+		{Name: "workforce_policy", Type: field.TypeJSON, Nullable: true},
+	}
+	// PermissionsPoliciesTable holds the schema information for the "permissions_policies" table.
+	PermissionsPoliciesTable = &schema.Table{
+		Name:        "permissions_policies",
+		Columns:     PermissionsPoliciesColumns,
+		PrimaryKey:  []*schema.Column{PermissionsPoliciesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{},
+	}
 	// ProjectsColumns holds the columns for the "projects" table.
 	ProjectsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -796,6 +814,7 @@ var (
 		{Name: "property_equipment_value", Type: field.TypeInt, Nullable: true},
 		{Name: "property_location_value", Type: field.TypeInt, Nullable: true},
 		{Name: "property_service_value", Type: field.TypeInt, Nullable: true},
+		{Name: "property_work_order_value", Type: field.TypeInt, Nullable: true},
 		{Name: "service_properties", Type: field.TypeInt, Nullable: true},
 		{Name: "work_order_properties", Type: field.TypeInt, Nullable: true},
 	}
@@ -869,15 +888,22 @@ var (
 				OnDelete:   schema.SetNull,
 			},
 			{
-				Symbol:  "properties_services_properties",
+				Symbol:  "properties_work_orders_work_order_value",
 				Columns: []*schema.Column{PropertiesColumns[20]},
+
+				RefColumns: []*schema.Column{WorkOrdersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:  "properties_services_properties",
+				Columns: []*schema.Column{PropertiesColumns[21]},
 
 				RefColumns: []*schema.Column{ServicesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "properties_work_orders_properties",
-				Columns: []*schema.Column{PropertiesColumns[21]},
+				Columns: []*schema.Column{PropertiesColumns[22]},
 
 				RefColumns: []*schema.Column{WorkOrdersColumns[0]},
 				OnDelete:   schema.SetNull,
@@ -1030,6 +1056,7 @@ var (
 		{Name: "name", Type: field.TypeString, Unique: true},
 		{Name: "external_id", Type: field.TypeString, Unique: true, Nullable: true},
 		{Name: "status", Type: field.TypeString},
+		{Name: "discovery_method", Type: field.TypeEnum, Nullable: true, Enums: []string{"INVENTORY"}},
 		{Name: "service_type", Type: field.TypeInt, Nullable: true},
 	}
 	// ServicesTable holds the schema information for the "services" table.
@@ -1040,7 +1067,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:  "services_service_types_type",
-				Columns: []*schema.Column{ServicesColumns[6]},
+				Columns: []*schema.Column{ServicesColumns[7]},
 
 				RefColumns: []*schema.Column{ServiceTypesColumns[0]},
 				OnDelete:   schema.SetNull,
@@ -1145,6 +1172,7 @@ var (
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "name", Type: field.TypeString, Unique: true},
 		{Name: "has_customer", Type: field.TypeBool},
+		{Name: "is_deleted", Type: field.TypeBool},
 	}
 	// ServiceTypesTable holds the schema information for the "service_types" table.
 	ServiceTypesTable = &schema.Table{
@@ -1674,6 +1702,33 @@ var (
 			},
 		},
 	}
+	// UsersGroupPoliciesColumns holds the columns for the "users_group_policies" table.
+	UsersGroupPoliciesColumns = []*schema.Column{
+		{Name: "users_group_id", Type: field.TypeInt},
+		{Name: "permissions_policy_id", Type: field.TypeInt},
+	}
+	// UsersGroupPoliciesTable holds the schema information for the "users_group_policies" table.
+	UsersGroupPoliciesTable = &schema.Table{
+		Name:       "users_group_policies",
+		Columns:    UsersGroupPoliciesColumns,
+		PrimaryKey: []*schema.Column{UsersGroupPoliciesColumns[0], UsersGroupPoliciesColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:  "users_group_policies_users_group_id",
+				Columns: []*schema.Column{UsersGroupPoliciesColumns[0]},
+
+				RefColumns: []*schema.Column{UsersGroupsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:  "users_group_policies_permissions_policy_id",
+				Columns: []*schema.Column{UsersGroupPoliciesColumns[1]},
+
+				RefColumns: []*schema.Column{PermissionsPoliciesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		ActionsRulesTable,
@@ -1698,6 +1753,7 @@ var (
 		LinksTable,
 		LocationsTable,
 		LocationTypesTable,
+		PermissionsPoliciesTable,
 		ProjectsTable,
 		ProjectTypesTable,
 		PropertiesTable,
@@ -1723,6 +1779,7 @@ var (
 		ServiceLinksTable,
 		ServiceCustomerTable,
 		UsersGroupMembersTable,
+		UsersGroupPoliciesTable,
 	}
 )
 
@@ -1776,8 +1833,9 @@ func init() {
 	PropertiesTable.ForeignKeys[6].RefTable = EquipmentTable
 	PropertiesTable.ForeignKeys[7].RefTable = LocationsTable
 	PropertiesTable.ForeignKeys[8].RefTable = ServicesTable
-	PropertiesTable.ForeignKeys[9].RefTable = ServicesTable
-	PropertiesTable.ForeignKeys[10].RefTable = WorkOrdersTable
+	PropertiesTable.ForeignKeys[9].RefTable = WorkOrdersTable
+	PropertiesTable.ForeignKeys[10].RefTable = ServicesTable
+	PropertiesTable.ForeignKeys[11].RefTable = WorkOrdersTable
 	PropertyTypesTable.ForeignKeys[0].RefTable = EquipmentPortTypesTable
 	PropertyTypesTable.ForeignKeys[1].RefTable = EquipmentPortTypesTable
 	PropertyTypesTable.ForeignKeys[2].RefTable = EquipmentTypesTable
@@ -1820,4 +1878,6 @@ func init() {
 	ServiceCustomerTable.ForeignKeys[1].RefTable = CustomersTable
 	UsersGroupMembersTable.ForeignKeys[0].RefTable = UsersGroupsTable
 	UsersGroupMembersTable.ForeignKeys[1].RefTable = UsersTable
+	UsersGroupPoliciesTable.ForeignKeys[0].RefTable = UsersGroupsTable
+	UsersGroupPoliciesTable.ForeignKeys[1].RefTable = PermissionsPoliciesTable
 }

@@ -15,13 +15,18 @@ import {
   GatewaysDashboard,
   InternalDashboard,
   NetworksDashboard,
+  TemplateDashboard,
 } from './dashboards/Dashboards';
 import {Organization} from '@fbcnms/sequelize-models';
 import {apiCredentials} from '../config';
 
-import type {Datasource, PostDatasource} from './GrafanaAPIType';
+import type {
+  CreateDashboardResponse,
+  Datasource,
+  PostDatasource,
+} from './GrafanaAPIType';
 import type {FBCNMSRequest} from '@fbcnms/auth/access';
-import type {GrafanaClient} from './GrafanaAPI';
+import type {GrafanaClient, GrafanaResponse} from './GrafanaAPI';
 import type {OrganizationType} from '@fbcnms/sequelize-models/models/organization';
 import type {UserType} from '@fbcnms/sequelize-models/models/user';
 import type {tenant} from '../../fbcnms-magma-api';
@@ -456,6 +461,7 @@ export async function syncDashboards(
   const networksDB = NetworksDashboard().generate();
   const gatewaysDB = GatewaysDashboard().generate();
   const internalDB = InternalDashboard().generate();
+  const templateDB = TemplateDashboard().generate();
   const posts = [
     {
       dashboard: networksDB,
@@ -475,19 +481,40 @@ export async function syncDashboards(
       overwrite: true,
       message: '',
     },
+    {
+      dashboard: templateDB,
+      folderId: 0,
+      overwrite: true,
+      message: '',
+    },
   ];
 
   for (const post of posts) {
-    const createDBResp = await client.createDashboard(post, grafanaOrgID);
+    // eslint-disable-next-line max-len
+    const createDBResp: GrafanaResponse<CreateDashboardResponse> = await client.createDashboard(
+      post,
+      grafanaOrgID,
+    );
     if (createDBResp.status !== 200) {
       return {
         completedTasks,
         errorTask: {
           name: 'Create Networks Dashboard',
           status: createDBResp.status,
-          message: createDBResp.data,
+          message: JSON.stringify(createDBResp.data),
         },
       };
+    }
+
+    // Starring the dashboard shouldn't break the page if it fails, so
+    // just log response
+    const dbID = createDBResp.data.id;
+    const username = makeGrafanaUsername(req.user.id);
+    const starDBResp = await client.starDashboard(dbID, grafanaOrgID, username);
+    if (starDBResp.status !== 200) {
+      console.log(
+        `Error starring Dashboard: ${dbID}: ${JSON.stringify(starDBResp)}`,
+      );
     }
   }
   return {completedTasks};

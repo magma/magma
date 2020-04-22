@@ -2,12 +2,8 @@
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
-schema:
-  - schema.graphql
-exec:
-  filename: generated.go
-model:
-  filename: models_gen.go
-resolver:
-  filename: resolver.go
-  type: Resolver
+# Extend base fluentd image
+FROM prom/prometheus
+
+# Copy config files
+COPY prometheus.yaml /etc/prometheus/prometheus.yml
