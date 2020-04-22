@@ -6,7 +6,6 @@ import { DiagramEngine } from "storm-react-diagrams";
 export class CircleStartNodeModel extends NodeModel {
   name: string;
   color: string;
-  ports: { [s: string]: CircleStartPortModel };
 
   constructor(name: string = "Untitled", color: string = "rgb(0,192,255)") {
     super("start", "start");

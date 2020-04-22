@@ -6,7 +6,6 @@ export class DefaultNodeModel extends NodeModel {
   name: string;
   color: string;
   inputs: {};
-  ports: { [s: string]: DefaultPortModel };
 
   constructor(
     name: string = "Untitled",

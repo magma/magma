@@ -7,7 +7,6 @@ import { LinkModel } from "storm-react-diagrams";
 export class DefaultPortModel extends PortModel {
   in: boolean;
   label: string;
-  links: { [id: string]: DefaultLinkModel };
 
   constructor(
     isInput: boolean,

@@ -7,7 +7,6 @@ import { DiagramEngine } from "storm-react-diagrams";
 export class ForkNodeModel extends NodeModel {
   name: string;
   color: string;
-  ports: { [s: string]: DefaultPortModel };
   inputs: {};
 
   constructor(

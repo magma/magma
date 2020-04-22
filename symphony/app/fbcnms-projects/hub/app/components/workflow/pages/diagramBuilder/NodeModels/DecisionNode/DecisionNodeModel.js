@@ -7,7 +7,6 @@ import { DecisionNodePortModel } from "./DecisionNodePortModel";
 export class DecisionNodeModel extends NodeModel {
   name: string;
   color: string;
-  ports: { [s: string]: DefaultPortModel };
   inputs: {};
 
   constructor(
