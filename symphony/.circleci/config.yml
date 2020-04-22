@@ -463,8 +463,8 @@ jobs:
           condition: <<parameters.before_test>>
           steps: <<parameters.before_test>>
       - run:
-        name: Install ca-certificates
-        command: apt-get -q1 update && apt-get -q2 install ca-certificates
+          name: Install ca-certificates
+          command: apt-get -q1 update && apt-get -q2 install ca-certificates
       - *mktestdir
       - run:
           name: Run tests
