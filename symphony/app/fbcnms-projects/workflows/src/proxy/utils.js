@@ -8,12 +8,15 @@
  * @format
  */
 
-import * as streamify from 'stream-array';
 import logging from '@fbcnms/logging';
+import streamify from 'stream-array';
 import {JSONPath} from 'jsonpath-plus';
 
 const logger = logging.getLogger(module);
-const GLOBAL_PREFIX = 'GLOBAL';
+
+// Global prefix for taskdefs which can be used by all tenants.
+// TODO: can we come up with an invalid tenant name?
+export const GLOBAL_PREFIX = 'GLOBAL';
 
 export function withUnderscore(s) {
   return s + '_';
@@ -22,11 +25,8 @@ export function withUnderscore(s) {
 export function getTenantId(req) {
   const tenantId = req.headers['x-auth-organization'];
   if (tenantId == null) {
+    logger.error('x-auth-organization header not found');
     throw 'x-auth-organization header not found';
-  }
-  if (/^[a-z0-9]+$/i.test(tenantId) == false) {
-    logger.error(`TenantId must be alphanumeric: '${tenantId}'`);
-    throw 'TenantId must be alphanumeric';
   }
   if (tenantId == GLOBAL_PREFIX) {
     logger.error(`Illegal name for TenantId: '${tenantId}'`);
