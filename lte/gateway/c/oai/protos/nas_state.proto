@@ -234,7 +234,6 @@ message EmmProcedures {
   NasEmmProcWithType emm_con_mngt_proc = 4;
   uint32 nas_proc_mess_sign_next_location = 5;
   repeated NasProcMessSign nas_proc_mess_sign = 6;
-  uint64 pointer = 200;
 }
 
 // emm_common_data_t
@@ -359,7 +358,6 @@ message EsmContext {
   EsmProcData esm_proc_data = 5;
 
   Timer t3489 = 199;
-  uint64 pointer = 200;
 }
 
 // esm_ebr_context_t

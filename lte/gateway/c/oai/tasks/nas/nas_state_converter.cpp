@@ -1143,7 +1143,7 @@ void NasStateConverter::proto_to_emm_common_proc(
 
 void NasStateConverter::eutran_vectors_to_proto(
   eutran_vector_t** state_eutran_vector_array,
-  int num_vectors,
+  uint8_t num_vectors,
   AuthInfoProc* auth_info_proc_proto)
 {
   AuthVector* eutran_vector_proto = nullptr;
@@ -1189,8 +1189,9 @@ void NasStateConverter::proto_to_eutran_vectors(
     state_nas_auth_info_proc->vector[i] = this_vector;
     i++;
   }
-  OAILOG_DEBUG(LOG_NAS_EMM, "Read %d eutran vectors", i);
   state_nas_auth_info_proc->nb_vectors = i;
+  OAILOG_DEBUG(LOG_NAS_EMM, "Read %d eutran vectors",
+               state_nas_auth_info_proc->nb_vectors);
 }
 
 void NasStateConverter::nas_auth_info_proc_to_proto(
@@ -1238,7 +1239,9 @@ void NasStateConverter::nas_cn_procs_to_proto(
       &p1->proc->base_proc, nas_cn_proc_proto->mutable_base_proc());
     switch (p1->proc->type) {
       case CN_PROC_AUTH_INFO: {
-        nas_auth_info_proc_t* state_auth_info_proc = (nas_auth_info_proc_t*) p1;
+        OAILOG_DEBUG(LOG_NAS_EMM, "Writing auth_info_proc to proto");
+        nas_auth_info_proc_t* state_auth_info_proc = (nas_auth_info_proc_t*)
+            p1->proc;
         nas_auth_info_proc_to_proto(
           state_auth_info_proc, nas_cn_proc_proto->mutable_auth_info_proc());
       } break;
@@ -1343,10 +1346,6 @@ void NasStateConverter::emm_procedures_to_proto(
     state_emm_procedures->nas_proc_mess_sign_next_location);
 
   mess_sign_array_to_proto(state_emm_procedures, emm_procedures_proto);
-  // temporarily storing the address in redis to make sure other state is
-  // passing correctly
-  emm_procedures_proto->set_pointer(
-    reinterpret_cast<uintptr_t>(state_emm_procedures));
 }
 
 void NasStateConverter::proto_to_emm_procedures(

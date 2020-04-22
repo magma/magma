@@ -523,6 +523,7 @@ void MmeNasStateConverter::ue_context_to_proto(
     &state_ue_context->emm_context, emm_ctx);
   ue_context_proto->set_sctp_assoc_id_key(state_ue_context->sctp_assoc_id_key);
   ue_context_proto->set_enb_ue_s1ap_id(state_ue_context->enb_ue_s1ap_id);
+  ue_context_proto->set_enb_s1ap_id_key(state_ue_context->enb_s1ap_id_key);
   ue_context_proto->set_mme_ue_s1ap_id(state_ue_context->mme_ue_s1ap_id);
 
   ue_context_proto->set_attach_type(state_ue_context->attach_type);
@@ -726,6 +727,7 @@ void MmeNasStateConverter::state_to_proto(
   hashtable_uint64_ts_to_proto(
     mme_nas_state_p->mme_ue_contexts.tun11_ue_context_htbl,
     mme_ue_ctxts_proto->mutable_tun11_ue_id_htbl());
+  OAILOG_DEBUG(LOG_MME_APP, "Enb_Ue_S1ap_id table to proto");
   hashtable_uint64_ts_to_proto(
     mme_nas_state_p->mme_ue_contexts.enb_ue_s1ap_id_ue_context_htbl,
     mme_ue_ctxts_proto->mutable_enb_ue_id_ue_id_htbl());
@@ -758,7 +760,7 @@ void MmeNasStateConverter::proto_to_state(
   if (mme_nas_state_p->mme_app_ue_s1ap_id_generator == 0) { // uninitialized
     mme_nas_state_p->mme_app_ue_s1ap_id_generator = 1;
   }
-  OAILOG_INFO(LOG_MME_APP, "Read MME statistics from data store");
+  OAILOG_INFO(LOG_MME_APP, "Done reading MME statistics from data store");
 
   // copy mme_ue_contexts
   MmeUeContext mme_ue_ctxts_proto = state_proto.mme_ue_contexts();

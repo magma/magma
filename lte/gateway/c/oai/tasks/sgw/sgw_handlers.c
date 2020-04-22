@@ -1150,7 +1150,7 @@ int sgw_handle_modify_bearer_request(
       itti_alloc_new_message(TASK_SPGW_APP, S11_MODIFY_BEARER_RESPONSE);
 
     if (!message_p) {
-      OAILOG_FUNC_RETURN(LOG_SPGW_APP, -1);
+      OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
     }
 
     modify_response_p = &message_p->ittiMsg.s11_modify_bearer_response;
