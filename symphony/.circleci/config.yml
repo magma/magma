@@ -52,7 +52,7 @@ executors:
       - image: hashicorp/terraform:<<parameters.tag>>
   testim:
     docker:
-      - image: testim/docker-cli
+      - image: testim/docker-cli:node-8
 
 commands:
   getmods:
@@ -462,9 +462,6 @@ jobs:
       - when:
           condition: <<parameters.before_test>>
           steps: <<parameters.before_test>>
-      - run:
-          name: Install ca-certificates
-          command: apt-get -q1 update && apt-get -q2 install ca-certificates
       - *mktestdir
       - run:
           name: Run tests
