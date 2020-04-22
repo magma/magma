@@ -36,7 +36,9 @@ const (
 	REDIS         = "REDIS"
 	MOCK_VLR      = "MOCK_VLR"
 	MOCK_OCS      = "MOCK_OCS"
+	MOCK_OCS2     = "MOCK_OCS2"
 	MOCK_PCRF     = "MOCK_PCRF"
+	MOCK_PCRF2    = "MOCK_PCRF2"
 	MOCK_HSS      = "HSS"
 
 	SESSION_MANAGER = "SESSIOND"
@@ -86,6 +88,8 @@ func init() {
 
 	addLocalService(MOCK_OCS, 9201)
 	addLocalService(MOCK_PCRF, 9202)
+	addLocalService(MOCK_OCS2, 9205)
+	addLocalService(MOCK_PCRF2, 9206)
 	addLocalService(MOCK_VLR, 9203)
 	addLocalService(MOCK_HSS, 9204)
 

@@ -36,11 +36,15 @@ const (
 	MockHSSRemote   = "HSS_REMOTE"
 	MockPCRFRemote  = "PCRF_REMOTE"
 	MockOCSRemote   = "OCS_REMOTE"
+	MockPCRFRemote2 = "PCRF_REMOTE2"
+	MockOCSRemote2  = "OCS_REMOTE2"
 	PipelinedRemote = "pipelined.local"
 	RedisRemote     = "REDIS"
 	CwagIP          = "192.168.70.101"
 	OCSPort         = 9201
 	PCRFPort        = 9202
+	OCSPort2        = 9205
+	PCRFPort2       = 9206
 	HSSPort         = 9204
 	PipelinedPort   = 8443
 	RedisPort       = 6380
@@ -75,6 +79,17 @@ func NewTestRunner(t *testing.T) *TestRunner {
 	registry.AddService(RedisRemote, CwagIP, RedisPort)
 
 	return testRunner
+}
+
+// NewTestRunnerWithTwoPCRFandOCS does the same as NewTestRunner but it inclides 2 PCRF and 2 OCS
+// Used in scenarios that run 2 PCRFs and 2 OCSs
+func NewTestRunnerWithTwoPCRFandOCS(t *testing.T) *TestRunner {
+	tr := NewTestRunner(t)
+	fmt.Printf("Adding second Mock PCRF service at %s:%d\n", CwagIP, PCRFPort2)
+	registry.AddService(MockPCRFRemote2, CwagIP, PCRFPort2)
+	fmt.Printf("Adding second OCS service at %s:%d\n", CwagIP, OCSPort2)
+	registry.AddService(MockOCSRemote2, CwagIP, OCSPort2)
+	return tr
 }
 
 // ConfigUEs creates and adds the specified number of UEs and Subscribers
