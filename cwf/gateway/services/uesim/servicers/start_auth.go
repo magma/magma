@@ -20,7 +20,7 @@ const (
 
 // CreateEAPIdentityRequest simulates starting the EAP-AKA authentication by sending a UE an
 // EAP Identity Request packet.
-func (srv *UESimServer) CreateEAPIdentityRequest(imsi string) (*radius.Packet, error) {
+func (srv *UESimServer) CreateEAPIdentityRequest(imsi, calledStationID string) (*radius.Packet, error) {
 	ue, err := getUE(srv.store, imsi)
 	if err != nil {
 		return nil, err
@@ -32,5 +32,5 @@ func (srv *UESimServer) CreateEAPIdentityRequest(imsi string) (*radius.Packet, e
 	}
 
 	// Set packet Identifier to 0.
-	return srv.EapToRadius(eapReponse, imsi, 0)
+	return srv.EapToRadius(eapReponse, imsi, calledStationID, 0)
 }
