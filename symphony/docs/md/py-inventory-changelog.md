@@ -15,6 +15,15 @@ This is template for release notes
 ***
 -->
 
+
+***
+## 2.6.1 - release date 14.04.2020
+### Changes
+- `get_location` and `get_location_by_external_id` are modified to use `locationSearch` query instead of `searchForNode` query for perfomance improve
+### Bug fixes
+***
+
+
 ***
 ## 2.6.0 - release date 14.04.2020
 ### Features
