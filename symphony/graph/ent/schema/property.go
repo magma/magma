@@ -192,5 +192,7 @@ func (Property) Edges() []ent.Edge {
 			Unique(),
 		edge.To("work_order_value", WorkOrder.Type).
 			Unique(),
+		edge.To("user_value", User.Type).
+			Unique(),
 	}
 }

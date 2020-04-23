@@ -938,6 +938,7 @@ type ComplexityRoot struct {
 		Groups       func(childComplexity int) int
 		ID           func(childComplexity int) int
 		LastName     func(childComplexity int) int
+		Name         func(childComplexity int) int
 		ProfilePhoto func(childComplexity int) int
 		Role         func(childComplexity int) int
 		Status       func(childComplexity int) int
@@ -1419,6 +1420,8 @@ type SurveyWiFiScanResolver interface {
 	Timestamp(ctx context.Context, obj *ent.SurveyWiFiScan) (int, error)
 }
 type UserResolver interface {
+	Name(ctx context.Context, obj *ent.User) (string, error)
+
 	ProfilePhoto(ctx context.Context, obj *ent.User) (*ent.File, error)
 	Groups(ctx context.Context, obj *ent.User) ([]*ent.UsersGroup, error)
 }
@@ -1428,7 +1431,7 @@ type UsersGroupResolver interface {
 }
 type ViewerResolver interface {
 	Email(ctx context.Context, obj *viewer.Viewer) (string, error)
-	User(ctx context.Context, obj *viewer.Viewer) (*ent.User, error)
+
 	Permissions(ctx context.Context, obj *viewer.Viewer) (*models.PermissionSettings, error)
 }
 type WorkOrderResolver interface {
@@ -6012,6 +6015,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.LastName(childComplexity), true
 
+	case "User.name":
+		if e.complexity.User.Name == nil {
+			break
+		}
+
+		return e.complexity.User.Name(childComplexity), true
+
 	case "User.profilePhoto":
 		if e.complexity.User.ProfilePhoto == nil {
 			break
@@ -6746,11 +6756,12 @@ enum UserRole
   OWNER
 }
 
-type User implements Node {
+type User implements Node & NamedNode {
   id: ID!
   authID: String!
   firstName: String!
   lastName: String!
+  name: String!
   email: String!
   status: UserStatus!
   role: UserRole!
@@ -31320,6 +31331,40 @@ func (ec *executionContext) _User_lastName(ctx context.Context, field graphql.Co
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _User_name(ctx context.Context, field graphql.CollectedField, obj *ent.User) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "User",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.User().Name(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _User_email(ctx context.Context, field graphql.CollectedField, obj *ent.User) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -32243,7 +32288,7 @@ func (ec *executionContext) _Viewer_user(ctx context.Context, field graphql.Coll
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Viewer().User(rctx, obj)
+		return obj.User(), nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -39785,6 +39830,11 @@ func (ec *executionContext) _NamedNode(ctx context.Context, sel ast.SelectionSet
 	switch obj := (obj).(type) {
 	case nil:
 		return graphql.Null
+	case *ent.User:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._User(ctx, sel, obj)
 	case *ent.Location:
 		if obj == nil {
 			return graphql.Null
@@ -45810,7 +45860,7 @@ func (ec *executionContext) _TopologyLink(ctx context.Context, sel ast.Selection
 	return out
 }
 
-var userImplementors = []string{"User", "Node"}
+var userImplementors = []string{"User", "Node", "NamedNode"}
 
 func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj *ent.User) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, userImplementors)
@@ -45841,6 +45891,20 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "name":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._User_name(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "email":
 			out.Values[i] = ec._User_email(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -46186,19 +46250,10 @@ func (ec *executionContext) _Viewer(ctx context.Context, sel ast.SelectionSet, o
 				return res
 			})
 		case "user":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Viewer_user(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
+			out.Values[i] = ec._Viewer_user(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "permissions":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {

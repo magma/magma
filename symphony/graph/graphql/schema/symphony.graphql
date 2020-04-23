@@ -35,11 +35,12 @@ enum UserRole
   OWNER
 }
 
-type User implements Node {
+type User implements Node & NamedNode {
   id: ID!
   authID: String!
   firstName: String!
   lastName: String!
+  name: String!
   email: String!
   status: UserStatus!
   role: UserRole!

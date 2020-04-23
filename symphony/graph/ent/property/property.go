@@ -52,6 +52,8 @@ const (
 	EdgeServiceValue = "service_value"
 	// EdgeWorkOrderValue holds the string denoting the work_order_value edge name in mutations.
 	EdgeWorkOrderValue = "work_order_value"
+	// EdgeUserValue holds the string denoting the user_value edge name in mutations.
+	EdgeUserValue = "user_value"
 
 	// Table holds the table name of the property in the database.
 	Table = "properties"
@@ -139,6 +141,13 @@ const (
 	WorkOrderValueInverseTable = "work_orders"
 	// WorkOrderValueColumn is the table column denoting the work_order_value relation/edge.
 	WorkOrderValueColumn = "property_work_order_value"
+	// UserValueTable is the table the holds the user_value relation/edge.
+	UserValueTable = "properties"
+	// UserValueInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	UserValueInverseTable = "users"
+	// UserValueColumn is the table column denoting the user_value relation/edge.
+	UserValueColumn = "property_user_value"
 )
 
 // Columns holds all SQL columns for property fields.
@@ -168,6 +177,7 @@ var ForeignKeys = []string{
 	"property_location_value",
 	"property_service_value",
 	"property_work_order_value",
+	"property_user_value",
 	"service_properties",
 	"work_order_properties",
 }

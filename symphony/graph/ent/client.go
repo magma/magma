@@ -3976,6 +3976,22 @@ func (c *PropertyClient) QueryWorkOrderValue(pr *Property) *WorkOrderQuery {
 	return query
 }
 
+// QueryUserValue queries the user_value edge of a Property.
+func (c *PropertyClient) QueryUserValue(pr *Property) *UserQuery {
+	query := &UserQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := pr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(property.Table, property.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, property.UserValueTable, property.UserValueColumn),
+		)
+		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *PropertyClient) Hooks() []Hook {
 	hooks := c.hooks.Property
