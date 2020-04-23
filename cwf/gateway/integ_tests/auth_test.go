@@ -21,6 +21,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+const (
+	CalledStationID1 = "98-DE-D0-84-B5-47:CWF-TP-LINK_B547_5G"
+	CalledStationID2 = "78-FF-FF-84-B5-99:CWF-TP-LINK_B547_5G"
+)
+
 // - Initialize 3 UEs and initiate Authentication. Assert that it is successful.
 // - Disconnect all UEs.
 func TestAuthenticateMultipleUEs(t *testing.T) {
@@ -35,7 +40,7 @@ func TestAuthenticateMultipleUEs(t *testing.T) {
 
 	for _, ue := range ues {
 		tr.AuthenticateAndAssertSuccess(ue.GetImsi())
-		tr.Disconnect(ue.GetImsi())
+		tr.DisconnectAndAssertSuccess(ue.GetImsi())
 	}
 	time.Sleep(1 * time.Second)
 }
@@ -128,7 +133,7 @@ func TestAuthenticateUplinkTraffic(t *testing.T) {
 	}
 	assert.ElementsMatch(t, expectedResult, resultByIndex)
 
-	_, err = tr.Disconnect(imsi)
-	assert.NoError(t, err)
+	tr.DisconnectAndAssertSuccess(imsi)
+	fmt.Println("wait for flows to get deactivated")
 	time.Sleep(3 * time.Second)
 }

@@ -101,7 +101,7 @@ func (srv *UESimServer) AddUE(ctx context.Context, ue *cwfprotos.UEConfig) (ret 
 // Input: The IMSI of the UE to try to authenticate.
 // Output: The resulting Radius packet returned by the Radius server.
 func (srv *UESimServer) Authenticate(ctx context.Context, id *cwfprotos.AuthenticateRequest) (*cwfprotos.AuthenticateResponse, error) {
-	eapIDResp, err := srv.CreateEAPIdentityRequest(id.GetImsi())
+	eapIDResp, err := srv.CreateEAPIdentityRequest(id.GetImsi(), id.GetCalledStationID())
 	if err != nil {
 		return &cwfprotos.AuthenticateResponse{}, err
 	}
@@ -111,7 +111,7 @@ func (srv *UESimServer) Authenticate(ctx context.Context, id *cwfprotos.Authenti
 		return &cwfprotos.AuthenticateResponse{}, err
 	}
 
-	akaIDResp, err := srv.HandleRadius(id.GetImsi(), akaIDReq)
+	akaIDResp, err := srv.HandleRadius(id.GetImsi(), id.GetCalledStationID(), akaIDReq)
 	if err != nil {
 		return &cwfprotos.AuthenticateResponse{}, err
 	}
@@ -121,7 +121,7 @@ func (srv *UESimServer) Authenticate(ctx context.Context, id *cwfprotos.Authenti
 		return &cwfprotos.AuthenticateResponse{}, err
 	}
 
-	akaChalResp, err := srv.HandleRadius(id.GetImsi(), akaChalReq)
+	akaChalResp, err := srv.HandleRadius(id.GetImsi(), id.GetCalledStationID(), akaChalReq)
 	if err != nil {
 		return &cwfprotos.AuthenticateResponse{}, err
 	}
@@ -141,7 +141,7 @@ func (srv *UESimServer) Authenticate(ctx context.Context, id *cwfprotos.Authenti
 }
 
 func (srv *UESimServer) Disconnect(ctx context.Context, id *cwfprotos.DisconnectRequest) (*cwfprotos.DisconnectResponse, error) {
-	radiusP, err := srv.MakeAccountingStopRequest()
+	radiusP, err := srv.MakeAccountingStopRequest(id.GetCalledStationID())
 	if err != nil {
 		return nil, errors.Wrap(err, "Error making Accounting Stop Radius message")
 	}

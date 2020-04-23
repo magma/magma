@@ -49,7 +49,8 @@ const (
 	PipelinedPort   = 8443
 	RedisPort       = 6380
 
-	defaultMSISDN = "5100001234"
+	defaultMSISDN          = "5100001234"
+	defaultCalledStationID = "98-DE-D0-84-B5-47:CWF-TP-LINK_B547_5G"
 )
 
 type TestRunner struct {
@@ -165,11 +166,11 @@ func (tr *TestRunner) ConfigUEsPerInstance(IMSIs []string, pcrfInstance, ocsInst
 	return ues, nil
 }
 
-// Authenticate simulates an authentication between the UE with the specified
-// IMSI and the HSS, and returns the resulting Radius packet.
-func (tr *TestRunner) Authenticate(imsi string) (*radius.Packet, error) {
+// Authenticate simulates an authentication between the UE and the HSS with the specified
+// IMSI and CalledStationID, and returns the resulting Radius packet.
+func (tr *TestRunner) Authenticate(imsi, calledStationID string) (*radius.Packet, error) {
 	fmt.Printf("************************* Authenticating UE with IMSI: %s\n", imsi)
-	res, err := uesim.Authenticate(&cwfprotos.AuthenticateRequest{Imsi: imsi})
+	res, err := uesim.Authenticate(&cwfprotos.AuthenticateRequest{Imsi: imsi, CalledStationID: calledStationID})
 	if err != nil {
 		fmt.Println(err)
 		return &radius.Packet{}, err
@@ -186,7 +187,7 @@ func (tr *TestRunner) Authenticate(imsi string) (*radius.Packet, error) {
 }
 
 func (tr *TestRunner) AuthenticateAndAssertSuccess(imsi string) {
-	radiusP, err := tr.Authenticate(imsi)
+	radiusP, err := tr.Authenticate(imsi, defaultCalledStationID)
 	assert.NoError(tr.t, err)
 
 	eapMessage := radiusP.Attributes.Get(rfc2869.EAPMessage_Type)
@@ -195,7 +196,7 @@ func (tr *TestRunner) AuthenticateAndAssertSuccess(imsi string) {
 }
 
 func (tr *TestRunner) AuthenticateAndAssertFail(imsi string) {
-	radiusP, err := tr.Authenticate(imsi)
+	radiusP, err := tr.Authenticate(imsi, defaultCalledStationID)
 	assert.NoError(tr.t, err)
 
 	eapMessage := radiusP.Attributes.Get(rfc2869.EAPMessage_Type)
@@ -203,11 +204,11 @@ func (tr *TestRunner) AuthenticateAndAssertFail(imsi string) {
 	assert.True(tr.t, reflect.DeepEqual(int(eapMessage[0]), eap.FailureCode))
 }
 
-// Authenticate simulates an authentication between the UE with the specified
-// IMSI and the HSS, and returns the resulting Radius packet.
-func (tr *TestRunner) Disconnect(imsi string) (*radius.Packet, error) {
+// Authenticate simulates an authentication between the UE and the HSS with the specified
+// IMSI and CalledStationID, and returns the resulting Radius packet.
+func (tr *TestRunner) Disconnect(imsi, calledStationID string) (*radius.Packet, error) {
 	fmt.Printf("************************* Sending a disconnect request UE with IMSI: %s\n", imsi)
-	res, err := uesim.Disconnect(&cwfprotos.DisconnectRequest{Imsi: imsi})
+	res, err := uesim.Disconnect(&cwfprotos.DisconnectRequest{Imsi: imsi, CalledStationID: calledStationID})
 	if err != nil {
 		return &radius.Packet{}, err
 	}
@@ -220,6 +221,11 @@ func (tr *TestRunner) Disconnect(imsi string) (*radius.Packet, error) {
 	}
 	tr.t.Logf("Finished Discconnecting UE. Resulting RADIUS Packet: %d\n", radiusP)
 	return radiusP, nil
+}
+
+func (tr *TestRunner) DisconnectAndAssertSuccess(imsi string) {
+	_, err := tr.Disconnect(imsi, defaultCalledStationID)
+	assert.NoError(tr.t, err)
 }
 
 // GenULTraffic simulates the UE sending traffic through the CWAG to the Internet
