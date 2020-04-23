@@ -159,10 +159,10 @@ func TestWebSocketUpgradeHandler(t *testing.T) {
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			require.Equal(t, host, r.Header.Get("X-Forwarded-Host"))
 			if username, _, ok := r.BasicAuth(); ok {
-				err := json.NewEncoder(w).Encode(&viewer.WebSocketHandlerRequest{
-					Tenant: "test",
-					User:   username,
-					Role:   "user",
+				err := json.NewEncoder(w).Encode(map[string]string{
+					"organization": "test",
+					"email":        username,
+					"role":         "user",
 				})
 				require.NoError(t, err)
 			} else if cookie, err := r.Cookie("Viewer"); err == nil {
@@ -205,10 +205,10 @@ func TestWebSocketUpgradeHandler(t *testing.T) {
 			})
 		})
 		t.Run("Session", func(t *testing.T) {
-			data, err := json.Marshal(&viewer.WebSocketHandlerRequest{
-				Tenant: "test",
-				User:   "tester",
-				Role:   "user",
+			data, err := json.Marshal(map[string]string{
+				"organization": "test",
+				"email":        "tester",
+				"role":         "user",
 			})
 			require.NoError(t, err)
 			authenticate(t, func(req *http.Request) {

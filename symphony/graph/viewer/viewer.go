@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"sort"
 	"strings"
-	"sync"
+	"sync/atomic"
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/user"
@@ -71,19 +71,12 @@ func WithFeatures(features ...string) Option {
 type Viewer struct {
 	Tenant   string
 	Features FeatureSet
-	user     *ent.User
-	mu       sync.RWMutex
+	user     atomic.Value
 }
 
 type UserHandler struct {
 	Handler http.Handler
 	Logger  log.Logger
-}
-
-type WebSocketHandlerRequest struct {
-	Tenant string `json:"organization"`
-	User   string `json:"email"`
-	Role   string `json:"role"`
 }
 
 // NewFeatureSet create FeatureSet from a list of features.
@@ -96,10 +89,8 @@ func NewFeatureSet(features ...string) FeatureSet {
 }
 
 func New(tenant string, user *ent.User, options ...Option) *Viewer {
-	v := &Viewer{
-		Tenant: tenant,
-		user:   user,
-	}
+	v := &Viewer{Tenant: tenant}
+	v.user.Store(user)
 	for _, option := range options {
 		option(v)
 	}
@@ -125,16 +116,16 @@ func (f FeatureSet) Enabled(feature string) bool {
 // MarshalLogObject implements zapcore.ObjectMarshaler interface.
 func (v *Viewer) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 	enc.AddString("tenant", v.Tenant)
-	enc.AddString("user", v.user.AuthID)
-	enc.AddString("role", v.user.Role.String())
+	enc.AddString("user", v.User().AuthID)
+	enc.AddString("role", v.User().Role.String())
 	return nil
 }
 
 func (v *Viewer) traceAttrs() []trace.Attribute {
 	return []trace.Attribute{
 		trace.StringAttribute(TenantAttribute, v.Tenant),
-		trace.StringAttribute(UserAttribute, v.user.AuthID),
-		trace.StringAttribute(RoleAttribute, v.user.Role.String()),
+		trace.StringAttribute(UserAttribute, v.User().AuthID),
+		trace.StringAttribute(RoleAttribute, v.User().Role.String()),
 	}
 }
 
@@ -145,17 +136,16 @@ func (v *Viewer) tags(r *http.Request) []tag.Mutator {
 	}
 	return []tag.Mutator{
 		tag.Upsert(KeyTenant, v.Tenant),
-		tag.Upsert(KeyUser, v.user.AuthID),
-		tag.Upsert(KeyRole, v.user.Role.String()),
+		tag.Upsert(KeyUser, v.User().AuthID),
+		tag.Upsert(KeyRole, v.User().Role.String()),
 		tag.Upsert(KeyUserAgent, userAgent),
 	}
 }
 
 // User returns the ent user of the viewer.
 func (v *Viewer) User() *ent.User {
-	v.mu.RLock()
-	defer v.mu.RUnlock()
-	return v.user
+	u, _ := v.user.Load().(*ent.User)
+	return u
 }
 
 // WebSocketUpgradeHandler authenticates websocket upgrade requests.
@@ -198,14 +188,18 @@ func WebSocketUpgradeHandler(h http.Handler, authurl string) http.Handler {
 			return
 		}
 
-		var body WebSocketHandlerRequest
-		if err := json.NewDecoder(rsp.Body).Decode(&body); err != nil {
+		var current struct {
+			Tenant string `json:"organization"`
+			User   string `json:"email"`
+			Role   string `json:"role"`
+		}
+		if err := json.NewDecoder(rsp.Body).Decode(&current); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		r.Header.Set(TenantHeader, body.Tenant)
-		r.Header.Set(UserHeader, body.User)
-		r.Header.Set(RoleHeader, body.Role)
+		r.Header.Set(TenantHeader, current.Tenant)
+		r.Header.Set(UserHeader, current.User)
+		r.Header.Set(RoleHeader, current.Role)
 		h.ServeHTTP(w, r)
 	})
 }
@@ -238,25 +232,28 @@ func TenancyHandler(h http.Handler, tenancy Tenancy) http.Handler {
 	})
 }
 
-// GetOrCreateUser creates or returns existing user ent with given authID and role
-func GetOrCreateUser(ctx context.Context, authID string, role string) (*ent.User, error) {
-	client := ent.FromContext(ctx)
-	u, err := client.User.Query().Where(user.AuthID(authID)).Only(ctx)
-	if err != nil {
-		if !ent.IsNotFound(err) {
-			return nil, err
-		}
-		expandedRole := user.RoleUSER
-		if role == SuperUserRole {
-			expandedRole = user.RoleOWNER
-		}
-		u, err = client.User.Create().SetAuthID(authID).SetEmail(authID).SetRole(expandedRole).Save(ctx)
-		if err != nil {
-			if !ent.IsConstraintError(err) {
-				return nil, err
+// GetOrCreateUser creates or returns existing user with given authID and role.
+func GetOrCreateUser(ctx context.Context, authID, role string) (*ent.User, error) {
+	client := ent.FromContext(ctx).User
+	if u, err := client.Query().
+		Where(user.AuthID(authID)).
+		Only(ctx); err == nil || !ent.IsNotFound(err) {
+		return u, err
+	}
+	u, err := client.Create().
+		SetAuthID(authID).
+		SetEmail(authID).
+		SetRole(func() user.Role {
+			if role == SuperUserRole {
+				return user.RoleOWNER
 			}
-			return client.User.Query().Where(user.AuthID(authID)).Only(ctx)
-		}
+			return user.RoleUSER
+		}()).
+		Save(ctx)
+	if ent.IsConstraintError(err) {
+		u, err = client.Query().
+			Where(user.AuthID(authID)).
+			Only(ctx)
 	}
 	return u, err
 }

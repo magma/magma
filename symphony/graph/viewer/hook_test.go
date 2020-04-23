@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/facebookincubator/symphony/graph/viewer"
-
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 	"github.com/stretchr/testify/require"
 )
@@ -20,7 +19,7 @@ func TestUpdateUserInViewer(t *testing.T) {
 	ctx2 := viewertest.NewContext(context.Background(), c, viewertest.WithUser("tester2@example.com"))
 
 	u := viewer.FromContext(ctx).User()
-	require.Equal(t, "tester@example.com", u.Email)
+	require.Equal(t, viewertest.DefaultUser, u.Email)
 	u2 := viewer.FromContext(ctx2).User()
 	require.Equal(t, "tester2@example.com", u2.Email)
 
