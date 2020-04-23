@@ -204,6 +204,15 @@ func (tr *TestRunner) AuthenticateAndAssertFail(imsi string) {
 	assert.True(tr.t, reflect.DeepEqual(int(eapMessage[0]), eap.FailureCode))
 }
 
+func (tr *TestRunner) AuthenticateWithCalledIDAndAssertSuccess(imsi, calledStationID string) {
+	radiusP, err := tr.Authenticate(imsi, calledStationID)
+	assert.NoError(tr.t, err)
+
+	eapMessage := radiusP.Attributes.Get(rfc2869.EAPMessage_Type)
+	assert.NotNil(tr.t, eapMessage, fmt.Sprintf("EAP Message from authentication is nil"))
+	assert.True(tr.t, reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode), fmt.Sprintf("UE Authentication did not return success"))
+}
+
 // Authenticate simulates an authentication between the UE and the HSS with the specified
 // IMSI and CalledStationID, and returns the resulting Radius packet.
 func (tr *TestRunner) Disconnect(imsi, calledStationID string) (*radius.Packet, error) {
@@ -226,6 +235,14 @@ func (tr *TestRunner) Disconnect(imsi, calledStationID string) (*radius.Packet, 
 func (tr *TestRunner) DisconnectAndAssertSuccess(imsi string) {
 	_, err := tr.Disconnect(imsi, defaultCalledStationID)
 	assert.NoError(tr.t, err)
+}
+
+// ResetUESeq reset sequence for a UE allowing multiple authentication.
+//
+func (tr *TestRunner) ResetUESeq(ue *cwfprotos.UEConfig) error {
+	fmt.Printf("************************* Reset Ue Sequence for IMSI: %v\n", ue.Imsi)
+	ue.Seq--
+	return uesim.AddUE(ue)
 }
 
 // GenULTraffic simulates the UE sending traffic through the CWAG to the Internet
