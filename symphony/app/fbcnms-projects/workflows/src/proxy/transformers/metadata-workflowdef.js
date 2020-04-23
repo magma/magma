@@ -17,6 +17,7 @@ import {
   addTenantIdPrefix,
   assertAllowedSystemTask,
   createProxyOptionsBuffer,
+  isSubworkflowTask,
   withUnderscore,
 } from '../utils.js';
 
@@ -33,6 +34,11 @@ function sanitizeWorkflowdefBefore(tenantId, workflowdef) {
   // add prefix to tasks
   for (const task of workflowdef.tasks) {
     addTenantIdPrefix(tenantId, task);
+
+    // add prefix to SUB_WORKFLOW tasks' referenced workflows
+    if (isSubworkflowTask(task)) {
+      addTenantIdPrefix(tenantId, task.subWorkflowParam);
+    }
   }
   // add prefix to workflow
   addTenantIdPrefix(tenantId, workflowdef);
@@ -47,7 +53,17 @@ function sanitizeWorkflowdefAfter(tenantId, workflowdef) {
   if (workflowdef.name.indexOf(tenantWithUnderscore) == 0) {
     // keep only workflows with correct taskdefs,
     // allowed are GLOBAL and those with tenantId prefix which will be removed
+
     for (const task of workflowdef.tasks) {
+      // remove prefix from SUB_WORKFLOW tasks' referenced workflows
+      if (isSubworkflowTask(task)) {
+        if (task.subWorkflowParam?.name) {
+          task.subWorkflowParam.name = task.subWorkflowParam.name.substr(
+            tenantWithUnderscore.length,
+          );
+        }
+      }
+
       if (task.name.indexOf(tenantWithUnderscore) == 0) {
         // remove prefix
         task.name = task.name.substr(tenantWithUnderscore.length);

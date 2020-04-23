@@ -20,11 +20,12 @@ export const GLOBAL_PREFIX = 'GLOBAL';
 // This is used to separate tenant id from name in workflowdefs and taskdefs
 export const INFIX_SEPARATOR = '___';
 
+const SUB_WORKFLOW = 'SUB_WORKFLOW';
 const SYSTEM_TASK_TYPES = [
+  SUB_WORKFLOW,
   'DECISION',
   'EVENT',
   'HTTP',
-  'SUB_WORKFLOW',
   'FORK',
   'FORK_JOIN_DYNAMIC',
   'JOIN',
@@ -39,6 +40,10 @@ const SYSTEM_TASK_TYPES = [
 
 function isAllowedSystemTask(task) {
   return SYSTEM_TASK_TYPES.includes(task.type);
+}
+
+export function isSubworkflowTask(task) {
+  return SUB_WORKFLOW === task.type;
 }
 
 export function assertAllowedSystemTask(task) {
