@@ -54,17 +54,16 @@ func (User) Edges() []ent.Edge {
 	}
 }
 
-func (u User) Policy() ent.Policy {
-	return wrapPolicy(privacy.Policy{
-		Mutation: privacy.MutationPolicy{
+// Policy returns user policy.
+func (User) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithMutationRules(
 			privacy.DenyMutationOperationRule(
-				ent.OpDelete | ent.OpDeleteOne,
+				ent.OpDelete|ent.OpDeleteOne,
 			),
-			authz.MutationWithViewerRule(
-				authz.AllowAdminRule,
-			),
-		},
-	})
+			authz.AllowAdminRule(),
+		),
+	)
 }
 
 // Hooks of the User.

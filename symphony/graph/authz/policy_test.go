@@ -1,3 +1,7 @@
+// Copyright (c) 2004-present Facebook All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package authz_test
 
 import (
@@ -39,19 +43,23 @@ func TestPolicy(t *testing.T) {
 		postRule.AssertExpectations(t)
 	}()
 
-	policy := authz.Policy{
-		Query:    privacy.QueryPolicy{&midRule},
-		Mutation: privacy.MutationPolicy{&midRule},
-	}
+	policy := authz.NewPolicy(
+		authz.WithQueryRules(&midRule),
+		authz.WithMutationRules(&midRule),
+		authz.WithPrePolicy(privacy.Policy{
+			Query:    privacy.QueryPolicy{&preRule},
+			Mutation: privacy.MutationPolicy{&preRule},
+		}),
+		authz.WithPostPolicy(privacy.Policy{
+			Query:    privacy.QueryPolicy{&postRule},
+			Mutation: privacy.MutationPolicy{&postRule},
+		}),
+	)
 	t.Run("Query", func(t *testing.T) {
-		authz.PrePolicy.Query = privacy.QueryPolicy{&preRule}
-		authz.PostPolicy.Query = privacy.QueryPolicy{&postRule}
 		err := policy.EvalQuery(context.Background(), nil)
 		assert.NoError(t, err)
 	})
 	t.Run("Mutation", func(t *testing.T) {
-		authz.PrePolicy.Mutation = privacy.MutationPolicy{&preRule}
-		authz.PostPolicy.Mutation = privacy.MutationPolicy{&postRule}
 		err := policy.EvalMutation(context.Background(), nil)
 		assert.NoError(t, err)
 	})

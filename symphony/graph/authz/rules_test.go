@@ -1,3 +1,7 @@
+// Copyright (c) 2004-present Facebook All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package authz_test
 
 import (
@@ -25,14 +29,25 @@ func TestUserCannotBeDeleted(t *testing.T) {
 }
 
 func TestAdminUserCanEditUsers(t *testing.T) {
+	const admin = "admin_user"
 	client := viewertest.NewTestClient(t)
 	ctx := ent.NewContext(context.Background(), client)
-	_, err := client.User.Create().SetAuthID("admin_user").SetRole(user.RoleADMIN).Save(ctx)
+	_, err := client.User.Create().
+		SetAuthID(admin).
+		SetRole(user.RoleADMIN).
+		Save(ctx)
 	require.NoError(t, err)
-	ctx = viewertest.NewContext(context.Background(), client, viewertest.WithUser("admin_user"))
-	_, err = client.UsersGroup.Create().SetName("NewGroup").Save(ctx)
+	ctx = viewertest.NewContext(
+		context.Background(), client,
+		viewertest.WithUser(admin),
+	)
+	_, err = client.UsersGroup.Create().
+		SetName("NewGroup").
+		Save(ctx)
 	require.NoError(t, err)
-	_, err = client.User.Create().SetAuthID("new_user").Save(ctx)
+	_, err = client.User.Create().
+		SetAuthID("new_user").
+		Save(ctx)
 	require.NoError(t, err)
 }
 

@@ -1,3 +1,7 @@
+// Copyright (c) 2004-present Facebook All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package authz
 
 import (
@@ -11,15 +15,11 @@ import (
 	"github.com/facebookincubator/symphony/graph/viewer"
 )
 
-// MutationWithViewerRuleFunc type is an adapter to allow the use of
-// ordinary functions with viewer parameter as mutation rules.
-type MutationWithViewerRuleFunc func(context.Context, ent.Mutation, *viewer.Viewer) error
-
 // WritePermissionGroupName is the name of the group that its member has write permission for all symphony.
 const WritePermissionGroupName = "Write Permission"
 
-// MutationWithViewerRule returns a rule that checks for viewer and skip if not exist
-func MutationWithViewerRule(rule MutationWithViewerRuleFunc) privacy.MutationRule {
+// mutationWithViewerRule returns a rule that checks for viewer and skip if it doesn't exist.
+func mutationWithViewerRule(rule func(context.Context, ent.Mutation, *viewer.Viewer) error) privacy.MutationRule {
 	return privacy.MutationRuleFunc(func(ctx context.Context, m ent.Mutation) error {
 		v := viewer.FromContext(ctx)
 		if v == nil {
@@ -47,28 +47,36 @@ func userHasAdminPermissions(u *ent.User) bool {
 	return u.Role == user.RoleADMIN || u.Role == user.RoleOWNER
 }
 
-// AllowViewerWritePermissionsRule is a rule to grant write permission.
-func AllowViewerWritePermissionsRule(ctx context.Context, _ ent.Mutation, v *viewer.Viewer) error {
-	writePermissions, err := UserHasWritePermissions(ctx, v)
-	if err != nil {
-		return privacy.Denyf("cannot read write permissions of user .%w", err)
-	}
-	if writePermissions {
-		return privacy.Allow
-	}
-	return privacy.Skip
+// AllowViewerWritePermissionsRule grants write permission.
+func AllowViewerWritePermissionsRule() privacy.MutationRule {
+	return mutationWithViewerRule(func(ctx context.Context, _ ent.Mutation, v *viewer.Viewer) error {
+		switch hasPerm, err := UserHasWritePermissions(ctx, v); {
+		case err != nil:
+			return privacy.Denyf("cannot get write permissions of user: %w", err)
+		case hasPerm:
+			return privacy.Allow
+		default:
+			return privacy.Skip
+		}
+	})
 }
 
-// DenyRule is a rule that always deny
-func DenyRule(_ context.Context, _ ent.Mutation, _ *viewer.Viewer) error {
-	return privacy.Deny
+// AllowAdminRule grants access to admins.
+func AllowAdminRule() privacy.MutationRule {
+	return mutationWithViewerRule(func(_ context.Context, _ ent.Mutation, v *viewer.Viewer) error {
+		if userHasAdminPermissions(v.User()) {
+			return privacy.Allow
+		}
+		return privacy.Skip
+	})
 }
 
-// AllowAdminRule is a rule that allows permissions if user has at least admin permissions
-func AllowAdminRule(_ context.Context, _ ent.Mutation, v *viewer.Viewer) error {
-	u := v.User()
-	if userHasAdminPermissions(u) {
-		return privacy.Allow
-	}
-	return privacy.Skip
+// AlwaysAllowIfNoViewerRule grants access if no viewer is present on context.
+func AlwaysAllowIfNoViewerRule() privacy.MutationRule {
+	return privacy.MutationRuleFunc(func(ctx context.Context, _ ent.Mutation) error {
+		if viewer.FromContext(ctx) == nil {
+			return privacy.Allow
+		}
+		return privacy.Skip
+	})
 }

@@ -1,40 +1,93 @@
+// Copyright (c) 2004-present Facebook All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package authz
 
 import (
-	"context"
-	"errors"
-
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/privacy"
 )
 
-// Policy wraps privacy policy with static pre/post policies.
-type Policy privacy.Policy
-
 var (
-	// PrePolicy is executed before privacy policy.
-	PrePolicy = privacy.Policy{}
+	// prePolicy is executed before privacy policy.
+	prePolicy = privacy.Policy{}
 
-	// PostPolicy is executed after privacy policy.
-	PostPolicy = privacy.Policy{}
+	// postPolicy is executed after privacy policy.
+	postPolicy = privacy.Policy{
+		Mutation: privacy.MutationPolicy{
+			AllowViewerWritePermissionsRule(),
+			AlwaysAllowIfNoViewerRule(),
+			privacy.AlwaysDenyRule(),
+		},
+	}
 )
 
-// EvalQuery evaluates query policy.
-func (p Policy) EvalQuery(ctx context.Context, q ent.Query) error {
-	for _, policy := range []ent.Policy{PrePolicy, privacy.Policy(p), PostPolicy} {
-		if err := policy.EvalQuery(ctx, q); err != nil && !errors.Is(err, privacy.Skip) {
-			return err
-		}
+type (
+	// PolicyOption configures policy creation.
+	PolicyOption func(*policies)
+
+	// policies aggregate policy options.
+	policies struct {
+		query     privacy.QueryPolicy
+		mutation  privacy.MutationPolicy
+		pre, post privacy.Policy
 	}
-	return nil
+)
+
+// WithQueryRules adds query rules to policy.
+func WithQueryRules(rules ...privacy.QueryRule) PolicyOption {
+	return func(policies *policies) {
+		policies.query = append(policies.query, rules...)
+	}
 }
 
-// EvalMutation evaluates mutation policy.
-func (p Policy) EvalMutation(ctx context.Context, m ent.Mutation) error {
-	for _, policy := range []ent.Policy{PrePolicy, privacy.Policy(p), PostPolicy} {
-		if err := policy.EvalMutation(ctx, m); err != nil && !errors.Is(err, privacy.Skip) {
-			return err
-		}
+// WithMutationRules adds mutation rules to policy.
+func WithMutationRules(rules ...privacy.MutationRule) PolicyOption {
+	return func(policies *policies) {
+		policies.mutation = append(policies.mutation, rules...)
 	}
-	return nil
+}
+
+// WithPrePolicy overrides the pre-policy to be executed.
+func WithPrePolicy(policy privacy.Policy) PolicyOption {
+	return func(policies *policies) {
+		policies.pre = policy
+	}
+}
+
+// WithPostPolicy overrides the post-policy to be executed.
+func WithPostPolicy(policy privacy.Policy) PolicyOption {
+	return func(policies *policies) {
+		policies.post = policy
+	}
+}
+
+// NewPolicy creates a privacy policy.
+func NewPolicy(opts ...PolicyOption) ent.Policy {
+	policies := policies{
+		pre:  prePolicy,
+		post: postPolicy,
+	}
+	for _, opt := range opts {
+		opt(&policies)
+	}
+	return privacy.Policy{
+		Query:    policies.queryPolicy(),
+		Mutation: policies.mutationPolicy(),
+	}
+}
+
+func (policies policies) queryPolicy() privacy.QueryPolicy {
+	policy := append(privacy.QueryPolicy(nil), policies.pre.Query...)
+	policy = append(policy, policies.query...)
+	policy = append(policy, policies.post.Query...)
+	return policy
+}
+
+func (policies policies) mutationPolicy() privacy.MutationPolicy {
+	policy := append(privacy.MutationPolicy(nil), policies.pre.Mutation...)
+	policy = append(policy, policies.mutation...)
+	policy = append(policy, policies.post.Mutation...)
+	return policy
 }

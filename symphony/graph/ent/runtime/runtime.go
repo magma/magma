@@ -1209,6 +1209,6 @@ func init() {
 }
 
 const (
-	Version = "v0.2.1-0.20200420155719-5f180a69547c"            // Version of ent codegen.
-	Sum     = "h1:ahBSs5sd3T6c33u1xSk3FjerEWGxkj393M9+OgiaIjY=" // Sum of ent codegen.
+	Version = "v0.2.2-0.20200423071041-6e584d8efc28"            // Version of ent codegen.
+	Sum     = "h1:mbd+qK1ZUp9le5trS6kuSRIRDg6cy7biE2/EmOUwymE=" // Sum of ent codegen.
 )
