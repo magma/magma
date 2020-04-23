@@ -17,10 +17,11 @@ This is template for release notes
 
 
 ***
-## 2.6.1 - release date 14.04.2020
+## 2.6.1 - release date 23.04.2020
 ### Changes
-- `get_location` and `get_location_by_external_id` are modified to use `locationSearch` query instead of `searchForNode` query for perfomance improve
+- `get_location` and `get_location_by_external_id` performance is improved (`get_location_by_external_id` had 3X time improvement from 0.9 seconds to 0.3 seconds)
 ### Bug fixes
+- Fixed a server breaking change introduced on 15.4.2020. The changes breaks all APIs that add or edit properties for all pyinventory versions.
 ***
 
 
