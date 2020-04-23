@@ -40,7 +40,8 @@ const initialState = {
     { name: "http", description: "HTTP execution task" },
     { name: "lambda", description: "Arbitrary javascript code execution task" },
     { name: "wait", description: "Wait for a specific event before continuing" },
-    { name: "event", description: "Publish a specific event (other workflow might be waiting for)" }
+    { name: "event", description: "Publish a specific event (other workflow might be waiting for)" },
+    { name: "raw", description: "Specify a task in JSON" },
   ],
   workflowNameLock: false,
   switchSmartRouting: false,

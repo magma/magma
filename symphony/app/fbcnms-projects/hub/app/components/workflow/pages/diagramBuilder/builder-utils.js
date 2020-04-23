@@ -119,6 +119,19 @@ export const getEndNode = links => {
   }
 };
 
+export const handleRawNode = (rawNode) => {
+  if (!rawNode.inputParameters.raw) {
+    throw new Error("Invalid raw task definition. No content");
+  }
+
+  try {
+    return JSON.parse(rawNode.inputParameters.raw);
+  } catch (e) {
+    const content = rawNode.inputParameters.raw.substring(0, 100);
+    throw new Error(`Invalid raw task definition for: ${content}. Reason: ${e.message}`);
+  }
+};
+
 export const handleForkNode = forkNode => {
   let joinNode = null;
   let forkTasks = [];

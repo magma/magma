@@ -96,6 +96,15 @@
     line-height: 30px;
 }
 
+.raw-icon{
+    position: relative;
+    height: 30px;
+    width: 30px;
+    background-color: rgb(137, 141, 148);
+    color: white;
+    line-height: 30px;
+}
+
 kbd {
     display: inline-block;
     margin: 0 .1em;

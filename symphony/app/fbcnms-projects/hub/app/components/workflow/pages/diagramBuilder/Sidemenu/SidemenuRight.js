@@ -114,6 +114,14 @@ const systemTasks = type => {
         optional: false
       };
     }
+    case "raw": {
+      return {
+        name: "RAW",
+        inputParameters: {
+          raw: ""
+        }
+      };
+    }
     default:
       break;
   }
@@ -164,6 +172,10 @@ const icons = taskDef => {
     case "http":
       return (
         <div className="lambda-icon">{task.substring(0, 1).toUpperCase()}</div>
+      );    
+    case "raw":
+      return (
+        <div className="raw-icon">{task.substring(0, 1).toUpperCase()}</div>
       );
     case "event":
       return (

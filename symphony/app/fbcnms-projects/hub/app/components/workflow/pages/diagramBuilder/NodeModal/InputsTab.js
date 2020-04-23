@@ -7,7 +7,7 @@ import "ace-builds/src-noconflict/mode-javascript";
 import "ace-builds/src-noconflict/theme-tomorrow";
 
 const TEXTFIELD_KEYWORDS = ["template", "uri", "body"];
-const CODEFIELD_KEYWORDS = ["scriptExpression"];
+const CODEFIELD_KEYWORDS = ["scriptExpression", "raw"];
 const SELECTFIELD_KEYWORDS = ["method", "action"];
 const KEYFIELD_KEYWORDS = ["headers"];
 const SELECTFIELD_OPTIONS = {
@@ -234,8 +234,8 @@ const InputsTab = props => {
     }
   };
 
-  return (
-    <div>
+  const createAdditionalFieldsPrompt = () => {
+    return (
       <Row>
         <Form onSubmit={addNewInputParam}>
           <InputGroup style={{ padding: "10px 215px 10px" }}>
@@ -252,14 +252,26 @@ const InputsTab = props => {
           </InputGroup>
         </Form>
       </Row>
+    );
+  };
+
+  return (
+    <div>
+      {props.name !== "RAW" && createAdditionalFieldsPrompt()}
+      
       <hr className="hr-text" data-content="Existing input parameters" />
       <Form>
         <Row>
           {Object.entries(props.inputs || []).map(item => {
             if (item[0] === "inputParameters") {
-              return Object.entries(item[1]).map(entry => {
-                if (typeof entry[1] === "object") {
-                  return Object.entries(entry[1]).map(innerEntry => {
+              return Object.entries(item[1]).map((entry) => {
+                if (
+                  typeof entry[1] === "object" &&
+                  !TEXTFIELD_KEYWORDS.find((keyword) =>
+                    entry[0].includes(keyword)
+                  )
+                ) {
+                  return Object.entries(entry[1]).map((innerEntry) => {
                     return handleInputField(innerEntry, entry);
                   });
                 } else {

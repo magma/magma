@@ -203,12 +203,15 @@ function NodeModal(props) {
       </Modal.Header>
       <Modal.Body style={{ padding: "30px" }}>
         <Tabs style={{ marginBottom: "20px" }}>
-          <Tab eventKey={1} title="General">
-            <GeneralTab inputs={inputs} handleInput={handleInput} />
-          </Tab>
+          {name !== "RAW" && // Only display general settings for non RAW tasks
+            <Tab eventKey={1} title="General">
+              <GeneralTab inputs={inputs} handleInput={handleInput} />
+            </Tab>
+          }
           <Tab eventKey={2} title="Input parameters">
             <InputsTab
               inputs={inputs}
+              name={name}
               handleInput={handleInput}
               addNewInputParam={addNewInputParam}
               inputParameters={inputParameters}

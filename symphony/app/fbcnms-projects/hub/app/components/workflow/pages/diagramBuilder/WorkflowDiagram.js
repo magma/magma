@@ -12,6 +12,7 @@ import {
   handleDecideNode,
   handleForkNode,
   linkNodes,
+  handleRawNode,
 } from "./builder-utils";
 import { DecisionNodeModel } from "./NodeModels/DecisionNode/DecisionNodeModel";
 import { DefaultNodeModel } from "./NodeModels/DefaultNodeModel/DefaultNodeModel";
@@ -26,6 +27,7 @@ const nodeColors = {
   systemTask: "rgb(11,60,139)",
   lambdaTask: "rgb(240,219,79)",
   terminateTask: "rgb(255,30,0)",
+  rawTask: "rgb(137,141,148)",
   httpTask: "rgb(80,255,163)",
   eventTask: "rgb(137,59,255)",
   waitTask: "rgb(171,171,171)",
@@ -288,6 +290,9 @@ export class WorkflowDiagram {
       case "terminate":
         node = this.placeTerminateNode(task, points.x, points.y);
         break;
+      case "raw":
+        node = this.placeRawNode(task, points.x, points.y);
+        break;
       case "http":
         node = this.placeHTTPNode(task, points.x, points.y);
         break;
@@ -429,6 +434,12 @@ export class WorkflowDiagram {
 
   placeTerminateNode = (task, x, y) => {
     let node = new DefaultNodeModel(task.name, nodeColors.terminateTask, task);
+    node.setPosition(x, y);
+    return node;
+  };
+
+  placeRawNode = (task, x, y) => {
+    let node = new DefaultNodeModel(task.name, nodeColors.rawTask, task);
     node.setPosition(x, y);
     return node;
   };
@@ -660,12 +671,6 @@ export class WorkflowDiagram {
    */
   createNode(task, branchX, branchY, forkDepth = 1) {
     switch (task.type) {
-      case "SUB_WORKFLOW": {
-        const { x, y } = this.calculatePosition(branchX, branchY);
-        const node = this.placeDefaultNode(task, x, y);
-        this.diagramModel.addNode(node);
-        break;
-      }
       case "FORK_JOIN": {
         const { x, y } = this.calculatePosition(branchX, branchY);
         const branchCount = task.forkTasks.length;
@@ -767,9 +772,22 @@ export class WorkflowDiagram {
         this.diagramModel.addNode(node);
         break;
       }
-      default: {
+      case "SIMPLE":
+      case "SUB_WORKFLOW": {
         const { x, y } = this.calculatePosition(branchX, branchY);
         const node = this.placeDefaultNode(task, x, y);
+        this.diagramModel.addNode(node);
+        break;
+      }
+      default: {
+        const { x, y } = this.calculatePosition(branchX, branchY);
+        const rawTask = {
+          name: "RAW",
+          inputParameters: {
+            raw: JSON.stringify(task)
+          }
+        }
+        const node = this.placeRawNode(rawTask, x, y);
         this.diagramModel.addNode(node);
         break;
       }
@@ -825,7 +843,11 @@ export class WorkflowDiagram {
               break;
             default:
               parentNode = link.targetPort.parent;
-              tasks.push(parentNode.extras.inputs);
+              if (parentNode.name === "RAW") {
+                tasks.push(handleRawNode(parentNode.extras.inputs));
+              } else {
+                tasks.push(parentNode.extras.inputs);
+              }
               break;
           }
         }
