@@ -13,7 +13,6 @@ import logging from '@fbcnms/logging';
 // Currently just filters result without passing prefix to conductor.
 // TODO: implement querying by prefix in conductor
 import {
-  GLOBAL_PREFIX,
   addTenantIdPrefix,
   assertAllowedSystemTask,
   createProxyOptionsBuffer,
@@ -30,13 +29,10 @@ function getAllTaskdefsAfter(tenantId, req, respObj) {
   // iterate over taskdefs, keep only those belonging to tenantId or global
   // remove tenantId prefix, keep GLOBAL_
   const tenantWithUnderscore = withUnderscore(tenantId);
-  const globalWithUnderscore = withUnderscore(GLOBAL_PREFIX);
   for (let idx = respObj.length - 1; idx >= 0; idx--) {
     const taskdef = respObj[idx];
     if (taskdef.name.indexOf(tenantWithUnderscore) == 0) {
       taskdef.name = taskdef.name.substr(tenantWithUnderscore.length);
-    } else if (taskdef.name.indexOf(globalWithUnderscore) == 0) {
-      // noop
     } else {
       // remove element
       respObj.splice(idx, 1);

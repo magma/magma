@@ -14,7 +14,6 @@ import logging from '@fbcnms/logging';
 
 import qs from 'qs';
 import {
-  GLOBAL_PREFIX,
   addTenantIdPrefix,
   assertAllowedSystemTask,
   createProxyOptionsBuffer,
@@ -49,9 +48,7 @@ function sanitizeWorkflowdefAfter(tenantId, workflowdef) {
     // keep only workflows with correct taskdefs,
     // allowed are GLOBAL and those with tenantId prefix which will be removed
     for (const task of workflowdef.tasks) {
-      if (task.name.indexOf(withUnderscore(GLOBAL_PREFIX)) == 0) {
-        // noop
-      } else if (task.name.indexOf(tenantWithUnderscore) == 0) {
+      if (task.name.indexOf(tenantWithUnderscore) == 0) {
         // remove prefix
         task.name = task.name.substr(tenantWithUnderscore.length);
       } else {

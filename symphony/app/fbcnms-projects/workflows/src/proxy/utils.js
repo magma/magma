@@ -15,7 +15,6 @@ import {JSONPath} from 'jsonpath-plus';
 const logger = logging.getLogger(module);
 
 // Global prefix for taskdefs which can be used by all tenants.
-// TODO: can we come up with an invalid tenant name?
 export const GLOBAL_PREFIX = 'GLOBAL';
 
 // This is used to separate tenant id from name in workflowdefs and taskdefs
@@ -87,11 +86,6 @@ export function getTenantId(req) {
   return tenantId;
 }
 
-// TODO: deprecated, use removeTenantPrefix
-export function removeTenantId(json, attr, tenantId) {
-  removeTenantPrefix(tenantId, json, attr, false);
-}
-
 export function createProxyOptionsBuffer(modifiedBody, req) {
   // if request transformer returned modified body,
   // serialize it to new request stream. Original
@@ -111,6 +105,9 @@ export function createProxyOptionsBuffer(modifiedBody, req) {
   return streamify(modifiedBody);
 }
 
+// Mass remove tenant prefix from json object.
+// Setting allowGlobal to true implies that tasks are being processed,
+// those starting with global prefix will not be touched.
 export function removeTenantPrefix(tenantId, json, jsonPath, allowGlobal) {
   const tenantWithUnderscore = withUnderscore(tenantId);
   const globalPrefix = withUnderscore(GLOBAL_PREFIX);
@@ -135,6 +132,7 @@ export function removeTenantPrefix(tenantId, json, jsonPath, allowGlobal) {
   }
 }
 
+// See removeTenantPrefix
 export function removeTenantPrefixes(tenantId, json, jsonPathToAllowGlobal) {
   for (const key in jsonPathToAllowGlobal) {
     removeTenantPrefix(tenantId, json, key, jsonPathToAllowGlobal[key]);
