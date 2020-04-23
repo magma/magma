@@ -2,7 +2,8 @@
   "wiki": {
     "General": [
       "team-processes",
-      "release-notes"
+      "release-notes",
+      "permission-model"
     ],
     "Inventory": [
       "inventory-intro",
