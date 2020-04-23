@@ -28,8 +28,7 @@ Each user has a role that determine access to key parts of Symphony like Setting
 * All existing users are already defined and shown in the "Users" tab
 * Users that were defined as "superusers" are now set with the "Owner" role
 * Users that were defined as "user" or "read only" are now set with the "User" role
-* Pay attention that users with the role "User" have no write permissions
-superuser users (see next section)
+* Pay attention that users with the role "User" have no write permissions (see next section)
 
 ### "Write Permission" Group
 
