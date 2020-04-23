@@ -12,13 +12,13 @@ from requests.auth import HTTPBasicAuth
 from requests.models import Response
 
 from .common import endpoint
+from .common.constant import __version__
 from .common.data_class import (
     EquipmentPortType,
     EquipmentType,
     LocationType,
     ServiceType,
 )
-from .consts import __version__
 from .graphql.latest_python_package_query import LatestPythonPackageQuery
 
 

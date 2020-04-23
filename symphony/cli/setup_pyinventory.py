@@ -27,7 +27,7 @@ PYHUB_PACKAGES = ["pyhub", "pyhub.*"]
 
 setuptools.setup(
     name="pyinventory",
-    version=find_version("pyinventory", "consts.py"),
+    version=find_version("pyinventory", "common", "constant.py"),
     author="Facebook Inc.",
     description="Tool for accessing and modifying FBC Platform Inventory database",
     packages=setuptools.find_packages(include=GQL_PACKAGES + PYINVENTORY_PACKAGES),

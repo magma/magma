@@ -12,6 +12,7 @@ from .._utils import format_properties
 from ..client import SymphonyClient
 from ..common.data_class import Location, LocationType, PropertyValue
 from ..common.data_enum import Entity
+from ..common.mutation_name import ADD_LOCATION_TYPE
 from ..exceptions import EntityNotFoundError
 from ..graphql.add_location_type_input import AddLocationTypeInput
 from ..graphql.add_location_type_mutation import AddLocationTypeMutation
@@ -19,9 +20,6 @@ from ..graphql.location_type_locations_query import LocationTypeLocationsQuery
 from ..graphql.location_types_query import LocationTypesQuery
 from ..graphql.remove_location_type_mutation import RemoveLocationTypeMutation
 from .location import delete_location
-
-
-ADD_LOCATION_TYPE_MUTATION_NAME = "addLocationType"
 
 
 def _populate_location_types(client: SymphonyClient) -> None:
@@ -87,16 +85,16 @@ def add_location_type(
                 properties=new_property_types,
                 surveyTemplateCategories=[],
             ),
-        ).__dict__[ADD_LOCATION_TYPE_MUTATION_NAME]
+        ).__dict__[ADD_LOCATION_TYPE]
         client.reporter.log_successful_operation(
-            ADD_LOCATION_TYPE_MUTATION_NAME, add_location_type_variables
+            ADD_LOCATION_TYPE, add_location_type_variables
         )
     except OperationException as e:
         raise FailedOperationException(
             client.reporter,
             e.err_msg,
             e.err_id,
-            ADD_LOCATION_TYPE_MUTATION_NAME,
+            ADD_LOCATION_TYPE,
             add_location_type_variables,
         )
 

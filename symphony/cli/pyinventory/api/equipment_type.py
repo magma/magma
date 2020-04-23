@@ -23,6 +23,7 @@ from ..common.data_class import (
     PropertyValue,
 )
 from ..common.data_enum import Entity
+from ..common.mutation_name import ADD_EQUIPMENT_TYPE, EDIT_EQUIPMENT_TYPE
 from ..exceptions import EntityNotFoundError, EquipmentTypeNotFoundException
 from ..graphql.add_equipment_type_input import AddEquipmentTypeInput
 from ..graphql.add_equipment_type_mutation import AddEquipmentTypeMutation
@@ -42,10 +43,6 @@ from .property_type import (
     get_property_type,
     get_property_type_by_external_id,
 )
-
-
-ADD_EQUIPMENT_TYPE_MUTATION_NAME = "addEquipmentType"
-EDIT_EQUIPMENT_TYPE_MUTATION_NAME = "editEquipmentType"
 
 
 def _populate_equipment_types(client: SymphonyClient) -> None:
@@ -95,7 +92,7 @@ def _add_equipment_type(
             ports=port_definitions,
             properties=properties,
         ),
-    ).__dict__[ADD_EQUIPMENT_TYPE_MUTATION_NAME]
+    ).__dict__[ADD_EQUIPMENT_TYPE]
 
 
 def get_or_create_equipment_type(
@@ -168,7 +165,7 @@ def _edit_equipment_type(
             ports=port_definitions,
             properties=properties,
         ),
-    ).__dict__[EDIT_EQUIPMENT_TYPE_MUTATION_NAME]
+    ).__dict__[EDIT_EQUIPMENT_TYPE]
 
 
 def _update_equipment_type(
@@ -200,14 +197,14 @@ def _update_equipment_type(
             port_definitions=port_definitions,
         )
         client.reporter.log_successful_operation(
-            EDIT_EQUIPMENT_TYPE_MUTATION_NAME, edit_equipment_type_variables
+            EDIT_EQUIPMENT_TYPE, edit_equipment_type_variables
         )
     except OperationException as e:
         raise FailedOperationException(
             client.reporter,
             e.err_msg,
             e.err_id,
-            EDIT_EQUIPMENT_TYPE_MUTATION_NAME,
+            EDIT_EQUIPMENT_TYPE,
             edit_equipment_type_variables,
         )
     equipment_type = EquipmentType(
@@ -292,14 +289,14 @@ def add_equipment_type(
             port_definitions,
         )
         client.reporter.log_successful_operation(
-            ADD_EQUIPMENT_TYPE_MUTATION_NAME, add_equipment_type_variables
+            ADD_EQUIPMENT_TYPE, add_equipment_type_variables
         )
     except OperationException as e:
         raise FailedOperationException(
             client.reporter,
             e.err_msg,
             e.err_id,
-            ADD_EQUIPMENT_TYPE_MUTATION_NAME,
+            ADD_EQUIPMENT_TYPE,
             add_equipment_type_variables,
         )
 

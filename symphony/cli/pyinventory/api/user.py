@@ -6,6 +6,7 @@
 from typing import List, Optional
 
 from ..client import SymphonyClient
+from ..common.constant import SUPERUSER_ROLE, USER_ROLE
 from ..common.data_class import User
 from ..common.data_enum import Entity
 from ..exceptions import EntityNotFoundError
@@ -15,10 +16,6 @@ from ..graphql.user_query import UserQuery
 from ..graphql.user_role_enum import UserRole
 from ..graphql.user_status_enum import UserStatus
 from ..graphql.users_query import UsersQuery
-
-
-USER_ROLE = 0
-SUPERUSER_ROLE = 3
 
 
 def get_user(client: SymphonyClient, email: str) -> User:

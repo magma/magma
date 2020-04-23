@@ -11,8 +11,14 @@ from tqdm import tqdm
 
 from .._utils import PropertyValue, _get_property_value, get_graphql_property_inputs
 from ..client import SymphonyClient
+from ..common.constant import EQUIPMENTS_TO_SEARCH
 from ..common.data_class import Equipment, EquipmentType, Location
 from ..common.data_enum import Entity
+from ..common.mutation_name import (
+    ADD_EQUIPMENT,
+    ADD_EQUIPMENT_TO_POSITION,
+    EDIT_EQUIPMENT,
+)
 from ..exceptions import (
     EntityNotFoundError,
     EquipmentIsNotUniqueException,
@@ -36,12 +42,6 @@ from ..graphql.filter_operator_enum import FilterOperator
 from ..graphql.location_equipments_query import LocationEquipmentsQuery
 from ..graphql.property_kind_enum import PropertyKind
 from ..graphql.remove_equipment_mutation import RemoveEquipmentMutation
-
-
-ADD_EQUIPMENT_MUTATION_NAME = "addEquipment"
-ADD_EQUIPMENT_TO_POSITION_MUTATION_NAME = "addEquipmentToPosition"
-EDIT_EQUIPMENT_MUTATION_NAME = "editEquipment"
-NUM_EQUIPMENTS_TO_SEARCH = 10
 
 
 def _get_equipment_if_exists(
@@ -375,17 +375,17 @@ def add_equipment(
 
     try:
         equipment = AddEquipmentMutation.execute(client, add_equipment_input).__dict__[
-            ADD_EQUIPMENT_MUTATION_NAME
+            ADD_EQUIPMENT
         ]
         client.reporter.log_successful_operation(
-            ADD_EQUIPMENT_MUTATION_NAME, add_equipment_input.__dict__
+            ADD_EQUIPMENT, add_equipment_input.__dict__
         )
     except OperationException as e:
         raise FailedOperationException(
             client.reporter,
             e.err_msg,
             e.err_id,
-            ADD_EQUIPMENT_MUTATION_NAME,
+            ADD_EQUIPMENT,
             add_equipment_input.__dict__,
         )
 
@@ -441,10 +441,10 @@ def edit_equipment(
 
     try:
         result = EditEquipmentMutation.execute(client, edit_equipment_input).__dict__[
-            EDIT_EQUIPMENT_MUTATION_NAME
+            EDIT_EQUIPMENT
         ]
         client.reporter.log_successful_operation(
-            EDIT_EQUIPMENT_MUTATION_NAME, edit_equipment_input.__dict__
+            EDIT_EQUIPMENT, edit_equipment_input.__dict__
         )
 
     except OperationException as e:
@@ -452,7 +452,7 @@ def edit_equipment(
             client.reporter,
             e.err_msg,
             e.err_id,
-            EDIT_EQUIPMENT_MUTATION_NAME,
+            EDIT_EQUIPMENT,
             edit_equipment_input.__dict__,
         )
     return Equipment(
@@ -582,17 +582,17 @@ def add_equipment_to_position(
 
     try:
         equipment = AddEquipmentMutation.execute(client, add_equipment_input).__dict__[
-            ADD_EQUIPMENT_MUTATION_NAME
+            ADD_EQUIPMENT
         ]
         client.reporter.log_successful_operation(
-            ADD_EQUIPMENT_TO_POSITION_MUTATION_NAME, add_equipment_input.__dict__
+            ADD_EQUIPMENT_TO_POSITION, add_equipment_input.__dict__
         )
     except OperationException as e:
         raise FailedOperationException(
             client.reporter,
             e.err_msg,
             e.err_id,
-            ADD_EQUIPMENT_TO_POSITION_MUTATION_NAME,
+            ADD_EQUIPMENT_TO_POSITION,
             add_equipment_input.__dict__,
         )
 
@@ -659,7 +659,9 @@ def delete_all_equipments(client: SymphonyClient) -> None:
             client.delete_all_equipment()
             ```
     """
-    equipments, total_count = search_for_equipments(client, NUM_EQUIPMENTS_TO_SEARCH)
+    equipments, total_count = search_for_equipments(
+        client=client, limit=EQUIPMENTS_TO_SEARCH
+    )
 
     for equipment in equipments:
         delete_equipment(client=client, equipment=equipment)
@@ -670,7 +672,9 @@ def delete_all_equipments(client: SymphonyClient) -> None:
     with tqdm(total=total_count) as progress_bar:
         progress_bar.update(len(equipments))
         while len(equipments) != 0:
-            equipments, _ = search_for_equipments(client, NUM_EQUIPMENTS_TO_SEARCH)
+            equipments, _ = search_for_equipments(
+                client=client, limit=EQUIPMENTS_TO_SEARCH
+            )
             for equipment in equipments:
                 delete_equipment(client=client, equipment=equipment)
             progress_bar.update(len(equipments))

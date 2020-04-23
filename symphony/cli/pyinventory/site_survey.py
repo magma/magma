@@ -19,6 +19,8 @@ from xlsxwriter.worksheet import Worksheet
 
 from .api.file import add_site_survey_image, delete_site_survey_image
 from .client import SymphonyClient
+from .common import mutation_name
+from .common.constant import SIMPLE_QUESTION_TYPE_TO_REQUIRED_PROPERTY_NAME
 from .common.data_class import Location, SiteSurvey
 from .common.data_enum import Entity
 from .exceptions import EntityNotFoundError
@@ -30,18 +32,6 @@ from .graphql.survey_fragment import SurveyFragment
 from .graphql.survey_question_fragment import SurveyQuestionFragment
 from .graphql.survey_question_type_enum import SurveyQuestionType
 from .site_survey_schema import retrieve_tamplates_and_set_them
-
-
-CREATE_SURVEY_MUTATION_NAME = "createSurvey"
-SIMPLE_QUESTION_TYPE_TO_REQUIRED_PROPERTY_NAME = {
-    "DATE": "dateData",
-    "BOOL": "boolData",
-    "EMAIL": "emailData",
-    "TEXT": "textData",
-    "FLOAT": "floatData",
-    "INTEGER": "intData",
-    "PHONE": "phoneData",
-}
 
 
 def _get_dependencies(question: Dict[str, Any]) -> Tuple[List[str], List[str]]:
@@ -764,9 +754,9 @@ def upload_site_survey(
     try:
         site_survey_id = CreateSurveyMutation.execute(
             client, **create_survey_variables
-        ).__dict__[CREATE_SURVEY_MUTATION_NAME]
+        ).__dict__[mutation_name.CREATE_SURVEY]
         client.reporter.log_successful_operation(
-            CREATE_SURVEY_MUTATION_NAME, create_survey_variables
+            mutation_name.CREATE_SURVEY, create_survey_variables
         )
         add_site_survey_image(client, excel_file_path, site_survey_id)
     except OperationException as e:
@@ -774,7 +764,7 @@ def upload_site_survey(
             client.reporter,
             e.err_msg,
             e.err_id,
-            CREATE_SURVEY_MUTATION_NAME,
+            mutation_name.CREATE_SURVEY,
             create_survey_variables,
         )
 

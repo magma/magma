@@ -11,6 +11,7 @@ from gql.gql.reporter import FailedOperationException
 from ..client import SymphonyClient
 from ..common.data_class import Equipment, Link
 from ..common.data_enum import Entity
+from ..common.mutation_name import ADD_LINK
 from ..exceptions import (
     EntityNotFoundError,
     LinkNotFoundException,
@@ -21,9 +22,6 @@ from ..graphql.add_link_mutation import AddLinkMutation
 from ..graphql.equipment_ports_query import EquipmentPortsQuery
 from ..graphql.link_side_input import LinkSide
 from .port import get_port
-
-
-ADD_LINK_MUTATION_NAME = "addLink"
 
 
 def get_all_links_and_port_names_of_equipment(
@@ -139,19 +137,11 @@ def add_link(
         serviceIds=[],
     )
     try:
-        link = AddLinkMutation.execute(client, add_link_input).__dict__[
-            ADD_LINK_MUTATION_NAME
-        ]
-        client.reporter.log_successful_operation(
-            ADD_LINK_MUTATION_NAME, add_link_input.__dict__
-        )
+        link = AddLinkMutation.execute(client, add_link_input).__dict__[ADD_LINK]
+        client.reporter.log_successful_operation(ADD_LINK, add_link_input.__dict__)
     except OperationException as e:
         raise FailedOperationException(
-            client.reporter,
-            e.err_msg,
-            e.err_id,
-            ADD_LINK_MUTATION_NAME,
-            add_link_input.__dict__,
+            client.reporter, e.err_msg, e.err_id, ADD_LINK, add_link_input.__dict__
         )
 
     return Link(

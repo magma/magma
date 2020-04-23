@@ -12,6 +12,7 @@ from .._utils import format_property_definitions, get_graphql_property_type_inpu
 from ..client import SymphonyClient
 from ..common.data_class import EquipmentPortType, PropertyDefinition, PropertyValue
 from ..common.data_enum import Entity
+from ..common.mutation_name import ADD_EQUIPMENT_PORT_TYPE, EDIT_EQUIPMENT_PORT_TYPE
 from ..exceptions import EntityNotFoundError
 from ..graphql.add_equipment_port_type_mutation import (
     AddEquipmentPortTypeInput,
@@ -25,10 +26,6 @@ from ..graphql.equipment_port_type_query import EquipmentPortTypeQuery
 from ..graphql.remove_equipment_port_type_mutation import (
     RemoveEquipmentPortTypeMutation,
 )
-
-
-ADD_EQUIPMENT_PORT_TYPE_MUTATION_NAME = "addEquipmentPortType"
-EDIT_EQUIPMENT_PORT_TYPE_MUTATION_NAME = "editEquipmentPortType"
 
 
 def add_equipment_port_type(
@@ -86,16 +83,16 @@ def add_equipment_port_type(
                 properties=formated_property_types,
                 linkProperties=formated_link_property_types,
             ),
-        ).__dict__[ADD_EQUIPMENT_PORT_TYPE_MUTATION_NAME]
+        ).__dict__[ADD_EQUIPMENT_PORT_TYPE]
         client.reporter.log_successful_operation(
-            ADD_EQUIPMENT_PORT_TYPE_MUTATION_NAME, add_equipment_port_type_input
+            ADD_EQUIPMENT_PORT_TYPE, add_equipment_port_type_input
         )
     except OperationException as e:
         raise FailedOperationException(
             client.reporter,
             e.err_msg,
             e.err_id,
-            ADD_EQUIPMENT_PORT_TYPE_MUTATION_NAME,
+            ADD_EQUIPMENT_PORT_TYPE,
             add_equipment_port_type_input,
         )
 
@@ -210,16 +207,16 @@ def edit_equipment_port_type(
                 properties=new_property_type_inputs,
                 linkProperties=new_link_property_type_inputs,
             ),
-        ).__dict__[EDIT_EQUIPMENT_PORT_TYPE_MUTATION_NAME]
+        ).__dict__[EDIT_EQUIPMENT_PORT_TYPE]
         client.reporter.log_successful_operation(
-            EDIT_EQUIPMENT_PORT_TYPE_MUTATION_NAME, edit_equipment_port_type_input
+            EDIT_EQUIPMENT_PORT_TYPE, edit_equipment_port_type_input
         )
     except OperationException as e:
         raise FailedOperationException(
             client.reporter,
             e.err_msg,
             e.err_id,
-            EDIT_EQUIPMENT_PORT_TYPE_MUTATION_NAME,
+            EDIT_EQUIPMENT_PORT_TYPE,
             edit_equipment_port_type_input,
         )
     return EquipmentPortType(

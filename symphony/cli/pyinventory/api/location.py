@@ -10,8 +10,10 @@ from gql.gql.reporter import FailedOperationException
 
 from .._utils import deprecated, get_graphql_property_inputs
 from ..client import SymphonyClient
+from ..common.constant import LOCATIONS_TO_SEARCH
 from ..common.data_class import Document, ImageEntity, Location, PropertyValue
 from ..common.data_enum import Entity
+from ..common.mutation_name import ADD_LOCATION, EDIT_LOCATION, MOVE_LOCATION
 from ..exceptions import (
     EntityNotFoundError,
     LocationCannotBeDeletedWithDependency,
@@ -33,21 +35,16 @@ from ..graphql.move_location_mutation import MoveLocationMutation
 from ..graphql.remove_location_mutation import RemoveLocationMutation
 
 
-ADD_LOCATION_MUTATION_NAME = "addLocation"
-EDIT_LOCATION_MUTATION_NAME = "editLocation"
-MOVE_LOCATION_MUTATION_NAME = "moveLocation"
-
-
 def _mutation_add_location(
     client: SymphonyClient, add_location_input: AddLocationInput
 ) -> LocationFragment:
 
     try:
         result = AddLocationMutation.execute(client, add_location_input).__dict__[
-            ADD_LOCATION_MUTATION_NAME
+            ADD_LOCATION
         ]
         client.reporter.log_successful_operation(
-            ADD_LOCATION_MUTATION_NAME, add_location_input.__dict__
+            ADD_LOCATION, add_location_input.__dict__
         )
         return result
     except OperationException as e:
@@ -55,7 +52,7 @@ def _mutation_add_location(
             client.reporter,
             e.err_msg,
             e.err_id,
-            ADD_LOCATION_MUTATION_NAME,
+            ADD_LOCATION,
             add_location_input.__dict__,
         )
 
@@ -80,7 +77,7 @@ def _get_locations_by_name_and_type(
     ]
 
     result = LocationSearchQuery.execute(
-        client, filters=location_filters, limit=5
+        client, filters=location_filters, limit=LOCATIONS_TO_SEARCH
     ).locationSearch
 
     return result.locations
@@ -438,10 +435,10 @@ def edit_location(
     )
     try:
         result = EditLocationMutation.execute(client, edit_location_input).__dict__[
-            EDIT_LOCATION_MUTATION_NAME
+            EDIT_LOCATION
         ]
         client.reporter.log_successful_operation(
-            EDIT_LOCATION_MUTATION_NAME, edit_location_input.__dict__
+            EDIT_LOCATION, edit_location_input.__dict__
         )
         return Location(
             name=result.name,
@@ -457,7 +454,7 @@ def edit_location(
             client.reporter,
             e.err_msg,
             e.err_id,
-            EDIT_LOCATION_MUTATION_NAME,
+            EDIT_LOCATION,
             edit_location_input.__dict__,
         )
 
@@ -525,8 +522,8 @@ def move_location(
     try:
         result = MoveLocationMutation.execute(
             client, locationID=location_id, parentLocationID=new_parent_id
-        ).__dict__[MOVE_LOCATION_MUTATION_NAME]
-        client.reporter.log_successful_operation(MOVE_LOCATION_MUTATION_NAME, params)
+        ).__dict__[MOVE_LOCATION]
+        client.reporter.log_successful_operation(MOVE_LOCATION, params)
         return Location(
             name=result.name,
             id=result.id,
@@ -538,7 +535,7 @@ def move_location(
 
     except OperationException as e:
         raise FailedOperationException(
-            client.reporter, e.err_msg, e.err_id, MOVE_LOCATION_MUTATION_NAME, params
+            client.reporter, e.err_msg, e.err_id, MOVE_LOCATION, params
         )
 
 
@@ -580,7 +577,7 @@ def get_location_by_external_id(client: SymphonyClient, external_id: str) -> Loc
     )
 
     location_search_result = LocationSearchQuery.execute(
-        client, filters=[location_filter], limit=5
+        client, filters=[location_filter], limit=LOCATIONS_TO_SEARCH
     ).locationSearch
 
     if not location_search_result or location_search_result.count == 0:
