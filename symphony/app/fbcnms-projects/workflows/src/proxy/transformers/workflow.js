@@ -17,7 +17,7 @@ import {
   createProxyOptionsBuffer,
   removeTenantPrefix,
   removeTenantPrefixes,
-  withUnderscore,
+  withInfixSeparator,
 } from '../utils.js';
 
 const logger = logging.getLogger(module);
@@ -69,7 +69,7 @@ curl -X POST -H "x-auth-organization: fb-test" -H \
 */
 function postWorkflowBefore(tenantId, req, res, proxyCallback) {
   // name must start with prefix
-  const tenantWithUnderscore = withUnderscore(tenantId);
+  const tenantWithInfixSeparator = withInfixSeparator(tenantId);
   const reqObj = req.body;
 
   // workflowDef section is not allowed (no dynamic workflows)
@@ -92,7 +92,7 @@ function postWorkflowBefore(tenantId, req, res, proxyCallback) {
   // add taskToDomain
   reqObj.taskToDomain = {};
   //TODO: is this OK?
-  reqObj.taskToDomain[tenantWithUnderscore + '*'] = tenantId;
+  reqObj.taskToDomain[tenantWithInfixSeparator + '*'] = tenantId;
   logger.debug(`Transformed request to ${JSON.stringify(reqObj)}`);
   proxyCallback({buffer: createProxyOptionsBuffer(reqObj, req)});
 }
@@ -138,8 +138,8 @@ function removeWorkflowBefore(tenantId, req, res, proxyCallback) {
     logger.debug(`Got status code: ${response.statusCode}, body: '${body}'`);
     const workflow = JSON.parse(body);
     // make sure name starts with prefix
-    const tenantWithUnderscore = withUnderscore(tenantId);
-    if (workflow.workflowName.indexOf(tenantWithUnderscore) == 0) {
+    const tenantWithInfixSeparator = withInfixSeparator(tenantId);
+    if (workflow.workflowName.indexOf(tenantWithInfixSeparator) == 0) {
       proxyCallback();
     } else {
       logger.error(

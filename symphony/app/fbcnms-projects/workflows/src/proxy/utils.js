@@ -56,14 +56,14 @@ export function assertAllowedSystemTask(task) {
   }
 }
 
-export function withUnderscore(s) {
+export function withInfixSeparator(s) {
   return s + INFIX_SEPARATOR;
 }
 
 export function addTenantIdPrefix(tenantId, objectWithName) {
-  const tenantWithUnderscore = withUnderscore(tenantId);
+  const tenantWithInfixSeparator = withInfixSeparator(tenantId);
   objectWithName.name =
-    tenantWithUnderscore +
+    tenantWithInfixSeparator +
     assertNameIsWithoutInfixSeparator(objectWithName).name;
 }
 
@@ -114,8 +114,8 @@ export function createProxyOptionsBuffer(modifiedBody, req) {
 // Setting allowGlobal to true implies that tasks are being processed,
 // those starting with global prefix will not be touched.
 export function removeTenantPrefix(tenantId, json, jsonPath, allowGlobal) {
-  const tenantWithUnderscore = withUnderscore(tenantId);
-  const globalPrefix = withUnderscore(GLOBAL_PREFIX);
+  const tenantWithInfixSeparator = withInfixSeparator(tenantId);
+  const globalPrefix = withInfixSeparator(GLOBAL_PREFIX);
   const result = findValuesByJsonPath(json, jsonPath);
   for (const idx in result) {
     const item = result[idx];
@@ -124,7 +124,7 @@ export function removeTenantPrefix(tenantId, json, jsonPath, allowGlobal) {
       continue;
     }
     // expect tenantId prefix
-    if (prop.indexOf(tenantWithUnderscore) != 0) {
+    if (prop.indexOf(tenantWithInfixSeparator) != 0) {
       logger.error(
         `Name must start with tenantId prefix` +
           `tenantId:'${tenantId}',json:'${json}',jsonPath:'${jsonPath}'` +
@@ -133,7 +133,9 @@ export function removeTenantPrefix(tenantId, json, jsonPath, allowGlobal) {
       throw 'Name must start with tenantId prefix'; // TODO create Exception class
     }
     // remove prefix
-    item.parent[item.parentProperty] = prop.substr(tenantWithUnderscore.length);
+    item.parent[item.parentProperty] = prop.substr(
+      tenantWithInfixSeparator.length,
+    );
   }
 }
 

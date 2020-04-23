@@ -18,7 +18,7 @@ import {
   assertAllowedSystemTask,
   createProxyOptionsBuffer,
   isSubworkflowTask,
-  withUnderscore,
+  withInfixSeparator,
 } from '../utils.js';
 
 const logger = logging.getLogger(module);
@@ -49,8 +49,8 @@ function sanitizeWorkflowdefBefore(tenantId, workflowdef) {
 // Return true iif sanitization succeeded, false iif this
 // workflowdef is invalid
 function sanitizeWorkflowdefAfter(tenantId, workflowdef) {
-  const tenantWithUnderscore = withUnderscore(tenantId);
-  if (workflowdef.name.indexOf(tenantWithUnderscore) == 0) {
+  const tenantWithInfixSeparator = withInfixSeparator(tenantId);
+  if (workflowdef.name.indexOf(tenantWithInfixSeparator) == 0) {
     // keep only workflows with correct taskdefs,
     // allowed are GLOBAL and those with tenantId prefix which will be removed
 
@@ -59,20 +59,20 @@ function sanitizeWorkflowdefAfter(tenantId, workflowdef) {
       if (isSubworkflowTask(task)) {
         if (task.subWorkflowParam?.name) {
           task.subWorkflowParam.name = task.subWorkflowParam.name.substr(
-            tenantWithUnderscore.length,
+            tenantWithInfixSeparator.length,
           );
         }
       }
 
-      if (task.name.indexOf(tenantWithUnderscore) == 0) {
+      if (task.name.indexOf(tenantWithInfixSeparator) == 0) {
         // remove prefix
-        task.name = task.name.substr(tenantWithUnderscore.length);
+        task.name = task.name.substr(tenantWithInfixSeparator.length);
       } else {
         return false;
       }
     }
     // remove prefix
-    workflowdef.name = workflowdef.name.substr(tenantWithUnderscore.length);
+    workflowdef.name = workflowdef.name.substr(tenantWithInfixSeparator.length);
     return true;
   } else {
     return false;
@@ -108,9 +108,9 @@ curl -H "x-auth-organization: fb-test" \
   "localhost/proxy/api/metadata/workflow/2/2" -X DELETE
 */
 function deleteWorkflowBefore(tenantId, req, res, proxyCallback) {
-  const tenantWithUnderscore = withUnderscore(tenantId);
+  const tenantWithInfixSeparator = withInfixSeparator(tenantId);
   // change URL: add prefix to name
-  const name = tenantWithUnderscore + req.params.name;
+  const name = tenantWithInfixSeparator + req.params.name;
   const newUrl = `/api/metadata/workflow/${name}/${req.params.version}`;
   logger.debug(`Transformed url from '${req.url}' to '${newUrl}'`);
   req.url = newUrl;
@@ -124,8 +124,8 @@ curl -H "x-auth-organization: fb-test" \
   "localhost/proxy/api/metadata/workflow/fx3?version=1"
 */
 function getWorkflowBefore(tenantId, req, res, proxyCallback) {
-  const tenantWithUnderscore = withUnderscore(tenantId);
-  const name = tenantWithUnderscore + req.params.name;
+  const tenantWithInfixSeparator = withInfixSeparator(tenantId);
+  const name = tenantWithInfixSeparator + req.params.name;
   let newUrl = `/api/metadata/workflow/${name}`;
   const originalQueryString = req._parsedUrl.query;
   const parsedQuery = qs.parse(originalQueryString);

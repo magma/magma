@@ -16,7 +16,7 @@ import {
   addTenantIdPrefix,
   assertAllowedSystemTask,
   createProxyOptionsBuffer,
-  withUnderscore,
+  withInfixSeparator,
 } from '../utils.js';
 
 const logger = logging.getLogger(module);
@@ -28,11 +28,11 @@ curl  -H "x-auth-organization: fb-test" "localhost/proxy/api/metadata/taskdefs"
 function getAllTaskdefsAfter(tenantId, req, respObj) {
   // iterate over taskdefs, keep only those belonging to tenantId or global
   // remove tenantId prefix, keep GLOBAL_
-  const tenantWithUnderscore = withUnderscore(tenantId);
+  const tenantWithInfixSeparator = withInfixSeparator(tenantId);
   for (let idx = respObj.length - 1; idx >= 0; idx--) {
     const taskdef = respObj[idx];
-    if (taskdef.name.indexOf(tenantWithUnderscore) == 0) {
-      taskdef.name = taskdef.name.substr(tenantWithUnderscore.length);
+    if (taskdef.name.indexOf(tenantWithInfixSeparator) == 0) {
+      taskdef.name = taskdef.name.substr(tenantWithInfixSeparator.length);
     } else {
       // remove element
       respObj.splice(idx, 1);
@@ -110,7 +110,7 @@ curl -H "x-auth-organization: fb-test" \
 */
 // Gets the task definition
 function getTaskdefByNameBefore(tenantId, req, res, proxyCallback) {
-  req.params.name = withUnderscore(tenantId) + req.params.name;
+  req.params.name = withInfixSeparator(tenantId) + req.params.name;
   // modify url
   req.url = '/api/metadata/taskdefs/' + req.params.name;
   proxyCallback();
@@ -118,10 +118,10 @@ function getTaskdefByNameBefore(tenantId, req, res, proxyCallback) {
 
 function getTaskdefByNameAfter(tenantId, req, respObj, res) {
   if (res.status == 200) {
-    const tenantWithUnderscore = withUnderscore(tenantId);
+    const tenantWithInfixSeparator = withInfixSeparator(tenantId);
     // remove prefix
-    if (respObj.name && respObj.name.indexOf(tenantWithUnderscore) == 0) {
-      respObj.name = respObj.name.substr(tenantWithUnderscore.length);
+    if (respObj.name && respObj.name.indexOf(tenantWithInfixSeparator) == 0) {
+      respObj.name = respObj.name.substr(tenantWithInfixSeparator.length);
     } else {
       logger.error(
         `Tenant Id prefix '${tenantId}' not found, taskdef name: '${respObj.name}'`,
@@ -139,7 +139,7 @@ curl -H "x-auth-organization: fb-test" \
  "localhost/api/metadata/taskdefs/bar" -X DELETE -v
 */
 function deleteTaskdefByNameBefore(tenantId, req, res, proxyCallback) {
-  req.params.name = withUnderscore(tenantId) + req.params.name;
+  req.params.name = withInfixSeparator(tenantId) + req.params.name;
   // modify url
   req.url = '/api/metadata/taskdefs/' + req.params.name;
   proxyCallback();
