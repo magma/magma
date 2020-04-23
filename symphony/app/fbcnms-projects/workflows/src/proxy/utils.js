@@ -38,12 +38,40 @@ const SYSTEM_TASK_TYPES = [
   'DO_WHILE',
 ];
 
-export function isAllowedSystemTask(task) {
+function isAllowedSystemTask(task) {
   return SYSTEM_TASK_TYPES.includes(task.type);
+}
+
+export function assertAllowedSystemTask(task) {
+  if (!isAllowedSystemTask(task)) {
+    logger.error(
+      `Task type is not allowed: ` + ` in '${JSON.stringify(task)}'`,
+    );
+    // TODO create Exception class
+    throw 'Task type is not allowed';
+  }
 }
 
 export function withUnderscore(s) {
   return s + INFIX_SEPARATOR;
+}
+
+export function addTenantIdPrefix(tenantId, objectWithName) {
+  const tenantWithUnderscore = withUnderscore(tenantId);
+  objectWithName.name =
+    tenantWithUnderscore +
+    assertNameIsWithoutInfixSeparator(objectWithName).name;
+}
+
+export function assertNameIsWithoutInfixSeparator(objectWithName) {
+  if (objectWithName.name.indexOf(INFIX_SEPARATOR) > -1) {
+    logger.error(
+      `Name must not contain '${INFIX_SEPARATOR}'` +
+        ` in '${JSON.stringify(objectWithName)}'`,
+    );
+    // TODO create Exception class
+    throw 'Name must not contain underscore';
+  }
 }
 
 export function getTenantId(req) {

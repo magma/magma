@@ -13,7 +13,7 @@ import logging from '@fbcnms/logging';
 import qs from 'qs';
 import request from 'request';
 import {
-  INFIX_SEPARATOR,
+  addTenantIdPrefix,
   createProxyOptionsBuffer,
   removeTenantPrefix,
   removeTenantPrefixes,
@@ -87,15 +87,8 @@ function postWorkflowBefore(tenantId, req, res, proxyCallback) {
     throw 'Section taskToDomain is not allowed';
   }
 
-  // name should not contain _
-  if (reqObj.name.indexOf(INFIX_SEPARATOR) > -1) {
-    logger.error(
-      `Name must not contain '${INFIX_SEPARATOR}': '${JSON.stringify(reqObj)}'`,
-    );
-    throw 'Name must not contain INFIX_SEPARATOR'; // TODO create Exception class
-  }
   // add prefix
-  reqObj.name = tenantWithUnderscore + reqObj.name;
+  addTenantIdPrefix(tenantId, reqObj);
   // add taskToDomain
   reqObj.taskToDomain = {};
   //TODO: is this OK?

@@ -15,9 +15,9 @@ import logging from '@fbcnms/logging';
 import qs from 'qs';
 import {
   GLOBAL_PREFIX,
-  INFIX_SEPARATOR,
+  addTenantIdPrefix,
+  assertAllowedSystemTask,
   createProxyOptionsBuffer,
-  isAllowedSystemTask,
   withUnderscore,
 } from '../utils.js';
 
@@ -27,43 +27,16 @@ const logger = logging.getLogger(module);
 // and its tasks
 // do not contain any prefix. Prefix is added to workflowdef if input is valid.
 function sanitizeWorkflowdefBefore(tenantId, workflowdef) {
-  const tenantWithUnderscore = withUnderscore(tenantId);
-  if (workflowdef.name.indexOf(INFIX_SEPARATOR) > -1) {
-    logger.error(
-      `Workflow name must not contain '${INFIX_SEPARATOR}': '${tenantId}'` +
-        ` in '${JSON.stringify(workflowdef)}'`,
-    );
-    // TODO create Exception class
-    throw 'Workflow name must not contain underscore';
-  }
-  // validate tasks
-  for (const task of workflowdef.tasks) {
-    if (task.name.indexOf(INFIX_SEPARATOR) > -1) {
-      logger.error(
-        `Task name must not contain '${INFIX_SEPARATOR}': '${tenantId}'` +
-          ` in '${JSON.stringify(task)}'`,
-      );
-      // TODO create Exception class
-      throw 'Task name must not contain underscore';
-    }
-  }
   // only whitelisted system tasks are allowed
   for (const task of workflowdef.tasks) {
-    if (!isAllowedSystemTask(task)) {
-      logger.error(
-        `Task type is not allowed: '${tenantId}'` +
-          ` in '${JSON.stringify(task)}'`,
-      );
-      // TODO create Exception class
-      throw 'Task type is not allowed';
-    }
+    assertAllowedSystemTask(task);
   }
   // add prefix to tasks
   for (const task of workflowdef.tasks) {
-    task.name = tenantWithUnderscore + task.name;
+    addTenantIdPrefix(tenantId, task);
   }
   // add prefix to workflow
-  workflowdef.name = tenantWithUnderscore + workflowdef.name;
+  addTenantIdPrefix(tenantId, workflowdef);
 }
 
 // Utility used after getting single or all workflowdefs to remove prefix from

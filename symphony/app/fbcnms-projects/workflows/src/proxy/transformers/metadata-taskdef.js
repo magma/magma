@@ -14,9 +14,9 @@ import logging from '@fbcnms/logging';
 // TODO: implement querying by prefix in conductor
 import {
   GLOBAL_PREFIX,
-  INFIX_SEPARATOR,
+  addTenantIdPrefix,
+  assertAllowedSystemTask,
   createProxyOptionsBuffer,
-  isAllowedSystemTask,
   withUnderscore,
 } from '../utils.js';
 
@@ -46,24 +46,10 @@ function getAllTaskdefsAfter(tenantId, req, respObj) {
 
 // Used in POST and PUT
 function sanitizeTaskdefBefore(tenantId, taskdef) {
-  const tenantWithUnderscore = withUnderscore(tenantId);
-  if (taskdef.name.indexOf(INFIX_SEPARATOR) > -1) {
-    logger.error(
-      `Name of taskdef must not contain '${INFIX_SEPARATOR}': '${taskdef.name}'`,
-    );
-    throw 'Name must not contain underscore'; // TODO create Exception class
-  }
   // only whitelisted system tasks are allowed
-  if (!isAllowedSystemTask(taskdef)) {
-    logger.error(
-      `Task type is not allowed: '${tenantId}'` +
-        ` in '${JSON.stringify(taskdef)}'`,
-    );
-    // TODO create Exception class
-    throw 'Task type is not allowed';
-  }
+  assertAllowedSystemTask(taskdef);
   // prepend tenantId
-  taskdef.name = tenantWithUnderscore + taskdef.name;
+  addTenantIdPrefix(tenantId, taskdef);
 }
 // Create new task definition(s)
 // Underscore in name is not allowed.
