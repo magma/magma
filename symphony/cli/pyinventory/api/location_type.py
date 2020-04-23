@@ -10,8 +10,8 @@ from gql.gql.reporter import FailedOperationException
 
 from .._utils import format_properties
 from ..client import SymphonyClient
+from ..common.data_class import Location, LocationType, PropertyValue
 from ..common.data_enum import Entity
-from ..consts import Location, LocationType, PropertyValue
 from ..exceptions import EntityNotFoundError
 from ..graphql.add_location_type_input import AddLocationTypeInput
 from ..graphql.add_location_type_mutation import AddLocationTypeMutation
@@ -57,7 +57,7 @@ def add_location_type(
             map_zoom_level (int): map zoom level
 
         Returns:
-            `pyinventory.consts.LocationType` object
+            `pyinventory.common.data_class.LocationType` object
 
         Raises:
             FailedOperationException: internal inventory error
@@ -113,7 +113,7 @@ def delete_locations_by_location_type(
     """Delete locatons by location type.
 
         Args:
-            location_type ( `pyinventory.consts.LocationType` ): location type object
+            location_type ( `pyinventory.common.data_class.LocationType` ): location type object
 
         Raises:
             `pyinventory.exceptions.EntityNotFoundError`: if location_type does not exist
@@ -155,7 +155,7 @@ def delete_location_type_with_locations(
     """Delete locaton type with existing locations.
 
         Args:
-            location_type (`pyinventory.consts.LocationType`): location type object
+            location_type (`pyinventory.common.data_class.LocationType`): location type object
 
         Raises:
             `pyinventory.exceptions.EntityNotFoundError`: if location_type does not exist

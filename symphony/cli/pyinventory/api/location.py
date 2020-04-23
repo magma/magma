@@ -10,8 +10,8 @@ from gql.gql.reporter import FailedOperationException
 
 from .._utils import deprecated, get_graphql_property_inputs
 from ..client import SymphonyClient
+from ..common.data_class import Document, ImageEntity, Location, PropertyValue
 from ..common.data_enum import Entity
-from ..consts import Document, ImageEntity, Location, PropertyValue
 from ..exceptions import (
     EntityNotFoundError,
     LocationCannotBeDeletedWithDependency,
@@ -144,7 +144,7 @@ def add_location(
             externalID (str): location external ID
 
         Returns:
-            `pyinventory.consts.Location` object
+            `pyinventory.common.data_class.Location` object
 
         Raises:
             LocationIsNotUniqueException: if there is two possible locations
@@ -244,7 +244,7 @@ def get_location(
             - str - location name
 
         Returns:
-            `pyinventory.consts.Location` object
+            `pyinventory.common.data_class.Location` object
 
         Raises:
             LocationIsNotUniqueException: if there is more than one correct
@@ -310,7 +310,7 @@ def get_locations(client: SymphonyClient) -> List[Location]:
     """This function returns all existing locations
 
         Returns:
-            List[ `pyinventory.consts.Location` ]
+            List[ `pyinventory.common.data_class.Location` ]
 
         Example:
             ```
@@ -347,7 +347,7 @@ def get_location_children(client: SymphonyClient, location_id: str) -> List[Loca
             location_id (str): parent location ID
 
         Returns:
-            List[ `pyinventory.consts.Location` ]
+            List[ `pyinventory.common.data_class.Location` ]
 
         Raises:
             `pyinventory.exceptions.EntityNotFoundError`: location does not exist
@@ -392,7 +392,7 @@ def edit_location(
     """This function returns edited location.
 
         Args:
-            location ( `pyinventory.consts.Location` ): location object
+            location ( `pyinventory.common.data_class.Location` ): location object
             new_name (Optional[str]): location new name
             new_lat (Optional[float]): location new latitude
             new_long (Optional[float]): location new longitude
@@ -402,7 +402,7 @@ def edit_location(
             - PropertyValue - new value of the same type for this property
 
         Returns:
-            `pyinventory.consts.Location` object
+            `pyinventory.common.data_class.Location` object
 
         Raises:
             FailedOperationException: for internal inventory error
@@ -466,7 +466,7 @@ def delete_location(client: SymphonyClient, location: Location) -> None:
     """This delete existing location.
 
         Args:
-            location ( `pyinventory.consts.Location` ): location object
+            location ( `pyinventory.common.data_class.Location` ): location object
 
         Raises:
             `pyinventory.exceptions.EntityNotFoundError`: if location does not exist
@@ -506,7 +506,7 @@ def move_location(
             new_parent_id (Optional[str]): new existing parent location ID
 
         Returns:
-            `pyinventory.consts.Location` object
+            `pyinventory.common.data_class.Location` object
 
         Raises:
             FailedOperationException: for internal inventory error
@@ -559,7 +559,7 @@ def get_location_by_external_id(client: SymphonyClient, external_id: str) -> Loc
             external_id (str): location external ID
 
         Returns:
-            `pyinventory.consts.Location` object
+            `pyinventory.common.data_class.Location` object
 
         Raises:
             LocationNotFoundException: location with this external ID does not exists
@@ -608,10 +608,10 @@ def get_location_documents(
     """This function returns locations documents.
 
         Args:
-            location ( `pyinventory.consts.Location` ): location object
+            location ( `pyinventory.common.data_class.Location` ): location object
 
         Returns:
-            List[ `pyinventory.consts.Document` ]
+            List[ `pyinventory.common.data_class.Document` ]
 
         Raises:
             `pyinventory.exceptions.EntityNotFoundError`: location does not exists

@@ -12,8 +12,8 @@ from pyinventory.api.equipment_type import (
     get_or_create_equipment_type,
 )
 from pyinventory.api.property_type import get_property_type_id, get_property_types
+from pyinventory.common.data_class import PropertyDefinition
 from pyinventory.common.data_enum import Entity
-from pyinventory.consts import PropertyDefinition
 from pyinventory.graphql.property_kind_enum import PropertyKind
 
 from .grpc.rpc_pb2_grpc import TenantServiceStub

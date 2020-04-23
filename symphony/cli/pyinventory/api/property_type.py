@@ -7,8 +7,8 @@ from typing import List, Sequence
 
 from .._utils import format_property_definitions, get_property_type_input
 from ..client import SymphonyClient
+from ..common.data_class import PropertyDefinition
 from ..common.data_enum import Entity
-from ..consts import PropertyDefinition
 from ..exceptions import EntityNotFoundError
 from ..graphql.property_type_fragment import PropertyTypeFragment
 from ..graphql.property_type_input import PropertyTypeInput
@@ -183,7 +183,7 @@ def edit_property_type(
             entity_type ( `pyinventory.common.data_enum.Entity` ): existing entity type
             entity_name (str): existing entity name
             property_type_id (str): existing property type ID
-            new_property_definition ( `pyinventory.consts.PropertyDefinition` ): new property definition
+            new_property_definition ( `pyinventory.common.data_class.PropertyDefinition` ): new property definition
 
         Returns:
             List[ `pyinventory.graphql.property_type_input.PropertyTypeInput` ]

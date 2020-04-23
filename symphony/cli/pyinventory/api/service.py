@@ -7,8 +7,7 @@ from typing import Dict, List, Optional, Tuple
 
 from .._utils import PropertyValue, format_properties, get_graphql_property_inputs
 from ..client import SymphonyClient
-from ..common.data_enum import Entity
-from ..consts import (
+from ..common.data_class import (
     Customer,
     EquipmentPort,
     EquipmentPortDefinition,
@@ -17,6 +16,7 @@ from ..consts import (
     ServiceEndpoint,
     ServiceType,
 )
+from ..common.data_enum import Entity
 from ..exceptions import EntityNotFoundError
 from ..graphql.add_service_endpoint_input import AddServiceEndpointInput
 from ..graphql.add_service_endpoint_mutation import AddServiceEndpointMutation

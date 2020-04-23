@@ -9,14 +9,14 @@ from typing import Callable, Dict, List, Mapping, Optional, Sequence, Tuple, Uni
 
 from dacite import Config, from_dict
 
-from .common.data_enum import Entity
-from .consts import (
+from .common.data_class import (
     TYPE_AND_FIELD_NAME,
     DataTypeName,
     PropertyDefinition,
     PropertyValue,
     ReturnType,
 )
+from .common.data_enum import Entity
 from .exceptions import EntityNotFoundError
 from .graphql.equipment_port_definition_fragment import EquipmentPortDefinitionFragment
 from .graphql.equipment_port_input import EquipmentPortInput

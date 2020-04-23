@@ -3,7 +3,7 @@
 from typing import List, Optional
 
 from ..client import SymphonyClient
-from ..consts import Customer
+from ..common.data_class import Customer
 from ..graphql.add_customer_input import AddCustomerInput
 from ..graphql.add_customer_mutation import AddCustomerMutation
 from ..graphql.customers_query import CustomersQuery
@@ -20,7 +20,7 @@ def add_customer(
             external_id (Optional[str]): external ID for the Customer
 
         Returns:
-            `pyinventory.consts.Customer` object
+            `pyinventory.common.data_class.Customer` object
 
         Example:
             ```
@@ -41,7 +41,7 @@ def get_all_customers(client: SymphonyClient) -> List[Customer]:
     """This function returns all Customers.
 
         Returns:
-            List[ `pyinventory.consts.Customer` ]
+            List[ `pyinventory.common.data_class.Customer` ]
 
         Example:
             ```
@@ -65,7 +65,7 @@ def delete_customer(client: SymphonyClient, customer: Customer) -> None:
     """This function delete Customer.
 
         Args:
-            customer ( `pyinventory.consts.Customer` ): customer object
+            customer ( `pyinventory.common.data_class.Customer` ): customer object
 
         Example:
             ```

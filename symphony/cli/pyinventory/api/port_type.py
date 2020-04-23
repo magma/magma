@@ -10,8 +10,8 @@ from gql.gql.reporter import FailedOperationException
 
 from .._utils import format_property_definitions, get_graphql_property_type_inputs
 from ..client import SymphonyClient
+from ..common.data_class import EquipmentPortType, PropertyDefinition, PropertyValue
 from ..common.data_enum import Entity
-from ..consts import EquipmentPortType, PropertyDefinition, PropertyValue
 from ..exceptions import EntityNotFoundError
 from ..graphql.add_equipment_port_type_mutation import (
     AddEquipmentPortTypeInput,
@@ -41,18 +41,18 @@ def add_equipment_port_type(
 
         Args:
             name (str): equipment port type name
-            properties: (List[ `pyinventory.consts.PropertyDefinition` ]): list of property definitions
-            link_properties: (List[ `pyinventory.consts.PropertyDefinition` ]): list of property definitions
+            properties: (List[ `pyinventory.common.data_class.PropertyDefinition` ]): list of property definitions
+            link_properties: (List[ `pyinventory.common.data_class.PropertyDefinition` ]): list of property definitions
 
         Returns:
-            `pyinventory.consts.EquipmentPortType` object
+            `pyinventory.common.data_class.EquipmentPortType` object
 
         Raises:
             FailedOperationException: internal inventory error
 
         Example:
             ```
-            from pyinventory.consts import PropertyDefinition
+            from pyinventory.common.data_class import PropertyDefinition
             from pyinventory.graphql.property_kind_enum import PropertyKind
             port_type1 = client.add_equipment_port_type(
                 name="port type 1",
@@ -119,7 +119,7 @@ def get_equipment_port_type(
             equipment_port_type_id (str): equipment port type ID
 
         Returns:
-            `pyinventory.consts.EquipmentPortType` object
+            `pyinventory.common.data_class.EquipmentPortType` object
 
         Raises:
             `pyinventory.exceptions.EntityNotFoundError`: equipment port type does not found
@@ -153,7 +153,7 @@ def edit_equipment_port_type(
     """This function edits an existing equipment port type.
 
         Args:
-            port_type ( `pyinventory.consts.EquipmentPortType` ): existing eqipment port type object
+            port_type ( `pyinventory.common.data_class.EquipmentPortType` ): existing eqipment port type object
             new_name (str): new name
             new_properties: (Dict[str, PropertyValue]): dictionary
             - str - property type name
@@ -164,7 +164,7 @@ def edit_equipment_port_type(
             - PropertyValue - new value of the same type for this link property
 
         Returns:
-            `pyinventory.consts.EquipmentPortType` object
+            `pyinventory.common.data_class.EquipmentPortType` object
 
         Raises:
             FailedOperationException: internal inventory error

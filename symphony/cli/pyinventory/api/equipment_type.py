@@ -15,14 +15,14 @@ from .._utils import (
     get_property_type_input,
 )
 from ..client import SymphonyClient
-from ..common.data_enum import Entity
-from ..consts import (
+from ..common.data_class import (
     Equipment,
     EquipmentPortType,
     EquipmentType,
     PropertyDefinition,
     PropertyValue,
 )
+from ..common.data_enum import Entity
 from ..exceptions import EntityNotFoundError, EquipmentTypeNotFoundException
 from ..graphql.add_equipment_type_input import AddEquipmentTypeInput
 from ..graphql.add_equipment_type_mutation import AddEquipmentTypeMutation
@@ -126,7 +126,7 @@ def get_or_create_equipment_type(
             position_list (List[str]): list of positions names
 
         Returns:
-            `pyinventory.consts.EquipmentType` object
+            `pyinventory.common.data_class.EquipmentType` object
 
         Raises:
             FailedOperationException: internal inventory error
@@ -249,7 +249,7 @@ def add_equipment_type(
             position_list (List[str]): list of positions names
 
         Returns:
-            `pyinventory.consts.EquipmentType` object
+            `pyinventory.common.data_class.EquipmentType` object
 
         Raises:
             FailedOperationException: internal inventory error
@@ -331,7 +331,7 @@ def edit_equipment_type(
             - str - port type name
 
         Returns:
-            `pyinventory.consts.EquipmentType` object
+            `pyinventory.common.data_class.EquipmentType` object
 
         Raises:
             FailedOperationException: internal inventory error
@@ -385,7 +385,7 @@ def copy_equipment_type(
             new_equipment_type_name (str): new equipment type name
 
         Returns:
-            `pyinventory.consts.EquipmentType` object
+            `pyinventory.common.data_class.EquipmentType` object
 
         Raises:
             FailedOperationException: internal inventory error
@@ -515,10 +515,10 @@ def edit_equipment_type_property_type(
         Args:
             equipment_type_name (str): existing equipment type name
             property_type_name (str): existing property type name
-            new_property_definition ( `pyinventory.consts.PropertyDefinition` ): new property definition
+            new_property_definition ( `pyinventory.common.data_class.PropertyDefinition` ): new property definition
 
         Returns:
-            pyinventory.consts.EquipmentType object
+            `pyinventory.common.data_class.EquipmentType`
 
         Raises:
             `pyinventory.exceptions.EntityNotFoundError`: if property type name is not found
@@ -569,7 +569,7 @@ def delete_equipment_type_with_equipments(
     """Delete equipment type with existing equipments.
 
         Args:
-            equipment_type ( `pyinventory.consts.EquipmentType` ): equipment type object
+            equipment_type ( `pyinventory.common.data_class.EquipmentType` ): equipment type object
 
         Raises:
             `pyinventory.exceptions.EntityNotFoundError`: if equipment_type does not exist

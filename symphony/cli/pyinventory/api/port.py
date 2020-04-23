@@ -10,14 +10,14 @@ from gql.gql.reporter import FailedOperationException
 
 from .._utils import get_graphql_property_inputs
 from ..client import SymphonyClient
-from ..common.data_enum import Entity
-from ..consts import (
+from ..common.data_class import (
     Equipment,
     EquipmentPort,
     EquipmentPortDefinition,
     Link,
     PropertyValue,
 )
+from ..common.data_enum import Entity
 from ..exceptions import EntityNotFoundError, EquipmentPortIsNotUniqueException
 from ..graphql.edit_equipment_port_mutation import (
     EditEquipmentPortInput,
@@ -38,11 +38,11 @@ def get_port(
     """This function returns port in equipment based on its name.
 
         Args:
-            equipment ( `pyinventory.consts.Equipment` ): existing equipment object
+            equipment ( `pyinventory.common.data_class.Equipment` ): existing equipment object
             port_name (str): existing port name
 
         Returns:
-            `pyinventory.consts.EquipmentPort` object
+            `pyinventory.common.data_class.EquipmentPort` object
 
         Raises:
             EquipmentPortIsNotUniqueException: there is more than one port with this name
@@ -104,17 +104,17 @@ def edit_port_properties(
     """This function returns edited port in equipment based on its name.
 
         Args:
-            equipment ( `pyinventory.consts.Equipment` ): existing equipment object
+            equipment ( `pyinventory.common.data_class.Equipment` ): existing equipment object
             port_name (str): existing port name
             new_properties (Dict[str, PropertyValue]): Dict, where
             - str - property name
             - PropertyValue - new value of the same type for this property
 
         Returns:
-            `pyinventory.consts.EquipmentPort` object
+            `pyinventory.common.data_class.EquipmentPort` object
 
         Raises:
-            `pyinventory.exceptions.EntityNotFoundError`: when `pyinventory.consts.EquipmentPortDefinition.port_type_name` is None, there are no properties
+            `pyinventory.exceptions.EntityNotFoundError`: when `pyinventory.common.data_class.EquipmentPortDefinition.port_type_name` is None, there are no properties
                 or if there any unknown property name in properties_dict keys
             FailedOperationException: on operation failure
 
@@ -194,17 +194,17 @@ def edit_link_properties(
     """This function returns edited port in equipment based on its name.
 
         Args:
-            equipment ( `pyinventory.consts.Equipment` ): existing equipment object
+            equipment ( `pyinventory.common.data_class.Equipment` ): existing equipment object
             port_name (str): existing port name
             new_link_properties (Dict[str, PropertyValue])
             - str - link property name
             - PropertyValue - new value of the same type for this property
 
         Returns:
-            `pyinventory.consts.EquipmentPort` object
+            `pyinventory.common.data_class.EquipmentPort` object
 
         Raises:
-            `pyinventory.exceptions.EntityNotFoundError`: when `pyinventory.consts.EquipmentPortDefinition.port_type_name` is None, there are no properties
+            `pyinventory.exceptions.EntityNotFoundError`: when `pyinventory.common.data_class.EquipmentPortDefinition.port_type_name` is None, there are no properties
             FailedOperationException: on operation failure
 
         Example:

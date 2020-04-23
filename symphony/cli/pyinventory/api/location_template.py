@@ -6,8 +6,8 @@
 from typing import Dict, List, Tuple
 
 from ..client import SymphonyClient
+from ..common.data_class import Equipment, Location
 from ..common.data_enum import Entity
-from ..consts import Equipment, Location
 from ..exceptions import EntityNotFoundError
 from ..graphql.equipment_positions_query import EquipmentPositionsQuery
 from ..graphql.location_equipments_query import LocationEquipmentsQuery
@@ -48,13 +48,13 @@ def copy_equipment_with_all_attachments(
     """Copy the equipment to the new location with all its attachments
 
         Args:
-            equipment ( `pyinventory.consts.Equipment` ): could be retrieved from
+            equipment ( `pyinventory.common.data_class.Equipment` ): could be retrieved from
             - `pyinventory.api.equipment.get_equipment`
             - `pyinventory.api.equipment.get_equipment_in_position`
             - `pyinventory.api.equipment.add_equipment`
             - `pyinventory.api.equipment.add_equipment_to_position`
 
-            dest_location ( `pyinventory.consts.Location` ): could be retrieved from
+            dest_location ( `pyinventory.common.data_class.Location` ): could be retrieved from
             - `pyinventory.api.location.get_location`
             - `pyinventory.api.location.add_location`
 
@@ -62,9 +62,9 @@ def copy_equipment_with_all_attachments(
             FailedOperationException: internal inventory error
 
         Returns:
-            Dict[ `pyinventory.consts.Equipment` , `pyinventory.consts.Equipment` ]
-            - `pyinventory.consts.Equipment` - source equipment
-            - `pyinventory.consts.Equipment` - new equipment
+            Dict[ `pyinventory.common.data_class.Equipment` , `pyinventory.common.data_class.Equipment` ]
+            - `pyinventory.common.data_class.Equipment` - source equipment
+            - `pyinventory.common.data_class.Equipment` - new equipment
 
             The dict includes the equipment given as parameter and also all the equipments
                 attached to it
