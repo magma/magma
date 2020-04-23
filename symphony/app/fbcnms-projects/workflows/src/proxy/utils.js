@@ -62,9 +62,8 @@ export function withInfixSeparator(s) {
 
 export function addTenantIdPrefix(tenantId, objectWithName) {
   const tenantWithInfixSeparator = withInfixSeparator(tenantId);
-  objectWithName.name =
-    tenantWithInfixSeparator +
-    assertNameIsWithoutInfixSeparator(objectWithName).name;
+  assertNameIsWithoutInfixSeparator(objectWithName);
+  objectWithName.name = tenantWithInfixSeparator + objectWithName.name;
 }
 
 export function assertNameIsWithoutInfixSeparator(objectWithName) {
