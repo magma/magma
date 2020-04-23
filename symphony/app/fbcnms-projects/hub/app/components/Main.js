@@ -54,7 +54,7 @@ function NavBarItems() {
     <NavListItem
       key={2}
       label="Workflows"
-      path="/hub/workflows/defs"
+      path="/hub/workflows"
       icon={<Shuffle />}
       onClick={() => {}}
     />
@@ -87,11 +87,10 @@ function CreateServiceForm() {
   );
 }
 
-function Main(isWorkflow) {
+function Main(subApp) {
   return () => {
     const {user, tabs, ssoEnabled} = useContext(AppContext);
     const classes = useStyles();
-    let subApp = isWorkflow ? <WorkflowApp/> : <CreateServiceForm/>;
     return (
       <div className={classes.root}>
         <AppSideBar
@@ -118,10 +117,10 @@ export default () => {
     <ApplicationMain>
       <AppContextProvider>
         <Switch>
-          <Route path={relativeUrl('/services')} component={Main(false)} />
+          <Route path={relativeUrl('/services')} component={Main(<CreateServiceForm/>)} />
+          <Route path={relativeUrl('/workflows')} component={Main(<WorkflowApp/>)} />
           <Redirect exact from="/" to={relativeUrl('/hub')} />
           <Redirect exact from="/hub" to={relativeUrl('/services')} />
-          <Route path="/hub/workflows/defs" component={Main(true)} />
         </Switch>
       </AppContextProvider>
     </ApplicationMain>

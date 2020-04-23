@@ -1,6 +1,6 @@
 import React from "react";
 import { Provider } from "react-redux";
-import { BrowserRouter, Route, Switch } from "react-router-dom";
+import { BrowserRouter, Route, Switch, Redirect } from "react-router-dom";
 import { applyMiddleware, combineReducers, compose, createStore } from "redux";
 import thunk from "redux-thunk";
 import DiagramBuilder from "./pages/diagramBuilder/DiagramBuilder";
@@ -50,6 +50,7 @@ function App(props) {
             path={[frontendUrlPrefix + "/:type", frontendUrlPrefix + "/:type/:wfid", "/"]}
             component={WorkflowList}
           />
+          <Redirect from={frontendUrlPrefix} to={frontendUrlPrefix + "/defs"} />
         </Switch>
       </BrowserRouter>
     </Provider>
