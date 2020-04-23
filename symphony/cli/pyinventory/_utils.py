@@ -9,10 +9,10 @@ from typing import Callable, Dict, List, Mapping, Optional, Sequence, Tuple, Uni
 
 from dacite import Config, from_dict
 
+from .common.data_enum import Entity
 from .consts import (
     TYPE_AND_FIELD_NAME,
     DataTypeName,
-    Entity,
     PropertyDefinition,
     PropertyValue,
     ReturnType,

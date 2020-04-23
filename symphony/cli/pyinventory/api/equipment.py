@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# Copyright (c) 2004-present Facebook All rights reserved.
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file.
 
 from typing import Dict, List, Mapping, Optional, Tuple
 
@@ -8,7 +11,8 @@ from tqdm import tqdm
 
 from .._utils import PropertyValue, _get_property_value, get_graphql_property_inputs
 from ..client import SymphonyClient
-from ..consts import Entity, Equipment, EquipmentType, Location
+from ..common.data_enum import Entity
+from ..consts import Equipment, EquipmentType, Location
 from ..exceptions import (
     EntityNotFoundError,
     EquipmentIsNotUniqueException,

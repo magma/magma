@@ -10,7 +10,8 @@ from gql.gql.reporter import FailedOperationException
 
 from .._utils import format_property_definitions, get_graphql_property_type_inputs
 from ..client import SymphonyClient
-from ..consts import Entity, EquipmentPortType, PropertyDefinition, PropertyValue
+from ..common.data_enum import Entity
+from ..consts import EquipmentPortType, PropertyDefinition, PropertyValue
 from ..exceptions import EntityNotFoundError
 from ..graphql.add_equipment_port_type_mutation import (
     AddEquipmentPortTypeInput,

@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
+# Copyright (c) 2004-present Facebook All rights reserved.
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file.
 
 from typing import Dict, List, Optional, Tuple
 
 from .._utils import PropertyValue, format_properties, get_graphql_property_inputs
 from ..client import SymphonyClient
+from ..common.data_enum import Entity
 from ..consts import (
     Customer,
-    Entity,
     EquipmentPort,
     EquipmentPortDefinition,
     Link,
@@ -20,7 +23,6 @@ from ..graphql.add_service_endpoint_mutation import AddServiceEndpointMutation
 from ..graphql.add_service_link_mutation import AddServiceLinkMutation
 from ..graphql.add_service_mutation import AddServiceMutation
 from ..graphql.add_service_type_mutation import AddServiceTypeMutation
-from ..graphql.property_type_input import PropertyTypeInput
 from ..graphql.remove_service_mutation import RemoveServiceMutation
 from ..graphql.remove_service_type_mutation import RemoveServiceTypeMutation
 from ..graphql.service_create_data_input import ServiceCreateData

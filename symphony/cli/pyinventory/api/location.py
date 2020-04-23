@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# Copyright (c) 2004-present Facebook All rights reserved.
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file.
 
 from typing import Dict, List, Optional, Sequence, Tuple
 
@@ -7,7 +10,8 @@ from gql.gql.reporter import FailedOperationException
 
 from .._utils import deprecated, get_graphql_property_inputs
 from ..client import SymphonyClient
-from ..consts import Document, Entity, ImageEntity, Location, PropertyValue
+from ..common.data_enum import Entity
+from ..consts import Document, ImageEntity, Location, PropertyValue
 from ..exceptions import (
     EntityNotFoundError,
     LocationCannotBeDeletedWithDependency,

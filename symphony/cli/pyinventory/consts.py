@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 from datetime import date, datetime
-from enum import Enum
 from numbers import Number
 from typing import (
     Any,
@@ -222,22 +221,3 @@ class User(NamedTuple):
     email: str
     status: UserStatus
     role: UserRole
-
-
-class Entity(Enum):
-    Location = "Location"
-    LocationType = "LocationType"
-    Equipment = "Equipment"
-    EquipmentType = "EquipmentType"
-    EquipmentPort = "EquipmentPort"
-    EquipmentPortType = "EquipmentPortType"
-    Link = "Link"
-    Service = "Service"
-    ServiceType = "ServiceType"
-    ServiceEndpoint = "ServiceEndpoint"
-    SiteSurvey = "SiteSurvey"
-    Customer = "Customer"
-    Document = "Document"
-    PropertyType = "PropertyType"
-    Property = "Property"
-    User = "User"

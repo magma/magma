@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
+# Copyright (c) 2004-present Facebook All rights reserved.
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file.
 
 from typing import Dict, List, Tuple
 
 from ..client import SymphonyClient
-from ..consts import Entity, Equipment, Location
+from ..common.data_enum import Entity
+from ..consts import Equipment, Location
 from ..exceptions import EntityNotFoundError
 from ..graphql.equipment_positions_query import EquipmentPositionsQuery
 from ..graphql.location_equipments_query import LocationEquipmentsQuery

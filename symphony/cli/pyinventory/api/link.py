@@ -9,7 +9,8 @@ from gql.gql.client import OperationException
 from gql.gql.reporter import FailedOperationException
 
 from ..client import SymphonyClient
-from ..consts import Entity, Equipment, Link
+from ..common.data_enum import Entity
+from ..consts import Equipment, Link
 from ..exceptions import (
     EntityNotFoundError,
     LinkNotFoundException,

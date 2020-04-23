@@ -15,8 +15,8 @@ from .._utils import (
     get_property_type_input,
 )
 from ..client import SymphonyClient
+from ..common.data_enum import Entity
 from ..consts import (
-    Entity,
     Equipment,
     EquipmentPortType,
     EquipmentType,

@@ -6,7 +6,8 @@
 from typing import List, Optional
 
 from ..client import SymphonyClient
-from ..consts import Entity, User
+from ..common.data_enum import Entity
+from ..consts import User
 from ..exceptions import EntityNotFoundError
 from ..graphql.edit_user_input import EditUserInput
 from ..graphql.edit_user_mutation import EditUserMutation

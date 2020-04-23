@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# Copyright (c) 2004-present Facebook All rights reserved.
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file.
 
 from typing import List, Optional, Tuple
 
@@ -7,7 +10,8 @@ from gql.gql.reporter import FailedOperationException
 
 from .._utils import format_properties
 from ..client import SymphonyClient
-from ..consts import Entity, Location, LocationType, PropertyValue
+from ..common.data_enum import Entity
+from ..consts import Location, LocationType, PropertyValue
 from ..exceptions import EntityNotFoundError
 from ..graphql.add_location_type_input import AddLocationTypeInput
 from ..graphql.add_location_type_mutation import AddLocationTypeMutation

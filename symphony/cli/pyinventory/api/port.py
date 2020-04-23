@@ -10,8 +10,8 @@ from gql.gql.reporter import FailedOperationException
 
 from .._utils import get_graphql_property_inputs
 from ..client import SymphonyClient
+from ..common.data_enum import Entity
 from ..consts import (
-    Entity,
     Equipment,
     EquipmentPort,
     EquipmentPortDefinition,

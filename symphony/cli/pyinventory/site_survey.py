@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# Copyright (c) 2004-present Facebook All rights reserved.
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file.
 
 import math
 from datetime import datetime
@@ -16,7 +19,8 @@ from xlsxwriter.worksheet import Worksheet
 
 from .api.file import add_site_survey_image, delete_site_survey_image
 from .client import SymphonyClient
-from .consts import Entity, Location, SiteSurvey
+from .common.data_enum import Entity
+from .consts import Location, SiteSurvey
 from .exceptions import EntityNotFoundError
 from .graphql.create_survey_mutation import CreateSurveyMutation
 from .graphql.location_surveys_query import LocationSurveysQuery
