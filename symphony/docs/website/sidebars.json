@@ -15,7 +15,8 @@
     ],
     "Mobile App": [
       "mobile-app-intro",
-      "root-device"
+      "root-device",
+      "mobile_app-flow"
     ],
     "API": [
       "py-inventory",
