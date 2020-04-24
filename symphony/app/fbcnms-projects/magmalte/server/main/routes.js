@@ -22,22 +22,32 @@ import {access} from '@fbcnms/auth/access';
 import {getEnabledFeatures} from '@fbcnms/platform-server/features';
 import {masterOrgMiddleware} from '@fbcnms/platform-server/master/middleware';
 
+import {TABS} from '@fbcnms/types/tabs';
+
 const router = express.Router();
 
-const handleReact = _tab =>
+const handleReact = tab =>
   async function(req: FBCNMSRequest, res) {
+    const organization = req.organization ? await req.organization() : null;
+    const orgTabs = organization?.tabs || [];
+    if (TABS[tab] && orgTabs.indexOf(tab) === -1) {
+      res.redirect(
+        organization?.tabs.length ? `/${organization.tabs[0]}` : '/',
+      );
+      return;
+    }
     const appData: AppContextAppData = {
       csrfToken: req.csrfToken(),
-      tabs: ['nms'],
+      tabs: organization?.tabs || [],
       user: req.user
         ? {
-            tenant: '',
+            tenant: organization?.name || '',
             email: req.user.email,
             isSuperUser: req.user.isSuperUser,
             isReadOnlyUser: req.user.isReadOnlyUser,
           }
         : {tenant: '', email: '', isSuperUser: false, isReadOnlyUser: false},
-      enabledFeatures: await getEnabledFeatures(req, null),
+      enabledFeatures: await getEnabledFeatures(req, organization?.name),
       ssoEnabled: false,
       ssoSelectedType: 'none',
       csvCharset: null,
