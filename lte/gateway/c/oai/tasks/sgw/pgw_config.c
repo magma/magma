@@ -449,7 +449,7 @@ int pgw_config_parse_file(pgw_config_t *config_pP)
         IPV6_STR_ADDR_TO_INADDR(
           pcscf_ipv6,
           config_pP->pcscf.ipv6_addr,
-          "BAD IPv4 ADDRESS FORMAT FOR P-CSCF IPv6 address !\n");
+          "BAD IPv6 ADDRESS FORMAT FOR P-CSCF IPv6 address !\n");
         OAILOG_DEBUG(
           LOG_SPGW_APP,
           "Parsing configuration file P-CSCF IPv6 address: %s\n",

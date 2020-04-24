@@ -319,9 +319,14 @@ int pgw_process_pco_link_mtu_request(
 
 //------------------------------------------------------------------------------
 int pgw_process_pco_pcscf_ipv4_address_req(
-  protocol_configuration_options_t* const pco_resp,
-  const pco_protocol_or_container_id_t* const poc_id)
+  protocol_configuration_options_t* const pco_resp)
 {
+  if (!spgw_config.pgw_config.pcscf.ipv4_addr.s_addr) {
+    OAILOG_ERROR(
+    LOG_SPGW_APP,
+    "PCO_CI_P_CSCF_IPV4_ADDRESS not configured. Ignoring the containerID \n");
+    return RETURNok;
+  }
   pco_protocol_or_container_id_t poc_id_resp = {0};
   in_addr_t pcscf_ipv4_addr =
     spgw_config.pgw_config.pcscf.ipv4_addr.s_addr;
@@ -343,9 +348,20 @@ int pgw_process_pco_pcscf_ipv4_address_req(
 
 //------------------------------------------------------------------------------
 int pgw_process_pco_pcscf_ipv6_address_req(
-  protocol_configuration_options_t* const pco_resp,
-  const pco_protocol_or_container_id_t* const poc_id)
+  protocol_configuration_options_t* const pco_resp)
 {
+  if (!strlen((char*)spgw_config.pgw_config.pcscf.ipv6_addr.s6_addr)) {
+    OAILOG_ERROR(
+    LOG_SPGW_APP,
+    "PCO_CI_P_CSCF_IPV6_ADDRESS not configured. Ignoring the containerID \n");
+    // Send P-CSCF IPv4 address if configured
+    if (RETURNok != pgw_process_pco_pcscf_ipv4_address_req(pco_resp)) {
+      OAILOG_ERROR(
+      LOG_SPGW_APP,
+      "PCO_CI_P_CSCF_IPV4_ADDRESS not configured \n");
+    }
+    return RETURNok;
+  }
   pco_protocol_or_container_id_t poc_id_resp = {0};
   struct in6_addr pcscf_ipv6_addr =
     spgw_config.pgw_config.pcscf.ipv6_addr;
@@ -414,13 +430,11 @@ int pgw_process_pco_request(
         break;
 
       case PCO_CI_P_CSCF_IPV4_ADDRESS_REQUEST:
-        rc = pgw_process_pco_pcscf_ipv4_address_req(
-          pco_resp, &pco_req->protocol_or_container_ids[id]);
+        rc = pgw_process_pco_pcscf_ipv4_address_req(pco_resp);
         break;
 
       case PCO_CI_P_CSCF_IPV6_ADDRESS_REQUEST:
-        rc = pgw_process_pco_pcscf_ipv6_address_req(
-          pco_resp, &pco_req->protocol_or_container_ids[id]);
+        rc = pgw_process_pco_pcscf_ipv6_address_req(pco_resp);
         break;
 
       default:

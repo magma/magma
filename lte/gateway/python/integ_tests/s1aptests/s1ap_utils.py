@@ -148,12 +148,12 @@ class S1ApUtil(object):
         # Wait until callback is invoked.
         return self._msg.get(True)
 
-    def populate_pco(self, protCfgOpts_pr, volte_attach_type):
+    def populate_pco(self, protCfgOpts_pr, pcscf_addr_type):
         """
         Populates the PCO values.
         Args:
             protCfgOpts_pr: PCO structure
-            volte_attach_type: ipv4/ipv6 flag
+            pcscf_addr_type: ipv4/ipv6/ipv4v6 flag
         Returns:
             None
         """
@@ -163,15 +163,15 @@ class S1ApUtil(object):
         protCfgOpts_pr.ext = 1
         protCfgOpts_pr.numProtId = 0
 
-        if volte_attach_type == "ipv4":
+        if pcscf_addr_type == "ipv4":
             protCfgOpts_pr.numContId = 1
             protCfgOpts_pr.c[0].cid = 0x000c
 
-        elif volte_attach_type == "ipv6":
+        elif pcscf_addr_type == "ipv6":
             protCfgOpts_pr.numContId = 1
             protCfgOpts_pr.c[0].cid = 0x0001
 
-        elif volte_attach_type == "ipv4v6":
+        elif pcscf_addr_type == "ipv4v6":
             protCfgOpts_pr.numContId = 2
             protCfgOpts_pr.c[0].cid = 0x000C
             protCfgOpts_pr.c[1].cid = 0x0001
@@ -186,7 +186,7 @@ class S1ApUtil(object):
         sec_ctxt=s1ap_types.TFW_CREATE_NEW_SECURITY_CONTEXT,
         id_type=s1ap_types.TFW_MID_TYPE_IMSI,
         eps_type=s1ap_types.TFW_EPS_ATTACH_TYPE_EPS_ATTACH,
-        volte_attach_type=None):
+        pdn_type=1,pcscf_addr_type=None):
         """
         Given a UE issue the attach request of specified type
 
@@ -202,16 +202,19 @@ class S1ApUtil(object):
                 defaults to s1ap_types.TFW_MID_TYPE_IMSI.
             eps_type: Optional param allows for variation in the EPS attach
                 type, defaults to s1ap_types.TFW_EPS_ATTACH_TYPE_EPS_ATTACH.
+            pdn_type:1 for IPv4, 2 for IPv6 and 3 for IPv4v6
         """
         attach_req = s1ap_types.ueAttachRequest_t()
         attach_req.ue_Id = ue_id
         attach_req.mIdType = id_type
         attach_req.epsAttachType = eps_type
         attach_req.useOldSecCtxt = sec_ctxt
+        attach_req.pdnType_pr.pres = True
+        attach_req.pdnType_pr.pdn_type = pdn_type
 
-        # Populate PCO only for VoLTE
-        if volte_attach_type:
-            self.populate_pco(attach_req.protCfgOpts_pr, volte_attach_type)
+        # Populate PCO only if pcscf_addr_type is set
+        if pcscf_addr_type:
+            self.populate_pco(attach_req.protCfgOpts_pr, pcscf_addr_type)
         assert self.issue_cmd(attach_type, attach_req) == 0
 
         response = self.get_response()
