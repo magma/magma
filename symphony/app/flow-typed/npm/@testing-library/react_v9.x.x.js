@@ -118,7 +118,7 @@ declare module '@testing-library/react' {
     eventProperties?: TInit
   ) => boolean;
 
-  declare type RenderResult<Queries = GetsAndQueries> = {
+  declare export type RenderResult<Queries = GetsAndQueries> = {
     ...Queries,
     container: HTMLDivElement,
     unmount: () => void,
