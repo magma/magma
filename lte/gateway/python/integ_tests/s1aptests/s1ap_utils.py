@@ -212,7 +212,7 @@ class S1ApUtil(object):
         attach_req.pdnType_pr.pres = True
         attach_req.pdnType_pr.pdn_type = pdn_type
 
-        # Populate PCO only if pcscf_addr_type is set
+#Populate PCO only if pcscf_addr_type is set
         if pcscf_addr_type:
             self.populate_pco(attach_req.protCfgOpts_pr, pcscf_addr_type)
         assert self.issue_cmd(attach_type, attach_req) == 0

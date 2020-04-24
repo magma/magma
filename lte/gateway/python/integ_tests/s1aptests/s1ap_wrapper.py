@@ -349,17 +349,17 @@ class TestWrapper(object):
     def sendPdnConnectivityReq(self, ue_id, apn, pdn_type=1, pcscf_addr_type=None):
         req = s1ap_types.uepdnConReq_t()
         req.ue_Id = ue_id
-        # Initial Request
+#Initial Request
         req.reqType = 1
         req.pdnType_pr.pres = 1
-        # PDN Type 1 = IPv4, 2 = IPv6, 3 = IPv4v6
+#PDN Type 1 = IPv4, 2 = IPv6, 3 = IPv4v6
         req.pdnType_pr.pdn_type = pdn_type
         req.pdnAPN_pr.pres = 1
         req.pdnAPN_pr.len = len(apn)
         req.pdnAPN_pr.pdn_apn = (ctypes.c_ubyte * 100)(
             *[ctypes.c_ubyte(ord(c)) for c in apn[:100]]
         )
-        # Populate PCO if pcscf_addr_type is set
+#Populate PCO if pcscf_addr_type is set
         if pcscf_addr_type:
             print("********* pcscf_addr_type", pcscf_addr_type)
             req.pco_pres = True

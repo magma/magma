@@ -245,10 +245,10 @@ int pgw_config_parse_file(pgw_config_t *config_pP)
   unsigned char buf_in_addr[sizeof(struct in_addr)];
   struct in_addr addr_start;
   bstring system_cmd = NULL;
-  libconfig_int mtu = 0;
-  int prefix_mask = 0;
-  char *pcscf_ipv4 = NULL;
-  char *pcscf_ipv6 = NULL;
+  libconfig_int mtu  = 0;
+  int prefix_mask    = 0;
+  char* pcscf_ipv4   = NULL;
+  char* pcscf_ipv6   = NULL;
 
   config_init(&cfg);
 
@@ -424,39 +424,31 @@ int pgw_config_parse_file(pgw_config_t *config_pP)
       }
     }
 
-    if (
-      config_setting_lookup_string(
-          setting_pgw,
-          PGW_CONFIG_P_CSCF_IPV4_ADDRESS,
-          (const char **) &pcscf_ipv4)) {
-        IPV4_STR_ADDR_TO_INADDR(
-          pcscf_ipv4,
-          config_pP->pcscf.ipv4_addr,
+    if (config_setting_lookup_string(
+            setting_pgw, PGW_CONFIG_P_CSCF_IPV4_ADDRESS,
+            (const char**) &pcscf_ipv4)) {
+      IPV4_STR_ADDR_TO_INADDR(
+          pcscf_ipv4, config_pP->pcscf.ipv4_addr,
           "BAD IPv4 ADDRESS FORMAT FOR P-CSCF IPv4 address !\n");
-        OAILOG_DEBUG(
-          LOG_SPGW_APP,
-          "Parsing configuration file P-CSCF IPv4 address: %s\n",
+      OAILOG_DEBUG(
+          LOG_SPGW_APP, "Parsing configuration file P-CSCF IPv4 address: %s\n",
           pcscf_ipv4);
-      } else {
-        OAILOG_WARNING(LOG_SPGW_APP, "NO P-CSCF IPv4 CONFIGURATION FOUND\n");
-      }
+    } else {
+      OAILOG_WARNING(LOG_SPGW_APP, "NO P-CSCF IPv4 CONFIGURATION FOUND\n");
+    }
 
-    if (
-      config_setting_lookup_string(
-          setting_pgw,
-          PGW_CONFIG_P_CSCF_IPV6_ADDRESS,
-          (const char **) &pcscf_ipv6)) {
-        IPV6_STR_ADDR_TO_INADDR(
-          pcscf_ipv6,
-          config_pP->pcscf.ipv6_addr,
+    if (config_setting_lookup_string(
+            setting_pgw, PGW_CONFIG_P_CSCF_IPV6_ADDRESS,
+            (const char**) &pcscf_ipv6)) {
+      IPV6_STR_ADDR_TO_INADDR(
+          pcscf_ipv6, config_pP->pcscf.ipv6_addr,
           "BAD IPv6 ADDRESS FORMAT FOR P-CSCF IPv6 address !\n");
-        OAILOG_DEBUG(
-          LOG_SPGW_APP,
-          "Parsing configuration file P-CSCF IPv6 address: %s\n",
+      OAILOG_DEBUG(
+          LOG_SPGW_APP, "Parsing configuration file P-CSCF IPv6 address: %s\n",
           pcscf_ipv6);
-      } else {
-        OAILOG_WARNING(LOG_SPGW_APP, "NO P-CSCF IPv6 CONFIGURATION FOUND\n");
-      }
+    } else {
+      OAILOG_WARNING(LOG_SPGW_APP, "NO P-CSCF IPv6 CONFIGURATION FOUND\n");
+    }
 
     if (config_setting_lookup_string(
           setting_pgw,
