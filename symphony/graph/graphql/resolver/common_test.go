@@ -7,23 +7,23 @@ package resolver
 import (
 	"context"
 	"flag"
-	"net/http"
 	"os"
 	"testing"
 
+	"github.com/99designs/gqlgen/client"
+	"github.com/99designs/gqlgen/graphql"
+	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/facebookincubator/ent/dialect"
 	"github.com/facebookincubator/ent/dialect/sql"
-	"github.com/facebookincubator/ent/dialect/sql/schema"
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/ent/enttest"
+	"github.com/facebookincubator/symphony/graph/ent/migrate"
 	"github.com/facebookincubator/symphony/graph/event"
 	"github.com/facebookincubator/symphony/graph/graphql/directive"
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 	"github.com/facebookincubator/symphony/pkg/log/logtest"
 	"github.com/facebookincubator/symphony/pkg/testdb"
-
-	"github.com/99designs/gqlgen/client"
-	"github.com/99designs/gqlgen/handler"
 	"github.com/stretchr/testify/require"
 )
 
@@ -51,8 +51,10 @@ func newResolver(t *testing.T, drv dialect.Driver, opts ...Option) *TestResolver
 	if *debug {
 		drv = dialect.Debug(drv)
 	}
-	c := ent.NewClient(ent.Driver(drv))
-	require.NoError(t, c.Schema.Create(context.Background(), schema.WithGlobalUniqueID(true)))
+	c := enttest.NewClient(t,
+		enttest.WithOptions(ent.Driver(drv)),
+		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
+	)
 
 	emitter, subscriber := event.Pipe()
 	logger := logtest.NewTestLogger(t)
@@ -64,7 +66,7 @@ func newResolver(t *testing.T, drv dialect.Driver, opts ...Option) *TestResolver
 }
 
 func newGraphClient(t *testing.T, resolver *TestResolver) *client.Client {
-	gql := handler.GraphQL(
+	srv := handler.NewDefaultServer(
 		generated.NewExecutableSchema(
 			generated.Config{
 				Resolvers:  resolver,
@@ -72,15 +74,16 @@ func newGraphClient(t *testing.T, resolver *TestResolver) *client.Client {
 			},
 		),
 	)
-	return client.New(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := viewertest.NewContext(resolver.client)
-		gql.ServeHTTP(w, r.WithContext(ctx))
-	}))
+	srv.AroundOperations(func(ctx context.Context, next graphql.OperationHandler) graphql.ResponseHandler {
+		ctx = viewertest.NewContext(ctx, resolver.client)
+		return next(ctx)
+	})
+	return client.New(srv)
 }
 
 func resolverctx(t *testing.T) (generated.ResolverRoot, context.Context) {
 	r := newTestResolver(t)
-	return r, viewertest.NewContext(r.client)
+	return r, viewertest.NewContext(context.Background(), r.client)
 }
 
 func mutationctx(t *testing.T) (generated.MutationResolver, context.Context) {

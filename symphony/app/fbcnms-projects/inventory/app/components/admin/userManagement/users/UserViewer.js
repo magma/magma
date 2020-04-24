@@ -14,7 +14,7 @@ import * as React from 'react';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import classNames from 'classnames';
 import symphony from '@fbcnms/ui/theme/symphony';
-import {USER_ROLES} from '../utils/UserManagementUtils';
+import {USER_ROLES, userFullName} from '../utils/UserManagementUtils';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(() => ({
@@ -91,7 +91,7 @@ export default function UserViewer(props: Props) {
           variant="subtitle2"
           useEllipsis={true}
           color={highlightName ? 'primary' : undefined}>
-          {`${user.firstName} ${user.lastName}`.trim() || '_'}
+          {userFullName(user)}
         </Text>
         <div className={classes.metaData}>
           <Text variant="caption" color="gray" useEllipsis={true}>

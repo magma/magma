@@ -22,6 +22,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/ent/service"
+	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
 
@@ -373,6 +374,44 @@ func (pc *PropertyCreate) SetServiceValue(s *Service) *PropertyCreate {
 	return pc.SetServiceValueID(s.ID)
 }
 
+// SetWorkOrderValueID sets the work_order_value edge to WorkOrder by id.
+func (pc *PropertyCreate) SetWorkOrderValueID(id int) *PropertyCreate {
+	pc.mutation.SetWorkOrderValueID(id)
+	return pc
+}
+
+// SetNillableWorkOrderValueID sets the work_order_value edge to WorkOrder by id if the given value is not nil.
+func (pc *PropertyCreate) SetNillableWorkOrderValueID(id *int) *PropertyCreate {
+	if id != nil {
+		pc = pc.SetWorkOrderValueID(*id)
+	}
+	return pc
+}
+
+// SetWorkOrderValue sets the work_order_value edge to WorkOrder.
+func (pc *PropertyCreate) SetWorkOrderValue(w *WorkOrder) *PropertyCreate {
+	return pc.SetWorkOrderValueID(w.ID)
+}
+
+// SetUserValueID sets the user_value edge to User by id.
+func (pc *PropertyCreate) SetUserValueID(id int) *PropertyCreate {
+	pc.mutation.SetUserValueID(id)
+	return pc
+}
+
+// SetNillableUserValueID sets the user_value edge to User by id if the given value is not nil.
+func (pc *PropertyCreate) SetNillableUserValueID(id *int) *PropertyCreate {
+	if id != nil {
+		pc = pc.SetUserValueID(*id)
+	}
+	return pc
+}
+
+// SetUserValue sets the user_value edge to User.
+func (pc *PropertyCreate) SetUserValue(u *User) *PropertyCreate {
+	return pc.SetUserValueID(u.ID)
+}
+
 // Save creates the Property in the database.
 func (pc *PropertyCreate) Save(ctx context.Context) (*Property, error) {
 	if _, ok := pc.mutation.CreateTime(); !ok {
@@ -713,6 +752,44 @@ func (pc *PropertyCreate) sqlSave(ctx context.Context) (*Property, error) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: service.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := pc.mutation.WorkOrderValueIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   property.WorkOrderValueTable,
+			Columns: []string{property.WorkOrderValueColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workorder.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := pc.mutation.UserValueIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   property.UserValueTable,
+			Columns: []string{property.UserValueColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
 				},
 			},
 		}

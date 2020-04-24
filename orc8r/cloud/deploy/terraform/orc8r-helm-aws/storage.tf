@@ -17,8 +17,20 @@ resource "kubernetes_persistent_volume_claim" "storage" {
       storage     = "64Gi"
     }
     grafanadata = {
-      access_mode = "ReadWriteOnce"
+      access_mode = "ReadWriteMany"
       storage     = "2Gi"
+    }
+    grafanadashboards = {
+      access_mode = "ReadWriteMany"
+      storage     = "2Gi"
+    }
+    grafanaproviders = {
+      access_mode = "ReadWriteMany"
+      storage     = "100M"
+    }
+    grafanadatasources = {
+      access_mode = "ReadWriteMany"
+      storage     = "100M"
     }
     openvpn = {
       access_mode = "ReadWriteOnce"

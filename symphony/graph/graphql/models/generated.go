@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/facebookincubator/symphony/graph/authz/models"
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/ent/usersgroup"
@@ -20,6 +21,10 @@ import (
 
 type NamedNode interface {
 	IsNamedNode()
+}
+
+type SystemPolicy interface {
+	IsSystemPolicy()
 }
 
 type ActionsAction struct {
@@ -166,6 +171,14 @@ type AddLocationTypeInput struct {
 	SurveyTemplateCategories []*SurveyTemplateCategoryInput `json:"surveyTemplateCategories"`
 }
 
+type AddPermissionsPolicyInput struct {
+	Name           string                       `json:"name"`
+	Description    *string                      `json:"description"`
+	IsGlobal       *bool                        `json:"isGlobal"`
+	InventoryInput *models.InventoryPolicyInput `json:"inventoryInput"`
+	WorkforceInput *models.WorkforcePolicyInput `json:"workforceInput"`
+}
+
 type AddProjectInput struct {
 	Name        string           `json:"name"`
 	Description *string          `json:"description"`
@@ -222,7 +235,17 @@ type AddWorkOrderTypeInput struct {
 }
 
 type AdministrativePolicy struct {
-	CanRead bool `json:"canRead"`
+	Access *BasicPermissionRule `json:"access"`
+}
+
+type BasicPermissionRule struct {
+	IsAllowed models.PermissionValue `json:"isAllowed"`
+}
+
+type Cud struct {
+	Create *BasicPermissionRule `json:"create"`
+	Update *BasicPermissionRule `json:"update"`
+	Delete *BasicPermissionRule `json:"delete"`
 }
 
 type CheckListCategoryInput struct {
@@ -452,6 +475,18 @@ type GeneralFilterInput struct {
 	PropertyValue *PropertyTypeInput `json:"propertyValue"`
 }
 
+type InventoryPolicy struct {
+	Read          *BasicPermissionRule `json:"read"`
+	Location      *Cud                 `json:"location"`
+	Equipment     *Cud                 `json:"equipment"`
+	EquipmentType *Cud                 `json:"equipmentType"`
+	LocationType  *Cud                 `json:"locationType"`
+	PortType      *Cud                 `json:"portType"`
+	ServiceType   *Cud                 `json:"serviceType"`
+}
+
+func (InventoryPolicy) IsSystemPolicy() {}
+
 type LatestPythonPackageResult struct {
 	LastPythonPackage         *PythonPackage `json:"lastPythonPackage"`
 	LastBreakingPythonPackage *PythonPackage `json:"lastBreakingPythonPackage"`
@@ -504,8 +539,10 @@ type NetworkTopology struct {
 }
 
 type PermissionSettings struct {
-	CanWrite    bool                  `json:"canWrite"`
-	AdminPolicy *AdministrativePolicy `json:"adminPolicy"`
+	CanWrite            bool                  `json:"canWrite"`
+	AdminPolicy         *AdministrativePolicy `json:"adminPolicy"`
+	InventoryPolicy     *InventoryPolicy      `json:"inventoryPolicy"`
+	WorkforcePermission *WorkforcePolicy      `json:"workforcePermission"`
 }
 
 type PortFilterInput struct {
@@ -847,6 +884,22 @@ type WorkOrderSearchResult struct {
 	WorkOrders []*ent.WorkOrder `json:"workOrders"`
 	Count      int              `json:"count"`
 }
+
+type WorkforceCud struct {
+	Create            *BasicPermissionRule `json:"create"`
+	Update            *BasicPermissionRule `json:"update"`
+	Delete            *BasicPermissionRule `json:"delete"`
+	Assign            *BasicPermissionRule `json:"assign"`
+	TransferOwnership *BasicPermissionRule `json:"transferOwnership"`
+}
+
+type WorkforcePolicy struct {
+	Read      *BasicPermissionRule `json:"read"`
+	Data      *WorkforceCud        `json:"data"`
+	Templates *Cud                 `json:"templates"`
+}
+
+func (WorkforcePolicy) IsSystemPolicy() {}
 
 type CellularNetworkType string
 

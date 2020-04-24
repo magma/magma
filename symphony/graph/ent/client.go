@@ -35,6 +35,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/link"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/locationtype"
+	"github.com/facebookincubator/symphony/graph/ent/permissionspolicy"
 	"github.com/facebookincubator/symphony/graph/ent/project"
 	"github.com/facebookincubator/symphony/graph/ent/projecttype"
 	"github.com/facebookincubator/symphony/graph/ent/property"
@@ -111,6 +112,8 @@ type Client struct {
 	Location *LocationClient
 	// LocationType is the client for interacting with the LocationType builders.
 	LocationType *LocationTypeClient
+	// PermissionsPolicy is the client for interacting with the PermissionsPolicy builders.
+	PermissionsPolicy *PermissionsPolicyClient
 	// Project is the client for interacting with the Project builders.
 	Project *ProjectClient
 	// ProjectType is the client for interacting with the ProjectType builders.
@@ -191,6 +194,7 @@ func (c *Client) init() {
 	c.Link = NewLinkClient(c.config)
 	c.Location = NewLocationClient(c.config)
 	c.LocationType = NewLocationTypeClient(c.config)
+	c.PermissionsPolicy = NewPermissionsPolicyClient(c.config)
 	c.Project = NewProjectClient(c.config)
 	c.ProjectType = NewProjectTypeClient(c.config)
 	c.Property = NewPropertyClient(c.config)
@@ -264,6 +268,66 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Link:                        NewLinkClient(cfg),
 		Location:                    NewLocationClient(cfg),
 		LocationType:                NewLocationTypeClient(cfg),
+		PermissionsPolicy:           NewPermissionsPolicyClient(cfg),
+		Project:                     NewProjectClient(cfg),
+		ProjectType:                 NewProjectTypeClient(cfg),
+		Property:                    NewPropertyClient(cfg),
+		PropertyType:                NewPropertyTypeClient(cfg),
+		ReportFilter:                NewReportFilterClient(cfg),
+		Service:                     NewServiceClient(cfg),
+		ServiceEndpoint:             NewServiceEndpointClient(cfg),
+		ServiceEndpointDefinition:   NewServiceEndpointDefinitionClient(cfg),
+		ServiceType:                 NewServiceTypeClient(cfg),
+		Survey:                      NewSurveyClient(cfg),
+		SurveyCellScan:              NewSurveyCellScanClient(cfg),
+		SurveyQuestion:              NewSurveyQuestionClient(cfg),
+		SurveyTemplateCategory:      NewSurveyTemplateCategoryClient(cfg),
+		SurveyTemplateQuestion:      NewSurveyTemplateQuestionClient(cfg),
+		SurveyWiFiScan:              NewSurveyWiFiScanClient(cfg),
+		Technician:                  NewTechnicianClient(cfg),
+		User:                        NewUserClient(cfg),
+		UsersGroup:                  NewUsersGroupClient(cfg),
+		WorkOrder:                   NewWorkOrderClient(cfg),
+		WorkOrderDefinition:         NewWorkOrderDefinitionClient(cfg),
+		WorkOrderType:               NewWorkOrderTypeClient(cfg),
+	}, nil
+}
+
+// BeginTx returns a transactional client with options.
+func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) {
+	if _, ok := c.driver.(*txDriver); ok {
+		return nil, fmt.Errorf("ent: cannot start a transaction within a transaction")
+	}
+	tx, err := c.driver.(*sql.Driver).BeginTx(ctx, opts)
+	if err != nil {
+		return nil, fmt.Errorf("ent: starting a transaction: %v", err)
+	}
+	cfg := config{driver: &txDriver{tx: tx, drv: c.driver}, log: c.log, debug: c.debug, hooks: c.hooks}
+	return &Tx{
+		config:                      cfg,
+		ActionsRule:                 NewActionsRuleClient(cfg),
+		CheckListCategory:           NewCheckListCategoryClient(cfg),
+		CheckListItem:               NewCheckListItemClient(cfg),
+		CheckListItemDefinition:     NewCheckListItemDefinitionClient(cfg),
+		Comment:                     NewCommentClient(cfg),
+		Customer:                    NewCustomerClient(cfg),
+		Equipment:                   NewEquipmentClient(cfg),
+		EquipmentCategory:           NewEquipmentCategoryClient(cfg),
+		EquipmentPort:               NewEquipmentPortClient(cfg),
+		EquipmentPortDefinition:     NewEquipmentPortDefinitionClient(cfg),
+		EquipmentPortType:           NewEquipmentPortTypeClient(cfg),
+		EquipmentPosition:           NewEquipmentPositionClient(cfg),
+		EquipmentPositionDefinition: NewEquipmentPositionDefinitionClient(cfg),
+		EquipmentType:               NewEquipmentTypeClient(cfg),
+		File:                        NewFileClient(cfg),
+		FloorPlan:                   NewFloorPlanClient(cfg),
+		FloorPlanReferencePoint:     NewFloorPlanReferencePointClient(cfg),
+		FloorPlanScale:              NewFloorPlanScaleClient(cfg),
+		Hyperlink:                   NewHyperlinkClient(cfg),
+		Link:                        NewLinkClient(cfg),
+		Location:                    NewLocationClient(cfg),
+		LocationType:                NewLocationTypeClient(cfg),
+		PermissionsPolicy:           NewPermissionsPolicyClient(cfg),
 		Project:                     NewProjectClient(cfg),
 		ProjectType:                 NewProjectTypeClient(cfg),
 		Property:                    NewPropertyClient(cfg),
@@ -335,6 +399,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.Link.Use(hooks...)
 	c.Location.Use(hooks...)
 	c.LocationType.Use(hooks...)
+	c.PermissionsPolicy.Use(hooks...)
 	c.Project.Use(hooks...)
 	c.ProjectType.Use(hooks...)
 	c.Property.Use(hooks...)
@@ -438,7 +503,8 @@ func (c *ActionsRuleClient) GetX(ctx context.Context, id int) *ActionsRule {
 
 // Hooks returns the client hooks.
 func (c *ActionsRuleClient) Hooks() []Hook {
-	return c.hooks.ActionsRule
+	hooks := c.hooks.ActionsRule
+	return append(hooks[:len(hooks):len(hooks)], actionsrule.Hooks[:]...)
 }
 
 // CheckListCategoryClient is a client for the CheckListCategory schema.
@@ -537,7 +603,8 @@ func (c *CheckListCategoryClient) QueryCheckListItems(clc *CheckListCategory) *C
 
 // Hooks returns the client hooks.
 func (c *CheckListCategoryClient) Hooks() []Hook {
-	return c.hooks.CheckListCategory
+	hooks := c.hooks.CheckListCategory
+	return append(hooks[:len(hooks):len(hooks)], checklistcategory.Hooks[:]...)
 }
 
 // CheckListItemClient is a client for the CheckListItem schema.
@@ -783,7 +850,8 @@ func (c *CheckListItemDefinitionClient) QueryWorkOrderType(clid *CheckListItemDe
 
 // Hooks returns the client hooks.
 func (c *CheckListItemDefinitionClient) Hooks() []Hook {
-	return c.hooks.CheckListItemDefinition
+	hooks := c.hooks.CheckListItemDefinition
+	return append(hooks[:len(hooks):len(hooks)], checklistitemdefinition.Hooks[:]...)
 }
 
 // CommentClient is a client for the Comment schema.
@@ -882,7 +950,8 @@ func (c *CommentClient) QueryAuthor(co *Comment) *UserQuery {
 
 // Hooks returns the client hooks.
 func (c *CommentClient) Hooks() []Hook {
-	return c.hooks.Comment
+	hooks := c.hooks.Comment
+	return append(hooks[:len(hooks):len(hooks)], comment.Hooks[:]...)
 }
 
 // CustomerClient is a client for the Customer schema.
@@ -981,7 +1050,8 @@ func (c *CustomerClient) QueryServices(cu *Customer) *ServiceQuery {
 
 // Hooks returns the client hooks.
 func (c *CustomerClient) Hooks() []Hook {
-	return c.hooks.Customer
+	hooks := c.hooks.Customer
+	return append(hooks[:len(hooks):len(hooks)], customer.Hooks[:]...)
 }
 
 // EquipmentClient is a client for the Equipment schema.
@@ -1224,7 +1294,8 @@ func (c *EquipmentClient) QueryEndpoints(e *Equipment) *ServiceEndpointQuery {
 
 // Hooks returns the client hooks.
 func (c *EquipmentClient) Hooks() []Hook {
-	return c.hooks.Equipment
+	hooks := c.hooks.Equipment
+	return append(hooks[:len(hooks):len(hooks)], equipment.Hooks[:]...)
 }
 
 // EquipmentCategoryClient is a client for the EquipmentCategory schema.
@@ -1323,7 +1394,8 @@ func (c *EquipmentCategoryClient) QueryTypes(ec *EquipmentCategory) *EquipmentTy
 
 // Hooks returns the client hooks.
 func (c *EquipmentCategoryClient) Hooks() []Hook {
-	return c.hooks.EquipmentCategory
+	hooks := c.hooks.EquipmentCategory
+	return append(hooks[:len(hooks):len(hooks)], equipmentcategory.Hooks[:]...)
 }
 
 // EquipmentPortClient is a client for the EquipmentPort schema.
@@ -1486,7 +1558,8 @@ func (c *EquipmentPortClient) QueryEndpoints(ep *EquipmentPort) *ServiceEndpoint
 
 // Hooks returns the client hooks.
 func (c *EquipmentPortClient) Hooks() []Hook {
-	return c.hooks.EquipmentPort
+	hooks := c.hooks.EquipmentPort
+	return append(hooks[:len(hooks):len(hooks)], equipmentport.Hooks[:]...)
 }
 
 // EquipmentPortDefinitionClient is a client for the EquipmentPortDefinition schema.
@@ -1617,7 +1690,8 @@ func (c *EquipmentPortDefinitionClient) QueryEquipmentType(epd *EquipmentPortDef
 
 // Hooks returns the client hooks.
 func (c *EquipmentPortDefinitionClient) Hooks() []Hook {
-	return c.hooks.EquipmentPortDefinition
+	hooks := c.hooks.EquipmentPortDefinition
+	return append(hooks[:len(hooks):len(hooks)], equipmentportdefinition.Hooks[:]...)
 }
 
 // EquipmentPortTypeClient is a client for the EquipmentPortType schema.
@@ -1748,7 +1822,8 @@ func (c *EquipmentPortTypeClient) QueryPortDefinitions(ept *EquipmentPortType) *
 
 // Hooks returns the client hooks.
 func (c *EquipmentPortTypeClient) Hooks() []Hook {
-	return c.hooks.EquipmentPortType
+	hooks := c.hooks.EquipmentPortType
+	return append(hooks[:len(hooks):len(hooks)], equipmentporttype.Hooks[:]...)
 }
 
 // EquipmentPositionClient is a client for the EquipmentPosition schema.
@@ -1879,7 +1954,8 @@ func (c *EquipmentPositionClient) QueryAttachment(ep *EquipmentPosition) *Equipm
 
 // Hooks returns the client hooks.
 func (c *EquipmentPositionClient) Hooks() []Hook {
-	return c.hooks.EquipmentPosition
+	hooks := c.hooks.EquipmentPosition
+	return append(hooks[:len(hooks):len(hooks)], equipmentposition.Hooks[:]...)
 }
 
 // EquipmentPositionDefinitionClient is a client for the EquipmentPositionDefinition schema.
@@ -1994,7 +2070,8 @@ func (c *EquipmentPositionDefinitionClient) QueryEquipmentType(epd *EquipmentPos
 
 // Hooks returns the client hooks.
 func (c *EquipmentPositionDefinitionClient) Hooks() []Hook {
-	return c.hooks.EquipmentPositionDefinition
+	hooks := c.hooks.EquipmentPositionDefinition
+	return append(hooks[:len(hooks):len(hooks)], equipmentpositiondefinition.Hooks[:]...)
 }
 
 // EquipmentTypeClient is a client for the EquipmentType schema.
@@ -2173,7 +2250,8 @@ func (c *EquipmentTypeClient) QueryServiceEndpointDefinitions(et *EquipmentType)
 
 // Hooks returns the client hooks.
 func (c *EquipmentTypeClient) Hooks() []Hook {
-	return c.hooks.EquipmentType
+	hooks := c.hooks.EquipmentType
+	return append(hooks[:len(hooks):len(hooks)], equipmenttype.Hooks[:]...)
 }
 
 // FileClient is a client for the File schema.
@@ -2256,7 +2334,8 @@ func (c *FileClient) GetX(ctx context.Context, id int) *File {
 
 // Hooks returns the client hooks.
 func (c *FileClient) Hooks() []Hook {
-	return c.hooks.File
+	hooks := c.hooks.File
+	return append(hooks[:len(hooks):len(hooks)], file.Hooks[:]...)
 }
 
 // FloorPlanClient is a client for the FloorPlan schema.
@@ -2403,7 +2482,8 @@ func (c *FloorPlanClient) QueryImage(fp *FloorPlan) *FileQuery {
 
 // Hooks returns the client hooks.
 func (c *FloorPlanClient) Hooks() []Hook {
-	return c.hooks.FloorPlan
+	hooks := c.hooks.FloorPlan
+	return append(hooks[:len(hooks):len(hooks)], floorplan.Hooks[:]...)
 }
 
 // FloorPlanReferencePointClient is a client for the FloorPlanReferencePoint schema.
@@ -2486,7 +2566,8 @@ func (c *FloorPlanReferencePointClient) GetX(ctx context.Context, id int) *Floor
 
 // Hooks returns the client hooks.
 func (c *FloorPlanReferencePointClient) Hooks() []Hook {
-	return c.hooks.FloorPlanReferencePoint
+	hooks := c.hooks.FloorPlanReferencePoint
+	return append(hooks[:len(hooks):len(hooks)], floorplanreferencepoint.Hooks[:]...)
 }
 
 // FloorPlanScaleClient is a client for the FloorPlanScale schema.
@@ -2569,7 +2650,8 @@ func (c *FloorPlanScaleClient) GetX(ctx context.Context, id int) *FloorPlanScale
 
 // Hooks returns the client hooks.
 func (c *FloorPlanScaleClient) Hooks() []Hook {
-	return c.hooks.FloorPlanScale
+	hooks := c.hooks.FloorPlanScale
+	return append(hooks[:len(hooks):len(hooks)], floorplanscale.Hooks[:]...)
 }
 
 // HyperlinkClient is a client for the Hyperlink schema.
@@ -2652,7 +2734,8 @@ func (c *HyperlinkClient) GetX(ctx context.Context, id int) *Hyperlink {
 
 // Hooks returns the client hooks.
 func (c *HyperlinkClient) Hooks() []Hook {
-	return c.hooks.Hyperlink
+	hooks := c.hooks.Hyperlink
+	return append(hooks[:len(hooks):len(hooks)], hyperlink.Hooks[:]...)
 }
 
 // LinkClient is a client for the Link schema.
@@ -2799,7 +2882,8 @@ func (c *LinkClient) QueryService(l *Link) *ServiceQuery {
 
 // Hooks returns the client hooks.
 func (c *LinkClient) Hooks() []Hook {
-	return c.hooks.Link
+	hooks := c.hooks.Link
+	return append(hooks[:len(hooks):len(hooks)], link.Hooks[:]...)
 }
 
 // LocationClient is a client for the Location schema.
@@ -3074,7 +3158,8 @@ func (c *LocationClient) QueryFloorPlans(l *Location) *FloorPlanQuery {
 
 // Hooks returns the client hooks.
 func (c *LocationClient) Hooks() []Hook {
-	return c.hooks.Location
+	hooks := c.hooks.Location
+	return append(hooks[:len(hooks):len(hooks)], location.Hooks[:]...)
 }
 
 // LocationTypeClient is a client for the LocationType schema.
@@ -3205,7 +3290,108 @@ func (c *LocationTypeClient) QuerySurveyTemplateCategories(lt *LocationType) *Su
 
 // Hooks returns the client hooks.
 func (c *LocationTypeClient) Hooks() []Hook {
-	return c.hooks.LocationType
+	hooks := c.hooks.LocationType
+	return append(hooks[:len(hooks):len(hooks)], locationtype.Hooks[:]...)
+}
+
+// PermissionsPolicyClient is a client for the PermissionsPolicy schema.
+type PermissionsPolicyClient struct {
+	config
+}
+
+// NewPermissionsPolicyClient returns a client for the PermissionsPolicy from the given config.
+func NewPermissionsPolicyClient(c config) *PermissionsPolicyClient {
+	return &PermissionsPolicyClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `permissionspolicy.Hooks(f(g(h())))`.
+func (c *PermissionsPolicyClient) Use(hooks ...Hook) {
+	c.hooks.PermissionsPolicy = append(c.hooks.PermissionsPolicy, hooks...)
+}
+
+// Create returns a create builder for PermissionsPolicy.
+func (c *PermissionsPolicyClient) Create() *PermissionsPolicyCreate {
+	mutation := newPermissionsPolicyMutation(c.config, OpCreate)
+	return &PermissionsPolicyCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Update returns an update builder for PermissionsPolicy.
+func (c *PermissionsPolicyClient) Update() *PermissionsPolicyUpdate {
+	mutation := newPermissionsPolicyMutation(c.config, OpUpdate)
+	return &PermissionsPolicyUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PermissionsPolicyClient) UpdateOne(pp *PermissionsPolicy) *PermissionsPolicyUpdateOne {
+	return c.UpdateOneID(pp.ID)
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PermissionsPolicyClient) UpdateOneID(id int) *PermissionsPolicyUpdateOne {
+	mutation := newPermissionsPolicyMutation(c.config, OpUpdateOne)
+	mutation.id = &id
+	return &PermissionsPolicyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for PermissionsPolicy.
+func (c *PermissionsPolicyClient) Delete() *PermissionsPolicyDelete {
+	mutation := newPermissionsPolicyMutation(c.config, OpDelete)
+	return &PermissionsPolicyDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *PermissionsPolicyClient) DeleteOne(pp *PermissionsPolicy) *PermissionsPolicyDeleteOne {
+	return c.DeleteOneID(pp.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *PermissionsPolicyClient) DeleteOneID(id int) *PermissionsPolicyDeleteOne {
+	builder := c.Delete().Where(permissionspolicy.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PermissionsPolicyDeleteOne{builder}
+}
+
+// Create returns a query builder for PermissionsPolicy.
+func (c *PermissionsPolicyClient) Query() *PermissionsPolicyQuery {
+	return &PermissionsPolicyQuery{config: c.config}
+}
+
+// Get returns a PermissionsPolicy entity by its id.
+func (c *PermissionsPolicyClient) Get(ctx context.Context, id int) (*PermissionsPolicy, error) {
+	return c.Query().Where(permissionspolicy.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PermissionsPolicyClient) GetX(ctx context.Context, id int) *PermissionsPolicy {
+	pp, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return pp
+}
+
+// QueryGroups queries the groups edge of a PermissionsPolicy.
+func (c *PermissionsPolicyClient) QueryGroups(pp *PermissionsPolicy) *UsersGroupQuery {
+	query := &UsersGroupQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := pp.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(permissionspolicy.Table, permissionspolicy.FieldID, id),
+			sqlgraph.To(usersgroup.Table, usersgroup.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, permissionspolicy.GroupsTable, permissionspolicy.GroupsPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(pp.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *PermissionsPolicyClient) Hooks() []Hook {
+	hooks := c.hooks.PermissionsPolicy
+	return append(hooks[:len(hooks):len(hooks)], permissionspolicy.Hooks[:]...)
 }
 
 // ProjectClient is a client for the Project schema.
@@ -3384,7 +3570,8 @@ func (c *ProjectClient) QueryCreator(pr *Project) *UserQuery {
 
 // Hooks returns the client hooks.
 func (c *ProjectClient) Hooks() []Hook {
-	return c.hooks.Project
+	hooks := c.hooks.Project
+	return append(hooks[:len(hooks):len(hooks)], project.Hooks[:]...)
 }
 
 // ProjectTypeClient is a client for the ProjectType schema.
@@ -3515,7 +3702,8 @@ func (c *ProjectTypeClient) QueryWorkOrders(pt *ProjectType) *WorkOrderDefinitio
 
 // Hooks returns the client hooks.
 func (c *ProjectTypeClient) Hooks() []Hook {
-	return c.hooks.ProjectType
+	hooks := c.hooks.ProjectType
+	return append(hooks[:len(hooks):len(hooks)], projecttype.Hooks[:]...)
 }
 
 // PropertyClient is a client for the Property schema.
@@ -3772,9 +3960,42 @@ func (c *PropertyClient) QueryServiceValue(pr *Property) *ServiceQuery {
 	return query
 }
 
+// QueryWorkOrderValue queries the work_order_value edge of a Property.
+func (c *PropertyClient) QueryWorkOrderValue(pr *Property) *WorkOrderQuery {
+	query := &WorkOrderQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := pr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(property.Table, property.FieldID, id),
+			sqlgraph.To(workorder.Table, workorder.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, property.WorkOrderValueTable, property.WorkOrderValueColumn),
+		)
+		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUserValue queries the user_value edge of a Property.
+func (c *PropertyClient) QueryUserValue(pr *Property) *UserQuery {
+	query := &UserQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := pr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(property.Table, property.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, property.UserValueTable, property.UserValueColumn),
+		)
+		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *PropertyClient) Hooks() []Hook {
-	return c.hooks.Property
+	hooks := c.hooks.Property
+	return append(hooks[:len(hooks):len(hooks)], property.Hooks[:]...)
 }
 
 // PropertyTypeClient is a client for the PropertyType schema.
@@ -3985,7 +4206,8 @@ func (c *PropertyTypeClient) QueryProjectType(pt *PropertyType) *ProjectTypeQuer
 
 // Hooks returns the client hooks.
 func (c *PropertyTypeClient) Hooks() []Hook {
-	return c.hooks.PropertyType
+	hooks := c.hooks.PropertyType
+	return append(hooks[:len(hooks):len(hooks)], propertytype.Hooks[:]...)
 }
 
 // ReportFilterClient is a client for the ReportFilter schema.
@@ -4068,7 +4290,8 @@ func (c *ReportFilterClient) GetX(ctx context.Context, id int) *ReportFilter {
 
 // Hooks returns the client hooks.
 func (c *ReportFilterClient) Hooks() []Hook {
-	return c.hooks.ReportFilter
+	hooks := c.hooks.ReportFilter
+	return append(hooks[:len(hooks):len(hooks)], reportfilter.Hooks[:]...)
 }
 
 // ServiceClient is a client for the Service schema.
@@ -4263,7 +4486,8 @@ func (c *ServiceClient) QueryEndpoints(s *Service) *ServiceEndpointQuery {
 
 // Hooks returns the client hooks.
 func (c *ServiceClient) Hooks() []Hook {
-	return c.hooks.Service
+	hooks := c.hooks.Service
+	return append(hooks[:len(hooks):len(hooks)], service.Hooks[:]...)
 }
 
 // ServiceEndpointClient is a client for the ServiceEndpoint schema.
@@ -4410,7 +4634,8 @@ func (c *ServiceEndpointClient) QueryDefinition(se *ServiceEndpoint) *ServiceEnd
 
 // Hooks returns the client hooks.
 func (c *ServiceEndpointClient) Hooks() []Hook {
-	return c.hooks.ServiceEndpoint
+	hooks := c.hooks.ServiceEndpoint
+	return append(hooks[:len(hooks):len(hooks)], serviceendpoint.Hooks[:]...)
 }
 
 // ServiceEndpointDefinitionClient is a client for the ServiceEndpointDefinition schema.
@@ -4541,7 +4766,8 @@ func (c *ServiceEndpointDefinitionClient) QueryEquipmentType(sed *ServiceEndpoin
 
 // Hooks returns the client hooks.
 func (c *ServiceEndpointDefinitionClient) Hooks() []Hook {
-	return c.hooks.ServiceEndpointDefinition
+	hooks := c.hooks.ServiceEndpointDefinition
+	return append(hooks[:len(hooks):len(hooks)], serviceendpointdefinition.Hooks[:]...)
 }
 
 // ServiceTypeClient is a client for the ServiceType schema.
@@ -4672,7 +4898,8 @@ func (c *ServiceTypeClient) QueryEndpointDefinitions(st *ServiceType) *ServiceEn
 
 // Hooks returns the client hooks.
 func (c *ServiceTypeClient) Hooks() []Hook {
-	return c.hooks.ServiceType
+	hooks := c.hooks.ServiceType
+	return append(hooks[:len(hooks):len(hooks)], servicetype.Hooks[:]...)
 }
 
 // SurveyClient is a client for the Survey schema.
@@ -4803,7 +5030,8 @@ func (c *SurveyClient) QueryQuestions(s *Survey) *SurveyQuestionQuery {
 
 // Hooks returns the client hooks.
 func (c *SurveyClient) Hooks() []Hook {
-	return c.hooks.Survey
+	hooks := c.hooks.Survey
+	return append(hooks[:len(hooks):len(hooks)], survey.Hooks[:]...)
 }
 
 // SurveyCellScanClient is a client for the SurveyCellScan schema.
@@ -4934,7 +5162,8 @@ func (c *SurveyCellScanClient) QueryLocation(scs *SurveyCellScan) *LocationQuery
 
 // Hooks returns the client hooks.
 func (c *SurveyCellScanClient) Hooks() []Hook {
-	return c.hooks.SurveyCellScan
+	hooks := c.hooks.SurveyCellScan
+	return append(hooks[:len(hooks):len(hooks)], surveycellscan.Hooks[:]...)
 }
 
 // SurveyQuestionClient is a client for the SurveyQuestion schema.
@@ -5097,7 +5326,8 @@ func (c *SurveyQuestionClient) QueryImages(sq *SurveyQuestion) *FileQuery {
 
 // Hooks returns the client hooks.
 func (c *SurveyQuestionClient) Hooks() []Hook {
-	return c.hooks.SurveyQuestion
+	hooks := c.hooks.SurveyQuestion
+	return append(hooks[:len(hooks):len(hooks)], surveyquestion.Hooks[:]...)
 }
 
 // SurveyTemplateCategoryClient is a client for the SurveyTemplateCategory schema.
@@ -5196,7 +5426,8 @@ func (c *SurveyTemplateCategoryClient) QuerySurveyTemplateQuestions(stc *SurveyT
 
 // Hooks returns the client hooks.
 func (c *SurveyTemplateCategoryClient) Hooks() []Hook {
-	return c.hooks.SurveyTemplateCategory
+	hooks := c.hooks.SurveyTemplateCategory
+	return append(hooks[:len(hooks):len(hooks)], surveytemplatecategory.Hooks[:]...)
 }
 
 // SurveyTemplateQuestionClient is a client for the SurveyTemplateQuestion schema.
@@ -5295,7 +5526,8 @@ func (c *SurveyTemplateQuestionClient) QueryCategory(stq *SurveyTemplateQuestion
 
 // Hooks returns the client hooks.
 func (c *SurveyTemplateQuestionClient) Hooks() []Hook {
-	return c.hooks.SurveyTemplateQuestion
+	hooks := c.hooks.SurveyTemplateQuestion
+	return append(hooks[:len(hooks):len(hooks)], surveytemplatequestion.Hooks[:]...)
 }
 
 // SurveyWiFiScanClient is a client for the SurveyWiFiScan schema.
@@ -5426,7 +5658,8 @@ func (c *SurveyWiFiScanClient) QueryLocation(swfs *SurveyWiFiScan) *LocationQuer
 
 // Hooks returns the client hooks.
 func (c *SurveyWiFiScanClient) Hooks() []Hook {
-	return c.hooks.SurveyWiFiScan
+	hooks := c.hooks.SurveyWiFiScan
+	return append(hooks[:len(hooks):len(hooks)], surveywifiscan.Hooks[:]...)
 }
 
 // TechnicianClient is a client for the Technician schema.
@@ -5525,7 +5758,8 @@ func (c *TechnicianClient) QueryWorkOrders(t *Technician) *WorkOrderQuery {
 
 // Hooks returns the client hooks.
 func (c *TechnicianClient) Hooks() []Hook {
-	return c.hooks.Technician
+	hooks := c.hooks.Technician
+	return append(hooks[:len(hooks):len(hooks)], technician.Hooks[:]...)
 }
 
 // UserClient is a client for the User schema.
@@ -5640,7 +5874,8 @@ func (c *UserClient) QueryGroups(u *User) *UsersGroupQuery {
 
 // Hooks returns the client hooks.
 func (c *UserClient) Hooks() []Hook {
-	return c.hooks.User
+	hooks := c.hooks.User
+	return append(hooks[:len(hooks):len(hooks)], user.Hooks[:]...)
 }
 
 // UsersGroupClient is a client for the UsersGroup schema.
@@ -5737,9 +5972,26 @@ func (c *UsersGroupClient) QueryMembers(ug *UsersGroup) *UserQuery {
 	return query
 }
 
+// QueryPolicies queries the policies edge of a UsersGroup.
+func (c *UsersGroupClient) QueryPolicies(ug *UsersGroup) *PermissionsPolicyQuery {
+	query := &PermissionsPolicyQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := ug.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(usersgroup.Table, usersgroup.FieldID, id),
+			sqlgraph.To(permissionspolicy.Table, permissionspolicy.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, usersgroup.PoliciesTable, usersgroup.PoliciesPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(ug.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *UsersGroupClient) Hooks() []Hook {
-	return c.hooks.UsersGroup
+	hooks := c.hooks.UsersGroup
+	return append(hooks[:len(hooks):len(hooks)], usersgroup.Hooks[:]...)
 }
 
 // WorkOrderClient is a client for the WorkOrder schema.
@@ -6046,7 +6298,8 @@ func (c *WorkOrderClient) QueryAssignee(wo *WorkOrder) *UserQuery {
 
 // Hooks returns the client hooks.
 func (c *WorkOrderClient) Hooks() []Hook {
-	return c.hooks.WorkOrder
+	hooks := c.hooks.WorkOrder
+	return append(hooks[:len(hooks):len(hooks)], workorder.Hooks[:]...)
 }
 
 // WorkOrderDefinitionClient is a client for the WorkOrderDefinition schema.
@@ -6161,7 +6414,8 @@ func (c *WorkOrderDefinitionClient) QueryProjectType(wod *WorkOrderDefinition) *
 
 // Hooks returns the client hooks.
 func (c *WorkOrderDefinitionClient) Hooks() []Hook {
-	return c.hooks.WorkOrderDefinition
+	hooks := c.hooks.WorkOrderDefinition
+	return append(hooks[:len(hooks):len(hooks)], workorderdefinition.Hooks[:]...)
 }
 
 // WorkOrderTypeClient is a client for the WorkOrderType schema.
@@ -6324,5 +6578,6 @@ func (c *WorkOrderTypeClient) QueryCheckListDefinitions(wot *WorkOrderType) *Che
 
 // Hooks returns the client hooks.
 func (c *WorkOrderTypeClient) Hooks() []Hook {
-	return c.hooks.WorkOrderType
+	hooks := c.hooks.WorkOrderType
+	return append(hooks[:len(hooks):len(hooks)], workordertype.Hooks[:]...)
 }

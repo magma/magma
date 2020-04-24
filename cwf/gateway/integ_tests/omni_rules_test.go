@@ -105,10 +105,11 @@ func TestOmnipresentRules(t *testing.T) {
 	}
 	fmt.Printf("Sending a ReAuthRequest with target %v\n", target)
 	raa, err := sendPolicyReAuthRequest(target)
+	tr.WaitForReAuthToProcess()
 
+	// Check ReAuth success
 	assert.NoError(t, err)
-	// Wait for RAR to be processed
-	time.Sleep(3 * time.Second)
+	assert.Contains(t, raa.SessionId, "IMSI"+imsi)
 	assert.Equal(t, uint32(diam.Success), raa.ResultCode)
 
 	// With all monitored rules gone, the session should terminate
@@ -116,6 +117,8 @@ func TestOmnipresentRules(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Empty(t, recordsBySubID)
 
-	// Wait for session termination to complete
-	time.Sleep(4 * time.Second)
+	// trigger disconnection
+	tr.DisconnectAndAssertSuccess(imsi)
+	fmt.Println("wait for flows to get deactivated")
+	time.Sleep(3 * time.Second)
 }

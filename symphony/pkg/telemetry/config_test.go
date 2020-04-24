@@ -2,12 +2,13 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package telemetry
+package telemetry_test
 
 import (
 	"os"
 	"testing"
 
+	"github.com/facebookincubator/symphony/pkg/telemetry"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/alecthomas/kingpin.v2"
@@ -15,15 +16,15 @@ import (
 
 func TestFlags(t *testing.T) {
 	a := kingpin.New(t.Name(), "")
-	c := AddFlags(a)
+	c := telemetry.AddFlags(a)
 	_, err := a.Parse([]string{
-		"--" + TraceExporterFlag, "nop",
-		"--" + TraceSamplingProbabilityFlag, "0.5",
-		"--" + TraceServiceFlag, t.Name(),
-		"--" + TraceTagsFlag, "one:1",
-		"--" + TraceTagsFlag, "two=2",
-		"--" + ViewExporterFlag, "nop",
-		"--" + ViewLabelsFlag, "three:3",
+		"--" + telemetry.TraceExporterFlag, "nop",
+		"--" + telemetry.TraceSamplingProbabilityFlag, "0.5",
+		"--" + telemetry.TraceServiceFlag, t.Name(),
+		"--" + telemetry.TraceTagsFlag, "one:1",
+		"--" + telemetry.TraceTagsFlag, "two=2",
+		"--" + telemetry.ViewExporterFlag, "nop",
+		"--" + telemetry.ViewLabelsFlag, "three:3",
 	})
 	require.NoError(t, err)
 	assert.Equal(t, "nop", c.Trace.ExporterName)
@@ -36,10 +37,10 @@ func TestFlags(t *testing.T) {
 
 func TestEnvarFlags(t *testing.T) {
 	vars := map[string]string{
-		TraceExporterEnvar:            "nop",
-		TraceSamplingProbabilityEnvar: "0.2",
-		TraceServiceEnvar:             t.Name(),
-		ViewExporterEnvar:             "nop",
+		telemetry.TraceExporterEnvar:            "nop",
+		telemetry.TraceSamplingProbabilityEnvar: "0.2",
+		telemetry.TraceServiceEnvar:             t.Name(),
+		telemetry.ViewExporterEnvar:             "nop",
 	}
 	for key, value := range vars {
 		err := os.Setenv(key, value)
@@ -51,7 +52,7 @@ func TestEnvarFlags(t *testing.T) {
 		}
 	}()
 	a := kingpin.New(t.Name(), "")
-	c := AddFlags(a)
+	c := telemetry.AddFlags(a)
 	_, err := a.Parse(nil)
 	require.NoError(t, err)
 	assert.Equal(t, "nop", c.Trace.ExporterName)
@@ -65,19 +66,19 @@ func TestProvider(t *testing.T) {
 	require.NoError(t, err)
 	defer os.Unsetenv("JAEGER_AGENT_ENDPOINT")
 	a := kingpin.New(t.Name(), "")
-	c := AddFlags(a)
+	c := telemetry.AddFlags(a)
 	_, err = a.Parse([]string{
-		"--" + TraceExporterFlag, "jaeger",
-		"--" + ViewExporterFlag, "prometheus",
+		"--" + telemetry.TraceExporterFlag, "jaeger",
+		"--" + telemetry.ViewExporterFlag, "prometheus",
 	})
 	require.NoError(t, err)
-	te, flusher, err := ProvideTraceExporter(c)
+	te, flusher, err := telemetry.ProvideTraceExporter(c)
 	require.NoError(t, err)
 	assert.NotNil(t, te)
 	assert.NotNil(t, flusher)
-	sampler := ProvideTraceSampler(c)
+	sampler := telemetry.ProvideTraceSampler(c)
 	assert.NotNil(t, sampler)
-	ve, err := ProvideViewExporter(c)
+	ve, err := telemetry.ProvideViewExporter(c)
 	require.NoError(t, err)
 	assert.NotNil(t, ve)
 }

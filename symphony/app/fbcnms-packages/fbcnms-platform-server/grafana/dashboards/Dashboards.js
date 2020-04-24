@@ -353,6 +353,28 @@ export function InternalDashboard() {
   return db;
 }
 
+export function TemplateDashboard() {
+  const row = new Grafana.Row({title: ''});
+  row.addPanel(
+    newPanel({
+      title: 'Variable Demo',
+      targets: [
+        {expr: `cpu_percent{networkID=~"$networkID",gatewayID=~"$gatewayID"}`},
+      ],
+    }),
+  );
+  const db = new Grafana.Dashboard({
+    schemaVersion: 6,
+    title: 'Template',
+    templating: [networkTemplate(), gatewayTemplate()],
+    rows: [row],
+  });
+  db.state.editable = true;
+  db.state.description =
+    'Template dashboard with network and gateway variables preconfigured. Copy from this template to create a new dashboard which includes the networkID and gatewayID variables.';
+  return db;
+}
+
 type PanelParams = {
   title: string,
   targets: Array<{expr: string, legendFormat?: string}>,
@@ -374,6 +396,26 @@ type TemplateParams = {
   labelName: string,
   query: string,
   regex: string,
+  sort?: VariableSortOption,
+};
+
+type VariableSortOption =
+  | 'none'
+  | 'alpha-asc'
+  | 'alpha-desc'
+  | 'num-asc'
+  | 'num-desc'
+  | 'alpha-insensitive-asc'
+  | 'alpha-insensitive-desc';
+
+const variableSortNumbers: {[VariableSortOption]: number} = {
+  none: 0,
+  'alpha-asc': 1,
+  'alpha-desc': 2,
+  'num-asc': 3,
+  'num-desc': 4,
+  'alpha-insensitive-asc': 5,
+  'alpha-insensitive-desc': 6,
 };
 
 function variableTemplate(params: TemplateParams): TemplateConfig {
@@ -390,6 +432,7 @@ function variableTemplate(params: TemplateParams): TemplateConfig {
     type: 'query',
     refresh: true,
     useTags: false,
+    sort: params.sort ? variableSortNumbers[params.sort] : 0,
   };
 }
 
@@ -398,6 +441,7 @@ function networkTemplate(): TemplateConfig {
     labelName: netIDVar,
     query: `label_values(${netIDVar})`,
     regex: `/.+/`,
+    sort: 'alpha-insensitive-asc',
   });
 }
 
@@ -411,6 +455,7 @@ function gatewayTemplate(): TemplateConfig {
     labelName: gwIDVar,
     query: `label_values({networkID=~"$networkID",gatewayID=~".+"}, ${gwIDVar})`,
     regex: `/.+/`,
+    sort: 'alpha-insensitive-asc',
   });
 }
 

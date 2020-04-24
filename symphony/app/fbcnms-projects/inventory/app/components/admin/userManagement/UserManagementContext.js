@@ -12,6 +12,7 @@
 // flowlint untyped-import:off
 
 import type {AddUsersGroupMutationResponse} from '../../../mutations/__generated__/AddUsersGroupMutation.graphql';
+import type {DeleteUsersGroupMutationResponse} from '../../../mutations/__generated__/DeleteUsersGroupMutation.graphql';
 import type {EditUserMutationResponse} from '../../../mutations/__generated__/EditUserMutation.graphql';
 import type {EditUsersGroupMutationResponse} from '../../../mutations/__generated__/EditUsersGroupMutation.graphql';
 import type {MutationCallbacks} from '../../../mutations/MutationCallbacks.js';
@@ -27,6 +28,7 @@ import type {UsersMap} from './utils/UserManagementUtils';
 
 import * as React from 'react';
 import AddUsersGroupMutation from '../../../mutations/AddUsersGroupMutation';
+import DeleteUsersGroupMutation from '../../../mutations/DeleteUsersGroupMutation';
 import EditUserMutation from '../../../mutations/EditUserMutation';
 import EditUsersGroupMutation from '../../../mutations/EditUsersGroupMutation';
 import LoadingIndicator from '../../../common/LoadingIndicator';
@@ -186,6 +188,35 @@ const editUser = (newUserValue: User, updater?: StoreUpdater) => {
   });
 };
 
+const deleteGroup = (id: string) => {
+  return new Promise((resolve, reject) => {
+    const callbacks: MutationCallbacks<DeleteUsersGroupMutationResponse> = {
+      onCompleted: (response, errors) => {
+        if (errors && errors[0]) {
+          reject(getGraphError(errors[0]));
+        }
+        resolve();
+      },
+      onError: e => {
+        reject(getGraphError(e));
+      },
+    };
+    const removeGroupFromStore = store => {
+      const rootQuery = store.getRoot();
+      const groups = ConnectionHandler.getConnection(
+        rootQuery,
+        'UserManagementContext_usersGroups',
+      );
+      if (groups == null) {
+        return;
+      }
+      ConnectionHandler.deleteNode(groups, id);
+      store.delete(id);
+    };
+    DeleteUsersGroupMutation({id}, callbacks, removeGroupFromStore);
+  });
+};
+
 const editGroup = (usersMap: UsersMap) => (
   newGroupValue: UserPermissionsGroup,
 ) => {
@@ -312,6 +343,7 @@ type UserManagementContextValue = {
   ) => Promise<void>,
   addGroup: UserPermissionsGroup => Promise<UserPermissionsGroup>,
   editGroup: UserPermissionsGroup => Promise<UserPermissionsGroup>,
+  deleteGroup: (id: string) => Promise<void>,
   updateGroupMembers: (
     group: UserPermissionsGroup,
     addUserIds: Array<string>,
@@ -330,6 +362,7 @@ const UserManagementContext = React.createContext<UserManagementContextValue>({
   changeCurrentUserPassword,
   addGroup: addGroup(emptyUsersMap),
   editGroup: editGroup(emptyUsersMap),
+  deleteGroup,
   updateGroupMembers: updateGroupMembers(emptyUsersMap),
 });
 
@@ -390,6 +423,7 @@ function ProviderWrap(props: Props) {
     changeCurrentUserPassword,
     addGroup: addGroup(usersMap),
     editGroup: editGroup(usersMap),
+    deleteGroup,
     updateGroupMembers: updateGroupMembers(usersMap),
   });
 

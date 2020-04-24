@@ -145,3 +145,7 @@ export type GetHealthResponse = {
   database: string,
   version: string,
 };
+
+export type StarDashboardResponse = {
+  message: string,
+};

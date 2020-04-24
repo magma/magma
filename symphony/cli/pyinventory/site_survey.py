@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# Copyright (c) 2004-present Facebook All rights reserved.
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file.
 
 import math
 from datetime import datetime
@@ -16,7 +19,10 @@ from xlsxwriter.worksheet import Worksheet
 
 from .api.file import add_site_survey_image, delete_site_survey_image
 from .client import SymphonyClient
-from .consts import Entity, Location, SiteSurvey
+from .common import mutation_name
+from .common.constant import SIMPLE_QUESTION_TYPE_TO_REQUIRED_PROPERTY_NAME
+from .common.data_class import Location, SiteSurvey
+from .common.data_enum import Entity
 from .exceptions import EntityNotFoundError
 from .graphql.create_survey_mutation import CreateSurveyMutation
 from .graphql.location_surveys_query import LocationSurveysQuery
@@ -26,18 +32,6 @@ from .graphql.survey_fragment import SurveyFragment
 from .graphql.survey_question_fragment import SurveyQuestionFragment
 from .graphql.survey_question_type_enum import SurveyQuestionType
 from .site_survey_schema import retrieve_tamplates_and_set_them
-
-
-CREATE_SURVEY_MUTATION_NAME = "createSurvey"
-SIMPLE_QUESTION_TYPE_TO_REQUIRED_PROPERTY_NAME = {
-    "DATE": "dateData",
-    "BOOL": "boolData",
-    "EMAIL": "emailData",
-    "TEXT": "textData",
-    "FLOAT": "floatData",
-    "INTEGER": "intData",
-    "PHONE": "phoneData",
-}
 
 
 def _get_dependencies(question: Dict[str, Any]) -> Tuple[List[str], List[str]]:
@@ -347,7 +341,7 @@ def export_to_excel(json_file_path: str, excel_file_path: str) -> None:
     # pyre-fixme[45]: Cannot instantiate abstract class `ExcelWriter`.
     writer = pd.ExcelWriter(excel_file_path, engine="xlsxwriter")
     workbook = writer.book
-    assert workbook is not None  # pyre-ignore
+    assert workbook is not None
 
     title_format, date_format, black_format, cell_format = add_workbook_formats(
         workbook
@@ -416,6 +410,7 @@ def export_to_excel(json_file_path: str, excel_file_path: str) -> None:
             ] = cell_name
 
             worksheet.write_blank(cell_name, "", cell_format)
+            # pyre-fixme[19]: Expected 9 positional arguments.
             add_cell_validation(
                 worksheet,
                 question_index_to_row_index[i + 2],
@@ -708,7 +703,7 @@ def upload_site_survey(
         excel is as needed for upload.
 
         Args:
-            location ( `pyinventory.consts.Location` ): could be retrieved from getLocation or addLocation api
+            location ( `pyinventory.common.data_class.Location` ): could be retrieved from getLocation or addLocation api
             name (str): name of the site survey
             completion_date (datetime.datetime object): the time the site survey was completed
             excel_file_path (str): the path for the excel with the site survey information
@@ -760,9 +755,9 @@ def upload_site_survey(
     try:
         site_survey_id = CreateSurveyMutation.execute(
             client, **create_survey_variables
-        ).__dict__[CREATE_SURVEY_MUTATION_NAME]
+        ).__dict__[mutation_name.CREATE_SURVEY]
         client.reporter.log_successful_operation(
-            CREATE_SURVEY_MUTATION_NAME, create_survey_variables
+            mutation_name.CREATE_SURVEY, create_survey_variables
         )
         add_site_survey_image(client, excel_file_path, site_survey_id)
     except OperationException as e:
@@ -770,7 +765,7 @@ def upload_site_survey(
             client.reporter,
             e.err_msg,
             e.err_id,
-            CREATE_SURVEY_MUTATION_NAME,
+            mutation_name.CREATE_SURVEY,
             create_survey_variables,
         )
 
@@ -848,10 +843,10 @@ def get_site_surveys(client: SymphonyClient, location: Location) -> List[SiteSur
     """Retrieve all site survey completed in the location.
 
         Args:
-            location ( `pyinventory.consts.Location` ): could be retrieved from getLocation or addLocation api
+            location ( `pyinventory.common.data_class.Location` ): could be retrieved from getLocation or addLocation api
 
         Returns:
-            List[ `pyinventory.consts.SiteSurvey` ]
+            List[ `pyinventory.common.data_class.SiteSurvey` ]
 
         Raises:
             `pyinventory.exceptions.EntityNotFoundError`: location does not exist

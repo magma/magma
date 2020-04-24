@@ -55,6 +55,7 @@
 #include "s1ap_messages_types.h"
 #include "sgs_messages_types.h"
 #include "nas_proc.h"
+#include "dynamic_memory_check.h"
 
 /*******************************************************************************
  **                                                                           **
@@ -836,8 +837,13 @@ int sgs_fsm_la_updt_req_loc_updt_acc(const sgs_fsm_t* fsm_evt)
     sgs_context->vlr_reliable = true;
 
     /*Stop Ts6-1 timer*/
-    if (timer_remove(ue_context_p->sgs_context->ts6_1_timer.id, NULL)) {
+    nas_itti_timer_arg_t* timer_argP = NULL;
+    if (timer_remove(
+            ue_context_p->sgs_context->ts6_1_timer.id, (void**) &timer_argP)) {
       OAILOG_ERROR(LOG_MME_APP, "Failed to stop Ts6_1 timer \n");
+    }
+    if (timer_argP) {
+      free_wrapper((void**) &timer_argP);
     }
     sgs_context->ts6_1_timer.id = MME_APP_TIMER_INACTIVE_ID;
     if (
@@ -955,8 +961,12 @@ int sgs_fsm_la_updt_req_loc_updt_rej(const sgs_fsm_t* fsm_evt)
   // Stop Ts6-1 timer
 
   if (sgs_context->ts6_1_timer.id != MME_APP_TIMER_INACTIVE_ID) {
-    if (timer_remove(sgs_context->ts6_1_timer.id, NULL)) {
+    nas_itti_timer_arg_t* timer_argP = NULL;
+    if (timer_remove(sgs_context->ts6_1_timer.id, (void**) &timer_argP)) {
       OAILOG_ERROR(LOG_MME_APP, "Failed to stop Ts6_1 timer \n");
+    }
+    if (timer_argP) {
+      free_wrapper((void**) &timer_argP);
     }
     sgs_context->ts6_1_timer.id = MME_APP_TIMER_INACTIVE_ID;
   }

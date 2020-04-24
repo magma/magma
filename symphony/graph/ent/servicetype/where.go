@@ -125,6 +125,13 @@ func HasCustomer(v bool) predicate.ServiceType {
 	})
 }
 
+// IsDeleted applies equality check predicate on the "is_deleted" field. It's identical to IsDeletedEQ.
+func IsDeleted(v bool) predicate.ServiceType {
+	return predicate.ServiceType(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldIsDeleted), v))
+	})
+}
+
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.ServiceType {
 	return predicate.ServiceType(func(s *sql.Selector) {
@@ -399,6 +406,20 @@ func HasCustomerEQ(v bool) predicate.ServiceType {
 func HasCustomerNEQ(v bool) predicate.ServiceType {
 	return predicate.ServiceType(func(s *sql.Selector) {
 		s.Where(sql.NEQ(s.C(FieldHasCustomer), v))
+	})
+}
+
+// IsDeletedEQ applies the EQ predicate on the "is_deleted" field.
+func IsDeletedEQ(v bool) predicate.ServiceType {
+	return predicate.ServiceType(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldIsDeleted), v))
+	})
+}
+
+// IsDeletedNEQ applies the NEQ predicate on the "is_deleted" field.
+func IsDeletedNEQ(v bool) predicate.ServiceType {
+	return predicate.ServiceType(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldIsDeleted), v))
 	})
 }
 

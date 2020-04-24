@@ -84,6 +84,12 @@ export type User = {|
   groups: $ReadOnlyArray<?UserGroups>,
 |};
 
+export const PermissionValues = {
+  YES: 'YES',
+  BY_CONDITION: 'BY_CONDITION',
+  NO: 'NO',
+};
+
 export const NEW_GROUP_DIALOG_PARAM = 'new';
 
 export const GROUP_STATUSES: KeyValueEnum<UsersGroupStatus> = {
@@ -159,6 +165,9 @@ export const usersResponse2Users = (usersResponse: UsersReponsePart) =>
 export type UsersMap = Map<string, User>;
 export const users2UsersMap: (Array<User>) => UsersMap = users =>
   new Map<string, User>(users.map(user => [user.id, user]));
+
+export const userFullName = (user: User) =>
+  `${user.firstName} ${user.lastName}`.trim() || '_';
 
 export const groupResponse2Group: (
   GroupReponseFieldsPart,

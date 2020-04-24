@@ -14,8 +14,6 @@ import (
 	"github.com/facebookincubator/symphony/frontier/ent/tenant"
 	"github.com/facebookincubator/symphony/frontier/ent/token"
 	"github.com/facebookincubator/symphony/frontier/ent/user"
-
-	"github.com/facebookincubator/ent"
 )
 
 // The init function reads all schema descriptors with runtime
@@ -23,33 +21,29 @@ import (
 // to their package variables.
 func init() {
 	auditlogMixin := schema.AuditLog{}.Mixin()
-	auditlogMixinFields := [...][]ent.Field{
-		auditlogMixin[0].Fields(),
-	}
+	auditlogMixinFields0 := auditlogMixin[0].Fields()
 	auditlogFields := schema.AuditLog{}.Fields()
 	_ = auditlogFields
 	// auditlogDescCreatedAt is the schema descriptor for created_at field.
-	auditlogDescCreatedAt := auditlogMixinFields[0][0].Descriptor()
+	auditlogDescCreatedAt := auditlogMixinFields0[0].Descriptor()
 	// auditlog.DefaultCreatedAt holds the default value on creation for the created_at field.
 	auditlog.DefaultCreatedAt = auditlogDescCreatedAt.Default.(func() time.Time)
 	// auditlogDescUpdatedAt is the schema descriptor for updated_at field.
-	auditlogDescUpdatedAt := auditlogMixinFields[0][1].Descriptor()
+	auditlogDescUpdatedAt := auditlogMixinFields0[1].Descriptor()
 	// auditlog.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	auditlog.DefaultUpdatedAt = auditlogDescUpdatedAt.Default.(func() time.Time)
 	// auditlog.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	auditlog.UpdateDefaultUpdatedAt = auditlogDescUpdatedAt.UpdateDefault.(func() time.Time)
 	tenantMixin := schema.Tenant{}.Mixin()
-	tenantMixinFields := [...][]ent.Field{
-		tenantMixin[0].Fields(),
-	}
+	tenantMixinFields0 := tenantMixin[0].Fields()
 	tenantFields := schema.Tenant{}.Fields()
 	_ = tenantFields
 	// tenantDescCreatedAt is the schema descriptor for created_at field.
-	tenantDescCreatedAt := tenantMixinFields[0][0].Descriptor()
+	tenantDescCreatedAt := tenantMixinFields0[0].Descriptor()
 	// tenant.DefaultCreatedAt holds the default value on creation for the created_at field.
 	tenant.DefaultCreatedAt = tenantDescCreatedAt.Default.(func() time.Time)
 	// tenantDescUpdatedAt is the schema descriptor for updated_at field.
-	tenantDescUpdatedAt := tenantMixinFields[0][1].Descriptor()
+	tenantDescUpdatedAt := tenantMixinFields0[1].Descriptor()
 	// tenant.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	tenant.DefaultUpdatedAt = tenantDescUpdatedAt.Default.(func() time.Time)
 	// tenant.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
@@ -71,17 +65,15 @@ func init() {
 	// tenant.DefaultSSOIssuer holds the default value on creation for the SSOIssuer field.
 	tenant.DefaultSSOIssuer = tenantDescSSOIssuer.Default.(string)
 	tokenMixin := schema.Token{}.Mixin()
-	tokenMixinFields := [...][]ent.Field{
-		tokenMixin[0].Fields(),
-	}
+	tokenMixinFields0 := tokenMixin[0].Fields()
 	tokenFields := schema.Token{}.Fields()
 	_ = tokenFields
 	// tokenDescCreatedAt is the schema descriptor for created_at field.
-	tokenDescCreatedAt := tokenMixinFields[0][0].Descriptor()
+	tokenDescCreatedAt := tokenMixinFields0[0].Descriptor()
 	// token.DefaultCreatedAt holds the default value on creation for the created_at field.
 	token.DefaultCreatedAt = tokenDescCreatedAt.Default.(func() time.Time)
 	// tokenDescUpdatedAt is the schema descriptor for updated_at field.
-	tokenDescUpdatedAt := tokenMixinFields[0][1].Descriptor()
+	tokenDescUpdatedAt := tokenMixinFields0[1].Descriptor()
 	// token.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	token.DefaultUpdatedAt = tokenDescUpdatedAt.Default.(func() time.Time)
 	// token.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
@@ -91,17 +83,15 @@ func init() {
 	// token.ValueValidator is a validator for the "value" field. It is called by the builders before save.
 	token.ValueValidator = tokenDescValue.Validators[0].(func(string) error)
 	userMixin := schema.User{}.Mixin()
-	userMixinFields := [...][]ent.Field{
-		userMixin[0].Fields(),
-	}
+	userMixinFields0 := userMixin[0].Fields()
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescCreatedAt is the schema descriptor for created_at field.
-	userDescCreatedAt := userMixinFields[0][0].Descriptor()
+	userDescCreatedAt := userMixinFields0[0].Descriptor()
 	// user.DefaultCreatedAt holds the default value on creation for the created_at field.
 	user.DefaultCreatedAt = userDescCreatedAt.Default.(func() time.Time)
 	// userDescUpdatedAt is the schema descriptor for updated_at field.
-	userDescUpdatedAt := userMixinFields[0][1].Descriptor()
+	userDescUpdatedAt := userMixinFields0[1].Descriptor()
 	// user.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	user.DefaultUpdatedAt = userDescUpdatedAt.Default.(func() time.Time)
 	// user.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

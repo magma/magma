@@ -7,9 +7,9 @@ package graphgrpc
 import (
 	"context"
 
+	"github.com/facebookincubator/symphony/graph/authz"
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/user"
-	"github.com/facebookincubator/symphony/graph/viewer"
 
 	"github.com/golang/protobuf/ptypes/empty"
 	"google.golang.org/grpc/codes"
@@ -30,7 +30,9 @@ func NewUserService(provider UserProvider) UserService {
 }
 
 func (s UserService) createWriteGroup(ctx context.Context, client *ent.Client) error {
-	_, err := client.UsersGroup.Create().SetName(viewer.WritePermissionGroupName).Save(ctx)
+	_, err := client.UsersGroup.Create().
+		SetName(authz.WritePermissionGroupName).
+		Save(ctx)
 	if !ent.IsConstraintError(err) {
 		return err
 	}
@@ -91,8 +93,11 @@ func (s UserService) Delete(ctx context.Context, input *UserInput) (*empty.Empty
 		return nil, status.FromContextError(err).Err()
 	}
 
-	err = client.User.Update().
-		Where(user.AuthID(input.Id)).
+	u, err := client.User.Query().Where(user.AuthID(input.Id)).Only(ctx)
+	if err != nil {
+		return nil, status.FromContextError(err).Err()
+	}
+	err = client.User.UpdateOne(u).
 		SetStatus(user.StatusDEACTIVATED).
 		Exec(ctx)
 	if err != nil {

@@ -60,6 +60,8 @@ type Tx struct {
 	Location *LocationClient
 	// LocationType is the client for interacting with the LocationType builders.
 	LocationType *LocationTypeClient
+	// PermissionsPolicy is the client for interacting with the PermissionsPolicy builders.
+	PermissionsPolicy *PermissionsPolicyClient
 	// Project is the client for interacting with the Project builders.
 	Project *ProjectClient
 	// ProjectType is the client for interacting with the ProjectType builders.
@@ -181,6 +183,7 @@ func (tx *Tx) init() {
 	tx.Link = NewLinkClient(tx.config)
 	tx.Location = NewLocationClient(tx.config)
 	tx.LocationType = NewLocationTypeClient(tx.config)
+	tx.PermissionsPolicy = NewPermissionsPolicyClient(tx.config)
 	tx.Project = NewProjectClient(tx.config)
 	tx.ProjectType = NewProjectTypeClient(tx.config)
 	tx.Property = NewPropertyClient(tx.config)

@@ -420,6 +420,9 @@ func (fpq *FloorPlanQuery) prepareQuery(ctx context.Context) error {
 		}
 		fpq.sql = prev
 	}
+	if err := floorplan.Policy.EvalQuery(ctx, fpq); err != nil {
+		return err
+	}
 	return nil
 }
 

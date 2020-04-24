@@ -328,6 +328,9 @@ func (stcq *SurveyTemplateCategoryQuery) prepareQuery(ctx context.Context) error
 		}
 		stcq.sql = prev
 	}
+	if err := surveytemplatecategory.Policy.EvalQuery(ctx, stcq); err != nil {
+		return err
+	}
 	return nil
 }
 

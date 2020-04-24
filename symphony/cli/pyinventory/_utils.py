@@ -9,14 +9,14 @@ from typing import Callable, Dict, List, Mapping, Optional, Sequence, Tuple, Uni
 
 from dacite import Config, from_dict
 
-from .consts import (
+from .common.data_class import (
     TYPE_AND_FIELD_NAME,
     DataTypeName,
-    Entity,
     PropertyDefinition,
     PropertyValue,
     ReturnType,
 )
+from .common.data_enum import Entity
 from .exceptions import EntityNotFoundError
 from .graphql.equipment_port_definition_fragment import EquipmentPortDefinitionFragment
 from .graphql.equipment_port_input import EquipmentPortInput
@@ -197,6 +197,9 @@ def _get_property_default_value(
 ) -> Dict[str, PropertyValue]:
     if value is None:
         return {}
+    # pyre-fixme[6]: Expected `Union[Tuple[float, float], bool, datetime.date,
+    #  float, int, str]` for 3rd param but got `Union[None, Tuple[float, float], bool,
+    #  datetime.date, float, int, str]`.
     return get_graphql_input_field(property_type_name=name, type_key=type, value=value)
 
 

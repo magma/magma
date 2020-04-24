@@ -328,6 +328,9 @@ func (clcq *CheckListCategoryQuery) prepareQuery(ctx context.Context) error {
 		}
 		clcq.sql = prev
 	}
+	if err := checklistcategory.Policy.EvalQuery(ctx, clcq); err != nil {
+		return err
+	}
 	return nil
 }
 

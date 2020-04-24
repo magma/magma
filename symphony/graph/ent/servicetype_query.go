@@ -389,6 +389,9 @@ func (stq *ServiceTypeQuery) prepareQuery(ctx context.Context) error {
 		}
 		stq.sql = prev
 	}
+	if err := servicetype.Policy.EvalQuery(ctx, stq); err != nil {
+		return err
+	}
 	return nil
 }
 

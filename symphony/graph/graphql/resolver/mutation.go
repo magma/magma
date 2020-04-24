@@ -43,7 +43,7 @@ import (
 	"github.com/facebookincubator/symphony/pkg/actions/core"
 
 	"github.com/pkg/errors"
-	"github.com/vektah/gqlparser/gqlerror"
+	"github.com/vektah/gqlparser/v2/gqlerror"
 	"go.uber.org/zap"
 )
 
@@ -118,6 +118,10 @@ func (r mutationResolver) setNodePropertyCreate(ctx context.Context, setter *ent
 		setter.SetLocationValueID(value.ID)
 	case ent.TypeService:
 		setter.SetServiceValueID(value.ID)
+	case ent.TypeWorkOrder:
+		setter.SetWorkOrderValueID(value.ID)
+	case ent.TypeUser:
+		setter.SetUserValueID(value.ID)
 	default:
 		return fmt.Errorf("invalid node type: %d %s", value.ID, value.Type)
 	}
@@ -137,6 +141,10 @@ func (r mutationResolver) setNodePropertyUpdate(ctx context.Context, setter *ent
 		setter.SetLocationValueID(value.ID)
 	case ent.TypeService:
 		setter.SetServiceValueID(value.ID)
+	case ent.TypeWorkOrder:
+		setter.SetWorkOrderValueID(value.ID)
+	case ent.TypeUser:
+		setter.SetUserValueID(value.ID)
 	default:
 		return fmt.Errorf("invalid node type: %d %s", value.ID, value.Type)
 	}
@@ -378,14 +386,14 @@ func (r mutationResolver) CreateCellScans(ctx context.Context, inputs []*models.
 }
 
 func (r mutationResolver) CreateSurvey(ctx context.Context, data models.SurveyCreateData) (int, error) {
-
 	client := r.ClientFrom(ctx)
+	u := viewer.FromContext(ctx).User()
 	query := client.Survey.
 		Create().
 		SetLocationID(data.LocationID).
 		SetCompletionTimestamp(time.Unix(int64(data.CompletionTimestamp), 0)).
 		SetName(data.Name).
-		SetOwnerName(r.Me(ctx).User)
+		SetOwnerName(u.Email)
 	if data.CreationTimestamp != nil {
 		query.SetCreationTimestamp(time.Unix(int64(*data.CreationTimestamp), 0))
 	}
@@ -1219,10 +1227,7 @@ func (r mutationResolver) DeleteImage(ctx context.Context, _ models.ImageEntity,
 
 func (r mutationResolver) AddComment(ctx context.Context, input models.CommentInput) (*ent.Comment, error) {
 	client := r.ClientFrom(ctx)
-	u, err := viewer.UserFromContext(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("querying user: %w", err)
-	}
+	u := viewer.FromContext(ctx).User()
 	c, err := client.Comment.Create().
 		SetAuthor(u).
 		SetText(input.Text).
@@ -2646,6 +2651,8 @@ func (r mutationResolver) updatePropValues(ctx context.Context, input *models.Pr
 		pu = pu.ClearEquipmentValue()
 		pu = pu.ClearLocationValue()
 		pu = pu.ClearServiceValue()
+		pu = pu.ClearWorkOrderValue()
+		pu = pu.ClearUserValue()
 	}
 
 	return pu.Exec(ctx)
@@ -3054,7 +3061,7 @@ func (r mutationResolver) TechnicianWorkOrderCheckIn(ctx context.Context, id int
 	if _, err = r.AddComment(ctx, models.CommentInput{
 		EntityType: models.CommentEntityWorkOrder,
 		ID:         id,
-		Text:       r.Me(ctx).User + " checked-in",
+		Text:       viewer.FromContext(ctx).User().Email + " checked-in",
 	}); err != nil {
 		return nil, fmt.Errorf("adding technician check-in comment: %w", err)
 	}

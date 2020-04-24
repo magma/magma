@@ -22,7 +22,11 @@ import UserDetailsCard from './UserDetailsCard';
 import UserViewer from './UserViewer';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
-import {USER_ROLES, USER_STATUSES} from '../utils/UserManagementUtils';
+import {
+  USER_ROLES,
+  USER_STATUSES,
+  userFullName,
+} from '../utils/UserManagementUtils';
 import {haveDifferentValues} from '../../../../common/EntUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useEffect, useMemo, useState} from 'react';
@@ -65,6 +69,14 @@ export default function UsersTable() {
   const [selectedUserIds, setSelectedUserIds] = useState<Array<TableRowId>>([]);
   const [activeUserId, setActiveUserId] = useState(null);
 
+  const userRow2UserRole = useCallback(
+    userRow =>
+      userRow.data.status === USER_STATUSES.DEACTIVATED.key
+        ? null
+        : USER_ROLES[userRow.data.role].value || userRow.data.role,
+    [],
+  );
+
   const columns = useMemo(() => {
     const isActiveUser = userId =>
       activeUserId != null && activeUserId === userId;
@@ -74,6 +86,8 @@ export default function UsersTable() {
         title: <fbt desc="Name column header in users table">Name</fbt>,
         titleClassName: classes.nameColumn,
         className: classes.nameColumn,
+        getSortingValue: userRow =>
+          `${userFullName(userRow.data)}${userRow.data.authID}`,
         render: userRow => (
           <UserViewer
             user={userRow.data}
@@ -85,14 +99,13 @@ export default function UsersTable() {
       {
         key: 'role',
         title: <fbt desc="Role column header in users table">Role</fbt>,
-        render: userRow =>
-          userRow.data.status === USER_STATUSES.DEACTIVATED.key
-            ? null
-            : USER_ROLES[userRow.data.role].value || userRow.data.role,
+        getSortingValue: userRow2UserRole,
+        render: userRow2UserRole,
       },
       {
         key: 'status',
         title: <fbt desc="Status column header in users table">Status</fbt>,
+        getSortingValue: userRow => USER_STATUSES[userRow.data.status].value,
         render: userRow => (
           <Text
             useEllipsis={true}
@@ -101,7 +114,7 @@ export default function UsersTable() {
                 ? 'error'
                 : undefined
             }>
-            {USER_STATUSES[userRow.data.status].value || userRow.data.status}
+            {USER_STATUSES[userRow.data.status].value}
           </Text>
         ),
       },
@@ -114,6 +127,7 @@ export default function UsersTable() {
             title: (
               <fbt desc="Job Title column header in users table">Job Title</fbt>
             ),
+            getSortingValue: userRow => userRow.data.jobTitle ?? '',
             render: userRow => userRow.data.jobTitle ?? '',
           },
           {
@@ -123,13 +137,20 @@ export default function UsersTable() {
                 Employment
               </fbt>
             ),
+            getSortingValue: userRow => userRow.data.employmentType ?? '',
             render: userRow => userRow.data.employmentType ?? '',
           },
         ],
       );
     }
     return returnCols;
-  }, [classes.nameColumn, classes.field, userManagementDevMode, activeUserId]);
+  }, [
+    classes.nameColumn,
+    classes.field,
+    userRow2UserRole,
+    userManagementDevMode,
+    activeUserId,
+  ]);
 
   const enqueueSnackbar = useEnqueueSnackbar();
   const handleError = useCallback(

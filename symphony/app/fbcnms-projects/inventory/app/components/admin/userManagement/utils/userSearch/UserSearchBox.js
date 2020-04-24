@@ -34,6 +34,7 @@ const UserSearchBox = (props: Props) => {
         fullWidth={true}
         value={userSearch.searchTerm}
         onChange={e => userSearch.setSearchTerm(e.target.value)}
+        onEscPressed={() => userSearch.clearSearch()}
         suffix={
           userSearch.isEmptySearchTerm ? null : (
             <InputAffix onClick={userSearch.clearSearch}>

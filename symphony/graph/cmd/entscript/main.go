@@ -9,6 +9,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/event"
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
 	"github.com/facebookincubator/symphony/graph/graphql/resolver"
@@ -17,13 +18,15 @@ import (
 	"github.com/facebookincubator/symphony/pkg/mysql"
 	"go.uber.org/zap"
 	"gopkg.in/alecthomas/kingpin.v2"
+
+	_ "github.com/facebookincubator/symphony/graph/ent/runtime"
 )
 
 func main() {
 	kingpin.HelpFlag.Short('h')
 	dsn := kingpin.Flag("db-dsn", "data source name").Envar("MYSQL_DSN").Required().String()
 	tenantName := kingpin.Flag("tenant", "tenant name to target. \"ALL\" for running on all tenants").Required().String()
-	u := kingpin.Flag("user", "user name to target").Required().String()
+	username := kingpin.Flag("user", "user name to target").Required().String()
 	logcfg := log.AddFlags(kingpin.CommandLine)
 	kingpin.Parse()
 
@@ -33,7 +36,7 @@ func main() {
 	logger.For(ctx).Info("params",
 		zap.Stringp("dsn", dsn),
 		zap.Stringp("tenant", tenantName),
-		zap.Stringp("user", u),
+		zap.Stringp("user", username),
 	)
 	tenancy, err := viewer.NewMySQLTenancy(*dsn)
 	if err != nil {
@@ -62,9 +65,6 @@ func main() {
 	}
 
 	for _, tenant := range tenants {
-		v := &viewer.Viewer{Tenant: tenant, User: *u}
-		ctx := log.NewFieldsContext(ctx, zap.Object("viewer", v))
-		ctx = viewer.NewContext(ctx, v)
 		client, err := tenancy.ClientFor(ctx, tenant)
 		if err != nil {
 			logger.For(ctx).Fatal("cannot get ent client for tenant",
@@ -72,6 +72,18 @@ func main() {
 				zap.Error(err),
 			)
 		}
+		ctx := ent.NewContext(ctx, client)
+		u, err := client.User.Query().Where(user.AuthID(*username)).Only(ctx)
+		if err != nil {
+			logger.For(ctx).Fatal("cannot get user",
+				zap.String("tenant", tenant),
+				zap.Stringp("user", username),
+				zap.Error(err),
+			)
+		}
+		v := viewer.New(tenant, u)
+		ctx = log.NewFieldsContext(ctx, zap.Object("viewer", v))
+		ctx = viewer.NewContext(ctx, v)
 
 		tx, err := client.Tx(ctx)
 		if err != nil {

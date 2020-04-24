@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/facebookincubator/symphony/graph/authz/models"
 	"github.com/facebookincubator/symphony/graph/ent/actionsrule"
 	"github.com/facebookincubator/symphony/graph/ent/checklistcategory"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
@@ -32,6 +33,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/link"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/locationtype"
+	"github.com/facebookincubator/symphony/graph/ent/permissionspolicy"
 	"github.com/facebookincubator/symphony/graph/ent/project"
 	"github.com/facebookincubator/symphony/graph/ent/projecttype"
 	"github.com/facebookincubator/symphony/graph/ent/property"
@@ -89,6 +91,7 @@ const (
 	TypeLink                        = "Link"
 	TypeLocation                    = "Location"
 	TypeLocationType                = "LocationType"
+	TypePermissionsPolicy           = "PermissionsPolicy"
 	TypeProject                     = "Project"
 	TypeProjectType                 = "ProjectType"
 	TypeProperty                    = "Property"
@@ -13665,6 +13668,593 @@ func (m *LocationTypeMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown LocationType edge %s", name)
 }
 
+// PermissionsPolicyMutation represents an operation that mutate the PermissionsPolicies
+// nodes in the graph.
+type PermissionsPolicyMutation struct {
+	config
+	op               Op
+	typ              string
+	id               *int
+	create_time      *time.Time
+	update_time      *time.Time
+	name             *string
+	description      *string
+	is_global        *bool
+	inventory_policy **models.InventoryPolicyInput
+	workforce_policy **models.WorkforcePolicyInput
+	clearedFields    map[string]struct{}
+	groups           map[int]struct{}
+	removedgroups    map[int]struct{}
+}
+
+var _ ent.Mutation = (*PermissionsPolicyMutation)(nil)
+
+// newPermissionsPolicyMutation creates new mutation for $n.Name.
+func newPermissionsPolicyMutation(c config, op Op) *PermissionsPolicyMutation {
+	return &PermissionsPolicyMutation{
+		config:        c,
+		op:            op,
+		typ:           TypePermissionsPolicy,
+		clearedFields: make(map[string]struct{}),
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m PermissionsPolicyMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m PermissionsPolicyMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, fmt.Errorf("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the id value in the mutation. Note that, the id
+// is available only if it was provided to the builder.
+func (m *PermissionsPolicyMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// SetCreateTime sets the create_time field.
+func (m *PermissionsPolicyMutation) SetCreateTime(t time.Time) {
+	m.create_time = &t
+}
+
+// CreateTime returns the create_time value in the mutation.
+func (m *PermissionsPolicyMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.create_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetCreateTime reset all changes of the create_time field.
+func (m *PermissionsPolicyMutation) ResetCreateTime() {
+	m.create_time = nil
+}
+
+// SetUpdateTime sets the update_time field.
+func (m *PermissionsPolicyMutation) SetUpdateTime(t time.Time) {
+	m.update_time = &t
+}
+
+// UpdateTime returns the update_time value in the mutation.
+func (m *PermissionsPolicyMutation) UpdateTime() (r time.Time, exists bool) {
+	v := m.update_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetUpdateTime reset all changes of the update_time field.
+func (m *PermissionsPolicyMutation) ResetUpdateTime() {
+	m.update_time = nil
+}
+
+// SetName sets the name field.
+func (m *PermissionsPolicyMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the name value in the mutation.
+func (m *PermissionsPolicyMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetName reset all changes of the name field.
+func (m *PermissionsPolicyMutation) ResetName() {
+	m.name = nil
+}
+
+// SetDescription sets the description field.
+func (m *PermissionsPolicyMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the description value in the mutation.
+func (m *PermissionsPolicyMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearDescription clears the value of description.
+func (m *PermissionsPolicyMutation) ClearDescription() {
+	m.description = nil
+	m.clearedFields[permissionspolicy.FieldDescription] = struct{}{}
+}
+
+// DescriptionCleared returns if the field description was cleared in this mutation.
+func (m *PermissionsPolicyMutation) DescriptionCleared() bool {
+	_, ok := m.clearedFields[permissionspolicy.FieldDescription]
+	return ok
+}
+
+// ResetDescription reset all changes of the description field.
+func (m *PermissionsPolicyMutation) ResetDescription() {
+	m.description = nil
+	delete(m.clearedFields, permissionspolicy.FieldDescription)
+}
+
+// SetIsGlobal sets the is_global field.
+func (m *PermissionsPolicyMutation) SetIsGlobal(b bool) {
+	m.is_global = &b
+}
+
+// IsGlobal returns the is_global value in the mutation.
+func (m *PermissionsPolicyMutation) IsGlobal() (r bool, exists bool) {
+	v := m.is_global
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearIsGlobal clears the value of is_global.
+func (m *PermissionsPolicyMutation) ClearIsGlobal() {
+	m.is_global = nil
+	m.clearedFields[permissionspolicy.FieldIsGlobal] = struct{}{}
+}
+
+// IsGlobalCleared returns if the field is_global was cleared in this mutation.
+func (m *PermissionsPolicyMutation) IsGlobalCleared() bool {
+	_, ok := m.clearedFields[permissionspolicy.FieldIsGlobal]
+	return ok
+}
+
+// ResetIsGlobal reset all changes of the is_global field.
+func (m *PermissionsPolicyMutation) ResetIsGlobal() {
+	m.is_global = nil
+	delete(m.clearedFields, permissionspolicy.FieldIsGlobal)
+}
+
+// SetInventoryPolicy sets the inventory_policy field.
+func (m *PermissionsPolicyMutation) SetInventoryPolicy(mpi *models.InventoryPolicyInput) {
+	m.inventory_policy = &mpi
+}
+
+// InventoryPolicy returns the inventory_policy value in the mutation.
+func (m *PermissionsPolicyMutation) InventoryPolicy() (r *models.InventoryPolicyInput, exists bool) {
+	v := m.inventory_policy
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearInventoryPolicy clears the value of inventory_policy.
+func (m *PermissionsPolicyMutation) ClearInventoryPolicy() {
+	m.inventory_policy = nil
+	m.clearedFields[permissionspolicy.FieldInventoryPolicy] = struct{}{}
+}
+
+// InventoryPolicyCleared returns if the field inventory_policy was cleared in this mutation.
+func (m *PermissionsPolicyMutation) InventoryPolicyCleared() bool {
+	_, ok := m.clearedFields[permissionspolicy.FieldInventoryPolicy]
+	return ok
+}
+
+// ResetInventoryPolicy reset all changes of the inventory_policy field.
+func (m *PermissionsPolicyMutation) ResetInventoryPolicy() {
+	m.inventory_policy = nil
+	delete(m.clearedFields, permissionspolicy.FieldInventoryPolicy)
+}
+
+// SetWorkforcePolicy sets the workforce_policy field.
+func (m *PermissionsPolicyMutation) SetWorkforcePolicy(mpi *models.WorkforcePolicyInput) {
+	m.workforce_policy = &mpi
+}
+
+// WorkforcePolicy returns the workforce_policy value in the mutation.
+func (m *PermissionsPolicyMutation) WorkforcePolicy() (r *models.WorkforcePolicyInput, exists bool) {
+	v := m.workforce_policy
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearWorkforcePolicy clears the value of workforce_policy.
+func (m *PermissionsPolicyMutation) ClearWorkforcePolicy() {
+	m.workforce_policy = nil
+	m.clearedFields[permissionspolicy.FieldWorkforcePolicy] = struct{}{}
+}
+
+// WorkforcePolicyCleared returns if the field workforce_policy was cleared in this mutation.
+func (m *PermissionsPolicyMutation) WorkforcePolicyCleared() bool {
+	_, ok := m.clearedFields[permissionspolicy.FieldWorkforcePolicy]
+	return ok
+}
+
+// ResetWorkforcePolicy reset all changes of the workforce_policy field.
+func (m *PermissionsPolicyMutation) ResetWorkforcePolicy() {
+	m.workforce_policy = nil
+	delete(m.clearedFields, permissionspolicy.FieldWorkforcePolicy)
+}
+
+// AddGroupIDs adds the groups edge to UsersGroup by ids.
+func (m *PermissionsPolicyMutation) AddGroupIDs(ids ...int) {
+	if m.groups == nil {
+		m.groups = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.groups[ids[i]] = struct{}{}
+	}
+}
+
+// RemoveGroupIDs removes the groups edge to UsersGroup by ids.
+func (m *PermissionsPolicyMutation) RemoveGroupIDs(ids ...int) {
+	if m.removedgroups == nil {
+		m.removedgroups = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.removedgroups[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedGroups returns the removed ids of groups.
+func (m *PermissionsPolicyMutation) RemovedGroupsIDs() (ids []int) {
+	for id := range m.removedgroups {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// GroupsIDs returns the groups ids in the mutation.
+func (m *PermissionsPolicyMutation) GroupsIDs() (ids []int) {
+	for id := range m.groups {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetGroups reset all changes of the groups edge.
+func (m *PermissionsPolicyMutation) ResetGroups() {
+	m.groups = nil
+	m.removedgroups = nil
+}
+
+// Op returns the operation name.
+func (m *PermissionsPolicyMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (PermissionsPolicy).
+func (m *PermissionsPolicyMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during
+// this mutation. Note that, in order to get all numeric
+// fields that were in/decremented, call AddedFields().
+func (m *PermissionsPolicyMutation) Fields() []string {
+	fields := make([]string, 0, 7)
+	if m.create_time != nil {
+		fields = append(fields, permissionspolicy.FieldCreateTime)
+	}
+	if m.update_time != nil {
+		fields = append(fields, permissionspolicy.FieldUpdateTime)
+	}
+	if m.name != nil {
+		fields = append(fields, permissionspolicy.FieldName)
+	}
+	if m.description != nil {
+		fields = append(fields, permissionspolicy.FieldDescription)
+	}
+	if m.is_global != nil {
+		fields = append(fields, permissionspolicy.FieldIsGlobal)
+	}
+	if m.inventory_policy != nil {
+		fields = append(fields, permissionspolicy.FieldInventoryPolicy)
+	}
+	if m.workforce_policy != nil {
+		fields = append(fields, permissionspolicy.FieldWorkforcePolicy)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name.
+// The second boolean value indicates that this field was
+// not set, or was not define in the schema.
+func (m *PermissionsPolicyMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case permissionspolicy.FieldCreateTime:
+		return m.CreateTime()
+	case permissionspolicy.FieldUpdateTime:
+		return m.UpdateTime()
+	case permissionspolicy.FieldName:
+		return m.Name()
+	case permissionspolicy.FieldDescription:
+		return m.Description()
+	case permissionspolicy.FieldIsGlobal:
+		return m.IsGlobal()
+	case permissionspolicy.FieldInventoryPolicy:
+		return m.InventoryPolicy()
+	case permissionspolicy.FieldWorkforcePolicy:
+		return m.WorkforcePolicy()
+	}
+	return nil, false
+}
+
+// SetField sets the value for the given name. It returns an
+// error if the field is not defined in the schema, or if the
+// type mismatch the field type.
+func (m *PermissionsPolicyMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case permissionspolicy.FieldCreateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreateTime(v)
+		return nil
+	case permissionspolicy.FieldUpdateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdateTime(v)
+		return nil
+	case permissionspolicy.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case permissionspolicy.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case permissionspolicy.FieldIsGlobal:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsGlobal(v)
+		return nil
+	case permissionspolicy.FieldInventoryPolicy:
+		v, ok := value.(*models.InventoryPolicyInput)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetInventoryPolicy(v)
+		return nil
+	case permissionspolicy.FieldWorkforcePolicy:
+		v, ok := value.(*models.WorkforcePolicyInput)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWorkforcePolicy(v)
+		return nil
+	}
+	return fmt.Errorf("unknown PermissionsPolicy field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented
+// or decremented during this mutation.
+func (m *PermissionsPolicyMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was in/decremented
+// from a field with the given name. The second value indicates
+// that this field was not set, or was not define in the schema.
+func (m *PermissionsPolicyMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value for the given name. It returns an
+// error if the field is not defined in the schema, or if the
+// type mismatch the field type.
+func (m *PermissionsPolicyMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown PermissionsPolicy numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared
+// during this mutation.
+func (m *PermissionsPolicyMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(permissionspolicy.FieldDescription) {
+		fields = append(fields, permissionspolicy.FieldDescription)
+	}
+	if m.FieldCleared(permissionspolicy.FieldIsGlobal) {
+		fields = append(fields, permissionspolicy.FieldIsGlobal)
+	}
+	if m.FieldCleared(permissionspolicy.FieldInventoryPolicy) {
+		fields = append(fields, permissionspolicy.FieldInventoryPolicy)
+	}
+	if m.FieldCleared(permissionspolicy.FieldWorkforcePolicy) {
+		fields = append(fields, permissionspolicy.FieldWorkforcePolicy)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicates if this field was
+// cleared in this mutation.
+func (m *PermissionsPolicyMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value for the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *PermissionsPolicyMutation) ClearField(name string) error {
+	switch name {
+	case permissionspolicy.FieldDescription:
+		m.ClearDescription()
+		return nil
+	case permissionspolicy.FieldIsGlobal:
+		m.ClearIsGlobal()
+		return nil
+	case permissionspolicy.FieldInventoryPolicy:
+		m.ClearInventoryPolicy()
+		return nil
+	case permissionspolicy.FieldWorkforcePolicy:
+		m.ClearWorkforcePolicy()
+		return nil
+	}
+	return fmt.Errorf("unknown PermissionsPolicy nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation regarding the
+// given field name. It returns an error if the field is not
+// defined in the schema.
+func (m *PermissionsPolicyMutation) ResetField(name string) error {
+	switch name {
+	case permissionspolicy.FieldCreateTime:
+		m.ResetCreateTime()
+		return nil
+	case permissionspolicy.FieldUpdateTime:
+		m.ResetUpdateTime()
+		return nil
+	case permissionspolicy.FieldName:
+		m.ResetName()
+		return nil
+	case permissionspolicy.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case permissionspolicy.FieldIsGlobal:
+		m.ResetIsGlobal()
+		return nil
+	case permissionspolicy.FieldInventoryPolicy:
+		m.ResetInventoryPolicy()
+		return nil
+	case permissionspolicy.FieldWorkforcePolicy:
+		m.ResetWorkforcePolicy()
+		return nil
+	}
+	return fmt.Errorf("unknown PermissionsPolicy field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this
+// mutation.
+func (m *PermissionsPolicyMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.groups != nil {
+		edges = append(edges, permissionspolicy.EdgeGroups)
+	}
+	return edges
+}
+
+// AddedIDs returns all ids (to other nodes) that were added for
+// the given edge name.
+func (m *PermissionsPolicyMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case permissionspolicy.EdgeGroups:
+		ids := make([]ent.Value, 0, len(m.groups))
+		for id := range m.groups {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this
+// mutation.
+func (m *PermissionsPolicyMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.removedgroups != nil {
+		edges = append(edges, permissionspolicy.EdgeGroups)
+	}
+	return edges
+}
+
+// RemovedIDs returns all ids (to other nodes) that were removed for
+// the given edge name.
+func (m *PermissionsPolicyMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case permissionspolicy.EdgeGroups:
+		ids := make([]ent.Value, 0, len(m.removedgroups))
+		for id := range m.removedgroups {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this
+// mutation.
+func (m *PermissionsPolicyMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// EdgeCleared returns a boolean indicates if this edge was
+// cleared in this mutation.
+func (m *PermissionsPolicyMutation) EdgeCleared(name string) bool {
+	switch name {
+	}
+	return false
+}
+
+// ClearEdge clears the value for the given name. It returns an
+// error if the edge name is not defined in the schema.
+func (m *PermissionsPolicyMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown PermissionsPolicy unique edge %s", name)
+}
+
+// ResetEdge resets all changes in the mutation regarding the
+// given edge name. It returns an error if the edge is not
+// defined in the schema.
+func (m *PermissionsPolicyMutation) ResetEdge(name string) error {
+	switch name {
+	case permissionspolicy.EdgeGroups:
+		m.ResetGroups()
+		return nil
+	}
+	return fmt.Errorf("unknown PermissionsPolicy edge %s", name)
+}
+
 // ProjectMutation represents an operation that mutate the Projects
 // nodes in the graph.
 type ProjectMutation struct {
@@ -14956,48 +15546,52 @@ func (m *ProjectTypeMutation) ResetEdge(name string) error {
 // nodes in the graph.
 type PropertyMutation struct {
 	config
-	op                     Op
-	typ                    string
-	id                     *int
-	create_time            *time.Time
-	update_time            *time.Time
-	int_val                *int
-	addint_val             *int
-	bool_val               *bool
-	float_val              *float64
-	addfloat_val           *float64
-	latitude_val           *float64
-	addlatitude_val        *float64
-	longitude_val          *float64
-	addlongitude_val       *float64
-	range_from_val         *float64
-	addrange_from_val      *float64
-	range_to_val           *float64
-	addrange_to_val        *float64
-	string_val             *string
-	clearedFields          map[string]struct{}
-	_type                  *int
-	cleared_type           bool
-	location               *int
-	clearedlocation        bool
-	equipment              *int
-	clearedequipment       bool
-	service                *int
-	clearedservice         bool
-	equipment_port         *int
-	clearedequipment_port  bool
-	link                   *int
-	clearedlink            bool
-	work_order             *int
-	clearedwork_order      bool
-	project                *int
-	clearedproject         bool
-	equipment_value        *int
-	clearedequipment_value bool
-	location_value         *int
-	clearedlocation_value  bool
-	service_value          *int
-	clearedservice_value   bool
+	op                      Op
+	typ                     string
+	id                      *int
+	create_time             *time.Time
+	update_time             *time.Time
+	int_val                 *int
+	addint_val              *int
+	bool_val                *bool
+	float_val               *float64
+	addfloat_val            *float64
+	latitude_val            *float64
+	addlatitude_val         *float64
+	longitude_val           *float64
+	addlongitude_val        *float64
+	range_from_val          *float64
+	addrange_from_val       *float64
+	range_to_val            *float64
+	addrange_to_val         *float64
+	string_val              *string
+	clearedFields           map[string]struct{}
+	_type                   *int
+	cleared_type            bool
+	location                *int
+	clearedlocation         bool
+	equipment               *int
+	clearedequipment        bool
+	service                 *int
+	clearedservice          bool
+	equipment_port          *int
+	clearedequipment_port   bool
+	link                    *int
+	clearedlink             bool
+	work_order              *int
+	clearedwork_order       bool
+	project                 *int
+	clearedproject          bool
+	equipment_value         *int
+	clearedequipment_value  bool
+	location_value          *int
+	clearedlocation_value   bool
+	service_value           *int
+	clearedservice_value    bool
+	work_order_value        *int
+	clearedwork_order_value bool
+	user_value              *int
+	cleareduser_value       bool
 }
 
 var _ ent.Mutation = (*PropertyMutation)(nil)
@@ -15889,6 +16483,84 @@ func (m *PropertyMutation) ResetServiceValue() {
 	m.clearedservice_value = false
 }
 
+// SetWorkOrderValueID sets the work_order_value edge to WorkOrder by id.
+func (m *PropertyMutation) SetWorkOrderValueID(id int) {
+	m.work_order_value = &id
+}
+
+// ClearWorkOrderValue clears the work_order_value edge to WorkOrder.
+func (m *PropertyMutation) ClearWorkOrderValue() {
+	m.clearedwork_order_value = true
+}
+
+// WorkOrderValueCleared returns if the edge work_order_value was cleared.
+func (m *PropertyMutation) WorkOrderValueCleared() bool {
+	return m.clearedwork_order_value
+}
+
+// WorkOrderValueID returns the work_order_value id in the mutation.
+func (m *PropertyMutation) WorkOrderValueID() (id int, exists bool) {
+	if m.work_order_value != nil {
+		return *m.work_order_value, true
+	}
+	return
+}
+
+// WorkOrderValueIDs returns the work_order_value ids in the mutation.
+// Note that ids always returns len(ids) <= 1 for unique edges, and you should use
+// WorkOrderValueID instead. It exists only for internal usage by the builders.
+func (m *PropertyMutation) WorkOrderValueIDs() (ids []int) {
+	if id := m.work_order_value; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetWorkOrderValue reset all changes of the work_order_value edge.
+func (m *PropertyMutation) ResetWorkOrderValue() {
+	m.work_order_value = nil
+	m.clearedwork_order_value = false
+}
+
+// SetUserValueID sets the user_value edge to User by id.
+func (m *PropertyMutation) SetUserValueID(id int) {
+	m.user_value = &id
+}
+
+// ClearUserValue clears the user_value edge to User.
+func (m *PropertyMutation) ClearUserValue() {
+	m.cleareduser_value = true
+}
+
+// UserValueCleared returns if the edge user_value was cleared.
+func (m *PropertyMutation) UserValueCleared() bool {
+	return m.cleareduser_value
+}
+
+// UserValueID returns the user_value id in the mutation.
+func (m *PropertyMutation) UserValueID() (id int, exists bool) {
+	if m.user_value != nil {
+		return *m.user_value, true
+	}
+	return
+}
+
+// UserValueIDs returns the user_value ids in the mutation.
+// Note that ids always returns len(ids) <= 1 for unique edges, and you should use
+// UserValueID instead. It exists only for internal usage by the builders.
+func (m *PropertyMutation) UserValueIDs() (ids []int) {
+	if id := m.user_value; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUserValue reset all changes of the user_value edge.
+func (m *PropertyMutation) ResetUserValue() {
+	m.user_value = nil
+	m.cleareduser_value = false
+}
+
 // Op returns the operation name.
 func (m *PropertyMutation) Op() Op {
 	return m.op
@@ -16254,7 +16926,7 @@ func (m *PropertyMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this
 // mutation.
 func (m *PropertyMutation) AddedEdges() []string {
-	edges := make([]string, 0, 11)
+	edges := make([]string, 0, 13)
 	if m._type != nil {
 		edges = append(edges, property.EdgeType)
 	}
@@ -16287,6 +16959,12 @@ func (m *PropertyMutation) AddedEdges() []string {
 	}
 	if m.service_value != nil {
 		edges = append(edges, property.EdgeServiceValue)
+	}
+	if m.work_order_value != nil {
+		edges = append(edges, property.EdgeWorkOrderValue)
+	}
+	if m.user_value != nil {
+		edges = append(edges, property.EdgeUserValue)
 	}
 	return edges
 }
@@ -16339,6 +17017,14 @@ func (m *PropertyMutation) AddedIDs(name string) []ent.Value {
 		if id := m.service_value; id != nil {
 			return []ent.Value{*id}
 		}
+	case property.EdgeWorkOrderValue:
+		if id := m.work_order_value; id != nil {
+			return []ent.Value{*id}
+		}
+	case property.EdgeUserValue:
+		if id := m.user_value; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
@@ -16346,7 +17032,7 @@ func (m *PropertyMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this
 // mutation.
 func (m *PropertyMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 11)
+	edges := make([]string, 0, 13)
 	return edges
 }
 
@@ -16361,7 +17047,7 @@ func (m *PropertyMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this
 // mutation.
 func (m *PropertyMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 11)
+	edges := make([]string, 0, 13)
 	if m.cleared_type {
 		edges = append(edges, property.EdgeType)
 	}
@@ -16395,6 +17081,12 @@ func (m *PropertyMutation) ClearedEdges() []string {
 	if m.clearedservice_value {
 		edges = append(edges, property.EdgeServiceValue)
 	}
+	if m.clearedwork_order_value {
+		edges = append(edges, property.EdgeWorkOrderValue)
+	}
+	if m.cleareduser_value {
+		edges = append(edges, property.EdgeUserValue)
+	}
 	return edges
 }
 
@@ -16424,6 +17116,10 @@ func (m *PropertyMutation) EdgeCleared(name string) bool {
 		return m.clearedlocation_value
 	case property.EdgeServiceValue:
 		return m.clearedservice_value
+	case property.EdgeWorkOrderValue:
+		return m.clearedwork_order_value
+	case property.EdgeUserValue:
+		return m.cleareduser_value
 	}
 	return false
 }
@@ -16464,6 +17160,12 @@ func (m *PropertyMutation) ClearEdge(name string) error {
 		return nil
 	case property.EdgeServiceValue:
 		m.ClearServiceValue()
+		return nil
+	case property.EdgeWorkOrderValue:
+		m.ClearWorkOrderValue()
+		return nil
+	case property.EdgeUserValue:
+		m.ClearUserValue()
 		return nil
 	}
 	return fmt.Errorf("unknown Property unique edge %s", name)
@@ -16506,6 +17208,12 @@ func (m *PropertyMutation) ResetEdge(name string) error {
 		return nil
 	case property.EdgeServiceValue:
 		m.ResetServiceValue()
+		return nil
+	case property.EdgeWorkOrderValue:
+		m.ResetWorkOrderValue()
+		return nil
+	case property.EdgeUserValue:
+		m.ResetUserValue()
 		return nil
 	}
 	return fmt.Errorf("unknown Property edge %s", name)
@@ -18742,6 +19450,7 @@ type ServiceMutation struct {
 	name              *string
 	external_id       *string
 	status            *string
+	discovery_method  *service.DiscoveryMethod
 	clearedFields     map[string]struct{}
 	_type             *int
 	cleared_type      bool
@@ -18905,6 +19614,38 @@ func (m *ServiceMutation) Status() (r string, exists bool) {
 // ResetStatus reset all changes of the status field.
 func (m *ServiceMutation) ResetStatus() {
 	m.status = nil
+}
+
+// SetDiscoveryMethod sets the discovery_method field.
+func (m *ServiceMutation) SetDiscoveryMethod(sm service.DiscoveryMethod) {
+	m.discovery_method = &sm
+}
+
+// DiscoveryMethod returns the discovery_method value in the mutation.
+func (m *ServiceMutation) DiscoveryMethod() (r service.DiscoveryMethod, exists bool) {
+	v := m.discovery_method
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearDiscoveryMethod clears the value of discovery_method.
+func (m *ServiceMutation) ClearDiscoveryMethod() {
+	m.discovery_method = nil
+	m.clearedFields[service.FieldDiscoveryMethod] = struct{}{}
+}
+
+// DiscoveryMethodCleared returns if the field discovery_method was cleared in this mutation.
+func (m *ServiceMutation) DiscoveryMethodCleared() bool {
+	_, ok := m.clearedFields[service.FieldDiscoveryMethod]
+	return ok
+}
+
+// ResetDiscoveryMethod reset all changes of the discovery_method field.
+func (m *ServiceMutation) ResetDiscoveryMethod() {
+	m.discovery_method = nil
+	delete(m.clearedFields, service.FieldDiscoveryMethod)
 }
 
 // SetTypeID sets the type edge to ServiceType by id.
@@ -19212,7 +19953,7 @@ func (m *ServiceMutation) Type() string {
 // this mutation. Note that, in order to get all numeric
 // fields that were in/decremented, call AddedFields().
 func (m *ServiceMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 6)
 	if m.create_time != nil {
 		fields = append(fields, service.FieldCreateTime)
 	}
@@ -19227,6 +19968,9 @@ func (m *ServiceMutation) Fields() []string {
 	}
 	if m.status != nil {
 		fields = append(fields, service.FieldStatus)
+	}
+	if m.discovery_method != nil {
+		fields = append(fields, service.FieldDiscoveryMethod)
 	}
 	return fields
 }
@@ -19246,6 +19990,8 @@ func (m *ServiceMutation) Field(name string) (ent.Value, bool) {
 		return m.ExternalID()
 	case service.FieldStatus:
 		return m.Status()
+	case service.FieldDiscoveryMethod:
+		return m.DiscoveryMethod()
 	}
 	return nil, false
 }
@@ -19290,6 +20036,13 @@ func (m *ServiceMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetStatus(v)
 		return nil
+	case service.FieldDiscoveryMethod:
+		v, ok := value.(service.DiscoveryMethod)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDiscoveryMethod(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Service field %s", name)
 }
@@ -19323,6 +20076,9 @@ func (m *ServiceMutation) ClearedFields() []string {
 	if m.FieldCleared(service.FieldExternalID) {
 		fields = append(fields, service.FieldExternalID)
 	}
+	if m.FieldCleared(service.FieldDiscoveryMethod) {
+		fields = append(fields, service.FieldDiscoveryMethod)
+	}
 	return fields
 }
 
@@ -19339,6 +20095,9 @@ func (m *ServiceMutation) ClearField(name string) error {
 	switch name {
 	case service.FieldExternalID:
 		m.ClearExternalID()
+		return nil
+	case service.FieldDiscoveryMethod:
+		m.ClearDiscoveryMethod()
 		return nil
 	}
 	return fmt.Errorf("unknown Service nullable field %s", name)
@@ -19363,6 +20122,9 @@ func (m *ServiceMutation) ResetField(name string) error {
 		return nil
 	case service.FieldStatus:
 		m.ResetStatus()
+		return nil
+	case service.FieldDiscoveryMethod:
+		m.ResetDiscoveryMethod()
 		return nil
 	}
 	return fmt.Errorf("unknown Service field %s", name)
@@ -20703,6 +21465,7 @@ type ServiceTypeMutation struct {
 	update_time                 *time.Time
 	name                        *string
 	has_customer                *bool
+	is_deleted                  *bool
 	clearedFields               map[string]struct{}
 	services                    map[int]struct{}
 	removedservices             map[int]struct{}
@@ -20826,6 +21589,25 @@ func (m *ServiceTypeMutation) HasCustomer() (r bool, exists bool) {
 // ResetHasCustomer reset all changes of the has_customer field.
 func (m *ServiceTypeMutation) ResetHasCustomer() {
 	m.has_customer = nil
+}
+
+// SetIsDeleted sets the is_deleted field.
+func (m *ServiceTypeMutation) SetIsDeleted(b bool) {
+	m.is_deleted = &b
+}
+
+// IsDeleted returns the is_deleted value in the mutation.
+func (m *ServiceTypeMutation) IsDeleted() (r bool, exists bool) {
+	v := m.is_deleted
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetIsDeleted reset all changes of the is_deleted field.
+func (m *ServiceTypeMutation) ResetIsDeleted() {
+	m.is_deleted = nil
 }
 
 // AddServiceIDs adds the services edge to Service by ids.
@@ -20968,7 +21750,7 @@ func (m *ServiceTypeMutation) Type() string {
 // this mutation. Note that, in order to get all numeric
 // fields that were in/decremented, call AddedFields().
 func (m *ServiceTypeMutation) Fields() []string {
-	fields := make([]string, 0, 4)
+	fields := make([]string, 0, 5)
 	if m.create_time != nil {
 		fields = append(fields, servicetype.FieldCreateTime)
 	}
@@ -20980,6 +21762,9 @@ func (m *ServiceTypeMutation) Fields() []string {
 	}
 	if m.has_customer != nil {
 		fields = append(fields, servicetype.FieldHasCustomer)
+	}
+	if m.is_deleted != nil {
+		fields = append(fields, servicetype.FieldIsDeleted)
 	}
 	return fields
 }
@@ -20997,6 +21782,8 @@ func (m *ServiceTypeMutation) Field(name string) (ent.Value, bool) {
 		return m.Name()
 	case servicetype.FieldHasCustomer:
 		return m.HasCustomer()
+	case servicetype.FieldIsDeleted:
+		return m.IsDeleted()
 	}
 	return nil, false
 }
@@ -21033,6 +21820,13 @@ func (m *ServiceTypeMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetHasCustomer(v)
+		return nil
+	case servicetype.FieldIsDeleted:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsDeleted(v)
 		return nil
 	}
 	return fmt.Errorf("unknown ServiceType field %s", name)
@@ -21095,6 +21889,9 @@ func (m *ServiceTypeMutation) ResetField(name string) error {
 		return nil
 	case servicetype.FieldHasCustomer:
 		m.ResetHasCustomer()
+		return nil
+	case servicetype.FieldIsDeleted:
+		m.ResetIsDeleted()
 		return nil
 	}
 	return fmt.Errorf("unknown ServiceType field %s", name)
@@ -28510,17 +29307,19 @@ func (m *UserMutation) ResetEdge(name string) error {
 // nodes in the graph.
 type UsersGroupMutation struct {
 	config
-	op             Op
-	typ            string
-	id             *int
-	create_time    *time.Time
-	update_time    *time.Time
-	name           *string
-	description    *string
-	status         *usersgroup.Status
-	clearedFields  map[string]struct{}
-	members        map[int]struct{}
-	removedmembers map[int]struct{}
+	op              Op
+	typ             string
+	id              *int
+	create_time     *time.Time
+	update_time     *time.Time
+	name            *string
+	description     *string
+	status          *usersgroup.Status
+	clearedFields   map[string]struct{}
+	members         map[int]struct{}
+	removedmembers  map[int]struct{}
+	policies        map[int]struct{}
+	removedpolicies map[int]struct{}
 }
 
 var _ ent.Mutation = (*UsersGroupMutation)(nil)
@@ -28713,6 +29512,48 @@ func (m *UsersGroupMutation) ResetMembers() {
 	m.removedmembers = nil
 }
 
+// AddPolicyIDs adds the policies edge to PermissionsPolicy by ids.
+func (m *UsersGroupMutation) AddPolicyIDs(ids ...int) {
+	if m.policies == nil {
+		m.policies = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.policies[ids[i]] = struct{}{}
+	}
+}
+
+// RemovePolicyIDs removes the policies edge to PermissionsPolicy by ids.
+func (m *UsersGroupMutation) RemovePolicyIDs(ids ...int) {
+	if m.removedpolicies == nil {
+		m.removedpolicies = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.removedpolicies[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedPolicies returns the removed ids of policies.
+func (m *UsersGroupMutation) RemovedPoliciesIDs() (ids []int) {
+	for id := range m.removedpolicies {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// PoliciesIDs returns the policies ids in the mutation.
+func (m *UsersGroupMutation) PoliciesIDs() (ids []int) {
+	for id := range m.policies {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetPolicies reset all changes of the policies edge.
+func (m *UsersGroupMutation) ResetPolicies() {
+	m.policies = nil
+	m.removedpolicies = nil
+}
+
 // Op returns the operation name.
 func (m *UsersGroupMutation) Op() Op {
 	return m.op
@@ -28886,9 +29727,12 @@ func (m *UsersGroupMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this
 // mutation.
 func (m *UsersGroupMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.members != nil {
 		edges = append(edges, usersgroup.EdgeMembers)
+	}
+	if m.policies != nil {
+		edges = append(edges, usersgroup.EdgePolicies)
 	}
 	return edges
 }
@@ -28903,6 +29747,12 @@ func (m *UsersGroupMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case usersgroup.EdgePolicies:
+		ids := make([]ent.Value, 0, len(m.policies))
+		for id := range m.policies {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
@@ -28910,9 +29760,12 @@ func (m *UsersGroupMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this
 // mutation.
 func (m *UsersGroupMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.removedmembers != nil {
 		edges = append(edges, usersgroup.EdgeMembers)
+	}
+	if m.removedpolicies != nil {
+		edges = append(edges, usersgroup.EdgePolicies)
 	}
 	return edges
 }
@@ -28927,6 +29780,12 @@ func (m *UsersGroupMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case usersgroup.EdgePolicies:
+		ids := make([]ent.Value, 0, len(m.removedpolicies))
+		for id := range m.removedpolicies {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
@@ -28934,7 +29793,7 @@ func (m *UsersGroupMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this
 // mutation.
 func (m *UsersGroupMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	return edges
 }
 
@@ -28961,6 +29820,9 @@ func (m *UsersGroupMutation) ResetEdge(name string) error {
 	switch name {
 	case usersgroup.EdgeMembers:
 		m.ResetMembers()
+		return nil
+	case usersgroup.EdgePolicies:
+		m.ResetPolicies()
 		return nil
 	}
 	return fmt.Errorf("unknown UsersGroup edge %s", name)

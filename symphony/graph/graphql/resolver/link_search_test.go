@@ -275,7 +275,7 @@ func prepareLinkDataByHirerchy(ctx context.Context, r *TestResolver) linkSearchH
 func TestSearchLinksFutureState(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	data := prepareLinkData(ctx, r, nil)
 	/*
@@ -314,7 +314,7 @@ func TestSearchLinksFutureState(t *testing.T) {
 func TestSearchLinksByLocation(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	data := prepareLinkData(ctx, r, nil)
 	/*
@@ -363,7 +363,7 @@ func TestSearchLinksByLocation(t *testing.T) {
 func TestSearchLinksByEquipmentTyp(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	data := prepareLinkData(ctx, r, nil)
 	/*
@@ -427,7 +427,7 @@ func TestSearchLinksByEquipmentTyp(t *testing.T) {
 func TestSearchLinksByEquipment(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	data := prepareLinkData(ctx, r, nil)
 	/*
@@ -470,7 +470,7 @@ func TestSearchLinksByEquipment(t *testing.T) {
 func TestSearchLinksByEquipmentHirerchy(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	data := prepareLinkDataByHirerchy(ctx, r)
 	/*
@@ -518,7 +518,7 @@ func TestSearchLinksByEquipmentHirerchy(t *testing.T) {
 func TestSearchLinksByService(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	data := prepareLinkData(ctx, r, nil)
 	/*
@@ -607,7 +607,7 @@ func TestSearchLinksByService(t *testing.T) {
 func TestSearchLinksByProperty(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	prepareLinkData(ctx, r, nil)
 	/*
@@ -656,7 +656,7 @@ func TestSearchLinksByProperty(t *testing.T) {
 func TestSearchLinksByServiceName(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	_ = prepareLinkData(ctx, r, nil)
 	/*

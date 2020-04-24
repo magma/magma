@@ -4,4 +4,4 @@
 
 package todo
 
-//go:generate go run github.com/99designs/gqlgen -v
+//go:generate go run github.com/99designs/gqlgen --verbose

@@ -9,6 +9,8 @@ package usersgroup
 import (
 	"fmt"
 	"time"
+
+	"github.com/facebookincubator/ent"
 )
 
 const (
@@ -24,6 +26,8 @@ const (
 
 	// EdgeMembers holds the string denoting the members edge name in mutations.
 	EdgeMembers = "members"
+	// EdgePolicies holds the string denoting the policies edge name in mutations.
+	EdgePolicies = "policies"
 
 	// Table holds the table name of the usersgroup in the database.
 	Table = "users_groups"
@@ -32,6 +36,11 @@ const (
 	// MembersInverseTable is the table name for the User entity.
 	// It exists in this package in order to avoid circular dependency with the "user" package.
 	MembersInverseTable = "users"
+	// PoliciesTable is the table the holds the policies relation/edge. The primary key declared below.
+	PoliciesTable = "users_group_policies"
+	// PoliciesInverseTable is the table name for the PermissionsPolicy entity.
+	// It exists in this package in order to avoid circular dependency with the "permissionspolicy" package.
+	PoliciesInverseTable = "permissions_policies"
 )
 
 // Columns holds all SQL columns for usersgroup fields.
@@ -48,9 +57,20 @@ var (
 	// MembersPrimaryKey and MembersColumn2 are the table columns denoting the
 	// primary key for the members relation (M2M).
 	MembersPrimaryKey = []string{"users_group_id", "user_id"}
+	// PoliciesPrimaryKey and PoliciesColumn2 are the table columns denoting the
+	// primary key for the policies relation (M2M).
+	PoliciesPrimaryKey = []string{"users_group_id", "permissions_policy_id"}
 )
 
+// Note that the variables below are initialized by the runtime
+// package on the initialization of the application. Therefore,
+// it should be imported in the main as follows:
+//
+//	import _ "github.com/facebookincubator/symphony/graph/ent/runtime"
+//
 var (
+	Hooks  [1]ent.Hook
+	Policy ent.Policy
 	// DefaultCreateTime holds the default value on creation for the create_time field.
 	DefaultCreateTime func() time.Time
 	// DefaultUpdateTime holds the default value on creation for the update_time field.

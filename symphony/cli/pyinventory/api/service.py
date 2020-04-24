@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
+# Copyright (c) 2004-present Facebook All rights reserved.
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file.
 
 from typing import Dict, List, Optional, Tuple
 
 from .._utils import PropertyValue, format_properties, get_graphql_property_inputs
 from ..client import SymphonyClient
-from ..consts import (
+from ..common.data_class import (
     Customer,
-    Entity,
     EquipmentPort,
     EquipmentPortDefinition,
     Link,
@@ -14,13 +16,13 @@ from ..consts import (
     ServiceEndpoint,
     ServiceType,
 )
+from ..common.data_enum import Entity
 from ..exceptions import EntityNotFoundError
 from ..graphql.add_service_endpoint_input import AddServiceEndpointInput
 from ..graphql.add_service_endpoint_mutation import AddServiceEndpointMutation
 from ..graphql.add_service_link_mutation import AddServiceLinkMutation
 from ..graphql.add_service_mutation import AddServiceMutation
 from ..graphql.add_service_type_mutation import AddServiceTypeMutation
-from ..graphql.property_type_input import PropertyTypeInput
 from ..graphql.remove_service_mutation import RemoveServiceMutation
 from ..graphql.remove_service_type_mutation import RemoveServiceTypeMutation
 from ..graphql.service_create_data_input import ServiceCreateData
@@ -101,15 +103,20 @@ def add_service(
     endpoints = []
     for e in result.endpoints:
         port = e.port
+        # pyre-fixme[16]: `None` has no attribute `link`.
         link = port.link if port is not None else None
         endpoints.append(
             ServiceEndpoint(
                 id=e.id,
                 port=EquipmentPort(
+                    # pyre-fixme[16]: `None` has no attribute `id`.
                     id=port.id,
+                    # pyre-fixme[16]: `None` has no attribute `properties`.
                     properties=port.properties,
                     definition=EquipmentPortDefinition(
-                        id=port.definition.id, name=port.definition.name
+                        # pyre-fixme[16]: `None` has no attribute `definition`.
+                        id=port.definition.id,
+                        name=port.definition.name,
                     ),
                     link=Link(
                         link.id,
@@ -130,8 +137,10 @@ def add_service(
         id=result.id,
         externalId=result.externalId,
         customer=Customer(
+            # pyre-fixme[16]: `None` has no attribute `name`.
             name=returned_customer.name,
             id=returned_customer.id,
+            # pyre-fixme[16]: `None` has no attribute `externalId`.
             externalId=returned_customer.externalId,
         )
         if returned_customer

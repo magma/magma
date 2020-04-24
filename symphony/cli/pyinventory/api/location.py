@@ -1,36 +1,115 @@
 #!/usr/bin/env python3
+# Copyright (c) 2004-present Facebook All rights reserved.
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file.
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Sequence, Tuple
 
 from gql.gql.client import OperationException
 from gql.gql.reporter import FailedOperationException
 
 from .._utils import deprecated, get_graphql_property_inputs
 from ..client import SymphonyClient
-from ..consts import Document, Entity, ImageEntity, Location, PropertyValue
+from ..common.constant import LOCATIONS_TO_SEARCH
+from ..common.data_class import Document, ImageEntity, Location, PropertyValue
+from ..common.data_enum import Entity
+from ..common.mutation_name import ADD_LOCATION, EDIT_LOCATION, MOVE_LOCATION
 from ..exceptions import (
     EntityNotFoundError,
     LocationCannotBeDeletedWithDependency,
     LocationIsNotUniqueException,
-    LocationNotFoundException,
 )
 from ..graphql.add_location_input import AddLocationInput
 from ..graphql.add_location_mutation import AddLocationMutation
 from ..graphql.edit_location_input import EditLocationInput
 from ..graphql.edit_location_mutation import EditLocationMutation
+from ..graphql.filter_operator_enum import FilterOperator
 from ..graphql.get_locations_query import GetLocationsQuery
 from ..graphql.location_children_query import LocationChildrenQuery
 from ..graphql.location_deps_query import LocationDepsQuery
-from ..graphql.location_details_query import LocationDetailsQuery
 from ..graphql.location_documents_query import LocationDocumentsQuery
+from ..graphql.location_filter_input import LocationFilterInput, LocationFilterType
+from ..graphql.location_fragment import LocationFragment
+from ..graphql.location_search_query import LocationSearchQuery
 from ..graphql.move_location_mutation import MoveLocationMutation
 from ..graphql.remove_location_mutation import RemoveLocationMutation
-from ..graphql.search_query import SearchQuery
 
 
-ADD_LOCATION_MUTATION_NAME = "addLocation"
-EDIT_LOCATION_MUTATION_NAME = "editLocation"
-MOVE_LOCATION_MUTATION_NAME = "moveLocation"
+def _mutation_add_location(
+    client: SymphonyClient, add_location_input: AddLocationInput
+) -> LocationFragment:
+
+    try:
+        result = AddLocationMutation.execute(client, add_location_input).__dict__[
+            ADD_LOCATION
+        ]
+        client.reporter.log_successful_operation(
+            ADD_LOCATION, add_location_input.__dict__
+        )
+        return result
+    except OperationException as e:
+        raise FailedOperationException(
+            client.reporter,
+            e.err_msg,
+            e.err_id,
+            ADD_LOCATION,
+            add_location_input.__dict__,
+        )
+
+
+def _get_locations_by_name_and_type(
+    client: SymphonyClient, location_name: str, location_type_name: str
+) -> Sequence[LocationFragment]:
+    location_filters = [
+        LocationFilterInput(
+            filterType=LocationFilterType.LOCATION_TYPE,
+            operator=FilterOperator.IS_ONE_OF,
+            idSet=[client.locationTypes[location_type_name].id],
+            stringSet=[],
+        ),
+        LocationFilterInput(
+            filterType=LocationFilterType.LOCATION_INST_NAME,
+            operator=FilterOperator.IS,
+            stringValue=location_name,
+            idSet=[],
+            stringSet=[],
+        ),
+    ]
+
+    result = LocationSearchQuery.execute(
+        client, filters=location_filters, limit=LOCATIONS_TO_SEARCH
+    ).locationSearch
+
+    return result.locations
+
+
+def _get_location_children_by_name_and_type(
+    client: SymphonyClient,
+    location_name: str,
+    location_type_name: str,
+    current_location: Optional[LocationFragment],
+) -> Sequence[LocationFragment]:
+    if current_location is None:
+        return _get_locations_by_name_and_type(
+            client=client,
+            location_name=location_name,
+            location_type_name=location_type_name,
+        )
+
+    else:
+        location_id = current_location.id
+        location_with_children = LocationChildrenQuery.execute(
+            client, id=location_id
+        ).location
+        if location_with_children is None:
+            raise EntityNotFoundError(entity=Entity.Location, entity_id=location_id)
+
+        return [
+            location
+            for location in location_with_children.children
+            if location.locationType.name == location_type_name
+            and location.name == location_name
+        ]
 
 
 def add_location(
@@ -62,7 +141,7 @@ def add_location(
             externalID (str): location external ID
 
         Returns:
-            `pyinventory.consts.Location` object
+            `pyinventory.common.data_class.Location` object
 
         Raises:
             LocationIsNotUniqueException: if there is two possible locations
@@ -95,151 +174,59 @@ def add_location(
     last_location = None
 
     for i, location in enumerate(location_hirerchy):
+
         location_type = location[0]
         location_name = location[1]
-
         properties = []
         lat_val = None
         long_val = None
+
         if i == len(location_hirerchy) - 1:
             property_types = client.locationTypes[location_type].property_types
             properties = get_graphql_property_inputs(property_types, properties_dict)
             lat_val = lat
             long_val = long
 
-        if last_location is None:
-            search_results = SearchQuery.execute(
-                client, name=location_name
-            ).searchForNode.edges
-
-            locations = []
-            for search_result in search_results:
-                node = search_result.node
-                if (
-                    node is not None
-                    and node.typename == "Location"
-                    and node.locationType.name == location_type
-                    and node.name == location_name
-                ):
-                    locations.append(node)
-
-            if len(locations) > 1:
-                raise LocationIsNotUniqueException(
-                    location_name=location_name, location_type=location_type
-                )
-            if len(locations) == 1:
-                location_details = LocationDetailsQuery.execute(
-                    client, id=locations[0].id
-                ).location
-                if location_details is None:
-                    raise EntityNotFoundError(
-                        entity=Entity.Location, entity_id=locations[0].id
-                    )
-                last_location = Location(
-                    name=location_details.name,
-                    id=location_details.id,
-                    latitude=location_details.latitude,
-                    longitude=location_details.longitude,
-                    externalId=location_details.externalId,
-                    locationTypeName=location_details.locationType.name,
-                )
-            else:
-                add_location_input = AddLocationInput(
-                    name=location_name,
-                    type=client.locationTypes[location_type].id,
-                    latitude=lat,
-                    longitude=long,
-                    properties=properties,
-                    externalID=externalID,
-                )
-
-                try:
-                    result = AddLocationMutation.execute(
-                        client, add_location_input
-                    ).__dict__[ADD_LOCATION_MUTATION_NAME]
-                    client.reporter.log_successful_operation(
-                        ADD_LOCATION_MUTATION_NAME, add_location_input.__dict__
-                    )
-                except OperationException as e:
-                    raise FailedOperationException(
-                        client.reporter,
-                        e.err_msg,
-                        e.err_id,
-                        ADD_LOCATION_MUTATION_NAME,
-                        add_location_input.__dict__,
-                    )
-                last_location = Location(
-                    name=result.name,
-                    id=result.id,
-                    latitude=result.latitude,
-                    longitude=result.longitude,
-                    externalId=result.externalId,
-                    locationTypeName=result.locationType.name,
-                )
-        else:
-            location_id = last_location.id
-            location_with_children = LocationChildrenQuery.execute(
-                client, id=location_id
-            ).location
-            if location_with_children is None:
-                raise EntityNotFoundError(entity=Entity.Location, entity_id=location_id)
-
-            locations = [
-                location
-                for location in location_with_children.children
-                if location.locationType.name == location_type
-                and location.name == location_name
-            ]
-            if len(locations) > 1:
-                raise LocationIsNotUniqueException(
-                    location_name=location_name, location_type=location_type
-                )
-            if len(locations) == 1:
-                last_location = Location(
-                    name=locations[0].name,
-                    id=locations[0].id,
-                    latitude=locations[0].latitude,
-                    longitude=locations[0].longitude,
-                    externalId=locations[0].externalId,
-                    locationTypeName=locations[0].locationType.name,
-                )
-            else:
-                add_location_input = AddLocationInput(
+        location_search_result = _get_location_children_by_name_and_type(
+            client=client,
+            location_name=location_name,
+            location_type_name=location_type,
+            current_location=last_location,
+        )
+        if not location_search_result:
+            last_location = _mutation_add_location(
+                client=client,
+                add_location_input=AddLocationInput(
                     name=location_name,
                     type=client.locationTypes[location_type].id,
                     latitude=lat_val,
                     longitude=long_val,
-                    parent=location_id,
+                    parent=last_location.id if last_location else None,
                     properties=properties,
                     externalID=externalID,
-                )
-                try:
-                    result = AddLocationMutation.execute(
-                        client, add_location_input
-                    ).__dict__[ADD_LOCATION_MUTATION_NAME]
-                    client.reporter.log_successful_operation(
-                        ADD_LOCATION_MUTATION_NAME, add_location_input.__dict__
-                    )
-                except OperationException as e:
-                    raise FailedOperationException(
-                        client.reporter,
-                        e.err_msg,
-                        e.err_id,
-                        ADD_LOCATION_MUTATION_NAME,
-                        add_location_input.__dict__,
-                    )
-                last_location = Location(
-                    name=result.name,
-                    id=result.id,
-                    latitude=result.latitude,
-                    longitude=result.longitude,
-                    externalId=result.externalId,
-                    locationTypeName=result.locationType.name,
-                )
+                ),
+            )
 
+        elif len(location_search_result) == 1:
+            last_location = location_search_result[0]
+
+        elif len(location_search_result) > 1:
+            raise LocationIsNotUniqueException(
+                location_name=location_name, location_type=location_type
+            )
     if last_location is None:
-        raise LocationNotFoundException()
-    return last_location
+        raise EntityNotFoundError(
+            entity=Entity.Location, msg=f"<location_hierarchy: {location_hirerchy}>"
+        )
+
+    return Location(
+        id=last_location.id,
+        name=last_location.name,
+        latitude=last_location.latitude,
+        longitude=last_location.longitude,
+        externalId=last_location.externalId,
+        locationTypeName=last_location.locationType.name,
+    )
 
 
 def get_location(
@@ -254,7 +241,7 @@ def get_location(
             - str - location name
 
         Returns:
-            `pyinventory.consts.Location` object
+            `pyinventory.common.data_class.Location` object
 
         Raises:
             LocationIsNotUniqueException: if there is more than one correct
@@ -285,82 +272,42 @@ def get_location(
         location_type = location[0]
         location_name = location[1]
 
-        if last_location is None:
-            entities = SearchQuery.execute(
-                client, name=location_name
-            ).searchForNode.edges
-            nodes = [entity.node for entity in entities]
+        location_search_result = _get_location_children_by_name_and_type(
+            client=client,
+            location_name=location_name,
+            location_type_name=location_type,
+            current_location=last_location,
+        )
 
-            locations = [
-                node
-                for node in nodes
-                if node is not None
-                and node.typename == "Location"
-                and node.locationType.name == location_type
-                and node.name == location_name
-            ]
-            if len(locations) == 0:
-                raise LocationNotFoundException(
-                    location_name=location_name, location_type=location_type
-                )
-            if len(locations) != 1:
-                raise LocationIsNotUniqueException(
-                    location_name=location_name, location_type=location_type
-                )
-            location_details = LocationDetailsQuery.execute(
-                client, id=locations[0].id
-            ).location
-            if location_details is None:
-                raise EntityNotFoundError(
-                    entity=Entity.Location, entity_id=locations[0].id
-                )
-            last_location = Location(
-                name=location_details.name,
-                id=location_details.id,
-                latitude=location_details.latitude,
-                longitude=location_details.longitude,
-                externalId=location_details.externalId,
-                locationTypeName=location_details.locationType.name,
-            )
-        else:
-            location_id = last_location.id
+        if not location_search_result:
+            raise EntityNotFoundError(entity=Entity.Location, entity_name=location_name)
 
-            location_with_children = LocationChildrenQuery.execute(
-                client, id=location_id
-            ).location
-            if location_with_children is None:
-                raise EntityNotFoundError(entity=Entity.Location, entity_id=location_id)
-            locations = [
-                location
-                for location in location_with_children.children
-                if location.locationType.name == location_type
-                and location.name == location_name
-            ]
-            if len(locations) == 0:
-                raise LocationNotFoundException(location_name=location_name)
-            if len(locations) != 1:
-                raise LocationIsNotUniqueException(
-                    location_name=location_name, location_type=location_type
-                )
-            last_location = Location(
-                name=locations[0].name,
-                id=locations[0].id,
-                latitude=locations[0].latitude,
-                longitude=locations[0].longitude,
-                externalId=locations[0].externalId,
-                locationTypeName=locations[0].locationType.name,
+        if len(location_search_result) > 1:
+            raise LocationIsNotUniqueException(
+                location_name=location_name, location_type=location_type
             )
+
+        last_location = location_search_result[0]
 
     if last_location is None:
-        raise LocationNotFoundException()
-    return last_location
+        raise EntityNotFoundError(
+            entity=Entity.Location, msg=f"<location_hierarchy: {location_hirerchy}>"
+        )
+    return Location(
+        id=last_location.id,
+        name=last_location.name,
+        latitude=last_location.latitude,
+        longitude=last_location.longitude,
+        externalId=last_location.externalId,
+        locationTypeName=last_location.locationType.name,
+    )
 
 
 def get_locations(client: SymphonyClient) -> List[Location]:
     """This function returns all existing locations
 
         Returns:
-            List[ `pyinventory.consts.Location` ]
+            List[ `pyinventory.common.data_class.Location` ]
 
         Example:
             ```
@@ -397,7 +344,7 @@ def get_location_children(client: SymphonyClient, location_id: str) -> List[Loca
             location_id (str): parent location ID
 
         Returns:
-            List[ `pyinventory.consts.Location` ]
+            List[ `pyinventory.common.data_class.Location` ]
 
         Raises:
             `pyinventory.exceptions.EntityNotFoundError`: location does not exist
@@ -442,7 +389,7 @@ def edit_location(
     """This function returns edited location.
 
         Args:
-            location ( `pyinventory.consts.Location` ): location object
+            location ( `pyinventory.common.data_class.Location` ): location object
             new_name (Optional[str]): location new name
             new_lat (Optional[float]): location new latitude
             new_long (Optional[float]): location new longitude
@@ -452,7 +399,7 @@ def edit_location(
             - PropertyValue - new value of the same type for this property
 
         Returns:
-            `pyinventory.consts.Location` object
+            `pyinventory.common.data_class.Location` object
 
         Raises:
             FailedOperationException: for internal inventory error
@@ -486,13 +433,12 @@ def edit_location(
         properties=properties,
         externalID=new_external_id,
     )
-
     try:
         result = EditLocationMutation.execute(client, edit_location_input).__dict__[
-            EDIT_LOCATION_MUTATION_NAME
+            EDIT_LOCATION
         ]
         client.reporter.log_successful_operation(
-            EDIT_LOCATION_MUTATION_NAME, edit_location_input.__dict__
+            EDIT_LOCATION, edit_location_input.__dict__
         )
         return Location(
             name=result.name,
@@ -508,17 +454,16 @@ def edit_location(
             client.reporter,
             e.err_msg,
             e.err_id,
-            EDIT_LOCATION_MUTATION_NAME,
+            EDIT_LOCATION,
             edit_location_input.__dict__,
         )
-        return None
 
 
 def delete_location(client: SymphonyClient, location: Location) -> None:
     """This delete existing location.
 
         Args:
-            location ( `pyinventory.consts.Location` ): location object
+            location ( `pyinventory.common.data_class.Location` ): location object
 
         Raises:
             `pyinventory.exceptions.EntityNotFoundError`: if location does not exist
@@ -558,7 +503,7 @@ def move_location(
             new_parent_id (Optional[str]): new existing parent location ID
 
         Returns:
-            `pyinventory.consts.Location` object
+            `pyinventory.common.data_class.Location` object
 
         Raises:
             FailedOperationException: for internal inventory error
@@ -577,8 +522,8 @@ def move_location(
     try:
         result = MoveLocationMutation.execute(
             client, locationID=location_id, parentLocationID=new_parent_id
-        ).__dict__[MOVE_LOCATION_MUTATION_NAME]
-        client.reporter.log_successful_operation(MOVE_LOCATION_MUTATION_NAME, params)
+        ).__dict__[MOVE_LOCATION]
+        client.reporter.log_successful_operation(MOVE_LOCATION, params)
         return Location(
             name=result.name,
             id=result.id,
@@ -590,7 +535,7 @@ def move_location(
 
     except OperationException as e:
         raise FailedOperationException(
-            client.reporter, e.err_msg, e.err_id, MOVE_LOCATION_MUTATION_NAME, params
+            client.reporter, e.err_msg, e.err_id, MOVE_LOCATION, params
         )
 
 
@@ -611,7 +556,7 @@ def get_location_by_external_id(client: SymphonyClient, external_id: str) -> Loc
             external_id (str): location external ID
 
         Returns:
-            `pyinventory.consts.Location` object
+            `pyinventory.common.data_class.Location` object
 
         Raises:
             LocationNotFoundException: location with this external ID does not exists
@@ -623,24 +568,26 @@ def get_location_by_external_id(client: SymphonyClient, external_id: str) -> Loc
             location = client.get_location_by_external_id(external_id="12345")
             ```
     """
-    locations = SearchQuery.execute(client, name=external_id).searchForNode.edges
-    if not locations:
-        raise LocationNotFoundException()
+    location_filter = LocationFilterInput(
+        filterType=LocationFilterType.LOCATION_INST_EXTERNAL_ID,
+        operator=FilterOperator.IS,
+        stringValue=external_id,
+        idSet=[],
+        stringSet=[],
+    )
 
-    location_details = None
-    for location in locations:
-        node = location.node
-        if node is not None and node.typename == "Location":
-            location_details = LocationDetailsQuery.execute(client, id=node.id).location
-            if location_details is None:
-                raise EntityNotFoundError(entity=Entity.Location, entity_id=node.id)
-            if location_details.externalId == external_id:
-                break
-            else:
-                location_details = None
+    location_search_result = LocationSearchQuery.execute(
+        client, filters=[location_filter], limit=LOCATIONS_TO_SEARCH
+    ).locationSearch
 
-    if not location_details:
-        raise LocationNotFoundException()
+    if not location_search_result or location_search_result.count == 0:
+        raise EntityNotFoundError(
+            entity=Entity.Location, msg=f"<external_id: {external_id}"
+        )
+    if location_search_result.count > 1:
+        raise LocationIsNotUniqueException(external_id=external_id)
+
+    location_details = location_search_result.locations[0]
 
     return Location(
         name=location_details.name,
@@ -658,10 +605,10 @@ def get_location_documents(
     """This function returns locations documents.
 
         Args:
-            location ( `pyinventory.consts.Location` ): location object
+            location ( `pyinventory.common.data_class.Location` ): location object
 
         Returns:
-            List[ `pyinventory.consts.Document` ]
+            List[ `pyinventory.common.data_class.Document` ]
 
         Raises:
             `pyinventory.exceptions.EntityNotFoundError`: location does not exists

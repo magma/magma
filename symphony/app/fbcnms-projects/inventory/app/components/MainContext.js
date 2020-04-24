@@ -17,6 +17,7 @@ import type {SessionUser} from '@fbcnms/magmalte/app/common/UserModel';
 import * as React from 'react';
 import RelayEnvironment from '../common/RelayEnvironment';
 import {DEACTIVATED_PAGE_PATH} from './DeactivatedPage';
+import {PermissionValues} from './admin/userManagement/utils/UserManagementUtils';
 import {fetchQuery, graphql} from 'relay-runtime';
 import {useContext, useEffect, useState} from 'react';
 import {useLocation} from 'react-router-dom';
@@ -31,7 +32,9 @@ const integrationUserDefinitionBuilder: (
   ?MainContextMeQueryResponse,
 ) => SessionUser = queryResponse => ({
   email: queryResponse?.me?.user.email || '',
-  isSuperUser: queryResponse?.me?.permissions.adminPolicy.canRead || false,
+  isSuperUser:
+    queryResponse?.me?.permissions.adminPolicy.access.isAllowed ===
+    PermissionValues.YES,
 });
 
 const DEFUALT_VALUE = {
@@ -59,7 +62,9 @@ const meQuery = graphql`
       permissions {
         canWrite
         adminPolicy {
-          canRead
+          access {
+            isAllowed
+          }
         }
       }
     }

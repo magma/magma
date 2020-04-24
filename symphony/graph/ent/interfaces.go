@@ -7,3 +7,5 @@ package ent
 func (*Equipment) IsNamedNode() {}
 func (*Location) IsNamedNode()  {}
 func (*Service) IsNamedNode()   {}
+func (*WorkOrder) IsNamedNode() {}
+func (*User) IsNamedNode()      {}

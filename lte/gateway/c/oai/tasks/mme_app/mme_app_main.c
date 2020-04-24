@@ -373,7 +373,7 @@ void *mme_app_thread(void *args)
       case S6A_AUTH_INFO_ANS: {
         /*
          * We received the authentication vectors from HSS,
-         * Normaly should trigger an authentication procedure towards UE.
+         * Normally should trigger an authentication procedure towards UE.
          */
         nas_proc_authentication_info_answer(
           mme_app_desc_p, &S6A_AUTH_INFO_ANS(received_message_p));

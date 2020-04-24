@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package viewer
+package viewer_test
 
 import (
 	"context"
@@ -13,8 +13,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cenkalti/backoff"
+	"github.com/cenkalti/backoff/v4"
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -23,8 +24,8 @@ import (
 
 func TestFixedTenancy(t *testing.T) {
 	want := &ent.Client{}
-	tenancy := NewFixedTenancy(want)
-	assert.Implements(t, (*Tenancy)(nil), tenancy)
+	tenancy := viewer.NewFixedTenancy(want)
+	assert.Implements(t, (*viewer.Tenancy)(nil), tenancy)
 	t.Run("ClientFor", func(t *testing.T) {
 		got, err := tenancy.ClientFor(context.Background(), "")
 		assert.NoError(t, err)
@@ -60,7 +61,7 @@ func TestCacheTenancy(t *testing.T) {
 	defer m.AssertExpectations(t)
 
 	var count int
-	tenancy := NewCacheTenancy(&m, func(*ent.Client) { count++ })
+	tenancy := viewer.NewCacheTenancy(&m, func(*ent.Client) { count++ })
 	assert.Implements(t, (*health.Checker)(nil), tenancy)
 
 	client, err := tenancy.ClientFor(context.Background(), "bar")
@@ -80,11 +81,11 @@ func TestCacheTenancy(t *testing.T) {
 
 func createMySQLDatabase(db *sql.DB) (string, func() error, error) {
 	name := "testdb_" + strconv.FormatInt(time.Now().UnixNano(), 10)
-	if _, err := db.Exec("create database " + DBName(name)); err != nil {
+	if _, err := db.Exec("create database " + viewer.DBName(name)); err != nil {
 		return "", nil, err
 	}
 	return name, func() error {
-		_, err := db.Exec("drop database " + DBName(name))
+		_, err := db.Exec("drop database " + viewer.DBName(name))
 		return err
 	}, nil
 }
@@ -97,7 +98,7 @@ func TestMySQLTenancy(t *testing.T) {
 
 	db, err := sql.Open("mysql", dsn)
 	require.NoError(t, err)
-	tenancy, err := NewMySQLTenancy(dsn)
+	tenancy, err := viewer.NewMySQLTenancy(dsn)
 	require.NoError(t, err)
 
 	assert.Implements(t, (*health.Checker)(nil), tenancy)

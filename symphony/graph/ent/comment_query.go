@@ -327,6 +327,9 @@ func (cq *CommentQuery) prepareQuery(ctx context.Context) error {
 		}
 		cq.sql = prev
 	}
+	if err := comment.Policy.EvalQuery(ctx, cq); err != nil {
+		return err
+	}
 	return nil
 }
 

@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# Copyright (c) 2004-present Facebook All rights reserved.
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file.
 
 from typing import List, Optional, Tuple
 
@@ -7,7 +10,9 @@ from gql.gql.reporter import FailedOperationException
 
 from .._utils import format_properties
 from ..client import SymphonyClient
-from ..consts import Entity, Location, LocationType, PropertyValue
+from ..common.data_class import Location, LocationType, PropertyValue
+from ..common.data_enum import Entity
+from ..common.mutation_name import ADD_LOCATION_TYPE
 from ..exceptions import EntityNotFoundError
 from ..graphql.add_location_type_input import AddLocationTypeInput
 from ..graphql.add_location_type_mutation import AddLocationTypeMutation
@@ -15,9 +20,6 @@ from ..graphql.location_type_locations_query import LocationTypeLocationsQuery
 from ..graphql.location_types_query import LocationTypesQuery
 from ..graphql.remove_location_type_mutation import RemoveLocationTypeMutation
 from .location import delete_location
-
-
-ADD_LOCATION_TYPE_MUTATION_NAME = "addLocationType"
 
 
 def _populate_location_types(client: SymphonyClient) -> None:
@@ -53,7 +55,7 @@ def add_location_type(
             map_zoom_level (int): map zoom level
 
         Returns:
-            `pyinventory.consts.LocationType` object
+            `pyinventory.common.data_class.LocationType` object
 
         Raises:
             FailedOperationException: internal inventory error
@@ -83,16 +85,16 @@ def add_location_type(
                 properties=new_property_types,
                 surveyTemplateCategories=[],
             ),
-        ).__dict__[ADD_LOCATION_TYPE_MUTATION_NAME]
+        ).__dict__[ADD_LOCATION_TYPE]
         client.reporter.log_successful_operation(
-            ADD_LOCATION_TYPE_MUTATION_NAME, add_location_type_variables
+            ADD_LOCATION_TYPE, add_location_type_variables
         )
     except OperationException as e:
         raise FailedOperationException(
             client.reporter,
             e.err_msg,
             e.err_id,
-            ADD_LOCATION_TYPE_MUTATION_NAME,
+            ADD_LOCATION_TYPE,
             add_location_type_variables,
         )
 
@@ -109,7 +111,7 @@ def delete_locations_by_location_type(
     """Delete locatons by location type.
 
         Args:
-            location_type ( `pyinventory.consts.LocationType` ): location type object
+            location_type ( `pyinventory.common.data_class.LocationType` ): location type object
 
         Raises:
             `pyinventory.exceptions.EntityNotFoundError`: if location_type does not exist
@@ -151,7 +153,7 @@ def delete_location_type_with_locations(
     """Delete locaton type with existing locations.
 
         Args:
-            location_type (`pyinventory.consts.LocationType`): location type object
+            location_type (`pyinventory.common.data_class.LocationType`): location type object
 
         Raises:
             `pyinventory.exceptions.EntityNotFoundError`: if location_type does not exist

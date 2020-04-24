@@ -1541,7 +1541,7 @@ void log_message_prefix_id(
   const char* const source_fileP,
   const unsigned int line_numP,
   uint64_t prefix_id,
-  char* format, ...) {
+  const char* format, ...) {
   va_list args;
   void* new_item_p                                 = NULL;
   log_queue_item_t* new_item_p_sync                = NULL;

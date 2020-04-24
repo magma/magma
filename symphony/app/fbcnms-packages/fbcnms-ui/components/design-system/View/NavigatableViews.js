@@ -149,75 +149,83 @@ export default function NavigatableViews(props: Props) {
     }
   }, [views, activeViewIndex, routingBasePath, location.pathname]);
 
-  const menuItems = useMemo(() => {
-    const arr: Array<MenuItem> = [];
-    views.forEach(view => {
-      if (view.menuItem == null) {
-        return;
-      }
-      arr.push(view.menuItem);
-      // Why with 'forEach' and not filter&map - good question!
-      // Flow doesn't allow this :
-      //  views
-      //    .filter(view => view.menuItem != null)
-      //    .map(view => view.menuItem);
-    });
-    return arr;
-  }, [views]);
-  const routableViews = useMemo(() => {
-    const arr: Array<{path: string, component: ViewContainerProps}> = [];
-    views.forEach(view => {
-      if (view.routingPath == null || view.component == null) {
-        return;
-      }
-      arr.push({path: view.routingPath, component: view.component});
-    });
-    return arr;
-  }, [views]);
+  const menu = useMemo(
+    () =>
+      views
+        .map((view, ind) => {
+          if (view.menuItem != null) {
+            return {item: view.menuItem, viewIndex: ind};
+          }
+          return null;
+        })
+        .filter(Boolean),
+    [views],
+  );
+  const routes = useMemo(
+    () =>
+      views
+        .map(view => {
+          if (view.routingPath != null && view.component != null) {
+            return {path: view.routingPath, component: view.component};
+          }
+          return null;
+        })
+        .filter(Boolean),
+    [views],
+  );
+
+  const activeView = views[activeViewIndex];
+  const menuActiveItemIndex = useMemo(
+    () =>
+      menu.findIndex(
+        m =>
+          m.viewIndex ==
+          (activeView.relatedMenuItemIndex != null
+            ? activeView.relatedMenuItemIndex
+            : activeViewIndex),
+      ),
+    [activeView, activeViewIndex, menu],
+  );
 
   if (views.length === 0) {
     return null;
   }
-
-  const activeView = views[activeViewIndex];
   return (
     <div className={classes.root}>
-      {menuItems.length > 0 && variant === NAVIGATION_VARIANTS.side && (
+      {menu.length > 0 && variant === NAVIGATION_VARIANTS.side && (
         <SideMenu
           header={header}
-          items={menuItems}
-          activeItemIndex={
-            activeView.relatedMenuItemIndex != null
-              ? activeView.relatedMenuItemIndex
-              : activeViewIndex
+          items={menu.map(m => m.item)}
+          activeItemIndex={menuActiveItemIndex}
+          onActiveItemChanged={(_item, index) =>
+            onNavigation(menu[index].viewIndex)
           }
-          onActiveItemChanged={(_item, index) => onNavigation(index)}
         />
       )}
       {activeView.component != null &&
       (routingBasePath == null || activeView.routingPath == null) ? (
         <ViewContainer {...activeView.component} />
       ) : null}
-      {routingBasePath != null && routableViews.length > 0 ? (
+      {routingBasePath != null && routes.length > 0 ? (
         <Switch>
-          {routableViews.map(routableView =>
-            routableView.component.header != null ? (
+          {routes.map(route =>
+            route.component.header != null ? (
               <Route
-                key={routableView.path}
-                path={`${routingBasePath}/${routableView.path}`}
-                render={() => <ViewContainer {...routableView.component} />}
+                key={route.path}
+                path={`${routingBasePath}/${route.path}`}
+                render={() => <ViewContainer {...route.component} />}
               />
             ) : (
               <Route
-                key={routableView.path}
-                path={`${routingBasePath}/${routableView.path}`}
-                children={routableView.component.children}
+                key={route.path}
+                path={`${routingBasePath}/${route.path}`}
+                children={route.component.children}
               />
             ),
           )}
           <Redirect
             from={`${routingBasePath}/`}
-            to={`${routingBasePath}/${routableViews[0].path}`}
+            to={`${routingBasePath}/${routes[0].path}`}
           />
         </Switch>
       ) : null}

@@ -11,18 +11,13 @@ from requests import Session
 from requests.auth import HTTPBasicAuth
 from requests.models import Response
 
-from .consts import (
-    INVENTORY_ENDPOINT,
-    INVENTORY_GRAPHQL_ENDPOINT,
-    INVENTORY_LOGIN_ENDPOINT,
-    INVENTORY_STORE_DELETE_ENDPOINT,
-    INVENTORY_STORE_PUT_ENDPOINT,
-    LOCALHOST_INVENTORY_ENDPOINT,
+from .common import endpoint
+from .common.constant import __version__
+from .common.data_class import (
     EquipmentPortType,
     EquipmentType,
     LocationType,
     ServiceType,
-    __version__,
 )
 from .graphql.latest_python_package_query import LatestPythonPackageQuery
 
@@ -71,11 +66,11 @@ class SymphonyClient(GraphqlClient):
         self.email = email
         self.password = password
         self.address: str = (
-            LOCALHOST_INVENTORY_ENDPOINT.format(tenant)
+            endpoint.LOCALHOST_INVENTORY.format(tenant)
             if is_local_host
-            else INVENTORY_ENDPOINT.format(tenant)
+            else endpoint.INVENTORY_URI.format(tenant)
         )
-        graphql_endpoint_address = self.address + INVENTORY_GRAPHQL_ENDPOINT
+        graphql_endpoint_address = self.address + endpoint.INVENTORY_GRAPHQL
 
         self.session: Session = Session()
         auth = HTTPBasicAuth(email, password)
@@ -86,8 +81,8 @@ class SymphonyClient(GraphqlClient):
 
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-        self.put_endpoint: str = self.address + INVENTORY_STORE_PUT_ENDPOINT
-        self.delete_endpoint: str = self.address + INVENTORY_STORE_DELETE_ENDPOINT
+        self.put_endpoint: str = self.address + endpoint.INVENTORY_STORE_PUT
+        self.delete_endpoint: str = self.address + endpoint.INVENTORY_STORE_DELETE
 
         super().__init__(
             graphql_endpoint_address,
@@ -188,7 +183,7 @@ class SymphonyClient(GraphqlClient):
         return self.session.put("".join([self.address, url]), json=json)
 
     def _login(self) -> None:
-        login_endpoint = self.address + INVENTORY_LOGIN_ENDPOINT
+        login_endpoint = self.address + endpoint.INVENTORY_LOGIN
         response = self.session.get(login_endpoint)
         match = re.search(b'"csrfToken":"([^"]+)"', response.content)
         assert match is not None, "Problem with inventory login"

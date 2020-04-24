@@ -27,6 +27,13 @@ import (
 	"google.golang.org/grpc"
 )
 
+var (
+	// PCRFinstances List of all possible PCRFs on the system (currently 2 are supported)
+	PCRFinstances = []string{MockPCRFRemote, MockPCRFRemote2}
+	// OCSinstances List of all possible OCSs on the system (currently 2 are supported)
+	OCSinstances = []string{MockOCSRemote, MockOCSRemote2}
+)
+
 // Wrapper for GRPC Client functionality
 type hssClient struct {
 	fegprotos.HSSConfiguratorClient
@@ -58,6 +65,8 @@ type policyDBWrapper struct {
 	baseNameMap      object_store.ObjectMap
 	omniPresentRules object_store.ObjectMap
 }
+
+// TODO: convert all these helpers into methods for each type
 
 /**  ========== HSS Helpers ========== **/
 // getHSSClient is a utility function to getHSSClient a RPC connection to a
@@ -107,10 +116,15 @@ func deleteSubscribersFromHSS(subscriberID string) error {
 /**  ========== PCRF Helpers ========== **/
 // getPCRFClient is a utility function to get an RPC connection to a
 // remote PCRF service.
-func getPCRFClient() (*pcrfClient, error) {
+
+func getPCRFClient(instanceName string) (*pcrfClient, error) {
 	var conn *grpc.ClientConn
 	var err error
-	conn, err = registry.GetConnection(MockPCRFRemote)
+	if !contains(instanceName, PCRFinstances) {
+		return nil,
+			fmt.Errorf("mockPCRF Instance does not exist, use one of the existings")
+	}
+	conn, err = registry.GetConnection(instanceName)
 	if err != nil {
 		errMsg := fmt.Sprintf("PCRF client initialization error: %s", err)
 		glog.Error(errMsg)
@@ -123,7 +137,11 @@ func getPCRFClient() (*pcrfClient, error) {
 }
 
 func sendPolicyReAuthRequest(target *fegprotos.PolicyReAuthTarget) (*fegprotos.PolicyReAuthAnswer, error) {
-	cli, err := getPCRFClient()
+	return sendPolicyReAuthRequestPerInstance(MockPCRFRemote, target)
+}
+
+func sendPolicyReAuthRequestPerInstance(instanceName string, target *fegprotos.PolicyReAuthTarget) (*fegprotos.PolicyReAuthAnswer, error) {
+	cli, err := getPCRFClient(instanceName)
 	if err != nil {
 		return nil, err
 	}
@@ -132,7 +150,11 @@ func sendPolicyReAuthRequest(target *fegprotos.PolicyReAuthTarget) (*fegprotos.P
 }
 
 func sendPolicyAbortSession(target *fegprotos.PolicyAbortSessionRequest) (*fegprotos.PolicyAbortSessionResponse, error) {
-	cli, err := getPCRFClient()
+	return sendPolicyAbortSessionPerInstance(MockPCRFRemote, target)
+}
+
+func sendPolicyAbortSessionPerInstance(instanceName string, target *fegprotos.PolicyAbortSessionRequest) (*fegprotos.PolicyAbortSessionResponse, error) {
+	cli, err := getPCRFClient(instanceName)
 	if err != nil {
 		return nil, err
 	}
@@ -143,7 +165,11 @@ func sendPolicyAbortSession(target *fegprotos.PolicyAbortSessionRequest) (*fegpr
 // addSubscriber tries to add this subscriber to the PCRF server.
 // Input: The subscriber data which will be added.
 func addSubscriberToPCRF(sub *lteprotos.SubscriberID) error {
-	cli, err := getPCRFClient()
+	return addSubscriberToPCRFPerInstance(MockPCRFRemote, sub)
+}
+
+func addSubscriberToPCRFPerInstance(instanceName string, sub *lteprotos.SubscriberID) error {
+	cli, err := getPCRFClient(instanceName)
 	if err != nil {
 		return err
 	}
@@ -152,7 +178,11 @@ func addSubscriberToPCRF(sub *lteprotos.SubscriberID) error {
 }
 
 func clearSubscribersFromPCRF() error {
-	cli, err := getPCRFClient()
+	return clearSubscribersFromPCRFPerInstance(MockPCRFRemote)
+}
+
+func clearSubscribersFromPCRFPerInstance(instanceName string) error {
+	cli, err := getPCRFClient(instanceName)
 	if err != nil {
 		return err
 	}
@@ -161,7 +191,11 @@ func clearSubscribersFromPCRF() error {
 }
 
 func addPCRFRules(rules *fegprotos.AccountRules) error {
-	cli, err := getPCRFClient()
+	return addPCRFRulesPerInstance(MockPCRFRemote, rules)
+}
+
+func addPCRFRulesPerInstance(instanceName string, rules *fegprotos.AccountRules) error {
+	cli, err := getPCRFClient(instanceName)
 	if err != nil {
 		return err
 	}
@@ -170,7 +204,11 @@ func addPCRFRules(rules *fegprotos.AccountRules) error {
 }
 
 func addPCRFUsageMonitors(monitorInfo *fegprotos.UsageMonitorConfiguration) error {
-	cli, err := getPCRFClient()
+	return addPCRFUsageMonitorsPerInstance(MockPCRFRemote, monitorInfo)
+}
+
+func addPCRFUsageMonitorsPerInstance(instanceName string, monitorInfo *fegprotos.UsageMonitorConfiguration) error {
+	cli, err := getPCRFClient(instanceName)
 	if err != nil {
 		return err
 	}
@@ -179,7 +217,11 @@ func addPCRFUsageMonitors(monitorInfo *fegprotos.UsageMonitorConfiguration) erro
 }
 
 func usePCRFMockDriver() error {
-	cli, err := getPCRFClient()
+	return usePCRFMockDriverPerInstance(MockPCRFRemote)
+}
+
+func usePCRFMockDriverPerInstance(instanceName string) error {
+	cli, err := getPCRFClient(instanceName)
 	if err != nil {
 		return err
 	}
@@ -188,7 +230,11 @@ func usePCRFMockDriver() error {
 }
 
 func clearPCRFMockDriver() error {
-	cli, err := getPCRFClient()
+	return clearPCRFMockDriverPerInstance(MockPCRFRemote)
+}
+
+func clearPCRFMockDriverPerInstance(instanceName string) error {
+	cli, err := getPCRFClient(instanceName)
 	if err != nil {
 		return err
 	}
@@ -197,7 +243,11 @@ func clearPCRFMockDriver() error {
 }
 
 func setPCRFExpectations(expectations []*fegprotos.GxCreditControlExpectation, defaultAnswer *fegprotos.GxCreditControlAnswer) error {
-	cli, err := getPCRFClient()
+	return setPCRFExpectationsPerInstance(MockPCRFRemote, expectations, defaultAnswer)
+}
+
+func setPCRFExpectationsPerInstance(instanceName string, expectations []*fegprotos.GxCreditControlExpectation, defaultAnswer *fegprotos.GxCreditControlAnswer) error {
+	cli, err := getPCRFClient(instanceName)
 	if err != nil {
 		return err
 	}
@@ -213,7 +263,11 @@ func setPCRFExpectations(expectations []*fegprotos.GxCreditControlExpectation, d
 }
 
 func getAssertExpectationsResult() ([]*fegprotos.ExpectationResult, []*fegprotos.ErrorByIndex, error) {
-	cli, err := getPCRFClient()
+	return getAssertExpectationsResultPerInstance(MockPCRFRemote)
+}
+
+func getAssertExpectationsResultPerInstance(instanceName string) ([]*fegprotos.ExpectationResult, []*fegprotos.ErrorByIndex, error) {
+	cli, err := getPCRFClient(instanceName)
 	if err != nil {
 		return nil, nil, nil
 	}
@@ -227,12 +281,16 @@ func getAssertExpectationsResult() ([]*fegprotos.ExpectationResult, []*fegprotos
 /**  ========== OCS Helpers ========== **/
 // getOCSClient is a utility function to an RPC connection to a
 // remote OCS service.
-func getOCSClient() (*ocsClient, error) {
+func getOCSClient(instanceName string) (*ocsClient, error) {
 	var conn *grpc.ClientConn
 	var err error
-	conn, err = registry.GetConnection(MockOCSRemote)
+	if !contains(instanceName, OCSinstances) {
+		return nil,
+			fmt.Errorf("mockOCS Instance does not exist, use one of the existings")
+	}
+	conn, err = registry.GetConnection(instanceName)
 	if err != nil {
-		errMsg := fmt.Sprintf("PCRF client initialization error: %s", err)
+		errMsg := fmt.Sprintf("OCS client initialization error: %s", err)
 		glog.Error(errMsg)
 		return nil, errors.New(errMsg)
 	}
@@ -245,7 +303,11 @@ func getOCSClient() (*ocsClient, error) {
 // setNewOCSConfig tries to override the default ocs settings
 // Input: ocsConfig data
 func setNewOCSConfig(ocsConfig *fegprotos.OCSConfig) error {
-	cli, err := getOCSClient()
+	return setNewOCSConfigPerInstance(MockOCSRemote, ocsConfig)
+}
+
+func setNewOCSConfigPerInstance(instanceName string, ocsConfig *fegprotos.OCSConfig) error {
+	cli, err := getOCSClient(instanceName)
 	if err != nil {
 		return err
 	}
@@ -256,7 +318,11 @@ func setNewOCSConfig(ocsConfig *fegprotos.OCSConfig) error {
 // addSubscriber tries to add this subscriber to the OCS server.
 // Input: The subscriber data which will be added.
 func addSubscriberToOCS(sub *lteprotos.SubscriberID) error {
-	cli, err := getOCSClient()
+	return addSubscriberToOCSPerInstance(MockOCSRemote, sub)
+}
+
+func addSubscriberToOCSPerInstance(instanceName string, sub *lteprotos.SubscriberID) error {
+	cli, err := getOCSClient(instanceName)
 	if err != nil {
 		return err
 	}
@@ -265,7 +331,11 @@ func addSubscriberToOCS(sub *lteprotos.SubscriberID) error {
 }
 
 func clearSubscribersFromOCS() error {
-	cli, err := getOCSClient()
+	return clearSubscribersFromOCSPerInstance(MockOCSRemote)
+}
+
+func clearSubscribersFromOCSPerInstance(instanceName string) error {
+	cli, err := getOCSClient(instanceName)
 	if err != nil {
 		return err
 	}
@@ -276,7 +346,11 @@ func clearSubscribersFromOCS() error {
 // setCreditOCS tries to set a credit for this subscriber to the OCS server
 // Input: The credit info data which will be set
 func setCreditOnOCS(creditInfo *fegprotos.CreditInfo) error {
-	cli, err := getOCSClient()
+	return setCreditOnOCSPerInstance(MockOCSRemote, creditInfo)
+}
+
+func setCreditOnOCSPerInstance(instanceName string, creditInfo *fegprotos.CreditInfo) error {
+	cli, err := getOCSClient(instanceName)
 	if err != nil {
 		return err
 	}
@@ -287,7 +361,11 @@ func setCreditOnOCS(creditInfo *fegprotos.CreditInfo) error {
 // sendChargingReAuthRequest triggers a RAR from OCS to Sessiond
 // Input: ChargingReAuthTarget
 func sendChargingReAuthRequest(imsi string, ratingGroup uint32) (*fegprotos.ChargingReAuthAnswer, error) {
-	cli, err := getOCSClient()
+	return sendChargingReAuthRequestPerInstance(MockOCSRemote, imsi, ratingGroup)
+}
+
+func sendChargingReAuthRequestPerInstance(instanceName string, imsi string, ratingGroup uint32) (*fegprotos.ChargingReAuthAnswer, error) {
+	cli, err := getOCSClient(instanceName)
 	if err != nil {
 		return nil, err
 	}
@@ -371,4 +449,13 @@ func initializePolicyDBWrapper() (*policyDBWrapper, error) {
 		baseNameMap:      baseNameMap,
 		omniPresentRules: omniPresentRules,
 	}, nil
+}
+
+func contains(wordToFind string, words []string) bool {
+	for _, w := range words {
+		if w == wordToFind {
+			return true
+		}
+	}
+	return false
 }

@@ -8,8 +8,12 @@ import (
 	"context"
 	"testing"
 
+	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/frontier/ent"
 	"github.com/facebookincubator/symphony/frontier/ent/enttest"
+	"github.com/facebookincubator/symphony/frontier/ent/migrate"
 	"github.com/facebookincubator/symphony/pkg/log/logtest"
+	"github.com/facebookincubator/symphony/pkg/testdb"
 	"github.com/stretchr/testify/suite"
 	"github.com/volatiletech/authboss"
 )
@@ -21,8 +25,13 @@ type storerTestSuite struct {
 }
 
 func (s *storerTestSuite) SetupSuite() {
-	client, err := enttest.NewClient()
+	db, name, err := testdb.Open()
 	s.Require().NoError(err)
+	db.SetMaxOpenConns(1)
+	client := enttest.NewClient(s.T(),
+		enttest.WithOptions(ent.Driver(sql.OpenDB(name, db))),
+		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
+	)
 
 	ctx := context.Background()
 	tenant, err := client.Tenant.Create().

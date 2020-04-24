@@ -8,8 +8,7 @@ from typing import Any, Dict, Tuple
 import pkg_resources
 from jsonschema import validate
 
-
-SCHEMA_FILE_NAME = "survey_schema.json"
+from .common.constant import SCHEMA_FILE_NAME
 
 
 def validate_json(path: str) -> None:

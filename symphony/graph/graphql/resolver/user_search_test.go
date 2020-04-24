@@ -17,20 +17,16 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func prepareUserData(ctx context.Context, r *TestResolver) {
-	client := ent.FromContext(ctx)
-
-	client.User.
-		Create().
+func prepareUserData(ctx context.Context) {
+	client := ent.FromContext(ctx).User
+	client.Create().
 		SetAuthID("user1").
 		SetEmail("sam@workspace.com").
 		SetFirstName("Samuel").
 		SetLastName("Willis").
 		SetRole(user.RoleUSER).
 		SaveX(ctx)
-
-	client.User.
-		Create().
+	client.Create().
 		SetAuthID("user2").
 		SetEmail("the-monster@workspace.com").
 		SetFirstName("Eli").
@@ -38,8 +34,7 @@ func prepareUserData(ctx context.Context, r *TestResolver) {
 		SetRole(user.RoleUSER).
 		SaveX(ctx)
 
-	client.User.
-		Create().
+	client.Create().
 		SetAuthID("user3").
 		SetEmail("funny@workspace.com").
 		SetFirstName("Willis").
@@ -47,8 +42,7 @@ func prepareUserData(ctx context.Context, r *TestResolver) {
 		SetRole(user.RoleUSER).
 		SaveX(ctx)
 
-	client.User.
-		Create().
+	client.Create().
 		SetAuthID("user4").
 		SetEmail("danit@workspace.com").
 		SetFirstName("Dana").
@@ -73,19 +67,15 @@ func TestSearchUsersByName(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
 	qr := r.Query()
-	ctx := viewertest.NewContext(r.client)
-
-	prepareUserData(ctx, r)
+	ctx := viewertest.NewContext(context.Background(), r.client)
+	prepareUserData(ctx)
 
 	search1 := searchByName(t, ctx, qr, "Cohen")
 	require.Len(t, search1.Users, 2)
-
 	search2 := searchByName(t, ctx, qr, "monster")
 	require.Len(t, search2.Users, 1)
-
 	search3 := searchByName(t, ctx, qr, "willis")
 	require.Len(t, search3.Users, 2)
-
 	search4 := searchByName(t, ctx, qr, "sam")
 	require.Len(t, search4.Users, 1)
 }

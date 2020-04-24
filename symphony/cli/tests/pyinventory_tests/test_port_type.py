@@ -11,7 +11,7 @@ from pyinventory.api.port_type import (
     edit_equipment_port_type,
     get_equipment_port_type,
 )
-from pyinventory.consts import PropertyDefinition
+from pyinventory.common.data_class import PropertyDefinition
 from pyinventory.graphql.property_kind_enum import PropertyKind
 
 from .grpc.rpc_pb2_grpc import TenantServiceStub

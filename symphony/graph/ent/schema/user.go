@@ -5,9 +5,13 @@
 package schema
 
 import (
+	"github.com/facebookincubator/symphony/graph/viewer"
+
 	"github.com/facebookincubator/ent"
 	"github.com/facebookincubator/ent/schema/edge"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/authz"
+	"github.com/facebookincubator/symphony/graph/ent/privacy"
 )
 
 // User defines the user schema.
@@ -47,5 +51,24 @@ func (User) Edges() []ent.Edge {
 			Unique(),
 		edge.From("groups", UsersGroup.Type).
 			Ref("members"),
+	}
+}
+
+// Policy returns user policy.
+func (User) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithMutationRules(
+			privacy.DenyMutationOperationRule(
+				ent.OpDelete|ent.OpDeleteOne,
+			),
+			authz.AllowAdminRule(),
+		),
+	)
+}
+
+// Hooks of the User.
+func (User) Hooks() []ent.Hook {
+	return []ent.Hook{
+		viewer.UpdateCurrentUser(),
 	}
 }

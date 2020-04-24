@@ -16,6 +16,7 @@ const (
 	ControlProxyServiceName = "control_proxy"
 	DispatcherServiceName   = "dispatcher"
 	MagmadServiceName       = "magmad"
+	MetricsdServiceName     = "metricsd"
 	StateServiceName        = "state"
 	StreamerServiceName     = "streamer"
 )

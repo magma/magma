@@ -83,6 +83,20 @@ func (sc *ServiceCreate) SetStatus(s string) *ServiceCreate {
 	return sc
 }
 
+// SetDiscoveryMethod sets the discovery_method field.
+func (sc *ServiceCreate) SetDiscoveryMethod(sm service.DiscoveryMethod) *ServiceCreate {
+	sc.mutation.SetDiscoveryMethod(sm)
+	return sc
+}
+
+// SetNillableDiscoveryMethod sets the discovery_method field if the given value is not nil.
+func (sc *ServiceCreate) SetNillableDiscoveryMethod(sm *service.DiscoveryMethod) *ServiceCreate {
+	if sm != nil {
+		sc.SetDiscoveryMethod(*sm)
+	}
+	return sc
+}
+
 // SetTypeID sets the type edge to ServiceType by id.
 func (sc *ServiceCreate) SetTypeID(id int) *ServiceCreate {
 	sc.mutation.SetTypeID(id)
@@ -210,6 +224,11 @@ func (sc *ServiceCreate) Save(ctx context.Context) (*Service, error) {
 	if _, ok := sc.mutation.Status(); !ok {
 		return nil, errors.New("ent: missing required field \"status\"")
 	}
+	if v, ok := sc.mutation.DiscoveryMethod(); ok {
+		if err := service.DiscoveryMethodValidator(v); err != nil {
+			return nil, fmt.Errorf("ent: validator failed for field \"discovery_method\": %v", err)
+		}
+	}
 	if _, ok := sc.mutation.TypeID(); !ok {
 		return nil, errors.New("ent: missing required edge \"type\"")
 	}
@@ -298,6 +317,14 @@ func (sc *ServiceCreate) sqlSave(ctx context.Context) (*Service, error) {
 			Column: service.FieldStatus,
 		})
 		s.Status = value
+	}
+	if value, ok := sc.mutation.DiscoveryMethod(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeEnum,
+			Value:  value,
+			Column: service.FieldDiscoveryMethod,
+		})
+		s.DiscoveryMethod = value
 	}
 	if nodes := sc.mutation.TypeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

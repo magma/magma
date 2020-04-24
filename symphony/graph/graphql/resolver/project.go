@@ -19,7 +19,7 @@ import (
 
 	"github.com/AlekSi/pointer"
 	"github.com/pkg/errors"
-	"github.com/vektah/gqlparser/gqlerror"
+	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
 type (

@@ -6,7 +6,9 @@
 from typing import List, Optional
 
 from ..client import SymphonyClient
-from ..consts import Entity, User
+from ..common.constant import SUPERUSER_ROLE, USER_ROLE
+from ..common.data_class import User
+from ..common.data_enum import Entity
 from ..exceptions import EntityNotFoundError
 from ..graphql.edit_user_input import EditUserInput
 from ..graphql.edit_user_mutation import EditUserMutation
@@ -16,18 +18,14 @@ from ..graphql.user_status_enum import UserStatus
 from ..graphql.users_query import UsersQuery
 
 
-USER_ROLE = 0
-SUPERUSER_ROLE = 3
-
-
 def get_user(client: SymphonyClient, email: str) -> User:
-    """Returns `pyinventory.consts.User` object by its email
+    """Returns `pyinventory.common.data_class.User` object by its email
 
         Args:
             email (str): the email address the user registered with
 
         Returns:
-            `pyinventory.consts.User` object
+            `pyinventory.common.data_class.User` object
 
         Raises:
             `pyinventory.exceptions.EntityNotFoundError`: the user was not found
@@ -59,7 +57,7 @@ def add_user(client: SymphonyClient, email: str, password: str) -> User:
             password (str): password the user would connect with
 
         Returns:
-            `pyinventory.consts.User` object
+            `pyinventory.common.data_class.User` object
 
         Raises:
             `pyinventory.exceptions.EntityNotFoundError`: the user was not created properly
@@ -95,7 +93,7 @@ def edit_user(
     """Edit user password and role
 
         Args:
-            user ( `pyinventory.consts.User` ): user to edit
+            user ( `pyinventory.common.data_class.User` ): user to edit
             new_password (Optional[str]): new password the user would connect with
             new_role ( `pyinventory.graphql.user_role_enum.UserRole` ): user new role
 
@@ -135,7 +133,7 @@ def deactivate_user(client: SymphonyClient, user: User) -> None:
 
 
         Args:
-            user ( `pyinventory.consts.User` ): user to deactivate
+            user ( `pyinventory.common.data_class.User` ): user to deactivate
 
 
         Raises:
@@ -156,7 +154,7 @@ def activate_user(client: SymphonyClient, user: User) -> None:
     """Activate the user which would allow the user to login again to symphony
 
         Args:
-            user ( `pyinventory.consts.User` ): user to activate
+            user ( `pyinventory.common.data_class.User` ): user to activate
 
         Raises:
             FailedOperationException: internal inventory error
@@ -176,7 +174,7 @@ def get_users(client: SymphonyClient) -> List[User]:
     """Get the list of users in the system (both active and deactivate)
 
         Returns:
-            List[ `pyinventory.consts.User` ]
+            List[ `pyinventory.common.data_class.User` ]
 
         Raises:
             FailedOperationException: internal inventory error
@@ -211,7 +209,7 @@ def get_active_users(client: SymphonyClient) -> List[User]:
     """Get the list of the active users in the system
 
         Returns:
-            List[ `pyinventory.consts.User` ]
+            List[ `pyinventory.common.data_class.User` ]
 
         Raises:
             FailedOperationException: internal inventory error

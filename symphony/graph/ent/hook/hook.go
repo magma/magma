@@ -299,6 +299,19 @@ func (f LocationTypeFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value
 	return f(ctx, mv)
 }
 
+// The PermissionsPolicyFunc type is an adapter to allow the use of ordinary
+// function as PermissionsPolicy mutator.
+type PermissionsPolicyFunc func(context.Context, *ent.PermissionsPolicyMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PermissionsPolicyFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.PermissionsPolicyMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PermissionsPolicyMutation", m)
+	}
+	return f(ctx, mv)
+}
+
 // The ProjectFunc type is an adapter to allow the use of ordinary
 // function as Project mutator.
 type ProjectFunc func(context.Context, *ent.ProjectMutation) (ent.Value, error)
