@@ -165,7 +165,7 @@ class S1ApUtil(object):
 
         if pcscf_addr_type == "ipv4":
             protCfgOpts_pr.numContId = 1
-            protCfgOpts_pr.c[0].cid = 0x000c
+            protCfgOpts_pr.c[0].cid = 0x000C
 
         elif pcscf_addr_type == "ipv6":
             protCfgOpts_pr.numContId = 1
@@ -176,7 +176,6 @@ class S1ApUtil(object):
             protCfgOpts_pr.c[0].cid = 0x000C
             protCfgOpts_pr.c[1].cid = 0x0001
 
-
     def attach(
         self,
         ue_id,
@@ -186,7 +185,9 @@ class S1ApUtil(object):
         sec_ctxt=s1ap_types.TFW_CREATE_NEW_SECURITY_CONTEXT,
         id_type=s1ap_types.TFW_MID_TYPE_IMSI,
         eps_type=s1ap_types.TFW_EPS_ATTACH_TYPE_EPS_ATTACH,
-        pdn_type=1,pcscf_addr_type=None):
+        pdn_type=1,
+        pcscf_addr_type=None,
+    ):
         """
         Given a UE issue the attach request of specified type
 
@@ -212,7 +213,7 @@ class S1ApUtil(object):
         attach_req.pdnType_pr.pres = True
         attach_req.pdnType_pr.pdn_type = pdn_type
 
-#Populate PCO only if pcscf_addr_type is set
+        # Populate PCO only if pcscf_addr_type is set
         if pcscf_addr_type:
             self.populate_pco(attach_req.protCfgOpts_pr, pcscf_addr_type)
         assert self.issue_cmd(attach_type, attach_req) == 0
