@@ -24,6 +24,7 @@ const http = HttpClient;
 
 //TODO merge with proxy
 const router = Router();
+// use baseURL = 'http://conductor-server:8080/api/'; to bypass proxy
 const baseURL = 'localhost/proxy/api/';
 const baseURLWorkflow = baseURL + 'workflow/';
 const baseURLMeta = baseURL + 'metadata/';
@@ -67,6 +68,7 @@ router.delete('/metadata/taskdef/:name', async (req, res, next) => {
   try {
     const result = await http.delete(
       baseURLMeta + 'taskdefs/' + req.params.name,
+      null,
       req,
     );
     res.status(200).send({result});
@@ -88,6 +90,7 @@ router.delete('/metadata/workflow/:name/:version', async (req, res, next) => {
   try {
     const result = await http.delete(
       baseURLMeta + 'workflow/' + req.params.name + '/' + req.params.version,
+      null,
       req,
     );
     res.status(200).send({result});
