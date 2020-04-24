@@ -13,10 +13,11 @@ import logging from '@fbcnms/logging';
 import qs from 'qs';
 import request from 'request';
 import {
+  addTenantIdPrefix,
   createProxyOptionsBuffer,
   removeTenantPrefix,
   removeTenantPrefixes,
-  withUnderscore,
+  withInfixSeparator,
 } from '../utils.js';
 
 const logger = logging.getLogger(module);
@@ -68,7 +69,7 @@ curl -X POST -H "x-auth-organization: fb-test" -H \
 */
 function postWorkflowBefore(tenantId, req, res, proxyCallback) {
   // name must start with prefix
-  const tenantWithUnderscore = withUnderscore(tenantId);
+  const tenantWithInfixSeparator = withInfixSeparator(tenantId);
   const reqObj = req.body;
 
   // workflowDef section is not allowed (no dynamic workflows)
@@ -86,17 +87,12 @@ function postWorkflowBefore(tenantId, req, res, proxyCallback) {
     throw 'Section taskToDomain is not allowed';
   }
 
-  // name should not contain _
-  if (reqObj.name.indexOf('_') > -1) {
-    logger.error(`Name must not contain underscore ${JSON.stringify(reqObj)}`);
-    throw 'Name must not contain underscore'; // TODO create Exception class
-  }
   // add prefix
-  reqObj.name = tenantWithUnderscore + reqObj.name;
+  addTenantIdPrefix(tenantId, reqObj);
   // add taskToDomain
   reqObj.taskToDomain = {};
   //TODO: is this OK?
-  reqObj.taskToDomain[tenantWithUnderscore + '*'] = tenantId;
+  reqObj.taskToDomain[tenantWithInfixSeparator + '*'] = tenantId;
   logger.debug(`Transformed request to ${JSON.stringify(reqObj)}`);
   proxyCallback({buffer: createProxyOptionsBuffer(reqObj, req)});
 }
@@ -111,7 +107,6 @@ function getExecutionStatusAfter(tenantId, req, respObj) {
     workflowName: false,
     workflowType: false,
     'tasks[*].taskDefName': true,
-    'tasks[*].taskType': true,
     'tasks[*].workflowTask.name': true,
     'tasks[*].workflowTask.taskDefinition.name': true,
     'tasks[*].workflowType': false,
@@ -143,8 +138,8 @@ function removeWorkflowBefore(tenantId, req, res, proxyCallback) {
     logger.debug(`Got status code: ${response.statusCode}, body: '${body}'`);
     const workflow = JSON.parse(body);
     // make sure name starts with prefix
-    const tenantWithUnderscore = withUnderscore(tenantId);
-    if (workflow.workflowName.indexOf(tenantWithUnderscore) == 0) {
+    const tenantWithInfixSeparator = withInfixSeparator(tenantId);
+    if (workflow.workflowName.indexOf(tenantWithInfixSeparator) == 0) {
       proxyCallback();
     } else {
       logger.error(

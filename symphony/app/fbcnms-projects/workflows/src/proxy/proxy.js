@@ -52,7 +52,11 @@ export default async function(proxyTarget) {
       };
 
       // start with 'before'
-      logger.debug(`REQ ${req.method} ${req.url} tenantId ${tenantId}`);
+      logger.info(
+        `REQ ${req.method} ${
+          req.url
+        } tenantId ${tenantId} body ${JSON.stringify(req.body)}`,
+      );
       const proxyCallback = function(proxyOptions) {
         proxy.web(req, res, proxyOptions);
       };
