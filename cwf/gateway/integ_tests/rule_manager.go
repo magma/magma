@@ -57,6 +57,25 @@ func NewRuleManagerPerInstance(pcrfInstance string) (*RuleManager, error) {
 	}, nil
 }
 
+// AddStaticPassAllToDBAndPCRF adds a static rule that passes all traffic to policyDB
+// storage and to the PCRF instance
+func (manager *RuleManager) AddStaticPassAllToDBAndPCRFforIMSIs(IMSIs []string, ruleID string, monitoringKey string, ratingGroup uint32, trackingType string, priority uint32) error {
+	fmt.Printf("************************* Adding a Pass-All static rule to DB and PCRF: %s\n", ruleID)
+	staticPassAll := getStaticPassAll(ruleID, monitoringKey, ratingGroup, trackingType, priority, nil)
+
+	err := manager.insertStaticRuleIntoRedis(staticPassAll)
+	if err != nil {
+		return err
+	}
+	for _, imsi := range IMSIs {
+		err = manager.AddRulesToPCRF(imsi, []string{ruleID}, []string{})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // AddStaticPassAllToDB adds a static rule that passes all traffic to policyDB
 // storage
 func (manager *RuleManager) AddStaticPassAllToDB(ruleID string, monitoringKey string, ratingGroup uint32, trackingType string, priority uint32) error {

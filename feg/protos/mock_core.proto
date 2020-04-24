@@ -98,11 +98,15 @@ service MockOCS {
     rpc CreateAccount(magma.lte.SubscriberID) returns (magma.orc8r.Void) {}
     rpc ClearSubscribers(magma.orc8r.Void) returns (magma.orc8r.Void) {}
     rpc ReAuth(ChargingReAuthTarget) returns (ChargingReAuthAnswer) {}
+    rpc GetCredits(magma.lte.SubscriberID) returns (CreditInfos) {}
 
     // Todo
     rpc SetExpectations(GyCreditControlExpectations) returns (magma.orc8r.Void) {}
     rpc AssertExpectations(magma.orc8r.Void) returns (GyCreditControlResult) {}
 }
+
+
+
 
 message OCSConfig {
     Octets max_usage_octets = 1;
@@ -120,6 +124,10 @@ message CreditInfo {
     uint32 charging_key = 2;
     Octets volume = 3;
     UnitType unit_type = 4;
+}
+
+message CreditInfos {
+    map<uint32, CreditInfo> creditInformation = 1;
 }
 
 message ChargingReAuthTarget {
@@ -377,3 +385,6 @@ message PolicyAbortSessionResponse {
     uint32 result_code = 2;
     string error_message = 3;
 }
+
+
+
