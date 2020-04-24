@@ -103,15 +103,20 @@ def add_service(
     endpoints = []
     for e in result.endpoints:
         port = e.port
+        # pyre-fixme[16]: `None` has no attribute `link`.
         link = port.link if port is not None else None
         endpoints.append(
             ServiceEndpoint(
                 id=e.id,
                 port=EquipmentPort(
+                    # pyre-fixme[16]: `None` has no attribute `id`.
                     id=port.id,
+                    # pyre-fixme[16]: `None` has no attribute `properties`.
                     properties=port.properties,
                     definition=EquipmentPortDefinition(
-                        id=port.definition.id, name=port.definition.name
+                        # pyre-fixme[16]: `None` has no attribute `definition`.
+                        id=port.definition.id,
+                        name=port.definition.name,
                     ),
                     link=Link(
                         link.id,
@@ -132,8 +137,10 @@ def add_service(
         id=result.id,
         externalId=result.externalId,
         customer=Customer(
+            # pyre-fixme[16]: `None` has no attribute `name`.
             name=returned_customer.name,
             id=returned_customer.id,
+            # pyre-fixme[16]: `None` has no attribute `externalId`.
             externalId=returned_customer.externalId,
         )
         if returned_customer

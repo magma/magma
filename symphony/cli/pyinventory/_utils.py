@@ -197,6 +197,9 @@ def _get_property_default_value(
 ) -> Dict[str, PropertyValue]:
     if value is None:
         return {}
+    # pyre-fixme[6]: Expected `Union[Tuple[float, float], bool, datetime.date,
+    #  float, int, str]` for 3rd param but got `Union[None, Tuple[float, float], bool,
+    #  datetime.date, float, int, str]`.
     return get_graphql_input_field(property_type_name=name, type_key=type, value=value)
 
 

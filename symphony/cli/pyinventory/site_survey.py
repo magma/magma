@@ -341,7 +341,7 @@ def export_to_excel(json_file_path: str, excel_file_path: str) -> None:
     # pyre-fixme[45]: Cannot instantiate abstract class `ExcelWriter`.
     writer = pd.ExcelWriter(excel_file_path, engine="xlsxwriter")
     workbook = writer.book
-    assert workbook is not None  # pyre-ignore
+    assert workbook is not None
 
     title_format, date_format, black_format, cell_format = add_workbook_formats(
         workbook
@@ -410,6 +410,7 @@ def export_to_excel(json_file_path: str, excel_file_path: str) -> None:
             ] = cell_name
 
             worksheet.write_blank(cell_name, "", cell_format)
+            # pyre-fixme[19]: Expected 9 positional arguments.
             add_cell_validation(
                 worksheet,
                 question_index_to_row_index[i + 2],
