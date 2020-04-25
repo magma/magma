@@ -119,9 +119,8 @@ func (store *sqlBlobStorage) Rollback() error {
 }
 
 func (store *sqlBlobStorage) ListKeys(networkID string, typeVal string) ([]string, error) {
-	ret := []string{}
 	if err := store.validateTx(); err != nil {
-		return ret, err
+		return nil, err
 	}
 
 	rows, err := store.builder.Select(keyCol).From(store.tableName).
@@ -129,19 +128,20 @@ func (store *sqlBlobStorage) ListKeys(networkID string, typeVal string) ([]strin
 		RunWith(store.tx).
 		Query()
 	if err != nil {
-		return ret, err
+		return nil, err
 	}
 	defer sqorc.CloseRowsLogOnError(rows, "ListKeys")
 
+	var keys []string
 	for rows.Next() {
 		var key string
 		err = rows.Scan(&key)
 		if err != nil {
 			return []string{}, err
 		}
-		ret = append(ret, key)
+		keys = append(keys, key)
 	}
-	return ret, nil
+	return keys, nil
 }
 
 func (store *sqlBlobStorage) Get(networkID string, id storage.TypeAndKey) (Blob, error) {
@@ -156,9 +156,8 @@ func (store *sqlBlobStorage) Get(networkID string, id storage.TypeAndKey) (Blob,
 }
 
 func (store *sqlBlobStorage) GetMany(networkID string, ids []storage.TypeAndKey) ([]Blob, error) {
-	emptyRet := []Blob{}
 	if err := store.validateTx(); err != nil {
-		return emptyRet, err
+		return nil, err
 	}
 
 	whereCondition := getWhereCondition(networkID, ids)
@@ -167,11 +166,11 @@ func (store *sqlBlobStorage) GetMany(networkID string, ids []storage.TypeAndKey)
 		RunWith(store.tx).
 		Query()
 	if err != nil {
-		return emptyRet, err
+		return nil, err
 	}
 	defer sqorc.CloseRowsLogOnError(rows, "GetMany")
 
-	scannedRows := []Blob{}
+	var blobs []Blob
 	for rows.Next() {
 		var t, k string
 		var val []byte
@@ -179,19 +178,26 @@ func (store *sqlBlobStorage) GetMany(networkID string, ids []storage.TypeAndKey)
 
 		err = rows.Scan(&t, &k, &val, &version)
 		if err != nil {
-			return emptyRet, err
+			return nil, err
 		}
-		scannedRows = append(scannedRows, Blob{Type: t, Key: k, Value: val, Version: version})
+		blobs = append(blobs, Blob{Type: t, Key: k, Value: val, Version: version})
 	}
-	return scannedRows, nil
+	return blobs, nil
 }
 
-func (store *sqlBlobStorage) Search(filter SearchFilter) (map[string][]Blob, error) {
+func (store *sqlBlobStorage) Search(filter SearchFilter, criteria LoadCriteria) (map[string][]Blob, error) {
 	ret := map[string][]Blob{}
 	if err := store.validateTx(); err != nil {
 		return ret, err
 	}
 
+	// Get select columns from load criteria
+	selectCols := []string{nidCol, typeCol, keyCol, verCol}
+	if criteria.LoadValue {
+		selectCols = append(selectCols, valCol)
+	}
+
+	// Get where condition from search filter
 	// Use and condition to deterministically order clauses for testing
 	whereCondition := sq.And{}
 	if filter.NetworkID != nil {
@@ -203,7 +209,8 @@ func (store *sqlBlobStorage) Search(filter SearchFilter) (map[string][]Blob, err
 	if !funk.IsEmpty(filter.Keys) {
 		whereCondition = append(whereCondition, sq.Eq{keyCol: filter.GetKeys()})
 	}
-	rows, err := store.builder.Select(nidCol, typeCol, keyCol, valCol, verCol).From(store.tableName).
+
+	rows, err := store.builder.Select(selectCols...).From(store.tableName).
 		Where(whereCondition).
 		RunWith(store.tx).
 		Query()
@@ -214,12 +221,16 @@ func (store *sqlBlobStorage) Search(filter SearchFilter) (map[string][]Blob, err
 
 	for rows.Next() {
 		var nid, t, k string
-		var val []byte
 		var version uint64
+		var val []byte
+		scanArgs := []interface{}{&nid, &t, &k, &version}
+		if criteria.LoadValue {
+			scanArgs = append(scanArgs, &val)
+		}
 
-		err = rows.Scan(&nid, &t, &k, &val, &version)
+		err = rows.Scan(scanArgs...)
 		if err != nil {
-			return map[string][]Blob{}, errors.Wrap(err, "failed to scan blob row")
+			return ret, errors.Wrap(err, "failed to scan blob row")
 		}
 
 		nidCol := ret[nid]
@@ -275,7 +286,7 @@ func (store *sqlBlobStorage) GetExistingKeys(keys []string, filter SearchFilter)
 		return nil, err
 	}
 	defer sqorc.CloseRowsLogOnError(rows, "GetExistingKeys")
-	scannedKeys := []string{}
+	var scannedKeys []string
 	for rows.Next() {
 		var key string
 		err = rows.Scan(&key)
@@ -322,7 +333,7 @@ func (store *sqlBlobStorage) IncrementVersion(networkID string, id storage.TypeA
 
 func (store *sqlBlobStorage) validateTx() error {
 	if store.tx == nil {
-		return errors.New("No transaction is available")
+		return errors.New("no transaction is available")
 	}
 	return nil
 }
@@ -353,7 +364,7 @@ func (store *sqlBlobStorage) updateExistingBlobs(networkID string, blobsToChange
 			RunWith(sc).
 			Exec()
 		if err != nil {
-			return fmt.Errorf("Error updating blob (%s, %s, %s): %s", networkID, blobID.Type, blobID.Key, err)
+			return fmt.Errorf("error updating blob (%s, %s, %s): %s", networkID, blobID.Type, blobID.Key, err)
 		}
 	}
 	return nil

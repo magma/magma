@@ -93,10 +93,18 @@ func (e *entStorage) GetMany(networkID string, ids []storage.TypeAndKey) ([]Blob
 	return blobs, nil
 }
 
-func (e *entStorage) Search(filter SearchFilter) (map[string][]Blob, error) {
+func (e *entStorage) Search(filter SearchFilter, criteria LoadCriteria) (map[string][]Blob, error) {
 	ctx := context.Background()
 
-	preds := []predicate.Blob{}
+	// Get fields from load criteria
+	selectField := blob.FieldNetworkID
+	selectFields := []string{blob.FieldType, blob.FieldKey, blob.FieldVersion}
+	if criteria.LoadValue {
+		selectFields = append(selectFields, blob.FieldValue)
+	}
+
+	// Get predicates from search filter
+	var preds []predicate.Blob
 	if filter.NetworkID != nil {
 		preds = append(preds, blob.NetworkID(*filter.NetworkID))
 	}
@@ -107,16 +115,16 @@ func (e *entStorage) Search(filter SearchFilter) (map[string][]Blob, error) {
 		preds = append(preds, blob.KeyIn(filter.GetKeys()...))
 	}
 
+	ret := map[string][]Blob{}
 	var blobs []blobWithNetworkID
 	err := e.Blob.Query().
 		Where(blob.And(preds...)).
-		Select(blob.FieldNetworkID, blob.FieldType, blob.FieldKey, blob.FieldValue, blob.FieldVersion).
+		Select(selectField, selectFields...). // handle ent select's at-least-once variadic method signature
 		Scan(ctx, &blobs)
 	if err != nil {
-		return map[string][]Blob{}, err
+		return ret, err
 	}
 
-	ret := map[string][]Blob{}
 	for _, b := range blobs {
 		nidCol := ret[b.NetworkID]
 		nidCol = append(nidCol, b.toBlob())
