@@ -203,10 +203,8 @@ static int _emm_attach_accept_retx(emm_context_t *emm_context);
  */
 //------------------------------------------------------------------------------
 int emm_proc_attach_request(
-  mme_ue_s1ap_id_t ue_id,
-  const bool is_mm_ctx_new,
-  emm_attach_request_ies_t *const ies)
-{
+    mme_ue_s1ap_id_t ue_id, const bool is_mm_ctx_new,
+    emm_attach_request_ies_t* const ies) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
   ue_mm_context_t ue_ctx;
@@ -288,6 +286,9 @@ int emm_proc_attach_request(
       &ue_ctx.emm_context, (struct nas_base_proc_s *) &no_attach_proc);
     increment_counter(
       "ue_attach", 1, 2, "result", "failure", "cause", "emergency_attach");
+    if (ies) {
+      free_emm_attach_request_ies((emm_attach_request_ies_t * * const) & ies);
+    }
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
   }
   /*
@@ -750,6 +751,7 @@ int emm_proc_attach_complete(
         "UE " MME_UE_S1AP_ID_FMT
         " ATTACH COMPLETE discarded (EMM procedure not found)\n",
         ue_id);
+      bdestroy((bstring)(esm_msg_pP));
     }
   } else {
     NOT_REQUIREMENT_3GPP_24_301(R10_5_5_1_2_4__20);
