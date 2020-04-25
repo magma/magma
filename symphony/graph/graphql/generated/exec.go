@@ -8417,6 +8417,7 @@ what filters should we apply on users
 """
 enum UserFilterType {
   USER_NAME
+  USER_STATUS
 }
 
 input PortFilterInput {
@@ -8463,9 +8464,11 @@ input ServiceFilterInput {
 
 input UserFilterInput {
   filterType: UserFilterType!
+  includeDeactivated: Boolean
   operator: FilterOperator!
   stringValue: String
   propertyValue: PropertyTypeInput
+  statusValue: UserStatus
   idSet: [ID!]
   stringSet: [String!]
   maxDepth: Int = 5
@@ -39662,6 +39665,12 @@ func (ec *executionContext) unmarshalInputUserFilterInput(ctx context.Context, o
 			if err != nil {
 				return it, err
 			}
+		case "includeDeactivated":
+			var err error
+			it.IncludeDeactivated, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "operator":
 			var err error
 			it.Operator, err = ec.unmarshalNFilterOperator2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐFilterOperator(ctx, v)
@@ -39677,6 +39686,12 @@ func (ec *executionContext) unmarshalInputUserFilterInput(ctx context.Context, o
 		case "propertyValue":
 			var err error
 			it.PropertyValue, err = ec.unmarshalOPropertyTypeInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPropertyTypeInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "statusValue":
+			var err error
+			it.StatusValue, err = ec.unmarshalOUserStatus2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚋuserᚐStatus(ctx, v)
 			if err != nil {
 				return it, err
 			}

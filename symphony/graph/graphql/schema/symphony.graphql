@@ -1696,6 +1696,7 @@ what filters should we apply on users
 """
 enum UserFilterType {
   USER_NAME
+  USER_STATUS
 }
 
 input PortFilterInput {
@@ -1745,6 +1746,7 @@ input UserFilterInput {
   operator: FilterOperator!
   stringValue: String
   propertyValue: PropertyTypeInput
+  statusValue: UserStatus
   idSet: [ID!]
   stringSet: [String!]
   maxDepth: Int = 5
