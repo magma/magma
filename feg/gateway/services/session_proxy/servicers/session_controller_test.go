@@ -1069,17 +1069,6 @@ func TestGetHealthStatus(t *testing.T) {
 	assert.Equal(t, fegprotos.HealthStatus_UNHEALTHY, status.Health)
 }
 
-func getMocks(numServers int) *sessionMocks {
-	mks := sessionMocks{}
-
-	for i := 0; i < numServers; i++ {
-		mks.gx = append(mks.gx, &MockPolicyClient{})
-		mks.gy = append(mks.gy, &MockCreditClient{})
-	}
-	mks.policydb = &MockPolicyDBClient{}
-	return &mks
-}
-
 func getMockControllerParams(numServers int, mockConfig []*servicers.SessionControllerConfig) []*servicers.ControllerParam {
 	controlParams := make([]*servicers.ControllerParam, 0, numServers)
 	for i := 0; i < numServers; i++ {
