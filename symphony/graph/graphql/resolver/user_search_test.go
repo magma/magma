@@ -38,7 +38,7 @@ func prepareUserData(ctx context.Context) {
 		SetAuthID("user3").
 		SetEmail("funny@workspace.com").
 		SetFirstName("Willis").
-		SetLastName("Reed").
+		SetLastName("Rheed").
 		SetRole(user.RoleUSER).
 		SaveX(ctx)
 
@@ -47,6 +47,14 @@ func prepareUserData(ctx context.Context) {
 		SetEmail("danit@workspace.com").
 		SetFirstName("Dana").
 		SetLastName("Cohen").
+		SetRole(user.RoleUSER).
+		SaveX(ctx)
+
+	client.Create().
+		SetAuthID("user5").
+		SetEmail("user5@test.ing").
+		SetFirstName("Raul").
+		SetLastName("Himemes").
 		SetRole(user.RoleUSER).
 		SaveX(ctx)
 }
@@ -78,4 +86,13 @@ func TestSearchUsersByName(t *testing.T) {
 	require.Len(t, search3.Users, 2)
 	search4 := searchByName(t, ctx, qr, "sam")
 	require.Len(t, search4.Users, 1)
+
+	search5 := searchByName(t, ctx, qr, "li")
+	require.Len(t, search5.Users, 3)
+
+	search6 := searchByName(t, ctx, qr, "ra hi")
+	require.Len(t, search6.Users, 1)
+
+	search7 := searchByName(t, ctx, qr, "li he")
+	require.Len(t, search7.Users, 2)
 }
