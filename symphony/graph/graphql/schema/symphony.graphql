@@ -2462,6 +2462,7 @@ type Query {
   possibleProperties(entityType: PropertyEntity!): [PropertyType!]!
   surveys: [Survey!]!
   latestPythonPackage: LatestPythonPackageResult
+  pythonPackages: [PythonPackage!]!
   nearestSites(
     latitude: Float!
     longitude: Float!
