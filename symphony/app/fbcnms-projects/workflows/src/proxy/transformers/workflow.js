@@ -136,21 +136,27 @@ function removeWorkflowBefore(tenantId, req, res, proxyCallback) {
   logger.debug(`Requesting ${JSON.stringify(requestOptions)}`);
   request(requestOptions, function(error, response, body) {
     logger.debug(`Got status code: ${response.statusCode}, body: '${body}'`);
-    const workflow = JSON.parse(body);
-    // make sure name starts with prefix
-    const tenantWithInfixSeparator = withInfixSeparator(tenantId);
-    if (workflow.workflowName.indexOf(tenantWithInfixSeparator) == 0) {
-      proxyCallback();
-    } else {
-      logger.error(
-        `Error trying to delete workflow of different tenant: ${tenantId},` +
-          ` workflow: ${JSON.stringify(workflow)}`,
-      );
-      res.status(401);
-      res.send('Unauthorized');
+    if (response.statusCode == 200) {
+      const workflow = JSON.parse(body);
+      // make sure name starts with prefix
+      const tenantWithInfixSeparator = withInfixSeparator(tenantId);
+      if (workflow.workflowName.indexOf(tenantWithInfixSeparator) == 0) {
+        proxyCallback();
+      } else {
+        logger.error(
+          `Error trying to delete workflow of different tenant: ${tenantId},` +
+            ` workflow: ${JSON.stringify(workflow)}`,
+        );
+        res.status(401);
+        res.send('Unauthorized');
+      }
+     } else {
+      res.status(response.statusCode);
+      res.send(body);
     }
   });
 }
+
 let proxyTarget;
 
 export default function(ctx) {
