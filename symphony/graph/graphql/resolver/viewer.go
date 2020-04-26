@@ -33,9 +33,10 @@ func (viewerResolver) Permissions(ctx context.Context, obj *viewer.Viewer) (*mod
 	inventoryPolicy := authz.NewInventoryPolicy(true, writePermissions)
 	workforcePolicy := authz.NewWorkforcePolicy(true, writePermissions)
 	if policiesEnabled {
-		// Policies are not yet implemented
-		inventoryPolicy = authz.NewInventoryPolicy(false, false)
-		workforcePolicy = authz.NewWorkforcePolicy(false, false)
+		inventoryPolicy, workforcePolicy, err = authz.PermissionPolicies(ctx)
+		if err != nil {
+			return nil, err
+		}
 	}
 	res := models.PermissionSettings{
 		// TODO(T64743627): Deprecate CanWrite field
