@@ -150,7 +150,7 @@ function removeWorkflowBefore(tenantId, req, res, proxyCallback) {
         res.status(401);
         res.send('Unauthorized');
       }
-     } else {
+    } else {
       res.status(response.statusCode);
       res.send(body);
     }

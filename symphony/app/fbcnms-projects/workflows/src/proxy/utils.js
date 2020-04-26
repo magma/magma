@@ -61,19 +61,20 @@ export function withInfixSeparator(s) {
 }
 
 export function addTenantIdPrefix(tenantId, objectWithName) {
-  const tenantWithInfixSeparator = withInfixSeparator(tenantId);
   assertNameIsWithoutInfixSeparator(objectWithName);
-  objectWithName.name = tenantWithInfixSeparator + objectWithName.name;
+  objectWithName.name = withInfixSeparator(tenantId) + objectWithName.name;
 }
 
 export function assertNameIsWithoutInfixSeparator(objectWithName) {
-  if (objectWithName.name.indexOf(INFIX_SEPARATOR) > -1) {
-    logger.error(
-      `Name must not contain '${INFIX_SEPARATOR}'` +
-        ` in '${JSON.stringify(objectWithName)}'`,
-    );
+  assertValueIsWithoutInfixSeparator(objectWithName.name);
+}
+
+// TODO: disallow ':'
+export function assertValueIsWithoutInfixSeparator(value) {
+  if (value.indexOf(INFIX_SEPARATOR) > -1) {
+    logger.error(`Value must not contain '${INFIX_SEPARATOR}' in '${value}'`);
     // TODO create Exception class
-    throw 'Name must not contain underscore';
+    throw 'Value must not contain INFIX_SEPARATOR';
   }
 }
 

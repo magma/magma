@@ -35,12 +35,10 @@ const HttpClient = {
       // If data is empty object, convert it to null.
       // Otherwise the http library will send a request
       // with Content-Length: 2 :/
-      if (Object.keys(data).length === 0) {
+      if (data && Object.keys(data).length === 0) {
         data = null;
       }
-      const req = request
-        .delete(path, data)
-        .accept('application/json')
+      const req = request.delete(path, data).accept('application/json');
       req.header['x-auth-organization'] =
         parentRequest.headers['x-auth-organization'];
       req.end((err, res) => {

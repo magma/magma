@@ -50,7 +50,7 @@ export default async function(proxyTarget) {
           try {
             // conductor does not always send correct Content-Type, e.g. on 404
             respObj = JSON.parse(data);
-          } catch(e) {
+          } catch (e) {
             logger.warn('Response is not JSON');
           }
           entry.after(tenantId, req, respObj, res);
