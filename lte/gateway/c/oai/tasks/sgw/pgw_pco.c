@@ -30,9 +30,6 @@
 #include <stdlib.h>
 #include <netinet/in.h>
 #include <string.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-
 #include "bstrlib.h"
 #include "log.h"
 #include "common_defs.h"
