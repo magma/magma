@@ -25,6 +25,7 @@ const useStyles = makeStyles(() => ({
     display: 'flex',
     flexWrap: 'wrap',
     flexDirection: 'row',
+    alignContent: 'flex-start',
   },
   typeCard: {
     padding: '8px',
