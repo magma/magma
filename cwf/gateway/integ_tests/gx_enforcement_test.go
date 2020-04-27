@@ -107,7 +107,7 @@ func TestGxUsageReportEnforcement(t *testing.T) {
 	}
 
 	// Assert that reasonable CCR-I and at least one CCR-U were sent up to the PCRF
-	resultByIndex, errByIndex, err := getAssertExpectationsResult()
+	resultByIndex, errByIndex, err := getPCRFAssertExpectationsResult()
 	assert.NoError(t, err)
 	assert.Empty(t, errByIndex)
 	expectedResult := []*protos.ExpectationResult{
@@ -130,7 +130,7 @@ func TestGxUsageReportEnforcement(t *testing.T) {
 	time.Sleep(3 * time.Second)
 
 	// Assert that we saw a Terminate request
-	resultByIndex, errByIndex, err = getAssertExpectationsResult()
+	resultByIndex, errByIndex, err = getPCRFAssertExpectationsResult()
 	assert.NoError(t, err)
 	assert.Empty(t, errByIndex)
 	expectedResult = []*protos.ExpectationResult{
@@ -214,7 +214,7 @@ func TestGxMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 	assert.NotNil(t, record1, fmt.Sprintf("No policy usage record for imsi: %v rule=static-pass-all-1", imsi))
 
 	// Assert that a CCR-I was sent up to the PCRF
-	resultByIndex, errByIndex, err := getAssertExpectationsResult()
+	resultByIndex, errByIndex, err := getPCRFAssertExpectationsResult()
 	assert.NoError(t, err)
 	assert.Empty(t, errByIndex)
 	expectedResult := []*protos.ExpectationResult{
@@ -245,7 +245,7 @@ func TestGxMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 	tr.WaitForEnforcementStatsToSync()
 
 	// Assert that we sent back a CCA-Update with RuleRemovals
-	resultByIndex, errByIndex, err = getAssertExpectationsResult()
+	resultByIndex, errByIndex, err = getPCRFAssertExpectationsResult()
 	assert.NoError(t, err)
 	assert.Empty(t, errByIndex)
 	expectedResult = []*protos.ExpectationResult{
@@ -359,7 +359,7 @@ func testGxRuleInstallTime(t *testing.T) {
 	assert.NotNil(t, recordsBySubID[prependIMSIPrefix(imsi)]["static-pass-all-1"])
 	assert.Nil(t, recordsBySubID[prependIMSIPrefix(imsi)]["static-pass-all-2"])
 
-	resultByIndex, errByIndex, err := getAssertExpectationsResult()
+	resultByIndex, errByIndex, err := getPCRFAssertExpectationsResult()
 	assert.NoError(t, err)
 	assert.Empty(t, errByIndex)
 	expectedResult := []*protos.ExpectationResult{
@@ -508,7 +508,7 @@ func testGxRevalidationTime(t *testing.T) {
 	}
 
 	// Assert that reasonable CCR-I and at least one CCR-U were sent up to the PCRF
-	resultByIndex, errByIndex, err := getAssertExpectationsResult()
+	resultByIndex, errByIndex, err := getPCRFAssertExpectationsResult()
 	assert.NoError(t, err)
 	assert.Empty(t, errByIndex)
 	expectedResult := []*protos.ExpectationResult{
@@ -528,7 +528,7 @@ func testGxRevalidationTime(t *testing.T) {
 	tr.WaitForEnforcementStatsToSync()
 
 	// Assert that we saw a Terminate request
-	resultByIndex, errByIndex, err = getAssertExpectationsResult()
+	resultByIndex, errByIndex, err = getPCRFAssertExpectationsResult()
 	assert.NoError(t, err)
 	assert.Empty(t, errByIndex)
 	expectedResult = []*protos.ExpectationResult{
