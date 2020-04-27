@@ -26,6 +26,7 @@
         ]
       }
     ],
-    "Symphony": ["symphony/quick_start", "symphony/download_requirements", "symphony/building_the_symphony_agent"]
+    "Symphony": ["symphony/quick_start", "symphony/download_requirements", "symphony/building_the_symphony_agent"],
+    "NMS User Guide": ["nms/nms_organizations"]
   }
 }
