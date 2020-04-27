@@ -31,8 +31,6 @@ TASK_DEF(TASK_TIMER, TASK_PRIORITY_MED, 16)
 
 // Other possible tasks in the process
 
-/// GTPV1-U task
-TASK_DEF(TASK_GTPV1_U, TASK_PRIORITY_MED, 256)
 /// FW_IP task
 TASK_DEF(TASK_FW_IP, TASK_PRIORITY_MED, 256)
 /// MME Applicative task
