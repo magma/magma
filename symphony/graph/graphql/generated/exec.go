@@ -7372,6 +7372,7 @@ input TechnicianCheckListItemInput {
   yesNoResponse: YesNoResponse
   wifiData: [SurveyWiFiScanData!]
   cellData: [SurveyCellScanData!]
+  filesData: [FileInput!]
 }
 
 input TechnicianWorkOrderUploadInput {
@@ -39576,6 +39577,12 @@ func (ec *executionContext) unmarshalInputTechnicianCheckListItemInput(ctx conte
 		case "cellData":
 			var err error
 			it.CellData, err = ec.unmarshalOSurveyCellScanData2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐSurveyCellScanDataᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "filesData":
+			var err error
+			it.FilesData, err = ec.unmarshalOFileInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐFileInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}

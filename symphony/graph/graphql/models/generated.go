@@ -810,6 +810,7 @@ type TechnicianCheckListItemInput struct {
 	YesNoResponse      *YesNoResponse        `json:"yesNoResponse"`
 	WifiData           []*SurveyWiFiScanData `json:"wifiData"`
 	CellData           []*SurveyCellScanData `json:"cellData"`
+	FilesData          []*FileInput          `json:"filesData"`
 }
 
 type TechnicianInput struct {
