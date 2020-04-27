@@ -131,12 +131,15 @@ class ArpController(MagmaController):
                 self.logger.debug(
                     "%s is in directoryd, but not an active UE", rec.id)
                 continue
-            self.logger.debug("Restoring arp for IMSI %s, ip %s mac %s", rec.id,
-                              rec.fields['ipv4_addr'], rec.fields['mac_addr'])
-
-            self.add_ue_arp_flows(self._datapath,
-                                  rec.fields['ipv4_addr'],
-                                  rec.fields['mac_addr'])
+            if rec.fields['ipv4_addr'] and rec.fields['mac_addr']:
+                self.logger.debug("Restoring arp for IMSI %s, ip %s mac %s",
+                    rec.id, rec.fields['ipv4_addr'], rec.fields['mac_addr'])
+                self.add_ue_arp_flows(self._datapath,
+                                      rec.fields['ipv4_addr'],
+                                      rec.fields['mac_addr'])
+            else:
+                self.logger.debug("Subscriber %s didn't get ip from dhcp",
+                                  rec.id)
 
     def add_ue_arp_flows(self, datapath, ue_ip, ue_mac):
         """
