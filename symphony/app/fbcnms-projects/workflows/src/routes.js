@@ -86,7 +86,6 @@ router.get('/metadata/workflow', async (req, res, next) => {
   }
 });
 
-// TODO override archiveWorkflow
 router.delete('/metadata/workflow/:name/:version', async (req, res, next) => {
   try {
     const result = await http.delete(
@@ -266,9 +265,13 @@ router.post('/bulk/restart', async (req, res, next) => {
 });
 
 router.delete('/workflow/:workflowId', async (req, res, next) => {
+  const archiveWorkflow = req.query.archiveWorkflow === 'true';
   try {
     const result = await http.delete(
-      baseURLWorkflow + req.params.workflowId + '/remove',
+      baseURLWorkflow +
+        req.params.workflqowId +
+        '/remove?archiveWorkflow=' +
+        archiveWorkflow,
       req.body,
       req,
     );
