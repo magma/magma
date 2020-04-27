@@ -17,12 +17,13 @@ from lte.protos.mobilityd_pb2 import AllocateIPRequest, IPAddress, IPBlock, \
 from lte.protos.mobilityd_pb2_grpc import MobilityServiceServicer, \
     add_MobilityServiceServicer_to_server
 from lte.protos.subscriberdb_pb2 import SubscriberID
-
 from magma.common.rpc_utils import return_void
 from magma.subscriberdb.sid import SIDUtils
+
 from .ip_allocator import DuplicatedIPAllocationError, IPAllocator, \
     IPBlockNotFoundError, IPNotInUseError, MappingNotFoundError, \
     NoAvailableIPError, OverlappedIPBlocksError
+
 
 def _get_ip_block(ip_block_str):
     """ Convert string into ipaddress.ip_network. Support both IPv4 or IPv6
@@ -247,15 +248,12 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
         logging.debug("Listing subscriber IP table")
         resp = SubscriberIPTable()
 
-        csid_ip_pairs = self._ipv4_allocator.get_sid_ip_table()
-        for composite_sid, ip in csid_ip_pairs:
-            #handle composite sid to sid and apn mapping
-            sid_apn_tuple = composite_sid.split(':')
-            sid = SIDUtils.to_pb(sid_apn_tuple[0])
-            apn = sid_apn_tuple[1] if len(sid_apn_tuple) > 1 else None
+        csid_ip_tuples = self._ipv4_allocator.get_sid_ip_table()
+        for sid, ip, apn in csid_ip_tuples:
+            sid_pb = SIDUtils.to_pb(sid)
             version = IPAddress.IPV4 if ip.version == 4 else IPAddress.IPV6
             ip_msg = IPAddress(version=version, address=ip.packed)
-            resp.entries.add(sid=sid, ip=ip_msg, apn=apn)
+            resp.entries.add(sid=sid_pb, ip=ip_msg, apn=apn)
 
         return resp
 

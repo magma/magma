@@ -70,7 +70,8 @@ def _ip_desc_to_proto(desc):
         id=desc.sid,
         type=SubscriberID.IMSI,
     )
-    proto = IPDesc(ip=ip, ip_block=ip_block, state=state, sid=sid)
+    proto = IPDesc(ip=ip, ip_block=ip_block, state=state, sid=sid,
+                   apn=desc.apn)
     return proto
 
 
@@ -89,7 +90,9 @@ def _ip_desc_from_proto(proto):
         ip_block_addr, proto.ip_block.prefix_len))
     state = _desc_state_proto_to_str(proto.state)
     sid = proto.sid.id
-    desc = ip_descriptor.IPDesc(ip=ip, ip_block=ip_block, state=state, sid=sid)
+    apn = proto.apn
+    desc = ip_descriptor.IPDesc(ip=ip, ip_block=ip_block, state=state, sid=sid,
+                                apn=apn)
     return desc
 
 

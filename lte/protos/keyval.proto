@@ -39,6 +39,7 @@ message IPDesc {
   IPBlock ip_block = 2;
   IPState state = 3;
   SubscriberID sid = 4;
+  string apn = 5;
 }
 
 // --------------------------------------------------------------------------

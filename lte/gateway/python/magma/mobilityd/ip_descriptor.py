@@ -18,7 +18,7 @@ class IPState(Enum):
     RESERVED = 5
 
 
-class IPDesc():
+class IPDesc:
     """
     IP descriptor.
 
@@ -30,17 +30,20 @@ class IPDesc():
     """
 
     def __init__(self, ip: ipaddress.ip_address = None, state: IPState = None,
-                 sid: str = None, ip_block: ipaddress.ip_network = None):
+                 sid: str = None, ip_block: ipaddress.ip_network = None,
+                 apn: str = None):
         self.ip = ip
         self.ip_block = ip_block
         self.state = state
         self.sid = sid
+        self.apn = apn
 
     def __str__(self):
         as_str = '<mobilityd.IPDesc ' + \
-                 '{{ip: {}, ip_block: {}, state: {}, sid: {}}}>'.format(
+                 '{{ip: {}, ip_block: {}, state: {}, sid: {}, apn: {}}}>'.format(
                      self.ip,
                      self.ip_block,
                      self.state,
-                     self.sid)
+                     self.sid,
+                     self.apn)
         return as_str
