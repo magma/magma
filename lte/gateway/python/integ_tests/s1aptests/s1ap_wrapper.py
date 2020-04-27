@@ -334,7 +334,8 @@ class TestWrapper(object):
             s1ap_types.tfwCmd.UE_ACT_DED_BER_ACC, act_ded_bearer_acc
         )
         print(
-            "************** Sending activate dedicated EPS bearer " "context accept\n"
+            "************** Sending activate dedicated EPS bearer "
+            "context accept\n"
         )
 
     def sendDeactDedicatedBearerAccept(self, ue_id, bearerId):
@@ -365,7 +366,6 @@ class TestWrapper(object):
         # Populate PCO if pcscf_addr_type is set
         if pcscf_addr_type:
             print("********* pcscf_addr_type", pcscf_addr_type)
-            req.pco_pres = True
             self._s1_util.populate_pco(req.protCfgOpts_pr, pcscf_addr_type)
 
         self.s1_util.issue_cmd(s1ap_types.tfwCmd.UE_PDN_CONN_REQ, req)
