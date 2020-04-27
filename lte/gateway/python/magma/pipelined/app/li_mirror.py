@@ -100,10 +100,10 @@ class LIMirrorController(MagmaController):
                                              outbound_match, actions,
                                              priority=flows.MINIMUM_PRIORITY,
                                              resubmit_table=self.next_table)
-
-        li_match = MagmaMatch(in_port=self._li_local_port_num)
-        flows.add_output_flow(datapath, self.tbl_num, li_match, [],
-                              output_port=self._li_dst_port_num)
+        if self._li_dst_port_num:
+            li_match = MagmaMatch(in_port=self._li_local_port_num)
+            flows.add_output_flow(datapath, self.tbl_num, li_match, [],
+                                  output_port=self._li_dst_port_num)
 
     def _install_mirror_flows(self, imsis):
         parser = self._datapath.ofproto_parser
