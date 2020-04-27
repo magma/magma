@@ -36,8 +36,7 @@ def get_user(client: SymphonyClient, email: str) -> User:
             user = client.get_user(email="user@test.com")
             ```
     """
-    result = UserQuery.execute(client, email)
-    user = result.user
+    user = UserQuery.execute(client, email)
     if user is None:
         raise EntityNotFoundError(entity=Entity.User, entity_name=email)
     return User(
@@ -186,7 +185,7 @@ def get_users(client: SymphonyClient) -> List[User]:
                 print(user.email)
             ```
     """
-    result = UsersQuery.execute(client).users
+    result = UsersQuery.execute(client)
     if result is None:
         return []
     users = []

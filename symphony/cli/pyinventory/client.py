@@ -123,7 +123,7 @@ class SymphonyClient(GraphqlClient):
 
     def _get_latest_python_package_version(self) -> Optional[Tuple[str, str]]:
 
-        package = LatestPythonPackageQuery.execute(self).latestPythonPackage
+        package = LatestPythonPackageQuery.execute(self)
         if package is not None:
             last_version = package.lastPythonPackage
             last_breaking_version = package.lastBreakingPythonPackage

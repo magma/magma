@@ -5,9 +5,6 @@
 
 from typing import Dict, List, Optional, Sequence, Tuple
 
-from gql.gql.client import OperationException
-from gql.gql.reporter import FailedOperationException
-
 from .._utils import (
     format_properties,
     get_port_definition_input,
@@ -23,7 +20,6 @@ from ..common.data_class import (
     PropertyValue,
 )
 from ..common.data_enum import Entity
-from ..common.mutation_name import ADD_EQUIPMENT_TYPE, EDIT_EQUIPMENT_TYPE
 from ..exceptions import EntityNotFoundError, EquipmentTypeNotFoundException
 from ..graphql.add_equipment_type_input import AddEquipmentTypeInput
 from ..graphql.add_equipment_type_mutation import AddEquipmentTypeMutation
@@ -46,7 +42,7 @@ from .property_type import (
 
 
 def _populate_equipment_types(client: SymphonyClient) -> None:
-    edges = EquipmentTypesQuery.execute(client).equipmentTypes.edges
+    edges = EquipmentTypesQuery.execute(client).edges
 
     for edge in edges:
         node = edge.node
@@ -62,7 +58,7 @@ def _populate_equipment_types(client: SymphonyClient) -> None:
 
 
 def _populate_equipment_port_types(client: SymphonyClient) -> None:
-    edges = EquipmentPortTypesQuery.execute(client).equipmentPortTypes.edges
+    edges = EquipmentPortTypesQuery.execute(client).edges
 
     for edge in edges:
         node = edge.node
@@ -92,7 +88,7 @@ def _add_equipment_type(
             ports=port_definitions,
             properties=properties,
         ),
-    ).__dict__[ADD_EQUIPMENT_TYPE]
+    )
 
 
 def get_or_create_equipment_type(
@@ -165,7 +161,7 @@ def _edit_equipment_type(
             ports=port_definitions,
             properties=properties,
         ),
-    ).__dict__[EDIT_EQUIPMENT_TYPE]
+    )
 
 
 def _update_equipment_type(
@@ -178,35 +174,15 @@ def _update_equipment_type(
     port_definitions: List[EquipmentPortInput],
 ) -> EquipmentType:
 
-    edit_equipment_type_variables = {
-        "name": name,
-        "category": category,
-        "positionDefinitions": position_definitions,
-        "portDefinitions": port_definitions,
-        "properties": properties,
-    }
-
-    try:
-        equipment_type = _edit_equipment_type(
-            client=client,
-            equipment_type_id=equipment_type_id,
-            name=name,
-            category=category,
-            properties=properties,
-            position_definitions=position_definitions,
-            port_definitions=port_definitions,
-        )
-        client.reporter.log_successful_operation(
-            EDIT_EQUIPMENT_TYPE, edit_equipment_type_variables
-        )
-    except OperationException as e:
-        raise FailedOperationException(
-            client.reporter,
-            e.err_msg,
-            e.err_id,
-            EDIT_EQUIPMENT_TYPE,
-            edit_equipment_type_variables,
-        )
+    equipment_type = _edit_equipment_type(
+        client=client,
+        equipment_type_id=equipment_type_id,
+        name=name,
+        category=category,
+        properties=properties,
+        position_definitions=position_definitions,
+        port_definitions=port_definitions,
+    )
     equipment_type = EquipmentType(
         name=equipment_type.name,
         category=equipment_type.category,
@@ -271,35 +247,14 @@ def add_equipment_type(
     position_definitions = [
         EquipmentPositionInput(name=position) for position in position_list
     ]
-
-    add_equipment_type_variables = {
-        "name": name,
-        "category": category,
-        "positionDefinitions": position_definitions,
-        "portDefinitions": port_definitions,
-        "properties": new_property_types,
-    }
-    try:
-        equipment_type = _add_equipment_type(
-            client,
-            name,
-            category,
-            new_property_types,
-            position_definitions,
-            port_definitions,
-        )
-        client.reporter.log_successful_operation(
-            ADD_EQUIPMENT_TYPE, add_equipment_type_variables
-        )
-    except OperationException as e:
-        raise FailedOperationException(
-            client.reporter,
-            e.err_msg,
-            e.err_id,
-            ADD_EQUIPMENT_TYPE,
-            add_equipment_type_variables,
-        )
-
+    equipment_type = _add_equipment_type(
+        client,
+        name,
+        category,
+        new_property_types,
+        position_definitions,
+        port_definitions,
+    )
     equipment_type = EquipmentType(
         name=equipment_type.name,
         category=equipment_type.category,
@@ -585,7 +540,7 @@ def delete_equipment_type_with_equipments(
     """
     equipment_type_with_equipments = EquipmentTypeEquipmentQuery.execute(
         client, id=equipment_type.id
-    ).equipmentType
+    )
     if not equipment_type_with_equipments:
         raise EntityNotFoundError(
             entity=Entity.EquipmentType, entity_id=equipment_type.id

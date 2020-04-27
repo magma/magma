@@ -30,6 +30,7 @@ from graphql.validation.specified_rules import specified_rules
 class ParsedField:
     name: str
     type: str
+    is_list: bool
     nullable: bool
     default_value: Any = None
 
@@ -239,11 +240,13 @@ class FieldToTypeMatcherVisitor(Visitor):
         return node
 
     def __parse_field(self, name, graphql_type):
-        python_type, nullable, underlying_graphql_type = self.__scalar_type_to_python(
+        python_type, is_list, nullable, underlying_graphql_type = self.__scalar_type_to_python(
             graphql_type
         )
 
-        parsed_field = ParsedField(name=name, type=python_type, nullable=nullable)
+        parsed_field = ParsedField(
+            name=name, type=python_type, is_list=is_list, nullable=nullable
+        )
         parsed_enum = None
 
         if not is_scalar_type(underlying_graphql_type):
@@ -268,6 +271,7 @@ class FieldToTypeMatcherVisitor(Visitor):
     @staticmethod
     def __scalar_type_to_python(scalar):
         nullable = True
+        is_list = False
         if isinstance(scalar, GraphQLNonNull):
             nullable = False
             scalar = scalar.of_type
@@ -287,12 +291,10 @@ class FieldToTypeMatcherVisitor(Visitor):
             if isinstance(scalar, GraphQLNonNull):
                 scalar = scalar.of_type
                 nullable = False
+            is_list = True
+        mapping = mapping.get(str(scalar), str(scalar))
 
-            mapping = f"List[{mapping.get(str(scalar), str(scalar))}]"
-        else:
-            mapping = mapping.get(str(scalar), str(scalar))
-
-        return mapping, nullable, scalar
+        return mapping, is_list, nullable, scalar
 
     @staticmethod
     def __variable_type_to_python(var_type: TypeNode):

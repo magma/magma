@@ -5,9 +5,6 @@
 
 from typing import Dict
 
-from gql.gql.client import OperationException
-from gql.gql.reporter import FailedOperationException
-
 from .._utils import get_graphql_property_inputs
 from ..client import SymphonyClient
 from ..common.data_class import (
@@ -18,7 +15,6 @@ from ..common.data_class import (
     PropertyValue,
 )
 from ..common.data_enum import Entity
-from ..common.mutation_name import EDIT_EQUIPMENT_PORT, EDIT_LINK
 from ..exceptions import EntityNotFoundError, EquipmentPortIsNotUniqueException
 from ..graphql.edit_equipment_port_mutation import (
     EditEquipmentPortInput,
@@ -52,9 +48,7 @@ def get_port(
             port = client.get_port(equipment=equipment, port_name="Z AIO - Port 1")
             ```
     """
-    equipment_with_ports = EquipmentPortsQuery.execute(
-        client, id=equipment.id
-    ).equipment
+    equipment_with_ports = EquipmentPortsQuery.execute(client, id=equipment.id)
 
     if not equipment_with_ports:
         raise EntityNotFoundError(entity=Entity.Equipment, entity_id=equipment.id)
@@ -141,43 +135,29 @@ def edit_port_properties(
             property_types, new_properties
         )
 
-    edit_equipment_port_input = {
-        "side": LinkSide(equipment=equipment.id, port=port.definition.id),
-        "properties": new_property_inputs,
-    }
-    try:
-        result = EditEquipmentPortMutation.execute(
-            client,
-            EditEquipmentPortInput(
-                side=LinkSide(equipment=equipment.id, port=port.definition.id),
-                properties=new_property_inputs,
-            ),
-        ).__dict__[EDIT_EQUIPMENT_PORT]
-        client.reporter.log_successful_operation(
-            EDIT_EQUIPMENT_PORT, edit_equipment_port_input
-        )
-    except OperationException as e:
-        raise FailedOperationException(
-            client.reporter,
-            e.err_msg,
-            e.err_id,
-            EDIT_EQUIPMENT_PORT,
-            edit_equipment_port_input,
-        )
+    result = EditEquipmentPortMutation.execute(
+        client,
+        EditEquipmentPortInput(
+            side=LinkSide(equipment=equipment.id, port=port.definition.id),
+            properties=new_property_inputs,
+        ),
+    )
+    port_type = result.definition.portType
+    link = result.link
     return EquipmentPort(
         id=result.id,
         properties=result.properties,
         definition=EquipmentPortDefinition(
             id=result.definition.id,
             name=result.definition.name,
-            port_type_name=result.definition.portType.name,
+            port_type_name=port_type.name if port_type else None,
         ),
         link=Link(
-            id=result.link.id,
-            properties=result.link.properties,
-            service_ids=[s.id for s in result.link.services],
+            id=link.id,
+            properties=link.properties,
+            service_ids=[s.id for s in link.services],
         )
-        if result.link
+        if link
         else None,
     )
 
@@ -237,26 +217,12 @@ def edit_link_properties(
             link_property_types, new_link_properties
         )
 
-    edit_link_input = {
-        "id": link.id,
-        "properties": new_link_property_inputs,
-        "serviceIds": link.service_ids,
-    }
-    try:
-        result = EditLinkMutation.execute(
-            client,
-            EditLinkInput(
-                id=link.id,
-                properties=new_link_property_inputs,
-                serviceIds=link.service_ids,
-            ),
-        ).__dict__[EDIT_LINK]
-        client.reporter.log_successful_operation(EDIT_LINK, edit_link_input)
-    except OperationException as e:
-        raise FailedOperationException(
-            client.reporter, e.err_msg, e.err_id, EDIT_LINK, edit_link_input
-        )
-
+    result = EditLinkMutation.execute(
+        client,
+        EditLinkInput(
+            id=link.id, properties=new_link_property_inputs, serviceIds=link.service_ids
+        ),
+    )
     return EquipmentPort(
         id=port.id,
         properties=port.properties,

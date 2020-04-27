@@ -5,8 +5,6 @@
 
 from typing import Dict, List, Mapping, Optional, Tuple
 
-from gql.gql.client import OperationException
-from gql.gql.reporter import FailedOperationException
 from tqdm import tqdm
 
 from .._utils import PropertyValue, _get_property_value, get_graphql_property_inputs
@@ -14,11 +12,6 @@ from ..client import SymphonyClient
 from ..common.constant import EQUIPMENTS_TO_SEARCH
 from ..common.data_class import Equipment, EquipmentType, Location
 from ..common.data_enum import Entity
-from ..common.mutation_name import (
-    ADD_EQUIPMENT,
-    ADD_EQUIPMENT_TO_POSITION,
-    EDIT_EQUIPMENT,
-)
 from ..exceptions import (
     EntityNotFoundError,
     EquipmentIsNotUniqueException,
@@ -48,9 +41,7 @@ def _get_equipment_if_exists(
     client: SymphonyClient, name: str, location: Location
 ) -> Optional[Equipment]:
 
-    location_with_equipments = LocationEquipmentsQuery.execute(
-        client, id=location.id
-    ).location
+    location_with_equipments = LocationEquipmentsQuery.execute(client, id=location.id)
     if location_with_equipments is None:
         raise EntityNotFoundError(entity=Entity.Location, entity_id=location.id)
     equipments = [
@@ -136,7 +127,7 @@ def get_equipment_by_external_id(client: SymphonyClient, external_id: str) -> Eq
 
     equipments = EquipmentSearchQuery.execute(
         client, filters=[equipment_filter], limit=5
-    ).equipmentSearch
+    )
 
     if not equipments or equipments.count == 0:
         raise EntityNotFoundError(
@@ -201,7 +192,7 @@ def get_equipments_by_type(
     """
     equipment_type_with_equipments = EquipmentTypeEquipmentQuery.execute(
         client, id=equipment_type_id
-    ).equipmentType
+    )
     if not equipment_type_with_equipments:
         raise EntityNotFoundError(
             entity=Entity.EquipmentType, entity_id=equipment_type_id
@@ -239,7 +230,7 @@ def get_equipments_by_location(
             equipments = client.get_equipments_by_location(location_id="60129542651")
             ```
     """
-    location_details = LocationEquipmentsQuery.execute(client, id=location_id).location
+    location_details = LocationEquipmentsQuery.execute(client, id=location_id)
     if location_details is None:
         raise EntityNotFoundError(entity=Entity.Location, entity_id=location_id)
     result = []
@@ -372,22 +363,7 @@ def add_equipment(
         properties=properties,
         externalId=external_id,
     )
-
-    try:
-        equipment = AddEquipmentMutation.execute(client, add_equipment_input).__dict__[
-            ADD_EQUIPMENT
-        ]
-        client.reporter.log_successful_operation(
-            ADD_EQUIPMENT, add_equipment_input.__dict__
-        )
-    except OperationException as e:
-        raise FailedOperationException(
-            client.reporter,
-            e.err_msg,
-            e.err_id,
-            ADD_EQUIPMENT,
-            add_equipment_input.__dict__,
-        )
+    equipment = AddEquipmentMutation.execute(client, add_equipment_input)
 
     return Equipment(
         id=equipment.id,
@@ -438,23 +414,8 @@ def edit_equipment(
         name=new_name if new_name else equipment.name,
         properties=properties,
     )
+    result = EditEquipmentMutation.execute(client, edit_equipment_input)
 
-    try:
-        result = EditEquipmentMutation.execute(client, edit_equipment_input).__dict__[
-            EDIT_EQUIPMENT
-        ]
-        client.reporter.log_successful_operation(
-            EDIT_EQUIPMENT, edit_equipment_input.__dict__
-        )
-
-    except OperationException as e:
-        raise FailedOperationException(
-            client.reporter,
-            e.err_msg,
-            e.err_id,
-            EDIT_EQUIPMENT,
-            edit_equipment_input.__dict__,
-        )
     return Equipment(
         id=result.id,
         external_id=result.externalId,
@@ -467,7 +428,7 @@ def _find_position_definition_id(
     client: SymphonyClient, equipment: Equipment, position_name: str
 ) -> Tuple[str, Optional[Equipment]]:
 
-    equipment_data = EquipmentPositionsQuery.execute(client, id=equipment.id).equipment
+    equipment_data = EquipmentPositionsQuery.execute(client, id=equipment.id)
 
     if not equipment_data:
         raise EntityNotFoundError(entity=Entity.Equipment, entity_id=equipment.id)
@@ -579,22 +540,7 @@ def add_equipment_to_position(
         properties=properties,
         externalId=external_id,
     )
-
-    try:
-        equipment = AddEquipmentMutation.execute(client, add_equipment_input).__dict__[
-            ADD_EQUIPMENT
-        ]
-        client.reporter.log_successful_operation(
-            ADD_EQUIPMENT_TO_POSITION, add_equipment_input.__dict__
-        )
-    except OperationException as e:
-        raise FailedOperationException(
-            client.reporter,
-            e.err_msg,
-            e.err_id,
-            ADD_EQUIPMENT_TO_POSITION,
-            add_equipment_input.__dict__,
-        )
+    equipment = AddEquipmentMutation.execute(client, add_equipment_input)
 
     return Equipment(
         id=equipment.id,
@@ -634,9 +580,7 @@ def search_for_equipments(
             client.search_for_equipments(limit=10)
             ```
     """
-    equipments = EquipmentSearchQuery.execute(
-        client, filters=[], limit=limit
-    ).equipmentSearch
+    equipments = EquipmentSearchQuery.execute(client, filters=[], limit=limit)
 
     total_count = equipments.count
     equipments = [
@@ -684,7 +628,7 @@ def _get_equipment_type_and_properties_dict(
     client: SymphonyClient, equipment: Equipment
 ) -> Tuple[str, Dict[str, PropertyValue]]:
 
-    result = EquipmentTypeAndPropertiesQuery.execute(client, id=equipment.id).equipment
+    result = EquipmentTypeAndPropertiesQuery.execute(client, id=equipment.id)
     if result is None:
         raise EntityNotFoundError(entity=Entity.Equipment, entity_id=equipment.id)
     equipment_type = result.equipmentType.name

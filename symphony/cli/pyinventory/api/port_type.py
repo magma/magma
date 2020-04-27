@@ -5,14 +5,10 @@
 
 from typing import Dict, List, Optional
 
-from gql.gql.client import OperationException
-from gql.gql.reporter import FailedOperationException
-
 from .._utils import format_property_definitions, get_graphql_property_type_inputs
 from ..client import SymphonyClient
 from ..common.data_class import EquipmentPortType, PropertyDefinition, PropertyValue
 from ..common.data_enum import Entity
-from ..common.mutation_name import ADD_EQUIPMENT_PORT_TYPE, EDIT_EQUIPMENT_PORT_TYPE
 from ..exceptions import EntityNotFoundError
 from ..graphql.add_equipment_port_type_mutation import (
     AddEquipmentPortTypeInput,
@@ -69,32 +65,14 @@ def add_equipment_port_type(
 
     formated_property_types = format_property_definitions(properties)
     formated_link_property_types = format_property_definitions(link_properties)
-    add_equipment_port_type_input = {
-        "name": name,
-        "properties": formated_property_types,
-        "linkProperties": formated_link_property_types,
-    }
-
-    try:
-        result = AddEquipmentPortTypeMutation.execute(
-            client,
-            AddEquipmentPortTypeInput(
-                name=name,
-                properties=formated_property_types,
-                linkProperties=formated_link_property_types,
-            ),
-        ).__dict__[ADD_EQUIPMENT_PORT_TYPE]
-        client.reporter.log_successful_operation(
-            ADD_EQUIPMENT_PORT_TYPE, add_equipment_port_type_input
-        )
-    except OperationException as e:
-        raise FailedOperationException(
-            client.reporter,
-            e.err_msg,
-            e.err_id,
-            ADD_EQUIPMENT_PORT_TYPE,
-            add_equipment_port_type_input,
-        )
+    result = AddEquipmentPortTypeMutation.execute(
+        client,
+        AddEquipmentPortTypeInput(
+            name=name,
+            properties=formated_property_types,
+            linkProperties=formated_link_property_types,
+        ),
+    )
 
     added = EquipmentPortType(
         id=result.id,
@@ -126,7 +104,7 @@ def get_equipment_port_type(
             port_type = client.get_equipment_port_type(equipment_port_type_id=port_type1.id)
             ```
     """
-    result = EquipmentPortTypeQuery.execute(client, id=equipment_port_type_id).port_type
+    result = EquipmentPortTypeQuery.execute(client, id=equipment_port_type_id)
     if not result:
         raise EntityNotFoundError(
             entity=Entity.EquipmentPortType, entity_id=equipment_port_type_id
@@ -192,33 +170,15 @@ def edit_equipment_port_type(
             link_property_types, new_link_properties
         )
 
-    edit_equipment_port_type_input = {
-        "name": new_name,
-        "properties": new_property_type_inputs,
-        "linkProperties": new_link_properties,
-    }
-
-    try:
-        result = EditEquipmentPortTypeMutation.execute(
-            client,
-            EditEquipmentPortTypeInput(
-                id=port_type.id,
-                name=new_name,
-                properties=new_property_type_inputs,
-                linkProperties=new_link_property_type_inputs,
-            ),
-        ).__dict__[EDIT_EQUIPMENT_PORT_TYPE]
-        client.reporter.log_successful_operation(
-            EDIT_EQUIPMENT_PORT_TYPE, edit_equipment_port_type_input
-        )
-    except OperationException as e:
-        raise FailedOperationException(
-            client.reporter,
-            e.err_msg,
-            e.err_id,
-            EDIT_EQUIPMENT_PORT_TYPE,
-            edit_equipment_port_type_input,
-        )
+    result = EditEquipmentPortTypeMutation.execute(
+        client,
+        EditEquipmentPortTypeInput(
+            id=port_type.id,
+            name=new_name,
+            properties=new_property_type_inputs,
+            linkProperties=new_link_property_type_inputs,
+        ),
+    )
     return EquipmentPortType(
         id=result.id,
         name=result.name,

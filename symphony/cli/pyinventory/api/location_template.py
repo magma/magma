@@ -18,9 +18,7 @@ from .link import add_link, get_all_links_and_port_names_of_equipment
 def _get_one_level_attachments_of_equipment(
     client: SymphonyClient, equipment: Equipment
 ) -> List[Tuple[str, Equipment]]:
-    equipment_with_positions = EquipmentPositionsQuery.execute(
-        client, id=equipment.id
-    ).equipment
+    equipment_with_positions = EquipmentPositionsQuery.execute(client, id=equipment.id)
     if not equipment_with_positions:
         raise EntityNotFoundError(entity=Entity.Equipment, entity_id=equipment.id)
     attachments = []
@@ -93,7 +91,7 @@ def apply_location_template_to_location(
 
     location_with_equipments = LocationEquipmentsQuery.execute(
         client, id=template_location.id
-    ).location
+    )
     if not location_with_equipments:
         raise EntityNotFoundError(
             entity=Entity.Location, entity_id=template_location.id
