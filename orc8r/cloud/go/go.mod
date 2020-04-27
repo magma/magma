@@ -13,6 +13,7 @@ replace (
 )
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.3.3
 	github.com/Masterminds/squirrel v1.1.1-0.20190513200039-d13326f0be73
 	github.com/coreos/go-systemd v0.0.0-20181031085051-9002847aa142
 	github.com/emakeev/snowflake v0.0.0-20200206205012-767080b052fe

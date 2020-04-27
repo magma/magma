@@ -27,6 +27,7 @@ type ICMPProbe struct {
 	// Maps endpoints IPs to their current GREEndpointStatus
 	endpointStatus map[string]GREEndpointStatus
 	sync.RWMutex   // R/W lock synchronizing map endpoint status access
+	stop           chan bool
 }
 
 const (
@@ -41,6 +42,7 @@ func NewICMPProbe(endpoints []*mconfig.CwfGatewayHealthConfigGrePeer, interval u
 		Interval:       time.Duration(interval) * time.Second,
 		PktCount:       pktCount,
 		endpointStatus: map[string]GREEndpointStatus{},
+		stop:           make(chan bool),
 	}
 }
 
@@ -58,13 +60,26 @@ func (i *ICMPProbe) Start() error {
 	}
 	startProbe := func() {
 		for {
-			time.Sleep(i.Interval)
-			i.executeProbe(pingers)
+			select {
+			case <-i.stop:
+				return
+			default:
+				time.Sleep(i.Interval)
+				i.executeProbe(pingers)
+			}
 		}
 	}
 
 	go startProbe()
 	return nil
+}
+
+// Stop stops the ICMP probes of the ICMPProbe's endpoints
+func (i *ICMPProbe) Stop() {
+	i.stop <- true
+	i.Lock()
+	i.endpointStatus = map[string]GREEndpointStatus{}
+	i.Unlock()
 }
 
 // GetStatus returns the current GREEndpointStatus of each endpoint.

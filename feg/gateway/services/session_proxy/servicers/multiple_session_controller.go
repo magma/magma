@@ -44,40 +44,53 @@ import (
 * ##########################################
  */
 
+// CentralSessionControllerServerWithHealth is an interface just to group CentralSessionControllerServer
+// and ServiceHealthServer. This is used by NewHealthyCentralSessionController to be able to return
+// either CentralSessionControllers or CentralSessionController (without S)
+type CentralSessionControllerServerWithHealth interface {
+	protos.CentralSessionControllerServer
+	fegprotos.ServiceHealthServer
+}
+
 type CentralSessionControllers struct {
 	centralControllers []*CentralSessionController
 }
 
-func NewCentralSessionControllers(
-	creditClient []gy.CreditClient,
-	policyClient []gx.PolicyClient,
-	dbClient policydb.PolicyDBClient,
-	cfg []*SessionControllerConfig,
-) *CentralSessionControllers {
-	totalLen := len(creditClient)
-	if totalLen != len(policyClient) || totalLen != len(cfg) {
-		panic("Same size required for CreditClient (Gy), PolicyClient (Gx) and SessionControllersConfig")
-	}
+type ControllerParam struct {
+	CreditClient gy.CreditClient
+	PolicyClient gx.PolicyClient
+	Config       *SessionControllerConfig
+}
 
-	controllers := make([]*CentralSessionController, 0)
-	centralControllers := CentralSessionControllers{}
-	for n := 0; n < len(creditClient); n++ {
-		singleController := NewCentralSessionController(creditClient[n], policyClient[n], dbClient, cfg[n])
+// NewCentralSessionControllers creates centralControllers which is a slice of centralController.
+// This should be used only if more than one server is configred
+func NewCentralSessionControllers(
+	controlParam []*ControllerParam,
+	dbClient policydb.PolicyDBClient,
+) *CentralSessionControllers {
+	totalLen := len(controlParam)
+	controllers := make([]*CentralSessionController, 0, totalLen)
+	for _, cp := range controlParam {
+		singleController := NewCentralSessionController(cp.CreditClient, cp.PolicyClient, dbClient, cp.Config)
 		controllers = append(controllers, singleController)
 	}
+	centralControllers := CentralSessionControllers{}
 	centralControllers.centralControllers = controllers
 	return &centralControllers
 }
 
-func NewCentralSessionControllers_SingleServer(
-	creditClient gy.CreditClient,
-	policyClient gx.PolicyClient,
+// NewHealthyCentralSessionController returns a different type of controller depending on the amount
+// of servers configured. In case only one server is configured, there is no need to calculate where this
+// subscriber should be sent. So in that case we return CentralSessionController (without S)
+func NewHealthyCentralSessionController(
+	controlParam []*ControllerParam,
 	dbClient policydb.PolicyDBClient,
-	cfg *SessionControllerConfig,
-) *CentralSessionControllers {
-	return NewCentralSessionControllers(
-		[]gy.CreditClient{creditClient}, []gx.PolicyClient{policyClient},
-		dbClient, []*SessionControllerConfig{cfg})
+) CentralSessionControllerServerWithHealth {
+	if len(controlParam) == 1 {
+		cp := controlParam[0]
+		return NewCentralSessionController(cp.CreditClient, cp.PolicyClient, dbClient, cp.Config)
+	}
+	return NewCentralSessionControllers(controlParam, dbClient)
 }
 
 // CreateSession begins a UE session by requesting rules from PCEF

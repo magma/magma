@@ -15,6 +15,7 @@ import type {UserSearchContextQuery} from './__generated__/UserSearchContextQuer
 
 import RelayEnvironment from '../../../../../common/RelayEnvironment';
 import createSearchContext from './SearchContext';
+import {USER_STATUSES} from '../UserManagementUtils';
 import {fetchQuery, graphql} from 'relay-runtime';
 import {userResponse2User} from '../UserManagementUtils';
 
@@ -50,6 +51,11 @@ const searchCallback = (searchTerm: string, group: ?UserPermissionsGroup) =>
         filterType: 'USER_NAME',
         operator: 'CONTAINS',
         stringValue: searchTerm,
+      },
+      {
+        filterType: 'USER_STATUS',
+        operator: 'IS',
+        statusValue: USER_STATUSES.ACTIVE.key,
       },
     ],
   }).then(response => {

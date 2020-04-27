@@ -13,9 +13,10 @@ import logging from '@fbcnms/logging';
 // Currently just filters result without passing prefix to conductor.
 // TODO: implement querying by prefix in conductor
 import {
-  GLOBAL_PREFIX,
+  addTenantIdPrefix,
+  assertAllowedSystemTask,
   createProxyOptionsBuffer,
-  withUnderscore,
+  withInfixSeparator,
 } from '../utils.js';
 
 const logger = logging.getLogger(module);
@@ -27,30 +28,24 @@ curl  -H "x-auth-organization: fb-test" "localhost/proxy/api/metadata/taskdefs"
 function getAllTaskdefsAfter(tenantId, req, respObj) {
   // iterate over taskdefs, keep only those belonging to tenantId or global
   // remove tenantId prefix, keep GLOBAL_
-  const tenantWithUnderscore = withUnderscore(tenantId);
-  const globalWithUnderscore = withUnderscore(GLOBAL_PREFIX);
+  const tenantWithInfixSeparator = withInfixSeparator(tenantId);
   for (let idx = respObj.length - 1; idx >= 0; idx--) {
     const taskdef = respObj[idx];
-    if (taskdef.name.indexOf(tenantWithUnderscore) == 0) {
-      taskdef.name = taskdef.name.substr(tenantWithUnderscore.length);
-    } else if (taskdef.name.indexOf(globalWithUnderscore) == 0) {
-      // noop
+    if (taskdef.name.indexOf(tenantWithInfixSeparator) == 0) {
+      taskdef.name = taskdef.name.substr(tenantWithInfixSeparator.length);
     } else {
       // remove element
       respObj.splice(idx, 1);
     }
   }
 }
+
+// Used in POST and PUT
 function sanitizeTaskdefBefore(tenantId, taskdef) {
-  const tenantWithUnderscore = withUnderscore(tenantId);
-  if (taskdef.name.indexOf('_') > -1) {
-    logger.error(
-      `Name of taskdef must not contain underscore: '${taskdef.name}'`,
-    );
-    throw 'Name must not contain underscore'; // TODO create Exception class
-  }
+  // only whitelisted system tasks are allowed
+  assertAllowedSystemTask(taskdef);
   // prepend tenantId
-  taskdef.name = tenantWithUnderscore + taskdef.name;
+  addTenantIdPrefix(tenantId, taskdef);
 }
 // Create new task definition(s)
 // Underscore in name is not allowed.
@@ -110,12 +105,12 @@ function putTaskdefBefore(tenantId, req, res, proxyCallback) {
 }
 
 /*
-curl  -H "x-auth-organization: fb-test" \
+curl -H "x-auth-organization: fb-test" \
  "localhost/proxy/api/metadata/taskdefs/frinx"
 */
 // Gets the task definition
 function getTaskdefByNameBefore(tenantId, req, res, proxyCallback) {
-  req.params.name = withUnderscore(tenantId) + req.params.name;
+  req.params.name = withInfixSeparator(tenantId) + req.params.name;
   // modify url
   req.url = '/api/metadata/taskdefs/' + req.params.name;
   proxyCallback();
@@ -123,10 +118,10 @@ function getTaskdefByNameBefore(tenantId, req, res, proxyCallback) {
 
 function getTaskdefByNameAfter(tenantId, req, respObj, res) {
   if (res.status == 200) {
-    const tenantWithUnderscore = withUnderscore(tenantId);
+    const tenantWithInfixSeparator = withInfixSeparator(tenantId);
     // remove prefix
-    if (respObj.name && respObj.name.indexOf(tenantWithUnderscore) == 0) {
-      respObj.name = respObj.name.substr(tenantWithUnderscore.length);
+    if (respObj.name && respObj.name.indexOf(tenantWithInfixSeparator) == 0) {
+      respObj.name = respObj.name.substr(tenantWithInfixSeparator.length);
     } else {
       logger.error(
         `Tenant Id prefix '${tenantId}' not found, taskdef name: '${respObj.name}'`,
@@ -139,8 +134,12 @@ function getTaskdefByNameAfter(tenantId, req, respObj, res) {
 
 // TODO: can this be disabled?
 // Remove a task definition
+/*
+curl -H "x-auth-organization: fb-test" \
+ "localhost/api/metadata/taskdefs/bar" -X DELETE -v
+*/
 function deleteTaskdefByNameBefore(tenantId, req, res, proxyCallback) {
-  req.params.name = withUnderscore(tenantId) + req.params.name;
+  req.params.name = withInfixSeparator(tenantId) + req.params.name;
   // modify url
   req.url = '/api/metadata/taskdefs/' + req.params.name;
   proxyCallback();

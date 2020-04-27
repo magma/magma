@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 0d4526cb9063cfa958c0c61721a3c5b7
+ * @relayHash 888cdf59875ddf438a9f016985e34fdf
  */
 
 /* eslint-disable */
@@ -17,12 +17,14 @@
 import type { ConcreteRequest } from 'relay-runtime';
 export type FilterOperator = "CONTAINS" | "DATE_GREATER_THAN" | "DATE_LESS_THAN" | "IS" | "IS_NOT_ONE_OF" | "IS_ONE_OF" | "%future added value";
 export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "float" | "gps_location" | "int" | "node" | "range" | "string" | "%future added value";
-export type UserFilterType = "USER_NAME" | "%future added value";
+export type UserFilterType = "USER_NAME" | "USER_STATUS" | "%future added value";
+export type UserStatus = "ACTIVE" | "DEACTIVATED" | "%future added value";
 export type UserFilterInput = {|
   filterType: UserFilterType,
   operator: FilterOperator,
   stringValue?: ?string,
   propertyValue?: ?PropertyTypeInput,
+  statusValue?: ?UserStatus,
   idSet?: ?$ReadOnlyArray<string>,
   stringSet?: ?$ReadOnlyArray<string>,
   maxDepth?: ?number,

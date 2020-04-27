@@ -716,6 +716,7 @@ type ComplexityRoot struct {
 		PossibleProperties       func(childComplexity int, entityType models.PropertyEntity) int
 		ProjectSearch            func(childComplexity int, filters []*models.ProjectFilterInput, limit *int) int
 		ProjectTypes             func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
+		PythonPackages           func(childComplexity int) int
 		ReportFilters            func(childComplexity int, entity models.FilterEntity) int
 		SearchForEntity          func(childComplexity int, name string, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
 		SearchForNode            func(childComplexity int, name string, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
@@ -1345,6 +1346,7 @@ type QueryResolver interface {
 	PossibleProperties(ctx context.Context, entityType models.PropertyEntity) ([]*ent.PropertyType, error)
 	Surveys(ctx context.Context) ([]*ent.Survey, error)
 	LatestPythonPackage(ctx context.Context) (*models.LatestPythonPackageResult, error)
+	PythonPackages(ctx context.Context) ([]*models.PythonPackage, error)
 	NearestSites(ctx context.Context, latitude float64, longitude float64, first int) ([]*ent.Location, error)
 	Vertex(ctx context.Context, id int) (*ent.Node, error)
 	ProjectTypes(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.ProjectTypeConnection, error)
@@ -4878,6 +4880,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.ProjectTypes(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int)), true
+
+	case "Query.pythonPackages":
+		if e.complexity.Query.PythonPackages == nil {
+			break
+		}
+
+		return e.complexity.Query.PythonPackages(childComplexity), true
 
 	case "Query.reportFilters":
 		if e.complexity.Query.ReportFilters == nil {
@@ -8417,6 +8426,7 @@ what filters should we apply on users
 """
 enum UserFilterType {
   USER_NAME
+  USER_STATUS
 }
 
 input PortFilterInput {
@@ -8463,9 +8473,11 @@ input ServiceFilterInput {
 
 input UserFilterInput {
   filterType: UserFilterType!
+  includeDeactivated: Boolean
   operator: FilterOperator!
   stringValue: String
   propertyValue: PropertyTypeInput
+  statusValue: UserStatus
   idSet: [ID!]
   stringSet: [String!]
   maxDepth: Int = 5
@@ -9181,6 +9193,7 @@ type Query {
   possibleProperties(entityType: PropertyEntity!): [PropertyType!]!
   surveys: [Survey!]!
   latestPythonPackage: LatestPythonPackageResult
+  pythonPackages: [PythonPackage!]!
   nearestSites(
     latitude: Float!
     longitude: Float!
@@ -26500,6 +26513,40 @@ func (ec *executionContext) _Query_latestPythonPackage(ctx context.Context, fiel
 	return ec.marshalOLatestPythonPackageResult2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐLatestPythonPackageResult(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_pythonPackages(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().PythonPackages(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*models.PythonPackage)
+	fc.Result = res
+	return ec.marshalNPythonPackage2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPythonPackageᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_nearestSites(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -39662,6 +39709,12 @@ func (ec *executionContext) unmarshalInputUserFilterInput(ctx context.Context, o
 			if err != nil {
 				return it, err
 			}
+		case "includeDeactivated":
+			var err error
+			it.IncludeDeactivated, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "operator":
 			var err error
 			it.Operator, err = ec.unmarshalNFilterOperator2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐFilterOperator(ctx, v)
@@ -39677,6 +39730,12 @@ func (ec *executionContext) unmarshalInputUserFilterInput(ctx context.Context, o
 		case "propertyValue":
 			var err error
 			it.PropertyValue, err = ec.unmarshalOPropertyTypeInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPropertyTypeInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "statusValue":
+			var err error
+			it.StatusValue, err = ec.unmarshalOUserStatus2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚋuserᚐStatus(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -44447,6 +44506,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_latestPythonPackage(ctx, field)
+				return res
+			})
+		case "pythonPackages":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_pythonPackages(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			})
 		case "nearestSites":
@@ -50369,6 +50442,57 @@ func (ec *executionContext) unmarshalNPropertyTypeInput2ᚖgithubᚗcomᚋfacebo
 	}
 	res, err := ec.unmarshalNPropertyTypeInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPropertyTypeInput(ctx, v)
 	return &res, err
+}
+
+func (ec *executionContext) marshalNPythonPackage2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPythonPackage(ctx context.Context, sel ast.SelectionSet, v models.PythonPackage) graphql.Marshaler {
+	return ec._PythonPackage(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNPythonPackage2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPythonPackageᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.PythonPackage) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNPythonPackage2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPythonPackage(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNPythonPackage2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPythonPackage(ctx context.Context, sel ast.SelectionSet, v *models.PythonPackage) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._PythonPackage(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNReportFilter2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐReportFilter(ctx context.Context, sel ast.SelectionSet, v ent.ReportFilter) graphql.Marshaler {

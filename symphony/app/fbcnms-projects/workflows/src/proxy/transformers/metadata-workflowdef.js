@@ -14,9 +14,11 @@ import logging from '@fbcnms/logging';
 
 import qs from 'qs';
 import {
-  GLOBAL_PREFIX,
+  addTenantIdPrefix,
+  assertAllowedSystemTask,
   createProxyOptionsBuffer,
-  withUnderscore,
+  isSubworkflowTask,
+  withInfixSeparator,
 } from '../utils.js';
 
 const logger = logging.getLogger(module);
@@ -25,41 +27,21 @@ const logger = logging.getLogger(module);
 // and its tasks
 // do not contain any prefix. Prefix is added to workflowdef if input is valid.
 function sanitizeWorkflowdefBefore(tenantId, workflowdef) {
-  const tenantWithUnderscore = withUnderscore(tenantId);
-  if (workflowdef.name.indexOf('_') == -1) {
-    // validate tasks
-    for (const task of workflowdef.tasks) {
-      if (task.name.indexOf(withUnderscore(GLOBAL_PREFIX)) == 0) {
-        // noop on GLOBAL_ tasks
-      } else if (task.name.indexOf('_') == -1) {
-        // noop on unprefixed tasks
-      } else {
-        logger.error(
-          `Task name must not contain underscore: '${tenantId}'` +
-            ` in ${JSON.stringify(task)}`,
-        );
-        // TODO create Exception class
-        throw 'Task name must not contain underscore';
-      }
-    }
-    // add prefix to tasks
-    for (const task of workflowdef.tasks) {
-      // if task does not start with GLOBAL_ prefix...
-      if (task.name.indexOf(withUnderscore(GLOBAL_PREFIX)) != 0) {
-        // add tenantId prefix
-        task.name = tenantWithUnderscore + task.name;
-      }
-    }
-    // add prefix to workflow
-    workflowdef.name = tenantWithUnderscore + workflowdef.name;
-  } else {
-    logger.error(
-      `Workflow name must not contain underscore: '${tenantId}'` +
-        ` in ${JSON.stringify(workflowdef)}`,
-    );
-    // TODO create Exception class
-    throw 'Workflow name must not contain underscore';
+  // only whitelisted system tasks are allowed
+  for (const task of workflowdef.tasks) {
+    assertAllowedSystemTask(task);
   }
+  // add prefix to tasks
+  for (const task of workflowdef.tasks) {
+    addTenantIdPrefix(tenantId, task);
+
+    // add prefix to SUB_WORKFLOW tasks' referenced workflows
+    if (isSubworkflowTask(task)) {
+      addTenantIdPrefix(tenantId, task.subWorkflowParam);
+    }
+  }
+  // add prefix to workflow
+  addTenantIdPrefix(tenantId, workflowdef);
 }
 
 // Utility used after getting single or all workflowdefs to remove prefix from
@@ -67,22 +49,30 @@ function sanitizeWorkflowdefBefore(tenantId, workflowdef) {
 // Return true iif sanitization succeeded, false iif this
 // workflowdef is invalid
 function sanitizeWorkflowdefAfter(tenantId, workflowdef) {
-  const tenantWithUnderscore = withUnderscore(tenantId);
-  if (workflowdef.name.indexOf(tenantWithUnderscore) == 0) {
+  const tenantWithInfixSeparator = withInfixSeparator(tenantId);
+  if (workflowdef.name.indexOf(tenantWithInfixSeparator) == 0) {
     // keep only workflows with correct taskdefs,
     // allowed are GLOBAL and those with tenantId prefix which will be removed
+
     for (const task of workflowdef.tasks) {
-      if (task.name.indexOf(withUnderscore(GLOBAL_PREFIX)) == 0) {
-        // noop
-      } else if (task.name.indexOf(tenantWithUnderscore) == 0) {
+      // remove prefix from SUB_WORKFLOW tasks' referenced workflows
+      if (isSubworkflowTask(task)) {
+        if (task.subWorkflowParam?.name) {
+          task.subWorkflowParam.name = task.subWorkflowParam.name.substr(
+            tenantWithInfixSeparator.length,
+          );
+        }
+      }
+
+      if (task.name.indexOf(tenantWithInfixSeparator) == 0) {
         // remove prefix
-        task.name = task.name.substr(tenantWithUnderscore.length);
+        task.name = task.name.substr(tenantWithInfixSeparator.length);
       } else {
         return false;
       }
     }
     // remove prefix
-    workflowdef.name = workflowdef.name.substr(tenantWithUnderscore.length);
+    workflowdef.name = workflowdef.name.substr(tenantWithInfixSeparator.length);
     return true;
   } else {
     return false;
@@ -118,9 +108,9 @@ curl -H "x-auth-organization: fb-test" \
   "localhost/proxy/api/metadata/workflow/2/2" -X DELETE
 */
 function deleteWorkflowBefore(tenantId, req, res, proxyCallback) {
-  const tenantWithUnderscore = withUnderscore(tenantId);
+  const tenantWithInfixSeparator = withInfixSeparator(tenantId);
   // change URL: add prefix to name
-  const name = tenantWithUnderscore + req.params.name;
+  const name = tenantWithInfixSeparator + req.params.name;
   const newUrl = `/api/metadata/workflow/${name}/${req.params.version}`;
   logger.debug(`Transformed url from '${req.url}' to '${newUrl}'`);
   req.url = newUrl;
@@ -134,8 +124,8 @@ curl -H "x-auth-organization: fb-test" \
   "localhost/proxy/api/metadata/workflow/fx3?version=1"
 */
 function getWorkflowBefore(tenantId, req, res, proxyCallback) {
-  const tenantWithUnderscore = withUnderscore(tenantId);
-  const name = tenantWithUnderscore + req.params.name;
+  const tenantWithInfixSeparator = withInfixSeparator(tenantId);
+  const name = tenantWithInfixSeparator + req.params.name;
   let newUrl = `/api/metadata/workflow/${name}`;
   const originalQueryString = req._parsedUrl.query;
   const parsedQuery = qs.parse(originalQueryString);
