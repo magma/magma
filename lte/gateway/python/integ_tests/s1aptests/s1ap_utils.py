@@ -157,12 +157,19 @@ class S1ApUtil(object):
         Returns:
             None
         """
+        # PCO parameters
+        # Presence mask
         protCfgOpts_pr.pres = 1
+        # Length
         protCfgOpts_pr.len = 4
+        # Configuration protocol
         protCfgOpts_pr.cfgProt = 0
+        # Extension bit for the additional parameters
         protCfgOpts_pr.ext = 1
+        # Number of protocol IDs
         protCfgOpts_pr.numProtId = 0
 
+        # Fill Number of container IDs and Container ID
         if pcscf_addr_type == "ipv4":
             protCfgOpts_pr.numContId = 1
             protCfgOpts_pr.c[0].cid = 0x000C
@@ -204,6 +211,7 @@ class S1ApUtil(object):
             eps_type: Optional param allows for variation in the EPS attach
                 type, defaults to s1ap_types.TFW_EPS_ATTACH_TYPE_EPS_ATTACH.
             pdn_type:1 for IPv4, 2 for IPv6 and 3 for IPv4v6
+            pcscf_addr_type:IPv4/IPv6/IPv4v6
         """
         attach_req = s1ap_types.ueAttachRequest_t()
         attach_req.ue_Id = ue_id

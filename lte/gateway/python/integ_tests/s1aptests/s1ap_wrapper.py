@@ -361,6 +361,7 @@ class TestWrapper(object):
         req.pdnAPN_pr.pdn_apn = (ctypes.c_ubyte * 100)(
             *[ctypes.c_ubyte(ord(c)) for c in apn[:100]]
         )
+        print("********* PDN type", pdn_type)
         # Populate PCO if pcscf_addr_type is set
         if pcscf_addr_type:
             print("********* pcscf_addr_type", pcscf_addr_type)
