@@ -1,6 +1,7 @@
 #sidebar-primary {
     top: auto;
     background-color: #e0e1e2;
+    left: auto;
 }
 
 #sidebar-primary .item {
