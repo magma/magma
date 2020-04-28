@@ -35,29 +35,29 @@ const (
 )
 
 var (
-	pcrf           *mock_pcrf.PCRFDiamServer
-	imsi1Rules     = []string{"rule1", "rule2"}
-	imsi1BaseRules = []string{"rule1", "rule2"}
-	imsi2Rules     = []string{"rule1", "rule3"}
-	imsi3Rules     = []string{"rule1", "rule2"}
-	imsi3BaseRules = []string{"rule1", "rule2"}
+	imsi1Rules               = []string{"rule1", "rule2"}
+	imsi1BaseRules           = []string{"rule1", "rule2"}
+	imsi2Rules               = []string{"rule1", "rule3"}
+	imsi3Rules               = []string{"rule1", "rule2"}
+	imsi3BaseRules           = []string{"rule1", "rule2"}
+	defaultLocalServerConfig = diameter.DiameterServerConfig{
+		DiameterServerConnConfig: diameter.DiameterServerConnConfig{
+			Addr:     "127.0.0.1:0",
+			Protocol: "tcp"},
+	}
 )
 
 // TestGxClient tests CCR init and terminate messages using a fake PCRF
 func TestGxClient(t *testing.T) {
-	serverConfig := diameter.DiameterServerConfig{DiameterServerConnConfig: diameter.DiameterServerConnConfig{
-		Addr:     "127.0.0.1:3898",
-		Protocol: "tcp"},
-	}
-	serverConfig1 := serverConfig
-	serverConfig2 := serverConfig
+	serverConfig := defaultLocalServerConfig
 	clientConfig := getClientConfig()
 	globalConfig := getGxGlobalConfig("")
-	startServer(clientConfig, &serverConfig1)
+	pcrf := startServer(clientConfig, &serverConfig)
+	seedAccountConfigurations(pcrf)
 
 	gxClient := gx.NewGxClient(
 		clientConfig,
-		&serverConfig2,
+		&serverConfig,
 		getMockReAuthHandler(),
 		nil,
 		globalConfig,
@@ -187,20 +187,16 @@ func TestGxClient(t *testing.T) {
 
 // TestGxClient tests CCR init and terminate messages using a fake PCRF and a specific GxGlobalConfig
 func TestGxClientWithGyGlobalConf(t *testing.T) {
-	serverConfig := diameter.DiameterServerConfig{DiameterServerConnConfig: diameter.DiameterServerConnConfig{
-		Addr:     "127.0.0.1:4000",
-		Protocol: "tcp"},
-	}
-	serverConfig1 := serverConfig
-	serverConfig2 := serverConfig
+	serverConfig := defaultLocalServerConfig
 	clientConfig := getClientConfig()
 	overWriteApn := "gx.Apn.magma.com"
 	globalConfig := getGxGlobalConfig(overWriteApn)
-	startServer(clientConfig, &serverConfig1)
+	pcrf := startServer(clientConfig, &serverConfig)
+	seedAccountConfigurations(pcrf)
 
 	gxClient := gx.NewGxClient(
 		clientConfig,
-		&serverConfig2,
+		&serverConfig,
 		getMockReAuthHandler(),
 		nil,
 		globalConfig,
@@ -228,18 +224,15 @@ func TestGxClientWithGyGlobalConf(t *testing.T) {
 }
 
 func TestGxClientUsageMonitoring(t *testing.T) {
-	serverConfig := diameter.DiameterServerConfig{DiameterServerConnConfig: diameter.DiameterServerConnConfig{
-		Addr:     "127.0.0.1:3899",
-		Protocol: "tcp"},
-	}
-	serverConfig1 := serverConfig
-	serverConfig2 := serverConfig
+	serverConfig := defaultLocalServerConfig
 	clientConfig := getClientConfig()
 	globalConfig := getGxGlobalConfig("")
-	startServer(clientConfig, &serverConfig1)
+	pcrf := startServer(clientConfig, &serverConfig)
+	seedAccountConfigurations(pcrf)
+
 	gxClient := gx.NewGxClient(
 		clientConfig,
-		&serverConfig2,
+		&serverConfig,
 		getMockReAuthHandler(),
 		nil,
 		globalConfig,
@@ -319,13 +312,11 @@ func TestGxReAuthRemoveRules(t *testing.T) {
 	if t != nil {
 		return
 	}
-	serverConfig := diameter.DiameterServerConfig{DiameterServerConnConfig: diameter.DiameterServerConnConfig{
-		Addr:     "127.0.0.1:3905",
-		Protocol: "tcp"},
-	}
+	serverConfig := defaultLocalServerConfig
 	clientConfig := getClientConfig()
 	globalConfig := getGxGlobalConfig("")
-	startServer(clientConfig, &serverConfig)
+	pcrf := startServer(clientConfig, &serverConfig)
+	seedAccountConfigurations(pcrf)
 
 	gxClient := gx.NewGxClient(
 		clientConfig,
@@ -381,134 +372,25 @@ func getGxGlobalConfig(pcrfOverwriteApn string) *gx.GxGlobalConfig {
 func startServer(
 	client *diameter.DiameterClientConfig,
 	server *diameter.DiameterServerConfig,
-) {
+) *mock_pcrf.PCRFDiamServer {
 	serverStarted := make(chan struct{})
+	var pcrf *mock_pcrf.PCRFDiamServer
 	go func() {
 		log.Printf("Starting server")
 		pcrf = mock_pcrf.NewPCRFDiamServer(
 			client,
 			&mock_pcrf.PCRFConfig{ServerConfig: server},
 		)
-		ctx := context.Background()
-		pcrf.CreateAccount(ctx, &protos.SubscriberID{Id: testIMSI1})
-		pcrf.CreateAccount(ctx, &protos.SubscriberID{Id: testIMSI2})
-		pcrf.CreateAccount(ctx, &protos.SubscriberID{Id: testIMSI3})
-		pcrf.CreateAccount(ctx, &protos.SubscriberID{Id: testIMSI4})
-		monitoringKey := "mkey"
-		monitoringKey3 := "mkey3"
-		var rg1 uint32 = 1
-		var rg3 uint32 = 3
-		var rg5 uint32 = 5
 
-		redirect := &protos.RedirectInformation{
-			Support:       protos.RedirectInformation_ENABLED,
-			AddressType:   protos.RedirectInformation_URL,
-			ServerAddress: "http://www.example.com/",
-		}
-
-		maxReqBWUL := uint32(128000)
-		maxReqBWDL := uint32(128000)
-		gbrDL := uint32(64000)
-		gbrUL := uint32(64000)
-		qci := protos.FlowQos_Qci(8)
-
-		qos := &protos.FlowQos{
-			MaxReqBwUl: maxReqBWUL,
-			MaxReqBwDl: maxReqBWDL,
-			GbrDl:      gbrDL,
-			GbrUl:      gbrUL,
-			Qci:        qci,
-		}
-
-		pcrf.SetRules(
-			ctx,
-			&fegprotos.AccountRules{
-				Imsi:                testIMSI1,
-				StaticRuleNames:     imsi1Rules,
-				StaticRuleBaseNames: imsi1BaseRules,
-				DynamicRuleDefinitions: []*fegprotos.RuleDefinition{
-					{
-						RuleName:       "dynrule1",
-						RatingGroup:    rg1,
-						Precedence:     100,
-						MonitoringKey:  monitoringKey,
-						QosInformation: qos,
-					},
-				},
-			},
-		)
-		pcrf.SetRules(
-			ctx,
-			&fegprotos.AccountRules{
-				Imsi:            testIMSI2,
-				StaticRuleNames: imsi2Rules,
-			},
-		)
-		pcrf.SetRules(
-			ctx,
-			&fegprotos.AccountRules{
-				Imsi:                testIMSI3,
-				StaticRuleNames:     imsi3Rules,
-				StaticRuleBaseNames: imsi3BaseRules,
-				DynamicRuleDefinitions: []*fegprotos.RuleDefinition{
-					{
-						RuleName:            "dynrule3",
-						RatingGroup:         rg3,
-						Precedence:          300,
-						MonitoringKey:       monitoringKey3,
-						RedirectInformation: redirect,
-					},
-				},
-			},
-		)
-		pcrf.SetRules(
-			ctx,
-			&fegprotos.AccountRules{
-				Imsi: testIMSI4,
-				DynamicRuleDefinitions: []*fegprotos.RuleDefinition{
-					{
-						RuleName:      "dynrule4",
-						Precedence:    300,
-						MonitoringKey: monitoringKey,
-					},
-					{
-						RuleName:    "dynrule5",
-						RatingGroup: rg5,
-						Precedence:  100,
-					},
-				},
-			},
-		)
-		pcrf.SetUsageMonitors(
-			ctx,
-			&fegprotos.UsageMonitorConfiguration{
-				Imsi: testIMSI4,
-				UsageMonitorCredits: []*fegprotos.UsageMonitor{
-					{
-						MonitorInfoPerRequest: &fegprotos.UsageMonitoringInformation{
-							MonitoringKey:   []byte(monitoringKey),
-							MonitoringLevel: fegprotos.MonitoringLevel_RuleLevel,
-							Octets:          &fegprotos.Octets{TotalOctets: 1024},
-						},
-						TotalQuota: &fegprotos.Octets{TotalOctets: 4096},
-					},
-					{
-						MonitorInfoPerRequest: &fegprotos.UsageMonitoringInformation{
-							MonitoringKey:   []byte(monitoringKey3),
-							MonitoringLevel: fegprotos.MonitoringLevel_SessionLevel,
-							Octets:          &fegprotos.Octets{TotalOctets: 2048},
-						},
-						TotalQuota: &fegprotos.Octets{TotalOctets: 4096},
-					},
-				},
-			},
-		)
-		serverStarted <- struct{}{}
 		lis, err := pcrf.StartListener()
 		if err != nil {
 			log.Fatalf("Could not start listener for PCRF, %s", err.Error())
 		}
+		// Overwrite config addr with the allocated port
 		server.Addr = lis.Addr().String()
+		log.Printf("Server Addr: %v", server.Addr)
+		serverStarted <- struct{}{}
+
 		err = pcrf.Start(lis)
 		if err != nil {
 			log.Fatalf("Could not start test PCRF server, %s", err.Error())
@@ -516,7 +398,7 @@ func startServer(
 		}
 	}()
 	<-serverStarted
-	time.Sleep(time.Millisecond)
+	return pcrf
 }
 
 func getMockReAuthHandler() gx.PolicyReAuthHandler {
@@ -526,4 +408,101 @@ func getMockReAuthHandler() gx.PolicyReAuthHandler {
 			ResultCode: diam.Success,
 		}
 	}
+}
+
+func seedAccountConfigurations(pcrf *mock_pcrf.PCRFDiamServer) {
+	monitoringKey := "mkey"
+	monitoringKey3 := "mkey3"
+	ruleImsi1 := &fegprotos.AccountRules{
+		Imsi:                testIMSI1,
+		StaticRuleNames:     imsi1Rules,
+		StaticRuleBaseNames: imsi1BaseRules,
+		DynamicRuleDefinitions: []*fegprotos.RuleDefinition{
+			{
+				RuleName:      "dynrule1",
+				RatingGroup:   1,
+				Precedence:    100,
+				MonitoringKey: monitoringKey,
+				QosInformation: &protos.FlowQos{
+					MaxReqBwUl: 128000,
+					MaxReqBwDl: 128000,
+					GbrDl:      64000,
+					GbrUl:      64000,
+					Qci:        8,
+				},
+			},
+		},
+	}
+	ruleImsi2 := &fegprotos.AccountRules{
+		Imsi:            testIMSI2,
+		StaticRuleNames: imsi2Rules,
+	}
+	ruleImsi3 := &fegprotos.AccountRules{
+		Imsi:                testIMSI3,
+		StaticRuleNames:     imsi3Rules,
+		StaticRuleBaseNames: imsi3BaseRules,
+		DynamicRuleDefinitions: []*fegprotos.RuleDefinition{
+			{
+				RuleName:      "dynrule3",
+				RatingGroup:   3,
+				Precedence:    300,
+				MonitoringKey: monitoringKey3,
+				RedirectInformation: &protos.RedirectInformation{
+					Support:       protos.RedirectInformation_ENABLED,
+					AddressType:   protos.RedirectInformation_URL,
+					ServerAddress: "http://www.example.com/",
+				},
+			},
+		},
+	}
+	ruleImsi4 := &fegprotos.AccountRules{
+		Imsi: testIMSI4,
+		DynamicRuleDefinitions: []*fegprotos.RuleDefinition{
+			{
+				RuleName:      "dynrule4",
+				Precedence:    300,
+				MonitoringKey: monitoringKey,
+			},
+			{
+				RuleName:    "dynrule5",
+				RatingGroup: 5,
+				Precedence:  100,
+			},
+		},
+	}
+	usageMonitorImsi4 := &fegprotos.UsageMonitorConfiguration{
+		Imsi: testIMSI4,
+		UsageMonitorCredits: []*fegprotos.UsageMonitor{
+			{
+				MonitorInfoPerRequest: &fegprotos.UsageMonitoringInformation{
+					MonitoringKey:   []byte(monitoringKey),
+					MonitoringLevel: fegprotos.MonitoringLevel_RuleLevel,
+					Octets:          &fegprotos.Octets{TotalOctets: 1024},
+				},
+				TotalQuota: &fegprotos.Octets{TotalOctets: 4096},
+			},
+			{
+				MonitorInfoPerRequest: &fegprotos.UsageMonitoringInformation{
+					MonitoringKey:   []byte(monitoringKey3),
+					MonitoringLevel: fegprotos.MonitoringLevel_SessionLevel,
+					Octets:          &fegprotos.Octets{TotalOctets: 2048},
+				},
+				TotalQuota: &fegprotos.Octets{TotalOctets: 4096},
+			},
+		},
+	}
+	ctx := context.Background()
+	// IMSI 1
+	pcrf.CreateAccount(ctx, &protos.SubscriberID{Id: testIMSI1})
+	pcrf.SetRules(ctx, ruleImsi1)
+	// IMSI 2
+	pcrf.CreateAccount(ctx, &protos.SubscriberID{Id: testIMSI2})
+	pcrf.SetRules(ctx, ruleImsi2)
+	// IMSI 3
+	pcrf.CreateAccount(ctx, &protos.SubscriberID{Id: testIMSI3})
+	pcrf.SetRules(ctx, ruleImsi3)
+	// IMSI 4
+	pcrf.CreateAccount(ctx, &protos.SubscriberID{Id: testIMSI4})
+	pcrf.SetRules(ctx, ruleImsi4)
+	pcrf.SetUsageMonitors(ctx, usageMonitorImsi4)
 }
