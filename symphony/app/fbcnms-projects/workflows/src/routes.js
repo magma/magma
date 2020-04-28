@@ -348,13 +348,18 @@ router.get('/id/:workflowId', async (req, res, next) => {
       })(result);
     });
 
-    const promises = map(({name, version, subWorkflowId, referenceTaskName}) =>
-      Promise.all([
-        referenceTaskName,
-        http.get(baseURLMeta + 'workflow/' + name + '?version=' + version, req),
-        http.get(baseURLWorkflow + subWorkflowId + '?includeTasks=true', req),
-      ]),
-    )(subs);
+    const fun: any => any = map(
+      ({name, version, subWorkflowId, referenceTaskName}) =>
+        Promise.all([
+          referenceTaskName,
+          http.get(
+            baseURLMeta + 'workflow/' + name + '?version=' + version,
+            req,
+          ),
+          http.get(baseURLWorkflow + subWorkflowId + '?includeTasks=true', req),
+        ]),
+    );
+    const promises = fun(subs);
 
     const subworkflows = await Promise.all(promises).then(result => {
       return transform(

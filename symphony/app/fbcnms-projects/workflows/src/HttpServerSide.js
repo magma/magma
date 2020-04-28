@@ -11,8 +11,8 @@
 import request from 'superagent';
 
 const HttpClient = {
-  get: (path, parentRequest) =>
-    new Promise((resolve, reject) => {
+  get: (path: string, parentRequest: express$Request) =>
+    new Promise<any>((resolve, reject) => {
       const req = request.get(path).accept('application/json');
       req.header['x-auth-organization'] =
         parentRequest.headers['x-auth-organization'];
@@ -30,8 +30,8 @@ const HttpClient = {
       });
     }),
 
-  delete: (path, data, parentRequest) =>
-    new Promise((resolve, reject) => {
+  delete: (path: string, data: ?any, parentRequest: express$Request) =>
+    new Promise<any>((resolve, reject) => {
       // If data is empty object, convert it to null.
       // Otherwise the http library will send a request
       // with Content-Length: 2 :/
@@ -53,8 +53,8 @@ const HttpClient = {
       });
     }),
 
-  post: (path, data, parentRequest) =>
-    new Promise((resolve, reject) => {
+  post: (path: string, data: ?any, parentRequest: express$Request) =>
+    new Promise<any>((resolve, reject) => {
       const req = request
         .post(path, data)
         .set('Content-Type', 'application/json');
@@ -72,8 +72,8 @@ const HttpClient = {
       });
     }),
 
-  put: (path, data, parentRequest) =>
-    new Promise((resolve, reject) => {
+  put: (path: string, data: ?any, parentRequest: express$Request) =>
+    new Promise<{}>((resolve, reject) => {
       const req = request.put(path, data).set('Accept', 'application/json');
       req.header['x-auth-organization'] =
         parentRequest.headers['x-auth-organization'];

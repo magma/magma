@@ -9,29 +9,40 @@
  */
 import logging from '@fbcnms/logging';
 
+import bulk from './transformers/bulk';
+import event from './transformers/event';
+import metadataTaskdef from './transformers/metadata-taskdef';
+import metadataWorkflowdef from './transformers/metadata-workflowdef';
+import workflow from './transformers/workflow';
+
+import type {
+  TransformerCtx,
+  TransformerEntry,
+  TransformerRegistrationFun,
+} from '../types';
+
 const logger = logging.getLogger(module);
 
-export default async function(registrationCtx) {
+export default async function(
+  registrationCtx: TransformerCtx,
+): Promise<Array<TransformerEntry>> {
   // TODO populate from fs
-  const transformerModules = [
-    './transformers/bulk',
-    './transformers/metadata-taskdef',
-    './transformers/metadata-workflowdef',
-    './transformers/workflow',
-    './transformers/event',
+  const transformerModules: Array<TransformerRegistrationFun> = [
+    bulk,
+    event,
+    metadataTaskdef,
+    metadataWorkflowdef,
+    workflow,
   ];
   logger.debug(
-    `Registering transformer modules: [${transformerModules}] using context ${JSON.stringify(
-      registrationCtx,
-    )}`,
+    `Registering transformer modules: [${JSON.stringify(
+      transformerModules,
+    )}] using context ${JSON.stringify(registrationCtx)}`,
   );
 
-  const transformers = [];
-  for (const file of transformerModules) {
-    const transformerModule = await import(file);
-    const registrationFun = transformerModule.default;
-    const items = registrationFun(registrationCtx);
-    logger.debug(`Registering ${file} with ${items.length} items`);
+  const transformers: Array<TransformerEntry> = [];
+  for (const registrationFun of transformerModules) {
+    const items: Array<TransformerEntry> = registrationFun(registrationCtx);
     transformers.push(...items);
   }
   logger.debug(`Returning ${JSON.stringify(transformers)}`);
