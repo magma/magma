@@ -2452,7 +2452,7 @@ int s1ap_mme_handle_enb_reset(
         construct_s1ap_mme_full_reset_req,
         &arg,
         NULL);
-
+      break;
     case RESET_PARTIAL:
       // Partial Reset
       increment_counter("s1_reset_from_enb", 1, 1, "type", "reset_partial");

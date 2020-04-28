@@ -279,13 +279,15 @@ int emm_proc_attach_request(
     no_attach_proc.ue_id = ue_id;
     no_attach_proc.emm_cause = ue_ctx.emm_context.emm_cause;
     no_attach_proc.esm_msg_out = NULL;
-  OAILOG_ERROR(
-    LOG_NAS_EMM,
-    "EMM-PROC  - Sending Attach Reject to UE (ue_id = " MME_UE_S1AP_ID_FMT ")\n", ue_id);
+    OAILOG_ERROR(
+        LOG_NAS_EMM,
+        "EMM-PROC - Sending Attach Reject for ue_id = " MME_UE_S1AP_ID_FMT
+        ")\n",
+        ue_id);
     rc = _emm_attach_reject(
-      &ue_ctx.emm_context, (struct nas_base_proc_s *) &no_attach_proc);
+        &ue_ctx.emm_context, (struct nas_base_proc_s*) &no_attach_proc);
     increment_counter(
-      "ue_attach", 1, 2, "result", "failure", "cause", "emergency_attach");
+        "ue_attach", 1, 2, "result", "failure", "cause", "emergency_attach");
     if (ies) {
       free_emm_attach_request_ies((emm_attach_request_ies_t * * const) & ies);
     }
@@ -497,6 +499,10 @@ int emm_proc_attach_request(
             LOG_NAS_EMM, "EMM-PROC  - Received duplicated Attach Request\n");
           increment_counter(
             "duplicate_attach_request", 1, 1, "action", "ignored");
+          if (ies) {
+            free_emm_attach_request_ies(
+                (emm_attach_request_ies_t * * const) & ies);
+          }
           OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
         }
       }
