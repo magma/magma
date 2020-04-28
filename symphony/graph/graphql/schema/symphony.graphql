@@ -35,11 +35,12 @@ enum UserRole
   OWNER
 }
 
-type User implements Node {
+type User implements Node & NamedNode {
   id: ID!
   authID: String!
   firstName: String!
   lastName: String!
+  name: String!
   email: String!
   status: UserStatus!
   role: UserRole!
@@ -641,6 +642,7 @@ input TechnicianCheckListItemInput {
   yesNoResponse: YesNoResponse
   wifiData: [SurveyWiFiScanData!]
   cellData: [SurveyCellScanData!]
+  filesData: [FileInput!]
 }
 
 input TechnicianWorkOrderUploadInput {
@@ -1695,6 +1697,7 @@ what filters should we apply on users
 """
 enum UserFilterType {
   USER_NAME
+  USER_STATUS
 }
 
 input PortFilterInput {
@@ -1744,6 +1747,7 @@ input UserFilterInput {
   operator: FilterOperator!
   stringValue: String
   propertyValue: PropertyTypeInput
+  statusValue: UserStatus
   idSet: [ID!]
   stringSet: [String!]
   maxDepth: Int = 5
@@ -2459,6 +2463,7 @@ type Query {
   possibleProperties(entityType: PropertyEntity!): [PropertyType!]!
   surveys: [Survey!]!
   latestPythonPackage: LatestPythonPackageResult
+  pythonPackages: [PythonPackage!]!
   nearestSites(
     latitude: Float!
     longitude: Float!

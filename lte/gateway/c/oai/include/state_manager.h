@@ -83,7 +83,7 @@ class StateManager {
       is_initialized,
       "StateManager init() function should be called to initialize state");
 
-    return state_imsi_ht;
+    return state_ue_ht;
   }
 
   /**
@@ -117,7 +117,7 @@ class StateManager {
       StateConverter::proto_to_ue(ue_proto, ue_context);
 
       hashtable_ts_insert(
-        state_imsi_ht, get_imsi_from_key(key), (void*) ue_context);
+        state_ue_ht, get_imsi_from_key(key), (void*) ue_context);
       OAILOG_DEBUG(log_task, "Reading UE state from db for %s", key.c_str());
     }
     return RETURNok;
@@ -214,7 +214,7 @@ class StateManager {
     state_dirty(false),
     persist_state_enabled(false),
     state_cache_p(nullptr),
-    state_imsi_ht(nullptr),
+    state_ue_ht(nullptr),
     log_task(LOG_UTIL),
     redis_client(std::make_unique<RedisClient>())
   {
@@ -237,7 +237,7 @@ class StateManager {
 
   // TODO: Make this a unique_ptr
   StateType* state_cache_p;
-  hash_table_ts_t* state_imsi_ht;
+  hash_table_ts_t* state_ue_ht;
   // TODO: Revisit one shared connection for all types of state
   std::unique_ptr<RedisClient> redis_client;
   // Flag for check asserting if the state has been initialized.

@@ -7,25 +7,29 @@
  * @flow
  * @format
  */
-
 import Router from 'express';
+import bodyParser from 'body-parser';
 import httpProxy from 'http-proxy';
 import logging from '@fbcnms/logging';
+import transformerRegistry from './transformer-registry';
 import {getTenantId} from './utils.js';
 
 const logger = logging.getLogger(module);
 const router = Router();
+router.use(bodyParser.urlencoded({extended: false}));
+router.use('/', bodyParser.json());
 
-export function configure(transformers, proxyTarget) {
+export default async function(proxyTarget) {
+  const transformers = await transformerRegistry({proxyTarget});
+
   // Configure http-proxy
   const proxy = httpProxy.createProxyServer({
     target: proxyTarget,
   });
 
-  for (const idx in transformers) {
-    const entry = transformers[idx];
-    logger.debug(`Routing '${entry.urlPath}', ${entry.method}`);
-    router[entry.method](entry.urlPath, async (req, res) => {
+  for (const entry of transformers) {
+    logger.info(`Routing url:${entry.url}, method:${entry.method}`);
+    router[entry.method](entry.url, async (req, res) => {
       let tenantId;
       try {
         tenantId = getTenantId(req);
@@ -38,23 +42,27 @@ export function configure(transformers, proxyTarget) {
       const _write = res.write; // backup real write method
       // create wrapper that allows transforming output from target
       res.write = function(data) {
-        if (entry.afterFun) {
+        if (entry.after) {
           // TODO: parse only if data is json
           const respObj = JSON.parse(data);
-          entry.afterFun(tenantId, req, respObj, res);
+          entry.after(tenantId, req, respObj, res);
           data = JSON.stringify(respObj);
         }
         _write.call(res, data);
       };
 
       // start with 'before'
-      logger.debug(`REQ ${req.method} ${req.url} tenantId ${tenantId}`);
+      logger.info(
+        `REQ ${req.method} ${
+          req.url
+        } tenantId ${tenantId} body ${JSON.stringify(req.body)}`,
+      );
       const proxyCallback = function(proxyOptions) {
         proxy.web(req, res, proxyOptions);
       };
-      if (entry.beforeFun) {
+      if (entry.before) {
         try {
-          entry.beforeFun(tenantId, req, res, proxyCallback);
+          entry.before(tenantId, req, res, proxyCallback);
         } catch (err) {
           console.error('Got error in beforeFun', err);
           res.status(500);

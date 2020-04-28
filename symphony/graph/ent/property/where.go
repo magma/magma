@@ -1348,6 +1348,34 @@ func HasWorkOrderValueWith(preds ...predicate.WorkOrder) predicate.Property {
 	})
 }
 
+// HasUserValue applies the HasEdge predicate on the "user_value" edge.
+func HasUserValue() predicate.Property {
+	return predicate.Property(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(UserValueTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, UserValueTable, UserValueColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasUserValueWith applies the HasEdge predicate on the "user_value" edge with a given conditions (other predicates).
+func HasUserValueWith(preds ...predicate.User) predicate.Property {
+	return predicate.Property(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(UserValueInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, UserValueTable, UserValueColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups list of predicates with the AND operator between them.
 func And(predicates ...predicate.Property) predicate.Property {
 	return predicate.Property(func(s *sql.Selector) {

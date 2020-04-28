@@ -295,6 +295,9 @@ func (hq *HyperlinkQuery) prepareQuery(ctx context.Context) error {
 		}
 		hq.sql = prev
 	}
+	if err := hyperlink.Policy.EvalQuery(ctx, hq); err != nil {
+		return err
+	}
 	return nil
 }
 

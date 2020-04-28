@@ -130,8 +130,7 @@ func TestGyReAuth(t *testing.T) {
 	assert.True(t, record.BytesTx <= uint64(10*MegaBytes+Buffer), fmt.Sprintf("policy usage: %v", record))
 
 	// trigger disconnection
-	_, err = tr.Disconnect(imsi)
-	assert.NoError(t, err)
+	tr.DisconnectAndAssertSuccess(imsi)
 	fmt.Println("wait for flows to get deactivated")
 	time.Sleep(3 * time.Second)
 }

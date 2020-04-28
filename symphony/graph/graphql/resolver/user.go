@@ -36,6 +36,16 @@ func (userResolver) Groups(ctx context.Context, obj *ent.User) ([]*ent.UsersGrou
 	return obj.QueryGroups().All(ctx)
 }
 
+func (userResolver) Name(ctx context.Context, user *ent.User) (string, error) {
+	if user.FirstName == "" {
+		return user.LastName, nil
+	}
+	if user.LastName == "" {
+		return user.FirstName, nil
+	}
+	return user.FirstName + " " + user.LastName, nil
+}
+
 func (r mutationResolver) EditUser(ctx context.Context, input models.EditUserInput) (*ent.User, error) {
 	return r.ClientFrom(ctx).User.UpdateOneID(input.ID).
 		SetNillableFirstName(input.FirstName).

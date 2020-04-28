@@ -23,7 +23,6 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/handler"
-	"github.com/99designs/gqlgen/graphql/handler/apollotracing"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/NYTimes/gziphandler"
 	"github.com/gorilla/mux"
@@ -102,7 +101,6 @@ func NewHandler(cfg HandlerConfig) (http.Handler, func(), error) {
 	srv.SetRecoverFunc(recoverFunc(cfg.Logger))
 	srv.Use(ocgql.Tracer{})
 	srv.Use(ocgql.Metrics{})
-	srv.Use(apollotracing.Tracer{})
 
 	router.Path("/graphiql").
 		Handler(

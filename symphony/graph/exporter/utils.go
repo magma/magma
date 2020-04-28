@@ -40,6 +40,7 @@ const (
 	gpsLocationVal      = "gps_location"
 	rangeVal            = "range"
 	enum                = "enum"
+	datetimeLocalVal    = "datetime_local"
 	nodeVal             = "node"
 )
 
@@ -493,7 +494,7 @@ func propertyValue(ctx context.Context, typ string, v interface{}) (string, erro
 	}
 	vo := reflect.ValueOf(v).Elem()
 	switch typ {
-	case emailVal, stringVal, dateVal, enum:
+	case emailVal, stringVal, dateVal, enum, datetimeLocalVal:
 		return vo.FieldByName("StringVal").String(), nil
 	case intVal:
 		i := vo.FieldByName("IntVal").Int()
@@ -524,6 +525,9 @@ func propertyValue(ctx context.Context, typ string, v interface{}) (string, erro
 			id = i
 		}
 		if i, err := p.QueryWorkOrderValue().OnlyID(ctx); err == nil {
+			id = i
+		}
+		if i, err := p.QueryUserValue().OnlyID(ctx); err == nil {
 			id = i
 		}
 		return strconv.Itoa(id), nil

@@ -369,10 +369,10 @@ func (r queryResolver) ReportFilters(ctx context.Context, entity models.FilterEn
 	return rfs, nil
 }
 
-func (queryResolver) LatestPythonPackage(context.Context) (*models.LatestPythonPackageResult, error) {
-	var packages []models.PythonPackage
-	if err := json.Unmarshal([]byte(PyinventoryConsts), &packages); err != nil {
-		return nil, fmt.Errorf("decoding python packages: %w", err)
+func (r queryResolver) LatestPythonPackage(ctx context.Context) (*models.LatestPythonPackageResult, error) {
+	packages, err := r.PythonPackages(ctx)
+	if err != nil {
+		return nil, err
 	}
 	if len(packages) == 0 {
 		return nil, nil
@@ -385,9 +385,24 @@ func (queryResolver) LatestPythonPackage(context.Context) (*models.LatestPythonP
 		}
 	}
 	return &models.LatestPythonPackageResult{
-		LastPythonPackage:         &packages[0],
-		LastBreakingPythonPackage: &packages[lastBreakingChange],
+		LastPythonPackage:         packages[0],
+		LastBreakingPythonPackage: packages[lastBreakingChange],
 	}, nil
+}
+
+func (queryResolver) PythonPackages(ctx context.Context) ([]*models.PythonPackage, error) {
+	var (
+		packages []models.PythonPackage
+		res      []*models.PythonPackage
+	)
+	if err := json.Unmarshal([]byte(PyinventoryConsts), &packages); err != nil {
+		return nil, fmt.Errorf("decoding python packages: %w", err)
+	}
+	for _, p := range packages {
+		p := p
+		res = append(res, &p)
+	}
+	return res, nil
 }
 
 func (r queryResolver) Vertex(ctx context.Context, id int) (*ent.Node, error) {

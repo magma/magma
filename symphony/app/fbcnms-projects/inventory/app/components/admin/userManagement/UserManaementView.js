@@ -112,7 +112,7 @@ const UserManaementView = ({match}: Props) => {
 
   return (
     <UserManagementContextProvider>
-      <FormContextProvider>
+      <FormContextProvider ignorePermissions={true}>
         <NavigatableViews
           header={Strings.admin.users.viewHeader}
           views={VIEWS}

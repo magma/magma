@@ -389,6 +389,9 @@ func (epq *EquipmentPositionQuery) prepareQuery(ctx context.Context) error {
 		}
 		epq.sql = prev
 	}
+	if err := equipmentposition.Policy.EvalQuery(ctx, epq); err != nil {
+		return err
+	}
 	return nil
 }
 

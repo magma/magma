@@ -6,9 +6,8 @@ from graphql import (
     GraphQLEnumType,
     GraphQLInputObjectType,
     GraphQLScalarType,
-    build_ast_schema,
+    GraphQLUnionType,
 )
-from graphql.language.parser import parse
 from graphql_compiler.gql.utils_schema import compile_schema_library
 
 
@@ -56,9 +55,10 @@ def document_all_deprecated_functions(schema_library: str, doc_filepath: str) ->
                 " - ".join([f"`{mutation_name}`", mutation_field.deprecation_reason])
             )
     for type_name, type_object in schema.type_map.items():
-        if isinstance(type_object, GraphQLScalarType) or type_name in (
-            "Query",
-            "Mutation",
+        if (
+            isinstance(type_object, GraphQLScalarType)
+            or isinstance(type_object, GraphQLUnionType)
+            or type_name in ("Query", "Mutation")
         ):
             continue
         if isinstance(type_object, GraphQLInputObjectType):

@@ -358,6 +358,9 @@ func (wodq *WorkOrderDefinitionQuery) prepareQuery(ctx context.Context) error {
 		}
 		wodq.sql = prev
 	}
+	if err := workorderdefinition.Policy.EvalQuery(ctx, wodq); err != nil {
+		return err
+	}
 	return nil
 }
 

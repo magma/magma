@@ -606,6 +606,9 @@ func (eq *EquipmentQuery) prepareQuery(ctx context.Context) error {
 		}
 		eq.sql = prev
 	}
+	if err := equipment.Policy.EvalQuery(ctx, eq); err != nil {
+		return err
+	}
 	return nil
 }
 

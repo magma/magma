@@ -7,6 +7,7 @@ package schema
 import (
 	"github.com/facebookincubator/ent"
 	"github.com/facebookincubator/ent/schema/mixin"
+	"github.com/facebookincubator/symphony/graph/authz"
 )
 
 // schema adds time mixin to underlying ents.
@@ -19,4 +20,9 @@ func (schema) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		mixin.Time{},
 	}
+}
+
+// Policy returns schema policy.
+func (schema) Policy() ent.Policy {
+	return authz.NewPolicy()
 }

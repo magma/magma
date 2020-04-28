@@ -42,7 +42,7 @@ const OrganizationLocalStrategy = require('@fbcnms/auth/strategies/OrganizationL
 
 const {access, configureAccess} = require('@fbcnms/auth/access');
 const {
-  AccessRoles: {USER},
+  AccessRoles: {SUPERUSER, USER},
 } = require('@fbcnms/auth/roles');
 
 const devMode = process.env.NODE_ENV !== 'production';
@@ -85,6 +85,15 @@ app.use(
 app.use('/user', require('@fbcnms/auth/express').unprotectedUserRoutes());
 
 app.use(configureAccess({loginUrl: '/user/login'}));
+
+// Grafana uses its own CSRF, so we don't need to handle it on our side.
+// Grafana can access all metrics of an org, so it must be restricted
+// to superusers
+app.use(
+  '/grafana',
+  access(SUPERUSER),
+  require('@fbcnms/platform-server/grafana/routes').default,
+);
 
 app.use('/', csrfMiddleware(), access(USER), require('./main/routes').default);
 

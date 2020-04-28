@@ -14,6 +14,9 @@ type GREProbe interface {
 	// Start begins the probe of the GRE endpoint(s).
 	Start() error
 
+	// Stop stops the probe of the GRE endpoint(s).
+	Stop()
+
 	// GetStatus fetches the status of the GRE probe. The GREProbeStatus
 	// returned contains slices of reachable and unreachable endpoint IPs.
 	GetStatus() *GREProbeStatus

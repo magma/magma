@@ -327,6 +327,9 @@ func (clidq *CheckListItemDefinitionQuery) prepareQuery(ctx context.Context) err
 		}
 		clidq.sql = prev
 	}
+	if err := checklistitemdefinition.Policy.EvalQuery(ctx, clidq); err != nil {
+		return err
+	}
 	return nil
 }
 

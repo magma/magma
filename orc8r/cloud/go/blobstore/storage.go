@@ -16,7 +16,7 @@ import (
 	"github.com/thoas/go-funk"
 )
 
-// Blob encapsulates a blob for storage
+// Blob encapsulates a blob for storage.
 type Blob struct {
 	Type    string
 	Key     string
@@ -24,9 +24,9 @@ type Blob struct {
 	Version uint64
 }
 
-// CreateSearchFilter creates a search filter for the given criteria. If you
-// prefer to instantiate string sets manually, you can also create a
-// SearchFilter directly.
+// CreateSearchFilter creates a search filter for the given criteria.
+// Nil elements result in no filtering. If you prefer to instantiate string
+// sets manually, you can also create a SearchFilter directly.
 func CreateSearchFilter(networkID *string, types []string, keys []string) SearchFilter {
 	return SearchFilter{
 		NetworkID: networkID,
@@ -35,8 +35,95 @@ func CreateSearchFilter(networkID *string, types []string, keys []string) Search
 	}
 }
 
-// SearchFilter specifies search parameters. All fields are ANDed together in
-// the final search that is performed.
+func GetDefaultLoadCriteria() LoadCriteria {
+	return LoadCriteria{LoadValue: true}
+}
+
+// BlobStorageFactory is an API to create a storage API bound to a transaction.
+type BlobStorageFactory interface {
+	InitializeFactory() error
+	// StartTransaction opens a transaction for all following blob storage
+	// operations, and returns a TransactionalBlobStorage instance tied to the
+	// opened transaction.
+	StartTransaction(opts *storage.TxOptions) (TransactionalBlobStorage, error)
+}
+
+// TransactionalBlobStorage is the client API for blob storage operations
+// within the context of a transaction.
+// TODO(4/9/2020): refactor Get-like methods into package-level defaults wrapping Search -- see e.g. ListKeysByNetwork
+type TransactionalBlobStorage interface {
+	// Commit commits the existing transaction.
+	// If an error is returned from the backing storage while committing,
+	// the transaction will be rolled back.
+	Commit() error
+
+	// Rollback rolls back the existing transaction.
+	// If the targeted transaction has already been committed,
+	// rolling back has no effect and returns an error.
+	Rollback() error
+
+	// ListKeys returns all the blob keys stored for the network and type.
+	ListKeys(networkID string, typeVal string) ([]string, error)
+
+	// Get loads a specific blob from storage.
+	// If there is no blob matching the given ID, ErrNotFound from
+	// magma/orc8r/lib/go/errors will be returned.
+	Get(networkID string, id storage.TypeAndKey) (Blob, error)
+
+	// GetMany loads and returns a collection of blobs matching the
+	// specifiedIDs.
+	// If there is no blob corresponding to a TypeAndKey, the returned list
+	// will not have a corresponding Blob.
+	GetMany(networkID string, ids []storage.TypeAndKey) ([]Blob, error)
+
+	// Search returns a filtered collection of blobs keyed by the network ID
+	// to which they belong.
+	// Blobs are filtered according to the search filter. Empty filter returns
+	// all blobs. Blobs contents are loaded according to the load criteria.
+	// Empty criteria loads all fields.
+	Search(filter SearchFilter, criteria LoadCriteria) (map[string][]Blob, error)
+
+	// CreateOrUpdate writes blobs to the storage.
+	// Blobs are either updated in-place or created. The Version field of
+	// blobs passed here will be used if it is not set to 0, otherwise version
+	// incrementation will be handled internally inside the storage
+	// implementation.
+	CreateOrUpdate(networkID string, blobs []Blob) error
+
+	// GetExistingKeys takes in a list of keys and returns a list of keys that
+	// exist from the input.
+	// The filter specifies whether to look at the entire storage or just in
+	// a network.
+	GetExistingKeys(keys []string, filter SearchFilter) ([]string, error)
+
+	// Delete deletes specified blobs from storage.
+	Delete(networkID string, ids []storage.TypeAndKey) error
+
+	// IncrementVersion is an atomic upsert (INSERT DO ON CONFLICT) that
+	// increments the version column or inserts 1 if it does not exist.
+	IncrementVersion(networkID string, id storage.TypeAndKey) error
+}
+
+// ListKeysByNetwork returns all blob keys, keyed by network ID.
+func ListKeysByNetwork(store TransactionalBlobStorage) (map[string][]storage.TypeAndKey, error) {
+	filter := CreateSearchFilter(nil, nil, nil)
+	criteria := LoadCriteria{LoadValue: false}
+
+	blobsByNetwork, err := store.Search(filter, criteria)
+	if err != nil {
+		return nil, err
+	}
+
+	tks := map[string][]storage.TypeAndKey{}
+	for network, blobs := range blobsByNetwork {
+		tks[network] = GetTKsFromBlobs(blobs)
+	}
+
+	return tks, nil
+}
+
+// SearchFilter specifies search parameters.
+// All fields are ANDed together in the final search that is performed.
 type SearchFilter struct {
 	// Optional network ID to search within
 	NetworkID *string
@@ -47,8 +134,8 @@ type SearchFilter struct {
 	Keys map[string]bool
 }
 
-// DoesTKMatch returns true if the given TK matches the search filter, false
-// otherwise.
+// DoesTKMatch returns true if the given TK matches the search filter,
+// false otherwise.
 func (sf SearchFilter) DoesTKMatch(tk storage.TypeAndKey) bool {
 	isTypesEmpty, isKeysEmpty := funk.IsEmpty(sf.Types), funk.IsEmpty(sf.Keys)
 
@@ -80,65 +167,22 @@ func (sf SearchFilter) GetKeys() []string {
 	return ret
 }
 
-// BlobStorageFactory is an API to create a storage API bound to a transaction.
-type BlobStorageFactory interface {
-	InitializeFactory() error
-	// StartTransaction opens a transaction for all following blob storage
-	// operations, and returns a TransactionalBlobStorage instance tied to the
-	// opened transaction.
-	StartTransaction(opts *storage.TxOptions) (TransactionalBlobStorage, error)
+// LoadCriteria specifies which fields of each blob should be loaded from the
+// underlying store.
+// Returned blobs will contain type-default values for non-loaded fields.
+type LoadCriteria struct {
+	// LoadValue specifies whether to load the value of a blob.
+	// Set to false to only load blob metadata.
+	LoadValue bool
 }
 
-// TransactionalBlobStorage is the client API for blob storage operations
-// within the context of a transaction.
-type TransactionalBlobStorage interface {
-
-	// Commit commits the existing transaction. If an error is returned from
-	// the backing storage while committing, the transaction will be rolled
-	// back.
-	Commit() error
-
-	// Rollback rolls back the existing transaction. If the targeted
-	// transaction has already been committed, Rollback has no effect and
-	// returns an error.
-	Rollback() error
-
-	// ListKeys returns all the blob keys stored for the network and type.
-	ListKeys(networkID string, typeVal string) ([]string, error)
-
-	// Get loads a specific blob from storage.
-	// If there is no blob matching the given ID, ErrNotFound from
-	// magma/orc8r/lib/go/errors will be returned.
-	Get(networkID string, id storage.TypeAndKey) (Blob, error)
-
-	// GetMany loads and returns a collection of blobs matching the specified
-	// IDs.
-	// If there is no blob corresponding to a TypeAndKey, the returned list
-	// will not have a corresponding Blob.
-	GetMany(networkID string, ids []storage.TypeAndKey) ([]Blob, error)
-
-	// Search returns a collection of blobs matching the specified search
-	// filter, keyed by the network ID they belong in.
-	Search(filter SearchFilter) (map[string][]Blob, error)
-
-	// CreateOrUpdate writes blobs to the storage. Blobs are either updated
-	// in-place or created. The Version field of Blobs passed here will be used
-	// if it is not set to 0. Otherwise version incrementation will be handled
-	// internally inside the storage implementation.
-	CreateOrUpdate(networkID string, blobs []Blob) error
-
-	// GetExistingKeys takes in a list of keys and returns a list of keys
-	// that exist from the input. The filter specifies whether to look at the
-	// entire storage or just in a network.
-	// TODO: roll this into Search by adding a load criteria
-	GetExistingKeys(keys []string, filter SearchFilter) ([]string, error)
-
-	// Delete deletes specified blobs from storage.
-	Delete(networkID string, ids []storage.TypeAndKey) error
-
-	// IncrementVersion is an atomic upsert (INSERT DO ON CONFLICT) that
-	// increments the version column or inserts 1 if it does not exist.
-	IncrementVersion(networkID string, id storage.TypeAndKey) error
+// GetTKsFromBlobs converts blobs to their associated type and key.
+func GetTKsFromBlobs(blobs []Blob) []storage.TypeAndKey {
+	tks := make([]storage.TypeAndKey, 0, len(blobs))
+	for _, blob := range blobs {
+		tks = append(tks, storage.TypeAndKey{Type: blob.Type, Key: blob.Key})
+	}
+	return tks
 }
 
 // GetTKsFromKeys returns the passed keys mapped as TypeAndKey, with the passed

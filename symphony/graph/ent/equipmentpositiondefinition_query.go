@@ -359,6 +359,9 @@ func (epdq *EquipmentPositionDefinitionQuery) prepareQuery(ctx context.Context) 
 		}
 		epdq.sql = prev
 	}
+	if err := equipmentpositiondefinition.Policy.EvalQuery(ctx, epdq); err != nil {
+		return err
+	}
 	return nil
 }
 

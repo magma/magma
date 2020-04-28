@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
+# Copyright (c) 2004-present Facebook All rights reserved.
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file.
 
 from datetime import date, datetime
-from enum import Enum
 from numbers import Number
 from typing import (
     Any,
@@ -16,27 +18,16 @@ from typing import (
     Union,
 )
 
-from .graphql.equipment_port_definition_fragment import EquipmentPortDefinitionFragment
-from .graphql.equipment_position_definition_fragment import (
+from ..graphql.equipment_port_definition_fragment import EquipmentPortDefinitionFragment
+from ..graphql.equipment_position_definition_fragment import (
     EquipmentPositionDefinitionFragment,
 )
-from .graphql.image_entity_enum import ImageEntity
-from .graphql.property_fragment import PropertyFragment
-from .graphql.property_kind_enum import PropertyKind
-from .graphql.property_type_fragment import PropertyTypeFragment
-from .graphql.user_role_enum import UserRole
-from .graphql.user_status_enum import UserStatus
-
-
-__version__ = "2.6.0"
-
-INVENTORY_ENDPOINT = "https://{}.thesymphony.cloud"
-LOCALHOST_INVENTORY_SERVER = "{}.localtest.me"
-LOCALHOST_INVENTORY_ENDPOINT = f"https://{LOCALHOST_INVENTORY_SERVER}"
-INVENTORY_GRAPHQL_ENDPOINT = "/graph/query"
-INVENTORY_STORE_PUT_ENDPOINT = "/store/put"
-INVENTORY_LOGIN_ENDPOINT = "/user/login"
-INVENTORY_STORE_DELETE_ENDPOINT = "/store/delete?key={}"
+from ..graphql.image_entity_enum import ImageEntity
+from ..graphql.property_fragment import PropertyFragment
+from ..graphql.property_kind_enum import PropertyKind
+from ..graphql.property_type_fragment import PropertyTypeFragment
+from ..graphql.user_role_enum import UserRole
+from ..graphql.user_status_enum import UserStatus
 
 
 ReturnType = TypeVar("ReturnType")
@@ -50,9 +41,8 @@ class PropertyDefinition(NamedTuple):
     """
     Attributes:
         property_name (str): type name
-        property_type (str): enum["string", "int", "bool", "float", "date", "enum", "range",
-            "email", "gps_location", "equipment", "location", "service", "datetime_local"]
-        default_value (PropertyValue): default property value
+        property_kind ( `pyinventory.graphql.property_kind_enum.PropertyKind` ): property kind
+        default_value (Optional[PropertyValue]): default property value
         is_fixed (bool): fixed value flag
         external_id (str): property type external ID
         is_mandatory (bool): mandatory value flag
@@ -67,6 +57,12 @@ class PropertyDefinition(NamedTuple):
 
 
 class DataTypeName(NamedTuple):
+    """
+    Attributes:
+        data_type (PropertyValueType): data type
+        graphql_field_name (Tuple[str, ...]): graphql field name, in case of `gps_location` it is Tuple[`latitudeValue`, `longitudeValue`]
+    """
+
     data_type: PropertyValueType
     graphql_field_name: Tuple[str, ...]
 
@@ -85,12 +81,29 @@ TYPE_AND_FIELD_NAME = {
 
 
 class LocationType(NamedTuple):
+    """
+    Attributes:
+        name (str): name
+        id (str):  ID
+        property_types (Sequence[ `pyinventory.graphql.property_type_fragment.PropertyTypeFragment` ]): property types sequence
+    """
+
     name: str
     id: str
     property_types: Sequence[PropertyTypeFragment]
 
 
 class Location(NamedTuple):
+    """
+    Attributes:
+        name (str): name
+        id (str): ID
+        latitude (Number): latitude
+        longitude (Number): longitude
+        externalId (Optional[str]): external ID
+        locationTypeName (str): location type name
+    """
+
     name: str
     id: str
     latitude: Number
@@ -100,6 +113,16 @@ class Location(NamedTuple):
 
 
 class EquipmentType(NamedTuple):
+    """
+    Attributes:
+        name (str): name
+        category (Optional[str]): category
+        id (str): ID
+        property_types (Sequence[PropertyTypeFragment]):  property types sequence
+        position_definitions (Sequence[EquipmentPositionDefinitionFragment]): position definitions sequence
+        port_definitions (Sequence[EquipmentPortDefinitionFragment]): port definition sequence
+    """
+
     name: str
     category: Optional[str]
     id: str
@@ -111,10 +134,10 @@ class EquipmentType(NamedTuple):
 class EquipmentPortType(NamedTuple):
     """
     Attributes:
-        id (str): equipment port type ID
-        name (str): equipment port type name
-        property_types (List[Dict[str, PropertyValue]]): list of equipment port type propertyTypes to their default values
-        link_property_types (List[Dict[str, PropertyValue]]): list of equipment port type linkPropertyTypes to their default values
+        id (str): ID
+        name (str): name
+        property_types (Sequence[PropertyTypeFragment]): property types sequence
+        link_property_types (Sequence[PropertyTypeFragment]): link property types sequence
     """
 
     id: str
@@ -126,9 +149,9 @@ class EquipmentPortType(NamedTuple):
 class Equipment(NamedTuple):
     """
     Attributes:
-        id (str): equipment ID
-        external_id (Optional[str]): equipment external ID
-        name (str): equipment name
+        id (str): ID
+        external_id (Optional[str]): external ID
+        name (str): name
         equipment_type_name (str): equipment type name
     """
 
@@ -142,6 +165,7 @@ class Link(NamedTuple):
     """
     Attributes:
         id (str): link ID
+        properties (Sequence[PropertyFragment]): properties sequence
         service_ids (List[str]): service IDs
     """
 
@@ -153,9 +177,9 @@ class Link(NamedTuple):
 class EquipmentPortDefinition(NamedTuple):
     """
     Attributes:
-        id (str): equipment port definition ID
-        name (str): equipment port definition name
-        port_type_name (Optional[str]): equipment port definition port type name
+        id (str): ID
+        name (str): name
+        port_type_name (Optional[str]): port type name
     """
 
     id: str
@@ -167,9 +191,9 @@ class EquipmentPort(NamedTuple):
     """
     Attributes:
         id (str): equipment port ID
-        properties (List[Dict[str, PropertyValue]]): list of equipment port properties
-        definition (pyinventory.consts.EquipmentPortDefinition): port definition
-        link (Optional[pyinventory.consts.Link]): link
+        properties (Sequence[PropertyFragment]): properties sequence
+        definition ( `pyinventory.common.data_class.EquipmentPortDefinition` ): port definition
+        link (Optional[ `pyinventory.common.data_class.Link` ]): link
     """
 
     id: str
@@ -179,6 +203,17 @@ class EquipmentPort(NamedTuple):
 
 
 class SiteSurvey(NamedTuple):
+    """
+    Attributes:
+        name (str): name
+        id (str): ID
+        completionTime (datetime): complition time
+        sourceFileId (Optional[str]): source file ID
+        sourceFileName (Optional[str]): source file name
+        sourceFileKey (Optional[str]): source file key
+        forms (Dict[str, Dict[str, Any]]): forms
+    """
+
     name: str
     id: str
     completionTime: datetime
@@ -189,6 +224,14 @@ class SiteSurvey(NamedTuple):
 
 
 class ServiceType(NamedTuple):
+    """
+    Attributes:
+        name (str): name
+        id (str): ID
+        hasCustomer (bool): customer existence flag
+        property_types (Sequence[PropertyTypeFragment]): property types sequence
+    """
+
     name: str
     id: str
     hasCustomer: bool
@@ -196,18 +239,42 @@ class ServiceType(NamedTuple):
 
 
 class Customer(NamedTuple):
+    """
+    Attributes:
+        name (str): name
+        id (str): ID
+        externalId (Optional[str]): external ID
+    """
+
     name: str
     id: str
     externalId: Optional[str]
 
 
 class ServiceEndpoint(NamedTuple):
+    """
+    Attributes:
+        id (str): ID
+        port (Optional[EquipmentPort]): port
+        type (str): type
+    """
+
     id: str
     port: Optional[EquipmentPort]
     type: str
 
 
 class Service(NamedTuple):
+    """
+    Attributes:
+        name (str): name
+        id (str): ID
+        externalId (Optional[str]): external ID
+        customer (Optional[Customer]): customer
+        endpoints (List[ServiceEndpoint]): service endpoints list
+        links (List[Link]): links
+    """
+
     name: str
     id: str
     externalId: Optional[str]
@@ -217,6 +284,15 @@ class Service(NamedTuple):
 
 
 class Document(NamedTuple):
+    """
+    Attributes:
+        id (str): ID
+        name (str): name
+        parentId (str): parent ID
+        parentEntity (ImageEntity): parent entity
+        category (Optional[str]): category
+    """
+
     id: str
     name: str
     parentId: str
@@ -225,27 +301,17 @@ class Document(NamedTuple):
 
 
 class User(NamedTuple):
+    """
+    Attributes:
+        id (str): ID
+        auth_id (str): auth ID
+        email (str): email
+        status (UserStatus): status
+        role (UserRole): role
+    """
+
     id: str
     auth_id: str
     email: str
     status: UserStatus
     role: UserRole
-
-
-class Entity(Enum):
-    Location = "Location"
-    LocationType = "LocationType"
-    Equipment = "Equipment"
-    EquipmentType = "EquipmentType"
-    EquipmentPort = "EquipmentPort"
-    EquipmentPortType = "EquipmentPortType"
-    Link = "Link"
-    Service = "Service"
-    ServiceType = "ServiceType"
-    ServiceEndpoint = "ServiceEndpoint"
-    SiteSurvey = "SiteSurvey"
-    Customer = "Customer"
-    Document = "Document"
-    PropertyType = "PropertyType"
-    Property = "Property"
-    User = "User"

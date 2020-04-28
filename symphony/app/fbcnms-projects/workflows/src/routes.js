@@ -10,34 +10,31 @@
 
 import HttpClient from './HttpServerSide';
 import Router from 'express';
+import bodyParser from 'body-parser';
 import filter from 'lodash/fp/filter';
 import forEach from 'lodash/fp/forEach';
 import identity from 'lodash/fp/identity';
+import logging from '@fbcnms/logging';
 import map from 'lodash/fp/map';
 import moment from 'moment';
 import transform from 'lodash/fp/transform';
 
+const logger = logging.getLogger(module);
 const http = HttpClient;
 
+//TODO merge with proxy
 const router = Router();
-//TODO make configurable
-const baseURL = 'conductor-server:8080/api/';
+const baseURL = 'localhost/proxy/api/';
 const baseURLWorkflow = baseURL + 'workflow/';
 const baseURLMeta = baseURL + 'metadata/';
 const baseURLTask = baseURL + 'tasks/';
 
-router.get('/metadata/taskdefs', async (req, res, next) => {
-  try {
-    const result = await http.get(baseURLMeta + 'taskdefs', req.token);
-    res.status(200).send({result});
-  } catch (err) {
-    next(err);
-  }
-});
+router.use(bodyParser.urlencoded({extended: false}));
+router.use('/', bodyParser.json());
 
 router.get('/metadata/taskdefs', async (req, res, next) => {
   try {
-    const result = await http.get(baseURLMeta + 'taskdefs', req.token);
+    const result = await http.get(baseURLMeta + 'taskdefs', req);
     res.status(200).send({result});
   } catch (err) {
     next(err);
@@ -46,7 +43,7 @@ router.get('/metadata/taskdefs', async (req, res, next) => {
 
 router.post('/metadata/taskdef', async (req, res, next) => {
   try {
-    const result = await http.post(baseURLMeta + 'taskdefs', req.body);
+    const result = await http.post(baseURLMeta + 'taskdefs', req.body, req);
     res.status(200).send(result);
   } catch (err) {
     res.status(400).send(err.response.body);
@@ -58,7 +55,7 @@ router.get('/metadata/taskdef/:name', async (req, res, next) => {
   try {
     const result = await http.get(
       baseURLMeta + 'taskdefs/' + req.params.name,
-      req.token,
+      req,
     );
     res.status(200).send({result});
   } catch (err) {
@@ -70,7 +67,7 @@ router.delete('/metadata/taskdef/:name', async (req, res, next) => {
   try {
     const result = await http.delete(
       baseURLMeta + 'taskdefs/' + req.params.name,
-      req.token,
+      req,
     );
     res.status(200).send({result});
   } catch (err) {
@@ -80,7 +77,7 @@ router.delete('/metadata/taskdef/:name', async (req, res, next) => {
 
 router.get('/metadata/workflow', async (req, res, next) => {
   try {
-    const result = await http.get(baseURLMeta + 'workflow', req.token);
+    const result = await http.get(baseURLMeta + 'workflow', req);
     res.status(200).send({result});
   } catch (err) {
     next(err);
@@ -91,7 +88,7 @@ router.delete('/metadata/workflow/:name/:version', async (req, res, next) => {
   try {
     const result = await http.delete(
       baseURLMeta + 'workflow/' + req.params.name + '/' + req.params.version,
-      req.token,
+      req,
     );
     res.status(200).send({result});
   } catch (err) {
@@ -107,7 +104,7 @@ router.get('/metadata/workflow/:name/:version', async (req, res, next) => {
         req.params.name +
         '?version=' +
         req.params.version,
-      req.token,
+      req,
     );
     res.status(200).send({result});
   } catch (err) {
@@ -117,7 +114,7 @@ router.get('/metadata/workflow/:name/:version', async (req, res, next) => {
 
 router.put('/metadata', async (req, res, next) => {
   try {
-    const result = await http.put(baseURLMeta + 'workflow/', req.body);
+    const result = await http.put(baseURLMeta + 'workflow/', req.body, req);
     res.status(200).send(result);
   } catch (err) {
     res.status(400).send(err.response.body);
@@ -125,9 +122,29 @@ router.put('/metadata', async (req, res, next) => {
   }
 });
 
+// Conductor only allows POST for event handler creation
+// and PUT for updating. This code works around the issue by
+// trying PUT if POST fails.
+router.post('/event', async (req, res, next) => {
+  try {
+    const result = await http.post(baseURL + 'event', req.body, req);
+    res.status(200).send(result);
+  } catch (err) {
+    logger.info(`Got exception ${JSON.stringify(err)} while POSTing event`);
+    try {
+      const result = await http.put(baseURL + 'event', req.body, req);
+      res.status(200).send(result);
+    } catch (e) {
+      logger.info(`Got exception ${JSON.stringify(e)} while PUTting event`);
+      res.status(400).send('Post and Put failed');
+      next(e);
+    }
+  }
+});
+
 router.post('/workflow', async (req, res, next) => {
   try {
-    const result = await http.post(baseURLWorkflow, req.body);
+    const result = await http.post(baseURLWorkflow, req.body, req);
     res.status(200).send(result);
   } catch (err) {
     next(err);
@@ -171,7 +188,7 @@ router.get('/executions', async (req, res, next) => {
       start +
       '&query=' +
       encodeURIComponent(query);
-    const result = await http.get(url, req.token);
+    const result = await http.get(url, req);
     const hits = result.results;
     res.status(200).send({result: {hits: hits, totalHits: result.totalHits}});
   } catch (err) {
@@ -184,7 +201,7 @@ router.delete('/bulk/terminate', async (req, res, next) => {
     const result = await http.delete(
       baseURLWorkflow + 'bulk/terminate',
       req.body,
-      req.token,
+      req,
     );
     res.status(200).send(result);
   } catch (err) {
@@ -197,7 +214,7 @@ router.put('/bulk/pause', async (req, res, next) => {
     const result = await http.put(
       baseURLWorkflow + 'bulk/pause',
       req.body,
-      req.token,
+      req,
     );
     res.status(200).send(result);
   } catch (err) {
@@ -210,7 +227,7 @@ router.put('/bulk/resume', async (req, res, next) => {
     const result = await http.put(
       baseURLWorkflow + 'bulk/resume',
       req.body,
-      req.token,
+      req,
     );
     res.status(200).send(result);
   } catch (err) {
@@ -223,7 +240,7 @@ router.post('/bulk/retry', async (req, res, next) => {
     const result = await http.post(
       baseURLWorkflow + 'bulk/retry',
       req.body,
-      req.token,
+      req,
     );
     res.status(200).send(result);
   } catch (err) {
@@ -236,7 +253,7 @@ router.post('/bulk/restart', async (req, res, next) => {
     const result = await http.post(
       baseURLWorkflow + 'bulk/restart',
       req.body,
-      req.token,
+      req,
     );
     res.status(200).send(result);
   } catch (err) {
@@ -249,7 +266,7 @@ router.delete('/workflow/:workflowId', async (req, res, next) => {
     const result = await http.delete(
       baseURLWorkflow + req.params.workflowId + '/remove',
       req.body,
-      req.token,
+      req,
     );
     res.status(200).send(result);
   } catch (err) {
@@ -261,7 +278,7 @@ router.get('/id/:workflowId', async (req, res, next) => {
   try {
     const result = await http.get(
       baseURLWorkflow + req.params.workflowId + '?includeTasks=true',
-      req.token,
+      req,
     );
     let meta = result.workflowDefinition;
     if (!meta) {
@@ -271,7 +288,7 @@ router.get('/id/:workflowId', async (req, res, next) => {
           result.workflowType +
           '?version=' +
           result.version,
-        req.token,
+        req,
       );
     }
 
@@ -308,7 +325,7 @@ router.get('/id/:workflowId', async (req, res, next) => {
     });
 
     const logs = map(task =>
-      Promise.all([task, http.get(baseURLTask + task.taskId + '/log')]),
+      Promise.all([task, http.get(baseURLTask + task.taskId + '/log', req)]),
     )(result.tasks);
     const LOG_DATE_FORMAT = 'MM/DD/YY, HH:mm:ss:SSS';
 
@@ -326,8 +343,8 @@ router.get('/id/:workflowId', async (req, res, next) => {
     const promises = map(({name, version, subWorkflowId, referenceTaskName}) =>
       Promise.all([
         referenceTaskName,
-        http.get(baseURLMeta + 'workflow/' + name + '?version=' + version),
-        http.get(baseURLWorkflow + subWorkflowId + '?includeTasks=true'),
+        http.get(baseURLMeta + 'workflow/' + name + '?version=' + version, req),
+        http.get(baseURLWorkflow + subWorkflowId + '?includeTasks=true', req),
       ]),
     )(subs);
 
@@ -382,7 +399,7 @@ router.get('/hierarchical', async (req, res, next) => {
         '&start=' +
         start +
         '&query=';
-      const result = await http.get(url, req.token);
+      const result = await http.get(url, req);
       const allData = result.results ? result.results : [];
       hits = result.totalHits ? result.totalHits : 0;
 
@@ -399,7 +416,7 @@ router.get('/hierarchical', async (req, res, next) => {
             sepWfs.map(wf =>
               http.get(
                 baseURLWorkflow + wf.workflowId + '?includeTasks=false',
-                req.token,
+                req,
               ),
             ),
           );
@@ -429,7 +446,7 @@ router.get('/hierarchical', async (req, res, next) => {
             baseURLWorkflow +
               children[i].parentWorkflowId +
               '?includeTasks=false',
-            req.token,
+            req,
           );
           parent.startTime = new Date(parent.startTime);
           parent.endTime = new Date(parent.endTime);
@@ -454,13 +471,11 @@ router.get('/hierarchical', async (req, res, next) => {
   }
 });
 
+// TODO not implemented on proxy
 router.get('/queue/data', async (req, res, next) => {
   try {
-    const sizes = await http.get(baseURLTask + 'queue/all', req.token);
-    const polldata = await http.get(
-      baseURLTask + 'queue/polldata/all',
-      req.token,
-    );
+    const sizes = await http.get(baseURLTask + 'queue/all', req);
+    const polldata = await http.get(baseURLTask + 'queue/polldata/all', req);
     polldata.forEach(pd => {
       let qname = pd.queueName;
 

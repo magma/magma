@@ -116,8 +116,8 @@ func TestGxUplinkTrafficQosEnforcement(t *testing.T) {
 	record := recordsBySubID["IMSI"+imsi][ruleKey]
 	assert.NotNil(t, record, fmt.Sprintf("No policy usage record for imsi: %v", imsi))
 
-	_, err = tr.Disconnect(imsi)
-	assert.NoError(t, err)
+	tr.DisconnectAndAssertSuccess(imsi)
+	fmt.Println("wait for flows to get deactivated")
 	time.Sleep(3 * time.Second)
 }
 
@@ -182,8 +182,8 @@ func TestGxDownlinkTrafficQosEnforcement(t *testing.T) {
 	record := recordsBySubID["IMSI"+imsi][ruleKey]
 	assert.NotNil(t, record, fmt.Sprintf("No policy usage record for imsi: %v", imsi))
 
-	_, err = tr.Disconnect(imsi)
-	assert.NoError(t, err)
+	tr.DisconnectAndAssertSuccess(imsi)
+	fmt.Println("wait for flows to get deactivated")
 	time.Sleep(3 * time.Second)
 }
 
@@ -304,8 +304,8 @@ func TestGxQosDowngradeWithCCAUpdate(t *testing.T) {
 	expectations = []*protos.GxCreditControlExpectation{terminateExpectation}
 	assert.NoError(t, setPCRFExpectations(expectations, nil))
 
-	_, err = tr.Disconnect(imsi)
-	assert.NoError(t, err)
+	tr.DisconnectAndAssertSuccess(imsi)
+	fmt.Println("wait for flows to get deactivated")
 	time.Sleep(6 * time.Second)
 
 	// Assert that we saw a Terminate request
@@ -403,7 +403,7 @@ func TestGxQosDowngradeWithReAuth(t *testing.T) {
 	record = recordsBySubID["IMSI"+imsi][rule2Key]
 	assert.NotNil(t, record, fmt.Sprintf("No policy usage record for imsi: %v", imsi))
 
-	_, err = tr.Disconnect(imsi)
-	assert.NoError(t, err)
+	tr.DisconnectAndAssertSuccess(imsi)
+	fmt.Println("wait for flows to get deactivated")
 	time.Sleep(3 * time.Second)
 }

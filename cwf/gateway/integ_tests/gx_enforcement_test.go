@@ -123,8 +123,7 @@ func TestGxUsageReportEnforcement(t *testing.T) {
 	expectations = []*protos.GxCreditControlExpectation{terminateExpectation}
 	assert.NoError(t, setPCRFExpectations(expectations, nil))
 
-	_, err = tr.Disconnect(imsi)
-	assert.NoError(t, err)
+	tr.DisconnectAndAssertSuccess(imsi)
 	tr.WaitForEnforcementStatsToSync()
 
 	// Wait for CCR-T to propagate up
@@ -258,8 +257,8 @@ func TestGxMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, recordsBySubID[prependIMSIPrefix(imsi)]["static-pass-all-2"], fmt.Sprintf("No policy usage record for imsi: %v rule=static-pass-all-2", imsi))
 
-	_, err = tr.Disconnect(imsi)
-	assert.NoError(t, err)
+	tr.DisconnectAndAssertSuccess(imsi)
+	fmt.Println("wait for flows to get deactivated")
 	time.Sleep(3 * time.Second)
 }
 
@@ -369,8 +368,8 @@ func testGxRuleInstallTime(t *testing.T) {
 	}
 	assert.ElementsMatch(t, expectedResult, resultByIndex)
 
-	_, err = tr.Disconnect(imsi)
-	assert.NoError(t, err)
+	tr.DisconnectAndAssertSuccess(imsi)
+	fmt.Println("wait for flows to get deactivated")
 	time.Sleep(3 * time.Second)
 }
 
@@ -525,8 +524,7 @@ func testGxRevalidationTime(t *testing.T) {
 	expectations = []*protos.GxCreditControlExpectation{terminateExpectation}
 	assert.NoError(t, setPCRFExpectations(expectations, nil))
 
-	_, err = tr.Disconnect(imsi)
-	assert.NoError(t, err)
+	tr.DisconnectAndAssertSuccess(imsi)
 	tr.WaitForEnforcementStatsToSync()
 
 	// Assert that we saw a Terminate request

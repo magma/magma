@@ -220,11 +220,16 @@ func TestPropertiesForCSV(t *testing.T) {
 		Type: "node",
 	}
 
+	propInput10 := models.PropertyTypeInput{
+		Name: "Property type10",
+		Type: "node",
+	}
+
 	equipmentType, err := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
 		Name: "equipment_type",
 		Properties: []*models.PropertyTypeInput{
 			&propInput1, &propInput2, &propInput3, &propInput4, &propInput5, &propInput6, &propInput7, &propInput8,
-			&propInput9,
+			&propInput9, &propInput10,
 		},
 	})
 	require.NoError(t, err)
@@ -237,6 +242,7 @@ func TestPropertiesForCSV(t *testing.T) {
 	propType7 := equipmentType.QueryPropertyTypes().Where(propertytype.Name("Property type7")).OnlyX(ctx)
 	propType8 := equipmentType.QueryPropertyTypes().Where(propertytype.Name("Property type8")).OnlyX(ctx)
 	propType9 := equipmentType.QueryPropertyTypes().Where(propertytype.Name("Property type9")).OnlyX(ctx)
+	propType10 := equipmentType.QueryPropertyTypes().Where(propertytype.Name("Property type10")).OnlyX(ctx)
 
 	intVal := 40
 	strVal := strVal
@@ -324,11 +330,20 @@ func TestPropertiesForCSV(t *testing.T) {
 		NodeIDValue:    &propWorkOrder.ID,
 	}
 
+	user, err := client.User.Create().SetAuthID("user").SetFirstName("FB").SetLastName("User").Save(ctx)
+	require.NoError(t, err)
+	prop10 := models.PropertyInput{
+		PropertyTypeID: propType10.ID,
+		NodeIDValue:    &user.ID,
+	}
+
 	equipment, err := mr.AddEquipment(ctx, models.AddEquipmentInput{
-		Name:       "child_equipment",
-		Type:       equipmentType.ID,
-		Location:   &location.ID,
-		Properties: []*models.PropertyInput{&prop1, &prop2, &prop3, &prop4, &prop5, &prop6, &prop7, &prop8, &prop9},
+		Name:     "child_equipment",
+		Type:     equipmentType.ID,
+		Location: &location.ID,
+		Properties: []*models.PropertyInput{
+			&prop1, &prop2, &prop3, &prop4, &prop5, &prop6, &prop7, &prop8, &prop9, &prop10,
+		},
 	})
 	require.NoError(t, err)
 

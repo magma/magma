@@ -2573,6 +2573,10 @@ declare module "@material-ui/core/TableBody" {
   declare export default $Exports<"@material-ui/core/TableBody/TableBody">;
 }
 
+declare module "@material-ui/core/TableContainer" {
+  declare export default $Exports<"@material-ui/core/TableContainer/TableContainer">;
+}
+
 declare module "@material-ui/core/TableCell" {
   declare export default $Exports<"@material-ui/core/TableCell/TableCell">;
 }
@@ -2620,6 +2624,16 @@ declare module "@material-ui/core/TableBody/TableBody" {
     classes?: Object,
     className?: string,
     component?: ElementType
+  }>;
+}
+
+declare module "@material-ui/core/TableContainer/TableContainer" {
+  import type {ElementType, Node} from "react";
+
+  declare module.exports: ComponentType<{
+    children: Node,
+    classes?: Object,
+    component?: ElementType,
   }>;
 }
 
@@ -3919,6 +3933,12 @@ declare module "@material-ui/core/TableBody/index.js" {
 declare module "@material-ui/core/TableBody/TableBody.js" {
   declare module.exports: $Exports<"@material-ui/core/TableBody/TableBody">;
 }
+declare module "@material-ui/core/TableContainer/index.js" {
+  declare module.exports: $Exports<"@material-ui/core/TableContainer">;
+}
+declare module "@material-ui/core/TableContainer/TableContainer.js" {
+  declare module.exports: $Exports<"@material-ui/core/TableContainer/TableContainer">;
+}
 declare module "@material-ui/core/TableCell/index.js" {
   declare module.exports: $Exports<"@material-ui/core/TableCell">;
 }
@@ -4246,6 +4266,9 @@ declare module "@material-ui/core" {
   declare export var Table: $Exports<"@material-ui/core/Table/Table">;
   declare export var TableBody: $Exports<
     "@material-ui/core/TableBody/TableBody"
+  >;
+  declare export var TableContainer: $Exports<
+    "@material-ui/core/TableContainer/TableContainer"
   >;
   declare export var TableCell: $Exports<
     "@material-ui/core/TableCell/TableCell"

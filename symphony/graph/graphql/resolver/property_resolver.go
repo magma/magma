@@ -42,6 +42,9 @@ func (propertyResolver) NodeValue(ctx context.Context, property *ent.Property) (
 	case "work_order":
 		s, err := property.QueryWorkOrderValue().Only(ctx)
 		return s, ent.MaskNotFound(err)
+	case "user":
+		s, err := property.QueryUserValue().Only(ctx)
+		return s, ent.MaskNotFound(err)
 	default:
 		return nil, nil
 	}

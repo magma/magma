@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# Copyright (c) 2004-present Facebook All rights reserved.
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file.
 
 import math
 from datetime import datetime
@@ -7,8 +10,6 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 
 import pandas as pd
 from dacite import Config, from_dict
-from gql.gql.client import OperationException
-from gql.gql.reporter import FailedOperationException
 from xlsxwriter.format import Format
 from xlsxwriter.utility import xl_col_to_name
 from xlsxwriter.workbook import Workbook
@@ -16,7 +17,9 @@ from xlsxwriter.worksheet import Worksheet
 
 from .api.file import add_site_survey_image, delete_site_survey_image
 from .client import SymphonyClient
-from .consts import Entity, Location, SiteSurvey
+from .common.constant import SIMPLE_QUESTION_TYPE_TO_REQUIRED_PROPERTY_NAME
+from .common.data_class import Location, SiteSurvey
+from .common.data_enum import Entity
 from .exceptions import EntityNotFoundError
 from .graphql.create_survey_mutation import CreateSurveyMutation
 from .graphql.location_surveys_query import LocationSurveysQuery
@@ -24,20 +27,9 @@ from .graphql.remove_site_survey_mutation import RemoveSiteSurveyMutation
 from .graphql.survey_create_data_input import SurveyCreateData
 from .graphql.survey_fragment import SurveyFragment
 from .graphql.survey_question_fragment import SurveyQuestionFragment
+from .graphql.survey_question_response_input import SurveyQuestionResponse
 from .graphql.survey_question_type_enum import SurveyQuestionType
 from .site_survey_schema import retrieve_tamplates_and_set_them
-
-
-CREATE_SURVEY_MUTATION_NAME = "createSurvey"
-SIMPLE_QUESTION_TYPE_TO_REQUIRED_PROPERTY_NAME = {
-    "DATE": "dateData",
-    "BOOL": "boolData",
-    "EMAIL": "emailData",
-    "TEXT": "textData",
-    "FLOAT": "floatData",
-    "INTEGER": "intData",
-    "PHONE": "phoneData",
-}
 
 
 def _get_dependencies(question: Dict[str, Any]) -> Tuple[List[str], List[str]]:
@@ -347,7 +339,7 @@ def export_to_excel(json_file_path: str, excel_file_path: str) -> None:
     # pyre-fixme[45]: Cannot instantiate abstract class `ExcelWriter`.
     writer = pd.ExcelWriter(excel_file_path, engine="xlsxwriter")
     workbook = writer.book
-    assert workbook is not None  # pyre-ignore
+    assert workbook is not None
 
     title_format, date_format, black_format, cell_format = add_workbook_formats(
         workbook
@@ -416,6 +408,7 @@ def export_to_excel(json_file_path: str, excel_file_path: str) -> None:
             ] = cell_name
 
             worksheet.write_blank(cell_name, "", cell_format)
+            # pyre-fixme[19]: Expected 9 positional arguments.
             add_cell_validation(
                 worksheet,
                 question_index_to_row_index[i + 2],
@@ -708,7 +701,7 @@ def upload_site_survey(
         excel is as needed for upload.
 
         Args:
-            location ( `pyinventory.consts.Location` ): could be retrieved from getLocation or addLocation api
+            location ( `pyinventory.common.data_class.Location` ): could be retrieved from getLocation or addLocation api
             name (str): name of the site survey
             completion_date (datetime.datetime object): the time the site survey was completed
             excel_file_path (str): the path for the excel with the site survey information
@@ -745,34 +738,24 @@ def upload_site_survey(
             AssertionException: if input values in the excel are incorrect
             FailedOperationException: internal inventory error
     """
-    data_variables = {
-        "name": name,
-        "completionTimestamp": int(datetime.timestamp(completion_date)),
-        "locationID": location.id,
-        "surveyResponses": _get_survey_reponses(excel_file_path, json_file_path),
-    }
-    create_survey_variables = {
-        "data": from_dict(
-            data_class=SurveyCreateData, data=data_variables, config=Config(strict=True)
-        )
-    }
 
-    try:
-        site_survey_id = CreateSurveyMutation.execute(
-            client, **create_survey_variables
-        ).__dict__[CREATE_SURVEY_MUTATION_NAME]
-        client.reporter.log_successful_operation(
-            CREATE_SURVEY_MUTATION_NAME, create_survey_variables
-        )
-        add_site_survey_image(client, excel_file_path, site_survey_id)
-    except OperationException as e:
-        raise FailedOperationException(
-            client.reporter,
-            e.err_msg,
-            e.err_id,
-            CREATE_SURVEY_MUTATION_NAME,
-            create_survey_variables,
-        )
+    site_survey_id = CreateSurveyMutation.execute(
+        client,
+        data=SurveyCreateData(
+            name=name,
+            completionTimestamp=int(datetime.timestamp(completion_date)),
+            locationID=location.id,
+            surveyResponses=[
+                from_dict(
+                    data_class=SurveyQuestionResponse,
+                    data=response,
+                    config=Config(strict=True),
+                )
+                for response in _get_survey_reponses(excel_file_path, json_file_path)
+            ],
+        ),
+    )
+    add_site_survey_image(client, excel_file_path, site_survey_id)
 
 
 def _survey_responses_to_forms(
@@ -848,18 +831,16 @@ def get_site_surveys(client: SymphonyClient, location: Location) -> List[SiteSur
     """Retrieve all site survey completed in the location.
 
         Args:
-            location ( `pyinventory.consts.Location` ): could be retrieved from getLocation or addLocation api
+            location ( `pyinventory.common.data_class.Location` ): could be retrieved from getLocation or addLocation api
 
         Returns:
-            List[ `pyinventory.consts.SiteSurvey` ]
+            List[ `pyinventory.common.data_class.SiteSurvey` ]
 
         Raises:
             `pyinventory.exceptions.EntityNotFoundError`: location does not exist
     """
 
-    location_with_surveys = LocationSurveysQuery.execute(
-        client, id=location.id
-    ).location
+    location_with_surveys = LocationSurveysQuery.execute(client, id=location.id)
     if not location_with_surveys:
         raise EntityNotFoundError(entity=Entity.Location, entity_id=location.id)
     surveys = location_with_surveys.surveys

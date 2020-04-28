@@ -5,7 +5,7 @@
 
 from typing import Optional
 
-from .consts import Entity
+from .common.data_enum import Entity
 
 
 class CustomException(Exception):

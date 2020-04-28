@@ -17,6 +17,9 @@ mutation EditEquipmentPortMutation($input: EditEquipmentPortInput!) {
       services {
         id
       }
+      properties {
+        ...PropertyFragment
+      }
     }
   }
 }

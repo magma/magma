@@ -38,7 +38,7 @@ func prepareUserData(ctx context.Context) {
 		SetAuthID("user3").
 		SetEmail("funny@workspace.com").
 		SetFirstName("Willis").
-		SetLastName("Reed").
+		SetLastName("Rheed").
 		SetRole(user.RoleUSER).
 		SaveX(ctx)
 
@@ -49,9 +49,38 @@ func prepareUserData(ctx context.Context) {
 		SetLastName("Cohen").
 		SetRole(user.RoleUSER).
 		SaveX(ctx)
+
+	client.Create().
+		SetAuthID("user5").
+		SetEmail("user5@test.ing").
+		SetFirstName("Raul").
+		SetLastName("Himemes").
+		SetRole(user.RoleUSER).
+		SetStatus(user.StatusDEACTIVATED).
+		SaveX(ctx)
 }
 
-func searchByName(t *testing.T, ctx context.Context, qr generated.QueryResolver, searchTerm string) *models.UserSearchResult {
+func searchByStatus(
+	ctx context.Context,
+	t *testing.T,
+	qr generated.QueryResolver,
+	status user.Status) *models.UserSearchResult {
+	limit := 100
+	f1 := models.UserFilterInput{
+		FilterType:  models.UserFilterTypeUserStatus,
+		Operator:    models.FilterOperatorIs,
+		StatusValue: &status,
+	}
+	res, err := qr.UserSearch(ctx, []*models.UserFilterInput{&f1}, &limit)
+	require.NoError(t, err)
+	return res
+}
+
+func searchByName(
+	ctx context.Context,
+	t *testing.T,
+	qr generated.QueryResolver,
+	searchTerm string) *models.UserSearchResult {
 	limit := 100
 	f1 := models.UserFilterInput{
 		FilterType:  models.UserFilterTypeUserName,
@@ -70,12 +99,30 @@ func TestSearchUsersByName(t *testing.T) {
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	prepareUserData(ctx)
 
-	search1 := searchByName(t, ctx, qr, "Cohen")
+	search1 := searchByName(ctx, t, qr, "Cohen")
 	require.Len(t, search1.Users, 2)
-	search2 := searchByName(t, ctx, qr, "monster")
+
+	search2 := searchByName(ctx, t, qr, "monster")
 	require.Len(t, search2.Users, 1)
-	search3 := searchByName(t, ctx, qr, "willis")
+
+	search3 := searchByName(ctx, t, qr, "willis")
 	require.Len(t, search3.Users, 2)
-	search4 := searchByName(t, ctx, qr, "sam")
+
+	search4 := searchByName(ctx, t, qr, "sam")
 	require.Len(t, search4.Users, 1)
+
+	search5 := searchByName(ctx, t, qr, "li")
+	require.Len(t, search5.Users, 3)
+
+	search6 := searchByName(ctx, t, qr, "ra hi")
+	require.Len(t, search6.Users, 1)
+
+	search7 := searchByName(ctx, t, qr, "li he")
+	require.Len(t, search7.Users, 2)
+
+	search8 := searchByStatus(ctx, t, qr, user.StatusACTIVE)
+	require.Len(t, search8.Users, 5) // including 'tester@example.com'
+
+	search9 := searchByStatus(ctx, t, qr, user.StatusDEACTIVATED)
+	require.Len(t, search9.Users, 1)
 }
