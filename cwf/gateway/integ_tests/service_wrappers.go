@@ -358,6 +358,20 @@ func setCreditOnOCSPerInstance(instanceName string, creditInfo *fegprotos.Credit
 	return err
 }
 
+// getCreditOnOCS tries to get credit for this subscriber to the OCS server
+// Input: The credit info data which will be set
+func getCreditOnOCS(imsi string) (*fegprotos.CreditInfos, error) {
+	return getCreditOnOCSPerInstance(MockOCSRemote, imsi)
+}
+
+func getCreditOnOCSPerInstance(instanceName, imsi string) (*fegprotos.CreditInfos, error) {
+	cli, err := getOCSClient(instanceName)
+	if err != nil {
+		return &fegprotos.CreditInfos{}, err
+	}
+	return cli.GetCredits(context.Background(), &lteprotos.SubscriberID{Id: imsi})
+}
+
 // sendChargingReAuthRequest triggers a RAR from OCS to Sessiond
 // Input: ChargingReAuthTarget
 func sendChargingReAuthRequest(imsi string, ratingGroup uint32) (*fegprotos.ChargingReAuthAnswer, error) {

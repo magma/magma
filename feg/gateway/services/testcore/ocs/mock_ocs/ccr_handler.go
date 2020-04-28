@@ -105,11 +105,23 @@ func getCCRHandler(srv *OCSDiamServer) diam.HandlerFunc {
 		creditAnswers := make([]*diam.AVP, 0, len(ccr.MSCC))
 		for _, mscc := range ccr.MSCC {
 			if mscc.UsedServiceUnit != nil {
+				glog.V(2).Infof("Received credit usage from %s:%d, balance will be decremented by Total:%d Tx:%d Rx:%d",
+					imsi, mscc.RatingGroup,
+					mscc.UsedServiceUnit.TotalOctets,
+					mscc.UsedServiceUnit.OutputOctets,
+					mscc.UsedServiceUnit.InputOctets,
+				)
 				decrementUsedCredit(
 					account.ChargingCredit[mscc.RatingGroup],
 					mscc.UsedServiceUnit,
 				)
+				glog.V(2).Infof("Current balance for %s:%d is Total:%d Tx:%d Rx:%d",
+					imsi, mscc.RatingGroup,
+					account.ChargingCredit[mscc.RatingGroup].Volume.TotalOctets,
+					account.ChargingCredit[mscc.RatingGroup].Volume.OutputOctets,
+					account.ChargingCredit[mscc.RatingGroup].Volume.InputOctets)
 			}
+
 			returnOctets, final := getQuotaGrant(srv, account.ChargingCredit[mscc.RatingGroup])
 			if returnOctets.GetTotalOctets() <= 0 {
 				sendAnswer(ccr, c, m, DiameterCreditLimitReached)
