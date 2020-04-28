@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 75d9df408cd382faa9469a98dbea6740
+ * @relayHash 83336aad022f991548e08b68ab539e2b
  */
 
 /* eslint-disable */
@@ -17,12 +17,11 @@
 import type { ConcreteRequest } from 'relay-runtime';
 export type DownloadPythonPackageQueryVariables = {||};
 export type DownloadPythonPackageQueryResponse = {|
-  +latestPythonPackage: ?{|
-    +lastPythonPackage: ?{|
-      +version: string,
-      +whlFileKey: string,
-    |}
-  |}
+  +pythonPackages: $ReadOnlyArray<{|
+    +version: string,
+    +whlFileKey: string,
+    +uploadTime: any,
+  |}>
 |};
 export type DownloadPythonPackageQuery = {|
   variables: DownloadPythonPackageQueryVariables,
@@ -33,11 +32,10 @@ export type DownloadPythonPackageQuery = {|
 
 /*
 query DownloadPythonPackageQuery {
-  latestPythonPackage {
-    lastPythonPackage {
-      version
-      whlFileKey
-    }
+  pythonPackages {
+    version
+    whlFileKey
+    uploadTime
   }
 }
 */
@@ -47,36 +45,32 @@ var v0 = [
   {
     "kind": "LinkedField",
     "alias": null,
-    "name": "latestPythonPackage",
+    "name": "pythonPackages",
     "storageKey": null,
     "args": null,
-    "concreteType": "LatestPythonPackageResult",
-    "plural": false,
+    "concreteType": "PythonPackage",
+    "plural": true,
     "selections": [
       {
-        "kind": "LinkedField",
+        "kind": "ScalarField",
         "alias": null,
-        "name": "lastPythonPackage",
-        "storageKey": null,
+        "name": "version",
         "args": null,
-        "concreteType": "PythonPackage",
-        "plural": false,
-        "selections": [
-          {
-            "kind": "ScalarField",
-            "alias": null,
-            "name": "version",
-            "args": null,
-            "storageKey": null
-          },
-          {
-            "kind": "ScalarField",
-            "alias": null,
-            "name": "whlFileKey",
-            "args": null,
-            "storageKey": null
-          }
-        ]
+        "storageKey": null
+      },
+      {
+        "kind": "ScalarField",
+        "alias": null,
+        "name": "whlFileKey",
+        "args": null,
+        "storageKey": null
+      },
+      {
+        "kind": "ScalarField",
+        "alias": null,
+        "name": "uploadTime",
+        "args": null,
+        "storageKey": null
       }
     ]
   }
@@ -101,11 +95,11 @@ return {
     "operationKind": "query",
     "name": "DownloadPythonPackageQuery",
     "id": null,
-    "text": "query DownloadPythonPackageQuery {\n  latestPythonPackage {\n    lastPythonPackage {\n      version\n      whlFileKey\n    }\n  }\n}\n",
+    "text": "query DownloadPythonPackageQuery {\n  pythonPackages {\n    version\n    whlFileKey\n    uploadTime\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '684edf2b73ab7adf9b106bc0d215835b';
+(node/*: any*/).hash = 'c2ffc17589d8cfa0daad1826bd83f69c';
 module.exports = node;

@@ -9,8 +9,14 @@
  */
 
 import Button from '@fbcnms/ui/components/design-system/Button';
+import DateTimeFormat from '../common/DateTimeFormat.js';
 import InventoryQueryRenderer from './InventoryQueryRenderer';
 import React from 'react';
+import Table from '@material-ui/core/Table';
+import TableBody from '@material-ui/core/TableBody';
+import TableCell from '@material-ui/core/TableCell';
+import TableHead from '@material-ui/core/TableHead';
+import TableRow from '@material-ui/core/TableRow';
 import axios from 'axios';
 import {DocumentAPIUrls} from '../common/DocumentAPI';
 import {graphql} from 'relay-runtime';
@@ -22,18 +28,18 @@ type PythonPackage = {
 };
 
 const useStyles = makeStyles(_ => ({
-  link: {
-    padding: '20px',
+  root: {
+    marginLeft: '20px',
+    maxWidth: '300px',
   },
 }));
 
 const DownloadPythonPackageQuery = graphql`
   query DownloadPythonPackageQuery {
-    latestPythonPackage {
-      lastPythonPackage {
-        version
-        whlFileKey
-      }
+    pythonPackages {
+      version
+      whlFileKey
+      uploadTime
     }
   }
 `;
@@ -78,20 +84,33 @@ const DownloadPythonPackage = () => {
       query={DownloadPythonPackageQuery}
       variables={{}}
       render={props => {
-        const pythonPackage = props.latestPythonPackage.lastPythonPackage;
+        const pythonPackages = props.pythonPackages;
 
-        if (pythonPackage == null) {
+        if (pythonPackages == null) {
           return <div />;
         }
 
         return (
-          <div className={classes.link}>
-            <Button
-              variant="text"
-              onClick={() => handleWhlDownload(pythonPackage)}>
-              Python Package {pythonPackage.version}
-            </Button>
-          </div>
+          <Table className={classes.root}>
+            <TableHead>
+              <TableRow>
+                <TableCell>Version</TableCell>
+                <TableCell>Release Date</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {pythonPackages.map(p => (
+                <TableRow>
+                  <TableCell component="th" scope="row">
+                    <Button variant="text" onClick={() => handleWhlDownload(p)}>
+                      {p.version}
+                    </Button>
+                  </TableCell>
+                  <TableCell>{DateTimeFormat.dateOnly(p.uploadTime)}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         );
       }}
     />

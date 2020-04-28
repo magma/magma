@@ -389,6 +389,9 @@ func (swfsq *SurveyWiFiScanQuery) prepareQuery(ctx context.Context) error {
 		}
 		swfsq.sql = prev
 	}
+	if err := surveywifiscan.Policy.EvalQuery(ctx, swfsq); err != nil {
+		return err
+	}
 	return nil
 }
 

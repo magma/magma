@@ -294,6 +294,9 @@ func (rfq *ReportFilterQuery) prepareQuery(ctx context.Context) error {
 		}
 		rfq.sql = prev
 	}
+	if err := reportfilter.Policy.EvalQuery(ctx, rfq); err != nil {
+		return err
+	}
 	return nil
 }
 

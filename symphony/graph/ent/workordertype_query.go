@@ -451,6 +451,9 @@ func (wotq *WorkOrderTypeQuery) prepareQuery(ctx context.Context) error {
 		}
 		wotq.sql = prev
 	}
+	if err := workordertype.Policy.EvalQuery(ctx, wotq); err != nil {
+		return err
+	}
 	return nil
 }
 

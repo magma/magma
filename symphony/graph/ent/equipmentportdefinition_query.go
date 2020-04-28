@@ -390,6 +390,9 @@ func (epdq *EquipmentPortDefinitionQuery) prepareQuery(ctx context.Context) erro
 		}
 		epdq.sql = prev
 	}
+	if err := equipmentportdefinition.Policy.EvalQuery(ctx, epdq); err != nil {
+		return err
+	}
 	return nil
 }
 

@@ -20,6 +20,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/ent/service"
+	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
 
@@ -61,6 +62,7 @@ type Property struct {
 	property_location_value   *int
 	property_service_value    *int
 	property_work_order_value *int
+	property_user_value       *int
 	service_properties        *int
 	work_order_properties     *int
 }
@@ -91,9 +93,11 @@ type PropertyEdges struct {
 	ServiceValue *Service
 	// WorkOrderValue holds the value of the work_order_value edge.
 	WorkOrderValue *WorkOrder
+	// UserValue holds the value of the user_value edge.
+	UserValue *User
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [12]bool
+	loadedTypes [13]bool
 }
 
 // TypeOrErr returns the Type value or an error if the edge
@@ -264,6 +268,20 @@ func (e PropertyEdges) WorkOrderValueOrErr() (*WorkOrder, error) {
 	return nil, &NotLoadedError{edge: "work_order_value"}
 }
 
+// UserValueOrErr returns the UserValue value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e PropertyEdges) UserValueOrErr() (*User, error) {
+	if e.loadedTypes[12] {
+		if e.UserValue == nil {
+			// The edge user_value was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: user.Label}
+		}
+		return e.UserValue, nil
+	}
+	return nil, &NotLoadedError{edge: "user_value"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Property) scanValues() []interface{} {
 	return []interface{}{
@@ -294,6 +312,7 @@ func (*Property) fkValues() []interface{} {
 		&sql.NullInt64{}, // property_location_value
 		&sql.NullInt64{}, // property_service_value
 		&sql.NullInt64{}, // property_work_order_value
+		&sql.NullInt64{}, // property_user_value
 		&sql.NullInt64{}, // service_properties
 		&sql.NullInt64{}, // work_order_properties
 	}
@@ -424,12 +443,18 @@ func (pr *Property) assignValues(values ...interface{}) error {
 			*pr.property_work_order_value = int(value.Int64)
 		}
 		if value, ok := values[10].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field property_user_value", value)
+		} else if value.Valid {
+			pr.property_user_value = new(int)
+			*pr.property_user_value = int(value.Int64)
+		}
+		if value, ok := values[11].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field service_properties", value)
 		} else if value.Valid {
 			pr.service_properties = new(int)
 			*pr.service_properties = int(value.Int64)
 		}
-		if value, ok := values[11].(*sql.NullInt64); !ok {
+		if value, ok := values[12].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field work_order_properties", value)
 		} else if value.Valid {
 			pr.work_order_properties = new(int)
@@ -497,6 +522,11 @@ func (pr *Property) QueryServiceValue() *ServiceQuery {
 // QueryWorkOrderValue queries the work_order_value edge of the Property.
 func (pr *Property) QueryWorkOrderValue() *WorkOrderQuery {
 	return (&PropertyClient{config: pr.config}).QueryWorkOrderValue(pr)
+}
+
+// QueryUserValue queries the user_value edge of the Property.
+func (pr *Property) QueryUserValue() *UserQuery {
+	return (&PropertyClient{config: pr.config}).QueryUserValue(pr)
 }
 
 // Update returns a builder for updating this Property.

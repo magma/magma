@@ -390,6 +390,9 @@ func (sedq *ServiceEndpointDefinitionQuery) prepareQuery(ctx context.Context) er
 		}
 		sedq.sql = prev
 	}
+	if err := serviceendpointdefinition.Policy.EvalQuery(ctx, sedq); err != nil {
+		return err
+	}
 	return nil
 }
 

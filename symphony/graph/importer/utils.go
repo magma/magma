@@ -97,7 +97,7 @@ func equal(a, b []string) bool {
 func getPropInput(propertyType ent.PropertyType, value string) (*models.PropertyInput, error) {
 	typ := propertyType.Type
 	switch typ {
-	case "date", "email", "string", "enum":
+	case "date", "email", "string", "enum", "datetime_local":
 		return &models.PropertyInput{
 			PropertyTypeID: propertyType.ID,
 			StringValue:    &value,

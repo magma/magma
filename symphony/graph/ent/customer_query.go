@@ -327,6 +327,9 @@ func (cq *CustomerQuery) prepareQuery(ctx context.Context) error {
 		}
 		cq.sql = prev
 	}
+	if err := customer.Policy.EvalQuery(ctx, cq); err != nil {
+		return err
+	}
 	return nil
 }
 

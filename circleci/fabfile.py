@@ -239,8 +239,20 @@ def _run_remote_cwf_integ_test(repo: str, magma_root: str):
                 '-f docker-compose.nginx.yml '
                 '-f docker-compose.integ-test.yml '
                 'build --parallel')
-        run('fab integ_test:destroy_vm=True,transfer_images=True',
+        result = run('fab integ_test:destroy_vm=True,transfer_images=True',
             timeout=110*60)
+        # On failure, transfer logs of key services from docker containers and
+        # copy to the log directory. This will get stored as an artifact in the
+        # circleCI config.
+        if not result.return_code:
+            services = "sessiond session_proxy pcrf ocs pipelined"
+            run(f'fab transfer_service_logs:services="{services}"')
+
+            # Copy the log files out from the node
+            local('mkdir cwf-logs')
+            get('*.log', 'cwf-logs')
+            local('sudo mkdir -p /tmp/logs/')
+            local('sudo mv cwf-logs/*.log /tmp/logs/')
 
 
 def _run_remote_lte_package(repo: str, magma_root: str,

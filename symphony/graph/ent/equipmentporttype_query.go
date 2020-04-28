@@ -388,6 +388,9 @@ func (eptq *EquipmentPortTypeQuery) prepareQuery(ctx context.Context) error {
 		}
 		eptq.sql = prev
 	}
+	if err := equipmentporttype.Policy.EvalQuery(ctx, eptq); err != nil {
+		return err
+	}
 	return nil
 }
 

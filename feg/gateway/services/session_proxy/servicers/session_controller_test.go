@@ -125,55 +125,47 @@ func (cc *MockCreditClient) DisableConnections(period time.Duration) {
 	return
 }
 
-type sessionMocks struct {
-	gy       []gy.CreditClient
-	gx       []gx.PolicyClient
-	policydb policydb.PolicyDBClient
-}
-
 func TestSessionControllerPerSessionInit_SingleServer(t *testing.T) {
 	numberServers := 1
-	mocks := getMocks(numberServers)
-	srv := servicers.NewCentralSessionControllers_SingleServer(
-		mocks.gy[0],
-		mocks.gx[0],
-		mocks.policydb,
-		getTestConfig(numberServers, gy.PerSessionInit)[0],
+	mockConfig := getTestConfig(numberServers, gy.PerSessionInit)
+	mockControlParams := getMockControllerParams(numberServers, mockConfig)
+	mockPolicyDb := &MockPolicyDBClient{}
+
+	srv := servicers.NewCentralSessionController(
+		mockControlParams[0].CreditClient,
+		mockControlParams[0].PolicyClient,
+		mockPolicyDb,
+		mockConfig[0],
 	)
-	standardUsageTest(t, srv, mocks, gy.PerSessionInit, numberServers)
+	standardUsageTest(t, srv, mockControlParams, mockPolicyDb, gy.PerSessionInit, numberServers)
 }
 
 func TestSessionControllerPerSessionInit(t *testing.T) {
-	mocks := getMocks(NUMBER_SERVERS)
-	srv := servicers.NewCentralSessionControllers(
-		mocks.gy,
-		mocks.gx,
-		mocks.policydb,
-		getTestConfig(NUMBER_SERVERS, gy.PerSessionInit),
-	)
-	standardUsageTest(t, srv, mocks, gy.PerSessionInit, NUMBER_SERVERS)
+	mockConfig := getTestConfig(NUMBER_SERVERS, gy.PerSessionInit)
+	mockControlParams := getMockControllerParams(NUMBER_SERVERS, mockConfig)
+	mockPolicyDb := &MockPolicyDBClient{}
+	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDb)
+	standardUsageTest(t, srv, mockControlParams, mockPolicyDb, gy.PerSessionInit, NUMBER_SERVERS)
 }
 
 func TestSessionControllerPerKeyInit(t *testing.T) {
-	mocks := getMocks(NUMBER_SERVERS)
-	srv := servicers.NewCentralSessionControllers(
-		mocks.gy,
-		mocks.gx,
-		mocks.policydb,
-		getTestConfig(NUMBER_SERVERS, gy.PerKeyInit),
-	)
-
-	standardUsageTest(t, srv, mocks, gy.PerKeyInit, NUMBER_SERVERS)
+	mockConfig := getTestConfig(NUMBER_SERVERS, gy.PerKeyInit)
+	mockControlParams := getMockControllerParams(NUMBER_SERVERS, mockConfig)
+	mockPolicyDb := &MockPolicyDBClient{}
+	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDb)
+	standardUsageTest(t, srv, mockControlParams, mockPolicyDb, gy.PerKeyInit, NUMBER_SERVERS)
 }
 
 func TestStartSessionGxFail(t *testing.T) {
 	// Set up mocks
-	mocks := getMocks(NUMBER_SERVERS)
+	mockConfig := getTestConfig(NUMBER_SERVERS, gy.PerKeyInit)
+	mockControlParams := getMockControllerParams(NUMBER_SERVERS, mockConfig)
+	mockPolicyDb := &MockPolicyDBClient{}
 
 	// Get the controller for this imsi
 	idx, err := servicers.GetControllerIndexFromImsi(IMSI1, NUMBER_SERVERS)
 	assert.NoError(t, err)
-	mocksGx := mocks.gx[idx].(*MockPolicyClient)
+	mocksGx := mockControlParams[idx].PolicyClient.(*MockPolicyClient)
 
 	// Send back DIAMETER_RATING_FAILED (5031) from gx
 	mocksGx.On("SendCreditControlRequest", mock.Anything, mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
@@ -187,12 +179,7 @@ func TestStartSessionGxFail(t *testing.T) {
 	}).Once()
 	// If gx fails gy should not be used at all
 
-	srv := servicers.NewCentralSessionControllers(
-		mocks.gy,
-		mocks.gx,
-		mocks.policydb,
-		getTestConfig(NUMBER_SERVERS, gy.PerKeyInit),
-	)
+	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDb)
 	ctx := context.Background()
 	_, err = srv.CreateSession(ctx, &protos.CreateSessionRequest{
 		Subscriber: &protos.SubscriberID{
@@ -206,14 +193,15 @@ func TestStartSessionGxFail(t *testing.T) {
 
 func TestStartSessionGyFail(t *testing.T) {
 	// Set up mocks
-	mocks := getMocks(NUMBER_SERVERS)
-	mocksPolicydb := mocks.policydb.(*MockPolicyDBClient)
+	mockConfig := getTestConfig(NUMBER_SERVERS, gy.PerSessionInit)
+	mockControlParams := getMockControllerParams(NUMBER_SERVERS, mockConfig)
+	mocksPolicydb := &MockPolicyDBClient{}
 
 	// Get the controller for this imsi
 	idx, err := servicers.GetControllerIndexFromImsi(IMSI1, NUMBER_SERVERS)
 	assert.NoError(t, err)
-	mocksGx := mocks.gx[idx].(*MockPolicyClient)
-	mocksGy := mocks.gy[idx].(*MockCreditClient)
+	mocksGx := mockControlParams[idx].PolicyClient.(*MockPolicyClient)
+	mocksGy := mockControlParams[idx].CreditClient.(*MockCreditClient)
 
 	// Send back DIAMETER_SUCCESS (2001) from gx
 	mocksGx.On("SendCreditControlRequest", mock.Anything, mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
@@ -255,12 +243,7 @@ func TestStartSessionGyFail(t *testing.T) {
 		}
 	}).Once()
 
-	srv := servicers.NewCentralSessionControllers(
-		mocks.gy,
-		mocks.gx,
-		mocks.policydb,
-		getTestConfig(NUMBER_SERVERS, gy.PerSessionInit),
-	)
+	srv := servicers.NewCentralSessionControllers(mockControlParams, mocksPolicydb)
 	ctx := context.Background()
 	_, err = srv.CreateSession(ctx, &protos.CreateSessionRequest{
 		Subscriber: &protos.SubscriberID{
@@ -274,19 +257,30 @@ func TestStartSessionGyFail(t *testing.T) {
 
 func standardUsageTest(
 	t *testing.T,
-	srv *servicers.CentralSessionControllers,
-	mocks *sessionMocks,
+	srv servicers.CentralSessionControllerServerWithHealth,
+	controllerParams []*servicers.ControllerParam,
+	policyDb policydb.PolicyDBClient,
 	initMethod gy.InitMethod,
 	numberServers int,
-) {
-
+) error {
 	ctx := context.Background()
-	mocksPolicydb := mocks.policydb.(*MockPolicyDBClient)
+	mocksPolicydb := policyDb.(*MockPolicyDBClient)
+
+	// Create a structure to store the pointers to the type assertions. his is needed later to
+	// be used on Enable/Disable. If it were not saved here the reference of the type to be
+	// asserted will be different than the reference of the type inside the srv
+	mocksGxs := make([]*MockPolicyClient, 0, len(controllerParams))
+	mocksGys := make([]*MockCreditClient, 0, len(controllerParams))
+	for _, cp := range controllerParams {
+		mocksGxs = append(mocksGxs, cp.PolicyClient.(*MockPolicyClient))
+		mocksGys = append(mocksGys, cp.CreditClient.(*MockCreditClient))
+	}
+
 	idx, err := servicers.GetControllerIndexFromImsi(IMSI1, numberServers)
 	assert.NoError(t, err)
 
-	mocksGx := mocks.gx[idx].(*MockPolicyClient)
-	mocksGy := mocks.gy[idx].(*MockCreditClient)
+	mocksGx := mocksGxs[idx]
+	mocksGy := mocksGys[idx]
 
 	maxReqBWUL := uint32(128000)
 	maxReqBWDL := uint32(128000)
@@ -458,41 +452,44 @@ func standardUsageTest(
 
 	// Connection Manager tests - Disable Connections
 	for i := 0; i < numberServers; i++ {
-		mocks.gx[i].(*MockPolicyClient).On("DisableConnections", mock.Anything).Return()
-		mocks.gy[i].(*MockCreditClient).On("DisableConnections", mock.Anything).Return()
+		mocksGxs[i].On("DisableConnections", mock.Anything).Return()
+		mocksGys[i].On("DisableConnections", mock.Anything).Return()
 	}
 	void, err := srv.Disable(ctx, &fegprotos.DisableMessage{DisablePeriodSecs: 10})
 	for i := 0; i < numberServers; i++ {
-		mocks.gx[i].(*MockPolicyClient).AssertExpectations(t)
-		mocks.gy[i].(*MockCreditClient).AssertExpectations(t)
+		mocksGxs[i].AssertExpectations(t)
+		mocksGys[i].AssertExpectations(t)
 	}
 	assert.NoError(t, err)
 	assert.Equal(t, &orcprotos.Void{}, void)
 
 	// Connection Manager tests - Enable Connections
 	for i := 0; i < numberServers; i++ {
-		mocks.gx[i].(*MockPolicyClient).On("EnableConnections").Return()
-		mocks.gy[i].(*MockCreditClient).On("EnableConnections").Return()
+		mocksGxs[i].On("EnableConnections").Return()
+		mocksGys[i].On("EnableConnections").Return()
 	}
 	void, err = srv.Enable(ctx, &orcprotos.Void{})
 
 	for i := 0; i < numberServers; i++ {
-		mocks.gx[i].(*MockPolicyClient).AssertExpectations(t)
-		mocks.gy[i].(*MockCreditClient).AssertExpectations(t)
+		mocksGxs[i].AssertExpectations(t)
+		mocksGys[i].AssertExpectations(t)
 	}
 	assert.NoError(t, err)
 	assert.Equal(t, &orcprotos.Void{}, void)
+
+	return nil
 }
 
 func TestSessionCreateWithOmnipresentRules(t *testing.T) {
 	// Set up mocks
-	mocks := getMocks(NUMBER_SERVERS)
-	mocksPolicydb := mocks.policydb.(*MockPolicyDBClient)
+	mockConfig := getTestConfig(NUMBER_SERVERS, gy.PerSessionInit)
+	mockControlParams := getMockControllerParams(NUMBER_SERVERS, mockConfig)
+	mocksPolicydb := &MockPolicyDBClient{}
 
 	// Get the controller for this imsi
 	idx, err := servicers.GetControllerIndexFromImsi(IMSI1, NUMBER_SERVERS)
 	assert.NoError(t, err)
-	mocksGx := mocks.gx[idx].(*MockPolicyClient)
+	mocksGx := mockControlParams[idx].PolicyClient.(*MockPolicyClient)
 
 	// send static rules back
 	mocksGx.On("SendCreditControlRequest", mock.Anything, mock.Anything,
@@ -519,12 +516,7 @@ func TestSessionCreateWithOmnipresentRules(t *testing.T) {
 	mocksPolicydb.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return([]policydb.ChargingKey{}, nil).Once()
 	mocksPolicydb.On("GetOmnipresentRules").Return([]string{"omnipresent_rule_1"}, []string{"omnipresent_base_1"})
 	ctx := context.Background()
-	srv := servicers.NewCentralSessionControllers(
-		mocks.gy,
-		mocks.gx,
-		mocks.policydb,
-		getTestConfig(NUMBER_SERVERS, gy.PerSessionInit),
-	)
+	srv := servicers.NewCentralSessionControllers(mockControlParams, mocksPolicydb)
 	response, err := srv.CreateSession(ctx, &protos.CreateSessionRequest{
 		Subscriber: &protos.SubscriberID{
 			Id: IMSI1,
@@ -543,22 +535,21 @@ func TestSessionCreateWithOmnipresentRules(t *testing.T) {
 }
 
 func TestSessionControllerTimeouts(t *testing.T) {
-	mocks := getMocks(NUMBER_SERVERS)
-	srv := servicers.NewCentralSessionControllers(
-		mocks.gy,
-		mocks.gx,
-		mocks.policydb,
-		getTestConfig(NUMBER_SERVERS, gy.PerSessionInit),
-	)
+	// Set up mocks
+	mockConfig := getTestConfig(NUMBER_SERVERS, gy.PerSessionInit)
+	mockControlParams := getMockControllerParams(NUMBER_SERVERS, mockConfig)
+	mocksPolicydb := &MockPolicyDBClient{}
+
+	srv := servicers.NewCentralSessionControllers(mockControlParams, mocksPolicydb)
 
 	// Get the controller for this imsi
 	idx1, err := servicers.GetControllerIndexFromImsi(IMSI1, NUMBER_SERVERS)
 	assert.NoError(t, err)
-	mocksGy_1 := mocks.gy[idx1].(*MockCreditClient)
+	mocksGy_1 := mockControlParams[idx1].CreditClient.(*MockCreditClient)
 
 	idx2, err := servicers.GetControllerIndexFromImsi(IMSI2, NUMBER_SERVERS)
 	assert.NoError(t, err)
-	mocksGy_2 := mocks.gy[idx2].(*MockCreditClient)
+	mocksGy_2 := mockControlParams[idx2].CreditClient.(*MockCreditClient)
 
 	ctx := context.Background()
 
@@ -628,19 +619,18 @@ func TestSessionControllerTimeouts(t *testing.T) {
 }
 
 func TestSessionTermination(t *testing.T) {
-	mocks := getMocks(NUMBER_SERVERS)
-	srv := servicers.NewCentralSessionControllers(
-		mocks.gy,
-		mocks.gx,
-		mocks.policydb,
-		getTestConfig(NUMBER_SERVERS, gy.PerSessionInit),
-	)
+	// Set up mocks
+	mockConfig := getTestConfig(NUMBER_SERVERS, gy.PerSessionInit)
+	mockControlParams := getMockControllerParams(NUMBER_SERVERS, mockConfig)
+	mocksPolicydb := &MockPolicyDBClient{}
+
+	srv := servicers.NewCentralSessionControllers(mockControlParams, mocksPolicydb)
 
 	// Get the controller for this imsi
 	idx, err := servicers.GetControllerIndexFromImsi(IMSI2, NUMBER_SERVERS)
 	assert.NoError(t, err)
-	mocksGx := mocks.gx[idx].(*MockPolicyClient)
-	mocksGy := mocks.gy[idx].(*MockCreditClient)
+	mocksGx := mockControlParams[idx].PolicyClient.(*MockPolicyClient)
+	mocksGy := mockControlParams[idx].CreditClient.(*MockCreditClient)
 
 	ctx := context.Background()
 
@@ -691,26 +681,24 @@ func TestSessionTermination(t *testing.T) {
 }
 
 func testGxUsageMonitoring(t *testing.T) {
-	mocks := getMocks(NUMBER_SERVERS)
-	srv := servicers.NewCentralSessionControllers(
-		mocks.gy,
-		mocks.gx,
-		mocks.policydb,
-		getTestConfig(NUMBER_SERVERS, gy.PerSessionInit),
-	)
+	// Set up mocks
+	mockConfig := getTestConfig(NUMBER_SERVERS, gy.PerSessionInit)
+	mockControlParams := getMockControllerParams(NUMBER_SERVERS, mockConfig)
+	mocksPolicydb := &MockPolicyDBClient{}
+
+	srv := servicers.NewCentralSessionControllers(mockControlParams, mocksPolicydb)
 	ctx := context.Background()
 
-	mocksPolicydb := mocks.policydb.(*MockPolicyDBClient)
 	// Get the controller for this imsi
 	idx_1, err := servicers.GetControllerIndexFromImsi(IMSI1, NUMBER_SERVERS)
 	assert.NoError(t, err)
-	mocksGx_1 := mocks.gx[idx_1].(*MockPolicyClient)
-	mocksGy_1 := mocks.gy[idx_1].(*MockCreditClient)
+	mocksGx_1 := mockControlParams[idx_1].PolicyClient.(*MockPolicyClient)
+	mocksGy_1 := mockControlParams[idx_1].CreditClient.(*MockCreditClient)
 
 	idx_2, err := servicers.GetControllerIndexFromImsi(IMSI2, NUMBER_SERVERS)
 	assert.NoError(t, err)
-	mocksGx_2 := mocks.gx[idx_2].(*MockPolicyClient)
-	mocksGy_2 := mocks.gy[idx_2].(*MockCreditClient)
+	mocksGx_2 := mockControlParams[idx_2].PolicyClient.(*MockPolicyClient)
+	mocksGy_2 := mockControlParams[idx_2].CreditClient.(*MockCreditClient)
 
 	// Return success for Gx Update
 	mocksGy_1.On("SendCreditControlRequest",
@@ -972,25 +960,24 @@ func TestGetHealthStatus(t *testing.T) {
 	err := initMconfig()
 	assert.NoError(t, err)
 
-	mocks := getMocks(NUMBER_SERVERS)
-	srv := servicers.NewCentralSessionControllers(
-		mocks.gy,
-		mocks.gx,
-		mocks.policydb,
-		getTestConfig(NUMBER_SERVERS, gy.PerSessionInit),
-	)
+	// Set up mocks
+	mockConfig := getTestConfig(NUMBER_SERVERS, gy.PerSessionInit)
+	mockControlParams := getMockControllerParams(NUMBER_SERVERS, mockConfig)
+	mocksPolicydb := &MockPolicyDBClient{}
+
+	srv := servicers.NewCentralSessionControllers(mockControlParams, mocksPolicydb)
 	ctx := context.Background()
 
 	// Get the controller for two imsis
 	idx_1, err := servicers.GetControllerIndexFromImsi(IMSI1, NUMBER_SERVERS)
 	assert.NoError(t, err)
-	mocksGx_1 := mocks.gx[idx_1].(*MockPolicyClient)
-	mocksGy_1 := mocks.gy[idx_1].(*MockCreditClient)
+	mocksGx_1 := mockControlParams[idx_1].PolicyClient.(*MockPolicyClient)
+	mocksGy_1 := mockControlParams[idx_1].CreditClient.(*MockCreditClient)
 
 	idx_2, err := servicers.GetControllerIndexFromImsi(IMSI2, NUMBER_SERVERS)
 	assert.NoError(t, err)
-	mocksGx_2 := mocks.gx[idx_2].(*MockPolicyClient)
-	mocksGy_2 := mocks.gy[idx_2].(*MockCreditClient)
+	mocksGx_2 := mockControlParams[idx_2].PolicyClient.(*MockPolicyClient)
+	mocksGy_2 := mockControlParams[idx_2].CreditClient.(*MockCreditClient)
 
 	// Return success for Gx/Gy CCR-Update in two different servers (2 PCRFs, 2 OCSs)
 	mocksGy_1.On("SendCreditControlRequest",
@@ -1082,15 +1069,17 @@ func TestGetHealthStatus(t *testing.T) {
 	assert.Equal(t, fegprotos.HealthStatus_UNHEALTHY, status.Health)
 }
 
-func getMocks(NUMBER_SERVERS int) *sessionMocks {
-	mks := sessionMocks{}
-
-	for i := 0; i < NUMBER_SERVERS; i++ {
-		mks.gx = append(mks.gx, &MockPolicyClient{})
-		mks.gy = append(mks.gy, &MockCreditClient{})
+func getMockControllerParams(numServers int, mockConfig []*servicers.SessionControllerConfig) []*servicers.ControllerParam {
+	controlParams := make([]*servicers.ControllerParam, 0, numServers)
+	for i := 0; i < numServers; i++ {
+		cp := &servicers.ControllerParam{
+			&MockCreditClient{},
+			&MockPolicyClient{},
+			mockConfig[i],
+		}
+		controlParams = append(controlParams, cp)
 	}
-	mks.policydb = &MockPolicyDBClient{}
-	return &mks
+	return controlParams
 }
 
 func getTestConfig(numberServers int, initMethod gy.InitMethod) []*servicers.SessionControllerConfig {
@@ -1208,40 +1197,40 @@ func returnDefaultGxUpdateResponse(args mock.Arguments) {
 
 func initMconfig() error {
 	fegConfig := `{
-		"configsByKey": {
-			"session_proxy": {
-				"@type": "type.googleapis.com/magma.mconfig.SessionProxyConfig",
-				"logLevel": "INFO",
-				"gx": {
-					"server": {
-						 "protocol": "tcp",
-						 "address": "",
-						 "retransmits": 3,
-						 "watchdogInterval": 1,
-						 "retryCount": 5,
-						 "productName": "magma",
-		 				"realm": "magma.com",
-		 				"host": "magma-fedgw.magma.com"
-					}
-				},
-				"gy": {
-					"server": {
-						 "protocol": "tcp",
-						 "address": "",
-						 "retransmits": 3,
-						 "watchdogInterval": 1,
-						 "retryCount": 5,
-						 "productName": "magma",
-		 				 "realm": "magma.com",
-		 				 "host": "magma-fedgw.magma.com"
-					},
-					"initMethod": "PER_KEY"
-				},
-				"requestFailureThreshold": 0.5,
-   				"minimumRequestThreshold": 1
-			}
-		}
-	}`
+      "configsByKey": {
+         "session_proxy": {
+            "@type": "type.googleapis.com/magma.mconfig.SessionProxyConfig",
+            "logLevel": "INFO",
+            "gx": {
+               "server": {
+                   "protocol": "tcp",
+                   "address": "",
+                   "retransmits": 3,
+                   "watchdogInterval": 1,
+                   "retryCount": 5,
+                   "productName": "magma",
+                  "realm": "magma.com",
+                  "host": "magma-fedgw.magma.com"
+               }
+            },
+            "gy": {
+               "server": {
+                   "protocol": "tcp",
+                   "address": "",
+                   "retransmits": 3,
+                   "watchdogInterval": 1,
+                   "retryCount": 5,
+                   "productName": "magma",
+                   "realm": "magma.com",
+                   "host": "magma-fedgw.magma.com"
+               },
+               "initMethod": "PER_KEY"
+            },
+            "requestFailureThreshold": 0.5,
+                "minimumRequestThreshold": 1
+         }
+      }
+   }`
 
 	err := mconfig.CreateLoadTempConfig(fegConfig)
 	if err != nil {
@@ -1372,16 +1361,17 @@ func getGxCCRMatcher(imsi string, ccrType credit_control.CreditRequestType) inte
 
 /***** UseGyForAuthOnlySuccess Test Cases *****/
 func TestSessionControllerUseGyForAuthOnlySuccess(t *testing.T) {
-	mocks := getMocks(NUMBER_SERVERS)
+	// Set up mocks
+	mockConfig := getTestConfig(NUMBER_SERVERS, gy.PerKeyInit)
+	mockControlParams := getMockControllerParams(NUMBER_SERVERS, mockConfig)
+	mocksPolicydb := &MockPolicyDBClient{}
 
-	cfg := getTestConfig(NUMBER_SERVERS, gy.PerKeyInit)
-	mocksPolicydb := mocks.policydb.(*MockPolicyDBClient)
 	// Get the controller for this imsi
 	idx, err := servicers.GetControllerIndexFromImsi(IMSI1, NUMBER_SERVERS)
 	assert.NoError(t, err)
-	mocksGx := mocks.gx[idx].(*MockPolicyClient)
-	mocksGy := mocks.gy[idx].(*MockCreditClient)
-	cfg[idx].UseGyForAuthOnly = true
+	mocksGx := mockControlParams[idx].PolicyClient.(*MockPolicyClient)
+	mocksGy := mockControlParams[idx].CreditClient.(*MockCreditClient)
+	mockConfig[idx].UseGyForAuthOnly = true
 
 	activationTime := time.Unix(1, 0)
 	deactivationTime := time.Unix(2, 0)
@@ -1419,13 +1409,9 @@ func TestSessionControllerUseGyForAuthOnlySuccess(t *testing.T) {
 		mock.MatchedBy(getGyCCRMatcher(IMSI1_NOPREFIX, credit_control.CRTInit)),
 	).Return(nil).Run(returnGySuccessNoRatingGroup).Once()
 
-	srv := servicers.NewCentralSessionControllers(
-		mocks.gy,
-		mocks.gx,
-		mocks.policydb,
-		cfg,
-	)
+	srv := servicers.NewCentralSessionControllers(mockControlParams, mocksPolicydb)
 	ctx := context.Background()
+
 	res, err := srv.CreateSession(ctx, &protos.CreateSessionRequest{
 		Subscriber: &protos.SubscriberID{
 			Id: IMSI1,
@@ -1443,17 +1429,17 @@ func TestSessionControllerUseGyForAuthOnlySuccess(t *testing.T) {
 }
 
 func TestSessionControllerUseGyForAuthOnlyNoRatingGroup(t *testing.T) {
-	mocks := getMocks(NUMBER_SERVERS)
-
-	cfg := getTestConfig(NUMBER_SERVERS, gy.PerKeyInit)
-	mocksPolicydb := mocks.policydb.(*MockPolicyDBClient)
+	// Set up mocks
+	mockConfig := getTestConfig(NUMBER_SERVERS, gy.PerKeyInit)
+	mockControlParams := getMockControllerParams(NUMBER_SERVERS, mockConfig)
+	mocksPolicydb := &MockPolicyDBClient{}
 
 	// Get the controller for this imsi
 	idx, err := servicers.GetControllerIndexFromImsi(IMSI1, NUMBER_SERVERS)
 	assert.NoError(t, err)
-	mocksGx := mocks.gx[idx].(*MockPolicyClient)
-	mocksGy := mocks.gy[idx].(*MockCreditClient)
-	cfg[idx].UseGyForAuthOnly = true
+	mocksGx := mockControlParams[idx].PolicyClient.(*MockPolicyClient)
+	mocksGy := mockControlParams[idx].CreditClient.(*MockCreditClient)
+	mockConfig[idx].UseGyForAuthOnly = true
 
 	// Send back DIAMETER_SUCCESS (2001) from gx
 	mocksGx.On("SendCreditControlRequest", mock.Anything, mock.Anything,
@@ -1490,12 +1476,7 @@ func TestSessionControllerUseGyForAuthOnlyNoRatingGroup(t *testing.T) {
 		mock.MatchedBy(getGyCCRMatcher(IMSI1_NOPREFIX, credit_control.CRTInit)),
 	).Return(nil).Run(returnGySuccessNoRatingGroup).Once()
 
-	srv := servicers.NewCentralSessionControllers(
-		mocks.gy,
-		mocks.gx,
-		mocks.policydb,
-		cfg,
-	)
+	srv := servicers.NewCentralSessionControllers(mockControlParams, mocksPolicydb)
 	ctx := context.Background()
 	_, err = srv.CreateSession(ctx, &protos.CreateSessionRequest{
 		Subscriber: &protos.SubscriberID{
@@ -1520,17 +1501,17 @@ func returnGySuccessNoRatingGroup(args mock.Arguments) {
 }
 
 func TestSessionControllerUseGyForAuthOnlyCreditLimitReached(t *testing.T) {
-	mocks := getMocks(NUMBER_SERVERS)
-
-	cfg := getTestConfig(NUMBER_SERVERS, gy.PerKeyInit)
-	mocksPolicydb := mocks.policydb.(*MockPolicyDBClient)
+	// Set up mocks
+	mockConfig := getTestConfig(NUMBER_SERVERS, gy.PerKeyInit)
+	mockControlParams := getMockControllerParams(NUMBER_SERVERS, mockConfig)
+	mocksPolicydb := &MockPolicyDBClient{}
 
 	// Get the controller for this imsi
 	idx, err := servicers.GetControllerIndexFromImsi(IMSI1, NUMBER_SERVERS)
 	assert.NoError(t, err)
-	mocksGx := mocks.gx[idx].(*MockPolicyClient)
-	mocksGy := mocks.gy[idx].(*MockCreditClient)
-	cfg[idx].UseGyForAuthOnly = true
+	mocksGx := mockControlParams[idx].PolicyClient.(*MockPolicyClient)
+	mocksGy := mockControlParams[idx].CreditClient.(*MockCreditClient)
+	mockConfig[idx].UseGyForAuthOnly = true
 
 	// Send back DIAMETER_SUCCESS (2001) from gx
 	mocksGx.On("SendCreditControlRequest", mock.Anything, mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
@@ -1565,12 +1546,7 @@ func TestSessionControllerUseGyForAuthOnlyCreditLimitReached(t *testing.T) {
 		mock.MatchedBy(getGyCCRMatcher(IMSI1_NOPREFIX, credit_control.CRTInit)),
 	).Return(nil).Run(returnGySuccessCreditLimitReached).Once()
 
-	srv := servicers.NewCentralSessionControllers(
-		mocks.gy,
-		mocks.gx,
-		mocks.policydb,
-		cfg,
-	)
+	srv := servicers.NewCentralSessionControllers(mockControlParams, mocksPolicydb)
 	ctx := context.Background()
 	_, err = srv.CreateSession(ctx, &protos.CreateSessionRequest{
 		Subscriber: &protos.SubscriberID{
@@ -1600,17 +1576,17 @@ func returnGySuccessCreditLimitReached(args mock.Arguments) {
 }
 
 func TestSessionControllerUseGyForAuthOnlySubscriberBarred(t *testing.T) {
-	mocks := getMocks(NUMBER_SERVERS)
-
-	cfg := getTestConfig(NUMBER_SERVERS, gy.PerKeyInit)
-	mocksPolicydb := mocks.policydb.(*MockPolicyDBClient)
+	// Set up mocks
+	mockConfig := getTestConfig(NUMBER_SERVERS, gy.PerKeyInit)
+	mockControlParams := getMockControllerParams(NUMBER_SERVERS, mockConfig)
+	mocksPolicydb := &MockPolicyDBClient{}
 
 	// Get the controller for this imsi
 	idx, err := servicers.GetControllerIndexFromImsi(IMSI1, NUMBER_SERVERS)
 	assert.NoError(t, err)
-	mocksGx := mocks.gx[idx].(*MockPolicyClient)
-	mocksGy := mocks.gy[idx].(*MockCreditClient)
-	cfg[idx].UseGyForAuthOnly = true
+	mocksGx := mockControlParams[idx].PolicyClient.(*MockPolicyClient)
+	mocksGy := mockControlParams[idx].CreditClient.(*MockCreditClient)
+	mockConfig[idx].UseGyForAuthOnly = true
 
 	// Send back DIAMETER_SUCCESS (2001) from gx
 	mocksGx.On("SendCreditControlRequest", mock.Anything, mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
@@ -1645,12 +1621,7 @@ func TestSessionControllerUseGyForAuthOnlySubscriberBarred(t *testing.T) {
 		mock.MatchedBy(getGyCCRMatcher(IMSI1_NOPREFIX, credit_control.CRTInit)),
 	).Return(nil).Run(returnGySuccessSubscriberBarred).Once()
 
-	srv := servicers.NewCentralSessionControllers(
-		mocks.gy,
-		mocks.gx,
-		mocks.policydb,
-		cfg,
-	)
+	srv := servicers.NewCentralSessionControllers(mockControlParams, mocksPolicydb)
 	ctx := context.Background()
 	_, err = srv.CreateSession(ctx, &protos.CreateSessionRequest{
 		Subscriber: &protos.SubscriberID{
@@ -1711,21 +1682,20 @@ func returnGxSuccessRevalidationTimer(args mock.Arguments) {
 
 func revalidationTimerTest(
 	t *testing.T,
-	srv *servicers.CentralSessionControllers,
-	mocks *sessionMocks,
+	srv servicers.CentralSessionControllerServerWithHealth,
+	controllerParams []*servicers.ControllerParam,
+	policyDb policydb.PolicyDBClient,
 	useGyForAuthOnly bool,
 	numberServers int,
 ) {
-
 	ctx := context.Background()
-
-	mocksPolicydb := mocks.policydb.(*MockPolicyDBClient)
+	mocksPolicydb := policyDb.(*MockPolicyDBClient)
 
 	// Get the controller for this imsi
 	idx, err := servicers.GetControllerIndexFromImsi(IMSI1, numberServers)
 	assert.NoError(t, err)
-	mocksGx := mocks.gx[idx].(*MockPolicyClient)
-	mocksGy := mocks.gy[idx].(*MockCreditClient)
+	mocksGx := controllerParams[idx].PolicyClient.(*MockPolicyClient)
+	mocksGy := controllerParams[idx].CreditClient.(*MockCreditClient)
 
 	mocksGx.On(
 		"SendCreditControlRequest",
@@ -1767,27 +1737,30 @@ func revalidationTimerTest(
 }
 
 func TestSessionControllerRevalidationTimerUsed(t *testing.T) {
-	mocks := getMocks(NUMBER_SERVERS)
+	// Set up mocks
+	mockConfig := getTestConfig(NUMBER_SERVERS, gy.PerSessionInit)
+	mockControlParams := getMockControllerParams(NUMBER_SERVERS, mockConfig)
+	mocksPolicydb := &MockPolicyDBClient{}
 
-	srv := servicers.NewCentralSessionControllers(
-		mocks.gy,
-		mocks.gx,
-		mocks.policydb,
-		getTestConfig(NUMBER_SERVERS, gy.PerSessionInit),
-	)
-	revalidationTimerTest(t, srv, mocks, false, NUMBER_SERVERS)
+	srv := servicers.NewCentralSessionControllers(mockControlParams, mocksPolicydb)
+
+	revalidationTimerTest(t, srv, mockControlParams, mocksPolicydb, false, NUMBER_SERVERS)
 }
 
 func TestSessionControllerUseGyForAuthOnlyRevalidationTimerUsed(t *testing.T) {
-	mocks := getMocks(1)
 
-	cfg := getTestConfig(1, gy.PerKeyInit)[0]
-	cfg.UseGyForAuthOnly = true
-	srv := servicers.NewCentralSessionControllers_SingleServer(
-		mocks.gy[0],
-		mocks.gx[0],
-		mocks.policydb,
-		cfg,
+	numberServers := 1
+	mockConfig := getTestConfig(numberServers, gy.PerKeyInit)
+	mockConfig[0].UseGyForAuthOnly = true
+	mockControlParams := getMockControllerParams(numberServers, mockConfig)
+	mockPolicyDb := &MockPolicyDBClient{}
+
+	srv := servicers.NewCentralSessionController(
+		mockControlParams[0].CreditClient,
+		mockControlParams[0].PolicyClient,
+		mockPolicyDb,
+		mockConfig[0],
 	)
-	revalidationTimerTest(t, srv, mocks, cfg.UseGyForAuthOnly, 1)
+
+	revalidationTimerTest(t, srv, mockControlParams, mockPolicyDb, mockConfig[0].UseGyForAuthOnly, 1)
 }

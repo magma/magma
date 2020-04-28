@@ -120,6 +120,8 @@ func (r mutationResolver) setNodePropertyCreate(ctx context.Context, setter *ent
 		setter.SetServiceValueID(value.ID)
 	case ent.TypeWorkOrder:
 		setter.SetWorkOrderValueID(value.ID)
+	case ent.TypeUser:
+		setter.SetUserValueID(value.ID)
 	default:
 		return fmt.Errorf("invalid node type: %d %s", value.ID, value.Type)
 	}
@@ -141,6 +143,8 @@ func (r mutationResolver) setNodePropertyUpdate(ctx context.Context, setter *ent
 		setter.SetServiceValueID(value.ID)
 	case ent.TypeWorkOrder:
 		setter.SetWorkOrderValueID(value.ID)
+	case ent.TypeUser:
+		setter.SetUserValueID(value.ID)
 	default:
 		return fmt.Errorf("invalid node type: %d %s", value.ID, value.Type)
 	}
@@ -2648,6 +2652,7 @@ func (r mutationResolver) updatePropValues(ctx context.Context, input *models.Pr
 		pu = pu.ClearLocationValue()
 		pu = pu.ClearServiceValue()
 		pu = pu.ClearWorkOrderValue()
+		pu = pu.ClearUserValue()
 	}
 
 	return pu.Exec(ctx)

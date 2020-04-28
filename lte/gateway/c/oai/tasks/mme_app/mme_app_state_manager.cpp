@@ -156,7 +156,7 @@ void MmeNasStateManager::create_hashtables() {
       "Problem with mme_ue_s1ap_id_ue_context_htbl in MME_APP");
   btrunc(b, 0);
   bassigncstr(b, UE_ID_UE_CTXT_TABLE_NAME);
-  state_imsi_ht = hashtable_ts_create(
+  state_ue_ht = hashtable_ts_create(
       max_ue_htbl_lists_, nullptr, mme_app_state_free_ue_context, b);
   btrunc(b, 0);
   bassigncstr(b, ENB_UE_ID_MME_UE_ID_TABLE_NAME);
@@ -188,7 +188,7 @@ void MmeNasStateManager::clear_mme_nas_hashtables() {
     return;
   }
 
-  hashtable_ts_destroy(state_imsi_ht);
+  hashtable_ts_destroy(state_ue_ht);
   hashtable_uint64_ts_destroy(
       state_cache_p->mme_ue_contexts.imsi_mme_ue_id_htbl);
   hashtable_uint64_ts_destroy(
@@ -224,7 +224,7 @@ int MmeNasStateManager::read_ue_state_from_db() {
       MmeNasStateConverter::proto_to_ue(ue_proto, ue_context);
 
       hashtable_ts_insert(
-          state_imsi_ht, ue_context->mme_ue_s1ap_id, (void*) ue_context);
+          state_ue_ht, ue_context->mme_ue_s1ap_id, (void*) ue_context);
       OAILOG_DEBUG(
           log_task,
           "Inserted UE state with key mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT,

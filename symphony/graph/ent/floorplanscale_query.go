@@ -294,6 +294,9 @@ func (fpsq *FloorPlanScaleQuery) prepareQuery(ctx context.Context) error {
 		}
 		fpsq.sql = prev
 	}
+	if err := floorplanscale.Policy.EvalQuery(ctx, fpsq); err != nil {
+		return err
+	}
 	return nil
 }
 

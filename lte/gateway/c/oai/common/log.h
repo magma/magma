@@ -342,7 +342,7 @@ void log_message_prefix_id(
     const char* source_fileP,
     unsigned int line_numP,
     uint64_t prefix_id,
-    char* format, ...)
+    const char* format, ...)
     __attribute__((format(printf, 6, 7)));
 
 void log_message_int(

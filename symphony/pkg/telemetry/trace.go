@@ -38,6 +38,11 @@ func MustRegisterTraceExporter(name string, f TraceExporterInitFunc) {
 	}
 }
 
+// UnregisterTraceExporter unregisters a trace exporter.
+func UnregisterTraceExporter(name string) {
+	traceExporters.Delete(name)
+}
+
 // GetTraceExporter gets the specified trace exporter passing in the options to the exporter init function.
 func GetTraceExporter(name string, opts TraceExporterOptions) (trace.Exporter, error) {
 	f, ok := traceExporters.Load(name)

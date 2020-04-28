@@ -22,8 +22,7 @@ type GatewayCwfConfigs struct {
 	AllowedGrePeers AllowedGrePeers `json:"allowed_gre_peers"`
 
 	// gateway health configs
-	// Required: true
-	GatewayHealthConfigs *GatewayHealthConfigs `json:"gateway_health_configs"`
+	GatewayHealthConfigs *GatewayHealthConfigs `json:"gateway_health_configs,omitempty"`
 
 	// ipdr export dst
 	IPDRExportDst *IPDRExportDst `json:"ipdr_export_dst,omitempty"`
@@ -76,8 +75,8 @@ func (m *GatewayCwfConfigs) validateAllowedGrePeers(formats strfmt.Registry) err
 
 func (m *GatewayCwfConfigs) validateGatewayHealthConfigs(formats strfmt.Registry) error {
 
-	if err := validate.Required("gateway_health_configs", "body", m.GatewayHealthConfigs); err != nil {
-		return err
+	if swag.IsZero(m.GatewayHealthConfigs) { // not required
+		return nil
 	}
 
 	if m.GatewayHealthConfigs != nil {

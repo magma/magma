@@ -894,7 +894,6 @@ definitions:
     description: CWF configuration for a gateway
     required:
       - allowed_gre_peers
-      - gateway_health_configs
     properties:
       allowed_gre_peers:
         $ref: '#/definitions/allowed_gre_peers'

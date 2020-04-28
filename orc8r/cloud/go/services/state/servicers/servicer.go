@@ -31,7 +31,7 @@ type stateServicer struct {
 // NewStateServicer returns a state server backed by storage passed in
 func NewStateServicer(factory blobstore.BlobStorageFactory) (protos.StateServiceServer, error) {
 	if factory == nil {
-		return nil, fmt.Errorf("Storage factory is nil")
+		return nil, fmt.Errorf("storage factory is nil")
 	}
 	return &stateServicer{factory}, nil
 }
@@ -56,7 +56,10 @@ func (srv *stateServicer) GetStates(context context.Context, req *protos.GetStat
 		}
 		return &protos.GetStatesResponse{States: BlobsToStates(states)}, store.Commit()
 	} else {
-		searchResults, err := store.Search(blobstore.CreateSearchFilter(&req.NetworkID, req.TypeFilter, req.IdFilter))
+		searchResults, err := store.Search(
+			blobstore.CreateSearchFilter(&req.NetworkID, req.TypeFilter, req.IdFilter),
+			blobstore.GetDefaultLoadCriteria(),
+		)
 		if err != nil {
 			_ = store.Rollback()
 			return nil, status.Errorf(codes.Internal, err.Error())
@@ -213,7 +216,7 @@ func wrapStateWithAdditionalInfo(state *protos.State, hwID string, time uint64, 
 }
 
 func addWrapperAndMakeBlobs(states []*protos.State, hwID string, timeMs uint64, certExpiry int64) ([]blobstore.Blob, error) {
-	blobs := []blobstore.Blob{}
+	var blobs []blobstore.Blob
 	for _, state := range states {
 		wrappedValue, err := wrapStateWithAdditionalInfo(state, hwID, timeMs, certExpiry)
 		if err != nil {

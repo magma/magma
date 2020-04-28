@@ -130,3 +130,15 @@ generic_command_config:
     - name: reboot_all_enodeb
       command: "enodebd_cli.py reboot_all_enodeb"
       allow_params: False
+    - name: health
+      command: "health_cli.py {}"
+      allow_params: True
+    - name: agw_health
+      command: "agw_health_cli.py {}"
+      allow_params: True
+    - name: get_flows
+      command: "sudo pipelined_cli.py debug display_flows"
+      allow_params: False
+    - name: get_subscriber_table
+      command: "mobility_cli.py get_subscriber_table"
+      allow_params: False

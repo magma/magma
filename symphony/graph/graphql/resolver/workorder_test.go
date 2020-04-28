@@ -1840,6 +1840,8 @@ func TestTechnicianUploadDataToWorkOrder(t *testing.T) {
 
 	wo := createWorkOrder(ctx, t, *r, "Foo")
 	u := viewer.FromContext(ctx).User()
+	mimeType := "image/jpeg"
+	sizeInBytes := 120
 	wo, err := mr.EditWorkOrder(ctx, models.EditWorkOrderInput{
 		ID:         wo.ID,
 		Name:       longWorkOrderName,
@@ -1856,6 +1858,24 @@ func TestTechnicianUploadDataToWorkOrder(t *testing.T) {
 					Title: "CellScan",
 					Type:  models.CheckListItemTypeCellScan,
 					Index: pointer.ToInt(1),
+				}, {
+					Title: "Files",
+					Type:  models.CheckListItemTypeFiles,
+					Index: pointer.ToInt(2),
+					Files: []*models.FileInput{
+						{
+							StoreKey:    "StoreKeyAlreadyIn",
+							FileName:    "FileAlreadyInWorkOrder",
+							SizeInBytes: &sizeInBytes,
+							MimeType:    &mimeType,
+						},
+						{
+							StoreKey:    "StoreKeyToBeDeleted",
+							FileName:    "FileToBeDeleted",
+							SizeInBytes: &sizeInBytes,
+							MimeType:    &mimeType,
+						},
+					},
 				}},
 		}},
 	})
@@ -1864,6 +1884,10 @@ func TestTechnicianUploadDataToWorkOrder(t *testing.T) {
 	fooID, err := wo.QueryCheckListCategories().QueryCheckListItems().Where(checklistitem.TypeEQ("simple")).OnlyID(ctx)
 	require.NoError(t, err)
 	cellScanID, err := wo.QueryCheckListCategories().QueryCheckListItems().Where(checklistitem.TypeEQ("cell_scan")).OnlyID(ctx)
+	require.NoError(t, err)
+	filesID, err := wo.QueryCheckListCategories().QueryCheckListItems().Where(checklistitem.TypeEQ("files")).OnlyID(ctx)
+	require.NoError(t, err)
+	fileToKeepID, err := wo.QueryCheckListCategories().QueryCheckListItems().Where(checklistitem.TypeEQ("files")).QueryFiles().Where(file.StoreKey("StoreKeyAlreadyIn")).OnlyID(ctx)
 	require.NoError(t, err)
 	techInput := models.TechnicianWorkOrderUploadInput{
 		WorkOrderID: wo.ID,
@@ -1879,6 +1903,24 @@ func TestTechnicianUploadDataToWorkOrder(t *testing.T) {
 					SignalStrength: -93,
 				}},
 			},
+			{
+				ID: filesID,
+				FilesData: []*models.FileInput{ // Adding one new file, updating an existing file, deleting a file
+					{
+						StoreKey:    "StoreKeyToAdd",
+						FileName:    "FileNameToAdd",
+						SizeInBytes: &sizeInBytes,
+						MimeType:    &mimeType,
+					},
+					{
+						ID:          &fileToKeepID,
+						StoreKey:    "StoreKeyAlreadyIn",
+						FileName:    "FileAlreadyInWorkOrder",
+						SizeInBytes: &sizeInBytes,
+						MimeType:    &mimeType,
+					},
+				},
+			},
 		},
 	}
 
@@ -1893,6 +1935,13 @@ func TestTechnicianUploadDataToWorkOrder(t *testing.T) {
 					CellData []struct {
 						NetworkType    string
 						SignalStrength int
+					}
+					Files []struct {
+						StoreKey    string
+						FileName    string
+						SizeInBytes int
+						MimeType    string
+						FileType    models.FileType
 					}
 				}
 			}
@@ -1911,6 +1960,13 @@ func TestTechnicianUploadDataToWorkOrder(t *testing.T) {
 							networkType
 							signalStrength
 						}
+						files {
+							storeKey
+							fileName
+							sizeInBytes
+							mimeType
+							fileType
+						}
 					}
 				}
 			}
@@ -1920,15 +1976,25 @@ func TestTechnicianUploadDataToWorkOrder(t *testing.T) {
 	)
 
 	require.Len(t, rsp.TechnicianWorkOrderUploadData.CheckListCategories, 1)
-	require.Len(t, rsp.TechnicianWorkOrderUploadData.CheckListCategories[0].CheckList, 2)
+	require.Len(t, rsp.TechnicianWorkOrderUploadData.CheckListCategories[0].CheckList, 3)
 
 	for _, item := range rsp.TechnicianWorkOrderUploadData.CheckListCategories[0].CheckList {
-		if item.Type == models.CheckListItemTypeSimple {
+		switch item.Type {
+		case models.CheckListItemTypeSimple:
 			require.True(t, *item.Checked)
-		} else {
+		case models.CheckListItemTypeCellScan:
 			require.Equal(t, models.CellularNetworkTypeLte.String(), item.CellData[0].NetworkType)
 			require.Equal(t, -93, item.CellData[0].SignalStrength)
+		case models.CheckListItemTypeFiles:
+			require.Equal(t, 2, len(item.Files))
+
+			require.Equal(t, "StoreKeyAlreadyIn", item.Files[0].StoreKey)
+			require.Equal(t, 120, item.Files[0].SizeInBytes)
+			require.Equal(t, models.FileTypeImage, item.Files[0].FileType)
+
+			require.Equal(t, "StoreKeyToAdd", item.Files[1].StoreKey)
 		}
+
 	}
 
 }

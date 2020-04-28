@@ -5,9 +5,6 @@
 
 from typing import Dict, List, Optional, Sequence, Tuple
 
-from gql.gql.client import OperationException
-from gql.gql.reporter import FailedOperationException
-
 from .._utils import (
     format_properties,
     get_port_definition_input,
@@ -15,14 +12,14 @@ from .._utils import (
     get_property_type_input,
 )
 from ..client import SymphonyClient
-from ..consts import (
-    Entity,
+from ..common.data_class import (
     Equipment,
     EquipmentPortType,
     EquipmentType,
     PropertyDefinition,
     PropertyValue,
 )
+from ..common.data_enum import Entity
 from ..exceptions import EntityNotFoundError, EquipmentTypeNotFoundException
 from ..graphql.add_equipment_type_input import AddEquipmentTypeInput
 from ..graphql.add_equipment_type_mutation import AddEquipmentTypeMutation
@@ -44,12 +41,8 @@ from .property_type import (
 )
 
 
-ADD_EQUIPMENT_TYPE_MUTATION_NAME = "addEquipmentType"
-EDIT_EQUIPMENT_TYPE_MUTATION_NAME = "editEquipmentType"
-
-
 def _populate_equipment_types(client: SymphonyClient) -> None:
-    edges = EquipmentTypesQuery.execute(client).equipmentTypes.edges
+    edges = EquipmentTypesQuery.execute(client).edges
 
     for edge in edges:
         node = edge.node
@@ -65,7 +58,7 @@ def _populate_equipment_types(client: SymphonyClient) -> None:
 
 
 def _populate_equipment_port_types(client: SymphonyClient) -> None:
-    edges = EquipmentPortTypesQuery.execute(client).equipmentPortTypes.edges
+    edges = EquipmentPortTypesQuery.execute(client).edges
 
     for edge in edges:
         node = edge.node
@@ -95,7 +88,7 @@ def _add_equipment_type(
             ports=port_definitions,
             properties=properties,
         ),
-    ).__dict__[ADD_EQUIPMENT_TYPE_MUTATION_NAME]
+    )
 
 
 def get_or_create_equipment_type(
@@ -126,7 +119,7 @@ def get_or_create_equipment_type(
             position_list (List[str]): list of positions names
 
         Returns:
-            `pyinventory.consts.EquipmentType` object
+            `pyinventory.common.data_class.EquipmentType` object
 
         Raises:
             FailedOperationException: internal inventory error
@@ -168,7 +161,7 @@ def _edit_equipment_type(
             ports=port_definitions,
             properties=properties,
         ),
-    ).__dict__[EDIT_EQUIPMENT_TYPE_MUTATION_NAME]
+    )
 
 
 def _update_equipment_type(
@@ -181,35 +174,15 @@ def _update_equipment_type(
     port_definitions: List[EquipmentPortInput],
 ) -> EquipmentType:
 
-    edit_equipment_type_variables = {
-        "name": name,
-        "category": category,
-        "positionDefinitions": position_definitions,
-        "portDefinitions": port_definitions,
-        "properties": properties,
-    }
-
-    try:
-        equipment_type = _edit_equipment_type(
-            client=client,
-            equipment_type_id=equipment_type_id,
-            name=name,
-            category=category,
-            properties=properties,
-            position_definitions=position_definitions,
-            port_definitions=port_definitions,
-        )
-        client.reporter.log_successful_operation(
-            EDIT_EQUIPMENT_TYPE_MUTATION_NAME, edit_equipment_type_variables
-        )
-    except OperationException as e:
-        raise FailedOperationException(
-            client.reporter,
-            e.err_msg,
-            e.err_id,
-            EDIT_EQUIPMENT_TYPE_MUTATION_NAME,
-            edit_equipment_type_variables,
-        )
+    equipment_type = _edit_equipment_type(
+        client=client,
+        equipment_type_id=equipment_type_id,
+        name=name,
+        category=category,
+        properties=properties,
+        position_definitions=position_definitions,
+        port_definitions=port_definitions,
+    )
     equipment_type = EquipmentType(
         name=equipment_type.name,
         category=equipment_type.category,
@@ -249,7 +222,7 @@ def add_equipment_type(
             position_list (List[str]): list of positions names
 
         Returns:
-            `pyinventory.consts.EquipmentType` object
+            `pyinventory.common.data_class.EquipmentType` object
 
         Raises:
             FailedOperationException: internal inventory error
@@ -274,35 +247,14 @@ def add_equipment_type(
     position_definitions = [
         EquipmentPositionInput(name=position) for position in position_list
     ]
-
-    add_equipment_type_variables = {
-        "name": name,
-        "category": category,
-        "positionDefinitions": position_definitions,
-        "portDefinitions": port_definitions,
-        "properties": new_property_types,
-    }
-    try:
-        equipment_type = _add_equipment_type(
-            client,
-            name,
-            category,
-            new_property_types,
-            position_definitions,
-            port_definitions,
-        )
-        client.reporter.log_successful_operation(
-            ADD_EQUIPMENT_TYPE_MUTATION_NAME, add_equipment_type_variables
-        )
-    except OperationException as e:
-        raise FailedOperationException(
-            client.reporter,
-            e.err_msg,
-            e.err_id,
-            ADD_EQUIPMENT_TYPE_MUTATION_NAME,
-            add_equipment_type_variables,
-        )
-
+    equipment_type = _add_equipment_type(
+        client,
+        name,
+        category,
+        new_property_types,
+        position_definitions,
+        port_definitions,
+    )
     equipment_type = EquipmentType(
         name=equipment_type.name,
         category=equipment_type.category,
@@ -331,7 +283,7 @@ def edit_equipment_type(
             - str - port type name
 
         Returns:
-            `pyinventory.consts.EquipmentType` object
+            `pyinventory.common.data_class.EquipmentType` object
 
         Raises:
             FailedOperationException: internal inventory error
@@ -385,7 +337,7 @@ def copy_equipment_type(
             new_equipment_type_name (str): new equipment type name
 
         Returns:
-            `pyinventory.consts.EquipmentType` object
+            `pyinventory.common.data_class.EquipmentType` object
 
         Raises:
             FailedOperationException: internal inventory error
@@ -515,10 +467,10 @@ def edit_equipment_type_property_type(
         Args:
             equipment_type_name (str): existing equipment type name
             property_type_name (str): existing property type name
-            new_property_definition ( `pyinventory.consts.PropertyDefinition` ): new property definition
+            new_property_definition ( `pyinventory.common.data_class.PropertyDefinition` ): new property definition
 
         Returns:
-            pyinventory.consts.EquipmentType object
+            `pyinventory.common.data_class.EquipmentType`
 
         Raises:
             `pyinventory.exceptions.EntityNotFoundError`: if property type name is not found
@@ -569,7 +521,7 @@ def delete_equipment_type_with_equipments(
     """Delete equipment type with existing equipments.
 
         Args:
-            equipment_type ( `pyinventory.consts.EquipmentType` ): equipment type object
+            equipment_type ( `pyinventory.common.data_class.EquipmentType` ): equipment type object
 
         Raises:
             `pyinventory.exceptions.EntityNotFoundError`: if equipment_type does not exist
@@ -588,7 +540,7 @@ def delete_equipment_type_with_equipments(
     """
     equipment_type_with_equipments = EquipmentTypeEquipmentQuery.execute(
         client, id=equipment_type.id
-    ).equipmentType
+    )
     if not equipment_type_with_equipments:
         raise EntityNotFoundError(
             entity=Entity.EquipmentType, entity_id=equipment_type.id

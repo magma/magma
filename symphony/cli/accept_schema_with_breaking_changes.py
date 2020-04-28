@@ -2,7 +2,7 @@
 
 from distutils.version import LooseVersion
 
-from pyinventory.consts import __version__ as pyinventory_version
+from pyinventory.common.constant import __version__ as pyinventory_version
 from schema_versioning_utils import (
     add_current_schema_with_version,
     get_minimal_supported_version,

@@ -483,6 +483,9 @@ func (etq *EquipmentTypeQuery) prepareQuery(ctx context.Context) error {
 		}
 		etq.sql = prev
 	}
+	if err := equipmenttype.Policy.EvalQuery(ctx, etq); err != nil {
+		return err
+	}
 	return nil
 }
 

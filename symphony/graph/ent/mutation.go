@@ -15590,6 +15590,8 @@ type PropertyMutation struct {
 	clearedservice_value    bool
 	work_order_value        *int
 	clearedwork_order_value bool
+	user_value              *int
+	cleareduser_value       bool
 }
 
 var _ ent.Mutation = (*PropertyMutation)(nil)
@@ -16520,6 +16522,45 @@ func (m *PropertyMutation) ResetWorkOrderValue() {
 	m.clearedwork_order_value = false
 }
 
+// SetUserValueID sets the user_value edge to User by id.
+func (m *PropertyMutation) SetUserValueID(id int) {
+	m.user_value = &id
+}
+
+// ClearUserValue clears the user_value edge to User.
+func (m *PropertyMutation) ClearUserValue() {
+	m.cleareduser_value = true
+}
+
+// UserValueCleared returns if the edge user_value was cleared.
+func (m *PropertyMutation) UserValueCleared() bool {
+	return m.cleareduser_value
+}
+
+// UserValueID returns the user_value id in the mutation.
+func (m *PropertyMutation) UserValueID() (id int, exists bool) {
+	if m.user_value != nil {
+		return *m.user_value, true
+	}
+	return
+}
+
+// UserValueIDs returns the user_value ids in the mutation.
+// Note that ids always returns len(ids) <= 1 for unique edges, and you should use
+// UserValueID instead. It exists only for internal usage by the builders.
+func (m *PropertyMutation) UserValueIDs() (ids []int) {
+	if id := m.user_value; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUserValue reset all changes of the user_value edge.
+func (m *PropertyMutation) ResetUserValue() {
+	m.user_value = nil
+	m.cleareduser_value = false
+}
+
 // Op returns the operation name.
 func (m *PropertyMutation) Op() Op {
 	return m.op
@@ -16885,7 +16926,7 @@ func (m *PropertyMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this
 // mutation.
 func (m *PropertyMutation) AddedEdges() []string {
-	edges := make([]string, 0, 12)
+	edges := make([]string, 0, 13)
 	if m._type != nil {
 		edges = append(edges, property.EdgeType)
 	}
@@ -16921,6 +16962,9 @@ func (m *PropertyMutation) AddedEdges() []string {
 	}
 	if m.work_order_value != nil {
 		edges = append(edges, property.EdgeWorkOrderValue)
+	}
+	if m.user_value != nil {
+		edges = append(edges, property.EdgeUserValue)
 	}
 	return edges
 }
@@ -16977,6 +17021,10 @@ func (m *PropertyMutation) AddedIDs(name string) []ent.Value {
 		if id := m.work_order_value; id != nil {
 			return []ent.Value{*id}
 		}
+	case property.EdgeUserValue:
+		if id := m.user_value; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
@@ -16984,7 +17032,7 @@ func (m *PropertyMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this
 // mutation.
 func (m *PropertyMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 12)
+	edges := make([]string, 0, 13)
 	return edges
 }
 
@@ -16999,7 +17047,7 @@ func (m *PropertyMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this
 // mutation.
 func (m *PropertyMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 12)
+	edges := make([]string, 0, 13)
 	if m.cleared_type {
 		edges = append(edges, property.EdgeType)
 	}
@@ -17036,6 +17084,9 @@ func (m *PropertyMutation) ClearedEdges() []string {
 	if m.clearedwork_order_value {
 		edges = append(edges, property.EdgeWorkOrderValue)
 	}
+	if m.cleareduser_value {
+		edges = append(edges, property.EdgeUserValue)
+	}
 	return edges
 }
 
@@ -17067,6 +17118,8 @@ func (m *PropertyMutation) EdgeCleared(name string) bool {
 		return m.clearedservice_value
 	case property.EdgeWorkOrderValue:
 		return m.clearedwork_order_value
+	case property.EdgeUserValue:
+		return m.cleareduser_value
 	}
 	return false
 }
@@ -17110,6 +17163,9 @@ func (m *PropertyMutation) ClearEdge(name string) error {
 		return nil
 	case property.EdgeWorkOrderValue:
 		m.ClearWorkOrderValue()
+		return nil
+	case property.EdgeUserValue:
+		m.ClearUserValue()
 		return nil
 	}
 	return fmt.Errorf("unknown Property unique edge %s", name)
@@ -17155,6 +17211,9 @@ func (m *PropertyMutation) ResetEdge(name string) error {
 		return nil
 	case property.EdgeWorkOrderValue:
 		m.ResetWorkOrderValue()
+		return nil
+	case property.EdgeUserValue:
+		m.ResetUserValue()
 		return nil
 	}
 	return fmt.Errorf("unknown Property edge %s", name)

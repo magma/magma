@@ -17,10 +17,11 @@ from pyinventory.api.port_type import add_equipment_port_type
 from pyinventory.api.service import (
     add_service,
     add_service_endpoint,
+    add_service_link,
     add_service_type,
     get_service,
 )
-from pyinventory.consts import PropertyDefinition
+from pyinventory.common.data_class import PropertyDefinition
 from pyinventory.graphql.property_kind_enum import PropertyKind
 
 from .grpc.rpc_pb2_grpc import TenantServiceStub
@@ -86,7 +87,6 @@ class TestService(BaseTest):
             service_type="Internet Access",
             customer=None,
             properties_dict={"Address Family": "v4"},
-            links=[],
         )
         fetch_service = get_service(client=self.client, id=service.id)
         self.assertEqual(service, fetch_service)
@@ -145,8 +145,9 @@ class TestService(BaseTest):
             service_type="Internet Access",
             customer=None,
             properties_dict={"Address Family": "v4"},
-            links=[link1, link2],
         )
+        for link in [link1, link2]:
+            add_service_link(client=self.client, service=service, link=link)
         # TODO add service_endpoint_type api
         add_service_endpoint(client=self.client, service=service, port=endpoint_port)
 
@@ -168,6 +169,5 @@ class TestService(BaseTest):
             service_type="Internet Access",
             customer=customer,
             properties_dict={},
-            links=[],
         )
         self.assertEqual(customer, service.customer)

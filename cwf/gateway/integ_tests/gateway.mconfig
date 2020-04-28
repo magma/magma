@@ -122,36 +122,40 @@
    "@type": "type.googleapis.com/magma.mconfig.SessionProxyConfig",
    "logLevel": "INFO",
    "gx": {
-    "server": {
-     "protocol": "tcp",
-     "address": "127.0.0.1:50003",
-     "retransmits": 0,
-     "watchdogInterval": 0,
-     "retryCount": 0,
-     "localAddress": "127.0.0.1:50004",
-     "productName": "magma",
-     "realm": "magma.svc.cluster.local",
-     "host": "feg.magma.svc.cluster.local",
-     "destRealm": "epc.mnc001.mcc001.3gppnetwork.org",
-     "destHost": "pcrf.epc.mnc001.mcc001.3gppnetwork.org",
-     "disableDestHost": false
-    }
+    "servers": [
+      {
+       "protocol": "tcp",
+       "address": "127.0.0.1:50003",
+       "retransmits": 0,
+       "watchdogInterval": 0,
+       "retryCount": 0,
+       "localAddress": "127.0.0.1:50004",
+       "productName": "magma",
+       "realm": "magma.svc.cluster.local",
+       "host": "feg.magma.svc.cluster.local",
+       "destRealm": "epc.mnc001.mcc001.3gppnetwork.org",
+       "destHost": "pcrf.epc.mnc001.mcc001.3gppnetwork.org",
+       "disableDestHost": false
+      }
+    ]
    },
    "gy": {
-    "server": {
-     "protocol": "tcp",
-     "address": "127.0.0.1:50001",
-     "retransmits": 0,
-     "watchdogInterval": 0,
-     "retryCount": 0,
-     "localAddress": "127.0.0.1:50002",
-     "productName": "magma",
-     "realm": "magma.svc.cluster.local",
-     "host": "feg.magma.svc.cluster.local",
-     "destRealm": "epc.mnc001.mcc001.3gppnetwork.org",
-     "destHost": "sdp1c.epc.mnc001.mcc001.3gppnetwork.org",
-     "disableDestHost": false
-    },
+    "servers": [
+      {
+       "protocol": "tcp",
+       "address": "127.0.0.1:50001",
+       "retransmits": 0,
+       "watchdogInterval": 0,
+       "retryCount": 0,
+       "localAddress": "127.0.0.1:50002",
+       "productName": "magma",
+       "realm": "magma.svc.cluster.local",
+       "host": "feg.magma.svc.cluster.local",
+       "destRealm": "epc.mnc001.mcc001.3gppnetwork.org",
+       "destHost": "sdp1c.epc.mnc001.mcc001.3gppnetwork.org",
+       "disableDestHost": false
+      }
+    ],
     "initMethod": "PER_KEY"
    },
    "requestFailureThreshold": 0.5,

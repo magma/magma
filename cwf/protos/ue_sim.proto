@@ -32,6 +32,7 @@ message UEConfig {
 
 message AuthenticateRequest {
     string imsi = 1;
+    string calledStationID = 2;
 }
 
 message AuthenticateResponse {
@@ -40,6 +41,7 @@ message AuthenticateResponse {
 
 message DisconnectRequest {
     string imsi = 1;
+    string calledStationID = 2;
 }
 
 message DisconnectResponse {

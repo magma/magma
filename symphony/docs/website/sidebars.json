@@ -2,7 +2,8 @@
   "wiki": {
     "General": [
       "team-processes",
-      "release-notes"
+      "release-notes",
+      "permission-model"
     ],
     "Inventory": [
       "inventory-intro",
@@ -15,7 +16,8 @@
     ],
     "Mobile App": [
       "mobile-app-intro",
-      "root-device"
+      "root-device",
+      "mobile-app-flow"
     ],
     "API": [
       "py-inventory",

@@ -118,8 +118,7 @@ func TestGxReAuthWithMidSessionPolicyRemoval(t *testing.T) {
 	assert.Nil(t, record3, fmt.Sprintf("Policy usage record for imsi: %v was not removed", imsi))
 
 	// Trigger disconnection
-	_, err = tr.Disconnect(imsi)
-	assert.NoError(t, err)
+	tr.DisconnectAndAssertSuccess(imsi)
 	fmt.Println("wait for flows to get deactivated")
 	time.Sleep(3 * time.Second)
 }
@@ -176,6 +175,7 @@ func TestGxReAuthWithMidSessionPoliciesRemoval(t *testing.T) {
 	tr.WaitForReAuthToProcess()
 
 	// Check ReAuth success
+	assert.NotNil(t, raa)
 	assert.Contains(t, raa.SessionId, "IMSI"+imsi)
 	assert.Equal(t, diam.Success, int(raa.ResultCode))
 
@@ -191,8 +191,7 @@ func TestGxReAuthWithMidSessionPoliciesRemoval(t *testing.T) {
 	assert.Nil(t, record3, fmt.Sprintf("Policy usage record for imsi: %v was not removed", imsi))
 
 	// trigger disconnection
-	_, err = tr.Disconnect(imsi)
-	assert.NoError(t, err)
+	tr.DisconnectAndAssertSuccess(imsi)
 	fmt.Println("wait for flows to get deactivated")
 	time.Sleep(3 * time.Second)
 }
@@ -289,8 +288,7 @@ func TestGxReAuthWithMidSessionPolicyInstall(t *testing.T) {
 	}
 
 	// trigger disconnection
-	_, err = tr.Disconnect(imsi)
-	assert.NoError(t, err)
+	tr.DisconnectAndAssertSuccess(imsi)
 	fmt.Println("wait for flows to get deactivated")
 	time.Sleep(3 * time.Second)
 }
@@ -393,8 +391,7 @@ func TestGxReAuthWithMidSessionPolicyInstallAndRemoval(t *testing.T) {
 	assert.True(t, record2.BytesTx <= uint64(500*KiloBytes+Buffer), fmt.Sprintf("policy usage: %v", record2))
 
 	// trigger disconnection
-	_, err = tr.Disconnect(imsi)
-	assert.NoError(t, err)
+	tr.DisconnectAndAssertSuccess(imsi)
 	fmt.Println("wait for flows to get deactivated")
 	time.Sleep(3 * time.Second)
 }
@@ -476,8 +473,7 @@ func TestGxReAuthQuotaRefill(t *testing.T) {
 	assert.True(t, record2.BytesTx <= uint64(1*MegaBytes+Buffer), fmt.Sprintf("policy usage: %v", record2))
 
 	// trigger disconnection
-	_, err = tr.Disconnect(imsi)
-	assert.NoError(t, err)
+	tr.DisconnectAndAssertSuccess(imsi)
 	fmt.Println("wait for flows to get deactivated")
 	time.Sleep(3 * time.Second)
 }

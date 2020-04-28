@@ -9,7 +9,7 @@ from typing import Generator, Optional
 import filetype
 
 from ..client import SymphonyClient
-from ..consts import Document, Location, SiteSurvey
+from ..common.data_class import Document, Location, SiteSurvey
 from ..graphql.add_image_input import AddImageInput
 from ..graphql.add_image_mutation import AddImageMutation
 from ..graphql.delete_image_mutation import DeleteImageMutation
@@ -125,7 +125,7 @@ def add_location_image(
 
         Args:
             local_file_path (str): local system path to the file
-            location ( `pyinventory.consts.Location` ): existing location object
+            location ( `pyinventory.common.data_class.Location` ): existing location object
 
         Raises:
             FailedOperationException: on operation failure
@@ -177,7 +177,7 @@ def delete_site_survey_image(client: SymphonyClient, survey: SiteSurvey) -> None
     """This function deletes image from existing site survey.
 
         Args:
-            survey ( `pyinventory.consts.SiteSurvey` ): site survey object
+            survey ( `pyinventory.common.data_class.SiteSurvey` ): site survey object
 
         Raises:
             FailedOperationException: on operation failure
@@ -199,7 +199,7 @@ def delete_document(client: SymphonyClient, document: Document) -> None:
     """This function deletes existing document.
 
         Args:
-            document ( `pyinventory.consts.Document` ): document object
+            document ( `pyinventory.common.data_class.Document` ): document object
 
         Raises:
             FailedOperationException: on operation failure

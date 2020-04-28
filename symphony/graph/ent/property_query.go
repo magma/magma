@@ -24,6 +24,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/ent/service"
+	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
 
@@ -48,6 +49,7 @@ type PropertyQuery struct {
 	withLocationValue  *LocationQuery
 	withServiceValue   *ServiceQuery
 	withWorkOrderValue *WorkOrderQuery
+	withUserValue      *UserQuery
 	withFKs            bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -287,6 +289,24 @@ func (pq *PropertyQuery) QueryWorkOrderValue() *WorkOrderQuery {
 			sqlgraph.From(property.Table, property.FieldID, pq.sqlQuery()),
 			sqlgraph.To(workorder.Table, workorder.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, property.WorkOrderValueTable, property.WorkOrderValueColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryUserValue chains the current query on the user_value edge.
+func (pq *PropertyQuery) QueryUserValue() *UserQuery {
+	query := &UserQuery{config: pq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(property.Table, property.FieldID, pq.sqlQuery()),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, property.UserValueTable, property.UserValueColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 		return fromU, nil
@@ -605,6 +625,17 @@ func (pq *PropertyQuery) WithWorkOrderValue(opts ...func(*WorkOrderQuery)) *Prop
 	return pq
 }
 
+//  WithUserValue tells the query-builder to eager-loads the nodes that are connected to
+// the "user_value" edge. The optional arguments used to configure the query builder of the edge.
+func (pq *PropertyQuery) WithUserValue(opts ...func(*UserQuery)) *PropertyQuery {
+	query := &UserQuery{config: pq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	pq.withUserValue = query
+	return pq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -664,6 +695,9 @@ func (pq *PropertyQuery) prepareQuery(ctx context.Context) error {
 		}
 		pq.sql = prev
 	}
+	if err := property.Policy.EvalQuery(ctx, pq); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -672,7 +706,7 @@ func (pq *PropertyQuery) sqlAll(ctx context.Context) ([]*Property, error) {
 		nodes       = []*Property{}
 		withFKs     = pq.withFKs
 		_spec       = pq.querySpec()
-		loadedTypes = [12]bool{
+		loadedTypes = [13]bool{
 			pq.withType != nil,
 			pq.withLocation != nil,
 			pq.withEquipment != nil,
@@ -685,9 +719,10 @@ func (pq *PropertyQuery) sqlAll(ctx context.Context) ([]*Property, error) {
 			pq.withLocationValue != nil,
 			pq.withServiceValue != nil,
 			pq.withWorkOrderValue != nil,
+			pq.withUserValue != nil,
 		}
 	)
-	if pq.withType != nil || pq.withLocation != nil || pq.withEquipment != nil || pq.withService != nil || pq.withEquipmentPort != nil || pq.withLink != nil || pq.withWorkOrder != nil || pq.withProject != nil || pq.withEquipmentValue != nil || pq.withLocationValue != nil || pq.withServiceValue != nil || pq.withWorkOrderValue != nil {
+	if pq.withType != nil || pq.withLocation != nil || pq.withEquipment != nil || pq.withService != nil || pq.withEquipmentPort != nil || pq.withLink != nil || pq.withWorkOrder != nil || pq.withProject != nil || pq.withEquipmentValue != nil || pq.withLocationValue != nil || pq.withServiceValue != nil || pq.withWorkOrderValue != nil || pq.withUserValue != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -1013,6 +1048,31 @@ func (pq *PropertyQuery) sqlAll(ctx context.Context) ([]*Property, error) {
 			}
 			for i := range nodes {
 				nodes[i].Edges.WorkOrderValue = n
+			}
+		}
+	}
+
+	if query := pq.withUserValue; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Property)
+		for i := range nodes {
+			if fk := nodes[i].property_user_value; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(user.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "property_user_value" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.UserValue = n
 			}
 		}
 	}
