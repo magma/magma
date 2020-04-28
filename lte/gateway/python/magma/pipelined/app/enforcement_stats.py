@@ -89,6 +89,16 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
     def delete_all_flows(self, datapath):
         flows.delete_all_flows_from_table(datapath, self.tbl_num)
 
+    def cleanup_state(self):
+        """
+        When we remove/reinsert flows we need to remove old usage maps as new
+        flows will have reset stat counters
+        """
+        self.unhandled_stats_msgs = []
+        self.total_usage = {}
+        self.last_usage_for_delta = {}
+        self.failed_usage = {}
+
     def _check_relay(func):  # pylint: disable=no-self-argument
         def wrapped(self, *args, **kwargs):
             if self._relay_enabled:  # pylint: disable=protected-access
