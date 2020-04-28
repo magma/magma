@@ -159,20 +159,17 @@ class StateManager {
       is_initialized,
       "StateManager init() function should be called to initialize state");
 
-    if(persist_state_enabled) {
-      ProtoUe ue_proto = ProtoUe();
-      StateConverter::ue_to_proto(ue_context, &ue_proto);
-      std::string key = IMSI_PREFIX + imsi_str + ":" + task_name;
-      if (redis_client->write_proto(key, ue_proto) != RETURNok) {
-        OAILOG_ERROR(
-          log_task,
-          "Failed to write UE state to db for IMSI %s",
+    ProtoUe ue_proto = ProtoUe();
+    StateConverter::ue_to_proto(ue_context, &ue_proto);
+    std::string key = IMSI_PREFIX + imsi_str + ":" + task_name;
+    if (redis_client->write_proto(key, ue_proto) != RETURNok) {
+      OAILOG_ERROR(
+          log_task, "Failed to write UE state to db for IMSI %s",
           imsi_str.c_str());
-        return;
-      }
-      OAILOG_DEBUG(
-        log_task, "Finished writing UE state for IMSI %s", imsi_str.c_str());
+      return;
     }
+    OAILOG_DEBUG(
+        log_task, "Finished writing UE state for IMSI %s", imsi_str.c_str());
   }
 
   std::string get_imsi_str(imsi64_t imsi64)
@@ -207,6 +204,11 @@ class StateManager {
    * Virtual function for freeing state_cache_p
    */
   virtual void free_state() = 0;
+
+  bool is_persist_state_enabled() const
+  {
+    return persist_state_enabled;
+  }
 
  protected:
   StateManager():
@@ -247,6 +249,8 @@ class StateManager {
   bool state_dirty;
   // Flag for enabling writing and reading to db.
   bool persist_state_enabled;
+
+ protected:
   std::string table_key;
   std::string task_name;
   log_proto_t log_task;
