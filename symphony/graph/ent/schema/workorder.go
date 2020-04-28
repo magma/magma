@@ -8,6 +8,7 @@ import (
 	"github.com/facebookincubator/ent"
 	"github.com/facebookincubator/ent/schema/edge"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/authz"
 )
 
 // WorkOrderType defines the work order type schema.
@@ -36,6 +37,15 @@ func (WorkOrderType) Edges() []ent.Edge {
 		edge.To("check_list_categories", CheckListCategory.Type),
 		edge.To("check_list_definitions", CheckListItemDefinition.Type),
 	}
+}
+
+// Policy returns work order type policy.
+func (WorkOrderType) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithMutationRules(
+			authz.WorkOrderTypeWritePolicyRule(),
+		),
+	)
 }
 
 // WorkOrder defines the work order schema.

@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/facebookincubator/symphony/graph/authz"
+
 	"github.com/facebookincubator/symphony/graph/authz/models"
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/privacy"

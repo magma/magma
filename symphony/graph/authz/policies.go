@@ -18,6 +18,9 @@ import (
 	models2 "github.com/facebookincubator/symphony/graph/authz/models"
 )
 
+// WritePermissionGroupName is the name of the group that its member has write permission for all symphony.
+const WritePermissionGroupName = "Write Permission"
+
 var allowedEnums = map[models2.PermissionValue]int{
 	models2.PermissionValueNo:          1,
 	models2.PermissionValueByCondition: 2,
