@@ -8554,7 +8554,6 @@ input ServiceFilterInput {
 
 input UserFilterInput {
   filterType: UserFilterType!
-  includeDeactivated: Boolean
   operator: FilterOperator!
   stringValue: String
   propertyValue: PropertyTypeInput
@@ -40008,12 +40007,6 @@ func (ec *executionContext) unmarshalInputUserFilterInput(ctx context.Context, o
 		case "filterType":
 			var err error
 			it.FilterType, err = ec.unmarshalNUserFilterType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐUserFilterType(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "includeDeactivated":
-			var err error
-			it.IncludeDeactivated, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
