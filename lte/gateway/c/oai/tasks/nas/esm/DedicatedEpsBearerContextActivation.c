@@ -547,7 +547,6 @@ static int _dedicated_eps_bearer_activate(
   emm_esm_activate->gbr_ul = bearer_context->esm_ebr_context.gbr_ul;
 
   bstring msg_dup = bstrcpy(*msg);
-  *msg = NULL;
   rc = emm_sap_send(&emm_sap);
 
   if (rc != RETURNerror) {
@@ -563,6 +562,6 @@ static int _dedicated_eps_bearer_activate(
   } else {
     bdestroy_wrapper(&msg_dup);
   }
-
+  bdestroy_wrapper(&msg_dup);
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
 }

@@ -597,6 +597,7 @@ static int _eps_bearer_deactivate(
   } else {
     bdestroy_wrapper(&msg_dup);
   }
+  bdestroy_wrapper(&msg_dup);
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
 }
 
