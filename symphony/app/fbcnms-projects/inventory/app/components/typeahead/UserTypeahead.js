@@ -19,7 +19,7 @@ import {useUserSearch} from '../admin/userManagement/utils/userSearch/UserSearch
 type Props = {
   className?: string,
   required?: boolean,
-  headline?: string,
+  headline?: ?string,
   selectedUser?: ?ShortUser,
   margin?: ?string,
   onUserSelection: (?ShortUser) => void,

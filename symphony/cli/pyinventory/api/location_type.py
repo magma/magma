@@ -5,14 +5,10 @@
 
 from typing import List, Optional, Tuple
 
-from gql.gql.client import OperationException
-from gql.gql.reporter import FailedOperationException
-
 from .._utils import format_properties
 from ..client import SymphonyClient
 from ..common.data_class import Location, LocationType, PropertyValue
 from ..common.data_enum import Entity
-from ..common.mutation_name import ADD_LOCATION_TYPE
 from ..exceptions import EntityNotFoundError
 from ..graphql.add_location_type_input import AddLocationTypeInput
 from ..graphql.add_location_type_mutation import AddLocationTypeMutation
@@ -23,7 +19,7 @@ from .location import delete_location
 
 
 def _populate_location_types(client: SymphonyClient) -> None:
-    location_types = LocationTypesQuery.execute(client).locationTypes
+    location_types = LocationTypesQuery.execute(client)
     if not location_types:
         return
     edges = location_types.edges
@@ -70,33 +66,15 @@ def add_location_type(
             ```
     """
     new_property_types = format_properties(properties)
-    add_location_type_variables = {
-        "name": name,
-        "mapZoomLevel": map_zoom_level,
-        "properties": new_property_types,
-        "surveyTemplateCategories": [],
-    }
-    try:
-        result = AddLocationTypeMutation.execute(
-            client,
-            AddLocationTypeInput(
-                name=name,
-                mapZoomLevel=map_zoom_level,
-                properties=new_property_types,
-                surveyTemplateCategories=[],
-            ),
-        ).__dict__[ADD_LOCATION_TYPE]
-        client.reporter.log_successful_operation(
-            ADD_LOCATION_TYPE, add_location_type_variables
-        )
-    except OperationException as e:
-        raise FailedOperationException(
-            client.reporter,
-            e.err_msg,
-            e.err_id,
-            ADD_LOCATION_TYPE,
-            add_location_type_variables,
-        )
+    result = AddLocationTypeMutation.execute(
+        client,
+        AddLocationTypeInput(
+            name=name,
+            mapZoomLevel=map_zoom_level,
+            properties=new_property_types,
+            surveyTemplateCategories=[],
+        ),
+    )
 
     location_type = LocationType(
         name=result.name, id=result.id, property_types=result.propertyTypes
@@ -123,7 +101,7 @@ def delete_locations_by_location_type(
     """
     location_type_with_locations = LocationTypeLocationsQuery.execute(
         client, id=location_type.id
-    ).locationType
+    )
     if location_type_with_locations is None:
         raise EntityNotFoundError(
             entity=Entity.LocationType, entity_id=location_type.id

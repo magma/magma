@@ -69,26 +69,6 @@ func (su *ServiceUpdate) SetStatus(s string) *ServiceUpdate {
 	return su
 }
 
-// SetDiscoveryMethod sets the discovery_method field.
-func (su *ServiceUpdate) SetDiscoveryMethod(sm service.DiscoveryMethod) *ServiceUpdate {
-	su.mutation.SetDiscoveryMethod(sm)
-	return su
-}
-
-// SetNillableDiscoveryMethod sets the discovery_method field if the given value is not nil.
-func (su *ServiceUpdate) SetNillableDiscoveryMethod(sm *service.DiscoveryMethod) *ServiceUpdate {
-	if sm != nil {
-		su.SetDiscoveryMethod(*sm)
-	}
-	return su
-}
-
-// ClearDiscoveryMethod clears the value of discovery_method.
-func (su *ServiceUpdate) ClearDiscoveryMethod() *ServiceUpdate {
-	su.mutation.ClearDiscoveryMethod()
-	return su
-}
-
 // SetTypeID sets the type edge to ServiceType by id.
 func (su *ServiceUpdate) SetTypeID(id int) *ServiceUpdate {
 	su.mutation.SetTypeID(id)
@@ -302,11 +282,6 @@ func (su *ServiceUpdate) Save(ctx context.Context) (int, error) {
 			return 0, fmt.Errorf("ent: validator failed for field \"external_id\": %v", err)
 		}
 	}
-	if v, ok := su.mutation.DiscoveryMethod(); ok {
-		if err := service.DiscoveryMethodValidator(v); err != nil {
-			return 0, fmt.Errorf("ent: validator failed for field \"discovery_method\": %v", err)
-		}
-	}
 
 	if _, ok := su.mutation.TypeID(); su.mutation.TypeCleared() && !ok {
 		return 0, errors.New("ent: clearing a unique edge \"type\"")
@@ -410,19 +385,6 @@ func (su *ServiceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Type:   field.TypeString,
 			Value:  value,
 			Column: service.FieldStatus,
-		})
-	}
-	if value, ok := su.mutation.DiscoveryMethod(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
-			Value:  value,
-			Column: service.FieldDiscoveryMethod,
-		})
-	}
-	if su.mutation.DiscoveryMethodCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
-			Column: service.FieldDiscoveryMethod,
 		})
 	}
 	if su.mutation.TypeCleared() {
@@ -738,26 +700,6 @@ func (suo *ServiceUpdateOne) SetStatus(s string) *ServiceUpdateOne {
 	return suo
 }
 
-// SetDiscoveryMethod sets the discovery_method field.
-func (suo *ServiceUpdateOne) SetDiscoveryMethod(sm service.DiscoveryMethod) *ServiceUpdateOne {
-	suo.mutation.SetDiscoveryMethod(sm)
-	return suo
-}
-
-// SetNillableDiscoveryMethod sets the discovery_method field if the given value is not nil.
-func (suo *ServiceUpdateOne) SetNillableDiscoveryMethod(sm *service.DiscoveryMethod) *ServiceUpdateOne {
-	if sm != nil {
-		suo.SetDiscoveryMethod(*sm)
-	}
-	return suo
-}
-
-// ClearDiscoveryMethod clears the value of discovery_method.
-func (suo *ServiceUpdateOne) ClearDiscoveryMethod() *ServiceUpdateOne {
-	suo.mutation.ClearDiscoveryMethod()
-	return suo
-}
-
 // SetTypeID sets the type edge to ServiceType by id.
 func (suo *ServiceUpdateOne) SetTypeID(id int) *ServiceUpdateOne {
 	suo.mutation.SetTypeID(id)
@@ -971,11 +913,6 @@ func (suo *ServiceUpdateOne) Save(ctx context.Context) (*Service, error) {
 			return nil, fmt.Errorf("ent: validator failed for field \"external_id\": %v", err)
 		}
 	}
-	if v, ok := suo.mutation.DiscoveryMethod(); ok {
-		if err := service.DiscoveryMethodValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"discovery_method\": %v", err)
-		}
-	}
 
 	if _, ok := suo.mutation.TypeID(); suo.mutation.TypeCleared() && !ok {
 		return nil, errors.New("ent: clearing a unique edge \"type\"")
@@ -1077,19 +1014,6 @@ func (suo *ServiceUpdateOne) sqlSave(ctx context.Context) (s *Service, err error
 			Type:   field.TypeString,
 			Value:  value,
 			Column: service.FieldStatus,
-		})
-	}
-	if value, ok := suo.mutation.DiscoveryMethod(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
-			Value:  value,
-			Column: service.FieldDiscoveryMethod,
-		})
-	}
-	if suo.mutation.DiscoveryMethodCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
-			Column: service.FieldDiscoveryMethod,
 		})
 	}
 	if suo.mutation.TypeCleared() {

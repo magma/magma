@@ -613,6 +613,16 @@ type ComplexityRoot struct {
 		Policy      func(childComplexity int) int
 	}
 
+	PermissionsPolicyConnection struct {
+		Edges    func(childComplexity int) int
+		PageInfo func(childComplexity int) int
+	}
+
+	PermissionsPolicyEdge struct {
+		Cursor func(childComplexity int) int
+		Node   func(childComplexity int) int
+	}
+
 	PortSearchResult struct {
 		Count func(childComplexity int) int
 		Ports func(childComplexity int) int
@@ -712,6 +722,7 @@ type ComplexityRoot struct {
 		Me                       func(childComplexity int) int
 		NearestSites             func(childComplexity int, latitude float64, longitude float64, first int) int
 		Node                     func(childComplexity int, id int) int
+		PermissionsPolicies      func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
 		PortSearch               func(childComplexity int, filters []*models.PortFilterInput, limit *int) int
 		PossibleProperties       func(childComplexity int, entityType models.PropertyEntity) int
 		ProjectSearch            func(childComplexity int, filters []*models.ProjectFilterInput, limit *int) int
@@ -1332,6 +1343,7 @@ type QueryResolver interface {
 	WorkOrderTypes(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.WorkOrderTypeConnection, error)
 	Users(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.UserConnection, error)
 	UsersGroups(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.UsersGroupConnection, error)
+	PermissionsPolicies(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.PermissionsPolicyConnection, error)
 	SearchForEntity(ctx context.Context, name string, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*models.SearchEntriesConnection, error)
 	SearchForNode(ctx context.Context, name string, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*models.SearchNodesConnection, error)
 	EquipmentSearch(ctx context.Context, filters []*models.EquipmentFilterInput, limit *int) (*models.EquipmentSearchResult, error)
@@ -4255,6 +4267,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PermissionsPolicy.Policy(childComplexity), true
 
+	case "PermissionsPolicyConnection.edges":
+		if e.complexity.PermissionsPolicyConnection.Edges == nil {
+			break
+		}
+
+		return e.complexity.PermissionsPolicyConnection.Edges(childComplexity), true
+
+	case "PermissionsPolicyConnection.pageInfo":
+		if e.complexity.PermissionsPolicyConnection.PageInfo == nil {
+			break
+		}
+
+		return e.complexity.PermissionsPolicyConnection.PageInfo(childComplexity), true
+
+	case "PermissionsPolicyEdge.cursor":
+		if e.complexity.PermissionsPolicyEdge.Cursor == nil {
+			break
+		}
+
+		return e.complexity.PermissionsPolicyEdge.Cursor(childComplexity), true
+
+	case "PermissionsPolicyEdge.node":
+		if e.complexity.PermissionsPolicyEdge.Node == nil {
+			break
+		}
+
+		return e.complexity.PermissionsPolicyEdge.Node(childComplexity), true
+
 	case "PortSearchResult.count":
 		if e.complexity.PortSearchResult.Count == nil {
 			break
@@ -4832,6 +4872,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Node(childComplexity, args["id"].(int)), true
+
+	case "Query.permissionsPolicies":
+		if e.complexity.Query.PermissionsPolicies == nil {
+			break
+		}
+
+		args, err := ec.field_Query_permissionsPolicies_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.PermissionsPolicies(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int)), true
 
 	case "Query.portSearch":
 		if e.complexity.Query.PortSearch == nil {
@@ -7372,6 +7424,7 @@ input TechnicianCheckListItemInput {
   yesNoResponse: YesNoResponse
   wifiData: [SurveyWiFiScanData!]
   cellData: [SurveyCellScanData!]
+  filesData: [FileInput!]
 }
 
 input TechnicianWorkOrderUploadInput {
@@ -8084,6 +8137,20 @@ type UserConnection {
 }
 
 """
+A connection to a list of permissions policies.
+"""
+type PermissionsPolicyConnection {
+  """
+  A list of permissions policies type edges.
+  """
+  edges: [PermissionsPolicyEdge!]!
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+}
+
+"""
 A connection to a list of users groups.
 """
 type UsersGroupConnection {
@@ -8105,6 +8172,20 @@ type UserEdge {
   The user type at the end of the edge.
   """
   node: User
+  """
+  A cursor for use in pagination.
+  """
+  cursor: Cursor!
+}
+
+"""
+A permission policy type edge in a connection.
+"""
+type PermissionsPolicyEdge {
+  """
+  The permission policy type at the end of the edge.
+  """
+  node: PermissionsPolicy
   """
   A cursor for use in pagination.
   """
@@ -8473,7 +8554,6 @@ input ServiceFilterInput {
 
 input UserFilterInput {
   filterType: UserFilterType!
-  includeDeactivated: Boolean
   operator: FilterOperator!
   stringValue: String
   propertyValue: PropertyTypeInput
@@ -9146,6 +9226,12 @@ type Query {
     before: Cursor
     last: Int
   ): UsersGroupConnection
+  permissionsPolicies(
+    after: Cursor
+    first: Int
+    before: Cursor
+    last: Int
+  ): PermissionsPolicyConnection
   searchForEntity(
     name: String!
     after: Cursor
@@ -11181,6 +11267,44 @@ func (ec *executionContext) field_Query_node_args(ctx context.Context, rawArgs m
 		}
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_permissionsPolicies_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *ent.Cursor
+	if tmp, ok := rawArgs["after"]; ok {
+		arg0, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["after"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["first"]; ok {
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["first"] = arg1
+	var arg2 *ent.Cursor
+	if tmp, ok := rawArgs["before"]; ok {
+		arg2, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["before"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["last"]; ok {
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["last"] = arg3
 	return args, nil
 }
 
@@ -23530,6 +23654,139 @@ func (ec *executionContext) _PermissionsPolicy_groups(ctx context.Context, field
 	return ec.marshalNUsersGroup2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUsersGroupᚄ(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _PermissionsPolicyConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.PermissionsPolicyConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "PermissionsPolicyConnection",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Edges, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.PermissionsPolicyEdge)
+	fc.Result = res
+	return ec.marshalNPermissionsPolicyEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐPermissionsPolicyEdgeᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PermissionsPolicyConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *ent.PermissionsPolicyConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "PermissionsPolicyConnection",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PageInfo, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(ent.PageInfo)
+	fc.Result = res
+	return ec.marshalNPageInfo2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐPageInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PermissionsPolicyEdge_node(ctx context.Context, field graphql.CollectedField, obj *ent.PermissionsPolicyEdge) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "PermissionsPolicyEdge",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Node, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.PermissionsPolicy)
+	fc.Result = res
+	return ec.marshalOPermissionsPolicy2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐPermissionsPolicy(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PermissionsPolicyEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *ent.PermissionsPolicyEdge) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "PermissionsPolicyEdge",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Cursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(ent.Cursor)
+	fc.Result = res
+	return ec.marshalNCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _PortSearchResult_ports(ctx context.Context, field graphql.CollectedField, obj *models.PortSearchResult) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -25954,6 +26211,44 @@ func (ec *executionContext) _Query_usersGroups(ctx context.Context, field graphq
 	res := resTmp.(*ent.UsersGroupConnection)
 	fc.Result = res
 	return ec.marshalOUsersGroupConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUsersGroupConnection(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_permissionsPolicies(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_permissionsPolicies_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().PermissionsPolicies(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.PermissionsPolicyConnection)
+	fc.Result = res
+	return ec.marshalOPermissionsPolicyConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐPermissionsPolicyConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_searchForEntity(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -39579,6 +39874,12 @@ func (ec *executionContext) unmarshalInputTechnicianCheckListItemInput(ctx conte
 			if err != nil {
 				return it, err
 			}
+		case "filesData":
+			var err error
+			it.FilesData, err = ec.unmarshalOFileInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐFileInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -39706,12 +40007,6 @@ func (ec *executionContext) unmarshalInputUserFilterInput(ctx context.Context, o
 		case "filterType":
 			var err error
 			it.FilterType, err = ec.unmarshalNUserFilterType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐUserFilterType(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "includeDeactivated":
-			var err error
-			it.IncludeDeactivated, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -43637,6 +43932,67 @@ func (ec *executionContext) _PermissionsPolicy(ctx context.Context, sel ast.Sele
 	return out
 }
 
+var permissionsPolicyConnectionImplementors = []string{"PermissionsPolicyConnection"}
+
+func (ec *executionContext) _PermissionsPolicyConnection(ctx context.Context, sel ast.SelectionSet, obj *ent.PermissionsPolicyConnection) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, permissionsPolicyConnectionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PermissionsPolicyConnection")
+		case "edges":
+			out.Values[i] = ec._PermissionsPolicyConnection_edges(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "pageInfo":
+			out.Values[i] = ec._PermissionsPolicyConnection_pageInfo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var permissionsPolicyEdgeImplementors = []string{"PermissionsPolicyEdge"}
+
+func (ec *executionContext) _PermissionsPolicyEdge(ctx context.Context, sel ast.SelectionSet, obj *ent.PermissionsPolicyEdge) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, permissionsPolicyEdgeImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PermissionsPolicyEdge")
+		case "node":
+			out.Values[i] = ec._PermissionsPolicyEdge_node(ctx, field, obj)
+		case "cursor":
+			out.Values[i] = ec._PermissionsPolicyEdge_cursor(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var portSearchResultImplementors = []string{"PortSearchResult"}
 
 func (ec *executionContext) _PortSearchResult(ctx context.Context, sel ast.SelectionSet, obj *models.PortSearchResult) graphql.Marshaler {
@@ -44313,6 +44669,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_usersGroups(ctx, field)
+				return res
+			})
+		case "permissionsPolicies":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_permissionsPolicies(ctx, field)
 				return res
 			})
 		case "searchForEntity":
@@ -49977,6 +50344,57 @@ func (ec *executionContext) marshalNPermissionsPolicy2ᚖgithubᚗcomᚋfacebook
 	return ec._PermissionsPolicy(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNPermissionsPolicyEdge2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐPermissionsPolicyEdge(ctx context.Context, sel ast.SelectionSet, v ent.PermissionsPolicyEdge) graphql.Marshaler {
+	return ec._PermissionsPolicyEdge(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNPermissionsPolicyEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐPermissionsPolicyEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.PermissionsPolicyEdge) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNPermissionsPolicyEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐPermissionsPolicyEdge(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNPermissionsPolicyEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐPermissionsPolicyEdge(ctx context.Context, sel ast.SelectionSet, v *ent.PermissionsPolicyEdge) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._PermissionsPolicyEdge(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNPortFilterInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPortFilterInput(ctx context.Context, v interface{}) (models.PortFilterInput, error) {
 	return ec.unmarshalInputPortFilterInput(ctx, v)
 }
@@ -53391,6 +53809,28 @@ func (ec *executionContext) marshalONode2githubᚗcomᚋfacebookincubatorᚋsymp
 		return graphql.Null
 	}
 	return ec._Node(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOPermissionsPolicy2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐPermissionsPolicy(ctx context.Context, sel ast.SelectionSet, v ent.PermissionsPolicy) graphql.Marshaler {
+	return ec._PermissionsPolicy(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOPermissionsPolicy2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐPermissionsPolicy(ctx context.Context, sel ast.SelectionSet, v *ent.PermissionsPolicy) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._PermissionsPolicy(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOPermissionsPolicyConnection2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐPermissionsPolicyConnection(ctx context.Context, sel ast.SelectionSet, v ent.PermissionsPolicyConnection) graphql.Marshaler {
+	return ec._PermissionsPolicyConnection(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOPermissionsPolicyConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐPermissionsPolicyConnection(ctx context.Context, sel ast.SelectionSet, v *ent.PermissionsPolicyConnection) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._PermissionsPolicyConnection(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOProject2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProject(ctx context.Context, sel ast.SelectionSet, v ent.Project) graphql.Marshaler {

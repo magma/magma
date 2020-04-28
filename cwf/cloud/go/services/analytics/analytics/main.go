@@ -9,6 +9,7 @@
 package main
 
 import (
+	"strconv"
 	"time"
 
 	"magma/cwf/cloud/go/cwf"
@@ -22,7 +23,7 @@ import (
 
 	"github.com/golang/glog"
 	promAPI "github.com/prometheus/client_golang/api"
-	"github.com/prometheus/client_golang/api/prometheus/v1"
+	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -118,7 +119,7 @@ func getXAPCalculations(daysList []int, gauge *prometheus.GaugeVec, metricName s
 			CalculationParams: analytics.CalculationParams{
 				Days:            dayParam,
 				RegisteredGauge: gauge,
-				Labels:          prometheus.Labels{analytics.DaysLabel: string(dayParam)},
+				Labels:          prometheus.Labels{analytics.DaysLabel: strconv.Itoa(dayParam)},
 				Name:            metricName,
 			},
 		})
@@ -134,7 +135,7 @@ func getUserThroughputCalculations(daysList []int, gauge *prometheus.GaugeVec, m
 				CalculationParams: analytics.CalculationParams{
 					Days:            dayParam,
 					RegisteredGauge: gauge,
-					Labels:          prometheus.Labels{analytics.DaysLabel: string(dayParam)},
+					Labels:          prometheus.Labels{analytics.DaysLabel: strconv.Itoa(dayParam)},
 					Name:            metricName,
 				},
 				Direction:     dir,
@@ -153,7 +154,7 @@ func getAPThroughputCalculations(daysList []int, gauge *prometheus.GaugeVec, met
 				CalculationParams: analytics.CalculationParams{
 					Days:            dayParam,
 					RegisteredGauge: gauge,
-					Labels:          prometheus.Labels{analytics.DaysLabel: string(dayParam)},
+					Labels:          prometheus.Labels{analytics.DaysLabel: strconv.Itoa(dayParam)},
 					Name:            metricName,
 				},
 				Direction:     dir,
@@ -172,7 +173,7 @@ func getUserConsumptionCalculations(daysList []int, gauge *prometheus.GaugeVec, 
 				CalculationParams: analytics.CalculationParams{
 					Days:            dayParam,
 					RegisteredGauge: gauge,
-					Labels:          prometheus.Labels{analytics.DaysLabel: string(dayParam)},
+					Labels:          prometheus.Labels{analytics.DaysLabel: strconv.Itoa(dayParam)},
 					Name:            metricName,
 				},
 				Direction: dir,

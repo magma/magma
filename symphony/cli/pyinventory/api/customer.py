@@ -32,7 +32,7 @@ def add_customer(
             ```
     """
     customer_input = AddCustomerInput(name=name, externalId=external_id)
-    result = AddCustomerMutation.execute(client, input=customer_input).addCustomer
+    result = AddCustomerMutation.execute(client, input=customer_input)
     return Customer(name=result.name, id=result.id, externalId=result.externalId)
 
 
@@ -48,7 +48,7 @@ def get_all_customers(client: SymphonyClient) -> List[Customer]:
             customers = client.get_all_customers()
             ```
     """
-    customers = CustomersQuery.execute(client).customers
+    customers = CustomersQuery.execute(client)
     if not customers:
         return []
     result = []

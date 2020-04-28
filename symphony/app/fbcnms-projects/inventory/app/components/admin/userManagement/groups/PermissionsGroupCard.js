@@ -25,10 +25,7 @@ import ViewContainer from '@fbcnms/ui/components/design-system/View/ViewContaine
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
-import {
-  GROUP_STATUSES,
-  NEW_GROUP_DIALOG_PARAM,
-} from '../utils/UserManagementUtils';
+import {GROUP_STATUSES, NEW_DIALOG_PARAM} from '../utils/UserManagementUtils';
 import {PERMISSION_GROUPS_VIEW_NAME} from './PermissionsGroupsView';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useContext, useEffect, useMemo, useState} from 'react';
@@ -74,7 +71,7 @@ function PermissionsGroupCard(props: Props) {
   const userManagementDevMode = isFeatureEnabled('user_management_dev');
   const {groups, editGroup, addGroup, deleteGroup} = useUserManagement();
   const groupId = match.params.id;
-  const isOnNewGroup = groupId === NEW_GROUP_DIALOG_PARAM;
+  const isOnNewGroup = groupId === NEW_DIALOG_PARAM;
   const [group, setGroup] = useState<?UserPermissionsGroup>(
     isOnNewGroup ? {...initialNewGroup} : null,
   );

@@ -87,7 +87,7 @@ async function request<T>(req: axiosRequest): GrafanaPromise<T> {
     const res = await axios(req);
     return {status: res.status, data: res.data};
   } catch (error) {
-    return {status: error.response.status, data: error.response.data};
+    return {status: error.response?.status, data: error.response?.data};
   }
 }
 
