@@ -10,6 +10,7 @@ package service_manager
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 )
@@ -32,7 +33,7 @@ func (SystemdController) ServiceName(service string) string {
 
 // Start starts service and returns error if unsuccessful
 func (c SystemdController) Start(service string) error {
-	return exec.Command(c.CmdName(), "start", service).Run()
+	return exec.Command(c.CmdName(), "start", c.ServiceName(service)).Run()
 }
 
 // Stop stops service and returns error if unsuccessful
@@ -56,6 +57,19 @@ func (c SystemdController) GetState(service string) (ServiceState, error) {
 		err = fmt.Errorf("%v for service '%s', raw output: %s", err, service, string(out))
 	}
 	return state, err
+}
+
+// TailLogs executes command to start tailing service logs and returns string chan to receive log strings
+// closing the chan will terminate tailing
+func (c SystemdController) TailLogs(service string) (chan string, *os.Process, error) {
+	var cmd *exec.Cmd
+	if len(service) == 0 {
+		cmd = exec.Command("sudo", "tail", "-f", "/var/log/syslog")
+	} else {
+
+		cmd = exec.Command("sudo", "journalctl", "-fu", c.ServiceName(service))
+	}
+	return StartCmdWithStderrStdoutTailer(cmd)
 }
 
 func parseSystemdInspectResult(out []byte) (ServiceState, error) {

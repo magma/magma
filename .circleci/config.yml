@@ -182,7 +182,7 @@ jobs:
 
   orc8r-gateway-test:
     docker:
-      - image: circleci/golang:1.12-buster-node-browsers-legacy
+      - image: circleci/golang:1.13-buster-node-browsers-legacy
     environment:
       - GO111MODULE=on
       - GOPROXY=https://proxy.golang.org

@@ -10,6 +10,7 @@ package config
 
 import (
 	"log"
+	"strings"
 	"time"
 
 	"magma/orc8r/lib/go/definitions"
@@ -80,16 +81,33 @@ type Metricsd struct {
 
 // GenericCommandConfig is generic_command_config configuration block from magmad.yml
 type GenericCommandConfig struct {
-	Module        string         `yaml:"module"`
-	Class         string         `yaml:"class"`
-	ShellCommands []ShellCommand `yaml:"shell_commands"`
+	Module        string                   `yaml:"module"`
+	Class         string                   `yaml:"class"`
+	ShellCommands []ShellCommand           `yaml:"shell_commands"`
+	CommandsMap   map[string]*ShellCommand `yaml:"-"`
 }
 
 // ShellCommand magmad shell command definition
 type ShellCommand struct {
 	Name        string
 	Command     string
-	AllowParams string `yaml:"allow_params"`
+	AllowParams bool   `yaml:"allow_params"`
+	CommandFmt  string `yaml:"-"`
+}
+
+// UpdateShellCmdMap creates a new CommandsMap and populates it from ShellCommands list
+// UpdateShellCmdMap also does basic format conversion
+func (gcf *GenericCommandConfig) UpdateShellCmdMap() {
+	if gcf != nil {
+		gcf.CommandsMap = map[string]*ShellCommand{}
+		for _, cmd := range gcf.ShellCommands {
+			if cmd.AllowParams {
+				// convert basic python FMT to Go FMT if it's old, python based config
+				cmd.CommandFmt = strings.ReplaceAll(cmd.Command, `{}`, `%v`)
+			}
+			gcf.CommandsMap[cmd.Name] = &cmd
+		}
+	}
 }
 
 // NewDefaultMgmadCfg returns new default magmad configs
@@ -154,6 +172,7 @@ func (mdc *MagmadCfg) UpdateFromYml() (StructuredConfig, string, string) {
 		if mdc != newCfg { // success, copy if needed
 			*mdc = *newCfg
 		}
+		mdc.GenericCommandConfig.UpdateShellCmdMap()
 	}
 	return mdc, ymlFile, ymlOWFile
 }
