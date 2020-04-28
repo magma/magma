@@ -16,9 +16,13 @@ import type {DeleteUsersGroupMutationResponse} from '../../../mutations/__genera
 import type {EditUserMutationResponse} from '../../../mutations/__generated__/EditUserMutation.graphql';
 import type {EditUsersGroupMutationResponse} from '../../../mutations/__generated__/EditUsersGroupMutation.graphql';
 import type {MutationCallbacks} from '../../../mutations/MutationCallbacks.js';
+import type {
+  PermissionsPolicy,
+  User,
+  UserPermissionsGroup,
+} from './utils/UserManagementUtils';
 import type {StoreUpdater} from '../../../common/RelayEnvironment';
 import type {UpdateUsersGroupMembersMutationResponse} from '../../../mutations/__generated__/UpdateUsersGroupMembersMutation.graphql';
-import type {User, UserPermissionsGroup} from './utils/UserManagementUtils';
 import type {
   UserManagementContextQuery,
   UserRole,
@@ -331,6 +335,7 @@ const addGroup = (usersMap: UsersMap) => (
 };
 
 type UserManagementContextValue = {
+  policies: Array<PermissionsPolicy>,
   groups: Array<UserPermissionsGroup>,
   users: Array<User>,
   usersMap: UsersMap,
@@ -353,6 +358,7 @@ type UserManagementContextValue = {
 
 const emptyUsersMap = new Map<string, User>();
 const UserManagementContext = React.createContext<UserManagementContextValue>({
+  policies: [],
   groups: [],
   users: [],
   usersMap: emptyUsersMap,
@@ -413,7 +419,8 @@ const usersQuery = graphql`
 `;
 
 function ProviderWrap(props: Props) {
-  const providerValue = (users, groups, usersMap) => ({
+  const providerValue = (users, groups, policies, usersMap) => ({
+    policies,
     groups,
     users,
     usersMap,
@@ -435,7 +442,7 @@ function ProviderWrap(props: Props) {
 
   return (
     <UserManagementContext.Provider
-      value={providerValue(users, groups, usersMap)}>
+      value={providerValue(users, groups, [], usersMap)}>
       {props.children}
     </UserManagementContext.Provider>
   );

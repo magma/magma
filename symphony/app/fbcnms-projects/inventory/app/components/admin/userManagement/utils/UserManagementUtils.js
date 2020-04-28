@@ -90,7 +90,7 @@ export const PermissionValues = {
   NO: 'NO',
 };
 
-export const NEW_GROUP_DIALOG_PARAM = 'new';
+export const NEW_DIALOG_PARAM = 'new';
 
 export const GROUP_STATUSES: KeyValueEnum<UsersGroupStatus> = {
   ACTIVE: {
@@ -100,6 +100,18 @@ export const GROUP_STATUSES: KeyValueEnum<UsersGroupStatus> = {
   DEACTIVATED: {
     key: 'DEACTIVATED',
     value: `${fbt('Deactivated', '')}`,
+  },
+};
+
+type PolicyTypes = 'InventoryPolicy' | 'WorkforcePolicy';
+export const POLICY_TYPES: KeyValueEnum<PolicyTypes> = {
+  InventoryPolicy: {
+    key: 'InventoryPolicy',
+    value: `${fbt('Inventory', '')}`,
+  },
+  WorkforcePolicy: {
+    key: 'WorkforcePolicy',
+    value: `${fbt('Workforce', '')}`,
   },
 };
 
@@ -194,3 +206,12 @@ export const groupsResponse2Groups = (
         .map(gr => gr.node)
         .filter(Boolean)
         .map<UserPermissionsGroup>(gr => groupResponse2Group(gr, usersMap));
+
+export type PermissionsPolicy = $ReadOnly<{|
+  id: string,
+  name: string,
+  description: string,
+  type: 'inventory' | 'workforce',
+  isGlobal: boolean,
+  groups: Array<UserPermissionsGroup>,
+|}>;
