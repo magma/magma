@@ -25,11 +25,12 @@ export default async function(proxyTarget) {
   // Configure http-proxy
   const proxy = httpProxy.createProxyServer({
     target: proxyTarget,
+    // TODO set timeouts
   });
 
   for (const entry of transformers) {
     logger.info(`Routing url:${entry.url}, method:${entry.method}`);
-    router[entry.method](entry.url, async (req, res) => {
+    router[entry.method](entry.url, async (req, res, next) => {
       let tenantId;
       try {
         tenantId = getTenantId(req);
@@ -41,10 +42,17 @@ export default async function(proxyTarget) {
       // prepare 'after'
       const _write = res.write; // backup real write method
       // create wrapper that allows transforming output from target
+      // FIXME: this is a hack to be able to modify response.
+      // It only works if response is not empty.
       res.write = function(data) {
-        if (entry.after) {
-          // TODO: parse only if data is json
-          const respObj = JSON.parse(data);
+        if (res.statusCode >= 200 && res.statusCode < 300 && entry.after) {
+          let respObj = null;
+          try {
+            // conductor does not always send correct Content-Type, e.g. on 404
+            respObj = JSON.parse(data);
+          } catch (e) {
+            logger.warn('Response is not JSON');
+          }
           entry.after(tenantId, req, respObj, res);
           data = JSON.stringify(respObj);
         }
@@ -58,13 +66,16 @@ export default async function(proxyTarget) {
         } tenantId ${tenantId} body ${JSON.stringify(req.body)}`,
       );
       const proxyCallback = function(proxyOptions) {
-        proxy.web(req, res, proxyOptions);
+        proxy.web(req, res, proxyOptions, function(e) {
+          logger.error('Inline error handler', e);
+          next(e);
+        });
       };
       if (entry.before) {
         try {
           entry.before(tenantId, req, res, proxyCallback);
         } catch (err) {
-          console.error('Got error in beforeFun', err);
+          logger.error('Got error in beforeFun', err);
           res.status(500);
           res.send('Cannot send request: ' + err);
           return;

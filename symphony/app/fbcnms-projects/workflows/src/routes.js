@@ -24,7 +24,8 @@ const http = HttpClient;
 
 //TODO merge with proxy
 const router = Router();
-const baseURL = 'localhost/proxy/api/';
+// use baseURL = 'http://conductor-server:8080/api/'; to bypass proxy
+const baseURL = 'http://localhost/proxy/api/';
 const baseURLWorkflow = baseURL + 'workflow/';
 const baseURLMeta = baseURL + 'metadata/';
 const baseURLTask = baseURL + 'tasks/';
@@ -67,6 +68,7 @@ router.delete('/metadata/taskdef/:name', async (req, res, next) => {
   try {
     const result = await http.delete(
       baseURLMeta + 'taskdefs/' + req.params.name,
+      null,
       req,
     );
     res.status(200).send({result});
@@ -88,6 +90,7 @@ router.delete('/metadata/workflow/:name/:version', async (req, res, next) => {
   try {
     const result = await http.delete(
       baseURLMeta + 'workflow/' + req.params.name + '/' + req.params.version,
+      null,
       req,
     );
     res.status(200).send({result});
@@ -262,9 +265,13 @@ router.post('/bulk/restart', async (req, res, next) => {
 });
 
 router.delete('/workflow/:workflowId', async (req, res, next) => {
+  const archiveWorkflow = req.query.archiveWorkflow === 'true';
   try {
     const result = await http.delete(
-      baseURLWorkflow + req.params.workflowId + '/remove',
+      baseURLWorkflow +
+        req.params.workflqowId +
+        '/remove?archiveWorkflow=' +
+        archiveWorkflow,
       req.body,
       req,
     );
@@ -324,6 +331,7 @@ router.get('/id/:workflowId', async (req, res, next) => {
       }
     });
 
+    // TODO not implemented on proxy
     const logs = map(task =>
       Promise.all([task, http.get(baseURLTask + task.taskId + '/log', req)]),
     )(result.tasks);
