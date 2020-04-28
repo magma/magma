@@ -244,7 +244,7 @@ def _run_remote_cwf_integ_test(repo: str, magma_root: str):
         # On failure, transfer logs of key services from docker containers and
         # copy to the log directory. This will get stored as an artifact in the
         # circleCI config.
-        if not result.return_code:
+        if result.return_code:
             services = "sessiond session_proxy pcrf ocs pipelined"
             run(f'fab transfer_service_logs:services="{services}"')
 
