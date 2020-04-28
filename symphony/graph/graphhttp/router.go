@@ -12,6 +12,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/exporter"
 	"github.com/facebookincubator/symphony/graph/graphql"
 	"github.com/facebookincubator/symphony/graph/importer"
+	"github.com/facebookincubator/symphony/graph/jobs"
 	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/pkg/actions"
 	"github.com/facebookincubator/symphony/pkg/actions/executor"
@@ -64,6 +65,17 @@ func newRouter(cfg routerConfig) (*mux.Router, func(), error) {
 	router.PathPrefix("/export/").
 		Handler(http.StripPrefix("/export", handler)).
 		Name("export")
+
+	handler, err = jobs.NewHandler(jobs.Config{
+		Logger:     cfg.logger,
+		Subscriber: cfg.events.subscriber,
+	})
+	if err != nil {
+		return nil, nil, fmt.Errorf("creating jobs handler: %w", err)
+	}
+	router.PathPrefix("/jobs/").
+		Handler(http.StripPrefix("/jobs", handler)).
+		Name("jobs")
 
 	handler, cleanup, err := graphql.NewHandler(
 		graphql.HandlerConfig{

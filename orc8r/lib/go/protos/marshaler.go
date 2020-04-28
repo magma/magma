@@ -58,32 +58,61 @@ type mconfigAnyResolver struct{}
 
 // Resolve - AnyResolver interface implementation, it'll resolve any unregistered Any types to Void instead of
 // returning error
-func (_ mconfigAnyResolver) Resolve(typeUrl string) (proto.Message, error) {
+func (mconfigAnyResolver) Resolve(typeUrl string) (proto.Message, error) {
 	// Only the part of typeUrl after the last slash is relevant.
 	mname := typeUrl
 	if slash := strings.LastIndex(mname, "/"); slash >= 0 {
 		mname = mname[slash+1:]
 	}
 	mt := proto.MessageType(mname)
-	var res proto.Message
 	if mt == nil {
 		glog.V(4).Infof("mconfigAnyResolver: unknown message type %q", mname)
-		res = new(Void)
+		return new(Bytes), nil
 	} else {
-		res = reflect.New(mt.Elem()).Interface().(proto.Message)
+		return reflect.New(mt.Elem()).Interface().(proto.Message), nil
 	}
-	return res, nil
 }
 
 // MarshalMconfig is a special mconfig marshaler tolerant to unregistered Any types
 func MarshalMconfig(msg proto.Message) ([]byte, error) {
+	buff, err := marshalMconfigs(msg)
+	return buff.Bytes(), err
+}
+
+// MarshalMconfigToString - same as MarshalMconfig but returns string
+func MarshalMconfigToString(msg proto.Message) (string, error) {
+	buff, err := marshalMconfigs(msg)
+	return buff.String(), err
+}
+
+func marshalMconfigs(msg proto.Message) (*bytes.Buffer, error) {
 	var buff bytes.Buffer
 	err := (&jsonpb.Marshaler{AnyResolver: mconfigAnyResolver{}, EmitDefaults: true, Indent: " "}).Marshal(&buff, msg)
-	return buff.Bytes(), err
+	return &buff, err
 }
 
 // UnmarshalMconfig is a special mconfig Unmarshaler tolerant to unregistered Any types
 func UnmarshalMconfig(bt []byte, msg proto.Message) error {
 	return (&jsonpb.Unmarshaler{AllowUnknownFields: true, AnyResolver: mconfigAnyResolver{}}).Unmarshal(
-		bytes.NewBuffer(bt), msg)
+		bytes.NewReader(bt), msg)
+}
+
+// MarshalJSONPB implements JSONPBMarshaler interface for Bytes type
+func (bm *Bytes) MarshalJSONPB(_ *jsonpb.Marshaler) ([]byte, error) {
+	if bm != nil {
+		var b = make([]byte, len(bm.Val))
+		copy(b, bm.Val)
+		return b, nil
+	}
+	return []byte{}, nil
+}
+
+// UnmarshalJSONPB implements JSONPBUnmarshaler interface for Bytes type
+func (bm *Bytes) UnmarshalJSONPB(_ *jsonpb.Unmarshaler, b []byte) error {
+	if bm != nil {
+		bm.Reset()
+		bm.Val = make([]byte, len(b))
+		copy(bm.Val, b)
+	}
+	return nil
 }

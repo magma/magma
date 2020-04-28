@@ -15,6 +15,11 @@ import (
 
 type permissionsPolicyResolver struct{}
 
+func (r queryResolver) PermissionsPolicies(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.PermissionsPolicyConnection, error) {
+	return r.ClientFrom(ctx).PermissionsPolicy.Query().
+		Paginate(ctx, after, first, before, last)
+}
+
 func (r permissionsPolicyResolver) Policy(ctx context.Context, obj *ent.PermissionsPolicy) (models.SystemPolicy, error) {
 	if obj.InventoryPolicy != nil {
 		return authz.AppendInventoryPolicies(

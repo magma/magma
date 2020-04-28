@@ -88,6 +88,7 @@ class TestQueryParser(BaseTest):
                                         name="returnOfTheJedi",
                                         type="Film",
                                         nullable=True,
+                                        is_list=False,
                                     )
                                 ],
                                 children=[
@@ -95,12 +96,16 @@ class TestQueryParser(BaseTest):
                                         name="Film",
                                         fields=[
                                             ParsedField(
-                                                name="title", type="str", nullable=False
+                                                name="title",
+                                                type="str",
+                                                nullable=False,
+                                                is_list=False,
                                             ),
                                             ParsedField(
                                                 name="director",
                                                 type="str",
                                                 nullable=False,
+                                                is_list=False,
                                             ),
                                         ],
                                     )
@@ -147,6 +152,7 @@ class TestQueryParser(BaseTest):
                                         name="returnOfTheJedi",
                                         type="Film",
                                         nullable=True,
+                                        is_list=False,
                                     )
                                 ],
                                 children=[
@@ -154,12 +160,16 @@ class TestQueryParser(BaseTest):
                                         name="Film",
                                         fields=[
                                             ParsedField(
-                                                name="title", type="str", nullable=False
+                                                name="title",
+                                                type="str",
+                                                nullable=False,
+                                                is_list=False,
                                             ),
                                             ParsedField(
                                                 name="director",
                                                 type="str",
                                                 nullable=False,
+                                                is_list=False,
                                             ),
                                         ],
                                     )
@@ -209,6 +219,7 @@ class TestQueryParser(BaseTest):
                                         name="returnOfTheJedi",
                                         type="Film",
                                         nullable=True,
+                                        is_list=False,
                                     )
                                 ],
                                 children=[
@@ -217,7 +228,10 @@ class TestQueryParser(BaseTest):
                                         parents=["FilmFields"],
                                         fields=[
                                             ParsedField(
-                                                name="id", type="str", nullable=False
+                                                name="id",
+                                                type="str",
+                                                nullable=False,
+                                                is_list=False,
                                             )
                                         ],
                                     )
@@ -230,8 +244,15 @@ class TestQueryParser(BaseTest):
                     ParsedObject(
                         name="FilmFields",
                         fields=[
-                            ParsedField(name="title", type="str", nullable=False),
-                            ParsedField(name="director", type="str", nullable=False),
+                            ParsedField(
+                                name="title", type="str", nullable=False, is_list=False
+                            ),
+                            ParsedField(
+                                name="director",
+                                type="str",
+                                nullable=False,
+                                is_list=False,
+                            ),
                         ],
                     )
                 ],
@@ -276,7 +297,10 @@ class TestQueryParser(BaseTest):
                                 name="GetPersonData",
                                 fields=[
                                     ParsedField(
-                                        name="luke", type="Person", nullable=True
+                                        name="luke",
+                                        type="Person",
+                                        nullable=True,
+                                        is_list=False,
                                     )
                                 ],
                                 children=[
@@ -294,14 +318,26 @@ class TestQueryParser(BaseTest):
                     ParsedObject(
                         name="CharacterFields",
                         fields=[
-                            ParsedField(name="name", type="str", nullable=False),
-                            ParsedField(name="home", type="Planet", nullable=False),
+                            ParsedField(
+                                name="name", type="str", nullable=False, is_list=False
+                            ),
+                            ParsedField(
+                                name="home",
+                                type="Planet",
+                                nullable=False,
+                                is_list=False,
+                            ),
                         ],
                         children=[
                             ParsedObject(
                                 name="Planet",
                                 fields=[
-                                    ParsedField(name="name", type="str", nullable=False)
+                                    ParsedField(
+                                        name="name",
+                                        type="str",
+                                        nullable=False,
+                                        is_list=False,
+                                    )
                                 ],
                             )
                         ],
@@ -352,6 +388,7 @@ class TestQueryParser(BaseTest):
                                         name="returnOfTheJedi",
                                         type="Film",
                                         nullable=True,
+                                        is_list=False,
                                     )
                                 ],
                                 children=[
@@ -359,12 +396,16 @@ class TestQueryParser(BaseTest):
                                         name="Film",
                                         fields=[
                                             ParsedField(
-                                                name="title", type="str", nullable=False
+                                                name="title",
+                                                type="str",
+                                                nullable=False,
+                                                is_list=False,
                                             ),
                                             ParsedField(
                                                 name="director",
                                                 type="str",
                                                 nullable=False,
+                                                is_list=False,
                                             ),
                                         ],
                                     )
@@ -428,11 +469,13 @@ class TestQueryParser(BaseTest):
                                         name="allFilms",
                                         type="FilmConnection",
                                         nullable=True,
+                                        is_list=False,
                                     ),
                                     ParsedField(
                                         name="allHeroes",
                                         type="HeroConnection",
                                         nullable=True,
+                                        is_list=False,
                                     ),
                                 ],
                                 children=[
@@ -440,12 +483,16 @@ class TestQueryParser(BaseTest):
                                         name="FilmConnection",
                                         fields=[
                                             ParsedField(
-                                                name="count", type="int", nullable=True
+                                                name="count",
+                                                type="int",
+                                                nullable=True,
+                                                is_list=False,
                                             ),
                                             ParsedField(
                                                 name="edges",
-                                                type="List[FilmEdge]",
+                                                type="FilmEdge",
                                                 nullable=True,
+                                                is_list=True,
                                             ),
                                         ],
                                         children=[
@@ -456,6 +503,7 @@ class TestQueryParser(BaseTest):
                                                         name="node",
                                                         type="Film",
                                                         nullable=True,
+                                                        is_list=False,
                                                     )
                                                 ],
                                                 children=[
@@ -466,16 +514,19 @@ class TestQueryParser(BaseTest):
                                                                 name="id",
                                                                 type="str",
                                                                 nullable=False,
+                                                                is_list=False,
                                                             ),
                                                             ParsedField(
                                                                 name="title",
                                                                 type="str",
                                                                 nullable=False,
+                                                                is_list=False,
                                                             ),
                                                             ParsedField(
                                                                 name="director",
                                                                 type="str",
                                                                 nullable=False,
+                                                                is_list=False,
                                                             ),
                                                         ],
                                                     )
@@ -488,8 +539,9 @@ class TestQueryParser(BaseTest):
                                         fields=[
                                             ParsedField(
                                                 name="edges",
-                                                type="List[HeroEdge]",
+                                                type="HeroEdge",
                                                 nullable=True,
+                                                is_list=True,
                                             )
                                         ],
                                         children=[
@@ -500,6 +552,7 @@ class TestQueryParser(BaseTest):
                                                         name="node",
                                                         type="Hero",
                                                         nullable=True,
+                                                        is_list=False,
                                                     )
                                                 ],
                                                 children=[
@@ -521,8 +574,12 @@ class TestQueryParser(BaseTest):
                     ParsedObject(
                         name="HeroFields",
                         fields=[
-                            ParsedField(name="id", type="str", nullable=False),
-                            ParsedField(name="name", type="str", nullable=False),
+                            ParsedField(
+                                name="id", type="str", nullable=False, is_list=False
+                            ),
+                            ParsedField(
+                                name="name", type="str", nullable=False, is_list=False
+                            ),
                         ],
                     )
                 ],
@@ -555,29 +612,39 @@ class TestQueryParser(BaseTest):
         issue_child = ParsedObject(
             name="Issue",
             fields=[
-                ParsedField(name="author", type="Actor", nullable=True),
+                ParsedField(name="author", type="Actor", nullable=True, is_list=False),
                 ParsedField(
                     name="authorAssociation",
                     type="CommentAuthorAssociation",
                     nullable=False,
+                    is_list=False,
                 ),
             ],
             children=[
                 ParsedObject(
                     name="Actor",
-                    fields=[ParsedField(name="login", type="str", nullable=False)],
+                    fields=[
+                        ParsedField(
+                            name="login", type="str", nullable=False, is_list=False
+                        )
+                    ],
                 )
             ],
         )
         child = ParsedObject(
             name="MyIssuesData",
-            fields=[ParsedField(name="viewer", type="User", nullable=False)],
+            fields=[
+                ParsedField(name="viewer", type="User", nullable=False, is_list=False)
+            ],
             children=[
                 ParsedObject(
                     name="User",
                     fields=[
                         ParsedField(
-                            name="issues", type="IssueConnection", nullable=False
+                            name="issues",
+                            type="IssueConnection",
+                            nullable=False,
+                            is_list=False,
                         )
                     ],
                     children=[
@@ -585,7 +652,10 @@ class TestQueryParser(BaseTest):
                             name="IssueConnection",
                             fields=[
                                 ParsedField(
-                                    name="edges", type="List[IssueEdge]", nullable=True
+                                    name="edges",
+                                    type="IssueEdge",
+                                    nullable=True,
+                                    is_list=True,
                                 )
                             ],
                             children=[
@@ -593,7 +663,10 @@ class TestQueryParser(BaseTest):
                                     name="IssueEdge",
                                     fields=[
                                         ParsedField(
-                                            name="node", type="Issue", nullable=True
+                                            name="node",
+                                            type="Issue",
+                                            nullable=True,
+                                            is_list=False,
                                         )
                                     ],
                                     children=[issue_child],
@@ -662,6 +735,7 @@ class TestQueryParser(BaseTest):
                                         name="createHero",
                                         type="CreateHeroPayload",
                                         nullable=True,
+                                        is_list=False,
                                     )
                                 ],
                                 children=[
@@ -669,10 +743,16 @@ class TestQueryParser(BaseTest):
                                         name="CreateHeroPayload",
                                         fields=[
                                             ParsedField(
-                                                name="hero", type="Hero", nullable=True
+                                                name="hero",
+                                                type="Hero",
+                                                nullable=True,
+                                                is_list=False,
                                             ),
                                             ParsedField(
-                                                name="ok", type="bool", nullable=True
+                                                name="ok",
+                                                type="bool",
+                                                nullable=True,
+                                                is_list=False,
                                             ),
                                         ],
                                         children=[
@@ -683,6 +763,7 @@ class TestQueryParser(BaseTest):
                                                         name="name",
                                                         type="str",
                                                         nullable=False,
+                                                        is_list=False,
                                                     )
                                                 ],
                                             )

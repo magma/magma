@@ -116,7 +116,7 @@ class IPFIXController(MagmaController):
         try:
             p = subprocess.Popen(action_str, shell=True,
                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            output, err = p.communicate()
+            _, err = p.communicate()
             err_str = err.decode('utf-8')
             if err_str:
                 self.logger.error("Failed setting up ipfix sampling %s",

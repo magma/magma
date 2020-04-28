@@ -50,6 +50,10 @@ func (ServiceType) Fields() []ent.Field {
 			Unique(),
 		field.Bool("has_customer").Default(false),
 		field.Bool("is_deleted").Default(false),
+		field.Enum("discovery_method").
+			Comment("how will service of this type be discovered? (null means manual adding and not discovery)").
+			Values("INVENTORY").
+			Optional(),
 	}
 }
 
@@ -135,10 +139,6 @@ func (Service) Fields() []ent.Field {
 			NotEmpty().
 			Unique(),
 		field.String("status"),
-		field.Enum("discovery_method").
-			Comment("how was this service discovered? (null means manual adding and not discovery)").
-			Values("INVENTORY").
-			Optional(),
 	}
 }
 

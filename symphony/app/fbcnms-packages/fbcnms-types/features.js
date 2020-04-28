@@ -38,6 +38,5 @@ export type FeatureID =
   | 'checklistcategories'
   | 'saved_searches'
   | 'read_only_users'
-  | 'user_management'
   | 'service_endpoints'
   | 'user_management_dev';

@@ -41,6 +41,26 @@ func getWorkforcePolicyInput() *models2.WorkforcePolicyInput {
 	}
 }
 
+func TestQueryInventoryPolicies(t *testing.T) {
+	r := newTestResolver(t)
+	defer r.drv.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
+	mr, qr := r.Mutation(), r.Query()
+
+	inventoryPolicyInput := getInventoryPolicyInput()
+	_, err := mr.AddPolicy(ctx, models.AddPermissionsPolicyInput{
+		Name:           policyName,
+		Description:    pointer.ToString(policyDescription),
+		InventoryInput: inventoryPolicyInput,
+		WorkforceInput: nil,
+	})
+	require.NoError(t, err)
+
+	ppc, err := qr.PermissionsPolicies(ctx, nil, nil, nil, nil)
+	require.NoError(t, err)
+	require.Len(t, ppc.Edges, 1)
+}
+
 func TestAddInventoryPolicy(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()

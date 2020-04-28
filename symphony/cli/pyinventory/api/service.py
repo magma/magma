@@ -34,7 +34,7 @@ from ..graphql.service_types_query import ServiceTypesQuery
 
 
 def _populate_service_types(client: SymphonyClient) -> None:
-    service_types = ServiceTypesQuery.execute(client).serviceTypes
+    service_types = ServiceTypesQuery.execute(client)
     if not service_types:
         return
     edges = service_types.edges
@@ -62,7 +62,7 @@ def add_service_type(
         data=ServiceTypeCreateData(
             name=name, hasCustomer=hasCustomer, properties=new_property_types
         ),
-    ).addServiceType
+    )
 
     service_type = ServiceType(
         name=result.name,
@@ -81,7 +81,6 @@ def add_service(
     service_type: str,
     customer: Optional[Customer],
     properties_dict: Dict[str, PropertyValue],
-    links: List[Link],
 ) -> Service:
     property_types = client.serviceTypes[service_type].property_types
     properties = get_graphql_property_inputs(property_types, properties_dict)
@@ -94,29 +93,20 @@ def add_service(
         properties=properties,
         upstreamServiceIds=[],
     )
-    result = AddServiceMutation.execute(client, data=service_create_data).addService
-    for l in links:
-        result = AddServiceLinkMutation.execute(
-            client, id=result.id, linkId=l.id
-        ).addServiceLink
+    result = AddServiceMutation.execute(client, data=service_create_data)
     returned_customer = result.customer
     endpoints = []
     for e in result.endpoints:
         port = e.port
-        # pyre-fixme[16]: `None` has no attribute `link`.
-        link = port.link if port is not None else None
+        link = port.link if port else None
         endpoints.append(
             ServiceEndpoint(
                 id=e.id,
                 port=EquipmentPort(
-                    # pyre-fixme[16]: `None` has no attribute `id`.
                     id=port.id,
-                    # pyre-fixme[16]: `None` has no attribute `properties`.
                     properties=port.properties,
                     definition=EquipmentPortDefinition(
-                        # pyre-fixme[16]: `None` has no attribute `definition`.
-                        id=port.definition.id,
-                        name=port.definition.name,
+                        id=port.definition.id, name=port.definition.name
                     ),
                     link=Link(
                         link.id,
@@ -137,10 +127,8 @@ def add_service(
         id=result.id,
         externalId=result.externalId,
         customer=Customer(
-            # pyre-fixme[16]: `None` has no attribute `name`.
             name=returned_customer.name,
             id=returned_customer.id,
-            # pyre-fixme[16]: `None` has no attribute `externalId`.
             externalId=returned_customer.externalId,
         )
         if returned_customer
@@ -166,15 +154,19 @@ def add_service_endpoint(
     )
 
 
+def add_service_link(client: SymphonyClient, service: Service, link: Link) -> None:
+    AddServiceLinkMutation.execute(client, id=service.id, linkId=link.id)
+
+
 def get_service(client: SymphonyClient, id: str) -> Service:
-    result = ServiceDetailsQuery.execute(client, id=id).service
+    result = ServiceDetailsQuery.execute(client, id=id)
     if result is None:
         raise EntityNotFoundError(entity=Entity.Service, entity_id=id)
     customer = result.customer
     endpoints = []
     for e in result.endpoints:
         port = e.port
-        link = port.link if port is not None else None
+        link = port.link if port else None
         endpoints.append(
             ServiceEndpoint(
                 id=e.id,
@@ -192,7 +184,7 @@ def get_service(client: SymphonyClient, id: str) -> Service:
                     if link
                     else None,
                 )
-                if port is not None
+                if port
                 else None,
                 # TODO add service_endpoint_type api
                 type="1",
@@ -222,7 +214,7 @@ def delete_service_type_with_services(
 ) -> None:
     service_type_with_services = ServiceTypeServicesQuery.execute(
         client, id=service_type.id
-    ).serviceType
+    )
     if not service_type_with_services:
         raise EntityNotFoundError(entity=Entity.ServiceType, entity_id=service_type.id)
     services = service_type_with_services.services

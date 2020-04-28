@@ -423,6 +423,68 @@ func IsDeletedNEQ(v bool) predicate.ServiceType {
 	})
 }
 
+// DiscoveryMethodEQ applies the EQ predicate on the "discovery_method" field.
+func DiscoveryMethodEQ(v DiscoveryMethod) predicate.ServiceType {
+	return predicate.ServiceType(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldDiscoveryMethod), v))
+	})
+}
+
+// DiscoveryMethodNEQ applies the NEQ predicate on the "discovery_method" field.
+func DiscoveryMethodNEQ(v DiscoveryMethod) predicate.ServiceType {
+	return predicate.ServiceType(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldDiscoveryMethod), v))
+	})
+}
+
+// DiscoveryMethodIn applies the In predicate on the "discovery_method" field.
+func DiscoveryMethodIn(vs ...DiscoveryMethod) predicate.ServiceType {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.ServiceType(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(vs) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldDiscoveryMethod), v...))
+	})
+}
+
+// DiscoveryMethodNotIn applies the NotIn predicate on the "discovery_method" field.
+func DiscoveryMethodNotIn(vs ...DiscoveryMethod) predicate.ServiceType {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.ServiceType(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(vs) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldDiscoveryMethod), v...))
+	})
+}
+
+// DiscoveryMethodIsNil applies the IsNil predicate on the "discovery_method" field.
+func DiscoveryMethodIsNil() predicate.ServiceType {
+	return predicate.ServiceType(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldDiscoveryMethod)))
+	})
+}
+
+// DiscoveryMethodNotNil applies the NotNil predicate on the "discovery_method" field.
+func DiscoveryMethodNotNil() predicate.ServiceType {
+	return predicate.ServiceType(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldDiscoveryMethod)))
+	})
+}
+
 // HasServices applies the HasEdge predicate on the "services" edge.
 func HasServices() predicate.ServiceType {
 	return predicate.ServiceType(func(s *sql.Selector) {

@@ -810,6 +810,7 @@ type TechnicianCheckListItemInput struct {
 	YesNoResponse      *YesNoResponse        `json:"yesNoResponse"`
 	WifiData           []*SurveyWiFiScanData `json:"wifiData"`
 	CellData           []*SurveyCellScanData `json:"cellData"`
+	FilesData          []*FileInput          `json:"filesData"`
 }
 
 type TechnicianInput struct {
@@ -841,15 +842,14 @@ type UpdateUsersGroupMembersInput struct {
 }
 
 type UserFilterInput struct {
-	FilterType         UserFilterType     `json:"filterType"`
-	IncludeDeactivated *bool              `json:"includeDeactivated"`
-	Operator           FilterOperator     `json:"operator"`
-	StringValue        *string            `json:"stringValue"`
-	PropertyValue      *PropertyTypeInput `json:"propertyValue"`
-	StatusValue        *user.Status       `json:"statusValue"`
-	IDSet              []int              `json:"idSet"`
-	StringSet          []string           `json:"stringSet"`
-	MaxDepth           *int               `json:"maxDepth"`
+	FilterType    UserFilterType     `json:"filterType"`
+	Operator      FilterOperator     `json:"operator"`
+	StringValue   *string            `json:"stringValue"`
+	PropertyValue *PropertyTypeInput `json:"propertyValue"`
+	StatusValue   *user.Status       `json:"statusValue"`
+	IDSet         []int              `json:"idSet"`
+	StringSet     []string           `json:"stringSet"`
+	MaxDepth      *int               `json:"maxDepth"`
 }
 
 type UserSearchResult struct {
