@@ -539,10 +539,10 @@ type NetworkTopology struct {
 }
 
 type PermissionSettings struct {
-	CanWrite            bool                  `json:"canWrite"`
-	AdminPolicy         *AdministrativePolicy `json:"adminPolicy"`
-	InventoryPolicy     *InventoryPolicy      `json:"inventoryPolicy"`
-	WorkforcePermission *WorkforcePolicy      `json:"workforcePermission"`
+	CanWrite        bool                  `json:"canWrite"`
+	AdminPolicy     *AdministrativePolicy `json:"adminPolicy"`
+	InventoryPolicy *InventoryPolicy      `json:"inventoryPolicy"`
+	WorkforcePolicy *WorkforcePolicy      `json:"workforcePolicy"`
 }
 
 type PortFilterInput struct {

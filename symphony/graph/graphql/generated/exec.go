@@ -598,10 +598,10 @@ type ComplexityRoot struct {
 	}
 
 	PermissionSettings struct {
-		AdminPolicy         func(childComplexity int) int
-		CanWrite            func(childComplexity int) int
-		InventoryPolicy     func(childComplexity int) int
-		WorkforcePermission func(childComplexity int) int
+		AdminPolicy     func(childComplexity int) int
+		CanWrite        func(childComplexity int) int
+		InventoryPolicy func(childComplexity int) int
+		WorkforcePolicy func(childComplexity int) int
 	}
 
 	PermissionsPolicy struct {
@@ -4218,12 +4218,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PermissionSettings.InventoryPolicy(childComplexity), true
 
-	case "PermissionSettings.workforcePermission":
-		if e.complexity.PermissionSettings.WorkforcePermission == nil {
+	case "PermissionSettings.workforcePolicy":
+		if e.complexity.PermissionSettings.WorkforcePolicy == nil {
 			break
 		}
 
-		return e.complexity.PermissionSettings.WorkforcePermission(childComplexity), true
+		return e.complexity.PermissionSettings.WorkforcePolicy(childComplexity), true
 
 	case "PermissionsPolicy.description":
 		if e.complexity.PermissionsPolicy.Description == nil {
@@ -6851,7 +6851,7 @@ type PermissionSettings {
   canWrite: Boolean!
   adminPolicy: AdministrativePolicy!
   inventoryPolicy: InventoryPolicy!
-  workforcePermission: WorkforcePolicy!
+  workforcePolicy: WorkforcePolicy!
 }
 
 enum PermissionValue
@@ -23419,7 +23419,7 @@ func (ec *executionContext) _PermissionSettings_inventoryPolicy(ctx context.Cont
 	return ec.marshalNInventoryPolicy2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐInventoryPolicy(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _PermissionSettings_workforcePermission(ctx context.Context, field graphql.CollectedField, obj *models.PermissionSettings) (ret graphql.Marshaler) {
+func (ec *executionContext) _PermissionSettings_workforcePolicy(ctx context.Context, field graphql.CollectedField, obj *models.PermissionSettings) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -23436,7 +23436,7 @@ func (ec *executionContext) _PermissionSettings_workforcePermission(ctx context.
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.WorkforcePermission, nil
+		return obj.WorkforcePolicy, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -43849,8 +43849,8 @@ func (ec *executionContext) _PermissionSettings(ctx context.Context, sel ast.Sel
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "workforcePermission":
-			out.Values[i] = ec._PermissionSettings_workforcePermission(ctx, field, obj)
+		case "workforcePolicy":
+			out.Values[i] = ec._PermissionSettings_workforcePolicy(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

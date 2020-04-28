@@ -18,6 +18,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect"
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/authz"
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/enttest"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
@@ -414,7 +415,8 @@ func importLinksPortsFile(t *testing.T, client *ent.Client, r io.Reader, entity 
 			Subscriber: event.NewNopSubscriber(),
 		},
 	)
-	th := viewer.TenancyHandler(h, viewer.NewFixedTenancy(client))
+	auth := authz.AuthHandler{Handler: h, Logger: logtest.NewTestLogger(t)}
+	th := viewer.TenancyHandler(auth, viewer.NewFixedTenancy(client))
 	server := httptest.NewServer(th)
 	defer server.Close()
 	switch entity {

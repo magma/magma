@@ -69,7 +69,7 @@ type PermissionSettings {
   canWrite: Boolean!
   adminPolicy: AdministrativePolicy!
   inventoryPolicy: InventoryPolicy!
-  workforcePermission: WorkforcePolicy!
+  workforcePolicy: WorkforcePolicy!
 }
 
 enum PermissionValue

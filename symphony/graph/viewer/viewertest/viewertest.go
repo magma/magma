@@ -16,7 +16,7 @@ const (
 	UserHeader    = viewer.UserHeader
 	DefaultUser   = "tester@example.com"
 	RoleHeader    = viewer.RoleHeader
-	DefaultRole   = "superuser"
+	DefaultRole   = viewer.SuperUserRole
 )
 
 func SetDefaultViewerHeaders(req *http.Request) {

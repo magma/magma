@@ -7,11 +7,9 @@ package authz
 import (
 	"context"
 
-	"github.com/facebookincubator/symphony/graph/ent/usersgroup"
-
+	"github.com/facebookincubator/symphony/graph/authz/models"
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/privacy"
-	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/viewer"
 )
 
@@ -29,42 +27,20 @@ func mutationWithViewerRule(rule func(context.Context, ent.Mutation, *viewer.Vie
 	})
 }
 
-// UserHasWritePermissions checks if user has write permissions based on role and group membership.
-func UserHasWritePermissions(ctx context.Context, v *viewer.Viewer) (bool, error) {
-	if !v.Features.Enabled(viewer.FeatureReadOnly) {
-		return true, nil
-	}
-	u := v.User()
-	if u.Role == user.RoleOWNER {
-		return true, nil
-	}
-	return u.QueryGroups().
-		Where(usersgroup.Name(WritePermissionGroupName)).
-		Exist(ctx)
-}
-
-func userHasAdminPermissions(u *ent.User) bool {
-	return u.Role == user.RoleADMIN || u.Role == user.RoleOWNER
-}
-
 // AllowViewerWritePermissionsRule grants write permission.
 func AllowViewerWritePermissionsRule() privacy.MutationRule {
 	return mutationWithViewerRule(func(ctx context.Context, _ ent.Mutation, v *viewer.Viewer) error {
-		switch hasPerm, err := UserHasWritePermissions(ctx, v); {
-		case err != nil:
-			return privacy.Denyf("cannot get write permissions of user: %w", err)
-		case hasPerm:
+		if FromContext(ctx).CanWrite {
 			return privacy.Allow
-		default:
-			return privacy.Skip
 		}
+		return privacy.Skip
 	})
 }
 
 // AllowAdminRule grants access to admins.
 func AllowAdminRule() privacy.MutationRule {
-	return mutationWithViewerRule(func(_ context.Context, _ ent.Mutation, v *viewer.Viewer) error {
-		if userHasAdminPermissions(v.User()) {
+	return mutationWithViewerRule(func(ctx context.Context, _ ent.Mutation, v *viewer.Viewer) error {
+		if FromContext(ctx).AdminPolicy.Access.IsAllowed == models.PermissionValueYes {
 			return privacy.Allow
 		}
 		return privacy.Skip

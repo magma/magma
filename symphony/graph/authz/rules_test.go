@@ -10,11 +10,9 @@ import (
 	"testing"
 
 	"github.com/facebookincubator/symphony/graph/authz"
-
-	"github.com/facebookincubator/symphony/graph/ent/privacy"
-
+	"github.com/facebookincubator/symphony/graph/authz/models"
 	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/ent/user"
+	"github.com/facebookincubator/symphony/graph/ent/privacy"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 	"github.com/stretchr/testify/require"
 )
@@ -29,19 +27,14 @@ func TestUserCannotBeDeleted(t *testing.T) {
 }
 
 func TestAdminUserCanEditUsers(t *testing.T) {
-	const admin = "admin_user"
 	client := viewertest.NewTestClient(t)
+	permissions := authz.EmptyPermissions()
+	permissions.AdminPolicy.Access.IsAllowed = models.PermissionValueYes
 	ctx := ent.NewContext(context.Background(), client)
-	_, err := client.User.Create().
-		SetAuthID(admin).
-		SetRole(user.RoleADMIN).
-		Save(ctx)
-	require.NoError(t, err)
 	ctx = viewertest.NewContext(
-		context.Background(), client,
-		viewertest.WithUser(admin),
-	)
-	_, err = client.UsersGroup.Create().
+		ctx, client,
+		viewertest.WithPermissions(permissions))
+	_, err := client.UsersGroup.Create().
 		SetName("NewGroup").
 		Save(ctx)
 	require.NoError(t, err)
@@ -51,57 +44,30 @@ func TestAdminUserCanEditUsers(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestUserCannotEditUsers(t *testing.T) {
+func TestUserCannotEditWithNoPermission(t *testing.T) {
 	client := viewertest.NewTestClient(t)
 	ctx := ent.NewContext(context.Background(), client)
-	_, err := client.User.Create().SetAuthID("regular_user").SetRole(user.RoleUSER).Save(ctx)
+	location, err := client.LocationType.Create().SetName("LocationType").Save(ctx)
 	require.NoError(t, err)
-	ctx = viewertest.NewContext(context.Background(), client, viewertest.WithUser("regular_user"))
+	ctx = viewertest.NewContext(ctx, client, viewertest.WithPermissions(authz.EmptyPermissions()))
 	_, err = client.UsersGroup.Create().SetName("NewGroup").Save(ctx)
 	require.True(t, errors.Is(err, privacy.Deny))
 	_, err = client.User.Create().SetAuthID("new_user").Save(ctx)
 	require.True(t, errors.Is(err, privacy.Deny))
-}
-
-func TestUserIsReadonly(t *testing.T) {
-	client := viewertest.NewTestClient(t)
-	ctx := ent.NewContext(context.Background(), client)
-	_, err := client.User.Create().SetAuthID("simple_user").Save(ctx)
-	require.NoError(t, err)
-	location, err := client.LocationType.Create().SetName("LocationType").Save(ctx)
-	require.NoError(t, err)
-	ctx = viewertest.NewContext(context.Background(), client, viewertest.WithUser("simple_user"))
 	_, err = client.LocationType.Get(ctx, location.ID)
 	require.NoError(t, err)
 	_, err = client.LocationType.UpdateOneID(location.ID).SetName("NewLocationType").Save(ctx)
-	require.Error(t, err)
 	require.True(t, errors.Is(err, privacy.Deny))
 }
 
-func TestOwnerCanWrite(t *testing.T) {
+func TestUserCanWrite(t *testing.T) {
 	client := viewertest.NewTestClient(t)
 	ctx := ent.NewContext(context.Background(), client)
-	_, err := client.User.Create().SetAuthID("owner_user").SetRole(user.RoleOWNER).Save(ctx)
-	require.NoError(t, err)
 	location, err := client.LocationType.Create().SetName("LocationType").Save(ctx)
 	require.NoError(t, err)
-	ctx = viewertest.NewContext(context.Background(), client, viewertest.WithUser("owner_user"))
-	_, err = client.LocationType.Get(ctx, location.ID)
-	require.NoError(t, err)
-	_, err = client.LocationType.UpdateOneID(location.ID).SetName("NewLocationType").Save(ctx)
-	require.NoError(t, err)
-}
-
-func TestUserInGroupCanWrite(t *testing.T) {
-	client := viewertest.NewTestClient(t)
-	ctx := ent.NewContext(context.Background(), client)
-	userInGroup, err := client.User.Create().SetAuthID("user_in_group").Save(ctx)
-	require.NoError(t, err)
-	_, err = client.UsersGroup.Create().SetName(authz.WritePermissionGroupName).AddMembers(userInGroup).Save(ctx)
-	require.NoError(t, err)
-	location, err := client.LocationType.Create().SetName("LocationType").Save(ctx)
-	require.NoError(t, err)
-	ctx = viewertest.NewContext(context.Background(), client, viewertest.WithUser("user_in_group"))
+	permissions := authz.EmptyPermissions()
+	permissions.CanWrite = true
+	ctx = viewertest.NewContext(ctx, client, viewertest.WithPermissions(permissions))
 	_, err = client.LocationType.Get(ctx, location.ID)
 	require.NoError(t, err)
 	_, err = client.LocationType.UpdateOneID(location.ID).SetName("NewLocationType").Save(ctx)

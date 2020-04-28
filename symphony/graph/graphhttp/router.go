@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/facebookincubator/symphony/graph/authz"
 	"github.com/facebookincubator/symphony/graph/event"
 	"github.com/facebookincubator/symphony/graph/exporter"
 	"github.com/facebookincubator/symphony/graph/graphql"
@@ -43,6 +44,9 @@ func newRouter(cfg routerConfig) (*mux.Router, func(), error) {
 		},
 		func(h http.Handler) http.Handler {
 			return viewer.UserHandler{Handler: h, Logger: cfg.logger}
+		},
+		func(h http.Handler) http.Handler {
+			return authz.AuthHandler{Handler: h, Logger: cfg.logger}
 		},
 		func(h http.Handler) http.Handler {
 			return actions.Handler(h, cfg.logger, cfg.actions.registry)
