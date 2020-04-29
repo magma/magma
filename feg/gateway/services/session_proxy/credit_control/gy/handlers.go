@@ -72,13 +72,13 @@ func getGyReAuthAnswerDiamMsg(
 	protoAns *protos.ChargingReAuthAnswer,
 ) *ChargingReAuthAnswer {
 	var resultCode uint32
-	if protoAns.Result == protos.ChargingReAuthAnswer_UPDATE_INITIATED {
+	if protoAns.Result == protos.ReAuthResult_UPDATE_INITIATED {
 		resultCode = diam.LimitedSuccess
-	} else if protoAns.Result == protos.ChargingReAuthAnswer_UPDATE_NOT_NEEDED {
+	} else if protoAns.Result == protos.ReAuthResult_UPDATE_NOT_NEEDED {
 		resultCode = diam.Success
-	} else if protoAns.Result == protos.ChargingReAuthAnswer_SESSION_NOT_FOUND {
+	} else if protoAns.Result == protos.ReAuthResult_SESSION_NOT_FOUND {
 		resultCode = diam.UnknownSessionID
-	} else {
+	} else { // ReAuthResult_OTHER_FAILURE
 		resultCode = diam.UnableToComply
 	}
 	return &ChargingReAuthAnswer{

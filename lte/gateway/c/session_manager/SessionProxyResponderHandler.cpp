@@ -15,7 +15,7 @@
 using grpc::Status;
 
 namespace magma {
-std::string charging_raa_result_to_str(ChargingReAuthAnswer::Result res);
+std::string raa_result_to_str(ReAuthResult res);
 
 SessionProxyResponderHandlerImpl::SessionProxyResponderHandlerImpl(
     std::shared_ptr<LocalEnforcer> enforcer, SessionStore& session_store)
@@ -36,7 +36,7 @@ void SessionProxyResponderHandlerImpl::ChargingReAuth(
         auto result =
             enforcer_->init_charging_reauth(session_map, request_cpy, update);
         MLOG(MDEBUG) << "Result of Gy (Charging) ReAuthRequest "
-                     << charging_raa_result_to_str(result);
+                     << raa_result_to_str(result);
         ChargingReAuthAnswer ans;
         ans.set_result(result);
 
@@ -96,7 +96,7 @@ SessionMap SessionProxyResponderHandlerImpl::get_sessions_for_policy(
   return session_store_.read_sessions(req);
 }
 
-std::string charging_raa_result_to_str(ChargingReAuthAnswer::Result res) {
+std::string raa_result_to_str(ReAuthResult res) {
   switch (res) {
     case UPDATE_INITIATED:
       return "UPDATE_INITIATED";

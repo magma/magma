@@ -442,12 +442,12 @@ TEST_F(SessionStateTest, test_reauth_key) {
   // credit is already reporting, no update needed
   auto uc = get_default_update_criteria();
   auto reauth_res = session_state->get_charging_pool().reauth_key(1, uc);
-  EXPECT_EQ(reauth_res, ChargingReAuthAnswer::UPDATE_NOT_NEEDED);
+  EXPECT_EQ(reauth_res, ReAuthResult::UPDATE_NOT_NEEDED);
   receive_credit_from_ocs(1, 1024);
   EXPECT_EQ(session_state->get_charging_pool().get_credit(1, REPORTING_TX), 0);
   EXPECT_EQ(session_state->get_charging_pool().get_credit(1, REPORTING_RX), 0);
   reauth_res = session_state->get_charging_pool().reauth_key(1, uc);
-  EXPECT_EQ(reauth_res, ChargingReAuthAnswer::UPDATE_INITIATED);
+  EXPECT_EQ(reauth_res, ReAuthResult::UPDATE_INITIATED);
 
   session_state->add_used_credit("rule1", 2, 1, update_criteria);
   UpdateSessionRequest reauth_update;
@@ -462,7 +462,7 @@ TEST_F(SessionStateTest, test_reauth_new_key) {
   // credit is already reporting, no update needed
   auto reauth_res =
       session_state->get_charging_pool().reauth_key(1, update_criteria);
-  EXPECT_EQ(reauth_res, ChargingReAuthAnswer::UPDATE_INITIATED);
+  EXPECT_EQ(reauth_res, ReAuthResult::UPDATE_INITIATED);
 
   UpdateSessionRequest reauth_update;
   std::vector<std::unique_ptr<ServiceAction>> actions;
@@ -499,7 +499,7 @@ TEST_F(SessionStateTest, test_reauth_all) {
   // If any charging key isn't reporting, an update is needed
   auto uc = get_default_update_criteria();
   auto reauth_res = session_state->get_charging_pool().reauth_all(uc);
-  EXPECT_EQ(reauth_res, ChargingReAuthAnswer::UPDATE_INITIATED);
+  EXPECT_EQ(reauth_res, ReAuthResult::UPDATE_INITIATED);
 
   UpdateSessionRequest reauth_update;
   std::vector<std::unique_ptr<ServiceAction>> actions;
@@ -508,7 +508,7 @@ TEST_F(SessionStateTest, test_reauth_all) {
 
   // All charging keys are reporting, no update needed
   reauth_res = session_state->get_charging_pool().reauth_all(uc);
-  EXPECT_EQ(reauth_res, ChargingReAuthAnswer::UPDATE_NOT_NEEDED);
+  EXPECT_EQ(reauth_res, ReAuthResult::UPDATE_NOT_NEEDED);
 }
 
 TEST_F(SessionStateTest, test_tgpp_context_is_set_on_update) {
