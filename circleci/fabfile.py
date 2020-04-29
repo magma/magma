@@ -4,6 +4,7 @@
 #  This source code is licensed under the BSD-style license found in the
 #  LICENSE file in the root directory of this source tree.
 import re
+import sys
 from time import sleep
 from typing import List, Optional
 
@@ -240,7 +241,7 @@ def _run_remote_cwf_integ_test(repo: str, magma_root: str):
                 '-f docker-compose.integ-test.yml '
                 'build --parallel')
         result = run('fab integ_test:destroy_vm=True,transfer_images=True',
-            timeout=110*60)
+                     timeout=110*60, warn_only=True)
         # On failure, transfer logs of key services from docker containers and
         # copy to the log directory. This will get stored as an artifact in the
         # circleCI config.
@@ -253,7 +254,7 @@ def _run_remote_cwf_integ_test(repo: str, magma_root: str):
             get('*.log', 'cwf-logs')
             local('sudo mkdir -p /tmp/logs/')
             local('sudo mv cwf-logs/*.log /tmp/logs/')
-
+        sys.exit(result.return_code)
 
 def _run_remote_lte_package(repo: str, magma_root: str,
                             package_cert: str, package_control_proxy: str,
