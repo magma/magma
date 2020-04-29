@@ -59,13 +59,13 @@ type subscriberAccount struct {
 
 // PCRFDiamServer wraps an PCRF storing subscribers and their rules
 type PCRFDiamServer struct {
-	diameterSettings    *diameter.DiameterClientConfig
-	pcrfConfig          *PCRFConfig
-	serviceConfig       *protos.PCRFConfigs
-	subscribers         map[string]*subscriberAccount // map of imsi to to rules
-	mux                 *sm.StateMachine
-	LastMessageReceived *ccrMessage
-	mockDriver          *mock_driver.MockDriver
+	diameterSettings *diameter.DiameterClientConfig
+	pcrfConfig       *PCRFConfig
+	serviceConfig    *protos.PCRFConfigs
+	subscribers      map[string]*subscriberAccount // map of imsi to to rules
+	mux              *sm.StateMachine
+	lastAVPReceived  *diam.Message
+	mockDriver       *mock_driver.MockDriver
 }
 
 // NewPCRFDiamServer initializes an PCRF with an empty rule map
@@ -301,6 +301,15 @@ func (srv *PCRFDiamServer) AbortSession(
 	case <-time.After(10 * time.Second):
 		return nil, fmt.Errorf("No ASA received")
 	}
+}
+
+// GetLastAVPreceived gets the last message in diam format received
+// Message gets overwriten every time a new CCR is sent
+func (srv *PCRFDiamServer) GetLastAVPreceived() (*diam.Message, error) {
+	if srv.lastAVPReceived == nil {
+		return nil, fmt.Errorf("No AVP message received")
+	}
+	return srv.lastAVPReceived, nil
 }
 
 func sendASR(state *SubscriberSessionState, cfg *sm.Settings) error {

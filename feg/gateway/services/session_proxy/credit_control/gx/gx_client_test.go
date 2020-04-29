@@ -10,6 +10,7 @@ LICENSE file in the root directory of this source tree.
 package gx_test
 
 import (
+	"fmt"
 	"log"
 	"net"
 	"testing"
@@ -71,6 +72,7 @@ func TestGxClient(t *testing.T) {
 		RequestNumber: 0,
 		IPAddr:        "192.168.1.1",
 		SpgwIPV4:      "10.10.10.10",
+		Apn:           "gx.Apn.magma.com",
 	}
 	done := make(chan interface{}, 1000)
 
@@ -79,9 +81,7 @@ func TestGxClient(t *testing.T) {
 	assert.Equal(t, ccrInit.SessionID, answer.SessionID)
 	assert.Equal(t, ccrInit.RequestNumber, answer.RequestNumber)
 	assert.Equal(t, 5, len(answer.RuleInstallAVP))
-	calledStationID, err := mock_pcrf.GetAVP(pcrf.LastMessageReceived, "Called-Station-Id")
-	assert.NoError(t, err)
-	assert.Equal(t, "", calledStationID)
+	assertReceivedAPNonPCRF(t, pcrf, "gx.Apn.magma.com")
 
 	var ruleNames []string
 	var ruleBaseNames []string
@@ -189,7 +189,7 @@ func TestGxClient(t *testing.T) {
 func TestGxClientWithGyGlobalConf(t *testing.T) {
 	serverConfig := defaultLocalServerConfig
 	clientConfig := getClientConfig()
-	overWriteApn := "gx.Apn.magma.com"
+	overWriteApn := "gx.overwritten.Apn.magma.com"
 	globalConfig := getGxGlobalConfig(overWriteApn)
 	pcrf := startServer(clientConfig, &serverConfig)
 	seedAccountConfigurations(pcrf)
@@ -210,6 +210,7 @@ func TestGxClientWithGyGlobalConf(t *testing.T) {
 		RequestNumber: 0,
 		IPAddr:        "192.168.1.1",
 		SpgwIPV4:      "10.10.10.10",
+		Apn:           "gx.Apn.magma.com",
 	}
 	done := make(chan interface{}, 1000)
 
@@ -218,9 +219,7 @@ func TestGxClientWithGyGlobalConf(t *testing.T) {
 	assert.Equal(t, ccrInit.SessionID, answer.SessionID)
 	assert.Equal(t, ccrInit.RequestNumber, answer.RequestNumber)
 	assert.Equal(t, 5, len(answer.RuleInstallAVP))
-	calledStationID, err := mock_pcrf.GetAVP(pcrf.LastMessageReceived, "Called-Station-Id")
-	assert.NoError(t, err)
-	assert.Equal(t, overWriteApn, calledStationID)
+	assertReceivedAPNonPCRF(t, pcrf, overWriteApn)
 }
 
 func TestGxClientUsageMonitoring(t *testing.T) {
@@ -505,4 +504,13 @@ func seedAccountConfigurations(pcrf *mock_pcrf.PCRFDiamServer) {
 	pcrf.CreateAccount(ctx, &protos.SubscriberID{Id: testIMSI4})
 	pcrf.SetRules(ctx, ruleImsi4)
 	pcrf.SetUsageMonitors(ctx, usageMonitorImsi4)
+}
+
+// assertReceivedAPNonPCRF checks if the last received AVP contains the expected APN
+func assertReceivedAPNonPCRF(t *testing.T, pcrf *mock_pcrf.PCRFDiamServer, expectedAPN string) {
+	avpReceived, err := pcrf.GetLastAVPreceived()
+	assert.NoError(t, err)
+	receivedAPN, err := avpReceived.FindAVP("Called-Station-Id", 0)
+	assert.NoError(t, err)
+	assert.Equal(t, fmt.Sprintf("UTF8String{%s},Padding:0", expectedAPN), receivedAPN.Data.String())
 }

@@ -62,12 +62,13 @@ type ccrCredit struct {
 func getCCRHandler(srv *OCSDiamServer) diam.HandlerFunc {
 	return func(c diam.Conn, m *diam.Message) {
 		glog.V(2).Infof("Received CCR from %s\n", c.RemoteAddr())
+		srv.lastAVPReceived = m
 		var ccr ccrMessage
 		if err := m.Unmarshal(&ccr); err != nil {
 			glog.Errorf("Failed to unmarshal CCR %s", err)
 			return
 		}
-		srv.LastMessageReceived = &ccr
+
 		imsi := ccr.GetIMSI()
 		if len(imsi) == 0 {
 			glog.Errorf("Could not find IMSI in CCR")
@@ -190,16 +191,17 @@ func (message ccrMessage) GetIMSI() string {
 	return ""
 }
 
+// TODO: Remove this when not needed anymore (use findAVP from diam library)
 // Searches on ccr message for an specific AVP message based on the avp tag on ccr type (ie "Session-Id")
 // It returns on the first match it finds.
 func GetAVP(message *ccrMessage, AVPToFind string) (interface{}, error) {
 	elem := reflect.ValueOf(message)
-	calledStationID, err := findAVP(elem, "avp", AVPToFind)
+	avpFound, err := findAVP(elem, "avp", AVPToFind)
 	if err != nil {
 		glog.Errorf("Failed to find  %s: %s\n", AVPToFind, err)
 		return "", err
 	}
-	return calledStationID, nil
+	return avpFound, nil
 }
 
 // Depth Search First of a specific tag:value on a element (accepts structs, pointers, slices)
