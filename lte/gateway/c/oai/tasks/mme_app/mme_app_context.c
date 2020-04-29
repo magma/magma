@@ -2201,10 +2201,10 @@ void mme_app_handle_s1ap_ue_context_release_complete(
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
     s1ap_ue_context_release_complete->mme_ue_s1ap_id);
 
-  OAILOG_ERROR(
+  OAILOG_INFO(
       LOG_MME_APP,
       "Received UE context release complete message for "
-      "ue_id" MME_UE_S1AP_ID_FMT,
+      "ue_id: " MME_UE_S1AP_ID_FMT,
       s1ap_ue_context_release_complete->mme_ue_s1ap_id);
 
   if (!ue_context_p) {
