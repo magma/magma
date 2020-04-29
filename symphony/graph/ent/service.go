@@ -31,8 +31,6 @@ type Service struct {
 	ExternalID *string `json:"external_id,omitempty"`
 	// Status holds the value of the "status" field.
 	Status string `json:"status,omitempty"`
-	// DiscoveryMethod holds the value of the "discovery_method" field.
-	DiscoveryMethod service.DiscoveryMethod `json:"discovery_method,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ServiceQuery when eager-loading is set.
 	Edges        ServiceEdges `json:"edges"`
@@ -137,7 +135,6 @@ func (*Service) scanValues() []interface{} {
 		&sql.NullString{}, // name
 		&sql.NullString{}, // external_id
 		&sql.NullString{}, // status
-		&sql.NullString{}, // discovery_method
 	}
 }
 
@@ -186,12 +183,7 @@ func (s *Service) assignValues(values ...interface{}) error {
 	} else if value.Valid {
 		s.Status = value.String
 	}
-	if value, ok := values[5].(*sql.NullString); !ok {
-		return fmt.Errorf("unexpected type %T for field discovery_method", values[5])
-	} else if value.Valid {
-		s.DiscoveryMethod = service.DiscoveryMethod(value.String)
-	}
-	values = values[6:]
+	values = values[5:]
 	if len(values) == len(service.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field service_type", value)
@@ -273,8 +265,6 @@ func (s *Service) String() string {
 	}
 	builder.WriteString(", status=")
 	builder.WriteString(s.Status)
-	builder.WriteString(", discovery_method=")
-	builder.WriteString(fmt.Sprintf("%v", s.DiscoveryMethod))
 	builder.WriteByte(')')
 	return builder.String()
 }

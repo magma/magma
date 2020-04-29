@@ -15,12 +15,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
-
+	"github.com/facebookincubator/symphony/graph/authz"
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/event"
 	"github.com/facebookincubator/symphony/graph/importer"
 	"github.com/facebookincubator/symphony/graph/viewer"
+	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 	"github.com/facebookincubator/symphony/pkg/log/logtest"
 	"github.com/stretchr/testify/require"
 )
@@ -94,7 +94,8 @@ func importLocationsFile(t *testing.T, client *ent.Client, r io.Reader, method m
 			Subscriber: event.NewNopSubscriber(),
 		},
 	)
-	th := viewer.TenancyHandler(h, viewer.NewFixedTenancy(client))
+	auth := authz.AuthHandler{Handler: h, Logger: logtest.NewTestLogger(t)}
+	th := viewer.TenancyHandler(auth, viewer.NewFixedTenancy(client))
 	server := httptest.NewServer(th)
 	defer server.Close()
 

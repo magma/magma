@@ -80,8 +80,11 @@ s1aptests/test_attach_detach_secondary_pdn_with_dedicated_bearer_deactivate.py \
 s1aptests/test_attach_detach_disconnect_default_pdn.py \
 s1aptests/test_attach_detach_maxbearers_twopdns.py \
 s1aptests/test_attach_detach_multiple_secondary_pdn.py \
+s1aptests/test_attach_detach_nw_triggered_delete_secondary_pdn.py \
+s1aptests/test_attach_detach_nw_triggered_delete_last_pdn.py \
 s1aptests/test_attach_ul_udp_data.py \
-s1aptests/test_attach_ul_tcp_data.py
+s1aptests/test_attach_ul_tcp_data.py \
+s1aptests/test_attach_detach_rar_tcp_data.py
 #s1aptests/test_attach_ue_ctxt_release_cmp_delay.py \
 #s1aptests/test_attach_dl_udp_data.py \
 #s1aptests/test_attach_dl_tcp_data.py

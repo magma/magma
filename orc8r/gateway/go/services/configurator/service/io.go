@@ -18,8 +18,8 @@ import (
 	"magma/gateway/mconfig"
 )
 
-// saveConfigFile saves new gateway.configs and returns old configuration if any
-func (c *Configurator) saveConfigs(cfgJson []byte, readOldCfg bool) (oldCfgJson []byte, err error) {
+// SaveConfigFile saves new gateway.configs and returns old configuration if any
+func SaveConfigs(cfgJson []byte, readOldCfg bool) (oldCfgJson []byte, err error) {
 	if len(cfgJson) == 0 {
 		return oldCfgJson, fmt.Errorf("empty gateway mconfigs")
 	}

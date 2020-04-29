@@ -539,10 +539,10 @@ type NetworkTopology struct {
 }
 
 type PermissionSettings struct {
-	CanWrite            bool                  `json:"canWrite"`
-	AdminPolicy         *AdministrativePolicy `json:"adminPolicy"`
-	InventoryPolicy     *InventoryPolicy      `json:"inventoryPolicy"`
-	WorkforcePermission *WorkforcePolicy      `json:"workforcePermission"`
+	CanWrite        bool                  `json:"canWrite"`
+	AdminPolicy     *AdministrativePolicy `json:"adminPolicy"`
+	InventoryPolicy *InventoryPolicy      `json:"inventoryPolicy"`
+	WorkforcePolicy *WorkforcePolicy      `json:"workforcePolicy"`
 }
 
 type PortFilterInput struct {
@@ -842,15 +842,14 @@ type UpdateUsersGroupMembersInput struct {
 }
 
 type UserFilterInput struct {
-	FilterType         UserFilterType     `json:"filterType"`
-	IncludeDeactivated *bool              `json:"includeDeactivated"`
-	Operator           FilterOperator     `json:"operator"`
-	StringValue        *string            `json:"stringValue"`
-	PropertyValue      *PropertyTypeInput `json:"propertyValue"`
-	StatusValue        *user.Status       `json:"statusValue"`
-	IDSet              []int              `json:"idSet"`
-	StringSet          []string           `json:"stringSet"`
-	MaxDepth           *int               `json:"maxDepth"`
+	FilterType    UserFilterType     `json:"filterType"`
+	Operator      FilterOperator     `json:"operator"`
+	StringValue   *string            `json:"stringValue"`
+	PropertyValue *PropertyTypeInput `json:"propertyValue"`
+	StatusValue   *user.Status       `json:"statusValue"`
+	IDSet         []int              `json:"idSet"`
+	StringSet     []string           `json:"stringSet"`
+	MaxDepth      *int               `json:"maxDepth"`
 }
 
 type UserSearchResult struct {

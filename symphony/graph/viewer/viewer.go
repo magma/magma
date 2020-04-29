@@ -35,8 +35,12 @@ const (
 	FeaturesHeader = "x-auth-features"
 )
 
-// SuperUserRole is the highest possible role for user in system
-const SuperUserRole = "superuser"
+const (
+	// SuperUserRole is the highest possible role for user in system
+	SuperUserRole = "superuser"
+	// UserRole is the lowest possible role for user in system
+	UserRole = "user"
+)
 
 // Attributes recorded on the span of the requests.
 const (

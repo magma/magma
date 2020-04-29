@@ -16,8 +16,8 @@ var (
 	// postPolicy is executed after privacy policy.
 	postPolicy = privacy.Policy{
 		Mutation: privacy.MutationPolicy{
-			AllowViewerWritePermissionsRule(),
-			AlwaysAllowIfNoViewerRule(),
+			AllowWritePermissionsRule(),
+			AlwaysAllowIfNoPermissionRule(),
 			privacy.AlwaysDenyRule(),
 		},
 	}

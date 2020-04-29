@@ -9,7 +9,12 @@
  */
 
 import logging from '@fbcnms/logging';
-import {createProxyOptionsBuffer} from '../utils.js';
+import {
+  addTenantIdPrefix,
+  assertValueIsWithoutInfixSeparator,
+  createProxyOptionsBuffer,
+  withInfixSeparator,
+} from '../utils.js';
 
 const logger = logging.getLogger(module);
 
@@ -33,17 +38,37 @@ curl -H "x-auth-organization: fb-test" \
 }
 ' -v
 */
+
+function sanitizeEvent(tenantId, event) {
+  // prefix event name
+  addTenantIdPrefix(tenantId, event);
+  // 'event' attribute uses following format:
+  // conductor:WORKFLOW_NAME:TASK_REFERENCE
+  // workflow name must be prefixed.
+  const split = event.event.split(':');
+  if (split.length == 3 && split[0] === 'conductor') {
+    let workflowName = split[1];
+    assertValueIsWithoutInfixSeparator(workflowName);
+    workflowName = withInfixSeparator(tenantId) + workflowName;
+    event.event = split[0] + ':' + workflowName + ':' + split[2];
+  } else {
+    logger.error(
+      `Tenant ${tenantId} sent invalid event ` + `${JSON.stringify(event)}`,
+    );
+  }
+}
+
 function postEventBefore(tenantId, req, res, proxyCallback) {
   const reqObj = req.body;
   logger.debug(`Transforming '${JSON.stringify(reqObj)}'`);
-  // TODO: prefix name
+  sanitizeEvent(tenantId, reqObj);
   proxyCallback({buffer: createProxyOptionsBuffer(reqObj, req)});
 }
 
 function putEventBefore(tenantId, req, res, proxyCallback) {
   const reqObj = req.body;
   logger.debug(`Transforming '${JSON.stringify(reqObj)}'`);
-  // TODO: prefix name
+  sanitizeEvent(tenantId, reqObj);
   proxyCallback({buffer: createProxyOptionsBuffer(reqObj, req)});
 }
 

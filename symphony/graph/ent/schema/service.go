@@ -9,6 +9,7 @@ import (
 	"github.com/facebookincubator/ent/schema/edge"
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/ent/schema/index"
+	"github.com/facebookincubator/symphony/graph/authz"
 )
 
 // Customer holds the schema definition for the ServiceType entity.
@@ -50,6 +51,10 @@ func (ServiceType) Fields() []ent.Field {
 			Unique(),
 		field.Bool("has_customer").Default(false),
 		field.Bool("is_deleted").Default(false),
+		field.Enum("discovery_method").
+			Comment("how will service of this type be discovered? (null means manual adding and not discovery)").
+			Values("INVENTORY").
+			Optional(),
 	}
 }
 
@@ -61,6 +66,15 @@ func (ServiceType) Edges() []ent.Edge {
 		edge.To("property_types", PropertyType.Type),
 		edge.To("endpoint_definitions", ServiceEndpointDefinition.Type),
 	}
+}
+
+// Policy returns service type policy.
+func (ServiceType) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithMutationRules(
+			authz.ServiceTypeWritePolicyRule(),
+		),
+	)
 }
 
 // ServiceEndpoint holds the schema definition for the ServiceEndpoint entity.
@@ -135,10 +149,6 @@ func (Service) Fields() []ent.Field {
 			NotEmpty().
 			Unique(),
 		field.String("status"),
-		field.Enum("discovery_method").
-			Comment("how was this service discovered? (null means manual adding and not discovery)").
-			Values("INVENTORY").
-			Optional(),
 	}
 }
 

@@ -2765,7 +2765,7 @@ func (s *Service) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     s.ID,
 		Type:   "Service",
-		Fields: make([]*Field, 6),
+		Fields: make([]*Field, 5),
 		Edges:  make([]*Edge, 7),
 	}
 	var buf []byte
@@ -2807,14 +2807,6 @@ func (s *Service) Node(ctx context.Context) (node *Node, err error) {
 	node.Fields[4] = &Field{
 		Type:  "string",
 		Name:  "Status",
-		Value: string(buf),
-	}
-	if buf, err = json.Marshal(s.DiscoveryMethod); err != nil {
-		return nil, err
-	}
-	node.Fields[5] = &Field{
-		Type:  "service.DiscoveryMethod",
-		Name:  "DiscoveryMethod",
 		Value: string(buf),
 	}
 	var ids []int
@@ -3059,7 +3051,7 @@ func (st *ServiceType) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     st.ID,
 		Type:   "ServiceType",
-		Fields: make([]*Field, 5),
+		Fields: make([]*Field, 6),
 		Edges:  make([]*Edge, 3),
 	}
 	var buf []byte
@@ -3101,6 +3093,14 @@ func (st *ServiceType) Node(ctx context.Context) (node *Node, err error) {
 	node.Fields[4] = &Field{
 		Type:  "bool",
 		Name:  "IsDeleted",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(st.DiscoveryMethod); err != nil {
+		return nil, err
+	}
+	node.Fields[5] = &Field{
+		Type:  "servicetype.DiscoveryMethod",
+		Name:  "DiscoveryMethod",
 		Value: string(buf),
 	}
 	var ids []int

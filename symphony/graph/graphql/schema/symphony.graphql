@@ -69,7 +69,7 @@ type PermissionSettings {
   canWrite: Boolean!
   adminPolicy: AdministrativePolicy!
   inventoryPolicy: InventoryPolicy!
-  workforcePermission: WorkforcePolicy!
+  workforcePolicy: WorkforcePolicy!
 }
 
 enum PermissionValue
@@ -1355,6 +1355,20 @@ type UserConnection {
 }
 
 """
+A connection to a list of permissions policies.
+"""
+type PermissionsPolicyConnection {
+  """
+  A list of permissions policies type edges.
+  """
+  edges: [PermissionsPolicyEdge!]!
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+}
+
+"""
 A connection to a list of users groups.
 """
 type UsersGroupConnection {
@@ -1376,6 +1390,20 @@ type UserEdge {
   The user type at the end of the edge.
   """
   node: User
+  """
+  A cursor for use in pagination.
+  """
+  cursor: Cursor!
+}
+
+"""
+A permission policy type edge in a connection.
+"""
+type PermissionsPolicyEdge {
+  """
+  The permission policy type at the end of the edge.
+  """
+  node: PermissionsPolicy
   """
   A cursor for use in pagination.
   """
@@ -2416,6 +2444,12 @@ type Query {
     before: Cursor
     last: Int
   ): UsersGroupConnection
+  permissionsPolicies(
+    after: Cursor
+    first: Int
+    before: Cursor
+    last: Int
+  ): PermissionsPolicyConnection
   searchForEntity(
     name: String!
     after: Cursor

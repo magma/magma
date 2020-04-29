@@ -8,6 +8,8 @@
 // package service_manager defines and implements API for service management
 package service_manager
 
+import "os"
+
 type ServiceState int
 
 const (
@@ -33,4 +35,8 @@ type ServiceController interface {
 	Restart(service string) error
 	// GetState returns the given service state or error if unsuccessful
 	GetState(service string) (ServiceState, error)
+
+	// TailLogs executes command to start tailing service logs and returns string chan to receive log strings
+	// closing the chan will terminate tailing
+	TailLogs(service string) (chan string, *os.Process, error)
 }
