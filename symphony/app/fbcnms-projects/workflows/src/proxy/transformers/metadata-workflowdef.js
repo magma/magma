@@ -17,6 +17,8 @@ import {
   addTenantIdPrefix,
   assertAllowedSystemTask,
   createProxyOptionsBuffer,
+  isDecisionTask,
+  isForkTask,
   isSubworkflowTask,
   withInfixSeparator,
 } from '../utils.js';
@@ -26,48 +28,69 @@ const logger = logging.getLogger(module);
 // Utility used in PUT, POST before methods to check that submitted workflow
 // and its tasks
 // do not contain any prefix. Prefix is added to workflowdef if input is valid.
-function sanitizeWorkflowdefBefore(tenantId, workflowdef) {
+export function sanitizeWorkflowdefBefore(tenantId, workflowdef) {
   // only whitelisted system tasks are allowed
   for (const task of workflowdef.tasks) {
     assertAllowedSystemTask(task);
   }
   // add prefix to tasks
   for (const task of workflowdef.tasks) {
-    addTenantIdPrefix(tenantId, task);
-
-    // add prefix to SUB_WORKFLOW tasks' referenced workflows
-    if (isSubworkflowTask(task)) {
-      addTenantIdPrefix(tenantId, task.subWorkflowParam);
-    }
+    sanitizeWorkflowTaskdefBefore(tenantId, task);
   }
   // add prefix to workflow
   addTenantIdPrefix(tenantId, workflowdef);
 }
 
+function sanitizeWorkflowTaskdefBefore(tenantId, task) {
+  addTenantIdPrefix(tenantId, task);
+
+  // add prefix to SUB_WORKFLOW tasks' referenced workflows
+  if (isSubworkflowTask(task)) {
+    addTenantIdPrefix(tenantId, task.subWorkflowParam);
+  }
+
+  // process decision tasks recursively
+  if (isDecisionTask(task)) {
+    const defaultCaseTasks = task.defaultCase ? task.defaultCase : [];
+    for (const nestedTask of defaultCaseTasks) {
+      sanitizeWorkflowTaskdefBefore(tenantId, nestedTask);
+    }
+
+    const decisionCaseIdToTasks = task.decisionCases ? task.decisionCases : {};
+    for (const nestedTasks of Object.values(decisionCaseIdToTasks)) {
+      for (const nestedTask of nestedTasks) {
+        sanitizeWorkflowTaskdefBefore(tenantId, nestedTask);
+      }
+    }
+  }
+
+  // process fork tasks recursively
+  if (isForkTask(task)) {
+    const forkTasks = task.forkTasks ? task.forkTasks : [];
+    for (const nestedTask of forkTasks) {
+      // handle sub lists in forked tasks
+      if (Array.isArray(nestedTask)) {
+        for (const l2nestedTask of nestedTask) {
+          sanitizeWorkflowTaskdefBefore(tenantId, l2nestedTask);
+        }
+      } else {
+        sanitizeWorkflowTaskdefBefore(tenantId, nestedTask);
+      }
+    }
+  }
+}
 // Utility used after getting single or all workflowdefs to remove prefix from
 // workflowdef names, taskdef names.
 // Return true iif sanitization succeeded, false iif this
 // workflowdef is invalid
-function sanitizeWorkflowdefAfter(tenantId, workflowdef) {
+export function sanitizeWorkflowdefAfter(tenantId, workflowdef) {
   const tenantWithInfixSeparator = withInfixSeparator(tenantId);
   if (workflowdef.name.indexOf(tenantWithInfixSeparator) == 0) {
     // keep only workflows with correct taskdefs,
     // allowed are GLOBAL and those with tenantId prefix which will be removed
 
     for (const task of workflowdef.tasks) {
-      // remove prefix from SUB_WORKFLOW tasks' referenced workflows
-      if (isSubworkflowTask(task)) {
-        if (task.subWorkflowParam?.name) {
-          task.subWorkflowParam.name = task.subWorkflowParam.name.substr(
-            tenantWithInfixSeparator.length,
-          );
-        }
-      }
-
-      if (task.name.indexOf(tenantWithInfixSeparator) == 0) {
-        // remove prefix
-        task.name = task.name.substr(tenantWithInfixSeparator.length);
-      } else {
+      if (!sanitizeWorkflowTaskdefAfter(tenantWithInfixSeparator, task)) {
         return false;
       }
     }
@@ -77,6 +100,71 @@ function sanitizeWorkflowdefAfter(tenantId, workflowdef) {
   } else {
     return false;
   }
+}
+
+function sanitizeWorkflowTaskdefAfter(tenantWithInfixSeparator, task) {
+  // TODO refactor the boolean return value
+  if (isForkTask(task)) {
+    const forkTasks = task.forkTasks ? task.forkTasks : [];
+    for (const nestedTask of forkTasks) {
+      if (Array.isArray(nestedTask)) {
+        for (const l2nestedTask of nestedTask) {
+          if (
+            !sanitizeWorkflowTaskdefAfter(
+              tenantWithInfixSeparator,
+              l2nestedTask,
+            )
+          ) {
+            return false;
+          }
+        }
+      } else {
+        if (
+          !sanitizeWorkflowTaskdefAfter(tenantWithInfixSeparator, nestedTask)
+        ) {
+          return false;
+        }
+      }
+    }
+  }
+
+  if (isDecisionTask(task)) {
+    const defaultCaseTasks = task.defaultCase ? task.defaultCase : [];
+    for (const nestedTask of defaultCaseTasks) {
+      if (!sanitizeWorkflowTaskdefAfter(tenantWithInfixSeparator, nestedTask)) {
+        return false;
+      }
+    }
+
+    const decisionCaseIdToTasks = task.decisionCases ? task.decisionCases : {};
+    for (const nestedTasks of Object.entries(decisionCaseIdToTasks)) {
+      for (const nestedTask of nestedTasks[1]) {
+        if (
+          !sanitizeWorkflowTaskdefAfter(tenantWithInfixSeparator, nestedTask)
+        ) {
+          return false;
+        }
+      }
+    }
+  }
+
+  // remove prefix from SUB_WORKFLOW tasks' referenced workflows
+  if (isSubworkflowTask(task)) {
+    if (task.subWorkflowParam?.name) {
+      task.subWorkflowParam.name = task.subWorkflowParam.name.substr(
+        tenantWithInfixSeparator.length,
+      );
+    }
+  }
+
+  if (task.name.indexOf(tenantWithInfixSeparator) == 0) {
+    // remove prefix
+    task.name = task.name.substr(tenantWithInfixSeparator.length);
+  } else {
+    return false;
+  }
+
+  return true;
 }
 
 // Retrieves all workflow definition along with blueprint

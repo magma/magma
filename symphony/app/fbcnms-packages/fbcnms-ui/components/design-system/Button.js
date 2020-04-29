@@ -26,6 +26,7 @@ const useStyles = makeStyles(_theme => ({
     '&:focus': {
       outline: 'none',
     },
+    flexShrink: 0,
     display: 'inline-flex',
     flexDirection: 'row',
     alignItems: 'center',
@@ -274,6 +275,7 @@ type SvgIcon = React$ComponentType<SvgIconExports>;
 export type ButtonProps = {|
   skin?: ButtonSkin,
   variant?: ButtonVariant,
+  useEllipsis?: ?boolean,
   disabled?: boolean,
   tooltip?: string,
 |};
@@ -299,6 +301,7 @@ const Button = (props: Props, forwardedRef: TRefFor<HTMLButtonElement>) => {
     skin = 'primary',
     disabled: disabledProp = false,
     variant = 'contained',
+    useEllipsis = false,
     onClick,
     leftIcon: LeftIcon = null,
     leftIconClass = null,
@@ -352,7 +355,7 @@ const Button = (props: Props, forwardedRef: TRefFor<HTMLButtonElement>) => {
       <Text
         variant="body2"
         weight="medium"
-        useEllipsis={true}
+        useEllipsis={useEllipsis}
         className={classes.buttonText}>
         {children}
       </Text>

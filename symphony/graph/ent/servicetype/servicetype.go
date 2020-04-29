@@ -7,6 +7,7 @@
 package servicetype
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/facebookincubator/ent"
@@ -16,12 +17,13 @@ const (
 	// Label holds the string label denoting the servicetype type in the database.
 	Label = "service_type"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID          = "id"           // FieldCreateTime holds the string denoting the create_time vertex property in the database.
-	FieldCreateTime  = "create_time"  // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
-	FieldUpdateTime  = "update_time"  // FieldName holds the string denoting the name vertex property in the database.
-	FieldName        = "name"         // FieldHasCustomer holds the string denoting the has_customer vertex property in the database.
-	FieldHasCustomer = "has_customer" // FieldIsDeleted holds the string denoting the is_deleted vertex property in the database.
-	FieldIsDeleted   = "is_deleted"
+	FieldID              = "id"           // FieldCreateTime holds the string denoting the create_time vertex property in the database.
+	FieldCreateTime      = "create_time"  // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
+	FieldUpdateTime      = "update_time"  // FieldName holds the string denoting the name vertex property in the database.
+	FieldName            = "name"         // FieldHasCustomer holds the string denoting the has_customer vertex property in the database.
+	FieldHasCustomer     = "has_customer" // FieldIsDeleted holds the string denoting the is_deleted vertex property in the database.
+	FieldIsDeleted       = "is_deleted"   // FieldDiscoveryMethod holds the string denoting the discovery_method vertex property in the database.
+	FieldDiscoveryMethod = "discovery_method"
 
 	// EdgeServices holds the string denoting the services edge name in mutations.
 	EdgeServices = "services"
@@ -63,6 +65,7 @@ var Columns = []string{
 	FieldName,
 	FieldHasCustomer,
 	FieldIsDeleted,
+	FieldDiscoveryMethod,
 }
 
 // Note that the variables below are initialized by the runtime
@@ -85,3 +88,25 @@ var (
 	// DefaultIsDeleted holds the default value on creation for the is_deleted field.
 	DefaultIsDeleted bool
 )
+
+// DiscoveryMethod defines the type for the discovery_method enum field.
+type DiscoveryMethod string
+
+// DiscoveryMethod values.
+const (
+	DiscoveryMethodINVENTORY DiscoveryMethod = "INVENTORY"
+)
+
+func (s DiscoveryMethod) String() string {
+	return string(s)
+}
+
+// DiscoveryMethodValidator is a validator for the "dm" field enum values. It is called by the builders before save.
+func DiscoveryMethodValidator(dm DiscoveryMethod) error {
+	switch dm {
+	case DiscoveryMethodINVENTORY:
+		return nil
+	default:
+		return fmt.Errorf("servicetype: invalid enum value for discovery_method field: %q", dm)
+	}
+}

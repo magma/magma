@@ -9,6 +9,7 @@ import (
 	"github.com/facebookincubator/ent/schema/edge"
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/ent/schema/index"
+	"github.com/facebookincubator/symphony/graph/authz"
 )
 
 // LocationType defines the location type schema.
@@ -45,6 +46,15 @@ func (LocationType) Edges() []ent.Edge {
 		edge.To("survey_template_categories", SurveyTemplateCategory.Type).
 			StructTag(`gqlgen:"surveyTemplateCategories"`),
 	}
+}
+
+// Policy returns location policy.
+func (LocationType) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithMutationRules(
+			authz.LocationTypeWritePolicyRule(),
+		),
+	)
 }
 
 // Location defines the location schema.
@@ -118,4 +128,13 @@ func (Location) Indexes() []ent.Index {
 			Edges("type", "parent").
 			Unique(),
 	}
+}
+
+// Policy returns location policy.
+func (Location) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithMutationRules(
+			authz.LocationWritePolicyRule(),
+		),
+	)
 }

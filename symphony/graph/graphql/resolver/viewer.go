@@ -24,26 +24,6 @@ func (viewerResolver) User(_ context.Context, obj *viewer.Viewer) (*ent.User, er
 	return obj.User(), nil
 }
 
-func (viewerResolver) Permissions(ctx context.Context, obj *viewer.Viewer) (*models.PermissionSettings, error) {
-	writePermissions, err := authz.UserHasWritePermissions(ctx, obj)
-	if err != nil {
-		return nil, err
-	}
-	policiesEnabled := viewer.FromContext(ctx).Features.Enabled(viewer.FeatureUserManagementDev)
-	inventoryPolicy := authz.NewInventoryPolicy(true, writePermissions)
-	workforcePolicy := authz.NewWorkforcePolicy(true, writePermissions)
-	if policiesEnabled {
-		inventoryPolicy, workforcePolicy, err = authz.PermissionPolicies(ctx)
-		if err != nil {
-			return nil, err
-		}
-	}
-	res := models.PermissionSettings{
-		// TODO(T64743627): Deprecate CanWrite field
-		CanWrite:            writePermissions,
-		AdminPolicy:         authz.NewAdministrativePolicy(obj.User()),
-		InventoryPolicy:     inventoryPolicy,
-		WorkforcePermission: workforcePolicy,
-	}
-	return &res, nil
+func (viewerResolver) Permissions(ctx context.Context, _ *viewer.Viewer) (*models.PermissionSettings, error) {
+	return authz.Permissions(ctx)
 }

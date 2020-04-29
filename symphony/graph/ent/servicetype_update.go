@@ -68,6 +68,26 @@ func (stu *ServiceTypeUpdate) SetNillableIsDeleted(b *bool) *ServiceTypeUpdate {
 	return stu
 }
 
+// SetDiscoveryMethod sets the discovery_method field.
+func (stu *ServiceTypeUpdate) SetDiscoveryMethod(sm servicetype.DiscoveryMethod) *ServiceTypeUpdate {
+	stu.mutation.SetDiscoveryMethod(sm)
+	return stu
+}
+
+// SetNillableDiscoveryMethod sets the discovery_method field if the given value is not nil.
+func (stu *ServiceTypeUpdate) SetNillableDiscoveryMethod(sm *servicetype.DiscoveryMethod) *ServiceTypeUpdate {
+	if sm != nil {
+		stu.SetDiscoveryMethod(*sm)
+	}
+	return stu
+}
+
+// ClearDiscoveryMethod clears the value of discovery_method.
+func (stu *ServiceTypeUpdate) ClearDiscoveryMethod() *ServiceTypeUpdate {
+	stu.mutation.ClearDiscoveryMethod()
+	return stu
+}
+
 // AddServiceIDs adds the services edge to Service by ids.
 func (stu *ServiceTypeUpdate) AddServiceIDs(ids ...int) *ServiceTypeUpdate {
 	stu.mutation.AddServiceIDs(ids...)
@@ -164,6 +184,11 @@ func (stu *ServiceTypeUpdate) Save(ctx context.Context) (int, error) {
 		v := servicetype.UpdateDefaultUpdateTime()
 		stu.mutation.SetUpdateTime(v)
 	}
+	if v, ok := stu.mutation.DiscoveryMethod(); ok {
+		if err := servicetype.DiscoveryMethodValidator(v); err != nil {
+			return 0, fmt.Errorf("ent: validator failed for field \"discovery_method\": %v", err)
+		}
+	}
 
 	var (
 		err      error
@@ -257,6 +282,19 @@ func (stu *ServiceTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Type:   field.TypeBool,
 			Value:  value,
 			Column: servicetype.FieldIsDeleted,
+		})
+	}
+	if value, ok := stu.mutation.DiscoveryMethod(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeEnum,
+			Value:  value,
+			Column: servicetype.FieldDiscoveryMethod,
+		})
+	}
+	if stu.mutation.DiscoveryMethodCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeEnum,
+			Column: servicetype.FieldDiscoveryMethod,
 		})
 	}
 	if nodes := stu.mutation.RemovedServicesIDs(); len(nodes) > 0 {
@@ -425,6 +463,26 @@ func (stuo *ServiceTypeUpdateOne) SetNillableIsDeleted(b *bool) *ServiceTypeUpda
 	return stuo
 }
 
+// SetDiscoveryMethod sets the discovery_method field.
+func (stuo *ServiceTypeUpdateOne) SetDiscoveryMethod(sm servicetype.DiscoveryMethod) *ServiceTypeUpdateOne {
+	stuo.mutation.SetDiscoveryMethod(sm)
+	return stuo
+}
+
+// SetNillableDiscoveryMethod sets the discovery_method field if the given value is not nil.
+func (stuo *ServiceTypeUpdateOne) SetNillableDiscoveryMethod(sm *servicetype.DiscoveryMethod) *ServiceTypeUpdateOne {
+	if sm != nil {
+		stuo.SetDiscoveryMethod(*sm)
+	}
+	return stuo
+}
+
+// ClearDiscoveryMethod clears the value of discovery_method.
+func (stuo *ServiceTypeUpdateOne) ClearDiscoveryMethod() *ServiceTypeUpdateOne {
+	stuo.mutation.ClearDiscoveryMethod()
+	return stuo
+}
+
 // AddServiceIDs adds the services edge to Service by ids.
 func (stuo *ServiceTypeUpdateOne) AddServiceIDs(ids ...int) *ServiceTypeUpdateOne {
 	stuo.mutation.AddServiceIDs(ids...)
@@ -521,6 +579,11 @@ func (stuo *ServiceTypeUpdateOne) Save(ctx context.Context) (*ServiceType, error
 		v := servicetype.UpdateDefaultUpdateTime()
 		stuo.mutation.SetUpdateTime(v)
 	}
+	if v, ok := stuo.mutation.DiscoveryMethod(); ok {
+		if err := servicetype.DiscoveryMethodValidator(v); err != nil {
+			return nil, fmt.Errorf("ent: validator failed for field \"discovery_method\": %v", err)
+		}
+	}
 
 	var (
 		err  error
@@ -612,6 +675,19 @@ func (stuo *ServiceTypeUpdateOne) sqlSave(ctx context.Context) (st *ServiceType,
 			Type:   field.TypeBool,
 			Value:  value,
 			Column: servicetype.FieldIsDeleted,
+		})
+	}
+	if value, ok := stuo.mutation.DiscoveryMethod(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeEnum,
+			Value:  value,
+			Column: servicetype.FieldDiscoveryMethod,
+		})
+	}
+	if stuo.mutation.DiscoveryMethodCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeEnum,
+			Column: servicetype.FieldDiscoveryMethod,
 		})
 	}
 	if nodes := stuo.mutation.RemovedServicesIDs(); len(nodes) > 0 {

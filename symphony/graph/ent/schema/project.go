@@ -9,6 +9,7 @@ import (
 	"github.com/facebookincubator/ent/schema/edge"
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/ent/schema/index"
+	"github.com/facebookincubator/symphony/graph/authz"
 )
 
 // ProjectType defines the project type schema.
@@ -35,6 +36,15 @@ func (ProjectType) Edges() []ent.Edge {
 		edge.To("properties", PropertyType.Type),
 		edge.To("work_orders", WorkOrderDefinition.Type),
 	}
+}
+
+// Policy returns project type policy.
+func (ProjectType) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithMutationRules(
+			authz.ProjectTypeWritePolicyRule(),
+		),
+	)
 }
 
 // Project defines the project schema.
