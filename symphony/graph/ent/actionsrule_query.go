@@ -294,6 +294,9 @@ func (arq *ActionsRuleQuery) prepareQuery(ctx context.Context) error {
 		}
 		arq.sql = prev
 	}
+	if err := actionsrule.Policy.EvalQuery(ctx, arq); err != nil {
+		return err
+	}
 	return nil
 }
 

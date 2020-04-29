@@ -97,7 +97,9 @@ func getCCRHandler(srv *PCRFDiamServer) diam.HandlerFunc {
 		}
 
 		avps := []*diam.AVP{}
-		if credit_control.CreditRequestType(ccr.RequestType) == credit_control.CRTInit {
+		ccrType := credit_control.CreditRequestType(ccr.RequestType)
+		if ccrType == credit_control.CRTInit {
+			glog.V(2).Infof("\tGot xCRT-Init from %s. Rules will be sent: %v - %v\n", imsi, account.RuleBaseNames, account.UsageMonitors)
 			// Install all rules attached to the subscriber for the initial answer
 			ruleInstalls := toRuleInstallAVPs(account.RuleNames, account.RuleBaseNames, account.RuleDefinitions, nil, nil)
 			// Install all monitors attached to the subscriber for the initial answer
@@ -105,6 +107,7 @@ func getCCRHandler(srv *PCRFDiamServer) diam.HandlerFunc {
 			avps = append(ruleInstalls, usageMonitors...)
 		} else {
 			// Update the subscriber state with the usage updates in CCR-U/T
+			glog.V(2).Infof("\tGot xCCR type \"%d\" from IMSI %s. Quota be updated\n", ccrType, imsi)
 			creditByMkey, err := updateSubscriberAccountWithUsageUpdates(account, ccr.UsageMonitors)
 			if err != nil {
 				glog.Errorf("Failed to update quota: %v", err)

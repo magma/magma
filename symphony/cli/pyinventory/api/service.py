@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
+# Copyright (c) 2004-present Facebook All rights reserved.
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file.
 
 from typing import Dict, List, Optional, Tuple
 
 from .._utils import PropertyValue, format_properties, get_graphql_property_inputs
 from ..client import SymphonyClient
-from ..consts import (
+from ..common.data_class import (
     Customer,
-    Entity,
     EquipmentPort,
     EquipmentPortDefinition,
     Link,
@@ -14,13 +16,13 @@ from ..consts import (
     ServiceEndpoint,
     ServiceType,
 )
+from ..common.data_enum import Entity
 from ..exceptions import EntityNotFoundError
 from ..graphql.add_service_endpoint_input import AddServiceEndpointInput
 from ..graphql.add_service_endpoint_mutation import AddServiceEndpointMutation
 from ..graphql.add_service_link_mutation import AddServiceLinkMutation
 from ..graphql.add_service_mutation import AddServiceMutation
 from ..graphql.add_service_type_mutation import AddServiceTypeMutation
-from ..graphql.property_type_input import PropertyTypeInput
 from ..graphql.remove_service_mutation import RemoveServiceMutation
 from ..graphql.remove_service_type_mutation import RemoveServiceTypeMutation
 from ..graphql.service_create_data_input import ServiceCreateData
@@ -32,7 +34,7 @@ from ..graphql.service_types_query import ServiceTypesQuery
 
 
 def _populate_service_types(client: SymphonyClient) -> None:
-    service_types = ServiceTypesQuery.execute(client).serviceTypes
+    service_types = ServiceTypesQuery.execute(client)
     if not service_types:
         return
     edges = service_types.edges
@@ -60,7 +62,7 @@ def add_service_type(
         data=ServiceTypeCreateData(
             name=name, hasCustomer=hasCustomer, properties=new_property_types
         ),
-    ).addServiceType
+    )
 
     service_type = ServiceType(
         name=result.name,
@@ -79,7 +81,6 @@ def add_service(
     service_type: str,
     customer: Optional[Customer],
     properties_dict: Dict[str, PropertyValue],
-    links: List[Link],
 ) -> Service:
     property_types = client.serviceTypes[service_type].property_types
     properties = get_graphql_property_inputs(property_types, properties_dict)
@@ -92,16 +93,12 @@ def add_service(
         properties=properties,
         upstreamServiceIds=[],
     )
-    result = AddServiceMutation.execute(client, data=service_create_data).addService
-    for l in links:
-        result = AddServiceLinkMutation.execute(
-            client, id=result.id, linkId=l.id
-        ).addServiceLink
+    result = AddServiceMutation.execute(client, data=service_create_data)
     returned_customer = result.customer
     endpoints = []
     for e in result.endpoints:
         port = e.port
-        link = port.link if port is not None else None
+        link = port.link if port else None
         endpoints.append(
             ServiceEndpoint(
                 id=e.id,
@@ -157,15 +154,19 @@ def add_service_endpoint(
     )
 
 
+def add_service_link(client: SymphonyClient, service: Service, link: Link) -> None:
+    AddServiceLinkMutation.execute(client, id=service.id, linkId=link.id)
+
+
 def get_service(client: SymphonyClient, id: str) -> Service:
-    result = ServiceDetailsQuery.execute(client, id=id).service
+    result = ServiceDetailsQuery.execute(client, id=id)
     if result is None:
         raise EntityNotFoundError(entity=Entity.Service, entity_id=id)
     customer = result.customer
     endpoints = []
     for e in result.endpoints:
         port = e.port
-        link = port.link if port is not None else None
+        link = port.link if port else None
         endpoints.append(
             ServiceEndpoint(
                 id=e.id,
@@ -183,7 +184,7 @@ def get_service(client: SymphonyClient, id: str) -> Service:
                     if link
                     else None,
                 )
-                if port is not None
+                if port
                 else None,
                 # TODO add service_endpoint_type api
                 type="1",
@@ -213,7 +214,7 @@ def delete_service_type_with_services(
 ) -> None:
     service_type_with_services = ServiceTypeServicesQuery.execute(
         client, id=service_type.id
-    ).serviceType
+    )
     if not service_type_with_services:
         raise EntityNotFoundError(entity=Entity.ServiceType, entity_id=service_type.id)
     services = service_type_with_services.services

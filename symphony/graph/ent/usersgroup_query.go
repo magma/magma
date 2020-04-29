@@ -358,6 +358,9 @@ func (ugq *UsersGroupQuery) prepareQuery(ctx context.Context) error {
 		}
 		ugq.sql = prev
 	}
+	if err := usersgroup.Policy.EvalQuery(ctx, ugq); err != nil {
+		return err
+	}
 	return nil
 }
 

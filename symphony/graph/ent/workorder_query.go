@@ -730,6 +730,9 @@ func (woq *WorkOrderQuery) prepareQuery(ctx context.Context) error {
 		}
 		woq.sql = prev
 	}
+	if err := workorder.Policy.EvalQuery(ctx, woq); err != nil {
+		return err
+	}
 	return nil
 }
 

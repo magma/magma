@@ -94,9 +94,19 @@ func unregisterUnsafe(indexers []Indexer) {
 	}
 }
 
-// SetIndexerUnsafeForTest sets an indexer in the registry for testing purposes.
-// It acquires no locks and will overwrite any existing indexer with the same indexer ID.
-func SetIndexerUnsafeForTest(t *testing.T, idx Indexer) {
+// DeregisterAllForTest deregisters all previously-registered indexers.
+// This should only be called by test code.
+func DeregisterAllForTest(t *testing.T) {
+	if t == nil {
+		panic("for tests only")
+	}
+	registry.indexers = map[string]Indexer{}
+}
+
+// RegisterForTest sets an indexer in the registry.
+// Overwrites any existing indexer with the same indexer ID.
+// This should only be called by test code.
+func RegisterForTest(t *testing.T, idx Indexer) {
 	if t == nil {
 		panic("for tests only")
 	}

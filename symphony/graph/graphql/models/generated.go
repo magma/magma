@@ -539,10 +539,10 @@ type NetworkTopology struct {
 }
 
 type PermissionSettings struct {
-	CanWrite            bool                  `json:"canWrite"`
-	AdminPolicy         *AdministrativePolicy `json:"adminPolicy"`
-	InventoryPolicy     *InventoryPolicy      `json:"inventoryPolicy"`
-	WorkforcePermission *WorkforcePolicy      `json:"workforcePermission"`
+	CanWrite        bool                  `json:"canWrite"`
+	AdminPolicy     *AdministrativePolicy `json:"adminPolicy"`
+	InventoryPolicy *InventoryPolicy      `json:"inventoryPolicy"`
+	WorkforcePolicy *WorkforcePolicy      `json:"workforcePolicy"`
 }
 
 type PortFilterInput struct {
@@ -810,6 +810,7 @@ type TechnicianCheckListItemInput struct {
 	YesNoResponse      *YesNoResponse        `json:"yesNoResponse"`
 	WifiData           []*SurveyWiFiScanData `json:"wifiData"`
 	CellData           []*SurveyCellScanData `json:"cellData"`
+	FilesData          []*FileInput          `json:"filesData"`
 }
 
 type TechnicianInput struct {
@@ -845,6 +846,7 @@ type UserFilterInput struct {
 	Operator      FilterOperator     `json:"operator"`
 	StringValue   *string            `json:"stringValue"`
 	PropertyValue *PropertyTypeInput `json:"propertyValue"`
+	StatusValue   *user.Status       `json:"statusValue"`
 	IDSet         []int              `json:"idSet"`
 	StringSet     []string           `json:"stringSet"`
 	MaxDepth      *int               `json:"maxDepth"`
@@ -1903,16 +1905,18 @@ func (e TopologyLinkType) MarshalGQL(w io.Writer) {
 type UserFilterType string
 
 const (
-	UserFilterTypeUserName UserFilterType = "USER_NAME"
+	UserFilterTypeUserName   UserFilterType = "USER_NAME"
+	UserFilterTypeUserStatus UserFilterType = "USER_STATUS"
 )
 
 var AllUserFilterType = []UserFilterType{
 	UserFilterTypeUserName,
+	UserFilterTypeUserStatus,
 }
 
 func (e UserFilterType) IsValid() bool {
 	switch e {
-	case UserFilterTypeUserName:
+	case UserFilterTypeUserName, UserFilterTypeUserStatus:
 		return true
 	}
 	return false

@@ -512,6 +512,9 @@ func (sq *ServiceQuery) prepareQuery(ctx context.Context) error {
 		}
 		sq.sql = prev
 	}
+	if err := service.Policy.EvalQuery(ctx, sq); err != nil {
+		return err
+	}
 	return nil
 }
 

@@ -815,6 +815,7 @@ var (
 		{Name: "property_location_value", Type: field.TypeInt, Nullable: true},
 		{Name: "property_service_value", Type: field.TypeInt, Nullable: true},
 		{Name: "property_work_order_value", Type: field.TypeInt, Nullable: true},
+		{Name: "property_user_value", Type: field.TypeInt, Nullable: true},
 		{Name: "service_properties", Type: field.TypeInt, Nullable: true},
 		{Name: "work_order_properties", Type: field.TypeInt, Nullable: true},
 	}
@@ -895,15 +896,22 @@ var (
 				OnDelete:   schema.SetNull,
 			},
 			{
-				Symbol:  "properties_services_properties",
+				Symbol:  "properties_users_user_value",
 				Columns: []*schema.Column{PropertiesColumns[21]},
+
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:  "properties_services_properties",
+				Columns: []*schema.Column{PropertiesColumns[22]},
 
 				RefColumns: []*schema.Column{ServicesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "properties_work_orders_properties",
-				Columns: []*schema.Column{PropertiesColumns[22]},
+				Columns: []*schema.Column{PropertiesColumns[23]},
 
 				RefColumns: []*schema.Column{WorkOrdersColumns[0]},
 				OnDelete:   schema.SetNull,
@@ -1056,7 +1064,6 @@ var (
 		{Name: "name", Type: field.TypeString, Unique: true},
 		{Name: "external_id", Type: field.TypeString, Unique: true, Nullable: true},
 		{Name: "status", Type: field.TypeString},
-		{Name: "discovery_method", Type: field.TypeEnum, Nullable: true, Enums: []string{"INVENTORY"}},
 		{Name: "service_type", Type: field.TypeInt, Nullable: true},
 	}
 	// ServicesTable holds the schema information for the "services" table.
@@ -1067,7 +1074,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:  "services_service_types_type",
-				Columns: []*schema.Column{ServicesColumns[7]},
+				Columns: []*schema.Column{ServicesColumns[6]},
 
 				RefColumns: []*schema.Column{ServiceTypesColumns[0]},
 				OnDelete:   schema.SetNull,
@@ -1173,6 +1180,7 @@ var (
 		{Name: "name", Type: field.TypeString, Unique: true},
 		{Name: "has_customer", Type: field.TypeBool},
 		{Name: "is_deleted", Type: field.TypeBool},
+		{Name: "discovery_method", Type: field.TypeEnum, Nullable: true, Enums: []string{"INVENTORY"}},
 	}
 	// ServiceTypesTable holds the schema information for the "service_types" table.
 	ServiceTypesTable = &schema.Table{
@@ -1834,8 +1842,9 @@ func init() {
 	PropertiesTable.ForeignKeys[7].RefTable = LocationsTable
 	PropertiesTable.ForeignKeys[8].RefTable = ServicesTable
 	PropertiesTable.ForeignKeys[9].RefTable = WorkOrdersTable
-	PropertiesTable.ForeignKeys[10].RefTable = ServicesTable
-	PropertiesTable.ForeignKeys[11].RefTable = WorkOrdersTable
+	PropertiesTable.ForeignKeys[10].RefTable = UsersTable
+	PropertiesTable.ForeignKeys[11].RefTable = ServicesTable
+	PropertiesTable.ForeignKeys[12].RefTable = WorkOrdersTable
 	PropertyTypesTable.ForeignKeys[0].RefTable = EquipmentPortTypesTable
 	PropertyTypesTable.ForeignKeys[1].RefTable = EquipmentPortTypesTable
 	PropertyTypesTable.ForeignKeys[2].RefTable = EquipmentTypesTable

@@ -390,6 +390,9 @@ func (sq *SurveyQuery) prepareQuery(ctx context.Context) error {
 		}
 		sq.sql = prev
 	}
+	if err := survey.Policy.EvalQuery(ctx, sq); err != nil {
+		return err
+	}
 	return nil
 }
 

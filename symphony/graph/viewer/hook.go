@@ -7,37 +7,26 @@ package viewer
 import (
 	"context"
 
-	"github.com/facebookincubator/symphony/graph/ent/hook"
-
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/ent/hook"
 )
 
-// UpdateCurrentUser is a hook to update user ent cache in Viewer object
+// UpdateCurrentUser updates user stored in viewer.
 func UpdateCurrentUser() ent.Hook {
-	chain := hook.NewChain(
+	hk := func(next ent.Mutator) ent.Mutator {
+		return hook.UserFunc(func(ctx context.Context, m *ent.UserMutation) (ent.Value, error) {
+			value, err := next.Mutate(ctx, m)
+			if err != nil {
+				return value, err
+			}
+			if v := FromContext(ctx); v != nil && v.User().ID == value.(*ent.User).ID {
+				v.user.Store(value)
+			}
+			return value, nil
+		})
+	}
+	return hook.NewChain(
+		hook.On(hk, ent.OpUpdateOne),
 		hook.Reject(ent.OpUpdate),
-		hook.On(
-			func(next ent.Mutator) ent.Mutator {
-				return ent.MutateFunc(func(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-					value, err := next.Mutate(ctx, m)
-					if err != nil {
-						return value, err
-					}
-					v := FromContext(ctx)
-					if v == nil {
-						return value, err
-					}
-					u := value.(*ent.User)
-					if u.ID == v.User().ID {
-						v.mu.Lock()
-						v.user = u
-						v.mu.Unlock()
-					}
-					return value, nil
-				})
-			},
-			ent.OpUpdateOne,
-		),
-	)
-	return chain.Hook()
+	).Hook()
 }

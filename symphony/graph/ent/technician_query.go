@@ -327,6 +327,9 @@ func (tq *TechnicianQuery) prepareQuery(ctx context.Context) error {
 		}
 		tq.sql = prev
 	}
+	if err := technician.Policy.EvalQuery(ctx, tq); err != nil {
+		return err
+	}
 	return nil
 }
 

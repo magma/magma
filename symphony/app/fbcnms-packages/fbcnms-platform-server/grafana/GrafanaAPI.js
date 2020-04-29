@@ -87,7 +87,7 @@ async function request<T>(req: axiosRequest): GrafanaPromise<T> {
     const res = await axios(req);
     return {status: res.status, data: res.data};
   } catch (error) {
-    return {status: error.response.status, data: error.response.data};
+    return {status: error.response?.status, data: error.response?.data};
   }
 }
 
@@ -96,7 +96,7 @@ const client = (
   constHeaders: {[string]: string},
 ): GrafanaClient => ({
   async getUser(loginOrEmail: string): GrafanaPromise<GetUserResponse> {
-    return request({
+    return await request({
       url: apiURL + `/api/users/lookup`,
       params: {loginOrEmail: loginOrEmail},
       method: 'GET',
@@ -105,7 +105,7 @@ const client = (
   },
 
   async createUser(user: User): GrafanaPromise<CreateUserResponse> {
-    return request({
+    return await request({
       url: apiURL + `/api/admin/users`,
       method: 'POST',
       data: user,
@@ -114,7 +114,7 @@ const client = (
   },
 
   async getOrg(orgName: string): GrafanaPromise<Organization> {
-    return request({
+    return await request({
       url: apiURL + `/api/orgs/name/${orgName}`,
       method: 'GET',
       headers: constHeaders,
@@ -122,7 +122,7 @@ const client = (
   },
 
   async addOrg(orgName: string): GrafanaPromise<CreateOrgResponse> {
-    return request({
+    return await request({
       url: apiURL + '/api/orgs',
       method: 'POST',
       data: {name: orgName},
@@ -131,7 +131,7 @@ const client = (
   },
 
   async deleteOrg(orgID: number): GrafanaPromise<DeleteOrgResponse> {
-    return request({
+    return await request({
       url: apiURL + `/api/orgs/${orgID}`,
       method: 'DELETE',
       headers: constHeaders,
@@ -142,7 +142,7 @@ const client = (
     orgID: number,
     user: OrgUser,
   ): GrafanaPromise<AddOrgUserResponse> {
-    return request({
+    return await request({
       url: apiURL + `/api/orgs/${orgID}/users`,
       method: 'POST',
       data: user,
@@ -151,7 +151,7 @@ const client = (
   },
 
   async getUsersInOrg(orgID: number): GrafanaPromise<GetOrgUsersResponse> {
-    return request({
+    return await request({
       url: apiURL + `/api/orgs/${orgID}/users`,
       method: 'GET',
       headers: {...constHeaders, 'X-Grafana-Org-Id': orgID.toString()},
@@ -162,7 +162,7 @@ const client = (
     ds: PostDatasource,
     orgId: number,
   ): GrafanaPromise<CreateDatasourceResponse> {
-    return request({
+    return await request({
       url: apiURL + `/api/datasources`,
       method: 'POST',
       data: ds,
@@ -179,7 +179,7 @@ const client = (
     orgID: number,
     ds: PostDatasource,
   ): GrafanaPromise<CreateDatasourceResponse> {
-    return request({
+    return await request({
       url: apiURL + `/api/datasources/${dsID}`,
       method: 'PUT',
       data: ds,
@@ -188,7 +188,7 @@ const client = (
   },
 
   async getDatasources(orgID: number): GrafanaPromise<GetDatasourcesResponse> {
-    return request({
+    return await request({
       url: apiURL + `/api/datasources`,
       method: 'GET',
       headers: {...constHeaders, 'X-Grafana-Org-Id': orgID.toString()},
@@ -199,7 +199,7 @@ const client = (
     db: Dashboard,
     orgID: number,
   ): GrafanaPromise<CreateDashboardResponse> {
-    return request({
+    return await request({
       url: apiURL + `/api/dashboards/db/`,
       method: 'POST',
       data: db,
@@ -212,7 +212,7 @@ const client = (
     orgID: number,
     username: string,
   ): GrafanaPromise<StarDashboardResponse> {
-    return request({
+    return await request({
       url: apiURL + `/api/user/stars/dashboard/${dbID}`,
       method: 'POST',
       headers: {
@@ -223,7 +223,7 @@ const client = (
   },
 
   async getHealth(): GrafanaPromise<GetHealthResponse> {
-    return request({
+    return await request({
       url: apiURL + `/api/health`,
       method: 'GET',
       headers: constHeaders,

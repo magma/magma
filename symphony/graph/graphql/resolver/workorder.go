@@ -527,8 +527,13 @@ func (r mutationResolver) createAddedCheckListItemFiles(ctx context.Context, ite
 					}
 					return 0
 				}(),
-				Modified:    time.Now(),
-				ContentType: models.FileTypeFile.String(),
+				Modified: time.Now(),
+				ContentType: func() string {
+					if input.MimeType != nil {
+						return *input.MimeType
+					}
+					return "image/jpeg"
+				}(),
 			},
 		)
 		if err != nil {
@@ -797,7 +802,7 @@ func (r mutationResolver) TechnicianWorkOrderUploadData(ctx context.Context, inp
 	}
 
 	for _, clInput := range input.Checklist {
-		_, err := client.CheckListItem.
+		checkListItem, err := client.CheckListItem.
 			UpdateOneID(clInput.ID).
 			SetNillableChecked(clInput.Checked).
 			SetNillableStringVal(clInput.StringValue).
@@ -815,6 +820,12 @@ func (r mutationResolver) TechnicianWorkOrderUploadData(ctx context.Context, inp
 			_, err := r.CreateCellScans(ctx, clInput.CellData, ScanParentIDs{checklistItemID: &clInput.ID})
 			if err != nil {
 				return nil, fmt.Errorf("creating cell scans, item %q: err %w", clInput.ID, err)
+			}
+		}
+		if clInput.FilesData != nil && len(clInput.FilesData) > 0 {
+			_, err := r.createOrUpdateCheckListItemFiles(ctx, checkListItem, clInput.FilesData)
+			if err != nil {
+				return nil, fmt.Errorf("creating and saving images while uploading a work order: %q: err %w", input.WorkOrderID, err)
 			}
 		}
 

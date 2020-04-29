@@ -87,10 +87,10 @@ class TestRendererDataclasses(BaseTest):
 
         result = m.GetFilm.execute(mock_client, "luke")
         assert result
-        assert isinstance(result, m.GetFilm.GetFilmData)
+        assert isinstance(result, m.GetFilm.GetFilmData.Film)
 
-        assert result.returnOfTheJedi.title == "Return of the Jedi"
-        assert result.returnOfTheJedi.director == "George Lucas"
+        assert result.title == "Return of the Jedi"
+        assert result.director == "George Lucas"
 
     def test_simple_query_with_fragment(self):
         fragment_query = """
@@ -540,11 +540,11 @@ class TestRendererDataclasses(BaseTest):
         )
 
         result = m.GetFilm.execute(mock_client, "luke")
-        assert isinstance(result, m.GetFilm.GetFilmData)
+        assert isinstance(result, m.GetFilm.GetFilmData.Film)
 
-        assert result.returnOfTheJedi.title == "Return of the Jedi"
-        assert result.returnOfTheJedi.director == "George Lucas"
-        assert result.returnOfTheJedi.releaseDate == now
+        assert result.title == "Return of the Jedi"
+        assert result.director == "George Lucas"
+        assert result.releaseDate == now
 
     def test_non_nullable_list(self):
 
@@ -600,8 +600,8 @@ class TestRendererDataclasses(BaseTest):
 
         result = m.GetPeople.execute(mock_client)
         assert result
-        assert isinstance(result, m.GetPeople.GetPeopleData)
-
-        assert len(result.people) == 2
-        assert result.people[0].name == "eran"
-        assert result.people[1].name == "eran1"
+        assert isinstance(result, list)
+        assert len(result) == 2
+        assert isinstance(result[0], m.GetPeople.GetPeopleData.Person)
+        assert result[0].name == "eran"
+        assert result[1].name == "eran1"

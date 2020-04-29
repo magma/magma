@@ -375,12 +375,12 @@ export function TemplateDashboard() {
   return db;
 }
 
-type PanelParams = {
+export type PanelParams = {
   title: string,
   targets: Array<{expr: string, legendFormat?: string}>,
 };
 
-function newPanel(params: PanelParams) {
+export function newPanel(params: PanelParams) {
   const pan = new Grafana.Panels.Graph({
     title: params.title,
     span: 6,
@@ -392,7 +392,7 @@ function newPanel(params: PanelParams) {
   return pan;
 }
 
-type TemplateParams = {
+export type TemplateParams = {
   labelName: string,
   query: string,
   regex: string,
@@ -418,7 +418,7 @@ const variableSortNumbers: {[VariableSortOption]: number} = {
   'alpha-insensitive-desc': 6,
 };
 
-function variableTemplate(params: TemplateParams): TemplateConfig {
+export function variableTemplate(params: TemplateParams): TemplateConfig {
   return {
     allValue: '.+',
     definition: params.query,
@@ -436,7 +436,7 @@ function variableTemplate(params: TemplateParams): TemplateConfig {
   };
 }
 
-function networkTemplate(): TemplateConfig {
+export function networkTemplate(): TemplateConfig {
   return variableTemplate({
     labelName: netIDVar,
     query: `label_values(${netIDVar})`,
@@ -459,7 +459,7 @@ function gatewayTemplate(): TemplateConfig {
   });
 }
 
-type TemplateConfig = {
+export type TemplateConfig = {
   allValue: string,
   definition: string,
   hide: number,

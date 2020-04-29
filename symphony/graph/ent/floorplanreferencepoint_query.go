@@ -294,6 +294,9 @@ func (fprpq *FloorPlanReferencePointQuery) prepareQuery(ctx context.Context) err
 		}
 		fprpq.sql = prev
 	}
+	if err := floorplanreferencepoint.Policy.EvalQuery(ctx, fprpq); err != nil {
+		return err
+	}
 	return nil
 }
 

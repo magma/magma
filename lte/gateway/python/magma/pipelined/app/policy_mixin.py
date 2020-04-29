@@ -52,6 +52,7 @@ class PolicyMixin(metaclass=ABCMeta):
         """
         if self._clean_restart:
             self.delete_all_flows(self._datapath)
+            self.cleanup_state()
             self.logger.info('Controller is in clean restart mode, remaining '
                               'flows were removed, continuing with setup.')
 

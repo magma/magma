@@ -178,12 +178,12 @@ $ terraform apply
 Apply complete! Resources: 1 added, 1 changed, 0 destroyed.
 ```
 
-Finally, create an admin user on the NMS:
+Finally, create an admin user for the "master" organization on the NMS:
 
 ```bash
 kubectl exec -it \
   $(kubectl get pod -l app.kubernetes.io/component=magmalte -o jsonpath='{.items[0].metadata.name}') -- \
-  yarn setAdminPassword <admin user email> <admin user password>
+  yarn setAdminPassword master <admin user email> <admin user password>
 ```
 
 ## DNS Resolution

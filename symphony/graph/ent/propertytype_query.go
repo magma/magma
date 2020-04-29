@@ -544,6 +544,9 @@ func (ptq *PropertyTypeQuery) prepareQuery(ctx context.Context) error {
 		}
 		ptq.sql = prev
 	}
+	if err := propertytype.Policy.EvalQuery(ctx, ptq); err != nil {
+		return err
+	}
 	return nil
 }
 

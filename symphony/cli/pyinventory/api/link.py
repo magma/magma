@@ -5,11 +5,9 @@
 
 from typing import List, Tuple
 
-from gql.gql.client import OperationException
-from gql.gql.reporter import FailedOperationException
-
 from ..client import SymphonyClient
-from ..consts import Entity, Equipment, Link
+from ..common.data_class import Equipment, Link
+from ..common.data_enum import Entity
 from ..exceptions import (
     EntityNotFoundError,
     LinkNotFoundException,
@@ -22,25 +20,22 @@ from ..graphql.link_side_input import LinkSide
 from .port import get_port
 
 
-ADD_LINK_MUTATION_NAME = "addLink"
-
-
 def get_all_links_and_port_names_of_equipment(
     client: SymphonyClient, equipment: Equipment
 ) -> List[Tuple[Link, str]]:
     """Returns all links and port names in equipment.
 
         Args:
-            equipment ( `pyinventory.consts.Equipment` ): could be retrieved from
+            equipment ( `pyinventory.common.data_class.Equipment` ): could be retrieved from
             - `pyinventory.api.equipment.get_equipment`
             - `pyinventory.api.equipment.get_equipment_in_position`
             - `pyinventory.api.equipment.add_equipment`
             - `pyinventory.api.equipment.add_equipment_to_position`
 
         Returns:
-            List[Tuple[ `pyinventory.consts.Link` , str]]:
+            List[Tuple[ `pyinventory.common.data_class.Link` , str]]:
 
-            - `pyinventory.consts.Link` - link object
+            - `pyinventory.common.data_class.Link` - link object
             - str - port definition name
 
         Raises:
@@ -55,7 +50,7 @@ def get_all_links_and_port_names_of_equipment(
             ```
     """
 
-    equipment_data = EquipmentPortsQuery.execute(client, id=equipment.id).equipment
+    equipment_data = EquipmentPortsQuery.execute(client, id=equipment.id)
     if equipment_data is None:
         raise EntityNotFoundError(entity=Entity.Equipment, entity_id=equipment.id)
     ports = equipment_data.ports
@@ -84,14 +79,14 @@ def add_link(
     """Connects a link between two ports of two equipments.
 
         Args:
-            equipment_a ( `pyinventory.consts.Equipment` ): could be retrieved from
+            equipment_a ( `pyinventory.common.data_class.Equipment` ): could be retrieved from
             - `pyinventory.api.equipment.get_equipment`
             - `pyinventory.api.equipment.get_equipment_in_position`
             - `pyinventory.api.equipment.add_equipment`
             - `pyinventory.api.equipment.add_equipment_to_position`
 
             port_name_a (str): The name of port in equipment type
-            equipment_b ( `pyinventory.consts.Equipment` ): could be retrieved from the following apis:
+            equipment_b ( `pyinventory.common.data_class.Equipment` ): could be retrieved from the following apis:
             - `pyinventory.api.equipment.get_equipment`
             - `pyinventory.api.equipment.get_equipment_in_position`
             - `pyinventory.api.equipment.add_equipment`
@@ -100,7 +95,7 @@ def add_link(
             port_name_b (str): The name of port in equipment type
 
         Returns:
-            `pyinventory.consts.Link` object
+            `pyinventory.common.data_class.Link` object
 
         Raises:
             AssertionError: if port_name in any of the equipment does not exist, or match more than one port
@@ -137,21 +132,7 @@ def add_link(
         properties=[],
         serviceIds=[],
     )
-    try:
-        link = AddLinkMutation.execute(client, add_link_input).__dict__[
-            ADD_LINK_MUTATION_NAME
-        ]
-        client.reporter.log_successful_operation(
-            ADD_LINK_MUTATION_NAME, add_link_input.__dict__
-        )
-    except OperationException as e:
-        raise FailedOperationException(
-            client.reporter,
-            e.err_msg,
-            e.err_id,
-            ADD_LINK_MUTATION_NAME,
-            add_link_input.__dict__,
-        )
+    link = AddLinkMutation.execute(client, add_link_input)
 
     return Link(
         id=link.id,
@@ -166,7 +147,7 @@ def get_link_in_port_of_equipment(
     """Returns link in specific port by name in equipment.
 
         Args:
-            equipment ( `pyinventory.consts.Equipment` ): could be retrieved from
+            equipment ( `pyinventory.common.data_class.Equipment` ): could be retrieved from
             - `pyinventory.api.equipment.get_equipment`
             - `pyinventory.api.equipment.get_equipment_in_position`
             - `pyinventory.api.equipment.add_equipment`
@@ -175,7 +156,7 @@ def get_link_in_port_of_equipment(
             port_name (str): The name of port in equipment type
 
         Returns:
-            `pyinventory.consts.Link` object
+            `pyinventory.common.data_class.Link` object
 
         Raises:
             LinkNotFoundException: if link not found

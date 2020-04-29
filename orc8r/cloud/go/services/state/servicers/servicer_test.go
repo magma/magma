@@ -28,7 +28,10 @@ func TestStateServicer_GetStates(t *testing.T) {
 	// mock setup: expect 1 RPC to result in a search, the other to a concrete
 	// GetMany
 	mockStore := &mocks.TransactionalBlobStorage{}
-	mockStore.On("Search", blobstore.CreateSearchFilter(strPtr("network1"), []string{"t1", "t2"}, []string{"k1", "k2"})).
+	mockStore.On("Search",
+		blobstore.CreateSearchFilter(strPtr("network1"), []string{"t1", "t2"}, []string{"k1", "k2"}),
+		blobstore.GetDefaultLoadCriteria(),
+	).
 		Return(map[string][]blobstore.Blob{
 			"network1": {
 				{Type: "t1", Key: "k1", Value: []byte("v1"), Version: 42},

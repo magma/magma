@@ -52,7 +52,7 @@ executors:
       - image: hashicorp/terraform:<<parameters.tag>>
   testim:
     docker:
-      - image: testim/docker-cli
+      - image: testim/docker-cli:node-8
 
 commands:
   getmods:

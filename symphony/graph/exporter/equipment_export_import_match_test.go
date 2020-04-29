@@ -16,6 +16,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/facebookincubator/symphony/graph/authz"
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/location"
@@ -104,7 +105,8 @@ func importEquipmentFile(t *testing.T, client *ent.Client, r io.Reader, method m
 			Subscriber: event.NewNopSubscriber(),
 		},
 	)
-	th := viewer.TenancyHandler(h, viewer.NewFixedTenancy(client))
+	auth := authz.AuthHandler{Handler: h, Logger: logtest.NewTestLogger(t)}
+	th := viewer.TenancyHandler(auth, viewer.NewFixedTenancy(client))
 	server := httptest.NewServer(th)
 	defer server.Close()
 
@@ -146,7 +148,8 @@ func prepareEquipmentAndExport(t *testing.T, r *TestExporterResolver) (context.C
 	log := r.exporter.log
 
 	e := &exporter{log, equipmentRower{log}}
-	th := viewer.TenancyHandler(e, viewer.NewFixedTenancy(r.client))
+	auth := authz.AuthHandler{Handler: e, Logger: logtest.NewTestLogger(t)}
+	th := viewer.TenancyHandler(auth, viewer.NewFixedTenancy(r.client))
 	server := httptest.NewServer(th)
 	defer server.Close()
 

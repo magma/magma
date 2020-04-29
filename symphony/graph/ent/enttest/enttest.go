@@ -9,11 +9,11 @@ package enttest
 import (
 	"context"
 
-	"github.com/facebookincubator/ent/dialect/sql/schema"
 	"github.com/facebookincubator/symphony/graph/ent"
-
 	// required by schema hooks.
 	_ "github.com/facebookincubator/symphony/graph/ent/runtime"
+
+	"github.com/facebookincubator/ent/dialect/sql/schema"
 )
 
 type (

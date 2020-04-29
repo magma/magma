@@ -421,6 +421,9 @@ func (lq *LinkQuery) prepareQuery(ctx context.Context) error {
 		}
 		lq.sql = prev
 	}
+	if err := link.Policy.EvalQuery(ctx, lq); err != nil {
+		return err
+	}
 	return nil
 }
 

@@ -32,6 +32,7 @@ const useStyles = makeStyles(theme => ({
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: '100px',
+    width: '100%',
   },
   noResultsLabel: {
     color: theme.palette.grey[600],

@@ -43,6 +43,7 @@
     name: openvswitch-switch
     state: started
     enabled: yes
+    use: service
   become: true
 
 - name: Ensure OVS switch will not auto-upgrade

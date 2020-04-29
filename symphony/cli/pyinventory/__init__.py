@@ -96,6 +96,7 @@ class InventoryClient(SymphonyClient):
     from .api.service import (
         add_service,
         add_service_endpoint,
+        add_service_link,
         add_service_type,
         get_service,
         delete_service_type_with_services,

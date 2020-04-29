@@ -11,12 +11,11 @@
 import request from 'superagent';
 
 const HttpClient = {
-  get: (path, token) =>
+  get: (path, parentRequest) =>
     new Promise((resolve, reject) => {
       const req = request.get(path).accept('application/json');
-      if (token) {
-        req.set('Authorization', token);
-      }
+      req.header['x-auth-organization'] =
+        parentRequest.headers['x-auth-organization'];
       req.end((err, res) => {
         if (err) {
           if (res && res.error) {
@@ -31,15 +30,17 @@ const HttpClient = {
       });
     }),
 
-  delete: (path, data, token) =>
+  delete: (path, data, parentRequest) =>
     new Promise((resolve, reject) => {
-      const req = request
-        .delete(path, data)
-        .accept('application/json')
-        .query('archiveWorkflow=false');
-      if (token) {
-        req.set('Authorization', token);
+      // If data is empty object, convert it to null.
+      // Otherwise the http library will send a request
+      // with Content-Length: 2 :/
+      if (data && Object.keys(data).length === 0) {
+        data = null;
       }
+      const req = request.delete(path, data).accept('application/json');
+      req.header['x-auth-organization'] =
+        parentRequest.headers['x-auth-organization'];
       req.end((err, res) => {
         if (err) {
           resolve(err);
@@ -52,14 +53,13 @@ const HttpClient = {
       });
     }),
 
-  post: (path, data, token) =>
+  post: (path, data, parentRequest) =>
     new Promise((resolve, reject) => {
       const req = request
         .post(path, data)
         .set('Content-Type', 'application/json');
-      if (token) {
-        req.set('Authorization', token);
-      }
+      req.header['x-auth-organization'] =
+        parentRequest.headers['x-auth-organization'];
       req.end((err, res) => {
         if (err || !res.ok) {
           console.error('Error on post! ' + res);
@@ -72,14 +72,11 @@ const HttpClient = {
       });
     }),
 
-  put: (path, data, token) =>
+  put: (path, data, parentRequest) =>
     new Promise((resolve, reject) => {
       const req = request.put(path, data).set('Accept', 'application/json');
-
-      if (token) {
-        req.set('Authorization', token);
-      }
-
+      req.header['x-auth-organization'] =
+        parentRequest.headers['x-auth-organization'];
       req
         .then(res => {
           resolve(res);

@@ -5,6 +5,7 @@
 package schema
 
 import (
+	"github.com/facebookincubator/symphony/graph/authz"
 	"github.com/facebookincubator/symphony/graph/viewer"
 
 	"github.com/facebookincubator/ent"
@@ -53,15 +54,16 @@ func (User) Edges() []ent.Edge {
 	}
 }
 
-// Policy returns user privacy policy.
+// Policy returns user policy.
 func (User) Policy() ent.Policy {
-	return privacy.Policy{
-		Mutation: []privacy.MutationRule{
+	return authz.NewPolicy(
+		authz.WithMutationRules(
 			privacy.DenyMutationOperationRule(
-				ent.OpDelete | ent.OpDeleteOne,
+				ent.OpDelete|ent.OpDeleteOne,
 			),
-		},
-	}
+			authz.AllowAdminRule(),
+		),
+	)
 }
 
 // Hooks of the User.

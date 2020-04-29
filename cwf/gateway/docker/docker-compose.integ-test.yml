@@ -75,6 +75,8 @@ services:
     depends_on:
       - pcrf
       - ocs
+      - pcrf2
+      - ocs2
     environment:
       MAGMA_PRINT_GRPC_PAYLOAD: 0
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/session_proxy -logtostderr=true -v=2
@@ -93,6 +95,16 @@ services:
     <<: *feggoservice
     container_name: ocs
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/ocs -logtostderr=true -v=0
+
+  pcrf2:
+    <<: *feggoservice
+    container_name: pcrf2
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/pcrf -logtostderr=true -v=0 -servernumber=2
+
+  ocs2:
+    <<: *feggoservice
+    container_name: ocs2
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/ocs -logtostderr=true -v=0 -servernumber=2
 
   redis:
     <<: *pyservice

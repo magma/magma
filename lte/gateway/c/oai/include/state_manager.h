@@ -83,7 +83,7 @@ class StateManager {
       is_initialized,
       "StateManager init() function should be called to initialize state");
 
-    return state_imsi_ht;
+    return state_ue_ht;
   }
 
   /**
@@ -117,7 +117,7 @@ class StateManager {
       StateConverter::proto_to_ue(ue_proto, ue_context);
 
       hashtable_ts_insert(
-        state_imsi_ht, get_imsi_from_key(key), (void*) ue_context);
+        state_ue_ht, get_imsi_from_key(key), (void*) ue_context);
       OAILOG_DEBUG(log_task, "Reading UE state from db for %s", key.c_str());
     }
     return RETURNok;
@@ -159,20 +159,17 @@ class StateManager {
       is_initialized,
       "StateManager init() function should be called to initialize state");
 
-    if(persist_state_enabled) {
-      ProtoUe ue_proto = ProtoUe();
-      StateConverter::ue_to_proto(ue_context, &ue_proto);
-      std::string key = IMSI_PREFIX + imsi_str + ":" + task_name;
-      if (redis_client->write_proto(key, ue_proto) != RETURNok) {
-        OAILOG_ERROR(
-          log_task,
-          "Failed to write UE state to db for IMSI %s",
+    ProtoUe ue_proto = ProtoUe();
+    StateConverter::ue_to_proto(ue_context, &ue_proto);
+    std::string key = IMSI_PREFIX + imsi_str + ":" + task_name;
+    if (redis_client->write_proto(key, ue_proto) != RETURNok) {
+      OAILOG_ERROR(
+          log_task, "Failed to write UE state to db for IMSI %s",
           imsi_str.c_str());
-        return;
-      }
-      OAILOG_DEBUG(
-        log_task, "Finished writing UE state for IMSI %s", imsi_str.c_str());
+      return;
     }
+    OAILOG_DEBUG(
+        log_task, "Finished writing UE state for IMSI %s", imsi_str.c_str());
   }
 
   std::string get_imsi_str(imsi64_t imsi64)
@@ -208,13 +205,18 @@ class StateManager {
    */
   virtual void free_state() = 0;
 
+  bool is_persist_state_enabled() const
+  {
+    return persist_state_enabled;
+  }
+
  protected:
   StateManager():
     is_initialized(false),
     state_dirty(false),
     persist_state_enabled(false),
     state_cache_p(nullptr),
-    state_imsi_ht(nullptr),
+    state_ue_ht(nullptr),
     log_task(LOG_UTIL),
     redis_client(std::make_unique<RedisClient>())
   {
@@ -237,7 +239,7 @@ class StateManager {
 
   // TODO: Make this a unique_ptr
   StateType* state_cache_p;
-  hash_table_ts_t* state_imsi_ht;
+  hash_table_ts_t* state_ue_ht;
   // TODO: Revisit one shared connection for all types of state
   std::unique_ptr<RedisClient> redis_client;
   // Flag for check asserting if the state has been initialized.
@@ -247,6 +249,8 @@ class StateManager {
   bool state_dirty;
   // Flag for enabling writing and reading to db.
   bool persist_state_enabled;
+
+ protected:
   std::string table_key;
   std::string task_name;
   log_proto_t log_task;

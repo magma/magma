@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
+# Copyright (c) 2004-present Facebook All rights reserved.
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file.
 
 from typing import Dict, List, Tuple
 
 from ..client import SymphonyClient
-from ..consts import Entity, Equipment, Location
+from ..common.data_class import Equipment, Location
+from ..common.data_enum import Entity
 from ..exceptions import EntityNotFoundError
 from ..graphql.equipment_positions_query import EquipmentPositionsQuery
 from ..graphql.location_equipments_query import LocationEquipmentsQuery
@@ -14,9 +18,7 @@ from .link import add_link, get_all_links_and_port_names_of_equipment
 def _get_one_level_attachments_of_equipment(
     client: SymphonyClient, equipment: Equipment
 ) -> List[Tuple[str, Equipment]]:
-    equipment_with_positions = EquipmentPositionsQuery.execute(
-        client, id=equipment.id
-    ).equipment
+    equipment_with_positions = EquipmentPositionsQuery.execute(client, id=equipment.id)
     if not equipment_with_positions:
         raise EntityNotFoundError(entity=Entity.Equipment, entity_id=equipment.id)
     attachments = []
@@ -44,13 +46,13 @@ def copy_equipment_with_all_attachments(
     """Copy the equipment to the new location with all its attachments
 
         Args:
-            equipment ( `pyinventory.consts.Equipment` ): could be retrieved from
+            equipment ( `pyinventory.common.data_class.Equipment` ): could be retrieved from
             - `pyinventory.api.equipment.get_equipment`
             - `pyinventory.api.equipment.get_equipment_in_position`
             - `pyinventory.api.equipment.add_equipment`
             - `pyinventory.api.equipment.add_equipment_to_position`
 
-            dest_location ( `pyinventory.consts.Location` ): could be retrieved from
+            dest_location ( `pyinventory.common.data_class.Location` ): could be retrieved from
             - `pyinventory.api.location.get_location`
             - `pyinventory.api.location.add_location`
 
@@ -58,9 +60,9 @@ def copy_equipment_with_all_attachments(
             FailedOperationException: internal inventory error
 
         Returns:
-            Dict[ `pyinventory.consts.Equipment` , `pyinventory.consts.Equipment` ]
-            - `pyinventory.consts.Equipment` - source equipment
-            - `pyinventory.consts.Equipment` - new equipment
+            Dict[ `pyinventory.common.data_class.Equipment` , `pyinventory.common.data_class.Equipment` ]
+            - `pyinventory.common.data_class.Equipment` - source equipment
+            - `pyinventory.common.data_class.Equipment` - new equipment
 
             The dict includes the equipment given as parameter and also all the equipments
                 attached to it
@@ -89,7 +91,7 @@ def apply_location_template_to_location(
 
     location_with_equipments = LocationEquipmentsQuery.execute(
         client, id=template_location.id
-    ).location
+    )
     if not location_with_equipments:
         raise EntityNotFoundError(
             entity=Entity.Location, entity_id=template_location.id

@@ -112,8 +112,7 @@ func TestGyCreditExhaustionWithCRRU(t *testing.T) {
 	assert.Nil(t, record, fmt.Sprintf("Policy usage record for imsi: %v was not removed", ue.GetImsi()))
 
 	// trigger disconnection
-	_, err = tr.Disconnect(ue.GetImsi())
-	assert.NoError(t, err)
+	tr.DisconnectAndAssertSuccess(ue.GetImsi())
 }
 
 func TestGyCreditExhaustionWithoutCRRU(t *testing.T) {
@@ -152,6 +151,5 @@ func TestGyCreditExhaustionWithoutCRRU(t *testing.T) {
 	assert.Nil(t, record, fmt.Sprintf("Policy usage record for imsi: %v was not removed", ue.GetImsi()))
 
 	// trigger disconnection
-	_, err = tr.Disconnect(ue.GetImsi())
-	assert.NoError(t, err)
+	tr.DisconnectAndAssertSuccess(ue.GetImsi())
 }

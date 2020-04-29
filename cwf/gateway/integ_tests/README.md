@@ -21,6 +21,8 @@ to simulate a UE device in the test.
 ### `magma-trfserver`
 This VM runs an iperf3 server.
 
+![TestSetup](./IntegTestSetup.jpg)
+
 ## Current Tests
 
 * UE Authentication

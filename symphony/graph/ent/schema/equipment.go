@@ -8,6 +8,8 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/facebookincubator/symphony/graph/authz"
+
 	"github.com/facebookincubator/ent"
 	"github.com/facebookincubator/ent/schema/edge"
 	"github.com/facebookincubator/ent/schema/field"
@@ -38,6 +40,15 @@ func (EquipmentPortType) Edges() []ent.Edge {
 			Ref("equipment_port_type").
 			StructTag(`gqlgen:"numberOfPortDefinitions"`),
 	}
+}
+
+// Policy returns equipment port type policy.
+func (EquipmentPortType) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithMutationRules(
+			authz.EquipmentPortTypeWritePolicyRule(),
+		),
+	)
 }
 
 // EquipmentPortDefinition defines the equipment port definition schema.
@@ -220,6 +231,15 @@ func (EquipmentType) Edges() []ent.Edge {
 	}
 }
 
+// Policy returns equipment type policy.
+func (EquipmentType) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithMutationRules(
+			authz.EquipmentTypeWritePolicyRule(),
+		),
+	)
+}
+
 // Equipment defines the equipment schema.
 type Equipment struct {
 	schema
@@ -277,4 +297,13 @@ func (Equipment) Edges() []ent.Edge {
 		edge.From("endpoints", ServiceEndpoint.Type).
 			Ref("equipment"),
 	}
+}
+
+// Policy returns equipment policy.
+func (Equipment) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithMutationRules(
+			authz.EquipmentWritePolicyRule(),
+		),
+	)
 }

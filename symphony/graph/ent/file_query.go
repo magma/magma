@@ -295,6 +295,9 @@ func (fq *FileQuery) prepareQuery(ctx context.Context) error {
 		}
 		fq.sql = prev
 	}
+	if err := file.Policy.EvalQuery(ctx, fq); err != nil {
+		return err
+	}
 	return nil
 }
 

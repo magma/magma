@@ -60,6 +60,7 @@ func TestGetHealthStatus(t *testing.T) {
 	mockSystem.On("Enable").Return(nil)
 	mockService.On("Enable", "radius").Return(nil)
 	mockService.On("Enable", "sessiond").Return(nil)
+	mockGREProbe.On("Start").Return(nil)
 	_, err = servicer.Enable(context.Background(), req)
 	assert.NoError(t, err)
 	assertMocks(t, mockGREProbe, mockSystem, mockService)
@@ -79,6 +80,7 @@ func TestGetHealthStatus(t *testing.T) {
 	disableReq := &protos.DisableMessage{}
 	mockSystem.On("Disable").Return(nil)
 	mockService.On("Disable", "radius").Return(nil)
+	mockGREProbe.On("Stop").Return()
 	_, err = servicer.Disable(context.Background(), disableReq)
 	assert.NoError(t, err)
 	assertMocks(t, mockGREProbe, mockSystem, mockService)
@@ -157,6 +159,10 @@ type mockGREProbe struct {
 func (m *mockGREProbe) Start() error {
 	args := m.Called()
 	return args.Error(0)
+}
+
+func (m *mockGREProbe) Stop() {
+	_ = m.Called()
 }
 
 func (m *mockGREProbe) GetStatus() *gre_probe.GREProbeStatus {

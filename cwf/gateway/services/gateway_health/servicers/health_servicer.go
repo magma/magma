@@ -61,7 +61,12 @@ func (s *GatewayHealthServicer) Disable(ctx context.Context, req *protos.Disable
 		return ret, err
 	}
 	// Stop the RADIUS server so that the WLC perceives it as down.
-	return ret, s.serviceHealth.Disable(radiusServiceName)
+	err = s.serviceHealth.Disable(radiusServiceName)
+	if err != nil {
+		return ret, err
+	}
+	s.greProbe.Stop()
+	return ret, nil
 }
 
 // Enable ensures ICMP is enabled on eth1, then restarts radius and sessiond
@@ -80,7 +85,7 @@ func (s *GatewayHealthServicer) Enable(ctx context.Context, req *orcprotos.Void)
 	if err != nil {
 		return ret, err
 	}
-	return ret, nil
+	return ret, s.greProbe.Start()
 }
 
 // GetHealthStatus retrieves a health status object which contains the current

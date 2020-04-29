@@ -7,21 +7,21 @@
 package service
 
 import (
-	"fmt"
 	"time"
+
+	"github.com/facebookincubator/ent"
 )
 
 const (
 	// Label holds the string label denoting the service type in the database.
 	Label = "service"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID              = "id"          // FieldCreateTime holds the string denoting the create_time vertex property in the database.
-	FieldCreateTime      = "create_time" // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
-	FieldUpdateTime      = "update_time" // FieldName holds the string denoting the name vertex property in the database.
-	FieldName            = "name"        // FieldExternalID holds the string denoting the external_id vertex property in the database.
-	FieldExternalID      = "external_id" // FieldStatus holds the string denoting the status vertex property in the database.
-	FieldStatus          = "status"      // FieldDiscoveryMethod holds the string denoting the discovery_method vertex property in the database.
-	FieldDiscoveryMethod = "discovery_method"
+	FieldID         = "id"          // FieldCreateTime holds the string denoting the create_time vertex property in the database.
+	FieldCreateTime = "create_time" // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
+	FieldUpdateTime = "update_time" // FieldName holds the string denoting the name vertex property in the database.
+	FieldName       = "name"        // FieldExternalID holds the string denoting the external_id vertex property in the database.
+	FieldExternalID = "external_id" // FieldStatus holds the string denoting the status vertex property in the database.
+	FieldStatus     = "status"
 
 	// EdgeType holds the string denoting the type edge name in mutations.
 	EdgeType = "type"
@@ -85,7 +85,6 @@ var Columns = []string{
 	FieldName,
 	FieldExternalID,
 	FieldStatus,
-	FieldDiscoveryMethod,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the Service type.
@@ -108,7 +107,15 @@ var (
 	CustomerPrimaryKey = []string{"service_id", "customer_id"}
 )
 
+// Note that the variables below are initialized by the runtime
+// package on the initialization of the application. Therefore,
+// it should be imported in the main as follows:
+//
+//	import _ "github.com/facebookincubator/symphony/graph/ent/runtime"
+//
 var (
+	Hooks  [1]ent.Hook
+	Policy ent.Policy
 	// DefaultCreateTime holds the default value on creation for the create_time field.
 	DefaultCreateTime func() time.Time
 	// DefaultUpdateTime holds the default value on creation for the update_time field.
@@ -120,25 +127,3 @@ var (
 	// ExternalIDValidator is a validator for the "external_id" field. It is called by the builders before save.
 	ExternalIDValidator func(string) error
 )
-
-// DiscoveryMethod defines the type for the discovery_method enum field.
-type DiscoveryMethod string
-
-// DiscoveryMethod values.
-const (
-	DiscoveryMethodINVENTORY DiscoveryMethod = "INVENTORY"
-)
-
-func (s DiscoveryMethod) String() string {
-	return string(s)
-}
-
-// DiscoveryMethodValidator is a validator for the "dm" field enum values. It is called by the builders before save.
-func DiscoveryMethodValidator(dm DiscoveryMethod) error {
-	switch dm {
-	case DiscoveryMethodINVENTORY:
-		return nil
-	default:
-		return fmt.Errorf("service: invalid enum value for discovery_method field: %q", dm)
-	}
-}

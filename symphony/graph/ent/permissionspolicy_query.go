@@ -327,6 +327,9 @@ func (ppq *PermissionsPolicyQuery) prepareQuery(ctx context.Context) error {
 		}
 		ppq.sql = prev
 	}
+	if err := permissionspolicy.Policy.EvalQuery(ctx, ppq); err != nil {
+		return err
+	}
 	return nil
 }
 

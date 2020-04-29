@@ -19,7 +19,7 @@ from pyinventory.api.location import add_location
 from pyinventory.api.location_type import add_location_type
 from pyinventory.api.port import edit_port_properties, get_port
 from pyinventory.api.port_type import add_equipment_port_type
-from pyinventory.consts import PropertyDefinition
+from pyinventory.common.data_class import PropertyDefinition
 from pyinventory.graphql.property_kind_enum import PropertyKind
 
 from .grpc.rpc_pb2_grpc import TenantServiceStub

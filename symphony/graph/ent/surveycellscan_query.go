@@ -389,6 +389,9 @@ func (scsq *SurveyCellScanQuery) prepareQuery(ctx context.Context) error {
 		}
 		scsq.sql = prev
 	}
+	if err := surveycellscan.Policy.EvalQuery(ctx, scsq); err != nil {
+		return err
+	}
 	return nil
 }
 

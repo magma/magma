@@ -18,11 +18,14 @@ import PermissionsGroupCard from './groups/PermissionsGroupCard';
 import PermissionsGroupsView, {
   PERMISSION_GROUPS_VIEW_NAME,
 } from './groups/PermissionsGroupsView';
+import PermissionsPoliciesView, {
+  PERMISSION_POLICIES_VIEW_NAME,
+} from './policies/PermissionsPoliciesView';
 import Strings from '@fbcnms/strings/Strings';
 import UsersView from './users/UsersView';
 import fbt from 'fbt';
 import {FormContextProvider} from '../../../common/FormContext';
-import {NEW_GROUP_DIALOG_PARAM} from './utils/UserManagementUtils';
+import {NEW_DIALOG_PARAM} from './utils/UserManagementUtils';
 import {UserManagementContextProvider} from './UserManagementContext';
 import {useCallback, useContext, useMemo, useState} from 'react';
 import {useHistory, withRouter} from 'react-router-dom';
@@ -85,7 +88,7 @@ const UserManaementView = ({match}: Props) => {
                   {
                     title: fbt('Create Group', ''),
                     action: () => {
-                      history.push(`group/${NEW_GROUP_DIALOG_PARAM}`);
+                      history.push(`group/${NEW_DIALOG_PARAM}`);
                     },
                   },
                 ]
@@ -106,13 +109,35 @@ const UserManaementView = ({match}: Props) => {
         },
         relatedMenuItemIndex: 1,
       },
+      {
+        routingPath: 'policies',
+        menuItem: {
+          label: PERMISSION_POLICIES_VIEW_NAME,
+          tooltip: `${PERMISSION_POLICIES_VIEW_NAME}`,
+        },
+        component: {
+          header: {
+            title: `${PERMISSION_POLICIES_VIEW_NAME}`,
+            subtitle: 'Manage policies and apply them to groups.',
+            actionButtons: [
+              {
+                title: fbt('Create Policy', ''),
+                action: () => {
+                  history.push(`policy/${NEW_DIALOG_PARAM}`);
+                },
+              },
+            ],
+          },
+          children: <PermissionsPoliciesView />,
+        },
+      },
     ],
     [gotoGroupsPage, history, userManagementDevMode],
   );
 
   return (
     <UserManagementContextProvider>
-      <FormContextProvider>
+      <FormContextProvider ignorePermissions={true}>
         <NavigatableViews
           header={Strings.admin.users.viewHeader}
           views={VIEWS}
