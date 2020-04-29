@@ -347,7 +347,11 @@ func (srv *PCRFDiamServer) ReAuth(
 		done <- &gx.PolicyReAuthAnswer{SessionID: raa.SessionID, ResultCode: raa.ResultCode}
 	}
 	srv.mux.Handle(diam.RAA, raaHandler)
-	sendRAR(account.CurrentState, target, srv.mux.Settings())
+	err := sendRAR(account.CurrentState, target, srv.mux.Settings())
+	if err != nil {
+		glog.Errorf("Error sending RaR for target %v: %v", target.GetImsi(), err)
+		return nil, err
+	}
 	select {
 	case raa := <-done:
 		return &protos.PolicyReAuthAnswer{SessionId: diameter.DecodeSessionID(raa.SessionID), ResultCode: raa.ResultCode}, nil
