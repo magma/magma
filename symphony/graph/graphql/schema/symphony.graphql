@@ -135,11 +135,11 @@ input InventoryPolicyInput
 }
 
 type WorkforceCUD {
-  create: BasicPermissionRule
-  update: BasicPermissionRule
-  delete: BasicPermissionRule
-  assign: BasicPermissionRule
-  transferOwnership: BasicPermissionRule
+  create: BasicPermissionRule!
+  update: BasicPermissionRule!
+  delete: BasicPermissionRule!
+  assign: BasicPermissionRule!
+  transferOwnership: BasicPermissionRule!
 }
 
 input BasicWorkforceCUDInput

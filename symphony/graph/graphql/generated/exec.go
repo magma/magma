@@ -6964,11 +6964,11 @@ input InventoryPolicyInput
 }
 
 type WorkforceCUD {
-  create: BasicPermissionRule
-  update: BasicPermissionRule
-  delete: BasicPermissionRule
-  assign: BasicPermissionRule
-  transferOwnership: BasicPermissionRule
+  create: BasicPermissionRule!
+  update: BasicPermissionRule!
+  delete: BasicPermissionRule!
+  assign: BasicPermissionRule!
+  transferOwnership: BasicPermissionRule!
 }
 
 input BasicWorkforceCUDInput
@@ -34740,11 +34740,14 @@ func (ec *executionContext) _WorkforceCUD_create(ctx context.Context, field grap
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*models.BasicPermissionRule)
 	fc.Result = res
-	return ec.marshalOBasicPermissionRule2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐBasicPermissionRule(ctx, field.Selections, res)
+	return ec.marshalNBasicPermissionRule2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐBasicPermissionRule(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _WorkforceCUD_update(ctx context.Context, field graphql.CollectedField, obj *models.WorkforceCud) (ret graphql.Marshaler) {
@@ -34771,11 +34774,14 @@ func (ec *executionContext) _WorkforceCUD_update(ctx context.Context, field grap
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*models.BasicPermissionRule)
 	fc.Result = res
-	return ec.marshalOBasicPermissionRule2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐBasicPermissionRule(ctx, field.Selections, res)
+	return ec.marshalNBasicPermissionRule2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐBasicPermissionRule(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _WorkforceCUD_delete(ctx context.Context, field graphql.CollectedField, obj *models.WorkforceCud) (ret graphql.Marshaler) {
@@ -34802,11 +34808,14 @@ func (ec *executionContext) _WorkforceCUD_delete(ctx context.Context, field grap
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*models.BasicPermissionRule)
 	fc.Result = res
-	return ec.marshalOBasicPermissionRule2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐBasicPermissionRule(ctx, field.Selections, res)
+	return ec.marshalNBasicPermissionRule2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐBasicPermissionRule(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _WorkforceCUD_assign(ctx context.Context, field graphql.CollectedField, obj *models.WorkforceCud) (ret graphql.Marshaler) {
@@ -34833,11 +34842,14 @@ func (ec *executionContext) _WorkforceCUD_assign(ctx context.Context, field grap
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*models.BasicPermissionRule)
 	fc.Result = res
-	return ec.marshalOBasicPermissionRule2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐBasicPermissionRule(ctx, field.Selections, res)
+	return ec.marshalNBasicPermissionRule2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐBasicPermissionRule(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _WorkforceCUD_transferOwnership(ctx context.Context, field graphql.CollectedField, obj *models.WorkforceCud) (ret graphql.Marshaler) {
@@ -34864,11 +34876,14 @@ func (ec *executionContext) _WorkforceCUD_transferOwnership(ctx context.Context,
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*models.BasicPermissionRule)
 	fc.Result = res
-	return ec.marshalOBasicPermissionRule2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐBasicPermissionRule(ctx, field.Selections, res)
+	return ec.marshalNBasicPermissionRule2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐBasicPermissionRule(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _WorkforcePolicy_read(ctx context.Context, field graphql.CollectedField, obj *models.WorkforcePolicy) (ret graphql.Marshaler) {
@@ -47792,14 +47807,29 @@ func (ec *executionContext) _WorkforceCUD(ctx context.Context, sel ast.Selection
 			out.Values[i] = graphql.MarshalString("WorkforceCUD")
 		case "create":
 			out.Values[i] = ec._WorkforceCUD_create(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "update":
 			out.Values[i] = ec._WorkforceCUD_update(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "delete":
 			out.Values[i] = ec._WorkforceCUD_delete(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "assign":
 			out.Values[i] = ec._WorkforceCUD_assign(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "transferOwnership":
 			out.Values[i] = ec._WorkforceCUD_transferOwnership(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -53493,17 +53523,6 @@ func (ec *executionContext) unmarshalOBasicCUDInput2ᚖgithubᚗcomᚋfacebookin
 	}
 	res, err := ec.unmarshalOBasicCUDInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋauthzᚋmodelsᚐBasicCUDInput(ctx, v)
 	return &res, err
-}
-
-func (ec *executionContext) marshalOBasicPermissionRule2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐBasicPermissionRule(ctx context.Context, sel ast.SelectionSet, v models.BasicPermissionRule) graphql.Marshaler {
-	return ec._BasicPermissionRule(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalOBasicPermissionRule2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐBasicPermissionRule(ctx context.Context, sel ast.SelectionSet, v *models.BasicPermissionRule) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._BasicPermissionRule(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOBasicPermissionRuleInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋauthzᚋmodelsᚐBasicPermissionRuleInput(ctx context.Context, v interface{}) (models1.BasicPermissionRuleInput, error) {
