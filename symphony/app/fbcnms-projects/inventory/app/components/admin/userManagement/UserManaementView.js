@@ -49,8 +49,8 @@ const UserManaementView = ({match}: Props) => {
   const {isFeatureEnabled} = useContext(AppContext);
   const userManagementDevMode = isFeatureEnabled('user_management_dev');
 
-  const VIEWS: Array<NavigatableView> = useMemo(
-    () => [
+  const VIEWS: Array<NavigatableView> = useMemo(() => {
+    const views = [
       {
         routingPath: 'users',
         menuItem: {
@@ -109,7 +109,10 @@ const UserManaementView = ({match}: Props) => {
         },
         relatedMenuItemIndex: 1,
       },
-      {
+    ];
+
+    if (userManagementDevMode) {
+      views.push({
         routingPath: 'policies',
         menuItem: {
           label: PERMISSION_POLICIES_VIEW_NAME,
@@ -130,10 +133,11 @@ const UserManaementView = ({match}: Props) => {
           },
           children: <PermissionsPoliciesView />,
         },
-      },
-    ],
-    [gotoGroupsPage, history, userManagementDevMode],
-  );
+      });
+    }
+
+    return views;
+  }, [gotoGroupsPage, history, userManagementDevMode]);
 
   return (
     <UserManagementContextProvider>
