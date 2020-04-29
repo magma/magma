@@ -20,10 +20,14 @@ const uint RestartHandler::rpc_retry_interval_s_ = 5;
 
 RestartHandler::RestartHandler(
     std::shared_ptr<AsyncDirectorydClient> directoryd_client,
-    std::shared_ptr<LocalEnforcer> enforcer, SessionReporter* reporter)
+    std::shared_ptr<aaa::AsyncAAAClient> aaa_client,
+    std::shared_ptr<LocalEnforcer> enforcer, SessionReporter* reporter,
+    SessionStore& session_store)
     : directoryd_client_(directoryd_client),
+      aaa_client_(aaa_client),
       enforcer_(enforcer),
-      reporter_(reporter) {}
+      reporter_(reporter),
+      session_store_(session_store) {}
 
 void RestartHandler::cleanup_previous_sessions() {
   uint rpc_try  = 0;
@@ -83,6 +87,11 @@ void RestartHandler::cleanup_previous_sessions() {
   } else {
     MLOG(MERROR) << "Terminating old sessions failed";
   }
+}
+
+void RestartHandler::setup_aaa_sessions() {
+  auto session_map = session_store_.read_all_sessions();
+  aaa_client_->add_sessions(session_map);
 }
 
 void RestartHandler::terminate_previous_session(
