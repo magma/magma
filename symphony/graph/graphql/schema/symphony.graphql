@@ -1679,6 +1679,11 @@ type WorkOrderSearchResult {
   count: Int!
 }
 
+type UsersGroupSearchResult {
+  usersGroups: [UsersGroup]!
+  count: Int!
+}
+
 """
 what filters should we apply on ports
 """
@@ -1737,6 +1742,13 @@ enum UserFilterType {
   USER_STATUS
 }
 
+"""
+what filters should we apply on usersGroups
+"""
+enum UsersGroupFilterType {
+  GROUP_NAME
+}
+
 input PortFilterInput {
   filterType: PortFilterType!
   operator: FilterOperator!
@@ -1787,6 +1799,13 @@ input UserFilterInput {
   statusValue: UserStatus
   idSet: [ID!]
   stringSet: [String!]
+  maxDepth: Int = 5
+}
+
+input UsersGroupFilterInput {
+  filterType: UsersGroupFilterType!
+  operator: FilterOperator!
+  stringValue: String
   maxDepth: Int = 5
 }
 
@@ -2503,6 +2522,10 @@ type Query {
     limit: Int = 500
   ): ServiceSearchResult!
   userSearch(filters: [UserFilterInput!]!, limit: Int = 500): UserSearchResult!
+  usersGroupSearch(
+    filters: [UsersGroupFilterInput!]!
+    limit: Int = 500
+  ): UsersGroupSearchResult!
   possibleProperties(entityType: PropertyEntity!): [PropertyType!]!
   surveys: [Survey!]!
   latestPythonPackage: LatestPythonPackageResult

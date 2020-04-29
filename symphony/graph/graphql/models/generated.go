@@ -866,6 +866,18 @@ type UserSearchResult struct {
 	Count int         `json:"count"`
 }
 
+type UsersGroupFilterInput struct {
+	FilterType  UsersGroupFilterType `json:"filterType"`
+	Operator    FilterOperator       `json:"operator"`
+	StringValue *string              `json:"stringValue"`
+	MaxDepth    *int                 `json:"maxDepth"`
+}
+
+type UsersGroupSearchResult struct {
+	UsersGroups []*ent.UsersGroup `json:"usersGroups"`
+	Count       int               `json:"count"`
+}
+
 type WorkOrderDefinitionInput struct {
 	ID    *int `json:"id"`
 	Index *int `json:"index"`
@@ -1949,6 +1961,46 @@ func (e *UserFilterType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e UserFilterType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+// what filters should we apply on usersGroups
+type UsersGroupFilterType string
+
+const (
+	UsersGroupFilterTypeGroupName UsersGroupFilterType = "GROUP_NAME"
+)
+
+var AllUsersGroupFilterType = []UsersGroupFilterType{
+	UsersGroupFilterTypeGroupName,
+}
+
+func (e UsersGroupFilterType) IsValid() bool {
+	switch e {
+	case UsersGroupFilterTypeGroupName:
+		return true
+	}
+	return false
+}
+
+func (e UsersGroupFilterType) String() string {
+	return string(e)
+}
+
+func (e *UsersGroupFilterType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = UsersGroupFilterType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid UsersGroupFilterType", str)
+	}
+	return nil
+}
+
+func (e UsersGroupFilterType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

@@ -43,6 +43,10 @@ func (r queryResolver) UserSearch(ctx context.Context, filters []*models.UserFil
 	return resolverutil.UserSearch(ctx, r.ClientFrom(ctx), filters, limit)
 }
 
+func (r queryResolver) UsersGroupSearch(ctx context.Context, filters []*models.UsersGroupFilterInput, limit *int) (*models.UsersGroupSearchResult, error) {
+	return resolverutil.UsersGroupSearch(ctx, r.ClientFrom(ctx), filters, limit)
+}
+
 func (r queryResolver) ProjectSearch(ctx context.Context, filters []*models.ProjectFilterInput, limit *int) ([]*ent.Project, error) {
 	var (
 		query = r.ClientFrom(ctx).Project.Query()
