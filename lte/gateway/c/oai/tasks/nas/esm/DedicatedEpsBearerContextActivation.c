@@ -452,6 +452,7 @@ static void _dedicated_eps_bearer_activate_t3485_handler(void* args)
       bstring b = bstrcpy(esm_ebr_timer_data->msg);
       rc = _dedicated_eps_bearer_activate(
         esm_ebr_timer_data->ctx, esm_ebr_timer_data->ebi, &b);
+      bdestroy_wrapper(&b);
     } else {
       /*
        * The maximum number of activate dedicated EPS bearer context request

@@ -796,7 +796,11 @@ static int _emm_cn_activate_dedicated_bearer_req(
   esm_sap.data.eps_dedicated_bearer_context_activate.ebi = msg->ebi;
   esm_sap.data.eps_dedicated_bearer_context_activate.linked_ebi =
     msg->linked_ebi;
-  esm_sap.data.eps_dedicated_bearer_context_activate.tft = msg->tft;
+  if (msg->tft) {
+    memcpy(&esm_sap.data.eps_dedicated_bearer_context_activate.tft, msg->tft,
+       sizeof(esm_sap.data.eps_dedicated_bearer_context_activate.tft));
+    free_wrapper((void **) &msg->tft);
+  }
   esm_sap.data.eps_dedicated_bearer_context_activate.qci = msg->bearer_qos.qci;
   esm_sap.data.eps_dedicated_bearer_context_activate.gbr_ul =
     msg->bearer_qos.gbr.br_ul;
@@ -806,16 +810,15 @@ static int _emm_cn_activate_dedicated_bearer_req(
     msg->bearer_qos.mbr.br_ul;
   esm_sap.data.eps_dedicated_bearer_context_activate.mbr_dl =
     msg->bearer_qos.mbr.br_dl;
-  // stole ref if any
-  msg->tft = NULL;
-  esm_sap.data.eps_dedicated_bearer_context_activate.pco = msg->pco;
-  // stole ref if any
-  msg->pco = NULL;
+  if (msg->pco) {
+    memcpy(&esm_sap.data.eps_dedicated_bearer_context_activate.pco, msg->pco,
+        sizeof(esm_sap.data.eps_dedicated_bearer_context_activate.pco));
+    free_wrapper((void **) &msg->pco);
+  }
   memcpy(&esm_sap.data.eps_dedicated_bearer_context_activate.sgw_fteid,
     &msg->sgw_fteid, sizeof(fteid_t));
 
   rc = esm_sap_send(&esm_sap);
-
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
@@ -1162,6 +1165,7 @@ static int _emm_cn_pdn_disconnect_rsp(emm_cn_pdn_disconnect_rsp_t* msg)
     &rsp,
     true /*UE triggered*/);
 
+  bdestroy_wrapper(&rsp);
   if (rc != RETURNok) {
     OAILOG_ERROR(
       LOG_NAS_EMM,
