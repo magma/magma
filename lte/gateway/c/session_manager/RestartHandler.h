@@ -10,6 +10,7 @@
 
 #include <future>
 
+#include "AAAClient.h"
 #include "SessionReporter.h"
 #include "DirectorydClient.h"
 #include "LocalEnforcer.h"
@@ -24,20 +25,28 @@ class RestartHandler {
  public:
   RestartHandler(
       std::shared_ptr<AsyncDirectorydClient> directoryd_client,
-      std::shared_ptr<LocalEnforcer> enforcer, SessionReporter* reporter);
+      std::shared_ptr<aaa::AsyncAAAClient> aaa_client,
+      std::shared_ptr<LocalEnforcer> enforcer,
+      SessionReporter* reporter, SessionStore& session_store);
 
   /**
    * Cleanup previous sessions stored in directoryD
    */
   void cleanup_previous_sessions();
 
+  /**
+   * Re-create AAA sessions stored in sessiond
+   */
+  void setup_aaa_sessions();
  private:
   void terminate_previous_session(
       const std::string& sid, const std::string& session_id);
 
  private:
+  SessionStore& session_store_;
   std::shared_ptr<LocalEnforcer> enforcer_;
   std::shared_ptr<AsyncDirectorydClient> directoryd_client_;
+  std::shared_ptr<aaa::AsyncAAAClient> aaa_client_;
   SessionReporter* reporter_;
   std::unordered_map<std::string, std::string> sessions_to_terminate_;
   static const uint max_cleanup_retries_;

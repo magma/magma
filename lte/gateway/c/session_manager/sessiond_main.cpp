@@ -251,14 +251,13 @@ int main(int argc, char *argv[])
     monitor, *session_store);
 
   auto restart_handler = std::make_shared<magma::sessiond::RestartHandler>(
-      directoryd_client, monitor, reporter.get());
+      directoryd_client, aaa_client, monitor, reporter.get(), *session_store);
   std::thread restart_handler_thread([&]() {
-    // TODO: Add AAA server re-init logic when stateless
-    // If running as stateless, session flows will be re-initialized in the
-    // LocalSessionManagerHandler. Otherwise, cleanup all previous sessions.
     MLOG(MINFO) << "Started sessiond restart handler thread";
     if (!is_stateless) {
       restart_handler->cleanup_previous_sessions();
+    } else {
+      restart_handler->setup_aaa_sessions();
     }
   });
 
