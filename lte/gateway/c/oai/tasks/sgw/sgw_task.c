@@ -50,10 +50,12 @@
 #include "pgw_ue_ip_address_alloc.h"
 #include "pgw_pcef_emulation.h"
 #include "spgw_config.h"
+#include "gtpv1u.h"
 
 spgw_config_t spgw_config;
 
 extern __pid_t g_pid;
+extern struct gtp_tunnel_ops* gtp_tunnel_ops;
 
 static void sgw_exit(void);
 
@@ -260,6 +262,7 @@ static void sgw_exit(void)
 {
   OAILOG_DEBUG(LOG_SPGW_APP, "Cleaning SGW\n");
 
+  gtp_tunnel_ops->uninit();
   spgw_state_exit();
 
   OAILOG_DEBUG(LOG_SPGW_APP, "Finished cleaning up SGW\n");
