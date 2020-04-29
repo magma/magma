@@ -518,7 +518,7 @@ type ComplexityRoot struct {
 		AddLink                                  func(childComplexity int, input models.AddLinkInput) int
 		AddLocation                              func(childComplexity int, input models.AddLocationInput) int
 		AddLocationType                          func(childComplexity int, input models.AddLocationTypeInput) int
-		AddPolicy                                func(childComplexity int, input models.AddPermissionsPolicyInput) int
+		AddPermissionsPolicy                     func(childComplexity int, input models.AddPermissionsPolicyInput) int
 		AddReportFilter                          func(childComplexity int, input models.ReportFilterInput) int
 		AddService                               func(childComplexity int, data models.ServiceCreateData) int
 		AddServiceEndpoint                       func(childComplexity int, input models.AddServiceEndpointInput) int
@@ -549,6 +549,7 @@ type ComplexityRoot struct {
 		EditLocationType                         func(childComplexity int, input models.EditLocationTypeInput) int
 		EditLocationTypeSurveyTemplateCategories func(childComplexity int, id int, surveyTemplateCategories []*models.SurveyTemplateCategoryInput) int
 		EditLocationTypesIndex                   func(childComplexity int, locationTypesIndex []*models.LocationTypeIndex) int
+		EditPermissionsPolicy                    func(childComplexity int, input models.EditPermissionsPolicyInput) int
 		EditProject                              func(childComplexity int, input models.EditProjectInput) int
 		EditProjectType                          func(childComplexity int, input models.EditProjectTypeInput) int
 		EditReportFilter                         func(childComplexity int, input models.EditReportFilterInput) int
@@ -1299,7 +1300,8 @@ type MutationResolver interface {
 	AddReportFilter(ctx context.Context, input models.ReportFilterInput) (*ent.ReportFilter, error)
 	EditReportFilter(ctx context.Context, input models.EditReportFilterInput) (*ent.ReportFilter, error)
 	DeleteReportFilter(ctx context.Context, id int) (bool, error)
-	AddPolicy(ctx context.Context, input models.AddPermissionsPolicyInput) (*ent.PermissionsPolicy, error)
+	AddPermissionsPolicy(ctx context.Context, input models.AddPermissionsPolicyInput) (*ent.PermissionsPolicy, error)
+	EditPermissionsPolicy(ctx context.Context, input models.EditPermissionsPolicyInput) (*ent.PermissionsPolicy, error)
 }
 type PermissionsPolicyResolver interface {
 	Policy(ctx context.Context, obj *ent.PermissionsPolicy) (models.SystemPolicy, error)
@@ -3375,17 +3377,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.AddLocationType(childComplexity, args["input"].(models.AddLocationTypeInput)), true
 
-	case "Mutation.addPolicy":
-		if e.complexity.Mutation.AddPolicy == nil {
+	case "Mutation.addPermissionsPolicy":
+		if e.complexity.Mutation.AddPermissionsPolicy == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_addPolicy_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_addPermissionsPolicy_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddPolicy(childComplexity, args["input"].(models.AddPermissionsPolicyInput)), true
+		return e.complexity.Mutation.AddPermissionsPolicy(childComplexity, args["input"].(models.AddPermissionsPolicyInput)), true
 
 	case "Mutation.addReportFilter":
 		if e.complexity.Mutation.AddReportFilter == nil {
@@ -3746,6 +3748,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.EditLocationTypesIndex(childComplexity, args["locationTypesIndex"].([]*models.LocationTypeIndex)), true
+
+	case "Mutation.editPermissionsPolicy":
+		if e.complexity.Mutation.EditPermissionsPolicy == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_editPermissionsPolicy_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.EditPermissionsPolicy(childComplexity, args["input"].(models.EditPermissionsPolicyInput)), true
 
 	case "Mutation.editProject":
 		if e.complexity.Mutation.EditProject == nil {
@@ -6969,6 +6983,15 @@ input AddPermissionsPolicyInput {
   workforceInput: WorkforcePolicyInput
 }
 
+input EditPermissionsPolicyInput {
+  id: ID!
+  name: String
+  description: String
+  isGlobal: Boolean
+  inventoryInput: InventoryPolicyInput
+  workforceInput: WorkforcePolicyInput
+}
+
 type Viewer
   @goModel(model: "github.com/facebookincubator/symphony/graph/viewer.Viewer") {
   tenant: String!
@@ -9485,7 +9508,8 @@ type Mutation {
   addReportFilter(input: ReportFilterInput!): ReportFilter!
   editReportFilter(input: EditReportFilterInput!): ReportFilter!
   deleteReportFilter(id: ID!): Boolean!
-  addPolicy(input: AddPermissionsPolicyInput!): PermissionsPolicy!
+  addPermissionsPolicy(input: AddPermissionsPolicyInput!): PermissionsPolicy!
+  editPermissionsPolicy(input: EditPermissionsPolicyInput!): PermissionsPolicy!
 }
 
 type Subscription {
@@ -9850,7 +9874,7 @@ func (ec *executionContext) field_Mutation_addLocation_args(ctx context.Context,
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_addPolicy_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_addPermissionsPolicy_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 models.AddPermissionsPolicyInput
@@ -10324,6 +10348,20 @@ func (ec *executionContext) field_Mutation_editLocation_args(ctx context.Context
 	var arg0 models.EditLocationInput
 	if tmp, ok := rawArgs["input"]; ok {
 		arg0, err = ec.unmarshalNEditLocationInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐEditLocationInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_editPermissionsPolicy_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 models.EditPermissionsPolicyInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNEditPermissionsPolicyInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐEditPermissionsPolicyInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -23078,7 +23116,7 @@ func (ec *executionContext) _Mutation_deleteReportFilter(ctx context.Context, fi
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_addPolicy(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_addPermissionsPolicy(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -23094,7 +23132,7 @@ func (ec *executionContext) _Mutation_addPolicy(ctx context.Context, field graph
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_addPolicy_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_addPermissionsPolicy_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -23102,7 +23140,48 @@ func (ec *executionContext) _Mutation_addPolicy(ctx context.Context, field graph
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddPolicy(rctx, args["input"].(models.AddPermissionsPolicyInput))
+		return ec.resolvers.Mutation().AddPermissionsPolicy(rctx, args["input"].(models.AddPermissionsPolicyInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.PermissionsPolicy)
+	fc.Result = res
+	return ec.marshalNPermissionsPolicy2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐPermissionsPolicy(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_editPermissionsPolicy(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_editPermissionsPolicy_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().EditPermissionsPolicy(rctx, args["input"].(models.EditPermissionsPolicyInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -37640,6 +37719,54 @@ func (ec *executionContext) unmarshalInputEditLocationTypeInput(ctx context.Cont
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputEditPermissionsPolicyInput(ctx context.Context, obj interface{}) (models.EditPermissionsPolicyInput, error) {
+	var it models.EditPermissionsPolicyInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "id":
+			var err error
+			it.ID, err = ec.unmarshalNID2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "name":
+			var err error
+			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "description":
+			var err error
+			it.Description, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "isGlobal":
+			var err error
+			it.IsGlobal, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "inventoryInput":
+			var err error
+			it.InventoryInput, err = ec.unmarshalOInventoryPolicyInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋauthzᚋmodelsᚐInventoryPolicyInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "workforceInput":
+			var err error
+			it.WorkforceInput, err = ec.unmarshalOWorkforcePolicyInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋauthzᚋmodelsᚐWorkforcePolicyInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputEditProjectInput(ctx context.Context, obj interface{}) (models.EditProjectInput, error) {
 	var it models.EditProjectInput
 	var asMap = obj.(map[string]interface{})
@@ -43739,8 +43866,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "addPolicy":
-			out.Values[i] = ec._Mutation_addPolicy(ctx, field)
+		case "addPermissionsPolicy":
+			out.Values[i] = ec._Mutation_addPermissionsPolicy(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "editPermissionsPolicy":
+			out.Values[i] = ec._Mutation_editPermissionsPolicy(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -48667,6 +48799,10 @@ func (ec *executionContext) unmarshalNEditLocationInput2githubᚗcomᚋfacebooki
 
 func (ec *executionContext) unmarshalNEditLocationTypeInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐEditLocationTypeInput(ctx context.Context, v interface{}) (models.EditLocationTypeInput, error) {
 	return ec.unmarshalInputEditLocationTypeInput(ctx, v)
+}
+
+func (ec *executionContext) unmarshalNEditPermissionsPolicyInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐEditPermissionsPolicyInput(ctx context.Context, v interface{}) (models.EditPermissionsPolicyInput, error) {
+	return ec.unmarshalInputEditPermissionsPolicyInput(ctx, v)
 }
 
 func (ec *executionContext) unmarshalNEditProjectInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐEditProjectInput(ctx context.Context, v interface{}) (models.EditProjectInput, error) {

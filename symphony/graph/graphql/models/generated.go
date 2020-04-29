@@ -344,6 +344,15 @@ type EditLocationTypeInput struct {
 	Properties   []*PropertyTypeInput `json:"properties"`
 }
 
+type EditPermissionsPolicyInput struct {
+	ID             int                          `json:"id"`
+	Name           *string                      `json:"name"`
+	Description    *string                      `json:"description"`
+	IsGlobal       *bool                        `json:"isGlobal"`
+	InventoryInput *models.InventoryPolicyInput `json:"inventoryInput"`
+	WorkforceInput *models.WorkforcePolicyInput `json:"workforceInput"`
+}
+
 type EditProjectInput struct {
 	ID          int              `json:"id"`
 	Name        string           `json:"name"`
