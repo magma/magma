@@ -1191,15 +1191,14 @@ uint64_t LocalEnforcer::get_monitor_credit(SessionMap &session_map,
   return 0;
 }
 
-ChargingReAuthAnswer::Result
-LocalEnforcer::init_charging_reauth(SessionMap &session_map,
-                                    ChargingReAuthRequest request,
+ReAuthResult LocalEnforcer::init_charging_reauth(SessionMap &session_map,
+                                                 ChargingReAuthRequest request,
                                     SessionUpdate &session_update) {
   auto it = session_map.find(request.sid());
   if (it == session_map.end()) {
     MLOG(MERROR) << "Could not find session for subscriber " << request.sid()
                  << " during reauth";
-    return ChargingReAuthAnswer::SESSION_NOT_FOUND;
+    return ReAuthResult::SESSION_NOT_FOUND;
   }
   SessionStateUpdateCriteria &update_criteria =
       session_update[request.sid()][request.session_id()];
@@ -1215,7 +1214,7 @@ LocalEnforcer::init_charging_reauth(SessionMap &session_map,
     }
     MLOG(MERROR) << "Could not find session for subscriber " << request.sid()
                  << " during reauth";
-    return ChargingReAuthAnswer::SESSION_NOT_FOUND;
+    return ReAuthResult::SESSION_NOT_FOUND;
   }
   MLOG(MDEBUG) << "Initiating reauth of all keys for subscriber "
                << request.sid() << " for session" << request.session_id();
@@ -1227,7 +1226,7 @@ LocalEnforcer::init_charging_reauth(SessionMap &session_map,
   MLOG(MERROR) << "Could not find session for subscriber " << request.sid()
                << " during reauth";
 
-  return ChargingReAuthAnswer::SESSION_NOT_FOUND;
+  return ReAuthResult::SESSION_NOT_FOUND;
 }
 
 void LocalEnforcer::init_policy_reauth(SessionMap &session_map,

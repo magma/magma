@@ -77,13 +77,7 @@ message ChargingReAuthRequest {
 }
 
 message ChargingReAuthAnswer {
-  enum Result {
-    UPDATE_INITIATED = 0;
-    UPDATE_NOT_NEEDED = 1;
-    SESSION_NOT_FOUND = 2;
-    OTHER_FAILURE = 3;
-  }
-  Result result = 1;
+  ReAuthResult result = 1;
 }
 
 enum EventTrigger {
