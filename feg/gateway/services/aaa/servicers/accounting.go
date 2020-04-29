@@ -10,6 +10,7 @@ LICENSE file in the root directory of this source tree.
 package servicers
 
 import (
+	"fmt"
 	"log"
 	"net"
 	"strings"
@@ -245,6 +246,24 @@ func (srv *accountingService) EndTimedOutSession(aaaCtx *protos.Context) error {
 		}
 	}
 	return err
+}
+
+// AddSessions is an "inbound" RPC from session manager to bulk add existing sessions
+func (srv *accountingService) AddSessions(ctx context.Context, sessions *protos.AddSessionsRequest) (*protos.AcctResp, error) {
+	failed := []string{}
+	for _, session := range sessions.GetSessions() {
+		if strings.HasPrefix(session.GetImsi(), imsiPrefix) {
+			session.Imsi = strings.TrimPrefix(session.GetImsi(), imsiPrefix)
+		}
+		_, err := srv.sessions.AddSession(session, srv.sessionTout, srv.timeoutSessionNotifier, true)
+		if err != nil {
+			failed = append(failed, session.GetImsi())
+		}
+	}
+	if len(failed) > 0 {
+		return &protos.AcctResp{}, fmt.Errorf("Unable to add the session for the following IMSIs: %v", failed)
+	}
+	return &protos.AcctResp{}, nil
 }
 
 func (srv *accountingService) timeoutSessionNotifier(s aaa.Session) error {
