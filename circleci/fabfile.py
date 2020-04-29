@@ -246,7 +246,7 @@ def _run_remote_cwf_integ_test(repo: str, magma_root: str):
         # copy to the log directory. This will get stored as an artifact in the
         # circleCI config.
         if result.return_code:
-            services = "sessiond session_proxy pcrf ocs pipelined"
+            services = "sessiond session_proxy pcrf ocs pipelined ingress"
             run(f'fab transfer_service_logs:services="{services}"')
 
             # Copy the log files out from the node
