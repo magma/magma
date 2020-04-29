@@ -292,7 +292,7 @@ void LocalEnforcer::terminate_service(
     // terminate the session.
     evb_->runAfterDelay(
         [this, imsi, session_id] {
-          MLOG(MDEBUG) << "Forced service termination for IMSI " << imsi;
+          MLOG(MDEBUG) << "Forced service termination for " << imsi;
           SessionRead req = {imsi};
           auto session_map = session_store_.read_sessions_for_deletion(req);
           auto session_update =
@@ -308,8 +308,8 @@ void LocalEnforcer::terminate_service(
                            << " with session_id: " << session_id;
             } else {
               MLOG(MERROR)
-                  << "Failed to update SessionStore with ended session " << imsi
-                  << " and session_id: " << session_id;
+                  << "Failed to update SessionStore with ended session "
+                  << imsi << " and session_id: " << session_id;
             }
           } else {
             MLOG(MDEBUG) << "Not forcing termination for session " << imsi
@@ -905,12 +905,12 @@ void LocalEnforcer::complete_termination(
       // after erasing the element
       update_criteria.is_session_ended = true;
       it->second.erase(session_it--);
-      MLOG(MDEBUG) << "Successfully terminated session for IMSI " << imsi
+      MLOG(MDEBUG) << "Successfully terminated session for " << imsi
                    << "session ID " << session_id;
       // No session left for this IMSI
       if (it->second.size() == 0) {
         session_map.erase(imsi);
-        MLOG(MDEBUG) << "All sessions terminated for IMSI " << imsi;
+        MLOG(MDEBUG) << "All sessions terminated for " << imsi;
       }
       break;
     }

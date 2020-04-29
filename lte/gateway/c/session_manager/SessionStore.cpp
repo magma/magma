@@ -68,7 +68,7 @@ bool SessionStore::create_sessions(
 }
 
 bool SessionStore::update_sessions(const SessionUpdate& update_criteria) {
-  MLOG(MDEBUG) << "Running update_sessions";
+  MLOG(MDEBUG) << "Updating session changes in SessionStore (update_sessions)";
   // Read the current state
   auto subscriber_ids = std::set<std::string>{};
   for (const auto& it : update_criteria) {

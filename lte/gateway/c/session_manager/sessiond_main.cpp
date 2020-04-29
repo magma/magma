@@ -181,7 +181,7 @@ int main(int argc, char *argv[])
     // reports usage faster than sessiond can report it. This value should be
     // reasonably big, as the usage will be eventually reported properly.
     // So use the default value if it seems small.
-    if (margin_from_config > DEFAULT_EXTRA_QUOTA_MARGIN) {
+    if (margin_from_config >= DEFAULT_EXTRA_QUOTA_MARGIN) {
       margin = margin_from_config;
     } else {
       MLOG(MWARNING) << "The extra_quota_margin from the config "
