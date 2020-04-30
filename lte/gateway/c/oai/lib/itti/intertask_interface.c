@@ -534,7 +534,7 @@ int itti_init(
     }
 
     itti_desc.threads[thread_id].task_event_fd = eventfd(0, EFD_SEMAPHORE);
-    
+
     if (itti_desc.threads[thread_id].task_event_fd == -1) {
       Fatal("eventfd failed: %s!\n", strerror(errno));
     }

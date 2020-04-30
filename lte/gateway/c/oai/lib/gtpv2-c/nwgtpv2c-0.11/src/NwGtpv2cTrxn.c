@@ -227,7 +227,7 @@ extern                                  "C" {
       pTrxn->pStack = thiz;
       pTrxn->pMsg = NULL;
       pTrxn->maxRetries = 2;
-      pTrxn->t3Timer = 2;
+      pTrxn->t3Timer = 10;
       pTrxn->seqNum = thiz->seqNum;
       pTrxn->pt_trx = false;
       /*

@@ -218,6 +218,7 @@ static int udp_server_create_socket_v4(uint16_t port, struct in_addr *address,
   int sd;
   struct udp_socket_desc_s *socket_desc_p = NULL;
 
+  //OAILOG_INFO();
   /*
    * Create UDP socket
    */
@@ -529,12 +530,13 @@ static void *udp_intertask_interface(void *args_p) {
     }
 
     nb_events = itti_get_events(TASK_UDP, &events);
-
+    //OAILOG_DEBUG ("Number of events %d  \n" , nb_events );
     if ((nb_events > 0) && (events != NULL)) {
       /*
        * Now handle notifications for other sockets
        */
       udp_server_flush_sockets(events, nb_events);
+    
     }
   }
 
