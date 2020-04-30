@@ -10,6 +10,7 @@
 
 import type {ButtonProps} from '../Button';
 import type {IconButtonProps} from '../IconButton';
+import type {OptionProps} from '../Select/SelectMenu';
 import type {PermissionHandlingProps} from '@fbcnms/ui/components/design-system/Form/FormAction';
 import type {ToggleButtonProps} from '../ToggleButton/ToggleButtonGroup';
 
@@ -17,6 +18,7 @@ import * as React from 'react';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import IconButton from '../IconButton';
+import PopoverMenu from '../Select/PopoverMenu';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import ToggleButton from '../ToggleButton/ToggleButtonGroup';
 import classNames from 'classnames';
@@ -83,23 +85,33 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-export type ActionRegularButtonProps = {|
+export type ActionRegularButtonProps = $ReadOnly<{|
   title: React.Node,
   action: () => void,
   className?: ?string,
   ...PermissionHandlingProps,
   ...ButtonProps,
-|};
+|}>;
 
-export type ActionIconButtonProps = {|
+export type ActionIconButtonProps = $ReadOnly<{|
   action: () => void,
   ...PermissionHandlingProps,
   ...IconButtonProps,
-|};
+|}>;
+
+export type ActionOptionsButtonProps = $ReadOnly<{|
+  title: React.Node,
+  options: Array<OptionProps<string>>,
+  optionAction: (option: string) => void,
+  className?: ?string,
+  ...PermissionHandlingProps,
+  ...ButtonProps,
+|}>;
 
 export type ActionButtonProps =
   | ActionRegularButtonProps
-  | ActionIconButtonProps;
+  | ActionIconButtonProps
+  | ActionOptionsButtonProps;
 
 export type ViewHeaderProps = $ReadOnly<{|
   title: React.Node,
@@ -128,18 +140,32 @@ function FormHeaderAction(props: ActionButtonProps) {
     ignorePermissions,
     hideOnEditLock,
     disableOnFromError,
-    action,
+    action = undefined,
     icon = undefined,
+    options = undefined,
+    optionAction = undefined,
     title = undefined,
     variant = undefined,
     disabled,
     tooltip,
-    skin,
+    skin = 'primary',
     className,
   } = props;
   const classes = useStyles();
 
   const buttonNode = () => {
+    if (options != null && optionAction != null && title != null) {
+      return (
+        <PopoverMenu
+          className={classNames(classes.actionButton, className)}
+          skin={skin}
+          menuDockRight={true}
+          options={options}
+          onChange={optionAction}>
+          {title}
+        </PopoverMenu>
+      );
+    }
     if (icon != null) {
       return (
         <IconButton

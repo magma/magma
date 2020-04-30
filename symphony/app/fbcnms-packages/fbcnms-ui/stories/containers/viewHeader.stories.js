@@ -34,19 +34,31 @@ const ViewHeaderRoot = () => {
 
   const actionButtons: Array<ActionButtonProps> = [
     {
-      title: <DeleteIcon color="error" />,
+      icon: DeleteIcon,
       action: () => alert('Doing DELETE'),
-      variant: 'text',
+      skin: 'gray',
     },
     {
-      title: 'Action B',
-      action: () => alert('Doing action B'),
+      title: 'Do action',
+      action: () => alert('Doing action!'),
       variant: 'text',
       skin: 'gray',
     },
     {
-      title: 'Action A',
-      action: () => alert('Doing action A'),
+      title: 'pick option',
+      options: [
+        {
+          key: '1',
+          value: '1',
+          label: 'option A',
+        },
+        {
+          key: '2',
+          value: '2',
+          label: 'option B',
+        },
+      ],
+      optionAction: option => alert(`Doing option #${option}`),
     },
   ];
 
