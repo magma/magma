@@ -43,7 +43,7 @@ func TestViewerHandler(t *testing.T) {
 			prepare: func(req *http.Request) {
 				req.Header.Set(viewer.TenantHeader, "test")
 				req.Header.Set(viewer.UserHeader, "user")
-				req.Header.Set(viewer.UserHeader, viewer.SuperUserRole)
+				req.Header.Set(viewer.RoleHeader, string(user.RoleOWNER))
 			},
 			expect: func(t *testing.T, rec *httptest.ResponseRecorder) {
 				assert.Equal(t, http.StatusOK, rec.Code)
@@ -62,7 +62,7 @@ func TestViewerHandler(t *testing.T) {
 			prepare: func(req *http.Request) {
 				req.Header.Set(viewer.TenantHeader, "test")
 				req.Header.Set(viewer.UserHeader, "new_user")
-				req.Header.Set(viewer.UserHeader, viewer.SuperUserRole)
+				req.Header.Set(viewer.RoleHeader, string(user.RoleOWNER))
 			},
 			expect: func(t *testing.T, rec *httptest.ResponseRecorder) {
 				assert.Equal(t, http.StatusOK, rec.Code)
@@ -73,7 +73,7 @@ func TestViewerHandler(t *testing.T) {
 			prepare: func(req *http.Request) {
 				req.Header.Set(viewer.TenantHeader, "test")
 				req.Header.Set(viewer.UserHeader, "")
-				req.Header.Set(viewer.UserHeader, "")
+				req.Header.Set(viewer.RoleHeader, "")
 			},
 			expect: func(t *testing.T, rec *httptest.ResponseRecorder) {
 				assert.Equal(t, http.StatusServiceUnavailable, rec.Code)
@@ -284,8 +284,8 @@ func TestViewerSpanAttributes(t *testing.T) {
 		te.On("ExportSpan", mock.AnythingOfType("*trace.SpanData")).
 			Run(func(args mock.Arguments) {
 				s := args.Get(0).(*trace.SpanData)
-				assert.Equal(t, "test", s.Attributes["viewer.tenant"])
-				assert.Equal(t, "test", s.Attributes["viewer.user"])
+				assert.Equal(t, viewertest.DefaultTenant, s.Attributes["viewer.tenant"])
+				assert.Equal(t, viewertest.DefaultUser, s.Attributes["viewer.user"])
 			}).
 			Once()
 		defer te.AssertExpectations(t)
@@ -296,16 +296,14 @@ func TestViewerSpanAttributes(t *testing.T) {
 		defer span.End()
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil).WithContext(ctx)
-		req.Header.Set(viewer.TenantHeader, "test")
-		req.Header.Set(viewer.UserHeader, "test")
+		viewertest.SetDefaultViewerHeaders(req)
 		rec := httptest.NewRecorder()
 		h.ServeHTTP(rec, req)
 		assert.Equal(t, http.StatusAccepted, rec.Code)
 	})
 	t.Run("WithoutSpan", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
-		req.Header.Set(viewer.TenantHeader, "test")
-		req.Header.Set(viewer.UserHeader, "test")
+		viewertest.SetDefaultViewerHeaders(req)
 		rec := httptest.NewRecorder()
 		assert.NotPanics(t, func() { h.ServeHTTP(rec, req) })
 		assert.Equal(t, http.StatusAccepted, rec.Code)
@@ -331,7 +329,7 @@ func TestViewerTags(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/", nil)
 	req.Header.Set(viewer.TenantHeader, "test-tenant")
 	req.Header.Set(viewer.UserHeader, "test-user")
-	req.Header.Set(viewer.RoleHeader, "user")
+	req.Header.Set(viewer.RoleHeader, string(user.RoleUSER))
 	rec := httptest.NewRecorder()
 	client := viewertest.NewTestClient(t)
 	viewer.TenancyHandler(
@@ -374,8 +372,7 @@ func TestViewerTenancy(t *testing.T) {
 			viewer.NewFixedTenancy(client),
 		)
 		req := httptest.NewRequest(http.MethodPost, "/", nil)
-		req.Header.Set(viewer.TenantHeader, "test")
-		req.Header.Set(viewer.UserHeader, "test")
+		viewertest.SetDefaultViewerHeaders(req)
 		rec := httptest.NewRecorder()
 		h.ServeHTTP(rec, req)
 		assert.Equal(t, http.StatusAccepted, rec.Code)
@@ -394,8 +391,7 @@ func TestViewerTenancy(t *testing.T) {
 			viewer.NewFixedTenancy(client),
 		)
 		req := httptest.NewRequest(http.MethodPost, "/", nil)
-		req.Header.Set(viewer.TenantHeader, "test")
-		req.Header.Set(viewer.UserHeader, "test")
+		viewertest.SetDefaultViewerHeaders(req)
 		req.Header.Set(viewer.FeaturesHeader, "feature1,feature2")
 		rec := httptest.NewRecorder()
 		h.ServeHTTP(rec, req)

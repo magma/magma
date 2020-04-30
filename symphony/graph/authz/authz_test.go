@@ -10,6 +10,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/facebookincubator/symphony/graph/ent/user"
+
 	"github.com/facebookincubator/symphony/graph/authz"
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/viewer"
@@ -22,7 +24,7 @@ import (
 func TestAuthHandler(t *testing.T) {
 	client := viewertest.NewTestClient(t)
 	ctx := ent.NewContext(context.Background(), client)
-	u := viewer.MustGetOrCreateUser(ctx, viewertest.DefaultUser, viewer.SuperUserRole)
+	u := viewer.MustGetOrCreateUser(ctx, viewertest.DefaultUser, user.RoleOWNER)
 	v := viewer.New(viewertest.DefaultTenant, u)
 	ctx = viewer.NewContext(ctx, v)
 	h := authz.AuthHandler{

@@ -15,6 +15,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/facebookincubator/symphony/graph/ent/user"
+
 	"github.com/facebookincubator/symphony/graph/ent"
 
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
@@ -36,7 +38,7 @@ type woTestType struct {
 
 func prepareWOData(ctx context.Context, t *testing.T, r TestExporterResolver) woTestType {
 	prepareData(ctx, t, r)
-	u2 := viewer.MustGetOrCreateUser(ctx, "tester2@example.com", viewer.SuperUserRole)
+	u2 := viewer.MustGetOrCreateUser(ctx, "tester2@example.com", user.RoleOWNER)
 
 	// Add templates
 	typInput1 := models.AddWorkOrderTypeInput{

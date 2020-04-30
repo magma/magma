@@ -7,6 +7,7 @@ package viewer
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"sort"
 	"strings"
@@ -33,13 +34,6 @@ const (
 	RoleHeader = "x-auth-user-role"
 	// FeaturesHeader is the http feature header.
 	FeaturesHeader = "x-auth-features"
-)
-
-const (
-	// SuperUserRole is the highest possible role for user in system
-	SuperUserRole = "superuser"
-	// UserRole is the lowest possible role for user in system
-	UserRole = "user"
 )
 
 // Attributes recorded on the span of the requests.
@@ -222,9 +216,9 @@ func TenancyHandler(h http.Handler, tenancy Tenancy) http.Handler {
 			return
 		}
 		ctx := ent.NewContext(r.Context(), client)
-		u, err := GetOrCreateUser(ctx, r.Header.Get(UserHeader), r.Header.Get(RoleHeader))
+		u, err := GetOrCreateUser(ctx, r.Header.Get(UserHeader), user.Role(r.Header.Get(RoleHeader)))
 		if err != nil {
-			http.Error(w, "get user ent", http.StatusServiceUnavailable)
+			http.Error(w, fmt.Sprintf("get user ent: %s", err.Error()), http.StatusServiceUnavailable)
 			return
 		}
 		v := New(tenant, u, WithFeatures(strings.Split(r.Header.Get(FeaturesHeader), ",")...))
@@ -237,7 +231,7 @@ func TenancyHandler(h http.Handler, tenancy Tenancy) http.Handler {
 }
 
 // GetOrCreateUser creates or returns existing user with given authID and role.
-func GetOrCreateUser(ctx context.Context, authID, role string) (*ent.User, error) {
+func GetOrCreateUser(ctx context.Context, authID string, role user.Role) (*ent.User, error) {
 	client := ent.FromContext(ctx).User
 	if u, err := client.Query().
 		Where(user.AuthID(authID)).
@@ -247,12 +241,7 @@ func GetOrCreateUser(ctx context.Context, authID, role string) (*ent.User, error
 	u, err := client.Create().
 		SetAuthID(authID).
 		SetEmail(authID).
-		SetRole(func() user.Role {
-			if role == SuperUserRole {
-				return user.RoleOWNER
-			}
-			return user.RoleUSER
-		}()).
+		SetRole(role).
 		Save(ctx)
 	if ent.IsConstraintError(err) {
 		u, err = client.Query().
@@ -263,7 +252,7 @@ func GetOrCreateUser(ctx context.Context, authID, role string) (*ent.User, error
 }
 
 // MustGetOrCreateUser creates or returns existing user ent with given authID and role
-func MustGetOrCreateUser(ctx context.Context, authID, role string) *ent.User {
+func MustGetOrCreateUser(ctx context.Context, authID string, role user.Role) *ent.User {
 	u, err := GetOrCreateUser(ctx, authID, role)
 	if err != nil {
 		panic(err)
