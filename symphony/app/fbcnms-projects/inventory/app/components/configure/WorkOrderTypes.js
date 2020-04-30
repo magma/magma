@@ -113,6 +113,7 @@ class WorkOrderTypes extends React.Component<Props, State> {
                     title: 'Work order template',
                     render: row => (
                       <Button
+                        useEllipsis={true}
                         variant="text"
                         onClick={() => this.showAddEditWorkOrderTypeCard(row)}>
                         {row.name}

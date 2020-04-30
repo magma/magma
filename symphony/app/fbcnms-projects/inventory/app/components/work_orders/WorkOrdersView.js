@@ -49,7 +49,10 @@ const WorkOrdersView = (props: Props) => {
           title: 'Name',
           getSortingValue: row => row.name,
           render: row => (
-            <Button variant="text" onClick={() => onWorkOrderSelected(row.id)}>
+            <Button
+              variant="text"
+              useEllipsis={true}
+              onClick={() => onWorkOrderSelected(row.id)}>
               {row.name}
             </Button>
           ),
