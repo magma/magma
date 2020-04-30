@@ -16,7 +16,7 @@ import type {
   DeleteHyperlinkMutationVariables,
 } from './__generated__/DeleteHyperlinkMutation.graphql';
 import type {MutationCallbacks} from './MutationCallbacks.js';
-import type {StoreUpdater} from '../common/RelayEnvironment';
+import type {SelectorStoreUpdater} from 'relay-runtime';
 
 const mutation = graphql`
   mutation DeleteHyperlinkMutation($id: ID!) {
@@ -29,7 +29,7 @@ const mutation = graphql`
 export default (
   variables: DeleteHyperlinkMutationVariables,
   callbacks?: MutationCallbacks<DeleteHyperlinkMutationResponse>,
-  updater?: StoreUpdater,
+  updater?: SelectorStoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
   commitMutation<DeleteHyperlinkMutation>(RelayEnvironment, {

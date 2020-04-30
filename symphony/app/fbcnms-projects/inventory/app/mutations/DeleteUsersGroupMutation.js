@@ -14,7 +14,7 @@ import type {
   DeleteUsersGroupMutationVariables,
 } from './__generated__/DeleteUsersGroupMutation.graphql';
 import type {MutationCallbacks} from './MutationCallbacks.js';
-import type {StoreUpdater} from '../common/RelayEnvironment';
+import type {SelectorStoreUpdater} from 'relay-runtime';
 
 import RelayEnvironemnt from '../common/RelayEnvironment.js';
 import {commitMutation, graphql} from 'react-relay';
@@ -28,7 +28,7 @@ const mutation = graphql`
 export default (
   variables: DeleteUsersGroupMutationVariables,
   callbacks?: MutationCallbacks<DeleteUsersGroupMutationResponse>,
-  updater?: StoreUpdater,
+  updater?: SelectorStoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
   commitMutation<DeleteUsersGroupMutation>(RelayEnvironemnt, {

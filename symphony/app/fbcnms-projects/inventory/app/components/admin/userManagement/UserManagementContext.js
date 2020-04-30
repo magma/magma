@@ -21,7 +21,7 @@ import type {
   User,
   UserPermissionsGroup,
 } from './utils/UserManagementUtils';
-import type {StoreUpdater} from '../../../common/RelayEnvironment';
+import type {SelectorStoreUpdater} from 'relay-runtime';
 import type {UpdateUsersGroupMembersMutationResponse} from '../../../mutations/__generated__/UpdateUsersGroupMembersMutation.graphql';
 import type {
   UserManagementContextQuery,
@@ -152,7 +152,7 @@ const changeCurrentUserPassword = (
   return axios.post(`/user/change_password`, payload).then(() => undefined);
 };
 
-const editUser = (newUserValue: User, updater?: StoreUpdater) => {
+const editUser = (newUserValue: User, updater?: SelectorStoreUpdater) => {
   return new Promise<User>((resolve, reject) => {
     const callbacks: MutationCallbacks<EditUserMutationResponse> = {
       onCompleted: (response, errors) => {
@@ -340,7 +340,10 @@ type UserManagementContextValue = {
   users: Array<User>,
   usersMap: UsersMap,
   addUser: (user: User, password: string) => Promise<User>,
-  editUser: (newUserValue: User, updater?: StoreUpdater) => Promise<User>,
+  editUser: (
+    newUserValue: User,
+    updater?: SelectorStoreUpdater,
+  ) => Promise<User>,
   changeUserPassword: (user: User, password: string) => Promise<User>,
   changeCurrentUserPassword: (
     currentPassword: string,

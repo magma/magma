@@ -16,7 +16,7 @@ import type {
   AddWorkOrderMutationVariables,
 } from './__generated__/AddWorkOrderMutation.graphql';
 import type {MutationCallbacks} from './MutationCallbacks.js';
-import type {StoreUpdater} from '../common/RelayEnvironment';
+import type {SelectorStoreUpdater} from 'relay-runtime';
 
 const mutation = graphql`
   mutation AddWorkOrderMutation($input: AddWorkOrderInput!) {
@@ -29,7 +29,7 @@ const mutation = graphql`
 export default (
   variables: AddWorkOrderMutationVariables,
   callbacks?: MutationCallbacks<AddWorkOrderMutationResponse>,
-  updater?: StoreUpdater,
+  updater?: SelectorStoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
   commitMutation<AddWorkOrderMutation>(RelayEnvironment, {
