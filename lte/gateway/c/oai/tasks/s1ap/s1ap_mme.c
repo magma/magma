@@ -68,7 +68,7 @@
 
 #if S1AP_DEBUG_LIST
 #define eNB_LIST_OUT(x, args...)                                               \
-  OAILOG_DEBUG(LOG_S1AP, "[eNB]%*s" x "\n", 4 * indent, "", ##args)
+  (LOG_S1AP, "[eNB]%*s" x "\n", 4 * indent, "", ##args)
 #define UE_LIST_OUT(x, args...)                                                \
   OAILOG_DEBUG(LOG_S1AP, "[UE] %*s" x "\n", 4 * indent, "", ##args)
 #else

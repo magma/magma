@@ -151,7 +151,7 @@ int mme_app_send_s11_release_access_bearers_req(
   release_access_bearers_request_p->teid = pdn_connection->s_gw_teid_s11_s4;
   release_access_bearers_request_p->edns_peer_ip.addr_v4.sin_addr =
     pdn_connection->s_gw_address_s11_s4.address.ipv4_address;
-
+  release_access_bearers_request_p->edns_peer_ip.addr_v4.sin_family = AF_INET;
   release_access_bearers_request_p->originating_node = NODE_TYPE_MME;
 
   message_p->ittiMsgHeader.imsi = ue_mm_context->emm_context._imsi64;

@@ -206,7 +206,7 @@ void *itti_malloc(
   task_id_t destination_task_id,
   ssize_t size);
 
-void itti_free(task_id_t task_id, void *ptr);
+int itti_free(task_id_t task_id, void *ptr);
 
 #endif /* INTERTASK_INTERFACE_H_ */
 /* @} */

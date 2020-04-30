@@ -215,16 +215,17 @@ void* itti_malloc(
   return ptr;
 }
 
-void itti_free(task_id_t task_id, void* ptr)
+int itti_free(task_id_t task_id, void* ptr)
 {
   int rc = EXIT_SUCCESS;
 
-  if (ptr == NULL) return;
+  //if (ptr == NULL) return;
 
   rc = memory_pools_free(itti_desc.memory_pools_handle, ptr, task_id);
 
   AssertFatal(
     rc == EXIT_SUCCESS, "Failed to free memory at %p (%d)\n", ptr, task_id);
+return (rc);
 }
 
 static inline message_number_t itti_increment_message_number(void)
@@ -583,12 +584,109 @@ int itti_get_events(task_id_t task_id, struct epoll_event **events) {
   return itti_desc.threads[thread_id].epoll_nb_events;
 }
 
+static inline void itti_receive_msg_internal_event_fd(
+    task_id_t task_id, uint8_t polling, MessageDef **received_msg) {
+  thread_id_t thread_id;
+  int epoll_ret = 0;
+  int epoll_timeout = 0;
+  int i;
+
+  AssertFatal(task_id < itti_desc.task_max,
+              "Task id (%d) is out of range (%d)!\n", task_id,
+              itti_desc.task_max);
+  AssertFatal(received_msg != NULL, "Received message is NULL!\n");
+  thread_id = TASK_GET_THREAD_ID(task_id);
+  *received_msg = NULL;
+
+  if (polling) {
+    /*
+     * In polling mode we set the timeout to 0 causing epoll_wait to return
+     * * * immediately.
+     */
+    epoll_timeout = 0;
+  } else {
+    /*
+     * timeout = -1 causes the epoll_wait to wait indefinitely.
+     */
+    epoll_timeout = -1;
+  }
+
+  do {
+    epoll_ret =
+        epoll_wait(itti_desc.threads[thread_id].epoll_fd,
+                   itti_desc.threads[thread_id].events,
+                   itti_desc.threads[thread_id].nb_events, epoll_timeout);
+  } while (epoll_ret < 0 && errno == EINTR);
+
+  if (epoll_ret < 0) {
+    AssertFatal(0, "epoll_wait failed for task %s: %s!\n",
+                itti_get_task_name(task_id), strerror(errno));
+  }
+
+  if (epoll_ret == 0 && polling) {
+    /*
+     * No data to read -> return
+     */
+    return;
+  }
+
+  itti_desc.threads[thread_id].epoll_nb_events = epoll_ret;
+
+  for (i = 0; i < epoll_ret; i++) {
+    /*
+     * Check if there is an event for ITTI for the event fd
+     */
+    if ((itti_desc.threads[thread_id].events[i].events & EPOLLIN) &&
+        (itti_desc.threads[thread_id].events[i].data.fd ==
+         itti_desc.threads[thread_id].task_event_fd)) {
+      struct message_list_s *message = NULL;
+      eventfd_t sem_counter;
+      ssize_t read_ret;
+      int result = EXIT_SUCCESS;
+
+      /*
+       * Read will always return 1
+       */
+      read_ret = read(itti_desc.threads[thread_id].task_event_fd, &sem_counter,
+                      sizeof(sem_counter));
+      AssertFatal(read_ret == sizeof(sem_counter),
+                  "Read from task message FD (%d) failed (%d/%d)!\n", thread_id,
+                  (int)read_ret, (int)sizeof(sem_counter));
+
+      if (lfds710_queue_bmm_dequeue(&itti_desc.tasks[task_id].message_queue,
+                                    NULL, (void **)&message) == 0) {
+        /*
+         * No element in list -> this should not happen
+         */
+        AssertFatal(0,
+                    "No message in queue for task %d while there are %d events "
+                    "and some for the messages queue!\n",
+                    task_id, epoll_ret);
+        return;
+      }
+
+      AssertFatal(message != NULL, "Message from message queue is NULL!\n");
+      *received_msg = message->msg;
+      result = itti_free(ITTI_MSG_ORIGIN_ID(message->msg), message);
+      AssertFatal(result == EXIT_SUCCESS, "Failed to free memory (%d)!\n",
+                  result);
+      /*
+       * Mark that the event has been processed
+       */
+      itti_desc.threads[thread_id].events[i].events &= ~EPOLLIN;
+      return;
+    }
+  }
+}
+
+
 void itti_receive_msg(task_id_t task_id, MessageDef** received_msg)
 {
-  thread_id_t thread_id;
-  struct message_list_s* message = NULL;
-  eventfd_t sem_counter;
-  ssize_t n_read;
+  //thread_id_t thread_id;
+  //struct message_list_s* message = NULL;
+  //eventfd_t sem_counter;
+  //ssize_t n_read;
+
 
   AssertFatal(
     task_id < itti_desc.task_max,
@@ -597,9 +695,12 @@ void itti_receive_msg(task_id_t task_id, MessageDef** received_msg)
     itti_desc.task_max);
   AssertFatal(received_msg != NULL, "Received message is NULL!\n");
 
-  thread_id = TASK_GET_THREAD_ID(task_id);
+  //thread_id = TASK_GET_THREAD_ID(task_id);
   *received_msg = NULL;
 
+itti_receive_msg_internal_event_fd(task_id, 0, received_msg);
+
+/*
   n_read = read(
     itti_desc.threads[thread_id].task_event_fd,
     &sem_counter,
@@ -610,7 +711,7 @@ void itti_receive_msg(task_id_t task_id, MessageDef** received_msg)
     thread_id,
     n_read,
     sizeof(sem_counter));
-
+//
   if (
     lfds710_queue_bmm_dequeue(
       &itti_desc.tasks[task_id].message_queue, NULL, (void**) &message) == 0) {
@@ -621,12 +722,12 @@ void itti_receive_msg(task_id_t task_id, MessageDef** received_msg)
       task_id,
       sem_counter);
   }
+*/
+  //AssertFatal(message != NULL, "Message from message queue is NULL!\n");
 
-  AssertFatal(message != NULL, "Message from message queue is NULL!\n");
+  //*received_msg = message->msg;
 
-  *received_msg = message->msg;
-
-  itti_free(ITTI_MSG_ORIGIN_ID(message->msg), message);
+  //itti_free(ITTI_MSG_ORIGIN_ID(message->msg), message);
 }
 
 int itti_create_task(

@@ -74,11 +74,23 @@ void mme_app_send_delete_session_request(
       ebi);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
+
+   ue_context_p->pdn_contexts[cid]->s_gw_address_s11_s4.address.ipv4_address.s_addr = 
+     mme_config.e_dns_emulation.sgw_ip_addr[0].s_addr;
   S11_DELETE_SESSION_REQUEST(message_p).local_teid = ue_context_p->mme_teid_s11;
   S11_DELETE_SESSION_REQUEST(message_p).teid =
     ue_context_p->pdn_contexts[cid]->s_gw_teid_s11_s4;
   S11_DELETE_SESSION_REQUEST(message_p).lbi = ebi; //default bearer
+  /*
+  memcpy((void *)&S11_DELETE_SESSION_REQUEST(message_p).edns_peer_ip,
+         saegw_s11_addr,
+         saegw_s11_addr->sa_family == AF_INET ? sizeof(struct sockaddr_in)
+                                              : sizeof(struct sockaddr_in6));
+  */
 
+  S11_DELETE_SESSION_REQUEST(message_p).edns_peer_ip.addr_v4.sin_addr = 
+  ue_context_p->pdn_contexts[cid]->s_gw_address_s11_s4.address.ipv4_address;  
+  S11_DELETE_SESSION_REQUEST(message_p).edns_peer_ip.addr_v4.sin_family = AF_INET;
   /* clang-format off */
   OAI_GCC_DIAG_OFF(pointer-to-int-cast);
   /* clang-format on */
@@ -97,6 +109,8 @@ void mme_app_send_delete_session_request(
   /*
    * S11 stack specific parameter. Not used in standalone epc mode
    */
+  ue_context_p->pdn_contexts[cid]->s_gw_address_s11_s4.address.ipv4_address.s_addr = 
+     mme_config.e_dns_emulation.sgw_ip_addr[0].s_addr;
   S11_DELETE_SESSION_REQUEST(message_p).trxn = NULL;
   mme_config_read_lock(&mme_config);
   S11_DELETE_SESSION_REQUEST(message_p).peer_ip =

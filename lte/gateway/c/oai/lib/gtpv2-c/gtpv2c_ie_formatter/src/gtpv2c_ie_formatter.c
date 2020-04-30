@@ -140,7 +140,7 @@ gtpv2c_imsi_ie_set (
 //        imsi_nbo.u.value,
 //        8);
 
-  rc = nwGtpv2cMsgAddIe(*msg, NW_GTPV2C_IE_IMSI, imsi_nbo.length, 0,(uint8_t *)imsi_nbo.u.value);
+  rc = nwGtpv2cMsgAddIe(*msg, NW_GTPV2C_IE_IMSI, (imsi_nbo.length +1)/2, 0,(uint8_t *)imsi_nbo.u.value);
   DevAssert(NW_OK == rc);
   return RETURNok;
 }

@@ -147,13 +147,14 @@ void imsi_magma_to_oai_imsi(const Imsi_t  *Imsi, imsi_t *imsi)
 //for (int i = 0; i < length; i++) {
 
 //int ascii_to_hex(uint8_t *dst, const char *h);
-
+memset (imsi->u.value, 0xff, IMSI_BCD8_SIZE);
 imsi->u.num.digit1 = Imsi->digit[0] - 0x30;
 imsi->u.num.digit2 = Imsi->digit[1] - 0x30;
 imsi->u.num.digit3 = Imsi->digit[2] - 0x30;
 imsi->u.num.digit4 = Imsi->digit[3] - 0x30;
 imsi->u.num.digit5 = Imsi->digit[4] - 0x30;
 imsi->u.num.digit6 = Imsi->digit[5] - 0x30;
+//if (imsi->u.num.parity = ODD_PARITY){} 0xf;
 if (Imsi->length >= 7){
 imsi->u.num.digit7 = Imsi->digit[6] - 0x30;
 if (Imsi->length >= 8){
@@ -172,12 +173,13 @@ if (Imsi->length >= 14){
 imsi->u.num.digit14 = Imsi->digit[13] - 0x30;
 if (Imsi->length >= 15){
 imsi->u.num.digit15 = Imsi->digit[14] - 0x30;
+
                    }}
               }}
           }}
       }} 
   }
-imsi->length = Imsi->length;
+  imsi->length = Imsi->length;
   }     
 
 
