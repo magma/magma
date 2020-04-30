@@ -49,6 +49,7 @@ import {getGraphError} from '../../../common/EntUtils';
 import {
   groupResponse2Group,
   groupsResponse2Groups,
+  permissionsPoliciesResponse2PermissionsPolicies,
   userResponse2User,
   users2UsersMap,
   usersResponse2Users,
@@ -379,7 +380,7 @@ type Props = {
   children: React.Node,
 };
 
-const usersQuery = graphql`
+const dataQuery = graphql`
   query UserManagementContextQuery {
     users(first: 500) @connection(key: "UserManagementContext_users") {
       edges {
@@ -418,6 +419,33 @@ const usersQuery = graphql`
         }
       }
     }
+    permissionsPolicies(first: 50) {
+      edges {
+        node {
+          id
+          name
+          description
+          isGlobal
+          policy {
+            ... on InventoryPolicy {
+              __typename
+              read {
+                isAllowed
+              }
+            }
+            ... on WorkforcePolicy {
+              __typename
+              read {
+                isAllowed
+              }
+            }
+          }
+          groups {
+            id
+          }
+        }
+      }
+    }
   }
 `;
 
@@ -437,15 +465,18 @@ function ProviderWrap(props: Props) {
     updateGroupMembers: updateGroupMembers(usersMap),
   });
 
-  const data = useLazyLoadQuery<UserManagementContextQuery>(usersQuery);
+  const data = useLazyLoadQuery<UserManagementContextQuery>(dataQuery);
 
   const users = usersResponse2Users(data.users);
   const usersMap = users2UsersMap(users);
   const groups = groupsResponse2Groups(data.usersGroups, usersMap);
+  const policies = permissionsPoliciesResponse2PermissionsPolicies(
+    data.permissionsPolicies,
+  );
 
   return (
     <UserManagementContext.Provider
-      value={providerValue(users, groups, [], usersMap)}>
+      value={providerValue(users, groups, policies, usersMap)}>
       {props.children}
     </UserManagementContext.Provider>
   );

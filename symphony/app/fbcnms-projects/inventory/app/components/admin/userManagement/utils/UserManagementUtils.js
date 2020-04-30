@@ -151,6 +151,21 @@ type GroupNodeReponseFieldsPart = $ElementType<GroupsEdgesResponsePart, number>;
 type GroupReponseFieldsPart = $NonMaybeType<
   $ElementType<$NonMaybeType<GroupNodeReponseFieldsPart>, 'node'>,
 >;
+type PermissionsPoliciesReponsePart = $ElementType<
+  UserManagementContextQueryResponse,
+  'permissionsPolicies',
+>;
+type PoliciesEdgesResponsePart = $ElementType<
+  $NonMaybeType<PermissionsPoliciesReponsePart>,
+  'edges',
+>;
+type PolicyNodeReponseFieldsPart = $ElementType<
+  PoliciesEdgesResponsePart,
+  number,
+>;
+type PermissionsPoliciesReponseFieldsPart = $NonMaybeType<
+  $ElementType<$NonMaybeType<PolicyNodeReponseFieldsPart>, 'node'>,
+>;
 
 export const userResponse2User: UsersReponseFieldsPart => User = (
   userNode: UsersReponseFieldsPart,
@@ -211,7 +226,31 @@ export type PermissionsPolicy = $ReadOnly<{|
   id: string,
   name: string,
   description: string,
-  type: 'inventory' | 'workforce',
+  type: string,
   isGlobal: boolean,
   groups: Array<UserPermissionsGroup>,
 |}>;
+
+// line was too long. So made it shorter...
+type PPR2PP = PermissionsPoliciesReponseFieldsPart => PermissionsPolicy;
+export const permissionsPolicyResponse2PermissionsPolicy: PPR2PP = (
+  policyNode: PermissionsPoliciesReponseFieldsPart,
+) => ({
+  id: policyNode.id,
+  name: policyNode.name,
+  description: policyNode.description || '',
+  type: policyNode.policy.__typename,
+  isGlobal: policyNode.isGlobal,
+  groups: [], // policyNode.groups,
+});
+
+export const permissionsPoliciesResponse2PermissionsPolicies = (
+  policiesResponse: PermissionsPoliciesReponsePart,
+) =>
+  policiesResponse?.edges == null
+    ? []
+    : policiesResponse?.edges
+        .filter(Boolean)
+        .map(ur => ur.node)
+        .filter(Boolean)
+        .map<PermissionsPolicy>(permissionsPolicyResponse2PermissionsPolicy);
