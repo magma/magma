@@ -18,16 +18,16 @@ func TestUpdateUserInViewer(t *testing.T) {
 	ctx := viewertest.NewContext(context.Background(), c)
 	ctx2 := viewertest.NewContext(context.Background(), c, viewertest.WithUser("tester2@example.com"))
 
-	u := viewer.FromContext(ctx).User()
+	u := viewer.FromContext(ctx).(*viewer.UserViewer).User()
 	require.Equal(t, viewertest.DefaultUser, u.Email)
-	u2 := viewer.FromContext(ctx2).User()
+	u2 := viewer.FromContext(ctx2).(*viewer.UserViewer).User()
 	require.Equal(t, "tester2@example.com", u2.Email)
 
 	err := c.User.UpdateOneID(u.ID).SetEmail("new_tester@example.com").Exec(ctx)
 	require.NoError(t, err)
 
-	u = viewer.FromContext(ctx).User()
+	u = viewer.FromContext(ctx).(*viewer.UserViewer).User()
 	require.Equal(t, "new_tester@example.com", u.Email)
-	u2 = viewer.FromContext(ctx2).User()
+	u2 = viewer.FromContext(ctx2).(*viewer.UserViewer).User()
 	require.Equal(t, "tester2@example.com", u2.Email)
 }

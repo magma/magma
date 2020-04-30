@@ -81,7 +81,7 @@ func main() {
 				zap.Error(err),
 			)
 		}
-		v := viewer.New(tenant, u)
+		v := viewer.NewUser(tenant, u)
 		ctx = log.NewFieldsContext(ctx, zap.Object("viewer", v))
 		ctx = viewer.NewContext(ctx, v)
 

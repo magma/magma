@@ -83,7 +83,7 @@ func prepareWOData(ctx context.Context, t *testing.T, r TestExporterResolver) wo
 		Name: "projTemplate",
 	}
 	projTyp, _ := r.Mutation().CreateProjectType(ctx, projTypeInput)
-	u := viewer.FromContext(ctx).User()
+	u := viewer.FromContext(ctx).(*viewer.UserViewer).User()
 	// Add instances
 	projInput := models.AddProjectInput{
 		Name:      "Project 1",

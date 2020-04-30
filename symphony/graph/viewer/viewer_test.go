@@ -91,11 +91,9 @@ func TestViewerHandler(t *testing.T) {
 			ctx := r.Context()
 			v := viewer.FromContext(ctx)
 			require.NotNil(t, v)
-			u := v.User()
-			require.NotNil(t, u)
-			require.Equal(t, r.Header.Get(viewer.UserHeader), u.AuthID)
+			require.Equal(t, r.Header.Get(viewer.UserHeader), v.Name())
 			assert.NotNil(t, log.FieldsFromContext(ctx))
-			_, _ = io.WriteString(w, v.Tenant)
+			_, _ = io.WriteString(w, v.Tenant())
 		}),
 		viewer.NewFixedTenancy(client),
 	)
@@ -229,7 +227,7 @@ func TestDeactivatedUser(t *testing.T) {
 		SetStatus(user.StatusDEACTIVATED).
 		Save(ctx)
 	require.NoError(t, err)
-	v := viewer.New("test", deactivatedUser)
+	v := viewer.NewUser("test", deactivatedUser)
 	ctx = viewer.NewContext(ctx, v)
 	req := httptest.NewRequest(http.MethodPost, "/", nil)
 	req = req.WithContext(ctx)
@@ -249,14 +247,14 @@ func TestViewerMarshalLog(t *testing.T) {
 	c := viewertest.NewTestClient(t)
 	u, err := c.User.Create().SetAuthID("tester").Save(context.Background())
 	require.NoError(t, err)
-	v := viewer.New("test", u)
+	v := viewer.NewUser("test", u)
 	logger.Info("viewer log test", zap.Object("viewer", v))
 
 	logs := o.TakeAll()
 	require.Len(t, logs, 1)
 	field, ok := logs[0].ContextMap()["viewer"].(map[string]interface{})
 	require.True(t, ok)
-	assert.Equal(t, v.Tenant, field["tenant"])
+	assert.Equal(t, v.Tenant(), field["tenant"])
 	assert.Equal(t, u.AuthID, field["user"])
 }
 
@@ -382,10 +380,10 @@ func TestViewerTenancy(t *testing.T) {
 		h := viewer.TenancyHandler(
 			http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				v := viewer.FromContext(r.Context())
-				assert.True(t, v.Features.Enabled("feature1"))
-				assert.True(t, v.Features.Enabled("feature2"))
-				assert.False(t, v.Features.Enabled("feature3"))
-				assert.Equal(t, "feature1,feature2", v.Features.String())
+				assert.True(t, v.Features().Enabled("feature1"))
+				assert.True(t, v.Features().Enabled("feature2"))
+				assert.False(t, v.Features().Enabled("feature3"))
+				assert.Equal(t, "feature1,feature2", v.Features().String())
 				w.WriteHeader(http.StatusAccepted)
 			}),
 			viewer.NewFixedTenancy(client),

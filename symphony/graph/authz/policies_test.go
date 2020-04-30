@@ -42,7 +42,7 @@ type testData struct {
 
 func prepareData(ctx context.Context) (data testData) {
 	c := ent.FromContext(ctx)
-	v := viewer.FromContext(ctx)
+	v := viewer.FromContext(ctx).(*viewer.UserViewer)
 	data.locationPolicyInput = &models.InventoryPolicyInput{
 		Location: &models.BasicCUDInput{
 			Create: NewBasicPermissionRuleInput(true),

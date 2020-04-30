@@ -1841,7 +1841,7 @@ func TestTechnicianUploadDataToWorkOrder(t *testing.T) {
 	c := newGraphClient(t, r)
 
 	wo := createWorkOrder(ctx, t, *r, "Foo")
-	u := viewer.FromContext(ctx).User()
+	u := viewer.FromContext(ctx).(*viewer.UserViewer).User()
 	mimeType := "image/jpeg"
 	sizeInBytes := 120
 	wo, err := mr.EditWorkOrder(ctx, models.EditWorkOrderInput{

@@ -28,7 +28,7 @@ import (
 
 type queryResolver struct{ resolver }
 
-func (queryResolver) Me(ctx context.Context) (*viewer.Viewer, error) {
+func (queryResolver) Me(ctx context.Context) (viewer.Viewer, error) {
 	return viewer.FromContext(ctx), nil
 }
 

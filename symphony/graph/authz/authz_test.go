@@ -25,7 +25,7 @@ func TestAuthHandler(t *testing.T) {
 	client := viewertest.NewTestClient(t)
 	ctx := ent.NewContext(context.Background(), client)
 	u := viewer.MustGetOrCreateUser(ctx, viewertest.DefaultUser, user.RoleOWNER)
-	v := viewer.New(viewertest.DefaultTenant, u)
+	v := viewer.NewUser(viewertest.DefaultTenant, u)
 	ctx = viewer.NewContext(ctx, v)
 	h := authz.AuthHandler{
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

@@ -81,7 +81,7 @@ func NewContext(parent context.Context, c *ent.Client, opts ...Option) context.C
 	}
 	ctx := ent.NewContext(parent, c)
 	u := viewer.MustGetOrCreateUser(ctx, o.user, o.role)
-	v := viewer.New(o.tenant, u, viewer.WithFeatures(o.features...))
+	v := viewer.NewUser(o.tenant, u, viewer.WithFeatures(o.features...))
 	ctx = viewer.NewContext(ctx, v)
 	return authz.NewContext(ctx, o.permissions)
 }
