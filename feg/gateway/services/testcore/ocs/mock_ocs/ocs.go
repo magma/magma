@@ -48,12 +48,14 @@ type SubscriberAccount struct {
 }
 
 type OCSConfig struct {
-	MaxUsageOctets *protos.Octets
-	MaxUsageTime   uint32
-	ValidityTime   uint32
-	ServerConfig   *diameter.DiameterServerConfig
-	GyInitMethod   gy.InitMethod
-	UseMockDriver  bool
+	MaxUsageOctets  *protos.Octets
+	MaxUsageTime    uint32
+	ValidityTime    uint32
+	ServerConfig    *diameter.DiameterServerConfig
+	GyInitMethod    gy.InitMethod
+	UseMockDriver   bool
+	RedirectAddress string
+	FinalUnitAction protos.FinalUnitAction
 }
 
 // OCSDiamServer wraps an OCS storing subscriber accounts and their credit
@@ -168,6 +170,8 @@ func (srv *OCSDiamServer) SetOCSSettings(
 	config.MaxUsageTime = ocsConfig.MaxUsageTime
 	config.ValidityTime = ocsConfig.ValidityTime
 	config.UseMockDriver = ocsConfig.UseMockDriver
+	config.RedirectAddress = ocsConfig.RedirectAddress
+	config.FinalUnitAction = ocsConfig.FinalUnitAction
 	return &orcprotos.Void{}, nil
 }
 

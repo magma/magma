@@ -11,6 +11,7 @@ package integration
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/feg/cloud/go/protos"
@@ -150,10 +151,13 @@ func TestGyCreditExhaustionWithCRRU(t *testing.T) {
 	expectations = []*protos.GyCreditControlExpectation{terminateExpectation}
 	assert.NoError(t, setOCSExpectations(expectations, nil))
 
-	// we need to generate over 100% of the quota to trigger a session termination
+	// We need to generate over 100% of the quota to trigger a session termination
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
 	tr.WaitForEnforcementStatsToSync()
+
+	// Wait for flow deletion due to quota exhaustion
+	time.Sleep(3)
 
 	// Check that UE mac flow is removed
 	recordsBySubID, err = tr.GetPolicyUsage()
@@ -161,7 +165,7 @@ func TestGyCreditExhaustionWithCRRU(t *testing.T) {
 	record = recordsBySubID["IMSI"+ue.GetImsi()]["static-pass-all-ocs2"]
 	assert.Nil(t, record, fmt.Sprintf("Policy usage record for imsi: %v was not removed", ue.GetImsi()))
 
-	// trigger disconnection
+	// Trigger disconnection
 	tr.DisconnectAndAssertSuccess(ue.GetImsi())
 	tr.WaitForEnforcementStatsToSync()
 
