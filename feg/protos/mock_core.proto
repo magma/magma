@@ -110,6 +110,8 @@ message OCSConfig {
     uint32 max_usage_time = 2;
     uint32 validity_time = 3;
     bool use_mock_driver = 4;
+    string redirect_address = 5;
+    FinalUnitAction final_unit_action = 6;
 }
 
 message CreditInfo {
