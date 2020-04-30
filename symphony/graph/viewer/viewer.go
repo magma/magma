@@ -34,6 +34,8 @@ const (
 	RoleHeader = "x-auth-user-role"
 	// FeaturesHeader is the http feature header.
 	FeaturesHeader = "x-auth-features"
+	// UserHeader is the http user header.
+	AutomationHeader = "x-auth-automation-name"
 )
 
 // Attributes recorded on the span of the requests.
@@ -56,12 +58,17 @@ var (
 type FeatureSet map[string]struct{}
 
 // Option enables viewer customization.
-type Option func(*UserViewer)
+type Option func(Viewer)
 
 // WithFeatures overrides default feature set.
 func WithFeatures(features ...string) Option {
-	return func(v *UserViewer) {
-		v.features = NewFeatureSet(features...)
+	return func(v Viewer) {
+		switch x := v.(type) {
+		case *UserViewer:
+			x.features = NewFeatureSet(features...)
+		case *AutomationViewer:
+			x.features = NewFeatureSet(features...)
+		}
 	}
 }
 
@@ -86,6 +93,8 @@ type Viewer interface {
 	Features() FeatureSet
 	Name() string
 	Role() user.Role
+	// MarshalLogObject implements zapcore.ObjectMarshaler interface.
+	MarshalLogObject(enc zapcore.ObjectEncoder) error
 }
 
 // UserViewer is a viewer that holds a user ent.
@@ -102,6 +111,23 @@ func (v *UserViewer) Name() string {
 // Name implements Viewer.Name by getting user's Role.
 func (v *UserViewer) Role() user.Role {
 	return v.User().Role
+}
+
+// AutomationViewer is a viewer that holds information for the automation process.
+type AutomationViewer struct {
+	viewer
+	name string
+	role user.Role
+}
+
+// Name implements Viewer.Name by returning stored name.
+func (v *AutomationViewer) Name() string {
+	return v.name
+}
+
+// Role implements Viewer.Role by returning stored role.
+func (v *AutomationViewer) Role() user.Role {
+	return v.role
 }
 
 type UserHandler struct {
@@ -130,6 +156,20 @@ func NewUser(tenant string, user *ent.User, options ...Option) *UserViewer {
 	return v
 }
 
+// NewAutomation initializes and return AutomationViewer.
+func NewAutomation(tenant string, name string, role user.Role, options ...Option) *AutomationViewer {
+	v := &AutomationViewer{
+		viewer: viewer{
+			tenant: tenant,
+		},
+		name: name,
+		role: role}
+	for _, option := range options {
+		option(v)
+	}
+	return v
+}
+
 // String returns the textual representation of a feature set.
 func (f FeatureSet) String() string {
 	features := make([]string, 0, len(f))
@@ -146,8 +186,14 @@ func (f FeatureSet) Enabled(feature string) bool {
 	return ok
 }
 
-// MarshalLogObject implements zapcore.ObjectMarshaler interface.
 func (v *UserViewer) MarshalLogObject(enc zapcore.ObjectEncoder) error {
+	enc.AddString("tenant", v.Tenant())
+	enc.AddString("user", v.Name())
+	enc.AddString("role", v.Role().String())
+	return nil
+}
+
+func (v *AutomationViewer) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 	enc.AddString("tenant", v.Tenant())
 	enc.AddString("user", v.Name())
 	enc.AddString("role", v.Role().String())
@@ -251,12 +297,23 @@ func TenancyHandler(h http.Handler, tenancy Tenancy) http.Handler {
 			return
 		}
 		ctx := ent.NewContext(r.Context(), client)
-		u, err := GetOrCreateUser(ctx, r.Header.Get(UserHeader), user.Role(r.Header.Get(RoleHeader)))
-		if err != nil {
-			http.Error(w, fmt.Sprintf("get user ent: %s", err.Error()), http.StatusServiceUnavailable)
+		var v Viewer
+		role := user.Role(r.Header.Get(RoleHeader))
+		features := strings.Split(r.Header.Get(FeaturesHeader), ",")
+		switch {
+		case r.Header.Get(UserHeader) != "":
+			u, err := GetOrCreateUser(ctx, r.Header.Get(UserHeader), role)
+			if err != nil {
+				http.Error(w, fmt.Sprintf("get user ent: %s", err.Error()), http.StatusServiceUnavailable)
+				return
+			}
+			v = NewUser(tenant, u, WithFeatures(features...))
+		case r.Header.Get(AutomationHeader) != "":
+			v = NewAutomation(tenant, r.Header.Get(AutomationHeader), role, WithFeatures(features...))
+		default:
+			http.Error(w, "no viewer identifier found", http.StatusServiceUnavailable)
 			return
 		}
-		v := NewUser(tenant, u, WithFeatures(strings.Split(r.Header.Get(FeaturesHeader), ",")...))
 		ctx = log.NewFieldsContext(ctx, zap.Object("viewer", v))
 		trace.FromContext(ctx).AddAttributes(traceAttrs(v)...)
 		ctx, _ = tag.New(ctx, tags(r, v)...)

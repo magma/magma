@@ -8,6 +8,7 @@ import (
 	"context"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/authz"
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/event"
@@ -16,6 +17,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/pkg/log"
 	"github.com/facebookincubator/symphony/pkg/mysql"
+
 	"go.uber.org/zap"
 	"gopkg.in/alecthomas/kingpin.v2"
 
@@ -26,7 +28,7 @@ func main() {
 	kingpin.HelpFlag.Short('h')
 	dsn := kingpin.Flag("db-dsn", "data source name").Envar("MYSQL_DSN").Required().String()
 	tenantName := kingpin.Flag("tenant", "tenant name to target. \"ALL\" for running on all tenants").Required().String()
-	username := kingpin.Flag("user", "user name to target").Required().String()
+	username := kingpin.Flag("user", "who is running the script (for logging purposes)").Required().String()
 	logcfg := log.AddFlags(kingpin.CommandLine)
 	kingpin.Parse()
 
@@ -73,17 +75,18 @@ func main() {
 			)
 		}
 		ctx := ent.NewContext(ctx, client)
-		u, err := client.User.Query().Where(user.AuthID(*username)).Only(ctx)
+		v := viewer.NewAutomation(tenant, *username, user.RoleOWNER)
+		ctx = log.NewFieldsContext(ctx, zap.Object("viewer", v))
+		ctx = viewer.NewContext(ctx, v)
+		permissions, err := authz.Permissions(ctx)
 		if err != nil {
-			logger.For(ctx).Fatal("cannot get user",
+			logger.For(ctx).Fatal("cannot get permissions",
 				zap.String("tenant", tenant),
 				zap.Stringp("user", username),
 				zap.Error(err),
 			)
 		}
-		v := viewer.NewUser(tenant, u)
-		ctx = log.NewFieldsContext(ctx, zap.Object("viewer", v))
-		ctx = viewer.NewContext(ctx, v)
+		ctx = authz.NewContext(ctx, permissions)
 
 		tx, err := client.Tx(ctx)
 		if err != nil {
@@ -159,7 +162,7 @@ func utilityFunc(ctx context.Context, _ generated.ResolverRoot, logger log.Logge
 		if err != nil {
 			return fmt.Errorf("cannot create equipment type: %w", err)
 		}
-		logger.For(ctx).Info("equipment created", zap.String("ID", eqt.ID))
+		logger.For(ctx).Info("equipment created", zap.Int("ID", eqt.ID))
 		client.EquipmentType.UpdateOneID(eqt.ID).SetName("My new type 2").ExecX(ctx)
 		if err != nil {
 			return fmt.Errorf("cannot update equipment type: id=%q, %w", eqt.ID, err)

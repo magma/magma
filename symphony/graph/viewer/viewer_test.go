@@ -241,6 +241,24 @@ func TestDeactivatedUser(t *testing.T) {
 	assert.Equal(t, "user is deactivated\n", rec.Body.String())
 }
 
+func TestAutomationViewerIsNotDeactivated(t *testing.T) {
+	client := viewertest.NewTestClient(t)
+	ctx := ent.NewContext(context.Background(), client)
+	v := viewer.NewAutomation("test", "automation", user.RoleADMIN)
+	ctx = viewer.NewContext(ctx, v)
+	req := httptest.NewRequest(http.MethodPost, "/", nil)
+	req = req.WithContext(ctx)
+	rec := httptest.NewRecorder()
+	h := viewer.UserHandler{
+		Handler: http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusAccepted)
+		}),
+		Logger: log.NewNopLogger(),
+	}
+	h.ServeHTTP(rec, req)
+	assert.Equal(t, http.StatusAccepted, rec.Code)
+}
+
 func TestViewerMarshalLog(t *testing.T) {
 	core, o := observer.New(zap.InfoLevel)
 	logger := zap.New(core)
@@ -360,11 +378,16 @@ func TestViewerTags(t *testing.T) {
 }
 
 func TestViewerTenancy(t *testing.T) {
-	t.Run("WithoutFeatures", func(t *testing.T) {
+	t.Run("Regular", func(t *testing.T) {
 		client := viewertest.NewTestClient(t)
 		h := viewer.TenancyHandler(
 			http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				assert.True(t, client == ent.FromContext(r.Context()))
+				v, ok := viewer.FromContext(r.Context()).(*viewer.UserViewer)
+				assert.True(t, ok)
+				assert.Equal(t, viewertest.DefaultTenant, v.Tenant())
+				assert.Equal(t, viewertest.DefaultRole, v.Role())
+				assert.Equal(t, viewertest.DefaultUser, v.Name())
 				w.WriteHeader(http.StatusAccepted)
 			}),
 			viewer.NewFixedTenancy(client),
@@ -394,5 +417,41 @@ func TestViewerTenancy(t *testing.T) {
 		rec := httptest.NewRecorder()
 		h.ServeHTTP(rec, req)
 		assert.Equal(t, http.StatusAccepted, rec.Code)
+	})
+	t.Run("WithAutomation", func(t *testing.T) {
+		client := viewertest.NewTestClient(t)
+		name := "Scheduler"
+		h := viewer.TenancyHandler(
+			http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				assert.True(t, client == ent.FromContext(r.Context()))
+				v, ok := viewer.FromContext(r.Context()).(*viewer.AutomationViewer)
+				assert.True(t, ok)
+				assert.Equal(t, viewertest.DefaultTenant, v.Tenant())
+				assert.Equal(t, viewertest.DefaultRole, v.Role())
+				assert.Equal(t, name, v.Name())
+				w.WriteHeader(http.StatusAccepted)
+			}),
+			viewer.NewFixedTenancy(client),
+		)
+		req := httptest.NewRequest(http.MethodPost, "/", nil)
+		req.Header.Set(viewertest.TenantHeader, viewertest.DefaultTenant)
+		req.Header.Set(viewer.AutomationHeader, name)
+		req.Header.Set(viewertest.RoleHeader, string(viewertest.DefaultRole))
+		rec := httptest.NewRecorder()
+		h.ServeHTTP(rec, req)
+		assert.Equal(t, http.StatusAccepted, rec.Code)
+	})
+	t.Run("WithNoViewer", func(t *testing.T) {
+		client := viewertest.NewTestClient(t)
+		h := viewer.TenancyHandler(
+			http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}),
+			viewer.NewFixedTenancy(client),
+		)
+		req := httptest.NewRequest(http.MethodPost, "/", nil)
+		req.Header.Set(viewertest.TenantHeader, viewertest.DefaultTenant)
+		req.Header.Set(viewertest.RoleHeader, string(viewertest.DefaultRole))
+		rec := httptest.NewRecorder()
+		h.ServeHTTP(rec, req)
+		assert.Equal(t, http.StatusServiceUnavailable, rec.Code)
 	})
 }
