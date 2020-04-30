@@ -24,6 +24,7 @@ import PermissionsPoliciesView, {
 import Strings from '@fbcnms/strings/Strings';
 import UsersView from './users/UsersView';
 import fbt from 'fbt';
+import {ButtonAction} from '@fbcnms/ui/components/design-system/View/ViewHeaderActions';
 import {FormContextProvider} from '../../../common/FormContext';
 import {NEW_DIALOG_PARAM} from './utils/UserManagementUtils';
 import {UserManagementContextProvider} from './UserManagementContext';
@@ -63,10 +64,9 @@ const UserManaementView = ({match}: Props) => {
             subtitle:
               'Add and manage your organization users, and set their role to control their global settings',
             actionButtons: [
-              {
-                title: fbt('Add User', ''),
-                action: () => setAddingNewUser(true),
-              },
+              <ButtonAction action={() => setAddingNewUser(true)}>
+                <fbt desc="">Add User</fbt>
+              </ButtonAction>,
             ],
           },
           children: <UsersView />,
@@ -85,12 +85,10 @@ const UserManaementView = ({match}: Props) => {
               'Create groups with different rules and add users to apply permissions',
             actionButtons: userManagementDevMode
               ? [
-                  {
-                    title: fbt('Create Group', ''),
-                    action: () => {
-                      history.push(`group/${NEW_DIALOG_PARAM}`);
-                    },
-                  },
+                  <ButtonAction
+                    action={() => history.push(`group/${NEW_DIALOG_PARAM}`)}>
+                    <fbt desc="">Create Group</fbt>
+                  </ButtonAction>,
                 ]
               : [],
           },
@@ -123,12 +121,10 @@ const UserManaementView = ({match}: Props) => {
             title: `${PERMISSION_POLICIES_VIEW_NAME}`,
             subtitle: 'Manage policies and apply them to groups.',
             actionButtons: [
-              {
-                title: fbt('Create Policy', ''),
-                action: () => {
-                  history.push(`policy/${NEW_DIALOG_PARAM}`);
-                },
-              },
+              <ButtonAction
+                action={() => history.push(`policy/${NEW_DIALOG_PARAM}`)}>
+                <fbt desc="">Create Policy</fbt>
+              </ButtonAction>,
             ],
           },
           children: <PermissionsPoliciesView />,

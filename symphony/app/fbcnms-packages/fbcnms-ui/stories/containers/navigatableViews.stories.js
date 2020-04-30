@@ -11,6 +11,7 @@
 import NavigatableViews from '../../components/design-system/View/NavigatableViews';
 import React from 'react';
 import symphony from '../../theme/symphony';
+import {ButtonAction} from '../../components/design-system/View/ViewHeaderActions';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {makeStyles} from '@material-ui/styles';
 import {storiesOf} from '@storybook/react';
@@ -46,13 +47,14 @@ const ViewHeaderRoot = () => {
           subtitle:
             'The Company is a secret group of multinational corporate alliances known only by those who work for them or oppose them. Its influence and power over individuals stretches to the White House, controlling every decision the country makes.',
           actionButtons: [
-            {
-              title: 'Open Door',
-              action: () =>
+            <ButtonAction
+              action={() =>
                 console.log(
                   'If this is home, we probably need to be able to open the door...',
-                ),
-            },
+                )
+              }>
+              Open Door
+            </ButtonAction>,
           ],
         },
         children: <div className={classes.childView} />,
@@ -68,10 +70,9 @@ const ViewHeaderRoot = () => {
           title: 'Products',
           subtitle: 'Ever heard of Sona..?',
           actionButtons: [
-            {
-              title: 'Purchase',
-              action: () => console.log('I want to buy things!!'),
-            },
+            <ButtonAction action={() => console.log('I want to buy things!!')}>
+              Purchase
+            </ButtonAction>,
           ],
         },
         children: <div className={classes.childView} />,
@@ -86,10 +87,9 @@ const ViewHeaderRoot = () => {
         header: {
           title: 'Downloads',
           actionButtons: [
-            {
-              title: 'Go Torrent!',
-              action: () => console.log('sh...'),
-            },
+            <ButtonAction action={() => console.log('sh...')}>
+              Go search!
+            </ButtonAction>,
           ],
         },
         children: <div className={classes.childView} />,
@@ -104,10 +104,9 @@ const ViewHeaderRoot = () => {
         header: {
           title: 'About',
           actionButtons: [
-            {
-              title: 'Contact',
-              action: () => console.log('Send some mail..'),
-            },
+            <ButtonAction action={() => console.log('Send some mail..')}>
+              Contact
+            </ButtonAction>,
           ],
         },
         children: <div className={classes.childView} />,

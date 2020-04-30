@@ -17,6 +17,7 @@ import ProjectCard from './ProjectCard';
 import ProjectComparisonViewQueryRenderer from './ProjectComparisonViewQueryRenderer';
 import React, {useMemo, useState} from 'react';
 import fbt from 'fbt';
+import {ButtonAction} from '@fbcnms/ui/components/design-system/View/ViewHeaderActions';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {extractEntityIdFromUrl} from '../../common/RouterUtils';
 
@@ -73,14 +74,14 @@ const ProjectComparisonView = () => {
   const header = {
     title: 'Projects',
     actionButtons: [
-      {
-        title: fbt('Create Project', ''),
-        action: () => {
+      <ButtonAction
+        action={() => {
           setDialogOpen(true);
           setDialogKey(dialogKey + 1);
           ServerLogger.info(LogEvents.ADD_PROJECT_BUTTON_CLICKED);
-        },
-      },
+        }}>
+        <fbt desc="">Create Project</fbt>
+      </ButtonAction>,
     ],
   };
   return (

@@ -21,6 +21,7 @@ import React from 'react';
 import Table from '@fbcnms/ui/components/design-system/Table/Table';
 import fbt from 'fbt';
 import withInventoryErrorBoundary from '../../common/withInventoryErrorBoundary';
+import {ButtonAction} from '@fbcnms/ui/components/design-system/View/ViewHeaderActions';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {graphql} from 'relay-runtime';
 import {sortLexicographically} from '@fbcnms/ui/utils/displayUtils';
@@ -94,10 +95,10 @@ class WorkOrderTypes extends React.Component<Props, State> {
                   <fbt desc="">Create and manage reusable work orders.</fbt>
                 ),
                 actionButtons: [
-                  {
-                    title: `${fbt('Create Work Order Template', '')}`,
-                    action: () => this.showAddEditWorkOrderTypeCard(null),
-                  },
+                  <ButtonAction
+                    action={() => this.showAddEditWorkOrderTypeCard(null)}>
+                    <fbt desc="">Create Work Order Template</fbt>
+                  </ButtonAction>,
                 ],
               }}>
               <Table

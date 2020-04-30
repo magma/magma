@@ -16,6 +16,7 @@ import InventoryView from '../InventoryViewContainer';
 import ProjectTypeCard from './ProjectTypeCard';
 import React, {useState} from 'react';
 import fbt from 'fbt';
+import {ButtonAction} from '@fbcnms/ui/components/design-system/View/ViewHeaderActions';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {graphql} from 'relay-runtime';
 import {makeStyles} from '@material-ui/styles';
@@ -108,15 +109,15 @@ const WorkOrderProjectTypes = () => {
                 <fbt desc="">Create and manage reusable project workflows.</fbt>
               ),
               actionButtons: [
-                {
-                  title: `${fbt('Create Project Template', '')}`,
-                  action: () => {
+                <ButtonAction
+                  action={() => {
                     ServerLogger.info(
                       LogEvents.ADD_PROJECT_TEMPLATE_BUTTON_CLICKED,
                     );
                     setShowAddEditCard(true);
-                  },
-                },
+                  }}>
+                  <fbt desc="">Create Project Template</fbt>
+                </ButtonAction>,
               ],
             }}>
             <div className={classes.typeCards}>
