@@ -266,7 +266,11 @@ func (srv *OCSDiamServer) ReAuth(
 	}
 	done := make(chan *gy.ChargingReAuthAnswer)
 	srv.mux.Handle(diam.RAA, handleRAA(done))
-	sendRAR(account.CurrentState, &target.RatingGroup, srv.mux.Settings())
+	err := sendRAR(account.CurrentState, &target.RatingGroup, srv.mux.Settings())
+	if err != nil {
+		glog.Errorf("Error sending RaR for target IMSI=%v, RG=%v: %v", target.GetImsi(), target.GetRatingGroup(), err)
+		return nil, err
+	}
 	select {
 	case raa := <-done:
 		return &protos.ChargingReAuthAnswer{SessionId: diameter.DecodeSessionID(raa.SessionID), ResultCode: raa.ResultCode}, nil

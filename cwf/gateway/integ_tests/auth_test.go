@@ -95,7 +95,7 @@ func TestAuthenticateFail(t *testing.T) {
 
 	tr.AuthenticateAndAssertFail(imsiFail)
 
-	resultByIndex, errByIndex, err := getAssertExpectationsResult()
+	resultByIndex, errByIndex, err := getPCRFAssertExpectationsResult()
 	assert.NoError(t, err)
 	assert.Empty(t, errByIndex)
 	expectedResult := []*protos.ExpectationResult{{ExpectationIndex: 0, ExpectationMet: true}}
@@ -147,7 +147,7 @@ func TestAuthenticateUplinkTraffic(t *testing.T) {
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
 
-	resultByIndex, errByIndex, err := getAssertExpectationsResult()
+	resultByIndex, errByIndex, err := getPCRFAssertExpectationsResult()
 	assert.NoError(t, err)
 	assert.Empty(t, errByIndex)
 	expectedResult := []*protos.ExpectationResult{
@@ -214,7 +214,7 @@ func TestAuthenticateMultipleAPsUplinkTraffic(t *testing.T) {
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
 
-	resultByIndex, errByIndex, err := getAssertExpectationsResult()
+	resultByIndex, errByIndex, err := getPCRFAssertExpectationsResult()
 	assert.NoError(t, err)
 	assert.Empty(t, errByIndex)
 	expectedResult := []*protos.ExpectationResult{

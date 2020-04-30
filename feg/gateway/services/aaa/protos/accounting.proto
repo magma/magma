@@ -62,6 +62,10 @@ message terminate_session_request {
     string imsi = 2;
 }
 
+message add_sessions_request {
+    repeated context sessions = 1;
+}
+
 // accounting service, provides support for corresponding Radius accounting Acct-Status-Types in Accounting-Requests
 // see: https://tools.ietf.org/html/rfc2866#section-5.1
 service accounting {
@@ -80,4 +84,6 @@ service accounting {
     rpc create_session(context) returns (create_session_resp) {}
     // terminate_session is an "inbound" RPC from session manager to notify accounting of a client session termination
     rpc terminate_session(terminate_session_request) returns (acct_resp) {}
+    // add_sessions is an "inbound" RPC from session manager to bulk add existing sessions
+    rpc add_sessions(add_sessions_request) returns (acct_resp) {}
 }

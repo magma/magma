@@ -816,7 +816,7 @@ TEST_F(LocalEnforcerTest, test_re_auth) {
   auto update = SessionStore::get_default_session_update(session_map);
   auto result =
       local_enforcer->init_charging_reauth(session_map, reauth, update);
-  EXPECT_EQ(result, ChargingReAuthAnswer::UPDATE_INITIATED);
+  EXPECT_EQ(result, ReAuthResult::UPDATE_INITIATED);
 
   std::vector<std::unique_ptr<ServiceAction>> actions;
   auto update_req =

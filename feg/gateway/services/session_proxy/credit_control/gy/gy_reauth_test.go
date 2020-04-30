@@ -26,11 +26,11 @@ func TestReAuthRelay(t *testing.T) {
 	handler := gy.GetGyReAuthHandler(cloudRegistry)
 
 	var rg uint32 = 1
-	assertReAuth(t, handler, sm, &rg, protos.ChargingReAuthAnswer_UPDATE_INITIATED, diam.LimitedSuccess)
-	assertReAuth(t, handler, sm, nil, protos.ChargingReAuthAnswer_UPDATE_INITIATED, diam.LimitedSuccess)
-	assertReAuth(t, handler, sm, &rg, protos.ChargingReAuthAnswer_UPDATE_NOT_NEEDED, diam.Success)
-	assertReAuth(t, handler, sm, &rg, protos.ChargingReAuthAnswer_SESSION_NOT_FOUND, diam.UnknownSessionID)
-	assertReAuth(t, handler, sm, &rg, protos.ChargingReAuthAnswer_OTHER_FAILURE, diam.UnableToComply)
+	assertReAuth(t, handler, sm, &rg, protos.ReAuthResult_UPDATE_INITIATED, diam.LimitedSuccess)
+	assertReAuth(t, handler, sm, nil, protos.ReAuthResult_UPDATE_INITIATED, diam.LimitedSuccess)
+	assertReAuth(t, handler, sm, &rg, protos.ReAuthResult_UPDATE_NOT_NEEDED, diam.Success)
+	assertReAuth(t, handler, sm, &rg, protos.ReAuthResult_SESSION_NOT_FOUND, diam.UnknownSessionID)
+	assertReAuth(t, handler, sm, &rg, protos.ReAuthResult_OTHER_FAILURE, diam.UnableToComply)
 }
 
 func assertReAuth(
@@ -38,7 +38,7 @@ func assertReAuth(
 	handler gy.ChargingReAuthHandler,
 	sm *mocks.SessionProxyResponderServer,
 	ratingGroup *uint32,
-	protoResult protos.ChargingReAuthAnswer_Result,
+	protoResult protos.ReAuthResult,
 	expectedResultCode int,
 ) {
 	imsi := "IMSI000000000000001"

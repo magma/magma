@@ -121,7 +121,7 @@ class IPAllocator:
         if not persist_to_redis:
             self._assigned_ip_blocks = set()  # {ip_block}
             self._ip_states = defaultdict(dict)  # {state=>{ip=>ip_desc}}
-            self._sid_ips_map = defaultdict(list)  # {SID=>[IPDesc]}
+            self._sid_ips_map = defaultdict(IPDesc)  # {SID=>IPDesc}
         else:
             if not redis_port:
                 raise ValueError(
@@ -130,7 +130,7 @@ class IPAllocator:
             self._assigned_ip_blocks = store.AssignedIpBlocksSet(client)
             self._ip_states = store.defaultdict_key(
                 lambda key: store.ip_states(client, key))
-            self._sid_ips_map = store.SIDIPsDict(client)
+            self._sid_ips_map = store.IPDescDict(client)
 
     def add_ip_block(self, ipblock: ip_network):
         """ Add a block of IP addresses to the free IP list
@@ -221,8 +221,8 @@ class IPAllocator:
                         "removal "
 
                 # Clean up SID maps
-                for sid in self._sid_ips_map:
-                    self._remove_ip_from_sid_ips_map(sid, ip)
+                for sid in list(self._sid_ips_map):
+                    self._sid_ips_map.pop(sid)
 
             # Remove the IP blocks
             self._assigned_ip_blocks -= remove_blocks
@@ -290,7 +290,7 @@ class IPAllocator:
             # if an IP is reserved for the UE, this IP could be in the state of
             # ALLOCATED, RELEASED or REAPED.
             if sid in self._sid_ips_map:
-                old_ip_desc = self._sid_ips_map[sid][0]
+                old_ip_desc = self._sid_ips_map[sid]
                 if self._test_ip_state(old_ip_desc.ip, IPState.ALLOCATED):
                     # MME state went out of sync with mobilityd!
                     # Recover gracefully by allocating the same IP
@@ -327,12 +327,7 @@ class IPAllocator:
                 ip_desc.sid = sid
                 ip_desc.state = IPState.ALLOCATED
                 self._add_ip_to_state(ip_desc.ip, ip_desc, IPState.ALLOCATED)
-                sid_ips = list(self._sid_ips_map[sid])
-                sid_ips.append(ip_desc)
-
-                assert len(sid_ips) == 1, \
-                    "Only one IP per SID is supported"
-                self._sid_ips_map[sid] = sid_ips
+                self._sid_ips_map[sid] = ip_desc
 
                 IP_ALLOCATED_TOTAL.inc()
                 return ip_desc.ip
@@ -343,9 +338,8 @@ class IPAllocator:
     def get_sid_ip_table(self) -> List[Tuple[str, ip_address]]:
         """ Return list of tuples (sid, ip) """
         with self._lock:
-            res = [(sid, ip_desc.ip) for sid, ips_desc in
-                   self._sid_ips_map.items()
-                   for ip_desc in ips_desc]
+            res = [(sid, ip_desc.ip) for sid, ip_desc in
+                   self._sid_ips_map.items()]
             return res
 
     def get_ip_for_sid(self, sid: str) -> Optional[ip_address]:
@@ -355,14 +349,14 @@ class IPAllocator:
                 if not self._sid_ips_map[sid]:
                     raise AssertionError("Unexpected internal state")
                 else:
-                    return self._sid_ips_map[sid][0].ip
+                    return self._sid_ips_map[sid].ip
             return None
 
     def get_sid_for_ip(self, requested_ip: ip_address) -> Optional[str]:
         """ If ip is associated with an sid, return the sid, else None """
         with self._lock:
-            for sid, ips_desc in self._sid_ips_map.items():
-                if requested_ip in (ip_desc.ip for ip_desc in ips_desc):
+            for sid, ip_desc in self._sid_ips_map.items():
+                if requested_ip == ip_desc.ip:
                     return sid
             return None
 
@@ -382,9 +376,8 @@ class IPAllocator:
             IPNotInUseError: if the given IP is not found in the used list
         """
         with self._lock:
-            if not (sid in self._sid_ips_map and ip in (ip_desc.ip for ip_desc
-                                                        in self._sid_ips_map[
-                                                            sid])):
+            if not (sid in self._sid_ips_map and ip ==
+                    self._sid_ips_map[sid].ip):
                 logging.error(
                     "Releasing unknown <SID, IP> pair: <%s, %s>", sid, ip)
                 raise MappingNotFoundError(
@@ -416,9 +409,7 @@ class IPAllocator:
                 ip_desc.sid = None
 
                 # update SID-IP map
-                self._remove_ip_from_sid_ips_map(sid, ip)
-                if not self._sid_ips_map[sid]:
-                    del self._sid_ips_map[sid]
+                del self._sid_ips_map[sid]
 
             # Set timer for the next round of recycling
             self._recycle_timer = None
@@ -478,16 +469,6 @@ class IPAllocator:
             ip_state_key = choice(list(self._ip_states[state].keys()))
             ip_desc = self._ip_states[state].pop(ip_state_key)
         return ip_desc
-
-    def _remove_ip_from_sid_ips_map(self, sid, ip):
-        """ Remove IP desc from sid_ips_map """
-        # workaround to update _sid_ips_map redis container as
-        # RedisHashDict it's not supporting writeback=True
-        ip_desc_list = list(self._sid_ips_map[sid])
-        for sid_ip_desc in ip_desc_list:
-            if ip == sid_ip_desc.ip:
-                ip_desc_list.remove(sid_ip_desc)
-        self._sid_ips_map[sid] = ip_desc_list
 
     def _get_ip_count(self, state: IPState) -> int:
         """ Return number of IPs in a state """

@@ -136,12 +136,10 @@ public:
 
   uint32_t get_credit_key_count() const override;
 
-  ChargingReAuthAnswer::Result
-  reauth_key(const CreditKey &charging_key,
-             SessionStateUpdateCriteria &update_criteria);
+  ReAuthResult reauth_key(const CreditKey &charging_key,
+                          SessionStateUpdateCriteria &update_criteria);
 
-  ChargingReAuthAnswer::Result
-  reauth_all(SessionStateUpdateCriteria &update_criteria);
+  ReAuthResult reauth_all(SessionStateUpdateCriteria &update_criteria);
 
 private:
   std::unordered_map<CreditKey, std::unique_ptr<SessionCredit>,

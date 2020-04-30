@@ -376,7 +376,7 @@ SessionCredit::Usage SessionCredit::get_unreported_usage() const {
   if (buckets_[USED_RX] > report) {
     usage.bytes_rx = buckets_[USED_RX] - report;
   }
-  MLOG(MDEBUG) << "Data usage since last report is tx=" << usage.bytes_tx
+  MLOG(MDEBUG) << "===> Data usage since last report is tx=" << usage.bytes_tx
                << " rx=" << usage.bytes_rx;
   return usage;
 }
@@ -466,9 +466,9 @@ void SessionCredit::add_credit(uint64_t credit, Bucket bucket,
 }
 
 void SessionCredit::log_usage_report(SessionCredit::Usage usage) const {
-  MLOG(MDEBUG) << "Amount reporting for this report:"
+  MLOG(MDEBUG) << "===> Amount reporting for this report:"
                << " tx=" << usage.bytes_tx << " rx=" << usage.bytes_rx;
-  MLOG(MDEBUG) << "The total amount currently being reported:"
+  MLOG(MDEBUG) << "===> The total amount currently being reported:"
                << " tx=" << buckets_[REPORTING_TX]
                << " rx=" << buckets_[REPORTING_RX];
 }

@@ -174,7 +174,7 @@ def transfer_service_logs(services="sessiond session_proxy"):
     vagrant_setup("cwag", False)
     with cd(CWAG_ROOT):
         for service in services:
-            run("docker logs -t " + service + " 2> " + service + ".log")
+            run("docker logs -t " + service + " &> " + service + ".log")
             # For vagrant the files should already be in CWAG_ROOT
 
 def _transfer_docker_images():
