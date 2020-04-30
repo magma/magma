@@ -60,12 +60,12 @@ type OCSConfig struct {
 
 // OCSDiamServer wraps an OCS storing subscriber accounts and their credit
 type OCSDiamServer struct {
-	diameterSettings    *diameter.DiameterClientConfig
-	ocsConfig           *OCSConfig
-	accounts            map[string]*SubscriberAccount // map of IMSI to subscriber account
-	mux                 *sm.StateMachine
-	LastMessageReceived *ccrMessage
-	mockDriver          *mock_driver.MockDriver
+	diameterSettings        *diameter.DiameterClientConfig
+	ocsConfig               *OCSConfig
+	accounts                map[string]*SubscriberAccount // map of IMSI to subscriber account
+	mux                     *sm.StateMachine
+	lastDiamMessageReceived *diam.Message
+	mockDriver              *mock_driver.MockDriver
 }
 
 // NewOCSDiamServer initializes an OCS with an empty account map
@@ -281,6 +281,15 @@ func (srv *OCSDiamServer) ReAuth(
 	case <-time.After(10 * time.Second):
 		return nil, fmt.Errorf("No RAA received")
 	}
+}
+
+// GetLastAVPreceived gets the last message in diam format received
+// Message gets overwriten every time a new CCR is sent
+func (srv *OCSDiamServer) GetLastAVPreceived() (*diam.Message, error) {
+	if srv.lastDiamMessageReceived == nil {
+		return nil, fmt.Errorf("No AVP message received")
+	}
+	return srv.lastDiamMessageReceived, nil
 }
 
 func sendRAR(state *SubscriberSessionState, ratingGroup *uint32, cfg *sm.Settings) error {
