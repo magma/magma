@@ -19,7 +19,6 @@ import type {
   ProxyNext,
   ProxyRequest,
   ProxyResponse,
-  TransformerEntry,
 } from '../types';
 
 const logger = logging.getLogger(module);
@@ -28,7 +27,7 @@ router.use(bodyParser.urlencoded({extended: false}));
 router.use('/', bodyParser.json());
 
 export default async function(proxyTarget: string) {
-  const transformers: Array<TransformerEntry> = await transformerRegistry({
+  const transformers = await transformerRegistry({
     proxyTarget,
   });
 
@@ -38,7 +37,7 @@ export default async function(proxyTarget: string) {
     // TODO set timeouts
   });
 
-  for (const entry: TransformerEntry of transformers) {
+  for (const entry of transformers) {
     logger.info(`Routing url:${entry.url}, method:${entry.method}`);
 
     (router: ExpressRouter)[entry.method](
@@ -74,11 +73,9 @@ export default async function(proxyTarget: string) {
         };
 
         // start with 'before'
-        logger.info(
-          `REQ ${req.method} ${
-            req.url
-          } tenantId ${tenantId} body ${JSON.stringify(req.body)}`,
-        );
+        logger.info(`REQ ${req.method} ${req.url} tenantId ${tenantId}`, {
+          body: req.body,
+        });
         const proxyCallback: ProxyCallback = function(proxyOptions) {
           proxy.web(req, res, proxyOptions, function(e) {
             logger.error('Inline error handler', e);

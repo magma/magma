@@ -80,11 +80,16 @@ curl -X POST -H "x-auth-organization: fb-test"  \
 const postTaskdefsBefore: BeforeFun = (tenantId, req, res, proxyCallback) => {
   // iterate over taskdefs, prefix with tenantId
   const reqObj = req.body;
-  for (let idx = 0; idx < reqObj.length; idx++) {
-    const taskdef = reqObj[idx];
-    sanitizeTaskdefBefore(tenantId, taskdef);
+  if (reqObj != null && Array.isArray(reqObj)) {
+    for (let idx = 0; idx < reqObj.length; idx++) {
+      const taskdef = anythingTo<Task>(reqObj[idx]);
+      sanitizeTaskdefBefore(tenantId, taskdef);
+    }
+    proxyCallback({buffer: createProxyOptionsBuffer(reqObj, req)});
+  } else {
+    logger.error('Expected req.body to be array in postTaskdefsBefore');
+    throw 'Expected req.body to be array in postTaskdefsBefore';
   }
-  proxyCallback({buffer: createProxyOptionsBuffer(reqObj, req)});
 };
 
 // Update an existing task
@@ -108,9 +113,14 @@ curl -X PUT -H "x-auth-organization: fb-test" \
 // TODO: should this be disabled?
 const putTaskdefBefore: BeforeFun = (tenantId, req, res, proxyCallback) => {
   const reqObj = req.body;
-  const taskdef = reqObj;
-  sanitizeTaskdefBefore(tenantId, taskdef);
-  proxyCallback({buffer: createProxyOptionsBuffer(reqObj, req)});
+  if (reqObj != null && typeof reqObj === 'object') {
+    const taskdef = anythingTo<Task>(reqObj);
+    sanitizeTaskdefBefore(tenantId, taskdef);
+    proxyCallback({buffer: createProxyOptionsBuffer(reqObj, req)});
+  } else {
+    logger.error('Expected req.body to be object in putTaskdefBefore');
+    throw 'Expected req.body to be object in putTaskdefBefore';
+  }
 };
 
 /*
@@ -131,7 +141,7 @@ const getTaskdefByNameBefore: BeforeFun = (
 };
 
 const getTaskdefByNameAfter: AfterFun = (tenantId, req, respObj, res) => {
-  if (res.status == 200) {
+  if (res.statusCode == 200) {
     const task = anythingTo<Task>(respObj);
     const tenantWithInfixSeparator = withInfixSeparator(tenantId);
     // remove prefix

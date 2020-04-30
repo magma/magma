@@ -8,6 +8,8 @@
  * @format
  */
 
+import type {ExpressRequest, ExpressResponse} from 'express';
+
 export type Task = {
   name: string,
   type: string,
@@ -17,11 +19,16 @@ export type Task = {
   subWorkflowParam?: {name: string},
 };
 
-export type ProxyRequest = any;
-export type ProxyResponse = any;
-export type ProxyNext = any => void;
+export type ProxyRequest = ExpressRequest & {
+  _parsedUrl: {pathname: string, query: string},
+};
 
-export type ProxyCallback = (proxyOptions?: any) => void;
+export type ProxyResponse = ExpressResponse & {
+  write: mixed,
+};
+export type ProxyNext = mixed => void;
+
+export type ProxyCallback = (proxyOptions?: mixed) => void;
 
 export type BeforeFun = (
   tenantId: string,
@@ -33,7 +40,7 @@ export type BeforeFun = (
 export type AfterFun = (
   tenantId: string,
   req: ProxyRequest,
-  respObj: ?any,
+  respObj: ?mixed,
   res: ProxyResponse,
 ) => void;
 
@@ -47,7 +54,7 @@ type ExpressCallback = (
   req: ProxyRequest,
   res: ProxyResponse,
   next: ProxyNext,
-) => any;
+) => mixed;
 type ExpressMethodFun = (string, ExpressCallback) => void;
 export type ExpressRouter = {[HttpMethod]: ExpressMethodFun};
 
@@ -74,6 +81,6 @@ export type Workflow = {
 
 export type StartWorkflowRequest = {
   name: string,
-  workflowDef?: any,
-  taskToDomain?: any,
+  workflowDef?: mixed,
+  taskToDomain?: mixed,
 };

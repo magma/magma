@@ -63,14 +63,14 @@ function sanitizeEvent(tenantId: string, event: Event) {
 
 const postEventBefore: BeforeFun = (tenantId, req, res, proxyCallback) => {
   const reqObj = req.body;
-  logger.debug(`Transforming '${JSON.stringify(reqObj)}'`);
+  logger.debug('Transforming', {reqObj});
   sanitizeEvent(tenantId, anythingTo<Event>(reqObj));
   proxyCallback({buffer: createProxyOptionsBuffer(reqObj, req)});
 };
 
 const putEventBefore: BeforeFun = (tenantId, req, res, proxyCallback) => {
   const reqObj = req.body;
-  logger.debug(`Transforming '${JSON.stringify(reqObj)}'`);
+  logger.debug('Transforming', {reqObj});
   sanitizeEvent(tenantId, anythingTo<Event>(reqObj));
   proxyCallback({buffer: createProxyOptionsBuffer(reqObj, req)});
 };

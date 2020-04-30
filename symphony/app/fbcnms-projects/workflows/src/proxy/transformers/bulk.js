@@ -39,7 +39,7 @@ curl  -H "x-auth-organization: fb-test" \
 const bulkOperationBefore: BeforeFun = (tenantId, req, res, proxyCallback) => {
   const requestWorkflowIds = req.body; // expect JS array
   if (!Array.isArray(requestWorkflowIds) || requestWorkflowIds.length == 0) {
-    logger.error(`Expected non empty array, got ${requestWorkflowIds}`);
+    logger.error('Expected non empty array', {requestWorkflowIds});
     res.status(400);
     res.send('Expected array of workflows');
     return;
@@ -55,9 +55,13 @@ const bulkOperationBefore: BeforeFun = (tenantId, req, res, proxyCallback) => {
   let query = 'workflowId+IN+(';
 
   for (const workflowId of requestWorkflowIds) {
-    // TODO: sanitize using regex
-    if (/^[a-z0-9\-]+$/i.test(workflowId)) {
+    if (typeof workflowId === 'string' && /^[a-z0-9\-]+$/i.test(workflowId)) {
       query += workflowId + ',';
+    } else {
+      logger.error('Unexpected workflowId format', {workflowId});
+      res.status(400);
+      res.send('Unexpected workflowId format');
+      return;
     }
   }
   query += ')';
@@ -92,7 +96,8 @@ const bulkOperationBefore: BeforeFun = (tenantId, req, res, proxyCallback) => {
       if (requestWorkflowIds.includes(foundWorkflowId) === false) {
         logger.warn(
           `ElasticSearch returned workflow that was not requested:` +
-            ` ${foundWorkflowId.workflowId} in ${requestWorkflowIds}`,
+            ` ${foundWorkflowId.workflowId}`,
+          {requestWorkflowIds},
         );
         foundWorkflowIds.splice(idx, 1);
       }
