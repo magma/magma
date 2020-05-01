@@ -109,7 +109,7 @@ bool SessionStore::merge_into_session(
 
   // Config
   if (update_criteria.is_config_updated) {
-    session->unmarshal_config(update_criteria.updated_config);
+    session->set_config(update_criteria.updated_config);
   }
 
   // Static rules

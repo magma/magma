@@ -21,6 +21,8 @@
 
 namespace magma {
 
+std::string session_fsm_state_to_str(SessionFsmState state);
+
 std::unique_ptr<SessionState> SessionState::unmarshal(
     const StoredSessionState& marshaled, StaticRuleStore& rule_store) {
   return std::make_unique<SessionState>(marshaled, rule_store);
@@ -30,7 +32,7 @@ StoredSessionState SessionState::marshal() {
   StoredSessionState marshaled{};
 
   marshaled.fsm_state              = curr_state_;
-  marshaled.config                 = marshal_config();
+  marshaled.config                 = config_;
   marshaled.charging_pool          = charging_pool_.marshal();
   marshaled.monitor_pool           = monitor_pool_.marshal();
   marshaled.imsi                   = imsi_;
@@ -50,33 +52,21 @@ StoredSessionState SessionState::marshal() {
   return marshaled;
 }
 
-SessionConfig SessionState::marshal_config() {
-  return config_;
-}
-
-void SessionState::unmarshal_config(const SessionConfig& marshaled) {
-  config_ = marshaled;
-}
-
 SessionState::SessionState(
     const StoredSessionState& marshaled, StaticRuleStore& rule_store)
     : request_number_(marshaled.request_number),
-      curr_state_(SESSION_ACTIVE),
+      curr_state_(marshaled.fsm_state),
+      config_(marshaled.config),
+      imsi_(marshaled.imsi),
+      session_id_(marshaled.session_id),
+      core_session_id_(marshaled.core_session_id),
+      subscriber_quota_state_(marshaled.subscriber_quota_state),
+      tgpp_context_(marshaled.tgpp_context),
       charging_pool_(
           std::move(*ChargingCreditPool::unmarshal(marshaled.charging_pool))),
       monitor_pool_(std::move(
           *UsageMonitoringCreditPool::unmarshal(marshaled.monitor_pool))),
       static_rules_(rule_store) {
-
-  curr_state_ = marshaled.fsm_state;
-  config_ = marshaled.config;
-
-  imsi_                   = marshaled.imsi;
-  session_id_             = marshaled.session_id;
-  core_session_id_        = marshaled.core_session_id;
-  subscriber_quota_state_ = marshaled.subscriber_quota_state;
-  tgpp_context_           = marshaled.tgpp_context;
-
   for (const std::string& rule_id : marshaled.static_rule_ids) {
     active_static_rules_.push_back(rule_id);
   }
@@ -103,17 +93,13 @@ SessionState::SessionState(
 
 void SessionState::new_report(SessionStateUpdateCriteria& update_criteria) {
   if (curr_state_ == SESSION_TERMINATING_FLOW_ACTIVE) {
-    curr_state_ = SESSION_TERMINATING_AGGREGATING_STATS;
-    update_criteria.is_fsm_updated = true;
-    update_criteria.updated_fsm_state = SESSION_TERMINATING_AGGREGATING_STATS;
+    set_fsm_state(SESSION_TERMINATING_AGGREGATING_STATS, update_criteria);
   }
 }
 
 void SessionState::finish_report(SessionStateUpdateCriteria& update_criteria) {
   if (curr_state_ == SESSION_TERMINATING_AGGREGATING_STATS) {
-    curr_state_ = SESSION_TERMINATING_FLOW_DELETED;
-    update_criteria.is_fsm_updated = true;
-    update_criteria.updated_fsm_state = SESSION_TERMINATING_FLOW_DELETED;
+    set_fsm_state(SESSION_TERMINATING_FLOW_DELETED, update_criteria);
   }
 }
 
@@ -121,9 +107,8 @@ void SessionState::add_used_credit(
     const std::string& rule_id, uint64_t used_tx, uint64_t used_rx,
     SessionStateUpdateCriteria& update_criteria) {
   if (curr_state_ == SESSION_TERMINATING_AGGREGATING_STATS) {
-    curr_state_ = SESSION_TERMINATING_FLOW_ACTIVE;
-    update_criteria.is_fsm_updated = true;
-    update_criteria.updated_fsm_state = SESSION_TERMINATING_FLOW_ACTIVE;
+    set_fsm_state(SESSION_TERMINATING_FLOW_ACTIVE,
+                  update_criteria);
   }
 
   CreditKey charging_key;
@@ -227,9 +212,7 @@ void SessionState::get_updates(
 
 void SessionState::start_termination(
     SessionStateUpdateCriteria& update_criteria) {
-  curr_state_ = SESSION_TERMINATING_FLOW_ACTIVE;
-  update_criteria.is_fsm_updated = true;
-  update_criteria.updated_fsm_state = SESSION_TERMINATING_FLOW_ACTIVE;
+  set_fsm_state(SESSION_TERMINATING_FLOW_ACTIVE, update_criteria);
 }
 
 void SessionState::set_termination_callback(
@@ -243,9 +226,7 @@ bool SessionState::can_complete_termination() const {
 
 void SessionState::mark_as_awaiting_termination(
     SessionStateUpdateCriteria& update_criteria) {
-  curr_state_ = SESSION_TERMINATION_SCHEDULED;
-  update_criteria.is_fsm_updated = true;
-  update_criteria.updated_fsm_state = SESSION_TERMINATION_SCHEDULED;
+  set_fsm_state(SESSION_TERMINATION_SCHEDULED, update_criteria);
 }
 
 SubscriberQuotaUpdate_Type SessionState::get_subscriber_quota_state() const {
@@ -259,13 +240,14 @@ void SessionState::complete_termination(
     return;
   }
   if (!can_complete_termination()) {
-    MLOG(MERROR) << "Encountered unexpected state(" << curr_state_
+    MLOG(MERROR) << "Encountered unexpected state("
+                 << session_fsm_state_to_str(curr_state_)
                  << ") while terminating session for IMSI " << imsi_
                  << " and session id " << session_id_
                  << ". Forcefully terminating session.";
   }
   // mark entire session as terminated
-  set_fsm_state(SESSION_TERMINATED);
+  set_fsm_state(SESSION_TERMINATED, update_criteria);
 
   auto termination_req = make_termination_request(update_criteria);
   try {
@@ -290,7 +272,7 @@ void SessionState::complete_termination(
                  << ". Forcefully terminating session.";
   }
   // mark entire session as terminated
-  set_fsm_state(SESSION_TERMINATED);
+  set_fsm_state(SESSION_TERMINATED, update_criteria);
 
   auto termination_req = make_termination_request(update_criteria);
   try {
@@ -417,6 +399,10 @@ std::string SessionState::get_msisdn() const {
 
 std::string SessionState::get_apn() const {
   return config_.apn;
+}
+
+SessionConfig SessionState::get_config() {
+  return config_;
 }
 
 void SessionState::set_config(const SessionConfig& config) {
@@ -567,7 +553,35 @@ bool SessionState::is_active() {
   return curr_state_ == SESSION_ACTIVE;
 }
 
-void SessionState::set_fsm_state(SessionFsmState new_state) {
-  curr_state_ = new_state;
+void SessionState::set_fsm_state(SessionFsmState new_state,
+                                 SessionStateUpdateCriteria& uc) {
+  // Only log and reflect change into update criteria if the state is new
+  if (curr_state_ != new_state) {
+    MLOG(MDEBUG) << "Session " << session_id_ << " FSM state change from "
+                 << session_fsm_state_to_str(curr_state_) << " to "
+                 << session_fsm_state_to_str(new_state);
+    curr_state_ = new_state;
+    uc.is_fsm_updated = true;
+    uc.updated_fsm_state = new_state;
+  }
+}
+
+std::string session_fsm_state_to_str(SessionFsmState state) {
+  switch (state) {
+  case SESSION_ACTIVE:
+    return "SESSION_ACTIVE";
+  case SESSION_TERMINATING_FLOW_ACTIVE:
+    return "SESSION_TERMINATING_FLOW_ACTIVE";
+  case SESSION_TERMINATING_AGGREGATING_STATS:
+    return "SESSION_TERMINATING_AGGREGATING_STATS";
+  case SESSION_TERMINATING_FLOW_DELETED:
+    return "SESSION_TERMINATING_FLOW_DELETED";
+  case SESSION_TERMINATED:
+    return "SESSION_TERMINATED";
+  case SESSION_TERMINATION_SCHEDULED:
+    return "SESSION_TERMINATION_SCHEDULED";
+  default:
+    return "INVALID SESSION FSM STATE";
+  }
 }
 }  // namespace magma
