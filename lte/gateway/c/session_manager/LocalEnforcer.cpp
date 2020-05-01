@@ -254,12 +254,12 @@ void LocalEnforcer::terminate_service(
   }
 
   for (const auto &session : it->second) {
-    auto update_criteria = session_update[imsi][session->get_session_id()];
-
     if (!session->is_active()) {
       // If the session is terminating already, do nothing.
       continue;
     }
+    
+    auto& update_criteria = session_update[imsi][session->get_session_id()];
     session->start_termination(update_criteria);
 
     // tell AAA service to terminate radius session if necessary
