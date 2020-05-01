@@ -20,6 +20,7 @@ from magma.pipelined.app.inout import INGRESS
 from magma.pipelined.directoryd_client import update_record
 from magma.pipelined.imsi import encode_imsi, decode_imsi
 from magma.pipelined.openflow import flows
+from magma.pipelined.app.ipfix import IPFIXController
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.openflow.exceptions import MagmaOFError
 from magma.pipelined.openflow.magma_match import MagmaMatch
@@ -48,6 +49,10 @@ class UEMacAddressController(MagmaController):
         self._dhcp_learn_scratch = \
             self._service_manager.allocate_scratch_tables(self.APP_NAME, 1)[0]
         self._li_port = None
+        self._imsi_set_tbl_num = \
+            self._service_manager.INTERNAL_IMSI_SET_TABLE_NUM
+        self._ipfix_sample_tbl_num = \
+            self._service_manager.INTERNAL_IPFIX_SAMPLE_TABLE_NUM
         if 'li_local_iface' in kwargs['config']:
             self._li_port = \
                 BridgeTools.get_ofport(kwargs['config']['li_local_iface'])
@@ -84,6 +89,7 @@ class UEMacAddressController(MagmaController):
     def delete_all_flows(self, datapath):
         flows.delete_all_flows_from_table(datapath, self.tbl_num)
         flows.delete_all_flows_from_table(datapath, self._dhcp_learn_scratch)
+        flows.delete_all_flows_from_table(datapath, self._ipfix_sample_tbl_num)
 
     def add_ue_mac_flow(self, sid, mac_addr):
         self._add_dhcp_passthrough_flows(sid, mac_addr)
@@ -96,6 +102,21 @@ class UEMacAddressController(MagmaController):
         downlink_match = MagmaMatch(eth_dst=mac_addr)
         self._add_resubmit_flow(sid, downlink_match,
                                 priority=flows.UE_FLOW_PRIORITY)
+
+        if not self._service_manager.is_app_enabled(IPFIXController.APP_NAME):
+            return
+        # For handling fake packt sampling
+        uplink_match = MagmaMatch(eth_src=mac_addr)
+        self._add_resubmit_flow(sid, uplink_match,
+                                priority=flows.UE_FLOW_PRIORITY,
+                                tbl_num=self._imsi_set_tbl_num,
+                                next_table=self._ipfix_sample_tbl_num)
+
+        downlink_match = MagmaMatch(eth_dst=mac_addr)
+        self._add_resubmit_flow(sid, downlink_match,
+                                priority=flows.UE_FLOW_PRIORITY,
+                                tbl_num=self._imsi_set_tbl_num,
+                                next_table=self._ipfix_sample_tbl_num)
 
     def delete_ue_mac_flow(self, sid, mac_addr):
         self._delete_dhcp_passthrough_flows(sid, mac_addr)
@@ -124,7 +145,7 @@ class UEMacAddressController(MagmaController):
 
     def _add_resubmit_flow(self, sid, match, action=None,
                            priority=flows.DEFAULT_PRIORITY,
-                           next_table=None):
+                           next_table=None, tbl_num=None):
         parser = self._datapath.ofproto_parser
 
         if action is None:
@@ -133,12 +154,14 @@ class UEMacAddressController(MagmaController):
             actions = [action]
         if next_table is None:
             next_table = self.next_table
+        if tbl_num is None:
+            tbl_num = self.tbl_num
 
         # Add IMSI metadata
         actions.append(
             parser.NXActionRegLoad2(dst=IMSI_REG, value=encode_imsi(sid)))
 
-        flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num,
+        flows.add_resubmit_next_service_flow(self._datapath, tbl_num,
                                              match, actions=actions,
                                              priority=priority,
                                              resubmit_table=next_table)
