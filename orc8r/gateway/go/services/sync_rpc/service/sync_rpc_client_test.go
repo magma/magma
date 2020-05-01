@@ -12,10 +12,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"magma/gateway/service_registry"
-	"magma/orc8r/lib/go/protos"
-	"magma/orc8r/lib/go/registry"
-
 	"net"
 	"strings"
 	"testing"
@@ -23,6 +19,10 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
+
+	"magma/gateway/service_registry"
+	"magma/orc8r/lib/go/protos"
+	"magma/orc8r/lib/go/registry"
 )
 
 type testSyncRpcService struct {

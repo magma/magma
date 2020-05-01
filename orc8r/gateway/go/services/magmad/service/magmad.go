@@ -37,35 +37,39 @@ type magmadService struct {
 }
 
 func (m *magmadService) StartServices(context.Context, *protos.Void) (*protos.Void, error) {
-	var resErrs *errors.MultiError
+	resErrs := errors.NewMulti()
 	sm := service_manager.Get()
 	for _, srv := range getServices() {
-		resErrs.Add(sm.Start(srv))
+		log.Printf("Starting service '%s'", srv)
+		resErrs = resErrs.AddFmt(sm.Start(srv), "service '%s' start error:", srv)
 	}
-	return &protos.Void{}, resErrs
+	return &protos.Void{}, resErrs.AsError()
 }
 
 func (m *magmadService) StopServices(context.Context, *protos.Void) (*protos.Void, error) {
-	var resErrs *errors.MultiError
+	resErrs := errors.NewMulti()
 	sm := service_manager.Get()
 	for _, srv := range getServices() {
-		resErrs.Add(sm.Stop(srv))
+		log.Printf("Stopping service '%s'", srv)
+		resErrs = resErrs.AddFmt(sm.Stop(srv), "service '%s' stop error:", srv)
 	}
-	return &protos.Void{}, resErrs
+	return &protos.Void{}, resErrs.AsError()
 }
 
 func (m *magmadService) Reboot(context.Context, *protos.Void) (*protos.Void, error) {
+	log.Print("Rebooting Gateway")
 	go exec.Command("reboot").Run()
 	return &protos.Void{}, nil
 }
 
 func (m *magmadService) RestartServices(context.Context, *protos.RestartServicesRequest) (*protos.Void, error) {
-	var resErrs *errors.MultiError
+	resErrs := errors.NewMulti()
 	sm := service_manager.Get()
 	for _, srv := range getServices() {
-		resErrs.Add(sm.Restart(srv))
+		log.Printf("Restarting service '%s'", srv)
+		resErrs = resErrs.AddFmt(sm.Restart(srv), "service '%s' restart error:", srv)
 	}
-	return &protos.Void{}, resErrs
+	return &protos.Void{}, resErrs.AsError()
 }
 
 func (m *magmadService) GetConfigs(context.Context, *protos.Void) (*protos.GatewayConfigs, error) {
