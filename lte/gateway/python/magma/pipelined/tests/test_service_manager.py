@@ -106,11 +106,11 @@ class ServiceManagerTest(unittest.TestCase):
         self.assertEqual(self.service_manager.allocate_scratch_tables(
             EnforcementController.APP_NAME, 2), [22, 23])
 
-        # There are a total of 255 tables. First 20 tables are reserved as
+        # There are a total of 200 tables. First 20 tables are reserved as
         # main tables and 3 scratch tables are allocated above.
         with self.assertRaises(TableNumException):
             self.service_manager.allocate_scratch_tables(
-                EnforcementController.APP_NAME, 255 - 20 - 3)
+                EnforcementController.APP_NAME, 200 - 20 - 3)
 
     def test_get_scratch_table_nums(self):
         enforcement_scratch = \
