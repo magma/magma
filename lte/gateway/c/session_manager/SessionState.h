@@ -19,7 +19,7 @@
 #include "StoredState.h"
 
 namespace magma {
-
+static SessionStateUpdateCriteria UNUSED_UPDATE_CRITERIA;
 /**
  * SessionState keeps track of a current UE session in the PCEF, recording
  * usage and allowance for all charging keys
@@ -52,10 +52,6 @@ class SessionState {
       const StoredSessionState& marshaled, StaticRuleStore& rule_store);
 
   StoredSessionState marshal();
-
-  SessionConfig marshal_config();
-
-  void unmarshal_config(const SessionConfig& marshaled);
 
   /**
    * notify_new_report_for_sessions sets the state of terminating session to
@@ -194,6 +190,8 @@ class SessionState {
 
   void set_config(const SessionConfig& config);
 
+  SessionConfig get_config() ;
+
   void fill_protos_tgpp_context(magma::lte::TgppContext* tgpp_context) const;
 
   void set_subscriber_quota_state(
@@ -237,7 +235,9 @@ class SessionState {
 
   uint32_t get_credit_key_count();
 
-  void set_fsm_state(SessionFsmState new_state);
+  void set_fsm_state(
+    SessionFsmState new_state,
+    SessionStateUpdateCriteria& uc = UNUSED_UPDATE_CRITERIA);
 
  private:
   std::string imsi_;
