@@ -233,6 +233,7 @@ class SessionState {
   DynamicRuleStore& get_dynamic_rules();
 
   uint32_t total_monitored_rules_count();
+
   bool is_active();
 
   uint32_t get_credit_key_count();
@@ -289,6 +290,9 @@ class SessionState {
       std::vector<std::unique_ptr<ServiceAction>>* actions_out,
       SessionStateUpdateCriteria& update_criteria,
       const bool force_update = false);
+
+  SessionTerminateRequest make_termination_request(
+    SessionStateUpdateCriteria& update_criteria);
 };
 
 }  // namespace magma

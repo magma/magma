@@ -265,28 +265,11 @@ void SessionState::complete_termination(
                  << ". Forcefully terminating session.";
   }
   // mark entire session as terminated
-  curr_state_ = SESSION_TERMINATED;
-  update_criteria.is_fsm_updated = true;
-  update_criteria.updated_fsm_state = SESSION_TERMINATED;
-  SessionTerminateRequest termination;
-  termination.set_sid(imsi_);
-  termination.set_session_id(session_id_);
-  termination.set_request_number(request_number_);
-  termination.set_ue_ipv4(config_.ue_ipv4);
-  termination.set_msisdn(config_.msisdn);
-  termination.set_spgw_ipv4(config_.spgw_ipv4);
-  termination.set_apn(config_.apn);
-  termination.set_imei(config_.imei);
-  termination.set_plmn_id(config_.plmn_id);
-  termination.set_imsi_plmn_id(config_.imsi_plmn_id);
-  termination.set_user_location(config_.user_location);
-  termination.set_hardware_addr(config_.hardware_addr);
-  termination.set_rat_type(config_.rat_type);
-  fill_protos_tgpp_context(termination.mutable_tgpp_ctx());
-  monitor_pool_.get_termination_updates(&termination, update_criteria);
-  charging_pool_.get_termination_updates(&termination, update_criteria);
+  set_fsm_state(SESSION_TERMINATED);
+
+  auto termination_req = make_termination_request(update_criteria);
   try {
-    on_termination_callback_(termination);
+    on_termination_callback_(termination_req);
   } catch (std::bad_function_call&) {
     MLOG(MERROR) << "Missing termination callback function while terminating "
                     "session for IMSI "
@@ -307,36 +290,41 @@ void SessionState::complete_termination(
                  << ". Forcefully terminating session.";
   }
   // mark entire session as terminated
-  curr_state_ = SESSION_TERMINATED;
-  update_criteria.is_fsm_updated = true;
-  update_criteria.updated_fsm_state = SESSION_TERMINATED;
-  SessionTerminateRequest termination;
-  termination.set_sid(imsi_);
-  termination.set_session_id(session_id_);
-  termination.set_request_number(request_number_);
-  termination.set_ue_ipv4(config_.ue_ipv4);
-  termination.set_msisdn(config_.msisdn);
-  termination.set_spgw_ipv4(config_.spgw_ipv4);
-  termination.set_apn(config_.apn);
-  termination.set_imei(config_.imei);
-  termination.set_plmn_id(config_.plmn_id);
-  termination.set_imsi_plmn_id(config_.imsi_plmn_id);
-  termination.set_user_location(config_.user_location);
-  termination.set_hardware_addr(config_.hardware_addr);
-  termination.set_rat_type(config_.rat_type);
-  fill_protos_tgpp_context(termination.mutable_tgpp_ctx());
-  monitor_pool_.get_termination_updates(&termination, update_criteria);
-  charging_pool_.get_termination_updates(&termination, update_criteria);
+  set_fsm_state(SESSION_TERMINATED);
+
+  auto termination_req = make_termination_request(update_criteria);
   try {
-    on_termination_callback_(termination);
+    on_termination_callback_(termination_req);
   } catch (std::bad_function_call&) {
     on_termination_callback_ = [&reporter](SessionTerminateRequest term_req) {
       // report to cloud
       auto logging_cb = SessionReporter::get_terminate_logging_cb(term_req);
       reporter.report_terminate_session(term_req, logging_cb);
     };
-    on_termination_callback_(termination);
+    on_termination_callback_(termination_req);
   }
+}
+
+SessionTerminateRequest SessionState::make_termination_request(
+  SessionStateUpdateCriteria& update_criteria) {
+  SessionTerminateRequest req;
+  req.set_sid(imsi_);
+  req.set_session_id(session_id_);
+  req.set_request_number(request_number_);
+  req.set_ue_ipv4(config_.ue_ipv4);
+  req.set_msisdn(config_.msisdn);
+  req.set_spgw_ipv4(config_.spgw_ipv4);
+  req.set_apn(config_.apn);
+  req.set_imei(config_.imei);
+  req.set_plmn_id(config_.plmn_id);
+  req.set_imsi_plmn_id(config_.imsi_plmn_id);
+  req.set_user_location(config_.user_location);
+  req.set_hardware_addr(config_.hardware_addr);
+  req.set_rat_type(config_.rat_type);
+  fill_protos_tgpp_context(req.mutable_tgpp_ctx());
+  monitor_pool_.get_termination_updates(&req, update_criteria);
+  charging_pool_.get_termination_updates(&req, update_criteria);
+  return req;
 }
 
 ChargingCreditPool& SessionState::get_charging_pool() {
@@ -576,7 +564,7 @@ uint32_t SessionState::get_credit_key_count() {
 }
 
 bool SessionState::is_active() {
-  return (curr_state_ == SESSION_ACTIVE);
+  return curr_state_ == SESSION_ACTIVE;
 }
 
 void SessionState::set_fsm_state(SessionFsmState new_state) {
