@@ -102,6 +102,11 @@ bool SessionStore::update_sessions(const SessionUpdate& update_criteria) {
 bool SessionStore::merge_into_session(
     std::unique_ptr<SessionState>& session,
     const SessionStateUpdateCriteria& update_criteria) {
+  // FSM State
+  if (update_criteria.is_fsm_updated) {
+    session->set_fsm_state(update_criteria.updated_fsm_state);
+  }
+
   // Config
   if (update_criteria.is_config_updated) {
     session->unmarshal_config(update_criteria.updated_config);

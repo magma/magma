@@ -63,7 +63,7 @@ class SessionState {
    * flows for the terminating session is in the latest report.
    * Should be called before add_used_credit.
    */
-  void new_report();
+  void new_report(SessionStateUpdateCriteria& update_criteria);
 
   /**
    * notify_finish_report_for_sessions updates the state of aggregating session
@@ -71,7 +71,7 @@ class SessionState {
    * to specify its flows are deleted and termination can be completed.
    * Should be called after notify_new_report_for_sessions and add_used_credit.
    */
-  void finish_report();
+  void finish_report(SessionStateUpdateCriteria& update_criteria);
 
   /**
    * add_used_credit adds used TX/RX bytes to a particular charging key
@@ -237,50 +237,16 @@ class SessionState {
 
   uint32_t get_credit_key_count();
 
- private:
-  /**
-   * State transitions of a session:
-   * SESSION_ACTIVE  ---------
-   *       |                  \
-   *       |                   \
-   *       |                    \
-   *       |                     \
-   *       | (start_termination)  SESSION_TERMINATION_SCHEDULED
-   *       |                      /
-   *       |                     /
-   *       |                    /
-   *       V                   V
-   * SESSION_TERMINATING_FLOW_ACTIVE <----------
-   *       |                                   |
-   *       | (notify_new_report_for_sessions)  | (add_used_credit)
-   *       V                                   |
-   * SESSION_TERMINATING_AGGREGATING_STATS -----
-   *       |
-   *       | (notify_finish_report_for_sessions)
-   *       V
-   * SESSION_TERMINATING_FLOW_DELETED
-   *       |
-   *       | (complete_termination)
-   *       V
-   * SESSION_TERMINATED
-   */
-  enum State {
-    SESSION_ACTIVE                        = 0,
-    SESSION_TERMINATING_FLOW_ACTIVE       = 1,
-    SESSION_TERMINATING_AGGREGATING_STATS = 2,
-    SESSION_TERMINATING_FLOW_DELETED      = 3,
-    SESSION_TERMINATED                    = 4,
-    // TODO All sessions in this state should be terminated on sessiond restart
-    SESSION_TERMINATION_SCHEDULED = 5
-  };
+  void set_fsm_state(SessionFsmState new_state);
 
+ private:
   std::string imsi_;
   std::string session_id_;
   std::string core_session_id_;
   uint32_t request_number_;
   ChargingCreditPool charging_pool_;
   UsageMonitoringCreditPool monitor_pool_;
-  SessionState::State curr_state_;
+  SessionFsmState curr_state_;
   SessionConfig config_;
   // Used to keep track of whether the subscriber has valid quota.
   // (only used for CWF at the moment)
