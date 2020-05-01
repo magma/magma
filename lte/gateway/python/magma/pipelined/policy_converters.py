@@ -9,7 +9,6 @@ import ipaddress
 
 from lte.protos.policydb_pb2 import FlowMatch
 from magma.pipelined.openflow.magma_match import MagmaMatch
-from magma.pipelined.openflow.registers import Direction
 
 from ryu.lib.packet import ether_types
 
