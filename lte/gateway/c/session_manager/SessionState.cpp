@@ -29,6 +29,7 @@ std::unique_ptr<SessionState> SessionState::unmarshal(
 StoredSessionState SessionState::marshal() {
   StoredSessionState marshaled{};
 
+  marshaled.fsm_state              = curr_state_;
   marshaled.config                 = marshal_config();
   marshaled.charging_pool          = charging_pool_.marshal();
   marshaled.monitor_pool           = monitor_pool_.marshal();
@@ -66,6 +67,8 @@ SessionState::SessionState(
       monitor_pool_(std::move(
           *UsageMonitoringCreditPool::unmarshal(marshaled.monitor_pool))),
       static_rules_(rule_store) {
+
+  curr_state_ = marshaled.fsm_state;
   config_ = marshaled.config;
 
   imsi_                   = marshaled.imsi;
@@ -98,15 +101,19 @@ SessionState::SessionState(
       tgpp_context_(tgpp_context),
       static_rules_(rule_store) {}
 
-void SessionState::new_report() {
+void SessionState::new_report(SessionStateUpdateCriteria& update_criteria) {
   if (curr_state_ == SESSION_TERMINATING_FLOW_ACTIVE) {
     curr_state_ = SESSION_TERMINATING_AGGREGATING_STATS;
+    update_criteria.is_fsm_updated = true;
+    update_criteria.updated_fsm_state = SESSION_TERMINATING_AGGREGATING_STATS;
   }
 }
 
-void SessionState::finish_report() {
+void SessionState::finish_report(SessionStateUpdateCriteria& update_criteria) {
   if (curr_state_ == SESSION_TERMINATING_AGGREGATING_STATS) {
     curr_state_ = SESSION_TERMINATING_FLOW_DELETED;
+    update_criteria.is_fsm_updated = true;
+    update_criteria.updated_fsm_state = SESSION_TERMINATING_FLOW_DELETED;
   }
 }
 
@@ -115,6 +122,8 @@ void SessionState::add_used_credit(
     SessionStateUpdateCriteria& update_criteria) {
   if (curr_state_ == SESSION_TERMINATING_AGGREGATING_STATS) {
     curr_state_ = SESSION_TERMINATING_FLOW_ACTIVE;
+    update_criteria.is_fsm_updated = true;
+    update_criteria.updated_fsm_state = SESSION_TERMINATING_FLOW_ACTIVE;
   }
 
   CreditKey charging_key;
@@ -219,6 +228,8 @@ void SessionState::get_updates(
 void SessionState::start_termination(
     SessionStateUpdateCriteria& update_criteria) {
   curr_state_ = SESSION_TERMINATING_FLOW_ACTIVE;
+  update_criteria.is_fsm_updated = true;
+  update_criteria.updated_fsm_state = SESSION_TERMINATING_FLOW_ACTIVE;
 }
 
 void SessionState::set_termination_callback(
@@ -233,6 +244,8 @@ bool SessionState::can_complete_termination() const {
 void SessionState::mark_as_awaiting_termination(
     SessionStateUpdateCriteria& update_criteria) {
   curr_state_ = SESSION_TERMINATION_SCHEDULED;
+  update_criteria.is_fsm_updated = true;
+  update_criteria.updated_fsm_state = SESSION_TERMINATION_SCHEDULED;
 }
 
 SubscriberQuotaUpdate_Type SessionState::get_subscriber_quota_state() const {
@@ -253,6 +266,8 @@ void SessionState::complete_termination(
   }
   // mark entire session as terminated
   curr_state_ = SESSION_TERMINATED;
+  update_criteria.is_fsm_updated = true;
+  update_criteria.updated_fsm_state = SESSION_TERMINATED;
   SessionTerminateRequest termination;
   termination.set_sid(imsi_);
   termination.set_session_id(session_id_);
@@ -293,6 +308,8 @@ void SessionState::complete_termination(
   }
   // mark entire session as terminated
   curr_state_ = SESSION_TERMINATED;
+  update_criteria.is_fsm_updated = true;
+  update_criteria.updated_fsm_state = SESSION_TERMINATED;
   SessionTerminateRequest termination;
   termination.set_sid(imsi_);
   termination.set_session_id(session_id_);
@@ -560,5 +577,9 @@ uint32_t SessionState::get_credit_key_count() {
 
 bool SessionState::is_active() {
   return (curr_state_ == SESSION_ACTIVE);
+}
+
+void SessionState::set_fsm_state(SessionFsmState new_state) {
+  curr_state_ = new_state;
 }
 }  // namespace magma

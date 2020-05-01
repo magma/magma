@@ -248,18 +248,19 @@ TEST_F(SessionStateTest, test_can_complete_termination) {
   EXPECT_EQ(session_state->can_complete_termination(), false);
 
   // If the rule is still being reported, termination should not be completed.
-  session_state->new_report();
+  auto _uc = get_default_update_criteria();
+  session_state->new_report(_uc);
   EXPECT_EQ(session_state->can_complete_termination(), false);
   session_state->add_used_credit("rule1", 100, 100, update_criteria);
   EXPECT_EQ(session_state->can_complete_termination(), false);
   EXPECT_EQ(update_criteria.monitor_credit_map.size(), 0);
-  session_state->finish_report();
+  session_state->finish_report(_uc);
   EXPECT_EQ(session_state->can_complete_termination(), false);
 
   // The rule is not reported, termination can be completed.
-  session_state->new_report();
+  session_state->new_report(_uc);
   EXPECT_EQ(session_state->can_complete_termination(), false);
-  session_state->finish_report();
+  session_state->finish_report(_uc);
   EXPECT_EQ(session_state->can_complete_termination(), true);
 
   // Termination should only be completed once.

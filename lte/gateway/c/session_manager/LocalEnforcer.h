@@ -245,7 +245,8 @@ class LocalEnforcer {
    * report is going to be
    * aggregated.
    */
-  void notify_new_report_for_sessions(SessionMap& session_map);
+  void notify_new_report_for_sessions(
+      SessionMap& session_map, SessionUpdate &session_update);
 
   /**
    * notify_finish_report_for_sessions notifies all sessions that the
