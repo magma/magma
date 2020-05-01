@@ -298,7 +298,8 @@ void LocalEnforcer::terminate_service(
     // terminate the session.
     evb_->runAfterDelay(
         [this, imsi, session_id] {
-          MLOG(MDEBUG) << "Forced service termination for " << imsi;
+          MLOG(MDEBUG) << "Checking if termination has to be forced for "
+                       << imsi;
           SessionRead req = {imsi};
           auto session_map = session_store_.read_sessions_for_deletion(req);
           auto session_update =
@@ -1626,7 +1627,7 @@ void LocalEnforcer::handle_cwf_roaming(SessionMap &session_map,
       auto &update_criteria = session_update[imsi][session->get_session_id()];
       session->set_config(config);
       update_criteria.is_config_updated = true;
-      update_criteria.updated_config = session->marshal_config();
+      update_criteria.updated_config = session->get_config();
       // TODO Check for event triggers and send updates to the core if needed
       MLOG(MDEBUG) << "Updating IPFIX flow for subscriber " << imsi;
       SubscriberID sid;
