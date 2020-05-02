@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 0d241eec1510a169c1811e3be9cd86e9
+ * @relayHash 6e71c418ddf16e72c00d0021f5a551d0
  */
 
 /* eslint-disable */
@@ -143,7 +143,7 @@ query UserManagementContextQuery {
       hasNextPage
     }
   }
-  permissionsPolicies(first: 50) {
+  permissionsPolicies(first: 500) {
     edges {
       node {
         id
@@ -168,7 +168,13 @@ query UserManagementContextQuery {
         groups {
           id
         }
+        __typename
       }
+      cursor
+    }
+    pageInfo {
+      endCursor
+      hasNextPage
     }
   }
 }
@@ -390,21 +396,14 @@ v9 = [
   },
   (v6/*: any*/)
 ],
-v10 = [
-  {
-    "kind": "Literal",
-    "name": "first",
-    "value": 50
-  }
-],
-v11 = {
+v10 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "isGlobal",
   "args": null,
   "storageKey": null
 },
-v12 = [
+v11 = [
   (v4/*: any*/),
   {
     "kind": "LinkedField",
@@ -425,17 +424,17 @@ v12 = [
     ]
   }
 ],
-v13 = {
+v12 = {
   "kind": "InlineFragment",
   "type": "InventoryPolicy",
-  "selections": (v12/*: any*/)
+  "selections": (v11/*: any*/)
 },
-v14 = {
+v13 = {
   "kind": "InlineFragment",
   "type": "WorkforcePolicy",
-  "selections": (v12/*: any*/)
+  "selections": (v11/*: any*/)
 },
-v15 = {
+v14 = {
   "kind": "LinkedField",
   "alias": null,
   "name": "groups",
@@ -447,7 +446,7 @@ v15 = {
     (v0/*: any*/)
   ]
 },
-v16 = [
+v15 = [
   {
     "kind": "Literal",
     "name": "first",
@@ -485,10 +484,10 @@ return {
       },
       {
         "kind": "LinkedField",
-        "alias": null,
-        "name": "permissionsPolicies",
-        "storageKey": "permissionsPolicies(first:50)",
-        "args": (v10/*: any*/),
+        "alias": "permissionsPolicies",
+        "name": "__UserManagementContext_permissionsPolicies_connection",
+        "storageKey": null,
+        "args": null,
         "concreteType": "PermissionsPolicyConnection",
         "plural": false,
         "selections": [
@@ -513,7 +512,7 @@ return {
                   (v0/*: any*/),
                   (v3/*: any*/),
                   (v8/*: any*/),
-                  (v11/*: any*/),
+                  (v10/*: any*/),
                   {
                     "kind": "LinkedField",
                     "alias": null,
@@ -523,15 +522,18 @@ return {
                     "concreteType": null,
                     "plural": false,
                     "selections": [
-                      (v13/*: any*/),
-                      (v14/*: any*/)
+                      (v12/*: any*/),
+                      (v13/*: any*/)
                     ]
                   },
-                  (v15/*: any*/)
+                  (v14/*: any*/),
+                  (v4/*: any*/)
                 ]
-              }
+              },
+              (v5/*: any*/)
             ]
-          }
+          },
+          (v6/*: any*/)
         ]
       }
     ]
@@ -546,7 +548,7 @@ return {
         "alias": null,
         "name": "users",
         "storageKey": "users(first:500)",
-        "args": (v16/*: any*/),
+        "args": (v15/*: any*/),
         "concreteType": "UserConnection",
         "plural": false,
         "selections": (v7/*: any*/)
@@ -555,7 +557,7 @@ return {
         "kind": "LinkedHandle",
         "alias": null,
         "name": "users",
-        "args": (v16/*: any*/),
+        "args": (v15/*: any*/),
         "handle": "connection",
         "key": "UserManagementContext_users",
         "filters": null
@@ -565,7 +567,7 @@ return {
         "alias": null,
         "name": "usersGroups",
         "storageKey": "usersGroups(first:500)",
-        "args": (v16/*: any*/),
+        "args": (v15/*: any*/),
         "concreteType": "UsersGroupConnection",
         "plural": false,
         "selections": (v9/*: any*/)
@@ -574,7 +576,7 @@ return {
         "kind": "LinkedHandle",
         "alias": null,
         "name": "usersGroups",
-        "args": (v16/*: any*/),
+        "args": (v15/*: any*/),
         "handle": "connection",
         "key": "UserManagementContext_usersGroups",
         "filters": null
@@ -583,8 +585,8 @@ return {
         "kind": "LinkedField",
         "alias": null,
         "name": "permissionsPolicies",
-        "storageKey": "permissionsPolicies(first:50)",
-        "args": (v10/*: any*/),
+        "storageKey": "permissionsPolicies(first:500)",
+        "args": (v15/*: any*/),
         "concreteType": "PermissionsPolicyConnection",
         "plural": false,
         "selections": [
@@ -609,7 +611,7 @@ return {
                   (v0/*: any*/),
                   (v3/*: any*/),
                   (v8/*: any*/),
-                  (v11/*: any*/),
+                  (v10/*: any*/),
                   {
                     "kind": "LinkedField",
                     "alias": null,
@@ -620,16 +622,28 @@ return {
                     "plural": false,
                     "selections": [
                       (v4/*: any*/),
-                      (v13/*: any*/),
-                      (v14/*: any*/)
+                      (v12/*: any*/),
+                      (v13/*: any*/)
                     ]
                   },
-                  (v15/*: any*/)
+                  (v14/*: any*/),
+                  (v4/*: any*/)
                 ]
-              }
+              },
+              (v5/*: any*/)
             ]
-          }
+          },
+          (v6/*: any*/)
         ]
+      },
+      {
+        "kind": "LinkedHandle",
+        "alias": null,
+        "name": "permissionsPolicies",
+        "args": (v15/*: any*/),
+        "handle": "connection",
+        "key": "UserManagementContext_permissionsPolicies",
+        "filters": null
       }
     ]
   },
@@ -637,7 +651,7 @@ return {
     "operationKind": "query",
     "name": "UserManagementContextQuery",
     "id": null,
-    "text": "query UserManagementContextQuery {\n  users(first: 500) {\n    edges {\n      node {\n        id\n        authID\n        firstName\n        lastName\n        email\n        status\n        role\n        groups {\n          id\n          name\n        }\n        profilePhoto {\n          id\n          fileName\n          storeKey\n        }\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n  usersGroups(first: 500) {\n    edges {\n      node {\n        id\n        name\n        description\n        status\n        members {\n          id\n          authID\n        }\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n  permissionsPolicies(first: 50) {\n    edges {\n      node {\n        id\n        name\n        description\n        isGlobal\n        policy {\n          __typename\n          ... on InventoryPolicy {\n            __typename\n            read {\n              isAllowed\n            }\n          }\n          ... on WorkforcePolicy {\n            __typename\n            read {\n              isAllowed\n            }\n          }\n        }\n        groups {\n          id\n        }\n      }\n    }\n  }\n}\n",
+    "text": "query UserManagementContextQuery {\n  users(first: 500) {\n    edges {\n      node {\n        id\n        authID\n        firstName\n        lastName\n        email\n        status\n        role\n        groups {\n          id\n          name\n        }\n        profilePhoto {\n          id\n          fileName\n          storeKey\n        }\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n  usersGroups(first: 500) {\n    edges {\n      node {\n        id\n        name\n        description\n        status\n        members {\n          id\n          authID\n        }\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n  permissionsPolicies(first: 500) {\n    edges {\n      node {\n        id\n        name\n        description\n        isGlobal\n        policy {\n          __typename\n          ... on InventoryPolicy {\n            __typename\n            read {\n              isAllowed\n            }\n          }\n          ... on WorkforcePolicy {\n            __typename\n            read {\n              isAllowed\n            }\n          }\n        }\n        groups {\n          id\n        }\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n}\n",
     "metadata": {
       "connection": [
         {
@@ -655,6 +669,14 @@ return {
           "path": [
             "usersGroups"
           ]
+        },
+        {
+          "count": null,
+          "cursor": null,
+          "direction": "forward",
+          "path": [
+            "permissionsPolicies"
+          ]
         }
       ]
     }
@@ -662,5 +684,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '56171ca23ab1603c02d52d42097d2cf7';
+(node/*: any*/).hash = '065678b56d20e6737426839b9bc05040';
 module.exports = node;

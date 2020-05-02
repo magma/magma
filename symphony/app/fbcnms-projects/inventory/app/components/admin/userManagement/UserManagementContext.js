@@ -11,6 +11,7 @@
 
 // flowlint untyped-import:off
 
+import type {AddPermissionsPolicyMutationResponse} from '../../../mutations/__generated__/AddPermissionsPolicyMutation.graphql';
 import type {AddUsersGroupMutationResponse} from '../../../mutations/__generated__/AddUsersGroupMutation.graphql';
 import type {DeleteUsersGroupMutationResponse} from '../../../mutations/__generated__/DeleteUsersGroupMutation.graphql';
 import type {EditUserMutationResponse} from '../../../mutations/__generated__/EditUserMutation.graphql';
@@ -31,6 +32,7 @@ import type {UserManagementContext_UserQuery} from './__generated__/UserManageme
 import type {UsersMap} from './utils/UserManagementUtils';
 
 import * as React from 'react';
+import AddPermissionsPolicyMutation from '../../../mutations/AddPermissionsPolicyMutation';
 import AddUsersGroupMutation from '../../../mutations/AddUsersGroupMutation';
 import DeleteUsersGroupMutation from '../../../mutations/DeleteUsersGroupMutation';
 import EditUserMutation from '../../../mutations/EditUserMutation';
@@ -42,18 +44,20 @@ import axios from 'axios';
 import nullthrows from 'nullthrows';
 import {ConnectionHandler, fetchQuery, graphql} from 'relay-runtime';
 import {LogEvents, ServerLogger} from '../../../common/LoggingUtils';
-import {RelayEnvironmentProvider} from 'react-relay/hooks';
-import {Suspense} from 'react';
-import {USER_ROLES} from './utils/UserManagementUtils';
-import {getGraphError} from '../../../common/EntUtils';
 import {
+  POLICY_TYPES,
+  USER_ROLES,
   groupResponse2Group,
   groupsResponse2Groups,
   permissionsPoliciesResponse2PermissionsPolicies,
+  permissionsPolicyResponse2PermissionsPolicy,
   userResponse2User,
   users2UsersMap,
   usersResponse2Users,
 } from './utils/UserManagementUtils';
+import {RelayEnvironmentProvider} from 'react-relay/hooks';
+import {Suspense} from 'react';
+import {getGraphError} from '../../../common/EntUtils';
 import {useContext} from 'react';
 import {useLazyLoadQuery} from 'react-relay/hooks';
 
@@ -335,6 +339,82 @@ const addGroup = (usersMap: UsersMap) => (
   });
 };
 
+const addPermissionsPolicy = (newPolicyValue: PermissionsPolicy) => {
+  return new Promise<PermissionsPolicy>((resolve, reject) => {
+    const callbacks: MutationCallbacks<AddPermissionsPolicyMutationResponse> = {
+      onCompleted: (response, errors) => {
+        if (errors && errors[0]) {
+          reject(getGraphError(errors[0]));
+        }
+        resolve(
+          permissionsPolicyResponse2PermissionsPolicy(
+            response.addPermissionsPolicy,
+          ),
+        );
+      },
+      onError: e => {
+        reject(getGraphError(e));
+      },
+    };
+
+    const addNewPolicyToStore = store => {
+      const rootQuery = store.getRoot();
+      const newNode = store.getRootField('addPermissionsPolicy');
+      if (newNode == null) {
+        return;
+      }
+      const policies = ConnectionHandler.getConnection(
+        rootQuery,
+        'UserManagementContext_permissionsPolicies',
+      );
+      if (policies == null) {
+        return;
+      }
+      const edge = ConnectionHandler.createEdge(
+        store,
+        policies,
+        newNode,
+        'PermisionsPolicyEdge',
+      );
+      ConnectionHandler.insertEdgeAfter(policies, edge);
+    };
+    AddPermissionsPolicyMutation(
+      {
+        input: {
+          name: newPolicyValue.name,
+          description: newPolicyValue.description,
+          inventoryInput:
+            newPolicyValue.type == POLICY_TYPES.InventoryPolicy.key
+              ? {
+                  read: {
+                    isAllowed: 'YES',
+                  },
+                }
+              : null,
+          workforceInput:
+            newPolicyValue.type == POLICY_TYPES.WorkforcePolicy.key
+              ? {
+                  read: {
+                    isAllowed: 'YES',
+                  },
+                }
+              : null,
+        },
+      },
+      callbacks,
+      addNewPolicyToStore,
+    );
+  });
+};
+
+const editPermissionsPolicy = (_newPolicyValue: PermissionsPolicy) => {
+  return Promise.reject('not implemented yet');
+};
+
+const deletePermissionsPolicy = (_poilicyId: string) => {
+  return Promise.reject('not implemented yet');
+};
+
 type UserManagementContextValue = {
   policies: Array<PermissionsPolicy>,
   groups: Array<UserPermissionsGroup>,
@@ -358,6 +438,9 @@ type UserManagementContextValue = {
     addUserIds: Array<string>,
     removeUserIds: Array<string>,
   ) => Promise<UserPermissionsGroup>,
+  addPermissionsPolicy: PermissionsPolicy => Promise<PermissionsPolicy>,
+  editPermissionsPolicy: PermissionsPolicy => Promise<PermissionsPolicy>,
+  deletePermissionsPolicy: (id: string) => Promise<void>,
 };
 
 const emptyUsersMap = new Map<string, User>();
@@ -374,6 +457,9 @@ const UserManagementContext = React.createContext<UserManagementContextValue>({
   editGroup: editGroup(emptyUsersMap),
   deleteGroup,
   updateGroupMembers: updateGroupMembers(emptyUsersMap),
+  addPermissionsPolicy,
+  editPermissionsPolicy,
+  deletePermissionsPolicy,
 });
 
 type Props = {
@@ -419,7 +505,8 @@ const dataQuery = graphql`
         }
       }
     }
-    permissionsPolicies(first: 50) {
+    permissionsPolicies(first: 500)
+      @connection(key: "UserManagementContext_permissionsPolicies") {
       edges {
         node {
           id
@@ -463,6 +550,9 @@ function ProviderWrap(props: Props) {
     editGroup: editGroup(usersMap),
     deleteGroup,
     updateGroupMembers: updateGroupMembers(usersMap),
+    addPermissionsPolicy,
+    editPermissionsPolicy,
+    deletePermissionsPolicy,
   });
 
   const data = useLazyLoadQuery<UserManagementContextQuery>(dataQuery);

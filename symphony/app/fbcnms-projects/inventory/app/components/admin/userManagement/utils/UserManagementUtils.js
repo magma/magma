@@ -103,7 +103,7 @@ export const GROUP_STATUSES: KeyValueEnum<UsersGroupStatus> = {
   },
 };
 
-type PolicyTypes = 'InventoryPolicy' | 'WorkforcePolicy';
+export type PolicyTypes = 'InventoryPolicy' | 'WorkforcePolicy' | '%other';
 export const POLICY_TYPES: KeyValueEnum<PolicyTypes> = {
   InventoryPolicy: {
     key: 'InventoryPolicy',
@@ -226,7 +226,7 @@ export type PermissionsPolicy = $ReadOnly<{|
   id: string,
   name: string,
   description: string,
-  type: string,
+  type: PolicyTypes,
   isGlobal: boolean,
   groups: Array<UserPermissionsGroup>,
 |}>;

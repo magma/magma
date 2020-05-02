@@ -21,12 +21,16 @@ import PermissionsGroupsView, {
 import PermissionsPoliciesView, {
   PERMISSION_POLICIES_VIEW_NAME,
 } from './policies/PermissionsPoliciesView';
+import PermissionsPolicyCard from './policies/PermissionsPolicyCard';
 import Strings from '@fbcnms/strings/Strings';
 import UsersView from './users/UsersView';
 import fbt from 'fbt';
-import {ButtonAction} from '@fbcnms/ui/components/design-system/View/ViewHeaderActions';
+import {
+  ButtonAction,
+  OptionsAction,
+} from '@fbcnms/ui/components/design-system/View/ViewHeaderActions';
 import {FormContextProvider} from '../../../common/FormContext';
-import {NEW_DIALOG_PARAM} from './utils/UserManagementUtils';
+import {NEW_DIALOG_PARAM, POLICY_TYPES} from './utils/UserManagementUtils';
 import {UserManagementContextProvider} from './UserManagementContext';
 import {useCallback, useContext, useMemo, useState} from 'react';
 import {useHistory, withRouter} from 'react-router-dom';
@@ -46,6 +50,10 @@ const UserManaementView = ({match}: Props) => {
     history,
     basePath,
   ]);
+  const gotoPoliciesPage = useCallback(
+    () => history.push(`${basePath}/policies`),
+    [history, basePath],
+  );
 
   const {isFeatureEnabled} = useContext(AppContext);
   const userManagementDevMode = isFeatureEnabled('user_management_dev');
@@ -110,30 +118,57 @@ const UserManaementView = ({match}: Props) => {
     ];
 
     if (userManagementDevMode) {
-      views.push({
-        routingPath: 'policies',
-        menuItem: {
-          label: PERMISSION_POLICIES_VIEW_NAME,
-          tooltip: `${PERMISSION_POLICIES_VIEW_NAME}`,
-        },
-        component: {
-          header: {
-            title: `${PERMISSION_POLICIES_VIEW_NAME}`,
-            subtitle: 'Manage policies and apply them to groups.',
-            actionButtons: [
-              <ButtonAction
-                action={() => history.push(`policy/${NEW_DIALOG_PARAM}`)}>
-                <fbt desc="">Create Policy</fbt>
-              </ButtonAction>,
-            ],
+      views.push(
+        {
+          routingPath: 'policies',
+          menuItem: {
+            label: PERMISSION_POLICIES_VIEW_NAME,
+            tooltip: `${PERMISSION_POLICIES_VIEW_NAME}`,
           },
-          children: <PermissionsPoliciesView />,
+          component: {
+            header: {
+              title: `${PERMISSION_POLICIES_VIEW_NAME}`,
+              subtitle: 'Manage policies and apply them to groups.',
+              actionButtons: [
+                <OptionsAction
+                  options={[
+                    POLICY_TYPES.InventoryPolicy,
+                    POLICY_TYPES.WorkforcePolicy,
+                  ].map(type => ({
+                    key: type.key,
+                    value: type.key,
+                    label: fbt(
+                      fbt.param('policy type', type.value) + ' Policy',
+                      'create policy of given type',
+                    ),
+                  }))}
+                  optionAction={typeKey => {
+                    history.push(`policy/${NEW_DIALOG_PARAM}?type=${typeKey}`);
+                  }}>
+                  <fbt desc="">Create Policy</fbt>
+                </OptionsAction>,
+              ],
+            },
+            children: <PermissionsPoliciesView />,
+          },
         },
-      });
+        {
+          routingPath: 'policy/:id',
+          component: {
+            children: (
+              <PermissionsPolicyCard
+                redirectToPoliciesView={gotoPoliciesPage}
+                onClose={gotoPoliciesPage}
+              />
+            ),
+          },
+          relatedMenuItemIndex: 3,
+        },
+      );
     }
 
     return views;
-  }, [gotoGroupsPage, history, userManagementDevMode]);
+  }, [gotoGroupsPage, gotoPoliciesPage, history, userManagementDevMode]);
 
   return (
     <UserManagementContextProvider>
