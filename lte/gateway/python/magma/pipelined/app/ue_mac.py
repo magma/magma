@@ -168,7 +168,7 @@ class UEMacAddressController(MagmaController):
                                              priority=priority,
                                              resubmit_table=next_table)
 
-    def _delete_resubmit_flow(self, sid, match, tbl_num=None, action=None):
+    def _delete_resubmit_flow(self, sid, match, action=None, tbl_num=None):
         parser = self._datapath.ofproto_parser
 
         if action is None:
