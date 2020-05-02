@@ -38,6 +38,7 @@ APP_PROTOS = {"facebook_messenger": 1, "instagram": 2, "youtube": 3,
 SERVICE_IDS = {"other": 0, "chat": 1, "audio": 2, "video": 3}
 DEFAULT_DPI_ID = 0
 
+
 class DPIController(MagmaController):
     """
     DPI controller.
