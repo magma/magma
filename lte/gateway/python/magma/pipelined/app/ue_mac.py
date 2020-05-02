@@ -103,20 +103,16 @@ class UEMacAddressController(MagmaController):
         self._add_resubmit_flow(sid, downlink_match,
                                 priority=flows.UE_FLOW_PRIORITY)
 
-        if not self._service_manager.is_app_enabled(IPFIXController.APP_NAME):
-            return
-        # For handling fake packt sampling
-        uplink_match = MagmaMatch(eth_src=mac_addr)
-        self._add_resubmit_flow(sid, uplink_match,
-                                priority=flows.UE_FLOW_PRIORITY,
-                                tbl_num=self._imsi_set_tbl_num,
-                                next_table=self._ipfix_sample_tbl_num)
-
-        downlink_match = MagmaMatch(eth_dst=mac_addr)
-        self._add_resubmit_flow(sid, downlink_match,
-                                priority=flows.UE_FLOW_PRIORITY,
-                                tbl_num=self._imsi_set_tbl_num,
-                                next_table=self._ipfix_sample_tbl_num)
+        # For handling internal ipfix pkt sampling
+        if self._service_manager.is_app_enabled(IPFIXController.APP_NAME):
+            self._add_resubmit_flow(sid, uplink_match,
+                                    priority=flows.UE_FLOW_PRIORITY,
+                                    tbl_num=self._imsi_set_tbl_num,
+                                    next_table=self._ipfix_sample_tbl_num)
+            self._add_resubmit_flow(sid, downlink_match,
+                                    priority=flows.UE_FLOW_PRIORITY,
+                                    tbl_num=self._imsi_set_tbl_num,
+                                    next_table=self._ipfix_sample_tbl_num)
 
     def delete_ue_mac_flow(self, sid, mac_addr):
         self._delete_dhcp_passthrough_flows(sid, mac_addr)
@@ -127,6 +123,12 @@ class UEMacAddressController(MagmaController):
 
         downlink_match = MagmaMatch(eth_dst=mac_addr)
         self._delete_resubmit_flow(sid, downlink_match)
+
+        if self._service_manager.is_app_enabled(IPFIXController.APP_NAME):
+            self._delete_resubmit_flow(sid, uplink_match,
+                                       tbl_num=self._imsi_set_tbl_num)
+            self._delete_resubmit_flow(sid, downlink_match,
+                                       tbl_num=self._imsi_set_tbl_num)
 
     def add_arp_response_flow(self, imsi, yiaddr, chaddr):
         if self.arp_contoller or self.arpd_controller_fut.done():
@@ -166,19 +168,21 @@ class UEMacAddressController(MagmaController):
                                              priority=priority,
                                              resubmit_table=next_table)
 
-    def _delete_resubmit_flow(self, sid, match, action=None):
+    def _delete_resubmit_flow(self, sid, match, tbl_num=None, action=None):
         parser = self._datapath.ofproto_parser
 
         if action is None:
             actions = []
         else:
             actions = [action]
+        if tbl_num is None:
+            tbl_num = self.tbl_num
 
         # Add IMSI metadata
         actions.append(
             parser.NXActionRegLoad2(dst=IMSI_REG, value=encode_imsi(sid)))
 
-        flows.delete_flow(self._datapath, self.tbl_num, match, actions=actions)
+        flows.delete_flow(self._datapath, tbl_num, match, actions=actions)
 
     def _add_dns_passthrough_flows(self, sid, mac_addr):
         parser = self._datapath.ofproto_parser

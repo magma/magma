@@ -124,7 +124,7 @@ li_mirror_all: false
 # Configuration for IPFIX sampling
 ipfix:
   enabled: false
-  probability: 650
+  probability: 65
   collector_set_id: 1
   cache_timeout: 60
   obs_domain_id: 1
