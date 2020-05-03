@@ -39,7 +39,10 @@ export default function UserAccountPane(props: Props) {
   const enqueueSnackbar = useEnqueueSnackbar();
 
   const handleError = error => {
-    enqueueSnackbar(error.response?.data?.error || error, {variant: 'error'});
+    enqueueSnackbar(error.response?.data?.error || error.message || error, {
+      variant: 'error',
+    });
+    throw error;
   };
 
   return (
@@ -53,14 +56,14 @@ export default function UserAccountPane(props: Props) {
         user={user}
         onChange={(user, password, currentPassword) => {
           if (isForCurrentUserSettings && currentPassword != null) {
-            userManagement
+            return userManagement
               .changeCurrentUserPassword(currentPassword, password)
               .catch(handleError);
-          } else {
-            userManagement
-              .changeUserPassword(user, password)
-              .catch(handleError);
           }
+          return userManagement
+            .changeUserPassword(user, password)
+            .then(() => undefined)
+            .catch(handleError);
         }}
       />
     </div>
