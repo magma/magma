@@ -11,6 +11,7 @@ package integration
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/feg/cloud/go/protos"
@@ -143,16 +144,19 @@ func TestGyCreditExhaustionWithCRRU(t *testing.T) {
 	}
 	assert.ElementsMatch(t, expectedResult, resultByIndex)
 
-	// When we initiate a UE disconnect, we expect a terminate request to go up
+	// When we use up all of the quota, we expect a termination request to go up.
 	terminateRequest := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_TERMINATION, 3)
 	terminateAnswer := protos.NewGyCCAnswer(diam.Success)
 	terminateExpectation := protos.NewGyCreditControlExpectation().Expect(terminateRequest).Return(terminateAnswer)
 	expectations = []*protos.GyCreditControlExpectation{terminateExpectation}
 	assert.NoError(t, setOCSExpectations(expectations, nil))
 
-	// we need to generate over 100% of the quota to trigger a session termination
+	// We need to generate over 100% of the quota to trigger a session termination
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
+	tr.WaitForEnforcementStatsToSync()
+
+	// Wait for flow deletion due to quota exhaustion
 	tr.WaitForEnforcementStatsToSync()
 
 	// Check that UE mac flow is removed
@@ -160,10 +164,6 @@ func TestGyCreditExhaustionWithCRRU(t *testing.T) {
 	assert.NoError(t, err)
 	record = recordsBySubID["IMSI"+ue.GetImsi()]["static-pass-all-ocs2"]
 	assert.Nil(t, record, fmt.Sprintf("Policy usage record for imsi: %v was not removed", ue.GetImsi()))
-
-	// trigger disconnection
-	tr.DisconnectAndAssertSuccess(ue.GetImsi())
-	tr.WaitForEnforcementStatsToSync()
 
 	// Assert that we saw a Terminate request
 	resultByIndex, errByIndex, err = getOCSAssertExpectationsResult()
@@ -212,13 +212,7 @@ func TestGyCreditExhaustionWithoutCRRU(t *testing.T) {
 	assert.NoError(t, setOCSExpectations(expectations, defaultUpdateAnswer))
 	tr.AuthenticateAndAssertSuccess(ue.GetImsi())
 
-	// we need to generate over 100% of the quota to trigger a session termination
-	req := &cwfprotos.GenTrafficRequest{Imsi: ue.GetImsi(), Volume: &wrappers.StringValue{Value: "5M"}}
-	_, err := tr.GenULTraffic(req)
-	assert.NoError(t, err)
-	tr.WaitForEnforcementStatsToSync()
-
-	// Assert that reasonable CCR-I was sent to OCS
+	// Assert that a CCR-I was sent to OCS
 	resultByIndex, errByIndex, err := getOCSAssertExpectationsResult()
 	assert.NoError(t, err)
 	assert.Empty(t, errByIndex)
@@ -234,14 +228,11 @@ func TestGyCreditExhaustionWithoutCRRU(t *testing.T) {
 	expectations = []*protos.GyCreditControlExpectation{terminateExpectation}
 	assert.NoError(t, setOCSExpectations(expectations, nil))
 
-	// Check that UE mac flow is removed
-	recordsBySubID, err := tr.GetPolicyUsage()
+	// we need to generate over 100% of the quota to trigger a session termination
+	req := &cwfprotos.GenTrafficRequest{Imsi: ue.GetImsi(), Volume: &wrappers.StringValue{Value: "5M"}}
+	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
-	record := recordsBySubID["IMSI"+ue.GetImsi()]["static-pass-all-ocs2"]
-	assert.Nil(t, record, fmt.Sprintf("Policy usage record for imsi: %v was removed", ue.GetImsi()))
-
-	// trigger disconnection
-	tr.DisconnectAndAssertSuccess(ue.GetImsi())
+	time.Sleep(5 * time.Second)
 	tr.WaitForEnforcementStatsToSync()
 
 	// Assert that we saw a Terminate request
@@ -252,4 +243,10 @@ func TestGyCreditExhaustionWithoutCRRU(t *testing.T) {
 		{ExpectationIndex: 0, ExpectationMet: true},
 	}
 	assert.ElementsMatch(t, expectedResult, resultByIndex)
+
+	// Check that enforcement stat flow is removed
+	recordsBySubID, err := tr.GetPolicyUsage()
+	assert.NoError(t, err)
+	record := recordsBySubID["IMSI"+ue.GetImsi()]["static-pass-all-ocs2"]
+	assert.Nil(t, record, fmt.Sprintf("Policy usage record for imsi: %v was removed", ue.GetImsi()))
 }

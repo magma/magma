@@ -37,13 +37,16 @@ func (userResolver) Groups(ctx context.Context, obj *ent.User) ([]*ent.UsersGrou
 }
 
 func (userResolver) Name(ctx context.Context, user *ent.User) (string, error) {
-	if user.FirstName == "" {
-		return user.LastName, nil
+	if user.FirstName != "" && user.LastName != "" {
+		return user.FirstName + " " + user.LastName, nil
 	}
-	if user.LastName == "" {
+	if user.FirstName != "" {
 		return user.FirstName, nil
 	}
-	return user.FirstName + " " + user.LastName, nil
+	if user.LastName != "" {
+		return user.LastName, nil
+	}
+	return user.Email, nil
 }
 
 func (r mutationResolver) EditUser(ctx context.Context, input models.EditUserInput) (*ent.User, error) {

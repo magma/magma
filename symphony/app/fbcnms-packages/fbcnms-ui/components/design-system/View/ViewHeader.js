@@ -7,19 +7,13 @@
  * @flow strict-local
  * @format
  */
-
-import type {ButtonProps} from '../Button';
-import type {IconButtonProps} from '../IconButton';
-import type {PermissionHandlingProps} from '@fbcnms/ui/components/design-system/Form/FormAction';
 import type {ToggleButtonProps} from '../ToggleButton/ToggleButtonGroup';
 
 import * as React from 'react';
-import Button from '@fbcnms/ui/components/design-system/Button';
-import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
-import IconButton from '../IconButton';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import ToggleButton from '../ToggleButton/ToggleButtonGroup';
 import classNames from 'classnames';
+import {ButtonAction, IconAction, OptionsAction} from './ViewHeaderActions';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(() => ({
@@ -76,30 +70,7 @@ const useStyles = makeStyles(() => ({
     alignItems: 'center',
     justifyContent: 'flex-end',
   },
-  actionButton: {
-    '&:not(:first-child)': {
-      marginLeft: '12px',
-    },
-  },
 }));
-
-export type ActionRegularButtonProps = {|
-  title: React.Node,
-  action: () => void,
-  className?: ?string,
-  ...PermissionHandlingProps,
-  ...ButtonProps,
-|};
-
-export type ActionIconButtonProps = {|
-  action: () => void,
-  ...PermissionHandlingProps,
-  ...IconButtonProps,
-|};
-
-export type ActionButtonProps =
-  | ActionRegularButtonProps
-  | ActionIconButtonProps;
 
 export type ViewHeaderProps = $ReadOnly<{|
   title: React.Node,
@@ -110,7 +81,11 @@ export type ViewHeaderProps = $ReadOnly<{|
 |}>;
 
 export type ViewHeaderActionsProps = $ReadOnly<{|
-  actionButtons?: Array<ActionButtonProps>,
+  actionButtons?: $ReadOnlyArray<
+    React.Element<
+      typeof OptionsAction | typeof IconAction | typeof ButtonAction,
+    >,
+  >,
 |}>;
 
 export type ViewHeaderOptionsProps = $ReadOnly<{|
@@ -123,71 +98,17 @@ export type FullViewHeaderProps = $ReadOnly<{|
   ...ViewHeaderOptionsProps,
 |}>;
 
-function FormHeaderAction(props: ActionButtonProps) {
-  const {
-    ignorePermissions,
-    hideOnEditLock,
-    disableOnFromError,
-    action,
-    icon = undefined,
-    title = undefined,
-    variant = undefined,
-    disabled,
-    tooltip,
-    skin,
-    className,
-  } = props;
-  const classes = useStyles();
-
-  const buttonNode = () => {
-    if (icon != null) {
-      return (
-        <IconButton
-          className={classNames(classes.actionButton, className)}
-          icon={icon}
-          skin={skin}
-          onClick={action}
-        />
-      );
-    }
-    if (title != null) {
-      return (
-        <Button
-          className={classNames(classes.actionButton, className)}
-          skin={skin}
-          variant={variant}
-          onClick={action}>
-          {title}
-        </Button>
-      );
-    }
-
-    return null;
-  };
-
-  return (
-    <FormAction
-      ignorePermissions={ignorePermissions}
-      hideOnEditLock={hideOnEditLock}
-      disabled={disabled}
-      tooltip={tooltip}
-      disableOnFromError={disableOnFromError}>
-      {buttonNode()}
-    </FormAction>
-  );
-}
-
 const ViewHeader = React.forwardRef<FullViewHeaderProps, HTMLElement>(
   (props, ref) => {
     const {
       title,
       subtitle,
+      actionButtons,
       viewOptions,
       searchBar,
       showMinimal = false,
       className,
     } = props;
-    const actionButtons: Array<ActionButtonProps> = props.actionButtons || [];
     const classes = useStyles();
 
     return (
@@ -223,12 +144,7 @@ const ViewHeader = React.forwardRef<FullViewHeaderProps, HTMLElement>(
                   [classes.collapsed]: showMinimal,
                 },
               )}>
-              {actionButtons.map((actionButton, index) => (
-                <FormHeaderAction
-                  key={`viewHeaderAction${index}`}
-                  {...actionButton}
-                />
-              ))}
+              {actionButtons}
             </div>
           )}
         </div>

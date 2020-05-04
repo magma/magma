@@ -16,7 +16,7 @@ import type {
   MarkSiteSurveyNeededMutationVariables,
 } from './__generated__/MarkSiteSurveyNeededMutation.graphql';
 import type {MutationCallbacks} from './MutationCallbacks.js';
-import type {StoreUpdater} from '../common/RelayEnvironment';
+import type {SelectorStoreUpdater} from 'relay-runtime';
 
 const mutation = graphql`
   mutation MarkSiteSurveyNeededMutation($locationId: ID!, $needed: Boolean!) {
@@ -29,7 +29,7 @@ const mutation = graphql`
 export default (
   variables: MarkSiteSurveyNeededMutationVariables,
   callbacks?: MutationCallbacks<MarkSiteSurveyNeededMutationResponse>,
-  updater?: StoreUpdater,
+  updater?: SelectorStoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
   commitMutation<MarkSiteSurveyNeededMutation>(RelayEnvironment, {

@@ -141,9 +141,9 @@ func AppendWorkforcePolicies(policy *models.WorkforcePolicy, inputs ...*models2.
 	return policy
 }
 
-func permissionPolicies(ctx context.Context) (*models.InventoryPolicy, *models.WorkforcePolicy, error) {
+func permissionPolicies(ctx context.Context, v *viewer.UserViewer) (*models.InventoryPolicy, *models.WorkforcePolicy, error) {
 	client := ent.FromContext(ctx)
-	userID := viewer.FromContext(ctx).User().ID
+	userID := v.User().ID
 	inventoryPolicy := NewInventoryPolicy(false, false)
 	workforcePolicy := NewWorkforcePolicy(false, false)
 	policies, err := client.PermissionsPolicy.Query().
@@ -169,15 +169,18 @@ func permissionPolicies(ctx context.Context) (*models.InventoryPolicy, *models.W
 
 func userHasWritePermissions(ctx context.Context) (bool, error) {
 	v := viewer.FromContext(ctx)
-	if !v.Features.Enabled(viewer.FeatureReadOnly) {
+	if !v.Features().Enabled(viewer.FeatureReadOnly) {
 		return true, nil
 	}
-	if v.User().Role == user.RoleOWNER {
+	if v.Role() == user.RoleOWNER {
 		return true, nil
 	}
-	return v.User().QueryGroups().
-		Where(usersgroup.Name(WritePermissionGroupName)).
-		Exist(ctx)
+	if v, ok := v.(*viewer.UserViewer); ok {
+		return v.User().QueryGroups().
+			Where(usersgroup.Name(WritePermissionGroupName)).
+			Exist(ctx)
+	}
+	return false, nil
 }
 
 // Permissions builds the aggregated permissions for the given viewer
@@ -187,11 +190,12 @@ func Permissions(ctx context.Context) (*models.PermissionSettings, error) {
 		return nil, err
 	}
 	v := viewer.FromContext(ctx)
-	policiesEnabled := v.Features.Enabled(viewer.FeatureUserManagementDev)
+	policiesEnabled := v.Features().Enabled(viewer.FeatureUserManagementDev)
 	inventoryPolicy := NewInventoryPolicy(true, writePermissions)
 	workforcePolicy := NewWorkforcePolicy(true, writePermissions)
-	if !writePermissions && policiesEnabled {
-		inventoryPolicy, workforcePolicy, err = permissionPolicies(ctx)
+	u, ok := v.(*viewer.UserViewer)
+	if !writePermissions && ok && policiesEnabled {
+		inventoryPolicy, workforcePolicy, err = permissionPolicies(ctx, u)
 		if err != nil {
 			return nil, err
 		}
@@ -199,7 +203,7 @@ func Permissions(ctx context.Context) (*models.PermissionSettings, error) {
 	res := models.PermissionSettings{
 		// TODO(T64743627): Deprecate CanWrite field
 		CanWrite:        writePermissions,
-		AdminPolicy:     NewAdministrativePolicy(v.User().Role == user.RoleADMIN || v.User().Role == user.RoleOWNER),
+		AdminPolicy:     NewAdministrativePolicy(v.Role() == user.RoleADMIN || v.Role() == user.RoleOWNER),
 		InventoryPolicy: inventoryPolicy,
 		WorkforcePolicy: workforcePolicy,
 	}

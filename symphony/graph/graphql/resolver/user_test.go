@@ -27,7 +27,7 @@ func TestEditUser(t *testing.T) {
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
-	u := viewer.FromContext(ctx).User()
+	u := viewer.FromContext(ctx).(*viewer.UserViewer).User()
 	require.Equal(t, user.StatusACTIVE, u.Status)
 	require.Empty(t, u.FirstName)
 
@@ -42,7 +42,7 @@ func TestAddAndDeleteProfileImage(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
-	u := viewer.FromContext(ctx).User()
+	u := viewer.FromContext(ctx).(*viewer.UserViewer).User()
 
 	mr, ur := r.Mutation(), r.User()
 	file1, err := mr.AddImage(ctx, models.AddImageInput{

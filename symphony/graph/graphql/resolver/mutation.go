@@ -49,7 +49,7 @@ import (
 
 type mutationResolver struct{ resolver }
 
-func (mutationResolver) Me(ctx context.Context) *viewer.Viewer {
+func (mutationResolver) Me(ctx context.Context) viewer.Viewer {
 	return viewer.FromContext(ctx)
 }
 
@@ -387,13 +387,16 @@ func (r mutationResolver) CreateCellScans(ctx context.Context, inputs []*models.
 
 func (r mutationResolver) CreateSurvey(ctx context.Context, data models.SurveyCreateData) (int, error) {
 	client := r.ClientFrom(ctx)
-	u := viewer.FromContext(ctx).User()
+	v, ok := viewer.FromContext(ctx).(*viewer.UserViewer)
+	if !ok {
+		return badID, gqlerror.Errorf("could not be executed in automation")
+	}
 	query := client.Survey.
 		Create().
 		SetLocationID(data.LocationID).
 		SetCompletionTimestamp(time.Unix(int64(data.CompletionTimestamp), 0)).
 		SetName(data.Name).
-		SetOwnerName(u.Email)
+		SetOwnerName(v.User().Email)
 	if data.CreationTimestamp != nil {
 		query.SetCreationTimestamp(time.Unix(int64(*data.CreationTimestamp), 0))
 	}
@@ -1227,9 +1230,12 @@ func (r mutationResolver) DeleteImage(ctx context.Context, _ models.ImageEntity,
 
 func (r mutationResolver) AddComment(ctx context.Context, input models.CommentInput) (*ent.Comment, error) {
 	client := r.ClientFrom(ctx)
-	u := viewer.FromContext(ctx).User()
+	v, ok := viewer.FromContext(ctx).(*viewer.UserViewer)
+	if !ok {
+		return nil, gqlerror.Errorf("could not be executed in automation")
+	}
 	c, err := client.Comment.Create().
-		SetAuthor(u).
+		SetAuthor(v.User()).
 		SetText(input.Text).
 		Save(ctx)
 	if err != nil {
@@ -3050,6 +3056,10 @@ func (r mutationResolver) TechnicianWorkOrderCheckIn(ctx context.Context, id int
 	if err != nil {
 		return nil, fmt.Errorf("getting work order %q: %w", id, err)
 	}
+	v, ok := viewer.FromContext(ctx).(*viewer.UserViewer)
+	if !ok {
+		return nil, gqlerror.Errorf("could not be executed in automation")
+	}
 	if wo.Status != models.WorkOrderStatusPlanned.String() {
 		return wo, nil
 	}
@@ -3061,7 +3071,7 @@ func (r mutationResolver) TechnicianWorkOrderCheckIn(ctx context.Context, id int
 	if _, err = r.AddComment(ctx, models.CommentInput{
 		EntityType: models.CommentEntityWorkOrder,
 		ID:         id,
-		Text:       viewer.FromContext(ctx).User().Email + " checked-in",
+		Text:       v.User().Email + " checked-in",
 	}); err != nil {
 		return nil, fmt.Errorf("adding technician check-in comment: %w", err)
 	}

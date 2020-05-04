@@ -31,7 +31,7 @@ type DataStore = imm.Map<string, mixed>;
 
 export function WizardContextProvider(props: Props) {
   const [dataStore, setDataStore] = useState<DataStore>(
-    new imm.Map<string, string>(),
+    new imm.Map<string, mixed>(),
   );
 
   const setData = useCallback(

@@ -83,10 +83,11 @@ LocalEnforcer::LocalEnforcer(
       quota_exhaustion_termination_on_init_ms_(
           quota_exhaustion_termination_on_init_ms) {}
 
-void LocalEnforcer::notify_new_report_for_sessions(SessionMap &session_map) {
+void LocalEnforcer::notify_new_report_for_sessions(
+    SessionMap &session_map, SessionUpdate &session_update) {
   for (const auto &session_pair : session_map) {
     for (const auto &session : session_pair.second) {
-      session->new_report();
+      session->new_report(session_update[session_pair.first][session->get_session_id()]);
     }
   }
 }
@@ -98,7 +99,7 @@ void LocalEnforcer::notify_finish_report_for_sessions(
   std::vector<std::pair<std::string, std::string>> imsi_to_terminate;
   for (const auto &session_pair : session_map) {
     for (const auto &session : session_pair.second) {
-      session->finish_report();
+      session->finish_report(session_update[session_pair.first][session->get_session_id()]);
       if (session->can_complete_termination()) {
         imsi_to_terminate.push_back(
             std::make_pair(session_pair.first, session->get_session_id()));
@@ -171,7 +172,8 @@ bool LocalEnforcer::setup(
 void LocalEnforcer::aggregate_records(SessionMap &session_map,
                                       const RuleRecordTable &records,
                                       SessionUpdate &session_update) {
-  notify_new_report_for_sessions(session_map); // unmark all credits
+  // unmark all credits
+  notify_new_report_for_sessions(session_map, session_update);
   for (const RuleRecord &record : records.records()) {
     auto it = session_map.find(record.sid());
     if (it == session_map.end()) {
@@ -252,8 +254,12 @@ void LocalEnforcer::terminate_service(
   }
 
   for (const auto &session : it->second) {
-    auto update_criteria = session_update[imsi][session->get_session_id()];
-
+    if (!session->is_active()) {
+      // If the session is terminating already, do nothing.
+      continue;
+    }
+    
+    auto& update_criteria = session_update[imsi][session->get_session_id()];
     session->start_termination(update_criteria);
 
     // tell AAA service to terminate radius session if necessary
@@ -292,7 +298,8 @@ void LocalEnforcer::terminate_service(
     // terminate the session.
     evb_->runAfterDelay(
         [this, imsi, session_id] {
-          MLOG(MDEBUG) << "Forced service termination for " << imsi;
+          MLOG(MDEBUG) << "Checking if termination has to be forced for "
+                       << imsi;
           SessionRead req = {imsi};
           auto session_map = session_store_.read_sessions_for_deletion(req);
           auto session_update =
@@ -1620,7 +1627,7 @@ void LocalEnforcer::handle_cwf_roaming(SessionMap &session_map,
       auto &update_criteria = session_update[imsi][session->get_session_id()];
       session->set_config(config);
       update_criteria.is_config_updated = true;
-      update_criteria.updated_config = session->marshal_config();
+      update_criteria.updated_config = session->get_config();
       // TODO Check for event triggers and send updates to the core if needed
       MLOG(MDEBUG) << "Updating IPFIX flow for subscriber " << imsi;
       SubscriberID sid;

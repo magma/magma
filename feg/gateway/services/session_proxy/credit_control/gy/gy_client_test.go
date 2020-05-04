@@ -62,6 +62,7 @@ func TestGyClient(t *testing.T) {
 		Credits:       nil,
 		UeIPV4:        "192.168.1.1",
 		SpgwIPV4:      "10.10.10.10",
+		Apn:           "gy.Apn.magma.com",
 	}
 	done := make(chan interface{}, 1000)
 
@@ -72,9 +73,7 @@ func TestGyClient(t *testing.T) {
 	assert.Equal(t, ccrInit.SessionID, answer.SessionID)
 	assert.Equal(t, ccrInit.RequestNumber, answer.RequestNumber)
 	assert.Equal(t, len(answer.Credits), 0)
-	calledStationID, err := mock_ocs.GetAVP(ocs.LastMessageReceived, "Called-Station-Id")
-	assert.NoError(t, err)
-	assert.Equal(t, "", calledStationID)
+	assertReceivedAPNonOCS(t, ocs, ccrInit.Apn)
 
 	// send multiple updates
 	ccrUpdates := []*gy.CreditControlRequest{
@@ -168,6 +167,7 @@ func TestGyClientWithGyGlobalConf(t *testing.T) {
 		Credits:       nil,
 		UeIPV4:        "192.168.1.1",
 		SpgwIPV4:      "10.10.10.10",
+		Apn:           "gy.Apn.magma.com",
 	}
 	done := make(chan interface{}, 1000)
 
@@ -175,9 +175,7 @@ func TestGyClientWithGyGlobalConf(t *testing.T) {
 	assert.NoError(t, gyClient.SendCreditControlRequest(&serverConfig, done, ccrInit))
 	answer := gy.GetAnswer(done)
 	log.Printf("Received CCA-Init")
-	calledStationID, err := mock_ocs.GetAVP(ocs.LastMessageReceived, "Called-Station-Id")
-	assert.NoError(t, err)
-	assert.Equal(t, overWriteApn, calledStationID)
+	assertReceivedAPNonOCS(t, ocs, overWriteApn)
 	assert.Equal(t, ccrInit.RequestNumber, answer.RequestNumber)
 	assert.Equal(t, len(answer.Credits), 0)
 }
@@ -472,4 +470,13 @@ func seedAccountConfigurations(ocs *mock_ocs.OCSDiamServer) {
 			UnitType:    fegprotos.CreditInfo_Bytes,
 		},
 	)
+}
+
+// assertReceivedAPNonOCS checks if the last received AVP contains the expected APN
+func assertReceivedAPNonOCS(t *testing.T, ocs *mock_ocs.OCSDiamServer, expectedAPN string) {
+	avpReceived, err := ocs.GetLastAVPreceived()
+	assert.NoError(t, err)
+	receivedAPN, err := avpReceived.FindAVP("Called-Station-Id", 0)
+	assert.NoError(t, err)
+	assert.Equal(t, fmt.Sprintf("UTF8String{%s},Padding:0", expectedAPN), receivedAPN.Data.String())
 }

@@ -116,6 +116,7 @@ class PowerSearchLocationsResultsTable extends React.Component<Props> {
       content = (
         <Button
           variant="text"
+          useEllipsis={true}
           onClick={() => this._onLocationClickedCallback(rowData.id)}>
           {cellData}
         </Button>

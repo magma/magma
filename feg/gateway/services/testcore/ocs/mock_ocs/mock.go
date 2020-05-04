@@ -49,7 +49,16 @@ func (e GyExpectation) DoesMatch(message interface{}) error {
 func (answer GyAnswer) toAVPs() ([]*diam.AVP, uint32) {
 	avps := make([]*diam.AVP, 0, len(answer.GetQuotaGrants()))
 	for _, grant := range answer.QuotaGrants {
-		avps = append(avps, toGrantedUnitsAVP(grant.GetResultCode(), grant.GetValidityTime(), grant.GetGrantedServiceUnit(), grant.GetIsFinalCredit(), grant.GetFinalUnitAction(), grant.GetRatingGroup()))
+		avps = append(
+			avps,
+			toGrantedUnitsAVP(
+				grant.GetResultCode(),
+				grant.GetValidityTime(),
+				grant.GetGrantedServiceUnit(),
+				grant.GetIsFinalCredit(),
+				grant.GetRatingGroup(),
+				grant.GetFinalUnitAction(),
+				grant.GetRedirectServer().GetRedirectServerAddress()))
 	}
 	return avps, answer.GetResultCode()
 }

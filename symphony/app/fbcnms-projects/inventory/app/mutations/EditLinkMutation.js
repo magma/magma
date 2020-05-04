@@ -16,7 +16,7 @@ import type {
   EditLinkMutationVariables,
 } from './__generated__/EditLinkMutation.graphql';
 import type {MutationCallbacks} from './MutationCallbacks.js';
-import type {StoreUpdater} from '../common/RelayEnvironment';
+import type {SelectorStoreUpdater} from 'relay-runtime';
 
 export const mutation = graphql`
   mutation EditLinkMutation($input: EditLinkInput!) {
@@ -30,7 +30,7 @@ export const mutation = graphql`
 export default (
   variables: EditLinkMutationVariables,
   callbacks?: MutationCallbacks<EditLinkMutationResponse>,
-  updater?: StoreUpdater,
+  updater?: SelectorStoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks || {};
   commitMutation<EditLinkMutation>(RelayEnvironment, {

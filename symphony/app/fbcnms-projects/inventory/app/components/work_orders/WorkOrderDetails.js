@@ -182,21 +182,18 @@ const WorkOrderDetails = ({
     };
 
     const updater = store => {
-      // $FlowFixMe (T62907961) Relay flow types
       const newNode = store.getRootField('addImage');
-      const fileType = newNode.getValue('fileType');
-
-      // $FlowFixMe (T62907961) Relay flow types
       const workOrderProxy = store.get(workOrderId);
+      if (newNode == null || workOrderProxy == null) {
+        return;
+      }
+
+      const fileType = newNode.getValue('fileType');
       if (fileType === FileTypeEnum.IMAGE) {
-        // $FlowFixMe (T62907961) Relay flow types
         const imageNodes = workOrderProxy.getLinkedRecords('images') || [];
-        // $FlowFixMe (T62907961) Relay flow types
         workOrderProxy.setLinkedRecords([...imageNodes, newNode], 'images');
       } else {
-        // $FlowFixMe (T62907961) Relay flow types
         const fileNodes = workOrderProxy.getLinkedRecords('files') || [];
-        // $FlowFixMe (T62907961) Relay flow types
         workOrderProxy.setLinkedRecords([...fileNodes, newNode], 'files');
       }
     };

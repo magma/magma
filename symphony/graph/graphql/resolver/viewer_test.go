@@ -24,7 +24,7 @@ func TestUserViewer(t *testing.T) {
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	vr := r.Viewer()
 
-	v := viewer.FromContext(ctx)
+	v := viewer.FromContext(ctx).(*viewer.UserViewer)
 	r.client.User.UpdateOne(v.User()).SetRole(user.RoleUSER).ExecX(ctx)
 	permissions, err := vr.Permissions(ctx, v)
 	require.NoError(t, err)
@@ -38,7 +38,7 @@ func TestUserViewerInWriteGroup(t *testing.T) {
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	vr := r.Viewer()
 
-	v := viewer.FromContext(ctx)
+	v := viewer.FromContext(ctx).(*viewer.UserViewer)
 	_ = r.client.UsersGroup.Create().
 		SetName(authz.WritePermissionGroupName).
 		AddMembers(v.User()).
@@ -57,7 +57,7 @@ func TestAdminViewer(t *testing.T) {
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	vr := r.Viewer()
 
-	v := viewer.FromContext(ctx)
+	v := viewer.FromContext(ctx).(*viewer.UserViewer)
 	r.client.User.UpdateOne(v.User()).SetRole(user.RoleADMIN).ExecX(ctx)
 	permissions, err := vr.Permissions(ctx, v)
 	require.NoError(t, err)
@@ -71,7 +71,7 @@ func TestOwnerViewer(t *testing.T) {
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	vr := r.Viewer()
 
-	v := viewer.FromContext(ctx)
+	v := viewer.FromContext(ctx).(*viewer.UserViewer)
 	r.client.User.UpdateOne(v.User()).SetRole(user.RoleOWNER).ExecX(ctx)
 	permissions, err := vr.Permissions(ctx, v)
 	require.NoError(t, err)

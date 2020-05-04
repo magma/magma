@@ -10,6 +10,7 @@ package service_health
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/docker/docker/api/types"
@@ -82,13 +83,24 @@ func (d *DockerServiceHealthProvider) Disable(service string) error {
 
 func (d *DockerServiceHealthProvider) getContainerID(serviceName string) (string, error) {
 	filter := filters.NewArgs()
-	filter.Add("name", serviceName)
+	fullName := fmt.Sprintf("/%s", serviceName)
+	filter.Add("name", fullName)
 	sessiondContainerFilter := types.ContainerListOptions{
 		Filters: filter,
+		All:     true,
 	}
 	containers, err := d.dockerClient.ContainerList(context.Background(), sessiondContainerFilter)
 	if err != nil || len(containers) == 0 {
 		return "", err
 	}
-	return containers[0].ID, nil
+	// There's a chance that search may returns multiple containers where
+	// one service's name is a prefix of the other service.
+	for _, svc := range containers {
+		for _, name := range svc.Names {
+			if name == fullName {
+				return svc.ID, nil
+			}
+		}
+	}
+	return "", fmt.Errorf("Could not find containerID for service: %s", serviceName)
 }

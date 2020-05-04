@@ -16,7 +16,7 @@ import type {
   AddLocationMutationVariables,
 } from './__generated__/AddLocationMutation.graphql';
 import type {MutationCallbacks} from './MutationCallbacks.js';
-import type {StoreUpdater} from '../common/RelayEnvironment';
+import type {SelectorStoreUpdater} from 'relay-runtime';
 
 const mutation = graphql`
   mutation AddLocationMutation($input: AddLocationInput!) {
@@ -32,7 +32,7 @@ const mutation = graphql`
 export default (
   variables: AddLocationMutationVariables,
   callbacks?: MutationCallbacks<AddLocationMutationResponse>,
-  updater?: StoreUpdater,
+  updater?: SelectorStoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
   commitMutation<AddLocationMutation>(RelayEnvironemnt, {

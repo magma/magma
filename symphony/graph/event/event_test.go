@@ -40,7 +40,7 @@ func (s *eventTestSuite) SetupSuite() {
 		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
 	)
 	s.ctx = viewertest.NewContext(context.Background(), s.client)
-	s.user = viewer.FromContext(s.ctx).User()
+	s.user = viewer.FromContext(s.ctx).(*viewer.UserViewer).User()
 	s.logger = logtest.NewTestLogger(s.T())
 
 	eventer := Eventer{Logger: s.logger}
