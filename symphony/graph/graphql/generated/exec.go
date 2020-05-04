@@ -826,6 +826,7 @@ type ComplexityRoot struct {
 	}
 
 	ServiceType struct {
+		DiscoveryMethod     func(childComplexity int) int
 		EndpointDefinitions func(childComplexity int) int
 		HasCustomer         func(childComplexity int) int
 		ID                  func(childComplexity int) int
@@ -1414,6 +1415,7 @@ type ServiceTypeResolver interface {
 	Services(ctx context.Context, obj *ent.ServiceType) ([]*ent.Service, error)
 	NumberOfServices(ctx context.Context, obj *ent.ServiceType) (int, error)
 	EndpointDefinitions(ctx context.Context, obj *ent.ServiceType) ([]*ent.ServiceEndpointDefinition, error)
+	DiscoveryMethod(ctx context.Context, obj *ent.ServiceType) (*models.DiscoveryMethod, error)
 }
 type SubscriptionResolver interface {
 	WorkOrderAdded(ctx context.Context) (<-chan *ent.WorkOrder, error)
@@ -5470,6 +5472,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ServiceSearchResult.Services(childComplexity), true
 
+	case "ServiceType.discoveryMethod":
+		if e.complexity.ServiceType.DiscoveryMethod == nil {
+			break
+		}
+
+		return e.complexity.ServiceType.DiscoveryMethod(childComplexity), true
+
 	case "ServiceType.endpointDefinitions":
 		if e.complexity.ServiceType.EndpointDefinitions == nil {
 			break
@@ -8815,6 +8824,7 @@ type ServiceType implements Node {
   services: [Service]!
   numberOfServices: Int!
   endpointDefinitions: [ServiceEndpointDefinition]!
+  discoveryMethod: DiscoveryMethod
 }
 
 directive @uniqueField(
@@ -8827,12 +8837,17 @@ input LocationTypeIndex {
   index: Int!
 }
 
+enum DiscoveryMethod {
+  INVENTORY
+}
+
 input ServiceTypeCreateData {
   name: String!
   hasCustomer: Boolean!
   properties: [PropertyTypeInput]
     @uniqueField(typ: "property type", field: "Name")
   endpoints: [ServiceEndpointDefinitionInput]
+  discoveryMethod: DiscoveryMethod
 }
 
 input ServiceTypeEditData {
@@ -29227,6 +29242,37 @@ func (ec *executionContext) _ServiceType_endpointDefinitions(ctx context.Context
 	return ec.marshalNServiceEndpointDefinition2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐServiceEndpointDefinition(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _ServiceType_discoveryMethod(ctx context.Context, field graphql.CollectedField, obj *ent.ServiceType) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "ServiceType",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.ServiceType().DiscoveryMethod(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.DiscoveryMethod)
+	fc.Result = res
+	return ec.marshalODiscoveryMethod2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐDiscoveryMethod(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _ServiceTypeConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.ServiceTypeConnection) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -39831,6 +39877,12 @@ func (ec *executionContext) unmarshalInputServiceTypeCreateData(ctx context.Cont
 			if err != nil {
 				return it, err
 			}
+		case "discoveryMethod":
+			var err error
+			it.DiscoveryMethod, err = ec.unmarshalODiscoveryMethod2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐDiscoveryMethod(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -46298,6 +46350,17 @@ func (ec *executionContext) _ServiceType(ctx context.Context, sel ast.SelectionS
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
+				return res
+			})
+		case "discoveryMethod":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ServiceType_discoveryMethod(ctx, field, obj)
 				return res
 			})
 		default:
@@ -54130,6 +54193,30 @@ func (ec *executionContext) marshalODevice2ᚖgithubᚗcomᚋfacebookincubator�
 		return graphql.Null
 	}
 	return ec._Device(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalODiscoveryMethod2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐDiscoveryMethod(ctx context.Context, v interface{}) (models.DiscoveryMethod, error) {
+	var res models.DiscoveryMethod
+	return res, res.UnmarshalGQL(v)
+}
+
+func (ec *executionContext) marshalODiscoveryMethod2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐDiscoveryMethod(ctx context.Context, sel ast.SelectionSet, v models.DiscoveryMethod) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalODiscoveryMethod2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐDiscoveryMethod(ctx context.Context, v interface{}) (*models.DiscoveryMethod, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalODiscoveryMethod2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐDiscoveryMethod(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) marshalODiscoveryMethod2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐDiscoveryMethod(ctx context.Context, sel ast.SelectionSet, v *models.DiscoveryMethod) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) marshalOEquipment2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipment(ctx context.Context, sel ast.SelectionSet, v ent.Equipment) graphql.Marshaler {

@@ -23,6 +23,7 @@ const mutation = graphql`
     addServiceType(data: $data) {
       id
       name
+      discoveryMethod
       propertyTypes {
         ...PropertyTypeFormField_propertyType @relay(mask: false)
       }

@@ -121,6 +121,7 @@ export default withStyles(styles)(
         fragment ServiceTypeItem_serviceType on ServiceType {
           id
           name
+          discoveryMethod
           propertyTypes {
             ...PropertyTypeFormField_propertyType
           }

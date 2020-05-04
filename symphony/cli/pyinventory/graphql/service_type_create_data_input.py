@@ -10,6 +10,9 @@ from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import DataClassJsonMixin
 
+from gql.gql.enum_utils import enum_field
+from .discovery_method_enum import DiscoveryMethod
+
 from .property_type_input import PropertyTypeInput
 from .service_endpoint_definition_input import ServiceEndpointDefinitionInput
 @dataclass
@@ -18,4 +21,5 @@ class ServiceTypeCreateData(DataClassJsonMixin):
     hasCustomer: bool
     properties: Optional[List[PropertyTypeInput]] = None
     endpoints: Optional[List[ServiceEndpointDefinitionInput]] = None
+    discoveryMethod: Optional[DiscoveryMethod] = None
 
