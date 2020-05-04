@@ -102,3 +102,12 @@ func (WorkOrder) Edges() []ent.Edge {
 			Unique(),
 	}
 }
+
+// Policy returns work order policy.
+func (WorkOrder) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithMutationRules(
+			authz.WorkOrderWritePolicyRule(),
+		),
+	)
+}

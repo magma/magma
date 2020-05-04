@@ -19,16 +19,18 @@ import (
 )
 
 type policyTest struct {
-	operationName     string
-	appendPermissions func(p *models.PermissionSettings)
-	operation         func(ctx context.Context) error
+	operationName      string
+	initialPermissions func(p *models.PermissionSettings)
+	appendPermissions  func(p *models.PermissionSettings)
+	operation          func(ctx context.Context) error
 }
 
 type cudPolicyTest struct {
-	getCud func(p *models.PermissionSettings) *models.Cud
-	create func(ctx context.Context) error
-	update func(ctx context.Context) error
-	delete func(ctx context.Context) error
+	getCud             func(p *models.PermissionSettings) *models.Cud
+	initialPermissions func(p *models.PermissionSettings)
+	create             func(ctx context.Context) error
+	update             func(ctx context.Context) error
+	delete             func(ctx context.Context) error
 }
 
 func runPolicyTest(t *testing.T, tests []policyTest) {
@@ -38,6 +40,9 @@ func runPolicyTest(t *testing.T, tests []policyTest) {
 				t.Run(name, func(t *testing.T) {
 					c := viewertest.NewTestClient(t)
 					permissions := authz.EmptyPermissions()
+					if test.initialPermissions != nil {
+						test.initialPermissions(permissions)
+					}
 					if allowed {
 						test.appendPermissions(permissions)
 					}
@@ -57,21 +62,24 @@ func runPolicyTest(t *testing.T, tests []policyTest) {
 func runCudPolicyTest(t *testing.T, test cudPolicyTest) {
 	tests := []policyTest{
 		{
-			operationName: "Create",
+			operationName:      "Create",
+			initialPermissions: test.initialPermissions,
 			appendPermissions: func(p *models.PermissionSettings) {
 				test.getCud(p).Create.IsAllowed = models2.PermissionValueYes
 			},
 			operation: test.create,
 		},
 		{
-			operationName: "Update",
+			operationName:      "Update",
+			initialPermissions: test.initialPermissions,
 			appendPermissions: func(p *models.PermissionSettings) {
 				test.getCud(p).Update.IsAllowed = models2.PermissionValueYes
 			},
 			operation: test.update,
 		},
 		{
-			operationName: "Delete",
+			operationName:      "Delete",
+			initialPermissions: test.initialPermissions,
 			appendPermissions: func(p *models.PermissionSettings) {
 				test.getCud(p).Delete.IsAllowed = models2.PermissionValueYes
 			},
