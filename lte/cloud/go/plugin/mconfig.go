@@ -18,44 +18,61 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/services/configurator"
+	configuratorprotos "magma/orc8r/cloud/go/services/configurator/protos"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
 
 	"github.com/go-openapi/swag"
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/ptypes"
+	"github.com/golang/protobuf/ptypes/any"
 	"github.com/pkg/errors"
 )
 
 type Builder struct{}
+type LteMconfigBuilderServicer struct{}
 
-func (*Builder) Build(networkID string, gatewayID string, graph configurator.EntityGraph, network configurator.Network, mconfigOut map[string]proto.Message) error {
+func (s *LteMconfigBuilderServicer) Build(
+	request *configuratorprotos.BuildMconfigRequest,
+) (*configuratorprotos.BuildMconfigResponse, error) {
+	ret := &configuratorprotos.BuildMconfigResponse{
+		ConfigsByKey: map[string]*any.Any{},
+	}
+	network, err := (configurator.Network{}).FromStorageProto(request.GetNetwork())
+	if err != nil {
+		return ret, err
+	}
 	// we only build an mconfig if cellular network and gateway configs exist
 	inwConfig, found := network.Configs[lte.CellularNetworkType]
 	if !found || inwConfig == nil {
-		return nil
+		return ret, nil
 	}
 	cellularNwConfig := inwConfig.(*models2.NetworkCellularConfigs)
 
-	cellGW, err := graph.GetEntity(lte.CellularGatewayType, gatewayID)
+	graph, err := (configurator.EntityGraph{}).FromStorageProto(request.GetEntityGraph())
+	if err != nil {
+		return ret, nil
+	}
+	cellGW, err := graph.GetEntity(lte.CellularGatewayType, request.GetGatewayId())
 	if err == merrors.ErrNotFound {
-		return nil
+		return ret, nil
 	}
 	if err != nil {
-		return errors.WithStack(err)
+		return ret, err
 	}
 	if cellGW.Config == nil {
-		return nil
+		return ret, nil
 	}
 	cellularGwConfig := cellGW.Config.(*models2.GatewayCellularConfigs)
 
 	if err := validateConfigs(cellularNwConfig, cellularGwConfig); err != nil {
-		return err
+		return ret, err
 	}
 
 	enodebs, err := graph.GetAllChildrenOfType(cellGW, lte.CellularEnodebType)
 	if err != nil {
-		return errors.WithStack(err)
+		return ret, err
 	}
 
 	gwRan := cellularGwConfig.Ran
@@ -67,7 +84,7 @@ func (*Builder) Build(networkID string, gatewayID string, graph configurator.Ent
 
 	pipelineDServices, err := getPipelineDServicesConfig(nwEpc.NetworkServices)
 	if err != nil {
-		return errors.WithStack(err)
+		return ret, err
 	}
 
 	enbConfigsBySerial := getEnodebConfigsBySerial(cellularNwConfig, cellularGwConfig, enodebs)
@@ -128,7 +145,44 @@ func (*Builder) Build(networkID string, gatewayID string, graph configurator.Ent
 		},
 	}
 	for k, v := range vals {
-		mconfigOut[k] = v
+		ret.ConfigsByKey[k], err = ptypes.MarshalAny(v)
+		if err != nil {
+			return ret, err
+		}
+	}
+	return ret, nil
+}
+
+func (*Builder) Build(networkID string, gatewayID string, graph configurator.EntityGraph, network configurator.Network, mconfigOut map[string]proto.Message) error {
+	servicer := &LteMconfigBuilderServicer{}
+	networkProto, err := network.ToStorageProto()
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	graphProto, err := graph.ToStorageProto()
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	request := &configuratorprotos.BuildMconfigRequest{
+		NetworkId:   networkID,
+		GatewayId:   gatewayID,
+		EntityGraph: graphProto,
+		Network:     networkProto,
+	}
+	res, err := servicer.Build(request)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	for k, v := range res.GetConfigsByKey() {
+		mconfigMessage, err := ptypes.Empty(v)
+		if err != nil {
+			return err
+		}
+		err = ptypes.UnmarshalAny(v, mconfigMessage)
+		if err != nil {
+			return err
+		}
+		mconfigOut[k] = mconfigMessage
 	}
 	return nil
 }

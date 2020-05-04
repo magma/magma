@@ -15,8 +15,10 @@ import (
 	"magma/lte/cloud/go/plugin"
 	models2 "magma/lte/cloud/go/plugin/models"
 	"magma/lte/cloud/go/protos/mconfig"
+	"magma/lte/cloud/go/services/subscriberdb"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/pluginimpl/models"
+	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
@@ -28,6 +30,18 @@ import (
 
 func TestBuilder_Build(t *testing.T) {
 	builder := &plugin.Builder{}
+
+	lteNetworkSerde := configurator.NewNetworkConfigSerde(lte.CellularNetworkType, &models2.NetworkCellularConfigs{})
+	networkSubSerde := configurator.NewNetworkConfigSerde(lte.NetworkSubscriberConfigType, &models2.NetworkSubscriberConfig{})
+	gwCellularSerde := configurator.NewNetworkEntityConfigSerde(lte.CellularGatewayType, &models2.GatewayCellularConfigs{})
+	gwEnodbeSerde := configurator.NewNetworkEntityConfigSerde(lte.CellularEnodebType, &models2.EnodebConfiguration{})
+	policyRuleSerde := configurator.NewNetworkEntityConfigSerde(lte.PolicyRuleEntityType, &models2.PolicyRuleConfig{})
+	baseNameSerde := configurator.NewNetworkEntityConfigSerde(lte.BaseNameEntityType, &models2.BaseNameRecord{})
+	subscrberSerde := configurator.NewNetworkEntityConfigSerde(subscriberdb.EntityType, &models2.LteSubscription{})
+	ratingGroupSerde := configurator.NewNetworkEntityConfigSerde(lte.RatingGroupEntityType, &models2.RatingGroup{})
+	apnSerde := configurator.NewNetworkEntityConfigSerde(lte.ApnEntityType, &models2.ApnConfiguration{})
+	dnsdSerde := configurator.NewNetworkConfigSerde(orc8r.DnsdNetworkType, &models.NetworkDNSConfig{})
+	serde.RegisterSerdes(lteNetworkSerde, networkSubSerde, gwCellularSerde, gwEnodbeSerde, policyRuleSerde, baseNameSerde, subscrberSerde, ratingGroupSerde, apnSerde, dnsdSerde)
 
 	nw := configurator.Network{
 		ID: "n1",
@@ -96,7 +110,7 @@ func TestBuilder_Build(t *testing.T) {
 			Tac:                 1,
 			PlmnidList:          "00101",
 			CsfbRat:             mconfig.EnodebD_CSFBRAT_2G,
-			Arfcn_2G:            []int32{},
+			Arfcn_2G:            nil,
 			EnbConfigsBySerial: map[string]*mconfig.EnodebD_EnodebConfig{
 				"enb1": {
 					Earfcndl:               39150,
@@ -144,7 +158,7 @@ func TestBuilder_Build(t *testing.T) {
 			LogLevel:     protos.LogLevel_INFO,
 			LteAuthOp:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 			LteAuthAmf:   []byte("\x80\x00"),
-			SubProfiles:  map[string]*mconfig.SubscriberDB_SubscriptionProfile{},
+			SubProfiles:  nil,
 			RelayEnabled: false,
 		},
 		"policydb": &mconfig.PolicyDB{
@@ -227,8 +241,8 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 			Tac:                 1,
 			PlmnidList:          "00101",
 			CsfbRat:             mconfig.EnodebD_CSFBRAT_2G,
-			Arfcn_2G:            []int32{},
-			EnbConfigsBySerial:  map[string]*mconfig.EnodebD_EnodebConfig{},
+			Arfcn_2G:            nil,
+			EnbConfigsBySerial:  nil,
 		},
 		"mobilityd": &mconfig.MobilityD{
 			LogLevel: protos.LogLevel_INFO,
@@ -247,7 +261,7 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 			Lac:                      1,
 			RelayEnabled:             false,
 			CloudSubscriberdbEnabled: false,
-			AttachedEnodebTacs:       []int32{},
+			AttachedEnodebTacs:       nil,
 		},
 		"pipelined": &mconfig.PipelineD{
 			LogLevel:      protos.LogLevel_INFO,
@@ -262,13 +276,13 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 			LogLevel:     protos.LogLevel_INFO,
 			LteAuthOp:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 			LteAuthAmf:   []byte("\x80\x00"),
-			SubProfiles:  map[string]*mconfig.SubscriberDB_SubscriptionProfile{},
+			SubProfiles:  nil,
 			RelayEnabled: false,
 		},
 		"policydb": &mconfig.PolicyDB{
 			LogLevel:                      protos.LogLevel_INFO,
-			InfiniteMeteredChargingKeys:   []uint32{},
-			InfiniteUnmeteredChargingKeys: []uint32{},
+			InfiniteMeteredChargingKeys:   nil,
+			InfiniteUnmeteredChargingKeys: nil,
 		},
 		"sessiond": &mconfig.SessionD{
 			LogLevel:     protos.LogLevel_INFO,
@@ -339,7 +353,7 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 			Tac:                 1,
 			PlmnidList:          "00101",
 			CsfbRat:             mconfig.EnodebD_CSFBRAT_2G,
-			Arfcn_2G:            []int32{},
+			Arfcn_2G:            nil,
 			EnbConfigsBySerial: map[string]*mconfig.EnodebD_EnodebConfig{
 				"enb1": {
 					Earfcndl:               44590,
@@ -387,13 +401,13 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 			LogLevel:     protos.LogLevel_INFO,
 			LteAuthOp:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 			LteAuthAmf:   []byte("\x80\x00"),
-			SubProfiles:  map[string]*mconfig.SubscriberDB_SubscriptionProfile{},
+			SubProfiles:  nil,
 			RelayEnabled: false,
 		},
 		"policydb": &mconfig.PolicyDB{
 			LogLevel:                      protos.LogLevel_INFO,
-			InfiniteMeteredChargingKeys:   []uint32{},
-			InfiniteUnmeteredChargingKeys: []uint32{},
+			InfiniteMeteredChargingKeys:   nil,
+			InfiniteUnmeteredChargingKeys: nil,
 		},
 		"sessiond": &mconfig.SessionD{
 			LogLevel:     protos.LogLevel_INFO,
@@ -420,7 +434,7 @@ func newDefaultGatewayConfig() *models2.GatewayCellularConfigs {
 			CsfbMnc:              "01",
 			Lac:                  swag.Uint32(1),
 			CsfbRat:              swag.Uint32(0),
-			Arfcn2g:              []uint32{},
+			Arfcn2g:              nil,
 			NonEpsServiceControl: swag.Uint32(0),
 		},
 	}
