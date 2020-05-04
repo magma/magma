@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import dagreD3 from "dagre-d3";
-import d3 from "d3";
+import { select } from "d3-selection";
 import { Row, Col } from "react-bootstrap";
 import Clipboard from "clipboard";
 import TaskModal from "./TaskModal";
@@ -146,7 +146,7 @@ class Grapher extends Component {
       node.rx = node.ry = 5;
     });
 
-    let svg = d3.select(this.svgElem);
+    let svg = select(this.svgElem);
     let inner = svg.select("g");
     inner.attr("transform", "translate(20,20)");
     this.grapher(inner, g);
