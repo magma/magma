@@ -16,12 +16,14 @@
 import type { ReaderFragment } from 'relay-runtime';
 type PropertyTypeFormField_propertyType$ref = any;
 type ServiceEndpointDefinitionStaticTable_serviceEndpointDefinitions$ref = any;
+export type DiscoveryMethod = "INVENTORY" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type ServiceTypeItem_serviceType$ref: FragmentReference;
 declare export opaque type ServiceTypeItem_serviceType$fragmentType: ServiceTypeItem_serviceType$ref;
 export type ServiceTypeItem_serviceType = {|
   +id: string,
   +name: string,
+  +discoveryMethod: ?DiscoveryMethod,
   +propertyTypes: $ReadOnlyArray<?{|
     +$fragmentRefs: PropertyTypeFormField_propertyType$ref
   |}>,
@@ -58,6 +60,13 @@ const node/*: ReaderFragment*/ = {
       "kind": "ScalarField",
       "alias": null,
       "name": "name",
+      "args": null,
+      "storageKey": null
+    },
+    {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "discoveryMethod",
       "args": null,
       "storageKey": null
     },
@@ -103,5 +112,5 @@ const node/*: ReaderFragment*/ = {
   ]
 };
 // prettier-ignore
-(node/*: any*/).hash = '1e60a484ed66bed55f3de99645b11d03';
+(node/*: any*/).hash = 'bdd10c4d5e7ee31784df58baac76728d';
 module.exports = node;

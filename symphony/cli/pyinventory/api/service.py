@@ -5,8 +5,10 @@
 
 from typing import Dict, List, Optional, Tuple
 
+from pysymphony import SymphonyClient
+
 from .._utils import PropertyValue, format_properties, get_graphql_property_inputs
-from ..client import SymphonyClient
+from ..common.cache import SERVICE_TYPES
 from ..common.data_class import (
     Customer,
     EquipmentPort,
@@ -41,7 +43,7 @@ def _populate_service_types(client: SymphonyClient) -> None:
     for edge in edges:
         node = edge.node
         if node is not None:
-            client.serviceTypes[node.name] = ServiceType(
+            SERVICE_TYPES[node.name] = ServiceType(
                 name=node.name,
                 id=node.id,
                 hasCustomer=node.hasCustomer,
@@ -70,7 +72,7 @@ def add_service_type(
         hasCustomer=result.hasCustomer,
         property_types=result.propertyTypes,
     )
-    client.serviceTypes[name] = service_type
+    SERVICE_TYPES[name] = service_type
     return service_type
 
 
@@ -82,12 +84,12 @@ def add_service(
     customer: Optional[Customer],
     properties_dict: Dict[str, PropertyValue],
 ) -> Service:
-    property_types = client.serviceTypes[service_type].property_types
+    property_types = SERVICE_TYPES[service_type].property_types
     properties = get_graphql_property_inputs(property_types, properties_dict)
     service_create_data = ServiceCreateData(
         name=name,
         externalId=external_id,
-        serviceTypeId=client.serviceTypes[service_type].id,
+        serviceTypeId=SERVICE_TYPES[service_type].id,
         status=ServiceStatus.PENDING,
         customerId=customer.id if customer is not None else None,
         properties=properties,

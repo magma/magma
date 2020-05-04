@@ -13,7 +13,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -21,7 +20,7 @@ import (
 
 	"github.com/aeden/traceroute"
 	"github.com/emakeev/snowflake"
-	
+
 	"magma/gateway/config"
 	"magma/gateway/mconfig"
 	config_service "magma/gateway/services/configurator/service"
@@ -38,35 +37,39 @@ type magmadService struct {
 }
 
 func (m *magmadService) StartServices(context.Context, *protos.Void) (*protos.Void, error) {
-	var resErrs *errors.MultiError
+	resErrs := errors.NewMulti()
 	sm := service_manager.Get()
 	for _, srv := range getServices() {
-		resErrs.Add(sm.Start(srv))
+		log.Printf("Starting service '%s'", srv)
+		resErrs = resErrs.AddFmt(sm.Start(srv), "service '%s' start error:", srv)
 	}
-	return &protos.Void{}, resErrs
+	return &protos.Void{}, resErrs.AsError()
 }
 
 func (m *magmadService) StopServices(context.Context, *protos.Void) (*protos.Void, error) {
-	var resErrs *errors.MultiError
+	resErrs := errors.NewMulti()
 	sm := service_manager.Get()
 	for _, srv := range getServices() {
-		resErrs.Add(sm.Stop(srv))
+		log.Printf("Stopping service '%s'", srv)
+		resErrs = resErrs.AddFmt(sm.Stop(srv), "service '%s' stop error:", srv)
 	}
-	return &protos.Void{}, resErrs
+	return &protos.Void{}, resErrs.AsError()
 }
 
 func (m *magmadService) Reboot(context.Context, *protos.Void) (*protos.Void, error) {
+	log.Print("Rebooting Gateway")
 	go exec.Command("reboot").Run()
 	return &protos.Void{}, nil
 }
 
 func (m *magmadService) RestartServices(context.Context, *protos.RestartServicesRequest) (*protos.Void, error) {
-	var resErrs *errors.MultiError
+	resErrs := errors.NewMulti()
 	sm := service_manager.Get()
 	for _, srv := range getServices() {
-		resErrs.Add(sm.Restart(srv))
+		log.Printf("Restarting service '%s'", srv)
+		resErrs = resErrs.AddFmt(sm.Restart(srv), "service '%s' restart error:", srv)
 	}
-	return &protos.Void{}, resErrs
+	return &protos.Void{}, resErrs.AsError()
 }
 
 func (m *magmadService) GetConfigs(context.Context, *protos.Void) (*protos.GatewayConfigs, error) {
@@ -103,6 +106,7 @@ func (m *magmadService) RunNetworkTests(ctx context.Context, req *protos.Network
 		}
 		packets := strconv.FormatInt(int64(pingRes.NumPackets), 10)
 		cmd := exec.CommandContext(execCtx, "ping", "-c", packets, png.HostOrIp)
+		log.Print(cmd.String())
 		out, err := cmd.Output()
 		if err != nil {
 			pingRes.Error = fmt.Sprintf("error executing '%s': %v", cmd.String(), err)
@@ -120,27 +124,39 @@ func (m *magmadService) RunNetworkTests(ctx context.Context, req *protos.Network
 		options := &traceroute.TracerouteOptions{}
 		options.SetMaxHops(int(trt.GetMaxHops()))
 		options.SetPacketSize(int(trt.GetBytesPerPacket()))
+		log.Printf("traceroute %s -m %d %d", trt.GetHostOrIp(), options.MaxHops(), options.PacketSize())
 		trtRes := &protos.TracerouteResult{
 			HostOrIp: trt.GetHostOrIp(),
 		}
-		maxHops := options.MaxHops()
 		hc := make(chan traceroute.TracerouteHop)
 		// start 'streaming' the chan
 		go func() {
+			hopMap := map[int]*protos.TracerouteHop{}
 			for hop := range hc {
-				var ipStr, hostStr string
+				var probe *protos.TracerouteProbe
 				if hop.Success {
-					ipStr = net.IP(hop.Address[:]).String()
-					hostStr = hop.Host
-				}
-				trtRes.Hops = append(trtRes.Hops, &protos.TracerouteHop{
-					Idx: int32(maxHops - hop.TTL),
-					Probes: []*protos.TracerouteProbe{{
-						Hostname: hostStr,
-						Ip:       ipStr,
+					probe = &protos.TracerouteProbe{
+						Hostname: hop.HostOrAddressString(),
+						Ip:       hop.AddressString(),
 						RttMs:    Milliseconds(hop.ElapsedTime),
-					}},
-				})
+					}
+				} else {
+					probe = &protos.TracerouteProbe{
+						Hostname: "*",
+						Ip:       "*",
+					}
+				}
+				hopRes, ok := hopMap[hop.TTL]
+				if ok && hopRes != nil {
+					hopRes.Probes = append(hopRes.Probes, probe)
+				} else {
+					hopRes = &protos.TracerouteHop{
+						Idx:    int32(hop.TTL),
+						Probes: []*protos.TracerouteProbe{probe},
+					}
+					trtRes.Hops = append(trtRes.Hops, hopRes)
+					hopMap[hop.TTL] = hopRes
+				}
 			}
 		}()
 		_, err := traceroute.Traceroute(trt.GetHostOrIp(), options, hc)
@@ -178,7 +194,7 @@ func (m *magmadService) TailLogs(req *protos.TailLogsRequest, srv protos.Magmad_
 		return err
 	}
 	for s := range c {
-		err := srv.SendMsg(&protos.LogLine{Line: s})
+		err := srv.SendMsg(&protos.LogLine{Line: s + "\n"}) // append LF, our existing tools rely on it for printouts
 		if err != nil {
 			proc.Kill()
 			return err

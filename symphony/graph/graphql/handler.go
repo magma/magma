@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/ent/privacy"
 	"github.com/facebookincubator/symphony/graph/event"
 	"github.com/facebookincubator/symphony/graph/graphql/directive"
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
@@ -126,7 +127,7 @@ func NewHandler(cfg HandlerConfig) (http.Handler, func(), error) {
 func errorPresenter(logger log.Logger) graphql.ErrorPresenterFunc {
 	return func(ctx context.Context, err error) *gqlerror.Error {
 		gqlerr := graphql.DefaultErrorPresenter(ctx, err)
-		if strings.Contains(err.Error(), ent.ErrReadOnly.Error()) {
+		if strings.Contains(err.Error(), privacy.Deny.Error()) {
 			gqlerr.Message = "Permission denied"
 		} else if _, ok := err.(*gqlerror.Error); !ok {
 			logger.For(ctx).Error("graphql internal error", zap.Error(err))

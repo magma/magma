@@ -8,6 +8,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/facebookincubator/symphony/graph/ent/user"
+
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/symphony/graph/authz"
 	"github.com/facebookincubator/symphony/graph/ent"
@@ -22,7 +24,7 @@ import (
 type options struct {
 	tenant      string
 	user        string
-	role        string
+	role        user.Role
 	features    []string
 	permissions *models.PermissionSettings
 }
@@ -45,7 +47,7 @@ func WithUser(user string) Option {
 }
 
 // WithRole overrides default role.
-func WithRole(role string) Option {
+func WithRole(role user.Role) Option {
 	return func(o *options) {
 		o.role = role
 	}
@@ -79,7 +81,7 @@ func NewContext(parent context.Context, c *ent.Client, opts ...Option) context.C
 	}
 	ctx := ent.NewContext(parent, c)
 	u := viewer.MustGetOrCreateUser(ctx, o.user, o.role)
-	v := viewer.New(o.tenant, u, viewer.WithFeatures(o.features...))
+	v := viewer.NewUser(o.tenant, u, viewer.WithFeatures(o.features...))
 	ctx = viewer.NewContext(ctx, v)
 	return authz.NewContext(ctx, o.permissions)
 }

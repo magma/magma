@@ -253,7 +253,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         resp = FlowResponse()
         self._loop.call_soon_threadsafe(self._dpi_app.add_classify_flow,
                                         request.match, request.app_name,
-                                        request.service_type)
+                                        request.service_type, request.src_mac,
+                                        request.dst_mac)
         return resp
 
     def RemoveFlow(self, request, context):
@@ -267,7 +268,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             return None
         resp = FlowResponse()
         self._loop.call_soon_threadsafe(self._dpi_app.remove_classify_flow,
-                                        request.match)
+                                        request.match, request.src_mac,
+                                        request.dst_mac)
         return resp
 
     def UpdateFlowStats(self, request, context):

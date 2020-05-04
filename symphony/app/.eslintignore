@@ -10,6 +10,7 @@ tgnms/**/*.js
 fbcnms-packages/fbcnms-magma-api/__generated__/*.js
 fbcnms-projects/tgnms/shared/types/*.js
 fbcnms-projects/magmalte/app/common/__generated__/*.js
+fbcnms-projects/hub/app/components/workflow/**/*.js
 fbcnms-packages/fbcnms-alarms/components/prometheus/__generated__/*.js
 
 flow-typed/npm/@babel/register_v7.x.x.js

@@ -5,7 +5,8 @@
 
 from typing import List, Optional
 
-from ..client import SymphonyClient
+from pysymphony import SymphonyClient
+
 from ..common.constant import SUPERUSER_ROLE, USER_ROLE
 from ..common.data_class import User
 from ..common.data_enum import Entity

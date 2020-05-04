@@ -16,7 +16,7 @@ import type {
   AddHyperlinkMutationVariables,
 } from './__generated__/AddHyperlinkMutation.graphql';
 import type {MutationCallbacks} from './MutationCallbacks.js';
-import type {StoreUpdater} from '../common/RelayEnvironment';
+import type {SelectorStoreUpdater} from 'relay-runtime';
 
 const mutation = graphql`
   mutation AddHyperlinkMutation($input: AddHyperlinkInput!) {
@@ -33,7 +33,7 @@ const mutation = graphql`
 export default (
   variables: AddHyperlinkMutationVariables,
   callbacks?: MutationCallbacks<AddHyperlinkMutationResponse>,
-  updater?: StoreUpdater,
+  updater?: SelectorStoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
   commitMutation<AddHyperlinkMutation>(RelayEnvironment, {

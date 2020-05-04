@@ -102,6 +102,8 @@ message FlowRequest {
   string app_name = 2;
   uint64 bytes_rx = 3;
   string service_type = 4;
+  string src_mac = 5;
+  string dst_mac = 6;
 }
 
 message FlowResponse {

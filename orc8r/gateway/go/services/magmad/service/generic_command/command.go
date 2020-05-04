@@ -35,40 +35,56 @@ func Execute(ctx context.Context, req *protos.GenericCommandParams) (*protos.Gen
 	commands := config.GetMagmadConfigs().GenericCommandConfig.CommandsMap
 	cmd, ok := commands[strings.ToLower(req.GetCommand())]
 	res := &protos.GenericCommandResponse{}
-	if ok && cmd != nil {
-		cmdParams := []interface{}{}
-		if cmd.AllowParams {
-			if fields := req.GetParams().GetFields(); fields != nil {
-				if param, ok := fields["shell_params"]; ok && param != nil {
-					cmdParams = addValue(cmdParams, param)
-				}
+	if !ok {
+		return res, fmt.Errorf("unregistered command: %s", req.GetCommand())
+	}
+	cmdParams := []interface{}{}
+	if cmd.AllowParams {
+		if fields := req.GetParams().GetFields(); fields != nil {
+			if param, ok := fields["shell_params"]; ok && param != nil {
+				cmdParams = addValue(cmdParams, param)
 			}
 		}
-		cmdStr := fmt.Sprintf(cmd.CommandFmt, cmdParams)
-		log.Printf("executing command '%s'", cmdStr)
-		cmdList, splitErr := shlex.Split(cmdStr)
-		if splitErr != nil || len(cmdList) == 0 {
-			log.Printf("invalid command format: %v", splitErr)
-			cmdList = []string{"sh", "-c", cmdStr}
+	}
+	formatters := strings.Count(cmd.CommandFmt, "%") - strings.Count(cmd.CommandFmt, "%%")*2
+	cmdStr := cmd.CommandFmt
+	if formatters > 0 {
+		if len(cmdParams) < formatters {
+			fillIn := make([]interface{}, formatters-len(cmdParams))
+			for i, _ := range fillIn {
+				fillIn[i] = ""
+			}
+			cmdParams = append(cmdParams, fillIn...)
 		}
-		execCtx, cancel := context.WithTimeout(ctx, Timeout)
-		defer cancel()
-		exeCmd := exec.CommandContext(execCtx, cmdList[0], cmdList[1:]...)
-		var errBuff, outBuff bytes.Buffer
-		exeCmd.Stderr = &errBuff
-		exeCmd.Stdout = &outBuff
-		err = exeCmd.Start()
-		if err == nil {
-			exeCmd.Wait()
-			res = &protos.GenericCommandResponse{
-				Response: &structpb.Struct{
-					Fields: map[string]*structpb.Value{
-						"result": {Kind: &structpb.Value_NumberValue{NumberValue: float64(exeCmd.ProcessState.ExitCode())}},
-						"stdout": {Kind: &structpb.Value_StringValue{StringValue: outBuff.String()}},
-						"stderr": {Kind: &structpb.Value_StringValue{StringValue: errBuff.String()}},
-					},
+		cmdStr = fmt.Sprintf(cmd.CommandFmt, cmdParams[:formatters]...)
+	} else {
+		for _, p := range cmdParams {
+			cmdStr += fmt.Sprintf(" %v", p)
+		}
+	}
+	cmdList, splitErr := shlex.Split(cmdStr)
+	if splitErr != nil || len(cmdList) == 0 {
+		log.Printf("invalid command format: %v", splitErr)
+		cmdList = []string{"sh", "-c", cmdStr}
+	}
+	execCtx, cancel := context.WithTimeout(ctx, Timeout)
+	defer cancel()
+	exeCmd := exec.CommandContext(execCtx, cmdList[0], cmdList[1:]...)
+	log.Printf("executing command '%s'", exeCmd.String())
+	var errBuff, outBuff bytes.Buffer
+	exeCmd.Stderr = &errBuff
+	exeCmd.Stdout = &outBuff
+	err = exeCmd.Start()
+	if err == nil {
+		exeCmd.Wait()
+		res = &protos.GenericCommandResponse{
+			Response: &structpb.Struct{
+				Fields: map[string]*structpb.Value{
+					"result": {Kind: &structpb.Value_NumberValue{NumberValue: float64(exeCmd.ProcessState.ExitCode())}},
+					"stdout": {Kind: &structpb.Value_StringValue{StringValue: outBuff.String()}},
+					"stderr": {Kind: &structpb.Value_StringValue{StringValue: errBuff.String()}},
 				},
-			}
+			},
 		}
 	}
 	return res, err

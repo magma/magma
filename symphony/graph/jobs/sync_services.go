@@ -4,7 +4,116 @@
 
 package jobs
 
-import "net/http"
+import (
+	"context"
+	"net/http"
+	"strconv"
+
+	"github.com/AlekSi/pointer"
+
+	"github.com/pkg/errors"
+
+	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/ent/service"
+	"github.com/facebookincubator/symphony/graph/ent/serviceendpointdefinition"
+	"github.com/facebookincubator/symphony/graph/ent/servicetype"
+)
+
+type serviceEquipmentListData struct {
+	EquipmentList []*ent.Equipment
+}
+
+const maxEndpoints = 5
 
 // syncServices job syncs the services according to changes
-func (m *jobs) syncServices(w http.ResponseWriter, r *http.Request) {}
+func (m *jobs) syncServices(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	sc := getServicesContext(ctx)
+	log := m.logger.For(ctx)
+	client := ent.FromContext(ctx)
+	log.Info("services-Sync run")
+
+	services, err := client.Service.Query().Where(
+		service.HasTypeWith(servicetype.DiscoveryMethodEQ(servicetype.DiscoveryMethodINVENTORY))).
+		All(ctx)
+
+	if err != nil {
+		errorReturn(w, "can't get services", log, err)
+		return
+	}
+
+	log.Info("service Sync - delete outdated services")
+	for _, srvc := range services {
+		typ, err := srvc.QueryType().Only(ctx)
+		if err != nil {
+			log.Warn("[SKIP] can't get service type" + srvc.Name + ". error: " + err.Error())
+			continue
+		}
+		if typ.IsDeleted {
+			log.Debug("Deleting 'isDeleted' marked Service" + strconv.Itoa(srvc.ID))
+			err = deleteService(ctx, srvc)
+			if err != nil {
+				log.Warn("[SKIP] can't delete service" + srvc.Name + ". error: " + err.Error())
+				continue
+			}
+			sc.deleted++
+
+		}
+		err = m.validateEndpointsExistAndLinked(ctx, srvc)
+		if err != nil {
+			log.Warn("[SKIP] error while validating existing service" + srvc.Name + ". error: " + err.Error())
+			continue
+		}
+	}
+	log.Info("done deleting services, deleted instances: " + strconv.Itoa(sc.deleted))
+
+	log.Info("service Sync - Add new services")
+	serviceTypes, err := client.ServiceType.Query().
+		Where(servicetype.DiscoveryMethodEQ(servicetype.DiscoveryMethodINVENTORY)).
+		All(ctx)
+
+	if err != nil {
+		errorReturn(w, "can't get service types", log, err)
+		return
+	}
+	for _, sType := range serviceTypes {
+		log.Info("going over type: " + sType.Name)
+
+		endpointDefs, err := sType.QueryEndpointDefinitions().
+			Order(ent.Asc(serviceendpointdefinition.FieldIndex)).All(ctx)
+		if err != nil {
+			log.Warn("[SKIP] can't get endpoints definitions for service type" + sType.Name + ". error: " + err.Error())
+			continue
+		}
+		if len(endpointDefs) < 2 || len(endpointDefs) > maxEndpoints {
+			log.Info("[SKIPPING SERVICE TYPE] wrong number of endpoints " + strconv.Itoa(len(endpointDefs)) + sType.Name)
+			continue
+		}
+
+		serviceDataListToAdd, err := m.getServiceDetailsList(ctx, endpointDefs)
+		if err != nil {
+			log.Warn("[SKIP] can't get service details for service type" + sType.Name + ". error: " + err.Error())
+			continue
+		}
+		err = m.createServicesFromList(ctx, serviceDataListToAdd, sType)
+		if err != nil {
+			log.Warn("[SKIP] can't create services for type" + sType.Name + ". error: " + err.Error())
+			continue
+		}
+	}
+}
+
+func (m *jobs) generateName(ctx context.Context, s serviceEquipmentListData, id int) (*string, error) {
+	locStart, err := m.r.Equipment().FirstLocation(ctx, s.EquipmentList[0])
+	if err != nil {
+		return nil, errors.Wrapf(err, "can't query location on equipment %v", s.EquipmentList[0].ID)
+	}
+	locEnd, err := m.r.Equipment().FirstLocation(ctx, s.EquipmentList[len(s.EquipmentList)-1])
+	if err != nil {
+		return nil, errors.Wrapf(err, "can't query location on equipment %v", s.EquipmentList[len(s.EquipmentList)-1].ID)
+	}
+
+	idAsString := strconv.Itoa(id)
+	return pointer.ToString(locStart.Name + "_" + locEnd.Name + "_" + idAsString[len(idAsString)-4:]), nil
+}

@@ -8,6 +8,8 @@ import (
 	"github.com/facebookincubator/ent"
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/ent/schema/index"
+	"github.com/facebookincubator/symphony/graph/authz"
+	"github.com/facebookincubator/symphony/graph/ent/privacy"
 )
 
 // ReportFilter defines the schema
@@ -32,4 +34,13 @@ func (ReportFilter) Indexes() []ent.Index {
 		index.Fields("name", "entity").
 			Unique(),
 	}
+}
+
+// Policy returns ReportFilter policy.
+func (ReportFilter) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithMutationRules(
+			privacy.AlwaysAllowRule(),
+		),
+	)
 }

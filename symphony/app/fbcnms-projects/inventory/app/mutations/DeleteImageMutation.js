@@ -16,7 +16,7 @@ import type {
   DeleteImageMutationVariables,
 } from './__generated__/DeleteImageMutation.graphql';
 import type {MutationCallbacks} from './MutationCallbacks.js';
-import type {StoreUpdater} from '../common/RelayEnvironment';
+import type {SelectorStoreUpdater} from 'relay-runtime';
 
 const mutation = graphql`
   mutation DeleteImageMutation(
@@ -34,7 +34,7 @@ const mutation = graphql`
 export default (
   variables: DeleteImageMutationVariables,
   callbacks?: MutationCallbacks<DeleteImageMutationResponse>,
-  updater?: StoreUpdater,
+  updater?: SelectorStoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
   commitMutation<DeleteImageMutation>(RelayEnvironment, {

@@ -15,6 +15,21 @@ The team is currently working on:
 
 
 ### Release Notes
+* 4/30/2020
+    * Mobile App
+        * **New Release**: New major app release. This release includes work order: view work orders, edit work orders, edit checklist. Download from here: [https://play.google.com/apps/testing/cloud.thesymphony](https://play.google.com/apps/testing/cloud.thesymphony)
+    * Inventory and Work Orders
+        * **New Property Type**: Added property type of type "Work Order". Now you can create new properties that are linking to specific work orders.
+        * **New Property Type**: Added property type of type "User". Now you can create new properties that are linking to specific users.
+    * Infra
+        * **Permission Model**: New infrastructure for permission model is ready. User roles were replaced with the new model. This is unblocking custom permission definition.
+        * **Library Upgrade**: Upgraded gqlgen library to 0.11.3 (Included open census support)
+        * **Library Upgrade**: Upgraded open source charts to latest version
+    * APIs
+        * **Pyinventory**: added get_equipments_by_type, get_equipments_by_location, get_equipment_by_external_id, get_equipment_type_property_type, get_equipment_type_property_type_by_external_id , edit_equipment_type_property_type, get_property_type_id 
+        * **Pyinventory**: added external_id to: add_equipment, add_equipment_to_position, copy_equipment_in_position, copy_equipment, get_or_create_equipment, get_or_create_equipment_in_position
+        * **Pyinventory**: Performance improvments. get_location and get_location_by_external_id run X3 times faster
+
 * 3/22/2020
     * Inventory
         * **Saved Searches**: Filters can now be saved and named for future use (reports, services, work orders)

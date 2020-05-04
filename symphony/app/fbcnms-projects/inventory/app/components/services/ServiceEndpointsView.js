@@ -14,7 +14,6 @@ import * as React from 'react';
 import ServiceEndpointDetails from './ServiceEndpointDetails';
 import ServiceEndpointsView_endpoints from './__generated__/ServiceEndpointsView_endpoints.graphql';
 import {createFragmentContainer, graphql} from 'react-relay';
-import {sortLexicographically} from '@fbcnms/ui/utils/displayUtils';
 
 type Props = {
   // $FlowFixMe (T62907961) Relay flow types
@@ -28,13 +27,7 @@ const ServiceEndpointsView = (props: Props) => {
   return (
     <div>
       {endpoints
-        .sort((e1, e2) =>
-          sortLexicographically(
-            e1.port.parentEquipment.name,
-            e2.port.parentEquipment.name,
-          ),
-        )
-        .sort((e1, e2) => sortLexicographically(e1.role, e2.role))
+        .sort((e1, e2) => e1.definition.index - e2.definition.index)
         .map(endpoint => (
           <ServiceEndpointDetails
             endpoint={endpoint}
@@ -60,7 +53,12 @@ export default createFragmentContainer(ServiceEndpointsView, {
           name
         }
       }
+      equipment {
+        name
+        ...EquipmentBreadcrumbs_equipment
+      }
       definition {
+        name
         role
       }
     }

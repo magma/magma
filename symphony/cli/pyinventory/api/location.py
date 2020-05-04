@@ -5,8 +5,10 @@
 
 from typing import Dict, List, Optional, Sequence, Tuple
 
+from pysymphony import SymphonyClient
+
 from .._utils import deprecated, get_graphql_property_inputs
-from ..client import SymphonyClient
+from ..common.cache import LOCATION_TYPES
 from ..common.constant import LOCATIONS_TO_SEARCH
 from ..common.data_class import Document, ImageEntity, Location, PropertyValue
 from ..common.data_enum import Entity
@@ -38,7 +40,7 @@ def _get_locations_by_name_and_type(
         LocationFilterInput(
             filterType=LocationFilterType.LOCATION_TYPE,
             operator=FilterOperator.IS_ONE_OF,
-            idSet=[client.locationTypes[location_type_name].id],
+            idSet=[LOCATION_TYPES[location_type_name].id],
             stringSet=[],
         ),
         LocationFilterInput(
@@ -154,7 +156,7 @@ def add_location(
         long_val = None
 
         if i == len(location_hirerchy) - 1:
-            property_types = client.locationTypes[location_type].property_types
+            property_types = LOCATION_TYPES[location_type].property_types
             properties = get_graphql_property_inputs(property_types, properties_dict)
             lat_val = lat
             long_val = long
@@ -170,7 +172,7 @@ def add_location(
                 client=client,
                 input=AddLocationInput(
                     name=location_name,
-                    type=client.locationTypes[location_type].id,
+                    type=LOCATION_TYPES[location_type].id,
                     latitude=lat_val,
                     longitude=long_val,
                     parent=last_location.id if last_location else None,
@@ -390,7 +392,7 @@ def edit_location(
     """
     properties = []
     location_type = location.locationTypeName
-    property_types = client.locationTypes[location_type].property_types
+    property_types = LOCATION_TYPES[location_type].property_types
     if new_properties:
         properties = get_graphql_property_inputs(property_types, new_properties)
     if new_external_id is None:

@@ -344,6 +344,15 @@ type EditLocationTypeInput struct {
 	Properties   []*PropertyTypeInput `json:"properties"`
 }
 
+type EditPermissionsPolicyInput struct {
+	ID             int                          `json:"id"`
+	Name           *string                      `json:"name"`
+	Description    *string                      `json:"description"`
+	IsGlobal       *bool                        `json:"isGlobal"`
+	InventoryInput *models.InventoryPolicyInput `json:"inventoryInput"`
+	WorkforceInput *models.WorkforcePolicyInput `json:"workforceInput"`
+}
+
 type EditProjectInput struct {
 	ID          int              `json:"id"`
 	Name        string           `json:"name"`
@@ -545,6 +554,18 @@ type PermissionSettings struct {
 	WorkforcePolicy *WorkforcePolicy      `json:"workforcePolicy"`
 }
 
+type PermissionsPolicyFilterInput struct {
+	FilterType  PermissionsPolicyFilterType `json:"filterType"`
+	Operator    FilterOperator              `json:"operator"`
+	StringValue *string                     `json:"stringValue"`
+	MaxDepth    *int                        `json:"maxDepth"`
+}
+
+type PermissionsPolicySearchResult struct {
+	PermissionsPolicies []*ent.PermissionsPolicy `json:"permissionsPolicies"`
+	Count               int                      `json:"count"`
+}
+
 type PortFilterInput struct {
 	FilterType    PortFilterType     `json:"filterType"`
 	Operator      FilterOperator     `json:"operator"`
@@ -702,10 +723,11 @@ type ServiceSearchResult struct {
 }
 
 type ServiceTypeCreateData struct {
-	Name        string                            `json:"name"`
-	HasCustomer bool                              `json:"hasCustomer"`
-	Properties  []*PropertyTypeInput              `json:"properties"`
-	Endpoints   []*ServiceEndpointDefinitionInput `json:"endpoints"`
+	Name            string                            `json:"name"`
+	HasCustomer     bool                              `json:"hasCustomer"`
+	Properties      []*PropertyTypeInput              `json:"properties"`
+	Endpoints       []*ServiceEndpointDefinitionInput `json:"endpoints"`
+	DiscoveryMethod *DiscoveryMethod                  `json:"discoveryMethod"`
 }
 
 type ServiceTypeEditData struct {
@@ -855,6 +877,18 @@ type UserFilterInput struct {
 type UserSearchResult struct {
 	Users []*ent.User `json:"users"`
 	Count int         `json:"count"`
+}
+
+type UsersGroupFilterInput struct {
+	FilterType  UsersGroupFilterType `json:"filterType"`
+	Operator    FilterOperator       `json:"operator"`
+	StringValue *string              `json:"stringValue"`
+	MaxDepth    *int                 `json:"maxDepth"`
+}
+
+type UsersGroupSearchResult struct {
+	UsersGroups []*ent.UsersGroup `json:"usersGroups"`
+	Count       int               `json:"count"`
 }
 
 type WorkOrderDefinitionInput struct {
@@ -1078,6 +1112,45 @@ func (e *CommentEntity) UnmarshalGQL(v interface{}) error {
 }
 
 func (e CommentEntity) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type DiscoveryMethod string
+
+const (
+	DiscoveryMethodInventory DiscoveryMethod = "INVENTORY"
+)
+
+var AllDiscoveryMethod = []DiscoveryMethod{
+	DiscoveryMethodInventory,
+}
+
+func (e DiscoveryMethod) IsValid() bool {
+	switch e {
+	case DiscoveryMethodInventory:
+		return true
+	}
+	return false
+}
+
+func (e DiscoveryMethod) String() string {
+	return string(e)
+}
+
+func (e *DiscoveryMethod) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = DiscoveryMethod(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid DiscoveryMethod", str)
+	}
+	return nil
+}
+
+func (e DiscoveryMethod) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
@@ -1457,6 +1530,46 @@ func (e *LocationFilterType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e LocationFilterType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+// what filters should we apply on permissionsPolicy
+type PermissionsPolicyFilterType string
+
+const (
+	PermissionsPolicyFilterTypePermissionsPolicyName PermissionsPolicyFilterType = "PERMISSIONS_POLICY_NAME"
+)
+
+var AllPermissionsPolicyFilterType = []PermissionsPolicyFilterType{
+	PermissionsPolicyFilterTypePermissionsPolicyName,
+}
+
+func (e PermissionsPolicyFilterType) IsValid() bool {
+	switch e {
+	case PermissionsPolicyFilterTypePermissionsPolicyName:
+		return true
+	}
+	return false
+}
+
+func (e PermissionsPolicyFilterType) String() string {
+	return string(e)
+}
+
+func (e *PermissionsPolicyFilterType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = PermissionsPolicyFilterType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid PermissionsPolicyFilterType", str)
+	}
+	return nil
+}
+
+func (e PermissionsPolicyFilterType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
@@ -1940,6 +2053,46 @@ func (e *UserFilterType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e UserFilterType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+// what filters should we apply on usersGroups
+type UsersGroupFilterType string
+
+const (
+	UsersGroupFilterTypeGroupName UsersGroupFilterType = "GROUP_NAME"
+)
+
+var AllUsersGroupFilterType = []UsersGroupFilterType{
+	UsersGroupFilterTypeGroupName,
+}
+
+func (e UsersGroupFilterType) IsValid() bool {
+	switch e {
+	case UsersGroupFilterTypeGroupName:
+		return true
+	}
+	return false
+}
+
+func (e UsersGroupFilterType) String() string {
+	return string(e)
+}
+
+func (e *UsersGroupFilterType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = UsersGroupFilterType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid UsersGroupFilterType", str)
+	}
+	return nil
+}
+
+func (e UsersGroupFilterType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

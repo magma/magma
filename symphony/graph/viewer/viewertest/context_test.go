@@ -25,8 +25,6 @@ func TestNewContext(t *testing.T) {
 		viewertest.WithUser(userName),
 	)
 	got := viewer.FromContext(ctx)
-	assert.Equal(t, tenantName, got.Tenant)
-	u := got.User()
-	assert.Equal(t, userName, u.AuthID)
-	assert.Equal(t, userName, u.Email)
+	assert.Equal(t, tenantName, got.Tenant())
+	assert.Equal(t, userName, got.Name())
 }

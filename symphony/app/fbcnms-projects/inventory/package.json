@@ -9,8 +9,8 @@
   },
   "dependencies": {
     "@fbcnms/babel-register": "^0.1.0",
-    "@fbcnms/magmalte": "^0.1.0",
     "@fbcnms/hub": "^0.1.0",
+    "@fbcnms/magmalte": "^0.1.0",
     "@fbcnms/strings": "^0.1.0",
     "@fbcnms/ui": "^0.1.0",
     "@fbcnms/util": "^0.1.0",
@@ -23,6 +23,7 @@
     "classnames": "^2.2.5",
     "d3": "^5.9.2",
     "immutability-helper": "^2.9.0",
+    "immutable": "^4.0.0-rc.12",
     "is-url": "^1.2.4",
     "lodash": "^4.17.11",
     "mapbox-gl": "^0.53.0",

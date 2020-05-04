@@ -5,7 +5,8 @@
 
 from typing import Dict, List, Tuple
 
-from ..client import SymphonyClient
+from pysymphony import SymphonyClient
+
 from ..common.data_class import Equipment, Location
 from ..common.data_enum import Entity
 from ..exceptions import EntityNotFoundError

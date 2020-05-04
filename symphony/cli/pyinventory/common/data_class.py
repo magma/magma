@@ -46,14 +46,16 @@ class PropertyDefinition(NamedTuple):
         is_fixed (bool): fixed value flag
         external_id (str): property type external ID
         is_mandatory (bool): mandatory value flag
+        is_deleted (bool): is delete flag
     """
 
     property_name: str
     property_kind: PropertyKind
-    default_value: Optional[PropertyValue]
+    default_value: Optional[PropertyValue] = None
     is_fixed: Optional[bool] = False
     external_id: Optional[str] = None
     is_mandatory: Optional[bool] = False
+    is_deleted: Optional[bool] = False
 
 
 class DataTypeName(NamedTuple):

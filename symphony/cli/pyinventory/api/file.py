@@ -7,8 +7,8 @@ from datetime import datetime
 from typing import Generator, Optional
 
 import filetype
+from pysymphony import SymphonyClient
 
-from ..client import SymphonyClient
 from ..common.data_class import Document, Location, SiteSurvey
 from ..graphql.add_image_input import AddImageInput
 from ..graphql.add_image_mutation import AddImageMutation

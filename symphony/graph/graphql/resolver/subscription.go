@@ -21,7 +21,7 @@ func (r subscriptionResolver) subscribeAndListen(ctx context.Context, name strin
 	err := event.SubscribeAndListen(ctx, event.ListenerConfig{
 		Subscriber: r.event.Subscriber,
 		Logger:     logger,
-		Tenant:     viewer.FromContext(ctx).Tenant,
+		Tenant:     viewer.FromContext(ctx).Tenant(),
 		Events:     []string{name},
 		Handler:    handler,
 	})

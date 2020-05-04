@@ -16,7 +16,7 @@ import type {
   RemoveEquipmentMutationResponse,
   RemoveEquipmentMutationVariables,
 } from './__generated__/RemoveEquipmentMutation.graphql';
-import type {StoreUpdater} from '../common/RelayEnvironment';
+import type {SelectorStoreUpdater} from 'relay-runtime';
 
 const mutation = graphql`
   mutation RemoveEquipmentMutation($id: ID!, $work_order_id: ID) {
@@ -27,7 +27,7 @@ const mutation = graphql`
 export default (
   variables: RemoveEquipmentMutationVariables,
   callbacks?: MutationCallbacks<RemoveEquipmentMutationResponse>,
-  updater?: StoreUpdater,
+  updater?: SelectorStoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
   commitMutation<RemoveEquipmentMutation>(RelayEnvironment, {

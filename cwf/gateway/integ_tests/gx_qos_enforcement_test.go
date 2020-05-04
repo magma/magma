@@ -288,7 +288,7 @@ func TestGxQosDowngradeWithCCAUpdate(t *testing.T) {
 	assert.NotNil(t, record, fmt.Sprintf("No policy usage record for imsi: %v", imsi))
 
 	// Assert that reasonable CCR-I and at least one CCR-U were sent up to the PCRF
-	resultByIndex, errByIndex, err := getAssertExpectationsResult()
+	resultByIndex, errByIndex, err := getPCRFAssertExpectationsResult()
 	assert.NoError(t, err)
 	assert.Empty(t, errByIndex)
 	expectedResult := []*protos.ExpectationResult{
@@ -309,7 +309,7 @@ func TestGxQosDowngradeWithCCAUpdate(t *testing.T) {
 	time.Sleep(6 * time.Second)
 
 	// Assert that we saw a Terminate request
-	resultByIndex, errByIndex, err = getAssertExpectationsResult()
+	resultByIndex, errByIndex, err = getPCRFAssertExpectationsResult()
 	assert.NoError(t, err)
 	assert.Empty(t, errByIndex)
 	expectedResult = []*protos.ExpectationResult{

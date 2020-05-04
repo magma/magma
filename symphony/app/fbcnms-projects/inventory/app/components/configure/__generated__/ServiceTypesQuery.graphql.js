@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 59ec0052d0aac574a287f7a7b5a0c6c0
+ * @relayHash c4e8f8ac4ab6f881d9675c19f96a2e4b
  */
 
 /* eslint-disable */
@@ -60,6 +60,7 @@ fragment AddEditServiceTypeCard_editingServiceType on ServiceType {
   id
   name
   numberOfServices
+  discoveryMethod
   propertyTypes {
     id
     name
@@ -125,6 +126,7 @@ fragment ServiceEndpointDefinitionStaticTable_serviceEndpointDefinitions on Serv
 fragment ServiceTypeItem_serviceType on ServiceType {
   id
   name
+  discoveryMethod
   propertyTypes {
     ...PropertyTypeFormField_propertyType
     id
@@ -298,6 +300,13 @@ return {
                 "selections": [
                   (v0/*: any*/),
                   (v1/*: any*/),
+                  {
+                    "kind": "ScalarField",
+                    "alias": null,
+                    "name": "discoveryMethod",
+                    "args": null,
+                    "storageKey": null
+                  },
                   {
                     "kind": "LinkedField",
                     "alias": null,
@@ -482,7 +491,7 @@ return {
     "operationKind": "query",
     "name": "ServiceTypesQuery",
     "id": null,
-    "text": "query ServiceTypesQuery {\n  serviceTypes(first: 500) {\n    edges {\n      node {\n        ...ServiceTypeItem_serviceType\n        ...AddEditServiceTypeCard_editingServiceType\n        id\n        name\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n}\n\nfragment AddEditServiceTypeCard_editingServiceType on ServiceType {\n  id\n  name\n  numberOfServices\n  propertyTypes {\n    id\n    name\n    type\n    nodeType\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    isEditable\n    isMandatory\n    isInstanceProperty\n  }\n  endpointDefinitions {\n    id\n    index\n    role\n    name\n    equipmentType {\n      name\n      id\n    }\n  }\n}\n\nfragment PropertyTypeFormField_propertyType on PropertyType {\n  id\n  name\n  type\n  nodeType\n  index\n  stringValue\n  intValue\n  booleanValue\n  floatValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  isEditable\n  isInstanceProperty\n  isMandatory\n  category\n  isDeleted\n}\n\nfragment ServiceEndpointDefinitionStaticTable_serviceEndpointDefinitions on ServiceEndpointDefinition {\n  id\n  name\n  role\n  index\n  equipmentType {\n    id\n    name\n  }\n}\n\nfragment ServiceTypeItem_serviceType on ServiceType {\n  id\n  name\n  propertyTypes {\n    ...PropertyTypeFormField_propertyType\n    id\n  }\n  endpointDefinitions {\n    ...ServiceEndpointDefinitionStaticTable_serviceEndpointDefinitions\n    id\n  }\n  numberOfServices\n}\n",
+    "text": "query ServiceTypesQuery {\n  serviceTypes(first: 500) {\n    edges {\n      node {\n        ...ServiceTypeItem_serviceType\n        ...AddEditServiceTypeCard_editingServiceType\n        id\n        name\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n}\n\nfragment AddEditServiceTypeCard_editingServiceType on ServiceType {\n  id\n  name\n  numberOfServices\n  discoveryMethod\n  propertyTypes {\n    id\n    name\n    type\n    nodeType\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    isEditable\n    isMandatory\n    isInstanceProperty\n  }\n  endpointDefinitions {\n    id\n    index\n    role\n    name\n    equipmentType {\n      name\n      id\n    }\n  }\n}\n\nfragment PropertyTypeFormField_propertyType on PropertyType {\n  id\n  name\n  type\n  nodeType\n  index\n  stringValue\n  intValue\n  booleanValue\n  floatValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  isEditable\n  isInstanceProperty\n  isMandatory\n  category\n  isDeleted\n}\n\nfragment ServiceEndpointDefinitionStaticTable_serviceEndpointDefinitions on ServiceEndpointDefinition {\n  id\n  name\n  role\n  index\n  equipmentType {\n    id\n    name\n  }\n}\n\nfragment ServiceTypeItem_serviceType on ServiceType {\n  id\n  name\n  discoveryMethod\n  propertyTypes {\n    ...PropertyTypeFormField_propertyType\n    id\n  }\n  endpointDefinitions {\n    ...ServiceEndpointDefinitionStaticTable_serviceEndpointDefinitions\n    id\n  }\n  numberOfServices\n}\n",
     "metadata": {
       "connection": [
         {

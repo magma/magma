@@ -16,7 +16,7 @@ import type {
   DeleteReportFilterMutationVariables,
 } from './__generated__/DeleteReportFilterMutation.graphql';
 import type {MutationCallbacks} from './MutationCallbacks.js';
-import type {StoreUpdater} from '../common/RelayEnvironment';
+import type {SelectorStoreUpdater} from 'relay-runtime';
 
 const mutation = graphql`
   mutation DeleteReportFilterMutation($id: ID!) {
@@ -27,7 +27,7 @@ const mutation = graphql`
 export default (
   variables: DeleteReportFilterMutationVariables,
   callbacks?: MutationCallbacks<DeleteReportFilterMutationResponse>,
-  updater?: StoreUpdater,
+  updater?: SelectorStoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
   commitMutation<DeleteReportFilterMutation>(RelayEnvironemnt, {

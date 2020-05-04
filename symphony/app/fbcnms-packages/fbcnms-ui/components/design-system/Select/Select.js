@@ -16,6 +16,7 @@ import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import BasePopoverTrigger from '../ContexualLayer/BasePopoverTrigger';
 import Button from '../Button';
 import SelectMenu from './SelectMenu';
+import Text from '../Text';
 import classNames from 'classnames';
 import symphony from '@fbcnms/ui/theme/symphony';
 import {makeStyles} from '@material-ui/styles';
@@ -31,12 +32,14 @@ const useStyles = makeStyles(() => ({
     border: `1px solid ${symphony.palette.D100}`,
     '&$disabled': {
       backgroundColor: symphony.palette.background,
+      color: symphony.palette.secondary,
     },
   },
   disabled: {
     '&&': {
       '&&': {
         color: symphony.palette.secondary,
+        fill: symphony.palette.secondary,
       },
     },
   },
@@ -93,20 +96,22 @@ const Select = <TValue>({
           disabled={disabled}
           rightIcon={ArrowDropDownIcon}
           rightIconClass={classNames({[classes.disabled]: disabled})}>
-          <span className={classes.label}>{label}</span>
-          {selectedValue != null && !!label ? ': ' : null}
-          {selectedValue != null ? (
-            <span
-              className={
-                classNames({
-                  [classes.formValue]: !label,
-                  [classes.disabled]: !label && disabled,
-                }) || null
-              }>
-              {options.find(option => option.value === selectedValue)?.label ??
-                ''}
-            </span>
-          ) : null}
+          <Text variant="body2">
+            <span className={classes.label}>{label}</span>
+            {selectedValue != null && !!label ? ': ' : null}
+            {selectedValue != null ? (
+              <span
+                className={
+                  classNames({
+                    [classes.formValue]: !label,
+                    [classes.disabled]: !label && disabled,
+                  }) || null
+                }>
+                {options.find(option => option.value === selectedValue)
+                  ?.label ?? ''}
+              </span>
+            ) : null}
+          </Text>
         </Button>
       )}
     </BasePopoverTrigger>

@@ -10,8 +10,10 @@ LICENSE file in the root directory of this source tree.
 package gx_test
 
 import (
+	"fmt"
 	"log"
 	"net"
+	"os"
 	"testing"
 	"time"
 
@@ -23,6 +25,8 @@ import (
 	"magma/lte/cloud/go/protos"
 
 	"github.com/fiorix/go-diameter/v4/diam"
+	"github.com/fiorix/go-diameter/v4/diam/avp"
+	"github.com/fiorix/go-diameter/v4/diam/datatype"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 )
@@ -71,6 +75,7 @@ func TestGxClient(t *testing.T) {
 		RequestNumber: 0,
 		IPAddr:        "192.168.1.1",
 		SpgwIPV4:      "10.10.10.10",
+		Apn:           "gx.Apn.magma.com",
 	}
 	done := make(chan interface{}, 1000)
 
@@ -79,9 +84,7 @@ func TestGxClient(t *testing.T) {
 	assert.Equal(t, ccrInit.SessionID, answer.SessionID)
 	assert.Equal(t, ccrInit.RequestNumber, answer.RequestNumber)
 	assert.Equal(t, 5, len(answer.RuleInstallAVP))
-	calledStationID, err := mock_pcrf.GetAVP(pcrf.LastMessageReceived, "Called-Station-Id")
-	assert.NoError(t, err)
-	assert.Equal(t, "", calledStationID)
+	assertReceivedAPNonPCRF(t, pcrf, "gx.Apn.magma.com")
 
 	var ruleNames []string
 	var ruleBaseNames []string
@@ -189,7 +192,7 @@ func TestGxClient(t *testing.T) {
 func TestGxClientWithGyGlobalConf(t *testing.T) {
 	serverConfig := defaultLocalServerConfig
 	clientConfig := getClientConfig()
-	overWriteApn := "gx.Apn.magma.com"
+	overWriteApn := "gx.overwritten.Apn.magma.com"
 	globalConfig := getGxGlobalConfig(overWriteApn)
 	pcrf := startServer(clientConfig, &serverConfig)
 	seedAccountConfigurations(pcrf)
@@ -210,6 +213,7 @@ func TestGxClientWithGyGlobalConf(t *testing.T) {
 		RequestNumber: 0,
 		IPAddr:        "192.168.1.1",
 		SpgwIPV4:      "10.10.10.10",
+		Apn:           "gx.Apn.magma.com",
 	}
 	done := make(chan interface{}, 1000)
 
@@ -218,9 +222,7 @@ func TestGxClientWithGyGlobalConf(t *testing.T) {
 	assert.Equal(t, ccrInit.SessionID, answer.SessionID)
 	assert.Equal(t, ccrInit.RequestNumber, answer.RequestNumber)
 	assert.Equal(t, 5, len(answer.RuleInstallAVP))
-	calledStationID, err := mock_pcrf.GetAVP(pcrf.LastMessageReceived, "Called-Station-Id")
-	assert.NoError(t, err)
-	assert.Equal(t, overWriteApn, calledStationID)
+	assertReceivedAPNonPCRF(t, pcrf, overWriteApn)
 }
 
 func TestGxClientUsageMonitoring(t *testing.T) {
@@ -352,6 +354,59 @@ func TestGxReAuthRemoveRules(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "1", raa.SessionId)
 	assert.Equal(t, uint32(diam.Success), raa.ResultCode)
+}
+
+// Test cases that don't support FramedIpv6 AVPs
+// When these env variables are set, the FrameIP Address should be overwritten
+// with the value, and no FramedIPv6Prefix AVP should be sent
+func TestDefaultFramedIpv4Addr(t *testing.T) {
+	var defaultIpv4 = "10.10.10.11"
+	log.Printf("Start TestDefaultFramedIpv4Addr with default=%v", defaultIpv4)
+	os.Setenv(gx.FramedIPv4AddrRequiredEnv, "1")
+	os.Setenv(gx.DefaultFramedIPv4AddrEnv, defaultIpv4)
+	defer func() {
+		os.Unsetenv(gx.FramedIPv4AddrRequiredEnv)
+		os.Unsetenv(gx.DefaultFramedIPv4AddrEnv)
+	}()
+
+	serverConfig := defaultLocalServerConfig
+	clientConfig := getClientConfig()
+	globalConfig := getGxGlobalConfig("")
+	pcrf := startServer(clientConfig, &serverConfig)
+	seedAccountConfigurations(pcrf)
+
+	gxClient := gx.NewGxClient(
+		clientConfig,
+		&serverConfig,
+		getMockReAuthHandler(),
+		nil,
+		globalConfig,
+	)
+
+	// send one init to set user context in OCS
+	ccrInit := &gx.CreditControlRequest{
+		SessionID:     "1",
+		Type:          credit_control.CRTInit,
+		IMSI:          testIMSI4,
+		RequestNumber: 0,
+		IPAddr:        "2001:db8:0:1:1:1:1:1",
+		SpgwIPV4:      "10.10.10.10",
+	}
+	done := make(chan interface{}, 1000)
+	log.Printf("Sending CCR-Init")
+	assert.NoError(t, gxClient.SendCreditControlRequest(&serverConfig, done, ccrInit))
+	gx.GetAnswer(done)
+
+	lastMsg, err := pcrf.GetLastAVPreceived()
+	avpValue, err := lastMsg.FindAVP(avp.FramedIPAddress, 0)
+	assert.NoError(t, err)
+	actualIPv4, err := datatype.DecodeIPv4(avpValue.Data.Serialize())
+	assert.NoError(t, err)
+
+	assert.Equal(t, fmt.Sprintf("IPv4{%v}", defaultIpv4), actualIPv4.String())
+
+	_, err = lastMsg.FindAVP(avp.FramedIPv6Prefix, 0)
+	assert.EqualError(t, err, "AVP not found")
 }
 
 func getClientConfig() *diameter.DiameterClientConfig {
@@ -505,4 +560,13 @@ func seedAccountConfigurations(pcrf *mock_pcrf.PCRFDiamServer) {
 	pcrf.CreateAccount(ctx, &protos.SubscriberID{Id: testIMSI4})
 	pcrf.SetRules(ctx, ruleImsi4)
 	pcrf.SetUsageMonitors(ctx, usageMonitorImsi4)
+}
+
+// assertReceivedAPNonPCRF checks if the last received AVP contains the expected APN
+func assertReceivedAPNonPCRF(t *testing.T, pcrf *mock_pcrf.PCRFDiamServer, expectedAPN string) {
+	avpReceived, err := pcrf.GetLastAVPreceived()
+	assert.NoError(t, err)
+	receivedAPN, err := avpReceived.FindAVP("Called-Station-Id", 0)
+	assert.NoError(t, err)
+	assert.Equal(t, fmt.Sprintf("UTF8String{%s},Padding:0", expectedAPN), receivedAPN.Data.String())
 }

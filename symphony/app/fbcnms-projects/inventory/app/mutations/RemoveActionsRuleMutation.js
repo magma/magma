@@ -14,7 +14,7 @@ import type {
   RemoveActionsRuleMutationResponse,
   RemoveActionsRuleMutationVariables,
 } from './__generated__/RemoveActionsRuleMutation.graphql';
-import type {StoreUpdater} from '../common/RelayEnvironment';
+import type {SelectorStoreUpdater} from 'relay-runtime';
 
 import RelayEnvironment from '../common/RelayEnvironment.js';
 import {commitMutation, graphql} from 'react-relay';
@@ -28,7 +28,7 @@ const mutation = graphql`
 export default (
   variables: RemoveActionsRuleMutationVariables,
   callbacks?: MutationCallbacks<RemoveActionsRuleMutationResponse>,
-  updater?: StoreUpdater,
+  updater?: SelectorStoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
   commitMutation<RemoveActionsRuleMutation>(RelayEnvironment, {

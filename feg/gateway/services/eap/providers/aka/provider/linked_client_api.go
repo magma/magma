@@ -20,6 +20,7 @@ import (
 	"magma/feg/gateway/services/eap/providers"
 	"magma/feg/gateway/services/eap/providers/aka"
 	"magma/feg/gateway/services/eap/providers/aka/servicers"
+	_ "magma/feg/gateway/services/eap/providers/aka/servicers/handlers"
 	managed_configs "magma/gateway/mconfig"
 )
 

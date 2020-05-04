@@ -1,3 +1,7 @@
+// Copyright (c) 2004-present Facebook All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package authz_test
 
 import (
@@ -38,7 +42,7 @@ type testData struct {
 
 func prepareData(ctx context.Context) (data testData) {
 	c := ent.FromContext(ctx)
-	v := viewer.FromContext(ctx)
+	v := viewer.FromContext(ctx).(*viewer.UserViewer)
 	data.locationPolicyInput = &models.InventoryPolicyInput{
 		Location: &models.BasicCUDInput{
 			Create: NewBasicPermissionRuleInput(true),
@@ -117,7 +121,7 @@ func prepareData(ctx context.Context) (data testData) {
 
 func TestGlobalPolicyIsAppliedForUsers(t *testing.T) {
 	c := viewertest.NewTestClient(t)
-	ctx := viewertest.NewContext(context.Background(), c, viewertest.WithRole(viewer.UserRole))
+	ctx := viewertest.NewContext(context.Background(), c, viewertest.WithRole(user.RoleUSER))
 	data := prepareData(ctx)
 	permissions, err := authz.Permissions(ctx)
 	require.NoError(t, err)
@@ -141,7 +145,7 @@ func TestGlobalPolicyIsAppliedForUsers(t *testing.T) {
 
 func TestPoliciesAreAppendedForGroups(t *testing.T) {
 	c := viewertest.NewTestClient(t)
-	ctx := viewertest.NewContext(context.Background(), c, viewertest.WithRole(viewer.UserRole))
+	ctx := viewertest.NewContext(context.Background(), c, viewertest.WithRole(user.RoleUSER))
 	data := prepareData(ctx)
 	c.PermissionsPolicy.UpdateOneID(data.locationPolicyID).
 		SetIsGlobal(true).
@@ -178,7 +182,7 @@ func TestPoliciesAreAppendedForGroups(t *testing.T) {
 
 func TestPoliciesAppendingOutput(t *testing.T) {
 	c := viewertest.NewTestClient(t)
-	ctx := viewertest.NewContext(context.Background(), c, viewertest.WithRole(viewer.UserRole))
+	ctx := viewertest.NewContext(context.Background(), c, viewertest.WithRole(user.RoleUSER))
 	data := prepareData(ctx)
 	c.UsersGroup.UpdateOneID(data.group1ID).
 		AddPolicyIDs(data.workforcePolicyID, data.workforcePolicy2ID).

@@ -59,13 +59,13 @@ type subscriberAccount struct {
 
 // PCRFDiamServer wraps an PCRF storing subscribers and their rules
 type PCRFDiamServer struct {
-	diameterSettings    *diameter.DiameterClientConfig
-	pcrfConfig          *PCRFConfig
-	serviceConfig       *protos.PCRFConfigs
-	subscribers         map[string]*subscriberAccount // map of imsi to to rules
-	mux                 *sm.StateMachine
-	LastMessageReceived *ccrMessage
-	mockDriver          *mock_driver.MockDriver
+	diameterSettings        *diameter.DiameterClientConfig
+	pcrfConfig              *PCRFConfig
+	serviceConfig           *protos.PCRFConfigs
+	subscribers             map[string]*subscriberAccount // map of imsi to to rules
+	mux                     *sm.StateMachine
+	lastDiamMessageReceived *diam.Message
+	mockDriver              *mock_driver.MockDriver
 }
 
 // NewPCRFDiamServer initializes an PCRF with an empty rule map
@@ -303,6 +303,15 @@ func (srv *PCRFDiamServer) AbortSession(
 	}
 }
 
+// GetLastAVPreceived gets the last message in diam format received
+// Message gets overwriten every time a new CCR is sent
+func (srv *PCRFDiamServer) GetLastAVPreceived() (*diam.Message, error) {
+	if srv.lastDiamMessageReceived == nil {
+		return nil, fmt.Errorf("No AVP message received")
+	}
+	return srv.lastDiamMessageReceived, nil
+}
+
 func sendASR(state *SubscriberSessionState, cfg *sm.Settings) error {
 	meta, ok := smpeer.FromContext(state.Connection.Context())
 	if !ok {
@@ -347,7 +356,11 @@ func (srv *PCRFDiamServer) ReAuth(
 		done <- &gx.PolicyReAuthAnswer{SessionID: raa.SessionID, ResultCode: raa.ResultCode}
 	}
 	srv.mux.Handle(diam.RAA, raaHandler)
-	sendRAR(account.CurrentState, target, srv.mux.Settings())
+	err := sendRAR(account.CurrentState, target, srv.mux.Settings())
+	if err != nil {
+		glog.Errorf("Error sending RaR for target %v: %v", target.GetImsi(), err)
+		return nil, err
+	}
 	select {
 	case raa := <-done:
 		return &protos.PolicyReAuthAnswer{SessionId: diameter.DecodeSessionID(raa.SessionID), ResultCode: raa.ResultCode}, nil

@@ -1,0 +1,124 @@
+#sidebar-primary {
+    top: auto;
+    background-color: #e0e1e2;
+    left: auto;
+}
+
+#sidebar-primary .item {
+    color: #4e4e4e;
+}
+
+#sidebar-primary .bottom {
+    position: absolute;
+    bottom: 5%;
+}
+
+#sidebar-secondary {
+    height: calc(100% - 50px) !important;
+    top: auto;
+    z-index: 10;
+    padding-left: 50px;
+    width: 400px
+}
+
+#sidebar-secondary .sidebar-header {
+    padding: 20px;
+}
+
+#sidebar-secondary .sidebar-content {
+    text-align: left;
+}
+
+#sidebar-right {
+    opacity: 0.3;
+    transition: opacity 0.2s ease;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: #e0e1e2;
+    height: auto!important;
+}
+
+#sidebar-right:hover {
+    opacity: 1;
+    transition: opacity 0.2s ease;
+}
+
+#sidebar-right .item:hover {
+    background-color: rgba(0, 0, 0, 0.13);
+}
+
+.decision-icon {
+    position: relative;
+    height: 30px;
+    width: 30px;
+    background-color: rgb(11, 60, 139);
+    transform: rotate(45deg);
+    -webkit-transform: rotate(45deg);
+    color: white;
+    line-height: 30px;
+}
+
+.circle-icon {
+    position: relative;
+    height: 30px;
+    width: 30px;
+    background-color: rgb(11, 60, 139);
+    border-radius: 30px;
+    color: white;
+    line-height: 30px;
+}
+
+.join-icon {
+    position: relative;
+    height: 30px;
+    width: 30px;
+    background-color: rgb(11, 60, 139);
+    color: white;
+    line-height: 30px;
+    clip-path: polygon(0% 0%, 75% 0%, 100% 50%, 75% 100%, 0% 100%);
+}
+
+.fork-icon {
+    position: relative;
+    height: 30px;
+    width: 30px;
+    background-color: rgb(11, 60, 139);
+    color: white;
+    line-height: 30px;
+    clip-path: polygon(25% 0%, 100% 1%, 100% 100%, 25% 100%, 0% 50%);
+}
+
+.lambda-icon{
+    position: relative;
+    height: 30px;
+    width: 30px;
+    background-color: rgb(11, 60, 139);
+    color: white;
+    line-height: 30px;
+}
+
+.raw-icon{
+    position: relative;
+    height: 30px;
+    width: 30px;
+    background-color: rgb(137, 141, 148);
+    color: white;
+    line-height: 30px;
+}
+
+kbd {
+    display: inline-block;
+    margin: 0 .1em;
+    padding: .1em .6em;
+    font-family: Arial,"Helvetica Neue",Helvetica,sans-serif;
+    font-size: 11px;
+    line-height: 1.4;
+    color: #242729;
+    text-shadow: 0 1px 0 #fff;
+    background-color: #e1e3e5;
+    border: 1px solid #adb3b8;
+    border-radius: 3px;
+    box-shadow: 0 1px 0 rgba(12,13,14,0.2), 0 0 0 2px #fff inset;
+    white-space: nowrap;
+}
+
