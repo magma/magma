@@ -128,17 +128,6 @@ class SessionState {
    * termination, this function should only be called when
    * can_complete_termination returns true.
    */
-  void complete_termination(SessionStateUpdateCriteria& update_criteria);
-
-  /**
-   * complete_termination collects final usages for all credits into a
-   * SessionTerminateRequest and calls the on termination callback with the
-   * request.
-   * Note that complete_termination will forcefully complete the termination
-   * no matter the current state of the session. To properly complete the
-   * termination, this function should only be called when
-   * can_complete_termination returns true.
-   */
   void complete_termination(
       SessionReporter& reporter, SessionStateUpdateCriteria& update_criteria);
 

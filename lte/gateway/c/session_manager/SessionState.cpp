@@ -234,42 +234,21 @@ SubscriberQuotaUpdate_Type SessionState::get_subscriber_quota_state() const {
 }
 
 void SessionState::complete_termination(
-    SessionStateUpdateCriteria& update_criteria) {
-  if (curr_state_ == SESSION_TERMINATED) {
-    // session is already terminated. Do nothing.
-    return;
-  }
-  if (!can_complete_termination()) {
-    MLOG(MERROR) << "Encountered unexpected state("
-                 << session_fsm_state_to_str(curr_state_)
-                 << ") while terminating session for IMSI " << imsi_
-                 << " and session id " << session_id_
-                 << ". Forcefully terminating session.";
-  }
-  // mark entire session as terminated
-  set_fsm_state(SESSION_TERMINATED, update_criteria);
-
-  auto termination_req = make_termination_request(update_criteria);
-  try {
-    on_termination_callback_(termination_req);
-  } catch (std::bad_function_call&) {
-    MLOG(MERROR) << "Missing termination callback function while terminating "
-                    "session for IMSI "
-                 << imsi_ << " and session id " << session_id_;
-  }
-}
-
-void SessionState::complete_termination(
     SessionReporter& reporter, SessionStateUpdateCriteria& update_criteria) {
-  if (curr_state_ == SESSION_TERMINATED) {
-    // session is already terminated. Do nothing.
-    return;
-  }
-  if (!can_complete_termination()) {
-    MLOG(MERROR) << "Encountered unexpected state(" << curr_state_
-                 << ") while terminating session for IMSI " << imsi_
-                 << " and session id " << session_id_
-                 << ". Forcefully terminating session.";
+  switch (curr_state_) {
+    case SESSION_ACTIVE:
+      MLOG(MERROR) << imsi_ << " Encountered unexpected state 'ACTIVE' when "
+                   << "forcefully completing termination. "
+      return;
+    case SESSION_TERMINATED:
+      // session is already terminated. Do nothing.
+      return;
+    case SESSION_TERMINATING_FLOW_ACTIVE:
+    case SESSION_TERMINATING_AGGREGATING_STATS:
+      MLOG(MINFO) << imsi_ << " Forcefully terminating session since it did "
+                  << "not receive usage from pipelined in time.";
+    default: // Continue termination but no logs are necessary for other states
+      break;
   }
   // mark entire session as terminated
   set_fsm_state(SESSION_TERMINATED, update_criteria);
