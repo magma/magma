@@ -245,7 +245,9 @@ def get_property_type_input(
         name=property_type.name,
         type=property_type.type,
         id=property_type.id if not is_new else None,
-        externalId=property_type.externalId if not is_new else None,
+        externalId=property_type.externalId
+        if not is_new and property_type.externalId
+        else None,
         index=property_type.index,
         category=property_type.category,
         stringValue=property_type.stringValue,
@@ -286,7 +288,7 @@ def get_port_definition_input(
 
 
 def format_property_definitions(
-    properties: List[PropertyDefinition]
+    properties: List[PropertyDefinition],
 ) -> List[PropertyTypeInput]:
     property_types = [
         from_dict(
@@ -301,6 +303,7 @@ def format_property_definitions(
                     prop.property_name, prop.property_kind.value, prop.default_value
                 ),
                 "isInstanceProperty": not prop.is_fixed,
+                "isDeleted": prop.is_deleted,
             },
             config=Config(strict=True),
         )

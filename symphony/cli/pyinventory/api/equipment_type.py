@@ -466,7 +466,7 @@ def edit_equipment_type_property_type(
 
         Args:
             equipment_type_name (str): existing equipment type name
-            property_type_name (str): existing property type name
+            property_type_id (str): existing property type id
             new_property_definition ( `pyinventory.common.data_class.PropertyDefinition` ): new property definition
 
         Returns:
@@ -478,10 +478,16 @@ def edit_equipment_type_property_type(
 
         Example:
             ```
-            e_type = client.edit_equipment_type_property_type_name(
+            e_type = client.edit_equipment_type_property_type(
                 equipment_type_name="Card",
-                property_type_name="contact",
-                new_name="contact information",
+                property_type_id="111669149698",
+                new_property_definition=PropertyDefinition(
+                    property_name=property_type_name,
+                    property_kind=PropertyKind.string,
+                    default_value=None,
+                    is_fixed=False,
+                    external_id="12345",
+                ),
             )
             ```
     """

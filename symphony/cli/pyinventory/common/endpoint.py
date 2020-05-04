@@ -4,8 +4,8 @@
 # license that can be found in the LICENSE file.
 
 INVENTORY_URI = "https://{}.thesymphony.cloud"
-LOCALHOST_INVENTORY_SERVER = "{}.localtest.me"
-LOCALHOST_INVENTORY = f"https://{LOCALHOST_INVENTORY_SERVER}"
+LOCALHOST_SERVER = "localtest.me"
+LOCALHOST_INVENTORY = f"https://{{}}.{LOCALHOST_SERVER}"
 INVENTORY_GRAPHQL = "/graph/query"
 INVENTORY_STORE_PUT = "/store/put"
 INVENTORY_LOGIN = "/user/login"
