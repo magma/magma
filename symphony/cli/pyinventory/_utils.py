@@ -143,7 +143,7 @@ def get_graphql_property_inputs(
 
         Example:
             ```
-            property_types = client.locationTypes[location_type].property_types
+            property_types = LOCATION_TYPES[location_type].property_types
             properties = get_graphql_property_inputs(property_types, properties_dict)
             ```
     """

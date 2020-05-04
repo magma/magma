@@ -8,7 +8,7 @@ import time
 
 import requests
 from pyinventory import InventoryClient
-from pyinventory.common.endpoint import LOCALHOST_SERVER
+from pysymphony.common.endpoint import LOCALHOST_SERVER
 
 from .constant import PLATFORM_SERVER_HEALTH_CHECK_URL, TestMode
 

@@ -81,14 +81,6 @@ class LocationIsNotUniqueException(CustomException):
         super(LocationIsNotUniqueException, self).__init__(msg)
 
 
-class EquipmentTypeNotFoundException(CustomException):
-    def __init__(self, equipment_type_name: str) -> None:
-        self.equipmentTypeName: str = equipment_type_name
-        super(EquipmentTypeNotFoundException, self).__init__(
-            f"Equipment type {equipment_type_name} does not exist in inventory"
-        )
-
-
 class EquipmentNotFoundException(CustomException):
     def __init__(
         self,

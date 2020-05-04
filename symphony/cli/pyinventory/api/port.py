@@ -5,8 +5,10 @@
 
 from typing import Dict
 
+from pysymphony import SymphonyClient
+
 from .._utils import get_graphql_property_inputs
-from ..client import SymphonyClient
+from ..common.cache import PORT_TYPES
 from ..common.data_class import (
     Equipment,
     EquipmentPort,
@@ -130,7 +132,7 @@ def edit_port_properties(
                 entity=Entity.Property,
                 msg=f"Not possible to edit properties in '{port.definition.name}' port with undefined PortType",
             )
-        property_types = client.portTypes[port_type_name].property_types
+        property_types = PORT_TYPES[port_type_name].property_types
         new_property_inputs = get_graphql_property_inputs(
             property_types, new_properties
         )
@@ -210,9 +212,7 @@ def edit_link_properties(
         definition_port_type_name = port.definition.port_type_name
     new_link_property_inputs = []
     if new_link_properties and definition_port_type_name:
-        link_property_types = client.portTypes[
-            definition_port_type_name
-        ].link_property_types
+        link_property_types = PORT_TYPES[definition_port_type_name].link_property_types
         new_link_property_inputs = get_graphql_property_inputs(
             link_property_types, new_link_properties
         )

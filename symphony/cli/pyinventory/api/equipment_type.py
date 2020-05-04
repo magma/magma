@@ -5,13 +5,15 @@
 
 from typing import Dict, List, Optional, Sequence, Tuple
 
+from pysymphony import SymphonyClient
+
 from .._utils import (
     format_properties,
     get_port_definition_input,
     get_position_definition_input,
     get_property_type_input,
 )
-from ..client import SymphonyClient
+from ..common.cache import EQUIPMENT_TYPES, PORT_TYPES
 from ..common.data_class import (
     Equipment,
     EquipmentPortType,
@@ -20,7 +22,7 @@ from ..common.data_class import (
     PropertyValue,
 )
 from ..common.data_enum import Entity
-from ..exceptions import EntityNotFoundError, EquipmentTypeNotFoundException
+from ..exceptions import EntityNotFoundError
 from ..graphql.add_equipment_type_input import AddEquipmentTypeInput
 from ..graphql.add_equipment_type_mutation import AddEquipmentTypeMutation
 from ..graphql.edit_equipment_type_input import EditEquipmentTypeInput
@@ -47,7 +49,7 @@ def _populate_equipment_types(client: SymphonyClient) -> None:
     for edge in edges:
         node = edge.node
         if node:
-            client.equipmentTypes[node.name] = EquipmentType(
+            EQUIPMENT_TYPES[node.name] = EquipmentType(
                 name=node.name,
                 category=node.category,
                 id=node.id,
@@ -63,7 +65,7 @@ def _populate_equipment_port_types(client: SymphonyClient) -> None:
     for edge in edges:
         node = edge.node
         if node:
-            client.portTypes[node.name] = EquipmentPortType(
+            PORT_TYPES[node.name] = EquipmentPortType(
                 id=node.id,
                 name=node.name,
                 property_types=node.propertyTypes,
@@ -135,8 +137,8 @@ def get_or_create_equipment_type(
             )
             ```
     """
-    if name in client.equipmentTypes:
-        return client.equipmentTypes[name]
+    if name in EQUIPMENT_TYPES:
+        return EQUIPMENT_TYPES[name]
     return add_equipment_type(
         client, name, category, properties, ports_dict, position_list
     )
@@ -191,7 +193,7 @@ def _update_equipment_type(
         position_definitions=equipment_type.positionDefinitions,
         port_definitions=equipment_type.portDefinitions,
     )
-    client.equipmentTypes[name] = equipment_type
+    EQUIPMENT_TYPES[name] = equipment_type
     return equipment_type
 
 
@@ -241,7 +243,7 @@ def add_equipment_type(
     new_property_types = format_properties(properties)
 
     port_definitions = [
-        EquipmentPortInput(name=name, portTypeID=client.portTypes[_type].id)
+        EquipmentPortInput(name=name, portTypeID=PORT_TYPES[_type].id)
         for name, _type in ports_dict.items()
     ]
     position_definitions = [
@@ -263,7 +265,7 @@ def add_equipment_type(
         position_definitions=equipment_type.positionDefinitions,
         port_definitions=equipment_type.portDefinitions,
     )
-    client.equipmentTypes[equipment_type.name] = equipment_type
+    EQUIPMENT_TYPES[name] = equipment_type
     return equipment_type
 
 
@@ -297,9 +299,7 @@ def edit_equipment_type(
             )
             ```
     """
-    if name not in client.equipmentTypes:
-        raise EquipmentTypeNotFoundException
-    equipment_type = client.equipmentTypes[name]
+    equipment_type = EQUIPMENT_TYPES[name]
     edited_property_types = [
         get_property_type_input(property_type)
         for property_type in equipment_type.property_types
@@ -312,7 +312,7 @@ def edit_equipment_type(
         get_port_definition_input(port_definition, is_new=False)
         for port_definition in equipment_type.port_definitions
     ] + [
-        EquipmentPortInput(name=name, portTypeID=client.portTypes[_type].id)
+        EquipmentPortInput(name=name, portTypeID=PORT_TYPES[_type].id)
         for name, _type in new_ports_dict.items()
     ]
 
@@ -350,12 +350,7 @@ def copy_equipment_type(
             )
             ```
     """
-    if curr_equipment_type_name not in client.equipmentTypes:
-        raise Exception(
-            "Equipment type " + curr_equipment_type_name + " does not exist"
-        )
-
-    equipment_type = client.equipmentTypes[curr_equipment_type_name]
+    equipment_type = EQUIPMENT_TYPES[curr_equipment_type_name]
 
     new_property_types = [
         get_property_type_input(property_type)
@@ -390,7 +385,7 @@ def copy_equipment_type(
         port_definitions=equipment_type.portDefinitions,
     )
 
-    client.equipmentTypes[new_equipment_type_name] = new_equipment_type
+    EQUIPMENT_TYPES[new_equipment_type_name] = new_equipment_type
     return new_equipment_type
 
 
@@ -491,7 +486,7 @@ def edit_equipment_type_property_type(
             )
             ```
     """
-    equipment_type = client.equipmentTypes[equipment_type_name]
+    equipment_type = EQUIPMENT_TYPES[equipment_type_name]
     edited_property_types = edit_property_type(
         client=client,
         entity_type=Entity.EquipmentType,
