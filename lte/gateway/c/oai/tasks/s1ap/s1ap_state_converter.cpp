@@ -104,9 +104,8 @@ void S1apStateConverter::enb_to_proto(
   proto->set_instreams(enb->instreams);
   proto->set_outstreams(enb->outstreams);
 
-  // store ues
-  hashtable_ts_to_proto<ue_description_t, UeDescription>(
-    &enb->ue_coll, proto->mutable_ues(), ue_to_proto, LOG_S1AP);
+  // store ue_ids
+  hashtable_uint64_ts_to_proto(&enb->ue_id_coll, proto->mutable_ue_ids());
 }
 
 void S1apStateConverter::proto_to_enb(
@@ -133,22 +132,19 @@ void S1apStateConverter::proto_to_enb(
   hashtable_rc_t ht_rc;
   auto ht_name = bfromcstr("s1ap_ue_coll");
 
-  hashtable_ts_init(
-    &enb->ue_coll, mme_config.max_ues, nullptr, free_wrapper, ht_name);
+  hashtable_uint64_ts_init(&enb->ue_id_coll, mme_config.max_ues,
+      nullptr, ht_name);
   bdestroy(ht_name);
 
-  auto ues = proto.ues();
-  for (auto const& kv : ues) {
-    enb_ue_s1ap_id_t enbueid = kv.first;
-    UeDescription ue_proto = kv.second;
+  auto ue_ids = proto.ue_ids();
+  for (auto const& kv : ue_ids) {
+    mme_ue_s1ap_id_t mme_ue_s1ap_id = kv.first;
+    uint64_t comp_s1ap_id = kv.second;
 
-    ue_description_t* ue = (ue_description_t*) malloc(sizeof(*ue));
-    proto_to_ue(ue_proto, ue);
-    ue->enb = enb; // ue's are linked to parent enb
-
-    ht_rc = hashtable_ts_insert(&enb->ue_coll, (hash_key_t) enbueid, ue);
+    ht_rc = hashtable_uint64_ts_insert(&enb->ue_id_coll, (hash_key_t) mme_ue_s1ap_id, comp_s1ap_id);
     if (ht_rc != HASH_TABLE_OK) {
-      OAILOG_DEBUG(LOG_S1AP, "Failed to insert ue in ue_coll hashtable");
+      OAILOG_DEBUG(LOG_S1AP, "Failed to insert mme_ue_s1ap_id in ue_coll_id"
+                             "hashtable");
     }
   }
 }
@@ -161,6 +157,7 @@ void S1apStateConverter::ue_to_proto(
   proto->set_s1_ue_state(ue->s1_ue_state);
   proto->set_enb_ue_s1ap_id(ue->enb_ue_s1ap_id);
   proto->set_mme_ue_s1ap_id(ue->mme_ue_s1ap_id);
+  proto->set_sctp_assoc_id(ue->sctp_assoc_id);
   proto->set_sctp_stream_recv(ue->sctp_stream_recv);
   proto->set_sctp_stream_send(ue->sctp_stream_send);
   proto->mutable_s1ap_ue_context_rel_timer()->set_id(
@@ -177,6 +174,7 @@ void S1apStateConverter::proto_to_ue(
   ue->s1_ue_state = (s1_ue_state_s) proto.s1_ue_state();
   ue->enb_ue_s1ap_id = proto.enb_ue_s1ap_id();
   ue->mme_ue_s1ap_id = proto.mme_ue_s1ap_id();
+  ue->sctp_assoc_id = proto.sctp_assoc_id();
   ue->sctp_stream_recv = proto.sctp_stream_recv();
   ue->sctp_stream_send = proto.sctp_stream_send();
   ue->s1ap_ue_context_rel_timer.id = proto.s1ap_ue_context_rel_timer().id();
