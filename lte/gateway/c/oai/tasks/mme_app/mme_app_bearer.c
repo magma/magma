@@ -2801,9 +2801,6 @@ void mme_app_handle_nw_init_ded_bearer_actv_req(
       "ue_id " MME_UE_S1AP_ID_FMT "\n",
       ue_context_p->mme_ue_s1ap_id);
   }
-  free_wrapper((void **) &activate_ded_bearer_req.tft);
-  free_wrapper((void **) &activate_ded_bearer_req.pco);
-
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 

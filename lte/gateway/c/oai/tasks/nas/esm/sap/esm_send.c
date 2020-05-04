@@ -31,6 +31,7 @@
 #include "ApnAggregateMaximumBitRate.h"
 #include "PdnAddress.h"
 #include "common_defs.h"
+#include "dynamic_memory_check.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -426,6 +427,7 @@ int esm_send_activate_dedicated_eps_bearer_context_request(
    */
   if (tft) {
     memcpy(&msg->tft, tft, sizeof(traffic_flow_template_t));
+    //free_wrapper((void **) &tft);
   }
 
   /*
@@ -437,6 +439,7 @@ int esm_send_activate_dedicated_eps_bearer_context_request(
       &msg->protocolconfigurationoptions,
       pco,
       sizeof(protocol_configuration_options_t));
+    //free_wrapper((void **) &pco);
     msg->presencemask |=
       ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REQUEST_PROTOCOL_CONFIGURATION_OPTIONS_IEI;
   }

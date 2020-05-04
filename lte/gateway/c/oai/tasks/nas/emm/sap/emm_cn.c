@@ -796,11 +796,10 @@ static int _emm_cn_activate_dedicated_bearer_req(
   esm_sap.data.eps_dedicated_bearer_context_activate.ebi = msg->ebi;
   esm_sap.data.eps_dedicated_bearer_context_activate.linked_ebi =
     msg->linked_ebi;
-  if (msg->tft) {
-    memcpy(&esm_sap.data.eps_dedicated_bearer_context_activate.tft, msg->tft,
-       sizeof(esm_sap.data.eps_dedicated_bearer_context_activate.tft));
-    free_wrapper((void **) &msg->tft);
-  }
+  /*esm_sap.data.eps_dedicated_bearer_context_activate.tft = calloc(1, sizeof(traffic_flow_template_t));
+  memcpy(esm_sap.data.eps_dedicated_bearer_context_activate.tft, msg->tft, sizeof(traffic_flow_template_t));
+  free_wrapper((void **) &msg->tft); */
+  esm_sap.data.eps_dedicated_bearer_context_activate.tft = msg->tft;
   esm_sap.data.eps_dedicated_bearer_context_activate.qci = msg->bearer_qos.qci;
   esm_sap.data.eps_dedicated_bearer_context_activate.gbr_ul =
     msg->bearer_qos.gbr.br_ul;
@@ -810,11 +809,12 @@ static int _emm_cn_activate_dedicated_bearer_req(
     msg->bearer_qos.mbr.br_ul;
   esm_sap.data.eps_dedicated_bearer_context_activate.mbr_dl =
     msg->bearer_qos.mbr.br_dl;
-  if (msg->pco) {
-    memcpy(&esm_sap.data.eps_dedicated_bearer_context_activate.pco, msg->pco,
-        sizeof(esm_sap.data.eps_dedicated_bearer_context_activate.pco));
+  /*if (msg->pco) {
+    esm_sap.data.eps_dedicated_bearer_context_activate.pco = calloc(1, sizeof(protocol_configuration_options_t));
+    memcpy(&esm_sap.data.eps_dedicated_bearer_context_activate.pco, msg->pco, sizeof(protocol_configuration_options_t));
     free_wrapper((void **) &msg->pco);
-  }
+  } */
+  esm_sap.data.eps_dedicated_bearer_context_activate.pco = msg->pco;
   memcpy(&esm_sap.data.eps_dedicated_bearer_context_activate.sgw_fteid,
     &msg->sgw_fteid, sizeof(fteid_t));
 

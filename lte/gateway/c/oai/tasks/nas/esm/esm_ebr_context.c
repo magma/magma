@@ -360,8 +360,9 @@ ebi_t esm_ebr_context_release(
     /*
      * Delete the TFT
      */
-    // TODO Look at "free_traffic_flow_template"
-    //free_traffic_flow_template(&pdn->bearer[*bid]->tft);
+    if (ue_mm_context->bearer_contexts[*bid]->esm_ebr_context.tft) {
+      free_traffic_flow_template(&ue_mm_context->bearer_contexts[*bid]->esm_ebr_context.tft);
+    }
 
     /*
      * Release the specified EPS bearer data
@@ -415,8 +416,9 @@ ebi_t esm_ebr_context_release(
           /*
            * Delete the TFT
            */
-          // TODO Look at "free_traffic_flow_template"
-          //free_traffic_flow_template(&pdn->bearer[i]->tft);
+          if (ue_mm_context->bearer_contexts[idx]->esm_ebr_context.tft) {
+            free_traffic_flow_template(&ue_mm_context->bearer_contexts[idx]->esm_ebr_context.tft);
+          }
 
           /*
            * Set the EPS bearer context state to INACTIVE

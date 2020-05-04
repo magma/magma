@@ -76,7 +76,8 @@ static void _handle_failed_create_bearer_response(
   s_plus_p_gw_eps_bearer_context_information_t* spgw_context,
   gtpv2c_cause_value_t cause,
   imsi64_t imsi64,
-  uint8_t eps_bearer_id);
+  uint8_t eps_bearer_id,
+  teid_t teid);
 
 #if EMBEDDED_SGW
 #define TASK_MME TASK_MME_APP
@@ -2121,7 +2122,8 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
       spgw_context,
       s11_actv_bearer_rsp->cause.cause_value,
       imsi64,
-      bearer_context.eps_bearer_id);
+      bearer_context.eps_bearer_id,
+      bearer_context.s1u_sgw_fteid.teid);
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
   }
 
@@ -2142,7 +2144,8 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
       spgw_context,
       s11_actv_bearer_rsp->cause.cause_value,
       imsi64,
-      bearer_context.eps_bearer_id);
+      bearer_context.eps_bearer_id,
+      bearer_context.s1u_sgw_fteid.teid);
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
   }
   // If UE did not accept the request send reject to NW
@@ -2157,7 +2160,8 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
       spgw_context,
       s11_actv_bearer_rsp->cause.cause_value,
       imsi64,
-      bearer_context.eps_bearer_id);
+      bearer_context.eps_bearer_id,
+      bearer_context.s1u_sgw_fteid.teid);
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
   }
 
@@ -2486,19 +2490,36 @@ static void _handle_failed_create_bearer_response(
   s_plus_p_gw_eps_bearer_context_information_t* spgw_context,
   gtpv2c_cause_value_t cause,
   imsi64_t imsi64,
-  uint8_t eps_bearer_id)
+  uint8_t eps_bearer_id,
+  teid_t teid)
 {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
   pgw_ni_cbr_proc_t* pgw_ni_cbr_proc = NULL;
+  struct sgw_eps_bearer_entry_wrapper_s* sgw_eps_bearer_entry_p = NULL;
   if (spgw_context) {
     pgw_ni_cbr_proc = pgw_get_procedure_create_bearer(spgw_context);
     if (
       ((pgw_ni_cbr_proc) && (!LIST_EMPTY(pgw_ni_cbr_proc->pending_eps_bearers)))) {
       pgw_base_proc_t* base_proc1 = LIST_FIRST(
         spgw_context->sgw_eps_bearer_context_information.pending_procedures);
+      sgw_eps_bearer_entry_p = LIST_FIRST(pgw_ni_cbr_proc->pending_eps_bearers);
+      while (sgw_eps_bearer_entry_p) {
+        if (
+          teid ==
+          sgw_eps_bearer_entry_p->sgw_eps_bearer_entry->s_gw_teid_S1u_S12_S4_up) {
+          // Remove the temporary spgw entry
+          LIST_REMOVE(sgw_eps_bearer_entry_p, entries);
+          if (sgw_eps_bearer_entry_p->sgw_eps_bearer_entry) {
+            free_wrapper((void**) &sgw_eps_bearer_entry_p->sgw_eps_bearer_entry);
+          }
+          free_wrapper((void**) &sgw_eps_bearer_entry_p);
+          break;
+        }
+        sgw_eps_bearer_entry_p = LIST_NEXT(sgw_eps_bearer_entry_p, entries);
+      }
       LIST_REMOVE(base_proc1, entries);
       free_wrapper((void **) &spgw_context->sgw_eps_bearer_context_information.
-          pending_procedures);
+         pending_procedures);
       free_wrapper((void **) &pgw_ni_cbr_proc->pending_eps_bearers);
       pgw_free_procedure_create_bearer((pgw_ni_cbr_proc_t**) &pgw_ni_cbr_proc);
     }
