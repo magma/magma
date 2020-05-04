@@ -37,7 +37,7 @@ type Network struct {
 	Version uint64
 }
 
-func (n Network) toStorageProto() (*storage.Network, error) {
+func (n Network) ToStorageProto() (*storage.Network, error) {
 	ret := &storage.Network{
 		ID:          n.ID,
 		Type:        n.Type,
@@ -227,7 +227,7 @@ type EntityGraph struct {
 	reverseEdgesByTK map[storage2.TypeAndKey][]storage2.TypeAndKey
 }
 
-func (eg EntityGraph) fromStorageProto(protoGraph *storage.EntityGraph) (EntityGraph, error) {
+func (eg EntityGraph) FromStorageProto(protoGraph *storage.EntityGraph) (EntityGraph, error) {
 	eg.Entities = make([]NetworkEntity, 0, len(protoGraph.Entities))
 	for _, protoEnt := range protoGraph.Entities {
 		ent, err := (NetworkEntity{}).fromStorageProto(protoEnt)
@@ -246,6 +246,23 @@ func (eg EntityGraph) fromStorageProto(protoGraph *storage.EntityGraph) (EntityG
 	return eg, nil
 }
 
+func (eg EntityGraph) ToStorageProto() (*storage.EntityGraph, error) {
+	protoGraph := &storage.EntityGraph{}
+	for _, ent := range eg.Entities {
+		protoEnt, err := ent.toStorageProto()
+		if err != nil {
+			return protoGraph, errors.Wrapf(err, "failed to convert entity %s to storage proto", ent.GetTypeAndKey())
+		}
+		protoGraph.Entities = append(protoGraph.Entities, protoEnt)
+	}
+	protoGraph.RootEntities = tksToEntIDs(eg.RootEntities)
+
+	for _, edge := range eg.Edges {
+		protoGraph.Edges = append(protoGraph.Edges, edge.toStorageProto())
+	}
+	return protoGraph, nil
+}
+
 type GraphEdge struct {
 	From storage2.TypeAndKey
 	To   storage2.TypeAndKey
@@ -255,6 +272,15 @@ func (ge GraphEdge) fromStorageProto(protoEdge *storage.GraphEdge) GraphEdge {
 	ge.From = protoEdge.From.ToTypeAndKey()
 	ge.To = protoEdge.To.ToTypeAndKey()
 	return ge
+}
+
+func (ge GraphEdge) toStorageProto() *storage.GraphEdge {
+	protoTo := (&storage.EntityID{}).FromTypeAndKey(ge.To)
+	protoFrom := (&storage.EntityID{}).FromTypeAndKey(ge.From)
+	return &storage.GraphEdge{
+		To:   protoTo,
+		From: protoFrom,
+	}
 }
 
 // EntityLoadFilter specifies which entities to load from storage

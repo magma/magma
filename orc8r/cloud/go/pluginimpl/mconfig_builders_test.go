@@ -14,6 +14,7 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/pluginimpl/models"
+	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/protos/mconfig"
@@ -41,11 +42,16 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 	graph := configurator.EntityGraph{
 		Entities: []configurator.NetworkEntity{gw},
 	}
+	magmadSerde := configurator.NewNetworkEntityConfigSerde(orc8r.MagmadGatewayType, &models.MagmadGatewayConfigs{})
+	upgradeReleaseSerde := configurator.NewNetworkEntityConfigSerde(orc8r.UpgradeReleaseChannelEntityType, &models.ReleaseChannel{})
+	upgradeTierSerde := configurator.NewNetworkEntityConfigSerde(orc8r.UpgradeTierEntityType, &models.Tier{})
+	err := serde.RegisterSerdes(magmadSerde, upgradeReleaseSerde, upgradeTierSerde)
+	assert.NoError(t, err)
 
 	// Make sure we get a 0.0.0-0 and no error if no tier
 	builder := &pluginimpl.BaseOrchestratorMconfigBuilder{}
 	actual := map[string]proto.Message{}
-	err := builder.Build("n1", "gw1", graph, nw, actual)
+	err = builder.Build("n1", "gw1", graph, nw, actual)
 	assert.NoError(t, err)
 	expected := map[string]proto.Message{
 		"control_proxy": &mconfig.ControlProxy{LogLevel: protos.LogLevel_INFO},
@@ -56,9 +62,9 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 			AutoupgradeEnabled:      true,
 			AutoupgradePollInterval: 300,
 			PackageVersion:          "0.0.0-0",
-			Images:                  []*mconfig.ImageSpec{},
-			DynamicServices:         []string{},
-			FeatureFlags:            map[string]bool{},
+			Images:                  nil,
+			DynamicServices:         nil,
+			FeatureFlags:            nil,
 		},
 		"metricsd": &mconfig.MetricsD{LogLevel: protos.LogLevel_INFO},
 		"td-agent-bit": &mconfig.FluentBit{
@@ -69,7 +75,6 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 		},
 	}
 	assert.Equal(t, expected, actual)
-
 	// Put a tier in the graph
 	tier := configurator.NetworkEntity{
 		Type: orc8r.UpgradeTierEntityType,
@@ -105,8 +110,8 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 				{Name: "Image1", Order: 42},
 				{Name: "Image2", Order: 1},
 			},
-			DynamicServices: []string{},
-			FeatureFlags:    map[string]bool{},
+			DynamicServices: nil,
+			FeatureFlags:    nil,
 		},
 		"metricsd": &mconfig.MetricsD{LogLevel: protos.LogLevel_INFO},
 		"td-agent-bit": &mconfig.FluentBit{
@@ -127,8 +132,8 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 		AutoupgradePollInterval: 300,
 		CheckinInterval:         60,
 		CheckinTimeout:          10,
-		DynamicServices:         []string{},
-		FeatureFlags:            map[string]bool{},
+		DynamicServices:         nil,
+		FeatureFlags:            nil,
 		Logging: &models.GatewayLoggingConfigs{
 			Aggregation: &models.AggregationLoggingConfigs{
 				TargetFilesByTag: map[string]string{
@@ -163,8 +168,8 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 				{Name: "Image1", Order: 42},
 				{Name: "Image2", Order: 1},
 			},
-			DynamicServices: []string{},
-			FeatureFlags:    map[string]bool{},
+			DynamicServices: nil,
+			FeatureFlags:    nil,
 		},
 		"metricsd": &mconfig.MetricsD{LogLevel: protos.LogLevel_INFO},
 		"td-agent-bit": &mconfig.FluentBit{
@@ -186,8 +191,8 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 		AutoupgradePollInterval: 300,
 		CheckinInterval:         60,
 		CheckinTimeout:          10,
-		DynamicServices:         []string{},
-		FeatureFlags:            map[string]bool{},
+		DynamicServices:         nil,
+		FeatureFlags:            nil,
 		Logging: &models.GatewayLoggingConfigs{
 			Aggregation: &models.AggregationLoggingConfigs{
 				TargetFilesByTag: map[string]string{
@@ -220,8 +225,8 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 				{Name: "Image1", Order: 42},
 				{Name: "Image2", Order: 1},
 			},
-			DynamicServices: []string{},
-			FeatureFlags:    map[string]bool{},
+			DynamicServices: nil,
+			FeatureFlags:    nil,
 		},
 		"metricsd": &mconfig.MetricsD{LogLevel: protos.LogLevel_INFO},
 		"td-agent-bit": &mconfig.FluentBit{
