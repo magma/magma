@@ -1,7 +1,18 @@
+// Copyright (c) 2004-present Facebook All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package jobs
 
 import (
+	"bytes"
+	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
 	"testing"
+
+	"github.com/facebookincubator/symphony/graph/viewer"
+	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 
 	"github.com/facebookincubator/ent/dialect"
 	"github.com/facebookincubator/ent/dialect/sql"
@@ -39,4 +50,29 @@ func newResolver(t *testing.T, drv dialect.Driver) *TestJobsResolver {
 			r:      r,
 		},
 	}
+}
+
+func syncServicesRequest(t *testing.T, r *TestJobsResolver) *http.Response {
+	h, _ := NewHandler(
+		Config{
+			Logger:     logtest.NewTestLogger(t),
+			Subscriber: event.NewNopSubscriber(),
+		},
+	)
+
+	th := viewer.TenancyHandler(h, viewer.NewFixedTenancy(r.client))
+	server := httptest.NewServer(th)
+	defer server.Close()
+	url := server.URL + "/sync_services"
+	req, err := http.NewRequest(http.MethodGet, url, ioutil.NopCloser(new(bytes.Buffer)))
+	require.Nil(t, err)
+
+	viewertest.SetDefaultViewerHeaders(req)
+	req.Header.Set("Content-Length", "100000")
+
+	resp, err := http.DefaultClient.Do(req)
+	require.Nil(t, err)
+	require.Equal(t, resp.StatusCode, http.StatusOK)
+	resp.Body.Close()
+	return resp
 }

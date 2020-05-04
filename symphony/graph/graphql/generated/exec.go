@@ -249,6 +249,7 @@ type ComplexityRoot struct {
 		EquipmentType            func(childComplexity int) int
 		ExternalID               func(childComplexity int) int
 		Files                    func(childComplexity int) int
+		FirstLocation            func(childComplexity int) int
 		FutureState              func(childComplexity int) int
 		Hyperlinks               func(childComplexity int) int
 		ID                       func(childComplexity int) int
@@ -1158,6 +1159,7 @@ type EquipmentResolver interface {
 	FutureState(ctx context.Context, obj *ent.Equipment) (*models.FutureState, error)
 	WorkOrder(ctx context.Context, obj *ent.Equipment) (*ent.WorkOrder, error)
 	LocationHierarchy(ctx context.Context, obj *ent.Equipment) ([]*ent.Location, error)
+	FirstLocation(ctx context.Context, obj *ent.Equipment) (*ent.Location, error)
 	PositionHierarchy(ctx context.Context, obj *ent.Equipment) ([]*ent.EquipmentPosition, error)
 	Device(ctx context.Context, obj *ent.Equipment) (*models.Device, error)
 	Services(ctx context.Context, obj *ent.Equipment) ([]*ent.Service, error)
@@ -2096,6 +2098,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Equipment.Files(childComplexity), true
+
+	case "Equipment.firstLocation":
+		if e.complexity.Equipment.FirstLocation == nil {
+			break
+		}
+
+		return e.complexity.Equipment.FirstLocation(childComplexity), true
 
 	case "Equipment.futureState":
 		if e.complexity.Equipment.FutureState == nil {
@@ -7337,6 +7346,7 @@ type Equipment implements Node & NamedNode {
   futureState: FutureState
   workOrder: WorkOrder
   locationHierarchy: [Location!]!
+  firstLocation: Location!
   positionHierarchy: [EquipmentPosition!]!
   device: Device
   services: [Service]!
@@ -15071,6 +15081,40 @@ func (ec *executionContext) _Equipment_locationHierarchy(ctx context.Context, fi
 	res := resTmp.([]*ent.Location)
 	fc.Result = res
 	return ec.marshalNLocation2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLocationᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Equipment_firstLocation(ctx context.Context, field graphql.CollectedField, obj *ent.Equipment) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Equipment",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Equipment().FirstLocation(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Location)
+	fc.Result = res
+	return ec.marshalNLocation2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLocation(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Equipment_positionHierarchy(ctx context.Context, field graphql.CollectedField, obj *ent.Equipment) (ret graphql.Marshaler) {
@@ -42175,6 +42219,20 @@ func (ec *executionContext) _Equipment(ctx context.Context, sel ast.SelectionSet
 					}
 				}()
 				res = ec._Equipment_locationHierarchy(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "firstLocation":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Equipment_firstLocation(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

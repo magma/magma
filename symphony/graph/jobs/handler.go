@@ -39,6 +39,13 @@ func NewHandler(cfg Config) (http.Handler, error) {
 	)
 	u := &jobs{cfg.Logger, r}
 	router := mux.NewRouter()
+	router.Use(
+		func(next http.Handler) http.Handler {
+			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				ctx := newServicesContext(r.Context())
+				next.ServeHTTP(w, r.WithContext(ctx))
+			})
+		})
 	routes := []struct {
 		name    string
 		handler http.HandlerFunc
