@@ -54,7 +54,6 @@
 spgw_config_t spgw_config;
 
 extern __pid_t g_pid;
-extern struct gtp_tunnel_ops* gtp_tunnel_ops;
 
 static void sgw_exit(void);
 
