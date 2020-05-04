@@ -206,7 +206,8 @@ class AddEditServiceTypeCard extends React.Component<Props, State> {
       !endpointWithNames.every(
         endpointType => endpointType.equipmentType && endpointType.name,
       ) ||
-      endpointWithNames.length == 1
+      endpointWithNames.length == 1 ||
+      endpointWithNames.length > 5
     );
   }
 
