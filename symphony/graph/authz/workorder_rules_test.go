@@ -6,17 +6,20 @@ package authz_test
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
-	"github.com/facebookincubator/symphony/graph/ent/user"
-
+	"github.com/facebookincubator/symphony/graph/authz"
 	models2 "github.com/facebookincubator/symphony/graph/authz/models"
 	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/viewer"
-
+	"github.com/facebookincubator/symphony/graph/ent/privacy"
+	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
+
+	"github.com/stretchr/testify/require"
 )
 
 func prepareWorkOrderData(ctx context.Context, c *ent.Client) (*ent.WorkOrderType, *ent.WorkOrder) {
@@ -32,6 +35,69 @@ func prepareWorkOrderData(ctx context.Context, c *ent.Client) (*ent.WorkOrderTyp
 		SaveX(ctx)
 	return workOrderType, workOrder
 }
+
+func TestNonUserCannotEditWorkOrder(t *testing.T) {
+	c := viewertest.NewTestClient(t)
+	ctx := ent.NewContext(context.Background(), c)
+	_, workOrder := prepareWorkOrderData(ctx, c)
+
+	v := viewer.NewAutomation(viewertest.DefaultTenant, "BOT", user.RoleUSER)
+	ctx = viewer.NewContext(ctx, v)
+	ctx = authz.NewContext(ctx, authz.EmptyPermissions())
+	err := c.WorkOrder.UpdateOne(workOrder).
+		SetName("NewName").
+		Exec(ctx)
+	require.True(t, errors.Is(err, privacy.Deny))
+}
+
+func TestAssignCanEditWOWithOwnerAndDelete(t *testing.T) {
+	c := viewertest.NewTestClient(t)
+	ctx := ent.NewContext(context.Background(), c)
+	_, workOrder := prepareWorkOrderData(ctx, c)
+	u := viewer.MustGetOrCreateUser(ctx, "MyAssignee", user.RoleUSER)
+	c.WorkOrder.UpdateOne(workOrder).
+		SetAssignee(u).
+		ExecX(ctx)
+
+	ctx = viewertest.NewContext(ctx, c, viewertest.WithUser("MyAssignee"), viewertest.WithPermissions(authz.EmptyPermissions()))
+	err := c.WorkOrder.UpdateOne(workOrder).
+		SetName("NewName").
+		Exec(ctx)
+	require.NoError(t, err)
+	err = c.WorkOrder.UpdateOne(workOrder).
+		SetOwner(u).
+		Exec(ctx)
+	require.True(t, errors.Is(err, privacy.Deny))
+	err = c.WorkOrder.DeleteOne(workOrder).
+		Exec(ctx)
+	require.True(t, errors.Is(err, privacy.Deny))
+}
+
+func TestOwnerCanEditWO(t *testing.T) {
+	c := viewertest.NewTestClient(t)
+	ctx := ent.NewContext(context.Background(), c)
+	_, workOrder := prepareWorkOrderData(ctx, c)
+	u := viewer.MustGetOrCreateUser(ctx, "MyOwner", user.RoleUSER)
+	u2 := viewer.MustGetOrCreateUser(ctx, "NewOwner", user.RoleUSER)
+	c.WorkOrder.UpdateOne(workOrder).
+		SetOwner(u).
+		ExecX(ctx)
+
+	ctx = viewertest.NewContext(ctx, c, viewertest.WithUser("MyOwner"), viewertest.WithPermissions(authz.EmptyPermissions()))
+	err := c.WorkOrder.UpdateOne(workOrder).
+		SetName("NewName").
+		Exec(ctx)
+	require.NoError(t, err)
+	err = c.WorkOrder.UpdateOne(workOrder).
+		SetOwner(u2).
+		Exec(ctx)
+	require.NoError(t, err)
+	ctx = viewertest.NewContext(ctx, c, viewertest.WithUser("NewOwner"), viewertest.WithPermissions(authz.EmptyPermissions()))
+	err = c.WorkOrder.DeleteOne(workOrder).
+		Exec(ctx)
+	require.NoError(t, err)
+}
+
 func TestWorkOrderWritePolicyRule(t *testing.T) {
 	c := viewertest.NewTestClient(t)
 	ctx := viewertest.NewContext(context.Background(), c)

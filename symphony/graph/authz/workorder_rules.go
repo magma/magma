@@ -6,13 +6,74 @@ package authz
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/privacy"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/graph/viewer"
 
 	models2 "github.com/facebookincubator/symphony/graph/authz/models"
 )
+
+func isUserWOOwner(ctx context.Context, userID int, workOrder *ent.WorkOrder) (bool, error) {
+	ownerID, err := workOrder.QueryOwner().OnlyID(ctx)
+	if err != nil {
+		if !ent.IsNotFound(err) {
+			return false, fmt.Errorf("failed to fetch work order owner: %w", err)
+		}
+		return false, nil
+	}
+	return ownerID == userID, nil
+}
+
+func isUserWOAssignee(ctx context.Context, userID int, workOrder *ent.WorkOrder) (bool, error) {
+	assigneeID, err := workOrder.QueryAssignee().OnlyID(ctx)
+	if err != nil {
+		if !ent.IsNotFound(err) {
+			return false, fmt.Errorf("failed to fetch work order assignee: %w", err)
+		}
+		return false, nil
+	}
+	return assigneeID == userID, nil
+}
+
+func AllowIfWorkOrderOwnerOrAssignee() privacy.MutationRule {
+	return privacy.WorkOrderMutationRuleFunc(func(ctx context.Context, m *ent.WorkOrderMutation) error {
+		workOrderID, exists := m.ID()
+		if !exists {
+			return privacy.Skip
+		}
+		userViewer, ok := viewer.FromContext(ctx).(*viewer.UserViewer)
+		if !ok {
+			return privacy.Skip
+		}
+		client := ent.FromContext(ctx)
+		workOrder, err := client.WorkOrder.Get(ctx, workOrderID)
+		if err != nil {
+			if !ent.IsNotFound(err) {
+				return privacy.Denyf("failed to fetch work order: %w", err)
+			}
+			return privacy.Skip
+		}
+		isOwner, err := isUserWOOwner(ctx, userViewer.User().ID, workOrder)
+		if err != nil {
+			return privacy.Denyf(err.Error())
+		}
+		if isOwner {
+			return privacy.Allow
+		}
+		isAssignee, err := isUserWOAssignee(ctx, userViewer.User().ID, workOrder)
+		if err != nil {
+			return privacy.Denyf(err.Error())
+		}
+		_, owned := m.OwnerID()
+		if isAssignee && !m.Op().Is(ent.OpDeleteOne) && !owned && !m.OwnerCleared() {
+			return privacy.Allow
+		}
+		return privacy.Skip
+	})
+}
 
 // WorkOrderWritePolicyRule grants write permission to workorder based on policy.
 func WorkOrderWritePolicyRule() privacy.MutationRule {

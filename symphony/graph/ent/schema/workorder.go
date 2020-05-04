@@ -108,6 +108,7 @@ func (WorkOrder) Policy() ent.Policy {
 	return authz.NewPolicy(
 		authz.WithMutationRules(
 			authz.WorkOrderWritePolicyRule(),
+			authz.AllowIfWorkOrderOwnerOrAssignee(),
 		),
 	)
 }
