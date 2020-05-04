@@ -1679,6 +1679,11 @@ type WorkOrderSearchResult {
   count: Int!
 }
 
+type PermissionsPolicySearchResult {
+  permissionsPolicies: [PermissionsPolicy]!
+  count: Int!
+}
+
 type UsersGroupSearchResult {
   usersGroups: [UsersGroup]!
   count: Int!
@@ -1743,6 +1748,13 @@ enum UserFilterType {
 }
 
 """
+what filters should we apply on permissionsPolicy
+"""
+enum PermissionsPolicyFilterType {
+  PERMISSIONS_POLICY_NAME
+}
+
+"""
 what filters should we apply on usersGroups
 """
 enum UsersGroupFilterType {
@@ -1799,6 +1811,13 @@ input UserFilterInput {
   statusValue: UserStatus
   idSet: [ID!]
   stringSet: [String!]
+  maxDepth: Int = 5
+}
+
+input PermissionsPolicyFilterInput {
+  filterType: PermissionsPolicyFilterType!
+  operator: FilterOperator!
+  stringValue: String
   maxDepth: Int = 5
 }
 
@@ -2522,6 +2541,10 @@ type Query {
     limit: Int = 500
   ): ServiceSearchResult!
   userSearch(filters: [UserFilterInput!]!, limit: Int = 500): UserSearchResult!
+  permissionsPolicySearch(
+    filters: [PermissionsPolicyFilterInput!]!
+    limit: Int = 500
+  ): PermissionsPolicySearchResult!
   usersGroupSearch(
     filters: [UsersGroupFilterInput!]!
     limit: Int = 500

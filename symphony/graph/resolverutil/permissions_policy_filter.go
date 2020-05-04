@@ -6,25 +6,31 @@ package resolverutil
 
 import (
 	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/ent/usersgroup"
+	"github.com/facebookincubator/symphony/graph/ent/permissionspolicy"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 
 	"github.com/pkg/errors"
 )
 
-func handleUsersGroupFilter(q *ent.UsersGroupQuery, filter *models.UsersGroupFilterInput) (*ent.UsersGroupQuery, error) {
-	if filter.FilterType == models.UsersGroupFilterTypeGroupName {
-		return usersGroupFilter(q, filter)
+func handlePermissionsPolicyFilter(
+	q *ent.PermissionsPolicyQuery,
+	filter *models.PermissionsPolicyFilterInput,
+) (*ent.PermissionsPolicyQuery, error) {
+	if filter.FilterType == models.PermissionsPolicyFilterTypePermissionsPolicyName {
+		return permissionsPolicyFilter(q, filter)
 	}
 	return nil, errors.Errorf("filter type is not supported: %s", filter.FilterType)
 }
 
-func usersGroupFilter(q *ent.UsersGroupQuery, filter *models.UsersGroupFilterInput) (*ent.UsersGroupQuery, error) {
+func permissionsPolicyFilter(
+	q *ent.PermissionsPolicyQuery,
+	filter *models.PermissionsPolicyFilterInput,
+) (*ent.PermissionsPolicyQuery, error) {
 	switch {
 	case filter.Operator == models.FilterOperatorIs && filter.StringValue != nil:
-		return q.Where(usersgroup.NameEqualFold(*filter.StringValue)), nil
+		return q.Where(permissionspolicy.NameEqualFold(*filter.StringValue)), nil
 	case filter.Operator == models.FilterOperatorContains && filter.StringValue != nil:
-		return q.Where(usersgroup.NameContainsFold(*filter.StringValue)), nil
+		return q.Where(permissionspolicy.NameContainsFold(*filter.StringValue)), nil
 	}
 	return nil, errors.Errorf("operation %s is not supported with value of %#v", filter.Operator, filter.StringValue)
 }
