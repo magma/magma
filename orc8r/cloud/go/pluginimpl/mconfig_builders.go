@@ -30,6 +30,7 @@ type BaseOrchestratorMconfigBuilder struct{}
 type DnsdMconfigBuilder struct{}
 
 type BaseOrchestratorMconfigBuilderServicer struct{}
+type DnsdMconfigBuilderServicer struct{}
 
 func (s *BaseOrchestratorMconfigBuilderServicer) Build(
 	request *configuratorprotos.BuildMconfigRequest,
@@ -190,12 +191,21 @@ func getFluentBitMconfig(networkID string, gatewayID string, mdGw *models.Magmad
 	return ret
 }
 
-func (*DnsdMconfigBuilder) Build(networkID string, gatewayID string, graph configurator.EntityGraph, network configurator.Network, mconfigOut map[string]proto.Message) error {
+func (s *DnsdMconfigBuilderServicer) Build(
+	request *configuratorprotos.BuildMconfigRequest,
+) (*configuratorprotos.BuildMconfigResponse, error) {
+	ret := &configuratorprotos.BuildMconfigResponse{
+		ConfigsByKey: map[string]*any.Any{},
+	}
+	network, err := (configurator.Network{}).FromStorageProto(request.GetNetwork())
+	if err != nil {
+		return ret, err
+	}
 	iConfig, found := network.Configs[orc8r.DnsdNetworkType]
 	if !found {
 		// fill out the dnsd mconfig with an empty struct if no network config
-		mconfigOut["dnsd"] = &mconfig.DnsD{}
-		return nil
+		ret.ConfigsByKey["dnsd"], err = ptypes.MarshalAny(&mconfig.DnsD{})
+		return ret, err
 	}
 
 	dnsConfig := iConfig.(*models.NetworkDNSConfig)
@@ -212,6 +222,36 @@ func (*DnsdMconfigBuilder) Build(networkID string, gatewayID string, graph confi
 		mconfigDnsd.Records = append(mconfigDnsd.Records, mconfigRecord)
 	}
 
-	mconfigOut["dnsd"] = mconfigDnsd
+	ret.ConfigsByKey["dnsd"], err = ptypes.MarshalAny(mconfigDnsd)
+	return ret, err
+}
+
+func (*DnsdMconfigBuilder) Build(networkID string, gatewayID string, graph configurator.EntityGraph, network configurator.Network, mconfigOut map[string]proto.Message) error {
+	servicer := &DnsdMconfigBuilderServicer{}
+	networkProto, err := network.ToStorageProto()
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	graphProto, err := graph.ToStorageProto()
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	request := &configuratorprotos.BuildMconfigRequest{
+		NetworkId:   networkID,
+		GatewayId:   gatewayID,
+		EntityGraph: graphProto,
+		Network:     networkProto,
+	}
+	res, err := servicer.Build(request)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	dnsdMconfig := &mconfig.DnsD{}
+	err = ptypes.UnmarshalAny(res.GetConfigsByKey()["dnsd"], dnsdMconfig)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	mconfigOut["dnsd"] = dnsdMconfig
 	return nil
 }

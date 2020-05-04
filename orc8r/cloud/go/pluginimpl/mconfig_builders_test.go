@@ -244,6 +244,10 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 }
 
 func TestDnsdMconfigBuilder_Build(t *testing.T) {
+	dnsdSerde := configurator.NewNetworkConfigSerde(orc8r.DnsdNetworkType, &models.NetworkDNSConfig{})
+	err := serde.RegisterSerdes(dnsdSerde)
+	assert.NoError(t, err)
+
 	nw := configurator.Network{ID: "n1"}
 	gw := configurator.NetworkEntity{
 		Type: orc8r.MagmadGatewayType,
@@ -263,7 +267,7 @@ func TestDnsdMconfigBuilder_Build(t *testing.T) {
 
 	actual := map[string]proto.Message{}
 	builder := &pluginimpl.DnsdMconfigBuilder{}
-	err := builder.Build("n1", "gw1", graph, nw, actual)
+	err = builder.Build("n1", "gw1", graph, nw, actual)
 	assert.NoError(t, err)
 	expected := map[string]proto.Message{
 		"dnsd": &mconfig.DnsD{},
