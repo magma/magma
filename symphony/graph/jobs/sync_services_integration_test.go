@@ -44,7 +44,6 @@ func TestAddNewService(t *testing.T) {
 			require.Fail(t, "no valid index")
 		}
 	}
-
 }
 
 func TestRemoveLinkAndAddNewLink(t *testing.T) {
@@ -213,4 +212,26 @@ func TestEditServiceTypeEndpointDefinitionsOrder(t *testing.T) {
 			require.Fail(t, "no valid index")
 		}
 	}
+}
+
+func TestDeletedServiceType(t *testing.T) {
+	r := newJobsTestResolver(t)
+	defer r.drv.Close()
+
+	ctx := newServicesContext(viewertest.NewContext(context.Background(), r.client))
+	eData := prepareEquipmentData(ctx, *r, "A")
+	sData := prepareServiceTypeData(ctx, *r, eData)
+	prepareLinksData(ctx, *r, eData)
+
+	sCount := r.client.Service.Query().CountX(ctx)
+	require.Zero(t, sCount)
+	syncServicesRequest(t, r)
+	sCount = r.client.Service.Query().CountX(ctx)
+	require.Equal(t, 1, sCount)
+
+	r.client.ServiceType.UpdateOneID(sData.st1.ID).SetIsDeleted(true).ExecX(ctx)
+
+	syncServicesRequest(t, r)
+	sCount = r.client.Service.Query().CountX(ctx)
+	require.Zero(t, sCount)
 }

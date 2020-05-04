@@ -32,6 +32,16 @@ type (
 		st1 *ent.ServiceType
 		st2 *ent.ServiceType
 	}
+	longServiceDataModels struct {
+		stLong    *ent.ServiceType
+		stTooLong *ent.ServiceType
+		eType4    *ent.EquipmentType
+		eType5    *ent.EquipmentType
+		eType6    *ent.EquipmentType
+		equ4      *ent.Equipment
+		equ5      *ent.Equipment
+		equ6      *ent.Equipment
+	}
 	linkDataModels struct {
 		l1 *ent.Link
 		l2 *ent.Link
@@ -190,6 +200,193 @@ func prepareServiceTypeData(ctx context.Context, r TestJobsResolver, equipData e
 	return serviceTypeDataModels{
 		st1: srvType1,
 		st2: srvType2,
+	}
+}
+
+// nolint: funlen
+func prepareLongServiceTypeData(ctx context.Context, r TestJobsResolver, equipData equipmentDataModels) longServiceDataModels {
+	mr := r.jobsRunner.r.Mutation()
+	portTypes := []*models.EquipmentPortInput{
+		{
+			Name: "p1",
+		},
+		{
+			Name: "p2",
+		},
+		{
+			Name: "p3",
+		},
+		{
+			Name: "p4",
+		},
+	}
+	equType4, _ := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
+		Name:  "eq_type4",
+		Ports: portTypes,
+	})
+
+	equ4, _ := mr.AddEquipment(ctx, models.AddEquipmentInput{
+		Name:     "eq_inst4",
+		Type:     equType4.ID,
+		Location: pointer.ToInt(equipData.loc1.ID),
+	})
+	equType5, _ := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
+		Name:  "eq_type5",
+		Ports: portTypes,
+	})
+	equ5, _ := mr.AddEquipment(ctx, models.AddEquipmentInput{
+		Name:     "eq_inst5",
+		Type:     equType5.ID,
+		Location: pointer.ToInt(equipData.loc2.ID),
+	})
+	equType6, _ := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
+		Name:  "eq_type6",
+		Ports: portTypes,
+	})
+	equ6, _ := mr.AddEquipment(ctx, models.AddEquipmentInput{
+		Name:     "eq_inst6",
+		Type:     equType6.ID,
+		Location: pointer.ToInt(equipData.loc2.ID),
+	})
+	// creating links to support the stLong and stTooLong
+	_, _ = mr.AddLink(ctx, models.AddLinkInput{
+		Sides: []*models.LinkSide{
+			{
+				Equipment: equipData.equ3.ID,
+				Port: equipData.equ3.QueryType().QueryPortDefinitions().
+					Where(equipmentportdefinition.Name("p3")).
+					OnlyXID(ctx),
+			},
+			{
+				Equipment: equ4.ID,
+				Port: equ4.QueryType().QueryPortDefinitions().
+					Where(equipmentportdefinition.Name("p1")).
+					OnlyXID(ctx),
+			},
+		}})
+
+	_, _ = mr.AddLink(ctx, models.AddLinkInput{
+		Sides: []*models.LinkSide{
+			{
+				Equipment: equ4.ID,
+				Port: equ4.QueryType().QueryPortDefinitions().
+					Where(equipmentportdefinition.Name("p2")).
+					OnlyXID(ctx),
+			},
+			{
+				Equipment: equ5.ID,
+				Port: equ5.QueryType().QueryPortDefinitions().
+					Where(equipmentportdefinition.Name("p1")).
+					OnlyXID(ctx),
+			},
+		}})
+	_, _ = mr.AddLink(ctx, models.AddLinkInput{
+		Sides: []*models.LinkSide{
+			{
+				Equipment: equ5.ID,
+				Port: equ5.QueryType().QueryPortDefinitions().
+					Where(equipmentportdefinition.Name("p2")).
+					OnlyXID(ctx),
+			},
+			{
+				Equipment: equ6.ID,
+				Port: equ6.QueryType().QueryPortDefinitions().
+					Where(equipmentportdefinition.Name("p1")).
+					OnlyXID(ctx),
+			},
+		}})
+
+	dm := models.DiscoveryMethodInventory
+	srvType, _ := mr.AddServiceType(ctx, models.ServiceTypeCreateData{
+		Name:            "long service type",
+		HasCustomer:     false,
+		DiscoveryMethod: &dm,
+		Endpoints: []*models.ServiceEndpointDefinitionInput{
+			{
+				Name:            "endpoint type1",
+				Role:            pointer.ToString("PROVIDER2"),
+				Index:           0,
+				EquipmentTypeID: equipData.equType1.ID,
+			},
+			{
+				Index:           1,
+				Name:            "endpoint type2",
+				Role:            pointer.ToString("MIDDLE2"),
+				EquipmentTypeID: equipData.equType2.ID,
+			},
+			{
+				Index:           2,
+				Name:            "endpoint type3",
+				Role:            pointer.ToString("CONSUMER2"),
+				EquipmentTypeID: equipData.equType3.ID,
+			},
+			{
+				Index:           3,
+				Name:            "endpoint type4",
+				Role:            pointer.ToString("CONSUMER3"),
+				EquipmentTypeID: equType4.ID,
+			},
+			{
+				Index:           4,
+				Name:            "endpoint type5",
+				Role:            pointer.ToString("CONSUMER4"),
+				EquipmentTypeID: equType5.ID,
+			},
+		},
+	})
+
+	srvType2, _ := mr.AddServiceType(ctx, models.ServiceTypeCreateData{
+		Name:            "long service type2",
+		HasCustomer:     false,
+		DiscoveryMethod: &dm,
+		Endpoints: []*models.ServiceEndpointDefinitionInput{
+			{
+				Name:            "endpoint type1",
+				Role:            pointer.ToString("PROVIDER2"),
+				Index:           0,
+				EquipmentTypeID: equipData.equType1.ID,
+			},
+			{
+				Index:           1,
+				Name:            "endpoint type2",
+				Role:            pointer.ToString("MIDDLE2"),
+				EquipmentTypeID: equipData.equType2.ID,
+			},
+			{
+				Index:           2,
+				Name:            "endpoint type3",
+				Role:            pointer.ToString("CONSUMER2"),
+				EquipmentTypeID: equipData.equType3.ID,
+			},
+			{
+				Index:           3,
+				Name:            "endpoint type4",
+				Role:            pointer.ToString("CONSUMER3"),
+				EquipmentTypeID: equType4.ID,
+			},
+			{
+				Index:           4,
+				Name:            "endpoint type5",
+				Role:            pointer.ToString("CONSUMER4"),
+				EquipmentTypeID: equType5.ID,
+			},
+			{
+				Index:           5,
+				Name:            "endpoint type6",
+				Role:            pointer.ToString("CONSUMER5"),
+				EquipmentTypeID: equType6.ID,
+			},
+		},
+	})
+	return longServiceDataModels{
+		stLong:    srvType,
+		stTooLong: srvType2,
+		eType4:    equType4,
+		eType5:    equType5,
+		eType6:    equType6,
+		equ4:      equ4,
+		equ5:      equ5,
+		equ6:      equ6,
 	}
 }
 

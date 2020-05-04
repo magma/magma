@@ -72,7 +72,7 @@ func syncServicesRequest(t *testing.T, r *TestJobsResolver) *http.Response {
 
 	resp, err := http.DefaultClient.Do(req)
 	require.Nil(t, err)
-	require.Equal(t, resp.StatusCode, http.StatusOK)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
 	resp.Body.Close()
 	return resp
 }

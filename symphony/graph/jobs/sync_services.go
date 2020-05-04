@@ -10,12 +10,10 @@ import (
 	"strconv"
 
 	"github.com/AlekSi/pointer"
-
 	"github.com/pkg/errors"
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/service"
-	"github.com/facebookincubator/symphony/graph/ent/serviceendpointdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/servicetype"
 )
 
@@ -70,7 +68,10 @@ func (m *jobs) syncServices(w http.ResponseWriter, r *http.Request) {
 
 	log.Info("service Sync - Add new services")
 	serviceTypes, err := client.ServiceType.Query().
-		Where(servicetype.DiscoveryMethodEQ(servicetype.DiscoveryMethodINVENTORY)).
+		Where(
+			servicetype.DiscoveryMethodEQ(servicetype.DiscoveryMethodINVENTORY),
+			servicetype.IsDeleted(false),
+		).
 		All(ctx)
 
 	if err != nil {
@@ -79,24 +80,12 @@ func (m *jobs) syncServices(w http.ResponseWriter, r *http.Request) {
 	}
 	for _, sType := range serviceTypes {
 		log.Info("going over type: " + sType.Name)
-
-		endpointDefs, err := sType.QueryEndpointDefinitions().
-			Order(ent.Asc(serviceendpointdefinition.FieldIndex)).All(ctx)
-		if err != nil {
-			log.Warn("[SKIP] can't get endpoints definitions for service type" + sType.Name + ". error: " + err.Error())
-			continue
-		}
-		if len(endpointDefs) < 2 || len(endpointDefs) > maxEndpoints {
-			log.Info("[SKIPPING SERVICE TYPE] wrong number of endpoints " + strconv.Itoa(len(endpointDefs)) + sType.Name)
-			continue
-		}
-
-		serviceDataListToAdd, err := m.getServiceDetailsList(ctx, endpointDefs)
+		servicesDataListToAdd, err := m.getServicesDetailsList(ctx, sType)
 		if err != nil {
 			log.Warn("[SKIP] can't get service details for service type" + sType.Name + ". error: " + err.Error())
 			continue
 		}
-		err = m.createServicesFromList(ctx, serviceDataListToAdd, sType)
+		err = m.createServicesFromList(ctx, servicesDataListToAdd, sType)
 		if err != nil {
 			log.Warn("[SKIP] can't create services for type" + sType.Name + ". error: " + err.Error())
 			continue

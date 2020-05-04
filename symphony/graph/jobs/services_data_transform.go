@@ -9,6 +9,8 @@ import (
 	"math/rand"
 	"strconv"
 
+	"github.com/prometheus/common/log"
+
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
 	"github.com/facebookincubator/symphony/graph/ent/equipmenttype"
@@ -61,15 +63,27 @@ func getStructuredCurrentServicesForType(ctx context.Context, sType *ent.Service
 	return detailedServices, nil
 }
 
-func (m *jobs) getServiceDetailsList(ctx context.Context, endpointDefs []*ent.ServiceEndpointDefinition) ([]serviceEquipmentListData, error) {
+func (m *jobs) getServicesDetailsList(ctx context.Context, sType *ent.ServiceType) ([]serviceEquipmentListData, error) {
 	var serviceDataList []serviceEquipmentListData
+	endpointDefs, err := sType.QueryEndpointDefinitions().
+		Order(ent.Asc(serviceendpointdefinition.FieldIndex)).All(ctx)
+	if err != nil {
+		log.Warn("[SKIP] can't get endpoints definitions for service type" + sType.Name + ". error: " + err.Error())
+		return nil, err
+	}
+
+	if len(endpointDefs) < 2 || len(endpointDefs) > maxEndpoints {
+		log.Info("[SKIPPING SERVICE TYPE] wither too many or not enough endpoint types " + sType.Name)
+		return nil, err
+	}
 
 	e1s, err := endpointDefs[0].QueryEquipmentType().QueryEquipment().All(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "can't get equipment list for first endpoint type")
 	}
 	for _, e1 := range e1s {
-		e2s, err := getNextEquipmentInstances(ctx, e1, endpointDefs[1])
+		e2s, err := getNextEquipmentInstances(ctx, e1, endpointDefs[1], []int{})
+
 		if err != nil {
 			return nil, err
 		}
@@ -80,7 +94,7 @@ func (m *jobs) getServiceDetailsList(ctx context.Context, endpointDefs []*ent.Se
 				})
 				continue
 			}
-			e3s, err := getNextEquipmentInstances(ctx, e2, endpointDefs[2])
+			e3s, err := getNextEquipmentInstances(ctx, e2, endpointDefs[2], []int{e1.ID})
 			if err != nil {
 				return nil, err
 			}
@@ -91,7 +105,7 @@ func (m *jobs) getServiceDetailsList(ctx context.Context, endpointDefs []*ent.Se
 					})
 					continue
 				}
-				e4s, err := getNextEquipmentInstances(ctx, e3, endpointDefs[3])
+				e4s, err := getNextEquipmentInstances(ctx, e3, endpointDefs[3], []int{e1.ID, e2.ID})
 				if err != nil {
 					return nil, err
 				}
@@ -102,7 +116,7 @@ func (m *jobs) getServiceDetailsList(ctx context.Context, endpointDefs []*ent.Se
 						})
 						continue
 					}
-					e5s, err := getNextEquipmentInstances(ctx, e4, endpointDefs[4])
+					e5s, err := getNextEquipmentInstances(ctx, e4, endpointDefs[4], []int{e1.ID, e2.ID, e3.ID})
 					if err != nil {
 						return nil, err
 					}
@@ -122,20 +136,24 @@ func (m *jobs) getServiceDetailsList(ctx context.Context, endpointDefs []*ent.Se
 	return serviceDataList, nil
 }
 
-func getNextEquipmentInstances(ctx context.Context, e *ent.Equipment, ed *ent.ServiceEndpointDefinition) ([]*ent.Equipment, error) {
+func getNextEquipmentInstances(ctx context.Context, e *ent.Equipment, ed *ent.ServiceEndpointDefinition, prevEquipmentIDs []int) ([]*ent.Equipment, error) {
 	typ2, err := ed.QueryEquipmentType().Only(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "can't get equipment type")
 	}
-
-	nextEquipmentInstances, err := e.QueryPorts().
+	nextEquipmentInstancesQuery := e.QueryPorts().
 		QueryLink().
 		QueryPorts().
 		QueryParent().
 		Where(equipment.And(
 			equipment.HasTypeWith(equipmenttype.ID(typ2.ID)),
 			equipment.Not(equipment.ID(e.ID)),
-		)).All(ctx)
+		))
+	if len(prevEquipmentIDs) > 0 {
+		nextEquipmentInstancesQuery =
+			nextEquipmentInstancesQuery.Where(equipment.IDNotIn(prevEquipmentIDs...))
+	}
+	nextEquipmentInstances, err := nextEquipmentInstancesQuery.All(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "can't query equipment on link")
 	}

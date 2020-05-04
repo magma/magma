@@ -24,14 +24,6 @@ type servicesContext struct {
 	deleted int
 }
 
-//func (m *jobs) ClientFrom(ctx context.Context) *ent.Client {
-//	client := ent.FromContext(ctx)
-//	if client == nil {
-//		panic("no client attached to context")
-//	}
-//	return client
-//}
-
 func errorReturn(w http.ResponseWriter, msg string, log *zap.Logger, err error) {
 	log.Warn(msg, zap.Error(err))
 	if err == nil {
