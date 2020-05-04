@@ -18,6 +18,20 @@ import logging from '@fbcnms/logging';
 import map from 'lodash/fp/map';
 import moment from 'moment';
 import transform from 'lodash/fp/transform';
+import {anythingTo} from './proxy/utils';
+
+type WorkflowType = {
+  name: string,
+  taskType?: string,
+  version: string,
+  subWorkflowId: string,
+  referenceTaskName: string,
+  inputData?: {
+    subWorkflowId: string,
+    subWorkflowName: string,
+    subWorkflowVersion: string,
+  },
+};
 
 const logger = logging.getLogger(module);
 const http = HttpClient;
@@ -299,21 +313,23 @@ router.get('/id/:workflowId', async (req, res, next) => {
       );
     }
 
-    const subs = filter(identity)(
-      map(task => {
-        if (task.taskType === 'SUB_WORKFLOW') {
-          const subWorkflowId = task.inputData && task.inputData.subWorkflowId;
+    const subs: Array<WorkflowType> = anythingTo<Array<WorkflowType>>(
+      filter(identity)(
+        map((task: WorkflowType): WorkflowType | void => {
+          if (task.taskType === 'SUB_WORKFLOW' && task.inputData) {
+            const subWorkflowId = task.inputData.subWorkflowId;
 
-          if (subWorkflowId != null) {
-            return {
-              name: task.inputData.subWorkflowName,
-              version: task.inputData.subWorkflowVersion,
-              referenceTaskName: task.referenceTaskName,
-              subWorkflowId: subWorkflowId,
-            };
+            if (subWorkflowId != null) {
+              return {
+                name: task.inputData?.subWorkflowName,
+                version: task.inputData?.subWorkflowVersion,
+                referenceTaskName: task.referenceTaskName,
+                subWorkflowId: subWorkflowId,
+              };
+            }
           }
-        }
-      })(result.tasks || []),
+        })(result.tasks || []),
+      ),
     );
 
     (result.tasks || []).forEach(task => {
@@ -348,16 +364,16 @@ router.get('/id/:workflowId', async (req, res, next) => {
       })(result);
     });
 
-    const fun: any => any = map(
-      ({name, version, subWorkflowId, referenceTaskName}) =>
-        Promise.all([
-          referenceTaskName,
-          http.get(
-            baseURLMeta + 'workflow/' + name + '?version=' + version,
-            req,
-          ),
-          http.get(baseURLWorkflow + subWorkflowId + '?includeTasks=true', req),
-        ]),
+    const fun: (
+      Array<WorkflowType>,
+    ) => Array<
+      Promise<mixed>,
+    > = map(({name, version, subWorkflowId, referenceTaskName}) =>
+      Promise.all([
+        referenceTaskName,
+        http.get(baseURLMeta + 'workflow/' + name + '?version=' + version, req),
+        http.get(baseURLWorkflow + subWorkflowId + '?includeTasks=true', req),
+      ]),
     );
     const promises = fun(subs);
 

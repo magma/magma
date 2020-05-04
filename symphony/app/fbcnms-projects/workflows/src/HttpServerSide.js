@@ -11,8 +11,8 @@
 import request from 'superagent';
 
 const HttpClient = {
-  get: (path: string, parentRequest: express$Request) =>
-    new Promise<any>((resolve, reject) => {
+  get: <T>(path: string, parentRequest: express$Request): Promise<T> =>
+    new Promise<T>((resolve, reject) => {
       const req = request.get(path).accept('application/json');
       req.header['x-auth-organization'] =
         parentRequest.headers['x-auth-organization'];
@@ -29,16 +29,16 @@ const HttpClient = {
         }
       });
     }),
-
-  delete: (path: string, data: ?any, parentRequest: express$Request) =>
-    new Promise<any>((resolve, reject) => {
+  delete: <T>(path: string, data: T, parentRequest: express$Request) =>
+    new Promise<T>((resolve, reject) => {
       // If data is empty object, convert it to null.
       // Otherwise the http library will send a request
       // with Content-Length: 2 :/
-      if (data && Object.keys(data).length === 0) {
-        data = null;
+      let modifiedData = data;
+      if (data && typeof data === 'object' && Object.keys(data).length === 0) {
+        modifiedData = null;
       }
-      const req = request.delete(path, data).accept('application/json');
+      const req = request.delete(path, modifiedData).accept('application/json');
       req.header['x-auth-organization'] =
         parentRequest.headers['x-auth-organization'];
       req.end((err, res) => {
@@ -53,8 +53,8 @@ const HttpClient = {
       });
     }),
 
-  post: (path: string, data: ?any, parentRequest: express$Request) =>
-    new Promise<any>((resolve, reject) => {
+  post: <T>(path: string, data: T, parentRequest: express$Request) =>
+    new Promise<T>((resolve, reject) => {
       const req = request
         .post(path, data)
         .set('Content-Type', 'application/json');
@@ -72,7 +72,7 @@ const HttpClient = {
       });
     }),
 
-  put: (path: string, data: ?any, parentRequest: express$Request) =>
+  put: <T>(path: string, data: T, parentRequest: express$Request) =>
     new Promise<{}>((resolve, reject) => {
       const req = request.put(path, data).set('Accept', 'application/json');
       req.header['x-auth-organization'] =

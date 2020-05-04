@@ -87,6 +87,7 @@ export function assertAllowedSystemTask(task: Task): void {
   }
 }
 
+// eslint-disable-line flowtype/no-weak-types
 export function objectToValues<A, B>(obj: {[key: A]: B}): Array<B> {
   return ((Object.values(obj): Array<any>): Array<B>);
 }
@@ -216,6 +217,7 @@ export function findValuesByJsonPath(
   return result;
 }
 
+// eslint-disable-line flowtype/no-weak-types
 export function anythingTo<T>(anything: any): T {
   if (anything != null) {
     return (anything: T);
