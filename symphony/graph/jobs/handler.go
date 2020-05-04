@@ -39,16 +39,16 @@ func NewHandler(cfg Config) (http.Handler, error) {
 	)
 	u := &jobs{cfg.Logger, r}
 	router := mux.NewRouter()
-
 	routes := []struct {
 		name    string
 		handler http.HandlerFunc
 	}{
 		{"sync_services", u.syncServices},
+		{"gc", u.garbageCollector},
 	}
 	for _, route := range routes {
 		router.Path("/" + route.name).
-			Methods(http.MethodPost).
+			Methods(http.MethodGet).
 			HandlerFunc(route.handler).
 			Name(route.name)
 	}
