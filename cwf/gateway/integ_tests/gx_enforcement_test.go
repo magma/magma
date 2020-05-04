@@ -424,6 +424,8 @@ func TestGxAbortSessionRequest(t *testing.T) {
 	assert.Contains(t, asa.SessionId, "IMSI"+imsi)
 	assert.Equal(t, uint32(diam.LimitedSuccess), asa.ResultCode)
 
+	// Give some time for the Session Termination to process
+	tr.WaitForEnforcementStatsToSync()
 	// check if all rules have been cleaned up
 	record := recordsBySubID["IMSI"+imsi][ruleKey]
 	assert.Nil(t, record, fmt.Sprintf("Policy usage record for imsi: %v was not removed", imsi))
