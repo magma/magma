@@ -6,8 +6,10 @@
 // of patent rights can be found in the PATENTS file in the same directory.
 syntax = "proto3";
 
+import "google/protobuf/any.proto";
 import "magma/orc8r/protos/mconfig.proto";
 import "magma/orc8r/protos/common.proto";
+import "magma/orc8r/cloud/go/services/configurator/storage/storage.proto";
 
 package magma.orc8r.configurator;
 option go_package = "protos";
@@ -29,3 +31,19 @@ service SouthboundConfigurator {
     // from streamer to this southbound configurator servicer.
     rpc GetMconfigInternal(GetMconfigRequest) returns (GetMconfigResponse) {}
 }
+
+service MconfigBuilder {
+    rpc Build(BuildMconfigRequest) returns (BuildMconfigResponse) {}
+}
+
+message BuildMconfigRequest {
+    string network_id = 1;
+    string gateway_id = 2;
+    storage.EntityGraph entity_graph = 3;
+    storage.Network network = 4;
+}
+
+message BuildMconfigResponse {
+    map<string, google.protobuf.Any> configs_by_key = 1;
+}
+
