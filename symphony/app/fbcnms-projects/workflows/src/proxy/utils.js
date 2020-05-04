@@ -88,7 +88,7 @@ export function assertAllowedSystemTask(task: Task): void {
 }
 
 export function objectToValues<A, B>(obj: {[key: A]: B}): Array<B> {
-  return ((Object.values(obj): any): Array<B>);
+  return ((Object.values(obj): Array<any>): Array<B>);
 }
 
 export function withInfixSeparator(s: string): string {
@@ -132,9 +132,9 @@ export function getTenantId(req: ProxyRequest): string {
 }
 
 export function createProxyOptionsBuffer(
-  modifiedBody: any,
+  modifiedBody: mixed,
   req: ProxyRequest,
-): any {
+): mixed {
   // if request transformer returned modified body,
   // serialize it to new request stream. Original
   // request stream was already consumed. See `buffer` option
@@ -147,7 +147,7 @@ export function createProxyOptionsBuffer(
     // create an array
     modifiedBody = [modifiedBody];
   } else {
-    logger.error(`Unknown type: '${modifiedBody}'`);
+    logger.error('Unknown type', {modifiedBody});
     throw 'Unknown type';
   }
   return streamify(modifiedBody);
@@ -158,7 +158,7 @@ export function createProxyOptionsBuffer(
 // those starting with global prefix will not be touched.
 export function removeTenantPrefix(
   tenantId: string,
-  json: any,
+  json: mixed,
   jsonPath: string,
   allowGlobal: boolean,
 ): void {
@@ -182,8 +182,9 @@ export function removeTenantPrefix(
 
       logger.error(
         `Name must start with tenantId prefix` +
-          `tenantId:'${tenantId}',json:'${json}',jsonPath:'${jsonPath}'` +
+          `tenantId:'${tenantId}',jsonPath:'${jsonPath}'` +
           `,item:'${item}'`,
+        {json},
       );
       throw 'Name must start with tenantId prefix'; // TODO create Exception class
     }
@@ -197,7 +198,7 @@ export function removeTenantPrefix(
 // See removeTenantPrefix
 export function removeTenantPrefixes(
   tenantId: string,
-  json: any,
+  json: mixed,
   jsonPathToAllowGlobal: {[string]: boolean},
 ): void {
   for (const key in jsonPathToAllowGlobal) {
@@ -206,7 +207,7 @@ export function removeTenantPrefixes(
 }
 
 export function findValuesByJsonPath(
-  json: any,
+  json: mixed,
   path: string,
   resultType: string = 'all',
 ) {

@@ -33,7 +33,7 @@ const logger = logging.getLogger(module);
 /*
 curl  -H "x-auth-organization: fb-test" "localhost/proxy/api/metadata/taskdefs"
 */
-const getAllTaskdefsAfter: AfterFun = (tenantId, req, respObj: ?any) => {
+const getAllTaskdefsAfter: AfterFun = (tenantId, req, respObj) => {
   const tasks = anythingTo<Array<Task>>(respObj);
   // iterate over taskdefs, keep only those belonging to tenantId or global
   // remove tenantId prefix, keep GLOBAL_
