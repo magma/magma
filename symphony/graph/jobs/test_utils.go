@@ -35,6 +35,8 @@ type (
 	linkDataModels struct {
 		l1 *ent.Link
 		l2 *ent.Link
+		l3 *ent.Link
+		l4 *ent.Link
 	}
 )
 
@@ -72,6 +74,15 @@ func prepareEquipmentData(ctx context.Context, r TestJobsResolver, name string) 
 		},
 		{
 			Name: "p3",
+		},
+		{
+			Name: "p4",
+		},
+		{
+			Name: "p5",
+		},
+		{
+			Name: "p6",
 		},
 	}
 	equType1, _ := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
@@ -148,8 +159,9 @@ func prepareServiceTypeData(ctx context.Context, r TestJobsResolver, equipData e
 		},
 	})
 	srvType2, _ := mr.AddServiceType(ctx, models.ServiceTypeCreateData{
-		Name:        "test service type2",
-		HasCustomer: false,
+		Name:            "test service type2",
+		HasCustomer:     false,
+		DiscoveryMethod: &dm,
 		Endpoints: []*models.ServiceEndpointDefinitionInput{
 			{
 				Name:            "endpoint type1",
@@ -171,6 +183,10 @@ func prepareServiceTypeData(ctx context.Context, r TestJobsResolver, equipData e
 			},
 		},
 	})
+	/*
+		st1: eqType1 => eqType2 => eqType3
+		st2: eqType2 => eqType3 => eqType1
+	*/
 	return serviceTypeDataModels{
 		st1: srvType1,
 		st2: srvType2,
@@ -209,8 +225,44 @@ func prepareLinksData(ctx context.Context, r TestJobsResolver, equipData equipme
 					OnlyXID(ctx),
 			},
 		}})
+
+	l3, _ := mr.AddLink(ctx, models.AddLinkInput{
+		Sides: []*models.LinkSide{
+			{
+				Equipment: equipData.equ3.ID,
+				Port: equipData.equ3.QueryType().QueryPortDefinitions().
+					Where(equipmentportdefinition.Name("p1")).
+					OnlyXID(ctx),
+			},
+			{
+				Equipment: equipData.equ2.ID,
+				Port: equipData.equ2.QueryType().QueryPortDefinitions().
+					Where(equipmentportdefinition.Name("p3")).
+					OnlyXID(ctx),
+			},
+		}})
+	l4, _ := mr.AddLink(ctx, models.AddLinkInput{
+		Sides: []*models.LinkSide{
+			{
+				Equipment: equipData.equ2.ID,
+				Port: equipData.equ2.QueryType().QueryPortDefinitions().
+					Where(equipmentportdefinition.Name("p4")).
+					OnlyXID(ctx),
+			},
+			{
+				Equipment: equipData.equ1.ID,
+				Port: equipData.equ1.QueryType().QueryPortDefinitions().
+					Where(equipmentportdefinition.Name("p2")).
+					OnlyXID(ctx),
+			},
+		}})
+	/*
+		eq1 => eq2 => eq3 => eq2 => eq1
+	*/
 	return linkDataModels{
 		l1: l1,
 		l2: l2,
+		l3: l3,
+		l4: l4,
 	}
 }
