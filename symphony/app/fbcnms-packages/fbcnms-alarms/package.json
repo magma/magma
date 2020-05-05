@@ -3,7 +3,6 @@
   "private": true,
   "version": "0.1.0",
   "dependencies": {
-    "@fbcnms/ui": "^0.1.0",
     "classnames": "^2.2.5",
     "moo": "^0.5.1",
     "nearley": "^2.19.0"
