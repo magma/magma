@@ -35,8 +35,11 @@ func NewGxCCAnswer(resultCode uint32) *GxCreditControlAnswer {
 	return &GxCreditControlAnswer{ResultCode: resultCode}
 }
 
-func (m *GxCreditControlAnswer) SetUsageMonitorInfos(monitors []*UsageMonitoringInformation) *GxCreditControlAnswer {
-	m.UsageMonitoringInfos = monitors
+func (m *GxCreditControlAnswer) SetUsageMonitorInfo(monitor *UsageMonitoringInformation) *GxCreditControlAnswer {
+	if m.UsageMonitoringInfos == nil {
+		m.UsageMonitoringInfos = []*UsageMonitoringInformation{}
+	}
+	m.UsageMonitoringInfos = append(m.UsageMonitoringInfos, monitor)
 	return m
 }
 
@@ -84,8 +87,11 @@ func (m *GxCreditControlAnswer) SetRevalidationTime(revalidationTime *timestamp.
 	return m
 }
 
-func (m *GxCreditControlRequest) SetUsageMonitorReports(reports []*UsageMonitoringInformation) *GxCreditControlRequest {
-	m.UsageMonitoringReports = reports
+func (m *GxCreditControlRequest) SetUsageMonitorReport(report *UsageMonitoringInformation) *GxCreditControlRequest {
+	if m.UsageMonitoringReports == nil {
+		m.UsageMonitoringReports = []*UsageMonitoringInformation{}
+	}
+	m.UsageMonitoringReports = append(m.UsageMonitoringReports, report)
 	return m
 }
 

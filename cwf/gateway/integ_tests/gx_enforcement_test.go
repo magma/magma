@@ -63,25 +63,19 @@ func TestGxUsageReportEnforcement(t *testing.T) {
 	assert.NoError(t, err)
 	tr.WaitForPoliciesToSync()
 
-	usageMonitorInfo := []*protos.UsageMonitoringInformation{
-		{
-			MonitoringLevel: protos.MonitoringLevel_RuleLevel,
-			MonitoringKey:   []byte("mkey1"),
-			Octets:          &protos.Octets{TotalOctets: 250 * KiloBytes},
-		},
-	}
+	usageMonitorInfo := getUsageInformation("mkey1", 250*KiloBytes)
 
 	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL)
 	initAnswer := protos.NewGxCCAnswer(diam.Success).
 		SetStaticRuleInstalls([]string{"usage-enforcement-static-pass-all"}, []string{}).
-		SetUsageMonitorInfos(usageMonitorInfo)
+		SetUsageMonitorInfo(usageMonitorInfo)
 	initExpectation := protos.NewGxCreditControlExpectation().Expect(initRequest).Return(initAnswer)
 
 	// We expect an update request with some usage update (probably around 80-100% of the given quota)
 	updateRequest1 := protos.NewGxCCRequest(imsi, protos.CCRequestType_UPDATE).
-		SetUsageMonitorReports(usageMonitorInfo).
+		SetUsageMonitorReport(usageMonitorInfo).
 		SetUsageReportDelta(250 * KiloBytes * 0.2)
-	updateAnswer1 := protos.NewGxCCAnswer(diam.Success).SetUsageMonitorInfos(usageMonitorInfo)
+	updateAnswer1 := protos.NewGxCCAnswer(diam.Success).SetUsageMonitorInfo(usageMonitorInfo)
 	updateExpectation1 := protos.NewGxCreditControlExpectation().Expect(updateRequest1).Return(updateAnswer1)
 	expectations := []*protos.GxCreditControlExpectation{initExpectation, updateExpectation1}
 	// On unexpected requests, just return the default update answer
@@ -161,21 +155,15 @@ func TestGxMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 	err = ruleManager.AddBaseNameMappingToDB("base-1", []string{"static-pass-all-3"})
 	tr.WaitForPoliciesToSync()
 
-	usageMonitorInfo := []*protos.UsageMonitoringInformation{
-		{
-			MonitoringLevel: protos.MonitoringLevel_RuleLevel,
-			MonitoringKey:   []byte("mkey1"),
-			Octets:          &protos.Octets{TotalOctets: 250 * KiloBytes},
-		},
-	}
+	usageMonitorInfo := getUsageInformation("mkey1", 250*KiloBytes)
 
 	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL)
 	initAnswer := protos.NewGxCCAnswer(diam.Success).
 		SetStaticRuleInstalls([]string{"static-pass-all-1"}, []string{"base-1"}).
-		SetUsageMonitorInfos(usageMonitorInfo)
+		SetUsageMonitorInfo(usageMonitorInfo)
 	initExpectation := protos.NewGxCreditControlExpectation().Expect(initRequest).Return(initAnswer)
 	// Remove the high priority Rule
-	defaultUpdateAnswer := protos.NewGxCCAnswer(diam.Success).SetUsageMonitorInfos(usageMonitorInfo)
+	defaultUpdateAnswer := protos.NewGxCCAnswer(diam.Success).SetUsageMonitorInfo(usageMonitorInfo)
 	expectations := []*protos.GxCreditControlExpectation{initExpectation}
 	// On unexpected requests, just return some quota
 	assert.NoError(t, setPCRFExpectations(expectations, defaultUpdateAnswer))
@@ -204,9 +192,9 @@ func TestGxMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 	tr.AssertAllGxExpectationsMetNoError()
 
 	updateRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_UPDATE).
-		SetUsageMonitorReports(usageMonitorInfo).
+		SetUsageMonitorReport(usageMonitorInfo).
 		SetUsageReportDelta(250 * KiloBytes * 0.5)
-	updateAnswer := protos.NewGxCCAnswer(diam.Success).SetUsageMonitorInfos(usageMonitorInfo).
+	updateAnswer := protos.NewGxCCAnswer(diam.Success).SetUsageMonitorInfo(usageMonitorInfo).
 		SetStaticRuleInstalls([]string{"static-pass-all-2"}, []string{}).
 		SetStaticRuleRemovals([]string{"static-pass-all-1"}, []string{"base-1"})
 	updateExpectation := protos.NewGxCreditControlExpectation().Expect(updateRequest).Return(updateAnswer)
@@ -273,17 +261,11 @@ func testGxRuleInstallTime(t *testing.T) {
 	assert.NoError(t, err)
 	tr.WaitForPoliciesToSync()
 
-	usageMonitorInfo := []*protos.UsageMonitoringInformation{
-		{
-			MonitoringLevel: protos.MonitoringLevel_RuleLevel,
-			MonitoringKey:   []byte("mkey1"),
-			Octets:          &protos.Octets{TotalOctets: 250 * KiloBytes},
-		},
-	}
+	usageMonitorInfo := getUsageInformation("mkey1", 250*KiloBytes)
 	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL)
 	initAnswer := protos.NewGxCCAnswer(diam.Success).
 		SetStaticRuleInstalls([]string{"static-pass-all-1"}, nil).
-		SetUsageMonitorInfos(usageMonitorInfo)
+		SetUsageMonitorInfo(usageMonitorInfo)
 	initExpectation := protos.NewGxCreditControlExpectation().Expect(initRequest).Return(initAnswer)
 
 	now := time.Now().Round(1 * time.Second)
@@ -298,12 +280,12 @@ func testGxRuleInstallTime(t *testing.T) {
 
 	updateRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_UPDATE)
 	updateAnswer := protos.NewGxCCAnswer(diam.Success).
-		SetUsageMonitorInfos(usageMonitorInfo).
+		SetUsageMonitorInfo(usageMonitorInfo).
 		SetStaticRuleInstalls([]string{"static-pass-all-2"}, nil).
 		SetRuleActivationTime(pActivation).
 		SetRuleDeactivationTime(pDeactivation)
 	updateExpectation := protos.NewGxCreditControlExpectation().Expect(updateRequest).Return(updateAnswer)
-	defaultUpdateAnswer := protos.NewGxCCAnswer(diam.Success).SetUsageMonitorInfos(usageMonitorInfo)
+	defaultUpdateAnswer := protos.NewGxCCAnswer(diam.Success).SetUsageMonitorInfo(usageMonitorInfo)
 	expectations := []*protos.GxCreditControlExpectation{initExpectation, updateExpectation}
 	// On unexpected requests, just return some quota
 	assert.NoError(t, setPCRFExpectations(expectations, defaultUpdateAnswer))
@@ -429,13 +411,7 @@ func testGxRevalidationTime(t *testing.T) {
 	assert.NoError(t, err)
 	tr.WaitForPoliciesToSync()
 
-	usageMonitorInfo := []*protos.UsageMonitoringInformation{
-		{
-			MonitoringLevel: protos.MonitoringLevel_RuleLevel,
-			MonitoringKey:   []byte("mkey1"),
-			Octets:          &protos.Octets{TotalOctets: 250 * KiloBytes},
-		},
-	}
+	usageMonitorInfo := getUsageInformation("mkey1", 250*KiloBytes)
 
 	timeUntilRevalidation := 8 * time.Second
 	now := time.Now().Round(1 * time.Second)
@@ -445,7 +421,7 @@ func testGxRevalidationTime(t *testing.T) {
 	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL)
 	initAnswer := protos.NewGxCCAnswer(diam.Success).
 		SetStaticRuleInstalls([]string{"revalidation-time-static-pass-all"}, []string{}).
-		SetUsageMonitorInfos(usageMonitorInfo).
+		SetUsageMonitorInfo(usageMonitorInfo).
 		SetRevalidationTime(revalidationTime).
 		SetEventTriggers([]uint32{RevalidationTimeoutEvent})
 	initExpectation := protos.NewGxCreditControlExpectation().Expect(initRequest).Return(initAnswer)
@@ -453,9 +429,9 @@ func testGxRevalidationTime(t *testing.T) {
 	// We expect an update request with some usage update after revalidation timer expires
 	updateRequest1 := protos.NewGxCCRequest(imsi, protos.CCRequestType_UPDATE).
 		SetUsageReportDelta(250 * KiloBytes).
-		SetUsageMonitorReports(usageMonitorInfo)
+		SetUsageMonitorReport(usageMonitorInfo)
 	updateAnswer1 := protos.NewGxCCAnswer(diam.Success).
-		SetUsageMonitorInfos(usageMonitorInfo)
+		SetUsageMonitorInfo(usageMonitorInfo)
 	updateExpectation1 := protos.NewGxCreditControlExpectation().Expect(updateRequest1).Return(updateAnswer1)
 	expectations := []*protos.GxCreditControlExpectation{initExpectation, updateExpectation1}
 	// On unexpected requests, just return the default update answer
