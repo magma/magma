@@ -27,6 +27,8 @@ constexpr char S1AP_MME_ID2ASSOC_ID_COLL[] = "s1ap_mme_id2assoc_id_coll";
 constexpr char S1AP_IMSI_MAP_TABLE_NAME[] = "s1ap_imsi_map";
 } // namespace
 
+using magma::lte::gateway::s1ap::UeDescription;
+
 namespace magma {
 namespace lte {
 
@@ -50,6 +52,7 @@ void S1apStateManager::init(
 {
   log_task = LOG_S1AP;
   table_key = S1AP_STATE_TABLE;
+  task_name = S1AP_TASK_NAME;
   persist_state_enabled = use_stateless;
   max_ues_ = max_ues;
   max_enbs_ = max_enbs;
@@ -57,6 +60,7 @@ void S1apStateManager::init(
   if (read_state_from_db() != RETURNok) {
     OAILOG_ERROR(LOG_S1AP, "Failed to read state from redis");
   }
+  read_ue_state_from_db();
   is_initialized = true;
 }
 
@@ -69,6 +73,8 @@ void S1apStateManager::create_state()
   ht_name = bfromcstr(S1AP_ENB_COLL);
   hashtable_ts_init(
     &state_cache_p->enbs, max_enbs_, nullptr, free_wrapper, ht_name);
+
+  state_ue_ht = hashtable_ts_create(max_ues_, nullptr, free_wrapper, ht_name);
   bdestroy(ht_name);
 
   ht_name = bfromcstr(S1AP_MME_ID2ASSOC_ID_COLL);
@@ -109,24 +115,47 @@ void S1apStateManager::free_state()
       assoc_id = (sctp_assoc_id_t) keys->keys[i];
       ht_rc = hashtable_ts_get(
         &state_cache_p->enbs, (hash_key_t) assoc_id, (void**) &enb);
-      AssertFatal(ht_rc == HASH_TABLE_OK, "enbueid not in assoc_id");
-
-      if (hashtable_ts_destroy(&enb->ue_coll) != HASH_TABLE_OK) {
-        OAI_FPRINTF_ERR("An error occured while destroying UE coll hash table");
-      }
+      AssertFatal(ht_rc == HASH_TABLE_OK, "eNB UE id not in assoc_id");
+      AssertFatal(ht_rc == HASH_TABLE_OK, "eNB UE id not in assoc_id");
     }
     FREE_HASHTABLE_KEY_ARRAY(keys);
   }
 
   if (hashtable_ts_destroy(&state_cache_p->enbs) != HASH_TABLE_OK) {
-    OAI_FPRINTF_ERR("An error occured while destroying s1 eNB hash table");
+    OAI_FPRINTF_ERR("An error occurred while destroying s1 eNB hash table");
   }
   if (hashtable_ts_destroy(&state_cache_p->mmeid2associd) != HASH_TABLE_OK) {
-    OAI_FPRINTF_ERR("An error occured while destroying assoc_id hash table");
+    OAI_FPRINTF_ERR("An error occurred while destroying assoc_id hash table");
+  }
+  if (hashtable_ts_destroy(state_ue_ht) != HASH_TABLE_OK) {
+    OAI_FPRINTF_ERR("An error occurred while destroying assoc_id hash table");
   }
   free_wrapper((void**) &state_cache_p);
 
   clear_s1ap_imsi_map();
+}
+
+int S1apStateManager::read_ue_state_from_db() {
+  if (!persist_state_enabled) {
+    return RETURNok;
+  }
+  auto keys = redis_client->get_keys("IMSI*" + task_name + "*");
+
+  for (const auto& key : keys) {
+    UeDescription ue_proto = UeDescription();
+    ue_description_t* ue_context =
+        (ue_description_t*) calloc(1, sizeof(ue_description_t));
+    if (redis_client->read_proto(key.c_str(), ue_proto) != RETURNok) {
+      return RETURNerror;
+    }
+
+    S1apStateConverter::proto_to_ue(ue_proto, ue_context);
+
+    hashtable_ts_insert(
+        state_ue_ht, ue_context->comp_s1ap_id, (void*) ue_context);
+    OAILOG_DEBUG(log_task, "Reading UE state from db for %s", key.c_str());
+  }
+  return RETURNok;
 }
 
 void S1apStateManager::create_s1ap_imsi_map()
