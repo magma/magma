@@ -196,6 +196,7 @@ jobs:
       - image: circleci/mysql:5.7
         environment:
           MYSQL_ROOT_PASSWORD: root
+    resource_class: large
     steps:
       - checkout
       - run:
