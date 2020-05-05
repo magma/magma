@@ -2,7 +2,8 @@
 
 from typing import List, Optional
 
-from ..client import SymphonyClient
+from pysymphony import SymphonyClient
+
 from ..common.data_class import Customer
 from ..graphql.add_customer_input import AddCustomerInput
 from ..graphql.add_customer_mutation import AddCustomerMutation

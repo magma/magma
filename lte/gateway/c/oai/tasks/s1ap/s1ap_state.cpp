@@ -71,30 +71,52 @@ enb_description_t* s1ap_state_get_enb(
 }
 
 ue_description_t* s1ap_state_get_ue_enbid(
-  enb_description_t* enb,
+  sctp_assoc_id_t sctp_assoc_id,
   enb_ue_s1ap_id_t enb_ue_s1ap_id)
 {
   ue_description_t* ue = nullptr;
 
+  hash_table_ts_t* state_ue_ht = get_s1ap_ue_state();
+  uint64_t comp_s1ap_id = (uint64_t) enb_ue_s1ap_id << 32 | sctp_assoc_id;
   hashtable_ts_get(
-    &enb->ue_coll, (const hash_key_t) enb_ue_s1ap_id, (void**) &ue);
+    state_ue_ht, (const hash_key_t) comp_s1ap_id, (void**) &ue);
 
   return ue;
 }
 
-ue_description_t* s1ap_state_get_ue_mmeid(
-  s1ap_state_t* state,
-  mme_ue_s1ap_id_t mme_ue_s1ap_id)
+ue_description_t* s1ap_state_get_ue_mmeid(mme_ue_s1ap_id_t mme_ue_s1ap_id)
 {
   ue_description_t* ue = nullptr;
 
+  hash_table_ts_t* state_ue_ht = get_s1ap_ue_state();
   hashtable_ts_apply_callback_on_elements(
-    &state->enbs,
-    s1ap_enb_find_ue_by_mme_ue_id_cb,
-    &mme_ue_s1ap_id,
-    (void**) &ue);
+      (hash_table_ts_t* const) state_ue_ht,
+      s1ap_ue_compare_by_mme_ue_id_cb,
+      &mme_ue_s1ap_id,
+      (void**) &ue);
 
   return ue;
+}
+
+ue_description_t* s1ap_state_get_ue_imsi(imsi64_t imsi64)
+{
+  ue_description_t* ue = nullptr;
+
+  hash_table_ts_t* state_ue_ht = get_s1ap_ue_state();
+  hashtable_ts_apply_callback_on_elements(
+      (hash_table_ts_t* const) state_ue_ht,
+      s1ap_ue_compare_by_imsi,
+      &imsi64,
+      (void**) &ue);
+
+  return ue;
+}
+
+uint64_t s1ap_get_comp_s1ap_id(
+    sctp_assoc_id_t sctp_assoc_id,
+    enb_ue_s1ap_id_t enb_ue_s1ap_id)
+{
+  return (uint64_t) enb_ue_s1ap_id << 32 | sctp_assoc_id;
 }
 
 void put_s1ap_imsi_map() {
@@ -125,26 +147,44 @@ bool s1ap_ue_compare_by_mme_ue_id_cb(
   return false;
 }
 
-bool s1ap_enb_find_ue_by_mme_ue_id_cb(
-  __attribute__((unused)) const hash_key_t keyP,
-  void* const elementP,
-  void* parameterP,
-  void** resultP)
-{
-  enb_description_t* enb_ref = (enb_description_t*) elementP;
+bool s1ap_ue_compare_by_imsi(
+    __attribute__((unused)) const hash_key_t keyP,
+    void* const elementP,
+    void* parameterP,
+    void** resultP) {
+  imsi64_t imsi64 = INVALID_IMSI64;
+  imsi64_t* target_imsi64 = (imsi64_t*) parameterP;
+  ue_description_t* ue_ref = (ue_description_t*) elementP;
 
-  hashtable_ts_apply_callback_on_elements(
-    (hash_table_ts_t* const) & enb_ref->ue_coll,
-    s1ap_ue_compare_by_mme_ue_id_cb,
-    parameterP,
-    resultP);
-  if (*resultP) {
-    OAILOG_TRACE(
-      LOG_S1AP,
-      "Found ue_ref %p mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT "\n",
-      *resultP,
-      ((ue_description_t*) (*resultP))->mme_ue_s1ap_id);
+  s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
+  hashtable_uint64_ts_get(
+      imsi_map->mme_ue_id_imsi_htbl, (const hash_key_t) ue_ref->mme_ue_s1ap_id,
+      &imsi64);
+
+  if (*target_imsi64 != INVALID_IMSI64 && *target_imsi64 == imsi64) {
+    *resultP = elementP;
+    OAILOG_DEBUG_UE(
+        LOG_S1AP, imsi64, "Found ue_ref\n");
     return true;
   }
   return false;
+}
+
+hash_table_ts_t* get_s1ap_ue_state(void) {
+  return S1apStateManager::getInstance().get_ue_state_ht();
+}
+
+void put_s1ap_ue_state(imsi64_t imsi64) {
+  if(S1apStateManager::getInstance().is_persist_state_enabled()) {
+    ue_description_t* ue_ctxt = s1ap_state_get_ue_imsi(imsi64);
+    if (ue_ctxt) {
+      auto imsi_str = S1apStateManager::getInstance().get_imsi_str(imsi64);
+      S1apStateManager::getInstance().write_ue_state_to_db(ue_ctxt, imsi_str);
+    }
+  }
+}
+
+void delete_s1ap_ue_state(imsi64_t imsi64) {
+  auto imsi_str = S1apStateManager::getInstance().get_imsi_str(imsi64);
+  S1apStateManager::getInstance().clear_ue_state_db(imsi_str);
 }

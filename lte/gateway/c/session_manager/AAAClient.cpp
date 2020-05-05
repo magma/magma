@@ -91,6 +91,11 @@ bool AsyncAAAClient::terminate_session(
 bool AsyncAAAClient::add_sessions(magma::lte::SessionMap &session_map)
 {
   auto req = create_add_sessions_req(session_map);
+  if (req.sessions().size() == 0) {
+    MLOG(MINFO) << "Not sending add_sessions request to AAA server. No AAA "
+                << "sessions found";
+    return true;
+  }
   add_sessions_rpc(req, [this](Status status, acct_resp resp) {
     if (status.ok()) {
       MLOG(MINFO) << "Successfully added all existing sessions to AAA server";

@@ -20,11 +20,11 @@ func handleUsersGroupFilter(q *ent.UsersGroupQuery, filter *models.UsersGroupFil
 }
 
 func usersGroupFilter(q *ent.UsersGroupQuery, filter *models.UsersGroupFilterInput) (*ent.UsersGroupQuery, error) {
-	switch filter.Operator {
-	case models.FilterOperatorIs:
+	switch {
+	case filter.Operator == models.FilterOperatorIs && filter.StringValue != nil:
 		return q.Where(usersgroup.NameEqualFold(*filter.StringValue)), nil
-	case models.FilterOperatorContains:
+	case filter.Operator == models.FilterOperatorContains && filter.StringValue != nil:
 		return q.Where(usersgroup.NameContainsFold(*filter.StringValue)), nil
 	}
-	return nil, errors.Errorf("operation is not supported: %s", filter.Operator)
+	return nil, errors.Errorf("operation %s is not supported with value of %#v", filter.Operator, filter.StringValue)
 }

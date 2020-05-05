@@ -19,6 +19,7 @@ import Insights from '@fbcnms/ui/insights/Insights';
 import ListIcon from '@material-ui/icons/List';
 import Logs from '@fbcnms/ui/insights/Logs/Logs';
 import LteConfigure from '../LteConfigure';
+import LteDashboard from './LteDashboard';
 import LteMetrics from './LteMetrics';
 import PeopleIcon from '@material-ui/icons/People';
 import PublicIcon from '@material-ui/icons/Public';
@@ -31,6 +32,7 @@ import Subscribers from '../Subscribers';
 export function getLteSections(
   alertsEnabled: boolean,
   logsEnabled: boolean,
+  dashboardV2Enabled: boolean,
 ): SectionsConfigs {
   const sections = [
     'map', // landing path
@@ -87,6 +89,14 @@ export function getLteSections(
       label: 'Alerts',
       icon: <AlarmIcon />,
       component: Alarms,
+    });
+  }
+  if (dashboardV2Enabled) {
+    sections[1].splice(2, 0, {
+      path: 'dashboard',
+      label: 'Dashboard',
+      icon: <ShowChartIcon />,
+      component: LteDashboard,
     });
   }
   return sections;

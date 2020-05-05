@@ -11,6 +11,7 @@ from pyinventory.api.port_type import (
     edit_equipment_port_type,
     get_equipment_port_type,
 )
+from pyinventory.common.cache import PORT_TYPES
 from pyinventory.common.data_class import PropertyDefinition
 from pyinventory.graphql.property_kind_enum import PropertyKind
 
@@ -48,10 +49,10 @@ class TestEquipmentPortType(BaseTest):
         )
 
     def test_equipment_port_type_populated(self) -> None:
-        self.assertEqual(len(self.client.portTypes), 1)
-        self.client.portTypes = {}
+        self.assertEqual(len(PORT_TYPES), 1)
+        PORT_TYPES.clear()
         _populate_equipment_port_types(client=self.client)
-        self.assertEqual(len(self.client.portTypes), 1)
+        self.assertEqual(len(PORT_TYPES), 1)
 
     def test_equipment_port_type_created(self) -> None:
         fetched_port_type = get_equipment_port_type(

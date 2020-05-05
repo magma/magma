@@ -5,8 +5,10 @@
 
 from typing import List, Sequence
 
+from pysymphony import SymphonyClient
+
 from .._utils import format_property_definitions, get_property_type_input
-from ..client import SymphonyClient
+from ..common.cache import EQUIPMENT_TYPES, LOCATION_TYPES, PORT_TYPES, SERVICE_TYPES
 from ..common.data_class import PropertyDefinition
 from ..common.data_enum import Entity
 from ..exceptions import EntityNotFoundError
@@ -39,16 +41,19 @@ def get_property_types(
     """
 
     existing_entity_types = {
-        Entity.LocationType: client.locationTypes,
-        Entity.EquipmentType: client.equipmentTypes,
-        Entity.ServiceType: client.serviceTypes,
-        Entity.EquipmentPortType: client.portTypes,
+        Entity.LocationType: LOCATION_TYPES,
+        Entity.EquipmentType: EQUIPMENT_TYPES,
+        Entity.ServiceType: SERVICE_TYPES,
+        Entity.EquipmentPortType: PORT_TYPES,
     }.get(entity_type, None)
 
     if existing_entity_types is None:
         raise EntityNotFoundError(entity=entity_type)
-    # pyre-fixme[16]: `None` has no attribute `get`.
-    existing_entity_type = existing_entity_types.get(entity_name, None)
+    existing_entity_type = None
+    # pyre-fixme[16]: `None` has no attribute `has`.
+    if existing_entity_types.has(entity_name):
+        # pyre-fixme[16]: `None` has no attribute `get`.
+        existing_entity_type = existing_entity_types.get(entity_name)
 
     if existing_entity_type is None:
         raise EntityNotFoundError(entity=entity_type, entity_name=entity_name)

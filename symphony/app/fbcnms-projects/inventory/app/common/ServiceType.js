@@ -8,6 +8,7 @@
  * @format
  */
 
+import type {DiscoveryMethod} from '../components/configure/__generated__/AddEditServiceTypeCard_editingServiceType.graphql';
 import type {PropertyType} from './PropertyType';
 
 type ServiceEquipmentType = {
@@ -19,6 +20,7 @@ export type ServiceType = {
   id: string,
   name: string,
   propertyTypes: Array<PropertyType>,
+  discoveryMethod: ?DiscoveryMethod,
   numberOfServices: number,
   endpointDefinitions: Array<ServiceEndpointDefinition>,
 };

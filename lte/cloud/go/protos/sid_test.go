@@ -34,18 +34,26 @@ func TestSidString(t *testing.T) {
 	assert.Equal(t, out, str)
 }
 
-func TestParseImsiFromSessionId(t *testing.T) {
+func TestIMSIandSessionIdParsers(t *testing.T) {
 	randomSid := "99999"
-	IMSI := "123456789"
+	IMSI := "123456789012345"
+	IMSInumeric := uint64(123456789012345)
 	prefixedIMSI := fmt.Sprintf("IMSI%s", IMSI)
-	magmaSid := fmt.Sprintf("%s-%s", prefixedIMSI, randomSid)
+	magmaSessionId := fmt.Sprintf("%s-%s", prefixedIMSI, randomSid)
 
-	resultIMSINoprefix, err := protos.ParseIMSIfromSessionIdNoPrefix(magmaSid)
+	// test GetIMSIFromSessionId
+	resultIMSINoprefix, err := protos.GetIMSIFromSessionId(magmaSessionId)
 	assert.NoError(t, err)
 	assert.Equal(t, resultIMSINoprefix, IMSI)
 
-	resultIMSIWithprefix, err := protos.ParseIMSIfromSessionIdWithPrefix(magmaSid)
+	// test GetIMSIwithPrefixFromSessionId
+	resultIMSIWithprefix, err := protos.GetIMSIwithPrefixFromSessionId(magmaSessionId)
 	assert.NoError(t, err)
 	assert.Equal(t, resultIMSIWithprefix, prefixedIMSI)
 
+	// test StripPrefixFromIMSIandFormat
+	resultIMSIstr, resultIMSInumeric, err := protos.StripPrefixFromIMSIandFormat(prefixedIMSI)
+	assert.NoError(t, err)
+	assert.Equal(t, resultIMSIstr, IMSI)
+	assert.Equal(t, resultIMSInumeric, IMSInumeric)
 }

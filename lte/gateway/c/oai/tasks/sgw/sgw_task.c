@@ -260,6 +260,7 @@ static void sgw_exit(void)
 {
   OAILOG_DEBUG(LOG_SPGW_APP, "Cleaning SGW\n");
 
+  gtpv1u_exit();
   spgw_state_exit();
 
   OAILOG_DEBUG(LOG_SPGW_APP, "Finished cleaning up SGW\n");

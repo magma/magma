@@ -201,6 +201,12 @@ const arrayConfigs = [
     enabledByDefault: false,
     rules: [AlwaysEnabledInTestEnvRule],
   },
+  {
+    id: 'dashboard_v2',
+    title: 'V2 LTE Dashboard',
+    enabledByDefault: false,
+    rules: [AlwaysEnabledInTestEnvRule],
+  },
 ];
 
 const featureConfigs: {[FeatureID]: FeatureConfig} = {};

@@ -24,14 +24,41 @@ func mutationWithPermissionRule(rule func(context.Context, ent.Mutation, *models
 	})
 }
 
+func workOrderMutationWithPermissionRule(rule func(context.Context, *ent.WorkOrderMutation, *models.PermissionSettings) error) privacy.MutationRule {
+	return privacy.WorkOrderMutationRuleFunc(func(ctx context.Context, m *ent.WorkOrderMutation) error {
+		p := FromContext(ctx)
+		if p == nil {
+			return privacy.Skip
+		}
+		return rule(ctx, m, p)
+	})
+}
+
+func projectMutationWithPermissionRule(rule func(context.Context, *ent.ProjectMutation, *models.PermissionSettings) error) privacy.MutationRule {
+	return privacy.ProjectMutationRuleFunc(func(ctx context.Context, m *ent.ProjectMutation) error {
+		p := FromContext(ctx)
+		if p == nil {
+			return privacy.Skip
+		}
+		return rule(ctx, m, p)
+	})
+}
+
+func cudBasedCheck(cud *models.Cud, m ent.Mutation) bool {
+	if m.Op().Is(ent.OpDeleteOne) || m.Op().Is(ent.OpDelete) {
+		return cud.Delete.IsAllowed == models2.PermissionValueYes
+	}
+	if m.Op().Is(ent.OpUpdateOne) || m.Op().Is(ent.OpUpdate) {
+		return cud.Update.IsAllowed == models2.PermissionValueYes
+	}
+	if m.Op().Is(ent.OpCreate) {
+		return cud.Create.IsAllowed == models2.PermissionValueYes
+	}
+	return false
+}
+
 func cudBasedRule(cud *models.Cud, m ent.Mutation) error {
-	if (m.Op().Is(ent.OpDeleteOne) || m.Op().Is(ent.OpDelete)) && cud.Delete.IsAllowed == models2.PermissionValueYes {
-		return privacy.Allow
-	}
-	if (m.Op().Is(ent.OpUpdateOne) || m.Op().Is(ent.OpUpdate)) && cud.Update.IsAllowed == models2.PermissionValueYes {
-		return privacy.Allow
-	}
-	if m.Op().Is(ent.OpCreate) && cud.Create.IsAllowed == models2.PermissionValueYes {
+	if cudBasedCheck(cud, m) {
 		return privacy.Allow
 	}
 	return privacy.Skip

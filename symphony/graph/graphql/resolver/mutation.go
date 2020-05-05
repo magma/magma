@@ -1993,10 +1993,18 @@ func (r mutationResolver) AddServiceType(ctx context.Context, data models.Servic
 	if err != nil {
 		return nil, errors.WithMessage(err, "creating service endpoint definition")
 	}
-
+	var dm *servicetype.DiscoveryMethod
+	if data.DiscoveryMethod != nil {
+		err := servicetype.DiscoveryMethodValidator((servicetype.DiscoveryMethod)(*data.DiscoveryMethod))
+		if err != nil {
+			return nil, errors.WithMessage(err, "creating service discovery method")
+		}
+		dm = (*servicetype.DiscoveryMethod)(data.DiscoveryMethod)
+	}
 	st, err := r.ClientFrom(ctx).
 		ServiceType.Create().
 		SetName(data.Name).
+		SetNillableDiscoveryMethod(dm).
 		SetHasCustomer(data.HasCustomer).
 		AddPropertyTypes(types...).
 		AddEndpointDefinitions(epTypes...).

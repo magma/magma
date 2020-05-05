@@ -19,6 +19,7 @@ from pyinventory.api.location import add_location
 from pyinventory.api.location_type import add_location_type
 from pyinventory.api.port import edit_port_properties, get_port
 from pyinventory.api.port_type import add_equipment_port_type
+from pyinventory.common.cache import EQUIPMENT_TYPES
 from pyinventory.common.data_class import PropertyDefinition
 from pyinventory.graphql.property_kind_enum import PropertyKind
 
@@ -148,7 +149,7 @@ class TestEquipment(BaseTest):
         self.assertEqual(port_properties[0].stringValue, "test_port_property")
 
     def test_get_equipments_by_type(self) -> None:
-        equipment_type_id = self.client.equipmentTypes["Tp-Link T1600G"].id
+        equipment_type_id = EQUIPMENT_TYPES["Tp-Link T1600G"].id
         equipments = get_equipments_by_type(
             client=self.client, equipment_type_id=equipment_type_id
         )

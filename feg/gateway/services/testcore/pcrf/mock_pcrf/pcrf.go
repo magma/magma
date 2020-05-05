@@ -10,7 +10,6 @@ package mock_pcrf
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net"
 	"time"
@@ -28,6 +27,7 @@ import (
 	"github.com/fiorix/go-diameter/v4/diam/sm"
 	"github.com/fiorix/go-diameter/v4/diam/sm/smpeer"
 	"github.com/golang/glog"
+	"github.com/pkg/errors"
 )
 
 // PCRFConfig defines the configuration for a PCRF server, which for now is just
@@ -294,7 +294,10 @@ func (srv *PCRFDiamServer) AbortSession(
 		resp <- &gx.PolicyAbortSessionResponse{SessionID: asa.SessionID, ResultCode: asa.ResultCode}
 	}
 	srv.mux.Handle(diam.ASA, asaHandler)
-	sendASR(account.CurrentState, srv.mux.Settings())
+	err := sendASR(account.CurrentState, srv.mux.Settings())
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to send Gx ASR")
+	}
 	select {
 	case asa := <-resp:
 		return &protos.PolicyAbortSessionResponse{SessionId: diameter.DecodeSessionID(asa.SessionID), ResultCode: asa.ResultCode}, nil
