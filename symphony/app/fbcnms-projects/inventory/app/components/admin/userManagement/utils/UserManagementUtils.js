@@ -493,3 +493,116 @@ export const permissionsPoliciesResponse2PermissionsPolicies = (
         .map(ur => ur.node)
         .filter(Boolean)
         .map<PermissionsPolicy>(permissionsPolicyResponse2PermissionsPolicy);
+
+export const permissionPolicyBasicRule2PermissionPolicyBasicRuleInput = (
+  rule: BasicPermissionRule,
+) => {
+  return {
+    isAllowed: rule.isAllowed,
+  };
+};
+
+export const permissionPolicyCUDRule2PermissionPolicyCUDRuleInput = (
+  rule: ?CUDPermissionsRule,
+) => {
+  if (rule == null) {
+    return null;
+  }
+  return {
+    create: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
+      rule.create,
+    ),
+    update: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
+      rule.update,
+    ),
+    delete: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
+      rule.delete,
+    ),
+  };
+};
+
+export const permissionPolicyWFCUDRule2PermissionPolicyWFCUDRuleInput = (
+  rule: ?WorkforceCUD,
+) => {
+  if (rule == null) {
+    return null;
+  }
+  return {
+    create: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
+      rule.create,
+    ),
+    update: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
+      rule.update,
+    ),
+    delete: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
+      rule.delete,
+    ),
+    assign: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
+      rule.assign,
+    ),
+    transferOwnership: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
+      rule.transferOwnership,
+    ),
+  };
+};
+
+export const permissionsPolicy2PermissionsPolicyInput = (
+  policy: PermissionsPolicy,
+) => {
+  const input = {
+    name: policy.name,
+    description: policy.description,
+    inventoryInput:
+      policy.inventoryRules == null
+        ? null
+        : {
+            read: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
+              policy.inventoryRules?.read,
+            ),
+            location: permissionPolicyCUDRule2PermissionPolicyCUDRuleInput(
+              policy.inventoryRules?.location,
+            ),
+            equipment: permissionPolicyCUDRule2PermissionPolicyCUDRuleInput(
+              policy.inventoryRules?.equipment,
+            ),
+            equipmentType: permissionPolicyCUDRule2PermissionPolicyCUDRuleInput(
+              policy.inventoryRules?.equipmentType,
+            ),
+            locationType: permissionPolicyCUDRule2PermissionPolicyCUDRuleInput(
+              policy.inventoryRules?.locationType,
+            ),
+            portType: permissionPolicyCUDRule2PermissionPolicyCUDRuleInput(
+              policy.inventoryRules?.portType,
+            ),
+            serviceType: permissionPolicyCUDRule2PermissionPolicyCUDRuleInput(
+              policy.inventoryRules?.serviceType,
+            ),
+          },
+    workforceInput:
+      policy.workforceRules == null
+        ? null
+        : {
+            read: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
+              policy.workforceRules?.read,
+            ),
+            data: permissionPolicyWFCUDRule2PermissionPolicyWFCUDRuleInput(
+              policy.workforceRules?.data,
+            ),
+            templates: permissionPolicyCUDRule2PermissionPolicyCUDRuleInput(
+              policy.workforceRules?.templates,
+            ),
+          },
+  };
+
+  if (input.inventoryInput == null && input.workforceInput == null) {
+    switch (policy.type) {
+      case POLICY_TYPES.InventoryPolicy.key:
+        input.inventoryInput = {};
+        break;
+      case POLICY_TYPES.WorkforcePolicy.key:
+        input.workforceInput = {};
+        break;
+    }
+  }
+  return input;
+};

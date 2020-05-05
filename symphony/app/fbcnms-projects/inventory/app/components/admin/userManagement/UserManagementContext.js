@@ -14,6 +14,7 @@
 import type {AddPermissionsPolicyMutationResponse} from '../../../mutations/__generated__/AddPermissionsPolicyMutation.graphql';
 import type {AddUsersGroupMutationResponse} from '../../../mutations/__generated__/AddUsersGroupMutation.graphql';
 import type {DeleteUsersGroupMutationResponse} from '../../../mutations/__generated__/DeleteUsersGroupMutation.graphql';
+import type {EditPermissionsPolicyMutationResponse} from '../../../mutations/__generated__/EditPermissionsPolicyMutation.graphql';
 import type {EditUserMutationResponse} from '../../../mutations/__generated__/EditUserMutation.graphql';
 import type {EditUsersGroupMutationResponse} from '../../../mutations/__generated__/EditUsersGroupMutation.graphql';
 import type {MutationCallbacks} from '../../../mutations/MutationCallbacks.js';
@@ -35,6 +36,7 @@ import * as React from 'react';
 import AddPermissionsPolicyMutation from '../../../mutations/AddPermissionsPolicyMutation';
 import AddUsersGroupMutation from '../../../mutations/AddUsersGroupMutation';
 import DeleteUsersGroupMutation from '../../../mutations/DeleteUsersGroupMutation';
+import EditPermissionsPolicyMutation from '../../../mutations/EditPermissionsPolicyMutation';
 import EditUserMutation from '../../../mutations/EditUserMutation';
 import EditUsersGroupMutation from '../../../mutations/EditUsersGroupMutation';
 import LoadingIndicator from '../../../common/LoadingIndicator';
@@ -44,19 +46,19 @@ import axios from 'axios';
 import nullthrows from 'nullthrows';
 import {ConnectionHandler, fetchQuery, graphql} from 'relay-runtime';
 import {LogEvents, ServerLogger} from '../../../common/LoggingUtils';
+import {RelayEnvironmentProvider} from 'react-relay/hooks';
+import {Suspense} from 'react';
 import {
-  POLICY_TYPES,
   USER_ROLES,
   groupResponse2Group,
   groupsResponse2Groups,
   permissionsPoliciesResponse2PermissionsPolicies,
+  permissionsPolicy2PermissionsPolicyInput,
   permissionsPolicyResponse2PermissionsPolicy,
   userResponse2User,
   users2UsersMap,
   usersResponse2Users,
 } from './utils/UserManagementUtils';
-import {RelayEnvironmentProvider} from 'react-relay/hooks';
-import {Suspense} from 'react';
 import {getGraphError} from '../../../common/EntUtils';
 import {useContext} from 'react';
 import {useLazyLoadQuery} from 'react-relay/hooks';
@@ -380,26 +382,7 @@ const addPermissionsPolicy = (newPolicyValue: PermissionsPolicy) => {
     };
     AddPermissionsPolicyMutation(
       {
-        input: {
-          name: newPolicyValue.name,
-          description: newPolicyValue.description,
-          inventoryInput:
-            newPolicyValue.type == POLICY_TYPES.InventoryPolicy.key
-              ? {
-                  read: {
-                    isAllowed: 'YES',
-                  },
-                }
-              : null,
-          workforceInput:
-            newPolicyValue.type == POLICY_TYPES.WorkforcePolicy.key
-              ? {
-                  read: {
-                    isAllowed: 'YES',
-                  },
-                }
-              : null,
-        },
+        input: permissionsPolicy2PermissionsPolicyInput(newPolicyValue),
       },
       callbacks,
       addNewPolicyToStore,
@@ -407,8 +390,35 @@ const addPermissionsPolicy = (newPolicyValue: PermissionsPolicy) => {
   });
 };
 
-const editPermissionsPolicy = (_newPolicyValue: PermissionsPolicy) => {
-  return Promise.reject('not implemented yet');
+const editPermissionsPolicy = (newPolicyValue: PermissionsPolicy) => {
+  return new Promise<PermissionsPolicy>((resolve, reject) => {
+    type Callbacks = MutationCallbacks<EditPermissionsPolicyMutationResponse>;
+    const callbacks: Callbacks = {
+      onCompleted: (response, errors) => {
+        if (errors && errors[0]) {
+          reject(getGraphError(errors[0]));
+        }
+        resolve(
+          permissionsPolicyResponse2PermissionsPolicy(
+            response.editPermissionsPolicy,
+          ),
+        );
+      },
+      onError: e => {
+        reject(getGraphError(e));
+      },
+    };
+
+    EditPermissionsPolicyMutation(
+      {
+        input: {
+          id: newPolicyValue.id,
+          ...permissionsPolicy2PermissionsPolicyInput(newPolicyValue),
+        },
+      },
+      callbacks,
+    );
+  });
 };
 
 const deletePermissionsPolicy = (_poilicyId: string) => {
