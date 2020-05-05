@@ -21,14 +21,7 @@ import type {SelectorStoreUpdater} from 'relay-runtime';
 const mutation = graphql`
   mutation EditUsersGroupMutation($input: EditUsersGroupInput!) {
     editUsersGroup(input: $input) {
-      id
-      name
-      description
-      status
-      members {
-        id
-        authID
-      }
+      ...UserManagementUtils_group @relay(mask: false)
     }
   }
 `;

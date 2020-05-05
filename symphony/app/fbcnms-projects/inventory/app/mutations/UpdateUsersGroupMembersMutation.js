@@ -23,14 +23,7 @@ const mutation = graphql`
     $input: UpdateUsersGroupMembersInput!
   ) {
     updateUsersGroupMembers(input: $input) {
-      id
-      name
-      description
-      status
-      members {
-        id
-        authID
-      }
+      ...UserManagementUtils_group @relay(mask: false)
     }
   }
 `;

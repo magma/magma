@@ -19,6 +19,160 @@ import type {
 } from '../__generated__/UserManagementContextQuery.graphql';
 
 import fbt from 'fbt';
+import {graphql} from 'relay-runtime';
+
+graphql`
+  fragment UserManagementUtils_user on User {
+    id
+    authID
+    firstName
+    lastName
+    email
+    status
+    role
+    groups {
+      id
+      name
+    }
+    profilePhoto {
+      id
+      fileName
+      storeKey
+    }
+  }
+`;
+
+graphql`
+  fragment UserManagementUtils_group on UsersGroup {
+    id
+    name
+    description
+    status
+    members {
+      id
+      authID
+    }
+  }
+`;
+
+graphql`
+  fragment UserManagementUtils_policies on PermissionsPolicy {
+    id
+    name
+    description
+    isGlobal
+    policy {
+      __typename
+      ... on InventoryPolicy {
+        read {
+          isAllowed
+        }
+        location {
+          create {
+            isAllowed
+          }
+          update {
+            isAllowed
+          }
+          delete {
+            isAllowed
+          }
+        }
+        equipment {
+          create {
+            isAllowed
+          }
+          update {
+            isAllowed
+          }
+          delete {
+            isAllowed
+          }
+        }
+        equipmentType {
+          create {
+            isAllowed
+          }
+          update {
+            isAllowed
+          }
+          delete {
+            isAllowed
+          }
+        }
+        locationType {
+          create {
+            isAllowed
+          }
+          update {
+            isAllowed
+          }
+          delete {
+            isAllowed
+          }
+        }
+        portType {
+          create {
+            isAllowed
+          }
+          update {
+            isAllowed
+          }
+          delete {
+            isAllowed
+          }
+        }
+        serviceType {
+          create {
+            isAllowed
+          }
+          update {
+            isAllowed
+          }
+          delete {
+            isAllowed
+          }
+        }
+      }
+      ... on WorkforcePolicy {
+        read {
+          isAllowed
+        }
+        templates {
+          create {
+            isAllowed
+          }
+          update {
+            isAllowed
+          }
+          delete {
+            isAllowed
+          }
+        }
+        data {
+          create {
+            isAllowed
+          }
+          update {
+            isAllowed
+          }
+          delete {
+            isAllowed
+          }
+          assign {
+            isAllowed
+          }
+          transferOwnership {
+            isAllowed
+          }
+        }
+      }
+    }
+    groups {
+      id
+    }
+  }
+`;
 
 type KeyValueEnum<TValues> = {
   [key: TValues]: {

@@ -21,14 +21,7 @@ import type {SelectorStoreUpdater} from 'relay-runtime';
 const mutation = graphql`
   mutation AddUsersGroupMutation($input: AddUsersGroupInput!) {
     addUsersGroup(input: $input) {
-      id
-      name
-      description
-      status
-      members {
-        id
-        authID
-      }
+      ...UserManagementUtils_group @relay(mask: false)
     }
   }
 `;

@@ -485,22 +485,7 @@ const dataQuery = graphql`
     users(first: 500) @connection(key: "UserManagementContext_users") {
       edges {
         node {
-          id
-          authID
-          firstName
-          lastName
-          email
-          status
-          role
-          groups {
-            id
-            name
-          }
-          profilePhoto {
-            id
-            fileName
-            storeKey
-          }
+          ...UserManagementUtils_user @relay(mask: false)
         }
       }
     }
@@ -508,14 +493,7 @@ const dataQuery = graphql`
       @connection(key: "UserManagementContext_usersGroups") {
       edges {
         node {
-          id
-          name
-          description
-          status
-          members {
-            id
-            authID
-          }
+          ...UserManagementUtils_group @relay(mask: false)
         }
       }
     }
@@ -523,27 +501,7 @@ const dataQuery = graphql`
       @connection(key: "UserManagementContext_permissionsPolicies") {
       edges {
         node {
-          id
-          name
-          description
-          isGlobal
-          policy {
-            ... on InventoryPolicy {
-              __typename
-              read {
-                isAllowed
-              }
-            }
-            ... on WorkforcePolicy {
-              __typename
-              read {
-                isAllowed
-              }
-            }
-          }
-          groups {
-            id
-          }
+          ...UserManagementUtils_policies @relay(mask: false)
         }
       }
     }

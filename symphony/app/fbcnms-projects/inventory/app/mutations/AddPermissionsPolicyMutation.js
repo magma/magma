@@ -21,27 +21,7 @@ import type {SelectorStoreUpdater} from 'relay-runtime';
 const mutation = graphql`
   mutation AddPermissionsPolicyMutation($input: AddPermissionsPolicyInput!) {
     addPermissionsPolicy(input: $input) {
-      id
-      name
-      description
-      isGlobal
-      policy {
-        ... on InventoryPolicy {
-          __typename
-          read {
-            isAllowed
-          }
-        }
-        ... on WorkforcePolicy {
-          __typename
-          read {
-            isAllowed
-          }
-        }
-      }
-      groups {
-        id
-      }
+      ...UserManagementUtils_policies @relay(mask: false)
     }
   }
 `;
