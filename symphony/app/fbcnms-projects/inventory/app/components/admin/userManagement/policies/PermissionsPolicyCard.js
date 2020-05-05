@@ -18,6 +18,7 @@ import Grid from '@material-ui/core/Grid';
 import InventoryErrorBoundary from '../../../../common/InventoryErrorBoundary';
 import PermissionsPolicyDetailsPane from './PermissionsPolicyDetailsPane';
 import PermissionsPolicyGroupsPane from './PermissionsPolicyGroupsPane';
+import PermissionsPolicyRulesPane from './PermissionsPolicyRulesPane';
 import Strings from '@fbcnms/strings/Strings';
 import ViewContainer from '@fbcnms/ui/components/design-system/View/ViewContainer';
 import fbt from 'fbt';
@@ -195,13 +196,16 @@ function PermissionsPolicyCard(props: Props) {
       <ViewContainer header={header} useBodyScrollingEffect={false}>
         <Grid container spacing={2} className={classes.container}>
           <Grid item xs={8} sm={8} lg={8} xl={8} className={classes.container}>
-            {
-              <PermissionsPolicyDetailsPane
-                policy={policy}
-                onChange={setPolicy}
-                className={classes.detailsPane}
-              />
-            }
+            <PermissionsPolicyDetailsPane
+              policy={policy}
+              onChange={setPolicy}
+              className={classes.detailsPane}
+            />
+            <PermissionsPolicyRulesPane
+              policy={policy}
+              onChange={setPolicy}
+              className={classes.detailsPane}
+            />
           </Grid>
           <Grid item xs={4} sm={4} lg={4} xl={4} className={classes.container}>
             <PermissionsPolicyGroupsPane
