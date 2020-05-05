@@ -89,12 +89,11 @@ func (v *viewer) Features() FeatureSet {
 
 // Viewer is the interface to hold additional per request information.
 type Viewer interface {
+	zapcore.ObjectMarshaler
 	Tenant() string
 	Features() FeatureSet
 	Name() string
 	Role() user.Role
-	// MarshalLogObject implements zapcore.ObjectMarshaler interface.
-	MarshalLogObject(enc zapcore.ObjectEncoder) error
 }
 
 // UserViewer is a viewer that holds a user ent.
