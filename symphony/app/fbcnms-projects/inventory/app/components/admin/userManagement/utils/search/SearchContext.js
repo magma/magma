@@ -35,21 +35,20 @@ type SearchContextValueType<T> = $ReadOnly<{|
   isEmptySearchTerm: boolean,
 |}>;
 
-function useSearchManagerBuilder<M, R>(
-  queryMetadata: ?M,
-  searchCallback: (string, ?M) => Promise<Array<R>>,
-): SearchContextValueType<R> {
-  const EMPTY_SEARCH_RESULTS = useMemo(() => getEmptyResults<R>(), []);
+function useSearchManagerBuilder<T>(
+  searchCallback: string => Promise<Array<T>>,
+): SearchContextValueType<T> {
+  const EMPTY_SEARCH_RESULTS = useMemo(() => getEmptyResults<T>(), []);
   const [lastSearchedTerm, setLastSearchedTerm] = useState(NO_SEARCH_VALUE);
   const [searchTerm, setSearchTerm] = useState(NO_SEARCH_VALUE);
-  const [results, setResults] = useState<Array<R>>(EMPTY_SEARCH_RESULTS);
+  const [results, setResults] = useState<Array<T>>(EMPTY_SEARCH_RESULTS);
   const [isSearchInProgress, setIsSearchInProgress] = useState(false);
   const [isEmptySearchTerm, setIsEmptySearchTerm] = useState(true);
 
   const runSearch = useCallback(
     debounce(currentSearchTerm => {
       setIsSearchInProgress(true);
-      searchCallback(currentSearchTerm, queryMetadata)
+      searchCallback(currentSearchTerm)
         .then(setResults)
         .finally(() => setIsSearchInProgress(false));
     }, 200),
@@ -84,11 +83,8 @@ function useSearchManagerBuilder<M, R>(
   };
 }
 
-// eslint-disable-next-line
-// $FlowFixMe
-type ContextProviderProps<T> /* eslint-disable-line */ = $ReadOnly<{|
+type ContextProviderProps = $ReadOnly<{|
   children: React.Node,
-  queryMetadata: ?T,
 |}>;
 
 /*
@@ -99,26 +95,25 @@ type ContextProviderProps<T> /* eslint-disable-line */ = $ReadOnly<{|
 */
 // eslint-disable-next-line
 // $FlowFixMe
-export default function createSearchContext<M, R: Object>( // eslint-disable-line
-  searchCallback: (string, ?M) => Promise<Array<R>>,
+export default function createSearchContext<T: Object>( // eslint-disable-line
+  searchCallback: string => Promise<Array<T>>,
 ) {
-  const SearchContext = createContext<SearchContextValueType<R>>({
+  const SearchContext = createContext<SearchContextValueType<T>>({
     searchTerm: NO_SEARCH_VALUE,
-    results: getEmptyResults<R>(),
+    results: getEmptyResults<T>(),
     setSearchTerm: emptyFunction,
     clearSearch: emptyFunction,
     isSearchInProgress: false,
     isEmptySearchTerm: false,
   });
 
-  const useSearch = (queryMetadata?: ?M) =>
-    useSearchManagerBuilder<M, R>(queryMetadata, searchCallback);
+  const useSearch = () => useSearchManagerBuilder<T>(searchCallback);
 
-  const SearchContextProvider = (props: ContextProviderProps<M>) => {
-    const {children, queryMetadata} = props;
+  const SearchContextProvider = (props: ContextProviderProps) => {
+    const {children} = props;
 
     return (
-      <SearchContext.Provider value={useSearch(queryMetadata)}>
+      <SearchContext.Provider value={useSearch()}>
         {children}
       </SearchContext.Provider>
     );

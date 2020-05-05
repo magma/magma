@@ -9,8 +9,7 @@
  * @format
  */
 
-import type {GroupMember} from '../GroupMemberViewer';
-import type {UserPermissionsGroup} from '../UserManagementUtils';
+import type {User} from '../UserManagementUtils';
 import type {UserSearchContextQuery} from './__generated__/UserSearchContextQuery.graphql';
 
 import RelayEnvironment from '../../../../../common/RelayEnvironment';
@@ -44,7 +43,7 @@ const userSearchQuery = graphql`
   }
 `;
 
-const searchCallback = (searchTerm: string, group: ?UserPermissionsGroup) =>
+const searchCallback = (searchTerm: string) =>
   fetchQuery<UserSearchContextQuery>(RelayEnvironment, userSearchQuery, {
     filters: [
       {
@@ -63,15 +62,7 @@ const searchCallback = (searchTerm: string, group: ?UserPermissionsGroup) =>
       return [];
     }
     return response.userSearch.users.filter(Boolean).map(userNode => {
-      const userData = userResponse2User(userNode);
-      return {
-        user: userData,
-        isMember:
-          group == null
-            ? false
-            : userData.groups.find(userGroup => userGroup?.id == group.id) !=
-              null,
-      };
+      return userResponse2User(userNode);
     });
   });
 
@@ -80,7 +71,7 @@ const {
   SearchContextProvider,
   useSearchContext,
   useSearch,
-} = createSearchContext<UserPermissionsGroup, GroupMember>(searchCallback);
+} = createSearchContext<User>(searchCallback);
 
 export const UserSearchContextProvider = SearchContextProvider;
 export const useUserSearchContext = useSearchContext;
