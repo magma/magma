@@ -10,6 +10,7 @@
  */
 
 import AppBar from '@material-ui/core/AppBar';
+import GatewayKPIs from '../GatewayKPIs';
 import Grid from '@material-ui/core/Grid';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import Paper from '@material-ui/core/Paper';
@@ -120,9 +121,7 @@ function LteNetworkDashboard() {
 
         <Grid item xs={6}>
           <Paper elevation={2}>
-            <div className={classes.contentPlaceholder}>
-              Gateway KPIs Go Here
-            </div>
+            <GatewayKPIs />
           </Paper>
         </Grid>
 
