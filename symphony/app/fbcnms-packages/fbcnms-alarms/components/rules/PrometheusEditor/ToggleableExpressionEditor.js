@@ -25,11 +25,11 @@ import TextField from '@material-ui/core/TextField';
 import ToggleButton from '@material-ui/lab/ToggleButton';
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
 import Tooltip from '@material-ui/core/Tooltip';
+import useRouter from '@fbcnms/alarms/hooks/useRouter';
 import {groupBy} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from '../../AlarmContext';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
-import {useRouter} from '@fbcnms/ui/hooks/index';
 
 import type {InputChangeFunc} from './PrometheusEditor';
 import type {prometheus_labelset} from '@fbcnms/magma-api';

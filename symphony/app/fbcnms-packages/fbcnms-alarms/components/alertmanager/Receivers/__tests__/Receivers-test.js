@@ -25,7 +25,7 @@ jest
   .spyOn(require('@fbcnms/ui/hooks/useSnackbar'), 'useEnqueueSnackbar')
   .mockReturnValue(enqueueSnackbarMock);
 jest
-  .spyOn(require('@fbcnms/ui/hooks/useRouter'), 'default')
+  .spyOn(require('@fbcnms/alarms/hooks/useRouter'), 'default')
   .mockReturnValue({match: {params: {networkId: 'test'}}});
 
 afterEach(() => {

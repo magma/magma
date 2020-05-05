@@ -23,9 +23,9 @@ import SelectReceiver from '../alertmanager/Receivers/SelectReceiver';
 import SelectRuleType from './SelectRuleType';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
+import useForm from '@fbcnms/alarms/hooks/useForm';
 import {useAlarmContext} from '../AlarmContext';
 import {useAlertRuleReceiver} from '../hooks';
-import {useForm} from '@fbcnms/ui/hooks';
 
 import type {Props as EditorProps} from '../common/Editor';
 import type {Labels} from '../AlarmAPIType';

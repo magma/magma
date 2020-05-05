@@ -16,7 +16,7 @@ import {assertType} from '@fbcnms/util/assert';
 import {mockPrometheusRule} from '../../test/testData';
 
 jest.mock('@fbcnms/ui/hooks/useSnackbar');
-jest.mock('@fbcnms/ui/hooks/useRouter');
+jest.mock('@fbcnms/alarms/hooks/useRouter');
 
 afterEach(() => {
   cleanup();
@@ -30,7 +30,7 @@ jest
   .spyOn(require('@fbcnms/ui/hooks/useSnackbar'), 'useEnqueueSnackbar')
   .mockReturnValue(enqueueSnackbarMock);
 jest
-  .spyOn(require('@fbcnms/ui/hooks/useRouter'), 'default')
+  .spyOn(require('@fbcnms/alarms/hooks/useRouter'), 'default')
   .mockReturnValue({match: {params: {networkId: 'test'}}});
 
 const useLoadRulesMock = jest
