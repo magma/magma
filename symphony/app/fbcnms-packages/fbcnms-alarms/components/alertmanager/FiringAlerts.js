@@ -19,7 +19,7 @@ import {SEVERITY} from '../severity/Severity';
 import {get} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from '../AlarmContext';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '@fbcnms/alarms/hooks/useSnackbar';
 import {useState} from 'react';
 
 import type {FiringAlarm} from '../AlarmAPIType';

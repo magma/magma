@@ -15,7 +15,7 @@ import {alarmTestUtil} from '../../test/testHelpers';
 import {assertType} from '@fbcnms/util/assert';
 import {mockPrometheusRule} from '../../test/testData';
 
-jest.mock('@fbcnms/ui/hooks/useSnackbar');
+jest.mock('@fbcnms/alarms/hooks/useSnackbar');
 jest.mock('@fbcnms/alarms/hooks/useRouter');
 
 afterEach(() => {
@@ -27,7 +27,7 @@ const {apiUtil, AlarmsWrapper} = alarmTestUtil();
 
 const enqueueSnackbarMock = jest.fn();
 jest
-  .spyOn(require('@fbcnms/ui/hooks/useSnackbar'), 'useEnqueueSnackbar')
+  .spyOn(require('@fbcnms/alarms/hooks/useSnackbar'), 'useEnqueueSnackbar')
   .mockReturnValue(enqueueSnackbarMock);
 jest
   .spyOn(require('@fbcnms/alarms/hooks/useRouter'), 'default')
@@ -197,7 +197,7 @@ describe('AddEditAlert > Prometheus Editor', () => {
   test('a snackbar is enqueued if adding a rule fails', async () => {
     const enqueueMock = jest.fn();
     jest
-      .spyOn(require('@fbcnms/ui/hooks/useSnackbar'), 'useEnqueueSnackbar')
+      .spyOn(require('@fbcnms/alarms/hooks/useSnackbar'), 'useEnqueueSnackbar')
       .mockReturnValue(enqueueMock);
 
     axiosMock.mockRejectedValueOnce({

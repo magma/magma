@@ -19,8 +19,8 @@ import {Route} from 'react-router-dom';
 import {SnackbarProvider} from 'notistack';
 import {cleanup, render} from '@testing-library/react';
 
-jest.mock('@fbcnms/ui/hooks/useSnackbar');
-const useSnackbar = require('@fbcnms/ui/hooks/useSnackbar');
+jest.mock('@fbcnms/alarms/hooks/useSnackbar');
+const useSnackbar = require('@fbcnms/alarms/hooks/useSnackbar');
 const useMagmaAPIMock = jest
   .spyOn(require('@fbcnms/ui/magma/useMagmaAPI'), 'default')
   .mockReturnValue({response: []});

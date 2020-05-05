@@ -23,7 +23,7 @@ afterEach(() => {
 
 const enqueueSnackbarMock = jest.fn();
 jest
-  .spyOn(require('@fbcnms/ui/hooks/useSnackbar'), 'useEnqueueSnackbar')
+  .spyOn(require('@fbcnms/alarms/hooks/useSnackbar'), 'useEnqueueSnackbar')
   .mockReturnValue(enqueueSnackbarMock);
 
 jest

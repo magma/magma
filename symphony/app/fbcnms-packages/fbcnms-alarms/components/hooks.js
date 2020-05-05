@@ -11,7 +11,7 @@
 import * as React from 'react';
 import axios from 'axios';
 import useRouter from '@fbcnms/alarms/hooks/useRouter';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '@fbcnms/alarms/hooks/useSnackbar';
 
 import type {AlertRoutingTree} from './AlarmAPIType';
 import type {ApiUtil} from './AlarmsApi';

@@ -23,7 +23,7 @@ import TableAddButton from '../../table/TableAddButton';
 import useRouter from '@fbcnms/alarms/hooks/useRouter';
 import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from '../../AlarmContext';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '@fbcnms/alarms/hooks/useSnackbar';
 import type {AlertReceiver} from '../../AlarmAPIType';
 
 const useStyles = makeStyles(theme => ({

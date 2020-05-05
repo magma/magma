@@ -18,7 +18,7 @@ import {parseTimeString} from '../PrometheusEditor';
 import type {AlertConfig} from '../../../AlarmAPIType';
 import type {GenericRule} from '../../RuleInterface';
 
-jest.mock('@fbcnms/ui/hooks/useSnackbar');
+jest.mock('@fbcnms/alarms/hooks/useSnackbar');
 jest.mock('@fbcnms/alarms/hooks/useRouter');
 
 afterEach(() => {
@@ -30,7 +30,7 @@ const {AlarmsWrapper} = alarmTestUtil();
 
 const enqueueSnackbarMock = jest.fn();
 jest
-  .spyOn(require('@fbcnms/ui/hooks/useSnackbar'), 'useEnqueueSnackbar')
+  .spyOn(require('@fbcnms/alarms/hooks/useSnackbar'), 'useEnqueueSnackbar')
   .mockReturnValue(enqueueSnackbarMock);
 jest
   .spyOn(require('@fbcnms/alarms/hooks/useRouter'), 'default')

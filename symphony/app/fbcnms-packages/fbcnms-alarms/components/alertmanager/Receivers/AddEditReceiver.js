@@ -21,7 +21,7 @@ import WebhookConfigEditor from './WebhookConfigEditor';
 import useForm from '@fbcnms/alarms/hooks/useForm';
 import useRouter from '@fbcnms/alarms/hooks/useRouter';
 import {useAlarmContext} from '../../AlarmContext';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '@fbcnms/alarms/hooks/useSnackbar';
 
 import type {
   AlertReceiver,

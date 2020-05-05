@@ -20,7 +20,7 @@ import axios from 'axios';
 import useRouter from '@fbcnms/alarms/hooks/useRouter';
 import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from './AlarmContext';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '@fbcnms/alarms/hooks/useSnackbar';
 import {useLoadRules} from './hooks';
 import type {ColumnData} from './table/SimpleTable';
 import type {GenericRule} from './rules/RuleInterface';
