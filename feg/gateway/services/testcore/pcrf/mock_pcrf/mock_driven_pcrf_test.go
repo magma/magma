@@ -46,21 +46,20 @@ func TestPCRFExpectations(t *testing.T) {
 			Octets:          &fegprotos.Octets{TotalOctets: 1024},
 		},
 	}
-	dynamicRulesToInstall := []*fegprotos.RuleDefinition{
-		{
-			RuleName:         "rule1",
-			RatingGroup:      9,
-			Precedence:       10,
-			MonitoringKey:    "m1",
-			FlowDescriptions: []string{"permit out ip from any to any", "permit in ip from any to any"},
-			RedirectInformation: &lteprotos.RedirectInformation{
-				Support:     lteprotos.RedirectInformation_ENABLED,
-				AddressType: lteprotos.RedirectInformation_IPv4,
-			},
-			QosInformation: &lteprotos.FlowQos{
-				MaxReqBwDl: 15,
-				MaxReqBwUl: 30,
-			},
+	dynamicRuleToInstall := &fegprotos.RuleDefinition{
+
+		RuleName:         "rule1",
+		RatingGroup:      9,
+		Precedence:       10,
+		MonitoringKey:    "m1",
+		FlowDescriptions: []string{"permit out ip from any to any", "permit in ip from any to any"},
+		RedirectInformation: &lteprotos.RedirectInformation{
+			Support:     lteprotos.RedirectInformation_ENABLED,
+			AddressType: lteprotos.RedirectInformation_IPv4,
+		},
+		QosInformation: &lteprotos.FlowQos{
+			MaxReqBwDl: 15,
+			MaxReqBwUl: 30,
 		},
 	}
 	activationTime := time.Now().Round(1 * time.Second)
@@ -71,7 +70,7 @@ func TestPCRFExpectations(t *testing.T) {
 	assert.NoError(t, err)
 	expectedInitAns := fegprotos.NewGxCCAnswer(diam.Success).
 		SetStaticRuleInstalls([]string{"rule1", "rule2"}, []string{"base1", "base2"}).
-		SetDynamicRuleInstalls(dynamicRulesToInstall).
+		SetDynamicRuleInstall(dynamicRuleToInstall).
 		SetRuleActivationTime(pActivationTime).
 		SetRuleDeactivationTime(pDeactivationTime).
 		SetUsageMonitorInfos(usageMonitoringQuotaGrant)

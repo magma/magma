@@ -56,9 +56,9 @@ func (m *GxCreditControlAnswer) SetRuleDeactivationTime(deactivationTime *timest
 	return m
 }
 
-func (m *GxCreditControlAnswer) SetDynamicRuleInstalls(rules []*RuleDefinition) *GxCreditControlAnswer {
+func (m *GxCreditControlAnswer) SetDynamicRuleInstall(rule *RuleDefinition) *GxCreditControlAnswer {
 	m.initializeRuleInstallsIfNil()
-	m.RuleInstalls.RuleDefinitions = rules
+	m.RuleInstalls.RuleDefinitions = append(m.RuleInstalls.RuleDefinitions, rule)
 	return m
 }
 
