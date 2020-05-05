@@ -28,7 +28,7 @@ type EquipmentPortDefinitionQuery struct {
 	config
 	limit      *int
 	offset     *int
-	order      []Order
+	order      []OrderFunc
 	unique     []string
 	predicates []predicate.EquipmentPortDefinition
 	// eager-loading edges.
@@ -60,7 +60,7 @@ func (epdq *EquipmentPortDefinitionQuery) Offset(offset int) *EquipmentPortDefin
 }
 
 // Order adds an order step to the query.
-func (epdq *EquipmentPortDefinitionQuery) Order(o ...Order) *EquipmentPortDefinitionQuery {
+func (epdq *EquipmentPortDefinitionQuery) Order(o ...OrderFunc) *EquipmentPortDefinitionQuery {
 	epdq.order = append(epdq.order, o...)
 	return epdq
 }
@@ -289,7 +289,7 @@ func (epdq *EquipmentPortDefinitionQuery) Clone() *EquipmentPortDefinitionQuery 
 		config:     epdq.config,
 		limit:      epdq.limit,
 		offset:     epdq.offset,
-		order:      append([]Order{}, epdq.order...),
+		order:      append([]OrderFunc{}, epdq.order...),
 		unique:     append([]string{}, epdq.unique...),
 		predicates: append([]predicate.EquipmentPortDefinition{}, epdq.predicates...),
 		// clone intermediate query.
@@ -596,14 +596,14 @@ func (epdq *EquipmentPortDefinitionQuery) sqlQuery() *sql.Selector {
 type EquipmentPortDefinitionGroupBy struct {
 	config
 	fields []string
-	fns    []Aggregate
+	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (epdgb *EquipmentPortDefinitionGroupBy) Aggregate(fns ...Aggregate) *EquipmentPortDefinitionGroupBy {
+func (epdgb *EquipmentPortDefinitionGroupBy) Aggregate(fns ...AggregateFunc) *EquipmentPortDefinitionGroupBy {
 	epdgb.fns = append(epdgb.fns, fns...)
 	return epdgb
 }

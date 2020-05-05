@@ -26,7 +26,7 @@ type CheckListCategoryQuery struct {
 	config
 	limit      *int
 	offset     *int
-	order      []Order
+	order      []OrderFunc
 	unique     []string
 	predicates []predicate.CheckListCategory
 	// eager-loading edges.
@@ -56,7 +56,7 @@ func (clcq *CheckListCategoryQuery) Offset(offset int) *CheckListCategoryQuery {
 }
 
 // Order adds an order step to the query.
-func (clcq *CheckListCategoryQuery) Order(o ...Order) *CheckListCategoryQuery {
+func (clcq *CheckListCategoryQuery) Order(o ...OrderFunc) *CheckListCategoryQuery {
 	clcq.order = append(clcq.order, o...)
 	return clcq
 }
@@ -249,7 +249,7 @@ func (clcq *CheckListCategoryQuery) Clone() *CheckListCategoryQuery {
 		config:     clcq.config,
 		limit:      clcq.limit,
 		offset:     clcq.offset,
-		order:      append([]Order{}, clcq.order...),
+		order:      append([]OrderFunc{}, clcq.order...),
 		unique:     append([]string{}, clcq.unique...),
 		predicates: append([]predicate.CheckListCategory{}, clcq.predicates...),
 		// clone intermediate query.
@@ -479,14 +479,14 @@ func (clcq *CheckListCategoryQuery) sqlQuery() *sql.Selector {
 type CheckListCategoryGroupBy struct {
 	config
 	fields []string
-	fns    []Aggregate
+	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (clcgb *CheckListCategoryGroupBy) Aggregate(fns ...Aggregate) *CheckListCategoryGroupBy {
+func (clcgb *CheckListCategoryGroupBy) Aggregate(fns ...AggregateFunc) *CheckListCategoryGroupBy {
 	clcgb.fns = append(clcgb.fns, fns...)
 	return clcgb
 }

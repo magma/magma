@@ -29,7 +29,7 @@ type SurveyQuestionQuery struct {
 	config
 	limit      *int
 	offset     *int
-	order      []Order
+	order      []OrderFunc
 	unique     []string
 	predicates []predicate.SurveyQuestion
 	// eager-loading edges.
@@ -63,7 +63,7 @@ func (sqq *SurveyQuestionQuery) Offset(offset int) *SurveyQuestionQuery {
 }
 
 // Order adds an order step to the query.
-func (sqq *SurveyQuestionQuery) Order(o ...Order) *SurveyQuestionQuery {
+func (sqq *SurveyQuestionQuery) Order(o ...OrderFunc) *SurveyQuestionQuery {
 	sqq.order = append(sqq.order, o...)
 	return sqq
 }
@@ -328,7 +328,7 @@ func (sqq *SurveyQuestionQuery) Clone() *SurveyQuestionQuery {
 		config:     sqq.config,
 		limit:      sqq.limit,
 		offset:     sqq.offset,
-		order:      append([]Order{}, sqq.order...),
+		order:      append([]OrderFunc{}, sqq.order...),
 		unique:     append([]string{}, sqq.unique...),
 		predicates: append([]predicate.SurveyQuestion{}, sqq.predicates...),
 		// clone intermediate query.
@@ -718,14 +718,14 @@ func (sqq *SurveyQuestionQuery) sqlQuery() *sql.Selector {
 type SurveyQuestionGroupBy struct {
 	config
 	fields []string
-	fns    []Aggregate
+	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (sqgb *SurveyQuestionGroupBy) Aggregate(fns ...Aggregate) *SurveyQuestionGroupBy {
+func (sqgb *SurveyQuestionGroupBy) Aggregate(fns ...AggregateFunc) *SurveyQuestionGroupBy {
 	sqgb.fns = append(sqgb.fns, fns...)
 	return sqgb
 }

@@ -24,7 +24,7 @@ type ActionsRuleQuery struct {
 	config
 	limit      *int
 	offset     *int
-	order      []Order
+	order      []OrderFunc
 	unique     []string
 	predicates []predicate.ActionsRule
 	// intermediate query (i.e. traversal path).
@@ -51,7 +51,7 @@ func (arq *ActionsRuleQuery) Offset(offset int) *ActionsRuleQuery {
 }
 
 // Order adds an order step to the query.
-func (arq *ActionsRuleQuery) Order(o ...Order) *ActionsRuleQuery {
+func (arq *ActionsRuleQuery) Order(o ...OrderFunc) *ActionsRuleQuery {
 	arq.order = append(arq.order, o...)
 	return arq
 }
@@ -226,7 +226,7 @@ func (arq *ActionsRuleQuery) Clone() *ActionsRuleQuery {
 		config:     arq.config,
 		limit:      arq.limit,
 		offset:     arq.offset,
-		order:      append([]Order{}, arq.order...),
+		order:      append([]OrderFunc{}, arq.order...),
 		unique:     append([]string{}, arq.unique...),
 		predicates: append([]predicate.ActionsRule{}, arq.predicates...),
 		// clone intermediate query.
@@ -405,14 +405,14 @@ func (arq *ActionsRuleQuery) sqlQuery() *sql.Selector {
 type ActionsRuleGroupBy struct {
 	config
 	fields []string
-	fns    []Aggregate
+	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (argb *ActionsRuleGroupBy) Aggregate(fns ...Aggregate) *ActionsRuleGroupBy {
+func (argb *ActionsRuleGroupBy) Aggregate(fns ...AggregateFunc) *ActionsRuleGroupBy {
 	argb.fns = append(argb.fns, fns...)
 	return argb
 }

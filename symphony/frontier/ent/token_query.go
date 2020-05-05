@@ -25,7 +25,7 @@ type TokenQuery struct {
 	config
 	limit      *int
 	offset     *int
-	order      []Order
+	order      []OrderFunc
 	unique     []string
 	predicates []predicate.Token
 	// eager-loading edges.
@@ -55,7 +55,7 @@ func (tq *TokenQuery) Offset(offset int) *TokenQuery {
 }
 
 // Order adds an order step to the query.
-func (tq *TokenQuery) Order(o ...Order) *TokenQuery {
+func (tq *TokenQuery) Order(o ...OrderFunc) *TokenQuery {
 	tq.order = append(tq.order, o...)
 	return tq
 }
@@ -248,7 +248,7 @@ func (tq *TokenQuery) Clone() *TokenQuery {
 		config:     tq.config,
 		limit:      tq.limit,
 		offset:     tq.offset,
-		order:      append([]Order{}, tq.order...),
+		order:      append([]OrderFunc{}, tq.order...),
 		unique:     append([]string{}, tq.unique...),
 		predicates: append([]predicate.Token{}, tq.predicates...),
 		// clone intermediate query.
@@ -475,14 +475,14 @@ func (tq *TokenQuery) sqlQuery() *sql.Selector {
 type TokenGroupBy struct {
 	config
 	fields []string
-	fns    []Aggregate
+	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (tgb *TokenGroupBy) Aggregate(fns ...Aggregate) *TokenGroupBy {
+func (tgb *TokenGroupBy) Aggregate(fns ...AggregateFunc) *TokenGroupBy {
 	tgb.fns = append(tgb.fns, fns...)
 	return tgb
 }

@@ -24,7 +24,7 @@ type AuditLogQuery struct {
 	config
 	limit      *int
 	offset     *int
-	order      []Order
+	order      []OrderFunc
 	unique     []string
 	predicates []predicate.AuditLog
 	// intermediate query (i.e. traversal path).
@@ -51,7 +51,7 @@ func (alq *AuditLogQuery) Offset(offset int) *AuditLogQuery {
 }
 
 // Order adds an order step to the query.
-func (alq *AuditLogQuery) Order(o ...Order) *AuditLogQuery {
+func (alq *AuditLogQuery) Order(o ...OrderFunc) *AuditLogQuery {
 	alq.order = append(alq.order, o...)
 	return alq
 }
@@ -226,7 +226,7 @@ func (alq *AuditLogQuery) Clone() *AuditLogQuery {
 		config:     alq.config,
 		limit:      alq.limit,
 		offset:     alq.offset,
-		order:      append([]Order{}, alq.order...),
+		order:      append([]OrderFunc{}, alq.order...),
 		unique:     append([]string{}, alq.unique...),
 		predicates: append([]predicate.AuditLog{}, alq.predicates...),
 		// clone intermediate query.
@@ -402,14 +402,14 @@ func (alq *AuditLogQuery) sqlQuery() *sql.Selector {
 type AuditLogGroupBy struct {
 	config
 	fields []string
-	fns    []Aggregate
+	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (algb *AuditLogGroupBy) Aggregate(fns ...Aggregate) *AuditLogGroupBy {
+func (algb *AuditLogGroupBy) Aggregate(fns ...AggregateFunc) *AuditLogGroupBy {
 	algb.fns = append(algb.fns, fns...)
 	return algb
 }
