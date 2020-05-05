@@ -256,7 +256,7 @@ int main(int argc, char *argv[])
     MLOG(MINFO) << "Started sessiond restart handler thread";
     if (!is_stateless) {
       restart_handler->cleanup_previous_sessions();
-    } else {
+    } else if (config["support_carrier_wifi"].as<bool>()) {
       restart_handler->setup_aaa_sessions();
     }
   });
