@@ -170,13 +170,7 @@ func TestAuthenticateUplinkTraffic(t *testing.T) {
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
 
-	resultByIndex, errByIndex, err := getPCRFAssertExpectationsResult()
-	assert.NoError(t, err)
-	assert.Empty(t, errByIndex)
-	expectedResult := []*protos.ExpectationResult{
-		{ExpectationIndex: 0, ExpectationMet: true},
-	}
-	assert.ElementsMatch(t, expectedResult, resultByIndex)
+	tr.AssertAllGxExpectationsMetNoError()
 
 	tr.DisconnectAndAssertSuccess(imsi)
 	fmt.Println("wait for flows to get deactivated")
@@ -237,13 +231,7 @@ func TestAuthenticateMultipleAPsUplinkTraffic(t *testing.T) {
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
 
-	resultByIndex, errByIndex, err := getPCRFAssertExpectationsResult()
-	assert.NoError(t, err)
-	assert.Empty(t, errByIndex)
-	expectedResult := []*protos.ExpectationResult{
-		{ExpectationIndex: 0, ExpectationMet: true},
-	}
-	assert.ElementsMatch(t, expectedResult, resultByIndex)
+	tr.AssertAllGxExpectationsMetNoError()
 
 	_, err = tr.Disconnect(imsi, CalledStationIDs[1])
 	assert.NoError(t, err)

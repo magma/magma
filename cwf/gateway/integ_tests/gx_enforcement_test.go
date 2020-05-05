@@ -106,15 +106,8 @@ func TestGxUsageReportEnforcement(t *testing.T) {
 		assert.True(t, record.BytesTx <= uint64(500*KiloBytes+Buffer), fmt.Sprintf("policy usage: %v", record))
 	}
 
-	// Assert that reasonable CCR-I and at least one CCR-U were sent up to the PCRF
-	resultByIndex, errByIndex, err := getPCRFAssertExpectationsResult()
-	assert.NoError(t, err)
-	assert.Empty(t, errByIndex)
-	expectedResult := []*protos.ExpectationResult{
-		{ExpectationIndex: 0, ExpectationMet: true},
-		{ExpectationIndex: 1, ExpectationMet: true},
-	}
-	assert.ElementsMatch(t, expectedResult, resultByIndex)
+	// Assert that a CCR-I and at least one CCR-U were sent up to the PCRF
+	tr.AssertAllGxExpectationsMetNoError()
 
 	// When we initiate a UE disconnect, we expect a terminate request to go up
 	terminateRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_TERMINATION, 3)
@@ -130,13 +123,7 @@ func TestGxUsageReportEnforcement(t *testing.T) {
 	time.Sleep(3 * time.Second)
 
 	// Assert that we saw a Terminate request
-	resultByIndex, errByIndex, err = getPCRFAssertExpectationsResult()
-	assert.NoError(t, err)
-	assert.Empty(t, errByIndex)
-	expectedResult = []*protos.ExpectationResult{
-		{ExpectationIndex: 0, ExpectationMet: true},
-	}
-	assert.ElementsMatch(t, expectedResult, resultByIndex)
+	tr.AssertAllGxExpectationsMetNoError()
 }
 
 // - Set an expectation for a  CCR-I to be sent up to PCRF, to which it will
@@ -214,13 +201,7 @@ func TestGxMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 	assert.NotNil(t, record1, fmt.Sprintf("No policy usage record for imsi: %v rule=static-pass-all-1", imsi))
 
 	// Assert that a CCR-I was sent up to the PCRF
-	resultByIndex, errByIndex, err := getPCRFAssertExpectationsResult()
-	assert.NoError(t, err)
-	assert.Empty(t, errByIndex)
-	expectedResult := []*protos.ExpectationResult{
-		{ExpectationIndex: 0, ExpectationMet: true},
-	}
-	assert.ElementsMatch(t, expectedResult, resultByIndex)
+	tr.AssertAllGxExpectationsMetNoError()
 
 	updateRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_UPDATE, 2).
 		SetUsageMonitorReports(usageMonitorInfo).
@@ -245,13 +226,7 @@ func TestGxMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 	tr.WaitForEnforcementStatsToSync()
 
 	// Assert that we sent back a CCA-Update with RuleRemovals
-	resultByIndex, errByIndex, err = getPCRFAssertExpectationsResult()
-	assert.NoError(t, err)
-	assert.Empty(t, errByIndex)
-	expectedResult = []*protos.ExpectationResult{
-		{ExpectationIndex: 0, ExpectationMet: true},
-	}
-	assert.ElementsMatch(t, expectedResult, resultByIndex)
+	tr.AssertAllGxExpectationsMetNoError()
 
 	recordsBySubID, err = tr.GetPolicyUsage()
 	assert.NoError(t, err)
@@ -359,14 +334,7 @@ func testGxRuleInstallTime(t *testing.T) {
 	assert.NotNil(t, recordsBySubID[prependIMSIPrefix(imsi)]["static-pass-all-1"])
 	assert.Nil(t, recordsBySubID[prependIMSIPrefix(imsi)]["static-pass-all-2"])
 
-	resultByIndex, errByIndex, err := getPCRFAssertExpectationsResult()
-	assert.NoError(t, err)
-	assert.Empty(t, errByIndex)
-	expectedResult := []*protos.ExpectationResult{
-		{ExpectationIndex: 0, ExpectationMet: true},
-		{ExpectationIndex: 1, ExpectationMet: true},
-	}
-	assert.ElementsMatch(t, expectedResult, resultByIndex)
+	tr.AssertAllGxExpectationsMetNoError()
 
 	tr.DisconnectAndAssertSuccess(imsi)
 	fmt.Println("wait for flows to get deactivated")
@@ -509,15 +477,8 @@ func testGxRevalidationTime(t *testing.T) {
 		assert.True(t, record.BytesTx == uint64(0), fmt.Sprintf("%s did pass some data", record.RuleId))
 	}
 
-	// Assert that reasonable CCR-I and at least one CCR-U were sent up to the PCRF
-	resultByIndex, errByIndex, err := getPCRFAssertExpectationsResult()
-	assert.NoError(t, err)
-	assert.Empty(t, errByIndex)
-	expectedResult := []*protos.ExpectationResult{
-		{ExpectationIndex: 0, ExpectationMet: true},
-		{ExpectationIndex: 1, ExpectationMet: true},
-	}
-	assert.ElementsMatch(t, expectedResult, resultByIndex)
+	// Assert that a CCR-I and at least one CCR-U were sent up to the PCRF
+	tr.AssertAllGxExpectationsMetNoError()
 
 	// When we initiate a UE disconnect, we expect a terminate request to go up
 	terminateRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_TERMINATION, 3)
@@ -530,11 +491,5 @@ func testGxRevalidationTime(t *testing.T) {
 	tr.WaitForEnforcementStatsToSync()
 
 	// Assert that we saw a Terminate request
-	resultByIndex, errByIndex, err = getPCRFAssertExpectationsResult()
-	assert.NoError(t, err)
-	assert.Empty(t, errByIndex)
-	expectedResult = []*protos.ExpectationResult{
-		{ExpectationIndex: 0, ExpectationMet: true},
-	}
-	assert.ElementsMatch(t, expectedResult, resultByIndex)
+	tr.AssertAllGxExpectationsMetNoError()
 }
