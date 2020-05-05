@@ -8,6 +8,7 @@ LICENSE file in the root directory of this source tree.
 package client_test
 
 import (
+	"os"
 	"reflect"
 	"testing"
 	"time"
@@ -55,6 +56,7 @@ func (c testEapClient) Handle(in *protos.Eap) (*protos.Eap, error) {
 }
 
 func TestEAPClientApi(t *testing.T) {
+	os.Setenv("USE_REMOTE_SWX_PROXY", "false")
 	srv, lis := test_utils.NewTestService(t, registry.ModuleName, registry.SWX_PROXY)
 	var service eap_test.SwxProxy
 	cp.RegisterSwxProxyServer(srv.GrpcServer, service)
@@ -173,6 +175,7 @@ func TestEAPClientApi(t *testing.T) {
 }
 
 func TestEAPClientApiConcurent(t *testing.T) {
+	os.Setenv("USE_REMOTE_SWX_PROXY", "false")
 	srv, lis := test_utils.NewTestService(t, registry.ModuleName, registry.SWX_PROXY)
 	var service eap_test.SwxProxy
 	cp.RegisterSwxProxyServer(srv.GrpcServer, service)

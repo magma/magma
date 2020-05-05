@@ -9,6 +9,7 @@ LICENSE file in the root directory of this source tree.
 package main_test
 
 import (
+	"os"
 	"reflect"
 	"testing"
 	"time"
@@ -73,6 +74,7 @@ func (c testEapServiceClient) HandleIdentity(in *protos.EapIdentity) (*protos.Ea
 
 // TestEapAkaConcurent tests EAP AKA Provider
 func TestEapAkaConcurent(t *testing.T) {
+	os.Setenv("USE_REMOTE_SWX_PROXY", "false")
 	srv, lis := test_utils.NewTestService(t, registry.ModuleName, registry.SWX_PROXY)
 	var service eap_test.SwxProxy
 	cp.RegisterSwxProxyServer(srv.GrpcServer, service)
@@ -154,6 +156,7 @@ func TestEAPPeerNak(t *testing.T) {
 }
 
 func TestEAPAkaWrongPlmnId(t *testing.T) {
+	os.Setenv("USE_REMOTE_SWX_PROXY", "false")
 	srv, lis := test_utils.NewTestService(t, registry.ModuleName, registry.SWX_PROXY)
 	var service eap_test.NoUseSwxProxy
 	cp.RegisterSwxProxyServer(srv.GrpcServer, service)
@@ -187,6 +190,7 @@ func TestEAPAkaWrongPlmnId(t *testing.T) {
 }
 
 func TestEAPAkaPlmnId5(t *testing.T) {
+	os.Setenv("USE_REMOTE_SWX_PROXY", "false")
 	srv, lis := test_utils.NewTestService(t, registry.ModuleName, registry.SWX_PROXY)
 	var service eap_test.SwxProxy
 	cp.RegisterSwxProxyServer(srv.GrpcServer, service)
@@ -221,6 +225,7 @@ func TestEAPAkaPlmnId5(t *testing.T) {
 }
 
 func TestEAPAkaPlmnId6(t *testing.T) {
+	os.Setenv("USE_REMOTE_SWX_PROXY", "false")
 	srv, lis := test_utils.NewTestService(t, registry.ModuleName, registry.SWX_PROXY)
 	var service eap_test.SwxProxy
 	cp.RegisterSwxProxyServer(srv.GrpcServer, service)
