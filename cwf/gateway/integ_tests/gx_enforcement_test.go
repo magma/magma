@@ -71,14 +71,14 @@ func TestGxUsageReportEnforcement(t *testing.T) {
 		},
 	}
 
-	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL, 1)
+	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL)
 	initAnswer := protos.NewGxCCAnswer(diam.Success).
 		SetStaticRuleInstalls([]string{"usage-enforcement-static-pass-all"}, []string{}).
 		SetUsageMonitorInfos(usageMonitorInfo)
 	initExpectation := protos.NewGxCreditControlExpectation().Expect(initRequest).Return(initAnswer)
 
 	// We expect an update request with some usage update (probably around 80-100% of the given quota)
-	updateRequest1 := protos.NewGxCCRequest(imsi, protos.CCRequestType_UPDATE, 2).
+	updateRequest1 := protos.NewGxCCRequest(imsi, protos.CCRequestType_UPDATE).
 		SetUsageMonitorReports(usageMonitorInfo).
 		SetUsageReportDelta(250 * KiloBytes * 0.2)
 	updateAnswer1 := protos.NewGxCCAnswer(diam.Success).SetUsageMonitorInfos(usageMonitorInfo)
@@ -110,7 +110,7 @@ func TestGxUsageReportEnforcement(t *testing.T) {
 	tr.AssertAllGxExpectationsMetNoError()
 
 	// When we initiate a UE disconnect, we expect a terminate request to go up
-	terminateRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_TERMINATION, 3)
+	terminateRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_TERMINATION)
 	terminateAnswer := protos.NewGxCCAnswer(diam.Success)
 	terminateExpectation := protos.NewGxCreditControlExpectation().Expect(terminateRequest).Return(terminateAnswer)
 	expectations = []*protos.GxCreditControlExpectation{terminateExpectation}
@@ -169,7 +169,7 @@ func TestGxMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 		},
 	}
 
-	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL, 1)
+	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL)
 	initAnswer := protos.NewGxCCAnswer(diam.Success).
 		SetStaticRuleInstalls([]string{"static-pass-all-1"}, []string{"base-1"}).
 		SetUsageMonitorInfos(usageMonitorInfo)
@@ -203,7 +203,7 @@ func TestGxMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 	// Assert that a CCR-I was sent up to the PCRF
 	tr.AssertAllGxExpectationsMetNoError()
 
-	updateRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_UPDATE, 2).
+	updateRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_UPDATE).
 		SetUsageMonitorReports(usageMonitorInfo).
 		SetUsageReportDelta(250 * KiloBytes * 0.5)
 	updateAnswer := protos.NewGxCCAnswer(diam.Success).SetUsageMonitorInfos(usageMonitorInfo).
@@ -280,7 +280,7 @@ func testGxRuleInstallTime(t *testing.T) {
 			Octets:          &protos.Octets{TotalOctets: 250 * KiloBytes},
 		},
 	}
-	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL, 1)
+	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL)
 	initAnswer := protos.NewGxCCAnswer(diam.Success).
 		SetStaticRuleInstalls([]string{"static-pass-all-1"}, nil).
 		SetUsageMonitorInfos(usageMonitorInfo)
@@ -296,7 +296,7 @@ func testGxRuleInstallTime(t *testing.T) {
 	pDeactivation, err := ptypes.TimestampProto(deactivation)
 	assert.NoError(t, err)
 
-	updateRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_UPDATE, 2)
+	updateRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_UPDATE)
 	updateAnswer := protos.NewGxCCAnswer(diam.Success).
 		SetUsageMonitorInfos(usageMonitorInfo).
 		SetStaticRuleInstalls([]string{"static-pass-all-2"}, nil).
@@ -442,7 +442,7 @@ func testGxRevalidationTime(t *testing.T) {
 	revalidationTime, err := ptypes.TimestampProto(now.Add(timeUntilRevalidation))
 	assert.NoError(t, err)
 
-	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL, 1)
+	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL)
 	initAnswer := protos.NewGxCCAnswer(diam.Success).
 		SetStaticRuleInstalls([]string{"revalidation-time-static-pass-all"}, []string{}).
 		SetUsageMonitorInfos(usageMonitorInfo).
@@ -451,7 +451,7 @@ func testGxRevalidationTime(t *testing.T) {
 	initExpectation := protos.NewGxCreditControlExpectation().Expect(initRequest).Return(initAnswer)
 
 	// We expect an update request with some usage update after revalidation timer expires
-	updateRequest1 := protos.NewGxCCRequest(imsi, protos.CCRequestType_UPDATE, 2).
+	updateRequest1 := protos.NewGxCCRequest(imsi, protos.CCRequestType_UPDATE).
 		SetUsageReportDelta(250 * KiloBytes).
 		SetUsageMonitorReports(usageMonitorInfo)
 	updateAnswer1 := protos.NewGxCCAnswer(diam.Success).
@@ -481,7 +481,7 @@ func testGxRevalidationTime(t *testing.T) {
 	tr.AssertAllGxExpectationsMetNoError()
 
 	// When we initiate a UE disconnect, we expect a terminate request to go up
-	terminateRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_TERMINATION, 3)
+	terminateRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_TERMINATION)
 	terminateAnswer := protos.NewGxCCAnswer(diam.Success)
 	terminateExpectation := protos.NewGxCreditControlExpectation().Expect(terminateRequest).Return(terminateAnswer)
 	expectations = []*protos.GxCreditControlExpectation{terminateExpectation}

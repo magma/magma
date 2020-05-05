@@ -8,7 +8,10 @@
 
 package protos
 
-import "github.com/golang/protobuf/ptypes/timestamp"
+import (
+	"github.com/golang/protobuf/ptypes/timestamp"
+	"github.com/golang/protobuf/ptypes/wrappers"
+)
 
 func NewGxCreditControlExpectation() *GxCreditControlExpectation {
 	return &GxCreditControlExpectation{}
@@ -24,8 +27,8 @@ func (m *GxCreditControlExpectation) Return(cca *GxCreditControlAnswer) *GxCredi
 	return m
 }
 
-func NewGxCCRequest(imsi string, requestType CCRequestType, requestNumber uint32) *GxCreditControlRequest {
-	return &GxCreditControlRequest{Imsi: imsi, RequestType: requestType, RequestNumber: requestNumber}
+func NewGxCCRequest(imsi string, requestType CCRequestType) *GxCreditControlRequest {
+	return &GxCreditControlRequest{Imsi: imsi, RequestType: requestType}
 }
 
 func NewGxCCAnswer(resultCode uint32) *GxCreditControlAnswer {
@@ -105,8 +108,8 @@ func (m *GyCreditControlExpectation) Return(cca *GyCreditControlAnswer) *GyCredi
 	return m
 }
 
-func NewGyCCRequest(imsi string, requestType CCRequestType, requestNumber uint32) *GyCreditControlRequest {
-	return &GyCreditControlRequest{Imsi: imsi, RequestType: requestType, RequestNumber: requestNumber}
+func NewGyCCRequest(imsi string, requestType CCRequestType) *GyCreditControlRequest {
+	return &GyCreditControlRequest{Imsi: imsi, RequestType: requestType}
 }
 
 func NewGyCCAnswer(resultCode uint32) *GyCreditControlAnswer {
@@ -118,6 +121,11 @@ func (m *GyCreditControlAnswer) SetQuotaGrant(grant *QuotaGrant) *GyCreditContro
 		m.QuotaGrants = []*QuotaGrant{}
 	}
 	m.QuotaGrants = append(m.QuotaGrants, grant)
+	return m
+}
+
+func (m *GyCreditControlRequest) SetRequestNumber(requestNumber int32) *GyCreditControlRequest {
+	m.RequestNumber = &wrappers.Int32Value{Value: requestNumber}
 	return m
 }
 

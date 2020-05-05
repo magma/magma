@@ -270,7 +270,7 @@ func (srv *PCRFDiamServer) AssertExpectations(_ context.Context, void *orcprotos
 // AbortSession call for a subscriber
 // Initiate a Abort session request and provide the response
 func (srv *PCRFDiamServer) AbortSession(
-	ctx context.Context,
+	_ context.Context,
 	req *protos.PolicyAbortSessionRequest,
 ) (*protos.PolicyAbortSessionResponse, error) {
 	glog.V(1).Infof("AbortSession: imsi %s abortCause %v", req.GetImsi(), req.GetCause())

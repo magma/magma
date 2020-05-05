@@ -13,6 +13,7 @@ import "lte/protos/policydb.proto";
 import "lte/protos/session_manager.proto";
 import "lte/protos/subscriberdb.proto";
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
 
 package magma.feg;
 option go_package = "magma/feg/cloud/go/protos";
@@ -236,7 +237,7 @@ message GxCreditControlExpectation {
 message GxCreditControlRequest {
     string imsi = 1;
     CCRequestType request_type = 2;
-    uint32 request_number = 3;
+    google.protobuf.Int32Value request_number = 3;
 
     repeated UsageMonitoringInformation usage_monitoring_reports = 11;
     // As long as we use real traffic for the test, usage reporting will differ
@@ -276,7 +277,7 @@ message GyCreditControlExpectation {
 message GyCreditControlRequest {
     string imsi = 1;
     CCRequestType request_type = 2;
-    uint32 request_number = 3;
+    google.protobuf.Int32Value request_number = 3;
     QosInfo qos_info = 21;
     repeated MultipleServicesCreditControl mscc = 22;
     // As long as we use real traffic for the test, usage reporting will differ
