@@ -854,7 +854,7 @@ static int _esm_sap_recv(
     *err = ESM_SAP_DISCARDED;
     rc = RETURNok;
   }
-   bdestroy_wrapper(&rsp);
+  bdestroy_wrapper(&rsp);
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
 }
 
