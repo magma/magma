@@ -86,6 +86,7 @@ func GetInitMethod() InitMethod {
 	return initMethod
 }
 
+// TODO: refactor those functions to make it more simple
 // GetOCSConfiguration returns the server configuration for the set OCS
 func GetOCSConfiguration() []*diameter.DiameterServerConfig {
 	configsPtr := &mconfig.SessionProxyConfig{}
@@ -124,14 +125,14 @@ func GetOCSConfiguration() []*diameter.DiameterServerConfig {
 	for i, gyCfg := range gyConfigs {
 		diamSrvCfg := &diameter.DiameterServerConfig{
 			DiameterServerConnConfig: diameter.DiameterServerConnConfig{
-				Addr:      getValueOrEnvForIndexZero(i, diameter.AddrFlag, OCSAddrEnv, gyCfg.GetAddress()),
-				Protocol:  getValueOrEnvForIndexZero(i, diameter.NetworkFlag, GyNetworkEnv, gyCfg.GetProtocol()),
-				LocalAddr: getValueOrEnvForIndexZero(i, diameter.LocalAddrFlag, GyLocalAddr, gyCfg.GetLocalAddress()),
+				Addr:      diameter.GetValueOrEnv(diameter.AddrFlag, OCSAddrEnv, gyCfg.GetAddress(), i),
+				Protocol:  diameter.GetValueOrEnv(diameter.NetworkFlag, GyNetworkEnv, gyCfg.GetProtocol(), i),
+				LocalAddr: diameter.GetValueOrEnv(diameter.LocalAddrFlag, GyLocalAddr, gyCfg.GetLocalAddress(), i),
 			},
-			DestHost:          getValueOrEnvForIndexZero(i, diameter.DestHostFlag, OCSHostEnv, gyCfg.GetDestHost()),
-			DestRealm:         getValueOrEnvForIndexZero(i, diameter.DestRealmFlag, OCSRealmEnv, gyCfg.GetDestRealm()),
-			DisableDestHost:   getBoolValueOrEnvForIndexZero(i, diameter.DisableDestHostFlag, DisableDestHostEnv, gyCfg.GetDisableDestHost()),
-			OverwriteDestHost: getBoolValueOrEnvForIndexZero(i, diameter.OverwriteDestHostFlag, OverwriteDestHostEnv, gyCfg.GetOverwriteDestHost()),
+			DestHost:          diameter.GetValueOrEnv(diameter.DestHostFlag, OCSHostEnv, gyCfg.GetDestHost(), i),
+			DestRealm:         diameter.GetValueOrEnv(diameter.DestRealmFlag, OCSRealmEnv, gyCfg.GetDestRealm(), i),
+			DisableDestHost:   diameter.GetBoolValueOrEnv(diameter.DisableDestHostFlag, DisableDestHostEnv, gyCfg.GetDisableDestHost(), i),
+			OverwriteDestHost: diameter.GetBoolValueOrEnv(diameter.OverwriteDestHostFlag, OverwriteDestHostEnv, gyCfg.GetOverwriteDestHost(), i),
 		}
 		diamServerConfigs = append(diamServerConfigs, diamSrvCfg)
 	}
@@ -179,14 +180,14 @@ func GetGyClientConfiguration() []*diameter.DiameterClientConfig {
 		}
 
 		diamCliCfg := &diameter.DiameterClientConfig{
-			Host:               getValueOrEnvForIndexZero(i, diameter.HostFlag, GyDiamHostEnv, gyCfg.GetHost()),
-			Realm:              getValueOrEnvForIndexZero(i, diameter.RealmFlag, GyDiamRealmEnv, gyCfg.GetRealm()),
-			ProductName:        getValueOrEnvForIndexZero(i, diameter.ProductFlag, GyDiamProductEnv, gyCfg.GetProductName()),
+			Host:               diameter.GetValueOrEnv(diameter.HostFlag, GyDiamHostEnv, gyCfg.GetHost(), i),
+			Realm:              diameter.GetValueOrEnv(diameter.RealmFlag, GyDiamRealmEnv, gyCfg.GetRealm(), i),
+			ProductName:        diameter.GetValueOrEnv(diameter.ProductFlag, GyDiamProductEnv, gyCfg.GetProductName(), i),
 			AppID:              diam.CHARGING_CONTROL_APP_ID,
 			WatchdogInterval:   diameter.DefaultWatchdogIntervalSeconds,
 			RetryCount:         uint(retries),
-			SupportedVendorIDs: getValueOrEnvForIndexZero(i, "", GySupportedVendorIDsEnv, ""),
-			ServiceContextId:   getValueOrEnvForIndexZero(i, "", GyServiceContextIdEnv, ""),
+			SupportedVendorIDs: diameter.GetValueOrEnv("", GySupportedVendorIDsEnv, "", i),
+			ServiceContextId:   diameter.GetValueOrEnv("", GyServiceContextIdEnv, "", i),
 		}
 		diamClientsConfigs = append(diamClientsConfigs, diamCliCfg)
 	}
@@ -223,20 +224,4 @@ func validGyConfig(config *mconfig.SessionProxyConfig) bool {
 		}
 	}
 	return true
-}
-
-// getValueOrEnvForIndexZero gets the Value or Env for the index 0, otherwise it returns Value(string)
-func getValueOrEnvForIndexZero(index int, flagName, envVariable, defaultValue string) string {
-	if index == 0 {
-		return diameter.GetValueOrEnv(flagName, envVariable, defaultValue)
-	}
-	return defaultValue
-}
-
-// getBoolValueOrEnvForIndexZero gets the Value or Env for the index 0, otherwise it returns Value(bool)
-func getBoolValueOrEnvForIndexZero(index int, flagName string, envVariable string, defaultValue bool) bool {
-	if index == 0 {
-		return diameter.GetBoolValueOrEnv(flagName, envVariable, defaultValue)
-	}
-	return defaultValue
 }

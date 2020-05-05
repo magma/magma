@@ -11,6 +11,7 @@ package protos
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 )
 
@@ -48,22 +49,33 @@ func SidFromString(sid string) *SubscriberID {
 	return nil
 }
 
-// ParseIMSIfromSessionIdNoPrefix extracts IMSI from a sessionId and returns only the IMSI without prefix
+// GetIMSIFromSessionId extracts IMSI from a sessionId and returns only the IMSI without prefix
 // SessionId format is is considered to be IMMSIxxxxxx-1234, where xxxxx is the imsi to be extracted
 // ie:  IMSI123456789012345-54321   ->  123456789012345
-func ParseIMSIfromSessionIdNoPrefix(sessionId string) (string, error) {
+func GetIMSIFromSessionId(sessionId string) (string, error) {
 	sessionId = strings.TrimPrefix(sessionId, "IMSI")
-	return ParseIMSIfromSessionIdWithPrefix(sessionId)
+	return GetIMSIwithPrefixFromSessionId(sessionId)
 }
 
-// ParseIMSIfromSessionIdWithPrefix extracts IMSI from a sessionId and returns the IMSI with prefix
+// GetIMSIwithPrefixFromSessionId extracts IMSI from a sessionId and returns the IMSI with prefix
 // SessionId format is is considered to be IMMSIxxxxxx-1234, where xxxxx is the imsi to be extracted
 // ie:  IMSI123456789012345-54321   ->  IMSI123456789012345
-func ParseIMSIfromSessionIdWithPrefix(sessionId string) (string, error) {
+func GetIMSIwithPrefixFromSessionId(sessionId string) (string, error) {
 	data := strings.Split(sessionId, "-")
 	if len(data) != 2 {
 		return "", fmt.Errorf("Session ID %s does not match format 'IMSI-RandNum'", sessionId)
 	}
 	return data[0], nil
+}
 
+// StripPrefixFromIMSIandFormat extracts IMSI from an IMSI with prefix. It also checks that the IMSI is only numeric
+// ie:  IMSI123456789012345   ->  123456789012345
+// It returns IMSI in two formats: string and uint64
+func StripPrefixFromIMSIandFormat(imsiWithPrefix string) (string, uint64, error) {
+	imsiNoPrefix := strings.TrimPrefix(imsiWithPrefix, "IMSI")
+	imsiUint, err := strconv.ParseUint(imsiNoPrefix, 10, 64)
+	if err != nil {
+		return "", 0, fmt.Errorf("IMSI is not numeric: %s", imsiWithPrefix)
+	}
+	return imsiNoPrefix, imsiUint, nil
 }
