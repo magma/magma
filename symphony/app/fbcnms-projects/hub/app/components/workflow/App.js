@@ -1,3 +1,7 @@
+import './css/bootstrap.min.css';
+import './css/awesomefonts.css';
+import './css/neat.css';
+import './css/mono-blue.min.css';
 import React from "react";
 import { Provider } from "react-redux";
 import { BrowserRouter, Route, Switch, Redirect } from "react-router-dom";
@@ -10,10 +14,6 @@ import bulkReducer from "./store/reducers/bulk";
 import mountedDeviceReducer from "./store/reducers/mountedDevices";
 import searchReducer from "./store/reducers/searchExecs";
 import { frontendUrlPrefix } from "./constants";
-import './css/bootstrap.min.css';
-import './css/mono-blue.min.css';
-import './css/neat.css';
-import './css/awesomefonts.css';
 
 const rootReducer = combineReducers({
   bulkReducer,
