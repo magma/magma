@@ -560,8 +560,6 @@ static int _dedicated_eps_bearer_activate(
       msg_dup,
       mme_config.nas_config.t3485_sec,
       _dedicated_eps_bearer_activate_t3485_handler);
-  } else {
-    bdestroy_wrapper(&msg_dup);
   }
   bdestroy_wrapper(&msg_dup);
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);

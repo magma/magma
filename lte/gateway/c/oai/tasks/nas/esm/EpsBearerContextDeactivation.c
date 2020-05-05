@@ -594,8 +594,6 @@ static int _eps_bearer_deactivate(
       msg_dup,
       mme_config.nas_config.t3495_sec,
       _eps_bearer_deactivate_t3495_handler);
-  } else {
-    bdestroy_wrapper(&msg_dup);
   }
   bdestroy_wrapper(&msg_dup);
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
