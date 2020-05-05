@@ -9,7 +9,6 @@
     "nearley": "^2.19.0"
   },
   "devDependencies": {
-    "@fbcnms/test": "^0.1.0",
     "@testing-library/react": "^9.4.0",
     "@testing-library/react-hooks": "^3.2.1",
     "jest": "^24.9.0",
