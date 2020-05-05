@@ -15,7 +15,7 @@ from .api.location_type import _populate_location_types
 from .api.service import _populate_service_types
 from .common.cache import EQUIPMENT_TYPES, LOCATION_TYPES, PORT_TYPES, SERVICE_TYPES
 from .common.constant import __version__
-from .graphql.latest_python_package_query import LatestPythonPackageQuery
+from .graphql.query.latest_python_package import LatestPythonPackageQuery
 
 
 """Pyinventory is a python package that allows for querying and modifying the

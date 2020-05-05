@@ -7,6 +7,8 @@ import requests
 from graphql import build_ast_schema, build_client_schema, get_introspection_query
 from graphql.language.parser import parse
 
+from .constant import FRAGMENT_DIRNAME
+
 
 def load_introspection_from_server(url):
     query = get_introspection_query()
@@ -49,7 +51,8 @@ def compile_schema_library(schema_library: str):
 def read_fragment_queries(graphql_library: str):
     full_fragments = {}
     fragment_filenames = glob.glob(
-        os.path.join(graphql_library, "**/*_fragment.graphql"), recursive=True
+        os.path.join(graphql_library, f"**/{FRAGMENT_DIRNAME}/*.graphql"),
+        recursive=True,
     )
     for fragment_filepath in fragment_filenames:
         with open(fragment_filepath) as fragment_file:

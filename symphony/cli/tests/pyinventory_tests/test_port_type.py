@@ -13,7 +13,7 @@ from pyinventory.api.port_type import (
 )
 from pyinventory.common.cache import PORT_TYPES
 from pyinventory.common.data_class import PropertyDefinition
-from pyinventory.graphql.property_kind_enum import PropertyKind
+from pyinventory.graphql.enum.property_kind import PropertyKind
 
 from .grpc.rpc_pb2_grpc import TenantServiceStub
 from .utils.base_test import BaseTest

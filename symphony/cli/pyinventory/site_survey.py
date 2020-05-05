@@ -21,14 +21,14 @@ from .common.constant import SIMPLE_QUESTION_TYPE_TO_REQUIRED_PROPERTY_NAME
 from .common.data_class import Location, SiteSurvey
 from .common.data_enum import Entity
 from .exceptions import EntityNotFoundError
-from .graphql.create_survey_mutation import CreateSurveyMutation
-from .graphql.location_surveys_query import LocationSurveysQuery
-from .graphql.remove_site_survey_mutation import RemoveSiteSurveyMutation
-from .graphql.survey_create_data_input import SurveyCreateData
-from .graphql.survey_fragment import SurveyFragment
-from .graphql.survey_question_fragment import SurveyQuestionFragment
-from .graphql.survey_question_response_input import SurveyQuestionResponse
-from .graphql.survey_question_type_enum import SurveyQuestionType
+from .graphql.enum.survey_question_type import SurveyQuestionType
+from .graphql.fragment.survey import SurveyFragment
+from .graphql.fragment.survey_question import SurveyQuestionFragment
+from .graphql.input.survey_create_data import SurveyCreateData
+from .graphql.input.survey_question_response import SurveyQuestionResponse
+from .graphql.mutation.create_survey import CreateSurveyMutation
+from .graphql.mutation.remove_site_survey import RemoveSiteSurveyMutation
+from .graphql.query.location_surveys import LocationSurveysQuery
 from .site_survey_schema import retrieve_tamplates_and_set_them
 
 

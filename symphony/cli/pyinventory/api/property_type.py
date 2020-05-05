@@ -12,8 +12,8 @@ from ..common.cache import EQUIPMENT_TYPES, LOCATION_TYPES, PORT_TYPES, SERVICE_
 from ..common.data_class import PropertyDefinition
 from ..common.data_enum import Entity
 from ..exceptions import EntityNotFoundError
-from ..graphql.property_type_fragment import PropertyTypeFragment
-from ..graphql.property_type_input import PropertyTypeInput
+from ..graphql.fragment.property_type import PropertyTypeFragment
+from ..graphql.input.property_type import PropertyTypeInput
 
 
 def get_property_types(
@@ -26,7 +26,7 @@ def get_property_types(
             entity_name (str): existing entity name
 
         Returns:
-            Sequence[ `pyinventory.graphql.property_type_fragment.PropertyTypeFragment` ]
+            Sequence[ `pyinventory.graphql.fragment.property_type.PropertyTypeFragment` ]
 
         Raises:
             `pyinventory.exceptions.EntityNotFoundError`: if entity type does not found or does not have property types
@@ -72,7 +72,7 @@ def get_property_type(
             property_type_id (str): property type ID
 
         Returns:
-            `pyinventory.graphql.property_type_fragment.PropertyTypeFragment` object
+            `pyinventory.graphql.fragment.property_type.PropertyTypeFragment` object
 
         Raises:
             `pyinventory.exceptions.EntityNotFoundError`: if property type with id=`property_type_id` does not found
@@ -150,7 +150,7 @@ def get_property_type_by_external_id(
             property_type_external_id (str): property type external ID
 
         Returns:
-            `pyinventory.graphql.property_type_fragment.PropertyTypeFragment` object
+            `pyinventory.graphql.fragment.property_type.PropertyTypeFragment` object
 
         Raises:
             `pyinventory.exceptions.EntityNotFoundError`: property type with external_id=`property_type_external_id` is not found
@@ -192,7 +192,7 @@ def edit_property_type(
             new_property_definition ( `pyinventory.common.data_class.PropertyDefinition` ): new property definition
 
         Returns:
-            List[ `pyinventory.graphql.property_type_input.PropertyTypeInput` ]
+            List[ `pyinventory.graphql.input.property_type.PropertyTypeInput` ]
 
         Raises:
             `pyinventory.exceptions.EntityNotFoundError`: property type with external_id=`property_type_external_id` is not found

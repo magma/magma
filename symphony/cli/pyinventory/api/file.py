@@ -10,10 +10,10 @@ import filetype
 from pysymphony import SymphonyClient
 
 from ..common.data_class import Document, Location, SiteSurvey
-from ..graphql.add_image_input import AddImageInput
-from ..graphql.add_image_mutation import AddImageMutation
-from ..graphql.delete_image_mutation import DeleteImageMutation
-from ..graphql.image_entity_enum import ImageEntity
+from ..graphql.enum.image_entity import ImageEntity
+from ..graphql.input.add_image import AddImageInput
+from ..graphql.mutation.add_image import AddImageMutation
+from ..graphql.mutation.delete_image import DeleteImageMutation
 
 
 def _add_image(

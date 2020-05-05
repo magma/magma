@@ -17,20 +17,20 @@ from ..exceptions import (
     LocationCannotBeDeletedWithDependency,
     LocationIsNotUniqueException,
 )
-from ..graphql.add_location_input import AddLocationInput
-from ..graphql.add_location_mutation import AddLocationMutation
-from ..graphql.edit_location_input import EditLocationInput
-from ..graphql.edit_location_mutation import EditLocationMutation
-from ..graphql.filter_operator_enum import FilterOperator
-from ..graphql.get_locations_query import GetLocationsQuery
-from ..graphql.location_children_query import LocationChildrenQuery
-from ..graphql.location_deps_query import LocationDepsQuery
-from ..graphql.location_documents_query import LocationDocumentsQuery
-from ..graphql.location_filter_input import LocationFilterInput, LocationFilterType
-from ..graphql.location_fragment import LocationFragment
-from ..graphql.location_search_query import LocationSearchQuery
-from ..graphql.move_location_mutation import MoveLocationMutation
-from ..graphql.remove_location_mutation import RemoveLocationMutation
+from ..graphql.enum.filter_operator import FilterOperator
+from ..graphql.fragment.location import LocationFragment
+from ..graphql.input.add_location import AddLocationInput
+from ..graphql.input.edit_location import EditLocationInput
+from ..graphql.input.location_filter import LocationFilterInput, LocationFilterType
+from ..graphql.mutation.add_location import AddLocationMutation
+from ..graphql.mutation.edit_location import EditLocationMutation
+from ..graphql.mutation.move_location import MoveLocationMutation
+from ..graphql.mutation.remove_location import RemoveLocationMutation
+from ..graphql.query.get_locations import GetLocationsQuery
+from ..graphql.query.location_children import LocationChildrenQuery
+from ..graphql.query.location_deps import LocationDepsQuery
+from ..graphql.query.location_documents import LocationDocumentsQuery
+from ..graphql.query.location_search import LocationSearchQuery
 
 
 def _get_locations_by_name_and_type(

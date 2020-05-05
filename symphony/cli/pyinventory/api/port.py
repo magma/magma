@@ -18,13 +18,11 @@ from ..common.data_class import (
 )
 from ..common.data_enum import Entity
 from ..exceptions import EntityNotFoundError, EquipmentPortIsNotUniqueException
-from ..graphql.edit_equipment_port_mutation import (
-    EditEquipmentPortInput,
-    EditEquipmentPortMutation,
-)
-from ..graphql.edit_link_mutation import EditLinkInput, EditLinkMutation
-from ..graphql.equipment_ports_query import EquipmentPortsQuery
-from ..graphql.link_side_input import LinkSide
+from ..graphql.input.edit_equipment_port import EditEquipmentPortInput
+from ..graphql.input.link_side import LinkSide
+from ..graphql.mutation.edit_equipment_port import EditEquipmentPortMutation
+from ..graphql.mutation.edit_link import EditLinkInput, EditLinkMutation
+from ..graphql.query.equipment_ports import EquipmentPortsQuery
 
 
 def get_port(
