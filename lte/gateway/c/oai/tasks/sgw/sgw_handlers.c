@@ -947,12 +947,21 @@ int sgw_handle_sgi_endpoint_deleted(
     } else {
       OAILOG_DEBUG_UE(
         LOG_SPGW_APP, imsi64, "Rx SGI_DELETE_ENDPOINT_REQUEST: REQUEST_ACCEPTED\n");
-      // if default bearer
-      //#pragma message  "TODO define constant for default eps_bearer id"
 
-      // delete GTPv1-U tunnel
       struct in_addr ue = eps_bearer_ctxt_p->paa.ipv4_address;
-
+      // if the forwarding was suspended, first resume it
+      if (new_bearer_ctxt_info_p->sgw_eps_bearer_context_information
+              .pdn_connection.ue_suspended_for_ps_handover) {
+        rv = gtp_tunnel_ops->forward_data_on_tunnel(
+            ue, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up, NULL,
+            DEFAULT_PRECEDENCE);
+        if (rv < 0) {
+          OAILOG_ERROR_UE(
+              LOG_SPGW_APP, imsi64,
+              "ERROR in resume forwarding data on TUNNEL err=%d\n", rv);
+        }
+      }
+      // delete GTPv1-U tunnel
       rv = gtp_tunnel_ops->del_tunnel(
         ue,
         eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
@@ -961,7 +970,7 @@ int sgw_handle_sgi_endpoint_deleted(
       if (rv < 0) {
         OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64, "ERROR in deleting TUNNEL\n");
       }
-
+      // delete paging rule
       char* ip_str = inet_ntoa(ue);
       rv = gtp_tunnel_ops->delete_paging_rule(ue);
       if (rv < 0) {
