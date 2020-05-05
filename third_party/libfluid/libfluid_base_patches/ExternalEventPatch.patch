@@ -1,0 +1,132 @@
+diff --git a/fluid/OFConnection.cc b/fluid/OFConnection.cc
+index 3823ba3..ad58a94 100644
+--- a/fluid/OFConnection.cc
++++ b/fluid/OFConnection.cc
+@@ -58,6 +58,12 @@ void OFConnection::add_timed_callback(void* (*cb)(void*),
+         this->conn->add_timed_callback(cb, interval, arg);
+ }
+ 
++void OFConnection::add_immediate_event(void* (*cb)(std::shared_ptr<void>), std::shared_ptr<void> arg) {
++    if (this->conn != NULL) {
++        this->conn->add_immediate_event(cb, arg);
++    }
++}
++
+ void* OFConnection::get_application_data() {
+     return this->application_data;
+ }
+diff --git a/fluid/OFConnection.hh b/fluid/OFConnection.hh
+index dc3af4e..e5ad82d 100644
+--- a/fluid/OFConnection.hh
++++ b/fluid/OFConnection.hh
+@@ -129,6 +129,19 @@ public:
+     void add_timed_callback(void* (*cb)(void*), int interval, void* arg);
+     // TODO: add the option for the function to unschedule itself by returning
+     // false
++   
++    /**
++    Set up a function to be called immediately in the event loop. This can be
++    used to add events from an external source (i.e. not OVS) in a thread-safe
++    manner.
++
++    This method is thread-safe.
++
++    @param cb the callback function. It should accept a shared_ptr  argument and
++              return a void*.
++    @param arg an argument to the callback function
++    */
++    void add_immediate_event(void* (*cb)(std::shared_ptr<void>), std::shared_ptr<void> arg);
+ 
+     /**
+     Get application data. This data is any piece of data you might want to 
+diff --git a/fluid/base/BaseOFConnection.cc b/fluid/base/BaseOFConnection.cc
+index 09c3191..2df12e0 100644
+--- a/fluid/base/BaseOFConnection.cc
++++ b/fluid/base/BaseOFConnection.cc
+@@ -150,6 +150,7 @@ private:
+ 
+     static void event_cb(struct bufferevent *bev, short events, void* arg);
+     static void timer_callback(evutil_socket_t fd, short what, void *arg);
++    static void immediate_callback(evutil_socket_t fd, short what, void *arg);
+     static void read_cb(struct bufferevent *bev, void* arg);
+     static void close_cb(int fd, short which, void *arg);
+ };
+@@ -236,6 +237,21 @@ void BaseOFConnection::add_timed_callback(void* (*cb)(void*), int interval, void
+     event_add(ev, &tv);
+ }
+ 
++void BaseOFConnection::add_immediate_event(void* (*cb)(std::shared_ptr<void>), std::shared_ptr<void> arg) {
++    auto ic = new struct immediate_callback;
++    ic->cb = cb;
++    ic->cb_arg = arg;
++    struct event_base* base = (struct event_base*) this->evloop->get_base();
++    // add timeout event with NULL timeval, which adds the event immediately
++    // to the event loop
++    event_base_once(base,
++                    -1,
++                    EV_TIMEOUT,
++                    BaseOFConnection::LibEventBaseOFConnection::immediate_callback,
++                    ic,
++                    NULL); // timeout
++}
++
+ void BaseOFConnection::set_manager(void* manager) {
+     this->manager = manager;
+ }
+@@ -315,6 +331,12 @@ void BaseOFConnection::LibEventBaseOFConnection::timer_callback(evutil_socket_t
+     tc->cb(tc->cb_arg);
+ }
+ 
++void BaseOFConnection::LibEventBaseOFConnection::immediate_callback(evutil_socket_t fd, short what, void *arg) {
++    auto ic = static_cast<struct BaseOFConnection::immediate_callback*>(arg);
++    ic->cb(ic->cb_arg);
++    delete ic;
++}
++
+ void BaseOFConnection::LibEventBaseOFConnection::read_cb(struct bufferevent *bev, void* arg) {
+     BaseOFConnection* c = static_cast<BaseOFConnection*>(arg);
+     
+diff --git a/fluid/base/BaseOFConnection.hh b/fluid/base/BaseOFConnection.hh
+index 0c5257b..a2bc18d 100644
+--- a/fluid/base/BaseOFConnection.hh
++++ b/fluid/base/BaseOFConnection.hh
+@@ -4,6 +4,7 @@
+ 
+ #include <stdlib.h>
+ #include <vector>
++#include <memory>
+ 
+ #include "fluid/base/EventLoop.hh"
+ 
+@@ -74,6 +75,19 @@ public:
+     // TODO: add the option for the function to unschedule itself by returning
+     // false
+ 
++    /**
++    Set up a function to be called immediately in the event loop. This can be
++    used to add events from an external source (i.e. not OVS) in a thread-safe
++    manner.
++
++    This method is thread-safe.
++
++    @param cb the callback function. It should accept a shared_ptr argument and
++              return a void*.
++    @param arg an argument to the callback function
++    */
++    void add_immediate_event(void* (*cb)(std::shared_ptr<void>), std::shared_ptr<void> arg);
++
+     // TODO: these methods are not thread-safe, and they really aren't
+     // currently called from more than one thread. But perhaps we should
+     // consider that...
+@@ -138,6 +152,11 @@ private:
+         void* cb_arg;
+         void* data;
+     };
++
++    struct immediate_callback {
++        void* (*cb)(std::shared_ptr<void>);
++	std::shared_ptr<void> cb_arg;
++    };
+     std::vector<struct timed_callback*> timed_callbacks;
+ 
+     void notify_msg_cb(void* data, size_t n);
