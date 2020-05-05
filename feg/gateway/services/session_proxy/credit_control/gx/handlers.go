@@ -58,7 +58,7 @@ type PolicyReAuthHandler func(request *PolicyReAuthRequest) *PolicyReAuthAnswer
 func GetGxReAuthHandler(cloudRegistry service_registry.GatewayRegistry, policyDBClient policydb.PolicyDBClient) PolicyReAuthHandler {
 	return func(request *PolicyReAuthRequest) *PolicyReAuthAnswer {
 		sid := diameter.DecodeSessionID(request.SessionID)
-		imsi, err := protos.ParseIMSIfromSessionIdWithPrefix(sid)
+		imsi, err := protos.GetIMSIwithPrefixFromSessionId(sid)
 		if err != nil {
 			glog.Errorf("Error retrieving IMSI from session ID %s: %s", request.SessionID, err)
 			return &PolicyReAuthAnswer{
