@@ -39,12 +39,10 @@ func TestPCRFExpectations(t *testing.T) {
 
 	// E/A that should be met
 	expectedInitReq := fegprotos.NewGxCCRequest(test.IMSI1, fegprotos.CCRequestType_INITIAL)
-	usageMonitoringQuotaGrant := []*fegprotos.UsageMonitoringInformation{
-		{
-			MonitoringLevel: fegprotos.MonitoringLevel_RuleLevel,
-			MonitoringKey:   []byte("mkey1"),
-			Octets:          &fegprotos.Octets{TotalOctets: 1024},
-		},
+	usageMonitoringQuotaGrant := &fegprotos.UsageMonitoringInformation{
+		MonitoringLevel: fegprotos.MonitoringLevel_RuleLevel,
+		MonitoringKey:   []byte("mkey1"),
+		Octets:          &fegprotos.Octets{TotalOctets: 1024},
 	}
 	dynamicRuleToInstall := &fegprotos.RuleDefinition{
 
@@ -73,15 +71,15 @@ func TestPCRFExpectations(t *testing.T) {
 		SetDynamicRuleInstall(dynamicRuleToInstall).
 		SetRuleActivationTime(pActivationTime).
 		SetRuleDeactivationTime(pDeactivationTime).
-		SetUsageMonitorInfos(usageMonitoringQuotaGrant)
+		SetUsageMonitorInfo(usageMonitoringQuotaGrant)
 	expectedInit := fegprotos.NewGxCreditControlExpectation().Expect(expectedInitReq).Return(expectedInitAns)
 
 	// Update Request
 	expectedUpdateReq := fegprotos.NewGxCCRequest(test.IMSI1, fegprotos.CCRequestType_UPDATE).
-		SetUsageMonitorReports(usageMonitoringQuotaGrant).
+		SetUsageMonitorReport(usageMonitoringQuotaGrant).
 		SetUsageReportDelta(100)
 	expectedUpdateAns := fegprotos.NewGxCCAnswer(diam.Success).
-		SetUsageMonitorInfos(usageMonitoringQuotaGrant)
+		SetUsageMonitorInfo(usageMonitoringQuotaGrant)
 	expectedUpdate := fegprotos.NewGxCreditControlExpectation().Expect(expectedUpdateReq).Return(expectedUpdateAns)
 
 	// E/A that will not be met
@@ -155,18 +153,9 @@ func TestPCRFExpectations(t *testing.T) {
 	assert.Nil(t, err)
 
 	expectedResult := []*fegprotos.ExpectationResult{
-		{
-			ExpectationMet:   true,
-			ExpectationIndex: 0,
-		},
-		{
-			ExpectationMet:   true,
-			ExpectationIndex: 1,
-		},
-		{
-			ExpectationMet:   false,
-			ExpectationIndex: 2,
-		},
+		{ExpectationMet: true, ExpectationIndex: 0},
+		{ExpectationMet: true, ExpectationIndex: 1},
+		{ExpectationMet: false, ExpectationIndex: 2},
 	}
 	assert.ElementsMatch(t, expectedResult, res.Results)
 	expectedErrors := []*fegprotos.ErrorByIndex{

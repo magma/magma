@@ -96,7 +96,7 @@ func TestGxUplinkTrafficQosEnforcement(t *testing.T) {
 	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL)
 	initAnswer := protos.NewGxCCAnswer(diam.Success).
 		SetStaticRuleInstalls([]string{ruleKey}, []string{}).
-		SetUsageMonitorInfos(usageMonitorInfo)
+		SetUsageMonitorInfo(usageMonitorInfo)
 	initExpectation := protos.NewGxCreditControlExpectation().Expect(initRequest).Return(initAnswer)
 
 	// On unexpected requests, just return the default update answer
@@ -161,7 +161,7 @@ func TestGxDownlinkTrafficQosEnforcement(t *testing.T) {
 	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL)
 	initAnswer := protos.NewGxCCAnswer(diam.Success).
 		SetStaticRuleInstalls([]string{ruleKey}, []string{}).
-		SetUsageMonitorInfos(usageMonitorInfo)
+		SetUsageMonitorInfo(usageMonitorInfo)
 	initExpectation := protos.NewGxCreditControlExpectation().Expect(initRequest).Return(initAnswer)
 
 	// On unexpected requests, just return the default update answer
@@ -244,17 +244,17 @@ func TestGxQosDowngradeWithCCAUpdate(t *testing.T) {
 	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL)
 	initAnswer := protos.NewGxCCAnswer(diam.Success).
 		SetStaticRuleInstalls([]string{rule1Key}, []string{}).
-		SetUsageMonitorInfos(usageMonitorInfo)
+		SetUsageMonitorInfo(usageMonitorInfo)
 	initExpectation := protos.NewGxCreditControlExpectation().Expect(initRequest).Return(initAnswer)
 
 	// We expect an update request with some usage update (probably around 80-100% of the given quota)
 	var c float64 = 0.3 * 1 * MegaBytes
 	updateRequest1 := protos.NewGxCCRequest(imsi, protos.CCRequestType_UPDATE).
-		SetUsageMonitorReports(usageMonitorInfo).
+		SetUsageMonitorReport(usageMonitorInfo).
 		SetUsageReportDelta(uint64(c))
 	updateAnswer1 := protos.NewGxCCAnswer(diam.Success).
 		SetStaticRuleInstalls([]string{rule2Key}, []string{}).
-		SetUsageMonitorInfos(getUsageInformation(monitorKey, 2*MegaBytes))
+		SetUsageMonitorInfo(getUsageInformation(monitorKey, 2*MegaBytes))
 	updateExpectation1 := protos.NewGxCreditControlExpectation().Expect(updateRequest1).Return(updateAnswer1)
 
 	expectations := []*protos.GxCreditControlExpectation{initExpectation, updateExpectation1}
@@ -365,7 +365,7 @@ func TestGxQosDowngradeWithReAuth(t *testing.T) {
 		&fegProtos.PolicyReAuthTarget{
 			Imsi:                 imsi,
 			RulesToInstall:       &fegProtos.RuleInstalls{RuleNames: []string{rule2Key}},
-			UsageMonitoringInfos: rarUsageMonitor,
+			UsageMonitoringInfos: []*fegProtos.UsageMonitoringInformation{rarUsageMonitor},
 		},
 	)
 	assert.NoError(t, err)

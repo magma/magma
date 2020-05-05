@@ -148,20 +148,15 @@ func TestAuthenticateUplinkTraffic(t *testing.T) {
 	assert.NoError(t, err)
 
 	imsi := ues[0].GetImsi()
-	usageMonitorInfo := []*protos.UsageMonitoringInformation{
-		{
-			MonitoringLevel: protos.MonitoringLevel_RuleLevel,
-			MonitoringKey:   []byte("mkey1"),
-			Octets:          &protos.Octets{TotalOctets: 250 * KiloBytes},
-		},
-	}
+	usageMonitorInfo := getUsageInformation("mkey1", 250*KiloBytes)
+
 	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL)
 	initAnswer := protos.NewGxCCAnswer(diam.Success).
 		SetDynamicRuleInstall(getPassAllRuleDefinition("dynamic-pass-all", "mkey1", nil, 100)).
-		SetUsageMonitorInfos(usageMonitorInfo)
+		SetUsageMonitorInfo(usageMonitorInfo)
 	initExpectation := protos.NewGxCreditControlExpectation().Expect(initRequest).Return(initAnswer)
 	// return success with credit on unexpected requests
-	defaultAnswer := protos.NewGxCCAnswer(2001).SetUsageMonitorInfos(usageMonitorInfo)
+	defaultAnswer := protos.NewGxCCAnswer(2001).SetUsageMonitorInfo(usageMonitorInfo)
 	assert.NoError(t, setPCRFExpectations([]*protos.GxCreditControlExpectation{initExpectation}, defaultAnswer))
 
 	tr.AuthenticateAndAssertSuccess(imsi)
@@ -200,20 +195,14 @@ func TestAuthenticateMultipleAPsUplinkTraffic(t *testing.T) {
 	assert.NoError(t, err)
 
 	imsi := ues[0].GetImsi()
-	usageMonitorInfo := []*protos.UsageMonitoringInformation{
-		{
-			MonitoringLevel: protos.MonitoringLevel_RuleLevel,
-			MonitoringKey:   []byte("mkey1"),
-			Octets:          &protos.Octets{TotalOctets: 250 * KiloBytes},
-		},
-	}
+	usageMonitorInfo := getUsageInformation("mkey1", 250*KiloBytes)
 	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL)
 	initAnswer := protos.NewGxCCAnswer(diam.Success).
 		SetDynamicRuleInstall(getPassAllRuleDefinition("dynamic-pass-all", "mkey1", nil, 100)).
-		SetUsageMonitorInfos(usageMonitorInfo)
+		SetUsageMonitorInfo(usageMonitorInfo)
 	initExpectation := protos.NewGxCreditControlExpectation().Expect(initRequest).Return(initAnswer)
 	// return success with credit on unexpected requests
-	defaultAnswer := protos.NewGxCCAnswer(2001).SetUsageMonitorInfos(usageMonitorInfo)
+	defaultAnswer := protos.NewGxCCAnswer(2001).SetUsageMonitorInfo(usageMonitorInfo)
 	assert.NoError(t, setPCRFExpectations([]*protos.GxCreditControlExpectation{initExpectation}, defaultAnswer))
 
 	CalledStationIDs := getCalledStationIDs()
