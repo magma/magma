@@ -198,21 +198,27 @@ export const userFullName = (user: User) =>
 
 export const groupResponse2Group: (
   GroupReponseFieldsPart,
-  UsersMap,
-) => UserPermissionsGroup = (groupResponse, usersMap) => ({
+  ?UsersMap,
+) => UserPermissionsGroup = (
+  groupResponse: GroupReponseFieldsPart,
+  usersMap?: ?UsersMap,
+) => ({
   id: groupResponse.id,
   name: groupResponse.name,
   description: groupResponse.description || '',
   status: groupResponse.status,
   members: groupResponse.members,
-  memberUsers: groupResponse.members
-    .map(member => usersMap.get(member.id))
-    .filter(Boolean),
+  memberUsers:
+    usersMap == null
+      ? []
+      : groupResponse.members
+          .map(member => usersMap.get(member.id))
+          .filter(Boolean),
 });
 
 export const groupsResponse2Groups = (
   groupsResponse: GroupsReponsePart,
-  usersMap: UsersMap,
+  usersMap?: ?UsersMap,
 ) =>
   groupsResponse?.edges == null
     ? []

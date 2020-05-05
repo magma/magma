@@ -415,6 +415,14 @@ const deletePermissionsPolicy = (_poilicyId: string) => {
   return Promise.reject('not implemented yet');
 };
 
+const updatePolicyGroups = (
+  _policy: PermissionsPolicy,
+  _addUserIds: Array<string>,
+  _removeUserIds: Array<string>,
+) => {
+  return Promise.reject('not implemented yet');
+};
+
 type UserManagementContextValue = {
   policies: Array<PermissionsPolicy>,
   groups: Array<UserPermissionsGroup>,
@@ -441,6 +449,11 @@ type UserManagementContextValue = {
   addPermissionsPolicy: PermissionsPolicy => Promise<PermissionsPolicy>,
   editPermissionsPolicy: PermissionsPolicy => Promise<PermissionsPolicy>,
   deletePermissionsPolicy: (id: string) => Promise<void>,
+  updatePolicyGroups: (
+    policy: PermissionsPolicy,
+    addUserIds: Array<string>,
+    removeUserIds: Array<string>,
+  ) => Promise<PermissionsPolicy>,
 };
 
 const emptyUsersMap = new Map<string, User>();
@@ -460,6 +473,7 @@ const UserManagementContext = React.createContext<UserManagementContextValue>({
   addPermissionsPolicy,
   editPermissionsPolicy,
   deletePermissionsPolicy,
+  updatePolicyGroups,
 });
 
 type Props = {
@@ -553,6 +567,7 @@ function ProviderWrap(props: Props) {
     addPermissionsPolicy,
     editPermissionsPolicy,
     deletePermissionsPolicy,
+    updatePolicyGroups,
   });
 
   const data = useLazyLoadQuery<UserManagementContextQuery>(dataQuery);

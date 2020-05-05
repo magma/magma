@@ -17,6 +17,7 @@ import DeleteIcon from '@fbcnms/ui/components/design-system/Icons/Actions/Delete
 import Grid from '@material-ui/core/Grid';
 import InventoryErrorBoundary from '../../../../common/InventoryErrorBoundary';
 import PermissionsPolicyDetailsPane from './PermissionsPolicyDetailsPane';
+import PermissionsPolicyGroupsPane from './PermissionsPolicyGroupsPane';
 import Strings from '@fbcnms/strings/Strings';
 import ViewContainer from '@fbcnms/ui/components/design-system/View/ViewContainer';
 import fbt from 'fbt';
@@ -201,6 +202,12 @@ function PermissionsPolicyCard(props: Props) {
                 className={classes.detailsPane}
               />
             }
+          </Grid>
+          <Grid item xs={4} sm={4} lg={4} xl={4} className={classes.container}>
+            <PermissionsPolicyGroupsPane
+              policy={policy}
+              className={classes.detailsPane}
+            />
           </Grid>
         </Grid>
       </ViewContainer>
