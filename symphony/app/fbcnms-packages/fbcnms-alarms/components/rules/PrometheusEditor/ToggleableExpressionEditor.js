@@ -32,7 +32,10 @@ import {useAlarmContext} from '../../AlarmContext';
 import {useEnqueueSnackbar} from '@fbcnms/alarms/hooks/useSnackbar';
 
 import type {InputChangeFunc} from './PrometheusEditor';
-import type {prometheus_labelset} from '@fbcnms/magma-api';
+
+type prometheus_labelset = {
+  [string]: string,
+};
 
 const useStyles = makeStyles(theme => ({
   button: {

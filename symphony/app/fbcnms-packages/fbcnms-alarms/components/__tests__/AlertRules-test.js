@@ -12,7 +12,7 @@ import * as React from 'react';
 import AlertRules from '../AlertRules';
 import {act, cleanup, fireEvent, render} from '@testing-library/react';
 import {alarmTestUtil} from '../../test/testHelpers';
-import {assertType} from '@fbcnms/util/assert';
+import {assertType} from '@fbcnms/alarms/util/assert';
 import {mockPrometheusRule} from '../../test/testData';
 
 jest.mock('@fbcnms/alarms/hooks/useSnackbar');
