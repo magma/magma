@@ -287,15 +287,8 @@ func TestGxQosDowngradeWithCCAUpdate(t *testing.T) {
 	record = recordsBySubID["IMSI"+imsi][rule2Key]
 	assert.NotNil(t, record, fmt.Sprintf("No policy usage record for imsi: %v", imsi))
 
-	// Assert that reasonable CCR-I and at least one CCR-U were sent up to the PCRF
-	resultByIndex, errByIndex, err := getPCRFAssertExpectationsResult()
-	assert.NoError(t, err)
-	assert.Empty(t, errByIndex)
-	expectedResult := []*protos.ExpectationResult{
-		{ExpectationIndex: 0, ExpectationMet: true},
-		{ExpectationIndex: 1, ExpectationMet: true},
-	}
-	assert.ElementsMatch(t, expectedResult, resultByIndex)
+	// Assert that a CCR-I and at least one CCR-U were sent up to the PCRF
+	tr.AssertAllGxExpectationsMetNoError()
 
 	// When we initiate a UE disconnect, we expect a terminate request to go up
 	terminateRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_TERMINATION, 4)
@@ -309,13 +302,7 @@ func TestGxQosDowngradeWithCCAUpdate(t *testing.T) {
 	time.Sleep(6 * time.Second)
 
 	// Assert that we saw a Terminate request
-	resultByIndex, errByIndex, err = getPCRFAssertExpectationsResult()
-	assert.NoError(t, err)
-	assert.Empty(t, errByIndex)
-	expectedResult = []*protos.ExpectationResult{
-		{ExpectationIndex: 0, ExpectationMet: true},
-	}
-	assert.ElementsMatch(t, expectedResult, resultByIndex)
+	tr.AssertAllGxExpectationsMetNoError()
 }
 
 //TestGxQosDowngradeWithReAuth

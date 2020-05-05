@@ -134,15 +134,8 @@ func TestGyCreditExhaustionWithCRRU(t *testing.T) {
 		assert.True(t, record.BytesTx <= uint64(5*MegaBytes+Buffer), fmt.Sprintf("policy usage: %v", record))
 	}
 
-	// Assert that reasonable CCR-I and at least one CCR-U were sent up to the OCS
-	resultByIndex, errByIndex, err := getOCSAssertExpectationsResult()
-	assert.NoError(t, err)
-	assert.Empty(t, errByIndex)
-	expectedResult := []*protos.ExpectationResult{
-		{ExpectationIndex: 0, ExpectationMet: true},
-		{ExpectationIndex: 1, ExpectationMet: true},
-	}
-	assert.ElementsMatch(t, expectedResult, resultByIndex)
+	// Assert that a CCR-I and at least one CCR-U were sent up to the OCS
+	tr.AssertAllGyExpectationsMetNoError()
 
 	// When we use up all of the quota, we expect a termination request to go up.
 	terminateRequest := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_TERMINATION, 3)
@@ -166,13 +159,7 @@ func TestGyCreditExhaustionWithCRRU(t *testing.T) {
 	assert.Nil(t, record, fmt.Sprintf("Policy usage record for imsi: %v was not removed", ue.GetImsi()))
 
 	// Assert that we saw a Terminate request
-	resultByIndex, errByIndex, err = getOCSAssertExpectationsResult()
-	assert.NoError(t, err)
-	assert.Empty(t, errByIndex)
-	expectedResult = []*protos.ExpectationResult{
-		{ExpectationIndex: 0, ExpectationMet: true},
-	}
-	assert.ElementsMatch(t, expectedResult, resultByIndex)
+	tr.AssertAllGyExpectationsMetNoError()
 }
 
 // - Set an expectation for a CCR-I to be sent up to OCS, to which it will
@@ -213,13 +200,7 @@ func TestGyCreditExhaustionWithoutCRRU(t *testing.T) {
 	tr.AuthenticateAndAssertSuccess(ue.GetImsi())
 
 	// Assert that a CCR-I was sent to OCS
-	resultByIndex, errByIndex, err := getOCSAssertExpectationsResult()
-	assert.NoError(t, err)
-	assert.Empty(t, errByIndex)
-	expectedResult := []*protos.ExpectationResult{
-		{ExpectationIndex: 0, ExpectationMet: true},
-	}
-	assert.ElementsMatch(t, expectedResult, resultByIndex)
+	tr.AssertAllGyExpectationsMetNoError()
 
 	// When we initiate a UE disconnect, we expect a terminate request to go up
 	terminateRequest := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_TERMINATION, 3)
@@ -230,19 +211,13 @@ func TestGyCreditExhaustionWithoutCRRU(t *testing.T) {
 
 	// we need to generate over 100% of the quota to trigger a session termination
 	req := &cwfprotos.GenTrafficRequest{Imsi: ue.GetImsi(), Volume: &wrappers.StringValue{Value: "5M"}}
-	_, err = tr.GenULTraffic(req)
+	_, err := tr.GenULTraffic(req)
 	assert.NoError(t, err)
 	time.Sleep(5 * time.Second)
 	tr.WaitForEnforcementStatsToSync()
 
 	// Assert that we saw a Terminate request
-	resultByIndex, errByIndex, err = getOCSAssertExpectationsResult()
-	assert.NoError(t, err)
-	assert.Empty(t, errByIndex)
-	expectedResult = []*protos.ExpectationResult{
-		{ExpectationIndex: 0, ExpectationMet: true},
-	}
-	assert.ElementsMatch(t, expectedResult, resultByIndex)
+	tr.AssertAllGyExpectationsMetNoError()
 
 	// Check that enforcement stat flow is removed
 	recordsBySubID, err := tr.GetPolicyUsage()
