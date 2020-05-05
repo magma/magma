@@ -15,32 +15,47 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/serde"
-	"magma/orc8r/lib/go/errors"
+	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
 
 	"github.com/golang/glog"
+	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 )
 
-// State includes reported operational state and additional info about the reporter.
-// Internally, we store a piece of state with primary key triplet {network ID, reporter ID, type}.
-type State struct {
-	// ReporterID is the ID of the entity reporting the state (hwID, cert serial number, etc).
-	ReporterID string
+// StatesByID maps state IDs to state.
+// A state and its ID collectively contains all information for a piece of state.
+type StatesByID map[ID]State
+
+// ID identifies a piece of state.
+// A piece of state is uniquely identified by the triplet {network ID, device ID, type}.
+type ID struct {
 	// Type determines how the value is deserialized and validated on the cloud service side.
 	Type string
+	// DeviceID is the ID of the entity with which the state is associated (IMSI, serial number, etc).
+	DeviceID string
+}
 
+// State includes reported operational state and additional info about the reporter.
+type State struct {
 	// ReportedState is the actual state reported by the device.
 	ReportedState interface{}
+
+	// Type determines how the reported state value is deserialized and validated on the cloud service side.
+	Type string
 	// Version is the reported version of the state.
 	Version uint64
-
+	// ReporterID is the hardware ID of the gateway which reported the state.
+	ReporterID string
 	// TimeMs is the time the state was received in milliseconds.
 	TimeMs uint64
 	// CertExpirationTime is the expiration time in milliseconds.
 	CertExpirationTime int64
 }
+
+// IDsByNetwork are a set of state IDs, keyed by network ID.
+type IDsByNetwork map[string][]ID
 
 // SerializedStateWithMeta includes reported operational states and additional info
 type SerializedStateWithMeta struct {
@@ -51,16 +66,11 @@ type SerializedStateWithMeta struct {
 	Version                 uint64
 }
 
-// StateID contains the identifying information of a state
-type StateID struct {
-	Type     string
-	DeviceID string
-}
-
+// GetStateClient returns a client to the state service.
 func GetStateClient() (protos.StateServiceClient, error) {
 	conn, err := registry.GetConnection(ServiceName)
 	if err != nil {
-		initErr := errors.NewInitError(err, ServiceName)
+		initErr := merrors.NewInitError(err, ServiceName)
 		glog.Error(initErr)
 		return nil, initErr
 	}
@@ -79,7 +89,7 @@ func GetState(networkID string, typeVal string, hwID string) (State, error) {
 		DeviceID: hwID,
 	}
 
-	ret, err := client.GetStates(
+	res, err := client.GetStates(
 		context.Background(),
 		&protos.GetStatesRequest{
 			NetworkID: networkID,
@@ -89,16 +99,16 @@ func GetState(networkID string, typeVal string, hwID string) (State, error) {
 	if err != nil {
 		return State{}, err
 	}
-	if len(ret.States) == 0 {
-		return State{}, errors.ErrNotFound
+	if len(res.States) == 0 {
+		return State{}, merrors.ErrNotFound
 	}
-	return toState(ret.States[0])
+	return toState(res.States[0])
 }
 
 // GetStates returns a map of states specified by the networkID and a list of type and key
-func GetStates(networkID string, stateIDs []StateID) (map[StateID]State, error) {
+func GetStates(networkID string, stateIDs []ID) (StatesByID, error) {
 	if len(stateIDs) == 0 {
-		return map[StateID]State{}, nil
+		return StatesByID{}, nil
 	}
 
 	client, err := GetStateClient()
@@ -109,20 +119,20 @@ func GetStates(networkID string, stateIDs []StateID) (map[StateID]State, error) 
 	res, err := client.GetStates(
 		context.Background(), &protos.GetStatesRequest{
 			NetworkID: networkID,
-			Ids:       toProtosStateIDs(stateIDs),
+			Ids:       toProtoIDs(stateIDs),
 		},
 	)
 	if err != nil {
 		return nil, err
 	}
-	return makeStatesByID(res)
+	return toStatesByID(res.States)
 }
 
 // SearchStates returns all states matching the filter arguments.
 // typeFilter and keyFilter are both OR clauses, and the final predicate
 // applied to the search will be the AND of both filters.
 // e.g.: ["t1", "t2"], ["k1", "k2"] => (t1 OR t2) AND (k1 OR k2)
-func SearchStates(networkID string, typeFilter []string, keyFilter []string) (map[StateID]State, error) {
+func SearchStates(networkID string, typeFilter []string, keyFilter []string) (StatesByID, error) {
 	client, err := GetStateClient()
 	if err != nil {
 		return nil, err
@@ -132,28 +142,17 @@ func SearchStates(networkID string, typeFilter []string, keyFilter []string) (ma
 		NetworkID:  networkID,
 		TypeFilter: typeFilter,
 		IdFilter:   keyFilter,
+		LoadValues: true,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return makeStatesByID(res)
+	return toStatesByID(res.States)
 }
 
-func makeStatesByID(res *protos.GetStatesResponse) (map[StateID]State, error) {
-	idToValue := map[StateID]State{}
-	for _, pState := range res.States {
-		stateID := StateID{Type: pState.Type, DeviceID: pState.DeviceID}
-		state, err := toState(pState)
-		if err != nil {
-			return nil, err
-		}
-		idToValue[stateID] = state
-	}
-	return idToValue, nil
-}
-
-// DeleteStates deletes states specified by the networkID and a list of type and key
-func DeleteStates(networkID string, stateIDs []StateID) error {
+// DeleteStates deletes states specified by the networkID and a list of
+// type and key.
+func DeleteStates(networkID string, stateIDs []ID) error {
 	client, err := GetStateClient()
 	if err != nil {
 		return err
@@ -162,7 +161,7 @@ func DeleteStates(networkID string, stateIDs []StateID) error {
 		context.Background(),
 		&protos.DeleteStatesRequest{
 			NetworkID: networkID,
-			Ids:       toProtosStateIDs(stateIDs),
+			Ids:       toProtoIDs(stateIDs),
 		},
 	)
 	return err
@@ -174,13 +173,15 @@ func GetGatewayStatus(networkID string, deviceID string) (*models.GatewayStatus,
 		return nil, err
 	}
 	if state.ReportedState == nil {
-		return nil, errors.ErrNotFound
+		return nil, merrors.ErrNotFound
 	}
 	return fillInGatewayStatusState(state), nil
 }
 
 func GetGatewayStatuses(networkID string, deviceIDs []string) (map[string]*models.GatewayStatus, error) {
-	stateIDs := funk.Map(deviceIDs, func(id string) StateID { return StateID{Type: orc8r.GatewayStateType, DeviceID: id} }).([]StateID)
+	stateIDs := funk.Map(deviceIDs, func(id string) ID {
+		return ID{Type: orc8r.GatewayStateType, DeviceID: id}
+	}).([]ID)
 	res, err := GetStates(networkID, stateIDs)
 	if err != nil {
 		return map[string]*models.GatewayStatus{}, err
@@ -197,7 +198,6 @@ func fillInGatewayStatusState(state State) *models.GatewayStatus {
 	if state.ReportedState == nil {
 		return nil
 	}
-
 	gwStatus := state.ReportedState.(*models.GatewayStatus)
 	gwStatus.CheckinTime = state.TimeMs
 	gwStatus.CertExpirationTime = state.CertExpirationTime
@@ -205,7 +205,20 @@ func fillInGatewayStatusState(state State) *models.GatewayStatus {
 	return gwStatus
 }
 
-func toProtosStateIDs(stateIDs []StateID) []*protos.StateID {
+func toStatesByID(states []*protos.State) (StatesByID, error) {
+	byID := StatesByID{}
+	for _, p := range states {
+		id := ID{Type: p.Type, DeviceID: p.DeviceID}
+		state, err := toState(p)
+		if err != nil {
+			return nil, err
+		}
+		byID[id] = state
+	}
+	return byID, nil
+}
+
+func toProtoIDs(stateIDs []ID) []*protos.StateID {
 	var ids []*protos.StateID
 	for _, state := range stateIDs {
 		ids = append(ids, &protos.StateID{Type: state.Type, DeviceID: state.DeviceID})
@@ -213,20 +226,24 @@ func toProtosStateIDs(stateIDs []StateID) []*protos.StateID {
 	return ids
 }
 
-func toState(pState *protos.State) (State, error) {
+func toState(p *protos.State) (State, error) {
+	// Recover state struct
 	serialized := &SerializedStateWithMeta{}
-	err := json.Unmarshal(pState.Value, serialized)
+	err := json.Unmarshal(p.Value, serialized)
 	if err != nil {
-		return State{}, err
+		return State{}, errors.Wrap(err, "failed to unmarshal json-encoded state proto value")
 	}
-	iReportedState, err := serde.Deserialize(SerdeDomain, pState.Type, serialized.SerializedReportedState)
+
+	// Recover reported state within state struct
+	iReportedState, err := serde.Deserialize(SerdeDomain, p.Type, serialized.SerializedReportedState)
 	state := State{
 		ReporterID:         serialized.ReporterID,
 		TimeMs:             serialized.TimeMs,
 		CertExpirationTime: serialized.CertExpirationTime,
 		ReportedState:      iReportedState,
-		Type:               pState.Type,
-		Version:            pState.Version,
+		Type:               p.Type,
+		Version:            p.Version,
 	}
+
 	return state, err
 }

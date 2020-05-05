@@ -209,8 +209,11 @@ func (r mutationResolver) internalAddWorkOrder(
 	if ownerID != nil {
 		mutation = mutation.SetOwnerID(*ownerID)
 	} else {
-		owner := viewer.FromContext(ctx).User()
-		mutation = mutation.SetOwner(owner)
+		v, ok := viewer.FromContext(ctx).(*viewer.UserViewer)
+		if !ok {
+			return nil, gqlerror.Errorf("could not be executed in automation")
+		}
+		mutation = mutation.SetOwner(v.User())
 	}
 	for _, clInput := range input.CheckListCategories {
 		checkListCategory, err := r.createOrUpdateCheckListCategory(ctx, clInput)
@@ -527,8 +530,13 @@ func (r mutationResolver) createAddedCheckListItemFiles(ctx context.Context, ite
 					}
 					return 0
 				}(),
-				Modified:    time.Now(),
-				ContentType: models.FileTypeFile.String(),
+				Modified: time.Now(),
+				ContentType: func() string {
+					if input.MimeType != nil {
+						return *input.MimeType
+					}
+					return "image/jpeg"
+				}(),
 			},
 		)
 		if err != nil {
@@ -776,7 +784,6 @@ func (r mutationResolver) TechnicianWorkOrderUploadData(ctx context.Context, inp
 		return nil, fmt.Errorf("querying work order %q: err %w", input.WorkOrderID, err)
 	}
 
-	user := viewer.FromContext(ctx).User()
 	assignee, err := wo.Edges.AssigneeOrErr()
 	if err != nil || assignee == nil {
 		return nil, fmt.Errorf(
@@ -786,18 +793,22 @@ func (r mutationResolver) TechnicianWorkOrderUploadData(ctx context.Context, inp
 		)
 	}
 
-	if assignee.Email != user.Email {
+	v, ok := viewer.FromContext(ctx).(*viewer.UserViewer)
+	if !ok {
+		return nil, gqlerror.Errorf("could not be executed in automation")
+	}
+	if assignee.Email != v.User().Email {
 		return nil, fmt.Errorf(
 			"mismatch between work order %q assginee %q and technician %q: err %w",
 			input.WorkOrderID,
 			wo.Edges.Assignee.Email,
-			user,
+			v.User().Email,
 			err,
 		)
 	}
 
 	for _, clInput := range input.Checklist {
-		_, err := client.CheckListItem.
+		checkListItem, err := client.CheckListItem.
 			UpdateOneID(clInput.ID).
 			SetNillableChecked(clInput.Checked).
 			SetNillableStringVal(clInput.StringValue).
@@ -817,6 +828,12 @@ func (r mutationResolver) TechnicianWorkOrderUploadData(ctx context.Context, inp
 				return nil, fmt.Errorf("creating cell scans, item %q: err %w", clInput.ID, err)
 			}
 		}
+		if clInput.FilesData != nil && len(clInput.FilesData) > 0 {
+			_, err := r.createOrUpdateCheckListItemFiles(ctx, checkListItem, clInput.FilesData)
+			if err != nil {
+				return nil, fmt.Errorf("creating and saving images while uploading a work order: %q: err %w", input.WorkOrderID, err)
+			}
+		}
 
 		if err != nil {
 			return nil, fmt.Errorf("updating checklist item %q: err %w", clInput.ID, err)
@@ -826,7 +843,7 @@ func (r mutationResolver) TechnicianWorkOrderUploadData(ctx context.Context, inp
 	if _, err = r.AddComment(ctx, models.CommentInput{
 		EntityType: models.CommentEntityWorkOrder,
 		ID:         input.WorkOrderID,
-		Text:       user.Email + " uploaded data",
+		Text:       v.User().Email + " uploaded data",
 	}); err != nil {
 		return nil, fmt.Errorf("adding technician uploaded data comment: %w", err)
 	}

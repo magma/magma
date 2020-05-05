@@ -86,7 +86,7 @@ func getHSSClient() (*hssClient, error) {
 	}, err
 }
 
-// addSubscriber tries to add this subscriber to the HSS server.
+// addSubscriberToHSS tries to add this subscriber to the HSS server.
 // This function returns an AlreadyExists error if the subscriber has already
 // been added.
 // Input: The subscriber data which will be added.
@@ -104,6 +104,9 @@ func addSubscriberToHSS(sub *lteprotos.SubscriberData) error {
 	return err
 }
 
+// deleteSubscriberFromHSS tries to add delete subscriber from the HSS server.
+// If the subscriber is not found, then this call is ignored.
+// Input: The id of the subscriber to be deleted.
 func deleteSubscribersFromHSS(subscriberID string) error {
 	cli, err := getHSSClient()
 	if err != nil {
@@ -116,7 +119,6 @@ func deleteSubscribersFromHSS(subscriberID string) error {
 /**  ========== PCRF Helpers ========== **/
 // getPCRFClient is a utility function to get an RPC connection to a
 // remote PCRF service.
-
 func getPCRFClient(instanceName string) (*pcrfClient, error) {
 	var conn *grpc.ClientConn
 	var err error
@@ -136,6 +138,8 @@ func getPCRFClient(instanceName string) (*pcrfClient, error) {
 	}, err
 }
 
+// sendPolicyReAuthRequest initiates a RAR request from PCRF server to sessiond.
+// Input: Policy RAR Target
 func sendPolicyReAuthRequest(target *fegprotos.PolicyReAuthTarget) (*fegprotos.PolicyReAuthAnswer, error) {
 	return sendPolicyReAuthRequestPerInstance(MockPCRFRemote, target)
 }
@@ -149,6 +153,8 @@ func sendPolicyReAuthRequestPerInstance(instanceName string, target *fegprotos.P
 	return raa, err
 }
 
+// sendPolicyAbortSession initiates an abort request from PCRF server to sessiond.
+// Input: Policy abort session request
 func sendPolicyAbortSession(target *fegprotos.PolicyAbortSessionRequest) (*fegprotos.PolicyAbortSessionResponse, error) {
 	return sendPolicyAbortSessionPerInstance(MockPCRFRemote, target)
 }
@@ -162,7 +168,7 @@ func sendPolicyAbortSessionPerInstance(instanceName string, target *fegprotos.Po
 	return raa, err
 }
 
-// addSubscriber tries to add this subscriber to the PCRF server.
+// addSubscriberToPCRF tries to add this subscriber to the PCRF server.
 // Input: The subscriber data which will be added.
 func addSubscriberToPCRF(sub *lteprotos.SubscriberID) error {
 	return addSubscriberToPCRFPerInstance(MockPCRFRemote, sub)
@@ -177,6 +183,7 @@ func addSubscriberToPCRFPerInstance(instanceName string, sub *lteprotos.Subscrib
 	return err
 }
 
+// clearSubscriberToPCRF tries to clear all subscribers from the PCRF server.
 func clearSubscribersFromPCRF() error {
 	return clearSubscribersFromPCRFPerInstance(MockPCRFRemote)
 }
@@ -216,6 +223,7 @@ func addPCRFUsageMonitorsPerInstance(instanceName string, monitorInfo *fegprotos
 	return err
 }
 
+// usePCRFMockDriver enable MockPCRFDriver
 func usePCRFMockDriver() error {
 	return usePCRFMockDriverPerInstance(MockPCRFRemote)
 }
@@ -229,6 +237,7 @@ func usePCRFMockDriverPerInstance(instanceName string) error {
 	return err
 }
 
+// clearPCRFMockDriver disable MockPCRFDriver
 func clearPCRFMockDriver() error {
 	return clearPCRFMockDriverPerInstance(MockPCRFRemote)
 }
@@ -242,6 +251,7 @@ func clearPCRFMockDriverPerInstance(instanceName string) error {
 	return err
 }
 
+// setPCRFExpectations allows to set the expectations in PCRF
 func setPCRFExpectations(expectations []*fegprotos.GxCreditControlExpectation, defaultAnswer *fegprotos.GxCreditControlAnswer) error {
 	return setPCRFExpectationsPerInstance(MockPCRFRemote, expectations, defaultAnswer)
 }
@@ -262,11 +272,12 @@ func setPCRFExpectationsPerInstance(instanceName string, expectations []*fegprot
 	return err
 }
 
-func getAssertExpectationsResult() ([]*fegprotos.ExpectationResult, []*fegprotos.ErrorByIndex, error) {
-	return getAssertExpectationsResultPerInstance(MockPCRFRemote)
+// getPCRFAssertExpectationsResult allows to get the expectations results in PCRF
+func getPCRFAssertExpectationsResult() ([]*fegprotos.ExpectationResult, []*fegprotos.ErrorByIndex, error) {
+	return getPCRFAssertExpectationsResultPerInstance(MockPCRFRemote)
 }
 
-func getAssertExpectationsResultPerInstance(instanceName string) ([]*fegprotos.ExpectationResult, []*fegprotos.ErrorByIndex, error) {
+func getPCRFAssertExpectationsResultPerInstance(instanceName string) ([]*fegprotos.ExpectationResult, []*fegprotos.ErrorByIndex, error) {
 	cli, err := getPCRFClient(instanceName)
 	if err != nil {
 		return nil, nil, nil
@@ -358,6 +369,20 @@ func setCreditOnOCSPerInstance(instanceName string, creditInfo *fegprotos.Credit
 	return err
 }
 
+// getCreditOnOCS tries to get credit for this subscriber to the OCS server
+// Input: The credit info data which will be set
+func getCreditOnOCS(imsi string) (*fegprotos.CreditInfos, error) {
+	return getCreditOnOCSPerInstance(MockOCSRemote, imsi)
+}
+
+func getCreditOnOCSPerInstance(instanceName, imsi string) (*fegprotos.CreditInfos, error) {
+	cli, err := getOCSClient(instanceName)
+	if err != nil {
+		return &fegprotos.CreditInfos{}, err
+	}
+	return cli.GetCredits(context.Background(), &lteprotos.SubscriberID{Id: imsi})
+}
+
 // sendChargingReAuthRequest triggers a RAR from OCS to Sessiond
 // Input: ChargingReAuthTarget
 func sendChargingReAuthRequest(imsi string, ratingGroup uint32) (*fegprotos.ChargingReAuthAnswer, error) {
@@ -372,6 +397,72 @@ func sendChargingReAuthRequestPerInstance(instanceName string, imsi string, rati
 	raa, err := cli.ReAuth(context.Background(),
 		&fegprotos.ChargingReAuthTarget{Imsi: imsi, RatingGroup: ratingGroup})
 	return raa, err
+}
+
+// useOCSMockDriver enables MockOCSDriver
+func useOCSMockDriver() error {
+	return useOCSMockDriverPerInstance(MockOCSRemote)
+}
+
+func useOCSMockDriverPerInstance(instanceName string) error {
+	cli, err := getOCSClient(instanceName)
+	if err != nil {
+		return err
+	}
+	_, err = cli.SetOCSSettings(context.Background(), &fegprotos.OCSConfig{UseMockDriver: true})
+	return err
+}
+
+// clearOCSMockDriver disable MockOCSDriver
+func clearOCSMockDriver() error {
+	return clearOCSMockDriverPerInstance(MockOCSRemote)
+}
+
+func clearOCSMockDriverPerInstance(instanceName string) error {
+	cli, err := getOCSClient(instanceName)
+	if err != nil {
+		return err
+	}
+	_, err = cli.SetOCSSettings(context.Background(), &fegprotos.OCSConfig{UseMockDriver: false})
+	return err
+}
+
+// setOCSExpectations allows to set the expectations in OCS
+func setOCSExpectations(expectations []*fegprotos.GyCreditControlExpectation, defaultAnswer *fegprotos.GyCreditControlAnswer) error {
+	return setOCSExpectationsPerInstance(MockOCSRemote, expectations, defaultAnswer)
+}
+
+func setOCSExpectationsPerInstance(instanceName string, expectations []*fegprotos.GyCreditControlExpectation, defaultAnswer *fegprotos.GyCreditControlAnswer) error {
+	cli, err := getOCSClient(instanceName)
+	if err != nil {
+		return err
+	}
+	request := &fegprotos.GyCreditControlExpectations{
+		Expectations: expectations,
+		GyDefaultCca: defaultAnswer,
+	}
+	if defaultAnswer != nil {
+		request.UnexpectedRequestBehavior = fegprotos.UnexpectedRequestBehavior_CONTINUE_WITH_DEFAULT_ANSWER
+	}
+	_, err = cli.SetExpectations(context.Background(), request)
+	return err
+}
+
+// getOCSAssertExpectationsResult allows to get the expectations results in OCS
+func getOCSAssertExpectationsResult() ([]*fegprotos.ExpectationResult, []*fegprotos.ErrorByIndex, error) {
+	return getOCSAssertExpectationsResultPerInstance(MockOCSRemote)
+}
+
+func getOCSAssertExpectationsResultPerInstance(instanceName string) ([]*fegprotos.ExpectationResult, []*fegprotos.ErrorByIndex, error) {
+	cli, err := getOCSClient(instanceName)
+	if err != nil {
+		return nil, nil, nil
+	}
+	res, err := cli.AssertExpectations(context.Background(), &protos.Void{})
+	if err != nil {
+		return nil, nil, err
+	}
+	return res.Results, res.Errors, nil
 }
 
 /**  ========== Pipelined Helpers ========== **/

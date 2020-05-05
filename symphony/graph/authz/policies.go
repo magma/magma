@@ -18,6 +18,9 @@ import (
 	models2 "github.com/facebookincubator/symphony/graph/authz/models"
 )
 
+// WritePermissionGroupName is the name of the group that its member has write permission for all symphony.
+const WritePermissionGroupName = "Write Permission"
+
 var allowedEnums = map[models2.PermissionValue]int{
 	models2.PermissionValueNo:          1,
 	models2.PermissionValueByCondition: 2,
@@ -73,9 +76,9 @@ func NewWorkforcePolicy(readAllowed, writeAllowed bool) *models.WorkforcePolicy 
 }
 
 // NewAdministrativePolicy builds administrative policy of given user
-func NewAdministrativePolicy(u *ent.User) *models.AdministrativePolicy {
+func NewAdministrativePolicy(isAdmin bool) *models.AdministrativePolicy {
 	return &models.AdministrativePolicy{
-		Access: newBasicPermissionRule(userHasAdminPermissions(u)),
+		Access: newBasicPermissionRule(isAdmin),
 	}
 }
 
@@ -138,10 +141,9 @@ func AppendWorkforcePolicies(policy *models.WorkforcePolicy, inputs ...*models2.
 	return policy
 }
 
-// PermissionPolicies builds the aggregated inventory and workforce policies for current viewer
-func PermissionPolicies(ctx context.Context) (*models.InventoryPolicy, *models.WorkforcePolicy, error) {
+func permissionPolicies(ctx context.Context, v *viewer.UserViewer) (*models.InventoryPolicy, *models.WorkforcePolicy, error) {
 	client := ent.FromContext(ctx)
-	userID := viewer.FromContext(ctx).User().ID
+	userID := v.User().ID
 	inventoryPolicy := NewInventoryPolicy(false, false)
 	workforcePolicy := NewWorkforcePolicy(false, false)
 	policies, err := client.PermissionsPolicy.Query().
@@ -163,4 +165,65 @@ func PermissionPolicies(ctx context.Context) (*models.InventoryPolicy, *models.W
 		}
 	}
 	return inventoryPolicy, workforcePolicy, nil
+}
+
+func userHasWritePermissions(ctx context.Context) (bool, error) {
+	v := viewer.FromContext(ctx)
+	if !v.Features().Enabled(viewer.FeatureReadOnly) {
+		return true, nil
+	}
+	if v.Role() == user.RoleOWNER {
+		return true, nil
+	}
+	if v, ok := v.(*viewer.UserViewer); ok {
+		return v.User().QueryGroups().
+			Where(usersgroup.Name(WritePermissionGroupName)).
+			Exist(ctx)
+	}
+	return false, nil
+}
+
+// Permissions builds the aggregated permissions for the given viewer
+func Permissions(ctx context.Context) (*models.PermissionSettings, error) {
+	writePermissions, err := userHasWritePermissions(ctx)
+	if err != nil {
+		return nil, err
+	}
+	v := viewer.FromContext(ctx)
+	policiesEnabled := v.Features().Enabled(viewer.FeatureUserManagementDev)
+	inventoryPolicy := NewInventoryPolicy(true, writePermissions)
+	workforcePolicy := NewWorkforcePolicy(true, writePermissions)
+	u, ok := v.(*viewer.UserViewer)
+	if !writePermissions && ok && policiesEnabled {
+		inventoryPolicy, workforcePolicy, err = permissionPolicies(ctx, u)
+		if err != nil {
+			return nil, err
+		}
+	}
+	res := models.PermissionSettings{
+		// TODO(T64743627): Deprecate CanWrite field
+		CanWrite:        writePermissions,
+		AdminPolicy:     NewAdministrativePolicy(v.Role() == user.RoleADMIN || v.Role() == user.RoleOWNER),
+		InventoryPolicy: inventoryPolicy,
+		WorkforcePolicy: workforcePolicy,
+	}
+	return &res, nil
+}
+
+func FullPermissions() *models.PermissionSettings {
+	return &models.PermissionSettings{
+		CanWrite:        true,
+		AdminPolicy:     NewAdministrativePolicy(true),
+		InventoryPolicy: NewInventoryPolicy(true, true),
+		WorkforcePolicy: NewWorkforcePolicy(true, true),
+	}
+}
+
+func EmptyPermissions() *models.PermissionSettings {
+	return &models.PermissionSettings{
+		CanWrite:        false,
+		AdminPolicy:     NewAdministrativePolicy(false),
+		InventoryPolicy: NewInventoryPolicy(false, false),
+		WorkforcePolicy: NewWorkforcePolicy(false, false),
+	}
 }

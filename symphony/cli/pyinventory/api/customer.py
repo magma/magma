@@ -2,12 +2,13 @@
 
 from typing import List, Optional
 
-from ..client import SymphonyClient
+from pysymphony import SymphonyClient
+
 from ..common.data_class import Customer
-from ..graphql.add_customer_input import AddCustomerInput
-from ..graphql.add_customer_mutation import AddCustomerMutation
-from ..graphql.customers_query import CustomersQuery
-from ..graphql.remove_customer_mutation import RemoveCustomerMutation
+from ..graphql.input.add_customer import AddCustomerInput
+from ..graphql.mutation.add_customer import AddCustomerMutation
+from ..graphql.mutation.remove_customer import RemoveCustomerMutation
+from ..graphql.query.customers import CustomersQuery
 
 
 def add_customer(
@@ -32,7 +33,7 @@ def add_customer(
             ```
     """
     customer_input = AddCustomerInput(name=name, externalId=external_id)
-    result = AddCustomerMutation.execute(client, input=customer_input).addCustomer
+    result = AddCustomerMutation.execute(client, input=customer_input)
     return Customer(name=result.name, id=result.id, externalId=result.externalId)
 
 
@@ -48,7 +49,7 @@ def get_all_customers(client: SymphonyClient) -> List[Customer]:
             customers = client.get_all_customers()
             ```
     """
-    customers = CustomersQuery.execute(client).customers
+    customers = CustomersQuery.execute(client)
     if not customers:
         return []
     result = []

@@ -102,8 +102,8 @@ const CheckListCategoryItemsDialog = ({
     ChecklistItemsDialogMutateStateActionType,
     Array<CheckListItem>,
   >(reducer, initialItems, getInitialState);
-
   const [pickedView, setPickedView] = useState<number>(DESIGN_VIEW.value);
+
   return (
     <Dialog fullWidth={true} maxWidth="lg" open={true}>
       <DialogTitle disableTypography={true}>
@@ -149,9 +149,11 @@ const CheckListCategoryItemsDialog = ({
         <Button skin="gray" onClick={onCancel}>
           {Strings.common.cancelButton}
         </Button>
-        <Button onClick={() => onSave && onSave(dialogState.items)}>
-          {Strings.common.saveButton}
-        </Button>
+        <FormAction>
+          <Button onClick={() => onSave && onSave(dialogState.items)}>
+            {Strings.common.saveButton}
+          </Button>
+        </FormAction>
       </DialogActions>
     </Dialog>
   );

@@ -124,7 +124,10 @@ class PowerSearchEquipmentResultsTable extends React.Component<Props> {
     if (dataKey === 'name') {
       if (onEquipmentSelected) {
         content = (
-          <Button variant="text" onClick={() => onEquipmentSelected(rowData)}>
+          <Button
+            variant="text"
+            useEllipsis={true}
+            onClick={() => onEquipmentSelected(rowData)}>
             {cellData}
           </Button>
         );
@@ -140,6 +143,7 @@ class PowerSearchEquipmentResultsTable extends React.Component<Props> {
         content = (
           <Button
             variant="text"
+            useEllipsis={true}
             onClick={() => onWorkOrderSelected(rowData.workOrder.id)}>
             {cellData}
           </Button>

@@ -146,7 +146,10 @@ const CheckListCategoryTable = ({categories}: CheckListCategoryTableProps) => {
             render: row => (
               <Button
                 skin="gray"
-                disabled={form.alerts.editLock.detected}
+                disabled={
+                  row.value.checkList.length === 0 &&
+                  form.alerts.editLock.detected
+                }
                 className={classes.addItemsButton}
                 onClick={() => setBrowsedCheckListCategoryId(row.value.id)}>
                 {row.value.checkList.length > 0 ? (

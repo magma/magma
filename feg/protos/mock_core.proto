@@ -13,6 +13,7 @@ import "lte/protos/policydb.proto";
 import "lte/protos/session_manager.proto";
 import "lte/protos/subscriberdb.proto";
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
 
 package magma.feg;
 option go_package = "magma/feg/cloud/go/protos";
@@ -98,6 +99,7 @@ service MockOCS {
     rpc CreateAccount(magma.lte.SubscriberID) returns (magma.orc8r.Void) {}
     rpc ClearSubscribers(magma.orc8r.Void) returns (magma.orc8r.Void) {}
     rpc ReAuth(ChargingReAuthTarget) returns (ChargingReAuthAnswer) {}
+    rpc GetCredits(magma.lte.SubscriberID) returns (CreditInfos) {}
 
     // Todo
     rpc SetExpectations(GyCreditControlExpectations) returns (magma.orc8r.Void) {}
@@ -109,6 +111,8 @@ message OCSConfig {
     uint32 max_usage_time = 2;
     uint32 validity_time = 3;
     bool use_mock_driver = 4;
+    string redirect_address = 5;
+    FinalUnitAction final_unit_action = 6;
 }
 
 message CreditInfo {
@@ -120,6 +124,10 @@ message CreditInfo {
     uint32 charging_key = 2;
     Octets volume = 3;
     UnitType unit_type = 4;
+}
+
+message CreditInfos {
+    map<uint32, CreditInfo> creditInformation = 1;
 }
 
 message ChargingReAuthTarget {
@@ -229,7 +237,7 @@ message GxCreditControlExpectation {
 message GxCreditControlRequest {
     string imsi = 1;
     CCRequestType request_type = 2;
-    uint32 request_number = 3;
+    google.protobuf.Int32Value request_number = 3;
 
     repeated UsageMonitoringInformation usage_monitoring_reports = 11;
     // As long as we use real traffic for the test, usage reporting will differ
@@ -269,7 +277,7 @@ message GyCreditControlExpectation {
 message GyCreditControlRequest {
     string imsi = 1;
     CCRequestType request_type = 2;
-    uint32 request_number = 3;
+    google.protobuf.Int32Value request_number = 3;
     QosInfo qos_info = 21;
     repeated MultipleServicesCreditControl mscc = 22;
     // As long as we use real traffic for the test, usage reporting will differ

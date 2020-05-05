@@ -8,6 +8,7 @@ LICENSE file in the root directory of this source tree.
 package handlers
 
 import (
+	"os"
 	"reflect"
 	"testing"
 
@@ -32,6 +33,7 @@ var (
 )
 
 func TestAkaChallengeResp(t *testing.T) {
+	os.Setenv("USE_REMOTE_SWX_PROXY", "false")
 	srv, lis := test_utils.NewTestService(t, registry.ModuleName, registry.SWX_PROXY)
 	var service testSwxProxy
 	cp.RegisterSwxProxyServer(srv.GrpcServer, service)

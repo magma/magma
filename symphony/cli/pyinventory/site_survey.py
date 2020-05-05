@@ -10,27 +10,25 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 
 import pandas as pd
 from dacite import Config, from_dict
-from gql.gql.client import OperationException
-from gql.gql.reporter import FailedOperationException
+from pysymphony import SymphonyClient
 from xlsxwriter.format import Format
 from xlsxwriter.utility import xl_col_to_name
 from xlsxwriter.workbook import Workbook
 from xlsxwriter.worksheet import Worksheet
 
 from .api.file import add_site_survey_image, delete_site_survey_image
-from .client import SymphonyClient
-from .common import mutation_name
 from .common.constant import SIMPLE_QUESTION_TYPE_TO_REQUIRED_PROPERTY_NAME
 from .common.data_class import Location, SiteSurvey
 from .common.data_enum import Entity
 from .exceptions import EntityNotFoundError
-from .graphql.create_survey_mutation import CreateSurveyMutation
-from .graphql.location_surveys_query import LocationSurveysQuery
-from .graphql.remove_site_survey_mutation import RemoveSiteSurveyMutation
-from .graphql.survey_create_data_input import SurveyCreateData
-from .graphql.survey_fragment import SurveyFragment
-from .graphql.survey_question_fragment import SurveyQuestionFragment
-from .graphql.survey_question_type_enum import SurveyQuestionType
+from .graphql.enum.survey_question_type import SurveyQuestionType
+from .graphql.fragment.survey import SurveyFragment
+from .graphql.fragment.survey_question import SurveyQuestionFragment
+from .graphql.input.survey_create_data import SurveyCreateData
+from .graphql.input.survey_question_response import SurveyQuestionResponse
+from .graphql.mutation.create_survey import CreateSurveyMutation
+from .graphql.mutation.remove_site_survey import RemoveSiteSurveyMutation
+from .graphql.query.location_surveys import LocationSurveysQuery
 from .site_survey_schema import retrieve_tamplates_and_set_them
 
 
@@ -740,38 +738,28 @@ def upload_site_survey(
             AssertionException: if input values in the excel are incorrect
             FailedOperationException: internal inventory error
     """
-    data_variables = {
-        "name": name,
-        "completionTimestamp": int(datetime.timestamp(completion_date)),
-        "locationID": location.id,
-        "surveyResponses": _get_survey_reponses(excel_file_path, json_file_path),
-    }
-    create_survey_variables = {
-        "data": from_dict(
-            data_class=SurveyCreateData, data=data_variables, config=Config(strict=True)
-        )
-    }
 
-    try:
-        site_survey_id = CreateSurveyMutation.execute(
-            client, **create_survey_variables
-        ).__dict__[mutation_name.CREATE_SURVEY]
-        client.reporter.log_successful_operation(
-            mutation_name.CREATE_SURVEY, create_survey_variables
-        )
-        add_site_survey_image(client, excel_file_path, site_survey_id)
-    except OperationException as e:
-        raise FailedOperationException(
-            client.reporter,
-            e.err_msg,
-            e.err_id,
-            mutation_name.CREATE_SURVEY,
-            create_survey_variables,
-        )
+    site_survey_id = CreateSurveyMutation.execute(
+        client,
+        data=SurveyCreateData(
+            name=name,
+            completionTimestamp=int(datetime.timestamp(completion_date)),
+            locationID=location.id,
+            surveyResponses=[
+                from_dict(
+                    data_class=SurveyQuestionResponse,
+                    data=response,
+                    config=Config(strict=True),
+                )
+                for response in _get_survey_reponses(excel_file_path, json_file_path)
+            ],
+        ),
+    )
+    add_site_survey_image(client, excel_file_path, site_survey_id)
 
 
 def _survey_responses_to_forms(
-    responses: Sequence[SurveyQuestionFragment]
+    responses: Sequence[SurveyQuestionFragment],
 ) -> Dict[str, Dict[str, Any]]:
     forms = {}
     value_does_not_match_type_error_msg = (
@@ -852,9 +840,7 @@ def get_site_surveys(client: SymphonyClient, location: Location) -> List[SiteSur
             `pyinventory.exceptions.EntityNotFoundError`: location does not exist
     """
 
-    location_with_surveys = LocationSurveysQuery.execute(
-        client, id=location.id
-    ).location
+    location_with_surveys = LocationSurveysQuery.execute(client, id=location.id)
     if not location_with_surveys:
         raise EntityNotFoundError(entity=Entity.Location, entity_id=location.id)
     surveys = location_with_surveys.surveys

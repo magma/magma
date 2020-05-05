@@ -309,3 +309,73 @@ func UserSearch(ctx context.Context, client *ent.Client, filters []*models.UserF
 		Count: count,
 	}, nil
 }
+
+func PermissionsPolicySearch(
+	ctx context.Context,
+	client *ent.Client,
+	filters []*models.PermissionsPolicyFilterInput,
+	limit *int,
+) (*models.PermissionsPolicySearchResult, error) {
+	var (
+		query = client.PermissionsPolicy.Query()
+		err   error
+	)
+	for _, f := range filters {
+		if strings.HasPrefix(f.FilterType.String(), "PERMISSIONS_POLICY_NAME") {
+			if query, err = handlePermissionsPolicyFilter(query, f); err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	count, err := query.Clone().Count(ctx)
+	if err != nil {
+		return nil, errors.Wrapf(err, "Count query failed")
+	}
+	if limit != nil {
+		query.Limit(*limit)
+	}
+	permissionsPolicies, err := query.All(ctx)
+	if err != nil {
+		return nil, errors.Wrapf(err, "Querying permissionsPolicy failed")
+	}
+	return &models.PermissionsPolicySearchResult{
+		PermissionsPolicies: permissionsPolicies,
+		Count:               count,
+	}, nil
+}
+
+func UsersGroupSearch(
+	ctx context.Context,
+	client *ent.Client,
+	filters []*models.UsersGroupFilterInput,
+	limit *int,
+) (*models.UsersGroupSearchResult, error) {
+	var (
+		query = client.UsersGroup.Query()
+		err   error
+	)
+	for _, f := range filters {
+		if strings.HasPrefix(f.FilterType.String(), "GROUP_NAME") {
+			if query, err = handleUsersGroupFilter(query, f); err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	count, err := query.Clone().Count(ctx)
+	if err != nil {
+		return nil, errors.Wrapf(err, "Count query failed")
+	}
+	if limit != nil {
+		query.Limit(*limit)
+	}
+	usersGroups, err := query.All(ctx)
+	if err != nil {
+		return nil, errors.Wrapf(err, "Querying usersGroups failed")
+	}
+	return &models.UsersGroupSearchResult{
+		UsersGroups: usersGroups,
+		Count:       count,
+	}, nil
+}

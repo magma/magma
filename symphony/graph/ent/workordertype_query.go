@@ -30,7 +30,7 @@ type WorkOrderTypeQuery struct {
 	config
 	limit      *int
 	offset     *int
-	order      []Order
+	order      []OrderFunc
 	unique     []string
 	predicates []predicate.WorkOrderType
 	// eager-loading edges.
@@ -63,7 +63,7 @@ func (wotq *WorkOrderTypeQuery) Offset(offset int) *WorkOrderTypeQuery {
 }
 
 // Order adds an order step to the query.
-func (wotq *WorkOrderTypeQuery) Order(o ...Order) *WorkOrderTypeQuery {
+func (wotq *WorkOrderTypeQuery) Order(o ...OrderFunc) *WorkOrderTypeQuery {
 	wotq.order = append(wotq.order, o...)
 	return wotq
 }
@@ -328,7 +328,7 @@ func (wotq *WorkOrderTypeQuery) Clone() *WorkOrderTypeQuery {
 		config:     wotq.config,
 		limit:      wotq.limit,
 		offset:     wotq.offset,
-		order:      append([]Order{}, wotq.order...),
+		order:      append([]OrderFunc{}, wotq.order...),
 		unique:     append([]string{}, wotq.unique...),
 		predicates: append([]predicate.WorkOrderType{}, wotq.predicates...),
 		// clone intermediate query.
@@ -711,14 +711,14 @@ func (wotq *WorkOrderTypeQuery) sqlQuery() *sql.Selector {
 type WorkOrderTypeGroupBy struct {
 	config
 	fields []string
-	fns    []Aggregate
+	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (wotgb *WorkOrderTypeGroupBy) Aggregate(fns ...Aggregate) *WorkOrderTypeGroupBy {
+func (wotgb *WorkOrderTypeGroupBy) Aggregate(fns ...AggregateFunc) *WorkOrderTypeGroupBy {
 	wotgb.fns = append(wotgb.fns, fns...)
 	return wotgb
 }

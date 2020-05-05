@@ -68,23 +68,26 @@ class EntityDocumentsTable extends React.Component<Props> {
           };
 
           const updater = store => {
-            // $FlowFixMe (T62907961) Relay flow types
             const deletedNode = store.getRootField('deleteImage');
-            // $FlowFixMe (T62907961) Relay flow types
+            if (deletedNode == null) {
+              return;
+            }
             const proxy = store.get(this.props.entityId);
-            const edgeType =
-              deletedNode.getValue('fileType') === 'IMAGE' ? 'images' : 'files';
+            if (proxy != null) {
+              const edgeType =
+                deletedNode.getValue('fileType') === 'IMAGE'
+                  ? 'images'
+                  : 'files';
 
-            // $FlowFixMe (T62907961) Relay flow types
-            const currNodes = proxy.getLinkedRecords(edgeType);
-            // $FlowFixMe (T62907961) Relay flow types
-            const newNodes = currNodes.filter(file => {
-              return file != deletedNode;
-            });
-            // $FlowFixMe (T62907961) Relay flow types
-            proxy.setLinkedRecords(newNodes, edgeType);
-            // $FlowFixMe (T62907961) Relay flow types
-            store.delete(file.id);
+              const currNodes = proxy.getLinkedRecords(edgeType);
+              const newNodes =
+                currNodes?.filter(file => {
+                  return file != deletedNode;
+                }) ?? [];
+              proxy.setLinkedRecords(newNodes, edgeType);
+              store.delete(file.id);
+            }
+
             axios.delete(DocumentAPIUrls.delete_url(file.id));
           };
 

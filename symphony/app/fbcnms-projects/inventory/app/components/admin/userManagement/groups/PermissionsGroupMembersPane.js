@@ -13,7 +13,7 @@ import type {UserPermissionsGroup} from '../utils/UserManagementUtils';
 import * as React from 'react';
 import PermissionsGroupMembersList from './PermissionsGroupMembersList';
 import Text from '@fbcnms/ui/components/design-system/Text';
-import UserSearchBox from '../utils/userSearch/UserSearchBox';
+import UserSearchBox from '../utils/search/UserSearchBox';
 import ViewContainer from '@fbcnms/ui/components/design-system/View/ViewContainer';
 import classNames from 'classnames';
 import fbt from 'fbt';
@@ -22,7 +22,7 @@ import {ProfileIcon} from '@fbcnms/ui/components/design-system/Icons/';
 import {
   UserSearchContextProvider,
   useUserSearchContext,
-} from '../utils/userSearch/UserSearchContext';
+} from '../utils/search/UserSearchContext';
 import {makeStyles} from '@material-ui/styles';
 import {useMemo} from 'react';
 
@@ -147,13 +147,7 @@ export default function PermissionsGroupMembersPane(props: Props) {
 
   return (
     <div className={classNames(classes.root, className)}>
-      <UserSearchContextProvider
-        queryMetadata={
-          // See Flow problem explained in SearchContext.js
-          // eslint-disable-next-line no-warning-comments
-          // $FlowFixMe
-          group
-        }>
+      <UserSearchContextProvider>
         <ViewContainer header={header}>
           <PermissionsGroupMembersList group={group} />
         </ViewContainer>

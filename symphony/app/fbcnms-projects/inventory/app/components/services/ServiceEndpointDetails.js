@@ -112,17 +112,17 @@ const ServiceEndpointDetails = (props: Props) => {
           )}
           <div>
             <Text variant="subtitle2" className={classes.componentName}>
-              {`${endpoint.port.parentEquipment.name} (${camelCase(
-                endpoint.definition.role,
+              {`${endpoint.equipment.name} (${camelCase(
+                endpoint.definition.name,
               )})`}
             </Text>
             <Text
               variant="body2"
               className={classNames(classes.componentName, classes.portName)}>
-              {endpoint.port.definition.name}
+              {endpoint.definition.role}
             </Text>
             <EquipmentBreadcrumbs
-              equipment={endpoint.port.parentEquipment}
+              equipment={endpoint.equipment}
               showSelfEquipment={false}
               variant="body2"
               className={classes.componentName}

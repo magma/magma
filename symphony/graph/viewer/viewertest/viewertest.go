@@ -7,6 +7,8 @@ package viewertest
 import (
 	"net/http"
 
+	"github.com/facebookincubator/symphony/graph/ent/user"
+
 	"github.com/facebookincubator/symphony/graph/viewer"
 )
 
@@ -16,11 +18,11 @@ const (
 	UserHeader    = viewer.UserHeader
 	DefaultUser   = "tester@example.com"
 	RoleHeader    = viewer.RoleHeader
-	DefaultRole   = "superuser"
+	DefaultRole   = user.RoleOWNER
 )
 
 func SetDefaultViewerHeaders(req *http.Request) {
 	req.Header.Set(TenantHeader, DefaultTenant)
 	req.Header.Set(UserHeader, DefaultUser)
-	req.Header.Set(RoleHeader, RoleHeader)
+	req.Header.Set(RoleHeader, string(DefaultRole))
 }

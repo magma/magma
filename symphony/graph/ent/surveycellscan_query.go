@@ -27,7 +27,7 @@ type SurveyCellScanQuery struct {
 	config
 	limit      *int
 	offset     *int
-	order      []Order
+	order      []OrderFunc
 	unique     []string
 	predicates []predicate.SurveyCellScan
 	// eager-loading edges.
@@ -59,7 +59,7 @@ func (scsq *SurveyCellScanQuery) Offset(offset int) *SurveyCellScanQuery {
 }
 
 // Order adds an order step to the query.
-func (scsq *SurveyCellScanQuery) Order(o ...Order) *SurveyCellScanQuery {
+func (scsq *SurveyCellScanQuery) Order(o ...OrderFunc) *SurveyCellScanQuery {
 	scsq.order = append(scsq.order, o...)
 	return scsq
 }
@@ -288,7 +288,7 @@ func (scsq *SurveyCellScanQuery) Clone() *SurveyCellScanQuery {
 		config:     scsq.config,
 		limit:      scsq.limit,
 		offset:     scsq.offset,
-		order:      append([]Order{}, scsq.order...),
+		order:      append([]OrderFunc{}, scsq.order...),
 		unique:     append([]string{}, scsq.unique...),
 		predicates: append([]predicate.SurveyCellScan{}, scsq.predicates...),
 		// clone intermediate query.
@@ -592,14 +592,14 @@ func (scsq *SurveyCellScanQuery) sqlQuery() *sql.Selector {
 type SurveyCellScanGroupBy struct {
 	config
 	fields []string
-	fns    []Aggregate
+	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (scsgb *SurveyCellScanGroupBy) Aggregate(fns ...Aggregate) *SurveyCellScanGroupBy {
+func (scsgb *SurveyCellScanGroupBy) Aggregate(fns ...AggregateFunc) *SurveyCellScanGroupBy {
 	scsgb.fns = append(scsgb.fns, fns...)
 	return scsgb
 }

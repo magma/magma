@@ -24,7 +24,7 @@ type FloorPlanReferencePointQuery struct {
 	config
 	limit      *int
 	offset     *int
-	order      []Order
+	order      []OrderFunc
 	unique     []string
 	predicates []predicate.FloorPlanReferencePoint
 	// intermediate query (i.e. traversal path).
@@ -51,7 +51,7 @@ func (fprpq *FloorPlanReferencePointQuery) Offset(offset int) *FloorPlanReferenc
 }
 
 // Order adds an order step to the query.
-func (fprpq *FloorPlanReferencePointQuery) Order(o ...Order) *FloorPlanReferencePointQuery {
+func (fprpq *FloorPlanReferencePointQuery) Order(o ...OrderFunc) *FloorPlanReferencePointQuery {
 	fprpq.order = append(fprpq.order, o...)
 	return fprpq
 }
@@ -226,7 +226,7 @@ func (fprpq *FloorPlanReferencePointQuery) Clone() *FloorPlanReferencePointQuery
 		config:     fprpq.config,
 		limit:      fprpq.limit,
 		offset:     fprpq.offset,
-		order:      append([]Order{}, fprpq.order...),
+		order:      append([]OrderFunc{}, fprpq.order...),
 		unique:     append([]string{}, fprpq.unique...),
 		predicates: append([]predicate.FloorPlanReferencePoint{}, fprpq.predicates...),
 		// clone intermediate query.
@@ -405,14 +405,14 @@ func (fprpq *FloorPlanReferencePointQuery) sqlQuery() *sql.Selector {
 type FloorPlanReferencePointGroupBy struct {
 	config
 	fields []string
-	fns    []Aggregate
+	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (fprpgb *FloorPlanReferencePointGroupBy) Aggregate(fns ...Aggregate) *FloorPlanReferencePointGroupBy {
+func (fprpgb *FloorPlanReferencePointGroupBy) Aggregate(fns ...AggregateFunc) *FloorPlanReferencePointGroupBy {
 	fprpgb.fns = append(fprpgb.fns, fns...)
 	return fprpgb
 }

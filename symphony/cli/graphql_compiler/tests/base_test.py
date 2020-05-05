@@ -18,6 +18,7 @@ class BaseTest(unittest.TestCase):
                 os.path.dirname(__file__), "fixtures/swapi-schema.graphql"
             )
             globals()["SWAPI_SCHEMA"] = load_schema(filename)
+
         self.swapi_schema = globals()["SWAPI_SCHEMA"]
         self.swapi_parser = QueryParser(self.swapi_schema)
 

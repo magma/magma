@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func getAddInput(name, description string) models.AddUsersGroupInput {
+func getAddUsersGroupInput(name, description string) models.AddUsersGroupInput {
 	return models.AddUsersGroupInput{
 		Name:        name,
 		Description: &description,
@@ -31,7 +31,7 @@ func TestAddUsersGroup(t *testing.T) {
 	mr := r.Mutation()
 
 	gName := "group_1"
-	inp := getAddInput(gName, "this is group 1")
+	inp := getAddUsersGroupInput(gName, "this is group 1")
 	_, err := mr.AddUsersGroup(ctx, inp)
 	require.NoError(t, err)
 
@@ -51,7 +51,7 @@ func TestEditUsersGroup(t *testing.T) {
 	mr := r.Mutation()
 
 	gName := "group_1"
-	addInp1 := getAddInput(gName, "this is group 1")
+	addInp1 := getAddUsersGroupInput(gName, "this is group 1")
 	ug1, err := mr.AddUsersGroup(ctx, addInp1)
 	require.NoError(t, err)
 
@@ -92,7 +92,7 @@ func TestUpdateUsersGroupMembersGroup(t *testing.T) {
 	mr := r.Mutation()
 
 	gName := "group_1"
-	addInp1 := getAddInput(gName, "this is group 1")
+	addInp1 := getAddUsersGroupInput(gName, "this is group 1")
 	ug, err := mr.AddUsersGroup(ctx, addInp1)
 	require.NoError(t, err)
 

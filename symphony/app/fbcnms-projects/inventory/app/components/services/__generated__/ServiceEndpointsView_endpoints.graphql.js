@@ -30,8 +30,13 @@ export type ServiceEndpointsView_endpoints = $ReadOnlyArray<{|
       +name: string,
     |},
   |},
+  +equipment: {|
+    +name: string,
+    +$fragmentRefs: EquipmentBreadcrumbs_equipment$ref,
+  |},
   +definition: {|
-    +role: ?string
+    +name: string,
+    +role: ?string,
   |},
   +$refType: ServiceEndpointsView_endpoints$ref,
 |}>;
@@ -58,7 +63,15 @@ v1 = {
   "name": "name",
   "args": null,
   "storageKey": null
-};
+},
+v2 = [
+  (v1/*: any*/),
+  {
+    "kind": "FragmentSpread",
+    "name": "EquipmentBreadcrumbs_equipment",
+    "args": null
+  }
+];
 return {
   "kind": "Fragment",
   "name": "ServiceEndpointsView_endpoints",
@@ -86,14 +99,7 @@ return {
           "args": null,
           "concreteType": "Equipment",
           "plural": false,
-          "selections": [
-            (v1/*: any*/),
-            {
-              "kind": "FragmentSpread",
-              "name": "EquipmentBreadcrumbs_equipment",
-              "args": null
-            }
-          ]
+          "selections": (v2/*: any*/)
         },
         {
           "kind": "LinkedField",
@@ -113,12 +119,23 @@ return {
     {
       "kind": "LinkedField",
       "alias": null,
+      "name": "equipment",
+      "storageKey": null,
+      "args": null,
+      "concreteType": "Equipment",
+      "plural": false,
+      "selections": (v2/*: any*/)
+    },
+    {
+      "kind": "LinkedField",
+      "alias": null,
       "name": "definition",
       "storageKey": null,
       "args": null,
       "concreteType": "ServiceEndpointDefinition",
       "plural": false,
       "selections": [
+        (v1/*: any*/),
         {
           "kind": "ScalarField",
           "alias": null,
@@ -132,5 +149,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'c1e178d35659723511d1358d7d5dd87c';
+(node/*: any*/).hash = 'c9bdfa0f5793f7884b71103e23e3c420';
 module.exports = node;

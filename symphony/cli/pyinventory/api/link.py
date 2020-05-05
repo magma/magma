@@ -5,22 +5,19 @@
 
 from typing import List, Tuple
 
-from gql.gql.client import OperationException
-from gql.gql.reporter import FailedOperationException
+from pysymphony import SymphonyClient
 
-from ..client import SymphonyClient
 from ..common.data_class import Equipment, Link
 from ..common.data_enum import Entity
-from ..common.mutation_name import ADD_LINK
 from ..exceptions import (
     EntityNotFoundError,
     LinkNotFoundException,
     PortAlreadyOccupiedException,
 )
-from ..graphql.add_link_input import AddLinkInput
-from ..graphql.add_link_mutation import AddLinkMutation
-from ..graphql.equipment_ports_query import EquipmentPortsQuery
-from ..graphql.link_side_input import LinkSide
+from ..graphql.input.add_link import AddLinkInput
+from ..graphql.input.link_side import LinkSide
+from ..graphql.mutation.add_link import AddLinkMutation
+from ..graphql.query.equipment_ports import EquipmentPortsQuery
 from .port import get_port
 
 
@@ -54,7 +51,7 @@ def get_all_links_and_port_names_of_equipment(
             ```
     """
 
-    equipment_data = EquipmentPortsQuery.execute(client, id=equipment.id).equipment
+    equipment_data = EquipmentPortsQuery.execute(client, id=equipment.id)
     if equipment_data is None:
         raise EntityNotFoundError(entity=Entity.Equipment, entity_id=equipment.id)
     ports = equipment_data.ports
@@ -136,13 +133,7 @@ def add_link(
         properties=[],
         serviceIds=[],
     )
-    try:
-        link = AddLinkMutation.execute(client, add_link_input).__dict__[ADD_LINK]
-        client.reporter.log_successful_operation(ADD_LINK, add_link_input.__dict__)
-    except OperationException as e:
-        raise FailedOperationException(
-            client.reporter, e.err_msg, e.err_id, ADD_LINK, add_link_input.__dict__
-        )
+    link = AddLinkMutation.execute(client, add_link_input)
 
     return Link(
         id=link.id,

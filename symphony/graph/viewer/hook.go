@@ -19,7 +19,7 @@ func UpdateCurrentUser() ent.Hook {
 			if err != nil {
 				return value, err
 			}
-			if v := FromContext(ctx); v != nil && v.User().ID == value.(*ent.User).ID {
+			if v, ok := FromContext(ctx).(*UserViewer); ok && v.User().ID == value.(*ent.User).ID {
 				v.user.Store(value)
 			}
 			return value, nil

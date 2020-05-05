@@ -26,7 +26,7 @@ type SurveyTemplateCategoryQuery struct {
 	config
 	limit      *int
 	offset     *int
-	order      []Order
+	order      []OrderFunc
 	unique     []string
 	predicates []predicate.SurveyTemplateCategory
 	// eager-loading edges.
@@ -56,7 +56,7 @@ func (stcq *SurveyTemplateCategoryQuery) Offset(offset int) *SurveyTemplateCateg
 }
 
 // Order adds an order step to the query.
-func (stcq *SurveyTemplateCategoryQuery) Order(o ...Order) *SurveyTemplateCategoryQuery {
+func (stcq *SurveyTemplateCategoryQuery) Order(o ...OrderFunc) *SurveyTemplateCategoryQuery {
 	stcq.order = append(stcq.order, o...)
 	return stcq
 }
@@ -249,7 +249,7 @@ func (stcq *SurveyTemplateCategoryQuery) Clone() *SurveyTemplateCategoryQuery {
 		config:     stcq.config,
 		limit:      stcq.limit,
 		offset:     stcq.offset,
-		order:      append([]Order{}, stcq.order...),
+		order:      append([]OrderFunc{}, stcq.order...),
 		unique:     append([]string{}, stcq.unique...),
 		predicates: append([]predicate.SurveyTemplateCategory{}, stcq.predicates...),
 		// clone intermediate query.
@@ -479,14 +479,14 @@ func (stcq *SurveyTemplateCategoryQuery) sqlQuery() *sql.Selector {
 type SurveyTemplateCategoryGroupBy struct {
 	config
 	fields []string
-	fns    []Aggregate
+	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (stcgb *SurveyTemplateCategoryGroupBy) Aggregate(fns ...Aggregate) *SurveyTemplateCategoryGroupBy {
+func (stcgb *SurveyTemplateCategoryGroupBy) Aggregate(fns ...AggregateFunc) *SurveyTemplateCategoryGroupBy {
 	stcgb.fns = append(stcgb.fns, fns...)
 	return stcgb
 }

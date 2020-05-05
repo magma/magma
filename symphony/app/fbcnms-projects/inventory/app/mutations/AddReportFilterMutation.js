@@ -16,7 +16,7 @@ import type {
   AddReportFilterMutationVariables,
 } from './__generated__/AddReportFilterMutation.graphql';
 import type {MutationCallbacks} from './MutationCallbacks.js';
-import type {StoreUpdater} from '../common/RelayEnvironment';
+import type {SelectorStoreUpdater} from 'relay-runtime';
 
 const mutation = graphql`
   mutation AddReportFilterMutation($input: ReportFilterInput!) {
@@ -56,7 +56,7 @@ const mutation = graphql`
 export default (
   variables: AddReportFilterMutationVariables,
   callbacks?: MutationCallbacks<AddReportFilterMutationResponse>,
-  updater?: StoreUpdater,
+  updater?: SelectorStoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
   commitMutation<AddReportFilterMutation>(RelayEnvironemnt, {

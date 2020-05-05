@@ -651,6 +651,16 @@ paths:
           type: string
           description: Label name to get values of
           required: true
+        - in: query
+          name: start
+          type: string
+          description: start time of the requested range (UnixTime or RFC3339)
+          required: true
+        - in: query
+          name: end
+          type: string
+          description: end time of the requested range (UnixTime or RFC3339)
+          required: false
       responses:
         '200':
           description: List of label values

@@ -112,7 +112,8 @@ func (srv *eapAuth) Handle(ctx context.Context, in *protos.Eap) (*protos.Eap, er
 			Location: "hwid", // actual hwid will be filled in by directory service
 			Fields:   map[string]string{MacAddrKey: resp.Ctx.GetMacAddr()},
 		}
-		go directoryd.UpdateRecord(updateRequest) // execute in a new goroutine in case calls to directoryd take long time
+		// execute in a new goroutine in case calls to directoryd take long time
+		go directoryd.UpdateRecord(updateRequest)
 	}
 	return resp, nil
 }

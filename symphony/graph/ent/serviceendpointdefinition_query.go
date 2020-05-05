@@ -28,7 +28,7 @@ type ServiceEndpointDefinitionQuery struct {
 	config
 	limit      *int
 	offset     *int
-	order      []Order
+	order      []OrderFunc
 	unique     []string
 	predicates []predicate.ServiceEndpointDefinition
 	// eager-loading edges.
@@ -60,7 +60,7 @@ func (sedq *ServiceEndpointDefinitionQuery) Offset(offset int) *ServiceEndpointD
 }
 
 // Order adds an order step to the query.
-func (sedq *ServiceEndpointDefinitionQuery) Order(o ...Order) *ServiceEndpointDefinitionQuery {
+func (sedq *ServiceEndpointDefinitionQuery) Order(o ...OrderFunc) *ServiceEndpointDefinitionQuery {
 	sedq.order = append(sedq.order, o...)
 	return sedq
 }
@@ -289,7 +289,7 @@ func (sedq *ServiceEndpointDefinitionQuery) Clone() *ServiceEndpointDefinitionQu
 		config:     sedq.config,
 		limit:      sedq.limit,
 		offset:     sedq.offset,
-		order:      append([]Order{}, sedq.order...),
+		order:      append([]OrderFunc{}, sedq.order...),
 		unique:     append([]string{}, sedq.unique...),
 		predicates: append([]predicate.ServiceEndpointDefinition{}, sedq.predicates...),
 		// clone intermediate query.
@@ -596,14 +596,14 @@ func (sedq *ServiceEndpointDefinitionQuery) sqlQuery() *sql.Selector {
 type ServiceEndpointDefinitionGroupBy struct {
 	config
 	fields []string
-	fns    []Aggregate
+	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (sedgb *ServiceEndpointDefinitionGroupBy) Aggregate(fns ...Aggregate) *ServiceEndpointDefinitionGroupBy {
+func (sedgb *ServiceEndpointDefinitionGroupBy) Aggregate(fns ...AggregateFunc) *ServiceEndpointDefinitionGroupBy {
 	sedgb.fns = append(sedgb.fns, fns...)
 	return sedgb
 }

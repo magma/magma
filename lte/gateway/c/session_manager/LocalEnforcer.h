@@ -156,7 +156,7 @@ class LocalEnforcer {
    * Initialize reauth for a subscriber service. If the subscriber cannot be
    * found, the method returns SESSION_NOT_FOUND
    */
-  ChargingReAuthAnswer::Result init_charging_reauth(
+  ReAuthResult init_charging_reauth(
       SessionMap& session_map, ChargingReAuthRequest request,
       SessionUpdate& session_update);
 
@@ -245,7 +245,8 @@ class LocalEnforcer {
    * report is going to be
    * aggregated.
    */
-  void notify_new_report_for_sessions(SessionMap& session_map);
+  void notify_new_report_for_sessions(
+      SessionMap& session_map, SessionUpdate &session_update);
 
   /**
    * notify_finish_report_for_sessions notifies all sessions that the

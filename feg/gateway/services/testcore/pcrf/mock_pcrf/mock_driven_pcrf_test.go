@@ -38,29 +38,26 @@ func TestPCRFExpectations(t *testing.T) {
 	clientConfig := getClientConfig()
 
 	// E/A that should be met
-	expectedInitReq := fegprotos.NewGxCCRequest(test.IMSI1, fegprotos.CCRequestType_INITIAL, 1)
-	usageMonitoringQuotaGrant := []*fegprotos.UsageMonitoringInformation{
-		{
-			MonitoringLevel: fegprotos.MonitoringLevel_RuleLevel,
-			MonitoringKey:   []byte("mkey1"),
-			Octets:          &fegprotos.Octets{TotalOctets: 1024},
-		},
+	expectedInitReq := fegprotos.NewGxCCRequest(test.IMSI1, fegprotos.CCRequestType_INITIAL)
+	usageMonitoringQuotaGrant := &fegprotos.UsageMonitoringInformation{
+		MonitoringLevel: fegprotos.MonitoringLevel_RuleLevel,
+		MonitoringKey:   []byte("mkey1"),
+		Octets:          &fegprotos.Octets{TotalOctets: 1024},
 	}
-	dynamicRulesToInstall := []*fegprotos.RuleDefinition{
-		{
-			RuleName:         "rule1",
-			RatingGroup:      9,
-			Precedence:       10,
-			MonitoringKey:    "m1",
-			FlowDescriptions: []string{"permit out ip from any to any", "permit in ip from any to any"},
-			RedirectInformation: &lteprotos.RedirectInformation{
-				Support:     lteprotos.RedirectInformation_ENABLED,
-				AddressType: lteprotos.RedirectInformation_IPv4,
-			},
-			QosInformation: &lteprotos.FlowQos{
-				MaxReqBwDl: 15,
-				MaxReqBwUl: 30,
-			},
+	dynamicRuleToInstall := &fegprotos.RuleDefinition{
+
+		RuleName:         "rule1",
+		RatingGroup:      9,
+		Precedence:       10,
+		MonitoringKey:    "m1",
+		FlowDescriptions: []string{"permit out ip from any to any", "permit in ip from any to any"},
+		RedirectInformation: &lteprotos.RedirectInformation{
+			Support:     lteprotos.RedirectInformation_ENABLED,
+			AddressType: lteprotos.RedirectInformation_IPv4,
+		},
+		QosInformation: &lteprotos.FlowQos{
+			MaxReqBwDl: 15,
+			MaxReqBwUl: 30,
 		},
 	}
 	activationTime := time.Now().Round(1 * time.Second)
@@ -71,22 +68,22 @@ func TestPCRFExpectations(t *testing.T) {
 	assert.NoError(t, err)
 	expectedInitAns := fegprotos.NewGxCCAnswer(diam.Success).
 		SetStaticRuleInstalls([]string{"rule1", "rule2"}, []string{"base1", "base2"}).
-		SetDynamicRuleInstalls(dynamicRulesToInstall).
+		SetDynamicRuleInstall(dynamicRuleToInstall).
 		SetRuleActivationTime(pActivationTime).
 		SetRuleDeactivationTime(pDeactivationTime).
-		SetUsageMonitorInfos(usageMonitoringQuotaGrant)
+		SetUsageMonitorInfo(usageMonitoringQuotaGrant)
 	expectedInit := fegprotos.NewGxCreditControlExpectation().Expect(expectedInitReq).Return(expectedInitAns)
 
 	// Update Request
-	expectedUpdateReq := fegprotos.NewGxCCRequest(test.IMSI1, fegprotos.CCRequestType_UPDATE, 2).
-		SetUsageMonitorReports(usageMonitoringQuotaGrant).
+	expectedUpdateReq := fegprotos.NewGxCCRequest(test.IMSI1, fegprotos.CCRequestType_UPDATE).
+		SetUsageMonitorReport(usageMonitoringQuotaGrant).
 		SetUsageReportDelta(100)
 	expectedUpdateAns := fegprotos.NewGxCCAnswer(diam.Success).
-		SetUsageMonitorInfos(usageMonitoringQuotaGrant)
+		SetUsageMonitorInfo(usageMonitoringQuotaGrant)
 	expectedUpdate := fegprotos.NewGxCreditControlExpectation().Expect(expectedUpdateReq).Return(expectedUpdateAns)
 
 	// E/A that will not be met
-	expectedReqNotMet := fegprotos.NewGxCCRequest(test.IMSI1, fegprotos.CCRequestType_UPDATE, 3)
+	expectedReqNotMet := fegprotos.NewGxCCRequest(test.IMSI1, fegprotos.CCRequestType_UPDATE)
 	answerNotMet := fegprotos.NewGxCCAnswer(diam.UnableToComply)
 	expectationNotMet := fegprotos.NewGxCreditControlExpectation().Expect(expectedReqNotMet).Return(answerNotMet)
 
@@ -156,18 +153,9 @@ func TestPCRFExpectations(t *testing.T) {
 	assert.Nil(t, err)
 
 	expectedResult := []*fegprotos.ExpectationResult{
-		{
-			ExpectationMet:   true,
-			ExpectationIndex: 0,
-		},
-		{
-			ExpectationMet:   true,
-			ExpectationIndex: 1,
-		},
-		{
-			ExpectationMet:   false,
-			ExpectationIndex: 2,
-		},
+		{ExpectationMet: true, ExpectationIndex: 0},
+		{ExpectationMet: true, ExpectationIndex: 1},
+		{ExpectationMet: false, ExpectationIndex: 2},
 	}
 	assert.ElementsMatch(t, expectedResult, res.Results)
 	expectedErrors := []*fegprotos.ErrorByIndex{

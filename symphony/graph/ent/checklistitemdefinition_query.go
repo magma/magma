@@ -25,7 +25,7 @@ type CheckListItemDefinitionQuery struct {
 	config
 	limit      *int
 	offset     *int
-	order      []Order
+	order      []OrderFunc
 	unique     []string
 	predicates []predicate.CheckListItemDefinition
 	// eager-loading edges.
@@ -55,7 +55,7 @@ func (clidq *CheckListItemDefinitionQuery) Offset(offset int) *CheckListItemDefi
 }
 
 // Order adds an order step to the query.
-func (clidq *CheckListItemDefinitionQuery) Order(o ...Order) *CheckListItemDefinitionQuery {
+func (clidq *CheckListItemDefinitionQuery) Order(o ...OrderFunc) *CheckListItemDefinitionQuery {
 	clidq.order = append(clidq.order, o...)
 	return clidq
 }
@@ -248,7 +248,7 @@ func (clidq *CheckListItemDefinitionQuery) Clone() *CheckListItemDefinitionQuery
 		config:     clidq.config,
 		limit:      clidq.limit,
 		offset:     clidq.offset,
-		order:      append([]Order{}, clidq.order...),
+		order:      append([]OrderFunc{}, clidq.order...),
 		unique:     append([]string{}, clidq.unique...),
 		predicates: append([]predicate.CheckListItemDefinition{}, clidq.predicates...),
 		// clone intermediate query.
@@ -478,14 +478,14 @@ func (clidq *CheckListItemDefinitionQuery) sqlQuery() *sql.Selector {
 type CheckListItemDefinitionGroupBy struct {
 	config
 	fields []string
-	fns    []Aggregate
+	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (clidgb *CheckListItemDefinitionGroupBy) Aggregate(fns ...Aggregate) *CheckListItemDefinitionGroupBy {
+func (clidgb *CheckListItemDefinitionGroupBy) Aggregate(fns ...AggregateFunc) *CheckListItemDefinitionGroupBy {
 	clidgb.fns = append(clidgb.fns, fns...)
 	return clidgb
 }

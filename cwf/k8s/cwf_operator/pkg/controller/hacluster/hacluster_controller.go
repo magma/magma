@@ -167,7 +167,7 @@ func (r *ReconcileHACluster) Reconcile(request reconcile.Request) (reconcile.Res
 	}
 
 	if initErr != nil {
-		reqLogger.Error(err, "failover occurred", strconv.FormatBool(failover))
+		reqLogger.Error(initErr, "failover occurred", strconv.FormatBool(failover))
 	}
 	hacluster.Status = updatedStatus
 	updateErr := r.client.Status().Update(context.TODO(), hacluster)

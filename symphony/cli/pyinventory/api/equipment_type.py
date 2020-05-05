@@ -5,8 +5,7 @@
 
 from typing import Dict, List, Optional, Sequence, Tuple
 
-from gql.gql.client import OperationException
-from gql.gql.reporter import FailedOperationException
+from pysymphony import SymphonyClient
 
 from .._utils import (
     format_properties,
@@ -14,7 +13,7 @@ from .._utils import (
     get_position_definition_input,
     get_property_type_input,
 )
-from ..client import SymphonyClient
+from ..common.cache import EQUIPMENT_TYPES, PORT_TYPES
 from ..common.data_class import (
     Equipment,
     EquipmentPortType,
@@ -23,20 +22,19 @@ from ..common.data_class import (
     PropertyValue,
 )
 from ..common.data_enum import Entity
-from ..common.mutation_name import ADD_EQUIPMENT_TYPE, EDIT_EQUIPMENT_TYPE
-from ..exceptions import EntityNotFoundError, EquipmentTypeNotFoundException
-from ..graphql.add_equipment_type_input import AddEquipmentTypeInput
-from ..graphql.add_equipment_type_mutation import AddEquipmentTypeMutation
-from ..graphql.edit_equipment_type_input import EditEquipmentTypeInput
-from ..graphql.edit_equipment_type_mutation import EditEquipmentTypeMutation
-from ..graphql.equipment_port_input import EquipmentPortInput
-from ..graphql.equipment_port_types import EquipmentPortTypesQuery
-from ..graphql.equipment_position_input import EquipmentPositionInput
-from ..graphql.equipment_type_equipments_query import EquipmentTypeEquipmentQuery
-from ..graphql.equipment_types_query import EquipmentTypesQuery
-from ..graphql.property_type_fragment import PropertyTypeFragment
-from ..graphql.property_type_input import PropertyTypeInput
-from ..graphql.remove_equipment_type_mutation import RemoveEquipmentTypeMutation
+from ..exceptions import EntityNotFoundError
+from ..graphql.fragment.property_type import PropertyTypeFragment
+from ..graphql.input.add_equipment_type import AddEquipmentTypeInput
+from ..graphql.input.edit_equipment_type import EditEquipmentTypeInput
+from ..graphql.input.equipment_port import EquipmentPortInput
+from ..graphql.input.equipment_position import EquipmentPositionInput
+from ..graphql.input.property_type import PropertyTypeInput
+from ..graphql.mutation.add_equipment_type import AddEquipmentTypeMutation
+from ..graphql.mutation.edit_equipment_type import EditEquipmentTypeMutation
+from ..graphql.mutation.remove_equipment_type import RemoveEquipmentTypeMutation
+from ..graphql.query.equipment_port_types import EquipmentPortTypesQuery
+from ..graphql.query.equipment_type_equipments import EquipmentTypeEquipmentQuery
+from ..graphql.query.equipment_types import EquipmentTypesQuery
 from .equipment import delete_equipment
 from .property_type import (
     edit_property_type,
@@ -46,12 +44,12 @@ from .property_type import (
 
 
 def _populate_equipment_types(client: SymphonyClient) -> None:
-    edges = EquipmentTypesQuery.execute(client).equipmentTypes.edges
+    edges = EquipmentTypesQuery.execute(client).edges
 
     for edge in edges:
         node = edge.node
         if node:
-            client.equipmentTypes[node.name] = EquipmentType(
+            EQUIPMENT_TYPES[node.name] = EquipmentType(
                 name=node.name,
                 category=node.category,
                 id=node.id,
@@ -62,12 +60,12 @@ def _populate_equipment_types(client: SymphonyClient) -> None:
 
 
 def _populate_equipment_port_types(client: SymphonyClient) -> None:
-    edges = EquipmentPortTypesQuery.execute(client).equipmentPortTypes.edges
+    edges = EquipmentPortTypesQuery.execute(client).edges
 
     for edge in edges:
         node = edge.node
         if node:
-            client.portTypes[node.name] = EquipmentPortType(
+            PORT_TYPES[node.name] = EquipmentPortType(
                 id=node.id,
                 name=node.name,
                 property_types=node.propertyTypes,
@@ -92,7 +90,7 @@ def _add_equipment_type(
             ports=port_definitions,
             properties=properties,
         ),
-    ).__dict__[ADD_EQUIPMENT_TYPE]
+    )
 
 
 def get_or_create_equipment_type(
@@ -139,8 +137,8 @@ def get_or_create_equipment_type(
             )
             ```
     """
-    if name in client.equipmentTypes:
-        return client.equipmentTypes[name]
+    if name in EQUIPMENT_TYPES:
+        return EQUIPMENT_TYPES[name]
     return add_equipment_type(
         client, name, category, properties, ports_dict, position_list
     )
@@ -165,7 +163,7 @@ def _edit_equipment_type(
             ports=port_definitions,
             properties=properties,
         ),
-    ).__dict__[EDIT_EQUIPMENT_TYPE]
+    )
 
 
 def _update_equipment_type(
@@ -178,35 +176,15 @@ def _update_equipment_type(
     port_definitions: List[EquipmentPortInput],
 ) -> EquipmentType:
 
-    edit_equipment_type_variables = {
-        "name": name,
-        "category": category,
-        "positionDefinitions": position_definitions,
-        "portDefinitions": port_definitions,
-        "properties": properties,
-    }
-
-    try:
-        equipment_type = _edit_equipment_type(
-            client=client,
-            equipment_type_id=equipment_type_id,
-            name=name,
-            category=category,
-            properties=properties,
-            position_definitions=position_definitions,
-            port_definitions=port_definitions,
-        )
-        client.reporter.log_successful_operation(
-            EDIT_EQUIPMENT_TYPE, edit_equipment_type_variables
-        )
-    except OperationException as e:
-        raise FailedOperationException(
-            client.reporter,
-            e.err_msg,
-            e.err_id,
-            EDIT_EQUIPMENT_TYPE,
-            edit_equipment_type_variables,
-        )
+    equipment_type = _edit_equipment_type(
+        client=client,
+        equipment_type_id=equipment_type_id,
+        name=name,
+        category=category,
+        properties=properties,
+        position_definitions=position_definitions,
+        port_definitions=port_definitions,
+    )
     equipment_type = EquipmentType(
         name=equipment_type.name,
         category=equipment_type.category,
@@ -215,7 +193,7 @@ def _update_equipment_type(
         position_definitions=equipment_type.positionDefinitions,
         port_definitions=equipment_type.portDefinitions,
     )
-    client.equipmentTypes[name] = equipment_type
+    EQUIPMENT_TYPES[name] = equipment_type
     return equipment_type
 
 
@@ -265,41 +243,20 @@ def add_equipment_type(
     new_property_types = format_properties(properties)
 
     port_definitions = [
-        EquipmentPortInput(name=name, portTypeID=client.portTypes[_type].id)
+        EquipmentPortInput(name=name, portTypeID=PORT_TYPES[_type].id)
         for name, _type in ports_dict.items()
     ]
     position_definitions = [
         EquipmentPositionInput(name=position) for position in position_list
     ]
-
-    add_equipment_type_variables = {
-        "name": name,
-        "category": category,
-        "positionDefinitions": position_definitions,
-        "portDefinitions": port_definitions,
-        "properties": new_property_types,
-    }
-    try:
-        equipment_type = _add_equipment_type(
-            client,
-            name,
-            category,
-            new_property_types,
-            position_definitions,
-            port_definitions,
-        )
-        client.reporter.log_successful_operation(
-            ADD_EQUIPMENT_TYPE, add_equipment_type_variables
-        )
-    except OperationException as e:
-        raise FailedOperationException(
-            client.reporter,
-            e.err_msg,
-            e.err_id,
-            ADD_EQUIPMENT_TYPE,
-            add_equipment_type_variables,
-        )
-
+    equipment_type = _add_equipment_type(
+        client,
+        name,
+        category,
+        new_property_types,
+        position_definitions,
+        port_definitions,
+    )
     equipment_type = EquipmentType(
         name=equipment_type.name,
         category=equipment_type.category,
@@ -308,7 +265,7 @@ def add_equipment_type(
         position_definitions=equipment_type.positionDefinitions,
         port_definitions=equipment_type.portDefinitions,
     )
-    client.equipmentTypes[equipment_type.name] = equipment_type
+    EQUIPMENT_TYPES[name] = equipment_type
     return equipment_type
 
 
@@ -342,9 +299,7 @@ def edit_equipment_type(
             )
             ```
     """
-    if name not in client.equipmentTypes:
-        raise EquipmentTypeNotFoundException
-    equipment_type = client.equipmentTypes[name]
+    equipment_type = EQUIPMENT_TYPES[name]
     edited_property_types = [
         get_property_type_input(property_type)
         for property_type in equipment_type.property_types
@@ -357,7 +312,7 @@ def edit_equipment_type(
         get_port_definition_input(port_definition, is_new=False)
         for port_definition in equipment_type.port_definitions
     ] + [
-        EquipmentPortInput(name=name, portTypeID=client.portTypes[_type].id)
+        EquipmentPortInput(name=name, portTypeID=PORT_TYPES[_type].id)
         for name, _type in new_ports_dict.items()
     ]
 
@@ -395,12 +350,7 @@ def copy_equipment_type(
             )
             ```
     """
-    if curr_equipment_type_name not in client.equipmentTypes:
-        raise Exception(
-            "Equipment type " + curr_equipment_type_name + " does not exist"
-        )
-
-    equipment_type = client.equipmentTypes[curr_equipment_type_name]
+    equipment_type = EQUIPMENT_TYPES[curr_equipment_type_name]
 
     new_property_types = [
         get_property_type_input(property_type)
@@ -435,7 +385,7 @@ def copy_equipment_type(
         port_definitions=equipment_type.portDefinitions,
     )
 
-    client.equipmentTypes[new_equipment_type_name] = new_equipment_type
+    EQUIPMENT_TYPES[new_equipment_type_name] = new_equipment_type
     return new_equipment_type
 
 
@@ -449,7 +399,7 @@ def get_equipment_type_property_type(
             property_type_id (str): property type ID
 
         Returns:
-            `pyinventory.graphql.property_type_fragment.PropertyTypeFragment`  object
+            `pyinventory.graphql.fragment.property_type.PropertyTypeFragment`  object
 
         Raises:
             `pyinventory.exceptions.EntityNotFoundError`: property type with id=`property_type_id` is not found
@@ -480,7 +430,7 @@ def get_equipment_type_property_type_by_external_id(
             property_type_external_id (str): property type external ID
 
         Returns:
-            `pyinventory.graphql.property_type_fragment.PropertyTypeFragment`  object
+            `pyinventory.graphql.fragment.property_type.PropertyTypeFragment`  object
 
         Raises:
             `pyinventory.exceptions.EntityNotFoundError`: property type with external_id=`property_type_external_id` is not found
@@ -511,7 +461,7 @@ def edit_equipment_type_property_type(
 
         Args:
             equipment_type_name (str): existing equipment type name
-            property_type_name (str): existing property type name
+            property_type_id (str): existing property type id
             new_property_definition ( `pyinventory.common.data_class.PropertyDefinition` ): new property definition
 
         Returns:
@@ -523,14 +473,20 @@ def edit_equipment_type_property_type(
 
         Example:
             ```
-            e_type = client.edit_equipment_type_property_type_name(
+            e_type = client.edit_equipment_type_property_type(
                 equipment_type_name="Card",
-                property_type_name="contact",
-                new_name="contact information",
+                property_type_id="111669149698",
+                new_property_definition=PropertyDefinition(
+                    property_name=property_type_name,
+                    property_kind=PropertyKind.string,
+                    default_value=None,
+                    is_fixed=False,
+                    external_id="12345",
+                ),
             )
             ```
     """
-    equipment_type = client.equipmentTypes[equipment_type_name]
+    equipment_type = EQUIPMENT_TYPES[equipment_type_name]
     edited_property_types = edit_property_type(
         client=client,
         entity_type=Entity.EquipmentType,
@@ -585,7 +541,7 @@ def delete_equipment_type_with_equipments(
     """
     equipment_type_with_equipments = EquipmentTypeEquipmentQuery.execute(
         client, id=equipment_type.id
-    ).equipmentType
+    )
     if not equipment_type_with_equipments:
         raise EntityNotFoundError(
             entity=Entity.EquipmentType, entity_id=equipment_type.id

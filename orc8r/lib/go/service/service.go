@@ -90,7 +90,7 @@ func NewServiceWithOptions(moduleName string, serviceName string, serverOptions 
 	return NewServiceWithOptionsImpl(moduleName, serviceName, serverOptions...)
 }
 
-// NewServiceWithOptionsImpl returns a new GRPC orchestrator service implementing
+// NewServiceWithOptionsImpl returns a new GRPC service implementing
 // service303 with the specified grpc server options. This will not instantiate
 // the service with the identity checking middleware.
 func NewServiceWithOptionsImpl(

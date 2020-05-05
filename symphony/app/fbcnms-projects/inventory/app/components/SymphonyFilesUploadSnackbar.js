@@ -27,7 +27,7 @@ const SymphonyFilesUploadSnackbar = () => {
   return (
     <FilesUploadSnackbar
       onClose={() => setIsShown(false)}
-      files={filesUploadContext.files.toArray()}
+      files={filesUploadContext.files.toList().toArray()}
     />
   );
 };

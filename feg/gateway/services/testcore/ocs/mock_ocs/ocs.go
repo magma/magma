@@ -48,22 +48,24 @@ type SubscriberAccount struct {
 }
 
 type OCSConfig struct {
-	MaxUsageOctets *protos.Octets
-	MaxUsageTime   uint32
-	ValidityTime   uint32
-	ServerConfig   *diameter.DiameterServerConfig
-	GyInitMethod   gy.InitMethod
-	UseMockDriver  bool
+	MaxUsageOctets  *protos.Octets
+	MaxUsageTime    uint32
+	ValidityTime    uint32
+	ServerConfig    *diameter.DiameterServerConfig
+	GyInitMethod    gy.InitMethod
+	UseMockDriver   bool
+	RedirectAddress string
+	FinalUnitAction protos.FinalUnitAction
 }
 
 // OCSDiamServer wraps an OCS storing subscriber accounts and their credit
 type OCSDiamServer struct {
-	diameterSettings    *diameter.DiameterClientConfig
-	ocsConfig           *OCSConfig
-	accounts            map[string]*SubscriberAccount // map of IMSI to subscriber account
-	mux                 *sm.StateMachine
-	LastMessageReceived *ccrMessage
-	mockDriver          *mock_driver.MockDriver
+	diameterSettings        *diameter.DiameterClientConfig
+	ocsConfig               *OCSConfig
+	accounts                map[string]*SubscriberAccount // map of IMSI to subscriber account
+	mux                     *sm.StateMachine
+	lastDiamMessageReceived *diam.Message
+	mockDriver              *mock_driver.MockDriver
 }
 
 // NewOCSDiamServer initializes an OCS with an empty account map
@@ -168,6 +170,8 @@ func (srv *OCSDiamServer) SetOCSSettings(
 	config.MaxUsageTime = ocsConfig.MaxUsageTime
 	config.ValidityTime = ocsConfig.ValidityTime
 	config.UseMockDriver = ocsConfig.UseMockDriver
+	config.RedirectAddress = ocsConfig.RedirectAddress
+	config.FinalUnitAction = ocsConfig.FinalUnitAction
 	return &orcprotos.Void{}, nil
 }
 
@@ -196,16 +200,39 @@ func (srv *OCSDiamServer) SetCredit(
 // Input: string IMSI for the account
 // Output: map[uint32]*CreditBucket a map of charging key to credit bucket
 //			   error if account could not be found
-func (srv *OCSDiamServer) GetCredits(imsi string) (map[uint32]*CreditBucket, error) {
-	account, ok := srv.accounts[imsi]
+func (srv *OCSDiamServer) GetCredits(
+	_ context.Context,
+	subscriberID *lteprotos.SubscriberID,
+) (*protos.CreditInfos, error) {
+	account, ok := srv.accounts[subscriberID.Id]
 	if !ok {
-		return nil, fmt.Errorf("Could not find imsi %s", imsi)
+		return &protos.CreditInfos{}, fmt.Errorf("Could not find imsi %s", subscriberID.Id)
 	}
-	return account.ChargingCredit, nil
+	infos := make(map[uint32]*protos.CreditInfo)
+	for id, chargingCredit := range account.ChargingCredit {
+		infos[id] =
+			&protos.CreditInfo{
+				UnitType: chargingCredit.Unit,
+				Volume:   chargingCredit.Volume,
+			}
+	}
+	return &protos.CreditInfos{CreditInformation: infos}, nil
 }
 
 // Reset eliminates all the accounts allocated for the system.
 func (srv *OCSDiamServer) ClearSubscribers(_ context.Context, void *orcprotos.Void) (*orcprotos.Void, error) {
+	glog.V(2).Infof("Accounts (%d) will be deleted from OCS:", len(srv.accounts))
+	for imsi, subs := range srv.accounts {
+		glog.V(2).Infof("\tRemaing credit for IMSI: %s", imsi)
+		for key, credits := range subs.ChargingCredit {
+			glog.V(2).Infof("\t - key %d, Total:%d Tx:%d Rx:%d",
+				key,
+				credits.Volume.TotalOctets,
+				credits.Volume.OutputOctets,
+				credits.Volume.InputOctets,
+			)
+		}
+	}
 	srv.accounts = make(map[string]*SubscriberAccount)
 	glog.V(2).Info("All accounts deleted.")
 	return &orcprotos.Void{}, nil
@@ -243,13 +270,26 @@ func (srv *OCSDiamServer) ReAuth(
 	}
 	done := make(chan *gy.ChargingReAuthAnswer)
 	srv.mux.Handle(diam.RAA, handleRAA(done))
-	sendRAR(account.CurrentState, &target.RatingGroup, srv.mux.Settings())
+	err := sendRAR(account.CurrentState, &target.RatingGroup, srv.mux.Settings())
+	if err != nil {
+		glog.Errorf("Error sending RaR for target IMSI=%v, RG=%v: %v", target.GetImsi(), target.GetRatingGroup(), err)
+		return nil, err
+	}
 	select {
 	case raa := <-done:
 		return &protos.ChargingReAuthAnswer{SessionId: diameter.DecodeSessionID(raa.SessionID), ResultCode: raa.ResultCode}, nil
 	case <-time.After(10 * time.Second):
 		return nil, fmt.Errorf("No RAA received")
 	}
+}
+
+// GetLastAVPreceived gets the last message in diam format received
+// Message gets overwriten every time a new CCR is sent
+func (srv *OCSDiamServer) GetLastAVPreceived() (*diam.Message, error) {
+	if srv.lastDiamMessageReceived == nil {
+		return nil, fmt.Errorf("No AVP message received")
+	}
+	return srv.lastDiamMessageReceived, nil
 }
 
 func sendRAR(state *SubscriberSessionState, ratingGroup *uint32, cfg *sm.Settings) error {

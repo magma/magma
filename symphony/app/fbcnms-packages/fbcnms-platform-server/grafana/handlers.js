@@ -36,6 +36,8 @@ import type {OrganizationType} from '@fbcnms/sequelize-models/models/organizatio
 import type {UserType} from '@fbcnms/sequelize-models/models/user';
 import type {tenant} from '../../fbcnms-magma-api';
 
+const logger = require('@fbcnms/logging').getLogger(module);
+
 export type Task = {name: string, status: number, message: string};
 
 export const ORC8R_DATASOURCE_NAME = 'Orchestrator Datasource';
@@ -599,9 +601,15 @@ function organizationsEqual(
 
 async function hasCWFNetwork(networks: Array<string>): Promise<boolean> {
   for (const networkId of networks) {
-    const networkInfo = await MagmaV1API.getNetworksByNetworkId({networkId});
-    if (networkInfo.type === 'carrier_wifi_network') {
-      return true;
+    try {
+      const networkInfo = await MagmaV1API.getNetworksByNetworkId({networkId});
+      if (networkInfo.type === 'carrier_wifi_network') {
+        return true;
+      }
+    } catch (error) {
+      logger.error(
+        `Error retrieving network info for network while building dashboards: ${networkId}. Error: ${error}`,
+      );
     }
   }
   return false;

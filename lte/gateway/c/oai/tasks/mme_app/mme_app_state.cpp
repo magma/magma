@@ -71,14 +71,16 @@ hash_table_ts_t* get_mme_ue_state()
 
 void put_mme_ue_state(mme_app_desc_t* mme_app_desc_p, imsi64_t imsi64)
 {
-  if (imsi64 != INVALID_IMSI64) {
-    ue_mm_context_t* ue_context = NULL;
-    ue_context =
-      mme_ue_context_exists_imsi(&mme_app_desc_p->mme_ue_contexts, imsi64);
-    if(ue_context) {
-      auto imsi_str = MmeNasStateManager::getInstance().get_imsi_str(imsi64);
-      MmeNasStateManager::getInstance().write_ue_state_to_db(
-        ue_context, imsi_str);
+  if(MmeNasStateManager::getInstance().is_persist_state_enabled()) {
+    if (imsi64 != INVALID_IMSI64) {
+      ue_mm_context_t* ue_context = NULL;
+      ue_context =
+          mme_ue_context_exists_imsi(&mme_app_desc_p->mme_ue_contexts, imsi64);
+      if (ue_context) {
+        auto imsi_str = MmeNasStateManager::getInstance().get_imsi_str(imsi64);
+        MmeNasStateManager::getInstance().write_ue_state_to_db(
+            ue_context, imsi_str);
+      }
     }
   }
 }

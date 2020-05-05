@@ -5,12 +5,13 @@
 
 from typing import Dict, List, Tuple
 
-from ..client import SymphonyClient
+from pysymphony import SymphonyClient
+
 from ..common.data_class import Equipment, Location
 from ..common.data_enum import Entity
 from ..exceptions import EntityNotFoundError
-from ..graphql.equipment_positions_query import EquipmentPositionsQuery
-from ..graphql.location_equipments_query import LocationEquipmentsQuery
+from ..graphql.query.equipment_positions import EquipmentPositionsQuery
+from ..graphql.query.location_equipments import LocationEquipmentsQuery
 from .equipment import copy_equipment, copy_equipment_in_position
 from .link import add_link, get_all_links_and_port_names_of_equipment
 
@@ -18,9 +19,7 @@ from .link import add_link, get_all_links_and_port_names_of_equipment
 def _get_one_level_attachments_of_equipment(
     client: SymphonyClient, equipment: Equipment
 ) -> List[Tuple[str, Equipment]]:
-    equipment_with_positions = EquipmentPositionsQuery.execute(
-        client, id=equipment.id
-    ).equipment
+    equipment_with_positions = EquipmentPositionsQuery.execute(client, id=equipment.id)
     if not equipment_with_positions:
         raise EntityNotFoundError(entity=Entity.Equipment, entity_id=equipment.id)
     attachments = []
@@ -93,7 +92,7 @@ def apply_location_template_to_location(
 
     location_with_equipments = LocationEquipmentsQuery.execute(
         client, id=template_location.id
-    ).location
+    )
     if not location_with_equipments:
         raise EntityNotFoundError(
             entity=Entity.Location, entity_id=template_location.id

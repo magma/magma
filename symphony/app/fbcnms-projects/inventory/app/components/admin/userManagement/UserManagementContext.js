@@ -11,14 +11,20 @@
 
 // flowlint untyped-import:off
 
+import type {AddPermissionsPolicyMutationResponse} from '../../../mutations/__generated__/AddPermissionsPolicyMutation.graphql';
 import type {AddUsersGroupMutationResponse} from '../../../mutations/__generated__/AddUsersGroupMutation.graphql';
 import type {DeleteUsersGroupMutationResponse} from '../../../mutations/__generated__/DeleteUsersGroupMutation.graphql';
+import type {EditPermissionsPolicyMutationResponse} from '../../../mutations/__generated__/EditPermissionsPolicyMutation.graphql';
 import type {EditUserMutationResponse} from '../../../mutations/__generated__/EditUserMutation.graphql';
 import type {EditUsersGroupMutationResponse} from '../../../mutations/__generated__/EditUsersGroupMutation.graphql';
 import type {MutationCallbacks} from '../../../mutations/MutationCallbacks.js';
-import type {StoreUpdater} from '../../../common/RelayEnvironment';
+import type {
+  PermissionsPolicy,
+  User,
+  UserPermissionsGroup,
+} from './utils/UserManagementUtils';
+import type {SelectorStoreUpdater} from 'relay-runtime';
 import type {UpdateUsersGroupMembersMutationResponse} from '../../../mutations/__generated__/UpdateUsersGroupMembersMutation.graphql';
-import type {User, UserPermissionsGroup} from './utils/UserManagementUtils';
 import type {
   UserManagementContextQuery,
   UserRole,
@@ -27,8 +33,10 @@ import type {UserManagementContext_UserQuery} from './__generated__/UserManageme
 import type {UsersMap} from './utils/UserManagementUtils';
 
 import * as React from 'react';
+import AddPermissionsPolicyMutation from '../../../mutations/AddPermissionsPolicyMutation';
 import AddUsersGroupMutation from '../../../mutations/AddUsersGroupMutation';
 import DeleteUsersGroupMutation from '../../../mutations/DeleteUsersGroupMutation';
+import EditPermissionsPolicyMutation from '../../../mutations/EditPermissionsPolicyMutation';
 import EditUserMutation from '../../../mutations/EditUserMutation';
 import EditUsersGroupMutation from '../../../mutations/EditUsersGroupMutation';
 import LoadingIndicator from '../../../common/LoadingIndicator';
@@ -40,15 +48,18 @@ import {ConnectionHandler, fetchQuery, graphql} from 'relay-runtime';
 import {LogEvents, ServerLogger} from '../../../common/LoggingUtils';
 import {RelayEnvironmentProvider} from 'react-relay/hooks';
 import {Suspense} from 'react';
-import {USER_ROLES} from './utils/UserManagementUtils';
-import {getGraphError} from '../../../common/EntUtils';
 import {
+  USER_ROLES,
   groupResponse2Group,
   groupsResponse2Groups,
+  permissionsPoliciesResponse2PermissionsPolicies,
+  permissionsPolicy2PermissionsPolicyInput,
+  permissionsPolicyResponse2PermissionsPolicy,
   userResponse2User,
   users2UsersMap,
   usersResponse2Users,
 } from './utils/UserManagementUtils';
+import {getGraphError} from '../../../common/EntUtils';
 import {useContext} from 'react';
 import {useLazyLoadQuery} from 'react-relay/hooks';
 
@@ -148,7 +159,7 @@ const changeCurrentUserPassword = (
   return axios.post(`/user/change_password`, payload).then(() => undefined);
 };
 
-const editUser = (newUserValue: User, updater?: StoreUpdater) => {
+const editUser = (newUserValue: User, updater?: SelectorStoreUpdater) => {
   return new Promise<User>((resolve, reject) => {
     const callbacks: MutationCallbacks<EditUserMutationResponse> = {
       onCompleted: (response, errors) => {
@@ -330,12 +341,108 @@ const addGroup = (usersMap: UsersMap) => (
   });
 };
 
+const addPermissionsPolicy = (newPolicyValue: PermissionsPolicy) => {
+  return new Promise<PermissionsPolicy>((resolve, reject) => {
+    const callbacks: MutationCallbacks<AddPermissionsPolicyMutationResponse> = {
+      onCompleted: (response, errors) => {
+        if (errors && errors[0]) {
+          reject(getGraphError(errors[0]));
+        }
+        resolve(
+          permissionsPolicyResponse2PermissionsPolicy(
+            response.addPermissionsPolicy,
+          ),
+        );
+      },
+      onError: e => {
+        reject(getGraphError(e));
+      },
+    };
+
+    const addNewPolicyToStore = store => {
+      const rootQuery = store.getRoot();
+      const newNode = store.getRootField('addPermissionsPolicy');
+      if (newNode == null) {
+        return;
+      }
+      const policies = ConnectionHandler.getConnection(
+        rootQuery,
+        'UserManagementContext_permissionsPolicies',
+      );
+      if (policies == null) {
+        return;
+      }
+      const edge = ConnectionHandler.createEdge(
+        store,
+        policies,
+        newNode,
+        'PermisionsPolicyEdge',
+      );
+      ConnectionHandler.insertEdgeAfter(policies, edge);
+    };
+    AddPermissionsPolicyMutation(
+      {
+        input: permissionsPolicy2PermissionsPolicyInput(newPolicyValue),
+      },
+      callbacks,
+      addNewPolicyToStore,
+    );
+  });
+};
+
+const editPermissionsPolicy = (newPolicyValue: PermissionsPolicy) => {
+  return new Promise<PermissionsPolicy>((resolve, reject) => {
+    type Callbacks = MutationCallbacks<EditPermissionsPolicyMutationResponse>;
+    const callbacks: Callbacks = {
+      onCompleted: (response, errors) => {
+        if (errors && errors[0]) {
+          reject(getGraphError(errors[0]));
+        }
+        resolve(
+          permissionsPolicyResponse2PermissionsPolicy(
+            response.editPermissionsPolicy,
+          ),
+        );
+      },
+      onError: e => {
+        reject(getGraphError(e));
+      },
+    };
+
+    EditPermissionsPolicyMutation(
+      {
+        input: {
+          id: newPolicyValue.id,
+          ...permissionsPolicy2PermissionsPolicyInput(newPolicyValue),
+        },
+      },
+      callbacks,
+    );
+  });
+};
+
+const deletePermissionsPolicy = (_poilicyId: string) => {
+  return Promise.reject('not implemented yet');
+};
+
+const updatePolicyGroups = (
+  _policy: PermissionsPolicy,
+  _addUserIds: Array<string>,
+  _removeUserIds: Array<string>,
+) => {
+  return Promise.reject('not implemented yet');
+};
+
 type UserManagementContextValue = {
+  policies: Array<PermissionsPolicy>,
   groups: Array<UserPermissionsGroup>,
   users: Array<User>,
   usersMap: UsersMap,
   addUser: (user: User, password: string) => Promise<User>,
-  editUser: (newUserValue: User, updater?: StoreUpdater) => Promise<User>,
+  editUser: (
+    newUserValue: User,
+    updater?: SelectorStoreUpdater,
+  ) => Promise<User>,
   changeUserPassword: (user: User, password: string) => Promise<User>,
   changeCurrentUserPassword: (
     currentPassword: string,
@@ -349,10 +456,19 @@ type UserManagementContextValue = {
     addUserIds: Array<string>,
     removeUserIds: Array<string>,
   ) => Promise<UserPermissionsGroup>,
+  addPermissionsPolicy: PermissionsPolicy => Promise<PermissionsPolicy>,
+  editPermissionsPolicy: PermissionsPolicy => Promise<PermissionsPolicy>,
+  deletePermissionsPolicy: (id: string) => Promise<void>,
+  updatePolicyGroups: (
+    policy: PermissionsPolicy,
+    addUserIds: Array<string>,
+    removeUserIds: Array<string>,
+  ) => Promise<PermissionsPolicy>,
 };
 
 const emptyUsersMap = new Map<string, User>();
 const UserManagementContext = React.createContext<UserManagementContextValue>({
+  policies: [],
   groups: [],
   users: [],
   usersMap: emptyUsersMap,
@@ -364,33 +480,22 @@ const UserManagementContext = React.createContext<UserManagementContextValue>({
   editGroup: editGroup(emptyUsersMap),
   deleteGroup,
   updateGroupMembers: updateGroupMembers(emptyUsersMap),
+  addPermissionsPolicy,
+  editPermissionsPolicy,
+  deletePermissionsPolicy,
+  updatePolicyGroups,
 });
 
 type Props = {
   children: React.Node,
 };
 
-const usersQuery = graphql`
+const dataQuery = graphql`
   query UserManagementContextQuery {
     users(first: 500) @connection(key: "UserManagementContext_users") {
       edges {
         node {
-          id
-          authID
-          firstName
-          lastName
-          email
-          status
-          role
-          groups {
-            id
-            name
-          }
-          profilePhoto {
-            id
-            fileName
-            storeKey
-          }
+          ...UserManagementUtils_user @relay(mask: false)
         }
       }
     }
@@ -398,14 +503,15 @@ const usersQuery = graphql`
       @connection(key: "UserManagementContext_usersGroups") {
       edges {
         node {
-          id
-          name
-          description
-          status
-          members {
-            id
-            authID
-          }
+          ...UserManagementUtils_group @relay(mask: false)
+        }
+      }
+    }
+    permissionsPolicies(first: 500)
+      @connection(key: "UserManagementContext_permissionsPolicies") {
+      edges {
+        node {
+          ...UserManagementUtils_policies @relay(mask: false)
         }
       }
     }
@@ -413,7 +519,8 @@ const usersQuery = graphql`
 `;
 
 function ProviderWrap(props: Props) {
-  const providerValue = (users, groups, usersMap) => ({
+  const providerValue = (users, groups, policies, usersMap) => ({
+    policies,
     groups,
     users,
     usersMap,
@@ -425,17 +532,24 @@ function ProviderWrap(props: Props) {
     editGroup: editGroup(usersMap),
     deleteGroup,
     updateGroupMembers: updateGroupMembers(usersMap),
+    addPermissionsPolicy,
+    editPermissionsPolicy,
+    deletePermissionsPolicy,
+    updatePolicyGroups,
   });
 
-  const data = useLazyLoadQuery<UserManagementContextQuery>(usersQuery);
+  const data = useLazyLoadQuery<UserManagementContextQuery>(dataQuery);
 
   const users = usersResponse2Users(data.users);
   const usersMap = users2UsersMap(users);
   const groups = groupsResponse2Groups(data.usersGroups, usersMap);
+  const policies = permissionsPoliciesResponse2PermissionsPolicies(
+    data.permissionsPolicies,
+  );
 
   return (
     <UserManagementContext.Provider
-      value={providerValue(users, groups, usersMap)}>
+      value={providerValue(users, groups, policies, usersMap)}>
       {props.children}
     </UserManagementContext.Provider>
   );

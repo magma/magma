@@ -14,7 +14,7 @@ from pyinventory.api.port import edit_link_properties, get_port
 from pyinventory.api.port_type import add_equipment_port_type
 from pyinventory.common.data_class import PropertyDefinition
 from pyinventory.exceptions import PortAlreadyOccupiedException
-from pyinventory.graphql.property_kind_enum import PropertyKind
+from pyinventory.graphql.enum.property_kind import PropertyKind
 
 from .grpc.rpc_pb2_grpc import TenantServiceStub
 from .utils.base_test import BaseTest

@@ -109,6 +109,9 @@ class EnforcementController(PolicyMixin, MagmaController):
         flows.delete_all_flows_from_table(datapath, self.tbl_num)
         flows.delete_all_flows_from_table(datapath, self._redirect_scratch)
 
+    def cleanup_state(self):
+        pass
+
     @set_ev_cls(ofp_event.EventOFPBarrierReply, MAIN_DISPATCHER)
     def _handle_barrier(self, ev):
         self._msg_hub.handle_barrier(ev)

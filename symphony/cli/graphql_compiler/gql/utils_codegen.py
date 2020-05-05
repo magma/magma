@@ -2,31 +2,36 @@
 import os
 import re
 
-
-SPACES = " " * 4
+from .constant import ENUM_SUFFIX, FRAGMENT_SUFFIX, INPUT_SUFFIX, SPACES
 
 
 def camel_case_to_lower_case(string: str) -> str:
     return re.sub(r"(?<!^)(?=[A-Z])", "_", string).lower()
 
 
-def get_filename_by_extension(name: str, extension: str) -> str:
+def get_filename_by_folder(name: str, extension: str) -> str:
     lower_case_name = camel_case_to_lower_case(name)
-    if lower_case_name.endswith("".join(["_", extension])):
-        return lower_case_name
-    return "_".join([lower_case_name, extension])
+    extension = "".join(["_", extension])
+    if lower_case_name.endswith(extension):
+        return lower_case_name[: -len(extension)]
+    return lower_case_name
 
 
 def get_enum_filename(enum_name: str) -> str:
-    return get_filename_by_extension(enum_name, "enum")
+    return get_filename_by_folder(enum_name, ENUM_SUFFIX)
 
 
 def get_input_filename(input_name: str) -> str:
-    return get_filename_by_extension(input_name, "input")
+    return get_filename_by_folder(input_name, INPUT_SUFFIX)
 
 
 def get_fragment_filename(fragment_name: str) -> str:
-    return get_filename_by_extension(fragment_name, "fragment")
+    return get_filename_by_folder(fragment_name, FRAGMENT_SUFFIX)
+
+
+def remove_dirname_in_import(dirname: str, rendered: str) -> str:
+    pattern = "".join([r"\.\.", f"{dirname}", r"\."])
+    return re.sub(pattern, ".", rendered)
 
 
 class CodeChunk:

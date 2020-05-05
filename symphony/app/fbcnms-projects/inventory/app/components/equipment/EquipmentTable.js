@@ -165,6 +165,7 @@ const EquipmentTable = (props: Props) => {
         render: row => (
           <Button
             variant="text"
+            useEllipsis={true}
             onClick={() => {
               const {key: _, ...eq} = row;
               onEquipmentSelected(eq);
@@ -194,6 +195,7 @@ const EquipmentTable = (props: Props) => {
         render: row => (
           <Button
             variant="text"
+            useEllipsis={true}
             onClick={() => onWorkOrderSelected(nullthrows(row?.workOrder?.id))}>
             {getEquipmentStatus(row)}
           </Button>

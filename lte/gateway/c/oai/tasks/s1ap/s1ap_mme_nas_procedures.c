@@ -112,7 +112,7 @@ int s1ap_mme_handle_initial_ue_message(
     "New Initial UE message received with eNB UE S1AP ID: " ENB_UE_S1AP_ID_FMT
     "\n",
     enb_ue_s1ap_id);
-  ue_ref = s1ap_state_get_ue_enbid(eNB_ref, enb_ue_s1ap_id);
+  ue_ref = s1ap_state_get_ue_enbid(eNB_ref->sctp_assoc_id, enb_ue_s1ap_id);
 
   if (ue_ref == NULL) {
     tai_t tai = {0};
@@ -149,7 +149,7 @@ int s1ap_mme_handle_initial_ue_message(
 
     // On which stream we received the message
     ue_ref->sctp_stream_recv = stream;
-    ue_ref->sctp_stream_send = ue_ref->enb->next_sctp_stream;
+    ue_ref->sctp_stream_send = eNB_ref->next_sctp_stream;
 
     /*
      * Increment the sctp stream for the eNB association.
@@ -161,11 +161,11 @@ int s1ap_mme_handle_initial_ue_message(
      * TODO task#15456359.
      * Below logic seems to be incorrect , revisit it.
      */
-    ue_ref->enb->next_sctp_stream += 1;
-    if (ue_ref->enb->next_sctp_stream >= ue_ref->enb->instreams) {
-      ue_ref->enb->next_sctp_stream = 1;
+    eNB_ref->next_sctp_stream += 1;
+    if (eNB_ref->next_sctp_stream >= eNB_ref->instreams) {
+      eNB_ref->next_sctp_stream = 1;
     }
-    s1ap_dump_enb(ue_ref->enb);
+    s1ap_dump_enb(eNB_ref);
     // TAI mandatory IE
     OCTET_STRING_TO_TAC(&initialUEMessage_p->tai.tAC, tai.tac);
     DevAssert(initialUEMessage_p->tai.pLMNidentity.size == 3);
@@ -216,7 +216,7 @@ int s1ap_mme_handle_initial_ue_message(
 #else
     s1ap_mme_itti_s1ap_initial_ue_message(
       assoc_id,
-      ue_ref->enb->enb_id,
+      eNB_ref->enb_id,
       ue_ref->enb_ue_s1ap_id,
       initialUEMessage_p->nas_pdu.buf,
       initialUEMessage_p->nas_pdu.size,
@@ -275,7 +275,7 @@ int s1ap_mme_handle_uplink_nas_transport(
     enb_ref = s1ap_state_get_enb(state, assoc_id);
 
     if (!(ue_ref = s1ap_state_get_ue_enbid(
-            enb_ref,
+            enb_ref->sctp_assoc_id,
             (enb_ue_s1ap_id_t) uplinkNASTransport_p->eNB_UE_S1AP_ID))) {
       OAILOG_WARNING(
         LOG_S1AP,
@@ -292,7 +292,7 @@ int s1ap_mme_handle_uplink_nas_transport(
       (mme_ue_s1ap_id_t) uplinkNASTransport_p->mme_ue_s1ap_id);
 
     if (!(ue_ref = s1ap_state_get_ue_mmeid(
-            state, uplinkNASTransport_p->mme_ue_s1ap_id))) {
+        uplinkNASTransport_p->mme_ue_s1ap_id))) {
       OAILOG_WARNING(
         LOG_S1AP,
         "Received S1AP UPLINK_NAS_TRANSPORT No UE is attached to this "
@@ -367,7 +367,7 @@ int s1ap_mme_handle_nas_non_delivery(
 
   if (
     (ue_ref = s1ap_state_get_ue_mmeid(
-       state, nasNonDeliveryIndication_p->mme_ue_s1ap_id)) == NULL) {
+       nasNonDeliveryIndication_p->mme_ue_s1ap_id)) == NULL) {
     OAILOG_DEBUG(
       LOG_S1AP,
       "No UE is attached to this mme UE s1ap id: " MME_UE_S1AP_ID_FMT "\n",
@@ -423,7 +423,7 @@ int s1ap_generate_downlink_nas_transport(
     sctp_assoc_id_t sctp_assoc_id = (sctp_assoc_id_t)(uintptr_t) id;
     enb_description_t *enb_ref = s1ap_state_get_enb(state, sctp_assoc_id);
     if (enb_ref) {
-      ue_ref = s1ap_state_get_ue_enbid(enb_ref, enb_ue_s1ap_id);
+      ue_ref = s1ap_state_get_ue_enbid(enb_ref->sctp_assoc_id, enb_ue_s1ap_id);
     } else {
       OAILOG_ERROR(
         LOG_S1AP, "No eNB for SCTP association id %d \n", sctp_assoc_id);
@@ -432,7 +432,7 @@ int s1ap_generate_downlink_nas_transport(
   }
   // TODO remove soon:
   if (!ue_ref) {
-    ue_ref = s1ap_state_get_ue_mmeid(state, ue_id);
+    ue_ref = s1ap_state_get_ue_mmeid(ue_id);
   }
   // finally!
   if (!ue_ref) {
@@ -504,7 +504,7 @@ int s1ap_generate_downlink_nas_transport(
     free(buffer_p);
     s1ap_mme_itti_send_sctp_request(
       &b,
-      ue_ref->enb->sctp_assoc_id,
+      ue_ref->sctp_assoc_id,
       ue_ref->sctp_stream_send,
       ue_ref->mme_ue_s1ap_id);
     free_s1ap_downlinknastransport(downlinkNasTransport);
@@ -532,12 +532,12 @@ int s1ap_generate_s1ap_e_rab_setup_req(
     sctp_assoc_id_t sctp_assoc_id = (sctp_assoc_id_t)(uintptr_t) id;
     enb_description_t *enb_ref = s1ap_state_get_enb(state, sctp_assoc_id);
     if (enb_ref) {
-      ue_ref = s1ap_state_get_ue_enbid(enb_ref, enb_ue_s1ap_id);
+      ue_ref = s1ap_state_get_ue_enbid(enb_ref->sctp_assoc_id, enb_ue_s1ap_id);
     }
   }
   // TODO remove soon:
   if (!ue_ref) {
-    ue_ref = s1ap_state_get_ue_mmeid(state, ue_id);
+    ue_ref = s1ap_state_get_ue_mmeid(ue_id);
   }
   // finally!
   if (!ue_ref) {
@@ -708,7 +708,7 @@ int s1ap_generate_s1ap_e_rab_setup_req(
     bstring b = blk2bstr(buffer_p, length);
     s1ap_mme_itti_send_sctp_request(
       &b,
-      ue_ref->enb->sctp_assoc_id,
+      ue_ref->sctp_assoc_id,
       ue_ref->sctp_stream_send,
       ue_ref->mme_ue_s1ap_id);
   }
@@ -742,7 +742,7 @@ void s1ap_handle_conn_est_cnf(
     LOG_S1AP,
     "Received Connection Establishment Confirm from MME_APP for ue_id = %u\n",
     conn_est_cnf_pP->ue_id);
-  ue_ref = s1ap_state_get_ue_mmeid(state, conn_est_cnf_pP->ue_id);
+  ue_ref = s1ap_state_get_ue_mmeid(conn_est_cnf_pP->ue_id);
   if (!ue_ref) {
     OAILOG_ERROR(
       LOG_S1AP,
@@ -755,7 +755,9 @@ void s1ap_handle_conn_est_cnf(
 
   imsi64_t imsi64;
   s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
-  hashtable_uint64_ts_get(imsi_map->mme_ue_id_imsi_htbl, (const hash_key_t) conn_est_cnf_pP->ue_id, &imsi64);
+  hashtable_uint64_ts_get(
+      imsi_map->mme_ue_id_imsi_htbl, (const hash_key_t) conn_est_cnf_pP->ue_id,
+      &imsi64);
 
   /*
    * Start the outcome response timer.
@@ -936,7 +938,7 @@ void s1ap_handle_conn_est_cnf(
   free_s1ap_initialcontextsetuprequest(initialContextSetupRequest_p);
   s1ap_mme_itti_send_sctp_request(
     &b,
-    ue_ref->enb->sctp_assoc_id,
+    ue_ref->sctp_assoc_id,
     ue_ref->sctp_stream_send,
     ue_ref->mme_ue_s1ap_id);
   OAILOG_FUNC_OUT(LOG_S1AP);
@@ -956,17 +958,22 @@ void s1ap_handle_mme_ue_id_notification(
   enb_description_t *enb_ref = s1ap_state_get_enb(state, sctp_assoc_id);
   if (enb_ref) {
     ue_description_t *ue_ref =
-      s1ap_state_get_ue_enbid(enb_ref, enb_ue_s1ap_id);
+      s1ap_state_get_ue_enbid(enb_ref->sctp_assoc_id, enb_ue_s1ap_id);
     if (ue_ref) {
       ue_ref->mme_ue_s1ap_id = mme_ue_s1ap_id;
       hashtable_rc_t h_rc = hashtable_ts_insert(
-        &state->mmeid2associd,
-        (const hash_key_t) mme_ue_s1ap_id,
-        (void *) (uintptr_t) sctp_assoc_id);
+          &state->mmeid2associd,
+          (const hash_key_t) mme_ue_s1ap_id,
+          (void *) (uintptr_t) sctp_assoc_id);
+
+      hashtable_uint64_ts_insert(
+          &enb_ref->ue_id_coll,
+          (const hash_key_t) mme_ue_s1ap_id,
+          ue_ref->comp_s1ap_id);
 
       OAILOG_DEBUG(
         LOG_S1AP,
-        "Associated  sctp_assoc_id %d, enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
+        "Associated sctp_assoc_id %d, enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
         ", mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT ":%s \n",
         sctp_assoc_id,
         enb_ue_s1ap_id,
@@ -1005,11 +1012,11 @@ int s1ap_generate_s1ap_e_rab_rel_cmd(
     sctp_assoc_id_t sctp_assoc_id = (sctp_assoc_id_t)(uintptr_t) id;
     enb_description_t *enb_ref = s1ap_state_get_enb(state, sctp_assoc_id);
     if (enb_ref) {
-      ue_ref = s1ap_state_get_ue_enbid(enb_ref, enb_ue_s1ap_id);
+      ue_ref = s1ap_state_get_ue_enbid(enb_ref->sctp_assoc_id, enb_ue_s1ap_id);
     }
   }
   if (!ue_ref) {
-    ue_ref = s1ap_state_get_ue_mmeid(state, ue_id);
+    ue_ref = s1ap_state_get_ue_mmeid(ue_id);
   }
   if (!ue_ref) {
     /*
@@ -1088,7 +1095,7 @@ int s1ap_generate_s1ap_e_rab_rel_cmd(
     bstring b = blk2bstr(buffer_p, length);
     s1ap_mme_itti_send_sctp_request(
       &b,
-      ue_ref->enb->sctp_assoc_id,
+      ue_ref->sctp_assoc_id,
       ue_ref->sctp_stream_send,
       ue_ref->mme_ue_s1ap_id);
   }

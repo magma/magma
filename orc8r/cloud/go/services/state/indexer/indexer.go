@@ -10,23 +10,27 @@ package indexer
 
 import (
 	"magma/orc8r/cloud/go/services/state"
-	"magma/orc8r/cloud/go/storage"
 )
 
 // Version of the indexer. Capped to uint32 to fit into Postgres/Maria integer (int32).
 type Version uint32
 
-// StateErrors is a mapping of state type+key to error experienced indexing the state.
-// Type is state type, key is state reporter ID.
-type StateErrors map[storage.TypeAndKey]error
+// StateErrors is a mapping of state ID to error experienced indexing the state.
+type StateErrors map[state.ID]error
 
 // Indexer creates a set of secondary indices for consumption by a service.
 // Each Indexer should
 // 	- be owned by a single service
-//	- store per-version data in a properly isolated manner,
-// 	  e.g. different SQL tables for different indexer versions
-//	- have its generated data exposed by the owning service,
-//	  i.e. only one other service should access the generated data directly via the storage interface.
+//	- have its generated data exposed by the owning service, i.e. only one other service
+//	  should access the generated data directly via the storage interface.
+// Notes
+//	- There is an unlikely but existent race condition during a reindex
+//	  operation, where Index could be called with an outdated version of a state.
+//	  If indexers care about preventing this race condition:
+//		- add a Reindex method to indexer interface, called in-place of Index
+//		  during reindex operations
+//		- individual indexers should track received state IDs per version and
+//		  drop Reindex-ed states with stale versions.
 type Indexer interface {
 	// GetID returns the unique identifier for the indexer.
 	// Unique ID should be alphanumeric with underscores, prefixed by the owning service,
@@ -44,20 +48,16 @@ type Indexer interface {
 	GetSubscriptions() []Subscription
 
 	// PrepareReindex prepares for a reindex operation.
-	// Each version should use e.g. a separate SQL table, so preparing for
-	// a reindex would include creating new table(s).
 	// isFirstReindex is set if this is the first time this indexer has been registered.
 	PrepareReindex(from, to Version, isFirstReindex bool) error
 
 	// CompleteReindex indicates the reindex operation is complete.
-	// Any internal state relevant only to the from version can subsequently be
-	// safely removed, e.g. dropping old SQL tables.
 	CompleteReindex(from, to Version) error
 
 	// Index updates secondary indices based on the added/updated states.
-	Index(networkID, reporterHWID string, states []state.State) (StateErrors, error)
+	Index(networkID string, states state.StatesByID) (StateErrors, error)
 
+	// TODO(4/10/20): consider adding support for removing states from an indexer
 	// IndexRemove updates secondary indices based on the removed states.
-	// NOTE: for now, we will defer IndexRemove to future efforts.
-	//IndexRemove(reporterHWID string, states []State) (map[TypeAndKey]error, error)
+	//IndexRemove(states state.StatesByID) (StateErrors, error)
 }

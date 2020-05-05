@@ -10,7 +10,6 @@ package mock_pcrf
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net"
 	"time"
@@ -28,6 +27,7 @@ import (
 	"github.com/fiorix/go-diameter/v4/diam/sm"
 	"github.com/fiorix/go-diameter/v4/diam/sm/smpeer"
 	"github.com/golang/glog"
+	"github.com/pkg/errors"
 )
 
 // PCRFConfig defines the configuration for a PCRF server, which for now is just
@@ -59,13 +59,13 @@ type subscriberAccount struct {
 
 // PCRFDiamServer wraps an PCRF storing subscribers and their rules
 type PCRFDiamServer struct {
-	diameterSettings    *diameter.DiameterClientConfig
-	pcrfConfig          *PCRFConfig
-	serviceConfig       *protos.PCRFConfigs
-	subscribers         map[string]*subscriberAccount // map of imsi to to rules
-	mux                 *sm.StateMachine
-	LastMessageReceived *ccrMessage
-	mockDriver          *mock_driver.MockDriver
+	diameterSettings        *diameter.DiameterClientConfig
+	pcrfConfig              *PCRFConfig
+	serviceConfig           *protos.PCRFConfigs
+	subscribers             map[string]*subscriberAccount // map of imsi to to rules
+	mux                     *sm.StateMachine
+	lastDiamMessageReceived *diam.Message
+	mockDriver              *mock_driver.MockDriver
 }
 
 // NewPCRFDiamServer initializes an PCRF with an empty rule map
@@ -270,7 +270,7 @@ func (srv *PCRFDiamServer) AssertExpectations(_ context.Context, void *orcprotos
 // AbortSession call for a subscriber
 // Initiate a Abort session request and provide the response
 func (srv *PCRFDiamServer) AbortSession(
-	ctx context.Context,
+	_ context.Context,
 	req *protos.PolicyAbortSessionRequest,
 ) (*protos.PolicyAbortSessionResponse, error) {
 	glog.V(1).Infof("AbortSession: imsi %s abortCause %v", req.GetImsi(), req.GetCause())
@@ -294,13 +294,25 @@ func (srv *PCRFDiamServer) AbortSession(
 		resp <- &gx.PolicyAbortSessionResponse{SessionID: asa.SessionID, ResultCode: asa.ResultCode}
 	}
 	srv.mux.Handle(diam.ASA, asaHandler)
-	sendASR(account.CurrentState, srv.mux.Settings())
+	err := sendASR(account.CurrentState, srv.mux.Settings())
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to send Gx ASR")
+	}
 	select {
 	case asa := <-resp:
 		return &protos.PolicyAbortSessionResponse{SessionId: diameter.DecodeSessionID(asa.SessionID), ResultCode: asa.ResultCode}, nil
 	case <-time.After(10 * time.Second):
 		return nil, fmt.Errorf("No ASA received")
 	}
+}
+
+// GetLastAVPreceived gets the last message in diam format received
+// Message gets overwriten every time a new CCR is sent
+func (srv *PCRFDiamServer) GetLastAVPreceived() (*diam.Message, error) {
+	if srv.lastDiamMessageReceived == nil {
+		return nil, fmt.Errorf("No AVP message received")
+	}
+	return srv.lastDiamMessageReceived, nil
 }
 
 func sendASR(state *SubscriberSessionState, cfg *sm.Settings) error {
@@ -347,7 +359,11 @@ func (srv *PCRFDiamServer) ReAuth(
 		done <- &gx.PolicyReAuthAnswer{SessionID: raa.SessionID, ResultCode: raa.ResultCode}
 	}
 	srv.mux.Handle(diam.RAA, raaHandler)
-	sendRAR(account.CurrentState, target, srv.mux.Settings())
+	err := sendRAR(account.CurrentState, target, srv.mux.Settings())
+	if err != nil {
+		glog.Errorf("Error sending RaR for target %v: %v", target.GetImsi(), err)
+		return nil, err
+	}
 	select {
 	case raa := <-done:
 		return &protos.PolicyReAuthAnswer{SessionId: diameter.DecodeSessionID(raa.SessionID), ResultCode: raa.ResultCode}, nil

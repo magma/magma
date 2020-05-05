@@ -34,4 +34,8 @@ export const PropertyTypeLabels: {[string]: PropertyTypeInfo} = {
     label: fbt('Work Order', ''),
     isNode: true,
   },
+  user: {
+    label: fbt('User', ''),
+    isNode: true,
+  },
 };

@@ -24,7 +24,7 @@ type ReportFilterQuery struct {
 	config
 	limit      *int
 	offset     *int
-	order      []Order
+	order      []OrderFunc
 	unique     []string
 	predicates []predicate.ReportFilter
 	// intermediate query (i.e. traversal path).
@@ -51,7 +51,7 @@ func (rfq *ReportFilterQuery) Offset(offset int) *ReportFilterQuery {
 }
 
 // Order adds an order step to the query.
-func (rfq *ReportFilterQuery) Order(o ...Order) *ReportFilterQuery {
+func (rfq *ReportFilterQuery) Order(o ...OrderFunc) *ReportFilterQuery {
 	rfq.order = append(rfq.order, o...)
 	return rfq
 }
@@ -226,7 +226,7 @@ func (rfq *ReportFilterQuery) Clone() *ReportFilterQuery {
 		config:     rfq.config,
 		limit:      rfq.limit,
 		offset:     rfq.offset,
-		order:      append([]Order{}, rfq.order...),
+		order:      append([]OrderFunc{}, rfq.order...),
 		unique:     append([]string{}, rfq.unique...),
 		predicates: append([]predicate.ReportFilter{}, rfq.predicates...),
 		// clone intermediate query.
@@ -405,14 +405,14 @@ func (rfq *ReportFilterQuery) sqlQuery() *sql.Selector {
 type ReportFilterGroupBy struct {
 	config
 	fields []string
-	fns    []Aggregate
+	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (rfgb *ReportFilterGroupBy) Aggregate(fns ...Aggregate) *ReportFilterGroupBy {
+func (rfgb *ReportFilterGroupBy) Aggregate(fns ...AggregateFunc) *ReportFilterGroupBy {
 	rfgb.fns = append(rfgb.fns, fns...)
 	return rfgb
 }

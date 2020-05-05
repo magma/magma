@@ -19,10 +19,10 @@ import Suppressions from './alertmanager/Suppressions';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import getPrometheusRuleInterface from './rules/PrometheusEditor/getRuleInterface';
+import useRouter from '@fbcnms/alarms/hooks/useRouter';
 import {Link, Redirect, Route, Switch} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
 import {matchPath} from 'react-router';
-import {useRouter} from '@fbcnms/ui/hooks';
 
 import type {ApiUtil} from './AlarmsApi';
 import type {FiringAlarm} from './AlarmAPIType';

@@ -68,6 +68,8 @@ P-GW =
     # DNS address communicated to UEs
     DEFAULT_DNS_IPV4_ADDRESS     = "{{ ipv4_dns }}";
     DEFAULT_DNS_SEC_IPV4_ADDRESS = "{{ ipv4_sec_dns }}";
+    P_CSCF_IPV4_ADDRESS = "172.27.23.150";
+    P_CSCF_IPV6_ADDRESS = "2a12:577:9941:f99c:0002:0001:c731:f114";
 
     # Non standard feature, normally should be set to "no", but you may need to set to yes for UE that do not explicitly request a PDN address through NAS signalling
     FORCE_PUSH_PROTOCOL_CONFIGURATION_OPTIONS = "no";                           # STRING, {"yes", "no"}.

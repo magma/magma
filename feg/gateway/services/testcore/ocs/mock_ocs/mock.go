@@ -40,6 +40,12 @@ func (e GyExpectation) DoesMatch(message interface{}) error {
 	if expectedPK != actualPK {
 		return fmt.Errorf("Expected: %v, Received: %v", expectedPK, actualPK)
 	}
+	expectedRN := expected.GetRequestNumber()
+	if expectedRN != nil {
+		if err := mock_driver.CompareRequestNumber(actualPK, expectedRN, ccr.RequestNumber); err != nil {
+			return err
+		}
+	}
 	if !compareMsccAgainstExpected(ccr.MSCC, expected.GetMscc(), expected.GetUsageReportDelta()) {
 		return fmt.Errorf("For Request=%v, Expected: %v, Received: %v", actualPK, expected.GetMscc(), ccr.MSCC)
 	}
@@ -49,7 +55,16 @@ func (e GyExpectation) DoesMatch(message interface{}) error {
 func (answer GyAnswer) toAVPs() ([]*diam.AVP, uint32) {
 	avps := make([]*diam.AVP, 0, len(answer.GetQuotaGrants()))
 	for _, grant := range answer.QuotaGrants {
-		avps = append(avps, toGrantedUnitsAVP(grant.GetResultCode(), grant.GetValidityTime(), grant.GetGrantedServiceUnit(), grant.GetIsFinalCredit(), grant.GetFinalUnitAction(), grant.GetRatingGroup()))
+		avps = append(
+			avps,
+			toGrantedUnitsAVP(
+				grant.GetResultCode(),
+				grant.GetValidityTime(),
+				grant.GetGrantedServiceUnit(),
+				grant.GetIsFinalCredit(),
+				grant.GetRatingGroup(),
+				grant.GetFinalUnitAction(),
+				grant.GetRedirectServer().GetRedirectServerAddress()))
 	}
 	return avps, answer.GetResultCode()
 }

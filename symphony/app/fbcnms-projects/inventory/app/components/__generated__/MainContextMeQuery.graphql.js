@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash a166846e4786bb912d79f7de2137d79f
+ * @relayHash b8dc6dfaa9688e2c238f79a5db0e086a
  */
 
 /* eslint-disable */
@@ -19,7 +19,7 @@ export type PermissionValue = "BY_CONDITION" | "NO" | "YES" | "%future added val
 export type MainContextMeQueryVariables = {||};
 export type MainContextMeQueryResponse = {|
   +me: ?{|
-    +user: {|
+    +user: ?{|
       +id: string,
       +authID: string,
       +email: string,

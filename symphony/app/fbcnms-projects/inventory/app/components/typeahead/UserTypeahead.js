@@ -8,18 +8,18 @@
  * @format
  */
 
-import type {GroupMember} from '../admin/userManagement/utils/GroupMemberViewer';
 import type {ShortUser} from '../../common/EntUtils';
+import type {User} from '../admin/userManagement/utils/UserManagementUtils';
 
 import * as React from 'react';
-import GroupMemberViewer from '../admin/userManagement/utils/GroupMemberViewer';
 import Typeahead from '@fbcnms/ui/components/Typeahead';
-import {useUserSearch} from '../admin/userManagement/utils/userSearch/UserSearchContext.js';
+import UserViewer from '../admin/userManagement/users/UserViewer';
+import {useUserSearch} from '../admin/userManagement/utils/search/UserSearchContext';
 
 type Props = {
   className?: string,
   required?: boolean,
-  headline?: string,
+  headline?: ?string,
   selectedUser?: ?ShortUser,
   margin?: ?string,
   onUserSelection: (?ShortUser) => void,
@@ -42,13 +42,15 @@ const UserTypeahead = (props: Props) => {
         margin={margin}
         required={!!required}
         suggestions={userSearch.results.map(result => {
-          const member: GroupMember = result;
+          const user: User = result;
           return {
-            entityId: member.user.id,
+            entityId: user.id,
             entityType: 'user',
-            name: member.user.authID,
+            name: user.authID,
             type: 'user',
-            render: () => <GroupMemberViewer member={member} />,
+            render: () => (
+              <UserViewer user={user} showPhoto={true} showRole={true} />
+            ),
           };
         })}
         onSuggestionsFetchRequested={userSearch.setSearchTerm}

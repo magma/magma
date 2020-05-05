@@ -44,10 +44,10 @@ func ReportGatewayStatus(t *testing.T, ctx context.Context, req *models.GatewayS
 	assert.NoError(t, err)
 }
 
-func ReportState(t *testing.T, ctx context.Context, stateType string, stateKey string, req interface{}) {
+func ReportState(t *testing.T, ctx context.Context, stateType string, stateKey string, stateVal interface{}) {
 	client, err := state.GetStateClient()
 	assert.NoError(t, err)
-	serializedState, err := serde.Serialize(state.SerdeDomain, stateType, req)
+	serializedState, err := serde.Serialize(state.SerdeDomain, stateType, stateVal)
 	assert.NoError(t, err)
 	states := []*protos.State{
 		{

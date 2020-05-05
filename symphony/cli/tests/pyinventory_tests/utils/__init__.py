@@ -8,7 +8,7 @@ import time
 
 import requests
 from pyinventory import InventoryClient
-from pyinventory.common.endpoint import LOCALHOST_INVENTORY_SERVER
+from pysymphony.common.endpoint import LOCALHOST_SERVER
 
 from .constant import PLATFORM_SERVER_HEALTH_CHECK_URL, TestMode
 
@@ -59,7 +59,7 @@ def init_client(email: str, password: str) -> InventoryClient:
 
 def get_grpc_server_address() -> str:
     if TEST_MODE == TestMode.LOCAL:
-        return LOCALHOST_INVENTORY_SERVER.format(TENANT) + ":8083"
+        return LOCALHOST_SERVER + ":8083"
     elif TEST_MODE == TestMode.REMOTE:
         raise NotImplementedError("T64902729")
     else:

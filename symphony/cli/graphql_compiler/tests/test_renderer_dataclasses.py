@@ -15,9 +15,14 @@ from graphql import (
     GraphQLSchema,
     GraphQLString,
 )
+from graphql_compiler.gql.constant import ENUM_DIRNAME, FRAGMENT_DIRNAME
 from graphql_compiler.gql.query_parser import QueryParser
 from graphql_compiler.gql.renderer_dataclasses import DataclassesRenderer
-from graphql_compiler.gql.utils_codegen import get_enum_filename, get_fragment_filename
+from graphql_compiler.gql.utils_codegen import (
+    get_enum_filename,
+    get_fragment_filename,
+    remove_dirname_in_import,
+)
 
 from .base_test import BaseTest
 
@@ -87,10 +92,10 @@ class TestRendererDataclasses(BaseTest):
 
         result = m.GetFilm.execute(mock_client, "luke")
         assert result
-        assert isinstance(result, m.GetFilm.GetFilmData)
+        assert isinstance(result, m.GetFilm.GetFilmData.Film)
 
-        assert result.returnOfTheJedi.title == "Return of the Jedi"
-        assert result.returnOfTheJedi.director == "George Lucas"
+        assert result.title == "Return of the Jedi"
+        assert result.director == "George Lucas"
 
     def test_simple_query_with_fragment(self):
         fragment_query = """
@@ -118,7 +123,8 @@ class TestRendererDataclasses(BaseTest):
 
         parsed = self.swapi_parser.parse(query, fragment_query)
         rendered = self.swapi_dataclass_renderer.render(parsed)
-
+        # TODO T66492306
+        rendered = remove_dirname_in_import(dirname=FRAGMENT_DIRNAME, rendered=rendered)
         m = self.load_module(rendered)
         response = m.GetFilm.from_json(
             """
@@ -168,7 +174,8 @@ class TestRendererDataclasses(BaseTest):
 
         parsed = self.swapi_parser.parse(query, fragment_query)
         rendered = self.swapi_dataclass_renderer.render(parsed)
-
+        # TODO T66492306
+        rendered = remove_dirname_in_import(dirname=FRAGMENT_DIRNAME, rendered=rendered)
         m = self.load_module(rendered)
         response = m.GetPerson.from_json(
             """
@@ -217,7 +224,10 @@ class TestRendererDataclasses(BaseTest):
 
         parsed_fragment1 = self.swapi_parser.parse(fragment_query1, is_fragment=True)
         rendered_fragment1 = self.swapi_dataclass_renderer.render(parsed_fragment1)
-
+        # TODO T66492306
+        rendered_fragment1 = remove_dirname_in_import(
+            dirname=FRAGMENT_DIRNAME, rendered=rendered_fragment1
+        )
         self.load_module(
             rendered_fragment1, module_name=get_fragment_filename("PlanetFields")
         )
@@ -226,14 +236,18 @@ class TestRendererDataclasses(BaseTest):
             fragment_query2, fragment_query1, is_fragment=True
         )
         rendered_fragment2 = self.swapi_dataclass_renderer.render(parsed_fragment2)
-
+        # TODO T66492306
+        rendered_fragment2 = remove_dirname_in_import(
+            dirname=FRAGMENT_DIRNAME, rendered=rendered_fragment2
+        )
         self.load_module(
             rendered_fragment2, module_name=get_fragment_filename("CharacterFields")
         )
 
         parsed = self.swapi_parser.parse(query, fragment_query1 + fragment_query2)
         rendered = self.swapi_dataclass_renderer.render(parsed)
-
+        # TODO T66492306
+        rendered = remove_dirname_in_import(dirname=FRAGMENT_DIRNAME, rendered=rendered)
         m = self.load_module(rendered)
         response = m.GetPerson.from_json(
             """
@@ -319,6 +333,8 @@ class TestRendererDataclasses(BaseTest):
             self.load_module(enum_code, module_name=get_enum_filename(enum_name))
 
         rendered = self.github_dataclass_renderer.render(parsed)
+        # TODO T66492306
+        rendered = remove_dirname_in_import(dirname=ENUM_DIRNAME, rendered=rendered)
         m = self.load_module(rendered)
 
         response = m.MyIssues.from_json(
@@ -371,6 +387,8 @@ class TestRendererDataclasses(BaseTest):
             self.load_module(enum_code, module_name=get_enum_filename(enum_name))
 
         rendered = self.github_dataclass_renderer.render(parsed)
+        # TODO T66492306
+        rendered = remove_dirname_in_import(dirname=ENUM_DIRNAME, rendered=rendered)
         m = self.load_module(rendered)
 
         response = m.MyIssues.from_json(
@@ -540,11 +558,11 @@ class TestRendererDataclasses(BaseTest):
         )
 
         result = m.GetFilm.execute(mock_client, "luke")
-        assert isinstance(result, m.GetFilm.GetFilmData)
+        assert isinstance(result, m.GetFilm.GetFilmData.Film)
 
-        assert result.returnOfTheJedi.title == "Return of the Jedi"
-        assert result.returnOfTheJedi.director == "George Lucas"
-        assert result.returnOfTheJedi.releaseDate == now
+        assert result.title == "Return of the Jedi"
+        assert result.director == "George Lucas"
+        assert result.releaseDate == now
 
     def test_non_nullable_list(self):
 
@@ -600,8 +618,8 @@ class TestRendererDataclasses(BaseTest):
 
         result = m.GetPeople.execute(mock_client)
         assert result
-        assert isinstance(result, m.GetPeople.GetPeopleData)
-
-        assert len(result.people) == 2
-        assert result.people[0].name == "eran"
-        assert result.people[1].name == "eran1"
+        assert isinstance(result, list)
+        assert len(result) == 2
+        assert isinstance(result[0], m.GetPeople.GetPeopleData.Person)
+        assert result[0].name == "eran"
+        assert result[1].name == "eran1"

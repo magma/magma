@@ -248,18 +248,19 @@ TEST_F(SessionStateTest, test_can_complete_termination) {
   EXPECT_EQ(session_state->can_complete_termination(), false);
 
   // If the rule is still being reported, termination should not be completed.
-  session_state->new_report();
+  auto _uc = get_default_update_criteria();
+  session_state->new_report(_uc);
   EXPECT_EQ(session_state->can_complete_termination(), false);
   session_state->add_used_credit("rule1", 100, 100, update_criteria);
   EXPECT_EQ(session_state->can_complete_termination(), false);
   EXPECT_EQ(update_criteria.monitor_credit_map.size(), 0);
-  session_state->finish_report();
+  session_state->finish_report(_uc);
   EXPECT_EQ(session_state->can_complete_termination(), false);
 
   // The rule is not reported, termination can be completed.
-  session_state->new_report();
+  session_state->new_report(_uc);
   EXPECT_EQ(session_state->can_complete_termination(), false);
-  session_state->finish_report();
+  session_state->finish_report(_uc);
   EXPECT_EQ(session_state->can_complete_termination(), true);
 
   // Termination should only be completed once.
@@ -442,12 +443,12 @@ TEST_F(SessionStateTest, test_reauth_key) {
   // credit is already reporting, no update needed
   auto uc = get_default_update_criteria();
   auto reauth_res = session_state->get_charging_pool().reauth_key(1, uc);
-  EXPECT_EQ(reauth_res, ChargingReAuthAnswer::UPDATE_NOT_NEEDED);
+  EXPECT_EQ(reauth_res, ReAuthResult::UPDATE_NOT_NEEDED);
   receive_credit_from_ocs(1, 1024);
   EXPECT_EQ(session_state->get_charging_pool().get_credit(1, REPORTING_TX), 0);
   EXPECT_EQ(session_state->get_charging_pool().get_credit(1, REPORTING_RX), 0);
   reauth_res = session_state->get_charging_pool().reauth_key(1, uc);
-  EXPECT_EQ(reauth_res, ChargingReAuthAnswer::UPDATE_INITIATED);
+  EXPECT_EQ(reauth_res, ReAuthResult::UPDATE_INITIATED);
 
   session_state->add_used_credit("rule1", 2, 1, update_criteria);
   UpdateSessionRequest reauth_update;
@@ -462,7 +463,7 @@ TEST_F(SessionStateTest, test_reauth_new_key) {
   // credit is already reporting, no update needed
   auto reauth_res =
       session_state->get_charging_pool().reauth_key(1, update_criteria);
-  EXPECT_EQ(reauth_res, ChargingReAuthAnswer::UPDATE_INITIATED);
+  EXPECT_EQ(reauth_res, ReAuthResult::UPDATE_INITIATED);
 
   UpdateSessionRequest reauth_update;
   std::vector<std::unique_ptr<ServiceAction>> actions;
@@ -499,7 +500,7 @@ TEST_F(SessionStateTest, test_reauth_all) {
   // If any charging key isn't reporting, an update is needed
   auto uc = get_default_update_criteria();
   auto reauth_res = session_state->get_charging_pool().reauth_all(uc);
-  EXPECT_EQ(reauth_res, ChargingReAuthAnswer::UPDATE_INITIATED);
+  EXPECT_EQ(reauth_res, ReAuthResult::UPDATE_INITIATED);
 
   UpdateSessionRequest reauth_update;
   std::vector<std::unique_ptr<ServiceAction>> actions;
@@ -508,7 +509,7 @@ TEST_F(SessionStateTest, test_reauth_all) {
 
   // All charging keys are reporting, no update needed
   reauth_res = session_state->get_charging_pool().reauth_all(uc);
-  EXPECT_EQ(reauth_res, ChargingReAuthAnswer::UPDATE_NOT_NEEDED);
+  EXPECT_EQ(reauth_res, ReAuthResult::UPDATE_NOT_NEEDED);
 }
 
 TEST_F(SessionStateTest, test_tgpp_context_is_set_on_update) {

@@ -8,19 +8,18 @@
  * @format
  */
 
-import type {GroupMember} from '../utils/GroupMemberViewer';
 import type {UserPermissionsGroup} from '../utils/UserManagementUtils';
 
 import * as React from 'react';
 import Button from '@fbcnms/ui/components/design-system/Button';
-import MembersList from '../utils/MembersList';
+import GroupMembersList from '../utils/GroupMembersList';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
-import {ASSIGNMENT_BUTTON_VIEWS} from '../utils/GroupMemberViewer';
+import {TOGGLE_BUTTON_DISPLAY} from '../utils/ListItem';
 import {makeStyles} from '@material-ui/styles';
 import {useMemo} from 'react';
-import {useUserSearchContext} from '../utils/userSearch/UserSearchContext';
+import {useUserSearchContext} from '../utils/search/UserSearchContext';
 
 const useStyles = makeStyles(() => ({
   root: {},
@@ -50,15 +49,6 @@ export default function PermissionsGroupMembersList(props: Props) {
   const {group} = props;
   const classes = useStyles();
   const userSearch = useUserSearchContext();
-
-  const groupMembers: $ReadOnlyArray<GroupMember> = useMemo(
-    () =>
-      group.memberUsers.map(user => ({
-        user: user,
-        isMember: true,
-      })),
-    [group.memberUsers],
-  );
 
   const groupMembersEmptyState = useMemo(
     () => (
@@ -109,13 +99,15 @@ export default function PermissionsGroupMembersList(props: Props) {
   ]);
 
   return (
-    <MembersList
-      members={userSearch.isEmptySearchTerm ? groupMembers : userSearch.results}
+    <GroupMembersList
+      users={
+        userSearch.isEmptySearchTerm ? group.memberUsers : userSearch.results
+      }
       group={group}
       assigmentButton={
         userSearch.isEmptySearchTerm
-          ? ASSIGNMENT_BUTTON_VIEWS.onHover
-          : ASSIGNMENT_BUTTON_VIEWS.always
+          ? TOGGLE_BUTTON_DISPLAY.onHover
+          : TOGGLE_BUTTON_DISPLAY.always
       }
       emptyState={emptyState}
     />

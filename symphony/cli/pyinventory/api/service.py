@@ -5,8 +5,10 @@
 
 from typing import Dict, List, Optional, Tuple
 
+from pysymphony import SymphonyClient
+
 from .._utils import PropertyValue, format_properties, get_graphql_property_inputs
-from ..client import SymphonyClient
+from ..common.cache import SERVICE_TYPES
 from ..common.data_class import (
     Customer,
     EquipmentPort,
@@ -18,30 +20,30 @@ from ..common.data_class import (
 )
 from ..common.data_enum import Entity
 from ..exceptions import EntityNotFoundError
-from ..graphql.add_service_endpoint_input import AddServiceEndpointInput
-from ..graphql.add_service_endpoint_mutation import AddServiceEndpointMutation
-from ..graphql.add_service_link_mutation import AddServiceLinkMutation
-from ..graphql.add_service_mutation import AddServiceMutation
-from ..graphql.add_service_type_mutation import AddServiceTypeMutation
-from ..graphql.remove_service_mutation import RemoveServiceMutation
-from ..graphql.remove_service_type_mutation import RemoveServiceTypeMutation
-from ..graphql.service_create_data_input import ServiceCreateData
-from ..graphql.service_details_query import ServiceDetailsQuery
-from ..graphql.service_status_enum import ServiceStatus
-from ..graphql.service_type_create_data_input import ServiceTypeCreateData
-from ..graphql.service_type_services_query import ServiceTypeServicesQuery
-from ..graphql.service_types_query import ServiceTypesQuery
+from ..graphql.enum.service_status import ServiceStatus
+from ..graphql.input.add_service_endpoint import AddServiceEndpointInput
+from ..graphql.input.service_create_data import ServiceCreateData
+from ..graphql.input.service_type_create_data import ServiceTypeCreateData
+from ..graphql.mutation.add_service import AddServiceMutation
+from ..graphql.mutation.add_service_endpoint import AddServiceEndpointMutation
+from ..graphql.mutation.add_service_link import AddServiceLinkMutation
+from ..graphql.mutation.add_service_type import AddServiceTypeMutation
+from ..graphql.mutation.remove_service import RemoveServiceMutation
+from ..graphql.mutation.remove_service_type import RemoveServiceTypeMutation
+from ..graphql.query.service_details import ServiceDetailsQuery
+from ..graphql.query.service_type_services import ServiceTypeServicesQuery
+from ..graphql.query.service_types import ServiceTypesQuery
 
 
 def _populate_service_types(client: SymphonyClient) -> None:
-    service_types = ServiceTypesQuery.execute(client).serviceTypes
+    service_types = ServiceTypesQuery.execute(client)
     if not service_types:
         return
     edges = service_types.edges
     for edge in edges:
         node = edge.node
         if node is not None:
-            client.serviceTypes[node.name] = ServiceType(
+            SERVICE_TYPES[node.name] = ServiceType(
                 name=node.name,
                 id=node.id,
                 hasCustomer=node.hasCustomer,
@@ -62,7 +64,7 @@ def add_service_type(
         data=ServiceTypeCreateData(
             name=name, hasCustomer=hasCustomer, properties=new_property_types
         ),
-    ).addServiceType
+    )
 
     service_type = ServiceType(
         name=result.name,
@@ -70,7 +72,7 @@ def add_service_type(
         hasCustomer=result.hasCustomer,
         property_types=result.propertyTypes,
     )
-    client.serviceTypes[name] = service_type
+    SERVICE_TYPES[name] = service_type
     return service_type
 
 
@@ -81,42 +83,32 @@ def add_service(
     service_type: str,
     customer: Optional[Customer],
     properties_dict: Dict[str, PropertyValue],
-    links: List[Link],
 ) -> Service:
-    property_types = client.serviceTypes[service_type].property_types
+    property_types = SERVICE_TYPES[service_type].property_types
     properties = get_graphql_property_inputs(property_types, properties_dict)
     service_create_data = ServiceCreateData(
         name=name,
         externalId=external_id,
-        serviceTypeId=client.serviceTypes[service_type].id,
+        serviceTypeId=SERVICE_TYPES[service_type].id,
         status=ServiceStatus.PENDING,
         customerId=customer.id if customer is not None else None,
         properties=properties,
         upstreamServiceIds=[],
     )
-    result = AddServiceMutation.execute(client, data=service_create_data).addService
-    for l in links:
-        result = AddServiceLinkMutation.execute(
-            client, id=result.id, linkId=l.id
-        ).addServiceLink
+    result = AddServiceMutation.execute(client, data=service_create_data)
     returned_customer = result.customer
     endpoints = []
     for e in result.endpoints:
         port = e.port
-        # pyre-fixme[16]: `None` has no attribute `link`.
-        link = port.link if port is not None else None
+        link = port.link if port else None
         endpoints.append(
             ServiceEndpoint(
                 id=e.id,
                 port=EquipmentPort(
-                    # pyre-fixme[16]: `None` has no attribute `id`.
                     id=port.id,
-                    # pyre-fixme[16]: `None` has no attribute `properties`.
                     properties=port.properties,
                     definition=EquipmentPortDefinition(
-                        # pyre-fixme[16]: `None` has no attribute `definition`.
-                        id=port.definition.id,
-                        name=port.definition.name,
+                        id=port.definition.id, name=port.definition.name
                     ),
                     link=Link(
                         link.id,
@@ -137,10 +129,8 @@ def add_service(
         id=result.id,
         externalId=result.externalId,
         customer=Customer(
-            # pyre-fixme[16]: `None` has no attribute `name`.
             name=returned_customer.name,
             id=returned_customer.id,
-            # pyre-fixme[16]: `None` has no attribute `externalId`.
             externalId=returned_customer.externalId,
         )
         if returned_customer
@@ -166,15 +156,19 @@ def add_service_endpoint(
     )
 
 
+def add_service_link(client: SymphonyClient, service: Service, link: Link) -> None:
+    AddServiceLinkMutation.execute(client, id=service.id, linkId=link.id)
+
+
 def get_service(client: SymphonyClient, id: str) -> Service:
-    result = ServiceDetailsQuery.execute(client, id=id).service
+    result = ServiceDetailsQuery.execute(client, id=id)
     if result is None:
         raise EntityNotFoundError(entity=Entity.Service, entity_id=id)
     customer = result.customer
     endpoints = []
     for e in result.endpoints:
         port = e.port
-        link = port.link if port is not None else None
+        link = port.link if port else None
         endpoints.append(
             ServiceEndpoint(
                 id=e.id,
@@ -192,7 +186,7 @@ def get_service(client: SymphonyClient, id: str) -> Service:
                     if link
                     else None,
                 )
-                if port is not None
+                if port
                 else None,
                 # TODO add service_endpoint_type api
                 type="1",
@@ -222,7 +216,7 @@ def delete_service_type_with_services(
 ) -> None:
     service_type_with_services = ServiceTypeServicesQuery.execute(
         client, id=service_type.id
-    ).serviceType
+    )
     if not service_type_with_services:
         raise EntityNotFoundError(entity=Entity.ServiceType, entity_id=service_type.id)
     services = service_type_with_services.services

@@ -8,20 +8,25 @@ import (
 	"context"
 	"testing"
 
+	"github.com/facebookincubator/symphony/graph/ent/user"
+
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/authz"
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/enttest"
 	"github.com/facebookincubator/symphony/graph/ent/migrate"
+	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/pkg/testdb"
 	"github.com/stretchr/testify/require"
 )
 
 type options struct {
-	tenant   string
-	user     string
-	role     string
-	features []string
+	tenant      string
+	user        string
+	role        user.Role
+	features    []string
+	permissions *models.PermissionSettings
 }
 
 // Option enables viewer customization.
@@ -42,7 +47,7 @@ func WithUser(user string) Option {
 }
 
 // WithRole overrides default role.
-func WithRole(role string) Option {
+func WithRole(role user.Role) Option {
 	return func(o *options) {
 		o.role = role
 	}
@@ -55,21 +60,30 @@ func WithFeatures(features ...string) Option {
 	}
 }
 
+// WithPermissions overrides default permissions.
+func WithPermissions(permissions *models.PermissionSettings) Option {
+	return func(o *options) {
+		o.permissions = permissions
+	}
+}
+
 // NewContext returns viewer context for tests.
 func NewContext(parent context.Context, c *ent.Client, opts ...Option) context.Context {
 	o := &options{
-		tenant:   DefaultTenant,
-		user:     DefaultUser,
-		role:     DefaultRole,
-		features: []string{viewer.FeatureReadOnly},
+		tenant:      DefaultTenant,
+		user:        DefaultUser,
+		role:        DefaultRole,
+		features:    []string{viewer.FeatureReadOnly, viewer.FeatureUserManagementDev},
+		permissions: authz.FullPermissions(),
 	}
 	for _, opt := range opts {
 		opt(o)
 	}
 	ctx := ent.NewContext(parent, c)
 	u := viewer.MustGetOrCreateUser(ctx, o.user, o.role)
-	v := viewer.New(o.tenant, u, viewer.WithFeatures(o.features...))
-	return viewer.NewContext(ctx, v)
+	v := viewer.NewUser(o.tenant, u, viewer.WithFeatures(o.features...))
+	ctx = viewer.NewContext(ctx, v)
+	return authz.NewContext(ctx, o.permissions)
 }
 
 // NewTestClient creates an ent test client
