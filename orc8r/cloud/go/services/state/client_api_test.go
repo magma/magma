@@ -15,14 +15,14 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/orc8r"
-	models2 "magma/orc8r/cloud/go/pluginimpl/models"
+	"magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/serde"
-	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
-	configuratorTestUtils "magma/orc8r/cloud/go/services/configurator/test_utils"
+	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
+	configurator_test "magma/orc8r/cloud/go/services/configurator/test_utils"
 	"magma/orc8r/cloud/go/services/device"
-	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
+	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
 	"magma/orc8r/cloud/go/services/state"
-	stateTestInit "magma/orc8r/cloud/go/services/state/test_init"
+	state_test_init "magma/orc8r/cloud/go/services/state/test_init"
 	"magma/orc8r/cloud/go/services/state/test_utils"
 	"magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
@@ -34,38 +34,20 @@ import (
 
 const testAgHwId = "Test-AGW-Hw-Id"
 
-type stateBundle struct {
-	state *protos.State
-	ID    state.StateID
-}
-
-func makeVersionedStateBundle(typeVal string, key string, value interface{}, version uint64) stateBundle {
-	stateBundle := makeStateBundle(typeVal, key, value)
-	stateBundle.state.Version = version
-	return stateBundle
-}
-
-func makeStateBundle(typeVal string, key string, value interface{}) stateBundle {
-	marshaledValue, _ := json.Marshal(value)
-	ID := state.StateID{Type: typeVal, DeviceID: key}
-	state := protos.State{Type: typeVal, DeviceID: key, Value: marshaledValue}
-	return stateBundle{state: &state, ID: ID}
-}
-
 func TestStateService(t *testing.T) {
-	configuratorTestInit.StartTestService(t)
-	deviceTestInit.StartTestService(t)
+	configurator_test_init.StartTestService(t)
+	device_test_init.StartTestService(t)
 	// Set up test networkID, hwID, and encode into context
-	stateTestInit.StartTestService(t)
+	state_test_init.StartTestService(t)
 	err := serde.RegisterSerdes(
 		state.NewStateSerde("test-serde", &Name{}),
-		serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models2.GatewayDevice{}))
+		serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.GatewayDevice{}))
 	assert.NoError(t, err)
 
 	networkID := "state_service_test_network"
-	configuratorTestUtils.RegisterNetwork(t, networkID, "State Service Test")
+	configurator_test.RegisterNetwork(t, networkID, "State Service Test")
 	gatewayID := testAgHwId
-	configuratorTestUtils.RegisterGateway(t, networkID, gatewayID, &models2.GatewayDevice{HardwareID: testAgHwId})
+	configurator_test.RegisterGateway(t, networkID, gatewayID, &models.GatewayDevice{HardwareID: testAgHwId})
 	ctx := test_utils.GetContextWithCertificate(t, testAgHwId)
 
 	// Create States, IDs, values
@@ -77,14 +59,14 @@ func TestStateService(t *testing.T) {
 	bundle2 := makeVersionedStateBundle("test-serde", "key2", value2, 12)
 
 	// Check contract for empty network
-	states, err := state.GetStates(networkID, []state.StateID{bundle0.ID})
+	states, err := state.GetStates(networkID, []state.ID{bundle0.ID})
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(states))
 
 	// Report and read back
 	_, err = reportStates(ctx, bundle0, bundle1)
 	assert.NoError(t, err)
-	states, err = state.GetStates(networkID, []state.StateID{bundle0.ID, bundle1.ID})
+	states, err = state.GetStates(networkID, []state.ID{bundle0.ID, bundle1.ID})
 	assert.NoError(t, err)
 	testGetStatesResponse(t, states, bundle0, bundle1)
 	assert.Equal(t, uint64(0), states[bundle0.ID].Version)
@@ -94,7 +76,7 @@ func TestStateService(t *testing.T) {
 	bundle1.state.Version = 15
 	_, err = reportStates(ctx, bundle0, bundle1)
 	assert.NoError(t, err)
-	states, err = state.GetStates(networkID, []state.StateID{bundle0.ID, bundle1.ID})
+	states, err = state.GetStates(networkID, []state.ID{bundle0.ID, bundle1.ID})
 	assert.NoError(t, err)
 	testGetStatesResponse(t, states, bundle0, bundle1)
 	assert.Equal(t, uint64(1), states[bundle0.ID].Version)
@@ -113,15 +95,15 @@ func TestStateService(t *testing.T) {
 	// Report a state with fields the corresponding serde does not expect
 	_, err = reportStates(ctx, bundle2)
 	assert.NoError(t, err)
-	states, err = state.GetStates(networkID, []state.StateID{bundle2.ID})
+	states, err = state.GetStates(networkID, []state.ID{bundle2.ID})
 	assert.NoError(t, err)
 	testGetStatesResponse(t, states, bundle2)
 	assert.Equal(t, uint64(12), states[bundle2.ID].Version)
 
 	// Delete and read back
-	err = state.DeleteStates(networkID, []state.StateID{bundle0.ID, bundle2.ID})
+	err = state.DeleteStates(networkID, []state.ID{bundle0.ID, bundle2.ID})
 	assert.NoError(t, err)
-	states, err = state.GetStates(networkID, []state.StateID{bundle0.ID, bundle1.ID, bundle2.ID})
+	states, err = state.GetStates(networkID, []state.ID{bundle0.ID, bundle1.ID, bundle2.ID})
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(states))
 	testGetStatesResponse(t, states, bundle1)
@@ -134,12 +116,30 @@ func TestStateService(t *testing.T) {
 	assert.Equal(t, "nonexistent-serde", resp.UnreportedStates[0].Type)
 	assert.Equal(t, "No Serde found for type nonexistent-serde", resp.UnreportedStates[0].Error)
 	assert.Equal(t, "test-serde", resp.UnreportedStates[1].Type)
-	assert.Equal(t, "This name: BADNAME is not allowed!", resp.UnreportedStates[1].Error)
+	assert.Equal(t, "this name: BADNAME is not allowed", resp.UnreportedStates[1].Error)
 	// Valid state should still be reported
-	states, err = state.GetStates(networkID, []state.StateID{bundle0.ID, bundle1.ID, bundle2.ID})
+	states, err = state.GetStates(networkID, []state.ID{bundle0.ID, bundle1.ID, bundle2.ID})
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(states))
 	testGetStatesResponse(t, states, bundle0, bundle1)
+}
+
+type stateBundle struct {
+	state *protos.State
+	ID    state.ID
+}
+
+func makeVersionedStateBundle(typeVal, key string, value interface{}, version uint64) stateBundle {
+	stateBundle := makeStateBundle(typeVal, key, value)
+	stateBundle.state.Version = version
+	return stateBundle
+}
+
+func makeStateBundle(typeVal, key string, value interface{}) stateBundle {
+	marshaledValue, _ := json.Marshal(value)
+	ID := state.ID{Type: typeVal, DeviceID: key}
+	st := protos.State{Type: typeVal, DeviceID: key, Value: marshaledValue}
+	return stateBundle{state: &st, ID: ID}
 }
 
 type NameAndAge struct {
@@ -176,7 +176,7 @@ func (m *Name) UnmarshalBinary(message []byte) error {
 
 func (m *Name) ValidateModel() error {
 	if m.Name == "BADNAME" {
-		return fmt.Errorf("This name: %s is not allowed!", m.Name)
+		return fmt.Errorf("this name: %s is not allowed", m.Name)
 	}
 	return nil
 }
@@ -209,7 +209,7 @@ func syncStates(ctx context.Context, bundles ...stateBundle) (*protos.SyncStates
 	return response, err
 }
 
-func testGetStatesResponse(t *testing.T, states map[state.StateID]state.State, bundles ...stateBundle) {
+func testGetStatesResponse(t *testing.T, states map[state.ID]state.State, bundles ...stateBundle) {
 	for _, bundle := range bundles {
 		value := states[bundle.ID]
 		iState, err := serde.Deserialize(state.SerdeDomain, bundle.ID.Type, bundle.state.Value)
@@ -226,23 +226,23 @@ func makeReportStatesRequest(bundles []stateBundle) *protos.ReportStatesRequest 
 
 func makeSyncStatesRequest(bundles []stateBundle) *protos.SyncStatesRequest {
 	res := protos.SyncStatesRequest{}
-	states := []*protos.IDAndVersion{}
+	var states []*protos.IDAndVersion
 	for _, bundle := range bundles {
-		state := &protos.IDAndVersion{
+		st := &protos.IDAndVersion{
 			Id: &protos.StateID{
 				Type:     bundle.ID.Type,
 				DeviceID: bundle.ID.DeviceID,
 			},
 			Version: bundle.state.Version,
 		}
-		states = append(states, state)
+		states = append(states, st)
 	}
 	res.States = states
 	return &res
 }
 
 func makeStates(bundles []stateBundle) []*protos.State {
-	states := []*protos.State{}
+	var states []*protos.State
 	for _, bundle := range bundles {
 		states = append(states, bundle.state)
 	}

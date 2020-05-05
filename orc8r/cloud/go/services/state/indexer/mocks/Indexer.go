@@ -69,13 +69,13 @@ func (_m *Indexer) GetVersion() indexer.Version {
 	return r0
 }
 
-// Index provides a mock function with given fields: networkID, reporterHWID, states
-func (_m *Indexer) Index(networkID string, reporterHWID string, states []state.State) (indexer.StateErrors, error) {
-	ret := _m.Called(networkID, reporterHWID, states)
+// Index provides a mock function with given fields: networkID, states
+func (_m *Indexer) Index(networkID string, states state.StatesByID) (indexer.StateErrors, error) {
+	ret := _m.Called(networkID, states)
 
 	var r0 indexer.StateErrors
-	if rf, ok := ret.Get(0).(func(string, string, []state.State) indexer.StateErrors); ok {
-		r0 = rf(networkID, reporterHWID, states)
+	if rf, ok := ret.Get(0).(func(string, state.StatesByID) indexer.StateErrors); ok {
+		r0 = rf(networkID, states)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(indexer.StateErrors)
@@ -83,8 +83,8 @@ func (_m *Indexer) Index(networkID string, reporterHWID string, states []state.S
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string, []state.State) error); ok {
-		r1 = rf(networkID, reporterHWID, states)
+	if rf, ok := ret.Get(1).(func(string, state.StatesByID) error); ok {
+		r1 = rf(networkID, states)
 	} else {
 		r1 = ret.Error(1)
 	}

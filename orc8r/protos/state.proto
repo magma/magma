@@ -17,17 +17,27 @@ message StateID {
     string deviceID = 2;
 }
 
+// GetStatesRequest functions in two modes
+//  - ids is non-empty  -- normal Get
+//  - ids empty         -- Search with filters and load criteria
 message GetStatesRequest {
+    // networkID of the network containing desired state.
     string networkID = 1;
+
+    // ids for which to return corresponding state.
     repeated StateID ids = 2;
 
-    // typeFilter is an OR of all types specified. The service will return all
-    // states matching any of the specified types.
+    // typeFilter is an OR of all types specified.
+    // The service will return all states matching any of the specified types.
     repeated string typeFilter = 10;
 
-    // idFilter is an OR of all IDs specified. The service will return all
-    // states matching any of the specified IDs.
+    // idFilter is an OR of all device IDs specified.
+    // The service will return all states matching any of the specified IDs.
     repeated string idFilter = 11;
+
+    // loadValues specifies whether state values should be loaded in
+    // addition to metadata.
+    bool loadValues = 12;
 }
 
 message GetStatesResponse {
@@ -67,8 +77,17 @@ message SyncStatesResponse {
 }
 
 service StateService {
+    // GetStates retrieves states from blobstorage.
     rpc GetStates (GetStatesRequest) returns (GetStatesResponse) {}
+
+    // ReportStates saves states into blobstorage.
     rpc ReportStates(ReportStatesRequest) returns (ReportStatesResponse) {}
+
+    // DeleteStates deletes states from blobstorage.
     rpc DeleteStates(DeleteStatesRequest) returns (Void) {}
+
+    // SyncStates retrieves states from blobstorage, compares their versions
+    // to the states included in the request, and returns the IDAndVersions
+    // that differ.
     rpc SyncStates(SyncStatesRequest) returns (SyncStatesResponse) {}
 }
