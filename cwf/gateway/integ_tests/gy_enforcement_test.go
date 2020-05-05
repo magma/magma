@@ -93,7 +93,7 @@ func TestGyCreditExhaustionWithCRRU(t *testing.T) {
 		IsFinalCredit: false,
 		ResultCode:    2001,
 	}
-	initRequest := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_INITIAL, 1)
+	initRequest := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_INITIAL)
 	initAnswer := protos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrant)
 	initExpectation := protos.NewGyCreditControlExpectation().Expect(initRequest).Return(initAnswer)
 
@@ -107,7 +107,7 @@ func TestGyCreditExhaustionWithCRRU(t *testing.T) {
 		FinalUnitAction: fegprotos.FinalUnitAction_Terminate,
 		ResultCode:      2001,
 	}
-	updateRequest1 := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_UPDATE, 2)
+	updateRequest1 := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_UPDATE)
 	updateAnswer1 := protos.NewGyCCAnswer(diam.Success).SetQuotaGrant(finalQuotaGrant)
 	updateExpectation1 := protos.NewGyCreditControlExpectation().Expect(updateRequest1).Return(updateAnswer1)
 	expectations := []*protos.GyCreditControlExpectation{initExpectation, updateExpectation1}
@@ -138,7 +138,7 @@ func TestGyCreditExhaustionWithCRRU(t *testing.T) {
 	tr.AssertAllGyExpectationsMetNoError()
 
 	// When we use up all of the quota, we expect a termination request to go up.
-	terminateRequest := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_TERMINATION, 3)
+	terminateRequest := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_TERMINATION)
 	terminateAnswer := protos.NewGyCCAnswer(diam.Success)
 	terminateExpectation := protos.NewGyCreditControlExpectation().Expect(terminateRequest).Return(terminateAnswer)
 	expectations = []*protos.GyCreditControlExpectation{terminateExpectation}
@@ -188,7 +188,7 @@ func TestGyCreditExhaustionWithoutCRRU(t *testing.T) {
 		FinalUnitAction: fegprotos.FinalUnitAction_Terminate,
 		ResultCode:      2001,
 	}
-	initRequest := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_INITIAL, 1)
+	initRequest := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_INITIAL)
 	initAnswer := protos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrant)
 	initExpectation := protos.NewGyCreditControlExpectation().Expect(initRequest).Return(initAnswer)
 
@@ -203,7 +203,7 @@ func TestGyCreditExhaustionWithoutCRRU(t *testing.T) {
 	tr.AssertAllGyExpectationsMetNoError()
 
 	// When we initiate a UE disconnect, we expect a terminate request to go up
-	terminateRequest := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_TERMINATION, 3)
+	terminateRequest := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_TERMINATION)
 	terminateAnswer := protos.NewGyCCAnswer(diam.Success)
 	terminateExpectation := protos.NewGyCreditControlExpectation().Expect(terminateRequest).Return(terminateAnswer)
 	expectations = []*protos.GyCreditControlExpectation{terminateExpectation}

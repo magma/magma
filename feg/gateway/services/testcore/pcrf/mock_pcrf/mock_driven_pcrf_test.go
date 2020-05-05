@@ -38,7 +38,7 @@ func TestPCRFExpectations(t *testing.T) {
 	clientConfig := getClientConfig()
 
 	// E/A that should be met
-	expectedInitReq := fegprotos.NewGxCCRequest(test.IMSI1, fegprotos.CCRequestType_INITIAL, 1)
+	expectedInitReq := fegprotos.NewGxCCRequest(test.IMSI1, fegprotos.CCRequestType_INITIAL)
 	usageMonitoringQuotaGrant := []*fegprotos.UsageMonitoringInformation{
 		{
 			MonitoringLevel: fegprotos.MonitoringLevel_RuleLevel,
@@ -77,7 +77,7 @@ func TestPCRFExpectations(t *testing.T) {
 	expectedInit := fegprotos.NewGxCreditControlExpectation().Expect(expectedInitReq).Return(expectedInitAns)
 
 	// Update Request
-	expectedUpdateReq := fegprotos.NewGxCCRequest(test.IMSI1, fegprotos.CCRequestType_UPDATE, 2).
+	expectedUpdateReq := fegprotos.NewGxCCRequest(test.IMSI1, fegprotos.CCRequestType_UPDATE).
 		SetUsageMonitorReports(usageMonitoringQuotaGrant).
 		SetUsageReportDelta(100)
 	expectedUpdateAns := fegprotos.NewGxCCAnswer(diam.Success).
@@ -85,7 +85,7 @@ func TestPCRFExpectations(t *testing.T) {
 	expectedUpdate := fegprotos.NewGxCreditControlExpectation().Expect(expectedUpdateReq).Return(expectedUpdateAns)
 
 	// E/A that will not be met
-	expectedReqNotMet := fegprotos.NewGxCCRequest(test.IMSI1, fegprotos.CCRequestType_UPDATE, 3)
+	expectedReqNotMet := fegprotos.NewGxCCRequest(test.IMSI1, fegprotos.CCRequestType_UPDATE)
 	answerNotMet := fegprotos.NewGxCCAnswer(diam.UnableToComply)
 	expectationNotMet := fegprotos.NewGxCreditControlExpectation().Expect(expectedReqNotMet).Return(answerNotMet)
 

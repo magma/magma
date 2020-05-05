@@ -93,7 +93,7 @@ func TestGxUplinkTrafficQosEnforcement(t *testing.T) {
 	tr.WaitForPoliciesToSync()
 
 	usageMonitorInfo := getUsageInformation(monitorKey, 1*MegaBytes)
-	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL, 1)
+	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL)
 	initAnswer := protos.NewGxCCAnswer(diam.Success).
 		SetStaticRuleInstalls([]string{ruleKey}, []string{}).
 		SetUsageMonitorInfos(usageMonitorInfo)
@@ -158,7 +158,7 @@ func TestGxDownlinkTrafficQosEnforcement(t *testing.T) {
 	tr.WaitForPoliciesToSync()
 
 	usageMonitorInfo := getUsageInformation(monitorKey, 1*MegaBytes)
-	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL, 1)
+	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL)
 	initAnswer := protos.NewGxCCAnswer(diam.Success).
 		SetStaticRuleInstalls([]string{ruleKey}, []string{}).
 		SetUsageMonitorInfos(usageMonitorInfo)
@@ -241,7 +241,7 @@ func TestGxQosDowngradeWithCCAUpdate(t *testing.T) {
 
 	// usage monitor for init and upgrade
 	usageMonitorInfo := getUsageInformation(monitorKey, 1*MegaBytes)
-	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL, 1)
+	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL)
 	initAnswer := protos.NewGxCCAnswer(diam.Success).
 		SetStaticRuleInstalls([]string{rule1Key}, []string{}).
 		SetUsageMonitorInfos(usageMonitorInfo)
@@ -249,7 +249,7 @@ func TestGxQosDowngradeWithCCAUpdate(t *testing.T) {
 
 	// We expect an update request with some usage update (probably around 80-100% of the given quota)
 	var c float64 = 0.3 * 1 * MegaBytes
-	updateRequest1 := protos.NewGxCCRequest(imsi, protos.CCRequestType_UPDATE, 2).
+	updateRequest1 := protos.NewGxCCRequest(imsi, protos.CCRequestType_UPDATE).
 		SetUsageMonitorReports(usageMonitorInfo).
 		SetUsageReportDelta(uint64(c))
 	updateAnswer1 := protos.NewGxCCAnswer(diam.Success).
@@ -291,7 +291,7 @@ func TestGxQosDowngradeWithCCAUpdate(t *testing.T) {
 	tr.AssertAllGxExpectationsMetNoError()
 
 	// When we initiate a UE disconnect, we expect a terminate request to go up
-	terminateRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_TERMINATION, 4)
+	terminateRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_TERMINATION)
 	terminateAnswer := protos.NewGxCCAnswer(diam.Success)
 	terminateExpectation := protos.NewGxCreditControlExpectation().Expect(terminateRequest).Return(terminateAnswer)
 	expectations = []*protos.GxCreditControlExpectation{terminateExpectation}

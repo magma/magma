@@ -93,7 +93,7 @@ func TestAuthenticateFail(t *testing.T) {
 
 	// ----- Gx CCR-I fail -> Authentication fails -----
 	imsi := ues[0].GetImsi()
-	gxInitReq := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL, 1)
+	gxInitReq := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL)
 	gxInitAns := protos.NewGxCCAnswer(diam.AuthenticationRejected)
 	gxInitExpectation := protos.NewGxCreditControlExpectation().Expect(gxInitReq).Return(gxInitAns)
 
@@ -108,13 +108,13 @@ func TestAuthenticateFail(t *testing.T) {
 
 	// ----- Gx CCR-I success && Gy CCR-I fail -> Authentication fails -----
 	imsi = ues[1].GetImsi()
-	gxInitReq = protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL, 1)
+	gxInitReq = protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL)
 	gxInitAns = protos.NewGxCCAnswer(diam.Success).
 		SetDynamicRuleInstall(getPassAllRuleDefinition("rule1", "", swag.Uint32(1), 0))
 	gxInitExpectation = gxInitExpectation.Expect(gxInitReq).Return(gxInitAns)
 	assert.NoError(t, setPCRFExpectations([]*protos.GxCreditControlExpectation{gxInitExpectation}, defaultGxAns))
 	// Fail on Gy
-	gyInitReq := protos.NewGyCCRequest(imsi, protos.CCRequestType_INITIAL, 1)
+	gyInitReq := protos.NewGyCCRequest(imsi, protos.CCRequestType_INITIAL)
 	gyInitAns := protos.NewGyCCAnswer(diam.AuthenticationRejected)
 	gyInitExpectation := protos.NewGyCreditControlExpectation().Expect(gyInitReq).Return(gyInitAns)
 	defaultGyAns := gyInitAns
@@ -155,7 +155,7 @@ func TestAuthenticateUplinkTraffic(t *testing.T) {
 			Octets:          &protos.Octets{TotalOctets: 250 * KiloBytes},
 		},
 	}
-	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL, 1)
+	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL)
 	initAnswer := protos.NewGxCCAnswer(diam.Success).
 		SetDynamicRuleInstall(getPassAllRuleDefinition("dynamic-pass-all", "mkey1", nil, 100)).
 		SetUsageMonitorInfos(usageMonitorInfo)
@@ -207,7 +207,7 @@ func TestAuthenticateMultipleAPsUplinkTraffic(t *testing.T) {
 			Octets:          &protos.Octets{TotalOctets: 250 * KiloBytes},
 		},
 	}
-	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL, 1)
+	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL)
 	initAnswer := protos.NewGxCCAnswer(diam.Success).
 		SetDynamicRuleInstall(getPassAllRuleDefinition("dynamic-pass-all", "mkey1", nil, 100)).
 		SetUsageMonitorInfos(usageMonitorInfo)

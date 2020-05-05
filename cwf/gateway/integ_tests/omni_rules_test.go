@@ -71,7 +71,7 @@ func TestOmnipresentRules(t *testing.T) {
 			Octets:          &protos.Octets{TotalOctets: 1 * MegaBytes},
 		},
 	}
-	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL, 1)
+	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL)
 	initAnswer := protos.NewGxCCAnswer(diam.Success).
 		SetStaticRuleInstalls([]string{"static-block-all"}, []string{}).
 		SetUsageMonitorInfos(usageMonitorInfo)
