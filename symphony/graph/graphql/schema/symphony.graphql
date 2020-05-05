@@ -196,6 +196,12 @@ input EditPermissionsPolicyInput {
   workforceInput: WorkforcePolicyInput
 }
 
+input UpdateGroupsInPermissionsPolicyInput {
+  id: ID!
+  addGroupIds: [ID!]!
+  removeGroupIds: [ID!]!
+}
+
 type Viewer
   @goModel(model: "github.com/facebookincubator/symphony/graph/viewer.Viewer") {
   tenant: String!
@@ -2767,6 +2773,10 @@ type Mutation {
   deleteReportFilter(id: ID!): Boolean!
   addPermissionsPolicy(input: AddPermissionsPolicyInput!): PermissionsPolicy!
   editPermissionsPolicy(input: EditPermissionsPolicyInput!): PermissionsPolicy!
+
+  updateGroupsInPermissionsPolicy(
+    input: UpdateGroupsInPermissionsPolicyInput!
+  ): PermissionsPolicy!
 }
 
 type Subscription {

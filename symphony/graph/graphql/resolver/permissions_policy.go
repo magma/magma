@@ -103,3 +103,14 @@ func (mutationResolver) EditPermissionsPolicy(
 	}
 	return p, nil
 }
+
+func (r mutationResolver) UpdateGroupsInPermissionsPolicy(
+	ctx context.Context,
+	input models.UpdateGroupsInPermissionsPolicyInput,
+) (*ent.PermissionsPolicy, error) {
+
+	return r.ClientFrom(ctx).PermissionsPolicy.UpdateOneID(input.ID).
+		AddGroupIDs(input.AddGroupIds...).
+		RemoveGroupIDs(input.RemoveGroupIds...).
+		Save(ctx)
+}

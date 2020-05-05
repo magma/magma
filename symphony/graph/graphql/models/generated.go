@@ -851,6 +851,12 @@ type TopologyLink struct {
 	Target ent.Noder        `json:"target"`
 }
 
+type UpdateGroupsInPermissionsPolicyInput struct {
+	ID             int   `json:"id"`
+	AddGroupIds    []int `json:"addGroupIds"`
+	RemoveGroupIds []int `json:"removeGroupIds"`
+}
+
 type UpdateUserGroupsInput struct {
 	ID             int   `json:"id"`
 	AddGroupIds    []int `json:"addGroupIds"`
