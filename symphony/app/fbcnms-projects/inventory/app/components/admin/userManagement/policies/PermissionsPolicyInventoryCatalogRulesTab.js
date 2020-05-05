@@ -8,11 +8,11 @@
  * @format
  */
 
-import type {PermissionsPolicy} from '../utils/UserManagementUtils';
+import type {InventoryPolicy} from '../utils/UserManagementUtils';
 
 type Props = $ReadOnly<{|
-  policy: PermissionsPolicy,
-  onChange: PermissionsPolicy => void,
+  policy: ?InventoryPolicy,
+  onChange: InventoryPolicy => void,
 |}>;
 
 export default function PermissionsPolicyInventoryCatalogRulesTab(

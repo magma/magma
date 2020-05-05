@@ -22,7 +22,7 @@ import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
 import {POLICY_TYPES} from '../utils/UserManagementUtils';
 import {makeStyles} from '@material-ui/styles';
-import {useMemo, useState} from 'react';
+import {useCallback, useMemo, useState} from 'react';
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -56,6 +56,22 @@ export default function PermissionsPolicyRulesPane(props: Props) {
   const {policy, onChange, className} = props;
   const classes = useStyles();
   const [activeTab, setActiveTab] = useState(0);
+  const callOnInventoryChange = useCallback(
+    inventoryRules =>
+      onChange({
+        ...policy,
+        inventoryRules,
+      }),
+    [onChange, policy],
+  );
+  const callOnWorkforceChange = useCallback(
+    workforceRules =>
+      onChange({
+        ...policy,
+        workforceRules,
+      }),
+    [onChange, policy],
+  );
 
   const ruleTypes: Array<ViewTab> = useMemo(() => {
     switch (policy.type) {
@@ -67,8 +83,8 @@ export default function PermissionsPolicyRulesPane(props: Props) {
             },
             view: (
               <PermissionsPolicyInventoryDataRulesTab
-                policy={policy}
-                onChange={onChange}
+                policy={policy.inventoryRules}
+                onChange={callOnInventoryChange}
               />
             ),
           },
@@ -78,8 +94,8 @@ export default function PermissionsPolicyRulesPane(props: Props) {
             },
             view: (
               <PermissionsPolicyInventoryCatalogRulesTab
-                policy={policy}
-                onChange={onChange}
+                policy={policy.inventoryRules}
+                onChange={callOnInventoryChange}
               />
             ),
           },
@@ -92,8 +108,8 @@ export default function PermissionsPolicyRulesPane(props: Props) {
             },
             view: (
               <PermissionsPolicyWorkforceDataRulesTab
-                policy={policy}
-                onChange={onChange}
+                policy={policy.workforceRules}
+                onChange={callOnWorkforceChange}
               />
             ),
           },
@@ -103,8 +119,8 @@ export default function PermissionsPolicyRulesPane(props: Props) {
             },
             view: (
               <PermissionsPolicyWorkforceTemplatesRulesTab
-                policy={policy}
-                onChange={onChange}
+                policy={policy.workforceRules}
+                onChange={callOnWorkforceChange}
               />
             ),
           },
@@ -112,7 +128,13 @@ export default function PermissionsPolicyRulesPane(props: Props) {
       default:
         return [];
     }
-  }, [onChange, policy]);
+  }, [
+    callOnInventoryChange,
+    callOnWorkforceChange,
+    policy.inventoryRules,
+    policy.type,
+    policy.workforceRules,
+  ]);
 
   return (
     <div className={classNames(classes.root, className)}>

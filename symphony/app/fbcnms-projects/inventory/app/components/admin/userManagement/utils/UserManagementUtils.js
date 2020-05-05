@@ -12,6 +12,7 @@
 // flowlint untyped-import:off
 
 import type {
+  PermissionValue,
   UserManagementContextQueryResponse,
   UserRole,
   UserStatus,
@@ -382,6 +383,41 @@ export const groupsResponse2Groups = (
         .filter(Boolean)
         .map<UserPermissionsGroup>(gr => groupResponse2Group(gr, usersMap));
 
+export type BasicPermissionRule = $ReadOnly<{|
+  isAllowed: PermissionValue,
+|}>;
+
+export type CUDPermissionsRule = $ReadOnly<{|
+  create: BasicPermissionRule,
+  update: BasicPermissionRule,
+  delete: BasicPermissionRule,
+|}>;
+
+export type InventoryPolicy = $ReadOnly<{|
+  read: BasicPermissionRule,
+  location: CUDPermissionsRule,
+  equipment: CUDPermissionsRule,
+  equipmentType: CUDPermissionsRule,
+  locationType: CUDPermissionsRule,
+  portType: CUDPermissionsRule,
+  serviceType: CUDPermissionsRule,
+|}>;
+
+export type WorkforceCUD = $ReadOnly<{|
+  create: BasicPermissionRule,
+  update: BasicPermissionRule,
+  delete: BasicPermissionRule,
+  assign: BasicPermissionRule,
+  transferOwnership: BasicPermissionRule,
+|}>;
+
+export type WorkforcePolicy = $ReadOnly<{|
+  read: BasicPermissionRule,
+  data: WorkforceCUD,
+  templates: CUDPermissionsRule,
+|}>;
+
+export type PermissionsPolicyRules = InventoryPolicy | WorkforcePolicy | {||};
 export type PermissionsPolicy = $ReadOnly<{|
   id: string,
   name: string,
@@ -389,20 +425,63 @@ export type PermissionsPolicy = $ReadOnly<{|
   type: PolicyTypes,
   isGlobal: boolean,
   groups: Array<UserPermissionsGroup>,
+  inventoryRules?: ?InventoryPolicy,
+  workforceRules?: ?WorkforcePolicy,
 |}>;
+
+function tryGettingInventoryPolicy(
+  policyRules: ?PermissionsPolicyRules,
+): ?InventoryPolicy {
+  if (policyRules == null) {
+    return null;
+  }
+
+  if (
+    policyRules.read &&
+    policyRules.location &&
+    policyRules.equipment &&
+    policyRules.equipmentType &&
+    policyRules.locationType &&
+    policyRules.portType &&
+    policyRules.serviceType
+  ) {
+    return policyRules;
+  }
+
+  return null;
+}
+
+function tryGettingWorkforcePolicy(
+  policyRules: ?PermissionsPolicyRules,
+): ?WorkforcePolicy {
+  if (policyRules == null) {
+    return null;
+  }
+
+  if (policyRules.read && policyRules.data && policyRules.templates) {
+    return policyRules;
+  }
+
+  return null;
+}
 
 // line was too long. So made it shorter...
 type PPR2PP = PermissionsPoliciesReponseFieldsPart => PermissionsPolicy;
 export const permissionsPolicyResponse2PermissionsPolicy: PPR2PP = (
   policyNode: PermissionsPoliciesReponseFieldsPart,
-) => ({
-  id: policyNode.id,
-  name: policyNode.name,
-  description: policyNode.description || '',
-  type: policyNode.policy.__typename,
-  isGlobal: policyNode.isGlobal,
-  groups: [], // policyNode.groups,
-});
+) => {
+  const {__typename: type, ...policyRules} = policyNode.policy;
+  return {
+    id: policyNode.id,
+    name: policyNode.name,
+    description: policyNode.description || '',
+    type,
+    isGlobal: policyNode.isGlobal,
+    groups: [], // policyNode.groups,
+    inventoryRules: tryGettingInventoryPolicy(policyRules),
+    workforceRules: tryGettingWorkforcePolicy(policyRules),
+  };
+};
 
 export const permissionsPoliciesResponse2PermissionsPolicies = (
   policiesResponse: PermissionsPoliciesReponsePart,

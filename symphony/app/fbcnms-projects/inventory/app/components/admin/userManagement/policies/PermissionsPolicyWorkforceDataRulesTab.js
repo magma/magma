@@ -8,11 +8,11 @@
  * @format
  */
 
-import type {PermissionsPolicy} from '../utils/UserManagementUtils';
+import type {WorkforcePolicy} from '../utils/UserManagementUtils';
 
 type Props = $ReadOnly<{|
-  policy: PermissionsPolicy,
-  onChange: PermissionsPolicy => void,
+  policy: ?WorkforcePolicy,
+  onChange: WorkforcePolicy => void,
 |}>;
 
 export default function PermissionsPolicyWorkforceDataRulesTab(_props: Props) {
