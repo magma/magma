@@ -204,20 +204,73 @@ class SessionState {
 
   bool is_static_rule_installed(const std::string& rule_id);
 
-  void insert_dynamic_rule(
-      const PolicyRule& rule, SessionStateUpdateCriteria& update_criteria);
+  /**
+   * Add a dynamic rule to the session which is currently active.
+   */
+  void insert_dynamic_rule(const PolicyRule &rule,
+                           RuleLifetime &lifetime,
+                           SessionStateUpdateCriteria &update_criteria);
 
-  void activate_static_rule(
-      const std::string& rule_id, SessionStateUpdateCriteria& update_criteria);
+  /**
+   * Add a static rule to the session which is currently active.
+   */
+  void activate_static_rule(const std::string &rule_id,
+                            RuleLifetime &lifetime,
+                            SessionStateUpdateCriteria &update_criteria);
 
+  /**
+   * Remove a currently active dynamic rule to mark it as deactivated.
+   *
+   * @param rule_id ID of the rule to be removed.
+   * @param rule_out Will point to the removed rule.
+   * @param update_criteria Tracks updates to the session. To be passed back to
+   *                        the SessionStore to resolve issues of concurrent
+   *                        updates to a session.
+   * @return True if successfully removed.
+   */
   bool remove_dynamic_rule(
       const std::string& rule_id, PolicyRule* rule_out,
       SessionStateUpdateCriteria& update_criteria);
 
+  /**
+   * Remove a currently active static rule to mark it as deactivated.
+   *
+   * @param rule_id ID of the rule to be removed.
+   * @param update_criteria Tracks updates to the session. To be passed back to
+   *                        the SessionStore to resolve issues of concurrent
+   *                        updates to a session.
+   * @return True if successfully removed.
+   */
   bool deactivate_static_rule(
       const std::string& rule_id, SessionStateUpdateCriteria& update_criteria);
 
   DynamicRuleStore& get_dynamic_rules();
+
+  /**
+   * Schedule a dynamic rule for activation in the future.
+   */
+  void schedule_dynamic_rule(const PolicyRule &rule,
+                             RuleLifetime &lifetime,
+                           SessionStateUpdateCriteria &update_criteria);
+
+  /**
+   * Schedule a static rule for activation in the future.
+   */
+  void schedule_static_rule(const std::string &rule_id,
+                            RuleLifetime &lifetime,
+                            SessionStateUpdateCriteria &update_criteria);
+
+  /**
+   * Mark a scheduled dynamic rule as activated.
+   */
+  void install_scheduled_dynamic_rule(const std::string &rule_id,
+                                     SessionStateUpdateCriteria &update_criteria);
+
+  /**
+   * Mark a scheduled static rule as activated.
+   */
+  void install_scheduled_static_rule(const std::string &rule_id,
+                                      SessionStateUpdateCriteria &update_criteria);
 
   uint32_t total_monitored_rules_count();
 
@@ -251,7 +304,15 @@ class SessionState {
   // Dynamic rules that are currently installed for the session
   DynamicRuleStore dynamic_rules_;
 
- private:
+  // Static rules that are scheduled for installation for the session
+  std::set<std::string> scheduled_static_rules_;
+  // Dynamic rules that are scheduled for installation for the session
+  DynamicRuleStore scheduled_dynamic_rules_;
+  // Activation & deactivation times for each rule that is either currently
+  // installed, or scheduled for installation for this session
+  std::unordered_map<std::string, RuleLifetime> rule_lifetimes_;
+
+private:
   /**
    * For this session, add the CreditUsageUpdate to the UpdateSessionRequest.
    * Also

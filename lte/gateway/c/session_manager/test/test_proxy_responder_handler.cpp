@@ -172,7 +172,11 @@ TEST_F(SessionProxyResponderHandlerTest, test_policy_reauth) {
   // 2) Create bare-bones session for IMSI1
   auto uc      = get_default_update_criteria();
   auto session = get_session(sid, rule_store);
-  session->activate_static_rule(rule_id_3, uc);
+  RuleLifetime lifetime{
+    .activation_time = std::time_t(0),
+    .deactivation_time = std::time_t(0),
+  };
+  session->activate_static_rule(rule_id_3, lifetime, uc);
   EXPECT_EQ(session->get_session_id(), sid);
   EXPECT_EQ(session->get_request_number(), 2);
   EXPECT_EQ(session->is_static_rule_installed(rule_id_3), true);
