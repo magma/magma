@@ -87,8 +87,9 @@ export function assertAllowedSystemTask(task: Task): void {
   }
 }
 
-// eslint-disable-line flowtype/no-weak-types
+// TODO: necessary because of https://github.com/facebook/flow/issues/2221
 export function objectToValues<A, B>(obj: {[key: A]: B}): Array<B> {
+  // eslint-disable-next-line flowtype/no-weak-types
   return ((Object.values(obj): Array<any>): Array<B>);
 }
 
@@ -217,7 +218,8 @@ export function findValuesByJsonPath(
   return result;
 }
 
-// eslint-disable-line flowtype/no-weak-types
+// TODO: delete this once the proxy is 100% typed
+// eslint-disable-next-line flowtype/no-weak-types
 export function anythingTo<T>(anything: any): T {
   if (anything != null) {
     return (anything: T);

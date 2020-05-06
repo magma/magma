@@ -20,7 +20,7 @@ import moment from 'moment';
 import transform from 'lodash/fp/transform';
 import {anythingTo} from './proxy/utils';
 
-type WorkflowType = {
+type TaskType = {
   name: string,
   taskType?: string,
   version: string,
@@ -313,9 +313,10 @@ router.get('/id/:workflowId', async (req, res, next) => {
       );
     }
 
-    const subs: Array<WorkflowType> = anythingTo<Array<WorkflowType>>(
+    //  // required because of https://github.com/facebook/flow/issues/1414
+    const subs: Array<TaskType> = anythingTo<Array<TaskType>>(
       filter(identity)(
-        map((task: WorkflowType): WorkflowType | void => {
+        map((task: TaskType): ?TaskType => {
           if (task.taskType === 'SUB_WORKFLOW' && task.inputData) {
             const subWorkflowId = task.inputData.subWorkflowId;
 
@@ -365,7 +366,7 @@ router.get('/id/:workflowId', async (req, res, next) => {
     });
 
     const fun: (
-      Array<WorkflowType>,
+      Array<TaskType>,
     ) => Array<
       Promise<mixed>,
     > = map(({name, version, subWorkflowId, referenceTaskName}) =>
