@@ -212,6 +212,7 @@ void LocalEnforcer::execute_actions(
           action_p->get_imsi(), action_p->get_ip_addr(),
           action_p->get_rule_ids(), action_p->get_rule_definitions());
     } else if (action_p->get_type() == REDIRECT) {
+      // This is GY based REDIRECT, GX redirect will come in as a regular rule
       install_redirect_flow(action_p);
     } else if (action_p->get_type() == RESTRICT_ACCESS) {
       MLOG(MWARNING) << "RESTRICT_ACCESS mode is unsupported"
@@ -367,18 +368,21 @@ void LocalEnforcer::install_redirect_flow(
   std::vector<PolicyRule> dynamic_rules{create_redirect_rule(action)};
   const std::string &imsi = action->get_imsi();
 
-  auto request = directoryd_client_->get_directoryd_ip_field(
-      imsi, [this, imsi, static_rules, dynamic_rules](Status status,
-                                                      DirectoryField resp) {
-        if (!status.ok()) {
-          MLOG(MERROR) << "Could not fetch subscriber " << imsi << "ip, "
-                       << "redirection fails, error: "
-                       << status.error_message();
-        } else {
-          pipelined_client_->activate_flows_for_rules(
-              imsi, resp.value(), static_rules, dynamic_rules);
-        }
-      });
+  auto request = directoryd_client_->get_directoryd_ip_field(imsi,
+    [this, imsi, static_rules, dynamic_rules](Status status,
+                                              DirectoryField resp) {
+    if (!status.ok()) {
+      MLOG(MERROR) << "Could not fetch subscriber " << imsi << "ip, "
+                   << "redirection fails, error: " << status.error_message();
+    } else {
+      pipelined_client_->add_gy_final_action_flow(
+        imsi,
+        resp.value(),
+        static_rules,
+        dynamic_rules);
+    }
+  }
+);
 }
 
 UpdateSessionRequest LocalEnforcer::collect_updates(
