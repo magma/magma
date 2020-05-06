@@ -59,6 +59,9 @@ class PipelinedController(Enum):
     Arp = Controller(
         'magma.pipelined.app.arp', 'arpd'
     )
+    GY = Controller(
+        'magma.pipelined.app.gy', 'gy'
+    )
     Enforcement = Controller(
         'magma.pipelined.app.enforcement', 'enforcement'
     )
