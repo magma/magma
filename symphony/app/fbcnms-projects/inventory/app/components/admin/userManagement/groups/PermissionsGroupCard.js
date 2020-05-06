@@ -31,6 +31,7 @@ import {
 } from '@fbcnms/ui/components/design-system/View/ViewHeaderActions';
 import {GROUP_STATUSES, NEW_DIALOG_PARAM} from '../utils/UserManagementUtils';
 import {PERMISSION_GROUPS_VIEW_NAME} from './PermissionsGroupsView';
+import {generateTempId} from '../../../../common/EntUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
@@ -59,7 +60,7 @@ type Props = $ReadOnly<{|
 |}>;
 
 const initialNewGroup: UserPermissionsGroup = {
-  id: '',
+  id: generateTempId(),
   name: '',
   description: '',
   status: GROUP_STATUSES.ACTIVE.key,
