@@ -17,7 +17,7 @@ type testIndexer struct {
 	version Version
 }
 
-// NewTestIndexer returns a do-nothing indexer with the specified ID.
+// NewTestIndexer returns a do-nothing indexer with the specified ID and version.
 func NewTestIndexer(id string, version Version) Indexer {
 	return &testIndexer{id: id, version: version}
 }
@@ -30,9 +30,18 @@ func (t *testIndexer) GetVersion() Version {
 	return t.version
 }
 
-func (t *testIndexer) GetSubscriptions() []Subscription                           { return nil }
-func (t *testIndexer) PrepareReindex(from, to Version, isFirstReindex bool) error { return nil }
-func (t *testIndexer) CompleteReindex(from, to Version) error                     { return nil }
-func (t *testIndexer) Index(networkID, reporterHWID string, states []state.State) (StateErrors, error) {
+func (t *testIndexer) GetSubscriptions() []Subscription {
+	return nil
+}
+
+func (t *testIndexer) PrepareReindex(from, to Version, isFirstReindex bool) error {
+	return nil
+}
+
+func (t *testIndexer) CompleteReindex(from, to Version) error {
+	return nil
+}
+
+func (t *testIndexer) Index(networkID string, states state.StatesByID) (StateErrors, error) {
 	return nil, nil
 }

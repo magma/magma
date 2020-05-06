@@ -47,13 +47,13 @@ const addNewHyperlink = (input: AddHyperlinkInput, onError: string => void) => {
   };
 
   const updater = store => {
-    // $FlowFixMe (T62907961) Relay flow types
     const newNode = store.getRootField('addHyperlink');
-    // $FlowFixMe (T62907961) Relay flow types
     const entityProxy = store.get(input.entityId);
-    // $FlowFixMe (T62907961) Relay flow types
+    if (newNode == null || entityProxy == null) {
+      return;
+    }
+
     const hyperlinkNodes = entityProxy.getLinkedRecords('hyperlinks') || [];
-    // $FlowFixMe (T62907961) Relay flow types
     entityProxy.setLinkedRecords([...hyperlinkNodes, newNode], 'hyperlinks');
   };
 

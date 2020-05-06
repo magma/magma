@@ -947,12 +947,24 @@ int sgw_handle_sgi_endpoint_deleted(
     } else {
       OAILOG_DEBUG_UE(
         LOG_SPGW_APP, imsi64, "Rx SGI_DELETE_ENDPOINT_REQUEST: REQUEST_ACCEPTED\n");
-      // if default bearer
-      //#pragma message  "TODO define constant for default eps_bearer id"
 
-      // delete GTPv1-U tunnel
       struct in_addr ue = eps_bearer_ctxt_p->paa.ipv4_address;
-
+      // If the forwarding was suspended, first resume it.
+      // Note that forward_data_on_tunnel does not install a new forwarding
+      // rule, but simply deletes previously installed drop rule by
+      // discard_data_on_tunnel.
+      if (new_bearer_ctxt_info_p->sgw_eps_bearer_context_information
+              .pdn_connection.ue_suspended_for_ps_handover) {
+        rv = gtp_tunnel_ops->forward_data_on_tunnel(
+            ue, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up, NULL,
+            DEFAULT_PRECEDENCE);
+        if (rv < 0) {
+          OAILOG_ERROR_UE(
+              LOG_SPGW_APP, imsi64,
+              "ERROR in resume forwarding data on TUNNEL err=%d\n", rv);
+        }
+      }
+      // delete GTPv1-U tunnel
       rv = gtp_tunnel_ops->del_tunnel(
         ue,
         eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
@@ -961,7 +973,7 @@ int sgw_handle_sgi_endpoint_deleted(
       if (rv < 0) {
         OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64, "ERROR in deleting TUNNEL\n");
       }
-
+      // delete paging rule
       char* ip_str = inet_ntoa(ue);
       rv = gtp_tunnel_ops->delete_paging_rule(ue);
       if (rv < 0) {
@@ -2297,6 +2309,37 @@ int sgw_handle_nw_initiated_deactv_bearer_rsp(
       OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64, "LBI received from MME is NULL\n");
       OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
     }
+    // Delete all the dedicated bearers linked to this default bearer
+    for (int ebix = 0; ebix < BEARERS_PER_UE; ebix++) {
+      ebi = INDEX_TO_EBI(ebix);
+      eps_bearer_ctxt_p = sgw_cm_get_eps_bearer_entry(
+          &spgw_ctxt->sgw_eps_bearer_context_information.pdn_connection, ebi);
+
+      if (eps_bearer_ctxt_p) {
+        if (ebi != *s11_pcrf_ded_bearer_deactv_rsp->lbi) {
+          rc = gtp_tunnel_ops->del_tunnel(
+              eps_bearer_ctxt_p->paa.ipv4_address,
+              eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
+              eps_bearer_ctxt_p->enb_teid_S1u, NULL);
+          if (rc < 0) {
+            OAILOG_ERROR_UE(
+                LOG_SPGW_APP, imsi64,
+                "ERROR in deleting TUNNEL " TEID_FMT
+                " (eNB) <-> (SGW) " TEID_FMT "\n",
+                eps_bearer_ctxt_p->enb_teid_S1u,
+                eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up);
+          } else {
+            OAILOG_INFO_UE(
+                LOG_SPGW_APP, imsi64,
+                "Removed dedicated bearer context for (ebi = %d)\n", ebi);
+          }
+          sgw_free_eps_bearer_context(
+              &spgw_ctxt->sgw_eps_bearer_context_information.pdn_connection
+                   .sgw_eps_bearers_array[EBI_TO_INDEX(ebi)]);
+        }
+      }
+    }
+
     OAILOG_INFO_UE(
       LOG_SPGW_APP,
       imsi64,
@@ -2306,19 +2349,6 @@ int sgw_handle_nw_initiated_deactv_bearer_rsp(
     eps_bearer_ctxt_p = sgw_cm_get_eps_bearer_entry(
       &spgw_ctxt->sgw_eps_bearer_context_information.pdn_connection, ebi);
 
-    rc = gtp_tunnel_ops->del_tunnel(
-      eps_bearer_ctxt_p->paa.ipv4_address,
-      eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
-      eps_bearer_ctxt_p->enb_teid_S1u,
-      NULL);
-    if (rc < 0) {
-      OAILOG_ERROR_UE(
-        LOG_SPGW_APP,
-        imsi64,
-        "ERROR in deleting TUNNEL " TEID_FMT " (eNB) <-> (SGW) " TEID_FMT "\n",
-        eps_bearer_ctxt_p->enb_teid_S1u,
-        eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up);
-    }
     sgi_delete_end_point_request.context_teid =
       spgw_ctxt->sgw_eps_bearer_context_information.s_gw_teid_S11_S4;
     sgi_delete_end_point_request.sgw_S1u_teid =

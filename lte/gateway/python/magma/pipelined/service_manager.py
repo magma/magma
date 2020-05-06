@@ -128,7 +128,9 @@ class _TableManager:
     EGRESS_TABLE_NUM = 20
     LOGICAL_TABLE_LIMIT_NUM = EGRESS_TABLE_NUM  # exclusive
     SCRATCH_TABLE_START_NUM = EGRESS_TABLE_NUM + 1  # 21
-    SCRATCH_TABLE_LIMIT_NUM = 255  # exclusive
+    SCRATCH_TABLE_LIMIT_NUM = 200
+    # 200 - 255 is used for apps that share a table
+    ALL_TABLE_LIMIT_NUM = 255  # exclusive
 
     def __init__(self):
         self._table_ranges = {
@@ -251,6 +253,10 @@ class ServiceManager:
     CHECK_QUOTA_SERVICE_NAME = 'check_quota'
     LI_MIRROR_SERVICE_NAME = 'li_mirror'
     XWF_PASSTHRU_NAME = 'xwf_passthru'
+
+    INTERNAL_APP_SET_TABLE_NUM = 201
+    INTERNAL_IMSI_SET_TABLE_NUM = 202
+    INTERNAL_IPFIX_SAMPLE_TABLE_NUM = 203
 
     # Mapping between services defined in mconfig and the names and modules of
     # the corresponding Ryu apps in PipelineD. The module is used for the Ryu

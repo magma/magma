@@ -68,7 +68,7 @@ bool SessionStore::create_sessions(
 }
 
 bool SessionStore::update_sessions(const SessionUpdate& update_criteria) {
-  MLOG(MDEBUG) << "Running update_sessions";
+  MLOG(MDEBUG) << "Updating session changes in SessionStore (update_sessions)";
   // Read the current state
   auto subscriber_ids = std::set<std::string>{};
   for (const auto& it : update_criteria) {
@@ -102,9 +102,14 @@ bool SessionStore::update_sessions(const SessionUpdate& update_criteria) {
 bool SessionStore::merge_into_session(
     std::unique_ptr<SessionState>& session,
     const SessionStateUpdateCriteria& update_criteria) {
+  // FSM State
+  if (update_criteria.is_fsm_updated) {
+    session->set_fsm_state(update_criteria.updated_fsm_state);
+  }
+
   // Config
   if (update_criteria.is_config_updated) {
-    session->unmarshal_config(update_criteria.updated_config);
+    session->set_config(update_criteria.updated_config);
   }
 
   // Static rules

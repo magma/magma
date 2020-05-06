@@ -10,6 +10,7 @@ package test_init
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"magma/feg/cloud/go/protos"
@@ -27,6 +28,7 @@ func StartTestService(t *testing.T) (*service.Service, error) {
 }
 
 func StartTestServiceWithCache(t *testing.T, cache *cache.Impl) (*service.Service, error) {
+	os.Setenv("USE_REMOTE_SWX_PROXY", "false")
 	srv, lis := test_utils.NewTestService(t, registry.ModuleName, registry.SWX_PROXY)
 
 	config := servicers.GetSwxProxyConfig()

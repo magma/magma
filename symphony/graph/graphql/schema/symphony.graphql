@@ -196,14 +196,21 @@ input EditPermissionsPolicyInput {
   workforceInput: WorkforcePolicyInput
 }
 
+input UpdateGroupsInPermissionsPolicyInput {
+  id: ID!
+  addGroupIds: [ID!]!
+  removeGroupIds: [ID!]!
+}
+
 type Viewer
   @goModel(model: "github.com/facebookincubator/symphony/graph/viewer.Viewer") {
   tenant: String!
   email: String!
+    @goField(name: "Name")
     @deprecated(
       reason: "Use `Viewer.user.email` instead. Will be removed on 2020-05-01"
     )
-  user: User!
+  user: User
   permissions: PermissionSettings!
 }
 
@@ -318,6 +325,12 @@ input UpdateUsersGroupMembersInput {
   id: ID!
   addUserIds: [ID!]!
   removeUserIds: [ID!]!
+}
+
+input UpdatePermissionsPoliciesInUsersGroupInput {
+  id: ID!
+  addPermissionsPolicyIds: [ID!]!
+  removePermissionsPolicyIds: [ID!]!
 }
 
 input AddLocationInput {
@@ -466,6 +479,7 @@ type Equipment implements Node & NamedNode {
   futureState: FutureState
   workOrder: WorkOrder
   locationHierarchy: [Location!]!
+  firstLocation: Location!
   positionHierarchy: [EquipmentPosition!]!
   device: Device
   services: [Service]!
@@ -1679,6 +1693,11 @@ type WorkOrderSearchResult {
   count: Int!
 }
 
+type PermissionsPolicySearchResult {
+  permissionsPolicies: [PermissionsPolicy]!
+  count: Int!
+}
+
 type UsersGroupSearchResult {
   usersGroups: [UsersGroup]!
   count: Int!
@@ -1743,6 +1762,13 @@ enum UserFilterType {
 }
 
 """
+what filters should we apply on permissionsPolicy
+"""
+enum PermissionsPolicyFilterType {
+  PERMISSIONS_POLICY_NAME
+}
+
+"""
 what filters should we apply on usersGroups
 """
 enum UsersGroupFilterType {
@@ -1799,6 +1825,13 @@ input UserFilterInput {
   statusValue: UserStatus
   idSet: [ID!]
   stringSet: [String!]
+  maxDepth: Int = 5
+}
+
+input PermissionsPolicyFilterInput {
+  filterType: PermissionsPolicyFilterType!
+  operator: FilterOperator!
+  stringValue: String
   maxDepth: Int = 5
 }
 
@@ -1934,6 +1967,7 @@ type ServiceType implements Node {
   services: [Service]!
   numberOfServices: Int!
   endpointDefinitions: [ServiceEndpointDefinition]!
+  discoveryMethod: DiscoveryMethod
 }
 
 directive @uniqueField(
@@ -1946,12 +1980,17 @@ input LocationTypeIndex {
   index: Int!
 }
 
+enum DiscoveryMethod {
+  INVENTORY
+}
+
 input ServiceTypeCreateData {
   name: String!
   hasCustomer: Boolean!
   properties: [PropertyTypeInput]
     @uniqueField(typ: "property type", field: "Name")
   endpoints: [ServiceEndpointDefinitionInput]
+  discoveryMethod: DiscoveryMethod
 }
 
 input ServiceTypeEditData {
@@ -2522,6 +2561,10 @@ type Query {
     limit: Int = 500
   ): ServiceSearchResult!
   userSearch(filters: [UserFilterInput!]!, limit: Int = 500): UserSearchResult!
+  permissionsPolicySearch(
+    filters: [PermissionsPolicyFilterInput!]!
+    limit: Int = 500
+  ): PermissionsPolicySearchResult!
   usersGroupSearch(
     filters: [UsersGroupFilterInput!]!
     limit: Int = 500
@@ -2559,6 +2602,9 @@ type Mutation {
   editUsersGroup(input: EditUsersGroupInput!): UsersGroup!
   updateUserGroups(input: UpdateUserGroupsInput!): User!
   updateUsersGroupMembers(input: UpdateUsersGroupMembersInput!): UsersGroup!
+  updatePermissionsPoliciesInUsersGroup(
+    input: UpdatePermissionsPoliciesInUsersGroupInput!
+  ): UsersGroup!
   deleteUsersGroup(id: ID!): Boolean!
   createSurvey(data: SurveyCreateData!): ID!
   addLocation(input: AddLocationInput!): Location!
@@ -2737,6 +2783,10 @@ type Mutation {
   deleteReportFilter(id: ID!): Boolean!
   addPermissionsPolicy(input: AddPermissionsPolicyInput!): PermissionsPolicy!
   editPermissionsPolicy(input: EditPermissionsPolicyInput!): PermissionsPolicy!
+
+  updateGroupsInPermissionsPolicy(
+    input: UpdateGroupsInPermissionsPolicyInput!
+  ): PermissionsPolicy!
 }
 
 type Subscription {

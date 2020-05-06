@@ -256,7 +256,7 @@ func TestEditProject(t *testing.T) {
 
 	var project *ent.Project
 	{
-		u := viewer.FromContext(ctx).User()
+		u := viewer.FromContext(ctx).(*viewer.UserViewer).User()
 		input := models.AddProjectInput{
 			Name:        "test",
 			Description: pointer.ToString("desc"),
@@ -363,7 +363,7 @@ func TestAddProjectWithProperties(t *testing.T) {
 		RangeToValue:   &fl2,
 	}
 	propInputs := []*models.PropertyInput{&strProp, &strFixedProp, &intProp, &rngProp}
-	u := viewer.FromContext(ctx).User()
+	u := viewer.FromContext(ctx).(*viewer.UserViewer).User()
 	input := models.AddProjectInput{
 		Name:        "test",
 		Description: pointer.ToString("desc"),

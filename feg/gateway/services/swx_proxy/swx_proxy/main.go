@@ -31,7 +31,10 @@ func main() {
 		glog.Fatalf("Error creating Swx Proxy service: %s", err)
 	}
 
-	servicer, err := servicers.NewSwxProxy(servicers.GetSwxProxyConfig())
+	// TODO: remove when multiple config is supported
+	configs := []*servicers.SwxProxyConfig{servicers.GetSwxProxyConfig()}
+
+	servicer, err := servicers.NewSwxProxiesWithHealthAndDefaultMultiplexor(configs)
 	if err != nil {
 		glog.Fatalf("Failed to create SwxProxy: %v", err)
 	}

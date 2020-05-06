@@ -86,6 +86,42 @@ enum ServiceState {
   SERVICE_NEEDS_ACTIVATION = 3,
 };
 
+/**
+ * State transitions of a session:
+ * SESSION_ACTIVE  ---------
+ *       |                  \
+ *       |                   \
+ *       |                    \
+ *       |                     \
+ *       | (start_termination)  SESSION_TERMINATION_SCHEDULED
+ *       |                      /
+ *       |                     /
+ *       |                    /
+ *       V                   V
+ * SESSION_TERMINATING_FLOW_ACTIVE <----------
+ *       |                                   |
+ *       | (notify_new_report_for_sessions)  | (add_used_credit)
+ *       V                                   |
+ * SESSION_TERMINATING_AGGREGATING_STATS -----
+ *       |
+ *       | (notify_finish_report_for_sessions)
+ *       V
+ * SESSION_TERMINATING_FLOW_DELETED
+ *       |
+ *       | (complete_termination)
+ *       V
+ * SESSION_TERMINATED
+ */
+enum SessionFsmState {
+  SESSION_ACTIVE                        = 0,
+  SESSION_TERMINATING_FLOW_ACTIVE       = 1,
+  SESSION_TERMINATING_AGGREGATING_STATS = 2,
+  SESSION_TERMINATING_FLOW_DELETED      = 3,
+  SESSION_TERMINATED                    = 4,
+  // TODO All sessions in this state should be terminated on sessiond restart
+  SESSION_TERMINATION_SCHEDULED         = 5
+};
+
 struct StoredSessionCredit {
   bool reporting;
   bool is_final;
@@ -117,6 +153,7 @@ struct StoredUsageMonitoringCreditPool {
 };
 
 struct StoredSessionState {
+  SessionFsmState fsm_state;
   SessionConfig config;
   StoredChargingCreditPool charging_pool;
   StoredUsageMonitoringCreditPool monitor_pool;
@@ -147,6 +184,8 @@ struct SessionStateUpdateCriteria {
   bool is_session_ended;
   bool is_config_updated;
   SessionConfig updated_config;
+  bool is_fsm_updated;
+  SessionFsmState updated_fsm_state;
   std::set<std::string> static_rules_to_install;
   std::set<std::string> static_rules_to_uninstall;
   std::vector<PolicyRule> dynamic_rules_to_install;

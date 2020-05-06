@@ -16,7 +16,7 @@ import type {
   RemoveWorkOrderTypeMutationResponse,
   RemoveWorkOrderTypeMutationVariables,
 } from './__generated__/RemoveWorkOrderTypeMutation.graphql';
-import type {StoreUpdater} from '../common/RelayEnvironment';
+import type {SelectorStoreUpdater} from 'relay-runtime';
 
 const mutation = graphql`
   mutation RemoveWorkOrderTypeMutation($id: ID!) {
@@ -27,7 +27,7 @@ const mutation = graphql`
 export default (
   variables: RemoveWorkOrderTypeMutationVariables,
   callbacks?: MutationCallbacks<RemoveWorkOrderTypeMutationResponse>,
-  updater?: StoreUpdater,
+  updater?: SelectorStoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
   commitMutation<RemoveWorkOrderTypeMutation>(RelayEnvironment, {

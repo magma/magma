@@ -309,19 +309,19 @@ uint32_t ChargingCreditPool::get_credit_key_count() const {
   return credit_map_.size();
 }
 
-ChargingReAuthAnswer::Result
+ReAuthResult
 ChargingCreditPool::reauth_key(const CreditKey &charging_key,
                                SessionStateUpdateCriteria &update_criteria) {
   auto it = credit_map_.find(charging_key);
   if (it != credit_map_.end()) {
     // if credit is already reporting, don't initiate update
     if (it->second->is_reporting()) {
-      return ChargingReAuthAnswer::UPDATE_NOT_NEEDED;
+      return ReAuthResult::UPDATE_NOT_NEEDED;
     }
     auto uc = it->second->get_update_criteria();
     it->second->reauth(uc);
     update_criteria.charging_credit_map[charging_key] = uc;
-    return ChargingReAuthAnswer::UPDATE_INITIATED;
+    return ReAuthResult::UPDATE_INITIATED;
   }
   // charging_key cannot be found, initialize credit and engage reauth
   auto credit =
@@ -330,19 +330,19 @@ ChargingCreditPool::reauth_key(const CreditKey &charging_key,
   credit->reauth(_);
   update_criteria.charging_credit_to_install[charging_key] = credit->marshal();
   credit_map_[charging_key] = std::move(credit);
-  return ChargingReAuthAnswer::UPDATE_INITIATED;
+  return ReAuthResult::UPDATE_INITIATED;
 }
 
-ChargingReAuthAnswer::Result
+ReAuthResult
 ChargingCreditPool::reauth_all(SessionStateUpdateCriteria &update_criteria) {
-  auto res = ChargingReAuthAnswer::UPDATE_NOT_NEEDED;
+  auto res = ReAuthResult::UPDATE_NOT_NEEDED;
   for (auto &credit_pair : credit_map_) {
     // Only update credits that aren't reporting
     if (!credit_pair.second->is_reporting()) {
       auto uc = credit_pair.second->get_update_criteria();
       credit_pair.second->reauth(uc);
       update_criteria.charging_credit_map[credit_pair.first] = uc;
-      res = ChargingReAuthAnswer::UPDATE_INITIATED;
+      res = ReAuthResult::UPDATE_INITIATED;
     }
   }
   return res;

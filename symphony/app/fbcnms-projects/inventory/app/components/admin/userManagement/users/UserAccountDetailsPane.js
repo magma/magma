@@ -51,7 +51,11 @@ export const ACCOUNT_DISPLAY_VARIANTS = {
 
 type Props = {
   user: User,
-  onChange?: (user: User, password: string, currentPassword?: ?string) => void,
+  onChange?: (
+    user: User,
+    password: string,
+    currentPassword?: ?string,
+  ) => void | Promise<void>,
   variant: $Values<typeof ACCOUNT_DISPLAY_VARIANTS>,
   className?: ?string,
 };
@@ -123,14 +127,15 @@ const UserAccountDetailsPane = (props: Props) => {
       onValueChanged={
         onChange == null
           ? undefined
-          : newAuthID =>
+          : newAuthID => {
               onChange(
                 {
                   ...user,
                   authID: newAuthID,
                 },
                 password,
-              )
+              );
+            }
       }
     />
   );
@@ -224,10 +229,11 @@ const UserAccountDetailsPane = (props: Props) => {
                   <FormAction disableOnFromError={true}>
                     <Button
                       onClick={() => {
-                        if (onChange) {
-                          onChange(user, password, currentPassword);
-                        }
-                        exitEditMode();
+                        const changeResult =
+                          onChange == null
+                            ? undefined
+                            : onChange(user, password, currentPassword);
+                        return Promise.resolve(changeResult).then(exitEditMode);
                       }}>
                       <fbt desc="">Save Changes</fbt>
                     </Button>

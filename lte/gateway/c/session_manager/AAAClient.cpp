@@ -8,6 +8,7 @@
  */
 
 #include "AAAClient.h"
+#include "SessionState.h"
 #include "ServiceRegistrySingleton.h"
 #include "magma_logging.h"
 
@@ -25,7 +26,33 @@ aaa::terminate_session_request create_deactivate_req(
   return req;
 }
 
+aaa::add_sessions_request create_add_sessions_req(
+  magma::lte::SessionMap &session_map)
+{
+  aaa::add_sessions_request req;
+  for (auto it = session_map.begin(); it != session_map.end(); it++) {
+    for (const auto &session : it->second) {
+      aaa::context ctx;
+      if (!session->is_radius_cwf_session()) {
+        continue;
+      }
+      magma::SessionState::SessionInfo session_info;
+      session->get_session_info(session_info);
+      ctx.set_imsi(session_info.imsi);
+      ctx.set_session_id(session->get_radius_session_id());
+      ctx.set_acct_session_id(session->get_session_id());
+      ctx.set_mac_addr(session->get_mac_addr());
+      ctx.set_msisdn(session->get_msisdn());
+      ctx.set_apn(session->get_apn());
+      auto mutable_sessions = req.mutable_sessions();
+      mutable_sessions->Add()->CopyFrom(ctx);
+    }
+  }
+  return req;
+}
+
 } // namespace
+
 
 namespace aaa {
 
@@ -59,6 +86,36 @@ bool AsyncAAAClient::terminate_session(
     }
   });
   return true;
+}
+
+bool AsyncAAAClient::add_sessions(magma::lte::SessionMap &session_map)
+{
+  auto req = create_add_sessions_req(session_map);
+  if (req.sessions().size() == 0) {
+    MLOG(MINFO) << "Not sending add_sessions request to AAA server. No AAA "
+                << "sessions found";
+    return true;
+  }
+  add_sessions_rpc(req, [this](Status status, acct_resp resp) {
+    if (status.ok()) {
+      MLOG(MINFO) << "Successfully added all existing sessions to AAA server";
+    } else {
+      MLOG(MERROR) << "Could not add existing sessions to AAA server,"
+                   << " Error: " << status.error_message();
+    }
+  });
+  return true;
+}
+
+void AsyncAAAClient::add_sessions_rpc(
+  const add_sessions_request &request,
+  std::function<void(Status, acct_resp)> callback)
+{
+  auto local_resp = new magma::AsyncLocalResponse<acct_resp>(
+    std::move(callback), RESPONSE_TIMEOUT);
+  local_resp->set_response_reader(std::move(stub_->Asyncadd_sessions(
+    local_resp->get_context(), request, &queue_)));
+
 }
 
 void AsyncAAAClient::terminate_session_rpc(

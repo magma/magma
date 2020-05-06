@@ -31,7 +31,7 @@ export type MainContextValue = {
 const integrationUserDefinitionBuilder: (
   ?MainContextMeQueryResponse,
 ) => SessionUser = queryResponse => ({
-  email: queryResponse?.me?.user.email || '',
+  email: queryResponse?.me?.user?.email || '',
   isSuperUser:
     queryResponse?.me?.permissions.adminPolicy.access.isAllowed ===
     PermissionValues.YES,

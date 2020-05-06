@@ -9,8 +9,13 @@
  */
 import * as React from 'react';
 import AlarmContext from '../components/AlarmContext';
+import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
+import defaultTheme from '../theme/default';
 import getPrometheusRuleInterface from '../components/rules/PrometheusEditor/getRuleInterface';
-import {SymphonyWrapper} from '@fbcnms/test/testHelpers';
+
+import {MemoryRouter} from 'react-router-dom';
+import {MuiThemeProvider} from '@material-ui/core/styles';
+import {SnackbarProvider} from 'notistack';
 import {act, render} from '@testing-library/react';
 import type {AlarmContext as AlarmContextType} from '../components/AlarmContext';
 import type {ApiUtil} from '../components/AlarmsApi';
@@ -76,11 +81,29 @@ type AlarmsWrapperProps = {|
 |};
 export function AlarmsWrapper({children, ...contextProps}: AlarmsWrapperProps) {
   return (
-    <SymphonyWrapper>
+    <AlarmsTestWrapper>
       <AlarmContext.Provider value={contextProps}>
         {children}
       </AlarmContext.Provider>
-    </SymphonyWrapper>
+    </AlarmsTestWrapper>
+  );
+}
+
+export function AlarmsTestWrapper({
+  route,
+  children,
+}: {
+  route?: string,
+  children: React.Node,
+}) {
+  return (
+    <MemoryRouter initialEntries={[route || '/']} initialIndex={0}>
+      <MuiThemeProvider theme={defaultTheme}>
+        <MuiStylesThemeProvider theme={defaultTheme}>
+          <SnackbarProvider>{children}</SnackbarProvider>
+        </MuiStylesThemeProvider>
+      </MuiThemeProvider>
+    </MemoryRouter>
   );
 }
 

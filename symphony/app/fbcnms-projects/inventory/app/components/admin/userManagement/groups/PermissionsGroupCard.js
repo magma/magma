@@ -25,6 +25,10 @@ import ViewContainer from '@fbcnms/ui/components/design-system/View/ViewContaine
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
+import {
+  ButtonAction,
+  IconAction,
+} from '@fbcnms/ui/components/design-system/View/ViewHeaderActions';
 import {GROUP_STATUSES, NEW_DIALOG_PARAM} from '../utils/UserManagementUtils';
 import {PERMISSION_GROUPS_VIEW_NAME} from './PermissionsGroupsView';
 import {makeStyles} from '@material-ui/styles';
@@ -108,14 +112,12 @@ function PermissionsGroupCard(props: Props) {
       },
     ];
     const actions = [
-      {
-        title: Strings.common.cancelButton,
-        action: onClose,
-        skin: 'regular',
-      },
-      {
-        title: Strings.common.saveButton,
-        action: () => {
+      <ButtonAction skin="regular" action={onClose}>
+        {Strings.common.cancelButton}
+      </ButtonAction>,
+      <ButtonAction
+        disableOnFromError={true}
+        action={() => {
           if (group == null) {
             return;
           }
@@ -123,31 +125,33 @@ function PermissionsGroupCard(props: Props) {
           saveAction(group)
             .then(onClose)
             .catch(handleError);
-        },
-        disableOnFromError: true,
-      },
+        }}>
+        {Strings.common.saveButton}
+      </ButtonAction>,
     ];
     if (!isOnNewGroup && userManagementDevMode) {
-      actions.unshift({
-        icon: DeleteIcon,
-        action: () => {
-          if (group == null) {
-            return;
-          }
-          props
-            .confirm(
-              <fbt desc="">Are you sure you want to delete this group?</fbt>,
-            )
-            .then(confirm => {
-              if (!confirm) {
-                return;
-              }
-              return deleteGroup(group.id).then(onClose);
-            })
-            .catch(handleError);
-        },
-        skin: 'gray',
-      });
+      actions.unshift(
+        <IconAction
+          skin="gray"
+          icon={DeleteIcon}
+          action={() => {
+            if (group == null) {
+              return;
+            }
+            props
+              .confirm(
+                <fbt desc="">Are you sure you want to delete this group?</fbt>,
+              )
+              .then(confirm => {
+                if (!confirm) {
+                  return;
+                }
+                return deleteGroup(group.id).then(onClose);
+              })
+              .catch(handleError);
+          }}
+        />,
+      );
     }
     return {
       title: <Breadcrumbs breadcrumbs={breadcrumbs} />,

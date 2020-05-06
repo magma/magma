@@ -26,6 +26,11 @@ class RedisReadFailed : public std::exception {
   RedisReadFailed() = default;
 };
 
+class RedisWriteFailed : public std::exception {
+ public:
+  RedisWriteFailed() = default;
+};
+
 /**
  * Persistent StoreClient used to allow stateless session_manager to function
  */

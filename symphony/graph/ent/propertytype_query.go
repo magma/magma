@@ -32,7 +32,7 @@ type PropertyTypeQuery struct {
 	config
 	limit      *int
 	offset     *int
-	order      []Order
+	order      []OrderFunc
 	unique     []string
 	predicates []predicate.PropertyType
 	// eager-loading edges.
@@ -69,7 +69,7 @@ func (ptq *PropertyTypeQuery) Offset(offset int) *PropertyTypeQuery {
 }
 
 // Order adds an order step to the query.
-func (ptq *PropertyTypeQuery) Order(o ...Order) *PropertyTypeQuery {
+func (ptq *PropertyTypeQuery) Order(o ...OrderFunc) *PropertyTypeQuery {
 	ptq.order = append(ptq.order, o...)
 	return ptq
 }
@@ -388,7 +388,7 @@ func (ptq *PropertyTypeQuery) Clone() *PropertyTypeQuery {
 		config:     ptq.config,
 		limit:      ptq.limit,
 		offset:     ptq.offset,
-		order:      append([]Order{}, ptq.order...),
+		order:      append([]OrderFunc{}, ptq.order...),
 		unique:     append([]string{}, ptq.unique...),
 		predicates: append([]predicate.PropertyType{}, ptq.predicates...),
 		// clone intermediate query.
@@ -880,14 +880,14 @@ func (ptq *PropertyTypeQuery) sqlQuery() *sql.Selector {
 type PropertyTypeGroupBy struct {
 	config
 	fields []string
-	fns    []Aggregate
+	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (ptgb *PropertyTypeGroupBy) Aggregate(fns ...Aggregate) *PropertyTypeGroupBy {
+func (ptgb *PropertyTypeGroupBy) Aggregate(fns ...AggregateFunc) *PropertyTypeGroupBy {
 	ptgb.fns = append(ptgb.fns, fns...)
 	return ptgb
 }

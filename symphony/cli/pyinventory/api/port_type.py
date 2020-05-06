@@ -5,23 +5,21 @@
 
 from typing import Dict, List, Optional
 
+from pysymphony import SymphonyClient
+
 from .._utils import format_property_definitions, get_graphql_property_type_inputs
-from ..client import SymphonyClient
+from ..common.cache import PORT_TYPES
 from ..common.data_class import EquipmentPortType, PropertyDefinition, PropertyValue
 from ..common.data_enum import Entity
 from ..exceptions import EntityNotFoundError
-from ..graphql.add_equipment_port_type_mutation import (
-    AddEquipmentPortTypeInput,
-    AddEquipmentPortTypeMutation,
-)
-from ..graphql.edit_equipment_port_type_mutation import (
-    EditEquipmentPortTypeInput,
-    EditEquipmentPortTypeMutation,
-)
-from ..graphql.equipment_port_type_query import EquipmentPortTypeQuery
-from ..graphql.remove_equipment_port_type_mutation import (
+from ..graphql.input.add_equipment_port_type import AddEquipmentPortTypeInput
+from ..graphql.input.edit_equipment_port_type import EditEquipmentPortTypeInput
+from ..graphql.mutation.add_equipment_port_type import AddEquipmentPortTypeMutation
+from ..graphql.mutation.edit_equipment_port_type import EditEquipmentPortTypeMutation
+from ..graphql.mutation.remove_equipment_port_type import (
     RemoveEquipmentPortTypeMutation,
 )
+from ..graphql.query.equipment_port_type import EquipmentPortTypeQuery
 
 
 def add_equipment_port_type(
@@ -46,7 +44,7 @@ def add_equipment_port_type(
         Example:
             ```
             from pyinventory.common.data_class import PropertyDefinition
-            from pyinventory.graphql.property_kind_enum import PropertyKind
+            from pyinventory.graphql.enum.property_kind import PropertyKind
             port_type1 = client.add_equipment_port_type(
                 name="port type 1",
                 properties=[PropertyDefinition(
@@ -80,7 +78,7 @@ def add_equipment_port_type(
         property_types=result.propertyTypes,
         link_property_types=result.linkPropertyTypes,
     )
-    client.portTypes[added.name] = added
+    PORT_TYPES[added.name] = added
     return added
 
 
@@ -158,14 +156,14 @@ def edit_equipment_port_type(
 
     new_property_type_inputs = []
     if new_properties:
-        property_types = client.portTypes[port_type.name].property_types
+        property_types = PORT_TYPES[port_type.name].property_types
         new_property_type_inputs = get_graphql_property_type_inputs(
             property_types, new_properties
         )
 
     new_link_property_type_inputs = []
     if new_link_properties:
-        link_property_types = client.portTypes[port_type.name].link_property_types
+        link_property_types = PORT_TYPES[port_type.name].link_property_types
         new_link_property_type_inputs = get_graphql_property_type_inputs(
             link_property_types, new_link_properties
         )

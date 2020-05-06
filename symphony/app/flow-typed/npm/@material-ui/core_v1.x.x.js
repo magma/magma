@@ -336,20 +336,24 @@ declare module "@material-ui/core/CssBaseline" {
   declare module.exports: $Exports<"@material-ui/core/CssBaseline/CssBaseline">;
 }
 
+declare type Hue = {|
+  [string|number]:string
+|}
+
 declare module "@material-ui/core/colors/amber" {
-  declare module.exports: any;
+  declare module.exports: Hue;
 }
 
 declare module "@material-ui/core/colors/blue" {
-  declare module.exports: any;
+  declare module.exports: Hue;
 }
 
 declare module "@material-ui/core/colors/blueGrey" {
-  declare module.exports: any;
+  declare module.exports: Hue;
 }
 
 declare module "@material-ui/core/colors/brown" {
-  declare module.exports: any;
+  declare module.exports: Hue;
 }
 
 declare module "@material-ui/core/colors/common" {
@@ -362,23 +366,23 @@ declare module "@material-ui/core/colors/common" {
 }
 
 declare module "@material-ui/core/colors/cyan" {
-  declare module.exports: any;
+  declare module.exports: Hue;
 }
 
 declare module "@material-ui/core/colors/deepOrange" {
-  declare module.exports: any;
+  declare module.exports: Hue;
 }
 
 declare module "@material-ui/core/colors/deepPurple" {
-  declare module.exports: any;
+  declare module.exports: Hue;
 }
 
 declare module "@material-ui/core/colors/green" {
-  declare module.exports: any;
+  declare module.exports: Hue;
 }
 
 declare module "@material-ui/core/colors/grey" {
-  declare module.exports: any;
+  declare module.exports: Hue;
 }
 
 declare module "@material-ui/core/colors" {
@@ -386,43 +390,43 @@ declare module "@material-ui/core/colors" {
 }
 
 declare module "@material-ui/core/colors/indigo" {
-  declare module.exports: any;
+  declare module.exports: Hue;
 }
 
 declare module "@material-ui/core/colors/lightBlue" {
-  declare module.exports: any;
+  declare module.exports: Hue;
 }
 
 declare module "@material-ui/core/colors/lightGreen" {
-  declare module.exports: any;
+  declare module.exports: Hue;
 }
 
 declare module "@material-ui/core/colors/lime" {
-  declare module.exports: any;
+  declare module.exports: Hue;
 }
 
 declare module "@material-ui/core/colors/orange" {
-  declare module.exports: any;
+  declare module.exports: Hue;
 }
 
 declare module "@material-ui/core/colors/pink" {
-  declare module.exports: any;
+  declare module.exports: Hue;
 }
 
 declare module "@material-ui/core/colors/purple" {
-  declare module.exports: any;
+  declare module.exports: Hue;
 }
 
 declare module "@material-ui/core/colors/red" {
-  declare module.exports: any;
+  declare module.exports: Hue;
 }
 
 declare module "@material-ui/core/colors/teal" {
-  declare module.exports: any;
+  declare module.exports: Hue;
 }
 
 declare module "@material-ui/core/colors/yellow" {
-  declare module.exports: any;
+  declare module.exports: Hue;
 }
 
 declare module "@material-ui/core/Dialog/Dialog" {

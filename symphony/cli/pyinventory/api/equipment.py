@@ -5,10 +5,11 @@
 
 from typing import Dict, List, Mapping, Optional, Tuple
 
+from pysymphony import SymphonyClient
 from tqdm import tqdm
 
 from .._utils import PropertyValue, _get_property_value, get_graphql_property_inputs
-from ..client import SymphonyClient
+from ..common.cache import EQUIPMENT_TYPES
 from ..common.constant import EQUIPMENTS_TO_SEARCH
 from ..common.data_class import Equipment, EquipmentType, Location
 from ..common.data_enum import Entity
@@ -19,22 +20,22 @@ from ..exceptions import (
     EquipmentPositionIsNotUniqueException,
     EquipmentPositionNotFoundException,
 )
-from ..graphql.add_equipment_input import AddEquipmentInput
-from ..graphql.add_equipment_mutation import AddEquipmentMutation
-from ..graphql.edit_equipment_input import EditEquipmentInput
-from ..graphql.edit_equipment_mutation import EditEquipmentMutation
-from ..graphql.equipment_filter_input import EquipmentFilterInput
-from ..graphql.equipment_filter_type_enum import EquipmentFilterType
-from ..graphql.equipment_positions_query import EquipmentPositionsQuery
-from ..graphql.equipment_search_query import EquipmentSearchQuery
-from ..graphql.equipment_type_and_properties_query import (
+from ..graphql.enum.equipment_filter_type import EquipmentFilterType
+from ..graphql.enum.filter_operator import FilterOperator
+from ..graphql.enum.property_kind import PropertyKind
+from ..graphql.input.add_equipment import AddEquipmentInput
+from ..graphql.input.edit_equipment import EditEquipmentInput
+from ..graphql.input.equipment_filter import EquipmentFilterInput
+from ..graphql.mutation.add_equipment import AddEquipmentMutation
+from ..graphql.mutation.edit_equipment import EditEquipmentMutation
+from ..graphql.mutation.remove_equipment import RemoveEquipmentMutation
+from ..graphql.query.equipment_positions import EquipmentPositionsQuery
+from ..graphql.query.equipment_search import EquipmentSearchQuery
+from ..graphql.query.equipment_type_and_properties import (
     EquipmentTypeAndPropertiesQuery,
 )
-from ..graphql.equipment_type_equipments_query import EquipmentTypeEquipmentQuery
-from ..graphql.filter_operator_enum import FilterOperator
-from ..graphql.location_equipments_query import LocationEquipmentsQuery
-from ..graphql.property_kind_enum import PropertyKind
-from ..graphql.remove_equipment_mutation import RemoveEquipmentMutation
+from ..graphql.query.equipment_type_equipments import EquipmentTypeEquipmentQuery
+from ..graphql.query.location_equipments import LocationEquipmentsQuery
 
 
 def _get_equipment_if_exists(
@@ -353,12 +354,12 @@ def add_equipment(
             ```
     """
 
-    property_types = client.equipmentTypes[equipment_type].property_types
+    property_types = EQUIPMENT_TYPES[equipment_type].property_types
     properties = get_graphql_property_inputs(property_types, properties_dict)
 
     add_equipment_input = AddEquipmentInput(
         name=name,
-        type=client.equipmentTypes[equipment_type].id,
+        type=EQUIPMENT_TYPES[equipment_type].id,
         location=location.id,
         properties=properties,
         externalId=external_id,
@@ -406,7 +407,7 @@ def edit_equipment(
             ```
     """
     properties = []
-    property_types = client.equipmentTypes[equipment.equipment_type_name].property_types
+    property_types = EQUIPMENT_TYPES[equipment.equipment_type_name].property_types
     if new_properties:
         properties = get_graphql_property_inputs(property_types, new_properties)
     edit_equipment_input = EditEquipmentInput(
@@ -529,12 +530,12 @@ def add_equipment_to_position(
     position_definition_id, _ = _find_position_definition_id(
         client, existing_equipment, position_name
     )
-    property_types = client.equipmentTypes[equipment_type].property_types
+    property_types = EQUIPMENT_TYPES[equipment_type].property_types
     properties = get_graphql_property_inputs(property_types, properties_dict)
 
     add_equipment_input = AddEquipmentInput(
         name=name,
-        type=client.equipmentTypes[equipment_type].id,
+        type=EQUIPMENT_TYPES[equipment_type].id,
         parent=existing_equipment.id,
         positionDefinition=position_definition_id,
         properties=properties,
@@ -634,7 +635,7 @@ def _get_equipment_type_and_properties_dict(
     equipment_type = result.equipmentType.name
 
     properties_dict = {}
-    property_types = client.equipmentTypes[equipment_type].property_types
+    property_types = EQUIPMENT_TYPES[equipment_type].property_types
     for property in result.properties:
         property_type_id = property.propertyType.id
         property_types_with_id = [
@@ -763,7 +764,7 @@ def get_equipment_type_of_equipment(
     equipment_type, _ = _get_equipment_type_and_properties_dict(
         client=client, equipment=equipment
     )
-    return client.equipmentTypes[equipment_type]
+    return EQUIPMENT_TYPES[equipment_type]
 
 
 def get_or_create_equipment(

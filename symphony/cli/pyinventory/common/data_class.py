@@ -18,16 +18,16 @@ from typing import (
     Union,
 )
 
-from ..graphql.equipment_port_definition_fragment import EquipmentPortDefinitionFragment
-from ..graphql.equipment_position_definition_fragment import (
+from ..graphql.enum.image_entity import ImageEntity
+from ..graphql.enum.property_kind import PropertyKind
+from ..graphql.enum.user_role import UserRole
+from ..graphql.enum.user_status import UserStatus
+from ..graphql.fragment.equipment_port_definition import EquipmentPortDefinitionFragment
+from ..graphql.fragment.equipment_position_definition import (
     EquipmentPositionDefinitionFragment,
 )
-from ..graphql.image_entity_enum import ImageEntity
-from ..graphql.property_fragment import PropertyFragment
-from ..graphql.property_kind_enum import PropertyKind
-from ..graphql.property_type_fragment import PropertyTypeFragment
-from ..graphql.user_role_enum import UserRole
-from ..graphql.user_status_enum import UserStatus
+from ..graphql.fragment.property import PropertyFragment
+from ..graphql.fragment.property_type import PropertyTypeFragment
 
 
 ReturnType = TypeVar("ReturnType")
@@ -41,19 +41,21 @@ class PropertyDefinition(NamedTuple):
     """
     Attributes:
         property_name (str): type name
-        property_kind ( `pyinventory.graphql.property_kind_enum.PropertyKind` ): property kind
+        property_kind ( `pyinventory.graphql.enum.property_kind.PropertyKind` ): property kind
         default_value (Optional[PropertyValue]): default property value
         is_fixed (bool): fixed value flag
         external_id (str): property type external ID
         is_mandatory (bool): mandatory value flag
+        is_deleted (bool): is delete flag
     """
 
     property_name: str
     property_kind: PropertyKind
-    default_value: Optional[PropertyValue]
+    default_value: Optional[PropertyValue] = None
     is_fixed: Optional[bool] = False
     external_id: Optional[str] = None
     is_mandatory: Optional[bool] = False
+    is_deleted: Optional[bool] = False
 
 
 class DataTypeName(NamedTuple):
@@ -85,7 +87,7 @@ class LocationType(NamedTuple):
     Attributes:
         name (str): name
         id (str):  ID
-        property_types (Sequence[ `pyinventory.graphql.property_type_fragment.PropertyTypeFragment` ]): property types sequence
+        property_types (Sequence[ `pyinventory.graphql.fragment.property_type.PropertyTypeFragment` ]): property types sequence
     """
 
     name: str

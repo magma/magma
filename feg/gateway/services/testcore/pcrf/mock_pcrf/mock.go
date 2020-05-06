@@ -41,6 +41,12 @@ func (e GxExpectation) DoesMatch(message interface{}) error {
 	if expectedPK != actualPK {
 		return fmt.Errorf("Expected: %v, Received: %v", expectedPK, actualPK)
 	}
+	expectedRN := expected.GetRequestNumber()
+	if expectedRN != nil {
+		if err := mock_driver.CompareRequestNumber(actualPK, expectedRN, ccr.RequestNumber); err != nil {
+			return err
+		}
+	}
 	expectedUsageReports := expected.GetUsageMonitoringReports()
 	if !compareUsageMonitorsAgainstExpected(ccr.UsageMonitors, expectedUsageReports, expected.GetUsageReportDelta()) {
 		return fmt.Errorf("For Request=%v, Expected: %v, Received: %v", actualPK, expectedUsageReports, ccr.UsageMonitors)

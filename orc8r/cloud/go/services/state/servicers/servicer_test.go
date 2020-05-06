@@ -56,6 +56,7 @@ func TestStateServicer_GetStates(t *testing.T) {
 		NetworkID:  "network1",
 		TypeFilter: []string{"t1", "t2"},
 		IdFilter:   []string{"k1", "k2"},
+		LoadValues: true,
 	})
 	assert.NoError(t, err)
 	expected := &protos.GetStatesResponse{
@@ -85,6 +86,7 @@ func TestStateServicer_GetStates(t *testing.T) {
 		},
 		TypeFilter: []string{"t1", "t2"},
 		IdFilter:   []string{"k1", "k2"},
+		LoadValues: false,
 	})
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)

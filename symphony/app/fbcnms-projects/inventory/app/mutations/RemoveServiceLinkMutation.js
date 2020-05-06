@@ -16,7 +16,7 @@ import type {
   RemoveServiceLinkMutationResponse,
   RemoveServiceLinkMutationVariables,
 } from './__generated__/RemoveServiceLinkMutation.graphql';
-import type {StoreUpdater} from '../common/RelayEnvironment';
+import type {SelectorStoreUpdater} from 'relay-runtime';
 
 const mutation = graphql`
   mutation RemoveServiceLinkMutation($id: ID!, $linkId: ID!) {
@@ -29,7 +29,7 @@ const mutation = graphql`
 export default (
   variables: RemoveServiceLinkMutationVariables,
   callbacks?: MutationCallbacks<RemoveServiceLinkMutationResponse>,
-  updater?: StoreUpdater,
+  updater?: SelectorStoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
   commitMutation<RemoveServiceLinkMutation>(RelayEnvironemnt, {

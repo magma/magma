@@ -222,3 +222,59 @@ func TestEditPermissionsPolicy(t *testing.T) {
 	require.Error(t, err)
 
 }
+
+func TestUpdateGroupsInPermissionsPolicy(t *testing.T) {
+	r := newTestResolver(t)
+	defer r.drv.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
+
+	mr := r.Mutation()
+
+	gName1 := "group_1"
+	addInp1 := getAddUsersGroupInput(gName1, "this is group 1")
+	ug1, err := mr.AddUsersGroup(ctx, addInp1)
+	require.NoError(t, err)
+
+	gName2 := "group_2"
+	addInp2 := getAddUsersGroupInput(gName2, "this is group 2")
+	ug2, err := mr.AddUsersGroup(ctx, addInp2)
+	require.NoError(t, err)
+
+	inventoryPolicyInput := getInventoryPolicyInput()
+
+	policy, err := mr.AddPermissionsPolicy(ctx, models.AddPermissionsPolicyInput{
+		Name:           policyName,
+		Description:    pointer.ToString(policyDescription),
+		InventoryInput: inventoryPolicyInput,
+		WorkforceInput: nil,
+	})
+	require.NoError(t, err)
+	require.Len(t, policy.QueryGroups().AllX(ctx), 0)
+
+	updateInput1 := models.UpdateGroupsInPermissionsPolicyInput{
+		ID:             policy.ID,
+		AddGroupIds:    []int{ug1.ID},
+		RemoveGroupIds: []int{},
+	}
+	ugUpdate1, err := mr.UpdateGroupsInPermissionsPolicy(ctx, updateInput1)
+	require.NoError(t, err)
+	require.Len(t, ugUpdate1.QueryGroups().AllX(ctx), 1)
+
+	updateInput2 := models.UpdateGroupsInPermissionsPolicyInput{
+		ID:             policy.ID,
+		AddGroupIds:    []int{ug2.ID},
+		RemoveGroupIds: []int{},
+	}
+	ugUpdate2, err := mr.UpdateGroupsInPermissionsPolicy(ctx, updateInput2)
+	require.NoError(t, err)
+	require.Len(t, ugUpdate2.QueryGroups().AllX(ctx), 2)
+
+	updateInput3 := models.UpdateGroupsInPermissionsPolicyInput{
+		ID:             policy.ID,
+		AddGroupIds:    []int{},
+		RemoveGroupIds: []int{ug1.ID},
+	}
+	ugUpdate3, err := mr.UpdateGroupsInPermissionsPolicy(ctx, updateInput3)
+	require.NoError(t, err)
+	require.Len(t, ugUpdate3.QueryGroups().AllX(ctx), 1)
+}

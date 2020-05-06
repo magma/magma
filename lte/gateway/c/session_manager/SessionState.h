@@ -19,7 +19,7 @@
 #include "StoredState.h"
 
 namespace magma {
-
+static SessionStateUpdateCriteria UNUSED_UPDATE_CRITERIA;
 /**
  * SessionState keeps track of a current UE session in the PCEF, recording
  * usage and allowance for all charging keys
@@ -53,17 +53,13 @@ class SessionState {
 
   StoredSessionState marshal();
 
-  SessionConfig marshal_config();
-
-  void unmarshal_config(const SessionConfig& marshaled);
-
   /**
    * notify_new_report_for_sessions sets the state of terminating session to
    * aggregating, to tell if
    * flows for the terminating session is in the latest report.
    * Should be called before add_used_credit.
    */
-  void new_report();
+  void new_report(SessionStateUpdateCriteria& update_criteria);
 
   /**
    * notify_finish_report_for_sessions updates the state of aggregating session
@@ -71,7 +67,7 @@ class SessionState {
    * to specify its flows are deleted and termination can be completed.
    * Should be called after notify_new_report_for_sessions and add_used_credit.
    */
-  void finish_report();
+  void finish_report(SessionStateUpdateCriteria& update_criteria);
 
   /**
    * add_used_credit adds used TX/RX bytes to a particular charging key
@@ -122,17 +118,6 @@ class SessionState {
    * and the flows for the session needs to be deleted.
    */
   bool can_complete_termination() const;
-
-  /**
-   * complete_termination collects final usages for all credits into a
-   * SessionTerminateRequest and calls the on termination callback with the
-   * request.
-   * Note that complete_termination will forcefully complete the termination
-   * no matter the current state of the session. To properly complete the
-   * termination, this function should only be called when
-   * can_complete_termination returns true.
-   */
-  void complete_termination(SessionStateUpdateCriteria& update_criteria);
 
   /**
    * complete_termination collects final usages for all credits into a
@@ -194,6 +179,8 @@ class SessionState {
 
   void set_config(const SessionConfig& config);
 
+  SessionConfig get_config() ;
+
   void fill_protos_tgpp_context(magma::lte::TgppContext* tgpp_context) const;
 
   void set_subscriber_quota_state(
@@ -233,54 +220,23 @@ class SessionState {
   DynamicRuleStore& get_dynamic_rules();
 
   uint32_t total_monitored_rules_count();
+
   bool is_active();
 
   uint32_t get_credit_key_count();
 
- private:
-  /**
-   * State transitions of a session:
-   * SESSION_ACTIVE  ---------
-   *       |                  \
-   *       |                   \
-   *       |                    \
-   *       |                     \
-   *       | (start_termination)  SESSION_TERMINATION_SCHEDULED
-   *       |                      /
-   *       |                     /
-   *       |                    /
-   *       V                   V
-   * SESSION_TERMINATING_FLOW_ACTIVE <----------
-   *       |                                   |
-   *       | (notify_new_report_for_sessions)  | (add_used_credit)
-   *       V                                   |
-   * SESSION_TERMINATING_AGGREGATING_STATS -----
-   *       |
-   *       | (notify_finish_report_for_sessions)
-   *       V
-   * SESSION_TERMINATING_FLOW_DELETED
-   *       |
-   *       | (complete_termination)
-   *       V
-   * SESSION_TERMINATED
-   */
-  enum State {
-    SESSION_ACTIVE                        = 0,
-    SESSION_TERMINATING_FLOW_ACTIVE       = 1,
-    SESSION_TERMINATING_AGGREGATING_STATS = 2,
-    SESSION_TERMINATING_FLOW_DELETED      = 3,
-    SESSION_TERMINATED                    = 4,
-    // TODO All sessions in this state should be terminated on sessiond restart
-    SESSION_TERMINATION_SCHEDULED = 5
-  };
+  void set_fsm_state(
+    SessionFsmState new_state,
+    SessionStateUpdateCriteria& uc = UNUSED_UPDATE_CRITERIA);
 
+ private:
   std::string imsi_;
   std::string session_id_;
   std::string core_session_id_;
   uint32_t request_number_;
   ChargingCreditPool charging_pool_;
   UsageMonitoringCreditPool monitor_pool_;
-  SessionState::State curr_state_;
+  SessionFsmState curr_state_;
   SessionConfig config_;
   // Used to keep track of whether the subscriber has valid quota.
   // (only used for CWF at the moment)
@@ -323,6 +279,9 @@ class SessionState {
       std::vector<std::unique_ptr<ServiceAction>>* actions_out,
       SessionStateUpdateCriteria& update_criteria,
       const bool force_update = false);
+
+  SessionTerminateRequest make_termination_request(
+    SessionStateUpdateCriteria& update_criteria);
 };
 
 }  // namespace magma

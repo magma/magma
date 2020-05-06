@@ -98,8 +98,6 @@ int gtpv1u_init(
 }
 
 //------------------------------------------------------------------------------
-void gtpv1u_exit(gtpv1u_data_t* const gtpv1u_data)
-{
+void gtpv1u_exit(void) {
   gtp_tunnel_ops->uninit();
-  itti_exit_task();
 }

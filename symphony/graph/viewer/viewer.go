@@ -7,6 +7,7 @@ package viewer
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"sort"
 	"strings"
@@ -33,13 +34,8 @@ const (
 	RoleHeader = "x-auth-user-role"
 	// FeaturesHeader is the http feature header.
 	FeaturesHeader = "x-auth-features"
-)
-
-const (
-	// SuperUserRole is the highest possible role for user in system
-	SuperUserRole = "superuser"
-	// UserRole is the lowest possible role for user in system
-	UserRole = "user"
+	// UserHeader is the http user header.
+	AutomationHeader = "x-auth-automation-name"
 )
 
 // Attributes recorded on the span of the requests.
@@ -62,20 +58,75 @@ var (
 type FeatureSet map[string]struct{}
 
 // Option enables viewer customization.
-type Option func(*Viewer)
+type Option func(Viewer)
 
 // WithFeatures overrides default feature set.
 func WithFeatures(features ...string) Option {
-	return func(v *Viewer) {
-		v.Features = NewFeatureSet(features...)
+	return func(v Viewer) {
+		switch x := v.(type) {
+		case *UserViewer:
+			x.features = NewFeatureSet(features...)
+		case *AutomationViewer:
+			x.features = NewFeatureSet(features...)
+		}
 	}
 }
 
-// Viewer holds additional per request information.
-type Viewer struct {
-	Tenant   string
-	Features FeatureSet
-	user     atomic.Value
+type viewer struct {
+	tenant   string
+	features FeatureSet
+}
+
+// Tenant is the tenant of the viewer.
+func (v *viewer) Tenant() string {
+	return v.tenant
+}
+
+// Features is the features applied for the viewer.
+func (v *viewer) Features() FeatureSet {
+	return v.features
+}
+
+// Viewer is the interface to hold additional per request information.
+type Viewer interface {
+	zapcore.ObjectMarshaler
+	Tenant() string
+	Features() FeatureSet
+	Name() string
+	Role() user.Role
+}
+
+// UserViewer is a viewer that holds a user ent.
+type UserViewer struct {
+	viewer
+	user atomic.Value
+}
+
+// Name implements Viewer.Name by getting user's Auth ID.
+func (v *UserViewer) Name() string {
+	return v.User().AuthID
+}
+
+// Name implements Viewer.Name by getting user's Role.
+func (v *UserViewer) Role() user.Role {
+	return v.User().Role
+}
+
+// AutomationViewer is a viewer that holds information for the automation process.
+type AutomationViewer struct {
+	viewer
+	name string
+	role user.Role
+}
+
+// Name implements Viewer.Name by returning stored name.
+func (v *AutomationViewer) Name() string {
+	return v.name
+}
+
+// Role implements Viewer.Role by returning stored role.
+func (v *AutomationViewer) Role() user.Role {
+	return v.role
 }
 
 type UserHandler struct {
@@ -92,9 +143,26 @@ func NewFeatureSet(features ...string) FeatureSet {
 	return set
 }
 
-func New(tenant string, user *ent.User, options ...Option) *Viewer {
-	v := &Viewer{Tenant: tenant}
+// NewUser initializes and return UserViewer.
+func NewUser(tenant string, user *ent.User, options ...Option) *UserViewer {
+	v := &UserViewer{viewer: viewer{
+		tenant: tenant,
+	}}
 	v.user.Store(user)
+	for _, option := range options {
+		option(v)
+	}
+	return v
+}
+
+// NewAutomation initializes and return AutomationViewer.
+func NewAutomation(tenant string, name string, role user.Role, options ...Option) *AutomationViewer {
+	v := &AutomationViewer{
+		viewer: viewer{
+			tenant: tenant,
+		},
+		name: name,
+		role: role}
 	for _, option := range options {
 		option(v)
 	}
@@ -117,37 +185,43 @@ func (f FeatureSet) Enabled(feature string) bool {
 	return ok
 }
 
-// MarshalLogObject implements zapcore.ObjectMarshaler interface.
-func (v *Viewer) MarshalLogObject(enc zapcore.ObjectEncoder) error {
-	enc.AddString("tenant", v.Tenant)
-	enc.AddString("user", v.User().AuthID)
-	enc.AddString("role", v.User().Role.String())
+func (v *UserViewer) MarshalLogObject(enc zapcore.ObjectEncoder) error {
+	enc.AddString("tenant", v.Tenant())
+	enc.AddString("user", v.Name())
+	enc.AddString("role", v.Role().String())
 	return nil
 }
 
-func (v *Viewer) traceAttrs() []trace.Attribute {
+func (v *AutomationViewer) MarshalLogObject(enc zapcore.ObjectEncoder) error {
+	enc.AddString("tenant", v.Tenant())
+	enc.AddString("user", v.Name())
+	enc.AddString("role", v.Role().String())
+	return nil
+}
+
+func traceAttrs(v Viewer) []trace.Attribute {
 	return []trace.Attribute{
-		trace.StringAttribute(TenantAttribute, v.Tenant),
-		trace.StringAttribute(UserAttribute, v.User().AuthID),
-		trace.StringAttribute(RoleAttribute, v.User().Role.String()),
+		trace.StringAttribute(TenantAttribute, v.Tenant()),
+		trace.StringAttribute(UserAttribute, v.Name()),
+		trace.StringAttribute(RoleAttribute, v.Role().String()),
 	}
 }
 
-func (v *Viewer) tags(r *http.Request) []tag.Mutator {
+func tags(r *http.Request, v Viewer) []tag.Mutator {
 	var userAgent string
 	if parts := strings.SplitN(r.UserAgent(), " ", 2); len(parts) > 0 {
 		userAgent = parts[0]
 	}
 	return []tag.Mutator{
-		tag.Upsert(KeyTenant, v.Tenant),
-		tag.Upsert(KeyUser, v.User().AuthID),
-		tag.Upsert(KeyRole, v.User().Role.String()),
+		tag.Upsert(KeyTenant, v.Tenant()),
+		tag.Upsert(KeyUser, v.Name()),
+		tag.Upsert(KeyRole, v.Role().String()),
 		tag.Upsert(KeyUserAgent, userAgent),
 	}
 }
 
 // User returns the ent user of the viewer.
-func (v *Viewer) User() *ent.User {
+func (v *UserViewer) User() *ent.User {
 	u, _ := v.user.Load().(*ent.User)
 	return u
 }
@@ -222,22 +296,33 @@ func TenancyHandler(h http.Handler, tenancy Tenancy) http.Handler {
 			return
 		}
 		ctx := ent.NewContext(r.Context(), client)
-		u, err := GetOrCreateUser(ctx, r.Header.Get(UserHeader), r.Header.Get(RoleHeader))
-		if err != nil {
-			http.Error(w, "get user ent", http.StatusServiceUnavailable)
+		var v Viewer
+		role := user.Role(r.Header.Get(RoleHeader))
+		features := strings.Split(r.Header.Get(FeaturesHeader), ",")
+		switch {
+		case r.Header.Get(UserHeader) != "":
+			u, err := GetOrCreateUser(ctx, r.Header.Get(UserHeader), role)
+			if err != nil {
+				http.Error(w, fmt.Sprintf("get user ent: %s", err.Error()), http.StatusServiceUnavailable)
+				return
+			}
+			v = NewUser(tenant, u, WithFeatures(features...))
+		case r.Header.Get(AutomationHeader) != "":
+			v = NewAutomation(tenant, r.Header.Get(AutomationHeader), role, WithFeatures(features...))
+		default:
+			http.Error(w, "no viewer identifier found", http.StatusServiceUnavailable)
 			return
 		}
-		v := New(tenant, u, WithFeatures(strings.Split(r.Header.Get(FeaturesHeader), ",")...))
 		ctx = log.NewFieldsContext(ctx, zap.Object("viewer", v))
-		trace.FromContext(ctx).AddAttributes(v.traceAttrs()...)
-		ctx, _ = tag.New(ctx, v.tags(r)...)
+		trace.FromContext(ctx).AddAttributes(traceAttrs(v)...)
+		ctx, _ = tag.New(ctx, tags(r, v)...)
 		ctx = NewContext(ctx, v)
 		h.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
 // GetOrCreateUser creates or returns existing user with given authID and role.
-func GetOrCreateUser(ctx context.Context, authID, role string) (*ent.User, error) {
+func GetOrCreateUser(ctx context.Context, authID string, role user.Role) (*ent.User, error) {
 	client := ent.FromContext(ctx).User
 	if u, err := client.Query().
 		Where(user.AuthID(authID)).
@@ -247,12 +332,7 @@ func GetOrCreateUser(ctx context.Context, authID, role string) (*ent.User, error
 	u, err := client.Create().
 		SetAuthID(authID).
 		SetEmail(authID).
-		SetRole(func() user.Role {
-			if role == SuperUserRole {
-				return user.RoleOWNER
-			}
-			return user.RoleUSER
-		}()).
+		SetRole(role).
 		Save(ctx)
 	if ent.IsConstraintError(err) {
 		u, err = client.Query().
@@ -263,7 +343,7 @@ func GetOrCreateUser(ctx context.Context, authID, role string) (*ent.User, error
 }
 
 // MustGetOrCreateUser creates or returns existing user ent with given authID and role
-func MustGetOrCreateUser(ctx context.Context, authID, role string) *ent.User {
+func MustGetOrCreateUser(ctx context.Context, authID string, role user.Role) *ent.User {
 	u, err := GetOrCreateUser(ctx, authID, role)
 	if err != nil {
 		panic(err)
@@ -274,10 +354,12 @@ func MustGetOrCreateUser(ctx context.Context, authID, role string) *ent.User {
 // UserHandler adds users if request is from user that is not found.
 func (h UserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	u := FromContext(ctx).User()
-	if u.Status == user.StatusDEACTIVATED {
-		http.Error(w, "user is deactivated", http.StatusForbidden)
-		return
+	v, ok := FromContext(ctx).(*UserViewer)
+	if ok {
+		if v.User().Status == user.StatusDEACTIVATED {
+			http.Error(w, "user is deactivated", http.StatusForbidden)
+			return
+		}
 	}
 	h.Handler.ServeHTTP(w, r.WithContext(ctx))
 }
@@ -285,12 +367,12 @@ func (h UserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 type contextKey struct{}
 
 // FromContext returns the Viewer stored in a context, or nil if there isn't one.
-func FromContext(ctx context.Context) *Viewer {
-	v, _ := ctx.Value(contextKey{}).(*Viewer)
+func FromContext(ctx context.Context) Viewer {
+	v, _ := ctx.Value(contextKey{}).(Viewer)
 	return v
 }
 
 // NewContext returns a new context with the given Viewer attached.
-func NewContext(parent context.Context, v *Viewer) context.Context {
+func NewContext(parent context.Context, v Viewer) context.Context {
 	return context.WithValue(parent, contextKey{}, v)
 }

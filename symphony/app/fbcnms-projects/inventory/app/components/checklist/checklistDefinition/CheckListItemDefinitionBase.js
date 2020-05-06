@@ -24,6 +24,7 @@ import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
 import {CheckListItemConfigs} from '../checkListCategory/CheckListItemConsts';
 import {makeStyles} from '@material-ui/styles';
+import {useFormContext} from '../../../common/FormContext';
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -80,6 +81,7 @@ type Props = {
 
 const CheckListItemDefinitionBase = ({children, item, onChange}: Props) => {
   const classes = useStyles();
+  const form = useFormContext();
   const dispatch = useContext(ChecklistItemsDialogMutateDispatchContext);
   const config = CheckListItemConfigs[item.type];
   return (
@@ -89,6 +91,7 @@ const CheckListItemDefinitionBase = ({children, item, onChange}: Props) => {
         <Grid item xs={6} l={5}>
           <TextInput
             type="string"
+            disabled={form.alerts.editLock.detected}
             placeholder={config.titlePlaceholder}
             value={item.title}
             onChange={({target: {value}}) =>
@@ -104,6 +107,7 @@ const CheckListItemDefinitionBase = ({children, item, onChange}: Props) => {
         <Grid item xs={5} l={4}>
           <Select
             className={classes.typeSelector}
+            disabled={form.alerts.editLock.detected}
             options={Object.keys(CheckListItemConfigs).map(
               (itemType: CheckListItemType) => {
                 const Icon = CheckListItemConfigs[itemType].icon;
@@ -134,6 +138,7 @@ const CheckListItemDefinitionBase = ({children, item, onChange}: Props) => {
       </Grid>
       <TextInput
         type="string"
+        disabled={form.alerts.editLock.detected}
         placeholder={fbt('Additional instructions (optional)', '')}
         value={item.helpText ?? ''}
         onChange={({target: {value}}) =>
@@ -150,6 +155,7 @@ const CheckListItemDefinitionBase = ({children, item, onChange}: Props) => {
         <Button
           variant="text"
           skin="gray"
+          disabled={form.alerts.editLock.detected}
           onClick={() => dispatch({type: 'REMOVE_ITEM', itemId: item.id})}>
           <DeleteIcon />
         </Button>

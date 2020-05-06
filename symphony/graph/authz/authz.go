@@ -25,6 +25,7 @@ func (h AuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	permissions, err := Permissions(ctx)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("get permissions: %s", err.Error()), http.StatusServiceUnavailable)
+		return
 	}
 	ctx = NewContext(ctx, permissions)
 	h.Handler.ServeHTTP(w, r.WithContext(ctx))

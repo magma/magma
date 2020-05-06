@@ -70,11 +70,8 @@ type SwxProxyConfig struct {
 
 // NewSwxProxy creates a new instance of the proxy with configured cache TTL
 func NewSwxProxy(config *SwxProxyConfig) (*swxProxy, error) {
-	if config.CacheTTLSeconds < uint32(cache.DefaultGcInterval.Seconds()) {
-		config.CacheTTLSeconds = uint32(cache.DefaultTtl.Seconds())
-	}
-	cch, _ := cache.NewExt(cache.DefaultGcInterval, time.Second*time.Duration(config.CacheTTLSeconds))
-	return NewSwxProxyWithCache(config, cch)
+	cache := createCache(config)
+	return NewSwxProxyWithCache(config, cache)
 }
 
 // NewSwxProxyWithCache creates a new instance of the proxy with given cache implementation
@@ -284,4 +281,18 @@ func (s *swxProxy) GetHealthStatus(ctx context.Context, req *orcprotos.Void) (*p
 
 func (s *swxProxy) genSID(imsi string) string {
 	return s.config.ClientCfg.GenSessionIdImsi("swx", imsi)
+}
+
+// CreateCache creates a cache initialized with SWx config parameters
+func createCache(config *SwxProxyConfig) *cache.Impl {
+	fixConfigCacheMinTTL(config)
+	cch, _ := cache.NewExt(cache.DefaultGcInterval, time.Second*time.Duration(config.CacheTTLSeconds))
+	return cch
+}
+
+// fixConfigCacheMinTTL changes CacheTTLSeconds on the config if this is smaller than the default value
+func fixConfigCacheMinTTL(config *SwxProxyConfig) {
+	if config.CacheTTLSeconds < uint32(cache.DefaultGcInterval.Seconds()) {
+		config.CacheTTLSeconds = uint32(cache.DefaultTtl.Seconds())
+	}
 }

@@ -47,7 +47,7 @@ func (e *Eventer) emit(ctx context.Context, name string, value interface{}) {
 			logger.Warn("cannot marshal event value", zap.Error(err))
 			return
 		}
-		if err := e.Emitter.Emit(ctx, viewer.FromContext(ctx).Tenant, name, body); err != nil {
+		if err := e.Emitter.Emit(ctx, viewer.FromContext(ctx).Tenant(), name, body); err != nil {
 			logger.Warn("cannot emit event", zap.Error(err))
 		}
 	}

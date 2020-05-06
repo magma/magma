@@ -25,7 +25,7 @@ type CommentQuery struct {
 	config
 	limit      *int
 	offset     *int
-	order      []Order
+	order      []OrderFunc
 	unique     []string
 	predicates []predicate.Comment
 	// eager-loading edges.
@@ -55,7 +55,7 @@ func (cq *CommentQuery) Offset(offset int) *CommentQuery {
 }
 
 // Order adds an order step to the query.
-func (cq *CommentQuery) Order(o ...Order) *CommentQuery {
+func (cq *CommentQuery) Order(o ...OrderFunc) *CommentQuery {
 	cq.order = append(cq.order, o...)
 	return cq
 }
@@ -248,7 +248,7 @@ func (cq *CommentQuery) Clone() *CommentQuery {
 		config:     cq.config,
 		limit:      cq.limit,
 		offset:     cq.offset,
-		order:      append([]Order{}, cq.order...),
+		order:      append([]OrderFunc{}, cq.order...),
 		unique:     append([]string{}, cq.unique...),
 		predicates: append([]predicate.Comment{}, cq.predicates...),
 		// clone intermediate query.
@@ -478,14 +478,14 @@ func (cq *CommentQuery) sqlQuery() *sql.Selector {
 type CommentGroupBy struct {
 	config
 	fields []string
-	fns    []Aggregate
+	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (cgb *CommentGroupBy) Aggregate(fns ...Aggregate) *CommentGroupBy {
+func (cgb *CommentGroupBy) Aggregate(fns ...AggregateFunc) *CommentGroupBy {
 	cgb.fns = append(cgb.fns, fns...)
 	return cgb
 }

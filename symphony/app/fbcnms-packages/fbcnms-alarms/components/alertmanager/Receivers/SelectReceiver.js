@@ -12,8 +12,8 @@ import * as React from 'react';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
+import useRouter from '@fbcnms/alarms/hooks/useRouter';
 import {useAlarmContext} from '../../AlarmContext';
-import {useRouter} from '@fbcnms/ui/hooks';
 
 type Props = {
   onChange: (receiverName: string) => void,

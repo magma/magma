@@ -16,7 +16,6 @@ import Link from '@fbcnms/ui/components/Link';
 import LocationLink from '../location/LocationLink';
 import React from 'react';
 import Text from '@fbcnms/ui/components/design-system/Text';
-import classNames from 'classnames';
 import {AutoSizer, Column, Table} from 'react-virtualized';
 import {createFragmentContainer, graphql} from 'react-relay';
 import {serviceStatusToVisibleNames} from '../../common/Service';
@@ -85,11 +84,7 @@ class ServicesView extends React.Component<Props> {
   _nameRenderer = ({rowData}) => {
     const {classes, onServiceSelected} = this.props;
     const content = (
-      <Link onClick={() => onServiceSelected(rowData.id)}>
-        <Text className={classNames(classes.cellText, classes.linkText)}>
-          {rowData.name}
-        </Text>
-      </Link>
+      <Link onClick={() => onServiceSelected(rowData.id)}>{rowData.name}</Link>
     );
     return <div className={classes.cell}>{content}</div>;
   };

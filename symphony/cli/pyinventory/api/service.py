@@ -5,8 +5,10 @@
 
 from typing import Dict, List, Optional, Tuple
 
+from pysymphony import SymphonyClient
+
 from .._utils import PropertyValue, format_properties, get_graphql_property_inputs
-from ..client import SymphonyClient
+from ..common.cache import SERVICE_TYPES
 from ..common.data_class import (
     Customer,
     EquipmentPort,
@@ -18,19 +20,19 @@ from ..common.data_class import (
 )
 from ..common.data_enum import Entity
 from ..exceptions import EntityNotFoundError
-from ..graphql.add_service_endpoint_input import AddServiceEndpointInput
-from ..graphql.add_service_endpoint_mutation import AddServiceEndpointMutation
-from ..graphql.add_service_link_mutation import AddServiceLinkMutation
-from ..graphql.add_service_mutation import AddServiceMutation
-from ..graphql.add_service_type_mutation import AddServiceTypeMutation
-from ..graphql.remove_service_mutation import RemoveServiceMutation
-from ..graphql.remove_service_type_mutation import RemoveServiceTypeMutation
-from ..graphql.service_create_data_input import ServiceCreateData
-from ..graphql.service_details_query import ServiceDetailsQuery
-from ..graphql.service_status_enum import ServiceStatus
-from ..graphql.service_type_create_data_input import ServiceTypeCreateData
-from ..graphql.service_type_services_query import ServiceTypeServicesQuery
-from ..graphql.service_types_query import ServiceTypesQuery
+from ..graphql.enum.service_status import ServiceStatus
+from ..graphql.input.add_service_endpoint import AddServiceEndpointInput
+from ..graphql.input.service_create_data import ServiceCreateData
+from ..graphql.input.service_type_create_data import ServiceTypeCreateData
+from ..graphql.mutation.add_service import AddServiceMutation
+from ..graphql.mutation.add_service_endpoint import AddServiceEndpointMutation
+from ..graphql.mutation.add_service_link import AddServiceLinkMutation
+from ..graphql.mutation.add_service_type import AddServiceTypeMutation
+from ..graphql.mutation.remove_service import RemoveServiceMutation
+from ..graphql.mutation.remove_service_type import RemoveServiceTypeMutation
+from ..graphql.query.service_details import ServiceDetailsQuery
+from ..graphql.query.service_type_services import ServiceTypeServicesQuery
+from ..graphql.query.service_types import ServiceTypesQuery
 
 
 def _populate_service_types(client: SymphonyClient) -> None:
@@ -41,7 +43,7 @@ def _populate_service_types(client: SymphonyClient) -> None:
     for edge in edges:
         node = edge.node
         if node is not None:
-            client.serviceTypes[node.name] = ServiceType(
+            SERVICE_TYPES[node.name] = ServiceType(
                 name=node.name,
                 id=node.id,
                 hasCustomer=node.hasCustomer,
@@ -70,7 +72,7 @@ def add_service_type(
         hasCustomer=result.hasCustomer,
         property_types=result.propertyTypes,
     )
-    client.serviceTypes[name] = service_type
+    SERVICE_TYPES[name] = service_type
     return service_type
 
 
@@ -82,12 +84,12 @@ def add_service(
     customer: Optional[Customer],
     properties_dict: Dict[str, PropertyValue],
 ) -> Service:
-    property_types = client.serviceTypes[service_type].property_types
+    property_types = SERVICE_TYPES[service_type].property_types
     properties = get_graphql_property_inputs(property_types, properties_dict)
     service_create_data = ServiceCreateData(
         name=name,
         externalId=external_id,
-        serviceTypeId=client.serviceTypes[service_type].id,
+        serviceTypeId=SERVICE_TYPES[service_type].id,
         status=ServiceStatus.PENDING,
         customerId=customer.id if customer is not None else None,
         properties=properties,

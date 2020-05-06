@@ -10,25 +10,25 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 
 import pandas as pd
 from dacite import Config, from_dict
+from pysymphony import SymphonyClient
 from xlsxwriter.format import Format
 from xlsxwriter.utility import xl_col_to_name
 from xlsxwriter.workbook import Workbook
 from xlsxwriter.worksheet import Worksheet
 
 from .api.file import add_site_survey_image, delete_site_survey_image
-from .client import SymphonyClient
 from .common.constant import SIMPLE_QUESTION_TYPE_TO_REQUIRED_PROPERTY_NAME
 from .common.data_class import Location, SiteSurvey
 from .common.data_enum import Entity
 from .exceptions import EntityNotFoundError
-from .graphql.create_survey_mutation import CreateSurveyMutation
-from .graphql.location_surveys_query import LocationSurveysQuery
-from .graphql.remove_site_survey_mutation import RemoveSiteSurveyMutation
-from .graphql.survey_create_data_input import SurveyCreateData
-from .graphql.survey_fragment import SurveyFragment
-from .graphql.survey_question_fragment import SurveyQuestionFragment
-from .graphql.survey_question_response_input import SurveyQuestionResponse
-from .graphql.survey_question_type_enum import SurveyQuestionType
+from .graphql.enum.survey_question_type import SurveyQuestionType
+from .graphql.fragment.survey import SurveyFragment
+from .graphql.fragment.survey_question import SurveyQuestionFragment
+from .graphql.input.survey_create_data import SurveyCreateData
+from .graphql.input.survey_question_response import SurveyQuestionResponse
+from .graphql.mutation.create_survey import CreateSurveyMutation
+from .graphql.mutation.remove_site_survey import RemoveSiteSurveyMutation
+from .graphql.query.location_surveys import LocationSurveysQuery
 from .site_survey_schema import retrieve_tamplates_and_set_them
 
 
@@ -759,7 +759,7 @@ def upload_site_survey(
 
 
 def _survey_responses_to_forms(
-    responses: Sequence[SurveyQuestionFragment]
+    responses: Sequence[SurveyQuestionFragment],
 ) -> Dict[str, Dict[str, Any]]:
     forms = {}
     value_does_not_match_type_error_msg = (

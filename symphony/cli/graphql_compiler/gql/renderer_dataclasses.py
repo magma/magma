@@ -41,7 +41,7 @@ class DataclassesRenderer:
         buffer.write("")
         for fragment_name in sorted(set(parsed_query.used_fragments)):
             buffer.write(
-                f"from .{get_fragment_filename(fragment_name)} import {fragment_name}, QUERY as {fragment_name}Query"
+                f"from ..fragment.{get_fragment_filename(fragment_name)} import {fragment_name}, QUERY as {fragment_name}Query"
             )
         enum_names = set()
         for enum in parsed_query.enums:
@@ -49,7 +49,9 @@ class DataclassesRenderer:
         if enum_names:
             buffer.write("from gql.gql.enum_utils import enum_field")
             for enum_name in sorted(enum_names):
-                buffer.write(f"from .{get_enum_filename(enum_name)} import {enum_name}")
+                buffer.write(
+                    f"from ..enum.{get_enum_filename(enum_name)} import {enum_name}"
+                )
             buffer.write("")
         input_object_names = set()
         for input_object in parsed_query.input_objects:
@@ -57,7 +59,7 @@ class DataclassesRenderer:
         if input_object_names:
             for input_object_name in sorted(input_object_names):
                 buffer.write(
-                    f"from .{get_input_filename(input_object_name)} "
+                    f"from ..input.{get_input_filename(input_object_name)} "
                     f"import {input_object_name}"
                 )
             buffer.write("")
@@ -143,7 +145,7 @@ class DataclassesRenderer:
                 buffer.write("from gql.gql.enum_utils import enum_field")
                 for enum_name in sorted(enum_names):
                     buffer.write(
-                        f"from .{get_enum_filename(enum_name)} import {enum_name}"
+                        f"from ..enum.{get_enum_filename(enum_name)} import {enum_name}"
                     )
                 buffer.write("")
             input_object_names = set()
@@ -151,7 +153,7 @@ class DataclassesRenderer:
                 input_object_names.add(input_dep.name)
             for input_object_name in sorted(input_object_names):
                 buffer.write(
-                    f"from .{get_input_filename(input_object_name)} "
+                    f"from ..input.{get_input_filename(input_object_name)} "
                     f"import {input_object_name}"
                 )
 

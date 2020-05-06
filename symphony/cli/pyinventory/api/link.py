@@ -5,7 +5,8 @@
 
 from typing import List, Tuple
 
-from ..client import SymphonyClient
+from pysymphony import SymphonyClient
+
 from ..common.data_class import Equipment, Link
 from ..common.data_enum import Entity
 from ..exceptions import (
@@ -13,10 +14,10 @@ from ..exceptions import (
     LinkNotFoundException,
     PortAlreadyOccupiedException,
 )
-from ..graphql.add_link_input import AddLinkInput
-from ..graphql.add_link_mutation import AddLinkMutation
-from ..graphql.equipment_ports_query import EquipmentPortsQuery
-from ..graphql.link_side_input import LinkSide
+from ..graphql.input.add_link import AddLinkInput
+from ..graphql.input.link_side import LinkSide
+from ..graphql.mutation.add_link import AddLinkMutation
+from ..graphql.query.equipment_ports import EquipmentPortsQuery
 from .port import get_port
 
 

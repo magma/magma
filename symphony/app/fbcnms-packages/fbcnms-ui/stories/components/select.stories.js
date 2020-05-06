@@ -47,28 +47,32 @@ const Popover = () => {
 const SelectsRoot = () => {
   const classes = useStyles();
   const [selectedValue, setSelectedValue] = useState(null);
-
+  const renderSelect = (disabled: boolean = false) => (
+    <Select
+      className={classes.select}
+      popover={Popover}
+      label="Project"
+      options={[
+        {
+          key: 'option_1',
+          label: 'Option 1',
+          value: 'wow1',
+        },
+        {
+          key: 'option_2',
+          label: 'Option 2',
+          value: 'wow2',
+        },
+      ]}
+      disabled={disabled}
+      selectedValue={selectedValue}
+      onChange={value => setSelectedValue(value)}
+    />
+  );
   return (
     <div className={classes.root}>
-      <Select
-        className={classes.select}
-        popover={Popover}
-        label="Project"
-        options={[
-          {
-            key: 'option_1',
-            label: 'Option 1',
-            value: 'wow1',
-          },
-          {
-            key: 'option_2',
-            label: 'Option 2',
-            value: 'wow2',
-          },
-        ]}
-        selectedValue={selectedValue}
-        onChange={value => setSelectedValue(value)}
-      />
+      {renderSelect()}
+      {renderSelect(true)}
     </div>
   );
 };

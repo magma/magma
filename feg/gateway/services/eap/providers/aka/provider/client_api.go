@@ -25,6 +25,7 @@ import (
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/aaa/protos"
 	eapp "magma/feg/gateway/services/eap/protos"
+	_ "magma/feg/gateway/services/eap/providers/aka/servicers/handlers"
 )
 
 // Wrapper to provide a wrapper for GRPC Client to extend it with Cleanup

@@ -195,10 +195,13 @@ class MockAAAClient : public aaa::AAAClient {
 public:
   MockAAAClient() {
     ON_CALL(*this, terminate_session(_, _)).WillByDefault(Return(true));
+    ON_CALL(*this, add_sessions(_)).WillByDefault(Return(true));
   }
 
   MOCK_METHOD2(terminate_session, bool(const std::string &radius_session_id,
                                        const std::string &imsi));
+
+  MOCK_METHOD1(add_sessions, bool(magma::lte::SessionMap &session_map));
 };
 
 class MockSpgwServiceClient : public SpgwServiceClient {

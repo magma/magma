@@ -177,8 +177,13 @@ func GetValue(flagName, defaultValue string) string {
 }
 
 // GetValueOrEnv returns value of the flagValue if it exists, then the environment
-// variable if it exists, or defaultValue if not
-func GetValueOrEnv(flagName, envVariable, defaultValue string) string {
+// variable if it exists, or defaultValue if not.
+// If idx parameter is passed, then if that idx > 1 defaultValue will be returned.
+// Note in case of many idx are passed, only the first idx will be checked.
+func GetValueOrEnv(flagName, envVariable, defaultValue string, idx ...int) string {
+	if len(idx) > 0 && idx[0] > 0 {
+		return defaultValue
+	}
 	flagValue := getFlagValue(flagName)
 	if len(flagValue) != 0 {
 		return flagValue
@@ -195,8 +200,13 @@ func GetValueOrEnv(flagName, envVariable, defaultValue string) string {
 }
 
 // GetBoolValueOrEnv returns value of the flagValue if it exists, then the environment
-// variable if it exists, or defaultValue if not
-func GetBoolValueOrEnv(flagName string, envVariable string, defaultValue bool) bool {
+// variable if it exists, or defaultValue if not.
+// If idx parameter is passed, then if that idx > 1 defaultValue will be returned.
+// Note in case of many idx are passed, only the first idx will be checked.
+func GetBoolValueOrEnv(flagName string, envVariable string, defaultValue bool, idx ...int) bool {
+	if len(idx) > 0 && idx[0] > 0 {
+		return defaultValue
+	}
 	flagValue := getFlagValue(flagName)
 	flagValueBool, err := strconv.ParseBool(flagValue)
 	if len(flagValue) != 0 && err == nil {

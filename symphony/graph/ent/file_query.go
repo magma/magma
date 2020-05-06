@@ -24,7 +24,7 @@ type FileQuery struct {
 	config
 	limit      *int
 	offset     *int
-	order      []Order
+	order      []OrderFunc
 	unique     []string
 	predicates []predicate.File
 	withFKs    bool
@@ -52,7 +52,7 @@ func (fq *FileQuery) Offset(offset int) *FileQuery {
 }
 
 // Order adds an order step to the query.
-func (fq *FileQuery) Order(o ...Order) *FileQuery {
+func (fq *FileQuery) Order(o ...OrderFunc) *FileQuery {
 	fq.order = append(fq.order, o...)
 	return fq
 }
@@ -227,7 +227,7 @@ func (fq *FileQuery) Clone() *FileQuery {
 		config:     fq.config,
 		limit:      fq.limit,
 		offset:     fq.offset,
-		order:      append([]Order{}, fq.order...),
+		order:      append([]OrderFunc{}, fq.order...),
 		unique:     append([]string{}, fq.unique...),
 		predicates: append([]predicate.File{}, fq.predicates...),
 		// clone intermediate query.
@@ -413,14 +413,14 @@ func (fq *FileQuery) sqlQuery() *sql.Selector {
 type FileGroupBy struct {
 	config
 	fields []string
-	fns    []Aggregate
+	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (fgb *FileGroupBy) Aggregate(fns ...Aggregate) *FileGroupBy {
+func (fgb *FileGroupBy) Aggregate(fns ...AggregateFunc) *FileGroupBy {
 	fgb.fns = append(fgb.fns, fns...)
 	return fgb
 }

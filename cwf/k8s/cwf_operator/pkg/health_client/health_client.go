@@ -20,8 +20,8 @@ import (
 )
 
 const (
-	GrpcMaxDelaySec   = 5
-	GrpcMaxTimeoutSec = 5
+	GrpcMaxDelaySec   = 10
+	GrpcMaxTimeoutSec = 10
 )
 
 // getClient is a utility function to get an RPC connection to

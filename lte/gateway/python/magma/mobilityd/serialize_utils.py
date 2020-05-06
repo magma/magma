@@ -12,7 +12,7 @@ Describes protobuf-based serialize and deserialize functions for mobilityd.
 from ipaddress import ip_address, ip_network
 
 import magma.mobilityd.ip_descriptor as ip_descriptor
-from lte.protos.keyval_pb2 import IPDesc, IPDescs
+from lte.protos.keyval_pb2 import IPDesc
 from lte.protos.mobilityd_pb2 import IPAddress, IPBlock
 from lte.protos.subscriberdb_pb2 import SubscriberID
 from orc8r.protos.redis_pb2 import RedisState
@@ -161,42 +161,3 @@ def deserialize_ip_desc(serialized):
     proto.ParseFromString(serialized_proto)
     desc = _ip_desc_from_proto(proto)
     return desc
-
-
-def serialize_ip_descs(descs, version):
-    """
-    Serialize a list of IP descriptor to protobuf string.
-
-    Args:
-        descs ([magma.mobilityd.IPDesc]): object to serialize
-    Returns:
-        serialized (bytes): serialized object
-    """
-    proto = IPDescs()
-    desc_protos = [_ip_desc_to_proto(desc) for desc in descs]
-    proto.ip_descs.extend(desc_protos)
-    serialized = proto.SerializeToString()
-    redis_state = RedisState(
-        serialized_msg=serialized,
-        version=version)
-    return redis_state.SerializeToString()
-
-
-def deserialize_ip_descs(serialized):
-    """
-    Deserialize protobuf string to a list of IP descriptors.
-
-    Args:
-        serialized (bytes): object to deserialize
-    Returns:
-        block ([magma.mobilityd.IPDesc]): deserialized object
-    """
-    proto_wrapper = RedisState()
-    proto_wrapper.ParseFromString(serialized)
-    serialized_proto = proto_wrapper.serialized_msg
-    proto = IPDescs()
-    proto.ParseFromString(serialized_proto)
-    descs = [
-        _ip_desc_from_proto(desc_proto)
-        for desc_proto in proto.ip_descs]
-    return descs

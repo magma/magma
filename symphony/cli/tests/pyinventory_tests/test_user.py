@@ -16,8 +16,8 @@ from pyinventory.api.user import (
     edit_user,
     get_active_users,
 )
-from pyinventory.graphql.user_role_enum import UserRole
-from pyinventory.graphql.user_status_enum import UserStatus
+from pyinventory.graphql.enum.user_role import UserRole
+from pyinventory.graphql.enum.user_status import UserStatus
 
 from .grpc.rpc_pb2_grpc import TenantServiceStub
 from .utils import init_client
