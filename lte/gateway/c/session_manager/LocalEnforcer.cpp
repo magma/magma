@@ -180,9 +180,66 @@ bool LocalEnforcer::setup(
   }
 }
 
-void LocalEnforcer::aggregate_records(SessionMap &session_map,
-                                      const RuleRecordTable &records,
-                                      SessionUpdate &session_update) {
+void LocalEnforcer::sync_sessions_on_restart(std::time_t current_time) {
+  auto session_map    = session_store_.read_all_sessions();
+  auto session_update = SessionStore::get_default_session_update(session_map);
+  // Update the sessions so that their rules match the current timestamp
+  for (auto& it : session_map) {
+    auto imsi = it.first;
+    for (auto& session : it.second) {
+      auto& uc = session_update[it.first][session->get_session_id()];
+      session->sync_rules_to_time(current_time, uc);
+      auto ip_addr = session->get_subscriber_ip_addr();
+
+      for (std::string rule_id : session->get_static_rules()) {
+        auto lifetime = session->get_rule_lifetime(rule_id);
+        if (lifetime.deactivation_time > current_time) {
+          auto rule_install = session->get_static_rule_install(rule_id);
+          schedule_static_rule_deactivation(imsi, rule_install);
+        }
+      }
+      // Schedule rule activations / deactivations
+      for (std::string rule_id : session->get_scheduled_static_rules()) {
+        auto rule_install = session->get_static_rule_install(rule_id);
+        auto lifetime = session->get_rule_lifetime(rule_id);
+        schedule_static_rule_activation(imsi, ip_addr, rule_install);
+        if (lifetime.deactivation_time > current_time) {
+          schedule_static_rule_deactivation(imsi, rule_install);
+        }
+      }
+
+      std::vector<std::string> rule_ids;
+      session->get_dynamic_rules().get_rule_ids(rule_ids);
+      for (std::string rule_id : rule_ids) {
+        auto lifetime = session->get_rule_lifetime(rule_id);
+        if (lifetime.deactivation_time > current_time) {
+          auto rule_install = session->get_dynamic_rule_install(rule_id);
+          schedule_dynamic_rule_deactivation(imsi, rule_install);
+        }
+      }
+      session->get_scheduled_dynamic_rules().get_rule_ids(rule_ids);
+      for (auto rule_id : rule_ids) {
+        auto rule_install = session->get_dynamic_rule_install(rule_id);
+        auto lifetime = session->get_rule_lifetime(rule_id);
+        schedule_dynamic_rule_activation(imsi, ip_addr, rule_install);
+        if (lifetime.deactivation_time > current_time) {
+          schedule_dynamic_rule_deactivation(imsi, rule_install);
+        }
+      }
+    }
+  }
+  bool success = session_store_.update_sessions(session_update);
+  if (success) {
+    MLOG(MDEBUG) << "Successfully synced sessions after restart";
+  } else {
+    MLOG(MERROR) << "Failed to sync sessions after restart";
+  }
+}
+
+void LocalEnforcer::aggregate_records(
+    SessionMap& session_map,
+    const RuleRecordTable& records,
+    SessionUpdate& session_update) {
   // unmark all credits
   notify_new_report_for_sessions(session_map, session_update);
   for (const RuleRecord &record : records.records()) {

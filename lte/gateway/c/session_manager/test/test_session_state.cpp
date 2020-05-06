@@ -235,6 +235,72 @@ TEST_F(SessionStateTest, test_rule_scheduling) {
   EXPECT_TRUE(session_state->is_static_rule_installed("rule2"));
 }
 
+/**
+ * Check that on restart, sessions can be updated to match the current time
+ */
+TEST_F(SessionStateTest, test_rule_time_sync) {
+  auto uc = get_default_update_criteria(); // unused
+
+  // These should be active after sync
+  schedule_rule(1, "m1", "d1", DYNAMIC, 5, 15);
+  schedule_rule(1, "m1", "s1", STATIC, 5, 15);
+
+  // These should still be scheduled
+  schedule_rule(1, "m1", "d2", DYNAMIC, 15, 20);
+  schedule_rule(1, "m1", "s2", STATIC, 15, 20);
+
+  // These should be expired afterwards
+  schedule_rule(2, "m2", "d3", DYNAMIC, 2, 4);
+  schedule_rule(2, "m2", "s3", STATIC, 2, 4);
+
+  EXPECT_FALSE(session_state->is_dynamic_rule_installed("d1"));
+  EXPECT_FALSE(session_state->is_dynamic_rule_installed("d2"));
+  EXPECT_FALSE(session_state->is_dynamic_rule_installed("d3"));
+
+  EXPECT_FALSE(session_state->is_static_rule_installed("s1"));
+  EXPECT_FALSE(session_state->is_static_rule_installed("s2"));
+  EXPECT_FALSE(session_state->is_static_rule_installed("s3"));
+
+  // Update the time, and sync the rule states, then check our expectations
+  std::time_t test_time(10);
+  session_state->sync_rules_to_time(test_time, uc);
+
+  EXPECT_TRUE(session_state->is_dynamic_rule_installed("d1"));
+  EXPECT_FALSE(session_state->is_dynamic_rule_installed("d2"));
+  EXPECT_FALSE(session_state->is_dynamic_rule_installed("d3"));
+
+  EXPECT_TRUE(session_state->is_static_rule_installed("s1"));
+  EXPECT_FALSE(session_state->is_static_rule_installed("s2"));
+  EXPECT_FALSE(session_state->is_static_rule_installed("s3"));
+
+  EXPECT_EQ(uc.dynamic_rules_to_install.size(), 1);
+  EXPECT_EQ(uc.dynamic_rules_to_install.front().id(), "d1");
+  EXPECT_TRUE(uc.dynamic_rules_to_uninstall.count("d3"));
+
+  EXPECT_TRUE(uc.static_rules_to_install.count("s1"));
+  EXPECT_TRUE(uc.static_rules_to_uninstall.count("s3"));
+
+  // Update the time once more, sync again, and check expectations
+  test_time = std::time_t(16);
+  uc = get_default_update_criteria();
+  session_state->sync_rules_to_time(test_time, uc);
+
+  EXPECT_FALSE(session_state->is_dynamic_rule_installed("d1"));
+  EXPECT_TRUE(session_state->is_dynamic_rule_installed("d2"));
+  EXPECT_FALSE(session_state->is_dynamic_rule_installed("d3"));
+
+  EXPECT_FALSE(session_state->is_static_rule_installed("s1"));
+  EXPECT_TRUE(session_state->is_static_rule_installed("s2"));
+  EXPECT_FALSE(session_state->is_static_rule_installed("s3"));
+
+  EXPECT_EQ(uc.dynamic_rules_to_install.size(), 1);
+  EXPECT_EQ(uc.dynamic_rules_to_install.front().id(), "d2");
+  EXPECT_TRUE(uc.dynamic_rules_to_uninstall.count("d1"));
+
+  EXPECT_TRUE(uc.static_rules_to_install.count("s2"));
+  EXPECT_TRUE(uc.static_rules_to_uninstall.count("s1"));
+}
+
 TEST_F(SessionStateTest, test_marshal_unmarshal) {
   EXPECT_EQ(update_criteria.static_rules_to_install.size(), 0);
   insert_rule(1, "m1", "rule1", STATIC, 0, 0);

@@ -71,6 +71,13 @@ class LocalEnforcer {
       std::function<void(Status status, SetupFlowsResult)> callback);
 
   /**
+   * Updates rules to be activated/deactivated based on the current time.
+   * Also schedules future rule activation and deactivation callbacks to run
+   * on the event loop.
+   */
+  void sync_sessions_on_restart(std::time_t current_time);
+
+  /**
    * Insert a group of rule usage into the monitor and update credit manager
    * Assumes records are aggregates, as in the usages sent are cumulative and
    * not differences.
