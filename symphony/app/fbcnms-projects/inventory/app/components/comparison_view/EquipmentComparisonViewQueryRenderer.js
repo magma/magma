@@ -64,6 +64,7 @@ const useStyles = makeStyles(theme => ({
 type Props = {
   limit?: number,
   showExport?: boolean,
+  initialFilters?: FiltersQuery,
   children: (props: {
     equipment:  // $FlowFixMe (T62907961) Relay flow types
       | PowerSearchEquipmentResultsTable_equipment
@@ -89,7 +90,7 @@ const equipmentSearchQuery = graphql`
 
 const EquipmentComparisonViewQueryRenderer = (props: Props) => {
   const classes = useStyles();
-  const {limit, showExport, children} = props;
+  const {limit, showExport, children, initialFilters} = props;
   const [count, setCount] = useState((0: number));
 
   const possibleProperties = usePropertyFilters('equipment');
@@ -118,7 +119,9 @@ const EquipmentComparisonViewQueryRenderer = (props: Props) => {
 
   // eslint-disable-next-line no-warning-comments
   // $FlowFixMe
-  const filters = (wizardContext.get(filtersContextKey) || []: FiltersQuery);
+  const filters = (wizardContext.get(filtersContextKey) ||
+    initialFilters ||
+    []: FiltersQuery);
 
   return (
     <div className={classes.root}>

@@ -1966,7 +1966,7 @@ type ServiceType implements Node {
   propertyTypes: [PropertyType]!
   services: [Service]!
   numberOfServices: Int!
-  endpointDefinitions: [ServiceEndpointDefinition]!
+  endpointDefinitions: [ServiceEndpointDefinition!]!
   discoveryMethod: DiscoveryMethod
 }
 

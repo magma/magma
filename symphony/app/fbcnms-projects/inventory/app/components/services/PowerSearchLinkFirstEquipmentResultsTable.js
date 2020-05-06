@@ -80,7 +80,7 @@ type Props = {
 
 const PowerSearchLinkFirstEquipmentResultsTable = (props: Props) => {
   const classes = useStyles();
-  const {equipment, selectedEquipment, onEquipmentSelected} = props;
+  const {selectedEquipment, onEquipmentSelected, equipment} = props;
 
   const headerRenderer = ({label}) => {
     return (

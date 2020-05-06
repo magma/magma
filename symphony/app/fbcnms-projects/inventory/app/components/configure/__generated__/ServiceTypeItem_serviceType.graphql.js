@@ -27,7 +27,7 @@ export type ServiceTypeItem_serviceType = {|
   +propertyTypes: $ReadOnlyArray<?{|
     +$fragmentRefs: PropertyTypeFormField_propertyType$ref
   |}>,
-  +endpointDefinitions: $ReadOnlyArray<?{|
+  +endpointDefinitions: $ReadOnlyArray<{|
     +$fragmentRefs: ServiceEndpointDefinitionStaticTable_serviceEndpointDefinitions$ref
   |}>,
   +numberOfServices: number,
