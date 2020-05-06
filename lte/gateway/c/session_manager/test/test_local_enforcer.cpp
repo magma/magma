@@ -587,6 +587,70 @@ TEST_F(LocalEnforcerTest, test_terminate_credit_during_reporting) {
   EXPECT_EQ(status, std::future_status::timeout);
 }
 
+TEST_F(LocalEnforcerTest, test_sync_sessions_on_restart) {
+  const std::string imsi = "IMSI1";
+  const std::string session_id = "1234";
+  CreateSessionResponse response;
+  create_credit_update_response(imsi, 1, true, 1024,
+                                response.mutable_credits()->Add());
+  local_enforcer->init_session_credit(session_map, imsi, session_id, test_cfg,
+                                      response);
+
+  insert_static_rule(1, "", "rule1");
+  insert_static_rule(1, "", "rule2");
+  insert_static_rule(1, "", "rule3");
+  insert_static_rule(1, "", "rule4");
+
+  EXPECT_EQ(session_map[imsi].size(), 1);
+  bool success = session_store->create_sessions(imsi, std::move(session_map[imsi]));
+  EXPECT_TRUE(success);
+
+  auto session_map_2 = session_store->read_sessions(SessionRead{imsi});
+  auto session_update = session_store->get_default_session_update(session_map_2);
+  EXPECT_EQ(session_map_2[imsi].size(), 1);
+
+  RuleLifetime lifetime1 = {
+      .activation_time = std::time_t(0),
+      .deactivation_time = std::time_t(5),
+  };
+  RuleLifetime lifetime2 = {
+      .activation_time = std::time_t(5),
+      .deactivation_time = std::time_t(10),
+  };
+  RuleLifetime lifetime3 = {
+      .activation_time = std::time_t(10),
+      .deactivation_time = std::time_t(15),
+  };
+  RuleLifetime lifetime4 = {
+      .activation_time = std::time_t(15),
+      .deactivation_time = std::time_t(20),
+  };
+  auto& uc = session_update[imsi][session_id];
+  session_map_2[imsi].front()->activate_static_rule("rule1", lifetime1, uc);
+  session_map_2[imsi].front()->schedule_static_rule("rule2", lifetime2, uc);
+  session_map_2[imsi].front()->schedule_static_rule("rule3", lifetime3, uc);
+  session_map_2[imsi].front()->schedule_static_rule("rule4", lifetime4, uc);
+
+  EXPECT_EQ(uc.new_scheduled_static_rules.count("rule2"), 1);
+  EXPECT_EQ(uc.new_scheduled_static_rules.count("rule3"), 1);
+  EXPECT_EQ(uc.new_scheduled_static_rules.count("rule4"), 1);
+
+  success = session_store->update_sessions(session_update);
+  EXPECT_TRUE(success);
+
+  local_enforcer->sync_sessions_on_restart(std::time_t(12));
+
+  session_map_2 = session_store->read_sessions(SessionRead{imsi});
+  session_update = session_store->get_default_session_update(session_map_2);
+  EXPECT_EQ(session_map_2[imsi].size(), 1);
+
+  auto& session = session_map_2[imsi].front();
+  EXPECT_FALSE(session->is_static_rule_installed("rule1"));
+  EXPECT_FALSE(session->is_static_rule_installed("rule2"));
+  EXPECT_TRUE(session->is_static_rule_installed("rule3"));
+  EXPECT_FALSE(session->is_static_rule_installed("rule4"));
+}
+
 MATCHER_P2(CheckDeactivateFlows, imsi, rule_count, "") {
   auto request = static_cast<const DeactivateFlowsRequest *>(arg);
   return request->sid().id() == imsi && request->rule_ids_size() == rule_count;
