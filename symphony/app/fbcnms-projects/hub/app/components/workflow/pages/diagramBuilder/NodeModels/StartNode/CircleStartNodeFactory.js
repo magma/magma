@@ -12,7 +12,7 @@ export class CircleStartNodeFactory extends SRD.AbstractNodeFactory {
     diagramEngine: SRD.DiagramEngine,
     node: SRD.NodeModel
   ): JSX.Element {
-    return <CircleNodeStart node={node} />;
+    return <CircleNodeStart node={node} diagramEngine={diagramEngine} />;
   }
 
   getNewInstance() {
