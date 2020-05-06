@@ -156,10 +156,10 @@ class AddEditLocationTypeCard extends React.Component<Props, State> {
               <div className={classes.isSiteContainer}>
                 <Checkbox
                   className={classes.checkbox}
+                  title={fbt('This Location Type is a Site', '')}
                   checked={isSite}
                   onChange={this.isSiteChanged}
                 />
-                <Text variant="body2">This Location Type is a Site</Text>
               </div>
             </div>
           </SectionedCard>

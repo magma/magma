@@ -47,9 +47,6 @@ const useStyles = makeStyles(() => ({
     alignItems: 'center',
     flexGrow: 1,
   },
-  checkboxLabel: {
-    marginLeft: '8px',
-  },
   content: {
     flexGrow: 1,
     marginBottom: '40px',
@@ -108,11 +105,11 @@ const MessageDialog = ({
           <div className={classes.checkboxContainer}>
             <Checkbox
               checked={checkboxChecked}
+              title={checkboxLabel}
               onChange={selection =>
                 setCheckboxChecked(selection === 'checked' ? true : false)
               }
             />
-            <Text className={classes.checkboxLabel}>{checkboxLabel}</Text>
           </div>
         )}
         {cancelLabel && (

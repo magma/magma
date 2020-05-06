@@ -183,6 +183,7 @@ class PropertyTypeTable extends React.Component<Props> {
                     <FormField>
                       <Checkbox
                         checked={!property.isInstanceProperty}
+                        title={null}
                         onChange={this._handleChecked(i)}
                       />
                     </FormField>
@@ -192,6 +193,7 @@ class PropertyTypeTable extends React.Component<Props> {
                       <FormField>
                         <Checkbox
                           checked={!!property.isMandatory}
+                          title={null}
                           onChange={this._handleIsMandatoryChecked(i)}
                         />
                       </FormField>
