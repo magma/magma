@@ -45,6 +45,7 @@ from magma.pipelined.app.tunnel_learn import TunnelLearnController
 from magma.pipelined.app.vlan_learn import VlanLearnController
 from magma.pipelined.app.arp import ArpController
 from magma.pipelined.app.dpi import DPIController
+from magma.pipelined.app.gy import GYController
 from magma.pipelined.app.enforcement import EnforcementController
 from magma.pipelined.app.ipfix import IPFIXController
 from magma.pipelined.app.li_mirror import LIMirrorController
@@ -264,6 +265,10 @@ class ServiceManager:
     # Note that a service may require multiple apps.
     DYNAMIC_SERVICE_TO_APPS = {
         PipelineD.ENFORCEMENT: [
+            App(name=GYController.APP_NAME,
+                module=GYController.__module__,
+                type=GYController.APP_TYPE,
+                order_priority=499),
             App(name=EnforcementController.APP_NAME,
                 module=EnforcementController.__module__,
                 type=EnforcementController.APP_TYPE,
