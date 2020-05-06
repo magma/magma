@@ -419,7 +419,9 @@ class LocalEnforcer {
   /**
    * Install flow for redirection through pipelined
    */
-  void install_redirect_flow(const std::unique_ptr<ServiceAction>& action);
+  void install_redirect_flow(
+      const std::unique_ptr<ServiceAction>& action,
+      SessionUpdate &session_update);
 
   bool rules_to_process_is_not_empty(const RulesToProcess& rules_to_process);
 

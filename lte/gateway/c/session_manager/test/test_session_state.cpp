@@ -67,6 +67,40 @@ protected:
     }
   }
 
+  // TODO: make session_manager.proto and policydb.proto to use common field
+  static RedirectInformation_AddressType
+  address_type_converter(RedirectServer_RedirectAddressType address_type) {
+    switch (address_type) {
+    case RedirectServer_RedirectAddressType_IPV4:
+      return RedirectInformation_AddressType_IPv4;
+    case RedirectServer_RedirectAddressType_IPV6:
+      return RedirectInformation_AddressType_IPv6;
+    case RedirectServer_RedirectAddressType_URL:
+      return RedirectInformation_AddressType_URL;
+    case RedirectServer_RedirectAddressType_SIP_URI:
+      return RedirectInformation_AddressType_SIP_URI;
+    }
+  }
+
+  void insert_gy_redirection_rule(const std::string &rule_id){
+    PolicyRule redirect_rule;
+    redirect_rule.set_id(rule_id);
+    redirect_rule.set_priority(999);
+
+    RedirectInformation *redirect_info = redirect_rule.mutable_redirect();
+    redirect_info->set_support(RedirectInformation_Support_ENABLED);
+
+    RedirectServer redirect_server;
+    redirect_server.set_redirect_address_type(RedirectServer::URL);
+    redirect_server.set_redirect_server_address("http://www.example.com/");
+
+    redirect_info->set_address_type(
+        address_type_converter(redirect_server.redirect_address_type()));
+    redirect_info->set_server_address(redirect_server.redirect_server_address());
+
+    session_state->insert_gy_dynamic_rule(redirect_rule, update_criteria);
+  }
+
   void receive_credit_from_ocs(uint32_t rating_group, uint64_t volume) {
     CreditUpdateResponse charge_resp;
     create_credit_update_response("IMSI1", rating_group, volume, &charge_resp);
@@ -595,6 +629,40 @@ TEST_F(SessionStateTest, test_get_total_credit_usage_multiple_rule_shared_key) {
   EXPECT_EQ(actual.monitoring_rx, 15);
   EXPECT_EQ(actual.charging_tx, 1000);
   EXPECT_EQ(actual.charging_rx, 10);
+}
+
+TEST_F(SessionStateTest, test_install_gy_rules) {
+  insert_gy_redirection_rule("redirect");
+
+  std::vector<std::string> rules_out{};
+  std::vector<std::string> &rules_out_ptr = rules_out;
+
+  session_state->get_gy_dynamic_rules().get_rule_ids(rules_out_ptr);
+  EXPECT_EQ(rules_out_ptr.size(), 1);
+  EXPECT_EQ(rules_out_ptr[0], "redirect");
+
+  PolicyRule rule_out;
+  EXPECT_EQ(true, session_state->remove_gy_dynamic_rule("redirect", &rule_out,
+                                                        update_criteria));
+  // basic sanity checks to see it's properly deleted
+  rules_out = {};
+  session_state->get_gy_dynamic_rules().get_rule_ids(rules_out_ptr);
+  EXPECT_EQ(rules_out_ptr.size(), 0);
+
+  rules_out = {};
+  session_state->get_gy_dynamic_rules().get_rule_ids_for_monitoring_key("m1",
+      rules_out);
+  EXPECT_EQ(0, rules_out.size());
+
+  std::string mkey;
+  // searching for non-existent rule should fail
+  EXPECT_EQ(false,
+            session_state->get_dynamic_rules().get_monitoring_key_for_rule_id(
+                "redirect", &mkey));
+  // deleting an already deleted rule should fail
+  EXPECT_EQ(false,
+            session_state->get_dynamic_rules().remove_rule("redirect",
+                &rule_out));
 }
 
 int main(int argc, char **argv) {

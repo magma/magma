@@ -87,7 +87,8 @@ void LocalEnforcer::notify_new_report_for_sessions(
     SessionMap &session_map, SessionUpdate &session_update) {
   for (const auto &session_pair : session_map) {
     for (const auto &session : session_pair.second) {
-      session->new_report(session_update[session_pair.first][session->get_session_id()]);
+      session->new_report(
+          session_update[session_pair.first][session->get_session_id()]);
     }
   }
 }
@@ -99,7 +100,8 @@ void LocalEnforcer::notify_finish_report_for_sessions(
   std::vector<std::pair<std::string, std::string>> imsi_to_terminate;
   for (const auto &session_pair : session_map) {
     for (const auto &session : session_pair.second) {
-      session->finish_report(session_update[session_pair.first][session->get_session_id()]);
+      session->finish_report(
+          session_update[session_pair.first][session->get_session_id()]);
       if (session->can_complete_termination()) {
         imsi_to_terminate.push_back(
             std::make_pair(session_pair.first, session->get_session_id()));
@@ -213,7 +215,7 @@ void LocalEnforcer::execute_actions(
           action_p->get_rule_ids(), action_p->get_rule_definitions());
     } else if (action_p->get_type() == REDIRECT) {
       // This is GY based REDIRECT, GX redirect will come in as a regular rule
-      install_redirect_flow(action_p);
+      install_redirect_flow(action_p, session_update);
     } else if (action_p->get_type() == RESTRICT_ACCESS) {
       MLOG(MWARNING) << "RESTRICT_ACCESS mode is unsupported"
                      << ", will just terminate the service.";
@@ -260,8 +262,8 @@ void LocalEnforcer::terminate_service(
       // If the session is terminating already, do nothing.
       continue;
     }
-    
-    auto& update_criteria = session_update[imsi][session->get_session_id()];
+
+    auto &update_criteria = session_update[imsi][session->get_session_id()];
     session->start_termination(update_criteria);
 
     // tell AAA service to terminate radius session if necessary
@@ -317,8 +319,8 @@ void LocalEnforcer::terminate_service(
                            << " with session_id: " << session_id;
             } else {
               MLOG(MERROR)
-                  << "Failed to update SessionStore with ended session "
-                  << imsi << " and session_id: " << session_id;
+                  << "Failed to update SessionStore with ended session " << imsi
+                  << " and session_id: " << session_id;
             }
           } else {
             MLOG(MDEBUG) << "Not forcing termination for session " << imsi
@@ -364,34 +366,34 @@ create_redirect_rule(const std::unique_ptr<ServiceAction> &action) {
 }
 
 void LocalEnforcer::install_redirect_flow(
-    const std::unique_ptr<ServiceAction> &action) {
+    const std::unique_ptr<ServiceAction> &action,
+    SessionUpdate &session_update) {
   std::vector<std::string> static_rules;
   std::vector<PolicyRule> dynamic_rules{create_redirect_rule(action)};
   const std::string &imsi = action->get_imsi();
 
   auto it = session_map_.find(imsi);
   if (it == session_map_.end()) {
-      MLOG(MDEBUG) << "Session for IMSI " << imsi << " not found";
-      return;
+    MLOG(MDEBUG) << "Session for IMSI " << imsi << " not found";
+    return;
   }
-  auto request = directoryd_client_->get_directoryd_ip_field(imsi,
-    [this, imsi, static_rules, dynamic_rules, it](Status status,
-                                                  DirectoryField resp) {
-    if (!status.ok()) {
-      MLOG(MERROR) << "Could not fetch subscriber " << imsi << "ip, "
-                   << "redirection fails, error: " << status.error_message();
-    } else {
-      pipelined_client_->add_gy_final_action_flow(
-        imsi,
-        resp.value(),
-        static_rules,
-        dynamic_rules);
-      for (const auto &session : it->second) {
-          session->insert_gy_dynamic_rule(dynamic_rules.front());
-      }
-    }
-  }
-);
+  auto request = directoryd_client_->get_directoryd_ip_field(
+      imsi, [this, imsi, &session_update, static_rules, dynamic_rules,
+             it](Status status, DirectoryField resp) {
+        if (!status.ok()) {
+          MLOG(MERROR) << "Could not fetch subscriber " << imsi << "ip, "
+                       << "redirection fails, error: "
+                       << status.error_message();
+        } else {
+          pipelined_client_->add_gy_final_action_flow(
+              imsi, resp.value(), static_rules, dynamic_rules);
+
+          for (const auto &session : it->second) {
+            auto &uc = session_update[imsi][session->get_session_id()];
+            session->insert_gy_dynamic_rule(dynamic_rules.front(), uc);
+          }
+        }
+      });
 }
 
 UpdateSessionRequest LocalEnforcer::collect_updates(
@@ -578,7 +580,7 @@ void LocalEnforcer::schedule_static_rule_deactivation(
           auto session_update =
               session_store_.get_default_session_update(session_map);
           pipelined_client_->deactivate_flows_for_rules(
-            imsi, static_rules, dynamic_rules, RequestOriginType::GX);
+              imsi, static_rules, dynamic_rules, RequestOriginType::GX);
           auto it = session_map.find(imsi);
           if (it == session_map.end()) {
             MLOG(MWARNING) << "Could not find session for IMSI " << imsi
@@ -616,7 +618,7 @@ void LocalEnforcer::schedule_dynamic_rule_deactivation(
           auto session_update =
               session_store_.get_default_session_update(session_map);
           pipelined_client_->deactivate_flows_for_rules(
-            imsi, static_rules, dynamic_rules, RequestOriginType::GX);
+              imsi, static_rules, dynamic_rules, RequestOriginType::GX);
           auto it = session_map.find(imsi);
           if (it == session_map.end()) {
             MLOG(MWARNING) << "Could not find session for IMSI " << imsi
@@ -747,10 +749,8 @@ bool LocalEnforcer::handle_session_init_rule_updates(
       session_state.remove_dynamic_rule(policy_rule.id(), &rule_dont_care, uc);
     }
     deactivate_success = pipelined_client_->deactivate_flows_for_rules(
-      imsi,
-      rules_to_deactivate.static_rules,
-      rules_to_deactivate.dynamic_rules,
-      RequestOriginType::GX);
+        imsi, rules_to_deactivate.static_rules,
+        rules_to_deactivate.dynamic_rules, RequestOriginType::GX);
   }
 
   return activate_success && deactivate_success;
@@ -993,8 +993,9 @@ void LocalEnforcer::update_charging_credits(
       session->get_session_info(info);
       for (const auto &rule : info.gy_dynamic_rules) {
         PolicyRule dy_rule;
-        bool is_dynamic = session->remove_gy_dynamic_rule(
-            rule.id(), &dy_rule);
+        auto &uc = session_update[imsi][session->get_session_id()];
+        bool is_dynamic =
+            session->remove_gy_dynamic_rule(rule.id(), &dy_rule, uc);
         if (is_dynamic) {
           gy_rules_to_deactivate.push_back(dy_rule);
         }
@@ -1003,10 +1004,7 @@ void LocalEnforcer::update_charging_credits(
       if (!gy_rules_to_deactivate.empty()) {
         std::vector<std::string> static_rules;
         bool deactivate_success = pipelined_client_->deactivate_flows_for_rules(
-          imsi,
-          static_rules,
-          gy_rules_to_deactivate,
-          RequestOriginType::GY);
+            imsi, static_rules, gy_rules_to_deactivate, RequestOriginType::GY);
       }
     }
   }
@@ -1063,10 +1061,8 @@ void LocalEnforcer::update_monitoring_credits_and_rules(
       if (rules_to_process_is_not_empty(rules_to_deactivate)) {
         // TODO: modify the SessionUpdate
         deactivate_success = pipelined_client_->deactivate_flows_for_rules(
-          imsi,
-          rules_to_deactivate.static_rules,
-          rules_to_deactivate.dynamic_rules,
-          RequestOriginType::GX);
+            imsi, rules_to_deactivate.static_rules,
+            rules_to_deactivate.dynamic_rules, RequestOriginType::GX);
       }
 
       if (rules_to_process_is_not_empty(rules_to_activate)) {
@@ -1144,10 +1140,8 @@ void LocalEnforcer::terminate_subscriber(SessionMap &session_map,
         update_criteria.dynamic_rules_to_uninstall.insert(dynamic_rule.id());
       }
       deactivate_success = pipelined_client_->deactivate_flows_for_rules(
-        imsi,
-        rules_to_deactivate.static_rules,
-        rules_to_deactivate.dynamic_rules,
-        RequestOriginType::GX);
+          imsi, rules_to_deactivate.static_rules,
+          rules_to_deactivate.dynamic_rules, RequestOriginType::GX);
       if (!deactivate_success) {
         MLOG(MERROR) << "Could not deactivate flows for IMSI " << imsi
                      << " and session " << session->get_session_id()
@@ -1238,8 +1232,9 @@ uint64_t LocalEnforcer::get_monitor_credit(SessionMap &session_map,
   return 0;
 }
 
-ReAuthResult LocalEnforcer::init_charging_reauth(SessionMap &session_map,
-                                                 ChargingReAuthRequest request,
+ReAuthResult
+LocalEnforcer::init_charging_reauth(SessionMap &session_map,
+                                    ChargingReAuthRequest request,
                                     SessionUpdate &session_update) {
   auto it = session_map.find(request.sid());
   if (it == session_map.end()) {
@@ -1365,8 +1360,8 @@ void LocalEnforcer::init_policy_reauth_for_session(
       update_criteria.dynamic_rules_to_uninstall.insert(dynamic_rule.id());
     }
     deactivate_success = pipelined_client_->deactivate_flows_for_rules(
-      request.imsi(), rules_to_deactivate.static_rules,
-      rules_to_deactivate.dynamic_rules, RequestOriginType::GX);
+        request.imsi(), rules_to_deactivate.static_rules,
+        rules_to_deactivate.dynamic_rules, RequestOriginType::GX);
   }
   if (rules_to_process_is_not_empty(rules_to_activate)) {
     for (const std::string &static_rule : rules_to_activate.static_rules) {
@@ -1626,8 +1621,7 @@ bool LocalEnforcer::is_session_active(
 }
 
 bool LocalEnforcer::get_core_sid_of_active_session(
-    SessionMap &session_map,
-    const std::string &imsi,
+    SessionMap &session_map, const std::string &imsi,
     std::string *core_session_id) const {
   auto it = session_map.find(imsi);
   if (it == session_map.end()) {
