@@ -74,3 +74,14 @@ func (r mutationResolver) UpdateUsersGroupMembers(ctx context.Context, input mod
 		RemoveMemberIDs(input.RemoveUserIds...).
 		Save(ctx)
 }
+
+func (r mutationResolver) UpdatePermissionsPoliciesInUsersGroup(
+	ctx context.Context,
+	input models.UpdatePermissionsPoliciesInUsersGroupInput,
+) (*ent.UsersGroup, error) {
+
+	return r.ClientFrom(ctx).UsersGroup.UpdateOneID(input.ID).
+		AddPolicyIDs(input.AddPermissionsPolicyIds...).
+		RemovePolicyIDs(input.RemovePermissionsPolicyIds...).
+		Save(ctx)
+}

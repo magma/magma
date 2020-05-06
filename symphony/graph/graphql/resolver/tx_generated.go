@@ -115,6 +115,20 @@ func (tr txResolver) UpdateUsersGroupMembers(ctx context.Context, input models.U
 	return result, nil
 }
 
+func (tr txResolver) UpdatePermissionsPoliciesInUsersGroup(ctx context.Context, input models.UpdatePermissionsPoliciesInUsersGroupInput) (*ent.UsersGroup, error) {
+	var result, zero *ent.UsersGroup
+	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr generated.MutationResolver) (err error) {
+		result, err = mr.UpdatePermissionsPoliciesInUsersGroup(ctx, input)
+		return
+	}); err != nil {
+		return zero, err
+	}
+	if result != nil {
+		result = result.Unwrap()
+	}
+	return result, nil
+}
+
 func (tr txResolver) DeleteUsersGroup(ctx context.Context, id int) (bool, error) {
 	var result, zero bool
 	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr generated.MutationResolver) (err error) {
