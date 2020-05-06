@@ -47,8 +47,18 @@ const (
 
 	defaultMSISDN          = "5100001234"
 	defaultCalledStationID = "98-DE-D0-84-B5-47:CWF-TP-LINK_B547_5G"
+
+	KiloBytes                = 1024
+	MegaBytes                = 1024 * KiloBytes
+	Buffer                   = 100 * KiloBytes
+	RevalidationTimeoutEvent = 17
+
+	ReAuthMaxUsageBytes   = 5 * MegaBytes
+	ReAuthMaxUsageTimeSec = 1000 // in second
+	ReAuthValidityTime    = 60   // in second
 )
 
+//TestRunner helps setting up all associated services
 type TestRunner struct {
 	t           *testing.T
 	imsis       map[string]bool

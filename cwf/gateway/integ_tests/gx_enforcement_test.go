@@ -1,3 +1,5 @@
+// +build all gx
+
 /*
  * Copyright (c) Facebook, Inc. and its affiliates.
  * All rights reserved.
@@ -23,13 +25,6 @@ import (
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/stretchr/testify/assert"
-)
-
-const (
-	KiloBytes                = 1024
-	MegaBytes                = 1024 * KiloBytes
-	Buffer                   = 100 * KiloBytes
-	RevalidationTimeoutEvent = 17
 )
 
 // - Set an expectation for a  CCR-I to be sent up to PCRF, to which it will
