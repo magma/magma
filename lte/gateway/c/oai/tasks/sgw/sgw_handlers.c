@@ -2309,6 +2309,37 @@ int sgw_handle_nw_initiated_deactv_bearer_rsp(
       OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64, "LBI received from MME is NULL\n");
       OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
     }
+    // Delete all the dedicated bearers linked to this default bearer
+    for (int ebix = 0; ebix < BEARERS_PER_UE; ebix++) {
+      ebi = INDEX_TO_EBI(ebix);
+      eps_bearer_ctxt_p = sgw_cm_get_eps_bearer_entry(
+          &spgw_ctxt->sgw_eps_bearer_context_information.pdn_connection, ebi);
+
+      if (eps_bearer_ctxt_p) {
+        if (ebi != *s11_pcrf_ded_bearer_deactv_rsp->lbi) {
+          rc = gtp_tunnel_ops->del_tunnel(
+              eps_bearer_ctxt_p->paa.ipv4_address,
+              eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
+              eps_bearer_ctxt_p->enb_teid_S1u, NULL);
+          if (rc < 0) {
+            OAILOG_ERROR_UE(
+                LOG_SPGW_APP, imsi64,
+                "ERROR in deleting TUNNEL " TEID_FMT
+                " (eNB) <-> (SGW) " TEID_FMT "\n",
+                eps_bearer_ctxt_p->enb_teid_S1u,
+                eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up);
+          } else {
+            OAILOG_INFO_UE(
+                LOG_SPGW_APP, imsi64,
+                "Removed dedicated bearer context for (ebi = %d)\n", ebi);
+          }
+          sgw_free_eps_bearer_context(
+              &spgw_ctxt->sgw_eps_bearer_context_information.pdn_connection
+                   .sgw_eps_bearers_array[EBI_TO_INDEX(ebi)]);
+        }
+      }
+    }
+
     OAILOG_INFO_UE(
       LOG_SPGW_APP,
       imsi64,
@@ -2318,19 +2349,6 @@ int sgw_handle_nw_initiated_deactv_bearer_rsp(
     eps_bearer_ctxt_p = sgw_cm_get_eps_bearer_entry(
       &spgw_ctxt->sgw_eps_bearer_context_information.pdn_connection, ebi);
 
-    rc = gtp_tunnel_ops->del_tunnel(
-      eps_bearer_ctxt_p->paa.ipv4_address,
-      eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
-      eps_bearer_ctxt_p->enb_teid_S1u,
-      NULL);
-    if (rc < 0) {
-      OAILOG_ERROR_UE(
-        LOG_SPGW_APP,
-        imsi64,
-        "ERROR in deleting TUNNEL " TEID_FMT " (eNB) <-> (SGW) " TEID_FMT "\n",
-        eps_bearer_ctxt_p->enb_teid_S1u,
-        eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up);
-    }
     sgi_delete_end_point_request.context_teid =
       spgw_ctxt->sgw_eps_bearer_context_information.s_gw_teid_S11_S4;
     sgi_delete_end_point_request.sgw_S1u_teid =
