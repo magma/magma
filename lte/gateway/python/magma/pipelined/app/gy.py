@@ -122,28 +122,9 @@ class GYController(PolicyMixin, MagmaController):
                                                         num)
 
     def _install_flow_for_rule(self, imsi, ip_addr, rule):
-        rule_num = self._rule_mapper.get_or_create_rule_num(rule.id)
-        priority = rule.priority
-
         if rule.redirect.support == rule.redirect.ENABLED:
-            # TODO currently if redirection is enabled we ignore other flows
-            # from rule.flow_list, confirm that this is the expected behaviour
-            redirect_request = RedirectionManager.RedirectRequest(
-                imsi=imsi,
-                ip_addr=ip_addr,
-                rule=rule,
-                rule_num=rule_num,
-                priority=priority)
-            try:
-                self._redirect_manager.handle_redirection(
-                    self._datapath, self.loop, redirect_request)
-                return RuleModResult.SUCCESS
-            except RedirectException as err:
-                self.logger.error(
-                    'Redirect Exception for imsi %s, rule.id - %s : %s',
-                    imsi, rule.id, err
-                )
-                return RuleModResult.FAILURE
+            hub.spawn(self._install_redirect_flow, imsi, ip_addr, rule)
+            return RuleModResult.SUCCESS
         else:
             # TODO: Add support once sessiond implements restrict access QOS
             self.logger.error('GY only supports FINAL action redirect, other'
@@ -180,8 +161,57 @@ class GYController(PolicyMixin, MagmaController):
             resubmit_table=self.next_main_table)
 
     def _install_redirect_flow(self, imsi, ip_addr, rule):
-        return None
+        rule_num = self._rule_mapper.get_or_create_rule_num(rule.id)
+        priority = rule.priority
+        # TODO currently if redirection is enabled we ignore other flows
+        # from rule.flow_list, confirm that this is the expected behaviour
+        redirect_request = RedirectionManager.RedirectRequest(
+            imsi=imsi,
+            ip_addr=ip_addr,
+            rule=rule,
+            rule_num=rule_num,
+            priority=priority)
+        try:
+            self._redirect_manager.handle_redirection(
+                self._datapath, self.loop, redirect_request)
+            return RuleModResult.SUCCESS
+        except RedirectException as err:
+            self.logger.error(
+                'Redirect Exception for imsi %s, rule.id - %s : %s',
+                imsi, rule.id, err
+            )
+            return RuleModResult.FAILURE
 
     def _install_default_flows_if_not_installed(self, datapath,
             existing_flows: List[OFPFlowStats]) -> List[OFPFlowStats]:
-        return None
+        inbound_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
+                                   direction=Direction.IN)
+        outbound_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
+                                    direction=Direction.OUT)
+
+        inbound_msg = flows.get_add_resubmit_next_service_flow_msg(
+            datapath, self.tbl_num, inbound_match, [],
+            priority=flows.MINIMUM_PRIORITY,
+            resubmit_table=self.next_main_table)
+
+        outbound_msg = flows.get_add_resubmit_next_service_flow_msg(
+            datapath, self.tbl_num, outbound_match, [],
+            priority=flows.MINIMUM_PRIORITY,
+            resubmit_table=self.next_main_table)
+
+        msgs, remaining_flows = self._msg_hub \
+            .filter_msgs_if_not_in_flow_list([inbound_msg, outbound_msg],
+                                             existing_flows)
+        if msgs:
+            chan = self._msg_hub.send(msgs, datapath)
+            self._wait_for_responses(chan, len(msgs))
+
+        return remaining_flows
+
+    @set_ev_cls(ofp_event.EventOFPBarrierReply, MAIN_DISPATCHER)
+    def _handle_barrier(self, ev):
+        self._msg_hub.handle_barrier(ev)
+
+    @set_ev_cls(ofp_event.EventOFPErrorMsg, MAIN_DISPATCHER)
+    def _handle_error(self, ev):
+        self._msg_hub.handle_error(ev)
