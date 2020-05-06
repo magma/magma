@@ -12,11 +12,11 @@ from ..common.cache import LOCATION_TYPES
 from ..common.data_class import Location, LocationType, PropertyValue
 from ..common.data_enum import Entity
 from ..exceptions import EntityNotFoundError
-from ..graphql.add_location_type_input import AddLocationTypeInput
-from ..graphql.add_location_type_mutation import AddLocationTypeMutation
-from ..graphql.location_type_locations_query import LocationTypeLocationsQuery
-from ..graphql.location_types_query import LocationTypesQuery
-from ..graphql.remove_location_type_mutation import RemoveLocationTypeMutation
+from ..graphql.input.add_location_type import AddLocationTypeInput
+from ..graphql.mutation.add_location_type import AddLocationTypeMutation
+from ..graphql.mutation.remove_location_type import RemoveLocationTypeMutation
+from ..graphql.query.location_type_locations import LocationTypeLocationsQuery
+from ..graphql.query.location_types import LocationTypesQuery
 from .location import delete_location
 
 

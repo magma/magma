@@ -5,10 +5,10 @@ from typing import List, Optional
 from pysymphony import SymphonyClient
 
 from ..common.data_class import Customer
-from ..graphql.add_customer_input import AddCustomerInput
-from ..graphql.add_customer_mutation import AddCustomerMutation
-from ..graphql.customers_query import CustomersQuery
-from ..graphql.remove_customer_mutation import RemoveCustomerMutation
+from ..graphql.input.add_customer import AddCustomerInput
+from ..graphql.mutation.add_customer import AddCustomerMutation
+from ..graphql.mutation.remove_customer import RemoveCustomerMutation
+from ..graphql.query.customers import CustomersQuery
 
 
 def add_customer(

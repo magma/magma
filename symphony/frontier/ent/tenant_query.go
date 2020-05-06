@@ -24,7 +24,7 @@ type TenantQuery struct {
 	config
 	limit      *int
 	offset     *int
-	order      []Order
+	order      []OrderFunc
 	unique     []string
 	predicates []predicate.Tenant
 	// intermediate query (i.e. traversal path).
@@ -51,7 +51,7 @@ func (tq *TenantQuery) Offset(offset int) *TenantQuery {
 }
 
 // Order adds an order step to the query.
-func (tq *TenantQuery) Order(o ...Order) *TenantQuery {
+func (tq *TenantQuery) Order(o ...OrderFunc) *TenantQuery {
 	tq.order = append(tq.order, o...)
 	return tq
 }
@@ -226,7 +226,7 @@ func (tq *TenantQuery) Clone() *TenantQuery {
 		config:     tq.config,
 		limit:      tq.limit,
 		offset:     tq.offset,
-		order:      append([]Order{}, tq.order...),
+		order:      append([]OrderFunc{}, tq.order...),
 		unique:     append([]string{}, tq.unique...),
 		predicates: append([]predicate.Tenant{}, tq.predicates...),
 		// clone intermediate query.
@@ -402,14 +402,14 @@ func (tq *TenantQuery) sqlQuery() *sql.Selector {
 type TenantGroupBy struct {
 	config
 	fields []string
-	fns    []Aggregate
+	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (tgb *TenantGroupBy) Aggregate(fns ...Aggregate) *TenantGroupBy {
+func (tgb *TenantGroupBy) Aggregate(fns ...AggregateFunc) *TenantGroupBy {
 	tgb.fns = append(tgb.fns, fns...)
 	return tgb
 }

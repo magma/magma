@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 6e71c418ddf16e72c00d0021f5a551d0
+ * @relayHash 870db0e04473b0657520ba72610ca102
  */
 
 /* eslint-disable */
@@ -69,10 +69,104 @@ export type UserManagementContextQueryResponse = {|
           +read: {|
             +isAllowed: PermissionValue
           |},
+          +location: {|
+            +create: {|
+              +isAllowed: PermissionValue
+            |},
+            +update: {|
+              +isAllowed: PermissionValue
+            |},
+            +delete: {|
+              +isAllowed: PermissionValue
+            |},
+          |},
+          +equipment: {|
+            +create: {|
+              +isAllowed: PermissionValue
+            |},
+            +update: {|
+              +isAllowed: PermissionValue
+            |},
+            +delete: {|
+              +isAllowed: PermissionValue
+            |},
+          |},
+          +equipmentType: {|
+            +create: {|
+              +isAllowed: PermissionValue
+            |},
+            +update: {|
+              +isAllowed: PermissionValue
+            |},
+            +delete: {|
+              +isAllowed: PermissionValue
+            |},
+          |},
+          +locationType: {|
+            +create: {|
+              +isAllowed: PermissionValue
+            |},
+            +update: {|
+              +isAllowed: PermissionValue
+            |},
+            +delete: {|
+              +isAllowed: PermissionValue
+            |},
+          |},
+          +portType: {|
+            +create: {|
+              +isAllowed: PermissionValue
+            |},
+            +update: {|
+              +isAllowed: PermissionValue
+            |},
+            +delete: {|
+              +isAllowed: PermissionValue
+            |},
+          |},
+          +serviceType: {|
+            +create: {|
+              +isAllowed: PermissionValue
+            |},
+            +update: {|
+              +isAllowed: PermissionValue
+            |},
+            +delete: {|
+              +isAllowed: PermissionValue
+            |},
+          |},
         |} | {|
           +__typename: "WorkforcePolicy",
           +read: {|
             +isAllowed: PermissionValue
+          |},
+          +templates: {|
+            +create: {|
+              +isAllowed: PermissionValue
+            |},
+            +update: {|
+              +isAllowed: PermissionValue
+            |},
+            +delete: {|
+              +isAllowed: PermissionValue
+            |},
+          |},
+          +data: {|
+            +create: {|
+              +isAllowed: PermissionValue
+            |},
+            +update: {|
+              +isAllowed: PermissionValue
+            |},
+            +delete: {|
+              +isAllowed: PermissionValue
+            |},
+            +assign: {|
+              +isAllowed: PermissionValue
+            |},
+            +transferOwnership: {|
+              +isAllowed: PermissionValue
+            |},
           |},
         |} | {|
           // This will never be '%other', but we need some
@@ -153,15 +247,107 @@ query UserManagementContextQuery {
         policy {
           __typename
           ... on InventoryPolicy {
-            __typename
             read {
               isAllowed
             }
+            location {
+              create {
+                isAllowed
+              }
+              update {
+                isAllowed
+              }
+              delete {
+                isAllowed
+              }
+            }
+            equipment {
+              create {
+                isAllowed
+              }
+              update {
+                isAllowed
+              }
+              delete {
+                isAllowed
+              }
+            }
+            equipmentType {
+              create {
+                isAllowed
+              }
+              update {
+                isAllowed
+              }
+              delete {
+                isAllowed
+              }
+            }
+            locationType {
+              create {
+                isAllowed
+              }
+              update {
+                isAllowed
+              }
+              delete {
+                isAllowed
+              }
+            }
+            portType {
+              create {
+                isAllowed
+              }
+              update {
+                isAllowed
+              }
+              delete {
+                isAllowed
+              }
+            }
+            serviceType {
+              create {
+                isAllowed
+              }
+              update {
+                isAllowed
+              }
+              delete {
+                isAllowed
+              }
+            }
           }
           ... on WorkforcePolicy {
-            __typename
             read {
               isAllowed
+            }
+            templates {
+              create {
+                isAllowed
+              }
+              update {
+                isAllowed
+              }
+              delete {
+                isAllowed
+              }
+            }
+            data {
+              create {
+                isAllowed
+              }
+              update {
+                isAllowed
+              }
+              delete {
+                isAllowed
+              }
+              assign {
+                isAllowed
+              }
+              transferOwnership {
+                isAllowed
+              }
             }
           }
         }
@@ -396,57 +582,240 @@ v9 = [
   },
   (v6/*: any*/)
 ],
-v10 = {
-  "kind": "ScalarField",
-  "alias": null,
-  "name": "isGlobal",
-  "args": null,
-  "storageKey": null
-},
-v11 = [
-  (v4/*: any*/),
+v10 = [
   {
-    "kind": "LinkedField",
+    "kind": "ScalarField",
     "alias": null,
-    "name": "read",
-    "storageKey": null,
+    "name": "isAllowed",
     "args": null,
-    "concreteType": "BasicPermissionRule",
-    "plural": false,
-    "selections": [
-      {
-        "kind": "ScalarField",
-        "alias": null,
-        "name": "isAllowed",
-        "args": null,
-        "storageKey": null
-      }
-    ]
+    "storageKey": null
   }
 ],
+v11 = {
+  "kind": "LinkedField",
+  "alias": null,
+  "name": "read",
+  "storageKey": null,
+  "args": null,
+  "concreteType": "BasicPermissionRule",
+  "plural": false,
+  "selections": (v10/*: any*/)
+},
 v12 = {
-  "kind": "InlineFragment",
-  "type": "InventoryPolicy",
-  "selections": (v11/*: any*/)
+  "kind": "LinkedField",
+  "alias": null,
+  "name": "create",
+  "storageKey": null,
+  "args": null,
+  "concreteType": "BasicPermissionRule",
+  "plural": false,
+  "selections": (v10/*: any*/)
 },
 v13 = {
-  "kind": "InlineFragment",
-  "type": "WorkforcePolicy",
-  "selections": (v11/*: any*/)
+  "kind": "LinkedField",
+  "alias": null,
+  "name": "update",
+  "storageKey": null,
+  "args": null,
+  "concreteType": "BasicPermissionRule",
+  "plural": false,
+  "selections": (v10/*: any*/)
 },
 v14 = {
   "kind": "LinkedField",
   "alias": null,
-  "name": "groups",
+  "name": "delete",
   "storageKey": null,
   "args": null,
-  "concreteType": "UsersGroup",
-  "plural": true,
-  "selections": [
-    (v0/*: any*/)
-  ]
+  "concreteType": "BasicPermissionRule",
+  "plural": false,
+  "selections": (v10/*: any*/)
 },
 v15 = [
+  (v12/*: any*/),
+  (v13/*: any*/),
+  (v14/*: any*/)
+],
+v16 = [
+  {
+    "kind": "LinkedField",
+    "alias": null,
+    "name": "edges",
+    "storageKey": null,
+    "args": null,
+    "concreteType": "PermissionsPolicyEdge",
+    "plural": true,
+    "selections": [
+      {
+        "kind": "LinkedField",
+        "alias": null,
+        "name": "node",
+        "storageKey": null,
+        "args": null,
+        "concreteType": "PermissionsPolicy",
+        "plural": false,
+        "selections": [
+          (v0/*: any*/),
+          (v3/*: any*/),
+          (v8/*: any*/),
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "isGlobal",
+            "args": null,
+            "storageKey": null
+          },
+          {
+            "kind": "LinkedField",
+            "alias": null,
+            "name": "policy",
+            "storageKey": null,
+            "args": null,
+            "concreteType": null,
+            "plural": false,
+            "selections": [
+              (v4/*: any*/),
+              {
+                "kind": "InlineFragment",
+                "type": "InventoryPolicy",
+                "selections": [
+                  (v11/*: any*/),
+                  {
+                    "kind": "LinkedField",
+                    "alias": null,
+                    "name": "location",
+                    "storageKey": null,
+                    "args": null,
+                    "concreteType": "CUD",
+                    "plural": false,
+                    "selections": (v15/*: any*/)
+                  },
+                  {
+                    "kind": "LinkedField",
+                    "alias": null,
+                    "name": "equipment",
+                    "storageKey": null,
+                    "args": null,
+                    "concreteType": "CUD",
+                    "plural": false,
+                    "selections": (v15/*: any*/)
+                  },
+                  {
+                    "kind": "LinkedField",
+                    "alias": null,
+                    "name": "equipmentType",
+                    "storageKey": null,
+                    "args": null,
+                    "concreteType": "CUD",
+                    "plural": false,
+                    "selections": (v15/*: any*/)
+                  },
+                  {
+                    "kind": "LinkedField",
+                    "alias": null,
+                    "name": "locationType",
+                    "storageKey": null,
+                    "args": null,
+                    "concreteType": "CUD",
+                    "plural": false,
+                    "selections": (v15/*: any*/)
+                  },
+                  {
+                    "kind": "LinkedField",
+                    "alias": null,
+                    "name": "portType",
+                    "storageKey": null,
+                    "args": null,
+                    "concreteType": "CUD",
+                    "plural": false,
+                    "selections": (v15/*: any*/)
+                  },
+                  {
+                    "kind": "LinkedField",
+                    "alias": null,
+                    "name": "serviceType",
+                    "storageKey": null,
+                    "args": null,
+                    "concreteType": "CUD",
+                    "plural": false,
+                    "selections": (v15/*: any*/)
+                  }
+                ]
+              },
+              {
+                "kind": "InlineFragment",
+                "type": "WorkforcePolicy",
+                "selections": [
+                  (v11/*: any*/),
+                  {
+                    "kind": "LinkedField",
+                    "alias": null,
+                    "name": "templates",
+                    "storageKey": null,
+                    "args": null,
+                    "concreteType": "CUD",
+                    "plural": false,
+                    "selections": (v15/*: any*/)
+                  },
+                  {
+                    "kind": "LinkedField",
+                    "alias": null,
+                    "name": "data",
+                    "storageKey": null,
+                    "args": null,
+                    "concreteType": "WorkforceCUD",
+                    "plural": false,
+                    "selections": [
+                      (v12/*: any*/),
+                      (v13/*: any*/),
+                      (v14/*: any*/),
+                      {
+                        "kind": "LinkedField",
+                        "alias": null,
+                        "name": "assign",
+                        "storageKey": null,
+                        "args": null,
+                        "concreteType": "BasicPermissionRule",
+                        "plural": false,
+                        "selections": (v10/*: any*/)
+                      },
+                      {
+                        "kind": "LinkedField",
+                        "alias": null,
+                        "name": "transferOwnership",
+                        "storageKey": null,
+                        "args": null,
+                        "concreteType": "BasicPermissionRule",
+                        "plural": false,
+                        "selections": (v10/*: any*/)
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "LinkedField",
+            "alias": null,
+            "name": "groups",
+            "storageKey": null,
+            "args": null,
+            "concreteType": "UsersGroup",
+            "plural": true,
+            "selections": [
+              (v0/*: any*/)
+            ]
+          },
+          (v4/*: any*/)
+        ]
+      },
+      (v5/*: any*/)
+    ]
+  },
+  (v6/*: any*/)
+],
+v17 = [
   {
     "kind": "Literal",
     "name": "first",
@@ -490,51 +859,7 @@ return {
         "args": null,
         "concreteType": "PermissionsPolicyConnection",
         "plural": false,
-        "selections": [
-          {
-            "kind": "LinkedField",
-            "alias": null,
-            "name": "edges",
-            "storageKey": null,
-            "args": null,
-            "concreteType": "PermissionsPolicyEdge",
-            "plural": true,
-            "selections": [
-              {
-                "kind": "LinkedField",
-                "alias": null,
-                "name": "node",
-                "storageKey": null,
-                "args": null,
-                "concreteType": "PermissionsPolicy",
-                "plural": false,
-                "selections": [
-                  (v0/*: any*/),
-                  (v3/*: any*/),
-                  (v8/*: any*/),
-                  (v10/*: any*/),
-                  {
-                    "kind": "LinkedField",
-                    "alias": null,
-                    "name": "policy",
-                    "storageKey": null,
-                    "args": null,
-                    "concreteType": null,
-                    "plural": false,
-                    "selections": [
-                      (v12/*: any*/),
-                      (v13/*: any*/)
-                    ]
-                  },
-                  (v14/*: any*/),
-                  (v4/*: any*/)
-                ]
-              },
-              (v5/*: any*/)
-            ]
-          },
-          (v6/*: any*/)
-        ]
+        "selections": (v16/*: any*/)
       }
     ]
   },
@@ -548,7 +873,7 @@ return {
         "alias": null,
         "name": "users",
         "storageKey": "users(first:500)",
-        "args": (v15/*: any*/),
+        "args": (v17/*: any*/),
         "concreteType": "UserConnection",
         "plural": false,
         "selections": (v7/*: any*/)
@@ -557,7 +882,7 @@ return {
         "kind": "LinkedHandle",
         "alias": null,
         "name": "users",
-        "args": (v15/*: any*/),
+        "args": (v17/*: any*/),
         "handle": "connection",
         "key": "UserManagementContext_users",
         "filters": null
@@ -567,7 +892,7 @@ return {
         "alias": null,
         "name": "usersGroups",
         "storageKey": "usersGroups(first:500)",
-        "args": (v15/*: any*/),
+        "args": (v17/*: any*/),
         "concreteType": "UsersGroupConnection",
         "plural": false,
         "selections": (v9/*: any*/)
@@ -576,7 +901,7 @@ return {
         "kind": "LinkedHandle",
         "alias": null,
         "name": "usersGroups",
-        "args": (v15/*: any*/),
+        "args": (v17/*: any*/),
         "handle": "connection",
         "key": "UserManagementContext_usersGroups",
         "filters": null
@@ -586,61 +911,16 @@ return {
         "alias": null,
         "name": "permissionsPolicies",
         "storageKey": "permissionsPolicies(first:500)",
-        "args": (v15/*: any*/),
+        "args": (v17/*: any*/),
         "concreteType": "PermissionsPolicyConnection",
         "plural": false,
-        "selections": [
-          {
-            "kind": "LinkedField",
-            "alias": null,
-            "name": "edges",
-            "storageKey": null,
-            "args": null,
-            "concreteType": "PermissionsPolicyEdge",
-            "plural": true,
-            "selections": [
-              {
-                "kind": "LinkedField",
-                "alias": null,
-                "name": "node",
-                "storageKey": null,
-                "args": null,
-                "concreteType": "PermissionsPolicy",
-                "plural": false,
-                "selections": [
-                  (v0/*: any*/),
-                  (v3/*: any*/),
-                  (v8/*: any*/),
-                  (v10/*: any*/),
-                  {
-                    "kind": "LinkedField",
-                    "alias": null,
-                    "name": "policy",
-                    "storageKey": null,
-                    "args": null,
-                    "concreteType": null,
-                    "plural": false,
-                    "selections": [
-                      (v4/*: any*/),
-                      (v12/*: any*/),
-                      (v13/*: any*/)
-                    ]
-                  },
-                  (v14/*: any*/),
-                  (v4/*: any*/)
-                ]
-              },
-              (v5/*: any*/)
-            ]
-          },
-          (v6/*: any*/)
-        ]
+        "selections": (v16/*: any*/)
       },
       {
         "kind": "LinkedHandle",
         "alias": null,
         "name": "permissionsPolicies",
-        "args": (v15/*: any*/),
+        "args": (v17/*: any*/),
         "handle": "connection",
         "key": "UserManagementContext_permissionsPolicies",
         "filters": null
@@ -651,7 +931,7 @@ return {
     "operationKind": "query",
     "name": "UserManagementContextQuery",
     "id": null,
-    "text": "query UserManagementContextQuery {\n  users(first: 500) {\n    edges {\n      node {\n        id\n        authID\n        firstName\n        lastName\n        email\n        status\n        role\n        groups {\n          id\n          name\n        }\n        profilePhoto {\n          id\n          fileName\n          storeKey\n        }\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n  usersGroups(first: 500) {\n    edges {\n      node {\n        id\n        name\n        description\n        status\n        members {\n          id\n          authID\n        }\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n  permissionsPolicies(first: 500) {\n    edges {\n      node {\n        id\n        name\n        description\n        isGlobal\n        policy {\n          __typename\n          ... on InventoryPolicy {\n            __typename\n            read {\n              isAllowed\n            }\n          }\n          ... on WorkforcePolicy {\n            __typename\n            read {\n              isAllowed\n            }\n          }\n        }\n        groups {\n          id\n        }\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n}\n",
+    "text": "query UserManagementContextQuery {\n  users(first: 500) {\n    edges {\n      node {\n        id\n        authID\n        firstName\n        lastName\n        email\n        status\n        role\n        groups {\n          id\n          name\n        }\n        profilePhoto {\n          id\n          fileName\n          storeKey\n        }\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n  usersGroups(first: 500) {\n    edges {\n      node {\n        id\n        name\n        description\n        status\n        members {\n          id\n          authID\n        }\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n  permissionsPolicies(first: 500) {\n    edges {\n      node {\n        id\n        name\n        description\n        isGlobal\n        policy {\n          __typename\n          ... on InventoryPolicy {\n            read {\n              isAllowed\n            }\n            location {\n              create {\n                isAllowed\n              }\n              update {\n                isAllowed\n              }\n              delete {\n                isAllowed\n              }\n            }\n            equipment {\n              create {\n                isAllowed\n              }\n              update {\n                isAllowed\n              }\n              delete {\n                isAllowed\n              }\n            }\n            equipmentType {\n              create {\n                isAllowed\n              }\n              update {\n                isAllowed\n              }\n              delete {\n                isAllowed\n              }\n            }\n            locationType {\n              create {\n                isAllowed\n              }\n              update {\n                isAllowed\n              }\n              delete {\n                isAllowed\n              }\n            }\n            portType {\n              create {\n                isAllowed\n              }\n              update {\n                isAllowed\n              }\n              delete {\n                isAllowed\n              }\n            }\n            serviceType {\n              create {\n                isAllowed\n              }\n              update {\n                isAllowed\n              }\n              delete {\n                isAllowed\n              }\n            }\n          }\n          ... on WorkforcePolicy {\n            read {\n              isAllowed\n            }\n            templates {\n              create {\n                isAllowed\n              }\n              update {\n                isAllowed\n              }\n              delete {\n                isAllowed\n              }\n            }\n            data {\n              create {\n                isAllowed\n              }\n              update {\n                isAllowed\n              }\n              delete {\n                isAllowed\n              }\n              assign {\n                isAllowed\n              }\n              transferOwnership {\n                isAllowed\n              }\n            }\n          }\n        }\n        groups {\n          id\n        }\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n}\n",
     "metadata": {
       "connection": [
         {
@@ -684,5 +964,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '065678b56d20e6737426839b9bc05040';
+(node/*: any*/).hash = '1a226bb3d905d40260ec1cf9b5ac4f1f';
 module.exports = node;

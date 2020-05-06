@@ -26,7 +26,7 @@ type TechnicianQuery struct {
 	config
 	limit      *int
 	offset     *int
-	order      []Order
+	order      []OrderFunc
 	unique     []string
 	predicates []predicate.Technician
 	// eager-loading edges.
@@ -55,7 +55,7 @@ func (tq *TechnicianQuery) Offset(offset int) *TechnicianQuery {
 }
 
 // Order adds an order step to the query.
-func (tq *TechnicianQuery) Order(o ...Order) *TechnicianQuery {
+func (tq *TechnicianQuery) Order(o ...OrderFunc) *TechnicianQuery {
 	tq.order = append(tq.order, o...)
 	return tq
 }
@@ -248,7 +248,7 @@ func (tq *TechnicianQuery) Clone() *TechnicianQuery {
 		config:     tq.config,
 		limit:      tq.limit,
 		offset:     tq.offset,
-		order:      append([]Order{}, tq.order...),
+		order:      append([]OrderFunc{}, tq.order...),
 		unique:     append([]string{}, tq.unique...),
 		predicates: append([]predicate.Technician{}, tq.predicates...),
 		// clone intermediate query.
@@ -471,14 +471,14 @@ func (tq *TechnicianQuery) sqlQuery() *sql.Selector {
 type TechnicianGroupBy struct {
 	config
 	fields []string
-	fns    []Aggregate
+	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (tgb *TechnicianGroupBy) Aggregate(fns ...Aggregate) *TechnicianGroupBy {
+func (tgb *TechnicianGroupBy) Aggregate(fns ...AggregateFunc) *TechnicianGroupBy {
 	tgb.fns = append(tgb.fns, fns...)
 	return tgb
 }

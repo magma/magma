@@ -23,18 +23,18 @@ from ..common.data_class import (
 )
 from ..common.data_enum import Entity
 from ..exceptions import EntityNotFoundError
-from ..graphql.add_equipment_type_input import AddEquipmentTypeInput
-from ..graphql.add_equipment_type_mutation import AddEquipmentTypeMutation
-from ..graphql.edit_equipment_type_input import EditEquipmentTypeInput
-from ..graphql.edit_equipment_type_mutation import EditEquipmentTypeMutation
-from ..graphql.equipment_port_input import EquipmentPortInput
-from ..graphql.equipment_port_types import EquipmentPortTypesQuery
-from ..graphql.equipment_position_input import EquipmentPositionInput
-from ..graphql.equipment_type_equipments_query import EquipmentTypeEquipmentQuery
-from ..graphql.equipment_types_query import EquipmentTypesQuery
-from ..graphql.property_type_fragment import PropertyTypeFragment
-from ..graphql.property_type_input import PropertyTypeInput
-from ..graphql.remove_equipment_type_mutation import RemoveEquipmentTypeMutation
+from ..graphql.fragment.property_type import PropertyTypeFragment
+from ..graphql.input.add_equipment_type import AddEquipmentTypeInput
+from ..graphql.input.edit_equipment_type import EditEquipmentTypeInput
+from ..graphql.input.equipment_port import EquipmentPortInput
+from ..graphql.input.equipment_position import EquipmentPositionInput
+from ..graphql.input.property_type import PropertyTypeInput
+from ..graphql.mutation.add_equipment_type import AddEquipmentTypeMutation
+from ..graphql.mutation.edit_equipment_type import EditEquipmentTypeMutation
+from ..graphql.mutation.remove_equipment_type import RemoveEquipmentTypeMutation
+from ..graphql.query.equipment_port_types import EquipmentPortTypesQuery
+from ..graphql.query.equipment_type_equipments import EquipmentTypeEquipmentQuery
+from ..graphql.query.equipment_types import EquipmentTypesQuery
 from .equipment import delete_equipment
 from .property_type import (
     edit_property_type,
@@ -399,7 +399,7 @@ def get_equipment_type_property_type(
             property_type_id (str): property type ID
 
         Returns:
-            `pyinventory.graphql.property_type_fragment.PropertyTypeFragment`  object
+            `pyinventory.graphql.fragment.property_type.PropertyTypeFragment`  object
 
         Raises:
             `pyinventory.exceptions.EntityNotFoundError`: property type with id=`property_type_id` is not found
@@ -430,7 +430,7 @@ def get_equipment_type_property_type_by_external_id(
             property_type_external_id (str): property type external ID
 
         Returns:
-            `pyinventory.graphql.property_type_fragment.PropertyTypeFragment`  object
+            `pyinventory.graphql.fragment.property_type.PropertyTypeFragment`  object
 
         Raises:
             `pyinventory.exceptions.EntityNotFoundError`: property type with external_id=`property_type_external_id` is not found

@@ -196,14 +196,21 @@ input EditPermissionsPolicyInput {
   workforceInput: WorkforcePolicyInput
 }
 
+input UpdateGroupsInPermissionsPolicyInput {
+  id: ID!
+  addGroupIds: [ID!]!
+  removeGroupIds: [ID!]!
+}
+
 type Viewer
   @goModel(model: "github.com/facebookincubator/symphony/graph/viewer.Viewer") {
   tenant: String!
   email: String!
+    @goField(name: "Name")
     @deprecated(
       reason: "Use `Viewer.user.email` instead. Will be removed on 2020-05-01"
     )
-  user: User!
+  user: User
   permissions: PermissionSettings!
 }
 
@@ -2767,6 +2774,10 @@ type Mutation {
   deleteReportFilter(id: ID!): Boolean!
   addPermissionsPolicy(input: AddPermissionsPolicyInput!): PermissionsPolicy!
   editPermissionsPolicy(input: EditPermissionsPolicyInput!): PermissionsPolicy!
+
+  updateGroupsInPermissionsPolicy(
+    input: UpdateGroupsInPermissionsPolicyInput!
+  ): PermissionsPolicy!
 }
 
 type Subscription {

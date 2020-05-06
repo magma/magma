@@ -29,7 +29,7 @@ type CheckListItemQuery struct {
 	config
 	limit      *int
 	offset     *int
-	order      []Order
+	order      []OrderFunc
 	unique     []string
 	predicates []predicate.CheckListItem
 	// eager-loading edges.
@@ -62,7 +62,7 @@ func (cliq *CheckListItemQuery) Offset(offset int) *CheckListItemQuery {
 }
 
 // Order adds an order step to the query.
-func (cliq *CheckListItemQuery) Order(o ...Order) *CheckListItemQuery {
+func (cliq *CheckListItemQuery) Order(o ...OrderFunc) *CheckListItemQuery {
 	cliq.order = append(cliq.order, o...)
 	return cliq
 }
@@ -309,7 +309,7 @@ func (cliq *CheckListItemQuery) Clone() *CheckListItemQuery {
 		config:     cliq.config,
 		limit:      cliq.limit,
 		offset:     cliq.offset,
-		order:      append([]Order{}, cliq.order...),
+		order:      append([]OrderFunc{}, cliq.order...),
 		unique:     append([]string{}, cliq.unique...),
 		predicates: append([]predicate.CheckListItem{}, cliq.predicates...),
 		// clone intermediate query.
@@ -656,14 +656,14 @@ func (cliq *CheckListItemQuery) sqlQuery() *sql.Selector {
 type CheckListItemGroupBy struct {
 	config
 	fields []string
-	fns    []Aggregate
+	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (cligb *CheckListItemGroupBy) Aggregate(fns ...Aggregate) *CheckListItemGroupBy {
+func (cligb *CheckListItemGroupBy) Aggregate(fns ...AggregateFunc) *CheckListItemGroupBy {
 	cligb.fns = append(cligb.fns, fns...)
 	return cligb
 }

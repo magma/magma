@@ -24,7 +24,7 @@ type HyperlinkQuery struct {
 	config
 	limit      *int
 	offset     *int
-	order      []Order
+	order      []OrderFunc
 	unique     []string
 	predicates []predicate.Hyperlink
 	withFKs    bool
@@ -52,7 +52,7 @@ func (hq *HyperlinkQuery) Offset(offset int) *HyperlinkQuery {
 }
 
 // Order adds an order step to the query.
-func (hq *HyperlinkQuery) Order(o ...Order) *HyperlinkQuery {
+func (hq *HyperlinkQuery) Order(o ...OrderFunc) *HyperlinkQuery {
 	hq.order = append(hq.order, o...)
 	return hq
 }
@@ -227,7 +227,7 @@ func (hq *HyperlinkQuery) Clone() *HyperlinkQuery {
 		config:     hq.config,
 		limit:      hq.limit,
 		offset:     hq.offset,
-		order:      append([]Order{}, hq.order...),
+		order:      append([]OrderFunc{}, hq.order...),
 		unique:     append([]string{}, hq.unique...),
 		predicates: append([]predicate.Hyperlink{}, hq.predicates...),
 		// clone intermediate query.
@@ -413,14 +413,14 @@ func (hq *HyperlinkQuery) sqlQuery() *sql.Selector {
 type HyperlinkGroupBy struct {
 	config
 	fields []string
-	fns    []Aggregate
+	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (hgb *HyperlinkGroupBy) Aggregate(fns ...Aggregate) *HyperlinkGroupBy {
+func (hgb *HyperlinkGroupBy) Aggregate(fns ...AggregateFunc) *HyperlinkGroupBy {
 	hgb.fns = append(hgb.fns, fns...)
 	return hgb
 }

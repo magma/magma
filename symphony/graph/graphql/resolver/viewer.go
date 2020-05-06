@@ -16,13 +16,11 @@ import (
 
 type viewerResolver struct{}
 
-func (viewerResolver) Email(_ context.Context, obj viewer.Viewer) (string, error) {
-	return obj.Name(), nil
-}
-
-func (viewerResolver) User(_ context.Context, obj viewer.Viewer) (*ent.User, error) {
-	v, _ := obj.(*viewer.UserViewer)
-	return v.User(), nil
+func (viewerResolver) User(_ context.Context, v viewer.Viewer) (*ent.User, error) {
+	if v, ok := v.(*viewer.UserViewer); ok {
+		return v.User(), nil
+	}
+	return nil, nil
 }
 
 func (viewerResolver) Permissions(ctx context.Context, _ viewer.Viewer) (*models.PermissionSettings, error) {

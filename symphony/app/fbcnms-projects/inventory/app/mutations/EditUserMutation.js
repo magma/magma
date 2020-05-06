@@ -21,22 +21,7 @@ import type {SelectorStoreUpdater} from 'relay-runtime';
 const mutation = graphql`
   mutation EditUserMutation($input: EditUserInput!) {
     editUser(input: $input) {
-      id
-      authID
-      firstName
-      lastName
-      email
-      status
-      role
-      groups {
-        id
-        name
-      }
-      profilePhoto {
-        id
-        fileName
-        storeKey
-      }
+      ...UserManagementUtils_user @relay(mask: false)
     }
   }
 `;

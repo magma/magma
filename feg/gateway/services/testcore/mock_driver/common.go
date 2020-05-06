@@ -12,6 +12,9 @@ import (
 	"fmt"
 
 	"magma/feg/cloud/go/protos"
+
+	"github.com/fiorix/go-diameter/v4/diam/datatype"
+	"github.com/golang/protobuf/ptypes/wrappers"
 )
 
 type CreditControlRequestPK struct {
@@ -24,6 +27,17 @@ func NewCCRequestPK(imsi string, requestType protos.CCRequestType) CreditControl
 		imsi:        imsi,
 		requestType: requestType,
 	}
+}
+
+func CompareRequestNumber(pk CreditControlRequestPK, expected *wrappers.Int32Value, actual datatype.Unsigned32) error {
+	if expected == nil {
+		return nil
+	}
+	expectedRN := expected.GetValue()
+	if expectedRN != int32(actual) {
+		return fmt.Errorf("For Request=%v, Expected Request Number: %v, Received Request Number: %v", pk, expectedRN, actual)
+	}
+	return nil
 }
 
 func (r CreditControlRequestPK) String() string {

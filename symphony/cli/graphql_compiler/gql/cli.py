@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+# Copyright (c) 2004-present Facebook All rights reserved.
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file.
+
 import argparse
 import glob
 import os
@@ -8,13 +12,11 @@ from graphql import GraphQLSchema
 from graphql.language.parser import parse
 from graphql.utilities.find_deprecated_usages import find_deprecated_usages
 
+from .constant import ENUM_DIRNAME, FRAGMENT_DIRNAME, INPUT_DIRNAME
 from .query_parser import AnonymousQueryError, InvalidQueryError, QueryParser
 from .renderer_dataclasses import DataclassesRenderer
-from .utils_codegen import get_enum_filename, get_input_filename
+from .utils_codegen import CodeChunk, get_enum_filename, get_input_filename
 from .utils_schema import compile_schema_library, read_fragment_queries
-
-
-DEFAULT_CONFIG_FNAME = ".gql.json"
 
 
 def assert_rendered_file(file_name: str, file_content: str, rendered: str) -> None:
@@ -45,6 +47,19 @@ def verify_or_write_rendered(filename: str, rendered: str, verify: bool) -> None
             outfile.write(rendered)
 
 
+def make_python_package(pkg_name: str) -> None:
+    if not os.path.exists(pkg_name):
+        os.makedirs(pkg_name)
+        with open("__init__.py", "w") as outfile:
+            buffer = CodeChunk()
+            buffer.write("#!/usr/bin/env python3")
+            buffer.write("# Copyright (c) 2004-present Facebook All rights reserved.")
+            buffer.write("# Use of this source code is governed by a BSD-style")
+            buffer.write("# license that can be found in the LICENSE file.")
+            buffer.write("")
+            outfile.write(str(buffer))
+
+
 def process_file(
     filename: str,
     schema: GraphQLSchema,
@@ -62,33 +77,39 @@ def process_file(
     )
     root, _s = os.path.splitext(filename)
     target_filename = "".join([root, ".py"])
-    dir_name = os.path.dirname(target_filename)
+    base_dir_path, dir_name = os.path.split(os.path.dirname(target_filename))
 
     try:
         with open(filename, "r") as fin:
             query = fin.read()
-            parsed_query = parse(query)
-            usages = find_deprecated_usages(schema, parsed_query)
-            assert (
-                len(usages) == 0
-            ), f"Graphql file name {filename} uses deprecated fields {usages}"
-            is_fragment = filename.endswith("_fragment.graphql")
-            parsed = parser.parse(query, full_fragments, is_fragment=is_fragment)
-            rendered = renderer.render(parsed)
-            verify_or_write_rendered(target_filename, rendered, verify)
+        parsed_query = parse(query)
+        usages = find_deprecated_usages(schema, parsed_query)
+        assert (
+            len(usages) == 0
+        ), f"Graphql file name {filename} uses deprecated fields {usages}"
+        is_fragment = dir_name == FRAGMENT_DIRNAME
+        parsed = parser.parse(query, full_fragments, is_fragment=is_fragment)
+        rendered = renderer.render(parsed)
+        verify_or_write_rendered(target_filename, rendered, verify)
 
-            enums = renderer.render_enums(parsed)
-            for enum_name, code in enums.items():
-                target_enum_filename = os.path.join(
-                    dir_name, "".join([get_enum_filename(enum_name), ".py"])
-                )
-                verify_or_write_rendered(target_enum_filename, code, verify)
-            input_objects = renderer.render_input_objects(parsed)
-            for input_object_name, code in input_objects.items():
-                target_input_object_filename = os.path.join(
-                    dir_name, "".join([get_input_filename(input_object_name), ".py"])
-                )
-                verify_or_write_rendered(target_input_object_filename, code, verify)
+        enums = renderer.render_enums(parsed)
+        path_to_enum_dir = os.path.join(base_dir_path, ENUM_DIRNAME)
+        make_python_package(pkg_name=path_to_enum_dir)
+        for enum_name, code in enums.items():
+            target_enum_filename = os.path.join(
+                path_to_enum_dir, "".join([get_enum_filename(enum_name), ".py"])
+            )
+            verify_or_write_rendered(target_enum_filename, code, verify)
+
+        input_objects = renderer.render_input_objects(parsed)
+        path_to_input_dir = os.path.join(base_dir_path, INPUT_DIRNAME)
+        make_python_package(pkg_name=path_to_input_dir)
+        for input_object_name, code in input_objects.items():
+            target_input_object_filename = os.path.join(
+                path_to_input_dir,
+                "".join([get_input_filename(input_object_name), ".py"]),
+            )
+            verify_or_write_rendered(target_input_object_filename, code, verify)
     except (AnonymousQueryError, InvalidQueryError, AssertionError):
         if verify:
             print(f"Failed to verify graphql file {filename}")

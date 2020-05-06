@@ -583,6 +583,7 @@ type ComplexityRoot struct {
 		RemoveWorkOrderType                      func(childComplexity int, id int) int
 		TechnicianWorkOrderCheckIn               func(childComplexity int, workOrderID int) int
 		TechnicianWorkOrderUploadData            func(childComplexity int, input models.TechnicianWorkOrderUploadInput) int
+		UpdateGroupsInPermissionsPolicy          func(childComplexity int, input models.UpdateGroupsInPermissionsPolicyInput) int
 		UpdateUserGroups                         func(childComplexity int, input models.UpdateUserGroupsInput) int
 		UpdateUsersGroupMembers                  func(childComplexity int, input models.UpdateUsersGroupMembersInput) int
 	}
@@ -1013,7 +1014,7 @@ type ComplexityRoot struct {
 	}
 
 	Viewer struct {
-		Email       func(childComplexity int) int
+		Name        func(childComplexity int) int
 		Permissions func(childComplexity int) int
 		Tenant      func(childComplexity int) int
 		User        func(childComplexity int) int
@@ -1317,6 +1318,7 @@ type MutationResolver interface {
 	DeleteReportFilter(ctx context.Context, id int) (bool, error)
 	AddPermissionsPolicy(ctx context.Context, input models.AddPermissionsPolicyInput) (*ent.PermissionsPolicy, error)
 	EditPermissionsPolicy(ctx context.Context, input models.EditPermissionsPolicyInput) (*ent.PermissionsPolicy, error)
+	UpdateGroupsInPermissionsPolicy(ctx context.Context, input models.UpdateGroupsInPermissionsPolicyInput) (*ent.PermissionsPolicy, error)
 }
 type PermissionsPolicyResolver interface {
 	Policy(ctx context.Context, obj *ent.PermissionsPolicy) (models.SystemPolicy, error)
@@ -1464,7 +1466,6 @@ type UsersGroupResolver interface {
 	Policies(ctx context.Context, obj *ent.UsersGroup) ([]*ent.PermissionsPolicy, error)
 }
 type ViewerResolver interface {
-	Email(ctx context.Context, obj viewer.Viewer) (string, error)
 	User(ctx context.Context, obj viewer.Viewer) (*ent.User, error)
 	Permissions(ctx context.Context, obj viewer.Viewer) (*models.PermissionSettings, error)
 }
@@ -4170,6 +4171,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.TechnicianWorkOrderUploadData(childComplexity, args["input"].(models.TechnicianWorkOrderUploadInput)), true
 
+	case "Mutation.updateGroupsInPermissionsPolicy":
+		if e.complexity.Mutation.UpdateGroupsInPermissionsPolicy == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateGroupsInPermissionsPolicy_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateGroupsInPermissionsPolicy(childComplexity, args["input"].(models.UpdateGroupsInPermissionsPolicyInput)), true
+
 	case "Mutation.updateUserGroups":
 		if e.complexity.Mutation.UpdateUserGroups == nil {
 			break
@@ -6343,11 +6356,11 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		return e.complexity.Vertex.Type(childComplexity), true
 
 	case "Viewer.email":
-		if e.complexity.Viewer.Email == nil {
+		if e.complexity.Viewer.Name == nil {
 			break
 		}
 
-		return e.complexity.Viewer.Email(childComplexity), true
+		return e.complexity.Viewer.Name(childComplexity), true
 
 	case "Viewer.permissions":
 		if e.complexity.Viewer.Permissions == nil {
@@ -7076,14 +7089,21 @@ input EditPermissionsPolicyInput {
   workforceInput: WorkforcePolicyInput
 }
 
+input UpdateGroupsInPermissionsPolicyInput {
+  id: ID!
+  addGroupIds: [ID!]!
+  removeGroupIds: [ID!]!
+}
+
 type Viewer
   @goModel(model: "github.com/facebookincubator/symphony/graph/viewer.Viewer") {
   tenant: String!
   email: String!
+    @goField(name: "Name")
     @deprecated(
       reason: "Use ` + "`" + `Viewer.user.email` + "`" + ` instead. Will be removed on 2020-05-01"
     )
-  user: User!
+  user: User
   permissions: PermissionSettings!
 }
 
@@ -9647,6 +9667,10 @@ type Mutation {
   deleteReportFilter(id: ID!): Boolean!
   addPermissionsPolicy(input: AddPermissionsPolicyInput!): PermissionsPolicy!
   editPermissionsPolicy(input: EditPermissionsPolicyInput!): PermissionsPolicy!
+
+  updateGroupsInPermissionsPolicy(
+    input: UpdateGroupsInPermissionsPolicyInput!
+  ): PermissionsPolicy!
 }
 
 type Subscription {
@@ -9654,6 +9678,16 @@ type Subscription {
   workOrderDone: WorkOrder
 }
 `, BuiltIn: false},
+	&ast.Source{Name: "federation/directives.graphql", Input: `
+scalar _Any
+scalar _FieldSet
+
+directive @external on FIELD_DEFINITION
+directive @requires(fields: _FieldSet!) on FIELD_DEFINITION
+directive @provides(fields: _FieldSet!) on FIELD_DEFINITION
+directive @key(fields: _FieldSet!) on OBJECT | INTERFACE
+directive @extends on OBJECT
+`, BuiltIn: true},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
@@ -11011,6 +11045,20 @@ func (ec *executionContext) field_Mutation_technicianWorkOrderUploadData_args(ct
 	var arg0 models.TechnicianWorkOrderUploadInput
 	if tmp, ok := rawArgs["input"]; ok {
 		arg0, err = ec.unmarshalNTechnicianWorkOrderUploadInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐTechnicianWorkOrderUploadInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateGroupsInPermissionsPolicy_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 models.UpdateGroupsInPermissionsPolicyInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNUpdateGroupsInPermissionsPolicyInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐUpdateGroupsInPermissionsPolicyInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -23413,6 +23461,47 @@ func (ec *executionContext) _Mutation_editPermissionsPolicy(ctx context.Context,
 	return ec.marshalNPermissionsPolicy2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐPermissionsPolicy(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_updateGroupsInPermissionsPolicy(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateGroupsInPermissionsPolicy_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateGroupsInPermissionsPolicy(rctx, args["input"].(models.UpdateGroupsInPermissionsPolicyInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.PermissionsPolicy)
+	fc.Result = res
+	return ec.marshalNPermissionsPolicy2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐPermissionsPolicy(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _NetworkTopology_nodes(ctx context.Context, field graphql.CollectedField, obj *models.NetworkTopology) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -33139,7 +33228,7 @@ func (ec *executionContext) _Viewer_email(ctx context.Context, field graphql.Col
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Viewer().Email(rctx, obj)
+		return obj.Name(), nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -33180,14 +33269,11 @@ func (ec *executionContext) _Viewer_user(ctx context.Context, field graphql.Coll
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.User)
 	fc.Result = res
-	return ec.marshalNUser2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUser(ctx, field.Selections, res)
+	return ec.marshalOUser2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Viewer_permissions(ctx context.Context, field graphql.CollectedField, obj viewer.Viewer) (ret graphql.Marshaler) {
@@ -40586,6 +40672,36 @@ func (ec *executionContext) unmarshalInputTechnicianWorkOrderUploadInput(ctx con
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputUpdateGroupsInPermissionsPolicyInput(ctx context.Context, obj interface{}) (models.UpdateGroupsInPermissionsPolicyInput, error) {
+	var it models.UpdateGroupsInPermissionsPolicyInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "id":
+			var err error
+			it.ID, err = ec.unmarshalNID2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "addGroupIds":
+			var err error
+			it.AddGroupIds, err = ec.unmarshalNID2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "removeGroupIds":
+			var err error
+			it.RemoveGroupIds, err = ec.unmarshalNID2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputUpdateUserGroupsInput(ctx context.Context, obj interface{}) (models.UpdateUserGroupsInput, error) {
 	var it models.UpdateUserGroupsInput
 	var asMap = obj.(map[string]interface{})
@@ -44455,6 +44571,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "updateGroupsInPermissionsPolicy":
+			out.Values[i] = ec._Mutation_updateGroupsInPermissionsPolicy(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -47490,19 +47611,10 @@ func (ec *executionContext) _Viewer(ctx context.Context, sel ast.SelectionSet, o
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "email":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Viewer_email(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
+			out.Values[i] = ec._Viewer_email(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "user":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -47512,9 +47624,6 @@ func (ec *executionContext) _Viewer(ctx context.Context, sel ast.SelectionSet, o
 					}
 				}()
 				res = ec._Viewer_user(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			})
 		case "permissions":
@@ -52836,6 +52945,10 @@ func (ec *executionContext) marshalNTriggerID2githubᚗcomᚋfacebookincubator�
 	return v
 }
 
+func (ec *executionContext) unmarshalNUpdateGroupsInPermissionsPolicyInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐUpdateGroupsInPermissionsPolicyInput(ctx context.Context, v interface{}) (models.UpdateGroupsInPermissionsPolicyInput, error) {
+	return ec.unmarshalInputUpdateGroupsInPermissionsPolicyInput(ctx, v)
+}
+
 func (ec *executionContext) unmarshalNUpdateUserGroupsInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐUpdateUserGroupsInput(ctx context.Context, v interface{}) (models.UpdateUserGroupsInput, error) {
 	return ec.unmarshalInputUpdateUserGroupsInput(ctx, v)
 }
@@ -53657,6 +53770,20 @@ func (ec *executionContext) marshalNWorkforcePolicy2ᚖgithubᚗcomᚋfacebookin
 		return graphql.Null
 	}
 	return ec._WorkforcePolicy(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalN_FieldSet2string(ctx context.Context, v interface{}) (string, error) {
+	return graphql.UnmarshalString(v)
+}
+
+func (ec *executionContext) marshalN_FieldSet2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
+	res := graphql.MarshalString(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
 }
 
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {

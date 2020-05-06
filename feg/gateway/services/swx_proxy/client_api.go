@@ -14,15 +14,15 @@ package swx_proxy
 import (
 	"errors"
 	"fmt"
-	"os"
 	"strings"
-
-	"magma/feg/cloud/go/protos"
-	"magma/feg/gateway/registry"
 
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
+
+	"magma/feg/cloud/go/protos"
+	"magma/feg/gateway/registry"
+	"magma/orc8r/lib/go/util"
 )
 
 // Wrapper for GRPC Client
@@ -37,8 +37,8 @@ type swxProxyClient struct {
 func getSwxProxyClient() (*swxProxyClient, error) {
 	var conn *grpc.ClientConn
 	var err error
-	if os.Getenv("USE_REMOTE_SWX_PROXY") == "1" {
-		conn, err = registry.Get().GetCloudConnection(strings.ToLower(registry.SWX_PROXY))
+	if util.GetEnvBool("USE_REMOTE_SWX_PROXY", true) {
+		conn, err = registry.Get().GetSharedCloudConnection(strings.ToLower(registry.SWX_PROXY))
 	} else {
 		conn, err = registry.GetConnection(registry.SWX_PROXY)
 	}

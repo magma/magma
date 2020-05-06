@@ -20,19 +20,19 @@ from ..common.data_class import (
 )
 from ..common.data_enum import Entity
 from ..exceptions import EntityNotFoundError
-from ..graphql.add_service_endpoint_input import AddServiceEndpointInput
-from ..graphql.add_service_endpoint_mutation import AddServiceEndpointMutation
-from ..graphql.add_service_link_mutation import AddServiceLinkMutation
-from ..graphql.add_service_mutation import AddServiceMutation
-from ..graphql.add_service_type_mutation import AddServiceTypeMutation
-from ..graphql.remove_service_mutation import RemoveServiceMutation
-from ..graphql.remove_service_type_mutation import RemoveServiceTypeMutation
-from ..graphql.service_create_data_input import ServiceCreateData
-from ..graphql.service_details_query import ServiceDetailsQuery
-from ..graphql.service_status_enum import ServiceStatus
-from ..graphql.service_type_create_data_input import ServiceTypeCreateData
-from ..graphql.service_type_services_query import ServiceTypeServicesQuery
-from ..graphql.service_types_query import ServiceTypesQuery
+from ..graphql.enum.service_status import ServiceStatus
+from ..graphql.input.add_service_endpoint import AddServiceEndpointInput
+from ..graphql.input.service_create_data import ServiceCreateData
+from ..graphql.input.service_type_create_data import ServiceTypeCreateData
+from ..graphql.mutation.add_service import AddServiceMutation
+from ..graphql.mutation.add_service_endpoint import AddServiceEndpointMutation
+from ..graphql.mutation.add_service_link import AddServiceLinkMutation
+from ..graphql.mutation.add_service_type import AddServiceTypeMutation
+from ..graphql.mutation.remove_service import RemoveServiceMutation
+from ..graphql.mutation.remove_service_type import RemoveServiceTypeMutation
+from ..graphql.query.service_details import ServiceDetailsQuery
+from ..graphql.query.service_type_services import ServiceTypeServicesQuery
+from ..graphql.query.service_types import ServiceTypesQuery
 
 
 def _populate_service_types(client: SymphonyClient) -> None:

@@ -31,7 +31,7 @@ type EquipmentTypeQuery struct {
 	config
 	limit      *int
 	offset     *int
-	order      []Order
+	order      []OrderFunc
 	unique     []string
 	predicates []predicate.EquipmentType
 	// eager-loading edges.
@@ -66,7 +66,7 @@ func (etq *EquipmentTypeQuery) Offset(offset int) *EquipmentTypeQuery {
 }
 
 // Order adds an order step to the query.
-func (etq *EquipmentTypeQuery) Order(o ...Order) *EquipmentTypeQuery {
+func (etq *EquipmentTypeQuery) Order(o ...OrderFunc) *EquipmentTypeQuery {
 	etq.order = append(etq.order, o...)
 	return etq
 }
@@ -349,7 +349,7 @@ func (etq *EquipmentTypeQuery) Clone() *EquipmentTypeQuery {
 		config:     etq.config,
 		limit:      etq.limit,
 		offset:     etq.offset,
-		order:      append([]Order{}, etq.order...),
+		order:      append([]OrderFunc{}, etq.order...),
 		unique:     append([]string{}, etq.unique...),
 		predicates: append([]predicate.EquipmentType{}, etq.predicates...),
 		// clone intermediate query.
@@ -779,14 +779,14 @@ func (etq *EquipmentTypeQuery) sqlQuery() *sql.Selector {
 type EquipmentTypeGroupBy struct {
 	config
 	fields []string
-	fns    []Aggregate
+	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (etgb *EquipmentTypeGroupBy) Aggregate(fns ...Aggregate) *EquipmentTypeGroupBy {
+func (etgb *EquipmentTypeGroupBy) Aggregate(fns ...AggregateFunc) *EquipmentTypeGroupBy {
 	etgb.fns = append(etgb.fns, fns...)
 	return etgb
 }

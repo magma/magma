@@ -35,7 +35,7 @@ type LocationQuery struct {
 	config
 	limit      *int
 	offset     *int
-	order      []Order
+	order      []OrderFunc
 	unique     []string
 	predicates []predicate.Location
 	// eager-loading edges.
@@ -76,7 +76,7 @@ func (lq *LocationQuery) Offset(offset int) *LocationQuery {
 }
 
 // Order adds an order step to the query.
-func (lq *LocationQuery) Order(o ...Order) *LocationQuery {
+func (lq *LocationQuery) Order(o ...OrderFunc) *LocationQuery {
 	lq.order = append(lq.order, o...)
 	return lq
 }
@@ -467,7 +467,7 @@ func (lq *LocationQuery) Clone() *LocationQuery {
 		config:     lq.config,
 		limit:      lq.limit,
 		offset:     lq.offset,
-		order:      append([]Order{}, lq.order...),
+		order:      append([]OrderFunc{}, lq.order...),
 		unique:     append([]string{}, lq.unique...),
 		predicates: append([]predicate.Location{}, lq.predicates...),
 		// clone intermediate query.
@@ -1134,14 +1134,14 @@ func (lq *LocationQuery) sqlQuery() *sql.Selector {
 type LocationGroupBy struct {
 	config
 	fields []string
-	fns    []Aggregate
+	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (lgb *LocationGroupBy) Aggregate(fns ...Aggregate) *LocationGroupBy {
+func (lgb *LocationGroupBy) Aggregate(fns ...AggregateFunc) *LocationGroupBy {
 	lgb.fns = append(lgb.fns, fns...)
 	return lgb
 }
