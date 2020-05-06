@@ -58,6 +58,7 @@ from magma.pipelined.app.startup_flows import StartupFlows
 from magma.pipelined.app.check_quota import CheckQuotaController
 from magma.pipelined.rule_mappers import RuleIDToNumMapper, \
     SessionRuleToVersionMapper
+from magma.pipelined.internal_ip_allocator import InternalIPAllocator
 from ryu.base.app_manager import AppManager
 
 from magma.common.service import MagmaService
@@ -258,6 +259,7 @@ class ServiceManager:
     INTERNAL_APP_SET_TABLE_NUM = 201
     INTERNAL_IMSI_SET_TABLE_NUM = 202
     INTERNAL_IPFIX_SAMPLE_TABLE_NUM = 203
+    INTERNAL_MAC_IP_REWRITE_TBL_NUM = 205
 
     # Mapping between services defined in mconfig and the names and modules of
     # the corresponding Ryu apps in PipelineD. The module is used for the Ryu
@@ -436,6 +438,7 @@ class ServiceManager:
         contexts[
             'session_rule_version_mapper'] = self.session_rule_version_mapper
         contexts['app_futures'] = {app.name: Future() for app in self._apps}
+        contexts['internal_ip_allocator'] = InternalIPAllocator()
         contexts['config'] = self._magma_service.config
         contexts['mconfig'] = self._magma_service.mconfig
         contexts['loop'] = self._magma_service.loop

@@ -7,6 +7,7 @@ LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
 
+import netifaces
 import aiodns
 import asyncio
 import ipaddress
@@ -61,6 +62,29 @@ class RedirectionManager:
         self._redirect_port = get_service_config_value(
             'redirectd', 'http_port', 8080)
         self._session_rule_version_mapper = session_rule_version_mapper
+
+        self._cwf_args_set = False
+        self._mac_rewrite_scratch = None
+        self._internal_ip_allocator = None
+        self._arpd_controller_fut = None
+        self._arp_contoller = None
+        self._egress_table = None
+        self._bridge_mac = None
+
+    def set_cwf_args(self, internal_ip_allocator, arp, mac_rewrite,
+                     bridge_name):
+        self._mac_rewrite_scratch = mac_rewrite
+        self._internal_ip_allocator = internal_ip_allocator
+        self._arpd_controller_fut = arp
+        self._arp_contoller = None
+        self._egress_table = 20
+
+        def get_virtual_iface_mac(iface):
+            virt_ifaddresses = netifaces.ifaddresses(iface)
+            return virt_ifaddresses[netifaces.AF_LINK][0]['addr']
+        self._bridge_mac = get_virtual_iface_mac(bridge_name)
+        self._cwf_args_set = True
+        return self
 
     def handle_redirection(self, datapath, loop, redirect_request):
         """
@@ -119,16 +143,12 @@ class RedirectionManager:
             * Forward requests from subscriber to the internal http server
             * Instantiate a flow that matches response packets from the server
               and sends them back to subscriber
-
         Match: incoming tcp traffic with port 80, direction out
-
         Action:
             1) Set reg2 to rule_num
             2) Set ip dst to server ip
             3) Output to table 20
-
             4) Apply LearnAction:
-
             LearnAction(adds new flow for every pkt flow that hits this rule)
                 1) Match ip packets
                 2) Match tcp protocol
@@ -137,16 +157,13 @@ class RedirectionManager:
                 5) Match ip dst = current flow ip src
                 6) Match tcp src = current flow tcp dst
                 7) Match tcp dst = current flow tcp src
-
                 8) Load ip src = current flow ip dst
-
                 9) Output through gtp0
         """
         parser = datapath.ofproto_parser
         match_http = MagmaMatch(
             eth_type=ether_types.ETH_TYPE_IP, ip_proto=IPPROTO_TCP,
-            tcp_dst=80, imsi=encode_imsi(imsi), vlan_vid=(0x1000, 0x1000),
-            direction=Direction.OUT)
+            tcp_dst=80, imsi=encode_imsi(imsi), direction=Direction.OUT)
         of_note = parser.NXActionNote(list(rule.id.encode()))
 
         actions = [
@@ -212,20 +229,14 @@ class RedirectionManager:
                                     value=self.REDIRECT_PROCESSED),
             parser.OFPActionSetField(ipv4_dst=self._bridge_ip),
             parser.OFPActionSetField(tcp_dst=self._redirect_port),
-            parser.OFPActionPopVlan(),
             of_note,
         ]
         actions += self._load_rule_actions(parser, rule_num, imsi, rule.id)
 
-        # flows.add_resubmit_current_service_flow(
-        #     datapath, self._scratch_tbl_num, match_http, actions,
-        #     priority=priority, cookie=rule_num, hard_timeout=rule.hard_timeout,
-        #     resubmit_table=self.main_tbl_num)
-        flows.add_output_flow(
+        flows.add_resubmit_current_service_flow(
             datapath, self._scratch_tbl_num, match_http, actions,
             priority=priority, cookie=rule_num, hard_timeout=rule.hard_timeout,
-            output_port=OFPP_LOCAL)
-
+            resubmit_table=self.main_tbl_num)
 
         match = MagmaMatch(imsi=encode_imsi(imsi))
         action = []
@@ -261,6 +272,186 @@ class RedirectionManager:
             datapath, self.main_tbl_num, match, action, priority=priority,
             cookie=rule_num, hard_timeout=rule.hard_timeout,
             resubmit_table=self.next_table)
+
+    def setup_cwf_redirect(self, datapath, loop, redirect_request):
+        if not self._cwf_args_set:
+            raise RedirectException("Can't install cwf redirection, missing"
+                                    "cwf specific args, call set_cwf_args()")
+        imsi = redirect_request.imsi
+        #ip_addr = redirect_request.ip_addr
+        rule = redirect_request.rule
+        rule_num = redirect_request.rule_num
+        priority = redirect_request.priority
+        if rule.redirect.address_type == rule.redirect.URL:
+            self._install_url_bypass_flows(datapath, loop, imsi, rule,
+                                           rule_num, priority)
+        elif rule.redirect.address_type == rule.redirect.IPv4:
+            self._install_ipv4_bypass_flows(datapath, imsi, rule,
+                                            rule_num, priority,
+                                            [rule.redirect.server_address])
+
+        parser = datapath.ofproto_parser
+        fake_ip = self._internal_ip_allocator.next_ip(
+            invalid_ips=[self._bridge_ip]
+        )
+
+        self._save_redirect_entry(fake_ip, rule.redirect)
+        self._install_dns_flows(datapath, imsi, rule, rule_num, priority)
+
+        match_tcp_80 = MagmaMatch(
+            imsi=encode_imsi(imsi), eth_type=ether_types.ETH_TYPE_IP,
+            ip_proto=IPPROTO_TCP, direction=Direction.OUT, tcp_dst=80
+        )
+        match_tcp_8008 = MagmaMatch(
+            imsi=encode_imsi(imsi), eth_type=ether_types.ETH_TYPE_IP,
+            ip_proto=IPPROTO_TCP, direction=Direction.OUT, tcp_dst=8080
+        )
+        match_tcp_8080 = MagmaMatch(
+            imsi=encode_imsi(imsi), eth_type=ether_types.ETH_TYPE_IP,
+            ip_proto=IPPROTO_TCP, direction=Direction.OUT, tcp_dst=8008
+        )
+        actions = [
+            parser.NXActionLearn(
+                table_id=self._mac_rewrite_scratch,
+                priority=flows.UE_FLOW_PRIORITY,
+                specs=[
+                    parser.NXFlowSpecMatch(
+                        src=ether_types.ETH_TYPE_IP, dst=('eth_type_nxm', 0),
+                        n_bits=16
+                    ),
+                    parser.NXFlowSpecMatch(
+                        src=IPPROTO_TCP, dst=('ip_proto_nxm', 0), n_bits=8
+                    ),
+                    parser.NXFlowSpecMatch(
+                        src=int(ipaddress.IPv4Address(self._bridge_ip)),
+                        dst=('ipv4_src_nxm', 0),
+                        n_bits=32
+                    ),
+                    parser.NXFlowSpecMatch(
+                        src=int(ipaddress.IPv4Address(self._bridge_ip)),
+                        dst=('ipv4_src_nxm', 0),
+                        n_bits=32
+                    ),
+                    parser.NXFlowSpecMatch(
+                        src=int(fake_ip),
+                        dst=('ipv4_dst_nxm', 0),
+                        n_bits=32
+                    ),
+                    parser.NXFlowSpecMatch(
+                        src=('tcp_src_nxm', 0),
+                        dst=('tcp_dst_nxm', 0),
+                        n_bits=16
+                    ),
+                    parser.NXFlowSpecMatch(
+                        src=self._redirect_port,
+                        dst=('tcp_src_nxm', 0),
+                        n_bits=16
+                    ),
+                    parser.NXFlowSpecLoad(
+                        src=('eth_src_nxm', 0),
+                        dst=('eth_dst_nxm', 0),
+                        n_bits=48
+                    ),
+                    parser.NXFlowSpecLoad(
+                        src=encode_imsi(imsi),
+                        dst=(IMSI_REG, 0),
+                        n_bits=64
+                    ),
+                    parser.NXFlowSpecLoad(
+                        src=('ipv4_src_nxm', 0),
+                        dst=('ipv4_dst_nxm', 0),
+                        n_bits=32
+                    ),
+                    parser.NXFlowSpecLoad(
+                        src=('ipv4_dst_nxm', 0),
+                        dst=('ipv4_src_nxm', 0),
+                        n_bits=32
+                    ),
+                    parser.NXFlowSpecLoad(
+                        src=('tcp_dst_nxm', 0),
+                        dst=('tcp_src_nxm', 0),
+                        n_bits=16
+                    ),
+                ]
+            ),
+            parser.OFPActionSetField(ipv4_src=str(fake_ip)),
+            parser.OFPActionSetField(ipv4_dst=self._bridge_ip),
+            parser.OFPActionSetField(eth_dst=self._bridge_mac),
+            parser.OFPActionSetField(tcp_dst=self._redirect_port),
+        ]
+        flows.add_output_flow(
+            datapath, self.main_tbl_num, match_tcp_80, actions,
+            priority=flows.UE_FLOW_PRIORITY,
+            output_port=OFPP_LOCAL)
+        flows.add_output_flow(
+            datapath, self.main_tbl_num, match_tcp_8008, actions,
+            priority=flows.UE_FLOW_PRIORITY,
+            output_port=OFPP_LOCAL)
+        flows.add_output_flow(
+            datapath, self.main_tbl_num, match_tcp_8080, actions,
+            priority=flows.UE_FLOW_PRIORITY,
+            output_port=OFPP_LOCAL)
+
+        # Add flows for vlan traffic too (we need to pop vlan for flask server)
+        match_tcp_80_vlan = MagmaMatch(
+            imsi=encode_imsi(imsi), eth_type=ether_types.ETH_TYPE_IP,
+            ip_proto=IPPROTO_TCP, direction=Direction.OUT, tcp_dst=80,
+            vlan_vid=(0x1000, 0x1000)
+        )
+        match_tcp_8008_vlan = MagmaMatch(
+            imsi=encode_imsi(imsi), eth_type=ether_types.ETH_TYPE_IP,
+            ip_proto=IPPROTO_TCP, direction=Direction.OUT, tcp_dst=8080,
+            vlan_vid=(0x1000, 0x1000)
+        )
+        match_tcp_8080_vlan = MagmaMatch(
+            imsi=encode_imsi(imsi), eth_type=ether_types.ETH_TYPE_IP,
+            ip_proto=IPPROTO_TCP, direction=Direction.OUT, tcp_dst=8008,
+            vlan_vid=(0x1000, 0x1000)
+        )
+        actions.append(parser.OFPActionPopVlan())
+        flows.add_output_flow(
+            datapath, self.main_tbl_num, match_tcp_80_vlan, actions,
+            priority=flows.UE_FLOW_PRIORITY,
+            output_port=OFPP_LOCAL)
+        flows.add_output_flow(
+            datapath, self.main_tbl_num, match_tcp_8008_vlan, actions,
+            priority=flows.UE_FLOW_PRIORITY,
+            output_port=OFPP_LOCAL)
+        flows.add_output_flow(
+            datapath, self.main_tbl_num, match_tcp_8080_vlan, actions,
+            priority=flows.UE_FLOW_PRIORITY,
+            output_port=OFPP_LOCAL)
+
+        ue_tbl = 0
+        ue_next_tbl = 1
+
+        # Allows traffic back from the flask server
+        match = MagmaMatch(in_port=OFPP_LOCAL)
+        actions = [
+            parser.NXActionResubmitTable(table_id=self._mac_rewrite_scratch)]
+        flows.add_resubmit_next_service_flow(datapath, ue_tbl,
+                                             match, actions=actions,
+                                             priority=flows.DEFAULT_PRIORITY,
+                                             resubmit_table=ue_next_tbl)
+        match = MagmaMatch(
+            imsi=encode_imsi(imsi), eth_type=ether_types.ETH_TYPE_IP,
+            ip_proto=IPPROTO_TCP, direction=Direction.IN, in_port=OFPP_LOCAL)
+        flows.add_resubmit_next_service_flow(
+            datapath, self.main_tbl_num, match, [],
+            priority=flows.DEFAULT_PRIORITY,
+            resubmit_table=self._egress_table
+        )
+
+        if self._arp_contoller or self._arpd_controller_fut.done():
+            if not self.arp_contoller:
+                self._arp_contoller = self._arpd_controller_fut.result()
+            self._arp_contoller.set_incoming_arp_flows(datapath, fake_ip,
+                                                       '01:02:03:04:05:06')
+
+        # Drop all other traffic that doesn't match
+        match = MagmaMatch(imsi=encode_imsi(imsi))
+        flows.add_drop_flow(datapath, self.main_tbl_num, match, [],
+                            priority=flows.MINIMUM_PRIORITY + 1)
 
     def _install_server_flows(self, datapath, imsi, rule, rule_num, priority):
         """

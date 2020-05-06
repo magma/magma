@@ -12,6 +12,8 @@ import unittest
 from concurrent.futures import Future
 from unittest.mock import MagicMock
 
+from ryu.lib import hub
+
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
 from lte.protos.policydb_pb2 import FlowDescription, FlowMatch, PolicyRule, \
      RedirectInformation
@@ -20,7 +22,7 @@ from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.policy_converters import flow_match_to_magma_match
 from magma.pipelined.tests.app.flow_query import RyuDirectFlowQuery \
     as FlowQuery
-from magma.pipelined.tests.app.packet_builder import IPPacketBuilder
+from magma.pipelined.tests.app.packet_builder import TCPPacketBuilder
 from magma.pipelined.tests.app.packet_injector import ScapyPacketInjector
 from magma.pipelined.tests.app.start_pipelined import PipelinedController, \
     TestSetup
@@ -29,7 +31,8 @@ from magma.pipelined.tests.app.table_isolation import RyuDirectTableIsolator, \
     RyuForwardFlowArgsBuilder
 from magma.pipelined.tests.pipelined_test_util import FlowTest, FlowVerifier, \
     create_service_manager, start_ryu_app_thread, fake_controller_setup, \
-    stop_ryu_app_thread, wait_after_send, SnapshotVerifier
+    stop_ryu_app_thread, wait_after_send, SnapshotVerifier, \
+    assert_bridge_snapshot_match
 
 
 class GYTableTest(unittest.TestCase):
@@ -53,7 +56,8 @@ class GYTableTest(unittest.TestCase):
         super(GYTableTest, cls).setUpClass()
         warnings.simplefilter('ignore')
         cls._static_rule_dict = {}
-        cls.service_manager = create_service_manager([PipelineD.ENFORCEMENT])
+        cls.service_manager = create_service_manager(
+            [PipelineD.ENFORCEMENT], ['arpd'])
         cls._tbl_num = cls.service_manager.get_table_num(
             GYController.APP_NAME)
 
@@ -61,25 +65,32 @@ class GYTableTest(unittest.TestCase):
         testing_controller_reference = Future()
         test_setup = TestSetup(
             apps=[PipelinedController.GY,
+                  PipelinedController.Arp,
                   PipelinedController.Testing,
                   PipelinedController.StartupFlows],
             references={
                 PipelinedController.GY:
                     gy_controller_reference,
+                PipelinedController.Arp:
+                    Future(),
                 PipelinedController.Testing:
                     testing_controller_reference,
                 PipelinedController.StartupFlows:
                     Future(),
             },
             config={
+                'setup_type': 'CWF',
+                'allow_unknown_arps': False,
                 'bridge_name': cls.BRIDGE,
                 'bridge_ip_address': '192.168.128.1',
                 'nat_iface': 'eth2',
                 'enodeb_iface': 'eth1',
                 'enable_queue_pgm': False,
+                'local_ue_eth_addr': False,
                 'clean_restart': True,
             },
             mconfig=PipelineD(
+                ue_ip_block='192.168.128.0/24',
                 relay_enabled=True
             ),
             loop=None,
@@ -137,8 +148,10 @@ class GYTableTest(unittest.TestCase):
             self.testing_controller
         )
         pkt_sender = ScapyPacketInjector(self.IFACE)
-        packet = IPPacketBuilder()\
-            .set_ip_layer('45.10.0.0/20', sub_ip)\
+        packet = TCPPacketBuilder()\
+            .set_tcp_layer(42132, 80, 2)\
+            .set_tcp_flags("S")\
+            .set_ip_layer('151.42.41.122', sub_ip)\
             .set_ether_layer(self.MAC_DEST, "01:20:10:20:aa:bb")\
             .build()
 
@@ -146,9 +159,8 @@ class GYTableTest(unittest.TestCase):
                                              self.service_manager,
                                              include_stats=False)
 
-        with isolator, sub_context, flow_verifier, snapshot_verifier:
+        with isolator, sub_context, snapshot_verifier:
             pkt_sender.send(packet)
-
 
 
 if __name__ == "__main__":
