@@ -15,6 +15,7 @@
 
 #include "ProtobufCreators.h"
 #include "SessionState.h"
+#include "SessiondMocks.h"
 #include "magma_logging.h"
 
 using ::testing::Test;
@@ -223,16 +224,20 @@ TEST_F(SessionStateTest, test_insert_credit) {
 
 TEST_F(SessionStateTest, test_termination) {
   std::promise<void> termination_promise;
+  MockSessionReporter reporter;
+
   session_state->start_termination(update_criteria);
   session_state->set_termination_callback([&termination_promise](
       SessionTerminateRequest term_req) { termination_promise.set_value(); });
-  session_state->complete_termination(update_criteria);
+  session_state->complete_termination(reporter, update_criteria);
   auto status =
       termination_promise.get_future().wait_for(std::chrono::seconds(0));
   EXPECT_EQ(status, std::future_status::ready);
 }
 
 TEST_F(SessionStateTest, test_can_complete_termination) {
+  MockSessionReporter reporter;
+
   insert_rule(1, "m1", "rule1", STATIC);
   EXPECT_EQ(true, session_state->active_monitored_rules_exist());
   EXPECT_TRUE(std::find(update_criteria.static_rules_to_install.begin(),
@@ -264,7 +269,7 @@ TEST_F(SessionStateTest, test_can_complete_termination) {
   EXPECT_EQ(session_state->can_complete_termination(), true);
 
   // Termination should only be completed once.
-  session_state->complete_termination(update_criteria);
+  session_state->complete_termination(reporter, update_criteria);
   EXPECT_EQ(session_state->can_complete_termination(), false);
 }
 
