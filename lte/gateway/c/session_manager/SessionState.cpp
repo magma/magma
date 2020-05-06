@@ -73,6 +73,10 @@ SessionState::SessionState(
   for (auto& rule : marshaled.dynamic_rules) {
     dynamic_rules_.insert_rule(rule);
   }
+  for (auto& rule : marshaled.gy_dynamic_rules)
+  {
+    gy_dynamic_rules_.insert_rule(rule);
+  }
 }
 
 SessionState::SessionState(
@@ -421,6 +425,7 @@ void SessionState::get_session_info(SessionState::SessionInfo& info) {
   info.imsi    = imsi_;
   info.ip_addr = config_.ue_ipv4;
   get_dynamic_rules().get_rules(info.dynamic_rules);
+  get_gy_dynamic_rules().get_rules(info.gy_dynamic_rules);
   info.static_rules = active_static_rules_;
 }
 
@@ -498,6 +503,11 @@ void SessionState::insert_dynamic_rule(
   dynamic_rules_.insert_rule(rule);
 }
 
+void SessionState::insert_gy_dynamic_rule(const PolicyRule& rule)
+{
+  gy_dynamic_rules_.insert_rule(rule);
+}
+
 void SessionState::activate_static_rule(
     const std::string& rule_id, SessionStateUpdateCriteria& update_criteria) {
   update_criteria.static_rules_to_install.insert(rule_id);
@@ -514,6 +524,13 @@ bool SessionState::remove_dynamic_rule(
   return removed;
 }
 
+bool SessionState::remove_gy_dynamic_rule(
+  const std::string& rule_id,
+  PolicyRule *rule_out)
+{
+  return gy_dynamic_rules_.remove_rule(rule_id, rule_out);
+}
+
 bool SessionState::deactivate_static_rule(
     const std::string& rule_id, SessionStateUpdateCriteria& update_criteria) {
   auto it = std::find(
@@ -528,6 +545,11 @@ bool SessionState::deactivate_static_rule(
 
 DynamicRuleStore& SessionState::get_dynamic_rules() {
   return dynamic_rules_;
+}
+
+DynamicRuleStore& SessionState::get_gy_dynamic_rules()
+{
+  return gy_dynamic_rules_;
 }
 
 uint32_t SessionState::total_monitored_rules_count() {
