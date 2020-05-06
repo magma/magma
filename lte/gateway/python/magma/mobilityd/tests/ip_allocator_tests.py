@@ -190,7 +190,7 @@ class IPAllocatorTests(unittest.TestCase):
         self._allocator.release_ip_address('SID0', ip0)
 
         # Wait for auto-recycler to kick in
-        time.sleep(1.2 * self.RECYCLING_INTERVAL_SECONDS)
+        time.sleep(2 * self.RECYCLING_INTERVAL_SECONDS)
 
         ip3 = self._allocator.alloc_ip_address('SID3')
         self.assertEqual(ip0, ip3)
@@ -198,7 +198,7 @@ class IPAllocatorTests(unittest.TestCase):
         self._allocator.release_ip_address('SID1', ip1)
 
         # Wait for auto-recycler to kick in
-        time.sleep(1.2 * self.RECYCLING_INTERVAL_SECONDS)
+        time.sleep(2 * self.RECYCLING_INTERVAL_SECONDS)
 
         ip4 = self._allocator.alloc_ip_address('SID4')
         self.assertEqual(ip1, ip4)
@@ -206,7 +206,7 @@ class IPAllocatorTests(unittest.TestCase):
         self._allocator.release_ip_address('SID2', ip2)
 
         # Wait for auto-recycler to kick in
-        time.sleep(1.2 * self.RECYCLING_INTERVAL_SECONDS)
+        time.sleep(2 * self.RECYCLING_INTERVAL_SECONDS)
 
         ip5 = self._allocator.alloc_ip_address('SID5')
         self.assertEqual(ip2, ip5)
