@@ -82,9 +82,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             context.set_details('Service not enabled!')
             return None
 
-        ret = self._enforcer_app.is_ready_for_restart_recovery(request.epoch)
-        if ret != SetupFlowsResult.SUCCESS:
-            return SetupFlowsResult(result=ret)
+        for controller in [self._gy_app, self._enforcer_app,
+                           self._enforcement_stats]:
+            ret = controller.is_ready_for_restart_recovery(request.epoch)
+            if ret != SetupFlowsResult.SUCCESS:
+                return SetupFlowsResult(result=ret)
 
         fut = Future()
         self._loop.call_soon_threadsafe(self._setup_flows,
@@ -95,9 +97,9 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                      fut: 'Future[List[SetupFlowsResult]]'
                      ) -> SetupFlowsResult:
         gx_reqs = [req for req in request.requests
-                   if req.request_origin == RequestOriginType.GX]
+                   if req.request_origin.type == RequestOriginType.GX]
         gy_reqs = [req for req in request.requests
-                   if req.request_origin == RequestOriginType.GY]
+                   if req.request_origin.type == RequestOriginType.GY]
         enforcement_res = self._enforcer_app.handle_restart(gx_reqs)
         logging.error("gx_reqs -> %s", ' '.join(gx_reqs))
         logging.error("gy_reqs -> %s", ' '.join(gy_reqs))
@@ -117,7 +119,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             return None
 
         fut = Future()  # type: Future[ActivateFlowsResult]
-        if request.origin == RequestOriginType.GX:
+        if request.request_origin.type == RequestOriginType.GX:
             self._loop.call_soon_threadsafe(self._activate_flows_gx,
                                             request, fut)
         else:
@@ -229,7 +231,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             context.set_details('Service not enabled!')
             return None
 
-        if request.origin == RequestOriginType.GX:
+        if request.request_origin.type == RequestOriginType.GX:
             self._loop.call_soon_threadsafe(self._deactivate_flows_gx,
                                             request)
         else:
