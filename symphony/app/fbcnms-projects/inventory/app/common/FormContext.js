@@ -11,6 +11,7 @@
 import type {FormAlertsContextType} from '@fbcnms/ui/components/design-system/Form/FormAlertsContext';
 
 import * as React from 'react';
+import AppContext from '@fbcnms/ui/context/AppContext';
 import FormAlertsContext, {
   DEFAULT_CONTEXT_VALUE as DEFAULT_ALERTS,
   FormAlertsContextProvider,
@@ -37,12 +38,19 @@ type Props = {
 export function FormContextProvider(props: Props) {
   const {children, ignorePermissions = false} = props;
   const {me} = useMainContext();
+  const {isFeatureEnabled} = useContext(AppContext);
+
+  const permissionsEnforcementIsOn = isFeatureEnabled(
+    'permissions_ui_enforcement',
+  );
+  const shouldEnforcePermissions =
+    permissionsEnforcementIsOn && ignorePermissions != true;
 
   return (
     <FormAlertsContextProvider>
       <FormAlertsContext.Consumer>
         {alerts => {
-          if (ignorePermissions != true) {
+          if (shouldEnforcePermissions) {
             alerts.editLock.check({
               fieldId: 'System Rules',
               fieldDisplayName: 'Read Only User',

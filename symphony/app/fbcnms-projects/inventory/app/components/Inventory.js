@@ -9,7 +9,7 @@
  */
 
 import AppContent from '@fbcnms/ui/components/layout/AppContent';
-import AppContext, {AppContextProvider} from '@fbcnms/ui/context/AppContext';
+import AppContext from '@fbcnms/ui/context/AppContext';
 import AppSideBar from '@fbcnms/ui/components/layout/AppSideBar';
 import ApplicationMain from '@fbcnms/ui/components/ApplicationMain';
 import Configure from '../pages/Configure';
@@ -97,21 +97,19 @@ export default function IndexWrapper() {
   const [isExpandButtonShown, showExpandButton] = useState(false);
   return (
     <ApplicationMain>
-      <AppContextProvider>
-        <ExpandButtonContext.Provider
-          value={{
-            showExpandButton: () => showExpandButton(true),
-            hideExpandButton: () => showExpandButton(false),
-            expand: expand,
-            collapse: collapse,
-            isExpanded,
-            isExpandButtonShown,
-          }}>
-          <RelayEnvironmentProvider environment={RelayEnvironment}>
-            <Index />
-          </RelayEnvironmentProvider>
-        </ExpandButtonContext.Provider>
-      </AppContextProvider>
+      <ExpandButtonContext.Provider
+        value={{
+          showExpandButton: () => showExpandButton(true),
+          hideExpandButton: () => showExpandButton(false),
+          expand: expand,
+          collapse: collapse,
+          isExpanded,
+          isExpandButtonShown,
+        }}>
+        <RelayEnvironmentProvider environment={RelayEnvironment}>
+          <Index />
+        </RelayEnvironmentProvider>
+      </ExpandButtonContext.Provider>
     </ApplicationMain>
   );
 }

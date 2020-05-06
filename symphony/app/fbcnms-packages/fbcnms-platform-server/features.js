@@ -186,6 +186,11 @@ const arrayConfigs = [
     enabledByDefault: false,
   },
   {
+    id: 'permissions_ui_enforcement',
+    title: 'Permissions - UI enforcement',
+    enabledByDefault: true,
+  },
+  {
     id: 'grafana_metrics',
     title: 'Include tab for Grafana in the Metrics page',
     enabledByDefault: false,
