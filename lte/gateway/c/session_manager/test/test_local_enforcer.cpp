@@ -446,7 +446,11 @@ TEST_F(LocalEnforcerTest, test_update_session_credits_and_rules_with_failure) {
   insert_static_rule(0, "1", "rule1");
 
   CreateSessionResponse response;
-  response.mutable_static_rules()->Add()->mutable_rule_id()->assign("rule1");
+  auto rules = response.mutable_static_rules()->Add();
+  rules->mutable_rule_id()->assign("rule1");
+  rules->mutable_activation_time()->set_seconds(0);
+  rules->mutable_deactivation_time()->set_seconds(0);
+
   auto monitor_updates = response.mutable_usage_monitors();
   create_monitor_update_response("IMSI1", "1", MonitoringLevel::PCC_RULE_LEVEL,
                                  1024, monitor_updates->Add());
