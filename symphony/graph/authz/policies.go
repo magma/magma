@@ -224,3 +224,12 @@ func EmptyPermissions() *models.PermissionSettings {
 		WorkforcePolicy: NewWorkforcePolicy(false, false),
 	}
 }
+
+func AdminPermissions() *models.PermissionSettings {
+	return &models.PermissionSettings{
+		CanWrite:        false,
+		AdminPolicy:     NewAdministrativePolicy(true),
+		InventoryPolicy: NewInventoryPolicy(false, false),
+		WorkforcePolicy: NewWorkforcePolicy(false, false),
+	}
+}

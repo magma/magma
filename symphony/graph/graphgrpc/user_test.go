@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/authz"
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/enttest"
 	"github.com/facebookincubator/symphony/graph/ent/migrate"
@@ -34,7 +35,7 @@ func newTestClient(t *testing.T) *ent.Client {
 func TestUserService_Create(t *testing.T) {
 	client := newTestClient(t)
 	us := NewUserService(func(context.Context, string) (*ent.Client, error) { return client, nil })
-	ctx := context.Background()
+	ctx := authz.NewContext(context.Background(), authz.AdminPermissions())
 
 	u, err := us.Create(ctx, &AddUserInput{Tenant: "", Id: "XXX", IsOwner: false})
 	require.Nil(t, u)
@@ -55,7 +56,7 @@ func TestUserService_Create(t *testing.T) {
 func TestUserService_Delete(t *testing.T) {
 	client := newTestClient(t)
 	us := NewUserService(func(context.Context, string) (*ent.Client, error) { return client, nil })
-	ctx := context.Background()
+	ctx := authz.NewContext(context.Background(), authz.AdminPermissions())
 	u := client.User.Create().SetAuthID("YYY").SaveX(ctx)
 	require.Equal(t, user.StatusACTIVE, u.Status)
 
@@ -75,7 +76,7 @@ func TestUserService_Delete(t *testing.T) {
 func TestUserService_CreateAfterDelete(t *testing.T) {
 	client := newTestClient(t)
 	us := NewUserService(func(context.Context, string) (*ent.Client, error) { return client, nil })
-	ctx := context.Background()
+	ctx := authz.NewContext(context.Background(), authz.AdminPermissions())
 	u := client.User.Create().SetAuthID("YYY").SaveX(ctx)
 	require.Equal(t, user.StatusACTIVE, u.Status)
 
@@ -93,7 +94,7 @@ func TestUserService_CreateAfterDelete(t *testing.T) {
 func TestUserService_CreateGroup(t *testing.T) {
 	client := newTestClient(t)
 	us := NewUserService(func(context.Context, string) (*ent.Client, error) { return client, nil })
-	ctx := context.Background()
+	ctx := authz.NewContext(context.Background(), authz.AdminPermissions())
 	exist, err := client.UsersGroup.Query().Exist(ctx)
 	require.NoError(t, err)
 	require.False(t, exist)

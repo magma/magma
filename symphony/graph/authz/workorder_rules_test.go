@@ -38,7 +38,7 @@ func prepareWorkOrderData(ctx context.Context, c *ent.Client) (*ent.WorkOrderTyp
 
 func TestNonUserCannotEditWorkOrder(t *testing.T) {
 	c := viewertest.NewTestClient(t)
-	ctx := ent.NewContext(context.Background(), c)
+	ctx := viewertest.NewContext(context.Background(), c)
 	_, workOrder := prepareWorkOrderData(ctx, c)
 
 	v := viewer.NewAutomation(viewertest.DefaultTenant, "BOT", user.RoleUSER)
@@ -52,7 +52,7 @@ func TestNonUserCannotEditWorkOrder(t *testing.T) {
 
 func TestAssignCanEditWOWithOwnerAndDelete(t *testing.T) {
 	c := viewertest.NewTestClient(t)
-	ctx := ent.NewContext(context.Background(), c)
+	ctx := viewertest.NewContext(context.Background(), c)
 	_, workOrder := prepareWorkOrderData(ctx, c)
 	u := viewer.MustGetOrCreateUser(ctx, "MyAssignee", user.RoleUSER)
 	c.WorkOrder.UpdateOne(workOrder).
@@ -75,7 +75,7 @@ func TestAssignCanEditWOWithOwnerAndDelete(t *testing.T) {
 
 func TestOwnerCanEditWO(t *testing.T) {
 	c := viewertest.NewTestClient(t)
-	ctx := ent.NewContext(context.Background(), c)
+	ctx := viewertest.NewContext(context.Background(), c)
 	_, workOrder := prepareWorkOrderData(ctx, c)
 	u := viewer.MustGetOrCreateUser(ctx, "MyOwner", user.RoleUSER)
 	u2 := viewer.MustGetOrCreateUser(ctx, "NewOwner", user.RoleUSER)
@@ -255,7 +255,7 @@ func TestWorkOrderAssignWritePolicyRule(t *testing.T) {
 
 func TestWorkorderTypeWritePolicyRule(t *testing.T) {
 	c := viewertest.NewTestClient(t)
-	ctx := context.Background()
+	ctx := viewertest.NewContext(context.Background(), c)
 	workorderType := c.WorkOrderType.Create().
 		SetName("WorkOrderType").
 		SaveX(ctx)

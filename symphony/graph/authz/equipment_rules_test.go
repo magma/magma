@@ -14,7 +14,7 @@ import (
 
 func TestEquipmentWritePolicyRule(t *testing.T) {
 	c := viewertest.NewTestClient(t)
-	ctx := context.Background()
+	ctx := viewertest.NewContext(context.Background(), c)
 	equipmentType := c.EquipmentType.Create().
 		SetName("EquipmentType").
 		SaveX(ctx)
@@ -50,7 +50,7 @@ func TestEquipmentWritePolicyRule(t *testing.T) {
 
 func TestEquipmentTypeWritePolicyRule(t *testing.T) {
 	c := viewertest.NewTestClient(t)
-	ctx := context.Background()
+	ctx := viewertest.NewContext(context.Background(), c)
 	equipmentType := c.EquipmentType.Create().
 		SetName("EquipmentType").
 		SaveX(ctx)
@@ -81,7 +81,7 @@ func TestEquipmentTypeWritePolicyRule(t *testing.T) {
 
 func TestEquipmentPortTypeWritePolicyRule(t *testing.T) {
 	c := viewertest.NewTestClient(t)
-	ctx := context.Background()
+	ctx := viewertest.NewContext(context.Background(), c)
 	equipmentType := c.EquipmentPortType.Create().
 		SetName("EquipmentPortType").
 		SaveX(ctx)

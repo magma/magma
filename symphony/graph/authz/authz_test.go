@@ -10,10 +10,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/facebookincubator/symphony/graph/ent/user"
-
 	"github.com/facebookincubator/symphony/graph/authz"
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/ent/privacy"
+	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 	"github.com/facebookincubator/symphony/pkg/log"
@@ -40,7 +40,10 @@ func testContextGetFullPermissions(ctx context.Context, t *testing.T) {
 func TestAuthHandler(t *testing.T) {
 	client := viewertest.NewTestClient(t)
 	ctx := ent.NewContext(context.Background(), client)
-	u := viewer.MustGetOrCreateUser(ctx, viewertest.DefaultUser, user.RoleOWNER)
+	u := viewer.MustGetOrCreateUser(
+		privacy.DecisionContext(ctx, privacy.Allow),
+		viewertest.DefaultUser,
+		user.RoleOWNER)
 	v := viewer.NewUser(viewertest.DefaultTenant, u)
 	ctx = viewer.NewContext(ctx, v)
 	testContextGetFullPermissions(ctx, t)

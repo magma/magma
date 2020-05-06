@@ -16,8 +16,8 @@ import (
 
 // ProjectWritePolicyRule grants write permission to project based on policy.
 func ProjectWritePolicyRule() privacy.MutationRule {
-	return projectMutationWithPermissionRule(func(ctx context.Context, m *ent.ProjectMutation, p *models.PermissionSettings) error {
-		cud := p.WorkforcePolicy.Data
+	return privacy.ProjectMutationRuleFunc(func(ctx context.Context, m *ent.ProjectMutation) error {
+		cud := FromContext(ctx).WorkforcePolicy.Data
 		allowed := cudBasedCheck(&models.Cud{
 			Create: cud.Create,
 			Update: cud.Update,
@@ -36,7 +36,7 @@ func ProjectWritePolicyRule() privacy.MutationRule {
 
 // ProjectTypeWritePolicyRule grants write permission to project type based on policy.
 func ProjectTypeWritePolicyRule() privacy.MutationRule {
-	return mutationWithPermissionRule(func(ctx context.Context, m ent.Mutation, p *models.PermissionSettings) error {
-		return cudBasedRule(p.WorkforcePolicy.Templates, m)
+	return privacy.MutationRuleFunc(func(ctx context.Context, m ent.Mutation) error {
+		return cudBasedRule(FromContext(ctx).WorkforcePolicy.Templates, m)
 	})
 }

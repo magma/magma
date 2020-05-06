@@ -14,7 +14,7 @@ import (
 
 func TestLocationWritePolicyRule(t *testing.T) {
 	c := viewertest.NewTestClient(t)
-	ctx := context.Background()
+	ctx := viewertest.NewContext(context.Background(), c)
 	locationType := c.LocationType.Create().
 		SetName("LocationType").
 		SaveX(ctx)
@@ -50,7 +50,7 @@ func TestLocationWritePolicyRule(t *testing.T) {
 
 func TestLocationTypeWritePolicyRule(t *testing.T) {
 	c := viewertest.NewTestClient(t)
-	ctx := context.Background()
+	ctx := viewertest.NewContext(context.Background(), c)
 	locationType := c.LocationType.Create().
 		SetName("LocationType").
 		SaveX(ctx)
