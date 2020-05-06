@@ -169,9 +169,6 @@ func permissionPolicies(ctx context.Context, v *viewer.UserViewer) (*models.Inve
 
 func userHasWritePermissions(ctx context.Context) (bool, error) {
 	v := viewer.FromContext(ctx)
-	if !v.Features().Enabled(viewer.FeatureReadOnly) {
-		return true, nil
-	}
 	if v.Role() == user.RoleOWNER {
 		return true, nil
 	}
