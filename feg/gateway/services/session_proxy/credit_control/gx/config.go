@@ -143,12 +143,17 @@ func GetGxClientConfiguration() []*diameter.DiameterClientConfig {
 			log.Printf("Invalid Gx Server Retry Count for server (%s): %d, must be >0. Will be set to 1", gxCfg.GetAddress(), retries)
 			retries = 1
 		}
+
+		wdInterval := gxCfg.GetWatchdogInterval()
+		if wdInterval == 0 {
+			wdInterval = diameter.DefaultWatchdogIntervalSeconds
+		}
 		diamCliCfg := &diameter.DiameterClientConfig{
 			Host:               diameter.GetValueOrEnv(diameter.HostFlag, GxDiamHostEnv, gxCfg.GetHost(), i),
 			Realm:              diameter.GetValueOrEnv(diameter.RealmFlag, GxDiamRealmEnv, gxCfg.GetRealm(), i),
 			ProductName:        diameter.GetValueOrEnv(diameter.ProductFlag, GxDiamProductEnv, gxCfg.GetProductName(), i),
 			AppID:              diam.GX_CHARGING_CONTROL_APP_ID,
-			WatchdogInterval:   diameter.DefaultWatchdogIntervalSeconds,
+			WatchdogInterval:   uint(wdInterval),
 			RetryCount:         uint(retries),
 			SupportedVendorIDs: diameter.GetValueOrEnv("", GxSupportedVendorIDsEnv, "", i),
 		}
