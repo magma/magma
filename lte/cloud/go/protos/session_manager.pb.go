@@ -2605,8 +2605,9 @@ func (m *CreateSessionResponse) GetTgppCtx() *TgppContext {
 }
 
 type StaticRuleInstall struct {
-	RuleId               string               `protobuf:"bytes,1,opt,name=rule_id,json=ruleId,proto3" json:"rule_id,omitempty"`
-	ActivationTime       *timestamp.Timestamp `protobuf:"bytes,2,opt,name=activation_time,json=activationTime,proto3" json:"activation_time,omitempty"`
+	RuleId         string               `protobuf:"bytes,1,opt,name=rule_id,json=ruleId,proto3" json:"rule_id,omitempty"`
+	ActivationTime *timestamp.Timestamp `protobuf:"bytes,2,opt,name=activation_time,json=activationTime,proto3" json:"activation_time,omitempty"`
+	// Optional field. Set as 0 to mark as unused
 	DeactivationTime     *timestamp.Timestamp `protobuf:"bytes,3,opt,name=deactivation_time,json=deactivationTime,proto3" json:"deactivation_time,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
 	XXX_unrecognized     []byte               `json:"-"`
@@ -2660,8 +2661,9 @@ func (m *StaticRuleInstall) GetDeactivationTime() *timestamp.Timestamp {
 }
 
 type DynamicRuleInstall struct {
-	PolicyRule           *PolicyRule          `protobuf:"bytes,1,opt,name=policy_rule,json=policyRule,proto3" json:"policy_rule,omitempty"`
-	ActivationTime       *timestamp.Timestamp `protobuf:"bytes,2,opt,name=activation_time,json=activationTime,proto3" json:"activation_time,omitempty"`
+	PolicyRule     *PolicyRule          `protobuf:"bytes,1,opt,name=policy_rule,json=policyRule,proto3" json:"policy_rule,omitempty"`
+	ActivationTime *timestamp.Timestamp `protobuf:"bytes,2,opt,name=activation_time,json=activationTime,proto3" json:"activation_time,omitempty"`
+	// Optional field. Set as 0 to mark as unused
 	DeactivationTime     *timestamp.Timestamp `protobuf:"bytes,3,opt,name=deactivation_time,json=deactivationTime,proto3" json:"deactivation_time,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
 	XXX_unrecognized     []byte               `json:"-"`
