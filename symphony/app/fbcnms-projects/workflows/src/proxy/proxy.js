@@ -26,9 +26,10 @@ const router = Router();
 router.use(bodyParser.urlencoded({extended: false}));
 router.use('/', bodyParser.json());
 
-export default async function(proxyTarget: string) {
+export default async function(proxyTarget: string, schellarTarget: string) {
   const transformers = await transformerRegistry({
     proxyTarget,
+    schellarTarget,
   });
 
   // Configure http-proxy

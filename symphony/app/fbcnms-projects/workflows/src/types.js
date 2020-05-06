@@ -46,6 +46,7 @@ export type AfterFun = (
 
 export type TransformerCtx = {
   proxyTarget: string,
+  schellarTarget: string,
 };
 
 export type HttpMethod = 'get' | 'post' | 'delete' | 'put';
@@ -83,4 +84,9 @@ export type StartWorkflowRequest = {
   name: string,
   workflowDef?: mixed,
   taskToDomain?: mixed,
+};
+
+export type ScheduleRequest = {
+  name: string,
+  workflowName: string,
 };
