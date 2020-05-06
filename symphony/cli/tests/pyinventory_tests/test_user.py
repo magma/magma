@@ -37,37 +37,42 @@ class TestUser(BaseTest):
 
     def test_user_created(self) -> None:
         user_name = f"{self.random_string()}@fb.com"
-        u = add_user(self.client, user_name, user_name)
+        u = add_user(client=self.client, email=user_name, password=user_name)
         self.assertEqual(user_name, u.email)
         self.assertEqual(UserStatus.ACTIVE, u.status)
-        active_users = get_active_users(self.client)
+        active_users = get_active_users(client=self.client)
         self.assertEqual(2, len(active_users))
-        client2 = init_client(user_name, user_name)
-        active_users = get_active_users(client2)
+        client2 = init_client(email=user_name, password=user_name)
+        active_users = get_active_users(client=client2)
         self.assertEqual(2, len(active_users))
 
     def test_user_edited(self) -> None:
         user_name = f"{self.random_string()}@fb.com"
         new_password = self.random_string()
-        u = add_user(self.client, user_name, user_name)
-        edit_user(self.client, u, new_password, UserRole.OWNER)
-        client2 = init_client(user_name, new_password)
-        active_users = get_active_users(client2)
+        u = add_user(client=self.client, email=user_name, password=user_name)
+        edit_user(
+            client=self.client,
+            user=u,
+            new_password=new_password,
+            new_role=UserRole.OWNER,
+        )
+        client2 = init_client(email=user_name, password=new_password)
+        active_users = get_active_users(client=client2)
         self.assertEqual(2, len(active_users))
 
     def test_user_deactivated(self) -> None:
         user_name = f"{self.random_string()}@fb.com"
-        u = add_user(self.client, user_name, user_name)
-        deactivate_user(self.client, u)
-        active_users = get_active_users(self.client)
+        u = add_user(client=self.client, email=user_name, password=user_name)
+        deactivate_user(client=self.client, user=u)
+        active_users = get_active_users(client=self.client)
         self.assertEqual(1, len(active_users))
         with self.assertRaises(UserDeactivatedException):
-            init_client(user_name, user_name)
+            init_client(email=user_name, password=user_name)
 
     def test_user_reactivated(self) -> None:
         user_name = f"{self.random_string()}@fb.com"
-        u = add_user(self.client, user_name, user_name)
-        deactivate_user(self.client, u)
-        activate_user(self.client, u)
-        active_users = get_active_users(self.client)
+        u = add_user(client=self.client, email=user_name, password=user_name)
+        deactivate_user(client=self.client, user=u)
+        activate_user(client=self.client, user=u)
+        active_users = get_active_users(client=self.client)
         self.assertEqual(2, len(active_users))

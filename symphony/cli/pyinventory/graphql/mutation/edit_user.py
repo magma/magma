@@ -13,21 +13,14 @@ from typing import Any, Callable, List, Mapping, Optional
 from time import perf_counter
 from dataclasses_json import DataClassJsonMixin
 
-from gql.gql.enum_utils import enum_field
-from ..enum.user_role import UserRole
-from ..enum.user_status import UserStatus
-
+from ..fragment.user import UserFragment, QUERY as UserFragmentQuery
 from ..input.edit_user import EditUserInput
 
 
-QUERY: List[str] = ["""
+QUERY: List[str] = UserFragmentQuery + ["""
 mutation EditUserMutation($input: EditUserInput!) {
   editUser(input: $input) {
-    id
-    authID
-    email
-    status
-    role
+    ...UserFragment
   }
 }
 
@@ -38,12 +31,8 @@ class EditUserMutation(DataClassJsonMixin):
     @dataclass
     class EditUserMutationData(DataClassJsonMixin):
         @dataclass
-        class User(DataClassJsonMixin):
-            id: str
-            authID: str
-            email: str
-            status: UserStatus = enum_field(UserStatus)
-            role: UserRole = enum_field(UserRole)
+        class User(UserFragment):
+            pass
 
         editUser: User
 

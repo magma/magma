@@ -1,9 +1,5 @@
 mutation EditUserMutation($input: EditUserInput!) {
   editUser(input: $input) {
-    id
-    authID
-    email
-    status
-    role
+    ...UserFragment
   }
 }
