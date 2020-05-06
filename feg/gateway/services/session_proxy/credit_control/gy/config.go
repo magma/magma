@@ -179,12 +179,16 @@ func GetGyClientConfiguration() []*diameter.DiameterClientConfig {
 			retries = 1
 		}
 
+		wdInterval := gyCfg.GetWatchdogInterval()
+		if wdInterval == 0 {
+			wdInterval = diameter.DefaultWatchdogIntervalSeconds
+		}
 		diamCliCfg := &diameter.DiameterClientConfig{
 			Host:               diameter.GetValueOrEnv(diameter.HostFlag, GyDiamHostEnv, gyCfg.GetHost(), i),
 			Realm:              diameter.GetValueOrEnv(diameter.RealmFlag, GyDiamRealmEnv, gyCfg.GetRealm(), i),
 			ProductName:        diameter.GetValueOrEnv(diameter.ProductFlag, GyDiamProductEnv, gyCfg.GetProductName(), i),
 			AppID:              diam.CHARGING_CONTROL_APP_ID,
-			WatchdogInterval:   diameter.DefaultWatchdogIntervalSeconds,
+			WatchdogInterval:   uint(wdInterval),
 			RetryCount:         uint(retries),
 			SupportedVendorIDs: diameter.GetValueOrEnv("", GySupportedVendorIDsEnv, "", i),
 			ServiceContextId:   diameter.GetValueOrEnv("", GyServiceContextIdEnv, "", i),
