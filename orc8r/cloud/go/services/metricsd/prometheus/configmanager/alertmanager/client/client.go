@@ -305,7 +305,9 @@ func secureRoute(tenantID string, route *config.Route) {
 // unsecureRoute traverses a routing tree and reverts receiver
 // names to their non-prefixed original names
 func unsecureRoute(tenantID string, route *config.Route) {
-	route.Receiver = config.UnsecureReceiverName(route.Receiver, tenantID)
+	if !strings.HasSuffix(route.Receiver, config.TenantBaseRoutePostfix) {
+		route.Receiver = config.UnsecureReceiverName(route.Receiver, tenantID)
+	}
 	for _, childRoute := range route.Routes {
 		unsecureRoute(tenantID, childRoute)
 	}
