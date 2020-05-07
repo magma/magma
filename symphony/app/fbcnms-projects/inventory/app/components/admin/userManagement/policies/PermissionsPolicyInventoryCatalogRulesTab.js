@@ -180,7 +180,7 @@ export default function PermissionsPolicyInventoryCatalogRulesTab(
         <Text variant="subtitle1">
           <fbt desc="">Inventory Catalog</fbt>
         </Text>
-        <Text variant="body2">
+        <Text variant="body2" color="gray">
           <fbt desc="">
             Choose which sections of the catalog this group can modify.
           </fbt>

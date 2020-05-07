@@ -68,7 +68,9 @@ function WorkforceDataRulesSection(props: InventoryDataRulesSectionProps) {
     <div className={classes.section}>
       <div className={classes.header}>
         <Text variant="subtitle1">{title}</Text>
-        <Text variant="body2">{subtitle}</Text>
+        <Text variant="body2" color="gray">
+          {subtitle}
+        </Text>
       </div>
       <Checkbox
         className={classes.rule}
