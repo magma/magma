@@ -1,6 +1,15 @@
-import { Menu, Item, MenuProvider, Separator, IconFont } from "react-contexify";
-import "react-contexify/dist/ReactContexify.min.css";
-import * as React from "react";
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ * @flow
+ * @format
+ */
+import 'react-contexify/dist/ReactContexify.min.css';
+import * as React from 'react';
+import {IconFont, Item, Menu, MenuProvider, Separator} from 'react-contexify';
 
 export class NodeContextMenu extends React.Component {
   deleteNode = (node, diagramEngine) => {
@@ -14,7 +23,7 @@ export class NodeContextMenu extends React.Component {
   };
 
   render() {
-    let taskRefName = "<no ref name>";
+    let taskRefName = '<no ref name>';
     if (this.props.node?.extras?.inputs?.taskReferenceName) {
       taskRefName = this.props.node?.extras?.inputs?.taskReferenceName;
     }
@@ -22,7 +31,7 @@ export class NodeContextMenu extends React.Component {
     return (
       <Menu id={this.props.node.id}>
         <Item disabled={true}>{taskRefName}</Item>
-        <Separator></Separator>
+        <Separator />
         <Item onClick={this.handleDelete}>
           <IconFont className="fa fa-trash" />
           Delete
@@ -65,8 +74,7 @@ export function LinkMenuProvider(props) {
       id={props.link.id}
       component="g"
       event="onContextMenu"
-      storeRef={false}
-    >
+      storeRef={false}>
       {props.children}
     </MenuProvider>
   );

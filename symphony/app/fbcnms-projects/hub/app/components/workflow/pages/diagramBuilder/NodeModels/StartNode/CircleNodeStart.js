@@ -1,12 +1,21 @@
-import * as _ from "lodash";
-import * as React from "react";
-import { PortWidget } from "@projectstorm/react-diagrams";
-import { NodeContextMenu, NodeMenuProvider } from "../ContextMenu";
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ * @flow
+ * @format
+ */
+import * as React from 'react';
+import * as _ from 'lodash';
+import {NodeContextMenu, NodeMenuProvider} from '../ContextMenu';
+import {PortWidget} from '@projectstorm/react-diagrams';
 
 export class CircleNodeStart extends React.Component {
   render() {
     return (
-      <div className={"srd-circle-node"}>
+      <div className={'srd-circle-node'}>
         <NodeMenuProvider node={this.props.node}>
           <svg width="60" height="60">
             <g>
@@ -17,7 +26,7 @@ export class CircleNodeStart extends React.Component {
             </g>
           </svg>
         </NodeMenuProvider>
-        <div style={{ position: "absolute", zIndex: 10, left: 54, top: 21 }}>
+        <div style={{position: 'absolute', zIndex: 10, left: 54, top: 21}}>
           <PortWidget name="right" node={this.props.node} />
         </div>
         <NodeContextMenu
