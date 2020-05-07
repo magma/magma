@@ -11,16 +11,16 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/facebookincubator/symphony/graph/viewer"
-	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
-
 	"github.com/facebookincubator/ent/dialect"
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/authz"
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/enttest"
 	"github.com/facebookincubator/symphony/graph/ent/migrate"
 	"github.com/facebookincubator/symphony/graph/event"
 	"github.com/facebookincubator/symphony/graph/graphql/resolver"
+	"github.com/facebookincubator/symphony/graph/viewer"
+	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 	"github.com/facebookincubator/symphony/pkg/log/logtest"
 	"github.com/facebookincubator/symphony/pkg/testdb"
 	"github.com/stretchr/testify/require"
@@ -60,7 +60,8 @@ func syncServicesRequest(t *testing.T, r *TestJobsResolver) *http.Response {
 		},
 	)
 
-	th := viewer.TenancyHandler(h, viewer.NewFixedTenancy(r.client))
+	auth := authz.AuthHandler{Handler: h, Logger: logtest.NewTestLogger(t)}
+	th := viewer.TenancyHandler(auth, viewer.NewFixedTenancy(r.client))
 	server := httptest.NewServer(th)
 	defer server.Close()
 	url := server.URL + "/sync_services"

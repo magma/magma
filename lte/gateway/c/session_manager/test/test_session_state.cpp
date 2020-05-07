@@ -15,6 +15,7 @@
 
 #include "ProtobufCreators.h"
 #include "SessionState.h"
+#include "SessiondMocks.h"
 #include "magma_logging.h"
 
 using ::testing::Test;
@@ -39,8 +40,8 @@ protected:
     DYNAMIC = 1,
   };
 
-  void insert_rule(uint32_t rating_group, const std::string &m_key,
-                   const std::string &rule_id, RuleType rule_type) {
+  PolicyRule build_rule(uint32_t rating_group, const std::string &m_key,
+                   const std::string &rule_id) {
     PolicyRule rule;
     rule.set_id(rule_id);
     rule.set_rating_group(rating_group);
@@ -54,16 +55,48 @@ protected:
     } else {
       rule.set_tracking_type(PolicyRule::NO_TRACKING);
     }
+    return rule;
+  }
+
+  void insert_rule(uint32_t rating_group, const std::string &m_key,
+                   const std::string &rule_id, RuleType rule_type,
+                   std::time_t activation_time, std::time_t deactivation_time) {
+    PolicyRule rule = build_rule(rating_group, m_key, rule_id);
+    RuleLifetime lifetime{
+        .activation_time = activation_time,
+        .deactivation_time = deactivation_time,
+    };
     switch (rule_type) {
     case STATIC:
       // insert into list of existing rules
       rule_store->insert_rule(rule);
       // mark the rule as active in session
-      session_state->activate_static_rule(rule_id, update_criteria);
+      session_state->activate_static_rule(rule_id, lifetime, update_criteria);
       break;
     case DYNAMIC:
-      session_state->insert_dynamic_rule(rule, update_criteria);
+      session_state->insert_dynamic_rule(rule, lifetime, update_criteria);
       break;
+    }
+  }
+
+  void schedule_rule(uint32_t rating_group, const std::string &m_key,
+                   const std::string &rule_id, RuleType rule_type,
+                   std::time_t activation_time, std::time_t deactivation_time) {
+    PolicyRule rule = build_rule(rating_group, m_key, rule_id);
+    RuleLifetime lifetime{
+      .activation_time = activation_time,
+      .deactivation_time = deactivation_time,
+    };
+    switch (rule_type) {
+      case STATIC:
+        // insert into list of existing rules
+        rule_store->insert_rule(rule);
+        // mark the rule as scheduled in the session
+        session_state->schedule_static_rule(rule_id, lifetime, update_criteria);
+        break;
+      case DYNAMIC:
+        session_state->schedule_dynamic_rule(rule, lifetime, update_criteria);
+        break;
     }
   }
 
@@ -101,15 +134,20 @@ protected:
   }
 
   void activate_rule(uint32_t rating_group, const std::string &m_key,
-                     const std::string &rule_id, RuleType rule_type) {
-    PolicyRule rule = get_rule(rating_group, m_key, rule_id);
+                     const std::string &rule_id, RuleType rule_type,
+                     std::time_t activation_time, std::time_t deactivation_time) {
+      PolicyRule rule = get_rule(rating_group, m_key, rule_id);
+    RuleLifetime lifetime{
+        .activation_time = activation_time,
+        .deactivation_time = deactivation_time,
+    };
     switch (rule_type) {
     case STATIC:
       rule_store->insert_rule(rule);
-      session_state->activate_static_rule(rule_id, update_criteria);
+      session_state->activate_static_rule(rule_id, lifetime, update_criteria);
       break;
     case DYNAMIC:
-      session_state->insert_dynamic_rule(rule, update_criteria);
+      session_state->insert_dynamic_rule(rule, lifetime, update_criteria);
       break;
     }
   }
@@ -121,12 +159,12 @@ protected:
 };
 
 TEST_F(SessionStateTest, test_session_rules) {
-  activate_rule(1, "m1", "rule1", DYNAMIC);
+  activate_rule(1, "m1", "rule1", DYNAMIC, 0, 0);
   EXPECT_EQ(1, session_state->total_monitored_rules_count());
-  activate_rule(2, "m2", "rule2", STATIC);
+  activate_rule(2, "m2", "rule2", STATIC, 0, 0);
   EXPECT_EQ(2, session_state->total_monitored_rules_count());
   // add a OCS-ONLY static rule
-  activate_rule(3, "", "rule3", STATIC);
+  activate_rule(3, "", "rule3", STATIC, 0, 0);
   EXPECT_EQ(2, session_state->total_monitored_rules_count());
 
   std::vector<std::string> rules_out{};
@@ -169,11 +207,113 @@ TEST_F(SessionStateTest, test_session_rules) {
             session_state->get_dynamic_rules().remove_rule("rule1", &rule_out));
 }
 
+/**
+ * Check that rule scheduling and installation works from the perspective of
+ * tracking in SessionState
+ */
+TEST_F(SessionStateTest, test_rule_scheduling) {
+  auto _uc = get_default_update_criteria(); // unused
+
+  // First schedule a dynamic and static rule. They are treated as inactive.
+  schedule_rule(1, "m1", "rule1", DYNAMIC, 0, 0);
+  EXPECT_EQ(0, session_state->total_monitored_rules_count());
+  EXPECT_FALSE(session_state->is_dynamic_rule_installed("rule1"));
+
+  schedule_rule(2, "m2", "rule2", STATIC, 0, 0);
+  EXPECT_EQ(0, session_state->total_monitored_rules_count());
+  EXPECT_FALSE(session_state->is_static_rule_installed("rule2"));
+
+  // Now suppose some time has passed, and it's time to mark scheduled rules
+  // as active. The responsibility is given to the session owner to make
+  // these calls
+  session_state->install_scheduled_dynamic_rule("rule1", _uc);
+  EXPECT_EQ(1, session_state->total_monitored_rules_count());
+  EXPECT_TRUE(session_state->is_dynamic_rule_installed("rule1"));
+
+  session_state->install_scheduled_static_rule("rule2", _uc);
+  EXPECT_EQ(2, session_state->total_monitored_rules_count());
+  EXPECT_TRUE(session_state->is_static_rule_installed("rule2"));
+}
+
+/**
+ * Check that on restart, sessions can be updated to match the current time
+ */
+TEST_F(SessionStateTest, test_rule_time_sync) {
+  auto uc = get_default_update_criteria(); // unused
+
+  // These should be active after sync
+  schedule_rule(1, "m1", "d1", DYNAMIC, 5, 15);
+  schedule_rule(1, "m1", "s1", STATIC, 5, 15);
+
+  // These should still be scheduled
+  schedule_rule(1, "m1", "d2", DYNAMIC, 15, 20);
+  schedule_rule(1, "m1", "s2", STATIC, 15, 20);
+
+  // These should be expired afterwards
+  schedule_rule(2, "m2", "d3", DYNAMIC, 2, 4);
+  schedule_rule(2, "m2", "s3", STATIC, 2, 4);
+
+  EXPECT_FALSE(session_state->is_dynamic_rule_installed("d1"));
+  EXPECT_FALSE(session_state->is_dynamic_rule_installed("d2"));
+  EXPECT_FALSE(session_state->is_dynamic_rule_installed("d3"));
+
+  EXPECT_FALSE(session_state->is_static_rule_installed("s1"));
+  EXPECT_FALSE(session_state->is_static_rule_installed("s2"));
+  EXPECT_FALSE(session_state->is_static_rule_installed("s3"));
+
+  // Update the time, and sync the rule states, then check our expectations
+  std::time_t test_time(10);
+  session_state->sync_rules_to_time(test_time, uc);
+
+  EXPECT_TRUE(session_state->is_dynamic_rule_installed("d1"));
+  EXPECT_FALSE(session_state->is_dynamic_rule_installed("d2"));
+  EXPECT_FALSE(session_state->is_dynamic_rule_installed("d3"));
+
+  EXPECT_TRUE(session_state->is_static_rule_installed("s1"));
+  EXPECT_FALSE(session_state->is_static_rule_installed("s2"));
+  EXPECT_FALSE(session_state->is_static_rule_installed("s3"));
+
+  EXPECT_EQ(uc.dynamic_rules_to_install.size(), 1);
+  EXPECT_EQ(uc.dynamic_rules_to_install.front().id(), "d1");
+  EXPECT_TRUE(uc.dynamic_rules_to_uninstall.count("d3"));
+
+  EXPECT_TRUE(uc.static_rules_to_install.count("s1"));
+  EXPECT_TRUE(uc.static_rules_to_uninstall.count("s3"));
+
+  // Update the time once more, sync again, and check expectations
+  test_time = std::time_t(16);
+  uc = get_default_update_criteria();
+  session_state->sync_rules_to_time(test_time, uc);
+
+  EXPECT_FALSE(session_state->is_dynamic_rule_installed("d1"));
+  EXPECT_TRUE(session_state->is_dynamic_rule_installed("d2"));
+  EXPECT_FALSE(session_state->is_dynamic_rule_installed("d3"));
+
+  EXPECT_FALSE(session_state->is_static_rule_installed("s1"));
+  EXPECT_TRUE(session_state->is_static_rule_installed("s2"));
+  EXPECT_FALSE(session_state->is_static_rule_installed("s3"));
+
+  EXPECT_EQ(uc.dynamic_rules_to_install.size(), 1);
+  EXPECT_EQ(uc.dynamic_rules_to_install.front().id(), "d2");
+  EXPECT_TRUE(uc.dynamic_rules_to_uninstall.count("d1"));
+
+  EXPECT_TRUE(uc.static_rules_to_install.count("s2"));
+  EXPECT_TRUE(uc.static_rules_to_uninstall.count("s1"));
+}
+
 TEST_F(SessionStateTest, test_marshal_unmarshal) {
   EXPECT_EQ(update_criteria.static_rules_to_install.size(), 0);
-  insert_rule(1, "m1", "rule1", STATIC);
+  insert_rule(1, "m1", "rule1", STATIC, 0, 0);
   EXPECT_EQ(session_state->is_static_rule_installed("rule1"), true);
   EXPECT_EQ(true, session_state->active_monitored_rules_exist());
+  EXPECT_EQ(update_criteria.static_rules_to_install.size(), 1);
+
+  std::time_t activation_time = static_cast<std::time_t>(std::stoul("2020:04:15 09:10:11"));
+  std::time_t deactivation_time = static_cast<std::time_t>(std::stoul("2020:04:15 09:10:12"));
+
+  EXPECT_EQ(update_criteria.new_rule_lifetimes.size(), 1);
+  schedule_rule(1, "m1", "rule2", DYNAMIC, activation_time, deactivation_time);
+  EXPECT_EQ(session_state->is_dynamic_rule_installed("rule2"), false);
   EXPECT_EQ(update_criteria.static_rules_to_install.size(), 1);
 
   EXPECT_EQ(update_criteria.charging_credit_to_install.size(), 0);
@@ -195,11 +335,12 @@ TEST_F(SessionStateTest, test_marshal_unmarshal) {
   EXPECT_EQ(unmarshaled->get_monitor_pool().get_credit("m1", ALLOWED_TOTAL),
             1024);
   EXPECT_EQ(unmarshaled->is_static_rule_installed("rule1"), true);
+  EXPECT_EQ(session_state->is_dynamic_rule_installed("rule2"), false);
 }
 
 TEST_F(SessionStateTest, test_insert_credit) {
   EXPECT_EQ(update_criteria.static_rules_to_install.size(), 0);
-  insert_rule(1, "m1", "rule1", STATIC);
+  insert_rule(1, "m1", "rule1", STATIC, 0, 0);
   EXPECT_EQ(true, session_state->active_monitored_rules_exist());
   EXPECT_TRUE(std::find(update_criteria.static_rules_to_install.begin(),
                         update_criteria.static_rules_to_install.end(),
@@ -223,17 +364,21 @@ TEST_F(SessionStateTest, test_insert_credit) {
 
 TEST_F(SessionStateTest, test_termination) {
   std::promise<void> termination_promise;
+  MockSessionReporter reporter;
+
   session_state->start_termination(update_criteria);
   session_state->set_termination_callback([&termination_promise](
       SessionTerminateRequest term_req) { termination_promise.set_value(); });
-  session_state->complete_termination(update_criteria);
+  session_state->complete_termination(reporter, update_criteria);
   auto status =
       termination_promise.get_future().wait_for(std::chrono::seconds(0));
   EXPECT_EQ(status, std::future_status::ready);
 }
 
 TEST_F(SessionStateTest, test_can_complete_termination) {
-  insert_rule(1, "m1", "rule1", STATIC);
+  MockSessionReporter reporter;
+
+  insert_rule(1, "m1", "rule1", STATIC, 0, 0);
   EXPECT_EQ(true, session_state->active_monitored_rules_exist());
   EXPECT_TRUE(std::find(update_criteria.static_rules_to_install.begin(),
                         update_criteria.static_rules_to_install.end(),
@@ -264,13 +409,13 @@ TEST_F(SessionStateTest, test_can_complete_termination) {
   EXPECT_EQ(session_state->can_complete_termination(), true);
 
   // Termination should only be completed once.
-  session_state->complete_termination(update_criteria);
+  session_state->complete_termination(reporter, update_criteria);
   EXPECT_EQ(session_state->can_complete_termination(), false);
 }
 
 TEST_F(SessionStateTest, test_add_used_credit) {
-  insert_rule(1, "m1", "rule1", STATIC);
-  insert_rule(2, "m2", "dyn_rule1", DYNAMIC);
+  insert_rule(1, "m1", "rule1", STATIC, 0, 0);
+  insert_rule(2, "m2", "dyn_rule1", DYNAMIC, 0, 0);
   EXPECT_EQ(true, session_state->active_monitored_rules_exist());
   EXPECT_TRUE(std::find(update_criteria.static_rules_to_install.begin(),
                         update_criteria.static_rules_to_install.end(),
@@ -334,9 +479,9 @@ TEST_F(SessionStateTest, test_add_used_credit) {
 }
 
 TEST_F(SessionStateTest, test_mixed_tracking_rules) {
-  insert_rule(0, "m1", "dyn_rule1", DYNAMIC);
-  insert_rule(2, "", "dyn_rule2", DYNAMIC);
-  insert_rule(3, "m3", "dyn_rule3", DYNAMIC);
+  insert_rule(0, "m1", "dyn_rule1", DYNAMIC, 0, 0);
+  insert_rule(2, "", "dyn_rule2", DYNAMIC, 0, 0);
+  insert_rule(3, "m3", "dyn_rule3", DYNAMIC, 0, 0);
   EXPECT_EQ(true, session_state->active_monitored_rules_exist());
   // Installing a rule doesn't install credit
   EXPECT_EQ(update_criteria.charging_credit_to_install.size(), 0);
@@ -419,7 +564,7 @@ TEST_F(SessionStateTest, test_session_level_key) {
 }
 
 TEST_F(SessionStateTest, test_reauth_key) {
-  insert_rule(1, "", "rule1", STATIC);
+  insert_rule(1, "", "rule1", STATIC, 0, 0);
 
   receive_credit_from_ocs(1, 1500);
 
@@ -483,8 +628,8 @@ TEST_F(SessionStateTest, test_reauth_new_key) {
 }
 
 TEST_F(SessionStateTest, test_reauth_all) {
-  insert_rule(1, "", "rule1", STATIC);
-  insert_rule(2, "", "dyn_rule1", DYNAMIC);
+  insert_rule(1, "", "rule1", STATIC, 0, 0);
+  insert_rule(2, "", "dyn_rule1", DYNAMIC, 0, 0);
   EXPECT_EQ(false, session_state->active_monitored_rules_exist());
   EXPECT_TRUE(std::find(update_criteria.static_rules_to_install.begin(),
                         update_criteria.static_rules_to_install.end(),
@@ -515,7 +660,7 @@ TEST_F(SessionStateTest, test_reauth_all) {
 TEST_F(SessionStateTest, test_tgpp_context_is_set_on_update) {
   receive_credit_from_pcrf("m1", 1024, MonitoringLevel::PCC_RULE_LEVEL);
   receive_credit_from_ocs(1, 1024);
-  insert_rule(1, "m1", "rule1", STATIC);
+  insert_rule(1, "m1", "rule1", STATIC, 0, 0);
   session_state->add_used_credit("rule1", 1024, 0, update_criteria);
   EXPECT_EQ(true, session_state->active_monitored_rules_exist());
 
@@ -545,7 +690,7 @@ TEST_F(SessionStateTest, test_tgpp_context_is_set_on_update) {
 }
 
 TEST_F(SessionStateTest, test_get_total_credit_usage_single_rule_no_key) {
-  insert_rule(0, "", "rule1", STATIC);
+  insert_rule(0, "", "rule1", STATIC, 0, 0);
   session_state->add_used_credit("rule1", 2000, 1000, update_criteria);
   SessionState::TotalCreditUsage actual =
       session_state->get_total_credit_usage();
@@ -556,7 +701,7 @@ TEST_F(SessionStateTest, test_get_total_credit_usage_single_rule_no_key) {
 }
 
 TEST_F(SessionStateTest, test_get_total_credit_usage_single_rule_single_key) {
-  insert_rule(1, "", "rule1", STATIC);
+  insert_rule(1, "", "rule1", STATIC, 0, 0);
   receive_credit_from_ocs(1, 3000);
   session_state->add_used_credit("rule1", 2000, 1000, update_criteria);
   SessionState::TotalCreditUsage actual =
@@ -568,7 +713,7 @@ TEST_F(SessionStateTest, test_get_total_credit_usage_single_rule_single_key) {
 }
 
 TEST_F(SessionStateTest, test_get_total_credit_usage_single_rule_multiple_key) {
-  insert_rule(1, "m1", "rule1", STATIC);
+  insert_rule(1, "m1", "rule1", STATIC, 0, 0);
   receive_credit_from_ocs(1, 3000);
   receive_credit_from_pcrf("m1", 3000, MonitoringLevel::PCC_RULE_LEVEL);
   session_state->add_used_credit("rule1", 2000, 1000, update_criteria);
@@ -583,8 +728,8 @@ TEST_F(SessionStateTest, test_get_total_credit_usage_single_rule_multiple_key) {
 TEST_F(SessionStateTest, test_get_total_credit_usage_multiple_rule_shared_key) {
   // Shared monitoring key
   // One rule is dynamic
-  insert_rule(1, "m1", "rule1", STATIC);
-  insert_rule(0, "m1", "rule2", DYNAMIC);
+  insert_rule(1, "m1", "rule1", STATIC, 0, 0);
+  insert_rule(0, "m1", "rule2", DYNAMIC, 0, 0);
   receive_credit_from_ocs(1, 3000);
   receive_credit_from_pcrf("m1", 3000, MonitoringLevel::PCC_RULE_LEVEL);
   session_state->add_used_credit("rule1", 1000, 10, update_criteria);

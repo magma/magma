@@ -26,7 +26,7 @@ import {makeStyles} from '@material-ui/styles';
 
 type Props = {
   endpoint: ServiceEndpoint,
-  onDeleteEndpoint: () => void,
+  onDeleteEndpoint: ?() => void,
 };
 
 const useStyles = makeStyles(_ => ({
@@ -131,23 +131,24 @@ const ServiceEndpointDetails = (props: Props) => {
           </div>
         </div>
       </div>
-
-      <OptionsPopoverButton
-        options={[
-          {
-            caption: fbt(
-              'Remove Endpoint',
-              'Menu option to delete endpoint pressed',
-            ),
-            onClick: () => {
-              ServerLogger.info(
-                LogEvents.DELETE_SERVICE_ENDPOINT_BUTTON_CLICKED,
-              );
-              onDeleteEndpoint();
+      {onDeleteEndpoint ? (
+        <OptionsPopoverButton
+          options={[
+            {
+              caption: fbt(
+                'Remove Endpoint',
+                'Menu option to delete endpoint pressed',
+              ),
+              onClick: () => {
+                ServerLogger.info(
+                  LogEvents.DELETE_SERVICE_ENDPOINT_BUTTON_CLICKED,
+                );
+                onDeleteEndpoint();
+              },
             },
-          },
-        ]}
-      />
+          ]}
+        />
+      ) : null}
     </div>
   );
 };

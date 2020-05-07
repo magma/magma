@@ -1,4 +1,4 @@
-// +build !main_integration
+// +build multi_session_proxy
 
 /*
  * Copyright (c) Facebook, Inc. and its affiliates.

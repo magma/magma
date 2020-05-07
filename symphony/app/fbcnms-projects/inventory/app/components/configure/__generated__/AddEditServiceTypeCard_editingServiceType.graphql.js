@@ -42,7 +42,7 @@ export type AddEditServiceTypeCard_editingServiceType = {|
     +isMandatory: ?boolean,
     +isInstanceProperty: ?boolean,
   |}>,
-  +endpointDefinitions: $ReadOnlyArray<?{|
+  +endpointDefinitions: $ReadOnlyArray<{|
     +id: string,
     +index: number,
     +role: ?string,

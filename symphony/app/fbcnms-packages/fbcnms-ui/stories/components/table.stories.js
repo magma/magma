@@ -87,18 +87,13 @@ const useStyles = makeStyles(_theme => ({
     flexDirection: 'column',
     marginTop: '32px',
   },
-  displayOption: {
-    marginTop: '4px',
-    display: 'flex',
-    alignItems: 'center',
-  },
   displayMenuOption: {
     marginTop: '4px',
     display: 'flex',
     alignItems: 'top',
   },
   optionCheckbox: {
-    marginRight: '8px',
+    marginTop: '4px',
   },
   iconColumn: {
     width: '36px',
@@ -231,46 +226,38 @@ const TablesRoot = () => {
         <Table {...tableProps} />
       </div>
       <div className={classes.optionsContainer}>
-        <div className={classes.displayOption}>
-          <Checkbox
-            className={classes.optionCheckbox}
-            checked={showSorting}
-            onChange={selection =>
-              setShowSorting(selection === 'checked' ? true : false)
-            }
-          />
-          <Text>With Sorting</Text>
-        </div>
-        <div className={classes.displayOption}>
-          <Checkbox
-            className={classes.optionCheckbox}
-            checked={showSelection}
-            onChange={selection =>
-              setShowSelection(selection === 'checked' ? true : false)
-            }
-          />
-          <Text>With Selection</Text>
-        </div>
-        <div className={classes.displayOption}>
-          <Checkbox
-            className={classes.optionCheckbox}
-            checked={showActiveRow}
-            onChange={selection =>
-              setShowActiveRow(selection === 'checked' ? true : false)
-            }
-          />
-          <Text>Row can be active (clickable)</Text>
-        </div>
-        <div className={classes.displayOption}>
-          <Checkbox
-            className={classes.optionCheckbox}
-            checked={showDetailsCard}
-            onChange={selection =>
-              setShowDetailsCard(selection === 'checked' ? true : false)
-            }
-          />
-          <Text>Details Card Shown</Text>
-        </div>
+        <Checkbox
+          className={classes.optionCheckbox}
+          title="With Sorting"
+          checked={showSorting}
+          onChange={selection =>
+            setShowSorting(selection === 'checked' ? true : false)
+          }
+        />
+        <Checkbox
+          className={classes.optionCheckbox}
+          checked={showSelection}
+          title="With Selection"
+          onChange={selection =>
+            setShowSelection(selection === 'checked' ? true : false)
+          }
+        />
+        <Checkbox
+          className={classes.optionCheckbox}
+          checked={showActiveRow}
+          title="Row can be active (clickable)"
+          onChange={selection =>
+            setShowActiveRow(selection === 'checked' ? true : false)
+          }
+        />
+        <Checkbox
+          className={classes.optionCheckbox}
+          checked={showDetailsCard}
+          title="Details Card Shown"
+          onChange={selection =>
+            setShowDetailsCard(selection === 'checked' ? true : false)
+          }
+        />
         <div className={classes.displayMenuOption}>
           <div>
             <Text>Row Separation Type: </Text>

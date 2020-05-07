@@ -8,10 +8,10 @@ import (
 	"context"
 	"testing"
 
-	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 
 	"github.com/stretchr/testify/require"
 )
@@ -20,7 +20,7 @@ func TestGarbageCollectProperties(t *testing.T) {
 	r := newJobsTestResolver(t)
 	defer r.drv.Close()
 	client := r.client
-	ctx := ent.NewContext(context.Background(), client)
+	ctx := viewertest.NewContext(context.Background(), client)
 	locationType := client.LocationType.Create().
 		SetName("LocationType").
 		SaveX(ctx)

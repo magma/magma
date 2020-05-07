@@ -857,6 +857,12 @@ type UpdateGroupsInPermissionsPolicyInput struct {
 	RemoveGroupIds []int `json:"removeGroupIds"`
 }
 
+type UpdatePermissionsPoliciesInUsersGroupInput struct {
+	ID                         int   `json:"id"`
+	AddPermissionsPolicyIds    []int `json:"addPermissionsPolicyIds"`
+	RemovePermissionsPolicyIds []int `json:"removePermissionsPolicyIds"`
+}
+
 type UpdateUserGroupsInput struct {
 	ID             int   `json:"id"`
 	AddGroupIds    []int `json:"addGroupIds"`

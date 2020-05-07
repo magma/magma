@@ -169,9 +169,6 @@ func permissionPolicies(ctx context.Context, v *viewer.UserViewer) (*models.Inve
 
 func userHasWritePermissions(ctx context.Context) (bool, error) {
 	v := viewer.FromContext(ctx)
-	if !v.Features().Enabled(viewer.FeatureReadOnly) {
-		return true, nil
-	}
 	if v.Role() == user.RoleOWNER {
 		return true, nil
 	}
@@ -223,6 +220,15 @@ func EmptyPermissions() *models.PermissionSettings {
 	return &models.PermissionSettings{
 		CanWrite:        false,
 		AdminPolicy:     NewAdministrativePolicy(false),
+		InventoryPolicy: NewInventoryPolicy(false, false),
+		WorkforcePolicy: NewWorkforcePolicy(false, false),
+	}
+}
+
+func AdminPermissions() *models.PermissionSettings {
+	return &models.PermissionSettings{
+		CanWrite:        false,
+		AdminPolicy:     NewAdministrativePolicy(true),
 		InventoryPolicy: NewInventoryPolicy(false, false),
 		WorkforcePolicy: NewWorkforcePolicy(false, false),
 	}

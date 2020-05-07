@@ -17,6 +17,8 @@ import {storiesOf} from '@storybook/react';
 const useStyles = makeStyles(_theme => ({
   root: {
     width: '100%',
+    display: 'flex',
+    flexDirection: 'column',
   },
 }));
 
@@ -28,6 +30,7 @@ const TablesRoot = () => {
     <div className={classes.root}>
       <Checkbox
         checked={checked}
+        title="option 1"
         onChange={selection =>
           setChecked(selection === 'checked' ? true : false)
         }
@@ -35,11 +38,12 @@ const TablesRoot = () => {
       <Checkbox
         checked={checkedIndeterminate}
         indeterminate={!checkedIndeterminate}
+        title="option 2"
         onChange={selection =>
           setCheckedIndeterminate(selection === 'checked' ? true : false)
         }
       />
-      <Checkbox checked={false} />
+      <Checkbox checked={false} title="option 3" />
     </div>
   );
 };

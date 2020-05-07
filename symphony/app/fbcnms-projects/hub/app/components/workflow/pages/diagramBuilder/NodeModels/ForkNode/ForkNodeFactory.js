@@ -12,7 +12,7 @@ export class ForkNodeFactory extends SRD.AbstractNodeFactory {
     diagramEngine: SRD.DiagramEngine,
     node: SRD.NodeModel
   ): JSX.Element {
-    return <ForkNode node={node} />;
+    return <ForkNode node={node} diagramEngine={diagramEngine} />;
   }
 
   getNewInstance() {

@@ -8,17 +8,18 @@
  * @format
  */
 import 'jest-dom/extend-expect';
+import EnodebKPIs from '../EnodebKPIs';
 import GatewayKPIs from '../GatewayKPIs';
 import MagmaAPIBindings from '@fbcnms/magma-api';
 import React from 'react';
 import axiosMock from 'axios';
 import {MemoryRouter, Route} from 'react-router-dom';
 import {cleanup, render, wait} from '@testing-library/react';
-import type {lte_gateway} from '@fbcnms/magma-api';
+import type {enodeb, enodeb_state, lte_gateway} from '@fbcnms/magma-api';
 
 afterEach(cleanup);
 
-const mockSt: lte_gateway = {
+const mockGwSt: lte_gateway = {
   id: 'test_gw1',
   name: 'test_gateway',
   description: 'hello I am a gateway',
@@ -57,13 +58,57 @@ const mockSt: lte_gateway = {
   },
 };
 
+const mockEnbAll: {[string]: enodeb} = {
+  test1: {
+    name: 'test1',
+    serial: 'test1',
+    config: {
+      cell_id: 0,
+      device_class: 'Baicells Nova-233 G2 OD FDD',
+      transmit_enabled: true,
+    },
+  },
+  test2: {
+    name: 'test2',
+    serial: 'test2',
+    config: {
+      cell_id: 0,
+      device_class: 'Baicells Nova-233 G2 OD FDD',
+      transmit_enabled: true,
+    },
+  },
+  test3: {
+    name: 'test3',
+    serial: 'test3',
+    config: {
+      cell_id: 0,
+      device_class: 'Baicells Nova-233 G2 OD FDD',
+      transmit_enabled: true,
+    },
+  },
+};
+
+const mockEnbSt: enodeb_state = {
+  enodeb_configured: true,
+  enodeb_connected: true,
+  fsm_state: '',
+  gps_connected: true,
+  gps_latitude: '',
+  gps_longitude: '',
+  mme_connected: true,
+  opstate_enabled: true,
+  ptp_connected: true,
+  rf_tx_desired: true,
+  rf_tx_on: true,
+};
+
 jest.mock('axios');
 jest.mock('@fbcnms/magma-api');
 jest.mock('@fbcnms/ui/hooks/useSnackbar');
 
 describe('<GatewaysKPIs />', () => {
   beforeEach(() => {
-    const mockUpSt = Object.assign({}, mockSt);
+    const mockUpSt = Object.assign({}, mockGwSt);
     mockUpSt['status'] = {
       checkin_time: Date.now(),
       meta: {
@@ -75,8 +120,8 @@ describe('<GatewaysKPIs />', () => {
       },
     };
     MagmaAPIBindings.getLteByNetworkIdGateways.mockResolvedValue({
-      test1: mockSt,
-      test2: mockSt,
+      test1: mockGwSt,
+      test2: mockGwSt,
       test3: mockUpSt,
     });
   });
@@ -97,5 +142,42 @@ describe('<GatewaysKPIs />', () => {
     expect(MagmaAPIBindings.getLteByNetworkIdGateways).toHaveBeenCalledTimes(1);
     expect(getByTestId('Connected')).toHaveTextContent('1');
     expect(getByTestId('Disconnected')).toHaveTextContent('2');
+  });
+});
+
+describe('<EnodebKPIs />', () => {
+  beforeEach(() => {
+    MagmaAPIBindings.getLteByNetworkIdEnodebs.mockResolvedValue(mockEnbAll);
+    // eslint-disable-next-line max-len
+    MagmaAPIBindings.getLteByNetworkIdEnodebsByEnodebSerialState.mockResolvedValue(
+      mockEnbSt,
+    );
+    const mockEnbNotTxSt = Object.assign({}, mockEnbSt);
+    mockEnbNotTxSt.rf_tx_on = false;
+    // eslint-disable-next-line max-len
+    MagmaAPIBindings.getLteByNetworkIdEnodebsByEnodebSerialState.mockReturnValueOnce(
+      mockEnbNotTxSt,
+    );
+  });
+
+  afterEach(() => {
+    axiosMock.get.mockClear();
+  });
+
+  const Wrapper = () => (
+    <MemoryRouter initialEntries={['/nms/mynetwork']} initialIndex={0}>
+      <Route path="/nms/:networkId" component={EnodebKPIs} />
+    </MemoryRouter>
+  );
+  it('renders', async () => {
+    const {getByTestId} = render(<Wrapper />);
+    await wait();
+
+    expect(MagmaAPIBindings.getLteByNetworkIdEnodebs).toHaveBeenCalledTimes(1);
+    expect(
+      MagmaAPIBindings.getLteByNetworkIdEnodebsByEnodebSerialState,
+    ).toHaveBeenCalledTimes(3);
+    expect(getByTestId('Total')).toHaveTextContent('3');
+    expect(getByTestId('Transmitting')).toHaveTextContent('2');
   });
 });

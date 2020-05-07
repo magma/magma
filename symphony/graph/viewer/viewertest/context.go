@@ -8,6 +8,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/facebookincubator/symphony/graph/ent/privacy"
 	"github.com/facebookincubator/symphony/graph/ent/user"
 
 	"github.com/facebookincubator/ent/dialect/sql"
@@ -73,14 +74,17 @@ func NewContext(parent context.Context, c *ent.Client, opts ...Option) context.C
 		tenant:      DefaultTenant,
 		user:        DefaultUser,
 		role:        DefaultRole,
-		features:    []string{viewer.FeatureReadOnly, viewer.FeatureUserManagementDev},
+		features:    []string{viewer.FeatureUserManagementDev},
 		permissions: authz.FullPermissions(),
 	}
 	for _, opt := range opts {
 		opt(o)
 	}
 	ctx := ent.NewContext(parent, c)
-	u := viewer.MustGetOrCreateUser(ctx, o.user, o.role)
+	u := viewer.MustGetOrCreateUser(
+		privacy.DecisionContext(ctx, privacy.Allow),
+		o.user,
+		o.role)
 	v := viewer.NewUser(o.tenant, u, viewer.WithFeatures(o.features...))
 	ctx = viewer.NewContext(ctx, v)
 	return authz.NewContext(ctx, o.permissions)

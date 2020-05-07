@@ -18,7 +18,7 @@ import {createFragmentContainer, graphql} from 'react-relay';
 type Props = {
   // $FlowFixMe (T62907961) Relay flow types
   links: ServiceLinksView_links,
-  onDeleteLink: (link: Link) => void,
+  onDeleteLink: ?(link: Link) => void,
 };
 
 const ServiceLinksView = (props: Props) => {
@@ -29,7 +29,7 @@ const ServiceLinksView = (props: Props) => {
       {links.map(link => (
         <ServiceLinkDetails
           link={link}
-          onDeleteLink={() => onDeleteLink(link)}
+          onDeleteLink={onDeleteLink ? () => onDeleteLink(link) : null}
         />
       ))}
     </div>

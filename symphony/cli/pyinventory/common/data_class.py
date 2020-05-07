@@ -300,20 +300,3 @@ class Document(NamedTuple):
     parentId: str
     parentEntity: ImageEntity
     category: Optional[str]
-
-
-class User(NamedTuple):
-    """
-    Attributes:
-        id (str): ID
-        auth_id (str): auth ID
-        email (str): email
-        status (UserStatus): status
-        role (UserRole): role
-    """
-
-    id: str
-    auth_id: str
-    email: str
-    status: UserStatus
-    role: UserRole

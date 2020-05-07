@@ -11,13 +11,16 @@ import (
 
 var (
 	// prePolicy is executed before privacy policy.
-	prePolicy = privacy.Policy{}
+	prePolicy = privacy.Policy{
+		Mutation: privacy.MutationPolicy{
+			AlwaysDenyIfNoPermissionRule(),
+		},
+	}
 
 	// postPolicy is executed after privacy policy.
 	postPolicy = privacy.Policy{
 		Mutation: privacy.MutationPolicy{
 			AllowWritePermissionsRule(),
-			AlwaysAllowIfNoPermissionRule(),
 			privacy.AlwaysDenyRule(),
 		},
 	}

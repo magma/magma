@@ -84,7 +84,7 @@ func (b *Bootstrapper) Initialize() error {
 
 	b.HardwareId = hwId.String()
 
-	privKey, err := b.getChallengeKey()
+	privKey, err := GetChallengeKey()
 	if err != nil {
 		return err
 	}
