@@ -37,18 +37,6 @@ services:
       timeout: 3s
     restart: on-failure
 
-  frontier:
-    image: ${DOCKER_REGISTRY}/frontier:${TAG}
-    environment:
-      PROXY_TARGET: http://front
-      INVENTORY_TARGET: http://front
-      KEY_PAIRS: HWmHsJtI8wrSkVuXkMxP5HDW32t2AUqz
-    env_file:
-      - conf/log.env
-    healthcheck: &healthcheck
-      test: curl -If localhost/healthz/liveness
-    restart: on-failure
-
   graph:
     image: ${DOCKER_REGISTRY}/graph:${TAG}
     env_file:

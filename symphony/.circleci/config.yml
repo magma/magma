@@ -39,7 +39,7 @@ executors:
   golangci:
     parameters:
       tag:
-        default: v1.23.8
+        default: v1.26.0
         type: string
     docker:
       - image: golangci/golangci-lint:<<parameters.tag>>
@@ -490,11 +490,6 @@ workflows:
             - lint
             - unit
       - docker-publish:
-          name: frontier/publish
-          dockerfile: frontier/Dockerfile
-          image: frontier
-          requires: *dpreq
-      - docker-publish:
           name: store/publish
           dockerfile: store/Dockerfile
           image: store
@@ -525,7 +520,6 @@ workflows:
       - integration:
           requires:
             - graph/publish
-            - frontier/publish
             - store/publish
             - front/publish
       - promote-images: &promote
