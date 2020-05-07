@@ -516,6 +516,10 @@ workflows:
           path: app
           image: storybook
           requires: *dpreq
+      - docker-publish:
+          name: jobrunner/publish
+          dockerfile: jobrunner/Dockerfile
+          image: jobrunner
       - helm-lint
       - tflint
       - integration:

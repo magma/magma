@@ -100,10 +100,10 @@ services:
       - mysql
     restart: on-failure
 
-  job_runner:
+  jobrunner:
     build:
       context: ${FBCODE_FBC_DIR}/symphony
-      dockerfile: integration/job_runner/Dockerfile
+      dockerfile: jobrunner/Dockerfile
     networks:
       - private
 

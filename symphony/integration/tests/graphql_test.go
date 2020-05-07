@@ -146,14 +146,17 @@ func (c *client) createOwnerUser() error {
 	return nil
 }
 
-type addLocationTypeResponse struct {
-	ID   graphql.ID
-	Name graphql.String
+type locationTypeResponse struct {
+	ID            graphql.ID
+	Name          graphql.String
+	PropertyTypes []struct {
+		ID graphql.ID
+	}
 }
 
-func (c *client) addLocationType(name string, properties ...*models.PropertyTypeInput) (*addLocationTypeResponse, error) {
+func (c *client) addLocationType(name string, properties ...*models.PropertyTypeInput) (*locationTypeResponse, error) {
 	var m struct {
-		Response addLocationTypeResponse `graphql:"addLocationType(input: $input)"`
+		Response locationTypeResponse `graphql:"addLocationType(input: $input)"`
 	}
 	vars := map[string]interface{}{
 		"input": models.AddLocationTypeInput{
@@ -222,6 +225,24 @@ type queryLocationResponse struct {
 			Name graphql.String
 		} `graphql:"locationType"`
 	}
+}
+
+func (c *client) queryLocationType(id graphql.ID) (*locationTypeResponse, error) {
+	var q struct {
+		Node struct {
+			Response locationTypeResponse `graphql:"... on LocationType"`
+		} `graphql:"node(id: $id)"`
+	}
+	vars := map[string]interface{}{
+		"id": id,
+	}
+	switch err := c.client.Query(context.Background(), &q, vars); {
+	case err != nil:
+		return nil, err
+	case q.Node.Response.ID == nil:
+		return nil, errors.New("location type not found")
+	}
+	return &q.Node.Response, nil
 }
 
 func (c *client) queryLocation(id graphql.ID) (*queryLocationResponse, error) {
