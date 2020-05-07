@@ -89,6 +89,7 @@ func (m *jobs) getServicesDetailsList(ctx context.Context, sType *ent.ServiceTyp
 		}
 		for _, e2 := range e2s {
 			if len(endpointDefs) == 2 {
+				log.Info("adding service to 'toAdd' list: ", sType.Name, "equipment:", e1.ID, e2.ID)
 				serviceDataList = append(serviceDataList, serviceEquipmentListData{
 					[]*ent.Equipment{e1, e2},
 				})
@@ -100,6 +101,7 @@ func (m *jobs) getServicesDetailsList(ctx context.Context, sType *ent.ServiceTyp
 			}
 			for _, e3 := range e3s {
 				if len(endpointDefs) == 3 {
+					log.Info("adding service to 'toAdd' list: ", sType.Name, "equipment:", e1.ID, e2.ID, e3.ID)
 					serviceDataList = append(serviceDataList, serviceEquipmentListData{
 						[]*ent.Equipment{e1, e2, e3},
 					})
@@ -111,6 +113,7 @@ func (m *jobs) getServicesDetailsList(ctx context.Context, sType *ent.ServiceTyp
 				}
 				for _, e4 := range e4s {
 					if len(endpointDefs) == 4 {
+						log.Info("adding service to 'toAdd' list: ", sType.Name, "equipment:", e1.ID, e2.ID, e3.ID, e4.ID)
 						serviceDataList = append(serviceDataList, serviceEquipmentListData{
 							[]*ent.Equipment{e1, e2, e3, e4},
 						})
@@ -124,6 +127,7 @@ func (m *jobs) getServicesDetailsList(ctx context.Context, sType *ent.ServiceTyp
 						if len(endpointDefs) != maxEndpoints {
 							return nil, errors.Errorf("service types support up to 5 endpoint definitions")
 						}
+						log.Info("adding service to 'toAdd' list: ", sType.Name, "equipment:", e1.ID, e2.ID, e3.ID, e4.ID, e5.ID)
 						serviceDataList = append(serviceDataList, serviceEquipmentListData{
 							[]*ent.Equipment{e1, e2, e3, e4, e5},
 						})
@@ -171,10 +175,13 @@ func (m *jobs) createServicesFromList(ctx context.Context, serviceDetails []serv
 	for _, serviceData := range serviceDetails {
 		// TODO search can be optimized
 		if isServiceEquipmentListAlreadyExists(existingServicesStructuredList, serviceData) {
+			log.Info("skipping new service: already exists. type:", serviceType.Name, " first equipment:", serviceData.EquipmentList[0].Name, serviceData.EquipmentList[0].ID)
 			continue
 		}
+		log.Info("saving new service. type:", serviceType.Name, " first equipment:", serviceData.EquipmentList[0].Name, serviceData.EquipmentList[0].ID)
+
 		links, err := getLinksFromEquipmentList(ctx, serviceData.EquipmentList)
-		if err != nil {
+		if err != nil || len(links) == 0 {
 			return errors.Wrapf(err, "can't get links for service")
 		}
 		srvc, err := client.Service.Create().
