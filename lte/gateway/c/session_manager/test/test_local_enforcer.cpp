@@ -651,9 +651,58 @@ TEST_F(LocalEnforcerTest, test_sync_sessions_on_restart) {
   EXPECT_FALSE(session->is_static_rule_installed("rule4"));
 }
 
-MATCHER_P2(CheckDeactivateFlows, imsi, rule_count, "") {
-  auto request = static_cast<const DeactivateFlowsRequest *>(arg);
-  return request->sid().id() == imsi && request->rule_ids_size() == rule_count;
+// Make sure sessions that are scheduled to be terminated before sync are
+// correctly scheduled to be terminated again.
+TEST_F(LocalEnforcerTest, test_termination_scheduling_on_sync_sessions) {
+  const std::string imsi = "IMSI1";
+  const std::string session_id = "1234";
+  insert_static_rule(1, "m1", "rule1");
+
+  // Create a CreateSessionResponse with one Gx monitor:m1 and one rule:rule1
+  CreateSessionResponse response;
+  auto monitors = response.mutable_usage_monitors();
+  create_monitor_update_response("IMSI1", "m1", MonitoringLevel::PCC_RULE_LEVEL,
+                                 1024, monitors->Add());
+  StaticRuleInstall static_rule_install;
+  static_rule_install.set_rule_id("rule1");
+  response.mutable_static_rules()->Add()->CopyFrom(static_rule_install);
+
+  local_enforcer->init_session_credit(session_map, imsi, session_id, test_cfg,
+                                      response);
+
+  EXPECT_EQ(session_map[imsi].size(), 1);
+  bool success = session_store->create_sessions(imsi, std::move(session_map[imsi]));
+  EXPECT_TRUE(success);
+
+  auto session_map = session_store->read_sessions(SessionRead{imsi});
+  auto session_update = session_store->get_default_session_update(session_map);
+  EXPECT_EQ(session_map[imsi].size(), 1);
+
+  // Update session to have SESSION_TERMINATION_SCHEDULED
+  auto& uc = session_update[imsi][session_id];
+  session_map[imsi].front()->mark_as_awaiting_termination(uc);
+  EXPECT_EQ(uc.is_fsm_updated, true);
+  EXPECT_EQ(uc.updated_fsm_state, SESSION_TERMINATION_SCHEDULED);
+
+  success = session_store->update_sessions(session_update);
+  EXPECT_TRUE(success);
+
+  // Syncing will schedule a termination for this IMSI
+  local_enforcer->sync_sessions_on_restart(std::time_t(0));
+
+  // Terminate subscriber is the only thing on the event queue, and
+  // quota_exhaust_termination_on_init_ms is set to 0
+  // We expect the termination to take place once we run evb->loopOnce()
+  EXPECT_CALL(
+    *pipelined_client,
+    deactivate_flows_for_rules("IMSI1", CheckCount(1), testing::_));
+  evb->loopOnce();
+
+  // At this point, the state should have transitioned from
+  // SESSION_TERMINATION_SCHEDULED -> SESSION_TERMINATING_FLOW_ACTIVE
+  session_map = session_store->read_sessions(SessionRead{imsi});
+  auto updated_fsm_state = session_map[imsi].front()->get_state();
+  EXPECT_EQ(updated_fsm_state, SESSION_TERMINATING_FLOW_ACTIVE);
 }
 
 TEST_F(LocalEnforcerTest, test_final_unit_handling) {
