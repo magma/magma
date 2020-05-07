@@ -174,12 +174,9 @@ func startServerWithExpectations(
 	expectations []*fegprotos.GxCreditControlExpectation,
 	failureBehavior fegprotos.UnexpectedRequestBehavior,
 	defaultCCA *fegprotos.GxCreditControlAnswer,
-) *mock_pcrf.PCRFDiamServer {
+) *mock_pcrf.PCRFServer {
 	serverStarted := make(chan struct{})
-	pcrf := mock_pcrf.NewPCRFDiamServer(
-		client,
-		&mock_pcrf.PCRFConfig{ServerConfig: server},
-	)
+	pcrf := mock_pcrf.NewPCRFServer(client, server)
 	go func() {
 		log.Printf("Starting server")
 		ctx := context.Background()

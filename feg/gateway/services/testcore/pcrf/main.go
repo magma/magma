@@ -52,10 +52,7 @@ func main() {
 		log.Printf("PCRF serviceName renamed to: %s", serviceName)
 	}
 
-	pcrfServer := mock_pcrf.NewPCRFDiamServer(
-		gxCliConf,
-		&mock_pcrf.PCRFConfig{ServerConfig: gxServConf},
-	)
+	pcrfServer := mock_pcrf.NewPCRFServer(gxCliConf, gxServConf)
 
 	srv, err := service.NewServiceWithOptions(registry.ModuleName, serviceName)
 	if err != nil {
