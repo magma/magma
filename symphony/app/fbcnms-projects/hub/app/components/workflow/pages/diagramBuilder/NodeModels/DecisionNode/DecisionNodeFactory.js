@@ -12,7 +12,7 @@ export class DecisionNodeFactory extends SRD.AbstractNodeFactory {
     diagramEngine: SRD.DiagramEngine,
     node: SRD.NodeModel
   ): JSX.Element {
-    return <DecisionNode node={node} />;
+    return <DecisionNode node={node} diagramEngine={diagramEngine} />;
   }
 
   getNewInstance() {

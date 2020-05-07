@@ -1,5 +1,7 @@
 import * as SRD from "@projectstorm/react-diagrams";
 import { SimplePortFactory } from "./NodeModels/SimplePortFactory";
+import { LinkWithContextFactory } from "./NodeModels/LinkWithContextFactory";
+import { NodeWithContextFactory } from "./NodeModels/NodeWithContextFactory";
 import { CircleStartPortModel } from "./NodeModels/StartNode/CircleStartPortModel";
 import { CircleStartNodeFactory } from "./NodeModels/StartNode/CircleStartNodeFactory";
 import { CircleEndPortModel } from "./NodeModels/EndNode/CircleEndPortModel";
@@ -23,7 +25,7 @@ export class Application {
   constructor() {
     this.diagramEngine = new SRD.DiagramEngine();
 
-    this.diagramEngine.registerLinkFactory(new DefaultLinkFactory());
+    this.diagramEngine.registerLinkFactory(new LinkWithContextFactory());
     this.diagramEngine.registerLabelFactory(new DefaultLabelFactory());
 
     this.diagramEngine.registerPortFactory(
@@ -45,7 +47,7 @@ export class Application {
       new SimplePortFactory("decision", config => new DecisionNodePortModel())
     );
 
-    this.diagramEngine.registerNodeFactory(new DefaultNodeFactory());
+    this.diagramEngine.registerNodeFactory(new NodeWithContextFactory());
     this.diagramEngine.registerNodeFactory(new CircleStartNodeFactory());
     this.diagramEngine.registerNodeFactory(new CircleEndNodeFactory());
     this.diagramEngine.registerNodeFactory(new ForkNodeFactory());

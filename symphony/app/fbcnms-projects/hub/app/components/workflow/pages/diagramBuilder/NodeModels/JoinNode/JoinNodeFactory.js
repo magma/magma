@@ -12,7 +12,7 @@ export class JoinNodeFactory extends SRD.AbstractNodeFactory {
     diagramEngine: SRD.DiagramEngine,
     node: SRD.NodeModel
   ): JSX.Element {
-    return <JoinNode node={node} />;
+    return <JoinNode node={node} diagramEngine={diagramEngine} />;
   }
 
   getNewInstance() {

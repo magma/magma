@@ -1,5 +1,6 @@
 import * as React from "react";
 import { PortWidget } from "@projectstorm/react-diagrams";
+import { NodeContextMenu, NodeMenuProvider } from "../ContextMenu";
 
 export class ForkNode extends React.Component {
   constructor(props) {
@@ -12,6 +13,7 @@ export class ForkNode extends React.Component {
   render() {
     return (
       <div >
+        <NodeMenuProvider node={this.props.node}>
         <svg
           width={this.state.size}
           height={this.state.size}
@@ -24,6 +26,7 @@ export class ForkNode extends React.Component {
         `
           }}
         />
+        </NodeMenuProvider>
 
         <div className="srd-node-glow"
           style={{
@@ -55,6 +58,11 @@ export class ForkNode extends React.Component {
         >
           <PortWidget name="right" node={this.props.node} />
         </div>
+        
+        <NodeContextMenu
+          node={this.props.node}
+          diagramEngine={this.props.diagramEngine}
+        />
       </div>
     );
   }
