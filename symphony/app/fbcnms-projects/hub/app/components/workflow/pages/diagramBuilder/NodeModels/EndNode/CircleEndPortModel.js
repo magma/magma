@@ -1,27 +1,36 @@
-import * as _ from "lodash";
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ * @flow
+ * @format
+ */
+import * as _ from 'lodash';
 import {
-  LinkModel,
+  DefaultLinkModel,
   DiagramEngine,
+  LinkModel,
   PortModel,
-  DefaultLinkModel
-} from "@projectstorm/react-diagrams";
+} from '@projectstorm/react-diagrams';
 
 export class CircleEndPortModel extends PortModel {
-  position: string | "top" | "bottom" | "left" | "right";
+  position: string | 'top' | 'bottom' | 'left' | 'right';
 
-  constructor(isInput: boolean, pos: string = "left") {
-    super(pos, "end");
+  constructor(isInput: boolean, pos: string = 'left') {
+    super(pos, 'end');
     this.in = isInput;
     this.position = pos;
   }
 
   serialize() {
     return _.merge(super.serialize(), {
-      position: this.position
+      position: this.position,
     });
   }
 
-  deSerialize(data: any, engine: DiagramEngine) {
+  deSerialize(data, engine: DiagramEngine) {
     super.deSerialize(data, engine);
     this.position = data.position;
   }

@@ -1,11 +1,20 @@
-import * as React from "react";
-import { PortWidget } from "@projectstorm/react-diagrams";
-import { NodeContextMenu, NodeMenuProvider } from "../ContextMenu";
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ * @flow
+ * @format
+ */
+import * as React from 'react';
+import {NodeContextMenu, NodeMenuProvider} from '../ContextMenu';
+import {PortWidget} from '@projectstorm/react-diagrams';
 
 export class CircleNodeEnd extends React.Component {
   render() {
     return (
-      <div className={"srd-circle-node"}>
+      <div className={'srd-circle-node'}>
         <NodeMenuProvider node={this.props.node}>
           <svg width="60" height="60">
             <g>
@@ -16,7 +25,7 @@ export class CircleNodeEnd extends React.Component {
             </g>
           </svg>
         </NodeMenuProvider>
-        <div style={{ position: "absolute", zIndex: 10, left: -10, top: 21 }}>
+        <div style={{position: 'absolute', zIndex: 10, left: -10, top: 21}}>
           <PortWidget name="left" node={this.props.node} />
         </div>
         <NodeContextMenu
