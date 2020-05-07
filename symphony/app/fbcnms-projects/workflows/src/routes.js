@@ -283,7 +283,7 @@ router.delete('/workflow/:workflowId', async (req, res, next) => {
   try {
     const result = await http.delete(
       baseURLWorkflow +
-        req.params.workflqowId +
+        req.params.workflowId +
         '/remove?archiveWorkflow=' +
         archiveWorkflow,
       req.body,
