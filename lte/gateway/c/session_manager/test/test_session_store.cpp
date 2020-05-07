@@ -17,8 +17,10 @@
 #include "SessionState.h"
 #include "SessionStore.h"
 #include "StoredState.h"
+#include "MagmaService.h"
 #include "magma_logging.h"
 
+using magma::orc8r::MetricsContainer;
 using ::testing::Test;
 
 namespace magma {
@@ -180,6 +182,13 @@ class SessionStoreTest : public ::testing::Test {
     return update_criteria;
   }
 
+  bool is_equal(
+      io::prometheus::client::LabelPair label_pair, const char*& name,
+      const char*& value) {
+    return label_pair.name().compare(name) == 0 &&
+           label_pair.value().compare(value) == 0;
+  }
+
  protected:
   std::string imsi;
   std::string imsi2;
@@ -194,6 +203,71 @@ class SessionStoreTest : public ::testing::Test {
   std::string dynamic_rule_id_1;
   std::string dynamic_rule_id_2;
 };
+
+TEST_F(SessionStoreTest, test_metering_reporting)
+{
+  // 1) Create SessionStore
+  auto rule_store = std::make_shared<StaticRuleStore>();
+  auto session_store = new SessionStore(rule_store);
+
+  // 2) Create a single session and write it into the store
+  auto session1 = get_session(sid, rule_store);
+  auto session_vec = std::vector<std::unique_ptr<SessionState>>{};
+  session_vec.push_back(std::move(session1));
+  session_store->create_sessions(imsi, std::move(session_vec));
+
+  // 3) Try to update the session in SessionStore with a rule installation
+  auto session_map = session_store->read_sessions(SessionRead{imsi});
+  auto session_update = SessionStore::get_default_session_update(session_map);
+
+  auto uc = get_default_update_criteria();
+  uc.static_rules_to_install.insert("RULE_asdf");
+  RuleLifetime lifetime{
+      .activation_time = std::time_t(0),
+      .deactivation_time = std::time_t(0),
+  };
+  uc.new_rule_lifetimes["RULE_asdf"] = lifetime;
+
+  // Record some credit usage
+  auto DIRECTION_LABEL   = "direction";
+  auto DIRECTION_UP   = "up";
+  auto DIRECTION_DOWN = "down";
+  auto UPLOADED_BYTES   = 5;
+  auto DOWNLOADED_BYTES = 7;
+  SessionCreditUpdateCriteria credit_uc{};
+  credit_uc.bucket_deltas[USED_TX]      = UPLOADED_BYTES;
+  credit_uc.bucket_deltas[USED_RX]      = DOWNLOADED_BYTES;
+  uc.monitor_credit_map[monitoring_key] = credit_uc;
+
+  session_update[imsi][sid] = uc;
+
+  auto update_success = session_store->update_sessions(session_update);
+  EXPECT_TRUE(update_success);
+
+  // verify if UE traffic metrics are recorded properly
+  auto resp = new MetricsContainer();
+  auto magma_service =
+      std::make_shared<service303::MagmaService>("test_service", "1.0");
+  magma_service->GetMetrics(nullptr, nullptr, resp);
+  auto reported_metrics = 0;
+  for (auto const& fam : resp->family()) {
+    if (fam.name().compare("ue_traffic") == 0) {
+      for (auto const& m : fam.metric()) {
+        for (auto const& l : m.label()) {
+          if (is_equal(l, DIRECTION_LABEL, DIRECTION_UP)) {
+            EXPECT_EQ(m.counter().value(), UPLOADED_BYTES);
+            reported_metrics += 1;
+          } else if (is_equal(l, DIRECTION_LABEL, DIRECTION_DOWN)) {
+            EXPECT_EQ(m.counter().value(), DOWNLOADED_BYTES);
+            reported_metrics += 1;
+          }
+        }
+      }
+      break;
+    }
+  }
+  EXPECT_EQ(reported_metrics, 2);
+}
 
 /**
  * End to end test of the SessionStore.
