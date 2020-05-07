@@ -28,7 +28,12 @@ import {
   ButtonAction,
   IconAction,
 } from '@fbcnms/ui/components/design-system/View/ViewHeaderActions';
-import {NEW_DIALOG_PARAM, POLICY_TYPES} from '../utils/UserManagementUtils';
+import {
+  NEW_DIALOG_PARAM,
+  POLICY_TYPES,
+  initInventoryRulesInput,
+  initWorkforceRulesInput,
+} from '../utils/UserManagementUtils';
 import {PERMISSION_POLICIES_VIEW_NAME} from './PermissionsPoliciesView';
 import {generateTempId} from '../../../../common/EntUtils';
 import {makeStyles} from '@material-ui/styles';
@@ -74,6 +79,14 @@ const getInitialNewPolicy: (policyType: ?string) => PermissionsPolicy = (
     type,
     isGlobal: false,
     groups: [],
+    inventoryRules:
+      type === POLICY_TYPES.InventoryPolicy.key
+        ? initInventoryRulesInput()
+        : null,
+    workforceRules:
+      type === POLICY_TYPES.WorkforcePolicy.key
+        ? initWorkforceRulesInput()
+        : null,
   };
 };
 
