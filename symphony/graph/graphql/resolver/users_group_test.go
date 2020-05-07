@@ -45,6 +45,26 @@ func TestAddUsersGroup(t *testing.T) {
 	require.Equal(t, ugs[0].Status, usersgroup.StatusACTIVE, "verifying group status")
 }
 
+func TestDeleteUsersGroup(t *testing.T) {
+	r := newTestResolver(t)
+	defer r.drv.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
+
+	mr := r.Mutation()
+
+	gName := "group_1"
+	inp := getAddUsersGroupInput(gName, "this is group 1")
+	_, err := mr.AddUsersGroup(ctx, inp)
+	require.NoError(t, err)
+
+	client := ent.FromContext(ctx)
+	ugs := client.UsersGroup.Query().AllX(ctx)
+	require.Len(t, ugs, 1)
+
+	_, err = mr.DeleteUsersGroup(ctx, ugs[0].ID)
+	require.NoError(t, err)
+}
+
 func TestEditUsersGroup(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()

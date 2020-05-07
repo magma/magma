@@ -536,6 +536,7 @@ type ComplexityRoot struct {
 		DeleteFloorPlan                          func(childComplexity int, id int) int
 		DeleteHyperlink                          func(childComplexity int, id int) int
 		DeleteImage                              func(childComplexity int, entityType models.ImageEntity, entityID int, id int) int
+		DeletePermissionsPolicy                  func(childComplexity int, id int) int
 		DeleteProject                            func(childComplexity int, id int) int
 		DeleteProjectType                        func(childComplexity int, id int) int
 		DeleteReportFilter                       func(childComplexity int, id int) int
@@ -1320,6 +1321,7 @@ type MutationResolver interface {
 	DeleteReportFilter(ctx context.Context, id int) (bool, error)
 	AddPermissionsPolicy(ctx context.Context, input models.AddPermissionsPolicyInput) (*ent.PermissionsPolicy, error)
 	EditPermissionsPolicy(ctx context.Context, input models.EditPermissionsPolicyInput) (*ent.PermissionsPolicy, error)
+	DeletePermissionsPolicy(ctx context.Context, id int) (bool, error)
 	UpdateGroupsInPermissionsPolicy(ctx context.Context, input models.UpdateGroupsInPermissionsPolicyInput) (*ent.PermissionsPolicy, error)
 }
 type PermissionsPolicyResolver interface {
@@ -3608,6 +3610,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.DeleteImage(childComplexity, args["entityType"].(models.ImageEntity), args["entityId"].(int), args["id"].(int)), true
+
+	case "Mutation.deletePermissionsPolicy":
+		if e.complexity.Mutation.DeletePermissionsPolicy == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deletePermissionsPolicy_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeletePermissionsPolicy(childComplexity, args["id"].(int)), true
 
 	case "Mutation.deleteProject":
 		if e.complexity.Mutation.DeleteProject == nil {
@@ -9690,6 +9704,7 @@ type Mutation {
   deleteReportFilter(id: ID!): Boolean!
   addPermissionsPolicy(input: AddPermissionsPolicyInput!): PermissionsPolicy!
   editPermissionsPolicy(input: EditPermissionsPolicyInput!): PermissionsPolicy!
+  deletePermissionsPolicy(id: ID!): Boolean!
 
   updateGroupsInPermissionsPolicy(
     input: UpdateGroupsInPermissionsPolicyInput!
@@ -10335,6 +10350,20 @@ func (ec *executionContext) field_Mutation_deleteImage_args(ctx context.Context,
 		}
 	}
 	args["id"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deletePermissionsPolicy_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -23537,6 +23566,47 @@ func (ec *executionContext) _Mutation_editPermissionsPolicy(ctx context.Context,
 	res := resTmp.(*ent.PermissionsPolicy)
 	fc.Result = res
 	return ec.marshalNPermissionsPolicy2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐPermissionsPolicy(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_deletePermissionsPolicy(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_deletePermissionsPolicy_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeletePermissionsPolicy(rctx, args["id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_updateGroupsInPermissionsPolicy(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -44681,6 +44751,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "editPermissionsPolicy":
 			out.Values[i] = ec._Mutation_editPermissionsPolicy(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "deletePermissionsPolicy":
+			out.Values[i] = ec._Mutation_deletePermissionsPolicy(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

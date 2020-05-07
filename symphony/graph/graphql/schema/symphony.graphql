@@ -2783,6 +2783,7 @@ type Mutation {
   deleteReportFilter(id: ID!): Boolean!
   addPermissionsPolicy(input: AddPermissionsPolicyInput!): PermissionsPolicy!
   editPermissionsPolicy(input: EditPermissionsPolicyInput!): PermissionsPolicy!
+  deletePermissionsPolicy(id: ID!): Boolean!
 
   updateGroupsInPermissionsPolicy(
     input: UpdateGroupsInPermissionsPolicyInput!

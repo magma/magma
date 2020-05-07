@@ -114,3 +114,14 @@ func (r mutationResolver) UpdateGroupsInPermissionsPolicy(
 		RemoveGroupIDs(input.RemoveGroupIds...).
 		Save(ctx)
 }
+
+func (r mutationResolver) DeletePermissionsPolicy(ctx context.Context, id int) (bool, error) {
+	client := r.ClientFrom(ctx)
+	if err := client.PermissionsPolicy.DeleteOneID(id).Exec(ctx); err != nil {
+		if ent.IsNotFound(err) {
+			return false, gqlerror.Errorf("permissionsPolicy doesn't exist")
+		}
+		return false, fmt.Errorf("deleting permissionsPolicy: %w", err)
+	}
+	return true, nil
+}

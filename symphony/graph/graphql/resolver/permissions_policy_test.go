@@ -10,6 +10,7 @@ import (
 
 	"github.com/AlekSi/pointer"
 	models2 "github.com/facebookincubator/symphony/graph/authz/models"
+	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 	"github.com/stretchr/testify/require"
@@ -138,6 +139,28 @@ func TestAddMultipleTypesPermissionsPolicy(t *testing.T) {
 		WorkforceInput: getWorkforcePolicyInput(),
 	})
 	require.Error(t, err)
+}
+
+func TestDeletePermissionsPolicy(t *testing.T) {
+	r := newTestResolver(t)
+	defer r.drv.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
+	mr := r.Mutation()
+
+	_, err := mr.AddPermissionsPolicy(ctx, models.AddPermissionsPolicyInput{
+		Name:           policyName,
+		Description:    pointer.ToString(policyDescription),
+		InventoryInput: getInventoryPolicyInput(),
+		WorkforceInput: nil,
+	})
+	require.NoError(t, err)
+
+	client := ent.FromContext(ctx)
+	pps := client.PermissionsPolicy.Query().AllX(ctx)
+	require.Len(t, pps, 1)
+
+	_, err = mr.DeletePermissionsPolicy(ctx, pps[0].ID)
+	require.NoError(t, err)
 }
 
 func TestAddEmptyPermissionsPolicy(t *testing.T) {
