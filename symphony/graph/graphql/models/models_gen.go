@@ -486,7 +486,7 @@ type GeneralFilterInput struct {
 
 type InventoryPolicy struct {
 	Read          *BasicPermissionRule `json:"read"`
-	Location      *Cud                 `json:"location"`
+	Location      *LocationCud         `json:"location"`
 	Equipment     *Cud                 `json:"equipment"`
 	EquipmentType *Cud                 `json:"equipmentType"`
 	LocationType  *Cud                 `json:"locationType"`
@@ -521,6 +521,12 @@ type LinkSide struct {
 	Port      int `json:"port"`
 }
 
+type LocationCud struct {
+	Create *LocationPermissionRule `json:"create"`
+	Update *LocationPermissionRule `json:"update"`
+	Delete *LocationPermissionRule `json:"delete"`
+}
+
 type LocationFilterInput struct {
 	FilterType    LocationFilterType `json:"filterType"`
 	Operator      FilterOperator     `json:"operator"`
@@ -530,6 +536,11 @@ type LocationFilterInput struct {
 	IDSet         []int              `json:"idSet"`
 	StringSet     []string           `json:"stringSet"`
 	MaxDepth      *int               `json:"maxDepth"`
+}
+
+type LocationPermissionRule struct {
+	IsAllowed       models.PermissionValue `json:"isAllowed"`
+	LocationTypeIds []int                  `json:"locationTypeIds"`
 }
 
 type LocationSearchResult struct {
@@ -934,11 +945,17 @@ type WorkOrderSearchResult struct {
 }
 
 type WorkforceCud struct {
-	Create            *BasicPermissionRule `json:"create"`
-	Update            *BasicPermissionRule `json:"update"`
-	Delete            *BasicPermissionRule `json:"delete"`
-	Assign            *BasicPermissionRule `json:"assign"`
-	TransferOwnership *BasicPermissionRule `json:"transferOwnership"`
+	Create            *WorkforcePermissionRule `json:"create"`
+	Update            *WorkforcePermissionRule `json:"update"`
+	Delete            *WorkforcePermissionRule `json:"delete"`
+	Assign            *WorkforcePermissionRule `json:"assign"`
+	TransferOwnership *WorkforcePermissionRule `json:"transferOwnership"`
+}
+
+type WorkforcePermissionRule struct {
+	IsAllowed        models.PermissionValue `json:"isAllowed"`
+	ProjectTypeIds   []int                  `json:"projectTypeIds"`
+	WorkOrderTypeIds []int                  `json:"workOrderTypeIds"`
 }
 
 type WorkforcePolicy struct {

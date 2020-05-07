@@ -10,7 +10,6 @@ import (
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/privacy"
-	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer"
 
 	models2 "github.com/facebookincubator/symphony/graph/authz/models"
@@ -79,11 +78,7 @@ func AllowIfWorkOrderOwnerOrAssignee() privacy.MutationRule {
 func WorkOrderWritePolicyRule() privacy.MutationRule {
 	return privacy.WorkOrderMutationRuleFunc(func(ctx context.Context, m *ent.WorkOrderMutation) error {
 		cud := FromContext(ctx).WorkforcePolicy.Data
-		allowed := cudBasedCheck(&models.Cud{
-			Create: cud.Create,
-			Update: cud.Update,
-			Delete: cud.Delete,
-		}, m)
+		allowed := workforceCudBasedCheck(cud, m)
 		_, assigned := m.AssigneeID()
 		if assigned || m.AssigneeCleared() {
 			allowed = allowed && (cud.Assign.IsAllowed == models2.PermissionValueYes)

@@ -35,9 +35,9 @@ func getInventoryPolicyInput() *models2.InventoryPolicyInput {
 func getWorkforcePolicyInput() *models2.WorkforcePolicyInput {
 	return &models2.WorkforcePolicyInput{
 		Read: &models2.BasicPermissionRuleInput{IsAllowed: models2.PermissionValueNo},
-		Data: &models2.BasicWorkforceCUDInput{
-			Create: &models2.BasicPermissionRuleInput{IsAllowed: models2.PermissionValueYes},
-			Assign: &models2.BasicPermissionRuleInput{IsAllowed: models2.PermissionValueByCondition},
+		Data: &models2.WorkforceCUDInput{
+			Create: &models2.WorkforcePermissionRuleInput{IsAllowed: models2.PermissionValueYes},
+			Assign: &models2.WorkforcePermissionRuleInput{IsAllowed: models2.PermissionValueByCondition},
 		},
 	}
 }
@@ -200,10 +200,10 @@ func TestEditPermissionsPolicy(t *testing.T) {
 	newPolicyName := "new_" + policyName
 	newDescription := "New " + policyDescription
 	newInventoryPolicy := &models2.InventoryPolicyInput{
-		Location: &models2.BasicCUDInput{
-			Create: &models2.BasicPermissionRuleInput{IsAllowed: models2.PermissionValueYes},
-			Update: &models2.BasicPermissionRuleInput{IsAllowed: models2.PermissionValueNo},
-			Delete: &models2.BasicPermissionRuleInput{IsAllowed: models2.PermissionValueByCondition},
+		Location: &models2.LocationCUDInput{
+			Create: &models2.LocationPermissionRuleInput{IsAllowed: models2.PermissionValueYes},
+			Update: &models2.LocationPermissionRuleInput{IsAllowed: models2.PermissionValueNo},
+			Delete: &models2.LocationPermissionRuleInput{IsAllowed: models2.PermissionValueByCondition},
 		},
 	}
 	fetchedPermissionsPolicy1, err := mr.EditPermissionsPolicy(ctx, models.EditPermissionsPolicyInput{

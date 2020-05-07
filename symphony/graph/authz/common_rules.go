@@ -29,9 +29,41 @@ func cudBasedCheck(cud *models.Cud, m ent.Mutation) bool {
 	return permission.IsAllowed == models2.PermissionValueYes
 }
 
+func workforceCudBasedCheck(cud *models.WorkforceCud, m ent.Mutation) bool {
+	if m.Op().Is(ent.OpDeleteOne) || m.Op().Is(ent.OpDelete) {
+		return cud.Delete.IsAllowed == models2.PermissionValueYes
+	}
+	if m.Op().Is(ent.OpUpdateOne) || m.Op().Is(ent.OpUpdate) {
+		return cud.Update.IsAllowed == models2.PermissionValueYes
+	}
+	if m.Op().Is(ent.OpCreate) {
+		return cud.Create.IsAllowed == models2.PermissionValueYes
+	}
+	return false
+}
+
 func cudBasedRule(cud *models.Cud, m ent.Mutation) error {
 	if cudBasedCheck(cud, m) {
 		return privacy.Allow
+	}
+	return privacy.Skip
+}
+
+func locationCudBasedRule(cud *models.LocationCud, m ent.Mutation) error {
+	if m.Op().Is(ent.OpDeleteOne) || m.Op().Is(ent.OpDelete) {
+		if cud.Delete.IsAllowed == models2.PermissionValueYes {
+			return privacy.Allow
+		}
+	}
+	if m.Op().Is(ent.OpUpdateOne) || m.Op().Is(ent.OpUpdate) {
+		if cud.Update.IsAllowed == models2.PermissionValueYes {
+			return privacy.Allow
+		}
+	}
+	if m.Op().Is(ent.OpCreate) {
+		if cud.Create.IsAllowed == models2.PermissionValueYes {
+			return privacy.Allow
+		}
 	}
 	return privacy.Skip
 }

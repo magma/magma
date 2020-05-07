@@ -85,6 +85,17 @@ type BasicPermissionRule {
   isAllowed: PermissionValue!
 }
 
+type LocationPermissionRule {
+  isAllowed: PermissionValue!
+  locationTypeIds: [ID!]
+}
+
+type WorkforcePermissionRule {
+  isAllowed: PermissionValue!
+  projectTypeIds: [ID!]
+  workOrderTypeIds: [ID!]
+}
+
 input BasicPermissionRuleInput
   @goModel(
     model: "github.com/facebookincubator/symphony/graph/authz/models.BasicPermissionRuleInput"
@@ -92,10 +103,33 @@ input BasicPermissionRuleInput
   isAllowed: PermissionValue!
 }
 
+input LocationPermissionRuleInput
+  @goModel(
+    model: "github.com/facebookincubator/symphony/graph/authz/models.LocationPermissionRuleInput"
+  ) {
+  isAllowed: PermissionValue!
+  locationTypeIds: [ID!]
+}
+
+input WorkforcePermissionRuleInput
+  @goModel(
+    model: "github.com/facebookincubator/symphony/graph/authz/models.WorkforcePermissionRuleInput"
+  ) {
+  isAllowed: PermissionValue!
+  projectTypeIds: [ID!]
+  workOrderTypeIds: [ID!]
+}
+
 type CUD {
   create: BasicPermissionRule!
   update: BasicPermissionRule!
   delete: BasicPermissionRule!
+}
+
+type LocationCUD {
+  create: LocationPermissionRule!
+  update: LocationPermissionRule!
+  delete: LocationPermissionRule!
 }
 
 input BasicCUDInput
@@ -107,13 +141,22 @@ input BasicCUDInput
   delete: BasicPermissionRuleInput
 }
 
+input LocationCUDInput
+  @goModel(
+    model: "github.com/facebookincubator/symphony/graph/authz/models.LocationCUDInput"
+  ) {
+  create: LocationPermissionRuleInput
+  update: LocationPermissionRuleInput
+  delete: LocationPermissionRuleInput
+}
+
 type AdministrativePolicy {
   access: BasicPermissionRule!
 }
 
 type InventoryPolicy {
   read: BasicPermissionRule!
-  location: CUD!
+  location: LocationCUD!
   equipment: CUD!
   equipmentType: CUD!
   locationType: CUD!
@@ -126,7 +169,7 @@ input InventoryPolicyInput
     model: "github.com/facebookincubator/symphony/graph/authz/models.InventoryPolicyInput"
   ) {
   read: BasicPermissionRuleInput
-  location: BasicCUDInput
+  location: LocationCUDInput
   equipment: BasicCUDInput
   equipmentType: BasicCUDInput
   locationType: BasicCUDInput
@@ -135,22 +178,22 @@ input InventoryPolicyInput
 }
 
 type WorkforceCUD {
-  create: BasicPermissionRule!
-  update: BasicPermissionRule!
-  delete: BasicPermissionRule!
-  assign: BasicPermissionRule!
-  transferOwnership: BasicPermissionRule!
+  create: WorkforcePermissionRule!
+  update: WorkforcePermissionRule!
+  delete: WorkforcePermissionRule!
+  assign: WorkforcePermissionRule!
+  transferOwnership: WorkforcePermissionRule!
 }
 
-input BasicWorkforceCUDInput
+input WorkforceCUDInput
   @goModel(
-    model: "github.com/facebookincubator/symphony/graph/authz/models.BasicWorkforceCUDInput"
+    model: "github.com/facebookincubator/symphony/graph/authz/models.WorkforceCUDInput"
   ) {
-  create: BasicPermissionRuleInput
-  update: BasicPermissionRuleInput
-  delete: BasicPermissionRuleInput
-  assign: BasicPermissionRuleInput
-  transferOwnership: BasicPermissionRuleInput
+  create: WorkforcePermissionRuleInput
+  update: WorkforcePermissionRuleInput
+  delete: WorkforcePermissionRuleInput
+  assign: WorkforcePermissionRuleInput
+  transferOwnership: WorkforcePermissionRuleInput
 }
 
 type WorkforcePolicy {
@@ -164,7 +207,7 @@ input WorkforcePolicyInput
     model: "github.com/facebookincubator/symphony/graph/authz/models.WorkforcePolicyInput"
   ) {
   read: BasicPermissionRuleInput
-  data: BasicWorkforceCUDInput
+  data: WorkforceCUDInput
   templates: BasicCUDInput
 }
 
