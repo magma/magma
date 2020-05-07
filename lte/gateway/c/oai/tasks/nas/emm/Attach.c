@@ -279,10 +279,9 @@ int emm_proc_attach_request(
     no_attach_proc.ue_id = ue_id;
     no_attach_proc.emm_cause = ue_ctx.emm_context.emm_cause;
     no_attach_proc.esm_msg_out = NULL;
-    OAILOG_ERROR(
-        LOG_NAS_EMM,
-        "EMM-PROC - Sending Attach Reject for ue_id = " MME_UE_S1AP_ID_FMT
-        ")\n",
+    OAILOG_ERROR_UE(
+        LOG_NAS_EMM, ue_ctx.emm_context._imsi64,
+        "EMM-PROC - Sending Attach Reject for ue_id = " MME_UE_S1AP_ID_FMT "\n",
         ue_id);
     rc = _emm_attach_reject(
         &ue_ctx.emm_context, (struct nas_base_proc_s*) &no_attach_proc);
