@@ -455,6 +455,7 @@ static void _eps_bearer_deactivate_t3495_handler(void *args)
       bstring b = bstrcpy(esm_ebr_timer_data->msg);
       rc = _eps_bearer_deactivate(
         esm_ebr_timer_data->ctx, esm_ebr_timer_data->ebi, &b);
+      bdestroy_wrapper(&b);
     } else {
       /*
        * The maximum number of deactivate EPS bearer context request
@@ -581,7 +582,6 @@ static int _eps_bearer_deactivate(
   emm_sap.u.emm_esm.u.deactivate_bearer.ebi = ebi;
   emm_sap.u.emm_esm.u.deactivate_bearer.msg = *msg;
   bstring msg_dup = bstrcpy(*msg);
-  *msg = NULL;
   rc = emm_sap_send(&emm_sap);
 
   if (rc != RETURNerror) {
@@ -594,9 +594,8 @@ static int _eps_bearer_deactivate(
       msg_dup,
       mme_config.nas_config.t3495_sec,
       _eps_bearer_deactivate_t3495_handler);
-  } else {
-    bdestroy_wrapper(&msg_dup);
   }
+  bdestroy_wrapper(&msg_dup);
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
 }
 
