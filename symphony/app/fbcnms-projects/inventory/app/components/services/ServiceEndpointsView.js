@@ -18,7 +18,7 @@ import {createFragmentContainer, graphql} from 'react-relay';
 type Props = {
   // $FlowFixMe (T62907961) Relay flow types
   endpoints: ServiceEndpointsView_endpoints,
-  onDeleteEndpoint: (endpoint: ServiceEndpoint) => void,
+  onDeleteEndpoint: ?(endpoint: ServiceEndpoint) => void,
 };
 
 const ServiceEndpointsView = (props: Props) => {
@@ -31,7 +31,9 @@ const ServiceEndpointsView = (props: Props) => {
         .map(endpoint => (
           <ServiceEndpointDetails
             endpoint={endpoint}
-            onDeleteEndpoint={() => onDeleteEndpoint(endpoint)}
+            onDeleteEndpoint={
+              onDeleteEndpoint ? () => onDeleteEndpoint(endpoint) : null
+            }
           />
         ))}
     </div>

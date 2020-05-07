@@ -436,12 +436,14 @@ message CreateSessionResponse {
 message StaticRuleInstall {
   string rule_id = 1;
   google.protobuf.Timestamp activation_time = 2;
+  // Optional field. Set as 0 to mark as unused
   google.protobuf.Timestamp deactivation_time = 3;
 }
 
 message DynamicRuleInstall {
   PolicyRule policy_rule = 1;
   google.protobuf.Timestamp activation_time = 2;
+  // Optional field. Set as 0 to mark as unused
   google.protobuf.Timestamp deactivation_time = 3;
 }
 

@@ -213,7 +213,7 @@ func TestPoliciesAppendingOutput(t *testing.T) {
 func TestAdminUserHasAdminEditPermissions(t *testing.T) {
 	const admin = "admin_user"
 	client := viewertest.NewTestClient(t)
-	ctx := ent.NewContext(context.Background(), client)
+	ctx := viewertest.NewContext(context.Background(), client)
 	_, err := client.User.Create().
 		SetAuthID(admin).
 		SetRole(user.RoleADMIN).
@@ -231,7 +231,7 @@ func TestAdminUserHasAdminEditPermissions(t *testing.T) {
 func TestUserHasNoReadonlyPermissions(t *testing.T) {
 	const regular = "regular_user"
 	client := viewertest.NewTestClient(t)
-	ctx := ent.NewContext(context.Background(), client)
+	ctx := viewertest.NewContext(context.Background(), client)
 	_, err := client.User.Create().SetAuthID(regular).SetRole(user.RoleUSER).Save(ctx)
 	require.NoError(t, err)
 	ctx = viewertest.NewContext(context.Background(), client, viewertest.WithUser(regular))
@@ -244,7 +244,7 @@ func TestUserHasNoReadonlyPermissions(t *testing.T) {
 func TestOwnerHasWritePermissions(t *testing.T) {
 	const owner = "owner_user"
 	client := viewertest.NewTestClient(t)
-	ctx := ent.NewContext(context.Background(), client)
+	ctx := viewertest.NewContext(context.Background(), client)
 	_, err := client.User.Create().SetAuthID(owner).SetRole(user.RoleOWNER).Save(ctx)
 	require.NoError(t, err)
 	ctx = viewertest.NewContext(context.Background(), client, viewertest.WithUser(owner))
@@ -256,7 +256,7 @@ func TestOwnerHasWritePermissions(t *testing.T) {
 func TestUserInGroupHasWritePermissionsButNoAdmin(t *testing.T) {
 	const userInGroup = "user_in_group"
 	client := viewertest.NewTestClient(t)
-	ctx := ent.NewContext(context.Background(), client)
+	ctx := viewertest.NewContext(context.Background(), client)
 	u, err := client.User.Create().SetAuthID(userInGroup).Save(ctx)
 	require.NoError(t, err)
 	_, err = client.UsersGroup.Create().SetName(authz.WritePermissionGroupName).AddMembers(u).Save(ctx)

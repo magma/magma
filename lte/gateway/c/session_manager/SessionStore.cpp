@@ -101,7 +101,7 @@ bool SessionStore::update_sessions(const SessionUpdate& update_criteria) {
 
 bool SessionStore::merge_into_session(
     std::unique_ptr<SessionState>& session,
-    const SessionStateUpdateCriteria& update_criteria) {
+    SessionStateUpdateCriteria& update_criteria) {
   // FSM State
   if (update_criteria.is_fsm_updated) {
     session->set_fsm_state(update_criteria.updated_fsm_state);
@@ -121,16 +121,41 @@ bool SessionStore::merge_into_session(
                    << std::endl;
       return false;
     }
-    session->activate_static_rule(rule_id, uc);
+    if (update_criteria.new_rule_lifetimes.find(rule_id) != update_criteria.new_rule_lifetimes.end()) {
+      auto lifetime = update_criteria.new_rule_lifetimes[rule_id];
+      session->activate_static_rule(rule_id, lifetime, uc);
+    } else if (session->is_static_rule_scheduled(rule_id)) {
+      session->install_scheduled_static_rule(rule_id, uc);
+    } else {
+      MLOG(MERROR) << "Failed to merge: " << session->get_session_id()
+                << " because rule lifetime is unspecified: " << rule_id
+                << std::endl;
+      return false;
+
+    }
   }
   for (const auto& rule_id : update_criteria.static_rules_to_uninstall) {
-    if (!session->is_static_rule_installed(rule_id)) {
+    if (session->is_static_rule_installed(rule_id)) {
+      session->deactivate_static_rule(rule_id, uc);
+    } else if (session->is_static_rule_scheduled(rule_id)) {
+      session->install_scheduled_static_rule(rule_id, uc);
+      session->deactivate_static_rule(rule_id, uc);
+    } else {
       MLOG(MERROR) << "Failed to merge: " << session->get_session_id()
-                   << " because static rule already uninstalled: " << rule_id
+                << " because static rule already uninstalled: " << rule_id
+                << std::endl;
+      return false;
+    }
+  }
+  for (const auto& rule_id : update_criteria.new_scheduled_static_rules) {
+    if (session->is_static_rule_scheduled(rule_id)) {
+      MLOG(MERROR) << "Failed to merge: " << session->get_session_id()
+                   << " because static rule already scheduled: " << rule_id
                    << std::endl;
       return false;
     }
-    session->deactivate_static_rule(rule_id, uc);
+    auto lifetime = update_criteria.new_rule_lifetimes[rule_id];
+    session->schedule_static_rule(rule_id, lifetime, uc);
   }
 
   // Dynamic rules
@@ -141,17 +166,42 @@ bool SessionStore::merge_into_session(
                    << std::endl;
       return false;
     }
-    session->insert_dynamic_rule(rule, uc);
+    if (update_criteria.new_rule_lifetimes.find(rule.id()) != update_criteria.new_rule_lifetimes.end()) {
+      auto lifetime = update_criteria.new_rule_lifetimes[rule.id()];
+      session->insert_dynamic_rule(rule, lifetime, uc);
+    } else if (session->is_dynamic_rule_scheduled(rule.id())) {
+      session->install_scheduled_dynamic_rule(rule.id(), uc);
+    } else {
+      MLOG(MERROR) << "Failed to merge: " << session->get_session_id()
+                << " because rule lifetime is unspecified: " << rule.id()
+                << std::endl;
+      return false;
+
+    }
   }
   PolicyRule* _ = {};
   for (const auto& rule_id : update_criteria.dynamic_rules_to_uninstall) {
-    if (!session->is_dynamic_rule_installed(rule_id)) {
+    if (session->is_dynamic_rule_installed(rule_id)) {
+      session->remove_dynamic_rule(rule_id, _, uc);
+    } else if (session->is_dynamic_rule_scheduled(rule_id)) {
+      session->install_scheduled_static_rule(rule_id, uc);
+      session->remove_dynamic_rule(rule_id, _, uc);
+    } else {
       MLOG(MERROR) << "Failed to merge: " << session->get_session_id()
-                   << " because dynamic rule already uninstalled: " << rule_id
+                << " because dynamic rule already uninstalled: " << rule_id
+                << std::endl;
+      return false;
+    }
+  }
+  for (const auto& rule : update_criteria.new_scheduled_dynamic_rules) {
+    if (session->is_dynamic_rule_scheduled(rule.id())) {
+       MLOG(MERROR) << "Failed to merge: " << session->get_session_id()
+                   << " because dynamic rule already scheduled: " << rule.id()
                    << std::endl;
       return false;
     }
-    session->remove_dynamic_rule(rule_id, _, uc);
+    auto lifetime = update_criteria.new_rule_lifetimes[rule.id()];
+    session->schedule_dynamic_rule(rule, lifetime, uc);
   }
 
   // Charging credit

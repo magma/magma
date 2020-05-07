@@ -191,24 +191,22 @@ class AddEditServiceTypeCard extends React.Component<Props, State> {
               ) : null}
             </Grid>
           </SectionedCard>
-          {serviceEndpointsEnabled ? (
-            <SectionedCard>
-              <Grid container direction="column" spacing={3}>
-                <Grid item xs={12} xl={7}>
-                  <CardSection
-                    className={classes.section}
-                    title="Service Endpoints">
-                    <ServiceEndpointDefinitionTable
-                      serviceEndpointDefinitions={endpointDefinitions}
-                      onServiceEndpointDefinitionsChanged={
-                        this._endpointChangedHandler
-                      }
-                    />
-                  </CardSection>
-                </Grid>
+          <SectionedCard>
+            <Grid container direction="column" spacing={3}>
+              <Grid item xs={12} xl={7}>
+                <CardSection
+                  className={classes.section}
+                  title="Service Endpoints">
+                  <ServiceEndpointDefinitionTable
+                    serviceEndpointDefinitions={endpointDefinitions}
+                    onServiceEndpointDefinitionsChanged={
+                      this._endpointChangedHandler
+                    }
+                  />
+                </CardSection>
               </Grid>
-            </SectionedCard>
-          ) : null}
+            </Grid>
+          </SectionedCard>
           <SectionedCard>
             <Grid container direction="column" spacing={3}>
               <Grid item xs={12} xl={7}>

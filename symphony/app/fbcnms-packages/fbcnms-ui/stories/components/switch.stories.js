@@ -30,13 +30,8 @@ const useStyles = makeStyles(_theme => ({
     flexDirection: 'column',
     marginTop: '32px',
   },
-  displayOption: {
-    marginTop: '4px',
-    display: 'flex',
-    alignItems: 'center',
-  },
   optionCheckbox: {
-    marginRight: '8px',
+    marginTop: '4px',
   },
 }));
 
@@ -45,39 +40,45 @@ const SwitchRoot = () => {
   const [checked, setChecked] = useState(true);
   const [isCritical, setIsCritical] = useState(false);
   const [isDisabled, setIsDisabled] = useState(false);
+  const [isBold, setIsBold] = useState(false);
   return (
     <div className={classes.root}>
       <div className={classes.sample}>
         <Switch
           checked={checked}
+          title={checked ? 'On' : 'Off'}
+          variant={isBold ? 'subtitle2' : 'body2'}
           onChange={setChecked}
           disabled={isDisabled}
           skin={isCritical ? 'critical' : undefined}
         />
-        <Text variant="body1">{checked ? 'On' : 'Off'}</Text>
       </div>
       <div className={classes.optionsContainer}>
         <Text variant="h6">Variants:</Text>
-        <div className={classes.displayOption}>
-          <Checkbox
-            className={classes.optionCheckbox}
-            checked={isDisabled}
-            onChange={selection =>
-              setIsDisabled(selection === 'checked' ? true : false)
-            }
-          />
-          <Text>Show disabled</Text>
-        </div>
-        <div className={classes.displayOption}>
-          <Checkbox
-            className={classes.optionCheckbox}
-            checked={isCritical}
-            onChange={selection =>
-              setIsCritical(selection === 'checked' ? true : false)
-            }
-          />
-          <Text>Show critical</Text>
-        </div>
+        <Checkbox
+          className={classes.optionCheckbox}
+          checked={isDisabled}
+          title="Show disabled"
+          onChange={selection =>
+            setIsDisabled(selection === 'checked' ? true : false)
+          }
+        />
+        <Checkbox
+          className={classes.optionCheckbox}
+          checked={isCritical}
+          title="Show critical"
+          onChange={selection =>
+            setIsCritical(selection === 'checked' ? true : false)
+          }
+        />
+        <Checkbox
+          className={classes.optionCheckbox}
+          checked={isBold}
+          title="Show bold"
+          onChange={selection =>
+            setIsBold(selection === 'checked' ? true : false)
+          }
+        />
       </div>
     </div>
   );

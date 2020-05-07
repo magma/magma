@@ -14,36 +14,6 @@ import (
 	models2 "github.com/facebookincubator/symphony/graph/authz/models"
 )
 
-func mutationWithPermissionRule(rule func(context.Context, ent.Mutation, *models.PermissionSettings) error) privacy.MutationRule {
-	return privacy.MutationRuleFunc(func(ctx context.Context, m ent.Mutation) error {
-		p := FromContext(ctx)
-		if p == nil {
-			return privacy.Skip
-		}
-		return rule(ctx, m, p)
-	})
-}
-
-func workOrderMutationWithPermissionRule(rule func(context.Context, *ent.WorkOrderMutation, *models.PermissionSettings) error) privacy.MutationRule {
-	return privacy.WorkOrderMutationRuleFunc(func(ctx context.Context, m *ent.WorkOrderMutation) error {
-		p := FromContext(ctx)
-		if p == nil {
-			return privacy.Skip
-		}
-		return rule(ctx, m, p)
-	})
-}
-
-func projectMutationWithPermissionRule(rule func(context.Context, *ent.ProjectMutation, *models.PermissionSettings) error) privacy.MutationRule {
-	return privacy.ProjectMutationRuleFunc(func(ctx context.Context, m *ent.ProjectMutation) error {
-		p := FromContext(ctx)
-		if p == nil {
-			return privacy.Skip
-		}
-		return rule(ctx, m, p)
-	})
-}
-
 func cudBasedCheck(cud *models.Cud, m ent.Mutation) bool {
 	if m.Op().Is(ent.OpDeleteOne) || m.Op().Is(ent.OpDelete) {
 		return cud.Delete.IsAllowed == models2.PermissionValueYes
@@ -66,19 +36,19 @@ func cudBasedRule(cud *models.Cud, m ent.Mutation) error {
 
 // AllowWritePermissionsRule grants write permission.
 func AllowWritePermissionsRule() privacy.MutationRule {
-	return mutationWithPermissionRule(func(ctx context.Context, _ ent.Mutation, p *models.PermissionSettings) error {
-		if p.CanWrite {
+	return privacy.MutationRuleFunc(func(ctx context.Context, m ent.Mutation) error {
+		if FromContext(ctx).CanWrite {
 			return privacy.Allow
 		}
 		return privacy.Skip
 	})
 }
 
-// AlwaysAllowIfNoPermissionRule grants access if no permissions is present on context.
-func AlwaysAllowIfNoPermissionRule() privacy.MutationRule {
+// AlwaysDenyIfNoPermissionRule denies access if no permissions is present on context.
+func AlwaysDenyIfNoPermissionRule() privacy.MutationRule {
 	return privacy.MutationRuleFunc(func(ctx context.Context, _ ent.Mutation) error {
 		if FromContext(ctx) == nil {
-			return privacy.Allow
+			return privacy.Deny
 		}
 		return privacy.Skip
 	})

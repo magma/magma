@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 61d82aeb57c07ab7d2cdf92e109463c1
+ * @relayHash 508fbce657016bdc693a108a258a667e
  */
 
 /* eslint-disable */
@@ -80,7 +80,7 @@ export type AddServiceTypeMutationResponse = {|
       +category: ?string,
       +isDeleted: ?boolean,
     |}>,
-    +endpointDefinitions: $ReadOnlyArray<?{|
+    +endpointDefinitions: $ReadOnlyArray<{|
       +id: string,
       +index: number,
       +role: ?string,

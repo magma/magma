@@ -13,19 +13,12 @@ from typing import Any, Callable, List, Mapping, Optional
 from time import perf_counter
 from dataclasses_json import DataClassJsonMixin
 
-from gql.gql.enum_utils import enum_field
-from ..enum.user_role import UserRole
-from ..enum.user_status import UserStatus
+from ..fragment.user import UserFragment, QUERY as UserFragmentQuery
 
-
-QUERY: List[str] = ["""
+QUERY: List[str] = UserFragmentQuery + ["""
 query UserQuery($authID: String!) {
   user(authID: $authID) {
-    id
-    authID
-    email
-    status
-    role
+    ...UserFragment
   }
 }
 
@@ -36,12 +29,8 @@ class UserQuery(DataClassJsonMixin):
     @dataclass
     class UserQueryData(DataClassJsonMixin):
         @dataclass
-        class User(DataClassJsonMixin):
-            id: str
-            authID: str
-            email: str
-            status: UserStatus = enum_field(UserStatus)
-            role: UserRole = enum_field(UserRole)
+        class User(UserFragment):
+            pass
 
         user: Optional[User]
 

@@ -9,6 +9,8 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/facebookincubator/symphony/graph/ent/privacy"
+
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/pkg/testdb"
@@ -23,7 +25,7 @@ func TestInstantiation(t *testing.T) {
 		WithOptions(ent.Driver(sql.OpenDB(name, db))),
 	)
 
-	ctx := context.Background()
+	ctx := privacy.DecisionContext(context.Background(), privacy.Allow)
 	typ := client.LocationType.
 		Create().
 		SetName("planet").

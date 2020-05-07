@@ -10,11 +10,13 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/facebookincubator/symphony/pkg/actions/executor"
-
+	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/pkg/actions"
 	"github.com/facebookincubator/symphony/pkg/actions/core"
+	"github.com/facebookincubator/symphony/pkg/actions/executor"
 )
+
+const ActionsAlertServiceName = "ActionsAlertService"
 
 type (
 	// ActionsAlertService is an ActionsAlertService
@@ -44,7 +46,11 @@ func (s ActionsAlertService) Trigger(ctx context.Context, payload *AlertPayload)
 	if err != nil {
 		return &ExecutionResult{}, status.Error(codes.Internal, "error getting tenant client")
 	}
-	res := client.Execute(context.Background(), "", idToPayload)
+	ctx, err = CreateServiceContext(ctx, payload.TenantID, ActionsAlertServiceName, user.RoleOWNER)
+	if err != nil {
+		return &ExecutionResult{}, status.Error(codes.Internal, "error getting service context")
+	}
+	res := client.Execute(ctx, "", idToPayload)
 
 	return executorResultToMessage(res), nil
 }

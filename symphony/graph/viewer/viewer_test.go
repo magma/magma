@@ -15,6 +15,7 @@ import (
 	"testing"
 
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/ent/privacy"
 	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
@@ -58,6 +59,17 @@ func TestViewerHandler(t *testing.T) {
 			},
 		},
 		{
+			name: "NoRole",
+			prepare: func(req *http.Request) {
+				req.Header.Set(viewer.TenantHeader, "test")
+				req.Header.Set(viewer.UserHeader, "user")
+			},
+			expect: func(t *testing.T, rec *httptest.ResponseRecorder) {
+				assert.Equal(t, http.StatusBadRequest, rec.Code)
+				assert.NotZero(t, rec.Body.Len())
+			},
+		},
+		{
 			name: "WithUserEntNotExist",
 			prepare: func(req *http.Request) {
 				req.Header.Set(viewer.TenantHeader, "test")
@@ -72,8 +84,7 @@ func TestViewerHandler(t *testing.T) {
 			name: "WithNoUserInViewer",
 			prepare: func(req *http.Request) {
 				req.Header.Set(viewer.TenantHeader, "test")
-				req.Header.Set(viewer.UserHeader, "")
-				req.Header.Set(viewer.RoleHeader, "")
+				req.Header.Set(viewer.RoleHeader, string(user.RoleOWNER))
 			},
 			expect: func(t *testing.T, rec *httptest.ResponseRecorder) {
 				assert.Equal(t, http.StatusServiceUnavailable, rec.Code)
@@ -83,7 +94,9 @@ func TestViewerHandler(t *testing.T) {
 
 	client := viewertest.NewTestClient(t)
 	ctx := ent.NewContext(context.Background(), client)
-	_, err := client.User.Create().SetAuthID("user").Save(ctx)
+	_, err := client.User.Create().
+		SetAuthID("user").
+		Save(privacy.DecisionContext(ctx, privacy.Allow))
 	require.NoError(t, err)
 
 	h := viewer.TenancyHandler(
@@ -222,6 +235,7 @@ func TestWebSocketUpgradeHandler(t *testing.T) {
 func TestDeactivatedUser(t *testing.T) {
 	client := viewertest.NewTestClient(t)
 	ctx := ent.NewContext(context.Background(), client)
+	ctx = privacy.DecisionContext(ctx, privacy.Allow)
 	deactivatedUser, err := client.User.Create().
 		SetAuthID("deactivated_user").
 		SetStatus(user.StatusDEACTIVATED).
@@ -263,7 +277,8 @@ func TestViewerMarshalLog(t *testing.T) {
 	core, o := observer.New(zap.InfoLevel)
 	logger := zap.New(core)
 	c := viewertest.NewTestClient(t)
-	u, err := c.User.Create().SetAuthID("tester").Save(context.Background())
+	ctx := privacy.DecisionContext(context.Background(), privacy.Allow)
+	u, err := c.User.Create().SetAuthID("tester").Save(ctx)
 	require.NoError(t, err)
 	v := viewer.NewUser("test", u)
 	logger.Info("viewer log test", zap.Object("viewer", v))

@@ -243,6 +243,7 @@ int main(int argc, char *argv[])
     aaa_client,
     config["session_force_termination_timeout_ms"].as<long>(),
     quota_exhaust_termination_on_init_ms);
+  monitor->sync_sessions_on_restart(time(NULL));
 
   magma::service303::MagmaService server(SESSIOND_SERVICE, SESSIOND_VERSION);
   auto local_handler = std::make_unique<magma::LocalSessionManagerHandlerImpl>(

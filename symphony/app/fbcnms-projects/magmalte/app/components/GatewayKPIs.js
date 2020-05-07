@@ -8,23 +8,20 @@
  * @format
  */
 
-import Card from '@material-ui/core/Card';
-import CardContent from '@material-ui/core/CardContent';
-import CardHeader from '@material-ui/core/CardHeader';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
-import Grid from '@material-ui/core/Grid';
+import KPITray from './KPITray';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React, {useEffect, useState} from 'react';
-import Text from '@fbcnms/ui/components/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
+import type {KPIData} from './KPITray';
 import type {lte_gateway} from '@fbcnms/magma-api';
 
 const GATEWAY_KEEPALIVE_TIMEOUT_MS = 1000 * 5 * 60;
 
 export default function GatewayKPIs() {
-  const [gatewaySt, setGatewaySt] = useState({});
+  const [gatewaySt, setGatewaySt] = useState<{[string]: lte_gateway}>({});
   const {match} = useRouter();
   const networkId: string = nullthrows(match.params.networkId);
   const enqueueSnackbar = useEnqueueSnackbar();
@@ -46,48 +43,12 @@ export default function GatewayKPIs() {
   }, [networkId, enqueueSnackbar]);
 
   const [upCount, downCount] = gatewayStatus(gatewaySt);
-  return (
-    <Grid container alignItems="center">
-      <Grid item>
-        <Card elevation={0}>
-          <CardHeader title="Gateways" />
-          <CardContent>
-            <CellWifiIcon fontSize="large" />
-          </CardContent>
-        </Card>
-      </Grid>
-      <Grid item>
-        <Card variant="outlined">
-          <CardHeader title="Severe Events" />
-          <CardContent>
-            <Text variant="h6" data-testid="Severe Events">
-              0
-            </Text>
-          </CardContent>
-        </Card>
-      </Grid>
-      <Grid item>
-        <Card variant="outlined">
-          <CardHeader title="Connected" />
-          <CardContent>
-            <Text variant="h6" data-testid="Connected">
-              {upCount ?? 0}
-            </Text>
-          </CardContent>
-        </Card>
-      </Grid>
-      <Grid item>
-        <Card variant="outlined">
-          <CardHeader title="Disconnected" />
-          <CardContent>
-            <Text variant="h6" data-testid="Disconnected">
-              {downCount ?? 0}
-            </Text>
-          </CardContent>
-        </Card>
-      </Grid>
-    </Grid>
-  );
+  const kpiData: KPIData[] = [
+    {category: 'Severe Events', value: 0},
+    {category: 'Connected', value: upCount || 0},
+    {category: 'Disconnected', value: downCount || 0},
+  ];
+  return <KPITray icon={CellWifiIcon} description="Gateways" data={kpiData} />;
 }
 
 function gatewayStatus(gatewaySt: {[string]: lte_gateway}): [number, number] {

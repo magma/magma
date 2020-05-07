@@ -152,6 +152,11 @@ struct StoredUsageMonitoringCreditPool {
   std::unordered_map<std::string, StoredMonitor> monitor_map;
 };
 
+struct RuleLifetime {
+  std::time_t activation_time; // Unix timestamp
+  std::time_t deactivation_time; // Unix timestamp
+};
+
 struct StoredSessionState {
   SessionFsmState fsm_state;
   SessionConfig config;
@@ -164,6 +169,9 @@ struct StoredSessionState {
   magma::lte::TgppContext tgpp_context;
   std::vector<std::string> static_rule_ids;
   std::vector<PolicyRule> dynamic_rules;
+  std::set<std::string> scheduled_static_rules;
+  std::vector<PolicyRule> scheduled_dynamic_rules;
+  std::unordered_map<std::string, RuleLifetime> rule_lifetimes;
   uint32_t request_number;
 };
 
@@ -188,8 +196,11 @@ struct SessionStateUpdateCriteria {
   SessionFsmState updated_fsm_state;
   std::set<std::string> static_rules_to_install;
   std::set<std::string> static_rules_to_uninstall;
+  std::set<std::string> new_scheduled_static_rules;
   std::vector<PolicyRule> dynamic_rules_to_install;
   std::set<std::string> dynamic_rules_to_uninstall;
+  std::vector<PolicyRule> new_scheduled_dynamic_rules;
+  std::unordered_map<std::string, RuleLifetime> new_rule_lifetimes;
   std::unordered_map<CreditKey, StoredSessionCredit, decltype(&ccHash),
                      decltype(&ccEqual)>
       charging_credit_to_install;

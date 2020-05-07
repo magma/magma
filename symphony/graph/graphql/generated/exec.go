@@ -8873,7 +8873,7 @@ type ServiceType implements Node {
   propertyTypes: [PropertyType]!
   services: [Service]!
   numberOfServices: Int!
-  endpointDefinitions: [ServiceEndpointDefinition]!
+  endpointDefinitions: [ServiceEndpointDefinition!]!
   discoveryMethod: DiscoveryMethod
 }
 
@@ -29450,7 +29450,7 @@ func (ec *executionContext) _ServiceType_endpointDefinitions(ctx context.Context
 	}
 	res := resTmp.([]*ent.ServiceEndpointDefinition)
 	fc.Result = res
-	return ec.marshalNServiceEndpointDefinition2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐServiceEndpointDefinition(ctx, field.Selections, res)
+	return ec.marshalNServiceEndpointDefinition2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐServiceEndpointDefinitionᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ServiceType_discoveryMethod(ctx context.Context, field graphql.CollectedField, obj *ent.ServiceType) (ret graphql.Marshaler) {
@@ -52331,7 +52331,7 @@ func (ec *executionContext) marshalNServiceEndpointDefinition2githubᚗcomᚋfac
 	return ec._ServiceEndpointDefinition(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNServiceEndpointDefinition2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐServiceEndpointDefinition(ctx context.Context, sel ast.SelectionSet, v []*ent.ServiceEndpointDefinition) graphql.Marshaler {
+func (ec *executionContext) marshalNServiceEndpointDefinition2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐServiceEndpointDefinitionᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.ServiceEndpointDefinition) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -52355,7 +52355,7 @@ func (ec *executionContext) marshalNServiceEndpointDefinition2ᚕᚖgithubᚗcom
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOServiceEndpointDefinition2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐServiceEndpointDefinition(ctx, sel, v[i])
+			ret[i] = ec.marshalNServiceEndpointDefinition2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐServiceEndpointDefinition(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -55360,17 +55360,6 @@ func (ec *executionContext) marshalOServiceEndpoint2ᚖgithubᚗcomᚋfacebookin
 		return graphql.Null
 	}
 	return ec._ServiceEndpoint(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalOServiceEndpointDefinition2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐServiceEndpointDefinition(ctx context.Context, sel ast.SelectionSet, v ent.ServiceEndpointDefinition) graphql.Marshaler {
-	return ec._ServiceEndpointDefinition(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalOServiceEndpointDefinition2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐServiceEndpointDefinition(ctx context.Context, sel ast.SelectionSet, v *ent.ServiceEndpointDefinition) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._ServiceEndpointDefinition(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOServiceEndpointDefinitionInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceEndpointDefinitionInput(ctx context.Context, v interface{}) (models.ServiceEndpointDefinitionInput, error) {

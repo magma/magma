@@ -29,7 +29,7 @@ func prepareProjectData(ctx context.Context, c *ent.Client) (*ent.ProjectType, *
 }
 func TestProjectWritePolicyRule(t *testing.T) {
 	c := viewertest.NewTestClient(t)
-	ctx := context.Background()
+	ctx := viewertest.NewContext(context.Background(), c)
 	projectType, project := prepareProjectData(ctx, c)
 	createProject := func(ctx context.Context) error {
 		_, err := c.Project.Create().
@@ -127,7 +127,7 @@ func TestProjectTransferOwnershipWritePolicyRule(t *testing.T) {
 
 func TestProjectTypeWritePolicyRule(t *testing.T) {
 	c := viewertest.NewTestClient(t)
-	ctx := context.Background()
+	ctx := viewertest.NewContext(context.Background(), c)
 	projectType := c.ProjectType.Create().
 		SetName("ProjectType").
 		SaveX(ctx)

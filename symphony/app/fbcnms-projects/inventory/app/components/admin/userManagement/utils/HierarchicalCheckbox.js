@@ -10,7 +10,6 @@
 
 import * as React from 'react';
 import Checkbox from '@fbcnms/ui/components/design-system/Checkbox/Checkbox';
-import Text from '@fbcnms/ui/components/design-system/Text';
 import useSideEffectCallback from './useSideEffectCallback';
 import {
   HierarchyContextProvider,
@@ -23,9 +22,6 @@ const useStyles = makeStyles(() => ({
   root: {
     display: 'flex',
     flexDirection: 'column',
-  },
-  checkContainer: {
-    display: 'flex',
   },
   children: {
     marginLeft: '24px',
@@ -84,17 +80,15 @@ function CheckboxSubTree(props: SubTreeProps) {
 
   return (
     <div className={classes.root}>
-      <div className={classes.checkContainer}>
-        <Checkbox
-          checked={hierarchyContext.parentValue === true}
-          indeterminate={
-            hierarchyContext.parentValue == null &&
-            !hierarchyContext.childrenValues.isEmpty()
-          }
-          onChange={status => onChange(status === 'checked')}
-        />
-        <Text>{title}</Text>
-      </div>
+      <Checkbox
+        checked={hierarchyContext.parentValue === true}
+        indeterminate={
+          hierarchyContext.parentValue == null &&
+          !hierarchyContext.childrenValues.isEmpty()
+        }
+        title={title}
+        onChange={status => onChange(status === 'checked')}
+      />
       <div className={classes.children}>{children}</div>
     </div>
   );

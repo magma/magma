@@ -4,6 +4,6 @@ RUN apk update \
  && apk add jq \
  && rm -rf /var/cache/apk/*
 
-COPY integration/job_runner/gc.sh .
+COPY integration/job_runner/*.sh ./
 
 ENTRYPOINT ["/bin/sh"]
