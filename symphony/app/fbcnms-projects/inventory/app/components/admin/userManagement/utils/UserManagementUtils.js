@@ -393,38 +393,36 @@ export type BasicPermissionRule = $ReadOnly<{|
   isAllowed: PermissionValue,
 |}>;
 
-export type CUDPermissionsRule = $ReadOnly<{|
+export type CUDPermissions = $ReadOnly<{|
   create: BasicPermissionRule,
   update: BasicPermissionRule,
   delete: BasicPermissionRule,
 |}>;
 
 export type InventoryCatalogPolicy = $ReadOnly<{|
-  equipmentType: CUDPermissionsRule,
-  locationType: CUDPermissionsRule,
-  portType: CUDPermissionsRule,
-  serviceType: CUDPermissionsRule,
+  equipmentType: CUDPermissions,
+  locationType: CUDPermissions,
+  portType: CUDPermissions,
+  serviceType: CUDPermissions,
 |}>;
 
 export type InventoryPolicy = $ReadOnly<{|
   read: BasicPermissionRule,
-  location: CUDPermissionsRule,
-  equipment: CUDPermissionsRule,
+  location: CUDPermissions,
+  equipment: CUDPermissions,
   ...InventoryCatalogPolicy,
 |}>;
 
-export type WorkforceCUD = $ReadOnly<{|
-  create: BasicPermissionRule,
-  update: BasicPermissionRule,
-  delete: BasicPermissionRule,
+export type WorkforceCUDPermissions = $ReadOnly<{|
   assign: BasicPermissionRule,
   transferOwnership: BasicPermissionRule,
+  ...CUDPermissions,
 |}>;
 
 export type WorkforcePolicy = $ReadOnly<{|
   read: BasicPermissionRule,
-  data: WorkforceCUD,
-  templates: CUDPermissionsRule,
+  data: WorkforceCUDPermissions,
+  templates: CUDPermissions,
 |}>;
 
 export type PermissionsPolicyRules = InventoryPolicy | WorkforcePolicy | {||};
@@ -513,7 +511,7 @@ export const permissionPolicyBasicRule2PermissionPolicyBasicRuleInput = (
 };
 
 export const permissionPolicyCUDRule2PermissionPolicyCUDRuleInput = (
-  rule: ?CUDPermissionsRule,
+  rule: ?CUDPermissions,
 ) => {
   return {
     create: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
@@ -529,7 +527,7 @@ export const permissionPolicyCUDRule2PermissionPolicyCUDRuleInput = (
 };
 
 export const permissionPolicyWFCUDRule2PermissionPolicyWFCUDRuleInput = (
-  rule: ?WorkforceCUD,
+  rule: ?WorkforceCUDPermissions,
 ) => {
   return {
     create: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(

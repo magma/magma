@@ -9,7 +9,7 @@
  */
 
 import type {
-  CUDPermissionsRule,
+  CUDPermissions,
   InventoryCatalogPolicy,
   InventoryPolicy,
 } from '../utils/UserManagementUtils';
@@ -44,7 +44,7 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-type RuleCUDKey = string & $Keys<CUDPermissionsRule>;
+type RuleCUDKey = string & $Keys<CUDPermissions>;
 type RuleCatalogKey = string & $Keys<InventoryCatalogPolicy>;
 
 type CatalogRuleProps = $ReadOnly<{|
@@ -77,7 +77,7 @@ function CatalogRule(props: CatalogRuleProps) {
 type CatalogsTreeProps = $ReadOnly<{|
   title: React.Node,
   policy: InventoryPolicy,
-  ruleCUD: string & $Keys<CUDPermissionsRule>,
+  ruleCUD: string & $Keys<CUDPermissions>,
   onChange: InventoryPolicy => void,
 |}>;
 

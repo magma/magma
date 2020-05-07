@@ -9,7 +9,7 @@
  */
 
 import type {
-  CUDPermissionsRule,
+  CUDPermissions,
   InventoryPolicy,
 } from '../utils/UserManagementUtils';
 
@@ -51,14 +51,14 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-type CUDPermissionsKey = $Keys<CUDPermissionsRule>;
+type CUDPermissionsKey = $Keys<CUDPermissions>;
 
 type InventoryDataRuleProps = $ReadOnly<{|
   title: React.Node,
-  rule: CUDPermissionsRule,
+  rule: CUDPermissions,
   cudAction: string & CUDPermissionsKey,
   disabled: boolean,
-  onChange: CUDPermissionsRule => void,
+  onChange: CUDPermissions => void,
 |}>;
 
 function InventoryDataRule(props: InventoryDataRuleProps) {
@@ -90,9 +90,9 @@ function InventoryDataRule(props: InventoryDataRuleProps) {
 type InventoryDataRulesSectionProps = $ReadOnly<{|
   title: React.Node,
   subtitle: React.Node,
-  rule: ?CUDPermissionsRule,
+  rule: ?CUDPermissions,
   disabled: boolean,
-  onChange: CUDPermissionsRule => void,
+  onChange: CUDPermissions => void,
 |}>;
 
 function InventoryDataRulesSection(props: InventoryDataRulesSectionProps) {

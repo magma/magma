@@ -8,7 +8,10 @@
  * @format
  */
 
-import type {WorkforceCUD, WorkforcePolicy} from '../utils/UserManagementUtils';
+import type {
+  WorkforceCUDPermissions,
+  WorkforcePolicy,
+} from '../utils/UserManagementUtils';
 
 import * as React from 'react';
 import Checkbox from '@fbcnms/ui/components/design-system/Checkbox/Checkbox';
@@ -51,9 +54,9 @@ const useStyles = makeStyles(() => ({
 type InventoryDataRulesSectionProps = $ReadOnly<{|
   title: React.Node,
   subtitle: React.Node,
-  rule: ?WorkforceCUD,
+  rule: ?WorkforceCUDPermissions,
   disabled: boolean,
-  onChange: WorkforceCUD => void,
+  onChange: WorkforceCUDPermissions => void,
 |}>;
 
 function WorkforceDataRulesSection(props: InventoryDataRulesSectionProps) {

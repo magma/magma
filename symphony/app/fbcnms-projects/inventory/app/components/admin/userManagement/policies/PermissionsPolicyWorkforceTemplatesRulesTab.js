@@ -9,7 +9,7 @@
  */
 
 import type {
-  CUDPermissionsRule,
+  CUDPermissions,
   WorkforcePolicy,
 } from '../utils/UserManagementUtils';
 
@@ -52,8 +52,8 @@ const useStyles = makeStyles(() => ({
 type InventoryDataRulesSectionProps = $ReadOnly<{|
   title: React.Node,
   subtitle: React.Node,
-  rule: ?CUDPermissionsRule,
-  onChange: CUDPermissionsRule => void,
+  rule: ?CUDPermissions,
+  onChange: CUDPermissions => void,
 |}>;
 
 function WorkforceTemplatesRulesSection(props: InventoryDataRulesSectionProps) {
