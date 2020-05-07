@@ -13,11 +13,12 @@ from typing import Any, Callable, List, Mapping, Optional
 from time import perf_counter
 from dataclasses_json import DataClassJsonMixin
 
+from ..fragment.link import LinkFragment, QUERY as LinkFragmentQuery
 from ..fragment.property import PropertyFragment, QUERY as PropertyFragmentQuery
 from ..input.edit_equipment_port import EditEquipmentPortInput
 
 
-QUERY: List[str] = PropertyFragmentQuery + ["""
+QUERY: List[str] = LinkFragmentQuery + PropertyFragmentQuery + ["""
 mutation EditEquipmentPortMutation($input: EditEquipmentPortInput!) {
   editEquipmentPort(input: $input) {
     id
@@ -33,13 +34,7 @@ mutation EditEquipmentPortMutation($input: EditEquipmentPortInput!) {
       }
     }
     link {
-      id
-      services {
-        id
-      }
-      properties {
-        ...PropertyFragment
-      }
+      ...LinkFragment
     }
   }
 }
@@ -68,18 +63,8 @@ class EditEquipmentPortMutation(DataClassJsonMixin):
                 portType: Optional[EquipmentPortType]
 
             @dataclass
-            class Link(DataClassJsonMixin):
-                @dataclass
-                class Service(DataClassJsonMixin):
-                    id: str
-
-                @dataclass
-                class Property(PropertyFragment):
-                    pass
-
-                id: str
-                services: List[Service]
-                properties: List[Property]
+            class Link(LinkFragment):
+                pass
 
             id: str
             properties: List[Property]

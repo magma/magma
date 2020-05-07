@@ -14,10 +14,11 @@ from time import perf_counter
 from dataclasses_json import DataClassJsonMixin
 
 from ..fragment.customer import CustomerFragment, QUERY as CustomerFragmentQuery
+from ..fragment.link import LinkFragment, QUERY as LinkFragmentQuery
 from ..input.add_service_endpoint import AddServiceEndpointInput
 
 
-QUERY: List[str] = CustomerFragmentQuery + ["""
+QUERY: List[str] = CustomerFragmentQuery + LinkFragmentQuery + ["""
 mutation AddServiceEndpointMutation($input: AddServiceEndpointInput!) {
   addServiceEndpoint(input: $input) {
     id
@@ -36,7 +37,7 @@ mutation AddServiceEndpointMutation($input: AddServiceEndpointInput!) {
       }
     }
     links {
-      id
+      ...LinkFragment
     }
   }
 }
@@ -68,8 +69,8 @@ class AddServiceEndpointMutation(DataClassJsonMixin):
                 port: Optional[EquipmentPort]
 
             @dataclass
-            class Link(DataClassJsonMixin):
-                id: str
+            class Link(LinkFragment):
+                pass
 
             id: str
             name: str

@@ -14,11 +14,12 @@ from time import perf_counter
 from dataclasses_json import DataClassJsonMixin
 
 from ..fragment.customer import CustomerFragment, QUERY as CustomerFragmentQuery
+from ..fragment.link import LinkFragment, QUERY as LinkFragmentQuery
 from ..fragment.property import PropertyFragment, QUERY as PropertyFragmentQuery
 from ..input.service_create_data import ServiceCreateData
 
 
-QUERY: List[str] = CustomerFragmentQuery + PropertyFragmentQuery + ["""
+QUERY: List[str] = CustomerFragmentQuery + LinkFragmentQuery + PropertyFragmentQuery + ["""
 mutation AddServiceMutation($data: ServiceCreateData!) {
   addService(data: $data) {
     id
@@ -43,13 +44,7 @@ mutation AddServiceMutation($data: ServiceCreateData!) {
           }
         }
         link {
-          id
-          properties {
-            ...PropertyFragment
-          }
-          services {
-            id
-          }
+          ...LinkFragment
         }
       }
       definition {
@@ -57,13 +52,7 @@ mutation AddServiceMutation($data: ServiceCreateData!) {
       }
     }
     links {
-      id
-      properties {
-        ...PropertyFragment
-      }
-      services {
-        id
-      }
+      ...LinkFragment
     }
   }
 }
@@ -100,18 +89,8 @@ class AddServiceMutation(DataClassJsonMixin):
                         portType: Optional[EquipmentPortType]
 
                     @dataclass
-                    class Link(DataClassJsonMixin):
-                        @dataclass
-                        class Property(PropertyFragment):
-                            pass
-
-                        @dataclass
-                        class Service(DataClassJsonMixin):
-                            id: str
-
-                        id: str
-                        properties: List[Property]
-                        services: List[Service]
+                    class Link(LinkFragment):
+                        pass
 
                     id: str
                     properties: List[Property]
@@ -127,18 +106,8 @@ class AddServiceMutation(DataClassJsonMixin):
                 port: Optional[EquipmentPort]
 
             @dataclass
-            class Link(DataClassJsonMixin):
-                @dataclass
-                class Property(PropertyFragment):
-                    pass
-
-                @dataclass
-                class Service(DataClassJsonMixin):
-                    id: str
-
-                id: str
-                properties: List[Property]
-                services: List[Service]
+            class Link(LinkFragment):
+                pass
 
             id: str
             name: str

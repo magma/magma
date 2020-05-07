@@ -19,13 +19,7 @@ query ServiceDetailsQuery($id: ID!) {
             name
           }
           link {
-            id
-            properties {
-              ...PropertyFragment
-            }
-            services {
-              id
-            }
+            ...LinkFragment
           }
         }
         definition {
@@ -33,13 +27,7 @@ query ServiceDetailsQuery($id: ID!) {
         }
       }
       links {
-        id
-        properties {
-          ...PropertyFragment
-        }
-        services {
-          id
-        }
+        ...LinkFragment
       }
     }
   }

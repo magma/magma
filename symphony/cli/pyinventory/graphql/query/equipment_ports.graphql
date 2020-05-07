@@ -15,13 +15,7 @@ query EquipmentPortsQuery($id: ID!) {
           }
         }
         link {
-          id
-          properties {
-            ...PropertyFragment
-          }
-          services {
-            id
-          }
+          ...LinkFragment
         }
       }
     }
