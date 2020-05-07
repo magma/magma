@@ -11,10 +11,13 @@
 import logging from '@fbcnms/logging';
 import {
   addTenantIdPrefix,
+  anythingTo,
   assertValueIsWithoutInfixSeparator,
   createProxyOptionsBuffer,
   withInfixSeparator,
 } from '../utils.js';
+
+import type {BeforeFun, Event, TransformerRegistrationFun} from '../../types';
 
 const logger = logging.getLogger(module);
 
@@ -39,7 +42,7 @@ curl -H "x-auth-organization: fb-test" \
 ' -v
 */
 
-function sanitizeEvent(tenantId, event) {
+function sanitizeEvent(tenantId: string, event: Event) {
   // prefix event name
   addTenantIdPrefix(tenantId, event);
   // 'event' attribute uses following format:
@@ -58,31 +61,31 @@ function sanitizeEvent(tenantId, event) {
   }
 }
 
-function postEventBefore(tenantId, req, res, proxyCallback) {
+const postEventBefore: BeforeFun = (tenantId, req, res, proxyCallback) => {
   const reqObj = req.body;
-  logger.debug(`Transforming '${JSON.stringify(reqObj)}'`);
-  sanitizeEvent(tenantId, reqObj);
+  logger.debug('Transforming', {reqObj});
+  sanitizeEvent(tenantId, anythingTo<Event>(reqObj));
   proxyCallback({buffer: createProxyOptionsBuffer(reqObj, req)});
-}
+};
 
-function putEventBefore(tenantId, req, res, proxyCallback) {
+const putEventBefore: BeforeFun = (tenantId, req, res, proxyCallback) => {
   const reqObj = req.body;
-  logger.debug(`Transforming '${JSON.stringify(reqObj)}'`);
-  sanitizeEvent(tenantId, reqObj);
+  logger.debug('Transforming', {reqObj});
+  sanitizeEvent(tenantId, anythingTo<Event>(reqObj));
   proxyCallback({buffer: createProxyOptionsBuffer(reqObj, req)});
-}
+};
 
-export default function() {
-  return [
-    {
-      method: 'post',
-      url: '/api/event',
-      before: postEventBefore,
-    },
-    {
-      method: 'put',
-      url: '/api/event',
-      before: putEventBefore,
-    },
-  ];
-}
+const registration: TransformerRegistrationFun = () => [
+  {
+    method: 'post',
+    url: '/api/event',
+    before: postEventBefore,
+  },
+  {
+    method: 'put',
+    url: '/api/event',
+    before: putEventBefore,
+  },
+];
+
+export default registration;
