@@ -399,14 +399,18 @@ export type CUDPermissionsRule = $ReadOnly<{|
   delete: BasicPermissionRule,
 |}>;
 
-export type InventoryPolicy = $ReadOnly<{|
-  read: BasicPermissionRule,
-  location: CUDPermissionsRule,
-  equipment: CUDPermissionsRule,
+export type InventoryCatalogPolicy = $ReadOnly<{|
   equipmentType: CUDPermissionsRule,
   locationType: CUDPermissionsRule,
   portType: CUDPermissionsRule,
   serviceType: CUDPermissionsRule,
+|}>;
+
+export type InventoryPolicy = $ReadOnly<{|
+  read: BasicPermissionRule,
+  location: CUDPermissionsRule,
+  equipment: CUDPermissionsRule,
+  ...InventoryCatalogPolicy,
 |}>;
 
 export type WorkforceCUD = $ReadOnly<{|
@@ -603,8 +607,10 @@ export const permissionsPolicy2PermissionsPolicyInput = (
   };
 };
 
-export function bool2PermissionRuleValue(value: boolean) {
-  return value ? PERMISSION_RULE_VALUES.YES : PERMISSION_RULE_VALUES.NO;
+export function bool2PermissionRuleValue(value: ?boolean): PermissionValue {
+  return value === true
+    ? PERMISSION_RULE_VALUES.YES
+    : PERMISSION_RULE_VALUES.NO;
 }
 
 export function permissionRuleValue2Bool(value: PermissionValue) {
