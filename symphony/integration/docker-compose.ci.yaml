@@ -45,7 +45,8 @@ services:
     depends_on:
       - mysql
       - nats
-    healthcheck: *healthcheck
+    healthcheck: &healthcheck
+      test: curl -If localhost/healthz/liveness
     restart: on-failure
 
   store:
