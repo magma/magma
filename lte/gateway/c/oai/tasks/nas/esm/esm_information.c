@@ -299,7 +299,8 @@ static int _esm_information(
       emm_context_p->esm_ctx.T3489.sec);
   } else {
     bdestroy_wrapper(&data->msg);
-    free_wrapper((void**) data);
+    free_wrapper((void**) &data);
   }
+  bdestroy_wrapper(&emm_esm->msg);
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
 }
