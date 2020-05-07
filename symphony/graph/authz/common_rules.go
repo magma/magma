@@ -15,16 +15,18 @@ import (
 )
 
 func cudBasedCheck(cud *models.Cud, m ent.Mutation) bool {
-	if m.Op().Is(ent.OpDeleteOne) || m.Op().Is(ent.OpDelete) {
-		return cud.Delete.IsAllowed == models2.PermissionValueYes
+	var permission *models.BasicPermissionRule
+	switch {
+	case m.Op().Is(ent.OpCreate):
+		permission = cud.Create
+	case m.Op().Is(ent.OpUpdateOne | ent.OpUpdate):
+		permission = cud.Update
+	case m.Op().Is(ent.OpDeleteOne | ent.OpDelete):
+		permission = cud.Delete
+	default:
+		return false
 	}
-	if m.Op().Is(ent.OpUpdateOne) || m.Op().Is(ent.OpUpdate) {
-		return cud.Update.IsAllowed == models2.PermissionValueYes
-	}
-	if m.Op().Is(ent.OpCreate) {
-		return cud.Create.IsAllowed == models2.PermissionValueYes
-	}
-	return false
+	return permission.IsAllowed == models2.PermissionValueYes
 }
 
 func cudBasedRule(cud *models.Cud, m ent.Mutation) error {
