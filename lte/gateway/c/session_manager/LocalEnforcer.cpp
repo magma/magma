@@ -181,6 +181,8 @@ bool LocalEnforcer::setup(
 }
 
 void LocalEnforcer::sync_sessions_on_restart(std::time_t current_time) {
+  std::unordered_set<std::string> imsis_to_terminate;
+
   auto session_map    = session_store_.read_all_sessions();
   auto session_update = SessionStore::get_default_session_update(session_map);
   // Update the sessions so that their rules match the current timestamp
@@ -188,6 +190,11 @@ void LocalEnforcer::sync_sessions_on_restart(std::time_t current_time) {
     auto imsi = it.first;
     for (auto& session : it.second) {
       auto& uc = session_update[it.first][session->get_session_id()];
+      // Reschedule termination if it was pending before
+      if (session->get_state() == SESSION_TERMINATION_SCHEDULED) {
+        imsis_to_terminate.insert(imsi);
+      }
+
       session->sync_rules_to_time(current_time, uc);
       auto ip_addr = session->get_subscriber_ip_addr();
 
@@ -228,6 +235,7 @@ void LocalEnforcer::sync_sessions_on_restart(std::time_t current_time) {
       }
     }
   }
+  schedule_termination(imsis_to_terminate);
   bool success = session_store_.update_sessions(session_update);
   if (success) {
     MLOG(MDEBUG) << "Successfully synced sessions after restart";
@@ -313,7 +321,7 @@ void LocalEnforcer::terminate_service(
     const std::vector<PolicyRule>& dynamic_rules,
     SessionUpdate& session_update) {
   pipelined_client_->deactivate_flows_for_rules(imsi, rule_ids, dynamic_rules);
-
+  MLOG(MINFO) << "Initiating session termination for " << imsi;
   auto it = session_map.find(imsi);
   if (it == session_map.end()) {
     MLOG(MWARNING) << "Could not find session with IMSI " << imsi
@@ -322,7 +330,7 @@ void LocalEnforcer::terminate_service(
   }
 
   for (const auto &session : it->second) {
-    if (!session->is_active()) {
+    if (session->is_terminating()) {
       // If the session is terminating already, do nothing.
       continue;
     }
@@ -867,34 +875,28 @@ void LocalEnforcer::handle_session_init_subscriber_quota_state(
   MLOG(MDEBUG) << "Scheduling session for subscriber " << imsi
                << "to be terminated in "
                << quota_exhaustion_termination_on_init_ms_ << " ms";
-  evb_->runAfterDelay(
-      [this, imsi] {
-        MLOG(MDEBUG) << "Starting termination due to quota exhaustion for"
-                     << " IMSI " << imsi;
-        SessionRead req  = {imsi};
+  auto imsi_set = std::unordered_set<std::string>{imsi};
+  schedule_termination(imsi_set);
+}
+
+void LocalEnforcer::schedule_termination(std::unordered_set<std::string>& imsis) {
+    evb_->runAfterDelay(
+      [this, imsis] {
+        SessionRead req;
+        req.insert(imsis.begin(), imsis.end());
         auto session_map = session_store_.read_sessions_for_deletion(req);
-        auto it          = session_map.find(imsi);
-        if (it == session_map.end()) {
-          MLOG(MDEBUG) << "Session for IMSI " << imsi << " not found";
-          return;
-        }
+
         SessionUpdate session_update =
             SessionStore::get_default_session_update(session_map);
-        for (const auto& session : it->second) {
-          RulesToProcess rules;
-          populate_rules_from_session_to_remove(imsi, session, rules);
-          // terminate_service will properly propagate subscriber quota state
-          // as terminated
-          terminate_service(
-              session_map, imsi, rules.static_rules, rules.dynamic_rules,
-              session_update);
-        }
+
+        terminate_multiple_services(session_map, imsis, session_update);
         bool end_success = session_store_.update_sessions(session_update);
         if (end_success) {
-          MLOG(MDEBUG) << "Ended session with imsi: " << imsi;
+          MLOG(MDEBUG) << "Succeeded in updating session store with "
+                       << "termination initialization";
         } else {
-          MLOG(MERROR) << "Failed to update SessionStore with ended sessions "
-                       << "with imsi: " << imsi;
+          MLOG(MDEBUG) << "Failed in updating session store with "
+                       << "termination initialization";
         }
       },
       quota_exhaustion_termination_on_init_ms_);
