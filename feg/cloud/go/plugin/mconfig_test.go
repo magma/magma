@@ -100,7 +100,7 @@ func TestBuilder_Build(t *testing.T) {
 					Realm:            "magma.com",
 					Host:             "magma-fedgw.magma.com",
 				},
-				// Expect 2, one comming from server and one from serverS
+				// Expect 2, one coming from server and one from serverS
 				Servers: []*mconfig.DiamClientConfig{
 					&mconfig.DiamClientConfig{
 						Protocol:         "tcp",
@@ -136,7 +136,7 @@ func TestBuilder_Build(t *testing.T) {
 					Realm:            "magma.com",
 					Host:             "magma-fedgw.magma.com",
 				},
-				// Expect 2, one comming from server and one from serverS
+				// Expect 2, one coming from server and one from serverS
 				Servers: []*mconfig.DiamClientConfig{
 					&mconfig.DiamClientConfig{
 						Protocol:         "tcp",
@@ -176,6 +176,29 @@ func TestBuilder_Build(t *testing.T) {
 				ProductName:      "magma",
 				Realm:            "magma.com",
 				Host:             "magma-fedgw.magma.com",
+			},
+			// Expect 2, one coming from server and one from serverS
+			Servers: []*mconfig.DiamClientConfig{
+				&mconfig.DiamClientConfig{
+					Protocol:         "sctp",
+					Address:          "",
+					Retransmits:      0x3,
+					WatchdogInterval: 0x1,
+					RetryCount:       0x5,
+					ProductName:      "magma",
+					Realm:            "magma.com",
+					Host:             "magma-fedgw.magma.com",
+				},
+				&mconfig.DiamClientConfig{
+					Protocol:         "sctp",
+					Address:          "",
+					Retransmits:      0x3,
+					WatchdogInterval: 0x1,
+					RetryCount:       0x5,
+					ProductName:      "swx1.magma",
+					Realm:            "swx1.magma.com",
+					Host:             "magma-fedgw.magma.com",
+				},
 			},
 			VerifyAuthorization: false,
 			CacheTTLSeconds:     10800,
@@ -307,6 +330,17 @@ var defaultConfig = &models.NetworkFederationConfigs{
 			ProductName:      "magma",
 			Host:             "magma-fedgw.magma.com",
 			Realm:            "magma.com",
+		},
+		Servers: []*models.DiameterClientConfigs{
+			&models.DiameterClientConfigs{
+				Protocol:         "sctp",
+				Retransmits:      3,
+				WatchdogInterval: 1,
+				RetryCount:       5,
+				ProductName:      "swx1.magma",
+				Host:             "magma-fedgw.magma.com",
+				Realm:            "swx1.magma.com",
+			},
 		},
 		VerifyAuthorization: false,
 		CacheTTLSeconds:     10800,

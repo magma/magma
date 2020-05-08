@@ -93,6 +93,9 @@ message SwxConfig {
     bool derive_unregister_realm = 8;
     // PLMN IDs served by HLR
     repeated string hlr_plmn_ids = 9;
+    // Server where SWx points to (can be one or more than one)
+    repeated DiamClientConfig servers = 10;
+
 }
 
 message EapAkaConfig {
