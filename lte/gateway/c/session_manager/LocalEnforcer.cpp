@@ -445,20 +445,31 @@ void LocalEnforcer::install_redirect_flow(
     const std::unique_ptr<ServiceAction>& action) {
   std::vector<std::string> static_rules;
   std::vector<PolicyRule> dynamic_rules{create_redirect_rule(action)};
-  const std::string& imsi = action->get_imsi();
+  const std::string &imsi = action->get_imsi();
 
-  auto request = directoryd_client_->get_directoryd_ip_field(
-      imsi, [this, imsi, static_rules, dynamic_rules](
-                Status status, DirectoryField resp) {
-        if (!status.ok()) {
-          MLOG(MERROR) << "Could not fetch subscriber " << imsi << "ip, "
-                       << "redirection fails, error: "
-                       << status.error_message();
-        } else {
-          pipelined_client_->activate_flows_for_rules(
-              imsi, resp.value(), static_rules, dynamic_rules);
-        }
-      });
+  auto it = session_map_.find(imsi);
+  if (it == session_map_.end()) {
+      MLOG(MDEBUG) << "Session for IMSI " << imsi << " not found";
+      return;
+  }
+  auto request = directoryd_client_->get_directoryd_ip_field(imsi,
+    [this, imsi, static_rules, dynamic_rules, it](Status status,
+                                                  DirectoryField resp) {
+    if (!status.ok()) {
+      MLOG(MERROR) << "Could not fetch subscriber " << imsi << "ip, "
+                   << "redirection fails, error: " << status.error_message();
+    } else {
+      pipelined_client_->add_gy_final_action_flow(
+        imsi,
+        resp.value(),
+        static_rules,
+        dynamic_rules);
+      for (const auto &session : it->second) {
+          session->insert_gy_dynamic_rule(dynamic_rules.front());
+      }
+    }
+  }
+);
 }
 
 UpdateSessionRequest LocalEnforcer::collect_updates(
