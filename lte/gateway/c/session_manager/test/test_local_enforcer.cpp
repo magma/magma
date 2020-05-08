@@ -695,7 +695,8 @@ TEST_F(LocalEnforcerTest, test_termination_scheduling_on_sync_sessions) {
   // We expect the termination to take place once we run evb->loopOnce()
   EXPECT_CALL(
     *pipelined_client,
-    deactivate_flows_for_rules("IMSI1", CheckCount(1), testing::_));
+    deactivate_flows_for_rules("IMSI1", CheckCount(1), testing::_,
+                               RequestOriginType::GX));
   evb->loopOnce();
 
   // At this point, the state should have transitioned from
