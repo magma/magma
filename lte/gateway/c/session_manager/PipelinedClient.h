@@ -71,7 +71,8 @@ class PipelinedClient {
   virtual bool deactivate_flows_for_rules(
     const std::string& imsi,
     const std::vector<std::string>& rule_ids,
-    const std::vector<PolicyRule>& dynamic_rules) = 0;
+    const std::vector<PolicyRule>& dynamic_rules,
+    const RequestOriginType_OriginType origin_type) = 0;
 
   /**
    * Activate all rules for the specified rules, using a normal vector
@@ -178,7 +179,8 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
   bool deactivate_flows_for_rules(
     const std::string& imsi,
     const std::vector<std::string>& rule_ids,
-    const std::vector<PolicyRule>& dynamic_rules);
+    const std::vector<PolicyRule>& dynamic_rules,
+    const RequestOriginType_OriginType origin_type);
 
   /**
    * Activate all rules for the specified rules, using a normal vector

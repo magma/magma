@@ -478,13 +478,13 @@ TEST_F(LocalEnforcerTest, test_update_session_credits_and_rules_with_failure) {
   monitor_response->set_result_code(5001); // USER_UNKNOWN permanent failure
 
   // expect all rules attached to this session should be removed
-  EXPECT_CALL(*pipelined_client,
-              deactivate_flows_for_rules(
-                  "IMSI1", std::vector<std::string>{"rule1"}, CheckCount(0)))
-      .Times(1)
-      .WillOnce(testing::Return(true));
-  local_enforcer->update_session_credits_and_rules(session_map, update_response,
-                                                   update);
+  EXPECT_CALL(
+    *pipelined_client,
+    deactivate_flows_for_rules("IMSI1", std::vector<std::string>{"rule1"},
+                               CheckCount(0), testing::_))
+    .Times(1)
+    .WillOnce(testing::Return(true));
+  local_enforcer->update_session_credits_and_rules(session_map, update_response, update);
 
   // expect no update to credit
   assert_monitor_credit("IMSI1", ALLOWED_TOTAL, {{"1", 1024}});
@@ -723,7 +723,7 @@ TEST_F(LocalEnforcerTest, test_final_unit_handling) {
   local_enforcer->aggregate_records(session_map, table, update);
 
   EXPECT_CALL(*pipelined_client,
-              deactivate_flows_for_rules(testing::_, testing::_, testing::_))
+      deactivate_flows_for_rules(testing::_, testing::_, testing::_, testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
   // Since this is a termination triggered by SessionD/Core (quota exhaustion
@@ -770,10 +770,11 @@ TEST_F(LocalEnforcerTest, test_cwf_final_unit_handling) {
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table, update);
 
-  EXPECT_CALL(*pipelined_client,
-              deactivate_flows_for_rules(testing::_, testing::_, testing::_))
-      .Times(1)
-      .WillOnce(testing::Return(true));
+  EXPECT_CALL(
+    *pipelined_client,
+    deactivate_flows_for_rules(testing::_, testing::_, testing::_, testing::_))
+    .Times(1)
+    .WillOnce(testing::Return(true));
 
   EXPECT_CALL(*aaa_client, terminate_session(testing::_, testing::_))
       .Times(1)
@@ -1028,10 +1029,12 @@ TEST_F(LocalEnforcerTest, test_dynamic_rule_actions) {
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table, update);
 
-  EXPECT_CALL(*pipelined_client, deactivate_flows_for_rules(
-                                     testing::_, CheckCount(2), CheckCount(1)))
-      .Times(1)
-      .WillOnce(testing::Return(true));
+  EXPECT_CALL(
+    *pipelined_client,
+    deactivate_flows_for_rules(testing::_, CheckCount(2), CheckCount(1),
+                               testing::_))
+    .Times(1)
+    .WillOnce(testing::Return(true));
   std::vector<std::unique_ptr<ServiceAction>> actions;
   auto usage_updates =
       local_enforcer->collect_updates(session_map, actions, update);
@@ -1209,14 +1212,14 @@ TEST_F(LocalEnforcerTest, test_usage_monitors) {
                                  0, monitor_updates_response);
   monitor_updates_response->add_rules_to_remove("pcrf_only");
 
-  EXPECT_CALL(*pipelined_client,
-              deactivate_flows_for_rules("IMSI1",
-                                         std::vector<std::string>{"pcrf_only"},
-                                         CheckCount(0)))
-      .Times(1)
-      .WillOnce(testing::Return(true));
-  local_enforcer->update_session_credits_and_rules(session_map, update_response,
-                                                   update);
+  EXPECT_CALL(
+    *pipelined_client,
+    deactivate_flows_for_rules("IMSI1",
+      std::vector<std::string>{"pcrf_only"}, CheckCount(0),
+      RequestOriginType::GX))
+    .Times(1)
+    .WillOnce(testing::Return(true));
+  local_enforcer->update_session_credits_and_rules(session_map, update_response, update);
 
   // Test rule installation in usage monitor response for CCA-Update
   update_response.Clear();

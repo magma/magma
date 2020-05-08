@@ -13,6 +13,7 @@ import ipaddress
 from collections import namedtuple
 from redis import RedisError
 from urllib.parse import urlsplit
+from memoize import Memoizer
 
 from magma.configuration.service_configs import get_service_config_value
 from magma.pipelined.imsi import encode_imsi
@@ -24,7 +25,7 @@ from magma.redirectd.redirect_store import RedirectDict
 
 from ryu.lib.packet import ether_types
 from ryu.ofproto.inet import IPPROTO_TCP, IPPROTO_UDP
-from memoize import Memoizer
+from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
 
 
 class RedirectException(Exception):
@@ -144,7 +145,8 @@ class RedirectionManager:
         parser = datapath.ofproto_parser
         match_http = MagmaMatch(
             eth_type=ether_types.ETH_TYPE_IP, ip_proto=IPPROTO_TCP,
-            tcp_dst=80, imsi=encode_imsi(imsi), direction=Direction.OUT)
+            tcp_dst=80, imsi=encode_imsi(imsi), vlan_vid=(0x1000, 0x1000),
+            direction=Direction.OUT)
         of_note = parser.NXActionNote(list(rule.id.encode()))
 
         actions = [
@@ -210,14 +212,20 @@ class RedirectionManager:
                                     value=self.REDIRECT_PROCESSED),
             parser.OFPActionSetField(ipv4_dst=self._bridge_ip),
             parser.OFPActionSetField(tcp_dst=self._redirect_port),
+            parser.OFPActionPopVlan(),
             of_note,
         ]
         actions += self._load_rule_actions(parser, rule_num, imsi, rule.id)
 
-        flows.add_resubmit_current_service_flow(
+        # flows.add_resubmit_current_service_flow(
+        #     datapath, self._scratch_tbl_num, match_http, actions,
+        #     priority=priority, cookie=rule_num, hard_timeout=rule.hard_timeout,
+        #     resubmit_table=self.main_tbl_num)
+        flows.add_output_flow(
             datapath, self._scratch_tbl_num, match_http, actions,
             priority=priority, cookie=rule_num, hard_timeout=rule.hard_timeout,
-            resubmit_table=self.main_tbl_num)
+            output_port=OFPP_LOCAL)
+
 
         match = MagmaMatch(imsi=encode_imsi(imsi))
         action = []
