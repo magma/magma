@@ -26,6 +26,9 @@ aliases:
   - &tfvardir
     vardir: /tmp/tfvars
 
+  - &appdir
+    working_directory: app
+
 orbs:
   artifactory: circleci/artifactory@1.0.0
   docker: circleci/docker@1.0.0
@@ -53,6 +56,9 @@ executors:
   testim:
     docker:
       - image: testim/docker-cli:node-8
+  yarnnode:
+    docker:
+      - image: circleci/node:10-buster-browsers-legacy
 
 commands:
   getmods:
@@ -476,12 +482,35 @@ jobs:
               <<#parameters.options>><<parameters.options>><</parameters.options>>
       - *storetestdir
 
+  yarntest:
+    executor: yarnnode
+    steps:
+      - checkout
+      - restore_cache:
+          name: Restore Yarn Package Cache
+          keys:
+            - yarn-packages-{{ checksum "app/yarn.lock" }}
+      - run:
+          name: Install Dependencies
+          <<: *appdir
+          command: yarn install --frozen-lockfile
+      - save_cache:
+          name: Save Yarn Package Cache
+          key: yarn-packages-{{ checksum "app/yarn.lock" }}
+          paths:
+            - ~/.cache/yarn
+      - run:
+          name: yarn test
+          <<: *appdir
+          command: yarn test:ci
+
 workflows:
   version: 2.1
   all:
     jobs:
       - lint
       - unit
+      - yarntest
       - docker-publish:
           name: graph/publish
           dockerfile: graph/Dockerfile
