@@ -215,6 +215,8 @@ class SessionState {
 
   bool is_dynamic_rule_installed(const std::string& rule_id);
 
+  bool is_gy_dynamic_rule_installed(const std::string& rule_id);
+
   bool is_static_rule_installed(const std::string& rule_id);
 
   bool is_dynamic_rule_scheduled(const std::string& rule_id);
@@ -235,7 +237,8 @@ class SessionState {
       const std::string& rule_id, RuleLifetime& lifetime,
       SessionStateUpdateCriteria& update_criteria);
 
-  void insert_gy_dynamic_rule(const PolicyRule& rule);
+  void insert_gy_dynamic_rule(
+      const PolicyRule& rule, SessionStateUpdateCriteria& update_criteria);
 
   /**
    * Remove a currently active dynamic rule to mark it as deactivated.
@@ -266,8 +269,10 @@ class SessionState {
    */
   bool deactivate_static_rule(
       const std::string& rule_id, SessionStateUpdateCriteria& update_criteria);
-  
-  bool remove_gy_dynamic_rule(const std::string& rule_id, PolicyRule *rule_out);
+
+  bool remove_gy_dynamic_rule(
+      const std::string& rule_id, PolicyRule *rule_out,
+      SessionStateUpdateCriteria& update_criteria);
 
   bool deactivate_scheduled_static_rule(
       const std::string& rule_id, SessionStateUpdateCriteria& update_criteria);

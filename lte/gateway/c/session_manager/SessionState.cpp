@@ -508,6 +508,11 @@ bool SessionState::is_dynamic_rule_installed(const std::string& rule_id) {
   return dynamic_rules_.get_rule(rule_id, _);
 }
 
+bool SessionState::is_gy_dynamic_rule_installed(const std::string& rule_id) {
+  auto _ = new PolicyRule();
+  return gy_dynamic_rules_.get_rule(rule_id, _);
+}
+
 bool SessionState::is_static_rule_installed(const std::string& rule_id) {
   return std::find(
              active_static_rules_.begin(), active_static_rules_.end(),
@@ -526,8 +531,12 @@ void SessionState::insert_dynamic_rule(
   update_criteria.new_rule_lifetimes[rule.id()] = lifetime;
 }
 
-void SessionState::insert_gy_dynamic_rule(const PolicyRule& rule)
-{
+void SessionState::insert_gy_dynamic_rule(
+    const PolicyRule& rule,  SessionStateUpdateCriteria& update_criteria) {
+  if (is_gy_dynamic_rule_installed(rule.id())) {
+    return;
+  }
+  update_criteria.dynamic_rules_to_install.push_back(rule);
   gy_dynamic_rules_.insert_rule(rule);
 }
 
@@ -554,6 +563,17 @@ bool SessionState::remove_scheduled_dynamic_rule(
     const std::string& rule_id, PolicyRule* rule_out,
     SessionStateUpdateCriteria& update_criteria) {
   bool removed = scheduled_dynamic_rules_.remove_rule(rule_id, rule_out);
+  if (removed) {
+    update_criteria.dynamic_rules_to_uninstall.insert(rule_id);
+  }
+  return removed;
+}
+
+bool SessionState::remove_gy_dynamic_rule(
+  const std::string& rule_id, PolicyRule *rule_out,
+  SessionStateUpdateCriteria& update_criteria)
+{
+  bool removed = gy_dynamic_rules_.remove_rule(rule_id, rule_out);
   if (removed) {
     update_criteria.dynamic_rules_to_uninstall.insert(rule_id);
   }
