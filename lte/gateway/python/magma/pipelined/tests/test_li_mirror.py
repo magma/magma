@@ -71,6 +71,7 @@ class LIMirrorTest(unittest.TestCase):
                 'setup_type': 'CWF',
                 'bridge_name': cls.BRIDGE,
                 'bridge_ip_address': cls.BRIDGE_IP,
+                'internal_ip_subnet': '192.168.0.0/16',
                 'ovs_gtp_port_number': 32768,
                 'clean_restart': True,
                 'li_mirror_all': True,
