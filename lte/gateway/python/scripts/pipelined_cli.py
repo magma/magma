@@ -31,6 +31,7 @@ from lte.protos.pipelined_pb2 import (
     DeactivateFlowsRequest,
     RuleModResult,
     UEMacFlowRequest,
+    RequestOriginType,
 )
 from lte.protos.pipelined_pb2_grpc import PipelinedStub
 from lte.protos.policydb_pb2 import FlowMatch, FlowDescription, PolicyRule
@@ -44,7 +45,8 @@ from lte.protos.policydb_pb2 import FlowMatch, FlowDescription, PolicyRule
 def activate_flows(client, args):
     request = ActivateFlowsRequest(
         sid=SIDUtils.to_pb(args.imsi),
-        rule_ids=args.rule_ids.split(','))
+        rule_ids=args.rule_ids.split(','),
+        request_origin=RequestOriginType(type=RequestOriginType.GX))
     response = client.ActivateFlows(request)
     _print_rule_mod_results(response.static_rule_results)
 
@@ -53,7 +55,8 @@ def activate_flows(client, args):
 def deactivate_flows(client, args):
     request = DeactivateFlowsRequest(
         sid=SIDUtils.to_pb(args.imsi),
-        rule_ids=args.rule_ids.split(',') if args.rule_ids else [])
+        rule_ids=args.rule_ids.split(',') if args.rule_ids else [],
+        request_origin=RequestOriginType(type=RequestOriginType.GX))
     client.DeactivateFlows(request)
 
 
@@ -71,7 +74,8 @@ def activate_dynamic_rule(client, args):
                 FlowDescription(match=FlowMatch(
                     ipv4_src=args.ipv4_dst, direction=FlowMatch.DOWNLINK)),
             ],
-        )])
+        )],
+        request_origin=RequestOriginType(type=RequestOriginType.GX))
     response = client.ActivateFlows(request)
     _print_rule_mod_results(response.dynamic_rule_results)
 
