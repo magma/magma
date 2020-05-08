@@ -817,6 +817,8 @@ bool LocalEnforcer::init_session_credit(
   // errors are handled in session proxy
   for (const auto& monitor : response.usage_monitors()) {
     if (revalidation_required(monitor.event_triggers())) {
+      // TODO This will not work since the session is not initialized properly
+      // at this point
       schedule_revalidation(session_map, monitor.revalidation_time());
     }
     auto uc = get_default_update_criteria();
@@ -1067,11 +1069,6 @@ void LocalEnforcer::update_monitoring_credits_and_rules(
       continue;
     }
 
-    if (revalidation_required(usage_monitor_resp.event_triggers())) {
-      schedule_revalidation(
-          session_map, usage_monitor_resp.revalidation_time());
-    }
-
     for (const auto& session : it->second) {
       auto& update_criteria = session_update[imsi][session->get_session_id()];
       session->get_monitor_pool().receive_credit(
@@ -1125,6 +1122,11 @@ void LocalEnforcer::update_monitoring_credits_and_rules(
       if (session->is_radius_cwf_session() &&
           !session->active_monitored_rules_exist()) {
         subscribers_to_terminate.insert(imsi);
+      }
+
+      if (revalidation_required(usage_monitor_resp.event_triggers())) {
+        schedule_revalidation(
+            session_map, usage_monitor_resp.revalidation_time());
       }
     }
   }
@@ -1618,10 +1620,14 @@ void LocalEnforcer::check_usage_for_reporting(
   (*reporter_)
       .report_updates(
           request,
-          [this, request,
+          // For the context capture, pass by value, or create a new pointer so
+          // that the value is not lost
+          [this,
+           request,
            session_map_ptr =
                std::make_shared<SessionMap>(std::move(session_map)),
-           &session_update](Status status, UpdateSessionResponse response) {
+           session_update]
+               (Status status, UpdateSessionResponse response) mutable {
             if (!status.ok()) {
               MLOG(MERROR) << "Update of size " << request.updates_size()
                            << " to OCS and PCRF failed entirely: "
