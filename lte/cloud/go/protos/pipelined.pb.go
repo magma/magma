@@ -53,6 +53,31 @@ func (SetupFlowsResult_Result) EnumDescriptor() ([]byte, []int) {
 	return fileDescriptor_e17e923ef6f5752e, []int{4, 0}
 }
 
+type RequestOriginType_OriginType int32
+
+const (
+	RequestOriginType_GX RequestOriginType_OriginType = 0
+	RequestOriginType_GY RequestOriginType_OriginType = 1
+)
+
+var RequestOriginType_OriginType_name = map[int32]string{
+	0: "GX",
+	1: "GY",
+}
+
+var RequestOriginType_OriginType_value = map[string]int32{
+	"GX": 0,
+	"GY": 1,
+}
+
+func (x RequestOriginType_OriginType) String() string {
+	return proto.EnumName(RequestOriginType_OriginType_name, int32(x))
+}
+
+func (RequestOriginType_OriginType) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_e17e923ef6f5752e, []int{5, 0}
+}
+
 type RuleModResult_Result int32
 
 const (
@@ -78,7 +103,7 @@ func (x RuleModResult_Result) String() string {
 }
 
 func (RuleModResult_Result) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_e17e923ef6f5752e, []int{7, 0}
+	return fileDescriptor_e17e923ef6f5752e, []int{8, 0}
 }
 
 type SubscriberQuotaUpdate_Type int32
@@ -106,7 +131,7 @@ func (x SubscriberQuotaUpdate_Type) String() string {
 }
 
 func (SubscriberQuotaUpdate_Type) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_e17e923ef6f5752e, []int{13, 0}
+	return fileDescriptor_e17e923ef6f5752e, []int{14, 0}
 }
 
 // Deprecated
@@ -354,6 +379,45 @@ func (m *SetupFlowsResult) GetResult() SetupFlowsResult_Result {
 	return SetupFlowsResult_SUCCESS
 }
 
+type RequestOriginType struct {
+	Type                 RequestOriginType_OriginType `protobuf:"varint,1,opt,name=type,proto3,enum=magma.lte.RequestOriginType_OriginType" json:"type,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                     `json:"-"`
+	XXX_unrecognized     []byte                       `json:"-"`
+	XXX_sizecache        int32                        `json:"-"`
+}
+
+func (m *RequestOriginType) Reset()         { *m = RequestOriginType{} }
+func (m *RequestOriginType) String() string { return proto.CompactTextString(m) }
+func (*RequestOriginType) ProtoMessage()    {}
+func (*RequestOriginType) Descriptor() ([]byte, []int) {
+	return fileDescriptor_e17e923ef6f5752e, []int{5}
+}
+
+func (m *RequestOriginType) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_RequestOriginType.Unmarshal(m, b)
+}
+func (m *RequestOriginType) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_RequestOriginType.Marshal(b, m, deterministic)
+}
+func (m *RequestOriginType) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RequestOriginType.Merge(m, src)
+}
+func (m *RequestOriginType) XXX_Size() int {
+	return xxx_messageInfo_RequestOriginType.Size(m)
+}
+func (m *RequestOriginType) XXX_DiscardUnknown() {
+	xxx_messageInfo_RequestOriginType.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RequestOriginType proto.InternalMessageInfo
+
+func (m *RequestOriginType) GetType() RequestOriginType_OriginType {
+	if m != nil {
+		return m.Type
+	}
+	return RequestOriginType_GX
+}
+
 type ActivateFlowsRequest struct {
 	Sid *SubscriberID `protobuf:"bytes,1,opt,name=sid,proto3" json:"sid,omitempty"`
 	// Subscriber session ipv4 address
@@ -361,17 +425,18 @@ type ActivateFlowsRequest struct {
 	// List of static rules obtained from PCRF
 	RuleIds []string `protobuf:"bytes,3,rep,name=rule_ids,json=ruleIds,proto3" json:"rule_ids,omitempty"`
 	// List of dynamic rules obtained from PCRF
-	DynamicRules         []*PolicyRule `protobuf:"bytes,4,rep,name=dynamic_rules,json=dynamicRules,proto3" json:"dynamic_rules,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
-	XXX_unrecognized     []byte        `json:"-"`
-	XXX_sizecache        int32         `json:"-"`
+	DynamicRules         []*PolicyRule      `protobuf:"bytes,4,rep,name=dynamic_rules,json=dynamicRules,proto3" json:"dynamic_rules,omitempty"`
+	RequestOrigin        *RequestOriginType `protobuf:"bytes,5,opt,name=request_origin,json=requestOrigin,proto3" json:"request_origin,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}           `json:"-"`
+	XXX_unrecognized     []byte             `json:"-"`
+	XXX_sizecache        int32              `json:"-"`
 }
 
 func (m *ActivateFlowsRequest) Reset()         { *m = ActivateFlowsRequest{} }
 func (m *ActivateFlowsRequest) String() string { return proto.CompactTextString(m) }
 func (*ActivateFlowsRequest) ProtoMessage()    {}
 func (*ActivateFlowsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e17e923ef6f5752e, []int{5}
+	return fileDescriptor_e17e923ef6f5752e, []int{6}
 }
 
 func (m *ActivateFlowsRequest) XXX_Unmarshal(b []byte) error {
@@ -420,24 +485,32 @@ func (m *ActivateFlowsRequest) GetDynamicRules() []*PolicyRule {
 	return nil
 }
 
+func (m *ActivateFlowsRequest) GetRequestOrigin() *RequestOriginType {
+	if m != nil {
+		return m.RequestOrigin
+	}
+	return nil
+}
+
 // DeactivateFlowsRequest can be used to deactivate all flows for a subscriber,
 // all flows for some rules, or particular rules for a subscriber, depending on
 // which parameters are passed. Rule IDs can apply to static rules or dynamic
 // rules
 // If no rule ids are given, all flows are deactivated
 type DeactivateFlowsRequest struct {
-	Sid                  *SubscriberID `protobuf:"bytes,1,opt,name=sid,proto3" json:"sid,omitempty"`
-	RuleIds              []string      `protobuf:"bytes,2,rep,name=rule_ids,json=ruleIds,proto3" json:"rule_ids,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
-	XXX_unrecognized     []byte        `json:"-"`
-	XXX_sizecache        int32         `json:"-"`
+	Sid                  *SubscriberID      `protobuf:"bytes,1,opt,name=sid,proto3" json:"sid,omitempty"`
+	RuleIds              []string           `protobuf:"bytes,2,rep,name=rule_ids,json=ruleIds,proto3" json:"rule_ids,omitempty"`
+	RequestOrigin        *RequestOriginType `protobuf:"bytes,3,opt,name=request_origin,json=requestOrigin,proto3" json:"request_origin,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}           `json:"-"`
+	XXX_unrecognized     []byte             `json:"-"`
+	XXX_sizecache        int32              `json:"-"`
 }
 
 func (m *DeactivateFlowsRequest) Reset()         { *m = DeactivateFlowsRequest{} }
 func (m *DeactivateFlowsRequest) String() string { return proto.CompactTextString(m) }
 func (*DeactivateFlowsRequest) ProtoMessage()    {}
 func (*DeactivateFlowsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e17e923ef6f5752e, []int{6}
+	return fileDescriptor_e17e923ef6f5752e, []int{7}
 }
 
 func (m *DeactivateFlowsRequest) XXX_Unmarshal(b []byte) error {
@@ -472,6 +545,13 @@ func (m *DeactivateFlowsRequest) GetRuleIds() []string {
 	return nil
 }
 
+func (m *DeactivateFlowsRequest) GetRequestOrigin() *RequestOriginType {
+	if m != nil {
+		return m.RequestOrigin
+	}
+	return nil
+}
+
 type RuleModResult struct {
 	RuleId               string               `protobuf:"bytes,1,opt,name=rule_id,json=ruleId,proto3" json:"rule_id,omitempty"`
 	Result               RuleModResult_Result `protobuf:"varint,2,opt,name=result,proto3,enum=magma.lte.RuleModResult_Result" json:"result,omitempty"`
@@ -484,7 +564,7 @@ func (m *RuleModResult) Reset()         { *m = RuleModResult{} }
 func (m *RuleModResult) String() string { return proto.CompactTextString(m) }
 func (*RuleModResult) ProtoMessage()    {}
 func (*RuleModResult) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e17e923ef6f5752e, []int{7}
+	return fileDescriptor_e17e923ef6f5752e, []int{8}
 }
 
 func (m *RuleModResult) XXX_Unmarshal(b []byte) error {
@@ -531,7 +611,7 @@ func (m *ActivateFlowsResult) Reset()         { *m = ActivateFlowsResult{} }
 func (m *ActivateFlowsResult) String() string { return proto.CompactTextString(m) }
 func (*ActivateFlowsResult) ProtoMessage()    {}
 func (*ActivateFlowsResult) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e17e923ef6f5752e, []int{8}
+	return fileDescriptor_e17e923ef6f5752e, []int{9}
 }
 
 func (m *ActivateFlowsResult) XXX_Unmarshal(b []byte) error {
@@ -576,7 +656,7 @@ func (m *DeactivateFlowsResult) Reset()         { *m = DeactivateFlowsResult{} }
 func (m *DeactivateFlowsResult) String() string { return proto.CompactTextString(m) }
 func (*DeactivateFlowsResult) ProtoMessage()    {}
 func (*DeactivateFlowsResult) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e17e923ef6f5752e, []int{9}
+	return fileDescriptor_e17e923ef6f5752e, []int{10}
 }
 
 func (m *DeactivateFlowsResult) XXX_Unmarshal(b []byte) error {
@@ -613,7 +693,7 @@ func (m *FlowRequest) Reset()         { *m = FlowRequest{} }
 func (m *FlowRequest) String() string { return proto.CompactTextString(m) }
 func (*FlowRequest) ProtoMessage()    {}
 func (*FlowRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e17e923ef6f5752e, []int{10}
+	return fileDescriptor_e17e923ef6f5752e, []int{11}
 }
 
 func (m *FlowRequest) XXX_Unmarshal(b []byte) error {
@@ -686,7 +766,7 @@ func (m *FlowResponse) Reset()         { *m = FlowResponse{} }
 func (m *FlowResponse) String() string { return proto.CompactTextString(m) }
 func (*FlowResponse) ProtoMessage()    {}
 func (*FlowResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e17e923ef6f5752e, []int{11}
+	return fileDescriptor_e17e923ef6f5752e, []int{12}
 }
 
 func (m *FlowResponse) XXX_Unmarshal(b []byte) error {
@@ -727,7 +807,7 @@ func (m *UEMacFlowRequest) Reset()         { *m = UEMacFlowRequest{} }
 func (m *UEMacFlowRequest) String() string { return proto.CompactTextString(m) }
 func (*UEMacFlowRequest) ProtoMessage()    {}
 func (*UEMacFlowRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e17e923ef6f5752e, []int{12}
+	return fileDescriptor_e17e923ef6f5752e, []int{13}
 }
 
 func (m *UEMacFlowRequest) XXX_Unmarshal(b []byte) error {
@@ -797,7 +877,7 @@ func (m *SubscriberQuotaUpdate) Reset()         { *m = SubscriberQuotaUpdate{} }
 func (m *SubscriberQuotaUpdate) String() string { return proto.CompactTextString(m) }
 func (*SubscriberQuotaUpdate) ProtoMessage()    {}
 func (*SubscriberQuotaUpdate) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e17e923ef6f5752e, []int{13}
+	return fileDescriptor_e17e923ef6f5752e, []int{14}
 }
 
 func (m *SubscriberQuotaUpdate) XXX_Unmarshal(b []byte) error {
@@ -850,7 +930,7 @@ func (m *UpdateSubscriberQuotaStateRequest) Reset()         { *m = UpdateSubscri
 func (m *UpdateSubscriberQuotaStateRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateSubscriberQuotaStateRequest) ProtoMessage()    {}
 func (*UpdateSubscriberQuotaStateRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e17e923ef6f5752e, []int{14}
+	return fileDescriptor_e17e923ef6f5752e, []int{15}
 }
 
 func (m *UpdateSubscriberQuotaStateRequest) XXX_Unmarshal(b []byte) error {
@@ -891,7 +971,7 @@ func (m *TableAssignment) Reset()         { *m = TableAssignment{} }
 func (m *TableAssignment) String() string { return proto.CompactTextString(m) }
 func (*TableAssignment) ProtoMessage()    {}
 func (*TableAssignment) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e17e923ef6f5752e, []int{15}
+	return fileDescriptor_e17e923ef6f5752e, []int{16}
 }
 
 func (m *TableAssignment) XXX_Unmarshal(b []byte) error {
@@ -944,7 +1024,7 @@ func (m *AllTableAssignments) Reset()         { *m = AllTableAssignments{} }
 func (m *AllTableAssignments) String() string { return proto.CompactTextString(m) }
 func (*AllTableAssignments) ProtoMessage()    {}
 func (*AllTableAssignments) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e17e923ef6f5752e, []int{16}
+	return fileDescriptor_e17e923ef6f5752e, []int{17}
 }
 
 func (m *AllTableAssignments) XXX_Unmarshal(b []byte) error {
@@ -984,7 +1064,7 @@ func (m *SerializedRyuPacket) Reset()         { *m = SerializedRyuPacket{} }
 func (m *SerializedRyuPacket) String() string { return proto.CompactTextString(m) }
 func (*SerializedRyuPacket) ProtoMessage()    {}
 func (*SerializedRyuPacket) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e17e923ef6f5752e, []int{17}
+	return fileDescriptor_e17e923ef6f5752e, []int{18}
 }
 
 func (m *SerializedRyuPacket) XXX_Unmarshal(b []byte) error {
@@ -1030,7 +1110,7 @@ func (m *PacketDropTableId) Reset()         { *m = PacketDropTableId{} }
 func (m *PacketDropTableId) String() string { return proto.CompactTextString(m) }
 func (*PacketDropTableId) ProtoMessage()    {}
 func (*PacketDropTableId) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e17e923ef6f5752e, []int{18}
+	return fileDescriptor_e17e923ef6f5752e, []int{19}
 }
 
 func (m *PacketDropTableId) XXX_Unmarshal(b []byte) error {
@@ -1060,6 +1140,7 @@ func (m *PacketDropTableId) GetTableId() int32 {
 
 func init() {
 	proto.RegisterEnum("magma.lte.SetupFlowsResult_Result", SetupFlowsResult_Result_name, SetupFlowsResult_Result_value)
+	proto.RegisterEnum("magma.lte.RequestOriginType_OriginType", RequestOriginType_OriginType_name, RequestOriginType_OriginType_value)
 	proto.RegisterEnum("magma.lte.RuleModResult_Result", RuleModResult_Result_name, RuleModResult_Result_value)
 	proto.RegisterEnum("magma.lte.SubscriberQuotaUpdate_Type", SubscriberQuotaUpdate_Type_name, SubscriberQuotaUpdate_Type_value)
 	proto.RegisterType((*SetupFlowsRequest)(nil), "magma.lte.SetupFlowsRequest")
@@ -1067,6 +1148,7 @@ func init() {
 	proto.RegisterType((*SetupPolicyRequest)(nil), "magma.lte.SetupPolicyRequest")
 	proto.RegisterType((*SetupQuotaRequest)(nil), "magma.lte.SetupQuotaRequest")
 	proto.RegisterType((*SetupFlowsResult)(nil), "magma.lte.SetupFlowsResult")
+	proto.RegisterType((*RequestOriginType)(nil), "magma.lte.RequestOriginType")
 	proto.RegisterType((*ActivateFlowsRequest)(nil), "magma.lte.ActivateFlowsRequest")
 	proto.RegisterType((*DeactivateFlowsRequest)(nil), "magma.lte.DeactivateFlowsRequest")
 	proto.RegisterType((*RuleModResult)(nil), "magma.lte.RuleModResult")
