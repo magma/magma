@@ -168,6 +168,17 @@ bool SessionState::active_monitored_rules_exist() {
   return total_monitored_rules_count() > 0;
 }
 
+SessionFsmState SessionState::get_state() {
+  return curr_state_;
+}
+
+bool SessionState::is_terminating() {
+  if (is_active() || curr_state_ == SESSION_TERMINATION_SCHEDULED) {
+    return false;
+  }
+  return true;
+}
+
 void SessionState::get_updates_from_charging_pool(
     UpdateSessionRequest& update_request_out,
     std::vector<std::unique_ptr<ServiceAction>>* actions_out,

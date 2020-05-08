@@ -442,6 +442,8 @@ class LocalEnforcer {
   void handle_session_init_subscriber_quota_state(
       SessionMap& session_map, const std::string& imsi,
       SessionState& session_state);
+
+  void schedule_termination(std::unordered_set<std::string>& imsis);
 };
 
 }  // namespace magma

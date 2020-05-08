@@ -34,10 +34,6 @@ import (
 	"github.com/golang/glog"
 )
 
-const (
-	TestOCSIP = ":4444"
-)
-
 func init() {
 	flag.Parse()
 }

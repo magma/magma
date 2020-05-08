@@ -121,24 +121,36 @@ func TestWorkOrderWritePolicyRule(t *testing.T) {
 		return c.WorkOrder.DeleteOne(workOrder).
 			Exec(ctx)
 	}
-	getCud := func(p *models.PermissionSettings) *models.WorkforceCud {
-		return p.WorkforcePolicy.Data
+	initialPermissions := func(p *models.PermissionSettings) {
+		p.WorkforcePolicy.Data.TransferOwnership.IsAllowed = models2.PermissionValueYes
 	}
-	runCudPolicyTest(t, cudPolicyTest{
-		getCud: func(p *models.PermissionSettings) *models.Cud {
-			return &models.Cud{
-				Create: getCud(p).Create,
-				Update: getCud(p).Update,
-				Delete: getCud(p).Delete,
-			}
+	tests := []policyTest{
+		{
+			operationName:      "Create",
+			initialPermissions: initialPermissions,
+			appendPermissions: func(p *models.PermissionSettings) {
+				p.WorkforcePolicy.Data.Create.IsAllowed = models2.PermissionValueYes
+			},
+			operation: createWorkOrder,
 		},
-		initialPermissions: func(p *models.PermissionSettings) {
-			getCud(p).TransferOwnership.IsAllowed = models2.PermissionValueYes
+		{
+			operationName:      "Update",
+			initialPermissions: initialPermissions,
+			appendPermissions: func(p *models.PermissionSettings) {
+				p.WorkforcePolicy.Data.Update.IsAllowed = models2.PermissionValueYes
+			},
+			operation: updateWorkOrder,
 		},
-		create: createWorkOrder,
-		update: updateWorkOrder,
-		delete: deleteWorkOrder,
-	})
+		{
+			operationName:      "Delete",
+			initialPermissions: initialPermissions,
+			appendPermissions: func(p *models.PermissionSettings) {
+				p.WorkforcePolicy.Data.Delete.IsAllowed = models2.PermissionValueYes
+			},
+			operation: deleteWorkOrder,
+		},
+	}
+	runPolicyTest(t, tests)
 }
 
 func TestWorkOrderTransferOwnershipWritePolicyRule(t *testing.T) {

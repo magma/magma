@@ -121,6 +121,8 @@ class SessionState {
   void mark_as_awaiting_termination(
       SessionStateUpdateCriteria& update_criteria);
 
+  bool is_terminating();
+
   /**
    * can_complete_termination returns whether the termination for the session
    * can be completed.
@@ -314,6 +316,8 @@ class SessionState {
   StaticRuleInstall get_static_rule_install(const std::string& rule_id);
 
   DynamicRuleInstall get_dynamic_rule_install(const std::string& rule_id);
+
+  SessionFsmState get_state();
 
  private:
   std::string imsi_;

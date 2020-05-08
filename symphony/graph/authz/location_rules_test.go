@@ -8,6 +8,7 @@ import (
 	"context"
 	"testing"
 
+	models2 "github.com/facebookincubator/symphony/graph/authz/models"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 )
@@ -38,14 +39,30 @@ func TestLocationWritePolicyRule(t *testing.T) {
 		return c.Location.DeleteOne(location).
 			Exec(ctx)
 	}
-	runCudPolicyTest(t, cudPolicyTest{
-		getCud: func(p *models.PermissionSettings) *models.Cud {
-			return p.InventoryPolicy.Location
+	tests := []policyTest{
+		{
+			operationName: "Create",
+			appendPermissions: func(p *models.PermissionSettings) {
+				p.InventoryPolicy.Location.Create.IsAllowed = models2.PermissionValueYes
+			},
+			operation: createLocation,
 		},
-		create: createLocation,
-		update: updateLocation,
-		delete: deleteLocation,
-	})
+		{
+			operationName: "Update",
+			appendPermissions: func(p *models.PermissionSettings) {
+				p.InventoryPolicy.Location.Update.IsAllowed = models2.PermissionValueYes
+			},
+			operation: updateLocation,
+		},
+		{
+			operationName: "Delete",
+			appendPermissions: func(p *models.PermissionSettings) {
+				p.InventoryPolicy.Location.Delete.IsAllowed = models2.PermissionValueYes
+			},
+			operation: deleteLocation,
+		},
+	}
+	runPolicyTest(t, tests)
 }
 
 func TestLocationTypeWritePolicyRule(t *testing.T) {

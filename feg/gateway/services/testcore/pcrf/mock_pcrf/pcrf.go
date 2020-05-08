@@ -30,12 +30,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-// PCRFConfig defines the configuration for a PCRF server, which for now is just
-// the host ip
-type PCRFConfig struct {
-	ServerConfig *diameter.DiameterServerConfig
-}
-
 // This is a temporary struct to handle unsupported AVP Charging-Rule-Report in go-diameter
 type ReAuthAnswer struct {
 	SessionID  string `avp:"Session-Id"`
@@ -57,10 +51,10 @@ type subscriberAccount struct {
 	CurrentState    *SubscriberSessionState
 }
 
-// PCRFDiamServer wraps an PCRF storing subscribers and their rules
-type PCRFDiamServer struct {
-	diameterSettings        *diameter.DiameterClientConfig
-	pcrfConfig              *PCRFConfig
+// PCRFServer wraps an PCRF storing subscribers and their rules
+type PCRFServer struct {
+	diameterClientConfig    *diameter.DiameterClientConfig // Gx Client Config
+	diameterServerConfig    *diameter.DiameterServerConfig
 	serviceConfig           *protos.PCRFConfigs
 	subscribers             map[string]*subscriberAccount // map of imsi to to rules
 	mux                     *sm.StateMachine
@@ -68,49 +62,46 @@ type PCRFDiamServer struct {
 	mockDriver              *mock_driver.MockDriver
 }
 
-// NewPCRFDiamServer initializes an PCRF with an empty rule map
+// NewPCRFServer initializes an PCRF with an empty rule map
 // Input: *sm.Settings containing the diameter related parameters
 //				*TestPCRFConfig containing the server address
 //
-// Output: a new PCRFDiamServer
-func NewPCRFDiamServer(
-	diameterSettings *diameter.DiameterClientConfig,
-	pcrfConfig *PCRFConfig,
-) *PCRFDiamServer {
-	return &PCRFDiamServer{
-		diameterSettings: diameterSettings,
-		pcrfConfig:       pcrfConfig,
-		subscribers:      map[string]*subscriberAccount{},
-		serviceConfig:    &protos.PCRFConfigs{},
+// Output: a new PCRFServer
+func NewPCRFServer(clientConfig *diameter.DiameterClientConfig, serverConfig *diameter.DiameterServerConfig) *PCRFServer {
+	return &PCRFServer{
+		diameterClientConfig: clientConfig,
+		diameterServerConfig: serverConfig,
+		subscribers:          map[string]*subscriberAccount{},
+		serviceConfig:        &protos.PCRFConfigs{},
 	}
 }
 
 // Reset is an GRPC procedure which configure the server to the default status.
 // It will be called from the gateway.
-func (srv *PCRFDiamServer) Reset(
-	ctx context.Context,
-	req *orcprotos.Void,
+func (srv *PCRFServer) Reset(
+	_ context.Context,
+	_ *orcprotos.Void,
 ) (*orcprotos.Void, error) {
 	return nil, errors.New("Not implemented")
 }
 
 // ConfigServer is an GRPC procedure which configure the server to respond
 // to requests. It will be called from the gateway
-func (srv *PCRFDiamServer) ConfigServer(
-	ctx context.Context,
-	config *protos.ServerConfiguration,
+func (srv *PCRFServer) ConfigServer(
+	_ context.Context,
+	_ *protos.ServerConfiguration,
 ) (*orcprotos.Void, error) {
 	return nil, errors.New("Not implemented")
 }
 
 // Start begins the server and blocks, listening to the network
 // Output: error if the server could not be started
-func (srv *PCRFDiamServer) Start(lis net.Listener) error {
+func (srv *PCRFServer) Start(lis net.Listener) error {
 	srv.mux = sm.New(&sm.Settings{
-		OriginHost:       datatype.DiameterIdentity(srv.diameterSettings.Host),
-		OriginRealm:      datatype.DiameterIdentity(srv.diameterSettings.Realm),
+		OriginHost:       datatype.DiameterIdentity(srv.diameterClientConfig.Host),
+		OriginRealm:      datatype.DiameterIdentity(srv.diameterClientConfig.Realm),
 		VendorID:         datatype.Unsigned32(diameter.Vendor3GPP),
-		ProductName:      datatype.UTF8String(srv.diameterSettings.ProductName),
+		ProductName:      datatype.UTF8String(srv.diameterClientConfig.ProductName),
 		OriginStateID:    datatype.Unsigned32(time.Now().Unix()),
 		FirmwareRevision: 1,
 	})
@@ -118,7 +109,7 @@ func (srv *PCRFDiamServer) Start(lis net.Listener) error {
 		diam.CommandIndex{AppID: diam.GX_CHARGING_CONTROL_APP_ID, Code: diam.CreditControl, Request: true},
 		getCCRHandler(srv))
 	go logErrors(srv.mux.ErrorReports())
-	serverConfig := srv.pcrfConfig.ServerConfig
+	serverConfig := srv.diameterServerConfig
 	server := &diam.Server{
 		Network: serverConfig.Protocol,
 		Addr:    serverConfig.Addr,
@@ -130,8 +121,8 @@ func (srv *PCRFDiamServer) Start(lis net.Listener) error {
 
 // StartListener starts a listener based on ServerConfig
 // If ServerConfig did not have valid values, default values would be used
-func (srv *PCRFDiamServer) StartListener() (net.Listener, error) {
-	serverConfig := srv.pcrfConfig.ServerConfig
+func (srv *PCRFServer) StartListener() (net.Listener, error) {
+	serverConfig := srv.diameterServerConfig
 	network := serverConfig.Protocol
 	addr := serverConfig.Addr
 	l, e := diam.Listen(network, addr)
@@ -148,7 +139,7 @@ func logErrors(ec <-chan *diam.ErrorReport) {
 	}
 }
 
-func (srv *PCRFDiamServer) SetPCRFConfigs(
+func (srv *PCRFServer) SetPCRFConfigs(
 	_ context.Context,
 	configs *protos.PCRFConfigs,
 ) (*orcprotos.Void, error) {
@@ -158,7 +149,7 @@ func (srv *PCRFDiamServer) SetPCRFConfigs(
 
 // NewSubscriber adds a subscriber to the PCRF to be tracked
 // Input: string containing the subscriber IMSI (can be in any form)
-func (srv *PCRFDiamServer) CreateAccount(
+func (srv *PCRFServer) CreateAccount(
 	_ context.Context,
 	subscriberID *lteprotos.SubscriberID,
 ) (*orcprotos.Void, error) {
@@ -176,7 +167,7 @@ func (srv *PCRFDiamServer) CreateAccount(
 //			  ruleBaseNames []string containing all rule base names to apply
 //			  ruleDefinitions []*RuleDefinition containing all dynamic rules to apply
 // Output: error if subscriber could not be found
-func (srv *PCRFDiamServer) SetRules(
+func (srv *PCRFServer) SetRules(
 	_ context.Context,
 	accountRules *protos.AccountRules,
 ) (*orcprotos.Void, error) {
@@ -190,7 +181,7 @@ func (srv *PCRFDiamServer) SetRules(
 	return &orcprotos.Void{}, nil
 }
 
-func (srv *PCRFDiamServer) SetUsageMonitors(
+func (srv *PCRFServer) SetUsageMonitors(
 	_ context.Context,
 	usageMonitorInfo *protos.UsageMonitorConfiguration,
 ) (*orcprotos.Void, error) {
@@ -209,7 +200,7 @@ func (srv *PCRFDiamServer) SetUsageMonitors(
 // Input: string IMSI for the subscriber
 // Output: []string containing all applicable rules
 //			   error if subscriber could not be found
-func (srv *PCRFDiamServer) GetRuleNames(imsi string) ([]string, error) {
+func (srv *PCRFServer) GetRuleNames(imsi string) ([]string, error) {
 	account, ok := srv.subscribers[imsi]
 	if !ok {
 		return nil, fmt.Errorf("Could not find imsi %s", imsi)
@@ -221,7 +212,7 @@ func (srv *PCRFDiamServer) GetRuleNames(imsi string) ([]string, error) {
 // Input: string IMSI for the subscriber
 // Output: []string containing all applicable rule base names
 //			   error if subscriber could not be found
-func (srv *PCRFDiamServer) GetRuleBaseNames(imsi string) ([]string, error) {
+func (srv *PCRFServer) GetRuleBaseNames(imsi string) ([]string, error) {
 	account, ok := srv.subscribers[imsi]
 	if !ok {
 		return nil, fmt.Errorf("Could not find imsi %s", imsi)
@@ -233,7 +224,7 @@ func (srv *PCRFDiamServer) GetRuleBaseNames(imsi string) ([]string, error) {
 // Input: string IMSI for the subscriber
 // Output: []*RuleDefinition containing all applicable rules
 //			   error if subscriber could not be found
-func (srv *PCRFDiamServer) GetRuleDefinitions(
+func (srv *PCRFServer) GetRuleDefinitions(
 	imsi string,
 ) ([]*protos.RuleDefinition, error) {
 	account, ok := srv.subscribers[imsi]
@@ -244,13 +235,13 @@ func (srv *PCRFDiamServer) GetRuleDefinitions(
 }
 
 // Reset eliminates all the subscribers allocated for the system.
-func (srv *PCRFDiamServer) ClearSubscribers(_ context.Context, void *orcprotos.Void) (*orcprotos.Void, error) {
+func (srv *PCRFServer) ClearSubscribers(_ context.Context, void *orcprotos.Void) (*orcprotos.Void, error) {
 	srv.subscribers = map[string]*subscriberAccount{}
 	glog.V(2).Info("All accounts deleted.")
 	return &orcprotos.Void{}, nil
 }
 
-func (srv *PCRFDiamServer) SetExpectations(_ context.Context, req *protos.GxCreditControlExpectations) (*orcprotos.Void, error) {
+func (srv *PCRFServer) SetExpectations(_ context.Context, req *protos.GxCreditControlExpectations) (*orcprotos.Void, error) {
 	es := []mock_driver.Expectation{}
 	for _, e := range req.Expectations {
 		es = append(es, mock_driver.Expectation(GxExpectation{e}))
@@ -259,7 +250,7 @@ func (srv *PCRFDiamServer) SetExpectations(_ context.Context, req *protos.GxCred
 	return &orcprotos.Void{}, nil
 }
 
-func (srv *PCRFDiamServer) AssertExpectations(_ context.Context, void *orcprotos.Void) (*protos.GxCreditControlResult, error) {
+func (srv *PCRFServer) AssertExpectations(_ context.Context, void *orcprotos.Void) (*protos.GxCreditControlResult, error) {
 	srv.mockDriver.Lock()
 	defer srv.mockDriver.Unlock()
 
@@ -269,7 +260,7 @@ func (srv *PCRFDiamServer) AssertExpectations(_ context.Context, void *orcprotos
 
 // AbortSession call for a subscriber
 // Initiate a Abort session request and provide the response
-func (srv *PCRFDiamServer) AbortSession(
+func (srv *PCRFServer) AbortSession(
 	_ context.Context,
 	req *protos.PolicyAbortSessionRequest,
 ) (*protos.PolicyAbortSessionResponse, error) {
@@ -308,7 +299,7 @@ func (srv *PCRFDiamServer) AbortSession(
 
 // GetLastAVPreceived gets the last message in diam format received
 // Message gets overwriten every time a new CCR is sent
-func (srv *PCRFDiamServer) GetLastAVPreceived() (*diam.Message, error) {
+func (srv *PCRFServer) GetLastAVPreceived() (*diam.Message, error) {
 	if srv.lastDiamMessageReceived == nil {
 		return nil, fmt.Errorf("No AVP message received")
 	}
@@ -334,7 +325,7 @@ func sendASR(state *SubscriberSessionState, cfg *sm.Settings) error {
 
 // ReAuth call for a subscriber
 // Initiate a RAR requenst and handle a response
-func (srv *PCRFDiamServer) ReAuth(
+func (srv *PCRFServer) ReAuth(
 	ctx context.Context,
 	target *protos.PolicyReAuthTarget,
 ) (*protos.PolicyReAuthAnswer, error) {

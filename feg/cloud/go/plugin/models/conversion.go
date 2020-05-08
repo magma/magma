@@ -263,9 +263,9 @@ func (m *DiameterClientConfigs) ToMconfig() *mconfig.DiamClientConfig {
 	return res
 }
 
+// TODO: remove this once backwards compatibility is not needed for the field server
 func ToMultipleServersMconfig(server *DiameterClientConfigs, servers []*DiameterClientConfigs) []*mconfig.DiamClientConfig {
 	diamClientMconfigs := make([]*mconfig.DiamClientConfig, 0, len(servers)+1)
-	// TODO: remove this clause when Server (not s) is removed from mconfg Gx and Gy protos
 	if server != nil {
 		// prepend server to Servers
 		tmpSrv := append([]*DiameterClientConfigs{server}, servers...)

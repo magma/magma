@@ -678,7 +678,9 @@ void s1ap_remove_enb(s1ap_state_t* state, enb_description_t* enb_ref)
   }
   // Stop associated UEs clean_up timer,if running
   if (enb_ref->s1ap_enb_assoc_clean_up_timer.id != S1AP_TIMER_INACTIVE_ID) {
-    if (timer_remove(enb_ref->s1ap_enb_assoc_clean_up_timer.id, NULL)) {
+    s1ap_timer_arg_t* timer_argP = NULL;
+    if (timer_remove(
+            enb_ref->s1ap_enb_assoc_clean_up_timer.id, (void**) &timer_argP)) {
       OAILOG_ERROR(
         LOG_MME_APP,
         "Failed to stop wait_for_ue_cleanup timer for eNB association id  %u "
@@ -689,6 +691,9 @@ void s1ap_remove_enb(s1ap_state_t* state, enb_description_t* enb_ref)
         LOG_MME_APP,
         "Stopped wait_for_ue_cleanup timer for eNB association id  %u \n",
         enb_ref->sctp_assoc_id);
+      if (timer_argP) {
+        free_wrapper((void**) &timer_argP);
+      }
     }
     enb_ref->s1ap_enb_assoc_clean_up_timer.id = S1AP_TIMER_INACTIVE_ID;
   }

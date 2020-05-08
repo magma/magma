@@ -1,0 +1,9 @@
+fragment LinkFragment on Link {
+  id
+  properties {
+    ...PropertyFragment
+  }
+  services {
+    id
+  }
+}

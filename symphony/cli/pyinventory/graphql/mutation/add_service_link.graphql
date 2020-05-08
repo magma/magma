@@ -22,13 +22,7 @@ mutation AddServiceLinkMutation($id: ID!, $linkId: ID!) {
           }
         }
         link {
-          id
-          properties {
-            ...PropertyFragment
-          }
-          services {
-            id
-          }
+          ...LinkFragment
         }
       }
       definition {
@@ -36,13 +30,7 @@ mutation AddServiceLinkMutation($id: ID!, $linkId: ID!) {
       }
     }
     links {
-      id
-      properties {
-        ...PropertyFragment
-      }
-      services {
-        id
-      }
+      ...LinkFragment
     }
   }
 }

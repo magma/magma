@@ -14,7 +14,7 @@ import (
 // LocationWritePolicyRule grants write permission to location based on policy.
 func LocationWritePolicyRule() privacy.MutationRule {
 	return privacy.MutationRuleFunc(func(ctx context.Context, m ent.Mutation) error {
-		return cudBasedRule(FromContext(ctx).InventoryPolicy.Location, m)
+		return locationCudBasedRule(FromContext(ctx).InventoryPolicy.Location, m)
 	})
 }
 

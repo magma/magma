@@ -16,7 +16,7 @@ mutation AddServiceEndpointMutation($input: AddServiceEndpointInput!) {
       }
     }
     links {
-      id
+      ...LinkFragment
     }
   }
 }

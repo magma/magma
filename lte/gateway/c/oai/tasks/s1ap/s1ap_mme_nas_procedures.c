@@ -484,7 +484,6 @@ int s1ap_generate_downlink_nas_transport(
       &downlinkNasTransport->nas_pdu,
       (char *) bdata(*payload),
       blength(*payload));
-    bdestroy_wrapper(payload);
 
     if (s1ap_mme_encode_pdu(&message, &buffer_p, &length) < 0) {
       free_s1ap_downlinknastransport(downlinkNasTransport);

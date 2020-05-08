@@ -203,10 +203,8 @@ static int _emm_attach_accept_retx(emm_context_t *emm_context);
  */
 //------------------------------------------------------------------------------
 int emm_proc_attach_request(
-  mme_ue_s1ap_id_t ue_id,
-  const bool is_mm_ctx_new,
-  emm_attach_request_ies_t *const ies)
-{
+    mme_ue_s1ap_id_t ue_id, const bool is_mm_ctx_new,
+    emm_attach_request_ies_t* const ies) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
   ue_mm_context_t ue_ctx;
@@ -281,13 +279,17 @@ int emm_proc_attach_request(
     no_attach_proc.ue_id = ue_id;
     no_attach_proc.emm_cause = ue_ctx.emm_context.emm_cause;
     no_attach_proc.esm_msg_out = NULL;
-  OAILOG_ERROR(
-    LOG_NAS_EMM,
-    "EMM-PROC  - Sending Attach Reject to UE (ue_id = " MME_UE_S1AP_ID_FMT ")\n", ue_id);
+    OAILOG_ERROR_UE(
+        LOG_NAS_EMM, ue_ctx.emm_context._imsi64,
+        "EMM-PROC - Sending Attach Reject for ue_id = " MME_UE_S1AP_ID_FMT "\n",
+        ue_id);
     rc = _emm_attach_reject(
-      &ue_ctx.emm_context, (struct nas_base_proc_s *) &no_attach_proc);
+        &ue_ctx.emm_context, (struct nas_base_proc_s*) &no_attach_proc);
     increment_counter(
-      "ue_attach", 1, 2, "result", "failure", "cause", "emergency_attach");
+        "ue_attach", 1, 2, "result", "failure", "cause", "emergency_attach");
+    if (ies) {
+      free_emm_attach_request_ies((emm_attach_request_ies_t * * const) & ies);
+    }
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
   }
   /*
@@ -496,6 +498,10 @@ int emm_proc_attach_request(
             LOG_NAS_EMM, "EMM-PROC  - Received duplicated Attach Request\n");
           increment_counter(
             "duplicate_attach_request", 1, 1, "action", "ignored");
+          if (ies) {
+            free_emm_attach_request_ies(
+                (emm_attach_request_ies_t * * const) & ies);
+          }
           OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
         }
       }
@@ -750,6 +756,7 @@ int emm_proc_attach_complete(
         "UE " MME_UE_S1AP_ID_FMT
         " ATTACH COMPLETE discarded (EMM procedure not found)\n",
         ue_id);
+      bdestroy((bstring)(esm_msg_pP));
     }
   } else {
     NOT_REQUIREMENT_3GPP_24_301(R10_5_5_1_2_4__20);

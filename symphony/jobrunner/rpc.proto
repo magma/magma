@@ -1,0 +1,29 @@
+// Copyright (c) 2004-present Facebook All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+syntax = "proto3";
+
+package graph;
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+option go_package = "fbc/symphony/jobrunner";
+
+service TenantService {
+    rpc Create(google.protobuf.StringValue) returns (Tenant);
+    rpc List(google.protobuf.Empty) returns (TenantList);
+    rpc Get(google.protobuf.StringValue) returns (Tenant);
+    rpc Truncate(google.protobuf.StringValue) returns (google.protobuf.Empty);
+    rpc Delete(google.protobuf.StringValue) returns (google.protobuf.Empty);
+}
+
+message Tenant {
+    string id = 1;
+    string name = 2;
+}
+
+message TenantList {
+    repeated Tenant tenants = 1;
+}

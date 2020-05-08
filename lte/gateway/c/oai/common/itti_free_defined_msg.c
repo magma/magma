@@ -161,10 +161,17 @@ void itti_free_msg_content(MessageDef* const message_p)
       break;
     case S1AP_E_RAB_SETUP_REQ:
       bdestroy_wrapper(
-        &message_p->ittiMsg.s1ap_e_rab_setup_req.e_rab_to_be_setup_list.item[0]
-           .nas_pdu);
+          &message_p->ittiMsg.s1ap_e_rab_setup_req.e_rab_to_be_setup_list
+               .item[0]
+               .transport_layer_address);
+      bdestroy_wrapper(
+          &message_p->ittiMsg.s1ap_e_rab_setup_req.e_rab_to_be_setup_list
+               .item[0]
+               .nas_pdu);
       break;
-
+    case S1AP_NAS_DL_DATA_REQ:
+      bdestroy_wrapper(&message_p->ittiMsg.s1ap_nas_dl_data_req.nas_msg);
+      break;
     case S6A_UPDATE_LOCATION_REQ:
     case S6A_UPDATE_LOCATION_ANS:
     case S6A_AUTH_INFO_REQ:

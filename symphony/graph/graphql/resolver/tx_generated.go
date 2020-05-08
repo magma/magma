@@ -1105,6 +1105,17 @@ func (tr txResolver) EditPermissionsPolicy(ctx context.Context, input models.Edi
 	return result, nil
 }
 
+func (tr txResolver) DeletePermissionsPolicy(ctx context.Context, id int) (bool, error) {
+	var result, zero bool
+	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr generated.MutationResolver) (err error) {
+		result, err = mr.DeletePermissionsPolicy(ctx, id)
+		return
+	}); err != nil {
+		return zero, err
+	}
+	return result, nil
+}
+
 func (tr txResolver) UpdateGroupsInPermissionsPolicy(ctx context.Context, input models.UpdateGroupsInPermissionsPolicyInput) (*ent.PermissionsPolicy, error) {
 	var result, zero *ent.PermissionsPolicy
 	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr generated.MutationResolver) (err error) {

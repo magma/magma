@@ -31,13 +31,14 @@ func main() {
 		glog.Fatalf("Error creating Swx Proxy service: %s", err)
 	}
 
-	// TODO: remove when multiple config is supported
-	configs := []*servicers.SwxProxyConfig{servicers.GetSwxProxyConfig()}
-
-	servicer, err := servicers.NewSwxProxiesWithHealthAndDefaultMultiplexor(configs)
+	// Create servicers
+	servicer, err := servicers.NewSwxProxiesWithHealthAndDefaultMultiplexor(
+		servicers.GetSwxProxyConfig())
 	if err != nil {
 		glog.Fatalf("Failed to create SwxProxy: %v", err)
 	}
+
+	// Register services
 	protos.RegisterSwxProxyServer(srv.GrpcServer, servicer)
 	protos.RegisterServiceHealthServer(srv.GrpcServer, servicer)
 

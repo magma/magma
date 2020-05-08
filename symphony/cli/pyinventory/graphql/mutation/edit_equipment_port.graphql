@@ -13,13 +13,7 @@ mutation EditEquipmentPortMutation($input: EditEquipmentPortInput!) {
       }
     }
     link {
-      id
-      services {
-        id
-      }
-      properties {
-        ...PropertyFragment
-      }
+      ...LinkFragment
     }
   }
 }

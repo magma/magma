@@ -13,9 +13,10 @@ from typing import Any, Callable, List, Mapping, Optional
 from time import perf_counter
 from dataclasses_json import DataClassJsonMixin
 
+from ..fragment.link import LinkFragment, QUERY as LinkFragmentQuery
 from ..fragment.property import PropertyFragment, QUERY as PropertyFragmentQuery
 
-QUERY: List[str] = PropertyFragmentQuery + ["""
+QUERY: List[str] = LinkFragmentQuery + PropertyFragmentQuery + ["""
 query EquipmentPortsQuery($id: ID!) {
   equipment: node(id: $id) {
     ... on Equipment {
@@ -33,13 +34,7 @@ query EquipmentPortsQuery($id: ID!) {
           }
         }
         link {
-          id
-          properties {
-            ...PropertyFragment
-          }
-          services {
-            id
-          }
+          ...LinkFragment
         }
       }
     }
@@ -72,18 +67,8 @@ class EquipmentPortsQuery(DataClassJsonMixin):
                     portType: Optional[EquipmentPortType]
 
                 @dataclass
-                class Link(DataClassJsonMixin):
-                    @dataclass
-                    class Property(PropertyFragment):
-                        pass
-
-                    @dataclass
-                    class Service(DataClassJsonMixin):
-                        id: str
-
-                    id: str
-                    properties: List[Property]
-                    services: List[Service]
+                class Link(LinkFragment):
+                    pass
 
                 id: str
                 properties: List[Property]
