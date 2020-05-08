@@ -31,7 +31,8 @@ func StartTestServiceWithCache(t *testing.T, cache *cache.Impl) (*service.Servic
 	os.Setenv("USE_REMOTE_SWX_PROXY", "false")
 	srv, lis := test_utils.NewTestService(t, registry.ModuleName, registry.SWX_PROXY)
 
-	config := servicers.GetSwxProxyConfig()
+	// Note we get only get index 0
+	config := servicers.GetSwxProxyConfig()[0]
 	serverAddr, err := test.StartTestSwxServer(config.ServerCfg.Protocol, config.ServerCfg.Addr)
 	if err != nil {
 		return nil, err
@@ -55,23 +56,28 @@ func InitTestMconfig(t *testing.T, addr string, verify bool) error {
 			"swx_proxy": {
 				"@type": "type.googleapis.com/magma.mconfig.SwxConfig",
 				"logLevel": "INFO",
-				"server": {
-					"protocol": "sctp",
-					"address": "%s",
-					"retransmits": 3,
-					"watchdogInterval": 1,
-					"retryCount": 5,
-					"productName": "magma_test",
-					"realm": "openair4G.eur",
-					"host": "magma-oai.openair4G.eur"
-				},
+				"servers": [
+					{
+						"protocol": "sctp",
+						"address": "%s",
+						"retransmits": 3,
+						"watchdogInterval": 1,
+						"retryCount": 5,
+						"productName": "magma_test",
+						"realm": "openair4G.eur",
+						"host": "magma-oai.openair4G.eur"
+						}
+				],
 				"verifyAuthorization": %t,
 				"hlr_plmn_ids": [ "00102", "00103" ]
 			}
 		}
 	}`
-	res := mconfig.CreateLoadTempConfig(fmt.Sprintf(fegConfigFmt, addr, verify))
-	cfg := servicers.GetSwxProxyConfig()
+	stringConfig := fmt.Sprintf(fegConfigFmt, addr, verify)
+	res := mconfig.CreateLoadTempConfig(stringConfig)
+
+	// Note we get only get index 0
+	cfg := servicers.GetSwxProxyConfig()[0]
 	if !cfg.IsHlrClient("001020000000055") {
 		t.Fatalf("IMSI 001020000000055 should be HLR IMSI, HLR PLMN ID Map: %+v", cfg.HlrPlmnIds)
 	}
@@ -81,5 +87,6 @@ func InitTestMconfig(t *testing.T, addr string, verify bool) error {
 	if cfg.IsHlrClient("001010000000055") {
 		t.Fatalf("IMSI 001010000000055 should NOT be HLR IMSI, HLR PLMN ID Map: %+v", cfg.HlrPlmnIds)
 	}
+
 	return res
 }

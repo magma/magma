@@ -76,7 +76,7 @@ func (*Builder) Build(
 				OverwriteApn: gxc.OverwriteApn,
 				Servers:      models.ToMultipleServersMconfig(gxc.Server, gxc.Servers),
 			}
-			// TODO: once backwards compatibility is not needed, remove server from swagger, remove server from mconfg
+			// TODO: remove this once backwards compatibility is not needed for the field server, remove server from swagger and mconfg
 			if len(mc.Gx.Servers) > 0 {
 				mc.Gx.Server = mc.Gx.Servers[0]
 			}
@@ -87,7 +87,7 @@ func (*Builder) Build(
 				OverwriteApn: gyc.OverwriteApn,
 				Servers:      models.ToMultipleServersMconfig(gyc.Server, gyc.Servers),
 			}
-			// TODO: once backwards compatibility is not needed, remove server from swagger, remove server from mconfg
+			// TODO: remove this once backwards compatibility is not needed for the field server, remove server from swagger and mconfg
 			if len(mc.Gy.Servers) > 0 {
 				mc.Gy.Server = mc.Gy.Servers[0]
 			}
@@ -111,6 +111,9 @@ func (*Builder) Build(
 	if swxc != nil {
 		mc := &mconfig.SwxConfig{LogLevel: protos.LogLevel_INFO}
 		protos.FillIn(swxc, mc)
+
+		// TODO: remove this once backwards compatibility is not needed for the field server, remove server from swagger and mconfg
+		mc.Servers = models.ToMultipleServersMconfig(swxc.Server, swxc.Servers)
 		mconfigOut["swx_proxy"] = mc
 	}
 
