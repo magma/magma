@@ -291,6 +291,7 @@ void LocalEnforcer::execute_actions(
           action_p->get_imsi(), action_p->get_ip_addr(),
           action_p->get_rule_ids(), action_p->get_rule_definitions());
     } else if (action_p->get_type() == REDIRECT) {
+      // This is GY based REDIRECT, GX redirect will come in as a regular rule
       install_redirect_flow(action_p);
     } else if (action_p->get_type() == RESTRICT_ACCESS) {
       MLOG(MWARNING) << "RESTRICT_ACCESS mode is unsupported"
