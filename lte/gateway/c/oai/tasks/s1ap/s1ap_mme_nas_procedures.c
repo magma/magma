@@ -572,44 +572,37 @@ int s1ap_generate_s1ap_e_rab_setup_req(
      * Fill in the NAS pdu
      */
     e_rabsetuprequesties->presenceMask = 0;
-    //    if (e_rab_setup_req->ue_aggregate_maximum_bit_rate_present) {
-    //      e_rabsetuprequesties->presenceMask |= S1AP_E_RABSETUPREQUESTIES_UEAGGREGATEMAXIMUMBITRATE_PRESENT;
-    //      TO DO e_rabsetuprequesties->uEaggregateMaximumBitrate.uEaggregateMaximumBitRateDL.buf
-    //    }
 
-    S1ap_E_RABToBeSetupItemBearerSUReq_t s1ap_E_RABToBeSetupItemBearerSUReq
+    S1ap_E_RABToBeSetupItemBearerSUReq_t *s1ap_E_RABToBeSetupItemBearerSUReq
       [e_rab_setup_req->e_rab_to_be_setup_list.no_of_items];
     struct S1ap_GBR_QosInformation
-      gbrQosInformation[e_rab_setup_req->e_rab_to_be_setup_list.no_of_items];
+      *gbrQosInformation[e_rab_setup_req->e_rab_to_be_setup_list.no_of_items];
 
     for (int i = 0; i < e_rab_setup_req->e_rab_to_be_setup_list.no_of_items;
          i++) {
-      memset(
-        &s1ap_E_RABToBeSetupItemBearerSUReq[i],
-        0,
-        sizeof(S1ap_E_RABToBeSetupItemBearerSUReq_t));
+      s1ap_E_RABToBeSetupItemBearerSUReq[i] = calloc(1, sizeof *s1ap_E_RABToBeSetupItemBearerSUReq[i]);
 
-      s1ap_E_RABToBeSetupItemBearerSUReq[i].e_RAB_ID =
+      s1ap_E_RABToBeSetupItemBearerSUReq[i]->e_RAB_ID =
         e_rab_setup_req->e_rab_to_be_setup_list.item[i].e_rab_id;
-      s1ap_E_RABToBeSetupItemBearerSUReq[i].e_RABlevelQoSParameters.qCI =
+      s1ap_E_RABToBeSetupItemBearerSUReq[i]->e_RABlevelQoSParameters.qCI =
         e_rab_setup_req->e_rab_to_be_setup_list.item[i]
           .e_rab_level_qos_parameters.qci;
 
       s1ap_E_RABToBeSetupItemBearerSUReq[i]
-        .e_RABlevelQoSParameters.allocationRetentionPriority.priorityLevel =
+        ->e_RABlevelQoSParameters.allocationRetentionPriority.priorityLevel =
         e_rab_setup_req->e_rab_to_be_setup_list.item[i]
           .e_rab_level_qos_parameters.allocation_and_retention_priority
           .priority_level;
 
       s1ap_E_RABToBeSetupItemBearerSUReq[i]
-        .e_RABlevelQoSParameters.allocationRetentionPriority
+        ->e_RABlevelQoSParameters.allocationRetentionPriority
         .pre_emptionCapability =
         e_rab_setup_req->e_rab_to_be_setup_list.item[i]
           .e_rab_level_qos_parameters.allocation_and_retention_priority
           .pre_emption_capability;
 
       s1ap_E_RABToBeSetupItemBearerSUReq[i]
-        .e_RABlevelQoSParameters.allocationRetentionPriority
+        ->e_RABlevelQoSParameters.allocationRetentionPriority
         .pre_emptionVulnerability =
         e_rab_setup_req->e_rab_to_be_setup_list.item[i]
           .e_rab_level_qos_parameters.allocation_and_retention_priority
@@ -626,33 +619,32 @@ int s1ap_generate_s1ap_e_rab_setup_req(
         OAILOG_NOTICE(
           LOG_S1AP, "Encoding of e_RABlevelQoSParameters.gbrQosInformation\n");
 
-        //s1ap_E_RABToBeSetupItemBearerSUReq[i].e_RABlevelQoSParameters.gbrQosInformation = calloc(1, sizeof(struct S1ap_GBR_QosInformation));
-        s1ap_E_RABToBeSetupItemBearerSUReq[i]
-          .e_RABlevelQoSParameters.gbrQosInformation = &gbrQosInformation[i];
-        memset(&gbrQosInformation[i], 0, sizeof(gbrQosInformation[i]));
+         s1ap_E_RABToBeSetupItemBearerSUReq[i]->e_RABlevelQoSParameters.gbrQosInformation =
+             calloc(1, sizeof(*gbrQosInformation[i]));
+
         if (s1ap_E_RABToBeSetupItemBearerSUReq[i]
-              .e_RABlevelQoSParameters.gbrQosInformation) {
+              ->e_RABlevelQoSParameters.gbrQosInformation) {
           asn_uint642INTEGER(
             &s1ap_E_RABToBeSetupItemBearerSUReq[i]
-               .e_RABlevelQoSParameters.gbrQosInformation
+               ->e_RABlevelQoSParameters.gbrQosInformation
                ->e_RAB_MaximumBitrateDL,
             gbr_qos_information->e_rab_maximum_bit_rate_downlink);
 
           asn_uint642INTEGER(
             &s1ap_E_RABToBeSetupItemBearerSUReq[i]
-               .e_RABlevelQoSParameters.gbrQosInformation
+               ->e_RABlevelQoSParameters.gbrQosInformation
                ->e_RAB_MaximumBitrateUL,
             gbr_qos_information->e_rab_maximum_bit_rate_uplink);
 
           asn_uint642INTEGER(
             &s1ap_E_RABToBeSetupItemBearerSUReq[i]
-               .e_RABlevelQoSParameters.gbrQosInformation
+               ->e_RABlevelQoSParameters.gbrQosInformation
                ->e_RAB_GuaranteedBitrateDL,
             gbr_qos_information->e_rab_guaranteed_bit_rate_downlink);
 
           asn_uint642INTEGER(
             &s1ap_E_RABToBeSetupItemBearerSUReq[i]
-               .e_RABlevelQoSParameters.gbrQosInformation
+               ->e_RABlevelQoSParameters.gbrQosInformation
                ->e_RAB_GuaranteedBitrateUL,
             gbr_qos_information->e_rab_guaranteed_bit_rate_uplink);
         }
@@ -661,36 +653,35 @@ int s1ap_generate_s1ap_e_rab_setup_req(
           LOG_S1AP,
           "NOT Encoding of e_RABlevelQoSParameters.gbrQosInformation\n");
       }
-
       INT32_TO_OCTET_STRING(
         e_rab_setup_req->e_rab_to_be_setup_list.item[i].gtp_teid,
-        &s1ap_E_RABToBeSetupItemBearerSUReq[i].gTP_TEID);
+        &s1ap_E_RABToBeSetupItemBearerSUReq[i]->gTP_TEID);
 
-      s1ap_E_RABToBeSetupItemBearerSUReq[i].transportLayerAddress.buf = calloc(
+      s1ap_E_RABToBeSetupItemBearerSUReq[i]->transportLayerAddress.buf = calloc(
         blength(e_rab_setup_req->e_rab_to_be_setup_list.item[i]
                   .transport_layer_address),
         sizeof(uint8_t));
       memcpy(
-        s1ap_E_RABToBeSetupItemBearerSUReq[i].transportLayerAddress.buf,
+        s1ap_E_RABToBeSetupItemBearerSUReq[i]->transportLayerAddress.buf,
         e_rab_setup_req->e_rab_to_be_setup_list.item[i]
           .transport_layer_address->data,
         blength(e_rab_setup_req->e_rab_to_be_setup_list.item[i]
                   .transport_layer_address));
 
-      s1ap_E_RABToBeSetupItemBearerSUReq[i].transportLayerAddress.size =
+      s1ap_E_RABToBeSetupItemBearerSUReq[i]->transportLayerAddress.size =
         blength(e_rab_setup_req->e_rab_to_be_setup_list.item[i]
                   .transport_layer_address);
-      s1ap_E_RABToBeSetupItemBearerSUReq[i].transportLayerAddress.bits_unused =
+      s1ap_E_RABToBeSetupItemBearerSUReq[i]->transportLayerAddress.bits_unused =
         0;
 
       OCTET_STRING_fromBuf(
-        &s1ap_E_RABToBeSetupItemBearerSUReq[i].nAS_PDU,
+        &s1ap_E_RABToBeSetupItemBearerSUReq[i]->nAS_PDU,
         (char *) bdata(e_rab_setup_req->e_rab_to_be_setup_list.item[i].nas_pdu),
         blength(e_rab_setup_req->e_rab_to_be_setup_list.item[i].nas_pdu));
 
       ASN_SEQUENCE_ADD(
         &e_rabsetuprequesties->e_RABToBeSetupListBearerSUReq,
-        &s1ap_E_RABToBeSetupItemBearerSUReq[i]);
+        s1ap_E_RABToBeSetupItemBearerSUReq[i]);
     }
 
     if (s1ap_mme_encode_pdu(&message, &buffer_p, &length) < 0) {
@@ -706,6 +697,8 @@ int s1ap_generate_s1ap_e_rab_setup_req(
       (mme_ue_s1ap_id_t) e_rabsetuprequesties->mme_ue_s1ap_id,
       (enb_ue_s1ap_id_t) e_rabsetuprequesties->eNB_UE_S1AP_ID);
     bstring b = blk2bstr(buffer_p, length);
+    free(buffer_p);
+    free_s1ap_e_rabsetuprequest(e_rabsetuprequesties);
     s1ap_mme_itti_send_sctp_request(
       &b,
       ue_ref->sctp_assoc_id,
@@ -1059,25 +1052,21 @@ int s1ap_generate_s1ap_e_rab_rel_cmd(
       blength(e_rab_rel_cmd->nas_pdu));
 
 
-    S1ap_E_RABItem_t s1ap_E_RABItemIEs
+    S1ap_E_RABItem_t *s1ap_E_RABItemIEs
             [e_rab_rel_cmd->e_rab_to_be_rel_list.no_of_items];
     for (int i = 0; i < e_rab_rel_cmd->e_rab_to_be_rel_list.no_of_items;
          i++) {
-      memset(
-        &s1ap_E_RABItemIEs[i],
-        0,
-        sizeof(S1ap_E_RABItem_t));
-
-      s1ap_E_RABItemIEs[i].e_RAB_ID =
+      s1ap_E_RABItemIEs[i] = calloc(1, sizeof *s1ap_E_RABItemIEs[i]);
+      s1ap_E_RABItemIEs[i]->e_RAB_ID =
         e_rab_rel_cmd->e_rab_to_be_rel_list.item[i].e_rab_id;
       s1ap_mme_set_cause(
-        &s1ap_E_RABItemIEs[i].cause,
+        &s1ap_E_RABItemIEs[i]->cause,
         S1ap_Cause_PR_radioNetwork,
         S1ap_CauseRadioNetwork_unspecified);
 
       ASN_SEQUENCE_ADD(
         &e_rabreleasecmdies->e_RABToBeReleasedList,
-        &s1ap_E_RABItemIEs[i]);
+        s1ap_E_RABItemIEs[i]);
     }
 
     if (s1ap_mme_encode_pdu(&message, &buffer_p, &length) < 0) {
@@ -1093,6 +1082,8 @@ int s1ap_generate_s1ap_e_rab_rel_cmd(
       (mme_ue_s1ap_id_t) e_rabreleasecmdies->mme_ue_s1ap_id,
       (enb_ue_s1ap_id_t) e_rabreleasecmdies->eNB_UE_S1AP_ID);
     bstring b = blk2bstr(buffer_p, length);
+    free(buffer_p);
+    free_s1ap_e_rabreleasecommand(e_rabreleasecmdies);
     s1ap_mme_itti_send_sctp_request(
       &b,
       ue_ref->sctp_assoc_id,

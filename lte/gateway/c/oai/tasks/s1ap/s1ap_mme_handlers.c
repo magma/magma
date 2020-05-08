@@ -2327,6 +2327,7 @@ int s1ap_mme_handle_erab_setup_response(
 
   message_p->ittiMsgHeader.imsi = imsi64;
   rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  free_s1ap_e_rabsetupresponse(s1ap_E_RABSetupResponseIEs_p);
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
 }
 
@@ -3172,5 +3173,6 @@ int s1ap_mme_handle_erab_rel_response(
   }
   message_p->ittiMsgHeader.imsi = imsi64;
   rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  free_s1ap_e_rabreleaseresponse(s1ap_E_RABReleaseResponseIEs_p);
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
 }
