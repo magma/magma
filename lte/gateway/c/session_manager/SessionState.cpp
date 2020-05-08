@@ -95,6 +95,9 @@ SessionState::SessionState(
   for (auto& it : marshaled.rule_lifetimes) {
     rule_lifetimes_[it.first] = it.second;
   }
+  for (auto& rule : marshaled.gy_dynamic_rules) {
+    gy_dynamic_rules_.insert_rule(rule);
+  }
 }
 
 SessionState::SessionState(
@@ -433,6 +436,7 @@ void SessionState::get_session_info(SessionState::SessionInfo& info) {
   info.imsi    = imsi_;
   info.ip_addr = config_.ue_ipv4;
   get_dynamic_rules().get_rules(info.dynamic_rules);
+  get_gy_dynamic_rules().get_rules(info.gy_dynamic_rules);
   info.static_rules = active_static_rules_;
 }
 
@@ -520,6 +524,11 @@ void SessionState::insert_dynamic_rule(
   dynamic_rules_.insert_rule(rule);
   update_criteria.dynamic_rules_to_install.push_back(rule);
   update_criteria.new_rule_lifetimes[rule.id()] = lifetime;
+}
+
+void SessionState::insert_gy_dynamic_rule(const PolicyRule& rule)
+{
+  gy_dynamic_rules_.insert_rule(rule);
 }
 
 void SessionState::activate_static_rule(
@@ -628,6 +637,11 @@ DynamicRuleStore& SessionState::get_scheduled_dynamic_rules() {
 
 RuleLifetime& SessionState::get_rule_lifetime(const std::string& rule_id) {
   return rule_lifetimes_[rule_id];
+}
+
+DynamicRuleStore& SessionState::get_gy_dynamic_rules()
+{
+  return gy_dynamic_rules_;
 }
 
 uint32_t SessionState::total_monitored_rules_count() {

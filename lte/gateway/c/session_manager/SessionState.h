@@ -31,6 +31,7 @@ class SessionState {
     std::string ip_addr;
     std::vector<std::string> static_rules;
     std::vector<PolicyRule> dynamic_rules;
+    std::vector<PolicyRule> gy_dynamic_rules;
   };
   struct TotalCreditUsage {
     uint64_t monitoring_tx;
@@ -234,6 +235,8 @@ class SessionState {
       const std::string& rule_id, RuleLifetime& lifetime,
       SessionStateUpdateCriteria& update_criteria);
 
+  void insert_gy_dynamic_rule(const PolicyRule& rule);
+
   /**
    * Remove a currently active dynamic rule to mark it as deactivated.
    *
@@ -263,6 +266,8 @@ class SessionState {
    */
   bool deactivate_static_rule(
       const std::string& rule_id, SessionStateUpdateCriteria& update_criteria);
+  
+  bool remove_gy_dynamic_rule(const std::string& rule_id, PolicyRule *rule_out);
 
   bool deactivate_scheduled_static_rule(
       const std::string& rule_id, SessionStateUpdateCriteria& update_criteria);
@@ -303,6 +308,8 @@ class SessionState {
 
   RuleLifetime& get_rule_lifetime(const std::string& rule_id);
 
+  DynamicRuleStore& get_gy_dynamic_rules();
+
   uint32_t total_monitored_rules_count();
 
   bool is_active();
@@ -338,8 +345,10 @@ class SessionState {
   StaticRuleStore& static_rules_;
   // Static rules that are currently installed for the session
   std::vector<std::string> active_static_rules_;
-  // Dynamic rules that are currently installed for the session
+  // Dynamic GX rules that are currently installed for the session
   DynamicRuleStore dynamic_rules_;
+  // Dynamic GY rules that are currently installed for the session
+  DynamicRuleStore gy_dynamic_rules_;
 
   // Static rules that are scheduled for installation for the session
   std::set<std::string> scheduled_static_rules_;
