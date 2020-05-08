@@ -427,15 +427,12 @@ func getGxGlobalConfig(pcrfOverwriteApn string) *gx.GxGlobalConfig {
 func startServer(
 	client *diameter.DiameterClientConfig,
 	server *diameter.DiameterServerConfig,
-) *mock_pcrf.PCRFDiamServer {
+) *mock_pcrf.PCRFServer {
 	serverStarted := make(chan struct{})
-	var pcrf *mock_pcrf.PCRFDiamServer
+	var pcrf *mock_pcrf.PCRFServer
 	go func() {
 		log.Printf("Starting server")
-		pcrf = mock_pcrf.NewPCRFDiamServer(
-			client,
-			&mock_pcrf.PCRFConfig{ServerConfig: server},
-		)
+		pcrf = mock_pcrf.NewPCRFServer(client, server)
 
 		lis, err := pcrf.StartListener()
 		if err != nil {
@@ -465,7 +462,7 @@ func getMockReAuthHandler() gx.PolicyReAuthHandler {
 	}
 }
 
-func seedAccountConfigurations(pcrf *mock_pcrf.PCRFDiamServer) {
+func seedAccountConfigurations(pcrf *mock_pcrf.PCRFServer) {
 	monitoringKey := "mkey"
 	monitoringKey3 := "mkey3"
 	ruleImsi1 := &fegprotos.AccountRules{
@@ -563,7 +560,7 @@ func seedAccountConfigurations(pcrf *mock_pcrf.PCRFDiamServer) {
 }
 
 // assertReceivedAPNonPCRF checks if the last received AVP contains the expected APN
-func assertReceivedAPNonPCRF(t *testing.T, pcrf *mock_pcrf.PCRFDiamServer, expectedAPN string) {
+func assertReceivedAPNonPCRF(t *testing.T, pcrf *mock_pcrf.PCRFServer, expectedAPN string) {
 	avpReceived, err := pcrf.GetLastAVPreceived()
 	assert.NoError(t, err)
 	receivedAPN, err := avpReceived.FindAVP("Called-Station-Id", 0)

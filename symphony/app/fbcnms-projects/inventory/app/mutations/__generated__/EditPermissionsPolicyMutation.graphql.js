@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 4f9cab2ea6d7b3e09b3e9f40ac456f98
+ * @relayHash 6ea433e1e0a601dec0be472841c59dec
  */
 
 /* eslint-disable */
@@ -26,7 +26,7 @@ export type EditPermissionsPolicyInput = {|
 |};
 export type InventoryPolicyInput = {|
   read?: ?BasicPermissionRuleInput,
-  location?: ?BasicCUDInput,
+  location?: ?LocationCUDInput,
   equipment?: ?BasicCUDInput,
   equipmentType?: ?BasicCUDInput,
   locationType?: ?BasicCUDInput,
@@ -36,6 +36,15 @@ export type InventoryPolicyInput = {|
 export type BasicPermissionRuleInput = {|
   isAllowed: PermissionValue
 |};
+export type LocationCUDInput = {|
+  create?: ?LocationPermissionRuleInput,
+  update?: ?LocationPermissionRuleInput,
+  delete?: ?LocationPermissionRuleInput,
+|};
+export type LocationPermissionRuleInput = {|
+  isAllowed: PermissionValue,
+  locationTypeIds?: ?$ReadOnlyArray<string>,
+|};
 export type BasicCUDInput = {|
   create?: ?BasicPermissionRuleInput,
   update?: ?BasicPermissionRuleInput,
@@ -43,15 +52,20 @@ export type BasicCUDInput = {|
 |};
 export type WorkforcePolicyInput = {|
   read?: ?BasicPermissionRuleInput,
-  data?: ?BasicWorkforceCUDInput,
+  data?: ?WorkforceCUDInput,
   templates?: ?BasicCUDInput,
 |};
-export type BasicWorkforceCUDInput = {|
-  create?: ?BasicPermissionRuleInput,
-  update?: ?BasicPermissionRuleInput,
-  delete?: ?BasicPermissionRuleInput,
-  assign?: ?BasicPermissionRuleInput,
-  transferOwnership?: ?BasicPermissionRuleInput,
+export type WorkforceCUDInput = {|
+  create?: ?WorkforcePermissionRuleInput,
+  update?: ?WorkforcePermissionRuleInput,
+  delete?: ?WorkforcePermissionRuleInput,
+  assign?: ?WorkforcePermissionRuleInput,
+  transferOwnership?: ?WorkforcePermissionRuleInput,
+|};
+export type WorkforcePermissionRuleInput = {|
+  isAllowed: PermissionValue,
+  projectTypeIds?: ?$ReadOnlyArray<string>,
+  workOrderTypeIds?: ?$ReadOnlyArray<string>,
 |};
 export type EditPermissionsPolicyMutationVariables = {|
   input: EditPermissionsPolicyInput
@@ -341,42 +355,39 @@ v3 = {
   "plural": false,
   "selections": (v2/*: any*/)
 },
-v4 = {
-  "kind": "LinkedField",
-  "alias": null,
-  "name": "create",
-  "storageKey": null,
-  "args": null,
-  "concreteType": "BasicPermissionRule",
-  "plural": false,
-  "selections": (v2/*: any*/)
-},
-v5 = {
-  "kind": "LinkedField",
-  "alias": null,
-  "name": "update",
-  "storageKey": null,
-  "args": null,
-  "concreteType": "BasicPermissionRule",
-  "plural": false,
-  "selections": (v2/*: any*/)
-},
-v6 = {
-  "kind": "LinkedField",
-  "alias": null,
-  "name": "delete",
-  "storageKey": null,
-  "args": null,
-  "concreteType": "BasicPermissionRule",
-  "plural": false,
-  "selections": (v2/*: any*/)
-},
-v7 = [
-  (v4/*: any*/),
-  (v5/*: any*/),
-  (v6/*: any*/)
+v4 = [
+  {
+    "kind": "LinkedField",
+    "alias": null,
+    "name": "create",
+    "storageKey": null,
+    "args": null,
+    "concreteType": "BasicPermissionRule",
+    "plural": false,
+    "selections": (v2/*: any*/)
+  },
+  {
+    "kind": "LinkedField",
+    "alias": null,
+    "name": "update",
+    "storageKey": null,
+    "args": null,
+    "concreteType": "BasicPermissionRule",
+    "plural": false,
+    "selections": (v2/*: any*/)
+  },
+  {
+    "kind": "LinkedField",
+    "alias": null,
+    "name": "delete",
+    "storageKey": null,
+    "args": null,
+    "concreteType": "BasicPermissionRule",
+    "plural": false,
+    "selections": (v2/*: any*/)
+  }
 ],
-v8 = [
+v5 = [
   {
     "kind": "LinkedField",
     "alias": null,
@@ -441,9 +452,40 @@ v8 = [
                 "name": "location",
                 "storageKey": null,
                 "args": null,
-                "concreteType": "CUD",
+                "concreteType": "LocationCUD",
                 "plural": false,
-                "selections": (v7/*: any*/)
+                "selections": [
+                  {
+                    "kind": "LinkedField",
+                    "alias": null,
+                    "name": "create",
+                    "storageKey": null,
+                    "args": null,
+                    "concreteType": "LocationPermissionRule",
+                    "plural": false,
+                    "selections": (v2/*: any*/)
+                  },
+                  {
+                    "kind": "LinkedField",
+                    "alias": null,
+                    "name": "update",
+                    "storageKey": null,
+                    "args": null,
+                    "concreteType": "LocationPermissionRule",
+                    "plural": false,
+                    "selections": (v2/*: any*/)
+                  },
+                  {
+                    "kind": "LinkedField",
+                    "alias": null,
+                    "name": "delete",
+                    "storageKey": null,
+                    "args": null,
+                    "concreteType": "LocationPermissionRule",
+                    "plural": false,
+                    "selections": (v2/*: any*/)
+                  }
+                ]
               },
               {
                 "kind": "LinkedField",
@@ -453,7 +495,7 @@ v8 = [
                 "args": null,
                 "concreteType": "CUD",
                 "plural": false,
-                "selections": (v7/*: any*/)
+                "selections": (v4/*: any*/)
               },
               {
                 "kind": "LinkedField",
@@ -463,7 +505,7 @@ v8 = [
                 "args": null,
                 "concreteType": "CUD",
                 "plural": false,
-                "selections": (v7/*: any*/)
+                "selections": (v4/*: any*/)
               },
               {
                 "kind": "LinkedField",
@@ -473,7 +515,7 @@ v8 = [
                 "args": null,
                 "concreteType": "CUD",
                 "plural": false,
-                "selections": (v7/*: any*/)
+                "selections": (v4/*: any*/)
               },
               {
                 "kind": "LinkedField",
@@ -483,7 +525,7 @@ v8 = [
                 "args": null,
                 "concreteType": "CUD",
                 "plural": false,
-                "selections": (v7/*: any*/)
+                "selections": (v4/*: any*/)
               },
               {
                 "kind": "LinkedField",
@@ -493,7 +535,7 @@ v8 = [
                 "args": null,
                 "concreteType": "CUD",
                 "plural": false,
-                "selections": (v7/*: any*/)
+                "selections": (v4/*: any*/)
               }
             ]
           },
@@ -510,7 +552,7 @@ v8 = [
                 "args": null,
                 "concreteType": "CUD",
                 "plural": false,
-                "selections": (v7/*: any*/)
+                "selections": (v4/*: any*/)
               },
               {
                 "kind": "LinkedField",
@@ -521,16 +563,43 @@ v8 = [
                 "concreteType": "WorkforceCUD",
                 "plural": false,
                 "selections": [
-                  (v4/*: any*/),
-                  (v5/*: any*/),
-                  (v6/*: any*/),
+                  {
+                    "kind": "LinkedField",
+                    "alias": null,
+                    "name": "create",
+                    "storageKey": null,
+                    "args": null,
+                    "concreteType": "WorkforcePermissionRule",
+                    "plural": false,
+                    "selections": (v2/*: any*/)
+                  },
+                  {
+                    "kind": "LinkedField",
+                    "alias": null,
+                    "name": "update",
+                    "storageKey": null,
+                    "args": null,
+                    "concreteType": "WorkforcePermissionRule",
+                    "plural": false,
+                    "selections": (v2/*: any*/)
+                  },
+                  {
+                    "kind": "LinkedField",
+                    "alias": null,
+                    "name": "delete",
+                    "storageKey": null,
+                    "args": null,
+                    "concreteType": "WorkforcePermissionRule",
+                    "plural": false,
+                    "selections": (v2/*: any*/)
+                  },
                   {
                     "kind": "LinkedField",
                     "alias": null,
                     "name": "assign",
                     "storageKey": null,
                     "args": null,
-                    "concreteType": "BasicPermissionRule",
+                    "concreteType": "WorkforcePermissionRule",
                     "plural": false,
                     "selections": (v2/*: any*/)
                   },
@@ -540,7 +609,7 @@ v8 = [
                     "name": "transferOwnership",
                     "storageKey": null,
                     "args": null,
-                    "concreteType": "BasicPermissionRule",
+                    "concreteType": "WorkforcePermissionRule",
                     "plural": false,
                     "selections": (v2/*: any*/)
                   }
@@ -573,13 +642,13 @@ return {
     "type": "Mutation",
     "metadata": null,
     "argumentDefinitions": (v0/*: any*/),
-    "selections": (v8/*: any*/)
+    "selections": (v5/*: any*/)
   },
   "operation": {
     "kind": "Operation",
     "name": "EditPermissionsPolicyMutation",
     "argumentDefinitions": (v0/*: any*/),
-    "selections": (v8/*: any*/)
+    "selections": (v5/*: any*/)
   },
   "params": {
     "operationKind": "mutation",

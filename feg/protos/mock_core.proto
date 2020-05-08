@@ -292,6 +292,7 @@ message GyCreditControlAnswer {
     uint32 request_number = 2;
     uint32 result_code = 3;
     repeated QuotaGrant quota_grants = 4;
+    bool link_failure = 5;
 }
 
 enum FinalUnitAction {

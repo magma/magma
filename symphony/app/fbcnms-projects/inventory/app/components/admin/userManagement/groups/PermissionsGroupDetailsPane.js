@@ -22,6 +22,7 @@ import classNames from 'classnames';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
 import {GROUP_STATUSES} from '../utils/UserManagementUtils';
+import {isTempId} from '../../../../common/EntUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useMemo} from 'react';
 
@@ -49,6 +50,7 @@ export default function PermissionsGroupDetailsPane(props: Props) {
   const {isFeatureEnabled} = useContext(AppContext);
   const userManagementDevMode = isFeatureEnabled('user_management_dev');
   const classes = useStyles();
+  const isNewGroup = isTempId(group.id);
 
   const statuses = useMemo(
     () =>
@@ -79,7 +81,7 @@ export default function PermissionsGroupDetailsPane(props: Props) {
               }}
             />
           </Grid>
-          {userManagementDevMode ? (
+          {userManagementDevMode && !isNewGroup ? (
             <Grid item xs={12} sm={6} lg={6} xl={6}>
               <FormField label={`${fbt('Status', '')}`}>
                 <Select

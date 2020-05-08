@@ -446,7 +446,11 @@ TEST_F(LocalEnforcerTest, test_update_session_credits_and_rules_with_failure) {
   insert_static_rule(0, "1", "rule1");
 
   CreateSessionResponse response;
-  response.mutable_static_rules()->Add()->mutable_rule_id()->assign("rule1");
+  auto rules = response.mutable_static_rules()->Add();
+  rules->mutable_rule_id()->assign("rule1");
+  rules->mutable_activation_time()->set_seconds(0);
+  rules->mutable_deactivation_time()->set_seconds(0);
+
   auto monitor_updates = response.mutable_usage_monitors();
   create_monitor_update_response("IMSI1", "1", MonitoringLevel::PCC_RULE_LEVEL,
                                  1024, monitor_updates->Add());
@@ -474,13 +478,13 @@ TEST_F(LocalEnforcerTest, test_update_session_credits_and_rules_with_failure) {
   monitor_response->set_result_code(5001); // USER_UNKNOWN permanent failure
 
   // expect all rules attached to this session should be removed
-  EXPECT_CALL(*pipelined_client,
-              deactivate_flows_for_rules(
-                  "IMSI1", std::vector<std::string>{"rule1"}, CheckCount(0)))
-      .Times(1)
-      .WillOnce(testing::Return(true));
-  local_enforcer->update_session_credits_and_rules(session_map, update_response,
-                                                   update);
+  EXPECT_CALL(
+    *pipelined_client,
+    deactivate_flows_for_rules("IMSI1", std::vector<std::string>{"rule1"},
+                               CheckCount(0), testing::_))
+    .Times(1)
+    .WillOnce(testing::Return(true));
+  local_enforcer->update_session_credits_and_rules(session_map, update_response, update);
 
   // expect no update to credit
   assert_monitor_credit("IMSI1", ALLOWED_TOTAL, {{"1", 1024}});
@@ -583,9 +587,123 @@ TEST_F(LocalEnforcerTest, test_terminate_credit_during_reporting) {
   EXPECT_EQ(status, std::future_status::timeout);
 }
 
-MATCHER_P2(CheckDeactivateFlows, imsi, rule_count, "") {
-  auto request = static_cast<const DeactivateFlowsRequest *>(arg);
-  return request->sid().id() == imsi && request->rule_ids_size() == rule_count;
+TEST_F(LocalEnforcerTest, test_sync_sessions_on_restart) {
+  const std::string imsi = "IMSI1";
+  const std::string session_id = "1234";
+  CreateSessionResponse response;
+  create_credit_update_response(imsi, 1, true, 1024,
+                                response.mutable_credits()->Add());
+  local_enforcer->init_session_credit(session_map, imsi, session_id, test_cfg,
+                                      response);
+
+  insert_static_rule(1, "", "rule1");
+  insert_static_rule(1, "", "rule2");
+  insert_static_rule(1, "", "rule3");
+  insert_static_rule(1, "", "rule4");
+
+  EXPECT_EQ(session_map[imsi].size(), 1);
+  bool success = session_store->create_sessions(imsi, std::move(session_map[imsi]));
+  EXPECT_TRUE(success);
+
+  auto session_map_2 = session_store->read_sessions(SessionRead{imsi});
+  auto session_update = session_store->get_default_session_update(session_map_2);
+  EXPECT_EQ(session_map_2[imsi].size(), 1);
+
+  RuleLifetime lifetime1 = {
+      .activation_time = std::time_t(0),
+      .deactivation_time = std::time_t(5),
+  };
+  RuleLifetime lifetime2 = {
+      .activation_time = std::time_t(5),
+      .deactivation_time = std::time_t(10),
+  };
+  RuleLifetime lifetime3 = {
+      .activation_time = std::time_t(10),
+      .deactivation_time = std::time_t(15),
+  };
+  RuleLifetime lifetime4 = {
+      .activation_time = std::time_t(15),
+      .deactivation_time = std::time_t(20),
+  };
+  auto& uc = session_update[imsi][session_id];
+  session_map_2[imsi].front()->activate_static_rule("rule1", lifetime1, uc);
+  session_map_2[imsi].front()->schedule_static_rule("rule2", lifetime2, uc);
+  session_map_2[imsi].front()->schedule_static_rule("rule3", lifetime3, uc);
+  session_map_2[imsi].front()->schedule_static_rule("rule4", lifetime4, uc);
+
+  EXPECT_EQ(uc.new_scheduled_static_rules.count("rule2"), 1);
+  EXPECT_EQ(uc.new_scheduled_static_rules.count("rule3"), 1);
+  EXPECT_EQ(uc.new_scheduled_static_rules.count("rule4"), 1);
+
+  success = session_store->update_sessions(session_update);
+  EXPECT_TRUE(success);
+
+  local_enforcer->sync_sessions_on_restart(std::time_t(12));
+
+  session_map_2 = session_store->read_sessions(SessionRead{imsi});
+  session_update = session_store->get_default_session_update(session_map_2);
+  EXPECT_EQ(session_map_2[imsi].size(), 1);
+
+  auto& session = session_map_2[imsi].front();
+  EXPECT_FALSE(session->is_static_rule_installed("rule1"));
+  EXPECT_FALSE(session->is_static_rule_installed("rule2"));
+  EXPECT_TRUE(session->is_static_rule_installed("rule3"));
+  EXPECT_FALSE(session->is_static_rule_installed("rule4"));
+}
+
+// Make sure sessions that are scheduled to be terminated before sync are
+// correctly scheduled to be terminated again.
+TEST_F(LocalEnforcerTest, test_termination_scheduling_on_sync_sessions) {
+  const std::string imsi = "IMSI1";
+  const std::string session_id = "1234";
+  insert_static_rule(1, "m1", "rule1");
+
+  // Create a CreateSessionResponse with one Gx monitor:m1 and one rule:rule1
+  CreateSessionResponse response;
+  auto monitors = response.mutable_usage_monitors();
+  create_monitor_update_response("IMSI1", "m1", MonitoringLevel::PCC_RULE_LEVEL,
+                                 1024, monitors->Add());
+  StaticRuleInstall static_rule_install;
+  static_rule_install.set_rule_id("rule1");
+  response.mutable_static_rules()->Add()->CopyFrom(static_rule_install);
+
+  local_enforcer->init_session_credit(session_map, imsi, session_id, test_cfg,
+                                      response);
+
+  EXPECT_EQ(session_map[imsi].size(), 1);
+  bool success = session_store->create_sessions(imsi, std::move(session_map[imsi]));
+  EXPECT_TRUE(success);
+
+  auto session_map = session_store->read_sessions(SessionRead{imsi});
+  auto session_update = session_store->get_default_session_update(session_map);
+  EXPECT_EQ(session_map[imsi].size(), 1);
+
+  // Update session to have SESSION_TERMINATION_SCHEDULED
+  auto& uc = session_update[imsi][session_id];
+  session_map[imsi].front()->mark_as_awaiting_termination(uc);
+  EXPECT_EQ(uc.is_fsm_updated, true);
+  EXPECT_EQ(uc.updated_fsm_state, SESSION_TERMINATION_SCHEDULED);
+
+  success = session_store->update_sessions(session_update);
+  EXPECT_TRUE(success);
+
+  // Syncing will schedule a termination for this IMSI
+  local_enforcer->sync_sessions_on_restart(std::time_t(0));
+
+  // Terminate subscriber is the only thing on the event queue, and
+  // quota_exhaust_termination_on_init_ms is set to 0
+  // We expect the termination to take place once we run evb->loopOnce()
+  EXPECT_CALL(
+    *pipelined_client,
+    deactivate_flows_for_rules("IMSI1", CheckCount(1), testing::_,
+                               RequestOriginType::GX));
+  evb->loopOnce();
+
+  // At this point, the state should have transitioned from
+  // SESSION_TERMINATION_SCHEDULED -> SESSION_TERMINATING_FLOW_ACTIVE
+  session_map = session_store->read_sessions(SessionRead{imsi});
+  auto updated_fsm_state = session_map[imsi].front()->get_state();
+  EXPECT_EQ(updated_fsm_state, SESSION_TERMINATING_FLOW_ACTIVE);
 }
 
 TEST_F(LocalEnforcerTest, test_final_unit_handling) {
@@ -606,7 +724,7 @@ TEST_F(LocalEnforcerTest, test_final_unit_handling) {
   local_enforcer->aggregate_records(session_map, table, update);
 
   EXPECT_CALL(*pipelined_client,
-              deactivate_flows_for_rules(testing::_, testing::_, testing::_))
+      deactivate_flows_for_rules(testing::_, testing::_, testing::_, testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
   // Since this is a termination triggered by SessionD/Core (quota exhaustion
@@ -653,10 +771,11 @@ TEST_F(LocalEnforcerTest, test_cwf_final_unit_handling) {
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table, update);
 
-  EXPECT_CALL(*pipelined_client,
-              deactivate_flows_for_rules(testing::_, testing::_, testing::_))
-      .Times(1)
-      .WillOnce(testing::Return(true));
+  EXPECT_CALL(
+    *pipelined_client,
+    deactivate_flows_for_rules(testing::_, testing::_, testing::_, testing::_))
+    .Times(1)
+    .WillOnce(testing::Return(true));
 
   EXPECT_CALL(*aaa_client, terminate_session(testing::_, testing::_))
       .Times(1)
@@ -911,10 +1030,12 @@ TEST_F(LocalEnforcerTest, test_dynamic_rule_actions) {
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table, update);
 
-  EXPECT_CALL(*pipelined_client, deactivate_flows_for_rules(
-                                     testing::_, CheckCount(2), CheckCount(1)))
-      .Times(1)
-      .WillOnce(testing::Return(true));
+  EXPECT_CALL(
+    *pipelined_client,
+    deactivate_flows_for_rules(testing::_, CheckCount(2), CheckCount(1),
+                               testing::_))
+    .Times(1)
+    .WillOnce(testing::Return(true));
   std::vector<std::unique_ptr<ServiceAction>> actions;
   auto usage_updates =
       local_enforcer->collect_updates(session_map, actions, update);
@@ -1092,14 +1213,14 @@ TEST_F(LocalEnforcerTest, test_usage_monitors) {
                                  0, monitor_updates_response);
   monitor_updates_response->add_rules_to_remove("pcrf_only");
 
-  EXPECT_CALL(*pipelined_client,
-              deactivate_flows_for_rules("IMSI1",
-                                         std::vector<std::string>{"pcrf_only"},
-                                         CheckCount(0)))
-      .Times(1)
-      .WillOnce(testing::Return(true));
-  local_enforcer->update_session_credits_and_rules(session_map, update_response,
-                                                   update);
+  EXPECT_CALL(
+    *pipelined_client,
+    deactivate_flows_for_rules("IMSI1",
+      std::vector<std::string>{"pcrf_only"}, CheckCount(0),
+      RequestOriginType::GX))
+    .Times(1)
+    .WillOnce(testing::Return(true));
+  local_enforcer->update_session_credits_and_rules(session_map, update_response, update);
 
   // Test rule installation in usage monitor response for CCA-Update
   update_response.Clear();

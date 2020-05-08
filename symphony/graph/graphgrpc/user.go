@@ -16,6 +16,8 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+const UserServiceName = "UserService"
+
 type (
 	// UserService is a user service.
 	UserService struct{ Client UserProvider }
@@ -57,7 +59,10 @@ func (s UserService) Create(ctx context.Context, input *AddUserInput) (*User, er
 	if input.IsOwner {
 		role = user.RoleOWNER
 	}
-
+	ctx, err = CreateServiceContext(ctx, input.Tenant, UserServiceName, user.RoleADMIN)
+	if err != nil {
+		return nil, status.FromContextError(err).Err()
+	}
 	u, err := client.User.Query().Where(user.AuthID(input.Id)).Only(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
@@ -93,6 +98,10 @@ func (s UserService) Delete(ctx context.Context, input *UserInput) (*empty.Empty
 		return nil, status.FromContextError(err).Err()
 	}
 
+	ctx, err = CreateServiceContext(ctx, input.Tenant, UserServiceName, user.RoleADMIN)
+	if err != nil {
+		return nil, status.FromContextError(err).Err()
+	}
 	u, err := client.User.Query().Where(user.AuthID(input.Id)).Only(ctx)
 	if err != nil {
 		return nil, status.FromContextError(err).Err()

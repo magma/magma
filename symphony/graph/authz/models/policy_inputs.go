@@ -16,23 +16,40 @@ type BasicPermissionRuleInput struct {
 	IsAllowed PermissionValue `json:"isAllowed"`
 }
 
+type LocationPermissionRuleInput struct {
+	IsAllowed       PermissionValue `json:"isAllowed"`
+	LocationTypeIds []int           `json:"locationIds"`
+}
+
+type WorkforcePermissionRuleInput struct {
+	IsAllowed        PermissionValue `json:"isAllowed"`
+	ProjectTypeIds   []int           `json:"projectTypeIds"`
+	WorkOrderTypeIds []int           `json:"workOrderTypeIds"`
+}
+
 type BasicCUDInput struct {
 	Create *BasicPermissionRuleInput `json:"create"`
 	Update *BasicPermissionRuleInput `json:"update"`
 	Delete *BasicPermissionRuleInput `json:"delete"`
 }
 
-type BasicWorkforceCUDInput struct {
-	Create            *BasicPermissionRuleInput `json:"create"`
-	Update            *BasicPermissionRuleInput `json:"update"`
-	Delete            *BasicPermissionRuleInput `json:"delete"`
-	Assign            *BasicPermissionRuleInput `json:"assign"`
-	TransferOwnership *BasicPermissionRuleInput `json:"transferOwnership"`
+type LocationCUDInput struct {
+	Create *LocationPermissionRuleInput `json:"create"`
+	Update *LocationPermissionRuleInput `json:"update"`
+	Delete *LocationPermissionRuleInput `json:"delete"`
+}
+
+type WorkforceCUDInput struct {
+	Create            *WorkforcePermissionRuleInput `json:"create"`
+	Update            *WorkforcePermissionRuleInput `json:"update"`
+	Delete            *WorkforcePermissionRuleInput `json:"delete"`
+	Assign            *WorkforcePermissionRuleInput `json:"assign"`
+	TransferOwnership *WorkforcePermissionRuleInput `json:"transferOwnership"`
 }
 
 type InventoryPolicyInput struct {
 	Read          *BasicPermissionRuleInput `json:"read"`
-	Location      *BasicCUDInput            `json:"location"`
+	Location      *LocationCUDInput         `json:"location"`
 	Equipment     *BasicCUDInput            `json:"equipment"`
 	EquipmentType *BasicCUDInput            `json:"equipmentType"`
 	LocationType  *BasicCUDInput            `json:"locationType"`
@@ -42,6 +59,6 @@ type InventoryPolicyInput struct {
 
 type WorkforcePolicyInput struct {
 	Read      *BasicPermissionRuleInput `json:"read"`
-	Data      *BasicWorkforceCUDInput   `json:"data"`
+	Data      *WorkforceCUDInput        `json:"data"`
 	Templates *BasicCUDInput            `json:"templates"`
 }

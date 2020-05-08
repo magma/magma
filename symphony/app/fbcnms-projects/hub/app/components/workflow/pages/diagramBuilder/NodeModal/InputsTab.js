@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import AceEditor from "react-ace";
 import { Button, Col, Form, InputGroup, Row } from "react-bootstrap";
 import Dropdown from "react-dropdown";
+import 'react-dropdown/style.css';
 import "ace-builds/src-noconflict/mode-javascript";
 import "ace-builds/src-noconflict/theme-tomorrow";
 

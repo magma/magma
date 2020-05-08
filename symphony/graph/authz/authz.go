@@ -22,7 +22,7 @@ type AuthHandler struct {
 // AuthHandler calculates permissions of viewer and put in context.
 func (h AuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	permissions, err := Permissions(ctx)
+	permissions, err := Permissions(NewContext(ctx, AdminPermissions()))
 	if err != nil {
 		http.Error(w, fmt.Sprintf("get permissions: %s", err.Error()), http.StatusServiceUnavailable)
 		return

@@ -42,34 +42,36 @@ const (
 
 // GetSwxProxyConfig returns the service config based on the
 // the values in mconfig or default values provided
-func GetSwxProxyConfig() *SwxProxyConfig {
+func GetSwxProxyConfig() []*SwxProxyConfig {
 	configsPtr := &mcfgprotos.SwxConfig{}
 	hlrPlmnIds := map[string]PlmnIdVal{}
 	err := mconfig.GetServiceConfigs(SwxProxyServiceName, configsPtr)
 
-	if err != nil || configsPtr.Server == nil {
+	if err != nil || !isSWxMConfiValid(configsPtr) {
 		glog.V(2).Infof("%s Managed Configs Load Error: %v", SwxProxyServiceName, err)
 
-		return &SwxProxyConfig{
-			ClientCfg: &diameter.DiameterClientConfig{
-				Host:        diameter.GetValueOrEnv(diameter.HostFlag, SwxDiamHostEnv, DefaultSwxDiamHost),
-				Realm:       diameter.GetValueOrEnv(diameter.RealmFlag, SwxDiamRealmEnv, DefaultSwxDiamRealm),
-				ProductName: diameter.GetValueOrEnv(diameter.ProductFlag, SwxDiamProductEnv, diameter.DiamProductName),
+		return []*SwxProxyConfig{
+			&SwxProxyConfig{
+				ClientCfg: &diameter.DiameterClientConfig{
+					Host:        diameter.GetValueOrEnv(diameter.HostFlag, SwxDiamHostEnv, DefaultSwxDiamHost),
+					Realm:       diameter.GetValueOrEnv(diameter.RealmFlag, SwxDiamRealmEnv, DefaultSwxDiamRealm),
+					ProductName: diameter.GetValueOrEnv(diameter.ProductFlag, SwxDiamProductEnv, diameter.DiamProductName),
+				},
+				ServerCfg: &diameter.DiameterServerConfig{DiameterServerConnConfig: diameter.DiameterServerConnConfig{
+					Addr:      diameter.GetValueOrEnv(diameter.AddrFlag, HSSAddrEnv, ""),
+					Protocol:  diameter.GetValueOrEnv(diameter.NetworkFlag, SwxNetworkEnv, "sctp"),
+					LocalAddr: diameter.GetValueOrEnv(diameter.LocalAddrFlag, SwxLocalAddrEnv, "")},
+					DestHost:          diameter.GetValueOrEnv(diameter.DestHostFlag, HSSHostEnv, ""),
+					DestRealm:         diameter.GetValueOrEnv(diameter.DestRealmFlag, HSSRealmEnv, ""),
+					DisableDestHost:   diameter.GetBoolValueOrEnv(diameter.DisableDestHostFlag, DisableDestHostEnv, false),
+					OverwriteDestHost: diameter.GetBoolValueOrEnv(diameter.OverwriteDestHostFlag, OverwriteDestHostEnv, false),
+				},
+				VerifyAuthorization:   DefaultVerifyAuthorization,
+				RegisterOnAuth:        DefaultRegisterOnAuth,
+				DeriveUnregisterRealm: DefaultDeriveUnregisterRealm,
+				CacheTTLSeconds:       uint32(cache.DefaultTtl.Seconds()),
+				HlrPlmnIds:            hlrPlmnIds,
 			},
-			ServerCfg: &diameter.DiameterServerConfig{DiameterServerConnConfig: diameter.DiameterServerConnConfig{
-				Addr:      diameter.GetValueOrEnv(diameter.AddrFlag, HSSAddrEnv, ""),
-				Protocol:  diameter.GetValueOrEnv(diameter.NetworkFlag, SwxNetworkEnv, "sctp"),
-				LocalAddr: diameter.GetValueOrEnv(diameter.LocalAddrFlag, SwxLocalAddrEnv, "")},
-				DestHost:          diameter.GetValueOrEnv(diameter.DestHostFlag, HSSHostEnv, ""),
-				DestRealm:         diameter.GetValueOrEnv(diameter.DestRealmFlag, HSSRealmEnv, ""),
-				DisableDestHost:   diameter.GetBoolValueOrEnv(diameter.DisableDestHostFlag, DisableDestHostEnv, false),
-				OverwriteDestHost: diameter.GetBoolValueOrEnv(diameter.OverwriteDestHostFlag, OverwriteDestHostEnv, false),
-			},
-			VerifyAuthorization:   DefaultVerifyAuthorization,
-			RegisterOnAuth:        DefaultRegisterOnAuth,
-			DeriveUnregisterRealm: DefaultDeriveUnregisterRealm,
-			CacheTTLSeconds:       uint32(cache.DefaultTtl.Seconds()),
-			HlrPlmnIds:            hlrPlmnIds,
 		}
 	}
 
@@ -90,35 +92,54 @@ func GetSwxProxyConfig() *SwxProxyConfig {
 			glog.Warningf("Invalid HLR PLMN ID: %s", plmnid)
 		}
 	}
-
 	ttl := configsPtr.CacheTTLSeconds
 	if ttl < uint32(cache.DefaultGcInterval.Seconds()) {
 		ttl = uint32(cache.DefaultTtl.Seconds())
 	}
-	return &SwxProxyConfig{
-		ClientCfg: &diameter.DiameterClientConfig{
-			Host:             diameter.GetValueOrEnv(diameter.HostFlag, SwxDiamHostEnv, configsPtr.GetServer().GetHost()),
-			Realm:            diameter.GetValueOrEnv(diameter.RealmFlag, SwxDiamRealmEnv, configsPtr.GetServer().GetRealm()),
-			ProductName:      diameter.GetValueOrEnv(diameter.ProductFlag, SwxDiamProductEnv, configsPtr.GetServer().GetProductName()),
-			Retransmits:      uint(configsPtr.GetServer().GetRetransmits()),
-			WatchdogInterval: uint(configsPtr.GetServer().GetWatchdogInterval()),
-			RetryCount:       uint(configsPtr.GetServer().GetRetryCount()),
-		},
-		ServerCfg: &diameter.DiameterServerConfig{DiameterServerConnConfig: diameter.DiameterServerConnConfig{
-			Addr:      diameter.GetValueOrEnv(diameter.AddrFlag, HSSAddrEnv, configsPtr.GetServer().GetAddress()),
-			Protocol:  diameter.GetValueOrEnv(diameter.NetworkFlag, SwxNetworkEnv, configsPtr.GetServer().GetProtocol()),
-			LocalAddr: diameter.GetValueOrEnv(diameter.LocalAddrFlag, SwxLocalAddrEnv, configsPtr.GetServer().GetLocalAddress())},
-			DestHost:          diameter.GetValueOrEnv(diameter.DestHostFlag, HSSHostEnv, configsPtr.GetServer().GetDestHost()),
-			DestRealm:         diameter.GetValueOrEnv(diameter.DestRealmFlag, HSSRealmEnv, configsPtr.GetServer().GetDestRealm()),
-			DisableDestHost:   diameter.GetBoolValueOrEnv(diameter.DisableDestHostFlag, DisableDestHostEnv, configsPtr.GetServer().GetDisableDestHost()),
-			OverwriteDestHost: diameter.GetBoolValueOrEnv(diameter.OverwriteDestHostFlag, OverwriteDestHostEnv, configsPtr.GetServer().GetOverwriteDestHost()),
-		},
-		VerifyAuthorization:   configsPtr.GetVerifyAuthorization(),
-		RegisterOnAuth:        configsPtr.GetRegisterOnAuth(),
-		DeriveUnregisterRealm: configsPtr.GetDeriveUnregisterRealm(),
-		CacheTTLSeconds:       ttl,
-		HlrPlmnIds:            hlrPlmnIds,
+	swxConfigs := configsPtr.GetServers()
+
+	//TODO: remove this once backwards compatibility is not needed for the field server
+	if len(swxConfigs) == 0 {
+		server := configsPtr.GetServer()
+		if server == nil {
+			glog.V(2).Infof("Server configuration for Swx servers not found!!")
+		} else {
+			swxConfigs = append(swxConfigs, server)
+			glog.V(2).Infof("Swx Server configuration using legacy swagger attribute Server (not Servers)")
+		}
 	}
+
+	// Iterate over the slice of servers. VarEnv will apply only to index 0
+	diamServerConfigs := []*SwxProxyConfig{}
+	for i, swxConfig := range swxConfigs {
+		diamSrvCfg := &SwxProxyConfig{
+			ClientCfg: &diameter.DiameterClientConfig{
+				Host:             diameter.GetValueOrEnv(diameter.HostFlag, SwxDiamHostEnv, swxConfig.GetHost(), i),
+				Realm:            diameter.GetValueOrEnv(diameter.RealmFlag, SwxDiamRealmEnv, swxConfig.GetRealm(), i),
+				ProductName:      diameter.GetValueOrEnv(diameter.ProductFlag, SwxDiamProductEnv, swxConfig.GetProductName(), i),
+				Retransmits:      uint(swxConfig.GetRetransmits()),
+				WatchdogInterval: uint(swxConfig.GetWatchdogInterval()),
+				RetryCount:       uint(swxConfig.GetRetryCount()),
+			},
+			ServerCfg: &diameter.DiameterServerConfig{
+				DiameterServerConnConfig: diameter.DiameterServerConnConfig{
+					Addr:      diameter.GetValueOrEnv(diameter.AddrFlag, HSSAddrEnv, swxConfig.GetAddress(), i),
+					Protocol:  diameter.GetValueOrEnv(diameter.NetworkFlag, SwxNetworkEnv, swxConfig.GetProtocol(), i),
+					LocalAddr: diameter.GetValueOrEnv(diameter.LocalAddrFlag, SwxLocalAddrEnv, swxConfig.GetLocalAddress(), i)},
+				DestHost:          diameter.GetValueOrEnv(diameter.DestHostFlag, HSSHostEnv, swxConfig.GetDestHost(), i),
+				DestRealm:         diameter.GetValueOrEnv(diameter.DestRealmFlag, HSSRealmEnv, swxConfig.GetDestRealm(), i),
+				DisableDestHost:   diameter.GetBoolValueOrEnv(diameter.DisableDestHostFlag, DisableDestHostEnv, swxConfig.GetDisableDestHost(), i),
+				OverwriteDestHost: diameter.GetBoolValueOrEnv(diameter.OverwriteDestHostFlag, OverwriteDestHostEnv, swxConfig.GetOverwriteDestHost(), i),
+			},
+			VerifyAuthorization:   configsPtr.GetVerifyAuthorization(),
+			RegisterOnAuth:        configsPtr.GetRegisterOnAuth(),
+			DeriveUnregisterRealm: configsPtr.GetDeriveUnregisterRealm(),
+			CacheTTLSeconds:       ttl,
+			HlrPlmnIds:            hlrPlmnIds,
+		}
+		diamServerConfigs = append(diamServerConfigs, diamSrvCfg)
+	}
+	return diamServerConfigs
 }
 
 // ValidateSwxProxyConfig ensures that the swx proxy config specified has valid
@@ -147,4 +168,19 @@ func (config *SwxProxyConfig) IsHlrClient(imsi string) bool {
 		}
 	}
 	return false
+}
+
+// isSWxMConfiValid check if required fields are present on SwxConfig proto
+func isSWxMConfiValid(config *mcfgprotos.SwxConfig) bool {
+	if config == nil ||
+		(config.Server == nil && len(config.Servers) == 0) ||
+		(config.Server != nil && config.Server.Address == "") {
+		return false
+	}
+	for _, server := range config.Servers {
+		if server.Address == "" {
+			return false
+		}
+	}
+	return true
 }

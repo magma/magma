@@ -11,7 +11,6 @@
 import type {
   AddWorkOrderMutationResponse,
   AddWorkOrderMutationVariables,
-  CheckListCategoryInput,
 } from '../../mutations/__generated__/AddWorkOrderMutation.graphql';
 import type {ChecklistCategoriesMutateStateActionType} from '../checklist/ChecklistCategoriesMutateAction';
 import type {ChecklistCategoriesStateType} from '../checklist/ChecklistCategoriesMutateState';
@@ -40,13 +39,13 @@ import UserTypeahead from '../typeahead/UserTypeahead';
 import nullthrows from '@fbcnms/util/nullthrows';
 import {FormContextProvider} from '../../common/FormContext';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
+import {convertChecklistCategoriesStateToInput} from '../checklist/ChecklistUtils';
 import {getGraphError} from '../../common/EntUtils';
 import {getInitialPropertyFromType} from '../../common/PropertyType';
 import {graphql} from 'relay-runtime';
 import {makeStyles} from '@material-ui/styles';
 import {priorityValues, statusValues} from '../../common/WorkOrder';
 import {reducer} from '../checklist/ChecklistCategoriesMutateReducer';
-import {removeTempIDs} from '../../common/EntUtils';
 import {sortPropertiesByIndex, toPropertyInput} from '../../common/Property';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useHistory, useRouteMatch} from 'react-router';
@@ -212,16 +211,8 @@ const AddWorkOrderCard = ({workOrderTypeId}: Props) => {
       status,
       priority,
       properties,
-      checkListCategories,
     } = nullthrows(workOrder);
     const workOrderTypeId = nullthrows(workOrder?.workOrderTypeId);
-    const updatedChecklistCategories: CheckListCategoryInput[] = (
-      checkListCategories || []
-    ).map(category => ({
-      title: category.title,
-      description: category.description,
-      checkList: removeTempIDs(category.checkList || []),
-    }));
     const variables: AddWorkOrderMutationVariables = {
       input: {
         name,
@@ -233,7 +224,9 @@ const AddWorkOrderCard = ({workOrderTypeId}: Props) => {
         status,
         priority,
         properties: toPropertyInput(properties),
-        checkListCategories: updatedChecklistCategories,
+        checkListCategories: convertChecklistCategoriesStateToInput(
+          editingCategories,
+        ),
       },
     };
 

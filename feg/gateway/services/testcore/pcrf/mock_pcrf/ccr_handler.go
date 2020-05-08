@@ -55,7 +55,7 @@ type usedServiceUnitAVP struct {
 }
 
 // getCCRHandler returns a handler to be called when the server receives a CCR
-func getCCRHandler(srv *PCRFDiamServer) diam.HandlerFunc {
+func getCCRHandler(srv *PCRFServer) diam.HandlerFunc {
 	return func(c diam.Conn, m *diam.Message) {
 		glog.V(2).Infof("Received CCR from %s\n", c.RemoteAddr())
 		srv.lastDiamMessageReceived = m

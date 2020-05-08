@@ -14,6 +14,7 @@ import (
 	"sync/atomic"
 
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/ent/privacy"
 	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/pkg/log"
 
@@ -290,6 +291,12 @@ func TenancyHandler(h http.Handler, tenancy Tenancy) http.Handler {
 			http.Error(w, "missing tenant header", http.StatusBadRequest)
 			return
 		}
+		role := user.Role(r.Header.Get(RoleHeader))
+		err := user.RoleValidator(role)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("bad role: %s", err.Error()), http.StatusBadRequest)
+			return
+		}
 		client, err := tenancy.ClientFor(r.Context(), tenant)
 		if err != nil {
 			http.Error(w, "getting tenancy client", http.StatusServiceUnavailable)
@@ -297,11 +304,13 @@ func TenancyHandler(h http.Handler, tenancy Tenancy) http.Handler {
 		}
 		ctx := ent.NewContext(r.Context(), client)
 		var v Viewer
-		role := user.Role(r.Header.Get(RoleHeader))
 		features := strings.Split(r.Header.Get(FeaturesHeader), ",")
 		switch {
 		case r.Header.Get(UserHeader) != "":
-			u, err := GetOrCreateUser(ctx, r.Header.Get(UserHeader), role)
+			u, err := GetOrCreateUser(
+				privacy.DecisionContext(ctx, privacy.Allow),
+				r.Header.Get(UserHeader),
+				role)
 			if err != nil {
 				http.Error(w, fmt.Sprintf("get user ent: %s", err.Error()), http.StatusServiceUnavailable)
 				return

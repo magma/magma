@@ -181,14 +181,14 @@ const arrayConfigs = [
     rules: [AlwaysEnabledInTestEnvRule],
   },
   {
-    id: 'read_only_users',
-    title: 'Read Only Users',
-    enabledByDefault: false,
-  },
-  {
     id: 'user_management_dev',
     title: 'User Management - Dev mode',
     enabledByDefault: false,
+  },
+  {
+    id: 'permissions_ui_enforcement',
+    title: 'Permissions - UI enforcement',
+    enabledByDefault: true,
   },
   {
     id: 'grafana_metrics',

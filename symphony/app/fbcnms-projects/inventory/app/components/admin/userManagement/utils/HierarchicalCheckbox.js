@@ -10,7 +10,7 @@
 
 import * as React from 'react';
 import Checkbox from '@fbcnms/ui/components/design-system/Checkbox/Checkbox';
-import Text from '@fbcnms/ui/components/design-system/Text';
+import classNames from 'classnames';
 import useSideEffectCallback from './useSideEffectCallback';
 import {
   HierarchyContextProvider,
@@ -24,9 +24,6 @@ const useStyles = makeStyles(() => ({
     display: 'flex',
     flexDirection: 'column',
   },
-  checkContainer: {
-    display: 'flex',
-  },
   children: {
     marginLeft: '24px',
   },
@@ -36,10 +33,11 @@ type SubTreeProps = $ReadOnly<{|
   title: React.Node,
   onChange: (?boolean) => void,
   children?: React.Node,
+  className?: ?string,
 |}>;
 
 function CheckboxSubTree(props: SubTreeProps) {
-  const {onChange, title, children} = props;
+  const {onChange, title, className, children} = props;
   const classes = useStyles();
 
   const hierarchyContext = useHierarchyContext();
@@ -83,18 +81,16 @@ function CheckboxSubTree(props: SubTreeProps) {
   );
 
   return (
-    <div className={classes.root}>
-      <div className={classes.checkContainer}>
-        <Checkbox
-          checked={hierarchyContext.parentValue === true}
-          indeterminate={
-            hierarchyContext.parentValue == null &&
-            !hierarchyContext.childrenValues.isEmpty()
-          }
-          onChange={status => onChange(status === 'checked')}
-        />
-        <Text>{title}</Text>
-      </div>
+    <div className={classNames(classes.root, className)}>
+      <Checkbox
+        checked={hierarchyContext.parentValue === true}
+        indeterminate={
+          hierarchyContext.parentValue == null &&
+          !hierarchyContext.childrenValues.isEmpty()
+        }
+        title={title}
+        onChange={status => onChange(status === 'checked')}
+      />
       <div className={classes.children}>{children}</div>
     </div>
   );
@@ -104,41 +100,61 @@ type Props = $ReadOnly<{|
   id: string,
   title: React.Node,
   value?: ?boolean,
-  onChange?: ?(boolean) => void,
+  onChange?: ?(?boolean) => void,
+  className?: ?string,
   children?: React.Node,
 |}>;
 
-export function HierarchicalCheckbox(props: Props) {
-  const {id, value: propValue, title, children} = props;
+export default function HierarchicalCheckbox(props: Props) {
+  const {id, value: propValue, title, className, children, onChange} = props;
   const [value, setValue] = useState<?boolean>(null);
   const hierarchyContext = useHierarchyContext();
+
+  const updateValueInContext = hierarchyContext.setChildValue;
+  const isRegistered = hierarchyContext.childrenValues.has(id);
 
   const updateMyValue = useCallback(
     newValue => {
       setValue(newValue);
-      hierarchyContext.setChildValue(id, newValue);
+      updateValueInContext(id, newValue);
     },
-    [hierarchyContext, id],
+    [updateValueInContext, id],
   );
 
   useEffect(() => {
-    if (hierarchyContext.childrenValues.has(id)) {
-      if (hierarchyContext.parentValue != null) {
-        updateMyValue(hierarchyContext.parentValue);
+    updateMyValue(propValue);
+  }, [propValue, updateMyValue]);
+
+  useEffect(
+    () => {
+      if (isRegistered) {
+        if (
+          hierarchyContext.parentValue != null &&
+          hierarchyContext.parentValue != value
+        ) {
+          updateMyValue(hierarchyContext.parentValue);
+          if (onChange) {
+            onChange(hierarchyContext.parentValue);
+          }
+        }
       }
-    } else {
-      updateMyValue(propValue ?? hierarchyContext.parentValue);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hierarchyContext.parentValue, id, propValue]);
+    }, // eslint-disable-next-line react-hooks/exhaustive-deps
+    [isRegistered, hierarchyContext.parentValue, updateMyValue],
+  );
 
   return (
     <HierarchyContextProvider parentValue={value}>
-      <CheckboxSubTree title={title} onChange={updateMyValue}>
+      <CheckboxSubTree
+        title={title}
+        className={className}
+        onChange={newValue => {
+          updateMyValue(newValue);
+          if (onChange) {
+            onChange(newValue);
+          }
+        }}>
         {children}
       </CheckboxSubTree>
     </HierarchyContextProvider>
   );
 }
-
-export default HierarchicalCheckbox;

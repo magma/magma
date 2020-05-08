@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 88115ce4621d96b8a069689081903d7c
+ * @relayHash 1a78b60452cdb35631fe372c2a8241f5
  */
 
 /* eslint-disable */
@@ -15,6 +15,7 @@
 
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
+export type DiscoveryMethod = "INVENTORY" | "%future added value";
 export type ServiceTypesListQueryVariables = {||};
 export type ServiceTypesListQueryResponse = {|
   +serviceTypes: ?{|
@@ -22,6 +23,7 @@ export type ServiceTypesListQueryResponse = {|
       +node: ?{|
         +id: string,
         +name: string,
+        +discoveryMethod: ?DiscoveryMethod,
       |}
     |}>
   |}
@@ -40,6 +42,7 @@ query ServiceTypesListQuery {
       node {
         id
         name
+        discoveryMethod
         __typename
       }
       cursor
@@ -83,6 +86,13 @@ var v0 = [
             "kind": "ScalarField",
             "alias": null,
             "name": "name",
+            "args": null,
+            "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "discoveryMethod",
             "args": null,
             "storageKey": null
           },
@@ -188,7 +198,7 @@ return {
     "operationKind": "query",
     "name": "ServiceTypesListQuery",
     "id": null,
-    "text": "query ServiceTypesListQuery {\n  serviceTypes(first: 500) {\n    edges {\n      node {\n        id\n        name\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n}\n",
+    "text": "query ServiceTypesListQuery {\n  serviceTypes(first: 500) {\n    edges {\n      node {\n        id\n        name\n        discoveryMethod\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n}\n",
     "metadata": {
       "connection": [
         {

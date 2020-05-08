@@ -20,8 +20,7 @@
 .*/node_modules/rxjs/.*
 .*/node_modules/vis/.*
 
-; disabling flow to unblock developers, will re-enable
-.*/fbcnms-projects/workflows/src/.*
+.*/fbcnms-projects/hub/app/components/workflow/pages/diagramBuilder/NodeModels/.*
 
 ; Mapbox disables these because of flow errors
 ; See https://github.com/mapbox/mapbox-gl-js/blob/master/.flowconfig

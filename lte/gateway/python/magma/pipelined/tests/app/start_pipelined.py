@@ -15,6 +15,7 @@ from collections import namedtuple
 from concurrent.futures import Future
 
 from magma.pipelined.rule_mappers import RuleIDToNumMapper
+from magma.pipelined.internal_ip_allocator import InternalIPAllocator
 from magma.pipelined.app.base import MagmaController, ControllerType
 from magma.pipelined.tests.app.exceptions import ServiceRunningError,\
     BadConfigError
@@ -58,6 +59,9 @@ class PipelinedController(Enum):
     )
     Arp = Controller(
         'magma.pipelined.app.arp', 'arpd'
+    )
+    GY = Controller(
+        'magma.pipelined.app.gy', 'gy'
     )
     Enforcement = Controller(
         'magma.pipelined.app.enforcement', 'enforcement'
@@ -175,6 +179,8 @@ class StartThread(object):
         contexts = manager.create_contexts()
         contexts['sids_by_ip'] = {}     # shared by both metering apps
         contexts['rule_id_mapper'] = RuleIDToNumMapper()
+        contexts['internal_ip_allocator'] = \
+            InternalIPAllocator(self._test_setup.config)
         contexts['session_rule_version_mapper'] = \
             self._test_setup.service_manager.session_rule_version_mapper
         contexts['app_futures'] = app_futures

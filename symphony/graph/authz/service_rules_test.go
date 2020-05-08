@@ -14,7 +14,7 @@ import (
 
 func TestServiceTypeWritePolicyRule(t *testing.T) {
 	c := viewertest.NewTestClient(t)
-	ctx := context.Background()
+	ctx := viewertest.NewContext(context.Background(), c)
 	serviceType := c.ServiceType.Create().
 		SetName("ServiceType").
 		SaveX(ctx)

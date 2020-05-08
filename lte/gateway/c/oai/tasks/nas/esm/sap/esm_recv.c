@@ -628,6 +628,7 @@ esm_cause_t esm_recv_information_response(
     &msg->protocolconfigurationoptions,
     &esm_cause);
 
+  bdestroy_wrapper((bstring*) &msg->accesspointname);
   if (pid != RETURNerror) {
     // Continue with S6a Update Location Request
     mme_app_send_s6a_update_location_req(

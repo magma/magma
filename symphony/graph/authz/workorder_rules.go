@@ -10,7 +10,6 @@ import (
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/privacy"
-	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer"
 
 	models2 "github.com/facebookincubator/symphony/graph/authz/models"
@@ -77,13 +76,9 @@ func AllowIfWorkOrderOwnerOrAssignee() privacy.MutationRule {
 
 // WorkOrderWritePolicyRule grants write permission to workorder based on policy.
 func WorkOrderWritePolicyRule() privacy.MutationRule {
-	return workOrderMutationWithPermissionRule(func(ctx context.Context, m *ent.WorkOrderMutation, p *models.PermissionSettings) error {
-		cud := p.WorkforcePolicy.Data
-		allowed := cudBasedCheck(&models.Cud{
-			Create: cud.Create,
-			Update: cud.Update,
-			Delete: cud.Delete,
-		}, m)
+	return privacy.WorkOrderMutationRuleFunc(func(ctx context.Context, m *ent.WorkOrderMutation) error {
+		cud := FromContext(ctx).WorkforcePolicy.Data
+		allowed := workforceCudBasedCheck(cud, m)
 		_, assigned := m.AssigneeID()
 		if assigned || m.AssigneeCleared() {
 			allowed = allowed && (cud.Assign.IsAllowed == models2.PermissionValueYes)
@@ -101,7 +96,7 @@ func WorkOrderWritePolicyRule() privacy.MutationRule {
 
 // WorkOrderTypeWritePolicyRule grants write permission to work order type based on policy.
 func WorkOrderTypeWritePolicyRule() privacy.MutationRule {
-	return mutationWithPermissionRule(func(ctx context.Context, m ent.Mutation, p *models.PermissionSettings) error {
-		return cudBasedRule(p.WorkforcePolicy.Templates, m)
+	return privacy.MutationRuleFunc(func(ctx context.Context, m ent.Mutation) error {
+		return cudBasedRule(FromContext(ctx).WorkforcePolicy.Templates, m)
 	})
 }

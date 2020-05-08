@@ -766,6 +766,9 @@ imsi64_t mme_app_handle_initial_ue_message(mme_app_desc_t *mme_app_desc_p,
   OAILOG_INFO_UE(LOG_MME_APP, ue_context_p->emm_context._imsi64,
       "Sending NAS Establishment Indication to NAS for ue_id = (%d)\n",
     ue_context_p->mme_ue_s1ap_id );
+
+  imsi64 = ue_context_p->emm_context._imsi64;
+
   nas_proc_establish_ind(
     ue_context_p->mme_ue_s1ap_id,
     is_mm_ctx_new,
@@ -781,7 +784,6 @@ imsi64_t mme_app_handle_initial_ue_message(mme_app_desc_t *mme_app_desc_p,
   //   sizeof (message_p->ittiMsg.nas_initial_ue_message.transparent));
 
   initial_pP->nas = NULL;
-  imsi64 = ue_context_p->emm_context._imsi64;
 
   OAILOG_FUNC_RETURN(LOG_MME_APP, imsi64);
 }

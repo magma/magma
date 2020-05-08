@@ -35,6 +35,22 @@ func newBasicPermissionRule(allowed bool) *models.BasicPermissionRule {
 	return &models.BasicPermissionRule{IsAllowed: rule}
 }
 
+func newLocationPermissionRule(allowed bool) *models.LocationPermissionRule {
+	rule := models2.PermissionValueNo
+	if allowed {
+		rule = models2.PermissionValueYes
+	}
+	return &models.LocationPermissionRule{IsAllowed: rule}
+}
+
+func newWorkforcePermissionRule(allowed bool) *models.WorkforcePermissionRule {
+	rule := models2.PermissionValueNo
+	if allowed {
+		rule = models2.PermissionValueYes
+	}
+	return &models.WorkforcePermissionRule{IsAllowed: rule}
+}
+
 func newCUD(allowed bool) *models.Cud {
 	return &models.Cud{
 		Create: newBasicPermissionRule(allowed),
@@ -43,13 +59,21 @@ func newCUD(allowed bool) *models.Cud {
 	}
 }
 
+func newLocationCUD(allowed bool) *models.LocationCud {
+	return &models.LocationCud{
+		Create: newLocationPermissionRule(allowed),
+		Update: newLocationPermissionRule(allowed),
+		Delete: newLocationPermissionRule(allowed),
+	}
+}
+
 func newWorkforceCUD(allowed bool) *models.WorkforceCud {
 	return &models.WorkforceCud{
-		Create:            newBasicPermissionRule(allowed),
-		Update:            newBasicPermissionRule(allowed),
-		Delete:            newBasicPermissionRule(allowed),
-		Assign:            newBasicPermissionRule(allowed),
-		TransferOwnership: newBasicPermissionRule(allowed),
+		Create:            newWorkforcePermissionRule(allowed),
+		Update:            newWorkforcePermissionRule(allowed),
+		Delete:            newWorkforcePermissionRule(allowed),
+		Assign:            newWorkforcePermissionRule(allowed),
+		TransferOwnership: newWorkforcePermissionRule(allowed),
 	}
 }
 
@@ -57,7 +81,7 @@ func newWorkforceCUD(allowed bool) *models.WorkforceCud {
 func NewInventoryPolicy(readAllowed, writeAllowed bool) *models.InventoryPolicy {
 	return &models.InventoryPolicy{
 		Read:          newBasicPermissionRule(readAllowed),
-		Location:      newCUD(writeAllowed),
+		Location:      newLocationCUD(writeAllowed),
 		Equipment:     newCUD(writeAllowed),
 		EquipmentType: newCUD(writeAllowed),
 		LocationType:  newCUD(writeAllowed),
@@ -89,6 +113,45 @@ func appendBasicPermissionRule(rule *models.BasicPermissionRule, addRule *models
 	return rule
 }
 
+func appendLocationPermissionRule(rule *models.LocationPermissionRule, addRule *models2.LocationPermissionRuleInput) *models.LocationPermissionRule {
+	if addRule == nil {
+		return rule
+	}
+	if allowedEnums[addRule.IsAllowed] >= allowedEnums[rule.IsAllowed] {
+		rule.IsAllowed = addRule.IsAllowed
+	}
+	switch rule.IsAllowed {
+	case models2.PermissionValueYes:
+		rule.LocationTypeIds = nil
+	case models2.PermissionValueNo:
+		rule.LocationTypeIds = nil
+	case models2.PermissionValueByCondition:
+		rule.LocationTypeIds = append(rule.LocationTypeIds, addRule.LocationTypeIds...)
+	}
+	return rule
+}
+
+func appendWorkforcePermissionRule(rule *models.WorkforcePermissionRule, addRule *models2.WorkforcePermissionRuleInput) *models.WorkforcePermissionRule {
+	if addRule == nil {
+		return rule
+	}
+	if allowedEnums[addRule.IsAllowed] >= allowedEnums[rule.IsAllowed] {
+		rule.IsAllowed = addRule.IsAllowed
+	}
+	switch rule.IsAllowed {
+	case models2.PermissionValueYes:
+		rule.WorkOrderTypeIds = nil
+		rule.ProjectTypeIds = nil
+	case models2.PermissionValueNo:
+		rule.WorkOrderTypeIds = nil
+		rule.ProjectTypeIds = nil
+	case models2.PermissionValueByCondition:
+		rule.WorkOrderTypeIds = append(rule.WorkOrderTypeIds, addRule.WorkOrderTypeIds...)
+		rule.ProjectTypeIds = append(rule.ProjectTypeIds, addRule.ProjectTypeIds...)
+	}
+	return rule
+}
+
 func appendCUD(cud *models.Cud, addCUD *models2.BasicCUDInput) *models.Cud {
 	if addCUD == nil {
 		return cud
@@ -99,15 +162,25 @@ func appendCUD(cud *models.Cud, addCUD *models2.BasicCUDInput) *models.Cud {
 	return cud
 }
 
-func appendWorkforceCUD(cud *models.WorkforceCud, addCUD *models2.BasicWorkforceCUDInput) *models.WorkforceCud {
+func appendLocationCUD(cud *models.LocationCud, addCUD *models2.LocationCUDInput) *models.LocationCud {
 	if addCUD == nil {
 		return cud
 	}
-	cud.Create = appendBasicPermissionRule(cud.Create, addCUD.Create)
-	cud.Delete = appendBasicPermissionRule(cud.Delete, addCUD.Delete)
-	cud.Update = appendBasicPermissionRule(cud.Update, addCUD.Update)
-	cud.Assign = appendBasicPermissionRule(cud.Assign, addCUD.Assign)
-	cud.TransferOwnership = appendBasicPermissionRule(cud.TransferOwnership, addCUD.TransferOwnership)
+	cud.Create = appendLocationPermissionRule(cud.Create, addCUD.Create)
+	cud.Delete = appendLocationPermissionRule(cud.Delete, addCUD.Delete)
+	cud.Update = appendLocationPermissionRule(cud.Update, addCUD.Update)
+	return cud
+}
+
+func appendWorkforceCUD(cud *models.WorkforceCud, addCUD *models2.WorkforceCUDInput) *models.WorkforceCud {
+	if addCUD == nil {
+		return cud
+	}
+	cud.Create = appendWorkforcePermissionRule(cud.Create, addCUD.Create)
+	cud.Delete = appendWorkforcePermissionRule(cud.Delete, addCUD.Delete)
+	cud.Update = appendWorkforcePermissionRule(cud.Update, addCUD.Update)
+	cud.Assign = appendWorkforcePermissionRule(cud.Assign, addCUD.Assign)
+	cud.TransferOwnership = appendWorkforcePermissionRule(cud.TransferOwnership, addCUD.TransferOwnership)
 	return cud
 }
 
@@ -118,7 +191,7 @@ func AppendInventoryPolicies(policy *models.InventoryPolicy, inputs ...*models2.
 			continue
 		}
 		policy.Read = appendBasicPermissionRule(policy.Read, input.Read)
-		policy.Location = appendCUD(policy.Location, input.Location)
+		policy.Location = appendLocationCUD(policy.Location, input.Location)
 		policy.Equipment = appendCUD(policy.Equipment, input.Equipment)
 		policy.EquipmentType = appendCUD(policy.EquipmentType, input.EquipmentType)
 		policy.LocationType = appendCUD(policy.LocationType, input.LocationType)
@@ -169,9 +242,6 @@ func permissionPolicies(ctx context.Context, v *viewer.UserViewer) (*models.Inve
 
 func userHasWritePermissions(ctx context.Context) (bool, error) {
 	v := viewer.FromContext(ctx)
-	if !v.Features().Enabled(viewer.FeatureReadOnly) {
-		return true, nil
-	}
 	if v.Role() == user.RoleOWNER {
 		return true, nil
 	}
@@ -223,6 +293,15 @@ func EmptyPermissions() *models.PermissionSettings {
 	return &models.PermissionSettings{
 		CanWrite:        false,
 		AdminPolicy:     NewAdministrativePolicy(false),
+		InventoryPolicy: NewInventoryPolicy(false, false),
+		WorkforcePolicy: NewWorkforcePolicy(false, false),
+	}
+}
+
+func AdminPermissions() *models.PermissionSettings {
+	return &models.PermissionSettings{
+		CanWrite:        false,
+		AdminPolicy:     NewAdministrativePolicy(true),
 		InventoryPolicy: NewInventoryPolicy(false, false),
 		WorkforcePolicy: NewWorkforcePolicy(false, false),
 	}

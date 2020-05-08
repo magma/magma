@@ -6,6 +6,7 @@ package authz_test
 
 import (
 	"context"
+	"math/rand"
 	"testing"
 
 	"github.com/facebookincubator/symphony/graph/authz"
@@ -18,20 +19,40 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func NewBasicPermissionRuleInput(allowed bool) *models.BasicPermissionRuleInput {
-	rule := models.PermissionValueNo
+func permissionValue(allowed bool) models.PermissionValue {
 	if allowed {
-		rule = models.PermissionValueYes
+		return models.PermissionValueYes
 	}
-	return &models.BasicPermissionRuleInput{IsAllowed: rule}
+	return models.PermissionValueNo
+}
+
+func newBasicPermissionRuleInput(allowed bool) *models.BasicPermissionRuleInput {
+	return &models.BasicPermissionRuleInput{IsAllowed: permissionValue(allowed)}
+}
+
+func newLocationPermissionRuleInput(allowed models.PermissionValue, locationTypeIDs []int) *models.LocationPermissionRuleInput {
+	return &models.LocationPermissionRuleInput{
+		IsAllowed:       allowed,
+		LocationTypeIds: locationTypeIDs,
+	}
+}
+
+func newWorkforcePermissionRuleInput(allowed models.PermissionValue, workOrderTypeIDs []int, projectTypeIDs []int) *models.WorkforcePermissionRuleInput {
+	return &models.WorkforcePermissionRuleInput{
+		IsAllowed:        allowed,
+		WorkOrderTypeIds: workOrderTypeIDs,
+		ProjectTypeIds:   projectTypeIDs,
+	}
 }
 
 type testData struct {
 	locationPolicyInput   *models.InventoryPolicyInput
+	locationPolicyInput2  *models.InventoryPolicyInput
 	catalogInventoryInput *models.InventoryPolicyInput
 	workforcePolicyInput1 *models.WorkforcePolicyInput
 	workforcePolicyInput2 *models.WorkforcePolicyInput
 	locationPolicyID      int
+	locationPolicyID2     int
 	catalogPolicyID       int
 	workforcePolicyID     int
 	workforcePolicy2ID    int
@@ -44,39 +65,47 @@ func prepareData(ctx context.Context) (data testData) {
 	c := ent.FromContext(ctx)
 	v := viewer.FromContext(ctx).(*viewer.UserViewer)
 	data.locationPolicyInput = &models.InventoryPolicyInput{
-		Location: &models.BasicCUDInput{
-			Create: NewBasicPermissionRuleInput(true),
-			Update: NewBasicPermissionRuleInput(true),
-			Delete: NewBasicPermissionRuleInput(false),
+		Location: &models.LocationCUDInput{
+			Create: newLocationPermissionRuleInput(models.PermissionValueYes, nil),
+			Update: newLocationPermissionRuleInput(models.PermissionValueByCondition, []int{rand.Int(), rand.Int()}),
+			Delete: newLocationPermissionRuleInput(models.PermissionValueNo, nil),
+		},
+	}
+	data.locationPolicyInput2 = &models.InventoryPolicyInput{
+		Location: &models.LocationCUDInput{
+			Create: newLocationPermissionRuleInput(models.PermissionValueByCondition, []int{rand.Int(), rand.Int()}),
+			Update: newLocationPermissionRuleInput(models.PermissionValueByCondition, []int{rand.Int(), rand.Int()}),
+			Delete: newLocationPermissionRuleInput(models.PermissionValueByCondition, []int{rand.Int(), rand.Int()}),
 		},
 	}
 	data.catalogInventoryInput = &models.InventoryPolicyInput{
 		LocationType: &models.BasicCUDInput{
-			Create: NewBasicPermissionRuleInput(true),
-			Update: NewBasicPermissionRuleInput(true),
-			Delete: NewBasicPermissionRuleInput(true),
+			Create: newBasicPermissionRuleInput(true),
+			Update: newBasicPermissionRuleInput(true),
+			Delete: newBasicPermissionRuleInput(true),
 		},
 		EquipmentType: &models.BasicCUDInput{
-			Create: NewBasicPermissionRuleInput(true),
-			Update: NewBasicPermissionRuleInput(true),
-			Delete: NewBasicPermissionRuleInput(true),
+			Create: newBasicPermissionRuleInput(true),
+			Update: newBasicPermissionRuleInput(true),
+			Delete: newBasicPermissionRuleInput(true),
 		},
 	}
 	data.workforcePolicyInput1 = &models.WorkforcePolicyInput{
-		Data: &models.BasicWorkforceCUDInput{
-			Create: NewBasicPermissionRuleInput(false),
-			Update: NewBasicPermissionRuleInput(false),
-			Delete: NewBasicPermissionRuleInput(true),
-			Assign: NewBasicPermissionRuleInput(true),
+		Data: &models.WorkforceCUDInput{
+			Create:            newWorkforcePermissionRuleInput(models.PermissionValueNo, nil, nil),
+			Update:            newWorkforcePermissionRuleInput(models.PermissionValueNo, nil, nil),
+			Delete:            newWorkforcePermissionRuleInput(models.PermissionValueByCondition, []int{rand.Int()}, nil),
+			Assign:            newWorkforcePermissionRuleInput(models.PermissionValueYes, nil, nil),
+			TransferOwnership: newWorkforcePermissionRuleInput(models.PermissionValueByCondition, []int{rand.Int()}, []int{rand.Int()}),
 		},
 	}
 	data.workforcePolicyInput2 = &models.WorkforcePolicyInput{
-		Data: &models.BasicWorkforceCUDInput{
-			Create:            NewBasicPermissionRuleInput(false),
-			Update:            NewBasicPermissionRuleInput(true),
-			Delete:            NewBasicPermissionRuleInput(false),
-			Assign:            NewBasicPermissionRuleInput(true),
-			TransferOwnership: NewBasicPermissionRuleInput(true),
+		Data: &models.WorkforceCUDInput{
+			Create:            newWorkforcePermissionRuleInput(models.PermissionValueNo, nil, nil),
+			Update:            newWorkforcePermissionRuleInput(models.PermissionValueYes, nil, nil),
+			Delete:            newWorkforcePermissionRuleInput(models.PermissionValueNo, nil, nil),
+			Assign:            newWorkforcePermissionRuleInput(models.PermissionValueYes, nil, nil),
+			TransferOwnership: newWorkforcePermissionRuleInput(models.PermissionValueByCondition, nil, []int{rand.Int()}),
 		},
 	}
 
@@ -85,6 +114,11 @@ func prepareData(ctx context.Context) (data testData) {
 		SetInventoryPolicy(data.locationPolicyInput).
 		SaveX(ctx)
 	data.locationPolicyID = p.ID
+	p2 := c.PermissionsPolicy.Create().
+		SetName("LocationPolicy2").
+		SetInventoryPolicy(data.locationPolicyInput2).
+		SaveX(ctx)
+	data.locationPolicyID2 = p2.ID
 	p = c.PermissionsPolicy.Create().
 		SetName("CatalogPolicy").
 		SetInventoryPolicy(data.catalogInventoryInput).
@@ -130,6 +164,9 @@ func TestGlobalPolicyIsAppliedForUsers(t *testing.T) {
 	c.PermissionsPolicy.UpdateOneID(data.locationPolicyID).
 		SetIsGlobal(true).
 		ExecX(ctx)
+	c.PermissionsPolicy.UpdateOneID(data.locationPolicyID2).
+		SetIsGlobal(true).
+		ExecX(ctx)
 	permissions, err = authz.Permissions(ctx)
 	require.NoError(t, err)
 	require.EqualValues(
@@ -137,10 +174,17 @@ func TestGlobalPolicyIsAppliedForUsers(t *testing.T) {
 		authz.AppendInventoryPolicies(
 			authz.NewInventoryPolicy(false, false),
 			data.locationPolicyInput,
+			data.locationPolicyInput2,
 		),
 		permissions.InventoryPolicy,
 	)
 	require.EqualValues(t, authz.NewWorkforcePolicy(false, false), permissions.WorkforcePolicy)
+	require.Equal(t, models.PermissionValueYes, permissions.InventoryPolicy.Location.Create.IsAllowed)
+	require.Nil(t, permissions.InventoryPolicy.Location.Create.LocationTypeIds)
+	require.Equal(t, models.PermissionValueByCondition, permissions.InventoryPolicy.Location.Update.IsAllowed)
+	require.Len(t, permissions.InventoryPolicy.Location.Update.LocationTypeIds, 4)
+	require.Equal(t, models.PermissionValueByCondition, permissions.InventoryPolicy.Location.Delete.IsAllowed)
+	require.Len(t, permissions.InventoryPolicy.Location.Delete.LocationTypeIds, 2)
 }
 
 func TestPoliciesAreAppendedForGroups(t *testing.T) {
@@ -204,16 +248,26 @@ func TestPoliciesAppendingOutput(t *testing.T) {
 		permissions.WorkforcePolicy,
 	)
 	require.Equal(t, models.PermissionValueNo, permissions.WorkforcePolicy.Data.Create.IsAllowed)
+	require.Nil(t, permissions.WorkforcePolicy.Data.Create.WorkOrderTypeIds)
+	require.Nil(t, permissions.WorkforcePolicy.Data.Create.ProjectTypeIds)
 	require.Equal(t, models.PermissionValueYes, permissions.WorkforcePolicy.Data.Update.IsAllowed)
-	require.Equal(t, models.PermissionValueYes, permissions.WorkforcePolicy.Data.Delete.IsAllowed)
+	require.Nil(t, permissions.WorkforcePolicy.Data.Update.WorkOrderTypeIds)
+	require.Nil(t, permissions.WorkforcePolicy.Data.Update.ProjectTypeIds)
+	require.Equal(t, models.PermissionValueByCondition, permissions.WorkforcePolicy.Data.Delete.IsAllowed)
+	require.Len(t, permissions.WorkforcePolicy.Data.Delete.WorkOrderTypeIds, 1)
+	require.Nil(t, permissions.WorkforcePolicy.Data.Delete.ProjectTypeIds)
 	require.Equal(t, models.PermissionValueYes, permissions.WorkforcePolicy.Data.Assign.IsAllowed)
-	require.Equal(t, models.PermissionValueYes, permissions.WorkforcePolicy.Data.TransferOwnership.IsAllowed)
+	require.Nil(t, permissions.WorkforcePolicy.Data.Assign.WorkOrderTypeIds)
+	require.Nil(t, permissions.WorkforcePolicy.Data.Assign.ProjectTypeIds)
+	require.Equal(t, models.PermissionValueByCondition, permissions.WorkforcePolicy.Data.TransferOwnership.IsAllowed)
+	require.Len(t, permissions.WorkforcePolicy.Data.TransferOwnership.WorkOrderTypeIds, 1)
+	require.Len(t, permissions.WorkforcePolicy.Data.TransferOwnership.ProjectTypeIds, 2)
 }
 
 func TestAdminUserHasAdminEditPermissions(t *testing.T) {
 	const admin = "admin_user"
 	client := viewertest.NewTestClient(t)
-	ctx := ent.NewContext(context.Background(), client)
+	ctx := viewertest.NewContext(context.Background(), client)
 	_, err := client.User.Create().
 		SetAuthID(admin).
 		SetRole(user.RoleADMIN).
@@ -231,7 +285,7 @@ func TestAdminUserHasAdminEditPermissions(t *testing.T) {
 func TestUserHasNoReadonlyPermissions(t *testing.T) {
 	const regular = "regular_user"
 	client := viewertest.NewTestClient(t)
-	ctx := ent.NewContext(context.Background(), client)
+	ctx := viewertest.NewContext(context.Background(), client)
 	_, err := client.User.Create().SetAuthID(regular).SetRole(user.RoleUSER).Save(ctx)
 	require.NoError(t, err)
 	ctx = viewertest.NewContext(context.Background(), client, viewertest.WithUser(regular))
@@ -244,7 +298,7 @@ func TestUserHasNoReadonlyPermissions(t *testing.T) {
 func TestOwnerHasWritePermissions(t *testing.T) {
 	const owner = "owner_user"
 	client := viewertest.NewTestClient(t)
-	ctx := ent.NewContext(context.Background(), client)
+	ctx := viewertest.NewContext(context.Background(), client)
 	_, err := client.User.Create().SetAuthID(owner).SetRole(user.RoleOWNER).Save(ctx)
 	require.NoError(t, err)
 	ctx = viewertest.NewContext(context.Background(), client, viewertest.WithUser(owner))
@@ -256,7 +310,7 @@ func TestOwnerHasWritePermissions(t *testing.T) {
 func TestUserInGroupHasWritePermissionsButNoAdmin(t *testing.T) {
 	const userInGroup = "user_in_group"
 	client := viewertest.NewTestClient(t)
-	ctx := ent.NewContext(context.Background(), client)
+	ctx := viewertest.NewContext(context.Background(), client)
 	u, err := client.User.Create().SetAuthID(userInGroup).Save(ctx)
 	require.NoError(t, err)
 	_, err = client.UsersGroup.Create().SetName(authz.WritePermissionGroupName).AddMembers(u).Save(ctx)

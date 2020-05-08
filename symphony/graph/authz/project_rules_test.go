@@ -29,7 +29,7 @@ func prepareProjectData(ctx context.Context, c *ent.Client) (*ent.ProjectType, *
 }
 func TestProjectWritePolicyRule(t *testing.T) {
 	c := viewertest.NewTestClient(t)
-	ctx := context.Background()
+	ctx := viewertest.NewContext(context.Background(), c)
 	projectType, project := prepareProjectData(ctx, c)
 	createProject := func(ctx context.Context) error {
 		_, err := c.Project.Create().
@@ -47,21 +47,30 @@ func TestProjectWritePolicyRule(t *testing.T) {
 		return c.Project.DeleteOne(project).
 			Exec(ctx)
 	}
-	getCud := func(p *models.PermissionSettings) *models.WorkforceCud {
-		return p.WorkforcePolicy.Data
-	}
-	runCudPolicyTest(t, cudPolicyTest{
-		getCud: func(p *models.PermissionSettings) *models.Cud {
-			return &models.Cud{
-				Create: getCud(p).Create,
-				Update: getCud(p).Update,
-				Delete: getCud(p).Delete,
-			}
+	tests := []policyTest{
+		{
+			operationName: "Create",
+			appendPermissions: func(p *models.PermissionSettings) {
+				p.WorkforcePolicy.Data.Create.IsAllowed = models2.PermissionValueYes
+			},
+			operation: createProject,
 		},
-		create: createProject,
-		update: updateProject,
-		delete: deleteProject,
-	})
+		{
+			operationName: "Update",
+			appendPermissions: func(p *models.PermissionSettings) {
+				p.WorkforcePolicy.Data.Update.IsAllowed = models2.PermissionValueYes
+			},
+			operation: updateProject,
+		},
+		{
+			operationName: "Delete",
+			appendPermissions: func(p *models.PermissionSettings) {
+				p.WorkforcePolicy.Data.Delete.IsAllowed = models2.PermissionValueYes
+			},
+			operation: deleteProject,
+		},
+	}
+	runPolicyTest(t, tests)
 }
 
 func TestProjectTransferOwnershipWritePolicyRule(t *testing.T) {
@@ -127,7 +136,7 @@ func TestProjectTransferOwnershipWritePolicyRule(t *testing.T) {
 
 func TestProjectTypeWritePolicyRule(t *testing.T) {
 	c := viewertest.NewTestClient(t)
-	ctx := context.Background()
+	ctx := viewertest.NewContext(context.Background(), c)
 	projectType := c.ProjectType.Create().
 		SetName("ProjectType").
 		SaveX(ctx)

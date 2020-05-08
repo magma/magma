@@ -24,14 +24,6 @@ const useStyles = makeStyles(theme => ({
   paper: {
     minWidth: `${theme.breakpoints.values.sm / 2}px`,
   },
-  checkboxContainer: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  checkboxLabel: {
-    marginLeft: '8px',
-  },
 }));
 
 export type AlertSkin = 'primary' | 'red';
@@ -76,15 +68,13 @@ const Alert = ({
       <DialogContent>
         <Text>{message}</Text>
         {checkboxLabel && (
-          <div className={classes.checkboxContainer}>
-            <Checkbox
-              checked={checkboxChecked}
-              onChange={selection =>
-                setCheckboxChecked(selection === 'checked' ? true : false)
-              }
-            />
-            <Text className={classes.checkboxLabel}>{checkboxLabel}</Text>
-          </div>
+          <Checkbox
+            checked={checkboxChecked}
+            title={checkboxLabel}
+            onChange={selection =>
+              setCheckboxChecked(selection === 'checked' ? true : false)
+            }
+          />
         )}
       </DialogContent>
       {hasActions && (

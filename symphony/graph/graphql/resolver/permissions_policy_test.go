@@ -10,6 +10,7 @@ import (
 
 	"github.com/AlekSi/pointer"
 	models2 "github.com/facebookincubator/symphony/graph/authz/models"
+	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 	"github.com/stretchr/testify/require"
@@ -34,9 +35,9 @@ func getInventoryPolicyInput() *models2.InventoryPolicyInput {
 func getWorkforcePolicyInput() *models2.WorkforcePolicyInput {
 	return &models2.WorkforcePolicyInput{
 		Read: &models2.BasicPermissionRuleInput{IsAllowed: models2.PermissionValueNo},
-		Data: &models2.BasicWorkforceCUDInput{
-			Create: &models2.BasicPermissionRuleInput{IsAllowed: models2.PermissionValueYes},
-			Assign: &models2.BasicPermissionRuleInput{IsAllowed: models2.PermissionValueByCondition},
+		Data: &models2.WorkforceCUDInput{
+			Create: &models2.WorkforcePermissionRuleInput{IsAllowed: models2.PermissionValueYes},
+			Assign: &models2.WorkforcePermissionRuleInput{IsAllowed: models2.PermissionValueByCondition},
 		},
 	}
 }
@@ -140,6 +141,28 @@ func TestAddMultipleTypesPermissionsPolicy(t *testing.T) {
 	require.Error(t, err)
 }
 
+func TestDeletePermissionsPolicy(t *testing.T) {
+	r := newTestResolver(t)
+	defer r.drv.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
+	mr := r.Mutation()
+
+	_, err := mr.AddPermissionsPolicy(ctx, models.AddPermissionsPolicyInput{
+		Name:           policyName,
+		Description:    pointer.ToString(policyDescription),
+		InventoryInput: getInventoryPolicyInput(),
+		WorkforceInput: nil,
+	})
+	require.NoError(t, err)
+
+	client := ent.FromContext(ctx)
+	pps := client.PermissionsPolicy.Query().AllX(ctx)
+	require.Len(t, pps, 1)
+
+	_, err = mr.DeletePermissionsPolicy(ctx, pps[0].ID)
+	require.NoError(t, err)
+}
+
 func TestAddEmptyPermissionsPolicy(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
@@ -177,10 +200,10 @@ func TestEditPermissionsPolicy(t *testing.T) {
 	newPolicyName := "new_" + policyName
 	newDescription := "New " + policyDescription
 	newInventoryPolicy := &models2.InventoryPolicyInput{
-		Location: &models2.BasicCUDInput{
-			Create: &models2.BasicPermissionRuleInput{IsAllowed: models2.PermissionValueYes},
-			Update: &models2.BasicPermissionRuleInput{IsAllowed: models2.PermissionValueNo},
-			Delete: &models2.BasicPermissionRuleInput{IsAllowed: models2.PermissionValueByCondition},
+		Location: &models2.LocationCUDInput{
+			Create: &models2.LocationPermissionRuleInput{IsAllowed: models2.PermissionValueYes},
+			Update: &models2.LocationPermissionRuleInput{IsAllowed: models2.PermissionValueNo},
+			Delete: &models2.LocationPermissionRuleInput{IsAllowed: models2.PermissionValueByCondition},
 		},
 	}
 	fetchedPermissionsPolicy1, err := mr.EditPermissionsPolicy(ctx, models.EditPermissionsPolicyInput{

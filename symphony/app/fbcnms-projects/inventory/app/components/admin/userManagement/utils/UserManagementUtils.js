@@ -383,38 +383,46 @@ export const groupsResponse2Groups = (
         .filter(Boolean)
         .map<UserPermissionsGroup>(gr => groupResponse2Group(gr, usersMap));
 
+export const PERMISSION_RULE_VALUES = {
+  YES: 'YES',
+  NO: 'NO',
+  BY_CONDITION: 'BY_CONDITION',
+};
+
 export type BasicPermissionRule = $ReadOnly<{|
   isAllowed: PermissionValue,
 |}>;
 
-export type CUDPermissionsRule = $ReadOnly<{|
+export type CUDPermissions = $ReadOnly<{|
   create: BasicPermissionRule,
   update: BasicPermissionRule,
   delete: BasicPermissionRule,
+|}>;
+
+export type InventoryCatalogPolicy = $ReadOnly<{|
+  equipmentType: CUDPermissions,
+  locationType: CUDPermissions,
+  portType: CUDPermissions,
+  serviceType: CUDPermissions,
 |}>;
 
 export type InventoryPolicy = $ReadOnly<{|
   read: BasicPermissionRule,
-  location: CUDPermissionsRule,
-  equipment: CUDPermissionsRule,
-  equipmentType: CUDPermissionsRule,
-  locationType: CUDPermissionsRule,
-  portType: CUDPermissionsRule,
-  serviceType: CUDPermissionsRule,
+  location: CUDPermissions,
+  equipment: CUDPermissions,
+  ...InventoryCatalogPolicy,
 |}>;
 
-export type WorkforceCUD = $ReadOnly<{|
-  create: BasicPermissionRule,
-  update: BasicPermissionRule,
-  delete: BasicPermissionRule,
+export type WorkforceCUDPermissions = $ReadOnly<{|
   assign: BasicPermissionRule,
   transferOwnership: BasicPermissionRule,
+  ...CUDPermissions,
 |}>;
 
 export type WorkforcePolicy = $ReadOnly<{|
   read: BasicPermissionRule,
-  data: WorkforceCUD,
-  templates: CUDPermissionsRule,
+  data: WorkforceCUDPermissions,
+  templates: CUDPermissions,
 |}>;
 
 export type PermissionsPolicyRules = InventoryPolicy | WorkforcePolicy | {||};
@@ -495,53 +503,87 @@ export const permissionsPoliciesResponse2PermissionsPolicies = (
         .map<PermissionsPolicy>(permissionsPolicyResponse2PermissionsPolicy);
 
 export const permissionPolicyBasicRule2PermissionPolicyBasicRuleInput = (
-  rule: BasicPermissionRule,
+  rule: ?BasicPermissionRule,
 ) => {
   return {
-    isAllowed: rule.isAllowed,
+    isAllowed: rule?.isAllowed ?? PERMISSION_RULE_VALUES.NO,
   };
 };
 
 export const permissionPolicyCUDRule2PermissionPolicyCUDRuleInput = (
-  rule: ?CUDPermissionsRule,
+  rule: ?CUDPermissions,
 ) => {
-  if (rule == null) {
-    return null;
-  }
   return {
     create: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
-      rule.create,
+      rule?.create,
     ),
     update: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
-      rule.update,
+      rule?.update,
     ),
     delete: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
-      rule.delete,
+      rule?.delete,
     ),
   };
 };
 
 export const permissionPolicyWFCUDRule2PermissionPolicyWFCUDRuleInput = (
-  rule: ?WorkforceCUD,
+  rule: ?WorkforceCUDPermissions,
 ) => {
-  if (rule == null) {
-    return null;
-  }
   return {
     create: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
-      rule.create,
+      rule?.create,
     ),
     update: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
-      rule.update,
+      rule?.update,
     ),
     delete: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
-      rule.delete,
+      rule?.delete,
     ),
     assign: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
-      rule.assign,
+      rule?.assign,
     ),
     transferOwnership: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
-      rule.transferOwnership,
+      rule?.transferOwnership,
+    ),
+  };
+};
+
+export const initInventoryRulesInput = (policyRules?: ?InventoryPolicy) => {
+  return {
+    read: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
+      policyRules?.read,
+    ),
+    location: permissionPolicyCUDRule2PermissionPolicyCUDRuleInput(
+      policyRules?.location,
+    ),
+    equipment: permissionPolicyCUDRule2PermissionPolicyCUDRuleInput(
+      policyRules?.equipment,
+    ),
+    equipmentType: permissionPolicyCUDRule2PermissionPolicyCUDRuleInput(
+      policyRules?.equipmentType,
+    ),
+    locationType: permissionPolicyCUDRule2PermissionPolicyCUDRuleInput(
+      policyRules?.locationType,
+    ),
+    portType: permissionPolicyCUDRule2PermissionPolicyCUDRuleInput(
+      policyRules?.portType,
+    ),
+    serviceType: permissionPolicyCUDRule2PermissionPolicyCUDRuleInput(
+      policyRules?.serviceType,
+    ),
+  };
+};
+
+export const initWorkforceRulesInput = (policyRules?: ?WorkforcePolicy) => {
+  return {
+    read: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
+      policyRules?.read,
+    ),
+    data: permissionPolicyWFCUDRule2PermissionPolicyWFCUDRuleInput(
+      policyRules?.data,
+    ),
+    templates: permissionPolicyCUDRule2PermissionPolicyCUDRuleInput(
+      policyRules?.templates,
     ),
   };
 };
@@ -549,60 +591,26 @@ export const permissionPolicyWFCUDRule2PermissionPolicyWFCUDRuleInput = (
 export const permissionsPolicy2PermissionsPolicyInput = (
   policy: PermissionsPolicy,
 ) => {
-  const input = {
+  return {
     name: policy.name,
     description: policy.description,
     inventoryInput:
-      policy.inventoryRules == null
-        ? null
-        : {
-            read: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
-              policy.inventoryRules?.read,
-            ),
-            location: permissionPolicyCUDRule2PermissionPolicyCUDRuleInput(
-              policy.inventoryRules?.location,
-            ),
-            equipment: permissionPolicyCUDRule2PermissionPolicyCUDRuleInput(
-              policy.inventoryRules?.equipment,
-            ),
-            equipmentType: permissionPolicyCUDRule2PermissionPolicyCUDRuleInput(
-              policy.inventoryRules?.equipmentType,
-            ),
-            locationType: permissionPolicyCUDRule2PermissionPolicyCUDRuleInput(
-              policy.inventoryRules?.locationType,
-            ),
-            portType: permissionPolicyCUDRule2PermissionPolicyCUDRuleInput(
-              policy.inventoryRules?.portType,
-            ),
-            serviceType: permissionPolicyCUDRule2PermissionPolicyCUDRuleInput(
-              policy.inventoryRules?.serviceType,
-            ),
-          },
+      policy.type === POLICY_TYPES.InventoryPolicy.key
+        ? initInventoryRulesInput(policy.inventoryRules)
+        : null,
     workforceInput:
-      policy.workforceRules == null
-        ? null
-        : {
-            read: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
-              policy.workforceRules?.read,
-            ),
-            data: permissionPolicyWFCUDRule2PermissionPolicyWFCUDRuleInput(
-              policy.workforceRules?.data,
-            ),
-            templates: permissionPolicyCUDRule2PermissionPolicyCUDRuleInput(
-              policy.workforceRules?.templates,
-            ),
-          },
+      policy.type === POLICY_TYPES.WorkforcePolicy.key
+        ? initWorkforceRulesInput(policy.workforceRules)
+        : null,
   };
-
-  if (input.inventoryInput == null && input.workforceInput == null) {
-    switch (policy.type) {
-      case POLICY_TYPES.InventoryPolicy.key:
-        input.inventoryInput = {};
-        break;
-      case POLICY_TYPES.WorkforcePolicy.key:
-        input.workforceInput = {};
-        break;
-    }
-  }
-  return input;
 };
+
+export function bool2PermissionRuleValue(value: ?boolean): PermissionValue {
+  return value === true
+    ? PERMISSION_RULE_VALUES.YES
+    : PERMISSION_RULE_VALUES.NO;
+}
+
+export function permissionRuleValue2Bool(value: PermissionValue) {
+  return value === PERMISSION_RULE_VALUES.YES;
+}

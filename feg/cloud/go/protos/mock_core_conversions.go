@@ -35,6 +35,12 @@ func NewGxCCAnswer(resultCode uint32) *GxCreditControlAnswer {
 	return &GxCreditControlAnswer{ResultCode: resultCode}
 }
 
+func (m *GxCreditControlAnswer) initializeRuleInstallsIfNil() {
+	if m.RuleInstalls == nil {
+		m.RuleInstalls = &RuleInstalls{}
+	}
+}
+
 func (m *GxCreditControlAnswer) SetUsageMonitorInfo(monitor *UsageMonitoringInformation) *GxCreditControlAnswer {
 	if m.UsageMonitoringInfos == nil {
 		m.UsageMonitoringInfos = []*UsageMonitoringInformation{}
@@ -135,10 +141,9 @@ func (m *GyCreditControlRequest) SetRequestNumber(requestNumber int32) *GyCredit
 	return m
 }
 
-func (m *GxCreditControlAnswer) initializeRuleInstallsIfNil() {
-	if m.RuleInstalls == nil {
-		m.RuleInstalls = &RuleInstalls{}
-	}
+func (m *GyCreditControlAnswer) SetLinkFailure(linkFailure bool) *GyCreditControlAnswer {
+	m.LinkFailure = linkFailure
+	return m
 }
 
 func (m *GyCreditControlRequest) SetMSCC(mscc *MultipleServicesCreditControl) *GyCreditControlRequest {

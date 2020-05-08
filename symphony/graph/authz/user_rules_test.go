@@ -10,8 +10,6 @@ import (
 	"testing"
 
 	"github.com/facebookincubator/symphony/graph/authz"
-	"github.com/facebookincubator/symphony/graph/authz/models"
-	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/privacy"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 	"github.com/stretchr/testify/require"
@@ -28,12 +26,10 @@ func TestUserCannotBeDeleted(t *testing.T) {
 
 func TestAdminUserCanEditUsers(t *testing.T) {
 	client := viewertest.NewTestClient(t)
-	permissions := authz.EmptyPermissions()
-	permissions.AdminPolicy.Access.IsAllowed = models.PermissionValueYes
-	ctx := ent.NewContext(context.Background(), client)
-	ctx = viewertest.NewContext(
-		ctx, client,
-		viewertest.WithPermissions(permissions))
+	ctx := viewertest.NewContext(
+		context.Background(),
+		client,
+		viewertest.WithPermissions(authz.AdminPermissions()))
 	_, err := client.UsersGroup.Create().
 		SetName("NewGroup").
 		Save(ctx)
