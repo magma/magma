@@ -13,6 +13,7 @@ import bulk from './transformers/bulk';
 import event from './transformers/event';
 import metadataTaskdef from './transformers/metadata-taskdef';
 import metadataWorkflowdef from './transformers/metadata-workflowdef';
+import task from './transformers/task';
 import workflow from './transformers/workflow';
 
 import type {
@@ -33,6 +34,7 @@ export default async function(
     metadataTaskdef,
     metadataWorkflowdef,
     workflow,
+    task,
   ];
   logger.debug(
     `Registering transformer modules: [${JSON.stringify(
