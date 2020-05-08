@@ -227,3 +227,38 @@ func TestGyCreditExhaustionWithoutCRRU(t *testing.T) {
 	record := recordsBySubID["IMSI"+ue.GetImsi()]["static-pass-all-ocs2"]
 	assert.Nil(t, record, fmt.Sprintf("Policy usage record for imsi: %v was removed", ue.GetImsi()))
 }
+
+// - Set an expectation for a CCR-I to be sent up to OCS, to which it will
+//   NOT respond with any answer.
+// - Asset that authentication fails and that no rules were insalled
+func TestGyLinksFailureOCStoFEG(t *testing.T) {
+	fmt.Println("\nRunning TestGyLinksFailureOCStoFEG...")
+
+	tr, ruleManager, ue := ocsCreditExhaustionTestSetup(t)
+	defer func() {
+		// Clear hss, ocs, and pcrf
+		assert.NoError(t, clearOCSMockDriver())
+		assert.NoError(t, ruleManager.RemoveInstalledRules())
+		assert.NoError(t, tr.CleanUp())
+	}()
+
+	initRequest := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_INITIAL)
+	initAnswer := protos.NewGyCCAnswer(0).SetLinkFailure(true)
+	initExpectation := protos.NewGyCreditControlExpectation().Expect(initRequest).Return(initAnswer)
+
+	expectations := []*protos.GyCreditControlExpectation{initExpectation}
+	// On unexpected requests, just return the default update answer
+	assert.NoError(t, setOCSExpectations(expectations, nil))
+	tr.AuthenticateAndAssertFail(ue.Imsi)
+
+	resultByIndex, errByIndex, err := getOCSAssertExpectationsResult()
+	assert.NoError(t, err)
+	assert.Empty(t, errByIndex)
+	expectedResult := []*protos.ExpectationResult{{ExpectationIndex: 0, ExpectationMet: true}}
+	assert.ElementsMatch(t, expectedResult, resultByIndex)
+
+	// Since CCA-I was never received, there should be no rules installed
+	recordsBySubID, err := tr.GetPolicyUsage()
+	assert.NoError(t, err)
+	assert.Empty(t, recordsBySubID["IMSI"+ue.Imsi])
+}

@@ -68,7 +68,6 @@ func getCCRHandler(srv *OCSDiamServer) diam.HandlerFunc {
 			glog.Errorf("Failed to unmarshal CCR %s", err)
 			return
 		}
-
 		imsi := ccr.GetIMSI()
 		if len(imsi) == 0 {
 			glog.Errorf("Could not find IMSI in CCR")
@@ -77,6 +76,7 @@ func getCCRHandler(srv *OCSDiamServer) diam.HandlerFunc {
 		}
 		account, found := srv.accounts[imsi]
 		if !found {
+			glog.Errorf("Account not found!")
 			sendAnswer(ccr, c, m, diam.AuthenticationRejected)
 			return
 		}
@@ -91,6 +91,9 @@ func getCCRHandler(srv *OCSDiamServer) diam.HandlerFunc {
 			srv.mockDriver.Unlock()
 			if iAnswer == nil {
 				sendAnswer(ccr, c, m, diam.UnableToComply)
+				return
+			}
+			if iAnswer.(GyAnswer).GetLinkFailure() {
 				return
 			}
 			avps, resultCode := iAnswer.(GyAnswer).toAVPs()
