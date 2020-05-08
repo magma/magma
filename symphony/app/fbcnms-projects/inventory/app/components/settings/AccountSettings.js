@@ -64,7 +64,7 @@ function UserAccountWrapper() {
   const classes = useStyles();
   const mainContext = useMainContext();
 
-  const loggedInUserID = mainContext.me?.user.id;
+  const loggedInUserID = mainContext.me?.user?.id;
 
   const userData = useLazyLoadQuery<UserManagementContext_UserQuery>(
     userQuery,

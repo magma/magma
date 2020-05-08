@@ -9,8 +9,8 @@
  */
 
 import * as React from 'react';
-import symphony from '../theme/symphony';
 
+import Button from './design-system/Button';
 import {makeStyles} from '@material-ui/styles';
 
 type Props = {
@@ -20,9 +20,7 @@ type Props = {
 
 const useStyles = makeStyles(() => ({
   root: {
-    cursor: 'pointer',
     textDecoration: 'underline',
-    color: symphony.palette.primary,
   },
 }));
 
@@ -31,8 +29,12 @@ export default function Link(props: Props) {
   const classes = useStyles();
   const {onClick, children} = props;
   return (
-    <a className={classes.root} onClick={onClick}>
+    <Button
+      variant="text"
+      useEllipsis={true}
+      className={classes.root}
+      onClick={onClick}>
       {children}
-    </a>
+    </Button>
   );
 }

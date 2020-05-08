@@ -30,6 +30,6 @@ int gtpv1u_init(
   spgw_config_t* spgw_config,
   bool persist_state);
 
-void gtpv1u_exit(gtpv1u_data_t* const gtpv1u_data);
+void gtpv1u_exit(void);
 
 #endif /* FILE_GTPV1U_SGW_DEFS_SEEN */

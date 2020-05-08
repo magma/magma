@@ -36,10 +36,11 @@ import (
 )
 
 type client struct {
-	client *graphql.Client
-	log    *zap.Logger
-	tenant string
-	user   string
+	client     *graphql.Client
+	log        *zap.Logger
+	tenant     string
+	user       string
+	automation bool
 }
 
 func TestMain(m *testing.M) {
@@ -76,7 +77,15 @@ func waitFor(services ...string) error {
 	return g.Wait()
 }
 
-func newClient(t *testing.T, tenant, user string) *client {
+type option func(*client)
+
+func withAutomation() option {
+	return func(c *client) {
+		c.automation = true
+	}
+}
+
+func newClient(t *testing.T, tenant, user string, opts ...option) *client {
 	c := client{
 		log: zaptest.NewLogger(t).With(
 			zap.String("tenant", tenant),
@@ -88,6 +97,9 @@ func newClient(t *testing.T, tenant, user string) *client {
 		"http://graph/query",
 		&http.Client{Transport: &c},
 	)
+	for _, opt := range opts {
+		opt(&c)
+	}
 	require.NoError(t, c.createTenant())
 	require.NoError(t, c.createOwnerUser())
 	return &c
@@ -95,7 +107,12 @@ func newClient(t *testing.T, tenant, user string) *client {
 
 func (c *client) RoundTrip(req *http.Request) (*http.Response, error) {
 	req.Header.Set("x-auth-organization", c.tenant)
-	req.Header.Set("x-auth-user-email", c.user)
+	if !c.automation {
+		req.Header.Set("x-auth-user-email", c.user)
+	} else {
+		req.Header.Set("x-auth-automation-name", c.user)
+	}
+	req.Header.Set("x-auth-user-role", "OWNER")
 	return http.DefaultTransport.RoundTrip(req)
 }
 
@@ -129,14 +146,17 @@ func (c *client) createOwnerUser() error {
 	return nil
 }
 
-type addLocationTypeResponse struct {
-	ID   graphql.ID
-	Name graphql.String
+type locationTypeResponse struct {
+	ID            graphql.ID
+	Name          graphql.String
+	PropertyTypes []struct {
+		ID graphql.ID
+	}
 }
 
-func (c *client) addLocationType(name string, properties ...*models.PropertyTypeInput) (*addLocationTypeResponse, error) {
+func (c *client) addLocationType(name string, properties ...*models.PropertyTypeInput) (*locationTypeResponse, error) {
 	var m struct {
-		Response addLocationTypeResponse `graphql:"addLocationType(input: $input)"`
+		Response locationTypeResponse `graphql:"addLocationType(input: $input)"`
 	}
 	vars := map[string]interface{}{
 		"input": models.AddLocationTypeInput{
@@ -205,6 +225,24 @@ type queryLocationResponse struct {
 			Name graphql.String
 		} `graphql:"locationType"`
 	}
+}
+
+func (c *client) queryLocationType(id graphql.ID) (*locationTypeResponse, error) {
+	var q struct {
+		Node struct {
+			Response locationTypeResponse `graphql:"... on LocationType"`
+		} `graphql:"node(id: $id)"`
+	}
+	vars := map[string]interface{}{
+		"id": id,
+	}
+	switch err := c.client.Query(context.Background(), &q, vars); {
+	case err != nil:
+		return nil, err
+	case q.Node.Response.ID == nil:
+		return nil, errors.New("location type not found")
+	}
+	return &q.Node.Response, nil
 }
 
 func (c *client) queryLocation(id graphql.ID) (*queryLocationResponse, error) {
@@ -447,6 +485,15 @@ func TestAddLocation(t *testing.T) {
 
 func TestAddLocationType(t *testing.T) {
 	c := newClient(t, testTenant, testUser)
+	name := "location_type_" + uuid.New().String()
+	typ, err := c.addLocationType(name)
+	require.NoError(t, err)
+	assert.NotNil(t, typ.ID)
+	assert.EqualValues(t, name, typ.Name)
+}
+
+func TestAddLocationWithAutomation(t *testing.T) {
+	c := newClient(t, testTenant, testUser, withAutomation())
 	name := "location_type_" + uuid.New().String()
 	typ, err := c.addLocationType(name)
 	require.NoError(t, err)

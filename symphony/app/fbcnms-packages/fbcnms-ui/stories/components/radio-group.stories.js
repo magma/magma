@@ -13,7 +13,6 @@ import type {RadioOption} from '../../components/design-system/RadioGroup/RadioG
 import Checkbox from '../../components/design-system/Checkbox/Checkbox';
 import RadioGroup from '../../components/design-system/RadioGroup/RadioGroup';
 import React, {useState} from 'react';
-import Text from '../../components/design-system/Text';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {makeStyles} from '@material-ui/styles';
 import {storiesOf} from '@storybook/react';
@@ -26,13 +25,6 @@ const useStyles = makeStyles(() => ({
     display: 'flex',
     flexDirection: 'column',
     marginTop: '32px',
-  },
-  displayOption: {
-    display: 'flex',
-    alignItems: 'center',
-  },
-  disabledCheckbox: {
-    marginRight: '8px',
   },
 }));
 
@@ -79,26 +71,20 @@ const RadioGroupRoot = () => {
         onChange={value => setSelectedValue(value)}
       />
       <div className={classes.optionsContainer}>
-        <div className={classes.displayOption}>
-          <Checkbox
-            className={classes.disabledCheckbox}
-            checked={isDisabled}
-            onChange={selection =>
-              setIsDisabled(selection === 'checked' ? true : false)
-            }
-          />
-          <Text>All Disabled</Text>
-        </div>
-        <div className={classes.displayOption}>
-          <Checkbox
-            className={classes.disabledCheckbox}
-            checked={isOptionDisabled}
-            onChange={selection =>
-              changeIsOptionDisabled(selection === 'checked' ? true : false)
-            }
-          />
-          <Text>First Option Disabled</Text>
-        </div>
+        <Checkbox
+          checked={isDisabled}
+          title="All Disabled"
+          onChange={selection =>
+            setIsDisabled(selection === 'checked' ? true : false)
+          }
+        />
+        <Checkbox
+          checked={isOptionDisabled}
+          title="First Option Disabled"
+          onChange={selection =>
+            changeIsOptionDisabled(selection === 'checked' ? true : false)
+          }
+        />
       </div>
     </div>
   );

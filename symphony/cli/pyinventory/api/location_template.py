@@ -5,12 +5,13 @@
 
 from typing import Dict, List, Tuple
 
-from ..client import SymphonyClient
+from pysymphony import SymphonyClient
+
 from ..common.data_class import Equipment, Location
 from ..common.data_enum import Entity
 from ..exceptions import EntityNotFoundError
-from ..graphql.equipment_positions_query import EquipmentPositionsQuery
-from ..graphql.location_equipments_query import LocationEquipmentsQuery
+from ..graphql.query.equipment_positions import EquipmentPositionsQuery
+from ..graphql.query.location_equipments import LocationEquipmentsQuery
 from .equipment import copy_equipment, copy_equipment_in_position
 from .link import add_link, get_all_links_and_port_names_of_equipment
 

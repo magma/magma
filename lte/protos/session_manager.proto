@@ -77,13 +77,7 @@ message ChargingReAuthRequest {
 }
 
 message ChargingReAuthAnswer {
-  enum Result {
-    UPDATE_INITIATED = 0;
-    UPDATE_NOT_NEEDED = 1;
-    SESSION_NOT_FOUND = 2;
-    OTHER_FAILURE = 3;
-  }
-  Result result = 1;
+  ReAuthResult result = 1;
 }
 
 enum EventTrigger {
@@ -442,12 +436,14 @@ message CreateSessionResponse {
 message StaticRuleInstall {
   string rule_id = 1;
   google.protobuf.Timestamp activation_time = 2;
+  // Optional field. Set as 0 to mark as unused
   google.protobuf.Timestamp deactivation_time = 3;
 }
 
 message DynamicRuleInstall {
   PolicyRule policy_rule = 1;
   google.protobuf.Timestamp activation_time = 2;
+  // Optional field. Set as 0 to mark as unused
   google.protobuf.Timestamp deactivation_time = 3;
 }
 

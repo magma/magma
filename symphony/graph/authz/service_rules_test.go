@@ -1,3 +1,7 @@
+// Copyright (c) 2004-present Facebook All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package authz_test
 
 import (
@@ -10,7 +14,7 @@ import (
 
 func TestServiceTypeWritePolicyRule(t *testing.T) {
 	c := viewertest.NewTestClient(t)
-	ctx := context.Background()
+	ctx := viewertest.NewContext(context.Background(), c)
 	serviceType := c.ServiceType.Create().
 		SetName("ServiceType").
 		SaveX(ctx)

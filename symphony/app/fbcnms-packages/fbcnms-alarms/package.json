@@ -1,15 +1,20 @@
 {
   "name": "@fbcnms/alarms",
-  "private": true,
-  "version": "0.1.0",
+  "description": "UI components for alert configuration of prometheus and alertmanager.",
+  "author": "Facebook Connectivity",
+  "license": "BSD-2-Clause",
+  "version": "0.1.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/facebookincubator/magma.git",
+    "directory": "nms/fbcnms-packages/fbcnms-alarms"
+  },
   "dependencies": {
-    "@fbcnms/ui": "^0.1.0",
     "classnames": "^2.2.5",
     "moo": "^0.5.1",
     "nearley": "^2.19.0"
   },
   "devDependencies": {
-    "@fbcnms/test": "^0.1.0",
     "@testing-library/react": "^9.4.0",
     "@testing-library/react-hooks": "^3.2.1",
     "jest": "^24.9.0",

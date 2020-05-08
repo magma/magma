@@ -86,6 +86,41 @@ enum ServiceState {
   SERVICE_NEEDS_ACTIVATION = 3,
 };
 
+/**
+ * State transitions of a session:
+ * SESSION_ACTIVE  ---------
+ *       |                  \
+ *       |                   \
+ *       |                    \
+ *       |                     \
+ *       | (start_termination)  SESSION_TERMINATION_SCHEDULED
+ *       |                      /
+ *       |                     /
+ *       |                    /
+ *       V                   V
+ * SESSION_TERMINATING_FLOW_ACTIVE <----------
+ *       |                                   |
+ *       | (notify_new_report_for_sessions)  | (add_used_credit)
+ *       V                                   |
+ * SESSION_TERMINATING_AGGREGATING_STATS -----
+ *       |
+ *       | (notify_finish_report_for_sessions)
+ *       V
+ * SESSION_TERMINATING_FLOW_DELETED
+ *       |
+ *       | (complete_termination)
+ *       V
+ * SESSION_TERMINATED
+ */
+enum SessionFsmState {
+  SESSION_ACTIVE                        = 0,
+  SESSION_TERMINATING_FLOW_ACTIVE       = 1,
+  SESSION_TERMINATING_AGGREGATING_STATS = 2,
+  SESSION_TERMINATING_FLOW_DELETED      = 3,
+  SESSION_TERMINATED                    = 4,
+  SESSION_TERMINATION_SCHEDULED         = 5
+};
+
 struct StoredSessionCredit {
   bool reporting;
   bool is_final;
@@ -116,7 +151,13 @@ struct StoredUsageMonitoringCreditPool {
   std::unordered_map<std::string, StoredMonitor> monitor_map;
 };
 
+struct RuleLifetime {
+  std::time_t activation_time; // Unix timestamp
+  std::time_t deactivation_time; // Unix timestamp
+};
+
 struct StoredSessionState {
+  SessionFsmState fsm_state;
   SessionConfig config;
   StoredChargingCreditPool charging_pool;
   StoredUsageMonitoringCreditPool monitor_pool;
@@ -127,6 +168,10 @@ struct StoredSessionState {
   magma::lte::TgppContext tgpp_context;
   std::vector<std::string> static_rule_ids;
   std::vector<PolicyRule> dynamic_rules;
+  std::set<std::string> scheduled_static_rules;
+  std::vector<PolicyRule> scheduled_dynamic_rules;
+  std::unordered_map<std::string, RuleLifetime> rule_lifetimes;
+  std::vector<PolicyRule> gy_dynamic_rules;
   uint32_t request_number;
 };
 
@@ -147,10 +192,15 @@ struct SessionStateUpdateCriteria {
   bool is_session_ended;
   bool is_config_updated;
   SessionConfig updated_config;
+  bool is_fsm_updated;
+  SessionFsmState updated_fsm_state;
   std::set<std::string> static_rules_to_install;
   std::set<std::string> static_rules_to_uninstall;
+  std::set<std::string> new_scheduled_static_rules;
   std::vector<PolicyRule> dynamic_rules_to_install;
   std::set<std::string> dynamic_rules_to_uninstall;
+  std::vector<PolicyRule> new_scheduled_dynamic_rules;
+  std::unordered_map<std::string, RuleLifetime> new_rule_lifetimes;
   std::unordered_map<CreditKey, StoredSessionCredit, decltype(&ccHash),
                      decltype(&ccEqual)>
       charging_credit_to_install;

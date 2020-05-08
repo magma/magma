@@ -1,4 +1,4 @@
-// +build !main_integration
+// +build multi_session_proxy
 
 /*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -18,7 +18,7 @@ import (
 
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/feg/cloud/go/protos"
-	"magma/feg/gateway/services/session_proxy/servicers"
+	"magma/feg/gateway/multiplex"
 	"magma/lte/cloud/go/plugin/models"
 
 	"github.com/go-openapi/swag"
@@ -42,15 +42,19 @@ func generateMultipleScenarioAndAddSubscribers(t *testing.T, numUEs int) (*TestR
 	// get the instance per IMSI based on the algorithm to distribuite IMSIs on FEG
 	IMSIs := generateRandomIMSIS(numUEs, nil)
 	IMSIsPerInstance := make([][]string, numInstances, numInstances)
+	// create a multiplexor with the same value as main.go on session_proxy
+	mux, err := multiplex.NewStaticMultiplexByIMSI(numInstances)
+	assert.NoError(t, err)
 	for _, imsi := range IMSIs {
-		i, err := servicers.GetControllerIndexFromImsi(imsi, numInstances)
+		ctx := multiplex.NewContext().WithIMSI(imsi)
+		i, err := mux.GetIndex(ctx)
 		assert.NoError(t, err)
 		IMSIsPerInstance[i] = append(IMSIsPerInstance[i], imsi)
 	}
 	// Add IMSIs to each instance
 	scenario := make([]*multipleScenarioElement, 0, numInstances)
 	for i, IMSIs := range IMSIsPerInstance {
-
+		// get names of the servers for this specific instance
 		pcrfName, ocsName, err := getPCRFandOCSnamePerInstance(i)
 		assert.NoError(t, err)
 
@@ -138,15 +142,15 @@ func getPCRFandOCSnamePerInstance(instanceId int) (pcrfName string, ocsName stri
 	return
 }
 
+// TODO:
+//  * Support for multiple UEs (depends on UEsim service)
+//  * Check OCS credit has been reported (right now sessiond sends CCR after accounts
+//    are deleted from OCS and PCRF)
 // TestMultiSessionProxyMonitorAndUsageReportEnforcement is an experimental
 // test to try multiple OCS and PCRF servers. Currenty it only supports 1 UE
 // - Create one UE and add monitoring key and credit
 // - Attach UE, tranfer data, detach
 // - Check that the Monitored data by the PCRF instance is good
-// TODO:
-//  * Support for multiple UEs (depends on UEsim service)
-//  * Check OCS credit has been reported (right now sessiond sends CCR after accounts
-//    are deleted from OCS and PCRF)
 func TestMultiSessionProxyMonitorAndUsageReportEnforcement(t *testing.T) {
 	fmt.Println("\nRunning TestMultiSessionProxyUsageReportEnforcement...")
 

@@ -79,6 +79,7 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         # Store last usage excluding deleted flows for calculating deltas
         self.last_usage_for_delta = {}
         self.failed_usage = {}  # Store failed usage to retry rpc to sessiond
+        self._unmatched_bytes = 0  # Store bytes matched by default rule if any
         self._clean_restart = kwargs['config']['clean_restart']
         if not self._relay_enabled:
             self.logger.info('Relay mode is not enabled. '
@@ -98,6 +99,7 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         self.total_usage = {}
         self.last_usage_for_delta = {}
         self.failed_usage = {}
+        self._unmatched_bytes = 0
 
     def _check_relay(func):  # pylint: disable=no-self-argument
         def wrapped(self, *args, **kwargs):
@@ -364,10 +366,12 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         if rule_id == "":
             default_flow_matched = \
                 flow_stat.cookie == self.DEFAULT_FLOW_COOKIE and \
-                flow_stat.byte_count != 0
+                flow_stat.byte_count != 0 and \
+                self._unmatched_bytes != flow_stat.byte_count
             if default_flow_matched:
                 self.logger.error('%s bytes total not reported.',
                                   flow_stat.byte_count)
+                self._unmatched_bytes = flow_stat.byte_count
             return current_usage
         sid = _get_sid(flow_stat)
 

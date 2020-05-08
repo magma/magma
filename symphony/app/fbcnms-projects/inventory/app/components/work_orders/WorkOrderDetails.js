@@ -59,6 +59,7 @@ import {
 } from '../checklist/ChecklistCategoriesMutateReducer';
 import {makeStyles} from '@material-ui/styles';
 import {sortPropertiesByIndex, toMutableProperty} from '../../common/Property';
+import {useMainContext} from '../MainContext';
 import {withRouter} from 'react-router-dom';
 
 type Props = {
@@ -159,7 +160,9 @@ const WorkOrderDetails = ({
   );
   const [locationId, setLocationId] = useState(propsWorkOrder.location?.id);
   const [isLoadingDocument, setIsLoadingDocument] = useState(false);
-  const {user, isFeatureEnabled} = useContext(AppContext);
+  const {isFeatureEnabled} = useContext(AppContext);
+
+  const {userHasAdminPermissions, me} = useMainContext();
 
   const [editingCategories, dispatch] = useReducer<
     ChecklistCategoriesStateType,
@@ -182,21 +185,18 @@ const WorkOrderDetails = ({
     };
 
     const updater = store => {
-      // $FlowFixMe (T62907961) Relay flow types
       const newNode = store.getRootField('addImage');
-      const fileType = newNode.getValue('fileType');
-
-      // $FlowFixMe (T62907961) Relay flow types
       const workOrderProxy = store.get(workOrderId);
+      if (newNode == null || workOrderProxy == null) {
+        return;
+      }
+
+      const fileType = newNode.getValue('fileType');
       if (fileType === FileTypeEnum.IMAGE) {
-        // $FlowFixMe (T62907961) Relay flow types
         const imageNodes = workOrderProxy.getLinkedRecords('images') || [];
-        // $FlowFixMe (T62907961) Relay flow types
         workOrderProxy.setLinkedRecords([...imageNodes, newNode], 'images');
       } else {
-        // $FlowFixMe (T62907961) Relay flow types
         const fileNodes = workOrderProxy.getLinkedRecords('files') || [];
-        // $FlowFixMe (T62907961) Relay flow types
         workOrderProxy.setLinkedRecords([...fileNodes, newNode], 'files');
       }
     };
@@ -263,6 +263,10 @@ const WorkOrderDetails = ({
 
   const {location} = workOrder;
   const actionsEnabled = isFeatureEnabled('planned_equipment');
+  const permissionsEnforcementIsOn = isFeatureEnabled(
+    'permissions_ui_enforcement',
+  );
+
   return (
     <div className={classes.root}>
       <FormContextProvider>
@@ -292,28 +296,32 @@ const WorkOrderDetails = ({
                   ? `Work order is on '${doneStatus.label}' state`
                   : '',
             });
-            form.alerts.editLock.check({
-              fieldId: 'OwnerRule',
-              fieldDisplayName: 'Owner rule',
-              value: {user, workOrder: propsWorkOrder},
-              checkCallback: checkData =>
-                checkData?.user.isSuperUser ||
-                checkData?.user.email === checkData?.workOrder.owner.email ||
-                checkData?.user.email === checkData?.workOrder.assignedTo?.email
-                  ? ''
-                  : 'User is not allowed to edit this work order',
-            });
-            const nonOwnerAssignee = form.alerts.editLock.check({
-              fieldId: 'NonOwnerAssigneeRule',
-              fieldDisplayName: 'Non Owner assignee rule',
-              value: {user, workOrder: propsWorkOrder},
-              checkCallback: checkData =>
-                checkData?.user.email !== checkData?.workOrder.owner.email &&
-                checkData?.user.email === checkData?.workOrder.assignedTo?.email
-                  ? 'Assignee is not allowed to change owner'
-                  : '',
-              notAggregated: true,
-            });
+            if (permissionsEnforcementIsOn) {
+              form.alerts.editLock.check({
+                fieldId: 'OwnerRule',
+                fieldDisplayName: 'Owner rule',
+                value: propsWorkOrder,
+                checkCallback: workOrder =>
+                  userHasAdminPermissions ||
+                  me?.user?.email === workOrder?.owner.email ||
+                  me?.user?.email === workOrder?.assignedTo?.email
+                    ? ''
+                    : 'User is not allowed to edit this work order',
+              });
+            }
+            const nonOwnerAssignee =
+              permissionsEnforcementIsOn &&
+              form.alerts.editLock.check({
+                fieldId: 'NonOwnerAssigneeRule',
+                fieldDisplayName: 'Non Owner assignee rule',
+                value: propsWorkOrder,
+                checkCallback: workOrder =>
+                  me?.user?.email !== workOrder?.owner.email &&
+                  me?.user?.email === workOrder?.assignedTo?.email
+                    ? 'Assignee is not allowed to change owner'
+                    : '',
+                notAggregated: true,
+              });
             return (
               <div className={classes.cards}>
                 <Grid container spacing={2}>

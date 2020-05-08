@@ -9,7 +9,7 @@
  */
 
 import AppContent from '@fbcnms/ui/components/layout/AppContent';
-import AppContext, {AppContextProvider} from '@fbcnms/ui/context/AppContext';
+import AppContext from '@fbcnms/ui/context/AppContext';
 import AppSideBar from '@fbcnms/ui/components/layout/AppSideBar';
 import ApplicationMain from '@fbcnms/ui/components/ApplicationMain';
 import ProjectComparisonView from '../projects/ProjectComparisonView';
@@ -71,9 +71,7 @@ function WorkOrdersMain() {
 export default () => {
   return (
     <ApplicationMain>
-      <AppContextProvider>
-        <WorkOrdersMain />
-      </AppContextProvider>
+      <WorkOrdersMain />
     </ApplicationMain>
   );
 };

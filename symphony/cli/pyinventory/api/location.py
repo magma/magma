@@ -5,8 +5,10 @@
 
 from typing import Dict, List, Optional, Sequence, Tuple
 
+from pysymphony import SymphonyClient
+
 from .._utils import deprecated, get_graphql_property_inputs
-from ..client import SymphonyClient
+from ..common.cache import LOCATION_TYPES
 from ..common.constant import LOCATIONS_TO_SEARCH
 from ..common.data_class import Document, ImageEntity, Location, PropertyValue
 from ..common.data_enum import Entity
@@ -15,20 +17,20 @@ from ..exceptions import (
     LocationCannotBeDeletedWithDependency,
     LocationIsNotUniqueException,
 )
-from ..graphql.add_location_input import AddLocationInput
-from ..graphql.add_location_mutation import AddLocationMutation
-from ..graphql.edit_location_input import EditLocationInput
-from ..graphql.edit_location_mutation import EditLocationMutation
-from ..graphql.filter_operator_enum import FilterOperator
-from ..graphql.get_locations_query import GetLocationsQuery
-from ..graphql.location_children_query import LocationChildrenQuery
-from ..graphql.location_deps_query import LocationDepsQuery
-from ..graphql.location_documents_query import LocationDocumentsQuery
-from ..graphql.location_filter_input import LocationFilterInput, LocationFilterType
-from ..graphql.location_fragment import LocationFragment
-from ..graphql.location_search_query import LocationSearchQuery
-from ..graphql.move_location_mutation import MoveLocationMutation
-from ..graphql.remove_location_mutation import RemoveLocationMutation
+from ..graphql.enum.filter_operator import FilterOperator
+from ..graphql.fragment.location import LocationFragment
+from ..graphql.input.add_location import AddLocationInput
+from ..graphql.input.edit_location import EditLocationInput
+from ..graphql.input.location_filter import LocationFilterInput, LocationFilterType
+from ..graphql.mutation.add_location import AddLocationMutation
+from ..graphql.mutation.edit_location import EditLocationMutation
+from ..graphql.mutation.move_location import MoveLocationMutation
+from ..graphql.mutation.remove_location import RemoveLocationMutation
+from ..graphql.query.get_locations import GetLocationsQuery
+from ..graphql.query.location_children import LocationChildrenQuery
+from ..graphql.query.location_deps import LocationDepsQuery
+from ..graphql.query.location_documents import LocationDocumentsQuery
+from ..graphql.query.location_search import LocationSearchQuery
 
 
 def _get_locations_by_name_and_type(
@@ -38,7 +40,7 @@ def _get_locations_by_name_and_type(
         LocationFilterInput(
             filterType=LocationFilterType.LOCATION_TYPE,
             operator=FilterOperator.IS_ONE_OF,
-            idSet=[client.locationTypes[location_type_name].id],
+            idSet=[LOCATION_TYPES[location_type_name].id],
             stringSet=[],
         ),
         LocationFilterInput(
@@ -154,7 +156,7 @@ def add_location(
         long_val = None
 
         if i == len(location_hirerchy) - 1:
-            property_types = client.locationTypes[location_type].property_types
+            property_types = LOCATION_TYPES[location_type].property_types
             properties = get_graphql_property_inputs(property_types, properties_dict)
             lat_val = lat
             long_val = long
@@ -170,7 +172,7 @@ def add_location(
                 client=client,
                 input=AddLocationInput(
                     name=location_name,
-                    type=client.locationTypes[location_type].id,
+                    type=LOCATION_TYPES[location_type].id,
                     latitude=lat_val,
                     longitude=long_val,
                     parent=last_location.id if last_location else None,
@@ -390,7 +392,7 @@ def edit_location(
     """
     properties = []
     location_type = location.locationTypeName
-    property_types = client.locationTypes[location_type].property_types
+    property_types = LOCATION_TYPES[location_type].property_types
     if new_properties:
         properties = get_graphql_property_inputs(property_types, new_properties)
     if new_external_id is None:

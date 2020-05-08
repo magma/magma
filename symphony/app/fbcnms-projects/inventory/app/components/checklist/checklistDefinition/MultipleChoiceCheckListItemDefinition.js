@@ -20,6 +20,7 @@ import emptyFunction from '@fbcnms/util/emptyFunction';
 import fbt from 'fbt';
 import {enumStringToArray} from '../ChecklistUtils';
 import {makeStyles} from '@material-ui/styles';
+import {useFormContext} from '../../../common/FormContext';
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -42,11 +43,13 @@ const MultipleChoiceCheckListItemDefinition = ({
   onChange,
 }: CheckListItemDefinitionProps) => {
   const classes = useStyles();
+  const form = useFormContext();
   return (
     <CheckListItemDefinitionBase item={item} onChange={onChange}>
       <div className={classes.root}>
         <Select
           className={classes.select}
+          disabled={form.alerts.editLock.detected}
           options={[
             {
               key: 'single',
@@ -74,8 +77,9 @@ const MultipleChoiceCheckListItemDefinition = ({
           }}
         />
         <Tokenizer
-          placeholder={`${fbt('Press Enter after each value', '')}`}
           className={classes.tokenizer}
+          placeholder={`${fbt('Press Enter after each value', '')}`}
+          disabled={form.alerts.editLock.detected}
           searchSource="UserInput"
           tokens={enumStringToArray(item.enumValues).map(value => ({
             label: value,

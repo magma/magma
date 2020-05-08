@@ -45,6 +45,7 @@ from magma.pipelined.app.tunnel_learn import TunnelLearnController
 from magma.pipelined.app.vlan_learn import VlanLearnController
 from magma.pipelined.app.arp import ArpController
 from magma.pipelined.app.dpi import DPIController
+from magma.pipelined.app.gy import GYController
 from magma.pipelined.app.enforcement import EnforcementController
 from magma.pipelined.app.ipfix import IPFIXController
 from magma.pipelined.app.li_mirror import LIMirrorController
@@ -57,6 +58,7 @@ from magma.pipelined.app.startup_flows import StartupFlows
 from magma.pipelined.app.check_quota import CheckQuotaController
 from magma.pipelined.rule_mappers import RuleIDToNumMapper, \
     SessionRuleToVersionMapper
+from magma.pipelined.internal_ip_allocator import InternalIPAllocator
 from ryu.base.app_manager import AppManager
 
 from magma.common.service import MagmaService
@@ -128,7 +130,9 @@ class _TableManager:
     EGRESS_TABLE_NUM = 20
     LOGICAL_TABLE_LIMIT_NUM = EGRESS_TABLE_NUM  # exclusive
     SCRATCH_TABLE_START_NUM = EGRESS_TABLE_NUM + 1  # 21
-    SCRATCH_TABLE_LIMIT_NUM = 255  # exclusive
+    SCRATCH_TABLE_LIMIT_NUM = 200
+    # 200 - 255 is used for apps that share a table
+    ALL_TABLE_LIMIT_NUM = 255  # exclusive
 
     def __init__(self):
         self._table_ranges = {
@@ -252,12 +256,21 @@ class ServiceManager:
     LI_MIRROR_SERVICE_NAME = 'li_mirror'
     XWF_PASSTHRU_NAME = 'xwf_passthru'
 
+    INTERNAL_APP_SET_TABLE_NUM = 201
+    INTERNAL_IMSI_SET_TABLE_NUM = 202
+    INTERNAL_IPFIX_SAMPLE_TABLE_NUM = 203
+    INTERNAL_MAC_IP_REWRITE_TBL_NUM = 204
+
     # Mapping between services defined in mconfig and the names and modules of
     # the corresponding Ryu apps in PipelineD. The module is used for the Ryu
     # app manager to instantiate the app.
     # Note that a service may require multiple apps.
     DYNAMIC_SERVICE_TO_APPS = {
         PipelineD.ENFORCEMENT: [
+            App(name=GYController.APP_NAME,
+                module=GYController.__module__,
+                type=GYController.APP_TYPE,
+                order_priority=499),
             App(name=EnforcementController.APP_NAME,
                 module=EnforcementController.__module__,
                 type=EnforcementController.APP_TYPE,
@@ -425,6 +438,8 @@ class ServiceManager:
         contexts[
             'session_rule_version_mapper'] = self.session_rule_version_mapper
         contexts['app_futures'] = {app.name: Future() for app in self._apps}
+        contexts['internal_ip_allocator'] = \
+            InternalIPAllocator(self._magma_service.config)
         contexts['config'] = self._magma_service.config
         contexts['mconfig'] = self._magma_service.mconfig
         contexts['loop'] = self._magma_service.loop

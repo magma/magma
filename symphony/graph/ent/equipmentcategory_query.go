@@ -26,7 +26,7 @@ type EquipmentCategoryQuery struct {
 	config
 	limit      *int
 	offset     *int
-	order      []Order
+	order      []OrderFunc
 	unique     []string
 	predicates []predicate.EquipmentCategory
 	// eager-loading edges.
@@ -55,7 +55,7 @@ func (ecq *EquipmentCategoryQuery) Offset(offset int) *EquipmentCategoryQuery {
 }
 
 // Order adds an order step to the query.
-func (ecq *EquipmentCategoryQuery) Order(o ...Order) *EquipmentCategoryQuery {
+func (ecq *EquipmentCategoryQuery) Order(o ...OrderFunc) *EquipmentCategoryQuery {
 	ecq.order = append(ecq.order, o...)
 	return ecq
 }
@@ -248,7 +248,7 @@ func (ecq *EquipmentCategoryQuery) Clone() *EquipmentCategoryQuery {
 		config:     ecq.config,
 		limit:      ecq.limit,
 		offset:     ecq.offset,
-		order:      append([]Order{}, ecq.order...),
+		order:      append([]OrderFunc{}, ecq.order...),
 		unique:     append([]string{}, ecq.unique...),
 		predicates: append([]predicate.EquipmentCategory{}, ecq.predicates...),
 		// clone intermediate query.
@@ -471,14 +471,14 @@ func (ecq *EquipmentCategoryQuery) sqlQuery() *sql.Selector {
 type EquipmentCategoryGroupBy struct {
 	config
 	fields []string
-	fns    []Aggregate
+	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (ecgb *EquipmentCategoryGroupBy) Aggregate(fns ...Aggregate) *EquipmentCategoryGroupBy {
+func (ecgb *EquipmentCategoryGroupBy) Aggregate(fns ...AggregateFunc) *EquipmentCategoryGroupBy {
 	ecgb.fns = append(ecgb.fns, fns...)
 	return ecgb
 }

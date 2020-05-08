@@ -452,6 +452,7 @@ static void _dedicated_eps_bearer_activate_t3485_handler(void* args)
       bstring b = bstrcpy(esm_ebr_timer_data->msg);
       rc = _dedicated_eps_bearer_activate(
         esm_ebr_timer_data->ctx, esm_ebr_timer_data->ebi, &b);
+      bdestroy_wrapper(&b);
     } else {
       /*
        * The maximum number of activate dedicated EPS bearer context request
@@ -547,7 +548,6 @@ static int _dedicated_eps_bearer_activate(
   emm_esm_activate->gbr_ul = bearer_context->esm_ebr_context.gbr_ul;
 
   bstring msg_dup = bstrcpy(*msg);
-  *msg = NULL;
   rc = emm_sap_send(&emm_sap);
 
   if (rc != RETURNerror) {
@@ -560,9 +560,7 @@ static int _dedicated_eps_bearer_activate(
       msg_dup,
       mme_config.nas_config.t3485_sec,
       _dedicated_eps_bearer_activate_t3485_handler);
-  } else {
-    bdestroy_wrapper(&msg_dup);
   }
-
+  bdestroy_wrapper(&msg_dup);
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
 }

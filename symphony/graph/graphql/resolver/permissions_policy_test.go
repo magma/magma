@@ -10,6 +10,7 @@ import (
 
 	"github.com/AlekSi/pointer"
 	models2 "github.com/facebookincubator/symphony/graph/authz/models"
+	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 	"github.com/stretchr/testify/require"
@@ -34,9 +35,9 @@ func getInventoryPolicyInput() *models2.InventoryPolicyInput {
 func getWorkforcePolicyInput() *models2.WorkforcePolicyInput {
 	return &models2.WorkforcePolicyInput{
 		Read: &models2.BasicPermissionRuleInput{IsAllowed: models2.PermissionValueNo},
-		Data: &models2.BasicWorkforceCUDInput{
-			Create: &models2.BasicPermissionRuleInput{IsAllowed: models2.PermissionValueYes},
-			Assign: &models2.BasicPermissionRuleInput{IsAllowed: models2.PermissionValueByCondition},
+		Data: &models2.WorkforceCUDInput{
+			Create: &models2.WorkforcePermissionRuleInput{IsAllowed: models2.PermissionValueYes},
+			Assign: &models2.WorkforcePermissionRuleInput{IsAllowed: models2.PermissionValueByCondition},
 		},
 	}
 }
@@ -48,7 +49,7 @@ func TestQueryInventoryPolicies(t *testing.T) {
 	mr, qr := r.Mutation(), r.Query()
 
 	inventoryPolicyInput := getInventoryPolicyInput()
-	_, err := mr.AddPolicy(ctx, models.AddPermissionsPolicyInput{
+	_, err := mr.AddPermissionsPolicy(ctx, models.AddPermissionsPolicyInput{
 		Name:           policyName,
 		Description:    pointer.ToString(policyDescription),
 		InventoryInput: inventoryPolicyInput,
@@ -68,7 +69,7 @@ func TestAddInventoryPolicy(t *testing.T) {
 	mr, ppr := r.Mutation(), r.PermissionsPolicy()
 
 	inventoryPolicyInput := getInventoryPolicyInput()
-	policy, err := mr.AddPolicy(ctx, models.AddPermissionsPolicyInput{
+	policy, err := mr.AddPermissionsPolicy(ctx, models.AddPermissionsPolicyInput{
 		Name:           policyName,
 		Description:    pointer.ToString(policyDescription),
 		InventoryInput: inventoryPolicyInput,
@@ -100,7 +101,7 @@ func TestAddWorkOrderPolicy(t *testing.T) {
 	mr, ppr := r.Mutation(), r.PermissionsPolicy()
 
 	workforcePolicyInput := getWorkforcePolicyInput()
-	policy, err := mr.AddPolicy(ctx, models.AddPermissionsPolicyInput{
+	policy, err := mr.AddPermissionsPolicy(ctx, models.AddPermissionsPolicyInput{
 		Name:           policyName,
 		Description:    pointer.ToString(policyDescription),
 		InventoryInput: nil,
@@ -125,13 +126,13 @@ func TestAddWorkOrderPolicy(t *testing.T) {
 	require.Equal(t, models2.PermissionValueNo, workforcePolicy.Templates.Delete.IsAllowed)
 }
 
-func TestAddMultipleTypesPolicy(t *testing.T) {
+func TestAddMultipleTypesPermissionsPolicy(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 
-	_, err := mr.AddPolicy(ctx, models.AddPermissionsPolicyInput{
+	_, err := mr.AddPermissionsPolicy(ctx, models.AddPermissionsPolicyInput{
 		Name:           policyName,
 		Description:    pointer.ToString(policyDescription),
 		InventoryInput: getInventoryPolicyInput(),
@@ -140,17 +141,163 @@ func TestAddMultipleTypesPolicy(t *testing.T) {
 	require.Error(t, err)
 }
 
-func TestAddEmptyPolicy(t *testing.T) {
+func TestDeletePermissionsPolicy(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 
-	_, err := mr.AddPolicy(ctx, models.AddPermissionsPolicyInput{
+	_, err := mr.AddPermissionsPolicy(ctx, models.AddPermissionsPolicyInput{
+		Name:           policyName,
+		Description:    pointer.ToString(policyDescription),
+		InventoryInput: getInventoryPolicyInput(),
+		WorkforceInput: nil,
+	})
+	require.NoError(t, err)
+
+	client := ent.FromContext(ctx)
+	pps := client.PermissionsPolicy.Query().AllX(ctx)
+	require.Len(t, pps, 1)
+
+	_, err = mr.DeletePermissionsPolicy(ctx, pps[0].ID)
+	require.NoError(t, err)
+}
+
+func TestAddEmptyPermissionsPolicy(t *testing.T) {
+	r := newTestResolver(t)
+	defer r.drv.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
+	mr := r.Mutation()
+
+	_, err := mr.AddPermissionsPolicy(ctx, models.AddPermissionsPolicyInput{
 		Name:           policyName,
 		Description:    pointer.ToString(policyDescription),
 		InventoryInput: nil,
 		WorkforceInput: nil,
 	})
 	require.Error(t, err)
+}
+
+func TestEditPermissionsPolicy(t *testing.T) {
+	r := newTestResolver(t)
+	defer r.drv.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
+	mr := r.Mutation()
+
+	inventoryPolicyInput := getInventoryPolicyInput()
+	workforcePolicyInput := getWorkforcePolicyInput()
+
+	policy, err := mr.AddPermissionsPolicy(ctx, models.AddPermissionsPolicyInput{
+		Name:           policyName,
+		Description:    pointer.ToString(policyDescription),
+		InventoryInput: inventoryPolicyInput,
+		WorkforceInput: nil,
+	})
+	require.NoError(t, err)
+	require.Equal(t, policy.InventoryPolicy, inventoryPolicyInput)
+	require.Empty(t, policy.WorkforcePolicy)
+
+	newPolicyName := "new_" + policyName
+	newDescription := "New " + policyDescription
+	newInventoryPolicy := &models2.InventoryPolicyInput{
+		Location: &models2.LocationCUDInput{
+			Create: &models2.LocationPermissionRuleInput{IsAllowed: models2.PermissionValueYes},
+			Update: &models2.LocationPermissionRuleInput{IsAllowed: models2.PermissionValueNo},
+			Delete: &models2.LocationPermissionRuleInput{IsAllowed: models2.PermissionValueByCondition},
+		},
+	}
+	fetchedPermissionsPolicy1, err := mr.EditPermissionsPolicy(ctx, models.EditPermissionsPolicyInput{
+		ID:             policy.ID,
+		Name:           &newPolicyName,
+		Description:    pointer.ToString(newDescription),
+		InventoryInput: newInventoryPolicy,
+		WorkforceInput: nil,
+	})
+	require.NoError(t, err)
+	require.Equal(t, fetchedPermissionsPolicy1.Name, newPolicyName)
+	require.Equal(t, fetchedPermissionsPolicy1.Description, newDescription)
+	require.Equal(t, fetchedPermissionsPolicy1.InventoryPolicy, newInventoryPolicy)
+	require.Equal(t, fetchedPermissionsPolicy1.InventoryPolicy.Location.Create.IsAllowed, models2.PermissionValueYes)
+	require.Equal(t, fetchedPermissionsPolicy1.InventoryPolicy.Location.Update.IsAllowed, models2.PermissionValueNo)
+	require.Equal(t, fetchedPermissionsPolicy1.InventoryPolicy.Location.Delete.IsAllowed, models2.PermissionValueByCondition)
+	require.Empty(t, fetchedPermissionsPolicy1.WorkforcePolicy)
+
+	fetchedPermissionsPolicy2, err := mr.EditPermissionsPolicy(ctx, models.EditPermissionsPolicyInput{
+		ID:             policy.ID,
+		Name:           nil,
+		Description:    nil,
+		InventoryInput: nil,
+		WorkforceInput: nil,
+	})
+	require.NoError(t, err)
+	require.Equal(t, fetchedPermissionsPolicy2.Name, fetchedPermissionsPolicy1.Name)
+	require.Equal(t, fetchedPermissionsPolicy2.Description, fetchedPermissionsPolicy1.Description)
+	require.Equal(t, fetchedPermissionsPolicy2.InventoryPolicy, fetchedPermissionsPolicy1.InventoryPolicy)
+	require.Empty(t, fetchedPermissionsPolicy2.WorkforcePolicy)
+
+	_, err = mr.EditPermissionsPolicy(ctx, models.EditPermissionsPolicyInput{
+		ID:             policy.ID,
+		Name:           &newPolicyName,
+		Description:    pointer.ToString(newDescription),
+		InventoryInput: nil,
+		WorkforceInput: workforcePolicyInput,
+	})
+	require.Error(t, err)
+
+}
+
+func TestUpdateGroupsInPermissionsPolicy(t *testing.T) {
+	r := newTestResolver(t)
+	defer r.drv.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
+
+	mr := r.Mutation()
+
+	gName1 := "group_1"
+	addInp1 := getAddUsersGroupInput(gName1, "this is group 1")
+	ug1, err := mr.AddUsersGroup(ctx, addInp1)
+	require.NoError(t, err)
+
+	gName2 := "group_2"
+	addInp2 := getAddUsersGroupInput(gName2, "this is group 2")
+	ug2, err := mr.AddUsersGroup(ctx, addInp2)
+	require.NoError(t, err)
+
+	inventoryPolicyInput := getInventoryPolicyInput()
+
+	policy, err := mr.AddPermissionsPolicy(ctx, models.AddPermissionsPolicyInput{
+		Name:           policyName,
+		Description:    pointer.ToString(policyDescription),
+		InventoryInput: inventoryPolicyInput,
+		WorkforceInput: nil,
+	})
+	require.NoError(t, err)
+	require.Len(t, policy.QueryGroups().AllX(ctx), 0)
+
+	updateInput1 := models.UpdateGroupsInPermissionsPolicyInput{
+		ID:             policy.ID,
+		AddGroupIds:    []int{ug1.ID},
+		RemoveGroupIds: []int{},
+	}
+	ugUpdate1, err := mr.UpdateGroupsInPermissionsPolicy(ctx, updateInput1)
+	require.NoError(t, err)
+	require.Len(t, ugUpdate1.QueryGroups().AllX(ctx), 1)
+
+	updateInput2 := models.UpdateGroupsInPermissionsPolicyInput{
+		ID:             policy.ID,
+		AddGroupIds:    []int{ug2.ID},
+		RemoveGroupIds: []int{},
+	}
+	ugUpdate2, err := mr.UpdateGroupsInPermissionsPolicy(ctx, updateInput2)
+	require.NoError(t, err)
+	require.Len(t, ugUpdate2.QueryGroups().AllX(ctx), 2)
+
+	updateInput3 := models.UpdateGroupsInPermissionsPolicyInput{
+		ID:             policy.ID,
+		AddGroupIds:    []int{},
+		RemoveGroupIds: []int{ug1.ID},
+	}
+	ugUpdate3, err := mr.UpdateGroupsInPermissionsPolicy(ctx, updateInput3)
+	require.NoError(t, err)
+	require.Len(t, ugUpdate3.QueryGroups().AllX(ctx), 1)
 }

@@ -8,16 +8,7 @@
  * @format
  */
 
-import type {NetworkContextType} from '../context/NetworkContext';
-import type {NetworkType} from '@fbcnms/types/network';
-import type {SectionsConfigs} from '../layout/Section';
-
-import AppContext from '@fbcnms/ui/context/AppContext';
 import NetworkContext from '../context/NetworkContext';
-import {coalesceNetworkType} from '@fbcnms/types/network';
-import {useContext, useEffect, useState} from 'react';
-
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import {
   CWF,
   FEG,
@@ -26,7 +17,16 @@ import {
   SYMPHONY,
   THIRD_PARTY,
   WIFI,
+  coalesceNetworkType,
 } from '@fbcnms/types/network';
+import type {NetworkContextType} from '../context/NetworkContext';
+import type {NetworkType} from '@fbcnms/types/network';
+import type {SectionsConfigs} from '../layout/Section';
+
+import AppContext from '@fbcnms/ui/context/AppContext';
+import {useContext, useEffect, useState} from 'react';
+
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import {getCWFSections} from '../cwf/CWFSections';
 import {getDevicesSections} from '@fbcnms/magmalte/app/components/devices/DevicesSections';
 import {getFEGSections} from '../feg/FEGSections';
@@ -40,6 +40,7 @@ export default function useSections(): SectionsConfigs {
   const [networkType, setNetworkType] = useState<?NetworkType>(null);
   const alertsEnabled = isFeatureEnabled('alerts');
   const logsEnabled = isFeatureEnabled('logs');
+  const dashboardV2Enabled = isFeatureEnabled('dashboard_v2');
 
   useEffect(() => {
     if (networkId) {
@@ -67,6 +68,6 @@ export default function useSections(): SectionsConfigs {
       return getFEGSections();
     case LTE:
     default:
-      return getLteSections(alertsEnabled, logsEnabled);
+      return getLteSections(alertsEnabled, logsEnabled, dashboardV2Enabled);
   }
 }

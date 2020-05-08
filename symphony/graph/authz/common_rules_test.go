@@ -10,44 +10,36 @@ import (
 	"testing"
 
 	"github.com/facebookincubator/symphony/graph/authz"
-
-	"github.com/facebookincubator/symphony/graph/authz/models"
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/privacy"
+	"github.com/facebookincubator/symphony/graph/ent/user"
+	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
+
 	"github.com/stretchr/testify/require"
 )
 
-func TestUserCannotBeDeleted(t *testing.T) {
-	c := viewertest.NewTestClient(t)
-	ctx := viewertest.NewContext(context.Background(), c)
-	u, err := c.User.Create().SetAuthID("someone").Save(ctx)
-	require.NoError(t, err)
-	err = c.User.DeleteOne(u).Exec(ctx)
-	require.True(t, errors.Is(err, privacy.Deny))
-}
-
-func TestAdminUserCanEditUsers(t *testing.T) {
-	client := viewertest.NewTestClient(t)
-	permissions := authz.EmptyPermissions()
-	permissions.AdminPolicy.Access.IsAllowed = models.PermissionValueYes
-	ctx := ent.NewContext(context.Background(), client)
-	ctx = viewertest.NewContext(
-		ctx, client,
-		viewertest.WithPermissions(permissions))
-	_, err := client.UsersGroup.Create().
-		SetName("NewGroup").
-		Save(ctx)
-	require.NoError(t, err)
-	_, err = client.User.Create().
-		SetAuthID("new_user").
-		Save(ctx)
-	require.NoError(t, err)
-}
-
 func TestUserCannotEditWithNoPermission(t *testing.T) {
 	client := viewertest.NewTestClient(t)
-	ctx := ent.NewContext(context.Background(), client)
+	ctx := viewertest.NewContext(context.Background(), client)
+	location, err := client.LocationType.Create().SetName("LocationType").Save(ctx)
+	require.NoError(t, err)
+	ctx = ent.NewContext(context.Background(), client)
+	u := viewer.MustGetOrCreateUser(ctx, viewertest.DefaultUser, user.RoleOWNER)
+	v := viewer.NewUser(viewertest.DefaultTenant, u)
+	ctx = viewer.NewContext(ctx, v)
+	_, err = client.LocationType.Get(ctx, location.ID)
+	require.NoError(t, err)
+	_, err = client.LocationType.UpdateOneID(location.ID).SetName("NewLocationType").Save(ctx)
+	require.True(t, errors.Is(err, privacy.Deny))
+	ctx = authz.NewContext(ctx, authz.FullPermissions())
+	_, err = client.UsersGroup.Create().SetName("NewGroup").Save(ctx)
+	require.NoError(t, err)
+}
+
+func TestUserCannotEditWithEmptyPermission(t *testing.T) {
+	client := viewertest.NewTestClient(t)
+	ctx := viewertest.NewContext(context.Background(), client)
 	location, err := client.LocationType.Create().SetName("LocationType").Save(ctx)
 	require.NoError(t, err)
 	ctx = viewertest.NewContext(ctx, client, viewertest.WithPermissions(authz.EmptyPermissions()))
@@ -63,7 +55,7 @@ func TestUserCannotEditWithNoPermission(t *testing.T) {
 
 func TestUserCanWrite(t *testing.T) {
 	client := viewertest.NewTestClient(t)
-	ctx := ent.NewContext(context.Background(), client)
+	ctx := viewertest.NewContext(context.Background(), client)
 	location, err := client.LocationType.Create().SetName("LocationType").Save(ctx)
 	require.NoError(t, err)
 	permissions := authz.EmptyPermissions()

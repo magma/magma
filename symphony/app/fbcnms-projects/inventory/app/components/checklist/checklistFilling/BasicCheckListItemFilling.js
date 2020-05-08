@@ -28,8 +28,9 @@ const BasicCheckListItemFilling = ({
   onChange,
 }: CheckListItemFillingProps): React.Node => {
   const classes = useStyles();
+  const form = useFormContext();
 
-  const _updateOnChange = () => {
+  const updateOnChange = () => {
     if (!onChange) {
       return;
     }
@@ -40,23 +41,22 @@ const BasicCheckListItemFilling = ({
     onChange(modifiedItem);
   };
 
-  const form = useFormContext();
-
   return (
     <div className={classes.container}>
-      {!form.alerts.editLock.detected && (
-        <Button onClick={_updateOnChange} variant="text">
-          {item.checked
-            ? fbt(
-                'Mark as Undone',
-                'Caption of the simple checkbox item Uncheck button',
-              )
-            : fbt(
-                'Mark as done',
-                'Caption of the simple checkbox item Check button',
-              )}
-        </Button>
-      )}
+      <Button
+        disabled={form.alerts.editLock.detected}
+        onClick={updateOnChange}
+        variant="text">
+        {item.checked
+          ? fbt(
+              'Mark as Undone',
+              'Caption of the simple checkbox item Uncheck button',
+            )
+          : fbt(
+              'Mark as done',
+              'Caption of the simple checkbox item Check button',
+            )}
+      </Button>
     </div>
   );
 };

@@ -73,6 +73,11 @@ export default createMuiTheme({
     gray50: gray50,
     gray13,
     primaryText: primaryText,
+
+    magmalte: {
+      appbar: '#323845',
+      background: '#171B25',
+    },
   },
   overrides: {
     MuiAppBar: {

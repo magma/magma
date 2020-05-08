@@ -7,13 +7,17 @@
  * @flow strict-local
  * @format
  */
-import type {ActionButtonProps} from '../../components/design-system/View/ViewHeader';
 
 import DeleteIcon from '../../components/design-system/Icons/Actions/DeleteIcon';
 import ListAltIcon from '@material-ui/icons/ListAlt';
 import MapIcon from '@material-ui/icons/Map';
 import React from 'react';
 import ViewHeader from '../../components/design-system/View/ViewHeader';
+import {
+  ButtonAction,
+  IconAction,
+  OptionsAction,
+} from '../../components/design-system/View/ViewHeaderActions';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {makeStyles} from '@material-ui/styles';
 import {storiesOf} from '@storybook/react';
@@ -32,22 +36,34 @@ const ViewHeaderRoot = () => {
   const classes = useStyles();
   const [selectedButton, setSelectedButton] = useState('1');
 
-  const actionButtons: Array<ActionButtonProps> = [
-    {
-      title: <DeleteIcon color="error" />,
-      action: () => alert('Doing DELETE'),
-      variant: 'text',
-    },
-    {
-      title: 'Action B',
-      action: () => alert('Doing action B'),
-      variant: 'text',
-      skin: 'gray',
-    },
-    {
-      title: 'Action A',
-      action: () => alert('Doing action A'),
-    },
+  const actionButtons = [
+    <IconAction
+      icon={DeleteIcon}
+      skin="gray"
+      action={() => alert('Doing DELETE')}
+    />,
+    <ButtonAction
+      variant="text"
+      skin="gray"
+      action={() => alert('Doing action!')}>
+      Do action
+    </ButtonAction>,
+    <OptionsAction
+      options={[
+        {
+          key: '1',
+          value: '1',
+          label: 'option A',
+        },
+        {
+          key: '2',
+          value: '2',
+          label: 'option B',
+        },
+      ]}
+      optionAction={option => alert(`Doing option #${option}`)}>
+      pick option
+    </OptionsAction>,
   ];
 
   const subTitle =

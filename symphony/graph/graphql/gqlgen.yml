@@ -10,9 +10,15 @@ schema:
 
 exec:
   filename: generated/exec.go
+  package: generated
+
+federation:
+  filename: generated/federation.go
+  package: generated
 
 model:
-  filename: models/generated.go
+  filename: models/models_gen.go
+  package: models
 
 resolver:
   filename: resolver/resolver.go

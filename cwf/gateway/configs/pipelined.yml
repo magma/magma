@@ -94,7 +94,7 @@ allow_unknown_arps: False
 # Configuration for IPFIX sampling
 ipfix:
   enabled: true
-  probability: 650
+  probability: 65
   collector_set_id: 1
   cache_timeout: 60
   obs_domain_id: 1
@@ -115,6 +115,8 @@ enodeb_iface: eth1
 bridge_name: cwag_br0
 # Bridge ip comes from 99-ovscfg.yaml
 bridge_ip_address: 192.168.128.1
+# For CWF internal redirection, same subnet as the ovs bridge ip address
+internal_ip_subnet: '192.168.0.0/16'
 
 #QoS Queue Programming
 enable_queue_pgm: true

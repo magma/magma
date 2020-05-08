@@ -115,6 +115,20 @@ func (tr txResolver) UpdateUsersGroupMembers(ctx context.Context, input models.U
 	return result, nil
 }
 
+func (tr txResolver) UpdatePermissionsPoliciesInUsersGroup(ctx context.Context, input models.UpdatePermissionsPoliciesInUsersGroupInput) (*ent.UsersGroup, error) {
+	var result, zero *ent.UsersGroup
+	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr generated.MutationResolver) (err error) {
+		result, err = mr.UpdatePermissionsPoliciesInUsersGroup(ctx, input)
+		return
+	}); err != nil {
+		return zero, err
+	}
+	if result != nil {
+		result = result.Unwrap()
+	}
+	return result, nil
+}
+
 func (tr txResolver) DeleteUsersGroup(ctx context.Context, id int) (bool, error) {
 	var result, zero bool
 	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr generated.MutationResolver) (err error) {
@@ -1063,10 +1077,49 @@ func (tr txResolver) DeleteReportFilter(ctx context.Context, id int) (bool, erro
 	return result, nil
 }
 
-func (tr txResolver) AddPolicy(ctx context.Context, input models.AddPermissionsPolicyInput) (*ent.PermissionsPolicy, error) {
+func (tr txResolver) AddPermissionsPolicy(ctx context.Context, input models.AddPermissionsPolicyInput) (*ent.PermissionsPolicy, error) {
 	var result, zero *ent.PermissionsPolicy
 	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr generated.MutationResolver) (err error) {
-		result, err = mr.AddPolicy(ctx, input)
+		result, err = mr.AddPermissionsPolicy(ctx, input)
+		return
+	}); err != nil {
+		return zero, err
+	}
+	if result != nil {
+		result = result.Unwrap()
+	}
+	return result, nil
+}
+
+func (tr txResolver) EditPermissionsPolicy(ctx context.Context, input models.EditPermissionsPolicyInput) (*ent.PermissionsPolicy, error) {
+	var result, zero *ent.PermissionsPolicy
+	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr generated.MutationResolver) (err error) {
+		result, err = mr.EditPermissionsPolicy(ctx, input)
+		return
+	}); err != nil {
+		return zero, err
+	}
+	if result != nil {
+		result = result.Unwrap()
+	}
+	return result, nil
+}
+
+func (tr txResolver) DeletePermissionsPolicy(ctx context.Context, id int) (bool, error) {
+	var result, zero bool
+	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr generated.MutationResolver) (err error) {
+		result, err = mr.DeletePermissionsPolicy(ctx, id)
+		return
+	}); err != nil {
+		return zero, err
+	}
+	return result, nil
+}
+
+func (tr txResolver) UpdateGroupsInPermissionsPolicy(ctx context.Context, input models.UpdateGroupsInPermissionsPolicyInput) (*ent.PermissionsPolicy, error) {
+	var result, zero *ent.PermissionsPolicy
+	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr generated.MutationResolver) (err error) {
+		result, err = mr.UpdateGroupsInPermissionsPolicy(ctx, input)
 		return
 	}); err != nil {
 		return zero, err

@@ -110,6 +110,7 @@ const ServiceDetailsPanel = (props: Props) => {
     if (
       dirtyValue == 'equipment' ||
       dirtyValue == 'location' ||
+      dirtyValue == 'enum' ||
       dirtyValue == 'service' ||
       dirtyValue == 'customer'
     ) {

@@ -79,7 +79,8 @@ TEST_F(StoreClientTest, test_read_and_write) {
   EXPECT_EQ(session->get_session_id(), sid);
   EXPECT_EQ(session2->get_session_id(), sid2);
 
-  session->activate_static_rule("rule1", uc);
+  RuleLifetime lifetime{};
+  session->activate_static_rule("rule1", lifetime, uc);
   EXPECT_EQ(session->is_static_rule_installed("rule1"), true);
 
   EXPECT_EQ(session_map.size(), 2);

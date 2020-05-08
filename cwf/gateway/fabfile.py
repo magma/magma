@@ -28,10 +28,11 @@ CWAG_TEST_BR_NAME = "cwag_test_br0"
 
 
 class SubTests(Enum):
-    ALL = "integ_test"
+    ALL = "all"
     AUTH = "authenticate"
     GX = "gx"
     GY = "gy"
+    QOS = "qos"
     MULTISESSIONPROXY = "multi_session_proxy"
 
     @staticmethod
@@ -41,7 +42,7 @@ class SubTests(Enum):
 
 def integ_test(gateway_host=None, test_host=None, trf_host=None,
                transfer_images=False, destroy_vm=False, no_build=False,
-               tests_to_run="integ_test", skip_unit_tests=False, test_re=None):
+               tests_to_run="all", skip_unit_tests=False, test_re=None):
     """
     Run the integration tests. This defaults to running on local vagrant
     machines, but can also be pointed to an arbitrary host (e.g. amazon) by
@@ -133,12 +134,12 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     execute(_start_ue_simulator)
     execute(_set_cwag_test_networking, cwag_br_mac)
 
-    if tests_to_run.value not in [SubTests.MULTISESSIONPROXY.value]:
+    if tests_to_run.value != SubTests.MULTISESSIONPROXY.value:
         execute(_run_integ_tests, test_host, trf_host, tests_to_run, test_re)
 
-    # Setup environment and run test for multi service proxy if required
-    if tests_to_run.value in [SubTests.MULTISESSIONPROXY.value, SubTests.ALL.value]:
-
+    # Setup environment for multi service proxy if required
+    if tests_to_run.value in (SubTests.ALL.value,
+                              SubTests.MULTISESSIONPROXY.value):
         # CWAG VM
         if not gateway_host:
             vagrant_setup("cwag", False)
@@ -154,9 +155,8 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
             vagrant_setup("cwag_test", False)
         else:
             ansible_setup(test_host, "cwag_test", "cwag_test.yml")
-        execute(
-            _run_integ_tests, test_host, trf_host, SubTests.MULTISESSIONPROXY, test_re
-        )
+        execute(_run_integ_tests, test_host, trf_host,
+                SubTests.MULTISESSIONPROXY, test_re)
 
     # If we got here means everything work well!!
     if not test_host and not trf_host:
@@ -174,8 +174,9 @@ def transfer_service_logs(services="sessiond session_proxy"):
     vagrant_setup("cwag", False)
     with cd(CWAG_ROOT):
         for service in services:
-            run("docker logs -t " + service + " 2> " + service + ".log")
+            run("docker logs -t " + service + " &> " + service + ".log")
             # For vagrant the files should already be in CWAG_ROOT
+
 
 def _transfer_docker_images():
     output = local("docker images cwf_*", capture=True)
@@ -298,20 +299,22 @@ def _run_unit_tests():
         run('make test')
 
 
-def _run_integ_tests(test_host, trf_host, tests_to_run: SubTests, testRe=None):
+def _run_integ_tests(test_host, trf_host, tests_to_run: SubTests, test_re=None):
     """ Run the integration tests """
+
+    go_test_cmd = "go test"
+    go_test_cmd += " -tags " + tests_to_run.value
+    if test_re:
+        go_test_cmd += " -run " + test_re
+
     with cd(CWAG_INTEG_ROOT):
-        if testRe:
-            command = "TESTS=" + testRe + " make " + str(tests_to_run.value)
-        else:
-            command = "make " + str(tests_to_run.value)
-        result = run(command, warn_only=True)
-    if result.return_code != 0:
-        if not test_host and not trf_host:
-            # Clean up only for now when running locally
-            execute(_clean_up)
-        print("Integration Test returned ", result.return_code)
-        sys.exit(result.return_code)
+        result = run(go_test_cmd, warn_only=True)
+        if result.return_code != 0:
+            if not test_host and not trf_host:
+                # Clean up only for now when running locally
+                execute(_clean_up)
+            print("Integration Test returned ", result.return_code)
+            sys.exit(result.return_code)
 
 
 def _clean_up():

@@ -85,6 +85,17 @@ type BasicPermissionRule {
   isAllowed: PermissionValue!
 }
 
+type LocationPermissionRule {
+  isAllowed: PermissionValue!
+  locationTypeIds: [ID!]
+}
+
+type WorkforcePermissionRule {
+  isAllowed: PermissionValue!
+  projectTypeIds: [ID!]
+  workOrderTypeIds: [ID!]
+}
+
 input BasicPermissionRuleInput
   @goModel(
     model: "github.com/facebookincubator/symphony/graph/authz/models.BasicPermissionRuleInput"
@@ -92,10 +103,33 @@ input BasicPermissionRuleInput
   isAllowed: PermissionValue!
 }
 
+input LocationPermissionRuleInput
+  @goModel(
+    model: "github.com/facebookincubator/symphony/graph/authz/models.LocationPermissionRuleInput"
+  ) {
+  isAllowed: PermissionValue!
+  locationTypeIds: [ID!]
+}
+
+input WorkforcePermissionRuleInput
+  @goModel(
+    model: "github.com/facebookincubator/symphony/graph/authz/models.WorkforcePermissionRuleInput"
+  ) {
+  isAllowed: PermissionValue!
+  projectTypeIds: [ID!]
+  workOrderTypeIds: [ID!]
+}
+
 type CUD {
   create: BasicPermissionRule!
   update: BasicPermissionRule!
   delete: BasicPermissionRule!
+}
+
+type LocationCUD {
+  create: LocationPermissionRule!
+  update: LocationPermissionRule!
+  delete: LocationPermissionRule!
 }
 
 input BasicCUDInput
@@ -107,13 +141,22 @@ input BasicCUDInput
   delete: BasicPermissionRuleInput
 }
 
+input LocationCUDInput
+  @goModel(
+    model: "github.com/facebookincubator/symphony/graph/authz/models.LocationCUDInput"
+  ) {
+  create: LocationPermissionRuleInput
+  update: LocationPermissionRuleInput
+  delete: LocationPermissionRuleInput
+}
+
 type AdministrativePolicy {
   access: BasicPermissionRule!
 }
 
 type InventoryPolicy {
   read: BasicPermissionRule!
-  location: CUD!
+  location: LocationCUD!
   equipment: CUD!
   equipmentType: CUD!
   locationType: CUD!
@@ -126,7 +169,7 @@ input InventoryPolicyInput
     model: "github.com/facebookincubator/symphony/graph/authz/models.InventoryPolicyInput"
   ) {
   read: BasicPermissionRuleInput
-  location: BasicCUDInput
+  location: LocationCUDInput
   equipment: BasicCUDInput
   equipmentType: BasicCUDInput
   locationType: BasicCUDInput
@@ -135,22 +178,22 @@ input InventoryPolicyInput
 }
 
 type WorkforceCUD {
-  create: BasicPermissionRule
-  update: BasicPermissionRule
-  delete: BasicPermissionRule
-  assign: BasicPermissionRule
-  transferOwnership: BasicPermissionRule
+  create: WorkforcePermissionRule!
+  update: WorkforcePermissionRule!
+  delete: WorkforcePermissionRule!
+  assign: WorkforcePermissionRule!
+  transferOwnership: WorkforcePermissionRule!
 }
 
-input BasicWorkforceCUDInput
+input WorkforceCUDInput
   @goModel(
-    model: "github.com/facebookincubator/symphony/graph/authz/models.BasicWorkforceCUDInput"
+    model: "github.com/facebookincubator/symphony/graph/authz/models.WorkforceCUDInput"
   ) {
-  create: BasicPermissionRuleInput
-  update: BasicPermissionRuleInput
-  delete: BasicPermissionRuleInput
-  assign: BasicPermissionRuleInput
-  transferOwnership: BasicPermissionRuleInput
+  create: WorkforcePermissionRuleInput
+  update: WorkforcePermissionRuleInput
+  delete: WorkforcePermissionRuleInput
+  assign: WorkforcePermissionRuleInput
+  transferOwnership: WorkforcePermissionRuleInput
 }
 
 type WorkforcePolicy {
@@ -164,7 +207,7 @@ input WorkforcePolicyInput
     model: "github.com/facebookincubator/symphony/graph/authz/models.WorkforcePolicyInput"
   ) {
   read: BasicPermissionRuleInput
-  data: BasicWorkforceCUDInput
+  data: WorkforceCUDInput
   templates: BasicCUDInput
 }
 
@@ -187,14 +230,30 @@ input AddPermissionsPolicyInput {
   workforceInput: WorkforcePolicyInput
 }
 
+input EditPermissionsPolicyInput {
+  id: ID!
+  name: String
+  description: String
+  isGlobal: Boolean
+  inventoryInput: InventoryPolicyInput
+  workforceInput: WorkforcePolicyInput
+}
+
+input UpdateGroupsInPermissionsPolicyInput {
+  id: ID!
+  addGroupIds: [ID!]!
+  removeGroupIds: [ID!]!
+}
+
 type Viewer
   @goModel(model: "github.com/facebookincubator/symphony/graph/viewer.Viewer") {
   tenant: String!
   email: String!
+    @goField(name: "Name")
     @deprecated(
       reason: "Use `Viewer.user.email` instead. Will be removed on 2020-05-01"
     )
-  user: User!
+  user: User
   permissions: PermissionSettings!
 }
 
@@ -309,6 +368,12 @@ input UpdateUsersGroupMembersInput {
   id: ID!
   addUserIds: [ID!]!
   removeUserIds: [ID!]!
+}
+
+input UpdatePermissionsPoliciesInUsersGroupInput {
+  id: ID!
+  addPermissionsPolicyIds: [ID!]!
+  removePermissionsPolicyIds: [ID!]!
 }
 
 input AddLocationInput {
@@ -457,6 +522,7 @@ type Equipment implements Node & NamedNode {
   futureState: FutureState
   workOrder: WorkOrder
   locationHierarchy: [Location!]!
+  firstLocation: Location!
   positionHierarchy: [EquipmentPosition!]!
   device: Device
   services: [Service]!
@@ -1670,6 +1736,16 @@ type WorkOrderSearchResult {
   count: Int!
 }
 
+type PermissionsPolicySearchResult {
+  permissionsPolicies: [PermissionsPolicy]!
+  count: Int!
+}
+
+type UsersGroupSearchResult {
+  usersGroups: [UsersGroup]!
+  count: Int!
+}
+
 """
 what filters should we apply on ports
 """
@@ -1728,6 +1804,20 @@ enum UserFilterType {
   USER_STATUS
 }
 
+"""
+what filters should we apply on permissionsPolicy
+"""
+enum PermissionsPolicyFilterType {
+  PERMISSIONS_POLICY_NAME
+}
+
+"""
+what filters should we apply on usersGroups
+"""
+enum UsersGroupFilterType {
+  GROUP_NAME
+}
+
 input PortFilterInput {
   filterType: PortFilterType!
   operator: FilterOperator!
@@ -1778,6 +1868,20 @@ input UserFilterInput {
   statusValue: UserStatus
   idSet: [ID!]
   stringSet: [String!]
+  maxDepth: Int = 5
+}
+
+input PermissionsPolicyFilterInput {
+  filterType: PermissionsPolicyFilterType!
+  operator: FilterOperator!
+  stringValue: String
+  maxDepth: Int = 5
+}
+
+input UsersGroupFilterInput {
+  filterType: UsersGroupFilterType!
+  operator: FilterOperator!
+  stringValue: String
   maxDepth: Int = 5
 }
 
@@ -1905,7 +2009,8 @@ type ServiceType implements Node {
   propertyTypes: [PropertyType]!
   services: [Service]!
   numberOfServices: Int!
-  endpointDefinitions: [ServiceEndpointDefinition]!
+  endpointDefinitions: [ServiceEndpointDefinition!]!
+  discoveryMethod: DiscoveryMethod
 }
 
 directive @uniqueField(
@@ -1918,12 +2023,17 @@ input LocationTypeIndex {
   index: Int!
 }
 
+enum DiscoveryMethod {
+  INVENTORY
+}
+
 input ServiceTypeCreateData {
   name: String!
   hasCustomer: Boolean!
   properties: [PropertyTypeInput]
     @uniqueField(typ: "property type", field: "Name")
   endpoints: [ServiceEndpointDefinitionInput]
+  discoveryMethod: DiscoveryMethod
 }
 
 input ServiceTypeEditData {
@@ -2494,6 +2604,14 @@ type Query {
     limit: Int = 500
   ): ServiceSearchResult!
   userSearch(filters: [UserFilterInput!]!, limit: Int = 500): UserSearchResult!
+  permissionsPolicySearch(
+    filters: [PermissionsPolicyFilterInput!]!
+    limit: Int = 500
+  ): PermissionsPolicySearchResult!
+  usersGroupSearch(
+    filters: [UsersGroupFilterInput!]!
+    limit: Int = 500
+  ): UsersGroupSearchResult!
   possibleProperties(entityType: PropertyEntity!): [PropertyType!]!
   surveys: [Survey!]!
   latestPythonPackage: LatestPythonPackageResult
@@ -2527,6 +2645,9 @@ type Mutation {
   editUsersGroup(input: EditUsersGroupInput!): UsersGroup!
   updateUserGroups(input: UpdateUserGroupsInput!): User!
   updateUsersGroupMembers(input: UpdateUsersGroupMembersInput!): UsersGroup!
+  updatePermissionsPoliciesInUsersGroup(
+    input: UpdatePermissionsPoliciesInUsersGroupInput!
+  ): UsersGroup!
   deleteUsersGroup(id: ID!): Boolean!
   createSurvey(data: SurveyCreateData!): ID!
   addLocation(input: AddLocationInput!): Location!
@@ -2703,7 +2824,13 @@ type Mutation {
   addReportFilter(input: ReportFilterInput!): ReportFilter!
   editReportFilter(input: EditReportFilterInput!): ReportFilter!
   deleteReportFilter(id: ID!): Boolean!
-  addPolicy(input: AddPermissionsPolicyInput!): PermissionsPolicy!
+  addPermissionsPolicy(input: AddPermissionsPolicyInput!): PermissionsPolicy!
+  editPermissionsPolicy(input: EditPermissionsPolicyInput!): PermissionsPolicy!
+  deletePermissionsPolicy(id: ID!): Boolean!
+
+  updateGroupsInPermissionsPolicy(
+    input: UpdateGroupsInPermissionsPolicyInput!
+  ): PermissionsPolicy!
 }
 
 type Subscription {

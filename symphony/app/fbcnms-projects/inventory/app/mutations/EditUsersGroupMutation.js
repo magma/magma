@@ -16,19 +16,12 @@ import type {
   EditUsersGroupMutationVariables,
 } from './__generated__/EditUsersGroupMutation.graphql';
 import type {MutationCallbacks} from './MutationCallbacks.js';
-import type {StoreUpdater} from '../common/RelayEnvironment';
+import type {SelectorStoreUpdater} from 'relay-runtime';
 
 const mutation = graphql`
   mutation EditUsersGroupMutation($input: EditUsersGroupInput!) {
     editUsersGroup(input: $input) {
-      id
-      name
-      description
-      status
-      members {
-        id
-        authID
-      }
+      ...UserManagementUtils_group @relay(mask: false)
     }
   }
 `;
@@ -36,7 +29,7 @@ const mutation = graphql`
 export default (
   variables: EditUsersGroupMutationVariables,
   callbacks?: MutationCallbacks<EditUsersGroupMutationResponse>,
-  updater?: StoreUpdater,
+  updater?: SelectorStoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
   commitMutation<EditUsersGroupMutation>(RelayEnvironemnt, {

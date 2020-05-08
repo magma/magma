@@ -14,11 +14,19 @@ import qs from 'qs';
 import request from 'request';
 import {
   addTenantIdPrefix,
+  anythingTo,
   createProxyOptionsBuffer,
   removeTenantPrefix,
   removeTenantPrefixes,
   withInfixSeparator,
 } from '../utils.js';
+
+import type {
+  AfterFun,
+  BeforeFun,
+  StartWorkflowRequest,
+  TransformerRegistrationFun,
+} from '../../types';
 
 const logger = logging.getLogger(module);
 // Search for workflows based on payload and other parameters
@@ -26,7 +34,7 @@ const logger = logging.getLogger(module);
  curl -H "x-auth-organization: fb-test" \
   "localhost/proxy/api/workflow/search?query=status+IN+(FAILED)"
 */
-function getSearchBefore(tenantId, req, res, proxyCallback) {
+const getSearchBefore: BeforeFun = (tenantId, req, res, proxyCallback) => {
   // prefix query with workflowType STARTS_WITH tenantId_
   const originalQueryString = req._parsedUrl.query;
   const parsedQuery = qs.parse(originalQueryString);
@@ -46,11 +54,11 @@ function getSearchBefore(tenantId, req, res, proxyCallback) {
   );
   req.url = req._parsedUrl.pathname + '?' + newQueryString;
   proxyCallback();
-}
+};
 
-function getSearchAfter(tenantId, req, respObj) {
+const getSearchAfter: AfterFun = (tenantId, req, respObj) => {
   removeTenantPrefix(tenantId, respObj, 'results[*].workflowType', false);
-}
+};
 
 // Start a new workflow with StartWorkflowRequest, which allows task to be
 // executed in a domain
@@ -67,13 +75,13 @@ curl -X POST -H "x-auth-organization: fb-test" -H \
 }
 '
 */
-function postWorkflowBefore(tenantId, req, res, proxyCallback) {
+const postWorkflowBefore: BeforeFun = (tenantId, req, res, proxyCallback) => {
   // name must start with prefix
   const tenantWithInfixSeparator = withInfixSeparator(tenantId);
-  const reqObj = req.body;
+  const reqObj = anythingTo<StartWorkflowRequest>(req.body);
 
   // workflowDef section is not allowed (no dynamic workflows)
-  if (reqObj.workflowDef) {
+  if (reqObj.workflowDef != null) {
     logger.error(
       `Section workflowDef is not allowed ${JSON.stringify(reqObj)}`,
     );
@@ -95,14 +103,14 @@ function postWorkflowBefore(tenantId, req, res, proxyCallback) {
   reqObj.taskToDomain[tenantWithInfixSeparator + '*'] = tenantId;
   logger.debug(`Transformed request to ${JSON.stringify(reqObj)}`);
   proxyCallback({buffer: createProxyOptionsBuffer(reqObj, req)});
-}
+};
 
 // Gets the workflow by workflow id
 /*
 curl  -H "x-auth-organization: fb-test" \
     "localhost/proxy/api/workflow/c0a438d4-25b7-4c12-8a29-3473d98b1ad7"
 */
-function getExecutionStatusAfter(tenantId, req, respObj) {
+const getExecutionStatusAfter: AfterFun = (tenantId, req, respObj) => {
   const jsonPathToAllowGlobal = {
     workflowName: false,
     workflowType: false,
@@ -115,7 +123,7 @@ function getExecutionStatusAfter(tenantId, req, respObj) {
     'workflowDefinition.tasks[*].taskDefinition.name': true,
   };
   removeTenantPrefixes(tenantId, respObj, jsonPathToAllowGlobal);
-}
+};
 
 // Removes the workflow from the system
 /*
@@ -123,7 +131,7 @@ curl  -H "x-auth-organization: fb-test" \
     "localhost/proxy/api/workflow/2dbb6e3e-c45d-464b-a9c9-2bbb16b7ca71/remove" \
     -X DELETE
 */
-function removeWorkflowBefore(tenantId, req, res, proxyCallback) {
+const removeWorkflowBefore: BeforeFun = (tenantId, req, res, proxyCallback) => {
   const url = proxyTarget + '/api/workflow/' + req.params.workflowId;
   // first make a HTTP request to validate that this workflow belongs to tenant
   const requestOptions = {
@@ -155,11 +163,11 @@ function removeWorkflowBefore(tenantId, req, res, proxyCallback) {
       res.send(body);
     }
   });
-}
+};
 
-let proxyTarget;
+let proxyTarget: string;
 
-export default function(ctx) {
+const registration: TransformerRegistrationFun = function(ctx) {
   proxyTarget = ctx.proxyTarget;
   return [
     {
@@ -184,4 +192,6 @@ export default function(ctx) {
       before: removeWorkflowBefore,
     },
   ];
-}
+};
+
+export default registration;

@@ -102,6 +102,12 @@ void nas_stop_T3489(esm_context_t *const esm_ctx)
     if (NAS_TIMER_INACTIVE_ID == esm_ctx->T3489.id) {
       OAILOG_INFO(
         LOG_NAS_EMM, "T3489 stopped UE " MME_UE_S1AP_ID_FMT "\n", ue_id);
+      if (nas_timer_callback_args) {
+        esm_ebr_timer_data_t* data =
+            (esm_ebr_timer_data_t*) nas_timer_callback_args;
+        bdestroy_wrapper(&data->msg);
+        free_wrapper((void**) &data);
+      }
     } else {
       OAILOG_ERROR(
         LOG_NAS_EMM, "Could not stop T3489 UE " MME_UE_S1AP_ID_FMT "\n", ue_id);

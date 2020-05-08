@@ -90,6 +90,15 @@ func (Project) Indexes() []ent.Index {
 	}
 }
 
+// Policy returns project policy.
+func (Project) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithMutationRules(
+			authz.ProjectWritePolicyRule(),
+		),
+	)
+}
+
 // EquipmentPortDefinition defines the equipment port definition schema.
 type WorkOrderDefinition struct {
 	schema

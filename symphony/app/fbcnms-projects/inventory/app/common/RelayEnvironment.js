@@ -8,8 +8,6 @@
  * @format
  */
 
-import type {StoreUpdater as RelayStoreUpdater} from 'relay-runtime';
-
 import axios from 'axios';
 import {DEACTIVATED_PAGE_PATH} from '../components/DeactivatedPage';
 import {Environment, Network, RecordSource, Store} from 'relay-runtime';
@@ -46,5 +44,3 @@ const RelayEnvironment = new Environment({
 });
 
 export default RelayEnvironment;
-
-export type StoreUpdater = RelayStoreUpdater;

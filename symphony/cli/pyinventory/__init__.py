@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 
+from distutils.version import LooseVersion
+from typing import Optional, Tuple
+
+from colorama import Fore
 from gql.gql.reporter import DUMMY_REPORTER, Reporter
+from pysymphony import SymphonyClient
 
 from .api.equipment_type import (
     _populate_equipment_port_types,
@@ -8,7 +13,9 @@ from .api.equipment_type import (
 )
 from .api.location_type import _populate_location_types
 from .api.service import _populate_service_types
-from .client import SymphonyClient
+from .common.cache import EQUIPMENT_TYPES, LOCATION_TYPES, PORT_TYPES, SERVICE_TYPES
+from .common.constant import __version__
+from .graphql.query.latest_python_package import LatestPythonPackageQuery
 
 
 """Pyinventory is a python package that allows for querying and modifying the
@@ -164,9 +171,60 @@ class InventoryClient(SymphonyClient):
                             discards reports
 
         """
-        super().__init__(email, password, tenant, is_local_host, is_dev_mode, reporter)
+        super().__init__(
+            email,
+            password,
+            tenant,
+            f"Pyinventory/{__version__}",
+            is_local_host,
+            is_dev_mode,
+            reporter,
+        )
         self._verify_version_is_not_broken()
         self.populate_types()
+
+    def _verify_version_is_not_broken(self) -> None:
+        package = self._get_latest_python_package_version()
+
+        latest_version, latest_breaking_version = (
+            package if package is not None else (None, None)
+        )
+
+        if latest_breaking_version is not None and LooseVersion(
+            latest_breaking_version
+        ) > LooseVersion(__version__):
+            raise Exception(
+                "This version of pyinventory is not supported anymore. \
+                Please download and install the latest version ({})".format(
+                    latest_version
+                )
+            )
+
+        if latest_version is not None and LooseVersion(latest_version) > LooseVersion(
+            __version__
+        ):
+            print(
+                str(Fore.RED)
+                + "A newer version of pyinventory exists ({}). \
+            It is recommended to download and install it".format(
+                    latest_version
+                )
+            )
+
+    def _get_latest_python_package_version(self) -> Optional[Tuple[str, str]]:
+
+        package = LatestPythonPackageQuery.execute(self)
+        if package is not None:
+            last_version = package.lastPythonPackage
+            last_breaking_version = package.lastBreakingPythonPackage
+            if last_version is not None:
+                return (
+                    last_version.version,
+                    last_breaking_version.version
+                    if last_breaking_version
+                    else last_version.version,
+                )
+        return None
 
     def populate_types(self) -> None:
         _populate_location_types(self)
@@ -175,7 +233,7 @@ class InventoryClient(SymphonyClient):
         _populate_equipment_port_types(self)
 
     def _clear_types(self) -> None:
-        self.locationTypes = {}
-        self.equipmentTypes = {}
-        self.serviceTypes = {}
-        self.portTypes = {}
+        LOCATION_TYPES.clear()
+        EQUIPMENT_TYPES.clear()
+        SERVICE_TYPES.clear()
+        PORT_TYPES.clear()

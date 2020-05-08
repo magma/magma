@@ -8,6 +8,9 @@ import (
 	"context"
 	"testing"
 
+	"github.com/facebookincubator/symphony/graph/ent/privacy"
+	"github.com/facebookincubator/symphony/graph/ent/user"
+
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/symphony/graph/authz"
 	"github.com/facebookincubator/symphony/graph/ent"
@@ -22,7 +25,7 @@ import (
 type options struct {
 	tenant      string
 	user        string
-	role        string
+	role        user.Role
 	features    []string
 	permissions *models.PermissionSettings
 }
@@ -45,7 +48,7 @@ func WithUser(user string) Option {
 }
 
 // WithRole overrides default role.
-func WithRole(role string) Option {
+func WithRole(role user.Role) Option {
 	return func(o *options) {
 		o.role = role
 	}
@@ -71,15 +74,18 @@ func NewContext(parent context.Context, c *ent.Client, opts ...Option) context.C
 		tenant:      DefaultTenant,
 		user:        DefaultUser,
 		role:        DefaultRole,
-		features:    []string{viewer.FeatureReadOnly, viewer.FeatureUserManagementDev},
+		features:    []string{viewer.FeatureUserManagementDev},
 		permissions: authz.FullPermissions(),
 	}
 	for _, opt := range opts {
 		opt(o)
 	}
 	ctx := ent.NewContext(parent, c)
-	u := viewer.MustGetOrCreateUser(ctx, o.user, o.role)
-	v := viewer.New(o.tenant, u, viewer.WithFeatures(o.features...))
+	u := viewer.MustGetOrCreateUser(
+		privacy.DecisionContext(ctx, privacy.Allow),
+		o.user,
+		o.role)
+	v := viewer.NewUser(o.tenant, u, viewer.WithFeatures(o.features...))
 	ctx = viewer.NewContext(ctx, v)
 	return authz.NewContext(ctx, o.permissions)
 }

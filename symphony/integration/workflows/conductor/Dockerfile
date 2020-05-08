@@ -8,3 +8,5 @@ FROM frinx/fm-conductor-server:latest
 # Copy config files
 COPY config.properties /app/config/config.properties
 COPY log4j-fluentd-appender.properties /app/config/log4j-fluentd-appender.properties
+# Enable es6 compatibility for conductor's lambda task
+RUN sed -i 's/java -jar/java -jar -Dnashorn.args=--language=es6/g' /app/startup.sh

@@ -1,0 +1,22 @@
+mutation AddServiceEndpointMutation($input: AddServiceEndpointInput!) {
+  addServiceEndpoint(input: $input) {
+    id
+    name
+    externalId
+    customer {
+      ...CustomerFragment
+    }
+    endpoints {
+      id
+      port {
+        id
+      }
+      definition {
+        role
+      }
+    }
+    links {
+      ...LinkFragment
+    }
+  }
+}

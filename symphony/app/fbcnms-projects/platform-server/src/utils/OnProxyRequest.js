@@ -9,10 +9,17 @@
  */
 
 const querystring = require('querystring');
-import {accessRoleToString} from '@fbcnms/auth/roles';
+import {AccessRoles} from '@fbcnms/auth/roles';
 import {oidcAccessToken} from '@fbcnms/auth/oidc/middleware';
 import type {ClientRequest} from 'http';
 import type {FBCNMSRequest} from '@fbcnms/auth/access';
+
+export function accessRoleToString(role: number): string {
+  if (role === AccessRoles.SUPERUSER) {
+    return 'OWNER';
+  }
+  return 'USER';
+}
 
 const onProxyReq = (proxyReq: ClientRequest, req: FBCNMSRequest): void => {
   if (req.user.organization) {

@@ -26,7 +26,7 @@ type CustomerQuery struct {
 	config
 	limit      *int
 	offset     *int
-	order      []Order
+	order      []OrderFunc
 	unique     []string
 	predicates []predicate.Customer
 	// eager-loading edges.
@@ -55,7 +55,7 @@ func (cq *CustomerQuery) Offset(offset int) *CustomerQuery {
 }
 
 // Order adds an order step to the query.
-func (cq *CustomerQuery) Order(o ...Order) *CustomerQuery {
+func (cq *CustomerQuery) Order(o ...OrderFunc) *CustomerQuery {
 	cq.order = append(cq.order, o...)
 	return cq
 }
@@ -248,7 +248,7 @@ func (cq *CustomerQuery) Clone() *CustomerQuery {
 		config:     cq.config,
 		limit:      cq.limit,
 		offset:     cq.offset,
-		order:      append([]Order{}, cq.order...),
+		order:      append([]OrderFunc{}, cq.order...),
 		unique:     append([]string{}, cq.unique...),
 		predicates: append([]predicate.Customer{}, cq.predicates...),
 		// clone intermediate query.
@@ -506,14 +506,14 @@ func (cq *CustomerQuery) sqlQuery() *sql.Selector {
 type CustomerGroupBy struct {
 	config
 	fields []string
-	fns    []Aggregate
+	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (cgb *CustomerGroupBy) Aggregate(fns ...Aggregate) *CustomerGroupBy {
+func (cgb *CustomerGroupBy) Aggregate(fns ...AggregateFunc) *CustomerGroupBy {
 	cgb.fns = append(cgb.fns, fns...)
 	return cgb
 }

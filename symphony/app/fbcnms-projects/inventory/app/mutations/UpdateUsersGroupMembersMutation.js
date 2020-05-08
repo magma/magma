@@ -11,7 +11,7 @@
 import RelayEnvironemnt from '../common/RelayEnvironment.js';
 import {commitMutation, graphql} from 'react-relay';
 import type {MutationCallbacks} from './MutationCallbacks.js';
-import type {StoreUpdater} from '../common/RelayEnvironment';
+import type {SelectorStoreUpdater} from 'relay-runtime';
 import type {
   UpdateUsersGroupMembersMutation,
   UpdateUsersGroupMembersMutationResponse,
@@ -23,14 +23,7 @@ const mutation = graphql`
     $input: UpdateUsersGroupMembersInput!
   ) {
     updateUsersGroupMembers(input: $input) {
-      id
-      name
-      description
-      status
-      members {
-        id
-        authID
-      }
+      ...UserManagementUtils_group @relay(mask: false)
     }
   }
 `;
@@ -38,7 +31,7 @@ const mutation = graphql`
 export default (
   variables: UpdateUsersGroupMembersMutationVariables,
   callbacks?: MutationCallbacks<UpdateUsersGroupMembersMutationResponse>,
-  updater?: StoreUpdater,
+  updater?: SelectorStoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
   commitMutation<UpdateUsersGroupMembersMutation>(RelayEnvironemnt, {

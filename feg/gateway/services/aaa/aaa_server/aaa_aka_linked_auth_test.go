@@ -12,6 +12,7 @@
 package main_test
 
 import (
+	"os"
 	"reflect"
 	"testing"
 
@@ -28,6 +29,7 @@ import (
 
 // TestEapAkaConcurent tests EAP AKA Provider
 func TestLinkedEapAkaConcurent(t *testing.T) {
+	os.Setenv("USE_REMOTE_SWX_PROXY", "false")
 	srv, lis := test_utils.NewTestService(t, registry.ModuleName, registry.SWX_PROXY)
 	var service eap_test.SwxProxy
 	cp.RegisterSwxProxyServer(srv.GrpcServer, service)

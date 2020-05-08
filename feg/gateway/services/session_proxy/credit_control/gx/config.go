@@ -49,6 +49,7 @@ var (
 		DisableEUIIPv6IfNoIPFlag, false, "Don't use MAC based EUI-64 IPv6 address for Gx CCR if IP is not provided")
 )
 
+// TODO: refactor those functions to make it more simple
 // GetPCRFConfiguration returns a slice containing all configuration for all known PCRF
 func GetPCRFConfiguration() []*diameter.DiameterServerConfig {
 	configsPtr := &mconfig.SessionProxyConfig{}
@@ -87,14 +88,14 @@ func GetPCRFConfiguration() []*diameter.DiameterServerConfig {
 	for i, gxCfg := range gxConfigs {
 		diamSrvCfg := &diameter.DiameterServerConfig{
 			DiameterServerConnConfig: diameter.DiameterServerConnConfig{
-				Addr:      getValueOrEnvForIndexZero(i, diameter.AddrFlag, PCRFAddrEnv, gxCfg.GetAddress()),
-				Protocol:  getValueOrEnvForIndexZero(i, diameter.NetworkFlag, GxNetworkEnv, gxCfg.GetProtocol()),
-				LocalAddr: getValueOrEnvForIndexZero(i, diameter.LocalAddrFlag, GxLocalAddr, gxCfg.GetLocalAddress()),
+				Addr:      diameter.GetValueOrEnv(diameter.AddrFlag, PCRFAddrEnv, gxCfg.GetAddress(), i),
+				Protocol:  diameter.GetValueOrEnv(diameter.NetworkFlag, GxNetworkEnv, gxCfg.GetProtocol(), i),
+				LocalAddr: diameter.GetValueOrEnv(diameter.LocalAddrFlag, GxLocalAddr, gxCfg.GetLocalAddress(), i),
 			},
-			DestHost:          getValueOrEnvForIndexZero(i, diameter.DestHostFlag, PCRFHostEnv, gxCfg.GetDestHost()),
-			DestRealm:         getValueOrEnvForIndexZero(i, diameter.DestRealmFlag, PCRFRealmEnv, gxCfg.GetDestHost()),
-			DisableDestHost:   getBoolValueOrEnvForIndexZero(i, diameter.DisableDestHostFlag, DisableDestHostEnv, gxCfg.GetDisableDestHost()),
-			OverwriteDestHost: getBoolValueOrEnvForIndexZero(i, diameter.OverwriteDestHostFlag, OverwriteDestHostEnv, gxCfg.GetOverwriteDestHost()),
+			DestHost:          diameter.GetValueOrEnv(diameter.DestHostFlag, PCRFHostEnv, gxCfg.GetDestHost(), i),
+			DestRealm:         diameter.GetValueOrEnv(diameter.DestRealmFlag, PCRFRealmEnv, gxCfg.GetDestHost(), i),
+			DisableDestHost:   diameter.GetBoolValueOrEnv(diameter.DisableDestHostFlag, DisableDestHostEnv, gxCfg.GetDisableDestHost(), i),
+			OverwriteDestHost: diameter.GetBoolValueOrEnv(diameter.OverwriteDestHostFlag, OverwriteDestHostEnv, gxCfg.GetOverwriteDestHost(), i),
 		}
 		diamServerConfigs = append(diamServerConfigs, diamSrvCfg)
 	}
@@ -142,14 +143,19 @@ func GetGxClientConfiguration() []*diameter.DiameterClientConfig {
 			log.Printf("Invalid Gx Server Retry Count for server (%s): %d, must be >0. Will be set to 1", gxCfg.GetAddress(), retries)
 			retries = 1
 		}
+
+		wdInterval := gxCfg.GetWatchdogInterval()
+		if wdInterval == 0 {
+			wdInterval = diameter.DefaultWatchdogIntervalSeconds
+		}
 		diamCliCfg := &diameter.DiameterClientConfig{
-			Host:               getValueOrEnvForIndexZero(i, diameter.HostFlag, GxDiamHostEnv, gxCfg.GetHost()),
-			Realm:              getValueOrEnvForIndexZero(i, diameter.RealmFlag, GxDiamRealmEnv, gxCfg.GetRealm()),
-			ProductName:        getValueOrEnvForIndexZero(i, diameter.ProductFlag, GxDiamProductEnv, gxCfg.GetProductName()),
+			Host:               diameter.GetValueOrEnv(diameter.HostFlag, GxDiamHostEnv, gxCfg.GetHost(), i),
+			Realm:              diameter.GetValueOrEnv(diameter.RealmFlag, GxDiamRealmEnv, gxCfg.GetRealm(), i),
+			ProductName:        diameter.GetValueOrEnv(diameter.ProductFlag, GxDiamProductEnv, gxCfg.GetProductName(), i),
 			AppID:              diam.GX_CHARGING_CONTROL_APP_ID,
-			WatchdogInterval:   diameter.DefaultWatchdogIntervalSeconds,
+			WatchdogInterval:   uint(wdInterval),
 			RetryCount:         uint(retries),
-			SupportedVendorIDs: getValueOrEnvForIndexZero(i, "", GxSupportedVendorIDsEnv, ""),
+			SupportedVendorIDs: diameter.GetValueOrEnv("", GxSupportedVendorIDsEnv, "", i),
 		}
 		diamClientsConfigs = append(diamClientsConfigs, diamCliCfg)
 	}
@@ -183,20 +189,4 @@ func validGxConfig(config *mconfig.SessionProxyConfig) bool {
 		}
 	}
 	return true
-}
-
-// getValueOrEnvForIndexZero gets the Value or Env for the index 0, otherwise it returns Value(string)
-func getValueOrEnvForIndexZero(index int, flagName, envVariable, defaultValue string) string {
-	if index == 0 {
-		return diameter.GetValueOrEnv(flagName, envVariable, defaultValue)
-	}
-	return defaultValue
-}
-
-// getBoolValueOrEnvForIndexZero gets the Value or Env for the index 0, otherwise it returns Value(bool)
-func getBoolValueOrEnvForIndexZero(index int, flagName string, envVariable string, defaultValue bool) bool {
-	if index == 0 {
-		return diameter.GetBoolValueOrEnv(flagName, envVariable, defaultValue)
-	}
-	return defaultValue
 }

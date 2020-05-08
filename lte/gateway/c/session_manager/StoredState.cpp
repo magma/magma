@@ -14,6 +14,7 @@ namespace magma {
 
 SessionStateUpdateCriteria get_default_update_criteria() {
   SessionStateUpdateCriteria uc{};
+  uc.is_fsm_updated = false;
   uc.is_config_updated = false;
   uc.charging_credit_to_install =
       std::unordered_map<CreditKey, StoredSessionCredit, decltype(&ccHash),

@@ -26,7 +26,7 @@ type PermissionsPolicyQuery struct {
 	config
 	limit      *int
 	offset     *int
-	order      []Order
+	order      []OrderFunc
 	unique     []string
 	predicates []predicate.PermissionsPolicy
 	// eager-loading edges.
@@ -55,7 +55,7 @@ func (ppq *PermissionsPolicyQuery) Offset(offset int) *PermissionsPolicyQuery {
 }
 
 // Order adds an order step to the query.
-func (ppq *PermissionsPolicyQuery) Order(o ...Order) *PermissionsPolicyQuery {
+func (ppq *PermissionsPolicyQuery) Order(o ...OrderFunc) *PermissionsPolicyQuery {
 	ppq.order = append(ppq.order, o...)
 	return ppq
 }
@@ -248,7 +248,7 @@ func (ppq *PermissionsPolicyQuery) Clone() *PermissionsPolicyQuery {
 		config:     ppq.config,
 		limit:      ppq.limit,
 		offset:     ppq.offset,
-		order:      append([]Order{}, ppq.order...),
+		order:      append([]OrderFunc{}, ppq.order...),
 		unique:     append([]string{}, ppq.unique...),
 		predicates: append([]predicate.PermissionsPolicy{}, ppq.predicates...),
 		// clone intermediate query.
@@ -506,14 +506,14 @@ func (ppq *PermissionsPolicyQuery) sqlQuery() *sql.Selector {
 type PermissionsPolicyGroupBy struct {
 	config
 	fields []string
-	fns    []Aggregate
+	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (ppgb *PermissionsPolicyGroupBy) Aggregate(fns ...Aggregate) *PermissionsPolicyGroupBy {
+func (ppgb *PermissionsPolicyGroupBy) Aggregate(fns ...AggregateFunc) *PermissionsPolicyGroupBy {
 	ppgb.fns = append(ppgb.fns, fns...)
 	return ppgb
 }

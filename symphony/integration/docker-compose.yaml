@@ -5,26 +5,6 @@
 version: "3.7"
 
 services:
-  frontier:
-    build:
-      context: ${FBCODE_FBC_DIR}/symphony
-      dockerfile: frontier/Dockerfile
-    environment:
-      INVENTORY_TARGET: http://inventory:8080
-      PROXY_TARGET: http://platform-server
-      KEY_PAIRS: HWmHsJtI8wrSkVuXkMxP5HDW32t2AUqz
-    env_file:
-      - conf/log.env
-      - conf/census.env
-    networks:
-      - public
-      - private
-    healthcheck:
-      test: curl -If localhost/healthz/liveness
-    restart: on-failure
-    ports:
-      - 8082:80
-
   platform-server:
     build:
       context: ${XPLAT_FBC_DIR}
@@ -99,6 +79,13 @@ services:
     depends_on:
       - mysql
     restart: on-failure
+
+  jobrunner:
+    build:
+      context: ${FBCODE_FBC_DIR}/symphony
+      dockerfile: jobrunner/Dockerfile
+    networks:
+      - private
 
   store:
     build:

@@ -9,6 +9,9 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/facebookincubator/symphony/graph/authz"
+	"github.com/facebookincubator/symphony/graph/ent/user"
+
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/checklistcategory"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
@@ -177,7 +180,7 @@ func TestAddWorkOrderWithAssignee(t *testing.T) {
 	description := longWorkOrderDesc
 	location := createLocation(ctx, t, *r)
 	assigneeName := longWorkOrderAssignee
-	assignee := viewer.MustGetOrCreateUser(ctx, assigneeName, viewer.SuperUserRole)
+	assignee := viewer.MustGetOrCreateUser(ctx, assigneeName, user.RoleOWNER)
 	woType, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "example_type"})
 	require.NoError(t, err)
 	workOrder, err := mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
@@ -216,6 +219,32 @@ func TestAddWorkOrderWithAssignee(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, fetchedWorkOrderType.ID, woType.ID)
 	assert.Equal(t, fetchedWorkOrderType.Name, woType.Name)
+}
+
+func TestAddWorkOrderWithDefaultAutomationOwner(t *testing.T) {
+	r := newTestResolver(t)
+	defer r.drv.Close()
+	ctx := ent.NewContext(context.Background(), r.client)
+	v := viewer.NewAutomation(
+		viewertest.DefaultTenant,
+		viewertest.DefaultUser,
+		viewertest.DefaultRole,
+		viewer.WithFeatures(viewer.FeatureUserManagementDev))
+	ctx = viewer.NewContext(ctx, v)
+	ctx = authz.NewContext(ctx, authz.FullPermissions())
+	mr := r.Mutation()
+	name := longWorkOrderName
+	description := longWorkOrderDesc
+	location := createLocation(ctx, t, *r)
+	woType, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "example_type"})
+	require.NoError(t, err)
+	_, err = mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
+		Name:            name,
+		Description:     &description,
+		WorkOrderTypeID: woType.ID,
+		LocationID:      &location.ID,
+	})
+	require.Contains(t, err.Error(), "could not be executed in automation")
 }
 
 func TestAddWorkOrderInvalidType(t *testing.T) {
@@ -1839,7 +1868,7 @@ func TestTechnicianUploadDataToWorkOrder(t *testing.T) {
 	c := newGraphClient(t, r)
 
 	wo := createWorkOrder(ctx, t, *r, "Foo")
-	u := viewer.FromContext(ctx).User()
+	u := viewer.FromContext(ctx).(*viewer.UserViewer).User()
 	mimeType := "image/jpeg"
 	sizeInBytes := 120
 	wo, err := mr.EditWorkOrder(ctx, models.EditWorkOrderInput{

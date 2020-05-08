@@ -9,10 +9,10 @@
  */
 
 import * as React from 'react';
-import * as imm from 'immutable';
 import emptyFunction from '@fbcnms/util/emptyFunction';
 import fbt from 'fbt';
 import {createContext, useCallback, useContext, useMemo, useState} from 'react';
+import {Map as immMap} from 'immutable';
 
 type Range = {
   from: number,
@@ -96,16 +96,14 @@ const FormAlertsContext = createContext<FormAlertsContextType>(
   DEFAULT_CONTEXT_VALUE,
 );
 
-type AlertsMap = $ReadOnly<imm.Map<string, string>>;
-
 const FormRulesMaintainer = function() {
-  const [alertsMap, setAlertsMap] = useState<AlertsMap>(
-    new imm.Map<string, string>(),
+  const [alertsMap, setAlertsMap] = useState<immMap<string, string>>(
+    new immMap<string, string>(),
   );
   const [alertMessage, setAlertMessage] = useState('');
   const [hasAlerts, setHasAlerts] = useState(false);
 
-  const updateContext = useCallback((newAlertsMap: AlertsMap) => {
+  const updateContext = useCallback((newAlertsMap: immMap<string, string>) => {
     setAlertsMap(newAlertsMap);
     const aggregatedAlertMessage = newAlertsMap.join();
     setAlertMessage(aggregatedAlertMessage);

@@ -5,16 +5,18 @@
 
 from typing import List, Optional, Tuple
 
+from pysymphony import SymphonyClient
+
 from .._utils import format_properties
-from ..client import SymphonyClient
+from ..common.cache import LOCATION_TYPES
 from ..common.data_class import Location, LocationType, PropertyValue
 from ..common.data_enum import Entity
 from ..exceptions import EntityNotFoundError
-from ..graphql.add_location_type_input import AddLocationTypeInput
-from ..graphql.add_location_type_mutation import AddLocationTypeMutation
-from ..graphql.location_type_locations_query import LocationTypeLocationsQuery
-from ..graphql.location_types_query import LocationTypesQuery
-from ..graphql.remove_location_type_mutation import RemoveLocationTypeMutation
+from ..graphql.input.add_location_type import AddLocationTypeInput
+from ..graphql.mutation.add_location_type import AddLocationTypeMutation
+from ..graphql.mutation.remove_location_type import RemoveLocationTypeMutation
+from ..graphql.query.location_type_locations import LocationTypeLocationsQuery
+from ..graphql.query.location_types import LocationTypesQuery
 from .location import delete_location
 
 
@@ -26,7 +28,7 @@ def _populate_location_types(client: SymphonyClient) -> None:
     for edge in edges:
         node = edge.node
         if node:
-            client.locationTypes[node.name] = LocationType(
+            LOCATION_TYPES[node.name] = LocationType(
                 name=node.name, id=node.id, property_types=node.propertyTypes
             )
 
@@ -79,7 +81,7 @@ def add_location_type(
     location_type = LocationType(
         name=result.name, id=result.id, property_types=result.propertyTypes
     )
-    client.locationTypes[result.name] = location_type
+    LOCATION_TYPES[result.name] = location_type
     return location_type
 
 

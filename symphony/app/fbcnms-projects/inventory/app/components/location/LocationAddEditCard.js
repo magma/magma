@@ -346,51 +346,45 @@ class LocationAddEditCard extends React.Component<Props, State> {
     };
 
     const updater = store => {
-      // $FlowFixMe (T62907961) Relay flow types
       const newNode = store.getRootField('addLocation');
-      if (newNode === null) {
+      if (newNode == null) {
         return;
       }
 
       const parentId = this.props.parentId;
       if (!parentId) {
-        // $FlowFixMe (T62907961) Relay flow types
         const rootQuery = store.getRoot();
         const locations = ConnectionHandler.getConnection(
           rootQuery,
           'LocationsTree_locations',
           {onlyTopLevel: true},
         );
-        const edge = ConnectionHandler.createEdge(
-          // $FlowFixMe (T62907961) Relay flow types
-          store,
-          // $FlowFixMe (T62907961) Relay flow types
-          locations,
-          newNode,
-          'LocationsEdge',
-        );
-        // $FlowFixMe (T62907961) Relay flow types
-        ConnectionHandler.insertEdgeAfter(locations, edge);
+        if (locations != null) {
+          const edge = ConnectionHandler.createEdge(
+            store,
+            locations,
+            newNode,
+            'LocationsEdge',
+          );
+          ConnectionHandler.insertEdgeAfter(locations, edge);
+        }
         return;
       }
 
-      // $FlowFixMe (T62907961) Relay flow types
       const parentProxy = store.get(parentId);
-      // $FlowFixMe (T62907961) Relay flow types
-      const currNodes = parentProxy.getLinkedRecords('children');
-      const parentLoaded =
-        currNodes !== null &&
-        // $FlowFixMe (T62907961) Relay flow types
-        (currNodes.length === 0 || !!currNodes.find(node => node != undefined));
-      if (parentLoaded) {
-        // $FlowFixMe (T62907961) Relay flow types
-        parentProxy.setLinkedRecords([...currNodes, newNode], 'children');
-        // $FlowFixMe (T62907961) Relay flow types
-        parentProxy.setValue(
-          // $FlowFixMe (T62907961) Relay flow types
-          parentProxy.getValue('numChildren') + 1,
-          'numChildren',
-        );
+      if (parentProxy != null) {
+        const currNodes = parentProxy.getLinkedRecords('children') ?? [];
+        const parentLoaded =
+          currNodes !== null &&
+          (currNodes.length === 0 ||
+            !!currNodes.find(node => node != undefined));
+        if (parentLoaded) {
+          parentProxy.setLinkedRecords([...currNodes, newNode], 'children');
+          parentProxy.setValue(
+            Number(parentProxy.getValue('numChildren')) + 1,
+            'numChildren',
+          );
+        }
       }
     };
 

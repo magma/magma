@@ -224,7 +224,7 @@ func getAccountRulesWithDynamicPassAll(imsi, ruleID, monitoringKey string) *fegP
 		StaticRuleNames:     []string{},
 		StaticRuleBaseNames: []string{},
 		DynamicRuleDefinitions: []*fegProtos.RuleDefinition{
-			getPassAllRuleDefinition(ruleID, monitoringKey, 100),
+			getPassAllRuleDefinition(ruleID, monitoringKey, nil, 100),
 		},
 	}
 }

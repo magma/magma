@@ -1,0 +1,9 @@
+query UsersQuery {
+  users {
+    edges {
+      node {
+        ...UserFragment
+      }
+    }
+  }
+}

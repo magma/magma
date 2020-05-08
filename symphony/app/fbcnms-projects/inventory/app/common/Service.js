@@ -8,7 +8,7 @@
  * @format
  */
 
-import type {EquipmentPort, Link} from './Equipment';
+import type {Equipment, EquipmentPort, Link} from './Equipment';
 import type {Property} from './Property';
 import type {ServiceEndpointDefinition, ServiceType} from './ServiceType';
 
@@ -42,6 +42,7 @@ export type ServiceEndpoint = {
   port: EquipmentPort,
   definition: ServiceEndpointDefinition,
   service: Service,
+  equipment: Equipment,
 };
 
 export type Service = {

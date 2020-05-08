@@ -1,3 +1,7 @@
+// Copyright (c) 2004-present Facebook All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package authz_test
 
 import (
@@ -10,7 +14,7 @@ import (
 
 func TestEquipmentWritePolicyRule(t *testing.T) {
 	c := viewertest.NewTestClient(t)
-	ctx := context.Background()
+	ctx := viewertest.NewContext(context.Background(), c)
 	equipmentType := c.EquipmentType.Create().
 		SetName("EquipmentType").
 		SaveX(ctx)
@@ -46,7 +50,7 @@ func TestEquipmentWritePolicyRule(t *testing.T) {
 
 func TestEquipmentTypeWritePolicyRule(t *testing.T) {
 	c := viewertest.NewTestClient(t)
-	ctx := context.Background()
+	ctx := viewertest.NewContext(context.Background(), c)
 	equipmentType := c.EquipmentType.Create().
 		SetName("EquipmentType").
 		SaveX(ctx)
@@ -77,7 +81,7 @@ func TestEquipmentTypeWritePolicyRule(t *testing.T) {
 
 func TestEquipmentPortTypeWritePolicyRule(t *testing.T) {
 	c := viewertest.NewTestClient(t)
-	ctx := context.Background()
+	ctx := viewertest.NewContext(context.Background(), c)
 	equipmentType := c.EquipmentPortType.Create().
 		SetName("EquipmentPortType").
 		SaveX(ctx)

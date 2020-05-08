@@ -34,7 +34,7 @@ func TestOCSExpectations(t *testing.T) {
 		Protocol: "tcp"},
 	}
 
-	initRequest := fegprotos.NewGyCCRequest(test.IMSI1, fegprotos.CCRequestType_INITIAL, 1)
+	initRequest := fegprotos.NewGyCCRequest(test.IMSI1, fegprotos.CCRequestType_INITIAL)
 	quotaGrant := &fegprotos.QuotaGrant{
 		RatingGroup: 1,
 		GrantedServiceUnit: &fegprotos.Octets{
@@ -47,12 +47,13 @@ func TestOCSExpectations(t *testing.T) {
 	initAnswer := fegprotos.NewGyCCAnswer(diameter.SuccessCode).SetQuotaGrant(quotaGrant)
 	initExpectation := fegprotos.NewGyCreditControlExpectation().Expect(initRequest).Return(initAnswer)
 
-	updateReq := fegprotos.NewGyCCRequest(test.IMSI1, fegprotos.CCRequestType_UPDATE, 3).
+	updateReq := fegprotos.NewGyCCRequest(test.IMSI1, fegprotos.CCRequestType_UPDATE).
+		SetRequestNumber(2).
 		SetMSCC(&fegprotos.MultipleServicesCreditControl{RatingGroup: 1, UsedServiceUnit: &fegprotos.Octets{TotalOctets: 100}})
 	updateAnswer := fegprotos.NewGyCCAnswer(diam.Success)
 	updateExpectation := fegprotos.NewGyCreditControlExpectation().Expect(updateReq).Return(updateAnswer)
 
-	terminateReq := fegprotos.NewGyCCRequest(test.IMSI1, fegprotos.CCRequestType_TERMINATION, 4)
+	terminateReq := fegprotos.NewGyCCRequest(test.IMSI1, fegprotos.CCRequestType_TERMINATION)
 	terminateAnswer := fegprotos.NewGyCCAnswer(diam.Success)
 	terminateExpectation := fegprotos.NewGyCreditControlExpectation().Expect(terminateReq).Return(terminateAnswer)
 

@@ -22,7 +22,7 @@ message EnbDescription {
   uint32 instreams = 9;        // sctp_stream_id_t
   uint32 outstreams = 10;      // sctp_stream_id_t
 
-  map<uint32, UeDescription> ues = 11; // enbueid -> UeDescription
+  map<uint64, uint64> ue_ids = 11; // enb_ue_s1ap_id -> comp_s1ap_id
 }
 
 message UeDescription {
@@ -34,6 +34,8 @@ message UeDescription {
   uint32 sctp_stream_send = 6; // sctp_stream_id_t
 
   S1apTimer s1ap_ue_context_rel_timer = 7; // struct s1ap_timer_t
+
+  uint32 sctp_assoc_id = 8; // sctp_assoc_id_t
 }
 
 message S1apState {

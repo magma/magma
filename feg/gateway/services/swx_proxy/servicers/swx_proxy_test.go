@@ -118,65 +118,6 @@ func TestSwxProxyService_ValidationErrors(t *testing.T) {
 	assert.EqualError(t, err, "rpc error: code = InvalidArgument desc = Provided username 1234567890123456 is greater than 15 digits")
 }
 
-func TestSwxProxyService_ValidateConfig(t *testing.T) {
-	err := servicers.ValidateSwxProxyConfig(nil)
-	assert.EqualError(t, err, "Nil SwxProxyConfig provided")
-
-	validClientConfig := &diameter.DiameterClientConfig{
-		Host:  "magma-oai.openair4G.eur", // diameter host
-		Realm: "openair4G.eur",           // diameter realm,
-	}
-	validServerConfig := &diameter.DiameterServerConfig{DiameterServerConnConfig: diameter.DiameterServerConnConfig{
-		Addr:     "",      // to be filled in once server addr is started
-		Protocol: "sctp"}, // tcp/sctp
-	}
-	nilClientConfig := &servicers.SwxProxyConfig{
-		ClientCfg:           nil,
-		ServerCfg:           validServerConfig,
-		VerifyAuthorization: false,
-	}
-	nilServerConfig := &servicers.SwxProxyConfig{
-		ClientCfg:           validClientConfig,
-		ServerCfg:           nil,
-		VerifyAuthorization: false,
-	}
-	err = servicers.ValidateSwxProxyConfig(nilClientConfig)
-	assert.EqualError(t, err, "Nil client config provided")
-
-	err = servicers.ValidateSwxProxyConfig(nilServerConfig)
-	assert.EqualError(t, err, "Nil server config provided")
-
-	invalidClientConfig := &servicers.SwxProxyConfig{
-		ClientCfg: &diameter.DiameterClientConfig{
-			Host:  "",              // diameter host
-			Realm: "openair4G.eur", // diameter realm,
-		},
-		ServerCfg:           validServerConfig,
-		VerifyAuthorization: false,
-	}
-	err = servicers.ValidateSwxProxyConfig(invalidClientConfig)
-	assert.EqualError(t, err, "Invalid Diameter Host")
-
-	invalidServerConfig := &servicers.SwxProxyConfig{
-		ClientCfg: validClientConfig,
-		ServerCfg: &diameter.DiameterServerConfig{DiameterServerConnConfig: diameter.DiameterServerConnConfig{
-			Addr:     "",     // to be filled in once server addr is started
-			Protocol: "sss"}, // tcp/sctp
-		},
-		VerifyAuthorization: false,
-	}
-	err = servicers.ValidateSwxProxyConfig(invalidServerConfig)
-	assert.EqualError(t, err, "Invalid Diameter Address (sss://): unknown network sss")
-
-	validConfig := &servicers.SwxProxyConfig{
-		ClientCfg:           validClientConfig,
-		ServerCfg:           validServerConfig,
-		VerifyAuthorization: false,
-	}
-	err = servicers.ValidateSwxProxyConfig(validConfig)
-	assert.NoError(t, err)
-}
-
 func swxStandardTest(t *testing.T, client protos.SwxProxyClient) {
 	complChan := make(chan error, TEST_LOOPS+1)
 

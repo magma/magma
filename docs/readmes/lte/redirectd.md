@@ -113,3 +113,22 @@ Packet gets modified in EnforcementController, sent back to the UE
 After getting a 302 response from the redirect server the traffic can go
 straight to the redirected address without being changed in pipelined
 ```
+
+### Redirection for CWF
+In CWF networks there are a few alterations to make redirection logic work.
+Primarily the flows are different because in CWF we assign user IPs from DHCP,
+and we don't know the subscriber IP block, therefore we can't setup the ip route
+to have traffic from internal flask server go back to OVS.
+
+To resolve this problem we need to rewrite the src IP address of the UE. As we
+already do this for the check quota service in CWF we take a lock when assigning
+an internal IP to prevent collisions. By assigning an internal IP in the same
+subnet as the Redirection server(which listens on OVS internal port) we get to
+use the deafult ip route that will send the redirect server responses back to
+OVS. We also add ARP response flows for the internal UE IP address so that we
+can proceed with the TCP handshake.
+
+The rewrite process is simple, we rewrite the UE src ip on the way to
+redirection server, and by using ovs learn action rewrite the src IP/src mac
+as well as tcp ports on its way back to UE from redirection server.
+Other than this rewrite addition, the logic is the same as in LTE usecase above.

@@ -99,6 +99,8 @@ enodeb_iface: eth1
 bridge_name: cwag_br0
 # Bridge ip comes from 99-ovscfg.yaml
 bridge_ip_address: 192.168.128.1
+# For CWF internal redirection, same subnet as the ovs bridge ip address
+internal_ip_subnet: '192.168.0.0/16'
 
 #QoS Queue Programming
 enable_queue_pgm: true
@@ -124,7 +126,7 @@ li_mirror_all: false
 # Configuration for IPFIX sampling
 ipfix:
   enabled: false
-  probability: 650
+  probability: 65
   collector_set_id: 1
   cache_timeout: 60
   obs_domain_id: 1

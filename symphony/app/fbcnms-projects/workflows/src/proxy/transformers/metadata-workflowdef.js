@@ -15,20 +15,33 @@ import logging from '@fbcnms/logging';
 import qs from 'qs';
 import {
   addTenantIdPrefix,
+  anythingTo,
   assertAllowedSystemTask,
   createProxyOptionsBuffer,
   isDecisionTask,
   isForkTask,
   isSubworkflowTask,
+  objectToValues,
   withInfixSeparator,
 } from '../utils.js';
+
+import type {
+  AfterFun,
+  BeforeFun,
+  Task,
+  TransformerRegistrationFun,
+  Workflow,
+} from '../../types';
 
 const logger = logging.getLogger(module);
 
 // Utility used in PUT, POST before methods to check that submitted workflow
 // and its tasks
 // do not contain any prefix. Prefix is added to workflowdef if input is valid.
-export function sanitizeWorkflowdefBefore(tenantId, workflowdef) {
+export function sanitizeWorkflowdefBefore(
+  tenantId: string,
+  workflowdef: Workflow,
+) {
   // only whitelisted system tasks are allowed
   for (const task of workflowdef.tasks) {
     assertAllowedSystemTask(task);
@@ -41,12 +54,12 @@ export function sanitizeWorkflowdefBefore(tenantId, workflowdef) {
   addTenantIdPrefix(tenantId, workflowdef);
 }
 
-function sanitizeWorkflowTaskdefBefore(tenantId, task) {
+function sanitizeWorkflowTaskdefBefore(tenantId: string, task: Task) {
   addTenantIdPrefix(tenantId, task);
 
   // add prefix to SUB_WORKFLOW tasks' referenced workflows
   if (isSubworkflowTask(task)) {
-    addTenantIdPrefix(tenantId, task.subWorkflowParam);
+    addTenantIdPrefix(tenantId, anythingTo<Task>(task.subWorkflowParam));
   }
 
   // process decision tasks recursively
@@ -57,16 +70,18 @@ function sanitizeWorkflowTaskdefBefore(tenantId, task) {
     }
 
     const decisionCaseIdToTasks = task.decisionCases ? task.decisionCases : {};
-    for (const nestedTasks of Object.values(decisionCaseIdToTasks)) {
+    for (const nestedTasks of objectToValues<string, Array<Task>>(
+      decisionCaseIdToTasks,
+    )) {
       for (const nestedTask of nestedTasks) {
-        sanitizeWorkflowTaskdefBefore(tenantId, nestedTask);
+        sanitizeWorkflowTaskdefBefore(tenantId, anythingTo<Task>(nestedTask));
       }
     }
   }
 
   // process fork tasks recursively
   if (isForkTask(task)) {
-    const forkTasks = task.forkTasks ? task.forkTasks : [];
+    const forkTasks: Array<Task> = task.forkTasks ? task.forkTasks : [];
     for (const nestedTask of forkTasks) {
       // handle sub lists in forked tasks
       if (Array.isArray(nestedTask)) {
@@ -79,11 +94,15 @@ function sanitizeWorkflowTaskdefBefore(tenantId, task) {
     }
   }
 }
+
 // Utility used after getting single or all workflowdefs to remove prefix from
 // workflowdef names, taskdef names.
 // Return true iif sanitization succeeded, false iif this
 // workflowdef is invalid
-export function sanitizeWorkflowdefAfter(tenantId, workflowdef) {
+export function sanitizeWorkflowdefAfter(
+  tenantId: string,
+  workflowdef: Workflow,
+): boolean {
   const tenantWithInfixSeparator = withInfixSeparator(tenantId);
   if (workflowdef.name.indexOf(tenantWithInfixSeparator) == 0) {
     // keep only workflows with correct taskdefs,
@@ -102,10 +121,13 @@ export function sanitizeWorkflowdefAfter(tenantId, workflowdef) {
   }
 }
 
-function sanitizeWorkflowTaskdefAfter(tenantWithInfixSeparator, task) {
+function sanitizeWorkflowTaskdefAfter(
+  tenantWithInfixSeparator: string,
+  task: Task,
+): boolean {
   // TODO refactor the boolean return value
   if (isForkTask(task)) {
-    const forkTasks = task.forkTasks ? task.forkTasks : [];
+    const forkTasks: Array<Task> = task.forkTasks ? task.forkTasks : [];
     for (const nestedTask of forkTasks) {
       if (Array.isArray(nestedTask)) {
         for (const l2nestedTask of nestedTask) {
@@ -137,8 +159,10 @@ function sanitizeWorkflowTaskdefAfter(tenantWithInfixSeparator, task) {
     }
 
     const decisionCaseIdToTasks = task.decisionCases ? task.decisionCases : {};
-    for (const nestedTasks of Object.entries(decisionCaseIdToTasks)) {
-      for (const nestedTask of nestedTasks[1]) {
+    for (const nestedTasks of objectToValues<string, Array<Task>>(
+      decisionCaseIdToTasks,
+    )) {
+      for (const nestedTask of nestedTasks) {
         if (
           !sanitizeWorkflowTaskdefAfter(tenantWithInfixSeparator, nestedTask)
         ) {
@@ -150,10 +174,15 @@ function sanitizeWorkflowTaskdefAfter(tenantWithInfixSeparator, task) {
 
   // remove prefix from SUB_WORKFLOW tasks' referenced workflows
   if (isSubworkflowTask(task)) {
-    if (task.subWorkflowParam?.name) {
-      task.subWorkflowParam.name = task.subWorkflowParam.name.substr(
-        tenantWithInfixSeparator.length,
-      );
+    if (task.subWorkflowParam != null) {
+      const namedObject: {name: string} = task.subWorkflowParam;
+      if (namedObject.name.indexOf(tenantWithInfixSeparator) == 0) {
+        namedObject.name = namedObject.name.substr(
+          tenantWithInfixSeparator.length,
+        );
+      } else {
+        return false;
+      }
     }
   }
 
@@ -171,11 +200,16 @@ function sanitizeWorkflowTaskdefAfter(tenantWithInfixSeparator, task) {
 /*
 curl -H "x-auth-organization: fb-test" "localhost/proxy/api/metadata/workflow"
 */
-function getAllWorkflowsAfter(tenantId, req, respObj) {
+const getAllWorkflowsAfter: AfterFun = (tenantId, req, respObj) => {
+  const workflows: Array<Workflow> = anythingTo<Array<Workflow>>(respObj);
   // iterate over workflows, keep only those belonging to tenantId
-  for (let workflowIdx = respObj.length - 1; workflowIdx >= 0; workflowIdx--) {
-    const workflowdef = respObj[workflowIdx];
-    const ok = sanitizeWorkflowdefAfter(tenantId, workflowdef, respObj);
+  for (
+    let workflowIdx = workflows.length - 1;
+    workflowIdx >= 0;
+    workflowIdx--
+  ) {
+    const workflowdef = workflows[workflowIdx];
+    const ok = sanitizeWorkflowdefAfter(tenantId, workflowdef);
     if (!ok) {
       logger.warn(
         `Removing workflow with invalid task or name: ${JSON.stringify(
@@ -183,10 +217,10 @@ function getAllWorkflowsAfter(tenantId, req, respObj) {
         )}`,
       );
       // remove element
-      respObj.splice(workflowIdx, 1);
+      workflows.splice(workflowIdx, 1);
     }
   }
-}
+};
 
 // Removes workflow definition. It does not remove workflows associated
 // with the definition.
@@ -195,7 +229,7 @@ function getAllWorkflowsAfter(tenantId, req, respObj) {
 curl -H "x-auth-organization: fb-test" \
   "localhost/proxy/api/metadata/workflow/2/2" -X DELETE
 */
-function deleteWorkflowBefore(tenantId, req, res, proxyCallback) {
+const deleteWorkflowBefore: BeforeFun = (tenantId, req, res, proxyCallback) => {
   const tenantWithInfixSeparator = withInfixSeparator(tenantId);
   // change URL: add prefix to name
   const name = tenantWithInfixSeparator + req.params.name;
@@ -203,7 +237,7 @@ function deleteWorkflowBefore(tenantId, req, res, proxyCallback) {
   logger.debug(`Transformed url from '${req.url}' to '${newUrl}'`);
   req.url = newUrl;
   proxyCallback();
-}
+};
 
 // Retrieves workflow definition along with blueprint
 // Version is passed as query parameter.
@@ -211,7 +245,7 @@ function deleteWorkflowBefore(tenantId, req, res, proxyCallback) {
 curl -H "x-auth-organization: fb-test" \
   "localhost/proxy/api/metadata/workflow/fx3?version=1"
 */
-function getWorkflowBefore(tenantId, req, res, proxyCallback) {
+const getWorkflowBefore: BeforeFun = (tenantId, req, res, proxyCallback) => {
   const tenantWithInfixSeparator = withInfixSeparator(tenantId);
   const name = tenantWithInfixSeparator + req.params.name;
   let newUrl = `/api/metadata/workflow/${name}`;
@@ -224,10 +258,11 @@ function getWorkflowBefore(tenantId, req, res, proxyCallback) {
   logger.debug(`Transformed url from '${req.url}' to '${newUrl}'`);
   req.url = newUrl;
   proxyCallback();
-}
+};
 
-function getWorkflowAfter(tenantId, req, respObj) {
-  const ok = sanitizeWorkflowdefAfter(tenantId, respObj);
+const getWorkflowAfter: AfterFun = (tenantId, req, respObj) => {
+  const workflow = anythingTo<Workflow>(respObj);
+  const ok = sanitizeWorkflowdefAfter(tenantId, workflow);
   if (!ok) {
     logger.error(
       `Possible error in code: response contains invalid task or` +
@@ -236,7 +271,7 @@ function getWorkflowAfter(tenantId, req, respObj) {
     throw 'Possible error in code: response contains' +
       ' invalid task or workflowdef name'; // TODO create Exception class
   }
-}
+};
 
 // Create or update workflow definition
 // Underscore in name is not allowed.
@@ -290,14 +325,14 @@ curl -X PUT -H "x-auth-organization: fb-test" \
     }
 ]'
 */
-function putWorkflowBefore(tenantId, req, res, proxyCallback) {
-  const reqObj = req.body;
-  for (const workflowdef of reqObj) {
+const putWorkflowBefore: BeforeFun = (tenantId, req, res, proxyCallback) => {
+  const workflows: Array<Workflow> = anythingTo<Array<Workflow>>(req.body);
+  for (const workflowdef of workflows) {
     sanitizeWorkflowdefBefore(tenantId, workflowdef);
   }
-  logger.debug(`Transformed request to ${JSON.stringify(reqObj)}`);
-  proxyCallback({buffer: createProxyOptionsBuffer(reqObj, req)});
-}
+  logger.debug(`Transformed request to ${JSON.stringify(workflows)}`);
+  proxyCallback({buffer: createProxyOptionsBuffer(workflows, req)});
+};
 
 // Create a new workflow definition
 // Underscore in name is not allowed.
@@ -329,40 +364,40 @@ curl -X POST -H "x-auth-organization: fb-test" \
     }
 '
 */
-function postWorkflowBefore(tenantId, req, res, proxyCallback) {
-  const reqObj = req.body;
-  sanitizeWorkflowdefBefore(tenantId, reqObj);
-  logger.debug(`Transformed request to ${JSON.stringify(reqObj)}`);
-  proxyCallback({buffer: createProxyOptionsBuffer(reqObj, req)});
-}
+const postWorkflowBefore: BeforeFun = (tenantId, req, res, proxyCallback) => {
+  const workflow: Workflow = anythingTo<Workflow>(req.body);
+  sanitizeWorkflowdefBefore(tenantId, workflow);
+  logger.debug(`Transformed request to ${JSON.stringify(workflow)}`);
+  proxyCallback({buffer: createProxyOptionsBuffer(workflow, req)});
+};
 
-export default function() {
-  return [
-    {
-      method: 'get',
-      url: '/api/metadata/workflow',
-      after: getAllWorkflowsAfter,
-    },
-    {
-      method: 'delete',
-      url: '/api/metadata/workflow/:name/:version',
-      before: deleteWorkflowBefore,
-    },
-    {
-      method: 'get',
-      url: '/api/metadata/workflow/:name',
-      before: getWorkflowBefore,
-      after: getWorkflowAfter,
-    },
-    {
-      method: 'put',
-      url: '/api/metadata/workflow',
-      before: putWorkflowBefore,
-    },
-    {
-      method: 'post',
-      url: '/api/metadata/workflow',
-      before: postWorkflowBefore,
-    },
-  ];
-}
+const registration: TransformerRegistrationFun = () => [
+  {
+    method: 'get',
+    url: '/api/metadata/workflow',
+    after: getAllWorkflowsAfter,
+  },
+  {
+    method: 'delete',
+    url: '/api/metadata/workflow/:name/:version',
+    before: deleteWorkflowBefore,
+  },
+  {
+    method: 'get',
+    url: '/api/metadata/workflow/:name',
+    before: getWorkflowBefore,
+    after: getWorkflowAfter,
+  },
+  {
+    method: 'put',
+    url: '/api/metadata/workflow',
+    before: putWorkflowBefore,
+  },
+  {
+    method: 'post',
+    url: '/api/metadata/workflow',
+    before: postWorkflowBefore,
+  },
+];
+
+export default registration;

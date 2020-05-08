@@ -16,7 +16,7 @@ import type {
   AddActionsRuleMutationVariables,
 } from './__generated__/AddActionsRuleMutation.graphql';
 import type {MutationCallbacks} from './MutationCallbacks.js';
-import type {StoreUpdater} from '../common/RelayEnvironment';
+import type {SelectorStoreUpdater} from 'relay-runtime';
 
 const mutation = graphql`
   mutation AddActionsRuleMutation($input: AddActionsRuleInput!) {
@@ -30,7 +30,7 @@ const mutation = graphql`
 export default (
   variables: AddActionsRuleMutationVariables,
   callbacks?: MutationCallbacks<AddActionsRuleMutationResponse>,
-  updater?: StoreUpdater,
+  updater?: SelectorStoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
   commitMutation<AddActionsRuleMutation>(RelayEnvironment, {

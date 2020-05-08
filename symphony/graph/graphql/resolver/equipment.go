@@ -299,6 +299,20 @@ func (equipmentResolver) PositionHierarchy(ctx context.Context, e *ent.Equipment
 	return positions, nil
 }
 
+func (r equipmentResolver) FirstLocation(ctx context.Context, e *ent.Equipment) (*ent.Location, error) {
+	positions, err := r.PositionHierarchy(ctx, e)
+	if err != nil {
+		return nil, err
+	}
+	var query *ent.LocationQuery
+	if len(positions) > 0 {
+		query = positions[0].QueryParent().QueryLocation()
+	} else {
+		query = e.QueryLocation()
+	}
+	return query.Only(ctx)
+}
+
 func (r equipmentResolver) LocationHierarchy(ctx context.Context, e *ent.Equipment) ([]*ent.Location, error) {
 	positions, err := r.PositionHierarchy(ctx, e)
 	if err != nil {

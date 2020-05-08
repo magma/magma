@@ -1,3 +1,5 @@
+// +build all gx
+
 /*
  * Copyright (c) Facebook, Inc. and its affiliates.
  * All rights reserved.
@@ -240,11 +242,7 @@ func TestGxReAuthWithMidSessionPolicyInstall(t *testing.T) {
 
 	// Install a Pass-All Rule with higher priority using PolicyReAuth
 	usageMonitoring := []*fegprotos.UsageMonitoringInformation{
-		{
-			MonitoringLevel: fegprotos.MonitoringLevel_RuleLevel,
-			MonitoringKey:   []byte("raakey3"),
-			Octets:          &fegprotos.Octets{TotalOctets: 250 * KiloBytes},
-		},
+		getUsageInformation("raakey3", 250*KiloBytes),
 	}
 	ruleDefinition := []*fegprotos.RuleDefinition{
 		{
@@ -344,11 +342,7 @@ func TestGxReAuthWithMidSessionPolicyInstallAndRemoval(t *testing.T) {
 
 	// Install a Pass-All Rule with higher priority using PolicyReAuth
 	usageMonitoring := []*fegprotos.UsageMonitoringInformation{
-		{
-			MonitoringLevel: fegprotos.MonitoringLevel_RuleLevel,
-			MonitoringKey:   []byte("raakey5"),
-			Octets:          &fegprotos.Octets{TotalOctets: 250 * KiloBytes},
-		},
+		getUsageInformation("raakey5", 250*KiloBytes),
 	}
 	ruleDefinition := []*fegprotos.RuleDefinition{
 		{
@@ -436,13 +430,7 @@ func TestGxReAuthQuotaRefill(t *testing.T) {
 	assert.True(t, record1.BytesTx <= uint64(500*KiloBytes+Buffer), fmt.Sprintf("policy usage: %v", record1))
 
 	// Install a Pass-All Rule with higher priority using PolicyReAuth
-	usageMonitoring := []*fegprotos.UsageMonitoringInformation{
-		{
-			MonitoringLevel: fegprotos.MonitoringLevel_RuleLevel,
-			MonitoringKey:   []byte("raakey1"),
-			Octets:          &fegprotos.Octets{TotalOctets: 250 * KiloBytes},
-		},
-	}
+	usageMonitoring := []*fegprotos.UsageMonitoringInformation{getUsageInformation("raakey1", 250*KiloBytes)}
 	raa, err := sendPolicyReAuthRequest(
 		&fegprotos.PolicyReAuthTarget{
 			Imsi:                 imsi,

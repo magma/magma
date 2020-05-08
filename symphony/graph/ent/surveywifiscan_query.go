@@ -27,7 +27,7 @@ type SurveyWiFiScanQuery struct {
 	config
 	limit      *int
 	offset     *int
-	order      []Order
+	order      []OrderFunc
 	unique     []string
 	predicates []predicate.SurveyWiFiScan
 	// eager-loading edges.
@@ -59,7 +59,7 @@ func (swfsq *SurveyWiFiScanQuery) Offset(offset int) *SurveyWiFiScanQuery {
 }
 
 // Order adds an order step to the query.
-func (swfsq *SurveyWiFiScanQuery) Order(o ...Order) *SurveyWiFiScanQuery {
+func (swfsq *SurveyWiFiScanQuery) Order(o ...OrderFunc) *SurveyWiFiScanQuery {
 	swfsq.order = append(swfsq.order, o...)
 	return swfsq
 }
@@ -288,7 +288,7 @@ func (swfsq *SurveyWiFiScanQuery) Clone() *SurveyWiFiScanQuery {
 		config:     swfsq.config,
 		limit:      swfsq.limit,
 		offset:     swfsq.offset,
-		order:      append([]Order{}, swfsq.order...),
+		order:      append([]OrderFunc{}, swfsq.order...),
 		unique:     append([]string{}, swfsq.unique...),
 		predicates: append([]predicate.SurveyWiFiScan{}, swfsq.predicates...),
 		// clone intermediate query.
@@ -592,14 +592,14 @@ func (swfsq *SurveyWiFiScanQuery) sqlQuery() *sql.Selector {
 type SurveyWiFiScanGroupBy struct {
 	config
 	fields []string
-	fns    []Aggregate
+	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (swfsgb *SurveyWiFiScanGroupBy) Aggregate(fns ...Aggregate) *SurveyWiFiScanGroupBy {
+func (swfsgb *SurveyWiFiScanGroupBy) Aggregate(fns ...AggregateFunc) *SurveyWiFiScanGroupBy {
 	swfsgb.fns = append(swfsgb.fns, fns...)
 	return swfsgb
 }
