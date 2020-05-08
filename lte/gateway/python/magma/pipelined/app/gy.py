@@ -44,17 +44,29 @@ class GYController(PolicyMixin, MagmaController):
             self.APP_NAME)
         self.loop = kwargs['loop']
         self._msg_hub = MessageHub(self.logger)
-        self._redirect_scratch = \
-            self._service_manager.allocate_scratch_tables(self.APP_NAME, 1)[0]
+        self._internal_ip_allocator = kwargs['internal_ip_allocator']
+        tbls = \
+            self._service_manager.allocate_scratch_tables(self.APP_NAME, 2)
+        self._redirect_scratch = tbls[0]
+        self._mac_rewr = \
+            self._service_manager.INTERNAL_MAC_IP_REWRITE_TBL_NUM
         self._bridge_ip_address = kwargs['config']['bridge_ip_address']
         self._clean_restart = kwargs['config']['clean_restart']
-        self._redirect_manager = RedirectionManager(
-            self._bridge_ip_address,
-            self.logger,
-            self.tbl_num,
-            self._service_manager.get_table_num(EGRESS),
-            self._redirect_scratch,
-            self._session_rule_version_mapper)
+        self._redirect_manager = \
+            RedirectionManager(
+                self._bridge_ip_address,
+                self.logger,
+                self.tbl_num,
+                self._service_manager.get_table_num(EGRESS),
+                self._redirect_scratch,
+                self._session_rule_version_mapper
+            ).set_cwf_args(
+                internal_ip_allocator=kwargs['internal_ip_allocator'],
+                arp=kwargs['app_futures']['arpd'],
+                mac_rewrite=self._mac_rewr,
+                bridge_name=kwargs['config']['bridge_name'],
+                egress_table=self._service_manager.get_table_num(EGRESS)
+            )
 
     def initialize_on_connect(self, datapath):
         """
@@ -123,7 +135,7 @@ class GYController(PolicyMixin, MagmaController):
 
     def _install_flow_for_rule(self, imsi, ip_addr, rule):
         if rule.redirect.support == rule.redirect.ENABLED:
-            hub.spawn(self._install_redirect_flow, imsi, ip_addr, rule)
+            self._install_redirect_flow(imsi, ip_addr, rule)
             return RuleModResult.SUCCESS
         else:
             # TODO: Add support once sessiond implements restrict access QOS
@@ -137,6 +149,7 @@ class GYController(PolicyMixin, MagmaController):
     def _delete_all_flows(self, datapath):
         flows.delete_all_flows_from_table(datapath, self.tbl_num)
         flows.delete_all_flows_from_table(datapath, self._redirect_scratch)
+        flows.delete_all_flows_from_table(datapath, self._mac_rewr)
 
     def _install_default_flows(self, datapath):
         """
@@ -172,7 +185,7 @@ class GYController(PolicyMixin, MagmaController):
             rule_num=rule_num,
             priority=priority)
         try:
-            self._redirect_manager.handle_redirection(
+            self._redirect_manager.setup_cwf_redirect(
                 self._datapath, self.loop, redirect_request)
             return RuleModResult.SUCCESS
         except RedirectException as err:
