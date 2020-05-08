@@ -235,7 +235,10 @@ void LocalEnforcer::sync_sessions_on_restart(std::time_t current_time) {
       }
     }
   }
-  schedule_termination(imsis_to_terminate);
+  if (!imsis_to_terminate.empty()) {
+    schedule_termination(imsis_to_terminate);
+    MLOG(MDEBUG) << "Scheduling termination for one or more IMSIs";
+  }
   bool success = session_store_.update_sessions(session_update);
   if (success) {
     MLOG(MDEBUG) << "Successfully synced sessions after restart";
@@ -334,7 +337,7 @@ void LocalEnforcer::terminate_service(
       // If the session is terminating already, do nothing.
       continue;
     }
-    
+
     auto& update_criteria = session_update[imsi][session->get_session_id()];
     session->start_termination(update_criteria);
 
