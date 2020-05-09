@@ -384,7 +384,7 @@ func TestGxAbortSessionRequest(t *testing.T) {
 // - Check policy usage and assert revalidation-time-static-pass-all is installed and
 //   no traffic passed
 // Note: things might get weird if there are clock skews
-func testGxRevalidationTime(t *testing.T) {
+func TestGxRevalidationTime(t *testing.T) {
 	fmt.Println("\nRunning TestGxRevalidationTime...")
 
 	tr := NewTestRunner(t)
@@ -459,6 +459,8 @@ func testGxRevalidationTime(t *testing.T) {
 	assert.NoError(t, setPCRFExpectations(expectations, nil))
 
 	tr.DisconnectAndAssertSuccess(imsi)
+	// Wait for termination to go through
+	time.Sleep(3 * time.Second)
 	tr.WaitForEnforcementStatsToSync()
 
 	// Assert that we saw a Terminate request
