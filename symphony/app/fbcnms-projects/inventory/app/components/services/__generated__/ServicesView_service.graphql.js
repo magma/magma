@@ -18,6 +18,7 @@ type DynamicPropertiesGrid_properties$ref = any;
 type DynamicPropertiesGrid_propertyTypes$ref = any;
 type PropertyFormField_property$ref = any;
 type PropertyTypeFormField_propertyType$ref = any;
+export type DiscoveryMethod = "INVENTORY" | "MANUAL" | "%future added value";
 export type ServiceStatus = "DISCONNECTED" | "IN_SERVICE" | "MAINTENANCE" | "PENDING" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type ServicesView_service$ref: FragmentReference;
@@ -34,6 +35,7 @@ export type ServicesView_service = $ReadOnlyArray<{|
   +serviceType: {|
     +id: string,
     +name: string,
+    +discoveryMethod: DiscoveryMethod,
     +propertyTypes: $ReadOnlyArray<?{|
       +$fragmentRefs: PropertyTypeFormField_propertyType$ref & DynamicPropertiesGrid_propertyTypes$ref
     |}>,
@@ -117,6 +119,13 @@ return {
         (v0/*: any*/),
         (v1/*: any*/),
         {
+          "kind": "ScalarField",
+          "alias": null,
+          "name": "discoveryMethod",
+          "args": null,
+          "storageKey": null
+        },
+        {
           "kind": "LinkedField",
           "alias": null,
           "name": "propertyTypes",
@@ -164,5 +173,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '6edb025a81c0e177b83f83a311aae434';
+(node/*: any*/).hash = '082bbb9aa27247bc35148e31b2a04903';
 module.exports = node;
