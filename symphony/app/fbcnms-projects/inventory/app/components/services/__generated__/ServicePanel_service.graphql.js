@@ -16,7 +16,7 @@
 import type { ReaderFragment } from 'relay-runtime';
 type ServiceEndpointsView_endpoints$ref = any;
 type ServiceLinksView_links$ref = any;
-export type DiscoveryMethod = "INVENTORY" | "%future added value";
+export type DiscoveryMethod = "INVENTORY" | "MANUAL" | "%future added value";
 export type ServiceStatus = "DISCONNECTED" | "IN_SERVICE" | "MAINTENANCE" | "PENDING" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type ServicePanel_service$ref: FragmentReference;
@@ -31,7 +31,7 @@ export type ServicePanel_service = {|
   |},
   +serviceType: {|
     +name: string,
-    +discoveryMethod: ?DiscoveryMethod,
+    +discoveryMethod: DiscoveryMethod,
     +endpointDefinitions: $ReadOnlyArray<{|
       +id: string,
       +name: string,

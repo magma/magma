@@ -14,14 +14,14 @@
 
 /*::
 import type { ReaderFragment } from 'relay-runtime';
-export type DiscoveryMethod = "INVENTORY" | "%future added value";
+export type DiscoveryMethod = "INVENTORY" | "MANUAL" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type ServiceTypesListQuery_serviceType$ref: FragmentReference;
 declare export opaque type ServiceTypesListQuery_serviceType$fragmentType: ServiceTypesListQuery_serviceType$ref;
 export type ServiceTypesListQuery_serviceType = {|
   +id: string,
   +name: string,
-  +discoveryMethod: ?DiscoveryMethod,
+  +discoveryMethod: DiscoveryMethod,
   +$refType: ServiceTypesListQuery_serviceType$ref,
 |};
 export type ServiceTypesListQuery_serviceType$data = ServiceTypesListQuery_serviceType;

@@ -1868,6 +1868,7 @@ what filters should we apply on services
 enum ServiceFilterType {
   SERVICE_INST_NAME
   SERVICE_STATUS
+  SERVICE_DISCOVERY_METHOD
   SERVICE_TYPE
   SERVICE_INST_EXTERNAL_ID
   SERVICE_INST_CUSTOMER_NAME
@@ -2090,7 +2091,7 @@ type ServiceType implements Node {
   services: [Service]!
   numberOfServices: Int!
   endpointDefinitions: [ServiceEndpointDefinition!]!
-  discoveryMethod: DiscoveryMethod
+  discoveryMethod: DiscoveryMethod!
 }
 
 directive @uniqueField(
@@ -2104,6 +2105,7 @@ input LocationTypeIndex {
 }
 
 enum DiscoveryMethod {
+  MANUAL
   INVENTORY
 }
 

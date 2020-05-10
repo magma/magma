@@ -12,6 +12,8 @@ import type {Equipment, EquipmentPort, Link} from './Equipment';
 import type {Property} from './Property';
 import type {ServiceEndpointDefinition, ServiceType} from './ServiceType';
 
+import fbt from 'fbt';
+
 export type ServiceStatus =
   | 'PENDING'
   | 'IN_SERVICE'
@@ -30,6 +32,14 @@ export const serviceStatusToColor = {
   IN_SERVICE: 'green',
   MAINTENANCE: 'orange',
   DISCONNECTED: 'gray',
+};
+
+export const discoveryMethods = {
+  MANUAL: fbt('Manual (default)', 'title for no discovery method'),
+  INVENTORY: fbt(
+    'Inventory',
+    'title for discovering this service using inventory data',
+  ),
 };
 
 export type Customer = {
