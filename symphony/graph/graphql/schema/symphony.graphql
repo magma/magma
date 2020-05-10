@@ -362,12 +362,7 @@ input EditUsersGroupInput {
   name: String
   description: String
   status: UsersGroupStatus
-}
-
-input UpdateUsersGroupMembersInput {
-  id: ID!
-  addUserIds: [ID!]!
-  removeUserIds: [ID!]!
+  members: [ID!]
 }
 
 input UpdatePermissionsPoliciesInUsersGroupInput {
@@ -2644,7 +2639,6 @@ type Mutation {
   addUsersGroup(input: AddUsersGroupInput!): UsersGroup!
   editUsersGroup(input: EditUsersGroupInput!): UsersGroup!
   updateUserGroups(input: UpdateUserGroupsInput!): User!
-  updateUsersGroupMembers(input: UpdateUsersGroupMembersInput!): UsersGroup!
   updatePermissionsPoliciesInUsersGroup(
     input: UpdatePermissionsPoliciesInUsersGroupInput!
   ): UsersGroup!

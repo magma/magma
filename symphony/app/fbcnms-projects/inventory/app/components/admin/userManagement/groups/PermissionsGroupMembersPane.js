@@ -71,6 +71,7 @@ const useStyles = makeStyles(() => ({
 
 type Props = $ReadOnly<{|
   group: UserPermissionsGroup,
+  onChange: UserPermissionsGroup => void,
   className?: ?string,
 |}>;
 
@@ -106,7 +107,7 @@ function SearchBar(
 }
 
 export default function PermissionsGroupMembersPane(props: Props) {
-  const {group, className} = props;
+  const {group, onChange, className} = props;
   const classes = useStyles();
 
   const title = useMemo(
@@ -149,7 +150,7 @@ export default function PermissionsGroupMembersPane(props: Props) {
     <div className={classNames(classes.root, className)}>
       <UserSearchContextProvider>
         <ViewContainer header={header}>
-          <PermissionsGroupMembersList group={group} />
+          <PermissionsGroupMembersList group={group} onChange={onChange} />
         </ViewContainer>
       </UserSearchContextProvider>
     </div>

@@ -16,8 +16,8 @@ import type {ToggleButtonDisplay} from './ListItem';
 
 import * as React from 'react';
 import MemberListItem from './MemberListItem';
-import {useCallback, useEffect, useState} from 'react';
-import {useUserManagement} from '../UserManagementContext';
+import emptyFunction from '@fbcnms/util/emptyFunction';
+import {useEffect, useState} from 'react';
 
 export type AssigenmentButtonProp = $ReadOnly<{|
   assigmentButton?: ?ToggleButtonDisplay,
@@ -43,21 +43,6 @@ export default function PolicyGroupListItem(props: Props) {
     group,
     policy,
   ]);
-  const userManagement = useUserManagement();
-
-  const toggleAssigment = useCallback(
-    (group, shouldAssign) => {
-      if (policy == null) {
-        return Promise.resolve();
-      }
-      const add = shouldAssign ? [group.id] : [];
-      const remove = shouldAssign ? [] : [group.id];
-      return userManagement
-        .updatePolicyGroups(policy, add, remove)
-        .then(() => setIsGroupInPolicy(shouldAssign));
-    },
-    [policy, userManagement],
-  );
 
   return (
     <MemberListItem
@@ -67,7 +52,7 @@ export default function PolicyGroupListItem(props: Props) {
       }}
       className={className}
       assigmentButton={assigmentButton}
-      onAssignToggle={() => toggleAssigment(group, !isGroupInPolicy)}>
+      onAssignToggle={emptyFunction}>
       {group.name}
     </MemberListItem>
   );

@@ -86,74 +86,34 @@ func TestEditUsersGroup(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, ug1update1.Name, gUpdatedName, "verifying group name update")
 
+	uAuthID1 := "user_1@test.ing"
+	u1, err := CreateUserEnt(ctx, r.client, uAuthID1)
+	require.NoError(t, err)
+	memberIds := []int{u1.ID}
+
 	gUpdatedDescription := "group_description_1_updated"
 	updateInput2 := models.EditUsersGroupInput{
 		ID:          ug1.ID,
 		Description: &gUpdatedDescription,
+		Members:     memberIds,
 	}
 	ug1update2, err := mr.EditUsersGroup(ctx, updateInput2)
 	require.NoError(t, err)
 	require.Equal(t, ug1update2.Name, gUpdatedName, "verifying group name stayed the same")
 	require.Equal(t, ug1update2.Description, gUpdatedDescription, "verifying group description update")
+	require.Len(t, ug1update2.QueryMembers().AllX(ctx), 1)
 
 	gUpdatedStatus := usersgroup.StatusDEACTIVATED
+	noMemberIds := []int{}
 	updateInput3 := models.EditUsersGroupInput{
-		ID:     ug1.ID,
-		Status: &gUpdatedStatus,
+		ID:      ug1.ID,
+		Status:  &gUpdatedStatus,
+		Members: noMemberIds,
 	}
 	ug1update3, err := mr.EditUsersGroup(ctx, updateInput3)
 	require.NoError(t, err)
 	require.Equal(t, ug1update3.Status, gUpdatedStatus, "verifying group status updated")
-}
-
-func TestUpdateUsersGroupMembersGroup(t *testing.T) {
-	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(context.Background(), r.client)
-
-	mr := r.Mutation()
-
-	gName := "group_1"
-	addInp1 := getAddUsersGroupInput(gName, "this is group 1")
-	ug, err := mr.AddUsersGroup(ctx, addInp1)
-	require.NoError(t, err)
-
-	require.Len(t, ug.QueryMembers().AllX(ctx), 0)
-
-	uAuthID1 := "user_1@test.ing"
-	u1, err := CreateUserEnt(ctx, r.client, uAuthID1)
-	require.NoError(t, err)
-
-	updateInput1 := models.UpdateUsersGroupMembersInput{
-		ID:            ug.ID,
-		AddUserIds:    []int{u1.ID},
-		RemoveUserIds: []int{},
-	}
-	ugUpdate1, err := mr.UpdateUsersGroupMembers(ctx, updateInput1)
-	require.NoError(t, err)
-	require.Len(t, ugUpdate1.QueryMembers().AllX(ctx), 1)
-
-	uAuthID2 := "user_2@test.ing"
-	u2, err := CreateUserEnt(ctx, r.client, uAuthID2)
-	require.NoError(t, err)
-
-	updateInput2 := models.UpdateUsersGroupMembersInput{
-		ID:            ug.ID,
-		AddUserIds:    []int{u2.ID},
-		RemoveUserIds: []int{},
-	}
-	ugUpdate2, err := mr.UpdateUsersGroupMembers(ctx, updateInput2)
-	require.NoError(t, err)
-	require.Len(t, ugUpdate2.QueryMembers().AllX(ctx), 2)
-
-	updateInput3 := models.UpdateUsersGroupMembersInput{
-		ID:            ug.ID,
-		AddUserIds:    []int{},
-		RemoveUserIds: []int{u1.ID},
-	}
-	ugUpdate3, err := mr.UpdateUsersGroupMembers(ctx, updateInput3)
-	require.NoError(t, err)
-	require.Len(t, ugUpdate3.QueryMembers().AllX(ctx), 1)
+	require.Len(t, ug1update2.QueryMembers().AllX(ctx), 0)
 }
 
 func TestUpdatePermissionsPoliciesInUsersGroup(t *testing.T) {

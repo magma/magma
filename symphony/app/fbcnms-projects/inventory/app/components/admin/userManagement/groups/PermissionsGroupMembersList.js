@@ -43,10 +43,11 @@ const useStyles = makeStyles(() => ({
 
 type Props = $ReadOnly<{|
   group: UserPermissionsGroup,
+  onChange: UserPermissionsGroup => void,
 |}>;
 
 export default function PermissionsGroupMembersList(props: Props) {
-  const {group} = props;
+  const {group, onChange} = props;
   const classes = useStyles();
   const userSearch = useUserSearchContext();
 
@@ -104,6 +105,7 @@ export default function PermissionsGroupMembersList(props: Props) {
         userSearch.isEmptySearchTerm ? group.memberUsers : userSearch.results
       }
       group={group}
+      onChange={onChange}
       assigmentButton={
         userSearch.isEmptySearchTerm
           ? TOGGLE_BUTTON_DISPLAY.onHover
