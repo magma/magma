@@ -300,6 +300,7 @@ const addGroup = (usersMap: UsersMap) => (
         input: {
           name: newGroupValue.name,
           description: newGroupValue.description,
+          members: newGroupValue.members.map(m => m.id),
         },
       },
       callbacks,

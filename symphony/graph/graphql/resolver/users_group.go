@@ -42,7 +42,9 @@ func (r mutationResolver) AddUsersGroup(ctx context.Context, input models.AddUse
 	if ent.IsConstraintError(err) {
 		return nil, gqlerror.Errorf("A group with the name %s already exists", input.Name)
 	}
-	return g, err
+	return client.UsersGroup.UpdateOneID(g.ID).
+		AddMemberIDs(input.Members...).
+		Save(ctx)
 }
 
 func (r mutationResolver) EditUsersGroup(ctx context.Context, input models.EditUsersGroupInput) (*ent.UsersGroup, error) {

@@ -355,6 +355,7 @@ input UpdateUserGroupsInput {
 input AddUsersGroupInput {
   name: String!
   description: String
+  members: [ID!]
 }
 
 input EditUsersGroupInput {

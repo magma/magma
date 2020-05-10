@@ -11,8 +11,10 @@ import (
 	"github.com/AlekSi/pointer"
 
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/ent/usersgroup"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 
 	"github.com/stretchr/testify/require"
@@ -32,8 +34,16 @@ func TestAddUsersGroup(t *testing.T) {
 
 	mr := r.Mutation()
 
+	u1 := viewer.MustGetOrCreateUser(ctx, "user_1@test.ing", user.RoleUSER)
+	memberIds := []int{u1.ID}
+
 	gName := "group_1"
-	inp := getAddUsersGroupInput(gName, "this is group 1")
+	gDescription := "this is group 1"
+	inp := models.AddUsersGroupInput{
+		Name:        gName,
+		Description: &gDescription,
+		Members:     memberIds,
+	}
 	_, err := mr.AddUsersGroup(ctx, inp)
 	require.NoError(t, err)
 
@@ -43,6 +53,7 @@ func TestAddUsersGroup(t *testing.T) {
 
 	require.Equal(t, ugs[0].Name, gName, "verifying group name")
 	require.Equal(t, ugs[0].Status, usersgroup.StatusACTIVE, "verifying group status")
+	require.Len(t, ugs[0].QueryMembers().AllX(ctx), 1)
 }
 
 func TestDeleteUsersGroup(t *testing.T) {
