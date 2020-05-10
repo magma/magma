@@ -83,7 +83,7 @@ const ServiceSearchConfig: Array<EntityConfig> = [
   },
   {
     type: 'location_by_types',
-    label: 'Location (By consumer endpoints)',
+    label: 'Location',
     filters: [],
   },
   {

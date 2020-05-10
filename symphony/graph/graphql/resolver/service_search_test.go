@@ -71,6 +71,7 @@ func prepareServiceData(ctx context.Context, r *TestResolver) serviceSearchDataM
 			{Name: "typ1_p2"},
 		},
 	})
+
 	dm := models.DiscoveryMethodInventory
 	st1, _ := mr.AddServiceType(ctx, models.ServiceTypeCreateData{
 		Name:            "Internet Access",
@@ -534,15 +535,12 @@ func TestSearchServicesByLocations(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	ep1 := eq1.QueryPorts().Where(equipmentport.HasDefinitionWith(equipmentportdefinition.ID(data.eqpd1))).OnlyX(ctx)
-
 	st := r.client.ServiceType.GetX(ctx, data.st1)
 	ept := st.QueryEndpointDefinitions().OnlyX(ctx)
 
 	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
 		ID:          s1.ID,
 		EquipmentID: eq1.ID,
-		PortID:      pointer.ToInt(ep1.ID),
 		Definition:  ept.ID,
 	})
 	require.NoError(t, err)
@@ -574,7 +572,6 @@ func TestSearchServicesByLocations(t *testing.T) {
 	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
 		ID:          s3.ID,
 		EquipmentID: eq1.ID,
-		PortID:      pointer.ToInt(ep1.ID),
 		Definition:  ept.ID,
 	})
 	require.NoError(t, err)

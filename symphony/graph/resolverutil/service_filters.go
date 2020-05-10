@@ -162,8 +162,8 @@ func serviceLocationFilter(q *ent.ServiceQuery, filter *models.ServiceFilterInpu
 				1,
 				*filter.MaxDepth)
 			ps = append(ps, service.HasEndpointsWith(
-				serviceendpoint.HasPortWith(equipmentport.HasParentWith(eqPred)),
-			))
+				serviceendpoint.HasEquipmentWith(eqPred)),
+			)
 		}
 		return q.Where(service.Or(ps...)), nil
 	}
