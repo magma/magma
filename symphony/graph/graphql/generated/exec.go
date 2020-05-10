@@ -266,6 +266,16 @@ type ComplexityRoot struct {
 		WorkOrder                func(childComplexity int) int
 	}
 
+	EquipmentConnection struct {
+		Edges    func(childComplexity int) int
+		PageInfo func(childComplexity int) int
+	}
+
+	EquipmentEdge struct {
+		Cursor func(childComplexity int) int
+		Node   func(childComplexity int) int
+	}
+
 	EquipmentPort struct {
 		Definition       func(childComplexity int) int
 		ID               func(childComplexity int) int
@@ -273,6 +283,11 @@ type ComplexityRoot struct {
 		ParentEquipment  func(childComplexity int) int
 		Properties       func(childComplexity int) int
 		ServiceEndpoints func(childComplexity int) int
+	}
+
+	EquipmentPortConnection struct {
+		Edges    func(childComplexity int) int
+		PageInfo func(childComplexity int) int
 	}
 
 	EquipmentPortDefinition struct {
@@ -290,6 +305,11 @@ type ComplexityRoot struct {
 	}
 
 	EquipmentPortDefinitionEdge struct {
+		Cursor func(childComplexity int) int
+		Node   func(childComplexity int) int
+	}
+
+	EquipmentPortEdge struct {
 		Cursor func(childComplexity int) int
 		Node   func(childComplexity int) int
 	}
@@ -435,6 +455,16 @@ type ComplexityRoot struct {
 		Properties  func(childComplexity int) int
 		Services    func(childComplexity int) int
 		WorkOrder   func(childComplexity int) int
+	}
+
+	LinkConnection struct {
+		Edges    func(childComplexity int) int
+		PageInfo func(childComplexity int) int
+	}
+
+	LinkEdge struct {
+		Cursor func(childComplexity int) int
+		Node   func(childComplexity int) int
 	}
 
 	LinkSearchResult struct {
@@ -732,10 +762,13 @@ type ComplexityRoot struct {
 		Customers                func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
 		EquipmentPortDefinitions func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
 		EquipmentPortTypes       func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
+		EquipmentPorts           func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
 		EquipmentSearch          func(childComplexity int, filters []*models.EquipmentFilterInput, limit *int) int
 		EquipmentTypes           func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
+		Equipments               func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
 		LatestPythonPackage      func(childComplexity int) int
 		LinkSearch               func(childComplexity int, filters []*models.LinkFilterInput, limit *int) int
+		Links                    func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
 		LocationSearch           func(childComplexity int, filters []*models.LocationFilterInput, limit *int) int
 		LocationTypes            func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
 		Locations                func(childComplexity int, onlyTopLevel *bool, types []int, name *string, needsSiteSurvey *bool, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
@@ -1375,10 +1408,13 @@ type QueryResolver interface {
 	Locations(ctx context.Context, onlyTopLevel *bool, types []int, name *string, needsSiteSurvey *bool, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.LocationConnection, error)
 	EquipmentPortTypes(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.EquipmentPortTypeConnection, error)
 	EquipmentPortDefinitions(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.EquipmentPortDefinitionConnection, error)
+	EquipmentPorts(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.EquipmentPortConnection, error)
 	EquipmentTypes(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.EquipmentTypeConnection, error)
+	Equipments(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.EquipmentConnection, error)
 	ServiceTypes(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.ServiceTypeConnection, error)
 	WorkOrders(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, showCompleted *bool) (*ent.WorkOrderConnection, error)
 	WorkOrderTypes(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.WorkOrderTypeConnection, error)
+	Links(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.LinkConnection, error)
 	Users(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.UserConnection, error)
 	UsersGroups(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.UsersGroupConnection, error)
 	PermissionsPolicies(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.PermissionsPolicyConnection, error)
@@ -2229,6 +2265,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Equipment.WorkOrder(childComplexity), true
 
+	case "EquipmentConnection.edges":
+		if e.complexity.EquipmentConnection.Edges == nil {
+			break
+		}
+
+		return e.complexity.EquipmentConnection.Edges(childComplexity), true
+
+	case "EquipmentConnection.pageInfo":
+		if e.complexity.EquipmentConnection.PageInfo == nil {
+			break
+		}
+
+		return e.complexity.EquipmentConnection.PageInfo(childComplexity), true
+
+	case "EquipmentEdge.cursor":
+		if e.complexity.EquipmentEdge.Cursor == nil {
+			break
+		}
+
+		return e.complexity.EquipmentEdge.Cursor(childComplexity), true
+
+	case "EquipmentEdge.node":
+		if e.complexity.EquipmentEdge.Node == nil {
+			break
+		}
+
+		return e.complexity.EquipmentEdge.Node(childComplexity), true
+
 	case "EquipmentPort.definition":
 		if e.complexity.EquipmentPort.Definition == nil {
 			break
@@ -2270,6 +2334,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.EquipmentPort.ServiceEndpoints(childComplexity), true
+
+	case "EquipmentPortConnection.edges":
+		if e.complexity.EquipmentPortConnection.Edges == nil {
+			break
+		}
+
+		return e.complexity.EquipmentPortConnection.Edges(childComplexity), true
+
+	case "EquipmentPortConnection.pageInfo":
+		if e.complexity.EquipmentPortConnection.PageInfo == nil {
+			break
+		}
+
+		return e.complexity.EquipmentPortConnection.PageInfo(childComplexity), true
 
 	case "EquipmentPortDefinition.bandwidth":
 		if e.complexity.EquipmentPortDefinition.Bandwidth == nil {
@@ -2340,6 +2418,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.EquipmentPortDefinitionEdge.Node(childComplexity), true
+
+	case "EquipmentPortEdge.cursor":
+		if e.complexity.EquipmentPortEdge.Cursor == nil {
+			break
+		}
+
+		return e.complexity.EquipmentPortEdge.Cursor(childComplexity), true
+
+	case "EquipmentPortEdge.node":
+		if e.complexity.EquipmentPortEdge.Node == nil {
+			break
+		}
+
+		return e.complexity.EquipmentPortEdge.Node(childComplexity), true
 
 	case "EquipmentPortType.id":
 		if e.complexity.EquipmentPortType.ID == nil {
@@ -2942,6 +3034,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Link.WorkOrder(childComplexity), true
+
+	case "LinkConnection.edges":
+		if e.complexity.LinkConnection.Edges == nil {
+			break
+		}
+
+		return e.complexity.LinkConnection.Edges(childComplexity), true
+
+	case "LinkConnection.pageInfo":
+		if e.complexity.LinkConnection.PageInfo == nil {
+			break
+		}
+
+		return e.complexity.LinkConnection.PageInfo(childComplexity), true
+
+	case "LinkEdge.cursor":
+		if e.complexity.LinkEdge.Cursor == nil {
+			break
+		}
+
+		return e.complexity.LinkEdge.Cursor(childComplexity), true
+
+	case "LinkEdge.node":
+		if e.complexity.LinkEdge.Node == nil {
+			break
+		}
+
+		return e.complexity.LinkEdge.Node(childComplexity), true
 
 	case "LinkSearchResult.count":
 		if e.complexity.LinkSearchResult.Count == nil {
@@ -4895,6 +5015,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.EquipmentPortTypes(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int)), true
 
+	case "Query.equipmentPorts":
+		if e.complexity.Query.EquipmentPorts == nil {
+			break
+		}
+
+		args, err := ec.field_Query_equipmentPorts_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.EquipmentPorts(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int)), true
+
 	case "Query.equipmentSearch":
 		if e.complexity.Query.EquipmentSearch == nil {
 			break
@@ -4919,6 +5051,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.EquipmentTypes(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int)), true
 
+	case "Query.equipments":
+		if e.complexity.Query.Equipments == nil {
+			break
+		}
+
+		args, err := ec.field_Query_equipments_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Equipments(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int)), true
+
 	case "Query.latestPythonPackage":
 		if e.complexity.Query.LatestPythonPackage == nil {
 			break
@@ -4937,6 +5081,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.LinkSearch(childComplexity, args["filters"].([]*models.LinkFilterInput), args["limit"].(*int)), true
+
+	case "Query.links":
+		if e.complexity.Query.Links == nil {
+			break
+		}
+
+		args, err := ec.field_Query_links_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Links(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int)), true
 
 	case "Query.locationSearch":
 		if e.complexity.Query.LocationSearch == nil {
@@ -7084,17 +7240,17 @@ input BasicPermissionRuleInput
 }
 
 input LocationPermissionRuleInput
-@goModel(
-  model: "github.com/facebookincubator/symphony/graph/authz/models.LocationPermissionRuleInput"
-) {
+  @goModel(
+    model: "github.com/facebookincubator/symphony/graph/authz/models.LocationPermissionRuleInput"
+  ) {
   isAllowed: PermissionValue!
   locationTypeIds: [ID!]
 }
 
 input WorkforcePermissionRuleInput
-@goModel(
-  model: "github.com/facebookincubator/symphony/graph/authz/models.WorkforcePermissionRuleInput"
-) {
+  @goModel(
+    model: "github.com/facebookincubator/symphony/graph/authz/models.WorkforcePermissionRuleInput"
+  ) {
   isAllowed: PermissionValue!
   projectTypeIds: [ID!]
   workOrderTypeIds: [ID!]
@@ -7122,9 +7278,9 @@ input BasicCUDInput
 }
 
 input LocationCUDInput
-@goModel(
-  model: "github.com/facebookincubator/symphony/graph/authz/models.LocationCUDInput"
-) {
+  @goModel(
+    model: "github.com/facebookincubator/symphony/graph/authz/models.LocationCUDInput"
+  ) {
   create: LocationPermissionRuleInput
   update: LocationPermissionRuleInput
   delete: LocationPermissionRuleInput
@@ -7865,6 +8021,34 @@ type EquipmentPortDefinitionEdge {
 }
 
 """
+A connection to a list of equipment ports.
+"""
+type EquipmentPortConnection {
+  """
+  A list of equipment port edges.
+  """
+  edges: [EquipmentPortEdge!]!
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+}
+
+"""
+An equipment port edge in a connection.
+"""
+type EquipmentPortEdge {
+  """
+  The equipment port at the end of the edge.
+  """
+  node: EquipmentPort
+  """
+  A cursor for use in pagination.
+  """
+  cursor: Cursor!
+}
+
+"""
 A connection to a list of equipment types.
 """
 type EquipmentTypeConnection {
@@ -7886,6 +8070,34 @@ type EquipmentTypeEdge {
   The equipment type at the end of the edge.
   """
   node: EquipmentType
+  """
+  A cursor for use in pagination.
+  """
+  cursor: Cursor!
+}
+
+"""
+A connection to a list of equipments.
+"""
+type EquipmentConnection {
+  """
+  A list of equipment edges.
+  """
+  edges: [EquipmentEdge!]!
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+}
+
+"""
+An equipment edge in a connection.
+"""
+type EquipmentEdge {
+  """
+  The equipment at the end of the edge.
+  """
+  node: Equipment
   """
   A cursor for use in pagination.
   """
@@ -7942,6 +8154,34 @@ type LocationEdge {
   The location at the end of the edge.
   """
   node: Location
+  """
+  A cursor for use in pagination.
+  """
+  cursor: Cursor!
+}
+
+"""
+A connection to a list of links.
+"""
+type LinkConnection {
+  """
+  A list of list edges.
+  """
+  edges: [LinkEdge!]!
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+}
+
+"""
+A link edge in a connection.
+"""
+type LinkEdge {
+  """
+  The link at the end of the edge.
+  """
+  node: Link
   """
   A cursor for use in pagination.
   """
@@ -9498,12 +9738,24 @@ type Query {
     before: Cursor
     last: Int
   ): EquipmentPortDefinitionConnection!
+  equipmentPorts(
+    after: Cursor
+    first: Int
+    before: Cursor
+    last: Int
+  ): EquipmentPortConnection!
   equipmentTypes(
     after: Cursor
     first: Int
     before: Cursor
     last: Int
   ): EquipmentTypeConnection!
+  equipments(
+    after: Cursor
+    first: Int
+    before: Cursor
+    last: Int
+  ): EquipmentConnection!
   serviceTypes(
     after: Cursor
     first: Int
@@ -9523,6 +9775,12 @@ type Query {
     before: Cursor
     last: Int
   ): WorkOrderTypeConnection
+  links(
+    after: Cursor
+    first: Int
+    before: Cursor
+    last: Int
+  ): LinkConnection!
   users(after: Cursor, first: Int, before: Cursor, last: Int): UserConnection
   usersGroups(
     after: Cursor
@@ -11386,6 +11644,44 @@ func (ec *executionContext) field_Query_equipmentPortTypes_args(ctx context.Cont
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_equipmentPorts_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *ent.Cursor
+	if tmp, ok := rawArgs["after"]; ok {
+		arg0, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["after"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["first"]; ok {
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["first"] = arg1
+	var arg2 *ent.Cursor
+	if tmp, ok := rawArgs["before"]; ok {
+		arg2, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["before"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["last"]; ok {
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["last"] = arg3
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_equipmentSearch_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -11446,6 +11742,44 @@ func (ec *executionContext) field_Query_equipmentTypes_args(ctx context.Context,
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_equipments_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *ent.Cursor
+	if tmp, ok := rawArgs["after"]; ok {
+		arg0, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["after"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["first"]; ok {
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["first"] = arg1
+	var arg2 *ent.Cursor
+	if tmp, ok := rawArgs["before"]; ok {
+		arg2, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["before"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["last"]; ok {
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["last"] = arg3
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_linkSearch_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -11465,6 +11799,44 @@ func (ec *executionContext) field_Query_linkSearch_args(ctx context.Context, raw
 		}
 	}
 	args["limit"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_links_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *ent.Cursor
+	if tmp, ok := rawArgs["after"]; ok {
+		arg0, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["after"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["first"]; ok {
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["first"] = arg1
+	var arg2 *ent.Cursor
+	if tmp, ok := rawArgs["before"]; ok {
+		arg2, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["before"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["last"]; ok {
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["last"] = arg3
 	return args, nil
 }
 
@@ -15515,6 +15887,139 @@ func (ec *executionContext) _Equipment_hyperlinks(ctx context.Context, field gra
 	return ec.marshalNHyperlink2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐHyperlinkᚄ(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _EquipmentConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.EquipmentConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "EquipmentConnection",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Edges, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.EquipmentEdge)
+	fc.Result = res
+	return ec.marshalNEquipmentEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentEdgeᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _EquipmentConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *ent.EquipmentConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "EquipmentConnection",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PageInfo, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(ent.PageInfo)
+	fc.Result = res
+	return ec.marshalNPageInfo2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐPageInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _EquipmentEdge_node(ctx context.Context, field graphql.CollectedField, obj *ent.EquipmentEdge) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "EquipmentEdge",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Node, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Equipment)
+	fc.Result = res
+	return ec.marshalOEquipment2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipment(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _EquipmentEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *ent.EquipmentEdge) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "EquipmentEdge",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Cursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(ent.Cursor)
+	fc.Result = res
+	return ec.marshalNCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _EquipmentPort_id(ctx context.Context, field graphql.CollectedField, obj *ent.EquipmentPort) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -15714,6 +16219,74 @@ func (ec *executionContext) _EquipmentPort_serviceEndpoints(ctx context.Context,
 	res := resTmp.([]*ent.ServiceEndpoint)
 	fc.Result = res
 	return ec.marshalNServiceEndpoint2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐServiceEndpointᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _EquipmentPortConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.EquipmentPortConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "EquipmentPortConnection",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Edges, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.EquipmentPortEdge)
+	fc.Result = res
+	return ec.marshalNEquipmentPortEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentPortEdgeᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _EquipmentPortConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *ent.EquipmentPortConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "EquipmentPortConnection",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PageInfo, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(ent.PageInfo)
+	fc.Result = res
+	return ec.marshalNPageInfo2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐPageInfo(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _EquipmentPortDefinition_id(ctx context.Context, field graphql.CollectedField, obj *ent.EquipmentPortDefinition) (ret graphql.Marshaler) {
@@ -16016,6 +16589,71 @@ func (ec *executionContext) _EquipmentPortDefinitionEdge_cursor(ctx context.Cont
 	}()
 	fc := &graphql.FieldContext{
 		Object:   "EquipmentPortDefinitionEdge",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Cursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(ent.Cursor)
+	fc.Result = res
+	return ec.marshalNCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _EquipmentPortEdge_node(ctx context.Context, field graphql.CollectedField, obj *ent.EquipmentPortEdge) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "EquipmentPortEdge",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Node, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.EquipmentPort)
+	fc.Result = res
+	return ec.marshalOEquipmentPort2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentPort(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _EquipmentPortEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *ent.EquipmentPortEdge) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "EquipmentPortEdge",
 		Field:    field,
 		Args:     nil,
 		IsMethod: false,
@@ -18891,6 +19529,139 @@ func (ec *executionContext) _Link_services(ctx context.Context, field graphql.Co
 	res := resTmp.([]*ent.Service)
 	fc.Result = res
 	return ec.marshalNService2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐService(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _LinkConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.LinkConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "LinkConnection",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Edges, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.LinkEdge)
+	fc.Result = res
+	return ec.marshalNLinkEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLinkEdgeᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _LinkConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *ent.LinkConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "LinkConnection",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PageInfo, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(ent.PageInfo)
+	fc.Result = res
+	return ec.marshalNPageInfo2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐPageInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _LinkEdge_node(ctx context.Context, field graphql.CollectedField, obj *ent.LinkEdge) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "LinkEdge",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Node, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Link)
+	fc.Result = res
+	return ec.marshalOLink2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLink(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _LinkEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *ent.LinkEdge) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "LinkEdge",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Cursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(ent.Cursor)
+	fc.Result = res
+	return ec.marshalNCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _LinkSearchResult_links(ctx context.Context, field graphql.CollectedField, obj *models.LinkSearchResult) (ret graphql.Marshaler) {
@@ -26787,6 +27558,47 @@ func (ec *executionContext) _Query_equipmentPortDefinitions(ctx context.Context,
 	return ec.marshalNEquipmentPortDefinitionConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentPortDefinitionConnection(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_equipmentPorts(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_equipmentPorts_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().EquipmentPorts(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.EquipmentPortConnection)
+	fc.Result = res
+	return ec.marshalNEquipmentPortConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentPortConnection(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_equipmentTypes(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -26826,6 +27638,47 @@ func (ec *executionContext) _Query_equipmentTypes(ctx context.Context, field gra
 	res := resTmp.(*ent.EquipmentTypeConnection)
 	fc.Result = res
 	return ec.marshalNEquipmentTypeConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentTypeConnection(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_equipments(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_equipments_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Equipments(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.EquipmentConnection)
+	fc.Result = res
+	return ec.marshalNEquipmentConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_serviceTypes(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -26943,6 +27796,47 @@ func (ec *executionContext) _Query_workOrderTypes(ctx context.Context, field gra
 	res := resTmp.(*ent.WorkOrderTypeConnection)
 	fc.Result = res
 	return ec.marshalOWorkOrderTypeConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrderTypeConnection(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_links(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_links_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Links(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.LinkConnection)
+	fc.Result = res
+	return ec.marshalNLinkConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLinkConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_users(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -42995,6 +43889,67 @@ func (ec *executionContext) _Equipment(ctx context.Context, sel ast.SelectionSet
 	return out
 }
 
+var equipmentConnectionImplementors = []string{"EquipmentConnection"}
+
+func (ec *executionContext) _EquipmentConnection(ctx context.Context, sel ast.SelectionSet, obj *ent.EquipmentConnection) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, equipmentConnectionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("EquipmentConnection")
+		case "edges":
+			out.Values[i] = ec._EquipmentConnection_edges(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "pageInfo":
+			out.Values[i] = ec._EquipmentConnection_pageInfo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var equipmentEdgeImplementors = []string{"EquipmentEdge"}
+
+func (ec *executionContext) _EquipmentEdge(ctx context.Context, sel ast.SelectionSet, obj *ent.EquipmentEdge) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, equipmentEdgeImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("EquipmentEdge")
+		case "node":
+			out.Values[i] = ec._EquipmentEdge_node(ctx, field, obj)
+		case "cursor":
+			out.Values[i] = ec._EquipmentEdge_cursor(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var equipmentPortImplementors = []string{"EquipmentPort", "Node"}
 
 func (ec *executionContext) _EquipmentPort(ctx context.Context, sel ast.SelectionSet, obj *ent.EquipmentPort) graphql.Marshaler {
@@ -43078,6 +44033,38 @@ func (ec *executionContext) _EquipmentPort(ctx context.Context, sel ast.Selectio
 				}
 				return res
 			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var equipmentPortConnectionImplementors = []string{"EquipmentPortConnection"}
+
+func (ec *executionContext) _EquipmentPortConnection(ctx context.Context, sel ast.SelectionSet, obj *ent.EquipmentPortConnection) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, equipmentPortConnectionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("EquipmentPortConnection")
+		case "edges":
+			out.Values[i] = ec._EquipmentPortConnection_edges(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "pageInfo":
+			out.Values[i] = ec._EquipmentPortConnection_pageInfo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -43185,6 +44172,35 @@ func (ec *executionContext) _EquipmentPortDefinitionEdge(ctx context.Context, se
 			out.Values[i] = ec._EquipmentPortDefinitionEdge_node(ctx, field, obj)
 		case "cursor":
 			out.Values[i] = ec._EquipmentPortDefinitionEdge_cursor(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var equipmentPortEdgeImplementors = []string{"EquipmentPortEdge"}
+
+func (ec *executionContext) _EquipmentPortEdge(ctx context.Context, sel ast.SelectionSet, obj *ent.EquipmentPortEdge) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, equipmentPortEdgeImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("EquipmentPortEdge")
+		case "node":
+			out.Values[i] = ec._EquipmentPortEdge_node(ctx, field, obj)
+		case "cursor":
+			out.Values[i] = ec._EquipmentPortEdge_cursor(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -44162,6 +45178,67 @@ func (ec *executionContext) _Link(ctx context.Context, sel ast.SelectionSet, obj
 				}
 				return res
 			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var linkConnectionImplementors = []string{"LinkConnection"}
+
+func (ec *executionContext) _LinkConnection(ctx context.Context, sel ast.SelectionSet, obj *ent.LinkConnection) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, linkConnectionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("LinkConnection")
+		case "edges":
+			out.Values[i] = ec._LinkConnection_edges(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "pageInfo":
+			out.Values[i] = ec._LinkConnection_pageInfo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var linkEdgeImplementors = []string{"LinkEdge"}
+
+func (ec *executionContext) _LinkEdge(ctx context.Context, sel ast.SelectionSet, obj *ent.LinkEdge) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, linkEdgeImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("LinkEdge")
+		case "node":
+			out.Values[i] = ec._LinkEdge_node(ctx, field, obj)
+		case "cursor":
+			out.Values[i] = ec._LinkEdge_cursor(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -46083,6 +47160,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
+		case "equipmentPorts":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_equipmentPorts(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "equipmentTypes":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -46092,6 +47183,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_equipmentTypes(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "equipments":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_equipments(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -46131,6 +47236,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_workOrderTypes(ctx, field)
+				return res
+			})
+		case "links":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_links(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			})
 		case "users":
@@ -50387,6 +51506,71 @@ func (ec *executionContext) marshalNEquipment2ᚖgithubᚗcomᚋfacebookincubato
 	return ec._Equipment(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNEquipmentConnection2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentConnection(ctx context.Context, sel ast.SelectionSet, v ent.EquipmentConnection) graphql.Marshaler {
+	return ec._EquipmentConnection(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNEquipmentConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentConnection(ctx context.Context, sel ast.SelectionSet, v *ent.EquipmentConnection) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._EquipmentConnection(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNEquipmentEdge2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentEdge(ctx context.Context, sel ast.SelectionSet, v ent.EquipmentEdge) graphql.Marshaler {
+	return ec._EquipmentEdge(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNEquipmentEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.EquipmentEdge) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNEquipmentEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentEdge(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNEquipmentEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentEdge(ctx context.Context, sel ast.SelectionSet, v *ent.EquipmentEdge) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._EquipmentEdge(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNEquipmentFilterInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐEquipmentFilterInput(ctx context.Context, v interface{}) (models.EquipmentFilterInput, error) {
 	return ec.unmarshalInputEquipmentFilterInput(ctx, v)
 }
@@ -50477,6 +51661,20 @@ func (ec *executionContext) marshalNEquipmentPort2ᚖgithubᚗcomᚋfacebookincu
 		return graphql.Null
 	}
 	return ec._EquipmentPort(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNEquipmentPortConnection2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentPortConnection(ctx context.Context, sel ast.SelectionSet, v ent.EquipmentPortConnection) graphql.Marshaler {
+	return ec._EquipmentPortConnection(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNEquipmentPortConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentPortConnection(ctx context.Context, sel ast.SelectionSet, v *ent.EquipmentPortConnection) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._EquipmentPortConnection(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNEquipmentPortDefinition2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentPortDefinition(ctx context.Context, sel ast.SelectionSet, v ent.EquipmentPortDefinition) graphql.Marshaler {
@@ -50593,6 +51791,57 @@ func (ec *executionContext) marshalNEquipmentPortDefinitionEdge2ᚖgithubᚗcom�
 		return graphql.Null
 	}
 	return ec._EquipmentPortDefinitionEdge(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNEquipmentPortEdge2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentPortEdge(ctx context.Context, sel ast.SelectionSet, v ent.EquipmentPortEdge) graphql.Marshaler {
+	return ec._EquipmentPortEdge(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNEquipmentPortEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentPortEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.EquipmentPortEdge) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNEquipmentPortEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentPortEdge(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNEquipmentPortEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentPortEdge(ctx context.Context, sel ast.SelectionSet, v *ent.EquipmentPortEdge) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._EquipmentPortEdge(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNEquipmentPortInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐEquipmentPortInput(ctx context.Context, v interface{}) (models.EquipmentPortInput, error) {
@@ -51423,6 +52672,71 @@ func (ec *executionContext) marshalNLink2ᚖgithubᚗcomᚋfacebookincubatorᚋs
 		return graphql.Null
 	}
 	return ec._Link(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNLinkConnection2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLinkConnection(ctx context.Context, sel ast.SelectionSet, v ent.LinkConnection) graphql.Marshaler {
+	return ec._LinkConnection(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNLinkConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLinkConnection(ctx context.Context, sel ast.SelectionSet, v *ent.LinkConnection) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._LinkConnection(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNLinkEdge2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLinkEdge(ctx context.Context, sel ast.SelectionSet, v ent.LinkEdge) graphql.Marshaler {
+	return ec._LinkEdge(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNLinkEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLinkEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.LinkEdge) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNLinkEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLinkEdge(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNLinkEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLinkEdge(ctx context.Context, sel ast.SelectionSet, v *ent.LinkEdge) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._LinkEdge(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNLinkFilterInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐLinkFilterInput(ctx context.Context, v interface{}) (models.LinkFilterInput, error) {

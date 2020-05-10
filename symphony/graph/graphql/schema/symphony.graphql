@@ -885,6 +885,34 @@ type EquipmentPortDefinitionEdge {
 }
 
 """
+A connection to a list of equipment ports.
+"""
+type EquipmentPortConnection {
+  """
+  A list of equipment port edges.
+  """
+  edges: [EquipmentPortEdge!]!
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+}
+
+"""
+An equipment port edge in a connection.
+"""
+type EquipmentPortEdge {
+  """
+  The equipment port at the end of the edge.
+  """
+  node: EquipmentPort
+  """
+  A cursor for use in pagination.
+  """
+  cursor: Cursor!
+}
+
+"""
 A connection to a list of equipment types.
 """
 type EquipmentTypeConnection {
@@ -906,6 +934,34 @@ type EquipmentTypeEdge {
   The equipment type at the end of the edge.
   """
   node: EquipmentType
+  """
+  A cursor for use in pagination.
+  """
+  cursor: Cursor!
+}
+
+"""
+A connection to a list of equipments.
+"""
+type EquipmentConnection {
+  """
+  A list of equipment edges.
+  """
+  edges: [EquipmentEdge!]!
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+}
+
+"""
+An equipment edge in a connection.
+"""
+type EquipmentEdge {
+  """
+  The equipment at the end of the edge.
+  """
+  node: Equipment
   """
   A cursor for use in pagination.
   """
@@ -962,6 +1018,34 @@ type LocationEdge {
   The location at the end of the edge.
   """
   node: Location
+  """
+  A cursor for use in pagination.
+  """
+  cursor: Cursor!
+}
+
+"""
+A connection to a list of links.
+"""
+type LinkConnection {
+  """
+  A list of link edges.
+  """
+  edges: [LinkEdge!]!
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+}
+
+"""
+A link edge in a connection.
+"""
+type LinkEdge {
+  """
+  The link at the end of the edge.
+  """
+  node: Link
   """
   A cursor for use in pagination.
   """
@@ -2518,12 +2602,24 @@ type Query {
     before: Cursor
     last: Int
   ): EquipmentPortDefinitionConnection!
+  equipmentPorts(
+    after: Cursor
+    first: Int
+    before: Cursor
+    last: Int
+  ): EquipmentPortConnection!
   equipmentTypes(
     after: Cursor
     first: Int
     before: Cursor
     last: Int
   ): EquipmentTypeConnection!
+  equipments(
+    after: Cursor
+    first: Int
+    before: Cursor
+    last: Int
+  ): EquipmentConnection!
   serviceTypes(
     after: Cursor
     first: Int
@@ -2543,6 +2639,7 @@ type Query {
     before: Cursor
     last: Int
   ): WorkOrderTypeConnection
+  links(after: Cursor, first: Int, before: Cursor, last: Int): LinkConnection!
   users(after: Cursor, first: Int, before: Cursor, last: Int): UserConnection
   usersGroups(
     after: Cursor
