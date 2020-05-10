@@ -156,7 +156,7 @@ func (l ImportHeader) PropertyStartIdx() int {
 	case ImportEntityPort:
 		return l.PositionIdx() + 6
 	case ImportEntityService:
-		return l.StatusIdx() + 1
+		return l.StatusIdx() + 16
 	case ImportEntityLink:
 		return l.LinkSecondPortStartIdx() * 2
 	case ImportEntityLocation:
@@ -168,7 +168,7 @@ func (l ImportHeader) PropertyStartIdx() int {
 // ServiceExternalIDIdx is the index of the external id of the service (used in other systems) in the exported csv
 func (l ImportHeader) ServiceExternalIDIdx() int {
 	if l.entity == ImportEntityService {
-		return 3
+		return 4
 	}
 	return -1
 }
@@ -176,7 +176,7 @@ func (l ImportHeader) ServiceExternalIDIdx() int {
 // CustomerNameIdx is the index of the name of customer that uses the services in the exported csv
 func (l ImportHeader) CustomerNameIdx() int {
 	if l.entity == ImportEntityService {
-		return 4
+		return 5
 	}
 	return -1
 }
@@ -184,7 +184,7 @@ func (l ImportHeader) CustomerNameIdx() int {
 // CustomerExternalIDIdx is the index of the external id of customer that uses the services in the exported csv
 func (l ImportHeader) CustomerExternalIDIdx() int {
 	if l.entity == ImportEntityService {
-		return 5
+		return 6
 	}
 	return -1
 }
@@ -192,7 +192,7 @@ func (l ImportHeader) CustomerExternalIDIdx() int {
 // StatusIdx is the index of the status of the service (can be of types enum ServiceType in graphql) in the exported csv
 func (l ImportHeader) StatusIdx() int {
 	if l.entity == ImportEntityService {
-		return 6
+		return 7
 	}
 	return -1
 }

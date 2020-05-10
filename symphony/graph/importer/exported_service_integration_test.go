@@ -41,18 +41,18 @@ const (
 	MethodEdit method = "EDIT"
 )
 
-// "Service ID", "Service Name", "Service Type", "Service External ID", "Customer Name", "Customer External ID", "prop1", "prop2", "prop3", "prop4"
+// "Service ID", "Service Name", "Service Type",  "Discovery Method", "Service External ID", "Customer Name", "Customer External ID", "prop1", "prop2", "prop3", "prop4"
 func editLine(line []string, index int) {
 	if index == 1 {
 		line[1] = "newName"
-		line[3] = "D243"
-		line[7] = "root"
-		line[8] = "20"
+		line[4] = "D243"
+		line[23] = "root"
+		line[24] = "20"
 	} else {
-		line[4] = "Donald"
-		line[5] = "U333"
-		line[9] = "22.4"
-		line[10] = "true"
+		line[5] = "Donald"
+		line[6] = "U333"
+		line[25] = "22.4"
+		line[26] = "true"
 	}
 }
 

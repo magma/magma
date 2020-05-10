@@ -23,7 +23,7 @@ type serviceEquipmentListData struct {
 	EquipmentList []*ent.Equipment
 }
 
-const maxEndpoints = 5
+const MaxEndpoints = 5
 
 // syncServices job syncs the services according to changes
 func (m *jobs) syncServices(w http.ResponseWriter, r *http.Request) {
