@@ -30,9 +30,8 @@ import {
 } from '@fbcnms/ui/components/design-system/View/ViewHeaderActions';
 import {
   NEW_DIALOG_PARAM,
+  PERMISSION_RULE_VALUES,
   POLICY_TYPES,
-  initInventoryRulesInput,
-  initWorkforceRulesInput,
 } from '../utils/UserManagementUtils';
 import {PERMISSION_POLICIES_VIEW_NAME} from './PermissionsPoliciesView';
 import {generateTempId} from '../../../../common/EntUtils';
@@ -64,6 +63,68 @@ type Props = $ReadOnly<{|
   ...WithAlert,
 |}>;
 
+const initialBasicRule = {
+  isAllowed: PERMISSION_RULE_VALUES.NO,
+};
+
+const initialCUDRule = {
+  create: {
+    ...initialBasicRule,
+  },
+  update: {
+    ...initialBasicRule,
+  },
+  delete: {
+    ...initialBasicRule,
+  },
+};
+
+const initialInventoryRules = {
+  read: {
+    ...initialBasicRule,
+  },
+  location: {
+    ...initialCUDRule,
+  },
+  equipment: {
+    ...initialCUDRule,
+  },
+  equipmentType: {
+    ...initialCUDRule,
+  },
+  locationType: {
+    ...initialCUDRule,
+  },
+  portType: {
+    ...initialCUDRule,
+  },
+  serviceType: {
+    ...initialCUDRule,
+  },
+};
+
+const initialWorkforceCUDRules = {
+  ...initialCUDRule,
+  assign: {
+    ...initialBasicRule,
+  },
+  transferOwnership: {
+    ...initialBasicRule,
+  },
+};
+
+const initialWorkforceRules = {
+  read: {
+    ...initialBasicRule,
+  },
+  data: {
+    ...initialWorkforceCUDRules,
+  },
+  templates: {
+    ...initialCUDRule,
+  },
+};
+
 const getInitialNewPolicy: (policyType: ?string) => PermissionsPolicy = (
   policyType: ?string,
 ) => {
@@ -80,13 +141,9 @@ const getInitialNewPolicy: (policyType: ?string) => PermissionsPolicy = (
     isGlobal: false,
     groups: [],
     inventoryRules:
-      type === POLICY_TYPES.InventoryPolicy.key
-        ? initInventoryRulesInput()
-        : null,
+      type === POLICY_TYPES.InventoryPolicy.key ? initialInventoryRules : null,
     workforceRules:
-      type === POLICY_TYPES.WorkforcePolicy.key
-        ? initWorkforceRulesInput()
-        : null,
+      type === POLICY_TYPES.WorkforcePolicy.key ? initialWorkforceRules : null,
   };
 };
 

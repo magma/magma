@@ -12,6 +12,15 @@
 // flowlint untyped-import:off
 
 import type {
+  AddPermissionsPolicyInput,
+  BasicPermissionRuleInput,
+  InventoryPolicyInput,
+  LocationCUDInput,
+  WorkforceCUDInput,
+  WorkforcePermissionRuleInput,
+  WorkforcePolicyInput,
+} from '../../../../mutations/__generated__/AddPermissionsPolicyMutation.graphql';
+import type {
   PermissionValue,
   UserManagementContextQueryResponse,
   UserRole,
@@ -413,10 +422,19 @@ export type InventoryPolicy = $ReadOnly<{|
   ...InventoryCatalogPolicy,
 |}>;
 
+export type WorkforceBasicPermissions = BasicPermissionRule &
+  $ReadOnly<{|
+    ...BasicPermissionRule,
+    projectTypeIds?: ?$ReadOnlyArray<string>,
+    workOrderTypeIds?: ?$ReadOnlyArray<string>,
+  |}>;
+
 export type WorkforceCUDPermissions = $ReadOnly<{|
-  assign: BasicPermissionRule,
-  transferOwnership: BasicPermissionRule,
-  ...CUDPermissions,
+  create: WorkforceBasicPermissions,
+  update: WorkforceBasicPermissions,
+  delete: WorkforceBasicPermissions,
+  assign: WorkforceBasicPermissions,
+  transferOwnership: WorkforceBasicPermissions,
 |}>;
 
 export type WorkforcePolicy = $ReadOnly<{|
@@ -502,9 +520,9 @@ export const permissionsPoliciesResponse2PermissionsPolicies = (
         .filter(Boolean)
         .map<PermissionsPolicy>(permissionsPolicyResponse2PermissionsPolicy);
 
-export const permissionPolicyBasicRule2PermissionPolicyBasicRuleInput = (
-  rule: ?BasicPermissionRule,
-) => {
+export const permissionPolicyBasicRule2PermissionPolicyBasicRuleInput: (
+  ?BasicPermissionRule,
+) => BasicPermissionRuleInput = (rule: ?BasicPermissionRule) => {
   return {
     isAllowed: rule?.isAllowed ?? PERMISSION_RULE_VALUES.NO,
   };
@@ -526,34 +544,36 @@ export const permissionPolicyCUDRule2PermissionPolicyCUDRuleInput = (
   };
 };
 
-export const permissionPolicyWFCUDRule2PermissionPolicyWFCUDRuleInput = (
-  rule: ?WorkforceCUDPermissions,
-) => {
+export const permissionPolicyWFCUDRule2PermissionPolicyWFCUDRuleInput: (
+  ?WorkforceCUDPermissions,
+) => WorkforceCUDInput = (rule: ?WorkforceCUDPermissions) => {
   return {
-    create: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
-      rule?.create,
-    ),
-    update: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
-      rule?.update,
-    ),
-    delete: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
-      rule?.delete,
-    ),
-    assign: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
-      rule?.assign,
-    ),
-    transferOwnership: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
+    create: wfPermissionPolicyBasicRule2wfPermissionRuleInput(rule?.create),
+    update: wfPermissionPolicyBasicRule2wfPermissionRuleInput(rule?.update),
+    delete: wfPermissionPolicyBasicRule2wfPermissionRuleInput(rule?.delete),
+    assign: wfPermissionPolicyBasicRule2wfPermissionRuleInput(rule?.assign),
+    transferOwnership: wfPermissionPolicyBasicRule2wfPermissionRuleInput(
       rule?.transferOwnership,
     ),
   };
 };
 
-export const initInventoryRulesInput = (policyRules?: ?InventoryPolicy) => {
+export const wfPermissionPolicyBasicRule2wfPermissionRuleInput: (
+  ?WorkforceBasicPermissions,
+) => WorkforcePermissionRuleInput = (rule: ?BasicPermissionRule) => {
+  return {
+    isAllowed: rule?.isAllowed ?? PERMISSION_RULE_VALUES.NO,
+  };
+};
+
+export const initInventoryRulesInput: (
+  ?InventoryPolicy,
+) => InventoryPolicyInput = (policyRules?: ?InventoryPolicy) => {
   return {
     read: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
       policyRules?.read,
     ),
-    location: permissionPolicyCUDRule2PermissionPolicyCUDRuleInput(
+    location: permissionPolicyCUDRule2LocationPermissionPolicyCUDRuleInput(
       policyRules?.location,
     ),
     equipment: permissionPolicyCUDRule2PermissionPolicyCUDRuleInput(
@@ -574,7 +594,28 @@ export const initInventoryRulesInput = (policyRules?: ?InventoryPolicy) => {
   };
 };
 
-export const initWorkforceRulesInput = (policyRules?: ?WorkforcePolicy) => {
+export const permissionPolicyCUDRule2LocationPermissionPolicyCUDRuleInput: (
+  ?CUDPermissions,
+) => LocationCUDInput = (rule: ?CUDPermissions) => {
+  const partialInput = permissionPolicyCUDRule2PermissionPolicyCUDRuleInput(
+    rule,
+  );
+  return {
+    create: {
+      ...partialInput.create,
+    },
+    update: {
+      ...partialInput.update,
+    },
+    delete: {
+      ...partialInput.delete,
+    },
+  };
+};
+
+export const initWorkforceRulesInput: (
+  ?WorkforcePolicy,
+) => WorkforcePolicyInput = (policyRules?: ?WorkforcePolicy) => {
   return {
     read: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
       policyRules?.read,
@@ -588,7 +629,9 @@ export const initWorkforceRulesInput = (policyRules?: ?WorkforcePolicy) => {
   };
 };
 
-export const permissionsPolicy2PermissionsPolicyInput = (
+// line was too long. So made it shorter...
+type PP2APPI = PermissionsPolicy => AddPermissionsPolicyInput;
+export const permissionsPolicy2PermissionsPolicyInput: PP2APPI = (
   policy: PermissionsPolicy,
 ) => {
   return {
