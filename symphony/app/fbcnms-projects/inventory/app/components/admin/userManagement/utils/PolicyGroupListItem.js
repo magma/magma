@@ -16,8 +16,7 @@ import type {ToggleButtonDisplay} from './ListItem';
 
 import * as React from 'react';
 import MemberListItem from './MemberListItem';
-import emptyFunction from '@fbcnms/util/emptyFunction';
-import {useEffect, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 
 export type AssigenmentButtonProp = $ReadOnly<{|
   assigmentButton?: ?ToggleButtonDisplay,
@@ -27,6 +26,7 @@ type Props = $ReadOnly<{|
   group: UserPermissionsGroup,
   isMember?: ?boolean,
   policy?: ?PermissionsPolicy,
+  onChange: PermissionsPolicy => void,
   className?: ?string,
   ...AssigenmentButtonProp,
 |}>;
@@ -37,13 +37,28 @@ const checkIsGroupInPolicy = (
 ) => policy == null || policy.groups.find(g => g.id === group.id) != null;
 
 export default function PolicyGroupListItem(props: Props) {
-  const {group, policy, assigmentButton, className} = props;
+  const {group, policy, assigmentButton, className, onChange} = props;
   const [isGroupInPolicy, setIsGroupInPolicy] = useState(false);
   useEffect(() => setIsGroupInPolicy(checkIsGroupInPolicy(group, policy)), [
     group,
     policy,
   ]);
 
+  const toggleAssigment = useCallback(
+    (group: UserPermissionsGroup, shouldAssign) => {
+      if (policy == null) {
+        return;
+      }
+      const newGroups = shouldAssign
+        ? [...policy.groups, group]
+        : policy.groups.filter(g => g.id != group.id);
+      onChange({
+        ...policy,
+        groups: newGroups,
+      });
+    },
+    [onChange, policy],
+  );
   return (
     <MemberListItem
       member={{
@@ -52,7 +67,7 @@ export default function PolicyGroupListItem(props: Props) {
       }}
       className={className}
       assigmentButton={assigmentButton}
-      onAssignToggle={emptyFunction}>
+      onAssignToggle={() => toggleAssigment(group, !isGroupInPolicy)}>
       {group.name}
     </MemberListItem>
   );

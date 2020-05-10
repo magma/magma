@@ -280,6 +280,7 @@ function PermissionsPolicyCard(props: Props) {
           <Grid item xs={4} sm={4} lg={4} xl={4} className={classes.container}>
             <PermissionsPolicyGroupsPane
               policy={policy}
+              onChange={setPolicy}
               className={classes.detailsPane}
             />
           </Grid>
