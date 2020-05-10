@@ -263,7 +263,7 @@ export const GROUP_STATUSES: KeyValueEnum<UsersGroupStatus> = {
   },
   DEACTIVATED: {
     key: 'DEACTIVATED',
-    value: `${fbt('Deactivated', '')}`,
+    value: `${fbt('Inactive', '')}`,
   },
 };
 

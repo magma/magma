@@ -23,6 +23,7 @@ const useStyles = makeStyles(() => ({
     flexBasis: '10px',
     flexGrow: 1,
     flexShrink: 1,
+    overflow: 'hidden',
   },
 }));
 
