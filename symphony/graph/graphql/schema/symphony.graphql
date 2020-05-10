@@ -2086,6 +2086,7 @@ Service type schema: e.g. L2 VPN.
 type ServiceType implements Node {
   id: ID!
   name: String!
+  isDeleted: Boolean!
   hasCustomer: Boolean!
   propertyTypes: [PropertyType]!
   services: [Service]!
