@@ -84,6 +84,9 @@ class RequestsHTTPSessionTransport(HTTPTransport):
         ):
             raise UserDeactivatedException()
 
+        if response.status_code == HTTPStatus.GATEWAY_TIMEOUT:
+            raise TimeoutError()
+
         result = response.json()
 
         extensions = {}

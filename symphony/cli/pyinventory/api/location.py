@@ -9,7 +9,7 @@ from pysymphony import SymphonyClient
 
 from .._utils import deprecated, get_graphql_property_inputs
 from ..common.cache import LOCATION_TYPES
-from ..common.constant import LOCATIONS_TO_SEARCH
+from ..common.constant import LOCATION_PAGINATION_STEP, LOCATIONS_TO_SEARCH
 from ..common.data_class import Document, ImageEntity, Location, PropertyValue
 from ..common.data_enum import Entity
 from ..exceptions import (
@@ -200,6 +200,7 @@ def add_location(
         longitude=last_location.longitude,
         externalId=last_location.externalId,
         locationTypeName=last_location.locationType.name,
+        properties=last_location.properties,
     )
 
 
@@ -274,6 +275,7 @@ def get_location(
         longitude=last_location.longitude,
         externalId=last_location.externalId,
         locationTypeName=last_location.locationType.name,
+        properties=last_location.properties,
     )
 
 
@@ -288,12 +290,16 @@ def get_locations(client: SymphonyClient) -> List[Location]:
             all_locations = client.get_locations()
             ```
     """
-    locations = GetLocationsQuery.execute(client)
-    if not locations:
-        return []
-    result = []
-    edges = locations.edges
+    locations = GetLocationsQuery.execute(client, first=LOCATION_PAGINATION_STEP)
+    edges = locations.edges if locations else []
+    while locations is not None and locations.pageInfo.hasNextPage:
+        locations = GetLocationsQuery.execute(
+            client, after=locations.pageInfo.endCursor, first=LOCATION_PAGINATION_STEP
+        )
+        if locations is not None:
+            edges.extend(locations.edges)
 
+    result = []
     for edge in edges:
         node = edge.node
         if node is not None:
@@ -305,6 +311,7 @@ def get_locations(client: SymphonyClient) -> List[Location]:
                     longitude=node.longitude,
                     externalId=node.externalId,
                     locationTypeName=node.locationType.name,
+                    properties=node.properties,
                 )
             )
 
@@ -344,6 +351,7 @@ def get_location_children(client: SymphonyClient, location_id: str) -> List[Loca
             longitude=location.longitude,
             externalId=location.externalId,
             locationTypeName=location.locationType.name,
+            properties=location.properties,
         )
         for location in location_with_children.children
     ]
@@ -413,6 +421,7 @@ def edit_location(
         longitude=result.longitude,
         externalId=result.externalId,
         locationTypeName=result.locationType.name,
+        properties=result.properties,
     )
 
 
@@ -485,6 +494,7 @@ def move_location(
         longitude=result.longitude,
         externalId=result.externalId,
         locationTypeName=result.locationType.name,
+        properties=result.properties,
     )
 
 
@@ -545,6 +555,7 @@ def get_location_by_external_id(client: SymphonyClient, external_id: str) -> Loc
         longitude=location_details.longitude,
         externalId=location_details.externalId,
         locationTypeName=location_details.locationType.name,
+        properties=location_details.properties,
     )
 
 

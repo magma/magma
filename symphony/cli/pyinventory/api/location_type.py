@@ -123,6 +123,7 @@ def delete_locations_by_location_type(
                     longitude=node.longitude,
                     externalId=node.externalId,
                     locationTypeName=node.locationType.name,
+                    properties=node.properties,
                 ),
             )
 
