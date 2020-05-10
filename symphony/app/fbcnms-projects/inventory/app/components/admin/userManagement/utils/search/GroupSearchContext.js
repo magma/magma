@@ -21,41 +21,32 @@ import {fetchQuery, graphql} from 'relay-runtime';
 import {groupsResponse2Groups} from '../UserManagementUtils';
 
 const groupSearchQuery = graphql`
-  query GroupSearchContextQuery {
-    usersGroups(first: 500) {
-      edges {
-        node {
+  query GroupSearchContextQuery($filters: [UsersGroupFilterInput!]!) {
+    usersGroupSearch(filters: $filters) {
+      usersGroups {
+        id
+        name
+        description
+        status
+        members {
           id
-          name
-          description
-          status
-          members {
-            id
-            authID
-          }
+          authID
         }
       }
     }
   }
 `;
 
-const searchCallback = (_searchTerm: string, _policy: ?PermissionsPolicy) =>
+const searchCallback = (searchTerm: string, _policy: ?PermissionsPolicy) =>
   fetchQuery<GroupSearchContextQuery>(RelayEnvironment, groupSearchQuery, {
-    // filters: [
-    //   {
-    //     filterType: 'USER_NAME',
-    //     operator: 'CONTAINS',
-    //     stringValue: searchTerm,
-    //   },
-    // ],
-  }).then(response => {
-    const usersGroups = response?.usersGroups;
-    if (usersGroups == null) {
-      return [];
-    }
-
-    return groupsResponse2Groups(usersGroups);
-  });
+    filters: [
+      {
+        filterType: 'GROUP_NAME',
+        operator: 'CONTAINS',
+        stringValue: searchTerm,
+      },
+    ],
+  }).then(response => groupsResponse2Groups(response.usersGroupSearch));
 
 const {
   SearchContext: GroupSearchContext,

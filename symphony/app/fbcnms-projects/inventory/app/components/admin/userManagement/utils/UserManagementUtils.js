@@ -20,6 +20,7 @@ import type {
   WorkforcePermissionRuleInput,
   WorkforcePolicyInput,
 } from '../../../../mutations/__generated__/AddPermissionsPolicyMutation.graphql';
+import type {GroupSearchContextQueryResponse} from './search/__generated__/GroupSearchContextQuery.graphql';
 import type {
   PermissionValue,
   UserManagementContextQueryResponse,
@@ -307,6 +308,10 @@ type GroupsReponsePart = $ElementType<
   UserManagementContextQueryResponse,
   'usersGroups',
 >;
+type GroupsSearchReponsePart = $ElementType<
+  GroupSearchContextQueryResponse,
+  'usersGroupSearch',
+>;
 type GroupsEdgesResponsePart = $ElementType<
   $NonMaybeType<GroupsReponsePart>,
   'edges',
@@ -381,16 +386,23 @@ export const groupResponse2Group: (
 });
 
 export const groupsResponse2Groups = (
-  groupsResponse: GroupsReponsePart,
+  groupsResponse: GroupsReponsePart | GroupsSearchReponsePart,
   usersMap?: ?UsersMap,
-) =>
-  groupsResponse?.edges == null
-    ? []
-    : groupsResponse?.edges
-        .filter(Boolean)
-        .map(gr => gr.node)
-        .filter(Boolean)
-        .map<UserPermissionsGroup>(gr => groupResponse2Group(gr, usersMap));
+) => {
+  if (groupsResponse == null) {
+    return [];
+  }
+  const resposeNodes =
+    groupsResponse.edges != null
+      ? groupsResponse?.edges.filter(Boolean).map(gr => gr.node)
+      : groupsResponse.usersGroups != null
+      ? groupsResponse.usersGroups
+      : [];
+
+  return resposeNodes
+    .filter(Boolean)
+    .map<UserPermissionsGroup>(gr => groupResponse2Group(gr, usersMap));
+};
 
 export const PERMISSION_RULE_VALUES = {
   YES: 'YES',
