@@ -42,6 +42,27 @@ func workforceCudBasedCheck(cud *models.WorkforceCud, m ent.Mutation) bool {
 	return false
 }
 
+func allowOrSkip(r *models.BasicPermissionRule) error {
+	if r.IsAllowed == models2.PermissionValueYes {
+		return privacy.Allow
+	}
+	return privacy.Skip
+}
+
+func allowOrSkipLocations(r *models.LocationPermissionRule) error {
+	if r.IsAllowed == models2.PermissionValueYes {
+		return privacy.Allow
+	}
+	return privacy.Skip
+}
+
+func allowOrSkipWorkforce(r *models.WorkforcePermissionRule) error {
+	if r.IsAllowed == models2.PermissionValueYes {
+		return privacy.Allow
+	}
+	return privacy.Skip
+}
+
 func cudBasedRule(cud *models.Cud, m ent.Mutation) error {
 	if cudBasedCheck(cud, m) {
 		return privacy.Allow

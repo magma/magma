@@ -37,6 +37,28 @@ func isUserWOAssignee(ctx context.Context, userID int, workOrder *ent.WorkOrder)
 	return assigneeID == userID, nil
 }
 
+func workOrderIsEditable(ctx context.Context, workOrder *ent.WorkOrder) (bool, error) {
+	userViewer, ok := viewer.FromContext(ctx).(*viewer.UserViewer)
+	if !ok {
+		return false, nil
+	}
+	isOwner, err := isUserWOOwner(ctx, userViewer.User().ID, workOrder)
+	if err != nil {
+		return false, err
+	}
+	if isOwner {
+		return true, nil
+	}
+	isAssignee, err := isUserWOAssignee(ctx, userViewer.User().ID, workOrder)
+	if err != nil {
+		return false, err
+	}
+	if isAssignee {
+		return true, nil
+	}
+	return false, nil
+}
+
 func AllowIfWorkOrderOwnerOrAssignee() privacy.MutationRule {
 	return privacy.WorkOrderMutationRuleFunc(func(ctx context.Context, m *ent.WorkOrderMutation) error {
 		workOrderID, exists := m.ID()
@@ -47,8 +69,7 @@ func AllowIfWorkOrderOwnerOrAssignee() privacy.MutationRule {
 		if !ok {
 			return privacy.Skip
 		}
-		client := ent.FromContext(ctx)
-		workOrder, err := client.WorkOrder.Get(ctx, workOrderID)
+		workOrder, err := m.Client().WorkOrder.Get(ctx, workOrderID)
 		if err != nil {
 			if !ent.IsNotFound(err) {
 				return privacy.Denyf("failed to fetch work order: %w", err)
