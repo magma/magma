@@ -8,8 +8,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/AlekSi/pointer"
-
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/ent/usersgroup"
@@ -44,6 +42,7 @@ func TestAddUsersGroup(t *testing.T) {
 		Description: &gDescription,
 		Members:     memberIds,
 	}
+
 	_, err := mr.AddUsersGroup(ctx, inp)
 	require.NoError(t, err)
 
@@ -125,66 +124,6 @@ func TestEditUsersGroup(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, ug1update3.Status, gUpdatedStatus, "verifying group status updated")
 	require.Len(t, ug1update2.QueryMembers().AllX(ctx), 0)
-}
-
-func TestUpdatePermissionsPoliciesInUsersGroup(t *testing.T) {
-	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(context.Background(), r.client)
-
-	mr := r.Mutation()
-
-	gName1 := "group_1"
-	addInp1 := getAddUsersGroupInput(gName1, "this is group 1")
-	ug1, err := mr.AddUsersGroup(ctx, addInp1)
-	require.NoError(t, err)
-
-	require.Len(t, ug1.QueryPolicies().AllX(ctx), 0)
-
-	inventoryPolicyInput := getInventoryPolicyInput()
-
-	policy1, err := mr.AddPermissionsPolicy(ctx, models.AddPermissionsPolicyInput{
-		Name:           "policy1",
-		Description:    pointer.ToString("policyDescription1"),
-		InventoryInput: inventoryPolicyInput,
-		WorkforceInput: nil,
-	})
-	require.NoError(t, err)
-
-	policy2, err := mr.AddPermissionsPolicy(ctx, models.AddPermissionsPolicyInput{
-		Name:           "policy2",
-		Description:    pointer.ToString("policyDescription2"),
-		InventoryInput: inventoryPolicyInput,
-		WorkforceInput: nil,
-	})
-	require.NoError(t, err)
-
-	updateInput1 := models.UpdatePermissionsPoliciesInUsersGroupInput{
-		ID:                         ug1.ID,
-		AddPermissionsPolicyIds:    []int{policy1.ID},
-		RemovePermissionsPolicyIds: []int{},
-	}
-	ugUpdate1, err := mr.UpdatePermissionsPoliciesInUsersGroup(ctx, updateInput1)
-	require.NoError(t, err)
-	require.Len(t, ugUpdate1.QueryPolicies().AllX(ctx), 1)
-
-	updateInput2 := models.UpdatePermissionsPoliciesInUsersGroupInput{
-		ID:                         ug1.ID,
-		AddPermissionsPolicyIds:    []int{policy2.ID},
-		RemovePermissionsPolicyIds: []int{},
-	}
-	ugUpdate2, err := mr.UpdatePermissionsPoliciesInUsersGroup(ctx, updateInput2)
-	require.NoError(t, err)
-	require.Len(t, ugUpdate2.QueryPolicies().AllX(ctx), 2)
-
-	updateInput3 := models.UpdatePermissionsPoliciesInUsersGroupInput{
-		ID:                         ug1.ID,
-		AddPermissionsPolicyIds:    []int{},
-		RemovePermissionsPolicyIds: []int{policy1.ID},
-	}
-	ugUpdate3, err := mr.UpdatePermissionsPoliciesInUsersGroup(ctx, updateInput3)
-	require.NoError(t, err)
-	require.Len(t, ugUpdate3.QueryPolicies().AllX(ctx), 1)
 }
 
 func CreateUserEnt(ctx context.Context, client *ent.Client, userName string) (*ent.User, error) {

@@ -177,6 +177,7 @@ type AddPermissionsPolicyInput struct {
 	IsGlobal       *bool                        `json:"isGlobal"`
 	InventoryInput *models.InventoryPolicyInput `json:"inventoryInput"`
 	WorkforceInput *models.WorkforcePolicyInput `json:"workforceInput"`
+	Groups         []int                        `json:"groups"`
 }
 
 type AddProjectInput struct {
@@ -352,6 +353,7 @@ type EditPermissionsPolicyInput struct {
 	IsGlobal       *bool                        `json:"isGlobal"`
 	InventoryInput *models.InventoryPolicyInput `json:"inventoryInput"`
 	WorkforceInput *models.WorkforcePolicyInput `json:"workforceInput"`
+	Groups         []int                        `json:"groups"`
 }
 
 type EditProjectInput struct {
@@ -862,12 +864,6 @@ type TopologyLink struct {
 	Type   TopologyLinkType `json:"type"`
 	Source ent.Noder        `json:"source"`
 	Target ent.Noder        `json:"target"`
-}
-
-type UpdateGroupsInPermissionsPolicyInput struct {
-	ID             int   `json:"id"`
-	AddGroupIds    []int `json:"addGroupIds"`
-	RemoveGroupIds []int `json:"removeGroupIds"`
 }
 
 type UpdatePermissionsPoliciesInUsersGroupInput struct {

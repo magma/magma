@@ -228,6 +228,7 @@ input AddPermissionsPolicyInput {
   isGlobal: Boolean
   inventoryInput: InventoryPolicyInput
   workforceInput: WorkforcePolicyInput
+  groups: [ID!]
 }
 
 input EditPermissionsPolicyInput {
@@ -237,12 +238,7 @@ input EditPermissionsPolicyInput {
   isGlobal: Boolean
   inventoryInput: InventoryPolicyInput
   workforceInput: WorkforcePolicyInput
-}
-
-input UpdateGroupsInPermissionsPolicyInput {
-  id: ID!
-  addGroupIds: [ID!]!
-  removeGroupIds: [ID!]!
+  groups: [ID!]
 }
 
 type Viewer
@@ -2922,10 +2918,6 @@ type Mutation {
   addPermissionsPolicy(input: AddPermissionsPolicyInput!): PermissionsPolicy!
   editPermissionsPolicy(input: EditPermissionsPolicyInput!): PermissionsPolicy!
   deletePermissionsPolicy(id: ID!): Boolean!
-
-  updateGroupsInPermissionsPolicy(
-    input: UpdateGroupsInPermissionsPolicyInput!
-  ): PermissionsPolicy!
 }
 
 type Subscription {

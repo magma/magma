@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash a9c003954eb2eab2848c96b5a004b8ed
+ * @relayHash b302cd1a22d6506b2c0a6dd3c9766bc0
  */
 
 /* eslint-disable */
@@ -22,6 +22,7 @@ export type AddPermissionsPolicyInput = {|
   isGlobal?: ?boolean,
   inventoryInput?: ?InventoryPolicyInput,
   workforceInput?: ?WorkforcePolicyInput,
+  groups?: ?$ReadOnlyArray<string>,
 |};
 export type InventoryPolicyInput = {|
   read?: ?BasicPermissionRuleInput,
