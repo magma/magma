@@ -57,7 +57,7 @@ class ServiceTypeItem extends React.Component<Props> {
               onDelete={this.onDelete}
               allowDelete={
                 serviceType.discoveryMethod == 'MANUAL'
-                  ? serviceType.numberOfServices > 0
+                  ? serviceType.numberOfServices == 0
                   : true
               }
               onEdit={onEdit}
