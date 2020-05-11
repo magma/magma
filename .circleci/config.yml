@@ -6,6 +6,15 @@ refs:
       branches:
         only: master
 
+aliases:
+  - &appdir
+    working_directory: "symphony/app"
+
+executors:
+  node:
+    docker:
+      - image: circleci/node:10-buster-browsers-legacy
+
 orbs:
   artifactory: circleci/artifactory@0.0.7
   build:
@@ -353,6 +362,28 @@ jobs:
             cd ${MAGMA_ROOT}/symphony/app/fbcnms-projects/magmalte
             docker-compose build magmalte
 
+  nms-yarn-test:
+    executor: node
+    steps:
+      - checkout
+      - restore_cache:
+          name: Restore Yarn Package Cache
+          keys:
+            - yarn-packages-{{ checksum "symphony/app/yarn.lock" }}
+      - run:
+          name: Install Dependencies
+          <<: *appdir
+          command: yarn install --frozen-lockfile
+      - save_cache:
+          name: Save Yarn Package Cache
+          key: yarn-packages-{{ checksum "symphony/app/yarn.lock" }}
+          paths:
+            - ~/.cache/yarn
+      - run:
+          name: yarn test
+          <<: *appdir
+          command: yarn test:ci
+
   fossa-analyze:
     docker:
       - image: ubuntu:xenial
@@ -533,6 +564,7 @@ workflows:
       - orc8r-gateway-test
       - lte-test
       - insync-checkin
+      - nms-yarn-test
       - orc8r-core-build:
           requires:
             - cloud-test
