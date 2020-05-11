@@ -6,29 +6,27 @@ package authz
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"github.com/facebookincubator/symphony/graph/graphql/models"
-
 	"github.com/facebookincubator/symphony/pkg/log"
+	"go.uber.org/zap"
 )
 
-type AuthHandler struct {
-	Handler http.Handler
-	Logger  log.Logger
-}
-
-// AuthHandler calculates permissions of viewer and put in context.
-func (h AuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	permissions, err := Permissions(NewContext(ctx, AdminPermissions()))
-	if err != nil {
-		http.Error(w, fmt.Sprintf("get permissions: %s", err.Error()), http.StatusServiceUnavailable)
-		return
-	}
-	ctx = NewContext(ctx, permissions)
-	h.Handler.ServeHTTP(w, r.WithContext(ctx))
+// Handler returns a Handler that runs h with permissions.
+func Handler(h http.Handler, logger log.Logger) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		permissions, err := Permissions(NewContext(ctx, AdminPermissions()))
+		if err != nil {
+			const msg = "cannot get permissions"
+			logger.For(ctx).Warn(msg, zap.Error(err))
+			http.Error(w, msg, http.StatusServiceUnavailable)
+			return
+		}
+		ctx = NewContext(ctx, permissions)
+		h.ServeHTTP(w, r.WithContext(ctx))
+	})
 }
 
 type contextKey struct{}

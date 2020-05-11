@@ -381,7 +381,10 @@ func prepareData(ctx context.Context, t *testing.T, r TestExporterResolver) {
 }
 
 func prepareHandlerAndExport(t *testing.T, r *TestExporterResolver, e http.Handler) (context.Context, *http.Response) {
-	th := viewer.TenancyHandler(e, viewer.NewFixedTenancy(r.client))
+	th := viewer.TenancyHandler(e,
+		viewer.NewFixedTenancy(r.client),
+		logtest.NewTestLogger(t),
+	)
 	server := httptest.NewServer(th)
 	defer server.Close()
 
@@ -415,8 +418,11 @@ func importLinksPortsFile(t *testing.T, client *ent.Client, r io.Reader, entity 
 			Subscriber: event.NewNopSubscriber(),
 		},
 	)
-	auth := authz.AuthHandler{Handler: h, Logger: logtest.NewTestLogger(t)}
-	th := viewer.TenancyHandler(auth, viewer.NewFixedTenancy(client))
+	auth := authz.Handler(h, logtest.NewTestLogger(t))
+	th := viewer.TenancyHandler(auth,
+		viewer.NewFixedTenancy(client),
+		logtest.NewTestLogger(t),
+	)
 	server := httptest.NewServer(th)
 	defer server.Close()
 	switch entity {

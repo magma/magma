@@ -75,9 +75,9 @@ func writeModifiedLocationsCSV(t *testing.T, r *csv.Reader, method method, withV
 		lines[3][5] = "should"
 		lines[3][6] = "fail"
 	}
-	for _, l := range lines {
-		stringLine := strings.Join(l, ",")
-		fileWriter.Write([]byte(stringLine + "\n"))
+	for _, line := range lines {
+		stringLine := strings.Join(line, ",")
+		_, _ = io.WriteString(fileWriter, stringLine+"\n")
 	}
 	ct := bw.FormDataContentType()
 	require.NoError(t, bw.Close())
@@ -88,15 +88,19 @@ func importLocationsFile(t *testing.T, client *ent.Client, r io.Reader, method m
 	readr := csv.NewReader(r)
 	buf, contentType := writeModifiedLocationsCSV(t, readr, method, withVerify, skipLines)
 
+	logger := logtest.NewTestLogger(t)
 	h, _ := importer.NewHandler(
 		importer.Config{
-			Logger:     logtest.NewTestLogger(t),
+			Logger:     logger,
 			Subscriber: event.NewNopSubscriber(),
 		},
 	)
-	auth := authz.AuthHandler{Handler: h, Logger: logtest.NewTestLogger(t)}
-	th := viewer.TenancyHandler(auth, viewer.NewFixedTenancy(client))
-	server := httptest.NewServer(th)
+	h = authz.Handler(h, logger)
+	h = viewer.TenancyHandler(h,
+		viewer.NewFixedTenancy(client),
+		logger,
+	)
+	server := httptest.NewServer(h)
 	defer server.Close()
 
 	req, err := http.NewRequest(http.MethodPost, server.URL+"/export_locations", buf)
