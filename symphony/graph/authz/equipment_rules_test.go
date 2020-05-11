@@ -8,6 +8,8 @@ import (
 	"context"
 	"testing"
 
+	models2 "github.com/facebookincubator/symphony/graph/authz/models"
+
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 )
@@ -107,5 +109,41 @@ func TestEquipmentPortTypeWritePolicyRule(t *testing.T) {
 		create: createEquipmentPortType,
 		update: updateEquipmentPortType,
 		delete: deleteEquipmentPortType,
+	})
+}
+
+func TestEquipmentPortDefinitionWritePolicyRule(t *testing.T) {
+	c := viewertest.NewTestClient(t)
+	ctx := viewertest.NewContext(context.Background(), c)
+	equipmentType := c.EquipmentType.Create().
+		SetName("EquipmentType").
+		SaveX(ctx)
+	equipmentPortDefinition := c.EquipmentPortDefinition.Create().
+		SetName("EquipmentPortDefinition").
+		SetEquipmentType(equipmentType).
+		SaveX(ctx)
+	createEquipmentPortDefinition := func(ctx context.Context) error {
+		_, err := c.EquipmentPortDefinition.Create().
+			SetName("NewEquipmentPortDefinition").
+			SetEquipmentType(equipmentType).
+			Save(ctx)
+		return err
+	}
+	updateEquipmentPortDefinition := func(ctx context.Context) error {
+		return c.EquipmentPortDefinition.UpdateOne(equipmentPortDefinition).
+			SetName("NewName").
+			Exec(ctx)
+	}
+	deleteEquipmentPortDefinition := func(ctx context.Context) error {
+		return c.EquipmentPortDefinition.DeleteOne(equipmentPortDefinition).
+			Exec(ctx)
+	}
+	runCudPolicyTest(t, cudPolicyTest{
+		appendPermissions: func(p *models.PermissionSettings) {
+			p.InventoryPolicy.EquipmentType.Update.IsAllowed = models2.PermissionValueYes
+		},
+		create: createEquipmentPortDefinition,
+		update: updateEquipmentPortDefinition,
+		delete: deleteEquipmentPortDefinition,
 	})
 }
