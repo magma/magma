@@ -92,6 +92,15 @@ func (ServiceEndpoint) Edges() []ent.Edge {
 	}
 }
 
+// Policy returns ServiceEndPoint policy.
+func (ServiceEndpoint) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithMutationRules(
+			authz.ServiceEndpointWritePolicyRule(),
+		),
+	)
+}
+
 // ServiceEndpointDefinition holds the schema definition for the ServiceEndpointDefinition entity.
 type ServiceEndpointDefinition struct {
 	schema
@@ -165,4 +174,13 @@ func (Service) Edges() []ent.Edge {
 		edge.To("customer", Customer.Type),
 		edge.To("endpoints", ServiceEndpoint.Type),
 	}
+}
+
+// Policy returns service policy.
+func (Service) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithMutationRules(
+			authz.ServiceWritePolicyRule(),
+		),
+	)
 }
