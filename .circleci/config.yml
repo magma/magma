@@ -384,6 +384,19 @@ jobs:
           <<: *appdir
           command: yarn test:ci
 
+  nms-flow-test:
+    executor: node
+    steps:
+      - checkout
+      - run:
+          name: install flow
+          <<: *appdir
+          command: yarn add --dev -W flow-bin@0.120
+      - run:
+          name: flow typecheck
+          <<: *appdir
+          command: yarn run flow
+
   fossa-analyze:
     docker:
       - image: ubuntu:xenial
@@ -564,7 +577,10 @@ workflows:
       - orc8r-gateway-test
       - lte-test
       - insync-checkin
-      - nms-yarn-test
+      - nms-flow-test
+      - nms-yarn-test:
+          requires:
+            - nms-flow-test
       - orc8r-core-build:
           requires:
             - cloud-test
