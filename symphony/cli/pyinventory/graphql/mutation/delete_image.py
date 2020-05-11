@@ -50,11 +50,13 @@ class DeleteImageMutation(DataClassJsonMixin):
         # fmt: off
         variables = {"entityType": entityType, "entityId": entityId, "id": id}
         try:
-            start_time = perf_counter()
+            network_start = perf_counter()
             response_text = client.call(''.join(set(QUERY)), variables=variables)
+            decode_start = perf_counter()
             res = cls.from_json(response_text).data
-            elapsed_time = perf_counter() - start_time
-            client.reporter.log_successful_operation("DeleteImageMutation", variables, elapsed_time)
+            decode_time = perf_counter() - decode_start
+            network_time = decode_start - network_start
+            client.reporter.log_successful_operation("DeleteImageMutation", variables, network_time, decode_time)
             return res.deleteImage
         except OperationException as e:
             raise FailedOperationException(

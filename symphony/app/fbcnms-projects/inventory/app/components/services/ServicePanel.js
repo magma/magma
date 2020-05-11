@@ -138,7 +138,7 @@ const ServicePanel = React.forwardRef((props: Props, ref) => {
   const [endpointsExpanded, setEndpointsExpanded] = useState(false);
   const [linksExpanded, setLinksExpanded] = useState(false);
 
-  const hideEditButtons = service.serviceType?.discoveryMethod != null;
+  const hideEditButtons = service.serviceType?.discoveryMethod != 'MANUAL';
 
   const onAddEndpoint = (port: EquipmentPort, endpointDefinition: string) => {
     const variables: AddServiceEndpointMutationVariables = {

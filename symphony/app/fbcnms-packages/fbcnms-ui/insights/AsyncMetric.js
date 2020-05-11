@@ -20,6 +20,31 @@ import {useEffect, useMemo, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 
+type AxesOptions = {
+  gridLines: {
+    drawBorder?: boolean,
+    display?: boolean,
+  },
+  ticks: {
+    maxTicksLimit: number,
+  },
+};
+
+export type ChartStyle = {
+  options: {
+    xAxes: AxesOptions,
+    yAxes: AxesOptions,
+  },
+  data: {
+    lineTension: number,
+    pointRadius: number,
+  },
+  legend: {
+    position: string,
+    align: string,
+  },
+};
+
 type Props = {
   label: string,
   unit: string,
@@ -27,6 +52,7 @@ type Props = {
   legendLabels?: Array<string>,
   timeRange: TimeRange,
   networkId?: string,
+  style?: ChartStyle,
 };
 
 const useStyles = makeStyles(() => ({
@@ -196,6 +222,7 @@ function useDatasetsFetcher(props: Props) {
       const queries = props.queries;
       const requests = queries.map(async (query, index) => {
         try {
+          // eslint-disable-next-line max-len
           const response = await MagmaV1API.getNetworksByNetworkIdPrometheusQueryRange(
             {
               networkId: props.networkId || match.params.networkId,
@@ -218,6 +245,7 @@ function useDatasetsFetcher(props: Props) {
       Promise.all(requests).then(allResponses => {
         let index = 0;
         const datasets = [];
+        const {style} = props;
         allResponses.filter(Boolean).forEach(r => {
           const response = r.response;
           const label = r.label;
@@ -229,9 +257,9 @@ function useDatasetsFetcher(props: Props) {
                 label: label || dbHelper.getLegendLabel(it, tagSets),
                 unit: props.unit || '',
                 fill: false,
-                lineTension: 0,
+                lineTension: style ? style.data.lineTension : 0,
                 pointHitRadius: 10,
-                pointRadius: 0,
+                pointRadius: style ? style.data.pointRadius : 0,
                 borderWidth: 2,
                 backgroundColor: getColorForIndex(index),
                 borderColor: getColorForIndex(index++),
@@ -282,7 +310,7 @@ export default function AsyncMetric(props: Props) {
   if (!allDatasets || allDatasets?.length === 0) {
     return <Text variant="body2">No Data</Text>;
   }
-
+  const {style} = props;
   return (
     <Line
       options={{
@@ -291,6 +319,8 @@ export default function AsyncMetric(props: Props) {
         scales: {
           xAxes: [
             {
+              gridLines: style ? style.options.xAxes.gridLines : {},
+              ticks: style ? style.options.xAxes.ticks : {},
               type: 'time',
               time: {
                 unit: getUnit(props.timeRange),
@@ -305,6 +335,8 @@ export default function AsyncMetric(props: Props) {
           ],
           yAxes: [
             {
+              gridLines: style ? style.options.yAxes.gridLines : {},
+              ticks: style ? style.options.yAxes.ticks : {},
               position: 'left',
               scaleLabel: {
                 display: true,
@@ -328,7 +360,8 @@ export default function AsyncMetric(props: Props) {
       }}
       legend={{
         display: allDatasets.length < 5,
-        position: 'bottom',
+        position: style ? style.legend.position : 'bottom',
+        align: style ? style.legend.align : 'center',
         labels: {
           boxWidth: 12,
         },

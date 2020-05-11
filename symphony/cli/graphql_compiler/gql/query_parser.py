@@ -240,9 +240,12 @@ class FieldToTypeMatcherVisitor(Visitor):
         return node
 
     def __parse_field(self, name, graphql_type):
-        python_type, is_list, nullable, underlying_graphql_type = self.__scalar_type_to_python(
-            graphql_type
-        )
+        (
+            python_type,
+            is_list,
+            nullable,
+            underlying_graphql_type,
+        ) = self.__scalar_type_to_python(graphql_type)
 
         parsed_field = ParsedField(
             name=name, type=python_type, is_list=is_list, nullable=nullable
@@ -284,6 +287,7 @@ class FieldToTypeMatcherVisitor(Visitor):
             "Boolean": "bool",
             "DateTime": "DateTime",
             "Time": "DateTime",
+            "Cursor": "str",
         }
 
         if isinstance(scalar, GraphQLList):
@@ -318,6 +322,7 @@ class FieldToTypeMatcherVisitor(Visitor):
             "Boolean": "bool",
             "DateTime": "DateTime",
             "Time": "DateTime",
+            "Cursor": "str",
         }
 
         mapping = mapping.get(var_type.name.value, var_type.name.value)

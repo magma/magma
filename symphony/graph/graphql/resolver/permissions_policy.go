@@ -8,6 +8,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/facebookincubator/symphony/graph/resolverutil"
+	"github.com/pkg/errors"
+
 	"github.com/facebookincubator/symphony/graph/authz"
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
@@ -46,6 +49,9 @@ func (mutationResolver) AddPermissionsPolicy(
 		SetName(input.Name).
 		SetNillableDescription(input.Description).
 		SetNillableIsGlobal(input.IsGlobal)
+	if input.Groups != nil {
+		mutation = mutation.AddGroupIDs(input.Groups...)
+	}
 	if input.InventoryInput != nil && input.WorkforceInput != nil {
 		return nil, fmt.Errorf("policy cannot be of both inventory and workforce types")
 	}
@@ -81,6 +87,16 @@ func (mutationResolver) EditPermissionsPolicy(
 	if input.Name != nil {
 		upd = upd.SetName(*input.Name)
 	}
+	if input.Groups != nil {
+		currentGroups, err := client.PermissionsPolicy.QueryGroups(p).IDs(ctx)
+		if err != nil {
+			return nil, errors.Wrapf(err, "querying groups of permissionPolicy %q", input.ID)
+		}
+		AddGroupIds, RemoveGroupIds := resolverutil.GetDifferenceBetweenSlices(currentGroups, input.Groups)
+		upd = upd.
+			AddGroupIDs(AddGroupIds...).
+			RemoveGroupIDs(RemoveGroupIds...)
+	}
 	switch {
 	case input.InventoryInput != nil && input.WorkforceInput != nil:
 		return nil, fmt.Errorf("policy cannot be of both inventory and workforce types")
@@ -102,17 +118,6 @@ func (mutationResolver) EditPermissionsPolicy(
 		return nil, fmt.Errorf("updating permissionsPolicy %q: %w", input.ID, err)
 	}
 	return p, nil
-}
-
-func (r mutationResolver) UpdateGroupsInPermissionsPolicy(
-	ctx context.Context,
-	input models.UpdateGroupsInPermissionsPolicyInput,
-) (*ent.PermissionsPolicy, error) {
-
-	return r.ClientFrom(ctx).PermissionsPolicy.UpdateOneID(input.ID).
-		AddGroupIDs(input.AddGroupIds...).
-		RemoveGroupIDs(input.RemoveGroupIds...).
-		Save(ctx)
 }
 
 func (r mutationResolver) DeletePermissionsPolicy(ctx context.Context, id int) (bool, error) {

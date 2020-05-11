@@ -20,7 +20,7 @@
 # Changes to this file has to be replicated in pipelined.yml_prod
 
 # Differentiate between the setup type(CWF or LTE)
-setup_type: CWF
+setup_type: XWF
 
 log_level: INFO
 # Enable the services in PipelineD. Tables will be assigned to the services in

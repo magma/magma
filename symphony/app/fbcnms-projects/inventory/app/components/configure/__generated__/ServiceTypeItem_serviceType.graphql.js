@@ -16,14 +16,14 @@
 import type { ReaderFragment } from 'relay-runtime';
 type PropertyTypeFormField_propertyType$ref = any;
 type ServiceEndpointDefinitionStaticTable_serviceEndpointDefinitions$ref = any;
-export type DiscoveryMethod = "INVENTORY" | "%future added value";
+export type DiscoveryMethod = "INVENTORY" | "MANUAL" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type ServiceTypeItem_serviceType$ref: FragmentReference;
 declare export opaque type ServiceTypeItem_serviceType$fragmentType: ServiceTypeItem_serviceType$ref;
 export type ServiceTypeItem_serviceType = {|
   +id: string,
   +name: string,
-  +discoveryMethod: ?DiscoveryMethod,
+  +discoveryMethod: DiscoveryMethod,
   +propertyTypes: $ReadOnlyArray<?{|
     +$fragmentRefs: PropertyTypeFormField_propertyType$ref
   |}>,

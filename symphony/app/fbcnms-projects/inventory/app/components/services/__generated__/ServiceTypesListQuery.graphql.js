@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 1a78b60452cdb35631fe372c2a8241f5
+ * @relayHash 32e07e2111b010a4d19974ca2db3f564
  */
 
 /* eslint-disable */
@@ -15,7 +15,7 @@
 
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
-export type DiscoveryMethod = "INVENTORY" | "%future added value";
+export type DiscoveryMethod = "INVENTORY" | "MANUAL" | "%future added value";
 export type ServiceTypesListQueryVariables = {||};
 export type ServiceTypesListQueryResponse = {|
   +serviceTypes: ?{|
@@ -23,7 +23,7 @@ export type ServiceTypesListQueryResponse = {|
       +node: ?{|
         +id: string,
         +name: string,
-        +discoveryMethod: ?DiscoveryMethod,
+        +discoveryMethod: DiscoveryMethod,
       |}
     |}>
   |}

@@ -101,20 +101,6 @@ func (tr txResolver) UpdateUserGroups(ctx context.Context, input models.UpdateUs
 	return result, nil
 }
 
-func (tr txResolver) UpdateUsersGroupMembers(ctx context.Context, input models.UpdateUsersGroupMembersInput) (*ent.UsersGroup, error) {
-	var result, zero *ent.UsersGroup
-	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr generated.MutationResolver) (err error) {
-		result, err = mr.UpdateUsersGroupMembers(ctx, input)
-		return
-	}); err != nil {
-		return zero, err
-	}
-	if result != nil {
-		result = result.Unwrap()
-	}
-	return result, nil
-}
-
 func (tr txResolver) UpdatePermissionsPoliciesInUsersGroup(ctx context.Context, input models.UpdatePermissionsPoliciesInUsersGroupInput) (*ent.UsersGroup, error) {
 	var result, zero *ent.UsersGroup
 	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr generated.MutationResolver) (err error) {
@@ -1112,20 +1098,6 @@ func (tr txResolver) DeletePermissionsPolicy(ctx context.Context, id int) (bool,
 		return
 	}); err != nil {
 		return zero, err
-	}
-	return result, nil
-}
-
-func (tr txResolver) UpdateGroupsInPermissionsPolicy(ctx context.Context, input models.UpdateGroupsInPermissionsPolicyInput) (*ent.PermissionsPolicy, error) {
-	var result, zero *ent.PermissionsPolicy
-	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr generated.MutationResolver) (err error) {
-		result, err = mr.UpdateGroupsInPermissionsPolicy(ctx, input)
-		return
-	}); err != nil {
-		return zero, err
-	}
-	if result != nil {
-		result = result.Unwrap()
 	}
 	return result, nil
 }

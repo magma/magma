@@ -14,14 +14,18 @@ from time import perf_counter
 from dataclasses_json import DataClassJsonMixin
 
 from ..fragment.location import LocationFragment, QUERY as LocationFragmentQuery
+from ..fragment.page_info import PageInfoFragment, QUERY as PageInfoFragmentQuery
 
-QUERY: List[str] = LocationFragmentQuery + ["""
-query GetLocationsQuery {
-  locations {
+QUERY: List[str] = LocationFragmentQuery + PageInfoFragmentQuery + ["""
+query GetLocationsQuery($after: Cursor, $first: Int) {
+  locations(after: $after, first: $first) {
     edges {
       node {
         ...LocationFragment
       }
+    }
+    pageInfo {
+      ...PageInfoFragment
     }
   }
 }
@@ -42,7 +46,12 @@ class GetLocationsQuery(DataClassJsonMixin):
 
                 node: Optional[Location]
 
+            @dataclass
+            class PageInfo(PageInfoFragment):
+                pass
+
             edges: List[LocationEdge]
+            pageInfo: PageInfo
 
         locations: Optional[LocationConnection]
 
@@ -50,15 +59,17 @@ class GetLocationsQuery(DataClassJsonMixin):
 
     @classmethod
     # fmt: off
-    def execute(cls, client: GraphqlClient) -> Optional[GetLocationsQueryData.LocationConnection]:
+    def execute(cls, client: GraphqlClient, after: Optional[str] = None, first: Optional[int] = None) -> Optional[GetLocationsQueryData.LocationConnection]:
         # fmt: off
-        variables = {}
+        variables = {"after": after, "first": first}
         try:
-            start_time = perf_counter()
+            network_start = perf_counter()
             response_text = client.call(''.join(set(QUERY)), variables=variables)
+            decode_start = perf_counter()
             res = cls.from_json(response_text).data
-            elapsed_time = perf_counter() - start_time
-            client.reporter.log_successful_operation("GetLocationsQuery", variables, elapsed_time)
+            decode_time = perf_counter() - decode_start
+            network_time = decode_start - network_start
+            client.reporter.log_successful_operation("GetLocationsQuery", variables, network_time, decode_time)
             return res.locations
         except OperationException as e:
             raise FailedOperationException(

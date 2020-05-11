@@ -86,6 +86,7 @@ const serviceTypesQuery = graphql`
           ...AddEditServiceTypeCard_editingServiceType
           id
           name
+          isDeleted
         }
       }
     }
@@ -154,6 +155,7 @@ class ServiceTypes extends React.Component<Props, State> {
                         serviceTypeB.name,
                       ),
                     )
+                    .filter(s => !s.isDeleted)
                     .map(srvType => (
                       <div
                         className={classes.listItem}

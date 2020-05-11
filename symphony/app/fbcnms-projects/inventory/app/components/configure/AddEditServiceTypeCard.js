@@ -46,12 +46,12 @@ import ServiceEndpointDefinitionTable from './ServiceEndpointDefinitionTable';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import TextField from '@material-ui/core/TextField';
-import fbt from 'fbt';
 import nullthrows from 'nullthrows';
 import update from 'immutability-helper';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {ConnectionHandler} from 'relay-runtime';
 import {createFragmentContainer, graphql} from 'react-relay';
+import {discoveryMethods} from '../../common/Service';
 import {generateTempId, removeTempIDs} from '../../common/EntUtils';
 import {getGraphError} from '../../common/EntUtils';
 import {getPropertyDefaultValue} from '../../common/PropertyType';
@@ -99,14 +99,6 @@ type Props = {
 type State = {
   error: string,
   editingServiceType: ServiceType,
-};
-
-const discoveryMethods = {
-  MANUAL: fbt('Manual (default)', 'title for no discovery method'),
-  INVENTORY: fbt(
-    'Inventory',
-    'title for discovering this service using inventory data',
-  ),
 };
 
 class AddEditServiceTypeCard extends React.Component<Props, State> {

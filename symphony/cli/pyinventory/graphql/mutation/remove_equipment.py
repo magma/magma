@@ -35,11 +35,13 @@ class RemoveEquipmentMutation(DataClassJsonMixin):
         # fmt: off
         variables = {"id": id, "workOrderId": workOrderId}
         try:
-            start_time = perf_counter()
+            network_start = perf_counter()
             response_text = client.call(''.join(set(QUERY)), variables=variables)
+            decode_start = perf_counter()
             res = cls.from_json(response_text).data
-            elapsed_time = perf_counter() - start_time
-            client.reporter.log_successful_operation("RemoveEquipmentMutation", variables, elapsed_time)
+            decode_time = perf_counter() - decode_start
+            network_time = decode_start - network_start
+            client.reporter.log_successful_operation("RemoveEquipmentMutation", variables, network_time, decode_time)
             return res.removeEquipment
         except OperationException as e:
             raise FailedOperationException(

@@ -177,7 +177,7 @@ void create_subscriber_quota_update(
   update->set_update_type(state);
 }
 
-void create_cwf_session_create_response(
+void create_session_create_response(
   const std::string& imsi,
   const std::string& monitoring_key,
   std::vector<std::string>& static_rules,

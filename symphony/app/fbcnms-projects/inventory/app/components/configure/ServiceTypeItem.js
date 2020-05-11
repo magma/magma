@@ -55,6 +55,11 @@ class ServiceTypeItem extends React.Component<Props> {
               instanceNameSingular="service"
               instanceNamePlural="services"
               onDelete={this.onDelete}
+              allowDelete={
+                serviceType.discoveryMethod == 'MANUAL'
+                  ? serviceType.numberOfServices > 0
+                  : true
+              }
               onEdit={onEdit}
             />
           </ExpansionPanelSummary>
@@ -79,38 +84,39 @@ class ServiceTypeItem extends React.Component<Props> {
   }
 
   onDelete = () => {
-    this.props
-      .confirm(
-        `Are you sure you want to delete "${this.props.serviceType.name}"?`,
-      )
-      .then(confirm => {
-        if (!confirm) {
-          return;
-        }
-        RemoveServiceTypeMutation(
-          {id: this.props.serviceType.id},
-          {
-            onError: (error: any) => {
-              this.props.alert('Error: ' + error.source?.errors[0]?.message);
-            },
+    const {serviceType} = this.props;
+    const msg =
+      serviceType.discoveryMethod == 'MANUAL'
+        ? `Are you sure you want to delete "${this.props.serviceType.name}"?`
+        : `Are you sure you want to delete "${this.props.serviceType.name}"? The service type, and all it's instances will be deleted soon, in the background`;
+    this.props.confirm(msg).then(confirm => {
+      if (!confirm) {
+        return;
+      }
+      RemoveServiceTypeMutation(
+        {id: this.props.serviceType.id},
+        {
+          onError: (error: any) => {
+            this.props.alert('Error: ' + error.source?.errors[0]?.message);
           },
-          store => {
+        },
+        store => {
+          // $FlowFixMe (T62907961) Relay flow types
+          const rootQuery = store.getRoot();
+          const serviceTypes = ConnectionHandler.getConnection(
+            rootQuery,
+            'ServiceTypes_serviceTypes',
+          );
+          ConnectionHandler.deleteNode(
             // $FlowFixMe (T62907961) Relay flow types
-            const rootQuery = store.getRoot();
-            const serviceTypes = ConnectionHandler.getConnection(
-              rootQuery,
-              'ServiceTypes_serviceTypes',
-            );
-            ConnectionHandler.deleteNode(
-              // $FlowFixMe (T62907961) Relay flow types
-              serviceTypes,
-              this.props.serviceType.id,
-            );
-            // $FlowFixMe (T62907961) Relay flow types
-            store.delete(this.props.serviceType.id);
-          },
-        );
-      });
+            serviceTypes,
+            this.props.serviceType.id,
+          );
+          // $FlowFixMe (T62907961) Relay flow types
+          store.delete(this.props.serviceType.id);
+        },
+      );
+    });
   };
 }
 

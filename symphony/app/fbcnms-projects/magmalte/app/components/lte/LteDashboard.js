@@ -11,6 +11,7 @@
 
 import AppBar from '@material-ui/core/AppBar';
 import EnodebKPIs from '../EnodebKPIs';
+import EventAlertChart from '../EventAlertChart';
 import GatewayKPIs from '../GatewayKPIs';
 import Grid from '@material-ui/core/Grid';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
@@ -103,9 +104,7 @@ function LteNetworkDashboard() {
       <Grid container spacing={3}>
         <Grid item xs={12}>
           <Paper>
-            <div className={classes.contentPlaceholder}>
-              Alert/Event Timeseries Goes Here
-            </div>
+            <EventAlertChart />
           </Paper>
         </Grid>
 

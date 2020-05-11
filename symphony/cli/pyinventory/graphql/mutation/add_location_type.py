@@ -54,11 +54,13 @@ class AddLocationTypeMutation(DataClassJsonMixin):
         # fmt: off
         variables = {"input": input}
         try:
-            start_time = perf_counter()
+            network_start = perf_counter()
             response_text = client.call(''.join(set(QUERY)), variables=variables)
+            decode_start = perf_counter()
             res = cls.from_json(response_text).data
-            elapsed_time = perf_counter() - start_time
-            client.reporter.log_successful_operation("AddLocationTypeMutation", variables, elapsed_time)
+            decode_time = perf_counter() - decode_start
+            network_time = decode_start - network_start
+            client.reporter.log_successful_operation("AddLocationTypeMutation", variables, network_time, decode_time)
             return res.addLocationType
         except OperationException as e:
             raise FailedOperationException(

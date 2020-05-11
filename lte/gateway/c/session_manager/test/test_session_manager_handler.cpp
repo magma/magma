@@ -117,7 +117,7 @@ TEST_F(SessionManagerHandlerTest, test_create_session_cfg) {
   // Only the active sessions are not recycled, to ensure that
   // this session is not automatically scheduled for termination
   // when RAT Type is WLAN, it needs monitoring keys...
-  create_cwf_session_create_response(imsi, monitoring_key, static_rules,
+  create_session_create_response(imsi, monitoring_key, static_rules,
                                      &response);
   response.mutable_static_rules()->Add()->mutable_rule_id()->assign("rule1");
   create_credit_update_response(imsi, 1, 1536,

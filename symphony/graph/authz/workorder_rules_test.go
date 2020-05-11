@@ -205,6 +205,7 @@ func TestWorkOrderAssignWritePolicyRule(t *testing.T) {
 	c := viewertest.NewTestClient(t)
 	ctx := viewertest.NewContext(context.Background(), c)
 	workOrderType, workOrder := prepareWorkOrderData(ctx, c)
+	u2 := viewer.MustGetOrCreateUser(ctx, "SomeUser", user.RoleUSER)
 	getCud := func(p *models.PermissionSettings) *models.WorkforceCud {
 		return p.WorkforcePolicy.Data
 	}
@@ -223,9 +224,8 @@ func TestWorkOrderAssignWritePolicyRule(t *testing.T) {
 		return err
 	}
 	updateWorkOrderAssignee := func(ctx context.Context) error {
-		u := viewer.FromContext(ctx).(*viewer.UserViewer).User()
 		_, err := c.WorkOrder.UpdateOne(workOrder).
-			SetAssignee(u).
+			SetAssignee(u2).
 			Save(ctx)
 		return err
 	}
