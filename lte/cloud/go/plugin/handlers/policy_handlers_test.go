@@ -317,6 +317,56 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
+
+	// Test add rule with app name match
+	testRule = &models.PolicyRule{
+		ID: "test_app_policy",
+		FlowList: []*models.FlowDescription{
+			{
+				Action: swag.String("PERMIT"),
+				Match: &models.FlowMatch{
+					Direction: swag.String("UPLINK"),
+					IPProto:   swag.String("IPPROTO_ICMP"),
+					IPV4Dst:   "42.42.42.42",
+					IPV4Src:   "192.168.0.1/24",
+					TCPDst:    2,
+					TCPSrc:    1,
+					UDPDst:    4,
+					UDPSrc:    3,
+				},
+			},
+		},
+		Priority:       swag.Uint32(5),
+		RatingGroup:    *swag.Uint32(2),
+		TrackingType:   "ONLY_OCS",
+		AppName:	    "INSTAGRAM"
+		AppServiceType: "VIDEO"
+	}
+	tc = tests.Test{
+		Method:         "POST",
+		URL:            "/magma/v1/networks/n1/policies/rules",
+		Payload:        testRule,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		Handler:        createPolicy,
+		ExpectedStatus: 201,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Check that rule with app name was added
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/networks/n1/policies/rules/test_app_policy",
+		Payload:        nil,
+		ParamNames:     []string{"network_id", "rule_id"},
+		ParamValues:    []string{"n1", "test_app_policy"},
+		Handler:        getPolicy,
+		ExpectedStatus: 200,
+		ExpectedResult: testRule,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+
 	// Now run base name test cases using the rules created above
 
 	// Test Listing All Base Names

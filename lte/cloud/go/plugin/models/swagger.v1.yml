@@ -2575,6 +2575,39 @@ definitions:
           - ONLY_PCRF
           - OCS_AND_PCRF
           - NO_TRACKING
+      app_name:
+        type: string
+        enum:
+          - NO_APP_NAME
+          - FACEBOOK
+          - FACEBOOK_MESSENGER
+          - INSTAGRAM
+          - YOUTUBE
+          - GOOGLE
+          - GMAIL
+          - GOOGLE_DOCS
+          - NETFLIX
+          - APPLE
+          - MICROSOFT
+          - REDDIT
+          - WHATSAPP
+          - GOOGLE_PLAY
+          - APPSTORE
+          - AMAZON
+          - WECHAT
+          - TIKTOK
+          - TWITTER
+          - WIKIPEDIA
+          - GOOGLE_MAPS
+          - YAHOO
+          - IMO
+      app_service_type:
+        type: string
+        enum:
+          - NO_SERVICE_TYPE
+          - CHAT
+          - AUDIO
+          - VIDEO
       qos:
         $ref: '#/definitions/flow_qos'
       redirect:
@@ -2619,6 +2652,39 @@ definitions:
           - ONLY_PCRF
           - OCS_AND_PCRF
           - NO_TRACKING
+      app_name:
+        type: string
+        enum:
+          - NO_APP_NAME
+          - FACEBOOK
+          - FACEBOOK_MESSENGER
+          - INSTAGRAM
+          - YOUTUBE
+          - GOOGLE
+          - GMAIL
+          - GOOGLE_DOCS
+          - NETFLIX
+          - APPLE
+          - MICROSOFT
+          - REDDIT
+          - WHATSAPP
+          - GOOGLE_PLAY
+          - APPSTORE
+          - AMAZON
+          - WECHAT
+          - TIKTOK
+          - TWITTER
+          - WIKIPEDIA
+          - GOOGLE_MAPS
+          - YAHOO
+          - IMO
+      app_service_type:
+        type: string
+        enum:
+          - NO_SERVICE_TYPE
+          - CHAT
+          - AUDIO
+          - VIDEO
       qos:
         $ref: '#/definitions/flow_qos'
       redirect:
