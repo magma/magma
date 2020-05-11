@@ -179,6 +179,11 @@ void itti_free_msg_content(MessageDef* const message_p)
       // DO nothing
       break;
 
+    case S11_NW_INITIATED_DEACTIVATE_BEARER_RESP:
+      free_wrapper(
+          (void**) &message_p->ittiMsg.s11_nw_init_deactv_bearer_rsp.lbi);
+      break;
+
     case SCTP_INIT_MSG:
       // DO nothing (ipv6_address statically allocated)
       break;
