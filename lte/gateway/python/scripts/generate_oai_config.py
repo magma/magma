@@ -14,6 +14,7 @@ and the config/mconfig for the service.
 import logging
 import os
 import socket
+
 from create_oai_certs import generate_mme_certs
 from generate_service_config import generate_template_config
 from lte.protos.mconfig.mconfigs_pb2 import MME
@@ -32,16 +33,27 @@ def _get_iface_ip(service, iface_config):
     return get_ip_from_if_cidr(iface_name)
 
 
-def _get_dns_ip(iface_config):
+def _get_primary_dns_ip(iface_config):
     """
     Get dnsd interface IP without netmask.
     If caching is enabled, use the ip of interface that dnsd listens over.
-    Otherwise, just use dns server in yml.
+    Otherwise, use dns server from service mconfig.
     """
-    if load_service_mconfig("mme", MME()).enable_dns_caching:
+    service_config = load_service_mconfig("mme", MME())
+    if service_config.enable_dns_caching:
         iface_name = get_service_config_value("dnsd", iface_config, "")
         return get_ip_from_if(iface_name)
-    return get_service_config_value("spgw", "ipv4_dns", "")
+    elif service_config.dns_primary:
+        return service_config.dns_primary or ''
+
+
+def _get_secondary_dns_ip():
+    """
+    Get the secondary dns ip from the service mconfig.
+    """
+    service_config = load_service_mconfig("mme", MME())
+    if service_config.dns_secondary:
+        return service_config.dns_secondary or ''
 
 
 def _get_oai_log_level():
@@ -124,7 +136,8 @@ def _get_context():
     context["s1ap_ip"] = _get_iface_ip("mme", "s1ap_iface_name")
     context["s1u_ip"] = _get_iface_ip("spgw", "s1u_iface_name")
     context["oai_log_level"] = _get_oai_log_level()
-    context["ipv4_dns"] = _get_dns_ip("dns_iface_name")
+    context['ipv4_dns'] = _get_primary_dns_ip('dns_iface_name')
+    context['ipv4_sec_dns'] = _get_secondary_dns_ip()
     context["identity"] = _get_identity()
     context["relay_enabled"] = _get_relay_enabled()
     context["non_eps_service_control"] = _get_non_eps_service_control()

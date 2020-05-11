@@ -2151,6 +2151,16 @@ definitions:
         maxLength: 49
         x-nullable: false
         example: '192.168.128.0/24'
+      dns_primary:
+        type: string
+        minLength: 5
+        maxLength: 45
+        example: '8.8.8.8'
+      dns_secondary:
+        type: string
+        minLength: 5
+        maxLength: 45
+        example: '8.8.4.4'
 
   gateway_non_eps_configs:
     description: Non-EPS service configuration for a gateway

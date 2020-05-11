@@ -213,7 +213,24 @@ func (m *GatewayRanConfigs) ValidateModel() error {
 }
 
 func (m *GatewayEpcConfigs) ValidateModel() error {
-	return m.Validate(strfmt.Default)
+	if err := m.Validate(strfmt.Default); err != nil {
+		return err
+	}
+
+	ip := net.ParseIP(m.DNSPrimary)
+	if ip == nil {
+		return errors.New("Invalid primary DNS address")
+	} else if ip.To4() == nil {
+		return errors.New("Only IPv4 is supported currently for DNS")
+	}
+
+	sec_ip := net.ParseIP(m.DNSSecondary)
+	if sec_ip == nil {
+		return errors.New("Invalid secondary DNS address")
+	} else if sec_ip.To4() == nil {
+		return errors.New("Only IPv4 is supported currently for DNS")
+	}
+	return nil
 }
 
 func (m *GatewayNonEpsConfigs) ValidateModel() error {
