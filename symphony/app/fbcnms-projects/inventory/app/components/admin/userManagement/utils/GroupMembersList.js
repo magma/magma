@@ -18,13 +18,14 @@ import List from './List';
 type Props = $ReadOnly<{|
   users: $ReadOnlyArray<User>,
   group?: ?UserPermissionsGroup,
+  onChange: UserPermissionsGroup => void,
   emptyState?: ?React.Node,
   className?: ?string,
   ...AssigenmentButtonProp,
 |}>;
 
 export default function GroupMembersList(props: Props) {
-  const {users, group, assigmentButton, ...rest} = props;
+  const {users, group, assigmentButton, onChange, ...rest} = props;
 
   return (
     <List items={users} {...rest}>
@@ -33,6 +34,7 @@ export default function GroupMembersList(props: Props) {
           user={user}
           assigmentButton={assigmentButton}
           group={group}
+          onChange={onChange}
         />
       )}
     </List>

@@ -17,12 +17,15 @@ namespace lte {
 
 SessionStore::SessionStore(std::shared_ptr<StaticRuleStore> rule_store)
     : rule_store_(rule_store),
-      store_client_(std::make_shared<MemoryStoreClient>(rule_store)) {}
+      store_client_(std::make_shared<MemoryStoreClient>(rule_store)),
+      metering_reporter_(std::make_shared<MeteringReporter>()) {}
 
 SessionStore::SessionStore(
     std::shared_ptr<StaticRuleStore> rule_store,
     std::shared_ptr<RedisStoreClient> store_client)
-    : rule_store_(rule_store), store_client_(store_client) {}
+    : rule_store_(rule_store),
+      store_client_(store_client),
+      metering_reporter_(std::make_shared<MeteringReporter>()) {}
 
 SessionMap SessionStore::read_sessions(const SessionRead& req) {
   return store_client_->read_sessions(req);
@@ -78,14 +81,18 @@ bool SessionStore::update_sessions(const SessionUpdate& update_criteria) {
 
   // Now attempt to modify the state
   for (auto& it : session_map) {
+    auto imsi = it.first;
     auto it2 = it.second.begin();
     while (it2 != it.second.end()) {
       auto updates = update_criteria.find(it.first)->second;
-      if (updates.find((*it2)->get_session_id()) != updates.end()) {
-        auto update = updates[(*it2)->get_session_id()];
+      auto session_id = (*it2)->get_session_id();
+      if (updates.find(session_id) != updates.end()) {
+        auto update = updates[session_id];
         if (!merge_into_session(*it2, update)) {
           return false;
         }
+        metering_reporter_->report_usage(imsi, session_id, update);
+
         if (update.is_session_ended) {
           // TODO: Instead of deleting from session_map, mark as ended and
           //       no longer mark on read

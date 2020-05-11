@@ -282,15 +282,17 @@ class DataclassesRenderer:
                 buffer.write("# fmt: off")
                 buffer.write(f"variables = {variables_dict}")
                 with buffer.write_block("try:"):
-                    buffer.write("start_time = perf_counter()")
+                    buffer.write("network_start = perf_counter()")
                     buffer.write(
                         "response_text = client.call(''.join(set(QUERY)), "
                         "variables=variables)"
                     )
+                    buffer.write("decode_start = perf_counter()")
                     buffer.write("res = cls.from_json(response_text).data")
-                    buffer.write("elapsed_time = perf_counter() - start_time")
+                    buffer.write("decode_time = perf_counter() - decode_start")
+                    buffer.write("network_time = decode_start - network_start")
                     buffer.write(
-                        f'client.reporter.log_successful_operation("{parsed_op.name}", variables, elapsed_time)'
+                        f'client.reporter.log_successful_operation("{parsed_op.name}", variables, network_time, decode_time)'
                     )
                     buffer.write(f"return res.{query_name}")
                 with buffer.write_block("except OperationException as e:"):

@@ -13,7 +13,8 @@ from typing import Any, Callable, List, Mapping, Optional
 from time import perf_counter
 from dataclasses_json import DataClassJsonMixin
 
-QUERY: List[str] = ["""
+from ..fragment.property import PropertyFragment, QUERY as PropertyFragmentQuery
+QUERY: List[str] = PropertyFragmentQuery + ["""
 fragment LocationFragment on Location {
   id
   name
@@ -22,6 +23,9 @@ fragment LocationFragment on Location {
   externalId
   locationType {
     name
+  }
+  properties {
+    ...PropertyFragment
   }
 }
 
@@ -33,9 +37,14 @@ class LocationFragment(DataClassJsonMixin):
     class LocationType(DataClassJsonMixin):
         name: str
 
+    @dataclass
+    class Property(PropertyFragment):
+        pass
+
     id: str
     name: str
     latitude: Number
     longitude: Number
     locationType: LocationType
+    properties: List[Property]
     externalId: Optional[str]

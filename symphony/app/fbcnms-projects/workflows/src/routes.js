@@ -283,7 +283,7 @@ router.delete('/workflow/:workflowId', async (req, res, next) => {
   try {
     const result = await http.delete(
       baseURLWorkflow +
-        req.params.workflqowId +
+        req.params.workflowId +
         '/remove?archiveWorkflow=' +
         archiveWorkflow,
       req.body,
@@ -332,21 +332,6 @@ router.get('/id/:workflowId', async (req, res, next) => {
         })(result.tasks || []),
       ),
     );
-
-    (result.tasks || []).forEach(task => {
-      if (task.taskType === 'SUB_WORKFLOW') {
-        const subWorkflowId = task.inputData && task.inputData.subWorkflowId;
-
-        if (subWorkflowId != null) {
-          subs.push({
-            name: task.inputData.subWorkflowName,
-            version: task.inputData.subWorkflowVersion,
-            referenceTaskName: task.referenceTaskName,
-            subWorkflowId: subWorkflowId,
-          });
-        }
-      }
-    });
 
     // TODO not implemented on proxy
     const logs = map(task =>

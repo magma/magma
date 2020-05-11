@@ -177,6 +177,7 @@ type AddPermissionsPolicyInput struct {
 	IsGlobal       *bool                        `json:"isGlobal"`
 	InventoryInput *models.InventoryPolicyInput `json:"inventoryInput"`
 	WorkforceInput *models.WorkforcePolicyInput `json:"workforceInput"`
+	Groups         []int                        `json:"groups"`
 }
 
 type AddProjectInput struct {
@@ -206,6 +207,7 @@ type AddServiceEndpointInput struct {
 type AddUsersGroupInput struct {
 	Name        string  `json:"name"`
 	Description *string `json:"description"`
+	Members     []int   `json:"members"`
 }
 
 type AddWorkOrderInput struct {
@@ -351,6 +353,7 @@ type EditPermissionsPolicyInput struct {
 	IsGlobal       *bool                        `json:"isGlobal"`
 	InventoryInput *models.InventoryPolicyInput `json:"inventoryInput"`
 	WorkforceInput *models.WorkforcePolicyInput `json:"workforceInput"`
+	Groups         []int                        `json:"groups"`
 }
 
 type EditProjectInput struct {
@@ -390,6 +393,7 @@ type EditUsersGroupInput struct {
 	Name        *string            `json:"name"`
 	Description *string            `json:"description"`
 	Status      *usersgroup.Status `json:"status"`
+	Members     []int              `json:"members"`
 }
 
 type EditWorkOrderInput struct {
@@ -862,12 +866,6 @@ type TopologyLink struct {
 	Target ent.Noder        `json:"target"`
 }
 
-type UpdateGroupsInPermissionsPolicyInput struct {
-	ID             int   `json:"id"`
-	AddGroupIds    []int `json:"addGroupIds"`
-	RemoveGroupIds []int `json:"removeGroupIds"`
-}
-
 type UpdatePermissionsPoliciesInUsersGroupInput struct {
 	ID                         int   `json:"id"`
 	AddPermissionsPolicyIds    []int `json:"addPermissionsPolicyIds"`
@@ -878,12 +876,6 @@ type UpdateUserGroupsInput struct {
 	ID             int   `json:"id"`
 	AddGroupIds    []int `json:"addGroupIds"`
 	RemoveGroupIds []int `json:"removeGroupIds"`
-}
-
-type UpdateUsersGroupMembersInput struct {
-	ID            int   `json:"id"`
-	AddUserIds    []int `json:"addUserIds"`
-	RemoveUserIds []int `json:"removeUserIds"`
 }
 
 type UserFilterInput struct {
@@ -1147,16 +1139,18 @@ func (e CommentEntity) MarshalGQL(w io.Writer) {
 type DiscoveryMethod string
 
 const (
+	DiscoveryMethodManual    DiscoveryMethod = "MANUAL"
 	DiscoveryMethodInventory DiscoveryMethod = "INVENTORY"
 )
 
 var AllDiscoveryMethod = []DiscoveryMethod{
+	DiscoveryMethodManual,
 	DiscoveryMethodInventory,
 }
 
 func (e DiscoveryMethod) IsValid() bool {
 	switch e {
-	case DiscoveryMethodInventory:
+	case DiscoveryMethodManual, DiscoveryMethodInventory:
 		return true
 	}
 	return false
@@ -1807,6 +1801,7 @@ type ServiceFilterType string
 const (
 	ServiceFilterTypeServiceInstName         ServiceFilterType = "SERVICE_INST_NAME"
 	ServiceFilterTypeServiceStatus           ServiceFilterType = "SERVICE_STATUS"
+	ServiceFilterTypeServiceDiscoveryMethod  ServiceFilterType = "SERVICE_DISCOVERY_METHOD"
 	ServiceFilterTypeServiceType             ServiceFilterType = "SERVICE_TYPE"
 	ServiceFilterTypeServiceInstExternalID   ServiceFilterType = "SERVICE_INST_EXTERNAL_ID"
 	ServiceFilterTypeServiceInstCustomerName ServiceFilterType = "SERVICE_INST_CUSTOMER_NAME"
@@ -1818,6 +1813,7 @@ const (
 var AllServiceFilterType = []ServiceFilterType{
 	ServiceFilterTypeServiceInstName,
 	ServiceFilterTypeServiceStatus,
+	ServiceFilterTypeServiceDiscoveryMethod,
 	ServiceFilterTypeServiceType,
 	ServiceFilterTypeServiceInstExternalID,
 	ServiceFilterTypeServiceInstCustomerName,
@@ -1828,7 +1824,7 @@ var AllServiceFilterType = []ServiceFilterType{
 
 func (e ServiceFilterType) IsValid() bool {
 	switch e {
-	case ServiceFilterTypeServiceInstName, ServiceFilterTypeServiceStatus, ServiceFilterTypeServiceType, ServiceFilterTypeServiceInstExternalID, ServiceFilterTypeServiceInstCustomerName, ServiceFilterTypeProperty, ServiceFilterTypeLocationInst, ServiceFilterTypeEquipmentInService:
+	case ServiceFilterTypeServiceInstName, ServiceFilterTypeServiceStatus, ServiceFilterTypeServiceDiscoveryMethod, ServiceFilterTypeServiceType, ServiceFilterTypeServiceInstExternalID, ServiceFilterTypeServiceInstCustomerName, ServiceFilterTypeProperty, ServiceFilterTypeLocationInst, ServiceFilterTypeEquipmentInService:
 		return true
 	}
 	return false

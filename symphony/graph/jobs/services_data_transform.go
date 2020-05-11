@@ -72,8 +72,8 @@ func (m *jobs) getServicesDetailsList(ctx context.Context, sType *ent.ServiceTyp
 		return nil, err
 	}
 
-	if len(endpointDefs) < 2 || len(endpointDefs) > maxEndpoints {
-		log.Info("[SKIPPING SERVICE TYPE] wither too many or not enough endpoint types " + sType.Name)
+	if len(endpointDefs) < 2 || len(endpointDefs) > MaxEndpoints {
+		log.Info("[SKIPPING SERVICE TYPE] either too many or not enough endpoint types " + sType.Name)
 		return nil, err
 	}
 
@@ -124,7 +124,7 @@ func (m *jobs) getServicesDetailsList(ctx context.Context, sType *ent.ServiceTyp
 						return nil, err
 					}
 					for _, e5 := range e5s {
-						if len(endpointDefs) != maxEndpoints {
+						if len(endpointDefs) != MaxEndpoints {
 							return nil, errors.Errorf("service types support up to 5 endpoint definitions")
 						}
 						log.Info("adding service to 'toAdd' list: ", sType.Name, "equipment:", e1.ID, e2.ID, e3.ID, e4.ID, e5.ID)

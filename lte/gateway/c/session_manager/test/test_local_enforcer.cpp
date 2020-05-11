@@ -478,13 +478,13 @@ TEST_F(LocalEnforcerTest, test_update_session_credits_and_rules_with_failure) {
   monitor_response->set_result_code(5001); // USER_UNKNOWN permanent failure
 
   // expect all rules attached to this session should be removed
-  EXPECT_CALL(*pipelined_client,
-              deactivate_flows_for_rules(
-                  "IMSI1", std::vector<std::string>{"rule1"}, CheckCount(0)))
-      .Times(1)
-      .WillOnce(testing::Return(true));
-  local_enforcer->update_session_credits_and_rules(session_map, update_response,
-                                                   update);
+  EXPECT_CALL(
+    *pipelined_client,
+    deactivate_flows_for_rules("IMSI1", std::vector<std::string>{"rule1"},
+                               CheckCount(0), testing::_))
+    .Times(1)
+    .WillOnce(testing::Return(true));
+  local_enforcer->update_session_credits_and_rules(session_map, update_response, update);
 
   // expect no update to credit
   assert_monitor_credit("IMSI1", ALLOWED_TOTAL, {{"1", 1024}});
@@ -654,18 +654,15 @@ TEST_F(LocalEnforcerTest, test_sync_sessions_on_restart) {
 // Make sure sessions that are scheduled to be terminated before sync are
 // correctly scheduled to be terminated again.
 TEST_F(LocalEnforcerTest, test_termination_scheduling_on_sync_sessions) {
+  CreateSessionResponse response;
+  std::vector<std::string> rules_to_install;
   const std::string imsi = "IMSI1";
   const std::string session_id = "1234";
+  rules_to_install.push_back("rule1");
   insert_static_rule(1, "m1", "rule1");
 
   // Create a CreateSessionResponse with one Gx monitor:m1 and one rule:rule1
-  CreateSessionResponse response;
-  auto monitors = response.mutable_usage_monitors();
-  create_monitor_update_response("IMSI1", "m1", MonitoringLevel::PCC_RULE_LEVEL,
-                                 1024, monitors->Add());
-  StaticRuleInstall static_rule_install;
-  static_rule_install.set_rule_id("rule1");
-  response.mutable_static_rules()->Add()->CopyFrom(static_rule_install);
+  create_session_create_response(imsi, "m1", rules_to_install, &response);
 
   local_enforcer->init_session_credit(session_map, imsi, session_id, test_cfg,
                                       response);
@@ -695,7 +692,8 @@ TEST_F(LocalEnforcerTest, test_termination_scheduling_on_sync_sessions) {
   // We expect the termination to take place once we run evb->loopOnce()
   EXPECT_CALL(
     *pipelined_client,
-    deactivate_flows_for_rules("IMSI1", CheckCount(1), testing::_));
+    deactivate_flows_for_rules("IMSI1", CheckCount(1), testing::_,
+                               RequestOriginType::GX));
   evb->loopOnce();
 
   // At this point, the state should have transitioned from
@@ -723,7 +721,7 @@ TEST_F(LocalEnforcerTest, test_final_unit_handling) {
   local_enforcer->aggregate_records(session_map, table, update);
 
   EXPECT_CALL(*pipelined_client,
-              deactivate_flows_for_rules(testing::_, testing::_, testing::_))
+      deactivate_flows_for_rules(testing::_, testing::_, testing::_, testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
   // Since this is a termination triggered by SessionD/Core (quota exhaustion
@@ -770,10 +768,11 @@ TEST_F(LocalEnforcerTest, test_cwf_final_unit_handling) {
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table, update);
 
-  EXPECT_CALL(*pipelined_client,
-              deactivate_flows_for_rules(testing::_, testing::_, testing::_))
-      .Times(1)
-      .WillOnce(testing::Return(true));
+  EXPECT_CALL(
+    *pipelined_client,
+    deactivate_flows_for_rules(testing::_, testing::_, testing::_, testing::_))
+    .Times(1)
+    .WillOnce(testing::Return(true));
 
   EXPECT_CALL(*aaa_client, terminate_session(testing::_, testing::_))
       .Times(1)
@@ -1028,10 +1027,12 @@ TEST_F(LocalEnforcerTest, test_dynamic_rule_actions) {
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table, update);
 
-  EXPECT_CALL(*pipelined_client, deactivate_flows_for_rules(
-                                     testing::_, CheckCount(2), CheckCount(1)))
-      .Times(1)
-      .WillOnce(testing::Return(true));
+  EXPECT_CALL(
+    *pipelined_client,
+    deactivate_flows_for_rules(testing::_, CheckCount(2), CheckCount(1),
+                               testing::_))
+    .Times(1)
+    .WillOnce(testing::Return(true));
   std::vector<std::unique_ptr<ServiceAction>> actions;
   auto usage_updates =
       local_enforcer->collect_updates(session_map, actions, update);
@@ -1209,14 +1210,14 @@ TEST_F(LocalEnforcerTest, test_usage_monitors) {
                                  0, monitor_updates_response);
   monitor_updates_response->add_rules_to_remove("pcrf_only");
 
-  EXPECT_CALL(*pipelined_client,
-              deactivate_flows_for_rules("IMSI1",
-                                         std::vector<std::string>{"pcrf_only"},
-                                         CheckCount(0)))
-      .Times(1)
-      .WillOnce(testing::Return(true));
-  local_enforcer->update_session_credits_and_rules(session_map, update_response,
-                                                   update);
+  EXPECT_CALL(
+    *pipelined_client,
+    deactivate_flows_for_rules("IMSI1",
+      std::vector<std::string>{"pcrf_only"}, CheckCount(0),
+      RequestOriginType::GX))
+    .Times(1)
+    .WillOnce(testing::Return(true));
+  local_enforcer->update_session_credits_and_rules(session_map, update_response, update);
 
   // Test rule installation in usage monitor response for CCA-Update
   update_response.Clear();
@@ -1347,6 +1348,120 @@ TEST_F(LocalEnforcerTest, test_rar_revalidation_timer) {
   rar.add_event_triggers(EventTrigger::REVALIDATION_TIMEOUT);
   local_enforcer->init_policy_reauth(session_map, rar, raa, update);
   EXPECT_EQ(raa.result(), ReAuthResult::UPDATE_INITIATED);
+}
+
+/**
+// TODO enable once we fix revalidation timer on init
+TEST_F(LocalEnforcerTest, test_revalidation_timer_on_init) {
+  const std::string imsi = "IMSI1";
+  const std::string session_id = "1234";
+  const std::string mkey = "m1";
+  insert_static_rule(1, mkey, "rule1");
+
+  // Create a CreateSessionResponse with one Gx monitor, PCC rule, and an event
+  // trigger
+  CreateSessionResponse response;
+  auto monitor = response.mutable_usage_monitors()->Add();
+  std::vector<EventTrigger> event_triggers{EventTrigger::REVALIDATION_TIMEOUT};
+  create_monitor_update_response(imsi, mkey, MonitoringLevel::PCC_RULE_LEVEL,
+                                 1024, event_triggers, time(NULL), monitor);
+  StaticRuleInstall static_rule_install;
+  static_rule_install.set_rule_id("rule1");
+  response.mutable_static_rules()->Add()->CopyFrom(static_rule_install);
+
+  local_enforcer->init_session_credit(session_map, imsi, session_id, test_cfg,
+                                      response);
+
+  EXPECT_CALL(*reporter, report_updates(_, _)).Times(1);
+  evb->loopOnce();
+  evb->loopOnce();
+}
+**/
+
+TEST_F(LocalEnforcerTest, test_revalidation_timer_on_rar) {
+  CreateSessionResponse response;
+  PolicyReAuthRequest rar;
+  PolicyReAuthAnswer raa;
+  std::vector<std::string> rules_to_install;
+  std::vector<EventTrigger> event_triggers{EventTrigger::REVALIDATION_TIMEOUT};
+
+  const std::string imsi = "IMSI1";
+  const std::string session_id = "1234";
+  const std::string mkey = "m1";
+  rules_to_install.push_back("rule1");
+  insert_static_rule(1, mkey, "rule1");
+
+  // Create a CreateSessionResponse with one Gx monitor, PCC rule
+  create_session_create_response(imsi, mkey, rules_to_install, &response);
+
+  local_enforcer->init_session_credit(session_map, imsi, session_id, test_cfg,
+                                      response);
+  EXPECT_EQ(session_map[imsi].size(), 1);
+
+  // Write and read into session store, assert success
+  bool success = session_store->create_sessions(imsi, std::move(session_map[imsi]));
+  EXPECT_TRUE(success);
+  session_map = session_store->read_sessions(SessionRead{"IMSI1"});
+
+  // Create a RaR with a REVALIDATION event trigger
+  create_policy_reauth_request(session_id, imsi, {}, {}, {}, event_triggers,
+                               time(NULL), {}, &rar);
+
+  auto update = SessionStore::get_default_session_update(session_map);
+  // This should trigger a revalidation to be scheduled
+  local_enforcer->init_policy_reauth(session_map, rar, raa, update);
+  EXPECT_EQ(raa.result(), ReAuthResult::UPDATE_INITIATED);
+  // Propagate the change to store
+  success = session_store->update_sessions(update);
+  EXPECT_TRUE(success);
+
+  EXPECT_CALL(*reporter, report_updates(_, _)).Times(1);
+  // schedule_revalidation puts two things on the event loop
+  evb->loopOnce();
+  evb->loopOnce();
+}
+
+TEST_F(LocalEnforcerTest, test_revalidation_timer_on_update) {
+  CreateSessionResponse create_response;
+  UpdateSessionResponse update_response;
+  std::vector<std::string> rules_to_install;
+  std::vector<EventTrigger> event_triggers{EventTrigger::REVALIDATION_TIMEOUT};
+
+  const std::string imsi = "IMSI1";
+  const std::string session_id = "1234";
+  const std::string mkey = "m1";
+  rules_to_install.push_back("rule1");
+  insert_static_rule(1, mkey, "rule1");
+
+  // Create a CreateSessionResponse with one Gx monitor, PCC rule
+  create_session_create_response(imsi, mkey, rules_to_install, &create_response);
+
+  local_enforcer->init_session_credit(session_map, imsi, session_id, test_cfg,
+                                      create_response);
+  EXPECT_EQ(session_map[imsi].size(), 1);
+
+  // Write and read into session store, assert success
+  bool success = session_store->create_sessions(imsi, std::move(session_map[imsi]));
+  EXPECT_TRUE(success);
+  session_map = session_store->read_sessions(SessionRead{"IMSI1"});
+
+  // Create a UpdateSessionResponse with a REVALIDATION event trigger
+  auto monitor = update_response.mutable_usage_monitor_responses()->Add();
+  create_monitor_update_response(imsi, mkey, MonitoringLevel::PCC_RULE_LEVEL,
+                                 1024, event_triggers, time(NULL), monitor);
+  auto update = SessionStore::get_default_session_update(session_map);
+  // This should trigger a revalidation to be scheduled
+  local_enforcer->update_session_credits_and_rules(session_map,
+                                                   update_response,
+                                                   update);
+  // Propagate the change to store
+  success = session_store->update_sessions(update);
+  EXPECT_TRUE(success);
+
+  EXPECT_CALL(*reporter, report_updates(_, _)).Times(1);
+  // schedule_revalidation puts two things on the event loop
+  evb->loopOnce();
+  evb->loopOnce();
 }
 
 TEST_F(LocalEnforcerTest, test_pipelined_cwf_setup) {
@@ -1523,7 +1638,7 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_init_no_quota) {
   SessionConfig test_cwf_cfg;
   test_cwf_cfg.rat_type = RATType::TGPP_WLAN;
   CreateSessionResponse response;
-  create_cwf_session_create_response("IMSI1", "m1", static_rules, &response);
+  create_session_create_response("IMSI1", "m1", static_rules, &response);
 
   std::vector<SubscriberQuotaUpdate_Type> expected_states{
       SubscriberQuotaUpdate_Type_NO_QUOTA};
@@ -1542,7 +1657,7 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_init_has_quota) {
   SessionConfig test_cwf_cfg;
   test_cwf_cfg.rat_type = RATType::TGPP_WLAN;
   CreateSessionResponse response;
-  create_cwf_session_create_response("IMSI1", "m1", static_rules, &response);
+  create_session_create_response("IMSI1", "m1", static_rules, &response);
 
   StaticRuleInstall static_rule_install;
   static_rule_install.set_rule_id("static_1");
@@ -1568,7 +1683,7 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_update) {
   SessionConfig test_cwf_cfg;
   test_cwf_cfg.rat_type = RATType::TGPP_WLAN;
   CreateSessionResponse response;
-  create_cwf_session_create_response("IMSI1", "m1", static_rules, &response);
+  create_session_create_response("IMSI1", "m1", static_rules, &response);
   local_enforcer->init_session_credit(session_map, "IMSI1", "1234",
                                       test_cwf_cfg, response);
 
@@ -1610,7 +1725,7 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_rar) {
   SessionConfig test_cwf_cfg;
   test_cwf_cfg.rat_type = RATType::TGPP_WLAN;
   CreateSessionResponse response;
-  create_cwf_session_create_response("IMSI1", "m1", static_rules, &response);
+  create_session_create_response("IMSI1", "m1", static_rules, &response);
   local_enforcer->init_session_credit(session_map, "IMSI1", "1234",
                                       test_cwf_cfg, response);
 

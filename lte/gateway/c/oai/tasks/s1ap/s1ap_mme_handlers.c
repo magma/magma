@@ -2570,10 +2570,9 @@ int s1ap_handle_enb_initiated_reset_ack(
   uint32_t length = 0;
   s1ap_message message = {0};
   S1ap_ResetAcknowledgeIEs_t *s1ap_ResetAcknowledgeIEs_p = NULL;
-  S1ap_UE_associatedLogicalS1_ConnectionItemRes_t
-      sig_conn_list[MAX_NUM_PARTIAL_S1_CONN_RESET]               = {0};
-  S1ap_MME_UE_S1AP_ID_t mme_ue_id[MAX_NUM_PARTIAL_S1_CONN_RESET] = {0};
-  S1ap_ENB_UE_S1AP_ID_t enb_ue_id[MAX_NUM_PARTIAL_S1_CONN_RESET] = {0};
+  S1ap_UE_associatedLogicalS1_ConnectionItemRes_t* sig_conn_list = NULL;
+  S1ap_MME_UE_S1AP_ID_t* mme_ue_id                               = NULL;
+  S1ap_ENB_UE_S1AP_ID_t* enb_ue_id                               = NULL;
 
   int rc = RETURNok;
 
@@ -2592,27 +2591,30 @@ int s1ap_handle_enb_initiated_reset_ack(
       if (
         enb_reset_ack_p->ue_to_reset_list[i].mme_ue_s1ap_id !=
         INVALID_MME_UE_S1AP_ID) {
-        mme_ue_id[i] = enb_reset_ack_p->ue_to_reset_list[i].mme_ue_s1ap_id;
-        sig_conn_list[i].uE_associatedLogicalS1_ConnectionItem.mME_UE_S1AP_ID =
-            &mme_ue_id[i];
+        sig_conn_list =
+            calloc(1, sizeof(S1ap_UE_associatedLogicalS1_ConnectionItemRes_t));
+        mme_ue_id    = calloc(1, sizeof(S1ap_MME_UE_S1AP_ID_t*));
+        *mme_ue_id   = enb_reset_ack_p->ue_to_reset_list[i].mme_ue_s1ap_id;
+        sig_conn_list->uE_associatedLogicalS1_ConnectionItem.mME_UE_S1AP_ID =
+            mme_ue_id;
       } else {
-        sig_conn_list[i].uE_associatedLogicalS1_ConnectionItem.mME_UE_S1AP_ID =
+        sig_conn_list->uE_associatedLogicalS1_ConnectionItem.mME_UE_S1AP_ID =
             NULL;
       }
       if (enb_reset_ack_p->ue_to_reset_list[i].enb_ue_s1ap_id != -1) {
-        enb_ue_id[i] = enb_reset_ack_p->ue_to_reset_list[i].enb_ue_s1ap_id;
-        sig_conn_list[i].uE_associatedLogicalS1_ConnectionItem.eNB_UE_S1AP_ID =
-            &enb_ue_id[i];
+        enb_ue_id    = calloc(1, sizeof(S1ap_ENB_UE_S1AP_ID_t));
+        *enb_ue_id   = enb_reset_ack_p->ue_to_reset_list[i].enb_ue_s1ap_id;
+        sig_conn_list->uE_associatedLogicalS1_ConnectionItem.eNB_UE_S1AP_ID =
+            enb_ue_id;
       } else {
-        sig_conn_list[i].uE_associatedLogicalS1_ConnectionItem.eNB_UE_S1AP_ID =
+        sig_conn_list->uE_associatedLogicalS1_ConnectionItem.eNB_UE_S1AP_ID =
             NULL;
       }
-      sig_conn_list[i].uE_associatedLogicalS1_ConnectionItem.iE_Extensions =
-          NULL;
+      sig_conn_list->uE_associatedLogicalS1_ConnectionItem.iE_Extensions = NULL;
       ASN_SEQUENCE_ADD(
-        &s1ap_ResetAcknowledgeIEs_p->uE_associatedLogicalS1_ConnectionListResAck
-           .s1ap_UE_associatedLogicalS1_ConnectionItemResAck,
-        &sig_conn_list[i]);
+          &s1ap_ResetAcknowledgeIEs_p
+               ->uE_associatedLogicalS1_ConnectionListResAck,
+          sig_conn_list);
     }
   }
   if (s1ap_mme_encode_pdu(&message, &buffer, &length) < 0) {

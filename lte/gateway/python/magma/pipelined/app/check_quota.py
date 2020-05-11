@@ -51,14 +51,14 @@ class CheckQuotaController(MagmaController):
         self.next_table = \
             self._service_manager.get_table_num(INGRESS)
         self.egress_table = self._service_manager.get_table_num(EGRESS)
-        self.fake_ip_network = ipaddress.ip_network('192.168.0.0/16')
-        self.fake_ip_iterator = self.fake_ip_network.hosts()
         self.arpd_controller_fut = kwargs['app_futures']['arpd']
         self.arp_contoller = None
         scratch_tbls = self._service_manager.allocate_scratch_tables(
             self.APP_NAME, 2)
+        self._internal_ip_allocator = kwargs['internal_ip_allocator']
         self.ip_rewrite_scratch = scratch_tbls[0]
-        self.mac_rewrite_scratch = scratch_tbls[1]
+        self.mac_rewrite_scratch = \
+            self._service_manager.INTERNAL_MAC_IP_REWRITE_TBL_NUM
         self._clean_restart = kwargs['config']['clean_restart']
         self._datapath = None
 
@@ -138,7 +138,7 @@ class CheckQuotaController(MagmaController):
 
         """
         parser = self._datapath.ofproto_parser
-        fake_ip = self._next_fake_ip()
+        internal_ip = self._internal_ip_allocator.next_ip()
 
         if has_quota:
             tcp_dst = self.config.has_quota_port
@@ -173,7 +173,7 @@ class CheckQuotaController(MagmaController):
                         n_bits=32
                     ),
                     parser.NXFlowSpecMatch(
-                        src=int(fake_ip),
+                        src=int(internal_ip),
                         dst=('ipv4_dst_nxm', 0),
                         n_bits=32
                     ),
@@ -227,7 +227,7 @@ class CheckQuotaController(MagmaController):
                         n_bits=32
                     ),
                     parser.NXFlowSpecMatch(
-                        src=int(fake_ip),
+                        src=int(internal_ip),
                         dst=('ipv4_dst_nxm', 0),
                         n_bits=32
                     ),
@@ -253,7 +253,7 @@ class CheckQuotaController(MagmaController):
                     ),
                 ]
             ),
-            parser.OFPActionSetField(ipv4_src=str(fake_ip)),
+            parser.OFPActionSetField(ipv4_src=str(internal_ip)),
             parser.OFPActionSetField(ipv4_dst=self.config.bridge_ip),
             parser.OFPActionSetField(eth_dst=self.config.cwf_bridge_mac),
             parser.OFPActionSetField(tcp_dst=tcp_dst),
@@ -281,7 +281,7 @@ class CheckQuotaController(MagmaController):
         match = MagmaMatch(
             imsi=encode_imsi(imsi), eth_type=ether_types.ETH_TYPE_IP,
             ip_proto=IPPROTO_TCP, direction=Direction.IN,
-            ipv4_src=self.config.bridge_ip)
+            ipv4_src=self.config.bridge_ip, ipv4_dst=internal_ip)
         actions = [
             parser.NXActionResubmitTable(table_id=self.ip_rewrite_scratch)]
         flows.add_resubmit_next_service_flow(
@@ -291,13 +291,13 @@ class CheckQuotaController(MagmaController):
         )
 
         self.logger.debug("Setting up fake arp for for subscriber %s(%s),"
-                          "with fake ip %s", imsi, ue_mac , fake_ip)
+                          "with fake ip %s", imsi, ue_mac , internal_ip)
 
         if self.arp_contoller or self.arpd_controller_fut.done():
             if not self.arp_contoller:
                 self.arp_contoller = self.arpd_controller_fut.result()
-            self.arp_contoller.set_incoming_arp_flows(self._datapath, fake_ip,
-                                                      ue_mac)
+            self.arp_contoller.set_incoming_arp_flows(self._datapath,
+                                                      internal_ip, ue_mac)
 
     def _install_default_flows(self, datapath: Datapath):
         """
@@ -321,18 +321,4 @@ class CheckQuotaController(MagmaController):
     def _delete_all_flows(self, datapath: Datapath):
         flows.delete_all_flows_from_table(datapath, self.tbl_num)
         flows.delete_all_flows_from_table(datapath, self.ip_rewrite_scratch)
-        flows.delete_all_flows_from_table(datapath, self.mac_rewrite_scratch)
-
-    def _next_fake_ip(self):
-        ip = next(self.fake_ip_iterator, None)
-        while not self._is_fake_ip_valid(ip):
-            ip = next(self.fake_ip_iterator, None)
-            if ip is None:
-                self.fake_ip_iterator = self.fake_ip_network.hosts()
-        return ip
-
-    def _is_fake_ip_valid(self, ip_addr):
-        if ip_addr is None or str(ip_addr) == self.config.bridge_ip or \
-                str(ip_addr) == self.config.quota_check_ip:
-            return False
-        return True
+        #flows.delete_all_flows_from_table(datapath, self.mac_rewrite_scratch)

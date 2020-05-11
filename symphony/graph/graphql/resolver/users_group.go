@@ -9,8 +9,11 @@ import (
 	"fmt"
 
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/ent/usersgroup"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/graph/resolverutil"
+	"github.com/pkg/errors"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
@@ -39,7 +42,9 @@ func (r mutationResolver) AddUsersGroup(ctx context.Context, input models.AddUse
 	if ent.IsConstraintError(err) {
 		return nil, gqlerror.Errorf("A group with the name %s already exists", input.Name)
 	}
-	return g, err
+	return client.UsersGroup.UpdateOneID(g.ID).
+		AddMemberIDs(input.Members...).
+		Save(ctx)
 }
 
 func (r mutationResolver) EditUsersGroup(ctx context.Context, input models.EditUsersGroupInput) (*ent.UsersGroup, error) {
@@ -50,11 +55,23 @@ func (r mutationResolver) EditUsersGroup(ctx context.Context, input models.EditU
 	if input.Name != nil {
 		m = m.SetName(*input.Name)
 	}
+	if input.Members != nil {
+		currentMembers, err := client.User.Query().
+			Where(user.HasGroupsWith(usersgroup.ID(input.ID))).
+			IDs(ctx)
+		if err != nil {
+			return nil, errors.Wrapf(err, "querying members of group %q", input.ID)
+		}
+		addedMembers, removedMembers := resolverutil.GetDifferenceBetweenSlices(currentMembers, input.Members)
+		m = m.
+			AddMemberIDs(addedMembers...).
+			RemoveMemberIDs(removedMembers...)
+	}
 	g, err := m.Save(ctx)
 	if ent.IsConstraintError(err) {
 		return nil, gqlerror.Errorf("A group with the name %s already exists", *input.Name)
 	}
-	return g, err
+	return g, nil
 }
 
 func (r mutationResolver) DeleteUsersGroup(ctx context.Context, id int) (bool, error) {
@@ -66,13 +83,6 @@ func (r mutationResolver) DeleteUsersGroup(ctx context.Context, id int) (bool, e
 		return false, fmt.Errorf("deleting users group: %w", err)
 	}
 	return true, nil
-}
-
-func (r mutationResolver) UpdateUsersGroupMembers(ctx context.Context, input models.UpdateUsersGroupMembersInput) (*ent.UsersGroup, error) {
-	return r.ClientFrom(ctx).UsersGroup.UpdateOneID(input.ID).
-		AddMemberIDs(input.AddUserIds...).
-		RemoveMemberIDs(input.RemoveUserIds...).
-		Save(ctx)
 }
 
 func (r mutationResolver) UpdatePermissionsPoliciesInUsersGroup(

@@ -8,6 +8,9 @@ import (
 	"context"
 	"strings"
 
+	"github.com/facebookincubator/symphony/graph/ent/service"
+	"github.com/facebookincubator/symphony/graph/ent/servicetype"
+
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
@@ -199,9 +202,10 @@ func LinkSearch(ctx context.Context, client *ent.Client, filters []*models.LinkF
 // nolint: dupl
 func ServiceSearch(ctx context.Context, client *ent.Client, filters []*models.ServiceFilterInput, limit *int) (*models.ServiceSearchResult, error) {
 	var (
-		query = client.Service.Query()
+		query = client.Service.Query().Where(service.HasTypeWith(servicetype.IsDeleted(false)))
 		err   error
 	)
+
 	for _, f := range filters {
 		switch {
 		case strings.HasPrefix(f.FilterType.String(), "SERVICE_"):

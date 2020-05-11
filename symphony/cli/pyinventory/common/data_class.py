@@ -112,6 +112,7 @@ class Location(NamedTuple):
     longitude: Number
     externalId: Optional[str]
     locationTypeName: str
+    properties: Sequence[PropertyFragment]
 
 
 class EquipmentType(NamedTuple):

@@ -171,6 +171,7 @@ struct StoredSessionState {
   std::set<std::string> scheduled_static_rules;
   std::vector<PolicyRule> scheduled_dynamic_rules;
   std::unordered_map<std::string, RuleLifetime> rule_lifetimes;
+  std::vector<PolicyRule> gy_dynamic_rules;
   uint32_t request_number;
 };
 

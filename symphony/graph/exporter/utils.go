@@ -196,6 +196,45 @@ func locationHierarchy(ctx context.Context, location *ent.Location, orderedLocTy
 	return parents, nil
 }
 
+func getLastLocations(ctx context.Context, e *ent.Equipment, level int) (*string, error) {
+	ppos, err := e.QueryParentPosition().Only(ctx)
+	if err != nil && !ent.IsNotFound(err) {
+		return nil, fmt.Errorf("querying parent position: %w", err)
+	}
+
+	var lastPosition *ent.EquipmentPosition
+	for ppos != nil {
+		lastPosition = ppos
+		ppos, err = ppos.QueryParent().QueryParentPosition().Only(ctx)
+		if err != nil && !ent.IsNotFound(err) {
+			return nil, fmt.Errorf("querying parent position: %w", err)
+		}
+	}
+	var query *ent.LocationQuery
+	if lastPosition != nil {
+		query = lastPosition.QueryParent().QueryLocation()
+	} else {
+		query = e.QueryLocation()
+	}
+	loc, err := query.Only(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("querying equipemnt location: %w", err)
+	}
+	locations := loc.Name
+
+	for i := 0; i < level-1; i++ {
+		loc, err = loc.QueryParent().Only(ctx)
+		if ent.MaskNotFound(err) != nil {
+			return nil, fmt.Errorf("querying location for equipment: %w", err)
+		}
+		if ent.IsNotFound(err) || loc == nil {
+			break
+		}
+		locations = loc.Name + "; " + locations
+	}
+	return &locations, nil
+}
+
 // nolint: funlen
 func propertyTypesSlice(ctx context.Context, ids []int, c *ent.Client, entity models.PropertyEntity) ([]string, error) {
 	var (

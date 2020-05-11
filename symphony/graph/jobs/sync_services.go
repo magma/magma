@@ -9,26 +9,24 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/facebookincubator/symphony/graph/viewer"
-
 	"github.com/AlekSi/pointer"
 	"github.com/pkg/errors"
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/service"
 	"github.com/facebookincubator/symphony/graph/ent/servicetype"
+	"github.com/facebookincubator/symphony/graph/viewer"
 )
 
 type serviceEquipmentListData struct {
 	EquipmentList []*ent.Equipment
 }
 
-const maxEndpoints = 5
+const MaxEndpoints = 5
 
 // syncServices job syncs the services according to changes
 func (m *jobs) syncServices(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-
 	v := viewer.FromContext(ctx)
 	sc := getServicesContext(ctx)
 	log := m.logger.For(ctx)

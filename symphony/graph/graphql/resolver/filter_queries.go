@@ -27,6 +27,15 @@ func (r queryResolver) LinkSearch(ctx context.Context, filters []*models.LinkFil
 	return resolverutil.LinkSearch(ctx, r.ClientFrom(ctx), filters, limit)
 }
 
+func (r queryResolver) Links(
+	ctx context.Context,
+	after *ent.Cursor, first *int,
+	before *ent.Cursor, last *int,
+) (*ent.LinkConnection, error) {
+	return r.ClientFrom(ctx).Link.Query().
+		Paginate(ctx, after, first, before, last)
+}
+
 func (r queryResolver) PortSearch(ctx context.Context, filters []*models.PortFilterInput, limit *int) (*models.PortSearchResult, error) {
 	return resolverutil.PortSearch(ctx, r.ClientFrom(ctx), filters, limit)
 }

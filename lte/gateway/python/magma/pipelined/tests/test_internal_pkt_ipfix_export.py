@@ -69,6 +69,7 @@ class InternalPktIpfixExportTest(unittest.TestCase):
             config={
                 'bridge_name': cls.BRIDGE,
                 'bridge_ip_address': '192.168.128.1',
+                'internal_ip_subnet': '192.168.0.0/16',
                 'nat_iface': 'eth2',
                 'enodeb_iface': 'eth1',
                 'enable_queue_pgm': False,

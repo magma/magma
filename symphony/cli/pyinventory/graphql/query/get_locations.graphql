@@ -1,9 +1,12 @@
-query GetLocationsQuery {
-  locations {
+query GetLocationsQuery($after: Cursor, $first: Int) {
+  locations(after: $after, first: $first) {
     edges {
       node {
         ...LocationFragment
       }
+    }
+    pageInfo {
+      ...PageInfoFragment
     }
   }
 }

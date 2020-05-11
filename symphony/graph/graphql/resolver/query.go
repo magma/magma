@@ -117,6 +117,24 @@ func (r queryResolver) EquipmentPortDefinitions(
 		Paginate(ctx, after, first, before, last)
 }
 
+func (r queryResolver) EquipmentPorts(
+	ctx context.Context,
+	after *ent.Cursor, first *int,
+	before *ent.Cursor, last *int,
+) (*ent.EquipmentPortConnection, error) {
+	return r.ClientFrom(ctx).EquipmentPort.Query().
+		Paginate(ctx, after, first, before, last)
+}
+
+func (r queryResolver) Equipments(
+	ctx context.Context,
+	after *ent.Cursor, first *int,
+	before *ent.Cursor, last *int,
+) (*ent.EquipmentConnection, error) {
+	return r.ClientFrom(ctx).Equipment.Query().
+		Paginate(ctx, after, first, before, last)
+}
+
 func (r queryResolver) WorkOrders(
 	ctx context.Context,
 	after *ent.Cursor, first *int,

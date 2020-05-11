@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash b3ad699cb64178f3536d0b4cf5ec24d2
+ * @relayHash fa5e1f7acc53cb966fd855e0b6f844ce
  */
 
 /* eslint-disable */
@@ -19,6 +19,7 @@ export type UsersGroupStatus = "ACTIVE" | "DEACTIVATED" | "%future added value";
 export type AddUsersGroupInput = {|
   name: string,
   description?: ?string,
+  members?: ?$ReadOnlyArray<string>,
 |};
 export type AddUsersGroupMutationVariables = {|
   input: AddUsersGroupInput

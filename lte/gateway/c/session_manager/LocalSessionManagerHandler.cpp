@@ -129,6 +129,7 @@ void LocalSessionManagerHandlerImpl::handle_setup_callback(
           }),
           retry_timeout_);
     });
+    return;
   }
 
   if (resp.result() == resp.OUTDATED_EPOCH) {

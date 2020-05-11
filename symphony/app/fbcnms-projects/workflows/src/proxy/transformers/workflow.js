@@ -118,9 +118,15 @@ const getExecutionStatusAfter: AfterFun = (tenantId, req, respObj) => {
     'tasks[*].workflowTask.name': true,
     'tasks[*].workflowTask.taskDefinition.name': true,
     'tasks[*].workflowType': false,
+    'tasks[*].inputData.subWorkflowName': false,
+    'tasks[*].workflowType': false,
+    'tasks[*].outputData.workflowType': false,
+    'tasks[*].workflowTask.subWorkflowParam.name': false,
+    'output.workflowType': false,
     'workflowDefinition.name': false,
     'workflowDefinition.tasks[*].name': true,
     'workflowDefinition.tasks[*].taskDefinition.name': true,
+    'workflowDefinition.tasks[*].subWorkflowParam.name': false,
   };
   removeTenantPrefixes(tenantId, respObj, jsonPathToAllowGlobal);
 };

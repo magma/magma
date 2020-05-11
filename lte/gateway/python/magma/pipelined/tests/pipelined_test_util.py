@@ -462,7 +462,8 @@ class SnapshotVerifier:
 
     def __init__(self, test_case: TestCase, bridge_name: str,
                  service_manager: ServiceManager,
-                 snapshot_name: Optional[str] = None):
+                 snapshot_name: Optional[str] = None,
+                 include_stats: bool = True):
         """
         These arguments are used to call assert_bridge_snapshot_match on exit.
 
@@ -478,6 +479,7 @@ class SnapshotVerifier:
         self._bridge_name = bridge_name
         self._service_manager = service_manager
         self._snapshot_name = snapshot_name
+        self._include_stats = include_stats
 
     def __enter__(self):
         pass
@@ -492,4 +494,4 @@ class SnapshotVerifier:
             TestCase().fail(e)
         assert_bridge_snapshot_match(self._test_case, self._bridge_name,
                                      self._service_manager,
-                                     self._snapshot_name)
+                                     self._snapshot_name, self._include_stats)

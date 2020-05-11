@@ -123,7 +123,7 @@ class ServiceTypesList extends React.Component<Props, State> {
       )
       .filter(node => {
         return (
-          this.props.showNonManualDiscovery || node.discoveryMethod == null
+          this.props.showNonManualDiscovery || node.discoveryMethod == 'MANUAL'
         );
       })
       .map(serviceType => (
