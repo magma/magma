@@ -29,11 +29,10 @@ const store = createStore(
   composeEnhancers(applyMiddleware(thunk))
 );
 
-function App(props : { setBuilderActive?: (param: boolean) => void }) {
+function App(props : { adminMode: boolean, setBuilderActive?: (param: boolean) => void }) {
   const hideHeader = () => {
     return props?.setBuilderActive ? props.setBuilderActive(true) : null;
   };
-
   return (
     <Provider store={store}>
       <BrowserRouter>
@@ -41,14 +40,15 @@ function App(props : { setBuilderActive?: (param: boolean) => void }) {
           <Route
             exact
             path={[frontendUrlPrefix + "/builder", frontendUrlPrefix + "/builder/:name/:version"]}
-            render={(props) => (
-              <DiagramBuilder hideHeader={hideHeader} {...props} />
+            render={(ps) => (
+                props.adminMode ?
+                    (<DiagramBuilder hideHeader={hideHeader} {...ps} />) : null
             )}
           />
           <Route
             exact
             path={[frontendUrlPrefix + "/:type", frontendUrlPrefix + "/:type/:wfid", "/"]}
-            component={WorkflowList}
+            render={(ps) => <WorkflowList {...ps} adminMode={props.adminMode}/>}
           />
           <Redirect from={frontendUrlPrefix} to={frontendUrlPrefix + "/defs"} />
         </Switch>

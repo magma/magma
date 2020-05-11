@@ -109,8 +109,9 @@ function Main(subApp) {
 
 export default () => {
   const relativeUrl = useRelativeUrl();
+  const props = {adminMode: true}; //TODO verify
   const cs = () => Main(CreateServiceForm());
-  const wf = () => Main(WorkflowApp());
+  const wf = () => Main(WorkflowApp(props));
   return (
     <ApplicationMain>
       <AppContextProvider>
