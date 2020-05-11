@@ -21,12 +21,19 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// StartTestService instantiates a service backed by an in-memory storage
+// StartTestService instantiates a service backed by an in-memory storage.
 func StartTestService(t *testing.T) {
+	_ = StartTestServiceInternal(t)
+}
+
+// StartTestServiceInternal instantiates a service backed by an in-memory
+// storage, exposing the servicer's internal methods.
+func StartTestServiceInternal(t *testing.T) servicers.StateServiceInternal {
 	factory := blobstore.NewMemoryBlobStorageFactory()
 	srv, lis := test_utils.NewTestService(t, orc8r.ModuleName, state.ServiceName)
 	server, err := servicers.NewStateServicer(factory)
 	assert.NoError(t, err)
 	protos.RegisterStateServiceServer(srv.GrpcServer, server)
 	go srv.RunTest(lis)
+	return server
 }

@@ -34,8 +34,15 @@ type stateServicer struct {
 	factory blobstore.BlobStorageFactory
 }
 
+// StateServicer provides both the servicer definition as well as methods
+// local to the state service.
+type StateServicer interface {
+	protos.StateServiceServer
+	StateServiceInternal
+}
+
 // NewStateServicer returns a state server backed by storage passed in.
-func NewStateServicer(factory blobstore.BlobStorageFactory) (protos.StateServiceServer, error) {
+func NewStateServicer(factory blobstore.BlobStorageFactory) (StateServicer, error) {
 	if factory == nil {
 		return nil, errors.New("storage factory is nil")
 	}
