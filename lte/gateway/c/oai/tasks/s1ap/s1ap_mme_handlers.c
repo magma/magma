@@ -2476,6 +2476,7 @@ int s1ap_mme_handle_enb_reset(
         if (s1_sig_conn_id_p->mME_UE_S1AP_ID != NULL) {
           mme_ue_s1ap_id =
             (mme_ue_s1ap_id_t) * (s1_sig_conn_id_p->mME_UE_S1AP_ID);
+          free_wrapper((void**) &s1_sig_conn_id_p->mME_UE_S1AP_ID);
           s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
           hashtable_uint64_ts_get(
             imsi_map->mme_ue_id_imsi_htbl,
@@ -2486,6 +2487,7 @@ int s1ap_mme_handle_enb_reset(
             if (s1_sig_conn_id_p->eNB_UE_S1AP_ID != NULL) {
               enb_ue_s1ap_id =
                 (enb_ue_s1ap_id_t) * (s1_sig_conn_id_p->eNB_UE_S1AP_ID);
+              free_wrapper((void**) &s1_sig_conn_id_p->eNB_UE_S1AP_ID);
               if (
                 ue_ref_p->enb_ue_s1ap_id ==
                 (enb_ue_s1ap_id & ENB_UE_S1AP_ID_MASK)) {
