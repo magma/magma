@@ -46,6 +46,11 @@ const useStyles = makeStyles(() => ({
     marginTop: '8px',
     marginLeft: '4px',
   },
+  dependantRules: {
+    marginLeft: '34px',
+    display: 'flex',
+    flexDirection: 'column',
+  },
   readRule: {
     marginLeft: '4px',
   },
@@ -103,14 +108,13 @@ function InventoryDataRulesSection(props: InventoryDataRulesSectionProps) {
     return null;
   }
 
-  const dataRules: Array<{key: CUDPermissionsKey, title: React.Node}> = [
+  const dependantDataRules: Array<{
+    key: CUDPermissionsKey,
+    title: React.Node,
+  }> = [
     {
       key: 'create',
       title: fbt('Add', ''),
-    },
-    {
-      key: 'update',
-      title: fbt('Edit', ''),
     },
     {
       key: 'delete',
@@ -126,15 +130,26 @@ function InventoryDataRulesSection(props: InventoryDataRulesSectionProps) {
           {subtitle}
         </Text>
       </div>
-      {dataRules.map(dRule => (
-        <InventoryDataRule
-          title={dRule.title}
-          rule={rule}
-          cudAction={dRule.key}
-          disabled={disabled}
-          onChange={onChange}
-        />
-      ))}
+      <InventoryDataRule
+        title={fbt('Edit', '')}
+        rule={rule}
+        cudAction="update"
+        disabled={disabled}
+        onChange={onChange}
+      />
+      <div className={classes.dependantRules}>
+        {dependantDataRules.map(dRule => (
+          <InventoryDataRule
+            title={dRule.title}
+            rule={rule}
+            cudAction={dRule.key}
+            disabled={
+              disabled || !permissionRuleValue2Bool(rule.update.isAllowed)
+            }
+            onChange={onChange}
+          />
+        ))}
+      </div>
     </div>
   );
 }
