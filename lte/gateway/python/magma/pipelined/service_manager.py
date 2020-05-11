@@ -283,7 +283,7 @@ class ServiceManager:
         PipelineD.DPI: [
             App(name=DPIController.APP_NAME, module=DPIController.__module__,
                 type=DPIController.APP_TYPE,
-                order_priority=700),
+                order_priority=400),
         ],
     }
 

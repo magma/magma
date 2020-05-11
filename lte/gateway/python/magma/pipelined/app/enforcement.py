@@ -9,14 +9,18 @@ of patent rights can be found in the PATENTS file in the same directory.
 from typing import List
 
 from lte.protos.pipelined_pb2 import RuleModResult
+from lte.protos.policydb_pb2 import PolicyRule
 from magma.pipelined.app.base import MagmaController, ControllerType
-from magma.pipelined.app.enforcement_stats import EnforcementStatsController
+from magma.pipelined.app.enforcement_stats import EnforcementStatsController, \
+    IGNORE_STATS
 from magma.pipelined.app.policy_mixin import PolicyMixin
+from magma.pipelined.app.dpi import DEFAULT_DPI_ID, get_app_id
 from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.messages import MsgChannel, MessageHub
-from magma.pipelined.openflow.registers import Direction, RULE_VERSION_REG
+from magma.pipelined.openflow.registers import Direction, RULE_VERSION_REG, \
+    SCRATCH_REGS
 from magma.pipelined.policy_converters import FlowMatchError, \
     flow_match_to_magma_match
 from magma.pipelined.redirect import RedirectionManager, RedirectException
@@ -178,7 +182,7 @@ class EnforcementController(PolicyMixin, MagmaController):
 
     def _get_rule_match_flow_msgs(self, imsi, rule):
         """
-        Get a flow msg to get stats for a particular rule. Flows will match on
+        Get flow msgs to get stats for a particular rule. Flows will match on
         IMSI, cookie (the rule num), in/out direction
 
         Args:
@@ -194,10 +198,10 @@ class EnforcementController(PolicyMixin, MagmaController):
         flow_adds = []
         for flow in rule.flow_list:
             try:
-                flow_adds.append(self._get_classify_rule_flow_msg(
+                flow_adds.extend(self._get_classify_rule_flow_msgs(
                     imsi, flow, rule_num, priority, ul_qos,
                     dl_qos, rule.hard_timeout,
-                    rule.id))
+                    rule.id, rule.app_name, rule.app_service_type))
 
             except FlowMatchError as err:  # invalid match
                 self.logger.error(
@@ -252,8 +256,9 @@ class EnforcementController(PolicyMixin, MagmaController):
                 return fail(result.exception())
         return RuleModResult.SUCCESS
 
-    def _get_classify_rule_flow_msg(self, imsi, flow, rule_num, priority,
-                                    ul_qos, dl_qos, hard_timeout, rule_id):
+    def _get_classify_rule_flow_msgs(self, imsi, flow, rule_num, priority,
+                                     ul_qos, dl_qos, hard_timeout, rule_id,
+                                     app_name, app_service_type):
         """
         Install a flow from a rule. If the flow action is DENY, then the flow
         will drop the packet. Otherwise, the flow classifies the packet with
@@ -263,17 +268,45 @@ class EnforcementController(PolicyMixin, MagmaController):
         flow_match.imsi = encode_imsi(imsi)
         flow_match_actions = self._get_classify_rule_of_actions(
             flow, rule_num, imsi, ul_qos, dl_qos, rule_id)
-        if flow.action == flow.DENY:
-            return flows.get_add_drop_flow_msg(self._datapath,
-                                               self.tbl_num,
-                                               flow_match,
-                                               flow_match_actions,
-                                               hard_timeout=hard_timeout,
-                                               priority=priority,
-                                               cookie=rule_num)
+        msgs = []
+        if app_name:
+            # We have to allow initial traffic to pass through, before it gets
+            # classified by DPI, flow match set app_id to unclassified
+            flow_match.app_id = DEFAULT_DPI_ID
+            # Set
+            parser = self._datapath.ofproto_parser
+            passthrough_actions = flow_match_actions + \
+                [parser.NXActionRegLoad2(dst=SCRATCH_REGS[1],
+                                         value=IGNORE_STATS)]
+            msgs.append(
+                flows.get_add_resubmit_current_service_flow_msg(
+                    self._datapath,
+                    self.tbl_num,
+                    flow_match,
+                    passthrough_actions,
+                    hard_timeout=hard_timeout,
+                    priority=priority,
+                    cookie=rule_num,
+                    resubmit_table=self._enforcement_stats_scratch
+                )
+            )
+            flow_match.app_id = get_app_id(
+                PolicyRule.AppName.Name(app_name),
+                PolicyRule.AppServiceType.Name(app_service_type),
+            )
 
-        if self._enforcement_stats_scratch:
-            return flows.get_add_resubmit_current_service_flow_msg(
+        if flow.action == flow.DENY:
+            msgs.append(flows.get_add_drop_flow_msg(
+                self._datapath,
+                self.tbl_num,
+                flow_match,
+                flow_match_actions,
+                hard_timeout=hard_timeout,
+                priority=priority,
+                cookie=rule_num)
+            )
+        else:
+            msgs.append(flows.get_add_resubmit_current_service_flow_msg(
                 self._datapath,
                 self.tbl_num,
                 flow_match,
@@ -282,18 +315,9 @@ class EnforcementController(PolicyMixin, MagmaController):
                 priority=priority,
                 cookie=rule_num,
                 resubmit_table=self._enforcement_stats_scratch)
+            )
 
-        # If enforcement stats has not claimed a scratch table, resubmit
-        # directly to the next app.
-        return flows.get_add_resubmit_next_service_flow_msg(
-            self._datapath,
-            self.tbl_num,
-            flow_match,
-            flow_match_actions,
-            hard_timeout=hard_timeout,
-            priority=priority,
-            cookie=rule_num,
-            resubmit_table=self.next_main_table)
+        return msgs
 
     def _install_redirect_flow(self, imsi, ip_addr, rule):
         rule_num = self._rule_mapper.get_or_create_rule_num(rule.id)
