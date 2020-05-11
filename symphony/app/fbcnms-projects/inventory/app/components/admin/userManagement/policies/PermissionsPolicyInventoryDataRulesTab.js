@@ -8,15 +8,11 @@
  * @format
  */
 
-import type {
-  CUDPermissions,
-  InventoryPolicy,
-} from '../utils/UserManagementUtils';
+import type {InventoryPolicy} from '../utils/UserManagementUtils';
 
 import * as React from 'react';
-import Checkbox from '@fbcnms/ui/components/design-system/Checkbox/Checkbox';
+import PermissionsPolicyInventoryRulesSection from './PermissionsPolicyInventoryRulesSection';
 import Switch from '@fbcnms/ui/components/design-system/switch/Switch';
-import Text from '@fbcnms/ui/components/design-system/Text';
 import fbt from 'fbt';
 import {
   bool2PermissionRuleValue,
@@ -31,128 +27,10 @@ const useStyles = makeStyles(() => ({
     display: 'flex',
     flexDirection: 'column',
   },
-  section: {
-    display: 'flex',
-    flexDirection: 'column',
-    marginTop: '32px',
-  },
-  header: {
-    marginBottom: '4px',
-    marginLeft: '4px',
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  rule: {
-    marginTop: '8px',
-    marginLeft: '4px',
-  },
-  dependantRules: {
-    marginLeft: '34px',
-    display: 'flex',
-    flexDirection: 'column',
-  },
   readRule: {
     marginLeft: '4px',
   },
 }));
-
-type CUDPermissionsKey = $Keys<CUDPermissions>;
-
-type InventoryDataRuleProps = $ReadOnly<{|
-  title: React.Node,
-  rule: CUDPermissions,
-  cudAction: string & CUDPermissionsKey,
-  disabled: boolean,
-  onChange: CUDPermissions => void,
-|}>;
-
-function InventoryDataRule(props: InventoryDataRuleProps) {
-  const {title, rule, cudAction, disabled, onChange} = props;
-  const classes = useStyles();
-
-  if (rule == null) {
-    return null;
-  }
-
-  return (
-    <Checkbox
-      className={classes.rule}
-      title={title}
-      disabled={disabled}
-      checked={!disabled && permissionRuleValue2Bool(rule[cudAction].isAllowed)}
-      onChange={selection =>
-        onChange({
-          ...rule,
-          [cudAction]: {
-            isAllowed: bool2PermissionRuleValue(selection === 'checked'),
-          },
-        })
-      }
-    />
-  );
-}
-
-type InventoryDataRulesSectionProps = $ReadOnly<{|
-  title: React.Node,
-  subtitle: React.Node,
-  rule: ?CUDPermissions,
-  disabled: boolean,
-  onChange: CUDPermissions => void,
-|}>;
-
-function InventoryDataRulesSection(props: InventoryDataRulesSectionProps) {
-  const {title, subtitle, rule, disabled, onChange} = props;
-  const classes = useStyles();
-
-  if (rule == null) {
-    return null;
-  }
-
-  const dependantDataRules: Array<{
-    key: CUDPermissionsKey,
-    title: React.Node,
-  }> = [
-    {
-      key: 'create',
-      title: fbt('Add', ''),
-    },
-    {
-      key: 'delete',
-      title: fbt('Delete', ''),
-    },
-  ];
-
-  return (
-    <div className={classes.section}>
-      <div className={classes.header}>
-        <Text variant="subtitle1">{title}</Text>
-        <Text variant="body2" color="gray">
-          {subtitle}
-        </Text>
-      </div>
-      <InventoryDataRule
-        title={fbt('Edit', '')}
-        rule={rule}
-        cudAction="update"
-        disabled={disabled}
-        onChange={onChange}
-      />
-      <div className={classes.dependantRules}>
-        {dependantDataRules.map(dRule => (
-          <InventoryDataRule
-            title={dRule.title}
-            rule={rule}
-            cudAction={dRule.key}
-            disabled={
-              disabled || !permissionRuleValue2Bool(rule.update.isAllowed)
-            }
-            onChange={onChange}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
 
 type Props = $ReadOnly<{|
   policy: ?InventoryPolicy,
@@ -184,7 +62,7 @@ export default function PermissionsPolicyInventoryDataRulesTab(props: Props) {
           })
         }
       />
-      <InventoryDataRulesSection
+      <PermissionsPolicyInventoryRulesSection
         title={fbt('Locations', '')}
         subtitle={fbt(
           'Location data includes location details, properties, floor plans and coverage maps.',
@@ -199,7 +77,7 @@ export default function PermissionsPolicyInventoryDataRulesTab(props: Props) {
           })
         }
       />
-      <InventoryDataRulesSection
+      <PermissionsPolicyInventoryRulesSection
         title={fbt('Equipment', '')}
         subtitle={fbt(
           'Equipment data includes equipment items, ports, links, services and network maps.',
