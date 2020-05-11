@@ -482,6 +482,19 @@ jobs:
               <<#parameters.options>><<parameters.options>><</parameters.options>>
       - *storetestdir
 
+  flowtest:
+    executor: yarnnode
+    steps:
+      - checkout
+      - run:
+          name: install flow
+          <<: *appdir
+          command: yarn add --dev -W flow-bin@0.120
+      - run:
+          name: flow typecheck
+          <<: *appdir
+          command: yarn run flow
+
   yarntest:
     executor: yarnnode
     steps:
@@ -510,7 +523,10 @@ workflows:
     jobs:
       - lint
       - unit
-      - yarntest
+      - flowtest
+      - yarntest:
+          requires:
+            - flowtest
       - docker-publish:
           name: graph/publish
           dockerfile: graph/Dockerfile
