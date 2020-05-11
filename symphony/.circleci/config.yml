@@ -556,6 +556,7 @@ workflows:
             - integration
             - docs/publish
             - storybook/publish
+            - jobrunner/publish
             - helm-lint
           <<: *onlymaster
       - artifactory/upload:
