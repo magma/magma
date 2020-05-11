@@ -7,7 +7,7 @@ dependencies:
   version: 1.4.6
 - name: nms
   repository: ""
-  version: 0.1.2
+  version: 0.1.5
 - name: logging
   repository: ""
   version: 0.1.9

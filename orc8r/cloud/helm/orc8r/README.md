@@ -67,9 +67,9 @@ The following table list the configurable parameters of the orchestrator chart a
 | `controller.tolerations` | If specified, the pod's tolerations. | `[]` |
 | `controller.affinity` | Assign the orchestrator proxy to run on specific nodes. | `{}` |
 | `nms.enabled` | If true, deploy the nms sub-chart | `true` |
-| `nms.rbac` | Enable rbac for NMS app and nginx. | `false` |
-| `nms.nginx.create` | Enable nms nginx configmap. | `true` |
+| `nms.nginx.create` | Enable nms nginx service. | `true` |
 | `nms.magmalte.create` | Enable nms magmalte app. | `true` |
+| `nms.rbac` | Enable rbac for nginx and magmalte app. | `false` |
 | `logging.enabled` | If true, deploy the logging sub-chart | `true` |
 
 ## Running in Minikube
