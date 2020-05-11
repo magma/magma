@@ -7,6 +7,7 @@ package authz_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -72,14 +73,16 @@ func runPolicyTest(t *testing.T, tests []policyTest) {
 func runContextBasedPolicyTest(t *testing.T, tests []contextBasedPolicyTest) {
 	for _, test := range tests {
 		t.Run(test.operationName, func(t *testing.T) {
-			for name, allowed := range map[string]bool{"Denied": false, "Allowed": true} {
+			modes := map[string]bool{"Denied": false, "Allowed": true}
+			for _, name := range []string{"Denied", "Allowed"} {
 				t.Run(name, func(t *testing.T) {
+					allowed := modes[name]
 					if allowed {
 						err := test.operation(test.withPermissionsContext)
 						require.NoError(t, err)
 					} else {
 						err := test.operation(test.noPermissionsContext)
-						require.True(t, errors.Is(err, privacy.Deny))
+						require.True(t, errors.Is(err, privacy.Deny), fmt.Sprintf("Error is %v", err))
 					}
 				})
 			}

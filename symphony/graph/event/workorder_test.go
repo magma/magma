@@ -63,8 +63,12 @@ func (s *workOrderTestSuite) TestWorkOrderCreate() {
 		})
 		s.Require().True(errors.Is(err, context.Canceled))
 	}()
+	woType := s.client.WorkOrderType.Create().
+		SetName("CleanType").
+		SaveX(s.ctx)
 	s.client.WorkOrder.Create().
 		SetName("Clean").
+		SetType(woType).
 		SetCreationDate(time.Now()).
 		SetOwner(s.user).
 		SetStatus(models.WorkOrderStatusDone.String()).
@@ -101,8 +105,12 @@ func (s *workOrderTestSuite) TestWorkOrderUpdateOne() {
 		s.Require().True(errors.Is(err, context.Canceled))
 	}()
 
+	woType := s.client.WorkOrderType.Create().
+		SetName("VacuumType").
+		SaveX(s.ctx)
 	wo := s.client.WorkOrder.Create().
 		SetName("Vacuum").
+		SetType(woType).
 		SetCreationDate(time.Now()).
 		SetOwner(s.user).
 		SaveX(s.ctx)
