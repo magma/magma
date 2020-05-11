@@ -4,11 +4,46 @@ import { select } from "d3-selection";
 import { Row, Col } from "react-bootstrap";
 import Clipboard from "clipboard";
 import TaskModal from "./TaskModal";
+import type {Task} from "./flowtypes";
 
 new Clipboard(".btn");
 
-class Grapher extends Component {
-  constructor(props) {
+type SubGraph = {
+  n: [],
+  vx: {},
+  layout: {}
+};
+
+type Props = {
+  innerGraph?:?[],
+  layout: {},
+  edges: [],
+  vertices: {},
+  defs?: {},
+  def?: {}
+};
+
+type StateType = {
+  innerGraph:?[],
+  subGraph: ?SubGraph,
+  showSideBar: boolean,
+  selectedTask: Task,
+  showSubGraph: boolean,
+  subGraphId: string
+};
+
+type Parent = {
+  insert: (shape: string, st: string) => {
+    attr: (t: string, sp: string) => {}
+  }
+};
+
+class Grapher extends Component<Props, StateType> {
+  grapher: any;
+  setSvgRef: (param: {} | null) => {} | null;
+  svgElem: {} | null;
+
+  constructor(props : Props) {
     super(props);
 
     this.state = {};
@@ -89,7 +124,7 @@ class Grapher extends Component {
     this.forceUpdate();
   }
 
-  componentWillReceiveProps(nextProps) {
+  componentWillReceiveProps(nextProps: Props) {
     this.setState({
       innerGraph: nextProps.innerGraph
     });

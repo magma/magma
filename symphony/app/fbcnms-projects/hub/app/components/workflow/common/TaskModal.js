@@ -1,7 +1,15 @@
 import React from "react";
 import { Col, Container, Modal, Row, Tab, Tabs } from "react-bootstrap";
 import Highlight from "react-highlight.js";
-const TaskModal = props => {
+import type {Task} from "./flowtypes";
+
+type Props = {
+  task: Task,
+  show: boolean,
+  handle: () => void
+};
+
+const TaskModal = (props:Props) => {
   let task = props.task;
   let show = props.show;
   return (
