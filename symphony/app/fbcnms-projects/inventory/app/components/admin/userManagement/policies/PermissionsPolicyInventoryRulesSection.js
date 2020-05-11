@@ -25,7 +25,6 @@ const useStyles = makeStyles(() => ({
   section: {
     display: 'flex',
     flexDirection: 'column',
-    marginTop: '32px',
   },
   header: {
     marginBottom: '4px',
@@ -83,14 +82,23 @@ function InventoryDataRule(props: InventoryDataRuleProps) {
 type Props = $ReadOnly<{|
   title?: React.Node,
   subtitle?: React.Node,
+  mainCheckHeaderPrefix?: React.Node,
   rule: ?CUDPermissions,
-  disabled: boolean,
+  disabled?: ?boolean,
   className?: ?string,
   onChange: CUDPermissions => void,
 |}>;
 
 export default function PermissionsPolicyInventoryRulesSection(props: Props) {
-  const {title, subtitle, rule, disabled, className, onChange} = props;
+  const {
+    title,
+    subtitle,
+    mainCheckHeaderPrefix,
+    rule,
+    disabled,
+    className,
+    onChange,
+  } = props;
   const classes = useStyles();
 
   if (rule == null) {
@@ -120,20 +128,30 @@ export default function PermissionsPolicyInventoryRulesSection(props: Props) {
         </Text>
       </div>
       <InventoryDataRule
-        title={fbt('Edit', '')}
+        title={
+          <>
+            <Text variant="subtitle2">
+              <fbt desc="">Edit</fbt>
+            </Text>
+            {mainCheckHeaderPrefix != null && (
+              <span> {mainCheckHeaderPrefix}</span>
+            )}
+          </>
+        }
         rule={rule}
         cudAction="update"
-        disabled={disabled}
+        disabled={disabled == true}
         onChange={onChange}
       />
       <div className={classes.dependantRules}>
         {dependantDataRules.map(dRule => (
           <InventoryDataRule
-            title={dRule.title}
+            title={<Text variant="subtitle2">{dRule.title}</Text>}
             rule={rule}
             cudAction={dRule.key}
             disabled={
-              disabled || !permissionRuleValue2Bool(rule.update.isAllowed)
+              disabled == true ||
+              !permissionRuleValue2Bool(rule.update.isAllowed)
             }
             onChange={onChange}
           />

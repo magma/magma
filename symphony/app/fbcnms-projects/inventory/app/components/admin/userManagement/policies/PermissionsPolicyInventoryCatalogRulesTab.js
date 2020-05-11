@@ -9,21 +9,15 @@
  */
 
 import type {
-  CUDPermissions,
   InventoryCatalogPolicy,
   InventoryPolicy,
 } from '../utils/UserManagementUtils';
 
 import * as React from 'react';
-import HierarchicalCheckbox from '../utils/HierarchicalCheckbox';
+import PermissionsPolicyInventoryRulesSection from './PermissionsPolicyInventoryRulesSection';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import fbt from 'fbt';
-import {
-  bool2PermissionRuleValue,
-  permissionRuleValue2Bool,
-} from '../utils/UserManagementUtils';
 import {makeStyles} from '@material-ui/styles';
-import {useCallback, useEffect, useState} from 'react';
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -38,111 +32,28 @@ const useStyles = makeStyles(() => ({
     display: 'flex',
     flexDirection: 'column',
   },
-  rule: {
-    marginTop: '8px',
-    marginLeft: '4px',
-  },
 }));
 
-type RuleCUDKey = string & $Keys<CUDPermissions>;
 type RuleCatalogKey = string & $Keys<InventoryCatalogPolicy>;
 
-type CatalogRuleProps = $ReadOnly<{|
-  title: React.Node,
-  policy: InventoryPolicy,
-  ruleCUD: RuleCUDKey,
-  ruleCatalog: RuleCatalogKey,
-  onChange: (
-    ruleCUD: RuleCUDKey,
-    ruleCatalog: RuleCatalogKey,
-    value: ?boolean,
-  ) => void,
-|}>;
-
-function CatalogRule(props: CatalogRuleProps) {
-  const {title, policy, ruleCUD, ruleCatalog, onChange} = props;
-  const classes = useStyles();
-
-  return (
-    <HierarchicalCheckbox
-      id={`${ruleCatalog}_${ruleCUD}`}
-      title={title}
-      className={classes.rule}
-      value={permissionRuleValue2Bool(policy[ruleCatalog][ruleCUD].isAllowed)}
-      onChange={checked => onChange(ruleCUD, ruleCatalog, checked)}
-    />
-  );
-}
-
-type CatalogsTreeProps = $ReadOnly<{|
-  title: React.Node,
-  policy: InventoryPolicy,
-  ruleCUD: string & $Keys<CUDPermissions>,
-  onChange: InventoryPolicy => void,
-|}>;
-
-function CatalogsTree(props: CatalogsTreeProps) {
-  const {title, policy: propPolicy, ruleCUD, onChange: propOnChange} = props;
-
-  const [policy, setPolicy] = useState(propPolicy);
-  useEffect(() => {
-    setPolicy(propPolicy);
-  }, [propPolicy]);
-
-  const classes = useStyles();
-
-  const onChange = useCallback(
-    (ruleCUD: RuleCUDKey, ruleCatalog: RuleCatalogKey, value: ?boolean) => {
-      setPolicy(currentPolicy => {
-        const newPolicy = {
-          ...currentPolicy,
-          [ruleCatalog]: {
-            ...currentPolicy[ruleCatalog],
-            [ruleCUD]: {
-              isAllowed: bool2PermissionRuleValue(value),
-            },
-          },
-        };
-        propOnChange(newPolicy);
-        return newPolicy;
-      });
-    },
-    [propOnChange],
-  );
-
-  const rules: Array<{key: RuleCatalogKey, title: React.Node}> = [
-    {
-      key: 'equipmentType',
-      title: fbt('Equipment Types', ''),
-    },
-    {
-      key: 'locationType',
-      title: fbt('Location Types', ''),
-    },
-    {
-      key: 'portType',
-      title: fbt('Port Types', ''),
-    },
-    {
-      key: 'serviceType',
-      title: fbt('Service Types', ''),
-    },
-  ];
-
-  return (
-    <HierarchicalCheckbox id={ruleCUD} className={classes.rule} title={title}>
-      {rules.map(rule => (
-        <CatalogRule
-          title={rule.title}
-          policy={policy}
-          ruleCatalog={rule.key}
-          ruleCUD={ruleCUD}
-          onChange={onChange}
-        />
-      ))}
-    </HierarchicalCheckbox>
-  );
-}
+const rules: Array<{key: RuleCatalogKey, title: React.Node}> = [
+  {
+    key: 'equipmentType',
+    title: fbt('Equipment Types', ''),
+  },
+  {
+    key: 'locationType',
+    title: fbt('Location Types', ''),
+  },
+  {
+    key: 'portType',
+    title: fbt('Port Types', ''),
+  },
+  {
+    key: 'serviceType',
+    title: fbt('Service Types', ''),
+  },
+];
 
 type Props = $ReadOnly<{|
   policy: ?InventoryPolicy,
@@ -159,21 +70,6 @@ export default function PermissionsPolicyInventoryCatalogRulesTab(
     return null;
   }
 
-  const trees: Array<{key: RuleCUDKey, title: React.Node}> = [
-    {
-      key: 'create',
-      title: fbt('Create', ''),
-    },
-    {
-      key: 'update',
-      title: fbt('Edit', ''),
-    },
-    {
-      key: 'delete',
-      title: fbt('Delete', ''),
-    },
-  ];
-
   return (
     <div className={classes.root}>
       <div className={classes.header}>
@@ -186,12 +82,17 @@ export default function PermissionsPolicyInventoryCatalogRulesTab(
           </fbt>
         </Text>
       </div>
-      {trees.map(tree => (
-        <CatalogsTree
-          policy={policy}
-          ruleCUD={tree.key}
-          title={tree.title}
-          onChange={onChange}
+
+      {rules.map(rule => (
+        <PermissionsPolicyInventoryRulesSection
+          mainCheckHeaderPrefix={rule.title}
+          rule={policy[rule.key]}
+          onChange={cud =>
+            onChange({
+              ...policy,
+              [rule.key]: cud,
+            })
+          }
         />
       ))}
     </div>

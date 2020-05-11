@@ -30,6 +30,9 @@ const useStyles = makeStyles(() => ({
   readRule: {
     marginLeft: '4px',
   },
+  section: {
+    marginTop: '32px',
+  },
 }));
 
 type Props = $ReadOnly<{|
@@ -70,6 +73,7 @@ export default function PermissionsPolicyInventoryDataRulesTab(props: Props) {
         )}
         disabled={!readAllowed}
         rule={policy.location}
+        className={classes.section}
         onChange={location =>
           onChange({
             ...policy,
@@ -83,6 +87,7 @@ export default function PermissionsPolicyInventoryDataRulesTab(props: Props) {
           'Equipment data includes equipment items, ports, links, services and network maps.',
           '',
         )}
+        className={classes.section}
         disabled={!readAllowed}
         rule={policy.equipment}
         onChange={equipment =>
