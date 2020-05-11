@@ -7,12 +7,16 @@ package authz
 import (
 	"context"
 
-	"github.com/facebookincubator/symphony/graph/ent/property"
-
-	"github.com/facebookincubator/symphony/graph/ent/propertytype"
-
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/ent/location"
+	"github.com/facebookincubator/symphony/graph/ent/locationtype"
 	"github.com/facebookincubator/symphony/graph/ent/privacy"
+	"github.com/facebookincubator/symphony/graph/ent/project"
+	"github.com/facebookincubator/symphony/graph/ent/projecttype"
+	"github.com/facebookincubator/symphony/graph/ent/property"
+	"github.com/facebookincubator/symphony/graph/ent/propertytype"
+	"github.com/facebookincubator/symphony/graph/ent/workorder"
+	"github.com/facebookincubator/symphony/graph/ent/workordertype"
 )
 
 // PropertyTypeWritePolicyRule grants write permission to property type based on policy.
@@ -122,7 +126,14 @@ func PropertyWritePolicyRule() privacy.MutationRule {
 		p := FromContext(ctx)
 		switch {
 		case prop.Edges.Location != nil:
-			return allowOrSkipLocations(p.InventoryPolicy.Location.Update)
+			locationTypeID, err := prop.Edges.Location.QueryType().OnlyID(ctx)
+			if err != nil {
+				if ent.IsNotFound(err) {
+					return privacy.Skip
+				}
+				return privacy.Denyf("failed to fetch location type id: %w", err)
+			}
+			return allowOrSkipLocations(p.InventoryPolicy.Location.Update, locationTypeID)
 		case prop.Edges.Equipment != nil:
 			return allowOrSkip(p.InventoryPolicy.Equipment.Update)
 		case prop.Edges.EquipmentPort != nil:
@@ -139,9 +150,17 @@ func PropertyWritePolicyRule() privacy.MutationRule {
 			if allowed {
 				return privacy.Allow
 			}
-			return allowOrSkipWorkforce(p.WorkforcePolicy.Data.Update)
+			workOrderTypeID, err := prop.Edges.WorkOrder.QueryType().OnlyID(ctx)
+			if err != nil {
+				return privacy.Denyf("failed to fetch work order type id: %w", err)
+			}
+			return privacyDecision(checkWorkforce(p.WorkforcePolicy.Data.Update, &workOrderTypeID, nil))
 		case prop.Edges.Project != nil:
-			return allowOrSkipWorkforce(p.WorkforcePolicy.Data.Update)
+			projectTypeID, err := prop.Edges.Project.QueryType().OnlyID(ctx)
+			if err != nil {
+				return privacy.Denyf("failed to fetch project type id: %w", err)
+			}
+			return privacyDecision(checkWorkforce(p.WorkforcePolicy.Data.Update, nil, &projectTypeID))
 		}
 		return privacy.Skip
 	})
@@ -155,8 +174,17 @@ func PropertyCreatePolicyRule() privacy.MutationRule {
 			return privacy.Skip
 		}
 		p := FromContext(ctx)
-		if _, exists := m.LocationID(); exists {
-			return allowOrSkipLocations(p.InventoryPolicy.Location.Update)
+		if locationID, exists := m.LocationID(); exists {
+			locationTypeID, err := m.Client().LocationType.Query().
+				Where(locationtype.HasLocationsWith(location.ID(locationID))).
+				OnlyID(ctx)
+			if err != nil {
+				if ent.IsNotFound(err) {
+					return privacy.Skip
+				}
+				return privacy.Denyf("failed to fetch location type id: %w", err)
+			}
+			return allowOrSkipLocations(p.InventoryPolicy.Location.Update, locationTypeID)
 		}
 		if _, exists := m.EquipmentID(); exists {
 			return allowOrSkip(p.InventoryPolicy.Equipment.Update)
@@ -185,10 +213,28 @@ func PropertyCreatePolicyRule() privacy.MutationRule {
 			if allowed {
 				return privacy.Allow
 			}
-			return allowOrSkipWorkforce(p.WorkforcePolicy.Data.Update)
+			workOrderTypeID, err := m.Client().WorkOrderType.Query().
+				Where(workordertype.HasWorkOrdersWith(workorder.ID(workOrderID))).
+				OnlyID(ctx)
+			if err != nil {
+				if ent.IsNotFound(err) {
+					return privacy.Skip
+				}
+				return privacy.Denyf("failed to fetch work order type id: %w", err)
+			}
+			return privacyDecision(checkWorkforce(p.WorkforcePolicy.Data.Update, &workOrderTypeID, nil))
 		}
-		if _, exists := m.ProjectID(); exists {
-			return allowOrSkipWorkforce(p.WorkforcePolicy.Data.Update)
+		if projectID, exists := m.ProjectID(); exists {
+			projectTypeID, err := m.Client().ProjectType.Query().
+				Where(projecttype.HasProjectsWith(project.ID(projectID))).
+				OnlyID(ctx)
+			if err != nil {
+				if ent.IsNotFound(err) {
+					return privacy.Skip
+				}
+				return privacy.Denyf("failed to fetch project type id: %w", err)
+			}
+			return privacyDecision(checkWorkforce(p.WorkforcePolicy.Data.Update, nil, &projectTypeID))
 		}
 		return privacy.Skip
 	})
