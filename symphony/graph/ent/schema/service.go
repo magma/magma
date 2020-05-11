@@ -141,6 +141,15 @@ func (ServiceEndpointDefinition) Indexes() []ent.Index {
 	}
 }
 
+// Policy returns ServiceEndpointDefinition policy.
+func (ServiceEndpointDefinition) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithMutationRules(
+			authz.ServiceEndpointDefinitionWritePolicyRule(),
+		),
+	)
+}
+
 // Service holds the schema definition for the Service entity.
 type Service struct {
 	schema
