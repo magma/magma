@@ -74,11 +74,6 @@ static void* sgw_intertask_interface(void* args_p)
         OAILOG_DEBUG(LOG_SPGW_APP, "Received MESSAGE_TEST\n");
         break;
 
-      case S11_CREATE_BEARER_RESPONSE: {
-        sgw_handle_create_bearer_response(
-          &received_message_p->ittiMsg.s11_create_bearer_response);
-      } break;
-
       case S11_CREATE_SESSION_REQUEST: {
         /*
          * We received a create session request from MME (with GTP abstraction here)

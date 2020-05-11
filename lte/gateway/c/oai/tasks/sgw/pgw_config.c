@@ -480,26 +480,6 @@ int pgw_config_parse_file(pgw_config_t *config_pP)
         config_pP->relay_enabled = false;
       }
     }
-    if (config_setting_lookup_string(
-          setting_pgw,
-          PGW_CONFIG_STRING_GTPV1U_REALIZATION,
-          (const char **) &astring)) {
-      if (strcasecmp(astring, PGW_CONFIG_STRING_NO_GTP_KERNEL_AVAILABLE) == 0) {
-        config_pP->use_gtp_kernel_module = false;
-        config_pP->enable_loading_gtp_kernel_module = false;
-        OAILOG_DEBUG(
-          LOG_SPGW_APP,
-          "Protocol configuration options: push MTU, push DNS, IP address "
-          "allocation via NAS signalling\n");
-      } else if (
-        strcasecmp(astring, PGW_CONFIG_STRING_GTP_KERNEL_MODULE) == 0) {
-        config_pP->use_gtp_kernel_module = true;
-        config_pP->enable_loading_gtp_kernel_module = true;
-      } else if (strcasecmp(astring, PGW_CONFIG_STRING_GTP_KERNEL) == 0) {
-        config_pP->use_gtp_kernel_module = true;
-        config_pP->enable_loading_gtp_kernel_module = false;
-      }
-    }
 
     subsetting = config_setting_get_member(setting_pgw, PGW_CONFIG_STRING_PCEF);
     if (subsetting) {
@@ -655,17 +635,6 @@ void pgw_config_display(pgw_config_t *config_p)
     LOG_SPGW_APP,
     "    User IP masquerading  : %s\n",
     config_p->masquerade_SGI == 0 ? "false" : "true");
-  if (config_p->use_gtp_kernel_module) {
-    OAILOG_INFO(
-      LOG_SPGW_APP,
-      "- GTPv1U .................: Enabled (Linux kernel module)\n");
-    OAILOG_INFO(
-      LOG_SPGW_APP,
-      "    Load/unload module....: %s\n",
-      (config_p->enable_loading_gtp_kernel_module) ? "enabled" : "disabled");
-  } else {
-    OAILOG_INFO(LOG_SPGW_APP, "- GTPv1U .................: Disabled\n");
-  }
   OAILOG_INFO(
     LOG_SPGW_APP,
     "- PCEF support ...........: %s (in development)\n",
