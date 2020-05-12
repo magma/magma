@@ -22,6 +22,8 @@ const (
 
 	// Defaults
 	DefaultChallengeKeyFile = "/var/opt/magma/certs/gw_challenge.key"
+	DefaultStaticConfigDir  = "/etc/magma"
+	DefaultDynamicConfigDir = "/var/opt/magma/configs"
 )
 
 // BootstrapConfig bootstrapper related configuration - `yaml:"bootstrap_config"`
@@ -31,26 +33,36 @@ type BootstrapConfig struct {
 
 // MagmadCfg represents magmad.yml based configuration
 type MagmadCfg struct {
-	LogLevel                         string               `yaml:"log_level"`
-	MagmaServices                    []string             `yaml:"magma_services"`
-	NonService303Services            []string             `yaml:"non_service303_services"`
-	RegisteredDynamicServices        []string             `yaml:"registered_dynamic_services"`
-	SkipCheckinIfMissingMetaServices []string             `yaml:"skip_checkin_if_missing_meta_services"`
-	InitSystem                       string               `yaml:"init_system"`
-	BootstrapConfig                  BootstrapConfig      `yaml:"bootstrap_config"`
-	EnableConfigStreamer             bool                 `yaml:"enable_config_streamer"`
-	EnableUpgradeMamager             bool                 `yaml:"enable_upgrade_manager"`
-	EnableNetworkMonitor             bool                 `yaml:"enable_network_monitor"`
-	EnableSystemdTailer              bool                 `yaml:"enable_systemd_tailer"`
-	EnableSyncRpc                    bool                 `yaml:"enable_sync_rpc"`
-	EnableKernelVersionChecking      bool                 `yaml:"enable_kernel_version_checking"`
-	SystemdTailerPollInterval        int                  `yaml:"systemd_tailer_poll_interval"`
-	NetworkMonitorConfig             NetworkMonitorConfig `yaml:"network_monitor_config"`
-	UpgraderFactory                  UpgraderFactory      `yaml:"upgrader_factory"`
-	MconfigModules                   []string             `yaml:"mconfig_modules"`
-	Metricsd                         Metricsd             `yaml:"metricsd"`
-	GenericCommandConfig             GenericCommandConfig `yaml:"generic_command_config"`
-	ConfigStreamErrorRetryInterval   int                  `yaml:"config_stream_error_retry_interval"`
+	LogLevel                         string   `yaml:"log_level"`
+	MagmaServices                    []string `yaml:"magma_services"`
+	NonService303Services            []string `yaml:"non_service303_services"`
+	RegisteredDynamicServices        []string `yaml:"registered_dynamic_services"`
+	SkipCheckinIfMissingMetaServices []string `yaml:"skip_checkin_if_missing_meta_services"`
+	InitSystem                       string   `yaml:"init_system"`
+	// When cloud managed configs (gateway.cmconfig) are loaded by a magma service, the service first tries to
+	// load them from dynamic (most recent) configs directory - DynamicMconfigDir, if unsuccessful, the service
+	// falls back to static configs directory - StaticMconfigDir; this allows services to operate
+	StaticMconfigDir  string `yaml:"static_mconfig_dir"`
+	DynamicMconfigDir string `yaml:"dynamic_mconfig_dir"`
+	// StaticMconfigUpdateIntervalMin specifies interval in minutes dynamic gateway.mconfig from DynamicMconfigDir
+	// will be synchronized with (copied to) static gateway.mconfig in StaticMconfigDir
+	// if StaticMconfigUpdateIntervalMin <= 0 (default) - static gateway.mconfig in StaticMconfigDir will never
+	// be overwritten
+	StaticMconfigUpdateIntervalMin int                  `yaml:"static_mconfig_update_interval_minutes"`
+	BootstrapConfig                BootstrapConfig      `yaml:"bootstrap_config"`
+	EnableConfigStreamer           bool                 `yaml:"enable_config_streamer"`
+	EnableUpgradeMamager           bool                 `yaml:"enable_upgrade_manager"`
+	EnableNetworkMonitor           bool                 `yaml:"enable_network_monitor"`
+	EnableSystemdTailer            bool                 `yaml:"enable_systemd_tailer"`
+	EnableSyncRpc                  bool                 `yaml:"enable_sync_rpc"`
+	EnableKernelVersionChecking    bool                 `yaml:"enable_kernel_version_checking"`
+	SystemdTailerPollInterval      int                  `yaml:"systemd_tailer_poll_interval"`
+	NetworkMonitorConfig           NetworkMonitorConfig `yaml:"network_monitor_config"`
+	UpgraderFactory                UpgraderFactory      `yaml:"upgrader_factory"`
+	MconfigModules                 []string             `yaml:"mconfig_modules"`
+	Metricsd                       Metricsd             `yaml:"metricsd"`
+	GenericCommandConfig           GenericCommandConfig `yaml:"generic_command_config"`
+	ConfigStreamErrorRetryInterval int                  `yaml:"config_stream_error_retry_interval"`
 }
 
 // NetworkMonitorConfig is network_monitor_config configuration block from magmad.yml
@@ -116,6 +128,8 @@ func NewDefaultMgmadCfg() *MagmadCfg {
 		RegisteredDynamicServices:        []string{},
 		SkipCheckinIfMissingMetaServices: []string{},
 		InitSystem:                       "",
+		StaticMconfigDir:                 DefaultStaticConfigDir,
+		DynamicMconfigDir:                DefaultDynamicConfigDir,
 		BootstrapConfig:                  BootstrapConfig{ChallengeKey: DefaultChallengeKeyFile},
 		EnableConfigStreamer:             true,
 		EnableUpgradeMamager:             false,
