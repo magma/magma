@@ -108,7 +108,7 @@ type Props = $ReadOnly<{|
   onChange: CUDPermissions => void,
 |}>;
 
-export default function PermissionsPolicyInventoryRulesSection(props: Props) {
+export default function PermissionsPolicyRulesSection(props: Props) {
   const {
     title,
     subtitle,
