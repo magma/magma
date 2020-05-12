@@ -1427,21 +1427,6 @@ var (
 			},
 		},
 	}
-	// TechniciansColumns holds the columns for the "technicians" table.
-	TechniciansColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "create_time", Type: field.TypeTime},
-		{Name: "update_time", Type: field.TypeTime},
-		{Name: "name", Type: field.TypeString},
-		{Name: "email", Type: field.TypeString, Unique: true},
-	}
-	// TechniciansTable holds the schema information for the "technicians" table.
-	TechniciansTable = &schema.Table{
-		Name:        "technicians",
-		Columns:     TechniciansColumns,
-		PrimaryKey:  []*schema.Column{TechniciansColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{},
-	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -1502,7 +1487,6 @@ var (
 		{Name: "project_work_orders", Type: field.TypeInt, Nullable: true},
 		{Name: "work_order_type", Type: field.TypeInt, Nullable: true},
 		{Name: "work_order_location", Type: field.TypeInt, Nullable: true},
-		{Name: "work_order_technician", Type: field.TypeInt, Nullable: true},
 		{Name: "work_order_owner", Type: field.TypeInt, Nullable: true},
 		{Name: "work_order_assignee", Type: field.TypeInt, Nullable: true},
 	}
@@ -1534,22 +1518,15 @@ var (
 				OnDelete:   schema.SetNull,
 			},
 			{
-				Symbol:  "work_orders_technicians_technician",
-				Columns: []*schema.Column{WorkOrdersColumns[14]},
-
-				RefColumns: []*schema.Column{TechniciansColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-			{
 				Symbol:  "work_orders_users_owner",
-				Columns: []*schema.Column{WorkOrdersColumns[15]},
+				Columns: []*schema.Column{WorkOrdersColumns[14]},
 
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "work_orders_users_assignee",
-				Columns: []*schema.Column{WorkOrdersColumns[16]},
+				Columns: []*schema.Column{WorkOrdersColumns[15]},
 
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
@@ -1777,7 +1754,6 @@ var (
 		SurveyTemplateCategoriesTable,
 		SurveyTemplateQuestionsTable,
 		SurveyWiFiScansTable,
-		TechniciansTable,
 		UsersTable,
 		UsersGroupsTable,
 		WorkOrdersTable,
@@ -1874,9 +1850,8 @@ func init() {
 	WorkOrdersTable.ForeignKeys[0].RefTable = ProjectsTable
 	WorkOrdersTable.ForeignKeys[1].RefTable = WorkOrderTypesTable
 	WorkOrdersTable.ForeignKeys[2].RefTable = LocationsTable
-	WorkOrdersTable.ForeignKeys[3].RefTable = TechniciansTable
+	WorkOrdersTable.ForeignKeys[3].RefTable = UsersTable
 	WorkOrdersTable.ForeignKeys[4].RefTable = UsersTable
-	WorkOrdersTable.ForeignKeys[5].RefTable = UsersTable
 	WorkOrderDefinitionsTable.ForeignKeys[0].RefTable = ProjectTypesTable
 	WorkOrderDefinitionsTable.ForeignKeys[1].RefTable = WorkOrderTypesTable
 	ServiceUpstreamTable.ForeignKeys[0].RefTable = ServicesTable

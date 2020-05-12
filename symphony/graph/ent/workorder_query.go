@@ -27,7 +27,6 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/project"
 	"github.com/facebookincubator/symphony/graph/ent/property"
-	"github.com/facebookincubator/symphony/graph/ent/technician"
 	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 	"github.com/facebookincubator/symphony/graph/ent/workordertype"
@@ -52,7 +51,6 @@ type WorkOrderQuery struct {
 	withProperties          *PropertyQuery
 	withCheckListCategories *CheckListCategoryQuery
 	withCheckListItems      *CheckListItemQuery
-	withTechnician          *TechnicianQuery
 	withProject             *ProjectQuery
 	withOwner               *UserQuery
 	withAssignee            *UserQuery
@@ -259,24 +257,6 @@ func (woq *WorkOrderQuery) QueryCheckListItems() *CheckListItemQuery {
 			sqlgraph.From(workorder.Table, workorder.FieldID, woq.sqlQuery()),
 			sqlgraph.To(checklistitem.Table, checklistitem.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, workorder.CheckListItemsTable, workorder.CheckListItemsColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(woq.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// QueryTechnician chains the current query on the technician edge.
-func (woq *WorkOrderQuery) QueryTechnician() *TechnicianQuery {
-	query := &TechnicianQuery{config: woq.config}
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := woq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(workorder.Table, workorder.FieldID, woq.sqlQuery()),
-			sqlgraph.To(technician.Table, technician.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, workorder.TechnicianTable, workorder.TechnicianColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(woq.driver.Dialect(), step)
 		return fromU, nil
@@ -627,17 +607,6 @@ func (woq *WorkOrderQuery) WithCheckListItems(opts ...func(*CheckListItemQuery))
 	return woq
 }
 
-//  WithTechnician tells the query-builder to eager-loads the nodes that are connected to
-// the "technician" edge. The optional arguments used to configure the query builder of the edge.
-func (woq *WorkOrderQuery) WithTechnician(opts ...func(*TechnicianQuery)) *WorkOrderQuery {
-	query := &TechnicianQuery{config: woq.config}
-	for _, opt := range opts {
-		opt(query)
-	}
-	woq.withTechnician = query
-	return woq
-}
-
 //  WithProject tells the query-builder to eager-loads the nodes that are connected to
 // the "project" edge. The optional arguments used to configure the query builder of the edge.
 func (woq *WorkOrderQuery) WithProject(opts ...func(*ProjectQuery)) *WorkOrderQuery {
@@ -741,7 +710,7 @@ func (woq *WorkOrderQuery) sqlAll(ctx context.Context) ([]*WorkOrder, error) {
 		nodes       = []*WorkOrder{}
 		withFKs     = woq.withFKs
 		_spec       = woq.querySpec()
-		loadedTypes = [14]bool{
+		loadedTypes = [13]bool{
 			woq.withType != nil,
 			woq.withEquipment != nil,
 			woq.withLinks != nil,
@@ -752,13 +721,12 @@ func (woq *WorkOrderQuery) sqlAll(ctx context.Context) ([]*WorkOrder, error) {
 			woq.withProperties != nil,
 			woq.withCheckListCategories != nil,
 			woq.withCheckListItems != nil,
-			woq.withTechnician != nil,
 			woq.withProject != nil,
 			woq.withOwner != nil,
 			woq.withAssignee != nil,
 		}
 	)
-	if woq.withType != nil || woq.withLocation != nil || woq.withTechnician != nil || woq.withProject != nil || woq.withOwner != nil || woq.withAssignee != nil {
+	if woq.withType != nil || woq.withLocation != nil || woq.withProject != nil || woq.withOwner != nil || woq.withAssignee != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -1059,31 +1027,6 @@ func (woq *WorkOrderQuery) sqlAll(ctx context.Context) ([]*WorkOrder, error) {
 				return nil, fmt.Errorf(`unexpected foreign-key "work_order_check_list_items" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.CheckListItems = append(node.Edges.CheckListItems, n)
-		}
-	}
-
-	if query := woq.withTechnician; query != nil {
-		ids := make([]int, 0, len(nodes))
-		nodeids := make(map[int][]*WorkOrder)
-		for i := range nodes {
-			if fk := nodes[i].work_order_technician; fk != nil {
-				ids = append(ids, *fk)
-				nodeids[*fk] = append(nodeids[*fk], nodes[i])
-			}
-		}
-		query.Where(technician.IDIn(ids...))
-		neighbors, err := query.All(ctx)
-		if err != nil {
-			return nil, err
-		}
-		for _, n := range neighbors {
-			nodes, ok := nodeids[n.ID]
-			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "work_order_technician" returned %v`, n.ID)
-			}
-			for i := range nodes {
-				nodes[i].Edges.Technician = n
-			}
 		}
 	}
 

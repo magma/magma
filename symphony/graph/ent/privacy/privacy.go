@@ -1109,30 +1109,6 @@ func (f SurveyWiFiScanMutationRuleFunc) EvalMutation(ctx context.Context, m ent.
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.SurveyWiFiScanMutation", m)
 }
 
-// The TechnicianQueryRuleFunc type is an adapter to allow the use of ordinary
-// functions as a query rule.
-type TechnicianQueryRuleFunc func(context.Context, *ent.TechnicianQuery) error
-
-// EvalQuery return f(ctx, q).
-func (f TechnicianQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
-	if q, ok := q.(*ent.TechnicianQuery); ok {
-		return f(ctx, q)
-	}
-	return Denyf("ent/privacy: unexpected query type %T, expect *ent.TechnicianQuery", q)
-}
-
-// The TechnicianMutationRuleFunc type is an adapter to allow the use of ordinary
-// functions as a mutation rule.
-type TechnicianMutationRuleFunc func(context.Context, *ent.TechnicianMutation) error
-
-// EvalMutation calls f(ctx, m).
-func (f TechnicianMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
-	if m, ok := m.(*ent.TechnicianMutation); ok {
-		return f(ctx, m)
-	}
-	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.TechnicianMutation", m)
-}
-
 // The UserQueryRuleFunc type is an adapter to allow the use of ordinary
 // functions as a query rule.
 type UserQueryRuleFunc func(context.Context, *ent.UserQuery) error

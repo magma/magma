@@ -850,11 +850,6 @@ type TechnicianCheckListItemInput struct {
 	FilesData          []*FileInput          `json:"filesData"`
 }
 
-type TechnicianInput struct {
-	Name  string `json:"name"`
-	Email string `json:"email"`
-}
-
 type TechnicianWorkOrderUploadInput struct {
 	WorkOrderID int                             `json:"workOrderId"`
 	Checklist   []*TechnicianCheckListItemInput `json:"checklist"`
