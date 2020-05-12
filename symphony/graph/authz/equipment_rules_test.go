@@ -147,3 +147,34 @@ func TestEquipmentPortDefinitionWritePolicyRule(t *testing.T) {
 		delete: deleteEquipmentPortDefinition,
 	})
 }
+
+func TestEquipmentCategoryWritePolicyRule(t *testing.T) {
+	c := viewertest.NewTestClient(t)
+	ctx := viewertest.NewContext(context.Background(), c)
+	equipmentCategory := c.EquipmentCategory.Create().
+		SetName("EquipmentCategory").
+		SaveX(ctx)
+	createEquipmentCategory := func(ctx context.Context) error {
+		_, err := c.EquipmentCategory.Create().
+			SetName("NewEquipmentCategory").
+			Save(ctx)
+		return err
+	}
+	updateEquipmentCategory := func(ctx context.Context) error {
+		return c.EquipmentCategory.UpdateOne(equipmentCategory).
+			SetName("NewName").
+			Exec(ctx)
+	}
+	deleteEquipmentCategory := func(ctx context.Context) error {
+		return c.EquipmentCategory.DeleteOne(equipmentCategory).
+			Exec(ctx)
+	}
+	runCudPolicyTest(t, cudPolicyTest{
+		appendPermissions: func(p *models.PermissionSettings) {
+			p.InventoryPolicy.EquipmentType.Update.IsAllowed = models2.PermissionValueYes
+		},
+		create: createEquipmentCategory,
+		update: updateEquipmentCategory,
+		delete: deleteEquipmentCategory,
+	})
+}

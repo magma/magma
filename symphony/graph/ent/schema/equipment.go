@@ -207,6 +207,15 @@ func (EquipmentCategory) Edges() []ent.Edge {
 	}
 }
 
+// Policy returns equipment category policy.
+func (EquipmentCategory) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithMutationRules(
+			authz.EquipmentCategoryWritePolicyRule(),
+		),
+	)
+}
+
 // EquipmentType defines the equipment type schema.
 type EquipmentType struct {
 	schema
