@@ -42,6 +42,7 @@ import update from 'immutability-helper';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {FormContextProvider} from '../../common/FormContext';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
+import {NAVIGATION_OPTIONS} from '../location/LocationBreadcrumbsTitle';
 import {createFragmentContainer, graphql} from 'react-relay';
 import {getGraphError} from '../../common/EntUtils';
 import {sortPropertiesByIndex, toPropertyInput} from '../../common/Property';
@@ -315,6 +316,7 @@ class ProjectDetails extends React.Component<Props, State> {
                         <LocationBreadcrumbsTitle
                           locationDetails={location}
                           size="small"
+                          navigateOnClick={NAVIGATION_OPTIONS.NEW_TAB}
                         />
                         <Grid container spacing={2}>
                           <Grid item xs={12} md={12}>

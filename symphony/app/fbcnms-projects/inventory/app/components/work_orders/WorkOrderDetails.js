@@ -50,6 +50,7 @@ import WorkOrderHeader from './WorkOrderHeader';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
+import {NAVIGATION_OPTIONS} from '../location/LocationBreadcrumbsTitle';
 import {createFragmentContainer, graphql} from 'react-relay';
 import {doneStatus, priorityValues, statusValues} from '../../common/WorkOrder';
 import {formatDateForTextInput} from '@fbcnms/ui/utils/displayUtils';
@@ -472,6 +473,7 @@ const WorkOrderDetails = ({
                             <LocationBreadcrumbsTitle
                               locationDetails={location}
                               size="small"
+                              navigateOnClick={NAVIGATION_OPTIONS.NEW_TAB}
                             />
                             <Grid container spacing={2}>
                               <Grid item xs={12} md={12}>
