@@ -4,6 +4,7 @@ import { withRouter } from "react-router-dom";
 import { HttpClient as http } from "../../common/HttpClient";
 import WorkflowDefs from "./WorkflowDefs/WorkflowDefs";
 import WorkflowExec from "./WorkflowExec/WorkflowExec";
+import Scheduling from "./Scheduling/Scheduling";
 import { conductorApiUrlPrefix, frontendUrlPrefix } from "../../constants";
 import {changeUrl, exportButton} from './workflowUtils'
 
@@ -90,7 +91,9 @@ const WorkflowList = (props) => {
         <Tab mountOnEnter unmountOnExit eventKey="exec" title="Executed">
           <WorkflowExec query={query} />
         </Tab>
-        <Tab eventKey="scheduled" title="Scheduled" disabled></Tab>
+        <Tab eventKey="scheduled" title="Scheduled">
+          <Scheduling />
+        </Tab>
       </Tabs>
     </Container>
   );
