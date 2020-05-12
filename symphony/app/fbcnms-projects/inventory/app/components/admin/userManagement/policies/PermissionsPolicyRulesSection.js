@@ -89,7 +89,7 @@ type DataRuleTitleProps = $ReadOnly<{|
   children: React.Node,
 |}>;
 
-function DataRuleTitle(props: DataRuleTitleProps) {
+export function DataRuleTitle(props: DataRuleTitleProps) {
   const {children} = props;
   return (
     <Text variant="subtitle2" color="inherit">
@@ -106,6 +106,7 @@ type Props = $ReadOnly<{|
   disabled?: ?boolean,
   className?: ?string,
   onChange: CUDPermissions => void,
+  children?: React.Node,
 |}>;
 
 export default function PermissionsPolicyRulesSection(props: Props) {
@@ -117,6 +118,7 @@ export default function PermissionsPolicyRulesSection(props: Props) {
     disabled,
     className,
     onChange,
+    children,
   } = props;
   const classes = useStyles();
 
@@ -170,6 +172,7 @@ export default function PermissionsPolicyRulesSection(props: Props) {
             onChange={onChange}
           />
         ))}
+        {children}
       </InventoryDataRule>
     </div>
   );
