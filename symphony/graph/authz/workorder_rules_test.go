@@ -18,17 +18,20 @@ import (
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
+	"github.com/google/uuid"
 
 	"github.com/stretchr/testify/require"
 )
 
 func prepareWorkOrderData(ctx context.Context, c *ent.Client) (*ent.WorkOrderType, *ent.WorkOrder) {
 	u := viewer.MustGetOrCreateUser(ctx, "AuthID", user.RoleOWNER)
+	workOrderTypeName := uuid.New().String()
+	workOrderName := uuid.New().String()
 	workOrderType := c.WorkOrderType.Create().
-		SetName("WorkOrderType").
+		SetName(workOrderTypeName).
 		SaveX(ctx)
 	workOrder := c.WorkOrder.Create().
-		SetName("WorkOrder").
+		SetName(workOrderName).
 		SetType(workOrderType).
 		SetOwner(u).
 		SetCreationDate(time.Now()).
@@ -102,6 +105,7 @@ func TestWorkOrderWritePolicyRule(t *testing.T) {
 	c := viewertest.NewTestClient(t)
 	ctx := viewertest.NewContext(context.Background(), c)
 	workOrderType, workOrder := prepareWorkOrderData(ctx, c)
+	workOrderType2, workOrder2 := prepareWorkOrderData(ctx, c)
 	createWorkOrder := func(ctx context.Context) error {
 		u := viewer.FromContext(ctx).(*viewer.UserViewer).User()
 		_, err := c.WorkOrder.Create().
@@ -112,13 +116,32 @@ func TestWorkOrderWritePolicyRule(t *testing.T) {
 			Save(ctx)
 		return err
 	}
+	createWorkOrder2 := func(ctx context.Context) error {
+		u := viewer.FromContext(ctx).(*viewer.UserViewer).User()
+		_, err := c.WorkOrder.Create().
+			SetName("NewWorkOrder2").
+			SetType(workOrderType2).
+			SetOwner(u).
+			SetCreationDate(time.Now()).
+			Save(ctx)
+		return err
+	}
 	updateWorkOrder := func(ctx context.Context) error {
 		return c.WorkOrder.UpdateOne(workOrder).
 			SetName("NewName").
 			Exec(ctx)
 	}
+	updateWorkOrder2 := func(ctx context.Context) error {
+		return c.WorkOrder.UpdateOne(workOrder2).
+			SetName("NewName2").
+			Exec(ctx)
+	}
 	deleteWorkOrder := func(ctx context.Context) error {
 		return c.WorkOrder.DeleteOne(workOrder).
+			Exec(ctx)
+	}
+	deleteWorkOrder2 := func(ctx context.Context) error {
+		return c.WorkOrder.DeleteOne(workOrder2).
 			Exec(ctx)
 	}
 	initialPermissions := func(p *models.PermissionSettings) {
@@ -134,6 +157,18 @@ func TestWorkOrderWritePolicyRule(t *testing.T) {
 			operation: createWorkOrder,
 		},
 		{
+			operationName: "CreateWithType",
+			initialPermissions: func(p *models.PermissionSettings) {
+				initialPermissions(p)
+				p.WorkforcePolicy.Data.Create.IsAllowed = models2.PermissionValueByCondition
+				p.WorkforcePolicy.Data.Create.WorkOrderTypeIds = []int{workOrderType.ID}
+			},
+			appendPermissions: func(p *models.PermissionSettings) {
+				p.WorkforcePolicy.Data.Create.WorkOrderTypeIds = []int{workOrderType.ID, workOrderType2.ID}
+			},
+			operation: createWorkOrder2,
+		},
+		{
 			operationName:      "Update",
 			initialPermissions: initialPermissions,
 			appendPermissions: func(p *models.PermissionSettings) {
@@ -142,12 +177,36 @@ func TestWorkOrderWritePolicyRule(t *testing.T) {
 			operation: updateWorkOrder,
 		},
 		{
+			operationName: "UpdateWithType",
+			initialPermissions: func(p *models.PermissionSettings) {
+				initialPermissions(p)
+				p.WorkforcePolicy.Data.Update.IsAllowed = models2.PermissionValueByCondition
+				p.WorkforcePolicy.Data.Update.WorkOrderTypeIds = []int{workOrderType.ID}
+			},
+			appendPermissions: func(p *models.PermissionSettings) {
+				p.WorkforcePolicy.Data.Update.WorkOrderTypeIds = []int{workOrderType.ID, workOrderType2.ID}
+			},
+			operation: updateWorkOrder2,
+		},
+		{
 			operationName:      "Delete",
 			initialPermissions: initialPermissions,
 			appendPermissions: func(p *models.PermissionSettings) {
 				p.WorkforcePolicy.Data.Delete.IsAllowed = models2.PermissionValueYes
 			},
 			operation: deleteWorkOrder,
+		},
+		{
+			operationName: "DeleteWithType",
+			initialPermissions: func(p *models.PermissionSettings) {
+				initialPermissions(p)
+				p.WorkforcePolicy.Data.Delete.IsAllowed = models2.PermissionValueByCondition
+				p.WorkforcePolicy.Data.Delete.WorkOrderTypeIds = []int{workOrderType.ID}
+			},
+			appendPermissions: func(p *models.PermissionSettings) {
+				p.WorkforcePolicy.Data.Delete.WorkOrderTypeIds = []int{workOrderType.ID, workOrderType2.ID}
+			},
+			operation: deleteWorkOrder2,
 		},
 	}
 	runPolicyTest(t, tests)

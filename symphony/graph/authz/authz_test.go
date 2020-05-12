@@ -16,43 +16,61 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
-	"github.com/facebookincubator/symphony/pkg/log"
-
-	"github.com/stretchr/testify/require"
+	"github.com/facebookincubator/symphony/pkg/log/logtest"
+	"github.com/stretchr/testify/suite"
 )
 
-func testContextGetFullPermissions(ctx context.Context, t *testing.T) {
-	h := authz.AuthHandler{
-		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+type handlerTestSuite struct {
+	suite.Suite
+	ctx    context.Context
+	client *ent.Client
+	viewer viewer.Viewer
+}
+
+func (s *handlerTestSuite) SetupTest() {
+	s.client = viewertest.NewTestClient(s.T())
+	s.ctx = ent.NewContext(context.Background(), s.client)
+}
+
+func (s *handlerTestSuite) TearDownTest() {
+	s.client.Close()
+	s.viewer = nil
+}
+
+func (s *handlerTestSuite) testViewerPermissions() {
+	h := authz.Handler(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			permissions := authz.FromContext(r.Context())
-			require.NotNil(t, permissions)
-			require.EqualValues(t, authz.FullPermissions(), permissions)
+			s.Require().NotNil(permissions)
+			s.Require().EqualValues(authz.FullPermissions(), permissions)
 			w.WriteHeader(http.StatusAccepted)
 		}),
-		Logger: log.NewNopLogger(),
-	}
+		logtest.NewTestLogger(s.T()),
+	)
 	req := httptest.NewRequest(http.MethodPost, "/", nil)
 	rec := httptest.NewRecorder()
-	h.ServeHTTP(rec, req.WithContext(ctx))
-	require.Equal(t, http.StatusAccepted, rec.Code)
+	h.ServeHTTP(rec, req.WithContext(viewer.NewContext(s.ctx, s.viewer)))
+	s.Require().Equal(http.StatusAccepted, rec.Code)
 }
 
-func TestAuthHandler(t *testing.T) {
-	client := viewertest.NewTestClient(t)
-	ctx := ent.NewContext(context.Background(), client)
+func TestHandler(t *testing.T) {
+	suite.Run(t, &handlerTestSuite{})
+}
+
+func (s *handlerTestSuite) TestUserHandler() {
 	u := viewer.MustGetOrCreateUser(
-		privacy.DecisionContext(ctx, privacy.Allow),
+		privacy.DecisionContext(s.ctx, privacy.Allow),
 		viewertest.DefaultUser,
 		user.RoleOWNER)
-	v := viewer.NewUser(viewertest.DefaultTenant, u)
-	ctx = viewer.NewContext(ctx, v)
-	testContextGetFullPermissions(ctx, t)
+	s.viewer = viewer.NewUser(viewertest.DefaultTenant, u)
+	s.testViewerPermissions()
 }
 
-func TestAuthHandlerForAutomation(t *testing.T) {
-	client := viewertest.NewTestClient(t)
-	ctx := ent.NewContext(context.Background(), client)
-	v := viewer.NewAutomation(viewertest.DefaultTenant, viewertest.DefaultUser, user.RoleOWNER)
-	ctx = viewer.NewContext(ctx, v)
-	testContextGetFullPermissions(ctx, t)
+func (s *handlerTestSuite) TestAutomationHandler() {
+	s.viewer = viewer.NewAutomation(
+		viewertest.DefaultTenant,
+		viewertest.DefaultUser,
+		user.RoleOWNER,
+	)
+	s.testViewerPermissions()
 }

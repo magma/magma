@@ -105,9 +105,12 @@ func importEquipmentFile(t *testing.T, client *ent.Client, r io.Reader, method m
 			Subscriber: event.NewNopSubscriber(),
 		},
 	)
-	auth := authz.AuthHandler{Handler: h, Logger: logtest.NewTestLogger(t)}
-	th := viewer.TenancyHandler(auth, viewer.NewFixedTenancy(client))
-	server := httptest.NewServer(th)
+	h = authz.Handler(h, logtest.NewTestLogger(t))
+	h = viewer.TenancyHandler(h,
+		viewer.NewFixedTenancy(client),
+		logtest.NewTestLogger(t),
+	)
+	server := httptest.NewServer(h)
 	defer server.Close()
 
 	req, err := http.NewRequest(http.MethodPost, server.URL+"/export_equipment", buf)
@@ -146,11 +149,10 @@ func deleteEquipmentData(ctx context.Context, t *testing.T, r *TestExporterResol
 
 func prepareEquipmentAndExport(t *testing.T, r *TestExporterResolver) (context.Context, *http.Response) {
 	log := r.exporter.log
-
-	e := &exporter{log, equipmentRower{log}}
-	auth := authz.AuthHandler{Handler: e, Logger: logtest.NewTestLogger(t)}
-	th := viewer.TenancyHandler(auth, viewer.NewFixedTenancy(r.client))
-	server := httptest.NewServer(th)
+	var h http.Handler = &exporter{log, equipmentRower{log}}
+	h = authz.Handler(h, logtest.NewTestLogger(t))
+	h = viewer.TenancyHandler(h, viewer.NewFixedTenancy(r.client), log)
+	server := httptest.NewServer(h)
 	defer server.Close()
 
 	req, err := http.NewRequest(http.MethodGet, server.URL, nil)

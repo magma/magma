@@ -31,3 +31,10 @@ func EquipmentPortTypeWritePolicyRule() privacy.MutationRule {
 		return cudBasedRule(FromContext(ctx).InventoryPolicy.PortType, m)
 	})
 }
+
+// EquipmentPortDefinitionWritePolicyRule grants write permission to equipment port definition based on policy.
+func EquipmentPortDefinitionWritePolicyRule() privacy.MutationRule {
+	return privacy.MutationRuleFunc(func(ctx context.Context, m ent.Mutation) error {
+		return allowOrSkip(FromContext(ctx).InventoryPolicy.EquipmentType.Update)
+	})
+}

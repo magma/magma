@@ -14,13 +14,13 @@ import (
 	"testing"
 
 	"github.com/AlekSi/pointer"
-	"github.com/stretchr/testify/require"
-
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/ent/serviceendpointdefinition"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
+	"github.com/facebookincubator/symphony/pkg/log/logtest"
+	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -220,7 +220,10 @@ func TestEmptyServicesDataExport(t *testing.T) {
 	log := r.exporter.log
 
 	e := &exporter{log, servicesRower{log}}
-	th := viewer.TenancyHandler(e, viewer.NewFixedTenancy(r.client))
+	th := viewer.TenancyHandler(e,
+		viewer.NewFixedTenancy(r.client),
+		logtest.NewTestLogger(t),
+	)
 	server := httptest.NewServer(th)
 	defer server.Close()
 
@@ -258,7 +261,10 @@ func TestServicesExport(t *testing.T) {
 	log := r.exporter.log
 
 	e := &exporter{log, servicesRower{log}}
-	th := viewer.TenancyHandler(e, viewer.NewFixedTenancy(r.client))
+	th := viewer.TenancyHandler(e,
+		viewer.NewFixedTenancy(r.client),
+		logtest.NewTestLogger(t),
+	)
 	server := httptest.NewServer(th)
 	defer server.Close()
 
@@ -377,7 +383,10 @@ func TestServiceWithFilters(t *testing.T) {
 	log := r.exporter.log
 
 	e := &exporter{log, servicesRower{log}}
-	th := viewer.TenancyHandler(e, viewer.NewFixedTenancy(r.client))
+	th := viewer.TenancyHandler(e,
+		viewer.NewFixedTenancy(r.client),
+		logtest.NewTestLogger(t),
+	)
 	server := httptest.NewServer(th)
 	defer server.Close()
 

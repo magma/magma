@@ -12,7 +12,7 @@ import (
 	"magma/orc8r/cloud/go/services/state"
 )
 
-// StateServiceInternal provides a cross-network DAO for internal usage
+// StateServiceInternal provides a cross-network DAO for local usage
 // by the state service.
 type StateServiceInternal interface {
 	// GetAllIDs returns all IDs known to the state service, keyed

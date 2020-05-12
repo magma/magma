@@ -687,7 +687,6 @@ static int _default_eps_bearer_activate_in_bearer_setup_req(
   emm_esm_activate->gbr_ul = bearer_context->esm_ebr_context.gbr_ul;
 
   bstring msg_dup = bstrcpy(*msg);
-  *msg = NULL;
 
   rc = emm_sap_send(&emm_sap);
 
@@ -701,9 +700,8 @@ static int _default_eps_bearer_activate_in_bearer_setup_req(
       msg_dup,
       mme_config.nas_config.t3485_sec,
       _default_eps_bearer_activate_t3485_handler);
-  } else {
-    bdestroy_wrapper(&msg_dup);
   }
 
+  bdestroy_wrapper(&msg_dup);
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
 }
