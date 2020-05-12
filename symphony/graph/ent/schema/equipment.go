@@ -128,6 +128,15 @@ func (EquipmentPort) Indexes() []ent.Index {
 	}
 }
 
+// Policy returns equipment port policy.
+func (EquipmentPort) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithMutationRules(
+			authz.EquipmentPortWritePolicyRule(),
+		),
+	)
+}
+
 // EquipmentPositionDefinition defines the equipment position definition schema.
 type EquipmentPositionDefinition struct {
 	schema
