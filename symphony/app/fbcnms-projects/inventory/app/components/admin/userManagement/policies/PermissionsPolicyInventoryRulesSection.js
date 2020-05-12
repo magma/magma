@@ -11,7 +11,9 @@
 import type {CUDPermissions} from '../utils/UserManagementUtils';
 
 import * as React from 'react';
-import Checkbox from '@fbcnms/ui/components/design-system/Checkbox/Checkbox';
+import HierarchicalCheckbox, {
+  HIERARCHICAL_RELATION,
+} from '../utils/HierarchicalCheckbox';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import classNames from 'classnames';
 import fbt from 'fbt';
@@ -51,10 +53,11 @@ type InventoryDataRuleProps = $ReadOnly<{|
   cudAction: string & CUDPermissionsKey,
   disabled: boolean,
   onChange: CUDPermissions => void,
+  children?: React.Node,
 |}>;
 
 function InventoryDataRule(props: InventoryDataRuleProps) {
-  const {title, rule, cudAction, disabled, onChange} = props;
+  const {title, rule, cudAction, disabled, onChange, children} = props;
   const classes = useStyles();
 
   if (rule == null) {
@@ -62,20 +65,36 @@ function InventoryDataRule(props: InventoryDataRuleProps) {
   }
 
   return (
-    <Checkbox
-      className={classes.rule}
+    <HierarchicalCheckbox
+      id={cudAction}
       title={title}
       disabled={disabled}
-      checked={!disabled && permissionRuleValue2Bool(rule[cudAction].isAllowed)}
-      onChange={selection =>
+      value={!disabled && permissionRuleValue2Bool(rule[cudAction].isAllowed)}
+      onChange={checked =>
         onChange({
           ...rule,
           [cudAction]: {
-            isAllowed: bool2PermissionRuleValue(selection === 'checked'),
+            isAllowed: bool2PermissionRuleValue(checked),
           },
         })
       }
-    />
+      hierarchicalRelation={HIERARCHICAL_RELATION.PARENT_REQUIRED}
+      className={classes.rule}>
+      {children}
+    </HierarchicalCheckbox>
+  );
+}
+
+type DataRuleTitleProps = $ReadOnly<{|
+  children: React.Node,
+|}>;
+
+function DataRuleTitle(props: DataRuleTitleProps) {
+  const {children} = props;
+  return (
+    <Text variant="subtitle2" color="inherit">
+      {children}
+    </Text>
   );
 }
 
@@ -130,9 +149,9 @@ export default function PermissionsPolicyInventoryRulesSection(props: Props) {
       <InventoryDataRule
         title={
           <>
-            <Text variant="subtitle2">
+            <DataRuleTitle>
               <fbt desc="">Edit</fbt>
-            </Text>
+            </DataRuleTitle>
             {mainCheckHeaderPrefix != null && (
               <span> {mainCheckHeaderPrefix}</span>
             )}
@@ -141,22 +160,17 @@ export default function PermissionsPolicyInventoryRulesSection(props: Props) {
         rule={rule}
         cudAction="update"
         disabled={disabled == true}
-        onChange={onChange}
-      />
-      <div className={classes.dependantRules}>
+        onChange={onChange}>
         {dependantDataRules.map(dRule => (
           <InventoryDataRule
-            title={<Text variant="subtitle2">{dRule.title}</Text>}
+            title={<DataRuleTitle>{dRule.title}</DataRuleTitle>}
             rule={rule}
             cudAction={dRule.key}
-            disabled={
-              disabled == true ||
-              !permissionRuleValue2Bool(rule.update.isAllowed)
-            }
+            disabled={disabled == true}
             onChange={onChange}
           />
         ))}
-      </div>
+      </InventoryDataRule>
     </div>
   );
 }
