@@ -93,7 +93,7 @@ const CheckListCategoryTable = ({categories}: CheckListCategoryTableProps) => {
                 id="title"
                 variant="outlined"
                 disabled={form.alerts.editLock.detected}
-                value={row.value.title}
+                defaultValue={row.value.title}
                 autoFocus={true}
                 placeholder={`${fbt(
                   'Name of the category',
@@ -121,7 +121,7 @@ const CheckListCategoryTable = ({categories}: CheckListCategoryTableProps) => {
                 id="description"
                 variant="outlined"
                 disabled={form.alerts.editLock.detected}
-                value={row.value.description || ''}
+                defaultValue={row.value.description || ''}
                 placeholder={`${fbt(
                   'Short description of category (optional)',
                   'hint text for optional checklist category description field',

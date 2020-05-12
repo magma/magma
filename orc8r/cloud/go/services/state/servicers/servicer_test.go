@@ -14,6 +14,7 @@ import (
 
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/blobstore/mocks"
+	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/services/state/servicers"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
@@ -93,6 +94,44 @@ func TestStateServicer_GetStates(t *testing.T) {
 
 	mockStore.AssertExpectations(t)
 	fact.AssertExpectations(t)
+}
+
+func TestStateServicer_GetAllIDs(t *testing.T) {
+	mockStore := &mocks.TransactionalBlobStorage{}
+	mockStore.On("Search",
+		blobstore.CreateSearchFilter(nil, nil, nil),
+		blobstore.LoadCriteria{LoadValue: false},
+	).
+		Return(map[string][]blobstore.Blob{
+			"network1": {
+				{Type: "t1", Key: "k1", Version: 42},
+				{Type: "t2", Key: "k2", Version: 43},
+			},
+			"network2": {
+				{Type: "t3", Key: "k3", Version: 44},
+			},
+		}, nil)
+	mockStore.On("Commit").Return(nil)
+
+	fact := &mocks.BlobStorageFactory{}
+	fact.On("StartTransaction", mock.Anything).Return(mockStore, nil)
+
+	srv, err := servicers.NewStateServicer(fact)
+	assert.NoError(t, err)
+
+	ids, err := srv.GetAllIDs()
+	assert.NoError(t, err)
+
+	expected := state.IDsByNetwork{
+		"network1": {
+			{Type: "t1", DeviceID: "k1"},
+			{Type: "t2", DeviceID: "k2"},
+		},
+		"network2": {
+			{Type: "t3", DeviceID: "k3"},
+		},
+	}
+	assert.Equal(t, expected, ids)
 }
 
 func strPtr(s string) *string {

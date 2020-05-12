@@ -30,8 +30,8 @@ func TestMultiError(t *testing.T) {
 	var e error = nil
 	me = me.Add(e)
 	assert.Nil(t, me)
-	if me == nil {
-		t.Error("'if err == nil' is not expected to succeed for multi error")
+	if me != nil {
+		t.Error("'if err == nil' expected to succeed for multi error")
 	}
 	if me.AsError() != nil {
 		t.Error("'if err == nil' check should succeed for converted error")
@@ -63,110 +63,24 @@ func TestMultiError(t *testing.T) {
 	assert.Equal(t, "Multi error has two (2) foo bars", me.Get()[1].Error())
 	assert.Equal(t, "errors: [0: Multi error has one (1) foo bar; 1: Multi error has two (2) foo bars]", me.Error())
 
-	// Wrong Multi error Implementation tests
-	// check that Cast() 'fixing' wrong implementation
-	if returnNilWrong() == nil {
-		t.Error("'if err == nil' check should not succeed for returned error with wrong implementation")
-	}
-	if returnNilMultiWrong().AsError() == nil {
-		t.Error("'if err == nil' check should not succeed for returned MultiError with wrong implementation")
-	}
-	// but - Cast should fix the 'if nil' issues
-	if errors.Cast(returnNilWrong()) == nil {
-		t.Error("'if err == nil' check should succeed for returned error with wrong implementation")
-	}
-	if errors.Cast(returnNilMultiWrong().AsError()) == nil {
-		t.Error("'if err == nil' check should succeed for returned MultiError with wrong implementation")
-	}
-
-	multi = returnMultiWrong(errors.ErrNotFound, errors.ErrAlreadyExists, nil)
-	assert.NotNil(t, multi)
-	assert.Equal(t, 3, len(multi.Get()))
-	assert.NotEmpty(t, multi.Error())
-
-	multiErr = returnMultiErrorWrong(errors.ErrNotFound, nil, errors.ErrAlreadyExists)
-	assert.NotNil(t, multiErr)
-	assert.NotEmpty(t, multiErr.Error())
-
+	var nilMulti *errors.Multi
+	nilMulti = nilMulti.AddFmt(fmt.Errorf("just an error"), "")
+	assert.NotNil(t, nilMulti)
+	assert.Error(t, nilMulti.AsError())
 }
 
 func returnNil() error {
 	return errors.NewMulti().AsError()
 }
 
-func returnNilMulti() errors.Multi {
+func returnNilMulti() *errors.Multi {
 	return errors.NewMulti()
 }
 
-func returnMulti(e1, e2, e3 error) errors.Multi {
+func returnMulti(e1, e2, e3 error) *errors.Multi {
 	return errors.NewMulti(e1, e2, e3)
 }
 
 func returnMultiError(e1, e2, e3 error) error {
 	return errors.NewMulti(e1, e2, e3)
-}
-
-// IncorrectMultiError Multi error interface implementation
-type IncorrectMultiError struct {
-	Errors []error
-}
-
-// Error returns a formatted string for MultiError list
-func (me *IncorrectMultiError) Error() string {
-	if me == nil {
-		return "<nil>"
-	}
-	return fmt.Sprintf("IncorrectMultiError: %v", me.Errors)
-}
-
-// Set - sets multi set to errs
-func (me *IncorrectMultiError) Set(errs ...error) errors.Multi {
-	if me != nil {
-		errs = append(me.Errors, errs...)
-	}
-	return &IncorrectMultiError{Errors: errs}
-}
-
-// Get - returns a list of chained errors
-func (me *IncorrectMultiError) Get() []error {
-	if me != nil {
-		return me.Errors
-	}
-	return nil
-}
-
-// Add appends errs to the existing MultiError set
-func (me *IncorrectMultiError) Add(errs ...error) errors.Multi {
-	if me == nil {
-		return me.Set(errs...)
-	}
-	me.Errors = append(me.Errors, errs...)
-	return me
-}
-
-// AddFmt adds a new formatted error if err is not nil, it's a noop if err == nil
-func (me *IncorrectMultiError) AddFmt(err error, _ string, _ ...interface{}) errors.Multi {
-	return me.Add(err)
-}
-
-func (me *IncorrectMultiError) AsError() error {
-	return me
-}
-
-func returnNilWrong() error {
-	var res *IncorrectMultiError
-	return res.AsError()
-}
-
-func returnNilMultiWrong() errors.Multi {
-	var res *IncorrectMultiError
-	return res
-}
-
-func returnMultiWrong(e1, e2, e3 error) errors.Multi {
-	return &IncorrectMultiError{Errors: []error{e1, e2, e3}}
-}
-
-func returnMultiErrorWrong(e1, e2, e3 error) error {
-	return &IncorrectMultiError{Errors: []error{e1, e2, e3}}
 }

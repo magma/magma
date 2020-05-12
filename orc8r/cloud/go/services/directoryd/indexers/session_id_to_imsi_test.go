@@ -56,7 +56,7 @@ func TestIndexerSessionID(t *testing.T) {
 
 	// Indexer subscription matches directory records
 	assert.True(t, len(indexer.GetSubscriptions()) > 0)
-	assert.True(t, indexer.GetSubscriptions()[0].Match(st))
+	assert.True(t, indexer.GetSubscriptions()[0].Match(id))
 
 	// Index the imsi0->sid0 state, result is sid0->imsi0 reverse mapping
 	errs, err := indexer.Index(nid0, state.StatesByID{id: st})

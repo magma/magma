@@ -8,6 +8,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/google/uuid"
+
 	"github.com/facebookincubator/symphony/graph/viewer"
 
 	models2 "github.com/facebookincubator/symphony/graph/authz/models"
@@ -18,11 +20,13 @@ import (
 )
 
 func prepareProjectData(ctx context.Context, c *ent.Client) (*ent.ProjectType, *ent.Project) {
+	projectTypeName := uuid.New().String()
+	projectName := uuid.New().String()
 	projectType := c.ProjectType.Create().
-		SetName("ProjectType").
+		SetName(projectTypeName).
 		SaveX(ctx)
 	project := c.Project.Create().
-		SetName("Project").
+		SetName(projectName).
 		SetType(projectType).
 		SaveX(ctx)
 	return projectType, project
@@ -31,10 +35,18 @@ func TestProjectWritePolicyRule(t *testing.T) {
 	c := viewertest.NewTestClient(t)
 	ctx := viewertest.NewContext(context.Background(), c)
 	projectType, project := prepareProjectData(ctx, c)
+	projectType2, project2 := prepareProjectData(ctx, c)
 	createProject := func(ctx context.Context) error {
 		_, err := c.Project.Create().
 			SetName("NewProject").
 			SetType(projectType).
+			Save(ctx)
+		return err
+	}
+	createProject2 := func(ctx context.Context) error {
+		_, err := c.Project.Create().
+			SetName("NewProject2").
+			SetType(projectType2).
 			Save(ctx)
 		return err
 	}
@@ -43,8 +55,17 @@ func TestProjectWritePolicyRule(t *testing.T) {
 			SetName("NewName").
 			Exec(ctx)
 	}
+	updateProject2 := func(ctx context.Context) error {
+		return c.Project.UpdateOne(project2).
+			SetName("NewName2").
+			Exec(ctx)
+	}
 	deleteProject := func(ctx context.Context) error {
 		return c.Project.DeleteOne(project).
+			Exec(ctx)
+	}
+	deleteProject2 := func(ctx context.Context) error {
+		return c.Project.DeleteOne(project2).
 			Exec(ctx)
 	}
 	tests := []policyTest{
@@ -56,6 +77,17 @@ func TestProjectWritePolicyRule(t *testing.T) {
 			operation: createProject,
 		},
 		{
+			operationName: "CreateWithType",
+			initialPermissions: func(p *models.PermissionSettings) {
+				p.WorkforcePolicy.Data.Create.IsAllowed = models2.PermissionValueByCondition
+				p.WorkforcePolicy.Data.Create.ProjectTypeIds = []int{projectType.ID}
+			},
+			appendPermissions: func(p *models.PermissionSettings) {
+				p.WorkforcePolicy.Data.Create.ProjectTypeIds = []int{projectType.ID, projectType2.ID}
+			},
+			operation: createProject2,
+		},
+		{
 			operationName: "Update",
 			appendPermissions: func(p *models.PermissionSettings) {
 				p.WorkforcePolicy.Data.Update.IsAllowed = models2.PermissionValueYes
@@ -63,11 +95,33 @@ func TestProjectWritePolicyRule(t *testing.T) {
 			operation: updateProject,
 		},
 		{
+			operationName: "UpdateWithType",
+			initialPermissions: func(p *models.PermissionSettings) {
+				p.WorkforcePolicy.Data.Update.IsAllowed = models2.PermissionValueByCondition
+				p.WorkforcePolicy.Data.Update.ProjectTypeIds = []int{projectType.ID}
+			},
+			appendPermissions: func(p *models.PermissionSettings) {
+				p.WorkforcePolicy.Data.Update.ProjectTypeIds = []int{projectType.ID, projectType2.ID}
+			},
+			operation: updateProject2,
+		},
+		{
 			operationName: "Delete",
 			appendPermissions: func(p *models.PermissionSettings) {
 				p.WorkforcePolicy.Data.Delete.IsAllowed = models2.PermissionValueYes
 			},
 			operation: deleteProject,
+		},
+		{
+			operationName: "DeleteWithType",
+			initialPermissions: func(p *models.PermissionSettings) {
+				p.WorkforcePolicy.Data.Delete.IsAllowed = models2.PermissionValueByCondition
+				p.WorkforcePolicy.Data.Delete.ProjectTypeIds = []int{projectType.ID}
+			},
+			appendPermissions: func(p *models.PermissionSettings) {
+				p.WorkforcePolicy.Data.Delete.ProjectTypeIds = []int{projectType.ID, projectType2.ID}
+			},
+			operation: deleteProject2,
 		},
 	}
 	runPolicyTest(t, tests)

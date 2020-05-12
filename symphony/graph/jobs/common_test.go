@@ -60,8 +60,11 @@ func syncServicesRequest(t *testing.T, r *TestJobsResolver) *http.Response {
 		},
 	)
 
-	auth := authz.AuthHandler{Handler: h, Logger: logtest.NewTestLogger(t)}
-	th := viewer.TenancyHandler(auth, viewer.NewFixedTenancy(r.client))
+	auth := authz.Handler(h, logtest.NewTestLogger(t))
+	th := viewer.TenancyHandler(auth,
+		viewer.NewFixedTenancy(r.client),
+		logtest.NewTestLogger(t),
+	)
 	server := httptest.NewServer(th)
 	defer server.Close()
 	url := server.URL + "/sync_services"

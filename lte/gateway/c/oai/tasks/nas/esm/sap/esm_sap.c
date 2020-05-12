@@ -233,6 +233,7 @@ int esm_sap_send(esm_sap_t *msg)
         msg->recv,
         msg->send,
         &msg->err);
+      bdestroy_wrapper((bstring*) &msg->recv);
       break;
 
     case ESM_DEDICATED_EPS_BEARER_CONTEXT_ACTIVATE_REQ: {

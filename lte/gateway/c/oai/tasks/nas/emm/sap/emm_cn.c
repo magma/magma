@@ -633,6 +633,7 @@ static int _emm_cn_cs_response_success(emm_cn_cs_response_success_t* msg_pP)
       /*
        * Return indication that ESM procedure failed
        */
+      bdestroy_wrapper(&rsp);
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
     }
   } else {
@@ -645,6 +646,7 @@ static int _emm_cn_cs_response_success(emm_cn_cs_response_success_t* msg_pP)
    * if attach_type == EMM_ATTACH_TYPE_COMBINED_EPS_IMSI
    */
   if (_emm_proc_combined_attach_req(emm_ctx, rsp) == RETURNok) {
+    bdestroy_wrapper(&rsp);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
   }
 

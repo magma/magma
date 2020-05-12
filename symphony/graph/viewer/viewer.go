@@ -7,7 +7,6 @@ package viewer
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"sort"
 	"strings"
@@ -130,11 +129,6 @@ func (v *AutomationViewer) Role() user.Role {
 	return v.role
 }
 
-type UserHandler struct {
-	Handler http.Handler
-	Logger  log.Logger
-}
-
 // NewFeatureSet create FeatureSet from a list of features.
 func NewFeatureSet(features ...string) FeatureSet {
 	set := make(FeatureSet, len(features))
@@ -157,7 +151,7 @@ func NewUser(tenant string, user *ent.User, options ...Option) *UserViewer {
 }
 
 // NewAutomation initializes and return AutomationViewer.
-func NewAutomation(tenant string, name string, role user.Role, options ...Option) *AutomationViewer {
+func NewAutomation(tenant, name string, role user.Role, options ...Option) *AutomationViewer {
 	v := &AutomationViewer{
 		viewer: viewer{
 			tenant: tenant,
@@ -284,44 +278,62 @@ func WebSocketUpgradeHandler(h http.Handler, authurl string) http.Handler {
 }
 
 // TenancyHandler adds viewer / tenancy into incoming requests.
-func TenancyHandler(h http.Handler, tenancy Tenancy) http.Handler {
+func TenancyHandler(h http.Handler, tenancy Tenancy, logger log.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		logger := logger.For(r.Context())
 		tenant := r.Header.Get(TenantHeader)
 		if tenant == "" {
+			logger.Warn("request missing tenant header")
 			http.Error(w, "missing tenant header", http.StatusBadRequest)
 			return
 		}
+		logger = logger.With(zap.String("tenant", tenant))
+
 		role := user.Role(r.Header.Get(RoleHeader))
-		err := user.RoleValidator(role)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("bad role: %s", err.Error()), http.StatusBadRequest)
+		if err := user.RoleValidator(role); err != nil {
+			logger.Warn("request contains invalid role",
+				zap.Stringer("role", role),
+				zap.Error(err),
+			)
+			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
+
 		client, err := tenancy.ClientFor(r.Context(), tenant)
 		if err != nil {
-			http.Error(w, "getting tenancy client", http.StatusServiceUnavailable)
+			const msg = "cannot get tenancy client"
+			logger.Warn(msg, zap.Error(err))
+			http.Error(w, msg, http.StatusServiceUnavailable)
 			return
 		}
-		ctx := ent.NewContext(r.Context(), client)
-		var v Viewer
-		features := strings.Split(r.Header.Get(FeaturesHeader), ",")
-		switch {
-		case r.Header.Get(UserHeader) != "":
+
+		var (
+			ctx  = ent.NewContext(r.Context(), client)
+			opts = make([]Option, 0, 1)
+			v    Viewer
+		)
+		if features := r.Header.Get(FeaturesHeader); features != "" {
+			opts = append(opts, WithFeatures(strings.Split(features, ",")...))
+		}
+		if username := r.Header.Get(UserHeader); username != "" {
 			u, err := GetOrCreateUser(
 				privacy.DecisionContext(ctx, privacy.Allow),
-				r.Header.Get(UserHeader),
+				username,
 				role)
 			if err != nil {
-				http.Error(w, fmt.Sprintf("get user ent: %s", err.Error()), http.StatusServiceUnavailable)
+				logger.Warn("cannot get user ent", zap.Error(err))
+				http.Error(w, "getting user entity", http.StatusServiceUnavailable)
 				return
 			}
-			v = NewUser(tenant, u, WithFeatures(features...))
-		case r.Header.Get(AutomationHeader) != "":
-			v = NewAutomation(tenant, r.Header.Get(AutomationHeader), role, WithFeatures(features...))
-		default:
-			http.Error(w, "no viewer identifier found", http.StatusServiceUnavailable)
+			v = NewUser(tenant, u, opts...)
+		} else if automation := r.Header.Get(AutomationHeader); automation != "" {
+			v = NewAutomation(tenant, automation, role, opts...)
+		} else {
+			logger.Warn("request missing identity header")
+			http.Error(w, "missing identity header", http.StatusBadRequest)
 			return
 		}
+
 		ctx = log.NewFieldsContext(ctx, zap.Object("viewer", v))
 		trace.FromContext(ctx).AddAttributes(traceAttrs(v)...)
 		ctx, _ = tag.New(ctx, tags(r, v)...)
@@ -360,17 +372,21 @@ func MustGetOrCreateUser(ctx context.Context, authID string, role user.Role) *en
 	return u
 }
 
-// UserHandler adds users if request is from user that is not found.
-func (h UserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	v, ok := FromContext(ctx).(*UserViewer)
-	if ok {
-		if v.User().Status == user.StatusDEACTIVATED {
-			http.Error(w, "user is deactivated", http.StatusForbidden)
-			return
+// UserHandler blocks deactivated users.
+func UserHandler(h http.Handler, logger log.Logger) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if v, ok := FromContext(r.Context()).(*UserViewer); ok {
+			if u := v.User(); u.Status == user.StatusDEACTIVATED {
+				logger.For(r.Context()).Debug("blocking deactivated user",
+					zap.String("authid", u.AuthID),
+					zap.String("email", u.Email),
+				)
+				http.Error(w, "user is deactivated", http.StatusForbidden)
+				return
+			}
 		}
-	}
-	h.Handler.ServeHTTP(w, r.WithContext(ctx))
+		h.ServeHTTP(w, r)
+	})
 }
 
 type contextKey struct{}

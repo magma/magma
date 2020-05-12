@@ -204,6 +204,42 @@ func TestLocationPropertyPolicyRule(t *testing.T) {
 	})
 }
 
+func TestLocationByConditionPropertyPolicyRule(t *testing.T) {
+	c := viewertest.NewTestClient(t)
+	ctx := viewertest.NewContext(context.Background(), c)
+	locationType := c.LocationType.Create().
+		SetName("LocationType").
+		SaveX(ctx)
+	locationType2 := c.LocationType.Create().
+		SetName("LocationType2").
+		SaveX(ctx)
+	PropertyType := c.PropertyType.Create().
+		SetName("PropertyType").
+		SetType("string").
+		SetLocationType(locationType).
+		SaveX(ctx)
+	location := c.Location.Create().
+		SetName("Location").
+		SetType(locationType).
+		SaveX(ctx)
+
+	cudOperations := getPropertyCudOperations(ctx, c, func(ptc *ent.PropertyCreate) *ent.PropertyCreate {
+		return ptc.SetLocation(location).SetType(PropertyType)
+	})
+	runCudPolicyTest(t, cudPolicyTest{
+		initialPermissions: func(p *models.PermissionSettings) {
+			p.InventoryPolicy.Location.Update.IsAllowed = models2.PermissionValueByCondition
+			p.InventoryPolicy.Location.Update.LocationTypeIds = []int{locationType2.ID}
+		},
+		appendPermissions: func(p *models.PermissionSettings) {
+			p.InventoryPolicy.Location.Update.LocationTypeIds = []int{locationType.ID, locationType2.ID}
+		},
+		create: cudOperations.create,
+		update: cudOperations.update,
+		delete: cudOperations.delete,
+	})
+}
+
 func TestEquipmentPropertyPolicyRule(t *testing.T) {
 	c := viewertest.NewTestClient(t)
 	ctx := viewertest.NewContext(context.Background(), c)
@@ -255,6 +291,42 @@ func TestProjectPropertyPolicyRule(t *testing.T) {
 	runCudPolicyTest(t, cudPolicyTest{
 		appendPermissions: func(p *models.PermissionSettings) {
 			p.WorkforcePolicy.Data.Update.IsAllowed = models2.PermissionValueYes
+		},
+		create: cudOperations.create,
+		update: cudOperations.update,
+		delete: cudOperations.delete,
+	})
+}
+
+func TestProjectByConditionPropertyPolicyRule(t *testing.T) {
+	c := viewertest.NewTestClient(t)
+	ctx := viewertest.NewContext(context.Background(), c)
+	projectType := c.ProjectType.Create().
+		SetName("ProjectType").
+		SaveX(ctx)
+	projectType2 := c.ProjectType.Create().
+		SetName("ProjectType2").
+		SaveX(ctx)
+	PropertyType := c.PropertyType.Create().
+		SetName("PropertyType").
+		SetType("string").
+		SetProjectType(projectType).
+		SaveX(ctx)
+	project := c.Project.Create().
+		SetName("Project").
+		SetType(projectType).
+		SaveX(ctx)
+
+	cudOperations := getPropertyCudOperations(ctx, c, func(ptc *ent.PropertyCreate) *ent.PropertyCreate {
+		return ptc.SetProject(project).SetType(PropertyType)
+	})
+	runCudPolicyTest(t, cudPolicyTest{
+		initialPermissions: func(p *models.PermissionSettings) {
+			p.WorkforcePolicy.Data.Update.IsAllowed = models2.PermissionValueByCondition
+			p.WorkforcePolicy.Data.Update.ProjectTypeIds = []int{projectType2.ID}
+		},
+		appendPermissions: func(p *models.PermissionSettings) {
+			p.WorkforcePolicy.Data.Update.ProjectTypeIds = []int{projectType.ID, projectType2.ID}
 		},
 		create: cudOperations.create,
 		update: cudOperations.update,

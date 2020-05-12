@@ -20,6 +20,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 	"github.com/facebookincubator/symphony/pkg/log"
+	"github.com/facebookincubator/symphony/pkg/log/logtest"
 
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
@@ -87,7 +88,7 @@ func TestViewerHandler(t *testing.T) {
 				req.Header.Set(viewer.RoleHeader, string(user.RoleOWNER))
 			},
 			expect: func(t *testing.T, rec *httptest.ResponseRecorder) {
-				assert.Equal(t, http.StatusServiceUnavailable, rec.Code)
+				assert.Equal(t, http.StatusBadRequest, rec.Code)
 			},
 		},
 	}
@@ -109,6 +110,7 @@ func TestViewerHandler(t *testing.T) {
 			_, _ = io.WriteString(w, v.Tenant())
 		}),
 		viewer.NewFixedTenancy(client),
+		logtest.NewTestLogger(t),
 	)
 	for _, tc := range tests {
 		tc := tc
@@ -232,6 +234,12 @@ func TestWebSocketUpgradeHandler(t *testing.T) {
 	})
 }
 
+type mockHandler struct{ mock.Mock }
+
+func (m *mockHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	m.Called(w, r)
+}
+
 func TestDeactivatedUser(t *testing.T) {
 	client := viewertest.NewTestClient(t)
 	ctx := ent.NewContext(context.Background(), client)
@@ -246,11 +254,9 @@ func TestDeactivatedUser(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/", nil)
 	req = req.WithContext(ctx)
 	rec := httptest.NewRecorder()
-	h := viewer.UserHandler{
-		Handler: http.HandlerFunc(func(http.ResponseWriter, *http.Request) {}),
-		Logger:  log.NewNopLogger(),
-	}
-	h.ServeHTTP(rec, req)
+	var m mockHandler
+	defer m.AssertExpectations(t)
+	viewer.UserHandler(&m, logtest.NewTestLogger(t)).ServeHTTP(rec, req)
 	assert.Equal(t, http.StatusForbidden, rec.Code)
 	assert.Equal(t, "user is deactivated\n", rec.Body.String())
 }
@@ -263,14 +269,10 @@ func TestAutomationViewerIsNotDeactivated(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/", nil)
 	req = req.WithContext(ctx)
 	rec := httptest.NewRecorder()
-	h := viewer.UserHandler{
-		Handler: http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-			w.WriteHeader(http.StatusAccepted)
-		}),
-		Logger: log.NewNopLogger(),
-	}
-	h.ServeHTTP(rec, req)
-	assert.Equal(t, http.StatusAccepted, rec.Code)
+	var m mockHandler
+	m.On("ServeHTTP", mock.Anything, mock.Anything).Once()
+	defer m.AssertExpectations(t)
+	viewer.UserHandler(&m, logtest.NewTestLogger(t)).ServeHTTP(rec, req)
 }
 
 func TestViewerMarshalLog(t *testing.T) {
@@ -306,6 +308,7 @@ func TestViewerSpanAttributes(t *testing.T) {
 			w.WriteHeader(http.StatusAccepted)
 		}),
 		viewer.NewFixedTenancy(client),
+		logtest.NewTestLogger(t),
 	)
 	t.Run("WithSpan", func(t *testing.T) {
 		var te testExporter
@@ -370,6 +373,7 @@ func TestViewerTags(t *testing.T) {
 			w.WriteHeader(http.StatusNoContent)
 		}),
 		viewer.NewFixedTenancy(client),
+		logtest.NewTestLogger(t),
 	).ServeHTTP(rec, req)
 	assert.Equal(t, http.StatusNoContent, rec.Code)
 
@@ -406,6 +410,7 @@ func TestViewerTenancy(t *testing.T) {
 				w.WriteHeader(http.StatusAccepted)
 			}),
 			viewer.NewFixedTenancy(client),
+			logtest.NewTestLogger(t),
 		)
 		req := httptest.NewRequest(http.MethodPost, "/", nil)
 		viewertest.SetDefaultViewerHeaders(req)
@@ -425,6 +430,7 @@ func TestViewerTenancy(t *testing.T) {
 				w.WriteHeader(http.StatusAccepted)
 			}),
 			viewer.NewFixedTenancy(client),
+			logtest.NewTestLogger(t),
 		)
 		req := httptest.NewRequest(http.MethodPost, "/", nil)
 		viewertest.SetDefaultViewerHeaders(req)
@@ -447,6 +453,7 @@ func TestViewerTenancy(t *testing.T) {
 				w.WriteHeader(http.StatusAccepted)
 			}),
 			viewer.NewFixedTenancy(client),
+			logtest.NewTestLogger(t),
 		)
 		req := httptest.NewRequest(http.MethodPost, "/", nil)
 		req.Header.Set(viewertest.TenantHeader, viewertest.DefaultTenant)
@@ -461,12 +468,13 @@ func TestViewerTenancy(t *testing.T) {
 		h := viewer.TenancyHandler(
 			http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}),
 			viewer.NewFixedTenancy(client),
+			logtest.NewTestLogger(t),
 		)
 		req := httptest.NewRequest(http.MethodPost, "/", nil)
 		req.Header.Set(viewertest.TenantHeader, viewertest.DefaultTenant)
 		req.Header.Set(viewertest.RoleHeader, string(viewertest.DefaultRole))
 		rec := httptest.NewRecorder()
 		h.ServeHTTP(rec, req)
-		assert.Equal(t, http.StatusServiceUnavailable, rec.Code)
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
 	})
 }
