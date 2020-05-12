@@ -59,3 +59,10 @@ func EquipmentPositionDefinitionWritePolicyRule() privacy.MutationRule {
 		return allowOrSkip(FromContext(ctx).InventoryPolicy.EquipmentType.Update)
 	})
 }
+
+// EquipmentPositionWritePolicyRule grants write permission to equipment position based on policy.
+func EquipmentPositionWritePolicyRule() privacy.MutationRule {
+	return privacy.MutationRuleFunc(func(ctx context.Context, m ent.Mutation) error {
+		return allowOrSkip(FromContext(ctx).InventoryPolicy.Equipment.Update)
+	})
+}

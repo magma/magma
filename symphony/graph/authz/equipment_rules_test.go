@@ -257,3 +257,46 @@ func TestEquipmentPositionDefinitionWritePolicyRule(t *testing.T) {
 		delete: deleteEquipmentPositionDefinition,
 	})
 }
+
+func TestEquipmentPositionWritePolicyRule(t *testing.T) {
+	c := viewertest.NewTestClient(t)
+	ctx := viewertest.NewContext(context.Background(), c)
+	equipmentType := c.EquipmentType.Create().
+		SetName("EquipmentType").
+		SaveX(ctx)
+	equipmentPositionDefinition1 := c.EquipmentPositionDefinition.Create().
+		SetName("EquipmentPositionDefinition1").
+		SetEquipmentType(equipmentType).
+		SaveX(ctx)
+	equipmentPosition1 := c.EquipmentPosition.Create().
+		SetDefinition(equipmentPositionDefinition1).
+		SaveX(ctx)
+	equipmentPositionDefinition2 := c.EquipmentPositionDefinition.Create().
+		SetName("EquipmentPositionDefinition2").
+		SetEquipmentType(equipmentType).
+		SaveX(ctx)
+
+	createEquipmentPosition := func(ctx context.Context) error {
+		_, err := c.EquipmentPosition.Create().
+			SetDefinition(equipmentPositionDefinition1).
+			Save(ctx)
+		return err
+	}
+	updateEquipmentPosition := func(ctx context.Context) error {
+		return c.EquipmentPosition.UpdateOne(equipmentPosition1).
+			SetDefinition(equipmentPositionDefinition2).
+			Exec(ctx)
+	}
+	deleteEquipmentPosition := func(ctx context.Context) error {
+		return c.EquipmentPosition.DeleteOne(equipmentPosition1).
+			Exec(ctx)
+	}
+	runCudPolicyTest(t, cudPolicyTest{
+		appendPermissions: func(p *models.PermissionSettings) {
+			p.InventoryPolicy.Equipment.Update.IsAllowed = models2.PermissionValueYes
+		},
+		create: createEquipmentPosition,
+		update: updateEquipmentPosition,
+		delete: deleteEquipmentPosition,
+	})
+}

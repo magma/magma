@@ -204,6 +204,15 @@ func (EquipmentPosition) Indexes() []ent.Index {
 	}
 }
 
+// Policy returns equipment position policy.
+func (EquipmentPosition) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithMutationRules(
+			authz.EquipmentPositionWritePolicyRule(),
+		),
+	)
+}
+
 // EquipmentCategory defines the equipment category schema.
 type EquipmentCategory struct {
 	schema
