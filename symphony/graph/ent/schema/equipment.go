@@ -165,6 +165,15 @@ func (EquipmentPositionDefinition) Edges() []ent.Edge {
 	}
 }
 
+// Policy returns equipment position definition policy.
+func (EquipmentPositionDefinition) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithMutationRules(
+			authz.EquipmentPositionDefinitionWritePolicyRule(),
+		),
+	)
+}
+
 // EquipmentPosition defines the equipment position schema.
 type EquipmentPosition struct {
 	schema
