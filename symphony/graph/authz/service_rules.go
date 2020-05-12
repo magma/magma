@@ -31,3 +31,10 @@ func ServiceEndpointWritePolicyRule() privacy.MutationRule {
 		return allowOrSkip(FromContext(ctx).InventoryPolicy.Equipment.Update)
 	})
 }
+
+// ServiceEndpointDefinitionWritePolicyRule grants write permission to service endpoint definition based on policy.
+func ServiceEndpointDefinitionWritePolicyRule() privacy.MutationRule {
+	return privacy.MutationRuleFunc(func(ctx context.Context, m ent.Mutation) error {
+		return allowOrSkip(FromContext(ctx).InventoryPolicy.ServiceType.Update)
+	})
+}

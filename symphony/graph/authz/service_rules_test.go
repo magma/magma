@@ -150,3 +150,50 @@ func TestServiceEndpointsWritePolicyRule(t *testing.T) {
 		delete: deleteServiceEP,
 	})
 }
+
+func TestServiceEndpointDefinitionWritePolicyRule(t *testing.T) {
+	c := viewertest.NewTestClient(t)
+	ctx := viewertest.NewContext(context.Background(), c)
+
+	equipmentType := c.EquipmentType.Create().
+		SetName("EquipmentType").
+		SaveX(ctx)
+
+	serviceType := c.ServiceType.Create().
+		SetName("ServiceType").
+		SaveX(ctx)
+
+	endpointDef1 := c.ServiceEndpointDefinition.Create().
+		SetServiceType(serviceType).
+		SetName("ep1").
+		SetIndex(0).
+		SetEquipmentType(equipmentType).
+		SaveX(ctx)
+
+	createServiceEndpointDefinition := func(ctx context.Context) error {
+		_, err := c.ServiceEndpointDefinition.Create().
+			SetServiceType(serviceType).
+			SetName("ep2").
+			SetIndex(1).
+			SetEquipmentType(equipmentType).
+			Save(ctx)
+		return err
+	}
+	updateServiceEndpointDefinition := func(ctx context.Context) error {
+		return c.ServiceEndpointDefinition.UpdateOne(endpointDef1).
+			SetName("NewName").
+			Exec(ctx)
+	}
+	deleteServiceEndpointDefinition := func(ctx context.Context) error {
+		return c.ServiceEndpointDefinition.DeleteOne(endpointDef1).
+			Exec(ctx)
+	}
+	runCudPolicyTest(t, cudPolicyTest{
+		appendPermissions: func(p *models.PermissionSettings) {
+			p.InventoryPolicy.ServiceType.Update.IsAllowed = models2.PermissionValueYes
+		},
+		create: createServiceEndpointDefinition,
+		update: updateServiceEndpointDefinition,
+		delete: deleteServiceEndpointDefinition,
+	})
+}
