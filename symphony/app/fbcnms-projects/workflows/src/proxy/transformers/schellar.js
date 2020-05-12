@@ -49,6 +49,7 @@ curl http://localhost/proxy/schedule \
   -H 'Content-Type: application/json'
 */
 const getAllBefore: BeforeFun = (tenantId, req, res, proxyCallback) => {
+  req.url = '/schedule';
   proxyCallback({target: schellarTarget});
 };
 
@@ -94,6 +95,7 @@ curl -X POST http://localhost/proxy/schedule \
 '
 */
 const postBefore: BeforeFun = (tenantId, req, res, proxyCallback) => {
+  req.url = '/schedule';
   const schedule = anythingTo<ScheduleRequest>(req.body);
   sanitizeScheduleBefore(tenantId, schedule);
   const buffer = createProxyOptionsBuffer(schedule, req);
@@ -157,7 +159,7 @@ const registration: TransformerRegistrationFun = function(ctx) {
   return [
     {
       method: 'get',
-      url: '/schedule',
+      url: '/schedule/?',
       before: getAllBefore,
       after: getAllAfter,
     },
@@ -169,7 +171,7 @@ const registration: TransformerRegistrationFun = function(ctx) {
     },
     {
       method: 'post',
-      url: '/schedule',
+      url: '/schedule/?',
       before: postBefore,
     },
     {

@@ -90,3 +90,21 @@ export type ScheduleRequest = {
   name: string,
   workflowName: string,
 };
+
+export type FrontendResponse = {
+  text: string | {},
+  statusCode: Number,
+};
+
+export type TaskType = {
+  name: string,
+  taskType?: string,
+  version: string,
+  subWorkflowId: string,
+  referenceTaskName: string,
+  inputData?: {
+    subWorkflowId: string,
+    subWorkflowName: string,
+    subWorkflowVersion: string,
+  },
+};
