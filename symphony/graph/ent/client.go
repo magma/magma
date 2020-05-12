@@ -51,7 +51,6 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/surveytemplatecategory"
 	"github.com/facebookincubator/symphony/graph/ent/surveytemplatequestion"
 	"github.com/facebookincubator/symphony/graph/ent/surveywifiscan"
-	"github.com/facebookincubator/symphony/graph/ent/technician"
 	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/ent/usersgroup"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
@@ -144,8 +143,6 @@ type Client struct {
 	SurveyTemplateQuestion *SurveyTemplateQuestionClient
 	// SurveyWiFiScan is the client for interacting with the SurveyWiFiScan builders.
 	SurveyWiFiScan *SurveyWiFiScanClient
-	// Technician is the client for interacting with the Technician builders.
-	Technician *TechnicianClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 	// UsersGroup is the client for interacting with the UsersGroup builders.
@@ -210,7 +207,6 @@ func (c *Client) init() {
 	c.SurveyTemplateCategory = NewSurveyTemplateCategoryClient(c.config)
 	c.SurveyTemplateQuestion = NewSurveyTemplateQuestionClient(c.config)
 	c.SurveyWiFiScan = NewSurveyWiFiScanClient(c.config)
-	c.Technician = NewTechnicianClient(c.config)
 	c.User = NewUserClient(c.config)
 	c.UsersGroup = NewUsersGroupClient(c.config)
 	c.WorkOrder = NewWorkOrderClient(c.config)
@@ -284,7 +280,6 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		SurveyTemplateCategory:      NewSurveyTemplateCategoryClient(cfg),
 		SurveyTemplateQuestion:      NewSurveyTemplateQuestionClient(cfg),
 		SurveyWiFiScan:              NewSurveyWiFiScanClient(cfg),
-		Technician:                  NewTechnicianClient(cfg),
 		User:                        NewUserClient(cfg),
 		UsersGroup:                  NewUsersGroupClient(cfg),
 		WorkOrder:                   NewWorkOrderClient(cfg),
@@ -343,7 +338,6 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		SurveyTemplateCategory:      NewSurveyTemplateCategoryClient(cfg),
 		SurveyTemplateQuestion:      NewSurveyTemplateQuestionClient(cfg),
 		SurveyWiFiScan:              NewSurveyWiFiScanClient(cfg),
-		Technician:                  NewTechnicianClient(cfg),
 		User:                        NewUserClient(cfg),
 		UsersGroup:                  NewUsersGroupClient(cfg),
 		WorkOrder:                   NewWorkOrderClient(cfg),
@@ -415,7 +409,6 @@ func (c *Client) Use(hooks ...Hook) {
 	c.SurveyTemplateCategory.Use(hooks...)
 	c.SurveyTemplateQuestion.Use(hooks...)
 	c.SurveyWiFiScan.Use(hooks...)
-	c.Technician.Use(hooks...)
 	c.User.Use(hooks...)
 	c.UsersGroup.Use(hooks...)
 	c.WorkOrder.Use(hooks...)
@@ -5662,106 +5655,6 @@ func (c *SurveyWiFiScanClient) Hooks() []Hook {
 	return append(hooks[:len(hooks):len(hooks)], surveywifiscan.Hooks[:]...)
 }
 
-// TechnicianClient is a client for the Technician schema.
-type TechnicianClient struct {
-	config
-}
-
-// NewTechnicianClient returns a client for the Technician from the given config.
-func NewTechnicianClient(c config) *TechnicianClient {
-	return &TechnicianClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `technician.Hooks(f(g(h())))`.
-func (c *TechnicianClient) Use(hooks ...Hook) {
-	c.hooks.Technician = append(c.hooks.Technician, hooks...)
-}
-
-// Create returns a create builder for Technician.
-func (c *TechnicianClient) Create() *TechnicianCreate {
-	mutation := newTechnicianMutation(c.config, OpCreate)
-	return &TechnicianCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Update returns an update builder for Technician.
-func (c *TechnicianClient) Update() *TechnicianUpdate {
-	mutation := newTechnicianMutation(c.config, OpUpdate)
-	return &TechnicianUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *TechnicianClient) UpdateOne(t *Technician) *TechnicianUpdateOne {
-	return c.UpdateOneID(t.ID)
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *TechnicianClient) UpdateOneID(id int) *TechnicianUpdateOne {
-	mutation := newTechnicianMutation(c.config, OpUpdateOne)
-	mutation.id = &id
-	return &TechnicianUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for Technician.
-func (c *TechnicianClient) Delete() *TechnicianDelete {
-	mutation := newTechnicianMutation(c.config, OpDelete)
-	return &TechnicianDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a delete builder for the given entity.
-func (c *TechnicianClient) DeleteOne(t *Technician) *TechnicianDeleteOne {
-	return c.DeleteOneID(t.ID)
-}
-
-// DeleteOneID returns a delete builder for the given id.
-func (c *TechnicianClient) DeleteOneID(id int) *TechnicianDeleteOne {
-	builder := c.Delete().Where(technician.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &TechnicianDeleteOne{builder}
-}
-
-// Create returns a query builder for Technician.
-func (c *TechnicianClient) Query() *TechnicianQuery {
-	return &TechnicianQuery{config: c.config}
-}
-
-// Get returns a Technician entity by its id.
-func (c *TechnicianClient) Get(ctx context.Context, id int) (*Technician, error) {
-	return c.Query().Where(technician.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *TechnicianClient) GetX(ctx context.Context, id int) *Technician {
-	t, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return t
-}
-
-// QueryWorkOrders queries the work_orders edge of a Technician.
-func (c *TechnicianClient) QueryWorkOrders(t *Technician) *WorkOrderQuery {
-	query := &WorkOrderQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
-		id := t.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(technician.Table, technician.FieldID, id),
-			sqlgraph.To(workorder.Table, workorder.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, true, technician.WorkOrdersTable, technician.WorkOrdersColumn),
-		)
-		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// Hooks returns the client hooks.
-func (c *TechnicianClient) Hooks() []Hook {
-	hooks := c.hooks.Technician
-	return append(hooks[:len(hooks):len(hooks)], technician.Hooks[:]...)
-}
-
 // UserClient is a client for the User schema.
 type UserClient struct {
 	config
@@ -6225,22 +6118,6 @@ func (c *WorkOrderClient) QueryCheckListItems(wo *WorkOrder) *CheckListItemQuery
 			sqlgraph.From(workorder.Table, workorder.FieldID, id),
 			sqlgraph.To(checklistitem.Table, checklistitem.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, workorder.CheckListItemsTable, workorder.CheckListItemsColumn),
-		)
-		fromV = sqlgraph.Neighbors(wo.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryTechnician queries the technician edge of a WorkOrder.
-func (c *WorkOrderClient) QueryTechnician(wo *WorkOrder) *TechnicianQuery {
-	query := &TechnicianQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
-		id := wo.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(workorder.Table, workorder.FieldID, id),
-			sqlgraph.To(technician.Table, technician.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, workorder.TechnicianTable, workorder.TechnicianColumn),
 		)
 		fromV = sqlgraph.Neighbors(wo.driver.Dialect(), step)
 		return fromV, nil

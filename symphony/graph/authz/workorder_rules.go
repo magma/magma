@@ -6,10 +6,14 @@ package authz
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/privacy"
+	"github.com/facebookincubator/symphony/graph/ent/workorder"
+	"github.com/facebookincubator/symphony/graph/ent/workordertype"
+	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer"
 
 	models2 "github.com/facebookincubator/symphony/graph/authz/models"
@@ -59,6 +63,33 @@ func workOrderIsEditable(ctx context.Context, workOrder *ent.WorkOrder) (bool, e
 	return false, nil
 }
 
+func workOrderCudBasedCheck(ctx context.Context, cud *models.WorkforceCud, m *ent.WorkOrderMutation) (bool, error) {
+	if m.Op().Is(ent.OpCreate) {
+		typeID, exists := m.TypeID()
+		if !exists {
+			return false, errors.New("creating work order with no type")
+		}
+		return checkWorkforce(cud.Create, &typeID, nil), nil
+	}
+	id, exists := m.ID()
+	if !exists {
+		return false, nil
+	}
+	workOrderTypeID, err := m.Client().WorkOrderType.Query().
+		Where(workordertype.HasWorkOrdersWith(workorder.ID(id))).
+		OnlyID(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return false, nil
+		}
+		return false, fmt.Errorf("failed to fetch work order type id: %w", err)
+	}
+	if m.Op().Is(ent.OpUpdateOne) {
+		return checkWorkforce(cud.Update, &workOrderTypeID, nil), nil
+	}
+	return checkWorkforce(cud.Delete, &workOrderTypeID, nil), nil
+}
+
 func AllowIfWorkOrderOwnerOrAssignee() privacy.MutationRule {
 	return privacy.WorkOrderMutationRuleFunc(func(ctx context.Context, m *ent.WorkOrderMutation) error {
 		workOrderID, exists := m.ID()
@@ -99,7 +130,10 @@ func AllowIfWorkOrderOwnerOrAssignee() privacy.MutationRule {
 func WorkOrderWritePolicyRule() privacy.MutationRule {
 	return privacy.WorkOrderMutationRuleFunc(func(ctx context.Context, m *ent.WorkOrderMutation) error {
 		cud := FromContext(ctx).WorkforcePolicy.Data
-		allowed := workforceCudBasedCheck(cud, m)
+		allowed, err := workOrderCudBasedCheck(ctx, cud, m)
+		if err != nil {
+			return privacy.Denyf(err.Error())
+		}
 		_, assigned := m.AssigneeID()
 		if assigned || m.AssigneeCleared() {
 			allowed = allowed && (cud.Assign.IsAllowed == models2.PermissionValueYes)

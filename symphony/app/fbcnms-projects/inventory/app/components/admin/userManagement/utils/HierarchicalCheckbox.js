@@ -31,13 +31,14 @@ const useStyles = makeStyles(() => ({
 
 type SubTreeProps = $ReadOnly<{|
   title: React.Node,
+  disabled?: ?boolean,
   onChange: (?boolean) => void,
   children?: React.Node,
   className?: ?string,
 |}>;
 
 function CheckboxSubTree(props: SubTreeProps) {
-  const {onChange, title, className, children} = props;
+  const {onChange, title, disabled, className, children} = props;
   const classes = useStyles();
 
   const hierarchyContext = useHierarchyContext();
@@ -84,6 +85,7 @@ function CheckboxSubTree(props: SubTreeProps) {
     <div className={classNames(classes.root, className)}>
       <Checkbox
         checked={hierarchyContext.parentValue === true}
+        disabled={disabled}
         indeterminate={
           hierarchyContext.parentValue == null &&
           !hierarchyContext.childrenValues.isEmpty()
@@ -97,16 +99,14 @@ function CheckboxSubTree(props: SubTreeProps) {
 }
 
 type Props = $ReadOnly<{|
+  ...SubTreeProps,
   id: string,
-  title: React.Node,
   value?: ?boolean,
   onChange?: ?(?boolean) => void,
-  className?: ?string,
-  children?: React.Node,
 |}>;
 
 export default function HierarchicalCheckbox(props: Props) {
-  const {id, value: propValue, title, className, children, onChange} = props;
+  const {id, value: propValue, onChange, ...subTreeProps} = props;
   const [value, setValue] = useState<?boolean>(null);
   const hierarchyContext = useHierarchyContext();
 
@@ -145,16 +145,14 @@ export default function HierarchicalCheckbox(props: Props) {
   return (
     <HierarchyContextProvider parentValue={value}>
       <CheckboxSubTree
-        title={title}
-        className={className}
+        {...subTreeProps}
         onChange={newValue => {
           updateMyValue(newValue);
           if (onChange) {
             onChange(newValue);
           }
-        }}>
-        {children}
-      </CheckboxSubTree>
+        }}
+      />
     </HierarchyContextProvider>
   );
 }

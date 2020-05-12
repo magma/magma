@@ -53,7 +53,6 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/surveytemplatecategory"
 	"github.com/facebookincubator/symphony/graph/ent/surveytemplatequestion"
 	"github.com/facebookincubator/symphony/graph/ent/surveywifiscan"
-	"github.com/facebookincubator/symphony/graph/ent/technician"
 	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/ent/usersgroup"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
@@ -3601,98 +3600,6 @@ func (swfs *SurveyWiFiScanQuery) collectConnectionFields(ctx context.Context) *S
 		swfs = swfs.collectField(graphql.GetOperationContext(ctx), *field)
 	}
 	return swfs
-}
-
-// TechnicianEdge is the edge representation of Technician.
-type TechnicianEdge struct {
-	Node   *Technician `json:"node"`
-	Cursor Cursor      `json:"cursor"`
-}
-
-// TechnicianConnection is the connection containing edges to Technician.
-type TechnicianConnection struct {
-	Edges    []*TechnicianEdge `json:"edges"`
-	PageInfo PageInfo          `json:"pageInfo"`
-}
-
-// Paginate executes the query and returns a relay based cursor connection to Technician.
-func (t *TechnicianQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*TechnicianConnection, error) {
-	if first != nil && last != nil {
-		return nil, ErrInvalidPagination
-	}
-	if first != nil {
-		if *first == 0 {
-			return &TechnicianConnection{
-				Edges: []*TechnicianEdge{},
-			}, nil
-		} else if *first < 0 {
-			return nil, ErrInvalidPagination
-		}
-	}
-	if last != nil {
-		if *last == 0 {
-			return &TechnicianConnection{
-				Edges: []*TechnicianEdge{},
-			}, nil
-		} else if *last < 0 {
-			return nil, ErrInvalidPagination
-		}
-	}
-
-	if after != nil {
-		t = t.Where(technician.IDGT(after.ID))
-	}
-	if before != nil {
-		t = t.Where(technician.IDLT(before.ID))
-	}
-	if first != nil {
-		t = t.Order(Asc(technician.FieldID)).Limit(*first + 1)
-	}
-	if last != nil {
-		t = t.Order(Desc(technician.FieldID)).Limit(*last + 1)
-	}
-	t = t.collectConnectionFields(ctx)
-
-	nodes, err := t.All(ctx)
-	if err != nil || len(nodes) == 0 {
-		return &TechnicianConnection{
-			Edges: []*TechnicianEdge{},
-		}, err
-	}
-	if last != nil {
-		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
-			nodes[left], nodes[right] = nodes[right], nodes[left]
-		}
-	}
-
-	var conn TechnicianConnection
-	if first != nil && len(nodes) > *first {
-		conn.PageInfo.HasNextPage = true
-		nodes = nodes[:len(nodes)-1]
-	} else if last != nil && len(nodes) > *last {
-		conn.PageInfo.HasPreviousPage = true
-		nodes = nodes[1:]
-	}
-	conn.Edges = make([]*TechnicianEdge, len(nodes))
-	for i, node := range nodes {
-		conn.Edges[i] = &TechnicianEdge{
-			Node: node,
-			Cursor: Cursor{
-				ID: node.ID,
-			},
-		}
-	}
-	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
-	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
-
-	return &conn, nil
-}
-
-func (t *TechnicianQuery) collectConnectionFields(ctx context.Context) *TechnicianQuery {
-	if field := fieldForPath(ctx, "edges", "node"); field != nil {
-		t = t.collectField(graphql.GetOperationContext(ctx), *field)
-	}
-	return t
 }
 
 // UserEdge is the edge representation of User.

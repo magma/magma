@@ -24,35 +24,12 @@ import (
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/lib/go/definitions"
 
-	"github.com/pkg/errors"
 	assert "github.com/stretchr/testify/require"
 )
 
 const (
 	connectionStringPostgres = "dbname=magma_test user=magma_test password=magma_test host=postgres_test sslmode=disable"
-
-	maxAttempts = 2
-
-	id0 = "some_indexerid_0"
-	id1 = "some_indexerid_1"
-	id2 = "some_indexerid_2"
-
-	zero      indexer.Version = 0
-	version0  indexer.Version = 100
-	version0a indexer.Version = 1000
-	version1  indexer.Version = 200
-	version1a indexer.Version = 2000
-	version2  indexer.Version = 300
-)
-
-var (
-	someErr = errors.New("some_error")
-
-	indexer0  = indexer.NewTestIndexer(id0, version0)
-	indexer0a = indexer.NewTestIndexer(id0, version0a)
-	indexer1  = indexer.NewTestIndexer(id1, version1)
-	indexer1a = indexer.NewTestIndexer(id1, version1a)
-	indexer2  = indexer.NewTestIndexer(id2, version2)
+	maxAttempts              = 2
 )
 
 func TestSQLReindexJobQueue_Integration_PopulateJobs(t *testing.T) {

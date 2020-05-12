@@ -232,7 +232,7 @@ func exportServiceData(ctx context.Context, t *testing.T, r *TestImporterResolve
 	var buf bytes.Buffer
 	handler, err := exporter.NewHandler(logtest.NewTestLogger(t))
 	require.NoError(t, err)
-	th := viewer.TenancyHandler(handler, viewer.NewFixedTenancy(r.client))
+	th := viewer.TenancyHandler(handler, viewer.NewFixedTenancy(r.client), logtest.NewTestLogger(t))
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		th.ServeHTTP(w, r.WithContext(ctx))
 	})
@@ -255,7 +255,11 @@ func exportServiceData(ctx context.Context, t *testing.T, r *TestImporterResolve
 }
 
 func importServiceExportedData(ctx context.Context, t *testing.T, buf bytes.Buffer, contentType string, r *TestImporterResolver) int {
-	th := viewer.TenancyHandler(http.HandlerFunc(r.importer.processExportedService), viewer.NewFixedTenancy(r.client))
+	th := viewer.TenancyHandler(
+		http.HandlerFunc(r.importer.processExportedService),
+		viewer.NewFixedTenancy(r.client),
+		logtest.NewTestLogger(t),
+	)
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		th.ServeHTTP(w, r.WithContext(ctx))
 	})

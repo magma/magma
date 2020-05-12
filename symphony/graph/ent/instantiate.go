@@ -235,12 +235,6 @@ func (c *SurveyWiFiScanClient) Instantiate(swfs *SurveyWiFiScan) *SurveyWiFiScan
 }
 
 // Instantiate entity configuration.
-func (c *TechnicianClient) Instantiate(t *Technician) *Technician {
-	t.config = c.config
-	return t
-}
-
-// Instantiate entity configuration.
 func (c *UserClient) Instantiate(u *User) *User {
 	u.config = c.config
 	return u

@@ -689,18 +689,6 @@ func (swfs *SurveyWiFiScanQuery) collectField(ctx *graphql.OperationContext, fie
 }
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
-func (t *TechnicianQuery) CollectFields(ctx context.Context, satisfies ...string) *TechnicianQuery {
-	if fc := graphql.GetFieldContext(ctx); fc != nil {
-		t = t.collectField(graphql.GetOperationContext(ctx), fc.Field, satisfies...)
-	}
-	return t
-}
-
-func (t *TechnicianQuery) collectField(ctx *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *TechnicianQuery {
-	return t
-}
-
-// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
 func (u *UserQuery) CollectFields(ctx context.Context, satisfies ...string) *UserQuery {
 	if fc := graphql.GetFieldContext(ctx); fc != nil {
 		u = u.collectField(graphql.GetOperationContext(ctx), fc.Field, satisfies...)

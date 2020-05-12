@@ -84,6 +84,15 @@ func (EquipmentPortDefinition) Edges() []ent.Edge {
 	}
 }
 
+// Policy returns equipment port definition policy.
+func (EquipmentPortDefinition) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithMutationRules(
+			authz.EquipmentPortDefinitionWritePolicyRule(),
+		),
+	)
+}
+
 // EquipmentPort defines the equipment port schema.
 type EquipmentPort struct {
 	schema
@@ -196,6 +205,15 @@ func (EquipmentCategory) Edges() []ent.Edge {
 		edge.From("types", EquipmentType.Type).
 			Ref("category"),
 	}
+}
+
+// Policy returns equipment category policy.
+func (EquipmentCategory) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithMutationRules(
+			authz.EquipmentCategoryWritePolicyRule(),
+		),
+	)
 }
 
 // EquipmentType defines the equipment type schema.

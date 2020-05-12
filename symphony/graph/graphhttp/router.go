@@ -40,13 +40,13 @@ func newRouter(cfg routerConfig) (*mux.Router, func(), error) {
 			return viewer.WebSocketUpgradeHandler(h, cfg.viewer.authurl)
 		},
 		func(h http.Handler) http.Handler {
-			return viewer.TenancyHandler(h, cfg.viewer.tenancy)
+			return viewer.TenancyHandler(h, cfg.viewer.tenancy, cfg.logger)
 		},
 		func(h http.Handler) http.Handler {
-			return viewer.UserHandler{Handler: h, Logger: cfg.logger}
+			return viewer.UserHandler(h, cfg.logger)
 		},
 		func(h http.Handler) http.Handler {
-			return authz.AuthHandler{Handler: h, Logger: cfg.logger}
+			return authz.Handler(h, cfg.logger)
 		},
 		func(h http.Handler) http.Handler {
 			return actions.Handler(h, cfg.logger, cfg.actions.registry)

@@ -90,8 +90,6 @@ func (WorkOrder) Edges() []ent.Edge {
 		edge.To("properties", Property.Type),
 		edge.To("check_list_categories", CheckListCategory.Type),
 		edge.To("check_list_items", CheckListItem.Type),
-		edge.To("technician", Technician.Type).
-			Unique(),
 		edge.From("project", Project.Type).
 			Ref("work_orders").
 			Unique(),

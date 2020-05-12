@@ -5,7 +5,6 @@ import (
 	"fbc/cwf/radius/monitoring/census"
 	"fbc/cwf/radius/monitoring/ods"
 	"fbc/cwf/radius/monitoring/scuba"
-
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
@@ -29,7 +28,7 @@ func Init(config *config.MonitoringConfig, logger *zap.Logger) (*zap.Logger, err
 
 	if config.Scuba != nil {
 		scuba.Initialize(config.Scuba, logger)
-		result, err = scuba.NewLogger("goradius")
+		result, err = scuba.NewLogger("xwf_goradius")
 		if err != nil {
 			return nil, err
 		}

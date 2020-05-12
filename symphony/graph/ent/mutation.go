@@ -49,7 +49,6 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/surveytemplatecategory"
 	"github.com/facebookincubator/symphony/graph/ent/surveytemplatequestion"
 	"github.com/facebookincubator/symphony/graph/ent/surveywifiscan"
-	"github.com/facebookincubator/symphony/graph/ent/technician"
 	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/ent/usersgroup"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
@@ -107,7 +106,6 @@ const (
 	TypeSurveyTemplateCategory      = "SurveyTemplateCategory"
 	TypeSurveyTemplateQuestion      = "SurveyTemplateQuestion"
 	TypeSurveyWiFiScan              = "SurveyWiFiScan"
-	TypeTechnician                  = "Technician"
 	TypeUser                        = "User"
 	TypeUsersGroup                  = "UsersGroup"
 	TypeWorkOrder                   = "WorkOrder"
@@ -28241,409 +28239,6 @@ func (m *SurveyWiFiScanMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown SurveyWiFiScan edge %s", name)
 }
 
-// TechnicianMutation represents an operation that mutate the Technicians
-// nodes in the graph.
-type TechnicianMutation struct {
-	config
-	op                 Op
-	typ                string
-	id                 *int
-	create_time        *time.Time
-	update_time        *time.Time
-	name               *string
-	email              *string
-	clearedFields      map[string]struct{}
-	work_orders        map[int]struct{}
-	removedwork_orders map[int]struct{}
-}
-
-var _ ent.Mutation = (*TechnicianMutation)(nil)
-
-// newTechnicianMutation creates new mutation for $n.Name.
-func newTechnicianMutation(c config, op Op) *TechnicianMutation {
-	return &TechnicianMutation{
-		config:        c,
-		op:            op,
-		typ:           TypeTechnician,
-		clearedFields: make(map[string]struct{}),
-	}
-}
-
-// Client returns a new `ent.Client` from the mutation. If the mutation was
-// executed in a transaction (ent.Tx), a transactional client is returned.
-func (m TechnicianMutation) Client() *Client {
-	client := &Client{config: m.config}
-	client.init()
-	return client
-}
-
-// Tx returns an `ent.Tx` for mutations that were executed in transactions;
-// it returns an error otherwise.
-func (m TechnicianMutation) Tx() (*Tx, error) {
-	if _, ok := m.driver.(*txDriver); !ok {
-		return nil, fmt.Errorf("ent: mutation is not running in a transaction")
-	}
-	tx := &Tx{config: m.config}
-	tx.init()
-	return tx, nil
-}
-
-// ID returns the id value in the mutation. Note that, the id
-// is available only if it was provided to the builder.
-func (m *TechnicianMutation) ID() (id int, exists bool) {
-	if m.id == nil {
-		return
-	}
-	return *m.id, true
-}
-
-// SetCreateTime sets the create_time field.
-func (m *TechnicianMutation) SetCreateTime(t time.Time) {
-	m.create_time = &t
-}
-
-// CreateTime returns the create_time value in the mutation.
-func (m *TechnicianMutation) CreateTime() (r time.Time, exists bool) {
-	v := m.create_time
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetCreateTime reset all changes of the create_time field.
-func (m *TechnicianMutation) ResetCreateTime() {
-	m.create_time = nil
-}
-
-// SetUpdateTime sets the update_time field.
-func (m *TechnicianMutation) SetUpdateTime(t time.Time) {
-	m.update_time = &t
-}
-
-// UpdateTime returns the update_time value in the mutation.
-func (m *TechnicianMutation) UpdateTime() (r time.Time, exists bool) {
-	v := m.update_time
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetUpdateTime reset all changes of the update_time field.
-func (m *TechnicianMutation) ResetUpdateTime() {
-	m.update_time = nil
-}
-
-// SetName sets the name field.
-func (m *TechnicianMutation) SetName(s string) {
-	m.name = &s
-}
-
-// Name returns the name value in the mutation.
-func (m *TechnicianMutation) Name() (r string, exists bool) {
-	v := m.name
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetName reset all changes of the name field.
-func (m *TechnicianMutation) ResetName() {
-	m.name = nil
-}
-
-// SetEmail sets the email field.
-func (m *TechnicianMutation) SetEmail(s string) {
-	m.email = &s
-}
-
-// Email returns the email value in the mutation.
-func (m *TechnicianMutation) Email() (r string, exists bool) {
-	v := m.email
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetEmail reset all changes of the email field.
-func (m *TechnicianMutation) ResetEmail() {
-	m.email = nil
-}
-
-// AddWorkOrderIDs adds the work_orders edge to WorkOrder by ids.
-func (m *TechnicianMutation) AddWorkOrderIDs(ids ...int) {
-	if m.work_orders == nil {
-		m.work_orders = make(map[int]struct{})
-	}
-	for i := range ids {
-		m.work_orders[ids[i]] = struct{}{}
-	}
-}
-
-// RemoveWorkOrderIDs removes the work_orders edge to WorkOrder by ids.
-func (m *TechnicianMutation) RemoveWorkOrderIDs(ids ...int) {
-	if m.removedwork_orders == nil {
-		m.removedwork_orders = make(map[int]struct{})
-	}
-	for i := range ids {
-		m.removedwork_orders[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedWorkOrders returns the removed ids of work_orders.
-func (m *TechnicianMutation) RemovedWorkOrdersIDs() (ids []int) {
-	for id := range m.removedwork_orders {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// WorkOrdersIDs returns the work_orders ids in the mutation.
-func (m *TechnicianMutation) WorkOrdersIDs() (ids []int) {
-	for id := range m.work_orders {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetWorkOrders reset all changes of the work_orders edge.
-func (m *TechnicianMutation) ResetWorkOrders() {
-	m.work_orders = nil
-	m.removedwork_orders = nil
-}
-
-// Op returns the operation name.
-func (m *TechnicianMutation) Op() Op {
-	return m.op
-}
-
-// Type returns the node type of this mutation (Technician).
-func (m *TechnicianMutation) Type() string {
-	return m.typ
-}
-
-// Fields returns all fields that were changed during
-// this mutation. Note that, in order to get all numeric
-// fields that were in/decremented, call AddedFields().
-func (m *TechnicianMutation) Fields() []string {
-	fields := make([]string, 0, 4)
-	if m.create_time != nil {
-		fields = append(fields, technician.FieldCreateTime)
-	}
-	if m.update_time != nil {
-		fields = append(fields, technician.FieldUpdateTime)
-	}
-	if m.name != nil {
-		fields = append(fields, technician.FieldName)
-	}
-	if m.email != nil {
-		fields = append(fields, technician.FieldEmail)
-	}
-	return fields
-}
-
-// Field returns the value of a field with the given name.
-// The second boolean value indicates that this field was
-// not set, or was not define in the schema.
-func (m *TechnicianMutation) Field(name string) (ent.Value, bool) {
-	switch name {
-	case technician.FieldCreateTime:
-		return m.CreateTime()
-	case technician.FieldUpdateTime:
-		return m.UpdateTime()
-	case technician.FieldName:
-		return m.Name()
-	case technician.FieldEmail:
-		return m.Email()
-	}
-	return nil, false
-}
-
-// SetField sets the value for the given name. It returns an
-// error if the field is not defined in the schema, or if the
-// type mismatch the field type.
-func (m *TechnicianMutation) SetField(name string, value ent.Value) error {
-	switch name {
-	case technician.FieldCreateTime:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCreateTime(v)
-		return nil
-	case technician.FieldUpdateTime:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUpdateTime(v)
-		return nil
-	case technician.FieldName:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetName(v)
-		return nil
-	case technician.FieldEmail:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetEmail(v)
-		return nil
-	}
-	return fmt.Errorf("unknown Technician field %s", name)
-}
-
-// AddedFields returns all numeric fields that were incremented
-// or decremented during this mutation.
-func (m *TechnicianMutation) AddedFields() []string {
-	return nil
-}
-
-// AddedField returns the numeric value that was in/decremented
-// from a field with the given name. The second value indicates
-// that this field was not set, or was not define in the schema.
-func (m *TechnicianMutation) AddedField(name string) (ent.Value, bool) {
-	return nil, false
-}
-
-// AddField adds the value for the given name. It returns an
-// error if the field is not defined in the schema, or if the
-// type mismatch the field type.
-func (m *TechnicianMutation) AddField(name string, value ent.Value) error {
-	switch name {
-	}
-	return fmt.Errorf("unknown Technician numeric field %s", name)
-}
-
-// ClearedFields returns all nullable fields that were cleared
-// during this mutation.
-func (m *TechnicianMutation) ClearedFields() []string {
-	return nil
-}
-
-// FieldCleared returns a boolean indicates if this field was
-// cleared in this mutation.
-func (m *TechnicianMutation) FieldCleared(name string) bool {
-	_, ok := m.clearedFields[name]
-	return ok
-}
-
-// ClearField clears the value for the given name. It returns an
-// error if the field is not defined in the schema.
-func (m *TechnicianMutation) ClearField(name string) error {
-	return fmt.Errorf("unknown Technician nullable field %s", name)
-}
-
-// ResetField resets all changes in the mutation regarding the
-// given field name. It returns an error if the field is not
-// defined in the schema.
-func (m *TechnicianMutation) ResetField(name string) error {
-	switch name {
-	case technician.FieldCreateTime:
-		m.ResetCreateTime()
-		return nil
-	case technician.FieldUpdateTime:
-		m.ResetUpdateTime()
-		return nil
-	case technician.FieldName:
-		m.ResetName()
-		return nil
-	case technician.FieldEmail:
-		m.ResetEmail()
-		return nil
-	}
-	return fmt.Errorf("unknown Technician field %s", name)
-}
-
-// AddedEdges returns all edge names that were set/added in this
-// mutation.
-func (m *TechnicianMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
-	if m.work_orders != nil {
-		edges = append(edges, technician.EdgeWorkOrders)
-	}
-	return edges
-}
-
-// AddedIDs returns all ids (to other nodes) that were added for
-// the given edge name.
-func (m *TechnicianMutation) AddedIDs(name string) []ent.Value {
-	switch name {
-	case technician.EdgeWorkOrders:
-		ids := make([]ent.Value, 0, len(m.work_orders))
-		for id := range m.work_orders {
-			ids = append(ids, id)
-		}
-		return ids
-	}
-	return nil
-}
-
-// RemovedEdges returns all edge names that were removed in this
-// mutation.
-func (m *TechnicianMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
-	if m.removedwork_orders != nil {
-		edges = append(edges, technician.EdgeWorkOrders)
-	}
-	return edges
-}
-
-// RemovedIDs returns all ids (to other nodes) that were removed for
-// the given edge name.
-func (m *TechnicianMutation) RemovedIDs(name string) []ent.Value {
-	switch name {
-	case technician.EdgeWorkOrders:
-		ids := make([]ent.Value, 0, len(m.removedwork_orders))
-		for id := range m.removedwork_orders {
-			ids = append(ids, id)
-		}
-		return ids
-	}
-	return nil
-}
-
-// ClearedEdges returns all edge names that were cleared in this
-// mutation.
-func (m *TechnicianMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
-	return edges
-}
-
-// EdgeCleared returns a boolean indicates if this edge was
-// cleared in this mutation.
-func (m *TechnicianMutation) EdgeCleared(name string) bool {
-	switch name {
-	}
-	return false
-}
-
-// ClearEdge clears the value for the given name. It returns an
-// error if the edge name is not defined in the schema.
-func (m *TechnicianMutation) ClearEdge(name string) error {
-	switch name {
-	}
-	return fmt.Errorf("unknown Technician unique edge %s", name)
-}
-
-// ResetEdge resets all changes in the mutation regarding the
-// given edge name. It returns an error if the edge is not
-// defined in the schema.
-func (m *TechnicianMutation) ResetEdge(name string) error {
-	switch name {
-	case technician.EdgeWorkOrders:
-		m.ResetWorkOrders()
-		return nil
-	}
-	return fmt.Errorf("unknown Technician edge %s", name)
-}
-
 // UserMutation represents an operation that mutate the Users
 // nodes in the graph.
 type UserMutation struct {
@@ -29870,8 +29465,6 @@ type WorkOrderMutation struct {
 	removedcheck_list_categories map[int]struct{}
 	check_list_items             map[int]struct{}
 	removedcheck_list_items      map[int]struct{}
-	technician                   *int
-	clearedtechnician            bool
 	project                      *int
 	clearedproject               bool
 	owner                        *int
@@ -30597,45 +30190,6 @@ func (m *WorkOrderMutation) ResetCheckListItems() {
 	m.removedcheck_list_items = nil
 }
 
-// SetTechnicianID sets the technician edge to Technician by id.
-func (m *WorkOrderMutation) SetTechnicianID(id int) {
-	m.technician = &id
-}
-
-// ClearTechnician clears the technician edge to Technician.
-func (m *WorkOrderMutation) ClearTechnician() {
-	m.clearedtechnician = true
-}
-
-// TechnicianCleared returns if the edge technician was cleared.
-func (m *WorkOrderMutation) TechnicianCleared() bool {
-	return m.clearedtechnician
-}
-
-// TechnicianID returns the technician id in the mutation.
-func (m *WorkOrderMutation) TechnicianID() (id int, exists bool) {
-	if m.technician != nil {
-		return *m.technician, true
-	}
-	return
-}
-
-// TechnicianIDs returns the technician ids in the mutation.
-// Note that ids always returns len(ids) <= 1 for unique edges, and you should use
-// TechnicianID instead. It exists only for internal usage by the builders.
-func (m *WorkOrderMutation) TechnicianIDs() (ids []int) {
-	if id := m.technician; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetTechnician reset all changes of the technician edge.
-func (m *WorkOrderMutation) ResetTechnician() {
-	m.technician = nil
-	m.clearedtechnician = false
-}
-
 // SetProjectID sets the project edge to Project by id.
 func (m *WorkOrderMutation) SetProjectID(id int) {
 	m.project = &id
@@ -31034,7 +30588,7 @@ func (m *WorkOrderMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this
 // mutation.
 func (m *WorkOrderMutation) AddedEdges() []string {
-	edges := make([]string, 0, 14)
+	edges := make([]string, 0, 13)
 	if m._type != nil {
 		edges = append(edges, workorder.EdgeType)
 	}
@@ -31064,9 +30618,6 @@ func (m *WorkOrderMutation) AddedEdges() []string {
 	}
 	if m.check_list_items != nil {
 		edges = append(edges, workorder.EdgeCheckListItems)
-	}
-	if m.technician != nil {
-		edges = append(edges, workorder.EdgeTechnician)
 	}
 	if m.project != nil {
 		edges = append(edges, workorder.EdgeProject)
@@ -31140,10 +30691,6 @@ func (m *WorkOrderMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case workorder.EdgeTechnician:
-		if id := m.technician; id != nil {
-			return []ent.Value{*id}
-		}
 	case workorder.EdgeProject:
 		if id := m.project; id != nil {
 			return []ent.Value{*id}
@@ -31163,7 +30710,7 @@ func (m *WorkOrderMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this
 // mutation.
 func (m *WorkOrderMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 14)
+	edges := make([]string, 0, 13)
 	if m.removedequipment != nil {
 		edges = append(edges, workorder.EdgeEquipment)
 	}
@@ -31250,15 +30797,12 @@ func (m *WorkOrderMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this
 // mutation.
 func (m *WorkOrderMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 14)
+	edges := make([]string, 0, 13)
 	if m.cleared_type {
 		edges = append(edges, workorder.EdgeType)
 	}
 	if m.clearedlocation {
 		edges = append(edges, workorder.EdgeLocation)
-	}
-	if m.clearedtechnician {
-		edges = append(edges, workorder.EdgeTechnician)
 	}
 	if m.clearedproject {
 		edges = append(edges, workorder.EdgeProject)
@@ -31280,8 +30824,6 @@ func (m *WorkOrderMutation) EdgeCleared(name string) bool {
 		return m.cleared_type
 	case workorder.EdgeLocation:
 		return m.clearedlocation
-	case workorder.EdgeTechnician:
-		return m.clearedtechnician
 	case workorder.EdgeProject:
 		return m.clearedproject
 	case workorder.EdgeOwner:
@@ -31301,9 +30843,6 @@ func (m *WorkOrderMutation) ClearEdge(name string) error {
 		return nil
 	case workorder.EdgeLocation:
 		m.ClearLocation()
-		return nil
-	case workorder.EdgeTechnician:
-		m.ClearTechnician()
 		return nil
 	case workorder.EdgeProject:
 		m.ClearProject()
@@ -31352,9 +30891,6 @@ func (m *WorkOrderMutation) ResetEdge(name string) error {
 		return nil
 	case workorder.EdgeCheckListItems:
 		m.ResetCheckListItems()
-		return nil
-	case workorder.EdgeTechnician:
-		m.ResetTechnician()
 		return nil
 	case workorder.EdgeProject:
 		m.ResetProject()
