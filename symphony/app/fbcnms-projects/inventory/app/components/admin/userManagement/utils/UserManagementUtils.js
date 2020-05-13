@@ -67,6 +67,116 @@ graphql`
 `;
 
 graphql`
+  fragment UserManagementUtils_inventoryPolicy on InventoryPolicy {
+    read {
+      isAllowed
+    }
+    location {
+      create {
+        isAllowed
+      }
+      update {
+        isAllowed
+      }
+      delete {
+        isAllowed
+      }
+    }
+    equipment {
+      create {
+        isAllowed
+      }
+      update {
+        isAllowed
+      }
+      delete {
+        isAllowed
+      }
+    }
+    equipmentType {
+      create {
+        isAllowed
+      }
+      update {
+        isAllowed
+      }
+      delete {
+        isAllowed
+      }
+    }
+    locationType {
+      create {
+        isAllowed
+      }
+      update {
+        isAllowed
+      }
+      delete {
+        isAllowed
+      }
+    }
+    portType {
+      create {
+        isAllowed
+      }
+      update {
+        isAllowed
+      }
+      delete {
+        isAllowed
+      }
+    }
+    serviceType {
+      create {
+        isAllowed
+      }
+      update {
+        isAllowed
+      }
+      delete {
+        isAllowed
+      }
+    }
+  }
+`;
+
+graphql`
+  fragment UserManagementUtils_workforcePolicy on WorkforcePolicy {
+    read {
+      isAllowed
+    }
+    templates {
+      create {
+        isAllowed
+      }
+      update {
+        isAllowed
+      }
+      delete {
+        isAllowed
+      }
+    }
+    data {
+      create {
+        isAllowed
+      }
+      update {
+        isAllowed
+      }
+      delete {
+        isAllowed
+      }
+      assign {
+        isAllowed
+      }
+      transferOwnership {
+        isAllowed
+      }
+    }
+  }
+`;
+
+graphql`
   fragment UserManagementUtils_policies on PermissionsPolicy {
     id
     name
@@ -75,108 +185,10 @@ graphql`
     policy {
       __typename
       ... on InventoryPolicy {
-        read {
-          isAllowed
-        }
-        location {
-          create {
-            isAllowed
-          }
-          update {
-            isAllowed
-          }
-          delete {
-            isAllowed
-          }
-        }
-        equipment {
-          create {
-            isAllowed
-          }
-          update {
-            isAllowed
-          }
-          delete {
-            isAllowed
-          }
-        }
-        equipmentType {
-          create {
-            isAllowed
-          }
-          update {
-            isAllowed
-          }
-          delete {
-            isAllowed
-          }
-        }
-        locationType {
-          create {
-            isAllowed
-          }
-          update {
-            isAllowed
-          }
-          delete {
-            isAllowed
-          }
-        }
-        portType {
-          create {
-            isAllowed
-          }
-          update {
-            isAllowed
-          }
-          delete {
-            isAllowed
-          }
-        }
-        serviceType {
-          create {
-            isAllowed
-          }
-          update {
-            isAllowed
-          }
-          delete {
-            isAllowed
-          }
-        }
+        ...UserManagementUtils_inventoryPolicy @relay(mask: false)
       }
       ... on WorkforcePolicy {
-        read {
-          isAllowed
-        }
-        templates {
-          create {
-            isAllowed
-          }
-          update {
-            isAllowed
-          }
-          delete {
-            isAllowed
-          }
-        }
-        data {
-          create {
-            isAllowed
-          }
-          update {
-            isAllowed
-          }
-          delete {
-            isAllowed
-          }
-          assign {
-            isAllowed
-          }
-          transferOwnership {
-            isAllowed
-          }
-        }
+        ...UserManagementUtils_workforcePolicy @relay(mask: false)
       }
     }
     groups {
