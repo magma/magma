@@ -12,6 +12,8 @@ import type {TabProps} from '@fbcnms/ui/components/design-system/Tabs/TabsBar';
 import AppContext from '@fbcnms/ui/context/AppContext';
 import EquipmentPortTypes from '../components/configure/EquipmentPortTypes';
 import EquipmentTypes from '../components/configure/EquipmentTypes';
+import InventoryErrorBoundary from '../common/InventoryErrorBoundary';
+import InventorySuspense from '../common/InventorySuspense';
 import LocationTypes from '../components/configure/LocationTypes';
 import React, {useContext, useEffect, useMemo, useState} from 'react';
 import ServiceTypes from '../components/configure/ServiceTypes';
@@ -117,25 +119,32 @@ export default function Configure() {
         activeTabIndex={activeTabBar}
         onChange={setActiveTabBar}
       />
-      <Switch>
-        <Route
-          path={relativeUrl('/equipment_types')}
-          component={EquipmentTypes}
-        />
-        <Route
-          path={relativeUrl('/location_types')}
-          component={LocationTypes}
-        />
-        <Route
-          path={relativeUrl('/port_types')}
-          component={EquipmentPortTypes}
-        />
-        <Route path={relativeUrl('/service_types')} component={ServiceTypes} />
-        <Redirect
-          from={relativeUrl('/')}
-          to={relativeUrl('/equipment_types')}
-        />
-      </Switch>
+      <InventoryErrorBoundary>
+        <InventorySuspense>
+          <Switch>
+            <Route
+              path={relativeUrl('/equipment_types')}
+              component={EquipmentTypes}
+            />
+            <Route
+              path={relativeUrl('/location_types')}
+              component={LocationTypes}
+            />
+            <Route
+              path={relativeUrl('/port_types')}
+              component={EquipmentPortTypes}
+            />
+            <Route
+              path={relativeUrl('/service_types')}
+              component={ServiceTypes}
+            />
+            <Redirect
+              from={relativeUrl('/')}
+              to={relativeUrl('/equipment_types')}
+            />
+          </Switch>
+        </InventorySuspense>
+      </InventoryErrorBoundary>
     </div>
   );
 }

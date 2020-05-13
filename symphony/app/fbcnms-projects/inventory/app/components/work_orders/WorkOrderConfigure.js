@@ -8,9 +8,9 @@
  * @format
  */
 
-import LoadingIndicator from '../../common/LoadingIndicator';
+import InventorySuspense from '../../common/InventorySuspense';
 import NavigatableViews from '@fbcnms/ui/components/design-system/View/NavigatableViews';
-import React, {Suspense, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import RelayEnvironment from '../../common/RelayEnvironment';
 import WorkOrderProjectTypes from '../configure/WorkOrderProjectTypes';
 import WorkOrderTypes from '../configure/WorkOrderTypes';
@@ -57,13 +57,13 @@ export default function WorkOrderConfigure() {
   return (
     <div className={classes.root}>
       <RelayEnvironmentProvider environment={RelayEnvironment}>
-        <Suspense fallback={<LoadingIndicator />}>
+        <InventorySuspense>
           <NavigatableViews
             header={<fbt desc="">Templates</fbt>}
             views={menuItems}
             routingBasePath="/workorders/configure"
           />
-        </Suspense>
+        </InventorySuspense>
       </RelayEnvironmentProvider>
     </div>
   );
