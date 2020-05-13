@@ -27,8 +27,8 @@ var (
 	instance *sql.DB
 )
 
-// GetSharedTestDB returns a singleton in-memory database connection.
-func GetSharedTestDB(t *testing.T) *sql.DB {
+// GetSharedMemoryDB returns a singleton in-memory database connection.
+func GetSharedMemoryDB(t *testing.T) *sql.DB {
 	once.Do(func() {
 		db, err := sqorc.Open(storage2.SQLDriver, ":memory:")
 		assert.NoError(t, err)
@@ -44,10 +44,10 @@ func DropTableFromSharedTestDB(t *testing.T, table string) {
 	assert.NoError(t, err)
 }
 
-// NewEntStorage returns a new blobstore storage factory utilizing the singleton in-memory database.
-func NewEntStorage(t *testing.T, tableName string) blobstore.BlobStorageFactory {
-	db := GetSharedTestDB(t)
-	store := blobstore.NewEntStorage(tableName, db, sqorc.GetSqlBuilder())
+// NewSQLBlobstore returns a new blobstore storage factory utilizing the singleton in-memory database.
+func NewSQLBlobstore(t *testing.T, tableName string) blobstore.BlobStorageFactory {
+	db := GetSharedMemoryDB(t)
+	store := blobstore.NewSQLBlobStorageFactory(tableName, db, sqorc.GetSqlBuilder())
 
 	err := store.InitializeFactory()
 	assert.NoError(t, err)

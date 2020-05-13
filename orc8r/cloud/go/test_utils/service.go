@@ -17,7 +17,8 @@ import (
 	platform_service "magma/orc8r/lib/go/service"
 )
 
-// Creates & Initializes test magma service on a dynamically selected available local port.
+// NewTestService creates & initializes test magma service on a dynamically
+// selected available local port.
 // Returns the newly created service and net.Listener, it was registered with.
 func NewTestService(t *testing.T, moduleName string, serviceType string) (*platform_service.Service, net.Listener) {
 	// Create the server socket for gRPC
