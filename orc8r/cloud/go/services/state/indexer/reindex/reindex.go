@@ -9,6 +9,7 @@
 package reindex
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -52,13 +53,18 @@ type reindexBatch struct {
 	stateIDs  []state.ID
 }
 
-// Run progressively completes required reindex jobs.
-// Periodically polls the reindex job queue for areindex, attempts to complete
-// the job, and writes back any encountered errors.
-// Never returns.
-func Run(queue JobQueue, store servicers.StateServiceInternal) {
+// Run to progressively complete required reindex jobs.
+// Periodically polls the reindex job queue for reindex jobs, attempts to
+// complete the job, and writes back any encountered errors.
+// Returns only upon context cancellation, which can optionally be nil.
+func Run(ctx context.Context, queue JobQueue, store servicers.StateServiceInternal) {
 	batches := getReindexBatches(store)
 	for {
+		if isCanceled(ctx) {
+			glog.Warning("State reindexing async job canceled")
+			return
+		}
+
 		err := runImpl(queue, batches)
 		if err == nil {
 			continue
@@ -121,9 +127,9 @@ func runImpl(queue JobQueue, batches []reindexBatch) (err error) {
 		if len(errs) == len(b.stateIDs) {
 			err = errors.New("reindex call succeeded but all state IDs returned per-state reindex errors")
 			return wrap(err, ErrReindex, id)
-		} else if len(errs) > 0 {
+		} else if len(errs) != 0 {
 			// TODO(4/10/20): add Prometheus metrics
-			glog.Warningf("%s: %+v", ErrReindexPerState, errs)
+			glog.Warningf("%s: %s", ErrReindexPerState, errs)
 		}
 	}
 
@@ -160,6 +166,19 @@ func getReindexBatches(store servicers.StateServiceInternal) []reindexBatch {
 		}
 	}
 	return batches
+}
+
+func isCanceled(ctx context.Context) bool {
+	if ctx == nil {
+		return false
+	}
+
+	select {
+	case <-ctx.Done():
+		return true
+	default:
+		return false
+	}
 }
 
 // filterIDs to the subset that match at least one subscription.

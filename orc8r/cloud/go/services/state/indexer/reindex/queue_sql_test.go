@@ -16,6 +16,7 @@ import (
 
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/services/state/indexer"
+	"magma/orc8r/cloud/go/services/state/indexer/mocks"
 	"magma/orc8r/cloud/go/services/state/indexer/reindex"
 	"magma/orc8r/cloud/go/sqorc"
 
@@ -55,11 +56,11 @@ var (
 	someErr  = errors.New("some_error")
 	someErr1 = errors.New("some_error_1")
 
-	indexer0 = indexer.NewTestIndexer(id0, version0)
-	indexer1 = indexer.NewTestIndexer(id1, version1a)
-	indexer2 = indexer.NewTestIndexer(id2, version2a)
-	indexer3 = indexer.NewTestIndexer(id3, version3)
-	indexer4 = indexer.NewTestIndexer(id4, version4)
+	indexer0 = mocks.NewTestIndexer(id0, version0, nil, nil, nil, nil)
+	indexer1 = mocks.NewTestIndexer(id1, version1a, nil, nil, nil, nil)
+	indexer2 = mocks.NewTestIndexer(id2, version2a, nil, nil, nil, nil)
+	indexer3 = mocks.NewTestIndexer(id3, version3, nil, nil, nil, nil)
+	indexer4 = mocks.NewTestIndexer(id4, version4, nil, nil, nil, nil)
 )
 
 func TestSqlJobQueue_PopulateJobs(t *testing.T) {

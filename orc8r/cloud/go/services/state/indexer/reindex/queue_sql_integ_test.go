@@ -6,15 +6,16 @@
  LICENSE file in the root directory of this source tree.
 */
 
-// NOTE: to run these tests outside the testing environment, e.g. from IntelliJ, ensure
-// Postgres container is running, and use the DATABASE_SOURCE environment variable
-// to target localhost and non-standard port.
-// Example: `host=localhost port=5433 dbname=magma_test user=magma_test password=magma_test sslmode=disable`.
+// NOTE: to run these tests outside the testing environment, e.g. from IntelliJ,
+// ensure postgres_test and maria_test containers are running, and use the
+// following environment variables to point to the relevant DB endpoints:
+//	- TEST_DATABASE_HOST=localhost
+//	- TEST_DATABASE_PORT_POSTGRES=5433
+//	- TEST_DATABASE_PORT_MARIA=3307
 
 package reindex
 
 import (
-	"fmt"
 	"sync"
 	"testing"
 	"time"
@@ -22,18 +23,17 @@ import (
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/services/state/indexer"
 	"magma/orc8r/cloud/go/sqorc"
-	"magma/orc8r/lib/go/definitions"
 
 	assert "github.com/stretchr/testify/require"
 )
 
 const (
-	connectionStringPostgres = "dbname=magma_test user=magma_test password=magma_test host=postgres_test sslmode=disable"
-	maxAttempts              = 2
+	maxAttempts = 2
 )
 
 func TestSQLReindexJobQueue_Integration_PopulateJobs(t *testing.T) {
-	queue := initSQLTest(t)
+	dbName := "state___reindex_queue___populate_jobs"
+	queue := initSQLTest(t, dbName)
 
 	ch := make(chan interface{})
 	defer close(ch)
@@ -79,7 +79,8 @@ func TestSQLReindexJobQueue_Integration_PopulateJobs(t *testing.T) {
 }
 
 func TestSQLJobQueue_Integration_ClaimAvailableReindexJob(t *testing.T) {
-	queue := initSQLTest(t)
+	dbName := "state___reindex_queue___claim_jobs"
+	queue := initSQLTest(t, dbName)
 
 	populated, err := queue.PopulateJobs()
 	assert.NoError(t, err)
@@ -202,7 +203,8 @@ func TestSQLJobQueue_Integration_ClaimAvailableReindexJob(t *testing.T) {
 
 // Update indexer version, repopulate should add new job
 func TestSQLJobQueue_Integration_RepopulateNewJobs(t *testing.T) {
-	queue := initSQLTest(t)
+	dbName := "state___reindex_queue___repopulate_jobs"
+	queue := initSQLTest(t, dbName)
 
 	// Empty to start
 	j, err := queue.ClaimAvailableJob()
@@ -310,7 +312,7 @@ func TestSQLJobQueue_Integration_RepopulateNewJobs(t *testing.T) {
 	}
 }
 
-func initSQLTest(t *testing.T) JobQueue {
+func initSQLTest(t *testing.T, dbName string) JobQueue {
 	// Uncomment below to view reindex queue logs during test
 	//_ = flag.Set("alsologtostderr", "true")
 
@@ -318,18 +320,10 @@ func initSQLTest(t *testing.T) JobQueue {
 	err := indexer.RegisterAll(indexer0, indexer1, indexer2)
 	assert.NoError(t, err)
 
-	sqlDriver := definitions.GetEnvWithDefault("SQL_DRIVER", "postgres")
-	databaseSource := definitions.GetEnvWithDefault("DATABASE_SOURCE", connectionStringPostgres)
-	db, err := sqorc.Open(sqlDriver, databaseSource)
-	assert.NoError(t, err)
+	db := sqorc.OpenCleanForTest(t, dbName, sqorc.PostgresDriver)
 
-	_, err = db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s", queueTableName))
+	q := NewSQLJobQueue(maxAttempts, db, sqorc.GetSqlBuilder())
+	err = q.Initialize()
 	assert.NoError(t, err)
-	_, err = db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s", versionTableName))
-	assert.NoError(t, err)
-
-	queue := NewSQLJobQueue(maxAttempts, db, sqorc.GetSqlBuilder())
-	err = queue.Initialize()
-	assert.NoError(t, err)
-	return queue
+	return q
 }

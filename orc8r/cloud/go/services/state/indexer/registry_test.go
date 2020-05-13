@@ -17,12 +17,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const (
-	id0 = "some_id_0"
-	id1 = "some_id_1"
-)
-
 func TestRegisterIndexers(t *testing.T) {
+	id0 := "some_id_0"
+	id1 := "some_id_1"
 	var idx0 *mocks.Indexer
 	var idx1 *mocks.Indexer
 
