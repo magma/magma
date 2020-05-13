@@ -96,8 +96,17 @@ bridge_name: gtp_br0
 # Bridge ip comes from magma_ifaces_gtp
 bridge_ip_address: 192.168.128.1
 
-#QoS Queue Programming
-enable_queue_pgm: true
+#QoS parameters
+qos:
+ enable: true
+ impl: linux_tc
+ max_rate: 1000000000
+ linux_tc:
+  min_idx: 2
+  max_idx: 65534
+ ovs_meter:
+  min_idx: 2
+  max_idx: 100000
 
 monitored_ifaces: ['gtp_br0',
                    'gtp0',

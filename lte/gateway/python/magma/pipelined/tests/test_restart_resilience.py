@@ -102,7 +102,7 @@ class RestartResilienceTest(unittest.TestCase):
                 'enforcement': {'poll_interval': 5},
                 'nat_iface': 'eth2',
                 'enodeb_iface': 'eth1',
-                'enable_queue_pgm': False,
+                'qos': {'enable': False},
                 'clean_restart': False,
             },
             mconfig=PipelineD(
