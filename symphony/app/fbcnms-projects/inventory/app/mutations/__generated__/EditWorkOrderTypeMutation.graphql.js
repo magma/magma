@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash a14a568841ed84a80e76f9dd7fd2785f
+ * @relayHash d52c96d2db7152e6acf376084637fe35
  */
 
 /* eslint-disable */
@@ -15,7 +15,6 @@
 
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
-type AddEditWorkOrderTypeCard_editingWorkOrderType$ref = any;
 export type CheckListItemEnumSelectionMode = "multiple" | "single" | "%future added value";
 export type CheckListItemType = "cell_scan" | "enum" | "files" | "simple" | "string" | "wifi_scan" | "yes_no" | "%future added value";
 export type FileType = "FILE" | "IMAGE" | "%future added value";
@@ -95,7 +94,27 @@ export type EditWorkOrderTypeMutationResponse = {|
   +editWorkOrderType: {|
     +id: string,
     +name: string,
-    +$fragmentRefs: AddEditWorkOrderTypeCard_editingWorkOrderType$ref,
+    +description: ?string,
+    +propertyTypes: $ReadOnlyArray<?{|
+      +id: string,
+      +name: string,
+      +type: PropertyKind,
+      +nodeType: ?string,
+      +index: ?number,
+      +stringValue: ?string,
+      +intValue: ?number,
+      +booleanValue: ?boolean,
+      +floatValue: ?number,
+      +latitudeValue: ?number,
+      +longitudeValue: ?number,
+      +rangeFromValue: ?number,
+      +rangeToValue: ?number,
+      +isEditable: ?boolean,
+      +isMandatory: ?boolean,
+      +isInstanceProperty: ?boolean,
+      +isDeleted: ?boolean,
+      +category: ?string,
+    |}>,
   |}
 |};
 export type EditWorkOrderTypeMutation = {|
@@ -112,33 +131,27 @@ mutation EditWorkOrderTypeMutation(
   editWorkOrderType(input: $input) {
     id
     name
-    ...AddEditWorkOrderTypeCard_editingWorkOrderType
-  }
-}
-
-fragment AddEditWorkOrderTypeCard_editingWorkOrderType on WorkOrderType {
-  id
-  name
-  description
-  numberOfWorkOrders
-  propertyTypes {
-    id
-    name
-    type
-    nodeType
-    index
-    stringValue
-    intValue
-    booleanValue
-    floatValue
-    latitudeValue
-    longitudeValue
-    rangeFromValue
-    rangeToValue
-    isEditable
-    isMandatory
-    isInstanceProperty
-    isDeleted
+    description
+    propertyTypes {
+      id
+      name
+      type
+      nodeType
+      index
+      stringValue
+      intValue
+      booleanValue
+      floatValue
+      latitudeValue
+      longitudeValue
+      rangeFromValue
+      rangeToValue
+      isEditable
+      isMandatory
+      isInstanceProperty
+      isDeleted
+      category
+    }
   }
 }
 */
@@ -152,27 +165,173 @@ var v0 = [
     "defaultValue": null
   }
 ],
-v1 = [
-  {
-    "kind": "Variable",
-    "name": "input",
-    "variableName": "input"
-  }
-],
-v2 = {
+v1 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "id",
   "args": null,
   "storageKey": null
 },
-v3 = {
+v2 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "name",
   "args": null,
   "storageKey": null
-};
+},
+v3 = [
+  {
+    "kind": "LinkedField",
+    "alias": null,
+    "name": "editWorkOrderType",
+    "storageKey": null,
+    "args": [
+      {
+        "kind": "Variable",
+        "name": "input",
+        "variableName": "input"
+      }
+    ],
+    "concreteType": "WorkOrderType",
+    "plural": false,
+    "selections": [
+      (v1/*: any*/),
+      (v2/*: any*/),
+      {
+        "kind": "ScalarField",
+        "alias": null,
+        "name": "description",
+        "args": null,
+        "storageKey": null
+      },
+      {
+        "kind": "LinkedField",
+        "alias": null,
+        "name": "propertyTypes",
+        "storageKey": null,
+        "args": null,
+        "concreteType": "PropertyType",
+        "plural": true,
+        "selections": [
+          (v1/*: any*/),
+          (v2/*: any*/),
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "type",
+            "args": null,
+            "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "nodeType",
+            "args": null,
+            "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "index",
+            "args": null,
+            "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "stringValue",
+            "args": null,
+            "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "intValue",
+            "args": null,
+            "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "booleanValue",
+            "args": null,
+            "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "floatValue",
+            "args": null,
+            "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "latitudeValue",
+            "args": null,
+            "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "longitudeValue",
+            "args": null,
+            "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "rangeFromValue",
+            "args": null,
+            "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "rangeToValue",
+            "args": null,
+            "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "isEditable",
+            "args": null,
+            "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "isMandatory",
+            "args": null,
+            "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "isInstanceProperty",
+            "args": null,
+            "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "isDeleted",
+            "args": null,
+            "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "category",
+            "args": null,
+            "storageKey": null
+          }
+        ]
+      }
+    ]
+  }
+];
 return {
   "kind": "Request",
   "fragment": {
@@ -181,188 +340,23 @@ return {
     "type": "Mutation",
     "metadata": null,
     "argumentDefinitions": (v0/*: any*/),
-    "selections": [
-      {
-        "kind": "LinkedField",
-        "alias": null,
-        "name": "editWorkOrderType",
-        "storageKey": null,
-        "args": (v1/*: any*/),
-        "concreteType": "WorkOrderType",
-        "plural": false,
-        "selections": [
-          (v2/*: any*/),
-          (v3/*: any*/),
-          {
-            "kind": "FragmentSpread",
-            "name": "AddEditWorkOrderTypeCard_editingWorkOrderType",
-            "args": null
-          }
-        ]
-      }
-    ]
+    "selections": (v3/*: any*/)
   },
   "operation": {
     "kind": "Operation",
     "name": "EditWorkOrderTypeMutation",
     "argumentDefinitions": (v0/*: any*/),
-    "selections": [
-      {
-        "kind": "LinkedField",
-        "alias": null,
-        "name": "editWorkOrderType",
-        "storageKey": null,
-        "args": (v1/*: any*/),
-        "concreteType": "WorkOrderType",
-        "plural": false,
-        "selections": [
-          (v2/*: any*/),
-          (v3/*: any*/),
-          {
-            "kind": "ScalarField",
-            "alias": null,
-            "name": "description",
-            "args": null,
-            "storageKey": null
-          },
-          {
-            "kind": "ScalarField",
-            "alias": null,
-            "name": "numberOfWorkOrders",
-            "args": null,
-            "storageKey": null
-          },
-          {
-            "kind": "LinkedField",
-            "alias": null,
-            "name": "propertyTypes",
-            "storageKey": null,
-            "args": null,
-            "concreteType": "PropertyType",
-            "plural": true,
-            "selections": [
-              (v2/*: any*/),
-              (v3/*: any*/),
-              {
-                "kind": "ScalarField",
-                "alias": null,
-                "name": "type",
-                "args": null,
-                "storageKey": null
-              },
-              {
-                "kind": "ScalarField",
-                "alias": null,
-                "name": "nodeType",
-                "args": null,
-                "storageKey": null
-              },
-              {
-                "kind": "ScalarField",
-                "alias": null,
-                "name": "index",
-                "args": null,
-                "storageKey": null
-              },
-              {
-                "kind": "ScalarField",
-                "alias": null,
-                "name": "stringValue",
-                "args": null,
-                "storageKey": null
-              },
-              {
-                "kind": "ScalarField",
-                "alias": null,
-                "name": "intValue",
-                "args": null,
-                "storageKey": null
-              },
-              {
-                "kind": "ScalarField",
-                "alias": null,
-                "name": "booleanValue",
-                "args": null,
-                "storageKey": null
-              },
-              {
-                "kind": "ScalarField",
-                "alias": null,
-                "name": "floatValue",
-                "args": null,
-                "storageKey": null
-              },
-              {
-                "kind": "ScalarField",
-                "alias": null,
-                "name": "latitudeValue",
-                "args": null,
-                "storageKey": null
-              },
-              {
-                "kind": "ScalarField",
-                "alias": null,
-                "name": "longitudeValue",
-                "args": null,
-                "storageKey": null
-              },
-              {
-                "kind": "ScalarField",
-                "alias": null,
-                "name": "rangeFromValue",
-                "args": null,
-                "storageKey": null
-              },
-              {
-                "kind": "ScalarField",
-                "alias": null,
-                "name": "rangeToValue",
-                "args": null,
-                "storageKey": null
-              },
-              {
-                "kind": "ScalarField",
-                "alias": null,
-                "name": "isEditable",
-                "args": null,
-                "storageKey": null
-              },
-              {
-                "kind": "ScalarField",
-                "alias": null,
-                "name": "isMandatory",
-                "args": null,
-                "storageKey": null
-              },
-              {
-                "kind": "ScalarField",
-                "alias": null,
-                "name": "isInstanceProperty",
-                "args": null,
-                "storageKey": null
-              },
-              {
-                "kind": "ScalarField",
-                "alias": null,
-                "name": "isDeleted",
-                "args": null,
-                "storageKey": null
-              }
-            ]
-          }
-        ]
-      }
-    ]
+    "selections": (v3/*: any*/)
   },
   "params": {
     "operationKind": "mutation",
     "name": "EditWorkOrderTypeMutation",
     "id": null,
-    "text": "mutation EditWorkOrderTypeMutation(\n  $input: EditWorkOrderTypeInput!\n) {\n  editWorkOrderType(input: $input) {\n    id\n    name\n    ...AddEditWorkOrderTypeCard_editingWorkOrderType\n  }\n}\n\nfragment AddEditWorkOrderTypeCard_editingWorkOrderType on WorkOrderType {\n  id\n  name\n  description\n  numberOfWorkOrders\n  propertyTypes {\n    id\n    name\n    type\n    nodeType\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    isEditable\n    isMandatory\n    isInstanceProperty\n    isDeleted\n  }\n}\n",
+    "text": "mutation EditWorkOrderTypeMutation(\n  $input: EditWorkOrderTypeInput!\n) {\n  editWorkOrderType(input: $input) {\n    id\n    name\n    description\n    propertyTypes {\n      id\n      name\n      type\n      nodeType\n      index\n      stringValue\n      intValue\n      booleanValue\n      floatValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      isEditable\n      isMandatory\n      isInstanceProperty\n      isDeleted\n      category\n    }\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '8fad9d18663268f869507ab8bd510f66';
+(node/*: any*/).hash = 'ee08d23ad9387a53b30b8e701e88c470';
 module.exports = node;
