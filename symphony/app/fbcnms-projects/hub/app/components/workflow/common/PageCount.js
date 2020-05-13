@@ -1,8 +1,16 @@
 import React, { Component } from "react";
 import Pagination from "react-bootstrap/Pagination";
 
-class PageCount extends Component {
-  constructor(props) {
+type Props = {
+  defaultPages: number,
+  handler: (defaultPageCount: number, pageCount: number) => void,
+  dataSize: number
+};
+
+type StateType = {};
+
+class PageCount extends Component<Props, StateType> {
+  constructor(props: Props) {
     super(props);
     this.state = {};
   }

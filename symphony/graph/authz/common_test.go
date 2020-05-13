@@ -10,6 +10,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/facebookincubator/symphony/graph/ent/user"
+
 	"github.com/stretchr/testify/require"
 
 	"github.com/facebookincubator/symphony/graph/authz"
@@ -52,13 +54,23 @@ func runPolicyTest(t *testing.T, tests []policyTest) {
 		if test.initialPermissions != nil {
 			test.initialPermissions(noPermissions)
 		}
-		noPermissionsContext := viewertest.NewContext(context.Background(), c, viewertest.WithPermissions(noPermissions))
+		noPermissionsContext := viewertest.NewContext(
+			context.Background(),
+			c,
+			viewertest.WithUser("user"),
+			viewertest.WithRole(user.RoleUSER),
+			viewertest.WithPermissions(noPermissions))
 		withPermissions := authz.EmptyPermissions()
 		if test.initialPermissions != nil {
 			test.initialPermissions(withPermissions)
 		}
 		test.appendPermissions(withPermissions)
-		withPermissionsContext := viewertest.NewContext(context.Background(), c, viewertest.WithPermissions(withPermissions))
+		withPermissionsContext := viewertest.NewContext(
+			context.Background(),
+			c,
+			viewertest.WithUser("user"),
+			viewertest.WithRole(user.RoleUSER),
+			viewertest.WithPermissions(withPermissions))
 
 		contextBasedTests = append(contextBasedTests, contextBasedPolicyTest{
 			operationName:          test.operationName,

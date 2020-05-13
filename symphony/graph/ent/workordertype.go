@@ -41,13 +41,11 @@ type WorkOrderTypeEdges struct {
 	PropertyTypes []*PropertyType
 	// Definitions holds the value of the definitions edge.
 	Definitions []*WorkOrderDefinition
-	// CheckListCategories holds the value of the check_list_categories edge.
-	CheckListCategories []*CheckListCategory
-	// CheckListDefinitions holds the value of the check_list_definitions edge.
-	CheckListDefinitions []*CheckListItemDefinition
+	// CheckListCategoryDefinitions holds the value of the check_list_category_definitions edge.
+	CheckListCategoryDefinitions []*CheckListCategoryDefinition
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [5]bool
+	loadedTypes [4]bool
 }
 
 // WorkOrdersOrErr returns the WorkOrders value or an error if the edge
@@ -77,22 +75,13 @@ func (e WorkOrderTypeEdges) DefinitionsOrErr() ([]*WorkOrderDefinition, error) {
 	return nil, &NotLoadedError{edge: "definitions"}
 }
 
-// CheckListCategoriesOrErr returns the CheckListCategories value or an error if the edge
+// CheckListCategoryDefinitionsOrErr returns the CheckListCategoryDefinitions value or an error if the edge
 // was not loaded in eager-loading.
-func (e WorkOrderTypeEdges) CheckListCategoriesOrErr() ([]*CheckListCategory, error) {
+func (e WorkOrderTypeEdges) CheckListCategoryDefinitionsOrErr() ([]*CheckListCategoryDefinition, error) {
 	if e.loadedTypes[3] {
-		return e.CheckListCategories, nil
+		return e.CheckListCategoryDefinitions, nil
 	}
-	return nil, &NotLoadedError{edge: "check_list_categories"}
-}
-
-// CheckListDefinitionsOrErr returns the CheckListDefinitions value or an error if the edge
-// was not loaded in eager-loading.
-func (e WorkOrderTypeEdges) CheckListDefinitionsOrErr() ([]*CheckListItemDefinition, error) {
-	if e.loadedTypes[4] {
-		return e.CheckListDefinitions, nil
-	}
-	return nil, &NotLoadedError{edge: "check_list_definitions"}
+	return nil, &NotLoadedError{edge: "check_list_category_definitions"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -156,14 +145,9 @@ func (wot *WorkOrderType) QueryDefinitions() *WorkOrderDefinitionQuery {
 	return (&WorkOrderTypeClient{config: wot.config}).QueryDefinitions(wot)
 }
 
-// QueryCheckListCategories queries the check_list_categories edge of the WorkOrderType.
-func (wot *WorkOrderType) QueryCheckListCategories() *CheckListCategoryQuery {
-	return (&WorkOrderTypeClient{config: wot.config}).QueryCheckListCategories(wot)
-}
-
-// QueryCheckListDefinitions queries the check_list_definitions edge of the WorkOrderType.
-func (wot *WorkOrderType) QueryCheckListDefinitions() *CheckListItemDefinitionQuery {
-	return (&WorkOrderTypeClient{config: wot.config}).QueryCheckListDefinitions(wot)
+// QueryCheckListCategoryDefinitions queries the check_list_category_definitions edge of the WorkOrderType.
+func (wot *WorkOrderType) QueryCheckListCategoryDefinitions() *CheckListCategoryDefinitionQuery {
+	return (&WorkOrderTypeClient{config: wot.config}).QueryCheckListCategoryDefinitions(wot)
 }
 
 // Update returns a builder for updating this WorkOrderType.

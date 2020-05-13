@@ -12,8 +12,8 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/checklistcategorydefinition"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitemdefinition"
-	"github.com/facebookincubator/symphony/graph/ent/workordertype"
 )
 
 // CheckListItemDefinition is the model entity for the CheckListItemDefinition schema.
@@ -33,35 +33,37 @@ type CheckListItemDefinition struct {
 	Index int `json:"index,omitempty"`
 	// EnumValues holds the value of the "enum_values" field.
 	EnumValues *string `json:"enum_values,omitempty" gqlgen:"enumValues"`
+	// EnumSelectionModeValue holds the value of the "enum_selection_mode_value" field.
+	EnumSelectionModeValue checklistitemdefinition.EnumSelectionModeValue `json:"enum_selection_mode_value,omitempty"`
 	// HelpText holds the value of the "help_text" field.
 	HelpText *string `json:"help_text,omitempty" gqlgen:"helpText"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CheckListItemDefinitionQuery when eager-loading is set.
-	Edges                                  CheckListItemDefinitionEdges `json:"edges"`
-	work_order_type_check_list_definitions *int
+	Edges                                                      CheckListItemDefinitionEdges `json:"edges"`
+	check_list_category_definition_check_list_item_definitions *int
 }
 
 // CheckListItemDefinitionEdges holds the relations/edges for other nodes in the graph.
 type CheckListItemDefinitionEdges struct {
-	// WorkOrderType holds the value of the work_order_type edge.
-	WorkOrderType *WorkOrderType
+	// CheckListCategoryDefinition holds the value of the check_list_category_definition edge.
+	CheckListCategoryDefinition *CheckListCategoryDefinition
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [1]bool
 }
 
-// WorkOrderTypeOrErr returns the WorkOrderType value or an error if the edge
+// CheckListCategoryDefinitionOrErr returns the CheckListCategoryDefinition value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e CheckListItemDefinitionEdges) WorkOrderTypeOrErr() (*WorkOrderType, error) {
+func (e CheckListItemDefinitionEdges) CheckListCategoryDefinitionOrErr() (*CheckListCategoryDefinition, error) {
 	if e.loadedTypes[0] {
-		if e.WorkOrderType == nil {
-			// The edge work_order_type was loaded in eager-loading,
+		if e.CheckListCategoryDefinition == nil {
+			// The edge check_list_category_definition was loaded in eager-loading,
 			// but was not found.
-			return nil, &NotFoundError{label: workordertype.Label}
+			return nil, &NotFoundError{label: checklistcategorydefinition.Label}
 		}
-		return e.WorkOrderType, nil
+		return e.CheckListCategoryDefinition, nil
 	}
-	return nil, &NotLoadedError{edge: "work_order_type"}
+	return nil, &NotLoadedError{edge: "check_list_category_definition"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -74,6 +76,7 @@ func (*CheckListItemDefinition) scanValues() []interface{} {
 		&sql.NullString{}, // type
 		&sql.NullInt64{},  // index
 		&sql.NullString{}, // enum_values
+		&sql.NullString{}, // enum_selection_mode_value
 		&sql.NullString{}, // help_text
 	}
 }
@@ -81,7 +84,7 @@ func (*CheckListItemDefinition) scanValues() []interface{} {
 // fkValues returns the types for scanning foreign-keys values from sql.Rows.
 func (*CheckListItemDefinition) fkValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{}, // work_order_type_check_list_definitions
+		&sql.NullInt64{}, // check_list_category_definition_check_list_item_definitions
 	}
 }
 
@@ -129,26 +132,31 @@ func (clid *CheckListItemDefinition) assignValues(values ...interface{}) error {
 		*clid.EnumValues = value.String
 	}
 	if value, ok := values[6].(*sql.NullString); !ok {
-		return fmt.Errorf("unexpected type %T for field help_text", values[6])
+		return fmt.Errorf("unexpected type %T for field enum_selection_mode_value", values[6])
+	} else if value.Valid {
+		clid.EnumSelectionModeValue = checklistitemdefinition.EnumSelectionModeValue(value.String)
+	}
+	if value, ok := values[7].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field help_text", values[7])
 	} else if value.Valid {
 		clid.HelpText = new(string)
 		*clid.HelpText = value.String
 	}
-	values = values[7:]
+	values = values[8:]
 	if len(values) == len(checklistitemdefinition.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field work_order_type_check_list_definitions", value)
+			return fmt.Errorf("unexpected type %T for edge-field check_list_category_definition_check_list_item_definitions", value)
 		} else if value.Valid {
-			clid.work_order_type_check_list_definitions = new(int)
-			*clid.work_order_type_check_list_definitions = int(value.Int64)
+			clid.check_list_category_definition_check_list_item_definitions = new(int)
+			*clid.check_list_category_definition_check_list_item_definitions = int(value.Int64)
 		}
 	}
 	return nil
 }
 
-// QueryWorkOrderType queries the work_order_type edge of the CheckListItemDefinition.
-func (clid *CheckListItemDefinition) QueryWorkOrderType() *WorkOrderTypeQuery {
-	return (&CheckListItemDefinitionClient{config: clid.config}).QueryWorkOrderType(clid)
+// QueryCheckListCategoryDefinition queries the check_list_category_definition edge of the CheckListItemDefinition.
+func (clid *CheckListItemDefinition) QueryCheckListCategoryDefinition() *CheckListCategoryDefinitionQuery {
+	return (&CheckListItemDefinitionClient{config: clid.config}).QueryCheckListCategoryDefinition(clid)
 }
 
 // Update returns a builder for updating this CheckListItemDefinition.
@@ -188,6 +196,8 @@ func (clid *CheckListItemDefinition) String() string {
 		builder.WriteString(", enum_values=")
 		builder.WriteString(*v)
 	}
+	builder.WriteString(", enum_selection_mode_value=")
+	builder.WriteString(fmt.Sprintf("%v", clid.EnumSelectionModeValue))
 	if v := clid.HelpText; v != nil {
 		builder.WriteString(", help_text=")
 		builder.WriteString(*v)

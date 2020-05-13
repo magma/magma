@@ -15,6 +15,7 @@ import (
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/services/state"
+	"magma/orc8r/cloud/go/services/state/indexer/index"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
 
@@ -98,6 +99,12 @@ func (srv *stateServicer) ReportStates(context context.Context, req *protos.Repo
 	if err != nil {
 		return res, internalErr(err, "ReportStates blobstore commit transaction")
 	}
+
+	byID, err := state.MakeStatesByID(req.States)
+	if err != nil {
+		return res, internalErr(err, "ReportStates make states by ID")
+	}
+	go index.Index(networkID, byID)
 
 	return res, nil
 }

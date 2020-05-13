@@ -23,6 +23,7 @@ func (c *Client) ReadOnly() *Client {
 		Schema:                      migrate.NewSchema(cfg.driver),
 		ActionsRule:                 NewActionsRuleClient(cfg),
 		CheckListCategory:           NewCheckListCategoryClient(cfg),
+		CheckListCategoryDefinition: NewCheckListCategoryDefinitionClient(cfg),
 		CheckListItem:               NewCheckListItemClient(cfg),
 		CheckListItemDefinition:     NewCheckListItemDefinitionClient(cfg),
 		Comment:                     NewCommentClient(cfg),

@@ -13,6 +13,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/facebookincubator/symphony/graph/authz"
+
 	"github.com/AlekSi/pointer"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/ent/serviceendpointdefinition"
@@ -220,7 +222,8 @@ func TestEmptyServicesDataExport(t *testing.T) {
 	log := r.exporter.log
 
 	e := &exporter{log, servicesRower{log}}
-	th := viewer.TenancyHandler(e,
+	auth := authz.Handler(e, logtest.NewTestLogger(t))
+	th := viewer.TenancyHandler(auth,
 		viewer.NewFixedTenancy(r.client),
 		logtest.NewTestLogger(t),
 	)
@@ -261,7 +264,8 @@ func TestServicesExport(t *testing.T) {
 	log := r.exporter.log
 
 	e := &exporter{log, servicesRower{log}}
-	th := viewer.TenancyHandler(e,
+	auth := authz.Handler(e, logtest.NewTestLogger(t))
+	th := viewer.TenancyHandler(auth,
 		viewer.NewFixedTenancy(r.client),
 		logtest.NewTestLogger(t),
 	)
@@ -383,7 +387,8 @@ func TestServiceWithFilters(t *testing.T) {
 	log := r.exporter.log
 
 	e := &exporter{log, servicesRower{log}}
-	th := viewer.TenancyHandler(e,
+	auth := authz.Handler(e, logtest.NewTestLogger(t))
+	th := viewer.TenancyHandler(auth,
 		viewer.NewFixedTenancy(r.client),
 		logtest.NewTestLogger(t),
 	)

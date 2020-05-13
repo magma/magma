@@ -1,7 +1,7 @@
 const request = require("superagent");
 
 const HttpClient = {
-  get: (path, token) =>
+  get: (path: string, token: string) =>
     new Promise((resolve, reject) => {
       const req = request.get(path).accept("application/json");
       if (token) {
@@ -21,7 +21,7 @@ const HttpClient = {
       });
     }),
 
-  delete: (path, data, token) =>
+  delete: (path: string, data: [{}], token: string) =>
     new Promise((resolve, reject) => {
       const req = request
         .delete(path, data)
@@ -42,7 +42,7 @@ const HttpClient = {
       });
     }),
 
-  post: (path, data, token) =>
+  post: (path: string, data: [{}], token: string) =>
     new Promise((resolve, reject) => {
       const req = request
         .post(path, data)
@@ -62,7 +62,7 @@ const HttpClient = {
       });
     }),
 
-  put: (path, data, token) =>
+  put: (path: string, data: [{}], token: string) =>
     new Promise((resolve, reject) => {
       const req = request.put(path, data).set("Accept", "application/json");
 

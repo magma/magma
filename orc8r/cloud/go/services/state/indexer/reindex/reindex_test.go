@@ -6,10 +6,12 @@
  LICENSE file in the root directory of this source tree.
 */
 
-// NOTE: to run these tests outside the testing environment, e.g. from IntelliJ, ensure
-// Postgres container is running, and use the DATABASE_SOURCE environment variable
-// to target localhost and non-standard port.
-// Example: `host=localhost port=5433 dbname=magma_test user=magma_test password=magma_test sslmode=disable`.
+// NOTE: to run these tests outside the testing environment, e.g. from IntelliJ,
+// ensure postgres_test and maria_test containers are running, and use the
+// following environment variables to point to the relevant DB endpoints:
+//	- TEST_DATABASE_HOST=localhost
+//	- TEST_DATABASE_PORT_POSTGRES=5433
+//	- TEST_DATABASE_PORT_MARIA=3307
 
 package reindex
 
@@ -17,6 +19,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/orc8r"
@@ -35,7 +38,6 @@ import (
 	state_test_init "magma/orc8r/cloud/go/services/state/test_init"
 	state_test "magma/orc8r/cloud/go/services/state/test_utils"
 	"magma/orc8r/cloud/go/sqorc"
-	"magma/orc8r/lib/go/definitions"
 	"magma/orc8r/lib/go/protos"
 
 	"github.com/stretchr/testify/mock"
@@ -43,7 +45,8 @@ import (
 )
 
 const (
-	singleAttempt = 1
+	singleAttempt      = 1
+	defaultTestTimeout = 5 * time.Second
 
 	// Cause 3 batches per network
 	numBatches       = numNetworks * 3
@@ -56,17 +59,25 @@ var (
 	matchOne = []indexer.Subscription{{Type: orc8r.DirectoryRecordType, KeyMatcher: indexer.NewMatchExact("imsi0")}}
 )
 
+func init() {
+	//_ = flag.Set("alsologtostderr", "true") // uncomment to view logs during test
+}
+
 func TestRun(t *testing.T) {
-	ch := make(chan interface{})
+	dbName := "state___reindex_test"
+
 	// Writes to channel after completing a job
-	testHookReindexComplete = func() {
-		ch <- nil
-	}
+	ch := make(chan interface{})
+	testHookReindexComplete = func() { ch <- nil }
+	defer func() { testHookReindexComplete = func() {} }()
+
 	clock.SkipSleeps(t)
 	defer clock.ResumeSleeps(t)
 
-	q, store := initReindexTest(t)
-	go Run(q, store)
+	q, store := initReindexTest(t, dbName)
+	ctx, cancel := context.WithCancel(context.Background())
+	go Run(ctx, q, store)
+	defer cancel()
 
 	// Single indexer
 	// Populate
@@ -74,7 +85,7 @@ func TestRun(t *testing.T) {
 	idx0.On("GetSubscriptions").Return(matchAll).Once()
 	registerAndPopulate(t, q, idx0)
 	// Check
-	<-ch
+	recvCh(t, ch)
 	idx0.AssertExpectations(t)
 	assertComplete(t, q, id0)
 
@@ -85,7 +96,7 @@ func TestRun(t *testing.T) {
 	idx0a.On("Index", mock.Anything, mock.Anything).Return(nil, nil).Times(numNetworks)
 	registerAndPopulate(t, q, idx0a)
 	// Check
-	<-ch
+	recvCh(t, ch)
 	idx0a.AssertExpectations(t)
 	assertComplete(t, q, id0)
 
@@ -108,9 +119,9 @@ func TestRun(t *testing.T) {
 	fail3.On("CompleteReindex", zero, version3).Return(someErr3).Once()
 	registerAndPopulate(t, q, fail1, fail2, fail3)
 	// Check
-	<-ch
-	<-ch
-	<-ch
+	recvCh(t, ch)
+	recvCh(t, ch)
+	recvCh(t, ch)
 	fail1.AssertExpectations(t)
 	fail2.AssertExpectations(t)
 	fail3.AssertExpectations(t)
@@ -119,12 +130,10 @@ func TestRun(t *testing.T) {
 	assertErrored(t, q, id3, ErrComplete, someErr3)
 }
 
-func initReindexTest(t *testing.T) (JobQueue, servicers.StateServiceInternal) {
-	// Uncomment below to view reindex queue logs during test
-	//_ = flag.Set("alsologtostderr", "true")
-
-	// Start configurator service, add networks and gateways
+func initReindexTest(t *testing.T, dbName string) (JobQueue, servicers.StateServiceInternal) {
 	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
+	indexer.DeregisterAllForTest(t)
+
 	configurator_test_init.StartTestService(t)
 	device_test_init.StartTestService(t)
 	configurator_test.RegisterNetwork(t, nid0, "Network 0 for reindex test")
@@ -134,8 +143,8 @@ func initReindexTest(t *testing.T) (JobQueue, servicers.StateServiceInternal) {
 	configurator_test.RegisterGateway(t, nid1, hwid1, &models.GatewayDevice{HardwareID: hwid1})
 	configurator_test.RegisterGateway(t, nid2, hwid2, &models.GatewayDevice{HardwareID: hwid2})
 
-	// Start state service, add states
-	store := state_test_init.StartTestServiceInternal(t)
+	db, store := state_test_init.StartTestServiceInternal(t, dbName, sqorc.PostgresDriver)
+
 	ctxByNetwork := map[string]context.Context{
 		nid0: state_test.GetContextWithCertificate(t, hwid0),
 		nid1: state_test.GetContextWithCertificate(t, hwid1),
@@ -153,20 +162,10 @@ func initReindexTest(t *testing.T) (JobQueue, servicers.StateServiceInternal) {
 		reportStates(t, ctxByNetwork[nid], deviceIDs, records)
 	}
 
-	sqlDriver := definitions.GetEnvWithDefault("SQL_DRIVER", "postgres")
-	databaseSource := definitions.GetEnvWithDefault("DATABASE_SOURCE", connectionStringPostgres)
-	db, err := sqorc.Open(sqlDriver, databaseSource)
+	q := NewSQLJobQueue(singleAttempt, db, sqorc.GetSqlBuilder())
+	err := q.Initialize()
 	assert.NoError(t, err)
-
-	_, err = db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s", queueTableName))
-	assert.NoError(t, err)
-	_, err = db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s", versionTableName))
-	assert.NoError(t, err)
-
-	queue := NewSQLJobQueue(singleAttempt, db, sqorc.GetSqlBuilder())
-	err = queue.Initialize()
-	assert.NoError(t, err)
-	return queue, store
+	return q, store
 }
 
 func reportStates(t *testing.T, ctx context.Context, deviceIDs []string, records []*directoryd.DirectoryRecord) {
@@ -184,10 +183,8 @@ func reportStates(t *testing.T, ctx context.Context, deviceIDs []string, records
 		}
 		states = append(states, pState)
 	}
-	_, err = client.ReportStates(
-		ctx,
-		&protos.ReportStatesRequest{States: states},
-	)
+
+	_, err = client.ReportStates(ctx, &protos.ReportStatesRequest{States: states})
 	assert.NoError(t, err)
 }
 
@@ -224,6 +221,15 @@ func registerAndPopulate(t *testing.T, q JobQueue, idx ...indexer.Indexer) {
 	populated, err := q.PopulateJobs()
 	assert.True(t, populated)
 	assert.NoError(t, err)
+}
+
+func recvCh(t *testing.T, ch chan interface{}) {
+	select {
+	case <-ch:
+		return
+	case <-time.After(defaultTestTimeout):
+		t.Fatal("receive on hook channel timed out")
+	}
 }
 
 func assertComplete(t *testing.T, q JobQueue, id string) {

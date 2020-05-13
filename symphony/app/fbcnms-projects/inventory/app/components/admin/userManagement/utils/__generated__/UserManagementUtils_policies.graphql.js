@@ -163,17 +163,7 @@ v1 = [
     "storageKey": null
   }
 ],
-v2 = {
-  "kind": "LinkedField",
-  "alias": null,
-  "name": "read",
-  "storageKey": null,
-  "args": null,
-  "concreteType": "BasicPermissionRule",
-  "plural": false,
-  "selections": (v1/*: any*/)
-},
-v3 = [
+v2 = [
   {
     "kind": "LinkedField",
     "alias": null,
@@ -254,7 +244,16 @@ return {
           "kind": "InlineFragment",
           "type": "InventoryPolicy",
           "selections": [
-            (v2/*: any*/),
+            {
+              "kind": "LinkedField",
+              "alias": null,
+              "name": "read",
+              "storageKey": null,
+              "args": null,
+              "concreteType": "BasicPermissionRule",
+              "plural": false,
+              "selections": (v1/*: any*/)
+            },
             {
               "kind": "LinkedField",
               "alias": null,
@@ -304,7 +303,7 @@ return {
               "args": null,
               "concreteType": "CUD",
               "plural": false,
-              "selections": (v3/*: any*/)
+              "selections": (v2/*: any*/)
             },
             {
               "kind": "LinkedField",
@@ -314,7 +313,7 @@ return {
               "args": null,
               "concreteType": "CUD",
               "plural": false,
-              "selections": (v3/*: any*/)
+              "selections": (v2/*: any*/)
             },
             {
               "kind": "LinkedField",
@@ -324,7 +323,7 @@ return {
               "args": null,
               "concreteType": "CUD",
               "plural": false,
-              "selections": (v3/*: any*/)
+              "selections": (v2/*: any*/)
             },
             {
               "kind": "LinkedField",
@@ -334,7 +333,7 @@ return {
               "args": null,
               "concreteType": "CUD",
               "plural": false,
-              "selections": (v3/*: any*/)
+              "selections": (v2/*: any*/)
             },
             {
               "kind": "LinkedField",
@@ -344,7 +343,7 @@ return {
               "args": null,
               "concreteType": "CUD",
               "plural": false,
-              "selections": (v3/*: any*/)
+              "selections": (v2/*: any*/)
             }
           ]
         },
@@ -352,7 +351,16 @@ return {
           "kind": "InlineFragment",
           "type": "WorkforcePolicy",
           "selections": [
-            (v2/*: any*/),
+            {
+              "kind": "LinkedField",
+              "alias": null,
+              "name": "read",
+              "storageKey": null,
+              "args": null,
+              "concreteType": "WorkforcePermissionRule",
+              "plural": false,
+              "selections": (v1/*: any*/)
+            },
             {
               "kind": "LinkedField",
               "alias": null,
@@ -361,7 +369,7 @@ return {
               "args": null,
               "concreteType": "CUD",
               "plural": false,
-              "selections": (v3/*: any*/)
+              "selections": (v2/*: any*/)
             },
             {
               "kind": "LinkedField",
@@ -444,5 +452,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'da8a33d22e94ba5de8c8977355541f33';
+(node/*: any*/).hash = 'a33eb88c53331ea99def4342b27065dd';
 module.exports = node;

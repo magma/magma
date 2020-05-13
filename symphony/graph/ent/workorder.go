@@ -74,8 +74,6 @@ type WorkOrderEdges struct {
 	Properties []*Property
 	// CheckListCategories holds the value of the check_list_categories edge.
 	CheckListCategories []*CheckListCategory
-	// CheckListItems holds the value of the check_list_items edge.
-	CheckListItems []*CheckListItem
 	// Project holds the value of the project edge.
 	Project *Project
 	// Owner holds the value of the owner edge.
@@ -84,7 +82,7 @@ type WorkOrderEdges struct {
 	Assignee *User
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [13]bool
+	loadedTypes [12]bool
 }
 
 // TypeOrErr returns the Type value or an error if the edge
@@ -178,19 +176,10 @@ func (e WorkOrderEdges) CheckListCategoriesOrErr() ([]*CheckListCategory, error)
 	return nil, &NotLoadedError{edge: "check_list_categories"}
 }
 
-// CheckListItemsOrErr returns the CheckListItems value or an error if the edge
-// was not loaded in eager-loading.
-func (e WorkOrderEdges) CheckListItemsOrErr() ([]*CheckListItem, error) {
-	if e.loadedTypes[9] {
-		return e.CheckListItems, nil
-	}
-	return nil, &NotLoadedError{edge: "check_list_items"}
-}
-
 // ProjectOrErr returns the Project value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e WorkOrderEdges) ProjectOrErr() (*Project, error) {
-	if e.loadedTypes[10] {
+	if e.loadedTypes[9] {
 		if e.Project == nil {
 			// The edge project was loaded in eager-loading,
 			// but was not found.
@@ -204,7 +193,7 @@ func (e WorkOrderEdges) ProjectOrErr() (*Project, error) {
 // OwnerOrErr returns the Owner value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e WorkOrderEdges) OwnerOrErr() (*User, error) {
-	if e.loadedTypes[11] {
+	if e.loadedTypes[10] {
 		if e.Owner == nil {
 			// The edge owner was loaded in eager-loading,
 			// but was not found.
@@ -218,7 +207,7 @@ func (e WorkOrderEdges) OwnerOrErr() (*User, error) {
 // AssigneeOrErr returns the Assignee value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e WorkOrderEdges) AssigneeOrErr() (*User, error) {
-	if e.loadedTypes[12] {
+	if e.loadedTypes[11] {
 		if e.Assignee == nil {
 			// The edge assignee was loaded in eager-loading,
 			// but was not found.
@@ -398,11 +387,6 @@ func (wo *WorkOrder) QueryProperties() *PropertyQuery {
 // QueryCheckListCategories queries the check_list_categories edge of the WorkOrder.
 func (wo *WorkOrder) QueryCheckListCategories() *CheckListCategoryQuery {
 	return (&WorkOrderClient{config: wo.config}).QueryCheckListCategories(wo)
-}
-
-// QueryCheckListItems queries the check_list_items edge of the WorkOrder.
-func (wo *WorkOrder) QueryCheckListItems() *CheckListItemQuery {
-	return (&WorkOrderClient{config: wo.config}).QueryCheckListItems(wo)
 }
 
 // QueryProject queries the project edge of the WorkOrder.

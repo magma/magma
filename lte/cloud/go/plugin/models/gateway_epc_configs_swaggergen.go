@@ -17,6 +17,16 @@ import (
 // swagger:model gateway_epc_configs
 type GatewayEpcConfigs struct {
 
+	// dns primary
+	// Max Length: 45
+	// Min Length: 5
+	DNSPrimary string `json:"dns_primary,omitempty"`
+
+	// dns secondary
+	// Max Length: 45
+	// Min Length: 5
+	DNSSecondary string `json:"dns_secondary,omitempty"`
+
 	// ip block
 	// Required: true
 	// Max Length: 49
@@ -32,6 +42,14 @@ type GatewayEpcConfigs struct {
 func (m *GatewayEpcConfigs) Validate(formats strfmt.Registry) error {
 	var res []error
 
+	if err := m.validateDNSPrimary(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateDNSSecondary(formats); err != nil {
+		res = append(res, err)
+	}
+
 	if err := m.validateIPBlock(formats); err != nil {
 		res = append(res, err)
 	}
@@ -43,6 +61,40 @@ func (m *GatewayEpcConfigs) Validate(formats strfmt.Registry) error {
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+func (m *GatewayEpcConfigs) validateDNSPrimary(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.DNSPrimary) { // not required
+		return nil
+	}
+
+	if err := validate.MinLength("dns_primary", "body", string(m.DNSPrimary), 5); err != nil {
+		return err
+	}
+
+	if err := validate.MaxLength("dns_primary", "body", string(m.DNSPrimary), 45); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *GatewayEpcConfigs) validateDNSSecondary(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.DNSSecondary) { // not required
+		return nil
+	}
+
+	if err := validate.MinLength("dns_secondary", "body", string(m.DNSSecondary), 5); err != nil {
+		return err
+	}
+
+	if err := validate.MaxLength("dns_secondary", "body", string(m.DNSSecondary), 45); err != nil {
+		return err
+	}
+
 	return nil
 }
 

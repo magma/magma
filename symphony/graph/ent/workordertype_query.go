@@ -16,8 +16,7 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
-	"github.com/facebookincubator/symphony/graph/ent/checklistcategory"
-	"github.com/facebookincubator/symphony/graph/ent/checklistitemdefinition"
+	"github.com/facebookincubator/symphony/graph/ent/checklistcategorydefinition"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
@@ -34,11 +33,10 @@ type WorkOrderTypeQuery struct {
 	unique     []string
 	predicates []predicate.WorkOrderType
 	// eager-loading edges.
-	withWorkOrders           *WorkOrderQuery
-	withPropertyTypes        *PropertyTypeQuery
-	withDefinitions          *WorkOrderDefinitionQuery
-	withCheckListCategories  *CheckListCategoryQuery
-	withCheckListDefinitions *CheckListItemDefinitionQuery
+	withWorkOrders                   *WorkOrderQuery
+	withPropertyTypes                *PropertyTypeQuery
+	withDefinitions                  *WorkOrderDefinitionQuery
+	withCheckListCategoryDefinitions *CheckListCategoryDefinitionQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -122,35 +120,17 @@ func (wotq *WorkOrderTypeQuery) QueryDefinitions() *WorkOrderDefinitionQuery {
 	return query
 }
 
-// QueryCheckListCategories chains the current query on the check_list_categories edge.
-func (wotq *WorkOrderTypeQuery) QueryCheckListCategories() *CheckListCategoryQuery {
-	query := &CheckListCategoryQuery{config: wotq.config}
+// QueryCheckListCategoryDefinitions chains the current query on the check_list_category_definitions edge.
+func (wotq *WorkOrderTypeQuery) QueryCheckListCategoryDefinitions() *CheckListCategoryDefinitionQuery {
+	query := &CheckListCategoryDefinitionQuery{config: wotq.config}
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := wotq.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(workordertype.Table, workordertype.FieldID, wotq.sqlQuery()),
-			sqlgraph.To(checklistcategory.Table, checklistcategory.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, workordertype.CheckListCategoriesTable, workordertype.CheckListCategoriesColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(wotq.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// QueryCheckListDefinitions chains the current query on the check_list_definitions edge.
-func (wotq *WorkOrderTypeQuery) QueryCheckListDefinitions() *CheckListItemDefinitionQuery {
-	query := &CheckListItemDefinitionQuery{config: wotq.config}
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := wotq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(workordertype.Table, workordertype.FieldID, wotq.sqlQuery()),
-			sqlgraph.To(checklistitemdefinition.Table, checklistitemdefinition.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, workordertype.CheckListDefinitionsTable, workordertype.CheckListDefinitionsColumn),
+			sqlgraph.To(checklistcategorydefinition.Table, checklistcategorydefinition.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, workordertype.CheckListCategoryDefinitionsTable, workordertype.CheckListCategoryDefinitionsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(wotq.driver.Dialect(), step)
 		return fromU, nil
@@ -370,25 +350,14 @@ func (wotq *WorkOrderTypeQuery) WithDefinitions(opts ...func(*WorkOrderDefinitio
 	return wotq
 }
 
-//  WithCheckListCategories tells the query-builder to eager-loads the nodes that are connected to
-// the "check_list_categories" edge. The optional arguments used to configure the query builder of the edge.
-func (wotq *WorkOrderTypeQuery) WithCheckListCategories(opts ...func(*CheckListCategoryQuery)) *WorkOrderTypeQuery {
-	query := &CheckListCategoryQuery{config: wotq.config}
+//  WithCheckListCategoryDefinitions tells the query-builder to eager-loads the nodes that are connected to
+// the "check_list_category_definitions" edge. The optional arguments used to configure the query builder of the edge.
+func (wotq *WorkOrderTypeQuery) WithCheckListCategoryDefinitions(opts ...func(*CheckListCategoryDefinitionQuery)) *WorkOrderTypeQuery {
+	query := &CheckListCategoryDefinitionQuery{config: wotq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
-	wotq.withCheckListCategories = query
-	return wotq
-}
-
-//  WithCheckListDefinitions tells the query-builder to eager-loads the nodes that are connected to
-// the "check_list_definitions" edge. The optional arguments used to configure the query builder of the edge.
-func (wotq *WorkOrderTypeQuery) WithCheckListDefinitions(opts ...func(*CheckListItemDefinitionQuery)) *WorkOrderTypeQuery {
-	query := &CheckListItemDefinitionQuery{config: wotq.config}
-	for _, opt := range opts {
-		opt(query)
-	}
-	wotq.withCheckListDefinitions = query
+	wotq.withCheckListCategoryDefinitions = query
 	return wotq
 }
 
@@ -461,12 +430,11 @@ func (wotq *WorkOrderTypeQuery) sqlAll(ctx context.Context) ([]*WorkOrderType, e
 	var (
 		nodes       = []*WorkOrderType{}
 		_spec       = wotq.querySpec()
-		loadedTypes = [5]bool{
+		loadedTypes = [4]bool{
 			wotq.withWorkOrders != nil,
 			wotq.withPropertyTypes != nil,
 			wotq.withDefinitions != nil,
-			wotq.withCheckListCategories != nil,
-			wotq.withCheckListDefinitions != nil,
+			wotq.withCheckListCategoryDefinitions != nil,
 		}
 	)
 	_spec.ScanValues = func() []interface{} {
@@ -574,7 +542,7 @@ func (wotq *WorkOrderTypeQuery) sqlAll(ctx context.Context) ([]*WorkOrderType, e
 		}
 	}
 
-	if query := wotq.withCheckListCategories; query != nil {
+	if query := wotq.withCheckListCategoryDefinitions; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
 		nodeids := make(map[int]*WorkOrderType)
 		for i := range nodes {
@@ -582,51 +550,23 @@ func (wotq *WorkOrderTypeQuery) sqlAll(ctx context.Context) ([]*WorkOrderType, e
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
-		query.Where(predicate.CheckListCategory(func(s *sql.Selector) {
-			s.Where(sql.InValues(workordertype.CheckListCategoriesColumn, fks...))
+		query.Where(predicate.CheckListCategoryDefinition(func(s *sql.Selector) {
+			s.Where(sql.InValues(workordertype.CheckListCategoryDefinitionsColumn, fks...))
 		}))
 		neighbors, err := query.All(ctx)
 		if err != nil {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.work_order_type_check_list_categories
+			fk := n.work_order_type_check_list_category_definitions
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "work_order_type_check_list_categories" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "work_order_type_check_list_category_definitions" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "work_order_type_check_list_categories" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_type_check_list_category_definitions" returned %v for node %v`, *fk, n.ID)
 			}
-			node.Edges.CheckListCategories = append(node.Edges.CheckListCategories, n)
-		}
-	}
-
-	if query := wotq.withCheckListDefinitions; query != nil {
-		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[int]*WorkOrderType)
-		for i := range nodes {
-			fks = append(fks, nodes[i].ID)
-			nodeids[nodes[i].ID] = nodes[i]
-		}
-		query.withFKs = true
-		query.Where(predicate.CheckListItemDefinition(func(s *sql.Selector) {
-			s.Where(sql.InValues(workordertype.CheckListDefinitionsColumn, fks...))
-		}))
-		neighbors, err := query.All(ctx)
-		if err != nil {
-			return nil, err
-		}
-		for _, n := range neighbors {
-			fk := n.work_order_type_check_list_definitions
-			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "work_order_type_check_list_definitions" is nil for node %v`, n.ID)
-			}
-			node, ok := nodeids[*fk]
-			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "work_order_type_check_list_definitions" returned %v for node %v`, *fk, n.ID)
-			}
-			node.Edges.CheckListDefinitions = append(node.Edges.CheckListDefinitions, n)
+			node.Edges.CheckListCategoryDefinitions = append(node.Edges.CheckListCategoryDefinitions, n)
 		}
 	}
 

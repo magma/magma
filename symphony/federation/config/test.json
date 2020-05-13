@@ -1,0 +1,11 @@
+{
+  "gateway": {
+    "federationVersion": 1
+  },
+  "server": {
+    "introspection": false
+  },
+  "listen": {
+    "port": 8080
+  }
+}

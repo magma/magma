@@ -9,6 +9,10 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/facebookincubator/symphony/graph/ent/predicate"
+	"github.com/facebookincubator/symphony/graph/ent/user"
+	"github.com/facebookincubator/symphony/graph/viewer"
+
 	models2 "github.com/facebookincubator/symphony/graph/authz/models"
 
 	"github.com/facebookincubator/symphony/graph/ent"
@@ -60,6 +64,28 @@ func ProjectWritePolicyRule() privacy.MutationRule {
 		if allowed {
 			return privacy.Allow
 		}
+		return privacy.Skip
+	})
+}
+
+// ProjectReadPolicyRule grants read permission to project based on policy.
+func ProjectReadPolicyRule() privacy.QueryRule {
+	return privacy.ProjectQueryRuleFunc(func(ctx context.Context, q *ent.ProjectQuery) error {
+		var predicates []predicate.Project
+		rule := FromContext(ctx).WorkforcePolicy.Read
+		switch rule.IsAllowed {
+		case models2.PermissionValueYes:
+			return privacy.Skip
+		case models2.PermissionValueByCondition:
+			predicates = append(predicates,
+				project.HasTypeWith(projecttype.IDIn(rule.ProjectTypeIds...)))
+		}
+		if v, exists := viewer.FromContext(ctx).(*viewer.UserViewer); exists {
+			predicates = append(predicates,
+				project.HasCreatorWith(user.ID(v.User().ID)),
+			)
+		}
+		q.Where(project.Or(predicates...))
 		return privacy.Skip
 	})
 }

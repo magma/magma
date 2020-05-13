@@ -8,8 +8,9 @@ import (
 	"context"
 	"testing"
 
+	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
+
 	"github.com/facebookincubator/ent/dialect/sql"
-	"github.com/facebookincubator/symphony/graph/authz"
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/enttest"
 	"github.com/facebookincubator/symphony/graph/ent/migrate"
@@ -36,7 +37,8 @@ func newTestClient(t *testing.T) *ent.Client {
 func TestUserService_Create(t *testing.T) {
 	client := newTestClient(t)
 	us := NewUserService(func(context.Context, string) (*ent.Client, error) { return client, nil })
-	ctx := authz.NewContext(context.Background(), authz.AdminPermissions())
+	ctx, err := CreateServiceContext(context.Background(), viewertest.DefaultTenant, UserServiceName, user.RoleADMIN)
+	require.NoError(t, err)
 
 	u, err := us.Create(ctx, &schema.AddUserInput{Tenant: "", Id: "XXX", IsOwner: false})
 	require.Nil(t, u)
@@ -57,11 +59,12 @@ func TestUserService_Create(t *testing.T) {
 func TestUserService_Delete(t *testing.T) {
 	client := newTestClient(t)
 	us := NewUserService(func(context.Context, string) (*ent.Client, error) { return client, nil })
-	ctx := authz.NewContext(context.Background(), authz.AdminPermissions())
+	ctx, err := CreateServiceContext(context.Background(), viewertest.DefaultTenant, UserServiceName, user.RoleADMIN)
+	require.NoError(t, err)
 	u := client.User.Create().SetAuthID("YYY").SaveX(ctx)
 	require.Equal(t, user.StatusACTIVE, u.Status)
 
-	_, err := us.Delete(ctx, &schema.UserInput{Tenant: "", Id: "YYY"})
+	_, err = us.Delete(ctx, &schema.UserInput{Tenant: "", Id: "YYY"})
 	require.IsType(t, codes.InvalidArgument, status.Code(err))
 
 	_, err = us.Delete(ctx, &schema.UserInput{Tenant: "XXX", Id: ""})
@@ -77,11 +80,12 @@ func TestUserService_Delete(t *testing.T) {
 func TestUserService_CreateAfterDelete(t *testing.T) {
 	client := newTestClient(t)
 	us := NewUserService(func(context.Context, string) (*ent.Client, error) { return client, nil })
-	ctx := authz.NewContext(context.Background(), authz.AdminPermissions())
+	ctx, err := CreateServiceContext(context.Background(), viewertest.DefaultTenant, UserServiceName, user.RoleADMIN)
+	require.NoError(t, err)
 	u := client.User.Create().SetAuthID("YYY").SaveX(ctx)
 	require.Equal(t, user.StatusACTIVE, u.Status)
 
-	_, err := us.Delete(ctx, &schema.UserInput{Tenant: "XXX", Id: "YYY"})
+	_, err = us.Delete(ctx, &schema.UserInput{Tenant: "XXX", Id: "YYY"})
 	require.NoError(t, err)
 
 	_, err = us.Create(ctx, &schema.AddUserInput{Tenant: "XXX", Id: "YYY", IsOwner: true})
@@ -95,7 +99,8 @@ func TestUserService_CreateAfterDelete(t *testing.T) {
 func TestUserService_CreateGroup(t *testing.T) {
 	client := newTestClient(t)
 	us := NewUserService(func(context.Context, string) (*ent.Client, error) { return client, nil })
-	ctx := authz.NewContext(context.Background(), authz.AdminPermissions())
+	ctx, err := CreateServiceContext(context.Background(), viewertest.DefaultTenant, UserServiceName, user.RoleADMIN)
+	require.NoError(t, err)
 	exist, err := client.UsersGroup.Query().Exist(ctx)
 	require.NoError(t, err)
 	require.False(t, exist)

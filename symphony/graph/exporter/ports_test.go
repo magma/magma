@@ -15,6 +15,7 @@ import (
 	"testing"
 
 	"github.com/AlekSi/pointer"
+	"github.com/facebookincubator/symphony/graph/authz"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
@@ -45,7 +46,8 @@ func TestEmptyPortsDataExport(t *testing.T) {
 	log := r.exporter.log
 
 	e := &exporter{log, portsRower{log}}
-	th := viewer.TenancyHandler(e,
+	auth := authz.Handler(e, logtest.NewTestLogger(t))
+	th := viewer.TenancyHandler(auth,
 		viewer.NewFixedTenancy(r.client),
 		logtest.NewTestLogger(t),
 	)
@@ -91,7 +93,8 @@ func TestPortsExport(t *testing.T) {
 	log := r.exporter.log
 
 	e := &exporter{log, portsRower{log}}
-	th := viewer.TenancyHandler(e,
+	auth := authz.Handler(e, logtest.NewTestLogger(t))
+	th := viewer.TenancyHandler(auth,
 		viewer.NewFixedTenancy(r.client),
 		logtest.NewTestLogger(t),
 	)
@@ -196,7 +199,8 @@ func TestPortWithFilters(t *testing.T) {
 	log := r.exporter.log
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	e := &exporter{log, portsRower{log}}
-	th := viewer.TenancyHandler(e,
+	auth := authz.Handler(e, logtest.NewTestLogger(t))
+	th := viewer.TenancyHandler(auth,
 		viewer.NewFixedTenancy(r.client),
 		logtest.NewTestLogger(t),
 	)

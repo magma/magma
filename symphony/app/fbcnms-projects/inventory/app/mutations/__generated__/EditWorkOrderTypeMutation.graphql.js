@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash d52c96d2db7152e6acf376084637fe35
+ * @relayHash f8a92745a1beaff95e85753a1496d324
  */
 
 /* eslint-disable */
@@ -17,16 +17,13 @@
 import type { ConcreteRequest } from 'relay-runtime';
 export type CheckListItemEnumSelectionMode = "multiple" | "single" | "%future added value";
 export type CheckListItemType = "cell_scan" | "enum" | "files" | "simple" | "string" | "wifi_scan" | "yes_no" | "%future added value";
-export type FileType = "FILE" | "IMAGE" | "%future added value";
 export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "float" | "gps_location" | "int" | "node" | "range" | "string" | "%future added value";
-export type YesNoResponse = "NO" | "YES" | "%future added value";
 export type EditWorkOrderTypeInput = {|
   id: string,
   name: string,
   description?: ?string,
   properties?: ?$ReadOnlyArray<?PropertyTypeInput>,
-  checkList?: ?$ReadOnlyArray<?CheckListDefinitionInput>,
-  checkListCategories?: ?$ReadOnlyArray<CheckListCategoryInput>,
+  checkListCategories?: ?$ReadOnlyArray<CheckListCategoryDefinitionInput>,
 |};
 export type PropertyTypeInput = {|
   id?: ?string,
@@ -49,43 +46,20 @@ export type PropertyTypeInput = {|
   isMandatory?: ?boolean,
   isDeleted?: ?boolean,
 |};
+export type CheckListCategoryDefinitionInput = {|
+  id?: ?string,
+  title: string,
+  description?: ?string,
+  checkList: $ReadOnlyArray<CheckListDefinitionInput>,
+|};
 export type CheckListDefinitionInput = {|
   id?: ?string,
   title: string,
   type: CheckListItemType,
   index?: ?number,
   enumValues?: ?string,
-  helpText?: ?string,
-|};
-export type CheckListCategoryInput = {|
-  id?: ?string,
-  title: string,
-  description?: ?string,
-  checkList?: ?$ReadOnlyArray<CheckListItemInput>,
-|};
-export type CheckListItemInput = {|
-  id?: ?string,
-  title: string,
-  type: CheckListItemType,
-  index?: ?number,
-  helpText?: ?string,
-  enumValues?: ?string,
   enumSelectionMode?: ?CheckListItemEnumSelectionMode,
-  selectedEnumValues?: ?string,
-  stringValue?: ?string,
-  checked?: ?boolean,
-  files?: ?$ReadOnlyArray<FileInput>,
-  yesNoResponse?: ?YesNoResponse,
-|};
-export type FileInput = {|
-  id?: ?string,
-  fileName: string,
-  sizeInBytes?: ?number,
-  modificationTime?: ?number,
-  uploadTime?: ?number,
-  fileType?: ?FileType,
-  mimeType?: ?string,
-  storeKey: string,
+  helpText?: ?string,
 |};
 export type EditWorkOrderTypeMutationVariables = {|
   input: EditWorkOrderTypeInput
