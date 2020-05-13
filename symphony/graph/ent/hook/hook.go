@@ -507,19 +507,6 @@ func (f SurveyWiFiScanFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Val
 	return f(ctx, mv)
 }
 
-// The TechnicianFunc type is an adapter to allow the use of ordinary
-// function as Technician mutator.
-type TechnicianFunc func(context.Context, *ent.TechnicianMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f TechnicianFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.TechnicianMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TechnicianMutation", m)
-	}
-	return f(ctx, mv)
-}
-
 // The UserFunc type is an adapter to allow the use of ordinary
 // function as User mutator.
 type UserFunc func(context.Context, *ent.UserMutation) (ent.Value, error)

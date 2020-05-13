@@ -10,7 +10,6 @@ package servicers
 
 import (
 	"fmt"
-	"strings"
 	"sync"
 
 	fegprotos "magma/feg/cloud/go/protos"
@@ -19,6 +18,7 @@ import (
 	"magma/feg/gateway/services/session_proxy/credit_control/gx"
 	"magma/feg/gateway/services/session_proxy/credit_control/gy"
 	"magma/lte/cloud/go/protos"
+	"magma/orc8r/lib/go/errors"
 	orcprotos "magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
@@ -202,16 +202,12 @@ func (srv *CentralSessionControllers) Disable(
 	ctx context.Context,
 	req *fegprotos.DisableMessage,
 ) (*orcprotos.Void, error) {
-	var hasErrors []string
-	for _, controller := range srv.centralControllers {
-		_, err := controller.Disable(ctx, req)
-		if err != nil {
-			hasErrors = append(hasErrors, err.Error())
-		}
+	if req == nil {
+		return nil, fmt.Errorf("Nil Disable Request")
 	}
-	if hasErrors != nil {
-		return nil, fmt.Errorf("Errors found while disabling SessionProxy: %s",
-			fmt.Errorf(strings.Join(hasErrors, "\n")))
+	for _, controller := range srv.centralControllers {
+		// this will never error. Error was check on req == nil
+		controller.Disable(ctx, req)
 	}
 	return &orcprotos.Void{}, nil
 }
@@ -223,18 +219,12 @@ func (srv *CentralSessionControllers) Enable(
 	ctx context.Context,
 	void *orcprotos.Void,
 ) (*orcprotos.Void, error) {
-	var hasErrors []string
-	for _, controller := range srv.centralControllers {
+	multiError := errors.NewMulti()
+	for i, controller := range srv.centralControllers {
 		_, err := controller.Enable(ctx, void)
-		if err != nil {
-			hasErrors = append(hasErrors, err.Error())
-		}
+		multiError = multiError.AddFmt(err, "error(%d):", i+1)
 	}
-	if hasErrors != nil {
-		return nil, fmt.Errorf("Errors found while disabling SessionProxy: %s",
-			fmt.Errorf(strings.Join(hasErrors, "\n")))
-	}
-	return &orcprotos.Void{}, nil
+	return &orcprotos.Void{}, multiError.AsError()
 }
 
 // GetHealthStatus retrieves a health status object which contains the current

@@ -48,8 +48,6 @@ const (
 	EdgeCheckListCategories = "check_list_categories"
 	// EdgeCheckListItems holds the string denoting the check_list_items edge name in mutations.
 	EdgeCheckListItems = "check_list_items"
-	// EdgeTechnician holds the string denoting the technician edge name in mutations.
-	EdgeTechnician = "technician"
 	// EdgeProject holds the string denoting the project edge name in mutations.
 	EdgeProject = "project"
 	// EdgeOwner holds the string denoting the owner edge name in mutations.
@@ -129,13 +127,6 @@ const (
 	CheckListItemsInverseTable = "check_list_items"
 	// CheckListItemsColumn is the table column denoting the check_list_items relation/edge.
 	CheckListItemsColumn = "work_order_check_list_items"
-	// TechnicianTable is the table the holds the technician relation/edge.
-	TechnicianTable = "work_orders"
-	// TechnicianInverseTable is the table name for the Technician entity.
-	// It exists in this package in order to avoid circular dependency with the "technician" package.
-	TechnicianInverseTable = "technicians"
-	// TechnicianColumn is the table column denoting the technician relation/edge.
-	TechnicianColumn = "work_order_technician"
 	// ProjectTable is the table the holds the project relation/edge.
 	ProjectTable = "work_orders"
 	// ProjectInverseTable is the table name for the Project entity.
@@ -179,7 +170,6 @@ var ForeignKeys = []string{
 	"project_work_orders",
 	"work_order_type",
 	"work_order_location",
-	"work_order_technician",
 	"work_order_owner",
 	"work_order_assignee",
 }

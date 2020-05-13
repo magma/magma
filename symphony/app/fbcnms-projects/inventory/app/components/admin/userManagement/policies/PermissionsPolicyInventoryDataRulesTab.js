@@ -11,7 +11,7 @@
 import type {InventoryPolicy} from '../utils/UserManagementUtils';
 
 import * as React from 'react';
-import PermissionsPolicyInventoryRulesSection from './PermissionsPolicyInventoryRulesSection';
+import PermissionsPolicyRulesSection from './PermissionsPolicyRulesSection';
 import Switch from '@fbcnms/ui/components/design-system/switch/Switch';
 import fbt from 'fbt';
 import {
@@ -65,7 +65,7 @@ export default function PermissionsPolicyInventoryDataRulesTab(props: Props) {
           })
         }
       />
-      <PermissionsPolicyInventoryRulesSection
+      <PermissionsPolicyRulesSection
         title={fbt('Locations', '')}
         subtitle={fbt(
           'Location data includes location details, properties, floor plans and coverage maps.',
@@ -81,7 +81,7 @@ export default function PermissionsPolicyInventoryDataRulesTab(props: Props) {
           })
         }
       />
-      <PermissionsPolicyInventoryRulesSection
+      <PermissionsPolicyRulesSection
         title={fbt('Equipment', '')}
         subtitle={fbt(
           'Equipment data includes equipment items, ports, links, services and network maps.',

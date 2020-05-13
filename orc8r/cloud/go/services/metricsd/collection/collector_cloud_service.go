@@ -34,7 +34,7 @@ func (c *CloudServiceMetricCollector) GetMetrics() ([]*io_prometheus_client.Metr
 	if err != nil {
 		return []*io_prometheus_client.MetricFamily{
 			makeGetMetricsStatusMetric(serviceName, getMetricsStatusFailure),
-		}, fmt.Errorf("Failed to get metrics from service %s: %v", serviceName, err)
+		}, fmt.Errorf("failed to get metrics from service %s: %v", serviceName, err)
 	}
 
 	ret := c.postprocessCloudServiceMetrics(container)

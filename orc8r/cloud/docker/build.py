@@ -129,11 +129,14 @@ def _build_cache_if_necessary(args: argparse.Namespace) -> None:
 
 
 def _get_docker_build_args(args: argparse.Namespace) -> List[str]:
-    # noncore containers don't need the orc8r cache
+    # Noncore containers don't need the orc8r cache
     if args.noncore or args.nocache:
         ret = ['build']
     else:
         ret = ['build', '--build-arg', 'baseImage=orc8r_cache']
+        # Build only the controller container
+        if args.controller:
+            ret.append('controller')
     if args.parallel:
         ret.append('--parallel')
     return ret
@@ -278,6 +281,8 @@ def _parse_args() -> argparse.Namespace:
                              '(i.e. no proxy, controller images)')
     parser.add_argument('--parallel', '-p', action='store_true',
                         help='Build containers in parallel')
+    parser.add_argument('--controller', '-c', action='store_true',
+                        help='Build only the controller supercontainer')
     args = parser.parse_args()
     return args
 

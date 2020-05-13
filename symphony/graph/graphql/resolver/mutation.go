@@ -2878,21 +2878,6 @@ func (r mutationResolver) MoveLocation(ctx context.Context, locationID int, pare
 	}
 	return l, nil
 }
-
-func (r mutationResolver) AddTechnician(
-	ctx context.Context, input models.TechnicianInput,
-) (*ent.Technician, error) {
-	t, err := r.ClientFrom(ctx).
-		Technician.Create().
-		SetName(input.Name).
-		SetEmail(input.Email).
-		Save(ctx)
-	if err != nil {
-		return nil, errors.Wrap(err, "creating technician")
-	}
-	return t, nil
-}
-
 func (r mutationResolver) AddCustomer(ctx context.Context, input models.AddCustomerInput) (*ent.Customer, error) {
 	exist, _ := r.ClientFrom(ctx).Customer.Query().Where(customer.Name(input.Name)).Exist(ctx)
 	if exist {

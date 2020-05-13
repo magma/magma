@@ -1403,34 +1403,6 @@ func HasCheckListItemsWith(preds ...predicate.CheckListItem) predicate.WorkOrder
 	})
 }
 
-// HasTechnician applies the HasEdge predicate on the "technician" edge.
-func HasTechnician() predicate.WorkOrder {
-	return predicate.WorkOrder(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(TechnicianTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, TechnicianTable, TechnicianColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasTechnicianWith applies the HasEdge predicate on the "technician" edge with a given conditions (other predicates).
-func HasTechnicianWith(preds ...predicate.Technician) predicate.WorkOrder {
-	return predicate.WorkOrder(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(TechnicianInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, TechnicianTable, TechnicianColumn),
-		)
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
 // HasProject applies the HasEdge predicate on the "project" edge.
 func HasProject() predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {

@@ -10,6 +10,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/handler/extension"
+	"github.com/vektah/gqlparser/v2/ast"
 	"go.opencensus.io/trace"
 )
 
@@ -62,7 +63,7 @@ func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHand
 	}
 	oc := graphql.GetOperationContext(ctx)
 	ctx, span := t.startSpan(ctx,
-		string(oc.Operation.Operation),
+		spanNameFromContext(oc),
 		trace.SpanKindServer,
 	)
 	defer span.End()
@@ -99,6 +100,16 @@ func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHand
 	}()
 
 	return next(ctx)
+}
+
+func spanNameFromContext(oc *graphql.OperationContext) string {
+	if oc.OperationName != "" {
+		return oc.OperationName
+	}
+	if oc.Operation != nil {
+		return string(oc.Operation.Operation)
+	}
+	return string(ast.Query)
 }
 
 // InterceptField measures graphql field execution.

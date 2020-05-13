@@ -10,11 +10,8 @@ package collection
 
 import (
 	"fmt"
-	"strings"
 	"syscall"
 
-	"github.com/coreos/go-systemd/dbus"
-	"github.com/golang/glog"
 	"github.com/prometheus/client_model/go"
 	"github.com/prometheus/procfs"
 )
@@ -28,7 +25,7 @@ func (*DiskUsageMetricCollector) GetMetrics() ([]*io_prometheus_client.MetricFam
 	fs := syscall.Statfs_t{}
 	err := syscall.Statfs("/", &fs)
 	if err != nil {
-		return []*io_prometheus_client.MetricFamily{}, fmt.Errorf("Failed to collect disk usage statistics: %s", err)
+		return []*io_prometheus_client.MetricFamily{}, fmt.Errorf("failed to collect disk usage statistics: %s", err)
 	}
 
 	all := fs.Blocks * uint64(fs.Bsize)
@@ -39,33 +36,6 @@ func (*DiskUsageMetricCollector) GetMetrics() ([]*io_prometheus_client.MetricFam
 		makeTotalDiskSpaceMetric(all),
 		makeUsedDiskSpaceMetric(used),
 	}, nil
-}
-
-// SystemdStatusMetricCollector is a MetricCollector which queries systemd for
-// the status of a given service, returning a single metric family with a gauge
-// that has a value of 1 if the service is up and 0 otherwise. The gauge label
-// will replace all instances of the "@" symbol with "-".
-type SystemdStatusMetricCollector struct {
-	ServiceNames []string
-}
-
-func (s *SystemdStatusMetricCollector) GetMetrics() ([]*io_prometheus_client.MetricFamily, error) {
-	conn, err := dbus.NewSystemdConnection()
-	if err != nil {
-		return []*io_prometheus_client.MetricFamily{}, err
-	}
-	defer conn.Close()
-
-	systemdStatuses, err := conn.ListUnits()
-	if err != nil {
-		return []*io_prometheus_client.MetricFamily{}, err
-	}
-
-	fam := gatherSystemdStatusMetrics(
-		s.ServiceNames,
-		getSystemdStatusesByUnitName(systemdStatuses),
-	)
-	return []*io_prometheus_client.MetricFamily{fam}, nil
 }
 
 // ProcMetricsCollector is a MetricCollector which queries /proc for
@@ -111,42 +81,6 @@ func makeUsedDiskSpaceMetric(usedSpaceBytes uint64) *io_prometheus_client.Metric
 
 	gaugeValue := float64(usedSpaceBytes)
 	return MakeSingleGaugeFamily(name, help, nil, gaugeValue)
-}
-
-func getSystemdStatusesByUnitName(systemdStatuses []dbus.UnitStatus) map[string]dbus.UnitStatus {
-	ret := map[string]dbus.UnitStatus{}
-	for _, stat := range systemdStatuses {
-		ret[stat.Name] = stat
-	}
-	return ret
-}
-
-func gatherSystemdStatusMetrics(
-	serviceNames []string,
-	statusesByName map[string]dbus.UnitStatus,
-) *io_prometheus_client.MetricFamily {
-	metrics := make(map[MetricLabel]float64, len(serviceNames))
-
-	for _, serviceName := range serviceNames {
-		systemdKey := fmt.Sprintf("%s.service", serviceName)
-		status, ok := statusesByName[systemdKey]
-		if !ok {
-			glog.V(5).Infof("Did not get status for unit %s from systemd", serviceName)
-			continue
-		}
-
-		labelValue := strings.Replace(serviceName, "@", "-", -1)
-		metricLabel := MetricLabel{Name: "service_name", Value: labelValue}
-		if strings.ToLower(status.ActiveState) == "active" {
-			metrics[metricLabel] = 1
-		} else {
-			metrics[metricLabel] = 0
-		}
-	}
-
-	name := "systemd_status"
-	help := "Status of a systemd service"
-	return MakeMultiGaugeFamily(name, help, metrics)
 }
 
 // makeOpenFileDescriptorsMetric returns a prometheus MetricFamily with a

@@ -20,6 +20,7 @@ import (
 	"magma/orc8r/cloud/go/identity"
 	certprotos "magma/orc8r/cloud/go/services/certifier/protos"
 	"magma/orc8r/cloud/go/services/certifier/storage"
+	"magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/security/cert"
 
@@ -400,45 +401,37 @@ func (srv *CertifierServer) GetAll(context.Context, *protos.Void) (*certprotos.C
 }
 
 func (srv *CertifierServer) CollectGarbage(ctx context.Context, void *protos.Void) (*protos.Void, error) {
-	res := &protos.Void{}
-	snList, err := srv.ListCertificates(ctx, void)
+	count, err := srv.CollectGarbageImpl(ctx)
+	glog.Infof("purged %d expired certificates", count)
+	return &protos.Void{}, err
+}
+
+func (srv *CertifierServer) CollectGarbageImpl(ctx context.Context) (int, error) {
+	snList, err := srv.ListCertificates(ctx, &protos.Void{})
 	if err != nil {
-		return res, err
+		return 0, err
 	}
-	var errorList []struct {
-		sn  string
-		err error
-	}
+	var multiErr *errors.Multi
 	count := 0
 	for _, sn := range snList.Sns {
 		certInfo, err := srv.getCertInfo(sn)
 		if err != nil {
-			return res, err
+			multiErr.AddFmt(err, "'%s' get info error:", sn)
 		}
 		notAfter, _ := ptypes.Timestamp(certInfo.NotAfter)
 		notAfter = notAfter.Add(CollectGarbageAfter)
 		if time.Now().UTC().After(notAfter) {
 			err = srv.store.DeleteCertInfo(sn)
 			if err != nil {
-				errorList = append(errorList, struct {
-					sn  string
-					err error
-				}{sn, err})
+				multiErr.AddFmt(err, "'%s' delete error:", sn)
 			} else {
 				count += 1
 			}
 		}
 	}
-	if count > 0 {
-		glog.V(2).Infof("Removed %d stale certificates", count)
+	if multiErr.AsError() != nil {
+		glog.Errorf("Failed to delete certificate[s]: %v", multiErr)
+		return count, status.Error(codes.Internal, multiErr.Error())
 	}
-	if len(errorList) > 0 {
-		msg := "Failed to delete certificate[s]:"
-		for _, e := range errorList {
-			msg += fmt.Sprintf(" %s -> %v;", e.sn, e.err)
-		}
-		glog.Error(msg)
-		return res, status.Errorf(codes.Internal, msg)
-	}
-	return res, nil
+	return count, nil
 }

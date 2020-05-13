@@ -14,13 +14,9 @@ import type {
 } from '../utils/UserManagementUtils';
 
 import * as React from 'react';
-import Checkbox from '@fbcnms/ui/components/design-system/Checkbox/Checkbox';
+import PermissionsPolicyRulesSection from './PermissionsPolicyRulesSection';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import fbt from 'fbt';
-import {
-  bool2PermissionRuleValue,
-  permissionRuleValue2Bool,
-} from '../utils/UserManagementUtils';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(() => ({
@@ -72,42 +68,17 @@ function WorkforceTemplatesRulesSection(props: InventoryDataRulesSectionProps) {
           {subtitle}
         </Text>
       </div>
-      <Checkbox
-        className={classes.rule}
-        title={fbt('Create', '')}
-        checked={permissionRuleValue2Bool(rule.create.isAllowed)}
-        onChange={selection =>
+      <PermissionsPolicyRulesSection
+        rule={{
+          create: rule.create,
+          delete: rule.delete,
+          update: rule.update,
+        }}
+        className={classes.section}
+        onChange={ruleCUD =>
           onChange({
             ...rule,
-            create: {
-              isAllowed: bool2PermissionRuleValue(selection === 'checked'),
-            },
-          })
-        }
-      />
-      <Checkbox
-        className={classes.rule}
-        title={fbt('Edit', '')}
-        checked={permissionRuleValue2Bool(rule.update.isAllowed)}
-        onChange={selection =>
-          onChange({
-            ...rule,
-            update: {
-              isAllowed: bool2PermissionRuleValue(selection === 'checked'),
-            },
-          })
-        }
-      />
-      <Checkbox
-        className={classes.rule}
-        title={fbt('Delete', '')}
-        checked={permissionRuleValue2Bool(rule.delete.isAllowed)}
-        onChange={selection =>
-          onChange({
-            ...rule,
-            delete: {
-              isAllowed: bool2PermissionRuleValue(selection === 'checked'),
-            },
+            ...ruleCUD,
           })
         }
       />
@@ -135,7 +106,7 @@ export default function PermissionsPolicyWorkforceTemplatesRulesTab(
       <WorkforceTemplatesRulesSection
         title={fbt('Workforce Templates', '')}
         subtitle={fbt(
-          'Choose the permissions this policy should include for modifying the selected work orders and projects.',
+          'Choose the permissions this policy should include for modifying work orders and projects templates.',
           '',
         )}
         rule={policy.templates}

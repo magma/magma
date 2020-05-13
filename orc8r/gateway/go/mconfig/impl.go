@@ -20,6 +20,7 @@ import (
 	"time"
 	"unsafe"
 
+	"magma/gateway/config"
 	"magma/orc8r/lib/go/protos"
 )
 
@@ -71,7 +72,7 @@ func ConfigFilePath() string {
 
 // DefaultConfigFilePath returns default GW mconfig file path
 func DefaultConfigFilePath() string {
-	return filepath.Join(DefaultConfigFileDir, MconfigFileName)
+	return filepath.Join(staticConfigFileDir(), MconfigFileName)
 }
 
 // RefreshConfigsFrom checks if Managed Config File mcpath has changed
@@ -108,7 +109,18 @@ func sameFile(oldInfo, newInfo os.FileInfo) bool {
 func configFileDir() string {
 	mcdir := os.Getenv(ConfigFileDirEnv)
 	if len(mcdir) == 0 {
-		mcdir = DefaultDynamicConfigFileDir
+		mcdir = config.GetMagmadConfigs().DynamicMconfigDir
+		if len(mcdir) == 0 {
+			mcdir = DefaultDynamicConfigFileDir
+		}
+	}
+	return mcdir
+}
+
+func staticConfigFileDir() string {
+	mcdir := config.GetMagmadConfigs().StaticMconfigDir
+	if len(mcdir) == 0 {
+		mcdir = DefaultConfigFileDir
 	}
 	return mcdir
 }

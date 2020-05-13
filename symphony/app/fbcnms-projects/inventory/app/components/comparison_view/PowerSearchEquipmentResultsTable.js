@@ -114,7 +114,6 @@ class PowerSearchEquipmentResultsTable extends React.Component<Props> {
   _cellRenderer = ({dataKey, rowData, cellData}) => {
     const {
       classes,
-      history,
       onEquipmentSelected,
       onWorkOrderSelected,
       onRowSelected,
@@ -158,13 +157,13 @@ class PowerSearchEquipmentResultsTable extends React.Component<Props> {
             onRowSelected
               ? null
               : (locationId: string) =>
-                  history.push(InventoryAPIUrls.location(locationId))
+                  window.open(InventoryAPIUrls.location(locationId))
           }
           onEquipmentClicked={
             onRowSelected
               ? null
               : (equipmentId: string) =>
-                  history.push(InventoryAPIUrls.equipment(equipmentId))
+                  window.open(InventoryAPIUrls.equipment(equipmentId))
           }
           size="small"
         />

@@ -104,8 +104,7 @@ class PowerSearchLocationsResultsTable extends React.Component<Props> {
   };
 
   _onLocationClickedCallback = locationId => {
-    const {history} = this.props;
-    history.replace(InventoryAPIUrls.location(locationId));
+    window.open(InventoryAPIUrls.location(locationId));
   };
 
   _cellRenderer = ({dataKey, rowData, cellData}) => {
