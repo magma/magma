@@ -295,19 +295,6 @@ type Vertex
   edges: [Edge!]!
 }
 
-"""
-Represents a technician
-"""
-type Technician {
-  name: String!
-  email: String!
-}
-
-input TechnicianInput {
-  name: String!
-  email: String!
-}
-
 # location or site: e.g. building at specific address.
 type Location implements Node & NamedNode {
   id: ID!
@@ -2890,7 +2877,6 @@ type Mutation {
     """
     locationTypesIndex: [LocationTypeIndex]!
   ): [LocationType]
-  addTechnician(input: TechnicianInput!): Technician!
   addWorkOrder(input: AddWorkOrderInput!): WorkOrder!
   editWorkOrder(input: EditWorkOrderInput!): WorkOrder!
   addWorkOrderType(input: AddWorkOrderTypeInput!): WorkOrderType!

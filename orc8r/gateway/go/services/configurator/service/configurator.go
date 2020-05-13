@@ -97,7 +97,7 @@ func (c *Configurator) Update(ub *protos.DataUpdateBatch) bool {
 	c.Lock()
 	updateChan := c.updateChan
 	oldCfgJson, err := SaveConfigs(u.GetValue(), updateChan != nil)
-	if err != err {
+	if err != nil {
 		log.Printf("error saving new gateway mconfig: %v", err)
 		c.Unlock()
 		return false
@@ -114,6 +114,9 @@ func (c *Configurator) Update(ub *protos.DataUpdateBatch) bool {
 			log.Printf("error encoding mconfig digest: %v", err)
 		}
 	}
+	// check if we need to update static copy of configs & update them
+	updateStaticConfigs(u.GetValue())
+
 	c.Unlock()
 
 	// Prepare a list of service names with changed mconfigs and

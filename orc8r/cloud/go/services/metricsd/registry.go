@@ -37,14 +37,6 @@ func RegisterMetricsProfiles(profiles ...MetricsProfile) error {
 	return nil
 }
 
-// RegisterMetricsProfile registers a MetricsProfile with metricsd and makes it
-// available to be selected when metricsd runs.
-func RegisterMetricsProfile(profile MetricsProfile) error {
-	registry.Lock()
-	defer registry.Unlock()
-	return registerUnsafe(profile)
-}
-
 func registerUnsafe(profile MetricsProfile) error {
 	if _, nameExists := registry.profiles[profile.Name]; nameExists {
 		return fmt.Errorf("A metrics profile with the name %s already exists", profile.Name)
@@ -67,7 +59,7 @@ func GetMetricsProfile(name string) (MetricsProfile, error) {
 
 	profile, exists := registry.profiles[name]
 	if !exists {
-		return MetricsProfile{}, fmt.Errorf("No metrics profile with name %s is registered", name)
+		return MetricsProfile{}, fmt.Errorf("no metrics profile with name %s is registered", name)
 	}
 	return profile, nil
 }

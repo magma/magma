@@ -17,7 +17,6 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/metricsd"
-	"magma/orc8r/cloud/go/services/metricsd/confignames"
 	"magma/orc8r/lib/go/metrics"
 	"magma/orc8r/lib/go/service/config"
 
@@ -188,7 +187,7 @@ func getPrometheusClient() v1.API {
 	if err != nil {
 		glog.Fatalf("Could not retrieve metricsd configuration: %s", err)
 	}
-	promClient, err := promAPI.NewClient(promAPI.Config{Address: metricsConfig.GetRequiredStringParam(confignames.PrometheusQueryAddress)})
+	promClient, err := promAPI.NewClient(promAPI.Config{Address: metricsConfig.GetRequiredStringParam(metricsd.PrometheusQueryAddress)})
 	if err != nil {
 		glog.Fatalf("Error creating prometheus client: %s", promClient)
 	}

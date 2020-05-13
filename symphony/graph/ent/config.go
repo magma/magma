@@ -66,7 +66,6 @@ type hooks struct {
 	SurveyTemplateCategory      []ent.Hook
 	SurveyTemplateQuestion      []ent.Hook
 	SurveyWiFiScan              []ent.Hook
-	Technician                  []ent.Hook
 	User                        []ent.Hook
 	UsersGroup                  []ent.Hook
 	WorkOrder                   []ent.Hook

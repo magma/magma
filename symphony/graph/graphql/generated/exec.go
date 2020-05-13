@@ -566,7 +566,6 @@ type ComplexityRoot struct {
 		AddServiceEndpoint                       func(childComplexity int, input models.AddServiceEndpointInput) int
 		AddServiceLink                           func(childComplexity int, id int, linkID int) int
 		AddServiceType                           func(childComplexity int, data models.ServiceTypeCreateData) int
-		AddTechnician                            func(childComplexity int, input models.TechnicianInput) int
 		AddUsersGroup                            func(childComplexity int, input models.AddUsersGroupInput) int
 		AddWiFiScans                             func(childComplexity int, data []*models.SurveyWiFiScanData, locationID int) int
 		AddWorkOrder                             func(childComplexity int, input models.AddWorkOrderInput) int
@@ -988,11 +987,6 @@ type ComplexityRoot struct {
 		Timestamp    func(childComplexity int) int
 	}
 
-	Technician struct {
-		Email func(childComplexity int) int
-		Name  func(childComplexity int) int
-	}
-
 	TopologyLink struct {
 		Source func(childComplexity int) int
 		Target func(childComplexity int) int
@@ -1344,7 +1338,6 @@ type MutationResolver interface {
 	AddCellScans(ctx context.Context, data []*models.SurveyCellScanData, locationID int) ([]*ent.SurveyCellScan, error)
 	MoveLocation(ctx context.Context, locationID int, parentLocationID *int) (*ent.Location, error)
 	EditLocationTypesIndex(ctx context.Context, locationTypesIndex []*models.LocationTypeIndex) ([]*ent.LocationType, error)
-	AddTechnician(ctx context.Context, input models.TechnicianInput) (*ent.Technician, error)
 	AddWorkOrder(ctx context.Context, input models.AddWorkOrderInput) (*ent.WorkOrder, error)
 	EditWorkOrder(ctx context.Context, input models.EditWorkOrderInput) (*ent.WorkOrder, error)
 	AddWorkOrderType(ctx context.Context, input models.AddWorkOrderTypeInput) (*ent.WorkOrderType, error)
@@ -3647,18 +3640,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.AddServiceType(childComplexity, args["data"].(models.ServiceTypeCreateData)), true
-
-	case "Mutation.addTechnician":
-		if e.complexity.Mutation.AddTechnician == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_addTechnician_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.AddTechnician(childComplexity, args["input"].(models.TechnicianInput)), true
 
 	case "Mutation.addUsersGroup":
 		if e.complexity.Mutation.AddUsersGroup == nil {
@@ -6312,20 +6293,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SurveyWiFiScan.Timestamp(childComplexity), true
 
-	case "Technician.email":
-		if e.complexity.Technician.Email == nil {
-			break
-		}
-
-		return e.complexity.Technician.Email(childComplexity), true
-
-	case "Technician.name":
-		if e.complexity.Technician.Name == nil {
-			break
-		}
-
-		return e.complexity.Technician.Name(childComplexity), true
-
 	case "TopologyLink.source":
 		if e.complexity.TopologyLink.Source == nil {
 			break
@@ -7425,19 +7392,6 @@ type Vertex
   edges: [Edge!]!
 }
 
-"""
-Represents a technician
-"""
-type Technician {
-  name: String!
-  email: String!
-}
-
-input TechnicianInput {
-  name: String!
-  email: String!
-}
-
 # location or site: e.g. building at specific address.
 type Location implements Node & NamedNode {
   id: ID!
@@ -8155,7 +8109,7 @@ A connection to a list of links.
 """
 type LinkConnection {
   """
-  A list of list edges.
+  A list of link edges.
   """
   edges: [LinkEdge!]!
   """
@@ -9212,7 +9166,7 @@ Service type schema: e.g. L2 VPN.
 type ServiceType implements Node {
   id: ID!
   name: String!
-  isDeleted:Boolean!
+  isDeleted: Boolean!
   hasCustomer: Boolean!
   propertyTypes: [PropertyType]!
   services: [Service]!
@@ -9768,12 +9722,7 @@ type Query {
     before: Cursor
     last: Int
   ): WorkOrderTypeConnection
-  links(
-    after: Cursor
-    first: Int
-    before: Cursor
-    last: Int
-  ): LinkConnection!
+  links(after: Cursor, first: Int, before: Cursor, last: Int): LinkConnection!
   users(after: Cursor, first: Int, before: Cursor, last: Int): UserConnection
   usersGroups(
     after: Cursor
@@ -10025,7 +9974,6 @@ type Mutation {
     """
     locationTypesIndex: [LocationTypeIndex]!
   ): [LocationType]
-  addTechnician(input: TechnicianInput!): Technician!
   addWorkOrder(input: AddWorkOrderInput!): WorkOrder!
   editWorkOrder(input: EditWorkOrderInput!): WorkOrder!
   addWorkOrderType(input: AddWorkOrderTypeInput!): WorkOrderType!
@@ -10516,20 +10464,6 @@ func (ec *executionContext) field_Mutation_addService_args(ctx context.Context, 
 		}
 	}
 	args["data"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_addTechnician_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 models.TechnicianInput
-	if tmp, ok := rawArgs["input"]; ok {
-		arg0, err = ec.unmarshalNTechnicianInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐTechnicianInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
 	return args, nil
 }
 
@@ -23498,47 +23432,6 @@ func (ec *executionContext) _Mutation_editLocationTypesIndex(ctx context.Context
 	return ec.marshalOLocationType2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLocationType(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_addTechnician(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "Mutation",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_addTechnician_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddTechnician(rctx, args["input"].(models.TechnicianInput))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*ent.Technician)
-	fc.Result = res
-	return ec.marshalNTechnician2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐTechnician(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Mutation_addWorkOrder(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -33153,74 +33046,6 @@ func (ec *executionContext) _SurveyWiFiScan_longitude(ctx context.Context, field
 	return ec.marshalOFloat2float64(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Technician_name(ctx context.Context, field graphql.CollectedField, obj *ent.Technician) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "Technician",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Name, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Technician_email(ctx context.Context, field graphql.CollectedField, obj *ent.Technician) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "Technician",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Email, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _TopologyLink_type(ctx context.Context, field graphql.CollectedField, obj *models.TopologyLink) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -41978,30 +41803,6 @@ func (ec *executionContext) unmarshalInputTechnicianCheckListItemInput(ctx conte
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputTechnicianInput(ctx context.Context, obj interface{}) (models.TechnicianInput, error) {
-	var it models.TechnicianInput
-	var asMap = obj.(map[string]interface{})
-
-	for k, v := range asMap {
-		switch k {
-		case "name":
-			var err error
-			it.Name, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "email":
-			var err error
-			it.Email, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputTechnicianWorkOrderUploadInput(ctx context.Context, obj interface{}) (models.TechnicianWorkOrderUploadInput, error) {
 	var it models.TechnicianWorkOrderUploadInput
 	var asMap = obj.(map[string]interface{})
@@ -46091,11 +45892,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "editLocationTypesIndex":
 			out.Values[i] = ec._Mutation_editLocationTypesIndex(ctx, field)
-		case "addTechnician":
-			out.Values[i] = ec._Mutation_addTechnician(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "addWorkOrder":
 			out.Values[i] = ec._Mutation_addWorkOrder(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -48818,38 +48614,6 @@ func (ec *executionContext) _SurveyWiFiScan(ctx context.Context, sel ast.Selecti
 			out.Values[i] = ec._SurveyWiFiScan_latitude(ctx, field, obj)
 		case "longitude":
 			out.Values[i] = ec._SurveyWiFiScan_longitude(ctx, field, obj)
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var technicianImplementors = []string{"Technician"}
-
-func (ec *executionContext) _Technician(ctx context.Context, sel ast.SelectionSet, obj *ent.Technician) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, technicianImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("Technician")
-		case "name":
-			out.Values[i] = ec._Technician_name(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "email":
-			out.Values[i] = ec._Technician_email(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -54766,20 +54530,6 @@ func (ec *executionContext) marshalNSystemPolicy2githubᚗcomᚋfacebookincubato
 	return ec._SystemPolicy(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNTechnician2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐTechnician(ctx context.Context, sel ast.SelectionSet, v ent.Technician) graphql.Marshaler {
-	return ec._Technician(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNTechnician2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐTechnician(ctx context.Context, sel ast.SelectionSet, v *ent.Technician) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	return ec._Technician(ctx, sel, v)
-}
-
 func (ec *executionContext) unmarshalNTechnicianCheckListItemInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐTechnicianCheckListItemInput(ctx context.Context, v interface{}) (models.TechnicianCheckListItemInput, error) {
 	return ec.unmarshalInputTechnicianCheckListItemInput(ctx, v)
 }
@@ -54810,10 +54560,6 @@ func (ec *executionContext) unmarshalNTechnicianCheckListItemInput2ᚖgithubᚗc
 	}
 	res, err := ec.unmarshalNTechnicianCheckListItemInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐTechnicianCheckListItemInput(ctx, v)
 	return &res, err
-}
-
-func (ec *executionContext) unmarshalNTechnicianInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐTechnicianInput(ctx context.Context, v interface{}) (models.TechnicianInput, error) {
-	return ec.unmarshalInputTechnicianInput(ctx, v)
 }
 
 func (ec *executionContext) unmarshalNTechnicianWorkOrderUploadInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐTechnicianWorkOrderUploadInput(ctx context.Context, v interface{}) (models.TechnicianWorkOrderUploadInput, error) {

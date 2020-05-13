@@ -53,7 +53,6 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/surveytemplatecategory"
 	"github.com/facebookincubator/symphony/graph/ent/surveytemplatequestion"
 	"github.com/facebookincubator/symphony/graph/ent/surveywifiscan"
-	"github.com/facebookincubator/symphony/graph/ent/technician"
 	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/ent/usersgroup"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
@@ -3956,61 +3955,6 @@ func (swfs *SurveyWiFiScan) Node(ctx context.Context) (node *Node, err error) {
 	return node, nil
 }
 
-func (t *Technician) Node(ctx context.Context) (node *Node, err error) {
-	node = &Node{
-		ID:     t.ID,
-		Type:   "Technician",
-		Fields: make([]*Field, 4),
-		Edges:  make([]*Edge, 1),
-	}
-	var buf []byte
-	if buf, err = json.Marshal(t.CreateTime); err != nil {
-		return nil, err
-	}
-	node.Fields[0] = &Field{
-		Type:  "time.Time",
-		Name:  "CreateTime",
-		Value: string(buf),
-	}
-	if buf, err = json.Marshal(t.UpdateTime); err != nil {
-		return nil, err
-	}
-	node.Fields[1] = &Field{
-		Type:  "time.Time",
-		Name:  "UpdateTime",
-		Value: string(buf),
-	}
-	if buf, err = json.Marshal(t.Name); err != nil {
-		return nil, err
-	}
-	node.Fields[2] = &Field{
-		Type:  "string",
-		Name:  "Name",
-		Value: string(buf),
-	}
-	if buf, err = json.Marshal(t.Email); err != nil {
-		return nil, err
-	}
-	node.Fields[3] = &Field{
-		Type:  "string",
-		Name:  "Email",
-		Value: string(buf),
-	}
-	var ids []int
-	ids, err = t.QueryWorkOrders().
-		Select(workorder.FieldID).
-		Ints(ctx)
-	if err != nil {
-		return nil, err
-	}
-	node.Edges[0] = &Edge{
-		IDs:  ids,
-		Type: "WorkOrder",
-		Name: "WorkOrders",
-	}
-	return node, nil
-}
-
 func (u *User) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     u.ID,
@@ -4188,7 +4132,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 		ID:     wo.ID,
 		Type:   "WorkOrder",
 		Fields: make([]*Field, 10),
-		Edges:  make([]*Edge, 14),
+		Edges:  make([]*Edge, 13),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(wo.CreateTime); err != nil {
@@ -4382,24 +4326,13 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 		Type: "CheckListItem",
 		Name: "CheckListItems",
 	}
-	ids, err = wo.QueryTechnician().
-		Select(technician.FieldID).
-		Ints(ctx)
-	if err != nil {
-		return nil, err
-	}
-	node.Edges[10] = &Edge{
-		IDs:  ids,
-		Type: "Technician",
-		Name: "Technician",
-	}
 	ids, err = wo.QueryProject().
 		Select(project.FieldID).
 		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[11] = &Edge{
+	node.Edges[10] = &Edge{
 		IDs:  ids,
 		Type: "Project",
 		Name: "Project",
@@ -4410,7 +4343,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[12] = &Edge{
+	node.Edges[11] = &Edge{
 		IDs:  ids,
 		Type: "User",
 		Name: "Owner",
@@ -4421,7 +4354,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[13] = &Edge{
+	node.Edges[12] = &Edge{
 		IDs:  ids,
 		Type: "User",
 		Name: "Assignee",
@@ -4945,15 +4878,6 @@ func (c *Client) noder(ctx context.Context, tbl string, id int) (Noder, error) {
 		n, err := c.SurveyWiFiScan.Query().
 			Where(surveywifiscan.ID(id)).
 			CollectFields(ctx, "SurveyWiFiScan").
-			Only(ctx)
-		if err != nil {
-			return nil, err
-		}
-		return n, nil
-	case technician.Table:
-		n, err := c.Technician.Query().
-			Where(technician.ID(id)).
-			CollectFields(ctx, "Technician").
 			Only(ctx)
 		if err != nil {
 			return nil, err

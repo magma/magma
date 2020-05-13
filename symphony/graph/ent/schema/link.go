@@ -8,6 +8,7 @@ import (
 	"github.com/facebookincubator/ent"
 	"github.com/facebookincubator/ent/schema/edge"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/authz"
 )
 
 // Link defines the link schema.
@@ -34,4 +35,13 @@ func (Link) Edges() []ent.Edge {
 		edge.From("service", Service.Type).
 			Ref("links"),
 	}
+}
+
+// Policy returns link policy.
+func (Link) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithMutationRules(
+			authz.LinkWritePolicyRule(),
+		),
+	)
 }

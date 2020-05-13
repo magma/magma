@@ -18,6 +18,8 @@ import (
 	dto "github.com/prometheus/client_model/go"
 )
 
+// Sample is a flattened version of a metric providing a single name-value
+// pairing, with accompanying metadata and labels.
 type Sample struct {
 	name        string
 	value       string
