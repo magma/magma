@@ -101,8 +101,6 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         gy_reqs = [req for req in request.requests
                    if req.request_origin.type == RequestOriginType.GY]
         enforcement_res = self._enforcer_app.handle_restart(gx_reqs)
-        logging.error("gx_reqs -> %s", ' '.join(gx_reqs))
-        logging.error("gy_reqs -> %s", ' '.join(gy_reqs))
         # TODO check these results and aggregate
         self._gy_app.handle_restart(gy_reqs)
         self._enforcement_stats.handle_restart(gx_reqs)
@@ -174,12 +172,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         flow install fails after, no traffic will be directed to the
         enforcement_stats flows.
         """
-        logging.error('Activating GY flows for %s', request.sid.id)
+        logging.debug('Activating GY flows for %s', request.sid.id)
         for rule_id in request.rule_ids:
             self._service_manager.session_rule_version_mapper.update_version(
                 request.sid.id, rule_id)
         for rule in request.dynamic_rules:
-            logging.error(rule)
             self._service_manager.session_rule_version_mapper.update_version(
                 request.sid.id, rule.id)
 
