@@ -97,9 +97,19 @@ func AllowWritePermissionsRule() privacy.MutationRule {
 	})
 }
 
-// AlwaysDenyIfNoPermissionRule denies access if no permissions is present on context.
-func AlwaysDenyIfNoPermissionRule() privacy.MutationRule {
+// AlwaysDenyMutationIfNoPermissionRule denies access if no permissions is present on context.
+func AlwaysDenyMutationIfNoPermissionRule() privacy.MutationRule {
 	return privacy.MutationRuleFunc(func(ctx context.Context, _ ent.Mutation) error {
+		if FromContext(ctx) == nil {
+			return privacy.Deny
+		}
+		return privacy.Skip
+	})
+}
+
+// AlwaysDenyQueryIfNoPermissionRule denies access if no permissions is present on context.
+func AlwaysDenyQueryIfNoPermissionRule() privacy.QueryRule {
+	return privacy.QueryRuleFunc(func(ctx context.Context, _ ent.Query) error {
 		if FromContext(ctx) == nil {
 			return privacy.Deny
 		}

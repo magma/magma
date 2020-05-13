@@ -381,7 +381,8 @@ func prepareData(ctx context.Context, t *testing.T, r TestExporterResolver) {
 }
 
 func prepareHandlerAndExport(t *testing.T, r *TestExporterResolver, e http.Handler) (context.Context, *http.Response) {
-	th := viewer.TenancyHandler(e,
+	auth := authz.Handler(e, logtest.NewTestLogger(t))
+	th := viewer.TenancyHandler(auth,
 		viewer.NewFixedTenancy(r.client),
 		logtest.NewTestLogger(t),
 	)
