@@ -29,7 +29,7 @@ const store = createStore(
   composeEnhancers(applyMiddleware(thunk))
 );
 
-function App(props) {
+function App(props : { setBuilderActive?: (param: boolean) => void }) {
   const hideHeader = () => {
     return props?.setBuilderActive ? props.setBuilderActive(true) : null;
   };
