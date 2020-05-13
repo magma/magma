@@ -2080,8 +2080,6 @@ func (r mutationResolver) RemoveServiceType(ctx context.Context, id int) (int, e
 	switch exist, err := st.QueryServices().Exist(ctx); {
 	case err != nil:
 		return id, fmt.Errorf("querying services for type %d: %w", id, err)
-	case exist && st.DiscoveryMethod.String() == "":
-		return id, fmt.Errorf("cannot delete service type %d with existing services", id)
 	case exist:
 		err = client.ServiceType.UpdateOneID(id).SetIsDeleted(true).Exec(ctx)
 		if err != nil {
