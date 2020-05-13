@@ -104,6 +104,9 @@ func (WorkOrder) Edges() []ent.Edge {
 // Policy returns work order policy.
 func (WorkOrder) Policy() ent.Policy {
 	return authz.NewPolicy(
+		authz.WithQueryRules(
+			authz.WorkOrderReadPolicyRule(),
+		),
 		authz.WithMutationRules(
 			authz.WorkOrderWritePolicyRule(),
 			authz.AllowIfWorkOrderOwnerOrAssignee(),

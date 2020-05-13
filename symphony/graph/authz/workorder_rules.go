@@ -9,6 +9,9 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/facebookincubator/symphony/graph/ent/predicate"
+	"github.com/facebookincubator/symphony/graph/ent/user"
+
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/privacy"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
@@ -145,6 +148,29 @@ func WorkOrderWritePolicyRule() privacy.MutationRule {
 		if allowed {
 			return privacy.Allow
 		}
+		return privacy.Skip
+	})
+}
+
+// WorkOrderReadPolicyRule grants read permission to work order based on policy.
+func WorkOrderReadPolicyRule() privacy.QueryRule {
+	return privacy.WorkOrderQueryRuleFunc(func(ctx context.Context, q *ent.WorkOrderQuery) error {
+		var predicates []predicate.WorkOrder
+		rule := FromContext(ctx).WorkforcePolicy.Read
+		switch rule.IsAllowed {
+		case models2.PermissionValueYes:
+			return privacy.Skip
+		case models2.PermissionValueByCondition:
+			predicates = append(predicates,
+				workorder.HasTypeWith(workordertype.IDIn(rule.WorkOrderTypeIds...)))
+		}
+		if v, exists := viewer.FromContext(ctx).(*viewer.UserViewer); exists {
+			predicates = append(predicates,
+				workorder.HasOwnerWith(user.ID(v.User().ID)),
+				workorder.HasAssigneeWith(user.ID(v.User().ID)),
+			)
+		}
+		q.Where(workorder.Or(predicates...))
 		return privacy.Skip
 	})
 }

@@ -289,6 +289,9 @@ func TestProjectPropertyPolicyRule(t *testing.T) {
 		return ptc.SetProject(project).SetType(PropertyType)
 	})
 	runCudPolicyTest(t, cudPolicyTest{
+		initialPermissions: func(p *models.PermissionSettings) {
+			p.WorkforcePolicy.Read.IsAllowed = models2.PermissionValueYes
+		},
 		appendPermissions: func(p *models.PermissionSettings) {
 			p.WorkforcePolicy.Data.Update.IsAllowed = models2.PermissionValueYes
 		},
@@ -322,6 +325,7 @@ func TestProjectByConditionPropertyPolicyRule(t *testing.T) {
 	})
 	runCudPolicyTest(t, cudPolicyTest{
 		initialPermissions: func(p *models.PermissionSettings) {
+			p.WorkforcePolicy.Read.IsAllowed = models2.PermissionValueYes
 			p.WorkforcePolicy.Data.Update.IsAllowed = models2.PermissionValueByCondition
 			p.WorkforcePolicy.Data.Update.ProjectTypeIds = []int{projectType2.ID}
 		},
@@ -350,8 +354,14 @@ func TestWorkOrderPropertyBasedOnOwnerPolicyRule(t *testing.T) {
 		SetWorkOrderType(workOrderType).
 		SaveX(ctx)
 
-	withPermissionsContext := viewertest.NewContext(ctx, c, viewertest.WithUser("MyOwner"), viewertest.WithPermissions(authz.EmptyPermissions()))
-	noPermissionsContext := viewertest.NewContext(ctx, c, viewertest.WithPermissions(authz.EmptyPermissions()))
+	withPermissionsContext := viewertest.NewContext(ctx, c,
+		viewertest.WithUser("MyOwner"),
+		viewertest.WithRole(user.RoleUSER),
+		viewertest.WithPermissions(authz.EmptyPermissions()))
+	noPermissionsContext := viewertest.NewContext(ctx, c,
+		viewertest.WithUser("user"),
+		viewertest.WithRole(user.RoleUSER),
+		viewertest.WithPermissions(authz.EmptyPermissions()))
 
 	cudOperations := getPropertyCudOperations(ctx, c, func(ptc *ent.PropertyCreate) *ent.PropertyCreate {
 		return ptc.SetWorkOrder(workOrder).SetType(PropertyType)

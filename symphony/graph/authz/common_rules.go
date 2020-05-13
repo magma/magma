@@ -7,6 +7,10 @@ package authz
 import (
 	"context"
 
+	"github.com/facebookincubator/symphony/graph/ent/user"
+
+	"github.com/facebookincubator/symphony/graph/viewer"
+
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/privacy"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
@@ -89,8 +93,22 @@ func cudBasedRule(cud *models.Cud, m ent.Mutation) error {
 
 // AllowWritePermissionsRule grants write permission.
 func AllowWritePermissionsRule() privacy.MutationRule {
-	return privacy.MutationRuleFunc(func(ctx context.Context, m ent.Mutation) error {
+	return privacy.MutationRuleFunc(func(ctx context.Context, _ ent.Mutation) error {
 		if FromContext(ctx).CanWrite {
+			return privacy.Allow
+		}
+		return privacy.Skip
+	})
+}
+
+// AllowReadPermissionsRule grants read permission.
+func AllowReadPermissionsRule() privacy.QueryRule {
+	return privacy.QueryRuleFunc(func(ctx context.Context, _ ent.Query) error {
+		v := viewer.FromContext(ctx)
+		if v == nil {
+			return privacy.Skip
+		}
+		if !v.Features().Enabled(viewer.FeatureUserManagementDev) || v.Role() == user.RoleOWNER {
 			return privacy.Allow
 		}
 		return privacy.Skip

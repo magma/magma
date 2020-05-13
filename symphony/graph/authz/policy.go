@@ -14,6 +14,7 @@ var (
 	prePolicy = privacy.Policy{
 		Query: privacy.QueryPolicy{
 			AlwaysDenyQueryIfNoPermissionRule(),
+			AllowReadPermissionsRule(),
 		},
 		Mutation: privacy.MutationPolicy{
 			AlwaysDenyMutationIfNoPermissionRule(),
