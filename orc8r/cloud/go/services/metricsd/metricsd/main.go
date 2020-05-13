@@ -17,7 +17,6 @@ import (
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/metricsd/collection"
-	"magma/orc8r/cloud/go/services/metricsd/confignames"
 	"magma/orc8r/cloud/go/services/metricsd/servicers"
 	"magma/orc8r/lib/go/protos"
 
@@ -38,7 +37,7 @@ func main() {
 	protos.RegisterMetricsControllerServer(srv.GrpcServer, controllerServer)
 	srv.GrpcServer.RegisterService(protos.GetLegacyMetricsdDesc(), controllerServer)
 
-	profileArg := srv.Config.GetRequiredStringParam(confignames.Profile)
+	profileArg := srv.Config.GetRequiredStringParam(metricsd.Profile)
 	selectedProfile, err := metricsd.GetMetricsProfile(profileArg)
 	if err != nil {
 		log.Fatalf("Error loading metrics profile: %s", err)

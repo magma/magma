@@ -24,7 +24,6 @@ import (
 	magmadh "magma/orc8r/cloud/go/services/magmad/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/metricsd/collection"
-	"magma/orc8r/cloud/go/services/metricsd/confignames"
 	"magma/orc8r/cloud/go/services/metricsd/exporters"
 	metricsdh "magma/orc8r/cloud/go/services/metricsd/obsidian/handlers"
 	promeExp "magma/orc8r/cloud/go/services/metricsd/prometheus/exporters"
@@ -128,29 +127,32 @@ const (
 
 func getMetricsProfiles(metricsConfig *config.ConfigMap) []metricsd.MetricsProfile {
 	// Controller profile - 1 collector for each service
-	allServices := registry.ListControllerServices()
-	deviceMetricsCollectors := []collection.MetricCollector{&collection.DiskUsageMetricCollector{}, &collection.ProcMetricsCollector{}}
-	controllerCollectors := make([]collection.MetricCollector, 0, len(allServices)+len(deviceMetricsCollectors))
-	for _, srv := range allServices {
-		controllerCollectors = append(controllerCollectors, collection.NewCloudServiceMetricCollector(srv))
+	services := registry.ListControllerServices()
+
+	deviceCollectors := []collection.MetricCollector{&collection.DiskUsageMetricCollector{}, &collection.ProcMetricsCollector{}}
+	allCollectors := make([]collection.MetricCollector, 0, len(services)+len(deviceCollectors))
+
+	for _, s := range services {
+		allCollectors = append(allCollectors, collection.NewCloudServiceMetricCollector(s))
 	}
-	for _, metricCollector := range deviceMetricsCollectors {
-		controllerCollectors = append(controllerCollectors, metricCollector)
+	for _, c := range deviceCollectors {
+		allCollectors = append(allCollectors, c)
 	}
 
-	// Prometheus profile - Exports all service metric to Prometheus
-	prometheusAddresses := metricsConfig.GetRequiredStringArrayParam(confignames.PrometheusPushAddresses)
+	prometheusAddresses := metricsConfig.GetRequiredStringArrayParam(metricsd.PrometheusPushAddresses)
 	prometheusCustomPushExporter := promeExp.NewCustomPushExporter(prometheusAddresses)
+
+	// Prometheus profile - Exports all service metric to Prometheus
 	prometheusProfile := metricsd.MetricsProfile{
 		Name:       ProfileNamePrometheus,
-		Collectors: controllerCollectors,
+		Collectors: allCollectors,
 		Exporters:  []exporters.Exporter{prometheusCustomPushExporter},
 	}
 
 	// ExportAllProfile - Exports to all exporters
 	exportAllProfile := metricsd.MetricsProfile{
 		Name:       ProfileNameExportAll,
-		Collectors: controllerCollectors,
+		Collectors: allCollectors,
 		Exporters:  []exporters.Exporter{prometheusCustomPushExporter},
 	}
 

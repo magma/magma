@@ -22,7 +22,7 @@ const (
 	CloudHostLabelName = "cloudHost"
 )
 
-// This method gathers metrics from prometheus' default registry,
+// GetMetrics gathers metrics from Prometheus' default registry,
 // and adds a timestamp to each metric. This method is called
 // in Service303 Server's GetMetrics rpc implementation.
 // All servicers register their metrics with the default registry

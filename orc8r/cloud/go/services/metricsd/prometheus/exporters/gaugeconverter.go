@@ -44,7 +44,7 @@ func convertFamilyToGauges(baseFamily *dto.MetricFamily) []*dto.MetricFamily {
 	return gaugeFamilies
 }
 
-// counterToGauge takes a counter and converts it to a guage with the
+// counterToGauge takes a counter and converts it to a gauge with the
 // same value
 func counterToGauge(family *dto.MetricFamily) *dto.MetricFamily {
 	counterFamily := dto.MetricFamily{

@@ -8,6 +8,7 @@ LICENSE file in the root directory of this source tree.
 
 // metricsd_helper.go adds some useful conversions between metric/label enum
 // values and names
+
 package protos
 
 import (
@@ -32,8 +33,8 @@ func GetEnumNameIfPossible(toConvert string,
 	return nameStr
 }
 
-//GetDecodedLabel tries to convert the metric label name/value enums to their
-//enum names for display
+// GetDecodedLabel tries to convert the metric label name/value enums to their
+// enum names for display.
 func GetDecodedLabel(m *dto.Metric) []*dto.LabelPair {
 	var newLabels []*dto.LabelPair
 	for _, labelPair := range m.GetLabel() {
