@@ -8,26 +8,38 @@ import (
 	"context"
 	"testing"
 
+	"github.com/facebookincubator/symphony/pkg/actions/core"
+
 	"github.com/facebookincubator/symphony/graph/authz"
-	"github.com/facebookincubator/symphony/graph/ent/reportfilter"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 
 	"github.com/stretchr/testify/require"
 )
 
-func TestReportFilterCanAlwaysBeWritten(t *testing.T) {
+func TestActionsRuleCanAlwayBeWritten(t *testing.T) {
 	c := viewertest.NewTestClient(t)
 	ctx := viewertest.NewContext(context.Background(), c, viewertest.WithPermissions(authz.EmptyPermissions()))
-	reportFilter, err := c.ReportFilter.Create().
-		SetName("ReportFilter").
-		SetEntity(reportfilter.EntityWORKORDER).
+	filter := &core.ActionsRuleFilter{
+		FilterID:   "ID1",
+		OperatorID: "ID2",
+		Data:       "data",
+	}
+	action := &core.ActionsRuleAction{
+		ActionID: "ID3",
+		Data:     "data2",
+	}
+	actionRule, err := c.ActionsRule.Create().
+		SetName("ActionRule").
+		SetTriggerID("Trigger1").
+		SetRuleFilters([]*core.ActionsRuleFilter{filter}).
+		SetRuleActions([]*core.ActionsRuleAction{action}).
 		Save(ctx)
 	require.NoError(t, err)
-	err = c.ReportFilter.UpdateOne(reportFilter).
-		SetName("NewReportFilter").
+	err = c.ActionsRule.UpdateOne(actionRule).
+		SetName("NewActionRule").
 		Exec(ctx)
 	require.NoError(t, err)
-	err = c.ReportFilter.DeleteOne(reportFilter).
+	err = c.ActionsRule.DeleteOne(actionRule).
 		Exec(ctx)
 	require.NoError(t, err)
 }

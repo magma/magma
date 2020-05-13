@@ -7,6 +7,8 @@ package schema
 import (
 	"github.com/facebookincubator/ent"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/authz"
+	"github.com/facebookincubator/symphony/graph/ent/privacy"
 	"github.com/facebookincubator/symphony/pkg/actions/core"
 )
 
@@ -23,4 +25,13 @@ func (ActionsRule) Fields() []ent.Field {
 		field.JSON("ruleFilters", []*core.ActionsRuleFilter{}),
 		field.JSON("ruleActions", []*core.ActionsRuleAction{}),
 	}
+}
+
+// Policy returns ActionsRule policy.
+func (ActionsRule) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithMutationRules(
+			privacy.AlwaysAllowRule(),
+		),
+	)
 }
