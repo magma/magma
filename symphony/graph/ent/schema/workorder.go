@@ -34,8 +34,7 @@ func (WorkOrderType) Edges() []ent.Edge {
 		edge.To("property_types", PropertyType.Type),
 		edge.From("definitions", WorkOrderDefinition.Type).
 			Ref("type"),
-		edge.To("check_list_categories", CheckListCategory.Type),
-		edge.To("check_list_definitions", CheckListItemDefinition.Type),
+		edge.To("check_list_category_definitions", CheckListCategoryDefinition.Type),
 	}
 }
 
@@ -89,7 +88,6 @@ func (WorkOrder) Edges() []ent.Edge {
 		edge.To("comments", Comment.Type),
 		edge.To("properties", Property.Type),
 		edge.To("check_list_categories", CheckListCategory.Type),
-		edge.To("check_list_items", CheckListItem.Type),
 		edge.From("project", Project.Type).
 			Ref("work_orders").
 			Unique(),

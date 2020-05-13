@@ -8,23 +8,25 @@ package checklistitem
 
 import (
 	"fmt"
+
+	"github.com/facebookincubator/ent"
 )
 
 const (
 	// Label holds the string label denoting the checklistitem type in the database.
 	Label = "check_list_item"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID                 = "id"                   // FieldTitle holds the string denoting the title vertex property in the database.
-	FieldTitle              = "title"                // FieldType holds the string denoting the type vertex property in the database.
-	FieldType               = "type"                 // FieldIndex holds the string denoting the index vertex property in the database.
-	FieldIndex              = "index"                // FieldChecked holds the string denoting the checked vertex property in the database.
-	FieldChecked            = "checked"              // FieldStringVal holds the string denoting the string_val vertex property in the database.
-	FieldStringVal          = "string_val"           // FieldEnumValues holds the string denoting the enum_values vertex property in the database.
-	FieldEnumValues         = "enum_values"          // FieldEnumSelectionMode holds the string denoting the enum_selection_mode vertex property in the database.
-	FieldEnumSelectionMode  = "enum_selection_mode"  // FieldSelectedEnumValues holds the string denoting the selected_enum_values vertex property in the database.
-	FieldSelectedEnumValues = "selected_enum_values" // FieldYesNoVal holds the string denoting the yes_no_val vertex property in the database.
-	FieldYesNoVal           = "yes_no_val"           // FieldHelpText holds the string denoting the help_text vertex property in the database.
-	FieldHelpText           = "help_text"
+	FieldID                     = "id"                        // FieldTitle holds the string denoting the title vertex property in the database.
+	FieldTitle                  = "title"                     // FieldType holds the string denoting the type vertex property in the database.
+	FieldType                   = "type"                      // FieldIndex holds the string denoting the index vertex property in the database.
+	FieldIndex                  = "index"                     // FieldChecked holds the string denoting the checked vertex property in the database.
+	FieldChecked                = "checked"                   // FieldStringVal holds the string denoting the string_val vertex property in the database.
+	FieldStringVal              = "string_val"                // FieldEnumValues holds the string denoting the enum_values vertex property in the database.
+	FieldEnumValues             = "enum_values"               // FieldEnumSelectionModeValue holds the string denoting the enum_selection_mode_value vertex property in the database.
+	FieldEnumSelectionModeValue = "enum_selection_mode_value" // FieldSelectedEnumValues holds the string denoting the selected_enum_values vertex property in the database.
+	FieldSelectedEnumValues     = "selected_enum_values"      // FieldYesNoVal holds the string denoting the yes_no_val vertex property in the database.
+	FieldYesNoVal               = "yes_no_val"                // FieldHelpText holds the string denoting the help_text vertex property in the database.
+	FieldHelpText               = "help_text"
 
 	// EdgeFiles holds the string denoting the files edge name in mutations.
 	EdgeFiles = "files"
@@ -32,8 +34,8 @@ const (
 	EdgeWifiScan = "wifi_scan"
 	// EdgeCellScan holds the string denoting the cell_scan edge name in mutations.
 	EdgeCellScan = "cell_scan"
-	// EdgeWorkOrder holds the string denoting the work_order edge name in mutations.
-	EdgeWorkOrder = "work_order"
+	// EdgeCheckListCategory holds the string denoting the check_list_category edge name in mutations.
+	EdgeCheckListCategory = "check_list_category"
 
 	// Table holds the table name of the checklistitem in the database.
 	Table = "check_list_items"
@@ -58,13 +60,13 @@ const (
 	CellScanInverseTable = "survey_cell_scans"
 	// CellScanColumn is the table column denoting the cell_scan relation/edge.
 	CellScanColumn = "survey_cell_scan_checklist_item"
-	// WorkOrderTable is the table the holds the work_order relation/edge.
-	WorkOrderTable = "check_list_items"
-	// WorkOrderInverseTable is the table name for the WorkOrder entity.
-	// It exists in this package in order to avoid circular dependency with the "workorder" package.
-	WorkOrderInverseTable = "work_orders"
-	// WorkOrderColumn is the table column denoting the work_order relation/edge.
-	WorkOrderColumn = "work_order_check_list_items"
+	// CheckListCategoryTable is the table the holds the check_list_category relation/edge.
+	CheckListCategoryTable = "check_list_items"
+	// CheckListCategoryInverseTable is the table name for the CheckListCategory entity.
+	// It exists in this package in order to avoid circular dependency with the "checklistcategory" package.
+	CheckListCategoryInverseTable = "check_list_categories"
+	// CheckListCategoryColumn is the table column denoting the check_list_category relation/edge.
+	CheckListCategoryColumn = "check_list_category_check_list_items"
 )
 
 // Columns holds all SQL columns for checklistitem fields.
@@ -76,7 +78,7 @@ var Columns = []string{
 	FieldChecked,
 	FieldStringVal,
 	FieldEnumValues,
-	FieldEnumSelectionMode,
+	FieldEnumSelectionModeValue,
 	FieldSelectedEnumValues,
 	FieldYesNoVal,
 	FieldHelpText,
@@ -85,7 +87,40 @@ var Columns = []string{
 // ForeignKeys holds the SQL foreign-keys that are owned by the CheckListItem type.
 var ForeignKeys = []string{
 	"check_list_category_check_list_items",
-	"work_order_check_list_items",
+}
+
+// Note that the variables below are initialized by the runtime
+// package on the initialization of the application. Therefore,
+// it should be imported in the main as follows:
+//
+//	import _ "github.com/facebookincubator/symphony/graph/ent/runtime"
+//
+var (
+	Hooks  [1]ent.Hook
+	Policy ent.Policy
+)
+
+// EnumSelectionModeValue defines the type for the enum_selection_mode_value enum field.
+type EnumSelectionModeValue string
+
+// EnumSelectionModeValue values.
+const (
+	EnumSelectionModeValueSingle   EnumSelectionModeValue = "single"
+	EnumSelectionModeValueMultiple EnumSelectionModeValue = "multiple"
+)
+
+func (s EnumSelectionModeValue) String() string {
+	return string(s)
+}
+
+// EnumSelectionModeValueValidator is a validator for the "esmv" field enum values. It is called by the builders before save.
+func EnumSelectionModeValueValidator(esmv EnumSelectionModeValue) error {
+	switch esmv {
+	case EnumSelectionModeValueSingle, EnumSelectionModeValueMultiple:
+		return nil
+	default:
+		return fmt.Errorf("checklistitem: invalid enum value for enum_selection_mode_value field: %q", esmv)
+	}
 }
 
 // YesNoVal defines the type for the yes_no_val enum field.

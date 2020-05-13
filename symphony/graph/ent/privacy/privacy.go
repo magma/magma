@@ -245,6 +245,30 @@ func (f CheckListCategoryMutationRuleFunc) EvalMutation(ctx context.Context, m e
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.CheckListCategoryMutation", m)
 }
 
+// The CheckListCategoryDefinitionQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type CheckListCategoryDefinitionQueryRuleFunc func(context.Context, *ent.CheckListCategoryDefinitionQuery) error
+
+// EvalQuery return f(ctx, q).
+func (f CheckListCategoryDefinitionQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.CheckListCategoryDefinitionQuery); ok {
+		return f(ctx, q)
+	}
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.CheckListCategoryDefinitionQuery", q)
+}
+
+// The CheckListCategoryDefinitionMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type CheckListCategoryDefinitionMutationRuleFunc func(context.Context, *ent.CheckListCategoryDefinitionMutation) error
+
+// EvalMutation calls f(ctx, m).
+func (f CheckListCategoryDefinitionMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
+	if m, ok := m.(*ent.CheckListCategoryDefinitionMutation); ok {
+		return f(ctx, m)
+	}
+	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.CheckListCategoryDefinitionMutation", m)
+}
+
 // The CheckListItemQueryRuleFunc type is an adapter to allow the use of ordinary
 // functions as a query rule.
 type CheckListItemQueryRuleFunc func(context.Context, *ent.CheckListItemQuery) error

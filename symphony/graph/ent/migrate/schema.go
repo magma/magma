@@ -37,7 +37,6 @@ var (
 		{Name: "title", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString, Nullable: true},
 		{Name: "work_order_check_list_categories", Type: field.TypeInt, Nullable: true},
-		{Name: "work_order_type_check_list_categories", Type: field.TypeInt, Nullable: true},
 	}
 	// CheckListCategoriesTable holds the schema information for the "check_list_categories" table.
 	CheckListCategoriesTable = &schema.Table{
@@ -52,9 +51,26 @@ var (
 				RefColumns: []*schema.Column{WorkOrdersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
+		},
+	}
+	// CheckListCategoryDefinitionsColumns holds the columns for the "check_list_category_definitions" table.
+	CheckListCategoryDefinitionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "title", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "work_order_type_check_list_category_definitions", Type: field.TypeInt, Nullable: true},
+	}
+	// CheckListCategoryDefinitionsTable holds the schema information for the "check_list_category_definitions" table.
+	CheckListCategoryDefinitionsTable = &schema.Table{
+		Name:       "check_list_category_definitions",
+		Columns:    CheckListCategoryDefinitionsColumns,
+		PrimaryKey: []*schema.Column{CheckListCategoryDefinitionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:  "check_list_categories_work_order_types_check_list_categories",
-				Columns: []*schema.Column{CheckListCategoriesColumns[6]},
+				Symbol:  "check_list_category_definitions_work_order_types_check_list_category_definitions",
+				Columns: []*schema.Column{CheckListCategoryDefinitionsColumns[5]},
 
 				RefColumns: []*schema.Column{WorkOrderTypesColumns[0]},
 				OnDelete:   schema.SetNull,
@@ -70,12 +86,11 @@ var (
 		{Name: "checked", Type: field.TypeBool, Nullable: true},
 		{Name: "string_val", Type: field.TypeString, Nullable: true},
 		{Name: "enum_values", Type: field.TypeString, Nullable: true},
-		{Name: "enum_selection_mode", Type: field.TypeString, Nullable: true},
+		{Name: "enum_selection_mode_value", Type: field.TypeEnum, Nullable: true, Enums: []string{"single", "multiple"}},
 		{Name: "selected_enum_values", Type: field.TypeString, Nullable: true},
 		{Name: "yes_no_val", Type: field.TypeEnum, Nullable: true, Enums: []string{"YES", "NO"}},
 		{Name: "help_text", Type: field.TypeString, Nullable: true},
 		{Name: "check_list_category_check_list_items", Type: field.TypeInt, Nullable: true},
-		{Name: "work_order_check_list_items", Type: field.TypeInt, Nullable: true},
 	}
 	// CheckListItemsTable holds the schema information for the "check_list_items" table.
 	CheckListItemsTable = &schema.Table{
@@ -90,20 +105,6 @@ var (
 				RefColumns: []*schema.Column{CheckListCategoriesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
-			{
-				Symbol:  "check_list_items_work_orders_check_list_items",
-				Columns: []*schema.Column{CheckListItemsColumns[12]},
-
-				RefColumns: []*schema.Column{WorkOrdersColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-		},
-		Indexes: []*schema.Index{
-			{
-				Name:    "checklistitem_title_work_order_check_list_items",
-				Unique:  true,
-				Columns: []*schema.Column{CheckListItemsColumns[1], CheckListItemsColumns[12]},
-			},
 		},
 	}
 	// CheckListItemDefinitionsColumns holds the columns for the "check_list_item_definitions" table.
@@ -115,8 +116,9 @@ var (
 		{Name: "type", Type: field.TypeString},
 		{Name: "index", Type: field.TypeInt, Nullable: true},
 		{Name: "enum_values", Type: field.TypeString, Nullable: true},
+		{Name: "enum_selection_mode_value", Type: field.TypeEnum, Nullable: true, Enums: []string{"single", "multiple"}},
 		{Name: "help_text", Type: field.TypeString, Nullable: true},
-		{Name: "work_order_type_check_list_definitions", Type: field.TypeInt, Nullable: true},
+		{Name: "check_list_category_definition_check_list_item_definitions", Type: field.TypeInt, Nullable: true},
 	}
 	// CheckListItemDefinitionsTable holds the schema information for the "check_list_item_definitions" table.
 	CheckListItemDefinitionsTable = &schema.Table{
@@ -125,18 +127,11 @@ var (
 		PrimaryKey: []*schema.Column{CheckListItemDefinitionsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:  "check_list_item_definitions_work_order_types_check_list_definitions",
-				Columns: []*schema.Column{CheckListItemDefinitionsColumns[8]},
+				Symbol:  "check_list_item_definitions_check_list_category_definitions_check_list_item_definitions",
+				Columns: []*schema.Column{CheckListItemDefinitionsColumns[9]},
 
-				RefColumns: []*schema.Column{WorkOrderTypesColumns[0]},
+				RefColumns: []*schema.Column{CheckListCategoryDefinitionsColumns[0]},
 				OnDelete:   schema.SetNull,
-			},
-		},
-		Indexes: []*schema.Index{
-			{
-				Name:    "checklistitemdefinition_title_work_order_type_check_list_definitions",
-				Unique:  true,
-				Columns: []*schema.Column{CheckListItemDefinitionsColumns[3], CheckListItemDefinitionsColumns[8]},
 			},
 		},
 	}
@@ -1718,6 +1713,7 @@ var (
 	Tables = []*schema.Table{
 		ActionsRulesTable,
 		CheckListCategoriesTable,
+		CheckListCategoryDefinitionsTable,
 		CheckListItemsTable,
 		CheckListItemDefinitionsTable,
 		CommentsTable,
@@ -1769,10 +1765,9 @@ var (
 
 func init() {
 	CheckListCategoriesTable.ForeignKeys[0].RefTable = WorkOrdersTable
-	CheckListCategoriesTable.ForeignKeys[1].RefTable = WorkOrderTypesTable
+	CheckListCategoryDefinitionsTable.ForeignKeys[0].RefTable = WorkOrderTypesTable
 	CheckListItemsTable.ForeignKeys[0].RefTable = CheckListCategoriesTable
-	CheckListItemsTable.ForeignKeys[1].RefTable = WorkOrdersTable
-	CheckListItemDefinitionsTable.ForeignKeys[0].RefTable = WorkOrderTypesTable
+	CheckListItemDefinitionsTable.ForeignKeys[0].RefTable = CheckListCategoryDefinitionsTable
 	CommentsTable.ForeignKeys[0].RefTable = UsersTable
 	CommentsTable.ForeignKeys[1].RefTable = ProjectsTable
 	CommentsTable.ForeignKeys[2].RefTable = WorkOrdersTable

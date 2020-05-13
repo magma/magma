@@ -735,6 +735,68 @@ func EnumValuesContainsFold(v string) predicate.CheckListItemDefinition {
 	})
 }
 
+// EnumSelectionModeValueEQ applies the EQ predicate on the "enum_selection_mode_value" field.
+func EnumSelectionModeValueEQ(v EnumSelectionModeValue) predicate.CheckListItemDefinition {
+	return predicate.CheckListItemDefinition(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldEnumSelectionModeValue), v))
+	})
+}
+
+// EnumSelectionModeValueNEQ applies the NEQ predicate on the "enum_selection_mode_value" field.
+func EnumSelectionModeValueNEQ(v EnumSelectionModeValue) predicate.CheckListItemDefinition {
+	return predicate.CheckListItemDefinition(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldEnumSelectionModeValue), v))
+	})
+}
+
+// EnumSelectionModeValueIn applies the In predicate on the "enum_selection_mode_value" field.
+func EnumSelectionModeValueIn(vs ...EnumSelectionModeValue) predicate.CheckListItemDefinition {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.CheckListItemDefinition(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(vs) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldEnumSelectionModeValue), v...))
+	})
+}
+
+// EnumSelectionModeValueNotIn applies the NotIn predicate on the "enum_selection_mode_value" field.
+func EnumSelectionModeValueNotIn(vs ...EnumSelectionModeValue) predicate.CheckListItemDefinition {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.CheckListItemDefinition(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(vs) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldEnumSelectionModeValue), v...))
+	})
+}
+
+// EnumSelectionModeValueIsNil applies the IsNil predicate on the "enum_selection_mode_value" field.
+func EnumSelectionModeValueIsNil() predicate.CheckListItemDefinition {
+	return predicate.CheckListItemDefinition(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldEnumSelectionModeValue)))
+	})
+}
+
+// EnumSelectionModeValueNotNil applies the NotNil predicate on the "enum_selection_mode_value" field.
+func EnumSelectionModeValueNotNil() predicate.CheckListItemDefinition {
+	return predicate.CheckListItemDefinition(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldEnumSelectionModeValue)))
+	})
+}
+
 // HelpTextEQ applies the EQ predicate on the "help_text" field.
 func HelpTextEQ(v string) predicate.CheckListItemDefinition {
 	return predicate.CheckListItemDefinition(func(s *sql.Selector) {
@@ -860,25 +922,25 @@ func HelpTextContainsFold(v string) predicate.CheckListItemDefinition {
 	})
 }
 
-// HasWorkOrderType applies the HasEdge predicate on the "work_order_type" edge.
-func HasWorkOrderType() predicate.CheckListItemDefinition {
+// HasCheckListCategoryDefinition applies the HasEdge predicate on the "check_list_category_definition" edge.
+func HasCheckListCategoryDefinition() predicate.CheckListItemDefinition {
 	return predicate.CheckListItemDefinition(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(WorkOrderTypeTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, WorkOrderTypeTable, WorkOrderTypeColumn),
+			sqlgraph.To(CheckListCategoryDefinitionTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, CheckListCategoryDefinitionTable, CheckListCategoryDefinitionColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasWorkOrderTypeWith applies the HasEdge predicate on the "work_order_type" edge with a given conditions (other predicates).
-func HasWorkOrderTypeWith(preds ...predicate.WorkOrderType) predicate.CheckListItemDefinition {
+// HasCheckListCategoryDefinitionWith applies the HasEdge predicate on the "check_list_category_definition" edge with a given conditions (other predicates).
+func HasCheckListCategoryDefinitionWith(preds ...predicate.CheckListCategoryDefinition) predicate.CheckListItemDefinition {
 	return predicate.CheckListItemDefinition(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(WorkOrderTypeInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, WorkOrderTypeTable, WorkOrderTypeColumn),
+			sqlgraph.To(CheckListCategoryDefinitionInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, CheckListCategoryDefinitionTable, CheckListCategoryDefinitionColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

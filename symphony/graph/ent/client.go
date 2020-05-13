@@ -15,6 +15,7 @@ import (
 
 	"github.com/facebookincubator/symphony/graph/ent/actionsrule"
 	"github.com/facebookincubator/symphony/graph/ent/checklistcategory"
+	"github.com/facebookincubator/symphony/graph/ent/checklistcategorydefinition"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitemdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/comment"
@@ -71,6 +72,8 @@ type Client struct {
 	ActionsRule *ActionsRuleClient
 	// CheckListCategory is the client for interacting with the CheckListCategory builders.
 	CheckListCategory *CheckListCategoryClient
+	// CheckListCategoryDefinition is the client for interacting with the CheckListCategoryDefinition builders.
+	CheckListCategoryDefinition *CheckListCategoryDefinitionClient
 	// CheckListItem is the client for interacting with the CheckListItem builders.
 	CheckListItem *CheckListItemClient
 	// CheckListItemDefinition is the client for interacting with the CheckListItemDefinition builders.
@@ -171,6 +174,7 @@ func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.ActionsRule = NewActionsRuleClient(c.config)
 	c.CheckListCategory = NewCheckListCategoryClient(c.config)
+	c.CheckListCategoryDefinition = NewCheckListCategoryDefinitionClient(c.config)
 	c.CheckListItem = NewCheckListItemClient(c.config)
 	c.CheckListItemDefinition = NewCheckListItemDefinitionClient(c.config)
 	c.Comment = NewCommentClient(c.config)
@@ -244,6 +248,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		config:                      cfg,
 		ActionsRule:                 NewActionsRuleClient(cfg),
 		CheckListCategory:           NewCheckListCategoryClient(cfg),
+		CheckListCategoryDefinition: NewCheckListCategoryDefinitionClient(cfg),
 		CheckListItem:               NewCheckListItemClient(cfg),
 		CheckListItemDefinition:     NewCheckListItemDefinitionClient(cfg),
 		Comment:                     NewCommentClient(cfg),
@@ -302,6 +307,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		config:                      cfg,
 		ActionsRule:                 NewActionsRuleClient(cfg),
 		CheckListCategory:           NewCheckListCategoryClient(cfg),
+		CheckListCategoryDefinition: NewCheckListCategoryDefinitionClient(cfg),
 		CheckListItem:               NewCheckListItemClient(cfg),
 		CheckListItemDefinition:     NewCheckListItemDefinitionClient(cfg),
 		Comment:                     NewCommentClient(cfg),
@@ -373,6 +379,7 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	c.ActionsRule.Use(hooks...)
 	c.CheckListCategory.Use(hooks...)
+	c.CheckListCategoryDefinition.Use(hooks...)
 	c.CheckListItem.Use(hooks...)
 	c.CheckListItemDefinition.Use(hooks...)
 	c.Comment.Use(hooks...)
@@ -594,10 +601,142 @@ func (c *CheckListCategoryClient) QueryCheckListItems(clc *CheckListCategory) *C
 	return query
 }
 
+// QueryWorkOrder queries the work_order edge of a CheckListCategory.
+func (c *CheckListCategoryClient) QueryWorkOrder(clc *CheckListCategory) *WorkOrderQuery {
+	query := &WorkOrderQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := clc.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(checklistcategory.Table, checklistcategory.FieldID, id),
+			sqlgraph.To(workorder.Table, workorder.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, checklistcategory.WorkOrderTable, checklistcategory.WorkOrderColumn),
+		)
+		fromV = sqlgraph.Neighbors(clc.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *CheckListCategoryClient) Hooks() []Hook {
 	hooks := c.hooks.CheckListCategory
 	return append(hooks[:len(hooks):len(hooks)], checklistcategory.Hooks[:]...)
+}
+
+// CheckListCategoryDefinitionClient is a client for the CheckListCategoryDefinition schema.
+type CheckListCategoryDefinitionClient struct {
+	config
+}
+
+// NewCheckListCategoryDefinitionClient returns a client for the CheckListCategoryDefinition from the given config.
+func NewCheckListCategoryDefinitionClient(c config) *CheckListCategoryDefinitionClient {
+	return &CheckListCategoryDefinitionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `checklistcategorydefinition.Hooks(f(g(h())))`.
+func (c *CheckListCategoryDefinitionClient) Use(hooks ...Hook) {
+	c.hooks.CheckListCategoryDefinition = append(c.hooks.CheckListCategoryDefinition, hooks...)
+}
+
+// Create returns a create builder for CheckListCategoryDefinition.
+func (c *CheckListCategoryDefinitionClient) Create() *CheckListCategoryDefinitionCreate {
+	mutation := newCheckListCategoryDefinitionMutation(c.config, OpCreate)
+	return &CheckListCategoryDefinitionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Update returns an update builder for CheckListCategoryDefinition.
+func (c *CheckListCategoryDefinitionClient) Update() *CheckListCategoryDefinitionUpdate {
+	mutation := newCheckListCategoryDefinitionMutation(c.config, OpUpdate)
+	return &CheckListCategoryDefinitionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CheckListCategoryDefinitionClient) UpdateOne(clcd *CheckListCategoryDefinition) *CheckListCategoryDefinitionUpdateOne {
+	return c.UpdateOneID(clcd.ID)
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CheckListCategoryDefinitionClient) UpdateOneID(id int) *CheckListCategoryDefinitionUpdateOne {
+	mutation := newCheckListCategoryDefinitionMutation(c.config, OpUpdateOne)
+	mutation.id = &id
+	return &CheckListCategoryDefinitionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for CheckListCategoryDefinition.
+func (c *CheckListCategoryDefinitionClient) Delete() *CheckListCategoryDefinitionDelete {
+	mutation := newCheckListCategoryDefinitionMutation(c.config, OpDelete)
+	return &CheckListCategoryDefinitionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *CheckListCategoryDefinitionClient) DeleteOne(clcd *CheckListCategoryDefinition) *CheckListCategoryDefinitionDeleteOne {
+	return c.DeleteOneID(clcd.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *CheckListCategoryDefinitionClient) DeleteOneID(id int) *CheckListCategoryDefinitionDeleteOne {
+	builder := c.Delete().Where(checklistcategorydefinition.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CheckListCategoryDefinitionDeleteOne{builder}
+}
+
+// Create returns a query builder for CheckListCategoryDefinition.
+func (c *CheckListCategoryDefinitionClient) Query() *CheckListCategoryDefinitionQuery {
+	return &CheckListCategoryDefinitionQuery{config: c.config}
+}
+
+// Get returns a CheckListCategoryDefinition entity by its id.
+func (c *CheckListCategoryDefinitionClient) Get(ctx context.Context, id int) (*CheckListCategoryDefinition, error) {
+	return c.Query().Where(checklistcategorydefinition.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CheckListCategoryDefinitionClient) GetX(ctx context.Context, id int) *CheckListCategoryDefinition {
+	clcd, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return clcd
+}
+
+// QueryCheckListItemDefinitions queries the check_list_item_definitions edge of a CheckListCategoryDefinition.
+func (c *CheckListCategoryDefinitionClient) QueryCheckListItemDefinitions(clcd *CheckListCategoryDefinition) *CheckListItemDefinitionQuery {
+	query := &CheckListItemDefinitionQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := clcd.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(checklistcategorydefinition.Table, checklistcategorydefinition.FieldID, id),
+			sqlgraph.To(checklistitemdefinition.Table, checklistitemdefinition.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, checklistcategorydefinition.CheckListItemDefinitionsTable, checklistcategorydefinition.CheckListItemDefinitionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(clcd.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryWorkOrderType queries the work_order_type edge of a CheckListCategoryDefinition.
+func (c *CheckListCategoryDefinitionClient) QueryWorkOrderType(clcd *CheckListCategoryDefinition) *WorkOrderTypeQuery {
+	query := &WorkOrderTypeQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := clcd.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(checklistcategorydefinition.Table, checklistcategorydefinition.FieldID, id),
+			sqlgraph.To(workordertype.Table, workordertype.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, checklistcategorydefinition.WorkOrderTypeTable, checklistcategorydefinition.WorkOrderTypeColumn),
+		)
+		fromV = sqlgraph.Neighbors(clcd.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *CheckListCategoryDefinitionClient) Hooks() []Hook {
+	hooks := c.hooks.CheckListCategoryDefinition
+	return append(hooks[:len(hooks):len(hooks)], checklistcategorydefinition.Hooks[:]...)
 }
 
 // CheckListItemClient is a client for the CheckListItem schema.
@@ -726,15 +865,15 @@ func (c *CheckListItemClient) QueryCellScan(cli *CheckListItem) *SurveyCellScanQ
 	return query
 }
 
-// QueryWorkOrder queries the work_order edge of a CheckListItem.
-func (c *CheckListItemClient) QueryWorkOrder(cli *CheckListItem) *WorkOrderQuery {
-	query := &WorkOrderQuery{config: c.config}
+// QueryCheckListCategory queries the check_list_category edge of a CheckListItem.
+func (c *CheckListItemClient) QueryCheckListCategory(cli *CheckListItem) *CheckListCategoryQuery {
+	query := &CheckListCategoryQuery{config: c.config}
 	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
 		id := cli.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(checklistitem.Table, checklistitem.FieldID, id),
-			sqlgraph.To(workorder.Table, workorder.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, checklistitem.WorkOrderTable, checklistitem.WorkOrderColumn),
+			sqlgraph.To(checklistcategory.Table, checklistcategory.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, checklistitem.CheckListCategoryTable, checklistitem.CheckListCategoryColumn),
 		)
 		fromV = sqlgraph.Neighbors(cli.driver.Dialect(), step)
 		return fromV, nil
@@ -744,7 +883,8 @@ func (c *CheckListItemClient) QueryWorkOrder(cli *CheckListItem) *WorkOrderQuery
 
 // Hooks returns the client hooks.
 func (c *CheckListItemClient) Hooks() []Hook {
-	return c.hooks.CheckListItem
+	hooks := c.hooks.CheckListItem
+	return append(hooks[:len(hooks):len(hooks)], checklistitem.Hooks[:]...)
 }
 
 // CheckListItemDefinitionClient is a client for the CheckListItemDefinition schema.
@@ -825,15 +965,15 @@ func (c *CheckListItemDefinitionClient) GetX(ctx context.Context, id int) *Check
 	return clid
 }
 
-// QueryWorkOrderType queries the work_order_type edge of a CheckListItemDefinition.
-func (c *CheckListItemDefinitionClient) QueryWorkOrderType(clid *CheckListItemDefinition) *WorkOrderTypeQuery {
-	query := &WorkOrderTypeQuery{config: c.config}
+// QueryCheckListCategoryDefinition queries the check_list_category_definition edge of a CheckListItemDefinition.
+func (c *CheckListItemDefinitionClient) QueryCheckListCategoryDefinition(clid *CheckListItemDefinition) *CheckListCategoryDefinitionQuery {
+	query := &CheckListCategoryDefinitionQuery{config: c.config}
 	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
 		id := clid.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(checklistitemdefinition.Table, checklistitemdefinition.FieldID, id),
-			sqlgraph.To(workordertype.Table, workordertype.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, checklistitemdefinition.WorkOrderTypeTable, checklistitemdefinition.WorkOrderTypeColumn),
+			sqlgraph.To(checklistcategorydefinition.Table, checklistcategorydefinition.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, checklistitemdefinition.CheckListCategoryDefinitionTable, checklistitemdefinition.CheckListCategoryDefinitionColumn),
 		)
 		fromV = sqlgraph.Neighbors(clid.driver.Dialect(), step)
 		return fromV, nil
@@ -6109,22 +6249,6 @@ func (c *WorkOrderClient) QueryCheckListCategories(wo *WorkOrder) *CheckListCate
 	return query
 }
 
-// QueryCheckListItems queries the check_list_items edge of a WorkOrder.
-func (c *WorkOrderClient) QueryCheckListItems(wo *WorkOrder) *CheckListItemQuery {
-	query := &CheckListItemQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
-		id := wo.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(workorder.Table, workorder.FieldID, id),
-			sqlgraph.To(checklistitem.Table, checklistitem.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, workorder.CheckListItemsTable, workorder.CheckListItemsColumn),
-		)
-		fromV = sqlgraph.Neighbors(wo.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
 // QueryProject queries the project edge of a WorkOrder.
 func (c *WorkOrderClient) QueryProject(wo *WorkOrder) *ProjectQuery {
 	query := &ProjectQuery{config: c.config}
@@ -6421,31 +6545,15 @@ func (c *WorkOrderTypeClient) QueryDefinitions(wot *WorkOrderType) *WorkOrderDef
 	return query
 }
 
-// QueryCheckListCategories queries the check_list_categories edge of a WorkOrderType.
-func (c *WorkOrderTypeClient) QueryCheckListCategories(wot *WorkOrderType) *CheckListCategoryQuery {
-	query := &CheckListCategoryQuery{config: c.config}
+// QueryCheckListCategoryDefinitions queries the check_list_category_definitions edge of a WorkOrderType.
+func (c *WorkOrderTypeClient) QueryCheckListCategoryDefinitions(wot *WorkOrderType) *CheckListCategoryDefinitionQuery {
+	query := &CheckListCategoryDefinitionQuery{config: c.config}
 	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
 		id := wot.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(workordertype.Table, workordertype.FieldID, id),
-			sqlgraph.To(checklistcategory.Table, checklistcategory.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, workordertype.CheckListCategoriesTable, workordertype.CheckListCategoriesColumn),
-		)
-		fromV = sqlgraph.Neighbors(wot.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryCheckListDefinitions queries the check_list_definitions edge of a WorkOrderType.
-func (c *WorkOrderTypeClient) QueryCheckListDefinitions(wot *WorkOrderType) *CheckListItemDefinitionQuery {
-	query := &CheckListItemDefinitionQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
-		id := wot.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(workordertype.Table, workordertype.FieldID, id),
-			sqlgraph.To(checklistitemdefinition.Table, checklistitemdefinition.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, workordertype.CheckListDefinitionsTable, workordertype.CheckListDefinitionsColumn),
+			sqlgraph.To(checklistcategorydefinition.Table, checklistcategorydefinition.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, workordertype.CheckListCategoryDefinitionsTable, workordertype.CheckListCategoryDefinitionsColumn),
 		)
 		fromV = sqlgraph.Neighbors(wot.driver.Dialect(), step)
 		return fromV, nil

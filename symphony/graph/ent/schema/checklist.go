@@ -8,8 +8,43 @@ import (
 	"github.com/facebookincubator/ent"
 	"github.com/facebookincubator/ent/schema/edge"
 	"github.com/facebookincubator/ent/schema/field"
-	"github.com/facebookincubator/ent/schema/index"
+	"github.com/facebookincubator/symphony/graph/authz"
 )
+
+// CheckListCategory defines the CheckListCategoryDefinition type schema.
+type CheckListCategoryDefinition struct {
+	schema
+}
+
+// Fields returns CheckListCategoryDefinition type fields.
+func (CheckListCategoryDefinition) Fields() []ent.Field {
+	return []ent.Field{
+		field.String("title").
+			NotEmpty(),
+		field.String("description").
+			Optional(),
+	}
+}
+
+// Edges returns CheckListCategoryDefinition type edges.
+func (CheckListCategoryDefinition) Edges() []ent.Edge {
+	return []ent.Edge{
+		edge.To("check_list_item_definitions", CheckListItemDefinition.Type),
+		edge.From("work_order_type", WorkOrderType.Type).
+			Ref("check_list_category_definitions").
+			Unique().
+			Required(),
+	}
+}
+
+// Policy returns equipment port definition policy.
+func (CheckListCategoryDefinition) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithMutationRules(
+			authz.CheckListCategoryDefinitionWritePolicyRule(),
+		),
+	)
+}
 
 // CheckListCategory defines the CheckListCategory type schema.
 type CheckListCategory struct {
@@ -29,15 +64,28 @@ func (CheckListCategory) Fields() []ent.Field {
 func (CheckListCategory) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("check_list_items", CheckListItem.Type),
+		edge.From("work_order", WorkOrder.Type).Ref("check_list_categories").
+			Unique().
+			Required(),
 	}
 }
 
-// CheckListItem defines the CheckListItem type schema.
+// Policy returns checklist item policy.
+func (CheckListCategory) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithMutationRules(
+			authz.CheckListCategoryWritePolicyRule(),
+			authz.CheckListCategoryCreatePolicyRule(),
+		),
+	)
+}
+
+// CheckListItem defines the CheckListItemDefinition type schema.
 type CheckListItemDefinition struct {
 	schema
 }
 
-// Fields returns CheckListItem type fields.
+// Fields returns CheckListItemDefinition type fields.
 func (CheckListItemDefinition) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("title"),
@@ -48,6 +96,9 @@ func (CheckListItemDefinition) Fields() []ent.Field {
 			StructTag(`gqlgen:"enumValues"`).
 			Nillable().
 			Optional(),
+		field.Enum("enum_selection_mode_value").
+			Values("single", "multiple").
+			Optional(),
 		field.String("help_text").
 			StructTag(`gqlgen:"helpText"`).
 			Nillable().
@@ -55,22 +106,23 @@ func (CheckListItemDefinition) Fields() []ent.Field {
 	}
 }
 
-// Edges returns CheckListItem type edges.
+// Edges returns CheckListItemDefinition type edges.
 func (CheckListItemDefinition) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("work_order_type", WorkOrderType.Type).
-			Ref("check_list_definitions").
-			Unique(),
+		edge.From("check_list_category_definition", CheckListCategoryDefinition.Type).
+			Ref("check_list_item_definitions").
+			Unique().
+			Required(),
 	}
 }
 
-// Indexes returns CheckListItem type indexes.
-func (CheckListItemDefinition) Indexes() []ent.Index {
-	return []ent.Index{
-		index.Fields("title").
-			Edges("work_order_type").
-			Unique(),
-	}
+// Policy returns equipment port definition policy.
+func (CheckListItemDefinition) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithMutationRules(
+			authz.CheckListItemDefinitionWritePolicyRule(),
+		),
+	)
 }
 
 // CheckListItem defines the CheckListItem schema.
@@ -93,8 +145,8 @@ func (CheckListItem) Fields() []ent.Field {
 		field.String("enum_values").
 			StructTag(`gqlgen:"enumValues"`).
 			Optional(),
-		field.String("enum_selection_mode").
-			StructTag(`gqlgen:"enumSelectionMode"`).
+		field.Enum("enum_selection_mode_value").
+			Values("single", "multiple").
 			Optional(),
 		field.String("selected_enum_values").
 			StructTag(`gqlgen:"selectedEnumValues"`).
@@ -117,17 +169,19 @@ func (CheckListItem) Edges() []ent.Edge {
 			Ref("checklist_item"),
 		edge.From("cell_scan", SurveyCellScan.Type).
 			Ref("checklist_item"),
-		edge.From("work_order", WorkOrder.Type).
+		edge.From("check_list_category", CheckListCategory.Type).
+			Ref("check_list_items").
 			Unique().
-			Ref("check_list_items"),
+			Required(),
 	}
 }
 
-// Indexes returns CheckListItem type indexes.
-func (CheckListItem) Indexes() []ent.Index {
-	return []ent.Index{
-		index.Fields("title").
-			Edges("work_order").
-			Unique(),
-	}
+// Policy returns equipment port definition policy.
+func (CheckListItem) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithMutationRules(
+			authz.CheckListItemWritePolicyRule(),
+			authz.CheckListItemCreatePolicyRule(),
+		),
+	)
 }

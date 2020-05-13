@@ -16,12 +16,12 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/ent/checklistcategory"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
 	"github.com/facebookincubator/symphony/graph/ent/file"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/surveycellscan"
 	"github.com/facebookincubator/symphony/graph/ent/surveywifiscan"
-	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
 
 // CheckListItemQuery is the builder for querying CheckListItem entities.
@@ -33,11 +33,11 @@ type CheckListItemQuery struct {
 	unique     []string
 	predicates []predicate.CheckListItem
 	// eager-loading edges.
-	withFiles     *FileQuery
-	withWifiScan  *SurveyWiFiScanQuery
-	withCellScan  *SurveyCellScanQuery
-	withWorkOrder *WorkOrderQuery
-	withFKs       bool
+	withFiles             *FileQuery
+	withWifiScan          *SurveyWiFiScanQuery
+	withCellScan          *SurveyCellScanQuery
+	withCheckListCategory *CheckListCategoryQuery
+	withFKs               bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -121,17 +121,17 @@ func (cliq *CheckListItemQuery) QueryCellScan() *SurveyCellScanQuery {
 	return query
 }
 
-// QueryWorkOrder chains the current query on the work_order edge.
-func (cliq *CheckListItemQuery) QueryWorkOrder() *WorkOrderQuery {
-	query := &WorkOrderQuery{config: cliq.config}
+// QueryCheckListCategory chains the current query on the check_list_category edge.
+func (cliq *CheckListItemQuery) QueryCheckListCategory() *CheckListCategoryQuery {
+	query := &CheckListCategoryQuery{config: cliq.config}
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := cliq.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(checklistitem.Table, checklistitem.FieldID, cliq.sqlQuery()),
-			sqlgraph.To(workorder.Table, workorder.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, checklistitem.WorkOrderTable, checklistitem.WorkOrderColumn),
+			sqlgraph.To(checklistcategory.Table, checklistcategory.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, checklistitem.CheckListCategoryTable, checklistitem.CheckListCategoryColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(cliq.driver.Dialect(), step)
 		return fromU, nil
@@ -351,14 +351,14 @@ func (cliq *CheckListItemQuery) WithCellScan(opts ...func(*SurveyCellScanQuery))
 	return cliq
 }
 
-//  WithWorkOrder tells the query-builder to eager-loads the nodes that are connected to
-// the "work_order" edge. The optional arguments used to configure the query builder of the edge.
-func (cliq *CheckListItemQuery) WithWorkOrder(opts ...func(*WorkOrderQuery)) *CheckListItemQuery {
-	query := &WorkOrderQuery{config: cliq.config}
+//  WithCheckListCategory tells the query-builder to eager-loads the nodes that are connected to
+// the "check_list_category" edge. The optional arguments used to configure the query builder of the edge.
+func (cliq *CheckListItemQuery) WithCheckListCategory(opts ...func(*CheckListCategoryQuery)) *CheckListItemQuery {
+	query := &CheckListCategoryQuery{config: cliq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
-	cliq.withWorkOrder = query
+	cliq.withCheckListCategory = query
 	return cliq
 }
 
@@ -421,6 +421,9 @@ func (cliq *CheckListItemQuery) prepareQuery(ctx context.Context) error {
 		}
 		cliq.sql = prev
 	}
+	if err := checklistitem.Policy.EvalQuery(ctx, cliq); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -433,10 +436,10 @@ func (cliq *CheckListItemQuery) sqlAll(ctx context.Context) ([]*CheckListItem, e
 			cliq.withFiles != nil,
 			cliq.withWifiScan != nil,
 			cliq.withCellScan != nil,
-			cliq.withWorkOrder != nil,
+			cliq.withCheckListCategory != nil,
 		}
 	)
-	if cliq.withWorkOrder != nil {
+	if cliq.withCheckListCategory != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -550,16 +553,16 @@ func (cliq *CheckListItemQuery) sqlAll(ctx context.Context) ([]*CheckListItem, e
 		}
 	}
 
-	if query := cliq.withWorkOrder; query != nil {
+	if query := cliq.withCheckListCategory; query != nil {
 		ids := make([]int, 0, len(nodes))
 		nodeids := make(map[int][]*CheckListItem)
 		for i := range nodes {
-			if fk := nodes[i].work_order_check_list_items; fk != nil {
+			if fk := nodes[i].check_list_category_check_list_items; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
 		}
-		query.Where(workorder.IDIn(ids...))
+		query.Where(checklistcategory.IDIn(ids...))
 		neighbors, err := query.All(ctx)
 		if err != nil {
 			return nil, err
@@ -567,10 +570,10 @@ func (cliq *CheckListItemQuery) sqlAll(ctx context.Context) ([]*CheckListItem, e
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "work_order_check_list_items" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "check_list_category_check_list_items" returned %v`, n.ID)
 			}
 			for i := range nodes {
-				nodes[i].Edges.WorkOrder = n
+				nodes[i].Edges.CheckListCategory = n
 			}
 		}
 	}

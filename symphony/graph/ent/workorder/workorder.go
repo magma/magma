@@ -46,8 +46,6 @@ const (
 	EdgeProperties = "properties"
 	// EdgeCheckListCategories holds the string denoting the check_list_categories edge name in mutations.
 	EdgeCheckListCategories = "check_list_categories"
-	// EdgeCheckListItems holds the string denoting the check_list_items edge name in mutations.
-	EdgeCheckListItems = "check_list_items"
 	// EdgeProject holds the string denoting the project edge name in mutations.
 	EdgeProject = "project"
 	// EdgeOwner holds the string denoting the owner edge name in mutations.
@@ -120,13 +118,6 @@ const (
 	CheckListCategoriesInverseTable = "check_list_categories"
 	// CheckListCategoriesColumn is the table column denoting the check_list_categories relation/edge.
 	CheckListCategoriesColumn = "work_order_check_list_categories"
-	// CheckListItemsTable is the table the holds the check_list_items relation/edge.
-	CheckListItemsTable = "check_list_items"
-	// CheckListItemsInverseTable is the table name for the CheckListItem entity.
-	// It exists in this package in order to avoid circular dependency with the "checklistitem" package.
-	CheckListItemsInverseTable = "check_list_items"
-	// CheckListItemsColumn is the table column denoting the check_list_items relation/edge.
-	CheckListItemsColumn = "work_order_check_list_items"
 	// ProjectTable is the table the holds the project relation/edge.
 	ProjectTable = "work_orders"
 	// ProjectInverseTable is the table name for the Project entity.

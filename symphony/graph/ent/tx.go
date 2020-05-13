@@ -20,6 +20,8 @@ type Tx struct {
 	ActionsRule *ActionsRuleClient
 	// CheckListCategory is the client for interacting with the CheckListCategory builders.
 	CheckListCategory *CheckListCategoryClient
+	// CheckListCategoryDefinition is the client for interacting with the CheckListCategoryDefinition builders.
+	CheckListCategoryDefinition *CheckListCategoryDefinitionClient
 	// CheckListItem is the client for interacting with the CheckListItem builders.
 	CheckListItem *CheckListItemClient
 	// CheckListItemDefinition is the client for interacting with the CheckListItemDefinition builders.
@@ -161,6 +163,7 @@ func (tx *Tx) Client() *Client {
 func (tx *Tx) init() {
 	tx.ActionsRule = NewActionsRuleClient(tx.config)
 	tx.CheckListCategory = NewCheckListCategoryClient(tx.config)
+	tx.CheckListCategoryDefinition = NewCheckListCategoryDefinitionClient(tx.config)
 	tx.CheckListItem = NewCheckListItemClient(tx.config)
 	tx.CheckListItemDefinition = NewCheckListItemDefinitionClient(tx.config)
 	tx.Comment = NewCommentClient(tx.config)
