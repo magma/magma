@@ -508,7 +508,6 @@ int32_t spgw_handle_nw_initiated_bearer_deactv_req(
   }
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
 }
-#endif
 
 // Send ITTI message,S11_NW_INITIATED_DEACTIVATE_BEARER_REQUEST to mme_app
 static int32_t _spgw_build_and_send_s11_deactivate_bearer_req(

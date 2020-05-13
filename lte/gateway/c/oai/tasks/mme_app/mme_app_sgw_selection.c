@@ -53,15 +53,14 @@ extern mme_config_t mme_config;
 printf("Received SGW IP Address %p\n" , (void*)sgw_in_addr);
   OAILOG_DEBUG(
     LOG_MME_APP,
-    "SGW  returned %s\n",inet_ntoa(((struct sockaddr_in*)sgw_in_addr)->sin_addr));  
+    "SGW  returned %s\n",inet_ntoa(((struct sockaddr_in*)sgw_in_addr)->sin_addr));
   return;
-  
+
 OAILOG_WARNING(
     LOG_MME_APP, "Failed SGW lookup for TAI " TAI_FMT "\n", TAI_ARG(tai));
   ((struct sockaddr_in*)sgw_in_addr)->sin_addr.s_addr = 0;
   return;
 }
 
- 
-  
-  
+
+

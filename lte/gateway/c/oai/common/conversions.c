@@ -139,7 +139,7 @@ imsi64_t imsi_to_imsi64(const imsi_t *const imsi)
 }
 
 //-----------------------------------------------------------------------------
-void imsi_magma_to_oai_imsi(const Imsi_t  *Imsi, imsi_t *imsi) 
+void imsi_string_to_3gpp_imsi(const Imsi_t  *Imsi, imsi_t *imsi)
 {
 //uint8_t length = 0;
 //#define IMSI_BCD_DIGITS_MAX 15
@@ -177,10 +177,10 @@ imsi->u.num.digit15 = Imsi->digit[14] - 0x30;
                    }}
               }}
           }}
-      }} 
+      }}
   }
   imsi->length = Imsi->length;
-  }     
+  }
 
 
 /*

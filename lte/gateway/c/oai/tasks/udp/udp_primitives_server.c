@@ -512,7 +512,7 @@ static void *udp_intertask_interface(void *args_p) {
           {
             OAILOG_DEBUG (LOG_UDP, "Unknown address type");
           }
-          
+
         } break;
 
         default: {
@@ -536,7 +536,7 @@ static void *udp_intertask_interface(void *args_p) {
        * Now handle notifications for other sockets
        */
       udp_server_flush_sockets(events, nb_events);
-    
+
     }
   }
 

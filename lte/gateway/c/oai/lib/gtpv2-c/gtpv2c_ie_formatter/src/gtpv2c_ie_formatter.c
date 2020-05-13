@@ -651,7 +651,7 @@ gtpv2c_flow_qos_ie_set (
   /*
    * TODO: check endianness
    */
-  
+
   value[index++] = (flow_qos->mbr.br_ul & 0xFF00000000) >> 32;
   value[index++] = (flow_qos->mbr.br_ul & 0x00FF000000) >> 24;
   value[index++] = (flow_qos->mbr.br_ul & 0x0000FF0000) >> 16;
