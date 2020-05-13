@@ -18,7 +18,9 @@ const app = ExpressApplication();
 async function init() {
   const proxyTarget =
     process.env.PROXY_TARGET || 'http://conductor-server:8080';
-  const proxyRouter = await proxy(proxyTarget);
+  const schellarTarget = process.env.SCHELLAR_TARGET || 'http://schellar:3000';
+
+  const proxyRouter = await proxy(proxyTarget, schellarTarget);
 
   app.use('/', workflowRouter);
   app.use('/proxy', proxyRouter);
