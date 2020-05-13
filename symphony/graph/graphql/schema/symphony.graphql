@@ -1684,6 +1684,34 @@ type ProjectTypeEdge {
   cursor: Cursor!
 }
 
+"""
+A connection to a list of projects.
+"""
+type ProjectConnection {
+  """
+  A list of project edges.
+  """
+  edges: [ProjectEdge!]!
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+}
+
+"""
+A project edge in a connection.
+"""
+type ProjectEdge {
+  """
+  The project at the end of the edge.
+  """
+  node: Project
+  """
+  A cursor for use in pagination.
+  """
+  cursor: Cursor!
+}
+
 type Project implements Node {
   id: ID!
   name: String! @length(min: 1)
@@ -2703,6 +2731,12 @@ type Query {
     before: Cursor
     last: Int
   ): ProjectTypeConnection
+  projects(
+    after: Cursor
+    first: Int
+    before: Cursor
+    last: Int
+  ): ProjectConnection
   customers(
     after: Cursor
     first: Int
