@@ -197,7 +197,7 @@ input WorkforceCUDInput
 }
 
 type WorkforcePolicy {
-  read: BasicPermissionRule!
+  read: WorkforcePermissionRule!
   data: WorkforceCUD!
   templates: CUD!
 }
@@ -206,7 +206,7 @@ input WorkforcePolicyInput
   @goModel(
     model: "github.com/facebookincubator/symphony/graph/authz/models.WorkforcePolicyInput"
   ) {
-  read: BasicPermissionRuleInput
+  read: WorkforcePermissionRuleInput
   data: WorkforceCUDInput
   templates: BasicCUDInput
 }

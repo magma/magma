@@ -7332,7 +7332,7 @@ input WorkforceCUDInput
 }
 
 type WorkforcePolicy {
-  read: BasicPermissionRule!
+  read: WorkforcePermissionRule!
   data: WorkforceCUD!
   templates: CUD!
 }
@@ -7341,7 +7341,7 @@ input WorkforcePolicyInput
   @goModel(
     model: "github.com/facebookincubator/symphony/graph/authz/models.WorkforcePolicyInput"
   ) {
-  read: BasicPermissionRuleInput
+  read: WorkforcePermissionRuleInput
   data: WorkforceCUDInput
   templates: BasicCUDInput
 }
@@ -36640,9 +36640,9 @@ func (ec *executionContext) _WorkforcePolicy_read(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*models.BasicPermissionRule)
+	res := resTmp.(*models.WorkforcePermissionRule)
 	fc.Result = res
-	return ec.marshalNBasicPermissionRule2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐBasicPermissionRule(ctx, field.Selections, res)
+	return ec.marshalNWorkforcePermissionRule2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkforcePermissionRule(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _WorkforcePolicy_data(ctx context.Context, field graphql.CollectedField, obj *models.WorkforcePolicy) (ret graphql.Marshaler) {
@@ -42360,7 +42360,7 @@ func (ec *executionContext) unmarshalInputWorkforcePolicyInput(ctx context.Conte
 		switch k {
 		case "read":
 			var err error
-			it.Read, err = ec.unmarshalOBasicPermissionRuleInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋauthzᚋmodelsᚐBasicPermissionRuleInput(ctx, v)
+			it.Read, err = ec.unmarshalOWorkforcePermissionRuleInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋauthzᚋmodelsᚐWorkforcePermissionRuleInput(ctx, v)
 			if err != nil {
 				return it, err
 			}

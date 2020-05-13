@@ -629,9 +629,7 @@ export const initWorkforceRulesInput: (
   ?WorkforcePolicy,
 ) => WorkforcePolicyInput = (policyRules?: ?WorkforcePolicy) => {
   return {
-    read: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
-      policyRules?.read,
-    ),
+    read: wfPermissionPolicyBasicRule2wfPermissionRuleInput(policyRules?.read),
     data: permissionPolicyWFCUDRule2PermissionPolicyWFCUDRuleInput(
       policyRules?.data,
     ),

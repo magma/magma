@@ -34,7 +34,7 @@ func getInventoryPolicyInput() *models2.InventoryPolicyInput {
 
 func getWorkforcePolicyInput() *models2.WorkforcePolicyInput {
 	return &models2.WorkforcePolicyInput{
-		Read: &models2.BasicPermissionRuleInput{IsAllowed: models2.PermissionValueNo},
+		Read: &models2.WorkforcePermissionRuleInput{IsAllowed: models2.PermissionValueNo},
 		Data: &models2.WorkforceCUDInput{
 			Create: &models2.WorkforcePermissionRuleInput{IsAllowed: models2.PermissionValueYes},
 			Assign: &models2.WorkforcePermissionRuleInput{IsAllowed: models2.PermissionValueByCondition},

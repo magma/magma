@@ -942,9 +942,9 @@ type WorkforcePermissionRule struct {
 }
 
 type WorkforcePolicy struct {
-	Read      *BasicPermissionRule `json:"read"`
-	Data      *WorkforceCud        `json:"data"`
-	Templates *Cud                 `json:"templates"`
+	Read      *WorkforcePermissionRule `json:"read"`
+	Data      *WorkforceCud            `json:"data"`
+	Templates *Cud                     `json:"templates"`
 }
 
 func (WorkforcePolicy) IsSystemPolicy() {}
