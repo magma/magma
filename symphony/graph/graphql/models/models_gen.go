@@ -208,6 +208,7 @@ type AddUsersGroupInput struct {
 	Name        string  `json:"name"`
 	Description *string `json:"description"`
 	Members     []int   `json:"members"`
+	Policies    []int   `json:"policies"`
 }
 
 type AddWorkOrderInput struct {
@@ -394,6 +395,7 @@ type EditUsersGroupInput struct {
 	Description *string            `json:"description"`
 	Status      *usersgroup.Status `json:"status"`
 	Members     []int              `json:"members"`
+	Policies    []int              `json:"policies"`
 }
 
 type EditWorkOrderInput struct {
@@ -859,12 +861,6 @@ type TopologyLink struct {
 	Type   TopologyLinkType `json:"type"`
 	Source ent.Noder        `json:"source"`
 	Target ent.Noder        `json:"target"`
-}
-
-type UpdatePermissionsPoliciesInUsersGroupInput struct {
-	ID                         int   `json:"id"`
-	AddPermissionsPolicyIds    []int `json:"addPermissionsPolicyIds"`
-	RemovePermissionsPolicyIds []int `json:"removePermissionsPolicyIds"`
 }
 
 type UpdateUserGroupsInput struct {

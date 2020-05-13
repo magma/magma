@@ -34,26 +34,34 @@ func (usersGroupResolver) Policies(ctx context.Context, obj *ent.UsersGroup) ([]
 
 func (r mutationResolver) AddUsersGroup(ctx context.Context, input models.AddUsersGroupInput) (*ent.UsersGroup, error) {
 	client := r.ClientFrom(ctx)
-	g, err := client.UsersGroup.Create().
+	mutation := client.UsersGroup.Create().
 		SetName(input.Name).
 		SetNillableDescription(input.Description).
-		SetStatus(usersgroup.StatusACTIVE).
-		Save(ctx)
-	if ent.IsConstraintError(err) {
-		return nil, gqlerror.Errorf("A group with the name %s already exists", input.Name)
+		SetStatus(usersgroup.StatusACTIVE)
+	if input.Policies != nil {
+		mutation = mutation.AddPolicyIDs(input.Policies...)
 	}
-	return client.UsersGroup.UpdateOneID(g.ID).
-		AddMemberIDs(input.Members...).
-		Save(ctx)
+	if input.Members != nil {
+		mutation = mutation.AddMemberIDs(input.Members...)
+	}
+	usersGroup, err := mutation.Save(ctx)
+	if ent.IsConstraintError(err) {
+		return nil, fmt.Errorf("usersGroup with the given name already exists: %s", input.Name)
+	}
+	return usersGroup, err
 }
 
 func (r mutationResolver) EditUsersGroup(ctx context.Context, input models.EditUsersGroupInput) (*ent.UsersGroup, error) {
 	client := r.ClientFrom(ctx)
-	m := client.UsersGroup.UpdateOneID(input.ID).
+	ug, err := client.UsersGroup.Get(ctx, input.ID)
+	if err != nil {
+		return nil, fmt.Errorf("querying usersGroup %q: %w", input.ID, err)
+	}
+	mutation := client.UsersGroup.UpdateOneID(input.ID).
 		SetNillableDescription(input.Description).
 		SetNillableStatus(input.Status)
 	if input.Name != nil {
-		m = m.SetName(*input.Name)
+		mutation = mutation.SetName(*input.Name)
 	}
 	if input.Members != nil {
 		currentMembers, err := client.User.Query().
@@ -63,11 +71,21 @@ func (r mutationResolver) EditUsersGroup(ctx context.Context, input models.EditU
 			return nil, errors.Wrapf(err, "querying members of group %q", input.ID)
 		}
 		addedMembers, removedMembers := resolverutil.GetDifferenceBetweenSlices(currentMembers, input.Members)
-		m = m.
+		mutation = mutation.
 			AddMemberIDs(addedMembers...).
 			RemoveMemberIDs(removedMembers...)
 	}
-	g, err := m.Save(ctx)
+	if input.Policies != nil {
+		currentPolicies, err := client.UsersGroup.QueryPolicies(ug).IDs(ctx)
+		if err != nil {
+			return nil, errors.Wrapf(err, "querying policies of usersGroup %q", input.ID)
+		}
+		addPermissionsPolicyIds, removePermissionsPolicyIds := resolverutil.GetDifferenceBetweenSlices(currentPolicies, input.Policies)
+		mutation = mutation.
+			AddPolicyIDs(addPermissionsPolicyIds...).
+			RemovePolicyIDs(removePermissionsPolicyIds...)
+	}
+	g, err := mutation.Save(ctx)
 	if ent.IsConstraintError(err) {
 		return nil, gqlerror.Errorf("A group with the name %s already exists", *input.Name)
 	}
@@ -83,15 +101,4 @@ func (r mutationResolver) DeleteUsersGroup(ctx context.Context, id int) (bool, e
 		return false, fmt.Errorf("deleting users group: %w", err)
 	}
 	return true, nil
-}
-
-func (r mutationResolver) UpdatePermissionsPoliciesInUsersGroup(
-	ctx context.Context,
-	input models.UpdatePermissionsPoliciesInUsersGroupInput,
-) (*ent.UsersGroup, error) {
-
-	return r.ClientFrom(ctx).UsersGroup.UpdateOneID(input.ID).
-		AddPolicyIDs(input.AddPermissionsPolicyIds...).
-		RemovePolicyIDs(input.RemovePermissionsPolicyIds...).
-		Save(ctx)
 }

@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash fa5e1f7acc53cb966fd855e0b6f844ce
+ * @relayHash a29bc168362e56501e1b4bf4ec43fa42
  */
 
 /* eslint-disable */
@@ -20,6 +20,7 @@ export type AddUsersGroupInput = {|
   name: string,
   description?: ?string,
   members?: ?$ReadOnlyArray<string>,
+  policies?: ?$ReadOnlyArray<string>,
 |};
 export type AddUsersGroupMutationVariables = {|
   input: AddUsersGroupInput

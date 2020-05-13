@@ -339,6 +339,7 @@ input AddUsersGroupInput {
   name: String!
   description: String
   members: [ID!]
+  policies: [ID!]
 }
 
 input EditUsersGroupInput {
@@ -347,12 +348,7 @@ input EditUsersGroupInput {
   description: String
   status: UsersGroupStatus
   members: [ID!]
-}
-
-input UpdatePermissionsPoliciesInUsersGroupInput {
-  id: ID!
-  addPermissionsPolicyIds: [ID!]!
-  removePermissionsPolicyIds: [ID!]!
+  policies: [ID!]
 }
 
 input AddLocationInput {
@@ -2723,9 +2719,6 @@ type Mutation {
   addUsersGroup(input: AddUsersGroupInput!): UsersGroup!
   editUsersGroup(input: EditUsersGroupInput!): UsersGroup!
   updateUserGroups(input: UpdateUserGroupsInput!): User!
-  updatePermissionsPoliciesInUsersGroup(
-    input: UpdatePermissionsPoliciesInUsersGroupInput!
-  ): UsersGroup!
   deleteUsersGroup(id: ID!): Boolean!
   createSurvey(data: SurveyCreateData!): ID!
   addLocation(input: AddLocationInput!): Location!
