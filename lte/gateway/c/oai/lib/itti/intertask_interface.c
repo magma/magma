@@ -121,7 +121,7 @@ typedef struct thread_desc_s {
    * Number of events to monitor
    */
   uint16_t nb_events;
-  
+
   int epoll_nb_events;
 
   /*
@@ -700,34 +700,6 @@ void itti_receive_msg(task_id_t task_id, MessageDef** received_msg)
 
 itti_receive_msg_internal_event_fd(task_id, 0, received_msg);
 
-/*
-  n_read = read(
-    itti_desc.threads[thread_id].task_event_fd,
-    &sem_counter,
-    sizeof(sem_counter));
-  AssertFatal(
-    n_read == sizeof(sem_counter),
-    "Read from task message FD (%d) failed (%zu/%zu)!\n",
-    thread_id,
-    n_read,
-    sizeof(sem_counter));
-//
-  if (
-    lfds710_queue_bmm_dequeue(
-      &itti_desc.tasks[task_id].message_queue, NULL, (void**) &message) == 0) {
-    OAILOG_WARNING(
-      LOG_ITTI,
-      "No message in queue for task %d while there are %zu and some "
-      "for the messages queue!\n",
-      task_id,
-      sem_counter);
-  }
-*/
-  //AssertFatal(message != NULL, "Message from message queue is NULL!\n");
-
-  //*received_msg = message->msg;
-
-  //itti_free(ITTI_MSG_ORIGIN_ID(message->msg), message);
 }
 
 int itti_create_task(
@@ -898,7 +870,7 @@ int itti_init(
     }
 
     itti_desc.threads[thread_id].task_event_fd = eventfd(0, EFD_SEMAPHORE);
-    
+
     if (itti_desc.threads[thread_id].task_event_fd == -1) {
       Fatal("eventfd failed: %s!\n", strerror(errno));
     }

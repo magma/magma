@@ -9,9 +9,9 @@
 
 log_level: DEBUG
 s11_iface_name: "eth1"  # 's11_ip' will be filled automatically
-s11_sgw_iface_name: "eth1" 
+s11_sgw_iface_name: "eth1"
 s11_sgw_ip: "192.168.60.153" # 's11_sgw_ip' will be filled automatically
-s1ap_iface_name: "eth1" 
+s1ap_iface_name: "eth1"
 realm: "magma.com"
 conf_dir: "/var/opt/magma/tmp"
 cert_dir: "/usr/local/etc/oai"

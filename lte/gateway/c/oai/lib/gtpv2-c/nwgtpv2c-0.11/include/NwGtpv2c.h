@@ -488,7 +488,7 @@ nw_rc_t
 nwGtpv2cConfigSet( NW_IN nw_gtpv2c_stack_handle_t* phGtpcStackHandle, NW_IN nw_gtpv2c_stack_config_t* pConfig);
 
 
-#define T3_TIMER  10
+//#define T3_TIMER  10
 
 /**
  Get Configuration for the nw-gtpv2c stack.

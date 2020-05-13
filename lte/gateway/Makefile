@@ -20,7 +20,7 @@ FEATURES ?=   mme
 # together.
 EXCLUSIVE_FEATURE_LIST = mme agw_gtpnl agw_of
 # AVAILABLE_FEATURE_LIST : every feature not in this list will trigger an error.
-AVAILABLE_FEATURE_LIST = s6a_fd mme agw_gtpnl agw_of 
+AVAILABLE_FEATURE_LIST = s6a_fd mme agw_gtpnl agw_of
 REQUESTED_FEATURE_LIST = $(sort $(FEATURES))
 
 ifneq ($(words $(strip $(filter-out $(AVAILABLE_FEATURE_LIST),$(REQUESTED_FEATURE_LIST)))), 0)
@@ -36,7 +36,7 @@ endif
 MAIN_FEATURE = $(strip $(filter $(EXCLUSIVE_FEATURE_LIST),$(REQUESTED_FEATURE_LIST)))
 
 ifneq ($(words $(strip $(filter $(REQUESTED_FEATURE_LIST),s6a_fd))), 0)
-S6A_FLAGS = -DS6A_OVER_GRPC=False 
+S6A_FLAGS = -DS6A_OVER_GRPC=False
 else
 #default
 S6A_FLAGS = -DS6A_OVER_GRPC=True

@@ -5,7 +5,7 @@ include_directories(converged-mme/lte/gateway/c/oai/lib/gtpv2-c/nwgtpv2c-0.11/in
 include_directories(converged-mme/lte/gateway/c/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared)
 
 add_library(TASK_S11
-s11_mme_bearer_manager.c 
+s11_mme_bearer_manager.c
 s11_mme_session_manager.c
 s11_tasks.c
 s11_common.c

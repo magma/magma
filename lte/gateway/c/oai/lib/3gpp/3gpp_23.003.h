@@ -112,10 +112,10 @@ typedef struct imsi_s {
 
 #define IMSI_BCD_DIGITS_MAX 15
 typedef struct {
-  uint8_t digit   
+  uint8_t digit
      [IMSI_BCD_DIGITS_MAX + 1]; // +1 for '\0` macro sprintf changed in snprintf
   uint8_t length;
-  
+
  } Imsi_t;
 //------------------------------------------------------------------------------
 // 2.4 Structure of TMSI

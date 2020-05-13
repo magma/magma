@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
 #if EMBEDDED_SGW
   CHECK_INIT_RETURN(sgw_init(&spgw_config, mme_config.use_stateless));
 #else
-  CHECK_INIT_RETURN(udp_init());  
+  CHECK_INIT_RETURN(udp_init());
   CHECK_INIT_RETURN(s11_mme_init(&mme_config));
 #endif
   CHECK_INIT_RETURN(s1ap_mme_init(&mme_config));

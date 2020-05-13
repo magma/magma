@@ -2,9 +2,9 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
+ * except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -105,15 +105,7 @@ s11_mme_ulp_process_stack_req_cb (
         ret = s11_mme_handle_release_access_bearer_response (&s11_mme_stack_handle, pUlpApi);
         break;
 
-      //case NW_GTP_BEARER_RESOURCE_FAILURE_IND:
-        //ret = s11_mme_handle_bearer_resource_failure_indication (&s11_mme_stack_handle, pUlpApi);
-        //break;
-
-      //case NW_GTP_DELETE_BEARER_FAILURE_IND:
-       // ret = s11_mme_handle_delete_bearer_failure_indication (&s11_mme_stack_handle, pUlpApi);
-       // break;
-
-        default:
+         default:
         OAILOG_ERROR(LOG_S11, "Received unhandled TRIGGERED_RSP_IND message type %d\n", pUlpApi->u_api_info.triggeredRspIndInfo.msgType);
       }
       break;
@@ -124,14 +116,6 @@ s11_mme_ulp_process_stack_req_cb (
         case NW_GTP_CREATE_BEARER_REQ:
           ret = s11_mme_handle_create_bearer_request (&s11_mme_stack_handle, pUlpApi);
           break;
-
-       // case NW_GTP_UPDATE_BEARER_REQ:
-          //ret = s11_mme_handle_update_bearer_request (&s11_mme_stack_handle, pUlpApi);
-       //   break;
-
-        //case NW_GTP_DELETE_BEARER_REQ:
-          //ret = s11_mme_handle_delete_bearer_request (&s11_mme_stack_handle, pUlpApi);
-          //break;
 
         case NW_GTP_DOWNLINK_DATA_NOTIFICATION:
           ret = s11_mme_handle_downlink_data_notification (&s11_mme_stack_handle, pUlpApi);
@@ -242,16 +226,6 @@ s11_mme_thread (
     }
     break;
 
-    //case S11_UPDATE_BEARER_RESPONSE:{
-    	//s11_mme_update_bearer_response(&s11_mme_stack_handle, &received_message_p->ittiMsg.s11_update_bearer_response);
-    //}
-    //break;
-
-    //case S11_DELETE_BEARER_RESPONSE:{
-    //	s11_mme_delete_bearer_response (&s11_mme_stack_handle, &received_message_p->ittiMsg.s11_delete_bearer_response);
-   // }
-   // break;
-
     case S11_CREATE_SESSION_REQUEST:{
            s11_mme_create_session_request (&s11_mme_stack_handle, &received_message_p->ittiMsg.s11_create_session_request);
     }
@@ -261,16 +235,11 @@ s11_mme_thread (
             s11_mme_delete_session_request (&s11_mme_stack_handle, &received_message_p->ittiMsg.s11_delete_session_request);
     }
     break;
-        
+
     case S11_DELETE_BEARER_COMMAND:{
             s11_mme_delete_bearer_command (&s11_mme_stack_handle, &received_message_p->ittiMsg.s11_delete_bearer_command);
     }
     break;
-
-    //case S11_BEARER_RESOURCE_COMMAND:{
-           // s11_mme_bearer_resource_command(&s11_mme_stack_handle, &received_message_p->ittiMsg.s11_bearer_resource_command);
-    //}
-    //break;
 
     case S11_MODIFY_BEARER_REQUEST:{
             s11_mme_modify_bearer_request (&s11_mme_stack_handle, &received_message_p->ittiMsg.s11_modify_bearer_request);
@@ -310,7 +279,7 @@ s11_mme_thread (
             udp_data_ind = &received_message_p->ittiMsg.udp_data_ind;
             rc = nwGtpv2cProcessUdpReq (s11_mme_stack_handle,
             		udp_data_ind->msgBuf, udp_data_ind->buffer_length,
-    				udp_data_ind->local_port, udp_data_ind->peer_port,    				
+    				udp_data_ind->local_port, udp_data_ind->peer_port,
             (struct sockaddr *)&udp_data_ind->sock_addr);
             DevAssert (rc == NW_OK);
     }

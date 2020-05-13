@@ -354,8 +354,8 @@ int mme_config_parse_file(mme_config_t *config_pP)
   setting_mme = config_lookup(&cfg, MME_CONFIG_STRING_MME_CONFIG);
 
   if (setting_mme != NULL) {
-//OAILOG_DEBUG("reading mme config")    
-         
+//OAILOG_DEBUG("reading mme config")
+
     // LOGGING setting
     setting = config_setting_get_member(setting_mme, LOG_CONFIG_STRING_LOGGING);
 
@@ -1169,17 +1169,17 @@ int mme_config_parse_file(mme_config_t *config_pP)
         config_pP->sgs_config.ts13_sec = (uint8_t) aint;
       }
     }
-  
+
   // S-GW Setting
-  setting =  
+  setting =
      config_setting_get_member(setting_mme, MME_CONFIG_STRING_SGW_CONFIG);
 
      if (setting != NULL) {
-     if ((config_setting_lookup_string(setting,SGW_CONFIG_STRING_SGW_IPV4_ADDRESS_FOR_S11,(const char **) &sgw_ip_address_for_s11))) 
+     if ((config_setting_lookup_string(setting,SGW_CONFIG_STRING_SGW_IPV4_ADDRESS_FOR_S11,(const char **) &sgw_ip_address_for_s11)))
                            {
-         
+
           OAILOG_DEBUG ( LOG_MME_APP, "sgw interface IP information %s\n", sgw_ip_address_for_s11);
-          
+
             IPV4_STR_ADDR_TO_INADDR(
             sgw_ip_address_for_s11,
             config_pP->e_dns_emulation.sgw_ip_addr[0],
@@ -1191,7 +1191,7 @@ int mme_config_parse_file(mme_config_t *config_pP)
             inet_ntoa(config_pP->e_dns_emulation.sgw_ip_addr[0]));
         }
      }
-  
+
   }
 
 
@@ -1350,13 +1350,13 @@ void mme_config_display(mme_config_t *config_pP)
     inet_ntoa(*((struct in_addr *) &config_pP->ip.s11_mme_v4)));
 
   if (config_pP->e_dns_emulation.sgw_ip_addr[0].s_addr == AF_INET) {
-    
+
       OAILOG_INFO(LOG_CONFIG, " Address : %s\n", inet_ntoa(*((struct in_addr *) &config_pP->e_dns_emulation.sgw_ip_addr[0].s_addr)));
 
     } else if (config_pP->e_dns_emulation.sgw_ip_addr[0].s_addr == AF_INET6) {
       char strv6[16];
       OAILOG_INFO(LOG_CONFIG, " Address : %s\n", inet_ntop(AF_INET6, &config_pP->e_dns_emulation.sgw_ip_addr[0].s_addr, strv6, 16));
-    } else {  
+    } else {
       OAILOG_INFO(LOG_CONFIG,"  Address : Unknown address family %d\n", config_pP->e_dns_emulation.sgw_ip_addr[0].s_addr);
     }
 
@@ -1621,19 +1621,19 @@ int mme_config_parse_opt_line(int argc, char *argv[], mme_config_t *config_pP)
           PACKAGE_VERSION,
           PACKAGE_BUGREPORT);
       } break;
-      
+
       case 's': {
        OAI_FPRINTF_INFO(
            "Ignoring command line option s as there is no embedded sgw \n");
       } break;
 
       case 'h': /* Fall through */
-    
+
       default:
         OAI_FPRINTF_ERR("Unknown command line option %c\n", c);
         usage(argv[0]);
         exit(0);
-            
+
     }
   }
 
@@ -1651,7 +1651,7 @@ int mme_config_parse_opt_line(int argc, char *argv[], mme_config_t *config_pP)
    * Display the configuration
    */
   mme_config_display(config_pP);
-  
+
   return 0;
 }
 

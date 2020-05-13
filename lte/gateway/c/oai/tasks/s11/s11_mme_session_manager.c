@@ -2,9 +2,9 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
+ * except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -70,7 +70,7 @@ s11_mme_create_session_request (
   nw_gtpv2c_ulp_api_t                         ulp_req;
   nw_rc_t                                     rc;
   uint8_t                                     restart_counter = 0;
-  
+
   OAILOG_FUNC_IN (LOG_S11);
 
 
@@ -83,14 +83,14 @@ s11_mme_create_session_request (
    */
   rc = nwGtpv2cMsgNew (*stack_p, true, NW_GTP_CREATE_SESSION_REQ, req_p->teid, 0, &(ulp_req.hMsg));
   /** Will stay in stack until its copied into trx and sent to UE. */
-    
+
   ulp_req.u_api_info.initialReqInfo.edns_peer_ip = (struct sockaddr*)&req_p->edns_peer_ip;
-  
+
   //OAILOG_DEBUG(LOG_S11, "ends peer ip address %p\n", (struct sockaddr*)edns_peer_ip);
   ulp_req.u_api_info.initialReqInfo.teidLocal  = req_p->sender_fteid_for_cp.teid;
   ulp_req.u_api_info.initialReqInfo.hUlpTunnel = 0;
   ulp_req.u_api_info.initialReqInfo.hTunnel    = 0;
-  
+
    /*
    * Add recovery if contacting the peer for the first time
    */
@@ -99,14 +99,14 @@ s11_mme_create_session_request (
   /*
    * Putting the information Elements
    */
- 
+
   //imsi64_t imsi64 = INVALID_IMSI64;
   imsi_t imsi ;
   //Imsi_t Imsi ;
   //IMSI_STRING_TO_IMSI64((char*)req_p->imsi.IMSI, &imsi64);
  //OAILOG_DEBUG(LOG_S1AP, "Received MESSAGE before\n");
-  imsi_magma_to_oai_imsi(&req_p->imsi, &imsi);
-   //OAILOG_DEBUG(LOG_S1AP, "Received MESSAGE after\n"); 
+  imsi_string_to_3gpp_imsi(&req_p->imsi, &imsi);
+   //OAILOG_DEBUG(LOG_S1AP, "Received MESSAGE after\n");
   gtpv2c_imsi_ie_set (&(ulp_req.hMsg), &imsi);
   gtpv2c_uli_ie_set (&(ulp_req.hMsg), &req_p->uli);
   gtpv2c_rat_type_ie_set (&(ulp_req.hMsg), &req_p->rat_type);
@@ -156,7 +156,7 @@ s11_mme_create_session_request (
   }
 
   gtpv2c_selection_mode_ie_set(&(ulp_req.hMsg), &req_p->selection_mode);
-  
+
   gtpv2c_serving_network_ie_set (&(ulp_req.hMsg), &req_p->serving_network);
   if(req_p->pco.num_protocol_or_container_id){
     gtpv2c_pco_ie_set (&(ulp_req.hMsg), &req_p->pco);
@@ -548,31 +548,31 @@ s11_mme_handle_ulp_error_indicatior(
    }
      break;
        /** Failed commands. */
-  
-  
+
+
   //case NW_GTP_DELETE_BEARER_CMD:
   //{
     /**
      * We will omit the error and send success back.
      * UE context should always be removed.
-     
-    
+
+
     itti_s11_delete_bearer_failure_indication_t            *ind_p;
     message_p = itti_alloc_new_message (TASK_S11, S11_DELETE_BEARER_FAILURE_INDICATION);
     ind_p = &message_p->ittiMsg.s11_delete_bearer_failure_indication;
-     Set the destination TEID (our TEID). 
-    
+     Set the destination TEID (our TEID).
+
     //ind_p->teid = pUlpApi->u_api_info.rspFailureInfo.teidLocal;
-    //Set the transaction for the triggered acknowledgment. 
-    
+    //Set the transaction for the triggered acknowledgment.
+
     //ind_p->trxn = (void *)pUlpApi->u_api_info.rspFailureInfo.hUlpTrxn;
-    //Set the cause. 
- 
-    //ind_p->cause.cause_value = SYSTEM_FAILURE; < Would mean that this message either did not come at all or could not be dealt with properly. 
+    //Set the cause.
+
+    //ind_p->cause.cause_value = SYSTEM_FAILURE; < Would mean that this message either did not come at all or could not be dealt with properly.
   //}
   //break;
 
-  // Failed commands --> Send to NAS_ESM layer.. 
+  // Failed commands --> Send to NAS_ESM layer..
   //case NW_GTP_BEARER_RESOURCE_CMD:
   //{
 	  /
@@ -592,7 +592,7 @@ s11_mme_handle_ulp_error_indicatior(
      // ind_p->cause.cause_value = SYSTEM_FAILURE; /**< Would mean that this message either did not come at all or could not be dealt with properly. */
  // }
   /** Send this one directly to the ESM. */
-  
+
   int rc = itti_send_msg_to_task (TASK_NAS_ESM, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN (LOG_S11, rc);
 

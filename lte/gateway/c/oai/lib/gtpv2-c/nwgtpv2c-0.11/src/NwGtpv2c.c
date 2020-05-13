@@ -529,7 +529,7 @@ static nw_rc_t nwGtpv2cCreateLocalTunnel (
     } else  {
     	inet_ntop (AF_INET6, &((struct sockaddr_in6*)fa)->sin6_addr, ip, INET6_ADDRSTRLEN);
         OAILOG_DEBUG (LOG_GTPV2C, "Creating local tunnel with teid '0x%x' and peer IPv6 %s\n", teid, ip);
-       
+
    }
 
     OAILOG_FUNC_IN (LOG_GTPV2C);
@@ -616,9 +616,9 @@ static nw_rc_t nwGtpv2cCreateLocalTunnel (
 
         memcpy(((struct sockaddr*)&keyTunnel.ipAddrRemote), pUlpReq->u_api_info.initialReqInfo.edns_peer_ip,
         		pUlpReq->u_api_info.initialReqInfo.edns_peer_ip->sa_family==AF_INET ? sizeof(struct sockaddr_in) : sizeof(struct sockaddr_in6));
- 
+
         //OAILOG_DEBUG (LOG_GTPV2C, "peer IP information %s\n", edns_peer_ip);
- 
+
         pLocalTunnel = RB_FIND (NwGtpv2cTunnelMap, &(thiz->tunnelMap), &keyTunnel);
         if (!pLocalTunnel) {
           pLocalTunnel = RB_MIN (NwGtpv2cTunnelMap, &(thiz->tunnelMap));
@@ -633,7 +633,7 @@ static nw_rc_t nwGtpv2cCreateLocalTunnel (
       pTrxn->hTunnel   = pUlpReq->u_api_info.initialReqInfo.hTunnel;
       pTrxn->hUlpTrxn  = pUlpReq->u_api_info.initialReqInfo.hUlpTrxn;
       /** This will stay. */
-      
+
       memcpy((void*)&pTrxn->peer_ip, pUlpReq->u_api_info.initialReqInfo.edns_peer_ip,
     		  (pUlpReq->u_api_info.initialReqInfo.edns_peer_ip->sa_family == AF_INET) ? sizeof(struct sockaddr_in) : sizeof(struct sockaddr_in6));
 
@@ -654,7 +654,7 @@ static nw_rc_t nwGtpv2cCreateLocalTunnel (
       OAILOG_DEBUG (LOG_GTPV2C, "peer IP information %s\n", peer_ip);
 
       rc = nwGtpv2cCreateAndSendMsg (thiz, pTrxn->seqNum, 0, (struct sockaddr *)&pTrxn->peer_ip, pTrxn->peerPort, pTrxn->pMsg); /**< Send it from the socket with the high port. */
-      
+
       if (NW_OK == rc) {
         /*
          * Start guard timer
@@ -1610,7 +1610,7 @@ static nw_rc_t                            nwGtpv2cHandleUlpFindLocalTunnel (
   NW_IN uint32_t udpDataLen,
   NW_IN uint16_t localPort,
   NW_IN uint16_t peerPort,
-  NW_IN struct sockaddr *peerIp) 
+  NW_IN struct sockaddr *peerIp)
   {
     nw_rc_t                                   rc = NW_FAILURE;
     nw_gtpv2c_stack_t                         *thiz = NULL;
