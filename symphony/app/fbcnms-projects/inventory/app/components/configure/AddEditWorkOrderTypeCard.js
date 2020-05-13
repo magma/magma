@@ -8,7 +8,6 @@
  * @format
  */
 
-import type {PropertyType} from '../../common/PropertyType';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WorkOrderType} from '../../common/WorkOrder';
 
@@ -16,9 +15,10 @@ import Breadcrumbs from '@fbcnms/ui/components/Breadcrumbs';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import DeleteOutlineIcon from '@material-ui/icons/DeleteOutline';
 import ExpandingPanel from '@fbcnms/ui/components/ExpandingPanel';
+import ExperimentalPropertyTypesTable from '../form/ExperimentalPropertyTypesTable';
 import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import NameDescriptionSection from '@fbcnms/ui/components/NameDescriptionSection';
-import PropertyTypeTable from '../form/PropertyTypeTable';
+import PropertyTypesTableDispatcher from '../form/context/property_types/PropertyTypesTableDispatcher';
 import React, {useCallback, useState} from 'react';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
 import fbt from 'fbt';
@@ -30,9 +30,8 @@ import {deleteWorkOrderType} from '../../mutations/RemoveWorkOrderTypeMutation';
 import {editWorkOrderType} from '../../mutations/EditWorkOrderTypeMutation';
 import {generateTempId, isTempId} from '../../common/EntUtils';
 import {makeStyles} from '@material-ui/styles';
-import {sortByIndex} from '../draggable/DraggableUtils';
-import {toMutablePropertyType} from '../../common/PropertyType';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {usePropertyTypesReducer} from '../form/context/property_types/PropertyTypesTableState';
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -90,11 +89,12 @@ const AddEditWorkOrderTypeCard = ({
     name: workOrderType?.name ?? '',
     description: workOrderType?.description,
     numberOfWorkOrders: workOrderType?.numberOfWorkOrders ?? 0,
-    propertyTypes: (workOrderType?.propertyTypes ?? [])
-      .filter(Boolean)
-      .map(toMutablePropertyType),
+    propertyTypes: [],
   });
   const [isSaving, setIsSaving] = useState(false);
+  const [propertyTypes, propertyTypesDispatcher] = usePropertyTypesReducer(
+    workOrderType?.propertyTypes ?? [],
+  );
   const enqueueSnackbar = useEnqueueSnackbar();
 
   const onDelete = useCallback(() => {
@@ -119,19 +119,14 @@ const AddEditWorkOrderTypeCard = ({
       description,
     }));
 
-  const propertyChangedHandler = (propertyTypes: Array<PropertyType>) =>
-    setEditingWorkOrderType(prevWorkOrderType => ({
-      ...prevWorkOrderType,
-      propertyTypes,
-    }));
-
   const onSaveClicked = () => {
     setIsSaving(true);
+    const workOrderToSave = {...editingWorkOrderType, propertyTypes};
     const saveAction = isTempId(editingWorkOrderType.id)
       ? addWorkOrderType
       : editWorkOrderType;
-    saveAction(editingWorkOrderType)
-      .then(() => onSave(editingWorkOrderType))
+    saveAction(workOrderToSave)
+      .then(() => onSave(workOrderToSave))
       .catch((error: Error) =>
         enqueueSnackbar(error.message, {
           children: key => (
@@ -142,9 +137,6 @@ const AddEditWorkOrderTypeCard = ({
       .finally(() => setIsSaving(false));
   };
 
-  const propertyTypes = editingWorkOrderType.propertyTypes
-    .slice()
-    .sort(sortByIndex);
   return (
     <FormContextProvider>
       <div className={classes.root}>
@@ -207,11 +199,13 @@ const AddEditWorkOrderTypeCard = ({
             />
           </ExpandingPanel>
           <ExpandingPanel title="Properties">
-            <PropertyTypeTable
-              supportDelete={true}
-              propertyTypes={propertyTypes}
-              onPropertiesChanged={propertyChangedHandler}
-            />
+            <PropertyTypesTableDispatcher.Provider
+              value={propertyTypesDispatcher}>
+              <ExperimentalPropertyTypesTable
+                supportDelete={true}
+                propertyTypes={propertyTypes}
+              />
+            </PropertyTypesTableDispatcher.Provider>
           </ExpandingPanel>
         </div>
       </div>
