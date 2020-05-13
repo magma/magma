@@ -11,6 +11,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/facebookincubator/symphony/graph/ent/user"
+	"github.com/facebookincubator/symphony/graph/graphgrpc/schema"
 	"github.com/facebookincubator/symphony/pkg/actions"
 	"github.com/facebookincubator/symphony/pkg/actions/core"
 	"github.com/facebookincubator/symphony/pkg/actions/executor"
@@ -34,7 +35,7 @@ func NewActionsAlertService(provider ActionsProvider) ActionsAlertService {
 }
 
 // Receive an alert payload and execute the triggered actions
-func (s ActionsAlertService) Trigger(ctx context.Context, payload *AlertPayload) (*ExecutionResult, error) {
+func (s ActionsAlertService) Trigger(ctx context.Context, payload *schema.AlertPayload) (*schema.ExecutionResult, error) {
 	triggerPayload := make(map[string]interface{})
 	triggerPayload["networkID"] = payload.NetworkID
 	for key, val := range payload.Labels {
@@ -44,28 +45,28 @@ func (s ActionsAlertService) Trigger(ctx context.Context, payload *AlertPayload)
 
 	client, err := s.actionsProvider(ctx, payload.TenantID)
 	if err != nil {
-		return &ExecutionResult{}, status.Error(codes.Internal, "error getting tenant client")
+		return &schema.ExecutionResult{}, status.Error(codes.Internal, "error getting tenant client")
 	}
 	ctx, err = CreateServiceContext(ctx, payload.TenantID, ActionsAlertServiceName, user.RoleOWNER)
 	if err != nil {
-		return &ExecutionResult{}, status.Error(codes.Internal, "error getting service context")
+		return &schema.ExecutionResult{}, status.Error(codes.Internal, "error getting service context")
 	}
 	res := client.Execute(ctx, "", idToPayload)
 
 	return executorResultToMessage(res), nil
 }
 
-func executorResultToMessage(res executor.ExecutionResult) *ExecutionResult {
+func executorResultToMessage(res executor.ExecutionResult) *schema.ExecutionResult {
 	var successStrings []string
 	for _, id := range res.Successes {
 		successStrings = append(successStrings, string(id))
 	}
-	var errors []*ExecutionError
+	var errors []*schema.ExecutionError
 	for _, err := range res.Errors {
-		errors = append(errors, &ExecutionError{Id: string(err.ID), Err: err.Error})
+		errors = append(errors, &schema.ExecutionError{Id: string(err.ID), Err: err.Error})
 	}
 
-	return &ExecutionResult{
+	return &schema.ExecutionResult{
 		Successes: successStrings,
 		Errors:    errors,
 	}

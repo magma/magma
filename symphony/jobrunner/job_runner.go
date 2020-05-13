@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/facebookincubator/symphony/graph/graphgrpc/schema"
 	"github.com/golang/protobuf/ptypes/empty"
 	"google.golang.org/grpc"
 )
@@ -21,7 +22,7 @@ const (
 	jobsURL  = "http://graph/jobs"
 )
 
-func getTenantList(client TenantServiceClient) []string {
+func getTenantList(client schema.TenantServiceClient) []string {
 	var tenantNames []string
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -68,7 +69,7 @@ func RunJobOnAllTenants(jobs ...string) {
 		log.Fatalf("fail to dial: %v", err)
 	}
 	defer conn.Close()
-	client := NewTenantServiceClient(conn)
+	client := schema.NewTenantServiceClient(conn)
 	tenants := getTenantList(client)
 	for _, tenant := range tenants {
 		for _, job := range jobs {

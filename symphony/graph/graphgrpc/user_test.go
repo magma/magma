@@ -14,6 +14,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/enttest"
 	"github.com/facebookincubator/symphony/graph/ent/migrate"
 	"github.com/facebookincubator/symphony/graph/ent/user"
+	"github.com/facebookincubator/symphony/graph/graphgrpc/schema"
 	"github.com/facebookincubator/symphony/pkg/testdb"
 
 	"github.com/stretchr/testify/require"
@@ -37,15 +38,15 @@ func TestUserService_Create(t *testing.T) {
 	us := NewUserService(func(context.Context, string) (*ent.Client, error) { return client, nil })
 	ctx := authz.NewContext(context.Background(), authz.AdminPermissions())
 
-	u, err := us.Create(ctx, &AddUserInput{Tenant: "", Id: "XXX", IsOwner: false})
+	u, err := us.Create(ctx, &schema.AddUserInput{Tenant: "", Id: "XXX", IsOwner: false})
 	require.Nil(t, u)
 	require.IsType(t, codes.InvalidArgument, status.Code(err))
 
-	u, err = us.Create(ctx, &AddUserInput{Tenant: "XXX", Id: "", IsOwner: false})
+	u, err = us.Create(ctx, &schema.AddUserInput{Tenant: "XXX", Id: "", IsOwner: false})
 	require.Nil(t, u)
 	require.IsType(t, codes.InvalidArgument, status.Code(err))
 
-	u, err = us.Create(ctx, &AddUserInput{Tenant: "XXX", Id: "YYY", IsOwner: false})
+	u, err = us.Create(ctx, &schema.AddUserInput{Tenant: "XXX", Id: "YYY", IsOwner: false})
 	require.NoError(t, err)
 	userObject, err := client.User.Get(ctx, int(u.Id))
 	require.NoError(t, err)
@@ -60,13 +61,13 @@ func TestUserService_Delete(t *testing.T) {
 	u := client.User.Create().SetAuthID("YYY").SaveX(ctx)
 	require.Equal(t, user.StatusACTIVE, u.Status)
 
-	_, err := us.Delete(ctx, &UserInput{Tenant: "", Id: "YYY"})
+	_, err := us.Delete(ctx, &schema.UserInput{Tenant: "", Id: "YYY"})
 	require.IsType(t, codes.InvalidArgument, status.Code(err))
 
-	_, err = us.Delete(ctx, &UserInput{Tenant: "XXX", Id: ""})
+	_, err = us.Delete(ctx, &schema.UserInput{Tenant: "XXX", Id: ""})
 	require.IsType(t, codes.InvalidArgument, status.Code(err))
 
-	_, err = us.Delete(ctx, &UserInput{Tenant: "XXX", Id: "YYY"})
+	_, err = us.Delete(ctx, &schema.UserInput{Tenant: "XXX", Id: "YYY"})
 	require.NoError(t, err)
 	newU, err := client.User.Get(ctx, u.ID)
 	require.NoError(t, err)
@@ -80,10 +81,10 @@ func TestUserService_CreateAfterDelete(t *testing.T) {
 	u := client.User.Create().SetAuthID("YYY").SaveX(ctx)
 	require.Equal(t, user.StatusACTIVE, u.Status)
 
-	_, err := us.Delete(ctx, &UserInput{Tenant: "XXX", Id: "YYY"})
+	_, err := us.Delete(ctx, &schema.UserInput{Tenant: "XXX", Id: "YYY"})
 	require.NoError(t, err)
 
-	_, err = us.Create(ctx, &AddUserInput{Tenant: "XXX", Id: "YYY", IsOwner: true})
+	_, err = us.Create(ctx, &schema.AddUserInput{Tenant: "XXX", Id: "YYY", IsOwner: true})
 	require.NoError(t, err)
 	userObject, err := client.User.Get(ctx, u.ID)
 	require.NoError(t, err)
@@ -98,12 +99,12 @@ func TestUserService_CreateGroup(t *testing.T) {
 	exist, err := client.UsersGroup.Query().Exist(ctx)
 	require.NoError(t, err)
 	require.False(t, exist)
-	_, err = us.Create(ctx, &AddUserInput{Tenant: "XXX", Id: "YYY", IsOwner: false})
+	_, err = us.Create(ctx, &schema.AddUserInput{Tenant: "XXX", Id: "YYY", IsOwner: false})
 	require.NoError(t, err)
 	count, err := client.UsersGroup.Query().Count(ctx)
 	require.NoError(t, err)
 	require.Equal(t, 1, count)
-	_, err = us.Create(ctx, &AddUserInput{Tenant: "XXX", Id: "YYY2", IsOwner: false})
+	_, err = us.Create(ctx, &schema.AddUserInput{Tenant: "XXX", Id: "YYY2", IsOwner: false})
 	require.NoError(t, err)
 	count, err = client.UsersGroup.Query().Count(ctx)
 	require.NoError(t, err)
