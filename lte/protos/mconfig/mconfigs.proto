@@ -192,6 +192,11 @@ message MME {
     // DEPRECATED
     // Use relay_enabled instead
     // bool s6a_relay_enabled = 13;
+
+    // Primary DNS server
+    string dns_primary = 20;
+    // Secondary DNS server
+    string dns_secondary = 21;
 }
 
 

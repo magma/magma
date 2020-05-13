@@ -75,6 +75,12 @@ const meQuery = graphql`
             isAllowed
           }
         }
+        inventoryPolicy {
+          ...UserManagementUtils_inventoryPolicy @relay(mask: false)
+        }
+        workforcePolicy {
+          ...UserManagementUtils_workforcePolicy @relay(mask: false)
+        }
       }
     }
   }

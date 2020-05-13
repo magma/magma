@@ -12,13 +12,20 @@ import (
 var (
 	// prePolicy is executed before privacy policy.
 	prePolicy = privacy.Policy{
+		Query: privacy.QueryPolicy{
+			AlwaysDenyQueryIfNoPermissionRule(),
+			AllowReadPermissionsRule(),
+		},
 		Mutation: privacy.MutationPolicy{
-			AlwaysDenyIfNoPermissionRule(),
+			AlwaysDenyMutationIfNoPermissionRule(),
 		},
 	}
 
 	// postPolicy is executed after privacy policy.
 	postPolicy = privacy.Policy{
+		Query: privacy.QueryPolicy{
+			privacy.AlwaysAllowRule(),
+		},
 		Mutation: privacy.MutationPolicy{
 			AllowWritePermissionsRule(),
 			privacy.AlwaysDenyRule(),

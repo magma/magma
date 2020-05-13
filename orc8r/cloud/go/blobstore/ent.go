@@ -25,6 +25,13 @@ import (
 	"github.com/thoas/go-funk"
 )
 
+// NewEntStorage returns an ent-based implementation of blobstore.
+//
+// Note: due to constraints on how we use the ent-generated code across
+// multiple tables, only one ent storage object can exist per process.
+// As a result:
+//	- DO NOT use more than one ent storage (table name) per service
+//	- DO NOT use ent as the backing store for test services
 func NewEntStorage(tableName string, db *sql.DB, builder sqorc.StatementBuilder) BlobStorageFactory {
 	dialect, ok := os.LookupEnv("SQL_DRIVER")
 	if !ok {

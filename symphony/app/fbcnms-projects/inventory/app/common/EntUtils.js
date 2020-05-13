@@ -12,6 +12,7 @@ import shortid from 'shortid';
 
 type EntWithID = $ReadOnly<{
   id?: ?string,
+  ...
 }>;
 
 export type NamedNode = {id: string, name: string};

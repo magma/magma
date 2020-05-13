@@ -2,7 +2,13 @@ import React from "react";
 import { Label } from "semantic-ui-react";
 import { wfLabelsColor } from "../constants";
 
-const WfLabels = props => {
+type Props = {
+  index: number,
+  search: () => void,
+  label: string
+};
+
+const WfLabels = (props: Props) => {
   let color =
     props.index >= wfLabelsColor.length
       ? wfLabelsColor[0]
@@ -16,7 +22,7 @@ const WfLabels = props => {
       circular
       size="tiny"
       style={{ backgroundColor: color, color: "white" }}
-      {...props}
+      {...(props: any)}
     >
       <p>{props.label}</p>
     </Label>

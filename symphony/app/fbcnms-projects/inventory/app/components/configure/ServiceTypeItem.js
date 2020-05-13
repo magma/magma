@@ -55,11 +55,7 @@ class ServiceTypeItem extends React.Component<Props> {
               instanceNameSingular="service"
               instanceNamePlural="services"
               onDelete={this.onDelete}
-              allowDelete={
-                serviceType.discoveryMethod == 'MANUAL'
-                  ? serviceType.numberOfServices == 0
-                  : true
-              }
+              allowDelete={true}
               onEdit={onEdit}
             />
           </ExpansionPanelSummary>
@@ -84,11 +80,7 @@ class ServiceTypeItem extends React.Component<Props> {
   }
 
   onDelete = () => {
-    const {serviceType} = this.props;
-    const msg =
-      serviceType.discoveryMethod == 'MANUAL'
-        ? `Are you sure you want to delete "${this.props.serviceType.name}"?`
-        : `Are you sure you want to delete "${this.props.serviceType.name}"? The service type, and all it's instances will be deleted soon, in the background`;
+    const msg = `Are you sure you want to delete "${this.props.serviceType.name}"? The service type, and all it's instances will be deleted soon, in the background`;
     this.props.confirm(msg).then(confirm => {
       if (!confirm) {
         return;

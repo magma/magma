@@ -197,7 +197,7 @@ input WorkforceCUDInput
 }
 
 type WorkforcePolicy {
-  read: BasicPermissionRule!
+  read: WorkforcePermissionRule!
   data: WorkforceCUD!
   templates: CUD!
 }
@@ -206,7 +206,7 @@ input WorkforcePolicyInput
   @goModel(
     model: "github.com/facebookincubator/symphony/graph/authz/models.WorkforcePolicyInput"
   ) {
-  read: BasicPermissionRuleInput
+  read: WorkforcePermissionRuleInput
   data: WorkforceCUDInput
   templates: BasicCUDInput
 }
@@ -339,6 +339,7 @@ input AddUsersGroupInput {
   name: String!
   description: String
   members: [ID!]
+  policies: [ID!]
 }
 
 input EditUsersGroupInput {
@@ -347,12 +348,7 @@ input EditUsersGroupInput {
   description: String
   status: UsersGroupStatus
   members: [ID!]
-}
-
-input UpdatePermissionsPoliciesInUsersGroupInput {
-  id: ID!
-  addPermissionsPolicyIds: [ID!]!
-  removePermissionsPolicyIds: [ID!]!
+  policies: [ID!]
 }
 
 input AddLocationInput {
@@ -606,9 +602,7 @@ input AddWorkOrderTypeInput {
   description: String
   properties: [PropertyTypeInput]
     @uniqueField(typ: "property type", field: "Name")
-  checkList: [CheckListDefinitionInput]
-    @uniqueField(typ: "check list definition", field: "Name")
-  checkListCategories: [CheckListCategoryInput!]
+  checkListCategories: [CheckListCategoryDefinitionInput!]
 }
 
 input EditWorkOrderTypeInput {
@@ -617,9 +611,7 @@ input EditWorkOrderTypeInput {
   description: String
   properties: [PropertyTypeInput]
     @uniqueField(typ: "property type", field: "Name")
-  checkList: [CheckListDefinitionInput]
-    @uniqueField(typ: "check list definition", field: "Name")
-  checkListCategories: [CheckListCategoryInput!]
+  checkListCategories: [CheckListCategoryDefinitionInput!]
 }
 
 input AddWorkOrderInput {
@@ -1299,9 +1291,19 @@ enum CheckListItemType {
   wifi_scan
 }
 
-enum CheckListItemEnumSelectionMode {
+enum CheckListItemEnumSelectionMode
+  @goModel(
+    model: "github.com/facebookincubator/symphony/graph/ent/checklistitem.EnumSelectionModeValue"
+  ) {
   single
   multiple
+}
+
+type CheckListCategoryDefinition {
+  id: ID!
+  title: String!
+  description: String
+  checklistItemDefinitions: [CheckListItemDefinition!]!
 }
 
 type CheckListItemDefinition {
@@ -1310,6 +1312,7 @@ type CheckListItemDefinition {
   type: CheckListItemType!
   index: Int
   enumValues: String
+  enumSelectionMode: CheckListItemEnumSelectionMode
   helpText: String
 }
 
@@ -1319,7 +1322,15 @@ input CheckListDefinitionInput {
   type: CheckListItemType!
   index: Int
   enumValues: String
+  enumSelectionMode: CheckListItemEnumSelectionMode
   helpText: String
+}
+
+input CheckListCategoryDefinitionInput {
+  id: ID
+  title: String!
+  description: String
+  checkList: [CheckListDefinitionInput!]!
 }
 
 type CheckListCategory implements Node {
@@ -1426,8 +1437,7 @@ type WorkOrderType implements Node {
   description: String
   propertyTypes: [PropertyType]!
   numberOfWorkOrders: Int!
-  checkListDefinitions: [CheckListItemDefinition]!
-  checkListCategories: [CheckListCategory!]!
+  checkListCategoryDefinitions: [CheckListCategoryDefinition!]!
 }
 
 """
@@ -1463,7 +1473,6 @@ type WorkOrder implements Node & NamedNode {
   location: Location
   properties: [Property]!
   project: Project
-  checkList: [CheckListItem]!
   checkListCategories: [CheckListCategory!]!
   hyperlinks: [Hyperlink!]!
   closeDate: Time
@@ -1682,6 +1691,34 @@ type ProjectTypeEdge {
   The project type at the end of the edge.
   """
   node: ProjectType
+  """
+  A cursor for use in pagination.
+  """
+  cursor: Cursor!
+}
+
+"""
+A connection to a list of projects.
+"""
+type ProjectConnection {
+  """
+  A list of project edges.
+  """
+  edges: [ProjectEdge!]!
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+}
+
+"""
+A project edge in a connection.
+"""
+type ProjectEdge {
+  """
+  The project at the end of the edge.
+  """
+  node: Project
   """
   A cursor for use in pagination.
   """
@@ -2707,6 +2744,12 @@ type Query {
     before: Cursor
     last: Int
   ): ProjectTypeConnection
+  projects(
+    after: Cursor
+    first: Int
+    before: Cursor
+    last: Int
+  ): ProjectConnection
   customers(
     after: Cursor
     first: Int
@@ -2723,9 +2766,6 @@ type Mutation {
   addUsersGroup(input: AddUsersGroupInput!): UsersGroup!
   editUsersGroup(input: EditUsersGroupInput!): UsersGroup!
   updateUserGroups(input: UpdateUserGroupsInput!): User!
-  updatePermissionsPoliciesInUsersGroup(
-    input: UpdatePermissionsPoliciesInUsersGroupInput!
-  ): UsersGroup!
   deleteUsersGroup(id: ID!): Boolean!
   createSurvey(data: SurveyCreateData!): ID!
   addLocation(input: AddLocationInput!): Location!

@@ -10,6 +10,7 @@ package reindex
 
 import (
 	"magma/orc8r/cloud/go/services/state/indexer"
+	"magma/orc8r/cloud/go/services/state/indexer/mocks"
 
 	"github.com/pkg/errors"
 )
@@ -43,9 +44,9 @@ var (
 	someErr2 = errors.New("some_error_2")
 	someErr3 = errors.New("some_error_3")
 
-	indexer0  = indexer.NewTestIndexer(id0, version0)
-	indexer0a = indexer.NewTestIndexer(id0, version0a)
-	indexer1  = indexer.NewTestIndexer(id1, version1)
-	indexer1a = indexer.NewTestIndexer(id1, version1a)
-	indexer2  = indexer.NewTestIndexer(id2, version2)
+	indexer0  = mocks.NewTestIndexer(id0, version0, nil, nil, nil, nil)
+	indexer0a = mocks.NewTestIndexer(id0, version0a, nil, nil, nil, nil)
+	indexer1  = mocks.NewTestIndexer(id1, version1, nil, nil, nil, nil)
+	indexer1a = mocks.NewTestIndexer(id1, version1a, nil, nil, nil, nil)
+	indexer2  = mocks.NewTestIndexer(id2, version2, nil, nil, nil, nil)
 )

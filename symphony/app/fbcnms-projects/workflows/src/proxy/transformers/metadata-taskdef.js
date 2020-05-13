@@ -141,19 +141,17 @@ const getTaskdefByNameBefore: BeforeFun = (
 };
 
 const getTaskdefByNameAfter: AfterFun = (tenantId, req, respObj, res) => {
-  if (res.statusCode == 200) {
-    const task = anythingTo<Task>(respObj);
-    const tenantWithInfixSeparator = withInfixSeparator(tenantId);
-    // remove prefix
-    if (task.name.indexOf(tenantWithInfixSeparator) == 0) {
-      task.name = task.name.substr(tenantWithInfixSeparator.length);
-    } else {
-      logger.error(
-        `Tenant Id prefix '${tenantId}' not found, taskdef name: '${task.name}'`,
-      );
-      res.status(400);
-      res.send('Prefix not found'); // TODO: this exits the process
-    }
+  const task = anythingTo<Task>(respObj);
+  const tenantWithInfixSeparator = withInfixSeparator(tenantId);
+  // remove prefix
+  if (task.name.indexOf(tenantWithInfixSeparator) == 0) {
+    task.name = task.name.substr(tenantWithInfixSeparator.length);
+  } else {
+    logger.error(
+      `Tenant Id prefix '${tenantId}' not found, taskdef name: '${task.name}'`,
+    );
+    res.status(400);
+    res.send('Prefix not found');
   }
 };
 

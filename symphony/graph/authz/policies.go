@@ -93,7 +93,7 @@ func NewInventoryPolicy(readAllowed, writeAllowed bool) *models.InventoryPolicy 
 // NewWorkforcePolicy build a workforce policy based on general restriction on read,write
 func NewWorkforcePolicy(readAllowed, writeAllowed bool) *models.WorkforcePolicy {
 	return &models.WorkforcePolicy{
-		Read:      newBasicPermissionRule(readAllowed),
+		Read:      newWorkforcePermissionRule(readAllowed),
 		Data:      newWorkforceCUD(writeAllowed),
 		Templates: newCUD(writeAllowed),
 	}
@@ -207,7 +207,7 @@ func AppendWorkforcePolicies(policy *models.WorkforcePolicy, inputs ...*models2.
 		if input == nil {
 			continue
 		}
-		policy.Read = appendBasicPermissionRule(policy.Read, input.Read)
+		policy.Read = appendWorkforcePermissionRule(policy.Read, input.Read)
 		policy.Data = appendWorkforceCUD(policy.Data, input.Data)
 		policy.Templates = appendCUD(policy.Templates, input.Templates)
 	}

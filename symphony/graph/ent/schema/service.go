@@ -10,6 +10,7 @@ import (
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/ent/schema/index"
 	"github.com/facebookincubator/symphony/graph/authz"
+	"github.com/facebookincubator/symphony/graph/ent/privacy"
 )
 
 // Customer holds the schema definition for the ServiceType entity.
@@ -37,6 +38,15 @@ func (Customer) Edges() []ent.Edge {
 		edge.From("services", Service.Type).
 			Ref("customer"),
 	}
+}
+
+// Policy returns Customer policy.
+func (Customer) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithMutationRules(
+			privacy.AlwaysAllowRule(),
+		),
+	)
 }
 
 // ServiceType holds the schema definition for the ServiceType entity.

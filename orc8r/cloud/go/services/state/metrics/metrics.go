@@ -12,29 +12,30 @@ import (
 	"magma/orc8r/lib/go/metrics"
 
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 )
 
 var (
-	gwCheckinStatus = prometheus.NewGaugeVec(
+	gwCheckinStatus = promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: "gateway_checkin_status",
 			Help: "1 for checkin success, 0 for checkin failure",
 		},
 		[]string{metrics.NetworkLabelName, metrics.GatewayLabelName},
 	)
-	upGwCount = prometheus.NewGaugeVec(
+	upGwCount = promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: "gateway_up_count",
 			Help: "Number of gateways that are up in the network"},
 		[]string{metrics.NetworkLabelName},
 	)
-	totalGwCount = prometheus.NewGaugeVec(
+	totalGwCount = promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: "gateway_total_count",
 			Help: "Total number of gateways that are in the network"},
 		[]string{metrics.NetworkLabelName},
 	)
-	gwMconfigAge = prometheus.NewGaugeVec(
+	gwMconfigAge = promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: "gateway_mconfig_age",
 			Help: "Age of the mconfig in the gateway in seconds",
@@ -42,12 +43,3 @@ var (
 		[]string{metrics.NetworkLabelName, metrics.GatewayLabelName},
 	)
 )
-
-func init() {
-	prometheus.MustRegister(
-		gwCheckinStatus,
-		upGwCount,
-		totalGwCount,
-		gwMconfigAge,
-	)
-}

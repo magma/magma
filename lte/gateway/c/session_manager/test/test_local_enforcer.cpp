@@ -591,7 +591,7 @@ TEST_F(LocalEnforcerTest, test_sync_sessions_on_restart) {
   const std::string imsi = "IMSI1";
   const std::string session_id = "1234";
   CreateSessionResponse response;
-  create_credit_update_response(imsi, 1, true, 1024,
+  create_credit_update_response(imsi, 1, 1024, true,
                                 response.mutable_credits()->Add());
   local_enforcer->init_session_credit(session_map, imsi, session_id, test_cfg,
                                       response);
@@ -705,7 +705,7 @@ TEST_F(LocalEnforcerTest, test_termination_scheduling_on_sync_sessions) {
 
 TEST_F(LocalEnforcerTest, test_final_unit_handling) {
   CreateSessionResponse response;
-  create_credit_update_response("IMSI1", 1, true, 1024,
+  create_credit_update_response("IMSI1", 1, 1024, true,
                                 response.mutable_credits()->Add());
   local_enforcer->init_session_credit(session_map, "IMSI1", "1234", test_cfg,
                                       response);
@@ -738,7 +738,7 @@ TEST_F(LocalEnforcerTest, test_final_unit_handling) {
 
 TEST_F(LocalEnforcerTest, test_cwf_final_unit_handling) {
   CreateSessionResponse response;
-  create_credit_update_response("IMSI1", 1, true, 1024,
+  create_credit_update_response("IMSI1", 1, 1024, true,
                                 response.mutable_credits()->Add());
   auto monitors = response.mutable_usage_monitors();
   auto monitor = monitors->Add();
@@ -1002,7 +1002,7 @@ TEST_F(LocalEnforcerTest, test_dynamic_rules) {
 
 TEST_F(LocalEnforcerTest, test_dynamic_rule_actions) {
   CreateSessionResponse response;
-  create_credit_update_response("IMSI1", 1, true, 1024,
+  create_credit_update_response("IMSI1", 1, 1024, true,
                                 response.mutable_credits()->Add());
   auto dynamic_rule = response.mutable_dynamic_rules()->Add();
   auto policy_rule = dynamic_rule->mutable_policy_rule();
@@ -1041,7 +1041,7 @@ TEST_F(LocalEnforcerTest, test_dynamic_rule_actions) {
 
 TEST_F(LocalEnforcerTest, test_installing_rules_with_activation_time) {
   CreateSessionResponse response;
-  create_credit_update_response("IMSI1", 1, true, 1024,
+  create_credit_update_response("IMSI1", 1, 1024, true,
                                 response.mutable_credits()->Add());
 
   // add a dynamic rule without activation time

@@ -105,6 +105,8 @@ func (*Builder) Build(networkID string, gatewayID string, graph configurator.Ent
 			RelayEnabled:             swag.BoolValue(nwEpc.RelayEnabled),
 			CloudSubscriberdbEnabled: nwEpc.CloudSubscriberdbEnabled,
 			AttachedEnodebTacs:       getEnodebTacs(enbConfigsBySerial),
+			DnsPrimary:               gwEpc.DNSPrimary,
+			DnsSecondary:             gwEpc.DNSSecondary,
 		},
 		"pipelined": &mconfig.PipelineD{
 			LogLevel:      protos.LogLevel_INFO,

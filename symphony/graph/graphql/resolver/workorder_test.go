@@ -1613,112 +1613,6 @@ func TestEditWorkOrderWithCheckListCategory(t *testing.T) {
 	require.Len(t, cl, 1)
 }
 
-func TestAddWorkOrderWithCheckList(t *testing.T) {
-	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(context.Background(), r.client)
-	mr, wr := r.Mutation(), r.WorkOrder()
-	woType, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{
-		Name: "example_type_a",
-	})
-	require.NoError(t, err)
-	indexValue := 1
-	fooCL := models.CheckListItemInput{
-		Title: "Foo",
-		Type:  "simple",
-		Index: &indexValue,
-	}
-	clInputs := []*models.CheckListItemInput{&fooCL}
-	workOrder, err := mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
-		Name:            longWorkOrderName,
-		WorkOrderTypeID: woType.ID,
-		CheckList:       clInputs,
-	})
-	require.NoError(t, err)
-	cls := workOrder.QueryCheckListItems().AllX(ctx)
-	require.Len(t, cls, 1)
-
-	fooCLFetched := workOrder.QueryCheckListItems().Where(checklistitem.Type("simple")).OnlyX(ctx)
-	require.Equal(t, "Foo", fooCLFetched.Title, "verifying check list name")
-
-	cl, err := wr.CheckList(ctx, workOrder)
-	require.NoError(t, err)
-	require.Len(t, cl, 1)
-}
-
-func TestEditWorkOrderWithCheckList(t *testing.T) {
-	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(context.Background(), r.client)
-	mr, wr := r.Mutation(), r.WorkOrder()
-	woType, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{
-		Name: "example_type_a",
-	})
-	require.NoError(t, err)
-	indexValue := 1
-	fooCL := models.CheckListItemInput{
-		Title: "Foo",
-		Type:  "simple",
-		Index: &indexValue,
-	}
-	clInputs := []*models.CheckListItemInput{&fooCL}
-	workOrder, err := mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
-		Name:            longWorkOrderName,
-		WorkOrderTypeID: woType.ID,
-		CheckList:       clInputs,
-	})
-	require.NoError(t, err)
-
-	barCL := models.CheckListItemInput{
-		Title: "Bar",
-		Type:  "simple",
-		Index: &indexValue,
-	}
-	enumValues := "val1,val2,val3"
-	selectionMode := models.CheckListItemEnumSelectionModeMultiple
-	selectedValues := "val2,val3"
-	multiCL := models.CheckListItemInput{
-		Title:              "Multi",
-		Type:               "enum",
-		Index:              pointer.ToInt(2),
-		EnumValues:         &enumValues,
-		EnumSelectionMode:  &selectionMode,
-		SelectedEnumValues: &selectedValues,
-	}
-	yesNoResponse := models.YesNoResponse("YES")
-	yesNoCL := models.CheckListItemInput{
-		Title:         "Yes/No",
-		Type:          "yes_no",
-		Index:         pointer.ToInt(3),
-		YesNoResponse: &yesNoResponse,
-	}
-	clInputs = []*models.CheckListItemInput{&barCL, &multiCL, &yesNoCL}
-	workOrder, err = mr.EditWorkOrder(ctx, models.EditWorkOrderInput{
-		ID:        workOrder.ID,
-		Name:      longWorkOrderName,
-		CheckList: clInputs,
-	})
-	require.NoError(t, err)
-	cls := workOrder.QueryCheckListItems().AllX(ctx)
-	require.Len(t, cls, 3)
-
-	fooCLFetched := workOrder.QueryCheckListItems().Where(checklistitem.Type("simple")).OnlyX(ctx)
-	require.Equal(t, "Bar", fooCLFetched.Title, "verifying check list name")
-
-	multiCLFetched := workOrder.QueryCheckListItems().Where(checklistitem.Type("enum")).OnlyX(ctx)
-	require.Equal(t, "Multi", multiCLFetched.Title)
-	require.Equal(t, selectionMode.String(), multiCLFetched.EnumSelectionMode)
-	require.Equal(t, enumValues, multiCLFetched.EnumValues)
-	require.Equal(t, selectedValues, multiCLFetched.SelectedEnumValues)
-
-	yesNoCLFetched := workOrder.QueryCheckListItems().Where(checklistitem.Type("yes_no")).OnlyX(ctx)
-	require.Equal(t, "YES", yesNoCLFetched.YesNoVal.String())
-
-	cl, err := wr.CheckList(ctx, workOrder)
-	require.NoError(t, err)
-	require.Len(t, cl, 3)
-}
-
 func TestEditCheckListItemFiles(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
@@ -1799,9 +1693,9 @@ func TestEditCheckListItemFiles(t *testing.T) {
 	require.NoError(t, err)
 	require.False(t, file2Exists)
 
-	updatedFile1Exists, err := workOrder.QueryCheckListItems().QueryFiles().Where(file.Name("File1 Renamed")).Exist(ctx)
+	updatedFile1Exists, err := workOrder.QueryCheckListCategories().QueryCheckListItems().QueryFiles().Where(file.Name("File1 Renamed")).Exist(ctx)
 	require.NoError(t, err)
-	require.False(t, updatedFile1Exists)
+	require.True(t, updatedFile1Exists)
 
 	file3Exists, err := workOrder.QueryCheckListCategories().QueryCheckListItems().QueryFiles().Where(file.Name("File3")).Exist(ctx)
 	require.NoError(t, err)

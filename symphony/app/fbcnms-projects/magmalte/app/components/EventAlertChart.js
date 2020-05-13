@@ -7,35 +7,29 @@
  * @flow strict-local
  * @format
  */
-import AppBar from '@material-ui/core/AppBar';
 import AsyncMetric from '@fbcnms/ui/insights/AsyncMetric';
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
 import Grid from '@material-ui/core/Grid';
-import React, {useState} from 'react';
+import React from 'react';
 import Text from '@fbcnms/ui/components/design-system/Text';
-import TimeRangeSelector from '@fbcnms/ui/insights/TimeRangeSelector';
-import {makeStyles} from '@material-ui/styles';
+import moment from 'moment';
 import type {ChartStyle} from '@fbcnms/ui/insights/AsyncMetric';
-import type {TimeRange} from '@fbcnms/ui/insights/AsyncMetric';
 
-const useStyles = makeStyles(_ => ({
-  formControl: {
-    minWidth: '50px',
-  },
-  appBar: {
-    display: 'inline-block',
-  },
-}));
+type Props = {
+  startEnd: [moment, moment],
+};
 
-export default function() {
+const isValid = (start, end): boolean => {
+  return start.isValid() && end.isValid() && moment.min(start, end) === start;
+};
+
+export default function({startEnd}: Props) {
+  const [start, end] = startEnd;
   const state = {
     title: 'Frequency of Alerts and Events',
     legendLabels: ['Alerts', 'Events'],
   };
-  const classes = useStyles();
-  const [timeRange, setTimeRange] = useState<TimeRange>('3_hours');
-
   const chartStyle: ChartStyle = {
     data: {
       lineTension: 0.2,
@@ -64,33 +58,24 @@ export default function() {
       align: 'end',
     },
   };
-
   return (
-    <>
-      <AppBar className={classes.appBar} position="static" color="default">
-        <TimeRangeSelector
-          className={classes.formControl}
-          value={timeRange}
-          onChange={setTimeRange}
+    <Grid>
+      <Card>
+        <CardHeader
+          title={<Text variant="h6">{state.title}</Text>}
+          subheader={
+            <AsyncMetric
+              style={chartStyle}
+              label={state.title}
+              unit=""
+              queries={['sum(ALERTS)']}
+              timeRange={'3_hours'}
+              startEnd={isValid(start, end) ? startEnd : undefined}
+              legendLabels={state.legendLabels}
+            />
+          }
         />
-      </AppBar>
-      <Grid>
-        <Card>
-          <CardHeader
-            title={<Text variant="h6">{state.title}</Text>}
-            subheader={
-              <AsyncMetric
-                style={chartStyle}
-                label={state.title}
-                unit=""
-                queries={['sum(ALERTS)']}
-                timeRange={timeRange}
-                legendLabels={state.legendLabels}
-              />
-            }
-          />
-        </Card>
-      </Grid>
-    </>
+      </Card>
+    </Grid>
   );
 }

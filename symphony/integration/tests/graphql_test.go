@@ -18,7 +18,7 @@ import (
 
 	"github.com/AlekSi/pointer"
 	"github.com/cenkalti/backoff/v4"
-	"github.com/facebookincubator/symphony/graph/graphgrpc"
+	"github.com/facebookincubator/symphony/graph/graphgrpc/schema"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/pkg/ctxgroup"
 	"github.com/golang/protobuf/ptypes/wrappers"
@@ -121,7 +121,7 @@ func (c *client) createTenant() error {
 	if err != nil {
 		return err
 	}
-	_, err = graphgrpc.NewTenantServiceClient(conn).
+	_, err = schema.NewTenantServiceClient(conn).
 		Create(context.Background(), &wrappers.StringValue{Value: c.tenant})
 	switch st, _ := status.FromError(err); st.Code() {
 	case codes.OK, codes.AlreadyExists:
@@ -136,8 +136,8 @@ func (c *client) createOwnerUser() error {
 	if err != nil {
 		return err
 	}
-	_, err = graphgrpc.NewUserServiceClient(conn).
-		Create(context.Background(), &graphgrpc.AddUserInput{Tenant: c.tenant, Id: c.user, IsOwner: true})
+	_, err = schema.NewUserServiceClient(conn).
+		Create(context.Background(), &schema.AddUserInput{Tenant: c.tenant, Id: c.user, IsOwner: true})
 	switch st, _ := status.FromError(err); st.Code() {
 	case codes.OK:
 	default:

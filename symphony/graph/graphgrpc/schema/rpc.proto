@@ -9,7 +9,7 @@ package graph;
 import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
 
-option go_package = "fbc/symphony/graph/graphgrpc";
+option go_package = "fbc/symphony/graph/graphgrpc/schema";
 
 service TenantService {
     rpc Create(google.protobuf.StringValue) returns (Tenant);

@@ -7,6 +7,9 @@
  */
 
 // Package clock provides a simple abstraction around the standard time package.
-//	- time.Now() -- ability to set and "feeze" the wall clock in test code
-//	- time.Sleep() -- ability to skip sleeps
+//	- Set and "freeze" the wall clock in test code, with provided wrappers for
+//		- time.Now
+//		- time.Since
+//	- Skip sleeps in test code, with provided wrappers for
+//		- time.Sleep
 package clock

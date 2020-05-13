@@ -30,6 +30,7 @@ type config struct {
 type hooks struct {
 	ActionsRule                 []ent.Hook
 	CheckListCategory           []ent.Hook
+	CheckListCategoryDefinition []ent.Hook
 	CheckListItem               []ent.Hook
 	CheckListItemDefinition     []ent.Hook
 	Comment                     []ent.Hook

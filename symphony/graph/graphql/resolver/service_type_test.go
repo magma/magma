@@ -142,9 +142,6 @@ func TestRemoveServiceType(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	_, err = mr.RemoveServiceType(ctx, serviceType.ID)
-	require.Error(t, err)
-
 	dm := models.DiscoveryMethodInventory
 	serviceType2, err := mr.AddServiceType(ctx, models.ServiceTypeCreateData{
 		Name:            "example_type2",

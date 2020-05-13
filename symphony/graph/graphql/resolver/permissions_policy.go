@@ -92,10 +92,10 @@ func (mutationResolver) EditPermissionsPolicy(
 		if err != nil {
 			return nil, errors.Wrapf(err, "querying groups of permissionPolicy %q", input.ID)
 		}
-		AddGroupIds, RemoveGroupIds := resolverutil.GetDifferenceBetweenSlices(currentGroups, input.Groups)
+		addGroupIds, removeGroupIds := resolverutil.GetDifferenceBetweenSlices(currentGroups, input.Groups)
 		upd = upd.
-			AddGroupIDs(AddGroupIds...).
-			RemoveGroupIDs(RemoveGroupIds...)
+			AddGroupIDs(addGroupIds...).
+			RemoveGroupIDs(removeGroupIds...)
 	}
 	switch {
 	case input.InventoryInput != nil && input.WorkforceInput != nil:
