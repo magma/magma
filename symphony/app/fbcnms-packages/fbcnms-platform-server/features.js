@@ -193,7 +193,7 @@ const arrayConfigs = [
   {
     id: 'grafana_metrics',
     title: 'Include tab for Grafana in the Metrics page',
-    enabledByDefault: false,
+    enabledByDefault: true,
   },
   {
     id: 'service_endpoints',

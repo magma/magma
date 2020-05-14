@@ -38,14 +38,13 @@ import DeleteUsersGroupMutation from '../../../mutations/DeleteUsersGroupMutatio
 import EditPermissionsPolicyMutation from '../../../mutations/EditPermissionsPolicyMutation';
 import EditUserMutation from '../../../mutations/EditUserMutation';
 import EditUsersGroupMutation from '../../../mutations/EditUsersGroupMutation';
-import LoadingIndicator from '../../../common/LoadingIndicator';
+import InventorySuspense from '../../../common/InventorySuspense';
 import RelayEnvironment from '../../../common/RelayEnvironment';
 import axios from 'axios';
 import nullthrows from 'nullthrows';
 import {ConnectionHandler, fetchQuery, graphql} from 'relay-runtime';
 import {LogEvents, ServerLogger} from '../../../common/LoggingUtils';
 import {RelayEnvironmentProvider} from 'react-relay/hooks';
-import {Suspense} from 'react';
 import {
   USER_ROLES,
   groupResponse2Group,
@@ -519,9 +518,9 @@ function ProviderWrap(props: Props) {
 export function UserManagementContextProvider(props: Props) {
   return (
     <RelayEnvironmentProvider environment={RelayEnvironment}>
-      <Suspense fallback={<LoadingIndicator />}>
+      <InventorySuspense>
         <ProviderWrap {...props} />
-      </Suspense>
+      </InventorySuspense>
     </RelayEnvironmentProvider>
   );
 }

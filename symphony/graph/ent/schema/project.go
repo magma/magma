@@ -93,6 +93,9 @@ func (Project) Indexes() []ent.Index {
 // Policy returns project policy.
 func (Project) Policy() ent.Policy {
 	return authz.NewPolicy(
+		authz.WithQueryRules(
+			authz.ProjectReadPolicyRule(),
+		),
 		authz.WithMutationRules(
 			authz.ProjectWritePolicyRule(),
 		),

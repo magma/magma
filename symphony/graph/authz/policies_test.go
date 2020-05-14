@@ -91,6 +91,7 @@ func prepareData(ctx context.Context) (data testData) {
 		},
 	}
 	data.workforcePolicyInput1 = &models.WorkforcePolicyInput{
+		Read: newWorkforcePermissionRuleInput(models.PermissionValueNo, nil, nil),
 		Data: &models.WorkforceCUDInput{
 			Create:            newWorkforcePermissionRuleInput(models.PermissionValueNo, nil, nil),
 			Update:            newWorkforcePermissionRuleInput(models.PermissionValueNo, nil, nil),
@@ -100,6 +101,7 @@ func prepareData(ctx context.Context) (data testData) {
 		},
 	}
 	data.workforcePolicyInput2 = &models.WorkforcePolicyInput{
+		Read: newWorkforcePermissionRuleInput(models.PermissionValueByCondition, []int{rand.Int(), rand.Int()}, []int{rand.Int()}),
 		Data: &models.WorkforceCUDInput{
 			Create:            newWorkforcePermissionRuleInput(models.PermissionValueNo, nil, nil),
 			Update:            newWorkforcePermissionRuleInput(models.PermissionValueYes, nil, nil),
@@ -247,6 +249,10 @@ func TestPoliciesAppendingOutput(t *testing.T) {
 		),
 		permissions.WorkforcePolicy,
 	)
+
+	require.Equal(t, models.PermissionValueByCondition, permissions.WorkforcePolicy.Read.IsAllowed)
+	require.Len(t, permissions.WorkforcePolicy.Read.WorkOrderTypeIds, 2)
+	require.Len(t, permissions.WorkforcePolicy.Read.ProjectTypeIds, 1)
 	require.Equal(t, models.PermissionValueNo, permissions.WorkforcePolicy.Data.Create.IsAllowed)
 	require.Nil(t, permissions.WorkforcePolicy.Data.Create.WorkOrderTypeIds)
 	require.Nil(t, permissions.WorkforcePolicy.Data.Create.ProjectTypeIds)

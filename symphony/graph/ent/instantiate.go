@@ -19,6 +19,12 @@ func (c *CheckListCategoryClient) Instantiate(clc *CheckListCategory) *CheckList
 }
 
 // Instantiate entity configuration.
+func (c *CheckListCategoryDefinitionClient) Instantiate(clcd *CheckListCategoryDefinition) *CheckListCategoryDefinition {
+	clcd.config = c.config
+	return clcd
+}
+
+// Instantiate entity configuration.
 func (c *CheckListItemClient) Instantiate(cli *CheckListItem) *CheckListItem {
 	cli.config = c.config
 	return cli

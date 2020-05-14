@@ -11,6 +11,7 @@ import (
 
 	"github.com/facebookincubator/symphony/graph/authz"
 	"github.com/facebookincubator/symphony/graph/ent/privacy"
+	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 	"github.com/stretchr/testify/require"
 )
@@ -29,6 +30,7 @@ func TestAdminUserCanEditUsers(t *testing.T) {
 	ctx := viewertest.NewContext(
 		context.Background(),
 		client,
+		viewertest.WithRole(user.RoleADMIN),
 		viewertest.WithPermissions(authz.AdminPermissions()))
 	_, err := client.UsersGroup.Create().
 		SetName("NewGroup").

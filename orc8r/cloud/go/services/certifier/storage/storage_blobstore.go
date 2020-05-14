@@ -22,7 +22,7 @@ const (
 	// CertifierTableBlobstore is the service-wide blobstore table for certifier data
 	CertifierTableBlobstore = "certificate_info_blobstore"
 
-	// certInfoType is the type of CertInfo used in blobstore type fields.
+	// CertInfoType is the type of CertInfo used in blobstore type fields.
 	CertInfoType = "certificate_info"
 
 	// Blobstore needs a network ID, but certifier is network-agnostic so we

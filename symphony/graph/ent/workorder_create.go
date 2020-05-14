@@ -15,7 +15,6 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/checklistcategory"
-	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
 	"github.com/facebookincubator/symphony/graph/ent/comment"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/file"
@@ -301,21 +300,6 @@ func (woc *WorkOrderCreate) AddCheckListCategories(c ...*CheckListCategory) *Wor
 		ids[i] = c[i].ID
 	}
 	return woc.AddCheckListCategoryIDs(ids...)
-}
-
-// AddCheckListItemIDs adds the check_list_items edge to CheckListItem by ids.
-func (woc *WorkOrderCreate) AddCheckListItemIDs(ids ...int) *WorkOrderCreate {
-	woc.mutation.AddCheckListItemIDs(ids...)
-	return woc
-}
-
-// AddCheckListItems adds the check_list_items edges to CheckListItem.
-func (woc *WorkOrderCreate) AddCheckListItems(c ...*CheckListItem) *WorkOrderCreate {
-	ids := make([]int, len(c))
-	for i := range c {
-		ids[i] = c[i].ID
-	}
-	return woc.AddCheckListItemIDs(ids...)
 }
 
 // SetProjectID sets the project edge to Project by id.
@@ -688,25 +672,6 @@ func (woc *WorkOrderCreate) sqlSave(ctx context.Context) (*WorkOrder, error) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: checklistcategory.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := woc.mutation.CheckListItemsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   workorder.CheckListItemsTable,
-			Columns: []string{workorder.CheckListItemsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: checklistitem.FieldID,
 				},
 			},
 		}

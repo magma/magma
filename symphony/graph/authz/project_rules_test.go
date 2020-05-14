@@ -8,6 +8,11 @@ import (
 	"context"
 	"testing"
 
+	"github.com/facebookincubator/symphony/graph/ent/user"
+
+	"github.com/facebookincubator/symphony/graph/authz"
+	"github.com/stretchr/testify/require"
+
 	"github.com/google/uuid"
 
 	"github.com/facebookincubator/symphony/graph/viewer"
@@ -216,5 +221,51 @@ func TestProjectTypeWritePolicyRule(t *testing.T) {
 		create: createProjectType,
 		update: updateProjectType,
 		delete: deleteProjectType,
+	})
+}
+
+func TestProjectReadPolicyRule(t *testing.T) {
+	c := viewertest.NewTestClient(t)
+	ctx := viewertest.NewContext(context.Background(), c)
+	projectType, _ := prepareProjectData(ctx, c)
+	_, _ = prepareProjectData(ctx, c)
+	t.Run("EmptyPermissions", func(t *testing.T) {
+		permissions := authz.EmptyPermissions()
+		permissionsContext := viewertest.NewContext(
+			context.Background(),
+			c,
+			viewertest.WithUser("user"),
+			viewertest.WithRole(user.RoleUSER),
+			viewertest.WithPermissions(permissions))
+		count, err := c.Project.Query().Count(permissionsContext)
+		require.NoError(t, err)
+		require.Zero(t, count)
+	})
+	t.Run("PartialPermissions", func(t *testing.T) {
+		permissions := authz.EmptyPermissions()
+		permissions.WorkforcePolicy.Read.IsAllowed = models2.PermissionValueByCondition
+		permissions.WorkforcePolicy.Read.ProjectTypeIds = []int{projectType.ID}
+		permissionsContext := viewertest.NewContext(
+			context.Background(),
+			c,
+			viewertest.WithUser("user"),
+			viewertest.WithRole(user.RoleUSER),
+			viewertest.WithPermissions(permissions))
+		count, err := c.Project.Query().Count(permissionsContext)
+		require.NoError(t, err)
+		require.Equal(t, 1, count)
+	})
+	t.Run("FullPermissions", func(t *testing.T) {
+		permissions := authz.EmptyPermissions()
+		permissions.WorkforcePolicy.Read.IsAllowed = models2.PermissionValueYes
+		permissionsContext := viewertest.NewContext(
+			context.Background(),
+			c,
+			viewertest.WithUser("user"),
+			viewertest.WithRole(user.RoleUSER),
+			viewertest.WithPermissions(permissions))
+		count, err := c.Project.Query().Count(permissionsContext)
+		require.NoError(t, err)
+		require.Equal(t, 2, count)
 	})
 }

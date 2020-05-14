@@ -560,6 +560,7 @@ workflows:
           name: jobrunner/publish
           dockerfile: jobrunner/Dockerfile
           image: jobrunner
+          requires: *dpreq
       - helm-lint
       - tflint
       - integration:

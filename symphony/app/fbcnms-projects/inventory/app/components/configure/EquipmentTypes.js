@@ -8,31 +8,26 @@
  * @format
  */
 
-import type {ContextRouter} from 'react-router-dom';
-import type {EquipmentTypeItem_equipmentType} from './__generated__/EquipmentTypeItem_equipmentType.graphql';
-import type {WithStyles} from '@material-ui/core';
+import type {
+  EquipmentTypesQuery,
+  EquipmentTypesQueryResponse,
+} from './__generated__/EquipmentTypesQuery.graphql';
 
 import AddEditEquipmentTypeCard from './AddEditEquipmentTypeCard';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import ConfigueTitle from '@fbcnms/ui/components/ConfigureTitle';
 import EquipmentTypeItem from './EquipmentTypeItem';
 import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
-import InventoryQueryRenderer from '../InventoryQueryRenderer';
-import React from 'react';
-import withInventoryErrorBoundary from '../../common/withInventoryErrorBoundary';
+import React, {useState} from 'react';
+import fbt from 'fbt';
 import {FormContextProvider} from '../../common/FormContext';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {graphql} from 'relay-runtime';
+import {makeStyles} from '@material-ui/styles';
 import {sortLexicographically} from '@fbcnms/ui/utils/displayUtils';
-import {withRouter} from 'react-router-dom';
-import {withStyles} from '@material-ui/core/styles';
+import {useLazyLoadQuery} from 'react-relay/hooks';
 
-const styles = theme => ({
-  header: {
-    margin: '10px',
-    display: 'flex',
-    justifyContent: 'space-between',
-  },
+const useStyles = makeStyles(theme => ({
   root: {
     width: '100%',
     marginTop: '15px',
@@ -40,11 +35,6 @@ const styles = theme => ({
   paper: {
     flexGrow: 1,
     overflowY: 'hidden',
-  },
-  content: {
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
   },
   listItem: {
     marginBottom: theme.spacing(),
@@ -66,18 +56,7 @@ const styles = theme => ({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-});
-
-type Props = ContextRouter &
-  WithStyles<typeof styles> & {
-    equipmentTypes: Array<EquipmentTypeItem_equipmentType>,
-  };
-
-type State = {
-  errorMessage: ?string,
-  editingEquipmentType: ?EquipmentTypeItem_equipmentType,
-  showAddEditCard: boolean,
-};
+}));
 
 const equipmentTypesQuery = graphql`
   query EquipmentTypesQuery {
@@ -85,105 +64,112 @@ const equipmentTypesQuery = graphql`
       @connection(key: "EquipmentTypes_equipmentTypes") {
       edges {
         node {
-          ...EquipmentTypeItem_equipmentType
-          ...AddEditEquipmentTypeCard_editingEquipmentType
           id
           name
+          ...EquipmentTypeItem_equipmentType
+          ...AddEditEquipmentTypeCard_editingEquipmentType
         }
       }
     }
   }
 `;
 
-class EquipmentTypes extends React.Component<Props, State> {
-  state = {
-    errorMessage: null,
-    editingEquipmentType: null,
-    showAddEditCard: false,
+type ResponseEquipmentType = $NonMaybeType<
+  $ElementType<
+    $ElementType<
+      $ElementType<
+        $ElementType<EquipmentTypesQueryResponse, 'equipmentTypes'>,
+        'edges',
+      >,
+      number,
+    >,
+    'node',
+  >,
+>;
+
+const EquipmentTypes = () => {
+  const classes = useStyles();
+  const {
+    equipmentTypes,
+  }: EquipmentTypesQueryResponse = useLazyLoadQuery<EquipmentTypesQuery>(
+    equipmentTypesQuery,
+  );
+  const [
+    editingEquipmentType,
+    setEditingEquipmentType,
+  ] = useState<?ResponseEquipmentType>(null);
+  const [showAddEditCard, setShowAddEditCard] = useState(false);
+
+  const showAddEditEquipmentTypeCard = (eqType: ?ResponseEquipmentType) => {
+    ServerLogger.info(LogEvents.ADD_EQUIPMENT_TYPE_BUTTON_CLICKED);
+    setEditingEquipmentType(eqType);
+    setShowAddEditCard(true);
   };
 
-  render() {
-    const {classes} = this.props;
-    const {showAddEditCard, editingEquipmentType} = this.state;
-    return (
-      <InventoryQueryRenderer
-        query={equipmentTypesQuery}
-        variables={{}}
-        render={props => {
-          if (showAddEditCard) {
-            return (
-              <div className={classes.paper}>
-                <AddEditEquipmentTypeCard
-                  key={'new_equipment_type'}
-                  open={showAddEditCard}
-                  onClose={this.hideNewEquipmentTypeCard}
-                  onSave={this.saveEquipment}
-                  editingEquipmentType={editingEquipmentType}
-                />
-              </div>
-            );
-          }
+  const hideNewEquipmentTypeCard = () => {
+    setEditingEquipmentType(null);
+    setShowAddEditCard(false);
+  };
 
-          const listItems = props.equipmentTypes.edges
-            .map(edge => edge.node)
-            .filter(Boolean)
-            .sort((eqTypeA, eqTypeB) =>
-              sortLexicographically(eqTypeA.name, eqTypeB.name),
-            )
-            .map(eqType => (
-              <div className={classes.listItem} key={`eqType_${eqType.id}`}>
-                <EquipmentTypeItem
-                  equipmentType={eqType}
-                  onEdit={() => this.showAddEditEquipmentTypeCard(eqType)}
-                />
-              </div>
-            ));
-          return (
-            <FormContextProvider>
-              <div className={classes.typesList}>
-                <div className={classes.firstRow}>
-                  <ConfigueTitle
-                    className={classes.title}
-                    title={'Equipment Types'}
-                    subtitle={'Manage the types of equipment in your inventory'}
-                  />
-                  <div className={classes.addButtonContainer}>
-                    <FormAction>
-                      <Button
-                        className={classes.addButton}
-                        onClick={() => this.showAddEditEquipmentTypeCard(null)}>
-                        Add Equipment Type
-                      </Button>
-                    </FormAction>
-                  </div>
-                </div>
-                <div className={classes.root}>
-                  <div>{listItems}</div>
-                </div>
-              </div>
-            </FormContextProvider>
-          );
-        }}
-      />
+  const saveEquipment = () => {
+    ServerLogger.info(LogEvents.SAVE_EQUIPMENT_TYPE_BUTTON_CLICKED);
+    setEditingEquipmentType(null);
+    setShowAddEditCard(false);
+  };
+
+  if (showAddEditCard) {
+    return (
+      <div className={classes.paper}>
+        <AddEditEquipmentTypeCard
+          open={showAddEditCard}
+          onClose={hideNewEquipmentTypeCard}
+          onSave={saveEquipment}
+          editingEquipmentType={editingEquipmentType}
+        />
+      </div>
     );
   }
 
-  showAddEditEquipmentTypeCard = (eqType: ?EquipmentTypeItem_equipmentType) => {
-    ServerLogger.info(LogEvents.ADD_EQUIPMENT_TYPE_BUTTON_CLICKED);
-    this.setState({editingEquipmentType: eqType, showAddEditCard: true});
-  };
+  const listItems = equipmentTypes.edges
+    .map(edge => edge.node)
+    .filter(Boolean)
+    .sort((eqTypeA, eqTypeB) =>
+      sortLexicographically(eqTypeA.name, eqTypeB.name),
+    )
+    .map((eqType: ResponseEquipmentType) => (
+      <div className={classes.listItem} key={`eqType_${eqType.id}`}>
+        <EquipmentTypeItem
+          equipmentType={eqType}
+          onEdit={() => showAddEditEquipmentTypeCard(eqType)}
+        />
+      </div>
+    ));
 
-  hideNewEquipmentTypeCard = () =>
-    this.setState({editingEquipmentType: null, showAddEditCard: false});
-  saveEquipment = () => {
-    ServerLogger.info(LogEvents.SAVE_EQUIPMENT_TYPE_BUTTON_CLICKED);
-    this.setState({
-      editingEquipmentType: null,
-      showAddEditCard: false,
-    });
-  };
-}
+  return (
+    <FormContextProvider>
+      <div className={classes.typesList}>
+        <div className={classes.firstRow}>
+          <ConfigueTitle
+            className={classes.title}
+            title={'Equipment Types'}
+            subtitle={'Manage the types of equipment in your inventory'}
+          />
+          <div className={classes.addButtonContainer}>
+            <FormAction>
+              <Button
+                className={classes.addButton}
+                onClick={() => showAddEditEquipmentTypeCard(null)}>
+                <fbt desc="">Add Equipment Type</fbt>
+              </Button>
+            </FormAction>
+          </div>
+        </div>
+        <div className={classes.root}>
+          <div>{listItems}</div>
+        </div>
+      </div>
+    </FormContextProvider>
+  );
+};
 
-export default withStyles(styles)(
-  withRouter(withInventoryErrorBoundary(EquipmentTypes)),
-);
+export default EquipmentTypes;

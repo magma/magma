@@ -13,8 +13,7 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
-	"github.com/facebookincubator/symphony/graph/ent/checklistcategory"
-	"github.com/facebookincubator/symphony/graph/ent/checklistitemdefinition"
+	"github.com/facebookincubator/symphony/graph/ent/checklistcategorydefinition"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
@@ -107,34 +106,19 @@ func (wotu *WorkOrderTypeUpdate) AddDefinitions(w ...*WorkOrderDefinition) *Work
 	return wotu.AddDefinitionIDs(ids...)
 }
 
-// AddCheckListCategoryIDs adds the check_list_categories edge to CheckListCategory by ids.
-func (wotu *WorkOrderTypeUpdate) AddCheckListCategoryIDs(ids ...int) *WorkOrderTypeUpdate {
-	wotu.mutation.AddCheckListCategoryIDs(ids...)
+// AddCheckListCategoryDefinitionIDs adds the check_list_category_definitions edge to CheckListCategoryDefinition by ids.
+func (wotu *WorkOrderTypeUpdate) AddCheckListCategoryDefinitionIDs(ids ...int) *WorkOrderTypeUpdate {
+	wotu.mutation.AddCheckListCategoryDefinitionIDs(ids...)
 	return wotu
 }
 
-// AddCheckListCategories adds the check_list_categories edges to CheckListCategory.
-func (wotu *WorkOrderTypeUpdate) AddCheckListCategories(c ...*CheckListCategory) *WorkOrderTypeUpdate {
+// AddCheckListCategoryDefinitions adds the check_list_category_definitions edges to CheckListCategoryDefinition.
+func (wotu *WorkOrderTypeUpdate) AddCheckListCategoryDefinitions(c ...*CheckListCategoryDefinition) *WorkOrderTypeUpdate {
 	ids := make([]int, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
-	return wotu.AddCheckListCategoryIDs(ids...)
-}
-
-// AddCheckListDefinitionIDs adds the check_list_definitions edge to CheckListItemDefinition by ids.
-func (wotu *WorkOrderTypeUpdate) AddCheckListDefinitionIDs(ids ...int) *WorkOrderTypeUpdate {
-	wotu.mutation.AddCheckListDefinitionIDs(ids...)
-	return wotu
-}
-
-// AddCheckListDefinitions adds the check_list_definitions edges to CheckListItemDefinition.
-func (wotu *WorkOrderTypeUpdate) AddCheckListDefinitions(c ...*CheckListItemDefinition) *WorkOrderTypeUpdate {
-	ids := make([]int, len(c))
-	for i := range c {
-		ids[i] = c[i].ID
-	}
-	return wotu.AddCheckListDefinitionIDs(ids...)
+	return wotu.AddCheckListCategoryDefinitionIDs(ids...)
 }
 
 // RemoveWorkOrderIDs removes the work_orders edge to WorkOrder by ids.
@@ -182,34 +166,19 @@ func (wotu *WorkOrderTypeUpdate) RemoveDefinitions(w ...*WorkOrderDefinition) *W
 	return wotu.RemoveDefinitionIDs(ids...)
 }
 
-// RemoveCheckListCategoryIDs removes the check_list_categories edge to CheckListCategory by ids.
-func (wotu *WorkOrderTypeUpdate) RemoveCheckListCategoryIDs(ids ...int) *WorkOrderTypeUpdate {
-	wotu.mutation.RemoveCheckListCategoryIDs(ids...)
+// RemoveCheckListCategoryDefinitionIDs removes the check_list_category_definitions edge to CheckListCategoryDefinition by ids.
+func (wotu *WorkOrderTypeUpdate) RemoveCheckListCategoryDefinitionIDs(ids ...int) *WorkOrderTypeUpdate {
+	wotu.mutation.RemoveCheckListCategoryDefinitionIDs(ids...)
 	return wotu
 }
 
-// RemoveCheckListCategories removes check_list_categories edges to CheckListCategory.
-func (wotu *WorkOrderTypeUpdate) RemoveCheckListCategories(c ...*CheckListCategory) *WorkOrderTypeUpdate {
+// RemoveCheckListCategoryDefinitions removes check_list_category_definitions edges to CheckListCategoryDefinition.
+func (wotu *WorkOrderTypeUpdate) RemoveCheckListCategoryDefinitions(c ...*CheckListCategoryDefinition) *WorkOrderTypeUpdate {
 	ids := make([]int, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
-	return wotu.RemoveCheckListCategoryIDs(ids...)
-}
-
-// RemoveCheckListDefinitionIDs removes the check_list_definitions edge to CheckListItemDefinition by ids.
-func (wotu *WorkOrderTypeUpdate) RemoveCheckListDefinitionIDs(ids ...int) *WorkOrderTypeUpdate {
-	wotu.mutation.RemoveCheckListDefinitionIDs(ids...)
-	return wotu
-}
-
-// RemoveCheckListDefinitions removes check_list_definitions edges to CheckListItemDefinition.
-func (wotu *WorkOrderTypeUpdate) RemoveCheckListDefinitions(c ...*CheckListItemDefinition) *WorkOrderTypeUpdate {
-	ids := make([]int, len(c))
-	for i := range c {
-		ids[i] = c[i].ID
-	}
-	return wotu.RemoveCheckListDefinitionIDs(ids...)
+	return wotu.RemoveCheckListCategoryDefinitionIDs(ids...)
 }
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
@@ -426,17 +395,17 @@ func (wotu *WorkOrderTypeUpdate) sqlSave(ctx context.Context) (n int, err error)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := wotu.mutation.RemovedCheckListCategoriesIDs(); len(nodes) > 0 {
+	if nodes := wotu.mutation.RemovedCheckListCategoryDefinitionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   workordertype.CheckListCategoriesTable,
-			Columns: []string{workordertype.CheckListCategoriesColumn},
+			Table:   workordertype.CheckListCategoryDefinitionsTable,
+			Columns: []string{workordertype.CheckListCategoryDefinitionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: checklistcategory.FieldID,
+					Column: checklistcategorydefinition.FieldID,
 				},
 			},
 		}
@@ -445,55 +414,17 @@ func (wotu *WorkOrderTypeUpdate) sqlSave(ctx context.Context) (n int, err error)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := wotu.mutation.CheckListCategoriesIDs(); len(nodes) > 0 {
+	if nodes := wotu.mutation.CheckListCategoryDefinitionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   workordertype.CheckListCategoriesTable,
-			Columns: []string{workordertype.CheckListCategoriesColumn},
+			Table:   workordertype.CheckListCategoryDefinitionsTable,
+			Columns: []string{workordertype.CheckListCategoryDefinitionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: checklistcategory.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if nodes := wotu.mutation.RemovedCheckListDefinitionsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   workordertype.CheckListDefinitionsTable,
-			Columns: []string{workordertype.CheckListDefinitionsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: checklistitemdefinition.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := wotu.mutation.CheckListDefinitionsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   workordertype.CheckListDefinitionsTable,
-			Columns: []string{workordertype.CheckListDefinitionsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: checklistitemdefinition.FieldID,
+					Column: checklistcategorydefinition.FieldID,
 				},
 			},
 		}
@@ -591,34 +522,19 @@ func (wotuo *WorkOrderTypeUpdateOne) AddDefinitions(w ...*WorkOrderDefinition) *
 	return wotuo.AddDefinitionIDs(ids...)
 }
 
-// AddCheckListCategoryIDs adds the check_list_categories edge to CheckListCategory by ids.
-func (wotuo *WorkOrderTypeUpdateOne) AddCheckListCategoryIDs(ids ...int) *WorkOrderTypeUpdateOne {
-	wotuo.mutation.AddCheckListCategoryIDs(ids...)
+// AddCheckListCategoryDefinitionIDs adds the check_list_category_definitions edge to CheckListCategoryDefinition by ids.
+func (wotuo *WorkOrderTypeUpdateOne) AddCheckListCategoryDefinitionIDs(ids ...int) *WorkOrderTypeUpdateOne {
+	wotuo.mutation.AddCheckListCategoryDefinitionIDs(ids...)
 	return wotuo
 }
 
-// AddCheckListCategories adds the check_list_categories edges to CheckListCategory.
-func (wotuo *WorkOrderTypeUpdateOne) AddCheckListCategories(c ...*CheckListCategory) *WorkOrderTypeUpdateOne {
+// AddCheckListCategoryDefinitions adds the check_list_category_definitions edges to CheckListCategoryDefinition.
+func (wotuo *WorkOrderTypeUpdateOne) AddCheckListCategoryDefinitions(c ...*CheckListCategoryDefinition) *WorkOrderTypeUpdateOne {
 	ids := make([]int, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
-	return wotuo.AddCheckListCategoryIDs(ids...)
-}
-
-// AddCheckListDefinitionIDs adds the check_list_definitions edge to CheckListItemDefinition by ids.
-func (wotuo *WorkOrderTypeUpdateOne) AddCheckListDefinitionIDs(ids ...int) *WorkOrderTypeUpdateOne {
-	wotuo.mutation.AddCheckListDefinitionIDs(ids...)
-	return wotuo
-}
-
-// AddCheckListDefinitions adds the check_list_definitions edges to CheckListItemDefinition.
-func (wotuo *WorkOrderTypeUpdateOne) AddCheckListDefinitions(c ...*CheckListItemDefinition) *WorkOrderTypeUpdateOne {
-	ids := make([]int, len(c))
-	for i := range c {
-		ids[i] = c[i].ID
-	}
-	return wotuo.AddCheckListDefinitionIDs(ids...)
+	return wotuo.AddCheckListCategoryDefinitionIDs(ids...)
 }
 
 // RemoveWorkOrderIDs removes the work_orders edge to WorkOrder by ids.
@@ -666,34 +582,19 @@ func (wotuo *WorkOrderTypeUpdateOne) RemoveDefinitions(w ...*WorkOrderDefinition
 	return wotuo.RemoveDefinitionIDs(ids...)
 }
 
-// RemoveCheckListCategoryIDs removes the check_list_categories edge to CheckListCategory by ids.
-func (wotuo *WorkOrderTypeUpdateOne) RemoveCheckListCategoryIDs(ids ...int) *WorkOrderTypeUpdateOne {
-	wotuo.mutation.RemoveCheckListCategoryIDs(ids...)
+// RemoveCheckListCategoryDefinitionIDs removes the check_list_category_definitions edge to CheckListCategoryDefinition by ids.
+func (wotuo *WorkOrderTypeUpdateOne) RemoveCheckListCategoryDefinitionIDs(ids ...int) *WorkOrderTypeUpdateOne {
+	wotuo.mutation.RemoveCheckListCategoryDefinitionIDs(ids...)
 	return wotuo
 }
 
-// RemoveCheckListCategories removes check_list_categories edges to CheckListCategory.
-func (wotuo *WorkOrderTypeUpdateOne) RemoveCheckListCategories(c ...*CheckListCategory) *WorkOrderTypeUpdateOne {
+// RemoveCheckListCategoryDefinitions removes check_list_category_definitions edges to CheckListCategoryDefinition.
+func (wotuo *WorkOrderTypeUpdateOne) RemoveCheckListCategoryDefinitions(c ...*CheckListCategoryDefinition) *WorkOrderTypeUpdateOne {
 	ids := make([]int, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
-	return wotuo.RemoveCheckListCategoryIDs(ids...)
-}
-
-// RemoveCheckListDefinitionIDs removes the check_list_definitions edge to CheckListItemDefinition by ids.
-func (wotuo *WorkOrderTypeUpdateOne) RemoveCheckListDefinitionIDs(ids ...int) *WorkOrderTypeUpdateOne {
-	wotuo.mutation.RemoveCheckListDefinitionIDs(ids...)
-	return wotuo
-}
-
-// RemoveCheckListDefinitions removes check_list_definitions edges to CheckListItemDefinition.
-func (wotuo *WorkOrderTypeUpdateOne) RemoveCheckListDefinitions(c ...*CheckListItemDefinition) *WorkOrderTypeUpdateOne {
-	ids := make([]int, len(c))
-	for i := range c {
-		ids[i] = c[i].ID
-	}
-	return wotuo.RemoveCheckListDefinitionIDs(ids...)
+	return wotuo.RemoveCheckListCategoryDefinitionIDs(ids...)
 }
 
 // Save executes the query and returns the updated entity.
@@ -908,17 +809,17 @@ func (wotuo *WorkOrderTypeUpdateOne) sqlSave(ctx context.Context) (wot *WorkOrde
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := wotuo.mutation.RemovedCheckListCategoriesIDs(); len(nodes) > 0 {
+	if nodes := wotuo.mutation.RemovedCheckListCategoryDefinitionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   workordertype.CheckListCategoriesTable,
-			Columns: []string{workordertype.CheckListCategoriesColumn},
+			Table:   workordertype.CheckListCategoryDefinitionsTable,
+			Columns: []string{workordertype.CheckListCategoryDefinitionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: checklistcategory.FieldID,
+					Column: checklistcategorydefinition.FieldID,
 				},
 			},
 		}
@@ -927,55 +828,17 @@ func (wotuo *WorkOrderTypeUpdateOne) sqlSave(ctx context.Context) (wot *WorkOrde
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := wotuo.mutation.CheckListCategoriesIDs(); len(nodes) > 0 {
+	if nodes := wotuo.mutation.CheckListCategoryDefinitionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   workordertype.CheckListCategoriesTable,
-			Columns: []string{workordertype.CheckListCategoriesColumn},
+			Table:   workordertype.CheckListCategoryDefinitionsTable,
+			Columns: []string{workordertype.CheckListCategoryDefinitionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: checklistcategory.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if nodes := wotuo.mutation.RemovedCheckListDefinitionsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   workordertype.CheckListDefinitionsTable,
-			Columns: []string{workordertype.CheckListDefinitionsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: checklistitemdefinition.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := wotuo.mutation.CheckListDefinitionsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   workordertype.CheckListDefinitionsTable,
-			Columns: []string{workordertype.CheckListDefinitionsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: checklistitemdefinition.FieldID,
+					Column: checklistcategorydefinition.FieldID,
 				},
 			},
 		}

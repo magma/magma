@@ -17,7 +17,7 @@ import (
 
 func TestAddFloorPlan(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr := r.Mutation()
@@ -87,7 +87,7 @@ func TestAddFloorPlan(t *testing.T) {
 
 func TestRemoveFloorPlan(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr := r.Mutation()

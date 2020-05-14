@@ -8,17 +8,18 @@ package ent
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/ent/checklistcategory"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
 	"github.com/facebookincubator/symphony/graph/ent/file"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/surveycellscan"
 	"github.com/facebookincubator/symphony/graph/ent/surveywifiscan"
-	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
 
 // CheckListItemUpdate is the builder for updating CheckListItem entities.
@@ -134,23 +135,23 @@ func (cliu *CheckListItemUpdate) ClearEnumValues() *CheckListItemUpdate {
 	return cliu
 }
 
-// SetEnumSelectionMode sets the enum_selection_mode field.
-func (cliu *CheckListItemUpdate) SetEnumSelectionMode(s string) *CheckListItemUpdate {
-	cliu.mutation.SetEnumSelectionMode(s)
+// SetEnumSelectionModeValue sets the enum_selection_mode_value field.
+func (cliu *CheckListItemUpdate) SetEnumSelectionModeValue(csmv checklistitem.EnumSelectionModeValue) *CheckListItemUpdate {
+	cliu.mutation.SetEnumSelectionModeValue(csmv)
 	return cliu
 }
 
-// SetNillableEnumSelectionMode sets the enum_selection_mode field if the given value is not nil.
-func (cliu *CheckListItemUpdate) SetNillableEnumSelectionMode(s *string) *CheckListItemUpdate {
-	if s != nil {
-		cliu.SetEnumSelectionMode(*s)
+// SetNillableEnumSelectionModeValue sets the enum_selection_mode_value field if the given value is not nil.
+func (cliu *CheckListItemUpdate) SetNillableEnumSelectionModeValue(csmv *checklistitem.EnumSelectionModeValue) *CheckListItemUpdate {
+	if csmv != nil {
+		cliu.SetEnumSelectionModeValue(*csmv)
 	}
 	return cliu
 }
 
-// ClearEnumSelectionMode clears the value of enum_selection_mode.
-func (cliu *CheckListItemUpdate) ClearEnumSelectionMode() *CheckListItemUpdate {
-	cliu.mutation.ClearEnumSelectionMode()
+// ClearEnumSelectionModeValue clears the value of enum_selection_mode_value.
+func (cliu *CheckListItemUpdate) ClearEnumSelectionModeValue() *CheckListItemUpdate {
+	cliu.mutation.ClearEnumSelectionModeValue()
 	return cliu
 }
 
@@ -259,23 +260,15 @@ func (cliu *CheckListItemUpdate) AddCellScan(s ...*SurveyCellScan) *CheckListIte
 	return cliu.AddCellScanIDs(ids...)
 }
 
-// SetWorkOrderID sets the work_order edge to WorkOrder by id.
-func (cliu *CheckListItemUpdate) SetWorkOrderID(id int) *CheckListItemUpdate {
-	cliu.mutation.SetWorkOrderID(id)
+// SetCheckListCategoryID sets the check_list_category edge to CheckListCategory by id.
+func (cliu *CheckListItemUpdate) SetCheckListCategoryID(id int) *CheckListItemUpdate {
+	cliu.mutation.SetCheckListCategoryID(id)
 	return cliu
 }
 
-// SetNillableWorkOrderID sets the work_order edge to WorkOrder by id if the given value is not nil.
-func (cliu *CheckListItemUpdate) SetNillableWorkOrderID(id *int) *CheckListItemUpdate {
-	if id != nil {
-		cliu = cliu.SetWorkOrderID(*id)
-	}
-	return cliu
-}
-
-// SetWorkOrder sets the work_order edge to WorkOrder.
-func (cliu *CheckListItemUpdate) SetWorkOrder(w *WorkOrder) *CheckListItemUpdate {
-	return cliu.SetWorkOrderID(w.ID)
+// SetCheckListCategory sets the check_list_category edge to CheckListCategory.
+func (cliu *CheckListItemUpdate) SetCheckListCategory(c *CheckListCategory) *CheckListItemUpdate {
+	return cliu.SetCheckListCategoryID(c.ID)
 }
 
 // RemoveFileIDs removes the files edge to File by ids.
@@ -323,20 +316,28 @@ func (cliu *CheckListItemUpdate) RemoveCellScan(s ...*SurveyCellScan) *CheckList
 	return cliu.RemoveCellScanIDs(ids...)
 }
 
-// ClearWorkOrder clears the work_order edge to WorkOrder.
-func (cliu *CheckListItemUpdate) ClearWorkOrder() *CheckListItemUpdate {
-	cliu.mutation.ClearWorkOrder()
+// ClearCheckListCategory clears the check_list_category edge to CheckListCategory.
+func (cliu *CheckListItemUpdate) ClearCheckListCategory() *CheckListItemUpdate {
+	cliu.mutation.ClearCheckListCategory()
 	return cliu
 }
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (cliu *CheckListItemUpdate) Save(ctx context.Context) (int, error) {
+	if v, ok := cliu.mutation.EnumSelectionModeValue(); ok {
+		if err := checklistitem.EnumSelectionModeValueValidator(v); err != nil {
+			return 0, fmt.Errorf("ent: validator failed for field \"enum_selection_mode_value\": %v", err)
+		}
+	}
 	if v, ok := cliu.mutation.YesNoVal(); ok {
 		if err := checklistitem.YesNoValValidator(v); err != nil {
 			return 0, fmt.Errorf("ent: validator failed for field \"yes_no_val\": %v", err)
 		}
 	}
 
+	if _, ok := cliu.mutation.CheckListCategoryID(); cliu.mutation.CheckListCategoryCleared() && !ok {
+		return 0, errors.New("ent: clearing a unique edge \"check_list_category\"")
+	}
 	var (
 		err      error
 		affected int
@@ -476,17 +477,17 @@ func (cliu *CheckListItemUpdate) sqlSave(ctx context.Context) (n int, err error)
 			Column: checklistitem.FieldEnumValues,
 		})
 	}
-	if value, ok := cliu.mutation.EnumSelectionMode(); ok {
+	if value, ok := cliu.mutation.EnumSelectionModeValue(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
+			Type:   field.TypeEnum,
 			Value:  value,
-			Column: checklistitem.FieldEnumSelectionMode,
+			Column: checklistitem.FieldEnumSelectionModeValue,
 		})
 	}
-	if cliu.mutation.EnumSelectionModeCleared() {
+	if cliu.mutation.EnumSelectionModeValueCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Column: checklistitem.FieldEnumSelectionMode,
+			Type:   field.TypeEnum,
+			Column: checklistitem.FieldEnumSelectionModeValue,
 		})
 	}
 	if value, ok := cliu.mutation.SelectedEnumValues(); ok {
@@ -642,33 +643,33 @@ func (cliu *CheckListItemUpdate) sqlSave(ctx context.Context) (n int, err error)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if cliu.mutation.WorkOrderCleared() {
+	if cliu.mutation.CheckListCategoryCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   checklistitem.WorkOrderTable,
-			Columns: []string{checklistitem.WorkOrderColumn},
+			Table:   checklistitem.CheckListCategoryTable,
+			Columns: []string{checklistitem.CheckListCategoryColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: workorder.FieldID,
+					Column: checklistcategory.FieldID,
 				},
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := cliu.mutation.WorkOrderIDs(); len(nodes) > 0 {
+	if nodes := cliu.mutation.CheckListCategoryIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   checklistitem.WorkOrderTable,
-			Columns: []string{checklistitem.WorkOrderColumn},
+			Table:   checklistitem.CheckListCategoryTable,
+			Columns: []string{checklistitem.CheckListCategoryColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: workorder.FieldID,
+					Column: checklistcategory.FieldID,
 				},
 			},
 		}
@@ -794,23 +795,23 @@ func (cliuo *CheckListItemUpdateOne) ClearEnumValues() *CheckListItemUpdateOne {
 	return cliuo
 }
 
-// SetEnumSelectionMode sets the enum_selection_mode field.
-func (cliuo *CheckListItemUpdateOne) SetEnumSelectionMode(s string) *CheckListItemUpdateOne {
-	cliuo.mutation.SetEnumSelectionMode(s)
+// SetEnumSelectionModeValue sets the enum_selection_mode_value field.
+func (cliuo *CheckListItemUpdateOne) SetEnumSelectionModeValue(csmv checklistitem.EnumSelectionModeValue) *CheckListItemUpdateOne {
+	cliuo.mutation.SetEnumSelectionModeValue(csmv)
 	return cliuo
 }
 
-// SetNillableEnumSelectionMode sets the enum_selection_mode field if the given value is not nil.
-func (cliuo *CheckListItemUpdateOne) SetNillableEnumSelectionMode(s *string) *CheckListItemUpdateOne {
-	if s != nil {
-		cliuo.SetEnumSelectionMode(*s)
+// SetNillableEnumSelectionModeValue sets the enum_selection_mode_value field if the given value is not nil.
+func (cliuo *CheckListItemUpdateOne) SetNillableEnumSelectionModeValue(csmv *checklistitem.EnumSelectionModeValue) *CheckListItemUpdateOne {
+	if csmv != nil {
+		cliuo.SetEnumSelectionModeValue(*csmv)
 	}
 	return cliuo
 }
 
-// ClearEnumSelectionMode clears the value of enum_selection_mode.
-func (cliuo *CheckListItemUpdateOne) ClearEnumSelectionMode() *CheckListItemUpdateOne {
-	cliuo.mutation.ClearEnumSelectionMode()
+// ClearEnumSelectionModeValue clears the value of enum_selection_mode_value.
+func (cliuo *CheckListItemUpdateOne) ClearEnumSelectionModeValue() *CheckListItemUpdateOne {
+	cliuo.mutation.ClearEnumSelectionModeValue()
 	return cliuo
 }
 
@@ -919,23 +920,15 @@ func (cliuo *CheckListItemUpdateOne) AddCellScan(s ...*SurveyCellScan) *CheckLis
 	return cliuo.AddCellScanIDs(ids...)
 }
 
-// SetWorkOrderID sets the work_order edge to WorkOrder by id.
-func (cliuo *CheckListItemUpdateOne) SetWorkOrderID(id int) *CheckListItemUpdateOne {
-	cliuo.mutation.SetWorkOrderID(id)
+// SetCheckListCategoryID sets the check_list_category edge to CheckListCategory by id.
+func (cliuo *CheckListItemUpdateOne) SetCheckListCategoryID(id int) *CheckListItemUpdateOne {
+	cliuo.mutation.SetCheckListCategoryID(id)
 	return cliuo
 }
 
-// SetNillableWorkOrderID sets the work_order edge to WorkOrder by id if the given value is not nil.
-func (cliuo *CheckListItemUpdateOne) SetNillableWorkOrderID(id *int) *CheckListItemUpdateOne {
-	if id != nil {
-		cliuo = cliuo.SetWorkOrderID(*id)
-	}
-	return cliuo
-}
-
-// SetWorkOrder sets the work_order edge to WorkOrder.
-func (cliuo *CheckListItemUpdateOne) SetWorkOrder(w *WorkOrder) *CheckListItemUpdateOne {
-	return cliuo.SetWorkOrderID(w.ID)
+// SetCheckListCategory sets the check_list_category edge to CheckListCategory.
+func (cliuo *CheckListItemUpdateOne) SetCheckListCategory(c *CheckListCategory) *CheckListItemUpdateOne {
+	return cliuo.SetCheckListCategoryID(c.ID)
 }
 
 // RemoveFileIDs removes the files edge to File by ids.
@@ -983,20 +976,28 @@ func (cliuo *CheckListItemUpdateOne) RemoveCellScan(s ...*SurveyCellScan) *Check
 	return cliuo.RemoveCellScanIDs(ids...)
 }
 
-// ClearWorkOrder clears the work_order edge to WorkOrder.
-func (cliuo *CheckListItemUpdateOne) ClearWorkOrder() *CheckListItemUpdateOne {
-	cliuo.mutation.ClearWorkOrder()
+// ClearCheckListCategory clears the check_list_category edge to CheckListCategory.
+func (cliuo *CheckListItemUpdateOne) ClearCheckListCategory() *CheckListItemUpdateOne {
+	cliuo.mutation.ClearCheckListCategory()
 	return cliuo
 }
 
 // Save executes the query and returns the updated entity.
 func (cliuo *CheckListItemUpdateOne) Save(ctx context.Context) (*CheckListItem, error) {
+	if v, ok := cliuo.mutation.EnumSelectionModeValue(); ok {
+		if err := checklistitem.EnumSelectionModeValueValidator(v); err != nil {
+			return nil, fmt.Errorf("ent: validator failed for field \"enum_selection_mode_value\": %v", err)
+		}
+	}
 	if v, ok := cliuo.mutation.YesNoVal(); ok {
 		if err := checklistitem.YesNoValValidator(v); err != nil {
 			return nil, fmt.Errorf("ent: validator failed for field \"yes_no_val\": %v", err)
 		}
 	}
 
+	if _, ok := cliuo.mutation.CheckListCategoryID(); cliuo.mutation.CheckListCategoryCleared() && !ok {
+		return nil, errors.New("ent: clearing a unique edge \"check_list_category\"")
+	}
 	var (
 		err  error
 		node *CheckListItem
@@ -1134,17 +1135,17 @@ func (cliuo *CheckListItemUpdateOne) sqlSave(ctx context.Context) (cli *CheckLis
 			Column: checklistitem.FieldEnumValues,
 		})
 	}
-	if value, ok := cliuo.mutation.EnumSelectionMode(); ok {
+	if value, ok := cliuo.mutation.EnumSelectionModeValue(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
+			Type:   field.TypeEnum,
 			Value:  value,
-			Column: checklistitem.FieldEnumSelectionMode,
+			Column: checklistitem.FieldEnumSelectionModeValue,
 		})
 	}
-	if cliuo.mutation.EnumSelectionModeCleared() {
+	if cliuo.mutation.EnumSelectionModeValueCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Column: checklistitem.FieldEnumSelectionMode,
+			Type:   field.TypeEnum,
+			Column: checklistitem.FieldEnumSelectionModeValue,
 		})
 	}
 	if value, ok := cliuo.mutation.SelectedEnumValues(); ok {
@@ -1300,33 +1301,33 @@ func (cliuo *CheckListItemUpdateOne) sqlSave(ctx context.Context) (cli *CheckLis
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if cliuo.mutation.WorkOrderCleared() {
+	if cliuo.mutation.CheckListCategoryCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   checklistitem.WorkOrderTable,
-			Columns: []string{checklistitem.WorkOrderColumn},
+			Table:   checklistitem.CheckListCategoryTable,
+			Columns: []string{checklistitem.CheckListCategoryColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: workorder.FieldID,
+					Column: checklistcategory.FieldID,
 				},
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := cliuo.mutation.WorkOrderIDs(); len(nodes) > 0 {
+	if nodes := cliuo.mutation.CheckListCategoryIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   checklistitem.WorkOrderTable,
-			Columns: []string{checklistitem.WorkOrderColumn},
+			Table:   checklistitem.CheckListCategoryTable,
+			Columns: []string{checklistitem.CheckListCategoryColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: workorder.FieldID,
+					Column: checklistcategory.FieldID,
 				},
 			},
 		}

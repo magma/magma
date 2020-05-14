@@ -16,6 +16,7 @@ import (
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/checklistcategory"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
+	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
 
 // CheckListCategoryCreate is the builder for creating a CheckListCategory entity.
@@ -88,6 +89,17 @@ func (clcc *CheckListCategoryCreate) AddCheckListItems(c ...*CheckListItem) *Che
 	return clcc.AddCheckListItemIDs(ids...)
 }
 
+// SetWorkOrderID sets the work_order edge to WorkOrder by id.
+func (clcc *CheckListCategoryCreate) SetWorkOrderID(id int) *CheckListCategoryCreate {
+	clcc.mutation.SetWorkOrderID(id)
+	return clcc
+}
+
+// SetWorkOrder sets the work_order edge to WorkOrder.
+func (clcc *CheckListCategoryCreate) SetWorkOrder(w *WorkOrder) *CheckListCategoryCreate {
+	return clcc.SetWorkOrderID(w.ID)
+}
+
 // Save creates the CheckListCategory in the database.
 func (clcc *CheckListCategoryCreate) Save(ctx context.Context) (*CheckListCategory, error) {
 	if _, ok := clcc.mutation.CreateTime(); !ok {
@@ -100,6 +112,9 @@ func (clcc *CheckListCategoryCreate) Save(ctx context.Context) (*CheckListCatego
 	}
 	if _, ok := clcc.mutation.Title(); !ok {
 		return nil, errors.New("ent: missing required field \"title\"")
+	}
+	if _, ok := clcc.mutation.WorkOrderID(); !ok {
+		return nil, errors.New("ent: missing required edge \"work_order\"")
 	}
 	var (
 		err  error
@@ -190,6 +205,25 @@ func (clcc *CheckListCategoryCreate) sqlSave(ctx context.Context) (*CheckListCat
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: checklistitem.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := clcc.mutation.WorkOrderIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   checklistcategory.WorkOrderTable,
+			Columns: []string{checklistcategory.WorkOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workorder.FieldID,
 				},
 			},
 		}

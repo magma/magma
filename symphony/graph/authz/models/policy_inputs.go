@@ -58,7 +58,7 @@ type InventoryPolicyInput struct {
 }
 
 type WorkforcePolicyInput struct {
-	Read      *BasicPermissionRuleInput `json:"read"`
-	Data      *WorkforceCUDInput        `json:"data"`
-	Templates *BasicCUDInput            `json:"templates"`
+	Read      *WorkforcePermissionRuleInput `json:"read"`
+	Data      *WorkforceCUDInput            `json:"data"`
+	Templates *BasicCUDInput                `json:"templates"`
 }

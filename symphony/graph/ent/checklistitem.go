@@ -11,8 +11,8 @@ import (
 	"strings"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/checklistcategory"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
-	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
 
 // CheckListItem is the model entity for the CheckListItem schema.
@@ -32,8 +32,8 @@ type CheckListItem struct {
 	StringVal string `json:"string_val,omitempty" gqlgen:"stringValue"`
 	// EnumValues holds the value of the "enum_values" field.
 	EnumValues string `json:"enum_values,omitempty" gqlgen:"enumValues"`
-	// EnumSelectionMode holds the value of the "enum_selection_mode" field.
-	EnumSelectionMode string `json:"enum_selection_mode,omitempty" gqlgen:"enumSelectionMode"`
+	// EnumSelectionModeValue holds the value of the "enum_selection_mode_value" field.
+	EnumSelectionModeValue checklistitem.EnumSelectionModeValue `json:"enum_selection_mode_value,omitempty"`
 	// SelectedEnumValues holds the value of the "selected_enum_values" field.
 	SelectedEnumValues string `json:"selected_enum_values,omitempty" gqlgen:"selectedEnumValues"`
 	// YesNoVal holds the value of the "yes_no_val" field.
@@ -44,7 +44,6 @@ type CheckListItem struct {
 	// The values are being populated by the CheckListItemQuery when eager-loading is set.
 	Edges                                CheckListItemEdges `json:"edges"`
 	check_list_category_check_list_items *int
-	work_order_check_list_items          *int
 }
 
 // CheckListItemEdges holds the relations/edges for other nodes in the graph.
@@ -55,8 +54,8 @@ type CheckListItemEdges struct {
 	WifiScan []*SurveyWiFiScan
 	// CellScan holds the value of the cell_scan edge.
 	CellScan []*SurveyCellScan
-	// WorkOrder holds the value of the work_order edge.
-	WorkOrder *WorkOrder
+	// CheckListCategory holds the value of the check_list_category edge.
+	CheckListCategory *CheckListCategory
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [4]bool
@@ -89,18 +88,18 @@ func (e CheckListItemEdges) CellScanOrErr() ([]*SurveyCellScan, error) {
 	return nil, &NotLoadedError{edge: "cell_scan"}
 }
 
-// WorkOrderOrErr returns the WorkOrder value or an error if the edge
+// CheckListCategoryOrErr returns the CheckListCategory value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e CheckListItemEdges) WorkOrderOrErr() (*WorkOrder, error) {
+func (e CheckListItemEdges) CheckListCategoryOrErr() (*CheckListCategory, error) {
 	if e.loadedTypes[3] {
-		if e.WorkOrder == nil {
-			// The edge work_order was loaded in eager-loading,
+		if e.CheckListCategory == nil {
+			// The edge check_list_category was loaded in eager-loading,
 			// but was not found.
-			return nil, &NotFoundError{label: workorder.Label}
+			return nil, &NotFoundError{label: checklistcategory.Label}
 		}
-		return e.WorkOrder, nil
+		return e.CheckListCategory, nil
 	}
-	return nil, &NotLoadedError{edge: "work_order"}
+	return nil, &NotLoadedError{edge: "check_list_category"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -113,7 +112,7 @@ func (*CheckListItem) scanValues() []interface{} {
 		&sql.NullBool{},   // checked
 		&sql.NullString{}, // string_val
 		&sql.NullString{}, // enum_values
-		&sql.NullString{}, // enum_selection_mode
+		&sql.NullString{}, // enum_selection_mode_value
 		&sql.NullString{}, // selected_enum_values
 		&sql.NullString{}, // yes_no_val
 		&sql.NullString{}, // help_text
@@ -124,7 +123,6 @@ func (*CheckListItem) scanValues() []interface{} {
 func (*CheckListItem) fkValues() []interface{} {
 	return []interface{}{
 		&sql.NullInt64{}, // check_list_category_check_list_items
-		&sql.NullInt64{}, // work_order_check_list_items
 	}
 }
 
@@ -171,9 +169,9 @@ func (cli *CheckListItem) assignValues(values ...interface{}) error {
 		cli.EnumValues = value.String
 	}
 	if value, ok := values[6].(*sql.NullString); !ok {
-		return fmt.Errorf("unexpected type %T for field enum_selection_mode", values[6])
+		return fmt.Errorf("unexpected type %T for field enum_selection_mode_value", values[6])
 	} else if value.Valid {
-		cli.EnumSelectionMode = value.String
+		cli.EnumSelectionModeValue = checklistitem.EnumSelectionModeValue(value.String)
 	}
 	if value, ok := values[7].(*sql.NullString); !ok {
 		return fmt.Errorf("unexpected type %T for field selected_enum_values", values[7])
@@ -199,12 +197,6 @@ func (cli *CheckListItem) assignValues(values ...interface{}) error {
 			cli.check_list_category_check_list_items = new(int)
 			*cli.check_list_category_check_list_items = int(value.Int64)
 		}
-		if value, ok := values[1].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field work_order_check_list_items", value)
-		} else if value.Valid {
-			cli.work_order_check_list_items = new(int)
-			*cli.work_order_check_list_items = int(value.Int64)
-		}
 	}
 	return nil
 }
@@ -224,9 +216,9 @@ func (cli *CheckListItem) QueryCellScan() *SurveyCellScanQuery {
 	return (&CheckListItemClient{config: cli.config}).QueryCellScan(cli)
 }
 
-// QueryWorkOrder queries the work_order edge of the CheckListItem.
-func (cli *CheckListItem) QueryWorkOrder() *WorkOrderQuery {
-	return (&CheckListItemClient{config: cli.config}).QueryWorkOrder(cli)
+// QueryCheckListCategory queries the check_list_category edge of the CheckListItem.
+func (cli *CheckListItem) QueryCheckListCategory() *CheckListCategoryQuery {
+	return (&CheckListItemClient{config: cli.config}).QueryCheckListCategory(cli)
 }
 
 // Update returns a builder for updating this CheckListItem.
@@ -264,8 +256,8 @@ func (cli *CheckListItem) String() string {
 	builder.WriteString(cli.StringVal)
 	builder.WriteString(", enum_values=")
 	builder.WriteString(cli.EnumValues)
-	builder.WriteString(", enum_selection_mode=")
-	builder.WriteString(cli.EnumSelectionMode)
+	builder.WriteString(", enum_selection_mode_value=")
+	builder.WriteString(fmt.Sprintf("%v", cli.EnumSelectionModeValue))
 	builder.WriteString(", selected_enum_values=")
 	builder.WriteString(cli.SelectedEnumValues)
 	builder.WriteString(", yes_no_val=")

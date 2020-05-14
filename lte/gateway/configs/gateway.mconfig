@@ -20,7 +20,9 @@
       "csfbMcc": "001",
       "csfbMnc": "01",
       "lac": 1,
-      "attachedEnodebTacs": []
+      "attachedEnodebTacs": [],
+      "dns_primary": "8.8.8.8",
+      "dns_secondary": "8.8.4.4"
     },
     "enodebd": {
       "@type": "type.googleapis.com/magma.mconfig.EnodebD",

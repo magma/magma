@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 0d670a9050a1c62ad133f61aece9d0d2
+ * @relayHash 93ba24ec9b3c86e0ca7104b1fcc0e3d3
  */
 
 /* eslint-disable */
@@ -591,17 +591,7 @@ v10 = [
     "storageKey": null
   }
 ],
-v11 = {
-  "kind": "LinkedField",
-  "alias": null,
-  "name": "read",
-  "storageKey": null,
-  "args": null,
-  "concreteType": "BasicPermissionRule",
-  "plural": false,
-  "selections": (v10/*: any*/)
-},
-v12 = [
+v11 = [
   {
     "kind": "LinkedField",
     "alias": null,
@@ -633,7 +623,7 @@ v12 = [
     "selections": (v10/*: any*/)
   }
 ],
-v13 = [
+v12 = [
   {
     "kind": "LinkedField",
     "alias": null,
@@ -676,7 +666,16 @@ v13 = [
                 "kind": "InlineFragment",
                 "type": "InventoryPolicy",
                 "selections": [
-                  (v11/*: any*/),
+                  {
+                    "kind": "LinkedField",
+                    "alias": null,
+                    "name": "read",
+                    "storageKey": null,
+                    "args": null,
+                    "concreteType": "BasicPermissionRule",
+                    "plural": false,
+                    "selections": (v10/*: any*/)
+                  },
                   {
                     "kind": "LinkedField",
                     "alias": null,
@@ -726,7 +725,7 @@ v13 = [
                     "args": null,
                     "concreteType": "CUD",
                     "plural": false,
-                    "selections": (v12/*: any*/)
+                    "selections": (v11/*: any*/)
                   },
                   {
                     "kind": "LinkedField",
@@ -736,7 +735,7 @@ v13 = [
                     "args": null,
                     "concreteType": "CUD",
                     "plural": false,
-                    "selections": (v12/*: any*/)
+                    "selections": (v11/*: any*/)
                   },
                   {
                     "kind": "LinkedField",
@@ -746,7 +745,7 @@ v13 = [
                     "args": null,
                     "concreteType": "CUD",
                     "plural": false,
-                    "selections": (v12/*: any*/)
+                    "selections": (v11/*: any*/)
                   },
                   {
                     "kind": "LinkedField",
@@ -756,7 +755,7 @@ v13 = [
                     "args": null,
                     "concreteType": "CUD",
                     "plural": false,
-                    "selections": (v12/*: any*/)
+                    "selections": (v11/*: any*/)
                   },
                   {
                     "kind": "LinkedField",
@@ -766,7 +765,7 @@ v13 = [
                     "args": null,
                     "concreteType": "CUD",
                     "plural": false,
-                    "selections": (v12/*: any*/)
+                    "selections": (v11/*: any*/)
                   }
                 ]
               },
@@ -774,7 +773,16 @@ v13 = [
                 "kind": "InlineFragment",
                 "type": "WorkforcePolicy",
                 "selections": [
-                  (v11/*: any*/),
+                  {
+                    "kind": "LinkedField",
+                    "alias": null,
+                    "name": "read",
+                    "storageKey": null,
+                    "args": null,
+                    "concreteType": "WorkforcePermissionRule",
+                    "plural": false,
+                    "selections": (v10/*: any*/)
+                  },
                   {
                     "kind": "LinkedField",
                     "alias": null,
@@ -783,7 +791,7 @@ v13 = [
                     "args": null,
                     "concreteType": "CUD",
                     "plural": false,
-                    "selections": (v12/*: any*/)
+                    "selections": (v11/*: any*/)
                   },
                   {
                     "kind": "LinkedField",
@@ -870,7 +878,7 @@ v13 = [
   },
   (v6/*: any*/)
 ],
-v14 = [
+v13 = [
   {
     "kind": "Literal",
     "name": "first",
@@ -914,7 +922,7 @@ return {
         "args": null,
         "concreteType": "PermissionsPolicyConnection",
         "plural": false,
-        "selections": (v13/*: any*/)
+        "selections": (v12/*: any*/)
       }
     ]
   },
@@ -928,7 +936,7 @@ return {
         "alias": null,
         "name": "users",
         "storageKey": "users(first:500)",
-        "args": (v14/*: any*/),
+        "args": (v13/*: any*/),
         "concreteType": "UserConnection",
         "plural": false,
         "selections": (v7/*: any*/)
@@ -937,7 +945,7 @@ return {
         "kind": "LinkedHandle",
         "alias": null,
         "name": "users",
-        "args": (v14/*: any*/),
+        "args": (v13/*: any*/),
         "handle": "connection",
         "key": "UserManagementContext_users",
         "filters": null
@@ -947,7 +955,7 @@ return {
         "alias": null,
         "name": "usersGroups",
         "storageKey": "usersGroups(first:500)",
-        "args": (v14/*: any*/),
+        "args": (v13/*: any*/),
         "concreteType": "UsersGroupConnection",
         "plural": false,
         "selections": (v9/*: any*/)
@@ -956,7 +964,7 @@ return {
         "kind": "LinkedHandle",
         "alias": null,
         "name": "usersGroups",
-        "args": (v14/*: any*/),
+        "args": (v13/*: any*/),
         "handle": "connection",
         "key": "UserManagementContext_usersGroups",
         "filters": null
@@ -966,16 +974,16 @@ return {
         "alias": null,
         "name": "permissionsPolicies",
         "storageKey": "permissionsPolicies(first:500)",
-        "args": (v14/*: any*/),
+        "args": (v13/*: any*/),
         "concreteType": "PermissionsPolicyConnection",
         "plural": false,
-        "selections": (v13/*: any*/)
+        "selections": (v12/*: any*/)
       },
       {
         "kind": "LinkedHandle",
         "alias": null,
         "name": "permissionsPolicies",
-        "args": (v14/*: any*/),
+        "args": (v13/*: any*/),
         "handle": "connection",
         "key": "UserManagementContext_permissionsPolicies",
         "filters": null

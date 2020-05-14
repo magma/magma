@@ -27,7 +27,9 @@ supporting components into an EKS cluster.
 | eks\_cluster\_id | EKS cluster ID for the kubernetes cluster | `string` | n/a | yes |
 | elasticsearch\_endpoint | Endpoint of the Elasticsearch datasink for aggregated logs and events. | `string` | n/a | yes |
 | elasticsearch\_retention\_days | Retention period in days of ES indices. | `number` | `7` | no |
+| existing\_tiller\_service\_account\_name | Name of existing tiller service account to use for Helm | `string` | n/a | yes |
 | external\_dns\_role\_arn | IAM role ARN for external-dns | `string` | n/a | yes |
+| helm\_deployment\_name | Name for the Helm release | `string` | `"orc8r"` | no |
 | helm\_pass | Helm repository password | `string` | n/a | yes |
 | helm\_repo | Helm repository URL for orc8r charts | `string` | n/a | yes |
 | helm\_user | Helm username to login to repositoriy with | `string` | n/a | yes |
@@ -53,8 +55,10 @@ supporting components into an EKS cluster.
 | seed\_certs\_dir | Directory on LOCAL disk where orc8r certificates are stored to seed Secretsmanager values. Home directory and env vars will be expanded. | `string` | n/a | yes |
 | state\_backend | State backend for terraform (e.g. s3, local) | `string` | `"local"` | no |
 | state\_config | Optional config for state backend. The object type will depend on your backend. | `any` | n/a | yes |
+| tiller\_namespace | Namepsace where tiller is installed or should be installed into. | `string` | `"kube-system"` | no |
 
 ## Outputs
 
-No output.
-
+| Name | Description |
+|------|-------------|
+| helm\_vals | Helm values for the orc8r deployment |

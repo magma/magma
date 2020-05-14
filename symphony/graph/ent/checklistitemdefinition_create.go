@@ -14,8 +14,8 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/ent/checklistcategorydefinition"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitemdefinition"
-	"github.com/facebookincubator/symphony/graph/ent/workordertype"
 )
 
 // CheckListItemDefinitionCreate is the builder for creating a CheckListItemDefinition entity.
@@ -93,6 +93,20 @@ func (clidc *CheckListItemDefinitionCreate) SetNillableEnumValues(s *string) *Ch
 	return clidc
 }
 
+// SetEnumSelectionModeValue sets the enum_selection_mode_value field.
+func (clidc *CheckListItemDefinitionCreate) SetEnumSelectionModeValue(csmv checklistitemdefinition.EnumSelectionModeValue) *CheckListItemDefinitionCreate {
+	clidc.mutation.SetEnumSelectionModeValue(csmv)
+	return clidc
+}
+
+// SetNillableEnumSelectionModeValue sets the enum_selection_mode_value field if the given value is not nil.
+func (clidc *CheckListItemDefinitionCreate) SetNillableEnumSelectionModeValue(csmv *checklistitemdefinition.EnumSelectionModeValue) *CheckListItemDefinitionCreate {
+	if csmv != nil {
+		clidc.SetEnumSelectionModeValue(*csmv)
+	}
+	return clidc
+}
+
 // SetHelpText sets the help_text field.
 func (clidc *CheckListItemDefinitionCreate) SetHelpText(s string) *CheckListItemDefinitionCreate {
 	clidc.mutation.SetHelpText(s)
@@ -107,23 +121,15 @@ func (clidc *CheckListItemDefinitionCreate) SetNillableHelpText(s *string) *Chec
 	return clidc
 }
 
-// SetWorkOrderTypeID sets the work_order_type edge to WorkOrderType by id.
-func (clidc *CheckListItemDefinitionCreate) SetWorkOrderTypeID(id int) *CheckListItemDefinitionCreate {
-	clidc.mutation.SetWorkOrderTypeID(id)
+// SetCheckListCategoryDefinitionID sets the check_list_category_definition edge to CheckListCategoryDefinition by id.
+func (clidc *CheckListItemDefinitionCreate) SetCheckListCategoryDefinitionID(id int) *CheckListItemDefinitionCreate {
+	clidc.mutation.SetCheckListCategoryDefinitionID(id)
 	return clidc
 }
 
-// SetNillableWorkOrderTypeID sets the work_order_type edge to WorkOrderType by id if the given value is not nil.
-func (clidc *CheckListItemDefinitionCreate) SetNillableWorkOrderTypeID(id *int) *CheckListItemDefinitionCreate {
-	if id != nil {
-		clidc = clidc.SetWorkOrderTypeID(*id)
-	}
-	return clidc
-}
-
-// SetWorkOrderType sets the work_order_type edge to WorkOrderType.
-func (clidc *CheckListItemDefinitionCreate) SetWorkOrderType(w *WorkOrderType) *CheckListItemDefinitionCreate {
-	return clidc.SetWorkOrderTypeID(w.ID)
+// SetCheckListCategoryDefinition sets the check_list_category_definition edge to CheckListCategoryDefinition.
+func (clidc *CheckListItemDefinitionCreate) SetCheckListCategoryDefinition(c *CheckListCategoryDefinition) *CheckListItemDefinitionCreate {
+	return clidc.SetCheckListCategoryDefinitionID(c.ID)
 }
 
 // Save creates the CheckListItemDefinition in the database.
@@ -141,6 +147,14 @@ func (clidc *CheckListItemDefinitionCreate) Save(ctx context.Context) (*CheckLis
 	}
 	if _, ok := clidc.mutation.GetType(); !ok {
 		return nil, errors.New("ent: missing required field \"type\"")
+	}
+	if v, ok := clidc.mutation.EnumSelectionModeValue(); ok {
+		if err := checklistitemdefinition.EnumSelectionModeValueValidator(v); err != nil {
+			return nil, fmt.Errorf("ent: validator failed for field \"enum_selection_mode_value\": %v", err)
+		}
+	}
+	if _, ok := clidc.mutation.CheckListCategoryDefinitionID(); !ok {
+		return nil, errors.New("ent: missing required edge \"check_list_category_definition\"")
 	}
 	var (
 		err  error
@@ -236,6 +250,14 @@ func (clidc *CheckListItemDefinitionCreate) sqlSave(ctx context.Context) (*Check
 		})
 		clid.EnumValues = &value
 	}
+	if value, ok := clidc.mutation.EnumSelectionModeValue(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeEnum,
+			Value:  value,
+			Column: checklistitemdefinition.FieldEnumSelectionModeValue,
+		})
+		clid.EnumSelectionModeValue = value
+	}
 	if value, ok := clidc.mutation.HelpText(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
@@ -244,17 +266,17 @@ func (clidc *CheckListItemDefinitionCreate) sqlSave(ctx context.Context) (*Check
 		})
 		clid.HelpText = &value
 	}
-	if nodes := clidc.mutation.WorkOrderTypeIDs(); len(nodes) > 0 {
+	if nodes := clidc.mutation.CheckListCategoryDefinitionIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   checklistitemdefinition.WorkOrderTypeTable,
-			Columns: []string{checklistitemdefinition.WorkOrderTypeColumn},
+			Table:   checklistitemdefinition.CheckListCategoryDefinitionTable,
+			Columns: []string{checklistitemdefinition.CheckListCategoryDefinitionColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: workordertype.FieldID,
+					Column: checklistcategorydefinition.FieldID,
 				},
 			},
 		}

@@ -16,7 +16,6 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/checklistcategory"
-	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
 	"github.com/facebookincubator/symphony/graph/ent/comment"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/file"
@@ -315,21 +314,6 @@ func (wou *WorkOrderUpdate) AddCheckListCategories(c ...*CheckListCategory) *Wor
 	return wou.AddCheckListCategoryIDs(ids...)
 }
 
-// AddCheckListItemIDs adds the check_list_items edge to CheckListItem by ids.
-func (wou *WorkOrderUpdate) AddCheckListItemIDs(ids ...int) *WorkOrderUpdate {
-	wou.mutation.AddCheckListItemIDs(ids...)
-	return wou
-}
-
-// AddCheckListItems adds the check_list_items edges to CheckListItem.
-func (wou *WorkOrderUpdate) AddCheckListItems(c ...*CheckListItem) *WorkOrderUpdate {
-	ids := make([]int, len(c))
-	for i := range c {
-		ids[i] = c[i].ID
-	}
-	return wou.AddCheckListItemIDs(ids...)
-}
-
 // SetProjectID sets the project edge to Project by id.
 func (wou *WorkOrderUpdate) SetProjectID(id int) *WorkOrderUpdate {
 	wou.mutation.SetProjectID(id)
@@ -494,21 +478,6 @@ func (wou *WorkOrderUpdate) RemoveCheckListCategories(c ...*CheckListCategory) *
 		ids[i] = c[i].ID
 	}
 	return wou.RemoveCheckListCategoryIDs(ids...)
-}
-
-// RemoveCheckListItemIDs removes the check_list_items edge to CheckListItem by ids.
-func (wou *WorkOrderUpdate) RemoveCheckListItemIDs(ids ...int) *WorkOrderUpdate {
-	wou.mutation.RemoveCheckListItemIDs(ids...)
-	return wou
-}
-
-// RemoveCheckListItems removes check_list_items edges to CheckListItem.
-func (wou *WorkOrderUpdate) RemoveCheckListItems(c ...*CheckListItem) *WorkOrderUpdate {
-	ids := make([]int, len(c))
-	for i := range c {
-		ids[i] = c[i].ID
-	}
-	return wou.RemoveCheckListItemIDs(ids...)
 }
 
 // ClearProject clears the project edge to Project.
@@ -1041,44 +1010,6 @@ func (wou *WorkOrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := wou.mutation.RemovedCheckListItemsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   workorder.CheckListItemsTable,
-			Columns: []string{workorder.CheckListItemsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: checklistitem.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := wou.mutation.CheckListItemsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   workorder.CheckListItemsTable,
-			Columns: []string{workorder.CheckListItemsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: checklistitem.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
 	if wou.mutation.ProjectCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -1472,21 +1403,6 @@ func (wouo *WorkOrderUpdateOne) AddCheckListCategories(c ...*CheckListCategory) 
 	return wouo.AddCheckListCategoryIDs(ids...)
 }
 
-// AddCheckListItemIDs adds the check_list_items edge to CheckListItem by ids.
-func (wouo *WorkOrderUpdateOne) AddCheckListItemIDs(ids ...int) *WorkOrderUpdateOne {
-	wouo.mutation.AddCheckListItemIDs(ids...)
-	return wouo
-}
-
-// AddCheckListItems adds the check_list_items edges to CheckListItem.
-func (wouo *WorkOrderUpdateOne) AddCheckListItems(c ...*CheckListItem) *WorkOrderUpdateOne {
-	ids := make([]int, len(c))
-	for i := range c {
-		ids[i] = c[i].ID
-	}
-	return wouo.AddCheckListItemIDs(ids...)
-}
-
 // SetProjectID sets the project edge to Project by id.
 func (wouo *WorkOrderUpdateOne) SetProjectID(id int) *WorkOrderUpdateOne {
 	wouo.mutation.SetProjectID(id)
@@ -1651,21 +1567,6 @@ func (wouo *WorkOrderUpdateOne) RemoveCheckListCategories(c ...*CheckListCategor
 		ids[i] = c[i].ID
 	}
 	return wouo.RemoveCheckListCategoryIDs(ids...)
-}
-
-// RemoveCheckListItemIDs removes the check_list_items edge to CheckListItem by ids.
-func (wouo *WorkOrderUpdateOne) RemoveCheckListItemIDs(ids ...int) *WorkOrderUpdateOne {
-	wouo.mutation.RemoveCheckListItemIDs(ids...)
-	return wouo
-}
-
-// RemoveCheckListItems removes check_list_items edges to CheckListItem.
-func (wouo *WorkOrderUpdateOne) RemoveCheckListItems(c ...*CheckListItem) *WorkOrderUpdateOne {
-	ids := make([]int, len(c))
-	for i := range c {
-		ids[i] = c[i].ID
-	}
-	return wouo.RemoveCheckListItemIDs(ids...)
 }
 
 // ClearProject clears the project edge to Project.
@@ -2188,44 +2089,6 @@ func (wouo *WorkOrderUpdateOne) sqlSave(ctx context.Context) (wo *WorkOrder, err
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: checklistcategory.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if nodes := wouo.mutation.RemovedCheckListItemsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   workorder.CheckListItemsTable,
-			Columns: []string{workorder.CheckListItemsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: checklistitem.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := wouo.mutation.CheckListItemsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   workorder.CheckListItemsTable,
-			Columns: []string{workorder.CheckListItemsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: checklistitem.FieldID,
 				},
 			},
 		}

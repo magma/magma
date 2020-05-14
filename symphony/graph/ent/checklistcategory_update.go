@@ -8,6 +8,7 @@ package ent
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
@@ -16,6 +17,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/checklistcategory"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
+	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
 
 // CheckListCategoryUpdate is the builder for updating CheckListCategory entities.
@@ -73,6 +75,17 @@ func (clcu *CheckListCategoryUpdate) AddCheckListItems(c ...*CheckListItem) *Che
 	return clcu.AddCheckListItemIDs(ids...)
 }
 
+// SetWorkOrderID sets the work_order edge to WorkOrder by id.
+func (clcu *CheckListCategoryUpdate) SetWorkOrderID(id int) *CheckListCategoryUpdate {
+	clcu.mutation.SetWorkOrderID(id)
+	return clcu
+}
+
+// SetWorkOrder sets the work_order edge to WorkOrder.
+func (clcu *CheckListCategoryUpdate) SetWorkOrder(w *WorkOrder) *CheckListCategoryUpdate {
+	return clcu.SetWorkOrderID(w.ID)
+}
+
 // RemoveCheckListItemIDs removes the check_list_items edge to CheckListItem by ids.
 func (clcu *CheckListCategoryUpdate) RemoveCheckListItemIDs(ids ...int) *CheckListCategoryUpdate {
 	clcu.mutation.RemoveCheckListItemIDs(ids...)
@@ -88,6 +101,12 @@ func (clcu *CheckListCategoryUpdate) RemoveCheckListItems(c ...*CheckListItem) *
 	return clcu.RemoveCheckListItemIDs(ids...)
 }
 
+// ClearWorkOrder clears the work_order edge to WorkOrder.
+func (clcu *CheckListCategoryUpdate) ClearWorkOrder() *CheckListCategoryUpdate {
+	clcu.mutation.ClearWorkOrder()
+	return clcu
+}
+
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (clcu *CheckListCategoryUpdate) Save(ctx context.Context) (int, error) {
 	if _, ok := clcu.mutation.UpdateTime(); !ok {
@@ -95,6 +114,9 @@ func (clcu *CheckListCategoryUpdate) Save(ctx context.Context) (int, error) {
 		clcu.mutation.SetUpdateTime(v)
 	}
 
+	if _, ok := clcu.mutation.WorkOrderID(); clcu.mutation.WorkOrderCleared() && !ok {
+		return 0, errors.New("ent: clearing a unique edge \"work_order\"")
+	}
 	var (
 		err      error
 		affected int
@@ -226,6 +248,41 @@ func (clcu *CheckListCategoryUpdate) sqlSave(ctx context.Context) (n int, err er
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if clcu.mutation.WorkOrderCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   checklistcategory.WorkOrderTable,
+			Columns: []string{checklistcategory.WorkOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workorder.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := clcu.mutation.WorkOrderIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   checklistcategory.WorkOrderTable,
+			Columns: []string{checklistcategory.WorkOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workorder.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, clcu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{checklistcategory.Label}
@@ -285,6 +342,17 @@ func (clcuo *CheckListCategoryUpdateOne) AddCheckListItems(c ...*CheckListItem) 
 	return clcuo.AddCheckListItemIDs(ids...)
 }
 
+// SetWorkOrderID sets the work_order edge to WorkOrder by id.
+func (clcuo *CheckListCategoryUpdateOne) SetWorkOrderID(id int) *CheckListCategoryUpdateOne {
+	clcuo.mutation.SetWorkOrderID(id)
+	return clcuo
+}
+
+// SetWorkOrder sets the work_order edge to WorkOrder.
+func (clcuo *CheckListCategoryUpdateOne) SetWorkOrder(w *WorkOrder) *CheckListCategoryUpdateOne {
+	return clcuo.SetWorkOrderID(w.ID)
+}
+
 // RemoveCheckListItemIDs removes the check_list_items edge to CheckListItem by ids.
 func (clcuo *CheckListCategoryUpdateOne) RemoveCheckListItemIDs(ids ...int) *CheckListCategoryUpdateOne {
 	clcuo.mutation.RemoveCheckListItemIDs(ids...)
@@ -300,6 +368,12 @@ func (clcuo *CheckListCategoryUpdateOne) RemoveCheckListItems(c ...*CheckListIte
 	return clcuo.RemoveCheckListItemIDs(ids...)
 }
 
+// ClearWorkOrder clears the work_order edge to WorkOrder.
+func (clcuo *CheckListCategoryUpdateOne) ClearWorkOrder() *CheckListCategoryUpdateOne {
+	clcuo.mutation.ClearWorkOrder()
+	return clcuo
+}
+
 // Save executes the query and returns the updated entity.
 func (clcuo *CheckListCategoryUpdateOne) Save(ctx context.Context) (*CheckListCategory, error) {
 	if _, ok := clcuo.mutation.UpdateTime(); !ok {
@@ -307,6 +381,9 @@ func (clcuo *CheckListCategoryUpdateOne) Save(ctx context.Context) (*CheckListCa
 		clcuo.mutation.SetUpdateTime(v)
 	}
 
+	if _, ok := clcuo.mutation.WorkOrderID(); clcuo.mutation.WorkOrderCleared() && !ok {
+		return nil, errors.New("ent: clearing a unique edge \"work_order\"")
+	}
 	var (
 		err  error
 		node *CheckListCategory
@@ -428,6 +505,41 @@ func (clcuo *CheckListCategoryUpdateOne) sqlSave(ctx context.Context) (clc *Chec
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: checklistitem.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if clcuo.mutation.WorkOrderCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   checklistcategory.WorkOrderTable,
+			Columns: []string{checklistcategory.WorkOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workorder.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := clcuo.mutation.WorkOrderIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   checklistcategory.WorkOrderTable,
+			Columns: []string{checklistcategory.WorkOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workorder.FieldID,
 				},
 			},
 		}

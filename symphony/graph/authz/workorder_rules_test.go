@@ -62,7 +62,10 @@ func TestAssignCanEditWOWithOwnerAndDelete(t *testing.T) {
 		SetAssignee(u).
 		ExecX(ctx)
 
-	ctx = viewertest.NewContext(ctx, c, viewertest.WithUser("MyAssignee"), viewertest.WithPermissions(authz.EmptyPermissions()))
+	ctx = viewertest.NewContext(ctx, c,
+		viewertest.WithUser("MyAssignee"),
+		viewertest.WithRole(user.RoleUSER),
+		viewertest.WithPermissions(authz.EmptyPermissions()))
 	err := c.WorkOrder.UpdateOne(workOrder).
 		SetName("NewName").
 		Exec(ctx)
@@ -86,7 +89,10 @@ func TestOwnerCanEditWO(t *testing.T) {
 		SetOwner(u).
 		ExecX(ctx)
 
-	ctx = viewertest.NewContext(ctx, c, viewertest.WithUser("MyOwner"), viewertest.WithPermissions(authz.EmptyPermissions()))
+	ctx = viewertest.NewContext(ctx, c,
+		viewertest.WithUser("MyOwner"),
+		viewertest.WithRole(user.RoleUSER),
+		viewertest.WithPermissions(authz.EmptyPermissions()))
 	err := c.WorkOrder.UpdateOne(workOrder).
 		SetName("NewName").
 		Exec(ctx)
@@ -95,7 +101,10 @@ func TestOwnerCanEditWO(t *testing.T) {
 		SetOwner(u2).
 		Exec(ctx)
 	require.NoError(t, err)
-	ctx = viewertest.NewContext(ctx, c, viewertest.WithUser("NewOwner"), viewertest.WithPermissions(authz.EmptyPermissions()))
+	ctx = viewertest.NewContext(ctx, c,
+		viewertest.WithUser("NewOwner"),
+		viewertest.WithRole(user.RoleUSER),
+		viewertest.WithPermissions(authz.EmptyPermissions()))
 	err = c.WorkOrder.DeleteOne(workOrder).
 		Exec(ctx)
 	require.NoError(t, err)
@@ -210,6 +219,52 @@ func TestWorkOrderWritePolicyRule(t *testing.T) {
 		},
 	}
 	runPolicyTest(t, tests)
+}
+
+func TestWorkOrderReadPolicyRule(t *testing.T) {
+	c := viewertest.NewTestClient(t)
+	ctx := viewertest.NewContext(context.Background(), c)
+	workOrderType, _ := prepareWorkOrderData(ctx, c)
+	_, _ = prepareWorkOrderData(ctx, c)
+	t.Run("EmptyPermissions", func(t *testing.T) {
+		permissions := authz.EmptyPermissions()
+		permissionsContext := viewertest.NewContext(
+			context.Background(),
+			c,
+			viewertest.WithUser("user"),
+			viewertest.WithRole(user.RoleUSER),
+			viewertest.WithPermissions(permissions))
+		count, err := c.WorkOrder.Query().Count(permissionsContext)
+		require.NoError(t, err)
+		require.Zero(t, count)
+	})
+	t.Run("PartialPermissions", func(t *testing.T) {
+		permissions := authz.EmptyPermissions()
+		permissions.WorkforcePolicy.Read.IsAllowed = models2.PermissionValueByCondition
+		permissions.WorkforcePolicy.Read.WorkOrderTypeIds = []int{workOrderType.ID}
+		permissionsContext := viewertest.NewContext(
+			context.Background(),
+			c,
+			viewertest.WithUser("user"),
+			viewertest.WithRole(user.RoleUSER),
+			viewertest.WithPermissions(permissions))
+		count, err := c.WorkOrder.Query().Count(permissionsContext)
+		require.NoError(t, err)
+		require.Equal(t, 1, count)
+	})
+	t.Run("FullPermissions", func(t *testing.T) {
+		permissions := authz.EmptyPermissions()
+		permissions.WorkforcePolicy.Read.IsAllowed = models2.PermissionValueYes
+		permissionsContext := viewertest.NewContext(
+			context.Background(),
+			c,
+			viewertest.WithUser("user"),
+			viewertest.WithRole(user.RoleUSER),
+			viewertest.WithPermissions(permissions))
+		count, err := c.WorkOrder.Query().Count(permissionsContext)
+		require.NoError(t, err)
+		require.Equal(t, 2, count)
+	})
 }
 
 func TestWorkOrderTransferOwnershipWritePolicyRule(t *testing.T) {

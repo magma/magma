@@ -72,6 +72,15 @@ func (r queryResolver) ProjectSearch(ctx context.Context, filters []*models.Proj
 	return pros, nil
 }
 
+func (r queryResolver) Projects(
+	ctx context.Context,
+	after *ent.Cursor, first *int,
+	before *ent.Cursor, last *int,
+) (*ent.ProjectConnection, error) {
+	return r.ClientFrom(ctx).Project.Query().
+		Paginate(ctx, after, first, before, last)
+}
+
 func (r queryResolver) CustomerSearch(ctx context.Context, limit *int) ([]*ent.Customer, error) {
 	var (
 		query = r.ClientFrom(ctx).Customer.Query()

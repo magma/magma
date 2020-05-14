@@ -16,11 +16,13 @@ import GatewayKPIs from '../GatewayKPIs';
 import Grid from '@material-ui/core/Grid';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import Paper from '@material-ui/core/Paper';
-import React from 'react';
+import React, {useState} from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import Text from '@fbcnms/ui/components/design-system/Text';
+import moment from 'moment';
 import {Alarm, GpsFixed, NetworkCheck} from '@material-ui/icons';
+import {DateTimePicker} from '@material-ui/pickers';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
@@ -55,11 +57,18 @@ const useStyles = makeStyles(theme => ({
   contentPlaceholder: {
     padding: '50px 0',
   },
+  input: {
+    color: 'white',
+  },
 }));
 
 function LteDashboard() {
   const classes = useStyles();
   const {relativePath, relativeUrl} = useRouter();
+
+  // datetime picker
+  const [startDate, setStartDate] = useState(moment().subtract(3, 'hours'));
+  const [endDate, setEndDate] = useState(moment());
 
   return (
     <>
@@ -70,25 +79,65 @@ function LteDashboard() {
       </div>
 
       <AppBar position="static" color="default" className={classes.tabBar}>
-        <Tabs
-          value={0}
-          indicatorColor="primary"
-          TabIndicatorProps={{style: {height: '5px'}}}
-          textColor="inherit"
-          className={classes.tabs}>
-          <Tab
-            key="Network"
-            component={NestedRouteLink}
-            label={<NetworkDashboardTabLabel />}
-            to="/network"
-            className={classes.tab}
-          />
-        </Tabs>
+        <Grid container>
+          <Grid item xs={6}>
+            <Tabs
+              value={0}
+              indicatorColor="primary"
+              TabIndicatorProps={{style: {height: '5px'}}}
+              textColor="inherit"
+              className={classes.tabs}>
+              <Tab
+                key="Network"
+                component={NestedRouteLink}
+                label={<NetworkDashboardTabLabel />}
+                to="/network"
+                className={classes.tab}
+              />
+            </Tabs>
+          </Grid>
+          <Grid item xs={6}>
+            <Grid container justify="flex-end" alignItems="center" spacing={1}>
+              <Grid item>
+                <Text color="light">Filter By Date</Text>
+              </Grid>
+              <Grid item>
+                <DateTimePicker
+                  autoOk
+                  variant="inline"
+                  inputVariant="outlined"
+                  maxDate={endDate}
+                  disableFuture
+                  value={startDate}
+                  inputProps={{className: classes.input}}
+                  onChange={setStartDate}
+                />
+              </Grid>
+              <Grid item>
+                <Text color="light">To</Text>
+              </Grid>
+              <Grid item>
+                <DateTimePicker
+                  autoOk
+                  variant="inline"
+                  inputVariant="outlined"
+                  disableFuture
+                  value={endDate}
+                  inputProps={{className: classes.input}}
+                  onChange={setEndDate}
+                />
+              </Grid>
+            </Grid>
+          </Grid>
+        </Grid>
       </AppBar>
+
       <Switch>
         <Route
           path={relativePath('/network')}
-          component={LteNetworkDashboard}
+          render={props => (
+            <LteNetworkDashboard {...props} startEnd={[startDate, endDate]} />
+          )}
         />
         <Redirect to={relativeUrl('/network')} />
       </Switch>
@@ -96,7 +145,7 @@ function LteDashboard() {
   );
 }
 
-function LteNetworkDashboard() {
+function LteNetworkDashboard({startEnd}: {startEnd: [moment, moment]}) {
   const classes = useStyles();
 
   return (
@@ -104,7 +153,7 @@ function LteNetworkDashboard() {
       <Grid container spacing={3}>
         <Grid item xs={12}>
           <Paper>
-            <EventAlertChart />
+            <EventAlertChart startEnd={startEnd} />
           </Paper>
         </Grid>
 

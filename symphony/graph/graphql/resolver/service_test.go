@@ -30,7 +30,7 @@ func pointerToServiceStatus(status models.ServiceStatus) *models.ServiceStatus {
 
 func TestAddServiceWithProperties(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr := r.Mutation()
@@ -70,7 +70,7 @@ func TestAddServiceWithProperties(t *testing.T) {
 
 func TestAddServiceWithExternalIdUnique(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr := r.Mutation()
@@ -116,7 +116,7 @@ func TestAddServiceWithExternalIdUnique(t *testing.T) {
 
 func TestAddServiceWithCustomer(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
@@ -151,7 +151,7 @@ func TestAddServiceWithCustomer(t *testing.T) {
 
 func TestServiceTopologyReturnsCorrectLinksAndEquipment(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr := r.Mutation()
@@ -251,7 +251,7 @@ func TestServiceTopologyReturnsCorrectLinksAndEquipment(t *testing.T) {
 
 func TestServiceTopologyWithSlots(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr := r.Mutation()
@@ -367,7 +367,7 @@ func TestServiceTopologyWithSlots(t *testing.T) {
 
 func TestEditService(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
@@ -400,7 +400,7 @@ func TestEditService(t *testing.T) {
 
 func TestEditServiceWithExternalID(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
@@ -451,7 +451,7 @@ func TestEditServiceWithExternalID(t *testing.T) {
 
 func TestEditServiceWithCustomer(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
@@ -514,7 +514,7 @@ func TestEditServiceWithCustomer(t *testing.T) {
 
 func TestEditServiceWithProperties(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
@@ -590,7 +590,7 @@ func TestEditServiceWithProperties(t *testing.T) {
 
 func TestAddEndpointsToService(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
@@ -714,7 +714,7 @@ func TestAddEndpointsToService(t *testing.T) {
 
 func TestServicesOfEquipment(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr := r.Mutation()
@@ -830,7 +830,7 @@ func TestServicesOfEquipment(t *testing.T) {
 
 func TestAddServiceWithServiceProperty(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr := r.Mutation()
@@ -882,7 +882,7 @@ func TestAddServiceWithServiceProperty(t *testing.T) {
 
 func TestAddServiceEndpointType(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 
