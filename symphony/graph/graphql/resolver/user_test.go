@@ -24,7 +24,7 @@ func toStatusPointer(status user.Status) *user.Status {
 
 func TestEditUser(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	u := viewer.FromContext(ctx).(*viewer.UserViewer).User()
@@ -40,7 +40,7 @@ func TestEditUser(t *testing.T) {
 
 func TestAddAndDeleteProfileImage(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	u := viewer.FromContext(ctx).(*viewer.UserViewer).User()
 

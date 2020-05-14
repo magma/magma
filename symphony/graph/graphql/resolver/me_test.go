@@ -14,8 +14,8 @@ import (
 
 func TestQueryMe(t *testing.T) {
 	resolver := newTestResolver(t)
-	defer resolver.drv.Close()
-	c := newGraphClient(t, resolver)
+	defer resolver.Close()
+	c := resolver.GraphClient()
 
 	var rsp struct {
 		Me struct {

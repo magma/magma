@@ -29,7 +29,7 @@ func getAddUsersGroupInput(name, description string) models.AddUsersGroupInput {
 
 func TestAddUsersGroup(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr := r.Mutation()
@@ -57,7 +57,7 @@ func TestAddUsersGroup(t *testing.T) {
 
 func TestDeleteUsersGroup(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr := r.Mutation()
@@ -77,7 +77,7 @@ func TestDeleteUsersGroup(t *testing.T) {
 
 func TestAddUsersGroupWithPolicy(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr := r.Mutation()
@@ -114,7 +114,7 @@ func TestAddUsersGroupWithPolicy(t *testing.T) {
 
 func TestEditUsersGroup(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr := r.Mutation()

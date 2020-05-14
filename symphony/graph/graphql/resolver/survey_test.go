@@ -18,7 +18,7 @@ import (
 
 func TestAddRemoveSurvey(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr, sr, wfr, cellr := r.Mutation(), r.Query(), r.Survey(), r.SurveyWiFiScan(), r.SurveyCellScan()

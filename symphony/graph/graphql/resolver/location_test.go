@@ -11,19 +11,17 @@ import (
 	"time"
 
 	"github.com/facebookincubator/symphony/graph/ent"
-
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
-
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )
 
 func TestAddLocation(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
@@ -59,7 +57,7 @@ func TestAddLocation(t *testing.T) {
 
 func TestAddLocationWithExternalID(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
@@ -83,7 +81,7 @@ func TestAddLocationWithExternalID(t *testing.T) {
 
 func TestAddLocationWithSameName(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
@@ -131,7 +129,7 @@ func TestAddLocationWithSameName(t *testing.T) {
 
 func TestAddLocationWithProperties(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
@@ -201,7 +199,7 @@ func TestAddLocationWithProperties(t *testing.T) {
 func TestAddLocationWithInvalidProperties(t *testing.T) {
 	t.Skip("skipping test until mandatory props are added - T57858029")
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr := r.Mutation()
@@ -230,7 +228,7 @@ func TestAddLocationWithInvalidProperties(t *testing.T) {
 
 func TestAddMultiLevelLocations(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr, lr, ltr := r.Mutation(), r.Query(), r.Location(), r.LocationType()
@@ -325,7 +323,7 @@ func TestAddMultiLevelLocations(t *testing.T) {
 
 func TestAddLocationCellScans(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
@@ -382,7 +380,7 @@ func TestAddLocationCellScans(t *testing.T) {
 
 func TestEditLocation(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
@@ -418,7 +416,7 @@ func TestEditLocation(t *testing.T) {
 
 func TestEditLocationWithExternalID(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
@@ -472,7 +470,7 @@ func TestEditLocationWithExternalID(t *testing.T) {
 
 func TestEditLocationWithProperties(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
@@ -588,7 +586,7 @@ func TestEditLocationWithProperties(t *testing.T) {
 
 func TestAddAndDeleteLocationImages(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, lr := r.Mutation(), r.Location()
 
@@ -660,7 +658,7 @@ func TestAddAndDeleteLocationImages(t *testing.T) {
 
 func TestAddAndDeleteLocationHyperlink(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, lr := r.Mutation(), r.Location()
 
@@ -707,7 +705,7 @@ func TestAddAndDeleteLocationHyperlink(t *testing.T) {
 
 func TestDeleteLocation(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
@@ -734,7 +732,7 @@ func TestDeleteLocation(t *testing.T) {
 
 func TestDeleteLocationWithEquipmentsFails(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
@@ -782,7 +780,7 @@ func TestDeleteLocationWithEquipmentsFails(t *testing.T) {
 
 func TestQueryParentLocation(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, loc := r.Mutation(), r.Location()
 
@@ -815,7 +813,7 @@ func TestQueryParentLocation(t *testing.T) {
 
 func TestGetLocationsByType(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
@@ -858,7 +856,7 @@ func TestGetLocationsByType(t *testing.T) {
 
 func TestOnlyTopLevelLocationsFilter(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
@@ -894,7 +892,7 @@ func TestOnlyTopLevelLocationsFilter(t *testing.T) {
 
 func TestGetLocationsByName(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
@@ -937,7 +935,7 @@ func TestGetLocationsForSiteSurvey(t *testing.T) {
 
 func TestMoveLocation(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 
@@ -983,7 +981,7 @@ func TestMoveLocation(t *testing.T) {
 
 func TestMoveLocationDuplicateName(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 
@@ -1023,7 +1021,7 @@ func TestMoveLocationDuplicateName(t *testing.T) {
 
 func TestMoveLocationWrongHierarchy(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 
@@ -1050,7 +1048,7 @@ func TestMoveLocationWrongHierarchy(t *testing.T) {
 
 func TestDistanceKm(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 
@@ -1077,7 +1075,7 @@ func TestDistanceKm(t *testing.T) {
 
 func TestNearestSites(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
@@ -1137,7 +1135,7 @@ func TestNearestSites(t *testing.T) {
 
 func TestAddLocationWithEquipmentProperty(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 
@@ -1197,7 +1195,7 @@ func TestAddLocationWithEquipmentProperty(t *testing.T) {
 
 func TestAddLocationWithLocationProperty(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 

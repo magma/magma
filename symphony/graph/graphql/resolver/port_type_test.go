@@ -18,7 +18,7 @@ import (
 
 func TestAddEquipmentPortType(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
@@ -35,7 +35,7 @@ func TestAddEquipmentPortType(t *testing.T) {
 
 func TestAddEquipmentPortTypes(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
@@ -50,7 +50,7 @@ func TestAddEquipmentPortTypes(t *testing.T) {
 
 func TestAddEquipmentPortTypeWithProperties(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 
@@ -91,7 +91,7 @@ func TestAddEquipmentPortTypeWithProperties(t *testing.T) {
 
 func TestAddEquipmentPortTypeWithLinkProperties(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 
@@ -132,7 +132,7 @@ func TestAddEquipmentPortTypeWithLinkProperties(t *testing.T) {
 
 func TestAddEquipmentPortTypesSameName(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
@@ -147,7 +147,7 @@ func TestAddEquipmentPortTypesSameName(t *testing.T) {
 
 func TestRemoveEquipmentPortType(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
@@ -169,7 +169,7 @@ func TestRemoveEquipmentPortType(t *testing.T) {
 
 func TestEditEquipmentPortType(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
@@ -201,7 +201,7 @@ func TestEditEquipmentPortType(t *testing.T) {
 
 func TestEditEquipmentPortTypeWithLinkProperties(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 
@@ -266,7 +266,7 @@ func TestEditEquipmentPortTypeWithLinkProperties(t *testing.T) {
 
 func TestEditEquipmentPortTypeWithLinkPropertiesSameName(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 
@@ -300,7 +300,7 @@ func TestEditEquipmentPortTypeWithLinkPropertiesSameName(t *testing.T) {
 
 func TestRemoveEquipmentPortTypeWithLinkedEquipmentType(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 

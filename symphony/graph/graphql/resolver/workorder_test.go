@@ -115,7 +115,7 @@ const (
 
 func TestAddWorkOrderWithLocation(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr, wr := r.Mutation(), r.Query(), r.WorkOrder()
 	name := longWorkOrderName
@@ -144,7 +144,7 @@ func TestAddWorkOrderWithLocation(t *testing.T) {
 
 func TestAddWorkOrderWithType(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr, wr := r.Mutation(), r.Query(), r.WorkOrder()
 	name := longWorkOrderName
@@ -173,7 +173,7 @@ func TestAddWorkOrderWithType(t *testing.T) {
 
 func TestAddWorkOrderWithAssignee(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr, wr := r.Mutation(), r.Query(), r.WorkOrder()
 	name := longWorkOrderName
@@ -223,7 +223,7 @@ func TestAddWorkOrderWithAssignee(t *testing.T) {
 
 func TestAddWorkOrderWithDefaultAutomationOwner(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := ent.NewContext(context.Background(), r.client)
 	v := viewer.NewAutomation(
 		viewertest.DefaultTenant,
@@ -244,12 +244,13 @@ func TestAddWorkOrderWithDefaultAutomationOwner(t *testing.T) {
 		WorkOrderTypeID: woType.ID,
 		LocationID:      &location.ID,
 	})
+	require.Error(t, err)
 	require.Contains(t, err.Error(), "could not be executed in automation")
 }
 
 func TestAddWorkOrderInvalidType(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 	name := longWorkOrderName
@@ -265,7 +266,7 @@ func TestAddWorkOrderInvalidType(t *testing.T) {
 
 func TestEditInvalidWorkOrder(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	_, err := r.Mutation().EditWorkOrderType(ctx, models.EditWorkOrderTypeInput{
 		ID:   234,
@@ -276,7 +277,7 @@ func TestEditInvalidWorkOrder(t *testing.T) {
 
 func TestAddWorkOrderWithDescription(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 	name := longWorkOrderName
@@ -304,7 +305,7 @@ func TestAddWorkOrderWithDescription(t *testing.T) {
 
 func TestAddWorkOrderWithPriority(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 	name := longWorkOrderName
@@ -351,7 +352,7 @@ func TestAddWorkOrderWithPriority(t *testing.T) {
 
 func TestAddWorkOrderWithProject(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, pr := r.Mutation(), r.Project()
 
@@ -410,7 +411,7 @@ func TestAddWorkOrderWithProject(t *testing.T) {
 
 func TestAddWorkOrderWithComment(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 	w := createWorkOrder(ctx, t, *r, "Foo")
@@ -444,7 +445,7 @@ func TestAddWorkOrderWithComment(t *testing.T) {
 
 func TestAddWorkOrderNoDescription(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
@@ -470,7 +471,7 @@ func TestAddWorkOrderNoDescription(t *testing.T) {
 
 func TestFetchWorkOrder(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr, wor := r.Mutation(), r.Query(), r.WorkOrder()
@@ -508,7 +509,7 @@ func TestFetchWorkOrder(t *testing.T) {
 
 func TestFetchWorkOrders(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
@@ -532,7 +533,7 @@ func TestFetchWorkOrders(t *testing.T) {
 
 func TestExecuteWorkOrderInstallEquipment(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
@@ -571,7 +572,7 @@ func TestExecuteWorkOrderInstallEquipment(t *testing.T) {
 
 func TestExecuteWorkOrderRemoveEquipment(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
@@ -645,7 +646,7 @@ func TestExecuteWorkOrderRemoveEquipment(t *testing.T) {
 
 func TestExecuteWorkOrderInstallLink(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr, pr := r.Mutation(), r.Query(), r.EquipmentPort()
@@ -701,7 +702,7 @@ func TestExecuteWorkOrderInstallLink(t *testing.T) {
 
 func TestExecuteWorkOrderRemoveLink(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr, pr := r.Mutation(), r.Query(), r.EquipmentPort()
@@ -768,7 +769,7 @@ func TestExecuteWorkOrderRemoveLink(t *testing.T) {
 
 func TestExecuteWorkOrderInstallDependantEquipmentAndLink(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr, pr := r.Mutation(), r.Query(), r.EquipmentPort()
@@ -823,7 +824,7 @@ func TestExecuteWorkOrderInstallDependantEquipmentAndLink(t *testing.T) {
 
 func TestExecuteWorkOrderInstallEquipmentMultilayer(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
@@ -878,7 +879,7 @@ func TestExecuteWorkOrderInstallEquipmentMultilayer(t *testing.T) {
 
 func TestExecuteWorkOrderRemoveEquipmentMultilayer(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
@@ -944,7 +945,7 @@ func TestExecuteWorkOrderRemoveEquipmentMultilayer(t *testing.T) {
 
 func TestExecuteWorkOrderInstallChildOnUninstalledParent(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
@@ -1008,7 +1009,7 @@ func TestExecuteWorkOrderInstallChildOnUninstalledParent(t *testing.T) {
 
 func TestExecuteWorkOrderInstallLinkOnUninstalledEquipment(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr, pr := r.Mutation(), r.Query(), r.EquipmentPort()
@@ -1082,7 +1083,7 @@ func TestExecuteWorkOrderInstallLinkOnUninstalledEquipment(t *testing.T) {
 
 func TestExecuteWorkOrderRemoveParentEquipment(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
@@ -1174,7 +1175,7 @@ func TestExecuteWorkOrderRemoveParentEquipment(t *testing.T) {
 
 func TestAddAndDeleteWorkOrderHyperlink(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, wor := r.Mutation(), r.WorkOrder()
 
@@ -1221,7 +1222,7 @@ func TestAddAndDeleteWorkOrderHyperlink(t *testing.T) {
 
 func TestDeleteWorkOrderWithAttachmentAndLinksAdded(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
@@ -1290,7 +1291,7 @@ func TestDeleteWorkOrderWithAttachmentAndLinksAdded(t *testing.T) {
 
 func TestAddWorkOrderWithProperties(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr, wr := r.Mutation(), r.Query(), r.WorkOrder()
@@ -1443,7 +1444,7 @@ func TestAddWorkOrderWithProperties(t *testing.T) {
 
 func TestAddWorkOrderWithInvalidProperties(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr := r.Mutation()
@@ -1478,6 +1479,7 @@ func TestAddWorkOrderWithInvalidProperties(t *testing.T) {
 	// mandatory is deleted - should be ok
 	latlongPropType.IsDeleted = pointer.ToBool(true)
 	woType, err = mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "example_type2", Properties: propTypeInputs})
+	require.NoError(t, err)
 	deletedPropType := woType.QueryPropertyTypes().OnlyX(ctx)
 	require.NoError(t, err)
 
@@ -1517,7 +1519,7 @@ func TestAddWorkOrderWithInvalidProperties(t *testing.T) {
 
 func TestAddWorkOrderWithCheckListCategory(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, wr := r.Mutation(), r.WorkOrder()
 	woType, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{
@@ -1564,7 +1566,7 @@ func TestAddWorkOrderWithCheckListCategory(t *testing.T) {
 
 func TestEditWorkOrderWithCheckListCategory(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, wr := r.Mutation(), r.WorkOrder()
 	woType, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{
@@ -1615,7 +1617,7 @@ func TestEditWorkOrderWithCheckListCategory(t *testing.T) {
 
 func TestEditCheckListItemFiles(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 	woType, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{
@@ -1704,7 +1706,7 @@ func TestEditCheckListItemFiles(t *testing.T) {
 
 func TestEditWorkOrderLocation(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 	name := longWorkOrderName
@@ -1740,7 +1742,7 @@ func TestEditWorkOrderLocation(t *testing.T) {
 
 func TestTechnicianCheckinToWorkOrder(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 
@@ -1756,10 +1758,10 @@ func TestTechnicianCheckinToWorkOrder(t *testing.T) {
 
 func TestTechnicianUploadDataToWorkOrder(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
-	c := newGraphClient(t, r)
+	c := r.GraphClient()
 
 	wo := createWorkOrder(ctx, t, *r, "Foo")
 	u := viewer.FromContext(ctx).(*viewer.UserViewer).User()
@@ -1917,7 +1919,5 @@ func TestTechnicianUploadDataToWorkOrder(t *testing.T) {
 
 			require.Equal(t, "StoreKeyToAdd", item.Files[1].StoreKey)
 		}
-
 	}
-
 }
