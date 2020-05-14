@@ -173,7 +173,7 @@ const WorkOrderComparisonView = () => {
         header={header}
         onViewToggleClicked={setResultsDisplayMode}>
         <WorkOrderComparisonViewQueryRenderer
-          limit={50}
+          limit={QUERY_LIMIT}
           filters={filters}
           onWorkOrderSelected={selectedWorkOrderCardId =>
             navigateToWorkOrder(selectedWorkOrderCardId)

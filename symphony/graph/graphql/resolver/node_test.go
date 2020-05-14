@@ -16,8 +16,8 @@ import (
 
 func TestQueryNode(t *testing.T) {
 	resolver := newTestResolver(t)
-	defer resolver.drv.Close()
-	c := newGraphClient(t, resolver)
+	defer resolver.Close()
+	c := resolver.GraphClient()
 
 	var lt struct{ AddLocationType struct{ ID string } }
 	c.MustPost(

@@ -18,7 +18,9 @@ import {reorder} from '../../../draggable/DraggableUtils';
 export function getInitialState(
   propertyTypes: Array<PropertyType>,
 ): PropertyTypesTableState {
-  return propertyTypes.slice().map(p => ({...p}));
+  return propertyTypes.length === 0
+    ? [getInitialPropertyType(0)]
+    : propertyTypes.slice().map(p => ({...p}));
 }
 
 function editPropertyType<T: PropertyTypesTableState>(
@@ -51,10 +53,11 @@ export function reducer(
         name: action.name,
       }));
     case 'UPDATE_PROPERTY_TYPE_KIND':
-      return editPropertyType(state, action.id, () => ({
-        ...getInitialPropertyType(state.findIndex(p => p.id === action.id)),
+      return editPropertyType(state, action.id, pt => ({
+        ...getInitialPropertyType(pt.index ?? 0),
         id: action.id,
         type: action.kind,
+        name: pt.name,
         nodeType: action.nodeType,
       }));
     case 'UPDATE_PROPERTY_TYPE':

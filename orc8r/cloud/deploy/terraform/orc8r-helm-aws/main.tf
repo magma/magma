@@ -20,8 +20,8 @@ locals {
 }
 
 resource "helm_release" "orc8r" {
-  name       = "orc8r"
-  namespace  = var.orc8r_kubernetes_namespace
+  name       = var.helm_deployment_name
+  namespace  = kubernetes_namespace.orc8r.metadata[0].name
   repository = data.helm_repository.artifactory.id
   chart      = "orc8r"
   version    = var.orc8r_chart_version
@@ -47,7 +47,7 @@ resource "helm_release" "orc8r" {
 
     controller_hostname = format("controller.%s", var.orc8r_domain_name)
     api_hostname        = format("api.%s", var.orc8r_domain_name)
-    nms_hostname        = format("nms.%s", var.orc8r_domain_name)
+    nms_hostname        = format("*.nms.%s", var.orc8r_domain_name)
 
     orc8r_db_name = var.orc8r_db_name
     orc8r_db_host = var.orc8r_db_host
@@ -63,10 +63,16 @@ resource "helm_release" "orc8r" {
     metrics_pvc_promdata = kubernetes_persistent_volume_claim.storage["promdata"].metadata.0.name
 
     create_usergrafana             = true
+    user_grafana_hostname          = format("%s-user-grafana:3000", var.helm_deployment_name)
     grafana_pvc_grafanaData        = kubernetes_persistent_volume_claim.storage["grafanadata"].metadata.0.name
     grafana_pvc_grafanaDatasources = kubernetes_persistent_volume_claim.storage["grafanadatasources"].metadata.0.name
     grafana_pvc_grafanaProviders   = kubernetes_persistent_volume_claim.storage["grafanaproviders"].metadata.0.name
     grafana_pvc_grafanaDashboards  = kubernetes_persistent_volume_claim.storage["grafanadashboards"].metadata.0.name
+
+    prometheus_cache_hostname = format("%s-prometheus-cache", var.helm_deployment_name)
+    alertmanager_hostname     = format("%s-alertmanager", var.helm_deployment_name)
+    alertmanager_url          = format("%s-alertmanager:9093", var.helm_deployment_name)
+    prometheus_url            = format("%s-prometheus:9090", var.helm_deployment_name)
   })]
 
   set_sensitive {

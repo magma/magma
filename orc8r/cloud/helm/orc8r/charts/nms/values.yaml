@@ -33,6 +33,7 @@ magmalte:
     mysql_user: magma
     mysql_pass: password
     mysql_dialect: mysql
+    grafana_address: orc8r-user-grafana
 
   labels: {}
 

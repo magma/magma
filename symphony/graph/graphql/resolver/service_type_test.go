@@ -19,7 +19,7 @@ import (
 
 func TestEditServiceType(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
@@ -57,7 +57,7 @@ func TestEditServiceType(t *testing.T) {
 
 func TestEditServiceTypeWithProperties(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 
@@ -125,7 +125,7 @@ func TestEditServiceTypeWithProperties(t *testing.T) {
 
 func TestRemoveServiceType(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 

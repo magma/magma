@@ -29,7 +29,7 @@ import (
 
 func TestAddWorkOrderType(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
@@ -45,7 +45,7 @@ func TestAddWorkOrderType(t *testing.T) {
 
 func TestAddWorkOrderTypes(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
@@ -60,7 +60,7 @@ func TestAddWorkOrderTypes(t *testing.T) {
 
 func TestNumberOfWorkOrders(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, wtr := r.Mutation(), r.WorkOrderType()
 
@@ -90,7 +90,7 @@ func TestNumberOfWorkOrders(t *testing.T) {
 
 func TestAddWorkOrderTypeWithDescription(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
@@ -109,7 +109,7 @@ func TestAddWorkOrderTypeWithDescription(t *testing.T) {
 
 func TestAddWorkOrderTypeWithProperties(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, wtr := r.Mutation(), r.WorkOrderType()
@@ -154,8 +154,8 @@ func TestAddWorkOrderTypeWithProperties(t *testing.T) {
 
 func TestAddWorkOrderTypeWithCheckListCategories(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	c := newGraphClient(t, r)
+	defer r.Close()
+	c := r.GraphClient()
 
 	selectionMode := checklistitem.EnumSelectionModeValueSingle
 	woTypeInput := models.AddWorkOrderTypeInput{
@@ -233,7 +233,7 @@ func TestAddWorkOrderTypeWithCheckListCategories(t *testing.T) {
 
 func TestEditWorkOrderTypeWithCheckListCategories(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 
@@ -337,7 +337,7 @@ func TestEditWorkOrderTypeWithCheckListCategories(t *testing.T) {
 
 func TestAddWorkOrderTypesSameName(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
@@ -352,7 +352,7 @@ func TestAddWorkOrderTypesSameName(t *testing.T) {
 
 func TestRemoveWorkOrderType(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
@@ -374,7 +374,7 @@ func TestRemoveWorkOrderType(t *testing.T) {
 
 func TestEditWorkOrderType(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
@@ -410,7 +410,7 @@ func TestEditWorkOrderType(t *testing.T) {
 
 func TestEditWorkOrderTypeWithProperties(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr := r.Mutation()
@@ -472,7 +472,7 @@ func TestEditWorkOrderTypeWithProperties(t *testing.T) {
 
 func TestDeleteWorkOrderTypeProperty(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr := r.Mutation()

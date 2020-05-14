@@ -17,7 +17,7 @@ import (
 
 func TestAddDeleteAndSearchCustomers(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	qr, mr := r.Query(), r.Mutation()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 

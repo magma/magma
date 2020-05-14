@@ -142,7 +142,10 @@ class PropertyTypeTable extends React.Component<Props> {
                     component="div"
                     scope="row">
                     <FormField>
-                      <PropertyTypeSelect propertyType={property} />
+                      <PropertyTypeSelect
+                        propertyType={property}
+                        onPropertyTypeChange={this._handleTypeChange(i)}
+                      />
                     </FormField>
                   </TableCell>
                   <TableCell
@@ -236,23 +239,12 @@ class PropertyTypeTable extends React.Component<Props> {
     );
   };
 
-  _handleTypeChange = index => value => {
-    const [type, nodeType] = value.split('-');
-    const newPropertyTypes = updateItem<PropertyType, 'type'>(
-      this.props.propertyTypes,
-      index,
-      'type',
-      // $FlowFixMe: need to figure out how to cast string to PropertyKind
-      type,
-    );
-    this.props.onPropertiesChanged(
-      updateItem<PropertyType, 'nodeType'>(
-        newPropertyTypes,
-        index,
-        'nodeType',
-        nodeType,
-      ),
-    );
+  _handleTypeChange = (index: number) => (value: PropertyType) => {
+    this.props.onPropertiesChanged([
+      ...this.props.propertyTypes.slice(0, index),
+      value,
+      ...this.props.propertyTypes.slice(index + 1),
+    ]);
   };
 
   _handleNameBlur = index => {

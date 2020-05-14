@@ -56,21 +56,30 @@ metrics:
         volumeSpec:
           persistentVolumeClaim:
             claimName: ${metrics_pvc_promcfg}
+
   prometheus:
     create: true
     includeOrc8rAlerts: true
+    prometheusCacheHostname: ${prometheus_cache_hostname}
+    alertmanagerHostname: ${alertmanager_hostname}
+
   alertmanager:
     create: true
+
   prometheusConfigurer:
     create: true
     image:
       repository: ${docker_registry}/prometheus-configurer
       tag: "${docker_tag}"
+    prometheusURL: ${prometheus_url}
+
   alertmanagerConfigurer:
     create: true
     image:
       repository: ${docker_registry}/alertmanager-configurer
       tag: "${docker_tag}"
+    alertmanagerURL: ${alertmanager_url}
+
   prometheusCache:
     create: true
     image:
@@ -120,9 +129,11 @@ nms:
       tag: "${docker_tag}"
 
     env:
-      api_host: ${api_hostname}
+      api_host: ${controller_hostname}
       mysql_host: ${nms_db_host}
       mysql_user: ${nms_db_user}
+      grafana_address: ${user_grafana_hostname}
+
   nginx:
     manifests:
       configmap: true
@@ -134,7 +145,7 @@ nms:
     service:
       type: LoadBalancer
       annotations:
-        external-dns.alpha.kubernetes.io/hostname: ${nms_hostname}
+        external-dns.alpha.kubernetes.io/hostname: "${nms_hostname}"
 
     deployment:
       spec:
