@@ -40,6 +40,10 @@ resource "aws_iam_service_linked_role" "es" {
   aws_service_name = "es.amazonaws.com"
 }
 
+locals {
+  elasticsearch_available_subnets = length(module.vpc.private_subnets) > 0 ? module.vpc.private_subnets : module.vpc.public_subnets
+}
+
 resource "aws_elasticsearch_domain" "es" {
   count = var.deploy_elasticsearch ? 1 : 0
 
@@ -65,7 +69,7 @@ resource "aws_elasticsearch_domain" "es" {
   }
 
   vpc_options {
-    subnet_ids         = slice(module.vpc.private_subnets, 0, min(var.elasticsearch_az_count, 3))
+    subnet_ids         = slice(local.elasticsearch_available_subnets, 0, min(var.elasticsearch_az_count, 3))
     security_group_ids = [aws_security_group.default.id]
   }
 

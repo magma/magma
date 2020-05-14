@@ -40,7 +40,7 @@ resource "kubernetes_persistent_volume_claim" "storage" {
 
   metadata {
     name      = each.key
-    namespace = var.orc8r_kubernetes_namespace
+    namespace = kubernetes_namespace.orc8r.metadata[0].name
   }
 
   spec {
@@ -52,4 +52,6 @@ resource "kubernetes_persistent_volume_claim" "storage" {
     }
     storage_class_name = "efs"
   }
+
+  depends_on = [helm_release.efs_provisioner]
 }
