@@ -36,9 +36,10 @@ type PropertyTypeOption = {|
 
 type Props = $ReadOnly<{|
   propertyType: PropertyType,
+  onPropertyTypeChange?: (propertyType: PropertyType) => void,
 |}>;
 
-const PropertyTypeSelect = ({propertyType}: Props) => {
+const PropertyTypeSelect = ({propertyType, onPropertyTypeChange}: Props) => {
   const classes = useStyles();
   const context = useContext(AppContext);
   const dispatch = useContext(PropertyTypesTableDispatcher);
@@ -88,6 +89,12 @@ const PropertyTypeSelect = ({propertyType}: Props) => {
         selectedValueIndex > -1 ? options[selectedValueIndex].value : null
       }
       onChange={value => {
+        onPropertyTypeChange &&
+          onPropertyTypeChange({
+            ...propertyType,
+            type: value.kind,
+            nodeType: value.nodeType,
+          });
         dispatch({
           type: 'UPDATE_PROPERTY_TYPE_KIND',
           id: propertyType.id,

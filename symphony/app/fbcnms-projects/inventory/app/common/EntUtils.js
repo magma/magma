@@ -34,7 +34,8 @@ export const isTempId = (id: string): boolean => {
 
 export const getGraphError = (error: Error): string => {
   if (error.hasOwnProperty('source')) {
-    // $FlowFixMe verified there's sources
+    // eslint-disable-next-line no-warning-comments
+    // $FlowFixMe verified there's sources T58630520
     return error.source.errors[0].message;
   }
   return error.message;

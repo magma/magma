@@ -21,7 +21,7 @@ import (
 
 func TestAddLink(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr, pr, lr, eqr := r.Mutation(), r.Query(), r.EquipmentPort(), r.Link(), r.Equipment()
@@ -104,7 +104,7 @@ func TestAddLink(t *testing.T) {
 
 func TestAddLinkWithProperties(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr, pr, lr := r.Mutation(), r.Query(), r.EquipmentPort(), r.Link()
@@ -204,7 +204,7 @@ func TestAddLinkWithProperties(t *testing.T) {
 
 func TestEditLinkWithProperties(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr, pr, lr := r.Mutation(), r.Query(), r.EquipmentPort(), r.Link()
@@ -321,7 +321,7 @@ func TestEditLinkWithProperties(t *testing.T) {
 
 func TestRemoveLink(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr, pr := r.Mutation(), r.Query(), r.EquipmentPort()
@@ -388,7 +388,7 @@ func TestRemoveLink(t *testing.T) {
 
 func TestAddLinkWithWorkOrder(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr, pr, wor := r.Mutation(), r.Query(), r.EquipmentPort(), r.WorkOrder()
@@ -465,7 +465,7 @@ func TestAddLinkWithWorkOrder(t *testing.T) {
 
 func TestRemoveLinkWithWorkOrder(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr, pr, wor := r.Mutation(), r.Query(), r.EquipmentPort(), r.WorkOrder()

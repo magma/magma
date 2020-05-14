@@ -33,7 +33,7 @@ import (
 
 func TestAddEquipment(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
@@ -103,7 +103,7 @@ func TestAddEquipment(t *testing.T) {
 
 func TestAddEquipmentWithProperties(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, er := r.Mutation(), r.Equipment()
@@ -149,7 +149,7 @@ func TestAddEquipmentWithProperties(t *testing.T) {
 
 func TestAddAndDeleteEquipmentHyperlink(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, er := r.Mutation(), r.Equipment()
 
@@ -222,7 +222,7 @@ func TestOrc8rStatusEquipment(t *testing.T) {
 		Host: uri.Host,
 	}
 	r := newTestResolver(t, WithOrc8rClient(orc8rClient))
-	defer r.drv.Close()
+	defer r.Close()
 
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
@@ -264,7 +264,7 @@ func TestOrc8rStatusEquipment(t *testing.T) {
 	})
 	require.Error(t, err)
 
-	c := newGraphClient(t, r)
+	c := r.GraphClient()
 	const query = `query($id: ID!) {
 		equipment: node(id: $id) {
 			... on Equipment {
@@ -299,7 +299,7 @@ func TestOrc8rStatusEquipment(t *testing.T) {
 
 func TestAddEquipmentWithoutLocation(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr := r.Mutation()
@@ -317,7 +317,7 @@ func TestAddEquipmentWithoutLocation(t *testing.T) {
 
 func TestRemoveEquipmentWithChildren(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
@@ -383,7 +383,7 @@ func TestRemoveEquipmentWithChildren(t *testing.T) {
 
 func TestRemoveEquipment(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
@@ -424,7 +424,7 @@ func TestRemoveEquipment(t *testing.T) {
 
 func TestAttachEquipmentToPosition(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
@@ -497,7 +497,7 @@ func TestAttachEquipmentToPosition(t *testing.T) {
 
 func TestMoveEquipmentToPosition(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
@@ -559,7 +559,7 @@ func TestMoveEquipmentToPosition(t *testing.T) {
 
 func TestDetachEquipmentFromPosition(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
@@ -638,7 +638,7 @@ func TestDetachEquipmentFromPosition(t *testing.T) {
 
 func TestDetachEquipmentFromPositionWithWorkOrder(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr, wor := r.Mutation(), r.Query(), r.WorkOrder()
 
@@ -707,7 +707,7 @@ func TestDetachEquipmentFromPositionWithWorkOrder(t *testing.T) {
 
 func TestAddDetachEquipmentFromPositionSameWorkOrder(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr, wor := r.Mutation(), r.Query(), r.WorkOrder()
 
@@ -776,7 +776,7 @@ func TestAddDetachEquipmentFromPositionSameWorkOrder(t *testing.T) {
 
 func TestEquipmentPortsAreCreatedFromType(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
@@ -828,7 +828,7 @@ func TestEquipmentPortsAreCreatedFromType(t *testing.T) {
 
 func TestEquipmentParentLocation(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, er := r.Mutation(), r.Equipment()
 
@@ -874,7 +874,7 @@ func TestEquipmentParentLocation(t *testing.T) {
 
 func TestEquipmentParentEquipment(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, er := r.Mutation(), r.Equipment()
 
@@ -937,7 +937,7 @@ func TestEquipmentParentEquipment(t *testing.T) {
 
 func TestEditEquipment(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
@@ -1024,7 +1024,7 @@ func TestEditEquipment(t *testing.T) {
 
 func TestEditEquipmentPort(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr := r.Mutation()
@@ -1092,7 +1092,7 @@ func TestEditEquipmentPort(t *testing.T) {
 
 func TestAddLinkToNewlyAddedPortDefinition(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr, pr := r.Mutation(), r.Query(), r.EquipmentPort()

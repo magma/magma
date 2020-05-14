@@ -45,7 +45,7 @@ def _get_primary_dns_ip(iface_config):
     if service_config.enable_dns_caching:
         iface_name = get_service_config_value("dnsd", iface_config, "")
         return get_ip_from_if(iface_name)
-    elif service_config.dns_primary:
+    else:
         return service_config.dns_primary or DEFAULT_DNS_IP_PRIMARY_ADDR
 
 
@@ -54,8 +54,7 @@ def _get_secondary_dns_ip():
     Get the secondary dns ip from the service mconfig.
     """
     service_config = load_service_mconfig("mme", MME())
-    if service_config.dns_secondary:
-        return service_config.dns_secondary or DEFAULT_DNS_IP_SECONDARY_ADDR
+    return service_config.dns_secondary or DEFAULT_DNS_IP_SECONDARY_ADDR
 
 
 def _get_oai_log_level():

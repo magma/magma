@@ -20,9 +20,11 @@ required to run the application.
 | deploy\_elasticsearch\_service\_linked\_role | Flag to deploy AWS Elasticsearch service linked role with cluster. If you've already created an ES service linked role for another cluster, you should set this to false. | `bool` | `true` | no |
 | efs\_project\_name | Project name for EFS file system | `string` | `"orc8r"` | no |
 | eks\_map\_roles | EKS IAM role mapping. Note that by default, the creator of the cluster will be in the system:master group. | <pre>list(<br>    object({<br>      rolearn  = string,<br>      username = string,<br>      groups   = list(string),<br>    })<br>  )</pre> | `[]` | no |
+| eks\_map\_users | Additional IAM users to add to the aws-auth configmap. | <pre>list(object({<br>    userarn  = string<br>    username = string<br>    groups   = list(string)<br>  }))</pre> | `[]` | no |
+| eks\_worker\_additional\_policy\_arns | Additional IAM policy ARNs to attach to EKS worker nodes. | `list(string)` | `[]` | no |
 | eks\_worker\_additional\_sg\_ids | Additional security group IDs to attach to EKS worker nodes. | `list(string)` | `[]` | no |
 | eks\_worker\_group\_key | If specified, the worker nodes for EKS will use this EC2 keypair. | `string` | n/a | yes |
-| eks\_worker\_groups | Worker group configuration for EKS. Default value is 1 worker group consisting of 3 t3.small instances. | <pre>list(<br>    object({<br>      name                 = string,<br>      instance_type        = string,<br>      asg_desired_capacity = number,<br>      asg_min_size         = number,<br>      asg_max_size         = number,<br>      autoscaling_enabled  = bool,<br>    })<br>  )</pre> | <pre>[<br>  {<br>    "asg_desired_capacity": 3,<br>    "asg_max_size": 3,<br>    "asg_min_size": 1,<br>    "autoscaling_enabled": false,<br>    "instance_type": "t3.large",<br>    "name": "wg-1"<br>  }<br>]</pre> | no |
+| eks\_worker\_groups | Worker group configuration for EKS. Default value is 1 worker group consisting of 3 t3.large instances. | `any` | <pre>[<br>  {<br>    "asg_desired_capacity": 3,<br>    "asg_max_size": 3,<br>    "asg_min_size": 1,<br>    "autoscaling_enabled": false,<br>    "instance_type": "t3.large",<br>    "name": "wg-1"<br>  }<br>]</pre> | no |
 | elasticsearch\_az\_count | AZ count for ES. | `number` | `2` | no |
 | elasticsearch\_dedicated\_master\_count | Number of dedicated ES master nodes. | `number` | n/a | yes |
 | elasticsearch\_dedicated\_master\_enabled | Enable/disable dedicated master nodes for ES. | `bool` | `false` | no |
@@ -85,4 +87,3 @@ required to run the application.
 | route53\_nameservers | Route53 zone nameservers for external DNS configuration. |
 | route53\_zone\_id | Route53 zone ID for Orchestrator domain name |
 | secretsmanager\_secret\_name | Name of the secretsmanager secret for deployment secrets |
-

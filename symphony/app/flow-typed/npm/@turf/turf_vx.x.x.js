@@ -15,10 +15,8 @@ declare module '@turf/turf' {
     | 'MultiPolygon'
     | 'GeometryCollection';
 
-  declare export type JsonScalar = number | boolean | string;
-  declare export type JsonArray = Array<JsonScalar | JsonObj | JsonArray>;
-  declare export type JsonObj = {[string]: JsonScalar | JsonObj | JsonArray};
-  declare export type GeoCoord = Array<GeoCoord> | [number, number];
+  declare export type JsonObj = {[string]: *};
+  declare export type GeoCoord = [number, number, number];
 
   declare export type GeoGeometry = {|
     type: GeoGeometryType,
@@ -30,6 +28,7 @@ declare module '@turf/turf' {
     type: 'Feature',
     geometry: GeoGeometry,
     properties: JsonObj,
+    id?: number,
   |};
 
   declare export type GeoFeatureCollection = {|
@@ -49,5 +48,23 @@ declare module '@turf/turf' {
   declare export function featureCollection(
     Array<GeoFeature>,
   ): GeoFeatureCollection;
-  declare export function point([number, number, ?number]): GeoFeature;
+  declare export function feature(GeoGeometry): GeoFeature;
+  declare export function point(
+    [number, number, ?number],
+    ?JsonObj,
+    ?{bbox?: ?Array<GeoCoord>, id?: string | number},
+  ): GeoFeature;
+  declare export function transformRotate(
+    GeoJson,
+    number,
+    ?{mutate?: boolean, pivot?: 'centroid' | GeoCoord},
+  ): GeoJson;
+  declare export function transformTranslate(
+    GeoJson,
+    number,
+    number,
+    ?{mutate?: boolean, units?: 'kilometers', zTranslation?: number},
+  ): GeoJson;
+
+  declare export function bearing(GeoCoord, GeoCoord): number;
 }

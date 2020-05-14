@@ -18,7 +18,7 @@ locals {
 resource "kubernetes_secret" "artifactory" {
   metadata {
     name      = "artifactory"
-    namespace = var.orc8r_kubernetes_namespace
+    namespace = kubernetes_namespace.orc8r.metadata[0].name
   }
 
   data = { ".dockercfg" = jsonencode(local.dockercfg) }

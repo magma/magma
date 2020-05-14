@@ -94,7 +94,7 @@ func searchByName(
 
 func TestSearchUsersByName(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	qr := r.Query()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	prepareUserData(ctx)

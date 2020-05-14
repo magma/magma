@@ -119,10 +119,28 @@ variable "nms_db_user" {
 # Helm configuration
 ##############################################################################
 
+variable "existing_tiller_service_account_name" {
+  description = "Name of existing tiller service account to use for Helm"
+  type        = string
+  default     = null
+}
+
+variable "tiller_namespace" {
+  description = "Namepsace where tiller is installed or should be installed into."
+  type        = string
+  default     = "kube-system"
+}
+
 variable "install_tiller" {
   description = "Install tiller in the cluster or not"
   type        = bool
   default     = true
+}
+
+variable "helm_deployment_name" {
+  description = "Name for the Helm release"
+  type        = string
+  default     = "orc8r"
 }
 
 variable "orc8r_chart_version" {

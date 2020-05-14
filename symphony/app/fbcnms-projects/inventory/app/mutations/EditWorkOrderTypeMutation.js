@@ -20,6 +20,7 @@ import type {WorkOrderType} from '../common/WorkOrder';
 import RelayEnvironment from '../common/RelayEnvironment.js';
 import {commitMutation, graphql} from 'react-relay';
 import {convertPropertyTypeToMutationInput} from '../common/PropertyType';
+import {getGraphError} from '../common/EntUtils';
 
 export const mutation = graphql`
   mutation EditWorkOrderTypeMutation($input: EditWorkOrderTypeInput!) {
@@ -68,12 +69,12 @@ export const editWorkOrderType = (
     const callbacks: MutationCallbacks<EditWorkOrderTypeMutationResponse> = {
       onCompleted: (response, errors) => {
         if (errors && errors[0]) {
-          return reject(errors[0]);
+          return reject(getGraphError(errors[0]));
         } else {
           resolve(response);
         }
       },
-      onError: reject,
+      onError: (error: Error) => reject(getGraphError(error)),
     };
     CommitEditWorkOrderTypeMutation(variables, callbacks);
   });

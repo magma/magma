@@ -22,7 +22,7 @@ import (
 
 func TestNumOfProjects(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, ptr := r.Mutation(), r.ProjectType()
 
@@ -83,7 +83,7 @@ func TestProjectQuery(t *testing.T) {
 
 func TestProjectWithWorkOrders(t *testing.T) {
 	resolver := newTestResolver(t)
-	defer resolver.drv.Close()
+	defer resolver.Close()
 	ctx := viewertest.NewContext(context.Background(), resolver.client)
 	mutation := resolver.Mutation()
 
@@ -286,7 +286,7 @@ func TestEditProject(t *testing.T) {
 
 func TestEditProjectLocation(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 	location := createLocation(ctx, t, *r)
@@ -314,7 +314,7 @@ func TestEditProjectLocation(t *testing.T) {
 
 func TestAddProjectWithProperties(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	mutation, ctx := mutationctx(t)
 
 	mr, qr, pr := r.Mutation(), r.Query(), r.Project()
@@ -452,7 +452,7 @@ func TestAddProjectWithProperties(t *testing.T) {
 
 func TestEditProjectType(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
@@ -487,7 +487,7 @@ func TestEditProjectType(t *testing.T) {
 
 func TestProjectWithWorkOrdersAndProperties(t *testing.T) {
 	resolver := newTestResolver(t)
-	defer resolver.drv.Close()
+	defer resolver.Close()
 	ctx := viewertest.NewContext(context.Background(), resolver.client)
 	mutation := resolver.Mutation()
 

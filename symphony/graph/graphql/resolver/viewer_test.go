@@ -20,7 +20,7 @@ import (
 
 func TestUserViewer(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	vr := r.Viewer()
 
@@ -34,7 +34,7 @@ func TestUserViewer(t *testing.T) {
 
 func TestUserViewerInWriteGroup(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	vr := r.Viewer()
 
@@ -53,7 +53,7 @@ func TestUserViewerInWriteGroup(t *testing.T) {
 
 func TestAdminViewer(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	vr := r.Viewer()
 
@@ -67,7 +67,7 @@ func TestAdminViewer(t *testing.T) {
 
 func TestOwnerViewer(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	vr := r.Viewer()
 

@@ -25,10 +25,12 @@ import UserRoleAndStatusPane from './UserRoleAndStatusPane';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
 import {DocumentAPIUrls} from '../../../../common/DocumentAPI';
+import {GROUP_STATUSES, USER_ROLES} from '../utils/UserManagementUtils';
 import {SQUARE_DIMENSION_PX} from '@fbcnms/ui/components/design-system/Experimental/FileUpload/FileUploadArea';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useEffect, useState} from 'react';
 import {useFormContext} from '../../../../common/FormContext';
+import {useMessageShowingContext} from '@fbcnms/ui/components/design-system/Dialog/MessageShowingContext';
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -129,8 +131,19 @@ export default function UserProfilePane(props: Props) {
   const {isFeatureEnabled} = useContext(AppContext);
   const userManagementDevMode = isFeatureEnabled('user_management_dev');
 
+  const [
+    shouldShowVerificationWhenDeactivating,
+    setShowVerificationWhenDeactivating,
+  ] = useState(true);
+  const [
+    shouldShowVerificationWhenChangingRole,
+    setShowVerificationWhenChangingRole,
+  ] = useState(true);
+
   const [user, setUser] = useState<?User>(null);
   useEffect(() => setUser(propUser), [propUser]);
+
+  const messageShowingContext = useMessageShowingContext();
 
   const form = useFormContext();
   const callOnChange = (newUser: User) => {
@@ -262,7 +275,83 @@ export default function UserProfilePane(props: Props) {
       <UserRoleAndStatusPane
         className={classes.section}
         user={user}
-        onChange={callOnChange}
+        onChange={newUser => {
+          if (
+            newUser.status !== user?.status &&
+            newUser.status === GROUP_STATUSES.DEACTIVATED.key &&
+            shouldShowVerificationWhenDeactivating
+          ) {
+            messageShowingContext.showMessage({
+              title: fbt('Deactivate Account', ''),
+              message: (
+                <>
+                  <div>
+                    <fbt desc="">
+                      Are you sure you want to deactivate this account?
+                    </fbt>
+                  </div>
+                  <div>
+                    <fbt desc="">
+                      All access and permissions for this user will be disabled
+                      until this account is reactivated.
+                    </fbt>
+                  </div>
+                </>
+              ),
+              verificationCheckbox: {label: fbt("Don't show this again", '')},
+              confirmLabel: fbt('Deactivate', ''),
+              skin: 'red',
+              onCancel: messageShowingContext.hideMessage,
+              onClose: messageShowingContext.hideMessage,
+              onConfirm: dontShowAgain => {
+                callOnChange(newUser);
+                setShowVerificationWhenDeactivating(dontShowAgain !== true);
+                messageShowingContext.hideMessage();
+              },
+            });
+          } else if (
+            newUser.role !== user?.role &&
+            shouldShowVerificationWhenChangingRole
+          ) {
+            const useAn =
+              newUser.role == USER_ROLES.ADMIN.key ||
+              newUser.role == USER_ROLES.OWNER.key;
+            messageShowingContext.showMessage({
+              title: (
+                <fbt desc="">
+                  Change to
+                  <fbt:param name="new role type">
+                    {USER_ROLES[newUser.role].value}
+                  </fbt:param>
+                </fbt>
+              ),
+              message: (
+                <fbt desc="">
+                  Are you sure you want to make this user
+                  <fbt:enum
+                    enum-range={['a', 'an']}
+                    value={useAn ? 'an' : 'a'}
+                  />
+                  <fbt:param name="new role type">
+                    {` ${USER_ROLES[newUser.role].value}`}
+                  </fbt:param>
+                  ?
+                </fbt>
+              ),
+              verificationCheckbox: {label: fbt("Don't show this again", '')},
+              confirmLabel: fbt('Change Role', ''),
+              onCancel: messageShowingContext.hideMessage,
+              onClose: messageShowingContext.hideMessage,
+              onConfirm: dontShowAgain => {
+                callOnChange(newUser);
+                setShowVerificationWhenChangingRole(dontShowAgain !== true);
+                messageShowingContext.hideMessage();
+              },
+            });
+          } else {
+            callOnChange(newUser);
+          }
+        }}
       />
       {userManagementDevMode ? (
         <div className={classes.section}>

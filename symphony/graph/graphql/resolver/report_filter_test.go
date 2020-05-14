@@ -33,7 +33,7 @@ func validateEmptyFilters(t *testing.T, r *TestResolver) {
 
 func TestAddReportFilter(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr, rfr := r.Mutation(), r.Query(), r.ReportFilter()
@@ -98,7 +98,7 @@ func TestAddReportFilter(t *testing.T) {
 
 func TestAddInvalidReportFilters(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 	validateEmptyFilters(t, r)
@@ -178,7 +178,7 @@ func TestAddInvalidReportFilters(t *testing.T) {
 
 func TestEditReportFilters(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 	validateEmptyFilters(t, r)
