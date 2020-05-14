@@ -19,6 +19,7 @@ import type {SelectorStoreUpdater} from 'relay-runtime';
 import RelayEnvironment from '../common/RelayEnvironment.js';
 import {ConnectionHandler} from 'relay-runtime';
 import {commitMutation, graphql} from 'react-relay';
+import {getGraphError} from '../common/EntUtils';
 
 const mutation = graphql`
   mutation RemoveWorkOrderTypeMutation($id: ID!) {
@@ -35,11 +36,11 @@ export const deleteWorkOrderType = (workOrderTypeId: string): Promise<void> => {
       {
         onCompleted: (response, errors) => {
           if (errors && errors[0]) {
-            return reject(errors[0]);
+            return reject(getGraphError(errors[0]));
           }
           resolve();
         },
-        onError: reject,
+        onError: (error: Error) => reject(getGraphError(error)),
       },
       store => {
         const rootQuery = store.getRoot();

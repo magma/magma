@@ -104,8 +104,23 @@ const AddEditWorkOrderTypeCard = ({
           fbt.param('name', editingWorkOrderType.name),
         '',
       ).toString(),
-    ).then(() => deleteWorkOrderType(editingWorkOrderType.id));
-  }, [confirm, editingWorkOrderType.name, editingWorkOrderType.id]);
+    )
+      .then(() => deleteWorkOrderType(editingWorkOrderType.id))
+      .then(onClose)
+      .catch((errorMessage: string) =>
+        enqueueSnackbar(errorMessage, {
+          children: key => (
+            <SnackbarItem id={key} message={errorMessage} variant="error" />
+          ),
+        }),
+      );
+  }, [
+    confirm,
+    editingWorkOrderType.name,
+    editingWorkOrderType.id,
+    onClose,
+    enqueueSnackbar,
+  ]);
 
   const nameChanged = name =>
     setEditingWorkOrderType(workOrder => ({
@@ -127,10 +142,10 @@ const AddEditWorkOrderTypeCard = ({
       : editWorkOrderType;
     saveAction(workOrderToSave)
       .then(() => onSave(workOrderToSave))
-      .catch((error: Error) =>
-        enqueueSnackbar(error.message, {
+      .catch((errorMessage: string) =>
+        enqueueSnackbar(errorMessage, {
           children: key => (
-            <SnackbarItem id={key} message={error.message} variant="error" />
+            <SnackbarItem id={key} message={errorMessage} variant="error" />
           ),
         }),
       )
