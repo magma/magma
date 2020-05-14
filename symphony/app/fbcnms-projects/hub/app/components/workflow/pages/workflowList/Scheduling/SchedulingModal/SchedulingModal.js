@@ -4,42 +4,29 @@ import WorkflowDia from "../../WorkflowExec/DetailsModal/WorkflowDia/WorkflowDia
 import { HttpClient as http } from "../../../../common/HttpClient";
 import { conductorApiUrlPrefix } from "../../../../constants";
 
+const stateSubmit = "Submit";
+const stateSubmitting = "Submitting..."
+
 const SchedulingModal = props => {
-  const [schedule, setSchedule] = useState();
-  const [fromDate, setFromDate] = useState();
-  const [toDate, setToDate] = useState();
-  const [enabled, setEnabled] = useState();
-  const [cronString, setCronString] = useState();
-  const stateSubmit = "Submit";
-  const stateSubmitting = "Submitting..."
-  const [status, setStatus] = useState(stateSubmit);
-  const [error, setError] = useState();
-
-
-  useEffect(() => {
+  const [schedule, setSchedule] = useState(()=>{
     http
       .get(conductorApiUrlPrefix + "/schedule/" + props.name)
       .then(res => {
         setSchedule(res);
-        setFromDate(res.fromDate);
-        setToDate(res.toDate);
-        setEnabled(res.enabled);
-        setCronString(res.cronString);
       });
-  }, []);
+    return null;
+  });
+  const [status, setStatus] = useState(stateSubmit);
+  const [error, setError] = useState();
 
   const handleClose = () => {
-    props.modalHandler();
+    props.onClose();
   };
-
 
   const submitForm = () => {
     setError(null);
-    // update schedule object
-    schedule.enabled = enabled;
-    schedule.cronString = cronString;
     setStatus(stateSubmitting);
-    http.put(conductorApiUrlPrefix + "/schedule/" + props.name, schedule).then(res => {
+    http.put(conductorApiUrlPrefix + "/schedule/" + schedule.name, schedule).then(res => {
       handleClose();
     }).catch(error => {
       setStatus(stateSubmit);
@@ -47,11 +34,27 @@ const SchedulingModal = props => {
     });
   }
 
+  const setCronString = (str) => {
+    let mySchedule = {
+      ...schedule,
+      cronString: str
+    };
+    setSchedule(mySchedule);
+  }
+
+  const setEnabled = (enabled) => {
+    let mySchedule = {
+      ...schedule,
+      enabled: enabled
+    };
+    setSchedule(mySchedule);
+  }
+
   return (
     <Modal
       size="lg"
       dialogClassName="modal-70w"
-      show={props.show}
+      show="true"
       onHide={handleClose}
     >
       <Modal.Header>
@@ -65,7 +68,7 @@ const SchedulingModal = props => {
               type="input"
               onChange={e => setCronString(e.target.value)}
               placeholder="Enter cron pattern"
-              value={cronString}
+              value={schedule?.cronString}
             />
           </Form.Group>
           <Form.Group>
@@ -73,7 +76,7 @@ const SchedulingModal = props => {
             <Form.Control
               type="checkbox"
               onChange={e => setEnabled(e.target.checked)}
-              checked={enabled}
+              checked={schedule?.enabled}
             />
           </Form.Group>
         </Form>
