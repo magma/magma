@@ -8,39 +8,40 @@
  * @format
  */
 
-import logging from '@fbcnms/logging';
-import streamify from 'stream-array';
-import {JSONPath} from 'jsonpath-plus';
+import logging from "@fbcnms/logging";
+import streamify from "stream-array";
+import { JSONPath } from "jsonpath-plus";
+import { groupsForUser } from "./graphqlGroups";
 
 const logger = logging.getLogger(module);
 
-import type {ProxyRequest, Task} from '../types';
+import type { ProxyRequest, Task, GroupLoadingStrategy } from "../types";
 
 // Global prefix for taskdefs which can be used by all tenants.
-export const GLOBAL_PREFIX: string = 'GLOBAL';
+export const GLOBAL_PREFIX: string = "GLOBAL";
 
 // This is used to separate tenant id from name in workflowdefs and taskdefs
-export const INFIX_SEPARATOR: string = '___';
+export const INFIX_SEPARATOR: string = "___";
 
-const SUB_WORKFLOW: string = 'SUB_WORKFLOW';
-const DECISION: string = 'DECISION';
-const FORK: string = 'FORK';
+const SUB_WORKFLOW: string = "SUB_WORKFLOW";
+const DECISION: string = "DECISION";
+const FORK: string = "FORK";
 const SYSTEM_TASK_TYPES: Array<string> = [
   SUB_WORKFLOW,
   DECISION,
-  'EVENT',
-  'HTTP',
+  "EVENT",
+  "HTTP",
   FORK,
-  'FORK_JOIN',
-  'FORK_JOIN_DYNAMIC',
-  'JOIN',
-  'EXCLUSIVE_JOIN',
-  'WAIT',
-  'DYNAMIC',
-  'LAMBDA',
-  'TERMINATE',
-  'KAFKA_PUBLISH',
-  'DO_WHILE',
+  "FORK_JOIN",
+  "FORK_JOIN_DYNAMIC",
+  "JOIN",
+  "EXCLUSIVE_JOIN",
+  "WAIT",
+  "DYNAMIC",
+  "LAMBDA",
+  "TERMINATE",
+  "KAFKA_PUBLISH",
+  "DO_WHILE"
 ];
 
 function isAllowedSystemTask(task: Task): boolean {
@@ -62,10 +63,10 @@ export function isForkTask(task: Task): boolean {
 export function assertAllowedSystemTask(task: Task): void {
   if (!isAllowedSystemTask(task)) {
     logger.error(
-      `Task type is not allowed: ` + ` in '${JSON.stringify(task)}'`,
+      `Task type is not allowed: ` + ` in '${JSON.stringify(task)}'`
     );
     // TODO create Exception class
-    throw 'Task type is not allowed';
+    throw "Task type is not allowed";
   }
 
   // assert decisions recursively
@@ -75,7 +76,7 @@ export function assertAllowedSystemTask(task: Task): void {
       assertAllowedSystemTask(task);
     }
 
-    const decisionCaseIdToTasks: {[string]: Array<Task>} = task.decisionCases
+    const decisionCaseIdToTasks: { [string]: Array<Task> } = task.decisionCases
       ? task.decisionCases
       : {};
     const values: Array<Array<Task>> = objectToValues(decisionCaseIdToTasks);
@@ -88,7 +89,7 @@ export function assertAllowedSystemTask(task: Task): void {
 }
 
 // TODO: necessary because of https://github.com/facebook/flow/issues/2221
-export function objectToValues<A, B>(obj: {[key: A]: B}): Array<B> {
+export function objectToValues<A, B>(obj: { [key: A]: B }): Array<B> {
   // eslint-disable-next-line flowtype/no-weak-types
   return ((Object.values(obj): Array<any>): Array<B>);
 }
@@ -99,14 +100,14 @@ export function withInfixSeparator(s: string): string {
 
 export function addTenantIdPrefix(
   tenantId: string,
-  objectWithName: {name: string},
+  objectWithName: { name: string }
 ): void {
   assertNameIsWithoutInfixSeparator(objectWithName);
   objectWithName.name = withInfixSeparator(tenantId) + objectWithName.name;
 }
 
 export function assertNameIsWithoutInfixSeparator(objectWithName: {
-  name: string,
+  name: string
 }): void {
   assertValueIsWithoutInfixSeparator(objectWithName.name);
 }
@@ -116,41 +117,71 @@ export function assertValueIsWithoutInfixSeparator(value: string): void {
   if (value.indexOf(INFIX_SEPARATOR) > -1) {
     logger.error(`Value must not contain '${INFIX_SEPARATOR}' in '${value}'`);
     // TODO create Exception class
-    throw 'Value must not contain INFIX_SEPARATOR';
+    throw "Value must not contain INFIX_SEPARATOR";
   }
 }
 
 export function getTenantId(req: ProxyRequest): string {
-  const tenantId: ?string = req.headers['x-auth-organization'];
+  const tenantId: ?string = req.headers["x-auth-organization"];
   if (tenantId == null) {
-    logger.error('x-auth-organization header not found');
-    throw 'x-auth-organization header not found';
+    logger.error("x-auth-organization header not found");
+    throw "x-auth-organization header not found";
   }
   if (tenantId == GLOBAL_PREFIX) {
     logger.error(`Illegal name for TenantId: '${tenantId}'`);
-    throw 'Illegal TenantId';
+    throw "Illegal TenantId";
   }
   return tenantId;
 }
 
+export function getUserRole(req: ProxyRequest): string {
+  const role: ?string = req.headers["x-auth-user-role"];
+  if (role == null) {
+    console.log(req.headers);
+    logger.error("x-auth-user-role header not found");
+    throw "x-auth-user-role header not found";
+  }
+  return role;
+}
+
+export function getUserEmail(req: ProxyRequest): string {
+  const userEmail: ?string = req.headers["x-auth-user-email"];
+  if (userEmail == null) {
+    logger.error("x-auth-user-email header not found");
+    throw "x-auth-user-email header not found";
+  }
+  return userEmail;
+}
+
+export async function getUserGroups(
+  req: ProxyRequest,
+  groupLoadingStrategy: GroupLoadingStrategy
+): Promise<string[]> {
+  return groupLoadingStrategy(
+    getTenantId(req),
+    getUserEmail(req),
+    getUserRole(req)
+  );
+}
+
 export function createProxyOptionsBuffer(
   modifiedBody: mixed,
-  req: ProxyRequest,
+  req: ProxyRequest
 ): mixed {
   // if request transformer returned modified body,
   // serialize it to new request stream. Original
   // request stream was already consumed. See `buffer` option
   // in node-http-proxy.
-  if (typeof modifiedBody === 'object') {
+  if (typeof modifiedBody === "object") {
     modifiedBody = JSON.stringify(modifiedBody);
   }
-  if (typeof modifiedBody === 'string') {
-    req.headers['content-length'] = modifiedBody.length;
+  if (typeof modifiedBody === "string") {
+    req.headers["content-length"] = modifiedBody.length;
     // create an array
     modifiedBody = [modifiedBody];
   } else {
-    logger.error('Unknown type', {modifiedBody});
-    throw 'Unknown type';
+    logger.error("Unknown type", { modifiedBody });
+    throw "Unknown type";
   }
   return streamify(modifiedBody);
 }
@@ -162,7 +193,7 @@ export function removeTenantPrefix(
   tenantId: string,
   json: mixed,
   jsonPath: string,
-  allowGlobal: boolean,
+  allowGlobal: boolean
 ): void {
   const tenantWithInfixSeparator = withInfixSeparator(tenantId);
   const globalPrefix = withInfixSeparator(GLOBAL_PREFIX);
@@ -175,7 +206,7 @@ export function removeTenantPrefix(
     }
     // expect tenantId prefix
     if (prop.indexOf(tenantWithInfixSeparator) != 0) {
-      if (jsonPath.indexOf('taskDefName') != -1) {
+      if (jsonPath.indexOf("taskDefName") != -1) {
         // Skipping tenant removal in taskDefName
         //  This is expected as some tasks do not require task def
         //  and might contain just some default
@@ -186,13 +217,13 @@ export function removeTenantPrefix(
         `Name must start with tenantId prefix` +
           `tenantId:'${tenantId}',jsonPath:'${jsonPath}'` +
           `,item:'${item}'`,
-        {json},
+        { json }
       );
-      throw 'Name must start with tenantId prefix'; // TODO create Exception class
+      throw "Name must start with tenantId prefix"; // TODO create Exception class
     }
     // remove prefix
     item.parent[item.parentProperty] = prop.substr(
-      tenantWithInfixSeparator.length,
+      tenantWithInfixSeparator.length
     );
   }
 }
@@ -201,7 +232,7 @@ export function removeTenantPrefix(
 export function removeTenantPrefixes(
   tenantId: string,
   json: mixed,
-  jsonPathToAllowGlobal: {[string]: boolean},
+  jsonPathToAllowGlobal: { [string]: boolean }
 ): void {
   for (const key in jsonPathToAllowGlobal) {
     removeTenantPrefix(tenantId, json, key, jsonPathToAllowGlobal[key]);
@@ -211,9 +242,9 @@ export function removeTenantPrefixes(
 export function findValuesByJsonPath(
   json: mixed,
   path: string,
-  resultType: string = 'all',
+  resultType: string = "all"
 ) {
-  const result = JSONPath({json, path, resultType});
+  const result = JSONPath({ json, path, resultType });
   logger.debug(`For path '${path}' found ${result.length} items`);
   return result;
 }
@@ -224,6 +255,6 @@ export function anythingTo<T>(anything: any): T {
   if (anything != null) {
     return (anything: T);
   } else {
-    throw 'Unexpected: value does not exist';
+    throw "Unexpected: value does not exist";
   }
 }

@@ -23,6 +23,9 @@ function makeOptions(
     url,
     headers: {
       'x-auth-organization': parentRequest.headers['x-auth-organization'],
+      'x-auth-user-email': parentRequest.headers['x-auth-user-email'],
+      'x-auth-user-role': parentRequest.headers['x-auth-user-role'],
+      'cookie': parentRequest.headers['cookie'],
       'Content-Type': 'application/json',
     },
     body: undefined,
