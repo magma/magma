@@ -17,6 +17,8 @@ import PageSelect from "../../../common/PageSelect";
 import WfLabels from "../../../common/WfLabels";
 import { HttpClient as http } from "../../../common/HttpClient";
 import { conductorApiUrlPrefix, frontendUrlPrefix } from "../../../constants";
+import SchedulingModal from "./SchedulingModal/SchedulingModal";
+import DiagramModal from "../WorkflowDefs/DiagramModal/DiagramModal";
 
 class Scheduling extends Component {
   constructor(props) {
@@ -27,20 +29,26 @@ class Scheduling extends Component {
       data: [],
       table: [],
       activeRow: null,
-      activeWf: null,
+      activeScheduleName: null,
       defaultPages: 20,
       pagesCount: 1,
       viewedPage: 1,
-      allLabels: []
+      allLabels: [],
+      schedulingModal: false,
     };
     this.table = React.createRef();
   }
 
-  componentWillMount() {
-
+  unselectActiveRow() {
+    let table = this.state.table;
+    this.setState({
+      activeRow: null,
+      table: table
+    });
   }
 
   componentDidMount() {
+    this.unselectActiveRow();
     http.get(conductorApiUrlPrefix + "/schedule").then(res => {
       if (res) {
         let size = ~~(res.length / this.state.defaultPages);
@@ -59,12 +67,13 @@ class Scheduling extends Component {
 
   changeActiveRow(i) {
     let dataset = this.state.data;
-    this.setState({
-      activeRow: this.state.activeRow === i ? null : i,
-      activeWf: dataset[i]["name"] + " / " + dataset[i]["cronString"]
-    });
+    const deselectingCurrentRow = this.state.activeRow === i;
+    const newState = {
+      activeRow: deselectingCurrentRow ? null : i,
+      activeScheduleName: deselectingCurrentRow ? null : dataset[i]["name"]
+    };
+    this.setState(newState);
   }
-
 
   setCountPages(defaultPages, pagesCount) {
     this.setState({
@@ -80,20 +89,15 @@ class Scheduling extends Component {
     });
   }
 
+
+
   delete(schedulingEntry) {
     console.log("Deleting", schedulingEntry.name);
     http
       .delete(conductorApiUrlPrefix + "/schedule/" + schedulingEntry.name)
       .then(() => {
         this.componentDidMount();
-        let table = this.state.table;
-        // if (table.length) {
-        //   table.splice(table.findIndex(wf => wf.name === name), 1);
-        // }
-        this.setState({
-          activeRow: null,
-          table: table
-        });
+        this.unselectActiveRow();
       });
   }
 
@@ -117,7 +121,7 @@ class Scheduling extends Component {
               variant="link"
               eventKey={i}
             >
-              <b>{dataset[i]["name"]}</b>
+              <b>{dataset[i]["workflowName"]}</b> v.{dataset[i]["workflowVersion"]}
               <br />
               <div className="description">
                 { dataset[i]["cronString"] }
@@ -135,7 +139,7 @@ class Scheduling extends Component {
                 >
                   <Button
                     variant="outline-light noshadow"
-                    onClick={() => alert('Not implemented')}
+                    onClick={this.showSchedulingModal.bind(this)}
                   >
                     Edit
                   </Button>
@@ -157,10 +161,30 @@ class Scheduling extends Component {
     return output;
   }
 
+  showSchedulingModal() {
+    this.setState({
+      schedulingModal: !this.state.schedulingModal
+    });
+  }
 
   render() {
+    let schedulingModal = this.state.schedulingModal ? (
+      <SchedulingModal
+        name={this.state.activeScheduleName}
+        modalHandler={this.showSchedulingModal.bind(this)}
+        show={this.state.schedulingModal}
+      />
+    ) : null;
+
     return (
       <div>
+        {schedulingModal}
+
+        <Button variant="outline-primary" style={{ marginLeft: "30px" }}
+        onClick={() => this.componentDidMount()}>
+          <i className="fas fa-sync" />&nbsp;&nbsp;Refresh
+        </Button>
+
         <div className="scrollWrapper" style={{ maxHeight: "650px" }}>
           <Table ref={this.table}>
             <thead>
