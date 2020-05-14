@@ -13,6 +13,22 @@ sed '/magma@pipelined/d' -i /etc/systemd/system/magma@mme.service
 sed '/magma@sessiond/d' -i /etc/systemd/system/magma@mme.service
 check_success "Removing Sessiond and Pipelined dependencies in MME"
 
+# Remove unused services from Magmad config
+sed '/monitord/d' -i /etc/magma/magmad.yml
+sed '/pipelined/d' -i /etc/magma/magmad.yml
+sed '/policydb/d' -i /etc/magma/magmad.yml
+sed '/sessiond/d' -i /etc/magma/magmad.yml
+check_success "Removing services from Magmad config"
+
+# Remove systemd files for unused services
+rm /etc/systemd/system/magma@pipelined.service
+rm /etc/systemd/system/magma@sessiond.service
+check_success "Removing systemd files for unused Magma services"
+
+# Reload systemd service files
+systemctl daemon-reload
+check_success "Reloading systemctl"
+
 # Remove the openvswitch gtp bridge
 ifdown gtp_br0
 
