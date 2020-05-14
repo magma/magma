@@ -65,13 +65,17 @@ export type DialogSkin = 'primary' | 'red';
 export type MessageDialogProps = $ReadOnly<{|
   title: React.Node,
   message: React.Node,
-  checkboxLabel?: React.Node,
+  verificationCheckbox?: ?{
+    label: React.Node,
+    isMandatory?: ?boolean,
+  },
   cancelLabel?: React.Node,
   confirmLabel?: React.Node,
   skin?: DialogSkin,
   onCancel?: () => void,
   onClose: () => void,
   onConfirm?: () => void,
+  onConfirm?: (?boolean) => void,
 |}>;
 
 export type MessageDialogComponentProps = $ReadOnly<{|
@@ -83,7 +87,7 @@ const MessageDialog = ({
   title,
   message,
   onClose,
-  checkboxLabel,
+  verificationCheckbox,
   cancelLabel = Strings.common.cancelButton,
   confirmLabel = Strings.common.okButton,
   onCancel,
@@ -105,11 +109,11 @@ const MessageDialog = ({
         <Text>{message}</Text>
       </div>
       <div className={classes.footer}>
-        {checkboxLabel && (
+        {verificationCheckbox && (
           <div className={classes.checkboxContainer}>
             <Checkbox
               checked={checkboxChecked}
-              title={checkboxLabel}
+              title={verificationCheckbox.label}
               onChange={selection =>
                 setCheckboxChecked(selection === 'checked' ? true : false)
               }
@@ -126,10 +130,15 @@ const MessageDialog = ({
         )}
         {confirmLabel && (
           <Button
-            onClick={onConfirm}
+            onClick={() =>
+              onConfirm &&
+              onConfirm(verificationCheckbox == null ? null : checkboxChecked)
+            }
             autoFocus
             skin={skin}
-            disabled={checkboxLabel != null && !checkboxChecked}>
+            disabled={
+              verificationCheckbox?.isMandatory === true && !checkboxChecked
+            }>
             {confirmLabel}
           </Button>
         )}
