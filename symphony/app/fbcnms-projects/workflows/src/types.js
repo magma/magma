@@ -89,6 +89,7 @@ export type StartWorkflowRequest = {
 export type ScheduleRequest = {
   name: string,
   workflowName: string,
+  workflowVersion: string,
 };
 
 export type FrontendResponse = {

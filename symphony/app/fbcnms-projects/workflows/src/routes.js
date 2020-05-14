@@ -324,7 +324,6 @@ router.get('/id/:workflowId', async (req, res, next) => {
       ),
     );
 
-    // TODO not implemented on proxy
     const logs = map(task =>
       Promise.all([task, http.get(baseURLTask + task.taskId + '/log', req)]),
     )(result.tasks);
@@ -477,28 +476,18 @@ router.get('/hierarchical', async (req, res, next) => {
   }
 });
 
-// TODO not implemented on proxy
-router.get('/queue/data', async (req, res, next) => {
+router.get('/schedule/?', async (req, res, next) => {
   try {
-    const sizes = await http.get(baseURLTask + 'queue/all', req);
-    const polldata = await http.get(baseURLTask + 'queue/polldata/all', req);
-    polldata.forEach(pd => {
-      let qname = pd.queueName;
-
-      if (pd.domain != null) {
-        qname = pd.domain + ':' + qname;
-      }
-      pd.qsize = sizes[qname];
-    });
-    res.status(200).send({polldata});
+    const result = await http.get(baseURLSchedule, req);
+    res.status(200).send(result);
   } catch (err) {
     next(err);
   }
 });
 
-router.get('/schedule', async (req, res, next) => {
+router.get('/schedule/:name', async (req, res, next) => {
   try {
-    const result = await http.get(baseURLSchedule, req);
+    const result = await http.get(baseURLSchedule + req.params.name, req);
     res.status(200).send(result);
   } catch (err) {
     next(err);

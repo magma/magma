@@ -12,6 +12,7 @@ import {
   addTenantIdPrefix,
   anythingTo,
   createProxyOptionsBuffer,
+  findValuesByJsonPath,
   removeTenantPrefix,
   withInfixSeparator,
 } from '../utils.js';
@@ -24,6 +25,7 @@ import type {
 } from '../../types';
 
 const logger = logging.getLogger(module);
+const versionSeparator = ':';
 let schellarTarget: string;
 
 // Used in POST and PUT
@@ -31,16 +33,17 @@ function sanitizeScheduleBefore(
   tenantId: string,
   schedule: ScheduleRequest,
 ): void {
-  // assert that both name and workflowName are equal
-  if (schedule.name !== schedule.workflowName) {
-    logger.error('Schedule name must be equal to workflowName', {schedule});
-    // TODO create Exception class
-    throw 'Schedule name must be equal to workflowName';
+  const expectedName =
+    schedule.workflowName + versionSeparator + schedule.workflowVersion;
+  if (schedule.name !== expectedName) {
+    logger.error('Unexpected schedule name', {schedule, expectedName});
+    throw 'Unexpected schedule name';
   }
+
   // add tenantId to name
   addTenantIdPrefix(tenantId, schedule);
   // add tenantId to workflowName
-  schedule.workflowName = schedule.name;
+  schedule.workflowName = withInfixSeparator(tenantId) + schedule.workflowName;
 }
 
 /*
@@ -53,9 +56,38 @@ const getAllBefore: BeforeFun = (tenantId, req, res, proxyCallback) => {
   proxyCallback({target: schellarTarget});
 };
 
+function removeWrongPrefixesFromArray(
+  tenantId,
+  array: Array<mixed>,
+  jsonPath: string,
+) {
+  const tenantWithInfixSeparator = withInfixSeparator(tenantId);
+  for (let idx = array.length - 1; idx >= 0; idx--) {
+    const item = array[idx];
+    const leafValues = findValuesByJsonPath(item, jsonPath, 'value');
+    let prefixFound = true;
+    for (const leaf of leafValues) {
+      if (!leaf || leaf.indexOf(tenantWithInfixSeparator) != 0) {
+        prefixFound = false;
+        break;
+      }
+    }
+
+    if (!prefixFound) {
+      array.splice(idx, 1);
+    }
+  }
+}
+
 const getAllAfter: AfterFun = (tenantId, req, respObj) => {
-  removeTenantPrefix(tenantId, respObj, '$[*].workflowName', false);
-  removeTenantPrefix(tenantId, respObj, '$[*].name', false);
+  if (respObj != null && Array.isArray(respObj)) {
+    removeWrongPrefixesFromArray(tenantId, anythingTo(respObj), '$.name');
+    removeTenantPrefix(tenantId, respObj, '$[*].workflowName', false);
+    removeTenantPrefix(tenantId, respObj, '$[*].name', false);
+  } else {
+    logger.error('Unexpected response', {respObj});
+    throw 'Unexpected response';
+  }
 };
 
 /*
@@ -79,7 +111,7 @@ curl -X POST http://localhost/proxy/schedule \
   -H 'Content-Type: application/json' \
   -d '
   {
-  "name": "workflow1",
+  "name": "workflow1:1",
   "enabled": true,
   "parallelRuns": false,
   "workflowName": "workflow1",
@@ -108,7 +140,7 @@ curl -X PUT http://localhost/proxy/schedule/workflow1 \
   -H 'Content-Type: application/json' \
   -d '
   {
-  "name": "workflow1",
+  "name": "workflow1:1",
   "enabled": true,
   "parallelRuns": false,
   "workflowName": "workflow1",
