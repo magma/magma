@@ -28,6 +28,12 @@ func Sleep(d time.Duration) {
 	s.sleep(d)
 }
 
+// Since returns the time elapsed since t, where the current time may have
+// been frozen.
+func Since(t time.Time) time.Duration {
+	return Now().Sub(t)
+}
+
 // SetAndFreezeClock will set the value to be returned by Now.
 // This should only be called by test code.
 func SetAndFreezeClock(t *testing.T, ti time.Time) {

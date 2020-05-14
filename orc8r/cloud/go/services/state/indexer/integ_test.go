@@ -73,10 +73,11 @@ var (
 	index0    = make(chan mock.Arguments)
 )
 
-func TestStateIndexing(t *testing.T) {
-	// Uncomment below to view reindex queue logs during test
-	//_ = flag.Set("alsologtostderr", "true")
+func init() {
+	//_ = flag.Set("alsologtostderr", "true") // uncomment to view logs during test
+}
 
+func TestStateIndexing(t *testing.T) {
 	clock.SkipSleeps(t)
 	defer clock.ResumeSleeps(t)
 

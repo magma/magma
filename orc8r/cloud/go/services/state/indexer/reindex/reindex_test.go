@@ -59,6 +59,10 @@ var (
 	matchOne = []indexer.Subscription{{Type: orc8r.DirectoryRecordType, KeyMatcher: indexer.NewMatchExact("imsi0")}}
 )
 
+func init() {
+	//_ = flag.Set("alsologtostderr", "true") // uncomment to view logs during test
+}
+
 func TestRun(t *testing.T) {
 	dbName := "state___reindex_test"
 
@@ -127,9 +131,6 @@ func TestRun(t *testing.T) {
 }
 
 func initReindexTest(t *testing.T, dbName string) (JobQueue, servicers.StateServiceInternal) {
-	// Uncomment below to view reindex queue logs during test
-	//_ = flag.Set("alsologtostderr", "true")
-
 	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
 	indexer.DeregisterAllForTest(t)
 

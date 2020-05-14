@@ -15,6 +15,7 @@ import (
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/services/state/indexer"
+	"magma/orc8r/cloud/go/services/state/indexer/metrics"
 
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
@@ -80,6 +81,7 @@ func indexOne(networkID string, idx indexer.Indexer, states state.StatesByID) er
 	}
 
 	id := idx.GetID()
+	version := getVersion(idx)
 
 	errs, err := idx.Index(networkID, filtered)
 	if err != nil {
@@ -89,7 +91,7 @@ func indexOne(networkID string, idx indexer.Indexer, states state.StatesByID) er
 		err := errors.New("all state IDs experienced per-state index errors")
 		return wrap(err, ErrIndex, id)
 	} else if len(errs) != 0 {
-		// TODO(4/15/20): add Prometheus metrics
+		metrics.IndexErrors.WithLabelValues(id, version, metrics.SourceValueIndex).Add(float64(len(errs)))
 		err := wrap(fmt.Errorf("%s", errs), ErrIndexPerState, id)
 		glog.Warning(err)
 		return nil
@@ -111,6 +113,10 @@ func filterStates(idx indexer.Indexer, states state.StatesByID) state.StatesByID
 		}
 	}
 	return ret
+}
+
+func getVersion(idx indexer.Indexer) string {
+	return fmt.Sprint(idx.GetVersion())
 }
 
 func wrap(err error, sentinel Error, indexerID string) error {

@@ -63,6 +63,10 @@ var (
 	indexer4 = mocks.NewTestIndexer(id4, version4, nil, nil, nil, nil)
 )
 
+func init() {
+	//_ = flag.Set("alsologtostderr", "true") // uncomment to view logs during test
+}
+
 func TestSqlJobQueue_PopulateJobs(t *testing.T) {
 	clock.SetAndFreezeClock(t, time.Unix(0, 0).Add(4*time.Hour))
 	defer clock.UnfreezeClock(t)
@@ -387,9 +391,6 @@ type testCase struct {
 }
 
 func runCase(t *testing.T, test *testCase) {
-	// Uncomment below to view reindex queue logs during test
-	//_ = flag.Set("alsologtostderr", "true")
-
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("Error opening stub DB conn: %v", err)

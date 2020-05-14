@@ -45,9 +45,11 @@ var (
 	someErr = errors.New("some_error")
 )
 
-func TestFilterStates(t *testing.T) {
-	initTest()
+func init() {
+	//_ = flag.Set("alsologtostderr", "true") // uncomment to view logs during test
+}
 
+func TestFilterStates(t *testing.T) {
 	id0 := state.ID{Type: type0, DeviceID: did0}
 	id1 := state.ID{Type: type1, DeviceID: did1}
 	id2 := state.ID{Type: type2, DeviceID: did2}
@@ -68,7 +70,7 @@ func TestFilterStates(t *testing.T) {
 		{
 			name: "one state one sub",
 			args: args{
-				idx:    getIndexer("", []indexer.Subscription{{Type: type0, KeyMatcher: indexer.MatchAll}}),
+				idx:    getIndexerFull("", []indexer.Subscription{{Type: type0, KeyMatcher: indexer.MatchAll}}),
 				states: state.StatesByID{id0: st0},
 			},
 			want: state.StatesByID{id0: st0},
@@ -76,7 +78,7 @@ func TestFilterStates(t *testing.T) {
 		{
 			name: "one state zero sub",
 			args: args{
-				idx:    getIndexer("", nil),
+				idx:    getIndexerFull("", nil),
 				states: state.StatesByID{id0: st0},
 			},
 			want: state.StatesByID{},
@@ -84,7 +86,7 @@ func TestFilterStates(t *testing.T) {
 		{
 			name: "zero state one sub",
 			args: args{
-				idx:    getIndexer("", []indexer.Subscription{{Type: type0, KeyMatcher: indexer.MatchAll}}),
+				idx:    getIndexerFull("", []indexer.Subscription{{Type: type0, KeyMatcher: indexer.MatchAll}}),
 				states: state.StatesByID{},
 			},
 			want: state.StatesByID{},
@@ -92,7 +94,7 @@ func TestFilterStates(t *testing.T) {
 		{
 			name: "wrong type",
 			args: args{
-				idx:    getIndexer("", []indexer.Subscription{{Type: type1, KeyMatcher: indexer.MatchAll}}),
+				idx:    getIndexerFull("", []indexer.Subscription{{Type: type1, KeyMatcher: indexer.MatchAll}}),
 				states: state.StatesByID{id0: st0},
 			},
 			want: state.StatesByID{},
@@ -100,7 +102,7 @@ func TestFilterStates(t *testing.T) {
 		{
 			name: "wrong device ID",
 			args: args{
-				idx:    getIndexer("", []indexer.Subscription{{Type: type0, KeyMatcher: indexer.NewMatchExact("0xdeadbeef")}}),
+				idx:    getIndexerFull("", []indexer.Subscription{{Type: type0, KeyMatcher: indexer.NewMatchExact("0xdeadbeef")}}),
 				states: state.StatesByID{id0: st0},
 			},
 			want: state.StatesByID{},
@@ -108,7 +110,7 @@ func TestFilterStates(t *testing.T) {
 		{
 			name: "multi state multi sub",
 			args: args{
-				idx: getIndexer("", []indexer.Subscription{
+				idx: getIndexerFull("", []indexer.Subscription{
 					{Type: type0, KeyMatcher: indexer.MatchAll},
 					{Type: type1, KeyMatcher: indexer.NewMatchPrefix(id1.DeviceID[0:3])},
 					{Type: type2, KeyMatcher: indexer.NewMatchExact(id2.DeviceID[0:3])},
@@ -134,7 +136,6 @@ func TestFilterStates(t *testing.T) {
 }
 
 func TestIndexImpl_HappyPath(t *testing.T) {
-	initTest()
 	clock.SkipSleeps(t)
 	defer clock.ResumeSleeps(t)
 
@@ -172,9 +173,9 @@ func TestIndexImpl_HappyPath(t *testing.T) {
 		id13: st13,
 	}
 
-	idx0 := getIndexerBasic(iid0, []indexer.Subscription{{Type: orc8r.DirectoryRecordType, KeyMatcher: indexer.MatchAll}})
-	idx1 := getIndexerBasic(iid1, []indexer.Subscription{{Type: orc8r.AccessGatewayRecordType, KeyMatcher: indexer.NewMatchExact(did2)}})
-	idx2 := getIndexerBasic(iid2, []indexer.Subscription{{Type: orc8r.AccessGatewayRecordType, KeyMatcher: indexer.NewMatchExact(did3)}})
+	idx0 := getIndexerWithVersion(iid0, []indexer.Subscription{{Type: orc8r.DirectoryRecordType, KeyMatcher: indexer.MatchAll}})
+	idx1 := getIndexerWithVersion(iid1, []indexer.Subscription{{Type: orc8r.AccessGatewayRecordType, KeyMatcher: indexer.NewMatchExact(did2)}})
+	idx2 := getIndexerWithVersion(iid2, []indexer.Subscription{{Type: orc8r.AccessGatewayRecordType, KeyMatcher: indexer.NewMatchExact(did3)}})
 	idx0.On("Index", nid0, index0).Return(indexer.StateErrors{id00: someErr}, nil).Once()
 	idx1.On("Index", nid0, index1).Return(nil, nil).Once()
 	idx2.On("Index", nid0, index2).Return(nil, someErr).Times(maxRetry)
@@ -194,7 +195,6 @@ func TestIndexImpl_HappyPath(t *testing.T) {
 }
 
 func TestIndexImpl_AllStatesFiltered(t *testing.T) {
-	initTest()
 	clock.SkipSleeps(t)
 	defer clock.ResumeSleeps(t)
 
@@ -222,8 +222,8 @@ func TestIndexImpl_AllStatesFiltered(t *testing.T) {
 	}
 
 	// All states get filtered -> no err
-	idx0 := getIndexerBasic(iid0, []indexer.Subscription{{Type: orc8r.DirectoryRecordType, KeyMatcher: indexer.NewMatchPrefix("0xdeadbeef")}})
-	idx1 := getIndexerBasic(iid1, []indexer.Subscription{{Type: type0, KeyMatcher: indexer.MatchAll}})
+	idx0 := getIndexer(iid0, []indexer.Subscription{{Type: orc8r.DirectoryRecordType, KeyMatcher: indexer.NewMatchPrefix("0xdeadbeef")}})
+	idx1 := getIndexer(iid1, []indexer.Subscription{{Type: type0, KeyMatcher: indexer.MatchAll}})
 	idx0.On("Index", nid0, mock.Anything).Return(nil, nil)
 	idx1.On("Index", nid0, mock.Anything).Return(nil, nil)
 	indexer.DeregisterAllForTest(t)
@@ -234,15 +234,20 @@ func TestIndexImpl_AllStatesFiltered(t *testing.T) {
 	idx1.AssertNotCalled(t, "Index", mock.Anything, mock.Anything)
 }
 
-func initTest() {
-	// Uncomment below to view reindex queue logs during test
-	//_ = flag.Set("alsologtostderr", "true")
-}
-
-func getIndexerBasic(id string, subs []indexer.Subscription) *mocks.Indexer {
+func getIndexerFull(id string, subs []indexer.Subscription) *mocks.Indexer {
 	idx := &mocks.Indexer{}
 	idx.On("GetID").Return(id)
 	idx.On("GetSubscriptions").Return(subs)
+	idx.On("GetVersion").Return(indexer.Version(42))
+	idx.On("Index", mock.Anything, mock.Anything).Return(nil, nil).Once()
+	return idx
+}
+
+func getIndexerWithVersion(id string, subs []indexer.Subscription) *mocks.Indexer {
+	idx := &mocks.Indexer{}
+	idx.On("GetID").Return(id)
+	idx.On("GetSubscriptions").Return(subs)
+	idx.On("GetVersion").Return(indexer.Version(42))
 	return idx
 }
 
@@ -250,6 +255,5 @@ func getIndexer(id string, subs []indexer.Subscription) *mocks.Indexer {
 	idx := &mocks.Indexer{}
 	idx.On("GetID").Return(id)
 	idx.On("GetSubscriptions").Return(subs)
-	idx.On("Index", mock.Anything, mock.Anything).Return(nil, nil).Once()
 	return idx
 }

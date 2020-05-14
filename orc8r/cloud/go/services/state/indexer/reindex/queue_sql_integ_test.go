@@ -31,6 +31,10 @@ const (
 	maxAttempts = 2
 )
 
+func init() {
+	//_ = flag.Set("alsologtostderr", "true") // uncomment to view logs during test
+}
+
 func TestSQLReindexJobQueue_Integration_PopulateJobs(t *testing.T) {
 	dbName := "state___reindex_queue___populate_jobs"
 	queue := initSQLTest(t, dbName)
@@ -313,9 +317,6 @@ func TestSQLJobQueue_Integration_RepopulateNewJobs(t *testing.T) {
 }
 
 func initSQLTest(t *testing.T, dbName string) JobQueue {
-	// Uncomment below to view reindex queue logs during test
-	//_ = flag.Set("alsologtostderr", "true")
-
 	indexer.DeregisterAllForTest(t)
 	err := indexer.RegisterAll(indexer0, indexer1, indexer2)
 	assert.NoError(t, err)
