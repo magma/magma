@@ -17,7 +17,7 @@ import Strings from '@fbcnms/strings/Strings';
 import Text from '../Text';
 import {CloseIcon} from '../Icons';
 import {makeStyles} from '@material-ui/styles';
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -74,7 +74,6 @@ export type MessageDialogProps = $ReadOnly<{|
   skin?: DialogSkin,
   onCancel?: () => void,
   onClose: () => void,
-  onConfirm?: () => void,
   onConfirm?: (?boolean) => void,
 |}>;
 
@@ -97,6 +96,11 @@ const MessageDialog = ({
 }: MessageDialogComponentProps) => {
   const classes = useStyles();
   const [checkboxChecked, setCheckboxChecked] = useState(false);
+
+  useEffect(() => {
+    setCheckboxChecked(false);
+  }, [hidden]);
+
   return (
     <DialogBase className={classes.root} onClose={onClose} hidden={hidden}>
       <div className={classes.titleContainer}>
