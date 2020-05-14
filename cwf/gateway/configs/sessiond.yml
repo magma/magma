@@ -38,7 +38,7 @@ support_carrier_wifi: true
 cwf_quota_exhaustion_termination_on_init_ms: 30000
 
 # Set to true to store session state in Redis for persistence.
-support_stateless: false
+support_stateless: true
 
 # Redis table name for session state.
 sessions_table: sessiond:sessions
