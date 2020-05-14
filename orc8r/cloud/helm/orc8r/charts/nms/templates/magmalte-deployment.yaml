@@ -83,6 +83,8 @@ spec:
                 secretKeyRef:
                   name: magmalte-mysql-secrets
                   key: MYSQL_USER
+            - name: USER_GRAFANA_ADDRESS
+              value: {{ .Values.magmalte.env.grafana_address }}
           livenessProbe:
             exec:
               command:

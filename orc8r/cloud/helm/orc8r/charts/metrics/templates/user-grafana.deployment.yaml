@@ -65,7 +65,7 @@ spec:
             - name: dashboards
               mountPath: /var/lib/grafana/dashboards
             - name: datasources
-              mountPath: /etc/grafana/provisiong/datasources/
+              mountPath: /etc/grafana/provisioning/datasources/
             - name: dashboardproviders
               mountPath: /etc/grafana/provisioning/dashboards/
             - name: grafana-data
