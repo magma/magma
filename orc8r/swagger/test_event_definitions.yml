@@ -30,3 +30,6 @@ definitions:
         type: object
         additionalProperties:
           type: integer
+  null_event:
+    type: object
+    description: An event with no properties

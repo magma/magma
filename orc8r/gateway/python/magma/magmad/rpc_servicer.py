@@ -152,7 +152,8 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
         """
         Get gateway hardware ID
         """
-        return magmad_pb2.GetGatewayIdResponse(gateway_id=snowflake.snowflake())
+        return magmad_pb2.GetGatewayIdResponse(
+            gateway_id=snowflake.snowflake())
 
     def GenericCommand(self, request, context):
         """
