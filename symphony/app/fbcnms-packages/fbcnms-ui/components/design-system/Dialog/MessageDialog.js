@@ -62,17 +62,21 @@ const useStyles = makeStyles(() => ({
 
 export type DialogSkin = 'primary' | 'red';
 
-type Props = $ReadOnly<{|
+export type MessageDialogProps = $ReadOnly<{|
   title: React.Node,
   message: React.Node,
   checkboxLabel?: React.Node,
   cancelLabel?: React.Node,
   confirmLabel?: React.Node,
   skin?: DialogSkin,
-  hidden?: boolean,
   onCancel?: () => void,
   onClose: () => void,
   onConfirm?: () => void,
+|}>;
+
+export type MessageDialogComponentProps = $ReadOnly<{|
+  ...MessageDialogProps,
+  hidden?: boolean,
 |}>;
 
 const MessageDialog = ({
@@ -86,7 +90,7 @@ const MessageDialog = ({
   onConfirm,
   hidden,
   skin = 'primary',
-}: Props) => {
+}: MessageDialogComponentProps) => {
   const classes = useStyles();
   const [checkboxChecked, setCheckboxChecked] = useState(false);
   return (
