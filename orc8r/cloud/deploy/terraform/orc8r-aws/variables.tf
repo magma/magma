@@ -63,18 +63,17 @@ variable "eks_worker_additional_sg_ids" {
   default     = []
 }
 
+variable "eks_worker_additional_policy_arns" {
+  description = "Additional IAM policy ARNs to attach to EKS worker nodes."
+  type        = list(string)
+  default     = []
+}
+
 variable "eks_worker_groups" {
-  description = "Worker group configuration for EKS. Default value is 1 worker group consisting of 3 t3.small instances."
-  type = list(
-    object({
-      name                 = string,
-      instance_type        = string,
-      asg_desired_capacity = number,
-      asg_min_size         = number,
-      asg_max_size         = number,
-      autoscaling_enabled  = bool,
-    })
-  )
+  # Check the docs at https://github.com/terraform-aws-modules/terraform-aws-eks
+  # for the complete set of valid properties for these objects.
+  description = "Worker group configuration for EKS. Default value is 1 worker group consisting of 3 t3.large instances."
+  type        = any
   default = [
     {
       name                 = "wg-1"

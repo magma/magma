@@ -12,7 +12,7 @@ import bodyParser from 'body-parser';
 import httpProxy from 'http-proxy';
 import logging from '@fbcnms/logging';
 import transformerRegistry from './transformer-registry';
-import {getTenantId} from './utils.js';
+import {getTenantId} from './utils';
 import type {
   ExpressRouter,
   ProxyCallback,
@@ -26,19 +26,61 @@ const router = Router();
 router.use(bodyParser.urlencoded({extended: false}));
 router.use('/', bodyParser.json());
 
-export default async function(proxyTarget: string) {
+export default async function(proxyTarget: string, schellarTarget: string) {
   const transformers = await transformerRegistry({
     proxyTarget,
-  });
-
-  // Configure http-proxy
-  const proxy = httpProxy.createProxyServer({
-    target: proxyTarget,
-    // TODO set timeouts
+    schellarTarget,
   });
 
   for (const entry of transformers) {
     logger.info(`Routing url:${entry.url}, method:${entry.method}`);
+
+    // Configure http-proxy per route
+    const proxy = httpProxy.createProxyServer({
+      selfHandleResponse: true,
+      target: proxyTarget,
+      // TODO set timeouts
+    });
+
+    proxy.on('proxyRes', function(proxyRes, req, res) {
+      const tenantId = getTenantId(req);
+      logger.info(
+        `RES ${proxyRes.statusCode} ${req.method} ${req.url} tenantId ${tenantId}`,
+      );
+      const body = [];
+      proxyRes.on('data', function(chunk) {
+        body.push(chunk);
+      });
+      proxyRes.on('end', function() {
+        const data = Buffer.concat(body).toString();
+        res.statusCode = proxyRes.statusCode;
+        if (
+          proxyRes.statusCode >= 200 &&
+          proxyRes.statusCode < 300 &&
+          entry.after
+        ) {
+          let respObj = null;
+          try {
+            // conductor does not always send correct
+            // Content-Type, e.g. on 404
+            respObj = JSON.parse(data);
+          } catch (e) {
+            logger.warn('Response is not JSON');
+          }
+          try {
+            entry.after(tenantId, req, respObj, res);
+            res.end(JSON.stringify(respObj));
+          } catch (e) {
+            logger.error('Error while modifying response', {error: e});
+            res.end('Internal server error');
+            throw e;
+          }
+        } else {
+          // just resend response without modifying it
+          res.end(data);
+        }
+      });
+    });
 
     (router: ExpressRouter)[entry.method](
       entry.url,
@@ -51,31 +93,8 @@ export default async function(proxyTarget: string) {
           res.send('Cannot get tenantId:' + err);
           return;
         }
-        // prepare 'after'
-        const _write = res.write; // backup real write method
-        // create wrapper that allows transforming output from target
-        // FIXME: this is a hack to be able to modify response.
-        // It only works if response is not empty.
-        res.write = function(data) {
-          if (res.statusCode >= 200 && res.statusCode < 300 && entry.after) {
-            let respObj = null;
-            try {
-              // conductor does not always send correct
-              // Content-Type, e.g. on 404
-              respObj = JSON.parse(data);
-            } catch (e) {
-              logger.warn('Response is not JSON');
-            }
-            entry.after(tenantId, req, respObj, res);
-            data = JSON.stringify(respObj);
-          }
-          _write.call(res, data);
-        };
-
         // start with 'before'
-        logger.info(`REQ ${req.method} ${req.url} tenantId ${tenantId}`, {
-          body: req.body,
-        });
+        logger.info(`REQ ${req.method} ${req.url} tenantId ${tenantId}`);
         const proxyCallback: ProxyCallback = function(proxyOptions) {
           proxy.web(req, res, proxyOptions, function(e) {
             logger.error('Inline error handler', e);

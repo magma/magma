@@ -15,6 +15,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/facebookincubator/symphony/graph/authz"
+
 	"github.com/AlekSi/pointer"
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/location"
@@ -150,7 +152,8 @@ func TestEmptyDataExport(t *testing.T) {
 	log := r.exporter.log
 
 	e := &exporter{log, woRower{log}}
-	th := viewer.TenancyHandler(e,
+	auth := authz.Handler(e, logtest.NewTestLogger(t))
+	th := viewer.TenancyHandler(auth,
 		viewer.NewFixedTenancy(r.client),
 		logtest.NewTestLogger(t),
 	)
@@ -181,7 +184,8 @@ func TestWOExport(t *testing.T) {
 	log := r.exporter.log
 
 	e := &exporter{log, woRower{log}}
-	th := viewer.TenancyHandler(e,
+	auth := authz.Handler(e, logtest.NewTestLogger(t))
+	th := viewer.TenancyHandler(auth,
 		viewer.NewFixedTenancy(r.client),
 		logtest.NewTestLogger(t),
 	)
@@ -255,7 +259,8 @@ func TestExportWOWithFilters(t *testing.T) {
 	log := r.exporter.log
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	e := &exporter{log, woRower{log}}
-	th := viewer.TenancyHandler(e,
+	auth := authz.Handler(e, logtest.NewTestLogger(t))
+	th := viewer.TenancyHandler(auth,
 		viewer.NewFixedTenancy(r.client),
 		logtest.NewTestLogger(t),
 	)

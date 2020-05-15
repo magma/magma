@@ -19,6 +19,7 @@ import (
 	"github.com/facebookincubator/symphony/pkg/testdb"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+	"gocloud.dev/gcerrors"
 )
 
 type eventTestSuite struct {
@@ -52,14 +53,27 @@ func TestPipe(t *testing.T) {
 	emitter, subscriber := Pipe()
 	require.NotNil(t, emitter)
 	require.NotNil(t, subscriber)
-	subscription, err := subscriber.Subscribe(context.Background())
+	ctx := context.Background()
+	subscription, err := subscriber.Subscribe(ctx)
 	require.NoError(t, err)
 
-	err = emitter.Emit(context.Background(), t.Name(), t.Name(), nil)
+	err = emitter.Emit(ctx, t.Name(), t.Name(), nil)
 	require.NoError(t, err)
-	msg, err := subscription.Receive(context.Background())
+	msg, err := subscription.Receive(ctx)
 	require.NoError(t, err)
 	require.Equal(t, t.Name(), msg.Metadata[TenantHeader])
 	require.Equal(t, t.Name(), msg.Metadata[NameHeader])
 	require.Empty(t, msg.Body)
+
+	err = emitter.Shutdown(ctx)
+	require.NoError(t, err)
+	err = emitter.Emit(ctx, t.Name(), t.Name(), nil)
+	require.Error(t, err)
+
+	err = subscriber.Shutdown(ctx)
+	require.NoError(t, err)
+	_, err = subscriber.Subscribe(ctx)
+	require.Error(t, err)
+	err = subscription.Shutdown(ctx)
+	require.Equal(t, gcerrors.FailedPrecondition, gcerrors.Code(err))
 }

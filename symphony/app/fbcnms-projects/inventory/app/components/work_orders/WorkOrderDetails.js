@@ -24,7 +24,6 @@ import AppContext from '@fbcnms/ui/context/AppContext';
 import CheckListCategoryExpandingPanel from '../checklist/checkListCategory/CheckListCategoryExpandingPanel';
 import ChecklistCategoriesMutateDispatchContext from '../checklist/ChecklistCategoriesMutateDispatchContext';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import CloudUploadOutlinedIcon from '@material-ui/icons/CloudUploadOutlined';
 import CommentsBox from '../comments/CommentsBox';
 import EntityDocumentsTable from '../EntityDocumentsTable';
 import ExpandingPanel from '@fbcnms/ui/components/ExpandingPanel';
@@ -32,7 +31,8 @@ import FileUploadButton from '../FileUpload/FileUploadButton';
 import FormContext, {FormContextProvider} from '../../common/FormContext';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
 import Grid from '@material-ui/core/Grid';
-import InsertLinkIcon from '@material-ui/icons/InsertLink';
+import IconButton from '@fbcnms/ui/components/design-system/IconButton';
+import LinkIcon from '@fbcnms/ui/components/design-system/Icons/Actions/LinkIcon';
 import LocationBreadcrumbsTitle from '../location/LocationBreadcrumbsTitle';
 import LocationMapSnippet from '../location/LocationMapSnippet';
 import LocationTypeahead from '../typeahead/LocationTypeahead';
@@ -44,12 +44,14 @@ import Select from '@fbcnms/ui/components/design-system/Select/Select';
 import Strings from '@fbcnms/strings/Strings';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
+import UploadIcon from '@fbcnms/ui/components/design-system/Icons/Actions/UploadIcon';
 import UserTypeahead from '../typeahead/UserTypeahead';
 import WorkOrderDetailsPane from './WorkOrderDetailsPane';
 import WorkOrderHeader from './WorkOrderHeader';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
+import {NAVIGATION_OPTIONS} from '../location/LocationBreadcrumbsTitle';
 import {createFragmentContainer, graphql} from 'react-relay';
 import {doneStatus, priorityValues, statusValues} from '../../common/WorkOrder';
 import {formatDateForTextInput} from '@fbcnms/ui/utils/displayUtils';
@@ -113,7 +115,8 @@ const useStyles = makeStyles(() => ({
     fill: symphony.palette.primary,
   },
   minimizedButton: {
-    minWidth: 'unset',
+    marginRight: '4px',
+    marginLeft: '8px',
   },
   dense: {
     paddingTop: '9px',
@@ -472,6 +475,7 @@ const WorkOrderDetails = ({
                             <LocationBreadcrumbsTitle
                               locationDetails={location}
                               size="small"
+                              navigateOnClick={NAVIGATION_OPTIONS.NEW_TAB}
                             />
                             <Grid container spacing={2}>
                               <Grid item xs={12} md={12}>
@@ -507,23 +511,23 @@ const WorkOrderDetails = ({
                         <div className={classes.uploadButtonContainer}>
                           <AddHyperlinkButton
                             className={classes.minimizedButton}
-                            skin="regular"
+                            variant="text"
                             entityType="WORK_ORDER"
                             allowCategories={false}
                             entityId={workOrder.id}>
-                            <InsertLinkIcon color="primary" />
+                            <IconButton icon={LinkIcon} />
                           </AddHyperlinkButton>
                           {isLoadingDocument ? (
                             <CircularProgress size={24} />
                           ) : (
                             <FileUploadButton
-                              className={classes.minimizedButton}
                               onFileUploaded={onDocumentUploaded}
                               onProgress={() => setIsLoadingDocument(true)}>
                               {openFileUploadDialog => (
-                                <CloudUploadOutlinedIcon
-                                  className={classes.uploadButton}
+                                <IconButton
+                                  className={classes.minimizedButton}
                                   onClick={openFileUploadDialog}
+                                  icon={UploadIcon}
                                 />
                               )}
                             </FileUploadButton>

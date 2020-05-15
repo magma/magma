@@ -14,6 +14,8 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/facebookincubator/symphony/graph/authz"
+
 	"github.com/AlekSi/pointer"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentpositiondefinition"
@@ -204,7 +206,8 @@ func TestEmptyLinksDataExport(t *testing.T) {
 	log := r.exporter.log
 
 	e := &exporter{log, linksRower{log}}
-	th := viewer.TenancyHandler(e, viewer.NewFixedTenancy(r.client), logtest.NewTestLogger(t))
+	auth := authz.Handler(e, logtest.NewTestLogger(t))
+	th := viewer.TenancyHandler(auth, viewer.NewFixedTenancy(r.client), logtest.NewTestLogger(t))
 	server := httptest.NewServer(th)
 	defer server.Close()
 
@@ -253,7 +256,8 @@ func TestLinksExport(t *testing.T) {
 	log := r.exporter.log
 
 	e := &exporter{log, linksRower{log}}
-	th := viewer.TenancyHandler(e, viewer.NewFixedTenancy(r.client), logtest.NewTestLogger(t))
+	auth := authz.Handler(e, logtest.NewTestLogger(t))
+	th := viewer.TenancyHandler(auth, viewer.NewFixedTenancy(r.client), logtest.NewTestLogger(t))
 	server := httptest.NewServer(th)
 	defer server.Close()
 
@@ -372,7 +376,8 @@ func TestLinksWithFilters(t *testing.T) {
 	log := r.exporter.log
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	e := &exporter{log, linksRower{log}}
-	th := viewer.TenancyHandler(e, viewer.NewFixedTenancy(r.client), logtest.NewTestLogger(t))
+	auth := authz.Handler(e, logtest.NewTestLogger(t))
+	th := viewer.TenancyHandler(auth, viewer.NewFixedTenancy(r.client), logtest.NewTestLogger(t))
 	server := httptest.NewServer(th)
 	defer server.Close()
 

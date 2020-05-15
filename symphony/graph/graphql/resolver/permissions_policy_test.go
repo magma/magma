@@ -34,7 +34,7 @@ func getInventoryPolicyInput() *models2.InventoryPolicyInput {
 
 func getWorkforcePolicyInput() *models2.WorkforcePolicyInput {
 	return &models2.WorkforcePolicyInput{
-		Read: &models2.BasicPermissionRuleInput{IsAllowed: models2.PermissionValueNo},
+		Read: &models2.WorkforcePermissionRuleInput{IsAllowed: models2.PermissionValueNo},
 		Data: &models2.WorkforceCUDInput{
 			Create: &models2.WorkforcePermissionRuleInput{IsAllowed: models2.PermissionValueYes},
 			Assign: &models2.WorkforcePermissionRuleInput{IsAllowed: models2.PermissionValueByCondition},
@@ -44,7 +44,7 @@ func getWorkforcePolicyInput() *models2.WorkforcePolicyInput {
 
 func TestQueryInventoryPolicies(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
@@ -64,7 +64,7 @@ func TestQueryInventoryPolicies(t *testing.T) {
 
 func TestAddInventoryPolicy(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, ppr := r.Mutation(), r.PermissionsPolicy()
 
@@ -96,7 +96,7 @@ func TestAddInventoryPolicy(t *testing.T) {
 
 func TestAddWorkOrderPolicy(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, ppr := r.Mutation(), r.PermissionsPolicy()
 
@@ -128,7 +128,7 @@ func TestAddWorkOrderPolicy(t *testing.T) {
 
 func TestAddMultipleTypesPermissionsPolicy(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 
@@ -143,7 +143,7 @@ func TestAddMultipleTypesPermissionsPolicy(t *testing.T) {
 
 func TestDeletePermissionsPolicy(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 
@@ -165,7 +165,7 @@ func TestDeletePermissionsPolicy(t *testing.T) {
 
 func TestAddEmptyPermissionsPolicy(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 
@@ -180,7 +180,7 @@ func TestAddEmptyPermissionsPolicy(t *testing.T) {
 
 func TestAddPermissionsPolicyWithGroup(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 
@@ -201,7 +201,7 @@ func TestAddPermissionsPolicyWithGroup(t *testing.T) {
 
 func TestEditPermissionsPolicy(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 

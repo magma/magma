@@ -15,6 +15,7 @@ RUN go mod download
 
 # Copy shared components
 COPY pkg /src/symphony/pkg
+COPY graph /src/symphony/graph
 
 # Build services
 WORKDIR /src/symphony/jobrunner

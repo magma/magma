@@ -18,6 +18,7 @@ import LocationBreadcrumbsTitle from './location/LocationBreadcrumbsTitle';
 import RelayEnvironment from '../common/RelayEnvironment.js';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import Typeahead from '@fbcnms/ui/components/Typeahead';
+import {NAVIGATION_OPTIONS} from './location/LocationBreadcrumbsTitle';
 import {debounce} from 'lodash';
 import {fetchQuery, graphql} from 'relay-runtime';
 import {withStyles} from '@material-ui/core/styles';
@@ -149,7 +150,7 @@ class InventoryEntitiesTypeahead extends React.Component<Props, State> {
                   locationDetails={node}
                   size="small"
                   hideTypes={true}
-                  navigateOnClick={false}
+                  navigateOnClick={NAVIGATION_OPTIONS.NONE}
                 />
                 {node.externalId && (
                   <Text

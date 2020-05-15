@@ -16,7 +16,7 @@ import (
 
 func TestUsersGroupSearchByName(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	prepareUserData(ctx)

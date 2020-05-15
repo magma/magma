@@ -9,12 +9,14 @@
 package reindex
 
 import (
+	"context"
 	"fmt"
 	"time"
 
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/services/state/indexer"
+	"magma/orc8r/cloud/go/services/state/indexer/metrics"
 	"magma/orc8r/cloud/go/services/state/servicers"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/util"
@@ -52,14 +54,21 @@ type reindexBatch struct {
 	stateIDs  []state.ID
 }
 
-// Run progressively completes required reindex jobs.
-// Periodically polls the reindex job queue for areindex, attempts to complete
-// the job, and writes back any encountered errors.
-// Never returns.
-func Run(queue JobQueue, store servicers.StateServiceInternal) {
+// Run to progressively complete required reindex jobs.
+// Periodically polls the reindex job queue for reindex jobs, attempts to
+// complete the job, and writes back any encountered errors.
+// Returns only upon context cancellation, which can optionally be nil.
+func Run(ctx context.Context, queue JobQueue, store servicers.StateServiceInternal) {
 	batches := getReindexBatches(store)
 	for {
-		err := runImpl(queue, batches)
+		if isCanceled(ctx) {
+			glog.Warning("State reindexing async job canceled")
+			return
+		}
+
+		reportStatusMetrics(queue)
+
+		err := reindexOne(queue, batches)
 		if err == nil {
 			continue
 		}
@@ -74,7 +83,7 @@ func Run(queue JobQueue, store servicers.StateServiceInternal) {
 }
 
 // If no job available, returns ErrNotFound from magma/orc8r/lib/go/errors.
-func runImpl(queue JobQueue, batches []reindexBatch) (err error) {
+func reindexOne(queue JobQueue, batches []reindexBatch) (err error) {
 	job, err := queue.ClaimAvailableJob()
 	if err != nil {
 		err = errors.Wrap(err, "claim available job")
@@ -83,15 +92,22 @@ func runImpl(queue JobQueue, batches []reindexBatch) (err error) {
 	if job == nil {
 		return merrors.ErrNotFound
 	}
+
+	start := clock.Now()
 	id := job.Idx.GetID()
 	subs := job.Idx.GetSubscriptions()
 
 	defer func() {
-		glog.V(2).Infof("Attempting to complete reindex job %+v for indexer %+v with job err %+v", job, id, err)
-		e := queue.CompleteJob(job, err)
-		if e != nil {
-			glog.Errorf("Failed to complete reindex job %+v for indexer %v with job err <%s>: %s", job, id, err, e)
+		glog.V(2).Infof("Attempting to complete state reindex job %+v with job err %+v", job, err)
+		completeErr := queue.CompleteJob(job, err)
+		if completeErr != nil {
+			glog.Errorf("Failed to complete state reindex job %+v with job err <%s>: %s", job, err, completeErr)
 		}
+
+		duration := clock.Since(start).Seconds()
+		metrics.ReindexDuration.WithLabelValues(id).Set(duration)
+		glog.Infof("Attempt at state reindex job %+v took %f seconds", job, duration)
+
 		testHookReindexComplete()
 	}()
 
@@ -121,9 +137,9 @@ func runImpl(queue JobQueue, batches []reindexBatch) (err error) {
 		if len(errs) == len(b.stateIDs) {
 			err = errors.New("reindex call succeeded but all state IDs returned per-state reindex errors")
 			return wrap(err, ErrReindex, id)
-		} else if len(errs) > 0 {
-			// TODO(4/10/20): add Prometheus metrics
-			glog.Warningf("%s: %+v", ErrReindexPerState, errs)
+		} else if len(errs) != 0 {
+			metrics.IndexErrors.WithLabelValues(id, getVersion(job), metrics.SourceValueReindex).Add(float64(len(errs)))
+			glog.Warningf("%s: %s", ErrReindexPerState, errs)
 		}
 	}
 
@@ -133,6 +149,28 @@ func runImpl(queue JobQueue, batches []reindexBatch) (err error) {
 	}
 
 	return nil
+}
+
+func reportStatusMetrics(queue JobQueue) {
+	infos, err := queue.GetAllJobInfo()
+	if err != nil {
+		err = wrap(err, ErrDefault, "")
+		glog.Errorf("Report reindex metrics failed to get all reindex job info: %v", err)
+		return
+	}
+
+	for id, info := range infos {
+		metrics.ReindexStatus.WithLabelValues(id).Set(getStatus(info.Status))
+		metrics.ReindexAttempts.WithLabelValues(id).Set(float64(info.Attempts))
+		if info.Status != StatusComplete {
+			continue
+		}
+		idx, err := indexer.GetIndexer(id)
+		if err != nil {
+			glog.Errorf("Report reindex metrics failed to get indexer %s from registry: %v", id, err)
+		}
+		metrics.IndexerVersion.WithLabelValues(id).Set(float64(idx.GetVersion()))
+	}
 }
 
 // Get network-segregated reindex batches with capped number of state IDs per batch.
@@ -145,7 +183,7 @@ func getReindexBatches(store servicers.StateServiceInternal) []reindexBatch {
 			break
 		}
 		err = wrap(err, ErrDefault, "")
-		glog.Errorf("Failed to get all state IDs for state indexer reindexing: %s", err)
+		glog.Errorf("Failed to get all state IDs for state indexer reindexing, will retry: %v", err)
 		clock.Sleep(failedGetBatchesSleep)
 	}
 
@@ -162,6 +200,19 @@ func getReindexBatches(store servicers.StateServiceInternal) []reindexBatch {
 	return batches
 }
 
+func isCanceled(ctx context.Context) bool {
+	if ctx == nil {
+		return false
+	}
+
+	select {
+	case <-ctx.Done():
+		return true
+	default:
+		return false
+	}
+}
+
 // filterIDs to the subset that match at least one subscription.
 func filterIDs(subs []indexer.Subscription, ids []state.ID) []state.ID {
 	var ret []state.ID
@@ -174,6 +225,23 @@ func filterIDs(subs []indexer.Subscription, ids []state.ID) []state.ID {
 		}
 	}
 	return ret
+}
+
+func getVersion(job *Job) string {
+	return fmt.Sprint(job.Idx.GetVersion())
+}
+
+func getStatus(status Status) float64 {
+	switch status {
+	case StatusAvailable:
+		return metrics.ReindexStatusIncomplete
+	case StatusInProgress:
+		return metrics.ReindexStatusInProcess
+	case StatusComplete:
+		return metrics.ReindexStatusSuccess
+	}
+	glog.Errorf("Unrecognized state reindexer job status: %s", status)
+	return metrics.ReindexStatusIncomplete
 }
 
 func wrap(err error, sentinel Error, indexerID string) error {

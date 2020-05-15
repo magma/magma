@@ -13,6 +13,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/authz/models"
 	"github.com/facebookincubator/symphony/graph/ent/actionsrule"
 	"github.com/facebookincubator/symphony/graph/ent/checklistcategory"
+	"github.com/facebookincubator/symphony/graph/ent/checklistcategorydefinition"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitemdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/comment"
@@ -70,6 +71,7 @@ const (
 	// Node types.
 	TypeActionsRule                 = "ActionsRule"
 	TypeCheckListCategory           = "CheckListCategory"
+	TypeCheckListCategoryDefinition = "CheckListCategoryDefinition"
 	TypeCheckListItem               = "CheckListItem"
 	TypeCheckListItemDefinition     = "CheckListItemDefinition"
 	TypeComment                     = "Comment"
@@ -533,6 +535,8 @@ type CheckListCategoryMutation struct {
 	clearedFields           map[string]struct{}
 	check_list_items        map[int]struct{}
 	removedcheck_list_items map[int]struct{}
+	work_order              *int
+	clearedwork_order       bool
 }
 
 var _ ent.Mutation = (*CheckListCategoryMutation)(nil)
@@ -706,6 +710,45 @@ func (m *CheckListCategoryMutation) ResetCheckListItems() {
 	m.removedcheck_list_items = nil
 }
 
+// SetWorkOrderID sets the work_order edge to WorkOrder by id.
+func (m *CheckListCategoryMutation) SetWorkOrderID(id int) {
+	m.work_order = &id
+}
+
+// ClearWorkOrder clears the work_order edge to WorkOrder.
+func (m *CheckListCategoryMutation) ClearWorkOrder() {
+	m.clearedwork_order = true
+}
+
+// WorkOrderCleared returns if the edge work_order was cleared.
+func (m *CheckListCategoryMutation) WorkOrderCleared() bool {
+	return m.clearedwork_order
+}
+
+// WorkOrderID returns the work_order id in the mutation.
+func (m *CheckListCategoryMutation) WorkOrderID() (id int, exists bool) {
+	if m.work_order != nil {
+		return *m.work_order, true
+	}
+	return
+}
+
+// WorkOrderIDs returns the work_order ids in the mutation.
+// Note that ids always returns len(ids) <= 1 for unique edges, and you should use
+// WorkOrderID instead. It exists only for internal usage by the builders.
+func (m *CheckListCategoryMutation) WorkOrderIDs() (ids []int) {
+	if id := m.work_order; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetWorkOrder reset all changes of the work_order edge.
+func (m *CheckListCategoryMutation) ResetWorkOrder() {
+	m.work_order = nil
+	m.clearedwork_order = false
+}
+
 // Op returns the operation name.
 func (m *CheckListCategoryMutation) Op() Op {
 	return m.op
@@ -864,9 +907,12 @@ func (m *CheckListCategoryMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this
 // mutation.
 func (m *CheckListCategoryMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.check_list_items != nil {
 		edges = append(edges, checklistcategory.EdgeCheckListItems)
+	}
+	if m.work_order != nil {
+		edges = append(edges, checklistcategory.EdgeWorkOrder)
 	}
 	return edges
 }
@@ -881,6 +927,10 @@ func (m *CheckListCategoryMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case checklistcategory.EdgeWorkOrder:
+		if id := m.work_order; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
@@ -888,7 +938,7 @@ func (m *CheckListCategoryMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this
 // mutation.
 func (m *CheckListCategoryMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.removedcheck_list_items != nil {
 		edges = append(edges, checklistcategory.EdgeCheckListItems)
 	}
@@ -912,7 +962,10 @@ func (m *CheckListCategoryMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this
 // mutation.
 func (m *CheckListCategoryMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
+	if m.clearedwork_order {
+		edges = append(edges, checklistcategory.EdgeWorkOrder)
+	}
 	return edges
 }
 
@@ -920,6 +973,8 @@ func (m *CheckListCategoryMutation) ClearedEdges() []string {
 // cleared in this mutation.
 func (m *CheckListCategoryMutation) EdgeCleared(name string) bool {
 	switch name {
+	case checklistcategory.EdgeWorkOrder:
+		return m.clearedwork_order
 	}
 	return false
 }
@@ -928,6 +983,9 @@ func (m *CheckListCategoryMutation) EdgeCleared(name string) bool {
 // error if the edge name is not defined in the schema.
 func (m *CheckListCategoryMutation) ClearEdge(name string) error {
 	switch name {
+	case checklistcategory.EdgeWorkOrder:
+		m.ClearWorkOrder()
+		return nil
 	}
 	return fmt.Errorf("unknown CheckListCategory unique edge %s", name)
 }
@@ -940,37 +998,524 @@ func (m *CheckListCategoryMutation) ResetEdge(name string) error {
 	case checklistcategory.EdgeCheckListItems:
 		m.ResetCheckListItems()
 		return nil
+	case checklistcategory.EdgeWorkOrder:
+		m.ResetWorkOrder()
+		return nil
 	}
 	return fmt.Errorf("unknown CheckListCategory edge %s", name)
+}
+
+// CheckListCategoryDefinitionMutation represents an operation that mutate the CheckListCategoryDefinitions
+// nodes in the graph.
+type CheckListCategoryDefinitionMutation struct {
+	config
+	op                                 Op
+	typ                                string
+	id                                 *int
+	create_time                        *time.Time
+	update_time                        *time.Time
+	title                              *string
+	description                        *string
+	clearedFields                      map[string]struct{}
+	check_list_item_definitions        map[int]struct{}
+	removedcheck_list_item_definitions map[int]struct{}
+	work_order_type                    *int
+	clearedwork_order_type             bool
+}
+
+var _ ent.Mutation = (*CheckListCategoryDefinitionMutation)(nil)
+
+// newCheckListCategoryDefinitionMutation creates new mutation for $n.Name.
+func newCheckListCategoryDefinitionMutation(c config, op Op) *CheckListCategoryDefinitionMutation {
+	return &CheckListCategoryDefinitionMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeCheckListCategoryDefinition,
+		clearedFields: make(map[string]struct{}),
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m CheckListCategoryDefinitionMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m CheckListCategoryDefinitionMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, fmt.Errorf("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the id value in the mutation. Note that, the id
+// is available only if it was provided to the builder.
+func (m *CheckListCategoryDefinitionMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// SetCreateTime sets the create_time field.
+func (m *CheckListCategoryDefinitionMutation) SetCreateTime(t time.Time) {
+	m.create_time = &t
+}
+
+// CreateTime returns the create_time value in the mutation.
+func (m *CheckListCategoryDefinitionMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.create_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetCreateTime reset all changes of the create_time field.
+func (m *CheckListCategoryDefinitionMutation) ResetCreateTime() {
+	m.create_time = nil
+}
+
+// SetUpdateTime sets the update_time field.
+func (m *CheckListCategoryDefinitionMutation) SetUpdateTime(t time.Time) {
+	m.update_time = &t
+}
+
+// UpdateTime returns the update_time value in the mutation.
+func (m *CheckListCategoryDefinitionMutation) UpdateTime() (r time.Time, exists bool) {
+	v := m.update_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetUpdateTime reset all changes of the update_time field.
+func (m *CheckListCategoryDefinitionMutation) ResetUpdateTime() {
+	m.update_time = nil
+}
+
+// SetTitle sets the title field.
+func (m *CheckListCategoryDefinitionMutation) SetTitle(s string) {
+	m.title = &s
+}
+
+// Title returns the title value in the mutation.
+func (m *CheckListCategoryDefinitionMutation) Title() (r string, exists bool) {
+	v := m.title
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetTitle reset all changes of the title field.
+func (m *CheckListCategoryDefinitionMutation) ResetTitle() {
+	m.title = nil
+}
+
+// SetDescription sets the description field.
+func (m *CheckListCategoryDefinitionMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the description value in the mutation.
+func (m *CheckListCategoryDefinitionMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearDescription clears the value of description.
+func (m *CheckListCategoryDefinitionMutation) ClearDescription() {
+	m.description = nil
+	m.clearedFields[checklistcategorydefinition.FieldDescription] = struct{}{}
+}
+
+// DescriptionCleared returns if the field description was cleared in this mutation.
+func (m *CheckListCategoryDefinitionMutation) DescriptionCleared() bool {
+	_, ok := m.clearedFields[checklistcategorydefinition.FieldDescription]
+	return ok
+}
+
+// ResetDescription reset all changes of the description field.
+func (m *CheckListCategoryDefinitionMutation) ResetDescription() {
+	m.description = nil
+	delete(m.clearedFields, checklistcategorydefinition.FieldDescription)
+}
+
+// AddCheckListItemDefinitionIDs adds the check_list_item_definitions edge to CheckListItemDefinition by ids.
+func (m *CheckListCategoryDefinitionMutation) AddCheckListItemDefinitionIDs(ids ...int) {
+	if m.check_list_item_definitions == nil {
+		m.check_list_item_definitions = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.check_list_item_definitions[ids[i]] = struct{}{}
+	}
+}
+
+// RemoveCheckListItemDefinitionIDs removes the check_list_item_definitions edge to CheckListItemDefinition by ids.
+func (m *CheckListCategoryDefinitionMutation) RemoveCheckListItemDefinitionIDs(ids ...int) {
+	if m.removedcheck_list_item_definitions == nil {
+		m.removedcheck_list_item_definitions = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.removedcheck_list_item_definitions[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCheckListItemDefinitions returns the removed ids of check_list_item_definitions.
+func (m *CheckListCategoryDefinitionMutation) RemovedCheckListItemDefinitionsIDs() (ids []int) {
+	for id := range m.removedcheck_list_item_definitions {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CheckListItemDefinitionsIDs returns the check_list_item_definitions ids in the mutation.
+func (m *CheckListCategoryDefinitionMutation) CheckListItemDefinitionsIDs() (ids []int) {
+	for id := range m.check_list_item_definitions {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCheckListItemDefinitions reset all changes of the check_list_item_definitions edge.
+func (m *CheckListCategoryDefinitionMutation) ResetCheckListItemDefinitions() {
+	m.check_list_item_definitions = nil
+	m.removedcheck_list_item_definitions = nil
+}
+
+// SetWorkOrderTypeID sets the work_order_type edge to WorkOrderType by id.
+func (m *CheckListCategoryDefinitionMutation) SetWorkOrderTypeID(id int) {
+	m.work_order_type = &id
+}
+
+// ClearWorkOrderType clears the work_order_type edge to WorkOrderType.
+func (m *CheckListCategoryDefinitionMutation) ClearWorkOrderType() {
+	m.clearedwork_order_type = true
+}
+
+// WorkOrderTypeCleared returns if the edge work_order_type was cleared.
+func (m *CheckListCategoryDefinitionMutation) WorkOrderTypeCleared() bool {
+	return m.clearedwork_order_type
+}
+
+// WorkOrderTypeID returns the work_order_type id in the mutation.
+func (m *CheckListCategoryDefinitionMutation) WorkOrderTypeID() (id int, exists bool) {
+	if m.work_order_type != nil {
+		return *m.work_order_type, true
+	}
+	return
+}
+
+// WorkOrderTypeIDs returns the work_order_type ids in the mutation.
+// Note that ids always returns len(ids) <= 1 for unique edges, and you should use
+// WorkOrderTypeID instead. It exists only for internal usage by the builders.
+func (m *CheckListCategoryDefinitionMutation) WorkOrderTypeIDs() (ids []int) {
+	if id := m.work_order_type; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetWorkOrderType reset all changes of the work_order_type edge.
+func (m *CheckListCategoryDefinitionMutation) ResetWorkOrderType() {
+	m.work_order_type = nil
+	m.clearedwork_order_type = false
+}
+
+// Op returns the operation name.
+func (m *CheckListCategoryDefinitionMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (CheckListCategoryDefinition).
+func (m *CheckListCategoryDefinitionMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during
+// this mutation. Note that, in order to get all numeric
+// fields that were in/decremented, call AddedFields().
+func (m *CheckListCategoryDefinitionMutation) Fields() []string {
+	fields := make([]string, 0, 4)
+	if m.create_time != nil {
+		fields = append(fields, checklistcategorydefinition.FieldCreateTime)
+	}
+	if m.update_time != nil {
+		fields = append(fields, checklistcategorydefinition.FieldUpdateTime)
+	}
+	if m.title != nil {
+		fields = append(fields, checklistcategorydefinition.FieldTitle)
+	}
+	if m.description != nil {
+		fields = append(fields, checklistcategorydefinition.FieldDescription)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name.
+// The second boolean value indicates that this field was
+// not set, or was not define in the schema.
+func (m *CheckListCategoryDefinitionMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case checklistcategorydefinition.FieldCreateTime:
+		return m.CreateTime()
+	case checklistcategorydefinition.FieldUpdateTime:
+		return m.UpdateTime()
+	case checklistcategorydefinition.FieldTitle:
+		return m.Title()
+	case checklistcategorydefinition.FieldDescription:
+		return m.Description()
+	}
+	return nil, false
+}
+
+// SetField sets the value for the given name. It returns an
+// error if the field is not defined in the schema, or if the
+// type mismatch the field type.
+func (m *CheckListCategoryDefinitionMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case checklistcategorydefinition.FieldCreateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreateTime(v)
+		return nil
+	case checklistcategorydefinition.FieldUpdateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdateTime(v)
+		return nil
+	case checklistcategorydefinition.FieldTitle:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTitle(v)
+		return nil
+	case checklistcategorydefinition.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	}
+	return fmt.Errorf("unknown CheckListCategoryDefinition field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented
+// or decremented during this mutation.
+func (m *CheckListCategoryDefinitionMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was in/decremented
+// from a field with the given name. The second value indicates
+// that this field was not set, or was not define in the schema.
+func (m *CheckListCategoryDefinitionMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value for the given name. It returns an
+// error if the field is not defined in the schema, or if the
+// type mismatch the field type.
+func (m *CheckListCategoryDefinitionMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown CheckListCategoryDefinition numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared
+// during this mutation.
+func (m *CheckListCategoryDefinitionMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(checklistcategorydefinition.FieldDescription) {
+		fields = append(fields, checklistcategorydefinition.FieldDescription)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicates if this field was
+// cleared in this mutation.
+func (m *CheckListCategoryDefinitionMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value for the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *CheckListCategoryDefinitionMutation) ClearField(name string) error {
+	switch name {
+	case checklistcategorydefinition.FieldDescription:
+		m.ClearDescription()
+		return nil
+	}
+	return fmt.Errorf("unknown CheckListCategoryDefinition nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation regarding the
+// given field name. It returns an error if the field is not
+// defined in the schema.
+func (m *CheckListCategoryDefinitionMutation) ResetField(name string) error {
+	switch name {
+	case checklistcategorydefinition.FieldCreateTime:
+		m.ResetCreateTime()
+		return nil
+	case checklistcategorydefinition.FieldUpdateTime:
+		m.ResetUpdateTime()
+		return nil
+	case checklistcategorydefinition.FieldTitle:
+		m.ResetTitle()
+		return nil
+	case checklistcategorydefinition.FieldDescription:
+		m.ResetDescription()
+		return nil
+	}
+	return fmt.Errorf("unknown CheckListCategoryDefinition field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this
+// mutation.
+func (m *CheckListCategoryDefinitionMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.check_list_item_definitions != nil {
+		edges = append(edges, checklistcategorydefinition.EdgeCheckListItemDefinitions)
+	}
+	if m.work_order_type != nil {
+		edges = append(edges, checklistcategorydefinition.EdgeWorkOrderType)
+	}
+	return edges
+}
+
+// AddedIDs returns all ids (to other nodes) that were added for
+// the given edge name.
+func (m *CheckListCategoryDefinitionMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case checklistcategorydefinition.EdgeCheckListItemDefinitions:
+		ids := make([]ent.Value, 0, len(m.check_list_item_definitions))
+		for id := range m.check_list_item_definitions {
+			ids = append(ids, id)
+		}
+		return ids
+	case checklistcategorydefinition.EdgeWorkOrderType:
+		if id := m.work_order_type; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this
+// mutation.
+func (m *CheckListCategoryDefinitionMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.removedcheck_list_item_definitions != nil {
+		edges = append(edges, checklistcategorydefinition.EdgeCheckListItemDefinitions)
+	}
+	return edges
+}
+
+// RemovedIDs returns all ids (to other nodes) that were removed for
+// the given edge name.
+func (m *CheckListCategoryDefinitionMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case checklistcategorydefinition.EdgeCheckListItemDefinitions:
+		ids := make([]ent.Value, 0, len(m.removedcheck_list_item_definitions))
+		for id := range m.removedcheck_list_item_definitions {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this
+// mutation.
+func (m *CheckListCategoryDefinitionMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedwork_order_type {
+		edges = append(edges, checklistcategorydefinition.EdgeWorkOrderType)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean indicates if this edge was
+// cleared in this mutation.
+func (m *CheckListCategoryDefinitionMutation) EdgeCleared(name string) bool {
+	switch name {
+	case checklistcategorydefinition.EdgeWorkOrderType:
+		return m.clearedwork_order_type
+	}
+	return false
+}
+
+// ClearEdge clears the value for the given name. It returns an
+// error if the edge name is not defined in the schema.
+func (m *CheckListCategoryDefinitionMutation) ClearEdge(name string) error {
+	switch name {
+	case checklistcategorydefinition.EdgeWorkOrderType:
+		m.ClearWorkOrderType()
+		return nil
+	}
+	return fmt.Errorf("unknown CheckListCategoryDefinition unique edge %s", name)
+}
+
+// ResetEdge resets all changes in the mutation regarding the
+// given edge name. It returns an error if the edge is not
+// defined in the schema.
+func (m *CheckListCategoryDefinitionMutation) ResetEdge(name string) error {
+	switch name {
+	case checklistcategorydefinition.EdgeCheckListItemDefinitions:
+		m.ResetCheckListItemDefinitions()
+		return nil
+	case checklistcategorydefinition.EdgeWorkOrderType:
+		m.ResetWorkOrderType()
+		return nil
+	}
+	return fmt.Errorf("unknown CheckListCategoryDefinition edge %s", name)
 }
 
 // CheckListItemMutation represents an operation that mutate the CheckListItems
 // nodes in the graph.
 type CheckListItemMutation struct {
 	config
-	op                   Op
-	typ                  string
-	id                   *int
-	title                *string
-	_type                *string
-	index                *int
-	addindex             *int
-	checked              *bool
-	string_val           *string
-	enum_values          *string
-	enum_selection_mode  *string
-	selected_enum_values *string
-	yes_no_val           *checklistitem.YesNoVal
-	help_text            *string
-	clearedFields        map[string]struct{}
-	files                map[int]struct{}
-	removedfiles         map[int]struct{}
-	wifi_scan            map[int]struct{}
-	removedwifi_scan     map[int]struct{}
-	cell_scan            map[int]struct{}
-	removedcell_scan     map[int]struct{}
-	work_order           *int
-	clearedwork_order    bool
+	op                         Op
+	typ                        string
+	id                         *int
+	title                      *string
+	_type                      *string
+	index                      *int
+	addindex                   *int
+	checked                    *bool
+	string_val                 *string
+	enum_values                *string
+	enum_selection_mode_value  *checklistitem.EnumSelectionModeValue
+	selected_enum_values       *string
+	yes_no_val                 *checklistitem.YesNoVal
+	help_text                  *string
+	clearedFields              map[string]struct{}
+	files                      map[int]struct{}
+	removedfiles               map[int]struct{}
+	wifi_scan                  map[int]struct{}
+	removedwifi_scan           map[int]struct{}
+	cell_scan                  map[int]struct{}
+	removedcell_scan           map[int]struct{}
+	check_list_category        *int
+	clearedcheck_list_category bool
 }
 
 var _ ent.Mutation = (*CheckListItemMutation)(nil)
@@ -1200,36 +1745,36 @@ func (m *CheckListItemMutation) ResetEnumValues() {
 	delete(m.clearedFields, checklistitem.FieldEnumValues)
 }
 
-// SetEnumSelectionMode sets the enum_selection_mode field.
-func (m *CheckListItemMutation) SetEnumSelectionMode(s string) {
-	m.enum_selection_mode = &s
+// SetEnumSelectionModeValue sets the enum_selection_mode_value field.
+func (m *CheckListItemMutation) SetEnumSelectionModeValue(csmv checklistitem.EnumSelectionModeValue) {
+	m.enum_selection_mode_value = &csmv
 }
 
-// EnumSelectionMode returns the enum_selection_mode value in the mutation.
-func (m *CheckListItemMutation) EnumSelectionMode() (r string, exists bool) {
-	v := m.enum_selection_mode
+// EnumSelectionModeValue returns the enum_selection_mode_value value in the mutation.
+func (m *CheckListItemMutation) EnumSelectionModeValue() (r checklistitem.EnumSelectionModeValue, exists bool) {
+	v := m.enum_selection_mode_value
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// ClearEnumSelectionMode clears the value of enum_selection_mode.
-func (m *CheckListItemMutation) ClearEnumSelectionMode() {
-	m.enum_selection_mode = nil
-	m.clearedFields[checklistitem.FieldEnumSelectionMode] = struct{}{}
+// ClearEnumSelectionModeValue clears the value of enum_selection_mode_value.
+func (m *CheckListItemMutation) ClearEnumSelectionModeValue() {
+	m.enum_selection_mode_value = nil
+	m.clearedFields[checklistitem.FieldEnumSelectionModeValue] = struct{}{}
 }
 
-// EnumSelectionModeCleared returns if the field enum_selection_mode was cleared in this mutation.
-func (m *CheckListItemMutation) EnumSelectionModeCleared() bool {
-	_, ok := m.clearedFields[checklistitem.FieldEnumSelectionMode]
+// EnumSelectionModeValueCleared returns if the field enum_selection_mode_value was cleared in this mutation.
+func (m *CheckListItemMutation) EnumSelectionModeValueCleared() bool {
+	_, ok := m.clearedFields[checklistitem.FieldEnumSelectionModeValue]
 	return ok
 }
 
-// ResetEnumSelectionMode reset all changes of the enum_selection_mode field.
-func (m *CheckListItemMutation) ResetEnumSelectionMode() {
-	m.enum_selection_mode = nil
-	delete(m.clearedFields, checklistitem.FieldEnumSelectionMode)
+// ResetEnumSelectionModeValue reset all changes of the enum_selection_mode_value field.
+func (m *CheckListItemMutation) ResetEnumSelectionModeValue() {
+	m.enum_selection_mode_value = nil
+	delete(m.clearedFields, checklistitem.FieldEnumSelectionModeValue)
 }
 
 // SetSelectedEnumValues sets the selected_enum_values field.
@@ -1454,43 +1999,43 @@ func (m *CheckListItemMutation) ResetCellScan() {
 	m.removedcell_scan = nil
 }
 
-// SetWorkOrderID sets the work_order edge to WorkOrder by id.
-func (m *CheckListItemMutation) SetWorkOrderID(id int) {
-	m.work_order = &id
+// SetCheckListCategoryID sets the check_list_category edge to CheckListCategory by id.
+func (m *CheckListItemMutation) SetCheckListCategoryID(id int) {
+	m.check_list_category = &id
 }
 
-// ClearWorkOrder clears the work_order edge to WorkOrder.
-func (m *CheckListItemMutation) ClearWorkOrder() {
-	m.clearedwork_order = true
+// ClearCheckListCategory clears the check_list_category edge to CheckListCategory.
+func (m *CheckListItemMutation) ClearCheckListCategory() {
+	m.clearedcheck_list_category = true
 }
 
-// WorkOrderCleared returns if the edge work_order was cleared.
-func (m *CheckListItemMutation) WorkOrderCleared() bool {
-	return m.clearedwork_order
+// CheckListCategoryCleared returns if the edge check_list_category was cleared.
+func (m *CheckListItemMutation) CheckListCategoryCleared() bool {
+	return m.clearedcheck_list_category
 }
 
-// WorkOrderID returns the work_order id in the mutation.
-func (m *CheckListItemMutation) WorkOrderID() (id int, exists bool) {
-	if m.work_order != nil {
-		return *m.work_order, true
+// CheckListCategoryID returns the check_list_category id in the mutation.
+func (m *CheckListItemMutation) CheckListCategoryID() (id int, exists bool) {
+	if m.check_list_category != nil {
+		return *m.check_list_category, true
 	}
 	return
 }
 
-// WorkOrderIDs returns the work_order ids in the mutation.
+// CheckListCategoryIDs returns the check_list_category ids in the mutation.
 // Note that ids always returns len(ids) <= 1 for unique edges, and you should use
-// WorkOrderID instead. It exists only for internal usage by the builders.
-func (m *CheckListItemMutation) WorkOrderIDs() (ids []int) {
-	if id := m.work_order; id != nil {
+// CheckListCategoryID instead. It exists only for internal usage by the builders.
+func (m *CheckListItemMutation) CheckListCategoryIDs() (ids []int) {
+	if id := m.check_list_category; id != nil {
 		ids = append(ids, *id)
 	}
 	return
 }
 
-// ResetWorkOrder reset all changes of the work_order edge.
-func (m *CheckListItemMutation) ResetWorkOrder() {
-	m.work_order = nil
-	m.clearedwork_order = false
+// ResetCheckListCategory reset all changes of the check_list_category edge.
+func (m *CheckListItemMutation) ResetCheckListCategory() {
+	m.check_list_category = nil
+	m.clearedcheck_list_category = false
 }
 
 // Op returns the operation name.
@@ -1526,8 +2071,8 @@ func (m *CheckListItemMutation) Fields() []string {
 	if m.enum_values != nil {
 		fields = append(fields, checklistitem.FieldEnumValues)
 	}
-	if m.enum_selection_mode != nil {
-		fields = append(fields, checklistitem.FieldEnumSelectionMode)
+	if m.enum_selection_mode_value != nil {
+		fields = append(fields, checklistitem.FieldEnumSelectionModeValue)
 	}
 	if m.selected_enum_values != nil {
 		fields = append(fields, checklistitem.FieldSelectedEnumValues)
@@ -1558,8 +2103,8 @@ func (m *CheckListItemMutation) Field(name string) (ent.Value, bool) {
 		return m.StringVal()
 	case checklistitem.FieldEnumValues:
 		return m.EnumValues()
-	case checklistitem.FieldEnumSelectionMode:
-		return m.EnumSelectionMode()
+	case checklistitem.FieldEnumSelectionModeValue:
+		return m.EnumSelectionModeValue()
 	case checklistitem.FieldSelectedEnumValues:
 		return m.SelectedEnumValues()
 	case checklistitem.FieldYesNoVal:
@@ -1617,12 +2162,12 @@ func (m *CheckListItemMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetEnumValues(v)
 		return nil
-	case checklistitem.FieldEnumSelectionMode:
-		v, ok := value.(string)
+	case checklistitem.FieldEnumSelectionModeValue:
+		v, ok := value.(checklistitem.EnumSelectionModeValue)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetEnumSelectionMode(v)
+		m.SetEnumSelectionModeValue(v)
 		return nil
 	case checklistitem.FieldSelectedEnumValues:
 		v, ok := value.(string)
@@ -1702,8 +2247,8 @@ func (m *CheckListItemMutation) ClearedFields() []string {
 	if m.FieldCleared(checklistitem.FieldEnumValues) {
 		fields = append(fields, checklistitem.FieldEnumValues)
 	}
-	if m.FieldCleared(checklistitem.FieldEnumSelectionMode) {
-		fields = append(fields, checklistitem.FieldEnumSelectionMode)
+	if m.FieldCleared(checklistitem.FieldEnumSelectionModeValue) {
+		fields = append(fields, checklistitem.FieldEnumSelectionModeValue)
 	}
 	if m.FieldCleared(checklistitem.FieldSelectedEnumValues) {
 		fields = append(fields, checklistitem.FieldSelectedEnumValues)
@@ -1740,8 +2285,8 @@ func (m *CheckListItemMutation) ClearField(name string) error {
 	case checklistitem.FieldEnumValues:
 		m.ClearEnumValues()
 		return nil
-	case checklistitem.FieldEnumSelectionMode:
-		m.ClearEnumSelectionMode()
+	case checklistitem.FieldEnumSelectionModeValue:
+		m.ClearEnumSelectionModeValue()
 		return nil
 	case checklistitem.FieldSelectedEnumValues:
 		m.ClearSelectedEnumValues()
@@ -1779,8 +2324,8 @@ func (m *CheckListItemMutation) ResetField(name string) error {
 	case checklistitem.FieldEnumValues:
 		m.ResetEnumValues()
 		return nil
-	case checklistitem.FieldEnumSelectionMode:
-		m.ResetEnumSelectionMode()
+	case checklistitem.FieldEnumSelectionModeValue:
+		m.ResetEnumSelectionModeValue()
 		return nil
 	case checklistitem.FieldSelectedEnumValues:
 		m.ResetSelectedEnumValues()
@@ -1808,8 +2353,8 @@ func (m *CheckListItemMutation) AddedEdges() []string {
 	if m.cell_scan != nil {
 		edges = append(edges, checklistitem.EdgeCellScan)
 	}
-	if m.work_order != nil {
-		edges = append(edges, checklistitem.EdgeWorkOrder)
+	if m.check_list_category != nil {
+		edges = append(edges, checklistitem.EdgeCheckListCategory)
 	}
 	return edges
 }
@@ -1836,8 +2381,8 @@ func (m *CheckListItemMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case checklistitem.EdgeWorkOrder:
-		if id := m.work_order; id != nil {
+	case checklistitem.EdgeCheckListCategory:
+		if id := m.check_list_category; id != nil {
 			return []ent.Value{*id}
 		}
 	}
@@ -1890,8 +2435,8 @@ func (m *CheckListItemMutation) RemovedIDs(name string) []ent.Value {
 // mutation.
 func (m *CheckListItemMutation) ClearedEdges() []string {
 	edges := make([]string, 0, 4)
-	if m.clearedwork_order {
-		edges = append(edges, checklistitem.EdgeWorkOrder)
+	if m.clearedcheck_list_category {
+		edges = append(edges, checklistitem.EdgeCheckListCategory)
 	}
 	return edges
 }
@@ -1900,8 +2445,8 @@ func (m *CheckListItemMutation) ClearedEdges() []string {
 // cleared in this mutation.
 func (m *CheckListItemMutation) EdgeCleared(name string) bool {
 	switch name {
-	case checklistitem.EdgeWorkOrder:
-		return m.clearedwork_order
+	case checklistitem.EdgeCheckListCategory:
+		return m.clearedcheck_list_category
 	}
 	return false
 }
@@ -1910,8 +2455,8 @@ func (m *CheckListItemMutation) EdgeCleared(name string) bool {
 // error if the edge name is not defined in the schema.
 func (m *CheckListItemMutation) ClearEdge(name string) error {
 	switch name {
-	case checklistitem.EdgeWorkOrder:
-		m.ClearWorkOrder()
+	case checklistitem.EdgeCheckListCategory:
+		m.ClearCheckListCategory()
 		return nil
 	}
 	return fmt.Errorf("unknown CheckListItem unique edge %s", name)
@@ -1931,8 +2476,8 @@ func (m *CheckListItemMutation) ResetEdge(name string) error {
 	case checklistitem.EdgeCellScan:
 		m.ResetCellScan()
 		return nil
-	case checklistitem.EdgeWorkOrder:
-		m.ResetWorkOrder()
+	case checklistitem.EdgeCheckListCategory:
+		m.ResetCheckListCategory()
 		return nil
 	}
 	return fmt.Errorf("unknown CheckListItem edge %s", name)
@@ -1942,20 +2487,21 @@ func (m *CheckListItemMutation) ResetEdge(name string) error {
 // nodes in the graph.
 type CheckListItemDefinitionMutation struct {
 	config
-	op                     Op
-	typ                    string
-	id                     *int
-	create_time            *time.Time
-	update_time            *time.Time
-	title                  *string
-	_type                  *string
-	index                  *int
-	addindex               *int
-	enum_values            *string
-	help_text              *string
-	clearedFields          map[string]struct{}
-	work_order_type        *int
-	clearedwork_order_type bool
+	op                                    Op
+	typ                                   string
+	id                                    *int
+	create_time                           *time.Time
+	update_time                           *time.Time
+	title                                 *string
+	_type                                 *string
+	index                                 *int
+	addindex                              *int
+	enum_values                           *string
+	enum_selection_mode_value             *checklistitemdefinition.EnumSelectionModeValue
+	help_text                             *string
+	clearedFields                         map[string]struct{}
+	check_list_category_definition        *int
+	clearedcheck_list_category_definition bool
 }
 
 var _ ent.Mutation = (*CheckListItemDefinitionMutation)(nil)
@@ -2159,6 +2705,38 @@ func (m *CheckListItemDefinitionMutation) ResetEnumValues() {
 	delete(m.clearedFields, checklistitemdefinition.FieldEnumValues)
 }
 
+// SetEnumSelectionModeValue sets the enum_selection_mode_value field.
+func (m *CheckListItemDefinitionMutation) SetEnumSelectionModeValue(csmv checklistitemdefinition.EnumSelectionModeValue) {
+	m.enum_selection_mode_value = &csmv
+}
+
+// EnumSelectionModeValue returns the enum_selection_mode_value value in the mutation.
+func (m *CheckListItemDefinitionMutation) EnumSelectionModeValue() (r checklistitemdefinition.EnumSelectionModeValue, exists bool) {
+	v := m.enum_selection_mode_value
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearEnumSelectionModeValue clears the value of enum_selection_mode_value.
+func (m *CheckListItemDefinitionMutation) ClearEnumSelectionModeValue() {
+	m.enum_selection_mode_value = nil
+	m.clearedFields[checklistitemdefinition.FieldEnumSelectionModeValue] = struct{}{}
+}
+
+// EnumSelectionModeValueCleared returns if the field enum_selection_mode_value was cleared in this mutation.
+func (m *CheckListItemDefinitionMutation) EnumSelectionModeValueCleared() bool {
+	_, ok := m.clearedFields[checklistitemdefinition.FieldEnumSelectionModeValue]
+	return ok
+}
+
+// ResetEnumSelectionModeValue reset all changes of the enum_selection_mode_value field.
+func (m *CheckListItemDefinitionMutation) ResetEnumSelectionModeValue() {
+	m.enum_selection_mode_value = nil
+	delete(m.clearedFields, checklistitemdefinition.FieldEnumSelectionModeValue)
+}
+
 // SetHelpText sets the help_text field.
 func (m *CheckListItemDefinitionMutation) SetHelpText(s string) {
 	m.help_text = &s
@@ -2191,43 +2769,43 @@ func (m *CheckListItemDefinitionMutation) ResetHelpText() {
 	delete(m.clearedFields, checklistitemdefinition.FieldHelpText)
 }
 
-// SetWorkOrderTypeID sets the work_order_type edge to WorkOrderType by id.
-func (m *CheckListItemDefinitionMutation) SetWorkOrderTypeID(id int) {
-	m.work_order_type = &id
+// SetCheckListCategoryDefinitionID sets the check_list_category_definition edge to CheckListCategoryDefinition by id.
+func (m *CheckListItemDefinitionMutation) SetCheckListCategoryDefinitionID(id int) {
+	m.check_list_category_definition = &id
 }
 
-// ClearWorkOrderType clears the work_order_type edge to WorkOrderType.
-func (m *CheckListItemDefinitionMutation) ClearWorkOrderType() {
-	m.clearedwork_order_type = true
+// ClearCheckListCategoryDefinition clears the check_list_category_definition edge to CheckListCategoryDefinition.
+func (m *CheckListItemDefinitionMutation) ClearCheckListCategoryDefinition() {
+	m.clearedcheck_list_category_definition = true
 }
 
-// WorkOrderTypeCleared returns if the edge work_order_type was cleared.
-func (m *CheckListItemDefinitionMutation) WorkOrderTypeCleared() bool {
-	return m.clearedwork_order_type
+// CheckListCategoryDefinitionCleared returns if the edge check_list_category_definition was cleared.
+func (m *CheckListItemDefinitionMutation) CheckListCategoryDefinitionCleared() bool {
+	return m.clearedcheck_list_category_definition
 }
 
-// WorkOrderTypeID returns the work_order_type id in the mutation.
-func (m *CheckListItemDefinitionMutation) WorkOrderTypeID() (id int, exists bool) {
-	if m.work_order_type != nil {
-		return *m.work_order_type, true
+// CheckListCategoryDefinitionID returns the check_list_category_definition id in the mutation.
+func (m *CheckListItemDefinitionMutation) CheckListCategoryDefinitionID() (id int, exists bool) {
+	if m.check_list_category_definition != nil {
+		return *m.check_list_category_definition, true
 	}
 	return
 }
 
-// WorkOrderTypeIDs returns the work_order_type ids in the mutation.
+// CheckListCategoryDefinitionIDs returns the check_list_category_definition ids in the mutation.
 // Note that ids always returns len(ids) <= 1 for unique edges, and you should use
-// WorkOrderTypeID instead. It exists only for internal usage by the builders.
-func (m *CheckListItemDefinitionMutation) WorkOrderTypeIDs() (ids []int) {
-	if id := m.work_order_type; id != nil {
+// CheckListCategoryDefinitionID instead. It exists only for internal usage by the builders.
+func (m *CheckListItemDefinitionMutation) CheckListCategoryDefinitionIDs() (ids []int) {
+	if id := m.check_list_category_definition; id != nil {
 		ids = append(ids, *id)
 	}
 	return
 }
 
-// ResetWorkOrderType reset all changes of the work_order_type edge.
-func (m *CheckListItemDefinitionMutation) ResetWorkOrderType() {
-	m.work_order_type = nil
-	m.clearedwork_order_type = false
+// ResetCheckListCategoryDefinition reset all changes of the check_list_category_definition edge.
+func (m *CheckListItemDefinitionMutation) ResetCheckListCategoryDefinition() {
+	m.check_list_category_definition = nil
+	m.clearedcheck_list_category_definition = false
 }
 
 // Op returns the operation name.
@@ -2244,7 +2822,7 @@ func (m *CheckListItemDefinitionMutation) Type() string {
 // this mutation. Note that, in order to get all numeric
 // fields that were in/decremented, call AddedFields().
 func (m *CheckListItemDefinitionMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 8)
 	if m.create_time != nil {
 		fields = append(fields, checklistitemdefinition.FieldCreateTime)
 	}
@@ -2262,6 +2840,9 @@ func (m *CheckListItemDefinitionMutation) Fields() []string {
 	}
 	if m.enum_values != nil {
 		fields = append(fields, checklistitemdefinition.FieldEnumValues)
+	}
+	if m.enum_selection_mode_value != nil {
+		fields = append(fields, checklistitemdefinition.FieldEnumSelectionModeValue)
 	}
 	if m.help_text != nil {
 		fields = append(fields, checklistitemdefinition.FieldHelpText)
@@ -2286,6 +2867,8 @@ func (m *CheckListItemDefinitionMutation) Field(name string) (ent.Value, bool) {
 		return m.Index()
 	case checklistitemdefinition.FieldEnumValues:
 		return m.EnumValues()
+	case checklistitemdefinition.FieldEnumSelectionModeValue:
+		return m.EnumSelectionModeValue()
 	case checklistitemdefinition.FieldHelpText:
 		return m.HelpText()
 	}
@@ -2338,6 +2921,13 @@ func (m *CheckListItemDefinitionMutation) SetField(name string, value ent.Value)
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetEnumValues(v)
+		return nil
+	case checklistitemdefinition.FieldEnumSelectionModeValue:
+		v, ok := value.(checklistitemdefinition.EnumSelectionModeValue)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEnumSelectionModeValue(v)
 		return nil
 	case checklistitemdefinition.FieldHelpText:
 		v, ok := value.(string)
@@ -2397,6 +2987,9 @@ func (m *CheckListItemDefinitionMutation) ClearedFields() []string {
 	if m.FieldCleared(checklistitemdefinition.FieldEnumValues) {
 		fields = append(fields, checklistitemdefinition.FieldEnumValues)
 	}
+	if m.FieldCleared(checklistitemdefinition.FieldEnumSelectionModeValue) {
+		fields = append(fields, checklistitemdefinition.FieldEnumSelectionModeValue)
+	}
 	if m.FieldCleared(checklistitemdefinition.FieldHelpText) {
 		fields = append(fields, checklistitemdefinition.FieldHelpText)
 	}
@@ -2419,6 +3012,9 @@ func (m *CheckListItemDefinitionMutation) ClearField(name string) error {
 		return nil
 	case checklistitemdefinition.FieldEnumValues:
 		m.ClearEnumValues()
+		return nil
+	case checklistitemdefinition.FieldEnumSelectionModeValue:
+		m.ClearEnumSelectionModeValue()
 		return nil
 	case checklistitemdefinition.FieldHelpText:
 		m.ClearHelpText()
@@ -2450,6 +3046,9 @@ func (m *CheckListItemDefinitionMutation) ResetField(name string) error {
 	case checklistitemdefinition.FieldEnumValues:
 		m.ResetEnumValues()
 		return nil
+	case checklistitemdefinition.FieldEnumSelectionModeValue:
+		m.ResetEnumSelectionModeValue()
+		return nil
 	case checklistitemdefinition.FieldHelpText:
 		m.ResetHelpText()
 		return nil
@@ -2461,8 +3060,8 @@ func (m *CheckListItemDefinitionMutation) ResetField(name string) error {
 // mutation.
 func (m *CheckListItemDefinitionMutation) AddedEdges() []string {
 	edges := make([]string, 0, 1)
-	if m.work_order_type != nil {
-		edges = append(edges, checklistitemdefinition.EdgeWorkOrderType)
+	if m.check_list_category_definition != nil {
+		edges = append(edges, checklistitemdefinition.EdgeCheckListCategoryDefinition)
 	}
 	return edges
 }
@@ -2471,8 +3070,8 @@ func (m *CheckListItemDefinitionMutation) AddedEdges() []string {
 // the given edge name.
 func (m *CheckListItemDefinitionMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case checklistitemdefinition.EdgeWorkOrderType:
-		if id := m.work_order_type; id != nil {
+	case checklistitemdefinition.EdgeCheckListCategoryDefinition:
+		if id := m.check_list_category_definition; id != nil {
 			return []ent.Value{*id}
 		}
 	}
@@ -2498,8 +3097,8 @@ func (m *CheckListItemDefinitionMutation) RemovedIDs(name string) []ent.Value {
 // mutation.
 func (m *CheckListItemDefinitionMutation) ClearedEdges() []string {
 	edges := make([]string, 0, 1)
-	if m.clearedwork_order_type {
-		edges = append(edges, checklistitemdefinition.EdgeWorkOrderType)
+	if m.clearedcheck_list_category_definition {
+		edges = append(edges, checklistitemdefinition.EdgeCheckListCategoryDefinition)
 	}
 	return edges
 }
@@ -2508,8 +3107,8 @@ func (m *CheckListItemDefinitionMutation) ClearedEdges() []string {
 // cleared in this mutation.
 func (m *CheckListItemDefinitionMutation) EdgeCleared(name string) bool {
 	switch name {
-	case checklistitemdefinition.EdgeWorkOrderType:
-		return m.clearedwork_order_type
+	case checklistitemdefinition.EdgeCheckListCategoryDefinition:
+		return m.clearedcheck_list_category_definition
 	}
 	return false
 }
@@ -2518,8 +3117,8 @@ func (m *CheckListItemDefinitionMutation) EdgeCleared(name string) bool {
 // error if the edge name is not defined in the schema.
 func (m *CheckListItemDefinitionMutation) ClearEdge(name string) error {
 	switch name {
-	case checklistitemdefinition.EdgeWorkOrderType:
-		m.ClearWorkOrderType()
+	case checklistitemdefinition.EdgeCheckListCategoryDefinition:
+		m.ClearCheckListCategoryDefinition()
 		return nil
 	}
 	return fmt.Errorf("unknown CheckListItemDefinition unique edge %s", name)
@@ -2530,8 +3129,8 @@ func (m *CheckListItemDefinitionMutation) ClearEdge(name string) error {
 // defined in the schema.
 func (m *CheckListItemDefinitionMutation) ResetEdge(name string) error {
 	switch name {
-	case checklistitemdefinition.EdgeWorkOrderType:
-		m.ResetWorkOrderType()
+	case checklistitemdefinition.EdgeCheckListCategoryDefinition:
+		m.ResetCheckListCategoryDefinition()
 		return nil
 	}
 	return fmt.Errorf("unknown CheckListItemDefinition edge %s", name)
@@ -29463,8 +30062,6 @@ type WorkOrderMutation struct {
 	removedproperties            map[int]struct{}
 	check_list_categories        map[int]struct{}
 	removedcheck_list_categories map[int]struct{}
-	check_list_items             map[int]struct{}
-	removedcheck_list_items      map[int]struct{}
 	project                      *int
 	clearedproject               bool
 	owner                        *int
@@ -30148,48 +30745,6 @@ func (m *WorkOrderMutation) ResetCheckListCategories() {
 	m.removedcheck_list_categories = nil
 }
 
-// AddCheckListItemIDs adds the check_list_items edge to CheckListItem by ids.
-func (m *WorkOrderMutation) AddCheckListItemIDs(ids ...int) {
-	if m.check_list_items == nil {
-		m.check_list_items = make(map[int]struct{})
-	}
-	for i := range ids {
-		m.check_list_items[ids[i]] = struct{}{}
-	}
-}
-
-// RemoveCheckListItemIDs removes the check_list_items edge to CheckListItem by ids.
-func (m *WorkOrderMutation) RemoveCheckListItemIDs(ids ...int) {
-	if m.removedcheck_list_items == nil {
-		m.removedcheck_list_items = make(map[int]struct{})
-	}
-	for i := range ids {
-		m.removedcheck_list_items[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedCheckListItems returns the removed ids of check_list_items.
-func (m *WorkOrderMutation) RemovedCheckListItemsIDs() (ids []int) {
-	for id := range m.removedcheck_list_items {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// CheckListItemsIDs returns the check_list_items ids in the mutation.
-func (m *WorkOrderMutation) CheckListItemsIDs() (ids []int) {
-	for id := range m.check_list_items {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetCheckListItems reset all changes of the check_list_items edge.
-func (m *WorkOrderMutation) ResetCheckListItems() {
-	m.check_list_items = nil
-	m.removedcheck_list_items = nil
-}
-
 // SetProjectID sets the project edge to Project by id.
 func (m *WorkOrderMutation) SetProjectID(id int) {
 	m.project = &id
@@ -30588,7 +31143,7 @@ func (m *WorkOrderMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this
 // mutation.
 func (m *WorkOrderMutation) AddedEdges() []string {
-	edges := make([]string, 0, 13)
+	edges := make([]string, 0, 12)
 	if m._type != nil {
 		edges = append(edges, workorder.EdgeType)
 	}
@@ -30615,9 +31170,6 @@ func (m *WorkOrderMutation) AddedEdges() []string {
 	}
 	if m.check_list_categories != nil {
 		edges = append(edges, workorder.EdgeCheckListCategories)
-	}
-	if m.check_list_items != nil {
-		edges = append(edges, workorder.EdgeCheckListItems)
 	}
 	if m.project != nil {
 		edges = append(edges, workorder.EdgeProject)
@@ -30685,12 +31237,6 @@ func (m *WorkOrderMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case workorder.EdgeCheckListItems:
-		ids := make([]ent.Value, 0, len(m.check_list_items))
-		for id := range m.check_list_items {
-			ids = append(ids, id)
-		}
-		return ids
 	case workorder.EdgeProject:
 		if id := m.project; id != nil {
 			return []ent.Value{*id}
@@ -30710,7 +31256,7 @@ func (m *WorkOrderMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this
 // mutation.
 func (m *WorkOrderMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 13)
+	edges := make([]string, 0, 12)
 	if m.removedequipment != nil {
 		edges = append(edges, workorder.EdgeEquipment)
 	}
@@ -30731,9 +31277,6 @@ func (m *WorkOrderMutation) RemovedEdges() []string {
 	}
 	if m.removedcheck_list_categories != nil {
 		edges = append(edges, workorder.EdgeCheckListCategories)
-	}
-	if m.removedcheck_list_items != nil {
-		edges = append(edges, workorder.EdgeCheckListItems)
 	}
 	return edges
 }
@@ -30784,12 +31327,6 @@ func (m *WorkOrderMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case workorder.EdgeCheckListItems:
-		ids := make([]ent.Value, 0, len(m.removedcheck_list_items))
-		for id := range m.removedcheck_list_items {
-			ids = append(ids, id)
-		}
-		return ids
 	}
 	return nil
 }
@@ -30797,7 +31334,7 @@ func (m *WorkOrderMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this
 // mutation.
 func (m *WorkOrderMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 13)
+	edges := make([]string, 0, 12)
 	if m.cleared_type {
 		edges = append(edges, workorder.EdgeType)
 	}
@@ -30888,9 +31425,6 @@ func (m *WorkOrderMutation) ResetEdge(name string) error {
 		return nil
 	case workorder.EdgeCheckListCategories:
 		m.ResetCheckListCategories()
-		return nil
-	case workorder.EdgeCheckListItems:
-		m.ResetCheckListItems()
 		return nil
 	case workorder.EdgeProject:
 		m.ResetProject()
@@ -31389,24 +31923,22 @@ func (m *WorkOrderDefinitionMutation) ResetEdge(name string) error {
 // nodes in the graph.
 type WorkOrderTypeMutation struct {
 	config
-	op                            Op
-	typ                           string
-	id                            *int
-	create_time                   *time.Time
-	update_time                   *time.Time
-	name                          *string
-	description                   *string
-	clearedFields                 map[string]struct{}
-	work_orders                   map[int]struct{}
-	removedwork_orders            map[int]struct{}
-	property_types                map[int]struct{}
-	removedproperty_types         map[int]struct{}
-	definitions                   map[int]struct{}
-	removeddefinitions            map[int]struct{}
-	check_list_categories         map[int]struct{}
-	removedcheck_list_categories  map[int]struct{}
-	check_list_definitions        map[int]struct{}
-	removedcheck_list_definitions map[int]struct{}
+	op                                     Op
+	typ                                    string
+	id                                     *int
+	create_time                            *time.Time
+	update_time                            *time.Time
+	name                                   *string
+	description                            *string
+	clearedFields                          map[string]struct{}
+	work_orders                            map[int]struct{}
+	removedwork_orders                     map[int]struct{}
+	property_types                         map[int]struct{}
+	removedproperty_types                  map[int]struct{}
+	definitions                            map[int]struct{}
+	removeddefinitions                     map[int]struct{}
+	check_list_category_definitions        map[int]struct{}
+	removedcheck_list_category_definitions map[int]struct{}
 }
 
 var _ ent.Mutation = (*WorkOrderTypeMutation)(nil)
@@ -31664,88 +32196,46 @@ func (m *WorkOrderTypeMutation) ResetDefinitions() {
 	m.removeddefinitions = nil
 }
 
-// AddCheckListCategoryIDs adds the check_list_categories edge to CheckListCategory by ids.
-func (m *WorkOrderTypeMutation) AddCheckListCategoryIDs(ids ...int) {
-	if m.check_list_categories == nil {
-		m.check_list_categories = make(map[int]struct{})
+// AddCheckListCategoryDefinitionIDs adds the check_list_category_definitions edge to CheckListCategoryDefinition by ids.
+func (m *WorkOrderTypeMutation) AddCheckListCategoryDefinitionIDs(ids ...int) {
+	if m.check_list_category_definitions == nil {
+		m.check_list_category_definitions = make(map[int]struct{})
 	}
 	for i := range ids {
-		m.check_list_categories[ids[i]] = struct{}{}
+		m.check_list_category_definitions[ids[i]] = struct{}{}
 	}
 }
 
-// RemoveCheckListCategoryIDs removes the check_list_categories edge to CheckListCategory by ids.
-func (m *WorkOrderTypeMutation) RemoveCheckListCategoryIDs(ids ...int) {
-	if m.removedcheck_list_categories == nil {
-		m.removedcheck_list_categories = make(map[int]struct{})
+// RemoveCheckListCategoryDefinitionIDs removes the check_list_category_definitions edge to CheckListCategoryDefinition by ids.
+func (m *WorkOrderTypeMutation) RemoveCheckListCategoryDefinitionIDs(ids ...int) {
+	if m.removedcheck_list_category_definitions == nil {
+		m.removedcheck_list_category_definitions = make(map[int]struct{})
 	}
 	for i := range ids {
-		m.removedcheck_list_categories[ids[i]] = struct{}{}
+		m.removedcheck_list_category_definitions[ids[i]] = struct{}{}
 	}
 }
 
-// RemovedCheckListCategories returns the removed ids of check_list_categories.
-func (m *WorkOrderTypeMutation) RemovedCheckListCategoriesIDs() (ids []int) {
-	for id := range m.removedcheck_list_categories {
+// RemovedCheckListCategoryDefinitions returns the removed ids of check_list_category_definitions.
+func (m *WorkOrderTypeMutation) RemovedCheckListCategoryDefinitionsIDs() (ids []int) {
+	for id := range m.removedcheck_list_category_definitions {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// CheckListCategoriesIDs returns the check_list_categories ids in the mutation.
-func (m *WorkOrderTypeMutation) CheckListCategoriesIDs() (ids []int) {
-	for id := range m.check_list_categories {
+// CheckListCategoryDefinitionsIDs returns the check_list_category_definitions ids in the mutation.
+func (m *WorkOrderTypeMutation) CheckListCategoryDefinitionsIDs() (ids []int) {
+	for id := range m.check_list_category_definitions {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetCheckListCategories reset all changes of the check_list_categories edge.
-func (m *WorkOrderTypeMutation) ResetCheckListCategories() {
-	m.check_list_categories = nil
-	m.removedcheck_list_categories = nil
-}
-
-// AddCheckListDefinitionIDs adds the check_list_definitions edge to CheckListItemDefinition by ids.
-func (m *WorkOrderTypeMutation) AddCheckListDefinitionIDs(ids ...int) {
-	if m.check_list_definitions == nil {
-		m.check_list_definitions = make(map[int]struct{})
-	}
-	for i := range ids {
-		m.check_list_definitions[ids[i]] = struct{}{}
-	}
-}
-
-// RemoveCheckListDefinitionIDs removes the check_list_definitions edge to CheckListItemDefinition by ids.
-func (m *WorkOrderTypeMutation) RemoveCheckListDefinitionIDs(ids ...int) {
-	if m.removedcheck_list_definitions == nil {
-		m.removedcheck_list_definitions = make(map[int]struct{})
-	}
-	for i := range ids {
-		m.removedcheck_list_definitions[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedCheckListDefinitions returns the removed ids of check_list_definitions.
-func (m *WorkOrderTypeMutation) RemovedCheckListDefinitionsIDs() (ids []int) {
-	for id := range m.removedcheck_list_definitions {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// CheckListDefinitionsIDs returns the check_list_definitions ids in the mutation.
-func (m *WorkOrderTypeMutation) CheckListDefinitionsIDs() (ids []int) {
-	for id := range m.check_list_definitions {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetCheckListDefinitions reset all changes of the check_list_definitions edge.
-func (m *WorkOrderTypeMutation) ResetCheckListDefinitions() {
-	m.check_list_definitions = nil
-	m.removedcheck_list_definitions = nil
+// ResetCheckListCategoryDefinitions reset all changes of the check_list_category_definitions edge.
+func (m *WorkOrderTypeMutation) ResetCheckListCategoryDefinitions() {
+	m.check_list_category_definitions = nil
+	m.removedcheck_list_category_definitions = nil
 }
 
 // Op returns the operation name.
@@ -31906,7 +32396,7 @@ func (m *WorkOrderTypeMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this
 // mutation.
 func (m *WorkOrderTypeMutation) AddedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 4)
 	if m.work_orders != nil {
 		edges = append(edges, workordertype.EdgeWorkOrders)
 	}
@@ -31916,11 +32406,8 @@ func (m *WorkOrderTypeMutation) AddedEdges() []string {
 	if m.definitions != nil {
 		edges = append(edges, workordertype.EdgeDefinitions)
 	}
-	if m.check_list_categories != nil {
-		edges = append(edges, workordertype.EdgeCheckListCategories)
-	}
-	if m.check_list_definitions != nil {
-		edges = append(edges, workordertype.EdgeCheckListDefinitions)
+	if m.check_list_category_definitions != nil {
+		edges = append(edges, workordertype.EdgeCheckListCategoryDefinitions)
 	}
 	return edges
 }
@@ -31947,15 +32434,9 @@ func (m *WorkOrderTypeMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case workordertype.EdgeCheckListCategories:
-		ids := make([]ent.Value, 0, len(m.check_list_categories))
-		for id := range m.check_list_categories {
-			ids = append(ids, id)
-		}
-		return ids
-	case workordertype.EdgeCheckListDefinitions:
-		ids := make([]ent.Value, 0, len(m.check_list_definitions))
-		for id := range m.check_list_definitions {
+	case workordertype.EdgeCheckListCategoryDefinitions:
+		ids := make([]ent.Value, 0, len(m.check_list_category_definitions))
+		for id := range m.check_list_category_definitions {
 			ids = append(ids, id)
 		}
 		return ids
@@ -31966,7 +32447,7 @@ func (m *WorkOrderTypeMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this
 // mutation.
 func (m *WorkOrderTypeMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 4)
 	if m.removedwork_orders != nil {
 		edges = append(edges, workordertype.EdgeWorkOrders)
 	}
@@ -31976,11 +32457,8 @@ func (m *WorkOrderTypeMutation) RemovedEdges() []string {
 	if m.removeddefinitions != nil {
 		edges = append(edges, workordertype.EdgeDefinitions)
 	}
-	if m.removedcheck_list_categories != nil {
-		edges = append(edges, workordertype.EdgeCheckListCategories)
-	}
-	if m.removedcheck_list_definitions != nil {
-		edges = append(edges, workordertype.EdgeCheckListDefinitions)
+	if m.removedcheck_list_category_definitions != nil {
+		edges = append(edges, workordertype.EdgeCheckListCategoryDefinitions)
 	}
 	return edges
 }
@@ -32007,15 +32485,9 @@ func (m *WorkOrderTypeMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case workordertype.EdgeCheckListCategories:
-		ids := make([]ent.Value, 0, len(m.removedcheck_list_categories))
-		for id := range m.removedcheck_list_categories {
-			ids = append(ids, id)
-		}
-		return ids
-	case workordertype.EdgeCheckListDefinitions:
-		ids := make([]ent.Value, 0, len(m.removedcheck_list_definitions))
-		for id := range m.removedcheck_list_definitions {
+	case workordertype.EdgeCheckListCategoryDefinitions:
+		ids := make([]ent.Value, 0, len(m.removedcheck_list_category_definitions))
+		for id := range m.removedcheck_list_category_definitions {
 			ids = append(ids, id)
 		}
 		return ids
@@ -32026,7 +32498,7 @@ func (m *WorkOrderTypeMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this
 // mutation.
 func (m *WorkOrderTypeMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 4)
 	return edges
 }
 
@@ -32060,11 +32532,8 @@ func (m *WorkOrderTypeMutation) ResetEdge(name string) error {
 	case workordertype.EdgeDefinitions:
 		m.ResetDefinitions()
 		return nil
-	case workordertype.EdgeCheckListCategories:
-		m.ResetCheckListCategories()
-		return nil
-	case workordertype.EdgeCheckListDefinitions:
-		m.ResetCheckListDefinitions()
+	case workordertype.EdgeCheckListCategoryDefinitions:
+		m.ResetCheckListCategoryDefinitions()
 		return nil
 	}
 	return fmt.Errorf("unknown WorkOrderType edge %s", name)

@@ -5,4 +5,3 @@
 package jobrunner
 
 //go:generate go run github.com/google/addlicense -c Facebook -y 2004-present -l bsd ./
-//go:generate protoc --go_out=plugins=grpc,paths=source_relative:. rpc.proto

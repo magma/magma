@@ -18,6 +18,7 @@ import UserAccountPane from './UserAccountPane';
 import UserPermissionsPane from './UserPermissionsPane';
 import UserProfilePane from './UserProfilePane';
 import fbt from 'fbt';
+import {MessageShowingContextProvider} from '@fbcnms/ui/components/design-system/Dialog/MessageShowingContext';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useMemo, useState} from 'react';
 
@@ -59,7 +60,11 @@ export default function UserDetailsCard(props: Props) {
         tab: {
           label: `${fbt('Profile', '')}`,
         },
-        view: <UserProfilePane user={user} onChange={onChange} />,
+        view: (
+          <MessageShowingContextProvider>
+            <UserProfilePane user={user} onChange={onChange} />
+          </MessageShowingContextProvider>
+        ),
       },
       {
         tab: {

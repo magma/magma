@@ -21,6 +21,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/introspection"
 	models1 "github.com/facebookincubator/symphony/graph/authz/models"
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
 	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/ent/usersgroup"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
@@ -53,6 +54,7 @@ type ResolverRoot interface {
 	ActionsRuleFilter() ActionsRuleFilterResolver
 	ActionsTrigger() ActionsTriggerResolver
 	CheckListCategory() CheckListCategoryResolver
+	CheckListCategoryDefinition() CheckListCategoryDefinitionResolver
 	CheckListItem() CheckListItemResolver
 	CheckListItemDefinition() CheckListItemDefinitionResolver
 	Comment() CommentResolver
@@ -181,6 +183,13 @@ type ComplexityRoot struct {
 		Title       func(childComplexity int) int
 	}
 
+	CheckListCategoryDefinition struct {
+		ChecklistItemDefinitions func(childComplexity int) int
+		Description              func(childComplexity int) int
+		ID                       func(childComplexity int) int
+		Title                    func(childComplexity int) int
+	}
+
 	CheckListItem struct {
 		CellData           func(childComplexity int) int
 		Checked            func(childComplexity int) int
@@ -199,12 +208,13 @@ type ComplexityRoot struct {
 	}
 
 	CheckListItemDefinition struct {
-		EnumValues func(childComplexity int) int
-		HelpText   func(childComplexity int) int
-		ID         func(childComplexity int) int
-		Index      func(childComplexity int) int
-		Title      func(childComplexity int) int
-		Type       func(childComplexity int) int
+		EnumSelectionMode func(childComplexity int) int
+		EnumValues        func(childComplexity int) int
+		HelpText          func(childComplexity int) int
+		ID                func(childComplexity int) int
+		Index             func(childComplexity int) int
+		Title             func(childComplexity int) int
+		Type              func(childComplexity int) int
 	}
 
 	Comment struct {
@@ -624,7 +634,6 @@ type ComplexityRoot struct {
 		RemoveWorkOrderType                      func(childComplexity int, id int) int
 		TechnicianWorkOrderCheckIn               func(childComplexity int, workOrderID int) int
 		TechnicianWorkOrderUploadData            func(childComplexity int, input models.TechnicianWorkOrderUploadInput) int
-		UpdatePermissionsPoliciesInUsersGroup    func(childComplexity int, input models.UpdatePermissionsPoliciesInUsersGroupInput) int
 		UpdateUserGroups                         func(childComplexity int, input models.UpdateUserGroupsInput) int
 	}
 
@@ -688,6 +697,16 @@ type ComplexityRoot struct {
 		Properties         func(childComplexity int) int
 		Type               func(childComplexity int) int
 		WorkOrders         func(childComplexity int) int
+	}
+
+	ProjectConnection struct {
+		Edges    func(childComplexity int) int
+		PageInfo func(childComplexity int) int
+	}
+
+	ProjectEdge struct {
+		Cursor func(childComplexity int) int
+		Node   func(childComplexity int) int
 	}
 
 	ProjectType struct {
@@ -779,6 +798,7 @@ type ComplexityRoot struct {
 		PossibleProperties       func(childComplexity int, entityType models.PropertyEntity) int
 		ProjectSearch            func(childComplexity int, filters []*models.ProjectFilterInput, limit *int) int
 		ProjectTypes             func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
+		Projects                 func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
 		PythonPackages           func(childComplexity int) int
 		ReportFilters            func(childComplexity int, entity models.FilterEntity) int
 		SearchForEntity          func(childComplexity int, name string, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
@@ -1062,7 +1082,6 @@ type ComplexityRoot struct {
 	WorkOrder struct {
 		AssignedTo          func(childComplexity int) int
 		Assignee            func(childComplexity int) int
-		CheckList           func(childComplexity int) int
 		CheckListCategories func(childComplexity int) int
 		CloseDate           func(childComplexity int) int
 		Comments            func(childComplexity int) int
@@ -1120,13 +1139,12 @@ type ComplexityRoot struct {
 	}
 
 	WorkOrderType struct {
-		CheckListCategories  func(childComplexity int) int
-		CheckListDefinitions func(childComplexity int) int
-		Description          func(childComplexity int) int
-		ID                   func(childComplexity int) int
-		Name                 func(childComplexity int) int
-		NumberOfWorkOrders   func(childComplexity int) int
-		PropertyTypes        func(childComplexity int) int
+		CheckListCategoryDefinitions func(childComplexity int) int
+		Description                  func(childComplexity int) int
+		ID                           func(childComplexity int) int
+		Name                         func(childComplexity int) int
+		NumberOfWorkOrders           func(childComplexity int) int
+		PropertyTypes                func(childComplexity int) int
 	}
 
 	WorkOrderTypeConnection struct {
@@ -1177,10 +1195,13 @@ type ActionsTriggerResolver interface {
 type CheckListCategoryResolver interface {
 	CheckList(ctx context.Context, obj *ent.CheckListCategory) ([]*ent.CheckListItem, error)
 }
+type CheckListCategoryDefinitionResolver interface {
+	ChecklistItemDefinitions(ctx context.Context, obj *ent.CheckListCategoryDefinition) ([]*ent.CheckListItemDefinition, error)
+}
 type CheckListItemResolver interface {
 	Type(ctx context.Context, obj *ent.CheckListItem) (models.CheckListItemType, error)
 
-	EnumSelectionMode(ctx context.Context, obj *ent.CheckListItem) (*models.CheckListItemEnumSelectionMode, error)
+	EnumSelectionMode(ctx context.Context, obj *ent.CheckListItem) (*checklistitem.EnumSelectionModeValue, error)
 
 	Files(ctx context.Context, obj *ent.CheckListItem) ([]*ent.File, error)
 	YesNoResponse(ctx context.Context, obj *ent.CheckListItem) (*models.YesNoResponse, error)
@@ -1189,6 +1210,8 @@ type CheckListItemResolver interface {
 }
 type CheckListItemDefinitionResolver interface {
 	Type(ctx context.Context, obj *ent.CheckListItemDefinition) (models.CheckListItemType, error)
+
+	EnumSelectionMode(ctx context.Context, obj *ent.CheckListItemDefinition) (*checklistitem.EnumSelectionModeValue, error)
 }
 type CommentResolver interface {
 	AuthorName(ctx context.Context, obj *ent.Comment) (string, error)
@@ -1288,7 +1311,6 @@ type MutationResolver interface {
 	AddUsersGroup(ctx context.Context, input models.AddUsersGroupInput) (*ent.UsersGroup, error)
 	EditUsersGroup(ctx context.Context, input models.EditUsersGroupInput) (*ent.UsersGroup, error)
 	UpdateUserGroups(ctx context.Context, input models.UpdateUserGroupsInput) (*ent.User, error)
-	UpdatePermissionsPoliciesInUsersGroup(ctx context.Context, input models.UpdatePermissionsPoliciesInUsersGroupInput) (*ent.UsersGroup, error)
 	DeleteUsersGroup(ctx context.Context, id int) (bool, error)
 	CreateSurvey(ctx context.Context, data models.SurveyCreateData) (int, error)
 	AddLocation(ctx context.Context, input models.AddLocationInput) (*ent.Location, error)
@@ -1430,6 +1452,7 @@ type QueryResolver interface {
 	NearestSites(ctx context.Context, latitude float64, longitude float64, first int) ([]*ent.Location, error)
 	Vertex(ctx context.Context, id int) (*ent.Node, error)
 	ProjectTypes(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.ProjectTypeConnection, error)
+	Projects(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.ProjectConnection, error)
 	Customers(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.CustomerConnection, error)
 	ActionsRules(ctx context.Context) (*models.ActionsRulesSearchResult, error)
 	ActionsTriggers(ctx context.Context) (*models.ActionsTriggersSearchResult, error)
@@ -1537,7 +1560,6 @@ type WorkOrderResolver interface {
 	Location(ctx context.Context, obj *ent.WorkOrder) (*ent.Location, error)
 	Properties(ctx context.Context, obj *ent.WorkOrder) ([]*ent.Property, error)
 	Project(ctx context.Context, obj *ent.WorkOrder) (*ent.Project, error)
-	CheckList(ctx context.Context, obj *ent.WorkOrder) ([]*ent.CheckListItem, error)
 	CheckListCategories(ctx context.Context, obj *ent.WorkOrder) ([]*ent.CheckListCategory, error)
 	Hyperlinks(ctx context.Context, obj *ent.WorkOrder) ([]*ent.Hyperlink, error)
 }
@@ -1547,8 +1569,7 @@ type WorkOrderDefinitionResolver interface {
 type WorkOrderTypeResolver interface {
 	PropertyTypes(ctx context.Context, obj *ent.WorkOrderType) ([]*ent.PropertyType, error)
 	NumberOfWorkOrders(ctx context.Context, obj *ent.WorkOrderType) (int, error)
-	CheckListDefinitions(ctx context.Context, obj *ent.WorkOrderType) ([]*ent.CheckListItemDefinition, error)
-	CheckListCategories(ctx context.Context, obj *ent.WorkOrderType) ([]*ent.CheckListCategory, error)
+	CheckListCategoryDefinitions(ctx context.Context, obj *ent.WorkOrderType) ([]*ent.CheckListCategoryDefinition, error)
 }
 
 type executableSchema struct {
@@ -1846,6 +1867,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.CheckListCategory.Title(childComplexity), true
 
+	case "CheckListCategoryDefinition.checklistItemDefinitions":
+		if e.complexity.CheckListCategoryDefinition.ChecklistItemDefinitions == nil {
+			break
+		}
+
+		return e.complexity.CheckListCategoryDefinition.ChecklistItemDefinitions(childComplexity), true
+
+	case "CheckListCategoryDefinition.description":
+		if e.complexity.CheckListCategoryDefinition.Description == nil {
+			break
+		}
+
+		return e.complexity.CheckListCategoryDefinition.Description(childComplexity), true
+
+	case "CheckListCategoryDefinition.id":
+		if e.complexity.CheckListCategoryDefinition.ID == nil {
+			break
+		}
+
+		return e.complexity.CheckListCategoryDefinition.ID(childComplexity), true
+
+	case "CheckListCategoryDefinition.title":
+		if e.complexity.CheckListCategoryDefinition.Title == nil {
+			break
+		}
+
+		return e.complexity.CheckListCategoryDefinition.Title(childComplexity), true
+
 	case "CheckListItem.cellData":
 		if e.complexity.CheckListItem.CellData == nil {
 			break
@@ -1943,6 +1992,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CheckListItem.YesNoResponse(childComplexity), true
+
+	case "CheckListItemDefinition.enumSelectionMode":
+		if e.complexity.CheckListItemDefinition.EnumSelectionMode == nil {
+			break
+		}
+
+		return e.complexity.CheckListItemDefinition.EnumSelectionMode(childComplexity), true
 
 	case "CheckListItemDefinition.enumValues":
 		if e.complexity.CheckListItemDefinition.EnumValues == nil {
@@ -4337,18 +4393,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.TechnicianWorkOrderUploadData(childComplexity, args["input"].(models.TechnicianWorkOrderUploadInput)), true
 
-	case "Mutation.updatePermissionsPoliciesInUsersGroup":
-		if e.complexity.Mutation.UpdatePermissionsPoliciesInUsersGroup == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_updatePermissionsPoliciesInUsersGroup_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.UpdatePermissionsPoliciesInUsersGroup(childComplexity, args["input"].(models.UpdatePermissionsPoliciesInUsersGroupInput)), true
-
 	case "Mutation.updateUserGroups":
 		if e.complexity.Mutation.UpdateUserGroups == nil {
 			break
@@ -4605,6 +4649,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Project.WorkOrders(childComplexity), true
+
+	case "ProjectConnection.edges":
+		if e.complexity.ProjectConnection.Edges == nil {
+			break
+		}
+
+		return e.complexity.ProjectConnection.Edges(childComplexity), true
+
+	case "ProjectConnection.pageInfo":
+		if e.complexity.ProjectConnection.PageInfo == nil {
+			break
+		}
+
+		return e.complexity.ProjectConnection.PageInfo(childComplexity), true
+
+	case "ProjectEdge.cursor":
+		if e.complexity.ProjectEdge.Cursor == nil {
+			break
+		}
+
+		return e.complexity.ProjectEdge.Cursor(childComplexity), true
+
+	case "ProjectEdge.node":
+		if e.complexity.ProjectEdge.Node == nil {
+			break
+		}
+
+		return e.complexity.ProjectEdge.Node(childComplexity), true
 
 	case "ProjectType.description":
 		if e.complexity.ProjectType.Description == nil {
@@ -5200,6 +5272,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.ProjectTypes(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int)), true
+
+	case "Query.projects":
+		if e.complexity.Query.Projects == nil {
+			break
+		}
+
+		args, err := ec.field_Query_projects_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Projects(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int)), true
 
 	case "Query.pythonPackages":
 		if e.complexity.Query.PythonPackages == nil {
@@ -6580,13 +6664,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.WorkOrder.Assignee(childComplexity), true
 
-	case "WorkOrder.checkList":
-		if e.complexity.WorkOrder.CheckList == nil {
-			break
-		}
-
-		return e.complexity.WorkOrder.CheckList(childComplexity), true
-
 	case "WorkOrder.checkListCategories":
 		if e.complexity.WorkOrder.CheckListCategories == nil {
 			break
@@ -6860,19 +6937,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.WorkOrderSearchResult.WorkOrders(childComplexity), true
 
-	case "WorkOrderType.checkListCategories":
-		if e.complexity.WorkOrderType.CheckListCategories == nil {
+	case "WorkOrderType.checkListCategoryDefinitions":
+		if e.complexity.WorkOrderType.CheckListCategoryDefinitions == nil {
 			break
 		}
 
-		return e.complexity.WorkOrderType.CheckListCategories(childComplexity), true
-
-	case "WorkOrderType.checkListDefinitions":
-		if e.complexity.WorkOrderType.CheckListDefinitions == nil {
-			break
-		}
-
-		return e.complexity.WorkOrderType.CheckListDefinitions(childComplexity), true
+		return e.complexity.WorkOrderType.CheckListCategoryDefinitions(childComplexity), true
 
 	case "WorkOrderType.description":
 		if e.complexity.WorkOrderType.Description == nil {
@@ -7294,7 +7364,7 @@ input WorkforceCUDInput
 }
 
 type WorkforcePolicy {
-  read: BasicPermissionRule!
+  read: WorkforcePermissionRule!
   data: WorkforceCUD!
   templates: CUD!
 }
@@ -7303,7 +7373,7 @@ input WorkforcePolicyInput
   @goModel(
     model: "github.com/facebookincubator/symphony/graph/authz/models.WorkforcePolicyInput"
   ) {
-  read: BasicPermissionRuleInput
+  read: WorkforcePermissionRuleInput
   data: WorkforceCUDInput
   templates: BasicCUDInput
 }
@@ -7436,6 +7506,7 @@ input AddUsersGroupInput {
   name: String!
   description: String
   members: [ID!]
+  policies: [ID!]
 }
 
 input EditUsersGroupInput {
@@ -7444,12 +7515,7 @@ input EditUsersGroupInput {
   description: String
   status: UsersGroupStatus
   members: [ID!]
-}
-
-input UpdatePermissionsPoliciesInUsersGroupInput {
-  id: ID!
-  addPermissionsPolicyIds: [ID!]!
-  removePermissionsPolicyIds: [ID!]!
+  policies: [ID!]
 }
 
 input AddLocationInput {
@@ -7703,9 +7769,7 @@ input AddWorkOrderTypeInput {
   description: String
   properties: [PropertyTypeInput]
     @uniqueField(typ: "property type", field: "Name")
-  checkList: [CheckListDefinitionInput]
-    @uniqueField(typ: "check list definition", field: "Name")
-  checkListCategories: [CheckListCategoryInput!]
+  checkListCategories: [CheckListCategoryDefinitionInput!]
 }
 
 input EditWorkOrderTypeInput {
@@ -7714,9 +7778,7 @@ input EditWorkOrderTypeInput {
   description: String
   properties: [PropertyTypeInput]
     @uniqueField(typ: "property type", field: "Name")
-  checkList: [CheckListDefinitionInput]
-    @uniqueField(typ: "check list definition", field: "Name")
-  checkListCategories: [CheckListCategoryInput!]
+  checkListCategories: [CheckListCategoryDefinitionInput!]
 }
 
 input AddWorkOrderInput {
@@ -8396,9 +8458,19 @@ enum CheckListItemType {
   wifi_scan
 }
 
-enum CheckListItemEnumSelectionMode {
+enum CheckListItemEnumSelectionMode
+  @goModel(
+    model: "github.com/facebookincubator/symphony/graph/ent/checklistitem.EnumSelectionModeValue"
+  ) {
   single
   multiple
+}
+
+type CheckListCategoryDefinition {
+  id: ID!
+  title: String!
+  description: String
+  checklistItemDefinitions: [CheckListItemDefinition!]!
 }
 
 type CheckListItemDefinition {
@@ -8407,6 +8479,7 @@ type CheckListItemDefinition {
   type: CheckListItemType!
   index: Int
   enumValues: String
+  enumSelectionMode: CheckListItemEnumSelectionMode
   helpText: String
 }
 
@@ -8416,7 +8489,15 @@ input CheckListDefinitionInput {
   type: CheckListItemType!
   index: Int
   enumValues: String
+  enumSelectionMode: CheckListItemEnumSelectionMode
   helpText: String
+}
+
+input CheckListCategoryDefinitionInput {
+  id: ID
+  title: String!
+  description: String
+  checkList: [CheckListDefinitionInput!]!
 }
 
 type CheckListCategory implements Node {
@@ -8523,8 +8604,7 @@ type WorkOrderType implements Node {
   description: String
   propertyTypes: [PropertyType]!
   numberOfWorkOrders: Int!
-  checkListDefinitions: [CheckListItemDefinition]!
-  checkListCategories: [CheckListCategory!]!
+  checkListCategoryDefinitions: [CheckListCategoryDefinition!]!
 }
 
 """
@@ -8560,7 +8640,6 @@ type WorkOrder implements Node & NamedNode {
   location: Location
   properties: [Property]!
   project: Project
-  checkList: [CheckListItem]!
   checkListCategories: [CheckListCategory!]!
   hyperlinks: [Hyperlink!]!
   closeDate: Time
@@ -8779,6 +8858,34 @@ type ProjectTypeEdge {
   The project type at the end of the edge.
   """
   node: ProjectType
+  """
+  A cursor for use in pagination.
+  """
+  cursor: Cursor!
+}
+
+"""
+A connection to a list of projects.
+"""
+type ProjectConnection {
+  """
+  A list of project edges.
+  """
+  edges: [ProjectEdge!]!
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+}
+
+"""
+A project edge in a connection.
+"""
+type ProjectEdge {
+  """
+  The project at the end of the edge.
+  """
+  node: Project
   """
   A cursor for use in pagination.
   """
@@ -9804,6 +9911,12 @@ type Query {
     before: Cursor
     last: Int
   ): ProjectTypeConnection
+  projects(
+    after: Cursor
+    first: Int
+    before: Cursor
+    last: Int
+  ): ProjectConnection
   customers(
     after: Cursor
     first: Int
@@ -9820,9 +9933,6 @@ type Mutation {
   addUsersGroup(input: AddUsersGroupInput!): UsersGroup!
   editUsersGroup(input: EditUsersGroupInput!): UsersGroup!
   updateUserGroups(input: UpdateUserGroupsInput!): User!
-  updatePermissionsPoliciesInUsersGroup(
-    input: UpdatePermissionsPoliciesInUsersGroupInput!
-  ): UsersGroup!
   deleteUsersGroup(id: ID!): Boolean!
   createSurvey(data: SurveyCreateData!): ID!
   addLocation(input: AddLocationInput!): Location!
@@ -11383,20 +11493,6 @@ func (ec *executionContext) field_Mutation_technicianWorkOrderUploadData_args(ct
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_updatePermissionsPoliciesInUsersGroup_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 models.UpdatePermissionsPoliciesInUsersGroupInput
-	if tmp, ok := rawArgs["input"]; ok {
-		arg0, err = ec.unmarshalNUpdatePermissionsPoliciesInUsersGroupInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐUpdatePermissionsPoliciesInUsersGroupInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field_Mutation_updateUserGroups_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -12042,6 +12138,44 @@ func (ec *executionContext) field_Query_projectSearch_args(ctx context.Context, 
 }
 
 func (ec *executionContext) field_Query_projectTypes_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *ent.Cursor
+	if tmp, ok := rawArgs["after"]; ok {
+		arg0, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["after"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["first"]; ok {
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["first"] = arg1
+	var arg2 *ent.Cursor
+	if tmp, ok := rawArgs["before"]; ok {
+		arg2, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["before"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["last"]; ok {
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["last"] = arg3
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_projects_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 *ent.Cursor
@@ -13886,6 +14020,139 @@ func (ec *executionContext) _CheckListCategory_checkList(ctx context.Context, fi
 	return ec.marshalNCheckListItem2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCheckListItemᚄ(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _CheckListCategoryDefinition_id(ctx context.Context, field graphql.CollectedField, obj *ent.CheckListCategoryDefinition) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "CheckListCategoryDefinition",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CheckListCategoryDefinition_title(ctx context.Context, field graphql.CollectedField, obj *ent.CheckListCategoryDefinition) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "CheckListCategoryDefinition",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Title, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CheckListCategoryDefinition_description(ctx context.Context, field graphql.CollectedField, obj *ent.CheckListCategoryDefinition) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "CheckListCategoryDefinition",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CheckListCategoryDefinition_checklistItemDefinitions(ctx context.Context, field graphql.CollectedField, obj *ent.CheckListCategoryDefinition) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "CheckListCategoryDefinition",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.CheckListCategoryDefinition().ChecklistItemDefinitions(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.CheckListItemDefinition)
+	fc.Result = res
+	return ec.marshalNCheckListItemDefinition2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCheckListItemDefinitionᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _CheckListItem_id(ctx context.Context, field graphql.CollectedField, obj *ent.CheckListItem) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -14107,9 +14374,9 @@ func (ec *executionContext) _CheckListItem_enumSelectionMode(ctx context.Context
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*models.CheckListItemEnumSelectionMode)
+	res := resTmp.(*checklistitem.EnumSelectionModeValue)
 	fc.Result = res
-	return ec.marshalOCheckListItemEnumSelectionMode2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListItemEnumSelectionMode(ctx, field.Selections, res)
+	return ec.marshalOCheckListItemEnumSelectionMode2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚋchecklistitemᚐEnumSelectionModeValue(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _CheckListItem_selectedEnumValues(ctx context.Context, field graphql.CollectedField, obj *ent.CheckListItem) (ret graphql.Marshaler) {
@@ -14491,6 +14758,37 @@ func (ec *executionContext) _CheckListItemDefinition_enumValues(ctx context.Cont
 	res := resTmp.(*string)
 	fc.Result = res
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CheckListItemDefinition_enumSelectionMode(ctx context.Context, field graphql.CollectedField, obj *ent.CheckListItemDefinition) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "CheckListItemDefinition",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.CheckListItemDefinition().EnumSelectionMode(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*checklistitem.EnumSelectionModeValue)
+	fc.Result = res
+	return ec.marshalOCheckListItemEnumSelectionMode2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚋchecklistitemᚐEnumSelectionModeValue(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _CheckListItemDefinition_helpText(ctx context.Context, field graphql.CollectedField, obj *ent.CheckListItemDefinition) (ret graphql.Marshaler) {
@@ -21394,47 +21692,6 @@ func (ec *executionContext) _Mutation_updateUserGroups(ctx context.Context, fiel
 	return ec.marshalNUser2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUser(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_updatePermissionsPoliciesInUsersGroup(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "Mutation",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_updatePermissionsPoliciesInUsersGroup_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdatePermissionsPoliciesInUsersGroup(rctx, args["input"].(models.UpdatePermissionsPoliciesInUsersGroupInput))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*ent.UsersGroup)
-	fc.Result = res
-	return ec.marshalNUsersGroup2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUsersGroup(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Mutation_deleteUsersGroup(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -25647,6 +25904,139 @@ func (ec *executionContext) _Project_comments(ctx context.Context, field graphql
 	return ec.marshalNComment2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐComment(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _ProjectConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.ProjectConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "ProjectConnection",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Edges, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.ProjectEdge)
+	fc.Result = res
+	return ec.marshalNProjectEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProjectEdgeᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ProjectConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *ent.ProjectConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "ProjectConnection",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PageInfo, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(ent.PageInfo)
+	fc.Result = res
+	return ec.marshalNPageInfo2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐPageInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ProjectEdge_node(ctx context.Context, field graphql.CollectedField, obj *ent.ProjectEdge) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "ProjectEdge",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Node, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Project)
+	fc.Result = res
+	return ec.marshalOProject2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProject(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ProjectEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *ent.ProjectEdge) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "ProjectEdge",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Cursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(ent.Cursor)
+	fc.Result = res
+	return ec.marshalNCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _ProjectType_id(ctx context.Context, field graphql.CollectedField, obj *ent.ProjectType) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -28568,6 +28958,44 @@ func (ec *executionContext) _Query_projectTypes(ctx context.Context, field graph
 	res := resTmp.(*ent.ProjectTypeConnection)
 	fc.Result = res
 	return ec.marshalOProjectTypeConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProjectTypeConnection(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_projects(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_projects_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Projects(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.ProjectConnection)
+	fc.Result = res
+	return ec.marshalOProjectConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProjectConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_customers(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -35121,40 +35549,6 @@ func (ec *executionContext) _WorkOrder_project(ctx context.Context, field graphq
 	return ec.marshalOProject2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProject(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _WorkOrder_checkList(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrder) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "WorkOrder",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.WorkOrder().CheckList(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*ent.CheckListItem)
-	fc.Result = res
-	return ec.marshalNCheckListItem2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCheckListItem(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _WorkOrder_checkListCategories(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrder) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -35925,7 +36319,7 @@ func (ec *executionContext) _WorkOrderType_numberOfWorkOrders(ctx context.Contex
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _WorkOrderType_checkListDefinitions(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrderType) (ret graphql.Marshaler) {
+func (ec *executionContext) _WorkOrderType_checkListCategoryDefinitions(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrderType) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -35942,7 +36336,7 @@ func (ec *executionContext) _WorkOrderType_checkListDefinitions(ctx context.Cont
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.WorkOrderType().CheckListDefinitions(rctx, obj)
+		return ec.resolvers.WorkOrderType().CheckListCategoryDefinitions(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -35954,43 +36348,9 @@ func (ec *executionContext) _WorkOrderType_checkListDefinitions(ctx context.Cont
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*ent.CheckListItemDefinition)
+	res := resTmp.([]*ent.CheckListCategoryDefinition)
 	fc.Result = res
-	return ec.marshalNCheckListItemDefinition2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCheckListItemDefinition(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _WorkOrderType_checkListCategories(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrderType) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "WorkOrderType",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.WorkOrderType().CheckListCategories(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*ent.CheckListCategory)
-	fc.Result = res
-	return ec.marshalNCheckListCategory2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCheckListCategoryᚄ(ctx, field.Selections, res)
+	return ec.marshalNCheckListCategoryDefinition2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCheckListCategoryDefinitionᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _WorkOrderTypeConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrderTypeConnection) (ret graphql.Marshaler) {
@@ -36421,9 +36781,9 @@ func (ec *executionContext) _WorkforcePolicy_read(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*models.BasicPermissionRule)
+	res := resTmp.(*models.WorkforcePermissionRule)
 	fc.Result = res
-	return ec.marshalNBasicPermissionRule2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐBasicPermissionRule(ctx, field.Selections, res)
+	return ec.marshalNWorkforcePermissionRule2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkforcePermissionRule(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _WorkforcePolicy_data(ctx context.Context, field graphql.CollectedField, obj *models.WorkforcePolicy) (ret graphql.Marshaler) {
@@ -38533,6 +38893,12 @@ func (ec *executionContext) unmarshalInputAddUsersGroupInput(ctx context.Context
 			if err != nil {
 				return it, err
 			}
+		case "policies":
+			var err error
+			it.Policies, err = ec.unmarshalOID2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -38742,38 +39108,9 @@ func (ec *executionContext) unmarshalInputAddWorkOrderTypeInput(ctx context.Cont
 			} else {
 				return it, fmt.Errorf(`unexpected type %T from directive, should be []*github.com/facebookincubator/symphony/graph/graphql/models.PropertyTypeInput`, tmp)
 			}
-		case "checkList":
-			var err error
-			directive0 := func(ctx context.Context) (interface{}, error) {
-				return ec.unmarshalOCheckListDefinitionInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListDefinitionInput(ctx, v)
-			}
-			directive1 := func(ctx context.Context) (interface{}, error) {
-				typ, err := ec.unmarshalNString2string(ctx, "check list definition")
-				if err != nil {
-					return nil, err
-				}
-				field, err := ec.unmarshalNString2string(ctx, "Name")
-				if err != nil {
-					return nil, err
-				}
-				if ec.directives.UniqueField == nil {
-					return nil, errors.New("directive uniqueField is not implemented")
-				}
-				return ec.directives.UniqueField(ctx, obj, directive0, typ, field)
-			}
-
-			tmp, err := directive1(ctx)
-			if err != nil {
-				return it, err
-			}
-			if data, ok := tmp.([]*models.CheckListDefinitionInput); ok {
-				it.CheckList = data
-			} else {
-				return it, fmt.Errorf(`unexpected type %T from directive, should be []*github.com/facebookincubator/symphony/graph/graphql/models.CheckListDefinitionInput`, tmp)
-			}
 		case "checkListCategories":
 			var err error
-			it.CheckListCategories, err = ec.unmarshalOCheckListCategoryInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListCategoryInputᚄ(ctx, v)
+			it.CheckListCategories, err = ec.unmarshalOCheckListCategoryDefinitionInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListCategoryDefinitionInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -38822,6 +39159,42 @@ func (ec *executionContext) unmarshalInputBasicPermissionRuleInput(ctx context.C
 		case "isAllowed":
 			var err error
 			it.IsAllowed, err = ec.unmarshalNPermissionValue2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋauthzᚋmodelsᚐPermissionValue(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputCheckListCategoryDefinitionInput(ctx context.Context, obj interface{}) (models.CheckListCategoryDefinitionInput, error) {
+	var it models.CheckListCategoryDefinitionInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "id":
+			var err error
+			it.ID, err = ec.unmarshalOID2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "title":
+			var err error
+			it.Title, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "description":
+			var err error
+			it.Description, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "checkList":
+			var err error
+			it.CheckList, err = ec.unmarshalNCheckListDefinitionInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListDefinitionInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -38903,6 +39276,12 @@ func (ec *executionContext) unmarshalInputCheckListDefinitionInput(ctx context.C
 			if err != nil {
 				return it, err
 			}
+		case "enumSelectionMode":
+			var err error
+			it.EnumSelectionMode, err = ec.unmarshalOCheckListItemEnumSelectionMode2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚋchecklistitemᚐEnumSelectionModeValue(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "helpText":
 			var err error
 			it.HelpText, err = ec.unmarshalOString2ᚖstring(ctx, v)
@@ -38959,7 +39338,7 @@ func (ec *executionContext) unmarshalInputCheckListItemInput(ctx context.Context
 			}
 		case "enumSelectionMode":
 			var err error
-			it.EnumSelectionMode, err = ec.unmarshalOCheckListItemEnumSelectionMode2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListItemEnumSelectionMode(ctx, v)
+			it.EnumSelectionMode, err = ec.unmarshalOCheckListItemEnumSelectionMode2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚋchecklistitemᚐEnumSelectionModeValue(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -39739,6 +40118,12 @@ func (ec *executionContext) unmarshalInputEditUsersGroupInput(ctx context.Contex
 			if err != nil {
 				return it, err
 			}
+		case "policies":
+			var err error
+			it.Policies, err = ec.unmarshalOID2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -39960,38 +40345,9 @@ func (ec *executionContext) unmarshalInputEditWorkOrderTypeInput(ctx context.Con
 			} else {
 				return it, fmt.Errorf(`unexpected type %T from directive, should be []*github.com/facebookincubator/symphony/graph/graphql/models.PropertyTypeInput`, tmp)
 			}
-		case "checkList":
-			var err error
-			directive0 := func(ctx context.Context) (interface{}, error) {
-				return ec.unmarshalOCheckListDefinitionInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListDefinitionInput(ctx, v)
-			}
-			directive1 := func(ctx context.Context) (interface{}, error) {
-				typ, err := ec.unmarshalNString2string(ctx, "check list definition")
-				if err != nil {
-					return nil, err
-				}
-				field, err := ec.unmarshalNString2string(ctx, "Name")
-				if err != nil {
-					return nil, err
-				}
-				if ec.directives.UniqueField == nil {
-					return nil, errors.New("directive uniqueField is not implemented")
-				}
-				return ec.directives.UniqueField(ctx, obj, directive0, typ, field)
-			}
-
-			tmp, err := directive1(ctx)
-			if err != nil {
-				return it, err
-			}
-			if data, ok := tmp.([]*models.CheckListDefinitionInput); ok {
-				it.CheckList = data
-			} else {
-				return it, fmt.Errorf(`unexpected type %T from directive, should be []*github.com/facebookincubator/symphony/graph/graphql/models.CheckListDefinitionInput`, tmp)
-			}
 		case "checkListCategories":
 			var err error
-			it.CheckListCategories, err = ec.unmarshalOCheckListCategoryInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListCategoryInputᚄ(ctx, v)
+			it.CheckListCategories, err = ec.unmarshalOCheckListCategoryDefinitionInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListCategoryDefinitionInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -41827,36 +42183,6 @@ func (ec *executionContext) unmarshalInputTechnicianWorkOrderUploadInput(ctx con
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputUpdatePermissionsPoliciesInUsersGroupInput(ctx context.Context, obj interface{}) (models.UpdatePermissionsPoliciesInUsersGroupInput, error) {
-	var it models.UpdatePermissionsPoliciesInUsersGroupInput
-	var asMap = obj.(map[string]interface{})
-
-	for k, v := range asMap {
-		switch k {
-		case "id":
-			var err error
-			it.ID, err = ec.unmarshalNID2int(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "addPermissionsPolicyIds":
-			var err error
-			it.AddPermissionsPolicyIds, err = ec.unmarshalNID2ᚕintᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "removePermissionsPolicyIds":
-			var err error
-			it.RemovePermissionsPolicyIds, err = ec.unmarshalNID2ᚕintᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputUpdateUserGroupsInput(ctx context.Context, obj interface{}) (models.UpdateUserGroupsInput, error) {
 	var it models.UpdateUserGroupsInput
 	var asMap = obj.(map[string]interface{})
@@ -42159,7 +42485,7 @@ func (ec *executionContext) unmarshalInputWorkforcePolicyInput(ctx context.Conte
 		switch k {
 		case "read":
 			var err error
-			it.Read, err = ec.unmarshalOBasicPermissionRuleInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋauthzᚋmodelsᚐBasicPermissionRuleInput(ctx, v)
+			it.Read, err = ec.unmarshalOWorkforcePermissionRuleInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋauthzᚋmodelsᚐWorkforcePermissionRuleInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -42990,6 +43316,54 @@ func (ec *executionContext) _CheckListCategory(ctx context.Context, sel ast.Sele
 	return out
 }
 
+var checkListCategoryDefinitionImplementors = []string{"CheckListCategoryDefinition"}
+
+func (ec *executionContext) _CheckListCategoryDefinition(ctx context.Context, sel ast.SelectionSet, obj *ent.CheckListCategoryDefinition) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, checkListCategoryDefinitionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CheckListCategoryDefinition")
+		case "id":
+			out.Values[i] = ec._CheckListCategoryDefinition_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "title":
+			out.Values[i] = ec._CheckListCategoryDefinition_title(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "description":
+			out.Values[i] = ec._CheckListCategoryDefinition_description(ctx, field, obj)
+		case "checklistItemDefinitions":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._CheckListCategoryDefinition_checklistItemDefinitions(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var checkListItemImplementors = []string{"CheckListItem", "Node"}
 
 func (ec *executionContext) _CheckListItem(ctx context.Context, sel ast.SelectionSet, obj *ent.CheckListItem) graphql.Marshaler {
@@ -43142,6 +43516,17 @@ func (ec *executionContext) _CheckListItemDefinition(ctx context.Context, sel as
 			out.Values[i] = ec._CheckListItemDefinition_index(ctx, field, obj)
 		case "enumValues":
 			out.Values[i] = ec._CheckListItemDefinition_enumValues(ctx, field, obj)
+		case "enumSelectionMode":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._CheckListItemDefinition_enumSelectionMode(ctx, field, obj)
+				return res
+			})
 		case "helpText":
 			out.Values[i] = ec._CheckListItemDefinition_helpText(ctx, field, obj)
 		default:
@@ -45654,11 +46039,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "updatePermissionsPoliciesInUsersGroup":
-			out.Values[i] = ec._Mutation_updatePermissionsPoliciesInUsersGroup(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "deleteUsersGroup":
 			out.Values[i] = ec._Mutation_deleteUsersGroup(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -46456,6 +46836,67 @@ func (ec *executionContext) _Project(ctx context.Context, sel ast.SelectionSet, 
 				}
 				return res
 			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var projectConnectionImplementors = []string{"ProjectConnection"}
+
+func (ec *executionContext) _ProjectConnection(ctx context.Context, sel ast.SelectionSet, obj *ent.ProjectConnection) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, projectConnectionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ProjectConnection")
+		case "edges":
+			out.Values[i] = ec._ProjectConnection_edges(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "pageInfo":
+			out.Values[i] = ec._ProjectConnection_pageInfo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var projectEdgeImplementors = []string{"ProjectEdge"}
+
+func (ec *executionContext) _ProjectEdge(ctx context.Context, sel ast.SelectionSet, obj *ent.ProjectEdge) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, projectEdgeImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ProjectEdge")
+		case "node":
+			out.Values[i] = ec._ProjectEdge_node(ctx, field, obj)
+		case "cursor":
+			out.Values[i] = ec._ProjectEdge_cursor(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -47298,6 +47739,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_projectTypes(ctx, field)
+				return res
+			})
+		case "projects":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_projects(ctx, field)
 				return res
 			})
 		case "customers":
@@ -49371,20 +49823,6 @@ func (ec *executionContext) _WorkOrder(ctx context.Context, sel ast.SelectionSet
 				res = ec._WorkOrder_project(ctx, field, obj)
 				return res
 			})
-		case "checkList":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._WorkOrder_checkList(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
 		case "checkListCategories":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -49665,7 +50103,7 @@ func (ec *executionContext) _WorkOrderType(ctx context.Context, sel ast.Selectio
 				}
 				return res
 			})
-		case "checkListDefinitions":
+		case "checkListCategoryDefinitions":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -49673,21 +50111,7 @@ func (ec *executionContext) _WorkOrderType(ctx context.Context, sel ast.Selectio
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._WorkOrderType_checkListDefinitions(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
-		case "checkListCategories":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._WorkOrderType_checkListCategories(ctx, field, obj)
+				res = ec._WorkOrderType_checkListCategoryDefinitions(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -50694,23 +51118,11 @@ func (ec *executionContext) marshalNCheckListCategory2ᚖgithubᚗcomᚋfacebook
 	return ec._CheckListCategory(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNCheckListCategoryInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListCategoryInput(ctx context.Context, v interface{}) (models.CheckListCategoryInput, error) {
-	return ec.unmarshalInputCheckListCategoryInput(ctx, v)
+func (ec *executionContext) marshalNCheckListCategoryDefinition2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCheckListCategoryDefinition(ctx context.Context, sel ast.SelectionSet, v ent.CheckListCategoryDefinition) graphql.Marshaler {
+	return ec._CheckListCategoryDefinition(ctx, sel, &v)
 }
 
-func (ec *executionContext) unmarshalNCheckListCategoryInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListCategoryInput(ctx context.Context, v interface{}) (*models.CheckListCategoryInput, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalNCheckListCategoryInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListCategoryInput(ctx, v)
-	return &res, err
-}
-
-func (ec *executionContext) marshalNCheckListItem2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCheckListItem(ctx context.Context, sel ast.SelectionSet, v ent.CheckListItem) graphql.Marshaler {
-	return ec._CheckListItem(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNCheckListItem2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCheckListItem(ctx context.Context, sel ast.SelectionSet, v []*ent.CheckListItem) graphql.Marshaler {
+func (ec *executionContext) marshalNCheckListCategoryDefinition2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCheckListCategoryDefinitionᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.CheckListCategoryDefinition) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -50734,7 +51146,7 @@ func (ec *executionContext) marshalNCheckListItem2ᚕᚖgithubᚗcomᚋfacebooki
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOCheckListItem2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCheckListItem(ctx, sel, v[i])
+			ret[i] = ec.marshalNCheckListCategoryDefinition2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCheckListCategoryDefinition(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -50745,6 +51157,76 @@ func (ec *executionContext) marshalNCheckListItem2ᚕᚖgithubᚗcomᚋfacebooki
 	}
 	wg.Wait()
 	return ret
+}
+
+func (ec *executionContext) marshalNCheckListCategoryDefinition2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCheckListCategoryDefinition(ctx context.Context, sel ast.SelectionSet, v *ent.CheckListCategoryDefinition) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._CheckListCategoryDefinition(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNCheckListCategoryDefinitionInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListCategoryDefinitionInput(ctx context.Context, v interface{}) (models.CheckListCategoryDefinitionInput, error) {
+	return ec.unmarshalInputCheckListCategoryDefinitionInput(ctx, v)
+}
+
+func (ec *executionContext) unmarshalNCheckListCategoryDefinitionInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListCategoryDefinitionInput(ctx context.Context, v interface{}) (*models.CheckListCategoryDefinitionInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalNCheckListCategoryDefinitionInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListCategoryDefinitionInput(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) unmarshalNCheckListCategoryInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListCategoryInput(ctx context.Context, v interface{}) (models.CheckListCategoryInput, error) {
+	return ec.unmarshalInputCheckListCategoryInput(ctx, v)
+}
+
+func (ec *executionContext) unmarshalNCheckListCategoryInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListCategoryInput(ctx context.Context, v interface{}) (*models.CheckListCategoryInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalNCheckListCategoryInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListCategoryInput(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) unmarshalNCheckListDefinitionInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListDefinitionInput(ctx context.Context, v interface{}) (models.CheckListDefinitionInput, error) {
+	return ec.unmarshalInputCheckListDefinitionInput(ctx, v)
+}
+
+func (ec *executionContext) unmarshalNCheckListDefinitionInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListDefinitionInputᚄ(ctx context.Context, v interface{}) ([]*models.CheckListDefinitionInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*models.CheckListDefinitionInput, len(vSlice))
+	for i := range vSlice {
+		res[i], err = ec.unmarshalNCheckListDefinitionInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListDefinitionInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalNCheckListDefinitionInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListDefinitionInput(ctx context.Context, v interface{}) (*models.CheckListDefinitionInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalNCheckListDefinitionInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListDefinitionInput(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) marshalNCheckListItem2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCheckListItem(ctx context.Context, sel ast.SelectionSet, v ent.CheckListItem) graphql.Marshaler {
+	return ec._CheckListItem(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNCheckListItem2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCheckListItemᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.CheckListItem) graphql.Marshaler {
@@ -50794,7 +51276,11 @@ func (ec *executionContext) marshalNCheckListItem2ᚖgithubᚗcomᚋfacebookincu
 	return ec._CheckListItem(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNCheckListItemDefinition2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCheckListItemDefinition(ctx context.Context, sel ast.SelectionSet, v []*ent.CheckListItemDefinition) graphql.Marshaler {
+func (ec *executionContext) marshalNCheckListItemDefinition2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCheckListItemDefinition(ctx context.Context, sel ast.SelectionSet, v ent.CheckListItemDefinition) graphql.Marshaler {
+	return ec._CheckListItemDefinition(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCheckListItemDefinition2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCheckListItemDefinitionᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.CheckListItemDefinition) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -50818,7 +51304,7 @@ func (ec *executionContext) marshalNCheckListItemDefinition2ᚕᚖgithubᚗcom�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOCheckListItemDefinition2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCheckListItemDefinition(ctx, sel, v[i])
+			ret[i] = ec.marshalNCheckListItemDefinition2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCheckListItemDefinition(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -50829,6 +51315,16 @@ func (ec *executionContext) marshalNCheckListItemDefinition2ᚕᚖgithubᚗcom�
 	}
 	wg.Wait()
 	return ret
+}
+
+func (ec *executionContext) marshalNCheckListItemDefinition2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCheckListItemDefinition(ctx context.Context, sel ast.SelectionSet, v *ent.CheckListItemDefinition) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._CheckListItemDefinition(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNCheckListItemInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListItemInput(ctx context.Context, v interface{}) (models.CheckListItemInput, error) {
@@ -53303,6 +53799,57 @@ func (ec *executionContext) marshalNProject2ᚖgithubᚗcomᚋfacebookincubator�
 	return ec._Project(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNProjectEdge2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProjectEdge(ctx context.Context, sel ast.SelectionSet, v ent.ProjectEdge) graphql.Marshaler {
+	return ec._ProjectEdge(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNProjectEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProjectEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.ProjectEdge) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNProjectEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProjectEdge(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNProjectEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProjectEdge(ctx context.Context, sel ast.SelectionSet, v *ent.ProjectEdge) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._ProjectEdge(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNProjectFilterInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐProjectFilterInput(ctx context.Context, v interface{}) (models.ProjectFilterInput, error) {
 	return ec.unmarshalInputProjectFilterInput(ctx, v)
 }
@@ -54649,10 +55196,6 @@ func (ec *executionContext) marshalNTriggerID2githubᚗcomᚋfacebookincubator�
 	return v
 }
 
-func (ec *executionContext) unmarshalNUpdatePermissionsPoliciesInUsersGroupInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐUpdatePermissionsPoliciesInUsersGroupInput(ctx context.Context, v interface{}) (models.UpdatePermissionsPoliciesInUsersGroupInput, error) {
-	return ec.unmarshalInputUpdatePermissionsPoliciesInUsersGroupInput(ctx, v)
-}
-
 func (ec *executionContext) unmarshalNUpdateUserGroupsInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐUpdateUserGroupsInput(ctx context.Context, v interface{}) (models.UpdateUserGroupsInput, error) {
 	return ec.unmarshalInputUpdateUserGroupsInput(ctx, v)
 }
@@ -55896,6 +56439,26 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return ec.marshalOBoolean2bool(ctx, sel, *v)
 }
 
+func (ec *executionContext) unmarshalOCheckListCategoryDefinitionInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListCategoryDefinitionInputᚄ(ctx context.Context, v interface{}) ([]*models.CheckListCategoryDefinitionInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*models.CheckListCategoryDefinitionInput, len(vSlice))
+	for i := range vSlice {
+		res[i], err = ec.unmarshalNCheckListCategoryDefinitionInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListCategoryDefinitionInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
 func (ec *executionContext) unmarshalOCheckListCategoryInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListCategoryInputᚄ(ctx context.Context, v interface{}) ([]*models.CheckListCategoryInput, error) {
 	var vSlice []interface{}
 	if v != nil {
@@ -55916,82 +56479,28 @@ func (ec *executionContext) unmarshalOCheckListCategoryInput2ᚕᚖgithubᚗcom�
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOCheckListDefinitionInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListDefinitionInput(ctx context.Context, v interface{}) (models.CheckListDefinitionInput, error) {
-	return ec.unmarshalInputCheckListDefinitionInput(ctx, v)
+func (ec *executionContext) unmarshalOCheckListItemEnumSelectionMode2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚋchecklistitemᚐEnumSelectionModeValue(ctx context.Context, v interface{}) (checklistitem.EnumSelectionModeValue, error) {
+	tmp, err := graphql.UnmarshalString(v)
+	return checklistitem.EnumSelectionModeValue(tmp), err
 }
 
-func (ec *executionContext) unmarshalOCheckListDefinitionInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListDefinitionInput(ctx context.Context, v interface{}) ([]*models.CheckListDefinitionInput, error) {
-	var vSlice []interface{}
-	if v != nil {
-		if tmp1, ok := v.([]interface{}); ok {
-			vSlice = tmp1
-		} else {
-			vSlice = []interface{}{v}
-		}
-	}
-	var err error
-	res := make([]*models.CheckListDefinitionInput, len(vSlice))
-	for i := range vSlice {
-		res[i], err = ec.unmarshalOCheckListDefinitionInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListDefinitionInput(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
+func (ec *executionContext) marshalOCheckListItemEnumSelectionMode2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚋchecklistitemᚐEnumSelectionModeValue(ctx context.Context, sel ast.SelectionSet, v checklistitem.EnumSelectionModeValue) graphql.Marshaler {
+	return graphql.MarshalString(string(v))
 }
 
-func (ec *executionContext) unmarshalOCheckListDefinitionInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListDefinitionInput(ctx context.Context, v interface{}) (*models.CheckListDefinitionInput, error) {
+func (ec *executionContext) unmarshalOCheckListItemEnumSelectionMode2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚋchecklistitemᚐEnumSelectionModeValue(ctx context.Context, v interface{}) (*checklistitem.EnumSelectionModeValue, error) {
 	if v == nil {
 		return nil, nil
 	}
-	res, err := ec.unmarshalOCheckListDefinitionInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListDefinitionInput(ctx, v)
+	res, err := ec.unmarshalOCheckListItemEnumSelectionMode2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚋchecklistitemᚐEnumSelectionModeValue(ctx, v)
 	return &res, err
 }
 
-func (ec *executionContext) marshalOCheckListItem2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCheckListItem(ctx context.Context, sel ast.SelectionSet, v ent.CheckListItem) graphql.Marshaler {
-	return ec._CheckListItem(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalOCheckListItem2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCheckListItem(ctx context.Context, sel ast.SelectionSet, v *ent.CheckListItem) graphql.Marshaler {
+func (ec *executionContext) marshalOCheckListItemEnumSelectionMode2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚋchecklistitemᚐEnumSelectionModeValue(ctx context.Context, sel ast.SelectionSet, v *checklistitem.EnumSelectionModeValue) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
-	return ec._CheckListItem(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalOCheckListItemDefinition2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCheckListItemDefinition(ctx context.Context, sel ast.SelectionSet, v ent.CheckListItemDefinition) graphql.Marshaler {
-	return ec._CheckListItemDefinition(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalOCheckListItemDefinition2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCheckListItemDefinition(ctx context.Context, sel ast.SelectionSet, v *ent.CheckListItemDefinition) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._CheckListItemDefinition(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalOCheckListItemEnumSelectionMode2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListItemEnumSelectionMode(ctx context.Context, v interface{}) (models.CheckListItemEnumSelectionMode, error) {
-	var res models.CheckListItemEnumSelectionMode
-	return res, res.UnmarshalGQL(v)
-}
-
-func (ec *executionContext) marshalOCheckListItemEnumSelectionMode2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListItemEnumSelectionMode(ctx context.Context, sel ast.SelectionSet, v models.CheckListItemEnumSelectionMode) graphql.Marshaler {
-	return v
-}
-
-func (ec *executionContext) unmarshalOCheckListItemEnumSelectionMode2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListItemEnumSelectionMode(ctx context.Context, v interface{}) (*models.CheckListItemEnumSelectionMode, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalOCheckListItemEnumSelectionMode2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListItemEnumSelectionMode(ctx, v)
-	return &res, err
-}
-
-func (ec *executionContext) marshalOCheckListItemEnumSelectionMode2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListItemEnumSelectionMode(ctx context.Context, sel ast.SelectionSet, v *models.CheckListItemEnumSelectionMode) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return v
+	return ec.marshalOCheckListItemEnumSelectionMode2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚋchecklistitemᚐEnumSelectionModeValue(ctx, sel, *v)
 }
 
 func (ec *executionContext) unmarshalOCheckListItemInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListItemInputᚄ(ctx context.Context, v interface{}) ([]*models.CheckListItemInput, error) {
@@ -56697,6 +57206,17 @@ func (ec *executionContext) marshalOProject2ᚖgithubᚗcomᚋfacebookincubator�
 		return graphql.Null
 	}
 	return ec._Project(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOProjectConnection2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProjectConnection(ctx context.Context, sel ast.SelectionSet, v ent.ProjectConnection) graphql.Marshaler {
+	return ec._ProjectConnection(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOProjectConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProjectConnection(ctx context.Context, sel ast.SelectionSet, v *ent.ProjectConnection) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ProjectConnection(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOProjectType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProjectType(ctx context.Context, sel ast.SelectionSet, v ent.ProjectType) graphql.Marshaler {

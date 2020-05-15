@@ -28,6 +28,12 @@ func Sleep(d time.Duration) {
 	s.sleep(d)
 }
 
+// Since returns the time elapsed since t, where the current time may have
+// been frozen.
+func Since(t time.Time) time.Duration {
+	return Now().Sub(t)
+}
+
 // SetAndFreezeClock will set the value to be returned by Now.
 // This should only be called by test code.
 func SetAndFreezeClock(t *testing.T, ti time.Time) {
@@ -51,7 +57,7 @@ func UnfreezeClock(t *testing.T) {
 }
 
 // SkipSleeps causes time.Sleep to sleep for only a small, negligible duration.
-// This should only be used for test code.
+// This should only be called by test code.
 func SkipSleeps(t *testing.T) {
 	if t == nil {
 		panic("for tests only")
@@ -60,10 +66,14 @@ func SkipSleeps(t *testing.T) {
 }
 
 // ResumeSleeps causes time.Sleep to resume default behavior.
-// This should only be used for test code.
+// This should only be called by test code.
 func ResumeSleeps(t *testing.T) {
+	r := recover()
 	if t == nil {
 		panic("for tests only")
 	}
 	s = &defaultSleep{}
+	if r != nil {
+		panic(r)
+	}
 }

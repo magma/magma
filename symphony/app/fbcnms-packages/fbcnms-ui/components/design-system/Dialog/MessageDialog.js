@@ -17,7 +17,7 @@ import Strings from '@fbcnms/strings/Strings';
 import Text from '../Text';
 import {CloseIcon} from '../Icons';
 import {makeStyles} from '@material-ui/styles';
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -62,33 +62,45 @@ const useStyles = makeStyles(() => ({
 
 export type DialogSkin = 'primary' | 'red';
 
-type Props = $ReadOnly<{|
+export type MessageDialogProps = $ReadOnly<{|
   title: React.Node,
   message: React.Node,
-  checkboxLabel?: React.Node,
+  verificationCheckbox?: ?{
+    label: React.Node,
+    isMandatory?: ?boolean,
+  },
   cancelLabel?: React.Node,
   confirmLabel?: React.Node,
   skin?: DialogSkin,
-  hidden?: boolean,
   onCancel?: () => void,
   onClose: () => void,
-  onConfirm?: () => void,
+  onConfirm?: (?boolean) => void,
+|}>;
+
+export type MessageDialogComponentProps = $ReadOnly<{|
+  ...MessageDialogProps,
+  hidden?: boolean,
 |}>;
 
 const MessageDialog = ({
   title,
   message,
   onClose,
-  checkboxLabel,
+  verificationCheckbox,
   cancelLabel = Strings.common.cancelButton,
   confirmLabel = Strings.common.okButton,
   onCancel,
   onConfirm,
   hidden,
   skin = 'primary',
-}: Props) => {
+}: MessageDialogComponentProps) => {
   const classes = useStyles();
   const [checkboxChecked, setCheckboxChecked] = useState(false);
+
+  useEffect(() => {
+    setCheckboxChecked(false);
+  }, [hidden]);
+
   return (
     <DialogBase className={classes.root} onClose={onClose} hidden={hidden}>
       <div className={classes.titleContainer}>
@@ -101,11 +113,11 @@ const MessageDialog = ({
         <Text>{message}</Text>
       </div>
       <div className={classes.footer}>
-        {checkboxLabel && (
+        {verificationCheckbox && (
           <div className={classes.checkboxContainer}>
             <Checkbox
               checked={checkboxChecked}
-              title={checkboxLabel}
+              title={verificationCheckbox.label}
               onChange={selection =>
                 setCheckboxChecked(selection === 'checked' ? true : false)
               }
@@ -122,10 +134,15 @@ const MessageDialog = ({
         )}
         {confirmLabel && (
           <Button
-            onClick={onConfirm}
+            onClick={() =>
+              onConfirm &&
+              onConfirm(verificationCheckbox == null ? null : checkboxChecked)
+            }
             autoFocus
             skin={skin}
-            disabled={checkboxLabel != null && !checkboxChecked}>
+            disabled={
+              verificationCheckbox?.isMandatory === true && !checkboxChecked
+            }>
             {confirmLabel}
           </Button>
         )}

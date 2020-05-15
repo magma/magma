@@ -21,7 +21,7 @@ import (
 
 func TestAddLocationType(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
@@ -46,7 +46,7 @@ func TestAddLocationType(t *testing.T) {
 
 func TestAddLocationTypes(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
@@ -61,7 +61,7 @@ func TestAddLocationTypes(t *testing.T) {
 
 func TestAddLocationTypeWithProperties(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 
@@ -102,7 +102,7 @@ func TestAddLocationTypeWithProperties(t *testing.T) {
 
 func TestAddLocationTypeWithEquipmentProperty(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 
@@ -147,7 +147,7 @@ func TestAddLocationTypeWithEquipmentProperty(t *testing.T) {
 
 func TestAddLocationTypeWithSurveyTemplate(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 
@@ -181,7 +181,7 @@ func TestAddLocationTypeWithSurveyTemplate(t *testing.T) {
 
 func TestAddLocationTypesSameName(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
@@ -196,7 +196,7 @@ func TestAddLocationTypesSameName(t *testing.T) {
 
 func TestRemoveLocationType(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
@@ -218,7 +218,7 @@ func TestRemoveLocationType(t *testing.T) {
 
 func TestEditLocationType(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
@@ -252,7 +252,7 @@ func TestEditLocationType(t *testing.T) {
 
 func TestEditLocationTypeWithSurveyTemplate(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 
@@ -329,7 +329,7 @@ func TestEditLocationTypeWithSurveyTemplate(t *testing.T) {
 
 func TestEditLocationTypeWithProperties(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 
@@ -390,7 +390,7 @@ func TestEditLocationTypeWithProperties(t *testing.T) {
 
 func TestMarkLocationTypeAsSite(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
@@ -415,7 +415,7 @@ func TestMarkLocationTypeAsSite(t *testing.T) {
 
 func TestEditLocationTypesIndex(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 

@@ -122,7 +122,7 @@ func prepareServiceData(ctx context.Context, r *TestResolver) serviceSearchDataM
 
 func TestSearchServicesByName(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	qr, mr := r.Query(), r.Mutation()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
@@ -171,7 +171,7 @@ func TestSearchServicesByName(t *testing.T) {
 
 func TestSearchServicesByStatus(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	qr, mr := r.Query(), r.Mutation()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
@@ -229,7 +229,7 @@ func TestSearchServicesByStatus(t *testing.T) {
 
 func TestSearchServicesByType(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	qr, mr := r.Query(), r.Mutation()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
@@ -282,7 +282,7 @@ func TestSearchServicesByType(t *testing.T) {
 
 func TestSearchServicesByExternalID(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	qr, mr := r.Query(), r.Mutation()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	data := prepareServiceData(ctx, r)
@@ -336,7 +336,7 @@ func TestSearchServicesByExternalID(t *testing.T) {
 
 func TestSearchServicesByCustomerName(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	qr, mr := r.Query(), r.Mutation()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	data := prepareServiceData(ctx, r)
@@ -393,7 +393,7 @@ func TestSearchServicesByCustomerName(t *testing.T) {
 
 func TestSearchServicesByDiscoveryMethod(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	qr, mr := r.Query(), r.Mutation()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	data := prepareServiceData(ctx, r)
@@ -451,7 +451,7 @@ func TestSearchServicesByDiscoveryMethod(t *testing.T) {
 func TestSearchServicesByProperties(t *testing.T) {
 	r := newTestResolver(t)
 	qr, mr := r.Query(), r.Mutation()
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	data := prepareServiceData(ctx, r)
@@ -497,7 +497,7 @@ func TestSearchServicesByProperties(t *testing.T) {
 
 func TestSearchServicesByLocations(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	qr, mr := r.Query(), r.Mutation()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	data := prepareServiceData(ctx, r)
@@ -619,7 +619,7 @@ func TestSearchServicesByLocations(t *testing.T) {
 
 func TestSearchServicesByEquipmentInside(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	qr, mr := r.Query(), r.Mutation()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	data := prepareServiceData(ctx, r)

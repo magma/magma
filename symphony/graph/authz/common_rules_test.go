@@ -19,17 +19,17 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestUserCannotEditWithNoPermission(t *testing.T) {
+func TestUserCannotEditOrViewWithNoPermission(t *testing.T) {
 	client := viewertest.NewTestClient(t)
 	ctx := viewertest.NewContext(context.Background(), client)
 	location, err := client.LocationType.Create().SetName("LocationType").Save(ctx)
 	require.NoError(t, err)
-	ctx = ent.NewContext(context.Background(), client)
 	u := viewer.MustGetOrCreateUser(ctx, viewertest.DefaultUser, user.RoleOWNER)
 	v := viewer.NewUser(viewertest.DefaultTenant, u)
+	ctx = ent.NewContext(context.Background(), client)
 	ctx = viewer.NewContext(ctx, v)
 	_, err = client.LocationType.Get(ctx, location.ID)
-	require.NoError(t, err)
+	require.True(t, errors.Is(err, privacy.Deny))
 	_, err = client.LocationType.UpdateOneID(location.ID).SetName("NewLocationType").Save(ctx)
 	require.True(t, errors.Is(err, privacy.Deny))
 	ctx = authz.NewContext(ctx, authz.FullPermissions())
@@ -42,7 +42,11 @@ func TestUserCannotEditWithEmptyPermission(t *testing.T) {
 	ctx := viewertest.NewContext(context.Background(), client)
 	location, err := client.LocationType.Create().SetName("LocationType").Save(ctx)
 	require.NoError(t, err)
-	ctx = viewertest.NewContext(ctx, client, viewertest.WithPermissions(authz.EmptyPermissions()))
+	ctx = viewertest.NewContext(ctx,
+		client,
+		viewertest.WithUser("user"),
+		viewertest.WithRole(user.RoleUSER),
+		viewertest.WithPermissions(authz.EmptyPermissions()))
 	_, err = client.UsersGroup.Create().SetName("NewGroup").Save(ctx)
 	require.True(t, errors.Is(err, privacy.Deny))
 	_, err = client.User.Create().SetAuthID("new_user").Save(ctx)
@@ -60,7 +64,11 @@ func TestUserCanWrite(t *testing.T) {
 	require.NoError(t, err)
 	permissions := authz.EmptyPermissions()
 	permissions.CanWrite = true
-	ctx = viewertest.NewContext(ctx, client, viewertest.WithPermissions(permissions))
+	ctx = viewertest.NewContext(ctx,
+		client,
+		viewertest.WithUser("user"),
+		viewertest.WithRole(user.RoleUSER),
+		viewertest.WithPermissions(permissions))
 	_, err = client.LocationType.Get(ctx, location.ID)
 	require.NoError(t, err)
 	_, err = client.LocationType.UpdateOneID(location.ID).SetName("NewLocationType").Save(ctx)

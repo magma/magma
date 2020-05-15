@@ -14,7 +14,7 @@ import type {
 } from '../utils/UserManagementUtils';
 
 import * as React from 'react';
-import PermissionsPolicyInventoryRulesSection from './PermissionsPolicyInventoryRulesSection';
+import PermissionsPolicyRulesSection from './PermissionsPolicyRulesSection';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import fbt from 'fbt';
 import {makeStyles} from '@material-ui/styles';
@@ -84,7 +84,7 @@ export default function PermissionsPolicyInventoryCatalogRulesTab(
       </div>
 
       {rules.map(rule => (
-        <PermissionsPolicyInventoryRulesSection
+        <PermissionsPolicyRulesSection
           mainCheckHeaderPrefix={rule.title}
           rule={policy[rule.key]}
           onChange={cud =>

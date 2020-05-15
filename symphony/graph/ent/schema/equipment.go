@@ -128,6 +128,15 @@ func (EquipmentPort) Indexes() []ent.Index {
 	}
 }
 
+// Policy returns equipment port policy.
+func (EquipmentPort) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithMutationRules(
+			authz.EquipmentPortWritePolicyRule(),
+		),
+	)
+}
+
 // EquipmentPositionDefinition defines the equipment position definition schema.
 type EquipmentPositionDefinition struct {
 	schema
@@ -154,6 +163,15 @@ func (EquipmentPositionDefinition) Edges() []ent.Edge {
 			Ref("position_definitions").
 			Unique(),
 	}
+}
+
+// Policy returns equipment position definition policy.
+func (EquipmentPositionDefinition) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithMutationRules(
+			authz.EquipmentPositionDefinitionWritePolicyRule(),
+		),
+	)
 }
 
 // EquipmentPosition defines the equipment position schema.
@@ -184,6 +202,15 @@ func (EquipmentPosition) Indexes() []ent.Index {
 		index.Edges("definition", "parent").
 			Unique(),
 	}
+}
+
+// Policy returns equipment position policy.
+func (EquipmentPosition) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithMutationRules(
+			authz.EquipmentPositionWritePolicyRule(),
+		),
+	)
 }
 
 // EquipmentCategory defines the equipment category schema.

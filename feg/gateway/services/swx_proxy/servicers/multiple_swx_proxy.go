@@ -10,14 +10,13 @@ package servicers
 
 import (
 	"fmt"
-	"strings"
-
-	"magma/feg/gateway/multiplex"
-
-	"golang.org/x/net/context"
 
 	"magma/feg/cloud/go/protos"
 	fegprotos "magma/feg/cloud/go/protos"
+	"magma/feg/gateway/multiplex"
+	"magma/orc8r/lib/go/errors"
+
+	"golang.org/x/net/context"
 	orcprotos "magma/orc8r/lib/go/protos"
 )
 
@@ -131,19 +130,13 @@ func (s *SwxProxies) Disable(ctx context.Context, req *protos.DisableMessage) (*
 
 // Calls Enable on each swx proxy
 func (s *SwxProxies) Enable(ctx context.Context, req *orcprotos.Void) (*orcprotos.Void, error) {
-	var hasErrors []string
-	for _, proxy := range s.proxies {
+	multiError := errors.NewMulti()
+	for i, proxy := range s.proxies {
 		proxy.connMan.Enable()
 		_, err := proxy.connMan.GetConnection(proxy.smClient, proxy.config.ServerCfg)
-		if err != nil {
-			hasErrors = append(hasErrors, err.Error())
-		}
+		multiError = multiError.AddFmt(err, "error(%d):", i+1)
 	}
-	if hasErrors != nil {
-		return nil, fmt.Errorf("Errors found while disabling SwxProxies: %s",
-			fmt.Errorf(strings.Join(hasErrors, "\n")))
-	}
-	return &orcprotos.Void{}, nil
+	return &orcprotos.Void{}, multiError.AsError()
 }
 
 // Calls GetHealthStatus on each Swx Proxy

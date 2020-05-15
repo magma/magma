@@ -9,8 +9,14 @@ import (
 	"context"
 	"testing"
 
-	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
+
+	"github.com/facebookincubator/symphony/graph/ent/checklistcategorydefinition"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitemdefinition"
+
+	"github.com/99designs/gqlgen/client"
+
+	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
@@ -23,7 +29,7 @@ import (
 
 func TestAddWorkOrderType(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
@@ -39,7 +45,7 @@ func TestAddWorkOrderType(t *testing.T) {
 
 func TestAddWorkOrderTypes(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
@@ -54,7 +60,7 @@ func TestAddWorkOrderTypes(t *testing.T) {
 
 func TestNumberOfWorkOrders(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, wtr := r.Mutation(), r.WorkOrderType()
 
@@ -84,7 +90,7 @@ func TestNumberOfWorkOrders(t *testing.T) {
 
 func TestAddWorkOrderTypeWithDescription(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
@@ -103,7 +109,7 @@ func TestAddWorkOrderTypeWithDescription(t *testing.T) {
 
 func TestAddWorkOrderTypeWithProperties(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, wtr := r.Mutation(), r.WorkOrderType()
@@ -146,38 +152,192 @@ func TestAddWorkOrderTypeWithProperties(t *testing.T) {
 	require.Equal(t, 2, len(pt))
 }
 
-func TestAddWorkOrderTypeWithCheckList(t *testing.T) {
+func TestAddWorkOrderTypeWithCheckListCategories(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(context.Background(), r.client)
+	defer r.Close()
+	c := r.GraphClient()
 
-	mr, wtr := r.Mutation(), r.WorkOrderType()
-	indexValue := 1
-	fooCL := models.CheckListDefinitionInput{
-		Title: "Foo",
-		Type:  "none",
-		Index: &indexValue,
+	selectionMode := checklistitem.EnumSelectionModeValueSingle
+	woTypeInput := models.AddWorkOrderTypeInput{
+		Name: "WO Type",
+		CheckListCategories: []*models.CheckListCategoryDefinitionInput{
+			{
+				Title:       "Category 1",
+				Description: pointer.ToString("Category 1"),
+				CheckList: []*models.CheckListDefinitionInput{{
+					Title: "String",
+					Type:  "string",
+					Index: pointer.ToInt(0),
+				}, {
+					Title:             "Single Choice",
+					Type:              "enum",
+					Index:             pointer.ToInt(1),
+					EnumSelectionMode: &selectionMode,
+					EnumValues:        pointer.ToString("1,2,3"),
+				}},
+			},
+		},
 	}
-	clInputs := []*models.CheckListDefinitionInput{&fooCL}
-	woType, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{
-		Name:      "example_type_a",
-		CheckList: clInputs,
-	})
-	require.NoError(t, err)
-	defs := woType.QueryCheckListDefinitions().AllX(ctx)
-	require.Len(t, defs, 1)
+	var rsp struct {
+		AddWorkOrderType struct {
+			ID                           string
+			CheckListCategoryDefinitions []struct {
+				ID                       string
+				Title                    string
+				ChecklistItemDefinitions []struct {
+					ID                string
+					Title             string
+					Type              models.CheckListItemType
+					EnumValues        *string
+					EnumSelectionMode *checklistitem.EnumSelectionModeValue
+				}
+			}
+		}
+	}
+	c.MustPost(
+		`mutation($input: AddWorkOrderTypeInput!) {
+			addWorkOrderType(input: $input) {
+				id
+				checkListCategoryDefinitions {
+					id
+					title
+					checklistItemDefinitions {
+						id
+						title
+						type
+						enumValues
+						enumSelectionMode
+					}
+				}
+			}
+		}`,
+		&rsp,
+		client.Var("input", woTypeInput),
+	)
 
-	fooCLFetched := woType.QueryCheckListDefinitions().Where(checklistitemdefinition.Type("none")).OnlyX(ctx)
-	require.Equal(t, "Foo", fooCLFetched.Title, "verifying check list name")
+	require.Len(t, rsp.AddWorkOrderType.CheckListCategoryDefinitions, 1)
+	category := rsp.AddWorkOrderType.CheckListCategoryDefinitions[0]
+	require.Equal(t, category.Title, "Category 1")
+	require.Len(t, category.ChecklistItemDefinitions, 2)
 
-	cl, err := wtr.CheckListDefinitions(ctx, woType)
+	for _, item := range category.ChecklistItemDefinitions {
+		switch item.Type {
+		case models.CheckListItemTypeString:
+			require.Equal(t, item.Title, "String")
+		case models.CheckListItemTypeEnum:
+			require.Equal(t, *item.EnumSelectionMode, checklistitem.EnumSelectionModeValueSingle)
+			require.Equal(t, *item.EnumValues, "1,2,3")
+		}
+	}
+}
+
+func TestEditWorkOrderTypeWithCheckListCategories(t *testing.T) {
+	r := newTestResolver(t)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
+	mr := r.Mutation()
+
+	woTypeInput := models.AddWorkOrderTypeInput{
+		Name: "WO Type",
+		CheckListCategories: []*models.CheckListCategoryDefinitionInput{
+			{
+				Title:       "Category 1",
+				Description: pointer.ToString("Category 1"),
+				CheckList: []*models.CheckListDefinitionInput{{
+					Title: "String 1",
+					Type:  "string",
+					Index: pointer.ToInt(0),
+				}, {
+					Title: "String 2",
+					Type:  "string",
+					Index: pointer.ToInt(1),
+				}},
+			},
+			{
+				Title:       "Category 2",
+				Description: pointer.ToString("Category 2"),
+			},
+		},
+	}
+
+	wot, err := mr.AddWorkOrderType(ctx, woTypeInput)
 	require.NoError(t, err)
-	require.Len(t, cl, 1)
+
+	category1 := wot.QueryCheckListCategoryDefinitions().Where(checklistcategorydefinition.Title("Category 1")).OnlyX(ctx)
+	string1 := wot.QueryCheckListCategoryDefinitions().QueryCheckListItemDefinitions().Where(checklistitemdefinition.Title("String 1")).OnlyX(ctx)
+	string2 := wot.QueryCheckListCategoryDefinitions().QueryCheckListItemDefinitions().Where(checklistitemdefinition.Title("String 2")).OnlyX(ctx)
+
+	category2 := wot.QueryCheckListCategoryDefinitions().Where(checklistcategorydefinition.Title("Category 2")).OnlyX(ctx)
+
+	// Category 1: 1 item renamed, 1 deleted, 1 new. Category 2 deleted. Category 3 - new.
+	editWOTypeInput := models.EditWorkOrderTypeInput{
+		ID:   wot.ID,
+		Name: "WO Type",
+		CheckListCategories: []*models.CheckListCategoryDefinitionInput{
+			{
+				ID:          &category1.ID,
+				Title:       "Category 1 Renamed",
+				Description: pointer.ToString("Category 1 Renamed"),
+				CheckList: []*models.CheckListDefinitionInput{{
+					ID:    &string1.ID,
+					Title: "String 1 Renamed",
+					Type:  "string",
+					Index: pointer.ToInt(0),
+				}, {
+					Title: "String 3",
+					Type:  "string",
+					Index: pointer.ToInt(2),
+				}},
+			},
+			{
+				Title:       "Category 3",
+				Description: pointer.ToString("Category 3"),
+			},
+		},
+	}
+
+	updatedWOT, err := mr.EditWorkOrderType(ctx, editWOTypeInput)
+	require.NoError(t, err)
+
+	updatedCategories, err := updatedWOT.QueryCheckListCategoryDefinitions().All(ctx)
+	require.NoError(t, err)
+	require.Len(t, updatedCategories, 2)
+
+	// Verify Category 1 Renamed
+	category1 = updatedWOT.QueryCheckListCategoryDefinitions().Where(checklistcategorydefinition.ID(category1.ID)).OnlyX(ctx)
+	require.Equal(t, category1.Title, "Category 1 Renamed")
+
+	// Verify Category 2 deleted
+	category2Exists := updatedWOT.QueryCheckListCategoryDefinitions().Where(checklistcategorydefinition.ID(category2.ID)).ExistX(ctx)
+	require.False(t, category2Exists)
+
+	// Verify Category 3 created
+	category3Exists, err := updatedWOT.QueryCheckListCategoryDefinitions().Where(checklistcategorydefinition.Title("Category 3")).Exist(ctx)
+	require.NoError(t, err)
+	require.True(t, category3Exists)
+
+	// Verify category 1 items created
+	category1Items, err := category1.QueryCheckListItemDefinitions().All(ctx)
+	require.NoError(t, err)
+	require.Len(t, category1Items, 2)
+
+	// Verify item string1 renamed
+	string1Exists := category1.QueryCheckListItemDefinitions().Where(checklistitemdefinition.Title("String 1 Renamed")).Where(checklistitemdefinition.ID(string1.ID)).ExistX(ctx)
+	require.True(t, string1Exists)
+
+	// Verify item string2 deleted
+	string2Exists := category1.QueryCheckListItemDefinitions().Where(checklistitemdefinition.ID(string2.ID)).ExistX(ctx)
+	require.False(t, string2Exists)
+
+	// Verify item string3 created
+	string3Exists, err := category1.QueryCheckListItemDefinitions().Where(checklistitemdefinition.Title("String 3")).Exist(ctx)
+	require.NoError(t, err)
+	require.True(t, string3Exists)
 }
 
 func TestAddWorkOrderTypesSameName(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
@@ -192,7 +352,7 @@ func TestAddWorkOrderTypesSameName(t *testing.T) {
 
 func TestRemoveWorkOrderType(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
@@ -214,7 +374,7 @@ func TestRemoveWorkOrderType(t *testing.T) {
 
 func TestEditWorkOrderType(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
@@ -250,7 +410,7 @@ func TestEditWorkOrderType(t *testing.T) {
 
 func TestEditWorkOrderTypeWithProperties(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr := r.Mutation()
@@ -312,7 +472,7 @@ func TestEditWorkOrderTypeWithProperties(t *testing.T) {
 
 func TestDeleteWorkOrderTypeProperty(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr := r.Mutation()

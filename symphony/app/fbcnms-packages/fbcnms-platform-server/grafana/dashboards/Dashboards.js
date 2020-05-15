@@ -15,15 +15,6 @@ const gwIDVar = 'gatewayID';
 
 const NetworkPanels: Array<PanelParams> = [
   {
-    title: 'Disk Percent',
-    targets: [
-      {
-        expr: 'sum(disk_percent{networkID=~"$networkID"}) by (networkID)',
-        legendFormat: '{{networkID}}',
-      },
-    ],
-  },
-  {
     title: 'Number of Connected UEs',
     targets: [
       {
@@ -193,7 +184,7 @@ const GatewayPanels: Array<PanelParams> = [
     targets: [
       {
         expr:
-          'magmad_ping_rtt_ms{gatewayID=~"$gatewayID",networkID=~"$networkID"}',
+          'magmad_ping_rtt_ms{gatewayID=~"$gatewayID",networkID=~"$networkID",metric="rtt_ms"}',
         legendFormat: '{{gatewayID}}',
       },
     ],
@@ -239,11 +230,11 @@ const GatewayPanels: Array<PanelParams> = [
 
 const InternalPanels: Array<PanelParams> = [
   {
-    title: 'Memory Utilization',
+    title: 'Physical Memory Utilization Percent',
     targets: [
       {
         expr:
-          'mem_free{gatewayID=~"$gatewayID"}/mem_total{gatewayID=~"$gatewayID",networkID=~"$networkID"}',
+          'mem_free{gatewayID=~"$gatewayID"}/mem_total{gatewayID=~"$gatewayID",networkID=~"$networkID"} * 100',
         legendFormat: '{{gatewayID}}',
       },
     ],
@@ -259,7 +250,7 @@ const InternalPanels: Array<PanelParams> = [
     ],
   },
   {
-    title: 'Virtual Memory',
+    title: 'Virtual Memory Percent',
     targets: [
       {
         expr:
@@ -284,7 +275,7 @@ const InternalPanels: Array<PanelParams> = [
       {
         expr:
           'process_uptime_seconds{gatewayID=~"$gatewayID",networkID=~"$networkID"}',
-        legendFormat: '{{gatewayID}}',
+        legendFormat: '{{gatewayID}}-{{service}}',
       },
     ],
   },
@@ -294,7 +285,7 @@ const InternalPanels: Array<PanelParams> = [
       {
         expr:
           'unexpected_service_restarts{gatewayID=~"$gatewayID",networkID=~"$networkID"}',
-        legendFormat: '{{gatewayID}}',
+        legendFormat: '{{gatewayID}}-{{service_name}}',
       },
     ],
   },

@@ -110,7 +110,11 @@ const WorkOrdersView = (props: Props) => {
           getSortingValue: row => row.location?.name,
           render: row =>
             row.location ? (
-              <LocationLink title={row.location.name} id={row.location.id} />
+              <LocationLink
+                title={row.location.name}
+                id={row.location.id}
+                newTab={true}
+              />
             ) : null,
         },
         {

@@ -96,6 +96,10 @@ func (e *CustomPushExporter) Submit(metrics []mxd_exp.MetricAndContext) error {
 	return nil
 }
 
+func (e *CustomPushExporter) Start() {
+	go e.exportEvery()
+}
+
 // dropInvalidMetrics because invalid label names would cause the entire scrape
 // to fail. Drop them here and log to allow good metrics through
 func dropInvalidMetrics(metrics []*io_prometheus_client.Metric, familyName string) []*io_prometheus_client.Metric {
@@ -132,25 +136,14 @@ func familyToString(family *io_prometheus_client.MetricFamily) (string, error) {
 	return buf.String(), nil
 }
 
-// Start runs exportEvery() in a goroutine to continuously push metrics at every
-// push interval
-func (e *CustomPushExporter) Start() {
-	go e.exportEvery()
-}
-
 func (e *CustomPushExporter) exportEvery() {
 	for range time.Tick(e.exportInterval) {
-		errs := e.export()
+		errs := e.pushFamilies()
+		e.resetFamilies()
 		if len(errs) > 0 {
 			glog.Errorf("error in pushing to pushgateway: %v", errs)
 		}
 	}
-}
-
-func (e *CustomPushExporter) export() []error {
-	errs := e.pushFamilies()
-	e.resetFamilies()
-	return errs
 }
 
 func (e *CustomPushExporter) pushFamilies() []error {
@@ -158,7 +151,7 @@ func (e *CustomPushExporter) pushFamilies() []error {
 	if len(e.familiesByName) == 0 {
 		return []error{}
 	}
-	bodyBuilder := strings.Builder{}
+	builder := strings.Builder{}
 
 	e.Lock()
 	for _, fam := range e.familiesByName {
@@ -167,22 +160,22 @@ func (e *CustomPushExporter) pushFamilies() []error {
 			errs = append(errs, err)
 			continue
 		}
-		bodyBuilder.WriteString(familyString)
-		bodyBuilder.WriteString("\n")
+		builder.WriteString(familyString)
+		builder.WriteString("\n")
 	}
 	e.Unlock()
 
-	body := bodyBuilder.String()
+	body := builder.String()
 	client := http.Client{}
 	for _, address := range e.pushAddresses {
 		resp, err := client.Post(address, "text/plain", bytes.NewBufferString(body))
 		if err != nil {
-			errs = append(errs, fmt.Errorf("error making request: %v", err))
+			errs = append(errs, fmt.Errorf("error sending request to pushgateway %s: %v", address, err))
 			continue
 		}
 		if resp.StatusCode != http.StatusOK {
 			respBody, _ := ioutil.ReadAll(resp.Body)
-			errs = append(errs, fmt.Errorf("error pushing to pushgateway %s: %v", address, string(respBody)))
+			errs = append(errs, fmt.Errorf("non-200 response code from pushgateway %s: %s", address, respBody))
 			continue
 		}
 	}
@@ -198,7 +191,7 @@ func makeStringPointer(str string) *string {
 }
 
 func sanitizePrometheusName(name string) *string {
-	sanitizedName := string(nonPromoChars.ReplaceAllString(name, "_"))
+	sanitizedName := nonPromoChars.ReplaceAllString(name, "_")
 	// If still doesn't match, must be because digit is first character.
 	if !prometheusNameRegex.MatchString(sanitizedName) {
 		sanitizedName = "_" + sanitizedName

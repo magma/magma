@@ -59,7 +59,7 @@ func MakePromoGauge(value float64) dto.Metric {
 	var metric dto.Metric
 	gauge := prometheus.NewGauge(prometheus.GaugeOpts{Name: GaugeMetricName, Help: "testGaugeHelp"})
 	gauge.Set(value)
-	gauge.Write(&metric)
+	_ = gauge.Write(&metric)
 	return metric
 }
 
@@ -67,7 +67,7 @@ func MakePromoCounter(value float64) dto.Metric {
 	var metric dto.Metric
 	counter := prometheus.NewCounter(prometheus.CounterOpts{Name: CounterMetricName, Help: "testCounterHelp"})
 	counter.Add(value)
-	counter.Write(&metric)
+	_ = counter.Write(&metric)
 	return metric
 }
 
@@ -83,7 +83,7 @@ func MakePromoSummary(objectives map[float64]float64, observations []float64) dt
 	for _, obs := range observations {
 		summary.Observe(obs)
 	}
-	summary.Write(&metric)
+	_ = summary.Write(&metric)
 	return metric
 }
 
@@ -99,14 +99,14 @@ func MakePromoHistogram(buckets []float64, observations []float64) dto.Metric {
 	for _, obs := range observations {
 		histogram.Observe(obs)
 	}
-	histogram.Write(&metric)
+	_ = histogram.Write(&metric)
 	return metric
 }
 
 func MakePromoUntyped(value float64) dto.Metric {
 	var metric dto.Metric
 	untyped := prometheus.NewUntypedFunc(prometheus.UntypedOpts{Name: UntypedMetricName, Help: "testUntypedHelp"}, func() float64 { return value })
-	untyped.Write(&metric)
+	_ = untyped.Write(&metric)
 	return metric
 }
 

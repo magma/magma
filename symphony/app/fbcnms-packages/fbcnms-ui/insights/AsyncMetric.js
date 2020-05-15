@@ -51,6 +51,7 @@ type Props = {
   queries: Array<string>,
   legendLabels?: Array<string>,
   timeRange: TimeRange,
+  startEnd?: [moment, moment],
   networkId?: string,
   style?: ChartStyle,
 };
@@ -202,15 +203,56 @@ function getUnit(timeRange: TimeRange) {
   return RANGE_VALUES[timeRange].unit;
 }
 
+function getStepUnit(startEnd: [moment, moment]): [string, string] {
+  const [start, end] = startEnd;
+  const d = moment.duration(end.diff(start));
+  const hrs = d.asHours();
+  const days = d.asDays();
+  let r: RangeValue;
+  if (hrs <= 24) {
+    if (hrs <= 3) {
+      r = RANGE_VALUES['3_hours'];
+    } else if (hrs <= 6) {
+      r = RANGE_VALUES['6_hours'];
+    } else if (hrs <= 12) {
+      r = RANGE_VALUES['12_hours'];
+    } else {
+      r = RANGE_VALUES['24_hours'];
+    }
+  } else {
+    if (days <= 7) {
+      r = RANGE_VALUES['7_days'];
+    } else if (days <= 14) {
+      r = RANGE_VALUES['14_days'];
+    } else {
+      r = RANGE_VALUES['30_days'];
+    }
+  }
+  return [r.step, r.unit];
+}
+
 function getColorForIndex(index: number) {
   return COLORS[index % COLORS.length];
 }
 
 function useDatasetsFetcher(props: Props) {
   const {match} = useRouter();
-  const startEnd = useMemo(() => getStartEnd(props.timeRange), [
-    props.timeRange,
-  ]);
+  const startEnd = useMemo(() => {
+    if (props.startEnd) {
+      const [start, end] = props.startEnd;
+      const [step] = getStepUnit(props.startEnd);
+      return {
+        start: start.toISOString(),
+        startUnix: start.unix() * 1000,
+        end: end.toISOString(),
+        endUnix: end.unix() * 1000,
+        step,
+      };
+    } else {
+      return getStartEnd(props.timeRange);
+    }
+  }, [props.timeRange, props.startEnd]);
+
   const [allDatasets, setAllDatasets] = useState<?Array<Dataset>>(null);
   const enqueueSnackbar = useEnqueueSnackbar();
   const stringedQueries = JSON.stringify(props.queries);
@@ -311,6 +353,13 @@ export default function AsyncMetric(props: Props) {
     return <Text variant="body2">No Data</Text>;
   }
   const {style} = props;
+  const {startEnd} = props;
+  let unit: string;
+  if (startEnd) {
+    [, unit] = getStepUnit(startEnd);
+  } else {
+    unit = getUnit(props.timeRange);
+  }
   return (
     <Line
       options={{
@@ -323,7 +372,7 @@ export default function AsyncMetric(props: Props) {
               ticks: style ? style.options.xAxes.ticks : {},
               type: 'time',
               time: {
-                unit: getUnit(props.timeRange),
+                unit,
                 round: 'second',
                 tooltipFormat: ' YYYY/MM/DD h:mm:ss a',
               },

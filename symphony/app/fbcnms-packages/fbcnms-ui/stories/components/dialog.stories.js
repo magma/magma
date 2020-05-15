@@ -37,10 +37,8 @@ const useStyles = makeStyles(() => ({
 const DialogsRoot = () => {
   const classes = useStyles();
   const [isDialogShown, setIsDialogShown] = useState(false);
-  const [dialogKey, setDialogKey] = useState(0);
   const closeDialog = () => {
     setIsDialogShown(false);
-    setDialogKey(dialogKey => dialogKey + 1);
   };
 
   return (
@@ -50,7 +48,6 @@ const DialogsRoot = () => {
         <Text>Page Content</Text>
       </div>
       <MessageDialog
-        key={dialogKey}
         title="Message Dialog"
         message={
           <div className={classes.content}>
@@ -59,7 +56,7 @@ const DialogsRoot = () => {
           </div>
         }
         onClose={closeDialog}
-        checkboxLabel="I understand"
+        verificationCheckbox={{label: 'I understand', isMandatory: true}}
         cancelLabel="Cancel"
         confirmLabel="Save"
         onCancel={closeDialog}

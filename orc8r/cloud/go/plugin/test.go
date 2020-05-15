@@ -12,7 +12,7 @@ import (
 	"sync"
 	"testing"
 
-	"magma/orc8r/cloud/go/services/metricsd/confignames"
+	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/lib/go/service/config"
 )
 
@@ -25,12 +25,12 @@ var testPlugins = &testPluginRegistry{plugins: map[string]OrchestratorPlugin{}}
 
 var testMetricsConfigMap = &config.ConfigMap{
 	RawMap: map[interface{}]interface{}{
-		confignames.Profile:                      "",
-		confignames.PrometheusPushAddresses:      []string{""},
-		confignames.PrometheusQueryAddress:       "",
-		confignames.PrometheusConfigServiceURL:   "",
-		confignames.AlertmanagerConfigServiceURL: "",
-		confignames.AlertmanagerApiURL:           "",
+		metricsd.Profile:                      "",
+		metricsd.PrometheusPushAddresses:      []string{""},
+		metricsd.PrometheusQueryAddress:       "",
+		metricsd.PrometheusConfigServiceURL:   "",
+		metricsd.AlertmanagerConfigServiceURL: "",
+		metricsd.AlertmanagerApiURL:           "",
 	},
 }
 

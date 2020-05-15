@@ -44,7 +44,7 @@ func convertFamilyToGauges(baseFamily *dto.MetricFamily) []*dto.MetricFamily {
 	return gaugeFamilies
 }
 
-// counterToGauge takes a counter and converts it to a guage with the
+// counterToGauge takes a counter and converts it to a gauge with the
 // same value
 func counterToGauge(family *dto.MetricFamily) *dto.MetricFamily {
 	counterFamily := dto.MetricFamily{
@@ -96,6 +96,7 @@ func histogramToGauges(family *dto.MetricFamily) []*dto.MetricFamily {
 			},
 		}
 		sumFamily.Metric = append(sumFamily.Metric, &sumMetric)
+
 		countValue := float64(*metric.Histogram.SampleCount)
 		countMetric := dto.Metric{
 			Label: metric.Label,
@@ -104,6 +105,7 @@ func histogramToGauges(family *dto.MetricFamily) []*dto.MetricFamily {
 			},
 		}
 		countFamily.Metric = append(countFamily.Metric, &countMetric)
+
 		for _, bucket := range metric.Histogram.Bucket {
 			bucketValue := float64(*bucket.CumulativeCount)
 			bucketMetric := dto.Metric{

@@ -28,10 +28,8 @@ const (
 	EdgePropertyTypes = "property_types"
 	// EdgeDefinitions holds the string denoting the definitions edge name in mutations.
 	EdgeDefinitions = "definitions"
-	// EdgeCheckListCategories holds the string denoting the check_list_categories edge name in mutations.
-	EdgeCheckListCategories = "check_list_categories"
-	// EdgeCheckListDefinitions holds the string denoting the check_list_definitions edge name in mutations.
-	EdgeCheckListDefinitions = "check_list_definitions"
+	// EdgeCheckListCategoryDefinitions holds the string denoting the check_list_category_definitions edge name in mutations.
+	EdgeCheckListCategoryDefinitions = "check_list_category_definitions"
 
 	// Table holds the table name of the workordertype in the database.
 	Table = "work_order_types"
@@ -56,20 +54,13 @@ const (
 	DefinitionsInverseTable = "work_order_definitions"
 	// DefinitionsColumn is the table column denoting the definitions relation/edge.
 	DefinitionsColumn = "work_order_definition_type"
-	// CheckListCategoriesTable is the table the holds the check_list_categories relation/edge.
-	CheckListCategoriesTable = "check_list_categories"
-	// CheckListCategoriesInverseTable is the table name for the CheckListCategory entity.
-	// It exists in this package in order to avoid circular dependency with the "checklistcategory" package.
-	CheckListCategoriesInverseTable = "check_list_categories"
-	// CheckListCategoriesColumn is the table column denoting the check_list_categories relation/edge.
-	CheckListCategoriesColumn = "work_order_type_check_list_categories"
-	// CheckListDefinitionsTable is the table the holds the check_list_definitions relation/edge.
-	CheckListDefinitionsTable = "check_list_item_definitions"
-	// CheckListDefinitionsInverseTable is the table name for the CheckListItemDefinition entity.
-	// It exists in this package in order to avoid circular dependency with the "checklistitemdefinition" package.
-	CheckListDefinitionsInverseTable = "check_list_item_definitions"
-	// CheckListDefinitionsColumn is the table column denoting the check_list_definitions relation/edge.
-	CheckListDefinitionsColumn = "work_order_type_check_list_definitions"
+	// CheckListCategoryDefinitionsTable is the table the holds the check_list_category_definitions relation/edge.
+	CheckListCategoryDefinitionsTable = "check_list_category_definitions"
+	// CheckListCategoryDefinitionsInverseTable is the table name for the CheckListCategoryDefinition entity.
+	// It exists in this package in order to avoid circular dependency with the "checklistcategorydefinition" package.
+	CheckListCategoryDefinitionsInverseTable = "check_list_category_definitions"
+	// CheckListCategoryDefinitionsColumn is the table column denoting the check_list_category_definitions relation/edge.
+	CheckListCategoryDefinitionsColumn = "work_order_type_check_list_category_definitions"
 )
 
 // Columns holds all SQL columns for workordertype fields.

@@ -13,6 +13,7 @@
     "createOrganization": "node -r '@fbcnms/babel-register' scripts/createOrganization.js"
   },
   "dependencies": {
+    "@date-io/moment": "1.x",
     "@fbcnms/auth": "^0.1.0",
     "@fbcnms/babel-register": "^0.1.0",
     "@fbcnms/magma-api": "^0.1.0",
@@ -22,6 +23,7 @@
     "@fbcnms/util": "^0.1.0",
     "@material-ui/core": "^4.0.0",
     "@material-ui/icons": "^4.0.0",
+    "@material-ui/pickers": "^3.2.10",
     "@material-ui/styles": "^4.0.0",
     "axios": "^0.18.0",
     "chart.js": "^2.7.3",

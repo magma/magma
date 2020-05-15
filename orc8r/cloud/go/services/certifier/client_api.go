@@ -197,7 +197,7 @@ func CollectGarbage() error {
 
 	_, err = client.CollectGarbage(context.Background(), &protos.Void{})
 	if err != nil {
-		glog.Errorf("Failed to collect garbage certificate: %s", err)
+		glog.Errorf("Failed to collect garbage: %v", err)
 		return err
 	}
 	return nil

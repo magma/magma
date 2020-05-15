@@ -14,7 +14,12 @@ import type {
 } from '../utils/UserManagementUtils';
 
 import * as React from 'react';
-import Checkbox from '@fbcnms/ui/components/design-system/Checkbox/Checkbox';
+import HierarchicalCheckbox, {
+  HIERARCHICAL_RELATION,
+} from '../utils/HierarchicalCheckbox';
+import PermissionsPolicyRulesSection, {
+  DataRuleTitle,
+} from './PermissionsPolicyRulesSection';
 import Switch from '@fbcnms/ui/components/design-system/switch/Switch';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import fbt from 'fbt';
@@ -34,10 +39,10 @@ const useStyles = makeStyles(() => ({
   section: {
     display: 'flex',
     flexDirection: 'column',
-    marginTop: '32px',
+    marginTop: '8px',
   },
   header: {
-    marginBottom: '4px',
+    marginBottom: '16px',
     marginLeft: '4px',
     display: 'flex',
     flexDirection: 'column',
@@ -52,15 +57,13 @@ const useStyles = makeStyles(() => ({
 }));
 
 type InventoryDataRulesSectionProps = $ReadOnly<{|
-  title: React.Node,
-  subtitle: React.Node,
   rule: ?WorkforceCUDPermissions,
   disabled: boolean,
   onChange: WorkforceCUDPermissions => void,
 |}>;
 
 function WorkforceDataRulesSection(props: InventoryDataRulesSectionProps) {
-  const {title, subtitle, rule, disabled, onChange} = props;
+  const {rule, disabled, onChange} = props;
   const classes = useStyles();
 
   if (rule == null) {
@@ -69,85 +72,44 @@ function WorkforceDataRulesSection(props: InventoryDataRulesSectionProps) {
 
   return (
     <div className={classes.section}>
-      <div className={classes.header}>
-        <Text variant="subtitle1">{title}</Text>
-        <Text variant="body2" color="gray">
-          {subtitle}
-        </Text>
-      </div>
-      <Checkbox
-        className={classes.rule}
-        title={fbt('Create', '')}
+      <PermissionsPolicyRulesSection
         disabled={disabled}
-        checked={!disabled && permissionRuleValue2Bool(rule.create.isAllowed)}
-        onChange={selection =>
+        rule={{
+          create: rule.create,
+          delete: rule.delete,
+          update: rule.update,
+        }}
+        className={classes.section}
+        onChange={ruleCUD =>
           onChange({
             ...rule,
-            create: {
-              isAllowed: bool2PermissionRuleValue(selection === 'checked'),
-            },
+            ...ruleCUD,
           })
-        }
-      />
-      <Checkbox
-        className={classes.rule}
-        title={fbt('Edit', '')}
-        disabled={disabled}
-        checked={!disabled && permissionRuleValue2Bool(rule.update.isAllowed)}
-        onChange={selection =>
-          onChange({
-            ...rule,
-            update: {
-              isAllowed: bool2PermissionRuleValue(selection === 'checked'),
-            },
-          })
-        }
-      />
-      <Checkbox
-        className={classes.rule}
-        title={fbt('Assign', '')}
-        disabled={disabled}
-        checked={!disabled && permissionRuleValue2Bool(rule.assign.isAllowed)}
-        onChange={selection =>
-          onChange({
-            ...rule,
-            assign: {
-              isAllowed: bool2PermissionRuleValue(selection === 'checked'),
-            },
-          })
-        }
-      />
-      <Checkbox
-        className={classes.rule}
-        title={fbt('Delete', '')}
-        disabled={disabled}
-        checked={!disabled && permissionRuleValue2Bool(rule.delete.isAllowed)}
-        onChange={selection =>
-          onChange({
-            ...rule,
-            delete: {
-              isAllowed: bool2PermissionRuleValue(selection === 'checked'),
-            },
-          })
-        }
-      />
-      <Checkbox
-        className={classes.rule}
-        title={fbt('Transfer Ownership', '')}
-        disabled={disabled}
-        checked={
-          !disabled &&
-          permissionRuleValue2Bool(rule.transferOwnership.isAllowed)
-        }
-        onChange={selection =>
-          onChange({
-            ...rule,
-            transferOwnership: {
-              isAllowed: bool2PermissionRuleValue(selection === 'checked'),
-            },
-          })
-        }
-      />
+        }>
+        <HierarchicalCheckbox
+          id="transferOwnership"
+          title={
+            <DataRuleTitle>
+              <fbt desc="">Transfer ownership</fbt>
+            </DataRuleTitle>
+          }
+          disabled={disabled}
+          value={
+            !disabled &&
+            permissionRuleValue2Bool(rule.transferOwnership.isAllowed)
+          }
+          onChange={checked =>
+            onChange({
+              ...rule,
+              transferOwnership: {
+                isAllowed: bool2PermissionRuleValue(checked),
+              },
+            })
+          }
+          hierarchicalRelation={HIERARCHICAL_RELATION.PARENT_REQUIRED}
+          className={classes.rule}
+        />
+      </PermissionsPolicyRulesSection>
     </div>
   );
 }
@@ -169,6 +131,17 @@ export default function PermissionsPolicyWorkforceDataRulesTab(props: Props) {
 
   return (
     <div className={classes.root}>
+      <div className={classes.header}>
+        <Text variant="subtitle1">
+          <fbt desc="">Workforce Data</fbt>
+        </Text>
+        <Text variant="body2" color="gray">
+          <fbt desc="">
+            Choose the permissions this policy should include for modifying the
+            selected work orders and projects.
+          </fbt>
+        </Text>
+      </div>
       <Switch
         className={classes.readRule}
         title={fbt('View work orders and projects', '')}
@@ -183,11 +156,6 @@ export default function PermissionsPolicyWorkforceDataRulesTab(props: Props) {
         }
       />
       <WorkforceDataRulesSection
-        title={fbt('Modifying', '')}
-        subtitle={fbt(
-          'Choose the permissions this policy should include for modifying the selected work orders and projects.',
-          '',
-        )}
         disabled={!readAllowed}
         rule={policy.data}
         onChange={data =>

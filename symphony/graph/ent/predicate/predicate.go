@@ -16,6 +16,9 @@ type ActionsRule func(*sql.Selector)
 // CheckListCategory is the predicate function for checklistcategory builders.
 type CheckListCategory func(*sql.Selector)
 
+// CheckListCategoryDefinition is the predicate function for checklistcategorydefinition builders.
+type CheckListCategoryDefinition func(*sql.Selector)
+
 // CheckListItem is the predicate function for checklistitem builders.
 type CheckListItem func(*sql.Selector)
 

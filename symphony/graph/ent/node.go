@@ -17,6 +17,7 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql/schema"
 	"github.com/facebookincubator/symphony/graph/ent/actionsrule"
 	"github.com/facebookincubator/symphony/graph/ent/checklistcategory"
+	"github.com/facebookincubator/symphony/graph/ent/checklistcategorydefinition"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitemdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/comment"
@@ -153,7 +154,7 @@ func (clc *CheckListCategory) Node(ctx context.Context) (node *Node, err error) 
 		ID:     clc.ID,
 		Type:   "CheckListCategory",
 		Fields: make([]*Field, 4),
-		Edges:  make([]*Edge, 1),
+		Edges:  make([]*Edge, 2),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(clc.CreateTime); err != nil {
@@ -199,6 +200,83 @@ func (clc *CheckListCategory) Node(ctx context.Context) (node *Node, err error) 
 		IDs:  ids,
 		Type: "CheckListItem",
 		Name: "CheckListItems",
+	}
+	ids, err = clc.QueryWorkOrder().
+		Select(workorder.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		IDs:  ids,
+		Type: "WorkOrder",
+		Name: "WorkOrder",
+	}
+	return node, nil
+}
+
+func (clcd *CheckListCategoryDefinition) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     clcd.ID,
+		Type:   "CheckListCategoryDefinition",
+		Fields: make([]*Field, 4),
+		Edges:  make([]*Edge, 2),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(clcd.CreateTime); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "time.Time",
+		Name:  "CreateTime",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(clcd.UpdateTime); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "time.Time",
+		Name:  "UpdateTime",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(clcd.Title); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "string",
+		Name:  "Title",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(clcd.Description); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "string",
+		Name:  "Description",
+		Value: string(buf),
+	}
+	var ids []int
+	ids, err = clcd.QueryCheckListItemDefinitions().
+		Select(checklistitemdefinition.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[0] = &Edge{
+		IDs:  ids,
+		Type: "CheckListItemDefinition",
+		Name: "CheckListItemDefinitions",
+	}
+	ids, err = clcd.QueryWorkOrderType().
+		Select(workordertype.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		IDs:  ids,
+		Type: "WorkOrderType",
+		Name: "WorkOrderType",
 	}
 	return node, nil
 }
@@ -259,12 +337,12 @@ func (cli *CheckListItem) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "EnumValues",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(cli.EnumSelectionMode); err != nil {
+	if buf, err = json.Marshal(cli.EnumSelectionModeValue); err != nil {
 		return nil, err
 	}
 	node.Fields[6] = &Field{
-		Type:  "string",
-		Name:  "EnumSelectionMode",
+		Type:  "checklistitem.EnumSelectionModeValue",
+		Name:  "EnumSelectionModeValue",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(cli.SelectedEnumValues); err != nil {
@@ -325,16 +403,16 @@ func (cli *CheckListItem) Node(ctx context.Context) (node *Node, err error) {
 		Type: "SurveyCellScan",
 		Name: "CellScan",
 	}
-	ids, err = cli.QueryWorkOrder().
-		Select(workorder.FieldID).
+	ids, err = cli.QueryCheckListCategory().
+		Select(checklistcategory.FieldID).
 		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
 	node.Edges[3] = &Edge{
 		IDs:  ids,
-		Type: "WorkOrder",
-		Name: "WorkOrder",
+		Type: "CheckListCategory",
+		Name: "CheckListCategory",
 	}
 	return node, nil
 }
@@ -343,7 +421,7 @@ func (clid *CheckListItemDefinition) Node(ctx context.Context) (node *Node, err 
 	node = &Node{
 		ID:     clid.ID,
 		Type:   "CheckListItemDefinition",
-		Fields: make([]*Field, 7),
+		Fields: make([]*Field, 8),
 		Edges:  make([]*Edge, 1),
 	}
 	var buf []byte
@@ -395,25 +473,33 @@ func (clid *CheckListItemDefinition) Node(ctx context.Context) (node *Node, err 
 		Name:  "EnumValues",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(clid.HelpText); err != nil {
+	if buf, err = json.Marshal(clid.EnumSelectionModeValue); err != nil {
 		return nil, err
 	}
 	node.Fields[6] = &Field{
+		Type:  "checklistitemdefinition.EnumSelectionModeValue",
+		Name:  "EnumSelectionModeValue",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(clid.HelpText); err != nil {
+		return nil, err
+	}
+	node.Fields[7] = &Field{
 		Type:  "string",
 		Name:  "HelpText",
 		Value: string(buf),
 	}
 	var ids []int
-	ids, err = clid.QueryWorkOrderType().
-		Select(workordertype.FieldID).
+	ids, err = clid.QueryCheckListCategoryDefinition().
+		Select(checklistcategorydefinition.FieldID).
 		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
 	node.Edges[0] = &Edge{
 		IDs:  ids,
-		Type: "WorkOrderType",
-		Name: "WorkOrderType",
+		Type: "CheckListCategoryDefinition",
+		Name: "CheckListCategoryDefinition",
 	}
 	return node, nil
 }
@@ -4132,7 +4218,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 		ID:     wo.ID,
 		Type:   "WorkOrder",
 		Fields: make([]*Field, 10),
-		Edges:  make([]*Edge, 13),
+		Edges:  make([]*Edge, 12),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(wo.CreateTime); err != nil {
@@ -4315,24 +4401,13 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 		Type: "CheckListCategory",
 		Name: "CheckListCategories",
 	}
-	ids, err = wo.QueryCheckListItems().
-		Select(checklistitem.FieldID).
-		Ints(ctx)
-	if err != nil {
-		return nil, err
-	}
-	node.Edges[9] = &Edge{
-		IDs:  ids,
-		Type: "CheckListItem",
-		Name: "CheckListItems",
-	}
 	ids, err = wo.QueryProject().
 		Select(project.FieldID).
 		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[10] = &Edge{
+	node.Edges[9] = &Edge{
 		IDs:  ids,
 		Type: "Project",
 		Name: "Project",
@@ -4343,7 +4418,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[11] = &Edge{
+	node.Edges[10] = &Edge{
 		IDs:  ids,
 		Type: "User",
 		Name: "Owner",
@@ -4354,7 +4429,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[12] = &Edge{
+	node.Edges[11] = &Edge{
 		IDs:  ids,
 		Type: "User",
 		Name: "Assignee",
@@ -4425,7 +4500,7 @@ func (wot *WorkOrderType) Node(ctx context.Context) (node *Node, err error) {
 		ID:     wot.ID,
 		Type:   "WorkOrderType",
 		Fields: make([]*Field, 4),
-		Edges:  make([]*Edge, 5),
+		Edges:  make([]*Edge, 4),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(wot.CreateTime); err != nil {
@@ -4494,27 +4569,16 @@ func (wot *WorkOrderType) Node(ctx context.Context) (node *Node, err error) {
 		Type: "WorkOrderDefinition",
 		Name: "Definitions",
 	}
-	ids, err = wot.QueryCheckListCategories().
-		Select(checklistcategory.FieldID).
+	ids, err = wot.QueryCheckListCategoryDefinitions().
+		Select(checklistcategorydefinition.FieldID).
 		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
 	node.Edges[3] = &Edge{
 		IDs:  ids,
-		Type: "CheckListCategory",
-		Name: "CheckListCategories",
-	}
-	ids, err = wot.QueryCheckListDefinitions().
-		Select(checklistitemdefinition.FieldID).
-		Ints(ctx)
-	if err != nil {
-		return nil, err
-	}
-	node.Edges[4] = &Edge{
-		IDs:  ids,
-		Type: "CheckListItemDefinition",
-		Name: "CheckListDefinitions",
+		Type: "CheckListCategoryDefinition",
+		Name: "CheckListCategoryDefinitions",
 	}
 	return node, nil
 }
@@ -4554,6 +4618,15 @@ func (c *Client) noder(ctx context.Context, tbl string, id int) (Noder, error) {
 		n, err := c.CheckListCategory.Query().
 			Where(checklistcategory.ID(id)).
 			CollectFields(ctx, "CheckListCategory").
+			Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case checklistcategorydefinition.Table:
+		n, err := c.CheckListCategoryDefinition.Query().
+			Where(checklistcategorydefinition.ID(id)).
+			CollectFields(ctx, "CheckListCategoryDefinition").
 			Only(ctx)
 		if err != nil {
 			return nil, err

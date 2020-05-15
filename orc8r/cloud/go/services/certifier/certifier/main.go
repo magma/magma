@@ -10,6 +10,7 @@ package main
 
 import (
 	"flag"
+	"math/rand"
 	"time"
 
 	"magma/orc8r/cloud/go/blobstore"
@@ -85,14 +86,20 @@ func main() {
 	certprotos.RegisterCertifierServer(srv.GrpcServer, servicer)
 
 	// Start Garbage Collector Ticker
-	gc := time.Tick(time.Hour * time.Duration(*gcHours))
 	go func() {
-		for now := range gc {
-			glog.Infof("%v - Removing Stale Certificates", now)
-			_, err := servicer.CollectGarbage(context.Background(), &protos.Void{})
+		rand.Seed(time.Now().UnixNano())
+		for {
+			// wait for *gcHours +/- rand(1/20 of *gcHours)
+			after := time.Hour * time.Duration(*gcHours)
+			tenth := (after / 10) + 1 // +1 to make sure, it's not 0
+			randomDelta := time.Duration(rand.Int63n(int64(tenth))) - tenth/2
+			<-time.After(after + randomDelta)
+			glog.Infof("removing stale certificates")
+			count, err := servicer.CollectGarbageImpl(context.Background())
 			if err != nil {
-				glog.Errorf("error collecting garbage for certifier: %s", err)
+				glog.Errorf("error collecting garbage for certifier: %v", err)
 			}
+			glog.Infof("removed %d stale certificates", count)
 		}
 	}()
 

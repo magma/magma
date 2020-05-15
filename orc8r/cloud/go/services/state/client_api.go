@@ -102,7 +102,7 @@ func GetState(networkID string, typeVal string, hwID string) (State, error) {
 	if len(res.States) == 0 {
 		return State{}, merrors.ErrNotFound
 	}
-	return toState(res.States[0])
+	return makeState(res.States[0])
 }
 
 // GetStates returns a map of states specified by the networkID and a list of type and key
@@ -125,7 +125,7 @@ func GetStates(networkID string, stateIDs []ID) (StatesByID, error) {
 	if err != nil {
 		return nil, err
 	}
-	return toStatesByID(res.States)
+	return MakeStatesByID(res.States)
 }
 
 // SearchStates returns all states matching the filter arguments.
@@ -147,7 +147,7 @@ func SearchStates(networkID string, typeFilter []string, keyFilter []string) (St
 	if err != nil {
 		return nil, err
 	}
-	return toStatesByID(res.States)
+	return MakeStatesByID(res.States)
 }
 
 // DeleteStates deletes states specified by the networkID and a list of
@@ -167,6 +167,7 @@ func DeleteStates(networkID string, stateIDs []ID) error {
 	return err
 }
 
+// GetGatewayStatus returns the status for an indicated gateway.
 func GetGatewayStatus(networkID string, deviceID string) (*models.GatewayStatus, error) {
 	state, err := GetState(networkID, orc8r.GatewayStateType, deviceID)
 	if err != nil {
@@ -178,6 +179,8 @@ func GetGatewayStatus(networkID string, deviceID string) (*models.GatewayStatus,
 	return fillInGatewayStatusState(state), nil
 }
 
+// GetGatewayStatuses returns the status for indicated gateways, keyed by
+// device ID.
 func GetGatewayStatuses(networkID string, deviceIDs []string) (map[string]*models.GatewayStatus, error) {
 	stateIDs := funk.Map(deviceIDs, func(id string) ID {
 		return ID{Type: orc8r.GatewayStateType, DeviceID: id}
@@ -194,22 +197,12 @@ func GetGatewayStatuses(networkID string, deviceIDs []string) (map[string]*model
 	return ret, nil
 }
 
-func fillInGatewayStatusState(state State) *models.GatewayStatus {
-	if state.ReportedState == nil {
-		return nil
-	}
-	gwStatus := state.ReportedState.(*models.GatewayStatus)
-	gwStatus.CheckinTime = state.TimeMs
-	gwStatus.CertExpirationTime = state.CertExpirationTime
-	gwStatus.HardwareID = state.ReporterID
-	return gwStatus
-}
-
-func toStatesByID(states []*protos.State) (StatesByID, error) {
+// MakeStatesByID converts state protos to state structs, keyed by state ID.
+func MakeStatesByID(states []*protos.State) (StatesByID, error) {
 	byID := StatesByID{}
 	for _, p := range states {
 		id := ID{Type: p.Type, DeviceID: p.DeviceID}
-		state, err := toState(p)
+		state, err := makeState(p)
 		if err != nil {
 			return nil, err
 		}
@@ -218,15 +211,8 @@ func toStatesByID(states []*protos.State) (StatesByID, error) {
 	return byID, nil
 }
 
-func toProtoIDs(stateIDs []ID) []*protos.StateID {
-	var ids []*protos.StateID
-	for _, state := range stateIDs {
-		ids = append(ids, &protos.StateID{Type: state.Type, DeviceID: state.DeviceID})
-	}
-	return ids
-}
-
-func toState(p *protos.State) (State, error) {
+// makeState converts a state proto to a state structs.
+func makeState(p *protos.State) (State, error) {
 	// Recover state struct
 	serialized := &SerializedStateWithMeta{}
 	err := json.Unmarshal(p.Value, serialized)
@@ -246,4 +232,23 @@ func toState(p *protos.State) (State, error) {
 	}
 
 	return state, err
+}
+
+func fillInGatewayStatusState(state State) *models.GatewayStatus {
+	if state.ReportedState == nil {
+		return nil
+	}
+	gwStatus := state.ReportedState.(*models.GatewayStatus)
+	gwStatus.CheckinTime = state.TimeMs
+	gwStatus.CertExpirationTime = state.CertExpirationTime
+	gwStatus.HardwareID = state.ReporterID
+	return gwStatus
+}
+
+func toProtoIDs(stateIDs []ID) []*protos.StateID {
+	var ids []*protos.StateID
+	for _, state := range stateIDs {
+		ids = append(ids, &protos.StateID{Type: state.Type, DeviceID: state.DeviceID})
+	}
+	return ids
 }

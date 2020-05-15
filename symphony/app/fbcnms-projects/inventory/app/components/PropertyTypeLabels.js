@@ -13,29 +13,65 @@ import type {PropertyTypeInfo} from './form/PropertyTypeTable';
 import fbt from 'fbt';
 
 export const PropertyTypeLabels: {[string]: PropertyTypeInfo} = {
-  date: {label: fbt('Date', '')},
-  datetime_local: {label: fbt('Date & Time', '')},
-  int: {label: fbt('Number', '')},
-  float: {label: fbt('Float', '')},
-  string: {label: fbt('Text', '')},
-  email: {label: fbt('Email', '')},
-  gps_location: {label: fbt('Coordinates', '')},
-  bool: {label: fbt('True or False', '')},
-  range: {label: fbt('Range', '')},
-  enum: {label: fbt('Multiple choice', '')},
-  equipment: {label: fbt('Equipment', ''), isNode: true},
-  location: {label: fbt('Location', ''), isNode: true},
+  date: {
+    label: fbt('Date', ''),
+    kind: 'date',
+  },
+  datetime_local: {
+    label: fbt('Date & Time', ''),
+    kind: 'datetime_local',
+  },
+  int: {
+    label: fbt('Number', ''),
+    kind: 'int',
+  },
+  float: {
+    label: fbt('Float', ''),
+    kind: 'float',
+  },
+  string: {
+    label: fbt('Text', ''),
+    kind: 'string',
+  },
+  email: {
+    label: fbt('Email', ''),
+    kind: 'email',
+  },
+  gps_location: {
+    label: fbt('Coordinates', ''),
+    kind: 'gps_location',
+  },
+  bool: {
+    label: fbt('True or False', ''),
+    kind: 'bool',
+  },
+  range: {
+    label: fbt('Range', ''),
+    kind: 'range',
+  },
+  enum: {
+    label: fbt('Multiple choice', ''),
+    kind: 'enum',
+  },
+  equipment: {
+    label: fbt('Equipment', ''),
+    kind: 'node',
+  },
+  location: {
+    label: fbt('Location', ''),
+    kind: 'node',
+  },
   service: {
     label: fbt('Service', ''),
     featureFlag: 'services',
-    isNode: true,
+    kind: 'node',
   },
   work_order: {
     label: fbt('Work Order', ''),
-    isNode: true,
+    kind: 'node',
   },
   user: {
     label: fbt('User', ''),
-    isNode: true,
+    kind: 'node',
   },
 };

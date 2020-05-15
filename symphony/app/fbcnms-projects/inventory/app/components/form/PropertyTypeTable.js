@@ -11,6 +11,7 @@
 import type {AppContextType} from '@fbcnms/ui/context/AppContext';
 import type {FeatureID} from '@fbcnms/types/features';
 import type {Property} from '../../common/Property';
+import type {PropertyKind} from '../configure/__generated__/WorkOrderTypesQuery.graphql';
 import type {PropertyType} from '../../common/PropertyType';
 import type {WithStyles} from '@material-ui/core';
 
@@ -23,8 +24,8 @@ import DroppableTableBody from '../draggable/DroppableTableBody';
 import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
 import IconButton from '@fbcnms/ui/components/design-system/IconButton';
+import PropertyTypeSelect from './PropertyTypeSelect';
 import PropertyValueInput from './PropertyValueInput';
-import Select from '@fbcnms/ui/components/design-system/Select/Select';
 import Table from '@material-ui/core/Table';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
@@ -32,7 +33,6 @@ import TableRow from '@material-ui/core/TableRow';
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import inventoryTheme from '../../common/theme';
 import {DeleteIcon, PlusIcon} from '@fbcnms/ui/components/design-system/Icons';
-import {PropertyTypeLabels} from '../PropertyTypeLabels';
 import {removeItem, setItem, updateItem} from '@fbcnms/util/arrays';
 import {reorder} from '../draggable/DraggableUtils';
 import {withStyles} from '@material-ui/core/styles';
@@ -66,9 +66,9 @@ const styles = () => ({
 });
 
 export type PropertyTypeInfo = $ReadOnly<{|
+  kind: PropertyKind,
   label: string,
   featureFlag?: FeatureID,
-  isNode?: boolean,
 |}>;
 
 type Props = {
@@ -142,27 +142,9 @@ class PropertyTypeTable extends React.Component<Props> {
                     component="div"
                     scope="row">
                     <FormField>
-                      <Select
-                        className={classes.input}
-                        options={Object.keys(PropertyTypeLabels)
-                          .filter(
-                            type =>
-                              !PropertyTypeLabels[type].featureFlag ||
-                              this.context.isFeatureEnabled(
-                                PropertyTypeLabels[type].featureFlag,
-                              ),
-                          )
-                          .map(type => ({
-                            key: type,
-                            value: PropertyTypeLabels[type].isNode
-                              ? 'node-' + type
-                              : type + '-',
-                            label: PropertyTypeLabels[type].label,
-                          }))}
-                        selectedValue={
-                          property.type + '-' + (property.nodeType ?? '')
-                        }
-                        onChange={this._handleTypeChange(i)}
+                      <PropertyTypeSelect
+                        propertyType={property}
+                        onPropertyTypeChange={this._handleTypeChange(i)}
                       />
                     </FormField>
                   </TableCell>
@@ -257,23 +239,12 @@ class PropertyTypeTable extends React.Component<Props> {
     );
   };
 
-  _handleTypeChange = index => value => {
-    const [type, nodeType] = value.split('-');
-    const newPropertyTypes = updateItem<PropertyType, 'type'>(
-      this.props.propertyTypes,
-      index,
-      'type',
-      // $FlowFixMe: need to figure out how to cast string to PropertyKind
-      type,
-    );
-    this.props.onPropertiesChanged(
-      updateItem<PropertyType, 'nodeType'>(
-        newPropertyTypes,
-        index,
-        'nodeType',
-        nodeType,
-      ),
-    );
+  _handleTypeChange = (index: number) => (value: PropertyType) => {
+    this.props.onPropertiesChanged([
+      ...this.props.propertyTypes.slice(0, index),
+      value,
+      ...this.props.propertyTypes.slice(index + 1),
+    ]);
   };
 
   _handleNameBlur = index => {
