@@ -89,7 +89,6 @@ func generateClientsConfsAndDiameterConnection() (
 	// Global config, init Method and policyDb (static routes) are shared by all the controllers
 	gyGlobalConf := gy.GetGyGlobalConfig()
 	gxGlobalConf := gx.GetGxGlobalConfig()
-	initMethod := gy.GetInitMethod()
 
 	// Each controller will take one entry of PCRF, OCS, and gx/gy clients confs
 	gxCliConfs := gx.GetGxClientConfiguration()
@@ -120,7 +119,6 @@ func generateClientsConfsAndDiameterConnection() (
 			OCSConfig:        OCSConfs[i],
 			PCRFConfig:       PCRFConfs[i],
 			RequestTimeout:   3 * time.Second,
-			InitMethod:       initMethod,
 			UseGyForAuthOnly: util.IsTruthyEnv(gy.UseGyForAuthOnlyEnv),
 		}
 		// Fill in gx and gy config for controller i
