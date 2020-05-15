@@ -74,7 +74,7 @@ class RedirectTest(unittest.TestCase):
                 'bridge_ip_address': cls.BRIDGE_IP_ADDRESS,
                 'nat_iface': 'eth2',
                 'enodeb_iface': 'eth1',
-                'enable_queue_pgm': False,
+                'qos': {'enable': False},
                 'clean_restart': True,
             },
             mconfig=PipelineD(

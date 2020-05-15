@@ -477,13 +477,13 @@ def delete_all_flows_from_table(datapath, table, retries=3):
 
 def __get_instructions_for_actions(ofproto, ofproto_parser,
                                    actions, instructions):
-    if actions and len(actions) > 0:
-        return [
-            ofproto_parser.OFPInstructionActions(ofproto.OFPIT_APPLY_ACTIONS,
-                                                 actions),
-        ]
-    else:
-        return instructions or []
+    if instructions is None:
+        instructions = []
+
+    if actions:
+        instructions.append(ofproto_parser.OFPInstructionActions(
+            ofproto.OFPIT_APPLY_ACTIONS, actions))
+    return instructions
 
 
 def _check_scratch_reg_load(actions, parser):
