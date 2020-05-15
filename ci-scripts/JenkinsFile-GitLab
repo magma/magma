@@ -133,7 +133,7 @@ pipeline {
                 myShCmdWithLog('cd lte/gateway && vagrant destroy --force magma && vagrant up magma', 'archives/magma_vagrant_up.log', new_host_flag, new_host_user, new_host)
                 // Making that magma services are all down. Should be the case after wake-up
                 try {
-                  myShCmd('sudo service magma@* status', new_host_flag, new_host_user, new_host)
+                  myShCmd('cd lte/gateway && vagrant ssh magma -c "sudo service magma@* status"', new_host_flag, new_host_user, new_host)
                 } catch (Exception e) {
                   echo "Fine. Let it go..."
                 }
@@ -180,6 +180,7 @@ pipeline {
                   // removing the magma/.cache/gateway folder with speed down build from 3 minutes to 27 minutes
                   myShCmdWithLog('cd lte/gateway && vagrant ssh magma -c "cd magma/lte/gateway && make run"', 'archives/magma_vagrant_make_run.log', new_host_flag, new_host_user, new_host)
                 }
+                sh "sleep 30"
                 // check the magma status --> non-blocking (even if OK it might fail from a bash script point of view)
                 try {
                   myShCmd('cd lte/gateway && vagrant ssh magma -c "sudo service magma@* status > magma/archives/magma_status.log"', new_host_flag, new_host_user, new_host)
@@ -357,12 +358,20 @@ pipeline {
           post {
             always {
               script {
-                myShCmdWithLog('cd lte/gateway && vagrant ssh magma -c "cd magma/lte/gateway && make coverage_oai"', 'archives/magma_vagrant_make_coverage_oai.log', new_host_flag, new_host_user, new_host)
+                def retrieveOAIcovFiles = true
                 try {
-                  myShCmd('cd lte/gateway/c/oai && zip -r -qq code_coverage.zip code_coverage/', new_host_flag, new_host_user, new_host)
-                  copyFrom2ndServer('lte/gateway/c/oai/code_coverage.zip', 'archives', new_host_flag, new_host_user, new_host)
+                  myShCmdWithLog('cd lte/gateway && vagrant ssh magma -c "cd magma/lte/gateway && make coverage_oai"', 'archives/magma_vagrant_make_coverage_oai.log', new_host_flag, new_host_user, new_host)
                 } catch (Exception e) {
-                  echo "Maybe we could not generate the coverage HTML report"
+                  echo "Let's keep running to have some logs, but not the OAI coverage files"
+                  retrieveOAIcovFiles = false
+                }
+                if (retrieveOAIcovFiles) {
+                  try {
+                    myShCmd('cd lte/gateway/c/oai && zip -r -qq code_coverage.zip code_coverage/', new_host_flag, new_host_user, new_host)
+                    copyFrom2ndServer('lte/gateway/c/oai/code_coverage.zip', 'archives', new_host_flag, new_host_user, new_host)
+                  } catch (Exception e) {
+                    echo "Maybe we could not generate the coverage HTML report"
+                  }
                 }
               }
             }
