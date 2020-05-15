@@ -105,7 +105,7 @@ bridge_name: cwag_br0
 # Bridge ip comes from 99-ovscfg.yaml
 bridge_ip_address: 192.168.128.1
 
-#QoS parameters
+# QoS parameters
 qos:
  enable: true
  impl: linux_tc

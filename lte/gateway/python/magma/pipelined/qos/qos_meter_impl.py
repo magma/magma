@@ -25,9 +25,8 @@ class MeterManager(object):
                                           meter_config['max_idx'])
         self._max_rate = config["qos"]["max_rate"]
         self._id_manager = IdManager(self._start_idx, self._max_idx)
-        self.initial_meter_id_map = {}
         self._qos_impl_broken = False
-        self.fut = self._loop.create_future()
+        self._fut = self._loop.create_future()
 
         # dump meter features and check if max_meters = 0
         self.check_broken_kernel_impl()
@@ -81,13 +80,13 @@ class MeterManager(object):
         LOG.debug("read_all_state")
         # TODO update ID manager
         MeterClass.dump_all_meters(self._datapath)
-        return self.fut
+        return self._fut
 
     def handle_meter_config_stats(self, ev_body):
         LOG.debug("handle_meter_config_stats %s", ev_body)
         meter_id_map = {stat.meter_id: 0 for stat in ev_body}
         self._id_manager.restore_state(meter_id_map)
-        self.fut.set_result(meter_id_map)
+        self._fut.set_result(meter_id_map)
 
     def handle_meter_feature_stats(self, ev_body):
         LOG.debug("handle_meter_feature_stats %s", ev_body)

@@ -434,7 +434,7 @@ get_action_instruction')
         # mock future state
         if self.config["qos"]["impl"] == QosImplType.OVS_METER:
             MockSt = namedtuple("MockSt", "meter_id")
-            qos_mgr.qos_impl.fut = loop.create_future()
+            qos_mgr.qos_impl._fut = loop.create_future()
             qos_mgr.qos_impl.handle_meter_config_stats([])
         else:
             mock_traffic_cls.read_all_classes.side_effect = lambda _: []
@@ -456,7 +456,7 @@ get_action_instruction')
 
         # mock future state
         if self.config["qos"]["impl"] == QosImplType.OVS_METER:
-            qos_mgr.qos_impl.fut = loop.create_future()
+            qos_mgr.qos_impl._fut = loop.create_future()
             qos_mgr.qos_impl.handle_meter_config_stats(dummy_meter_ev_body)
         else:
             mock_traffic_cls.read_all_classes.side_effect = tc_read
