@@ -2,9 +2,9 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
+ * except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -303,22 +303,6 @@ typedef struct {
   unsigned cmi : 1;
 } UCI_t;
 
-//typedef union {
- //struct  in_addr  edns_peer_ipv4_address;
-  //struct in6_addr edns_peer_ipv6_address;
-//}edns_peer_ip_t;
-
-//typedef union {
- // struct  in_addr  peer_ip_ipv4_address;
-  //struct in6_addr  peer_ip_ipv6_address;
-//}peer_ip_t;
-
-
-//typedef union {
- //struct in_addr  edns_peer_ipv4_address;
-  //struct in6_addr edns_peer_ipv6_address;
-//}edns_peer_ip_t; 
-
 typedef struct {
   /* PPC (Prohibit Payload Compression):
    * This flag is used to determine whether an SGSN should attempt to
@@ -350,9 +334,9 @@ typedef struct bearer_context_to_be_created_s {
     tft; ///< Bearer TFT, Optional CSR, This IE may be included on the S4/S11 and S5/S8 interfaces.
   fteid_t
     s1u_enb_fteid; ///< S1-U eNodeB F-TEID, Conditional CSR, This IE shall be included on the S11 interface for X2-based handover with SGW relocation.
-    fteid_t 
-    s1u_sgw_fteid;   ///< S1-U SGW F-TEID, Conditional CSR, This IE shall be included on the S11 interface for X2-based handover with SGW relocation.fteid_t 
-                           
+    fteid_t
+    s1u_sgw_fteid;   ///< S1-U SGW F-TEID, Conditional CSR, This IE shall be included on the S11 interface for X2-based handover with SGW relocation.fteid_t
+
   fteid_t
     s4u_sgsn_fteid; ///< S4-U SGSN F-TEID, Conditional CSR, This IE shall be included on the S4 interface if the S4-U interface is used.
   fteid_t

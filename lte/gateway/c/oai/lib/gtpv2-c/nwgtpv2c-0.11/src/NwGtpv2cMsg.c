@@ -687,23 +687,6 @@ extern                                  "C" {
         ipv4Addr->s_addr =  (*((uint32_t *) (pIeValue)));
         pIeValue += 4;
       }
-
-
-
-//      if (ipv4Addr) {
-//        fteidBuf[0] |= (0x01 << 7);
-//        *((uint32_t *) (pFteidBuf)) = ipv4Addr->s_addr;
-//        pFteidBuf += 4;
-//      }
-
-
-//      if (pIpv6Addr) {
-//        fteidBuf[0] |= (0x01 << 6);
-//        memcpy ((pFteidBuf), pIpv6Addr->__in6_u.__u6_addr8, 16);
-//        pFteidBuf += 16;
-//      }
-
-
       return NW_OK;
     }
 

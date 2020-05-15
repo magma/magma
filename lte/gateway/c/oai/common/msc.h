@@ -36,7 +36,6 @@ typedef enum {
   MAX_MSC_ENV
 } msc_env_t;
 
-
 typedef enum {
   MIN_MSC_PROTOS = 0,
   MSC_NAS_UE = MIN_MSC_PROTOS,

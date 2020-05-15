@@ -73,7 +73,6 @@
 #define INTERNAL_FLAG_SKIP_RESPONSE (1 << 2)
 #define INTERNAL_FLAG_TRIGGERED_ACK (1 << 3)
 #define INTERNAL_LATE_RESPONS_IND	(1 << 4)
-//#define INTERNAL_FLAG_TRIGGERED_REJECT (4 << 0)
 
 //------------------------------------------------------------------------------
 

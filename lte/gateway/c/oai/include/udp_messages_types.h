@@ -57,8 +57,6 @@ typedef struct {
     struct sockaddr_in6 addrv6;
   } sock_addr;
 
-  //union sock_addr_t  *sock_addr;
-
   uint16_t peer_port;
 
 } udp_data_ind_t;
