@@ -1,14 +1,16 @@
-import request from "superagent";
+// @flow
+import request from 'superagent';
 
-// TODO should we be talking directly to graph container ? or platform-server (reusing the session)
-const url = process.env.GRAPH_HOST || "http://graph/query";
+// TODO should we be talking directly to graph container ?
+//  or platform-server (reusing the session)
+const url = process.env.GRAPH_HOST || 'http://graph/query';
 
 export async function groupsForUser(
   tenant: string,
   userEmail: string,
   role: string,
-  sessionId: ?string
-): string[] {
+  sessionId: ?string,
+): Promise<string[]> {
   // Sample output
   // {
   //   "data": {
@@ -88,20 +90,20 @@ export async function groupsForUser(
                     name
                   }
                 }
-              }`
+              }`,
     })
-    .set("Accept", "application/json")
-    .set("Content-Type", "application/json")
-    .set("x-auth-organization", tenant)
-    .set("x-auth-user-email", userEmail)
-    .set("x-auth-user-role", role)
+    .set('Accept', 'application/json')
+    .set('Content-Type', 'application/json')
+    .set('x-auth-organization', tenant)
+    .set('x-auth-user-email', userEmail)
+    .set('x-auth-user-role', role)
     .then(res => {
       // extract just group names
       return (res.body?.data?.user?.groups ?? []).map(group => group.name);
     })
     .catch(err => {
       // FIXME proper logging and error handling
-      console.log("Error retrieving user groups from graphQl");
+      console.log('Error retrieving user groups from graphQl');
       console.log(err);
     });
 }

@@ -12,15 +12,15 @@ import bodyParser from 'body-parser';
 import httpProxy from 'http-proxy';
 import logging from '@fbcnms/logging';
 import transformerRegistry from './transformer-registry';
-import {getTenantId, getUserRole, getUserGroups} from './utils.js';
+import {getTenantId, getUserGroups, getUserRole} from './utils.js';
 import type {
+  AuthorizationCheck,
   ExpressRouter,
+  GroupLoadingStrategy,
   ProxyCallback,
   ProxyNext,
   ProxyRequest,
   ProxyResponse,
-  AuthorizationCheck,
-  GroupLoadingStrategy
 } from '../types';
 
 const logger = logging.getLogger(module);
@@ -28,10 +28,12 @@ const router = Router();
 router.use(bodyParser.urlencoded({extended: false}));
 router.use('/', bodyParser.json());
 
-export default async function(proxyTarget: string,
+export default async function(
+  proxyTarget: string,
   schellarTarget: string,
   authorizationCheck: AuthorizationCheck,
-  groupLoadingStrategy: GroupLoadingStrategy) {
+  groupLoadingStrategy: GroupLoadingStrategy,
+) {
   const transformers = await transformerRegistry({
     proxyTarget,
     schellarTarget,
@@ -54,7 +56,7 @@ export default async function(proxyTarget: string,
 
       if (!authorizationCheck(role, groups)) {
         res.status(401);
-        res.send("User unauthorized to access this endpoint");
+        res.send('User unauthorized to access this endpoint');
         return;
       }
 
