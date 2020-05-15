@@ -318,5 +318,4 @@ typedef struct flow_qos_s {
   ambr_t   mbr;           ///< Maximum bit rate
 } flow_qos_t;
 
-
 #endif /* FILE_3GPP_29_274_SEEN */

@@ -55,7 +55,7 @@ typedef struct nw_gtpv2c_tunnel_s {
   union {
 	  struct sockaddr_in        ipv4_addr;
 	  struct sockaddr_in6       ipv6_addr;
-  }ipAddrRemote;
+} ipAddrRemote;
 
   nw_gtpv2c_ulp_tunnel_handle_t      hUlpTunnel;
   RB_ENTRY (nw_gtpv2c_tunnel_s)     tunnelMapRbtNode;            /**< RB Tree Data Structure Node        */

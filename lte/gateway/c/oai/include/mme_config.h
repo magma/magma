@@ -214,7 +214,6 @@ typedef struct ip_s {
   struct in6_addr s11_mme_v6;
   int netmask_s11;
   uint16_t port_s11;
-
 } ip_t;
 
 typedef struct s6a_config_s {

@@ -14,7 +14,7 @@ BUILD_TYPE ?= Debug
 # s6a with fd (freeDiameter)
 
 # Default is agw with OpenFlow, gRPC over S6a , (no freeDiameter over s6a).
-FEATURES ?=   mme
+FEATURES ?=agw_of
 
 # EXCLUSIVE_FEATURE_LIST : list of primary features that cannot be requested
 # together.
@@ -51,9 +51,6 @@ else ifeq ($(MAIN_FEATURE),agw_of)
 OAI_FLAGS = $(S6A_FLAGS) -DEMBEDDED_SGW=True -DENABLE_OPENFLOW=True -DSPGW_ENABLE_SESSIOND_AND_MOBILITYD=True
 
 else
-# default
-#OAI_FLAGS = $(S6A_FLAGS) -DEMBEDDED_SGW=True -DENABLE_OPENFLOW=True -DSPGW_ENABLE_SESSIOND_AND_MOBILITYD=True
-# 2020/04/06 : do we need S6A_FLAGS?
 OAI_FLAGS = $(S6A_FLAGS) -DEMBEDDED_SGW=True -DENABLE_OPENFLOW=True -DSPGW_ENABLE_SESSIOND_AND_MOBILITYD=True
 endif
 
