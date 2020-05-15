@@ -406,7 +406,11 @@ pipeline {
       script {
         // Retrieving the sys logs and mme log for more debugging.
         myShCmdWithLog('cd lte/gateway && vagrant ssh magma -c "sudo cat /var/log/syslog"', 'archives/magma_dev_syslog.log', new_host_flag, new_host_user, new_host)
-        myShCmdWithLog('cd lte/gateway && vagrant ssh magma -c "sudo cat /var/log/mme.log"', 'archives/magma_dev_mme.log', new_host_flag, new_host_user, new_host)
+        try {
+          myShCmdWithLog('cd lte/gateway && vagrant ssh magma -c "sudo cat /var/log/mme.log"', 'archives/magma_dev_mme.log', new_host_flag, new_host_user, new_host)
+        } catch (Exception e) {
+          echo "MME log may not be available"
+        }
         myShCmdWithLog('cd lte/gateway && vagrant ssh magma_test -c "sudo cat /var/log/syslog"', 'archives/magma_test_syslog.log', new_host_flag, new_host_user, new_host)
         // Stopping the VMs and the Containers
         myShCmdWithLog('cd lte/gateway && vagrant halt magma', 'archives/magma_vagrant_halt.log', new_host_flag, new_host_user, new_host)
