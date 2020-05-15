@@ -50,6 +50,24 @@ const SchedulingModal = props => {
     setSchedule(mySchedule);
   }
 
+  const getCronString = () => {
+    if (schedule != null) {
+      if (schedule.cronString != null) {
+        return schedule.cronString;
+      }
+    }
+    return "";
+  }
+
+  const getEnabled = () => {
+    if (schedule != null) {
+      if (typeof schedule.enabled === "boolean") {
+        return schedule.enabled;
+      } // backend does not send this property when disabled
+    }
+    return false;
+  }
+
   return (
     <Modal
       size="lg"
@@ -68,7 +86,7 @@ const SchedulingModal = props => {
               type="input"
               onChange={e => setCronString(e.target.value)}
               placeholder="Enter cron pattern"
-              value={schedule?.cronString}
+              value={getCronString()}
             />
           </Form.Group>
           <Form.Group>
@@ -76,7 +94,7 @@ const SchedulingModal = props => {
             <Form.Control
               type="checkbox"
               onChange={e => setEnabled(e.target.checked)}
-              checked={schedule?.enabled}
+              checked={getEnabled()}
             />
           </Form.Group>
         </Form>
