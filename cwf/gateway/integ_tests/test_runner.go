@@ -9,7 +9,6 @@
 package integration
 
 import (
-	"context"
 	"fmt"
 	"math/rand"
 	"strconv"
@@ -24,10 +23,6 @@ import (
 	lteprotos "magma/lte/cloud/go/protos"
 
 	"github.com/pkg/errors"
-
-	dockerTypes "github.com/docker/docker/api/types"
-	dockerFilters "github.com/docker/docker/api/types/filters"
-	dockerClient "github.com/docker/docker/client"
 )
 
 // todo make Op configurable, or export it in the UESimServer.
@@ -113,34 +108,6 @@ func NewTestRunnerWithTwoPCRFandOCS(t *testing.T) *TestRunner {
 	tr.activeOCSs = append(tr.activeOCSs, MockOCSRemote2)
 
 	return tr
-}
-
-//RestartService adds ability to restart a particular service managed by docker
-func (tr *TestRunner) RestartService(serviceName string) error {
-	fmt.Printf("Attempting to restart %s\n", serviceName)
-	ctx := context.Background()
-	cli, err := dockerClient.NewEnvClient()
-	if err != nil {
-		fmt.Printf("error %v getting a new client \n", err)
-		return err
-	}
-	filter := dockerFilters.NewArgs()
-	filter.Add("name", serviceName)
-	sessiondContainerFilter := dockerTypes.ContainerListOptions{Filters: filter}
-	containers, err := cli.ContainerList(context.Background(), sessiondContainerFilter)
-	if err != nil || len(containers) == 0 {
-		if len(containers) == 0 {
-			err = fmt.Errorf("container %s not found ", serviceName)
-		}
-		fmt.Printf("error %v getting container id \n", err)
-		return err
-	}
-	timeout := time.Duration(30 * time.Second)
-	err = cli.ContainerRestart(ctx, containers[0].ID, &timeout)
-	if err != nil {
-		fmt.Printf("error %v restarting container %s", err, serviceName)
-	}
-	return err
 }
 
 // ConfigUEs creates and adds the specified number of UEs and Subscribers

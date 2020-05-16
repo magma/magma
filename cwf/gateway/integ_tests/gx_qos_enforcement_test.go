@@ -160,7 +160,7 @@ func TestGxDownlinkTrafficQosEnforcement(t *testing.T) {
 	tr.WaitForPoliciesToSync()
 
 	usageMonitorInfo := getUsageInformation(monitorKey, 10*MegaBytes)
-	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL, 1)
+	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL)
 	initAnswer := protos.NewGxCCAnswer(diam.Success).
 		SetStaticRuleInstalls([]string{ruleKey}, []string{}).
 		SetUsageMonitorInfo(usageMonitorInfo)
@@ -243,7 +243,7 @@ func TestGxQosDowngradeWithCCAUpdate(t *testing.T) {
 
 	// usage monitor for init and upgrade
 	usageMonitorInfo := getUsageInformation(monitorKey, 5*MegaBytes)
-	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL, 1)
+	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL)
 	initAnswer := protos.NewGxCCAnswer(diam.Success).
 		SetStaticRuleInstalls([]string{rule1Key}, []string{}).
 		SetUsageMonitorInfo(usageMonitorInfo)
@@ -251,8 +251,8 @@ func TestGxQosDowngradeWithCCAUpdate(t *testing.T) {
 
 	// We expect an update request with some usage update (probably around 80-100% of the given quota)
 	var c float64 = 0.3 * 5 * MegaBytes
-	updateRequest1 := protos.NewGxCCRequest(imsi, protos.CCRequestType_UPDATE, 2).
-		SetUsageMonitorReports(usageMonitorInfo).
+	updateRequest1 := protos.NewGxCCRequest(imsi, protos.CCRequestType_UPDATE).
+		SetUsageMonitorReport(usageMonitorInfo).
 		SetUsageReportDelta(uint64(c))
 	updateAnswer1 := protos.NewGxCCAnswer(diam.Success).
 		SetStaticRuleInstalls([]string{rule2Key}, []string{}).

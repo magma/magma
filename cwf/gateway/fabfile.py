@@ -6,15 +6,13 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
-
-from distutils.util import strtobool
 from enum import Enum
 
 import sys
 from fabric.api import (cd, env, execute, lcd, local, put, run, settings,
                         sudo, shell_env)
-
 sys.path.append('../../orc8r')
+
 from tools.fab.hosts import ansible_setup, vagrant_setup
 
 CWAG_ROOT = "$MAGMA_ROOT/cwf/gateway"
@@ -221,6 +219,7 @@ def _set_cwag_test_configs():
     # Create empty uesim config
     sudo('touch /etc/magma/uesim.yml')
 
+
 def _set_cwag_test_networking(mac):
     # Don't error if route already exists
     with settings(warn_only=True):
@@ -336,8 +335,11 @@ def _run_integ_tests(test_host, trf_host, tests_to_run: SubTests,
         "DOCKER_HOST" : "tcp://%s:2375" % CWAG_IP,
         "DOCKER_API_VERSION" : "1.40",
     }
+    if test_re:
+        shell_env_vars["TESTS"] = test_re
 
-    go_test_cmd = "go test"
+    # QOS take a while to run. Increasing the timeout to 20m
+    go_test_cmd = "go test -timeout 20m"
     go_test_cmd += " -tags " + tests_to_run.value
     if test_re:
         go_test_cmd += " -run " + test_re
