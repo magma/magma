@@ -33,6 +33,7 @@ def run_cmd(cmd_list, throw_except=False, show_error=True):
     for cmd in cmd_list:
         LOG.debug("running %s", cmd)
         try:
+            LOG.debug(cmd)
             args = argSplit(cmd)
             subprocess.check_call(args)
         except subprocess.CalledProcessError as e:
@@ -40,6 +41,7 @@ def run_cmd(cmd_list, throw_except=False, show_error=True):
                 LOG.error("error running %s", cmd)
             if throw_except:
                 raise e
+            return
 
 
 # TODO - replace this implementation with pyroute2 tc
@@ -137,9 +139,18 @@ class TCManager(object):
 
     def destroy(self,):
         LOG.info("destroying existing qos classes")
-        for idx in range(self._start_idx, self._max_idx):
-            TrafficClass.delete_class(self._uplink, idx)
-            TrafficClass.delete_class(self._downlink, idx)
+        ul_qid_list = TrafficClass.read_all_classes(self._uplink)
+        dl_qid_list = TrafficClass.read_all_classes(self._downlink)
+        for qid in ul_qid_list:
+            if qid >= self._start_idx and qid < (self._max_idx - 1):
+                LOG.info("deleting class idx %d", qid)
+                TrafficClass.delete_class(self._uplink, qid,
+                                        throw_except=False, show_error=False)
+        for qid in dl_qid_list:
+            if qid >= self._start_idx and qid < (self._max_idx - 1):
+                LOG.info("deleting class idx %d", qid)
+                TrafficClass.delete_class(self._downlink, qid,
+                                        throw_except=False, show_error=False)
 
     def setup(self,):
         # initialize new qdisc

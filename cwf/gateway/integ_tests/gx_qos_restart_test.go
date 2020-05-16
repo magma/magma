@@ -155,6 +155,9 @@ func TestQosRestartMeter(t *testing.T) {
 	cfgCh, err := configFileManager(pipelinedCfgFn)
 	defer func() {
 		close(cfgCh)
+
+		// add a additional second for original file to be syncd
+		time.Sleep(time.Second)
 	}()
 
 	if err != nil {

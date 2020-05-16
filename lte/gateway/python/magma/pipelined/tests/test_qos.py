@@ -112,14 +112,16 @@ class TestQosManager(unittest.TestCase):
         mock_traffic_cls.create_class.assert_called_with(intf, qid,
                                                          qos_info.mbr)
 
-    def verifyTcCleanRestart(self, mock_traffic_cls):
-        min_idx = self.config["qos"]["linux_tc"]["min_idx"]
-        max_idx = self.config["qos"]["linux_tc"]["max_idx"]
-        mock_traffic_cls.delete_class.assert_any_call(self.dl_intf, min_idx)
-        mock_traffic_cls.delete_class.assert_any_call(self.ul_intf,
-                                                      max_idx - 1)
-        self.assertEqual(mock_traffic_cls.delete_class.call_count,
-                         2 * (max_idx - min_idx))
+    def verifyTcCleanRestart(self, prior_qids, mock_traffic_cls):
+        for qid in prior_qids[self.ul_intf]:
+            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, qid,
+                                                          show_error=False,
+                                                          throw_except=False)
+
+        for qid in prior_qids[self.dl_intf]:
+            mock_traffic_cls.delete_class.assert_any_call(self.dl_intf, qid,
+                                                          show_error=False,
+                                                          throw_except=False)
 
     def verifyTcRemoveQos(self, mock_traffic_cls, d, qid):
         intf = self.ul_intf if d == FlowMatch.UPLINK else self.dl_intf
@@ -164,6 +166,15 @@ get_action_instruction')
         for addition and deletion of a single subscriber and a single rule,
         We additionally verify if the clean_restart wipes out everything '''
 
+        # mock unclean state in qos
+        prior_qids = {
+            self.ul_intf: [2, ],
+            self.dl_intf: [3, ]
+        }
+        if self.config["qos"]["impl"] == QosImplType.LINUX_TC:
+            mock_traffic_cls.read_all_classes.side_effect = (lambda intf:
+                                                             prior_qids[intf])
+
         qos_mgr = QosManager(MagicMock, asyncio.new_event_loop(), self.config)
         qos_mgr._qos_store = {}
         qos_mgr.setup()
@@ -190,7 +201,7 @@ get_action_instruction')
         else:
             self.verifyTcAddQos(mock_tc_get_action_inst, mock_traffic_cls,
                                 d, exp_id, qos_info)
-            self.verifyTcCleanRestart(mock_traffic_cls)
+            self.verifyTcCleanRestart(prior_qids, mock_traffic_cls)
 
         # remove the subscriber qos and verify things are cleaned up
         qos_mgr.remove_subscriber_qos(imsi, rule_num)
