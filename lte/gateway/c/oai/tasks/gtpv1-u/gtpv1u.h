@@ -118,6 +118,10 @@ struct ipv4flow_dl {
  *
  * int (*add_paging_rule)(struct in_addr ue);
  *        @ue: UE IP address
+ *
+ * int (*send_end_marker) (struct in_addr enb, uint32_t i_tei);
+ *        @enb: eNB IP address
+ *        @i_tei: RX GTP Tunnel ID
  */
 struct gtp_tunnel_ops {
   int (*init)(
@@ -148,6 +152,7 @@ struct gtp_tunnel_ops {
     uint32_t flow_precedence_dl);
   int (*add_paging_rule)(struct in_addr ue);
   int (*delete_paging_rule)(struct in_addr ue);
+  int (*send_end_marker) (struct in_addr enbode, uint32_t i_tei);
 };
 
 #if ENABLE_OPENFLOW
