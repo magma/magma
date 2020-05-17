@@ -24,6 +24,7 @@ import {useContext, useMemo, useState} from 'react';
 
 const useStyles = makeStyles(() => ({
   root: {
+    height: '100%',
     maxHeight: '100%',
     overflow: 'hidden',
     display: 'flex',
@@ -33,8 +34,7 @@ const useStyles = makeStyles(() => ({
     paddingLeft: '24px',
   },
   viewContainer: {
-    padding: '24px',
-    overflowY: 'auto',
+    flexGrow: 1,
   },
 }));
 

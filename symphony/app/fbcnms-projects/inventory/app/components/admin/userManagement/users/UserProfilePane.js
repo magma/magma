@@ -16,6 +16,7 @@ import AppContext from '@fbcnms/ui/context/AppContext';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import FileUploadArea from '@fbcnms/ui/components/design-system/Experimental/FileUpload/FileUploadArea';
 import FileUploadButton from '../../../FileUpload/FileUploadButton';
+import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
 import FormFieldTextInput from '../utils/FormFieldTextInput';
 import Grid from '@material-ui/core/Grid';
@@ -25,11 +26,11 @@ import UserRoleAndStatusPane from './UserRoleAndStatusPane';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
 import {DocumentAPIUrls} from '../../../../common/DocumentAPI';
+import {FormContextProvider} from '../../../../common/FormContext';
 import {GROUP_STATUSES, USER_ROLES} from '../utils/UserManagementUtils';
 import {SQUARE_DIMENSION_PX} from '@fbcnms/ui/components/design-system/Experimental/FileUpload/FileUploadArea';
 import {makeStyles} from '@material-ui/styles';
-import {useContext, useEffect, useState} from 'react';
-import {useFormContext} from '../../../../common/FormContext';
+import {useCallback, useContext, useEffect, useState} from 'react';
 import {useMessageShowingContext} from '@fbcnms/ui/components/design-system/Dialog/MessageShowingContext';
 
 const useStyles = makeStyles(() => ({
@@ -37,6 +38,25 @@ const useStyles = makeStyles(() => ({
     display: 'flex',
     flexDirection: 'column',
     height: '100%',
+  },
+  form: {
+    flexBasis: 'auto',
+    flexGrow: '1',
+    flexShrink: '0',
+    height: '100px',
+    overflowY: 'auto',
+    overflowX: 'hidden',
+    padding: '24px',
+    paddingBottom: '0',
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  bottomBar: {
+    flexGrow: 0,
+    padding: '8px 24px',
+    borderTop: `1px solid ${symphony.palette.separator}`,
+    display: 'flex',
+    justifyContent: 'flex-end',
   },
   section: {
     display: 'flex',
@@ -145,14 +165,16 @@ export default function UserProfilePane(props: Props) {
 
   const messageShowingContext = useMessageShowingContext();
 
-  const form = useFormContext();
-  const callOnChange = (newUser: User) => {
-    setUser(newUser);
-    if (form.alerts.error.detected) {
+  const callOnChange = useCallback(() => {
+    if (user == null) {
       return;
     }
-    onChange(newUser);
-  };
+    onChange(user);
+  }, [onChange, user]);
+
+  const revertChanges = useCallback(() => {
+    setUser(propUser);
+  }, [propUser]);
 
   /* temp */
   const [profilePhoto, setProfilePhoto] = useState<?{storeKey: string}>(null);
@@ -164,258 +186,280 @@ export default function UserProfilePane(props: Props) {
 
   return (
     <div className={classes.root}>
-      <div className={classes.section}>
-        <div className={classes.sectionHeader}>
-          <Text variant="subtitle1">
-            <fbt desc="">Personal Details</fbt>
-          </Text>
-          <Text variant="subtitle2" color="gray">
-            <fbt desc="">
-              These details are used when assigning work orders and granting
-              permissions.
-            </fbt>
-          </Text>
-        </div>
-        <div className={classes.personalDetails}>
-          {userManagementDevMode ? (
-            <div className={classes.photoContainer}>
-              <FormField
-                label={`${fbt('Photo', '')}`}
-                className={classes.photoWrapper}>
-                <FileUploadButton
-                  useUploadSnackbar={false}
-                  multiple={false}
-                  onFileUploaded={
-                    (_file, storeKey) => setProfilePhoto({storeKey})
-                    /*
-                  onChange({
-                    ...user,
-                    profilePhoto: {
-                      id: '',
-                      storeKey,
-                      fileName: file.name,
-                    },
-                  })
-                  */
-                  }>
-                  {openFileUploadDialog =>
-                    profilePhoto?.storeKey != null ? (
-                      <div className={classes.photoArea}>
-                        <img
-                          src={DocumentAPIUrls.get_url(profilePhoto.storeKey)}
-                          className={classes.photo}
-                        />
-                        <Button
-                          className={classes.photoRemoveButton}
-                          skin="regular"
-                          onClick={() => setProfilePhoto(null)}>
-                          <fbt desc="">Remove</fbt>
-                        </Button>
+      <FormContextProvider>
+        <div className={classes.form}>
+          <div className={classes.section}>
+            <div className={classes.sectionHeader}>
+              <Text variant="subtitle1">
+                <fbt desc="">Personal Details</fbt>
+              </Text>
+              <Text variant="subtitle2" color="gray">
+                <fbt desc="">
+                  These details are used when assigning work orders and granting
+                  permissions.
+                </fbt>
+              </Text>
+            </div>
+            <div className={classes.personalDetails}>
+              {userManagementDevMode ? (
+                <div className={classes.photoContainer}>
+                  <FormField
+                    label={`${fbt('Photo', '')}`}
+                    className={classes.photoWrapper}>
+                    <FileUploadButton
+                      useUploadSnackbar={false}
+                      multiple={false}
+                      onFileUploaded={
+                        (_file, storeKey) => setProfilePhoto({storeKey})
+                        /*
+                    onChange({
+                      ...user,
+                      profilePhoto: {
+                        id: '',
+                        storeKey,
+                        fileName: file.name,
+                      },
+                    })
+                    */
+                      }>
+                      {openFileUploadDialog =>
+                        profilePhoto?.storeKey != null ? (
+                          <div className={classes.photoArea}>
+                            <img
+                              src={DocumentAPIUrls.get_url(
+                                profilePhoto.storeKey,
+                              )}
+                              className={classes.photo}
+                            />
+                            <Button
+                              className={classes.photoRemoveButton}
+                              skin="regular"
+                              onClick={() => setProfilePhoto(null)}>
+                              <fbt desc="">Remove</fbt>
+                            </Button>
+                          </div>
+                        ) : (
+                          <FileUploadArea onClick={openFileUploadDialog} />
+                        )
+                      }
+                    </FileUploadButton>
+                  </FormField>
+                </div>
+              ) : null}
+              <div className={classes.fieldsContainer}>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6} lg={6} xl={6}>
+                    <FormFieldTextInput
+                      key={`${user.id}_first_name`}
+                      className={classes.field}
+                      label={`${fbt('First Name', '')}`}
+                      validationId="first name"
+                      value={user.firstName}
+                      onValueChanged={firstName =>
+                        setUser({
+                          ...user,
+                          firstName,
+                        })
+                      }
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6} lg={6} xl={6}>
+                    <FormFieldTextInput
+                      key={`${user.id}_last_name`}
+                      className={classes.field}
+                      label={`${fbt('Last Name', '')}`}
+                      validationId="last name"
+                      value={user.lastName}
+                      onValueChanged={lastName =>
+                        setUser({
+                          ...user,
+                          lastName,
+                        })
+                      }
+                    />
+                  </Grid>
+                  {userManagementDevMode ? (
+                    <Grid item xs={12} sm={6} lg={6} xl={6}>
+                      <FormFieldTextInput
+                        key={`${user.id}_phone`}
+                        className={classes.field}
+                        label={`${fbt('Phone Number', '')}`}
+                        value={user.phoneNumber || ''}
+                        onValueChanged={phoneNumber =>
+                          setUser({
+                            ...user,
+                            phoneNumber,
+                          })
+                        }
+                      />
+                    </Grid>
+                  ) : null}
+                </Grid>
+              </div>
+            </div>
+          </div>
+          <UserRoleAndStatusPane
+            className={classes.section}
+            user={user}
+            onChange={newUser => {
+              if (
+                newUser.status !== user?.status &&
+                newUser.status === GROUP_STATUSES.DEACTIVATED.key &&
+                shouldShowVerificationWhenDeactivating
+              ) {
+                messageShowingContext.showMessage({
+                  title: fbt('Deactivate Account', ''),
+                  message: (
+                    <>
+                      <div>
+                        <fbt desc="">
+                          Are you sure you want to deactivate this account?
+                        </fbt>
                       </div>
-                    ) : (
-                      <FileUploadArea onClick={openFileUploadDialog} />
-                    )
-                  }
-                </FileUploadButton>
-              </FormField>
+                      <div>
+                        <fbt desc="">
+                          All access and permissions for this user will be
+                          disabled until this account is reactivated.
+                        </fbt>
+                      </div>
+                    </>
+                  ),
+                  verificationCheckbox: {
+                    label: fbt("Don't show this again", ''),
+                  },
+                  confirmLabel: fbt('Deactivate', ''),
+                  skin: 'red',
+                  onCancel: messageShowingContext.hideMessage,
+                  onClose: messageShowingContext.hideMessage,
+                  onConfirm: dontShowAgain => {
+                    setUser(newUser);
+                    setShowVerificationWhenDeactivating(dontShowAgain !== true);
+                    messageShowingContext.hideMessage();
+                  },
+                });
+              } else if (
+                newUser.role !== user?.role &&
+                shouldShowVerificationWhenChangingRole
+              ) {
+                const useAn =
+                  newUser.role == USER_ROLES.ADMIN.key ||
+                  newUser.role == USER_ROLES.OWNER.key;
+                messageShowingContext.showMessage({
+                  title: (
+                    <fbt desc="">
+                      Change to
+                      <fbt:param name="new role type">
+                        {USER_ROLES[newUser.role].value}
+                      </fbt:param>
+                    </fbt>
+                  ),
+                  message: (
+                    <fbt desc="">
+                      Are you sure you want to make this user
+                      <fbt:enum
+                        enum-range={['a', 'an']}
+                        value={useAn ? 'an' : 'a'}
+                      />
+                      <fbt:param name="new role type">
+                        {` ${USER_ROLES[newUser.role].value}`}
+                      </fbt:param>
+                      ?
+                    </fbt>
+                  ),
+                  verificationCheckbox: {
+                    label: fbt("Don't show this again", ''),
+                  },
+                  confirmLabel: fbt('Change Role', ''),
+                  onCancel: messageShowingContext.hideMessage,
+                  onClose: messageShowingContext.hideMessage,
+                  onConfirm: dontShowAgain => {
+                    setUser(newUser);
+                    setShowVerificationWhenChangingRole(dontShowAgain !== true);
+                    messageShowingContext.hideMessage();
+                  },
+                });
+              } else {
+                setUser(newUser);
+              }
+            }}
+          />
+          {userManagementDevMode ? (
+            <div className={classes.section}>
+              <div className={classes.sectionHeader}>
+                <Text variant="subtitle1">
+                  <fbt desc="">Employment Information</fbt>
+                </Text>
+                <Text variant="subtitle2" color="gray">
+                  <fbt desc="">
+                    Up-to-date info makes it easier to manage teams and schedule
+                    work orders.
+                  </fbt>
+                </Text>
+              </div>
+              <div>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6} lg={4} xl={4}>
+                    <FormFieldTextInput
+                      key={`${user.id}_job`}
+                      className={classes.field}
+                      label={`${fbt('Job Title', '')}`}
+                      value={user.jobTitle || ''}
+                      onValueChanged={jobTitle =>
+                        setUser({
+                          ...user,
+                          jobTitle,
+                        })
+                      }
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6} lg={4} xl={4}>
+                    <FormFieldTextInput
+                      key={`${user.id}_employee_id`}
+                      className={classes.field}
+                      label={`${fbt('Employee ID', '')}`}
+                      value={user.employeeID || ''}
+                      onValueChanged={employeeID =>
+                        setUser({
+                          ...user,
+                          employeeID,
+                        })
+                      }
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6} lg={4} xl={4}>
+                    <FormField
+                      className={classes.field}
+                      label={`${fbt('Employment Type', '')}`}>
+                      <Select
+                        options={EMPLOYMENT_TYPE_OPTIONS}
+                        selectedValue={user.employmentType}
+                        onChange={employmentType =>
+                          setUser({
+                            ...user,
+                            employmentType,
+                          })
+                        }
+                      />
+                    </FormField>
+                  </Grid>
+                </Grid>
+              </div>
             </div>
           ) : null}
-          <div className={classes.fieldsContainer}>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6} lg={6} xl={6}>
-                <FormFieldTextInput
-                  key={`${user.id}_first_name`}
-                  className={classes.field}
-                  label={`${fbt('First Name', '')}`}
-                  validationId="first name"
-                  value={user.firstName}
-                  onValueChanged={firstName =>
-                    callOnChange({
-                      ...user,
-                      firstName,
-                    })
-                  }
-                />
-              </Grid>
-              <Grid item xs={12} sm={6} lg={6} xl={6}>
-                <FormFieldTextInput
-                  key={`${user.id}_last_name`}
-                  className={classes.field}
-                  label={`${fbt('Last Name', '')}`}
-                  validationId="last name"
-                  value={user.lastName}
-                  onValueChanged={lastName =>
-                    callOnChange({
-                      ...user,
-                      lastName,
-                    })
-                  }
-                />
-              </Grid>
-              {userManagementDevMode ? (
-                <Grid item xs={12} sm={6} lg={6} xl={6}>
-                  <FormFieldTextInput
-                    key={`${user.id}_phone`}
-                    className={classes.field}
-                    label={`${fbt('Phone Number', '')}`}
-                    value={user.phoneNumber || ''}
-                    onValueChanged={phoneNumber =>
-                      callOnChange({
-                        ...user,
-                        phoneNumber,
-                      })
-                    }
-                  />
-                </Grid>
-              ) : null}
-            </Grid>
-          </div>
         </div>
-      </div>
-      <UserRoleAndStatusPane
-        className={classes.section}
-        user={user}
-        onChange={newUser => {
-          if (
-            newUser.status !== user?.status &&
-            newUser.status === GROUP_STATUSES.DEACTIVATED.key &&
-            shouldShowVerificationWhenDeactivating
-          ) {
-            messageShowingContext.showMessage({
-              title: fbt('Deactivate Account', ''),
-              message: (
-                <>
-                  <div>
-                    <fbt desc="">
-                      Are you sure you want to deactivate this account?
-                    </fbt>
-                  </div>
-                  <div>
-                    <fbt desc="">
-                      All access and permissions for this user will be disabled
-                      until this account is reactivated.
-                    </fbt>
-                  </div>
-                </>
-              ),
-              verificationCheckbox: {label: fbt("Don't show this again", '')},
-              confirmLabel: fbt('Deactivate', ''),
-              skin: 'red',
-              onCancel: messageShowingContext.hideMessage,
-              onClose: messageShowingContext.hideMessage,
-              onConfirm: dontShowAgain => {
-                callOnChange(newUser);
-                setShowVerificationWhenDeactivating(dontShowAgain !== true);
-                messageShowingContext.hideMessage();
-              },
-            });
-          } else if (
-            newUser.role !== user?.role &&
-            shouldShowVerificationWhenChangingRole
-          ) {
-            const useAn =
-              newUser.role == USER_ROLES.ADMIN.key ||
-              newUser.role == USER_ROLES.OWNER.key;
-            messageShowingContext.showMessage({
-              title: (
-                <fbt desc="">
-                  Change to
-                  <fbt:param name="new role type">
-                    {USER_ROLES[newUser.role].value}
-                  </fbt:param>
-                </fbt>
-              ),
-              message: (
-                <fbt desc="">
-                  Are you sure you want to make this user
-                  <fbt:enum
-                    enum-range={['a', 'an']}
-                    value={useAn ? 'an' : 'a'}
-                  />
-                  <fbt:param name="new role type">
-                    {` ${USER_ROLES[newUser.role].value}`}
-                  </fbt:param>
-                  ?
-                </fbt>
-              ),
-              verificationCheckbox: {label: fbt("Don't show this again", '')},
-              confirmLabel: fbt('Change Role', ''),
-              onCancel: messageShowingContext.hideMessage,
-              onClose: messageShowingContext.hideMessage,
-              onConfirm: dontShowAgain => {
-                callOnChange(newUser);
-                setShowVerificationWhenChangingRole(dontShowAgain !== true);
-                messageShowingContext.hideMessage();
-              },
-            });
-          } else {
-            callOnChange(newUser);
-          }
-        }}
-      />
-      {userManagementDevMode ? (
-        <div className={classes.section}>
-          <div className={classes.sectionHeader}>
-            <Text variant="subtitle1">
-              <fbt desc="">Employment Information</fbt>
-            </Text>
-            <Text variant="subtitle2" color="gray">
-              <fbt desc="">
-                Up-to-date info makes it easier to manage teams and schedule
-                work orders.
-              </fbt>
-            </Text>
-          </div>
-          <div>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6} lg={4} xl={4}>
-                <FormFieldTextInput
-                  key={`${user.id}_job`}
-                  className={classes.field}
-                  label={`${fbt('Job Title', '')}`}
-                  value={user.jobTitle || ''}
-                  onValueChanged={jobTitle =>
-                    callOnChange({
-                      ...user,
-                      jobTitle,
-                    })
-                  }
-                />
-              </Grid>
-              <Grid item xs={12} sm={6} lg={4} xl={4}>
-                <FormFieldTextInput
-                  key={`${user.id}_employee_id`}
-                  className={classes.field}
-                  label={`${fbt('Employee ID', '')}`}
-                  value={user.employeeID || ''}
-                  onValueChanged={employeeID =>
-                    callOnChange({
-                      ...user,
-                      employeeID,
-                    })
-                  }
-                />
-              </Grid>
-              <Grid item xs={12} sm={6} lg={4} xl={4}>
-                <FormField
-                  className={classes.field}
-                  label={`${fbt('Employment Type', '')}`}>
-                  <Select
-                    options={EMPLOYMENT_TYPE_OPTIONS}
-                    selectedValue={user.employmentType}
-                    onChange={employmentType =>
-                      callOnChange({
-                        ...user,
-                        employmentType,
-                      })
-                    }
-                  />
-                </FormField>
-              </Grid>
-            </Grid>
-          </div>
+        <div className={classes.bottomBar}>
+          <FormAction>
+            <Button skin="regular" onClick={revertChanges}>
+              <fbt desc="">Revert</fbt>
+            </Button>
+          </FormAction>
+          <FormAction disableOnFromError={true}>
+            <Button onClick={callOnChange}>
+              <fbt desc="">Apply</fbt>
+            </Button>
+          </FormAction>
         </div>
-      ) : null}
+      </FormContextProvider>
     </div>
   );
 }
