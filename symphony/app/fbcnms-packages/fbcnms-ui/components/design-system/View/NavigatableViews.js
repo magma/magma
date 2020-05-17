@@ -39,18 +39,18 @@ export const NAVIGATION_VARIANTS = {
 
 export type NavigatableView_MenuItemOnly = {|
   menuItem: MenuItem,
+  targetPath?: string,
 |};
 export type NavigatableView_MenuItemWithRelatedComponent = {|
-  menuItem: MenuItem,
+  ...NavigatableView_MenuItemOnly,
   component: ViewContainerProps,
 |};
 export type NavigatableView_MenuItemRoutingToGivenComponent = {|
-  menuItem: MenuItem,
-  component: ViewContainerProps,
+  ...NavigatableView_MenuItemWithRelatedComponent,
   routingPath: string,
 |};
 export type NavigatableView_MenuItemRouting = {|
-  menuItem: MenuItem,
+  ...NavigatableView_MenuItemOnly,
   routingPath: string,
 |};
 export type NavigatableView_PossibleRoutingToGivenComponent = {|
@@ -104,6 +104,14 @@ const pathNameFitsDefinition = (definition: string, pathName: string) => {
   return true;
 };
 
+function getViewTargetPath(view: NavigatableView) {
+  return view.targetPath != null
+    ? view.targetPath
+    : view.routingPath != null
+    ? view.routingPath
+    : null;
+}
+
 export default function NavigatableViews(props: Props) {
   const {
     header,
@@ -123,10 +131,11 @@ export default function NavigatableViews(props: Props) {
         return;
       }
       const navigatedView = views[navigatedViewIndex];
-      if (navigatedView.routingPath == null) {
+      const viewTargetPath = getViewTargetPath(navigatedView);
+      if (viewTargetPath == null) {
         return;
       }
-      history.push(`${routingBasePath}/${navigatedView.routingPath}`);
+      history.push(`${routingBasePath}/${viewTargetPath}`);
     },
     [history, routingBasePath, views],
   );
@@ -161,18 +170,32 @@ export default function NavigatableViews(props: Props) {
         .filter(Boolean),
     [views],
   );
+
   const routes = useMemo(
     () =>
       views
         .map(view => {
           if (view.routingPath != null && view.component != null) {
-            return {path: view.routingPath, component: view.component};
+            return {
+              path: view.routingPath,
+              component: view.component,
+            };
           }
           return null;
         })
         .filter(Boolean),
     [views],
   );
+
+  const firstRoutablePath = useMemo(() => {
+    let routablePath;
+    let viewIndex = 0;
+    while (routablePath == null && viewIndex < views.length) {
+      routablePath = getViewTargetPath(views[viewIndex]);
+      viewIndex++;
+    }
+    return routablePath;
+  }, [views]);
 
   const activeView = views[activeViewIndex];
   const menuActiveItemIndex = useMemo(
@@ -223,10 +246,12 @@ export default function NavigatableViews(props: Props) {
               />
             ),
           )}
-          <Redirect
-            from={`${routingBasePath}/`}
-            to={`${routingBasePath}/${routes[0].path}`}
-          />
+          {firstRoutablePath != null && (
+            <Redirect
+              from={`${routingBasePath}/`}
+              to={`${routingBasePath}/${firstRoutablePath}`}
+            />
+          )}
         </Switch>
       ) : null}
     </div>

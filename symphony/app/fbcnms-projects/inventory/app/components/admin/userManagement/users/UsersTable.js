@@ -8,7 +8,6 @@
  * @format
  */
 
-import type {ContextRouter} from 'react-router';
 import type {
   TableRowDataType,
   TableRowId,
@@ -33,7 +32,7 @@ import {makeStyles} from '@material-ui/styles';
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import {useContext} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
-import {useHistory, useLocation, withRouter} from 'react-router-dom';
+import {useHistory, useRouteMatch} from 'react-router-dom';
 import {useUserManagement} from '../UserManagementContext';
 
 const useStyles = makeStyles(() => ({
@@ -59,12 +58,10 @@ const user2UserTableRow: User => UserTableRow = user => ({
   data: user,
 });
 
-type Props = ContextRouter;
-
-function UsersTable({match}: Props) {
+function UsersTable() {
   const classes = useStyles();
   const history = useHistory();
-  const basePath = match.path;
+  const match = useRouteMatch();
 
   const {isFeatureEnabled} = useContext(AppContext);
   const userManagementDevMode = isFeatureEnabled('user_management_dev');
@@ -82,15 +79,10 @@ function UsersTable({match}: Props) {
     [],
   );
 
-  const location = useLocation();
-  let activeUserId;
-  if (location.pathname.length > basePath.length + 1) {
-    const idParam = location.pathname.slice(basePath.length + 1);
-    const hasFittingUser = users.find(user => user.authID === idParam) != null;
-    if (hasFittingUser) {
-      activeUserId = idParam;
-    }
-  }
+  const activeUserId =
+    match.params.id != null && match.params.id != 'all'
+      ? match.params.id
+      : null;
 
   const columns = useMemo(() => {
     const isActiveUser = userId =>
@@ -198,9 +190,9 @@ function UsersTable({match}: Props) {
 
   const navigateToUser = useCallback(
     userId => {
-      history.push(`${basePath}/${userId ?? ''}`);
+      history.push(match.path.replace(':id', `${userId ?? ''}`));
     },
-    [basePath, history],
+    [history, match.path],
   );
 
   return (
@@ -219,4 +211,4 @@ function UsersTable({match}: Props) {
   );
 }
 
-export default withRouter(UsersTable);
+export default UsersTable;

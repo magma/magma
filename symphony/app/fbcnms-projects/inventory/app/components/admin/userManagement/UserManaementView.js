@@ -58,27 +58,32 @@ const UserManaementView = ({match}: Props) => {
   const {isFeatureEnabled} = useContext(AppContext);
   const userManagementDevMode = isFeatureEnabled('user_management_dev');
 
+  const usersComponent = useMemo(() => {
+    return {
+      header: {
+        title: `${USERS_HEADER}`,
+        subtitle:
+          'Add and manage your organization users, and set their role to control their global settings',
+        actionButtons: [
+          <ButtonAction action={() => setAddingNewUser(true)}>
+            <fbt desc="">Add User</fbt>
+          </ButtonAction>,
+        ],
+      },
+      children: <UsersView />,
+    };
+  }, []);
+
   const VIEWS: Array<NavigatableView> = useMemo(() => {
     const views = [
       {
-        routingPath: 'users',
+        routingPath: 'users/:id',
+        targetPath: 'users/all',
         menuItem: {
           label: USERS_HEADER,
           tooltip: `${USERS_HEADER}`,
         },
-        component: {
-          header: {
-            title: `${USERS_HEADER}`,
-            subtitle:
-              'Add and manage your organization users, and set their role to control their global settings',
-            actionButtons: [
-              <ButtonAction action={() => setAddingNewUser(true)}>
-                <fbt desc="">Add User</fbt>
-              </ButtonAction>,
-            ],
-          },
-          children: <UsersView />,
-        },
+        component: usersComponent,
       },
       {
         routingPath: 'groups',
