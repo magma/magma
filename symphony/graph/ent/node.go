@@ -509,7 +509,7 @@ func (c *Comment) Node(ctx context.Context) (node *Node, err error) {
 		ID:     c.ID,
 		Type:   "Comment",
 		Fields: make([]*Field, 3),
-		Edges:  make([]*Edge, 1),
+		Edges:  make([]*Edge, 3),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(c.CreateTime); err != nil {
@@ -547,6 +547,28 @@ func (c *Comment) Node(ctx context.Context) (node *Node, err error) {
 		IDs:  ids,
 		Type: "User",
 		Name: "Author",
+	}
+	ids, err = c.QueryWorkOrder().
+		Select(workorder.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		IDs:  ids,
+		Type: "WorkOrder",
+		Name: "WorkOrder",
+	}
+	ids, err = c.QueryProject().
+		Select(project.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[2] = &Edge{
+		IDs:  ids,
+		Type: "Project",
+		Name: "Project",
 	}
 	return node, nil
 }
@@ -1663,7 +1685,7 @@ func (h *Hyperlink) Node(ctx context.Context) (node *Node, err error) {
 		ID:     h.ID,
 		Type:   "Hyperlink",
 		Fields: make([]*Field, 5),
-		Edges:  make([]*Edge, 0),
+		Edges:  make([]*Edge, 1),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(h.CreateTime); err != nil {
@@ -1705,6 +1727,18 @@ func (h *Hyperlink) Node(ctx context.Context) (node *Node, err error) {
 		Type:  "string",
 		Name:  "Category",
 		Value: string(buf),
+	}
+	var ids []int
+	ids, err = h.QueryWorkOrder().
+		Select(workorder.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[0] = &Edge{
+		IDs:  ids,
+		Type: "WorkOrder",
+		Name: "WorkOrder",
 	}
 	return node, nil
 }

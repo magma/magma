@@ -16,7 +16,9 @@ import (
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/comment"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
+	"github.com/facebookincubator/symphony/graph/ent/project"
 	"github.com/facebookincubator/symphony/graph/ent/user"
+	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
 
 // CommentUpdate is the builder for updating Comment entities.
@@ -50,9 +52,59 @@ func (cu *CommentUpdate) SetAuthor(u *User) *CommentUpdate {
 	return cu.SetAuthorID(u.ID)
 }
 
+// SetWorkOrderID sets the work_order edge to WorkOrder by id.
+func (cu *CommentUpdate) SetWorkOrderID(id int) *CommentUpdate {
+	cu.mutation.SetWorkOrderID(id)
+	return cu
+}
+
+// SetNillableWorkOrderID sets the work_order edge to WorkOrder by id if the given value is not nil.
+func (cu *CommentUpdate) SetNillableWorkOrderID(id *int) *CommentUpdate {
+	if id != nil {
+		cu = cu.SetWorkOrderID(*id)
+	}
+	return cu
+}
+
+// SetWorkOrder sets the work_order edge to WorkOrder.
+func (cu *CommentUpdate) SetWorkOrder(w *WorkOrder) *CommentUpdate {
+	return cu.SetWorkOrderID(w.ID)
+}
+
+// SetProjectID sets the project edge to Project by id.
+func (cu *CommentUpdate) SetProjectID(id int) *CommentUpdate {
+	cu.mutation.SetProjectID(id)
+	return cu
+}
+
+// SetNillableProjectID sets the project edge to Project by id if the given value is not nil.
+func (cu *CommentUpdate) SetNillableProjectID(id *int) *CommentUpdate {
+	if id != nil {
+		cu = cu.SetProjectID(*id)
+	}
+	return cu
+}
+
+// SetProject sets the project edge to Project.
+func (cu *CommentUpdate) SetProject(p *Project) *CommentUpdate {
+	return cu.SetProjectID(p.ID)
+}
+
 // ClearAuthor clears the author edge to User.
 func (cu *CommentUpdate) ClearAuthor() *CommentUpdate {
 	cu.mutation.ClearAuthor()
+	return cu
+}
+
+// ClearWorkOrder clears the work_order edge to WorkOrder.
+func (cu *CommentUpdate) ClearWorkOrder() *CommentUpdate {
+	cu.mutation.ClearWorkOrder()
+	return cu
+}
+
+// ClearProject clears the project edge to Project.
+func (cu *CommentUpdate) ClearProject() *CommentUpdate {
+	cu.mutation.ClearProject()
 	return cu
 }
 
@@ -66,6 +118,7 @@ func (cu *CommentUpdate) Save(ctx context.Context) (int, error) {
 	if _, ok := cu.mutation.AuthorID(); cu.mutation.AuthorCleared() && !ok {
 		return 0, errors.New("ent: clearing a unique edge \"author\"")
 	}
+
 	var (
 		err      error
 		affected int
@@ -181,6 +234,76 @@ func (cu *CommentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if cu.mutation.WorkOrderCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   comment.WorkOrderTable,
+			Columns: []string{comment.WorkOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workorder.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.WorkOrderIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   comment.WorkOrderTable,
+			Columns: []string{comment.WorkOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workorder.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cu.mutation.ProjectCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   comment.ProjectTable,
+			Columns: []string{comment.ProjectColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: project.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.ProjectIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   comment.ProjectTable,
+			Columns: []string{comment.ProjectColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: project.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, cu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{comment.Label}
@@ -216,9 +339,59 @@ func (cuo *CommentUpdateOne) SetAuthor(u *User) *CommentUpdateOne {
 	return cuo.SetAuthorID(u.ID)
 }
 
+// SetWorkOrderID sets the work_order edge to WorkOrder by id.
+func (cuo *CommentUpdateOne) SetWorkOrderID(id int) *CommentUpdateOne {
+	cuo.mutation.SetWorkOrderID(id)
+	return cuo
+}
+
+// SetNillableWorkOrderID sets the work_order edge to WorkOrder by id if the given value is not nil.
+func (cuo *CommentUpdateOne) SetNillableWorkOrderID(id *int) *CommentUpdateOne {
+	if id != nil {
+		cuo = cuo.SetWorkOrderID(*id)
+	}
+	return cuo
+}
+
+// SetWorkOrder sets the work_order edge to WorkOrder.
+func (cuo *CommentUpdateOne) SetWorkOrder(w *WorkOrder) *CommentUpdateOne {
+	return cuo.SetWorkOrderID(w.ID)
+}
+
+// SetProjectID sets the project edge to Project by id.
+func (cuo *CommentUpdateOne) SetProjectID(id int) *CommentUpdateOne {
+	cuo.mutation.SetProjectID(id)
+	return cuo
+}
+
+// SetNillableProjectID sets the project edge to Project by id if the given value is not nil.
+func (cuo *CommentUpdateOne) SetNillableProjectID(id *int) *CommentUpdateOne {
+	if id != nil {
+		cuo = cuo.SetProjectID(*id)
+	}
+	return cuo
+}
+
+// SetProject sets the project edge to Project.
+func (cuo *CommentUpdateOne) SetProject(p *Project) *CommentUpdateOne {
+	return cuo.SetProjectID(p.ID)
+}
+
 // ClearAuthor clears the author edge to User.
 func (cuo *CommentUpdateOne) ClearAuthor() *CommentUpdateOne {
 	cuo.mutation.ClearAuthor()
+	return cuo
+}
+
+// ClearWorkOrder clears the work_order edge to WorkOrder.
+func (cuo *CommentUpdateOne) ClearWorkOrder() *CommentUpdateOne {
+	cuo.mutation.ClearWorkOrder()
+	return cuo
+}
+
+// ClearProject clears the project edge to Project.
+func (cuo *CommentUpdateOne) ClearProject() *CommentUpdateOne {
+	cuo.mutation.ClearProject()
 	return cuo
 }
 
@@ -232,6 +405,7 @@ func (cuo *CommentUpdateOne) Save(ctx context.Context) (*Comment, error) {
 	if _, ok := cuo.mutation.AuthorID(); cuo.mutation.AuthorCleared() && !ok {
 		return nil, errors.New("ent: clearing a unique edge \"author\"")
 	}
+
 	var (
 		err  error
 		node *Comment
@@ -337,6 +511,76 @@ func (cuo *CommentUpdateOne) sqlSave(ctx context.Context) (c *Comment, err error
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cuo.mutation.WorkOrderCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   comment.WorkOrderTable,
+			Columns: []string{comment.WorkOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workorder.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.WorkOrderIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   comment.WorkOrderTable,
+			Columns: []string{comment.WorkOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workorder.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cuo.mutation.ProjectCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   comment.ProjectTable,
+			Columns: []string{comment.ProjectColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: project.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.ProjectIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   comment.ProjectTable,
+			Columns: []string{comment.ProjectColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: project.FieldID,
 				},
 			},
 		}

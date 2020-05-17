@@ -1081,6 +1081,38 @@ func (c *CommentClient) QueryAuthor(co *Comment) *UserQuery {
 	return query
 }
 
+// QueryWorkOrder queries the work_order edge of a Comment.
+func (c *CommentClient) QueryWorkOrder(co *Comment) *WorkOrderQuery {
+	query := &WorkOrderQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := co.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(comment.Table, comment.FieldID, id),
+			sqlgraph.To(workorder.Table, workorder.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, comment.WorkOrderTable, comment.WorkOrderColumn),
+		)
+		fromV = sqlgraph.Neighbors(co.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryProject queries the project edge of a Comment.
+func (c *CommentClient) QueryProject(co *Comment) *ProjectQuery {
+	query := &ProjectQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := co.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(comment.Table, comment.FieldID, id),
+			sqlgraph.To(project.Table, project.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, comment.ProjectTable, comment.ProjectColumn),
+		)
+		fromV = sqlgraph.Neighbors(co.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *CommentClient) Hooks() []Hook {
 	hooks := c.hooks.Comment
@@ -2943,6 +2975,22 @@ func (c *HyperlinkClient) GetX(ctx context.Context, id int) *Hyperlink {
 		panic(err)
 	}
 	return h
+}
+
+// QueryWorkOrder queries the work_order edge of a Hyperlink.
+func (c *HyperlinkClient) QueryWorkOrder(h *Hyperlink) *WorkOrderQuery {
+	query := &WorkOrderQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := h.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(hyperlink.Table, hyperlink.FieldID, id),
+			sqlgraph.To(workorder.Table, workorder.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, hyperlink.WorkOrderTable, hyperlink.WorkOrderColumn),
+		)
+		fromV = sqlgraph.Neighbors(h.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // Hooks returns the client hooks.

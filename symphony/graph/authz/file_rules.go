@@ -119,3 +119,23 @@ func FileCreatePolicyRule() privacy.MutationRule {
 		return privacy.Skip
 	})
 }
+
+// FileReadPolicyRule grants read permission to file based on policy.
+func FileReadPolicyRule() privacy.QueryRule {
+	return privacy.FileQueryRuleFunc(func(ctx context.Context, q *ent.FileQuery) error {
+		woPredicate := workOrderReadPredicate(ctx)
+		if woPredicate != nil {
+			q.Where(
+				file.Or(
+					file.Not(file.HasWorkOrder()),
+					file.HasWorkOrderWith(woPredicate)),
+				file.Or(
+					file.Not(file.HasChecklistItem()),
+					file.HasChecklistItemWith(
+						checklistitem.HasCheckListCategoryWith(
+							checklistcategory.HasWorkOrderWith(woPredicate)))),
+			)
+		}
+		return privacy.Skip
+	})
+}

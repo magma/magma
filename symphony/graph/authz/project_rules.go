@@ -49,6 +49,24 @@ func projectCudBasedCheck(ctx context.Context, cud *models.WorkforceCud, m *ent.
 	return checkWorkforce(cud.Delete, nil, &projectTypeID), nil
 }
 
+func projectReadPredicate(ctx context.Context) predicate.Project {
+	var predicates []predicate.Project
+	rule := FromContext(ctx).WorkforcePolicy.Read
+	switch rule.IsAllowed {
+	case models2.PermissionValueYes:
+		return nil
+	case models2.PermissionValueByCondition:
+		predicates = append(predicates,
+			project.HasTypeWith(projecttype.IDIn(rule.ProjectTypeIds...)))
+	}
+	if v, exists := viewer.FromContext(ctx).(*viewer.UserViewer); exists {
+		predicates = append(predicates,
+			project.HasCreatorWith(user.ID(v.User().ID)),
+		)
+	}
+	return project.Or(predicates...)
+}
+
 // ProjectWritePolicyRule grants write permission to project based on policy.
 func ProjectWritePolicyRule() privacy.MutationRule {
 	return privacy.ProjectMutationRuleFunc(func(ctx context.Context, m *ent.ProjectMutation) error {
@@ -71,21 +89,10 @@ func ProjectWritePolicyRule() privacy.MutationRule {
 // ProjectReadPolicyRule grants read permission to project based on policy.
 func ProjectReadPolicyRule() privacy.QueryRule {
 	return privacy.ProjectQueryRuleFunc(func(ctx context.Context, q *ent.ProjectQuery) error {
-		var predicates []predicate.Project
-		rule := FromContext(ctx).WorkforcePolicy.Read
-		switch rule.IsAllowed {
-		case models2.PermissionValueYes:
-			return privacy.Skip
-		case models2.PermissionValueByCondition:
-			predicates = append(predicates,
-				project.HasTypeWith(projecttype.IDIn(rule.ProjectTypeIds...)))
+		projectPredicate := projectReadPredicate(ctx)
+		if projectPredicate != nil {
+			q.Where(projectPredicate)
 		}
-		if v, exists := viewer.FromContext(ctx).(*viewer.UserViewer); exists {
-			predicates = append(predicates,
-				project.HasCreatorWith(user.ID(v.User().ID)),
-			)
-		}
-		q.Where(project.Or(predicates...))
 		return privacy.Skip
 	})
 }

@@ -7,6 +7,8 @@ package authz
 import (
 	"context"
 
+	"github.com/facebookincubator/symphony/graph/ent/predicate"
+
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/locationtype"
@@ -207,6 +209,29 @@ func PropertyCreatePolicyRule() privacy.MutationRule {
 			}
 			return privacyDecision(checkWorkforce(p.WorkforcePolicy.Data.Update, nil, &projectTypeID))
 		}
+		return privacy.Skip
+	})
+}
+
+// PropertyReadPolicyRule grants read permission to property based on policy.
+func PropertyReadPolicyRule() privacy.QueryRule {
+	return privacy.PropertyQueryRuleFunc(func(ctx context.Context, q *ent.PropertyQuery) error {
+		var predicates []predicate.Property
+		woPredicate := workOrderReadPredicate(ctx)
+		if woPredicate != nil {
+			predicates = append(predicates,
+				property.Or(
+					property.Not(property.HasWorkOrder()),
+					property.HasWorkOrderWith(woPredicate)))
+		}
+		projectPredicate := projectReadPredicate(ctx)
+		if projectPredicate != nil {
+			predicates = append(predicates,
+				property.Or(
+					property.Not(property.HasProject()),
+					property.HasProjectWith(projectPredicate)))
+		}
+		q.Where(predicates...)
 		return privacy.Skip
 	})
 }

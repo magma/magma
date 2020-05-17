@@ -64,9 +64,11 @@ func (File) Edges() []ent.Edge {
 // Policy returns file policy.
 func (File) Policy() ent.Policy {
 	return authz.NewPolicy(
+		authz.WithQueryRules(
+			authz.FileReadPolicyRule(),
+		),
 		authz.WithMutationRules(
 			authz.FileWritePolicyRule(),
 			authz.FileCreatePolicyRule(),
-		),
-	)
+		))
 }

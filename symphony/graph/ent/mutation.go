@@ -3140,15 +3140,19 @@ func (m *CheckListItemDefinitionMutation) ResetEdge(name string) error {
 // nodes in the graph.
 type CommentMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int
-	create_time   *time.Time
-	update_time   *time.Time
-	text          *string
-	clearedFields map[string]struct{}
-	author        *int
-	clearedauthor bool
+	op                Op
+	typ               string
+	id                *int
+	create_time       *time.Time
+	update_time       *time.Time
+	text              *string
+	clearedFields     map[string]struct{}
+	author            *int
+	clearedauthor     bool
+	work_order        *int
+	clearedwork_order bool
+	project           *int
+	clearedproject    bool
 }
 
 var _ ent.Mutation = (*CommentMutation)(nil)
@@ -3287,6 +3291,84 @@ func (m *CommentMutation) ResetAuthor() {
 	m.clearedauthor = false
 }
 
+// SetWorkOrderID sets the work_order edge to WorkOrder by id.
+func (m *CommentMutation) SetWorkOrderID(id int) {
+	m.work_order = &id
+}
+
+// ClearWorkOrder clears the work_order edge to WorkOrder.
+func (m *CommentMutation) ClearWorkOrder() {
+	m.clearedwork_order = true
+}
+
+// WorkOrderCleared returns if the edge work_order was cleared.
+func (m *CommentMutation) WorkOrderCleared() bool {
+	return m.clearedwork_order
+}
+
+// WorkOrderID returns the work_order id in the mutation.
+func (m *CommentMutation) WorkOrderID() (id int, exists bool) {
+	if m.work_order != nil {
+		return *m.work_order, true
+	}
+	return
+}
+
+// WorkOrderIDs returns the work_order ids in the mutation.
+// Note that ids always returns len(ids) <= 1 for unique edges, and you should use
+// WorkOrderID instead. It exists only for internal usage by the builders.
+func (m *CommentMutation) WorkOrderIDs() (ids []int) {
+	if id := m.work_order; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetWorkOrder reset all changes of the "work_order" edge.
+func (m *CommentMutation) ResetWorkOrder() {
+	m.work_order = nil
+	m.clearedwork_order = false
+}
+
+// SetProjectID sets the project edge to Project by id.
+func (m *CommentMutation) SetProjectID(id int) {
+	m.project = &id
+}
+
+// ClearProject clears the project edge to Project.
+func (m *CommentMutation) ClearProject() {
+	m.clearedproject = true
+}
+
+// ProjectCleared returns if the edge project was cleared.
+func (m *CommentMutation) ProjectCleared() bool {
+	return m.clearedproject
+}
+
+// ProjectID returns the project id in the mutation.
+func (m *CommentMutation) ProjectID() (id int, exists bool) {
+	if m.project != nil {
+		return *m.project, true
+	}
+	return
+}
+
+// ProjectIDs returns the project ids in the mutation.
+// Note that ids always returns len(ids) <= 1 for unique edges, and you should use
+// ProjectID instead. It exists only for internal usage by the builders.
+func (m *CommentMutation) ProjectIDs() (ids []int) {
+	if id := m.project; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetProject reset all changes of the "project" edge.
+func (m *CommentMutation) ResetProject() {
+	m.project = nil
+	m.clearedproject = false
+}
+
 // Op returns the operation name.
 func (m *CommentMutation) Op() Op {
 	return m.op
@@ -3421,9 +3503,15 @@ func (m *CommentMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this
 // mutation.
 func (m *CommentMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 3)
 	if m.author != nil {
 		edges = append(edges, comment.EdgeAuthor)
+	}
+	if m.work_order != nil {
+		edges = append(edges, comment.EdgeWorkOrder)
+	}
+	if m.project != nil {
+		edges = append(edges, comment.EdgeProject)
 	}
 	return edges
 }
@@ -3436,6 +3524,14 @@ func (m *CommentMutation) AddedIDs(name string) []ent.Value {
 		if id := m.author; id != nil {
 			return []ent.Value{*id}
 		}
+	case comment.EdgeWorkOrder:
+		if id := m.work_order; id != nil {
+			return []ent.Value{*id}
+		}
+	case comment.EdgeProject:
+		if id := m.project; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
@@ -3443,7 +3539,7 @@ func (m *CommentMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this
 // mutation.
 func (m *CommentMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 3)
 	return edges
 }
 
@@ -3458,9 +3554,15 @@ func (m *CommentMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this
 // mutation.
 func (m *CommentMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 3)
 	if m.clearedauthor {
 		edges = append(edges, comment.EdgeAuthor)
+	}
+	if m.clearedwork_order {
+		edges = append(edges, comment.EdgeWorkOrder)
+	}
+	if m.clearedproject {
+		edges = append(edges, comment.EdgeProject)
 	}
 	return edges
 }
@@ -3471,6 +3573,10 @@ func (m *CommentMutation) EdgeCleared(name string) bool {
 	switch name {
 	case comment.EdgeAuthor:
 		return m.clearedauthor
+	case comment.EdgeWorkOrder:
+		return m.clearedwork_order
+	case comment.EdgeProject:
+		return m.clearedproject
 	}
 	return false
 }
@@ -3481,6 +3587,12 @@ func (m *CommentMutation) ClearEdge(name string) error {
 	switch name {
 	case comment.EdgeAuthor:
 		m.ClearAuthor()
+		return nil
+	case comment.EdgeWorkOrder:
+		m.ClearWorkOrder()
+		return nil
+	case comment.EdgeProject:
+		m.ClearProject()
 		return nil
 	}
 	return fmt.Errorf("unknown Comment unique edge %s", name)
@@ -3493,6 +3605,12 @@ func (m *CommentMutation) ResetEdge(name string) error {
 	switch name {
 	case comment.EdgeAuthor:
 		m.ResetAuthor()
+		return nil
+	case comment.EdgeWorkOrder:
+		m.ResetWorkOrder()
+		return nil
+	case comment.EdgeProject:
+		m.ResetProject()
 		return nil
 	}
 	return fmt.Errorf("unknown Comment edge %s", name)
@@ -9220,7 +9338,7 @@ func (m *FileMutation) LocationIDs() (ids []int) {
 	return
 }
 
-// ResetLocation reset all changes of the location edge.
+// ResetLocation reset all changes of the "location" edge.
 func (m *FileMutation) ResetLocation() {
 	m.location = nil
 	m.clearedlocation = false
@@ -9259,7 +9377,7 @@ func (m *FileMutation) EquipmentIDs() (ids []int) {
 	return
 }
 
-// ResetEquipment reset all changes of the equipment edge.
+// ResetEquipment reset all changes of the "equipment" edge.
 func (m *FileMutation) ResetEquipment() {
 	m.equipment = nil
 	m.clearedequipment = false
@@ -9298,7 +9416,7 @@ func (m *FileMutation) UserIDs() (ids []int) {
 	return
 }
 
-// ResetUser reset all changes of the user edge.
+// ResetUser reset all changes of the "user" edge.
 func (m *FileMutation) ResetUser() {
 	m.user = nil
 	m.cleareduser = false
@@ -9337,7 +9455,7 @@ func (m *FileMutation) WorkOrderIDs() (ids []int) {
 	return
 }
 
-// ResetWorkOrder reset all changes of the work_order edge.
+// ResetWorkOrder reset all changes of the "work_order" edge.
 func (m *FileMutation) ResetWorkOrder() {
 	m.work_order = nil
 	m.clearedwork_order = false
@@ -9376,7 +9494,7 @@ func (m *FileMutation) ChecklistItemIDs() (ids []int) {
 	return
 }
 
-// ResetChecklistItem reset all changes of the checklist_item edge.
+// ResetChecklistItem reset all changes of the "checklist_item" edge.
 func (m *FileMutation) ResetChecklistItem() {
 	m.checklist_item = nil
 	m.clearedchecklist_item = false
@@ -11505,15 +11623,17 @@ func (m *FloorPlanScaleMutation) ResetEdge(name string) error {
 // nodes in the graph.
 type HyperlinkMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int
-	create_time   *time.Time
-	update_time   *time.Time
-	url           *string
-	name          *string
-	category      *string
-	clearedFields map[string]struct{}
+	op                Op
+	typ               string
+	id                *int
+	create_time       *time.Time
+	update_time       *time.Time
+	url               *string
+	name              *string
+	category          *string
+	clearedFields     map[string]struct{}
+	work_order        *int
+	clearedwork_order bool
 }
 
 var _ ent.Mutation = (*HyperlinkMutation)(nil)
@@ -11675,6 +11795,45 @@ func (m *HyperlinkMutation) CategoryCleared() bool {
 func (m *HyperlinkMutation) ResetCategory() {
 	m.category = nil
 	delete(m.clearedFields, hyperlink.FieldCategory)
+}
+
+// SetWorkOrderID sets the work_order edge to WorkOrder by id.
+func (m *HyperlinkMutation) SetWorkOrderID(id int) {
+	m.work_order = &id
+}
+
+// ClearWorkOrder clears the work_order edge to WorkOrder.
+func (m *HyperlinkMutation) ClearWorkOrder() {
+	m.clearedwork_order = true
+}
+
+// WorkOrderCleared returns if the edge work_order was cleared.
+func (m *HyperlinkMutation) WorkOrderCleared() bool {
+	return m.clearedwork_order
+}
+
+// WorkOrderID returns the work_order id in the mutation.
+func (m *HyperlinkMutation) WorkOrderID() (id int, exists bool) {
+	if m.work_order != nil {
+		return *m.work_order, true
+	}
+	return
+}
+
+// WorkOrderIDs returns the work_order ids in the mutation.
+// Note that ids always returns len(ids) <= 1 for unique edges, and you should use
+// WorkOrderID instead. It exists only for internal usage by the builders.
+func (m *HyperlinkMutation) WorkOrderIDs() (ids []int) {
+	if id := m.work_order; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetWorkOrder reset all changes of the "work_order" edge.
+func (m *HyperlinkMutation) ResetWorkOrder() {
+	m.work_order = nil
+	m.clearedwork_order = false
 }
 
 // Op returns the operation name.
@@ -11856,7 +12015,10 @@ func (m *HyperlinkMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this
 // mutation.
 func (m *HyperlinkMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.work_order != nil {
+		edges = append(edges, hyperlink.EdgeWorkOrder)
+	}
 	return edges
 }
 
@@ -11864,6 +12026,10 @@ func (m *HyperlinkMutation) AddedEdges() []string {
 // the given edge name.
 func (m *HyperlinkMutation) AddedIDs(name string) []ent.Value {
 	switch name {
+	case hyperlink.EdgeWorkOrder:
+		if id := m.work_order; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
@@ -11871,7 +12037,7 @@ func (m *HyperlinkMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this
 // mutation.
 func (m *HyperlinkMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
 	return edges
 }
 
@@ -11886,7 +12052,10 @@ func (m *HyperlinkMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this
 // mutation.
 func (m *HyperlinkMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.clearedwork_order {
+		edges = append(edges, hyperlink.EdgeWorkOrder)
+	}
 	return edges
 }
 
@@ -11894,6 +12063,8 @@ func (m *HyperlinkMutation) ClearedEdges() []string {
 // cleared in this mutation.
 func (m *HyperlinkMutation) EdgeCleared(name string) bool {
 	switch name {
+	case hyperlink.EdgeWorkOrder:
+		return m.clearedwork_order
 	}
 	return false
 }
@@ -11901,6 +12072,11 @@ func (m *HyperlinkMutation) EdgeCleared(name string) bool {
 // ClearEdge clears the value for the given name. It returns an
 // error if the edge name is not defined in the schema.
 func (m *HyperlinkMutation) ClearEdge(name string) error {
+	switch name {
+	case hyperlink.EdgeWorkOrder:
+		m.ClearWorkOrder()
+		return nil
+	}
 	return fmt.Errorf("unknown Hyperlink unique edge %s", name)
 }
 
@@ -11909,6 +12085,9 @@ func (m *HyperlinkMutation) ClearEdge(name string) error {
 // defined in the schema.
 func (m *HyperlinkMutation) ResetEdge(name string) error {
 	switch name {
+	case hyperlink.EdgeWorkOrder:
+		m.ResetWorkOrder()
+		return nil
 	}
 	return fmt.Errorf("unknown Hyperlink edge %s", name)
 }

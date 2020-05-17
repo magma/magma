@@ -8,10 +8,13 @@ import (
 	"context"
 	"testing"
 
+	"github.com/facebookincubator/symphony/graph/authz"
 	models2 "github.com/facebookincubator/symphony/graph/authz/models"
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
+	"github.com/stretchr/testify/require"
 )
 
 func getFileCudOperations(ctx context.Context, c *ent.Client, setParent func(*ent.FileCreate) *ent.FileCreate) cudOperations {
@@ -205,5 +208,143 @@ func TestChecklistItemFilePolicyRule(t *testing.T) {
 		create: cudOperations.create,
 		update: cudOperations.update,
 		delete: cudOperations.delete,
+	})
+}
+
+func TestFileOfWorkOrderReadPolicyRule(t *testing.T) {
+	c := viewertest.NewTestClient(t)
+	ctx := viewertest.NewContext(context.Background(), c)
+	woType1, wo1 := prepareWorkOrderData(ctx, c)
+	_, wo2 := prepareWorkOrderData(ctx, c)
+	c.File.Create().
+		SetType("image/png").
+		SetName("image1.png").
+		SetContentType("image/png").
+		SetStoreKey("1111").
+		SetWorkOrder(wo1).
+		SaveX(ctx)
+	c.File.Create().
+		SetType("image/png").
+		SetName("image2.png").
+		SetContentType("image/png").
+		SetStoreKey("2222").
+		SetWorkOrder(wo2).
+		SaveX(ctx)
+	t.Run("EmptyPermissions", func(t *testing.T) {
+		permissions := authz.EmptyPermissions()
+		permissionsContext := viewertest.NewContext(
+			context.Background(),
+			c,
+			viewertest.WithUser("user"),
+			viewertest.WithRole(user.RoleUSER),
+			viewertest.WithPermissions(permissions))
+		count, err := c.File.Query().Count(permissionsContext)
+		require.NoError(t, err)
+		require.Zero(t, count)
+	})
+	t.Run("PartialPermissions", func(t *testing.T) {
+		permissions := authz.EmptyPermissions()
+		permissions.WorkforcePolicy.Read.IsAllowed = models2.PermissionValueByCondition
+		permissions.WorkforcePolicy.Read.WorkOrderTypeIds = []int{woType1.ID}
+		permissionsContext := viewertest.NewContext(
+			context.Background(),
+			c,
+			viewertest.WithUser("user"),
+			viewertest.WithRole(user.RoleUSER),
+			viewertest.WithPermissions(permissions))
+		count, err := c.File.Query().Count(permissionsContext)
+		require.NoError(t, err)
+		require.Equal(t, 1, count)
+	})
+	t.Run("FullPermissions", func(t *testing.T) {
+		permissions := authz.EmptyPermissions()
+		permissions.WorkforcePolicy.Read.IsAllowed = models2.PermissionValueYes
+		permissionsContext := viewertest.NewContext(
+			context.Background(),
+			c,
+			viewertest.WithUser("user"),
+			viewertest.WithRole(user.RoleUSER),
+			viewertest.WithPermissions(permissions))
+		count, err := c.File.Query().Count(permissionsContext)
+		require.NoError(t, err)
+		require.Equal(t, 2, count)
+	})
+}
+
+func TestFileOfCheckListItemReadPolicyRule(t *testing.T) {
+	c := viewertest.NewTestClient(t)
+	ctx := viewertest.NewContext(context.Background(), c)
+	woType1, wo1 := prepareWorkOrderData(ctx, c)
+	_, wo2 := prepareWorkOrderData(ctx, c)
+	caetgory1 := c.CheckListCategory.Create().
+		SetTitle("Category1").
+		SetWorkOrder(wo1).
+		SaveX(ctx)
+	item1 := c.CheckListItem.Create().
+		SetTitle("Item1").
+		SetCheckListCategory(caetgory1).
+		SetType("simple").
+		SaveX(ctx)
+	c.File.Create().
+		SetType("image/png").
+		SetName("image1.png").
+		SetContentType("image/png").
+		SetStoreKey("1111").
+		SetChecklistItem(item1).
+		SaveX(ctx)
+	caetgory2 := c.CheckListCategory.Create().
+		SetTitle("Category2").
+		SetWorkOrder(wo2).
+		SaveX(ctx)
+	item2 := c.CheckListItem.Create().
+		SetTitle("Item1").
+		SetCheckListCategory(caetgory2).
+		SetType("simple").
+		SaveX(ctx)
+	c.File.Create().
+		SetType("image/png").
+		SetName("image2.png").
+		SetContentType("image/png").
+		SetStoreKey("2222").
+		SetChecklistItem(item2).
+		SaveX(ctx)
+	t.Run("EmptyPermissions", func(t *testing.T) {
+		permissions := authz.EmptyPermissions()
+		permissionsContext := viewertest.NewContext(
+			context.Background(),
+			c,
+			viewertest.WithUser("user"),
+			viewertest.WithRole(user.RoleUSER),
+			viewertest.WithPermissions(permissions))
+		count, err := c.File.Query().Count(permissionsContext)
+		require.NoError(t, err)
+		require.Zero(t, count)
+	})
+	t.Run("PartialPermissions", func(t *testing.T) {
+		permissions := authz.EmptyPermissions()
+		permissions.WorkforcePolicy.Read.IsAllowed = models2.PermissionValueByCondition
+		permissions.WorkforcePolicy.Read.WorkOrderTypeIds = []int{woType1.ID}
+		permissionsContext := viewertest.NewContext(
+			context.Background(),
+			c,
+			viewertest.WithUser("user"),
+			viewertest.WithRole(user.RoleUSER),
+			viewertest.WithPermissions(permissions))
+		count, err := c.File.Query().Count(permissionsContext)
+		require.NoError(t, err)
+		require.Equal(t, 1, count)
+	})
+	t.Run("FullPermissions", func(t *testing.T) {
+		permissions := authz.EmptyPermissions()
+		permissions.WorkforcePolicy.Read.IsAllowed = models2.PermissionValueYes
+		permissionsContext := viewertest.NewContext(
+			context.Background(),
+			c,
+			viewertest.WithUser("user"),
+			viewertest.WithRole(user.RoleUSER),
+			viewertest.WithPermissions(permissions))
+		count, err := c.File.Query().Count(permissionsContext)
+		require.NoError(t, err)
+		require.Equal(t, 2, count)
 	})
 }
