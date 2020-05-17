@@ -104,12 +104,12 @@ func allowReadPermissionsRule() privacy.QueryRule {
 	return privacy.QueryRuleFunc(func(ctx context.Context, _ ent.Query) error {
 		switch v := viewer.FromContext(ctx); {
 		case v == nil:
-			fallthrough
-		default:
 			return privacy.Skip
 		case !v.Features().Enabled(viewer.FeatureUserManagementDev),
 			v.Role() == user.RoleOWNER:
 			return privacy.Allow
+		default:
+			return privacy.Skip
 		}
 	})
 }
