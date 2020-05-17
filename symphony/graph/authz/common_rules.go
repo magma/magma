@@ -122,3 +122,19 @@ func denyIfNoPermissionSettingsRule() privacy.QueryMutationRule {
 		return privacy.Skip
 	})
 }
+
+func allowOrSkipWorkOrder(ctx context.Context, p *models.PermissionSettings, wo *ent.WorkOrder) error {
+	allowed, err := workOrderIsEditable(ctx, wo)
+	if err != nil {
+		return privacy.Denyf(err.Error())
+	}
+	if allowed {
+		return privacy.Allow
+	}
+	workOrderTypeID, err := wo.QueryType().OnlyID(ctx)
+
+	if err != nil {
+		return privacy.Denyf("failed to fetch work order type id: %w", err)
+	}
+	return privacyDecision(checkWorkforce(p.WorkforcePolicy.Data.Update, &workOrderTypeID, nil))
+}

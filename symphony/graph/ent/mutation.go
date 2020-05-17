@@ -8857,21 +8857,31 @@ func (m *EquipmentTypeMutation) ResetEdge(name string) error {
 // nodes in the graph.
 type FileMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int
-	create_time   *time.Time
-	update_time   *time.Time
-	_type         *string
-	name          *string
-	size          *int
-	addsize       *int
-	modified_at   *time.Time
-	uploaded_at   *time.Time
-	content_type  *string
-	store_key     *string
-	category      *string
-	clearedFields map[string]struct{}
+	op                    Op
+	typ                   string
+	id                    *int
+	create_time           *time.Time
+	update_time           *time.Time
+	_type                 *string
+	name                  *string
+	size                  *int
+	addsize               *int
+	modified_at           *time.Time
+	uploaded_at           *time.Time
+	content_type          *string
+	store_key             *string
+	category              *string
+	clearedFields         map[string]struct{}
+	location              *int
+	clearedlocation       bool
+	equipment             *int
+	clearedequipment      bool
+	user                  *int
+	cleareduser           bool
+	work_order            *int
+	clearedwork_order     bool
+	checklist_item        *int
+	clearedchecklist_item bool
 }
 
 var _ ent.Mutation = (*FileMutation)(nil)
@@ -9177,6 +9187,201 @@ func (m *FileMutation) ResetCategory() {
 	delete(m.clearedFields, file.FieldCategory)
 }
 
+// SetLocationID sets the location edge to Location by id.
+func (m *FileMutation) SetLocationID(id int) {
+	m.location = &id
+}
+
+// ClearLocation clears the location edge to Location.
+func (m *FileMutation) ClearLocation() {
+	m.clearedlocation = true
+}
+
+// LocationCleared returns if the edge location was cleared.
+func (m *FileMutation) LocationCleared() bool {
+	return m.clearedlocation
+}
+
+// LocationID returns the location id in the mutation.
+func (m *FileMutation) LocationID() (id int, exists bool) {
+	if m.location != nil {
+		return *m.location, true
+	}
+	return
+}
+
+// LocationIDs returns the location ids in the mutation.
+// Note that ids always returns len(ids) <= 1 for unique edges, and you should use
+// LocationID instead. It exists only for internal usage by the builders.
+func (m *FileMutation) LocationIDs() (ids []int) {
+	if id := m.location; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetLocation reset all changes of the location edge.
+func (m *FileMutation) ResetLocation() {
+	m.location = nil
+	m.clearedlocation = false
+}
+
+// SetEquipmentID sets the equipment edge to Equipment by id.
+func (m *FileMutation) SetEquipmentID(id int) {
+	m.equipment = &id
+}
+
+// ClearEquipment clears the equipment edge to Equipment.
+func (m *FileMutation) ClearEquipment() {
+	m.clearedequipment = true
+}
+
+// EquipmentCleared returns if the edge equipment was cleared.
+func (m *FileMutation) EquipmentCleared() bool {
+	return m.clearedequipment
+}
+
+// EquipmentID returns the equipment id in the mutation.
+func (m *FileMutation) EquipmentID() (id int, exists bool) {
+	if m.equipment != nil {
+		return *m.equipment, true
+	}
+	return
+}
+
+// EquipmentIDs returns the equipment ids in the mutation.
+// Note that ids always returns len(ids) <= 1 for unique edges, and you should use
+// EquipmentID instead. It exists only for internal usage by the builders.
+func (m *FileMutation) EquipmentIDs() (ids []int) {
+	if id := m.equipment; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetEquipment reset all changes of the equipment edge.
+func (m *FileMutation) ResetEquipment() {
+	m.equipment = nil
+	m.clearedequipment = false
+}
+
+// SetUserID sets the user edge to User by id.
+func (m *FileMutation) SetUserID(id int) {
+	m.user = &id
+}
+
+// ClearUser clears the user edge to User.
+func (m *FileMutation) ClearUser() {
+	m.cleareduser = true
+}
+
+// UserCleared returns if the edge user was cleared.
+func (m *FileMutation) UserCleared() bool {
+	return m.cleareduser
+}
+
+// UserID returns the user id in the mutation.
+func (m *FileMutation) UserID() (id int, exists bool) {
+	if m.user != nil {
+		return *m.user, true
+	}
+	return
+}
+
+// UserIDs returns the user ids in the mutation.
+// Note that ids always returns len(ids) <= 1 for unique edges, and you should use
+// UserID instead. It exists only for internal usage by the builders.
+func (m *FileMutation) UserIDs() (ids []int) {
+	if id := m.user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUser reset all changes of the user edge.
+func (m *FileMutation) ResetUser() {
+	m.user = nil
+	m.cleareduser = false
+}
+
+// SetWorkOrderID sets the work_order edge to WorkOrder by id.
+func (m *FileMutation) SetWorkOrderID(id int) {
+	m.work_order = &id
+}
+
+// ClearWorkOrder clears the work_order edge to WorkOrder.
+func (m *FileMutation) ClearWorkOrder() {
+	m.clearedwork_order = true
+}
+
+// WorkOrderCleared returns if the edge work_order was cleared.
+func (m *FileMutation) WorkOrderCleared() bool {
+	return m.clearedwork_order
+}
+
+// WorkOrderID returns the work_order id in the mutation.
+func (m *FileMutation) WorkOrderID() (id int, exists bool) {
+	if m.work_order != nil {
+		return *m.work_order, true
+	}
+	return
+}
+
+// WorkOrderIDs returns the work_order ids in the mutation.
+// Note that ids always returns len(ids) <= 1 for unique edges, and you should use
+// WorkOrderID instead. It exists only for internal usage by the builders.
+func (m *FileMutation) WorkOrderIDs() (ids []int) {
+	if id := m.work_order; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetWorkOrder reset all changes of the work_order edge.
+func (m *FileMutation) ResetWorkOrder() {
+	m.work_order = nil
+	m.clearedwork_order = false
+}
+
+// SetChecklistItemID sets the checklist_item edge to CheckListItem by id.
+func (m *FileMutation) SetChecklistItemID(id int) {
+	m.checklist_item = &id
+}
+
+// ClearChecklistItem clears the checklist_item edge to CheckListItem.
+func (m *FileMutation) ClearChecklistItem() {
+	m.clearedchecklist_item = true
+}
+
+// ChecklistItemCleared returns if the edge checklist_item was cleared.
+func (m *FileMutation) ChecklistItemCleared() bool {
+	return m.clearedchecklist_item
+}
+
+// ChecklistItemID returns the checklist_item id in the mutation.
+func (m *FileMutation) ChecklistItemID() (id int, exists bool) {
+	if m.checklist_item != nil {
+		return *m.checklist_item, true
+	}
+	return
+}
+
+// ChecklistItemIDs returns the checklist_item ids in the mutation.
+// Note that ids always returns len(ids) <= 1 for unique edges, and you should use
+// ChecklistItemID instead. It exists only for internal usage by the builders.
+func (m *FileMutation) ChecklistItemIDs() (ids []int) {
+	if id := m.checklist_item; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetChecklistItem reset all changes of the checklist_item edge.
+func (m *FileMutation) ResetChecklistItem() {
+	m.checklist_item = nil
+	m.clearedchecklist_item = false
+}
+
 // Op returns the operation name.
 func (m *FileMutation) Op() Op {
 	return m.op
@@ -9458,7 +9663,22 @@ func (m *FileMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this
 // mutation.
 func (m *FileMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 5)
+	if m.location != nil {
+		edges = append(edges, file.EdgeLocation)
+	}
+	if m.equipment != nil {
+		edges = append(edges, file.EdgeEquipment)
+	}
+	if m.user != nil {
+		edges = append(edges, file.EdgeUser)
+	}
+	if m.work_order != nil {
+		edges = append(edges, file.EdgeWorkOrder)
+	}
+	if m.checklist_item != nil {
+		edges = append(edges, file.EdgeChecklistItem)
+	}
 	return edges
 }
 
@@ -9466,6 +9686,26 @@ func (m *FileMutation) AddedEdges() []string {
 // the given edge name.
 func (m *FileMutation) AddedIDs(name string) []ent.Value {
 	switch name {
+	case file.EdgeLocation:
+		if id := m.location; id != nil {
+			return []ent.Value{*id}
+		}
+	case file.EdgeEquipment:
+		if id := m.equipment; id != nil {
+			return []ent.Value{*id}
+		}
+	case file.EdgeUser:
+		if id := m.user; id != nil {
+			return []ent.Value{*id}
+		}
+	case file.EdgeWorkOrder:
+		if id := m.work_order; id != nil {
+			return []ent.Value{*id}
+		}
+	case file.EdgeChecklistItem:
+		if id := m.checklist_item; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
@@ -9473,7 +9713,7 @@ func (m *FileMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this
 // mutation.
 func (m *FileMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 5)
 	return edges
 }
 
@@ -9488,7 +9728,22 @@ func (m *FileMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this
 // mutation.
 func (m *FileMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 5)
+	if m.clearedlocation {
+		edges = append(edges, file.EdgeLocation)
+	}
+	if m.clearedequipment {
+		edges = append(edges, file.EdgeEquipment)
+	}
+	if m.cleareduser {
+		edges = append(edges, file.EdgeUser)
+	}
+	if m.clearedwork_order {
+		edges = append(edges, file.EdgeWorkOrder)
+	}
+	if m.clearedchecklist_item {
+		edges = append(edges, file.EdgeChecklistItem)
+	}
 	return edges
 }
 
@@ -9496,6 +9751,16 @@ func (m *FileMutation) ClearedEdges() []string {
 // cleared in this mutation.
 func (m *FileMutation) EdgeCleared(name string) bool {
 	switch name {
+	case file.EdgeLocation:
+		return m.clearedlocation
+	case file.EdgeEquipment:
+		return m.clearedequipment
+	case file.EdgeUser:
+		return m.cleareduser
+	case file.EdgeWorkOrder:
+		return m.clearedwork_order
+	case file.EdgeChecklistItem:
+		return m.clearedchecklist_item
 	}
 	return false
 }
@@ -9503,6 +9768,23 @@ func (m *FileMutation) EdgeCleared(name string) bool {
 // ClearEdge clears the value for the given name. It returns an
 // error if the edge name is not defined in the schema.
 func (m *FileMutation) ClearEdge(name string) error {
+	switch name {
+	case file.EdgeLocation:
+		m.ClearLocation()
+		return nil
+	case file.EdgeEquipment:
+		m.ClearEquipment()
+		return nil
+	case file.EdgeUser:
+		m.ClearUser()
+		return nil
+	case file.EdgeWorkOrder:
+		m.ClearWorkOrder()
+		return nil
+	case file.EdgeChecklistItem:
+		m.ClearChecklistItem()
+		return nil
+	}
 	return fmt.Errorf("unknown File unique edge %s", name)
 }
 
@@ -9511,6 +9793,21 @@ func (m *FileMutation) ClearEdge(name string) error {
 // defined in the schema.
 func (m *FileMutation) ResetEdge(name string) error {
 	switch name {
+	case file.EdgeLocation:
+		m.ResetLocation()
+		return nil
+	case file.EdgeEquipment:
+		m.ResetEquipment()
+		return nil
+	case file.EdgeUser:
+		m.ResetUser()
+		return nil
+	case file.EdgeWorkOrder:
+		m.ResetWorkOrder()
+		return nil
+	case file.EdgeChecklistItem:
+		m.ResetChecklistItem()
+		return nil
 	}
 	return fmt.Errorf("unknown File edge %s", name)
 }

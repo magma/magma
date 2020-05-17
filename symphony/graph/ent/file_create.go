@@ -14,7 +14,12 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
+	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/file"
+	"github.com/facebookincubator/symphony/graph/ent/location"
+	"github.com/facebookincubator/symphony/graph/ent/user"
+	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
 
 // FileCreate is the builder for creating a File entity.
@@ -130,6 +135,101 @@ func (fc *FileCreate) SetNillableCategory(s *string) *FileCreate {
 		fc.SetCategory(*s)
 	}
 	return fc
+}
+
+// SetLocationID sets the location edge to Location by id.
+func (fc *FileCreate) SetLocationID(id int) *FileCreate {
+	fc.mutation.SetLocationID(id)
+	return fc
+}
+
+// SetNillableLocationID sets the location edge to Location by id if the given value is not nil.
+func (fc *FileCreate) SetNillableLocationID(id *int) *FileCreate {
+	if id != nil {
+		fc = fc.SetLocationID(*id)
+	}
+	return fc
+}
+
+// SetLocation sets the location edge to Location.
+func (fc *FileCreate) SetLocation(l *Location) *FileCreate {
+	return fc.SetLocationID(l.ID)
+}
+
+// SetEquipmentID sets the equipment edge to Equipment by id.
+func (fc *FileCreate) SetEquipmentID(id int) *FileCreate {
+	fc.mutation.SetEquipmentID(id)
+	return fc
+}
+
+// SetNillableEquipmentID sets the equipment edge to Equipment by id if the given value is not nil.
+func (fc *FileCreate) SetNillableEquipmentID(id *int) *FileCreate {
+	if id != nil {
+		fc = fc.SetEquipmentID(*id)
+	}
+	return fc
+}
+
+// SetEquipment sets the equipment edge to Equipment.
+func (fc *FileCreate) SetEquipment(e *Equipment) *FileCreate {
+	return fc.SetEquipmentID(e.ID)
+}
+
+// SetUserID sets the user edge to User by id.
+func (fc *FileCreate) SetUserID(id int) *FileCreate {
+	fc.mutation.SetUserID(id)
+	return fc
+}
+
+// SetNillableUserID sets the user edge to User by id if the given value is not nil.
+func (fc *FileCreate) SetNillableUserID(id *int) *FileCreate {
+	if id != nil {
+		fc = fc.SetUserID(*id)
+	}
+	return fc
+}
+
+// SetUser sets the user edge to User.
+func (fc *FileCreate) SetUser(u *User) *FileCreate {
+	return fc.SetUserID(u.ID)
+}
+
+// SetWorkOrderID sets the work_order edge to WorkOrder by id.
+func (fc *FileCreate) SetWorkOrderID(id int) *FileCreate {
+	fc.mutation.SetWorkOrderID(id)
+	return fc
+}
+
+// SetNillableWorkOrderID sets the work_order edge to WorkOrder by id if the given value is not nil.
+func (fc *FileCreate) SetNillableWorkOrderID(id *int) *FileCreate {
+	if id != nil {
+		fc = fc.SetWorkOrderID(*id)
+	}
+	return fc
+}
+
+// SetWorkOrder sets the work_order edge to WorkOrder.
+func (fc *FileCreate) SetWorkOrder(w *WorkOrder) *FileCreate {
+	return fc.SetWorkOrderID(w.ID)
+}
+
+// SetChecklistItemID sets the checklist_item edge to CheckListItem by id.
+func (fc *FileCreate) SetChecklistItemID(id int) *FileCreate {
+	fc.mutation.SetChecklistItemID(id)
+	return fc
+}
+
+// SetNillableChecklistItemID sets the checklist_item edge to CheckListItem by id if the given value is not nil.
+func (fc *FileCreate) SetNillableChecklistItemID(id *int) *FileCreate {
+	if id != nil {
+		fc = fc.SetChecklistItemID(*id)
+	}
+	return fc
+}
+
+// SetChecklistItem sets the checklist_item edge to CheckListItem.
+func (fc *FileCreate) SetChecklistItem(c *CheckListItem) *FileCreate {
+	return fc.SetChecklistItemID(c.ID)
 }
 
 // Save creates the File in the database.
@@ -284,6 +384,101 @@ func (fc *FileCreate) sqlSave(ctx context.Context) (*File, error) {
 			Column: file.FieldCategory,
 		})
 		f.Category = value
+	}
+	if nodes := fc.mutation.LocationIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   file.LocationTable,
+			Columns: []string{file.LocationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: location.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := fc.mutation.EquipmentIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   file.EquipmentTable,
+			Columns: []string{file.EquipmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: equipment.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := fc.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   file.UserTable,
+			Columns: []string{file.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := fc.mutation.WorkOrderIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   file.WorkOrderTable,
+			Columns: []string{file.WorkOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workorder.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := fc.mutation.ChecklistItemIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   file.ChecklistItemTable,
+			Columns: []string{file.ChecklistItemColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: checklistitem.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if err := sqlgraph.CreateNode(ctx, fc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {

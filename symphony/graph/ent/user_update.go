@@ -336,7 +336,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if uu.mutation.ProfilePhotoCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
+			Rel:     sqlgraph.O2O,
 			Inverse: false,
 			Table:   user.ProfilePhotoTable,
 			Columns: []string{user.ProfilePhotoColumn},
@@ -352,7 +352,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if nodes := uu.mutation.ProfilePhotoIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
+			Rel:     sqlgraph.O2O,
 			Inverse: false,
 			Table:   user.ProfilePhotoTable,
 			Columns: []string{user.ProfilePhotoColumn},
@@ -726,7 +726,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (u *User, err error) {
 	}
 	if uuo.mutation.ProfilePhotoCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
+			Rel:     sqlgraph.O2O,
 			Inverse: false,
 			Table:   user.ProfilePhotoTable,
 			Columns: []string{user.ProfilePhotoColumn},
@@ -742,7 +742,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (u *User, err error) {
 	}
 	if nodes := uuo.mutation.ProfilePhotoIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
+			Rel:     sqlgraph.O2O,
 			Inverse: false,
 			Table:   user.ProfilePhotoTable,
 			Columns: []string{user.ProfilePhotoColumn},

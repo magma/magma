@@ -35,7 +35,7 @@ const (
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// ProfilePhotoTable is the table the holds the profile_photo relation/edge.
-	ProfilePhotoTable = "users"
+	ProfilePhotoTable = "files"
 	// ProfilePhotoInverseTable is the table name for the File entity.
 	// It exists in this package in order to avoid circular dependency with the "file" package.
 	ProfilePhotoInverseTable = "files"
@@ -59,11 +59,6 @@ var Columns = []string{
 	FieldEmail,
 	FieldStatus,
 	FieldRole,
-}
-
-// ForeignKeys holds the SQL foreign-keys that are owned by the User type.
-var ForeignKeys = []string{
-	"user_profile_photo",
 }
 
 var (

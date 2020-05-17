@@ -2465,6 +2465,86 @@ func (c *FileClient) GetX(ctx context.Context, id int) *File {
 	return f
 }
 
+// QueryLocation queries the location edge of a File.
+func (c *FileClient) QueryLocation(f *File) *LocationQuery {
+	query := &LocationQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := f.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(file.Table, file.FieldID, id),
+			sqlgraph.To(location.Table, location.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, file.LocationTable, file.LocationColumn),
+		)
+		fromV = sqlgraph.Neighbors(f.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryEquipment queries the equipment edge of a File.
+func (c *FileClient) QueryEquipment(f *File) *EquipmentQuery {
+	query := &EquipmentQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := f.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(file.Table, file.FieldID, id),
+			sqlgraph.To(equipment.Table, equipment.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, file.EquipmentTable, file.EquipmentColumn),
+		)
+		fromV = sqlgraph.Neighbors(f.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUser queries the user edge of a File.
+func (c *FileClient) QueryUser(f *File) *UserQuery {
+	query := &UserQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := f.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(file.Table, file.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, file.UserTable, file.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(f.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryWorkOrder queries the work_order edge of a File.
+func (c *FileClient) QueryWorkOrder(f *File) *WorkOrderQuery {
+	query := &WorkOrderQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := f.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(file.Table, file.FieldID, id),
+			sqlgraph.To(workorder.Table, workorder.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, file.WorkOrderTable, file.WorkOrderColumn),
+		)
+		fromV = sqlgraph.Neighbors(f.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryChecklistItem queries the checklist_item edge of a File.
+func (c *FileClient) QueryChecklistItem(f *File) *CheckListItemQuery {
+	query := &CheckListItemQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := f.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(file.Table, file.FieldID, id),
+			sqlgraph.To(checklistitem.Table, checklistitem.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, file.ChecklistItemTable, file.ChecklistItemColumn),
+		)
+		fromV = sqlgraph.Neighbors(f.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *FileClient) Hooks() []Hook {
 	hooks := c.hooks.File
@@ -5881,7 +5961,7 @@ func (c *UserClient) QueryProfilePhoto(u *User) *FileQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(file.Table, file.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, user.ProfilePhotoTable, user.ProfilePhotoColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, user.ProfilePhotoTable, user.ProfilePhotoColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil
