@@ -28,9 +28,10 @@ import symphony from '@fbcnms/ui/theme/symphony';
 import {DocumentAPIUrls} from '../../../../common/DocumentAPI';
 import {FormContextProvider} from '../../../../common/FormContext';
 import {GROUP_STATUSES, USER_ROLES} from '../utils/UserManagementUtils';
+import {Prompt} from 'react-router-dom';
 import {SQUARE_DIMENSION_PX} from '@fbcnms/ui/components/design-system/Experimental/FileUpload/FileUploadArea';
 import {makeStyles} from '@material-ui/styles';
-import {useCallback, useContext, useEffect, useState} from 'react';
+import {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {useMessageShowingContext} from '@fbcnms/ui/components/design-system/Dialog/MessageShowingContext';
 
 const useStyles = makeStyles(() => ({
@@ -57,6 +58,9 @@ const useStyles = makeStyles(() => ({
     borderTop: `1px solid ${symphony.palette.separator}`,
     display: 'flex',
     justifyContent: 'flex-end',
+    '&>*': {
+      marginLeft: '8px',
+    },
   },
   section: {
     display: 'flex',
@@ -145,6 +149,19 @@ type Props = {
   onChange: User => void,
 };
 
+function isSameUserDetails(userA: ?User, userB: ?User) {
+  if (userA == null && userB == null) {
+    return true;
+  }
+  if (userA == null || userB == null) {
+    return false;
+  }
+  const aData: string = JSON.stringify(userA);
+  const bData: string = JSON.stringify(userB);
+
+  return aData === bData;
+}
+
 export default function UserProfilePane(props: Props) {
   const {user: propUser, onChange} = props;
   const classes = useStyles();
@@ -180,12 +197,31 @@ export default function UserProfilePane(props: Props) {
   const [profilePhoto, setProfilePhoto] = useState<?{storeKey: string}>(null);
   useEffect(() => setProfilePhoto(null), [user]);
 
+  const userDataChanged = !isSameUserDetails(user, propUser);
+  const formButtonsDisablingProps = useMemo(
+    () =>
+      userDataChanged
+        ? null
+        : {
+            disabled: true,
+            tooltip: `${fbt('No changes were made', '')}`,
+          },
+    [userDataChanged],
+  );
+
   if (user == null) {
     return null;
   }
 
   return (
     <div className={classes.root}>
+      <Prompt
+        when={userDataChanged}
+        message={`${fbt(
+          'You have unsaved data, leaving this page will ignore those changes.',
+          '',
+        )}`}
+      />
       <FormContextProvider>
         <div className={classes.form}>
           <div className={classes.section}>
@@ -448,12 +484,12 @@ export default function UserProfilePane(props: Props) {
           ) : null}
         </div>
         <div className={classes.bottomBar}>
-          <FormAction>
+          <FormAction {...formButtonsDisablingProps}>
             <Button skin="regular" onClick={revertChanges}>
               <fbt desc="">Revert</fbt>
             </Button>
           </FormAction>
-          <FormAction disableOnFromError={true}>
+          <FormAction disableOnFromError={true} {...formButtonsDisablingProps}>
             <Button onClick={callOnChange}>
               <fbt desc="">Apply</fbt>
             </Button>

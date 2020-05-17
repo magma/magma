@@ -8,6 +8,7 @@
  * @format
  */
 
+import type {ContextRouter} from 'react-router';
 import type {
   TableRowDataType,
   TableRowId,
@@ -32,6 +33,7 @@ import {makeStyles} from '@material-ui/styles';
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import {useContext} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useHistory, useLocation, withRouter} from 'react-router-dom';
 import {useUserManagement} from '../UserManagementContext';
 
 const useStyles = makeStyles(() => ({
@@ -57,8 +59,12 @@ const user2UserTableRow: User => UserTableRow = user => ({
   data: user,
 });
 
-export default function UsersTable() {
+type Props = ContextRouter;
+
+function UsersTable({match}: Props) {
   const classes = useStyles();
+  const history = useHistory();
+  const basePath = match.path;
 
   const {isFeatureEnabled} = useContext(AppContext);
   const userManagementDevMode = isFeatureEnabled('user_management_dev');
@@ -67,7 +73,6 @@ export default function UsersTable() {
   const {users, editUser} = useUserManagement();
   useEffect(() => setUsersTableData(users.map(user2UserTableRow)), [users]);
   const [selectedUserIds, setSelectedUserIds] = useState<Array<TableRowId>>([]);
-  const [activeUserId, setActiveUserId] = useState(null);
 
   const userRow2UserRole = useCallback(
     userRow =>
@@ -76,6 +81,16 @@ export default function UsersTable() {
         : USER_ROLES[userRow.data.role].value || userRow.data.role,
     [],
   );
+
+  const location = useLocation();
+  let activeUserId;
+  if (location.pathname.length > basePath.length + 1) {
+    const idParam = location.pathname.slice(basePath.length + 1);
+    const hasFittingUser = users.find(user => user.authID === idParam) != null;
+    if (hasFittingUser) {
+      activeUserId = idParam;
+    }
+  }
 
   const columns = useMemo(() => {
     const isActiveUser = userId =>
@@ -180,12 +195,20 @@ export default function UsersTable() {
       />
     );
   }, [activeUserId, editUser, handleError, users]);
+
+  const navigateToUser = useCallback(
+    userId => {
+      history.push(`${basePath}/${userId ?? ''}`);
+    },
+    [basePath, history],
+  );
+
   return (
     <div className={classes.root}>
       <Table
         dataRowsSeparator="border"
         activeRowId={activeUserId}
-        onActiveRowIdChanged={setActiveUserId}
+        onActiveRowIdChanged={navigateToUser}
         selectedIds={selectedUserIds}
         onSelectionChanged={ids => setSelectedUserIds(ids)}
         data={usersTableData}
@@ -195,3 +218,5 @@ export default function UsersTable() {
     </div>
   );
 }
+
+export default withRouter(UsersTable);
