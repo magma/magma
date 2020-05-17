@@ -185,7 +185,7 @@ func (m *ActionsRuleMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetCreateTime reset all changes of the create_time field.
+// ResetCreateTime reset all changes of the "create_time" field.
 func (m *ActionsRuleMutation) ResetCreateTime() {
 	m.create_time = nil
 }
@@ -204,7 +204,7 @@ func (m *ActionsRuleMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetUpdateTime reset all changes of the update_time field.
+// ResetUpdateTime reset all changes of the "update_time" field.
 func (m *ActionsRuleMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
@@ -223,7 +223,7 @@ func (m *ActionsRuleMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// ResetName reset all changes of the name field.
+// ResetName reset all changes of the "name" field.
 func (m *ActionsRuleMutation) ResetName() {
 	m.name = nil
 }
@@ -242,7 +242,7 @@ func (m *ActionsRuleMutation) TriggerID() (r string, exists bool) {
 	return *v, true
 }
 
-// ResetTriggerID reset all changes of the triggerID field.
+// ResetTriggerID reset all changes of the "triggerID" field.
 func (m *ActionsRuleMutation) ResetTriggerID() {
 	m.triggerID = nil
 }
@@ -261,7 +261,7 @@ func (m *ActionsRuleMutation) RuleFilters() (r []*core.ActionsRuleFilter, exists
 	return *v, true
 }
 
-// ResetRuleFilters reset all changes of the ruleFilters field.
+// ResetRuleFilters reset all changes of the "ruleFilters" field.
 func (m *ActionsRuleMutation) ResetRuleFilters() {
 	m.ruleFilters = nil
 }
@@ -280,7 +280,7 @@ func (m *ActionsRuleMutation) RuleActions() (r []*core.ActionsRuleAction, exists
 	return *v, true
 }
 
-// ResetRuleActions reset all changes of the ruleActions field.
+// ResetRuleActions reset all changes of the "ruleActions" field.
 func (m *ActionsRuleMutation) ResetRuleActions() {
 	m.ruleActions = nil
 }
@@ -593,7 +593,7 @@ func (m *CheckListCategoryMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetCreateTime reset all changes of the create_time field.
+// ResetCreateTime reset all changes of the "create_time" field.
 func (m *CheckListCategoryMutation) ResetCreateTime() {
 	m.create_time = nil
 }
@@ -612,7 +612,7 @@ func (m *CheckListCategoryMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetUpdateTime reset all changes of the update_time field.
+// ResetUpdateTime reset all changes of the "update_time" field.
 func (m *CheckListCategoryMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
@@ -631,7 +631,7 @@ func (m *CheckListCategoryMutation) Title() (r string, exists bool) {
 	return *v, true
 }
 
-// ResetTitle reset all changes of the title field.
+// ResetTitle reset all changes of the "title" field.
 func (m *CheckListCategoryMutation) ResetTitle() {
 	m.title = nil
 }
@@ -662,7 +662,7 @@ func (m *CheckListCategoryMutation) DescriptionCleared() bool {
 	return ok
 }
 
-// ResetDescription reset all changes of the description field.
+// ResetDescription reset all changes of the "description" field.
 func (m *CheckListCategoryMutation) ResetDescription() {
 	m.description = nil
 	delete(m.clearedFields, checklistcategory.FieldDescription)
@@ -704,7 +704,7 @@ func (m *CheckListCategoryMutation) CheckListItemsIDs() (ids []int) {
 	return
 }
 
-// ResetCheckListItems reset all changes of the check_list_items edge.
+// ResetCheckListItems reset all changes of the "check_list_items" edge.
 func (m *CheckListCategoryMutation) ResetCheckListItems() {
 	m.check_list_items = nil
 	m.removedcheck_list_items = nil
@@ -743,7 +743,7 @@ func (m *CheckListCategoryMutation) WorkOrderIDs() (ids []int) {
 	return
 }
 
-// ResetWorkOrder reset all changes of the work_order edge.
+// ResetWorkOrder reset all changes of the "work_order" edge.
 func (m *CheckListCategoryMutation) ResetWorkOrder() {
 	m.work_order = nil
 	m.clearedwork_order = false
@@ -1077,7 +1077,7 @@ func (m *CheckListCategoryDefinitionMutation) CreateTime() (r time.Time, exists 
 	return *v, true
 }
 
-// ResetCreateTime reset all changes of the create_time field.
+// ResetCreateTime reset all changes of the "create_time" field.
 func (m *CheckListCategoryDefinitionMutation) ResetCreateTime() {
 	m.create_time = nil
 }
@@ -1096,7 +1096,7 @@ func (m *CheckListCategoryDefinitionMutation) UpdateTime() (r time.Time, exists 
 	return *v, true
 }
 
-// ResetUpdateTime reset all changes of the update_time field.
+// ResetUpdateTime reset all changes of the "update_time" field.
 func (m *CheckListCategoryDefinitionMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
@@ -1115,7 +1115,7 @@ func (m *CheckListCategoryDefinitionMutation) Title() (r string, exists bool) {
 	return *v, true
 }
 
-// ResetTitle reset all changes of the title field.
+// ResetTitle reset all changes of the "title" field.
 func (m *CheckListCategoryDefinitionMutation) ResetTitle() {
 	m.title = nil
 }
@@ -1146,7 +1146,7 @@ func (m *CheckListCategoryDefinitionMutation) DescriptionCleared() bool {
 	return ok
 }
 
-// ResetDescription reset all changes of the description field.
+// ResetDescription reset all changes of the "description" field.
 func (m *CheckListCategoryDefinitionMutation) ResetDescription() {
 	m.description = nil
 	delete(m.clearedFields, checklistcategorydefinition.FieldDescription)
@@ -1188,7 +1188,7 @@ func (m *CheckListCategoryDefinitionMutation) CheckListItemDefinitionsIDs() (ids
 	return
 }
 
-// ResetCheckListItemDefinitions reset all changes of the check_list_item_definitions edge.
+// ResetCheckListItemDefinitions reset all changes of the "check_list_item_definitions" edge.
 func (m *CheckListCategoryDefinitionMutation) ResetCheckListItemDefinitions() {
 	m.check_list_item_definitions = nil
 	m.removedcheck_list_item_definitions = nil
@@ -1227,7 +1227,7 @@ func (m *CheckListCategoryDefinitionMutation) WorkOrderTypeIDs() (ids []int) {
 	return
 }
 
-// ResetWorkOrderType reset all changes of the work_order_type edge.
+// ResetWorkOrderType reset all changes of the "work_order_type" edge.
 func (m *CheckListCategoryDefinitionMutation) ResetWorkOrderType() {
 	m.work_order_type = nil
 	m.clearedwork_order_type = false
@@ -1572,7 +1572,7 @@ func (m *CheckListItemMutation) Title() (r string, exists bool) {
 	return *v, true
 }
 
-// ResetTitle reset all changes of the title field.
+// ResetTitle reset all changes of the "title" field.
 func (m *CheckListItemMutation) ResetTitle() {
 	m.title = nil
 }
@@ -1591,7 +1591,7 @@ func (m *CheckListItemMutation) GetType() (r string, exists bool) {
 	return *v, true
 }
 
-// ResetType reset all changes of the type field.
+// ResetType reset all changes of the "type" field.
 func (m *CheckListItemMutation) ResetType() {
 	m._type = nil
 }
@@ -1642,7 +1642,7 @@ func (m *CheckListItemMutation) IndexCleared() bool {
 	return ok
 }
 
-// ResetIndex reset all changes of the index field.
+// ResetIndex reset all changes of the "index" field.
 func (m *CheckListItemMutation) ResetIndex() {
 	m.index = nil
 	m.addindex = nil
@@ -1675,7 +1675,7 @@ func (m *CheckListItemMutation) CheckedCleared() bool {
 	return ok
 }
 
-// ResetChecked reset all changes of the checked field.
+// ResetChecked reset all changes of the "checked" field.
 func (m *CheckListItemMutation) ResetChecked() {
 	m.checked = nil
 	delete(m.clearedFields, checklistitem.FieldChecked)
@@ -1707,7 +1707,7 @@ func (m *CheckListItemMutation) StringValCleared() bool {
 	return ok
 }
 
-// ResetStringVal reset all changes of the string_val field.
+// ResetStringVal reset all changes of the "string_val" field.
 func (m *CheckListItemMutation) ResetStringVal() {
 	m.string_val = nil
 	delete(m.clearedFields, checklistitem.FieldStringVal)
@@ -1739,7 +1739,7 @@ func (m *CheckListItemMutation) EnumValuesCleared() bool {
 	return ok
 }
 
-// ResetEnumValues reset all changes of the enum_values field.
+// ResetEnumValues reset all changes of the "enum_values" field.
 func (m *CheckListItemMutation) ResetEnumValues() {
 	m.enum_values = nil
 	delete(m.clearedFields, checklistitem.FieldEnumValues)
@@ -1771,7 +1771,7 @@ func (m *CheckListItemMutation) EnumSelectionModeValueCleared() bool {
 	return ok
 }
 
-// ResetEnumSelectionModeValue reset all changes of the enum_selection_mode_value field.
+// ResetEnumSelectionModeValue reset all changes of the "enum_selection_mode_value" field.
 func (m *CheckListItemMutation) ResetEnumSelectionModeValue() {
 	m.enum_selection_mode_value = nil
 	delete(m.clearedFields, checklistitem.FieldEnumSelectionModeValue)
@@ -1803,7 +1803,7 @@ func (m *CheckListItemMutation) SelectedEnumValuesCleared() bool {
 	return ok
 }
 
-// ResetSelectedEnumValues reset all changes of the selected_enum_values field.
+// ResetSelectedEnumValues reset all changes of the "selected_enum_values" field.
 func (m *CheckListItemMutation) ResetSelectedEnumValues() {
 	m.selected_enum_values = nil
 	delete(m.clearedFields, checklistitem.FieldSelectedEnumValues)
@@ -1835,7 +1835,7 @@ func (m *CheckListItemMutation) YesNoValCleared() bool {
 	return ok
 }
 
-// ResetYesNoVal reset all changes of the yes_no_val field.
+// ResetYesNoVal reset all changes of the "yes_no_val" field.
 func (m *CheckListItemMutation) ResetYesNoVal() {
 	m.yes_no_val = nil
 	delete(m.clearedFields, checklistitem.FieldYesNoVal)
@@ -1867,7 +1867,7 @@ func (m *CheckListItemMutation) HelpTextCleared() bool {
 	return ok
 }
 
-// ResetHelpText reset all changes of the help_text field.
+// ResetHelpText reset all changes of the "help_text" field.
 func (m *CheckListItemMutation) ResetHelpText() {
 	m.help_text = nil
 	delete(m.clearedFields, checklistitem.FieldHelpText)
@@ -1909,7 +1909,7 @@ func (m *CheckListItemMutation) FilesIDs() (ids []int) {
 	return
 }
 
-// ResetFiles reset all changes of the files edge.
+// ResetFiles reset all changes of the "files" edge.
 func (m *CheckListItemMutation) ResetFiles() {
 	m.files = nil
 	m.removedfiles = nil
@@ -1951,7 +1951,7 @@ func (m *CheckListItemMutation) WifiScanIDs() (ids []int) {
 	return
 }
 
-// ResetWifiScan reset all changes of the wifi_scan edge.
+// ResetWifiScan reset all changes of the "wifi_scan" edge.
 func (m *CheckListItemMutation) ResetWifiScan() {
 	m.wifi_scan = nil
 	m.removedwifi_scan = nil
@@ -1993,7 +1993,7 @@ func (m *CheckListItemMutation) CellScanIDs() (ids []int) {
 	return
 }
 
-// ResetCellScan reset all changes of the cell_scan edge.
+// ResetCellScan reset all changes of the "cell_scan" edge.
 func (m *CheckListItemMutation) ResetCellScan() {
 	m.cell_scan = nil
 	m.removedcell_scan = nil
@@ -2032,7 +2032,7 @@ func (m *CheckListItemMutation) CheckListCategoryIDs() (ids []int) {
 	return
 }
 
-// ResetCheckListCategory reset all changes of the check_list_category edge.
+// ResetCheckListCategory reset all changes of the "check_list_category" edge.
 func (m *CheckListItemMutation) ResetCheckListCategory() {
 	m.check_list_category = nil
 	m.clearedcheck_list_category = false
@@ -2558,7 +2558,7 @@ func (m *CheckListItemDefinitionMutation) CreateTime() (r time.Time, exists bool
 	return *v, true
 }
 
-// ResetCreateTime reset all changes of the create_time field.
+// ResetCreateTime reset all changes of the "create_time" field.
 func (m *CheckListItemDefinitionMutation) ResetCreateTime() {
 	m.create_time = nil
 }
@@ -2577,7 +2577,7 @@ func (m *CheckListItemDefinitionMutation) UpdateTime() (r time.Time, exists bool
 	return *v, true
 }
 
-// ResetUpdateTime reset all changes of the update_time field.
+// ResetUpdateTime reset all changes of the "update_time" field.
 func (m *CheckListItemDefinitionMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
@@ -2596,7 +2596,7 @@ func (m *CheckListItemDefinitionMutation) Title() (r string, exists bool) {
 	return *v, true
 }
 
-// ResetTitle reset all changes of the title field.
+// ResetTitle reset all changes of the "title" field.
 func (m *CheckListItemDefinitionMutation) ResetTitle() {
 	m.title = nil
 }
@@ -2615,7 +2615,7 @@ func (m *CheckListItemDefinitionMutation) GetType() (r string, exists bool) {
 	return *v, true
 }
 
-// ResetType reset all changes of the type field.
+// ResetType reset all changes of the "type" field.
 func (m *CheckListItemDefinitionMutation) ResetType() {
 	m._type = nil
 }
@@ -2666,7 +2666,7 @@ func (m *CheckListItemDefinitionMutation) IndexCleared() bool {
 	return ok
 }
 
-// ResetIndex reset all changes of the index field.
+// ResetIndex reset all changes of the "index" field.
 func (m *CheckListItemDefinitionMutation) ResetIndex() {
 	m.index = nil
 	m.addindex = nil
@@ -2699,7 +2699,7 @@ func (m *CheckListItemDefinitionMutation) EnumValuesCleared() bool {
 	return ok
 }
 
-// ResetEnumValues reset all changes of the enum_values field.
+// ResetEnumValues reset all changes of the "enum_values" field.
 func (m *CheckListItemDefinitionMutation) ResetEnumValues() {
 	m.enum_values = nil
 	delete(m.clearedFields, checklistitemdefinition.FieldEnumValues)
@@ -2731,7 +2731,7 @@ func (m *CheckListItemDefinitionMutation) EnumSelectionModeValueCleared() bool {
 	return ok
 }
 
-// ResetEnumSelectionModeValue reset all changes of the enum_selection_mode_value field.
+// ResetEnumSelectionModeValue reset all changes of the "enum_selection_mode_value" field.
 func (m *CheckListItemDefinitionMutation) ResetEnumSelectionModeValue() {
 	m.enum_selection_mode_value = nil
 	delete(m.clearedFields, checklistitemdefinition.FieldEnumSelectionModeValue)
@@ -2763,7 +2763,7 @@ func (m *CheckListItemDefinitionMutation) HelpTextCleared() bool {
 	return ok
 }
 
-// ResetHelpText reset all changes of the help_text field.
+// ResetHelpText reset all changes of the "help_text" field.
 func (m *CheckListItemDefinitionMutation) ResetHelpText() {
 	m.help_text = nil
 	delete(m.clearedFields, checklistitemdefinition.FieldHelpText)
@@ -2802,7 +2802,7 @@ func (m *CheckListItemDefinitionMutation) CheckListCategoryDefinitionIDs() (ids 
 	return
 }
 
-// ResetCheckListCategoryDefinition reset all changes of the check_list_category_definition edge.
+// ResetCheckListCategoryDefinition reset all changes of the "check_list_category_definition" edge.
 func (m *CheckListItemDefinitionMutation) ResetCheckListCategoryDefinition() {
 	m.check_list_category_definition = nil
 	m.clearedcheck_list_category_definition = false
@@ -3205,7 +3205,7 @@ func (m *CommentMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetCreateTime reset all changes of the create_time field.
+// ResetCreateTime reset all changes of the "create_time" field.
 func (m *CommentMutation) ResetCreateTime() {
 	m.create_time = nil
 }
@@ -3224,7 +3224,7 @@ func (m *CommentMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetUpdateTime reset all changes of the update_time field.
+// ResetUpdateTime reset all changes of the "update_time" field.
 func (m *CommentMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
@@ -3243,7 +3243,7 @@ func (m *CommentMutation) Text() (r string, exists bool) {
 	return *v, true
 }
 
-// ResetText reset all changes of the text field.
+// ResetText reset all changes of the "text" field.
 func (m *CommentMutation) ResetText() {
 	m.text = nil
 }
@@ -3281,7 +3281,7 @@ func (m *CommentMutation) AuthorIDs() (ids []int) {
 	return
 }
 
-// ResetAuthor reset all changes of the author edge.
+// ResetAuthor reset all changes of the "author" edge.
 func (m *CommentMutation) ResetAuthor() {
 	m.author = nil
 	m.clearedauthor = false
@@ -3568,7 +3568,7 @@ func (m *CustomerMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetCreateTime reset all changes of the create_time field.
+// ResetCreateTime reset all changes of the "create_time" field.
 func (m *CustomerMutation) ResetCreateTime() {
 	m.create_time = nil
 }
@@ -3587,7 +3587,7 @@ func (m *CustomerMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetUpdateTime reset all changes of the update_time field.
+// ResetUpdateTime reset all changes of the "update_time" field.
 func (m *CustomerMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
@@ -3606,7 +3606,7 @@ func (m *CustomerMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// ResetName reset all changes of the name field.
+// ResetName reset all changes of the "name" field.
 func (m *CustomerMutation) ResetName() {
 	m.name = nil
 }
@@ -3637,7 +3637,7 @@ func (m *CustomerMutation) ExternalIDCleared() bool {
 	return ok
 }
 
-// ResetExternalID reset all changes of the external_id field.
+// ResetExternalID reset all changes of the "external_id" field.
 func (m *CustomerMutation) ResetExternalID() {
 	m.external_id = nil
 	delete(m.clearedFields, customer.FieldExternalID)
@@ -3679,7 +3679,7 @@ func (m *CustomerMutation) ServicesIDs() (ids []int) {
 	return
 }
 
-// ResetServices reset all changes of the services edge.
+// ResetServices reset all changes of the "services" edge.
 func (m *CustomerMutation) ResetServices() {
 	m.services = nil
 	m.removedservices = nil
@@ -4013,7 +4013,7 @@ func (m *EquipmentMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetCreateTime reset all changes of the create_time field.
+// ResetCreateTime reset all changes of the "create_time" field.
 func (m *EquipmentMutation) ResetCreateTime() {
 	m.create_time = nil
 }
@@ -4032,7 +4032,7 @@ func (m *EquipmentMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetUpdateTime reset all changes of the update_time field.
+// ResetUpdateTime reset all changes of the "update_time" field.
 func (m *EquipmentMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
@@ -4051,7 +4051,7 @@ func (m *EquipmentMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// ResetName reset all changes of the name field.
+// ResetName reset all changes of the "name" field.
 func (m *EquipmentMutation) ResetName() {
 	m.name = nil
 }
@@ -4082,7 +4082,7 @@ func (m *EquipmentMutation) FutureStateCleared() bool {
 	return ok
 }
 
-// ResetFutureState reset all changes of the future_state field.
+// ResetFutureState reset all changes of the "future_state" field.
 func (m *EquipmentMutation) ResetFutureState() {
 	m.future_state = nil
 	delete(m.clearedFields, equipment.FieldFutureState)
@@ -4114,7 +4114,7 @@ func (m *EquipmentMutation) DeviceIDCleared() bool {
 	return ok
 }
 
-// ResetDeviceID reset all changes of the device_id field.
+// ResetDeviceID reset all changes of the "device_id" field.
 func (m *EquipmentMutation) ResetDeviceID() {
 	m.device_id = nil
 	delete(m.clearedFields, equipment.FieldDeviceID)
@@ -4146,7 +4146,7 @@ func (m *EquipmentMutation) ExternalIDCleared() bool {
 	return ok
 }
 
-// ResetExternalID reset all changes of the external_id field.
+// ResetExternalID reset all changes of the "external_id" field.
 func (m *EquipmentMutation) ResetExternalID() {
 	m.external_id = nil
 	delete(m.clearedFields, equipment.FieldExternalID)
@@ -4185,7 +4185,7 @@ func (m *EquipmentMutation) TypeIDs() (ids []int) {
 	return
 }
 
-// ResetType reset all changes of the type edge.
+// ResetType reset all changes of the "type" edge.
 func (m *EquipmentMutation) ResetType() {
 	m._type = nil
 	m.cleared_type = false
@@ -4224,7 +4224,7 @@ func (m *EquipmentMutation) LocationIDs() (ids []int) {
 	return
 }
 
-// ResetLocation reset all changes of the location edge.
+// ResetLocation reset all changes of the "location" edge.
 func (m *EquipmentMutation) ResetLocation() {
 	m.location = nil
 	m.clearedlocation = false
@@ -4263,7 +4263,7 @@ func (m *EquipmentMutation) ParentPositionIDs() (ids []int) {
 	return
 }
 
-// ResetParentPosition reset all changes of the parent_position edge.
+// ResetParentPosition reset all changes of the "parent_position" edge.
 func (m *EquipmentMutation) ResetParentPosition() {
 	m.parent_position = nil
 	m.clearedparent_position = false
@@ -4305,7 +4305,7 @@ func (m *EquipmentMutation) PositionsIDs() (ids []int) {
 	return
 }
 
-// ResetPositions reset all changes of the positions edge.
+// ResetPositions reset all changes of the "positions" edge.
 func (m *EquipmentMutation) ResetPositions() {
 	m.positions = nil
 	m.removedpositions = nil
@@ -4347,7 +4347,7 @@ func (m *EquipmentMutation) PortsIDs() (ids []int) {
 	return
 }
 
-// ResetPorts reset all changes of the ports edge.
+// ResetPorts reset all changes of the "ports" edge.
 func (m *EquipmentMutation) ResetPorts() {
 	m.ports = nil
 	m.removedports = nil
@@ -4386,7 +4386,7 @@ func (m *EquipmentMutation) WorkOrderIDs() (ids []int) {
 	return
 }
 
-// ResetWorkOrder reset all changes of the work_order edge.
+// ResetWorkOrder reset all changes of the "work_order" edge.
 func (m *EquipmentMutation) ResetWorkOrder() {
 	m.work_order = nil
 	m.clearedwork_order = false
@@ -4428,7 +4428,7 @@ func (m *EquipmentMutation) PropertiesIDs() (ids []int) {
 	return
 }
 
-// ResetProperties reset all changes of the properties edge.
+// ResetProperties reset all changes of the "properties" edge.
 func (m *EquipmentMutation) ResetProperties() {
 	m.properties = nil
 	m.removedproperties = nil
@@ -4470,7 +4470,7 @@ func (m *EquipmentMutation) FilesIDs() (ids []int) {
 	return
 }
 
-// ResetFiles reset all changes of the files edge.
+// ResetFiles reset all changes of the "files" edge.
 func (m *EquipmentMutation) ResetFiles() {
 	m.files = nil
 	m.removedfiles = nil
@@ -4512,7 +4512,7 @@ func (m *EquipmentMutation) HyperlinksIDs() (ids []int) {
 	return
 }
 
-// ResetHyperlinks reset all changes of the hyperlinks edge.
+// ResetHyperlinks reset all changes of the "hyperlinks" edge.
 func (m *EquipmentMutation) ResetHyperlinks() {
 	m.hyperlinks = nil
 	m.removedhyperlinks = nil
@@ -4554,7 +4554,7 @@ func (m *EquipmentMutation) EndpointsIDs() (ids []int) {
 	return
 }
 
-// ResetEndpoints reset all changes of the endpoints edge.
+// ResetEndpoints reset all changes of the "endpoints" edge.
 func (m *EquipmentMutation) ResetEndpoints() {
 	m.endpoints = nil
 	m.removedendpoints = nil
@@ -5086,7 +5086,7 @@ func (m *EquipmentCategoryMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetCreateTime reset all changes of the create_time field.
+// ResetCreateTime reset all changes of the "create_time" field.
 func (m *EquipmentCategoryMutation) ResetCreateTime() {
 	m.create_time = nil
 }
@@ -5105,7 +5105,7 @@ func (m *EquipmentCategoryMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetUpdateTime reset all changes of the update_time field.
+// ResetUpdateTime reset all changes of the "update_time" field.
 func (m *EquipmentCategoryMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
@@ -5124,7 +5124,7 @@ func (m *EquipmentCategoryMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// ResetName reset all changes of the name field.
+// ResetName reset all changes of the "name" field.
 func (m *EquipmentCategoryMutation) ResetName() {
 	m.name = nil
 }
@@ -5165,7 +5165,7 @@ func (m *EquipmentCategoryMutation) TypesIDs() (ids []int) {
 	return
 }
 
-// ResetTypes reset all changes of the types edge.
+// ResetTypes reset all changes of the "types" edge.
 func (m *EquipmentCategoryMutation) ResetTypes() {
 	m.types = nil
 	m.removedtypes = nil
@@ -5461,7 +5461,7 @@ func (m *EquipmentPortMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetCreateTime reset all changes of the create_time field.
+// ResetCreateTime reset all changes of the "create_time" field.
 func (m *EquipmentPortMutation) ResetCreateTime() {
 	m.create_time = nil
 }
@@ -5480,7 +5480,7 @@ func (m *EquipmentPortMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetUpdateTime reset all changes of the update_time field.
+// ResetUpdateTime reset all changes of the "update_time" field.
 func (m *EquipmentPortMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
@@ -5518,7 +5518,7 @@ func (m *EquipmentPortMutation) DefinitionIDs() (ids []int) {
 	return
 }
 
-// ResetDefinition reset all changes of the definition edge.
+// ResetDefinition reset all changes of the "definition" edge.
 func (m *EquipmentPortMutation) ResetDefinition() {
 	m.definition = nil
 	m.cleareddefinition = false
@@ -5557,7 +5557,7 @@ func (m *EquipmentPortMutation) ParentIDs() (ids []int) {
 	return
 }
 
-// ResetParent reset all changes of the parent edge.
+// ResetParent reset all changes of the "parent" edge.
 func (m *EquipmentPortMutation) ResetParent() {
 	m.parent = nil
 	m.clearedparent = false
@@ -5596,7 +5596,7 @@ func (m *EquipmentPortMutation) LinkIDs() (ids []int) {
 	return
 }
 
-// ResetLink reset all changes of the link edge.
+// ResetLink reset all changes of the "link" edge.
 func (m *EquipmentPortMutation) ResetLink() {
 	m.link = nil
 	m.clearedlink = false
@@ -5638,7 +5638,7 @@ func (m *EquipmentPortMutation) PropertiesIDs() (ids []int) {
 	return
 }
 
-// ResetProperties reset all changes of the properties edge.
+// ResetProperties reset all changes of the "properties" edge.
 func (m *EquipmentPortMutation) ResetProperties() {
 	m.properties = nil
 	m.removedproperties = nil
@@ -5680,7 +5680,7 @@ func (m *EquipmentPortMutation) EndpointsIDs() (ids []int) {
 	return
 }
 
-// ResetEndpoints reset all changes of the endpoints edge.
+// ResetEndpoints reset all changes of the "endpoints" edge.
 func (m *EquipmentPortMutation) ResetEndpoints() {
 	m.endpoints = nil
 	m.removedendpoints = nil
@@ -6037,7 +6037,7 @@ func (m *EquipmentPortDefinitionMutation) CreateTime() (r time.Time, exists bool
 	return *v, true
 }
 
-// ResetCreateTime reset all changes of the create_time field.
+// ResetCreateTime reset all changes of the "create_time" field.
 func (m *EquipmentPortDefinitionMutation) ResetCreateTime() {
 	m.create_time = nil
 }
@@ -6056,7 +6056,7 @@ func (m *EquipmentPortDefinitionMutation) UpdateTime() (r time.Time, exists bool
 	return *v, true
 }
 
-// ResetUpdateTime reset all changes of the update_time field.
+// ResetUpdateTime reset all changes of the "update_time" field.
 func (m *EquipmentPortDefinitionMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
@@ -6075,7 +6075,7 @@ func (m *EquipmentPortDefinitionMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// ResetName reset all changes of the name field.
+// ResetName reset all changes of the "name" field.
 func (m *EquipmentPortDefinitionMutation) ResetName() {
 	m.name = nil
 }
@@ -6126,7 +6126,7 @@ func (m *EquipmentPortDefinitionMutation) IndexCleared() bool {
 	return ok
 }
 
-// ResetIndex reset all changes of the index field.
+// ResetIndex reset all changes of the "index" field.
 func (m *EquipmentPortDefinitionMutation) ResetIndex() {
 	m.index = nil
 	m.addindex = nil
@@ -6159,7 +6159,7 @@ func (m *EquipmentPortDefinitionMutation) BandwidthCleared() bool {
 	return ok
 }
 
-// ResetBandwidth reset all changes of the bandwidth field.
+// ResetBandwidth reset all changes of the "bandwidth" field.
 func (m *EquipmentPortDefinitionMutation) ResetBandwidth() {
 	m.bandwidth = nil
 	delete(m.clearedFields, equipmentportdefinition.FieldBandwidth)
@@ -6191,7 +6191,7 @@ func (m *EquipmentPortDefinitionMutation) VisibilityLabelCleared() bool {
 	return ok
 }
 
-// ResetVisibilityLabel reset all changes of the visibility_label field.
+// ResetVisibilityLabel reset all changes of the "visibility_label" field.
 func (m *EquipmentPortDefinitionMutation) ResetVisibilityLabel() {
 	m.visibility_label = nil
 	delete(m.clearedFields, equipmentportdefinition.FieldVisibilityLabel)
@@ -6230,7 +6230,7 @@ func (m *EquipmentPortDefinitionMutation) EquipmentPortTypeIDs() (ids []int) {
 	return
 }
 
-// ResetEquipmentPortType reset all changes of the equipment_port_type edge.
+// ResetEquipmentPortType reset all changes of the "equipment_port_type" edge.
 func (m *EquipmentPortDefinitionMutation) ResetEquipmentPortType() {
 	m.equipment_port_type = nil
 	m.clearedequipment_port_type = false
@@ -6272,7 +6272,7 @@ func (m *EquipmentPortDefinitionMutation) PortsIDs() (ids []int) {
 	return
 }
 
-// ResetPorts reset all changes of the ports edge.
+// ResetPorts reset all changes of the "ports" edge.
 func (m *EquipmentPortDefinitionMutation) ResetPorts() {
 	m.ports = nil
 	m.removedports = nil
@@ -6311,7 +6311,7 @@ func (m *EquipmentPortDefinitionMutation) EquipmentTypeIDs() (ids []int) {
 	return
 }
 
-// ResetEquipmentType reset all changes of the equipment_type edge.
+// ResetEquipmentType reset all changes of the "equipment_type" edge.
 func (m *EquipmentPortDefinitionMutation) ResetEquipmentType() {
 	m.equipment_type = nil
 	m.clearedequipment_type = false
@@ -6721,7 +6721,7 @@ func (m *EquipmentPortTypeMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetCreateTime reset all changes of the create_time field.
+// ResetCreateTime reset all changes of the "create_time" field.
 func (m *EquipmentPortTypeMutation) ResetCreateTime() {
 	m.create_time = nil
 }
@@ -6740,7 +6740,7 @@ func (m *EquipmentPortTypeMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetUpdateTime reset all changes of the update_time field.
+// ResetUpdateTime reset all changes of the "update_time" field.
 func (m *EquipmentPortTypeMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
@@ -6759,7 +6759,7 @@ func (m *EquipmentPortTypeMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// ResetName reset all changes of the name field.
+// ResetName reset all changes of the "name" field.
 func (m *EquipmentPortTypeMutation) ResetName() {
 	m.name = nil
 }
@@ -6800,7 +6800,7 @@ func (m *EquipmentPortTypeMutation) PropertyTypesIDs() (ids []int) {
 	return
 }
 
-// ResetPropertyTypes reset all changes of the property_types edge.
+// ResetPropertyTypes reset all changes of the "property_types" edge.
 func (m *EquipmentPortTypeMutation) ResetPropertyTypes() {
 	m.property_types = nil
 	m.removedproperty_types = nil
@@ -6842,7 +6842,7 @@ func (m *EquipmentPortTypeMutation) LinkPropertyTypesIDs() (ids []int) {
 	return
 }
 
-// ResetLinkPropertyTypes reset all changes of the link_property_types edge.
+// ResetLinkPropertyTypes reset all changes of the "link_property_types" edge.
 func (m *EquipmentPortTypeMutation) ResetLinkPropertyTypes() {
 	m.link_property_types = nil
 	m.removedlink_property_types = nil
@@ -6884,7 +6884,7 @@ func (m *EquipmentPortTypeMutation) PortDefinitionsIDs() (ids []int) {
 	return
 }
 
-// ResetPortDefinitions reset all changes of the port_definitions edge.
+// ResetPortDefinitions reset all changes of the "port_definitions" edge.
 func (m *EquipmentPortTypeMutation) ResetPortDefinitions() {
 	m.port_definitions = nil
 	m.removedport_definitions = nil
@@ -7218,7 +7218,7 @@ func (m *EquipmentPositionMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetCreateTime reset all changes of the create_time field.
+// ResetCreateTime reset all changes of the "create_time" field.
 func (m *EquipmentPositionMutation) ResetCreateTime() {
 	m.create_time = nil
 }
@@ -7237,7 +7237,7 @@ func (m *EquipmentPositionMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetUpdateTime reset all changes of the update_time field.
+// ResetUpdateTime reset all changes of the "update_time" field.
 func (m *EquipmentPositionMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
@@ -7275,7 +7275,7 @@ func (m *EquipmentPositionMutation) DefinitionIDs() (ids []int) {
 	return
 }
 
-// ResetDefinition reset all changes of the definition edge.
+// ResetDefinition reset all changes of the "definition" edge.
 func (m *EquipmentPositionMutation) ResetDefinition() {
 	m.definition = nil
 	m.cleareddefinition = false
@@ -7314,7 +7314,7 @@ func (m *EquipmentPositionMutation) ParentIDs() (ids []int) {
 	return
 }
 
-// ResetParent reset all changes of the parent edge.
+// ResetParent reset all changes of the "parent" edge.
 func (m *EquipmentPositionMutation) ResetParent() {
 	m.parent = nil
 	m.clearedparent = false
@@ -7353,7 +7353,7 @@ func (m *EquipmentPositionMutation) AttachmentIDs() (ids []int) {
 	return
 }
 
-// ResetAttachment reset all changes of the attachment edge.
+// ResetAttachment reset all changes of the "attachment" edge.
 func (m *EquipmentPositionMutation) ResetAttachment() {
 	m.attachment = nil
 	m.clearedattachment = false
@@ -7665,7 +7665,7 @@ func (m *EquipmentPositionDefinitionMutation) CreateTime() (r time.Time, exists 
 	return *v, true
 }
 
-// ResetCreateTime reset all changes of the create_time field.
+// ResetCreateTime reset all changes of the "create_time" field.
 func (m *EquipmentPositionDefinitionMutation) ResetCreateTime() {
 	m.create_time = nil
 }
@@ -7684,7 +7684,7 @@ func (m *EquipmentPositionDefinitionMutation) UpdateTime() (r time.Time, exists 
 	return *v, true
 }
 
-// ResetUpdateTime reset all changes of the update_time field.
+// ResetUpdateTime reset all changes of the "update_time" field.
 func (m *EquipmentPositionDefinitionMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
@@ -7703,7 +7703,7 @@ func (m *EquipmentPositionDefinitionMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// ResetName reset all changes of the name field.
+// ResetName reset all changes of the "name" field.
 func (m *EquipmentPositionDefinitionMutation) ResetName() {
 	m.name = nil
 }
@@ -7754,7 +7754,7 @@ func (m *EquipmentPositionDefinitionMutation) IndexCleared() bool {
 	return ok
 }
 
-// ResetIndex reset all changes of the index field.
+// ResetIndex reset all changes of the "index" field.
 func (m *EquipmentPositionDefinitionMutation) ResetIndex() {
 	m.index = nil
 	m.addindex = nil
@@ -7787,7 +7787,7 @@ func (m *EquipmentPositionDefinitionMutation) VisibilityLabelCleared() bool {
 	return ok
 }
 
-// ResetVisibilityLabel reset all changes of the visibility_label field.
+// ResetVisibilityLabel reset all changes of the "visibility_label" field.
 func (m *EquipmentPositionDefinitionMutation) ResetVisibilityLabel() {
 	m.visibility_label = nil
 	delete(m.clearedFields, equipmentpositiondefinition.FieldVisibilityLabel)
@@ -7829,7 +7829,7 @@ func (m *EquipmentPositionDefinitionMutation) PositionsIDs() (ids []int) {
 	return
 }
 
-// ResetPositions reset all changes of the positions edge.
+// ResetPositions reset all changes of the "positions" edge.
 func (m *EquipmentPositionDefinitionMutation) ResetPositions() {
 	m.positions = nil
 	m.removedpositions = nil
@@ -7868,7 +7868,7 @@ func (m *EquipmentPositionDefinitionMutation) EquipmentTypeIDs() (ids []int) {
 	return
 }
 
-// ResetEquipmentType reset all changes of the equipment_type edge.
+// ResetEquipmentType reset all changes of the "equipment_type" edge.
 func (m *EquipmentPositionDefinitionMutation) ResetEquipmentType() {
 	m.equipment_type = nil
 	m.clearedequipment_type = false
@@ -8245,7 +8245,7 @@ func (m *EquipmentTypeMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetCreateTime reset all changes of the create_time field.
+// ResetCreateTime reset all changes of the "create_time" field.
 func (m *EquipmentTypeMutation) ResetCreateTime() {
 	m.create_time = nil
 }
@@ -8264,7 +8264,7 @@ func (m *EquipmentTypeMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetUpdateTime reset all changes of the update_time field.
+// ResetUpdateTime reset all changes of the "update_time" field.
 func (m *EquipmentTypeMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
@@ -8283,7 +8283,7 @@ func (m *EquipmentTypeMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// ResetName reset all changes of the name field.
+// ResetName reset all changes of the "name" field.
 func (m *EquipmentTypeMutation) ResetName() {
 	m.name = nil
 }
@@ -8324,7 +8324,7 @@ func (m *EquipmentTypeMutation) PortDefinitionsIDs() (ids []int) {
 	return
 }
 
-// ResetPortDefinitions reset all changes of the port_definitions edge.
+// ResetPortDefinitions reset all changes of the "port_definitions" edge.
 func (m *EquipmentTypeMutation) ResetPortDefinitions() {
 	m.port_definitions = nil
 	m.removedport_definitions = nil
@@ -8366,7 +8366,7 @@ func (m *EquipmentTypeMutation) PositionDefinitionsIDs() (ids []int) {
 	return
 }
 
-// ResetPositionDefinitions reset all changes of the position_definitions edge.
+// ResetPositionDefinitions reset all changes of the "position_definitions" edge.
 func (m *EquipmentTypeMutation) ResetPositionDefinitions() {
 	m.position_definitions = nil
 	m.removedposition_definitions = nil
@@ -8408,7 +8408,7 @@ func (m *EquipmentTypeMutation) PropertyTypesIDs() (ids []int) {
 	return
 }
 
-// ResetPropertyTypes reset all changes of the property_types edge.
+// ResetPropertyTypes reset all changes of the "property_types" edge.
 func (m *EquipmentTypeMutation) ResetPropertyTypes() {
 	m.property_types = nil
 	m.removedproperty_types = nil
@@ -8450,7 +8450,7 @@ func (m *EquipmentTypeMutation) EquipmentIDs() (ids []int) {
 	return
 }
 
-// ResetEquipment reset all changes of the equipment edge.
+// ResetEquipment reset all changes of the "equipment" edge.
 func (m *EquipmentTypeMutation) ResetEquipment() {
 	m.equipment = nil
 	m.removedequipment = nil
@@ -8489,7 +8489,7 @@ func (m *EquipmentTypeMutation) CategoryIDs() (ids []int) {
 	return
 }
 
-// ResetCategory reset all changes of the category edge.
+// ResetCategory reset all changes of the "category" edge.
 func (m *EquipmentTypeMutation) ResetCategory() {
 	m.category = nil
 	m.clearedcategory = false
@@ -8531,7 +8531,7 @@ func (m *EquipmentTypeMutation) ServiceEndpointDefinitionsIDs() (ids []int) {
 	return
 }
 
-// ResetServiceEndpointDefinitions reset all changes of the service_endpoint_definitions edge.
+// ResetServiceEndpointDefinitions reset all changes of the "service_endpoint_definitions" edge.
 func (m *EquipmentTypeMutation) ResetServiceEndpointDefinitions() {
 	m.service_endpoint_definitions = nil
 	m.removedservice_endpoint_definitions = nil
@@ -8928,7 +8928,7 @@ func (m *FileMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetCreateTime reset all changes of the create_time field.
+// ResetCreateTime reset all changes of the "create_time" field.
 func (m *FileMutation) ResetCreateTime() {
 	m.create_time = nil
 }
@@ -8947,7 +8947,7 @@ func (m *FileMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetUpdateTime reset all changes of the update_time field.
+// ResetUpdateTime reset all changes of the "update_time" field.
 func (m *FileMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
@@ -8966,7 +8966,7 @@ func (m *FileMutation) GetType() (r string, exists bool) {
 	return *v, true
 }
 
-// ResetType reset all changes of the type field.
+// ResetType reset all changes of the "type" field.
 func (m *FileMutation) ResetType() {
 	m._type = nil
 }
@@ -8985,7 +8985,7 @@ func (m *FileMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// ResetName reset all changes of the name field.
+// ResetName reset all changes of the "name" field.
 func (m *FileMutation) ResetName() {
 	m.name = nil
 }
@@ -9036,7 +9036,7 @@ func (m *FileMutation) SizeCleared() bool {
 	return ok
 }
 
-// ResetSize reset all changes of the size field.
+// ResetSize reset all changes of the "size" field.
 func (m *FileMutation) ResetSize() {
 	m.size = nil
 	m.addsize = nil
@@ -9069,7 +9069,7 @@ func (m *FileMutation) ModifiedAtCleared() bool {
 	return ok
 }
 
-// ResetModifiedAt reset all changes of the modified_at field.
+// ResetModifiedAt reset all changes of the "modified_at" field.
 func (m *FileMutation) ResetModifiedAt() {
 	m.modified_at = nil
 	delete(m.clearedFields, file.FieldModifiedAt)
@@ -9101,7 +9101,7 @@ func (m *FileMutation) UploadedAtCleared() bool {
 	return ok
 }
 
-// ResetUploadedAt reset all changes of the uploaded_at field.
+// ResetUploadedAt reset all changes of the "uploaded_at" field.
 func (m *FileMutation) ResetUploadedAt() {
 	m.uploaded_at = nil
 	delete(m.clearedFields, file.FieldUploadedAt)
@@ -9121,7 +9121,7 @@ func (m *FileMutation) ContentType() (r string, exists bool) {
 	return *v, true
 }
 
-// ResetContentType reset all changes of the content_type field.
+// ResetContentType reset all changes of the "content_type" field.
 func (m *FileMutation) ResetContentType() {
 	m.content_type = nil
 }
@@ -9140,7 +9140,7 @@ func (m *FileMutation) StoreKey() (r string, exists bool) {
 	return *v, true
 }
 
-// ResetStoreKey reset all changes of the store_key field.
+// ResetStoreKey reset all changes of the "store_key" field.
 func (m *FileMutation) ResetStoreKey() {
 	m.store_key = nil
 }
@@ -9171,7 +9171,7 @@ func (m *FileMutation) CategoryCleared() bool {
 	return ok
 }
 
-// ResetCategory reset all changes of the category field.
+// ResetCategory reset all changes of the "category" field.
 func (m *FileMutation) ResetCategory() {
 	m.category = nil
 	delete(m.clearedFields, file.FieldCategory)
@@ -9590,7 +9590,7 @@ func (m *FloorPlanMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetCreateTime reset all changes of the create_time field.
+// ResetCreateTime reset all changes of the "create_time" field.
 func (m *FloorPlanMutation) ResetCreateTime() {
 	m.create_time = nil
 }
@@ -9609,7 +9609,7 @@ func (m *FloorPlanMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetUpdateTime reset all changes of the update_time field.
+// ResetUpdateTime reset all changes of the "update_time" field.
 func (m *FloorPlanMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
@@ -9628,7 +9628,7 @@ func (m *FloorPlanMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// ResetName reset all changes of the name field.
+// ResetName reset all changes of the "name" field.
 func (m *FloorPlanMutation) ResetName() {
 	m.name = nil
 }
@@ -9666,7 +9666,7 @@ func (m *FloorPlanMutation) LocationIDs() (ids []int) {
 	return
 }
 
-// ResetLocation reset all changes of the location edge.
+// ResetLocation reset all changes of the "location" edge.
 func (m *FloorPlanMutation) ResetLocation() {
 	m.location = nil
 	m.clearedlocation = false
@@ -9705,7 +9705,7 @@ func (m *FloorPlanMutation) ReferencePointIDs() (ids []int) {
 	return
 }
 
-// ResetReferencePoint reset all changes of the reference_point edge.
+// ResetReferencePoint reset all changes of the "reference_point" edge.
 func (m *FloorPlanMutation) ResetReferencePoint() {
 	m.reference_point = nil
 	m.clearedreference_point = false
@@ -9744,7 +9744,7 @@ func (m *FloorPlanMutation) ScaleIDs() (ids []int) {
 	return
 }
 
-// ResetScale reset all changes of the scale edge.
+// ResetScale reset all changes of the "scale" edge.
 func (m *FloorPlanMutation) ResetScale() {
 	m.scale = nil
 	m.clearedscale = false
@@ -9783,7 +9783,7 @@ func (m *FloorPlanMutation) ImageIDs() (ids []int) {
 	return
 }
 
-// ResetImage reset all changes of the image edge.
+// ResetImage reset all changes of the "image" edge.
 func (m *FloorPlanMutation) ResetImage() {
 	m.image = nil
 	m.clearedimage = false
@@ -10128,7 +10128,7 @@ func (m *FloorPlanReferencePointMutation) CreateTime() (r time.Time, exists bool
 	return *v, true
 }
 
-// ResetCreateTime reset all changes of the create_time field.
+// ResetCreateTime reset all changes of the "create_time" field.
 func (m *FloorPlanReferencePointMutation) ResetCreateTime() {
 	m.create_time = nil
 }
@@ -10147,7 +10147,7 @@ func (m *FloorPlanReferencePointMutation) UpdateTime() (r time.Time, exists bool
 	return *v, true
 }
 
-// ResetUpdateTime reset all changes of the update_time field.
+// ResetUpdateTime reset all changes of the "update_time" field.
 func (m *FloorPlanReferencePointMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
@@ -10185,7 +10185,7 @@ func (m *FloorPlanReferencePointMutation) AddedX() (r int, exists bool) {
 	return *v, true
 }
 
-// ResetX reset all changes of the x field.
+// ResetX reset all changes of the "x" field.
 func (m *FloorPlanReferencePointMutation) ResetX() {
 	m.x = nil
 	m.addx = nil
@@ -10224,7 +10224,7 @@ func (m *FloorPlanReferencePointMutation) AddedY() (r int, exists bool) {
 	return *v, true
 }
 
-// ResetY reset all changes of the y field.
+// ResetY reset all changes of the "y" field.
 func (m *FloorPlanReferencePointMutation) ResetY() {
 	m.y = nil
 	m.addy = nil
@@ -10263,7 +10263,7 @@ func (m *FloorPlanReferencePointMutation) AddedLatitude() (r float64, exists boo
 	return *v, true
 }
 
-// ResetLatitude reset all changes of the latitude field.
+// ResetLatitude reset all changes of the "latitude" field.
 func (m *FloorPlanReferencePointMutation) ResetLatitude() {
 	m.latitude = nil
 	m.addlatitude = nil
@@ -10302,7 +10302,7 @@ func (m *FloorPlanReferencePointMutation) AddedLongitude() (r float64, exists bo
 	return *v, true
 }
 
-// ResetLongitude reset all changes of the longitude field.
+// ResetLongitude reset all changes of the "longitude" field.
 func (m *FloorPlanReferencePointMutation) ResetLongitude() {
 	m.longitude = nil
 	m.addlongitude = nil
@@ -10671,7 +10671,7 @@ func (m *FloorPlanScaleMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetCreateTime reset all changes of the create_time field.
+// ResetCreateTime reset all changes of the "create_time" field.
 func (m *FloorPlanScaleMutation) ResetCreateTime() {
 	m.create_time = nil
 }
@@ -10690,7 +10690,7 @@ func (m *FloorPlanScaleMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetUpdateTime reset all changes of the update_time field.
+// ResetUpdateTime reset all changes of the "update_time" field.
 func (m *FloorPlanScaleMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
@@ -10728,7 +10728,7 @@ func (m *FloorPlanScaleMutation) AddedReferencePoint1X() (r int, exists bool) {
 	return *v, true
 }
 
-// ResetReferencePoint1X reset all changes of the reference_point1_x field.
+// ResetReferencePoint1X reset all changes of the "reference_point1_x" field.
 func (m *FloorPlanScaleMutation) ResetReferencePoint1X() {
 	m.reference_point1_x = nil
 	m.addreference_point1_x = nil
@@ -10767,7 +10767,7 @@ func (m *FloorPlanScaleMutation) AddedReferencePoint1Y() (r int, exists bool) {
 	return *v, true
 }
 
-// ResetReferencePoint1Y reset all changes of the reference_point1_y field.
+// ResetReferencePoint1Y reset all changes of the "reference_point1_y" field.
 func (m *FloorPlanScaleMutation) ResetReferencePoint1Y() {
 	m.reference_point1_y = nil
 	m.addreference_point1_y = nil
@@ -10806,7 +10806,7 @@ func (m *FloorPlanScaleMutation) AddedReferencePoint2X() (r int, exists bool) {
 	return *v, true
 }
 
-// ResetReferencePoint2X reset all changes of the reference_point2_x field.
+// ResetReferencePoint2X reset all changes of the "reference_point2_x" field.
 func (m *FloorPlanScaleMutation) ResetReferencePoint2X() {
 	m.reference_point2_x = nil
 	m.addreference_point2_x = nil
@@ -10845,7 +10845,7 @@ func (m *FloorPlanScaleMutation) AddedReferencePoint2Y() (r int, exists bool) {
 	return *v, true
 }
 
-// ResetReferencePoint2Y reset all changes of the reference_point2_y field.
+// ResetReferencePoint2Y reset all changes of the "reference_point2_y" field.
 func (m *FloorPlanScaleMutation) ResetReferencePoint2Y() {
 	m.reference_point2_y = nil
 	m.addreference_point2_y = nil
@@ -10884,7 +10884,7 @@ func (m *FloorPlanScaleMutation) AddedScaleInMeters() (r float64, exists bool) {
 	return *v, true
 }
 
-// ResetScaleInMeters reset all changes of the scale_in_meters field.
+// ResetScaleInMeters reset all changes of the "scale_in_meters" field.
 func (m *FloorPlanScaleMutation) ResetScaleInMeters() {
 	m.scale_in_meters = nil
 	m.addscale_in_meters = nil
@@ -11273,7 +11273,7 @@ func (m *HyperlinkMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetCreateTime reset all changes of the create_time field.
+// ResetCreateTime reset all changes of the "create_time" field.
 func (m *HyperlinkMutation) ResetCreateTime() {
 	m.create_time = nil
 }
@@ -11292,7 +11292,7 @@ func (m *HyperlinkMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetUpdateTime reset all changes of the update_time field.
+// ResetUpdateTime reset all changes of the "update_time" field.
 func (m *HyperlinkMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
@@ -11311,7 +11311,7 @@ func (m *HyperlinkMutation) URL() (r string, exists bool) {
 	return *v, true
 }
 
-// ResetURL reset all changes of the url field.
+// ResetURL reset all changes of the "url" field.
 func (m *HyperlinkMutation) ResetURL() {
 	m.url = nil
 }
@@ -11342,7 +11342,7 @@ func (m *HyperlinkMutation) NameCleared() bool {
 	return ok
 }
 
-// ResetName reset all changes of the name field.
+// ResetName reset all changes of the "name" field.
 func (m *HyperlinkMutation) ResetName() {
 	m.name = nil
 	delete(m.clearedFields, hyperlink.FieldName)
@@ -11374,7 +11374,7 @@ func (m *HyperlinkMutation) CategoryCleared() bool {
 	return ok
 }
 
-// ResetCategory reset all changes of the category field.
+// ResetCategory reset all changes of the "category" field.
 func (m *HyperlinkMutation) ResetCategory() {
 	m.category = nil
 	delete(m.clearedFields, hyperlink.FieldCategory)
@@ -11691,7 +11691,7 @@ func (m *LinkMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetCreateTime reset all changes of the create_time field.
+// ResetCreateTime reset all changes of the "create_time" field.
 func (m *LinkMutation) ResetCreateTime() {
 	m.create_time = nil
 }
@@ -11710,7 +11710,7 @@ func (m *LinkMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetUpdateTime reset all changes of the update_time field.
+// ResetUpdateTime reset all changes of the "update_time" field.
 func (m *LinkMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
@@ -11741,7 +11741,7 @@ func (m *LinkMutation) FutureStateCleared() bool {
 	return ok
 }
 
-// ResetFutureState reset all changes of the future_state field.
+// ResetFutureState reset all changes of the "future_state" field.
 func (m *LinkMutation) ResetFutureState() {
 	m.future_state = nil
 	delete(m.clearedFields, link.FieldFutureState)
@@ -11783,7 +11783,7 @@ func (m *LinkMutation) PortsIDs() (ids []int) {
 	return
 }
 
-// ResetPorts reset all changes of the ports edge.
+// ResetPorts reset all changes of the "ports" edge.
 func (m *LinkMutation) ResetPorts() {
 	m.ports = nil
 	m.removedports = nil
@@ -11822,7 +11822,7 @@ func (m *LinkMutation) WorkOrderIDs() (ids []int) {
 	return
 }
 
-// ResetWorkOrder reset all changes of the work_order edge.
+// ResetWorkOrder reset all changes of the "work_order" edge.
 func (m *LinkMutation) ResetWorkOrder() {
 	m.work_order = nil
 	m.clearedwork_order = false
@@ -11864,7 +11864,7 @@ func (m *LinkMutation) PropertiesIDs() (ids []int) {
 	return
 }
 
-// ResetProperties reset all changes of the properties edge.
+// ResetProperties reset all changes of the "properties" edge.
 func (m *LinkMutation) ResetProperties() {
 	m.properties = nil
 	m.removedproperties = nil
@@ -11906,7 +11906,7 @@ func (m *LinkMutation) ServiceIDs() (ids []int) {
 	return
 }
 
-// ResetService reset all changes of the service edge.
+// ResetService reset all changes of the "service" edge.
 func (m *LinkMutation) ResetService() {
 	m.service = nil
 	m.removedservice = nil
@@ -12292,7 +12292,7 @@ func (m *LocationMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetCreateTime reset all changes of the create_time field.
+// ResetCreateTime reset all changes of the "create_time" field.
 func (m *LocationMutation) ResetCreateTime() {
 	m.create_time = nil
 }
@@ -12311,7 +12311,7 @@ func (m *LocationMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetUpdateTime reset all changes of the update_time field.
+// ResetUpdateTime reset all changes of the "update_time" field.
 func (m *LocationMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
@@ -12330,7 +12330,7 @@ func (m *LocationMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// ResetName reset all changes of the name field.
+// ResetName reset all changes of the "name" field.
 func (m *LocationMutation) ResetName() {
 	m.name = nil
 }
@@ -12361,7 +12361,7 @@ func (m *LocationMutation) ExternalIDCleared() bool {
 	return ok
 }
 
-// ResetExternalID reset all changes of the external_id field.
+// ResetExternalID reset all changes of the "external_id" field.
 func (m *LocationMutation) ResetExternalID() {
 	m.external_id = nil
 	delete(m.clearedFields, location.FieldExternalID)
@@ -12400,7 +12400,7 @@ func (m *LocationMutation) AddedLatitude() (r float64, exists bool) {
 	return *v, true
 }
 
-// ResetLatitude reset all changes of the latitude field.
+// ResetLatitude reset all changes of the "latitude" field.
 func (m *LocationMutation) ResetLatitude() {
 	m.latitude = nil
 	m.addlatitude = nil
@@ -12439,7 +12439,7 @@ func (m *LocationMutation) AddedLongitude() (r float64, exists bool) {
 	return *v, true
 }
 
-// ResetLongitude reset all changes of the longitude field.
+// ResetLongitude reset all changes of the "longitude" field.
 func (m *LocationMutation) ResetLongitude() {
 	m.longitude = nil
 	m.addlongitude = nil
@@ -12471,7 +12471,7 @@ func (m *LocationMutation) SiteSurveyNeededCleared() bool {
 	return ok
 }
 
-// ResetSiteSurveyNeeded reset all changes of the site_survey_needed field.
+// ResetSiteSurveyNeeded reset all changes of the "site_survey_needed" field.
 func (m *LocationMutation) ResetSiteSurveyNeeded() {
 	m.site_survey_needed = nil
 	delete(m.clearedFields, location.FieldSiteSurveyNeeded)
@@ -12510,7 +12510,7 @@ func (m *LocationMutation) TypeIDs() (ids []int) {
 	return
 }
 
-// ResetType reset all changes of the type edge.
+// ResetType reset all changes of the "type" edge.
 func (m *LocationMutation) ResetType() {
 	m._type = nil
 	m.cleared_type = false
@@ -12549,7 +12549,7 @@ func (m *LocationMutation) ParentIDs() (ids []int) {
 	return
 }
 
-// ResetParent reset all changes of the parent edge.
+// ResetParent reset all changes of the "parent" edge.
 func (m *LocationMutation) ResetParent() {
 	m.parent = nil
 	m.clearedparent = false
@@ -12591,7 +12591,7 @@ func (m *LocationMutation) ChildrenIDs() (ids []int) {
 	return
 }
 
-// ResetChildren reset all changes of the children edge.
+// ResetChildren reset all changes of the "children" edge.
 func (m *LocationMutation) ResetChildren() {
 	m.children = nil
 	m.removedchildren = nil
@@ -12633,7 +12633,7 @@ func (m *LocationMutation) FilesIDs() (ids []int) {
 	return
 }
 
-// ResetFiles reset all changes of the files edge.
+// ResetFiles reset all changes of the "files" edge.
 func (m *LocationMutation) ResetFiles() {
 	m.files = nil
 	m.removedfiles = nil
@@ -12675,7 +12675,7 @@ func (m *LocationMutation) HyperlinksIDs() (ids []int) {
 	return
 }
 
-// ResetHyperlinks reset all changes of the hyperlinks edge.
+// ResetHyperlinks reset all changes of the "hyperlinks" edge.
 func (m *LocationMutation) ResetHyperlinks() {
 	m.hyperlinks = nil
 	m.removedhyperlinks = nil
@@ -12717,7 +12717,7 @@ func (m *LocationMutation) EquipmentIDs() (ids []int) {
 	return
 }
 
-// ResetEquipment reset all changes of the equipment edge.
+// ResetEquipment reset all changes of the "equipment" edge.
 func (m *LocationMutation) ResetEquipment() {
 	m.equipment = nil
 	m.removedequipment = nil
@@ -12759,7 +12759,7 @@ func (m *LocationMutation) PropertiesIDs() (ids []int) {
 	return
 }
 
-// ResetProperties reset all changes of the properties edge.
+// ResetProperties reset all changes of the "properties" edge.
 func (m *LocationMutation) ResetProperties() {
 	m.properties = nil
 	m.removedproperties = nil
@@ -12801,7 +12801,7 @@ func (m *LocationMutation) SurveyIDs() (ids []int) {
 	return
 }
 
-// ResetSurvey reset all changes of the survey edge.
+// ResetSurvey reset all changes of the "survey" edge.
 func (m *LocationMutation) ResetSurvey() {
 	m.survey = nil
 	m.removedsurvey = nil
@@ -12843,7 +12843,7 @@ func (m *LocationMutation) WifiScanIDs() (ids []int) {
 	return
 }
 
-// ResetWifiScan reset all changes of the wifi_scan edge.
+// ResetWifiScan reset all changes of the "wifi_scan" edge.
 func (m *LocationMutation) ResetWifiScan() {
 	m.wifi_scan = nil
 	m.removedwifi_scan = nil
@@ -12885,7 +12885,7 @@ func (m *LocationMutation) CellScanIDs() (ids []int) {
 	return
 }
 
-// ResetCellScan reset all changes of the cell_scan edge.
+// ResetCellScan reset all changes of the "cell_scan" edge.
 func (m *LocationMutation) ResetCellScan() {
 	m.cell_scan = nil
 	m.removedcell_scan = nil
@@ -12927,7 +12927,7 @@ func (m *LocationMutation) WorkOrdersIDs() (ids []int) {
 	return
 }
 
-// ResetWorkOrders reset all changes of the work_orders edge.
+// ResetWorkOrders reset all changes of the "work_orders" edge.
 func (m *LocationMutation) ResetWorkOrders() {
 	m.work_orders = nil
 	m.removedwork_orders = nil
@@ -12969,7 +12969,7 @@ func (m *LocationMutation) FloorPlansIDs() (ids []int) {
 	return
 }
 
-// ResetFloorPlans reset all changes of the floor_plans edge.
+// ResetFloorPlans reset all changes of the "floor_plans" edge.
 func (m *LocationMutation) ResetFloorPlans() {
 	m.floor_plans = nil
 	m.removedfloor_plans = nil
@@ -13595,7 +13595,7 @@ func (m *LocationTypeMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetCreateTime reset all changes of the create_time field.
+// ResetCreateTime reset all changes of the "create_time" field.
 func (m *LocationTypeMutation) ResetCreateTime() {
 	m.create_time = nil
 }
@@ -13614,7 +13614,7 @@ func (m *LocationTypeMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetUpdateTime reset all changes of the update_time field.
+// ResetUpdateTime reset all changes of the "update_time" field.
 func (m *LocationTypeMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
@@ -13633,7 +13633,7 @@ func (m *LocationTypeMutation) Site() (r bool, exists bool) {
 	return *v, true
 }
 
-// ResetSite reset all changes of the site field.
+// ResetSite reset all changes of the "site" field.
 func (m *LocationTypeMutation) ResetSite() {
 	m.site = nil
 }
@@ -13652,7 +13652,7 @@ func (m *LocationTypeMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// ResetName reset all changes of the name field.
+// ResetName reset all changes of the "name" field.
 func (m *LocationTypeMutation) ResetName() {
 	m.name = nil
 }
@@ -13683,7 +13683,7 @@ func (m *LocationTypeMutation) MapTypeCleared() bool {
 	return ok
 }
 
-// ResetMapType reset all changes of the map_type field.
+// ResetMapType reset all changes of the "map_type" field.
 func (m *LocationTypeMutation) ResetMapType() {
 	m.map_type = nil
 	delete(m.clearedFields, locationtype.FieldMapType)
@@ -13735,7 +13735,7 @@ func (m *LocationTypeMutation) MapZoomLevelCleared() bool {
 	return ok
 }
 
-// ResetMapZoomLevel reset all changes of the map_zoom_level field.
+// ResetMapZoomLevel reset all changes of the "map_zoom_level" field.
 func (m *LocationTypeMutation) ResetMapZoomLevel() {
 	m.map_zoom_level = nil
 	m.addmap_zoom_level = nil
@@ -13775,7 +13775,7 @@ func (m *LocationTypeMutation) AddedIndex() (r int, exists bool) {
 	return *v, true
 }
 
-// ResetIndex reset all changes of the index field.
+// ResetIndex reset all changes of the "index" field.
 func (m *LocationTypeMutation) ResetIndex() {
 	m.index = nil
 	m.addindex = nil
@@ -13817,7 +13817,7 @@ func (m *LocationTypeMutation) LocationsIDs() (ids []int) {
 	return
 }
 
-// ResetLocations reset all changes of the locations edge.
+// ResetLocations reset all changes of the "locations" edge.
 func (m *LocationTypeMutation) ResetLocations() {
 	m.locations = nil
 	m.removedlocations = nil
@@ -13859,7 +13859,7 @@ func (m *LocationTypeMutation) PropertyTypesIDs() (ids []int) {
 	return
 }
 
-// ResetPropertyTypes reset all changes of the property_types edge.
+// ResetPropertyTypes reset all changes of the "property_types" edge.
 func (m *LocationTypeMutation) ResetPropertyTypes() {
 	m.property_types = nil
 	m.removedproperty_types = nil
@@ -13901,7 +13901,7 @@ func (m *LocationTypeMutation) SurveyTemplateCategoriesIDs() (ids []int) {
 	return
 }
 
-// ResetSurveyTemplateCategories reset all changes of the survey_template_categories edge.
+// ResetSurveyTemplateCategories reset all changes of the "survey_template_categories" edge.
 func (m *LocationTypeMutation) ResetSurveyTemplateCategories() {
 	m.survey_template_categories = nil
 	m.removedsurvey_template_categories = nil
@@ -14338,7 +14338,7 @@ func (m *PermissionsPolicyMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetCreateTime reset all changes of the create_time field.
+// ResetCreateTime reset all changes of the "create_time" field.
 func (m *PermissionsPolicyMutation) ResetCreateTime() {
 	m.create_time = nil
 }
@@ -14357,7 +14357,7 @@ func (m *PermissionsPolicyMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetUpdateTime reset all changes of the update_time field.
+// ResetUpdateTime reset all changes of the "update_time" field.
 func (m *PermissionsPolicyMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
@@ -14376,7 +14376,7 @@ func (m *PermissionsPolicyMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// ResetName reset all changes of the name field.
+// ResetName reset all changes of the "name" field.
 func (m *PermissionsPolicyMutation) ResetName() {
 	m.name = nil
 }
@@ -14407,7 +14407,7 @@ func (m *PermissionsPolicyMutation) DescriptionCleared() bool {
 	return ok
 }
 
-// ResetDescription reset all changes of the description field.
+// ResetDescription reset all changes of the "description" field.
 func (m *PermissionsPolicyMutation) ResetDescription() {
 	m.description = nil
 	delete(m.clearedFields, permissionspolicy.FieldDescription)
@@ -14439,7 +14439,7 @@ func (m *PermissionsPolicyMutation) IsGlobalCleared() bool {
 	return ok
 }
 
-// ResetIsGlobal reset all changes of the is_global field.
+// ResetIsGlobal reset all changes of the "is_global" field.
 func (m *PermissionsPolicyMutation) ResetIsGlobal() {
 	m.is_global = nil
 	delete(m.clearedFields, permissionspolicy.FieldIsGlobal)
@@ -14471,7 +14471,7 @@ func (m *PermissionsPolicyMutation) InventoryPolicyCleared() bool {
 	return ok
 }
 
-// ResetInventoryPolicy reset all changes of the inventory_policy field.
+// ResetInventoryPolicy reset all changes of the "inventory_policy" field.
 func (m *PermissionsPolicyMutation) ResetInventoryPolicy() {
 	m.inventory_policy = nil
 	delete(m.clearedFields, permissionspolicy.FieldInventoryPolicy)
@@ -14503,7 +14503,7 @@ func (m *PermissionsPolicyMutation) WorkforcePolicyCleared() bool {
 	return ok
 }
 
-// ResetWorkforcePolicy reset all changes of the workforce_policy field.
+// ResetWorkforcePolicy reset all changes of the "workforce_policy" field.
 func (m *PermissionsPolicyMutation) ResetWorkforcePolicy() {
 	m.workforce_policy = nil
 	delete(m.clearedFields, permissionspolicy.FieldWorkforcePolicy)
@@ -14545,7 +14545,7 @@ func (m *PermissionsPolicyMutation) GroupsIDs() (ids []int) {
 	return
 }
 
-// ResetGroups reset all changes of the groups edge.
+// ResetGroups reset all changes of the "groups" edge.
 func (m *PermissionsPolicyMutation) ResetGroups() {
 	m.groups = nil
 	m.removedgroups = nil
@@ -14932,7 +14932,7 @@ func (m *ProjectMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetCreateTime reset all changes of the create_time field.
+// ResetCreateTime reset all changes of the "create_time" field.
 func (m *ProjectMutation) ResetCreateTime() {
 	m.create_time = nil
 }
@@ -14951,7 +14951,7 @@ func (m *ProjectMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetUpdateTime reset all changes of the update_time field.
+// ResetUpdateTime reset all changes of the "update_time" field.
 func (m *ProjectMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
@@ -14970,7 +14970,7 @@ func (m *ProjectMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// ResetName reset all changes of the name field.
+// ResetName reset all changes of the "name" field.
 func (m *ProjectMutation) ResetName() {
 	m.name = nil
 }
@@ -15001,7 +15001,7 @@ func (m *ProjectMutation) DescriptionCleared() bool {
 	return ok
 }
 
-// ResetDescription reset all changes of the description field.
+// ResetDescription reset all changes of the "description" field.
 func (m *ProjectMutation) ResetDescription() {
 	m.description = nil
 	delete(m.clearedFields, project.FieldDescription)
@@ -15040,7 +15040,7 @@ func (m *ProjectMutation) TypeIDs() (ids []int) {
 	return
 }
 
-// ResetType reset all changes of the type edge.
+// ResetType reset all changes of the "type" edge.
 func (m *ProjectMutation) ResetType() {
 	m._type = nil
 	m.cleared_type = false
@@ -15079,7 +15079,7 @@ func (m *ProjectMutation) LocationIDs() (ids []int) {
 	return
 }
 
-// ResetLocation reset all changes of the location edge.
+// ResetLocation reset all changes of the "location" edge.
 func (m *ProjectMutation) ResetLocation() {
 	m.location = nil
 	m.clearedlocation = false
@@ -15121,7 +15121,7 @@ func (m *ProjectMutation) CommentsIDs() (ids []int) {
 	return
 }
 
-// ResetComments reset all changes of the comments edge.
+// ResetComments reset all changes of the "comments" edge.
 func (m *ProjectMutation) ResetComments() {
 	m.comments = nil
 	m.removedcomments = nil
@@ -15163,7 +15163,7 @@ func (m *ProjectMutation) WorkOrdersIDs() (ids []int) {
 	return
 }
 
-// ResetWorkOrders reset all changes of the work_orders edge.
+// ResetWorkOrders reset all changes of the "work_orders" edge.
 func (m *ProjectMutation) ResetWorkOrders() {
 	m.work_orders = nil
 	m.removedwork_orders = nil
@@ -15205,7 +15205,7 @@ func (m *ProjectMutation) PropertiesIDs() (ids []int) {
 	return
 }
 
-// ResetProperties reset all changes of the properties edge.
+// ResetProperties reset all changes of the "properties" edge.
 func (m *ProjectMutation) ResetProperties() {
 	m.properties = nil
 	m.removedproperties = nil
@@ -15244,7 +15244,7 @@ func (m *ProjectMutation) CreatorIDs() (ids []int) {
 	return
 }
 
-// ResetCreator reset all changes of the creator edge.
+// ResetCreator reset all changes of the "creator" edge.
 func (m *ProjectMutation) ResetCreator() {
 	m.creator = nil
 	m.clearedcreator = false
@@ -15658,7 +15658,7 @@ func (m *ProjectTypeMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetCreateTime reset all changes of the create_time field.
+// ResetCreateTime reset all changes of the "create_time" field.
 func (m *ProjectTypeMutation) ResetCreateTime() {
 	m.create_time = nil
 }
@@ -15677,7 +15677,7 @@ func (m *ProjectTypeMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetUpdateTime reset all changes of the update_time field.
+// ResetUpdateTime reset all changes of the "update_time" field.
 func (m *ProjectTypeMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
@@ -15696,7 +15696,7 @@ func (m *ProjectTypeMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// ResetName reset all changes of the name field.
+// ResetName reset all changes of the "name" field.
 func (m *ProjectTypeMutation) ResetName() {
 	m.name = nil
 }
@@ -15727,7 +15727,7 @@ func (m *ProjectTypeMutation) DescriptionCleared() bool {
 	return ok
 }
 
-// ResetDescription reset all changes of the description field.
+// ResetDescription reset all changes of the "description" field.
 func (m *ProjectTypeMutation) ResetDescription() {
 	m.description = nil
 	delete(m.clearedFields, projecttype.FieldDescription)
@@ -15769,7 +15769,7 @@ func (m *ProjectTypeMutation) ProjectsIDs() (ids []int) {
 	return
 }
 
-// ResetProjects reset all changes of the projects edge.
+// ResetProjects reset all changes of the "projects" edge.
 func (m *ProjectTypeMutation) ResetProjects() {
 	m.projects = nil
 	m.removedprojects = nil
@@ -15811,7 +15811,7 @@ func (m *ProjectTypeMutation) PropertiesIDs() (ids []int) {
 	return
 }
 
-// ResetProperties reset all changes of the properties edge.
+// ResetProperties reset all changes of the "properties" edge.
 func (m *ProjectTypeMutation) ResetProperties() {
 	m.properties = nil
 	m.removedproperties = nil
@@ -15853,7 +15853,7 @@ func (m *ProjectTypeMutation) WorkOrdersIDs() (ids []int) {
 	return
 }
 
-// ResetWorkOrders reset all changes of the work_orders edge.
+// ResetWorkOrders reset all changes of the "work_orders" edge.
 func (m *ProjectTypeMutation) ResetWorkOrders() {
 	m.work_orders = nil
 	m.removedwork_orders = nil
@@ -16245,7 +16245,7 @@ func (m *PropertyMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetCreateTime reset all changes of the create_time field.
+// ResetCreateTime reset all changes of the "create_time" field.
 func (m *PropertyMutation) ResetCreateTime() {
 	m.create_time = nil
 }
@@ -16264,7 +16264,7 @@ func (m *PropertyMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetUpdateTime reset all changes of the update_time field.
+// ResetUpdateTime reset all changes of the "update_time" field.
 func (m *PropertyMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
@@ -16315,7 +16315,7 @@ func (m *PropertyMutation) IntValCleared() bool {
 	return ok
 }
 
-// ResetIntVal reset all changes of the int_val field.
+// ResetIntVal reset all changes of the "int_val" field.
 func (m *PropertyMutation) ResetIntVal() {
 	m.int_val = nil
 	m.addint_val = nil
@@ -16348,7 +16348,7 @@ func (m *PropertyMutation) BoolValCleared() bool {
 	return ok
 }
 
-// ResetBoolVal reset all changes of the bool_val field.
+// ResetBoolVal reset all changes of the "bool_val" field.
 func (m *PropertyMutation) ResetBoolVal() {
 	m.bool_val = nil
 	delete(m.clearedFields, property.FieldBoolVal)
@@ -16400,7 +16400,7 @@ func (m *PropertyMutation) FloatValCleared() bool {
 	return ok
 }
 
-// ResetFloatVal reset all changes of the float_val field.
+// ResetFloatVal reset all changes of the "float_val" field.
 func (m *PropertyMutation) ResetFloatVal() {
 	m.float_val = nil
 	m.addfloat_val = nil
@@ -16453,7 +16453,7 @@ func (m *PropertyMutation) LatitudeValCleared() bool {
 	return ok
 }
 
-// ResetLatitudeVal reset all changes of the latitude_val field.
+// ResetLatitudeVal reset all changes of the "latitude_val" field.
 func (m *PropertyMutation) ResetLatitudeVal() {
 	m.latitude_val = nil
 	m.addlatitude_val = nil
@@ -16506,7 +16506,7 @@ func (m *PropertyMutation) LongitudeValCleared() bool {
 	return ok
 }
 
-// ResetLongitudeVal reset all changes of the longitude_val field.
+// ResetLongitudeVal reset all changes of the "longitude_val" field.
 func (m *PropertyMutation) ResetLongitudeVal() {
 	m.longitude_val = nil
 	m.addlongitude_val = nil
@@ -16559,7 +16559,7 @@ func (m *PropertyMutation) RangeFromValCleared() bool {
 	return ok
 }
 
-// ResetRangeFromVal reset all changes of the range_from_val field.
+// ResetRangeFromVal reset all changes of the "range_from_val" field.
 func (m *PropertyMutation) ResetRangeFromVal() {
 	m.range_from_val = nil
 	m.addrange_from_val = nil
@@ -16612,7 +16612,7 @@ func (m *PropertyMutation) RangeToValCleared() bool {
 	return ok
 }
 
-// ResetRangeToVal reset all changes of the range_to_val field.
+// ResetRangeToVal reset all changes of the "range_to_val" field.
 func (m *PropertyMutation) ResetRangeToVal() {
 	m.range_to_val = nil
 	m.addrange_to_val = nil
@@ -16645,7 +16645,7 @@ func (m *PropertyMutation) StringValCleared() bool {
 	return ok
 }
 
-// ResetStringVal reset all changes of the string_val field.
+// ResetStringVal reset all changes of the "string_val" field.
 func (m *PropertyMutation) ResetStringVal() {
 	m.string_val = nil
 	delete(m.clearedFields, property.FieldStringVal)
@@ -16684,7 +16684,7 @@ func (m *PropertyMutation) TypeIDs() (ids []int) {
 	return
 }
 
-// ResetType reset all changes of the type edge.
+// ResetType reset all changes of the "type" edge.
 func (m *PropertyMutation) ResetType() {
 	m._type = nil
 	m.cleared_type = false
@@ -16723,7 +16723,7 @@ func (m *PropertyMutation) LocationIDs() (ids []int) {
 	return
 }
 
-// ResetLocation reset all changes of the location edge.
+// ResetLocation reset all changes of the "location" edge.
 func (m *PropertyMutation) ResetLocation() {
 	m.location = nil
 	m.clearedlocation = false
@@ -16762,7 +16762,7 @@ func (m *PropertyMutation) EquipmentIDs() (ids []int) {
 	return
 }
 
-// ResetEquipment reset all changes of the equipment edge.
+// ResetEquipment reset all changes of the "equipment" edge.
 func (m *PropertyMutation) ResetEquipment() {
 	m.equipment = nil
 	m.clearedequipment = false
@@ -16801,7 +16801,7 @@ func (m *PropertyMutation) ServiceIDs() (ids []int) {
 	return
 }
 
-// ResetService reset all changes of the service edge.
+// ResetService reset all changes of the "service" edge.
 func (m *PropertyMutation) ResetService() {
 	m.service = nil
 	m.clearedservice = false
@@ -16840,7 +16840,7 @@ func (m *PropertyMutation) EquipmentPortIDs() (ids []int) {
 	return
 }
 
-// ResetEquipmentPort reset all changes of the equipment_port edge.
+// ResetEquipmentPort reset all changes of the "equipment_port" edge.
 func (m *PropertyMutation) ResetEquipmentPort() {
 	m.equipment_port = nil
 	m.clearedequipment_port = false
@@ -16879,7 +16879,7 @@ func (m *PropertyMutation) LinkIDs() (ids []int) {
 	return
 }
 
-// ResetLink reset all changes of the link edge.
+// ResetLink reset all changes of the "link" edge.
 func (m *PropertyMutation) ResetLink() {
 	m.link = nil
 	m.clearedlink = false
@@ -16918,7 +16918,7 @@ func (m *PropertyMutation) WorkOrderIDs() (ids []int) {
 	return
 }
 
-// ResetWorkOrder reset all changes of the work_order edge.
+// ResetWorkOrder reset all changes of the "work_order" edge.
 func (m *PropertyMutation) ResetWorkOrder() {
 	m.work_order = nil
 	m.clearedwork_order = false
@@ -16957,7 +16957,7 @@ func (m *PropertyMutation) ProjectIDs() (ids []int) {
 	return
 }
 
-// ResetProject reset all changes of the project edge.
+// ResetProject reset all changes of the "project" edge.
 func (m *PropertyMutation) ResetProject() {
 	m.project = nil
 	m.clearedproject = false
@@ -16996,7 +16996,7 @@ func (m *PropertyMutation) EquipmentValueIDs() (ids []int) {
 	return
 }
 
-// ResetEquipmentValue reset all changes of the equipment_value edge.
+// ResetEquipmentValue reset all changes of the "equipment_value" edge.
 func (m *PropertyMutation) ResetEquipmentValue() {
 	m.equipment_value = nil
 	m.clearedequipment_value = false
@@ -17035,7 +17035,7 @@ func (m *PropertyMutation) LocationValueIDs() (ids []int) {
 	return
 }
 
-// ResetLocationValue reset all changes of the location_value edge.
+// ResetLocationValue reset all changes of the "location_value" edge.
 func (m *PropertyMutation) ResetLocationValue() {
 	m.location_value = nil
 	m.clearedlocation_value = false
@@ -17074,7 +17074,7 @@ func (m *PropertyMutation) ServiceValueIDs() (ids []int) {
 	return
 }
 
-// ResetServiceValue reset all changes of the service_value edge.
+// ResetServiceValue reset all changes of the "service_value" edge.
 func (m *PropertyMutation) ResetServiceValue() {
 	m.service_value = nil
 	m.clearedservice_value = false
@@ -17113,7 +17113,7 @@ func (m *PropertyMutation) WorkOrderValueIDs() (ids []int) {
 	return
 }
 
-// ResetWorkOrderValue reset all changes of the work_order_value edge.
+// ResetWorkOrderValue reset all changes of the "work_order_value" edge.
 func (m *PropertyMutation) ResetWorkOrderValue() {
 	m.work_order_value = nil
 	m.clearedwork_order_value = false
@@ -17152,7 +17152,7 @@ func (m *PropertyMutation) UserValueIDs() (ids []int) {
 	return
 }
 
-// ResetUserValue reset all changes of the user_value edge.
+// ResetUserValue reset all changes of the "user_value" edge.
 func (m *PropertyMutation) ResetUserValue() {
 	m.user_value = nil
 	m.cleareduser_value = false
@@ -17923,7 +17923,7 @@ func (m *PropertyTypeMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetCreateTime reset all changes of the create_time field.
+// ResetCreateTime reset all changes of the "create_time" field.
 func (m *PropertyTypeMutation) ResetCreateTime() {
 	m.create_time = nil
 }
@@ -17942,7 +17942,7 @@ func (m *PropertyTypeMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetUpdateTime reset all changes of the update_time field.
+// ResetUpdateTime reset all changes of the "update_time" field.
 func (m *PropertyTypeMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
@@ -17961,7 +17961,7 @@ func (m *PropertyTypeMutation) GetType() (r string, exists bool) {
 	return *v, true
 }
 
-// ResetType reset all changes of the type field.
+// ResetType reset all changes of the "type" field.
 func (m *PropertyTypeMutation) ResetType() {
 	m._type = nil
 }
@@ -17980,7 +17980,7 @@ func (m *PropertyTypeMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// ResetName reset all changes of the name field.
+// ResetName reset all changes of the "name" field.
 func (m *PropertyTypeMutation) ResetName() {
 	m.name = nil
 }
@@ -18011,7 +18011,7 @@ func (m *PropertyTypeMutation) ExternalIDCleared() bool {
 	return ok
 }
 
-// ResetExternalID reset all changes of the external_id field.
+// ResetExternalID reset all changes of the "external_id" field.
 func (m *PropertyTypeMutation) ResetExternalID() {
 	m.external_id = nil
 	delete(m.clearedFields, propertytype.FieldExternalID)
@@ -18063,7 +18063,7 @@ func (m *PropertyTypeMutation) IndexCleared() bool {
 	return ok
 }
 
-// ResetIndex reset all changes of the index field.
+// ResetIndex reset all changes of the "index" field.
 func (m *PropertyTypeMutation) ResetIndex() {
 	m.index = nil
 	m.addindex = nil
@@ -18096,7 +18096,7 @@ func (m *PropertyTypeMutation) CategoryCleared() bool {
 	return ok
 }
 
-// ResetCategory reset all changes of the category field.
+// ResetCategory reset all changes of the "category" field.
 func (m *PropertyTypeMutation) ResetCategory() {
 	m.category = nil
 	delete(m.clearedFields, propertytype.FieldCategory)
@@ -18148,7 +18148,7 @@ func (m *PropertyTypeMutation) IntValCleared() bool {
 	return ok
 }
 
-// ResetIntVal reset all changes of the int_val field.
+// ResetIntVal reset all changes of the "int_val" field.
 func (m *PropertyTypeMutation) ResetIntVal() {
 	m.int_val = nil
 	m.addint_val = nil
@@ -18181,7 +18181,7 @@ func (m *PropertyTypeMutation) BoolValCleared() bool {
 	return ok
 }
 
-// ResetBoolVal reset all changes of the bool_val field.
+// ResetBoolVal reset all changes of the "bool_val" field.
 func (m *PropertyTypeMutation) ResetBoolVal() {
 	m.bool_val = nil
 	delete(m.clearedFields, propertytype.FieldBoolVal)
@@ -18233,7 +18233,7 @@ func (m *PropertyTypeMutation) FloatValCleared() bool {
 	return ok
 }
 
-// ResetFloatVal reset all changes of the float_val field.
+// ResetFloatVal reset all changes of the "float_val" field.
 func (m *PropertyTypeMutation) ResetFloatVal() {
 	m.float_val = nil
 	m.addfloat_val = nil
@@ -18286,7 +18286,7 @@ func (m *PropertyTypeMutation) LatitudeValCleared() bool {
 	return ok
 }
 
-// ResetLatitudeVal reset all changes of the latitude_val field.
+// ResetLatitudeVal reset all changes of the "latitude_val" field.
 func (m *PropertyTypeMutation) ResetLatitudeVal() {
 	m.latitude_val = nil
 	m.addlatitude_val = nil
@@ -18339,7 +18339,7 @@ func (m *PropertyTypeMutation) LongitudeValCleared() bool {
 	return ok
 }
 
-// ResetLongitudeVal reset all changes of the longitude_val field.
+// ResetLongitudeVal reset all changes of the "longitude_val" field.
 func (m *PropertyTypeMutation) ResetLongitudeVal() {
 	m.longitude_val = nil
 	m.addlongitude_val = nil
@@ -18372,7 +18372,7 @@ func (m *PropertyTypeMutation) StringValCleared() bool {
 	return ok
 }
 
-// ResetStringVal reset all changes of the string_val field.
+// ResetStringVal reset all changes of the "string_val" field.
 func (m *PropertyTypeMutation) ResetStringVal() {
 	m.string_val = nil
 	delete(m.clearedFields, propertytype.FieldStringVal)
@@ -18424,7 +18424,7 @@ func (m *PropertyTypeMutation) RangeFromValCleared() bool {
 	return ok
 }
 
-// ResetRangeFromVal reset all changes of the range_from_val field.
+// ResetRangeFromVal reset all changes of the "range_from_val" field.
 func (m *PropertyTypeMutation) ResetRangeFromVal() {
 	m.range_from_val = nil
 	m.addrange_from_val = nil
@@ -18477,7 +18477,7 @@ func (m *PropertyTypeMutation) RangeToValCleared() bool {
 	return ok
 }
 
-// ResetRangeToVal reset all changes of the range_to_val field.
+// ResetRangeToVal reset all changes of the "range_to_val" field.
 func (m *PropertyTypeMutation) ResetRangeToVal() {
 	m.range_to_val = nil
 	m.addrange_to_val = nil
@@ -18498,7 +18498,7 @@ func (m *PropertyTypeMutation) IsInstanceProperty() (r bool, exists bool) {
 	return *v, true
 }
 
-// ResetIsInstanceProperty reset all changes of the is_instance_property field.
+// ResetIsInstanceProperty reset all changes of the "is_instance_property" field.
 func (m *PropertyTypeMutation) ResetIsInstanceProperty() {
 	m.is_instance_property = nil
 }
@@ -18517,7 +18517,7 @@ func (m *PropertyTypeMutation) Editable() (r bool, exists bool) {
 	return *v, true
 }
 
-// ResetEditable reset all changes of the editable field.
+// ResetEditable reset all changes of the "editable" field.
 func (m *PropertyTypeMutation) ResetEditable() {
 	m.editable = nil
 }
@@ -18536,7 +18536,7 @@ func (m *PropertyTypeMutation) Mandatory() (r bool, exists bool) {
 	return *v, true
 }
 
-// ResetMandatory reset all changes of the mandatory field.
+// ResetMandatory reset all changes of the "mandatory" field.
 func (m *PropertyTypeMutation) ResetMandatory() {
 	m.mandatory = nil
 }
@@ -18555,7 +18555,7 @@ func (m *PropertyTypeMutation) Deleted() (r bool, exists bool) {
 	return *v, true
 }
 
-// ResetDeleted reset all changes of the deleted field.
+// ResetDeleted reset all changes of the "deleted" field.
 func (m *PropertyTypeMutation) ResetDeleted() {
 	m.deleted = nil
 }
@@ -18586,7 +18586,7 @@ func (m *PropertyTypeMutation) NodeTypeCleared() bool {
 	return ok
 }
 
-// ResetNodeType reset all changes of the nodeType field.
+// ResetNodeType reset all changes of the "nodeType" field.
 func (m *PropertyTypeMutation) ResetNodeType() {
 	m.nodeType = nil
 	delete(m.clearedFields, propertytype.FieldNodeType)
@@ -18628,7 +18628,7 @@ func (m *PropertyTypeMutation) PropertiesIDs() (ids []int) {
 	return
 }
 
-// ResetProperties reset all changes of the properties edge.
+// ResetProperties reset all changes of the "properties" edge.
 func (m *PropertyTypeMutation) ResetProperties() {
 	m.properties = nil
 	m.removedproperties = nil
@@ -18667,7 +18667,7 @@ func (m *PropertyTypeMutation) LocationTypeIDs() (ids []int) {
 	return
 }
 
-// ResetLocationType reset all changes of the location_type edge.
+// ResetLocationType reset all changes of the "location_type" edge.
 func (m *PropertyTypeMutation) ResetLocationType() {
 	m.location_type = nil
 	m.clearedlocation_type = false
@@ -18706,7 +18706,7 @@ func (m *PropertyTypeMutation) EquipmentPortTypeIDs() (ids []int) {
 	return
 }
 
-// ResetEquipmentPortType reset all changes of the equipment_port_type edge.
+// ResetEquipmentPortType reset all changes of the "equipment_port_type" edge.
 func (m *PropertyTypeMutation) ResetEquipmentPortType() {
 	m.equipment_port_type = nil
 	m.clearedequipment_port_type = false
@@ -18745,7 +18745,7 @@ func (m *PropertyTypeMutation) LinkEquipmentPortTypeIDs() (ids []int) {
 	return
 }
 
-// ResetLinkEquipmentPortType reset all changes of the link_equipment_port_type edge.
+// ResetLinkEquipmentPortType reset all changes of the "link_equipment_port_type" edge.
 func (m *PropertyTypeMutation) ResetLinkEquipmentPortType() {
 	m.link_equipment_port_type = nil
 	m.clearedlink_equipment_port_type = false
@@ -18784,7 +18784,7 @@ func (m *PropertyTypeMutation) EquipmentTypeIDs() (ids []int) {
 	return
 }
 
-// ResetEquipmentType reset all changes of the equipment_type edge.
+// ResetEquipmentType reset all changes of the "equipment_type" edge.
 func (m *PropertyTypeMutation) ResetEquipmentType() {
 	m.equipment_type = nil
 	m.clearedequipment_type = false
@@ -18823,7 +18823,7 @@ func (m *PropertyTypeMutation) ServiceTypeIDs() (ids []int) {
 	return
 }
 
-// ResetServiceType reset all changes of the service_type edge.
+// ResetServiceType reset all changes of the "service_type" edge.
 func (m *PropertyTypeMutation) ResetServiceType() {
 	m.service_type = nil
 	m.clearedservice_type = false
@@ -18862,7 +18862,7 @@ func (m *PropertyTypeMutation) WorkOrderTypeIDs() (ids []int) {
 	return
 }
 
-// ResetWorkOrderType reset all changes of the work_order_type edge.
+// ResetWorkOrderType reset all changes of the "work_order_type" edge.
 func (m *PropertyTypeMutation) ResetWorkOrderType() {
 	m.work_order_type = nil
 	m.clearedwork_order_type = false
@@ -18901,7 +18901,7 @@ func (m *PropertyTypeMutation) ProjectTypeIDs() (ids []int) {
 	return
 }
 
-// ResetProjectType reset all changes of the project_type edge.
+// ResetProjectType reset all changes of the "project_type" edge.
 func (m *PropertyTypeMutation) ResetProjectType() {
 	m.project_type = nil
 	m.clearedproject_type = false
@@ -19733,7 +19733,7 @@ func (m *ReportFilterMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetCreateTime reset all changes of the create_time field.
+// ResetCreateTime reset all changes of the "create_time" field.
 func (m *ReportFilterMutation) ResetCreateTime() {
 	m.create_time = nil
 }
@@ -19752,7 +19752,7 @@ func (m *ReportFilterMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetUpdateTime reset all changes of the update_time field.
+// ResetUpdateTime reset all changes of the "update_time" field.
 func (m *ReportFilterMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
@@ -19771,7 +19771,7 @@ func (m *ReportFilterMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// ResetName reset all changes of the name field.
+// ResetName reset all changes of the "name" field.
 func (m *ReportFilterMutation) ResetName() {
 	m.name = nil
 }
@@ -19790,7 +19790,7 @@ func (m *ReportFilterMutation) Entity() (r reportfilter.Entity, exists bool) {
 	return *v, true
 }
 
-// ResetEntity reset all changes of the entity field.
+// ResetEntity reset all changes of the "entity" field.
 func (m *ReportFilterMutation) ResetEntity() {
 	m.entity = nil
 }
@@ -19809,7 +19809,7 @@ func (m *ReportFilterMutation) Filters() (r string, exists bool) {
 	return *v, true
 }
 
-// ResetFilters reset all changes of the filters field.
+// ResetFilters reset all changes of the "filters" field.
 func (m *ReportFilterMutation) ResetFilters() {
 	m.filters = nil
 }
@@ -20118,7 +20118,7 @@ func (m *ServiceMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetCreateTime reset all changes of the create_time field.
+// ResetCreateTime reset all changes of the "create_time" field.
 func (m *ServiceMutation) ResetCreateTime() {
 	m.create_time = nil
 }
@@ -20137,7 +20137,7 @@ func (m *ServiceMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetUpdateTime reset all changes of the update_time field.
+// ResetUpdateTime reset all changes of the "update_time" field.
 func (m *ServiceMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
@@ -20156,7 +20156,7 @@ func (m *ServiceMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// ResetName reset all changes of the name field.
+// ResetName reset all changes of the "name" field.
 func (m *ServiceMutation) ResetName() {
 	m.name = nil
 }
@@ -20187,7 +20187,7 @@ func (m *ServiceMutation) ExternalIDCleared() bool {
 	return ok
 }
 
-// ResetExternalID reset all changes of the external_id field.
+// ResetExternalID reset all changes of the "external_id" field.
 func (m *ServiceMutation) ResetExternalID() {
 	m.external_id = nil
 	delete(m.clearedFields, service.FieldExternalID)
@@ -20207,7 +20207,7 @@ func (m *ServiceMutation) Status() (r string, exists bool) {
 	return *v, true
 }
 
-// ResetStatus reset all changes of the status field.
+// ResetStatus reset all changes of the "status" field.
 func (m *ServiceMutation) ResetStatus() {
 	m.status = nil
 }
@@ -20245,7 +20245,7 @@ func (m *ServiceMutation) TypeIDs() (ids []int) {
 	return
 }
 
-// ResetType reset all changes of the type edge.
+// ResetType reset all changes of the "type" edge.
 func (m *ServiceMutation) ResetType() {
 	m._type = nil
 	m.cleared_type = false
@@ -20287,7 +20287,7 @@ func (m *ServiceMutation) DownstreamIDs() (ids []int) {
 	return
 }
 
-// ResetDownstream reset all changes of the downstream edge.
+// ResetDownstream reset all changes of the "downstream" edge.
 func (m *ServiceMutation) ResetDownstream() {
 	m.downstream = nil
 	m.removeddownstream = nil
@@ -20329,7 +20329,7 @@ func (m *ServiceMutation) UpstreamIDs() (ids []int) {
 	return
 }
 
-// ResetUpstream reset all changes of the upstream edge.
+// ResetUpstream reset all changes of the "upstream" edge.
 func (m *ServiceMutation) ResetUpstream() {
 	m.upstream = nil
 	m.removedupstream = nil
@@ -20371,7 +20371,7 @@ func (m *ServiceMutation) PropertiesIDs() (ids []int) {
 	return
 }
 
-// ResetProperties reset all changes of the properties edge.
+// ResetProperties reset all changes of the "properties" edge.
 func (m *ServiceMutation) ResetProperties() {
 	m.properties = nil
 	m.removedproperties = nil
@@ -20413,7 +20413,7 @@ func (m *ServiceMutation) LinksIDs() (ids []int) {
 	return
 }
 
-// ResetLinks reset all changes of the links edge.
+// ResetLinks reset all changes of the "links" edge.
 func (m *ServiceMutation) ResetLinks() {
 	m.links = nil
 	m.removedlinks = nil
@@ -20455,7 +20455,7 @@ func (m *ServiceMutation) CustomerIDs() (ids []int) {
 	return
 }
 
-// ResetCustomer reset all changes of the customer edge.
+// ResetCustomer reset all changes of the "customer" edge.
 func (m *ServiceMutation) ResetCustomer() {
 	m.customer = nil
 	m.removedcustomer = nil
@@ -20497,7 +20497,7 @@ func (m *ServiceMutation) EndpointsIDs() (ids []int) {
 	return
 }
 
-// ResetEndpoints reset all changes of the endpoints edge.
+// ResetEndpoints reset all changes of the "endpoints" edge.
 func (m *ServiceMutation) ResetEndpoints() {
 	m.endpoints = nil
 	m.removedendpoints = nil
@@ -20953,7 +20953,7 @@ func (m *ServiceEndpointMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetCreateTime reset all changes of the create_time field.
+// ResetCreateTime reset all changes of the "create_time" field.
 func (m *ServiceEndpointMutation) ResetCreateTime() {
 	m.create_time = nil
 }
@@ -20972,7 +20972,7 @@ func (m *ServiceEndpointMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetUpdateTime reset all changes of the update_time field.
+// ResetUpdateTime reset all changes of the "update_time" field.
 func (m *ServiceEndpointMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
@@ -21010,7 +21010,7 @@ func (m *ServiceEndpointMutation) PortIDs() (ids []int) {
 	return
 }
 
-// ResetPort reset all changes of the port edge.
+// ResetPort reset all changes of the "port" edge.
 func (m *ServiceEndpointMutation) ResetPort() {
 	m.port = nil
 	m.clearedport = false
@@ -21049,7 +21049,7 @@ func (m *ServiceEndpointMutation) EquipmentIDs() (ids []int) {
 	return
 }
 
-// ResetEquipment reset all changes of the equipment edge.
+// ResetEquipment reset all changes of the "equipment" edge.
 func (m *ServiceEndpointMutation) ResetEquipment() {
 	m.equipment = nil
 	m.clearedequipment = false
@@ -21088,7 +21088,7 @@ func (m *ServiceEndpointMutation) ServiceIDs() (ids []int) {
 	return
 }
 
-// ResetService reset all changes of the service edge.
+// ResetService reset all changes of the "service" edge.
 func (m *ServiceEndpointMutation) ResetService() {
 	m.service = nil
 	m.clearedservice = false
@@ -21127,7 +21127,7 @@ func (m *ServiceEndpointMutation) DefinitionIDs() (ids []int) {
 	return
 }
 
-// ResetDefinition reset all changes of the definition edge.
+// ResetDefinition reset all changes of the "definition" edge.
 func (m *ServiceEndpointMutation) ResetDefinition() {
 	m.definition = nil
 	m.cleareddefinition = false
@@ -21459,7 +21459,7 @@ func (m *ServiceEndpointDefinitionMutation) CreateTime() (r time.Time, exists bo
 	return *v, true
 }
 
-// ResetCreateTime reset all changes of the create_time field.
+// ResetCreateTime reset all changes of the "create_time" field.
 func (m *ServiceEndpointDefinitionMutation) ResetCreateTime() {
 	m.create_time = nil
 }
@@ -21478,7 +21478,7 @@ func (m *ServiceEndpointDefinitionMutation) UpdateTime() (r time.Time, exists bo
 	return *v, true
 }
 
-// ResetUpdateTime reset all changes of the update_time field.
+// ResetUpdateTime reset all changes of the "update_time" field.
 func (m *ServiceEndpointDefinitionMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
@@ -21509,7 +21509,7 @@ func (m *ServiceEndpointDefinitionMutation) RoleCleared() bool {
 	return ok
 }
 
-// ResetRole reset all changes of the role field.
+// ResetRole reset all changes of the "role" field.
 func (m *ServiceEndpointDefinitionMutation) ResetRole() {
 	m.role = nil
 	delete(m.clearedFields, serviceendpointdefinition.FieldRole)
@@ -21529,7 +21529,7 @@ func (m *ServiceEndpointDefinitionMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// ResetName reset all changes of the name field.
+// ResetName reset all changes of the "name" field.
 func (m *ServiceEndpointDefinitionMutation) ResetName() {
 	m.name = nil
 }
@@ -21567,7 +21567,7 @@ func (m *ServiceEndpointDefinitionMutation) AddedIndex() (r int, exists bool) {
 	return *v, true
 }
 
-// ResetIndex reset all changes of the index field.
+// ResetIndex reset all changes of the "index" field.
 func (m *ServiceEndpointDefinitionMutation) ResetIndex() {
 	m.index = nil
 	m.addindex = nil
@@ -21609,7 +21609,7 @@ func (m *ServiceEndpointDefinitionMutation) EndpointsIDs() (ids []int) {
 	return
 }
 
-// ResetEndpoints reset all changes of the endpoints edge.
+// ResetEndpoints reset all changes of the "endpoints" edge.
 func (m *ServiceEndpointDefinitionMutation) ResetEndpoints() {
 	m.endpoints = nil
 	m.removedendpoints = nil
@@ -21648,7 +21648,7 @@ func (m *ServiceEndpointDefinitionMutation) ServiceTypeIDs() (ids []int) {
 	return
 }
 
-// ResetServiceType reset all changes of the service_type edge.
+// ResetServiceType reset all changes of the "service_type" edge.
 func (m *ServiceEndpointDefinitionMutation) ResetServiceType() {
 	m.service_type = nil
 	m.clearedservice_type = false
@@ -21687,7 +21687,7 @@ func (m *ServiceEndpointDefinitionMutation) EquipmentTypeIDs() (ids []int) {
 	return
 }
 
-// ResetEquipmentType reset all changes of the equipment_type edge.
+// ResetEquipmentType reset all changes of the "equipment_type" edge.
 func (m *ServiceEndpointDefinitionMutation) ResetEquipmentType() {
 	m.equipment_type = nil
 	m.clearedequipment_type = false
@@ -22073,7 +22073,7 @@ func (m *ServiceTypeMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetCreateTime reset all changes of the create_time field.
+// ResetCreateTime reset all changes of the "create_time" field.
 func (m *ServiceTypeMutation) ResetCreateTime() {
 	m.create_time = nil
 }
@@ -22092,7 +22092,7 @@ func (m *ServiceTypeMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetUpdateTime reset all changes of the update_time field.
+// ResetUpdateTime reset all changes of the "update_time" field.
 func (m *ServiceTypeMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
@@ -22111,7 +22111,7 @@ func (m *ServiceTypeMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// ResetName reset all changes of the name field.
+// ResetName reset all changes of the "name" field.
 func (m *ServiceTypeMutation) ResetName() {
 	m.name = nil
 }
@@ -22130,7 +22130,7 @@ func (m *ServiceTypeMutation) HasCustomer() (r bool, exists bool) {
 	return *v, true
 }
 
-// ResetHasCustomer reset all changes of the has_customer field.
+// ResetHasCustomer reset all changes of the "has_customer" field.
 func (m *ServiceTypeMutation) ResetHasCustomer() {
 	m.has_customer = nil
 }
@@ -22149,7 +22149,7 @@ func (m *ServiceTypeMutation) IsDeleted() (r bool, exists bool) {
 	return *v, true
 }
 
-// ResetIsDeleted reset all changes of the is_deleted field.
+// ResetIsDeleted reset all changes of the "is_deleted" field.
 func (m *ServiceTypeMutation) ResetIsDeleted() {
 	m.is_deleted = nil
 }
@@ -22180,7 +22180,7 @@ func (m *ServiceTypeMutation) DiscoveryMethodCleared() bool {
 	return ok
 }
 
-// ResetDiscoveryMethod reset all changes of the discovery_method field.
+// ResetDiscoveryMethod reset all changes of the "discovery_method" field.
 func (m *ServiceTypeMutation) ResetDiscoveryMethod() {
 	m.discovery_method = nil
 	delete(m.clearedFields, servicetype.FieldDiscoveryMethod)
@@ -22222,7 +22222,7 @@ func (m *ServiceTypeMutation) ServicesIDs() (ids []int) {
 	return
 }
 
-// ResetServices reset all changes of the services edge.
+// ResetServices reset all changes of the "services" edge.
 func (m *ServiceTypeMutation) ResetServices() {
 	m.services = nil
 	m.removedservices = nil
@@ -22264,7 +22264,7 @@ func (m *ServiceTypeMutation) PropertyTypesIDs() (ids []int) {
 	return
 }
 
-// ResetPropertyTypes reset all changes of the property_types edge.
+// ResetPropertyTypes reset all changes of the "property_types" edge.
 func (m *ServiceTypeMutation) ResetPropertyTypes() {
 	m.property_types = nil
 	m.removedproperty_types = nil
@@ -22306,7 +22306,7 @@ func (m *ServiceTypeMutation) EndpointDefinitionsIDs() (ids []int) {
 	return
 }
 
-// ResetEndpointDefinitions reset all changes of the endpoint_definitions edge.
+// ResetEndpointDefinitions reset all changes of the "endpoint_definitions" edge.
 func (m *ServiceTypeMutation) ResetEndpointDefinitions() {
 	m.endpoint_definitions = nil
 	m.removedendpoint_definitions = nil
@@ -22698,7 +22698,7 @@ func (m *SurveyMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetCreateTime reset all changes of the create_time field.
+// ResetCreateTime reset all changes of the "create_time" field.
 func (m *SurveyMutation) ResetCreateTime() {
 	m.create_time = nil
 }
@@ -22717,7 +22717,7 @@ func (m *SurveyMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetUpdateTime reset all changes of the update_time field.
+// ResetUpdateTime reset all changes of the "update_time" field.
 func (m *SurveyMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
@@ -22736,7 +22736,7 @@ func (m *SurveyMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// ResetName reset all changes of the name field.
+// ResetName reset all changes of the "name" field.
 func (m *SurveyMutation) ResetName() {
 	m.name = nil
 }
@@ -22767,7 +22767,7 @@ func (m *SurveyMutation) OwnerNameCleared() bool {
 	return ok
 }
 
-// ResetOwnerName reset all changes of the owner_name field.
+// ResetOwnerName reset all changes of the "owner_name" field.
 func (m *SurveyMutation) ResetOwnerName() {
 	m.owner_name = nil
 	delete(m.clearedFields, survey.FieldOwnerName)
@@ -22799,7 +22799,7 @@ func (m *SurveyMutation) CreationTimestampCleared() bool {
 	return ok
 }
 
-// ResetCreationTimestamp reset all changes of the creation_timestamp field.
+// ResetCreationTimestamp reset all changes of the "creation_timestamp" field.
 func (m *SurveyMutation) ResetCreationTimestamp() {
 	m.creation_timestamp = nil
 	delete(m.clearedFields, survey.FieldCreationTimestamp)
@@ -22819,7 +22819,7 @@ func (m *SurveyMutation) CompletionTimestamp() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetCompletionTimestamp reset all changes of the completion_timestamp field.
+// ResetCompletionTimestamp reset all changes of the "completion_timestamp" field.
 func (m *SurveyMutation) ResetCompletionTimestamp() {
 	m.completion_timestamp = nil
 }
@@ -22857,7 +22857,7 @@ func (m *SurveyMutation) LocationIDs() (ids []int) {
 	return
 }
 
-// ResetLocation reset all changes of the location edge.
+// ResetLocation reset all changes of the "location" edge.
 func (m *SurveyMutation) ResetLocation() {
 	m.location = nil
 	m.clearedlocation = false
@@ -22896,7 +22896,7 @@ func (m *SurveyMutation) SourceFileIDs() (ids []int) {
 	return
 }
 
-// ResetSourceFile reset all changes of the source_file edge.
+// ResetSourceFile reset all changes of the "source_file" edge.
 func (m *SurveyMutation) ResetSourceFile() {
 	m.source_file = nil
 	m.clearedsource_file = false
@@ -22938,7 +22938,7 @@ func (m *SurveyMutation) QuestionsIDs() (ids []int) {
 	return
 }
 
-// ResetQuestions reset all changes of the questions edge.
+// ResetQuestions reset all changes of the "questions" edge.
 func (m *SurveyMutation) ResetQuestions() {
 	m.questions = nil
 	m.removedquestions = nil
@@ -23353,7 +23353,7 @@ func (m *SurveyCellScanMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetCreateTime reset all changes of the create_time field.
+// ResetCreateTime reset all changes of the "create_time" field.
 func (m *SurveyCellScanMutation) ResetCreateTime() {
 	m.create_time = nil
 }
@@ -23372,7 +23372,7 @@ func (m *SurveyCellScanMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetUpdateTime reset all changes of the update_time field.
+// ResetUpdateTime reset all changes of the "update_time" field.
 func (m *SurveyCellScanMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
@@ -23391,7 +23391,7 @@ func (m *SurveyCellScanMutation) NetworkType() (r string, exists bool) {
 	return *v, true
 }
 
-// ResetNetworkType reset all changes of the network_type field.
+// ResetNetworkType reset all changes of the "network_type" field.
 func (m *SurveyCellScanMutation) ResetNetworkType() {
 	m.network_type = nil
 }
@@ -23429,7 +23429,7 @@ func (m *SurveyCellScanMutation) AddedSignalStrength() (r int, exists bool) {
 	return *v, true
 }
 
-// ResetSignalStrength reset all changes of the signal_strength field.
+// ResetSignalStrength reset all changes of the "signal_strength" field.
 func (m *SurveyCellScanMutation) ResetSignalStrength() {
 	m.signal_strength = nil
 	m.addsignal_strength = nil
@@ -23461,7 +23461,7 @@ func (m *SurveyCellScanMutation) TimestampCleared() bool {
 	return ok
 }
 
-// ResetTimestamp reset all changes of the timestamp field.
+// ResetTimestamp reset all changes of the "timestamp" field.
 func (m *SurveyCellScanMutation) ResetTimestamp() {
 	m.timestamp = nil
 	delete(m.clearedFields, surveycellscan.FieldTimestamp)
@@ -23493,7 +23493,7 @@ func (m *SurveyCellScanMutation) BaseStationIDCleared() bool {
 	return ok
 }
 
-// ResetBaseStationID reset all changes of the base_station_id field.
+// ResetBaseStationID reset all changes of the "base_station_id" field.
 func (m *SurveyCellScanMutation) ResetBaseStationID() {
 	m.base_station_id = nil
 	delete(m.clearedFields, surveycellscan.FieldBaseStationID)
@@ -23525,7 +23525,7 @@ func (m *SurveyCellScanMutation) NetworkIDCleared() bool {
 	return ok
 }
 
-// ResetNetworkID reset all changes of the network_id field.
+// ResetNetworkID reset all changes of the "network_id" field.
 func (m *SurveyCellScanMutation) ResetNetworkID() {
 	m.network_id = nil
 	delete(m.clearedFields, surveycellscan.FieldNetworkID)
@@ -23557,7 +23557,7 @@ func (m *SurveyCellScanMutation) SystemIDCleared() bool {
 	return ok
 }
 
-// ResetSystemID reset all changes of the system_id field.
+// ResetSystemID reset all changes of the "system_id" field.
 func (m *SurveyCellScanMutation) ResetSystemID() {
 	m.system_id = nil
 	delete(m.clearedFields, surveycellscan.FieldSystemID)
@@ -23589,7 +23589,7 @@ func (m *SurveyCellScanMutation) CellIDCleared() bool {
 	return ok
 }
 
-// ResetCellID reset all changes of the cell_id field.
+// ResetCellID reset all changes of the "cell_id" field.
 func (m *SurveyCellScanMutation) ResetCellID() {
 	m.cell_id = nil
 	delete(m.clearedFields, surveycellscan.FieldCellID)
@@ -23621,7 +23621,7 @@ func (m *SurveyCellScanMutation) LocationAreaCodeCleared() bool {
 	return ok
 }
 
-// ResetLocationAreaCode reset all changes of the location_area_code field.
+// ResetLocationAreaCode reset all changes of the "location_area_code" field.
 func (m *SurveyCellScanMutation) ResetLocationAreaCode() {
 	m.location_area_code = nil
 	delete(m.clearedFields, surveycellscan.FieldLocationAreaCode)
@@ -23653,7 +23653,7 @@ func (m *SurveyCellScanMutation) MobileCountryCodeCleared() bool {
 	return ok
 }
 
-// ResetMobileCountryCode reset all changes of the mobile_country_code field.
+// ResetMobileCountryCode reset all changes of the "mobile_country_code" field.
 func (m *SurveyCellScanMutation) ResetMobileCountryCode() {
 	m.mobile_country_code = nil
 	delete(m.clearedFields, surveycellscan.FieldMobileCountryCode)
@@ -23685,7 +23685,7 @@ func (m *SurveyCellScanMutation) MobileNetworkCodeCleared() bool {
 	return ok
 }
 
-// ResetMobileNetworkCode reset all changes of the mobile_network_code field.
+// ResetMobileNetworkCode reset all changes of the "mobile_network_code" field.
 func (m *SurveyCellScanMutation) ResetMobileNetworkCode() {
 	m.mobile_network_code = nil
 	delete(m.clearedFields, surveycellscan.FieldMobileNetworkCode)
@@ -23717,7 +23717,7 @@ func (m *SurveyCellScanMutation) PrimaryScramblingCodeCleared() bool {
 	return ok
 }
 
-// ResetPrimaryScramblingCode reset all changes of the primary_scrambling_code field.
+// ResetPrimaryScramblingCode reset all changes of the "primary_scrambling_code" field.
 func (m *SurveyCellScanMutation) ResetPrimaryScramblingCode() {
 	m.primary_scrambling_code = nil
 	delete(m.clearedFields, surveycellscan.FieldPrimaryScramblingCode)
@@ -23749,7 +23749,7 @@ func (m *SurveyCellScanMutation) OperatorCleared() bool {
 	return ok
 }
 
-// ResetOperator reset all changes of the operator field.
+// ResetOperator reset all changes of the "operator" field.
 func (m *SurveyCellScanMutation) ResetOperator() {
 	m.operator = nil
 	delete(m.clearedFields, surveycellscan.FieldOperator)
@@ -23801,7 +23801,7 @@ func (m *SurveyCellScanMutation) ArfcnCleared() bool {
 	return ok
 }
 
-// ResetArfcn reset all changes of the arfcn field.
+// ResetArfcn reset all changes of the "arfcn" field.
 func (m *SurveyCellScanMutation) ResetArfcn() {
 	m.arfcn = nil
 	m.addarfcn = nil
@@ -23834,7 +23834,7 @@ func (m *SurveyCellScanMutation) PhysicalCellIDCleared() bool {
 	return ok
 }
 
-// ResetPhysicalCellID reset all changes of the physical_cell_id field.
+// ResetPhysicalCellID reset all changes of the "physical_cell_id" field.
 func (m *SurveyCellScanMutation) ResetPhysicalCellID() {
 	m.physical_cell_id = nil
 	delete(m.clearedFields, surveycellscan.FieldPhysicalCellID)
@@ -23866,7 +23866,7 @@ func (m *SurveyCellScanMutation) TrackingAreaCodeCleared() bool {
 	return ok
 }
 
-// ResetTrackingAreaCode reset all changes of the tracking_area_code field.
+// ResetTrackingAreaCode reset all changes of the "tracking_area_code" field.
 func (m *SurveyCellScanMutation) ResetTrackingAreaCode() {
 	m.tracking_area_code = nil
 	delete(m.clearedFields, surveycellscan.FieldTrackingAreaCode)
@@ -23918,7 +23918,7 @@ func (m *SurveyCellScanMutation) TimingAdvanceCleared() bool {
 	return ok
 }
 
-// ResetTimingAdvance reset all changes of the timing_advance field.
+// ResetTimingAdvance reset all changes of the "timing_advance" field.
 func (m *SurveyCellScanMutation) ResetTimingAdvance() {
 	m.timing_advance = nil
 	m.addtiming_advance = nil
@@ -23971,7 +23971,7 @@ func (m *SurveyCellScanMutation) EarfcnCleared() bool {
 	return ok
 }
 
-// ResetEarfcn reset all changes of the earfcn field.
+// ResetEarfcn reset all changes of the "earfcn" field.
 func (m *SurveyCellScanMutation) ResetEarfcn() {
 	m.earfcn = nil
 	m.addearfcn = nil
@@ -24024,7 +24024,7 @@ func (m *SurveyCellScanMutation) UarfcnCleared() bool {
 	return ok
 }
 
-// ResetUarfcn reset all changes of the uarfcn field.
+// ResetUarfcn reset all changes of the "uarfcn" field.
 func (m *SurveyCellScanMutation) ResetUarfcn() {
 	m.uarfcn = nil
 	m.adduarfcn = nil
@@ -24077,7 +24077,7 @@ func (m *SurveyCellScanMutation) LatitudeCleared() bool {
 	return ok
 }
 
-// ResetLatitude reset all changes of the latitude field.
+// ResetLatitude reset all changes of the "latitude" field.
 func (m *SurveyCellScanMutation) ResetLatitude() {
 	m.latitude = nil
 	m.addlatitude = nil
@@ -24130,7 +24130,7 @@ func (m *SurveyCellScanMutation) LongitudeCleared() bool {
 	return ok
 }
 
-// ResetLongitude reset all changes of the longitude field.
+// ResetLongitude reset all changes of the "longitude" field.
 func (m *SurveyCellScanMutation) ResetLongitude() {
 	m.longitude = nil
 	m.addlongitude = nil
@@ -24170,7 +24170,7 @@ func (m *SurveyCellScanMutation) ChecklistItemIDs() (ids []int) {
 	return
 }
 
-// ResetChecklistItem reset all changes of the checklist_item edge.
+// ResetChecklistItem reset all changes of the "checklist_item" edge.
 func (m *SurveyCellScanMutation) ResetChecklistItem() {
 	m.checklist_item = nil
 	m.clearedchecklist_item = false
@@ -24209,7 +24209,7 @@ func (m *SurveyCellScanMutation) SurveyQuestionIDs() (ids []int) {
 	return
 }
 
-// ResetSurveyQuestion reset all changes of the survey_question edge.
+// ResetSurveyQuestion reset all changes of the "survey_question" edge.
 func (m *SurveyCellScanMutation) ResetSurveyQuestion() {
 	m.survey_question = nil
 	m.clearedsurvey_question = false
@@ -24248,7 +24248,7 @@ func (m *SurveyCellScanMutation) LocationIDs() (ids []int) {
 	return
 }
 
-// ResetLocation reset all changes of the location edge.
+// ResetLocation reset all changes of the "location" edge.
 func (m *SurveyCellScanMutation) ResetLocation() {
 	m.location = nil
 	m.clearedlocation = false
@@ -25086,7 +25086,7 @@ func (m *SurveyQuestionMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetCreateTime reset all changes of the create_time field.
+// ResetCreateTime reset all changes of the "create_time" field.
 func (m *SurveyQuestionMutation) ResetCreateTime() {
 	m.create_time = nil
 }
@@ -25105,7 +25105,7 @@ func (m *SurveyQuestionMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetUpdateTime reset all changes of the update_time field.
+// ResetUpdateTime reset all changes of the "update_time" field.
 func (m *SurveyQuestionMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
@@ -25136,7 +25136,7 @@ func (m *SurveyQuestionMutation) FormNameCleared() bool {
 	return ok
 }
 
-// ResetFormName reset all changes of the form_name field.
+// ResetFormName reset all changes of the "form_name" field.
 func (m *SurveyQuestionMutation) ResetFormName() {
 	m.form_name = nil
 	delete(m.clearedFields, surveyquestion.FieldFormName)
@@ -25168,7 +25168,7 @@ func (m *SurveyQuestionMutation) FormDescriptionCleared() bool {
 	return ok
 }
 
-// ResetFormDescription reset all changes of the form_description field.
+// ResetFormDescription reset all changes of the "form_description" field.
 func (m *SurveyQuestionMutation) ResetFormDescription() {
 	m.form_description = nil
 	delete(m.clearedFields, surveyquestion.FieldFormDescription)
@@ -25207,7 +25207,7 @@ func (m *SurveyQuestionMutation) AddedFormIndex() (r int, exists bool) {
 	return *v, true
 }
 
-// ResetFormIndex reset all changes of the form_index field.
+// ResetFormIndex reset all changes of the "form_index" field.
 func (m *SurveyQuestionMutation) ResetFormIndex() {
 	m.form_index = nil
 	m.addform_index = nil
@@ -25239,7 +25239,7 @@ func (m *SurveyQuestionMutation) QuestionTypeCleared() bool {
 	return ok
 }
 
-// ResetQuestionType reset all changes of the question_type field.
+// ResetQuestionType reset all changes of the "question_type" field.
 func (m *SurveyQuestionMutation) ResetQuestionType() {
 	m.question_type = nil
 	delete(m.clearedFields, surveyquestion.FieldQuestionType)
@@ -25271,7 +25271,7 @@ func (m *SurveyQuestionMutation) QuestionFormatCleared() bool {
 	return ok
 }
 
-// ResetQuestionFormat reset all changes of the question_format field.
+// ResetQuestionFormat reset all changes of the "question_format" field.
 func (m *SurveyQuestionMutation) ResetQuestionFormat() {
 	m.question_format = nil
 	delete(m.clearedFields, surveyquestion.FieldQuestionFormat)
@@ -25303,7 +25303,7 @@ func (m *SurveyQuestionMutation) QuestionTextCleared() bool {
 	return ok
 }
 
-// ResetQuestionText reset all changes of the question_text field.
+// ResetQuestionText reset all changes of the "question_text" field.
 func (m *SurveyQuestionMutation) ResetQuestionText() {
 	m.question_text = nil
 	delete(m.clearedFields, surveyquestion.FieldQuestionText)
@@ -25342,7 +25342,7 @@ func (m *SurveyQuestionMutation) AddedQuestionIndex() (r int, exists bool) {
 	return *v, true
 }
 
-// ResetQuestionIndex reset all changes of the question_index field.
+// ResetQuestionIndex reset all changes of the "question_index" field.
 func (m *SurveyQuestionMutation) ResetQuestionIndex() {
 	m.question_index = nil
 	m.addquestion_index = nil
@@ -25374,7 +25374,7 @@ func (m *SurveyQuestionMutation) BoolDataCleared() bool {
 	return ok
 }
 
-// ResetBoolData reset all changes of the bool_data field.
+// ResetBoolData reset all changes of the "bool_data" field.
 func (m *SurveyQuestionMutation) ResetBoolData() {
 	m.bool_data = nil
 	delete(m.clearedFields, surveyquestion.FieldBoolData)
@@ -25406,7 +25406,7 @@ func (m *SurveyQuestionMutation) EmailDataCleared() bool {
 	return ok
 }
 
-// ResetEmailData reset all changes of the email_data field.
+// ResetEmailData reset all changes of the "email_data" field.
 func (m *SurveyQuestionMutation) ResetEmailData() {
 	m.email_data = nil
 	delete(m.clearedFields, surveyquestion.FieldEmailData)
@@ -25458,7 +25458,7 @@ func (m *SurveyQuestionMutation) LatitudeCleared() bool {
 	return ok
 }
 
-// ResetLatitude reset all changes of the latitude field.
+// ResetLatitude reset all changes of the "latitude" field.
 func (m *SurveyQuestionMutation) ResetLatitude() {
 	m.latitude = nil
 	m.addlatitude = nil
@@ -25511,7 +25511,7 @@ func (m *SurveyQuestionMutation) LongitudeCleared() bool {
 	return ok
 }
 
-// ResetLongitude reset all changes of the longitude field.
+// ResetLongitude reset all changes of the "longitude" field.
 func (m *SurveyQuestionMutation) ResetLongitude() {
 	m.longitude = nil
 	m.addlongitude = nil
@@ -25564,7 +25564,7 @@ func (m *SurveyQuestionMutation) LocationAccuracyCleared() bool {
 	return ok
 }
 
-// ResetLocationAccuracy reset all changes of the location_accuracy field.
+// ResetLocationAccuracy reset all changes of the "location_accuracy" field.
 func (m *SurveyQuestionMutation) ResetLocationAccuracy() {
 	m.location_accuracy = nil
 	m.addlocation_accuracy = nil
@@ -25617,7 +25617,7 @@ func (m *SurveyQuestionMutation) AltitudeCleared() bool {
 	return ok
 }
 
-// ResetAltitude reset all changes of the altitude field.
+// ResetAltitude reset all changes of the "altitude" field.
 func (m *SurveyQuestionMutation) ResetAltitude() {
 	m.altitude = nil
 	m.addaltitude = nil
@@ -25650,7 +25650,7 @@ func (m *SurveyQuestionMutation) PhoneDataCleared() bool {
 	return ok
 }
 
-// ResetPhoneData reset all changes of the phone_data field.
+// ResetPhoneData reset all changes of the "phone_data" field.
 func (m *SurveyQuestionMutation) ResetPhoneData() {
 	m.phone_data = nil
 	delete(m.clearedFields, surveyquestion.FieldPhoneData)
@@ -25682,7 +25682,7 @@ func (m *SurveyQuestionMutation) TextDataCleared() bool {
 	return ok
 }
 
-// ResetTextData reset all changes of the text_data field.
+// ResetTextData reset all changes of the "text_data" field.
 func (m *SurveyQuestionMutation) ResetTextData() {
 	m.text_data = nil
 	delete(m.clearedFields, surveyquestion.FieldTextData)
@@ -25734,7 +25734,7 @@ func (m *SurveyQuestionMutation) FloatDataCleared() bool {
 	return ok
 }
 
-// ResetFloatData reset all changes of the float_data field.
+// ResetFloatData reset all changes of the "float_data" field.
 func (m *SurveyQuestionMutation) ResetFloatData() {
 	m.float_data = nil
 	m.addfloat_data = nil
@@ -25787,7 +25787,7 @@ func (m *SurveyQuestionMutation) IntDataCleared() bool {
 	return ok
 }
 
-// ResetIntData reset all changes of the int_data field.
+// ResetIntData reset all changes of the "int_data" field.
 func (m *SurveyQuestionMutation) ResetIntData() {
 	m.int_data = nil
 	m.addint_data = nil
@@ -25820,7 +25820,7 @@ func (m *SurveyQuestionMutation) DateDataCleared() bool {
 	return ok
 }
 
-// ResetDateData reset all changes of the date_data field.
+// ResetDateData reset all changes of the "date_data" field.
 func (m *SurveyQuestionMutation) ResetDateData() {
 	m.date_data = nil
 	delete(m.clearedFields, surveyquestion.FieldDateData)
@@ -25859,7 +25859,7 @@ func (m *SurveyQuestionMutation) SurveyIDs() (ids []int) {
 	return
 }
 
-// ResetSurvey reset all changes of the survey edge.
+// ResetSurvey reset all changes of the "survey" edge.
 func (m *SurveyQuestionMutation) ResetSurvey() {
 	m.survey = nil
 	m.clearedsurvey = false
@@ -25901,7 +25901,7 @@ func (m *SurveyQuestionMutation) WifiScanIDs() (ids []int) {
 	return
 }
 
-// ResetWifiScan reset all changes of the wifi_scan edge.
+// ResetWifiScan reset all changes of the "wifi_scan" edge.
 func (m *SurveyQuestionMutation) ResetWifiScan() {
 	m.wifi_scan = nil
 	m.removedwifi_scan = nil
@@ -25943,7 +25943,7 @@ func (m *SurveyQuestionMutation) CellScanIDs() (ids []int) {
 	return
 }
 
-// ResetCellScan reset all changes of the cell_scan edge.
+// ResetCellScan reset all changes of the "cell_scan" edge.
 func (m *SurveyQuestionMutation) ResetCellScan() {
 	m.cell_scan = nil
 	m.removedcell_scan = nil
@@ -25985,7 +25985,7 @@ func (m *SurveyQuestionMutation) PhotoDataIDs() (ids []int) {
 	return
 }
 
-// ResetPhotoData reset all changes of the photo_data edge.
+// ResetPhotoData reset all changes of the "photo_data" edge.
 func (m *SurveyQuestionMutation) ResetPhotoData() {
 	m.photo_data = nil
 	m.removedphoto_data = nil
@@ -26027,7 +26027,7 @@ func (m *SurveyQuestionMutation) ImagesIDs() (ids []int) {
 	return
 }
 
-// ResetImages reset all changes of the images edge.
+// ResetImages reset all changes of the "images" edge.
 func (m *SurveyQuestionMutation) ResetImages() {
 	m.images = nil
 	m.removedimages = nil
@@ -26851,7 +26851,7 @@ func (m *SurveyTemplateCategoryMutation) CreateTime() (r time.Time, exists bool)
 	return *v, true
 }
 
-// ResetCreateTime reset all changes of the create_time field.
+// ResetCreateTime reset all changes of the "create_time" field.
 func (m *SurveyTemplateCategoryMutation) ResetCreateTime() {
 	m.create_time = nil
 }
@@ -26870,7 +26870,7 @@ func (m *SurveyTemplateCategoryMutation) UpdateTime() (r time.Time, exists bool)
 	return *v, true
 }
 
-// ResetUpdateTime reset all changes of the update_time field.
+// ResetUpdateTime reset all changes of the "update_time" field.
 func (m *SurveyTemplateCategoryMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
@@ -26889,7 +26889,7 @@ func (m *SurveyTemplateCategoryMutation) CategoryTitle() (r string, exists bool)
 	return *v, true
 }
 
-// ResetCategoryTitle reset all changes of the category_title field.
+// ResetCategoryTitle reset all changes of the "category_title" field.
 func (m *SurveyTemplateCategoryMutation) ResetCategoryTitle() {
 	m.category_title = nil
 }
@@ -26908,7 +26908,7 @@ func (m *SurveyTemplateCategoryMutation) CategoryDescription() (r string, exists
 	return *v, true
 }
 
-// ResetCategoryDescription reset all changes of the category_description field.
+// ResetCategoryDescription reset all changes of the "category_description" field.
 func (m *SurveyTemplateCategoryMutation) ResetCategoryDescription() {
 	m.category_description = nil
 }
@@ -26949,7 +26949,7 @@ func (m *SurveyTemplateCategoryMutation) SurveyTemplateQuestionsIDs() (ids []int
 	return
 }
 
-// ResetSurveyTemplateQuestions reset all changes of the survey_template_questions edge.
+// ResetSurveyTemplateQuestions reset all changes of the "survey_template_questions" edge.
 func (m *SurveyTemplateCategoryMutation) ResetSurveyTemplateQuestions() {
 	m.survey_template_questions = nil
 	m.removedsurvey_template_questions = nil
@@ -27257,7 +27257,7 @@ func (m *SurveyTemplateQuestionMutation) CreateTime() (r time.Time, exists bool)
 	return *v, true
 }
 
-// ResetCreateTime reset all changes of the create_time field.
+// ResetCreateTime reset all changes of the "create_time" field.
 func (m *SurveyTemplateQuestionMutation) ResetCreateTime() {
 	m.create_time = nil
 }
@@ -27276,7 +27276,7 @@ func (m *SurveyTemplateQuestionMutation) UpdateTime() (r time.Time, exists bool)
 	return *v, true
 }
 
-// ResetUpdateTime reset all changes of the update_time field.
+// ResetUpdateTime reset all changes of the "update_time" field.
 func (m *SurveyTemplateQuestionMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
@@ -27295,7 +27295,7 @@ func (m *SurveyTemplateQuestionMutation) QuestionTitle() (r string, exists bool)
 	return *v, true
 }
 
-// ResetQuestionTitle reset all changes of the question_title field.
+// ResetQuestionTitle reset all changes of the "question_title" field.
 func (m *SurveyTemplateQuestionMutation) ResetQuestionTitle() {
 	m.question_title = nil
 }
@@ -27314,7 +27314,7 @@ func (m *SurveyTemplateQuestionMutation) QuestionDescription() (r string, exists
 	return *v, true
 }
 
-// ResetQuestionDescription reset all changes of the question_description field.
+// ResetQuestionDescription reset all changes of the "question_description" field.
 func (m *SurveyTemplateQuestionMutation) ResetQuestionDescription() {
 	m.question_description = nil
 }
@@ -27333,7 +27333,7 @@ func (m *SurveyTemplateQuestionMutation) QuestionType() (r string, exists bool) 
 	return *v, true
 }
 
-// ResetQuestionType reset all changes of the question_type field.
+// ResetQuestionType reset all changes of the "question_type" field.
 func (m *SurveyTemplateQuestionMutation) ResetQuestionType() {
 	m.question_type = nil
 }
@@ -27371,7 +27371,7 @@ func (m *SurveyTemplateQuestionMutation) AddedIndex() (r int, exists bool) {
 	return *v, true
 }
 
-// ResetIndex reset all changes of the index field.
+// ResetIndex reset all changes of the "index" field.
 func (m *SurveyTemplateQuestionMutation) ResetIndex() {
 	m.index = nil
 	m.addindex = nil
@@ -27410,7 +27410,7 @@ func (m *SurveyTemplateQuestionMutation) CategoryIDs() (ids []int) {
 	return
 }
 
-// ResetCategory reset all changes of the category edge.
+// ResetCategory reset all changes of the "category" edge.
 func (m *SurveyTemplateQuestionMutation) ResetCategory() {
 	m.category = nil
 	m.clearedcategory = false
@@ -27776,7 +27776,7 @@ func (m *SurveyWiFiScanMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetCreateTime reset all changes of the create_time field.
+// ResetCreateTime reset all changes of the "create_time" field.
 func (m *SurveyWiFiScanMutation) ResetCreateTime() {
 	m.create_time = nil
 }
@@ -27795,7 +27795,7 @@ func (m *SurveyWiFiScanMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetUpdateTime reset all changes of the update_time field.
+// ResetUpdateTime reset all changes of the "update_time" field.
 func (m *SurveyWiFiScanMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
@@ -27826,7 +27826,7 @@ func (m *SurveyWiFiScanMutation) SsidCleared() bool {
 	return ok
 }
 
-// ResetSsid reset all changes of the ssid field.
+// ResetSsid reset all changes of the "ssid" field.
 func (m *SurveyWiFiScanMutation) ResetSsid() {
 	m.ssid = nil
 	delete(m.clearedFields, surveywifiscan.FieldSsid)
@@ -27846,7 +27846,7 @@ func (m *SurveyWiFiScanMutation) Bssid() (r string, exists bool) {
 	return *v, true
 }
 
-// ResetBssid reset all changes of the bssid field.
+// ResetBssid reset all changes of the "bssid" field.
 func (m *SurveyWiFiScanMutation) ResetBssid() {
 	m.bssid = nil
 }
@@ -27865,7 +27865,7 @@ func (m *SurveyWiFiScanMutation) Timestamp() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetTimestamp reset all changes of the timestamp field.
+// ResetTimestamp reset all changes of the "timestamp" field.
 func (m *SurveyWiFiScanMutation) ResetTimestamp() {
 	m.timestamp = nil
 }
@@ -27903,7 +27903,7 @@ func (m *SurveyWiFiScanMutation) AddedFrequency() (r int, exists bool) {
 	return *v, true
 }
 
-// ResetFrequency reset all changes of the frequency field.
+// ResetFrequency reset all changes of the "frequency" field.
 func (m *SurveyWiFiScanMutation) ResetFrequency() {
 	m.frequency = nil
 	m.addfrequency = nil
@@ -27942,7 +27942,7 @@ func (m *SurveyWiFiScanMutation) AddedChannel() (r int, exists bool) {
 	return *v, true
 }
 
-// ResetChannel reset all changes of the channel field.
+// ResetChannel reset all changes of the "channel" field.
 func (m *SurveyWiFiScanMutation) ResetChannel() {
 	m.channel = nil
 	m.addchannel = nil
@@ -27974,7 +27974,7 @@ func (m *SurveyWiFiScanMutation) BandCleared() bool {
 	return ok
 }
 
-// ResetBand reset all changes of the band field.
+// ResetBand reset all changes of the "band" field.
 func (m *SurveyWiFiScanMutation) ResetBand() {
 	m.band = nil
 	delete(m.clearedFields, surveywifiscan.FieldBand)
@@ -28026,7 +28026,7 @@ func (m *SurveyWiFiScanMutation) ChannelWidthCleared() bool {
 	return ok
 }
 
-// ResetChannelWidth reset all changes of the channel_width field.
+// ResetChannelWidth reset all changes of the "channel_width" field.
 func (m *SurveyWiFiScanMutation) ResetChannelWidth() {
 	m.channel_width = nil
 	m.addchannel_width = nil
@@ -28059,7 +28059,7 @@ func (m *SurveyWiFiScanMutation) CapabilitiesCleared() bool {
 	return ok
 }
 
-// ResetCapabilities reset all changes of the capabilities field.
+// ResetCapabilities reset all changes of the "capabilities" field.
 func (m *SurveyWiFiScanMutation) ResetCapabilities() {
 	m.capabilities = nil
 	delete(m.clearedFields, surveywifiscan.FieldCapabilities)
@@ -28098,7 +28098,7 @@ func (m *SurveyWiFiScanMutation) AddedStrength() (r int, exists bool) {
 	return *v, true
 }
 
-// ResetStrength reset all changes of the strength field.
+// ResetStrength reset all changes of the "strength" field.
 func (m *SurveyWiFiScanMutation) ResetStrength() {
 	m.strength = nil
 	m.addstrength = nil
@@ -28150,7 +28150,7 @@ func (m *SurveyWiFiScanMutation) LatitudeCleared() bool {
 	return ok
 }
 
-// ResetLatitude reset all changes of the latitude field.
+// ResetLatitude reset all changes of the "latitude" field.
 func (m *SurveyWiFiScanMutation) ResetLatitude() {
 	m.latitude = nil
 	m.addlatitude = nil
@@ -28203,7 +28203,7 @@ func (m *SurveyWiFiScanMutation) LongitudeCleared() bool {
 	return ok
 }
 
-// ResetLongitude reset all changes of the longitude field.
+// ResetLongitude reset all changes of the "longitude" field.
 func (m *SurveyWiFiScanMutation) ResetLongitude() {
 	m.longitude = nil
 	m.addlongitude = nil
@@ -28243,7 +28243,7 @@ func (m *SurveyWiFiScanMutation) ChecklistItemIDs() (ids []int) {
 	return
 }
 
-// ResetChecklistItem reset all changes of the checklist_item edge.
+// ResetChecklistItem reset all changes of the "checklist_item" edge.
 func (m *SurveyWiFiScanMutation) ResetChecklistItem() {
 	m.checklist_item = nil
 	m.clearedchecklist_item = false
@@ -28282,7 +28282,7 @@ func (m *SurveyWiFiScanMutation) SurveyQuestionIDs() (ids []int) {
 	return
 }
 
-// ResetSurveyQuestion reset all changes of the survey_question edge.
+// ResetSurveyQuestion reset all changes of the "survey_question" edge.
 func (m *SurveyWiFiScanMutation) ResetSurveyQuestion() {
 	m.survey_question = nil
 	m.clearedsurvey_question = false
@@ -28321,7 +28321,7 @@ func (m *SurveyWiFiScanMutation) LocationIDs() (ids []int) {
 	return
 }
 
-// ResetLocation reset all changes of the location edge.
+// ResetLocation reset all changes of the "location" edge.
 func (m *SurveyWiFiScanMutation) ResetLocation() {
 	m.location = nil
 	m.clearedlocation = false
@@ -28914,7 +28914,7 @@ func (m *UserMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetCreateTime reset all changes of the create_time field.
+// ResetCreateTime reset all changes of the "create_time" field.
 func (m *UserMutation) ResetCreateTime() {
 	m.create_time = nil
 }
@@ -28933,7 +28933,7 @@ func (m *UserMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetUpdateTime reset all changes of the update_time field.
+// ResetUpdateTime reset all changes of the "update_time" field.
 func (m *UserMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
@@ -28952,7 +28952,7 @@ func (m *UserMutation) AuthID() (r string, exists bool) {
 	return *v, true
 }
 
-// ResetAuthID reset all changes of the auth_id field.
+// ResetAuthID reset all changes of the "auth_id" field.
 func (m *UserMutation) ResetAuthID() {
 	m.auth_id = nil
 }
@@ -28983,7 +28983,7 @@ func (m *UserMutation) FirstNameCleared() bool {
 	return ok
 }
 
-// ResetFirstName reset all changes of the first_name field.
+// ResetFirstName reset all changes of the "first_name" field.
 func (m *UserMutation) ResetFirstName() {
 	m.first_name = nil
 	delete(m.clearedFields, user.FieldFirstName)
@@ -29015,7 +29015,7 @@ func (m *UserMutation) LastNameCleared() bool {
 	return ok
 }
 
-// ResetLastName reset all changes of the last_name field.
+// ResetLastName reset all changes of the "last_name" field.
 func (m *UserMutation) ResetLastName() {
 	m.last_name = nil
 	delete(m.clearedFields, user.FieldLastName)
@@ -29047,7 +29047,7 @@ func (m *UserMutation) EmailCleared() bool {
 	return ok
 }
 
-// ResetEmail reset all changes of the email field.
+// ResetEmail reset all changes of the "email" field.
 func (m *UserMutation) ResetEmail() {
 	m.email = nil
 	delete(m.clearedFields, user.FieldEmail)
@@ -29067,7 +29067,7 @@ func (m *UserMutation) Status() (r user.Status, exists bool) {
 	return *v, true
 }
 
-// ResetStatus reset all changes of the status field.
+// ResetStatus reset all changes of the "status" field.
 func (m *UserMutation) ResetStatus() {
 	m.status = nil
 }
@@ -29086,7 +29086,7 @@ func (m *UserMutation) Role() (r user.Role, exists bool) {
 	return *v, true
 }
 
-// ResetRole reset all changes of the role field.
+// ResetRole reset all changes of the "role" field.
 func (m *UserMutation) ResetRole() {
 	m.role = nil
 }
@@ -29124,7 +29124,7 @@ func (m *UserMutation) ProfilePhotoIDs() (ids []int) {
 	return
 }
 
-// ResetProfilePhoto reset all changes of the profile_photo edge.
+// ResetProfilePhoto reset all changes of the "profile_photo" edge.
 func (m *UserMutation) ResetProfilePhoto() {
 	m.profile_photo = nil
 	m.clearedprofile_photo = false
@@ -29166,7 +29166,7 @@ func (m *UserMutation) GroupsIDs() (ids []int) {
 	return
 }
 
-// ResetGroups reset all changes of the groups edge.
+// ResetGroups reset all changes of the "groups" edge.
 func (m *UserMutation) ResetGroups() {
 	m.groups = nil
 	m.removedgroups = nil
@@ -29573,7 +29573,7 @@ func (m *UsersGroupMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetCreateTime reset all changes of the create_time field.
+// ResetCreateTime reset all changes of the "create_time" field.
 func (m *UsersGroupMutation) ResetCreateTime() {
 	m.create_time = nil
 }
@@ -29592,7 +29592,7 @@ func (m *UsersGroupMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetUpdateTime reset all changes of the update_time field.
+// ResetUpdateTime reset all changes of the "update_time" field.
 func (m *UsersGroupMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
@@ -29611,7 +29611,7 @@ func (m *UsersGroupMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// ResetName reset all changes of the name field.
+// ResetName reset all changes of the "name" field.
 func (m *UsersGroupMutation) ResetName() {
 	m.name = nil
 }
@@ -29642,7 +29642,7 @@ func (m *UsersGroupMutation) DescriptionCleared() bool {
 	return ok
 }
 
-// ResetDescription reset all changes of the description field.
+// ResetDescription reset all changes of the "description" field.
 func (m *UsersGroupMutation) ResetDescription() {
 	m.description = nil
 	delete(m.clearedFields, usersgroup.FieldDescription)
@@ -29662,7 +29662,7 @@ func (m *UsersGroupMutation) Status() (r usersgroup.Status, exists bool) {
 	return *v, true
 }
 
-// ResetStatus reset all changes of the status field.
+// ResetStatus reset all changes of the "status" field.
 func (m *UsersGroupMutation) ResetStatus() {
 	m.status = nil
 }
@@ -29703,7 +29703,7 @@ func (m *UsersGroupMutation) MembersIDs() (ids []int) {
 	return
 }
 
-// ResetMembers reset all changes of the members edge.
+// ResetMembers reset all changes of the "members" edge.
 func (m *UsersGroupMutation) ResetMembers() {
 	m.members = nil
 	m.removedmembers = nil
@@ -29745,7 +29745,7 @@ func (m *UsersGroupMutation) PoliciesIDs() (ids []int) {
 	return
 }
 
-// ResetPolicies reset all changes of the policies edge.
+// ResetPolicies reset all changes of the "policies" edge.
 func (m *UsersGroupMutation) ResetPolicies() {
 	m.policies = nil
 	m.removedpolicies = nil
@@ -30124,7 +30124,7 @@ func (m *WorkOrderMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetCreateTime reset all changes of the create_time field.
+// ResetCreateTime reset all changes of the "create_time" field.
 func (m *WorkOrderMutation) ResetCreateTime() {
 	m.create_time = nil
 }
@@ -30143,7 +30143,7 @@ func (m *WorkOrderMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetUpdateTime reset all changes of the update_time field.
+// ResetUpdateTime reset all changes of the "update_time" field.
 func (m *WorkOrderMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
@@ -30162,7 +30162,7 @@ func (m *WorkOrderMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// ResetName reset all changes of the name field.
+// ResetName reset all changes of the "name" field.
 func (m *WorkOrderMutation) ResetName() {
 	m.name = nil
 }
@@ -30181,7 +30181,7 @@ func (m *WorkOrderMutation) Status() (r string, exists bool) {
 	return *v, true
 }
 
-// ResetStatus reset all changes of the status field.
+// ResetStatus reset all changes of the "status" field.
 func (m *WorkOrderMutation) ResetStatus() {
 	m.status = nil
 }
@@ -30200,7 +30200,7 @@ func (m *WorkOrderMutation) Priority() (r string, exists bool) {
 	return *v, true
 }
 
-// ResetPriority reset all changes of the priority field.
+// ResetPriority reset all changes of the "priority" field.
 func (m *WorkOrderMutation) ResetPriority() {
 	m.priority = nil
 }
@@ -30231,7 +30231,7 @@ func (m *WorkOrderMutation) DescriptionCleared() bool {
 	return ok
 }
 
-// ResetDescription reset all changes of the description field.
+// ResetDescription reset all changes of the "description" field.
 func (m *WorkOrderMutation) ResetDescription() {
 	m.description = nil
 	delete(m.clearedFields, workorder.FieldDescription)
@@ -30263,7 +30263,7 @@ func (m *WorkOrderMutation) InstallDateCleared() bool {
 	return ok
 }
 
-// ResetInstallDate reset all changes of the install_date field.
+// ResetInstallDate reset all changes of the "install_date" field.
 func (m *WorkOrderMutation) ResetInstallDate() {
 	m.install_date = nil
 	delete(m.clearedFields, workorder.FieldInstallDate)
@@ -30283,7 +30283,7 @@ func (m *WorkOrderMutation) CreationDate() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetCreationDate reset all changes of the creation_date field.
+// ResetCreationDate reset all changes of the "creation_date" field.
 func (m *WorkOrderMutation) ResetCreationDate() {
 	m.creation_date = nil
 }
@@ -30334,7 +30334,7 @@ func (m *WorkOrderMutation) IndexCleared() bool {
 	return ok
 }
 
-// ResetIndex reset all changes of the index field.
+// ResetIndex reset all changes of the "index" field.
 func (m *WorkOrderMutation) ResetIndex() {
 	m.index = nil
 	m.addindex = nil
@@ -30367,7 +30367,7 @@ func (m *WorkOrderMutation) CloseDateCleared() bool {
 	return ok
 }
 
-// ResetCloseDate reset all changes of the close_date field.
+// ResetCloseDate reset all changes of the "close_date" field.
 func (m *WorkOrderMutation) ResetCloseDate() {
 	m.close_date = nil
 	delete(m.clearedFields, workorder.FieldCloseDate)
@@ -30406,7 +30406,7 @@ func (m *WorkOrderMutation) TypeIDs() (ids []int) {
 	return
 }
 
-// ResetType reset all changes of the type edge.
+// ResetType reset all changes of the "type" edge.
 func (m *WorkOrderMutation) ResetType() {
 	m._type = nil
 	m.cleared_type = false
@@ -30448,7 +30448,7 @@ func (m *WorkOrderMutation) EquipmentIDs() (ids []int) {
 	return
 }
 
-// ResetEquipment reset all changes of the equipment edge.
+// ResetEquipment reset all changes of the "equipment" edge.
 func (m *WorkOrderMutation) ResetEquipment() {
 	m.equipment = nil
 	m.removedequipment = nil
@@ -30490,7 +30490,7 @@ func (m *WorkOrderMutation) LinksIDs() (ids []int) {
 	return
 }
 
-// ResetLinks reset all changes of the links edge.
+// ResetLinks reset all changes of the "links" edge.
 func (m *WorkOrderMutation) ResetLinks() {
 	m.links = nil
 	m.removedlinks = nil
@@ -30532,7 +30532,7 @@ func (m *WorkOrderMutation) FilesIDs() (ids []int) {
 	return
 }
 
-// ResetFiles reset all changes of the files edge.
+// ResetFiles reset all changes of the "files" edge.
 func (m *WorkOrderMutation) ResetFiles() {
 	m.files = nil
 	m.removedfiles = nil
@@ -30574,7 +30574,7 @@ func (m *WorkOrderMutation) HyperlinksIDs() (ids []int) {
 	return
 }
 
-// ResetHyperlinks reset all changes of the hyperlinks edge.
+// ResetHyperlinks reset all changes of the "hyperlinks" edge.
 func (m *WorkOrderMutation) ResetHyperlinks() {
 	m.hyperlinks = nil
 	m.removedhyperlinks = nil
@@ -30613,7 +30613,7 @@ func (m *WorkOrderMutation) LocationIDs() (ids []int) {
 	return
 }
 
-// ResetLocation reset all changes of the location edge.
+// ResetLocation reset all changes of the "location" edge.
 func (m *WorkOrderMutation) ResetLocation() {
 	m.location = nil
 	m.clearedlocation = false
@@ -30655,7 +30655,7 @@ func (m *WorkOrderMutation) CommentsIDs() (ids []int) {
 	return
 }
 
-// ResetComments reset all changes of the comments edge.
+// ResetComments reset all changes of the "comments" edge.
 func (m *WorkOrderMutation) ResetComments() {
 	m.comments = nil
 	m.removedcomments = nil
@@ -30697,7 +30697,7 @@ func (m *WorkOrderMutation) PropertiesIDs() (ids []int) {
 	return
 }
 
-// ResetProperties reset all changes of the properties edge.
+// ResetProperties reset all changes of the "properties" edge.
 func (m *WorkOrderMutation) ResetProperties() {
 	m.properties = nil
 	m.removedproperties = nil
@@ -30739,7 +30739,7 @@ func (m *WorkOrderMutation) CheckListCategoriesIDs() (ids []int) {
 	return
 }
 
-// ResetCheckListCategories reset all changes of the check_list_categories edge.
+// ResetCheckListCategories reset all changes of the "check_list_categories" edge.
 func (m *WorkOrderMutation) ResetCheckListCategories() {
 	m.check_list_categories = nil
 	m.removedcheck_list_categories = nil
@@ -30778,7 +30778,7 @@ func (m *WorkOrderMutation) ProjectIDs() (ids []int) {
 	return
 }
 
-// ResetProject reset all changes of the project edge.
+// ResetProject reset all changes of the "project" edge.
 func (m *WorkOrderMutation) ResetProject() {
 	m.project = nil
 	m.clearedproject = false
@@ -30817,7 +30817,7 @@ func (m *WorkOrderMutation) OwnerIDs() (ids []int) {
 	return
 }
 
-// ResetOwner reset all changes of the owner edge.
+// ResetOwner reset all changes of the "owner" edge.
 func (m *WorkOrderMutation) ResetOwner() {
 	m.owner = nil
 	m.clearedowner = false
@@ -30856,7 +30856,7 @@ func (m *WorkOrderMutation) AssigneeIDs() (ids []int) {
 	return
 }
 
-// ResetAssignee reset all changes of the assignee edge.
+// ResetAssignee reset all changes of the "assignee" edge.
 func (m *WorkOrderMutation) ResetAssignee() {
 	m.assignee = nil
 	m.clearedassignee = false
@@ -31511,7 +31511,7 @@ func (m *WorkOrderDefinitionMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetCreateTime reset all changes of the create_time field.
+// ResetCreateTime reset all changes of the "create_time" field.
 func (m *WorkOrderDefinitionMutation) ResetCreateTime() {
 	m.create_time = nil
 }
@@ -31530,7 +31530,7 @@ func (m *WorkOrderDefinitionMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetUpdateTime reset all changes of the update_time field.
+// ResetUpdateTime reset all changes of the "update_time" field.
 func (m *WorkOrderDefinitionMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
@@ -31581,7 +31581,7 @@ func (m *WorkOrderDefinitionMutation) IndexCleared() bool {
 	return ok
 }
 
-// ResetIndex reset all changes of the index field.
+// ResetIndex reset all changes of the "index" field.
 func (m *WorkOrderDefinitionMutation) ResetIndex() {
 	m.index = nil
 	m.addindex = nil
@@ -31621,7 +31621,7 @@ func (m *WorkOrderDefinitionMutation) TypeIDs() (ids []int) {
 	return
 }
 
-// ResetType reset all changes of the type edge.
+// ResetType reset all changes of the "type" edge.
 func (m *WorkOrderDefinitionMutation) ResetType() {
 	m._type = nil
 	m.cleared_type = false
@@ -31660,7 +31660,7 @@ func (m *WorkOrderDefinitionMutation) ProjectTypeIDs() (ids []int) {
 	return
 }
 
-// ResetProjectType reset all changes of the project_type edge.
+// ResetProjectType reset all changes of the "project_type" edge.
 func (m *WorkOrderDefinitionMutation) ResetProjectType() {
 	m.project_type = nil
 	m.clearedproject_type = false
@@ -31995,7 +31995,7 @@ func (m *WorkOrderTypeMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetCreateTime reset all changes of the create_time field.
+// ResetCreateTime reset all changes of the "create_time" field.
 func (m *WorkOrderTypeMutation) ResetCreateTime() {
 	m.create_time = nil
 }
@@ -32014,7 +32014,7 @@ func (m *WorkOrderTypeMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// ResetUpdateTime reset all changes of the update_time field.
+// ResetUpdateTime reset all changes of the "update_time" field.
 func (m *WorkOrderTypeMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
@@ -32033,7 +32033,7 @@ func (m *WorkOrderTypeMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// ResetName reset all changes of the name field.
+// ResetName reset all changes of the "name" field.
 func (m *WorkOrderTypeMutation) ResetName() {
 	m.name = nil
 }
@@ -32064,7 +32064,7 @@ func (m *WorkOrderTypeMutation) DescriptionCleared() bool {
 	return ok
 }
 
-// ResetDescription reset all changes of the description field.
+// ResetDescription reset all changes of the "description" field.
 func (m *WorkOrderTypeMutation) ResetDescription() {
 	m.description = nil
 	delete(m.clearedFields, workordertype.FieldDescription)
@@ -32106,7 +32106,7 @@ func (m *WorkOrderTypeMutation) WorkOrdersIDs() (ids []int) {
 	return
 }
 
-// ResetWorkOrders reset all changes of the work_orders edge.
+// ResetWorkOrders reset all changes of the "work_orders" edge.
 func (m *WorkOrderTypeMutation) ResetWorkOrders() {
 	m.work_orders = nil
 	m.removedwork_orders = nil
@@ -32148,7 +32148,7 @@ func (m *WorkOrderTypeMutation) PropertyTypesIDs() (ids []int) {
 	return
 }
 
-// ResetPropertyTypes reset all changes of the property_types edge.
+// ResetPropertyTypes reset all changes of the "property_types" edge.
 func (m *WorkOrderTypeMutation) ResetPropertyTypes() {
 	m.property_types = nil
 	m.removedproperty_types = nil
@@ -32190,7 +32190,7 @@ func (m *WorkOrderTypeMutation) DefinitionsIDs() (ids []int) {
 	return
 }
 
-// ResetDefinitions reset all changes of the definitions edge.
+// ResetDefinitions reset all changes of the "definitions" edge.
 func (m *WorkOrderTypeMutation) ResetDefinitions() {
 	m.definitions = nil
 	m.removeddefinitions = nil
@@ -32232,7 +32232,7 @@ func (m *WorkOrderTypeMutation) CheckListCategoryDefinitionsIDs() (ids []int) {
 	return
 }
 
-// ResetCheckListCategoryDefinitions reset all changes of the check_list_category_definitions edge.
+// ResetCheckListCategoryDefinitions reset all changes of the "check_list_category_definitions" edge.
 func (m *WorkOrderTypeMutation) ResetCheckListCategoryDefinitions() {
 	m.check_list_category_definitions = nil
 	m.removedcheck_list_category_definitions = nil
