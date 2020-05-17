@@ -4,7 +4,6 @@
 # license that can be found in the LICENSE file.
 
 
-from pyinventory import InventoryClient
 from pyinventory._utils import get_property_type_input
 from pyinventory.api.equipment_type import (
     add_equipment_type,
@@ -15,14 +14,15 @@ from pyinventory.api.property_type import get_property_type_id, get_property_typ
 from pyinventory.common.data_class import PropertyDefinition
 from pyinventory.common.data_enum import Entity
 from pyinventory.graphql.enum.property_kind import PropertyKind
+from pysymphony import SymphonyClient
 
-from .grpc.rpc_pb2_grpc import TenantServiceStub
-from .utils.base_test import BaseTest
+from ..utils.base_test import BaseTest
+from ..utils.grpc.rpc_pb2_grpc import TenantServiceStub
 
 
 class TestEquipmentType(BaseTest):
     def __init__(
-        self, testName: str, client: InventoryClient, stub: TenantServiceStub
+        self, testName: str, client: SymphonyClient, stub: TenantServiceStub
     ) -> None:
         super().__init__(testName, client, stub)
 

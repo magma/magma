@@ -8,7 +8,7 @@ from typing import Any, Dict, Tuple
 import pkg_resources
 from jsonschema import validate
 
-from .common.constant import SCHEMA_FILE_NAME
+from ..common.constant import SCHEMA_FILE_NAME
 
 
 def validate_json(path: str) -> None:
@@ -113,9 +113,10 @@ def retrieve_tamplates_and_set_them(path: str) -> Dict[str, Any]:
             validate_json(import_file_full_path)
             import_content = open(import_file_full_path, "rb").read().decode()
             import_content = json.loads(import_content)
-            import_question_templates, import_form_templates = get_templates_from_content(
-                import_content
-            )
+            (
+                import_question_templates,
+                import_form_templates,
+            ) = get_templates_from_content(import_content)
             template_name_to_questions.update(import_question_templates)
             template_name_to_forms.update(import_form_templates)
     set_templates_with_content(

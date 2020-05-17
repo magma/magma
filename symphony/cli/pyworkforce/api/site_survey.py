@@ -16,19 +16,17 @@ from xlsxwriter.utility import xl_col_to_name
 from xlsxwriter.workbook import Workbook
 from xlsxwriter.worksheet import Worksheet
 
-from .api.file import add_site_survey_image, delete_site_survey_image
-from .common.constant import SIMPLE_QUESTION_TYPE_TO_REQUIRED_PROPERTY_NAME
-from .common.data_class import Location, SiteSurvey
-from .common.data_enum import Entity
-from .exceptions import EntityNotFoundError
-from .graphql.enum.survey_question_type import SurveyQuestionType
-from .graphql.fragment.survey import SurveyFragment
-from .graphql.fragment.survey_question import SurveyQuestionFragment
-from .graphql.input.survey_create_data import SurveyCreateData
-from .graphql.input.survey_question_response import SurveyQuestionResponse
-from .graphql.mutation.create_survey import CreateSurveyMutation
-from .graphql.mutation.remove_site_survey import RemoveSiteSurveyMutation
-from .graphql.query.location_surveys import LocationSurveysQuery
+from ..common.constant import SIMPLE_QUESTION_TYPE_TO_REQUIRED_PROPERTY_NAME
+from ..common.data_class import SiteSurvey
+from ..graphql.enum.survey_question_type import SurveyQuestionType
+from ..graphql.fragment.survey import SurveyFragment
+from ..graphql.fragment.survey_question import SurveyQuestionFragment
+from ..graphql.input.survey_create_data import SurveyCreateData
+from ..graphql.input.survey_question_response import SurveyQuestionResponse
+from ..graphql.mutation.create_survey import CreateSurveyMutation
+from ..graphql.mutation.remove_site_survey import RemoveSiteSurveyMutation
+from ..graphql.query.location_surveys import LocationSurveysQuery
+from .file import add_site_survey_image, delete_site_survey_image
 from .site_survey_schema import retrieve_tamplates_and_set_them
 
 
@@ -690,7 +688,7 @@ def _get_survey_reponses(
 
 def upload_site_survey(
     client: SymphonyClient,
-    location: Location,
+    location_id: str,
     name: str,
     completion_date: datetime,
     excel_file_path: str,
@@ -744,7 +742,7 @@ def upload_site_survey(
         data=SurveyCreateData(
             name=name,
             completionTimestamp=int(datetime.timestamp(completion_date)),
-            locationID=location.id,
+            locationID=location_id,
             surveyResponses=[
                 from_dict(
                     data_class=SurveyQuestionResponse,
@@ -807,7 +805,7 @@ def _survey_responses_to_forms(
 
 
 def build_site_survey_from_survey_response(survey: SurveyFragment) -> SiteSurvey:
-    id = survey.id
+    survey_id = survey.id
     name = survey.name
     completion_time = datetime.fromtimestamp(survey.completionTimestamp)
     source_file = survey.sourceFile
@@ -817,7 +815,7 @@ def build_site_survey_from_survey_response(survey: SurveyFragment) -> SiteSurvey
     forms = _survey_responses_to_forms(survey.surveyResponses)
 
     return SiteSurvey(
-        id=id,
+        survey_id=survey_id,
         name=name,
         completionTime=completion_time,
         sourceFileId=source_file_id,
@@ -827,7 +825,7 @@ def build_site_survey_from_survey_response(survey: SurveyFragment) -> SiteSurvey
     )
 
 
-def get_site_surveys(client: SymphonyClient, location: Location) -> List[SiteSurvey]:
+def get_site_surveys(client: SymphonyClient, location_id: str) -> List[SiteSurvey]:
     """Retrieve all site survey completed in the location.
 
         Args:
@@ -840,13 +838,13 @@ def get_site_surveys(client: SymphonyClient, location: Location) -> List[SiteSur
             `pyinventory.exceptions.EntityNotFoundError`: location does not exist
     """
 
-    location_with_surveys = LocationSurveysQuery.execute(client, id=location.id)
+    location_with_surveys = LocationSurveysQuery.execute(client, id=location_id)
     if not location_with_surveys:
-        raise EntityNotFoundError(entity=Entity.Location, entity_id=location.id)
+        raise Exception(f"Location not found. location id: {location_id}")
     surveys = location_with_surveys.surveys
     return [build_site_survey_from_survey_response(survey) for survey in surveys]
 
 
 def delete_site_survey(client: SymphonyClient, site_survey: SiteSurvey) -> None:
     delete_site_survey_image(client, site_survey)
-    RemoveSiteSurveyMutation.execute(client, id=site_survey.id)
+    RemoveSiteSurveyMutation.execute(client, id=site_survey.survey_id)

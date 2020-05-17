@@ -17,24 +17,10 @@ def load_tests(
     loader: TestLoader, tests: TestSuite, pattern: Optional[str]
 ) -> TestSuite:
 
-    from .test_equipment import TestEquipment
-    from .test_equipment_type import TestEquipmentType
-    from .test_link import TestLink
-    from .test_location import TestLocation
-    from .test_port_type import TestEquipmentPortType
-    from .test_service import TestService
-    from .test_user import TestUser
+    from .test_site_survey import TestSiteSurvey
     from ..utils.grpc.rpc_pb2_grpc import TenantServiceStub
 
-    TESTS = [
-        TestEquipment,
-        TestEquipmentType,
-        TestLink,
-        TestLocation,
-        TestEquipmentPortType,
-        TestService,
-        TestUser,
-    ]
+    TESTS = [TestSiteSurvey]
 
     print("Waiting for symphony to be ready")
     wait_for_platform()
