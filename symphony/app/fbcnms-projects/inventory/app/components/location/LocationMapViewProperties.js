@@ -10,16 +10,15 @@
 import type {WithStyles} from '@material-ui/core';
 
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
-import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
-import TextField from '@material-ui/core/TextField';
+import Select from '@fbcnms/ui/components/design-system/Select/Select';
 import {withStyles} from '@material-ui/core/styles';
 
 type Props = {
   mapType: string,
   mapZoomLevel: string,
-  onMapTypeChanged: (event: SyntheticInputEvent<any>) => void,
-  onMapZoomLevelChanged: (mapZoomLevel: SyntheticInputEvent<any>) => void,
+  onMapTypeChanged: (newType: string) => void,
+  onMapZoomLevelChanged: (newZoomLevel: string) => void,
 } & WithStyles<typeof styles>;
 
 const styles = theme => ({
@@ -59,51 +58,28 @@ class LocationMapViewProperties extends React.PureComponent<Props> {
     return (
       <div className={classes.container}>
         <FormField label="Map Type" className={classes.input}>
-          <TextField
-            select
-            variant="outlined"
-            value={this.props.mapType}
+          <Select
+            options={Object.keys(mapViewTypes).map(type => ({
+              key: type,
+              value: type,
+              label: mapViewTypes[type],
+            }))}
+            selectedValue={this.props.mapType}
             onChange={this.props.onMapTypeChanged}
-            SelectProps={{
-              classes: {selectMenu: classes.selectMenu},
-              MenuProps: {
-                className: classes.menu,
-              },
-            }}
-            margin="dense">
-            {Object.keys(mapViewTypes).map(type => (
-              <MenuItem key={type} value={type}>
-                {mapViewTypes[type]}
-              </MenuItem>
-            ))}
-          </TextField>
+          />
         </FormField>
         <FormField label="Map Zoom Level" className={classes.input}>
-          <TextField
-            select
-            variant="outlined"
-            className={classes.input}
-            value={this.props.mapZoomLevel}
+          <Select
+            options={Object.keys(mapZoomLevels).map(level => ({
+              key: level,
+              value: level,
+              label:
+                ++levelsCount +
+                (mapZoomLevels[level] ? ' - ' + mapZoomLevels[level] : ''),
+            }))}
+            selectedValue={this.props.mapZoomLevel}
             onChange={this.props.onMapZoomLevelChanged}
-            SelectProps={{
-              classes: {selectMenu: classes.selectMenu},
-              MenuProps: {
-                className: classes.menu,
-              },
-            }}
-            margin="dense">
-            {Object.keys(mapZoomLevels).map(mapZoomLevel => {
-              levelsCount++;
-              return (
-                <MenuItem key={mapZoomLevel} value={parseInt(mapZoomLevel)}>
-                  {levelsCount +
-                    (mapZoomLevels[mapZoomLevel]
-                      ? ' - ' + mapZoomLevels[mapZoomLevel]
-                      : '')}
-                </MenuItem>
-              );
-            })}
-          </TextField>
+          />
         </FormField>
       </div>
     );

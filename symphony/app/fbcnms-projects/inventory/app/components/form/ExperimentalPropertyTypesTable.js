@@ -51,7 +51,6 @@ const useStyles = makeStyles(() => ({
     width: '100%',
   },
   cell: {
-    ...inventoryTheme.textField,
     paddingLeft: '0px',
     width: 'unset',
   },

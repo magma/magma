@@ -79,7 +79,10 @@ const ProjectTypeCard = ({className, projectType, onEditClicked}: Props) => {
   const {name, description, numberOfProjects, workOrders} = projectType;
   const classes = useStyles();
   return (
-    <FormContextProvider>
+    <FormContextProvider
+      permissions={{
+        entity: 'projectTemplate',
+      }}>
       <div className={classNames(classes.root, className)}>
         <div className={classes.descriptionContainer}>
           <div className={classes.nameContainer}>

@@ -254,7 +254,6 @@ func getLinksFromEquipmentList(ctx context.Context, equipmentList []*ent.Equipme
 		prev  *ent.Equipment
 	)
 	for _, curr := range equipmentList {
-
 		if prev == nil {
 			prev = curr
 			continue

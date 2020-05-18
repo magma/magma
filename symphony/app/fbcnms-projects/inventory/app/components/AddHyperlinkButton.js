@@ -143,13 +143,15 @@ const AddHyperlinkButton = (props: Props) => {
           {children ?? InventoryStrings.documents.addLinkButton}
         </Button>
       )}
-      <AddHyperlinkDialog
-        key={dialogKey}
-        isOpened={addHyperlinkDialogOpened}
-        onAdd={callAddNewHyperlink.bind(this)}
-        onClose={() => setAddHyperlinkDialogOpened(false)}
-        targetCategory={selectedCategory}
-      />
+      {addHyperlinkDialogOpened ? (
+        <AddHyperlinkDialog
+          key={dialogKey}
+          isOpened={true}
+          onAdd={callAddNewHyperlink.bind(this)}
+          onClose={() => setAddHyperlinkDialogOpened(false)}
+          targetCategory={selectedCategory}
+        />
+      ) : null}
     </FormAction>
   );
 };

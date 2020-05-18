@@ -337,11 +337,8 @@ func (r mutationResolver) updateProperty(
 		return errors.Wrapf(err, "querying property type %q", input.PropertyTypeID)
 	}
 	if typ.Editable && typ.IsInstanceProperty {
-		existingPropQuery := client.Property.
-			Update().
-			Where(property.ID(existingProperty.ID))
-
-		if r.updatePropValues(ctx, input, existingPropQuery) != nil {
+		updater := client.Property.UpdateOneID(existingProperty.ID)
+		if r.updatePropValues(ctx, input, updater) != nil {
 			return errors.Wrap(err, "saving work order property value update")
 		}
 	}
@@ -779,11 +776,19 @@ func (r mutationResolver) RemoveWorkOrderType(ctx context.Context, id int) (int,
 		logger.Warn("work order type has existing work orders", zap.Int("count", count))
 		return id, gqlerror.Errorf("cannot delete work order type with %d existing work orders", count)
 	}
-	if _, err := client.PropertyType.Delete().
+	pTypes, err := client.PropertyType.Query().
 		Where(propertytype.HasWorkOrderTypeWith(workordertype.ID(id))).
-		Exec(ctx); err != nil {
-		logger.Error("cannot delete properties of work order type", zap.Error(err))
-		return id, fmt.Errorf("deleting work order property types: %w", err)
+		All(ctx)
+	if err != nil {
+		logger.Error("cannot query properties of work order type", zap.Error(err))
+		return id, fmt.Errorf("querying work order property types: %w", err)
+	}
+	for _, pType := range pTypes {
+		if err := client.PropertyType.DeleteOne(pType).
+			Exec(ctx); err != nil {
+			logger.Error("cannot delete property of work order type", zap.Error(err))
+			return id, fmt.Errorf("deleting work order property type: %w", err)
+		}
 	}
 	switch err := client.WorkOrderType.DeleteOneID(id).Exec(ctx); err.(type) {
 	case nil:

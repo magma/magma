@@ -23,17 +23,22 @@ linters:
     - bodyclose
     - deadcode
     - depguard
+    - dogsled
     - dupl
     - errcheck
     - funlen
     - gocritic
     - gofmt
+    - goimports
+    - golint
+    - goprintffuncname
     - gosec
     - gosimple
     - govet
     - ineffassign
     - interfacer
     - misspell
+    - nolintlint
     - rowserrcheck
     - staticcheck
     - structcheck
@@ -42,6 +47,7 @@ linters:
     - unconvert
     - unused
     - varcheck
+    - whitespace
 
 issues:
   exclude-rules:

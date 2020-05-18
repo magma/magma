@@ -27,12 +27,12 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-export type ViewContainerProps = {
+export type ViewContainerProps = $ReadOnly<{|
   header?: ?FullViewHeaderProps,
   useBodyScrollingEffect?: ?boolean,
   bodyVariant?: ?Variant,
   children: React.Node,
-};
+|}>;
 
 export default function ViewContainer(props: ViewContainerProps) {
   const {header, useBodyScrollingEffect = true, bodyVariant, children} = props;

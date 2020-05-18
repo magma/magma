@@ -8,7 +8,6 @@
  * @format
  */
 
-import type {WorkOrderType} from '../../common/WorkOrder';
 import type {
   WorkOrderTypesQuery,
   WorkOrderTypesQueryResponse,
@@ -17,7 +16,7 @@ import type {
 import AddEditWorkOrderTypeCard from './AddEditWorkOrderTypeCard';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import InventoryView from '../InventoryViewContainer';
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import Table from '@fbcnms/ui/components/design-system/Table/Table';
 import fbt from 'fbt';
 import withInventoryErrorBoundary from '../../common/withInventoryErrorBoundary';
@@ -26,7 +25,6 @@ import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {TABLE_SORT_ORDER} from '@fbcnms/ui/components/design-system/Table/TableContext';
 import {graphql} from 'relay-runtime';
 import {makeStyles} from '@material-ui/styles';
-import {toMutablePropertyType} from '../../common/PropertyType';
 import {useLazyLoadQuery} from 'react-relay/hooks';
 
 const useStyles = makeStyles(() => ({
@@ -44,32 +42,22 @@ const workOrderTypesQuery = graphql`
           id
           name
           description
-          numberOfWorkOrders
-          propertyTypes {
-            id
-            name
-            type
-            nodeType
-            index
-            stringValue
-            intValue
-            booleanValue
-            floatValue
-            latitudeValue
-            longitudeValue
-            rangeFromValue
-            rangeToValue
-            isEditable
-            isMandatory
-            isInstanceProperty
-            isDeleted
-            category
-          }
+          ...AddEditWorkOrderTypeCard_workOrderType
         }
       }
     }
   }
 `;
+
+type WorkOrderTypeEdge = $ElementType<
+  $ElementType<
+    $NonMaybeType<$ElementType<WorkOrderTypesQueryResponse, 'workOrderTypes'>>,
+    'edges',
+  >,
+  number,
+>;
+
+type WorkOrderTypeNode = $NonMaybeType<$ElementType<WorkOrderTypeEdge, 'node'>>;
 
 const WorkOrderTypes = () => {
   const classes = useStyles();
@@ -83,18 +71,15 @@ const WorkOrderTypes = () => {
   const [
     editingWorkOrderType,
     setEditingWorkOrderType,
-  ] = useState<?WorkOrderType>(null);
+  ] = useState<?WorkOrderTypeNode>(null);
 
-  const sortedWorkOrderTypes: Array<WorkOrderType> =
-    workOrderTypes?.edges
-      .map(edge => edge.node)
-      .filter(Boolean)
-      .map(woType => ({
-        ...woType,
-        propertyTypes: (woType.propertyTypes ?? [])
-          .filter(Boolean)
-          .map(toMutablePropertyType),
-      })) ?? [];
+  const tableData: Array<WorkOrderTypeNode> = useMemo(
+    () =>
+      (workOrderTypes?.edges ?? [])
+        .map((edge: WorkOrderTypeEdge) => edge.node)
+        .filter(Boolean),
+    [workOrderTypes],
+  );
 
   const onClose = () => {
     setEditingWorkOrderType(null);
@@ -107,7 +92,7 @@ const WorkOrderTypes = () => {
     onClose();
   };
 
-  const showAddEditWorkOrderTypeCard = (woType: ?WorkOrderType) => {
+  const showAddEditWorkOrderTypeCard = (woType: ?WorkOrderTypeNode) => {
     ServerLogger.info(LogEvents.ADD_WORK_ORDER_TYPE_BUTTON_CLICKED);
     setEditingWorkOrderType(woType);
     setShowAddEditCard(true);
@@ -136,14 +121,17 @@ const WorkOrderTypes = () => {
             <fbt desc="">Create Work Order Template</fbt>
           </ButtonAction>,
         ],
+      }}
+      permissions={{
+        entity: 'workorderTemplate',
       }}>
       <Table
-        data={sortedWorkOrderTypes}
+        data={tableData}
         columns={[
           {
             key: 'name',
             title: 'Work order template',
-            render: (row: WorkOrderType) => (
+            render: (row: WorkOrderTypeNode) => (
               <Button
                 useEllipsis={true}
                 variant="text"
@@ -151,12 +139,12 @@ const WorkOrderTypes = () => {
                 {row.name}
               </Button>
             ),
-            getSortingValue: (row: WorkOrderType) => row.name,
+            getSortingValue: (row: WorkOrderTypeNode) => row.name,
           },
           {
             key: 'description',
             title: 'Description',
-            render: (row: WorkOrderType) => row.description ?? '',
+            render: (row: WorkOrderTypeNode) => row.description ?? '',
           },
         ]}
         sortSettings={{

@@ -177,7 +177,7 @@ const UserManaementView = ({match}: Props) => {
 
   return (
     <UserManagementContextProvider>
-      <FormContextProvider ignorePermissions={true}>
+      <FormContextProvider permissions={{adminRightsRequired: true}}>
         <NavigatableViews
           header={Strings.admin.users.viewHeader}
           views={VIEWS}
@@ -185,10 +185,7 @@ const UserManaementView = ({match}: Props) => {
         />
       </FormContextProvider>
       {addingNewUser && (
-        <NewUserDialog
-          isOpened={addingNewUser}
-          onClose={() => setAddingNewUser(false)}
-        />
+        <NewUserDialog onClose={() => setAddingNewUser(false)} />
       )}
     </UserManagementContextProvider>
   );

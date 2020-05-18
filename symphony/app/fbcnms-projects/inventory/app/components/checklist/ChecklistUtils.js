@@ -15,6 +15,7 @@ import type {
 import type {CheckListItem} from './checkListCategory/ChecklistItemsDialogMutateState';
 import type {CheckListItemType} from '../work_orders/__generated__/WorkOrderDetails_workOrder.graphql';
 import type {ChecklistCategoriesStateType} from './ChecklistCategoriesMutateState';
+import type {ChecklistCategoryDefinition} from './ChecklistCategoriesMutateState';
 
 import {isTempId} from '../../common/EntUtils';
 
@@ -109,4 +110,23 @@ export const convertChecklistCategoriesStateToInput = (
       checkList,
     };
   });
+};
+
+export const convertChecklistCategoriesStateToDefinitions = (
+  editingCategories: ChecklistCategoriesStateType,
+): Array<ChecklistCategoryDefinition> => {
+  return editingCategories.map(category => ({
+    id: category.id,
+    title: category.title,
+    description: category.description,
+    checkList: category.checkList.map(item => ({
+      id: item.id,
+      title: item.title,
+      type: item.type,
+      index: item.index,
+      enumValues: item.enumValues,
+      enumSelectionMode: item.enumSelectionMode,
+      helpText: item.helpText,
+    })),
+  }));
 };

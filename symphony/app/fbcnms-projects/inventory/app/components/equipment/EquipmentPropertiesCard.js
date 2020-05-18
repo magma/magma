@@ -228,7 +228,11 @@ const EquipmentPropertiesCard = (props: Props) => {
 
             return (
               <div className={classes.root}>
-                <FormContextProvider>
+                <FormContextProvider
+                  permissions={{
+                    entity: 'equipment',
+                    action: 'update',
+                  }}>
                   <div className={classes.cardHeader}>
                     <div>
                       <div className={classes.equipmentBreadcrumbs}>

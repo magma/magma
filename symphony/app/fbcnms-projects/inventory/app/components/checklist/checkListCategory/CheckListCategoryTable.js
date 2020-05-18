@@ -45,9 +45,11 @@ const useStyles = makeStyles(() => ({
 
 type CheckListCategoryTableProps = $ReadOnly<{
   categories: ChecklistCategoriesStateType,
+  isDefinitionsOnly?: boolean,
 }>;
 
-const CheckListCategoryTable = ({categories}: CheckListCategoryTableProps) => {
+const CheckListCategoryTable = (props: CheckListCategoryTableProps) => {
+  const {categories, isDefinitionsOnly} = props;
   const classes = useStyles();
   const form = useFormContext();
   const dispatch = useContext(ChecklistCategoriesMutateDispatchContext);
@@ -92,7 +94,7 @@ const CheckListCategoryTable = ({categories}: CheckListCategoryTableProps) => {
               <TextInput
                 id="title"
                 variant="outlined"
-                disabled={form.alerts.editLock.detected}
+                disabled={form.alerts.missingPermissions.detected}
                 defaultValue={row.value.title}
                 autoFocus={true}
                 placeholder={`${fbt(
@@ -120,7 +122,7 @@ const CheckListCategoryTable = ({categories}: CheckListCategoryTableProps) => {
               <TextInput
                 id="description"
                 variant="outlined"
-                disabled={form.alerts.editLock.detected}
+                disabled={form.alerts.missingPermissions.detected}
                 defaultValue={row.value.description || ''}
                 placeholder={`${fbt(
                   'Short description of category (optional)',
@@ -148,12 +150,20 @@ const CheckListCategoryTable = ({categories}: CheckListCategoryTableProps) => {
                 skin="gray"
                 disabled={
                   row.value.checkList.length === 0 &&
-                  form.alerts.editLock.detected
+                  form.alerts.missingPermissions.detected
                 }
                 className={classes.addItemsButton}
                 onClick={() => setBrowsedCheckListCategoryId(row.value.id)}>
-                {row.value.checkList.length > 0 ? (
+                {row.value.checkList.length > 0 && !isDefinitionsOnly ? (
                   `${row.responsesCount}/${row.value.checkList.length}`
+                ) : row.value.checkList.length > 0 && isDefinitionsOnly ? (
+                  <fbt desc="">
+                    <fbt:plural
+                      count={row.value.checkList.length}
+                      showCount="yes">
+                      Item
+                    </fbt:plural>
+                  </fbt>
                 ) : (
                   <fbt desc="Add checklist items button caption">Add Items</fbt>
                 )}
@@ -164,7 +174,7 @@ const CheckListCategoryTable = ({categories}: CheckListCategoryTableProps) => {
             key: '3',
             title: '',
             render: row =>
-              form.alerts.editLock.detected ? null : (
+              form.alerts.missingPermissions.detected ? null : (
                 <Button
                   variant="text"
                   className={classes.deleteButton}
@@ -193,6 +203,7 @@ const CheckListCategoryTable = ({categories}: CheckListCategoryTableProps) => {
               value: items,
             });
           }}
+          isDefinitionsOnly={isDefinitionsOnly}
         />
       )}
     </>

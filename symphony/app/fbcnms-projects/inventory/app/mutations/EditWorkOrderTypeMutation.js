@@ -19,7 +19,7 @@ import type {WorkOrderType} from '../common/WorkOrder';
 
 import RelayEnvironment from '../common/RelayEnvironment.js';
 import {commitMutation, graphql} from 'react-relay';
-import {convertPropertyTypeToMutationInput} from '../common/PropertyType';
+import {convertWorkOrderTypeToMutationInput} from '../common/WorkOrder';
 import {getGraphError} from '../common/EntUtils';
 
 export const mutation = graphql`
@@ -28,26 +28,7 @@ export const mutation = graphql`
       id
       name
       description
-      propertyTypes {
-        id
-        name
-        type
-        nodeType
-        index
-        stringValue
-        intValue
-        booleanValue
-        floatValue
-        latitudeValue
-        longitudeValue
-        rangeFromValue
-        rangeToValue
-        isEditable
-        isMandatory
-        isInstanceProperty
-        isDeleted
-        category
-      }
+      ...AddEditWorkOrderTypeCard_workOrderType
     }
   }
 `;
@@ -55,13 +36,10 @@ export const mutation = graphql`
 export const editWorkOrderType = (
   workOrderType: WorkOrderType,
 ): Promise<EditWorkOrderTypeMutationResponse> => {
-  const {name, description, propertyTypes} = workOrderType;
   const variables: EditWorkOrderTypeMutationVariables = {
     input: {
       id: workOrderType.id,
-      name,
-      description,
-      properties: convertPropertyTypeToMutationInput(propertyTypes),
+      ...convertWorkOrderTypeToMutationInput(workOrderType),
     },
   };
 

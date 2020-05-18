@@ -15,7 +15,9 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/hyperlink"
+	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
@@ -29,6 +31,8 @@ type HyperlinkQuery struct {
 	unique     []string
 	predicates []predicate.Hyperlink
 	// eager-loading edges.
+	withEquipment *EquipmentQuery
+	withLocation  *LocationQuery
 	withWorkOrder *WorkOrderQuery
 	withFKs       bool
 	// intermediate query (i.e. traversal path).
@@ -58,6 +62,42 @@ func (hq *HyperlinkQuery) Offset(offset int) *HyperlinkQuery {
 func (hq *HyperlinkQuery) Order(o ...OrderFunc) *HyperlinkQuery {
 	hq.order = append(hq.order, o...)
 	return hq
+}
+
+// QueryEquipment chains the current query on the equipment edge.
+func (hq *HyperlinkQuery) QueryEquipment() *EquipmentQuery {
+	query := &EquipmentQuery{config: hq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := hq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(hyperlink.Table, hyperlink.FieldID, hq.sqlQuery()),
+			sqlgraph.To(equipment.Table, equipment.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, hyperlink.EquipmentTable, hyperlink.EquipmentColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(hq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryLocation chains the current query on the location edge.
+func (hq *HyperlinkQuery) QueryLocation() *LocationQuery {
+	query := &LocationQuery{config: hq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := hq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(hyperlink.Table, hyperlink.FieldID, hq.sqlQuery()),
+			sqlgraph.To(location.Table, location.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, hyperlink.LocationTable, hyperlink.LocationColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(hq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // QueryWorkOrder chains the current query on the work_order edge.
@@ -257,6 +297,28 @@ func (hq *HyperlinkQuery) Clone() *HyperlinkQuery {
 	}
 }
 
+//  WithEquipment tells the query-builder to eager-loads the nodes that are connected to
+// the "equipment" edge. The optional arguments used to configure the query builder of the edge.
+func (hq *HyperlinkQuery) WithEquipment(opts ...func(*EquipmentQuery)) *HyperlinkQuery {
+	query := &EquipmentQuery{config: hq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	hq.withEquipment = query
+	return hq
+}
+
+//  WithLocation tells the query-builder to eager-loads the nodes that are connected to
+// the "location" edge. The optional arguments used to configure the query builder of the edge.
+func (hq *HyperlinkQuery) WithLocation(opts ...func(*LocationQuery)) *HyperlinkQuery {
+	query := &LocationQuery{config: hq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	hq.withLocation = query
+	return hq
+}
+
 //  WithWorkOrder tells the query-builder to eager-loads the nodes that are connected to
 // the "work_order" edge. The optional arguments used to configure the query builder of the edge.
 func (hq *HyperlinkQuery) WithWorkOrder(opts ...func(*WorkOrderQuery)) *HyperlinkQuery {
@@ -338,11 +400,13 @@ func (hq *HyperlinkQuery) sqlAll(ctx context.Context) ([]*Hyperlink, error) {
 		nodes       = []*Hyperlink{}
 		withFKs     = hq.withFKs
 		_spec       = hq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [3]bool{
+			hq.withEquipment != nil,
+			hq.withLocation != nil,
 			hq.withWorkOrder != nil,
 		}
 	)
-	if hq.withWorkOrder != nil {
+	if hq.withEquipment != nil || hq.withLocation != nil || hq.withWorkOrder != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -370,6 +434,56 @@ func (hq *HyperlinkQuery) sqlAll(ctx context.Context) ([]*Hyperlink, error) {
 	}
 	if len(nodes) == 0 {
 		return nodes, nil
+	}
+
+	if query := hq.withEquipment; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Hyperlink)
+		for i := range nodes {
+			if fk := nodes[i].equipment_hyperlinks; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(equipment.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "equipment_hyperlinks" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Equipment = n
+			}
+		}
+	}
+
+	if query := hq.withLocation; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Hyperlink)
+		for i := range nodes {
+			if fk := nodes[i].location_hyperlinks; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(location.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "location_hyperlinks" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Location = n
+			}
+		}
 	}
 
 	if query := hq.withWorkOrder; query != nil {

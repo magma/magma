@@ -14,7 +14,9 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/hyperlink"
+	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
 
@@ -85,6 +87,44 @@ func (hc *HyperlinkCreate) SetNillableCategory(s *string) *HyperlinkCreate {
 		hc.SetCategory(*s)
 	}
 	return hc
+}
+
+// SetEquipmentID sets the equipment edge to Equipment by id.
+func (hc *HyperlinkCreate) SetEquipmentID(id int) *HyperlinkCreate {
+	hc.mutation.SetEquipmentID(id)
+	return hc
+}
+
+// SetNillableEquipmentID sets the equipment edge to Equipment by id if the given value is not nil.
+func (hc *HyperlinkCreate) SetNillableEquipmentID(id *int) *HyperlinkCreate {
+	if id != nil {
+		hc = hc.SetEquipmentID(*id)
+	}
+	return hc
+}
+
+// SetEquipment sets the equipment edge to Equipment.
+func (hc *HyperlinkCreate) SetEquipment(e *Equipment) *HyperlinkCreate {
+	return hc.SetEquipmentID(e.ID)
+}
+
+// SetLocationID sets the location edge to Location by id.
+func (hc *HyperlinkCreate) SetLocationID(id int) *HyperlinkCreate {
+	hc.mutation.SetLocationID(id)
+	return hc
+}
+
+// SetNillableLocationID sets the location edge to Location by id if the given value is not nil.
+func (hc *HyperlinkCreate) SetNillableLocationID(id *int) *HyperlinkCreate {
+	if id != nil {
+		hc = hc.SetLocationID(*id)
+	}
+	return hc
+}
+
+// SetLocation sets the location edge to Location.
+func (hc *HyperlinkCreate) SetLocation(l *Location) *HyperlinkCreate {
+	return hc.SetLocationID(l.ID)
 }
 
 // SetWorkOrderID sets the work_order edge to WorkOrder by id.
@@ -204,6 +244,44 @@ func (hc *HyperlinkCreate) sqlSave(ctx context.Context) (*Hyperlink, error) {
 			Column: hyperlink.FieldCategory,
 		})
 		h.Category = value
+	}
+	if nodes := hc.mutation.EquipmentIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   hyperlink.EquipmentTable,
+			Columns: []string{hyperlink.EquipmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: equipment.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := hc.mutation.LocationIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   hyperlink.LocationTable,
+			Columns: []string{hyperlink.LocationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: location.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := hc.mutation.WorkOrderIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

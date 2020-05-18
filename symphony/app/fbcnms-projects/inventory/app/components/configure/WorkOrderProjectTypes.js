@@ -119,6 +119,9 @@ const WorkOrderProjectTypes = () => {
                   <fbt desc="">Create Project Template</fbt>
                 </ButtonAction>,
               ],
+            }}
+            permissions={{
+              entity: 'projectTemplate',
             }}>
             <div className={classes.typeCards}>
               {(props.projectTypes?.edges ?? [])

@@ -25,7 +25,6 @@ type locationSearchDataModels struct {
 	locType2 *ent.LocationType
 }
 
-// nolint: errcheck
 func prepareLocationData(ctx context.Context, r *TestResolver) locationSearchDataModels {
 	mr := r.Mutation()
 	locType1, _ := mr.AddLocationType(ctx, models.AddLocationTypeInput{

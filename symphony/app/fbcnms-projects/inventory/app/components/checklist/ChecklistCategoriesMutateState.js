@@ -8,14 +8,24 @@
  * @format
  */
 
-import type {CheckListItem} from './checkListCategory/ChecklistItemsDialogMutateState';
+import type {
+  CheckListItem,
+  CheckListItemDefinition,
+} from './checkListCategory/ChecklistItemsDialogMutateState';
 
-export type ChecklistCategory = {|
+export type ChecklistCategoryDefinition = $ReadOnly<{|
+  id: string,
+  title: string,
+  description: ?string,
+  checkList: Array<CheckListItemDefinition>,
+|}>;
+
+export type ChecklistCategory = $ReadOnly<{|
   id: string,
   key?: string,
   title: string,
   description?: ?string,
   checkList: Array<CheckListItem>,
-|};
+|}>;
 
 export type ChecklistCategoriesStateType = Array<ChecklistCategory>;

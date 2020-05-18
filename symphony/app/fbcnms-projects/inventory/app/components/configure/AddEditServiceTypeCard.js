@@ -50,6 +50,7 @@ import nullthrows from 'nullthrows';
 import update from 'immutability-helper';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {ConnectionHandler} from 'relay-runtime';
+import {FormContextProvider} from '../../common/FormContext';
 import {createFragmentContainer, graphql} from 'react-relay';
 import {discoveryMethods} from '../../common/Service';
 import {generateTempId, removeTempIDs} from '../../common/EntUtils';
@@ -124,15 +125,18 @@ class AddEditServiceTypeCard extends React.Component<Props, State> {
       .slice()
       .sort(sortByIndex);
 
+    const isOnEdit = !!this.props.editingServiceType;
     return (
-      <>
+      <FormContextProvider
+        permissions={{
+          entity: 'serviceType',
+          action: isOnEdit ? 'update' : 'create',
+        }}>
         <div className={classes.cards}>
           <SectionedCard>
             <div className={classes.header}>
               <Text className={classes.headerText}>
-                {this.props.editingServiceType
-                  ? 'Edit Service Type'
-                  : 'New Service Type'}
+                {isOnEdit ? 'Edit Service Type' : 'New Service Type'}
               </Text>
             </div>
             <Grid container spacing={1}>
@@ -223,7 +227,7 @@ class AddEditServiceTypeCard extends React.Component<Props, State> {
             Save
           </Button>
         </PageFooter>
-      </>
+      </FormContextProvider>
     );
   }
 

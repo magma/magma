@@ -13,7 +13,6 @@ import (
 
 func TestActionsRuleOperator(t *testing.T) {
 	r, ctx := actionsContext(t)
-
 	filter := &core.ActionsRuleFilter{
 		FilterID:   "filter1",
 		OperatorID: "is-string",
@@ -25,5 +24,4 @@ func TestActionsRuleOperator(t *testing.T) {
 	assert.Equal(t, res.OperatorID, core.OperatorIsString.OperatorID())
 	assert.Equal(t, res.Description, core.OperatorIsString.Description())
 	assert.Equal(t, res.DataType, core.OperatorIsString.DataType())
-
 }

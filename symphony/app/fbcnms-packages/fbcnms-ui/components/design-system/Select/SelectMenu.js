@@ -92,7 +92,7 @@ const SelectMenu = <TValue>({
             label,
             value,
             ignorePermissions,
-            hideOnEditLock,
+            hideOnMissingPermissions,
             className,
           } = option;
           return (
@@ -102,7 +102,7 @@ const SelectMenu = <TValue>({
               value={value}
               className={className}
               ignorePermissions={ignorePermissions}
-              hideOnEditLock={hideOnEditLock}
+              hideOnMissingPermissions={hideOnMissingPermissions}
               onClick={value => {
                 onChange(value);
                 onClose();
