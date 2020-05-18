@@ -39,6 +39,10 @@
        - python-openvswitch
        - openvswitch-datapath-dkms
 
+- name: Load the ovs kernel module
+  become: true
+  script: load_openvswitch.sh
+
 - name: Start OVS
   service:
     name: openvswitch-switch
