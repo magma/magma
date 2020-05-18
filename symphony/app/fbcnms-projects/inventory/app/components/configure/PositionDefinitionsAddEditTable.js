@@ -32,16 +32,14 @@ import {makeStyles} from '@material-ui/styles';
 import {reorder} from '../draggable/DraggableUtils';
 
 const useStyles = makeStyles(_theme => ({
-  table: {
-    marginBottom: '12px',
-  },
+  table: inventoryTheme.table,
   input: {
     ...inventoryTheme.textField,
     marginTop: '0px',
     marginBottom: '0px',
   },
   cell: {
-    ...inventoryTheme.textField,
+    // ...inventoryTheme.textCell,
     paddingLeft: '0px',
   },
   addButton: {

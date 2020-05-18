@@ -33,16 +33,13 @@ import {removeItem, updateItem} from '@fbcnms/util/arrays';
 import {useState} from 'react';
 
 const useStyles = makeStyles(() => ({
-  table: {
-    marginBottom: '12px',
-  },
+  table: inventoryTheme.table,
   input: {
     ...inventoryTheme.textField,
     marginTop: '0px',
     marginBottom: '0px',
   },
   cell: {
-    ...inventoryTheme.textField,
     paddingLeft: '0px',
   },
   addButton: {

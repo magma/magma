@@ -37,12 +37,9 @@ import {sortLexicographically} from '@fbcnms/ui/utils/displayUtils';
 import {withStyles} from '@material-ui/core/styles';
 
 const styles = _theme => ({
-  table: {
-    marginBottom: '12px',
-  },
+  table: inventoryTheme.table,
   input: inventoryTheme.textField,
   cell: {
-    ...inventoryTheme.textField,
     paddingLeft: '0px',
   },
   addButton: {

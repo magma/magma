@@ -150,7 +150,6 @@ const EquipmentTypes = () => {
       permissions={{
         entity: 'equipmentType',
       }}>
-      >
       <div className={classes.typesList}>
         <div className={classes.firstRow}>
           <ConfigueTitle

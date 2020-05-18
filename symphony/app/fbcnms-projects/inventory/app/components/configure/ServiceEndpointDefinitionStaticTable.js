@@ -25,11 +25,8 @@ import {makeStyles} from '@material-ui/styles';
 import {sortByIndex} from '../draggable/DraggableUtils';
 
 const useStyles = makeStyles(_theme => ({
-  table: {
-    marginBottom: '12px',
-  },
+  table: inventoryTheme.table,
   cell: {
-    ...inventoryTheme.textField,
     paddingLeft: '0px',
   },
 }));
