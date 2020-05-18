@@ -17,22 +17,20 @@ import CardSection from '../CardSection';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import DraggableTableRow from '../draggable/DraggableTableRow';
 import DroppableTableBody from '../draggable/DroppableTableBody';
+import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
+import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
 import IconButton from '@fbcnms/ui/components/design-system/IconButton';
-import ListItemText from '@material-ui/core/ListItemText';
-import MenuItem from '@material-ui/core/MenuItem';
-import {DeleteIcon, PlusIcon} from '@fbcnms/ui/components/design-system/Icons';
-// $FlowFixMe - it exists
-import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
 import RelayEnvironment from '../../common/RelayEnvironment.js';
-import Select from '@material-ui/core/Select';
+import Select from '@fbcnms/ui/components/design-system/Select/Select';
 import Table from '@material-ui/core/Table';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import TextField from '@material-ui/core/TextField';
+import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import inventoryTheme from '../../common/theme';
 import update from 'immutability-helper';
+import {DeleteIcon, PlusIcon} from '@fbcnms/ui/components/design-system/Icons';
 import {fetchQuery, graphql} from 'react-relay';
 import {reorder} from '../draggable/DraggableUtils';
 import {sortLexicographically} from '@fbcnms/ui/utils/displayUtils';
@@ -159,36 +157,32 @@ class PortDefinitionsAddEditTable extends React.Component<Props, State> {
                 </TableCell>
                 <TableCell className={classes.cell} component="div" scope="row">
                   {portDefinition.id.includes('@tmp') ? (
-                    <Select
-                      value={portDefinition.portType?.id || ''}
-                      input={<OutlinedInput margin="dense" />}
-                      onChange={({target}) =>
-                        this.onPortPropertyChanged(
-                          'portType',
-                          {id: target.value},
-                          i,
-                        )
-                      }
-                      MenuProps={{
-                        className: classes.menu,
-                      }}
-                      margin="dense">
-                      {equipmentPortTypes.map(equipmentPortType => (
-                        <MenuItem value={equipmentPortType.id}>
-                          <ListItemText>{equipmentPortType.name}</ListItemText>
-                        </MenuItem>
-                      ))}
-                    </Select>
+                    <FormField>
+                      <Select
+                        className={classes.input}
+                        options={equipmentPortTypes.map(type => ({
+                          key: type.id,
+                          value: type.id,
+                          label: type.name,
+                        }))}
+                        selectedValue={portDefinition.portType?.id || ''}
+                        onChange={value =>
+                          this.onPortPropertyChanged('portType', {id: value}, i)
+                        }
+                      />
+                    </FormField>
                   ) : (
                     portDefinition.portType?.name
                   )}
                 </TableCell>
                 <TableCell component="div" align="right">
-                  <IconButton
-                    onClick={this.onRemovePortClicked.bind(this, i)}
-                    disabled={!portDefinition.id.includes('@tmp')}
-                    icon={DeleteIcon}
-                  />
+                  <FormAction>
+                    <IconButton
+                      onClick={this.onRemovePortClicked.bind(this, i)}
+                      disabled={!portDefinition.id.includes('@tmp')}
+                      icon={DeleteIcon}
+                    />
+                  </FormAction>
                 </TableCell>
               </DraggableTableRow>
             ))}
@@ -209,18 +203,17 @@ class PortDefinitionsAddEditTable extends React.Component<Props, State> {
   getEditablePortPropertyCell(portIndex, value, name, placeholder) {
     const {classes} = this.props;
     return (
-      <TextField
-        className={classes.input}
-        name={name}
-        fullWidth={true}
-        placeholder={placeholder}
-        variant="outlined"
-        value={value ? value : ''}
-        onChange={({target}) =>
-          this.onPortPropertyChanged(name, target.value, portIndex)
-        }
-        margin="dense"
-      />
+      <FormField>
+        <TextInput
+          placeholder={placeholder}
+          variant="outlined"
+          className={classes.input}
+          value={value ? value : ''}
+          onChange={({target}) =>
+            this.onPortPropertyChanged(name, target.value, portIndex)
+          }
+        />
+      </FormField>
     );
   }
 

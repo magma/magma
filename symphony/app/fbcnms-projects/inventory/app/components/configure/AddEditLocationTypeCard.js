@@ -158,12 +158,14 @@ class AddEditLocationTypeCard extends React.Component<Props, State> {
                 onMapZoomLevelChanged={this.mapZoomLevelChanged}
               />
               <div className={classes.isSiteContainer}>
-                <Checkbox
-                  className={classes.checkbox}
-                  title={fbt('This Location Type is a Site', '')}
-                  checked={isSite}
-                  onChange={this.isSiteChanged}
-                />
+                <FormField>
+                  <Checkbox
+                    className={classes.checkbox}
+                    title={fbt('This Location Type is a Site', '')}
+                    checked={isSite}
+                    onChange={this.isSiteChanged}
+                  />
+                </FormField>
               </div>
             </div>
           </SectionedCard>
@@ -414,8 +416,20 @@ class AddEditLocationTypeCard extends React.Component<Props, State> {
       },
     });
 
-  mapTypeChanged = this.fieldChangedHandler('mapType');
-  mapZoomLevelChanged = this.fieldChangedHandler('mapZoomLevel');
+  mapTypeChanged = mapType =>
+    this.setState({
+      editingLocationType: {
+        ...this.state.editingLocationType,
+        mapType,
+      },
+    });
+  mapZoomLevelChanged = mapZoomLevel =>
+    this.setState({
+      editingLocationType: {
+        ...this.state.editingLocationType,
+        mapZoomLevel,
+      },
+    });
   nameChanged = this.fieldChangedHandler('name');
   isSiteChanged = selection => {
     this.setState({

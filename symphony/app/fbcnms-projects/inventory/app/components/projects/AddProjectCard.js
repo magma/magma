@@ -261,14 +261,16 @@ class AddProjectCard extends React.Component<Props, State> {
                 </Grid>
                 <Grid item xs={4} sm={4} lg={4} xl={4}>
                   <ExpandingPanel title="Team">
-                    <UserTypeahead
-                      className={classes.input}
-                      headline="Owner"
-                      onUserSelection={user =>
-                        this._setProjectDetail('creatorId', user?.id)
-                      }
-                      margin="dense"
-                    />
+                    <FormField>
+                      <UserTypeahead
+                        className={classes.input}
+                        headline="Owner"
+                        onUserSelection={user =>
+                          this._setProjectDetail('creatorId', user?.id)
+                        }
+                        margin="dense"
+                      />
+                    </FormField>
                   </ExpandingPanel>
                 </Grid>
               </Grid>

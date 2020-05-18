@@ -28,11 +28,11 @@ import FormSaveCancelPanel from '@fbcnms/ui/components/design-system/Form/FormSa
 import Grid from '@material-ui/core/Grid';
 import InventoryQueryRenderer from '../InventoryQueryRenderer';
 import LocationTypeahead from '../typeahead/LocationTypeahead';
-import MenuItem from '@material-ui/core/MenuItem';
 import NameDescriptionSection from '@fbcnms/ui/components/NameDescriptionSection';
 import ProjectTypeahead from '../typeahead/ProjectTypeahead';
 import PropertyValueInput from '../form/PropertyValueInput';
 import React, {useCallback, useReducer, useState} from 'react';
+import Select from '@fbcnms/ui/components/design-system/Select/Select';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
 import TextField from '@material-ui/core/TextField';
 import UserTypeahead from '../typeahead/UserTypeahead';
@@ -395,58 +395,24 @@ const AddWorkOrderCard = ({workOrderTypeId}: Props) => {
                           )}
                           <Grid item xs={12} sm={6} lg={4} xl={4}>
                             <FormField label="Priority">
-                              <TextField
-                                select
-                                className={classes.gridInput}
-                                variant="outlined"
-                                value={workOrder.priority}
-                                InputProps={{
-                                  classes: {
-                                    input: classes.dense,
-                                  },
-                                }}
-                                onChange={event => {
-                                  _setWorkOrderDetail(
-                                    'priority',
-                                    event.target.value,
-                                  );
-                                }}>
-                                {priorityValues.map(option => (
-                                  <MenuItem
-                                    key={option.value}
-                                    value={option.value}>
-                                    {option.label}
-                                  </MenuItem>
-                                ))}
-                              </TextField>
+                              <Select
+                                options={priorityValues}
+                                selectedValue={workOrder.priority}
+                                onChange={value =>
+                                  _setWorkOrderDetail('priority', value)
+                                }
+                              />
                             </FormField>
                           </Grid>
                           <Grid item xs={12} sm={6} lg={4} xl={4}>
                             <FormField label="Status">
-                              <TextField
-                                select
-                                className={classes.gridInput}
-                                variant="outlined"
-                                value={workOrder.status}
-                                InputProps={{
-                                  classes: {
-                                    input: classes.dense,
-                                  },
+                              <Select
+                                options={statusValues}
+                                selectedValue={workOrder.status}
+                                onChange={value => {
+                                  _setWorkOrderDetail('status', value);
                                 }}
-                                onChange={event => {
-                                  _setWorkOrderDetail(
-                                    'status',
-                                    event.target.value,
-                                  );
-                                }}>
-                                {statusValues.map(option => (
-                                  <MenuItem
-                                    key={option.value}
-                                    value={option.value}>
-                                    {option.label}
-                                  </MenuItem>
-                                ))}
-                              </TextField>
+                              />
                             </FormField>
                           </Grid>
                           <Grid item xs={12} sm={6} lg={4} xl={4}>
@@ -503,14 +469,14 @@ const AddWorkOrderCard = ({workOrderTypeId}: Props) => {
                     </Grid>
                     <Grid item xs={4} sm={4} lg={4} xl={4}>
                       <ExpandingPanel title="Team">
-                        <UserTypeahead
-                          className={classes.input}
-                          headline="Assignee"
-                          onUserSelection={user =>
-                            _setWorkOrderDetail('assignedTo', user)
-                          }
-                          margin="dense"
-                        />
+                        <FormField className={classes.input} label="Assignee">
+                          <UserTypeahead
+                            onUserSelection={user =>
+                              _setWorkOrderDetail('assignedTo', user)
+                            }
+                            margin="dense"
+                          />
+                        </FormField>
                       </ExpandingPanel>
                     </Grid>
                   </Grid>

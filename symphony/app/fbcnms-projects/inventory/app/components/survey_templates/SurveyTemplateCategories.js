@@ -11,16 +11,20 @@
 import type {SurveyTemplateCategory} from '../../common/LocationType';
 
 import * as React from 'react';
-import Button from '@material-ui/core/Button';
-import DeleteIcon from '@material-ui/icons/Delete';
-import IconButton from '@material-ui/core/IconButton';
+import Button from '@fbcnms/ui/components/design-system/Button';
+import DeleteIcon from '@fbcnms/ui/components/design-system/Icons/Actions/DeleteIcon';
+import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
+import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
+import IconButton from '@fbcnms/ui/components/design-system/IconButton';
+import PlusIcon from '@fbcnms/ui/components/design-system/Icons/Actions/PlusIcon';
 import SurveyTemplateQuestionsDialog from './SurveyTemplateQuestionsDialog';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import TextField from '@material-ui/core/TextField';
+import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
+import fbt from 'fbt';
 
 import inventoryTheme from '../../common/theme';
 import nullthrows from '@fbcnms/util/nullthrows';
@@ -85,60 +89,65 @@ export default function SurveyTemplateCategories(props: Props) {
           {categories.map((category, i) => (
             <TableRow key={category.id}>
               <TableCell className={classes.cell} scope="row">
-                <TextField
-                  placeholder="Title"
-                  variant="outlined"
-                  className={classes.input}
-                  value={category.categoryTitle}
-                  onChange={onChange('categoryTitle', i)}
-                  margin="dense"
-                />
+                <FormField>
+                  <TextInput
+                    placeholder={`${fbt('Title', '')}`}
+                    variant="outlined"
+                    className={classes.input}
+                    value={category.categoryTitle}
+                    onChange={onChange('categoryTitle', i)}
+                  />
+                </FormField>
               </TableCell>
               <TableCell className={classes.cell} scope="row">
-                <TextField
-                  placeholder="Description"
-                  variant="outlined"
-                  className={classes.input}
-                  value={category.categoryDescription}
-                  onChange={onChange('categoryDescription', i)}
-                  margin="dense"
-                />
+                <FormField>
+                  <TextInput
+                    placeholder={`${fbt('Description', '')}`}
+                    variant="outlined"
+                    className={classes.input}
+                    value={category.categoryDescription}
+                    onChange={onChange('categoryDescription', i)}
+                  />
+                </FormField>
               </TableCell>
               <TableCell className={classes.cell} scope="row">
-                <Button
-                  color="primary"
-                  variant="outlined"
-                  onClick={() => setEditingCategory(i)}>
-                  {category.surveyTemplateQuestions?.length || 'No'}{' '}
-                  {category.surveyTemplateQuestions?.length == 1
-                    ? 'Question'
-                    : 'Questions'}
-                </Button>
+                <FormAction>
+                  <Button onClick={() => setEditingCategory(i)}>
+                    {category.surveyTemplateQuestions?.length || 'No'}{' '}
+                    {category.surveyTemplateQuestions?.length == 1
+                      ? 'Question'
+                      : 'Questions'}
+                  </Button>
+                </FormAction>
               </TableCell>
               <TableCell align="right" className={classes.cell}>
-                <IconButton
-                  onClick={() =>
-                    props.onCategoriesChanged(removeItem(props.categories, i))
-                  }>
-                  <DeleteIcon />
-                </IconButton>
+                <FormAction>
+                  <IconButton
+                    icon={DeleteIcon}
+                    onClick={() =>
+                      props.onCategoriesChanged(removeItem(props.categories, i))
+                    }
+                  />
+                </FormAction>
               </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
-      <Button
-        className={classes.addButton}
-        color="primary"
-        variant="outlined"
-        onClick={() =>
-          props.onCategoriesChanged([
-            ...props.categories,
-            getEmptyCategory(categories.length),
-          ])
-        }>
-        Add Category
-      </Button>
+      <FormAction>
+        <Button
+          leftIcon={PlusIcon}
+          variant="text"
+          className={classes.addButton}
+          onClick={() =>
+            props.onCategoriesChanged([
+              ...props.categories,
+              getEmptyCategory(categories.length),
+            ])
+          }>
+          Add Category
+        </Button>
+      </FormAction>
       {editingCategory !== null && (
         <SurveyTemplateQuestionsDialog
           onClose={() => setEditingCategory(null)}
