@@ -61,7 +61,7 @@ func (User) Policy() ent.Policy {
 			privacy.DenyMutationOperationRule(
 				ent.OpDelete|ent.OpDeleteOne,
 			),
-			authz.AllowAdminRule(),
+			authz.UserWritePolicyRule(),
 		),
 	)
 }

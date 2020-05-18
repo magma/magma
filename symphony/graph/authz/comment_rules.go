@@ -42,12 +42,12 @@ func CommentReadPolicyRule() privacy.QueryRule {
 // CommentWritePolicyRule grants write permission to comment based on policy.
 func CommentWritePolicyRule() privacy.MutationRule {
 	return privacy.CommentMutationRuleFunc(func(ctx context.Context, m *ent.CommentMutation) error {
-		commentId, exists := m.ID()
+		commentID, exists := m.ID()
 		if !exists {
 			return privacy.Skip
 		}
 		comm, err := m.Client().Comment.Query().
-			Where(comment.ID(commentId)).
+			Where(comment.ID(commentID)).
 			WithWorkOrder().
 			WithProject().
 			Only(ctx)
