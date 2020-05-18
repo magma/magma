@@ -20,7 +20,7 @@ declare module 'openid-client' {
     post: (url, options) => Promise<any>,
   };
 
-  declare export type OpenidUserInfoClaims = {|
+  declare export type OpenidUserInfoClaims = {
     name: string,
     preferred_username: string,
     given_name: string,
@@ -39,7 +39,7 @@ declare module 'openid-client' {
     session_state: string,
     acr: string,
     email_verified: string,
-  |};
+  };
 
   declare type GrantRequestOptions = {
     grant_type: string,
@@ -64,6 +64,7 @@ declare module 'openid-client' {
     ) => Promise<TokenSet>;
     refresh: (refreshToken: string) => Promise<TokenSet>;
     issuer: OpenidIssuer;
+    userinfo: (token: string) => Promise<OpenidUserInfoClaims>;
   }
 
   declare export class TokenSet {
