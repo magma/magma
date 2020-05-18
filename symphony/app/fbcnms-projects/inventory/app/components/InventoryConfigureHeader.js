@@ -9,6 +9,7 @@
  */
 
 import type {ButtonProps} from '@fbcnms/ui/components/design-system/Button';
+import type {PermissionEnforcement} from '../common/FormContext';
 import type {PermissionHandlingProps} from '@fbcnms/ui/components/design-system/Form/FormAction';
 
 import * as React from 'react';
@@ -46,21 +47,22 @@ type ActionButtonProps = {
   ...ButtonProps,
 };
 
-type Props = {
+type Props = $ReadOnly<{|
+  permissions: PermissionEnforcement,
   title: string,
   subtitle?: string,
   className?: ?string,
   onViewToggleClicked?: (id: string) => void,
   actionButtons?: Array<ActionButtonProps>,
-};
+|}>;
 
 const InventoryConfigureHeader = (props: Props) => {
-  const {className, actionButtons = []} = props;
+  const {permissions, className, actionButtons = []} = props;
   const classes = useStyles();
 
   return (
     <div className={classNames(classes.headerRoot, className)}>
-      <FormContextProvider>
+      <FormContextProvider permissions={permissions}>
         <ConfigureTitle
           className={classes.title}
           title={props.title}

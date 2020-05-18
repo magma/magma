@@ -228,7 +228,11 @@ class LocationAddEditCard extends React.Component<Props, State> {
     const {latitude, longitude, properties} = editingLocation;
     return (
       <Card>
-        <FormContextProvider>
+        <FormContextProvider
+          permissions={{
+            entity: 'location',
+            action: editingLocation ? 'update' : 'create',
+          }}>
           <CardContent className={this.props.classes.root}>
             <div className={this.props.classes.header}>
               <Text variant="h5">{editingLocation.locationType.name}</Text>

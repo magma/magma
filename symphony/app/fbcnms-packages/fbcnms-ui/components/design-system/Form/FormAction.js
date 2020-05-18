@@ -9,10 +9,10 @@
  */
 
 import * as React from 'react';
-import FormAlertsContext from '../Form/FormAlertsContext';
 import FormElementContext from './FormElementContext';
 import {joinNullableStrings} from '@fbcnms/util/strings';
-import {useContext, useMemo} from 'react';
+import {useFormAlertsContext} from '../Form/FormAlertsContext';
+import {useMemo} from 'react';
 
 export type PermissionHandlingProps = {|
   ignorePermissions?: ?boolean,
@@ -37,7 +37,7 @@ const FormAction = (props: Props) => {
     disableOnFromError = false,
   } = props;
 
-  const validationContext = useContext(FormAlertsContext);
+  const validationContext = useFormAlertsContext();
   const edittingLocked =
     validationContext.editLock.detected && !ignorePermissions;
   const shouldHide = edittingLocked && hideOnEditLock == true;

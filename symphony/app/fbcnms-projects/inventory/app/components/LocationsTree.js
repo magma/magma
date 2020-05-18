@@ -111,18 +111,6 @@ const LocationsTree = ({
                       )
                   : []
               }
-              titlePropertyGetter={(location: Location) => location.name}
-              subtitlePropertyGetter={(location: Location) =>
-                location.locationType?.name
-              }
-              childrenPropertyGetter={(location: Location) =>
-                (location?.children ?? [])
-                  .slice()
-                  .filter(Boolean)
-                  .sort((x, y) =>
-                    sortLexicographically(x.name ?? '', y.name ?? ''),
-                  )
-              }
               getHoverRightContent={(location: ?Location) => (
                 <FormAction>
                   <ActionButton

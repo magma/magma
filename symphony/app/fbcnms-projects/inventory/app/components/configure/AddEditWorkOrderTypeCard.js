@@ -207,8 +207,14 @@ const AddEditWorkOrderTypeCard = ({
       .finally(() => setIsSaving(false));
   };
 
+  const isOnEditMode = workOrderType != null;
+
   return (
-    <FormContextProvider>
+    <FormContextProvider
+      permissions={{
+        entity: 'workorderTemplate',
+        action: isOnEditMode ? 'update' : 'create',
+      }}>
       <div className={classes.root}>
         <div className={classes.header}>
           <Breadcrumbs
@@ -231,7 +237,7 @@ const AddEditWorkOrderTypeCard = ({
             size="large"
           />
           <div className={classes.buttons}>
-            {workOrderType != null && (
+            {isOnEditMode && (
               <FormAction>
                 <Button
                   className={classes.deleteButton}

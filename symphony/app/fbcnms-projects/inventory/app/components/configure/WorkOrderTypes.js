@@ -121,6 +121,9 @@ const WorkOrderTypes = () => {
             <fbt desc="">Create Work Order Template</fbt>
           </ButtonAction>,
         ],
+      }}
+      permissions={{
+        entity: 'workorderTemplate',
       }}>
       <Table
         data={tableData}

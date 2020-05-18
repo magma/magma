@@ -8,6 +8,11 @@
  * @format
  */
 
+import type {
+  CUDPermissions,
+  InventoryEntsPolicy,
+  WorkforceCUDPermissions,
+} from '../components/admin/userManagement/utils/UserManagementUtils';
 import type {FormAlertsContextType} from '@fbcnms/ui/components/design-system/Form/FormAlertsContext';
 
 import * as React from 'react';
@@ -30,13 +35,54 @@ const DEFAULT_CONTEXT_VALUE = {
 
 const FormContext = createContext<FromContextType>(DEFAULT_CONTEXT_VALUE);
 
+type BasePermissionEnforcement = {
+  ignore?: ?boolean,
+};
+
+type AdminPermissionEnforcement = {
+  ...BasePermissionEnforcement,
+  adminRightsRequired: true,
+};
+
+type InventoryEntName = $Keys<InventoryEntsPolicy> | 'service' | 'port';
+type InventoryActionName = $Keys<CUDPermissions>;
+
+type InventoryPermissionEnforcement = {
+  ...BasePermissionEnforcement,
+  entity: InventoryEntName,
+  action?: ?InventoryActionName,
+};
+
+type WorkforceEntName =
+  | 'workorder'
+  | 'project'
+  | 'workorderTemplate'
+  | 'projectTemplate';
+
+type WorkforceActionName = $Keys<WorkforceCUDPermissions>;
+
+type WorkforcePermissionEnforcement = {
+  ...BasePermissionEnforcement,
+  entity: WorkforceEntName,
+  action?: ?WorkforceActionName,
+};
+
+export type EntName = InventoryEntName | WorkforceEntName;
+export type ActionName = InventoryActionName | WorkforceActionName;
+
+export type PermissionEnforcement =
+  | BasePermissionEnforcement
+  | AdminPermissionEnforcement
+  | InventoryPermissionEnforcement
+  | WorkforcePermissionEnforcement;
+
 type Props = {
   children: React.Node,
-  ignorePermissions?: ?boolean,
+  permissions: PermissionEnforcement,
 };
 
 export function FormContextProvider(props: Props) {
-  const {children, ignorePermissions = false} = props;
+  const {children, permissions} = props;
   const {me} = useMainContext();
   const {isFeatureEnabled} = useContext(AppContext);
 
@@ -44,7 +90,7 @@ export function FormContextProvider(props: Props) {
     'permissions_ui_enforcement',
   );
   const shouldEnforcePermissions =
-    permissionsEnforcementIsOn && ignorePermissions != true;
+    permissionsEnforcementIsOn && permissions.ignore != true;
 
   return (
     <FormAlertsContextProvider>

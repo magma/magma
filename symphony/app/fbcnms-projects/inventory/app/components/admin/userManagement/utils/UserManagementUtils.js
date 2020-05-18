@@ -439,11 +439,15 @@ export type InventoryCatalogPolicy = $ReadOnly<{|
   serviceType: CUDPermissions,
 |}>;
 
-export type InventoryPolicy = $ReadOnly<{|
-  read: BasicPermissionRule,
+export type InventoryEntsPolicy = $ReadOnly<{|
   location: CUDPermissions,
   equipment: CUDPermissions,
   ...InventoryCatalogPolicy,
+|}>;
+
+export type InventoryPolicy = $ReadOnly<{|
+  read: BasicPermissionRule,
+  ...InventoryEntsPolicy,
 |}>;
 
 export type WorkforceBasicPermissions = BasicPermissionRule &

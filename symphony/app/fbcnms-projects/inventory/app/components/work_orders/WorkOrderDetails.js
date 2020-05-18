@@ -272,7 +272,11 @@ const WorkOrderDetails = ({
 
   return (
     <div className={classes.root}>
-      <FormContextProvider>
+      <FormContextProvider
+        permissions={{
+          entity: 'workorder',
+          action: 'update',
+        }}>
         <WorkOrderHeader
           workOrderName={propsWorkOrder.name}
           workOrder={workOrder}

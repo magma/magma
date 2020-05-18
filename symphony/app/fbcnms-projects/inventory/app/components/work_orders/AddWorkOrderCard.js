@@ -326,7 +326,11 @@ const AddWorkOrderCard = ({workOrderTypeId}: Props) => {
         }
         return (
           <div className={classes.root}>
-            <FormContextProvider>
+            <FormContextProvider
+              permissions={{
+                entity: 'workorder',
+                action: 'create',
+              }}>
               <div className={classes.nameHeader}>
                 <Breadcrumbs
                   className={classes.breadcrumbs}

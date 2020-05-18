@@ -222,7 +222,7 @@ export default function UserProfilePane(props: Props) {
           '',
         )}`}
       />
-      <FormContextProvider>
+      <FormContextProvider permissions={{adminRightsRequired: true}}>
         <div className={classes.form}>
           <div className={classes.section}>
             <div className={classes.sectionHeader}>

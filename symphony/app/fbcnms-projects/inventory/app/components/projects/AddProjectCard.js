@@ -160,7 +160,11 @@ class AddProjectCard extends React.Component<Props, State> {
     const {properties} = project;
     return (
       <div className={classes.root}>
-        <FormContextProvider>
+        <FormContextProvider
+          permissions={{
+            entity: 'project',
+            action: 'create',
+          }}>
           <div className={classes.nameHeader}>
             <div className={classes.breadcrumbs}>
               <Breadcrumbs
