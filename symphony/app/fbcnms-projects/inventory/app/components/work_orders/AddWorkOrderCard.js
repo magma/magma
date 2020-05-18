@@ -494,7 +494,6 @@ const AddWorkOrderCard = ({workOrderTypeId}: Props) => {
                         value={dispatch}>
                         <CheckListCategoryExpandingPanel
                           categories={editingCategories}
-                          onListChanged={_checkListCategoryChangedHandler}
                         />
                       </ChecklistCategoriesMutateDispatchContext.Provider>
                     </Grid>

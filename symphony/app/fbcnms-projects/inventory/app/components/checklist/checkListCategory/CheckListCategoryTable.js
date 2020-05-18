@@ -45,9 +45,11 @@ const useStyles = makeStyles(() => ({
 
 type CheckListCategoryTableProps = $ReadOnly<{
   categories: ChecklistCategoriesStateType,
+  isDefinitionsOnly?: boolean,
 }>;
 
-const CheckListCategoryTable = ({categories}: CheckListCategoryTableProps) => {
+const CheckListCategoryTable = (props: CheckListCategoryTableProps) => {
+  const {categories, isDefinitionsOnly} = props;
   const classes = useStyles();
   const form = useFormContext();
   const dispatch = useContext(ChecklistCategoriesMutateDispatchContext);
@@ -152,8 +154,16 @@ const CheckListCategoryTable = ({categories}: CheckListCategoryTableProps) => {
                 }
                 className={classes.addItemsButton}
                 onClick={() => setBrowsedCheckListCategoryId(row.value.id)}>
-                {row.value.checkList.length > 0 ? (
+                {row.value.checkList.length > 0 && !isDefinitionsOnly ? (
                   `${row.responsesCount}/${row.value.checkList.length}`
+                ) : row.value.checkList.length > 0 && isDefinitionsOnly ? (
+                  <fbt desc="">
+                    <fbt:plural
+                      count={row.value.checkList.length}
+                      showCount="yes">
+                      Item
+                    </fbt:plural>
+                  </fbt>
                 ) : (
                   <fbt desc="Add checklist items button caption">Add Items</fbt>
                 )}
@@ -193,6 +203,7 @@ const CheckListCategoryTable = ({categories}: CheckListCategoryTableProps) => {
               value: items,
             });
           }}
+          isDefinitionsOnly={isDefinitionsOnly}
         />
       )}
     </>

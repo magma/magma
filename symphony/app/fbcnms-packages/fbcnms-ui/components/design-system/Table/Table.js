@@ -34,6 +34,7 @@ const useStyles = makeStyles(() => ({
   standalone: {
     borderRadius: borderRadius,
     boxShadow: SymphonyTheme.shadows.DP1,
+    height: 'fit-content',
   },
   tableContainer: {
     display: 'flex',

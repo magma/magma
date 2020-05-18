@@ -21,11 +21,15 @@ import fbt from 'fbt';
 import {useContext, useMemo} from 'react';
 import {useFormContext} from '../../../common/FormContext';
 
-type Props = {
+type Props = $ReadOnly<{|
   categories: ChecklistCategoriesStateType,
-};
+  isDefinitionsOnly?: boolean,
+|}>;
 
-const CheckListCategoryExpandingPanel = ({categories}: Props) => {
+const CheckListCategoryExpandingPanel = ({
+  categories,
+  isDefinitionsOnly,
+}: Props) => {
   const appContext = useContext(AppContext);
   const dispatch = useContext(ChecklistCategoriesMutateDispatchContext);
   const form = useFormContext();
@@ -51,7 +55,10 @@ const CheckListCategoryExpandingPanel = ({categories}: Props) => {
           </Button>
         )
       }>
-      <CheckListCategoryTable categories={categories} />
+      <CheckListCategoryTable
+        categories={categories}
+        isDefinitionsOnly={isDefinitionsOnly}
+      />
     </ExpandingPanel>
   );
 };
