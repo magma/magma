@@ -54,6 +54,7 @@ s1aptests/test_sctp_abort_after_smc.py \
 s1aptests/test_sctp_shutdown_after_auth_req.py \
 s1aptests/test_sctp_shutdown_after_identity_req.py \
 s1aptests/test_sctp_shutdown_after_smc.py \
+s1aptests/test_sctp_shutdown_after_multi_ue_attach.py \
 s1aptests/test_attach_detach_dedicated.py \
 s1aptests/test_attach_detach_dedicated_multi_ue.py \
 s1aptests/test_attach_detach_dedicated_looped.py \
