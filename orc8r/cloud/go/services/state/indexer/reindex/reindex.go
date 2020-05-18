@@ -168,6 +168,7 @@ func reportStatusMetrics(queue JobQueue) {
 		idx, err := indexer.GetIndexer(id)
 		if err != nil {
 			glog.Errorf("Report reindex metrics failed to get indexer %s from registry: %v", id, err)
+			continue
 		}
 		metrics.IndexerVersion.WithLabelValues(id).Set(float64(idx.GetVersion()))
 	}

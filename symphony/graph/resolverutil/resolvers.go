@@ -112,7 +112,6 @@ func PortSearch(ctx context.Context, client *ent.Client, filters []*models.PortF
 	}, nil
 }
 
-// nolint: dupl
 func LocationSearch(ctx context.Context, client *ent.Client, filters []*models.LocationFilterInput, limit *int) (*models.LocationSearchResult, error) {
 	var (
 		query = client.Location.Query()
@@ -199,7 +198,6 @@ func LinkSearch(ctx context.Context, client *ent.Client, filters []*models.LinkF
 	}, nil
 }
 
-// nolint: dupl
 func ServiceSearch(ctx context.Context, client *ent.Client, filters []*models.ServiceFilterInput, limit *int) (*models.ServiceSearchResult, error) {
 	var (
 		query = client.Service.Query().Where(service.HasTypeWith(servicetype.IsDeleted(false)))
@@ -279,7 +277,6 @@ func WorkOrderSearch(ctx context.Context, client *ent.Client, filters []*models.
 				return nil, errors.Wrapf(err, "Querying work orders failed")
 			}
 		}
-
 	}
 	return &woResult, nil
 }

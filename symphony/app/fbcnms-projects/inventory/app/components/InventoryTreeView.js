@@ -102,7 +102,7 @@ const locationHierarchyQuery = graphql`
   }
 `;
 
-type Props = {
+type Props = $ReadOnly<{|
   /** The root nodes to render as a tree view */
   tree: Location[],
   /** Title to be displayed **/
@@ -114,7 +114,7 @@ type Props = {
   /** Will be shown on the right of every node on hover. */
   getHoverRightContent: ?(Object) => ?React.Node,
   selectedId: ?string,
-};
+|}>;
 
 const InventoryTreeView = (props: Props) => {
   const {tree, title, dummyRootTitle, selectedId, getHoverRightContent} = props;
@@ -157,7 +157,8 @@ const InventoryTreeView = (props: Props) => {
       </div>
       <div className={classes.treeContainer}>
         <PerfectScrollbar>
-          <FormContextProvider>
+          <FormContextProvider
+            permissions={{entity: 'location', action: 'create'}}>
             <div>
               {dummyRootTitle !== null && dummyRootTitle !== undefined
                 ? renderDummyTitleNode(dummyRootTitle)

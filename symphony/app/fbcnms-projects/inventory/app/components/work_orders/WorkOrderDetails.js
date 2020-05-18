@@ -270,9 +270,18 @@ const WorkOrderDetails = ({
     'permissions_ui_enforcement',
   );
 
+  const isOwnerOrAssignee =
+    me?.user?.email === workOrder?.owner?.email ||
+    me?.user?.email === workOrder?.assignedTo?.email;
+
   return (
     <div className={classes.root}>
-      <FormContextProvider>
+      <FormContextProvider
+        permissions={{
+          entity: 'workorder',
+          action: 'update',
+          ignore: isOwnerOrAssignee,
+        }}>
         <WorkOrderHeader
           workOrderName={propsWorkOrder.name}
           workOrder={workOrder}
@@ -284,12 +293,6 @@ const WorkOrderDetails = ({
         />
         <FormContext.Consumer>
           {form => {
-            const noOwnerError = form.alerts.error.check({
-              fieldId: 'Owner',
-              fieldDisplayName: 'Owner',
-              value: workOrder.owner,
-              required: true,
-            });
             form.alerts.editLock.check({
               fieldId: 'status',
               fieldDisplayName: 'Status',
@@ -299,26 +302,14 @@ const WorkOrderDetails = ({
                   ? `Work order is on '${doneStatus.label}' state`
                   : '',
             });
-            if (permissionsEnforcementIsOn) {
-              form.alerts.editLock.check({
-                fieldId: 'OwnerRule',
-                fieldDisplayName: 'Owner rule',
-                value: propsWorkOrder,
-                checkCallback: workOrder =>
-                  userHasAdminPermissions ||
-                  me?.user?.email === workOrder?.owner.email ||
-                  me?.user?.email === workOrder?.assignedTo?.email
-                    ? ''
-                    : 'User is not allowed to edit this work order',
-              });
-            }
             const nonOwnerAssignee =
               permissionsEnforcementIsOn &&
-              form.alerts.editLock.check({
+              form.alerts.missingPermissions.check({
                 fieldId: 'NonOwnerAssigneeRule',
                 fieldDisplayName: 'Non Owner assignee rule',
                 value: propsWorkOrder,
                 checkCallback: workOrder =>
+                  !userHasAdminPermissions &&
                   me?.user?.email !== workOrder?.owner.email &&
                   me?.user?.email === workOrder?.assignedTo?.email
                     ? 'Assignee is not allowed to change owner'
@@ -557,8 +548,7 @@ const WorkOrderDetails = ({
                         className={classes.input}
                         label="Owner"
                         required={true}
-                        hasError={!!noOwnerError}
-                        errorText={noOwnerError}
+                        validation={{id: 'owner', value: workOrder.owner?.id}}
                         disabled={!!nonOwnerAssignee}>
                         <UserTypeahead
                           selectedUser={workOrder.owner}

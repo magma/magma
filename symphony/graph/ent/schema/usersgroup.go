@@ -42,7 +42,7 @@ func (UsersGroup) Edges() []ent.Edge {
 func (UsersGroup) Policy() ent.Policy {
 	return authz.NewPolicy(
 		authz.WithMutationRules(
-			authz.AllowAdminRule(),
+			authz.UsersGroupWritePolicyRule(),
 		),
 	)
 }

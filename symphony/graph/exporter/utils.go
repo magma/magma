@@ -333,7 +333,6 @@ func propertyTypesSlice(ctx context.Context, ids []int, c *ent.Client, entity mo
 				} else {
 					relevantPortTypes = append(relevantPortTypes, *portType)
 				}
-
 			} else if entity == models.PropertyEntityPort {
 				// TODO (T59268484) solve the case where there are too many IDs to check (trying to optimize)
 				if len(ids) < 50 {

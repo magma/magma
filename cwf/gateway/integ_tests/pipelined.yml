@@ -105,7 +105,7 @@ internal_ip_subnet: '192.168.0.0/16'
 # QoS parameters
 qos:
  enable: true
- impl: ovs_meter
+ impl: linux_tc
  max_rate: 1000000000
  linux_tc:
   min_idx: 2

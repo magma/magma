@@ -108,8 +108,8 @@ SessionState::SessionState(
       session_id_(session_id),
       core_session_id_(core_session_id),
       config_(cfg),
-      // Request number set to 2, because request 1 is INIT call
-      request_number_(2),
+      // Request number set to 1, because request 0 is INIT call
+      request_number_(1),
       curr_state_(SESSION_ACTIVE),
       charging_pool_(imsi),
       monitor_pool_(imsi),

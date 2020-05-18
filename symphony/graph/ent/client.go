@@ -2977,6 +2977,38 @@ func (c *HyperlinkClient) GetX(ctx context.Context, id int) *Hyperlink {
 	return h
 }
 
+// QueryEquipment queries the equipment edge of a Hyperlink.
+func (c *HyperlinkClient) QueryEquipment(h *Hyperlink) *EquipmentQuery {
+	query := &EquipmentQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := h.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(hyperlink.Table, hyperlink.FieldID, id),
+			sqlgraph.To(equipment.Table, equipment.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, hyperlink.EquipmentTable, hyperlink.EquipmentColumn),
+		)
+		fromV = sqlgraph.Neighbors(h.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryLocation queries the location edge of a Hyperlink.
+func (c *HyperlinkClient) QueryLocation(h *Hyperlink) *LocationQuery {
+	query := &LocationQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := h.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(hyperlink.Table, hyperlink.FieldID, id),
+			sqlgraph.To(location.Table, location.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, hyperlink.LocationTable, hyperlink.LocationColumn),
+		)
+		fromV = sqlgraph.Neighbors(h.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryWorkOrder queries the work_order edge of a Hyperlink.
 func (c *HyperlinkClient) QueryWorkOrder(h *Hyperlink) *WorkOrderQuery {
 	query := &WorkOrderQuery{config: c.config}

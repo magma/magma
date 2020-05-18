@@ -28,7 +28,7 @@ const HEADER = `/**
 
 function markFilesGenerated(argv) {
   glob
-    .sync('**/__generated__/*.graphql.js', {
+    .sync('/**/__generated__/*.graphql.js', {
       root: argv.src,
     })
     .forEach(file => {

@@ -170,6 +170,7 @@ const WorkOrderComparisonView = () => {
   return (
     <ErrorBoundary>
       <InventoryView
+        permissions={{entity: 'workorder'}}
         header={header}
         onViewToggleClicked={setResultsDisplayMode}>
         <WorkOrderComparisonViewQueryRenderer

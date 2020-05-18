@@ -262,3 +262,88 @@ func TestGyLinksFailureOCStoFEG(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Empty(t, recordsBySubID["IMSI"+ue.Imsi])
 }
+
+// - Set an expectation for a CCR-I to be sent up to OCS, to which it will
+//   respond with a quota grant of 4M and final action set to redirect.
+//   Generate traffic and assert the CCR-I is received.
+// - Generate 5M traffic to exceed 100% of the quota and validate that session was not terminated
+// - Assert that UE flows are NOT deleted.
+// - Expect a CCR-T, trigger a UE disconnect, and assert the CCR-T is received.
+// NOTE : the test is only verifying that session was not terminated. Improvment is needed to validate
+//   that ovs rule is well added and traffic is being redirected.
+func TestGyCreditExhaustionRedirect(t *testing.T) {
+	fmt.Println("\nRunning TestGyCreditExhaustionRedirect...")
+
+	tr, ruleManager, ue := ocsCreditExhaustionTestSetup(t)
+	defer func() {
+		// Clear hss, ocs, and pcrf
+		assert.NoError(t, clearOCSMockDriver())
+		assert.NoError(t, ruleManager.RemoveInstalledRules())
+		assert.NoError(t, tr.CleanUp())
+	}()
+
+	redirectSrv := fegprotos.RedirectServer{
+		RedirectServerAddress: "2.2.2.2",
+	}
+	quotaGrant := &fegprotos.QuotaGrant{
+		RatingGroup: 1,
+		GrantedServiceUnit: &fegprotos.Octets{
+			TotalOctets: 4 * MegaBytes,
+		},
+		IsFinalCredit:   true,
+		FinalUnitAction: fegprotos.FinalUnitAction_Redirect,
+		RedirectServer:  &redirectSrv,
+		ResultCode:      2001,
+	}
+
+	initRequest := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_INITIAL)
+	initAnswer := protos.NewGyCCAnswer(diam.Success).
+		SetQuotaGrant(quotaGrant)
+	initExpectation := protos.NewGyCreditControlExpectation().Expect(initRequest).Return(initAnswer)
+
+	defaultUpdateAnswer := protos.NewGyCCAnswer(diam.Success)
+	expectations := []*protos.GyCreditControlExpectation{initExpectation}
+
+	// On unexpected requests, just return the default update answer
+	assert.NoError(t, setOCSExpectations(expectations, defaultUpdateAnswer))
+	tr.AuthenticateAndAssertSuccess(ue.GetImsi())
+
+	// Update directoryd record to include client IP
+	err := updateDirectorydRecord("IMSI"+ue.GetImsi(), "ipv4_addr", TrafficCltIP)
+	assert.NoError(t, err)
+
+	// we need to generate over 100% of the quota to trigger a session redirection
+	req := &cwfprotos.GenTrafficRequest{Imsi: ue.GetImsi(), Volume: &wrappers.StringValue{Value: "5M"}}
+	_, err = tr.GenULTraffic(req)
+	assert.NoError(t, err)
+	tr.WaitForEnforcementStatsToSync()
+
+	// Check that UE mac flow was not removed
+	recordsBySubID, err := tr.GetPolicyUsage()
+	assert.NoError(t, err)
+	record := recordsBySubID["IMSI"+ue.GetImsi()]["static-pass-all-ocs2"]
+	assert.NotNil(t, record, fmt.Sprintf("Policy usage record for imsi: %v was not removed", ue.GetImsi()))
+	if record != nil {
+		// We should not be seeing > 4M data here
+		assert.True(t, record.BytesTx > uint64(0), fmt.Sprintf("%s did not pass any data", record.RuleId))
+		assert.True(t, record.BytesTx <= uint64(5*MegaBytes+Buffer), fmt.Sprintf("policy usage: %v", record))
+	}
+
+	// Assert that a CCR-I to the OCS
+	tr.AssertAllGyExpectationsMetNoError()
+
+	// When we initiate a UE disconnect, we expect a terminate request to go up
+	terminateRequest := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_TERMINATION)
+	terminateAnswer := protos.NewGyCCAnswer(diam.Success)
+	terminateExpectation := protos.NewGyCreditControlExpectation().Expect(terminateRequest).Return(terminateAnswer)
+	expectations = []*protos.GyCreditControlExpectation{terminateExpectation}
+	assert.NoError(t, setOCSExpectations(expectations, nil))
+
+	// trigger disconnection
+	tr.DisconnectAndAssertSuccess(ue.GetImsi())
+	tr.WaitForEnforcementStatsToSync()
+
+	// Assert that we saw a Terminate request
+	time.Sleep(3 * time.Second)
+	tr.AssertAllGyExpectationsMetNoError()
+}

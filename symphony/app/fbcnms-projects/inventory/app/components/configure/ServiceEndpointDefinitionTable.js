@@ -45,12 +45,9 @@ const styles = _theme => ({
     maxWidth: '1366px',
     overflowX: 'auto',
   },
-  table: {
-    marginBottom: '12px',
-  },
+  table: inventoryTheme.table,
   input: inventoryTheme.textField,
   cell: {
-    ...inventoryTheme.textField,
     paddingLeft: '0px',
   },
   addButton: {

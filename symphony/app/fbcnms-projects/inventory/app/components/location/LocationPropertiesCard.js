@@ -208,7 +208,10 @@ class LocationPropertiesCard extends React.Component<Props, State> {
           }
 
           return (
-            <FormContextProvider>
+            <FormContextProvider
+              permissions={{
+                entity: 'location',
+              }}>
               <div className={classes.root}>
                 <div className={classes.cardHeader}>
                   <div className={classes.locationNameHeader}>

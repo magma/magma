@@ -42,6 +42,7 @@ import nullthrows from '@fbcnms/util/nullthrows';
 import update from 'immutability-helper';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {ConnectionHandler} from 'relay-runtime';
+import {FormContextProvider} from '../../common/FormContext';
 import {createFragmentContainer, graphql} from 'react-relay';
 import {getGraphError} from '../../common/EntUtils';
 import {getPropertyDefaultValue} from '../../common/PropertyType';
@@ -117,15 +118,22 @@ class AddEditEquipmentTypeCard extends React.Component<Props, State> {
       .sort(sortByIndex)
       .map(x => Object.freeze(x));
 
+    const isOnEdit = !!this.props.editingEquipmentType;
     return (
-      <>
+      <FormContextProvider
+        permissions={{
+          entity: 'equipment',
+          action: isOnEdit ? 'update' : 'create',
+        }}>
         <div className={classes.cards}>
           <SectionedCard>
             <div className={classes.header}>
               <Text className={classes.headerText}>
-                {this.props.editingEquipmentType
-                  ? 'Edit Equipment Type'
-                  : 'New Equipment Type'}
+                {isOnEdit ? (
+                  <fbt desc="">Edit Equipment Type</fbt>
+                ) : (
+                  <fbt desc="">New Equipment Type</fbt>
+                )}
               </Text>
             </div>
             <Grid container spacing={2}>
@@ -207,7 +215,7 @@ class AddEditEquipmentTypeCard extends React.Component<Props, State> {
             Save
           </Button>
         </PageFooter>
-      </>
+      </FormContextProvider>
     );
   }
   isSaveDisabled() {

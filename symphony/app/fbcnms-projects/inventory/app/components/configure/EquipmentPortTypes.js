@@ -140,7 +140,10 @@ class EquipmentPortTypes extends React.Component<Props, State> {
               </div>
             ));
           return (
-            <FormContextProvider>
+            <FormContextProvider
+              permissions={{
+                entity: 'portType',
+              }}>
               <div className={classes.typesList}>
                 <div className={classes.firstRow}>
                   <ConfigueTitle

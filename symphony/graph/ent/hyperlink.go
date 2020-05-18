@@ -12,7 +12,9 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/hyperlink"
+	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
 
@@ -41,17 +43,49 @@ type Hyperlink struct {
 
 // HyperlinkEdges holds the relations/edges for other nodes in the graph.
 type HyperlinkEdges struct {
+	// Equipment holds the value of the equipment edge.
+	Equipment *Equipment
+	// Location holds the value of the location edge.
+	Location *Location
 	// WorkOrder holds the value of the work_order edge.
 	WorkOrder *WorkOrder
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [3]bool
+}
+
+// EquipmentOrErr returns the Equipment value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e HyperlinkEdges) EquipmentOrErr() (*Equipment, error) {
+	if e.loadedTypes[0] {
+		if e.Equipment == nil {
+			// The edge equipment was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: equipment.Label}
+		}
+		return e.Equipment, nil
+	}
+	return nil, &NotLoadedError{edge: "equipment"}
+}
+
+// LocationOrErr returns the Location value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e HyperlinkEdges) LocationOrErr() (*Location, error) {
+	if e.loadedTypes[1] {
+		if e.Location == nil {
+			// The edge location was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: location.Label}
+		}
+		return e.Location, nil
+	}
+	return nil, &NotLoadedError{edge: "location"}
 }
 
 // WorkOrderOrErr returns the WorkOrder value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e HyperlinkEdges) WorkOrderOrErr() (*WorkOrder, error) {
-	if e.loadedTypes[0] {
+	if e.loadedTypes[2] {
 		if e.WorkOrder == nil {
 			// The edge work_order was loaded in eager-loading,
 			// but was not found.
@@ -142,6 +176,16 @@ func (h *Hyperlink) assignValues(values ...interface{}) error {
 		}
 	}
 	return nil
+}
+
+// QueryEquipment queries the equipment edge of the Hyperlink.
+func (h *Hyperlink) QueryEquipment() *EquipmentQuery {
+	return (&HyperlinkClient{config: h.config}).QueryEquipment(h)
+}
+
+// QueryLocation queries the location edge of the Hyperlink.
+func (h *Hyperlink) QueryLocation() *LocationQuery {
+	return (&HyperlinkClient{config: h.config}).QueryLocation(h)
 }
 
 // QueryWorkOrder queries the work_order edge of the Hyperlink.

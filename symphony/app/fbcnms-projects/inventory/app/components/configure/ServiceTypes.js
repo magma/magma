@@ -127,7 +127,10 @@ class ServiceTypes extends React.Component<Props, State> {
           }
 
           return (
-            <FormContextProvider>
+            <FormContextProvider
+              permissions={{
+                entity: 'serviceType',
+              }}>
               <div className={classes.typesList}>
                 <div className={classes.firstRow}>
                   <ConfigueTitle

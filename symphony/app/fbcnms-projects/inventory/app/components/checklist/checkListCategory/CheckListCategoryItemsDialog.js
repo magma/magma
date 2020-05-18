@@ -34,9 +34,12 @@ import {makeStyles} from '@material-ui/styles';
 import {useReducer, useState} from 'react';
 
 const useStyles = makeStyles(() => ({
+  root: {
+    minHeight: '480px',
+  },
   dialogHeader: {
     display: 'flex',
-    flexDirection: 1,
+    flexDirection: 'row',
     alignItems: 'center',
   },
   tabs: {
@@ -45,15 +48,19 @@ const useStyles = makeStyles(() => ({
   dialogActions: {
     padding: '24px',
   },
+  addItemButton: {
+    marginLeft: 'auto',
+  },
 }));
 
-type Props = {
+type Props = $ReadOnly<{|
   isOpened?: boolean,
   onCancel?: () => void,
   onSave?: (items: Array<CheckListItem>) => void,
   categoryTitle: string,
   initialItems: Array<CheckListItem>,
-};
+  isDefinitionsOnly?: boolean,
+|}>;
 
 const TabViewValues = {
   items: 0,
@@ -90,12 +97,14 @@ const RESPONSE_VIEW: View = {
 };
 const VIEWS = [DESIGN_VIEW, RESPONSE_VIEW];
 
-const CheckListCategoryItemsDialog = ({
-  initialItems,
-  onCancel,
-  onSave,
-  categoryTitle,
-}: Props) => {
+const CheckListCategoryItemsDialog = (props: Props) => {
+  const {
+    initialItems,
+    onCancel,
+    onSave,
+    categoryTitle,
+    isDefinitionsOnly = false,
+  } = props;
   const classes = useStyles();
   const [dialogState, dispatch] = useReducer<
     ChecklistItemsDialogStateType,
@@ -105,7 +114,11 @@ const CheckListCategoryItemsDialog = ({
   const [pickedView, setPickedView] = useState<number>(DESIGN_VIEW.value);
 
   return (
-    <Dialog fullWidth={true} maxWidth="lg" open={true}>
+    <Dialog
+      classes={{paper: classes.root}}
+      fullWidth={true}
+      maxWidth="lg"
+      open={true}>
       <DialogTitle disableTypography={true}>
         <Text variant="h6">
           <fbt desc="">Checklist</fbt>
@@ -114,19 +127,22 @@ const CheckListCategoryItemsDialog = ({
       </DialogTitle>
       <DialogContent>
         <div className={classes.dialogHeader}>
-          <TabsBar
-            className={classes.tabs}
-            tabs={VIEWS.map(view => ({
-              label: `${view.label}${view.labelSuffix(dialogState.items)}`,
-            }))}
-            activeTabIndex={pickedView}
-            onChange={setPickedView}
-            spread={false}
-            size="small"
-          />
+          {!isDefinitionsOnly ? (
+            <TabsBar
+              className={classes.tabs}
+              tabs={VIEWS.map(view => ({
+                label: `${view.label}${view.labelSuffix(dialogState.items)}`,
+              }))}
+              activeTabIndex={pickedView}
+              onChange={setPickedView}
+              spread={false}
+              size="small"
+            />
+          ) : null}
           {pickedView === TabViewValues.items && (
             <FormAction>
               <Button
+                className={classes.addItemButton}
                 onClick={() => dispatch({type: 'ADD_ITEM'})}
                 leftIcon={PlusIcon}>
                 <fbt desc="">Add Item</fbt>

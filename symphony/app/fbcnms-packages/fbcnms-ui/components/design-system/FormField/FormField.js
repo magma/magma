@@ -79,8 +79,15 @@ const FormField = (props: Props) => {
 
   const validationContext = useContext(FormAlertsContext);
   const disabled = useMemo(
-    () => disabledProp || validationContext.editLock.detected,
-    [disabledProp, validationContext.editLock.detected],
+    () =>
+      disabledProp ||
+      validationContext.missingPermissions.detected ||
+      validationContext.editLock.detected,
+    [
+      disabledProp,
+      validationContext.editLock.detected,
+      validationContext.missingPermissions.detected,
+    ],
   );
 
   const requireFieldError =
