@@ -14,8 +14,13 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
+	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/file"
+	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
+	"github.com/facebookincubator/symphony/graph/ent/user"
+	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
 
 // FileUpdate is the builder for updating File entities.
@@ -143,6 +148,131 @@ func (fu *FileUpdate) ClearCategory() *FileUpdate {
 	return fu
 }
 
+// SetLocationID sets the location edge to Location by id.
+func (fu *FileUpdate) SetLocationID(id int) *FileUpdate {
+	fu.mutation.SetLocationID(id)
+	return fu
+}
+
+// SetNillableLocationID sets the location edge to Location by id if the given value is not nil.
+func (fu *FileUpdate) SetNillableLocationID(id *int) *FileUpdate {
+	if id != nil {
+		fu = fu.SetLocationID(*id)
+	}
+	return fu
+}
+
+// SetLocation sets the location edge to Location.
+func (fu *FileUpdate) SetLocation(l *Location) *FileUpdate {
+	return fu.SetLocationID(l.ID)
+}
+
+// SetEquipmentID sets the equipment edge to Equipment by id.
+func (fu *FileUpdate) SetEquipmentID(id int) *FileUpdate {
+	fu.mutation.SetEquipmentID(id)
+	return fu
+}
+
+// SetNillableEquipmentID sets the equipment edge to Equipment by id if the given value is not nil.
+func (fu *FileUpdate) SetNillableEquipmentID(id *int) *FileUpdate {
+	if id != nil {
+		fu = fu.SetEquipmentID(*id)
+	}
+	return fu
+}
+
+// SetEquipment sets the equipment edge to Equipment.
+func (fu *FileUpdate) SetEquipment(e *Equipment) *FileUpdate {
+	return fu.SetEquipmentID(e.ID)
+}
+
+// SetUserID sets the user edge to User by id.
+func (fu *FileUpdate) SetUserID(id int) *FileUpdate {
+	fu.mutation.SetUserID(id)
+	return fu
+}
+
+// SetNillableUserID sets the user edge to User by id if the given value is not nil.
+func (fu *FileUpdate) SetNillableUserID(id *int) *FileUpdate {
+	if id != nil {
+		fu = fu.SetUserID(*id)
+	}
+	return fu
+}
+
+// SetUser sets the user edge to User.
+func (fu *FileUpdate) SetUser(u *User) *FileUpdate {
+	return fu.SetUserID(u.ID)
+}
+
+// SetWorkOrderID sets the work_order edge to WorkOrder by id.
+func (fu *FileUpdate) SetWorkOrderID(id int) *FileUpdate {
+	fu.mutation.SetWorkOrderID(id)
+	return fu
+}
+
+// SetNillableWorkOrderID sets the work_order edge to WorkOrder by id if the given value is not nil.
+func (fu *FileUpdate) SetNillableWorkOrderID(id *int) *FileUpdate {
+	if id != nil {
+		fu = fu.SetWorkOrderID(*id)
+	}
+	return fu
+}
+
+// SetWorkOrder sets the work_order edge to WorkOrder.
+func (fu *FileUpdate) SetWorkOrder(w *WorkOrder) *FileUpdate {
+	return fu.SetWorkOrderID(w.ID)
+}
+
+// SetChecklistItemID sets the checklist_item edge to CheckListItem by id.
+func (fu *FileUpdate) SetChecklistItemID(id int) *FileUpdate {
+	fu.mutation.SetChecklistItemID(id)
+	return fu
+}
+
+// SetNillableChecklistItemID sets the checklist_item edge to CheckListItem by id if the given value is not nil.
+func (fu *FileUpdate) SetNillableChecklistItemID(id *int) *FileUpdate {
+	if id != nil {
+		fu = fu.SetChecklistItemID(*id)
+	}
+	return fu
+}
+
+// SetChecklistItem sets the checklist_item edge to CheckListItem.
+func (fu *FileUpdate) SetChecklistItem(c *CheckListItem) *FileUpdate {
+	return fu.SetChecklistItemID(c.ID)
+}
+
+// ClearLocation clears the location edge to Location.
+func (fu *FileUpdate) ClearLocation() *FileUpdate {
+	fu.mutation.ClearLocation()
+	return fu
+}
+
+// ClearEquipment clears the equipment edge to Equipment.
+func (fu *FileUpdate) ClearEquipment() *FileUpdate {
+	fu.mutation.ClearEquipment()
+	return fu
+}
+
+// ClearUser clears the user edge to User.
+func (fu *FileUpdate) ClearUser() *FileUpdate {
+	fu.mutation.ClearUser()
+	return fu
+}
+
+// ClearWorkOrder clears the work_order edge to WorkOrder.
+func (fu *FileUpdate) ClearWorkOrder() *FileUpdate {
+	fu.mutation.ClearWorkOrder()
+	return fu
+}
+
+// ClearChecklistItem clears the checklist_item edge to CheckListItem.
+func (fu *FileUpdate) ClearChecklistItem() *FileUpdate {
+	fu.mutation.ClearChecklistItem()
+	return fu
+}
+
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (fu *FileUpdate) Save(ctx context.Context) (int, error) {
 	if _, ok := fu.mutation.UpdateTime(); !ok {
@@ -154,6 +284,7 @@ func (fu *FileUpdate) Save(ctx context.Context) (int, error) {
 			return 0, fmt.Errorf("ent: validator failed for field \"size\": %v", err)
 		}
 	}
+
 	var (
 		err      error
 		affected int
@@ -314,6 +445,181 @@ func (fu *FileUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: file.FieldCategory,
 		})
 	}
+	if fu.mutation.LocationCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   file.LocationTable,
+			Columns: []string{file.LocationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: location.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fu.mutation.LocationIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   file.LocationTable,
+			Columns: []string{file.LocationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: location.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if fu.mutation.EquipmentCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   file.EquipmentTable,
+			Columns: []string{file.EquipmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: equipment.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fu.mutation.EquipmentIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   file.EquipmentTable,
+			Columns: []string{file.EquipmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: equipment.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if fu.mutation.UserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   file.UserTable,
+			Columns: []string{file.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fu.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   file.UserTable,
+			Columns: []string{file.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if fu.mutation.WorkOrderCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   file.WorkOrderTable,
+			Columns: []string{file.WorkOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workorder.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fu.mutation.WorkOrderIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   file.WorkOrderTable,
+			Columns: []string{file.WorkOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workorder.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if fu.mutation.ChecklistItemCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   file.ChecklistItemTable,
+			Columns: []string{file.ChecklistItemColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: checklistitem.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fu.mutation.ChecklistItemIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   file.ChecklistItemTable,
+			Columns: []string{file.ChecklistItemColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: checklistitem.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, fu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{file.Label}
@@ -443,6 +749,131 @@ func (fuo *FileUpdateOne) ClearCategory() *FileUpdateOne {
 	return fuo
 }
 
+// SetLocationID sets the location edge to Location by id.
+func (fuo *FileUpdateOne) SetLocationID(id int) *FileUpdateOne {
+	fuo.mutation.SetLocationID(id)
+	return fuo
+}
+
+// SetNillableLocationID sets the location edge to Location by id if the given value is not nil.
+func (fuo *FileUpdateOne) SetNillableLocationID(id *int) *FileUpdateOne {
+	if id != nil {
+		fuo = fuo.SetLocationID(*id)
+	}
+	return fuo
+}
+
+// SetLocation sets the location edge to Location.
+func (fuo *FileUpdateOne) SetLocation(l *Location) *FileUpdateOne {
+	return fuo.SetLocationID(l.ID)
+}
+
+// SetEquipmentID sets the equipment edge to Equipment by id.
+func (fuo *FileUpdateOne) SetEquipmentID(id int) *FileUpdateOne {
+	fuo.mutation.SetEquipmentID(id)
+	return fuo
+}
+
+// SetNillableEquipmentID sets the equipment edge to Equipment by id if the given value is not nil.
+func (fuo *FileUpdateOne) SetNillableEquipmentID(id *int) *FileUpdateOne {
+	if id != nil {
+		fuo = fuo.SetEquipmentID(*id)
+	}
+	return fuo
+}
+
+// SetEquipment sets the equipment edge to Equipment.
+func (fuo *FileUpdateOne) SetEquipment(e *Equipment) *FileUpdateOne {
+	return fuo.SetEquipmentID(e.ID)
+}
+
+// SetUserID sets the user edge to User by id.
+func (fuo *FileUpdateOne) SetUserID(id int) *FileUpdateOne {
+	fuo.mutation.SetUserID(id)
+	return fuo
+}
+
+// SetNillableUserID sets the user edge to User by id if the given value is not nil.
+func (fuo *FileUpdateOne) SetNillableUserID(id *int) *FileUpdateOne {
+	if id != nil {
+		fuo = fuo.SetUserID(*id)
+	}
+	return fuo
+}
+
+// SetUser sets the user edge to User.
+func (fuo *FileUpdateOne) SetUser(u *User) *FileUpdateOne {
+	return fuo.SetUserID(u.ID)
+}
+
+// SetWorkOrderID sets the work_order edge to WorkOrder by id.
+func (fuo *FileUpdateOne) SetWorkOrderID(id int) *FileUpdateOne {
+	fuo.mutation.SetWorkOrderID(id)
+	return fuo
+}
+
+// SetNillableWorkOrderID sets the work_order edge to WorkOrder by id if the given value is not nil.
+func (fuo *FileUpdateOne) SetNillableWorkOrderID(id *int) *FileUpdateOne {
+	if id != nil {
+		fuo = fuo.SetWorkOrderID(*id)
+	}
+	return fuo
+}
+
+// SetWorkOrder sets the work_order edge to WorkOrder.
+func (fuo *FileUpdateOne) SetWorkOrder(w *WorkOrder) *FileUpdateOne {
+	return fuo.SetWorkOrderID(w.ID)
+}
+
+// SetChecklistItemID sets the checklist_item edge to CheckListItem by id.
+func (fuo *FileUpdateOne) SetChecklistItemID(id int) *FileUpdateOne {
+	fuo.mutation.SetChecklistItemID(id)
+	return fuo
+}
+
+// SetNillableChecklistItemID sets the checklist_item edge to CheckListItem by id if the given value is not nil.
+func (fuo *FileUpdateOne) SetNillableChecklistItemID(id *int) *FileUpdateOne {
+	if id != nil {
+		fuo = fuo.SetChecklistItemID(*id)
+	}
+	return fuo
+}
+
+// SetChecklistItem sets the checklist_item edge to CheckListItem.
+func (fuo *FileUpdateOne) SetChecklistItem(c *CheckListItem) *FileUpdateOne {
+	return fuo.SetChecklistItemID(c.ID)
+}
+
+// ClearLocation clears the location edge to Location.
+func (fuo *FileUpdateOne) ClearLocation() *FileUpdateOne {
+	fuo.mutation.ClearLocation()
+	return fuo
+}
+
+// ClearEquipment clears the equipment edge to Equipment.
+func (fuo *FileUpdateOne) ClearEquipment() *FileUpdateOne {
+	fuo.mutation.ClearEquipment()
+	return fuo
+}
+
+// ClearUser clears the user edge to User.
+func (fuo *FileUpdateOne) ClearUser() *FileUpdateOne {
+	fuo.mutation.ClearUser()
+	return fuo
+}
+
+// ClearWorkOrder clears the work_order edge to WorkOrder.
+func (fuo *FileUpdateOne) ClearWorkOrder() *FileUpdateOne {
+	fuo.mutation.ClearWorkOrder()
+	return fuo
+}
+
+// ClearChecklistItem clears the checklist_item edge to CheckListItem.
+func (fuo *FileUpdateOne) ClearChecklistItem() *FileUpdateOne {
+	fuo.mutation.ClearChecklistItem()
+	return fuo
+}
+
 // Save executes the query and returns the updated entity.
 func (fuo *FileUpdateOne) Save(ctx context.Context) (*File, error) {
 	if _, ok := fuo.mutation.UpdateTime(); !ok {
@@ -454,6 +885,7 @@ func (fuo *FileUpdateOne) Save(ctx context.Context) (*File, error) {
 			return nil, fmt.Errorf("ent: validator failed for field \"size\": %v", err)
 		}
 	}
+
 	var (
 		err  error
 		node *File
@@ -611,6 +1043,181 @@ func (fuo *FileUpdateOne) sqlSave(ctx context.Context) (f *File, err error) {
 			Type:   field.TypeString,
 			Column: file.FieldCategory,
 		})
+	}
+	if fuo.mutation.LocationCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   file.LocationTable,
+			Columns: []string{file.LocationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: location.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fuo.mutation.LocationIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   file.LocationTable,
+			Columns: []string{file.LocationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: location.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if fuo.mutation.EquipmentCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   file.EquipmentTable,
+			Columns: []string{file.EquipmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: equipment.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fuo.mutation.EquipmentIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   file.EquipmentTable,
+			Columns: []string{file.EquipmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: equipment.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if fuo.mutation.UserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   file.UserTable,
+			Columns: []string{file.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fuo.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   file.UserTable,
+			Columns: []string{file.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if fuo.mutation.WorkOrderCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   file.WorkOrderTable,
+			Columns: []string{file.WorkOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workorder.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fuo.mutation.WorkOrderIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   file.WorkOrderTable,
+			Columns: []string{file.WorkOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workorder.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if fuo.mutation.ChecklistItemCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   file.ChecklistItemTable,
+			Columns: []string{file.ChecklistItemColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: checklistitem.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fuo.mutation.ChecklistItemIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   file.ChecklistItemTable,
+			Columns: []string{file.ChecklistItemColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: checklistitem.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	f = &File{config: fuo.config}
 	_spec.Assign = f.assignValues

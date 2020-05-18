@@ -8,7 +8,6 @@ import random
 import string
 
 from gql.gql.transport.session import UserDeactivatedException
-from pyinventory import InventoryClient
 from pyinventory.api.user import (
     activate_user,
     add_user,
@@ -18,15 +17,16 @@ from pyinventory.api.user import (
 )
 from pyinventory.graphql.enum.user_role import UserRole
 from pyinventory.graphql.enum.user_status import UserStatus
+from pysymphony import SymphonyClient
 
-from .grpc.rpc_pb2_grpc import TenantServiceStub
-from .utils import init_client
-from .utils.base_test import BaseTest
+from ..utils import init_client
+from ..utils.base_test import BaseTest
+from ..utils.grpc.rpc_pb2_grpc import TenantServiceStub
 
 
 class TestUser(BaseTest):
     def __init__(
-        self, testName: str, client: InventoryClient, stub: TenantServiceStub
+        self, testName: str, client: SymphonyClient, stub: TenantServiceStub
     ) -> None:
         super().__init__(testName, client, stub)
 

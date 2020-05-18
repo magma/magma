@@ -15,6 +15,7 @@ import (
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/hyperlink"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
+	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
 
 // HyperlinkUpdate is the builder for updating Hyperlink entities.
@@ -77,12 +78,38 @@ func (hu *HyperlinkUpdate) ClearCategory() *HyperlinkUpdate {
 	return hu
 }
 
+// SetWorkOrderID sets the work_order edge to WorkOrder by id.
+func (hu *HyperlinkUpdate) SetWorkOrderID(id int) *HyperlinkUpdate {
+	hu.mutation.SetWorkOrderID(id)
+	return hu
+}
+
+// SetNillableWorkOrderID sets the work_order edge to WorkOrder by id if the given value is not nil.
+func (hu *HyperlinkUpdate) SetNillableWorkOrderID(id *int) *HyperlinkUpdate {
+	if id != nil {
+		hu = hu.SetWorkOrderID(*id)
+	}
+	return hu
+}
+
+// SetWorkOrder sets the work_order edge to WorkOrder.
+func (hu *HyperlinkUpdate) SetWorkOrder(w *WorkOrder) *HyperlinkUpdate {
+	return hu.SetWorkOrderID(w.ID)
+}
+
+// ClearWorkOrder clears the work_order edge to WorkOrder.
+func (hu *HyperlinkUpdate) ClearWorkOrder() *HyperlinkUpdate {
+	hu.mutation.ClearWorkOrder()
+	return hu
+}
+
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (hu *HyperlinkUpdate) Save(ctx context.Context) (int, error) {
 	if _, ok := hu.mutation.UpdateTime(); !ok {
 		v := hyperlink.UpdateDefaultUpdateTime()
 		hu.mutation.SetUpdateTime(v)
 	}
+
 	var (
 		err      error
 		affected int
@@ -189,6 +216,41 @@ func (hu *HyperlinkUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: hyperlink.FieldCategory,
 		})
 	}
+	if hu.mutation.WorkOrderCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   hyperlink.WorkOrderTable,
+			Columns: []string{hyperlink.WorkOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workorder.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := hu.mutation.WorkOrderIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   hyperlink.WorkOrderTable,
+			Columns: []string{hyperlink.WorkOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workorder.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, hu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{hyperlink.Label}
@@ -253,12 +315,38 @@ func (huo *HyperlinkUpdateOne) ClearCategory() *HyperlinkUpdateOne {
 	return huo
 }
 
+// SetWorkOrderID sets the work_order edge to WorkOrder by id.
+func (huo *HyperlinkUpdateOne) SetWorkOrderID(id int) *HyperlinkUpdateOne {
+	huo.mutation.SetWorkOrderID(id)
+	return huo
+}
+
+// SetNillableWorkOrderID sets the work_order edge to WorkOrder by id if the given value is not nil.
+func (huo *HyperlinkUpdateOne) SetNillableWorkOrderID(id *int) *HyperlinkUpdateOne {
+	if id != nil {
+		huo = huo.SetWorkOrderID(*id)
+	}
+	return huo
+}
+
+// SetWorkOrder sets the work_order edge to WorkOrder.
+func (huo *HyperlinkUpdateOne) SetWorkOrder(w *WorkOrder) *HyperlinkUpdateOne {
+	return huo.SetWorkOrderID(w.ID)
+}
+
+// ClearWorkOrder clears the work_order edge to WorkOrder.
+func (huo *HyperlinkUpdateOne) ClearWorkOrder() *HyperlinkUpdateOne {
+	huo.mutation.ClearWorkOrder()
+	return huo
+}
+
 // Save executes the query and returns the updated entity.
 func (huo *HyperlinkUpdateOne) Save(ctx context.Context) (*Hyperlink, error) {
 	if _, ok := huo.mutation.UpdateTime(); !ok {
 		v := hyperlink.UpdateDefaultUpdateTime()
 		huo.mutation.SetUpdateTime(v)
 	}
+
 	var (
 		err  error
 		node *Hyperlink
@@ -362,6 +450,41 @@ func (huo *HyperlinkUpdateOne) sqlSave(ctx context.Context) (h *Hyperlink, err e
 			Type:   field.TypeString,
 			Column: hyperlink.FieldCategory,
 		})
+	}
+	if huo.mutation.WorkOrderCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   hyperlink.WorkOrderTable,
+			Columns: []string{hyperlink.WorkOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workorder.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := huo.mutation.WorkOrderIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   hyperlink.WorkOrderTable,
+			Columns: []string{hyperlink.WorkOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workorder.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	h = &Hyperlink{config: huo.config}
 	_spec.Assign = h.assignValues

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 )
 
@@ -1154,6 +1155,146 @@ func CategoryEqualFold(v string) predicate.File {
 func CategoryContainsFold(v string) predicate.File {
 	return predicate.File(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldCategory), v))
+	})
+}
+
+// HasLocation applies the HasEdge predicate on the "location" edge.
+func HasLocation() predicate.File {
+	return predicate.File(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(LocationTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, LocationTable, LocationColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasLocationWith applies the HasEdge predicate on the "location" edge with a given conditions (other predicates).
+func HasLocationWith(preds ...predicate.Location) predicate.File {
+	return predicate.File(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(LocationInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, LocationTable, LocationColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasEquipment applies the HasEdge predicate on the "equipment" edge.
+func HasEquipment() predicate.File {
+	return predicate.File(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(EquipmentTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, EquipmentTable, EquipmentColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasEquipmentWith applies the HasEdge predicate on the "equipment" edge with a given conditions (other predicates).
+func HasEquipmentWith(preds ...predicate.Equipment) predicate.File {
+	return predicate.File(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(EquipmentInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, EquipmentTable, EquipmentColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasUser applies the HasEdge predicate on the "user" edge.
+func HasUser() predicate.File {
+	return predicate.File(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(UserTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, UserTable, UserColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasUserWith applies the HasEdge predicate on the "user" edge with a given conditions (other predicates).
+func HasUserWith(preds ...predicate.User) predicate.File {
+	return predicate.File(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(UserInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, UserTable, UserColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasWorkOrder applies the HasEdge predicate on the "work_order" edge.
+func HasWorkOrder() predicate.File {
+	return predicate.File(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(WorkOrderTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, WorkOrderTable, WorkOrderColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasWorkOrderWith applies the HasEdge predicate on the "work_order" edge with a given conditions (other predicates).
+func HasWorkOrderWith(preds ...predicate.WorkOrder) predicate.File {
+	return predicate.File(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(WorkOrderInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, WorkOrderTable, WorkOrderColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasChecklistItem applies the HasEdge predicate on the "checklist_item" edge.
+func HasChecklistItem() predicate.File {
+	return predicate.File(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(ChecklistItemTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, ChecklistItemTable, ChecklistItemColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasChecklistItemWith applies the HasEdge predicate on the "checklist_item" edge with a given conditions (other predicates).
+func HasChecklistItemWith(preds ...predicate.CheckListItem) predicate.File {
+	return predicate.File(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(ChecklistItemInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, ChecklistItemTable, ChecklistItemColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
 	})
 }
 

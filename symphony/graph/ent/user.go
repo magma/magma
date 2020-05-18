@@ -39,8 +39,7 @@ type User struct {
 	Role user.Role `json:"role,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
-	Edges              UserEdges `json:"edges"`
-	user_profile_photo *int
+	Edges UserEdges `json:"edges"`
 }
 
 // UserEdges holds the relations/edges for other nodes in the graph.
@@ -89,13 +88,6 @@ func (*User) scanValues() []interface{} {
 		&sql.NullString{}, // email
 		&sql.NullString{}, // status
 		&sql.NullString{}, // role
-	}
-}
-
-// fkValues returns the types for scanning foreign-keys values from sql.Rows.
-func (*User) fkValues() []interface{} {
-	return []interface{}{
-		&sql.NullInt64{}, // user_profile_photo
 	}
 }
 
@@ -150,15 +142,6 @@ func (u *User) assignValues(values ...interface{}) error {
 		return fmt.Errorf("unexpected type %T for field role", values[7])
 	} else if value.Valid {
 		u.Role = user.Role(value.String)
-	}
-	values = values[8:]
-	if len(values) == len(user.ForeignKeys) {
-		if value, ok := values[0].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field user_profile_photo", value)
-		} else if value.Valid {
-			u.user_profile_photo = new(int)
-			*u.user_profile_photo = int(value.Int64)
-		}
 	}
 	return nil
 }

@@ -269,3 +269,46 @@ func TestProjectReadPolicyRule(t *testing.T) {
 		require.Equal(t, 2, count)
 	})
 }
+
+func TestWorkOrderDefinitionWritePolicyRule(t *testing.T) {
+	c := viewertest.NewTestClient(t)
+	ctx := viewertest.NewContext(context.Background(), c)
+
+	workOrderType := c.WorkOrderType.Create().
+		SetName("WorkOrderType").
+		SaveX(ctx)
+
+	projectType := c.ProjectType.Create().
+		SetName("ProjectType").
+		SaveX(ctx)
+
+	workOrderDef := c.WorkOrderDefinition.Create().
+		SetProjectType(projectType).
+		SetType(workOrderType).
+		SaveX(ctx)
+
+	createItem := func(ctx context.Context) error {
+		_, err := c.WorkOrderDefinition.Create().
+			SetProjectType(projectType).
+			SetType(workOrderType).
+			Save(ctx)
+		return err
+	}
+	updateItem := func(ctx context.Context) error {
+		return c.WorkOrderDefinition.UpdateOne(workOrderDef).
+			SetIndex(1).
+			Exec(ctx)
+	}
+	deleteItem := func(ctx context.Context) error {
+		return c.WorkOrderDefinition.DeleteOne(workOrderDef).
+			Exec(ctx)
+	}
+	runCudPolicyTest(t, cudPolicyTest{
+		appendPermissions: func(p *models.PermissionSettings) {
+			p.WorkforcePolicy.Templates.Update.IsAllowed = models2.PermissionValueYes
+		},
+		create: createItem,
+		update: updateItem,
+		delete: deleteItem,
+	})
+}

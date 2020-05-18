@@ -509,7 +509,7 @@ func (c *Comment) Node(ctx context.Context) (node *Node, err error) {
 		ID:     c.ID,
 		Type:   "Comment",
 		Fields: make([]*Field, 3),
-		Edges:  make([]*Edge, 1),
+		Edges:  make([]*Edge, 3),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(c.CreateTime); err != nil {
@@ -547,6 +547,28 @@ func (c *Comment) Node(ctx context.Context) (node *Node, err error) {
 		IDs:  ids,
 		Type: "User",
 		Name: "Author",
+	}
+	ids, err = c.QueryWorkOrder().
+		Select(workorder.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		IDs:  ids,
+		Type: "WorkOrder",
+		Name: "WorkOrder",
+	}
+	ids, err = c.QueryProject().
+		Select(project.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[2] = &Edge{
+		IDs:  ids,
+		Type: "Project",
+		Name: "Project",
 	}
 	return node, nil
 }
@@ -1310,7 +1332,7 @@ func (f *File) Node(ctx context.Context) (node *Node, err error) {
 		ID:     f.ID,
 		Type:   "File",
 		Fields: make([]*Field, 10),
-		Edges:  make([]*Edge, 0),
+		Edges:  make([]*Edge, 5),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(f.CreateTime); err != nil {
@@ -1392,6 +1414,62 @@ func (f *File) Node(ctx context.Context) (node *Node, err error) {
 		Type:  "string",
 		Name:  "Category",
 		Value: string(buf),
+	}
+	var ids []int
+	ids, err = f.QueryLocation().
+		Select(location.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[0] = &Edge{
+		IDs:  ids,
+		Type: "Location",
+		Name: "Location",
+	}
+	ids, err = f.QueryEquipment().
+		Select(equipment.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		IDs:  ids,
+		Type: "Equipment",
+		Name: "Equipment",
+	}
+	ids, err = f.QueryUser().
+		Select(user.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[2] = &Edge{
+		IDs:  ids,
+		Type: "User",
+		Name: "User",
+	}
+	ids, err = f.QueryWorkOrder().
+		Select(workorder.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[3] = &Edge{
+		IDs:  ids,
+		Type: "WorkOrder",
+		Name: "WorkOrder",
+	}
+	ids, err = f.QueryChecklistItem().
+		Select(checklistitem.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[4] = &Edge{
+		IDs:  ids,
+		Type: "CheckListItem",
+		Name: "ChecklistItem",
 	}
 	return node, nil
 }
@@ -1607,7 +1685,7 @@ func (h *Hyperlink) Node(ctx context.Context) (node *Node, err error) {
 		ID:     h.ID,
 		Type:   "Hyperlink",
 		Fields: make([]*Field, 5),
-		Edges:  make([]*Edge, 0),
+		Edges:  make([]*Edge, 1),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(h.CreateTime); err != nil {
@@ -1649,6 +1727,18 @@ func (h *Hyperlink) Node(ctx context.Context) (node *Node, err error) {
 		Type:  "string",
 		Name:  "Category",
 		Value: string(buf),
+	}
+	var ids []int
+	ids, err = h.QueryWorkOrder().
+		Select(workorder.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[0] = &Edge{
+		IDs:  ids,
+		Type: "WorkOrder",
+		Name: "WorkOrder",
 	}
 	return node, nil
 }

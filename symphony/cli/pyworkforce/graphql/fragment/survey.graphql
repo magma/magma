@@ -1,0 +1,13 @@
+fragment SurveyFragment on Survey {
+  id
+  name
+  completionTimestamp
+  sourceFile {
+    id
+    fileName
+    storeKey
+  }
+  surveyResponses {
+    ...SurveyQuestionFragment
+  }
+}

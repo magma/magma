@@ -449,6 +449,7 @@ var (
 		{Name: "location_files", Type: field.TypeInt, Nullable: true},
 		{Name: "survey_question_photo_data", Type: field.TypeInt, Nullable: true},
 		{Name: "survey_question_images", Type: field.TypeInt, Nullable: true},
+		{Name: "user_profile_photo", Type: field.TypeInt, Unique: true, Nullable: true},
 		{Name: "work_order_files", Type: field.TypeInt, Nullable: true},
 	}
 	// FilesTable holds the schema information for the "files" table.
@@ -493,8 +494,15 @@ var (
 				OnDelete:   schema.SetNull,
 			},
 			{
-				Symbol:  "files_work_orders_files",
+				Symbol:  "files_users_profile_photo",
 				Columns: []*schema.Column{FilesColumns[16]},
+
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:  "files_work_orders_files",
+				Columns: []*schema.Column{FilesColumns[17]},
 
 				RefColumns: []*schema.Column{WorkOrdersColumns[0]},
 				OnDelete:   schema.SetNull,
@@ -1433,22 +1441,13 @@ var (
 		{Name: "email", Type: field.TypeString, Nullable: true},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "DEACTIVATED"}, Default: "ACTIVE"},
 		{Name: "role", Type: field.TypeEnum, Enums: []string{"USER", "ADMIN", "OWNER"}, Default: "USER"},
-		{Name: "user_profile_photo", Type: field.TypeInt, Nullable: true},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{
-		Name:       "users",
-		Columns:    UsersColumns,
-		PrimaryKey: []*schema.Column{UsersColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:  "users_files_profile_photo",
-				Columns: []*schema.Column{UsersColumns[9]},
-
-				RefColumns: []*schema.Column{FilesColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-		},
+		Name:        "users",
+		Columns:     UsersColumns,
+		PrimaryKey:  []*schema.Column{UsersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{},
 	}
 	// UsersGroupsColumns holds the columns for the "users_groups" table.
 	UsersGroupsColumns = []*schema.Column{
@@ -1789,7 +1788,8 @@ func init() {
 	FilesTable.ForeignKeys[2].RefTable = LocationsTable
 	FilesTable.ForeignKeys[3].RefTable = SurveyQuestionsTable
 	FilesTable.ForeignKeys[4].RefTable = SurveyQuestionsTable
-	FilesTable.ForeignKeys[5].RefTable = WorkOrdersTable
+	FilesTable.ForeignKeys[5].RefTable = UsersTable
+	FilesTable.ForeignKeys[6].RefTable = WorkOrdersTable
 	FloorPlansTable.ForeignKeys[0].RefTable = LocationsTable
 	FloorPlansTable.ForeignKeys[1].RefTable = FloorPlanReferencePointsTable
 	FloorPlansTable.ForeignKeys[2].RefTable = FloorPlanScalesTable
@@ -1841,7 +1841,6 @@ func init() {
 	SurveyWiFiScansTable.ForeignKeys[0].RefTable = CheckListItemsTable
 	SurveyWiFiScansTable.ForeignKeys[1].RefTable = SurveyQuestionsTable
 	SurveyWiFiScansTable.ForeignKeys[2].RefTable = LocationsTable
-	UsersTable.ForeignKeys[0].RefTable = FilesTable
 	WorkOrdersTable.ForeignKeys[0].RefTable = ProjectsTable
 	WorkOrdersTable.ForeignKeys[1].RefTable = WorkOrderTypesTable
 	WorkOrdersTable.ForeignKeys[2].RefTable = LocationsTable

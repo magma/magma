@@ -49,7 +49,7 @@ executors:
   terraform:
     parameters:
       tag:
-        default: 0.12.24
+        default: 0.12.25
         type: string
     docker:
       - image: hashicorp/terraform:<<parameters.tag>>
@@ -344,7 +344,7 @@ jobs:
           name: Collect tests results
           command: |
             mv integration/tests/integration.xml ~/test-results/
-            mv cli/tests/*.xml ~/test-results/
+            mv cli/TEST-*.xml ~/test-results/
           when: always
       - run:
           name: Stop and remove containers

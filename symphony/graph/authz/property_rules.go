@@ -7,6 +7,8 @@ package authz
 import (
 	"context"
 
+	"github.com/facebookincubator/symphony/graph/ent/predicate"
+
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/locationtype"
@@ -15,8 +17,6 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/projecttype"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
-	"github.com/facebookincubator/symphony/graph/ent/workorder"
-	"github.com/facebookincubator/symphony/graph/ent/workordertype"
 )
 
 // PropertyTypeWritePolicyRule grants write permission to property type based on policy.
@@ -143,18 +143,7 @@ func PropertyWritePolicyRule() privacy.MutationRule {
 		case prop.Edges.Service != nil:
 			return allowOrSkip(p.InventoryPolicy.Equipment.Update)
 		case prop.Edges.WorkOrder != nil:
-			allowed, err := workOrderIsEditable(ctx, prop.Edges.WorkOrder)
-			if err != nil {
-				return privacy.Denyf(err.Error())
-			}
-			if allowed {
-				return privacy.Allow
-			}
-			workOrderTypeID, err := prop.Edges.WorkOrder.QueryType().OnlyID(ctx)
-			if err != nil {
-				return privacy.Denyf("failed to fetch work order type id: %w", err)
-			}
-			return privacyDecision(checkWorkforce(p.WorkforcePolicy.Data.Update, &workOrderTypeID, nil))
+			return allowOrSkipWorkOrder(ctx, p, prop.Edges.WorkOrder)
 		case prop.Edges.Project != nil:
 			projectTypeID, err := prop.Edges.Project.QueryType().OnlyID(ctx)
 			if err != nil {
@@ -206,23 +195,7 @@ func PropertyCreatePolicyRule() privacy.MutationRule {
 				}
 				return privacy.Skip
 			}
-			allowed, err := workOrderIsEditable(ctx, workOrder)
-			if err != nil {
-				return privacy.Denyf(err.Error())
-			}
-			if allowed {
-				return privacy.Allow
-			}
-			workOrderTypeID, err := m.Client().WorkOrderType.Query().
-				Where(workordertype.HasWorkOrdersWith(workorder.ID(workOrderID))).
-				OnlyID(ctx)
-			if err != nil {
-				if ent.IsNotFound(err) {
-					return privacy.Skip
-				}
-				return privacy.Denyf("failed to fetch work order type id: %w", err)
-			}
-			return privacyDecision(checkWorkforce(p.WorkforcePolicy.Data.Update, &workOrderTypeID, nil))
+			return allowOrSkipWorkOrder(ctx, p, workOrder)
 		}
 		if projectID, exists := m.ProjectID(); exists {
 			projectTypeID, err := m.Client().ProjectType.Query().
@@ -236,6 +209,29 @@ func PropertyCreatePolicyRule() privacy.MutationRule {
 			}
 			return privacyDecision(checkWorkforce(p.WorkforcePolicy.Data.Update, nil, &projectTypeID))
 		}
+		return privacy.Skip
+	})
+}
+
+// PropertyReadPolicyRule grants read permission to property based on policy.
+func PropertyReadPolicyRule() privacy.QueryRule {
+	return privacy.PropertyQueryRuleFunc(func(ctx context.Context, q *ent.PropertyQuery) error {
+		var predicates []predicate.Property
+		woPredicate := workOrderReadPredicate(ctx)
+		if woPredicate != nil {
+			predicates = append(predicates,
+				property.Or(
+					property.Not(property.HasWorkOrder()),
+					property.HasWorkOrderWith(woPredicate)))
+		}
+		projectPredicate := projectReadPredicate(ctx)
+		if projectPredicate != nil {
+			predicates = append(predicates,
+				property.Or(
+					property.Not(property.HasProject()),
+					property.HasProjectWith(projectPredicate)))
+		}
+		q.Where(predicates...)
 		return privacy.Skip
 	})
 }

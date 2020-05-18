@@ -12,7 +12,12 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
+	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/file"
+	"github.com/facebookincubator/symphony/graph/ent/location"
+	"github.com/facebookincubator/symphony/graph/ent/user"
+	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
 
 // File is the model entity for the File schema.
@@ -39,13 +44,104 @@ type File struct {
 	// StoreKey holds the value of the "store_key" field.
 	StoreKey string `json:"store_key,omitempty"`
 	// Category holds the value of the "category" field.
-	Category                   string `json:"category,omitempty"`
+	Category string `json:"category,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the FileQuery when eager-loading is set.
+	Edges                      FileEdges `json:"edges"`
 	check_list_item_files      *int
 	equipment_files            *int
 	location_files             *int
 	survey_question_photo_data *int
 	survey_question_images     *int
+	user_profile_photo         *int
 	work_order_files           *int
+}
+
+// FileEdges holds the relations/edges for other nodes in the graph.
+type FileEdges struct {
+	// Location holds the value of the location edge.
+	Location *Location
+	// Equipment holds the value of the equipment edge.
+	Equipment *Equipment
+	// User holds the value of the user edge.
+	User *User
+	// WorkOrder holds the value of the work_order edge.
+	WorkOrder *WorkOrder
+	// ChecklistItem holds the value of the checklist_item edge.
+	ChecklistItem *CheckListItem
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [5]bool
+}
+
+// LocationOrErr returns the Location value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e FileEdges) LocationOrErr() (*Location, error) {
+	if e.loadedTypes[0] {
+		if e.Location == nil {
+			// The edge location was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: location.Label}
+		}
+		return e.Location, nil
+	}
+	return nil, &NotLoadedError{edge: "location"}
+}
+
+// EquipmentOrErr returns the Equipment value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e FileEdges) EquipmentOrErr() (*Equipment, error) {
+	if e.loadedTypes[1] {
+		if e.Equipment == nil {
+			// The edge equipment was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: equipment.Label}
+		}
+		return e.Equipment, nil
+	}
+	return nil, &NotLoadedError{edge: "equipment"}
+}
+
+// UserOrErr returns the User value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e FileEdges) UserOrErr() (*User, error) {
+	if e.loadedTypes[2] {
+		if e.User == nil {
+			// The edge user was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: user.Label}
+		}
+		return e.User, nil
+	}
+	return nil, &NotLoadedError{edge: "user"}
+}
+
+// WorkOrderOrErr returns the WorkOrder value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e FileEdges) WorkOrderOrErr() (*WorkOrder, error) {
+	if e.loadedTypes[3] {
+		if e.WorkOrder == nil {
+			// The edge work_order was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: workorder.Label}
+		}
+		return e.WorkOrder, nil
+	}
+	return nil, &NotLoadedError{edge: "work_order"}
+}
+
+// ChecklistItemOrErr returns the ChecklistItem value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e FileEdges) ChecklistItemOrErr() (*CheckListItem, error) {
+	if e.loadedTypes[4] {
+		if e.ChecklistItem == nil {
+			// The edge checklist_item was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: checklistitem.Label}
+		}
+		return e.ChecklistItem, nil
+	}
+	return nil, &NotLoadedError{edge: "checklist_item"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -73,6 +169,7 @@ func (*File) fkValues() []interface{} {
 		&sql.NullInt64{}, // location_files
 		&sql.NullInt64{}, // survey_question_photo_data
 		&sql.NullInt64{}, // survey_question_images
+		&sql.NullInt64{}, // user_profile_photo
 		&sql.NullInt64{}, // work_order_files
 	}
 }
@@ -172,6 +269,12 @@ func (f *File) assignValues(values ...interface{}) error {
 			*f.survey_question_images = int(value.Int64)
 		}
 		if value, ok := values[5].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field user_profile_photo", value)
+		} else if value.Valid {
+			f.user_profile_photo = new(int)
+			*f.user_profile_photo = int(value.Int64)
+		}
+		if value, ok := values[6].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field work_order_files", value)
 		} else if value.Valid {
 			f.work_order_files = new(int)
@@ -179,6 +282,31 @@ func (f *File) assignValues(values ...interface{}) error {
 		}
 	}
 	return nil
+}
+
+// QueryLocation queries the location edge of the File.
+func (f *File) QueryLocation() *LocationQuery {
+	return (&FileClient{config: f.config}).QueryLocation(f)
+}
+
+// QueryEquipment queries the equipment edge of the File.
+func (f *File) QueryEquipment() *EquipmentQuery {
+	return (&FileClient{config: f.config}).QueryEquipment(f)
+}
+
+// QueryUser queries the user edge of the File.
+func (f *File) QueryUser() *UserQuery {
+	return (&FileClient{config: f.config}).QueryUser(f)
+}
+
+// QueryWorkOrder queries the work_order edge of the File.
+func (f *File) QueryWorkOrder() *WorkOrderQuery {
+	return (&FileClient{config: f.config}).QueryWorkOrder(f)
+}
+
+// QueryChecklistItem queries the checklist_item edge of the File.
+func (f *File) QueryChecklistItem() *CheckListItemQuery {
+	return (&FileClient{config: f.config}).QueryChecklistItem(f)
 }
 
 // Update returns a builder for updating this File.

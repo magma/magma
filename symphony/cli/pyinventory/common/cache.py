@@ -14,7 +14,6 @@ T = TypeVar("T")
 
 
 class Cache(MutableMapping[str, T]):
-
     def __init__(self, entity: Entity) -> None:
         self.store: Dict[str, T] = {}
         self.entity = entity
@@ -45,3 +44,10 @@ LOCATION_TYPES = Cache[LocationType](Entity.LocationType)
 EQUIPMENT_TYPES = Cache[EquipmentType](Entity.EquipmentType)
 SERVICE_TYPES = Cache[ServiceType](Entity.ServiceType)
 PORT_TYPES = Cache[EquipmentPortType](Entity.EquipmentPortType)
+
+
+def clear_types() -> None:
+    LOCATION_TYPES.clear()
+    EQUIPMENT_TYPES.clear()
+    SERVICE_TYPES.clear()
+    PORT_TYPES.clear()

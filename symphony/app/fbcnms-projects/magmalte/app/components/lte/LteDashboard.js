@@ -10,6 +10,7 @@
  */
 
 import AppBar from '@material-ui/core/AppBar';
+import DashboardAlertTable from '../DashboardAlertTable';
 import EnodebKPIs from '../EnodebKPIs';
 import EventAlertChart from '../EventAlertChart';
 import GatewayKPIs from '../GatewayKPIs';
@@ -21,8 +22,8 @@ import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import moment from 'moment';
-import {Alarm, GpsFixed, NetworkCheck} from '@material-ui/icons';
 import {DateTimePicker} from '@material-ui/pickers';
+import {GpsFixed, NetworkCheck} from '@material-ui/icons';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
@@ -158,14 +159,7 @@ function LteNetworkDashboard({startEnd}: {startEnd: [moment, moment]}) {
         </Grid>
 
         <Grid item xs={12}>
-          <Text>
-            <Alarm /> Alerts (92)
-          </Text>
-          <Paper>
-            <div className={classes.contentPlaceholder}>
-              Alert Table Goes Here
-            </div>
-          </Paper>
+          <DashboardAlertTable />
         </Grid>
 
         <Grid item xs={6}>
