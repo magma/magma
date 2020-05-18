@@ -111,7 +111,7 @@ func TestOmnipresentRules(t *testing.T) {
 	// With all monitored rules gone, the session should terminate
 	recordsBySubID, err = tr.GetPolicyUsage()
 	assert.NoError(t, err)
-	assert.Empty(t, recordsBySubID)
+	assert.Empty(t, recordsBySubID[prependIMSIPrefix(imsi)])
 
 	// trigger disconnection
 	tr.DisconnectAndAssertSuccess(imsi)

@@ -28,6 +28,7 @@ func (tr *TestRunner) findContainer(cli *dockerClient.Client, serviceName string
 
 //RestartService adds ability to restart a particular service managed by docker
 func (tr *TestRunner) RestartService(serviceName string, cleanRestart bool) error {
+	fmt.Printf("Restarting %v, with clean restart=%v", serviceName, cleanRestart)
 	ctx := context.Background()
 	cli, err := dockerClient.NewEnvClient()
 	if err != nil {
@@ -39,7 +40,7 @@ func (tr *TestRunner) RestartService(serviceName string, cleanRestart bool) erro
 		fmt.Printf("error %v getting container id \n", err)
 		return err
 	}
-	timeout := time.Duration(30 * time.Second)
+	timeout := 30 * time.Second
 	err = cli.ContainerRestart(ctx, containerID, &timeout)
 	return err
 }

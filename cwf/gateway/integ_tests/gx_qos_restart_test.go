@@ -68,7 +68,6 @@ func testQosEnforcementRestart(t *testing.T, cfgCh chan string, restartCfg strin
 	tr := NewTestRunner(t)
 
 	err := tr.RestartService("pipelined", true)
-	fmt.Println("Restarting service")
 
 	if err != nil {
 		fmt.Printf("error restarting pipelined %v", err)
