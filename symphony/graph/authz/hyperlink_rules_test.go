@@ -7,13 +7,52 @@ package authz_test
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/facebookincubator/symphony/graph/authz"
-	models2 "github.com/facebookincubator/symphony/graph/authz/models"
 	"github.com/facebookincubator/symphony/graph/ent/user"
-	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
+	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/stretchr/testify/require"
+
+	models2 "github.com/facebookincubator/symphony/graph/authz/models"
+	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 )
+
+func getHyperlinkCudOperations(
+	ctx context.Context,
+	c *ent.Client,
+	setParent func(*ent.HyperlinkCreate) *ent.HyperlinkCreate,
+) cudOperations {
+	hyperlinkQuery := c.Hyperlink.Create().
+		SetName("BaseHyperlink").
+		SetURL("BaseHyperLinkURL")
+	hyperlinkQuery = setParent(hyperlinkQuery)
+	hyperlink := hyperlinkQuery.SaveX(ctx)
+	createHyperlink := func(ctx context.Context) error {
+		hyperlinkQuery := c.Hyperlink.Create().
+			SetName("Hyperlink").
+			SetURL("HyperLinkURL")
+		hyperlinkQuery = setParent(hyperlinkQuery)
+		_, err := hyperlinkQuery.Save(ctx)
+		return err
+	}
+	updateHyperlink := func(ctx context.Context) error {
+		return c.Hyperlink.UpdateOne(hyperlink).
+			SetName("updatedHyperlink").
+			Exec(ctx)
+	}
+	deleteHyperlink := func(ctx context.Context) error {
+		return c.Hyperlink.DeleteOne(hyperlink).
+			Exec(ctx)
+	}
+	return cudOperations{
+		create: createHyperlink,
+		update: updateHyperlink,
+		delete: deleteHyperlink,
+	}
+}
 
 func TestHyperlinkReadPolicyRule(t *testing.T) {
 	c := viewertest.NewTestClient(t)
@@ -66,5 +105,91 @@ func TestHyperlinkReadPolicyRule(t *testing.T) {
 		count, err := c.Hyperlink.Query().Count(permissionsContext)
 		require.NoError(t, err)
 		require.Equal(t, 2, count)
+	})
+}
+
+func TestEquipmentHyperlinkPolicyRule(t *testing.T) {
+	c := viewertest.NewTestClient(t)
+	ctx := viewertest.NewContext(context.Background(), c)
+	locationType := c.LocationType.Create().
+		SetName("LocationType").
+		SaveX(ctx)
+	location := c.Location.Create().
+		SetName("Location").
+		SetType(locationType).
+		SaveX(ctx)
+	equipType := c.EquipmentType.Create().
+		SetName("EquipmentType").
+		SaveX(ctx)
+	equipment := c.Equipment.Create().
+		SetName("Equipment").
+		SetLocation(location).
+		SetType(equipType).
+		SaveX(ctx)
+
+	cudOperations := getHyperlinkCudOperations(ctx, c, func(fc *ent.HyperlinkCreate) *ent.HyperlinkCreate {
+		return fc.SetEquipment(equipment)
+	})
+	runCudPolicyTest(t, cudPolicyTest{
+		appendPermissions: func(p *models.PermissionSettings) {
+			p.InventoryPolicy.Equipment.Update.IsAllowed = models2.PermissionValueYes
+		},
+		create: cudOperations.create,
+		update: cudOperations.update,
+		delete: cudOperations.delete,
+	})
+}
+
+func TestLocationHyperlinkPolicyRule(t *testing.T) {
+	c := viewertest.NewTestClient(t)
+	ctx := viewertest.NewContext(context.Background(), c)
+	locationType := c.LocationType.Create().
+		SetName("LocationType").
+		SaveX(ctx)
+	location := c.Location.Create().
+		SetName("Location").
+		SetType(locationType).
+		SaveX(ctx)
+
+	cudOperations := getHyperlinkCudOperations(ctx, c, func(fc *ent.HyperlinkCreate) *ent.HyperlinkCreate {
+		return fc.SetLocation(location)
+	})
+	runCudPolicyTest(t, cudPolicyTest{
+		appendPermissions: func(p *models.PermissionSettings) {
+			p.InventoryPolicy.Location.Update.IsAllowed = models2.PermissionValueYes
+		},
+		create: cudOperations.create,
+		update: cudOperations.update,
+		delete: cudOperations.delete,
+	})
+}
+
+func TestWorkOrderHyperlinkPolicyRule(t *testing.T) {
+	c := viewertest.NewTestClient(t)
+	ctx := viewertest.NewContext(context.Background(), c)
+	u := viewer.MustGetOrCreateUser(ctx, "AuthID", user.RoleOWNER)
+	workOrderType := c.WorkOrderType.Create().
+		SetName("WorkOrderType").
+		SaveX(ctx)
+	workOrder := c.WorkOrder.Create().
+		SetName("workOrder").
+		SetType(workOrderType).
+		SetOwner(u).
+		SetCreationDate(time.Now()).
+		SaveX(ctx)
+
+	cudOperations := getHyperlinkCudOperations(ctx, c, func(ptc *ent.HyperlinkCreate) *ent.HyperlinkCreate {
+		return ptc.SetWorkOrder(workOrder)
+	})
+	runCudPolicyTest(t, cudPolicyTest{
+		initialPermissions: func(p *models.PermissionSettings) {
+			p.WorkforcePolicy.Read.IsAllowed = models2.PermissionValueYes
+		},
+		appendPermissions: func(p *models.PermissionSettings) {
+			p.WorkforcePolicy.Data.Update.IsAllowed = models2.PermissionValueYes
+		},
+		create: cudOperations.create,
+		update: cudOperations.update,
+		delete: cudOperations.delete,
 	})
 }

@@ -13,7 +13,9 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/hyperlink"
+	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
@@ -78,6 +80,44 @@ func (hu *HyperlinkUpdate) ClearCategory() *HyperlinkUpdate {
 	return hu
 }
 
+// SetEquipmentID sets the equipment edge to Equipment by id.
+func (hu *HyperlinkUpdate) SetEquipmentID(id int) *HyperlinkUpdate {
+	hu.mutation.SetEquipmentID(id)
+	return hu
+}
+
+// SetNillableEquipmentID sets the equipment edge to Equipment by id if the given value is not nil.
+func (hu *HyperlinkUpdate) SetNillableEquipmentID(id *int) *HyperlinkUpdate {
+	if id != nil {
+		hu = hu.SetEquipmentID(*id)
+	}
+	return hu
+}
+
+// SetEquipment sets the equipment edge to Equipment.
+func (hu *HyperlinkUpdate) SetEquipment(e *Equipment) *HyperlinkUpdate {
+	return hu.SetEquipmentID(e.ID)
+}
+
+// SetLocationID sets the location edge to Location by id.
+func (hu *HyperlinkUpdate) SetLocationID(id int) *HyperlinkUpdate {
+	hu.mutation.SetLocationID(id)
+	return hu
+}
+
+// SetNillableLocationID sets the location edge to Location by id if the given value is not nil.
+func (hu *HyperlinkUpdate) SetNillableLocationID(id *int) *HyperlinkUpdate {
+	if id != nil {
+		hu = hu.SetLocationID(*id)
+	}
+	return hu
+}
+
+// SetLocation sets the location edge to Location.
+func (hu *HyperlinkUpdate) SetLocation(l *Location) *HyperlinkUpdate {
+	return hu.SetLocationID(l.ID)
+}
+
 // SetWorkOrderID sets the work_order edge to WorkOrder by id.
 func (hu *HyperlinkUpdate) SetWorkOrderID(id int) *HyperlinkUpdate {
 	hu.mutation.SetWorkOrderID(id)
@@ -95,6 +135,18 @@ func (hu *HyperlinkUpdate) SetNillableWorkOrderID(id *int) *HyperlinkUpdate {
 // SetWorkOrder sets the work_order edge to WorkOrder.
 func (hu *HyperlinkUpdate) SetWorkOrder(w *WorkOrder) *HyperlinkUpdate {
 	return hu.SetWorkOrderID(w.ID)
+}
+
+// ClearEquipment clears the equipment edge to Equipment.
+func (hu *HyperlinkUpdate) ClearEquipment() *HyperlinkUpdate {
+	hu.mutation.ClearEquipment()
+	return hu
+}
+
+// ClearLocation clears the location edge to Location.
+func (hu *HyperlinkUpdate) ClearLocation() *HyperlinkUpdate {
+	hu.mutation.ClearLocation()
+	return hu
 }
 
 // ClearWorkOrder clears the work_order edge to WorkOrder.
@@ -216,6 +268,76 @@ func (hu *HyperlinkUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: hyperlink.FieldCategory,
 		})
 	}
+	if hu.mutation.EquipmentCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   hyperlink.EquipmentTable,
+			Columns: []string{hyperlink.EquipmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: equipment.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := hu.mutation.EquipmentIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   hyperlink.EquipmentTable,
+			Columns: []string{hyperlink.EquipmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: equipment.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if hu.mutation.LocationCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   hyperlink.LocationTable,
+			Columns: []string{hyperlink.LocationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: location.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := hu.mutation.LocationIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   hyperlink.LocationTable,
+			Columns: []string{hyperlink.LocationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: location.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if hu.mutation.WorkOrderCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -315,6 +437,44 @@ func (huo *HyperlinkUpdateOne) ClearCategory() *HyperlinkUpdateOne {
 	return huo
 }
 
+// SetEquipmentID sets the equipment edge to Equipment by id.
+func (huo *HyperlinkUpdateOne) SetEquipmentID(id int) *HyperlinkUpdateOne {
+	huo.mutation.SetEquipmentID(id)
+	return huo
+}
+
+// SetNillableEquipmentID sets the equipment edge to Equipment by id if the given value is not nil.
+func (huo *HyperlinkUpdateOne) SetNillableEquipmentID(id *int) *HyperlinkUpdateOne {
+	if id != nil {
+		huo = huo.SetEquipmentID(*id)
+	}
+	return huo
+}
+
+// SetEquipment sets the equipment edge to Equipment.
+func (huo *HyperlinkUpdateOne) SetEquipment(e *Equipment) *HyperlinkUpdateOne {
+	return huo.SetEquipmentID(e.ID)
+}
+
+// SetLocationID sets the location edge to Location by id.
+func (huo *HyperlinkUpdateOne) SetLocationID(id int) *HyperlinkUpdateOne {
+	huo.mutation.SetLocationID(id)
+	return huo
+}
+
+// SetNillableLocationID sets the location edge to Location by id if the given value is not nil.
+func (huo *HyperlinkUpdateOne) SetNillableLocationID(id *int) *HyperlinkUpdateOne {
+	if id != nil {
+		huo = huo.SetLocationID(*id)
+	}
+	return huo
+}
+
+// SetLocation sets the location edge to Location.
+func (huo *HyperlinkUpdateOne) SetLocation(l *Location) *HyperlinkUpdateOne {
+	return huo.SetLocationID(l.ID)
+}
+
 // SetWorkOrderID sets the work_order edge to WorkOrder by id.
 func (huo *HyperlinkUpdateOne) SetWorkOrderID(id int) *HyperlinkUpdateOne {
 	huo.mutation.SetWorkOrderID(id)
@@ -332,6 +492,18 @@ func (huo *HyperlinkUpdateOne) SetNillableWorkOrderID(id *int) *HyperlinkUpdateO
 // SetWorkOrder sets the work_order edge to WorkOrder.
 func (huo *HyperlinkUpdateOne) SetWorkOrder(w *WorkOrder) *HyperlinkUpdateOne {
 	return huo.SetWorkOrderID(w.ID)
+}
+
+// ClearEquipment clears the equipment edge to Equipment.
+func (huo *HyperlinkUpdateOne) ClearEquipment() *HyperlinkUpdateOne {
+	huo.mutation.ClearEquipment()
+	return huo
+}
+
+// ClearLocation clears the location edge to Location.
+func (huo *HyperlinkUpdateOne) ClearLocation() *HyperlinkUpdateOne {
+	huo.mutation.ClearLocation()
+	return huo
 }
 
 // ClearWorkOrder clears the work_order edge to WorkOrder.
@@ -450,6 +622,76 @@ func (huo *HyperlinkUpdateOne) sqlSave(ctx context.Context) (h *Hyperlink, err e
 			Type:   field.TypeString,
 			Column: hyperlink.FieldCategory,
 		})
+	}
+	if huo.mutation.EquipmentCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   hyperlink.EquipmentTable,
+			Columns: []string{hyperlink.EquipmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: equipment.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := huo.mutation.EquipmentIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   hyperlink.EquipmentTable,
+			Columns: []string{hyperlink.EquipmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: equipment.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if huo.mutation.LocationCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   hyperlink.LocationTable,
+			Columns: []string{hyperlink.LocationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: location.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := huo.mutation.LocationIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   hyperlink.LocationTable,
+			Columns: []string{hyperlink.LocationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: location.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if huo.mutation.WorkOrderCleared() {
 		edge := &sqlgraph.EdgeSpec{
