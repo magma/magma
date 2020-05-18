@@ -1859,7 +1859,6 @@ func (r mutationResolver) AddService(ctx context.Context, data models.ServiceCre
 	return s, nil
 }
 
-// nolint: funlen
 func (r mutationResolver) EditService(ctx context.Context, data models.ServiceEditData) (*ent.Service, error) {
 	client := r.ClientFrom(ctx)
 	s, err := client.Service.Get(ctx, data.ID)
@@ -2066,9 +2065,7 @@ func (r mutationResolver) EditServiceType(ctx context.Context, data models.Servi
 			return nil, err
 		}
 	}
-
 	return typ, nil
-
 }
 
 func (r mutationResolver) RemoveServiceType(ctx context.Context, id int) (int, error) {

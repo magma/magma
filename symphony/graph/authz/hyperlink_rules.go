@@ -31,12 +31,12 @@ func HyperlinkReadPolicyRule() privacy.QueryRule {
 // HyperlinkWritePolicyRule grants write permission to hyperlink based on policy.
 func HyperlinkWritePolicyRule() privacy.MutationRule {
 	return privacy.HyperlinkMutationRuleFunc(func(ctx context.Context, m *ent.HyperlinkMutation) error {
-		hyperlinkId, exists := m.ID()
+		hyperlinkID, exists := m.ID()
 		if !exists {
 			return privacy.Skip
 		}
 		hyperLink, err := m.Client().Hyperlink.Query().
-			Where(hyperlink.ID(hyperlinkId)).
+			Where(hyperlink.ID(hyperlinkID)).
 			WithEquipment().
 			WithLocation().
 			WithWorkOrder().
@@ -70,10 +70,7 @@ func HyperlinkWritePolicyRule() privacy.MutationRule {
 
 // HyperlinkCreatePolicyRule grants create permission to hyperlink based on policy.
 func HyperlinkCreatePolicyRule() privacy.MutationRule {
-	return privacy.HyperlinkMutationRuleFunc(func(ctx context.Context, m *ent.HyperlinkMutation) error {
-		if !m.Op().Is(ent.OpCreate) {
-			return privacy.Skip
-		}
+	rule := privacy.HyperlinkMutationRuleFunc(func(ctx context.Context, m *ent.HyperlinkMutation) error {
 		p := FromContext(ctx)
 		if _, exists := m.EquipmentID(); exists {
 			return allowOrSkip(p.InventoryPolicy.Equipment.Update)
@@ -102,4 +99,5 @@ func HyperlinkCreatePolicyRule() privacy.MutationRule {
 		}
 		return privacy.Skip
 	})
+	return privacy.OnMutationOperation(rule, ent.OpCreate)
 }

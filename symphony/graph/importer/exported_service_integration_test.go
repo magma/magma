@@ -99,7 +99,6 @@ func writeModifiedCSV(t *testing.T, r *csv.Reader, method method, withVerify boo
 		lines[1][1] = "this"
 		lines[1][2] = "should"
 		lines[1][3] = "fail"
-
 	}
 	for _, l := range lines {
 		stringLine := strings.Join(l, ",")

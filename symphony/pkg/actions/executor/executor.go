@@ -19,12 +19,10 @@ type Executor struct {
 }
 
 // Execute runs all workflows for the specified object/trigger
-func (exc Executor) Execute(ctx context.Context, objectID string, triggerToPayload map[core.TriggerID]map[string]interface{}) ExecutionResult {
-
+func (exc Executor) Execute(ctx context.Context, _ string, triggerToPayload map[core.TriggerID]map[string]interface{}) ExecutionResult {
 	// Note that we should keep this interface serializable, so if we need to eventually
 	// offload this to workers, we can
-
-	execResult := ExecutionResult{}
+	var execResult ExecutionResult
 	for triggerID, inputPayload := range triggerToPayload {
 		trigger, err := exc.Registry.TriggerForID(triggerID)
 		if err != nil {

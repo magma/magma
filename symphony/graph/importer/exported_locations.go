@@ -287,7 +287,7 @@ func (m *importer) getLocationPropertyInputs(ctx context.Context, importLine Imp
 	var inputs []*models.PropertyInput
 	for _, propType := range propTypes {
 		propName := propType.Name
-		inp, err := importLine.GetPropertyInput(m.ClientFrom(ctx), ctx, typ, propName)
+		inp, err := importLine.GetPropertyInput(ctx, typ, propName)
 		if inp == nil {
 			continue
 		}
@@ -372,7 +372,7 @@ func (m *importer) validatePropertiesForLocationType(ctx context.Context, line I
 	}
 	for _, propType := range propTypes {
 		ptypeName := propType.Name
-		pInput, err := line.GetPropertyInput(m.ClientFrom(ctx), ctx, locType, ptypeName)
+		pInput, err := line.GetPropertyInput(ctx, locType, ptypeName)
 		if err != nil {
 			return nil, err
 		}

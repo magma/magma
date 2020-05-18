@@ -57,7 +57,6 @@ func (m *jobs) syncServices(w http.ResponseWriter, r *http.Request) {
 				continue
 			}
 			sc.deleted++
-
 		}
 		err = m.validateEndpointsExistAndLinked(ctx, srvc)
 		if err != nil {
