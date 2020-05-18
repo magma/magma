@@ -82,9 +82,27 @@ router.delete('/metadata/taskdef/:name', async (req, res, next) => {
   }
 });
 
+const findSchedule = (schedules, name) => {
+  for (const schedule of schedules) {
+    if (schedule.name === name) {
+      return schedule;
+    }
+  }
+  return null;
+};
+
 router.get('/metadata/workflow', async (req, res, next) => {
   try {
     const result = await http.get(baseURLMeta + 'workflow', req);
+    // combine with schedules
+    const schedules = await http.get(baseURLSchedule, req);
+    for (const workflowDef of result) {
+      const expectedScheduleName = workflowDef.name + ':' + workflowDef.version;
+      const found = findSchedule(schedules, expectedScheduleName);
+      workflowDef.hasSchedule = found != null;
+      workflowDef.expectedScheduleName = expectedScheduleName;
+    }
+
     res.status(200).send({result});
   } catch (err) {
     next(err);
@@ -506,6 +524,7 @@ router.put('/schedule/:name', async (req, res, next) => {
       const result = await http.put(urlWithName, req.body, req);
       res.status(result.statusCode).send(result.text);
     } catch (err) {
+      logger.warn('Failed to POST and PUT', {error: err});
       next(err);
     }
   }

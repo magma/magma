@@ -1,39 +1,40 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   Accordion,
   Button,
   Card,
   Col,
   Container,
-  Form,
   Row,
   Table
 } from "react-bootstrap";
-import { Typeahead } from "react-bootstrap-typeahead";
-import "react-bootstrap-typeahead/css/Typeahead.css";
 import { withRouter } from "react-router-dom";
 import PageCount from "../../../common/PageCount";
 import PageSelect from "../../../common/PageSelect";
-import { HttpClient as http } from "../../../common/HttpClient";
 import { conductorApiUrlPrefix, frontendUrlPrefix } from "../../../constants";
 import SchedulingModal from "./SchedulingModal/SchedulingModal";
-import DiagramModal from "../WorkflowDefs/DiagramModal/DiagramModal";
+import superagent from "superagent";
 
 const Scheduling = props => {
   const [showSchedulingModal, setShowSchedulingModal] = useState(false);
-  const [activeScheduleName, setActiveScheduleName] = useState();
   const [activeRow, setActiveRow] = useState();
 
   const refresh = () => {
-    http.get(conductorApiUrlPrefix + "/schedule").then(res => {
-      let size = Math.floor(res.length / defaultPages);
-      let dataset = res.sort((a, b) =>
-          a.name > b.name ? 1 : b.name > a.name ? -1 : 0
-        ) || [];
-      setData(dataset);
-      setPagesCount(res.length % defaultPages ? ++size : size);
-      deselectActiveRow();
-      return dataset;
+    const path = conductorApiUrlPrefix + "/schedule/";
+    const req = superagent.get(path).accept("application/json");
+    req.end((err, res) => {
+      if (res && res.ok && Array.isArray(res.body)) {
+        const result = res.body;
+        let size = Math.floor(result.length / defaultPages);
+        let dataset = result.sort((a, b) =>
+            a.name > b.name ? 1 : b.name > a.name ? -1 : 0
+          ) || [];
+        setData(dataset);
+        setPagesCount(result.length % defaultPages ? ++size : size);
+        deselectActiveRow();
+      } else {
+        // TODO
+      }
     });
     return [];
   };
@@ -43,10 +44,8 @@ const Scheduling = props => {
   const [defaultPages, setDefaultPages] = useState(20);
   const [viewedPage, setViewedPage] = useState(1);
 
-
   const deselectActiveRow = () => {
     setActiveRow(null);
-    setActiveScheduleName(null);
   }
 
   const changeActiveRow = (i) => {
@@ -55,7 +54,6 @@ const Scheduling = props => {
       deselectActiveRow();
     } else {
       setActiveRow(i);
-      setActiveScheduleName(data[i]["name"]);
     }
   };
 
@@ -66,12 +64,18 @@ const Scheduling = props => {
   };
 
   const deleteEntry = (schedulingEntry) => {
-    console.log("Deleting", schedulingEntry.name);
-    http
-      .delete(conductorApiUrlPrefix + "/schedule/" + schedulingEntry.name)
-      .then(() => {
+
+    const path = conductorApiUrlPrefix + "/schedule/" + schedulingEntry.name;
+    const req = superagent.delete(path).accept("application/json");
+    req.end((err, res) => {
+      if (res && res.ok) {
         deselectActiveRow();
-      });
+        refresh();
+      } else {
+        // TODO
+        alert("Network error");
+      }
+    });
   };
 
   const repeat = () => {
@@ -140,15 +144,36 @@ const Scheduling = props => {
     refresh();
   }
 
+  const getActiveScheduleName = () => {
+    if (activeRow != null && data[activeRow] != null) {
+      return data[activeRow]["name"];
+    }
+    return null;
+  }
+
+  const getActiveWorkflowName = () => {
+    if (activeRow != null && data[activeRow] != null) {
+      return data[activeRow]["workflowName"];
+    }
+    return null;
+  }
+
+  const getActiveWorkflowVersion = () => {
+    if (activeRow != null && data[activeRow] != null) {
+      return data[activeRow]["workflowVersion"];
+    }
+    return null;
+  }
+
   return (
     <div>
-      {showSchedulingModal ? (
       <SchedulingModal
-        name={activeScheduleName}
+        name={getActiveScheduleName()}
+        workflowName={getActiveWorkflowName()}
+        workflowVersion={getActiveWorkflowVersion()}
         onClose={onModalClose}
+        show={showSchedulingModal}
       />
-      ) : null}
-
       <Button variant="outline-primary" style={{ marginLeft: "30px" }}
       onClick={() => refresh()}>
         <i className="fas fa-sync" />&nbsp;&nbsp;Refresh

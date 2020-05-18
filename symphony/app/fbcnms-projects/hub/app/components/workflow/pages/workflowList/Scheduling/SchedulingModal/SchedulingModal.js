@@ -1,36 +1,51 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Button, Modal, Form } from "react-bootstrap";
-import WorkflowDia from "../../WorkflowExec/DetailsModal/WorkflowDia/WorkflowDia";
-import { HttpClient as http } from "../../../../common/HttpClient";
 import { conductorApiUrlPrefix } from "../../../../constants";
+import superagent from "superagent";
 
 const stateSubmit = "Submit";
 const stateSubmitting = "Submitting..."
 
 const SchedulingModal = props => {
-  const [schedule, setSchedule] = useState(()=>{
-    http
-      .get(conductorApiUrlPrefix + "/schedule/" + props.name)
-      .then(res => {
-        setSchedule(res);
-      });
-    return null;
-  });
-  const [status, setStatus] = useState(stateSubmit);
+  const [schedule, setSchedule] = useState();
+  const [status, setStatus] = useState();
   const [error, setError] = useState();
 
   const handleClose = () => {
     props.onClose();
   };
 
+  const handleShow = () => {
+    setSchedule(null);
+    setStatus(stateSubmit);
+    setError(null);
+    const path = conductorApiUrlPrefix + "/schedule/" + props.name;
+    const req = superagent.get(path).accept("application/json");
+    req.end((err, res) => {
+      if (res && res.ok) {
+        setSchedule(res.body);
+      } else {
+        setSchedule({
+          name: props.name,
+          workflowName: props.workflowName,
+          workflowVersion: props.workflowVersion + '' // must be string
+        })
+      }
+    });
+  }
+
   const submitForm = () => {
     setError(null);
     setStatus(stateSubmitting);
-    http.put(conductorApiUrlPrefix + "/schedule/" + schedule.name, schedule).then(res => {
-      handleClose();
-    }).catch(error => {
-      setStatus(stateSubmit);
-      setError("Request failed:" + error);
+    const path = conductorApiUrlPrefix + "/schedule/" + props.name;
+    const req = superagent.put(path, schedule).set("Content-Type", "application/json");
+    req.end((err, res) => {
+      if (res && res.ok) {
+        handleClose();
+      } else {
+        setStatus(stateSubmit);
+        setError("Request failed:" + err);
+      }
     });
   }
 
@@ -72,11 +87,12 @@ const SchedulingModal = props => {
     <Modal
       size="lg"
       dialogClassName="modal-70w"
-      show="true"
+      show={props.show}
       onHide={handleClose}
+      onShow={handleShow}
     >
       <Modal.Header>
-        <Modal.Title>Schedule Details</Modal.Title>
+        <Modal.Title>Schedule Details - {props.name}</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <Form onSubmit={submitForm}>
