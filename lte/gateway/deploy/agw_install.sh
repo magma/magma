@@ -105,7 +105,7 @@ if [ "$MAGMA_INSTALLED" != "$SUCCESS_MESSAGE" ]; then
 
   git clone https://github.com/facebookincubator/magma.git /home/$MAGMA_USER/magma
   cd /home/$MAGMA_USER/magma
-  git checkout v1.0.1
+  git checkout v1.1
 
   echo "Generating localhost hostfile for Ansible"
   echo "[ovs_build]
