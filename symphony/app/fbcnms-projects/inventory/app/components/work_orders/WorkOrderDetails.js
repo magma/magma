@@ -304,7 +304,7 @@ const WorkOrderDetails = ({
             });
             const nonOwnerAssignee =
               permissionsEnforcementIsOn &&
-              form.alerts.editLock.check({
+              form.alerts.missingPermissions.check({
                 fieldId: 'NonOwnerAssigneeRule',
                 fieldDisplayName: 'Non Owner assignee rule',
                 value: propsWorkOrder,

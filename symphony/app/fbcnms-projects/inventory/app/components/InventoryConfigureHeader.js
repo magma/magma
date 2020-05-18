@@ -73,13 +73,13 @@ const InventoryConfigureHeader = (props: Props) => {
             title,
             action,
             ignorePermissions,
-            hideOnEditLock,
+            hideOnMissingPermissions,
             ...otherButtonProps
           } = actionButton;
           return (
             <FormAction
               ignorePermissions={ignorePermissions}
-              hideOnEditLock={hideOnEditLock}>
+              hideOnMissingPermissions={hideOnMissingPermissions}>
               <Button
                 {...otherButtonProps}
                 className={classes.actionButton}

@@ -94,7 +94,7 @@ const CheckListCategoryTable = (props: CheckListCategoryTableProps) => {
               <TextInput
                 id="title"
                 variant="outlined"
-                disabled={form.alerts.editLock.detected}
+                disabled={form.alerts.missingPermissions.detected}
                 defaultValue={row.value.title}
                 autoFocus={true}
                 placeholder={`${fbt(
@@ -122,7 +122,7 @@ const CheckListCategoryTable = (props: CheckListCategoryTableProps) => {
               <TextInput
                 id="description"
                 variant="outlined"
-                disabled={form.alerts.editLock.detected}
+                disabled={form.alerts.missingPermissions.detected}
                 defaultValue={row.value.description || ''}
                 placeholder={`${fbt(
                   'Short description of category (optional)',
@@ -150,7 +150,7 @@ const CheckListCategoryTable = (props: CheckListCategoryTableProps) => {
                 skin="gray"
                 disabled={
                   row.value.checkList.length === 0 &&
-                  form.alerts.editLock.detected
+                  form.alerts.missingPermissions.detected
                 }
                 className={classes.addItemsButton}
                 onClick={() => setBrowsedCheckListCategoryId(row.value.id)}>
@@ -174,7 +174,7 @@ const CheckListCategoryTable = (props: CheckListCategoryTableProps) => {
             key: '3',
             title: '',
             render: row =>
-              form.alerts.editLock.detected ? null : (
+              form.alerts.missingPermissions.detected ? null : (
                 <Button
                   variant="text"
                   className={classes.deleteButton}

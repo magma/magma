@@ -91,7 +91,7 @@ const CheckListItemDefinitionBase = ({children, item, onChange}: Props) => {
         <Grid item xs={6} l={5}>
           <TextInput
             type="string"
-            disabled={form.alerts.editLock.detected}
+            disabled={form.alerts.missingPermissions.detected}
             placeholder={config.titlePlaceholder}
             value={item.title}
             onChange={({target: {value}}) =>
@@ -107,7 +107,7 @@ const CheckListItemDefinitionBase = ({children, item, onChange}: Props) => {
         <Grid item xs={5} l={4}>
           <Select
             className={classes.typeSelector}
-            disabled={form.alerts.editLock.detected}
+            disabled={form.alerts.missingPermissions.detected}
             options={Object.keys(CheckListItemConfigs).map(
               (itemType: CheckListItemType) => {
                 const Icon = CheckListItemConfigs[itemType].icon;
@@ -138,7 +138,7 @@ const CheckListItemDefinitionBase = ({children, item, onChange}: Props) => {
       </Grid>
       <TextInput
         type="string"
-        disabled={form.alerts.editLock.detected}
+        disabled={form.alerts.missingPermissions.detected}
         placeholder={fbt('Additional instructions (optional)', '')}
         value={item.helpText ?? ''}
         onChange={({target: {value}}) =>
@@ -155,7 +155,7 @@ const CheckListItemDefinitionBase = ({children, item, onChange}: Props) => {
         <Button
           variant="text"
           skin="gray"
-          disabled={form.alerts.editLock.detected}
+          disabled={form.alerts.missingPermissions.detected}
           onClick={() => dispatch({type: 'REMOVE_ITEM', itemId: item.id})}>
           <DeleteIcon />
         </Button>

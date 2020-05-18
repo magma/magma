@@ -46,10 +46,10 @@ const CheckListCategoryExpandingPanel = ({
       allowExpandCollapse={hasCheckListCategories}
       title={fbt('Checklist Categories', 'Checklist section header')}
       rightContent={
-        form.alerts.editLock.detected ? null : (
+        form.alerts.missingPermissions.detected ? null : (
           <Button
             variant="text"
-            disabled={form.alerts.editLock.detected}
+            disabled={form.alerts.missingPermissions.detected}
             onClick={() => dispatch({type: 'ADD_CATEGORY'})}>
             <AddIcon color="primary" />
           </Button>

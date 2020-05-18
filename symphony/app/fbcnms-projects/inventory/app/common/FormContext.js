@@ -196,10 +196,10 @@ export function FormContextProvider(props: Props) {
               enforcePermissions(
                 me.permissions,
                 permissions,
-                alerts.editLock.check,
+                alerts.missingPermissions.check,
               );
             } else {
-              alerts.editLock.check({
+              alerts.missingPermissions.check({
                 fieldId: 'System Rules',
                 fieldDisplayName: 'Read Only User',
                 value: me?.permissions.canWrite,

@@ -95,7 +95,7 @@ const NewUserDialog = ({onClose}: Props) => {
       <FormContextProvider permissions={{adminRightsRequired: true}}>
         <FormContext.Consumer>
           {form => {
-            form.alerts.editLock.check({
+            form.alerts.missingPermissions.check({
               fieldId: 'async_save',
               fieldDisplayName: 'Lock while saving',
               value: creatingUser,

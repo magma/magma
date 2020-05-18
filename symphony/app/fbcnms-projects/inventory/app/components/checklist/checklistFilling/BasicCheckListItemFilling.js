@@ -44,7 +44,7 @@ const BasicCheckListItemFilling = ({
   return (
     <div className={classes.container}>
       <Button
-        disabled={form.alerts.editLock.detected}
+        disabled={form.alerts.missingPermissions.detected}
         onClick={updateOnChange}
         variant="text">
         {item.checked
