@@ -821,13 +821,33 @@ bool LocalEnforcer::init_session_credit(
     }
   }
   // We don't have to check 'success' field for monitors because command level
-  // errors are handled in session proxy
+  // errors are handled in session proxy for the init exchange
+  // Since revalidation timer is session wide, we will only schedule one for
+  // the entire session
+
+  // TODO [REMOVE] We will log error in case we get an unexpected input here
+  // The expectation is that if event triggers should be included in all
+  // monitors or none
+  auto revalidation_scheduled = false;
+  google::protobuf::Timestamp revalidation_time;
+
   for (const auto& monitor : response.usage_monitors()) {
-    if (revalidation_required(monitor.event_triggers())) {
+    if (!revalidation_scheduled && revalidation_required(monitor.event_triggers())) {
       // TODO This will not work since the session is not initialized properly
       // at this point
-      schedule_revalidation(session_map, monitor.revalidation_time());
-    }
+      schedule_revalidation(imsi, monitor.revalidation_time());
+      revalidation_scheduled = true;
+
+      // TODO remove after confirming this isn't causing issues
+      revalidation_time = monitor.revalidation_time();
+    } else if (revalidation_scheduled &&
+          !revalidation_required(monitor.event_triggers())) {
+        // TODO [Remove This Clause]
+        auto time_from_now_ms = time_difference_from_now(revalidation_time);
+        MLOG(MWARNING) << imsi << " received some usage monitors with a "
+                       << "revalidation timer in " << time_from_now_ms.count()
+                       << " and some without";
+      }
     auto uc = get_default_update_criteria();
     session_state->get_monitor_pool().receive_credit(monitor, uc);
   }
@@ -1076,6 +1096,15 @@ void LocalEnforcer::update_monitoring_credits_and_rules(
       continue;
     }
 
+    // Since revalidation timer is session wide, we will only schedule one for
+    // the entire session
+
+    // TODO [REMOVE] We will log error in case we get an unexpected input here
+    // The expectation is that if event triggers should be included in all
+    // monitors or none
+    bool revalidation_scheduled = false;
+    google::protobuf::Timestamp revalidation_time;
+
     for (const auto& session : it->second) {
       auto& update_criteria = session_update[imsi][session->get_session_id()];
       session->get_monitor_pool().receive_credit(
@@ -1131,9 +1160,19 @@ void LocalEnforcer::update_monitoring_credits_and_rules(
         subscribers_to_terminate.insert(imsi);
       }
 
-      if (revalidation_required(usage_monitor_resp.event_triggers())) {
-        schedule_revalidation(
-            session_map, usage_monitor_resp.revalidation_time());
+      if (!revalidation_scheduled &&
+          revalidation_required(usage_monitor_resp.event_triggers())) {
+        schedule_revalidation(imsi, usage_monitor_resp.revalidation_time());
+        revalidation_scheduled = true;
+        // TODO remove after confirming this isn't causing issues
+        revalidation_time = usage_monitor_resp.revalidation_time();
+      } else if (revalidation_scheduled &&
+          !revalidation_required(usage_monitor_resp.event_triggers())) {
+        // TODO [Remove This Clause]
+        auto time_from_now_ms = time_difference_from_now(revalidation_time);
+        MLOG(MWARNING) << imsi << " received some usage monitors with a "
+                       << "revalidation timer in " << time_from_now_ms.count()
+                       << " and some without";
       }
     }
   }
@@ -1381,7 +1420,7 @@ void LocalEnforcer::init_policy_reauth_for_session(
 
   MLOG(MDEBUG) << "Processing policy reauth for subscriber " << request.imsi();
   if (revalidation_required(request.event_triggers())) {
-    schedule_revalidation(session_map, request.revalidation_time());
+    schedule_revalidation(imsi, request.revalidation_time());
   }
 
   process_rules_to_remove(
@@ -1570,12 +1609,10 @@ bool LocalEnforcer::revalidation_required(
 }
 
 void LocalEnforcer::schedule_revalidation(
-    SessionMap& session_map,
+    const std::string& imsi,
     const google::protobuf::Timestamp& revalidation_time) {
-  SessionRead req;
-  for (const auto& it : session_map) {
-    req.insert(it.first);
-  }
+  SessionRead req = {imsi};
+
   auto delta = time_difference_from_now(revalidation_time);
   evb_->runInEventBaseThread([=] {
     evb_->timer().scheduleTimeoutFn(
@@ -1619,9 +1656,9 @@ void LocalEnforcer::check_usage_for_reporting(
   if (request.updates_size() == 0 && request.usage_monitors_size() == 0) {
     return;  // nothing to report
   }
-  MLOG(MDEBUG) << "Sending " << request.updates_size()
-               << " charging updates and " << request.usage_monitors_size()
-               << " monitor updates to OCS and PCRF";
+  MLOG(MINFO) << "Sending " << request.updates_size()
+              << " charging updates and " << request.usage_monitors_size()
+              << " monitor updates to OCS and PCRF";
 
   // report to cloud
   (*reporter_)

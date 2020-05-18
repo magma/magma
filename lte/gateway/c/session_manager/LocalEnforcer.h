@@ -396,7 +396,7 @@ class LocalEnforcer {
       const google::protobuf::RepeatedField<int>& event_triggers);
 
   void schedule_revalidation(
-      SessionMap& session_map,
+      const std::string& imsi,
       const google::protobuf::Timestamp& revalidation_time);
 
   void check_usage_for_reporting(
