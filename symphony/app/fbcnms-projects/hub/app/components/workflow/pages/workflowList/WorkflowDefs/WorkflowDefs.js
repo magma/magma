@@ -224,6 +224,7 @@ class WorkflowDefs extends Component {
       data.description = "- FAVOURITE";
     }
     http.put(conductorApiUrlPrefix + "/metadata/", [data]).then(() => {
+      // TODO: merge with componentDidMount
       http.get(conductorApiUrlPrefix + "/metadata/workflow").then(res => {
         let dataset =
           res.result.sort((a, b) =>
@@ -459,7 +460,8 @@ class WorkflowDefs extends Component {
   onSchedulingModalClose() {
     this.setState({
       schedulingModal: false
-    })
+    });
+    this.componentDidMount();
   }
 
   getActiveRowScheduleName() {

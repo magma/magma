@@ -85,13 +85,13 @@ const WorkflowList = (props) => {
         defaultActiveKey={props.match.params.type || "defs"}
         style={{ marginBottom: "20px" }}
       >
-        <Tab eventKey="defs" title="Definitions">
+        <Tab mountOnEnter unmountOnExit eventKey="defs" title="Definitions">
           <WorkflowDefs />
         </Tab>
         <Tab mountOnEnter unmountOnExit eventKey="exec" title="Executed">
           <WorkflowExec query={query} />
         </Tab>
-        <Tab eventKey="scheduled" title="Scheduled">
+        <Tab mountOnEnter unmountOnExit eventKey="scheduled" title="Scheduled">
           <Scheduling />
         </Tab>
       </Tabs>

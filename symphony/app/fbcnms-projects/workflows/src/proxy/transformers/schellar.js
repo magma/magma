@@ -39,6 +39,11 @@ function sanitizeScheduleBefore(
     logger.error('Unexpected schedule name', {schedule, expectedName});
     throw 'Unexpected schedule name';
   }
+  if (expectedName.indexOf('/') > -1) {
+    // guard against https://github.com/flaviostutz/schellar/issues/4
+    logger.error('Cannot create schedule with name containing "/" character');
+    throw 'Cannot create schedule with name containing "/" character';
+  }
 
   // add tenantId to name
   addTenantIdPrefix(tenantId, schedule);

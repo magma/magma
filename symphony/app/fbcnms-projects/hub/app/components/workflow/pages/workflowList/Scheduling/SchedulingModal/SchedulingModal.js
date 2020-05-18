@@ -23,12 +23,19 @@ const SchedulingModal = props => {
     const req = superagent.get(path).accept("application/json");
     req.end((err, res) => {
       if (res && res.ok) {
+        // found in db
         setSchedule(res.body);
       } else {
+        // not found, prepare new object to be created
         setSchedule({
           name: props.name,
           workflowName: props.workflowName,
-          workflowVersion: props.workflowVersion + '' // must be string
+          // workflowVersion must be string
+          workflowVersion: props.workflowVersion + '',
+          // new schedule is created with enabled: true due to
+          // https://github.com/flaviostutz/schellar/issues/5
+          enabled: true,
+          cronString: '0 * * ? * *'
         })
       }
     });
