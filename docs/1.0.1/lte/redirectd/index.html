@@ -1,0 +1,108 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Redirection · Magma</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="# Redirection"/><meta name="docsearch:version" content="1.0.1"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Redirection · Magma"/><meta property="og:type" content="website"/><meta property="og:url" content="https://facebookincubator.github.io/magma/"/><meta property="og:description" content="# Redirection"/><meta property="og:image" content="https://facebookincubator.github.io/magma/img/docusaurus.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://facebookincubator.github.io/magma/img/docusaurus.png"/><link rel="shortcut icon" href="/magma/img/favicon.png"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script src="/magma/js/scrollSpy.js"></script><link rel="stylesheet" href="/magma/css/main.css"/><script src="/magma/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/magma/"><img class="logo" src="/magma/img/fb.png" alt="Magma"/><h2 class="headerTitleWithLogo">Magma</h2></a><a href="/magma/versions"><h3>1.0.1</h3></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class=""><a href="/magma/docs/1.0.1/basics/introduction" target="_self">Docs</a></li><li class=""><a href="/magma/help" target="_self">Help</a></li><li class=""><a href="https://github.com/facebookincubator/magma" target="_self">Github</a></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"></header><article><div><span><h1><a class="anchor" aria-hidden="true" id="redirection"></a><a href="#redirection" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Redirection</h1>
+<h3><a class="anchor" aria-hidden="true" id="overview"></a><a href="#overview" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Overview</h3>
+<p>When we enable redirection for the subscriber the next request(next packet) is
+intercepted by the redirection server. The subscriber then completes the tcp
+handshake with the redirection server. After the tcp handshake is complete the
+subscriber sends an HTTP GET request and receives the HTTP 302 response from
+the redirection server. Then it establishes a new tcp connection with the
+redirection address provided in the 302 response and traffic to this address
+is allowed to go through pipelined.</p>
+<p>HTTPS is not supported as without ssl certificates this isn't possible.</p>
+<h3><a class="anchor" aria-hidden="true" id="server-details"></a><a href="#server-details" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Server details</h3>
+<p>Redirectd runs a flask server which sends back HTTP 302(redirect) responses.
+The server uses redis to lookup redirect information for incoming requests.
+We save the information for subscribers in pipelined, using src_ip of request
+to redirect_info lookup. When no such information is found return a 404,
+this shouldn't happen, means redirect info wasn’t properly saved.</p>
+<p>Redirectd is also a dynamic service, it is only launched when mconfig
+dynamic_services array has a 'redirectd' entry.</p>
+<h3><a class="anchor" aria-hidden="true" id="redirection-in-pipelined"></a><a href="#redirection-in-pipelined" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Redirection in pipelined</h3>
+<p>EnforcementController instantiates the required flows for forwarding subscriber
+traffic to the redirection server. Pipelined also saves the redirect
+information in redis using subcriber_ip as the key(mobilityd is used for
+getting the subcriber ip from imsi).
+All this is only done when subscriber PolicyRule has redirection enabled.
+Example PolicyRule with enabled redirection:</p>
+<pre><code class="hljs">policy = PolicyRule(
+    <span class="hljs-attribute">id</span>=<span class="hljs-string">'redirect_test'</span>,
+    <span class="hljs-attribute">priority</span>=3,
+    <span class="hljs-attribute">flow_list</span>=flow_list,
+    <span class="hljs-attribute">redirect</span>=RedirectInformation(
+        <span class="hljs-attribute">support</span>=1,
+        <span class="hljs-attribute">address_type</span>=2,
+        <span class="hljs-attribute">server_address</span>=<span class="hljs-string">"http://about.sha.ddih.org/"</span>
+    )
+)
+</code></pre>
+<p><em>Description of added flows:</em></p>
+<ul>
+<li>Add flow to allow UDP traffic so DNS queries can go through</li>
+<li>Add flows with a higher priority that allow traffic to and from the
+redirection address provided in the redirect rule
+<ul>
+<li>if address_type is url submit a dns query and allow access to resolved IPs,
+the resolved IPs are stored in a ttl cache to decrease num of dns requests</li>
+<li>if address_type is IPv4 allow access to that redirection IP address</li>
+<li>ignore IPv6 address_type redirection as we don't support it</li>
+<li>ignore SIP_URI address_type is not implemented</li>
+</ul></li>
+<li>Intercept tcp traffic from UE, send it to the redirection server, also
+intercept tcp traffic from Redirection server and send it back to the UE.
+This is done by adding an OVS flow with a learn action (when packets from UE
+hit this flow a new flow will be instantiated to intercept traffic from
+Redirection server)
+<ul>
+<li>Flow matching TCP traffic from the user with port 80, modify&amp;send packets
+to the Redirection server. The learn action will 'save' the original dst_ip
+address by loading it into the instantiated flow</li>
+<li>Flow instantiated from the learn action, matching TCP traffic from the
+server with the UE ip_addr/tcp_sport, modify&amp;send packets back to UE</li>
+</ul></li>
+<li>Drop other traffic (default for all subscribers)</li>
+</ul>
+<h3><a class="anchor" aria-hidden="true" id="packet-path-breakdown"></a><a href="#packet-path-breakdown" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Packet path breakdown</h3>
+<pre><code class="hljs"><span class="hljs-section">Packet protocol diagram (only includes fields that are being checked):
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+<span class="hljs-section">|       Source IP Address       |     Destination IP Address    |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+<span class="hljs-section">|        TCP Source Port        |      TCP Destination Port     |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+
+UE ip: 192.168.128.9
+Remote url ip: 185.199.110.8
+Redirect server ip: 192.168.128.1
+
+For the tcp handshake, initial HTTP request the traffic flow looks like this:
+
+<span class="hljs-section">UE sends a packet to remote url
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+<span class="hljs-section">|         192.168.128.9         |         185.199.110.8         |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+<span class="hljs-section">|             43040             |               80              |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+
+<span class="hljs-section">Packet gets modified in EnforcementController, sent to the Redirection server
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+<span class="hljs-section">|         192.168.128.9         |        *192.168.128.1*        |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+<span class="hljs-section">|             43040             |               80              |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+
+<span class="hljs-section">Redirection server responds, packet is sent back into OVS
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+<span class="hljs-section">|         192.168.128.1         |         192.168.128.9         |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+<span class="hljs-section">|               80              |             43040             |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+
+<span class="hljs-section">Packet gets modified in EnforcementController, sent back to the UE
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+<span class="hljs-section">|        *185.199.110.8*        |         192.168.128.9         |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+<span class="hljs-section">|               80              |             43040             |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+
+After getting a 302 response from the redirect server the traffic can go
+straight to the redirected address without being changed in pipelined
+</code></pre>
+</span></div></article></div><div class="docs-prevnext"></div></div></div><nav class="onPageNav"></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/fb.png" alt="Magma" width="66" height="58"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><a href="https://code.facebook.com/projects/" target="_blank" rel="noreferrer noopener" class="fbOpenSource"><img src="/magma/img/oss_logo.png" alt="Facebook Open Source" width="170" height="45"/></a><section class="copyright">Copyright © 2020 Facebook</section></footer></div></body></html>

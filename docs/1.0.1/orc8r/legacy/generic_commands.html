@@ -1,0 +1,111 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Using the generic command framework · Magma</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="# Using the generic command framework"/><meta name="docsearch:version" content="1.0.1"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Using the generic command framework · Magma"/><meta property="og:type" content="website"/><meta property="og:url" content="https://facebookincubator.github.io/magma/"/><meta property="og:description" content="# Using the generic command framework"/><meta property="og:image" content="https://facebookincubator.github.io/magma/img/docusaurus.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://facebookincubator.github.io/magma/img/docusaurus.png"/><link rel="shortcut icon" href="/magma/img/favicon.png"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script src="/magma/js/scrollSpy.js"></script><link rel="stylesheet" href="/magma/css/main.css"/><script src="/magma/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/magma/"><img class="logo" src="/magma/img/fb.png" alt="Magma"/><h2 class="headerTitleWithLogo">Magma</h2></a><a href="/magma/versions"><h3>1.0.1</h3></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class=""><a href="/magma/docs/1.0.1/basics/introduction" target="_self">Docs</a></li><li class=""><a href="/magma/help" target="_self">Help</a></li><li class=""><a href="https://github.com/facebookincubator/magma" target="_self">Github</a></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"></header><article><div><span><h1><a class="anchor" aria-hidden="true" id="using-the-generic-command-framework"></a><a href="#using-the-generic-command-framework" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Using the generic command framework</h1>
+<p>The generic command framework is a way to define commands in the gateway without having to implement all aspects of a command (such as the cloud implementation and handler). Instead, we can define the commands on the gateway, and call the REST endpoint <code>/networks/{network_id}/gateways/{gateway_id}/command/generic</code> with the command name and parameters to execute the command.</p>
+<h2><a class="anchor" aria-hidden="true" id="explanation"></a><a href="#explanation" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Explanation</h2>
+<p>In <code>magmad.yml</code>, the generic command framework with the field <code>generic_command_config</code>:</p>
+<pre><code class="hljs"><span class="hljs-comment"># magmad.yml</span>
+
+<span class="hljs-symbol">generic_command_config:</span>
+  <span class="hljs-class"><span class="hljs-keyword">module</span>: ...</span>
+  <span class="hljs-class"><span class="hljs-keyword">class</span>: ...</span>
+</code></pre>
+<p>When the gateway starts up, it looks for the class inside that module and sets it as the command executor. The purpose of the command executor is to hold a table that maps command names to async functions, execute those functions, and return the output. When the RPC method <code>GenericCommand</code> is called, it will attempt to execute the command, returning the response if successful or an error if a timeout or exception occurs. We can configure the timeout by providing a <code>timeout_secs</code> field within <code>generic_command_config</code> to determine the number of seconds before a command times out.</p>
+<p>On the cloud side, we can send a POST request to <code>/networks/{network_id}/gateways/{gateway_id}/command/generic</code> with the following request body:</p>
+<pre><code class="hljs">{
+    <span class="hljs-string">"command"</span>: <span class="hljs-string">"name_of_command"</span>,
+    <span class="hljs-string">"params"</span>: {
+        ...
+    }
+}
+</code></pre>
+<h2><a class="anchor" aria-hidden="true" id="using-the-shell-command-executor"></a><a href="#using-the-shell-command-executor" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Using the Shell Command Executor</h2>
+<p>The default provided command executor is <code>ShellCommandExecutor</code>, which resides in the module <code>magma.magmad.generic_command.shell_command_executor</code>. This command executor will run shell commands located in <code>generic_command_config</code>. For each shell command, we can decide if we want to allow parameters with the field <code>allow_params</code>, which will treat the command as a format string. Parameters are read from the field <code>shell_params</code> ( a list of parameters) within the <code>params</code> field of the request. For example:</p>
+<pre><code class="hljs"><span class="hljs-comment"># magmad.yml</span>
+
+<span class="hljs-attr">generic_command_config:</span>
+  <span class="hljs-attr">module:</span> <span class="hljs-string">magma.magmad.generic_command.shell_command_executor</span>
+  <span class="hljs-attr">class:</span> <span class="hljs-string">ShellCommandExecutor</span>
+  <span class="hljs-attr">shell_commands:</span>
+    <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">tail_syslog</span>
+      <span class="hljs-attr">command:</span> <span class="hljs-string">"sudo tail /var/log/syslog -n 20"</span>
+    <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">echo</span>
+      <span class="hljs-attr">command:</span> <span class="hljs-string">"echo {}"</span>
+      <span class="hljs-attr">allow_params:</span> <span class="hljs-literal">True</span>
+</code></pre>
+<p>We can then use the API endpoint to execute the command. For example:</p>
+<pre><code class="hljs">POST `<span class="hljs-regexp">/networks/</span>{network_id}<span class="hljs-regexp">/gateways/</span>{gateway_id}<span class="hljs-regexp">/command/g</span>eneric
+
+{
+    <span class="hljs-string">"command"</span>: <span class="hljs-string">"echo"</span>,
+    <span class="hljs-string">"params"</span>: {
+        <span class="hljs-string">"shell_params"</span>: [<span class="hljs-string">"Hello world!"</span>]
+    }
+}`
+</code></pre>
+<p>We then get a response with the return code, stderr, and stdout:</p>
+<pre><code class="hljs">{
+  <span class="hljs-attr">"response"</span>: {
+    <span class="hljs-attr">"returncode"</span>: <span class="hljs-number">0</span>,
+    <span class="hljs-attr">"stderr"</span>: <span class="hljs-string">""</span>,
+    <span class="hljs-attr">"stdout"</span>: <span class="hljs-string">"Hello world!\n"</span>
+  }
+}
+</code></pre>
+<h2><a class="anchor" aria-hidden="true" id="creating-a-custom-command-executor"></a><a href="#creating-a-custom-command-executor" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Creating a custom command executor</h2>
+<p>The generic command framework is designed to be extensible. If we want more complex functionality, we can define our own command executor and configure <code>magmad.yml</code> to use it instead.</p>
+<p>All command executors must be an instance of <code>CommandExecutor</code>, which is the abstract base class for all command executors.</p>
+<pre><code class="hljs"><span class="hljs-comment"># magma/magmad/generic_command/command_executor.py</span>
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">CommandExecutor</span><span class="hljs-params">(ABC)</span>:</span>
+    <span class="hljs-string">"""
+    Abstract class for command executors
+    """</span>
+    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">__init__</span><span class="hljs-params">(
+            self,
+            config: Dict[str, Any],
+            loop: asyncio.AbstractEventLoop,
+    )</span> -&gt; <span class="hljs-keyword">None</span>:</span>
+        self._config = config
+        self._loop = loop
+
+    <span class="hljs-keyword">async</span> <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">execute_command</span><span class="hljs-params">(
+            self,
+            command: str,
+            params: Dict[str, ParamValueT],
+    )</span> -&gt; Dict[str, Any]:</span>
+        <span class="hljs-string">"""
+        Run the command from the dispatch table with params
+        """</span>
+        result = <span class="hljs-keyword">await</span> self.get_command_dispatch()[command](params)
+        <span class="hljs-keyword">return</span> result
+
+<span class="hljs-meta">    @abstractmethod</span>
+    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">get_command_dispatch</span><span class="hljs-params">(self)</span> -&gt; Dict[str, ExecutorFuncT]:</span>
+        <span class="hljs-string">"""
+        Returns the command dispatch table for this command executor
+        """</span>
+        <span class="hljs-keyword">pass</span>
+</code></pre>
+<p>Command executors must provide a method <code>get_command_dispatch</code>, which returns the dispatch table of commands. We can then add our own commands to the dispatch table. Command functions are coroutines that take in a dictionary of parameters as arguments and return a dictionary as a response.</p>
+<pre><code class="hljs"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">CustomCommandExecutor</span>(<span class="hljs-title">CommandExecutor</span>):</span>
+    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">__init__</span><span class="hljs-params">(
+            <span class="hljs-keyword">self</span>,
+            <span class="hljs-symbol">config:</span> Dict[str, Any],
+            <span class="hljs-symbol">loop:</span> asyncio.AbstractEventLoop,
+    )</span></span> -&gt; <span class="hljs-symbol">None:</span>
+        ...
+        <span class="hljs-keyword">self</span>._dispatch_table = {
+            <span class="hljs-string">"hello_world"</span>: <span class="hljs-keyword">self</span>._handle_hello_world
+        }
+
+    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">get_command_dispatch</span><span class="hljs-params">(<span class="hljs-keyword">self</span>)</span></span> -&gt; Dict[str, ExecutorFuncT]:
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">self</span>._dispatch_table
+        
+    async <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">_handle_hello_world</span><span class="hljs-params">(
+            <span class="hljs-keyword">self</span>,
+            <span class="hljs-symbol">params:</span> Dict[str, ParamValueT]
+    )</span></span> -&gt; Dict[str, Any]:
+        <span class="hljs-keyword">return</span> {
+            <span class="hljs-string">"hello"</span>: <span class="hljs-string">"world!"</span>
+        }
+</code></pre>
+</span></div></article></div><div class="docs-prevnext"></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#explanation">Explanation</a></li><li><a href="#using-the-shell-command-executor">Using the Shell Command Executor</a></li><li><a href="#creating-a-custom-command-executor">Creating a custom command executor</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/fb.png" alt="Magma" width="66" height="58"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><a href="https://code.facebook.com/projects/" target="_blank" rel="noreferrer noopener" class="fbOpenSource"><img src="/magma/img/oss_logo.png" alt="Facebook Open Source" width="170" height="45"/></a><section class="copyright">Copyright © 2020 Facebook</section></footer></div></body></html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Orchestrator Remote CLI - Creating commands guide · Magma</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="# Orchestrator Remote CLI - Creating commands guide"/><meta name="docsearch:version" content="1.0.1"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Orchestrator Remote CLI - Creating commands guide · Magma"/><meta property="og:type" content="website"/><meta property="og:url" content="https://facebookincubator.github.io/magma/"/><meta property="og:description" content="# Orchestrator Remote CLI - Creating commands guide"/><meta property="og:image" content="https://facebookincubator.github.io/magma/img/docusaurus.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://facebookincubator.github.io/magma/img/docusaurus.png"/><link rel="shortcut icon" href="/magma/img/favicon.png"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script src="/magma/js/scrollSpy.js"></script><link rel="stylesheet" href="/magma/css/main.css"/><script src="/magma/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/magma/"><img class="logo" src="/magma/img/fb.png" alt="Magma"/><h2 class="headerTitleWithLogo">Magma</h2></a><a href="/magma/versions"><h3>1.0.1</h3></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class=""><a href="/magma/docs/1.0.1/basics/introduction" target="_self">Docs</a></li><li class=""><a href="/magma/help" target="_self">Help</a></li><li class=""><a href="https://github.com/facebookincubator/magma" target="_self">Github</a></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"></header><article><div><span><h1><a class="anchor" aria-hidden="true" id="orchestrator-remote-cli---creating-commands-guide"></a><a href="#orchestrator-remote-cli---creating-commands-guide" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Orchestrator Remote CLI - Creating commands guide</h1>
+<h2><a class="anchor" aria-hidden="true" id="creating-a-command"></a><a href="#creating-a-command" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Creating a Command</h2>
+<p>There are a couple steps needed to implement a command.</p>
+<h3><a class="anchor" aria-hidden="true" id="define-rpc-method-in-gateway"></a><a href="#define-rpc-method-in-gateway" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Define rpc method in gateway</h3>
+<p>Create a new RPC method in the service protobuf that you want the method to live in.</p>
+<pre><code class="hljs"><span class="hljs-comment">// magma/orc8r/protos/magmad.proto</span>
+
+<span class="hljs-class"><span class="hljs-keyword">service</span> <span class="hljs-title">Magmad</span> </span>{
+  ...
+  <span class="hljs-function"><span class="hljs-keyword">rpc</span> Reboot (Void) <span class="hljs-keyword">returns</span> (Void) {}
+  ...
+}
+</span></code></pre>
+<h3><a class="anchor" aria-hidden="true" id="implement-in-gateway"></a><a href="#implement-in-gateway" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Implement in gateway</h3>
+<p>Gateway services should have a gRPC server implementation located in <code>rpc_servicer.py</code>. Within the servicer, create a function that implements this RPC method.</p>
+<pre><code class="hljs"><span class="hljs-comment"># magma/orc8r/gateway/python/magma/magmad/rpc_servicer.py</span>
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MagmadRpcServicer</span><span class="hljs-params">(magmad_pb2_grpc.MagmadServicer)</span>:</span>
+    ...
+    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">Reboot</span><span class="hljs-params">(self, _, context)</span>:</span>
+        <span class="hljs-string">"""
+        Reboot the gateway device
+        """</span>
+        ...
+</code></pre>
+<h3><a class="anchor" aria-hidden="true" id="implement-gateway-api-in-cloud"></a><a href="#implement-gateway-api-in-cloud" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Implement gateway api in cloud</h3>
+<p>Within the cloud service, create <code>gateway_api.go</code> that will call service methods. We can create a function to get a connection to the service, and use the dispatcher to forward requests to gateway services, like so:</p>
+<pre><code class="hljs"><span class="hljs-comment">// magma/orc8r/cloud/go/services/magmad/gateway_api.go</span>
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">getGWMagmadClient</span><span class="hljs-params">(networkId <span class="hljs-keyword">string</span>, gatewayId <span class="hljs-keyword">string</span>)</span> <span class="hljs-params">(protos.MagmadClient, *grpc.ClientConn, context.Context, error)</span></span> {
+    ...
+    conn, ctx, err := gateway_registry.GetGatewayConnection(<span class="hljs-string">"magmad"</span>, gwRecord.HwId.Id)
+    ...
+    <span class="hljs-keyword">return</span> protos.NewMagmadClient(conn), conn, ctx, <span class="hljs-literal">nil</span>
+}
+</code></pre>
+<p>Using this client, we can create a function that calls the method:</p>
+<pre><code class="hljs"><span class="hljs-comment">// magma/orc8r/cloud/go/services/magmad/gateway_api.go</span>
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">GatewayReboot</span><span class="hljs-params">(networkId <span class="hljs-keyword">string</span>, gatewayId <span class="hljs-keyword">string</span>)</span> <span class="hljs-title">error</span></span> {
+    client, conn, ctx, err := getGWMagmadClient(networkId, gatewayId)
+    <span class="hljs-keyword">if</span> err != <span class="hljs-literal">nil</span> {
+        <span class="hljs-keyword">return</span> err
+    }
+    <span class="hljs-keyword">defer</span> conn.Close()
+    _, err = client.Reboot(ctx, <span class="hljs-built_in">new</span>(protos.Void))
+    <span class="hljs-keyword">return</span> err
+}
+</code></pre>
+<h3><a class="anchor" aria-hidden="true" id="define-rest-api-endpoint"></a><a href="#define-rest-api-endpoint" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Define REST API endpoint</h3>
+<p>Each cloud service should have a <code>swagger</code> folder that documents service paths and definitions in <code>swagger.yml</code>. Add your path (and parameters or definitions, if necessary) to this file:</p>
+<pre><code class="hljs"># magma/orc8r/cloud/<span class="hljs-keyword">go</span>/services/magmad/swagger/swagger.yml
+
+...
+path<span class="hljs-variable">s:</span>
+  ...
+  /networks/{network_id}/gateways/{gateway_id}/<span class="hljs-keyword">command</span>/reboo<span class="hljs-variable">t:</span>
+    pos<span class="hljs-variable">t:</span>
+      summary: Reboot gateway device
+      <span class="hljs-keyword">tag</span><span class="hljs-variable">s:</span>
+      - Commands
+      parameter<span class="hljs-variable">s:</span>
+      - $ref: <span class="hljs-string">'./swagger-common.yml#/parameters/network_id'</span>
+      - $ref: <span class="hljs-string">'./swagger-common.yml#/parameters/gateway_id'</span>
+      response<span class="hljs-variable">s:</span>
+        <span class="hljs-string">'200'</span>:
+          description: Success
+        defaul<span class="hljs-variable">t:</span>
+          $ref: <span class="hljs-string">'./swagger-common.yml#/responses/UnexpectedError'</span>
+</code></pre>
+<h3><a class="anchor" aria-hidden="true" id="handler-implementation"></a><a href="#handler-implementation" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Handler implementation</h3>
+<p>Each cloud service should have an <code>obsidian</code> folder, which contains handlers in <code>obsidian/handlers</code> and generated models in <code>obsidian/models</code>.</p>
+<p>Create your handler function:</p>
+<pre><code class="hljs"><span class="hljs-comment">// magma/orc8r/cloud/go/services/magmad/obsidian/handlers/gateway_handlers.go</span>
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">rebootGateway</span><span class="hljs-params">(<span class="hljs-built_in">c</span> echo.Context)</span></span> error {
+    ...
+    <span class="hljs-keyword">return</span> <span class="hljs-built_in">c</span>.<span class="hljs-type">NoContent</span>(http.<span class="hljs-type">StatusOK</span>)
+}
+</code></pre>
+<p>Add your handler to the list of handlers in <code>GetObsidianHandlers()</code>.</p>
+<pre><code class="hljs"><span class="hljs-comment">// magma/orc8r/cloud/go/services/magmad/obsidian/handlers/handlers.go</span>
+
+<span class="hljs-selector-tag">func</span> <span class="hljs-selector-tag">GetObsidianHandlers</span>() <span class="hljs-selector-attr">[]</span><span class="hljs-selector-tag">handlers</span><span class="hljs-selector-class">.Handler</span> {
+    ...
+    <span class="hljs-selector-tag">return</span> <span class="hljs-selector-attr">[]</span><span class="hljs-selector-tag">handlers</span><span class="hljs-selector-class">.Handler</span>{
+        ...
+        {<span class="hljs-attribute">Path</span>: RebootGateway, <span class="hljs-attribute">Methods</span>: handlers.POST, <span class="hljs-attribute">HandlerFunc</span>: rebootGateway},
+        ...
+    }
+}
+</code></pre>
+<p>Build and see your new endpoint in the swagger UI.</p>
+<h2><a class="anchor" aria-hidden="true" id="adding-commands-to-nms-ui"></a><a href="#adding-commands-to-nms-ui" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Adding commands to NMS UI</h2>
+<p>Use <code>MagmaAPIUrls.command()</code> to get the url to the command endpoint <code>/networks/{network_id}/gateways/{gateway_id}/command/{command_name}</code>.</p>
+<p>We can then make a request using that url, for example:</p>
+<pre><code class="hljs"><span class="hljs-keyword">const</span> url = MagmaAPIUrls.command(match, id, commandName);
+
+axios
+  .post(url)
+  .then(<span class="hljs-function"><span class="hljs-params">_resp</span> =&gt;</span> {
+    <span class="hljs-keyword">this</span>.props.alert(<span class="hljs-string">'Success'</span>);
+  })
+  .catch(<span class="hljs-function"><span class="hljs-params">error</span> =&gt;</span> <span class="hljs-keyword">this</span>.props.alert(error.response.data.message));
+</code></pre>
+</span></div></article></div><div class="docs-prevnext"></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#creating-a-command">Creating a Command</a><ul class="toc-headings"><li><a href="#define-rpc-method-in-gateway">Define rpc method in gateway</a></li><li><a href="#implement-in-gateway">Implement in gateway</a></li><li><a href="#implement-gateway-api-in-cloud">Implement gateway api in cloud</a></li><li><a href="#define-rest-api-endpoint">Define REST API endpoint</a></li><li><a href="#handler-implementation">Handler implementation</a></li></ul></li><li><a href="#adding-commands-to-nms-ui">Adding commands to NMS UI</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/fb.png" alt="Magma" width="66" height="58"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><a href="https://code.facebook.com/projects/" target="_blank" rel="noreferrer noopener" class="fbOpenSource"><img src="/magma/img/oss_logo.png" alt="Facebook Open Source" width="170" height="45"/></a><section class="copyright">Copyright © 2020 Facebook</section></footer></div></body></html>

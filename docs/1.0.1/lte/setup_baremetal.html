@@ -1,0 +1,139 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>AGW Setup (Bare Metal) · Magma</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="# AGW installation on baremetal"/><meta name="docsearch:version" content="1.0.1"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="AGW Setup (Bare Metal) · Magma"/><meta property="og:type" content="website"/><meta property="og:url" content="https://facebookincubator.github.io/magma/"/><meta property="og:description" content="# AGW installation on baremetal"/><meta property="og:image" content="https://facebookincubator.github.io/magma/img/docusaurus.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://facebookincubator.github.io/magma/img/docusaurus.png"/><link rel="shortcut icon" href="/magma/img/favicon.png"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script src="/magma/js/scrollSpy.js"></script><link rel="stylesheet" href="/magma/css/main.css"/><script src="/magma/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/magma/"><img class="logo" src="/magma/img/fb.png" alt="Magma"/><h2 class="headerTitleWithLogo">Magma</h2></a><a href="/magma/versions"><h3>1.0.1</h3></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class=""><a href="/magma/docs/1.0.1/basics/introduction" target="_self">Docs</a></li><li class=""><a href="/magma/help" target="_self">Help</a></li><li class=""><a href="https://github.com/facebookincubator/magma" target="_self">Github</a></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"></header><article><div><span><h1><a class="anchor" aria-hidden="true" id="agw-installation-on-baremetal"></a><a href="#agw-installation-on-baremetal" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>AGW installation on baremetal</h1>
+<h3><a class="anchor" aria-hidden="true" id="hw-requirements"></a><a href="#hw-requirements" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>HW requirements</h3>
+<ul>
+<li>Ansible host</li>
+<li>AGW host, 64bit-X86 machine
+Two ethernet ports. We use enp1s0 and enp2s0 in this guide. They might have different names on your hardware so just replace enp1s0 and enp2s0 by your current interfaces name in this guidelind.
+One port is for the SGi interface (default: enp1s0) and one for the S1 interface (default: enp2s0)</li>
+</ul>
+<h3><a class="anchor" aria-hidden="true" id="install-ansible-on-ansible-host"></a><a href="#install-ansible-on-ansible-host" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Install Ansible (on Ansible host)</h3>
+<ul>
+<li>Mac Installation</li>
+</ul>
+<pre><code class="hljs css language-bash">brew install Ansible
+</code></pre>
+<ul>
+<li>Install ansible on a RHEL/CentOS Linux based system</li>
+</ul>
+<pre><code class="hljs css language-bash">sudo yum install ansible
+</code></pre>
+<ul>
+<li>Install ansible on a Debian/Ubuntu Linux based system</li>
+</ul>
+<pre><code class="hljs css language-bash">sudo apt-get install software-properties-common
+sudo apt-add-repository ppa:ansible/ansible
+sudo apt-get update
+sudo apt-get install ansible
+</code></pre>
+<ul>
+<li>Install ansible using pip</li>
+</ul>
+<pre><code class="hljs css language-bash">pip install ansible
+</code></pre>
+<ul>
+<li>Using source code</li>
+</ul>
+<pre><code class="hljs css language-bash"><span class="hljs-built_in">cd</span> ~
+git <span class="hljs-built_in">clone</span> git://github.com/ansible/ansible.git
+<span class="hljs-built_in">cd</span> ./ansible
+<span class="hljs-built_in">source</span> ./hacking/env-setup
+</code></pre>
+<p>When running ansible from a git checkout, one thing to remember is that you will need to setup your environment everytime you want to use it, or you can add it to your bash rc file:</p>
+<pre><code class="hljs css language-bash"><span class="hljs-built_in">echo</span> <span class="hljs-string">"export ANSIBLE_HOSTS=~/ansible_hosts"</span> &gt;&gt; ~/.bashrc
+<span class="hljs-built_in">echo</span> <span class="hljs-string">"source ~/ansible/hacking/env-setup"</span> &gt;&gt; ~/.bashrc
+</code></pre>
+<h3><a class="anchor" aria-hidden="true" id="install-debian-stretch-on-agw-host"></a><a href="#install-debian-stretch-on-agw-host" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Install Debian Stretch (on AGW host)</h3>
+<ol>
+<li>Create boot USB stick</li>
+</ol>
+<ul>
+<li>Download .iso image from <a href="http://cdimage.debian.org/mirror/cdimage/archive/9.9.0/amd64/iso-cd/debian-9.9.0-amd64-netinst.iso">Debian mirror</a></li>
+<li>Create bootable usb using etcher <a href="https://tutorials.ubuntu.com/tutorial/tutorial-create-a-usb-stick-on-macos#0">tutorial here</a></li>
+<li>Boot your AGW host from USB (Press F11 to select boot sequence, :warning: This might be different for your machine)</li>
+<li>Select “Install” option.</li>
+<li>Configuration.
+<ul>
+<li>Hostname: “magma”</li>
+<li>Domain name : “”</li>
+<li>Root password: “magma”</li>
+<li>Username : “magma”</li>
+<li>Password: “magma”</li>
+<li>Partition disk: Use entire disk and put all files in one partition</li>
+<li>Only install ssh server and utilities.</li>
+</ul></li>
+<li>Connect you SGi interface to the internet and select this port during the installation process to get an IP using DHCP.</li>
+</ul>
+<ol start="2">
+<li>Prepare AGW</li>
+</ol>
+<ul>
+<li>Change interface names</li>
+</ul>
+<pre><code class="hljs css language-bash">su
+
+sed -i <span class="hljs-string">'s/GRUB_CMDLINE_LINUX=""/GRUB_CMDLINE_LINUX="net.ifnames=0 biosdevname=0"/g'</span> /etc/default/grub
+
+grub-mkconfig -o /boot/grub/grub.cfg
+sed -i <span class="hljs-string">'s/enp1s0/eth0/g'</span> /etc/network/interfaces
+
+<span class="hljs-built_in">echo</span> “auto eth1
+iface eth1 inet static
+address 10.0.2.1
+netmask 255.255.255.0” &gt; /etc/network/interfaces.d/eth1
+
+reboot
+</code></pre>
+<ul>
+<li>Make magma user a sudoer on AGW host</li>
+</ul>
+<pre><code class="hljs css language-bash">su
+apt install -y sudo python-minimal
+adduser magma sudo
+<span class="hljs-built_in">echo</span> <span class="hljs-string">"magma ALL=(ALL) NOPASSWD:ALL"</span> &gt;&gt; /etc/sudoers
+</code></pre>
+<ul>
+<li>Generate key on your Ansible host</li>
+</ul>
+<pre><code class="hljs css language-bash"><span class="hljs-built_in">cd</span> .ssh
+ssh-keygen
+chmod 600 id_rsa
+ssh-add id_rsa
+cat id_rsa.pub <span class="hljs-comment"># copy text</span>
+</code></pre>
+<ul>
+<li>On AGW host, add the pub key to authorized_keys</li>
+</ul>
+<pre><code class="hljs css language-bash">su magma
+mkdir -p ~/.ssh
+vi ~/.ssh/authorized_keys     <span class="hljs-comment"># paste pub key inside</span>
+</code></pre>
+<ul>
+<li>Install Magma</li>
+</ul>
+<pre><code class="hljs css language-bash"><span class="hljs-comment">#Clone magma repository on Ansible host</span>
+git <span class="hljs-built_in">clone</span> https://github.com/facebookincubator/magma.git ~/
+</code></pre>
+<ul>
+<li>Prepare for deployment</li>
+</ul>
+<pre><code class="hljs css language-bash">AGW_IP=10.0.2.1
+USERNAME=magma
+<span class="hljs-built_in">echo</span> <span class="hljs-string">"[ovs_build]
+<span class="hljs-variable">$AGW_IP</span> ansible_ssh_port=22 ansible_ssh_user=<span class="hljs-variable">$USERNAME</span> ansible_ssh_private_key_file=~/.ssh/id_rsa
+[ovs_deploy]
+<span class="hljs-variable">$AGW_IP</span> ansible_ssh_port=22 ansible_ssh_user=<span class="hljs-variable">$USERNAME</span> ansible_ssh_private_key_file=~/.ssh/id_rsa
+"</span> &gt;&gt; ~/magma/lte/gateway/deploy/agw_hosts
+</code></pre>
+<ul>
+<li>Build ovs</li>
+</ul>
+<pre><code class="hljs css language-bash"><span class="hljs-built_in">cd</span> ~/magma/lte/gateway/deploy
+ansible-playbook -e <span class="hljs-string">"MAGMA_ROOT='~/magma' OUTPUT_DIR='/tmp'"</span> -i agw_hosts ovs_gtp.yml
+</code></pre>
+<ul>
+<li>Deploy AGW</li>
+</ul>
+<pre><code class="hljs css language-bash"><span class="hljs-built_in">cd</span> ~/magma/lte/gateway/deploy
+ansible-playbook -i agw_hosts -e <span class="hljs-string">"PACKAGE_LOCATION='/tmp'"</span> ovs_deploy.yml
+</code></pre>
+</span></div></article></div><div class="docs-prevnext"></div></div></div><nav class="onPageNav"></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/fb.png" alt="Magma" width="66" height="58"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><a href="https://code.facebook.com/projects/" target="_blank" rel="noreferrer noopener" class="fbOpenSource"><img src="/magma/img/oss_logo.png" alt="Facebook Open Source" width="170" height="45"/></a><section class="copyright">Copyright © 2020 Facebook</section></footer></div></body></html>

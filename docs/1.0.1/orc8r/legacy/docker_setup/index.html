@@ -1,0 +1,74 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Docker Setup · Magma</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="## Container setup"/><meta name="docsearch:version" content="1.0.1"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Docker Setup · Magma"/><meta property="og:type" content="website"/><meta property="og:url" content="https://facebookincubator.github.io/magma/"/><meta property="og:description" content="## Container setup"/><meta property="og:image" content="https://facebookincubator.github.io/magma/img/docusaurus.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://facebookincubator.github.io/magma/img/docusaurus.png"/><link rel="shortcut icon" href="/magma/img/favicon.png"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script src="/magma/js/scrollSpy.js"></script><link rel="stylesheet" href="/magma/css/main.css"/><script src="/magma/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/magma/"><img class="logo" src="/magma/img/fb.png" alt="Magma"/><h2 class="headerTitleWithLogo">Magma</h2></a><a href="/magma/versions"><h3>1.0.1</h3></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class=""><a href="/magma/docs/1.0.1/basics/introduction" target="_self">Docs</a></li><li class=""><a href="/magma/help" target="_self">Help</a></li><li class=""><a href="https://github.com/facebookincubator/magma" target="_self">Github</a></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"><h1 id="__docusaurus" class="postHeaderTitle">Docker Setup</h1></header><article><div><span><h2><a class="anchor" aria-hidden="true" id="container-setup"></a><a href="#container-setup" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Container setup</h2>
+<p>Orc8r consists of 2 containers: one for the proxy, and one for all the
+controller services. We use supervisord to spin multiple services within
+these containers. There are an additional 5 containers for metrics. These are
+used to monitor system and gateway metrics, but are optional if you don't need
+that for your setup.</p>
+<p>NOTE: The multiple services per container model was adopted to model the
+legacy Vagrant setup and for easier migration, and we will soon migrate to
+one container per microservice model which is more appropriate.</p>
+<p>For development, we use a postgresql container as the datastore. For
+production, it is advisable to use a hosted solution like AWS RDS.</p>
+<p>NOTE: This guide assumes that you are running the commands inside
+the <code>magma/orc8r/cloud/docker</code> directory in your host.</p>
+<h2><a class="anchor" aria-hidden="true" id="how-to-build-the-images"></a><a href="#how-to-build-the-images" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>How to build the images</h2>
+<p>Since orc8r can include modules outside the magma codebase, we use a wrapper
+python script which creates a temporary folder as the docker build context.
+The temporary folder contains all the modules necessary, and is created based
+on the module.yml config.</p>
+<p>Build the docker images using:</p>
+<pre><code class="hljs">./<span class="hljs-keyword">build.py
+</span></code></pre>
+<p>To use a different module.yml file, run something similar to:</p>
+<pre><code class="hljs">MAGMA_MODULES_FILE=..<span class="hljs-regexp">/../</span>..<span class="hljs-regexp">/modules.yml ./</span>build.py
+</code></pre>
+<p>NOTE: If you are running on Mac, you may need to increase the memory
+limit of the docker daemon to build the images. Otherwise, you may see an error
+message similar to this:
+<code>/usr/local/go/pkg/tool/linux_amd64/link: signal: killed</code>.</p>
+<h2><a class="anchor" aria-hidden="true" id="how-to-run"></a><a href="#how-to-run" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>How to run</h2>
+<p>To run and manage the containers, use the following commands:</p>
+<pre><code class="hljs">docker-compose <span class="hljs-keyword">up</span> -d
+docker-compose <span class="hljs-keyword">ps</span>
+docker-compose down
+</code></pre>
+<p>To tail the logs from the containers, use one of these commands:</p>
+<pre><code class="hljs">docker<span class="hljs-literal">-compose</span> logs <span class="hljs-operator">-f</span>
+docker<span class="hljs-literal">-compose</span> logs <span class="hljs-operator">-f</span> controller
+</code></pre>
+<p>To create a shell inside a container, run:</p>
+<pre><code class="hljs"><span class="hljs-symbol">docker</span>-compose exec controller <span class="hljs-keyword">bash
+</span></code></pre>
+<p>Similarly for the metrics containers just specify the docker-compose file
+before running a command, such as:</p>
+<pre><code class="hljs"><span class="hljs-selector-tag">docker-compose</span> <span class="hljs-selector-tag">-f</span> <span class="hljs-selector-tag">docker-compose</span><span class="hljs-selector-class">.metrics</span><span class="hljs-selector-class">.yml</span> <span class="hljs-selector-tag">up</span> <span class="hljs-selector-tag">-d</span>
+<span class="hljs-selector-tag">docker-compose</span> <span class="hljs-selector-tag">-f</span> <span class="hljs-selector-tag">docker-compose</span><span class="hljs-selector-class">.metrics</span><span class="hljs-selector-class">.yml</span> <span class="hljs-selector-tag">ps</span>
+<span class="hljs-selector-tag">docker-compose</span> <span class="hljs-selector-tag">-f</span> <span class="hljs-selector-tag">docker-compose</span><span class="hljs-selector-class">.metrics</span><span class="hljs-selector-class">.yml</span> <span class="hljs-selector-tag">down</span>
+</code></pre>
+<h2><a class="anchor" aria-hidden="true" id="how-to-run-unit-tests"></a><a href="#how-to-run-unit-tests" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>How to run unit tests</h2>
+<p>We use a <code>test</code> container for running the go unit tests. Use one of the
+following commands to run the tests in a clean room environment:</p>
+<pre><code class="hljs"><span class="hljs-string">./build.py</span> <span class="hljs-params">--tests</span>
+<span class="hljs-string">./build.py</span> -t
+</code></pre>
+<p>The <code>--mount</code> option in <code>build.py</code> can be used to spin a test container
+with the code from individual modules mounted, so that we can individual
+unit tests.</p>
+<p><em>NOTE: make sure to run <code>precommit</code> using mount before submitting a patch</em></p>
+<pre><code class="hljs"><span class="hljs-string">./build.py</span> -m
+[container] <span class="hljs-string">/magma/orc8r/cloud</span><span class="hljs-comment"># make precommit</span>
+</code></pre>
+<h2><a class="anchor" aria-hidden="true" id="how-to-generate-code-after-protobuf-and-swagger-changes"></a><a href="#how-to-generate-code-after-protobuf-and-swagger-changes" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>How to generate code after Protobuf and Swagger changes</h2>
+<p>The <code>--mount</code> option can also be used to run the codegen scripts for swagger
+and protobufs, after any changes in those files.</p>
+<pre><code class="hljs"><span class="hljs-string">./build.py</span> -m
+[container] <span class="hljs-string">/magma/orc8r/cloud</span><span class="hljs-comment"># make gen</span>
+</code></pre>
+<h2><a class="anchor" aria-hidden="true" id="publishing-the-images"></a><a href="#publishing-the-images" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Publishing the images</h2>
+<p>To push the images to a private docker registry, use the following script:</p>
+<pre><code class="hljs"><span class="hljs-built_in">..</span>/<span class="hljs-built_in">..</span>/tools/docker/publish.sh -r REGISTRY -i<span class="hljs-built_in"> proxy
+</span><span class="hljs-built_in">..</span>/<span class="hljs-built_in">..</span>/tools/docker/publish.sh -r REGISTRY -i controller
+
+<span class="hljs-built_in">..</span>/<span class="hljs-built_in">..</span>/tools/docker/publish.sh -r REGISTRY -i<span class="hljs-built_in"> proxy </span>-u USERNAME -p /tmp/password
+</code></pre>
+</span></div></article></div><div class="docs-prevnext"></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#container-setup">Container setup</a></li><li><a href="#how-to-build-the-images">How to build the images</a></li><li><a href="#how-to-run">How to run</a></li><li><a href="#how-to-run-unit-tests">How to run unit tests</a></li><li><a href="#how-to-generate-code-after-protobuf-and-swagger-changes">How to generate code after Protobuf and Swagger changes</a></li><li><a href="#publishing-the-images">Publishing the images</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/fb.png" alt="Magma" width="66" height="58"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><a href="https://code.facebook.com/projects/" target="_blank" rel="noreferrer noopener" class="fbOpenSource"><img src="/magma/img/oss_logo.png" alt="Facebook Open Source" width="170" height="45"/></a><section class="copyright">Copyright © 2020 Facebook</section></footer></div></body></html>

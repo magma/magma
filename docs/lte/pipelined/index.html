@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Pipelined · Magma</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="# Pipelined"/><meta name="docsearch:version" content="1.0.1"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Pipelined · Magma"/><meta property="og:type" content="website"/><meta property="og:url" content="https://facebookincubator.github.io/magma/"/><meta property="og:description" content="# Pipelined"/><meta property="og:image" content="https://facebookincubator.github.io/magma/img/docusaurus.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://facebookincubator.github.io/magma/img/docusaurus.png"/><link rel="shortcut icon" href="/magma/img/favicon.png"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script src="/magma/js/scrollSpy.js"></script><link rel="stylesheet" href="/magma/css/main.css"/><script src="/magma/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/magma/"><img class="logo" src="/magma/img/fb.png" alt="Magma"/><h2 class="headerTitleWithLogo">Magma</h2></a><a href="/magma/versions"><h3>1.0.1</h3></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class=""><a href="/magma/docs/basics/introduction" target="_self">Docs</a></li><li class=""><a href="/magma/help" target="_self">Help</a></li><li class=""><a href="https://github.com/facebookincubator/magma" target="_self">Github</a></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"></header><article><div><span><h1><a class="anchor" aria-hidden="true" id="pipelined"></a><a href="#pipelined" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Pipelined</h1>
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Pipelined · Magma</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="# Pipelined"/><meta name="docsearch:version" content="1.1.0"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Pipelined · Magma"/><meta property="og:type" content="website"/><meta property="og:url" content="https://facebookincubator.github.io/magma/"/><meta property="og:description" content="# Pipelined"/><meta property="og:image" content="https://facebookincubator.github.io/magma/img/docusaurus.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://facebookincubator.github.io/magma/img/docusaurus.png"/><link rel="shortcut icon" href="/magma/img/favicon.png"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script src="/magma/js/scrollSpy.js"></script><link rel="stylesheet" href="/magma/css/main.css"/><script src="/magma/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/magma/"><img class="logo" src="/magma/img/fb.png" alt="Magma"/><h2 class="headerTitleWithLogo">Magma</h2></a><a href="/magma/versions"><h3>1.1.0</h3></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class=""><a href="/magma/docs/basics/introduction" target="_self">Docs</a></li><li class=""><a href="/magma/help" target="_self">Help</a></li><li class=""><a href="https://github.com/facebookincubator/magma" target="_self">Github</a></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"></header><article><div><span><h1><a class="anchor" aria-hidden="true" id="pipelined"></a><a href="#pipelined" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Pipelined</h1>
 <h2><a class="anchor" aria-hidden="true" id="overview"></a><a href="#overview" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Overview</h2>
 <p>Pipelined is the control application that programs rules in the Open vSwitch (OVS). In implementation, Pipelined is a set of network services that are chained together. These services can be chained and enabled/disabled through the REST API in orchestrator.</p>
 <h3><a class="anchor" aria-hidden="true" id="open-vswitch--openflow"></a><a href="#open-vswitch--openflow" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Open vSwitch &amp; OpenFlow</h3>
@@ -24,7 +24,7 @@
         |                   |
         V                   V
     -------------------------------
-    |            Table 0          |
+    |       Table 0 (SPECIAL)     |
     |         GTP APP (OAI)       |
     |- sets IMSI metadata         |
     |- sets tunnel id on downlink |
@@ -33,14 +33,14 @@
                   |
                   V
     -------------------------------
-    |          Table 1            |
+    |      Table 1 (PHYSICAL)     |
     |           inout             |
     |- sets direction bit         |
     -------------------------------
                   |
                   V
     -------------------------------
-    |          Table 2            |
+    |      Table 2 (PHYSICAL)     |
     |            ARP              |
     |- Forwards non-ARP traffic   |
     |- Responds <span class="hljs-keyword">to</span> ARP requests w/| ---&gt; Arp traffic - LOCAL
@@ -49,7 +49,7 @@
                   |
                   V
     -------------------------------
-    |          Table 3            |
+    |      Table 3 (PHYSICAL)     |
     |       access control        |
     |- Forwards normal traffic    |
     |- Drops traffic with<span class="hljs-built_in"> ip </span>     |
@@ -58,12 +58,26 @@
     -------------------------------
                   |
                   V
-   Configurable apps managed by cloud &lt;---&gt; Scratch tables
-            (Tables 4-19)                  (Tables 21 - 254)
+   Configurable PHYSICAL apps managed by cloud &lt;---&gt; Scratch tables
+            (Tables 4-9)                            (Tables 21 - 254)
                   |
                   V
     -------------------------------
-    |          Table 20           |
+    |      Table 10 (SPECIAL)     |
+    |           inout             |
+    |- Forwards uplink traffic <span class="hljs-keyword">to</span> |
+    |  LOCAL<span class="hljs-built_in"> port </span>                |
+    |- Forwards downlink traffic  |
+    |  <span class="hljs-keyword">to</span> GTP<span class="hljs-built_in"> port </span>               |
+    -------------------------------
+                  |
+                  V
+   Configurable LOGICAL apps managed by cloud &lt;---&gt; Scratch tables
+            (Tables 11-19)                         (Tables 21 - 254)
+                  |
+                  V
+    -------------------------------
+    |      Table 20 (SPECIAL)     |
     |           inout             |
     |- Forwards uplink traffic <span class="hljs-keyword">to</span> |
     |  LOCAL<span class="hljs-built_in"> port </span>                |
@@ -77,19 +91,14 @@
 </span>    downlink              uplink
 
 </code></pre>
+<h3><a class="anchor" aria-hidden="true" id="service-types"></a><a href="#service-types" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Service types</h3>
+<p>Services(controllers) are split into two: Physical and Logical.
+Physical controllers: arpd, access_control.
+Logical controllers: dpi, enforcement.</p>
 <h3><a class="anchor" aria-hidden="true" id="configurable-services"></a><a href="#configurable-services" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Configurable Services</h3>
 <p>These services can be enabled and ordered from orchestrator cloud. <code>mconfig</code> is used to stream the list of enabled service to gateway.</p>
 <p>Table numbers are dynamically assigned to these services and depenedent on the order.</p>
 <pre><code class="hljs">    -------------------------------
-    |<span class="hljs-string">          Table X            </span>|
-    |<span class="hljs-string">          metering           </span>|
-    |<span class="hljs-string">- Assigns unique flow id to  </span>|
-    |<span class="hljs-string">  IP traffic                 </span>|
-    |<span class="hljs-string">- Receives flow stats from   </span>|
-    |<span class="hljs-string">  OVS and forwards to cloud  </span>|
-    -------------------------------
-
-    -------------------------------
     |<span class="hljs-string">          Table X            </span>|
     |<span class="hljs-string">            DPI              </span>|
     |<span class="hljs-string">- Assigns App ID to each new </span>|
@@ -131,6 +140,18 @@
 <tr><td>reg4</td><td>Local</td><td>Policy version number</td><td>Enforcement app</td></tr>
 </tbody>
 </table>
+<h3><a class="anchor" aria-hidden="true" id="resilience"></a><a href="#resilience" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Resilience</h3>
+<p>Pipelined service is restart resilient and can seamlessly recover from service restarts.
+This is achieved by:</p>
+<ol>
+<li>Querying all flows on controller startup. This is done through a separate startup flow controller that will handle querying all initial stats.</li>
+<li>Comparing the flows received from step 1, with the flows obtained from sessiond setup() call</li>
+<li>Activating new flows that are not present</li>
+<li>Deactivate flows that are not in the sessiond call but are active
+This works because ovs secure fail mode doesn't remove flows whenever the controller disconnects.</li>
+</ol>
+<p>Note:
+Currently we reinsert some flows instead of doing the diff logic on them(f.e. enforcement redirection flows as they need async dhcp request resolution, other tables that don't hold and session data(inout, ue_mac, etc.) but this will be added later).</p>
 <h2><a class="anchor" aria-hidden="true" id="testing"></a><a href="#testing" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Testing</h2>
 <h3><a class="anchor" aria-hidden="true" id="scripts"></a><a href="#scripts" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Scripts</h3>
 <p>Some scripts in <code>/lte/gateway/python/scripts</code> may come in handy for testing. These scripts should be ran in virtualenv so <code>magtivate</code> needs to be ran first to enter the virtualenv .</p>
@@ -161,4 +182,4 @@ $ sudo curl --interface fake_user -vvv --ipv4 http://www.google.com &gt; /dev/nu
 <h2><a class="anchor" aria-hidden="true" id="additional-readings"></a><a href="#additional-readings" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Additional Readings</h2>
 <p><a href="https://www.opennetworking.org/wp-content/uploads/2014/10/openflow-spec-v1.4.0.pdf">OpenFlow Specification</a></p>
 <p><a href="https://ryu.readthedocs.io/en/latest/api_ref.html">Ryu API Doc</a></p>
-</span></div></article></div><div class="docs-prevnext"></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#overview">Overview</a><ul class="toc-headings"><li><a href="#open-vswitch--openflow">Open vSwitch &amp; OpenFlow</a></li><li><a href="#ryu">Ryu</a></li></ul></li><li><a href="#services">Services</a><ul class="toc-headings"><li><a href="#static-services">Static Services</a></li><li><a href="#configurable-services">Configurable Services</a></li><li><a href="#reserved-registers">Reserved registers</a></li></ul></li><li><a href="#testing">Testing</a><ul class="toc-headings"><li><a href="#scripts">Scripts</a></li><li><a href="#unit-tests">Unit Tests</a></li><li><a href="#integration-tests">Integration Tests</a></li></ul></li><li><a href="#additional-readings">Additional Readings</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/fb.png" alt="Magma" width="66" height="58"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><a href="https://code.facebook.com/projects/" target="_blank" rel="noreferrer noopener" class="fbOpenSource"><img src="/magma/img/oss_logo.png" alt="Facebook Open Source" width="170" height="45"/></a><section class="copyright">Copyright © 2020 Facebook</section></footer></div></body></html>
+</span></div></article></div><div class="docs-prevnext"></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#overview">Overview</a><ul class="toc-headings"><li><a href="#open-vswitch--openflow">Open vSwitch &amp; OpenFlow</a></li><li><a href="#ryu">Ryu</a></li></ul></li><li><a href="#services">Services</a><ul class="toc-headings"><li><a href="#static-services">Static Services</a></li><li><a href="#service-types">Service types</a></li><li><a href="#configurable-services">Configurable Services</a></li><li><a href="#reserved-registers">Reserved registers</a></li><li><a href="#resilience">Resilience</a></li></ul></li><li><a href="#testing">Testing</a><ul class="toc-headings"><li><a href="#scripts">Scripts</a></li><li><a href="#unit-tests">Unit Tests</a></li><li><a href="#integration-tests">Integration Tests</a></li></ul></li><li><a href="#additional-readings">Additional Readings</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/fb.png" alt="Magma" width="66" height="58"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><a href="https://code.facebook.com/projects/" target="_blank" rel="noreferrer noopener" class="fbOpenSource"><img src="/magma/img/oss_logo.png" alt="Facebook Open Source" width="170" height="45"/></a><section class="copyright">Copyright © 2020 Facebook</section></footer></div></body></html>

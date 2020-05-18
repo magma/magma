@@ -1,0 +1,148 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Pipelined testing framework · Magma</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="# Pipelined testing framework"/><meta name="docsearch:version" content="1.0.1"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Pipelined testing framework · Magma"/><meta property="og:type" content="website"/><meta property="og:url" content="https://facebookincubator.github.io/magma/"/><meta property="og:description" content="# Pipelined testing framework"/><meta property="og:image" content="https://facebookincubator.github.io/magma/img/docusaurus.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://facebookincubator.github.io/magma/img/docusaurus.png"/><link rel="shortcut icon" href="/magma/img/favicon.png"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script src="/magma/js/scrollSpy.js"></script><link rel="stylesheet" href="/magma/css/main.css"/><script src="/magma/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/magma/"><img class="logo" src="/magma/img/fb.png" alt="Magma"/><h2 class="headerTitleWithLogo">Magma</h2></a><a href="/magma/versions"><h3>1.0.1</h3></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class=""><a href="/magma/docs/1.0.1/basics/introduction" target="_self">Docs</a></li><li class=""><a href="/magma/help" target="_self">Help</a></li><li class=""><a href="https://github.com/facebookincubator/magma" target="_self">Github</a></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"></header><article><div><span><h1><a class="anchor" aria-hidden="true" id="pipelined-testing-framework"></a><a href="#pipelined-testing-framework" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Pipelined testing framework</h1>
+<h2><a class="anchor" aria-hidden="true" id="overview"></a><a href="#overview" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Overview</h2>
+<p>The testing framework aims to isolate pipelined for better testing. This is
+achieved by running tests on a different bridge, running only some of the
+pipelined apps. Additionally, by inserting OVS <em>forwarding</em> flows we isolate
+testing only to specific tables.</p>
+<p>The framework can also be used with integration testing, using a processing
+thread with hub queues, an integ_test flag is provided in the test config.
+This means pipelined tests can work with gRPC.</p>
+<h2><a class="anchor" aria-hidden="true" id="functionality-breakdown"></a><a href="#functionality-breakdown" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Functionality breakdown</h2>
+<p>This is high-level explanation of what happens when running a test. One of the
+main principles in designing this framework was making it as component based as
+possible so that its easy to add/replace some parts of the process.</p>
+<h3><a class="anchor" aria-hidden="true" id="launch-pipelined-application-directly-not-as-services"></a><a href="#launch-pipelined-application-directly-not-as-services" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Launch pipelined application directly (not as services)</h3>
+<p>The first step is to launch pipelined controllers that we want to test.
+By launching ryu application directly and avoiding using services we can get
+the references to instantiated controllers, thus testing their functionality
+directly.</p>
+<h3><a class="anchor" aria-hidden="true" id="isolate-the-table-that-is-being-tested"></a><a href="#isolate-the-table-that-is-being-tested" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Isolate the table that is being tested</h3>
+<p>As we want to run unit tests its necessary to isolate specific tables. This is
+done by inserting special <em>forwarding</em> flows that will both forward all packets
+to the ****table specified as well as setting the required register values that
+would have been set by the tables skipped(such as metadata and reg1).</p>
+<h3><a class="anchor" aria-hidden="true" id="insert-flow-rules-if-needed-fe-subscriber-policy-rules"></a><a href="#insert-flow-rules-if-needed-fe-subscriber-policy-rules" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Insert flow rules if needed (f.e. subscriber policy rules)</h3>
+<p>Having references to pipelined controllers makes it simple to insert flows into
+OVS. The test framework provides an api to add PolicyRules for subscribers.</p>
+<h3><a class="anchor" aria-hidden="true" id="using-scapy-insert-packets-into-ovs"></a><a href="#using-scapy-insert-packets-into-ovs" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Using Scapy insert packets into OVS</h3>
+<p>For inserting packets the testing framework uses the Scapy library. A wrapper
+for easier packet building, packet insertion is provided. After sending packets
+its necessary to wait for packets to be received/processed by OVS, example
+test files have wait functions to achieve this.</p>
+<h2><a class="anchor" aria-hidden="true" id="testing-controller"></a><a href="#testing-controller" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Testing controller</h2>
+<p>The testing controller is a ryu app used for instantiating testing
+flows(table isolation) and for querying flow stats. The controller is only used
+for testing purposes and only runs when invoked in tests.</p>
+<h2><a class="anchor" aria-hidden="true" id="api-variations"></a><a href="#api-variations" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>API variations</h2>
+<p>Initially the testing framework was developed using REST and gRPC. The RyuRPC<em>,
+RyuRest</em> classes are still present but are deprecated. No active tests use them
+as they require a running pipelined service to function.
+The primary API is RyuDirect*, all active tests use it. Later gRPC calls
+will work with this framework after some threading fixes.</p>
+<h2><a class="anchor" aria-hidden="true" id="writing-a-new-test"></a><a href="#writing-a-new-test" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Writing a new test</h2>
+<p>Example test files are a good place to see the framework in action, also the
+<code>pipelined_test_util.py</code> file provides convenient functions for easier and
+faster test writing.</p>
+<h3><a class="anchor" aria-hidden="true" id="setup-that-can-be-used-for-multiple-tests-this-should-go-in-setupclass"></a><a href="#setup-that-can-be-used-for-multiple-tests-this-should-go-in-setupclass" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Setup that can be used for multiple tests, this should go in <code>setUpClass</code></h3>
+<p><strong>Setup a new bridge or use the production bridge</strong></p>
+<pre><code class="hljs">BRIDGE = <span class="hljs-string">'testing_br'</span>
+IFACE = <span class="hljs-string">'testing_br'</span>
+BridgeTools.create_bridge<span class="hljs-comment">(BRIDGE, IFACE)</span>
+</code></pre>
+<p><strong>Start ryu apps on a separate thread</strong></p>
+<pre><code class="hljs"><span class="hljs-comment"># Set the futures for pipelined controller references</span>
+<span class="hljs-attr">enforcement_controller_reference</span> = Future()
+<span class="hljs-attr">testing_controller_reference</span> = Future()
+
+<span class="hljs-comment"># Build a test_setup for launching ryu apps</span>
+<span class="hljs-attr">test_setup</span> = TestSetup(
+    <span class="hljs-attr">apps=[PipelinedController.Enforcement,</span>
+          PipelinedController.Testing],
+    <span class="hljs-attr">references={</span>
+        PipelinedController.Enforcement:
+            enforcement_controller_reference,
+        PipelinedController.Testing:
+            testing_controller_reference
+    },
+    <span class="hljs-attr">config={</span>
+        'bridge_name': cls.BRIDGE,
+        'bridge_ip_address': '<span class="hljs-number">192.168</span>.<span class="hljs-number">128.1</span>',
+        'nat_iface': 'eth2',
+        'enodeb_iface': 'eth1'
+    },
+    <span class="hljs-attr">mconfig=None,</span>
+    <span class="hljs-attr">loop=None</span>
+)
+
+<span class="hljs-comment"># Start the apps from the test_setup config</span>
+cls.<span class="hljs-attr">thread</span> = start_ryu_app_thread(test_setup)
+
+<span class="hljs-comment"># Wait for apps to start, retrieve references</span>
+cls.<span class="hljs-attr">enforcement_controller</span> = enforcement_controller_reference.result()
+cls.<span class="hljs-attr">testing_controller</span> = testing_controller_reference.result()
+</code></pre>
+<h3><a class="anchor" aria-hidden="true" id="unit-test-example"></a><a href="#unit-test-example" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Unit test example</h3>
+<p><strong>Setup basic information/constants</strong></p>
+<pre><code class="hljs"><span class="hljs-comment"># Setup subscriber info imsi, ip and a PolicyRule</span>
+imsi = <span class="hljs-string">'IMSI010000000088888'</span>
+sub_ip = <span class="hljs-string">'192.168.128.74'</span>
+flow_list1 = [FlowDescription(
+    <span class="hljs-attribute">match</span>=FlowMatch(
+        <span class="hljs-attribute">ipv4_dst</span>=<span class="hljs-string">'45.10.0.0/24'</span>, <span class="hljs-attribute">direction</span>=FlowMatch.UPLINK),
+    <span class="hljs-attribute">action</span>=FlowDescription.PERMIT)
+]<span class="hljs-built_in">
+policy </span>= PolicyRule(<span class="hljs-attribute">id</span>=<span class="hljs-string">'simple_match'</span>, <span class="hljs-attribute">priority</span>=2, <span class="hljs-attribute">flow_list</span>=flow_list1)
+
+pkts_matched = 256
+pkts_sent = 4096
+</code></pre>
+<p><strong>Setup the testing framework classes</strong></p>
+<pre><code class="hljs"><span class="hljs-comment"># Create a subscriber context, used for adding PolicyRules</span>
+<span class="hljs-keyword">sub_context </span>= RyuDirectSubscriberContext(
+    imsi, <span class="hljs-keyword">sub_ip, </span>self.enforcement_controller
+).<span class="hljs-keyword">add_dynamic_rule(policy)
+</span>
+<span class="hljs-comment"># Create a table isolator from subscriber context, will set metadata/reg1,</span>
+<span class="hljs-comment"># forward the packets to table 5</span>
+isolator = RyuDirectTableIsolator(
+    RyuForwardFlowArgsBuilder.from_subscriber(<span class="hljs-keyword">sub_context.cfg)
+</span>                             .<span class="hljs-keyword">build_requests(),
+</span>    self.testing_controller
+)
+
+<span class="hljs-comment"># Create a packet sender, an ip packet for testing our PolicyRule</span>
+pkt_sender = <span class="hljs-keyword">ScapyPacketInjector(self.IFACE)
+</span>packet = IPPacketBuilder()\
+    .set_ip_layer(<span class="hljs-string">'45.10.0.0/20'</span>, <span class="hljs-keyword">sub_ip)\
+</span>    .set_ether_layer(self.MAC_DEST, <span class="hljs-string">"00:00:00:00:00:00"</span>)\
+    .<span class="hljs-keyword">build()
+</span>
+<span class="hljs-comment"># Generate a flow query for checking the stats of the added rule</span>
+flow_query = FlowQuery(
+    self.TID, self.testing_controller,
+    match=flow_match_to_match(flow_list1[<span class="hljs-number">0</span>].match)
+)
+</code></pre>
+<p><strong>Test &amp; Verify everything works</strong></p>
+<pre><code class="hljs"><span class="hljs-meta"># Verify aggregate table stats</span>
+<span class="hljs-meta"># Each FlowTest provides a query and number of packets that query should match</span>
+<span class="hljs-meta"># wait_after_send function ensures all packets are processed before verifying</span>
+flow_verifier = FlowVerifier([
+    FlowTest(FlowQuery(self.TID, self.testing_controller), pkts_sent),
+    FlowTest(flow_query, pkts_matched)
+], lambda: wait_after_send(self.testing_controller))
+
+<span class="hljs-meta"># Initialize all contexts and then send packets</span>
+<span class="hljs-meta"># isolator -  inserts the flow forward rules that forward traffic to table 5,</span>
+<span class="hljs-meta">#             set the required registers (metadata, reg1)</span>
+<span class="hljs-meta">#</span>
+<span class="hljs-meta"># sub_context - adds subscriber flows, activates the PolicyRule provided</span>
+<span class="hljs-meta">#</span>
+<span class="hljs-meta"># flow_verifier - gathers FlowTest stats on when initialized and when exiting</span>
+with isolator, sub_context, flow_verifier:
+    pkt_sender.send(packet)
+
+<span class="hljs-meta"># Asserts that conditions were met for each provided FlowTest</span>
+flow_verifier.verify()
+</code></pre>
+</span></div></article></div><div class="docs-prevnext"></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#overview">Overview</a></li><li><a href="#functionality-breakdown">Functionality breakdown</a><ul class="toc-headings"><li><a href="#launch-pipelined-application-directly-not-as-services">Launch pipelined application directly (not as services)</a></li><li><a href="#isolate-the-table-that-is-being-tested">Isolate the table that is being tested</a></li><li><a href="#insert-flow-rules-if-needed-fe-subscriber-policy-rules">Insert flow rules if needed (f.e. subscriber policy rules)</a></li><li><a href="#using-scapy-insert-packets-into-ovs">Using Scapy insert packets into OVS</a></li></ul></li><li><a href="#testing-controller">Testing controller</a></li><li><a href="#api-variations">API variations</a></li><li><a href="#writing-a-new-test">Writing a new test</a><ul class="toc-headings"><li><a href="#setup-that-can-be-used-for-multiple-tests-this-should-go-in-setupclass">Setup that can be used for multiple tests, this should go in <code>setUpClass</code></a></li><li><a href="#unit-test-example">Unit test example</a></li></ul></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/fb.png" alt="Magma" width="66" height="58"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><a href="https://code.facebook.com/projects/" target="_blank" rel="noreferrer noopener" class="fbOpenSource"><img src="/magma/img/oss_logo.png" alt="Facebook Open Source" width="170" height="45"/></a><section class="copyright">Copyright © 2020 Facebook</section></footer></div></body></html>
