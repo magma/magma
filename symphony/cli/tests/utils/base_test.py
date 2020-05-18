@@ -5,15 +5,16 @@
 
 import unittest
 
-from pyinventory import InventoryClient
+from pyinventory.common.cache import clear_types
+from pysymphony import SymphonyClient
 
-from ..grpc.rpc_pb2_grpc import TenantServiceStub
 from . import truncate_client
+from .grpc.rpc_pb2_grpc import TenantServiceStub
 
 
 class BaseTest(unittest.TestCase):
     def __init__(
-        self, testName: str, client: InventoryClient, stub: TenantServiceStub
+        self, testName: str, client: SymphonyClient, stub: TenantServiceStub
     ) -> None:
         super().__init__(testName)
         self.client = client
@@ -21,4 +22,4 @@ class BaseTest(unittest.TestCase):
 
     def setUp(self) -> None:
         truncate_client(self.stub)
-        self.client._clear_types()
+        clear_types()

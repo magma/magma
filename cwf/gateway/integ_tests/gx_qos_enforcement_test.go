@@ -94,7 +94,7 @@ func TestGxUplinkTrafficQosEnforcement(t *testing.T) {
 	assert.NoError(t, err)
 	tr.WaitForPoliciesToSync()
 
-	usageMonitorInfo := getUsageInformation(monitorKey, 1*MegaBytes)
+	usageMonitorInfo := getUsageInformation(monitorKey, 10*MegaBytes)
 	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL)
 	initAnswer := protos.NewGxCCAnswer(diam.Success).
 		SetStaticRuleInstalls([]string{ruleKey}, []string{}).
@@ -108,7 +108,7 @@ func TestGxUplinkTrafficQosEnforcement(t *testing.T) {
 	tr.AuthenticateAndAssertSuccess(imsi)
 	req := &cwfprotos.GenTrafficRequest{
 		Imsi:   imsi,
-		Volume: &wrappers.StringValue{Value: *swag.String("1M")},
+		Volume: &wrappers.StringValue{Value: *swag.String("5M")},
 	}
 	verifyEgressRate(t, tr, req, float64(uplinkBwMax))
 
@@ -159,7 +159,7 @@ func TestGxDownlinkTrafficQosEnforcement(t *testing.T) {
 	assert.NoError(t, err)
 	tr.WaitForPoliciesToSync()
 
-	usageMonitorInfo := getUsageInformation(monitorKey, 1*MegaBytes)
+	usageMonitorInfo := getUsageInformation(monitorKey, 10*MegaBytes)
 	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL)
 	initAnswer := protos.NewGxCCAnswer(diam.Success).
 		SetStaticRuleInstalls([]string{ruleKey}, []string{}).
@@ -174,7 +174,7 @@ func TestGxDownlinkTrafficQosEnforcement(t *testing.T) {
 	req := &cwfprotos.GenTrafficRequest{
 		Imsi:        imsi,
 		ReverseMode: true,
-		Volume:      &wrappers.StringValue{Value: *swag.String("1M")},
+		Volume:      &wrappers.StringValue{Value: *swag.String("5M")},
 	}
 	verifyEgressRate(t, tr, req, float64(downlinkBwMax))
 
@@ -242,7 +242,7 @@ func TestGxQosDowngradeWithCCAUpdate(t *testing.T) {
 	tr.WaitForPoliciesToSync()
 
 	// usage monitor for init and upgrade
-	usageMonitorInfo := getUsageInformation(monitorKey, 1*MegaBytes)
+	usageMonitorInfo := getUsageInformation(monitorKey, 5*MegaBytes)
 	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL)
 	initAnswer := protos.NewGxCCAnswer(diam.Success).
 		SetStaticRuleInstalls([]string{rule1Key}, []string{}).
@@ -250,13 +250,13 @@ func TestGxQosDowngradeWithCCAUpdate(t *testing.T) {
 	initExpectation := protos.NewGxCreditControlExpectation().Expect(initRequest).Return(initAnswer)
 
 	// We expect an update request with some usage update (probably around 80-100% of the given quota)
-	var c float64 = 0.3 * 1 * MegaBytes
+	var c float64 = 0.3 * 5 * MegaBytes
 	updateRequest1 := protos.NewGxCCRequest(imsi, protos.CCRequestType_UPDATE).
 		SetUsageMonitorReport(usageMonitorInfo).
 		SetUsageReportDelta(uint64(c))
 	updateAnswer1 := protos.NewGxCCAnswer(diam.Success).
 		SetStaticRuleInstalls([]string{rule2Key}, []string{}).
-		SetUsageMonitorInfo(getUsageInformation(monitorKey, 2*MegaBytes))
+		SetUsageMonitorInfo(getUsageInformation(monitorKey, 10*MegaBytes))
 	updateExpectation1 := protos.NewGxCreditControlExpectation().Expect(updateRequest1).Return(updateAnswer1)
 
 	expectations := []*protos.GxCreditControlExpectation{initExpectation, updateExpectation1}
@@ -266,14 +266,14 @@ func TestGxQosDowngradeWithCCAUpdate(t *testing.T) {
 
 	tr.AuthenticateAndAssertSuccess(imsi)
 
-	req := &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: *swag.String("1M")}}
+	req := &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: *swag.String("5M")}}
 	verifyEgressRate(t, tr, req, float64(uplinkBwInitial))
 
 	// wait for the update to kick in
 	time.Sleep(3 * time.Second)
 
 	// verify with lower bitrate and check if constraints are met
-	req = &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: *swag.String("1M")}}
+	req = &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: *swag.String("5M")}}
 	verifyEgressRate(t, tr, req, float64(uplinkBwFinal))
 
 	// wait for the update to kick in
@@ -350,14 +350,14 @@ func TestGxQosDowngradeWithReAuth(t *testing.T) {
 	}
 	tr.WaitForPoliciesToSync()
 
-	err = ruleManager.AddUsageMonitor(imsi, monitorKey, 2*MegaBytes, 1*MegaBytes)
+	err = ruleManager.AddUsageMonitor(imsi, monitorKey, 20*MegaBytes, 1*MegaBytes)
 	err = ruleManager.AddRulesToPCRF(imsi, []string{rule1Key}, []string{})
 	assert.NoError(t, err)
 
 	tr.AuthenticateAndAssertSuccess(imsi)
 	req := &cwfprotos.GenTrafficRequest{
 		Imsi:   imsi,
-		Volume: &wrappers.StringValue{Value: *swag.String("1M")},
+		Volume: &wrappers.StringValue{Value: *swag.String("5M")},
 	}
 	verifyEgressRate(t, tr, req, float64(uplinkBwInitial))
 

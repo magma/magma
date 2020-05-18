@@ -78,7 +78,7 @@ class AccessControlTestLTE(unittest.TestCase):
                 'bridge_ip_address': cls.BRIDGE_IP,
                 'nat_iface': 'eth2',
                 'enodeb_iface': 'eth1',
-                'enable_queue_pgm': False,
+                'qos': {'enable': False},
                 'access_control': {
                     'ip_blacklist': [
                         {

@@ -11,6 +11,7 @@ import type {ServiceTypeItem_serviceType} from './__generated__/ServiceTypeItem_
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
 
+import CommonStrings from '@fbcnms/strings/Strings';
 import ConfigureExpansionPanel from './ConfigureExpansionPanel';
 import DynamicPropertyTypesGrid from '../DynamicPropertyTypesGrid';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
@@ -21,6 +22,7 @@ import LinearScaleIcon from '@material-ui/icons/LinearScale';
 import React from 'react';
 import RemoveServiceTypeMutation from '../../mutations/RemoveServiceTypeMutation';
 import ServiceEndpointDefinitionStaticTable from './ServiceEndpointDefinitionStaticTable';
+import fbt from 'fbt';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {ConnectionHandler} from 'relay-runtime';
 import {createFragmentContainer, graphql} from 'react-relay';
@@ -80,35 +82,47 @@ class ServiceTypeItem extends React.Component<Props> {
   }
 
   onDelete = () => {
-    const msg = `Are you sure you want to delete "${this.props.serviceType.name}"? The service type, and all it's instances will be deleted soon, in the background`;
-    this.props.confirm(msg).then(confirm => {
-      if (!confirm) {
-        return;
-      }
-      RemoveServiceTypeMutation(
-        {id: this.props.serviceType.id},
-        {
-          onError: (error: any) => {
-            this.props.alert('Error: ' + error.source?.errors[0]?.message);
+    this.props
+      .confirm({
+        title: <fbt desc="">Delete Service Type?</fbt>,
+        message: fbt(
+          'Are you sure you want to delete' +
+            fbt.param('service name', this.props.serviceType.name) +
+            "? The service type, and all it's instances will be deleted soon, in the background",
+          'deletion message',
+        ),
+        cancelLabel: CommonStrings.common.cancelButton,
+        confirmLabel: CommonStrings.common.deleteButton,
+        skin: 'red',
+      })
+      .then(confirm => {
+        if (!confirm) {
+          return;
+        }
+        RemoveServiceTypeMutation(
+          {id: this.props.serviceType.id},
+          {
+            onError: (error: any) => {
+              this.props.alert('Error: ' + error.source?.errors[0]?.message);
+            },
           },
-        },
-        store => {
-          // $FlowFixMe (T62907961) Relay flow types
-          const rootQuery = store.getRoot();
-          const serviceTypes = ConnectionHandler.getConnection(
-            rootQuery,
-            'ServiceTypes_serviceTypes',
-          );
-          ConnectionHandler.deleteNode(
+          store => {
             // $FlowFixMe (T62907961) Relay flow types
-            serviceTypes,
-            this.props.serviceType.id,
-          );
-          // $FlowFixMe (T62907961) Relay flow types
-          store.delete(this.props.serviceType.id);
-        },
-      );
-    });
+            const rootQuery = store.getRoot();
+            const serviceTypes = ConnectionHandler.getConnection(
+              rootQuery,
+              'ServiceTypes_serviceTypes',
+            );
+            ConnectionHandler.deleteNode(
+              // $FlowFixMe (T62907961) Relay flow types
+              serviceTypes,
+              this.props.serviceType.id,
+            );
+            // $FlowFixMe (T62907961) Relay flow types
+            store.delete(this.props.serviceType.id);
+          },
+        );
+      });
   };
 }
 

@@ -6,7 +6,6 @@
 
 import unittest
 
-from pyinventory import InventoryClient
 from pyinventory.api.customer import add_customer
 from pyinventory.api.equipment import add_equipment
 from pyinventory.api.equipment_type import add_equipment_type
@@ -23,14 +22,15 @@ from pyinventory.api.service import (
 )
 from pyinventory.common.data_class import PropertyDefinition
 from pyinventory.graphql.enum.property_kind import PropertyKind
+from pysymphony import SymphonyClient
 
-from .grpc.rpc_pb2_grpc import TenantServiceStub
-from .utils.base_test import BaseTest
+from ..utils.base_test import BaseTest
+from ..utils.grpc.rpc_pb2_grpc import TenantServiceStub
 
 
 class TestService(BaseTest):
     def __init__(
-        self, testName: str, client: InventoryClient, stub: TenantServiceStub
+        self, testName: str, client: SymphonyClient, stub: TenantServiceStub
     ) -> None:
         super().__init__(testName, client, stub)
 

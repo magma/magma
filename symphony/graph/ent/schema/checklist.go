@@ -73,6 +73,9 @@ func (CheckListCategory) Edges() []ent.Edge {
 // Policy returns checklist item policy.
 func (CheckListCategory) Policy() ent.Policy {
 	return authz.NewPolicy(
+		authz.WithQueryRules(
+			authz.CheckListCategoryReadPolicyRule(),
+		),
 		authz.WithMutationRules(
 			authz.CheckListCategoryWritePolicyRule(),
 			authz.CheckListCategoryCreatePolicyRule(),
@@ -179,6 +182,9 @@ func (CheckListItem) Edges() []ent.Edge {
 // Policy returns equipment port definition policy.
 func (CheckListItem) Policy() ent.Policy {
 	return authz.NewPolicy(
+		authz.WithQueryRules(
+			authz.CheckListItemReadPolicyRule(),
+		),
 		authz.WithMutationRules(
 			authz.CheckListItemWritePolicyRule(),
 			authz.CheckListItemCreatePolicyRule(),

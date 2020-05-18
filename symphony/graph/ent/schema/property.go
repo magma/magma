@@ -211,6 +211,9 @@ func (Property) Edges() []ent.Edge {
 // Policy returns property policy.
 func (Property) Policy() ent.Policy {
 	return authz.NewPolicy(
+		authz.WithQueryRules(
+			authz.PropertyReadPolicyRule(),
+		),
 		authz.WithMutationRules(
 			authz.PropertyWritePolicyRule(),
 			authz.PropertyCreatePolicyRule(),

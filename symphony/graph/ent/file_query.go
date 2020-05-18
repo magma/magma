@@ -15,8 +15,13 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
+	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/file"
+	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
+	"github.com/facebookincubator/symphony/graph/ent/user"
+	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
 
 // FileQuery is the builder for querying File entities.
@@ -27,7 +32,13 @@ type FileQuery struct {
 	order      []OrderFunc
 	unique     []string
 	predicates []predicate.File
-	withFKs    bool
+	// eager-loading edges.
+	withLocation      *LocationQuery
+	withEquipment     *EquipmentQuery
+	withUser          *UserQuery
+	withWorkOrder     *WorkOrderQuery
+	withChecklistItem *CheckListItemQuery
+	withFKs           bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -55,6 +66,96 @@ func (fq *FileQuery) Offset(offset int) *FileQuery {
 func (fq *FileQuery) Order(o ...OrderFunc) *FileQuery {
 	fq.order = append(fq.order, o...)
 	return fq
+}
+
+// QueryLocation chains the current query on the location edge.
+func (fq *FileQuery) QueryLocation() *LocationQuery {
+	query := &LocationQuery{config: fq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := fq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(file.Table, file.FieldID, fq.sqlQuery()),
+			sqlgraph.To(location.Table, location.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, file.LocationTable, file.LocationColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(fq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryEquipment chains the current query on the equipment edge.
+func (fq *FileQuery) QueryEquipment() *EquipmentQuery {
+	query := &EquipmentQuery{config: fq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := fq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(file.Table, file.FieldID, fq.sqlQuery()),
+			sqlgraph.To(equipment.Table, equipment.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, file.EquipmentTable, file.EquipmentColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(fq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryUser chains the current query on the user edge.
+func (fq *FileQuery) QueryUser() *UserQuery {
+	query := &UserQuery{config: fq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := fq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(file.Table, file.FieldID, fq.sqlQuery()),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, file.UserTable, file.UserColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(fq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryWorkOrder chains the current query on the work_order edge.
+func (fq *FileQuery) QueryWorkOrder() *WorkOrderQuery {
+	query := &WorkOrderQuery{config: fq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := fq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(file.Table, file.FieldID, fq.sqlQuery()),
+			sqlgraph.To(workorder.Table, workorder.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, file.WorkOrderTable, file.WorkOrderColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(fq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryChecklistItem chains the current query on the checklist_item edge.
+func (fq *FileQuery) QueryChecklistItem() *CheckListItemQuery {
+	query := &CheckListItemQuery{config: fq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := fq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(file.Table, file.FieldID, fq.sqlQuery()),
+			sqlgraph.To(checklistitem.Table, checklistitem.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, file.ChecklistItemTable, file.ChecklistItemColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(fq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first File entity in the query. Returns *NotFoundError when no file was found.
@@ -236,6 +337,61 @@ func (fq *FileQuery) Clone() *FileQuery {
 	}
 }
 
+//  WithLocation tells the query-builder to eager-loads the nodes that are connected to
+// the "location" edge. The optional arguments used to configure the query builder of the edge.
+func (fq *FileQuery) WithLocation(opts ...func(*LocationQuery)) *FileQuery {
+	query := &LocationQuery{config: fq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	fq.withLocation = query
+	return fq
+}
+
+//  WithEquipment tells the query-builder to eager-loads the nodes that are connected to
+// the "equipment" edge. The optional arguments used to configure the query builder of the edge.
+func (fq *FileQuery) WithEquipment(opts ...func(*EquipmentQuery)) *FileQuery {
+	query := &EquipmentQuery{config: fq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	fq.withEquipment = query
+	return fq
+}
+
+//  WithUser tells the query-builder to eager-loads the nodes that are connected to
+// the "user" edge. The optional arguments used to configure the query builder of the edge.
+func (fq *FileQuery) WithUser(opts ...func(*UserQuery)) *FileQuery {
+	query := &UserQuery{config: fq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	fq.withUser = query
+	return fq
+}
+
+//  WithWorkOrder tells the query-builder to eager-loads the nodes that are connected to
+// the "work_order" edge. The optional arguments used to configure the query builder of the edge.
+func (fq *FileQuery) WithWorkOrder(opts ...func(*WorkOrderQuery)) *FileQuery {
+	query := &WorkOrderQuery{config: fq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	fq.withWorkOrder = query
+	return fq
+}
+
+//  WithChecklistItem tells the query-builder to eager-loads the nodes that are connected to
+// the "checklist_item" edge. The optional arguments used to configure the query builder of the edge.
+func (fq *FileQuery) WithChecklistItem(opts ...func(*CheckListItemQuery)) *FileQuery {
+	query := &CheckListItemQuery{config: fq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	fq.withChecklistItem = query
+	return fq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -303,10 +459,20 @@ func (fq *FileQuery) prepareQuery(ctx context.Context) error {
 
 func (fq *FileQuery) sqlAll(ctx context.Context) ([]*File, error) {
 	var (
-		nodes   = []*File{}
-		withFKs = fq.withFKs
-		_spec   = fq.querySpec()
+		nodes       = []*File{}
+		withFKs     = fq.withFKs
+		_spec       = fq.querySpec()
+		loadedTypes = [5]bool{
+			fq.withLocation != nil,
+			fq.withEquipment != nil,
+			fq.withUser != nil,
+			fq.withWorkOrder != nil,
+			fq.withChecklistItem != nil,
+		}
 	)
+	if fq.withLocation != nil || fq.withEquipment != nil || fq.withUser != nil || fq.withWorkOrder != nil || fq.withChecklistItem != nil {
+		withFKs = true
+	}
 	if withFKs {
 		_spec.Node.Columns = append(_spec.Node.Columns, file.ForeignKeys...)
 	}
@@ -324,6 +490,7 @@ func (fq *FileQuery) sqlAll(ctx context.Context) ([]*File, error) {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, fq.driver, _spec); err != nil {
@@ -332,6 +499,132 @@ func (fq *FileQuery) sqlAll(ctx context.Context) ([]*File, error) {
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+
+	if query := fq.withLocation; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*File)
+		for i := range nodes {
+			if fk := nodes[i].location_files; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(location.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "location_files" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Location = n
+			}
+		}
+	}
+
+	if query := fq.withEquipment; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*File)
+		for i := range nodes {
+			if fk := nodes[i].equipment_files; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(equipment.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "equipment_files" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Equipment = n
+			}
+		}
+	}
+
+	if query := fq.withUser; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*File)
+		for i := range nodes {
+			if fk := nodes[i].user_profile_photo; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(user.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "user_profile_photo" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.User = n
+			}
+		}
+	}
+
+	if query := fq.withWorkOrder; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*File)
+		for i := range nodes {
+			if fk := nodes[i].work_order_files; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(workorder.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_files" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.WorkOrder = n
+			}
+		}
+	}
+
+	if query := fq.withChecklistItem; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*File)
+		for i := range nodes {
+			if fk := nodes[i].check_list_item_files; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(checklistitem.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "check_list_item_files" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.ChecklistItem = n
+			}
+		}
+	}
+
 	return nodes, nil
 }
 

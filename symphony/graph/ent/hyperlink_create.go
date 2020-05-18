@@ -15,6 +15,7 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/hyperlink"
+	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
 
 // HyperlinkCreate is the builder for creating a Hyperlink entity.
@@ -84,6 +85,25 @@ func (hc *HyperlinkCreate) SetNillableCategory(s *string) *HyperlinkCreate {
 		hc.SetCategory(*s)
 	}
 	return hc
+}
+
+// SetWorkOrderID sets the work_order edge to WorkOrder by id.
+func (hc *HyperlinkCreate) SetWorkOrderID(id int) *HyperlinkCreate {
+	hc.mutation.SetWorkOrderID(id)
+	return hc
+}
+
+// SetNillableWorkOrderID sets the work_order edge to WorkOrder by id if the given value is not nil.
+func (hc *HyperlinkCreate) SetNillableWorkOrderID(id *int) *HyperlinkCreate {
+	if id != nil {
+		hc = hc.SetWorkOrderID(*id)
+	}
+	return hc
+}
+
+// SetWorkOrder sets the work_order edge to WorkOrder.
+func (hc *HyperlinkCreate) SetWorkOrder(w *WorkOrder) *HyperlinkCreate {
+	return hc.SetWorkOrderID(w.ID)
 }
 
 // Save creates the Hyperlink in the database.
@@ -184,6 +204,25 @@ func (hc *HyperlinkCreate) sqlSave(ctx context.Context) (*Hyperlink, error) {
 			Column: hyperlink.FieldCategory,
 		})
 		h.Category = value
+	}
+	if nodes := hc.mutation.WorkOrderIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   hyperlink.WorkOrderTable,
+			Columns: []string{hyperlink.WorkOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workorder.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if err := sqlgraph.CreateNode(ctx, hc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {

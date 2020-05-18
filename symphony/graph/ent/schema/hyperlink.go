@@ -6,7 +6,9 @@ package schema
 
 import (
 	"github.com/facebookincubator/ent"
+	"github.com/facebookincubator/ent/schema/edge"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/authz"
 )
 
 // Hyperlink defines the hyperlink schema.
@@ -24,4 +26,22 @@ func (Hyperlink) Fields() []ent.Field {
 		field.String("category").
 			Optional(),
 	}
+}
+
+// Edges returns hyperlink edges.
+func (Hyperlink) Edges() []ent.Edge {
+	return []ent.Edge{
+		edge.From("work_order", WorkOrder.Type).
+			Ref("hyperlinks").
+			Unique(),
+	}
+}
+
+// Policy returns hyperlink policy.
+func (Hyperlink) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithQueryRules(
+			authz.HyperlinkReadPolicyRule(),
+		),
+	)
 }

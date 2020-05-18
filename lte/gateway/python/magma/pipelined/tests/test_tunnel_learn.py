@@ -72,7 +72,7 @@ class TunnelLearnTest(unittest.TestCase):
                 'internal_ip_subnet': '192.168.0.0/16',
                 'nat_iface': 'eth2',
                 'enodeb_iface': 'eth1',
-                'enable_queue_pgm': False,
+                'qos': {'enable': False},
                 'clean_restart': True,
                 'access_control': {
                     'ip_blacklist': [

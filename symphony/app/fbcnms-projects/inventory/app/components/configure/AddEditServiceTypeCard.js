@@ -242,8 +242,8 @@ class AddEditServiceTypeCard extends React.Component<Props, State> {
       !endpointWithNames.every(
         endpointType => endpointType.equipmentType && endpointType.name,
       ) ||
-      endpointWithNames.length == 1 ||
-      endpointWithNames.length > 5
+      (serviceType.discoveryMethod != 'MANUAL' &&
+        (endpointWithNames.length == 1 || endpointWithNames.length > 5))
     );
   }
 
@@ -478,7 +478,7 @@ class AddEditServiceTypeCard extends React.Component<Props, State> {
       id: editingServiceType?.id ?? 'ServiceType@tmp0',
       name: editingServiceType?.name ?? '',
       numberOfServices: editingServiceType?.numberOfServices ?? 0,
-      discoveryMethod: editingServiceType?.discoveryMethod,
+      discoveryMethod: editingServiceType?.discoveryMethod ?? 'MANUAL',
       propertyTypes:
         propertyTypes.length > 0
           ? propertyTypes

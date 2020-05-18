@@ -16,7 +16,7 @@ declare module '@turf/turf' {
     | 'GeometryCollection';
 
   declare export type JsonObj = {[string]: *};
-  declare export type GeoCoord = [number, number, number];
+  declare export type GeoCoord = [number, number] | [number, number, number];
 
   declare export type GeoGeometry = {|
     type: GeoGeometryType,

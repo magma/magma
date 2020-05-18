@@ -15,6 +15,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
+	"github.com/stretchr/testify/require"
 )
 
 type cudOperations struct {
@@ -387,4 +388,136 @@ func TestWorkOrderPropertyBasedOnOwnerPolicyRule(t *testing.T) {
 		},
 	}
 	runContextBasedPolicyTest(t, tests)
+}
+
+func TestPropertyOfWorkOrderReadPolicyRule(t *testing.T) {
+	c := viewertest.NewTestClient(t)
+	ctx := viewertest.NewContext(context.Background(), c)
+	woType1, wo1 := prepareWorkOrderData(ctx, c)
+	woType2, wo2 := prepareWorkOrderData(ctx, c)
+	pType1 := c.PropertyType.Create().
+		SetName("pType1").
+		SetType("string").
+		SetWorkOrderType(woType1).
+		SaveX(ctx)
+	pType2 := c.PropertyType.Create().
+		SetName("pType2").
+		SetType("string").
+		SetWorkOrderType(woType2).
+		SaveX(ctx)
+	c.Property.Create().
+		SetType(pType1).
+		SetStringVal("Hi").
+		SetWorkOrder(wo1).
+		SaveX(ctx)
+	c.Property.Create().
+		SetType(pType2).
+		SetStringVal("Hi").
+		SetWorkOrder(wo2).
+		SaveX(ctx)
+	t.Run("EmptyPermissions", func(t *testing.T) {
+		permissions := authz.EmptyPermissions()
+		permissionsContext := viewertest.NewContext(
+			context.Background(),
+			c,
+			viewertest.WithUser("user"),
+			viewertest.WithRole(user.RoleUSER),
+			viewertest.WithPermissions(permissions))
+		count, err := c.Property.Query().Count(permissionsContext)
+		require.NoError(t, err)
+		require.Zero(t, count)
+	})
+	t.Run("PartialPermissions", func(t *testing.T) {
+		permissions := authz.EmptyPermissions()
+		permissions.WorkforcePolicy.Read.IsAllowed = models2.PermissionValueByCondition
+		permissions.WorkforcePolicy.Read.WorkOrderTypeIds = []int{woType1.ID}
+		permissionsContext := viewertest.NewContext(
+			context.Background(),
+			c,
+			viewertest.WithUser("user"),
+			viewertest.WithRole(user.RoleUSER),
+			viewertest.WithPermissions(permissions))
+		count, err := c.Property.Query().Count(permissionsContext)
+		require.NoError(t, err)
+		require.Equal(t, 1, count)
+	})
+	t.Run("FullPermissions", func(t *testing.T) {
+		permissions := authz.EmptyPermissions()
+		permissions.WorkforcePolicy.Read.IsAllowed = models2.PermissionValueYes
+		permissionsContext := viewertest.NewContext(
+			context.Background(),
+			c,
+			viewertest.WithUser("user"),
+			viewertest.WithRole(user.RoleUSER),
+			viewertest.WithPermissions(permissions))
+		count, err := c.Property.Query().Count(permissionsContext)
+		require.NoError(t, err)
+		require.Equal(t, 2, count)
+	})
+}
+
+func TestPropertyOfProjectReadPolicyRule(t *testing.T) {
+	c := viewertest.NewTestClient(t)
+	ctx := viewertest.NewContext(context.Background(), c)
+	projectType1, project1 := prepareProjectData(ctx, c)
+	projectType2, project2 := prepareProjectData(ctx, c)
+	pType1 := c.PropertyType.Create().
+		SetName("pType1").
+		SetType("string").
+		SetProjectType(projectType1).
+		SaveX(ctx)
+	pType2 := c.PropertyType.Create().
+		SetName("pType2").
+		SetType("string").
+		SetProjectType(projectType2).
+		SaveX(ctx)
+	c.Property.Create().
+		SetType(pType1).
+		SetStringVal("Hi").
+		SetProject(project1).
+		SaveX(ctx)
+	c.Property.Create().
+		SetType(pType2).
+		SetStringVal("Hi").
+		SetProject(project2).
+		SaveX(ctx)
+	t.Run("EmptyPermissions", func(t *testing.T) {
+		permissions := authz.EmptyPermissions()
+		permissionsContext := viewertest.NewContext(
+			context.Background(),
+			c,
+			viewertest.WithUser("user"),
+			viewertest.WithRole(user.RoleUSER),
+			viewertest.WithPermissions(permissions))
+		count, err := c.Property.Query().Count(permissionsContext)
+		require.NoError(t, err)
+		require.Zero(t, count)
+	})
+	t.Run("PartialPermissions", func(t *testing.T) {
+		permissions := authz.EmptyPermissions()
+		permissions.WorkforcePolicy.Read.IsAllowed = models2.PermissionValueByCondition
+		permissions.WorkforcePolicy.Read.ProjectTypeIds = []int{projectType1.ID}
+		permissionsContext := viewertest.NewContext(
+			context.Background(),
+			c,
+			viewertest.WithUser("user"),
+			viewertest.WithRole(user.RoleUSER),
+			viewertest.WithPermissions(permissions))
+		count, err := c.Property.Query().Count(permissionsContext)
+		require.NoError(t, err)
+		require.Equal(t, 1, count)
+	})
+	t.Run("FullPermissions", func(t *testing.T) {
+		permissions := authz.EmptyPermissions()
+		permissions.WorkforcePolicy.Read.IsAllowed = models2.PermissionValueYes
+		permissionsContext := viewertest.NewContext(
+			context.Background(),
+			c,
+			viewertest.WithUser("user"),
+			viewertest.WithRole(user.RoleUSER),
+			viewertest.WithPermissions(permissions))
+		count, err := c.Property.Query().Count(permissionsContext)
+		require.NoError(t, err)
+		require.Equal(t, 2, count)
+	})
 }

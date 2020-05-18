@@ -7,22 +7,22 @@
 import os
 from datetime import datetime
 
-from pyinventory import InventoryClient
 from pyinventory.api.location import add_location
 from pyinventory.api.location_type import add_location_type
-from pyinventory.site_survey import (
+from pysymphony import SymphonyClient
+from pyworkforce.api.site_survey import (
     delete_site_survey,
     get_site_surveys,
     upload_site_survey,
 )
 
-from .grpc.rpc_pb2_grpc import TenantServiceStub
-from .utils.base_test import BaseTest
+from ..utils.base_test import BaseTest
+from ..utils.grpc.rpc_pb2_grpc import TenantServiceStub
 
 
 class TestSiteSurvey(BaseTest):
     def __init__(
-        self, testName: str, client: InventoryClient, stub: TenantServiceStub
+        self, testName: str, client: SymphonyClient, stub: TenantServiceStub
     ) -> None:
         super().__init__(testName, client, stub)
 
@@ -34,11 +34,11 @@ class TestSiteSurvey(BaseTest):
         location = add_location(
             self.client, [("City Center", "Lima Downtown")], {}, 10, 20
         )
-        self.assertEqual(0, len(get_site_surveys(self.client, location)))
+        self.assertEqual(0, len(get_site_surveys(self.client, location.id)))
         completion_date = datetime.strptime("25-7-2019", "%d-%m-%Y")
         upload_site_survey(
             self.client,
-            location,
+            location.id,
             "My site survey",
             completion_date,
             os.path.join(
@@ -48,7 +48,7 @@ class TestSiteSurvey(BaseTest):
                 os.path.dirname(__file__), "resources/city_center_site_survey.json"
             ),
         )
-        surveys = get_site_surveys(self.client, location)
+        surveys = get_site_surveys(self.client, location.id)
         self.assertEqual(1, len(surveys))
         survey = surveys[0]
         self.assertEqual("My site survey", survey.name)
@@ -58,5 +58,5 @@ class TestSiteSurvey(BaseTest):
         self.assertEqual(survey.sourceFileName, "city_center_site_survey.xlsx")
 
         delete_site_survey(self.client, survey)
-        surveys = get_site_surveys(self.client, location)
+        surveys = get_site_surveys(self.client, location.id)
         self.assertEqual(0, len(surveys))

@@ -452,26 +452,33 @@ void LocalEnforcer::install_redirect_flow(
   std::vector<PolicyRule> dynamic_rules{create_redirect_rule(action)};
   const std::string &imsi = action->get_imsi();
 
-  auto it = session_map_.find(imsi);
-  if (it == session_map_.end()) {
-    MLOG(MDEBUG) << "Session for IMSI " << imsi << " not found";
-    return;
-  }
   auto request = directoryd_client_->get_directoryd_ip_field(
-      imsi, [this, imsi, &session_update, static_rules, dynamic_rules,
-             it](Status status, DirectoryField resp) {
+      imsi, [this, imsi, static_rules, dynamic_rules]
+        (Status status, DirectoryField resp) {
+
         if (!status.ok()) {
-          MLOG(MERROR) << "Could not fetch subscriber " << imsi << "ip, "
+          MLOG(MERROR) << "Could not fetch subscriber " << imsi << " ip, "
                        << "redirection fails, error: "
                        << status.error_message();
         } else {
+          auto session_map = session_store_.read_sessions(SessionRead{imsi});
+          auto it = session_map.find(imsi);
+          if (it == session_map.end()) {
+            MLOG(MDEBUG) << "Session for IMSI " << imsi << " not found";
+            return;
+          }
+
+          auto session_update =
+            session_store_.get_default_session_update(session_map);
           pipelined_client_->add_gy_final_action_flow(
-              imsi, resp.value(), static_rules, dynamic_rules);
+            imsi, resp.value(), static_rules, dynamic_rules);
 
           for (const auto &session : it->second) {
             auto &uc = session_update[imsi][session->get_session_id()];
             session->insert_gy_dynamic_rule(dynamic_rules.front(), uc);
           }
+          auto update_success =
+            session_store_.update_sessions(session_update);
         }
       });
 }

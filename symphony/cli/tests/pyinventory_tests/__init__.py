@@ -9,8 +9,8 @@ from unittest.loader import TestLoader
 
 from grpc import insecure_channel
 
-from .utils import get_grpc_server_address, init_client, wait_for_platform
-from .utils.constant import TEST_USER_EMAIL
+from ..utils import get_grpc_server_address, init_client, wait_for_platform
+from ..utils.constant import TEST_USER_EMAIL
 
 
 def load_tests(
@@ -23,9 +23,8 @@ def load_tests(
     from .test_location import TestLocation
     from .test_port_type import TestEquipmentPortType
     from .test_service import TestService
-    from .test_site_survey import TestSiteSurvey
     from .test_user import TestUser
-    from .grpc.rpc_pb2_grpc import TenantServiceStub
+    from ..utils.grpc.rpc_pb2_grpc import TenantServiceStub
 
     TESTS = [
         TestEquipment,
@@ -34,7 +33,6 @@ def load_tests(
         TestLocation,
         TestEquipmentPortType,
         TestService,
-        TestSiteSurvey,
         TestUser,
     ]
 

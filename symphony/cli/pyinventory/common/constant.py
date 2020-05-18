@@ -10,13 +10,3 @@ LOCATIONS_TO_SEARCH = 5
 LOCATION_PAGINATION_STEP = 1000
 USER_ROLE = 0
 SUPERUSER_ROLE = 3
-SCHEMA_FILE_NAME = "survey_schema.json"
-SIMPLE_QUESTION_TYPE_TO_REQUIRED_PROPERTY_NAME = {
-    "DATE": "dateData",
-    "BOOL": "boolData",
-    "EMAIL": "emailData",
-    "TEXT": "textData",
-    "FLOAT": "floatData",
-    "INTEGER": "intData",
-    "PHONE": "phoneData",
-}

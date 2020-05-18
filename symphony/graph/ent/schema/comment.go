@@ -8,6 +8,7 @@ import (
 	"github.com/facebookincubator/ent"
 	"github.com/facebookincubator/ent/schema/edge"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/authz"
 )
 
 // Comment defines the location type schema.
@@ -22,11 +23,26 @@ func (Comment) Fields() []ent.Field {
 	}
 }
 
-// Edges returns work order edges.
+// Edges returns comment edges.
 func (Comment) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("author", User.Type).
 			Required().
 			Unique(),
+		edge.From("work_order", WorkOrder.Type).
+			Ref("comments").
+			Unique(),
+		edge.From("project", Project.Type).
+			Ref("comments").
+			Unique(),
 	}
+}
+
+// Policy returns comment policy.
+func (Comment) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithQueryRules(
+			authz.CommentReadPolicyRule(),
+		),
+	)
 }

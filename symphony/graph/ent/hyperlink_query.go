@@ -17,6 +17,7 @@ import (
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/hyperlink"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
+	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
 
 // HyperlinkQuery is the builder for querying Hyperlink entities.
@@ -27,7 +28,9 @@ type HyperlinkQuery struct {
 	order      []OrderFunc
 	unique     []string
 	predicates []predicate.Hyperlink
-	withFKs    bool
+	// eager-loading edges.
+	withWorkOrder *WorkOrderQuery
+	withFKs       bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -55,6 +58,24 @@ func (hq *HyperlinkQuery) Offset(offset int) *HyperlinkQuery {
 func (hq *HyperlinkQuery) Order(o ...OrderFunc) *HyperlinkQuery {
 	hq.order = append(hq.order, o...)
 	return hq
+}
+
+// QueryWorkOrder chains the current query on the work_order edge.
+func (hq *HyperlinkQuery) QueryWorkOrder() *WorkOrderQuery {
+	query := &WorkOrderQuery{config: hq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := hq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(hyperlink.Table, hyperlink.FieldID, hq.sqlQuery()),
+			sqlgraph.To(workorder.Table, workorder.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, hyperlink.WorkOrderTable, hyperlink.WorkOrderColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(hq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first Hyperlink entity in the query. Returns *NotFoundError when no hyperlink was found.
@@ -236,6 +257,17 @@ func (hq *HyperlinkQuery) Clone() *HyperlinkQuery {
 	}
 }
 
+//  WithWorkOrder tells the query-builder to eager-loads the nodes that are connected to
+// the "work_order" edge. The optional arguments used to configure the query builder of the edge.
+func (hq *HyperlinkQuery) WithWorkOrder(opts ...func(*WorkOrderQuery)) *HyperlinkQuery {
+	query := &WorkOrderQuery{config: hq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	hq.withWorkOrder = query
+	return hq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -303,10 +335,16 @@ func (hq *HyperlinkQuery) prepareQuery(ctx context.Context) error {
 
 func (hq *HyperlinkQuery) sqlAll(ctx context.Context) ([]*Hyperlink, error) {
 	var (
-		nodes   = []*Hyperlink{}
-		withFKs = hq.withFKs
-		_spec   = hq.querySpec()
+		nodes       = []*Hyperlink{}
+		withFKs     = hq.withFKs
+		_spec       = hq.querySpec()
+		loadedTypes = [1]bool{
+			hq.withWorkOrder != nil,
+		}
 	)
+	if hq.withWorkOrder != nil {
+		withFKs = true
+	}
 	if withFKs {
 		_spec.Node.Columns = append(_spec.Node.Columns, hyperlink.ForeignKeys...)
 	}
@@ -324,6 +362,7 @@ func (hq *HyperlinkQuery) sqlAll(ctx context.Context) ([]*Hyperlink, error) {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, hq.driver, _spec); err != nil {
@@ -332,6 +371,32 @@ func (hq *HyperlinkQuery) sqlAll(ctx context.Context) ([]*Hyperlink, error) {
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+
+	if query := hq.withWorkOrder; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Hyperlink)
+		for i := range nodes {
+			if fk := nodes[i].work_order_hyperlinks; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(workorder.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_hyperlinks" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.WorkOrder = n
+			}
+		}
+	}
+
 	return nodes, nil
 }
 

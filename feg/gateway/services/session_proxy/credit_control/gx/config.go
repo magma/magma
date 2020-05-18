@@ -93,7 +93,7 @@ func GetPCRFConfiguration() []*diameter.DiameterServerConfig {
 				LocalAddr: diameter.GetValueOrEnv(diameter.LocalAddrFlag, GxLocalAddr, gxCfg.GetLocalAddress(), i),
 			},
 			DestHost:          diameter.GetValueOrEnv(diameter.DestHostFlag, PCRFHostEnv, gxCfg.GetDestHost(), i),
-			DestRealm:         diameter.GetValueOrEnv(diameter.DestRealmFlag, PCRFRealmEnv, gxCfg.GetDestHost(), i),
+			DestRealm:         diameter.GetValueOrEnv(diameter.DestRealmFlag, PCRFRealmEnv, gxCfg.GetDestRealm(), i),
 			DisableDestHost:   diameter.GetBoolValueOrEnv(diameter.DisableDestHostFlag, DisableDestHostEnv, gxCfg.GetDisableDestHost(), i),
 			OverwriteDestHost: diameter.GetBoolValueOrEnv(diameter.OverwriteDestHostFlag, OverwriteDestHostEnv, gxCfg.GetOverwriteDestHost(), i),
 		}
