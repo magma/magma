@@ -95,7 +95,7 @@ func (m *TodoMutation) Text() (r string, exists bool) {
 	return *v, true
 }
 
-// ResetText reset all changes of the text field.
+// ResetText reset all changes of the "text" field.
 func (m *TodoMutation) ResetText() {
 	m.text = nil
 }
@@ -133,7 +133,7 @@ func (m *TodoMutation) ParentIDs() (ids []int) {
 	return
 }
 
-// ResetParent reset all changes of the parent edge.
+// ResetParent reset all changes of the "parent" edge.
 func (m *TodoMutation) ResetParent() {
 	m.parent = nil
 	m.clearedparent = false
@@ -175,7 +175,7 @@ func (m *TodoMutation) ChildrenIDs() (ids []int) {
 	return
 }
 
-// ResetChildren reset all changes of the children edge.
+// ResetChildren reset all changes of the "children" edge.
 func (m *TodoMutation) ResetChildren() {
 	m.children = nil
 	m.removedchildren = nil

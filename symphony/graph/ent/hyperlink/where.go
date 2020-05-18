@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 )
 
@@ -641,6 +642,34 @@ func CategoryEqualFold(v string) predicate.Hyperlink {
 func CategoryContainsFold(v string) predicate.Hyperlink {
 	return predicate.Hyperlink(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldCategory), v))
+	})
+}
+
+// HasWorkOrder applies the HasEdge predicate on the "work_order" edge.
+func HasWorkOrder() predicate.Hyperlink {
+	return predicate.Hyperlink(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(WorkOrderTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, WorkOrderTable, WorkOrderColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasWorkOrderWith applies the HasEdge predicate on the "work_order" edge with a given conditions (other predicates).
+func HasWorkOrderWith(preds ...predicate.WorkOrder) predicate.Hyperlink {
+	return predicate.Hyperlink(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(WorkOrderInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, WorkOrderTable, WorkOrderColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
 	})
 }
 

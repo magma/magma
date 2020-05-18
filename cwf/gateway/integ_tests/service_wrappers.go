@@ -20,6 +20,7 @@ import (
 	lteprotos "magma/lte/cloud/go/protos"
 	registryTestUtils "magma/orc8r/cloud/go/test_utils"
 	"magma/orc8r/lib/go/protos"
+	orc8rprotos "magma/orc8r/lib/go/protos"
 
 	"github.com/go-redis/redis"
 	"github.com/golang/glog"
@@ -55,6 +56,12 @@ type ocsClient struct {
 // Wrapper for GRPC Client functionality
 type pipelinedClient struct {
 	lteprotos.PipelinedClient
+	cc *grpc.ClientConn
+}
+
+// Wrapper for GRPC Client functionality
+type directorydClient struct {
+	orc8rprotos.GatewayDirectoryServiceClient
 	cc *grpc.ClientConn
 }
 
@@ -467,7 +474,7 @@ func getOCSAssertExpectationsResultPerInstance(instanceName string) ([]*fegproto
 
 /**  ========== Pipelined Helpers ========== **/
 // getPipelinedClient is a utility function to an RPC connection to a
-// remote OCS service.
+// remote Pipelined service.
 func getPipelinedClient() (*pipelinedClient, error) {
 	var conn *grpc.ClientConn
 	var err error
@@ -549,4 +556,33 @@ func contains(wordToFind string, words []string) bool {
 		}
 	}
 	return false
+}
+
+/**  ========== Directoryd Helpers ========== **/
+// getDirectorydClient is a utility function to an RPC connection to a
+// remote Directoryd service.
+func getDirectorydClient() (*directorydClient, error) {
+	var conn *grpc.ClientConn
+	var err error
+	conn, err = registryTestUtils.GetConnectionWithAuthority(DirectorydRemote)
+	if err != nil {
+		errMsg := fmt.Sprintf("Directoryd client initialization error: %s", err)
+		glog.Error(errMsg)
+		return nil, errors.New(errMsg)
+	}
+	return &directorydClient{
+		orc8rprotos.NewGatewayDirectoryServiceClient(conn),
+		conn,
+	}, err
+}
+
+func updateDirectorydRecord(imsi, field, value string) error {
+	cli, err := getDirectorydClient()
+	if err == nil && cli != nil {
+		updateReg := &orc8rprotos.UpdateRecordRequest{Id: imsi}
+		updateReg.Fields = make(map[string]string, 1)
+		updateReg.Fields[field] = value
+		_, err = cli.UpdateRecord(context.Background(), updateReg)
+	}
+	return err
 }

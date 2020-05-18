@@ -117,3 +117,26 @@ func CheckListItemWritePolicyRule() privacy.MutationRule {
 		return privacyDecision(checkWorkforce(FromContext(ctx).WorkforcePolicy.Data.Update, &workOrderTypeID, nil))
 	})
 }
+
+// CheckListCategoryReadPolicyRule grants read permission to checklist category based on policy.
+func CheckListCategoryReadPolicyRule() privacy.QueryRule {
+	return privacy.CheckListCategoryQueryRuleFunc(func(ctx context.Context, q *ent.CheckListCategoryQuery) error {
+		woPredicate := workOrderReadPredicate(ctx)
+		if woPredicate != nil {
+			q.Where(checklistcategory.HasWorkOrderWith(woPredicate))
+		}
+		return privacy.Skip
+	})
+}
+
+// CheckListItemReadPolicyRule grants read permission to checklist item based on policy.
+func CheckListItemReadPolicyRule() privacy.QueryRule {
+	return privacy.CheckListItemQueryRuleFunc(func(ctx context.Context, q *ent.CheckListItemQuery) error {
+		woPredicate := workOrderReadPredicate(ctx)
+		if woPredicate != nil {
+			q.Where(
+				checklistitem.HasCheckListCategoryWith(checklistcategory.HasWorkOrderWith(woPredicate)))
+		}
+		return privacy.Skip
+	})
+}

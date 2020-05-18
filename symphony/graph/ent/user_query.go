@@ -33,7 +33,6 @@ type UserQuery struct {
 	// eager-loading edges.
 	withProfilePhoto *FileQuery
 	withGroups       *UsersGroupQuery
-	withFKs          bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -73,7 +72,7 @@ func (uq *UserQuery) QueryProfilePhoto() *FileQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, uq.sqlQuery()),
 			sqlgraph.To(file.Table, file.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, user.ProfilePhotoTable, user.ProfilePhotoColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, user.ProfilePhotoTable, user.ProfilePhotoColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -368,26 +367,16 @@ func (uq *UserQuery) prepareQuery(ctx context.Context) error {
 func (uq *UserQuery) sqlAll(ctx context.Context) ([]*User, error) {
 	var (
 		nodes       = []*User{}
-		withFKs     = uq.withFKs
 		_spec       = uq.querySpec()
 		loadedTypes = [2]bool{
 			uq.withProfilePhoto != nil,
 			uq.withGroups != nil,
 		}
 	)
-	if uq.withProfilePhoto != nil {
-		withFKs = true
-	}
-	if withFKs {
-		_spec.Node.Columns = append(_spec.Node.Columns, user.ForeignKeys...)
-	}
 	_spec.ScanValues = func() []interface{} {
 		node := &User{config: uq.config}
 		nodes = append(nodes, node)
 		values := node.scanValues()
-		if withFKs {
-			values = append(values, node.fkValues()...)
-		}
 		return values
 	}
 	_spec.Assign = func(values ...interface{}) error {
@@ -406,27 +395,30 @@ func (uq *UserQuery) sqlAll(ctx context.Context) ([]*User, error) {
 	}
 
 	if query := uq.withProfilePhoto; query != nil {
-		ids := make([]int, 0, len(nodes))
-		nodeids := make(map[int][]*User)
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[int]*User)
 		for i := range nodes {
-			if fk := nodes[i].user_profile_photo; fk != nil {
-				ids = append(ids, *fk)
-				nodeids[*fk] = append(nodeids[*fk], nodes[i])
-			}
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
 		}
-		query.Where(file.IDIn(ids...))
+		query.withFKs = true
+		query.Where(predicate.File(func(s *sql.Selector) {
+			s.Where(sql.InValues(user.ProfilePhotoColumn, fks...))
+		}))
 		neighbors, err := query.All(ctx)
 		if err != nil {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			nodes, ok := nodeids[n.ID]
+			fk := n.user_profile_photo
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "user_profile_photo" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "user_profile_photo" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "user_profile_photo" returned %v for node %v`, *fk, n.ID)
 			}
-			for i := range nodes {
-				nodes[i].Edges.ProfilePhoto = n
-			}
+			node.Edges.ProfilePhoto = n
 		}
 	}
 

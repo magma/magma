@@ -8,7 +8,6 @@ import os
 import shutil
 import tempfile
 
-from pyinventory import InventoryClient
 from pyinventory.api.file import (
     add_file,
     add_files,
@@ -27,14 +26,15 @@ from pyinventory.api.location import (
 )
 from pyinventory.api.location_type import add_location_type
 from pyinventory.exceptions import LocationCannotBeDeletedWithDependency
+from pysymphony import SymphonyClient
 
-from .grpc.rpc_pb2_grpc import TenantServiceStub
-from .utils.base_test import BaseTest
+from ..utils.base_test import BaseTest
+from ..utils.grpc.rpc_pb2_grpc import TenantServiceStub
 
 
 class TestLocation(BaseTest):
     def __init__(
-        self, testName: str, client: InventoryClient, stub: TenantServiceStub
+        self, testName: str, client: SymphonyClient, stub: TenantServiceStub
     ) -> None:
         super().__init__(testName, client, stub)
 

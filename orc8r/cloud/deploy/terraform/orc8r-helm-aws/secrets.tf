@@ -91,7 +91,7 @@ resource "kubernetes_secret" "orc8r_configs" {
         format("http://%s-prometheus-cache:9091/metrics", var.helm_deployment_name),
       ],
 
-      "alertmanagerApiURL" : format("http://%s-alertmanager:9093/api/v2/alerts", var.helm_deployment_name),
+      "alertmanagerApiURL" : format("http://%s-alertmanager:9093/api/v2", var.helm_deployment_name),
       "prometheusConfigServiceURL" : format("http://%s-prometheus-configurer:9100", var.helm_deployment_name),
       "alertmanagerConfigServiceURL" : format("http://%s-alertmanager-configurer:9101", var.helm_deployment_name),
     })

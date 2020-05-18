@@ -37,6 +37,7 @@
        - openvswitch-common
        - openvswitch-switch
        - python-openvswitch
+       - openvswitch-datapath-dkms
 
 - name: Start OVS
   service:

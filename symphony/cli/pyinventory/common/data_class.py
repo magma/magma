@@ -3,25 +3,13 @@
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
-from datetime import date, datetime
+from datetime import date
 from numbers import Number
-from typing import (
-    Any,
-    Dict,
-    List,
-    NamedTuple,
-    Optional,
-    Sequence,
-    Tuple,
-    Type,
-    TypeVar,
-    Union,
-)
+from typing import List, NamedTuple, Optional, Sequence, Tuple, Type, TypeVar, Union
 
-from ..graphql.enum.image_entity import ImageEntity
+from pysymphony.graphql.enum.image_entity import ImageEntity
+
 from ..graphql.enum.property_kind import PropertyKind
-from ..graphql.enum.user_role import UserRole
-from ..graphql.enum.user_status import UserStatus
 from ..graphql.fragment.equipment_port_definition import EquipmentPortDefinitionFragment
 from ..graphql.fragment.equipment_position_definition import (
     EquipmentPositionDefinitionFragment,
@@ -203,27 +191,6 @@ class EquipmentPort(NamedTuple):
     properties: Sequence[PropertyFragment]
     definition: EquipmentPortDefinition
     link: Optional[Link]
-
-
-class SiteSurvey(NamedTuple):
-    """
-    Attributes:
-        name (str): name
-        id (str): ID
-        completionTime (datetime): complition time
-        sourceFileId (Optional[str]): source file ID
-        sourceFileName (Optional[str]): source file name
-        sourceFileKey (Optional[str]): source file key
-        forms (Dict[str, Dict[str, Any]]): forms
-    """
-
-    name: str
-    id: str
-    completionTime: datetime
-    sourceFileId: Optional[str]
-    sourceFileName: Optional[str]
-    sourceFileKey: Optional[str]
-    forms: Dict[str, Dict[str, Any]]
 
 
 class ServiceType(NamedTuple):

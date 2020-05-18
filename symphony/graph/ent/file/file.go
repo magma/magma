@@ -28,8 +28,54 @@ const (
 	FieldStoreKey    = "store_key"    // FieldCategory holds the string denoting the category vertex property in the database.
 	FieldCategory    = "category"
 
+	// EdgeLocation holds the string denoting the location edge name in mutations.
+	EdgeLocation = "location"
+	// EdgeEquipment holds the string denoting the equipment edge name in mutations.
+	EdgeEquipment = "equipment"
+	// EdgeUser holds the string denoting the user edge name in mutations.
+	EdgeUser = "user"
+	// EdgeWorkOrder holds the string denoting the work_order edge name in mutations.
+	EdgeWorkOrder = "work_order"
+	// EdgeChecklistItem holds the string denoting the checklist_item edge name in mutations.
+	EdgeChecklistItem = "checklist_item"
+
 	// Table holds the table name of the file in the database.
 	Table = "files"
+	// LocationTable is the table the holds the location relation/edge.
+	LocationTable = "files"
+	// LocationInverseTable is the table name for the Location entity.
+	// It exists in this package in order to avoid circular dependency with the "location" package.
+	LocationInverseTable = "locations"
+	// LocationColumn is the table column denoting the location relation/edge.
+	LocationColumn = "location_files"
+	// EquipmentTable is the table the holds the equipment relation/edge.
+	EquipmentTable = "files"
+	// EquipmentInverseTable is the table name for the Equipment entity.
+	// It exists in this package in order to avoid circular dependency with the "equipment" package.
+	EquipmentInverseTable = "equipment"
+	// EquipmentColumn is the table column denoting the equipment relation/edge.
+	EquipmentColumn = "equipment_files"
+	// UserTable is the table the holds the user relation/edge.
+	UserTable = "files"
+	// UserInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	UserInverseTable = "users"
+	// UserColumn is the table column denoting the user relation/edge.
+	UserColumn = "user_profile_photo"
+	// WorkOrderTable is the table the holds the work_order relation/edge.
+	WorkOrderTable = "files"
+	// WorkOrderInverseTable is the table name for the WorkOrder entity.
+	// It exists in this package in order to avoid circular dependency with the "workorder" package.
+	WorkOrderInverseTable = "work_orders"
+	// WorkOrderColumn is the table column denoting the work_order relation/edge.
+	WorkOrderColumn = "work_order_files"
+	// ChecklistItemTable is the table the holds the checklist_item relation/edge.
+	ChecklistItemTable = "files"
+	// ChecklistItemInverseTable is the table name for the CheckListItem entity.
+	// It exists in this package in order to avoid circular dependency with the "checklistitem" package.
+	ChecklistItemInverseTable = "check_list_items"
+	// ChecklistItemColumn is the table column denoting the checklist_item relation/edge.
+	ChecklistItemColumn = "check_list_item_files"
 )
 
 // Columns holds all SQL columns for file fields.
@@ -54,6 +100,7 @@ var ForeignKeys = []string{
 	"location_files",
 	"survey_question_photo_data",
 	"survey_question_images",
+	"user_profile_photo",
 	"work_order_files",
 }
 

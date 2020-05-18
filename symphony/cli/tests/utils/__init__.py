@@ -7,15 +7,15 @@ import sys
 import time
 
 import requests
-from pyinventory import InventoryClient
+from pysymphony import SymphonyClient
 from pysymphony.common.endpoint import LOCALHOST_SERVER
 
 from .constant import PLATFORM_SERVER_HEALTH_CHECK_URL, TestMode
 
 
 if True:
-    sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../grpc"))
-    from ..grpc.rpc_pb2_grpc import (
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), "grpc"))
+    from .grpc.rpc_pb2_grpc import (
         TenantServiceStub,
         google_dot_protobuf_dot_wrappers__pb2,
     )
@@ -48,13 +48,13 @@ def wait_for_platform() -> None:
     raise Exception("Failed to wait for platform")
 
 
-def init_client(email: str, password: str) -> InventoryClient:
+def init_client(email: str, password: str) -> SymphonyClient:
     if TEST_MODE == TestMode.LOCAL:
-        return InventoryClient(email, password, tenant=TENANT, is_local_host=True)
+        return SymphonyClient(email, password, tenant=TENANT, is_local_host=True)
     elif TEST_MODE == TestMode.REMOTE:
-        return InventoryClient(email, password, tenant=f"{TENANT}.staging")
+        return SymphonyClient(email, password, tenant=f"{TENANT}.staging")
     else:
-        return InventoryClient(email, password, is_dev_mode=True)
+        return SymphonyClient(email, password, is_dev_mode=True)
 
 
 def get_grpc_server_address() -> str:

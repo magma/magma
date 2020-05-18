@@ -19,11 +19,20 @@ import UserPermissionsPane from './UserPermissionsPane';
 import UserProfilePane from './UserProfilePane';
 import fbt from 'fbt';
 import {MessageShowingContextProvider} from '@fbcnms/ui/components/design-system/Dialog/MessageShowingContext';
+import {
+  Redirect,
+  Route,
+  Switch,
+  useHistory,
+  useLocation,
+  useRouteMatch,
+} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
-import {useContext, useMemo, useState} from 'react';
+import {useContext, useMemo} from 'react';
 
 const useStyles = makeStyles(() => ({
   root: {
+    height: '100%',
     maxHeight: '100%',
     overflow: 'hidden',
     display: 'flex',
@@ -33,33 +42,36 @@ const useStyles = makeStyles(() => ({
     paddingLeft: '24px',
   },
   viewContainer: {
-    padding: '24px',
-    overflowY: 'auto',
+    flexGrow: 1,
   },
 }));
 
-export type Props = {
+export type Props = $ReadOnly<{|
   user: User,
   onChange: User => void,
-};
+|}>;
 
 type ViewTab = {|
   tab: TabProps,
+  path: string,
   view: React.Node,
 |};
 
-export default function UserDetailsCard(props: Props) {
+function UserDetailsCard(props: Props) {
   const classes = useStyles();
   const {isFeatureEnabled} = useContext(AppContext);
   const userManagementDevMode = isFeatureEnabled('user_management_dev');
+  const history = useHistory();
 
   const {user, onChange} = props;
+
   const userDetailParts: Array<ViewTab> = useMemo(() => {
     const parts = [
       {
         tab: {
           label: `${fbt('Profile', '')}`,
         },
+        path: 'profile',
         view: (
           <MessageShowingContextProvider>
             <UserProfilePane user={user} onChange={onChange} />
@@ -70,6 +82,7 @@ export default function UserDetailsCard(props: Props) {
         tab: {
           label: `${fbt('Account', '')}`,
         },
+        path: 'account',
         view: <UserAccountPane user={user} onChange={onChange} />,
       },
     ];
@@ -78,12 +91,20 @@ export default function UserDetailsCard(props: Props) {
         tab: {
           label: `${fbt('Permissions', '')}`,
         },
+        path: 'permissions',
         view: <UserPermissionsPane user={user} />,
       });
     }
     return parts;
   }, [onChange, user, userManagementDevMode]);
-  const [activePart, setActivePart] = useState(0);
+
+  const match = useRouteMatch();
+  const location = useLocation();
+
+  const activePart = useMemo(() => {
+    const activePartPath = location.pathname.slice(match.url.length + 1);
+    return userDetailParts.findIndex(part => part.path === activePartPath);
+  }, [location.pathname, match.url.length, userDetailParts]);
 
   return (
     <div className={classes.root}>
@@ -91,12 +112,21 @@ export default function UserDetailsCard(props: Props) {
         className={classes.tabsContainer}
         tabs={userDetailParts.map(part => part.tab)}
         activeTabIndex={activePart}
-        onChange={setActivePart}
+        onChange={tabIndex => {
+          history.push(`${match.url}/${userDetailParts[tabIndex].path}`);
+        }}
         spread={false}
       />
-      <div className={classes.viewContainer}>
-        {userDetailParts[activePart].view}
-      </div>
+      <Switch>
+        {userDetailParts.map(part => (
+          <Route path={`${match.path}/${part.path}`} children={part.view} />
+        ))}
+        <Redirect
+          from={`${match.path}/`}
+          to={`${match.path}/${userDetailParts[0].path}`}
+        />
+      </Switch>
     </div>
   );
 }
+export default UserDetailsCard;

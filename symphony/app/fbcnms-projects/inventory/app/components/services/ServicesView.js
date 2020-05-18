@@ -133,7 +133,7 @@ class ServicesView extends React.Component<Props> {
             <Column
               label="Name"
               dataKey="name"
-              width={180}
+              width={300}
               flexGrow={1}
               headerRenderer={this._headerRenderer}
               cellRenderer={this._nameRenderer}
@@ -162,7 +162,7 @@ class ServicesView extends React.Component<Props> {
               label="Service ID"
               dataKey="service_id"
               cellDataGetter={({rowData}) => rowData.externalId}
-              width={180}
+              width={100}
               flexGrow={1}
               headerRenderer={this._headerRenderer}
               cellRenderer={this._cellRenderer}
@@ -171,7 +171,7 @@ class ServicesView extends React.Component<Props> {
               label="Customer"
               dataKey="customer"
               cellDataGetter={({rowData}) => rowData.customer?.name}
-              width={180}
+              width={100}
               flexGrow={1}
               headerRenderer={this._headerRenderer}
               cellRenderer={this._cellRenderer}
@@ -180,7 +180,7 @@ class ServicesView extends React.Component<Props> {
               label="Status"
               dataKey="status"
               cellDataGetter={({rowData}) => rowData.status}
-              width={180}
+              width={100}
               flexGrow={1}
               headerRenderer={this._headerRenderer}
               cellRenderer={this._cellRenderer}
