@@ -23,6 +23,9 @@ import {fetchQuery, graphql} from 'relay-runtime';
 import {useContext, useEffect, useState} from 'react';
 import {useLocation} from 'react-router-dom';
 
+export type Me = $ElementType<MainContextMeQueryResponse, 'me'>;
+export type UserPermissions = $ElementType<$NonMaybeType<Me>, 'permissions'>;
+
 const isUserHasAdminPermissions: (
   ?MainContextMeQueryResponse,
 ) => boolean = queryResponse =>

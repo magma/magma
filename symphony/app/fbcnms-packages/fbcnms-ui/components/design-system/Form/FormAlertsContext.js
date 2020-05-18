@@ -66,10 +66,12 @@ export type FormRule = $ReadOnly<{|
   notAggregated?: boolean,
 |}>;
 
+export type AlertRuleCheck = (validationInfo: FormRule) => ?string;
+
 type FormAlertsContainer = $ReadOnly<{|
   detected: boolean,
   message: string,
-  check: (validationInfo: FormRule) => ?string,
+  check: AlertRuleCheck,
   set: (id: string, error: ?string) => ?string,
   clear: (id: string) => void,
 |}>;
