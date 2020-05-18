@@ -9,17 +9,11 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/facebookincubator/symphony/graph/ent/serviceendpointdefinition"
-
-	"github.com/facebookincubator/symphony/graph/ent/service"
-	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
-
 	"github.com/facebookincubator/symphony/graph/ent/servicetype"
 
 	"go.uber.org/zap"
 
 	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 )
 
@@ -42,29 +36,12 @@ func (m *jobs) collectProperties(ctx context.Context) error {
 		Where(propertytype.Deleted(true)).
 		All(ctx)
 	if err != nil {
-		return fmt.Errorf("query properties: %w", err)
+		return fmt.Errorf("query property type: %w", err)
 	}
 	for _, pType := range propertyTypes {
-		m.logger.For(ctx).Info("deleting property type",
-			zap.Int("id", pType.ID),
-			zap.String("name", pType.Name))
-		count, err := client.Property.Delete().
-			Where(property.HasTypeWith(propertytype.ID(pType.ID))).
-			Exec(ctx)
-		if err != nil {
-			return fmt.Errorf("delete properties of type id: %d, %w", pType.ID, err)
+		if err := m.deletePropertyType(ctx, client, pType); err != nil {
+			return err
 		}
-		m.logger.For(ctx).Info("deleted properties",
-			zap.Int("id", pType.ID),
-			zap.Int("count", count))
-		err = client.PropertyType.DeleteOne(pType).
-			Exec(ctx)
-		if err != nil {
-			return fmt.Errorf("delete property type: %d, %w", pType.ID, err)
-		}
-		m.logger.For(ctx).Info("deleted property type",
-			zap.Int("id", pType.ID),
-			zap.String("name", pType.Name))
 	}
 	return nil
 }
@@ -83,56 +60,55 @@ func (m *jobs) collectServices(ctx context.Context) error {
 			zap.Int("id", sType.ID),
 			zap.String("name", sType.Name))
 
-		count, err := client.Property.Delete().
-			Where(property.HasServiceWith(service.HasTypeWith(servicetype.ID(sType.ID)))).
-			Exec(ctx)
+		pTypes, err := sType.QueryPropertyTypes().All(ctx)
 		if err != nil {
-			return fmt.Errorf("delete properties of services. type id: %d, %w", sType.ID, err)
+			return fmt.Errorf("query property types of service type: %q, %w", sType.ID, err)
 		}
-		m.logger.For(ctx).Info("deleted properties",
-			zap.Int("id", sType.ID),
-			zap.Int("count", count))
-
-		count, err = client.ServiceEndpoint.Delete().
-			Where(serviceendpoint.HasServiceWith(service.HasTypeWith(servicetype.ID(sType.ID)))).
-			Exec(ctx)
+		for _, pType := range pTypes {
+			if err := m.deletePropertyType(ctx, client, pType); err != nil {
+				return err
+			}
+		}
+		endpoints, err := sType.QueryServices().QueryEndpoints().All(ctx)
 		if err != nil {
-			return fmt.Errorf("deleting service endpoints for service type id: %d, %w", sType.ID, err)
+			return fmt.Errorf("query service endpoints of service type: %q, %w", sType.ID, err)
 		}
-
+		for _, endpoint := range endpoints {
+			if err := client.ServiceEndpoint.DeleteOne(endpoint).Exec(ctx); err != nil {
+				return fmt.Errorf("deleting service endpoint of service type: %q, %w", endpoint.ID, err)
+			}
+		}
 		m.logger.For(ctx).Info("deleted endpoints",
 			zap.Int("id", sType.ID),
-			zap.Int("count", count))
+			zap.Int("count", len(endpoints)))
 
-		count, err = client.Service.Delete().
-			Where(service.HasTypeWith(servicetype.ID(sType.ID))).
-			Exec(ctx)
+		services, err := sType.QueryServices().All(ctx)
 		if err != nil {
-			return fmt.Errorf("delete services of type id: %d, %w", sType.ID, err)
+			return fmt.Errorf("query services of type id: %d, %w", sType.ID, err)
+		}
+		for _, s := range services {
+			if err := client.Service.DeleteOne(s).
+				Exec(ctx); err != nil {
+				return fmt.Errorf("delete service of service type: %q, %w", s.ID, err)
+			}
 		}
 		m.logger.For(ctx).Info("deleted services",
 			zap.Int("id", sType.ID),
-			zap.Int("count", count))
+			zap.Int("count", len(services)))
 
-		count, err = client.PropertyType.Delete().
-			Where(propertytype.HasServiceTypeWith(servicetype.ID(sType.ID))).
-			Exec(ctx)
+		endpointDefs, err := sType.QueryEndpointDefinitions().All(ctx)
 		if err != nil {
-			return fmt.Errorf("delete property types of service type id: %d, %w", sType.ID, err)
+			return fmt.Errorf("query endpoint definitions of type id: %d, %w", sType.ID, err)
 		}
-		m.logger.For(ctx).Info("deleted property types",
-			zap.Int("id", sType.ID),
-			zap.Int("count", count))
-
-		count, err = client.ServiceEndpointDefinition.Delete().
-			Where(serviceendpointdefinition.HasServiceTypeWith(servicetype.ID(sType.ID))).
-			Exec(ctx)
-		if err != nil {
-			return fmt.Errorf("deleting service endpoints for service type id: %d, %w", sType.ID, err)
+		for _, endpointDef := range endpointDefs {
+			if err := client.ServiceEndpointDefinition.DeleteOne(endpointDef).
+				Exec(ctx); err != nil {
+				return fmt.Errorf("delete ednpoint definition of service type: %q, %w", endpointDef.ID, err)
+			}
 		}
 		m.logger.For(ctx).Info("deleted endpoint definitions",
 			zap.Int("id", sType.ID),
-			zap.Int("count", count))
+			zap.Int("count", len(endpointDefs)))
 
 		err = client.ServiceType.DeleteOne(sType).
 			Exec(ctx)
@@ -143,5 +119,32 @@ func (m *jobs) collectServices(ctx context.Context) error {
 			zap.Int("id", sType.ID),
 			zap.String("name", sType.Name))
 	}
+	return nil
+}
+
+func (m *jobs) deletePropertyType(ctx context.Context, client *ent.Client, pType *ent.PropertyType) error {
+	m.logger.For(ctx).Info("deleting property type",
+		zap.Int("id", pType.ID),
+		zap.String("name", pType.Name))
+	propsToDelete, err := pType.QueryProperties().All(ctx)
+	if err != nil {
+		return fmt.Errorf("query properties of type id: %d, %w", pType.ID, err)
+	}
+	for _, prop := range propsToDelete {
+		if err := client.Property.DeleteOne(prop).Exec(ctx); err != nil {
+			return fmt.Errorf("delete property: %d, %w", prop.ID, err)
+		}
+	}
+	m.logger.For(ctx).Info("deleted properties",
+		zap.Int("id", pType.ID),
+		zap.Int("count", len(propsToDelete)))
+	err = client.PropertyType.DeleteOne(pType).
+		Exec(ctx)
+	if err != nil {
+		return fmt.Errorf("delete property type: %d, %w", pType.ID, err)
+	}
+	m.logger.For(ctx).Info("deleted property type",
+		zap.Int("id", pType.ID),
+		zap.String("name", pType.Name))
 	return nil
 }

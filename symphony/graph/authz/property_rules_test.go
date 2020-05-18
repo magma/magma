@@ -18,12 +18,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type cudOperations struct {
-	create func(ctx context.Context) error
-	update func(ctx context.Context) error
-	delete func(ctx context.Context) error
-}
-
 func getPropertyTypeCudOperations(ctx context.Context, c *ent.Client, setParent func(*ent.PropertyTypeCreate) *ent.PropertyTypeCreate) cudOperations {
 	propertyTypeQuery := c.PropertyType.Create().
 		SetName("OldPropertyType").

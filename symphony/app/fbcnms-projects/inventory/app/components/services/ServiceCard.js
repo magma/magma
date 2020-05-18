@@ -91,7 +91,11 @@ const ServiceCard = (props: Props) => {
     history.push(match.url);
   };
   return (
-    <FormContextProvider>
+    <FormContextProvider
+      permissions={{
+        entity: 'service',
+        action: 'update',
+      }}>
       <Grid container className={classes.root}>
         <Grid item xs={6} sm={8} lg={8} xl={9}>
           <div className={classes.topologyPanel}>

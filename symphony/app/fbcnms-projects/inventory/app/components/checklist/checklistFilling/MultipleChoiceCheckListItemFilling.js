@@ -70,7 +70,7 @@ const MultipleChoiceCheckListItemFilling = ({
           : null
       }
       onChange={value => updateOnChange(value)}
-      disabled={form.alerts.editLock.detected}
+      disabled={form.alerts.missingPermissions.detected}
     />
   ) : (
     <MultiSelect
@@ -88,7 +88,7 @@ const MultipleChoiceCheckListItemFilling = ({
         );
       }}
       selectedValues={selectedValues}
-      disabled={form.alerts.editLock.detected}
+      disabled={form.alerts.missingPermissions.detected}
     />
   );
 };

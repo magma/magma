@@ -17,6 +17,7 @@ var (
 			allowReadPermissionsRule(),
 		},
 		Mutation: privacy.MutationPolicy{
+			denyBulkEditOrDeleteRule(),
 			denyIfNoPermissionSettingsRule(),
 		},
 	}

@@ -601,7 +601,6 @@ func TestSearchLinksByService(t *testing.T) {
 	res4, err := qr.LinkSearch(ctx, []*models.LinkFilterInput{&f4}, &limit)
 	require.NoError(t, err)
 	require.Len(t, res4.Links, 0)
-
 }
 
 func TestSearchLinksByProperty(t *testing.T) {

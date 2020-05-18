@@ -8,6 +8,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/facebookincubator/symphony/graph/ent"
+
 	models2 "github.com/facebookincubator/symphony/graph/authz/models"
 
 	"github.com/facebookincubator/symphony/graph/graphql/models"
@@ -41,22 +43,24 @@ func TestLinkWritePolicyRule(t *testing.T) {
 	equipmentPort3 := c.EquipmentPort.Create().
 		SetDefinition(equipmentPortDefinition3).
 		SaveX(ctx)
-
+	var (
+		link *ent.Link
+		err  error
+	)
 	createLink := func(ctx context.Context) error {
-		_, err := c.Link.Create().
+		link, err = c.Link.Create().
 			AddPortIDs(equipmentPort1.ID, equipmentPort2.ID).
 			Save(ctx)
 		return err
 	}
 	updateLink := func(ctx context.Context) error {
-		_, err := c.Link.Update().
+		_, err := c.Link.UpdateOne(link).
 			AddPortIDs(equipmentPort3.ID).
 			Save(ctx)
 		return err
 	}
 	deleteLink := func(ctx context.Context) error {
-		links := c.Link.Query().AllX(ctx)
-		return c.Link.DeleteOne(links[0]).
+		return c.Link.DeleteOne(link).
 			Exec(ctx)
 	}
 	runCudPolicyTest(t, cudPolicyTest{

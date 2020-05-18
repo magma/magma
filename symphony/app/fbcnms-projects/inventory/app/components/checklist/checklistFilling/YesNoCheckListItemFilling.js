@@ -67,7 +67,7 @@ const YesNoCheckListItemFilling = ({
         options={options}
         selectedValue={item.yesNoResponse ?? null}
         onChange={value => updateOnChange(value)}
-        disabled={form.alerts.editLock.detected}
+        disabled={form.alerts.missingPermissions.detected}
       />
     </div>
   );

@@ -289,7 +289,6 @@ func (m *importer) getLinkSide(ctx context.Context, client *ent.Client, portReco
 	var equipment *ent.Equipment
 	if commit {
 		equipment, _, err = m.getOrCreateEquipment(ctx, m.r.Mutation(), en, equipmentType, nil, parentLoc, pos, nil)
-
 	} else {
 		equipment, err = m.getEquipmentIfExist(ctx, en, equipmentType, parentLoc, pos)
 		if equipment == nil && err == nil {

@@ -9,14 +9,14 @@
  */
 
 import * as React from 'react';
-import FormAlertsContext from '../Form/FormAlertsContext';
 import FormElementContext from './FormElementContext';
 import {joinNullableStrings} from '@fbcnms/util/strings';
-import {useContext, useMemo} from 'react';
+import {useFormAlertsContext} from '../Form/FormAlertsContext';
+import {useMemo} from 'react';
 
 export type PermissionHandlingProps = {|
   ignorePermissions?: ?boolean,
-  hideOnEditLock?: ?boolean,
+  hideOnMissingPermissions?: ?boolean,
   disableOnFromError?: ?boolean,
 |};
 
@@ -33,14 +33,16 @@ const FormAction = (props: Props) => {
     disabled: disabledProp = false,
     tooltip: tooltipProp,
     ignorePermissions = false,
-    hideOnEditLock = true,
+    hideOnMissingPermissions = true,
     disableOnFromError = false,
   } = props;
 
-  const validationContext = useContext(FormAlertsContext);
+  const validationContext = useFormAlertsContext();
+  const missingPermissions =
+    validationContext.missingPermissions.detected && !ignorePermissions;
   const edittingLocked =
-    validationContext.editLock.detected && !ignorePermissions;
-  const shouldHide = edittingLocked && hideOnEditLock == true;
+    missingPermissions || validationContext.editLock.detected;
+  const shouldHide = missingPermissions && hideOnMissingPermissions == true;
   const haveDisablingError =
     validationContext.error.detected && disableOnFromError;
   const disabled: boolean =
@@ -50,13 +52,15 @@ const FormAction = (props: Props) => {
       joinNullableStrings([
         tooltipProp,
         haveDisablingError == true ? validationContext.error.message : null,
-        edittingLocked == true ? validationContext.editLock.message : null,
+        edittingLocked == true
+          ? validationContext.missingPermissions.message
+          : null,
       ]),
     [
       edittingLocked,
       haveDisablingError,
       tooltipProp,
-      validationContext.editLock.message,
+      validationContext.missingPermissions.message,
       validationContext.error.message,
     ],
   );

@@ -139,5 +139,4 @@ func handleLocationPropertyFilter(q *ent.LocationQuery, filter *models.LocationF
 	default:
 		return nil, errors.Errorf("operator %q not supported", filter.Operator)
 	}
-
 }

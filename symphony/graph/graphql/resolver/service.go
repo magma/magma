@@ -171,16 +171,29 @@ func (serviceEndpointResolver) Service(ctx context.Context, obj *ent.ServiceEndp
 
 func (r mutationResolver) RemoveService(ctx context.Context, id int) (int, error) {
 	client := r.ClientFrom(ctx)
-	if _, err := client.ServiceEndpoint.Delete().
+	endpointIDs, err := client.ServiceEndpoint.Query().
 		Where(serviceendpoint.HasServiceWith(service.ID(id))).
-		Exec(ctx); err != nil {
-		return id, errors.Wrapf(err, "deleting service endpoints: id=%q", id)
+		IDs(ctx)
+	if err != nil {
+		return id, errors.Wrapf(err, "querying service endpoints: id=%q", id)
 	}
-
-	if _, err := client.Property.Delete().
+	for _, endpointID := range endpointIDs {
+		if err := client.ServiceEndpoint.DeleteOneID(endpointID).
+			Exec(ctx); err != nil {
+			return id, errors.Wrapf(err, "deleting service endpoint: id=%q", endpointID)
+		}
+	}
+	propIDs, err := client.Property.Query().
 		Where(property.HasServiceWith(service.ID(id))).
-		Exec(ctx); err != nil {
-		return id, errors.Wrapf(err, "deleting service properties: id=%q", id)
+		IDs(ctx)
+	if err != nil {
+		return id, errors.Wrapf(err, "querying service properties: id=%q", id)
+	}
+	for _, propID := range propIDs {
+		if err := client.Property.DeleteOneID(propID).
+			Exec(ctx); err != nil {
+			return id, errors.Wrapf(err, "deleting service property: id=%q", propID)
+		}
 	}
 	if err := client.Service.DeleteOneID(id).Exec(ctx); err != nil {
 		return id, errors.Wrapf(err, "deleting service: id=%q", id)

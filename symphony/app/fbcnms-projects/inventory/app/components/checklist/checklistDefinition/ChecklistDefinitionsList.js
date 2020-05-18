@@ -65,7 +65,8 @@ const ChecklistDefinitionsList = ({items, editedDefinitionId}: Props) => {
         draggableId={item.id}
         index={item.index}
         isDragDisabled={
-          form.alerts.editLock.detected || item.id !== editedDefinitionId
+          form.alerts.missingPermissions.detected ||
+          item.id !== editedDefinitionId
         }>
         {(provided, snapshot) => (
           <div

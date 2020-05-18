@@ -34,6 +34,7 @@ const useStyles = makeStyles(() => ({
   standalone: {
     borderRadius: borderRadius,
     boxShadow: SymphonyTheme.shadows.DP1,
+    height: 'fit-content',
   },
   tableContainer: {
     display: 'flex',
@@ -179,12 +180,12 @@ const Table = <T>(props: Props<T>) => {
   );
 
   const renderChildren = () => (
-    <div className={classNames(classes.root, classes[variant])}>
+    <div className={classNames(classes.root, classes[variant], className)}>
       <div
         className={classNames(classes.tableContainer, {
           [classes.expanded]: !detailsCard,
         })}>
-        <table className={classNames(classes.table, className)}>
+        <table className={classes.table}>
           <TableHeader
             columns={dataColumns}
             onSortChanged={onSortChanged}

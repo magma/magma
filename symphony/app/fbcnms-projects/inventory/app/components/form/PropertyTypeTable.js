@@ -11,7 +11,7 @@
 import type {AppContextType} from '@fbcnms/ui/context/AppContext';
 import type {FeatureID} from '@fbcnms/types/features';
 import type {Property} from '../../common/Property';
-import type {PropertyKind} from '../configure/__generated__/WorkOrderTypesQuery.graphql';
+import type {PropertyKind} from '../../mutations/__generated__/AddEquipmentPortTypeMutation.graphql';
 import type {PropertyType} from '../../common/PropertyType';
 import type {WithStyles} from '@material-ui/core';
 

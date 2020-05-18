@@ -88,7 +88,10 @@ const ProjectComparisonView = () => {
     <ErrorBoundary>
       <InventoryView
         header={header}
-        onViewToggleClicked={setResultsDisplayMode}>
+        onViewToggleClicked={setResultsDisplayMode}
+        permissions={{
+          entity: 'project',
+        }}>
         <ProjectComparisonViewQueryRenderer
           limit={50}
           filters={[]}

@@ -11632,6 +11632,10 @@ type HyperlinkMutation struct {
 	name              *string
 	category          *string
 	clearedFields     map[string]struct{}
+	equipment         *int
+	clearedequipment  bool
+	location          *int
+	clearedlocation   bool
 	work_order        *int
 	clearedwork_order bool
 }
@@ -11795,6 +11799,84 @@ func (m *HyperlinkMutation) CategoryCleared() bool {
 func (m *HyperlinkMutation) ResetCategory() {
 	m.category = nil
 	delete(m.clearedFields, hyperlink.FieldCategory)
+}
+
+// SetEquipmentID sets the equipment edge to Equipment by id.
+func (m *HyperlinkMutation) SetEquipmentID(id int) {
+	m.equipment = &id
+}
+
+// ClearEquipment clears the equipment edge to Equipment.
+func (m *HyperlinkMutation) ClearEquipment() {
+	m.clearedequipment = true
+}
+
+// EquipmentCleared returns if the edge equipment was cleared.
+func (m *HyperlinkMutation) EquipmentCleared() bool {
+	return m.clearedequipment
+}
+
+// EquipmentID returns the equipment id in the mutation.
+func (m *HyperlinkMutation) EquipmentID() (id int, exists bool) {
+	if m.equipment != nil {
+		return *m.equipment, true
+	}
+	return
+}
+
+// EquipmentIDs returns the equipment ids in the mutation.
+// Note that ids always returns len(ids) <= 1 for unique edges, and you should use
+// EquipmentID instead. It exists only for internal usage by the builders.
+func (m *HyperlinkMutation) EquipmentIDs() (ids []int) {
+	if id := m.equipment; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetEquipment reset all changes of the "equipment" edge.
+func (m *HyperlinkMutation) ResetEquipment() {
+	m.equipment = nil
+	m.clearedequipment = false
+}
+
+// SetLocationID sets the location edge to Location by id.
+func (m *HyperlinkMutation) SetLocationID(id int) {
+	m.location = &id
+}
+
+// ClearLocation clears the location edge to Location.
+func (m *HyperlinkMutation) ClearLocation() {
+	m.clearedlocation = true
+}
+
+// LocationCleared returns if the edge location was cleared.
+func (m *HyperlinkMutation) LocationCleared() bool {
+	return m.clearedlocation
+}
+
+// LocationID returns the location id in the mutation.
+func (m *HyperlinkMutation) LocationID() (id int, exists bool) {
+	if m.location != nil {
+		return *m.location, true
+	}
+	return
+}
+
+// LocationIDs returns the location ids in the mutation.
+// Note that ids always returns len(ids) <= 1 for unique edges, and you should use
+// LocationID instead. It exists only for internal usage by the builders.
+func (m *HyperlinkMutation) LocationIDs() (ids []int) {
+	if id := m.location; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetLocation reset all changes of the "location" edge.
+func (m *HyperlinkMutation) ResetLocation() {
+	m.location = nil
+	m.clearedlocation = false
 }
 
 // SetWorkOrderID sets the work_order edge to WorkOrder by id.
@@ -12015,7 +12097,13 @@ func (m *HyperlinkMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this
 // mutation.
 func (m *HyperlinkMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 3)
+	if m.equipment != nil {
+		edges = append(edges, hyperlink.EdgeEquipment)
+	}
+	if m.location != nil {
+		edges = append(edges, hyperlink.EdgeLocation)
+	}
 	if m.work_order != nil {
 		edges = append(edges, hyperlink.EdgeWorkOrder)
 	}
@@ -12026,6 +12114,14 @@ func (m *HyperlinkMutation) AddedEdges() []string {
 // the given edge name.
 func (m *HyperlinkMutation) AddedIDs(name string) []ent.Value {
 	switch name {
+	case hyperlink.EdgeEquipment:
+		if id := m.equipment; id != nil {
+			return []ent.Value{*id}
+		}
+	case hyperlink.EdgeLocation:
+		if id := m.location; id != nil {
+			return []ent.Value{*id}
+		}
 	case hyperlink.EdgeWorkOrder:
 		if id := m.work_order; id != nil {
 			return []ent.Value{*id}
@@ -12037,7 +12133,7 @@ func (m *HyperlinkMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this
 // mutation.
 func (m *HyperlinkMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 3)
 	return edges
 }
 
@@ -12052,7 +12148,13 @@ func (m *HyperlinkMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this
 // mutation.
 func (m *HyperlinkMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 3)
+	if m.clearedequipment {
+		edges = append(edges, hyperlink.EdgeEquipment)
+	}
+	if m.clearedlocation {
+		edges = append(edges, hyperlink.EdgeLocation)
+	}
 	if m.clearedwork_order {
 		edges = append(edges, hyperlink.EdgeWorkOrder)
 	}
@@ -12063,6 +12165,10 @@ func (m *HyperlinkMutation) ClearedEdges() []string {
 // cleared in this mutation.
 func (m *HyperlinkMutation) EdgeCleared(name string) bool {
 	switch name {
+	case hyperlink.EdgeEquipment:
+		return m.clearedequipment
+	case hyperlink.EdgeLocation:
+		return m.clearedlocation
 	case hyperlink.EdgeWorkOrder:
 		return m.clearedwork_order
 	}
@@ -12073,6 +12179,12 @@ func (m *HyperlinkMutation) EdgeCleared(name string) bool {
 // error if the edge name is not defined in the schema.
 func (m *HyperlinkMutation) ClearEdge(name string) error {
 	switch name {
+	case hyperlink.EdgeEquipment:
+		m.ClearEquipment()
+		return nil
+	case hyperlink.EdgeLocation:
+		m.ClearLocation()
+		return nil
 	case hyperlink.EdgeWorkOrder:
 		m.ClearWorkOrder()
 		return nil
@@ -12085,6 +12197,12 @@ func (m *HyperlinkMutation) ClearEdge(name string) error {
 // defined in the schema.
 func (m *HyperlinkMutation) ResetEdge(name string) error {
 	switch name {
+	case hyperlink.EdgeEquipment:
+		m.ResetEquipment()
+		return nil
+	case hyperlink.EdgeLocation:
+		m.ResetLocation()
+		return nil
 	case hyperlink.EdgeWorkOrder:
 		m.ResetWorkOrder()
 		return nil

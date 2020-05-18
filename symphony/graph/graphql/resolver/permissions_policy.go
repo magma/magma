@@ -43,7 +43,6 @@ func (mutationResolver) AddPermissionsPolicy(
 	ctx context.Context,
 	input models.AddPermissionsPolicyInput,
 ) (*ent.PermissionsPolicy, error) {
-
 	client := ent.FromContext(ctx)
 	mutation := client.PermissionsPolicy.Create().
 		SetName(input.Name).
@@ -74,7 +73,6 @@ func (mutationResolver) EditPermissionsPolicy(
 	ctx context.Context,
 	input models.EditPermissionsPolicyInput,
 ) (*ent.PermissionsPolicy, error) {
-
 	client := ent.FromContext(ctx)
 	p, err := client.PermissionsPolicy.Get(ctx, input.ID)
 	if err != nil {

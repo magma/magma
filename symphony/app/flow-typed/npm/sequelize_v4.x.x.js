@@ -4040,7 +4040,7 @@ declare module "sequelize" {
      called with an instance of `Sequelize.ValidationError`. This error will have a property for each of the
      fields for which validation failed, with the error message for that field.
      */
-    save(options?: InstanceSaveOptions<TAttributes>): Promise<this>,
+    save(options?: InstanceSaveOptions<TAttributes>): Promise<this & TAttributes>,
 
     /**
      * Refresh the current instance in-place, i.e. update the object with current data from the DB and return

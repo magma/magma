@@ -1,17 +1,60 @@
+// Copyright (c) 2004-present Facebook All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package authz_test
 
 import (
 	"context"
 	"testing"
-
-	"github.com/facebookincubator/symphony/graph/viewer"
+	"time"
 
 	"github.com/facebookincubator/symphony/graph/authz"
-	models2 "github.com/facebookincubator/symphony/graph/authz/models"
-	"github.com/facebookincubator/symphony/graph/ent/user"
-	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 	"github.com/stretchr/testify/require"
+
+	"github.com/facebookincubator/symphony/graph/ent/user"
+	"github.com/facebookincubator/symphony/graph/viewer"
+
+	models2 "github.com/facebookincubator/symphony/graph/authz/models"
+	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 )
+
+func getCommentCudOperations(
+	ctx context.Context,
+	c *ent.Client,
+	setParent func(*ent.CommentCreate) *ent.CommentCreate,
+) cudOperations {
+	author := viewer.MustGetOrCreateUser(ctx, "AuthID", user.RoleOWNER)
+	commentQuery := c.Comment.Create().
+		SetAuthor(author).
+		SetText("comment")
+	commentQuery = setParent(commentQuery)
+	commentEntity := commentQuery.SaveX(ctx)
+	createComment := func(ctx context.Context) error {
+		commentQuery := c.Comment.Create().
+			SetText("comment").
+			SetAuthor(author)
+		commentQuery = setParent(commentQuery)
+		_, err := commentQuery.Save(ctx)
+		return err
+	}
+	updateComment := func(ctx context.Context) error {
+		return c.Comment.UpdateOne(commentEntity).
+			SetText("newComment").
+			Exec(ctx)
+	}
+	deleteComment := func(ctx context.Context) error {
+		return c.Comment.DeleteOne(commentEntity).
+			Exec(ctx)
+	}
+	return cudOperations{
+		create: createComment,
+		update: updateComment,
+		delete: deleteComment,
+	}
+}
 
 func TestCommentOfWorkOrderReadPolicyRule(t *testing.T) {
 	c := viewertest.NewTestClient(t)
@@ -123,5 +166,63 @@ func TestCommentOfProjectReadPolicyRule(t *testing.T) {
 		count, err := c.Comment.Query().Count(permissionsContext)
 		require.NoError(t, err)
 		require.Equal(t, 2, count)
+	})
+}
+
+func TestProjectCommentPolicyRule(t *testing.T) {
+	c := viewertest.NewTestClient(t)
+	ctx := viewertest.NewContext(context.Background(), c)
+	projectType := c.ProjectType.Create().
+		SetName("ProjectType").
+		SaveX(ctx)
+
+	project := c.Project.Create().
+		SetName("Project").
+		SetType(projectType).
+		SaveX(ctx)
+
+	cudOperations := getCommentCudOperations(ctx, c, func(ptc *ent.CommentCreate) *ent.CommentCreate {
+		return ptc.SetProject(project)
+	})
+	runCudPolicyTest(t, cudPolicyTest{
+		initialPermissions: func(p *models.PermissionSettings) {
+			p.WorkforcePolicy.Read.IsAllowed = models2.PermissionValueYes
+		},
+		appendPermissions: func(p *models.PermissionSettings) {
+			p.WorkforcePolicy.Data.Update.IsAllowed = models2.PermissionValueYes
+		},
+		create: cudOperations.create,
+		update: cudOperations.update,
+		delete: cudOperations.delete,
+	})
+}
+
+func TestWorkOrderCommentPolicyRule(t *testing.T) {
+	c := viewertest.NewTestClient(t)
+	ctx := viewertest.NewContext(context.Background(), c)
+	u := viewer.MustGetOrCreateUser(ctx, "AuthID", user.RoleOWNER)
+	workOrderType := c.WorkOrderType.Create().
+		SetName("WorkOrderType").
+		SaveX(ctx)
+	workOrder := c.WorkOrder.Create().
+		SetName("workOrder").
+		SetType(workOrderType).
+		SetOwner(u).
+		SetCreationDate(time.Now()).
+		SaveX(ctx)
+
+	cudOperations := getCommentCudOperations(ctx, c, func(ptc *ent.CommentCreate) *ent.CommentCreate {
+		return ptc.SetWorkOrder(workOrder)
+	})
+	runCudPolicyTest(t, cudPolicyTest{
+		initialPermissions: func(p *models.PermissionSettings) {
+			p.WorkforcePolicy.Read.IsAllowed = models2.PermissionValueYes
+		},
+		appendPermissions: func(p *models.PermissionSettings) {
+			p.WorkforcePolicy.Data.Update.IsAllowed = models2.PermissionValueYes
+		},
+		create: cudOperations.create,
+		update: cudOperations.update,
+		delete: cudOperations.delete,
 	})
 }

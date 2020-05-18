@@ -110,7 +110,10 @@ const ServiceComparisonView = () => {
   const hideDialog = useCallback(() => setDialogOpen(false), [setDialogOpen]);
 
   return (
-    <FormContextProvider>
+    <FormContextProvider
+      permissions={{
+        entity: 'service',
+      }}>
       <Card className={classes.cardRoot}>
         <CardContent className={classes.cardContent}>
           <div className={classes.root}>

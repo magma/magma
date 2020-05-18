@@ -62,9 +62,9 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-type Props = {
+type Props = $ReadOnly<{|
   onClose: (?User) => void,
-};
+|}>;
 
 const NewUserDialog = ({onClose}: Props) => {
   const classes = useStyles();
@@ -92,10 +92,10 @@ const NewUserDialog = ({onClose}: Props) => {
 
   return (
     <Dialog fullWidth={true} maxWidth="md" open={true}>
-      <FormContextProvider>
+      <FormContextProvider permissions={{adminRightsRequired: true}}>
         <FormContext.Consumer>
           {form => {
-            form.alerts.editLock.check({
+            form.alerts.missingPermissions.check({
               fieldId: 'async_save',
               fieldDisplayName: 'Lock while saving',
               value: creatingUser,

@@ -151,7 +151,10 @@ class LocationTypes extends React.Component<Props, State> {
             );
           }
           return (
-            <FormContextProvider>
+            <FormContextProvider
+              permissions={{
+                entity: 'locationType',
+              }}>
               <div className={classes.typesList}>
                 <div className={classes.firstRow}>
                   <ConfigueTitle

@@ -178,7 +178,7 @@ TEST_F(SessionProxyResponderHandlerTest, test_policy_reauth) {
   };
   session->activate_static_rule(rule_id_3, lifetime, uc);
   EXPECT_EQ(session->get_session_id(), sid);
-  EXPECT_EQ(session->get_request_number(), 2);
+  EXPECT_EQ(session->get_request_number(), 1);
   EXPECT_EQ(session->is_static_rule_installed(rule_id_3), true);
 
   auto credit_update                               = get_monitoring_update();
@@ -206,7 +206,7 @@ TEST_F(SessionProxyResponderHandlerTest, test_policy_reauth) {
   auto session_map = session_store->read_sessions(read_req);
   EXPECT_EQ(session_map.size(), 1);
   EXPECT_EQ(session_map[imsi].size(), 1);
-  EXPECT_EQ(session_map[imsi].front()->get_request_number(), 2);
+  EXPECT_EQ(session_map[imsi].front()->get_request_number(), 1);
   EXPECT_EQ(
       session_map[imsi].front()->is_static_rule_installed("static_1"), false);
 
@@ -227,7 +227,7 @@ TEST_F(SessionProxyResponderHandlerTest, test_policy_reauth) {
   session_map = session_store->read_sessions(read_req);
   EXPECT_EQ(session_map.size(), 1);
   EXPECT_EQ(session_map[imsi].size(), 1);
-  EXPECT_EQ(session_map[imsi].front()->get_request_number(), 2);
+  EXPECT_EQ(session_map[imsi].front()->get_request_number(), 1);
   EXPECT_EQ(
       session_map[imsi].front()->is_static_rule_installed("static_1"), true);
 }

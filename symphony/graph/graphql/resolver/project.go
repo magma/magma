@@ -147,9 +147,10 @@ func (r mutationResolver) EditProjectType(
 	if err != nil {
 		return nil, fmt.Errorf("fetching work orders: %w", err)
 	}
-	_, err = client.WorkOrderDefinition.Delete().Where(workorderdefinition.IDIn(ids...)).Exec(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("removing work orders: %w", err)
+	for _, id := range ids {
+		if err := client.WorkOrderDefinition.DeleteOneID(id).Exec(ctx); err != nil {
+			return nil, fmt.Errorf("removing work orders: %w", err)
+		}
 	}
 	return pt, nil
 }
@@ -162,8 +163,14 @@ func (r mutationResolver) DeleteProjectType(ctx context.Context, id int) (bool, 
 	case count > 0:
 		return false, gqlerror.Errorf("project type contains %d associated project", count)
 	}
-	if _, err := client.PropertyType.Delete().Where(propertytype.HasProjectTypeWith(projecttype.ID(id))).Exec(ctx); err != nil {
-		return false, fmt.Errorf("deleting project type properties: %w", err)
+	pTypes, err := client.PropertyType.Query().Where(propertytype.HasProjectTypeWith(projecttype.ID(id))).All(ctx)
+	if err != nil {
+		return false, fmt.Errorf("querying project type properties: %w", err)
+	}
+	for _, pType := range pTypes {
+		if err := client.PropertyType.DeleteOne(pType).Exec(ctx); err != nil {
+			return false, fmt.Errorf("deleting project type property: %w", err)
+		}
 	}
 	if err := client.ProjectType.DeleteOneID(id).Exec(ctx); err != nil {
 		if ent.IsNotFound(err) {
@@ -297,8 +304,14 @@ func (r mutationResolver) CreateProject(ctx context.Context, input models.AddPro
 
 func (r mutationResolver) DeleteProject(ctx context.Context, id int) (bool, error) {
 	client := r.ClientFrom(ctx)
-	if _, err := client.Property.Delete().Where(property.HasProjectWith(project.ID(id))).Exec(ctx); err != nil {
-		return false, fmt.Errorf("deleting project properties: %w", err)
+	props, err := client.Property.Query().Where(property.HasProjectWith(project.ID(id))).All(ctx)
+	if err != nil {
+		return false, fmt.Errorf("querying project properties: %w", err)
+	}
+	for _, prop := range props {
+		if err := client.Property.DeleteOne(prop).Exec(ctx); err != nil {
+			return false, fmt.Errorf("deleting project properties: %w", err)
+		}
 	}
 	if err := client.Project.DeleteOneID(id).Exec(ctx); err != nil {
 		if ent.IsNotFound(err) {
@@ -354,10 +367,8 @@ func (r mutationResolver) EditProject(ctx context.Context, input models.EditProj
 			return nil, errors.Wrapf(err, "querying property type %q", pInput.PropertyTypeID)
 		}
 		if typ.Editable && typ.IsInstanceProperty {
-			query := client.Property.
-				Update().
-				Where(property.ID(existingProperty.ID))
-			if r.updatePropValues(ctx, pInput, query) != nil {
+			updater := client.Property.UpdateOneID(existingProperty.ID)
+			if r.updatePropValues(ctx, pInput, updater) != nil {
 				return nil, errors.Wrap(err, "updating property values")
 			}
 		}

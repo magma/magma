@@ -138,3 +138,14 @@ func allowOrSkipWorkOrder(ctx context.Context, p *models.PermissionSettings, wo 
 	}
 	return privacyDecision(checkWorkforce(p.WorkforcePolicy.Data.Update, &workOrderTypeID, nil))
 }
+
+func denyBulkEditOrDeleteRule() privacy.MutationRule {
+	return privacy.MutationRuleFunc(func(ctx context.Context, m ent.Mutation) error {
+		v := viewer.FromContext(ctx)
+		if v == nil || !v.Features().Enabled(viewer.FeatureUserManagementDev) {
+			return privacy.Skip
+		}
+		rule := privacy.DenyMutationOperationRule(ent.OpDelete | ent.OpUpdate)
+		return rule.(privacy.MutationRuleFunc)(ctx, m)
+	})
+}

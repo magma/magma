@@ -215,7 +215,11 @@ class ProjectDetails extends React.Component<Props, State> {
     const {properties} = this.state;
     return (
       <div className={classes.root}>
-        <FormContextProvider>
+        <FormContextProvider
+          permissions={{
+            entity: 'project',
+            action: 'update',
+          }}>
           <div className={classes.nameHeader}>
             <div className={classes.breadcrumbs}>
               <Breadcrumbs

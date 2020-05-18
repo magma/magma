@@ -300,7 +300,7 @@ TEST_F(SessionStoreTest, test_read_and_write)
   };
   session->activate_static_rule(rule_id_3, lifetime, uc);
   EXPECT_EQ(session->get_session_id(), sid);
-  EXPECT_EQ(session->get_request_number(), 2);
+  EXPECT_EQ(session->get_request_number(), 1);
   EXPECT_EQ(session->is_static_rule_installed(rule_id_3),true);
 
   auto credit_update = get_monitoring_update();
@@ -327,7 +327,7 @@ TEST_F(SessionStoreTest, test_read_and_write)
   // 5) Verify that state was written for IMSI1 and has been retrieved.
   EXPECT_EQ(session_map.size(), 1);
   EXPECT_EQ(session_map[imsi].size(), 1);
-  EXPECT_EQ(session_map[imsi].front()->get_request_number(), 2);
+  EXPECT_EQ(session_map[imsi].front()->get_request_number(), 1);
 
   // 6) Make updates to session via SessionUpdateCriteria
   auto update_req = SessionUpdate{};
@@ -377,7 +377,7 @@ TEST_F(SessionStoreTest, test_read_and_write)
   // 9) Check request numbers again
   // This request number should increment in storage every time a read is done.
   // The incremented value is set by the read request to the storage interface.
-  EXPECT_EQ(session_map[imsi].front()->get_request_number(), 3);
+  EXPECT_EQ(session_map[imsi].front()->get_request_number(), 2);
 
   // 10) Read sessions for reporting to update request numbers for the session
   // The request number should be incremented by 2 for the session, 1 for
@@ -388,7 +388,7 @@ TEST_F(SessionStoreTest, test_read_and_write)
 
   session_map = session_store->read_sessions(read_req);
   EXPECT_EQ(session_map.size(), 1);
-  EXPECT_EQ(session_map[imsi].front()->get_request_number(), 5);
+  EXPECT_EQ(session_map[imsi].front()->get_request_number(), 4);
 
   // 11) Delete sessions for IMSI1
   update_req = SessionUpdate{};

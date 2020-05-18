@@ -10,9 +10,6 @@ import (
 	"net/http"
 
 	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/ent/property"
-	"github.com/facebookincubator/symphony/graph/ent/service"
-	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
 	"github.com/pkg/errors"
 
 	"go.uber.org/zap"
@@ -46,13 +43,23 @@ func newServicesContext(parent context.Context) context.Context {
 
 func deleteService(ctx context.Context, s *ent.Service) error {
 	client := ent.FromContext(ctx)
-	_, err := client.ServiceEndpoint.Delete().Where(serviceendpoint.HasServiceWith(service.ID(s.ID))).Exec(ctx)
+	ids, err := s.QueryEndpoints().IDs(ctx)
 	if err != nil {
-		return errors.Wrap(err, "deleting service endpoints")
+		return fmt.Errorf("query service endpoints of service: %q, %w", s.ID, err)
 	}
-	_, err = client.Property.Delete().Where(property.HasServiceWith(service.ID(s.ID))).Exec(ctx)
+	for _, id := range ids {
+		if err := client.ServiceEndpoint.DeleteOneID(id).Exec(ctx); err != nil {
+			return errors.Wrap(err, "deleting service endpoint")
+		}
+	}
+	ids, err = s.QueryProperties().IDs(ctx)
 	if err != nil {
-		return errors.Wrap(err, "deleting service properties")
+		return fmt.Errorf("query properties of service: %q, %w", s.ID, err)
+	}
+	for _, id := range ids {
+		if err := client.Property.DeleteOneID(id).Exec(ctx); err != nil {
+			return errors.Wrap(err, "deleting property")
+		}
 	}
 	err = client.Service.DeleteOne(s).Exec(ctx)
 	if err != nil {
