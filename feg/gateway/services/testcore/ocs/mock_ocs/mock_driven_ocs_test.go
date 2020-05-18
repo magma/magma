@@ -48,9 +48,10 @@ func TestOCSExpectations(t *testing.T) {
 	initExpectation := fegprotos.NewGyCreditControlExpectation().Expect(initRequest).Return(initAnswer)
 
 	updateReq := fegprotos.NewGyCCRequest(test.IMSI1, fegprotos.CCRequestType_UPDATE).
-		SetRequestNumber(2).
+		SetRequestNumber(1).
 		SetMSCC(&fegprotos.MultipleServicesCreditControl{RatingGroup: 1, UsedServiceUnit: &fegprotos.Octets{TotalOctets: 100}})
 	updateAnswer := fegprotos.NewGyCCAnswer(diam.Success)
+	updateAnswer.RequestNumber = 1
 	updateExpectation := fegprotos.NewGyCreditControlExpectation().Expect(updateReq).Return(updateAnswer)
 
 	terminateReq := fegprotos.NewGyCCRequest(test.IMSI1, fegprotos.CCRequestType_TERMINATION)
@@ -77,7 +78,7 @@ func TestOCSExpectations(t *testing.T) {
 		SessionID:     "1",
 		Type:          credit_control.CRTInit,
 		IMSI:          test.IMSI1,
-		RequestNumber: 1,
+		RequestNumber: 0,
 	}
 	done := make(chan interface{}, 1000)
 	assert.NoError(t, gyClient.SendCreditControlRequest(&serverConfig, done, ccrInit))
@@ -88,7 +89,7 @@ func TestOCSExpectations(t *testing.T) {
 		SessionID:     "1",
 		Type:          credit_control.CRTUpdate,
 		IMSI:          test.IMSI1,
-		RequestNumber: 2,
+		RequestNumber: 1,
 		Credits:       []*gy.UsedCredits{{TotalOctets: 100, RatingGroup: 1}},
 	}
 	done = make(chan interface{}, 1000)
@@ -108,6 +109,7 @@ func TestOCSExpectations(t *testing.T) {
 
 func assertCCAIsEqualToExpectedAnswer(t *testing.T, actual *gy.CreditControlAnswer, expectation *fegprotos.GyCreditControlAnswer) {
 	assert.Equal(t, actual.ResultCode, expectation.ResultCode)
+	assert.Equal(t, actual.RequestNumber, expectation.RequestNumber)
 	actualCreditsByKey := getCreditByKey(actual.Credits)
 	expectedCreditsByKey := getExpectedCreditByKey(expectation.QuotaGrants)
 	for rg, credit := range expectedCreditsByKey {
