@@ -42,6 +42,9 @@ const useStyles = makeStyles(() => ({
     backgroundColor: symphony.palette.white,
     borderRadius: '4px',
   },
+  table: {
+    height: 'unset',
+  },
   field: {
     margin: '2px',
   },
@@ -198,6 +201,7 @@ function UsersTable() {
   return (
     <div className={classes.root}>
       <Table
+        className={classes.table}
         dataRowsSeparator="border"
         activeRowId={activeUserId}
         onActiveRowIdChanged={navigateToUser}
