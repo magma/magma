@@ -53,6 +53,7 @@ func (e *Eventer) emit(ctx context.Context, name string, value interface{}) {
 		if err := e.Emitter.Emit(ctx, viewer.FromContext(ctx).Tenant(), name, body); err != nil {
 			logger.Warn("cannot emit event", zap.Error(err))
 		}
+		logger.Debug("emitting event")
 	}
 	if tx := ent.TxFromContext(ctx); tx != nil {
 		tx.OnCommit(emit)

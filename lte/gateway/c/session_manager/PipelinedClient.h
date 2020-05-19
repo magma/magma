@@ -92,7 +92,8 @@ class PipelinedClient {
     const std::string &ue_mac_addr,
     const std::string &msisdn,
     const std::string &ap_mac_addr,
-    const std::string &ap_name) = 0;
+    const std::string &ap_name,
+    std::function<void(Status status, FlowResponse)> callback) = 0;
 
   /**
    * Update the IPFIX export rule in pipeliend
@@ -200,7 +201,8 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
     const std::string& ue_mac_addr,
     const std::string& msisdn,
     const std::string& ap_mac_addr,
-    const std::string& ap_name);
+    const std::string& ap_name,
+    std::function<void(Status status, FlowResponse)> callback);
 
   /**
    * Update the IPFIX export rule in pipeliend
@@ -227,6 +229,12 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
     const std::string &ip_addr,
     const std::vector<std::string> &static_rules,
     const std::vector<PolicyRule> &dynamic_rules);
+
+  void handle_add_ue_mac_callback(
+      const magma::UEMacFlowRequest req,
+      const int retries,
+      Status status,
+      FlowResponse resp);
 
  private:
   static const uint32_t RESPONSE_TIMEOUT = 6; // seconds

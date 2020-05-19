@@ -56,7 +56,7 @@ const UserManaementView = ({match}: Props) => {
   );
 
   const {isFeatureEnabled} = useContext(AppContext);
-  const userManagementDevMode = isFeatureEnabled('user_management_dev');
+  const permissionPoliciesMode = isFeatureEnabled('permission_policies');
 
   const usersComponent = useMemo(() => {
     return {
@@ -96,7 +96,7 @@ const UserManaementView = ({match}: Props) => {
             title: `${PERMISSION_GROUPS_VIEW_NAME}`,
             subtitle:
               'Create groups with different rules and add users to apply permissions',
-            actionButtons: userManagementDevMode
+            actionButtons: permissionPoliciesMode
               ? [
                   <ButtonAction
                     action={() => history.push(`group/${NEW_DIALOG_PARAM}`)}>
@@ -122,7 +122,7 @@ const UserManaementView = ({match}: Props) => {
       },
     ];
 
-    if (userManagementDevMode) {
+    if (permissionPoliciesMode) {
       views.push(
         {
           routingPath: 'policies',
@@ -173,7 +173,7 @@ const UserManaementView = ({match}: Props) => {
     }
 
     return views;
-  }, [gotoGroupsPage, gotoPoliciesPage, history, userManagementDevMode]);
+  }, [gotoGroupsPage, gotoPoliciesPage, history, permissionPoliciesMode]);
 
   return (
     <UserManagementContextProvider>

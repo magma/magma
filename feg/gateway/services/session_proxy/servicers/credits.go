@@ -281,6 +281,7 @@ func getSingleCreditResponseFromCCA(
 		ChargingKey: receivedCredit.RatingGroup,
 		Credit:      getSingleChargingCreditFromCCA(receivedCredit),
 		TgppCtx:     tgppCtx,
+		ResultCode:  answer.ResultCode,
 	}
 
 	if receivedCredit.ServiceIdentifier != nil {

@@ -41,7 +41,7 @@ const (
 	// LocationColumn is the table column denoting the location relation/edge.
 	LocationColumn = "survey_location"
 	// SourceFileTable is the table the holds the source_file relation/edge.
-	SourceFileTable = "surveys"
+	SourceFileTable = "files"
 	// SourceFileInverseTable is the table name for the File entity.
 	// It exists in this package in order to avoid circular dependency with the "file" package.
 	SourceFileInverseTable = "files"
@@ -70,7 +70,6 @@ var Columns = []string{
 // ForeignKeys holds the SQL foreign-keys that are owned by the Survey type.
 var ForeignKeys = []string{
 	"survey_location",
-	"survey_source_file",
 }
 
 // Note that the variables below are initialized by the runtime

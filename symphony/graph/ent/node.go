@@ -1332,7 +1332,7 @@ func (f *File) Node(ctx context.Context) (node *Node, err error) {
 		ID:     f.ID,
 		Type:   "File",
 		Fields: make([]*Field, 10),
-		Edges:  make([]*Edge, 5),
+		Edges:  make([]*Edge, 9),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(f.CreateTime); err != nil {
@@ -1470,6 +1470,50 @@ func (f *File) Node(ctx context.Context) (node *Node, err error) {
 		IDs:  ids,
 		Type: "CheckListItem",
 		Name: "ChecklistItem",
+	}
+	ids, err = f.QuerySurvey().
+		Select(survey.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[5] = &Edge{
+		IDs:  ids,
+		Type: "Survey",
+		Name: "Survey",
+	}
+	ids, err = f.QueryFloorPlan().
+		Select(floorplan.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[6] = &Edge{
+		IDs:  ids,
+		Type: "FloorPlan",
+		Name: "FloorPlan",
+	}
+	ids, err = f.QueryPhotoSurveyQuestion().
+		Select(surveyquestion.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[7] = &Edge{
+		IDs:  ids,
+		Type: "SurveyQuestion",
+		Name: "PhotoSurveyQuestion",
+	}
+	ids, err = f.QuerySurveyQuestion().
+		Select(surveyquestion.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[8] = &Edge{
+		IDs:  ids,
+		Type: "SurveyQuestion",
+		Name: "SurveyQuestion",
 	}
 	return node, nil
 }
@@ -3883,7 +3927,7 @@ func (stc *SurveyTemplateCategory) Node(ctx context.Context) (node *Node, err er
 		ID:     stc.ID,
 		Type:   "SurveyTemplateCategory",
 		Fields: make([]*Field, 4),
-		Edges:  make([]*Edge, 1),
+		Edges:  make([]*Edge, 2),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(stc.CreateTime); err != nil {
@@ -3929,6 +3973,17 @@ func (stc *SurveyTemplateCategory) Node(ctx context.Context) (node *Node, err er
 		IDs:  ids,
 		Type: "SurveyTemplateQuestion",
 		Name: "SurveyTemplateQuestions",
+	}
+	ids, err = stc.QueryLocationType().
+		Select(locationtype.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		IDs:  ids,
+		Type: "LocationType",
+		Name: "LocationType",
 	}
 	return node, nil
 }

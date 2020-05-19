@@ -86,7 +86,6 @@ func Run(ctx context.Context, queue JobQueue, store servicers.StateServiceIntern
 func reindexOne(queue JobQueue, batches []reindexBatch) (err error) {
 	job, err := queue.ClaimAvailableJob()
 	if err != nil {
-		err = errors.Wrap(err, "claim available job")
 		return wrap(err, ErrDefault, "")
 	}
 	if job == nil {

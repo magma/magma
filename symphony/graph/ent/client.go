@@ -453,13 +453,13 @@ func (c *ActionsRuleClient) Update() *ActionsRuleUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *ActionsRuleClient) UpdateOne(ar *ActionsRule) *ActionsRuleUpdateOne {
-	return c.UpdateOneID(ar.ID)
+	mutation := newActionsRuleMutation(c.config, OpUpdateOne, withActionsRule(ar))
+	return &ActionsRuleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *ActionsRuleClient) UpdateOneID(id int) *ActionsRuleUpdateOne {
-	mutation := newActionsRuleMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newActionsRuleMutation(c.config, OpUpdateOne, withActionsRuleID(id))
 	return &ActionsRuleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -537,13 +537,13 @@ func (c *CheckListCategoryClient) Update() *CheckListCategoryUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *CheckListCategoryClient) UpdateOne(clc *CheckListCategory) *CheckListCategoryUpdateOne {
-	return c.UpdateOneID(clc.ID)
+	mutation := newCheckListCategoryMutation(c.config, OpUpdateOne, withCheckListCategory(clc))
+	return &CheckListCategoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *CheckListCategoryClient) UpdateOneID(id int) *CheckListCategoryUpdateOne {
-	mutation := newCheckListCategoryMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newCheckListCategoryMutation(c.config, OpUpdateOne, withCheckListCategoryID(id))
 	return &CheckListCategoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -653,13 +653,13 @@ func (c *CheckListCategoryDefinitionClient) Update() *CheckListCategoryDefinitio
 
 // UpdateOne returns an update builder for the given entity.
 func (c *CheckListCategoryDefinitionClient) UpdateOne(clcd *CheckListCategoryDefinition) *CheckListCategoryDefinitionUpdateOne {
-	return c.UpdateOneID(clcd.ID)
+	mutation := newCheckListCategoryDefinitionMutation(c.config, OpUpdateOne, withCheckListCategoryDefinition(clcd))
+	return &CheckListCategoryDefinitionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *CheckListCategoryDefinitionClient) UpdateOneID(id int) *CheckListCategoryDefinitionUpdateOne {
-	mutation := newCheckListCategoryDefinitionMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newCheckListCategoryDefinitionMutation(c.config, OpUpdateOne, withCheckListCategoryDefinitionID(id))
 	return &CheckListCategoryDefinitionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -769,13 +769,13 @@ func (c *CheckListItemClient) Update() *CheckListItemUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *CheckListItemClient) UpdateOne(cli *CheckListItem) *CheckListItemUpdateOne {
-	return c.UpdateOneID(cli.ID)
+	mutation := newCheckListItemMutation(c.config, OpUpdateOne, withCheckListItem(cli))
+	return &CheckListItemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *CheckListItemClient) UpdateOneID(id int) *CheckListItemUpdateOne {
-	mutation := newCheckListItemMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newCheckListItemMutation(c.config, OpUpdateOne, withCheckListItemID(id))
 	return &CheckListItemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -917,13 +917,13 @@ func (c *CheckListItemDefinitionClient) Update() *CheckListItemDefinitionUpdate 
 
 // UpdateOne returns an update builder for the given entity.
 func (c *CheckListItemDefinitionClient) UpdateOne(clid *CheckListItemDefinition) *CheckListItemDefinitionUpdateOne {
-	return c.UpdateOneID(clid.ID)
+	mutation := newCheckListItemDefinitionMutation(c.config, OpUpdateOne, withCheckListItemDefinition(clid))
+	return &CheckListItemDefinitionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *CheckListItemDefinitionClient) UpdateOneID(id int) *CheckListItemDefinitionUpdateOne {
-	mutation := newCheckListItemDefinitionMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newCheckListItemDefinitionMutation(c.config, OpUpdateOne, withCheckListItemDefinitionID(id))
 	return &CheckListItemDefinitionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -1017,13 +1017,13 @@ func (c *CommentClient) Update() *CommentUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *CommentClient) UpdateOne(co *Comment) *CommentUpdateOne {
-	return c.UpdateOneID(co.ID)
+	mutation := newCommentMutation(c.config, OpUpdateOne, withComment(co))
+	return &CommentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *CommentClient) UpdateOneID(id int) *CommentUpdateOne {
-	mutation := newCommentMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newCommentMutation(c.config, OpUpdateOne, withCommentID(id))
 	return &CommentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -1149,13 +1149,13 @@ func (c *CustomerClient) Update() *CustomerUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *CustomerClient) UpdateOne(cu *Customer) *CustomerUpdateOne {
-	return c.UpdateOneID(cu.ID)
+	mutation := newCustomerMutation(c.config, OpUpdateOne, withCustomer(cu))
+	return &CustomerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *CustomerClient) UpdateOneID(id int) *CustomerUpdateOne {
-	mutation := newCustomerMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newCustomerMutation(c.config, OpUpdateOne, withCustomerID(id))
 	return &CustomerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -1249,13 +1249,13 @@ func (c *EquipmentClient) Update() *EquipmentUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *EquipmentClient) UpdateOne(e *Equipment) *EquipmentUpdateOne {
-	return c.UpdateOneID(e.ID)
+	mutation := newEquipmentMutation(c.config, OpUpdateOne, withEquipment(e))
+	return &EquipmentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *EquipmentClient) UpdateOneID(id int) *EquipmentUpdateOne {
-	mutation := newEquipmentMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newEquipmentMutation(c.config, OpUpdateOne, withEquipmentID(id))
 	return &EquipmentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -1493,13 +1493,13 @@ func (c *EquipmentCategoryClient) Update() *EquipmentCategoryUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *EquipmentCategoryClient) UpdateOne(ec *EquipmentCategory) *EquipmentCategoryUpdateOne {
-	return c.UpdateOneID(ec.ID)
+	mutation := newEquipmentCategoryMutation(c.config, OpUpdateOne, withEquipmentCategory(ec))
+	return &EquipmentCategoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *EquipmentCategoryClient) UpdateOneID(id int) *EquipmentCategoryUpdateOne {
-	mutation := newEquipmentCategoryMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newEquipmentCategoryMutation(c.config, OpUpdateOne, withEquipmentCategoryID(id))
 	return &EquipmentCategoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -1593,13 +1593,13 @@ func (c *EquipmentPortClient) Update() *EquipmentPortUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *EquipmentPortClient) UpdateOne(ep *EquipmentPort) *EquipmentPortUpdateOne {
-	return c.UpdateOneID(ep.ID)
+	mutation := newEquipmentPortMutation(c.config, OpUpdateOne, withEquipmentPort(ep))
+	return &EquipmentPortUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *EquipmentPortClient) UpdateOneID(id int) *EquipmentPortUpdateOne {
-	mutation := newEquipmentPortMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newEquipmentPortMutation(c.config, OpUpdateOne, withEquipmentPortID(id))
 	return &EquipmentPortUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -1757,13 +1757,13 @@ func (c *EquipmentPortDefinitionClient) Update() *EquipmentPortDefinitionUpdate 
 
 // UpdateOne returns an update builder for the given entity.
 func (c *EquipmentPortDefinitionClient) UpdateOne(epd *EquipmentPortDefinition) *EquipmentPortDefinitionUpdateOne {
-	return c.UpdateOneID(epd.ID)
+	mutation := newEquipmentPortDefinitionMutation(c.config, OpUpdateOne, withEquipmentPortDefinition(epd))
+	return &EquipmentPortDefinitionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *EquipmentPortDefinitionClient) UpdateOneID(id int) *EquipmentPortDefinitionUpdateOne {
-	mutation := newEquipmentPortDefinitionMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newEquipmentPortDefinitionMutation(c.config, OpUpdateOne, withEquipmentPortDefinitionID(id))
 	return &EquipmentPortDefinitionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -1889,13 +1889,13 @@ func (c *EquipmentPortTypeClient) Update() *EquipmentPortTypeUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *EquipmentPortTypeClient) UpdateOne(ept *EquipmentPortType) *EquipmentPortTypeUpdateOne {
-	return c.UpdateOneID(ept.ID)
+	mutation := newEquipmentPortTypeMutation(c.config, OpUpdateOne, withEquipmentPortType(ept))
+	return &EquipmentPortTypeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *EquipmentPortTypeClient) UpdateOneID(id int) *EquipmentPortTypeUpdateOne {
-	mutation := newEquipmentPortTypeMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newEquipmentPortTypeMutation(c.config, OpUpdateOne, withEquipmentPortTypeID(id))
 	return &EquipmentPortTypeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -2021,13 +2021,13 @@ func (c *EquipmentPositionClient) Update() *EquipmentPositionUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *EquipmentPositionClient) UpdateOne(ep *EquipmentPosition) *EquipmentPositionUpdateOne {
-	return c.UpdateOneID(ep.ID)
+	mutation := newEquipmentPositionMutation(c.config, OpUpdateOne, withEquipmentPosition(ep))
+	return &EquipmentPositionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *EquipmentPositionClient) UpdateOneID(id int) *EquipmentPositionUpdateOne {
-	mutation := newEquipmentPositionMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newEquipmentPositionMutation(c.config, OpUpdateOne, withEquipmentPositionID(id))
 	return &EquipmentPositionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -2153,13 +2153,13 @@ func (c *EquipmentPositionDefinitionClient) Update() *EquipmentPositionDefinitio
 
 // UpdateOne returns an update builder for the given entity.
 func (c *EquipmentPositionDefinitionClient) UpdateOne(epd *EquipmentPositionDefinition) *EquipmentPositionDefinitionUpdateOne {
-	return c.UpdateOneID(epd.ID)
+	mutation := newEquipmentPositionDefinitionMutation(c.config, OpUpdateOne, withEquipmentPositionDefinition(epd))
+	return &EquipmentPositionDefinitionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *EquipmentPositionDefinitionClient) UpdateOneID(id int) *EquipmentPositionDefinitionUpdateOne {
-	mutation := newEquipmentPositionDefinitionMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newEquipmentPositionDefinitionMutation(c.config, OpUpdateOne, withEquipmentPositionDefinitionID(id))
 	return &EquipmentPositionDefinitionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -2269,13 +2269,13 @@ func (c *EquipmentTypeClient) Update() *EquipmentTypeUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *EquipmentTypeClient) UpdateOne(et *EquipmentType) *EquipmentTypeUpdateOne {
-	return c.UpdateOneID(et.ID)
+	mutation := newEquipmentTypeMutation(c.config, OpUpdateOne, withEquipmentType(et))
+	return &EquipmentTypeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *EquipmentTypeClient) UpdateOneID(id int) *EquipmentTypeUpdateOne {
-	mutation := newEquipmentTypeMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newEquipmentTypeMutation(c.config, OpUpdateOne, withEquipmentTypeID(id))
 	return &EquipmentTypeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -2449,13 +2449,13 @@ func (c *FileClient) Update() *FileUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *FileClient) UpdateOne(f *File) *FileUpdateOne {
-	return c.UpdateOneID(f.ID)
+	mutation := newFileMutation(c.config, OpUpdateOne, withFile(f))
+	return &FileUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *FileClient) UpdateOneID(id int) *FileUpdateOne {
-	mutation := newFileMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newFileMutation(c.config, OpUpdateOne, withFileID(id))
 	return &FileUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -2577,6 +2577,70 @@ func (c *FileClient) QueryChecklistItem(f *File) *CheckListItemQuery {
 	return query
 }
 
+// QuerySurvey queries the survey edge of a File.
+func (c *FileClient) QuerySurvey(f *File) *SurveyQuery {
+	query := &SurveyQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := f.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(file.Table, file.FieldID, id),
+			sqlgraph.To(survey.Table, survey.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, file.SurveyTable, file.SurveyColumn),
+		)
+		fromV = sqlgraph.Neighbors(f.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryFloorPlan queries the floor_plan edge of a File.
+func (c *FileClient) QueryFloorPlan(f *File) *FloorPlanQuery {
+	query := &FloorPlanQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := f.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(file.Table, file.FieldID, id),
+			sqlgraph.To(floorplan.Table, floorplan.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, file.FloorPlanTable, file.FloorPlanColumn),
+		)
+		fromV = sqlgraph.Neighbors(f.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryPhotoSurveyQuestion queries the photo_survey_question edge of a File.
+func (c *FileClient) QueryPhotoSurveyQuestion(f *File) *SurveyQuestionQuery {
+	query := &SurveyQuestionQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := f.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(file.Table, file.FieldID, id),
+			sqlgraph.To(surveyquestion.Table, surveyquestion.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, file.PhotoSurveyQuestionTable, file.PhotoSurveyQuestionColumn),
+		)
+		fromV = sqlgraph.Neighbors(f.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySurveyQuestion queries the survey_question edge of a File.
+func (c *FileClient) QuerySurveyQuestion(f *File) *SurveyQuestionQuery {
+	query := &SurveyQuestionQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := f.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(file.Table, file.FieldID, id),
+			sqlgraph.To(surveyquestion.Table, surveyquestion.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, file.SurveyQuestionTable, file.SurveyQuestionColumn),
+		)
+		fromV = sqlgraph.Neighbors(f.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *FileClient) Hooks() []Hook {
 	hooks := c.hooks.File
@@ -2613,13 +2677,13 @@ func (c *FloorPlanClient) Update() *FloorPlanUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *FloorPlanClient) UpdateOne(fp *FloorPlan) *FloorPlanUpdateOne {
-	return c.UpdateOneID(fp.ID)
+	mutation := newFloorPlanMutation(c.config, OpUpdateOne, withFloorPlan(fp))
+	return &FloorPlanUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *FloorPlanClient) UpdateOneID(id int) *FloorPlanUpdateOne {
-	mutation := newFloorPlanMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newFloorPlanMutation(c.config, OpUpdateOne, withFloorPlanID(id))
 	return &FloorPlanUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -2717,7 +2781,7 @@ func (c *FloorPlanClient) QueryImage(fp *FloorPlan) *FileQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(floorplan.Table, floorplan.FieldID, id),
 			sqlgraph.To(file.Table, file.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, floorplan.ImageTable, floorplan.ImageColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, floorplan.ImageTable, floorplan.ImageColumn),
 		)
 		fromV = sqlgraph.Neighbors(fp.driver.Dialect(), step)
 		return fromV, nil
@@ -2761,13 +2825,13 @@ func (c *FloorPlanReferencePointClient) Update() *FloorPlanReferencePointUpdate 
 
 // UpdateOne returns an update builder for the given entity.
 func (c *FloorPlanReferencePointClient) UpdateOne(fprp *FloorPlanReferencePoint) *FloorPlanReferencePointUpdateOne {
-	return c.UpdateOneID(fprp.ID)
+	mutation := newFloorPlanReferencePointMutation(c.config, OpUpdateOne, withFloorPlanReferencePoint(fprp))
+	return &FloorPlanReferencePointUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *FloorPlanReferencePointClient) UpdateOneID(id int) *FloorPlanReferencePointUpdateOne {
-	mutation := newFloorPlanReferencePointMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newFloorPlanReferencePointMutation(c.config, OpUpdateOne, withFloorPlanReferencePointID(id))
 	return &FloorPlanReferencePointUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -2845,13 +2909,13 @@ func (c *FloorPlanScaleClient) Update() *FloorPlanScaleUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *FloorPlanScaleClient) UpdateOne(fps *FloorPlanScale) *FloorPlanScaleUpdateOne {
-	return c.UpdateOneID(fps.ID)
+	mutation := newFloorPlanScaleMutation(c.config, OpUpdateOne, withFloorPlanScale(fps))
+	return &FloorPlanScaleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *FloorPlanScaleClient) UpdateOneID(id int) *FloorPlanScaleUpdateOne {
-	mutation := newFloorPlanScaleMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newFloorPlanScaleMutation(c.config, OpUpdateOne, withFloorPlanScaleID(id))
 	return &FloorPlanScaleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -2929,13 +2993,13 @@ func (c *HyperlinkClient) Update() *HyperlinkUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *HyperlinkClient) UpdateOne(h *Hyperlink) *HyperlinkUpdateOne {
-	return c.UpdateOneID(h.ID)
+	mutation := newHyperlinkMutation(c.config, OpUpdateOne, withHyperlink(h))
+	return &HyperlinkUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *HyperlinkClient) UpdateOneID(id int) *HyperlinkUpdateOne {
-	mutation := newHyperlinkMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newHyperlinkMutation(c.config, OpUpdateOne, withHyperlinkID(id))
 	return &HyperlinkUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -3061,13 +3125,13 @@ func (c *LinkClient) Update() *LinkUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *LinkClient) UpdateOne(l *Link) *LinkUpdateOne {
-	return c.UpdateOneID(l.ID)
+	mutation := newLinkMutation(c.config, OpUpdateOne, withLink(l))
+	return &LinkUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *LinkClient) UpdateOneID(id int) *LinkUpdateOne {
-	mutation := newLinkMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newLinkMutation(c.config, OpUpdateOne, withLinkID(id))
 	return &LinkUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -3209,13 +3273,13 @@ func (c *LocationClient) Update() *LocationUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *LocationClient) UpdateOne(l *Location) *LocationUpdateOne {
-	return c.UpdateOneID(l.ID)
+	mutation := newLocationMutation(c.config, OpUpdateOne, withLocation(l))
+	return &LocationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *LocationClient) UpdateOneID(id int) *LocationUpdateOne {
-	mutation := newLocationMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newLocationMutation(c.config, OpUpdateOne, withLocationID(id))
 	return &LocationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -3485,13 +3549,13 @@ func (c *LocationTypeClient) Update() *LocationTypeUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *LocationTypeClient) UpdateOne(lt *LocationType) *LocationTypeUpdateOne {
-	return c.UpdateOneID(lt.ID)
+	mutation := newLocationTypeMutation(c.config, OpUpdateOne, withLocationType(lt))
+	return &LocationTypeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *LocationTypeClient) UpdateOneID(id int) *LocationTypeUpdateOne {
-	mutation := newLocationTypeMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newLocationTypeMutation(c.config, OpUpdateOne, withLocationTypeID(id))
 	return &LocationTypeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -3617,13 +3681,13 @@ func (c *PermissionsPolicyClient) Update() *PermissionsPolicyUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *PermissionsPolicyClient) UpdateOne(pp *PermissionsPolicy) *PermissionsPolicyUpdateOne {
-	return c.UpdateOneID(pp.ID)
+	mutation := newPermissionsPolicyMutation(c.config, OpUpdateOne, withPermissionsPolicy(pp))
+	return &PermissionsPolicyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *PermissionsPolicyClient) UpdateOneID(id int) *PermissionsPolicyUpdateOne {
-	mutation := newPermissionsPolicyMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newPermissionsPolicyMutation(c.config, OpUpdateOne, withPermissionsPolicyID(id))
 	return &PermissionsPolicyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -3717,13 +3781,13 @@ func (c *ProjectClient) Update() *ProjectUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *ProjectClient) UpdateOne(pr *Project) *ProjectUpdateOne {
-	return c.UpdateOneID(pr.ID)
+	mutation := newProjectMutation(c.config, OpUpdateOne, withProject(pr))
+	return &ProjectUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *ProjectClient) UpdateOneID(id int) *ProjectUpdateOne {
-	mutation := newProjectMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newProjectMutation(c.config, OpUpdateOne, withProjectID(id))
 	return &ProjectUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -3897,13 +3961,13 @@ func (c *ProjectTypeClient) Update() *ProjectTypeUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *ProjectTypeClient) UpdateOne(pt *ProjectType) *ProjectTypeUpdateOne {
-	return c.UpdateOneID(pt.ID)
+	mutation := newProjectTypeMutation(c.config, OpUpdateOne, withProjectType(pt))
+	return &ProjectTypeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *ProjectTypeClient) UpdateOneID(id int) *ProjectTypeUpdateOne {
-	mutation := newProjectTypeMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newProjectTypeMutation(c.config, OpUpdateOne, withProjectTypeID(id))
 	return &ProjectTypeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -4029,13 +4093,13 @@ func (c *PropertyClient) Update() *PropertyUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *PropertyClient) UpdateOne(pr *Property) *PropertyUpdateOne {
-	return c.UpdateOneID(pr.ID)
+	mutation := newPropertyMutation(c.config, OpUpdateOne, withProperty(pr))
+	return &PropertyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *PropertyClient) UpdateOneID(id int) *PropertyUpdateOne {
-	mutation := newPropertyMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newPropertyMutation(c.config, OpUpdateOne, withPropertyID(id))
 	return &PropertyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -4321,13 +4385,13 @@ func (c *PropertyTypeClient) Update() *PropertyTypeUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *PropertyTypeClient) UpdateOne(pt *PropertyType) *PropertyTypeUpdateOne {
-	return c.UpdateOneID(pt.ID)
+	mutation := newPropertyTypeMutation(c.config, OpUpdateOne, withPropertyType(pt))
+	return &PropertyTypeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *PropertyTypeClient) UpdateOneID(id int) *PropertyTypeUpdateOne {
-	mutation := newPropertyTypeMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newPropertyTypeMutation(c.config, OpUpdateOne, withPropertyTypeID(id))
 	return &PropertyTypeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -4533,13 +4597,13 @@ func (c *ReportFilterClient) Update() *ReportFilterUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *ReportFilterClient) UpdateOne(rf *ReportFilter) *ReportFilterUpdateOne {
-	return c.UpdateOneID(rf.ID)
+	mutation := newReportFilterMutation(c.config, OpUpdateOne, withReportFilter(rf))
+	return &ReportFilterUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *ReportFilterClient) UpdateOneID(id int) *ReportFilterUpdateOne {
-	mutation := newReportFilterMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newReportFilterMutation(c.config, OpUpdateOne, withReportFilterID(id))
 	return &ReportFilterUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -4617,13 +4681,13 @@ func (c *ServiceClient) Update() *ServiceUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *ServiceClient) UpdateOne(s *Service) *ServiceUpdateOne {
-	return c.UpdateOneID(s.ID)
+	mutation := newServiceMutation(c.config, OpUpdateOne, withService(s))
+	return &ServiceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *ServiceClient) UpdateOneID(id int) *ServiceUpdateOne {
-	mutation := newServiceMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newServiceMutation(c.config, OpUpdateOne, withServiceID(id))
 	return &ServiceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -4813,13 +4877,13 @@ func (c *ServiceEndpointClient) Update() *ServiceEndpointUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *ServiceEndpointClient) UpdateOne(se *ServiceEndpoint) *ServiceEndpointUpdateOne {
-	return c.UpdateOneID(se.ID)
+	mutation := newServiceEndpointMutation(c.config, OpUpdateOne, withServiceEndpoint(se))
+	return &ServiceEndpointUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *ServiceEndpointClient) UpdateOneID(id int) *ServiceEndpointUpdateOne {
-	mutation := newServiceEndpointMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newServiceEndpointMutation(c.config, OpUpdateOne, withServiceEndpointID(id))
 	return &ServiceEndpointUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -4961,13 +5025,13 @@ func (c *ServiceEndpointDefinitionClient) Update() *ServiceEndpointDefinitionUpd
 
 // UpdateOne returns an update builder for the given entity.
 func (c *ServiceEndpointDefinitionClient) UpdateOne(sed *ServiceEndpointDefinition) *ServiceEndpointDefinitionUpdateOne {
-	return c.UpdateOneID(sed.ID)
+	mutation := newServiceEndpointDefinitionMutation(c.config, OpUpdateOne, withServiceEndpointDefinition(sed))
+	return &ServiceEndpointDefinitionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *ServiceEndpointDefinitionClient) UpdateOneID(id int) *ServiceEndpointDefinitionUpdateOne {
-	mutation := newServiceEndpointDefinitionMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newServiceEndpointDefinitionMutation(c.config, OpUpdateOne, withServiceEndpointDefinitionID(id))
 	return &ServiceEndpointDefinitionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -5093,13 +5157,13 @@ func (c *ServiceTypeClient) Update() *ServiceTypeUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *ServiceTypeClient) UpdateOne(st *ServiceType) *ServiceTypeUpdateOne {
-	return c.UpdateOneID(st.ID)
+	mutation := newServiceTypeMutation(c.config, OpUpdateOne, withServiceType(st))
+	return &ServiceTypeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *ServiceTypeClient) UpdateOneID(id int) *ServiceTypeUpdateOne {
-	mutation := newServiceTypeMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newServiceTypeMutation(c.config, OpUpdateOne, withServiceTypeID(id))
 	return &ServiceTypeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -5225,13 +5289,13 @@ func (c *SurveyClient) Update() *SurveyUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *SurveyClient) UpdateOne(s *Survey) *SurveyUpdateOne {
-	return c.UpdateOneID(s.ID)
+	mutation := newSurveyMutation(c.config, OpUpdateOne, withSurvey(s))
+	return &SurveyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *SurveyClient) UpdateOneID(id int) *SurveyUpdateOne {
-	mutation := newSurveyMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newSurveyMutation(c.config, OpUpdateOne, withSurveyID(id))
 	return &SurveyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -5297,7 +5361,7 @@ func (c *SurveyClient) QuerySourceFile(s *Survey) *FileQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(survey.Table, survey.FieldID, id),
 			sqlgraph.To(file.Table, file.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, survey.SourceFileTable, survey.SourceFileColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, survey.SourceFileTable, survey.SourceFileColumn),
 		)
 		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
 		return fromV, nil
@@ -5357,13 +5421,13 @@ func (c *SurveyCellScanClient) Update() *SurveyCellScanUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *SurveyCellScanClient) UpdateOne(scs *SurveyCellScan) *SurveyCellScanUpdateOne {
-	return c.UpdateOneID(scs.ID)
+	mutation := newSurveyCellScanMutation(c.config, OpUpdateOne, withSurveyCellScan(scs))
+	return &SurveyCellScanUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *SurveyCellScanClient) UpdateOneID(id int) *SurveyCellScanUpdateOne {
-	mutation := newSurveyCellScanMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newSurveyCellScanMutation(c.config, OpUpdateOne, withSurveyCellScanID(id))
 	return &SurveyCellScanUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -5489,13 +5553,13 @@ func (c *SurveyQuestionClient) Update() *SurveyQuestionUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *SurveyQuestionClient) UpdateOne(sq *SurveyQuestion) *SurveyQuestionUpdateOne {
-	return c.UpdateOneID(sq.ID)
+	mutation := newSurveyQuestionMutation(c.config, OpUpdateOne, withSurveyQuestion(sq))
+	return &SurveyQuestionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *SurveyQuestionClient) UpdateOneID(id int) *SurveyQuestionUpdateOne {
-	mutation := newSurveyQuestionMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newSurveyQuestionMutation(c.config, OpUpdateOne, withSurveyQuestionID(id))
 	return &SurveyQuestionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -5653,13 +5717,13 @@ func (c *SurveyTemplateCategoryClient) Update() *SurveyTemplateCategoryUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *SurveyTemplateCategoryClient) UpdateOne(stc *SurveyTemplateCategory) *SurveyTemplateCategoryUpdateOne {
-	return c.UpdateOneID(stc.ID)
+	mutation := newSurveyTemplateCategoryMutation(c.config, OpUpdateOne, withSurveyTemplateCategory(stc))
+	return &SurveyTemplateCategoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *SurveyTemplateCategoryClient) UpdateOneID(id int) *SurveyTemplateCategoryUpdateOne {
-	mutation := newSurveyTemplateCategoryMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newSurveyTemplateCategoryMutation(c.config, OpUpdateOne, withSurveyTemplateCategoryID(id))
 	return &SurveyTemplateCategoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -5717,6 +5781,22 @@ func (c *SurveyTemplateCategoryClient) QuerySurveyTemplateQuestions(stc *SurveyT
 	return query
 }
 
+// QueryLocationType queries the location_type edge of a SurveyTemplateCategory.
+func (c *SurveyTemplateCategoryClient) QueryLocationType(stc *SurveyTemplateCategory) *LocationTypeQuery {
+	query := &LocationTypeQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := stc.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(surveytemplatecategory.Table, surveytemplatecategory.FieldID, id),
+			sqlgraph.To(locationtype.Table, locationtype.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, surveytemplatecategory.LocationTypeTable, surveytemplatecategory.LocationTypeColumn),
+		)
+		fromV = sqlgraph.Neighbors(stc.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *SurveyTemplateCategoryClient) Hooks() []Hook {
 	hooks := c.hooks.SurveyTemplateCategory
@@ -5753,13 +5833,13 @@ func (c *SurveyTemplateQuestionClient) Update() *SurveyTemplateQuestionUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *SurveyTemplateQuestionClient) UpdateOne(stq *SurveyTemplateQuestion) *SurveyTemplateQuestionUpdateOne {
-	return c.UpdateOneID(stq.ID)
+	mutation := newSurveyTemplateQuestionMutation(c.config, OpUpdateOne, withSurveyTemplateQuestion(stq))
+	return &SurveyTemplateQuestionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *SurveyTemplateQuestionClient) UpdateOneID(id int) *SurveyTemplateQuestionUpdateOne {
-	mutation := newSurveyTemplateQuestionMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newSurveyTemplateQuestionMutation(c.config, OpUpdateOne, withSurveyTemplateQuestionID(id))
 	return &SurveyTemplateQuestionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -5853,13 +5933,13 @@ func (c *SurveyWiFiScanClient) Update() *SurveyWiFiScanUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *SurveyWiFiScanClient) UpdateOne(swfs *SurveyWiFiScan) *SurveyWiFiScanUpdateOne {
-	return c.UpdateOneID(swfs.ID)
+	mutation := newSurveyWiFiScanMutation(c.config, OpUpdateOne, withSurveyWiFiScan(swfs))
+	return &SurveyWiFiScanUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *SurveyWiFiScanClient) UpdateOneID(id int) *SurveyWiFiScanUpdateOne {
-	mutation := newSurveyWiFiScanMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newSurveyWiFiScanMutation(c.config, OpUpdateOne, withSurveyWiFiScanID(id))
 	return &SurveyWiFiScanUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -5985,13 +6065,13 @@ func (c *UserClient) Update() *UserUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *UserClient) UpdateOne(u *User) *UserUpdateOne {
-	return c.UpdateOneID(u.ID)
+	mutation := newUserMutation(c.config, OpUpdateOne, withUser(u))
+	return &UserUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *UserClient) UpdateOneID(id int) *UserUpdateOne {
-	mutation := newUserMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newUserMutation(c.config, OpUpdateOne, withUserID(id))
 	return &UserUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -6101,13 +6181,13 @@ func (c *UsersGroupClient) Update() *UsersGroupUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *UsersGroupClient) UpdateOne(ug *UsersGroup) *UsersGroupUpdateOne {
-	return c.UpdateOneID(ug.ID)
+	mutation := newUsersGroupMutation(c.config, OpUpdateOne, withUsersGroup(ug))
+	return &UsersGroupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *UsersGroupClient) UpdateOneID(id int) *UsersGroupUpdateOne {
-	mutation := newUsersGroupMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newUsersGroupMutation(c.config, OpUpdateOne, withUsersGroupID(id))
 	return &UsersGroupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -6217,13 +6297,13 @@ func (c *WorkOrderClient) Update() *WorkOrderUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *WorkOrderClient) UpdateOne(wo *WorkOrder) *WorkOrderUpdateOne {
-	return c.UpdateOneID(wo.ID)
+	mutation := newWorkOrderMutation(c.config, OpUpdateOne, withWorkOrder(wo))
+	return &WorkOrderUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *WorkOrderClient) UpdateOneID(id int) *WorkOrderUpdateOne {
-	mutation := newWorkOrderMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newWorkOrderMutation(c.config, OpUpdateOne, withWorkOrderID(id))
 	return &WorkOrderUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -6493,13 +6573,13 @@ func (c *WorkOrderDefinitionClient) Update() *WorkOrderDefinitionUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *WorkOrderDefinitionClient) UpdateOne(wod *WorkOrderDefinition) *WorkOrderDefinitionUpdateOne {
-	return c.UpdateOneID(wod.ID)
+	mutation := newWorkOrderDefinitionMutation(c.config, OpUpdateOne, withWorkOrderDefinition(wod))
+	return &WorkOrderDefinitionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *WorkOrderDefinitionClient) UpdateOneID(id int) *WorkOrderDefinitionUpdateOne {
-	mutation := newWorkOrderDefinitionMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newWorkOrderDefinitionMutation(c.config, OpUpdateOne, withWorkOrderDefinitionID(id))
 	return &WorkOrderDefinitionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -6609,13 +6689,13 @@ func (c *WorkOrderTypeClient) Update() *WorkOrderTypeUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *WorkOrderTypeClient) UpdateOne(wot *WorkOrderType) *WorkOrderTypeUpdateOne {
-	return c.UpdateOneID(wot.ID)
+	mutation := newWorkOrderTypeMutation(c.config, OpUpdateOne, withWorkOrderType(wot))
+	return &WorkOrderTypeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *WorkOrderTypeClient) UpdateOneID(id int) *WorkOrderTypeUpdateOne {
-	mutation := newWorkOrderTypeMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newWorkOrderTypeMutation(c.config, OpUpdateOne, withWorkOrderTypeID(id))
 	return &WorkOrderTypeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 

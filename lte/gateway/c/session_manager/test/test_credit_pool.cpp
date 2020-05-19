@@ -31,7 +31,6 @@ class CreditPoolTest : public ::testing::Test {
     credit_update->set_sid("sid1"); // System Identification Number
     credit_update->set_charging_key(1);
     credit_update->set_allocated_credit(get_charging_credit());
-    credit_update->set_type(CreditUpdateResponse_ResponseType_UPDATE);
     // Don't set the result code since this is a successful response
     auto service_identifier = new ServiceIdentifier();
     service_identifier->set_value(uint32_t(1));

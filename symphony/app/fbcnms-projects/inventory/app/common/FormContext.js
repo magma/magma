@@ -183,7 +183,7 @@ export function FormContextProvider(props: Props) {
     'permissions_ui_enforcement',
   );
 
-  const userManagementDevModeIsOn = useFeatureFlag('user_management_dev');
+  const permissionPoliciesMode = useFeatureFlag('permission_policies');
   const shouldEnforcePermissions =
     permissionsEnforcementIsOn && permissions.ignore != true;
 
@@ -192,7 +192,7 @@ export function FormContextProvider(props: Props) {
       <FormAlertsContext.Consumer>
         {alerts => {
           if (shouldEnforcePermissions && me != null) {
-            if (userManagementDevModeIsOn) {
+            if (permissionPoliciesMode) {
               enforcePermissions(
                 me.permissions,
                 permissions,

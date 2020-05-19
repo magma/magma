@@ -89,6 +89,7 @@ export type StartWorkflowRequest = {
 export type ScheduleRequest = {
   name: string,
   workflowName: string,
+  workflowVersion: string,
 };
 
 export type FrontendResponse = {
@@ -108,3 +109,10 @@ export type TaskType = {
     subWorkflowVersion: string,
   },
 };
+export type AuthorizationCheck = (role: string, groups: string[]) => boolean;
+export type GroupLoadingStrategy = (
+  tenant: string,
+  email: string,
+  role: string,
+  sessionId: ?string,
+) => Promise<string[]>;

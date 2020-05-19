@@ -74,6 +74,7 @@ function PermissionsGroupCard(props: Props) {
   const match = useRouteMatch();
   const {isFeatureEnabled} = useContext(AppContext);
   const userManagementDevMode = isFeatureEnabled('user_management_dev');
+  const permissionPoliciesMode = isFeatureEnabled('permission_policies');
   const {groups, editGroup, addGroup, deleteGroup} = useUserManagement();
   const groupId = match.params.id;
   const isOnNewGroup = groupId === NEW_DIALOG_PARAM;
@@ -130,7 +131,7 @@ function PermissionsGroupCard(props: Props) {
         {Strings.common.saveButton}
       </ButtonAction>,
     ];
-    if (!isOnNewGroup && userManagementDevMode) {
+    if (!isOnNewGroup && permissionPoliciesMode) {
       actions.unshift(
         <IconAction
           skin="gray"
@@ -169,7 +170,7 @@ function PermissionsGroupCard(props: Props) {
     onClose,
     props,
     redirectToGroupsView,
-    userManagementDevMode,
+    permissionPoliciesMode,
   ]);
 
   if (group == null) {

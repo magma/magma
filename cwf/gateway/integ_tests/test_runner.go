@@ -59,6 +59,10 @@ const (
 	ReAuthMaxUsageBytes   = 5 * MegaBytes
 	ReAuthMaxUsageTimeSec = 1000 // in second
 	ReAuthValidityTime    = 60   // in second
+
+	GyMaxUsageBytes = 5 * MegaBytes
+	GyMaxUsageTime  = 1000 // in second
+	GyValidityTime  = 60   // in second
 )
 
 //TestRunner helps setting up all associated services

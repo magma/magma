@@ -6,7 +6,10 @@ package resolver
 
 import (
 	"context"
+	"errors"
 	"testing"
+
+	"github.com/facebookincubator/symphony/graph/ent/privacy"
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/property"
@@ -230,7 +233,7 @@ func TestProjectMutation(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, deleted)
 	deleted, err = mutation.DeleteProject(ctx, project.ID)
-	assert.EqualError(t, err, errNoProject.Error(), "project cannot be deleted twice")
+	assert.True(t, errors.Is(err, privacy.Deny))
 	assert.False(t, deleted)
 
 	deleted, err = mutation.DeleteProjectType(ctx, typ.ID)

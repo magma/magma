@@ -433,7 +433,6 @@ func standardUsageTest(
 		assert.False(t, update.Credit.GrantedUnits.Rx.IsValid)
 		assert.False(t, update.Credit.GrantedUnits.Tx.IsValid)
 		assert.Equal(t, uint32(3600), update.Credit.ValidityTime)
-		assert.Equal(t, protos.CreditUpdateResponse_UPDATE, update.Type)
 	}
 	assert.ElementsMatch(t, ratingGroups, []uint32{1, 2, 10, 11, 20, 21})
 
