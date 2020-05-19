@@ -262,8 +262,8 @@ func (srv *PCRFServer) AssertExpectations(_ context.Context, void *orcprotos.Voi
 // Initiate a Abort session request and provide the response
 func (srv *PCRFServer) AbortSession(
 	_ context.Context,
-	req *protos.PolicyAbortSessionRequest,
-) (*protos.PolicyAbortSessionResponse, error) {
+	req *protos.AbortSessionRequest,
+) (*protos.AbortSessionAnswer, error) {
 	glog.V(1).Infof("AbortSession: imsi %s abortCause %v", req.GetImsi(), req.GetCause())
 	account, ok := srv.subscribers[req.Imsi]
 	if !ok {
@@ -274,15 +274,15 @@ func (srv *PCRFServer) AbortSession(
 	}
 
 	var asaHandler diam.HandlerFunc
-	resp := make(chan *gx.PolicyAbortSessionResponse)
+	resp := make(chan *diameter.ASA)
 	asaHandler = func(conn diam.Conn, msg *diam.Message) {
-		var asa gx.PolicyAbortSessionResponse
+		var asa diameter.ASA
 		if err := msg.Unmarshal(&asa); err != nil {
 			glog.Errorf("Received unparseable ASA over Gx, %s\n%s", err, msg)
 			return
 		}
 		glog.V(2).Infof("Received ASA \n%s", msg)
-		resp <- &gx.PolicyAbortSessionResponse{SessionID: asa.SessionID, ResultCode: asa.ResultCode}
+		resp <- &diameter.ASA{SessionID: asa.SessionID, ResultCode: asa.ResultCode}
 	}
 	srv.mux.Handle(diam.ASA, asaHandler)
 	err := sendASR(account.CurrentState, srv.mux.Settings())
@@ -291,7 +291,7 @@ func (srv *PCRFServer) AbortSession(
 	}
 	select {
 	case asa := <-resp:
-		return &protos.PolicyAbortSessionResponse{SessionId: diameter.DecodeSessionID(asa.SessionID), ResultCode: asa.ResultCode}, nil
+		return &protos.AbortSessionAnswer{SessionId: diameter.DecodeSessionID(asa.SessionID), ResultCode: asa.ResultCode}, nil
 	case <-time.After(10 * time.Second):
 		return nil, fmt.Errorf("No ASA received")
 	}

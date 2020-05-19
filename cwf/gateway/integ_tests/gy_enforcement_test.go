@@ -17,6 +17,7 @@ import (
 
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/feg/cloud/go/protos"
+	fegProtos "magma/feg/cloud/go/protos"
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/lte/cloud/go/plugin/models"
 
@@ -397,4 +398,105 @@ func TestGyCreditUpdateCommandLevelFail(t *testing.T) {
 	tr.AssertAllGyExpectationsMetNoError()
 
 	tr.AssertPolicyEnforcementRecordIsNil(ue.GetImsi())
+}
+
+// This test verifies the abort session request
+// Here we initially setup a session and install a pass all rule
+// We then invoke abort session request from ocs and expect the
+// ASR to complete without any error and all the rules associated with
+// that session to be cleaned up
+func TestGyAbortSessionRequest(t *testing.T) {
+	t.Log("Testing TestGyAbortSessionRequest")
+
+	tr := NewTestRunner(t)
+	ruleManager, err := NewRuleManager()
+	assert.NoError(t, err)
+	defer func() {
+		// Clear hss, ocs, and pcrf
+		assert.NoError(t, ruleManager.RemoveInstalledRules())
+		assert.NoError(t, tr.CleanUp())
+	}()
+
+	ues, err := tr.ConfigUEs(1)
+	assert.NoError(t, err)
+
+	err = setNewOCSConfig(
+		&fegprotos.OCSConfig{
+			MaxUsageOctets: &fegprotos.Octets{TotalOctets: ReAuthMaxUsageBytes},
+			MaxUsageTime:   ReAuthMaxUsageTimeSec,
+			ValidityTime:   ReAuthValidityTime,
+		},
+	)
+	assert.NoError(t, err)
+	imsi := ues[0].GetImsi()
+	setCreditOnOCS(
+		&fegprotos.CreditInfo{
+			Imsi:        imsi,
+			ChargingKey: 1,
+			Volume:      &fegprotos.Octets{TotalOctets: 7 * MegaBytes},
+			UnitType:    fegprotos.CreditInfo_Bytes,
+		},
+	)
+	// Set a pass all rule to be installed by pcrf with a monitoring key to trigger updates
+	err = ruleManager.AddUsageMonitor(imsi, "mkey-ocs", 500*KiloBytes, 100*KiloBytes)
+	assert.NoError(t, err)
+	err = ruleManager.AddStaticPassAllToDB("static-pass-all-ocs1", "mkey-ocs", 0, models.PolicyRuleConfigTrackingTypeONLYPCRF, 20)
+	assert.NoError(t, err)
+
+	// set a pass all rule to be installed by ocs with a rating group 1
+	ratingGroup := uint32(1)
+	err = ruleManager.AddStaticPassAllToDB("static-pass-all-ocs2", "", ratingGroup, models.PolicyRuleConfigTrackingTypeONLYOCS, 10)
+	assert.NoError(t, err)
+	tr.WaitForPoliciesToSync()
+
+	// Apply a dynamic rule that points to the static rules above
+	err = ruleManager.AddRulesToPCRF(imsi, []string{"static-pass-all-ocs1", "static-pass-all-ocs2"}, nil)
+	assert.NoError(t, err)
+
+	tr.AuthenticateAndAssertSuccess(imsi)
+
+	// Generate over 80% of the quota to trigger a CCR Update
+	req := &cwfprotos.GenTrafficRequest{
+		Imsi:   imsi,
+		Volume: &wrappers.StringValue{Value: "4.5M"}}
+	_, err = tr.GenULTraffic(req)
+	assert.NoError(t, err)
+	tr.WaitForEnforcementStatsToSync()
+
+	// Check that UE mac flow is installed and traffic is less than the quota
+	recordsBySubID, err := tr.GetPolicyUsage()
+	assert.NoError(t, err)
+	record := recordsBySubID["IMSI"+imsi]["static-pass-all-ocs2"]
+	assert.NotNil(t, record, fmt.Sprintf("Policy usage record for imsi: %v was removed", imsi))
+	assert.True(t, record.BytesTx > uint64(0), fmt.Sprintf("%s did not pass any data", record.RuleId))
+	assert.True(t, record.BytesTx <= uint64(5*MegaBytes+Buffer), fmt.Sprintf("policy usage: %v", record))
+
+	asa, err := sendChargingAbortSession(
+		&fegProtos.AbortSessionRequest{
+			Imsi: imsi,
+		},
+	)
+	assert.NoError(t, err)
+
+	// Check for Limited ASR success - There is only limited success here
+	// since radius will not do the teardown, radius specifically (COA_DYNAMIC)
+	// module throws this error here. coa_dynamic module isn't enabled during
+	// authentication and hence it isn't aware of the sessionID used when
+	// processing disconnect
+	assert.Contains(t, asa.SessionId, "IMSI"+imsi)
+	assert.Equal(t, uint32(diam.LimitedSuccess), asa.ResultCode)
+
+	// check if all session related info is cleaned up
+	checkSessionAborted := func() bool {
+		recordsBySubID, err = tr.GetPolicyUsage()
+		assert.NoError(t, err)
+		return recordsBySubID["IMSI"+imsi]["static-pass-all-ocs2"] == nil
+	}
+	assert.Eventually(t, checkSessionAborted, 2*time.Minute, 5*time.Second,
+		"request not terminated as expected")
+
+	// trigger disconnection
+	tr.DisconnectAndAssertSuccess(imsi)
+	fmt.Println("wait for flows to get deactivated")
+	time.Sleep(3 * time.Second)
 }
