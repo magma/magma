@@ -631,6 +631,20 @@ TEST_F(LocalEnforcerTest, test_sync_sessions_on_restart) {
   session_map_2[imsi].front()->schedule_static_rule("rule3", lifetime3, uc);
   session_map_2[imsi].front()->schedule_static_rule("rule4", lifetime4, uc);
 
+  PolicyRule d1;
+  d1.set_id("dynamic_rule1");
+  PolicyRule d2;
+  d2.set_id("dynamic_rule2");
+  PolicyRule d3;
+  d3.set_id("dynamic_rule3");
+  PolicyRule d4;
+  d4.set_id("dynamic_rule4");
+
+  session_map_2[imsi].front()->insert_dynamic_rule(d1, lifetime1, uc);
+  session_map_2[imsi].front()->schedule_dynamic_rule(d2, lifetime2, uc);
+  session_map_2[imsi].front()->schedule_dynamic_rule(d3, lifetime3, uc);
+  session_map_2[imsi].front()->schedule_dynamic_rule(d4, lifetime4, uc);
+
   EXPECT_EQ(uc.new_scheduled_static_rules.count("rule2"), 1);
   EXPECT_EQ(uc.new_scheduled_static_rules.count("rule3"), 1);
   EXPECT_EQ(uc.new_scheduled_static_rules.count("rule4"), 1);
@@ -649,6 +663,11 @@ TEST_F(LocalEnforcerTest, test_sync_sessions_on_restart) {
   EXPECT_FALSE(session->is_static_rule_installed("rule2"));
   EXPECT_TRUE(session->is_static_rule_installed("rule3"));
   EXPECT_FALSE(session->is_static_rule_installed("rule4"));
+
+  EXPECT_FALSE(session->is_dynamic_rule_installed("dynamic_rule1"));
+  EXPECT_FALSE(session->is_dynamic_rule_installed("dynamic_rule2"));
+  EXPECT_TRUE(session->is_dynamic_rule_installed("dynamic_rule3"));
+  EXPECT_FALSE(session->is_dynamic_rule_installed("dynamic_rule4"));
 }
 
 // Make sure sessions that are scheduled to be terminated before sync are
