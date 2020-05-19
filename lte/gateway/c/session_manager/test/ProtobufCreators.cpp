@@ -56,7 +56,6 @@ void create_credit_update_response(
   response->set_success(true);
   response->set_sid(imsi);
   response->set_charging_key(charging_key);
-  response->set_type(CreditUpdateResponse::UPDATE);
 }
 
 void create_usage_update(
