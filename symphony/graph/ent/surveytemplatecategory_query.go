@@ -16,6 +16,7 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/ent/locationtype"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/surveytemplatecategory"
 	"github.com/facebookincubator/symphony/graph/ent/surveytemplatequestion"
@@ -31,6 +32,7 @@ type SurveyTemplateCategoryQuery struct {
 	predicates []predicate.SurveyTemplateCategory
 	// eager-loading edges.
 	withSurveyTemplateQuestions *SurveyTemplateQuestionQuery
+	withLocationType            *LocationTypeQuery
 	withFKs                     bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -72,6 +74,24 @@ func (stcq *SurveyTemplateCategoryQuery) QuerySurveyTemplateQuestions() *SurveyT
 			sqlgraph.From(surveytemplatecategory.Table, surveytemplatecategory.FieldID, stcq.sqlQuery()),
 			sqlgraph.To(surveytemplatequestion.Table, surveytemplatequestion.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, surveytemplatecategory.SurveyTemplateQuestionsTable, surveytemplatecategory.SurveyTemplateQuestionsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(stcq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryLocationType chains the current query on the location_type edge.
+func (stcq *SurveyTemplateCategoryQuery) QueryLocationType() *LocationTypeQuery {
+	query := &LocationTypeQuery{config: stcq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := stcq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(surveytemplatecategory.Table, surveytemplatecategory.FieldID, stcq.sqlQuery()),
+			sqlgraph.To(locationtype.Table, locationtype.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, surveytemplatecategory.LocationTypeTable, surveytemplatecategory.LocationTypeColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(stcq.driver.Dialect(), step)
 		return fromU, nil
@@ -269,6 +289,17 @@ func (stcq *SurveyTemplateCategoryQuery) WithSurveyTemplateQuestions(opts ...fun
 	return stcq
 }
 
+//  WithLocationType tells the query-builder to eager-loads the nodes that are connected to
+// the "location_type" edge. The optional arguments used to configure the query builder of the edge.
+func (stcq *SurveyTemplateCategoryQuery) WithLocationType(opts ...func(*LocationTypeQuery)) *SurveyTemplateCategoryQuery {
+	query := &LocationTypeQuery{config: stcq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	stcq.withLocationType = query
+	return stcq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -339,10 +370,14 @@ func (stcq *SurveyTemplateCategoryQuery) sqlAll(ctx context.Context) ([]*SurveyT
 		nodes       = []*SurveyTemplateCategory{}
 		withFKs     = stcq.withFKs
 		_spec       = stcq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			stcq.withSurveyTemplateQuestions != nil,
+			stcq.withLocationType != nil,
 		}
 	)
+	if stcq.withLocationType != nil {
+		withFKs = true
+	}
 	if withFKs {
 		_spec.Node.Columns = append(_spec.Node.Columns, surveytemplatecategory.ForeignKeys...)
 	}
@@ -395,6 +430,31 @@ func (stcq *SurveyTemplateCategoryQuery) sqlAll(ctx context.Context) ([]*SurveyT
 				return nil, fmt.Errorf(`unexpected foreign-key "survey_template_category_survey_template_questions" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.SurveyTemplateQuestions = append(node.Edges.SurveyTemplateQuestions, n)
+		}
+	}
+
+	if query := stcq.withLocationType; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*SurveyTemplateCategory)
+		for i := range nodes {
+			if fk := nodes[i].location_type_survey_template_categories; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(locationtype.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "location_type_survey_template_categories" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.LocationType = n
+			}
 		}
 	}
 

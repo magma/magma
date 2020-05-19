@@ -321,10 +321,11 @@ func TestUserInGroupHasWritePermissionsButNoAdmin(t *testing.T) {
 	require.NoError(t, err)
 	_, err = client.UsersGroup.Create().SetName(authz.WritePermissionGroupName).AddMembers(u).Save(ctx)
 	require.NoError(t, err)
-	ctx = viewertest.NewContext(context.Background(), client, viewertest.WithUser(userInGroup))
+	ctx = viewertest.NewContext(context.Background(), client, viewertest.WithUser(userInGroup), viewertest.WithFeatures())
 	permissions, err := authz.Permissions(ctx)
 	expectedPermissions := authz.FullPermissions()
 	expectedPermissions.AdminPolicy.Access.IsAllowed = models.PermissionValueNo
+	expectedPermissions.CanWrite = true
 	require.NoError(t, err)
 	require.EqualValues(t, expectedPermissions, permissions)
 }

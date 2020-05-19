@@ -1759,9 +1759,12 @@ func TestTechnicianCheckinToWorkOrder(t *testing.T) {
 func TestTechnicianUploadDataToWorkOrder(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.Close()
+	// TODO(T66882071): Remove these two lines
+	p := authz.FullPermissions()
+	p.CanWrite = true
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
-	c := r.GraphClient()
+	c := r.GraphClient(viewertest.WithPermissions(p))
 
 	wo := createWorkOrder(ctx, t, *r, "Foo")
 	u := viewer.FromContext(ctx).(*viewer.UserViewer).User()

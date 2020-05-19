@@ -18,8 +18,11 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/file"
+	"github.com/facebookincubator/symphony/graph/ent/floorplan"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
+	"github.com/facebookincubator/symphony/graph/ent/survey"
+	"github.com/facebookincubator/symphony/graph/ent/surveyquestion"
 	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
@@ -33,12 +36,16 @@ type FileQuery struct {
 	unique     []string
 	predicates []predicate.File
 	// eager-loading edges.
-	withLocation      *LocationQuery
-	withEquipment     *EquipmentQuery
-	withUser          *UserQuery
-	withWorkOrder     *WorkOrderQuery
-	withChecklistItem *CheckListItemQuery
-	withFKs           bool
+	withLocation            *LocationQuery
+	withEquipment           *EquipmentQuery
+	withUser                *UserQuery
+	withWorkOrder           *WorkOrderQuery
+	withChecklistItem       *CheckListItemQuery
+	withSurvey              *SurveyQuery
+	withFloorPlan           *FloorPlanQuery
+	withPhotoSurveyQuestion *SurveyQuestionQuery
+	withSurveyQuestion      *SurveyQuestionQuery
+	withFKs                 bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -151,6 +158,78 @@ func (fq *FileQuery) QueryChecklistItem() *CheckListItemQuery {
 			sqlgraph.From(file.Table, file.FieldID, fq.sqlQuery()),
 			sqlgraph.To(checklistitem.Table, checklistitem.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, file.ChecklistItemTable, file.ChecklistItemColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(fq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySurvey chains the current query on the survey edge.
+func (fq *FileQuery) QuerySurvey() *SurveyQuery {
+	query := &SurveyQuery{config: fq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := fq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(file.Table, file.FieldID, fq.sqlQuery()),
+			sqlgraph.To(survey.Table, survey.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, file.SurveyTable, file.SurveyColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(fq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryFloorPlan chains the current query on the floor_plan edge.
+func (fq *FileQuery) QueryFloorPlan() *FloorPlanQuery {
+	query := &FloorPlanQuery{config: fq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := fq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(file.Table, file.FieldID, fq.sqlQuery()),
+			sqlgraph.To(floorplan.Table, floorplan.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, file.FloorPlanTable, file.FloorPlanColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(fq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPhotoSurveyQuestion chains the current query on the photo_survey_question edge.
+func (fq *FileQuery) QueryPhotoSurveyQuestion() *SurveyQuestionQuery {
+	query := &SurveyQuestionQuery{config: fq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := fq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(file.Table, file.FieldID, fq.sqlQuery()),
+			sqlgraph.To(surveyquestion.Table, surveyquestion.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, file.PhotoSurveyQuestionTable, file.PhotoSurveyQuestionColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(fq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySurveyQuestion chains the current query on the survey_question edge.
+func (fq *FileQuery) QuerySurveyQuestion() *SurveyQuestionQuery {
+	query := &SurveyQuestionQuery{config: fq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := fq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(file.Table, file.FieldID, fq.sqlQuery()),
+			sqlgraph.To(surveyquestion.Table, surveyquestion.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, file.SurveyQuestionTable, file.SurveyQuestionColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(fq.driver.Dialect(), step)
 		return fromU, nil
@@ -392,6 +471,50 @@ func (fq *FileQuery) WithChecklistItem(opts ...func(*CheckListItemQuery)) *FileQ
 	return fq
 }
 
+//  WithSurvey tells the query-builder to eager-loads the nodes that are connected to
+// the "survey" edge. The optional arguments used to configure the query builder of the edge.
+func (fq *FileQuery) WithSurvey(opts ...func(*SurveyQuery)) *FileQuery {
+	query := &SurveyQuery{config: fq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	fq.withSurvey = query
+	return fq
+}
+
+//  WithFloorPlan tells the query-builder to eager-loads the nodes that are connected to
+// the "floor_plan" edge. The optional arguments used to configure the query builder of the edge.
+func (fq *FileQuery) WithFloorPlan(opts ...func(*FloorPlanQuery)) *FileQuery {
+	query := &FloorPlanQuery{config: fq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	fq.withFloorPlan = query
+	return fq
+}
+
+//  WithPhotoSurveyQuestion tells the query-builder to eager-loads the nodes that are connected to
+// the "photo_survey_question" edge. The optional arguments used to configure the query builder of the edge.
+func (fq *FileQuery) WithPhotoSurveyQuestion(opts ...func(*SurveyQuestionQuery)) *FileQuery {
+	query := &SurveyQuestionQuery{config: fq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	fq.withPhotoSurveyQuestion = query
+	return fq
+}
+
+//  WithSurveyQuestion tells the query-builder to eager-loads the nodes that are connected to
+// the "survey_question" edge. The optional arguments used to configure the query builder of the edge.
+func (fq *FileQuery) WithSurveyQuestion(opts ...func(*SurveyQuestionQuery)) *FileQuery {
+	query := &SurveyQuestionQuery{config: fq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	fq.withSurveyQuestion = query
+	return fq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -462,15 +585,19 @@ func (fq *FileQuery) sqlAll(ctx context.Context) ([]*File, error) {
 		nodes       = []*File{}
 		withFKs     = fq.withFKs
 		_spec       = fq.querySpec()
-		loadedTypes = [5]bool{
+		loadedTypes = [9]bool{
 			fq.withLocation != nil,
 			fq.withEquipment != nil,
 			fq.withUser != nil,
 			fq.withWorkOrder != nil,
 			fq.withChecklistItem != nil,
+			fq.withSurvey != nil,
+			fq.withFloorPlan != nil,
+			fq.withPhotoSurveyQuestion != nil,
+			fq.withSurveyQuestion != nil,
 		}
 	)
-	if fq.withLocation != nil || fq.withEquipment != nil || fq.withUser != nil || fq.withWorkOrder != nil || fq.withChecklistItem != nil {
+	if fq.withLocation != nil || fq.withEquipment != nil || fq.withUser != nil || fq.withWorkOrder != nil || fq.withChecklistItem != nil || fq.withSurvey != nil || fq.withFloorPlan != nil || fq.withPhotoSurveyQuestion != nil || fq.withSurveyQuestion != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -621,6 +748,106 @@ func (fq *FileQuery) sqlAll(ctx context.Context) ([]*File, error) {
 			}
 			for i := range nodes {
 				nodes[i].Edges.ChecklistItem = n
+			}
+		}
+	}
+
+	if query := fq.withSurvey; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*File)
+		for i := range nodes {
+			if fk := nodes[i].survey_source_file; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(survey.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "survey_source_file" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Survey = n
+			}
+		}
+	}
+
+	if query := fq.withFloorPlan; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*File)
+		for i := range nodes {
+			if fk := nodes[i].floor_plan_image; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(floorplan.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "floor_plan_image" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.FloorPlan = n
+			}
+		}
+	}
+
+	if query := fq.withPhotoSurveyQuestion; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*File)
+		for i := range nodes {
+			if fk := nodes[i].survey_question_photo_data; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(surveyquestion.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "survey_question_photo_data" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.PhotoSurveyQuestion = n
+			}
+		}
+	}
+
+	if query := fq.withSurveyQuestion; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*File)
+		for i := range nodes {
+			if fk := nodes[i].survey_question_images; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(surveyquestion.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "survey_question_images" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.SurveyQuestion = n
 			}
 		}
 	}

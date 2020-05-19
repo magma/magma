@@ -10886,32 +10886,40 @@ func (m *EquipmentTypeMutation) ResetEdge(name string) error {
 // nodes in the graph.
 type FileMutation struct {
 	config
-	op                    Op
-	typ                   string
-	id                    *int
-	create_time           *time.Time
-	update_time           *time.Time
-	_type                 *string
-	name                  *string
-	size                  *int
-	addsize               *int
-	modified_at           *time.Time
-	uploaded_at           *time.Time
-	content_type          *string
-	store_key             *string
-	category              *string
-	clearedFields         map[string]struct{}
-	location              *int
-	clearedlocation       bool
-	equipment             *int
-	clearedequipment      bool
-	user                  *int
-	cleareduser           bool
-	work_order            *int
-	clearedwork_order     bool
-	checklist_item        *int
-	clearedchecklist_item bool
-	oldValue              func(context.Context) (*File, error)
+	op                           Op
+	typ                          string
+	id                           *int
+	create_time                  *time.Time
+	update_time                  *time.Time
+	_type                        *string
+	name                         *string
+	size                         *int
+	addsize                      *int
+	modified_at                  *time.Time
+	uploaded_at                  *time.Time
+	content_type                 *string
+	store_key                    *string
+	category                     *string
+	clearedFields                map[string]struct{}
+	location                     *int
+	clearedlocation              bool
+	equipment                    *int
+	clearedequipment             bool
+	user                         *int
+	cleareduser                  bool
+	work_order                   *int
+	clearedwork_order            bool
+	checklist_item               *int
+	clearedchecklist_item        bool
+	survey                       *int
+	clearedsurvey                bool
+	floor_plan                   *int
+	clearedfloor_plan            bool
+	photo_survey_question        *int
+	clearedphoto_survey_question bool
+	survey_question              *int
+	clearedsurvey_question       bool
+	oldValue                     func(context.Context) (*File, error)
 }
 
 var _ ent.Mutation = (*FileMutation)(nil)
@@ -11607,6 +11615,162 @@ func (m *FileMutation) ResetChecklistItem() {
 	m.clearedchecklist_item = false
 }
 
+// SetSurveyID sets the survey edge to Survey by id.
+func (m *FileMutation) SetSurveyID(id int) {
+	m.survey = &id
+}
+
+// ClearSurvey clears the survey edge to Survey.
+func (m *FileMutation) ClearSurvey() {
+	m.clearedsurvey = true
+}
+
+// SurveyCleared returns if the edge survey was cleared.
+func (m *FileMutation) SurveyCleared() bool {
+	return m.clearedsurvey
+}
+
+// SurveyID returns the survey id in the mutation.
+func (m *FileMutation) SurveyID() (id int, exists bool) {
+	if m.survey != nil {
+		return *m.survey, true
+	}
+	return
+}
+
+// SurveyIDs returns the survey ids in the mutation.
+// Note that ids always returns len(ids) <= 1 for unique edges, and you should use
+// SurveyID instead. It exists only for internal usage by the builders.
+func (m *FileMutation) SurveyIDs() (ids []int) {
+	if id := m.survey; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetSurvey reset all changes of the "survey" edge.
+func (m *FileMutation) ResetSurvey() {
+	m.survey = nil
+	m.clearedsurvey = false
+}
+
+// SetFloorPlanID sets the floor_plan edge to FloorPlan by id.
+func (m *FileMutation) SetFloorPlanID(id int) {
+	m.floor_plan = &id
+}
+
+// ClearFloorPlan clears the floor_plan edge to FloorPlan.
+func (m *FileMutation) ClearFloorPlan() {
+	m.clearedfloor_plan = true
+}
+
+// FloorPlanCleared returns if the edge floor_plan was cleared.
+func (m *FileMutation) FloorPlanCleared() bool {
+	return m.clearedfloor_plan
+}
+
+// FloorPlanID returns the floor_plan id in the mutation.
+func (m *FileMutation) FloorPlanID() (id int, exists bool) {
+	if m.floor_plan != nil {
+		return *m.floor_plan, true
+	}
+	return
+}
+
+// FloorPlanIDs returns the floor_plan ids in the mutation.
+// Note that ids always returns len(ids) <= 1 for unique edges, and you should use
+// FloorPlanID instead. It exists only for internal usage by the builders.
+func (m *FileMutation) FloorPlanIDs() (ids []int) {
+	if id := m.floor_plan; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetFloorPlan reset all changes of the "floor_plan" edge.
+func (m *FileMutation) ResetFloorPlan() {
+	m.floor_plan = nil
+	m.clearedfloor_plan = false
+}
+
+// SetPhotoSurveyQuestionID sets the photo_survey_question edge to SurveyQuestion by id.
+func (m *FileMutation) SetPhotoSurveyQuestionID(id int) {
+	m.photo_survey_question = &id
+}
+
+// ClearPhotoSurveyQuestion clears the photo_survey_question edge to SurveyQuestion.
+func (m *FileMutation) ClearPhotoSurveyQuestion() {
+	m.clearedphoto_survey_question = true
+}
+
+// PhotoSurveyQuestionCleared returns if the edge photo_survey_question was cleared.
+func (m *FileMutation) PhotoSurveyQuestionCleared() bool {
+	return m.clearedphoto_survey_question
+}
+
+// PhotoSurveyQuestionID returns the photo_survey_question id in the mutation.
+func (m *FileMutation) PhotoSurveyQuestionID() (id int, exists bool) {
+	if m.photo_survey_question != nil {
+		return *m.photo_survey_question, true
+	}
+	return
+}
+
+// PhotoSurveyQuestionIDs returns the photo_survey_question ids in the mutation.
+// Note that ids always returns len(ids) <= 1 for unique edges, and you should use
+// PhotoSurveyQuestionID instead. It exists only for internal usage by the builders.
+func (m *FileMutation) PhotoSurveyQuestionIDs() (ids []int) {
+	if id := m.photo_survey_question; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetPhotoSurveyQuestion reset all changes of the "photo_survey_question" edge.
+func (m *FileMutation) ResetPhotoSurveyQuestion() {
+	m.photo_survey_question = nil
+	m.clearedphoto_survey_question = false
+}
+
+// SetSurveyQuestionID sets the survey_question edge to SurveyQuestion by id.
+func (m *FileMutation) SetSurveyQuestionID(id int) {
+	m.survey_question = &id
+}
+
+// ClearSurveyQuestion clears the survey_question edge to SurveyQuestion.
+func (m *FileMutation) ClearSurveyQuestion() {
+	m.clearedsurvey_question = true
+}
+
+// SurveyQuestionCleared returns if the edge survey_question was cleared.
+func (m *FileMutation) SurveyQuestionCleared() bool {
+	return m.clearedsurvey_question
+}
+
+// SurveyQuestionID returns the survey_question id in the mutation.
+func (m *FileMutation) SurveyQuestionID() (id int, exists bool) {
+	if m.survey_question != nil {
+		return *m.survey_question, true
+	}
+	return
+}
+
+// SurveyQuestionIDs returns the survey_question ids in the mutation.
+// Note that ids always returns len(ids) <= 1 for unique edges, and you should use
+// SurveyQuestionID instead. It exists only for internal usage by the builders.
+func (m *FileMutation) SurveyQuestionIDs() (ids []int) {
+	if id := m.survey_question; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetSurveyQuestion reset all changes of the "survey_question" edge.
+func (m *FileMutation) ResetSurveyQuestion() {
+	m.survey_question = nil
+	m.clearedsurvey_question = false
+}
+
 // Op returns the operation name.
 func (m *FileMutation) Op() Op {
 	return m.op
@@ -11917,7 +12081,7 @@ func (m *FileMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this
 // mutation.
 func (m *FileMutation) AddedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 9)
 	if m.location != nil {
 		edges = append(edges, file.EdgeLocation)
 	}
@@ -11932,6 +12096,18 @@ func (m *FileMutation) AddedEdges() []string {
 	}
 	if m.checklist_item != nil {
 		edges = append(edges, file.EdgeChecklistItem)
+	}
+	if m.survey != nil {
+		edges = append(edges, file.EdgeSurvey)
+	}
+	if m.floor_plan != nil {
+		edges = append(edges, file.EdgeFloorPlan)
+	}
+	if m.photo_survey_question != nil {
+		edges = append(edges, file.EdgePhotoSurveyQuestion)
+	}
+	if m.survey_question != nil {
+		edges = append(edges, file.EdgeSurveyQuestion)
 	}
 	return edges
 }
@@ -11960,6 +12136,22 @@ func (m *FileMutation) AddedIDs(name string) []ent.Value {
 		if id := m.checklist_item; id != nil {
 			return []ent.Value{*id}
 		}
+	case file.EdgeSurvey:
+		if id := m.survey; id != nil {
+			return []ent.Value{*id}
+		}
+	case file.EdgeFloorPlan:
+		if id := m.floor_plan; id != nil {
+			return []ent.Value{*id}
+		}
+	case file.EdgePhotoSurveyQuestion:
+		if id := m.photo_survey_question; id != nil {
+			return []ent.Value{*id}
+		}
+	case file.EdgeSurveyQuestion:
+		if id := m.survey_question; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
@@ -11967,7 +12159,7 @@ func (m *FileMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this
 // mutation.
 func (m *FileMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 9)
 	return edges
 }
 
@@ -11982,7 +12174,7 @@ func (m *FileMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this
 // mutation.
 func (m *FileMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 9)
 	if m.clearedlocation {
 		edges = append(edges, file.EdgeLocation)
 	}
@@ -11997,6 +12189,18 @@ func (m *FileMutation) ClearedEdges() []string {
 	}
 	if m.clearedchecklist_item {
 		edges = append(edges, file.EdgeChecklistItem)
+	}
+	if m.clearedsurvey {
+		edges = append(edges, file.EdgeSurvey)
+	}
+	if m.clearedfloor_plan {
+		edges = append(edges, file.EdgeFloorPlan)
+	}
+	if m.clearedphoto_survey_question {
+		edges = append(edges, file.EdgePhotoSurveyQuestion)
+	}
+	if m.clearedsurvey_question {
+		edges = append(edges, file.EdgeSurveyQuestion)
 	}
 	return edges
 }
@@ -12015,6 +12219,14 @@ func (m *FileMutation) EdgeCleared(name string) bool {
 		return m.clearedwork_order
 	case file.EdgeChecklistItem:
 		return m.clearedchecklist_item
+	case file.EdgeSurvey:
+		return m.clearedsurvey
+	case file.EdgeFloorPlan:
+		return m.clearedfloor_plan
+	case file.EdgePhotoSurveyQuestion:
+		return m.clearedphoto_survey_question
+	case file.EdgeSurveyQuestion:
+		return m.clearedsurvey_question
 	}
 	return false
 }
@@ -12037,6 +12249,18 @@ func (m *FileMutation) ClearEdge(name string) error {
 		return nil
 	case file.EdgeChecklistItem:
 		m.ClearChecklistItem()
+		return nil
+	case file.EdgeSurvey:
+		m.ClearSurvey()
+		return nil
+	case file.EdgeFloorPlan:
+		m.ClearFloorPlan()
+		return nil
+	case file.EdgePhotoSurveyQuestion:
+		m.ClearPhotoSurveyQuestion()
+		return nil
+	case file.EdgeSurveyQuestion:
+		m.ClearSurveyQuestion()
 		return nil
 	}
 	return fmt.Errorf("unknown File unique edge %s", name)
@@ -12061,6 +12285,18 @@ func (m *FileMutation) ResetEdge(name string) error {
 		return nil
 	case file.EdgeChecklistItem:
 		m.ResetChecklistItem()
+		return nil
+	case file.EdgeSurvey:
+		m.ResetSurvey()
+		return nil
+	case file.EdgeFloorPlan:
+		m.ResetFloorPlan()
+		return nil
+	case file.EdgePhotoSurveyQuestion:
+		m.ResetPhotoSurveyQuestion()
+		return nil
+	case file.EdgeSurveyQuestion:
+		m.ResetSurveyQuestion()
 		return nil
 	}
 	return fmt.Errorf("unknown File edge %s", name)
@@ -33173,6 +33409,8 @@ type SurveyTemplateCategoryMutation struct {
 	clearedFields                    map[string]struct{}
 	survey_template_questions        map[int]struct{}
 	removedsurvey_template_questions map[int]struct{}
+	location_type                    *int
+	clearedlocation_type             bool
 	oldValue                         func(context.Context) (*SurveyTemplateCategory, error)
 }
 
@@ -33433,6 +33671,45 @@ func (m *SurveyTemplateCategoryMutation) ResetSurveyTemplateQuestions() {
 	m.removedsurvey_template_questions = nil
 }
 
+// SetLocationTypeID sets the location_type edge to LocationType by id.
+func (m *SurveyTemplateCategoryMutation) SetLocationTypeID(id int) {
+	m.location_type = &id
+}
+
+// ClearLocationType clears the location_type edge to LocationType.
+func (m *SurveyTemplateCategoryMutation) ClearLocationType() {
+	m.clearedlocation_type = true
+}
+
+// LocationTypeCleared returns if the edge location_type was cleared.
+func (m *SurveyTemplateCategoryMutation) LocationTypeCleared() bool {
+	return m.clearedlocation_type
+}
+
+// LocationTypeID returns the location_type id in the mutation.
+func (m *SurveyTemplateCategoryMutation) LocationTypeID() (id int, exists bool) {
+	if m.location_type != nil {
+		return *m.location_type, true
+	}
+	return
+}
+
+// LocationTypeIDs returns the location_type ids in the mutation.
+// Note that ids always returns len(ids) <= 1 for unique edges, and you should use
+// LocationTypeID instead. It exists only for internal usage by the builders.
+func (m *SurveyTemplateCategoryMutation) LocationTypeIDs() (ids []int) {
+	if id := m.location_type; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetLocationType reset all changes of the "location_type" edge.
+func (m *SurveyTemplateCategoryMutation) ResetLocationType() {
+	m.location_type = nil
+	m.clearedlocation_type = false
+}
+
 // Op returns the operation name.
 func (m *SurveyTemplateCategoryMutation) Op() Op {
 	return m.op
@@ -33599,9 +33876,12 @@ func (m *SurveyTemplateCategoryMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this
 // mutation.
 func (m *SurveyTemplateCategoryMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.survey_template_questions != nil {
 		edges = append(edges, surveytemplatecategory.EdgeSurveyTemplateQuestions)
+	}
+	if m.location_type != nil {
+		edges = append(edges, surveytemplatecategory.EdgeLocationType)
 	}
 	return edges
 }
@@ -33616,6 +33896,10 @@ func (m *SurveyTemplateCategoryMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case surveytemplatecategory.EdgeLocationType:
+		if id := m.location_type; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
@@ -33623,7 +33907,7 @@ func (m *SurveyTemplateCategoryMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this
 // mutation.
 func (m *SurveyTemplateCategoryMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.removedsurvey_template_questions != nil {
 		edges = append(edges, surveytemplatecategory.EdgeSurveyTemplateQuestions)
 	}
@@ -33647,7 +33931,10 @@ func (m *SurveyTemplateCategoryMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this
 // mutation.
 func (m *SurveyTemplateCategoryMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
+	if m.clearedlocation_type {
+		edges = append(edges, surveytemplatecategory.EdgeLocationType)
+	}
 	return edges
 }
 
@@ -33655,6 +33942,8 @@ func (m *SurveyTemplateCategoryMutation) ClearedEdges() []string {
 // cleared in this mutation.
 func (m *SurveyTemplateCategoryMutation) EdgeCleared(name string) bool {
 	switch name {
+	case surveytemplatecategory.EdgeLocationType:
+		return m.clearedlocation_type
 	}
 	return false
 }
@@ -33663,6 +33952,9 @@ func (m *SurveyTemplateCategoryMutation) EdgeCleared(name string) bool {
 // error if the edge name is not defined in the schema.
 func (m *SurveyTemplateCategoryMutation) ClearEdge(name string) error {
 	switch name {
+	case surveytemplatecategory.EdgeLocationType:
+		m.ClearLocationType()
+		return nil
 	}
 	return fmt.Errorf("unknown SurveyTemplateCategory unique edge %s", name)
 }
@@ -33674,6 +33966,9 @@ func (m *SurveyTemplateCategoryMutation) ResetEdge(name string) error {
 	switch name {
 	case surveytemplatecategory.EdgeSurveyTemplateQuestions:
 		m.ResetSurveyTemplateQuestions()
+		return nil
+	case surveytemplatecategory.EdgeLocationType:
+		m.ResetLocationType()
 		return nil
 	}
 	return fmt.Errorf("unknown SurveyTemplateCategory edge %s", name)

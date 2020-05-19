@@ -9,6 +9,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/facebookincubator/symphony/graph/authz"
+
 	"github.com/facebookincubator/symphony/graph/ent"
 
 	"github.com/facebookincubator/symphony/graph/ent/locationtype"
@@ -148,7 +150,10 @@ func TestAddLocationTypeWithEquipmentProperty(t *testing.T) {
 func TestAddLocationTypeWithSurveyTemplate(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.Close()
-	ctx := viewertest.NewContext(context.Background(), r.client)
+	// TODO(T66882071): Remove these two lines
+	p := authz.FullPermissions()
+	p.CanWrite = true
+	ctx := viewertest.NewContext(context.Background(), r.client, viewertest.WithPermissions(p))
 	mr := r.Mutation()
 
 	question := models.SurveyTemplateQuestionInput{
@@ -253,7 +258,10 @@ func TestEditLocationType(t *testing.T) {
 func TestEditLocationTypeWithSurveyTemplate(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.Close()
-	ctx := viewertest.NewContext(context.Background(), r.client)
+	// TODO(T66882071): Remove these two lines
+	p := authz.FullPermissions()
+	p.CanWrite = true
+	ctx := viewertest.NewContext(context.Background(), r.client, viewertest.WithPermissions(p))
 	mr := r.Mutation()
 
 	question := models.SurveyTemplateQuestionInput{

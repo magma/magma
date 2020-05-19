@@ -245,7 +245,7 @@ func userHasWritePermissions(ctx context.Context) (bool, error) {
 	if v.Role() == user.RoleOWNER {
 		return true, nil
 	}
-	if v, ok := v.(*viewer.UserViewer); ok {
+	if v, ok := v.(*viewer.UserViewer); ok && !v.Features().Enabled(viewer.FeatureUserManagementDev) {
 		return v.User().QueryGroups().
 			Where(usersgroup.Name(WritePermissionGroupName)).
 			Exist(ctx)
@@ -263,11 +263,12 @@ func Permissions(ctx context.Context) (*models.PermissionSettings, error) {
 	policiesEnabled := v.Features().Enabled(viewer.FeatureUserManagementDev)
 	inventoryPolicy := NewInventoryPolicy(true, writePermissions)
 	workforcePolicy := NewWorkforcePolicy(true, writePermissions)
-	u, ok := v.(*viewer.UserViewer)
-	if !writePermissions && ok && policiesEnabled {
-		inventoryPolicy, workforcePolicy, err = permissionPolicies(ctx, u)
-		if err != nil {
-			return nil, err
+	if policiesEnabled {
+		if u, ok := v.(*viewer.UserViewer); ok && !writePermissions {
+			inventoryPolicy, workforcePolicy, err = permissionPolicies(ctx, u)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 	res := models.PermissionSettings{

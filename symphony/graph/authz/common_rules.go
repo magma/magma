@@ -93,10 +93,11 @@ func cudBasedRule(cud *models.Cud, m ent.Mutation) error {
 
 func allowWritePermissionsRule() privacy.MutationRule {
 	return privacy.MutationRuleFunc(func(ctx context.Context, _ ent.Mutation) error {
-		if FromContext(ctx).CanWrite {
-			return privacy.Allow
+		v := viewer.FromContext(ctx)
+		if v != nil && v.Features().Enabled(viewer.FeatureUserManagementDev) {
+			return privacyDecision(v.Role() == user.RoleOWNER)
 		}
-		return privacy.Skip
+		return privacyDecision(FromContext(ctx).CanWrite)
 	})
 }
 

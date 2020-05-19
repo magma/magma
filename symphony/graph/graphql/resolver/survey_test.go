@@ -9,6 +9,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/facebookincubator/symphony/graph/authz"
+
 	"github.com/facebookincubator/symphony/graph/ent/surveyquestion"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
@@ -19,7 +21,10 @@ import (
 func TestAddRemoveSurvey(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.Close()
-	ctx := viewertest.NewContext(context.Background(), r.client)
+	// TODO(T66882071): Remove these two lines
+	p := authz.FullPermissions()
+	p.CanWrite = true
+	ctx := viewertest.NewContext(context.Background(), r.client, viewertest.WithPermissions(p))
 
 	mr, qr, sr, wfr, cellr := r.Mutation(), r.Query(), r.Survey(), r.SurveyWiFiScan(), r.SurveyCellScan()
 	locationType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{

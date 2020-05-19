@@ -10,6 +10,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/facebookincubator/symphony/graph/authz"
+
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
@@ -324,7 +326,10 @@ func TestAddMultiLevelLocations(t *testing.T) {
 func TestAddLocationCellScans(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.Close()
-	ctx := viewertest.NewContext(context.Background(), r.client)
+	// TODO(T66882071): Remove these two lines
+	p := authz.FullPermissions()
+	p.CanWrite = true
+	ctx := viewertest.NewContext(context.Background(), r.client, viewertest.WithPermissions(p))
 
 	mr, qr := r.Mutation(), r.Query()
 	locationType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{

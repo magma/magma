@@ -2577,6 +2577,70 @@ func (c *FileClient) QueryChecklistItem(f *File) *CheckListItemQuery {
 	return query
 }
 
+// QuerySurvey queries the survey edge of a File.
+func (c *FileClient) QuerySurvey(f *File) *SurveyQuery {
+	query := &SurveyQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := f.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(file.Table, file.FieldID, id),
+			sqlgraph.To(survey.Table, survey.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, file.SurveyTable, file.SurveyColumn),
+		)
+		fromV = sqlgraph.Neighbors(f.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryFloorPlan queries the floor_plan edge of a File.
+func (c *FileClient) QueryFloorPlan(f *File) *FloorPlanQuery {
+	query := &FloorPlanQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := f.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(file.Table, file.FieldID, id),
+			sqlgraph.To(floorplan.Table, floorplan.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, file.FloorPlanTable, file.FloorPlanColumn),
+		)
+		fromV = sqlgraph.Neighbors(f.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryPhotoSurveyQuestion queries the photo_survey_question edge of a File.
+func (c *FileClient) QueryPhotoSurveyQuestion(f *File) *SurveyQuestionQuery {
+	query := &SurveyQuestionQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := f.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(file.Table, file.FieldID, id),
+			sqlgraph.To(surveyquestion.Table, surveyquestion.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, file.PhotoSurveyQuestionTable, file.PhotoSurveyQuestionColumn),
+		)
+		fromV = sqlgraph.Neighbors(f.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySurveyQuestion queries the survey_question edge of a File.
+func (c *FileClient) QuerySurveyQuestion(f *File) *SurveyQuestionQuery {
+	query := &SurveyQuestionQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := f.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(file.Table, file.FieldID, id),
+			sqlgraph.To(surveyquestion.Table, surveyquestion.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, file.SurveyQuestionTable, file.SurveyQuestionColumn),
+		)
+		fromV = sqlgraph.Neighbors(f.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *FileClient) Hooks() []Hook {
 	hooks := c.hooks.File
@@ -2717,7 +2781,7 @@ func (c *FloorPlanClient) QueryImage(fp *FloorPlan) *FileQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(floorplan.Table, floorplan.FieldID, id),
 			sqlgraph.To(file.Table, file.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, floorplan.ImageTable, floorplan.ImageColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, floorplan.ImageTable, floorplan.ImageColumn),
 		)
 		fromV = sqlgraph.Neighbors(fp.driver.Dialect(), step)
 		return fromV, nil
@@ -5297,7 +5361,7 @@ func (c *SurveyClient) QuerySourceFile(s *Survey) *FileQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(survey.Table, survey.FieldID, id),
 			sqlgraph.To(file.Table, file.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, survey.SourceFileTable, survey.SourceFileColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, survey.SourceFileTable, survey.SourceFileColumn),
 		)
 		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
 		return fromV, nil
@@ -5710,6 +5774,22 @@ func (c *SurveyTemplateCategoryClient) QuerySurveyTemplateQuestions(stc *SurveyT
 			sqlgraph.From(surveytemplatecategory.Table, surveytemplatecategory.FieldID, id),
 			sqlgraph.To(surveytemplatequestion.Table, surveytemplatequestion.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, surveytemplatecategory.SurveyTemplateQuestionsTable, surveytemplatecategory.SurveyTemplateQuestionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(stc.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryLocationType queries the location_type edge of a SurveyTemplateCategory.
+func (c *SurveyTemplateCategoryClient) QueryLocationType(stc *SurveyTemplateCategory) *LocationTypeQuery {
+	query := &LocationTypeQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := stc.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(surveytemplatecategory.Table, surveytemplatecategory.FieldID, id),
+			sqlgraph.To(locationtype.Table, locationtype.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, surveytemplatecategory.LocationTypeTable, surveytemplatecategory.LocationTypeColumn),
 		)
 		fromV = sqlgraph.Neighbors(stc.driver.Dialect(), step)
 		return fromV, nil

@@ -38,6 +38,14 @@ const (
 	EdgeWorkOrder = "work_order"
 	// EdgeChecklistItem holds the string denoting the checklist_item edge name in mutations.
 	EdgeChecklistItem = "checklist_item"
+	// EdgeSurvey holds the string denoting the survey edge name in mutations.
+	EdgeSurvey = "survey"
+	// EdgeFloorPlan holds the string denoting the floor_plan edge name in mutations.
+	EdgeFloorPlan = "floor_plan"
+	// EdgePhotoSurveyQuestion holds the string denoting the photo_survey_question edge name in mutations.
+	EdgePhotoSurveyQuestion = "photo_survey_question"
+	// EdgeSurveyQuestion holds the string denoting the survey_question edge name in mutations.
+	EdgeSurveyQuestion = "survey_question"
 
 	// Table holds the table name of the file in the database.
 	Table = "files"
@@ -76,6 +84,34 @@ const (
 	ChecklistItemInverseTable = "check_list_items"
 	// ChecklistItemColumn is the table column denoting the checklist_item relation/edge.
 	ChecklistItemColumn = "check_list_item_files"
+	// SurveyTable is the table the holds the survey relation/edge.
+	SurveyTable = "files"
+	// SurveyInverseTable is the table name for the Survey entity.
+	// It exists in this package in order to avoid circular dependency with the "survey" package.
+	SurveyInverseTable = "surveys"
+	// SurveyColumn is the table column denoting the survey relation/edge.
+	SurveyColumn = "survey_source_file"
+	// FloorPlanTable is the table the holds the floor_plan relation/edge.
+	FloorPlanTable = "files"
+	// FloorPlanInverseTable is the table name for the FloorPlan entity.
+	// It exists in this package in order to avoid circular dependency with the "floorplan" package.
+	FloorPlanInverseTable = "floor_plans"
+	// FloorPlanColumn is the table column denoting the floor_plan relation/edge.
+	FloorPlanColumn = "floor_plan_image"
+	// PhotoSurveyQuestionTable is the table the holds the photo_survey_question relation/edge.
+	PhotoSurveyQuestionTable = "files"
+	// PhotoSurveyQuestionInverseTable is the table name for the SurveyQuestion entity.
+	// It exists in this package in order to avoid circular dependency with the "surveyquestion" package.
+	PhotoSurveyQuestionInverseTable = "survey_questions"
+	// PhotoSurveyQuestionColumn is the table column denoting the photo_survey_question relation/edge.
+	PhotoSurveyQuestionColumn = "survey_question_photo_data"
+	// SurveyQuestionTable is the table the holds the survey_question relation/edge.
+	SurveyQuestionTable = "files"
+	// SurveyQuestionInverseTable is the table name for the SurveyQuestion entity.
+	// It exists in this package in order to avoid circular dependency with the "surveyquestion" package.
+	SurveyQuestionInverseTable = "survey_questions"
+	// SurveyQuestionColumn is the table column denoting the survey_question relation/edge.
+	SurveyQuestionColumn = "survey_question_images"
 )
 
 // Columns holds all SQL columns for file fields.
@@ -97,7 +133,9 @@ var Columns = []string{
 var ForeignKeys = []string{
 	"check_list_item_files",
 	"equipment_files",
+	"floor_plan_image",
 	"location_files",
+	"survey_source_file",
 	"survey_question_photo_data",
 	"survey_question_images",
 	"user_profile_photo",

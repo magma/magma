@@ -58,6 +58,18 @@ func (File) Edges() []ent.Edge {
 		edge.From("checklist_item", CheckListItem.Type).
 			Ref("files").
 			Unique(),
+		edge.From("survey", Survey.Type).
+			Ref("source_file").
+			Unique(),
+		edge.From("floor_plan", FloorPlan.Type).
+			Ref("image").
+			Unique(),
+		edge.From("photo_survey_question", SurveyQuestion.Type).
+			Ref("photo_data").
+			Unique(),
+		edge.From("survey_question", SurveyQuestion.Type).
+			Ref("images").
+			Unique(),
 	}
 }
 
