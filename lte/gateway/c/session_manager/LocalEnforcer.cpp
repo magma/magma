@@ -693,9 +693,10 @@ void LocalEnforcer::schedule_static_rule_deactivation(
 }
 
 void LocalEnforcer::schedule_dynamic_rule_deactivation(
-    const std::string& imsi, const DynamicRuleInstall& dynamic_rule) {
+    const std::string& imsi, DynamicRuleInstall& dynamic_rule) {
   std::vector<std::string> static_rules;
-  std::vector<PolicyRule> dynamic_rules{dynamic_rule.policy_rule()};
+  PolicyRule* policy = dynamic_rule.release_policy_rule();
+  std::vector<PolicyRule> dynamic_rules{*policy};
 
   auto delta = time_difference_from_now(dynamic_rule.deactivation_time());
   MLOG(MDEBUG) << "Scheduling subscriber " << imsi << " dynamic rule "
@@ -1576,7 +1577,7 @@ void LocalEnforcer::process_rules_to_install(
     }
   }
 
-  for (const auto& rule_install : dynamic_rule_installs) {
+  for (auto& rule_install : dynamic_rule_installs) {
     auto activation_time =
         TimeUtil::TimestampToSeconds(rule_install.activation_time());
     auto deactivation_time =
