@@ -27,7 +27,7 @@ func (r queryResolver) PermissionsPolicies(ctx context.Context, after *ent.Curso
 func (r permissionsPolicyResolver) Policy(ctx context.Context, obj *ent.PermissionsPolicy) (models.SystemPolicy, error) {
 	if obj.InventoryPolicy != nil {
 		return authz.AppendInventoryPolicies(
-			authz.NewInventoryPolicy(false, false),
+			authz.NewInventoryPolicy(false),
 			obj.InventoryPolicy), nil
 	}
 	return authz.AppendWorkforcePolicies(

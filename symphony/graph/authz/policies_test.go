@@ -9,6 +9,8 @@ import (
 	"math/rand"
 	"testing"
 
+	"github.com/facebookincubator/symphony/graph/ent/usersgroup"
+
 	"github.com/facebookincubator/symphony/graph/authz"
 	"github.com/facebookincubator/symphony/graph/authz/models"
 	"github.com/facebookincubator/symphony/graph/ent"
@@ -161,7 +163,7 @@ func TestGlobalPolicyIsAppliedForUsers(t *testing.T) {
 	data := prepareData(ctx)
 	permissions, err := authz.Permissions(ctx)
 	require.NoError(t, err)
-	require.EqualValues(t, authz.NewInventoryPolicy(false, false), permissions.InventoryPolicy)
+	require.EqualValues(t, authz.NewInventoryPolicy(false), permissions.InventoryPolicy)
 	require.EqualValues(t, authz.NewWorkforcePolicy(false, false), permissions.WorkforcePolicy)
 	c.PermissionsPolicy.UpdateOneID(data.locationPolicyID).
 		SetIsGlobal(true).
@@ -174,7 +176,7 @@ func TestGlobalPolicyIsAppliedForUsers(t *testing.T) {
 	require.EqualValues(
 		t,
 		authz.AppendInventoryPolicies(
-			authz.NewInventoryPolicy(false, false),
+			authz.NewInventoryPolicy(false),
 			data.locationPolicyInput,
 			data.locationPolicyInput2,
 		),
@@ -210,7 +212,7 @@ func TestPoliciesAreAppendedForGroups(t *testing.T) {
 	require.EqualValues(
 		t,
 		authz.AppendInventoryPolicies(
-			authz.NewInventoryPolicy(false, false),
+			authz.NewInventoryPolicy(false),
 			data.locationPolicyInput,
 			data.catalogInventoryInput,
 		),
@@ -226,6 +228,34 @@ func TestPoliciesAreAppendedForGroups(t *testing.T) {
 	)
 }
 
+func TestPoliciesAreNotAppendedForDeactivatedGroups(t *testing.T) {
+	c := viewertest.NewTestClient(t)
+	ctx := viewertest.NewContext(context.Background(), c, viewertest.WithRole(user.RoleUSER))
+	data := prepareData(ctx)
+	c.UsersGroup.UpdateOneID(data.group1ID).
+		AddPolicyIDs(data.catalogPolicyID).
+		ExecX(ctx)
+	c.UsersGroup.UpdateOneID(data.group2ID).
+		AddPolicyIDs(data.workforcePolicyID).
+		SetStatus(usersgroup.StatusDEACTIVATED).
+		ExecX(ctx)
+	permissions, err := authz.Permissions(ctx)
+	require.NoError(t, err)
+	require.EqualValues(
+		t,
+		authz.AppendInventoryPolicies(
+			authz.NewInventoryPolicy(false),
+			data.catalogInventoryInput,
+		),
+		permissions.InventoryPolicy,
+	)
+	require.EqualValues(
+		t,
+		authz.NewWorkforcePolicy(false, false),
+		permissions.WorkforcePolicy,
+	)
+}
+
 func TestPoliciesAppendingOutput(t *testing.T) {
 	c := viewertest.NewTestClient(t)
 	ctx := viewertest.NewContext(context.Background(), c, viewertest.WithRole(user.RoleUSER))
@@ -237,7 +267,7 @@ func TestPoliciesAppendingOutput(t *testing.T) {
 	require.NoError(t, err)
 	require.EqualValues(
 		t,
-		authz.NewInventoryPolicy(false, false),
+		authz.NewInventoryPolicy(false),
 		permissions.InventoryPolicy,
 	)
 	require.EqualValues(

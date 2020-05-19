@@ -78,9 +78,9 @@ func newWorkforceCUD(allowed bool) *models.WorkforceCud {
 }
 
 // NewInventoryPolicy builds an inventory policy based on general restriction on read,write
-func NewInventoryPolicy(readAllowed, writeAllowed bool) *models.InventoryPolicy {
+func NewInventoryPolicy(writeAllowed bool) *models.InventoryPolicy {
 	return &models.InventoryPolicy{
-		Read:          newBasicPermissionRule(readAllowed),
+		Read:          newBasicPermissionRule(true),
 		Location:      newLocationCUD(writeAllowed),
 		Equipment:     newCUD(writeAllowed),
 		EquipmentType: newCUD(writeAllowed),
@@ -217,12 +217,15 @@ func AppendWorkforcePolicies(policy *models.WorkforcePolicy, inputs ...*models2.
 func permissionPolicies(ctx context.Context, v *viewer.UserViewer) (*models.InventoryPolicy, *models.WorkforcePolicy, error) {
 	client := ent.FromContext(ctx)
 	userID := v.User().ID
-	inventoryPolicy := NewInventoryPolicy(false, false)
+	inventoryPolicy := NewInventoryPolicy(false)
 	workforcePolicy := NewWorkforcePolicy(false, false)
 	policies, err := client.PermissionsPolicy.Query().
 		Where(permissionspolicy.Or(
 			permissionspolicy.IsGlobal(true),
-			permissionspolicy.HasGroupsWith(usersgroup.HasMembersWith(user.ID(userID))))).
+			permissionspolicy.HasGroupsWith(
+				usersgroup.HasMembersWith(user.ID(userID)),
+				usersgroup.StatusEQ(usersgroup.StatusACTIVE),
+			))).
 		All(ctx)
 	if err != nil {
 		return nil, nil, fmt.Errorf("cannot query policies: %w", err)
@@ -245,7 +248,7 @@ func userHasWritePermissions(ctx context.Context) (bool, error) {
 	if v.Role() == user.RoleOWNER {
 		return true, nil
 	}
-	if v, ok := v.(*viewer.UserViewer); ok && !v.Features().Enabled(viewer.FeatureUserManagementDev) {
+	if v, ok := v.(*viewer.UserViewer); ok && !v.Features().Enabled(viewer.FeaturePermissionPolicies) {
 		return v.User().QueryGroups().
 			Where(usersgroup.Name(WritePermissionGroupName)).
 			Exist(ctx)
@@ -260,8 +263,8 @@ func Permissions(ctx context.Context) (*models.PermissionSettings, error) {
 		return nil, err
 	}
 	v := viewer.FromContext(ctx)
-	policiesEnabled := v.Features().Enabled(viewer.FeatureUserManagementDev)
-	inventoryPolicy := NewInventoryPolicy(true, writePermissions)
+	policiesEnabled := v.Features().Enabled(viewer.FeaturePermissionPolicies)
+	inventoryPolicy := NewInventoryPolicy(writePermissions)
 	workforcePolicy := NewWorkforcePolicy(true, writePermissions)
 	if policiesEnabled {
 		if u, ok := v.(*viewer.UserViewer); ok && !writePermissions {
@@ -285,7 +288,7 @@ func FullPermissions() *models.PermissionSettings {
 	return &models.PermissionSettings{
 		CanWrite:        true,
 		AdminPolicy:     NewAdministrativePolicy(true),
-		InventoryPolicy: NewInventoryPolicy(true, true),
+		InventoryPolicy: NewInventoryPolicy(true),
 		WorkforcePolicy: NewWorkforcePolicy(true, true),
 	}
 }
@@ -294,7 +297,7 @@ func EmptyPermissions() *models.PermissionSettings {
 	return &models.PermissionSettings{
 		CanWrite:        false,
 		AdminPolicy:     NewAdministrativePolicy(false),
-		InventoryPolicy: NewInventoryPolicy(false, false),
+		InventoryPolicy: NewInventoryPolicy(false),
 		WorkforcePolicy: NewWorkforcePolicy(false, false),
 	}
 }
@@ -303,7 +306,7 @@ func AdminPermissions() *models.PermissionSettings {
 	return &models.PermissionSettings{
 		CanWrite:        false,
 		AdminPolicy:     NewAdministrativePolicy(true),
-		InventoryPolicy: NewInventoryPolicy(false, false),
+		InventoryPolicy: NewInventoryPolicy(false),
 		WorkforcePolicy: NewWorkforcePolicy(false, false),
 	}
 }

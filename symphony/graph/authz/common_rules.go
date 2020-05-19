@@ -94,7 +94,7 @@ func cudBasedRule(cud *models.Cud, m ent.Mutation) error {
 func allowWritePermissionsRule() privacy.MutationRule {
 	return privacy.MutationRuleFunc(func(ctx context.Context, _ ent.Mutation) error {
 		v := viewer.FromContext(ctx)
-		if v != nil && v.Features().Enabled(viewer.FeatureUserManagementDev) {
+		if v != nil && v.Features().Enabled(viewer.FeaturePermissionPolicies) {
 			return privacyDecision(v.Role() == user.RoleOWNER)
 		}
 		return privacyDecision(FromContext(ctx).CanWrite)
@@ -106,7 +106,7 @@ func allowReadPermissionsRule() privacy.QueryRule {
 		switch v := viewer.FromContext(ctx); {
 		case v == nil:
 			return privacy.Skip
-		case !v.Features().Enabled(viewer.FeatureUserManagementDev),
+		case !v.Features().Enabled(viewer.FeaturePermissionPolicies),
 			v.Role() == user.RoleOWNER:
 			return privacy.Allow
 		default:
@@ -146,7 +146,7 @@ func denyBulkEditOrDeleteRule() privacy.MutationRule {
 	rule := privacy.DenyMutationOperationRule(ent.OpUpdate | ent.OpDelete)
 	return privacy.MutationRuleFunc(func(ctx context.Context, m ent.Mutation) error {
 		if v := viewer.FromContext(ctx); v == nil ||
-			!v.Features().Enabled(viewer.FeatureUserManagementDev) {
+			!v.Features().Enabled(viewer.FeaturePermissionPolicies) {
 			return privacy.Skip
 		}
 		return rule.EvalMutation(ctx, m)

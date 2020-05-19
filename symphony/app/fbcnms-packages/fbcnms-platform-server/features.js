@@ -186,6 +186,11 @@ const arrayConfigs = [
     enabledByDefault: false,
   },
   {
+    id: 'permission_policies',
+    title: 'Permission - Policies',
+    enabledByDefault: false,
+  },
+  {
     id: 'permissions_ui_enforcement',
     title: 'Permissions - UI enforcement',
     enabledByDefault: true,
