@@ -298,7 +298,7 @@ func (srv *OCSDiamServer) AbortSession(
 	_ context.Context,
 	req *protos.AbortSessionRequest,
 ) (*protos.AbortSessionAnswer, error) {
-	glog.V(1).Infof("AbortSession: imsi %s abortCause %v", req.GetImsi(), req.GetCause())
+	glog.V(1).Infof("AbortSession: imsi %s", req.GetImsi())
 	account, ok := srv.accounts[req.Imsi]
 	if !ok {
 		return nil, fmt.Errorf("Could not find imsi %s", req.Imsi)
