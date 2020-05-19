@@ -13,6 +13,7 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/ent/locationtype"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/surveytemplatecategory"
 	"github.com/facebookincubator/symphony/graph/ent/surveytemplatequestion"
@@ -59,6 +60,25 @@ func (stcu *SurveyTemplateCategoryUpdate) AddSurveyTemplateQuestions(s ...*Surve
 	return stcu.AddSurveyTemplateQuestionIDs(ids...)
 }
 
+// SetLocationTypeID sets the location_type edge to LocationType by id.
+func (stcu *SurveyTemplateCategoryUpdate) SetLocationTypeID(id int) *SurveyTemplateCategoryUpdate {
+	stcu.mutation.SetLocationTypeID(id)
+	return stcu
+}
+
+// SetNillableLocationTypeID sets the location_type edge to LocationType by id if the given value is not nil.
+func (stcu *SurveyTemplateCategoryUpdate) SetNillableLocationTypeID(id *int) *SurveyTemplateCategoryUpdate {
+	if id != nil {
+		stcu = stcu.SetLocationTypeID(*id)
+	}
+	return stcu
+}
+
+// SetLocationType sets the location_type edge to LocationType.
+func (stcu *SurveyTemplateCategoryUpdate) SetLocationType(l *LocationType) *SurveyTemplateCategoryUpdate {
+	return stcu.SetLocationTypeID(l.ID)
+}
+
 // RemoveSurveyTemplateQuestionIDs removes the survey_template_questions edge to SurveyTemplateQuestion by ids.
 func (stcu *SurveyTemplateCategoryUpdate) RemoveSurveyTemplateQuestionIDs(ids ...int) *SurveyTemplateCategoryUpdate {
 	stcu.mutation.RemoveSurveyTemplateQuestionIDs(ids...)
@@ -72,6 +92,12 @@ func (stcu *SurveyTemplateCategoryUpdate) RemoveSurveyTemplateQuestions(s ...*Su
 		ids[i] = s[i].ID
 	}
 	return stcu.RemoveSurveyTemplateQuestionIDs(ids...)
+}
+
+// ClearLocationType clears the location_type edge to LocationType.
+func (stcu *SurveyTemplateCategoryUpdate) ClearLocationType() *SurveyTemplateCategoryUpdate {
+	stcu.mutation.ClearLocationType()
+	return stcu
 }
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
@@ -206,6 +232,41 @@ func (stcu *SurveyTemplateCategoryUpdate) sqlSave(ctx context.Context) (n int, e
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if stcu.mutation.LocationTypeCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   surveytemplatecategory.LocationTypeTable,
+			Columns: []string{surveytemplatecategory.LocationTypeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: locationtype.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := stcu.mutation.LocationTypeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   surveytemplatecategory.LocationTypeTable,
+			Columns: []string{surveytemplatecategory.LocationTypeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: locationtype.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, stcu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{surveytemplatecategory.Label}
@@ -251,6 +312,25 @@ func (stcuo *SurveyTemplateCategoryUpdateOne) AddSurveyTemplateQuestions(s ...*S
 	return stcuo.AddSurveyTemplateQuestionIDs(ids...)
 }
 
+// SetLocationTypeID sets the location_type edge to LocationType by id.
+func (stcuo *SurveyTemplateCategoryUpdateOne) SetLocationTypeID(id int) *SurveyTemplateCategoryUpdateOne {
+	stcuo.mutation.SetLocationTypeID(id)
+	return stcuo
+}
+
+// SetNillableLocationTypeID sets the location_type edge to LocationType by id if the given value is not nil.
+func (stcuo *SurveyTemplateCategoryUpdateOne) SetNillableLocationTypeID(id *int) *SurveyTemplateCategoryUpdateOne {
+	if id != nil {
+		stcuo = stcuo.SetLocationTypeID(*id)
+	}
+	return stcuo
+}
+
+// SetLocationType sets the location_type edge to LocationType.
+func (stcuo *SurveyTemplateCategoryUpdateOne) SetLocationType(l *LocationType) *SurveyTemplateCategoryUpdateOne {
+	return stcuo.SetLocationTypeID(l.ID)
+}
+
 // RemoveSurveyTemplateQuestionIDs removes the survey_template_questions edge to SurveyTemplateQuestion by ids.
 func (stcuo *SurveyTemplateCategoryUpdateOne) RemoveSurveyTemplateQuestionIDs(ids ...int) *SurveyTemplateCategoryUpdateOne {
 	stcuo.mutation.RemoveSurveyTemplateQuestionIDs(ids...)
@@ -264,6 +344,12 @@ func (stcuo *SurveyTemplateCategoryUpdateOne) RemoveSurveyTemplateQuestions(s ..
 		ids[i] = s[i].ID
 	}
 	return stcuo.RemoveSurveyTemplateQuestionIDs(ids...)
+}
+
+// ClearLocationType clears the location_type edge to LocationType.
+func (stcuo *SurveyTemplateCategoryUpdateOne) ClearLocationType() *SurveyTemplateCategoryUpdateOne {
+	stcuo.mutation.ClearLocationType()
+	return stcuo
 }
 
 // Save executes the query and returns the updated entity.
@@ -388,6 +474,41 @@ func (stcuo *SurveyTemplateCategoryUpdateOne) sqlSave(ctx context.Context) (stc 
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: surveytemplatequestion.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if stcuo.mutation.LocationTypeCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   surveytemplatecategory.LocationTypeTable,
+			Columns: []string{surveytemplatecategory.LocationTypeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: locationtype.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := stcuo.mutation.LocationTypeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   surveytemplatecategory.LocationTypeTable,
+			Columns: []string{surveytemplatecategory.LocationTypeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: locationtype.FieldID,
 				},
 			},
 		}

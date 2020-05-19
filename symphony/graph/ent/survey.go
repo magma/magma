@@ -36,9 +36,8 @@ type Survey struct {
 	CompletionTimestamp time.Time `json:"completion_timestamp,omitempty" gqlgen:"completionTimestamp"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SurveyQuery when eager-loading is set.
-	Edges              SurveyEdges `json:"edges"`
-	survey_location    *int
-	survey_source_file *int
+	Edges           SurveyEdges `json:"edges"`
+	survey_location *int
 }
 
 // SurveyEdges holds the relations/edges for other nodes in the graph.
@@ -108,7 +107,6 @@ func (*Survey) scanValues() []interface{} {
 func (*Survey) fkValues() []interface{} {
 	return []interface{}{
 		&sql.NullInt64{}, // survey_location
-		&sql.NullInt64{}, // survey_source_file
 	}
 }
 
@@ -161,12 +159,6 @@ func (s *Survey) assignValues(values ...interface{}) error {
 		} else if value.Valid {
 			s.survey_location = new(int)
 			*s.survey_location = int(value.Int64)
-		}
-		if value, ok := values[1].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field survey_source_file", value)
-		} else if value.Valid {
-			s.survey_source_file = new(int)
-			*s.survey_source_file = int(value.Int64)
 		}
 	}
 	return nil

@@ -152,13 +152,13 @@ func (c *TodoClient) Update() *TodoUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *TodoClient) UpdateOne(t *Todo) *TodoUpdateOne {
-	return c.UpdateOneID(t.ID)
+	mutation := newTodoMutation(c.config, OpUpdateOne, withTodo(t))
+	return &TodoUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *TodoClient) UpdateOneID(id int) *TodoUpdateOne {
-	mutation := newTodoMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newTodoMutation(c.config, OpUpdateOne, withTodoID(id))
 	return &TodoUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 

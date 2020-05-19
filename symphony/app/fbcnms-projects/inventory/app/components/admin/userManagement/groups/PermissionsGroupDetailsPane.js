@@ -48,7 +48,7 @@ type Props = $ReadOnly<{
 export default function PermissionsGroupDetailsPane(props: Props) {
   const {group, className, onChange} = props;
   const {isFeatureEnabled} = useContext(AppContext);
-  const userManagementDevMode = isFeatureEnabled('user_management_dev');
+  const permissionPoliciesMode = isFeatureEnabled('permission_policies');
   const classes = useStyles();
   const isNewGroup = isTempId(group.id);
 
@@ -69,7 +69,7 @@ export default function PermissionsGroupDetailsPane(props: Props) {
           <Grid item xs={12} sm={6} lg={6} xl={6}>
             <FormFieldTextInput
               className={classes.nameField}
-              disabled={!userManagementDevMode}
+              disabled={!permissionPoliciesMode}
               label={`${fbt('Group Name', '')}`}
               validationId="name"
               value={group.name}
@@ -81,7 +81,7 @@ export default function PermissionsGroupDetailsPane(props: Props) {
               }}
             />
           </Grid>
-          {userManagementDevMode && !isNewGroup ? (
+          {permissionPoliciesMode && !isNewGroup ? (
             <Grid item xs={12} sm={6} lg={6} xl={6}>
               <FormField label={`${fbt('Status', '')}`}>
                 <Select

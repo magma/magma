@@ -31,6 +31,14 @@ func TestGarbageCollectProperties(t *testing.T) {
 	locationType := client.LocationType.Create().
 		SetName("LocationType").
 		SaveX(ctx)
+	location1 := client.Location.Create().
+		SetName("Location1").
+		SetType(locationType).
+		SaveX(ctx)
+	location2 := client.Location.Create().
+		SetName("Location2").
+		SetType(locationType).
+		SaveX(ctx)
 	propTypeToDelete := client.PropertyType.Create().
 		SetName("PropToDelete").
 		SetLocationType(locationType).
@@ -55,18 +63,22 @@ func TestGarbageCollectProperties(t *testing.T) {
 	propToDelete1 := client.Property.Create().
 		SetType(propTypeToDelete).
 		SetStringVal("Prop1").
+		SetLocation(location1).
 		SaveX(ctx)
 	propToDelete2 := client.Property.Create().
 		SetType(propTypeToDelete).
 		SetStringVal("Prop2").
+		SetLocation(location2).
 		SaveX(ctx)
 	propToDelete3 := client.Property.Create().
 		SetType(propTypeToDelete2).
 		SetBoolVal(true).
+		SetLocation(location1).
 		SaveX(ctx)
 	prop := client.Property.Create().
 		SetType(propType).
 		SetIntVal(28).
+		SetLocation(location1).
 		SaveX(ctx)
 	err := r.jobsRunner.collectProperties(ctx)
 	require.NoError(t, err)
@@ -84,13 +96,14 @@ func TestGarbageCollectServices(t *testing.T) {
 	client := r.client
 	ctx := viewertest.NewContext(context.Background(), client)
 
+	equipType := client.EquipmentType.Create().
+		SetName("equipType").
+		SaveX(ctx)
 	pType := client.PropertyType.Create().
 		SetName("p1").
 		SetType("string").
 		SetBoolVal(true).
-		SaveX(ctx)
-	equipType := client.EquipmentType.Create().
-		SetName("equipType").
+		SetEquipmentType(equipType).
 		SaveX(ctx)
 
 	sType := client.ServiceType.Create().
@@ -106,19 +119,21 @@ func TestGarbageCollectServices(t *testing.T) {
 		SetServiceType(sType).
 		SaveX(ctx)
 
+	eq := client.Equipment.Create().
+		SetName("equip").
+		SetType(equipType).
+		SaveX(ctx)
+
 	prop := client.Property.Create().
 		SetType(pType).
 		SetBoolVal(true).
+		SetEquipment(eq).
 		SaveX(ctx)
 
 	s1 := client.Service.Create().
 		SetName("s1").
 		SetType(sType).
 		SetStatus("PENDING").
-		SaveX(ctx)
-	eq := client.Equipment.Create().
-		SetName("equip").
-		SetType(equipType).
 		SaveX(ctx)
 	ep := client.ServiceEndpoint.Create().
 		SetDefinition(epType).

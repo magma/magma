@@ -36,8 +36,11 @@ import {createFragmentContainer, graphql} from 'react-relay';
 import {deleteWorkOrderType} from '../../mutations/RemoveWorkOrderTypeMutation';
 import {editWorkOrderType} from '../../mutations/EditWorkOrderTypeMutation';
 import {generateTempId, isTempId} from '../../common/EntUtils';
+import {
+  getInitialStateFromChecklistDefinitions,
+  reducer,
+} from '../checklist/ChecklistCategoriesMutateReducer';
 import {makeStyles} from '@material-ui/styles';
-import {reducer} from '../checklist/ChecklistCategoriesMutateReducer';
 import {toMutablePropertyType} from '../../common/PropertyType';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {usePropertyTypesReducer} from '../form/context/property_types/PropertyTypesTableState';
@@ -83,35 +86,6 @@ type Props = $ReadOnly<{|
   ...WithAlert,
 |}>;
 
-const getInitialState = (
-  workOrderType: ?AddEditWorkOrderTypeCard_workOrderType,
-): ChecklistCategoriesStateType => {
-  if (workOrderType == null) {
-    return [];
-  }
-
-  return workOrderType.checkListCategoryDefinitions
-    .slice()
-    .map(categoryDefinition => ({
-      id: categoryDefinition.id ?? generateTempId(),
-      title: categoryDefinition.title,
-      description: categoryDefinition.description,
-      checkList: categoryDefinition.checklistItemDefinitions
-        .slice()
-        .map(itemDefinition => ({
-          id: itemDefinition.id,
-          index: itemDefinition.index,
-          type: itemDefinition.type,
-          title: itemDefinition.title,
-          helpText: itemDefinition.helpText,
-          enumValues: itemDefinition.enumValues,
-          enumSelectionMode: !!itemDefinition.enumSelectionMode
-            ? itemDefinition.enumSelectionMode
-            : 'single',
-        })),
-    }));
-};
-
 const AddEditWorkOrderTypeCard = ({
   workOrderType,
   onClose,
@@ -141,8 +115,15 @@ const AddEditWorkOrderTypeCard = ({
   const [editingCategories, dispatch] = useReducer<
     ChecklistCategoriesStateType,
     ChecklistCategoriesMutateStateActionType,
-    ?AddEditWorkOrderTypeCard_workOrderType,
-  >(reducer, workOrderType, getInitialState);
+    ?$ElementType<
+      AddEditWorkOrderTypeCard_workOrderType,
+      'checkListCategoryDefinitions',
+    >,
+  >(
+    reducer,
+    workOrderType?.checkListCategoryDefinitions,
+    getInitialStateFromChecklistDefinitions,
+  );
 
   const enqueueSnackbar = useEnqueueSnackbar();
 

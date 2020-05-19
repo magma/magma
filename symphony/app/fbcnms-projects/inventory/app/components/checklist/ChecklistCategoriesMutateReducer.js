@@ -8,6 +8,7 @@
  * @format
  */
 
+import type {AddEditWorkOrderTypeCard_workOrderType} from '../configure/__generated__/AddEditWorkOrderTypeCard_workOrderType.graphql';
 import type {ChecklistCategoriesMutateStateActionType} from './ChecklistCategoriesMutateAction';
 import type {
   ChecklistCategoriesStateType,
@@ -16,13 +17,13 @@ import type {
 import type {WorkOrderDetails_workOrder} from '../work_orders/__generated__/WorkOrderDetails_workOrder.graphql';
 
 import fbt from 'fbt';
-import shortid from 'shortid';
+import {generateTempId} from '../../common/EntUtils';
 
 export function getInitialState(
   categories: $ElementType<WorkOrderDetails_workOrder, 'checkListCategories'>,
 ): ChecklistCategoriesStateType {
   return categories.slice().map(category => ({
-    id: category.id ?? shortid.generate(),
+    id: category.id ?? generateTempId(),
     title: category.title,
     description: category.description,
     checkList: category.checkList.slice().map(item => ({
@@ -50,9 +51,39 @@ export function getInitialState(
   }));
 }
 
+export function getInitialStateFromChecklistDefinitions(
+  categoryDefinitions: ?$ElementType<
+    AddEditWorkOrderTypeCard_workOrderType,
+    'checkListCategoryDefinitions',
+  >,
+): ChecklistCategoriesStateType {
+  if (categoryDefinitions == null) {
+    return [];
+  }
+
+  return categoryDefinitions.slice().map(categoryDefinition => ({
+    id: generateTempId(),
+    title: categoryDefinition.title,
+    description: categoryDefinition.description,
+    checkList: categoryDefinition.checklistItemDefinitions
+      .slice()
+      .map(itemDefinition => ({
+        id: generateTempId(),
+        index: itemDefinition.index,
+        type: itemDefinition.type,
+        title: itemDefinition.title,
+        helpText: itemDefinition.helpText,
+        enumValues: itemDefinition.enumValues,
+        enumSelectionMode: !!itemDefinition.enumSelectionMode
+          ? itemDefinition.enumSelectionMode
+          : 'single',
+      })),
+  }));
+}
+
 function createNewCategory(): ChecklistCategory {
   return {
-    id: shortid.generate(),
+    id: generateTempId(),
     title: `${fbt('New Category', 'Default name for checklist category')}`,
     description: '',
     checkList: [],

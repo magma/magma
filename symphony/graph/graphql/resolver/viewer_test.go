@@ -35,7 +35,7 @@ func TestUserViewer(t *testing.T) {
 func TestUserViewerInWriteGroup(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.Close()
-	ctx := viewertest.NewContext(context.Background(), r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client, viewertest.WithRole(user.RoleUSER), viewertest.WithFeatures())
 	vr := r.Viewer()
 
 	v := viewer.FromContext(ctx).(*viewer.UserViewer)
@@ -75,6 +75,5 @@ func TestOwnerViewer(t *testing.T) {
 	r.client.User.UpdateOne(v.User()).SetRole(user.RoleOWNER).ExecX(ctx)
 	permissions, err := vr.Permissions(ctx, v)
 	require.NoError(t, err)
-	require.Equal(t, &models.BasicPermissionRule{IsAllowed: models2.PermissionValueYes}, permissions.AdminPolicy.Access)
-	require.True(t, permissions.CanWrite)
+	require.EqualValues(t, authz.FullPermissions(), permissions)
 }

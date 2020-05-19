@@ -471,7 +471,7 @@ func HasImage() predicate.FloorPlan {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(ImageTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, ImageTable, ImageColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, ImageTable, ImageColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
@@ -483,7 +483,7 @@ func HasImageWith(preds ...predicate.File) predicate.FloorPlan {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(ImageInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, ImageTable, ImageColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, ImageTable, ImageColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

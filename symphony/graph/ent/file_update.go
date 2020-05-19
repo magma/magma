@@ -17,8 +17,11 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/file"
+	"github.com/facebookincubator/symphony/graph/ent/floorplan"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
+	"github.com/facebookincubator/symphony/graph/ent/survey"
+	"github.com/facebookincubator/symphony/graph/ent/surveyquestion"
 	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
@@ -243,6 +246,82 @@ func (fu *FileUpdate) SetChecklistItem(c *CheckListItem) *FileUpdate {
 	return fu.SetChecklistItemID(c.ID)
 }
 
+// SetSurveyID sets the survey edge to Survey by id.
+func (fu *FileUpdate) SetSurveyID(id int) *FileUpdate {
+	fu.mutation.SetSurveyID(id)
+	return fu
+}
+
+// SetNillableSurveyID sets the survey edge to Survey by id if the given value is not nil.
+func (fu *FileUpdate) SetNillableSurveyID(id *int) *FileUpdate {
+	if id != nil {
+		fu = fu.SetSurveyID(*id)
+	}
+	return fu
+}
+
+// SetSurvey sets the survey edge to Survey.
+func (fu *FileUpdate) SetSurvey(s *Survey) *FileUpdate {
+	return fu.SetSurveyID(s.ID)
+}
+
+// SetFloorPlanID sets the floor_plan edge to FloorPlan by id.
+func (fu *FileUpdate) SetFloorPlanID(id int) *FileUpdate {
+	fu.mutation.SetFloorPlanID(id)
+	return fu
+}
+
+// SetNillableFloorPlanID sets the floor_plan edge to FloorPlan by id if the given value is not nil.
+func (fu *FileUpdate) SetNillableFloorPlanID(id *int) *FileUpdate {
+	if id != nil {
+		fu = fu.SetFloorPlanID(*id)
+	}
+	return fu
+}
+
+// SetFloorPlan sets the floor_plan edge to FloorPlan.
+func (fu *FileUpdate) SetFloorPlan(f *FloorPlan) *FileUpdate {
+	return fu.SetFloorPlanID(f.ID)
+}
+
+// SetPhotoSurveyQuestionID sets the photo_survey_question edge to SurveyQuestion by id.
+func (fu *FileUpdate) SetPhotoSurveyQuestionID(id int) *FileUpdate {
+	fu.mutation.SetPhotoSurveyQuestionID(id)
+	return fu
+}
+
+// SetNillablePhotoSurveyQuestionID sets the photo_survey_question edge to SurveyQuestion by id if the given value is not nil.
+func (fu *FileUpdate) SetNillablePhotoSurveyQuestionID(id *int) *FileUpdate {
+	if id != nil {
+		fu = fu.SetPhotoSurveyQuestionID(*id)
+	}
+	return fu
+}
+
+// SetPhotoSurveyQuestion sets the photo_survey_question edge to SurveyQuestion.
+func (fu *FileUpdate) SetPhotoSurveyQuestion(s *SurveyQuestion) *FileUpdate {
+	return fu.SetPhotoSurveyQuestionID(s.ID)
+}
+
+// SetSurveyQuestionID sets the survey_question edge to SurveyQuestion by id.
+func (fu *FileUpdate) SetSurveyQuestionID(id int) *FileUpdate {
+	fu.mutation.SetSurveyQuestionID(id)
+	return fu
+}
+
+// SetNillableSurveyQuestionID sets the survey_question edge to SurveyQuestion by id if the given value is not nil.
+func (fu *FileUpdate) SetNillableSurveyQuestionID(id *int) *FileUpdate {
+	if id != nil {
+		fu = fu.SetSurveyQuestionID(*id)
+	}
+	return fu
+}
+
+// SetSurveyQuestion sets the survey_question edge to SurveyQuestion.
+func (fu *FileUpdate) SetSurveyQuestion(s *SurveyQuestion) *FileUpdate {
+	return fu.SetSurveyQuestionID(s.ID)
+}
+
 // ClearLocation clears the location edge to Location.
 func (fu *FileUpdate) ClearLocation() *FileUpdate {
 	fu.mutation.ClearLocation()
@@ -270,6 +349,30 @@ func (fu *FileUpdate) ClearWorkOrder() *FileUpdate {
 // ClearChecklistItem clears the checklist_item edge to CheckListItem.
 func (fu *FileUpdate) ClearChecklistItem() *FileUpdate {
 	fu.mutation.ClearChecklistItem()
+	return fu
+}
+
+// ClearSurvey clears the survey edge to Survey.
+func (fu *FileUpdate) ClearSurvey() *FileUpdate {
+	fu.mutation.ClearSurvey()
+	return fu
+}
+
+// ClearFloorPlan clears the floor_plan edge to FloorPlan.
+func (fu *FileUpdate) ClearFloorPlan() *FileUpdate {
+	fu.mutation.ClearFloorPlan()
+	return fu
+}
+
+// ClearPhotoSurveyQuestion clears the photo_survey_question edge to SurveyQuestion.
+func (fu *FileUpdate) ClearPhotoSurveyQuestion() *FileUpdate {
+	fu.mutation.ClearPhotoSurveyQuestion()
+	return fu
+}
+
+// ClearSurveyQuestion clears the survey_question edge to SurveyQuestion.
+func (fu *FileUpdate) ClearSurveyQuestion() *FileUpdate {
+	fu.mutation.ClearSurveyQuestion()
 	return fu
 }
 
@@ -620,6 +723,146 @@ func (fu *FileUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if fu.mutation.SurveyCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   file.SurveyTable,
+			Columns: []string{file.SurveyColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: survey.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fu.mutation.SurveyIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   file.SurveyTable,
+			Columns: []string{file.SurveyColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: survey.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if fu.mutation.FloorPlanCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   file.FloorPlanTable,
+			Columns: []string{file.FloorPlanColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: floorplan.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fu.mutation.FloorPlanIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   file.FloorPlanTable,
+			Columns: []string{file.FloorPlanColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: floorplan.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if fu.mutation.PhotoSurveyQuestionCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   file.PhotoSurveyQuestionTable,
+			Columns: []string{file.PhotoSurveyQuestionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: surveyquestion.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fu.mutation.PhotoSurveyQuestionIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   file.PhotoSurveyQuestionTable,
+			Columns: []string{file.PhotoSurveyQuestionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: surveyquestion.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if fu.mutation.SurveyQuestionCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   file.SurveyQuestionTable,
+			Columns: []string{file.SurveyQuestionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: surveyquestion.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fu.mutation.SurveyQuestionIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   file.SurveyQuestionTable,
+			Columns: []string{file.SurveyQuestionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: surveyquestion.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, fu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{file.Label}
@@ -844,6 +1087,82 @@ func (fuo *FileUpdateOne) SetChecklistItem(c *CheckListItem) *FileUpdateOne {
 	return fuo.SetChecklistItemID(c.ID)
 }
 
+// SetSurveyID sets the survey edge to Survey by id.
+func (fuo *FileUpdateOne) SetSurveyID(id int) *FileUpdateOne {
+	fuo.mutation.SetSurveyID(id)
+	return fuo
+}
+
+// SetNillableSurveyID sets the survey edge to Survey by id if the given value is not nil.
+func (fuo *FileUpdateOne) SetNillableSurveyID(id *int) *FileUpdateOne {
+	if id != nil {
+		fuo = fuo.SetSurveyID(*id)
+	}
+	return fuo
+}
+
+// SetSurvey sets the survey edge to Survey.
+func (fuo *FileUpdateOne) SetSurvey(s *Survey) *FileUpdateOne {
+	return fuo.SetSurveyID(s.ID)
+}
+
+// SetFloorPlanID sets the floor_plan edge to FloorPlan by id.
+func (fuo *FileUpdateOne) SetFloorPlanID(id int) *FileUpdateOne {
+	fuo.mutation.SetFloorPlanID(id)
+	return fuo
+}
+
+// SetNillableFloorPlanID sets the floor_plan edge to FloorPlan by id if the given value is not nil.
+func (fuo *FileUpdateOne) SetNillableFloorPlanID(id *int) *FileUpdateOne {
+	if id != nil {
+		fuo = fuo.SetFloorPlanID(*id)
+	}
+	return fuo
+}
+
+// SetFloorPlan sets the floor_plan edge to FloorPlan.
+func (fuo *FileUpdateOne) SetFloorPlan(f *FloorPlan) *FileUpdateOne {
+	return fuo.SetFloorPlanID(f.ID)
+}
+
+// SetPhotoSurveyQuestionID sets the photo_survey_question edge to SurveyQuestion by id.
+func (fuo *FileUpdateOne) SetPhotoSurveyQuestionID(id int) *FileUpdateOne {
+	fuo.mutation.SetPhotoSurveyQuestionID(id)
+	return fuo
+}
+
+// SetNillablePhotoSurveyQuestionID sets the photo_survey_question edge to SurveyQuestion by id if the given value is not nil.
+func (fuo *FileUpdateOne) SetNillablePhotoSurveyQuestionID(id *int) *FileUpdateOne {
+	if id != nil {
+		fuo = fuo.SetPhotoSurveyQuestionID(*id)
+	}
+	return fuo
+}
+
+// SetPhotoSurveyQuestion sets the photo_survey_question edge to SurveyQuestion.
+func (fuo *FileUpdateOne) SetPhotoSurveyQuestion(s *SurveyQuestion) *FileUpdateOne {
+	return fuo.SetPhotoSurveyQuestionID(s.ID)
+}
+
+// SetSurveyQuestionID sets the survey_question edge to SurveyQuestion by id.
+func (fuo *FileUpdateOne) SetSurveyQuestionID(id int) *FileUpdateOne {
+	fuo.mutation.SetSurveyQuestionID(id)
+	return fuo
+}
+
+// SetNillableSurveyQuestionID sets the survey_question edge to SurveyQuestion by id if the given value is not nil.
+func (fuo *FileUpdateOne) SetNillableSurveyQuestionID(id *int) *FileUpdateOne {
+	if id != nil {
+		fuo = fuo.SetSurveyQuestionID(*id)
+	}
+	return fuo
+}
+
+// SetSurveyQuestion sets the survey_question edge to SurveyQuestion.
+func (fuo *FileUpdateOne) SetSurveyQuestion(s *SurveyQuestion) *FileUpdateOne {
+	return fuo.SetSurveyQuestionID(s.ID)
+}
+
 // ClearLocation clears the location edge to Location.
 func (fuo *FileUpdateOne) ClearLocation() *FileUpdateOne {
 	fuo.mutation.ClearLocation()
@@ -871,6 +1190,30 @@ func (fuo *FileUpdateOne) ClearWorkOrder() *FileUpdateOne {
 // ClearChecklistItem clears the checklist_item edge to CheckListItem.
 func (fuo *FileUpdateOne) ClearChecklistItem() *FileUpdateOne {
 	fuo.mutation.ClearChecklistItem()
+	return fuo
+}
+
+// ClearSurvey clears the survey edge to Survey.
+func (fuo *FileUpdateOne) ClearSurvey() *FileUpdateOne {
+	fuo.mutation.ClearSurvey()
+	return fuo
+}
+
+// ClearFloorPlan clears the floor_plan edge to FloorPlan.
+func (fuo *FileUpdateOne) ClearFloorPlan() *FileUpdateOne {
+	fuo.mutation.ClearFloorPlan()
+	return fuo
+}
+
+// ClearPhotoSurveyQuestion clears the photo_survey_question edge to SurveyQuestion.
+func (fuo *FileUpdateOne) ClearPhotoSurveyQuestion() *FileUpdateOne {
+	fuo.mutation.ClearPhotoSurveyQuestion()
+	return fuo
+}
+
+// ClearSurveyQuestion clears the survey_question edge to SurveyQuestion.
+func (fuo *FileUpdateOne) ClearSurveyQuestion() *FileUpdateOne {
+	fuo.mutation.ClearSurveyQuestion()
 	return fuo
 }
 
@@ -1211,6 +1554,146 @@ func (fuo *FileUpdateOne) sqlSave(ctx context.Context) (f *File, err error) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: checklistitem.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if fuo.mutation.SurveyCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   file.SurveyTable,
+			Columns: []string{file.SurveyColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: survey.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fuo.mutation.SurveyIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   file.SurveyTable,
+			Columns: []string{file.SurveyColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: survey.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if fuo.mutation.FloorPlanCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   file.FloorPlanTable,
+			Columns: []string{file.FloorPlanColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: floorplan.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fuo.mutation.FloorPlanIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   file.FloorPlanTable,
+			Columns: []string{file.FloorPlanColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: floorplan.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if fuo.mutation.PhotoSurveyQuestionCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   file.PhotoSurveyQuestionTable,
+			Columns: []string{file.PhotoSurveyQuestionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: surveyquestion.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fuo.mutation.PhotoSurveyQuestionIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   file.PhotoSurveyQuestionTable,
+			Columns: []string{file.PhotoSurveyQuestionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: surveyquestion.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if fuo.mutation.SurveyQuestionCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   file.SurveyQuestionTable,
+			Columns: []string{file.SurveyQuestionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: surveyquestion.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fuo.mutation.SurveyQuestionIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   file.SurveyQuestionTable,
+			Columns: []string{file.SurveyQuestionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: surveyquestion.FieldID,
 				},
 			},
 		}

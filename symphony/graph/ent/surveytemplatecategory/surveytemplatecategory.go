@@ -24,6 +24,8 @@ const (
 
 	// EdgeSurveyTemplateQuestions holds the string denoting the survey_template_questions edge name in mutations.
 	EdgeSurveyTemplateQuestions = "survey_template_questions"
+	// EdgeLocationType holds the string denoting the location_type edge name in mutations.
+	EdgeLocationType = "location_type"
 
 	// Table holds the table name of the surveytemplatecategory in the database.
 	Table = "survey_template_categories"
@@ -34,6 +36,13 @@ const (
 	SurveyTemplateQuestionsInverseTable = "survey_template_questions"
 	// SurveyTemplateQuestionsColumn is the table column denoting the survey_template_questions relation/edge.
 	SurveyTemplateQuestionsColumn = "survey_template_category_survey_template_questions"
+	// LocationTypeTable is the table the holds the location_type relation/edge.
+	LocationTypeTable = "survey_template_categories"
+	// LocationTypeInverseTable is the table name for the LocationType entity.
+	// It exists in this package in order to avoid circular dependency with the "locationtype" package.
+	LocationTypeInverseTable = "location_types"
+	// LocationTypeColumn is the table column denoting the location_type relation/edge.
+	LocationTypeColumn = "location_type_survey_template_categories"
 )
 
 // Columns holds all SQL columns for surveytemplatecategory fields.

@@ -16,7 +16,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/facebookincubator/symphony/graph/authz"
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/location"
@@ -24,7 +23,6 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/event"
 	"github.com/facebookincubator/symphony/graph/importer"
-	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 	"github.com/facebookincubator/symphony/pkg/log/logtest"
 
@@ -105,12 +103,8 @@ func importEquipmentFile(t *testing.T, client *ent.Client, r io.Reader, method m
 			Subscriber: event.NewNopSubscriber(),
 		},
 	)
-	h = authz.Handler(h, logtest.NewTestLogger(t))
-	h = viewer.TenancyHandler(h,
-		viewer.NewFixedTenancy(client),
-		logtest.NewTestLogger(t),
-	)
-	server := httptest.NewServer(h)
+	th := viewertest.TestHandler(t, h, client)
+	server := httptest.NewServer(th)
 	defer server.Close()
 
 	req, err := http.NewRequest(http.MethodPost, server.URL+"/export_equipment", buf)
@@ -150,9 +144,8 @@ func deleteEquipmentData(ctx context.Context, t *testing.T, r *TestExporterResol
 func prepareEquipmentAndExport(t *testing.T, r *TestExporterResolver) (context.Context, *http.Response) {
 	log := r.exporter.log
 	var h http.Handler = &exporter{log, equipmentRower{log}}
-	h = authz.Handler(h, logtest.NewTestLogger(t))
-	h = viewer.TenancyHandler(h, viewer.NewFixedTenancy(r.client), log)
-	server := httptest.NewServer(h)
+	th := viewertest.TestHandler(t, h, r.client)
+	server := httptest.NewServer(th)
 	defer server.Close()
 
 	req, err := http.NewRequest(http.MethodGet, server.URL, nil)

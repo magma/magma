@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/locationtype"
 	"github.com/facebookincubator/symphony/graph/ent/surveytemplatecategory"
 )
 
@@ -38,9 +39,11 @@ type SurveyTemplateCategory struct {
 type SurveyTemplateCategoryEdges struct {
 	// SurveyTemplateQuestions holds the value of the survey_template_questions edge.
 	SurveyTemplateQuestions []*SurveyTemplateQuestion
+	// LocationType holds the value of the location_type edge.
+	LocationType *LocationType
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // SurveyTemplateQuestionsOrErr returns the SurveyTemplateQuestions value or an error if the edge
@@ -50,6 +53,20 @@ func (e SurveyTemplateCategoryEdges) SurveyTemplateQuestionsOrErr() ([]*SurveyTe
 		return e.SurveyTemplateQuestions, nil
 	}
 	return nil, &NotLoadedError{edge: "survey_template_questions"}
+}
+
+// LocationTypeOrErr returns the LocationType value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e SurveyTemplateCategoryEdges) LocationTypeOrErr() (*LocationType, error) {
+	if e.loadedTypes[1] {
+		if e.LocationType == nil {
+			// The edge location_type was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: locationtype.Label}
+		}
+		return e.LocationType, nil
+	}
+	return nil, &NotLoadedError{edge: "location_type"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -117,6 +134,11 @@ func (stc *SurveyTemplateCategory) assignValues(values ...interface{}) error {
 // QuerySurveyTemplateQuestions queries the survey_template_questions edge of the SurveyTemplateCategory.
 func (stc *SurveyTemplateCategory) QuerySurveyTemplateQuestions() *SurveyTemplateQuestionQuery {
 	return (&SurveyTemplateCategoryClient{config: stc.config}).QuerySurveyTemplateQuestions(stc)
+}
+
+// QueryLocationType queries the location_type edge of the SurveyTemplateCategory.
+func (stc *SurveyTemplateCategory) QueryLocationType() *LocationTypeQuery {
+	return (&SurveyTemplateCategoryClient{config: stc.config}).QueryLocationType(stc)
 }
 
 // Update returns a builder for updating this SurveyTemplateCategory.

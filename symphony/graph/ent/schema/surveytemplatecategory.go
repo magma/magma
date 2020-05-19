@@ -27,5 +27,8 @@ func (SurveyTemplateCategory) Fields() []ent.Field {
 func (SurveyTemplateCategory) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("survey_template_questions", SurveyTemplateQuestion.Type),
+		edge.From("location_type", LocationType.Type).
+			Ref("survey_template_categories").
+			Unique(),
 	}
 }

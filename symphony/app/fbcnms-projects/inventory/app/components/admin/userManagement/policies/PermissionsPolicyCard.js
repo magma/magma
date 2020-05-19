@@ -81,7 +81,7 @@ const initialCUDRule = {
 
 const initialInventoryRules = {
   read: {
-    ...initialBasicRule,
+    isAllowed: PERMISSION_RULE_VALUES.YES,
   },
   location: {
     ...initialCUDRule,

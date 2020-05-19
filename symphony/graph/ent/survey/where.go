@@ -727,7 +727,7 @@ func HasSourceFile() predicate.Survey {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(SourceFileTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, SourceFileTable, SourceFileColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, SourceFileTable, SourceFileColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
@@ -739,7 +739,7 @@ func HasSourceFileWith(preds ...predicate.File) predicate.Survey {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(SourceFileInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, SourceFileTable, SourceFileColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, SourceFileTable, SourceFileColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
