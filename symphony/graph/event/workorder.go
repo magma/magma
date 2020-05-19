@@ -11,7 +11,6 @@ import (
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/hook"
-	"github.com/facebookincubator/symphony/graph/ent/workorder"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 )
 
@@ -67,21 +66,12 @@ func (e *Eventer) workOrderUpdateOneHook() ent.Hook {
 			if !exists || status != models.WorkOrderStatusDone.String() {
 				return next.Mutate(ctx, m)
 			}
-			id, _ := m.ID()
-			statusChanged, err := m.Client().WorkOrder.
-				Query().
-				Where(
-					workorder.ID(id),
-					workorder.StatusNEQ(
-						models.WorkOrderStatusDone.String(),
-					),
-				).
-				Exist(ctx)
+			oldStatus, err := m.OldStatus(ctx)
 			if err != nil {
-				return nil, fmt.Errorf("querying work order %d current status: %w", id, err)
+				return nil, fmt.Errorf("fetching work order old status: %w", err)
 			}
 			value, err := next.Mutate(ctx, m)
-			if err == nil && statusChanged {
+			if err == nil && oldStatus != status {
 				e.emit(ctx, WorkOrderDone, value)
 			}
 			return value, err

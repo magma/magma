@@ -124,28 +124,30 @@ func denyIfNoPermissionSettingsRule() privacy.QueryMutationRule {
 }
 
 func allowOrSkipWorkOrder(ctx context.Context, p *models.PermissionSettings, wo *ent.WorkOrder) error {
-	allowed, err := workOrderIsEditable(ctx, wo)
-	if err != nil {
-		return privacy.Denyf(err.Error())
-	}
-	if allowed {
+	switch allowed, err := workOrderIsEditable(ctx, wo); {
+	case err != nil:
+		return privacy.Denyf("cannot check work order editability: %w", err)
+	case allowed:
 		return privacy.Allow
 	}
 	workOrderTypeID, err := wo.QueryType().OnlyID(ctx)
-
 	if err != nil {
-		return privacy.Denyf("failed to fetch work order type id: %w", err)
+		return privacy.Denyf("cannot fetch work order type id: %w", err)
 	}
-	return privacyDecision(checkWorkforce(p.WorkforcePolicy.Data.Update, &workOrderTypeID, nil))
+	return privacyDecision(
+		checkWorkforce(
+			p.WorkforcePolicy.Data.Update, &workOrderTypeID, nil,
+		),
+	)
 }
 
 func denyBulkEditOrDeleteRule() privacy.MutationRule {
+	rule := privacy.DenyMutationOperationRule(ent.OpUpdate | ent.OpDelete)
 	return privacy.MutationRuleFunc(func(ctx context.Context, m ent.Mutation) error {
-		v := viewer.FromContext(ctx)
-		if v == nil || !v.Features().Enabled(viewer.FeatureUserManagementDev) {
+		if v := viewer.FromContext(ctx); v == nil ||
+			!v.Features().Enabled(viewer.FeatureUserManagementDev) {
 			return privacy.Skip
 		}
-		rule := privacy.DenyMutationOperationRule(ent.OpDelete | ent.OpUpdate)
-		return rule.(privacy.MutationRuleFunc)(ctx, m)
+		return rule.EvalMutation(ctx, m)
 	})
 }
