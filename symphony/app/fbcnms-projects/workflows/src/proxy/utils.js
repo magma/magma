@@ -111,7 +111,6 @@ export function assertNameIsWithoutInfixSeparator(objectWithName: {
   assertValueIsWithoutInfixSeparator(objectWithName.name);
 }
 
-// TODO: disallow ':'
 export function assertValueIsWithoutInfixSeparator(value: string): void {
   if (value.indexOf(INFIX_SEPARATOR) > -1) {
     logger.error(`Value must not contain '${INFIX_SEPARATOR}' in '${value}'`);
