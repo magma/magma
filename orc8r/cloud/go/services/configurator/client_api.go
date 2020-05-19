@@ -84,7 +84,7 @@ func CreateNetworks(networks []Network) ([]Network, error) {
 
 	req := &protos.CreateNetworksRequest{Networks: make([]*storage.Network, 0, len(networks))}
 	for _, n := range networks {
-		pNet, err := n.toStorageProto()
+		pNet, err := n.ToStorageProto()
 		if err != nil {
 			return nil, err
 		}
