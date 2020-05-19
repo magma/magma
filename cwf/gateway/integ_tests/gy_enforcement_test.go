@@ -26,12 +26,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const (
-	MaxUsageBytes = 5 * 1024 * KiloBytes
-	MaxUsageTime  = 1000 // in second
-	ValidityTime  = 60   // in second
-)
-
 func ocsCreditExhaustionTestSetup(t *testing.T) (*TestRunner, *RuleManager, *cwfprotos.UEConfig) {
 	tr := NewTestRunner(t)
 	ruleManager, err := NewRuleManager()
@@ -41,9 +35,9 @@ func ocsCreditExhaustionTestSetup(t *testing.T) (*TestRunner, *RuleManager, *cwf
 	assert.NoError(t, err)
 	setNewOCSConfig(
 		&fegprotos.OCSConfig{
-			MaxUsageOctets: &fegprotos.Octets{TotalOctets: MaxUsageBytes},
-			MaxUsageTime:   MaxUsageTime,
-			ValidityTime:   ValidityTime,
+			MaxUsageOctets: &fegprotos.Octets{TotalOctets: GyMaxUsageBytes},
+			MaxUsageTime:   GyMaxUsageTime,
+			ValidityTime:   GyValidityTime,
 			UseMockDriver:  true,
 		},
 	)
