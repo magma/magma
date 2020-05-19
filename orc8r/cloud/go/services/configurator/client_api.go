@@ -97,7 +97,7 @@ func CreateNetworks(networks []Network) ([]Network, error) {
 
 	ret := make([]Network, len(result.CreatedNetworks))
 	for i, protoNet := range result.CreatedNetworks {
-		ent, err := ret[i].fromStorageProto(protoNet)
+		ent, err := ret[i].FromStorageProto(protoNet)
 		if err != nil {
 			return nil, err
 		}
@@ -183,7 +183,7 @@ func LoadNetworks(networks []string, loadMetadata bool, loadConfigs bool) ([]Net
 
 	ret := make([]Network, len(result.Networks))
 	for i, n := range result.Networks {
-		retNet, err := ret[i].fromStorageProto(n)
+		retNet, err := ret[i].FromStorageProto(n)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -213,7 +213,7 @@ func LoadNetworksByType(typeVal string, loadMetadata bool, loadConfigs bool) ([]
 
 	ret := make([]Network, len(result.Networks))
 	for i, n := range result.Networks {
-		retNet, err := ret[i].fromStorageProto(n)
+		retNet, err := ret[i].FromStorageProto(n)
 		if err != nil {
 			return nil, err
 		}

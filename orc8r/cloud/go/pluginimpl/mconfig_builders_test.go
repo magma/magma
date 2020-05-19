@@ -240,6 +240,8 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 }
 
 func TestDnsdMconfigBuilder_Build(t *testing.T) {
+	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+
 	nw := configurator.Network{ID: "n1"}
 	gw := configurator.NetworkEntity{
 		Type: orc8r.MagmadGatewayType,
