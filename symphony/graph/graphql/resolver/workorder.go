@@ -477,13 +477,11 @@ func (r mutationResolver) deleteRemovedCheckListItemFiles(ctx context.Context, i
 }
 
 func (r mutationResolver) createAddedCheckListItemFiles(ctx context.Context, item *ent.CheckListItem, fileInputs []*models.FileInput) (*ent.CheckListItem, error) {
-	client := r.ClientFrom(ctx)
-	var addedFiles []*ent.File
 	for _, input := range fileInputs {
 		if input.ID != nil {
 			continue
 		}
-		f, err := r.createImage(
+		_, err := r.createImage(
 			ctx,
 			&models.AddImageInput{
 				ImgKey:   input.StoreKey,
@@ -502,20 +500,13 @@ func (r mutationResolver) createAddedCheckListItemFiles(ctx context.Context, ite
 					return "image/jpeg"
 				}(),
 			},
+			func(create *ent.FileCreate) error {
+				create.SetChecklistItem(item)
+				return nil
+			},
 		)
 		if err != nil {
 			return nil, err
-		}
-
-		addedFiles = append(addedFiles, f)
-	}
-
-	if len(addedFiles) > 0 {
-		if item, err := client.CheckListItem.
-			UpdateOne(item).
-			AddFiles(addedFiles...).
-			Save(ctx); err != nil {
-			return nil, fmt.Errorf("adding checklist file item=%q %w", item.ID, err)
 		}
 	}
 
@@ -602,17 +593,11 @@ func (r mutationResolver) addWorkOrderTypeCategoryDefinitions(ctx context.Contex
 
 func (r mutationResolver) AddWorkOrderType(
 	ctx context.Context, input models.AddWorkOrderTypeInput) (*ent.WorkOrderType, error) {
-	props, err := r.AddPropertyTypes(ctx, input.Properties...)
-	if err != nil {
-		return nil, err
-	}
-
 	client := r.ClientFrom(ctx)
 	typ, err := client.WorkOrderType.
 		Create().
 		SetName(input.Name).
 		SetNillableDescription(input.Description).
-		AddPropertyTypes(props...).
 		Save(ctx)
 
 	if err != nil {
@@ -621,7 +606,11 @@ func (r mutationResolver) AddWorkOrderType(
 		}
 		return nil, errors.Wrap(err, "creating work order type")
 	}
-
+	if err := r.AddPropertyTypes(ctx, func(ptc *ent.PropertyTypeCreate) {
+		ptc.SetWorkOrderTypeID(typ.ID)
+	}, input.Properties...); err != nil {
+		return nil, err
+	}
 	err = r.addWorkOrderTypeCategoryDefinitions(ctx, input, typ.ID)
 	if err != nil {
 		return nil, errors.Wrap(err, "creating checklist category definitions")
@@ -646,7 +635,7 @@ func (r mutationResolver) EditWorkOrderType(
 	}
 	for _, p := range input.Properties {
 		if p.ID == nil {
-			err = r.validateAndAddNewPropertyType(ctx, p, func(b *ent.PropertyTypeUpdateOne) { b.SetWorkOrderTypeID(input.ID) })
+			err = r.validateAndAddNewPropertyType(ctx, p, func(b *ent.PropertyTypeCreate) { b.SetWorkOrderTypeID(input.ID) })
 		} else {
 			err = r.updatePropType(ctx, p)
 		}

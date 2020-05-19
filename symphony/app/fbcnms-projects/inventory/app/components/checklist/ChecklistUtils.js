@@ -47,7 +47,10 @@ export const getValidChecklistItemType = (
 export const isChecklistItemDone = (item: CheckListItem): boolean => {
   switch (item.type) {
     case 'enum':
-      return item.enumValues != null && item.enumValues.trim().length > 0;
+      return (
+        item.selectedEnumValues != null &&
+        item.selectedEnumValues.trim().length > 0
+      );
     case 'simple':
       return item.checked === true;
     case 'string':

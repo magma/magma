@@ -229,7 +229,7 @@ func TestAddWorkOrderWithDefaultAutomationOwner(t *testing.T) {
 		viewertest.DefaultTenant,
 		viewertest.DefaultUser,
 		viewertest.DefaultRole,
-		viewer.WithFeatures(viewer.FeatureUserManagementDev))
+		viewer.WithFeatures(viewer.FeaturePermissionPolicies))
 	ctx = viewer.NewContext(ctx, v)
 	ctx = authz.NewContext(ctx, authz.FullPermissions())
 	mr := r.Mutation()
@@ -1759,10 +1759,10 @@ func TestTechnicianCheckinToWorkOrder(t *testing.T) {
 func TestTechnicianUploadDataToWorkOrder(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.Close()
-	ctx := viewertest.NewContext(context.Background(), r.client)
+	// TODO(T66882071): Remove owner role from two rows
+	c := r.GraphClient(viewertest.WithRole(user.RoleOWNER))
+	ctx := viewertest.NewContext(context.Background(), r.client, viewertest.WithRole(user.RoleOWNER))
 	mr := r.Mutation()
-	c := r.GraphClient()
-
 	wo := createWorkOrder(ctx, t, *r, "Foo")
 	u := viewer.FromContext(ctx).(*viewer.UserViewer).User()
 	mimeType := "image/jpeg"

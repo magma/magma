@@ -314,14 +314,10 @@ message CreditUsageUpdate {
 }
 
 message CreditUpdateResponse {
-  enum ResponseType {
-    UPDATE = 0;
-  }
   bool success = 1;
   string sid = 2; // System Identification Number
   uint32 charging_key = 3;
   ChargingCredit credit = 4;
-  ResponseType type = 5;
   uint32 result_code = 6;
   ServiceIdentifier service_identifier = 7;
   enum CreditLimitType {

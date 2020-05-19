@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow strict-local
+ * @flow
  * @format
  */
 
@@ -14,9 +14,11 @@ import AppSideBar from '@fbcnms/ui/components/layout/AppSideBar';
 import ApplicationMain from '@fbcnms/ui/components/ApplicationMain';
 import ProjectComparisonView from '../projects/ProjectComparisonView';
 import React, {useContext} from 'react';
+import RelayEnvironment from '../../common/RelayEnvironment';
 import WorkOrderComparisonView from './WorkOrderComparisonView';
 import WorkOrderConfigure from './WorkOrderConfigure';
 import {Redirect, Route, Switch} from 'react-router-dom';
+import {RelayEnvironmentProvider} from 'react-relay/hooks';
 import {WorkOrdersNavListItems} from './WorkOrdersNavListItems';
 import {getProjectLinks} from '@fbcnms/projects/projects';
 import {makeStyles} from '@material-ui/styles';
@@ -48,21 +50,23 @@ function WorkOrdersMain() {
         user={integrationUserDefinition}
       />
       <AppContent>
-        <Switch>
-          <Route
-            path={relativeUrl('/search')}
-            component={WorkOrderComparisonView}
-          />
-          <Route
-            path={relativeUrl('/projects/search')}
-            component={ProjectComparisonView}
-          />
-          <Route
-            path={relativeUrl('/configure')}
-            component={WorkOrderConfigure}
-          />
-          <Redirect to={relativeUrl('/search')} />
-        </Switch>
+        <RelayEnvironmentProvider environment={RelayEnvironment}>
+          <Switch>
+            <Route
+              path={relativeUrl('/search')}
+              component={WorkOrderComparisonView}
+            />
+            <Route
+              path={relativeUrl('/projects/search')}
+              component={ProjectComparisonView}
+            />
+            <Route
+              path={relativeUrl('/configure')}
+              component={WorkOrderConfigure}
+            />
+            <Redirect to={relativeUrl('/search')} />
+          </Switch>
+        </RelayEnvironmentProvider>
       </AppContent>
     </div>
   );

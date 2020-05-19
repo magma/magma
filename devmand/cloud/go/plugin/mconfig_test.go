@@ -13,6 +13,7 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/orc8r"
+	orc8rplugin "magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/storage"
 	"orc8r/devmand/cloud/go/devmand"
@@ -25,6 +26,8 @@ import (
 )
 
 func TestBuilder_Build(t *testing.T) {
+	orc8rplugin.RegisterPluginForTests(t, &plugin.DevmandOrchestratorPlugin{})
+
 	nID := "n1"
 	nw := configurator.Network{ID: nID}
 	device := configurator.NetworkEntity{

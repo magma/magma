@@ -211,7 +211,6 @@ private:
    * session manager from reporting more usage than granted
    */
   uint64_t usage_reporting_limit_;
-  static const std::set<uint32_t> transient_result_codes_;
   CreditType credit_type_;
 
 private:

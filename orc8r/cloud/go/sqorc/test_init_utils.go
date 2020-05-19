@@ -11,10 +11,12 @@ package sqorc
 import (
 	"database/sql"
 	"fmt"
+	"os"
 	"testing"
 
 	"magma/orc8r/lib/go/definitions"
 
+	"github.com/golang/glog"
 	"github.com/stretchr/testify/require"
 )
 
@@ -43,16 +45,16 @@ const (
 // OpenCleanForTest is the same as OpenForTest, except it also drops then
 // creates the underlying DB name before returning.
 func OpenCleanForTest(t *testing.T, dbName, dbDriver string) *sql.DB {
-	masterDB := OpenForTest(t, "", dbDriver)
-	_, err := masterDB.Exec(fmt.Sprintf("DROP DATABASE IF EXISTS %s", dbName))
+	rootDB := OpenForTest(t, "", dbDriver)
+	_, err := rootDB.Exec(fmt.Sprintf("DROP DATABASE IF EXISTS %s", dbName))
 	if err != nil {
 		t.Fatalf("Failed to drop test DB: %s", err)
 	}
-	_, err = masterDB.Exec(fmt.Sprintf("CREATE DATABASE %s", dbName))
+	_, err = rootDB.Exec(fmt.Sprintf("CREATE DATABASE %s", dbName))
 	if err != nil {
 		t.Fatalf("Failed to create test DB: %s", err)
 	}
-	require.NoError(t, masterDB.Close())
+	require.NoError(t, rootDB.Close())
 
 	db := OpenForTest(t, dbName, dbDriver)
 	return db
@@ -72,13 +74,8 @@ func OpenCleanForTest(t *testing.T, dbName, dbDriver string) *sql.DB {
 //	- TEST_DATABASE_PORT_MARIA overrides the port connected to for maria driver
 func OpenForTest(t *testing.T, dbName, dbDriver string) *sql.DB {
 	driver := definitions.GetEnvWithDefault("SQL_DRIVER", dbDriver)
-
-	host := getHost(t, driver)
-	port := getPort(t, driver)
-	source := fmt.Sprintf("host=%s port=%s user=magma_test password=magma_test sslmode=disable", host, port)
-	if dbName != "" {
-		source = fmt.Sprintf("%s dbname=%s", source, dbName)
-	}
+	source := getSource(t, dbName, driver)
+	setDialect(driver)
 
 	db, err := Open(driver, source)
 	if err != nil {
@@ -87,31 +84,70 @@ func OpenForTest(t *testing.T, dbName, dbDriver string) *sql.DB {
 	return db
 }
 
-func getHost(t *testing.T, dbDriver string) string {
+// setDialect sets an environment variable to inform all SQL builders.
+func setDialect(driver string) {
+	old, ok := os.LookupEnv("SQL_DIALECT")
+	if ok {
+		glog.Warningf("Overwriting existing SQL_DIALECT %s", old)
+	}
+	switch driver {
+	case PostgresDriver:
+		_ = os.Setenv("SQL_DIALECT", PostgresDialect)
+	case MariaDriver:
+		_ = os.Setenv("SQL_DIALECT", MariaDialect)
+	}
+}
+
+// getSource returns the driver-specific data source name.
+func getSource(t *testing.T, dbName, driver string) string {
+	host := getHost(t, driver)
+	port := getPort(t, driver)
+
+	var source string
+
+	switch driver {
+	case PostgresDriver:
+		// Source: https://godoc.org/github.com/lib/pq#hdr-Connection_String_Parameters
+		source = fmt.Sprintf("host=%s port=%s user=magma_test password=magma_test sslmode=disable", host, port)
+		if dbName != "" {
+			source = fmt.Sprintf("%s dbname=%s", source, dbName)
+		}
+	case MariaDriver:
+		// Source: https://github.com/go-sql-driver/mysql#dsn-data-source-name
+		// Format: [username[:password]@][protocol[(address)]]/dbname[?param1=value1&...&paramN=valueN]
+		source = fmt.Sprintf("root:magma_test@(%s:%s)/%s", host, port, dbName)
+	default:
+		t.Fatalf("Unrecognized DB driver: %s", driver)
+	}
+
+	return source
+}
+
+func getHost(t *testing.T, driver string) string {
 	var host string
 
-	switch dbDriver {
+	switch driver {
 	case PostgresDriver:
 		host = definitions.GetEnvWithDefault(hostEnvVar, postgresTestHost)
 	case MariaDriver:
 		host = definitions.GetEnvWithDefault(hostEnvVar, mariaTestHost)
 	default:
-		t.Fatalf("Unrecognized DB driver: %s", dbDriver)
+		t.Fatalf("Unrecognized DB driver: %s", driver)
 	}
 
 	return host
 }
 
-func getPort(t *testing.T, dbDriver string) string {
+func getPort(t *testing.T, driver string) string {
 	var port string
 
-	switch dbDriver {
+	switch driver {
 	case PostgresDriver:
 		port = definitions.GetEnvWithDefault(postgresPortEnvVar, postgresDefaultPort)
 	case MariaDriver:
 		port = definitions.GetEnvWithDefault(mariaPortEnvVar, mariaDefaultPort)
 	default:
-		t.Fatalf("Unrecognized DB driver: %s", dbDriver)
+		t.Fatalf("Unrecognized DB driver: %s", driver)
 	}
 
 	return port

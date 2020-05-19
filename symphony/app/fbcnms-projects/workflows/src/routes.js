@@ -82,9 +82,27 @@ router.delete('/metadata/taskdef/:name', async (req, res, next) => {
   }
 });
 
+const findSchedule = (schedules, name) => {
+  for (const schedule of schedules) {
+    if (schedule.name === name) {
+      return schedule;
+    }
+  }
+  return null;
+};
+
 router.get('/metadata/workflow', async (req, res, next) => {
   try {
     const result = await http.get(baseURLMeta + 'workflow', req);
+    // combine with schedules
+    const schedules = await http.get(baseURLSchedule, req);
+    for (const workflowDef of result) {
+      const expectedScheduleName = workflowDef.name + ':' + workflowDef.version;
+      const found = findSchedule(schedules, expectedScheduleName);
+      workflowDef.hasSchedule = found != null;
+      workflowDef.expectedScheduleName = expectedScheduleName;
+    }
+
     res.status(200).send({result});
   } catch (err) {
     next(err);
@@ -324,7 +342,6 @@ router.get('/id/:workflowId', async (req, res, next) => {
       ),
     );
 
-    // TODO not implemented on proxy
     const logs = map(task =>
       Promise.all([task, http.get(baseURLTask + task.taskId + '/log', req)]),
     )(result.tasks);
@@ -477,28 +494,18 @@ router.get('/hierarchical', async (req, res, next) => {
   }
 });
 
-// TODO not implemented on proxy
-router.get('/queue/data', async (req, res, next) => {
+router.get('/schedule/?', async (req, res, next) => {
   try {
-    const sizes = await http.get(baseURLTask + 'queue/all', req);
-    const polldata = await http.get(baseURLTask + 'queue/polldata/all', req);
-    polldata.forEach(pd => {
-      let qname = pd.queueName;
-
-      if (pd.domain != null) {
-        qname = pd.domain + ':' + qname;
-      }
-      pd.qsize = sizes[qname];
-    });
-    res.status(200).send({polldata});
+    const result = await http.get(baseURLSchedule, req);
+    res.status(200).send(result);
   } catch (err) {
     next(err);
   }
 });
 
-router.get('/schedule', async (req, res, next) => {
+router.get('/schedule/:name', async (req, res, next) => {
   try {
-    const result = await http.get(baseURLSchedule, req);
+    const result = await http.get(baseURLSchedule + req.params.name, req);
     res.status(200).send(result);
   } catch (err) {
     next(err);
@@ -517,6 +524,7 @@ router.put('/schedule/:name', async (req, res, next) => {
       const result = await http.put(urlWithName, req.body, req);
       res.status(result.statusCode).send(result.text);
     } catch (err) {
+      logger.warn('Failed to POST and PUT', {error: err});
       next(err);
     }
   }

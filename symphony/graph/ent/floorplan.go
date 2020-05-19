@@ -36,7 +36,6 @@ type FloorPlan struct {
 	floor_plan_location        *int
 	floor_plan_reference_point *int
 	floor_plan_scale           *int
-	floor_plan_image           *int
 }
 
 // FloorPlanEdges holds the relations/edges for other nodes in the graph.
@@ -126,7 +125,6 @@ func (*FloorPlan) fkValues() []interface{} {
 		&sql.NullInt64{}, // floor_plan_location
 		&sql.NullInt64{}, // floor_plan_reference_point
 		&sql.NullInt64{}, // floor_plan_scale
-		&sql.NullInt64{}, // floor_plan_image
 	}
 }
 
@@ -176,12 +174,6 @@ func (fp *FloorPlan) assignValues(values ...interface{}) error {
 		} else if value.Valid {
 			fp.floor_plan_scale = new(int)
 			*fp.floor_plan_scale = int(value.Int64)
-		}
-		if value, ok := values[3].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field floor_plan_image", value)
-		} else if value.Valid {
-			fp.floor_plan_image = new(int)
-			*fp.floor_plan_image = int(value.Int64)
 		}
 	}
 	return nil

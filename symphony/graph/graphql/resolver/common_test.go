@@ -85,7 +85,7 @@ func (tr *TestResolver) Close() error {
 	return nil
 }
 
-func (tr *TestResolver) GraphClient() *client.Client {
+func (tr *TestResolver) GraphClient(opts ...viewertest.Option) *client.Client {
 	srv := handler.NewDefaultServer(
 		generated.NewExecutableSchema(
 			generated.Config{
@@ -95,7 +95,7 @@ func (tr *TestResolver) GraphClient() *client.Client {
 		),
 	)
 	srv.AroundOperations(func(ctx context.Context, next graphql.OperationHandler) graphql.ResponseHandler {
-		ctx = viewertest.NewContext(ctx, tr.client)
+		ctx = viewertest.NewContext(ctx, tr.client, opts...)
 		return next(ctx)
 	})
 	return client.New(srv)

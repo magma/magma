@@ -16,6 +16,7 @@
 #sidebar-secondary {
     height: calc(100% - 50px) !important;
     top: auto;
+    left: auto;
     z-index: 10;
     padding-left: 50px;
     width: 400px
