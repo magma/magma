@@ -179,7 +179,6 @@ class SessionRpcServicer(CentralSessionControllerServicer):
                 success=True,
                 sid=sid,
                 charging_key=self.infinite_credit_charging_keys[0],
-                type=CreditUpdateResponse.ResponseType.Value('UPDATE'),
                 result_code=1,
                 limit_type=CreditUpdateResponse.CreditLimitType.Value(
                     "INFINITE_UNMETERED",
