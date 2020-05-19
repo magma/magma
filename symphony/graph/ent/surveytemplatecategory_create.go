@@ -14,6 +14,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/ent/locationtype"
 	"github.com/facebookincubator/symphony/graph/ent/surveytemplatecategory"
 	"github.com/facebookincubator/symphony/graph/ent/surveytemplatequestion"
 )
@@ -78,6 +79,25 @@ func (stcc *SurveyTemplateCategoryCreate) AddSurveyTemplateQuestions(s ...*Surve
 		ids[i] = s[i].ID
 	}
 	return stcc.AddSurveyTemplateQuestionIDs(ids...)
+}
+
+// SetLocationTypeID sets the location_type edge to LocationType by id.
+func (stcc *SurveyTemplateCategoryCreate) SetLocationTypeID(id int) *SurveyTemplateCategoryCreate {
+	stcc.mutation.SetLocationTypeID(id)
+	return stcc
+}
+
+// SetNillableLocationTypeID sets the location_type edge to LocationType by id if the given value is not nil.
+func (stcc *SurveyTemplateCategoryCreate) SetNillableLocationTypeID(id *int) *SurveyTemplateCategoryCreate {
+	if id != nil {
+		stcc = stcc.SetLocationTypeID(*id)
+	}
+	return stcc
+}
+
+// SetLocationType sets the location_type edge to LocationType.
+func (stcc *SurveyTemplateCategoryCreate) SetLocationType(l *LocationType) *SurveyTemplateCategoryCreate {
+	return stcc.SetLocationTypeID(l.ID)
 }
 
 // Save creates the SurveyTemplateCategory in the database.
@@ -185,6 +205,25 @@ func (stcc *SurveyTemplateCategoryCreate) sqlSave(ctx context.Context) (*SurveyT
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: surveytemplatequestion.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := stcc.mutation.LocationTypeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   surveytemplatecategory.LocationTypeTable,
+			Columns: []string{surveytemplatecategory.LocationTypeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: locationtype.FieldID,
 				},
 			},
 		}

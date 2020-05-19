@@ -12,9 +12,11 @@ import bodyParser from 'body-parser';
 import httpProxy from 'http-proxy';
 import logging from '@fbcnms/logging';
 import transformerRegistry from './transformer-registry';
-import {getTenantId} from './utils';
+import {getTenantId, getUserGroups, getUserRole} from './utils.js';
 import type {
+  AuthorizationCheck,
   ExpressRouter,
+  GroupLoadingStrategy,
   ProxyCallback,
   ProxyNext,
   ProxyRequest,
@@ -26,7 +28,12 @@ const router = Router();
 router.use(bodyParser.urlencoded({extended: false}));
 router.use('/', bodyParser.json());
 
-export default async function(proxyTarget: string, schellarTarget: string) {
+export default async function(
+  proxyTarget: string,
+  schellarTarget: string,
+  authorizationCheck: AuthorizationCheck,
+  groupLoadingStrategy: GroupLoadingStrategy,
+) {
   const transformers = await transformerRegistry({
     proxyTarget,
     schellarTarget,
@@ -42,8 +49,17 @@ export default async function(proxyTarget: string, schellarTarget: string) {
       // TODO set timeouts
     });
 
-    proxy.on('proxyRes', function(proxyRes, req, res) {
+    proxy.on('proxyRes', async function(proxyRes, req, res) {
       const tenantId = getTenantId(req);
+      const role = getUserRole(req);
+      const groups = await getUserGroups(req, groupLoadingStrategy);
+
+      if (!authorizationCheck(role, groups)) {
+        res.status(401);
+        res.send('User unauthorized to access this endpoint');
+        return;
+      }
+
       logger.info(
         `RES ${proxyRes.statusCode} ${req.method} ${req.url} tenantId ${tenantId}`,
       );

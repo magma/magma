@@ -9,7 +9,6 @@ LICENSE file in the root directory of this source tree.
 package mock_ocs
 
 import (
-	"errors"
 	"fmt"
 	"net"
 	"time"
@@ -27,6 +26,7 @@ import (
 	"github.com/fiorix/go-diameter/v4/diam/sm"
 	"github.com/fiorix/go-diameter/v4/diam/sm/smpeer"
 	"github.com/golang/glog"
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
 
@@ -292,6 +292,45 @@ func (srv *OCSDiamServer) GetLastAVPreceived() (*diam.Message, error) {
 	return srv.lastDiamMessageReceived, nil
 }
 
+// AbortSession call for a subscriber
+// Initiate a Abort session request and provide the response
+func (srv *OCSDiamServer) AbortSession(
+	_ context.Context,
+	req *protos.AbortSessionRequest,
+) (*protos.AbortSessionAnswer, error) {
+	glog.V(1).Infof("AbortSession: imsi %s", req.GetImsi())
+	account, ok := srv.accounts[req.Imsi]
+	if !ok {
+		return nil, fmt.Errorf("Could not find imsi %s", req.Imsi)
+	}
+	if account.CurrentState == nil {
+		return nil, fmt.Errorf("Credit client State unknown for imsi %s", req.Imsi)
+	}
+
+	var asaHandler diam.HandlerFunc
+	resp := make(chan *diameter.ASA)
+	asaHandler = func(conn diam.Conn, msg *diam.Message) {
+		var asa diameter.ASA
+		if err := msg.Unmarshal(&asa); err != nil {
+			glog.Errorf("Received unparseable ASA over Gx, %s\n%s", err, msg)
+			return
+		}
+		glog.V(2).Infof("Received ASA \n%s", msg)
+		resp <- &diameter.ASA{SessionID: asa.SessionID, ResultCode: asa.ResultCode}
+	}
+	srv.mux.Handle(diam.ASA, asaHandler)
+	err := sendASR(account.CurrentState, srv.mux.Settings())
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to send Gy ASR")
+	}
+	select {
+	case asa := <-resp:
+		return &protos.AbortSessionAnswer{SessionId: diameter.DecodeSessionID(asa.SessionID), ResultCode: asa.ResultCode}, nil
+	case <-time.After(10 * time.Second):
+		return nil, fmt.Errorf("No ASA received")
+	}
+}
+
 func sendRAR(state *SubscriberSessionState, ratingGroup *uint32, cfg *sm.Settings) error {
 	meta, ok := smpeer.FromContext(state.Connection.Context())
 	if !ok {
@@ -307,6 +346,23 @@ func sendRAR(state *SubscriberSessionState, ratingGroup *uint32, cfg *sm.Setting
 		m.NewAVP(avp.RatingGroup, avp.Mbit, 0, datatype.Unsigned32(*ratingGroup))
 	}
 	glog.V(2).Infof("Sending RAR to %s\n%s", state.Connection.RemoteAddr(), m)
+	_, err := m.WriteTo(state.Connection)
+	return err
+}
+
+func sendASR(state *SubscriberSessionState, cfg *sm.Settings) error {
+	meta, ok := smpeer.FromContext(state.Connection.Context())
+	if !ok {
+		return fmt.Errorf("peer metadata unavailable")
+	}
+	m := diameter.NewProxiableRequest(diam.AbortSession, diam.CHARGING_CONTROL_APP_ID, nil)
+	m.NewAVP(avp.SessionID, avp.Mbit, 0, datatype.UTF8String(state.SessionID))
+	m.NewAVP(avp.OriginHost, avp.Mbit, 0, cfg.OriginHost)
+	m.NewAVP(avp.OriginRealm, avp.Mbit, 0, cfg.OriginRealm)
+	m.NewAVP(avp.DestinationRealm, avp.Mbit, 0, meta.OriginRealm)
+	m.NewAVP(avp.DestinationHost, avp.Mbit, 0, meta.OriginHost)
+	fmt.Printf("Sending Abort Session to %s\n%s", state.Connection.RemoteAddr(), m)
+	glog.V(2).Infof("Sending Abort Session to %s\n%s", state.Connection.RemoteAddr(), m)
 	_, err := m.WriteTo(state.Connection)
 	return err
 }

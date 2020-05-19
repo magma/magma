@@ -13,6 +13,7 @@ import type {FilterConfig} from '../comparison_view/ComparisonViewTypes';
 import AddWorkOrderCard from './AddWorkOrderCard';
 import AddWorkOrderDialog from './AddWorkOrderDialog';
 import ErrorBoundary from '@fbcnms/ui/components/ErrorBoundary/ErrorBoundary';
+import InventorySuspense from '../../common/InventorySuspense';
 import InventoryView, {DisplayOptions} from '../InventoryViewContainer';
 import PowerSearchBar from '../power_search/PowerSearchBar';
 import React, {useMemo, useState} from 'react';
@@ -102,7 +103,9 @@ const WorkOrderComparisonView = () => {
   if (selectedWorkOrderTypeId != null) {
     return (
       <ErrorBoundary>
-        <AddWorkOrderCard workOrderTypeId={selectedWorkOrderTypeId} />
+        <InventorySuspense>
+          <AddWorkOrderCard workOrderTypeId={selectedWorkOrderTypeId} />
+        </InventorySuspense>
       </ErrorBoundary>
     );
   }

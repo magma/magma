@@ -61,23 +61,23 @@ func (projectTypeResolver) WorkOrders(ctx context.Context, obj *ent.ProjectType)
 }
 
 func (r mutationResolver) CreateProjectType(ctx context.Context, input models.AddProjectTypeInput) (*ent.ProjectType, error) {
-	properties, err := r.AddPropertyTypes(ctx, input.Properties...)
-	if err != nil {
-		return nil, fmt.Errorf("creating properties: %w", err)
-	}
 	client := r.ClientFrom(ctx)
 	typ, err := client.
 		ProjectType.
 		Create().
 		SetName(input.Name).
 		SetNillableDescription(input.Description).
-		AddProperties(properties...).
 		Save(ctx)
 	if err != nil {
 		if ent.IsConstraintError(err) {
 			return nil, gqlerror.Errorf("Project type %q already exists", input.Name)
 		}
 		return nil, fmt.Errorf("creating project type: %w", err)
+	}
+	if err := r.AddPropertyTypes(ctx, func(ptc *ent.PropertyTypeCreate) {
+		ptc.SetProjectTypeID(typ.ID)
+	}, input.Properties...); err != nil {
+		return nil, fmt.Errorf("creating properties: %w", err)
 	}
 	for _, wo := range input.WorkOrders {
 		if _, err = client.WorkOrderDefinition.Create().
@@ -111,7 +111,7 @@ func (r mutationResolver) EditProjectType(
 	}
 	for _, p := range input.Properties {
 		if p.ID == nil {
-			err = r.validateAndAddNewPropertyType(ctx, p, func(b *ent.PropertyTypeUpdateOne) { b.SetProjectTypeID(pt.ID) })
+			err = r.validateAndAddNewPropertyType(ctx, p, func(b *ent.PropertyTypeCreate) { b.SetProjectTypeID(pt.ID) })
 		} else {
 			err = r.updatePropType(ctx, p)
 		}
@@ -247,39 +247,40 @@ func (projectResolver) NumberOfWorkOrders(ctx context.Context, obj *ent.Project)
 }
 
 func (r mutationResolver) CreateProject(ctx context.Context, input models.AddProjectInput) (*ent.Project, error) {
-	propInput, err := r.validatedPropertyInputsFromTemplate(ctx, input.Properties, input.Type, models.PropertyEntityProject, false)
-	if err != nil {
-		return nil, fmt.Errorf("validating property for template : %w", err)
-	}
-	properties, err := r.AddProperties(propInput, resolverutil.AddPropertyArgs{Context: ctx, IsTemplate: pointer.ToBool(true)})
-	if err != nil {
-		return nil, fmt.Errorf("creating properties: %w", err)
-	}
 	client := r.ClientFrom(ctx)
-	pt, err := client.ProjectType.Get(ctx, input.Type)
-	if err != nil {
-		return nil, fmt.Errorf("fetching template: %w", err)
-	}
 	creatorID, err := resolverutil.GetUserID(ctx, input.CreatorID, input.Creator)
 	if err != nil {
 		return nil, err
 	}
-	query := client.
+	proj, err := client.
 		Project.Create().
 		SetName(input.Name).
 		SetNillableDescription(input.Description).
 		SetTypeID(input.Type).
 		SetNillableLocationID(input.Location).
-		AddProperties(properties...).
-		SetNillableCreatorID(creatorID)
-
-	proj, err := query.Save(ctx)
-
+		SetNillableCreatorID(creatorID).
+		Save(ctx)
 	if err != nil {
 		if ent.IsConstraintError(err) {
 			return nil, gqlerror.Errorf("Project %q already exists", input.Name)
 		}
 		return nil, fmt.Errorf("creating project: %w", err)
+	}
+	propInput, err := r.validatedPropertyInputsFromTemplate(ctx, input.Properties, input.Type, models.PropertyEntityProject, false)
+	if err != nil {
+		return nil, fmt.Errorf("validating property for template : %w", err)
+	}
+	if _, err := r.AddProperties(propInput, resolverutil.AddPropertyArgs{
+		Context:    ctx,
+		IsTemplate: pointer.ToBool(true),
+		EntSetter: func(create *ent.PropertyCreate) {
+			create.SetProject(proj)
+		}}); err != nil {
+		return nil, fmt.Errorf("creating properties: %w", err)
+	}
+	pt, err := client.ProjectType.Get(ctx, input.Type)
+	if err != nil {
+		return nil, fmt.Errorf("fetching template: %w", err)
 	}
 	wos, err := pt.QueryWorkOrders().All(ctx)
 	if err != nil {

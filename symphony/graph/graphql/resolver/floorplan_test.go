@@ -9,6 +9,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/facebookincubator/symphony/graph/ent/user"
+
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 	"github.com/stretchr/testify/assert"
@@ -18,7 +20,8 @@ import (
 func TestAddFloorPlan(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.Close()
-	ctx := viewertest.NewContext(context.Background(), r.client)
+	// TODO(T66882071): Remove owner role
+	ctx := viewertest.NewContext(context.Background(), r.client, viewertest.WithRole(user.RoleOWNER))
 
 	mr := r.Mutation()
 	locationType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{
@@ -88,7 +91,8 @@ func TestAddFloorPlan(t *testing.T) {
 func TestRemoveFloorPlan(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.Close()
-	ctx := viewertest.NewContext(context.Background(), r.client)
+	// TODO(T66882071): Remove owner role
+	ctx := viewertest.NewContext(context.Background(), r.client, viewertest.WithRole(user.RoleOWNER))
 
 	mr := r.Mutation()
 	locationType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{

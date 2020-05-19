@@ -162,11 +162,11 @@ func sendPolicyReAuthRequestPerInstance(instanceName string, target *fegprotos.P
 
 // sendPolicyAbortSession initiates an abort request from PCRF server to sessiond.
 // Input: Policy abort session request
-func sendPolicyAbortSession(target *fegprotos.PolicyAbortSessionRequest) (*fegprotos.PolicyAbortSessionResponse, error) {
+func sendPolicyAbortSession(target *fegprotos.AbortSessionRequest) (*fegprotos.AbortSessionAnswer, error) {
 	return sendPolicyAbortSessionPerInstance(MockPCRFRemote, target)
 }
 
-func sendPolicyAbortSessionPerInstance(instanceName string, target *fegprotos.PolicyAbortSessionRequest) (*fegprotos.PolicyAbortSessionResponse, error) {
+func sendPolicyAbortSessionPerInstance(instanceName string, target *fegprotos.AbortSessionRequest) (*fegprotos.AbortSessionAnswer, error) {
 	cli, err := getPCRFClient(instanceName)
 	if err != nil {
 		return nil, err
@@ -404,6 +404,19 @@ func sendChargingReAuthRequestPerInstance(instanceName string, imsi string, rati
 	raa, err := cli.ReAuth(context.Background(),
 		&fegprotos.ChargingReAuthTarget{Imsi: imsi, RatingGroup: ratingGroup})
 	return raa, err
+}
+
+func sendChargingAbortSession(target *fegprotos.AbortSessionRequest) (*fegprotos.AbortSessionAnswer, error) {
+	return sendChargingAbortSessionPerInstance(MockOCSRemote, target)
+}
+
+func sendChargingAbortSessionPerInstance(instanceName string, target *fegprotos.AbortSessionRequest) (*fegprotos.AbortSessionAnswer, error) {
+	cli, err := getOCSClient(instanceName)
+	if err != nil {
+		return nil, err
+	}
+	asa, err := cli.AbortSession(context.Background(), target)
+	return asa, err
 }
 
 // useOCSMockDriver enables MockOCSDriver

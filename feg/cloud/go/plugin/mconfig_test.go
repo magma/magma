@@ -16,6 +16,7 @@ import (
 	"magma/feg/cloud/go/plugin/models"
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/orc8r/cloud/go/orc8r"
+	orc8rplugin "magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/storage"
 
@@ -24,6 +25,7 @@ import (
 )
 
 func TestBuilder_Build(t *testing.T) {
+	orc8rplugin.RegisterPluginForTests(t, &plugin.FegOrchestratorPlugin{})
 	builder := &plugin.Builder{}
 
 	// empty case: no feg associated to magmad gateway
@@ -84,7 +86,7 @@ func TestBuilder_Build(t *testing.T) {
 				MaxUlBitRate: 100000000, // 100 Mbps
 				MaxDlBitRate: 200000000, // 200 Mbps
 			},
-			SubProfiles:       make(map[string]*mconfig.HSSConfig_SubscriptionProfile),
+			SubProfiles:       nil,
 			StreamSubscribers: false,
 		},
 		"session_proxy": &mconfig.SessionProxyConfig{
@@ -210,7 +212,7 @@ func TestBuilder_Build(t *testing.T) {
 				SessionMs:              43200000,
 				SessionAuthenticatedMs: 5000,
 			},
-			PlmnIds: []string{},
+			PlmnIds: nil,
 		},
 		"aaa_server": &mconfig.AAAConfig{LogLevel: 1,
 			IdleSessionTimeoutMs: 21600000,
@@ -318,7 +320,7 @@ var defaultConfig = &models.NetworkFederationConfigs{
 			MaxUlBitRate: 100000000, // 100 Mbps
 			MaxDlBitRate: 200000000, // 200 Mbps
 		},
-		SubProfiles:       make(map[string]models.SubscriptionProfile),
+		SubProfiles:       nil,
 		StreamSubscribers: false,
 	},
 	Swx: &models.Swx{

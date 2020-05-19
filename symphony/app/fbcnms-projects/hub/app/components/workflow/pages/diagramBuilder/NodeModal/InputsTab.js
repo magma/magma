@@ -1,37 +1,47 @@
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ * @flow
+ * @format
+ */
+// Keep this import first, there is some problem with ace otherwise
+import AceEditor from 'react-ace';
 
-import React, { useState } from "react";
-import AceEditor from "react-ace";
-import { Button, Col, Form, InputGroup, Row } from "react-bootstrap";
-import Dropdown from "react-dropdown";
+import 'ace-builds/src-noconflict/mode-javascript';
+import 'ace-builds/src-noconflict/theme-tomorrow';
 import 'react-dropdown/style.css';
-import "ace-builds/src-noconflict/mode-javascript";
-import "ace-builds/src-noconflict/theme-tomorrow";
+import Dropdown from 'react-dropdown';
+import React, {useState} from 'react';
+import {Button, Col, Form, InputGroup, Row} from 'react-bootstrap';
 
-const TEXTFIELD_KEYWORDS = ["template", "uri", "body"];
-const CODEFIELD_KEYWORDS = ["scriptExpression", "raw"];
-const SELECTFIELD_KEYWORDS = ["method", "action"];
-const KEYFIELD_KEYWORDS = ["headers"];
+const TEXTFIELD_KEYWORDS = ['template', 'uri', 'body'];
+const CODEFIELD_KEYWORDS = ['scriptExpression', 'raw'];
+const SELECTFIELD_KEYWORDS = ['method', 'action'];
+const KEYFIELD_KEYWORDS = ['headers'];
 const SELECTFIELD_OPTIONS = {
-  action: ["complete_task", "fail_task"],
-  method: ["GET", "PUT", "POST", "DELETE"]
+  action: ['complete_task', 'fail_task'],
+  method: ['GET', 'PUT', 'POST', 'DELETE'],
 };
 
 const InputsTab = props => {
-  const [customParam, setCustomParam] = useState("");
-  let textFieldParams = [];
+  const [customParam, setCustomParam] = useState('');
+  const textFieldParams = [];
 
   const getDescriptionAndDefault = selectedParam => {
-    let inputParameters = props.inputParameters || [];
-    let result = [];
+    const inputParameters = props.inputParameters || [];
+    const result = [];
 
     inputParameters.forEach(param => {
       if (param.match(/^(.*?)\[/)[1] === selectedParam) {
         param.match(/\[(.*?)]/g).forEach(group => {
-          result.push(group.replace(/[[\]']+/g, ""));
+          result.push(group.replace(/[[\]']+/g, ''));
         });
       }
     });
-    return result.length > 0 ? result : ["", ""];
+    return result.length > 0 ? result : ['', ''];
   };
 
   const addNewInputParam = e => {
@@ -39,14 +49,14 @@ const InputsTab = props => {
     e.stopPropagation();
 
     props.addNewInputParam(customParam);
-    setCustomParam("");
+    setCustomParam('');
   };
 
   const createTextField = (entry, item) => {
     let value = entry[1];
 
-    if (!entry[0].includes("uri")) {
-      if (typeof entry[1] === "object") {
+    if (!entry[0].includes('uri')) {
+      if (typeof entry[1] === 'object') {
         value = JSON.stringify(entry[1], null, 5);
       }
     }
@@ -66,9 +76,8 @@ const InputsTab = props => {
             size="sm"
             style={{
               minHeight:
-                entry[0] === "uri" || entry[0] === "headers" ? "60px" : "200px"
-            }}
-          >
+                entry[0] === 'uri' || entry[0] === 'headers' ? '60px' : '200px',
+            }}>
             <Form.Control
               id={`textfield-${entry[0]}`}
               as="textarea"
@@ -81,12 +90,12 @@ const InputsTab = props => {
             {getDescriptionAndDefault(entry[0])[0]}
           </Form.Text>
         </Form.Group>
-      </Col>
+      </Col>,
     );
   };
 
   const createCodeField = (entry, item) => {
-    let value = entry[1];
+    const value = entry[1];
 
     textFieldParams.push(
       <Col sm={12} key={`colTf-${entry[0]}`}>
@@ -105,20 +114,20 @@ const InputsTab = props => {
               showPrintMargin: true,
               highlightActiveLine: true,
               showLineNumbers: true,
-              tabSize: 2
+              tabSize: 2,
             }}
           />
           <Form.Text className="text-muted">
             {getDescriptionAndDefault(entry[0])[0]}
           </Form.Text>
         </Form.Group>
-      </Col>
+      </Col>,
     );
   };
 
   const createSelectField = (entry, item) => {
-    let value = entry[1];
-    let options = SELECTFIELD_OPTIONS[entry[0]];
+    const value = entry[1];
+    const options = SELECTFIELD_OPTIONS[entry[0]];
 
     return (
       <Col sm={12} key={`colTf-${entry[0]}`}>
@@ -145,8 +154,7 @@ const InputsTab = props => {
           <Button
             size="sm"
             variant="outline-primary"
-            onClick={() => props.addRemoveHeader(true)}
-          >
+            onClick={() => props.addRemoveHeader(true)}>
             <i className="fas fa-plus" /> Add
           </Button>
         </Form.Label>
@@ -159,7 +167,7 @@ const InputsTab = props => {
                     <Form.Label className="text-muted">Key</Form.Label>
                   ) : null}
                   <Form.Control
-                    style={{ marginBottom: "2px" }}
+                    style={{marginBottom: '2px'}}
                     type="input"
                     onChange={e =>
                       props.handleInput(e.target.value, item, entry, i, true)
@@ -174,7 +182,7 @@ const InputsTab = props => {
                     <Form.Label className="text-muted">Value</Form.Label>
                   ) : null}
                   <Form.Control
-                    style={{ marginBottom: "2px" }}
+                    style={{marginBottom: '2px'}}
                     type="input"
                     onChange={e =>
                       props.handleInput(e.target.value, item, entry, i, false)
@@ -189,15 +197,14 @@ const InputsTab = props => {
                 ) : null}
                 <Button
                   variant="outline-danger"
-                  onClick={() => props.addRemoveHeader(false, i)}
-                >
+                  onClick={() => props.addRemoveHeader(false, i)}>
                   <i className="fas fa-minus" />
                 </Button>
               </Col>
             </Row>
           );
         })}
-      </Col>
+      </Col>,
     );
   };
 
@@ -239,7 +246,7 @@ const InputsTab = props => {
     return (
       <Row>
         <Form onSubmit={addNewInputParam}>
-          <InputGroup style={{ padding: "10px 215px 10px" }}>
+          <InputGroup style={{padding: '10px 215px 10px'}}>
             <Form.Control
               value={customParam}
               onChange={e => setCustomParam(e.target.value)}
@@ -258,21 +265,21 @@ const InputsTab = props => {
 
   return (
     <div>
-      {props.name !== "RAW" && createAdditionalFieldsPrompt()}
-      
+      {props.name !== 'RAW' && createAdditionalFieldsPrompt()}
+
       <hr className="hr-text" data-content="Existing input parameters" />
       <Form>
         <Row>
           {Object.entries(props.inputs || []).map(item => {
-            if (item[0] === "inputParameters") {
-              return Object.entries(item[1]).map((entry) => {
+            if (item[0] === 'inputParameters') {
+              return Object.entries(item[1]).map(entry => {
                 if (
-                  typeof entry[1] === "object" &&
-                  !TEXTFIELD_KEYWORDS.find((keyword) =>
-                    entry[0].includes(keyword)
+                  typeof entry[1] === 'object' &&
+                  !TEXTFIELD_KEYWORDS.find(keyword =>
+                    entry[0].includes(keyword),
                   )
                 ) {
-                  return Object.entries(entry[1]).map((innerEntry) => {
+                  return Object.entries(entry[1]).map(innerEntry => {
                     return handleInputField(innerEntry, entry);
                   });
                 } else {

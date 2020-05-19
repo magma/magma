@@ -324,7 +324,7 @@ func (su *SurveyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if su.mutation.SourceFileCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
+			Rel:     sqlgraph.O2O,
 			Inverse: false,
 			Table:   survey.SourceFileTable,
 			Columns: []string{survey.SourceFileColumn},
@@ -340,7 +340,7 @@ func (su *SurveyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if nodes := su.mutation.SourceFileIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
+			Rel:     sqlgraph.O2O,
 			Inverse: false,
 			Table:   survey.SourceFileTable,
 			Columns: []string{survey.SourceFileColumn},
@@ -700,7 +700,7 @@ func (suo *SurveyUpdateOne) sqlSave(ctx context.Context) (s *Survey, err error) 
 	}
 	if suo.mutation.SourceFileCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
+			Rel:     sqlgraph.O2O,
 			Inverse: false,
 			Table:   survey.SourceFileTable,
 			Columns: []string{survey.SourceFileColumn},
@@ -716,7 +716,7 @@ func (suo *SurveyUpdateOne) sqlSave(ctx context.Context) (s *Survey, err error) 
 	}
 	if nodes := suo.mutation.SourceFileIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
+			Rel:     sqlgraph.O2O,
 			Inverse: false,
 			Table:   survey.SourceFileTable,
 			Columns: []string{survey.SourceFileColumn},

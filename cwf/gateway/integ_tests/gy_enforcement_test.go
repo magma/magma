@@ -17,6 +17,7 @@ import (
 
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/feg/cloud/go/protos"
+	fegProtos "magma/feg/cloud/go/protos"
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/lte/cloud/go/plugin/models"
 
@@ -24,12 +25,6 @@ import (
 	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/stretchr/testify/assert"
-)
-
-const (
-	MaxUsageBytes = 5 * 1024 * KiloBytes
-	MaxUsageTime  = 1000 // in second
-	ValidityTime  = 60   // in second
 )
 
 func ocsCreditExhaustionTestSetup(t *testing.T) (*TestRunner, *RuleManager, *cwfprotos.UEConfig) {
@@ -41,9 +36,9 @@ func ocsCreditExhaustionTestSetup(t *testing.T) (*TestRunner, *RuleManager, *cwf
 	assert.NoError(t, err)
 	setNewOCSConfig(
 		&fegprotos.OCSConfig{
-			MaxUsageOctets: &fegprotos.Octets{TotalOctets: MaxUsageBytes},
-			MaxUsageTime:   MaxUsageTime,
-			ValidityTime:   ValidityTime,
+			MaxUsageOctets: &fegprotos.Octets{TotalOctets: GyMaxUsageBytes},
+			MaxUsageTime:   GyMaxUsageTime,
+			ValidityTime:   GyValidityTime,
 			UseMockDriver:  true,
 		},
 	)
@@ -346,4 +341,162 @@ func TestGyCreditExhaustionRedirect(t *testing.T) {
 	// Assert that we saw a Terminate request
 	time.Sleep(3 * time.Second)
 	tr.AssertAllGyExpectationsMetNoError()
+}
+
+func TestGyCreditUpdateCommandLevelFail(t *testing.T) {
+	fmt.Println("\nRunning TestGyCreditUpdateFail...")
+
+	tr, ruleManager, ue := ocsCreditExhaustionTestSetup(t)
+	defer func() {
+		// Clear hss, ocs, and pcrf
+		assert.NoError(t, clearOCSMockDriver())
+		assert.NoError(t, ruleManager.RemoveInstalledRules())
+		assert.NoError(t, tr.CleanUp())
+	}()
+
+	quotaGrant := &fegprotos.QuotaGrant{
+		RatingGroup: 1,
+		GrantedServiceUnit: &fegprotos.Octets{
+			TotalOctets: 4 * MegaBytes,
+		},
+		IsFinalCredit: false,
+		ResultCode:    diam.Success,
+	}
+	initRequest := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_INITIAL)
+	initAnswer := protos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrant)
+	initExpectation := protos.NewGyCreditControlExpectation().Expect(initRequest).Return(initAnswer)
+
+	// Return a permanent failure on Update
+	updateRequest := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_UPDATE)
+	// The CCR/A-U exchange fails
+	updateAnswer := protos.NewGyCCAnswer(diam.UnableToComply).
+		SetQuotaGrant(&fegprotos.QuotaGrant{ResultCode: diam.AuthorizationRejected})
+	updateExpectation := protos.NewGyCreditControlExpectation().Expect(updateRequest).Return(updateAnswer)
+	// The failure above in CCR/A-U should trigger a termination
+	terminateRequest := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_TERMINATION)
+	terminateAnswer := protos.NewGyCCAnswer(diam.Success)
+	terminateExpectation := protos.NewGyCreditControlExpectation().Expect(terminateRequest).Return(terminateAnswer)
+
+	expectations := []*protos.GyCreditControlExpectation{initExpectation, updateExpectation, terminateExpectation}
+	assert.NoError(t, setOCSExpectations(expectations, nil))
+
+	tr.AuthenticateAndAssertSuccess(ue.GetImsi())
+	// Trigger a ReAuth to force an update request
+	raa, err := sendChargingReAuthRequest(ue.GetImsi(), 1)
+	tr.WaitForReAuthToProcess()
+
+	// Check ReAuth success
+	assert.NoError(t, err)
+	assert.Contains(t, raa.SessionId, "IMSI"+ue.GetImsi())
+	assert.Equal(t, diam.LimitedSuccess, int(raa.ResultCode))
+
+	// Wait for a termination to propagate
+	time.Sleep(5 * time.Second)
+	tr.WaitForEnforcementStatsToSync()
+
+	// Assert that a CCR-I/U/T was sent to OCS
+	tr.AssertAllGyExpectationsMetNoError()
+
+	tr.AssertPolicyEnforcementRecordIsNil(ue.GetImsi())
+}
+
+// This test verifies the abort session request
+// Here we initially setup a session and install a pass all rule
+// We then invoke abort session request from ocs and expect the
+// ASR to complete without any error and all the rules associated with
+// that session to be cleaned up
+func TestGyAbortSessionRequest(t *testing.T) {
+	t.Log("Testing TestGyAbortSessionRequest")
+
+	tr := NewTestRunner(t)
+	ruleManager, err := NewRuleManager()
+	assert.NoError(t, err)
+	defer func() {
+		// Clear hss, ocs, and pcrf
+		assert.NoError(t, ruleManager.RemoveInstalledRules())
+		assert.NoError(t, tr.CleanUp())
+	}()
+
+	ues, err := tr.ConfigUEs(1)
+	assert.NoError(t, err)
+
+	err = setNewOCSConfig(
+		&fegprotos.OCSConfig{
+			MaxUsageOctets: &fegprotos.Octets{TotalOctets: ReAuthMaxUsageBytes},
+			MaxUsageTime:   ReAuthMaxUsageTimeSec,
+			ValidityTime:   ReAuthValidityTime,
+		},
+	)
+	assert.NoError(t, err)
+	imsi := ues[0].GetImsi()
+	setCreditOnOCS(
+		&fegprotos.CreditInfo{
+			Imsi:        imsi,
+			ChargingKey: 1,
+			Volume:      &fegprotos.Octets{TotalOctets: 7 * MegaBytes},
+			UnitType:    fegprotos.CreditInfo_Bytes,
+		},
+	)
+	// Set a pass all rule to be installed by pcrf with a monitoring key to trigger updates
+	err = ruleManager.AddUsageMonitor(imsi, "mkey-ocs", 500*KiloBytes, 100*KiloBytes)
+	assert.NoError(t, err)
+	err = ruleManager.AddStaticPassAllToDB("static-pass-all-ocs1", "mkey-ocs", 0, models.PolicyRuleConfigTrackingTypeONLYPCRF, 20)
+	assert.NoError(t, err)
+
+	// set a pass all rule to be installed by ocs with a rating group 1
+	ratingGroup := uint32(1)
+	err = ruleManager.AddStaticPassAllToDB("static-pass-all-ocs2", "", ratingGroup, models.PolicyRuleConfigTrackingTypeONLYOCS, 10)
+	assert.NoError(t, err)
+	tr.WaitForPoliciesToSync()
+
+	// Apply a dynamic rule that points to the static rules above
+	err = ruleManager.AddRulesToPCRF(imsi, []string{"static-pass-all-ocs1", "static-pass-all-ocs2"}, nil)
+	assert.NoError(t, err)
+
+	tr.AuthenticateAndAssertSuccess(imsi)
+
+	// Generate over 80% of the quota to trigger a CCR Update
+	req := &cwfprotos.GenTrafficRequest{
+		Imsi:   imsi,
+		Volume: &wrappers.StringValue{Value: "4.5M"}}
+	_, err = tr.GenULTraffic(req)
+	assert.NoError(t, err)
+	tr.WaitForEnforcementStatsToSync()
+
+	// Check that UE mac flow is installed and traffic is less than the quota
+	recordsBySubID, err := tr.GetPolicyUsage()
+	assert.NoError(t, err)
+	record := recordsBySubID["IMSI"+imsi]["static-pass-all-ocs2"]
+	assert.NotNil(t, record, fmt.Sprintf("Policy usage record for imsi: %v was removed", imsi))
+	assert.True(t, record.BytesTx > uint64(0), fmt.Sprintf("%s did not pass any data", record.RuleId))
+	assert.True(t, record.BytesTx <= uint64(5*MegaBytes+Buffer), fmt.Sprintf("policy usage: %v", record))
+
+	asa, err := sendChargingAbortSession(
+		&fegProtos.AbortSessionRequest{
+			Imsi: imsi,
+		},
+	)
+	assert.NoError(t, err)
+
+	// Check for Limited ASR success - There is only limited success here
+	// since radius will not do the teardown, radius specifically (COA_DYNAMIC)
+	// module throws this error here. coa_dynamic module isn't enabled during
+	// authentication and hence it isn't aware of the sessionID used when
+	// processing disconnect
+	assert.Contains(t, asa.SessionId, "IMSI"+imsi)
+	assert.Equal(t, uint32(diam.LimitedSuccess), asa.ResultCode)
+
+	// check if all session related info is cleaned up
+	checkSessionAborted := func() bool {
+		recordsBySubID, err = tr.GetPolicyUsage()
+		assert.NoError(t, err)
+		return recordsBySubID["IMSI"+imsi]["static-pass-all-ocs2"] == nil
+	}
+	assert.Eventually(t, checkSessionAborted, 2*time.Minute, 5*time.Second,
+		"request not terminated as expected")
+
+	// trigger disconnection
+	tr.DisconnectAndAssertSuccess(imsi)
+	fmt.Println("wait for flows to get deactivated")
+	time.Sleep(3 * time.Second)
 }

@@ -1298,6 +1298,118 @@ func HasChecklistItemWith(preds ...predicate.CheckListItem) predicate.File {
 	})
 }
 
+// HasSurvey applies the HasEdge predicate on the "survey" edge.
+func HasSurvey() predicate.File {
+	return predicate.File(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(SurveyTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, SurveyTable, SurveyColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSurveyWith applies the HasEdge predicate on the "survey" edge with a given conditions (other predicates).
+func HasSurveyWith(preds ...predicate.Survey) predicate.File {
+	return predicate.File(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(SurveyInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, SurveyTable, SurveyColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasFloorPlan applies the HasEdge predicate on the "floor_plan" edge.
+func HasFloorPlan() predicate.File {
+	return predicate.File(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(FloorPlanTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, FloorPlanTable, FloorPlanColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasFloorPlanWith applies the HasEdge predicate on the "floor_plan" edge with a given conditions (other predicates).
+func HasFloorPlanWith(preds ...predicate.FloorPlan) predicate.File {
+	return predicate.File(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(FloorPlanInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, FloorPlanTable, FloorPlanColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasPhotoSurveyQuestion applies the HasEdge predicate on the "photo_survey_question" edge.
+func HasPhotoSurveyQuestion() predicate.File {
+	return predicate.File(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(PhotoSurveyQuestionTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, PhotoSurveyQuestionTable, PhotoSurveyQuestionColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPhotoSurveyQuestionWith applies the HasEdge predicate on the "photo_survey_question" edge with a given conditions (other predicates).
+func HasPhotoSurveyQuestionWith(preds ...predicate.SurveyQuestion) predicate.File {
+	return predicate.File(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(PhotoSurveyQuestionInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, PhotoSurveyQuestionTable, PhotoSurveyQuestionColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasSurveyQuestion applies the HasEdge predicate on the "survey_question" edge.
+func HasSurveyQuestion() predicate.File {
+	return predicate.File(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(SurveyQuestionTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, SurveyQuestionTable, SurveyQuestionColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSurveyQuestionWith applies the HasEdge predicate on the "survey_question" edge with a given conditions (other predicates).
+func HasSurveyQuestionWith(preds ...predicate.SurveyQuestion) predicate.File {
+	return predicate.File(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(SurveyQuestionInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, SurveyQuestionTable, SurveyQuestionColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups list of predicates with the AND operator between them.
 func And(predicates ...predicate.File) predicate.File {
 	return predicate.File(func(s *sql.Selector) {

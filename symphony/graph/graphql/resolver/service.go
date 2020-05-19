@@ -337,22 +337,22 @@ func (r mutationResolver) addServiceEndpointDefinition(ctx context.Context, inpu
 }
 
 func (r mutationResolver) addServiceEndpointDefinitions(
-	ctx context.Context, inputs ...*models.ServiceEndpointDefinitionInput,
-) ([]*ent.ServiceEndpointDefinition, error) {
+	ctx context.Context, serviceTypeID int, inputs ...*models.ServiceEndpointDefinitionInput,
+) error {
 	var (
 		client = r.ClientFrom(ctx).ServiceEndpointDefinition
-		types  = make([]*ent.ServiceEndpointDefinition, len(inputs))
 		err    error
 	)
-	for i, input := range inputs {
-		if types[i], err = client.Create().
+	for _, input := range inputs {
+		if _, err = client.Create().
 			SetName(input.Name).
 			SetNillableRole(input.Role).
 			SetIndex(input.Index).
 			SetEquipmentTypeID(input.EquipmentTypeID).
+			SetServiceTypeID(serviceTypeID).
 			Save(ctx); err != nil {
-			return nil, errors.Wrapf(err, "creating service endpoint definition: %v", input.Name)
+			return errors.Wrapf(err, "creating service endpoint definition: %v", input.Name)
 		}
 	}
-	return types, nil
+	return nil
 }

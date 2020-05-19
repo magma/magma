@@ -101,7 +101,7 @@ func (l *Listener) receive(ctx context.Context) error {
 
 	tenant, ok := msg.Metadata[TenantHeader]
 	if !ok {
-		l.logger.Warn("received message without tenant header")
+		l.logger.Warn("received event without tenant header")
 		return nil
 	}
 	if tenant != l.tenant {
@@ -110,7 +110,7 @@ func (l *Listener) receive(ctx context.Context) error {
 
 	name, ok := msg.Metadata[NameHeader]
 	if !ok {
-		l.logger.Warn("received message without name header")
+		l.logger.Warn("received event without name header")
 		return nil
 	}
 	if _, ok := l.events[name]; !ok {
@@ -118,8 +118,9 @@ func (l *Listener) receive(ctx context.Context) error {
 	}
 
 	if err := l.handler.Handle(ctx, name, msg.Body); err != nil {
-		return fmt.Errorf("handling message: %w", err)
+		return fmt.Errorf("handling event %q: %w", name, err)
 	}
+	l.logger.Debug("handled event", zap.String("name", name))
 	return nil
 }
 
