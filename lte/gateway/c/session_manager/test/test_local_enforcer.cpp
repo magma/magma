@@ -118,6 +118,12 @@ protected:
 
 MATCHER_P(CheckCount, count, "") { return arg.size() == count; }
 
+MATCHER_P2(CheckUpdateRequestCount, monitorCount, chargingCount, "") {
+  auto req = static_cast<const UpdateSessionRequest>(arg);
+  return req.updates().size() == chargingCount &&
+         req.usage_monitors().size() == monitorCount;
+}
+
 MATCHER_P2(CheckActivateFlows, imsi, rule_count, "") {
   auto request = static_cast<const ActivateFlowsRequest *>(arg);
   return request->sid().id() == imsi && request->rule_ids_size() == rule_count;
@@ -1306,50 +1312,6 @@ TEST_F(LocalEnforcerTest, test_rar_session_not_found) {
   EXPECT_EQ(raa.result(), ReAuthResult::SESSION_NOT_FOUND);
 }
 
-TEST_F(LocalEnforcerTest, test_rar_revalidation_timer) {
-  // init session first
-  CreateSessionResponse response;
-  create_credit_update_response("IMSI1", 1, 3072,
-                                response.mutable_credits()->Add());
-  local_enforcer->init_session_credit(session_map, "IMSI1", "session1",
-                                      test_cfg, response);
-  insert_static_rule(1, "", "rule1");
-
-  RuleRecordTable table;
-  auto record_list = table.mutable_records();
-  create_rule_record("IMSI1", "rule1", 1024, 2048, record_list->Add());
-  auto update = SessionStore::get_default_session_update(session_map);
-  local_enforcer->aggregate_records(session_map, table, update);
-  session_store->create_sessions("IMSI1", std::move(session_map["IMSI1"]));
-
-  // only RAR with REVALIDATION_TIMEOUT as one of the event triggers
-  session_map = session_store->read_sessions(SessionRead{"IMSI1"});
-
-  PolicyReAuthRequest rar;
-  std::vector<std::string> rules_to_remove;
-  std::vector<StaticRuleInstall> rules_to_install;
-  std::vector<DynamicRuleInstall> dynamic_rules_to_install;
-  std::vector<EventTrigger> event_triggers{EventTrigger::TAI_CHANGE};
-  std::vector<UsageMonitoringCredit> usage_monitoring_credits;
-  create_policy_reauth_request("session1", "IMSI1", rules_to_remove,
-                               rules_to_install, dynamic_rules_to_install,
-                               event_triggers, time(NULL),
-                               usage_monitoring_credits, &rar);
-  PolicyReAuthAnswer raa;
-  local_enforcer->init_policy_reauth(session_map, rar, raa, update);
-  evb->loopOnce();
-  EXPECT_EQ(raa.result(), ReAuthResult::UPDATE_INITIATED);
-
-  UpdateSessionResponse resp;
-  EXPECT_CALL(*reporter, report_updates(_, _))
-      .Times(1)
-      .WillOnce(testing::InvokeArgument<1>(grpc::Status::OK, resp));
-  session_map = session_store->read_sessions(SessionRead{"IMSI1"});
-  rar.add_event_triggers(EventTrigger::REVALIDATION_TIMEOUT);
-  local_enforcer->init_policy_reauth(session_map, rar, raa, update);
-  EXPECT_EQ(raa.result(), ReAuthResult::UPDATE_INITIATED);
-}
-
 /**
 // TODO enable once we fix revalidation timer on init
 TEST_F(LocalEnforcerTest, test_revalidation_timer_on_init) {
@@ -1426,29 +1388,45 @@ TEST_F(LocalEnforcerTest, test_revalidation_timer_on_update) {
   UpdateSessionResponse update_response;
   std::vector<std::string> rules_to_install;
   std::vector<EventTrigger> event_triggers{EventTrigger::REVALIDATION_TIMEOUT};
-
-  const std::string imsi = "IMSI1";
-  const std::string session_id = "1234";
   const std::string mkey = "m1";
   rules_to_install.push_back("rule1");
   insert_static_rule(1, mkey, "rule1");
 
-  // Create a CreateSessionResponse with one Gx monitor, PCC rule
-  create_session_create_response(imsi, mkey, rules_to_install, &create_response);
+  // create two sessions
+  const std::string imsi1 = "IMSI1";
+  const std::string session_id1 = "1234";
+  const std::string imsi2 = "IMSI2";
+  const std::string session_id2 = "5678";
 
-  local_enforcer->init_session_credit(session_map, imsi, session_id, test_cfg,
+
+  // Create a CreateSessionResponse with one Gx monitor, PCC rule
+  create_session_create_response(imsi1, mkey, rules_to_install, &create_response);
+  local_enforcer->init_session_credit(session_map, imsi1, session_id1, test_cfg,
                                       create_response);
-  EXPECT_EQ(session_map[imsi].size(), 1);
+
+  create_response.Clear();
+  create_session_create_response(imsi2, mkey, rules_to_install, &create_response);
+  local_enforcer->init_session_credit(session_map, imsi2, session_id2, test_cfg,
+                                      create_response);
+  EXPECT_EQ(session_map[imsi1].size(), 1);
+  EXPECT_EQ(session_map[imsi2].size(), 1);
 
   // Write and read into session store, assert success
-  bool success = session_store->create_sessions(imsi, std::move(session_map[imsi]));
+  bool success = session_store->create_sessions(imsi1, std::move(session_map[imsi1]));
   EXPECT_TRUE(success);
-  session_map = session_store->read_sessions(SessionRead{"IMSI1"});
+  success = session_store->create_sessions(imsi2, std::move(session_map[imsi2]));
+  EXPECT_TRUE(success);
+  session_map = session_store->read_sessions(SessionRead{imsi1, imsi2});
+  EXPECT_EQ(session_map[imsi1].size(), 1);
+  EXPECT_EQ(session_map[imsi2].size(), 1);
 
   // Create a UpdateSessionResponse with a REVALIDATION event trigger
   auto monitor = update_response.mutable_usage_monitor_responses()->Add();
-  create_monitor_update_response(imsi, mkey, MonitoringLevel::PCC_RULE_LEVEL,
+  create_monitor_update_response(imsi1, mkey, MonitoringLevel::PCC_RULE_LEVEL,
                                  1024, event_triggers, time(NULL), monitor);
+  monitor = update_response.mutable_usage_monitor_responses()->Add();
+  create_monitor_update_response(imsi2, mkey, MonitoringLevel::PCC_RULE_LEVEL,
+                                 1024, monitor);
   auto update = SessionStore::get_default_session_update(session_map);
   // This should trigger a revalidation to be scheduled
   local_enforcer->update_session_credits_and_rules(session_map,
@@ -1458,7 +1436,7 @@ TEST_F(LocalEnforcerTest, test_revalidation_timer_on_update) {
   success = session_store->update_sessions(update);
   EXPECT_TRUE(success);
 
-  EXPECT_CALL(*reporter, report_updates(_, _)).Times(1);
+  EXPECT_CALL(*reporter, report_updates(CheckUpdateRequestCount(1, 0), _)).Times(1);
   // schedule_revalidation puts two things on the event loop
   evb->loopOnce();
   evb->loopOnce();

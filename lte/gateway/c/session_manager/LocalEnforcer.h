@@ -397,7 +397,7 @@ class LocalEnforcer {
       const google::protobuf::RepeatedField<int>& event_triggers);
 
   void schedule_revalidation(
-      SessionMap& session_map,
+      const std::string& imsi,
       const google::protobuf::Timestamp& revalidation_time);
 
   void handle_add_ue_mac_flow_callback(
