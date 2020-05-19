@@ -66,6 +66,7 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
       std::shared_ptr<AsyncDirectorydClient> directoryd_client,
       SessionStore& session_store);
   ~LocalSessionManagerHandlerImpl() {}
+
   /**
    * Report flow stats from pipelined and track the usage per rule
    */
@@ -89,6 +90,7 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
       ServerContext* context, const LocalEndSessionRequest* request,
       std::function<void(Status, LocalEndSessionResponse)> response_callback);
 
+
  private:
   SessionStore& session_store_;
   std::shared_ptr<LocalEnforcer> enforcer_;
@@ -103,33 +105,42 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
  private:
   void check_usage_for_reporting(
       SessionMap session_map, SessionUpdate& session_update);
+
   bool is_pipelined_restarted();
-  bool restart_pipelined(const std::uint64_t& epoch);
+
+  bool restart_pipelined(
+      const std::uint64_t& epoch);
 
   void end_session(
       SessionMap& session_map, const LocalEndSessionRequest& request,
       std::function<void(Status, LocalEndSessionResponse)> response_callback);
 
-  std::string convert_mac_addr_to_str(const std::string& mac_addr);
+  std::string convert_mac_addr_to_str(
+      const std::string& mac_addr);
 
   void add_session_to_directory_record(
       const std::string& imsi, const std::string& session_id);
 
   /**
-   * Send session creation request to the CentralSessionController.
+   * create_new_session request to the CentralSessionController.
    * If it is successful, create a session in session_map, and respond to
    * gRPC caller.
    */
-  void send_create_session(
-      SessionMap& session_map, const CreateSessionRequest& request,
-      const std::string& imsi, const std::string& sid, const SessionConfig& cfg,
-      std::function<void(grpc::Status, LocalCreateSessionResponse)>
-          response_callback);
+  void create_new_session(
+      const LocalCreateSessionRequest& request, SessionMap& session_map,
+      const SessionConfig& cfg,
+      std::function<void(grpc::Status, LocalCreateSessionResponse)> response_callback) ;
 
   void handle_setup_callback(
       const std::uint64_t& epoch, Status status, SetupFlowsResult resp);
 
-  SessionConfig build_session_config(const LocalCreateSessionRequest& request);
+  SessionConfig build_session_config(
+      const LocalCreateSessionRequest& request);
+
+  bool recycle_session_if_exists(
+      const LocalCreateSessionRequest& request,
+      SessionMap& session_map, const SessionConfig& cfg,
+      std::function<void(Status, LocalCreateSessionResponse)> response_callback);
 
   void recycle_session(
       SessionMap& session_map, const LocalCreateSessionRequest& request,
@@ -137,6 +148,10 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
       const std::string& core_sid, SessionConfig cfg, const bool is_wifi,
       std::function<void(Status, LocalCreateSessionResponse)>
           response_callback);
+
+  void terminate_existing_session_if_needed(
+      const LocalCreateSessionRequest& request, SessionMap& session_map,
+      bool is_active);
 
   /**
    * Get the most recently written state of sessions for Creation
@@ -155,7 +170,8 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
    * NOTE: Call only from the main EventBase thread, otherwise there will
    *       be undefined behavior.
    */
-  SessionMap get_sessions_for_reporting(const RuleRecordTable& request);
+  SessionMap get_sessions_for_reporting(
+      const RuleRecordTable& request);
 
   /**
    * Get the most recently written state of the session that is to be deleted.
@@ -164,7 +180,9 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
    * NOTE: Call only from the main EventBase thread, otherwise there will
    *       be undefined behavior.
    */
-  SessionMap get_sessions_for_deletion(const LocalEndSessionRequest& request);
+  SessionMap get_sessions_for_deletion(
+      const LocalEndSessionRequest& request);
+
 };
 
 }  // namespace magma
