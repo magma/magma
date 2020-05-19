@@ -53,7 +53,8 @@ func (n Network) ToStorageProto() (*storage.Network, error) {
 	return ret, nil
 }
 
-func (n Network) fromStorageProto(protoNet *storage.Network) (Network, error) {
+// FromStorageProto converts a Network proto to it's internal go struct format.
+func (n Network) FromStorageProto(protoNet *storage.Network) (Network, error) {
 	iConfigs, err := unmarshalConfigs(protoNet.Configs, NetworkConfigSerdeDomain)
 	if err != nil {
 		return n, errors.Wrapf(err, "error deserializing network %s", protoNet.ID)
