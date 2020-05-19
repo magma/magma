@@ -11,6 +11,7 @@ import asyncio
 import logging
 from typing import Any, List
 
+import magma.magmad.events as magmad_events
 from magma.common.service import MagmaService
 from magma.common.streamer import StreamerClient
 from magma.configuration.mconfig_managers import MconfigManager, \
@@ -117,3 +118,5 @@ class ConfigManager(StreamerClient.Callback):
             )
 
         self._mconfig = mconfig
+
+        magmad_events.processed_updates(self._loop, updates)
