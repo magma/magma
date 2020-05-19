@@ -16,8 +16,14 @@ import SchedulingModal from "./SchedulingModal/SchedulingModal";
 import superagent from "superagent";
 
 const Scheduling = props => {
+
   const [showSchedulingModal, setShowSchedulingModal] = useState(false);
   const [activeRow, setActiveRow] = useState();
+  const [pagesCount, setPagesCount] = useState(1);
+  const [data, setData] = useState(undefined);
+  const [error, setError] = useState(undefined);
+  const [defaultPages, setDefaultPages] = useState(20);
+  const [viewedPage, setViewedPage] = useState(1);
 
   const refresh = () => {
     const path = conductorApiUrlPrefix + "/schedule/";
@@ -25,28 +31,28 @@ const Scheduling = props => {
     req.end((err, res) => {
       if (res && res.ok && Array.isArray(res.body)) {
         const result = res.body;
-        let size = Math.floor(result.length / defaultPages);
         let dataset = result.sort((a, b) =>
             a.name > b.name ? 1 : b.name > a.name ? -1 : 0
           ) || [];
+        let size = Math.floor(dataset.length / defaultPages);
         setData(dataset);
-        setPagesCount(result.length % defaultPages ? ++size : size);
+        setPagesCount(dataset.length % defaultPages ? ++size : size);
         deselectActiveRow();
       } else {
-        // TODO
+        console.log('err res', res, 'err', err);
+        const newError = (err != null) ? 'Network error: ' + err : 'Wrong response: ' + res;
+        setError(newError);
+        alert(newError);// TODO
       }
     });
-    return [];
-  };
+  }
 
-  const [data, setData] = useState(refresh);
-  const [pagesCount, setPagesCount] = useState(1);
-  const [defaultPages, setDefaultPages] = useState(20);
-  const [viewedPage, setViewedPage] = useState(1);
+  // if no network request was executed yet...
+  !(data || error) && refresh();
 
   const deselectActiveRow = () => {
     setActiveRow(null);
-  }
+  };
 
   const changeActiveRow = (i) => {
     const deselectingCurrentRow = activeRow === i;
@@ -64,7 +70,6 @@ const Scheduling = props => {
   };
 
   const deleteEntry = (schedulingEntry) => {
-
     const path = conductorApiUrlPrefix + "/schedule/" + schedulingEntry.name;
     const req = superagent.delete(path).accept("application/json");
     req.end((err, res) => {
@@ -76,63 +81,6 @@ const Scheduling = props => {
         alert("Network error");
       }
     });
-  };
-
-  const repeat = () => {
-    let output = [];
-    for (let i = 0; i < data.length; i++) {
-      if (
-        i >= (viewedPage - 1) * defaultPages &&
-        i < viewedPage * defaultPages
-      ) {
-        output.push(
-          <div className="wfRow" key={i}>
-            <Accordion.Toggle
-              id={`wf${i}`}
-              onClick={changeActiveRow.bind(this, i)}
-              className="clickable wfDef"
-              as={Card.Header}
-              variant="link"
-              eventKey={i}
-            >
-              <b>{data[i]["workflowName"]}</b> v.{data[i]["workflowVersion"]}
-              <br />
-              <div className="description">
-                { data[i]["cronString"] }
-              </div>
-            </Accordion.Toggle>
-            <Accordion.Collapse eventKey={i}>
-              <Card.Body style={{ padding: "0px" }}>
-                <div
-                  style={{
-                    background:
-                      "linear-gradient(-120deg, rgb(0, 147, 255) 0%, rgb(0, 118, 203) 100%)",
-                    padding: "15px",
-                    marginBottom: "10px"
-                  }}
-                >
-                  <Button
-                    variant="outline-light noshadow"
-                    onClick={flipShowSchedulingModal}
-                  >
-                    Edit
-                  </Button>
-
-                  <Button
-                    variant="outline-danger noshadow"
-                    style={{ float: "right" }}
-                    onClick={deleteEntry.bind(this, data[i])}
-                  >
-                    <i className="fas fa-trash-alt" />
-                  </Button>
-                </div>
-              </Card.Body>
-            </Accordion.Collapse>
-          </div>
-        );
-      }
-    }
-    return output;
   };
 
   const flipShowSchedulingModal = () => {
@@ -164,6 +112,72 @@ const Scheduling = props => {
     }
     return null;
   }
+
+  const getDataLength = () => {
+    if (data != null) {
+      return data.length;
+    }
+    return null;
+  }
+
+  const repeat = () => {
+    let output = [];
+    if (data != null) {
+      for (let i = 0; i < data.length; i++) {
+        if (
+          i >= (viewedPage - 1) * defaultPages &&
+          i < viewedPage * defaultPages
+        ) {
+          output.push(
+            <div className="wfRow" key={i}>
+              <Accordion.Toggle
+                id={`wf${i}`}
+                onClick={changeActiveRow.bind(this, i)}
+                className="clickable wfDef"
+                as={Card.Header}
+                variant="link"
+                eventKey={i}
+              >
+                <b>{data[i]["workflowName"]}</b> v.{data[i]["workflowVersion"]}
+                <br />
+                <div className="description">
+                  { data[i]["cronString"] }
+                </div>
+              </Accordion.Toggle>
+              <Accordion.Collapse eventKey={i}>
+                <Card.Body style={{ padding: "0px" }}>
+                  <div
+                    style={{
+                      background:
+                        "linear-gradient(-120deg, rgb(0, 147, 255) 0%, rgb(0, 118, 203) 100%)",
+                      padding: "15px",
+                      marginBottom: "10px"
+                    }}
+                  >
+                    <Button
+                      variant="outline-light noshadow"
+                      onClick={flipShowSchedulingModal}
+                    >
+                      Edit
+                    </Button>
+
+                    <Button
+                      variant="outline-danger noshadow"
+                      style={{ float: "right" }}
+                      onClick={deleteEntry.bind(this, data[i])}
+                    >
+                      <i className="fas fa-trash-alt" />
+                    </Button>
+                  </div>
+                </Card.Body>
+              </Accordion.Collapse>
+            </div>
+          );
+        }
+      }
+    }
+    return output;
+  };
 
   return (
     <div>
@@ -198,7 +212,7 @@ const Scheduling = props => {
           <Col sm={2}>
             <PageCount
               dataSize={
-                data.length
+                getDataLength()
               }
               defaultPages={defaultPages}
               handler={setCountPages.bind(this)}
