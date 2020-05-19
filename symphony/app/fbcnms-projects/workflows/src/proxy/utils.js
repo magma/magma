@@ -14,7 +14,7 @@ import {JSONPath} from 'jsonpath-plus';
 
 const logger = logging.getLogger(module);
 
-import type {ProxyRequest, Task} from '../types';
+import type {GroupLoadingStrategy, ProxyRequest, Task} from '../types';
 
 // Global prefix for taskdefs which can be used by all tenants.
 export const GLOBAL_PREFIX: string = 'GLOBAL';
@@ -131,6 +131,36 @@ export function getTenantId(req: ProxyRequest): string {
     throw 'Illegal TenantId';
   }
   return tenantId;
+}
+
+export function getUserRole(req: ProxyRequest): string {
+  const role: ?string = req.headers['x-auth-user-role'];
+  if (role == null) {
+    console.log(req.headers);
+    logger.error('x-auth-user-role header not found');
+    throw 'x-auth-user-role header not found';
+  }
+  return role;
+}
+
+export function getUserEmail(req: ProxyRequest): string {
+  const userEmail: ?string = req.headers['x-auth-user-email'];
+  if (userEmail == null) {
+    logger.error('x-auth-user-email header not found');
+    throw 'x-auth-user-email header not found';
+  }
+  return userEmail;
+}
+
+export async function getUserGroups(
+  req: ProxyRequest,
+  groupLoadingStrategy: GroupLoadingStrategy,
+): Promise<string[]> {
+  return groupLoadingStrategy(
+    getTenantId(req),
+    getUserEmail(req),
+    getUserRole(req),
+  );
 }
 
 export function createProxyOptionsBuffer(
