@@ -341,3 +341,60 @@ func TestGyCreditExhaustionRedirect(t *testing.T) {
 	time.Sleep(3 * time.Second)
 	tr.AssertAllGyExpectationsMetNoError()
 }
+
+func TestGyCreditUpdateCommandLevelFail(t *testing.T) {
+	fmt.Println("\nRunning TestGyCreditUpdateFail...")
+
+	tr, ruleManager, ue := ocsCreditExhaustionTestSetup(t)
+	defer func() {
+		// Clear hss, ocs, and pcrf
+		assert.NoError(t, clearOCSMockDriver())
+		assert.NoError(t, ruleManager.RemoveInstalledRules())
+		assert.NoError(t, tr.CleanUp())
+	}()
+
+	quotaGrant := &fegprotos.QuotaGrant{
+		RatingGroup: 1,
+		GrantedServiceUnit: &fegprotos.Octets{
+			TotalOctets: 4 * MegaBytes,
+		},
+		IsFinalCredit: false,
+		ResultCode:    diam.Success,
+	}
+	initRequest := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_INITIAL)
+	initAnswer := protos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrant)
+	initExpectation := protos.NewGyCreditControlExpectation().Expect(initRequest).Return(initAnswer)
+
+	// Return a permanent failure on Update
+	updateRequest := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_UPDATE)
+	// The CCR/A-U exchange fails
+	updateAnswer := protos.NewGyCCAnswer(diam.UnableToComply).
+		SetQuotaGrant(&fegprotos.QuotaGrant{ResultCode: diam.AuthorizationRejected})
+	updateExpectation := protos.NewGyCreditControlExpectation().Expect(updateRequest).Return(updateAnswer)
+	// The failure above in CCR/A-U should trigger a termination
+	terminateRequest := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_TERMINATION)
+	terminateAnswer := protos.NewGyCCAnswer(diam.Success)
+	terminateExpectation := protos.NewGyCreditControlExpectation().Expect(terminateRequest).Return(terminateAnswer)
+
+	expectations := []*protos.GyCreditControlExpectation{initExpectation, updateExpectation, terminateExpectation}
+	assert.NoError(t, setOCSExpectations(expectations, nil))
+
+	tr.AuthenticateAndAssertSuccess(ue.GetImsi())
+	// Trigger a ReAuth to force an update request
+	raa, err := sendChargingReAuthRequest(ue.GetImsi(), 1)
+	tr.WaitForReAuthToProcess()
+
+	// Check ReAuth success
+	assert.NoError(t, err)
+	assert.Contains(t, raa.SessionId, "IMSI"+ue.GetImsi())
+	assert.Equal(t, diam.LimitedSuccess, int(raa.ResultCode))
+
+	// Wait for a termination to propagate
+	time.Sleep(5 * time.Second)
+	tr.WaitForEnforcementStatsToSync()
+
+	// Assert that a CCR-I/U/T was sent to OCS
+	tr.AssertAllGyExpectationsMetNoError()
+
+	tr.AssertPolicyEnforcementRecordIsNil(ue.GetImsi())
+}
