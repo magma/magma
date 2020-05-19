@@ -178,7 +178,7 @@ TEST_F(LocalEnforcerTest, test_init_cwf_session_credit) {
 
   EXPECT_CALL(*pipelined_client,
               add_ue_mac_flow(testing::_, testing::_, testing::_, testing::_,
-                              testing::_))
+                              testing::_, testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
 
@@ -1592,7 +1592,7 @@ TEST_F(LocalEnforcerTest, test_valid_apn_parsing) {
 
   EXPECT_CALL(*pipelined_client,
               add_ue_mac_flow(testing::_, testing::_, "msisdn",
-                              "03-21-00-02-00-20", "Magma"))
+                              "03-21-00-02-00-20", "Magma", testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
 
@@ -1616,7 +1616,8 @@ TEST_F(LocalEnforcerTest, test_invalid_apn_parsing) {
 
   EXPECT_CALL(*pipelined_client,
               add_ue_mac_flow(testing::_, testing::_, "msisdn_test", "",
-                              "03-0BLAHBLAH0-00-02-00-20:ThisIsNotOkay"))
+                              "03-0BLAHBLAH0-00-02-00-20:ThisIsNotOkay",
+                              testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
 

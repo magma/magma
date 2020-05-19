@@ -64,7 +64,7 @@ public:
       .WillByDefault(Return(true));
     ON_CALL(*this, activate_flows_for_rules(_, _, _, _))
         .WillByDefault(Return(true));
-    ON_CALL(*this, add_ue_mac_flow(_, _, _, _, _)).WillByDefault(Return(true));
+    ON_CALL(*this, add_ue_mac_flow(_, _, _, _, _, _)).WillByDefault(Return(true));
     ON_CALL(*this, delete_ue_mac_flow(_, _)).WillByDefault(Return(true));
     ON_CALL(*this, update_ipfix_flow(_, _, _, _, _))
         .WillByDefault(Return(true));
@@ -104,14 +104,15 @@ public:
       const std::string& ip_addr,
       const std::vector<std::string>& static_rules,
       const std::vector<PolicyRule>& dynamic_rules));
-  MOCK_METHOD5(
+  MOCK_METHOD6(
     add_ue_mac_flow,
     bool(
       const SubscriberID &sid,
       const std::string &ue_mac_addr,
       const std::string &msisdn,
       const std::string &ap_mac_addr,
-      const std::string &ap_name));
+      const std::string &ap_name,
+      std::function<void(Status status, FlowResponse)> callback));
   MOCK_METHOD2(
     delete_ue_mac_flow,
     bool(
