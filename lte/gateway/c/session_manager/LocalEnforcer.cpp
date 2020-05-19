@@ -1821,9 +1821,9 @@ static void handle_command_level_result_code(
   const bool is_permanent_failure =
       DiameterCodeHandler::is_permanent_failure(result_code);
   if (is_permanent_failure) {
-    MLOG(MERROR) << "Received permanent failure result code: " << result_code
-                 << "for IMSI " << imsi
-                 << "during update. Terminating Subscriber.";
+    MLOG(MERROR) << imsi << " Received permanent failure result code: "
+                 << result_code
+                 << " during update. Terminating Subscriber.";
     subscribers_to_terminate.insert(imsi);
   } else {
     // only log transient errors for now
