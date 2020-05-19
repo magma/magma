@@ -245,6 +245,7 @@ class LocalEnforcer {
   // [CWF-ONLY] This configures how long we should wait before terminating a
   // session after it is created without any monitoring quota
   long quota_exhaustion_termination_on_init_ms_;
+  std::chrono::seconds retry_timeout_;
 
  private:
   /**
@@ -398,6 +399,14 @@ class LocalEnforcer {
   void schedule_revalidation(
       SessionMap& session_map,
       const google::protobuf::Timestamp& revalidation_time);
+
+  void handle_add_ue_mac_flow_callback(
+    const SubscriberID& sid,
+    const std::string& ue_mac_addr,
+    const std::string& msisdn,
+    const std::string& ap_mac_addr,
+    const std::string& ap_name,
+    Status status, FlowResponse resp);
 
   void check_usage_for_reporting(
       SessionMap& session_map, SessionUpdate& session_update,

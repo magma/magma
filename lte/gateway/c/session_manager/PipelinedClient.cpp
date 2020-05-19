@@ -270,16 +270,12 @@ bool AsyncPipelinedClient::add_ue_mac_flow(
     const std::string& ue_mac_addr,
     const std::string& msisdn,
     const std::string& ap_mac_addr,
-    const std::string& ap_name)
+    const std::string& ap_name,
+    std::function<void(Status status, FlowResponse)> callback)
 {
   auto req = create_add_ue_mac_flow_req(sid, ue_mac_addr, msisdn, ap_mac_addr,
     ap_name);
-  add_ue_mac_flow_rpc(req, [ue_mac_addr](Status status, FlowResponse resp) {
-    if (!status.ok()) {
-      MLOG(MERROR) << "Could not add flow for subscriber with UE MAC"
-                   << ue_mac_addr << ": " << status.error_message();
-    }
-  });
+  add_ue_mac_flow_rpc(req, callback);
   return true;
 }
 
