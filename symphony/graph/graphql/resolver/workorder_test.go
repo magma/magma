@@ -1759,13 +1759,10 @@ func TestTechnicianCheckinToWorkOrder(t *testing.T) {
 func TestTechnicianUploadDataToWorkOrder(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.Close()
-	// TODO(T66882071): Remove these two lines
-	p := authz.FullPermissions()
-	p.CanWrite = true
-	ctx := viewertest.NewContext(context.Background(), r.client)
+	// TODO(T66882071): Remove owner role from two rows
+	c := r.GraphClient(viewertest.WithRole(user.RoleOWNER))
+	ctx := viewertest.NewContext(context.Background(), r.client, viewertest.WithRole(user.RoleOWNER))
 	mr := r.Mutation()
-	c := r.GraphClient(viewertest.WithPermissions(p))
-
 	wo := createWorkOrder(ctx, t, *r, "Foo")
 	u := viewer.FromContext(ctx).(*viewer.UserViewer).User()
 	mimeType := "image/jpeg"

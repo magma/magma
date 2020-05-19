@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/facebookincubator/symphony/graph/authz"
+	"github.com/facebookincubator/symphony/graph/ent/user"
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/property"
@@ -326,10 +326,8 @@ func TestAddMultiLevelLocations(t *testing.T) {
 func TestAddLocationCellScans(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.Close()
-	// TODO(T66882071): Remove these two lines
-	p := authz.FullPermissions()
-	p.CanWrite = true
-	ctx := viewertest.NewContext(context.Background(), r.client, viewertest.WithPermissions(p))
+	// TODO(T66882071): Remove owner role
+	ctx := viewertest.NewContext(context.Background(), r.client, viewertest.WithRole(user.RoleOWNER))
 
 	mr, qr := r.Mutation(), r.Query()
 	locationType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{
