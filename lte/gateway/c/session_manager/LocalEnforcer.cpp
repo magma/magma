@@ -465,7 +465,8 @@ void LocalEnforcer::install_redirect_flow(
           auto session_map = session_store_.read_sessions(SessionRead{imsi});
           auto it = session_map.find(imsi);
           if (it == session_map.end()) {
-            MLOG(MDEBUG) << "Session for IMSI " << imsi << " not found";
+            MLOG(MWARNING) << "Session for " << imsi << " not found when "
+                           << "installing redirection rule";
             return;
           }
 
@@ -1682,10 +1683,14 @@ void LocalEnforcer::check_usage_for_reporting(
     SessionMap& session_map, SessionUpdate& session_update,
     const bool force_update) {
   std::vector<std::unique_ptr<ServiceAction>> actions;
+  // todo remove these logs
+  MLOG(MINFO) << "In check_usage_for_reporting, collecting updates... force_update=" << force_update;
   auto request =
       collect_updates(session_map, actions, session_update, force_update);
+  MLOG(MINFO) << "In check_usage_for_reporting, executing actions...";
   execute_actions(session_map, actions, session_update);
   if (request.updates_size() == 0 && request.usage_monitors_size() == 0) {
+    MLOG(MINFO) << "No update found, Will not report to Core";
     return;  // nothing to report
   }
   MLOG(MINFO) << "Sending " << request.updates_size()
@@ -1709,7 +1714,7 @@ void LocalEnforcer::check_usage_for_reporting(
                            << " to OCS and PCRF failed entirely: "
                            << status.error_message();
             } else {
-              MLOG(MDEBUG) << "Received updated responses from OCS and PCRF";
+              MLOG(MINFO) << "Received updated responses from OCS and PCRF";
               update_session_credits_and_rules(
                   *session_map_ptr, response, session_update);
               session_store_.update_sessions(session_update);
