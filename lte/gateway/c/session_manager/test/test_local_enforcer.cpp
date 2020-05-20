@@ -684,7 +684,7 @@ TEST_F(LocalEnforcerTest, test_termination_scheduling_on_sync_sessions) {
   const std::string imsi = "IMSI1";
   const std::string session_id = "1234";
   rules_to_install.push_back("rule1");
-  insert_static_rule(1, "m1", "rule1");
+  insert_static_rule(0, "m1", "rule1");
 
   // Create a CreateSessionResponse with one Gx monitor:m1 and one rule:rule1
   create_session_create_response(imsi, "m1", rules_to_install, &response);
