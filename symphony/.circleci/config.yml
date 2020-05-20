@@ -491,6 +491,19 @@ jobs:
           name: install flow
           <<: *appdir
           command: yarn add --dev -W flow-bin@0.120
+      - restore_cache:
+          name: Restore Yarn Package Cache
+          keys:
+            - yarn-packages-{{ checksum "app/yarn.lock" }}
+      - run:
+          name: Install Dependencies
+          <<: *appdir
+          command: yarn install --frozen-lockfile
+      - save_cache:
+          name: Save Yarn Package Cache
+          key: yarn-packages-{{ checksum "app/yarn.lock" }}
+          paths:
+            - ~/.cache/yarn
       - run:
           name: flow typecheck
           <<: *appdir
