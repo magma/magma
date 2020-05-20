@@ -64,7 +64,7 @@ func (mutationResolver) AddPermissionsPolicy(
 	}
 	policy, err := mutation.Save(ctx)
 	if ent.IsConstraintError(err) {
-		return nil, fmt.Errorf("policy with the given name already exists: %s", input.Name)
+		return nil, gqlerror.Errorf("A policy with the given name already exists: %s", input.Name)
 	}
 	return policy, err
 }
@@ -111,7 +111,7 @@ func (mutationResolver) EditPermissionsPolicy(
 
 	if err != nil {
 		if ent.IsConstraintError(err) {
-			return nil, gqlerror.Errorf("A permissionsPolicy with the name %v already exists", input.Name)
+			return nil, gqlerror.Errorf("A policy with the name %v already exists", *input.Name)
 		}
 		return nil, fmt.Errorf("updating permissionsPolicy %q: %w", input.ID, err)
 	}

@@ -46,7 +46,7 @@ func (r mutationResolver) AddUsersGroup(ctx context.Context, input models.AddUse
 	}
 	usersGroup, err := mutation.Save(ctx)
 	if ent.IsConstraintError(err) {
-		return nil, fmt.Errorf("usersGroup with the given name already exists: %s", input.Name)
+		return nil, gqlerror.Errorf("A group with the given name already exists: %s", input.Name)
 	}
 	return usersGroup, err
 }
