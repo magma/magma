@@ -731,11 +731,11 @@ void LocalEnforcer::schedule_dynamic_rule_deactivation(
 }
 
 void LocalEnforcer::filter_rule_installs(
-    std::vector<StaticRuleInstall> static_installs,
-    std::vector<DynamicRuleInstall> dynamic_installs,
+    std::vector<StaticRuleInstall>& static_installs,
+    std::vector<DynamicRuleInstall>& dynamic_installs,
     const std::unordered_set<uint32_t>& successful_credits) {
   // Filter out static rules that we will not install nor schedule
-  std::remove_if(
+  auto end_of_valid_st_rules = std::remove_if(
       static_installs.begin(), static_installs.end(),
       [&](StaticRuleInstall& rule_install) {
         auto& id = rule_install.rule_id();
@@ -747,13 +747,15 @@ void LocalEnforcer::filter_rule_installs(
         }
         return !should_activate(rule, successful_credits);
       });
+  static_installs.erase(end_of_valid_st_rules, static_installs.end());
 
   // Filter out dynamic rules that we will not install nor schedule
-  std::remove_if(
+  auto end_of_valid_dy_rules = std::remove_if(
       dynamic_installs.begin(), dynamic_installs.end(),
       [&](DynamicRuleInstall& rule_install) {
         return !should_activate(rule_install.policy_rule(), successful_credits);
       });
+  dynamic_installs.erase(end_of_valid_dy_rules, dynamic_installs.end());
 }
 
 // return true if any credit unit is valid and has non-zero volume
