@@ -13,7 +13,6 @@ import * as React from 'react';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import ToggleButton from '../ToggleButton/ToggleButtonGroup';
 import classNames from 'classnames';
-import {ButtonAction, IconAction, OptionsAction} from './ViewHeaderActions';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(() => ({
@@ -69,6 +68,9 @@ const useStyles = makeStyles(() => ({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',
+    '&>:not(:first-child)': {
+      marginLeft: '12px',
+    },
   },
 }));
 
@@ -81,11 +83,7 @@ export type ViewHeaderProps = $ReadOnly<{|
 |}>;
 
 export type ViewHeaderActionsProps = $ReadOnly<{|
-  actionButtons?: $ReadOnlyArray<
-    React.Element<
-      typeof OptionsAction | typeof IconAction | typeof ButtonAction,
-    >,
-  >,
+  actionButtons?: $ReadOnlyArray<React.Node>,
 |}>;
 
 export type ViewHeaderOptionsProps = $ReadOnly<{|

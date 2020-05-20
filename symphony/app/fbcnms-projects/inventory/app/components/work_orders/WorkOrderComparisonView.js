@@ -12,6 +12,7 @@ import type {FilterConfig} from '../comparison_view/ComparisonViewTypes';
 
 import AddWorkOrderCard from './AddWorkOrderCard';
 import AddWorkOrderDialog from './AddWorkOrderDialog';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import ErrorBoundary from '@fbcnms/ui/components/ErrorBoundary/ErrorBoundary';
 import InventorySuspense from '../../common/InventorySuspense';
 import InventoryView, {DisplayOptions} from '../InventoryViewContainer';
@@ -23,7 +24,6 @@ import fbt from 'fbt';
 import useFilterBookmarks from '../comparison_view/hooks/filterBookmarksHook';
 import useLocationTypes from '../comparison_view/hooks/locationTypesHook';
 import useRouter from '@fbcnms/ui/hooks/useRouter';
-import {ButtonAction} from '@fbcnms/ui/components/design-system/View/ViewHeaderActions';
 import {InventoryAPIUrls} from '../../common/InventoryAPI';
 import {WorkOrderSearchConfig} from './WorkOrderSearchConfig';
 import {extractEntityIdFromUrl} from '../../common/RouterUtils';
@@ -164,9 +164,9 @@ const WorkOrderComparisonView = () => {
       </div>
     ),
     actionButtons: [
-      <ButtonAction action={showDialog}>
+      <Button onClick={showDialog}>
         <fbt desc="">Create Work Order</fbt>
-      </ButtonAction>,
+      </Button>,
     ],
   };
 

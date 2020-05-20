@@ -13,8 +13,11 @@ import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 
 import * as React from 'react';
 import Breadcrumbs from '@fbcnms/ui/components/Breadcrumbs';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import DeleteIcon from '@fbcnms/ui/components/design-system/Icons/Actions/DeleteIcon';
+import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import Grid from '@material-ui/core/Grid';
+import IconButton from '@fbcnms/ui/components/design-system/IconButton';
 import InventoryErrorBoundary from '../../../../common/InventoryErrorBoundary';
 import PermissionsPolicyDetailsPane from './PermissionsPolicyDetailsPane';
 import PermissionsPolicyGroupsPane from './PermissionsPolicyGroupsPane';
@@ -24,10 +27,6 @@ import ViewContainer from '@fbcnms/ui/components/design-system/View/ViewContaine
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
-import {
-  ButtonAction,
-  IconAction,
-} from '@fbcnms/ui/components/design-system/View/ViewHeaderActions';
 import {
   NEW_DIALOG_PARAM,
   PERMISSION_RULE_VALUES,
@@ -197,32 +196,35 @@ function PermissionsPolicyCard(props: Props) {
       },
     ];
     const actions = [
-      <ButtonAction skin="regular" action={onClose}>
-        {Strings.common.cancelButton}
-      </ButtonAction>,
-      <ButtonAction
-        disableOnFromError={true}
-        action={() => {
-          if (policy == null) {
-            return;
-          }
+      <FormAction ignorePermissions={true}>
+        <Button skin="regular" onClick={onClose}>
+          {Strings.common.cancelButton}
+        </Button>
+      </FormAction>,
+      <FormAction disableOnFromError={true}>
+        <Button
+          onClick={() => {
+            if (policy == null) {
+              return;
+            }
 
-          const saveAction = isOnNewPolicy
-            ? addPermissionsPolicy
-            : editPermissionsPolicy;
-          saveAction(policy)
-            .then(onClose)
-            .catch(handleError);
-        }}>
-        {Strings.common.saveButton}
-      </ButtonAction>,
+            const saveAction = isOnNewPolicy
+              ? addPermissionsPolicy
+              : editPermissionsPolicy;
+            saveAction(policy)
+              .then(onClose)
+              .catch(handleError);
+          }}>
+          {Strings.common.saveButton}
+        </Button>
+      </FormAction>,
     ];
     if (!isOnNewPolicy) {
       actions.unshift(
-        <IconAction
+        <IconButton
           icon={DeleteIcon}
           skin="gray"
-          action={() => {
+          onClick={() => {
             if (policy == null) {
               return;
             }

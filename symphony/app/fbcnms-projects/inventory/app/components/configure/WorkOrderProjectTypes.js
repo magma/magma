@@ -11,12 +11,12 @@
 import type {WorkOrderProjectTypesQueryResponse} from './__generated__/WorkOrderProjectTypesQuery.graphql';
 
 import AddEditProjectTypeCard from './AddEditProjectTypeCard';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import InventoryQueryRenderer from '../InventoryQueryRenderer';
 import InventoryView from '../InventoryViewContainer';
 import ProjectTypeCard from './ProjectTypeCard';
 import React, {useState} from 'react';
 import fbt from 'fbt';
-import {ButtonAction} from '@fbcnms/ui/components/design-system/View/ViewHeaderActions';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {graphql} from 'relay-runtime';
 import {makeStyles} from '@material-ui/styles';
@@ -84,6 +84,7 @@ const WorkOrderProjectTypes = () => {
     setEditingProjectType(null);
     setShowAddEditCard(false);
   };
+
   return (
     <InventoryQueryRenderer
       query={projectTypesQuery}
@@ -109,15 +110,16 @@ const WorkOrderProjectTypes = () => {
                 <fbt desc="">Create and manage reusable project workflows.</fbt>
               ),
               actionButtons: [
-                <ButtonAction
-                  action={() => {
+                <Button
+                  onClick={() => {
                     ServerLogger.info(
                       LogEvents.ADD_PROJECT_TEMPLATE_BUTTON_CLICKED,
                     );
                     setShowAddEditCard(true);
                   }}>
                   <fbt desc="">Create Project Template</fbt>
-                </ButtonAction>,
+                </Button>,
+                ,
               ],
             }}
             permissions={{

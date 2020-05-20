@@ -11,13 +11,13 @@ import useRouter from '@fbcnms/ui/hooks/useRouter';
 
 import AddProjectCard from './AddProjectCard';
 import AddProjectDialog from './AddProjectDialog';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import ErrorBoundary from '@fbcnms/ui/components/ErrorBoundary/ErrorBoundary';
 import InventoryView, {DisplayOptions} from '../InventoryViewContainer';
 import ProjectCard from './ProjectCard';
 import ProjectComparisonViewQueryRenderer from './ProjectComparisonViewQueryRenderer';
 import React, {useMemo, useState} from 'react';
 import fbt from 'fbt';
-import {ButtonAction} from '@fbcnms/ui/components/design-system/View/ViewHeaderActions';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {extractEntityIdFromUrl} from '../../common/RouterUtils';
 
@@ -74,14 +74,14 @@ const ProjectComparisonView = () => {
   const header = {
     title: 'Projects',
     actionButtons: [
-      <ButtonAction
-        action={() => {
+      <Button
+        onClick={() => {
           setDialogOpen(true);
           setDialogKey(dialogKey + 1);
           ServerLogger.info(LogEvents.ADD_PROJECT_BUTTON_CLICKED);
         }}>
         <fbt desc="">Create Project</fbt>
-      </ButtonAction>,
+      </Button>,
     ],
   };
   return (

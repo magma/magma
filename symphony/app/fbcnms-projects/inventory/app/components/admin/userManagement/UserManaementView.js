@@ -12,6 +12,7 @@ import type {NavigatableView} from '@fbcnms/ui/components/design-system/View/Nav
 
 import * as React from 'react';
 import AppContext from '@fbcnms/ui/context/AppContext';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import NavigatableViews from '@fbcnms/ui/components/design-system/View/NavigatableViews';
 import NewUserDialog from './users/NewUserDialog';
 import PermissionsGroupCard from './groups/PermissionsGroupCard';
@@ -22,13 +23,10 @@ import PermissionsPoliciesView, {
   PERMISSION_POLICIES_VIEW_NAME,
 } from './policies/PermissionsPoliciesView';
 import PermissionsPolicyCard from './policies/PermissionsPolicyCard';
+import PopoverMenu from '@fbcnms/ui/components/design-system/Select/PopoverMenu';
 import Strings from '@fbcnms/strings/Strings';
 import UsersView from './users/UsersView';
 import fbt from 'fbt';
-import {
-  ButtonAction,
-  OptionsAction,
-} from '@fbcnms/ui/components/design-system/View/ViewHeaderActions';
 import {FormContextProvider} from '../../../common/FormContext';
 import {NEW_DIALOG_PARAM, POLICY_TYPES} from './utils/UserManagementUtils';
 import {UserManagementContextProvider} from './UserManagementContext';
@@ -58,22 +56,6 @@ const UserManaementView = ({match}: Props) => {
   const {isFeatureEnabled} = useContext(AppContext);
   const permissionPoliciesMode = isFeatureEnabled('permission_policies');
 
-  const usersComponent = useMemo(() => {
-    return {
-      header: {
-        title: `${USERS_HEADER}`,
-        subtitle:
-          'Add and manage your organization users, and set their role to control their global settings',
-        actionButtons: [
-          <ButtonAction action={() => setAddingNewUser(true)}>
-            <fbt desc="">Add User</fbt>
-          </ButtonAction>,
-        ],
-      },
-      children: <UsersView />,
-    };
-  }, []);
-
   const VIEWS: Array<NavigatableView> = useMemo(() => {
     const views = [
       {
@@ -83,7 +65,19 @@ const UserManaementView = ({match}: Props) => {
           label: USERS_HEADER,
           tooltip: `${USERS_HEADER}`,
         },
-        component: usersComponent,
+        component: {
+          header: {
+            title: `${USERS_HEADER}`,
+            subtitle:
+              'Add and manage your organization users, and set their role to control their global settings',
+            actionButtons: [
+              <Button onClick={() => setAddingNewUser(true)}>
+                <fbt desc="">Add User</fbt>
+              </Button>,
+            ],
+          },
+          children: <UsersView />,
+        },
       },
       {
         routingPath: 'groups',
@@ -98,10 +92,10 @@ const UserManaementView = ({match}: Props) => {
               'Create groups with different rules and add users to apply permissions',
             actionButtons: permissionPoliciesMode
               ? [
-                  <ButtonAction
-                    action={() => history.push(`group/${NEW_DIALOG_PARAM}`)}>
+                  <Button
+                    onClick={() => history.push(`group/${NEW_DIALOG_PARAM}`)}>
                     <fbt desc="">Create Group</fbt>
-                  </ButtonAction>,
+                  </Button>,
                 ]
               : [],
           },
@@ -135,7 +129,7 @@ const UserManaementView = ({match}: Props) => {
               title: `${PERMISSION_POLICIES_VIEW_NAME}`,
               subtitle: 'Manage policies and apply them to groups.',
               actionButtons: [
-                <OptionsAction
+                <PopoverMenu
                   options={[
                     POLICY_TYPES.InventoryPolicy,
                     POLICY_TYPES.WorkforcePolicy,
@@ -147,11 +141,12 @@ const UserManaementView = ({match}: Props) => {
                       'create policy of given type',
                     ),
                   }))}
-                  optionAction={typeKey => {
+                  skin="primary"
+                  onChange={typeKey => {
                     history.push(`policy/${NEW_DIALOG_PARAM}?type=${typeKey}`);
                   }}>
                   <fbt desc="">Create Policy</fbt>
-                </OptionsAction>,
+                </PopoverMenu>,
               ],
             },
             children: <PermissionsPoliciesView />,

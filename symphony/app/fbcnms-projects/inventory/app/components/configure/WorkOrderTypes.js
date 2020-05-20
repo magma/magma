@@ -20,7 +20,6 @@ import React, {useMemo, useState} from 'react';
 import Table from '@fbcnms/ui/components/design-system/Table/Table';
 import fbt from 'fbt';
 import withInventoryErrorBoundary from '../../common/withInventoryErrorBoundary';
-import {ButtonAction} from '@fbcnms/ui/components/design-system/View/ViewHeaderActions';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {TABLE_SORT_ORDER} from '@fbcnms/ui/components/design-system/Table/TableContext';
 import {graphql} from 'relay-runtime';
@@ -117,9 +116,9 @@ const WorkOrderTypes = () => {
         title: <fbt desc="">Work Order Templates</fbt>,
         subtitle: <fbt desc="">Create and manage reusable work orders.</fbt>,
         actionButtons: [
-          <ButtonAction action={() => showAddEditWorkOrderTypeCard(null)}>
+          <Button onClick={() => showAddEditWorkOrderTypeCard(null)}>
             <fbt desc="">Create Work Order Template</fbt>
-          </ButtonAction>,
+          </Button>,
         ],
       }}
       permissions={{
