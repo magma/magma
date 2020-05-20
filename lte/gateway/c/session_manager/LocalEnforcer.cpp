@@ -835,12 +835,7 @@ bool LocalEnforcer::init_session_credit(
 
   for (const auto& monitor : response.usage_monitors()) {
     if (!revalidation_scheduled && revalidation_required(monitor.event_triggers())) {
-      // TODO This will not work since the session is not initialized properly
-      // at this point
-      schedule_revalidation(imsi, monitor.revalidation_time());
       revalidation_scheduled = true;
-
-      // TODO remove after confirming this isn't causing issues
       revalidation_time = monitor.revalidation_time();
     } else if (revalidation_scheduled &&
           !revalidation_required(monitor.event_triggers())) {
@@ -895,6 +890,11 @@ bool LocalEnforcer::init_session_credit(
 
   if (session_state->is_radius_cwf_session() == false) {
     session_events::session_created(eventd_client_, imsi, session_id);
+  }
+  if (revalidation_scheduled) {
+    // TODO This might not work since the session is not initialized properly
+    // at this point
+    schedule_revalidation(imsi, revalidation_time);
   }
 
   return rule_update_success;
@@ -1618,13 +1618,14 @@ void LocalEnforcer::schedule_revalidation(
     const std::string& imsi,
     const google::protobuf::Timestamp& revalidation_time) {
   SessionRead req = {imsi};
-
   auto delta = time_difference_from_now(revalidation_time);
+  MLOG(MINFO) << imsi << " Scheduling revalidation in "
+              << delta.count() << "ms";
   evb_->runInEventBaseThread([=] {
     evb_->timer().scheduleTimeoutFn(
         std::move([=] {
+          MLOG(MINFO) << imsi << " Revalidation timeout!";
           auto session_map = session_store_.read_sessions_for_reporting(req);
-          MLOG(MDEBUG) << "Revalidation timeout!";
           SessionUpdate update =
               SessionStore::get_default_session_update(session_map);
           check_usage_for_reporting(session_map, update, true);
