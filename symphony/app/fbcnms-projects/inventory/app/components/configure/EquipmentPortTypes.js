@@ -16,7 +16,7 @@ import AddEditEquipmentPortTypeCard from './AddEditEquipmentPortTypeCard';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import ConfigueTitle from '@fbcnms/ui/components/ConfigureTitle';
 import EquipmentPortTypeItem from './EquipmentPortTypeItem';
-import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
+import FormActionWithPermissions from '../../common/FormActionWithPermissions';
 import InventoryQueryRenderer from '../InventoryQueryRenderer';
 import React from 'react';
 import withInventoryErrorBoundary from '../../common/withInventoryErrorBoundary';
@@ -152,14 +152,15 @@ class EquipmentPortTypes extends React.Component<Props, State> {
                     subtitle={'Manage the types of ports in your inventory'}
                   />
                   <div className={classes.addButtonContainer}>
-                    <FormAction>
+                    <FormActionWithPermissions
+                      permissions={{entity: 'portType', action: 'create'}}>
                       <Button
                         onClick={() =>
                           this.showAddEditEquipmentPortTypeCard(null)
                         }>
                         Add Port Type
                       </Button>
-                    </FormAction>
+                    </FormActionWithPermissions>
                   </div>
                 </div>
                 <div className={classes.root}>

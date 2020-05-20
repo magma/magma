@@ -34,11 +34,11 @@ type AdminPermissionEnforcement = $ReadOnly<{|
 |}>;
 
 type InventoryEntWithPermission = $Keys<InventoryEntsPolicy>;
-type InventoryEntName = InventoryEntWithPermission | 'service' | 'port';
+export type InventoryEntName = InventoryEntWithPermission | 'service' | 'port';
 type WorkforceTemplateEntName = 'workorderTemplate' | 'projectTemplate';
 type InventoryActionName = $Keys<CUDPermissions>;
 
-type InventoryPermissionEnforcement = $ReadOnly<{|
+export type InventoryPermissionEnforcement = $ReadOnly<{|
   ...BasePermissionEnforcement,
   entity: InventoryEntName | WorkforceTemplateEntName,
   action?: ?InventoryActionName,
@@ -93,13 +93,20 @@ const performCheck = (
       : FAILED_ADMIN_VALUE;
   }
 
-  if (!permissionsEnforcement.entity || !permissionsEnforcement.action) {
+  if (!permissionsEnforcement.entity) {
     return PASSED_VALUE;
   }
 
   let actionPermissionValue: ?BasicPermissionRule;
 
   if (
+    permissionsEnforcement.entity === 'service' ||
+    permissionsEnforcement.entity === 'port'
+  ) {
+    actionPermissionValue = userPermissions.inventoryPolicy.equipment.update;
+  } else if (!permissionsEnforcement.action) {
+    return PASSED_VALUE;
+  } else if (
     permissionsEnforcement.entity === 'workorder' ||
     permissionsEnforcement.entity === 'project'
   ) {
@@ -118,24 +125,19 @@ const performCheck = (
   } else if (
     permissionsEnforcement.entity === 'location' ||
     permissionsEnforcement.entity === 'equipment' ||
-    permissionsEnforcement.entity === 'port' ||
-    permissionsEnforcement.entity === 'service' ||
     permissionsEnforcement.entity === 'locationType' ||
     permissionsEnforcement.entity === 'equipmentType' ||
     permissionsEnforcement.entity === 'portType' ||
     permissionsEnforcement.entity === 'serviceType'
   ) {
     const enforcement: InventoryPermissionEnforcement = permissionsEnforcement;
-    const subjectEntity: InventoryEntWithPermission =
-      permissionsEnforcement.entity === 'service' ||
-      permissionsEnforcement.entity === 'port'
-        ? 'equipment'
-        : permissionsEnforcement.entity;
     if (!enforcement.action) {
       return PASSED_VALUE;
     }
     actionPermissionValue =
-      userPermissions.inventoryPolicy[subjectEntity][enforcement.action];
+      userPermissions.inventoryPolicy[permissionsEnforcement.entity][
+        enforcement.action
+      ];
   }
 
   if (actionPermissionValue == null) {
