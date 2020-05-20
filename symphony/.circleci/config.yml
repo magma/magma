@@ -67,6 +67,11 @@ commands:
       - go/mod-download
       - go/save-cache
 
+  helm-install:
+    steps:
+      - helm/install-helm-client:
+          version: v3.2.1
+
   helm-lint:
     parameters:
       chart:
@@ -280,8 +285,7 @@ jobs:
         type: string
     steps:
       - checkout
-      - helm/install-helm-client:
-          version: v3.0.0
+      - helm-install
       - helm-lint:
           chart: inventory
           working_directory: <<parameters.working_directory>>
@@ -580,8 +584,7 @@ workflows:
       - artifactory/upload:
           name: upload-charts
           build-steps:
-            - helm/install-helm-client:
-                version: v3.0.0
+            - helm-install
             - run: mkdir /tmp/helm-charts
             - helm-package:
                 chart: inventory
