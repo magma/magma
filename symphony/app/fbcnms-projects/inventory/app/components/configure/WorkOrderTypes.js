@@ -15,6 +15,7 @@ import type {
 
 import AddEditWorkOrderTypeCard from './AddEditWorkOrderTypeCard';
 import Button from '@fbcnms/ui/components/design-system/Button';
+import FormActionWithPermissions from '../../common/FormActionWithPermissions';
 import InventoryView from '../InventoryViewContainer';
 import React, {useMemo, useState} from 'react';
 import Table from '@fbcnms/ui/components/design-system/Table/Table';
@@ -116,9 +117,16 @@ const WorkOrderTypes = () => {
         title: <fbt desc="">Work Order Templates</fbt>,
         subtitle: <fbt desc="">Create and manage reusable work orders.</fbt>,
         actionButtons: [
-          <Button onClick={() => showAddEditWorkOrderTypeCard(null)}>
-            <fbt desc="">Create Work Order Template</fbt>
-          </Button>,
+          <FormActionWithPermissions
+            permissions={{
+              entity: 'workorderTemplate',
+              action: 'create',
+            }}>
+            <Button onClick={() => showAddEditWorkOrderTypeCard(null)}>
+              <fbt desc="">Create Work Order Template</fbt>
+            </Button>
+            ,
+          </FormActionWithPermissions>,
         ],
       }}
       permissions={{

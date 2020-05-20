@@ -14,6 +14,7 @@ import AddWorkOrderCard from './AddWorkOrderCard';
 import AddWorkOrderDialog from './AddWorkOrderDialog';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import ErrorBoundary from '@fbcnms/ui/components/ErrorBoundary/ErrorBoundary';
+import FormActionWithPermissions from '../../common/FormActionWithPermissions';
 import InventorySuspense from '../../common/InventorySuspense';
 import InventoryView, {DisplayOptions} from '../InventoryViewContainer';
 import PowerSearchBar from '../power_search/PowerSearchBar';
@@ -164,9 +165,15 @@ const WorkOrderComparisonView = () => {
       </div>
     ),
     actionButtons: [
-      <Button onClick={showDialog}>
-        <fbt desc="">Create Work Order</fbt>
-      </Button>,
+      <FormActionWithPermissions
+        permissions={{
+          entity: 'workorder',
+          action: 'create',
+        }}>
+        <Button onClick={showDialog}>
+          <fbt desc="">Create Work Order</fbt>
+        </Button>
+      </FormActionWithPermissions>,
     ],
   };
 

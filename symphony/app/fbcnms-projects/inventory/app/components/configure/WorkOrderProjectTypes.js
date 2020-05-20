@@ -12,6 +12,7 @@ import type {WorkOrderProjectTypesQueryResponse} from './__generated__/WorkOrder
 
 import AddEditProjectTypeCard from './AddEditProjectTypeCard';
 import Button from '@fbcnms/ui/components/design-system/Button';
+import FormActionWithPermissions from '../../common/FormActionWithPermissions';
 import InventoryQueryRenderer from '../InventoryQueryRenderer';
 import InventoryView from '../InventoryViewContainer';
 import ProjectTypeCard from './ProjectTypeCard';
@@ -110,16 +111,21 @@ const WorkOrderProjectTypes = () => {
                 <fbt desc="">Create and manage reusable project workflows.</fbt>
               ),
               actionButtons: [
-                <Button
-                  onClick={() => {
-                    ServerLogger.info(
-                      LogEvents.ADD_PROJECT_TEMPLATE_BUTTON_CLICKED,
-                    );
-                    setShowAddEditCard(true);
+                <FormActionWithPermissions
+                  permissions={{
+                    entity: 'projectTemplate',
+                    action: 'create',
                   }}>
-                  <fbt desc="">Create Project Template</fbt>
-                </Button>,
-                ,
+                  <Button
+                    onClick={() => {
+                      ServerLogger.info(
+                        LogEvents.ADD_PROJECT_TEMPLATE_BUTTON_CLICKED,
+                      );
+                      setShowAddEditCard(true);
+                    }}>
+                    <fbt desc="">Create Project Template</fbt>
+                  </Button>
+                </FormActionWithPermissions>,
               ],
             }}
             permissions={{

@@ -13,6 +13,7 @@ import AddProjectCard from './AddProjectCard';
 import AddProjectDialog from './AddProjectDialog';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import ErrorBoundary from '@fbcnms/ui/components/ErrorBoundary/ErrorBoundary';
+import FormActionWithPermissions from '../../common/FormActionWithPermissions';
 import InventoryView, {DisplayOptions} from '../InventoryViewContainer';
 import ProjectCard from './ProjectCard';
 import ProjectComparisonViewQueryRenderer from './ProjectComparisonViewQueryRenderer';
@@ -74,14 +75,20 @@ const ProjectComparisonView = () => {
   const header = {
     title: 'Projects',
     actionButtons: [
-      <Button
-        onClick={() => {
-          setDialogOpen(true);
-          setDialogKey(dialogKey + 1);
-          ServerLogger.info(LogEvents.ADD_PROJECT_BUTTON_CLICKED);
+      <FormActionWithPermissions
+        permissions={{
+          entity: 'project',
+          action: 'create',
         }}>
-        <fbt desc="">Create Project</fbt>
-      </Button>,
+        <Button
+          onClick={() => {
+            setDialogOpen(true);
+            setDialogKey(dialogKey + 1);
+            ServerLogger.info(LogEvents.ADD_PROJECT_BUTTON_CLICKED);
+          }}>
+          <fbt desc="">Create Project</fbt>
+        </Button>
+      </FormActionWithPermissions>,
     ],
   };
   return (
