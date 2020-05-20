@@ -209,17 +209,21 @@ func TestDontAddDuplicateProperties(t *testing.T) {
 
 	locType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{
 		Name: "location_type_name_1",
-		Properties: []*models.PropertyTypeInput{&models.PropertyTypeInput{
-			Name: "str_prop",
-			Type: "string",
-		}}})
+		Properties: []*models.PropertyTypeInput{
+			{
+				Name: "str_prop",
+				Type: models.PropertyKindString,
+			},
+		}})
 	require.NoError(t, err, "Adding location type")
 	eqType, err := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
 		Name: "equip_type",
-		Properties: []*models.PropertyTypeInput{&models.PropertyTypeInput{
-			Name: "str_prop",
-			Type: "string",
-		}},
+		Properties: []*models.PropertyTypeInput{
+			{
+				Name: "str_prop",
+				Type: models.PropertyKindString,
+			},
+		},
 	})
 	require.NoError(t, err, "Adding location type")
 
@@ -270,7 +274,7 @@ func TestDontAddDuplicateProperties(t *testing.T) {
 	require.Equal(t, strFetchProp.StringVal, *strProp.StringValue, "Comparing properties: string value")
 
 	strProp.StringValue = pointer.ToString("new value")
-	loc, err = mr.EditLocation(ctx, models.EditLocationInput{
+	_, err = mr.EditLocation(ctx, models.EditLocationInput{
 		ID:         eq.ID,
 		Name:       "equip_name",
 		Properties: []*models.PropertyInput{&strProp},
