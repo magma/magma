@@ -928,6 +928,43 @@ var (
 				OnDelete:   schema.SetNull,
 			},
 		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "property_property_type_location_properties",
+				Unique:  true,
+				Columns: []*schema.Column{PropertiesColumns[16], PropertiesColumns[14]},
+			},
+			{
+				Name:    "property_property_type_equipment_properties",
+				Unique:  true,
+				Columns: []*schema.Column{PropertiesColumns[16], PropertiesColumns[11]},
+			},
+			{
+				Name:    "property_property_type_service_properties",
+				Unique:  true,
+				Columns: []*schema.Column{PropertiesColumns[16], PropertiesColumns[22]},
+			},
+			{
+				Name:    "property_property_type_equipment_port_properties",
+				Unique:  true,
+				Columns: []*schema.Column{PropertiesColumns[16], PropertiesColumns[12]},
+			},
+			{
+				Name:    "property_property_type_link_properties",
+				Unique:  true,
+				Columns: []*schema.Column{PropertiesColumns[16], PropertiesColumns[13]},
+			},
+			{
+				Name:    "property_property_type_work_order_properties",
+				Unique:  true,
+				Columns: []*schema.Column{PropertiesColumns[16], PropertiesColumns[23]},
+			},
+			{
+				Name:    "property_property_type_project_properties",
+				Unique:  true,
+				Columns: []*schema.Column{PropertiesColumns[16], PropertiesColumns[15]},
+			},
+		},
 	}
 	// PropertyTypesColumns holds the columns for the "property_types" table.
 	PropertyTypesColumns = []*schema.Column{
