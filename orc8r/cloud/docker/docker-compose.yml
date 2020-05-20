@@ -86,7 +86,6 @@ services:
     links:
       - fluentd
     restart: always
-
     # See comment block for the 'controller' service about logging
 #    logging:
 #      driver: fluentd
@@ -95,6 +94,18 @@ services:
 #        tag: orc8r.proxy
 #        fluentd-retry-wait: '1s'
 #        fluentd-max-retries: '120'
+
+  nginx:
+    ports:
+      - 8443:8443/tcp
+      - 8444:8444/tcp
+    volumes:
+      - $PWD/../../../.cache/test_certs:/var/opt/magma/certs
+    environment:
+      CONTROLLER_HOSTNAME: controller.magma.test
+      PROXY_BACKENDS: controller
+      TEST_MODE: "1"
+    restart: always
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.3.1
