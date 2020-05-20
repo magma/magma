@@ -6,14 +6,12 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
-import asyncio
 import contextlib
 import json
-import abc
-import os
 from typing import Any, Generic, TypeVar
 
-import magma.configuration.events as magma_configuration_events
+import abc
+import os
 from google.protobuf import json_format
 from magma.common import serialization_utils
 from magma.configuration.exceptions import LoadConfigError
@@ -28,39 +26,36 @@ MCONFIG_OVERRIDE_DIR = '/var/opt/magma/configs'
 DEFAULT_MCONFIG_DIR = os.environ.get('MAGMA_CONFIG_LOCATION', MCONFIG_DIR)
 
 
-def get_mconfig_manager(loop=None):
+def get_mconfig_manager():
     """
     Get the mconfig manager implementation that the system is configured to
     use.
 
     Returns: MconfigManager implementation
     """
-    if loop is None:
-        loop = asyncio.get_event_loop()
     # This is stubbed out after deleting the streamed mconfig manager
-    return MconfigManagerImpl(loop)
+    return MconfigManagerImpl()
 
 
-def load_service_mconfig(service: str, mconfig_struct: Any, loop=None) -> Any:
+def load_service_mconfig(service: str, mconfig_struct: Any) -> Any:
     """
     Utility function to load the mconfig for a specific service using the
     configured mconfig manager.
     """
-    return get_mconfig_manager(loop).load_service_mconfig(service, mconfig_struct)
+    return get_mconfig_manager().load_service_mconfig(service, mconfig_struct)
 
 
-def load_service_mconfig_as_json(service_name: str, loop=None) -> Any:
+def load_service_mconfig_as_json(service_name: str) -> Any:
     """
     Loads the managed configuration from its json file stored on disk.
 
     Args:
         service_name (str): name of the service to load the config for
-        loop (asyncio.AbstractEventLoop): an event loop to run async tasks on
 
     Returns: Loaded config value for the service as parsed json struct, not
     protobuf message struct
     """
-    return get_mconfig_manager(loop).load_service_mconfig_as_json(service_name)
+    return get_mconfig_manager().load_service_mconfig_as_json(service_name)
 
 
 class MconfigManager(Generic[T]):
@@ -143,10 +138,6 @@ class MconfigManagerImpl(MconfigManager[GatewayConfigs]):
     MCONFIG_FILE_NAME = 'gateway.mconfig'
     MCONFIG_PATH = os.path.join(MCONFIG_OVERRIDE_DIR, MCONFIG_FILE_NAME)
 
-    def __init__(self, loop: asyncio.AbstractEventLoop):
-        self._loop = loop
-
-
     def load_mconfig(self) -> GatewayConfigs:
         cfg_file_name = self._get_mconfig_file_path()
         try:
@@ -212,13 +203,11 @@ class MconfigManagerImpl(MconfigManager[GatewayConfigs]):
     def delete_stored_mconfig(self):
         with contextlib.suppress(FileNotFoundError):
             os.remove(self.MCONFIG_PATH)
-        magma_configuration_events.deleted_stored_mconfig(self._loop)
 
     def update_stored_mconfig(self, updated_value: str) -> GatewayConfigs:
         serialization_utils.write_to_file_atomically(
             self.MCONFIG_PATH, updated_value,
         )
-        magma_configuration_events.updated_stored_mconfig(self._loop)
 
     def _get_mconfig_file_path(self):
         if os.path.isfile(self.MCONFIG_PATH):
