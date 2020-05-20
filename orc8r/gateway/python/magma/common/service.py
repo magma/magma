@@ -75,14 +75,14 @@ class MagmaService(Service303Servicer):
         # Load the managed config if present
         self._mconfig = empty_mconfig
         self._mconfig_metadata = None
-        self._mconfig_manager = get_mconfig_manager(loop)
-        if loop is None:
-            loop = asyncio.get_event_loop()
-        self._loop = loop
+        self._mconfig_manager = get_mconfig_manager()
         self.reload_mconfig()
 
         self._state = ServiceInfo.STARTING
         self._health = ServiceInfo.APP_UNHEALTHY
+        if loop is None:
+            loop = asyncio.get_event_loop()
+        self._loop = loop
         self._start_time = int(time.time())
         self._register_signal_handlers()
 
@@ -189,7 +189,7 @@ class MagmaService(Service303Servicer):
         """
         try:
             # reload mconfig manager in case feature flag for streaming changed
-            self._mconfig_manager = get_mconfig_manager(self._loop)
+            self._mconfig_manager = get_mconfig_manager()
             self._mconfig = self._mconfig_manager.load_service_mconfig(
                 self._name,
                 self._mconfig,

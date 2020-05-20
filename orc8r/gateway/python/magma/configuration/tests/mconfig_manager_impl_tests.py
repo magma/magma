@@ -6,7 +6,7 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
-import asyncio
+
 import unittest
 from unittest import mock
 
@@ -18,9 +18,6 @@ from orc8r.protos.mconfig import mconfigs_pb2
 
 
 class MconfigManagerImplTest(unittest.TestCase):
-    def setUp(self) -> None:
-        asyncio.set_event_loop(asyncio.new_event_loop())
-
     @mock.patch('magma.configuration.service_configs.load_service_config')
     def test_load_mconfig(self, get_service_config_value_mock):
         # Fixture mconfig has 1 unrecognized service, 1 unregistered type
@@ -57,6 +54,6 @@ class MconfigManagerImplTest(unittest.TestCase):
         }
 
         with mock.patch('builtins.open', mock.mock_open(read_data=fixture)):
-            manager = mconfig_managers.MconfigManagerImpl(asyncio.get_event_loop())
+            manager = mconfig_managers.MconfigManagerImpl()
             with self.assertRaises(LoadConfigError):
                 manager.load_mconfig()

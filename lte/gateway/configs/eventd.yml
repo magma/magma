@@ -20,15 +20,3 @@ event_registry:
   session_terminated:
     module: lte
     filename: session_manager_events.v1.yml
-  deleted_stored_mconfig:
-     module: orc8r
-     filename: magmad_events.v1.yml
-  updated_stored_mconfig:
-    module: orc8r
-    filename: magmad_events.v1.yml
-  processed_updates:
-    module: orc8r
-    filename: magmad_events.v1.yml
-  restarted_services:
-    module: orc8r
-    filename: magmad_events.v1.yml

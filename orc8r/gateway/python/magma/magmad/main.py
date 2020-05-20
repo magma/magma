@@ -57,14 +57,9 @@ def main():
                                    enabled_dynamic_services)
     service_poller.start()
 
-    service_manager = ServiceManager(
-        services,
-        init_system,
-        service_poller,
-        service.loop,
-        registered_dynamic_services,
-        enabled_dynamic_services,
-    )
+    service_manager = ServiceManager(services, init_system, service_poller,
+                                     registered_dynamic_services,
+                                     enabled_dynamic_services)
 
     # Get metrics service config
     metrics_config = service.config['metricsd']
@@ -91,11 +86,10 @@ def main():
         stream_client = StreamerClient(
             {
                 CONFIG_STREAM_NAME: ConfigManager(
-                    services,
-                    service_manager,
+                    services, service_manager,
                     service,
-                    MconfigManagerImpl(service.loop),
-                )
+                    MconfigManagerImpl(),
+                ),
             },
             service.loop,
         )
@@ -125,8 +119,7 @@ def main():
 
             # fluent-bit caches TLS client certs in memory, so we need to
             # restart it whenever the certs change
-            fresh_mconfig = get_mconfig_manager(
-                service.loop).load_service_mconfig(
+            fresh_mconfig = get_mconfig_manager().load_service_mconfig(
                 'magmad', mconfigs_pb2.MagmaD(),
             )
             dynamic_svcs = fresh_mconfig.dynamic_services or []
@@ -195,11 +188,10 @@ def main():
     # Start loop to monitor unattended upgrade status
     service.loop.create_task(monitor_unattended_upgrade_status(service.loop))
 
-    mconfig_manager = get_mconfig_manager(service.loop)
     # Add all servicers to the server
     magmad_servicer = MagmadRpcServicer(
         service,
-        services, service_manager, mconfig_manager, command_executor,
+        services, service_manager, get_mconfig_manager(), command_executor,
         service.loop,
     )
     magmad_servicer.add_to_server(service.rpc_server)
