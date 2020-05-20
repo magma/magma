@@ -121,6 +121,8 @@ class FlowVerifier:
         """
         for f, i, test in zip(self._final, self._initial, self._flow_tests):
             if test.flow_count is not None:
+                print(f)
+                print(test)
                 TestCase().assertEqual(f.flow_count, test.flow_count)
             TestCase().assertEqual(f.pkts, i.pkts + test.match_num)
 
@@ -294,6 +296,7 @@ def wait_for_enforcement_stats(controller, rule_list, wait_time=1,
     while not all(stats_reported[rule] for rule in rule_list):
         hub.sleep(wait_time)
         for reported_stats in controller._report_usage.call_args_list:
+            #logging.error(reported_stats)
             stats = reported_stats[0][0]
             for rule in rule_list:
                 if rule in stats:
