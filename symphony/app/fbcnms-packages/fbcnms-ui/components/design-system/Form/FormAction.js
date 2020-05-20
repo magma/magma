@@ -14,18 +14,22 @@ import {joinNullableStrings} from '@fbcnms/util/strings';
 import {useFormAlertsContext} from '../Form/FormAlertsContext';
 import {useMemo} from 'react';
 
-export type PermissionHandlingProps = {|
+export type PermissionHandlingProps = $ReadOnly<{|
   ignorePermissions?: ?boolean,
   hideOnMissingPermissions?: ?boolean,
   disableOnFromError?: ?boolean,
-|};
+|}>;
 
-type Props = {
+export type FormActionProps = $ReadOnly<{|
   children: React.Node,
   disabled?: boolean,
   tooltip?: ?string,
+|}>;
+
+type Props = $ReadOnly<{|
+  ...FormActionProps,
   ...PermissionHandlingProps,
-};
+|}>;
 
 const FormAction = (props: Props) => {
   const {
@@ -39,7 +43,7 @@ const FormAction = (props: Props) => {
 
   const validationContext = useFormAlertsContext();
   const missingPermissions =
-    validationContext.missingPermissions.detected && !ignorePermissions;
+    ignorePermissions !== true && validationContext.missingPermissions.detected;
   const edittingLocked =
     missingPermissions || validationContext.editLock.detected;
   const shouldHide = missingPermissions && hideOnMissingPermissions == true;
