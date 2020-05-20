@@ -29,10 +29,12 @@ from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.messages import MsgChannel, MessageHub
 
 from magma.pipelined.openflow.registers import Direction, DIRECTION_REG, \
-    IMSI_REG, RULE_VERSION_REG
+    IMSI_REG, RULE_VERSION_REG, SCRATCH_REGS
 
 
 ETH_FRAME_SIZE_BYTES = 14
+PROCESS_STATS = 0x0
+IGNORE_STATS = 0x1
 
 
 class RelayDisabledException(Exception):
@@ -211,7 +213,9 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         outbound_rule_match = _generate_rule_match(imsi, rule_num, version,
                                                    Direction.OUT)
 
-        return [
+        inbound_rule_match._match_kwargs[SCRATCH_REGS[1]] = PROCESS_STATS
+        outbound_rule_match._match_kwargs[SCRATCH_REGS[1]] = PROCESS_STATS
+        msgs = [
             flows.get_add_resubmit_next_service_flow_msg(
                 self._datapath,
                 self.tbl_num,
@@ -229,6 +233,29 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
                 cookie=rule_num,
                 resubmit_table=self.next_table),
         ]
+
+        if rule.app_name:
+            inbound_rule_match._match_kwargs[SCRATCH_REGS[1]] = IGNORE_STATS
+            outbound_rule_match._match_kwargs[SCRATCH_REGS[1]] = IGNORE_STATS
+            msgs.extend([
+                flows.get_add_resubmit_next_service_flow_msg(
+                    self._datapath,
+                    self.tbl_num,
+                    inbound_rule_match,
+                    [],
+                    priority=flows.DEFAULT_PRIORITY,
+                    cookie=rule_num,
+                    resubmit_table=self.next_table),
+                flows.get_add_resubmit_next_service_flow_msg(
+                    self._datapath,
+                    self.tbl_num,
+                    outbound_rule_match,
+                    [],
+                    priority=flows.DEFAULT_PRIORITY,
+                    cookie=rule_num,
+                    resubmit_table=self.next_table),
+            ])
+        return msgs
 
     def _get_default_flow_msg_for_subscriber(self, _):
         return None
@@ -372,6 +399,9 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
                 self.logger.error('%s bytes total not reported.',
                                   flow_stat.byte_count)
                 self._unmatched_bytes = flow_stat.byte_count
+            return current_usage
+        # If this is a pass through app name flow ignore stats
+        if flow_stat.match[SCRATCH_REGS[1]] == IGNORE_STATS:
             return current_usage
         sid = _get_sid(flow_stat)
 
