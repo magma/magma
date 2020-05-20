@@ -165,12 +165,12 @@ cp .env /var/opt/magma/docker/
 cp recreate_services.sh /var/opt/magma/docker/
 cp recreate_services_cron /etc/cron.d/
 
-# When DPI is enabled
+# Copy DPI docker files
 if [ "$GW_TYPE" == "$CWAG" ] && [ -f "$DPI_LICENSE_NAME" ]; then
   MODULE_DIR="cwf"
-  mkdir -p /var/opt/magma/secrets
+  mkdir -p "$SECRETS_VOLUME"
   cp "$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/docker/docker-compose-dpi.override.yml /var/opt/magma/docker/
-  cp "$DPI_LICENSE_NAME" /var/opt/magma/secrets/
+  cp "$DPI_LICENSE_NAME" "$SECRETS_VOLUME"
 fi
 
 cd /var/opt/magma/docker
@@ -182,7 +182,7 @@ fi
 docker-compose pull
 docker-compose -f docker-compose.yml up -d
 
-# When DPI is enabled
+# Pull and Run DPI container
 if [ "$GW_TYPE" == "$CWAG" ] && [ -f "$DPI_LICENSE_NAME" ]; then
   docker-compose -f docker-compose-dpi.override.yml pull
   docker-compose -f docker-compose-dpi.override.yml up -d
