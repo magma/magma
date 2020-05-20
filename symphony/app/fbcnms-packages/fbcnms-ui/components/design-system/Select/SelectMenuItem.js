@@ -8,7 +8,10 @@
  * @format
  */
 
-import type {PermissionHandlingProps} from '../Form/FormAction';
+import type {
+  ErrorHandlingProps,
+  PermissionHandlingProps,
+} from '../Form/FormAction';
 
 import * as React from 'react';
 import CheckIcon from '@material-ui/icons/Check';
@@ -49,6 +52,7 @@ type Props<TValue> = {|
   isSelected?: boolean,
   className?: ?string,
   ...PermissionHandlingProps,
+  ...ErrorHandlingProps,
 |};
 
 const SelectMenuItem = <TValue>({
@@ -58,12 +62,12 @@ const SelectMenuItem = <TValue>({
   isSelected = false,
   hideOnMissingPermissions = false,
   className,
-  ...permissionHandlingProps
+  ...actionProps
 }: Props<TValue>) => {
   const classes = useStyles();
   return (
     <FormAction
-      {...permissionHandlingProps}
+      {...actionProps}
       hideOnMissingPermissions={hideOnMissingPermissions}>
       <FormElementContext.Consumer>
         {context => {

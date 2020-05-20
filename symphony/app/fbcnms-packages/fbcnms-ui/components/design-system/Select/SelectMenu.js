@@ -8,7 +8,10 @@
  * @format
  */
 
-import type {PermissionHandlingProps} from '../Form/FormAction';
+import type {
+  ErrorHandlingProps,
+  PermissionHandlingProps,
+} from '../Form/FormAction';
 
 import * as React from 'react';
 import SelectMenuItem from './SelectMenuItem';
@@ -42,6 +45,7 @@ export type OptionProps<TValue> = {|
   value: TValue,
   className?: ?string,
   ...PermissionHandlingProps,
+  ...ErrorHandlingProps,
 |};
 
 type Props<TValue> = {

@@ -280,7 +280,7 @@ const WorkOrderDetails = ({
         permissions={{
           entity: 'workorder',
           action: 'update',
-          ignore: isOwnerOrAssignee,
+          ignorePermissions: isOwnerOrAssignee,
         }}>
         <WorkOrderHeader
           workOrderName={propsWorkOrder.name}

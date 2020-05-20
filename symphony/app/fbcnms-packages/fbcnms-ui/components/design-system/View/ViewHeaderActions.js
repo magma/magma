@@ -9,9 +9,12 @@
  */
 
 import type {ButtonProps} from '../Button';
+import type {
+  ErrorHandlingProps,
+  PermissionHandlingProps,
+} from '@fbcnms/ui/components/design-system/Form/FormAction';
 import type {IconButtonProps} from '../IconButton';
 import type {OptionProps} from '../Select/SelectMenu';
-import type {PermissionHandlingProps} from '@fbcnms/ui/components/design-system/Form/FormAction';
 
 import * as React from 'react';
 import Button from '@fbcnms/ui/components/design-system/Button';
@@ -35,12 +38,13 @@ type BaseHeaderActionProps = $ReadOnly<{|
   tooltip?: string,
   disabled?: boolean,
   ...PermissionHandlingProps,
+  ...ErrorHandlingProps,
 |}>;
 
 export type ButtonActionProps = $ReadOnly<{|
   action: () => void,
   className?: ?string,
-  ...PermissionHandlingProps,
+  ...BaseHeaderActionProps,
   ...ButtonProps,
   children: React.Node,
 |}> &
@@ -81,7 +85,7 @@ export const ButtonAction = withStyles(styles)(ButtonActionComponent);
 
 export type IconActionProps = $ReadOnly<{|
   action: () => void,
-  ...PermissionHandlingProps,
+  ...BaseHeaderActionProps,
   ...IconButtonProps,
 |}> &
   WithStyles<typeof styles>;

@@ -15,6 +15,7 @@ import type {
   WorkforceCUDPermissions,
 } from './UserManagementUtils';
 import type {FormAlertsContextType} from '@fbcnms/ui/components/design-system/Form/FormAlertsContext';
+import type {PermissionHandlingProps} from '@fbcnms/ui/components/design-system/Form/FormAction';
 import type {UserPermissions} from '../../../MainContext';
 
 import fbt from 'fbt';
@@ -24,7 +25,7 @@ import {useFormAlertsContext} from '@fbcnms/ui/components/design-system/Form/For
 import {useMainContext} from '../../../MainContext';
 
 type BasePermissionEnforcement = $ReadOnly<{|
-  ignore?: ?boolean,
+  ...PermissionHandlingProps,
 |}>;
 
 type AdminPermissionEnforcement = $ReadOnly<{|
@@ -81,7 +82,7 @@ const performCheck = (
   userPermissions: UserPermissions,
   permissionsEnforcement: PermissionEnforcement,
 ) => {
-  if (permissionsEnforcement.ignore === true) {
+  if (permissionsEnforcement.ignorePermissions === true) {
     return PASSED_VALUE;
   }
 

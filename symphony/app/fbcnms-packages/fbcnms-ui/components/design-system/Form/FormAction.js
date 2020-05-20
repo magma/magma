@@ -17,6 +17,9 @@ import {useMemo} from 'react';
 export type PermissionHandlingProps = $ReadOnly<{|
   ignorePermissions?: ?boolean,
   hideOnMissingPermissions?: ?boolean,
+|}>;
+
+export type ErrorHandlingProps = $ReadOnly<{|
   disableOnFromError?: ?boolean,
 |}>;
 
@@ -29,6 +32,7 @@ export type FormActionProps = $ReadOnly<{|
 type Props = $ReadOnly<{|
   ...FormActionProps,
   ...PermissionHandlingProps,
+  ...ErrorHandlingProps,
 |}>;
 
 const FormAction = (props: Props) => {
