@@ -138,7 +138,6 @@ const MessageDialog = ({
               onConfirm &&
               onConfirm(verificationCheckbox == null ? null : checkboxChecked)
             }
-            autoFocus
             skin={skin}
             disabled={
               verificationCheckbox?.isMandatory === true && !checkboxChecked

@@ -243,7 +243,6 @@ const ExperimentalPropertyTypesTable = ({
       </Table>
       <FormAction>
         <Button
-          color="primary"
           variant="text"
           onClick={() => dispatch({type: 'ADD_PROPERTY_TYPE'})}
           leftIcon={PlusIcon}>
