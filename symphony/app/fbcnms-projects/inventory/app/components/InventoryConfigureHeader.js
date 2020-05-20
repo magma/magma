@@ -9,7 +9,7 @@
  */
 
 import type {ButtonProps} from '@fbcnms/ui/components/design-system/Button';
-import type {PermissionEnforcement} from '../common/FormContext';
+import type {PermissionEnforcement} from './admin/userManagement/utils/usePermissions';
 import type {PermissionHandlingProps} from '@fbcnms/ui/components/design-system/Form/FormAction';
 
 import * as React from 'react';
