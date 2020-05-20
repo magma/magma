@@ -280,7 +280,8 @@ jobs:
         type: string
     steps:
       - checkout
-      - helm/install-helm-client
+      - helm/install-helm-client:
+          version: v3.0.0
       - helm-lint:
           chart: inventory
           working_directory: <<parameters.working_directory>>
@@ -579,7 +580,8 @@ workflows:
       - artifactory/upload:
           name: upload-charts
           build-steps:
-            - helm/install-helm-client
+            - helm/install-helm-client:
+                version: v3.0.0
             - run: mkdir /tmp/helm-charts
             - helm-package:
                 chart: inventory
