@@ -116,6 +116,13 @@ message FlowRequest {
   string service_type = 4;
   string src_mac = 5;
   string dst_mac = 6;
+  enum FlowState {
+    FLOW_CREATED = 0;
+    FLOW_PARTIAL_CLASSIFICATION = 1;
+    FLOW_FINAL_CLASSIFICATION = 2;
+    FLOW_EXPIRED = 3;
+  }
+  FlowState state = 7;
 }
 
 message FlowResponse {
