@@ -25,24 +25,19 @@ import (
 	"golang.org/x/net/context"
 )
 
-/*
-* ##########################################
-* How CentralSessionControllers works
-*
-* CentralSessionControllers holds an slice of N Controllers. Each controller uses an particular diameter
-* client to an specific PCRF and OCS. Each diameter client is configured with its own src and dst port
-*
-* Subscribers are forwarded to a different controller based on their IMSI that comes either in IMSI form on
-* CreateSession or as SessionId (IMSI######-1234) for UpdateSession and Terminate session
-*
-* CreateSession and Terminate session gRPC message come per IMSI so they are forwarded to the controller directly
-*
-* UpdateSession gRPC message comes in groups, so before sending to each controller we look into each Credit and Policy
-* request and forward it to the right controller depending on IMSI
-*
-* Health, Enable and Disable returns error if any of the controllers return errors. No partial results are give.
-* ##########################################
- */
+// How CentralSessionControllers works
+//
+// CentralSessionControllers holds an slice of N Controllers. Each controller uses an particular diameter
+// client to a specific PCRF and OCS. Each diameter client is configured with its own src and dst port
+// Subscribers are forwarded to a different controller using algorithm defined in multiplex object
+//
+// CreateSession and Terminate session gRPC message come per subscriber so they are forwarded to
+// the controller directly
+//
+// UpdateSession gRPC message comes in groups, so before sending the request to each controller we look
+// into each Credit and Policy request and forward it to the right controller depending on multiplex
+//
+// Health, Enable and Disable returns error if any of the controllers return errors. No partial results are give.
 
 // CentralSessionControllerServerWithHealth is an interface just to group CentralSessionControllerServer
 // and ServiceHealthServer. This is used by NewCentralSessionControllerWithHealth to be able to return

@@ -195,3 +195,49 @@ func testPrintErrors(ec <-chan *diam.ErrorReport) {
 		fmt.Printf("Error: %v for Message: %s", err.Error, err.Message)
 	}
 }
+
+// StartEmptyDiameterServer starts an empty server for testing
+func StartEmptyDiameterServer(network, addr string) (string, error) {
+	settings := &sm.Settings{
+		OriginHost:       datatype.DiameterIdentity("magma-oai.openair4G.eur"),
+		OriginRealm:      datatype.DiameterIdentity("openair4G.eur"),
+		VendorID:         datatype.Unsigned32(diameter.Vendor3GPP),
+		ProductName:      "go-diameter-swx",
+		FirmwareRevision: 1,
+	}
+	// Create the state machine (mux) and set its message handlers.
+	errResults := make(chan error, 2)
+	addrResult := make(chan string, 1)
+
+	mux := sm.New(settings)
+
+	// Catch All
+	mux.HandleIdx(diam.ALL_CMD_INDEX, testHandleALL(errResults))
+
+	// Print error reports.
+	go testPrintErrors(mux.ErrorReports())
+
+	// Start Swx Diameter Server
+	go func() {
+		errResults <- nil
+		server := diam.Server{
+			Network: network,
+			Addr:    addr,
+			Handler: mux,
+		}
+		lis, err := diam.MultistreamListen(network, addr)
+		if err != nil {
+			fmt.Printf("StartEmptyDiameterServer Error: %v for address: %s\n", err, addr)
+			errResults <- err
+		}
+		addrResult <- lis.Addr().String()
+		server.Serve(lis)
+	}()
+	err := <-errResults
+	serverAddr := <-addrResult
+	if err != nil {
+		return "", err
+	}
+	time.Sleep(time.Millisecond * 20)
+	return serverAddr, nil
+}
