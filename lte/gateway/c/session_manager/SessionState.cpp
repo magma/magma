@@ -108,8 +108,8 @@ SessionState::SessionState(
       session_id_(session_id),
       core_session_id_(core_session_id),
       config_(cfg),
-      // Request number set to 2, because request 1 is INIT call
-      request_number_(2),
+      // Request number set to 1, because request 0 is INIT call
+      request_number_(1),
       curr_state_(SESSION_ACTIVE),
       charging_pool_(imsi),
       monitor_pool_(imsi),
@@ -789,11 +789,10 @@ StaticRuleInstall SessionState::get_static_rule_install(const std::string& rule_
 DynamicRuleInstall SessionState::get_dynamic_rule_install(const std::string& rule_id) {
   DynamicRuleInstall rule_install{};
   auto lifetime = get_rule_lifetime(rule_id);
-  PolicyRule policy_rule;
-  if (!dynamic_rules_.get_rule(rule_id, &policy_rule)) {
-    scheduled_dynamic_rules_.get_rule(rule_id, &policy_rule);
+  PolicyRule* policy_rule = rule_install.mutable_policy_rule();
+  if (!dynamic_rules_.get_rule(rule_id, policy_rule)) {
+    scheduled_dynamic_rules_.get_rule(rule_id, policy_rule);
   }
-  rule_install.set_allocated_policy_rule(&policy_rule);
   rule_install.mutable_activation_time()->set_seconds(lifetime.activation_time);
   rule_install.mutable_deactivation_time()->set_seconds(lifetime.deactivation_time);
   return rule_install;

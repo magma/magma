@@ -527,6 +527,34 @@ func HasSurveyTemplateQuestionsWith(preds ...predicate.SurveyTemplateQuestion) p
 	})
 }
 
+// HasLocationType applies the HasEdge predicate on the "location_type" edge.
+func HasLocationType() predicate.SurveyTemplateCategory {
+	return predicate.SurveyTemplateCategory(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(LocationTypeTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, LocationTypeTable, LocationTypeColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasLocationTypeWith applies the HasEdge predicate on the "location_type" edge with a given conditions (other predicates).
+func HasLocationTypeWith(preds ...predicate.LocationType) predicate.SurveyTemplateCategory {
+	return predicate.SurveyTemplateCategory(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(LocationTypeInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, LocationTypeTable, LocationTypeColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups list of predicates with the AND operator between them.
 func And(predicates ...predicate.SurveyTemplateCategory) predicate.SurveyTemplateCategory {
 	return predicate.SurveyTemplateCategory(func(s *sql.Selector) {

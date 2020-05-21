@@ -25,7 +25,7 @@ func (r subscriptionResolver) subscribeAndListen(ctx context.Context, name strin
 		Events:     []string{name},
 		Handler:    handler,
 	})
-	logger.Debug("subscription termination", zap.Error(err))
+	logger.Info("subscription termination", zap.Error(err))
 }
 
 func (r subscriptionResolver) workOrderAddedDone(ctx context.Context, name string) (<-chan *ent.WorkOrder, error) {

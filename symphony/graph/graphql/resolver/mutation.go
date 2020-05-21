@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/facebookincubator/symphony/graph/ent/predicate"
+
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/customer"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
@@ -21,7 +23,6 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/equipmentposition"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentpositiondefinition"
 	"github.com/facebookincubator/symphony/graph/ent/equipmenttype"
-	"github.com/facebookincubator/symphony/graph/ent/file"
 	"github.com/facebookincubator/symphony/graph/ent/link"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/locationtype"
@@ -32,9 +33,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
 	"github.com/facebookincubator/symphony/graph/ent/servicetype"
 	"github.com/facebookincubator/symphony/graph/ent/survey"
-	"github.com/facebookincubator/symphony/graph/ent/surveycellscan"
 	"github.com/facebookincubator/symphony/graph/ent/surveyquestion"
-	"github.com/facebookincubator/symphony/graph/ent/surveywifiscan"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/resolverutil"
@@ -128,7 +127,7 @@ func (r mutationResolver) setNodePropertyCreate(ctx context.Context, setter *ent
 	return nil
 }
 
-func (r mutationResolver) setNodePropertyUpdate(ctx context.Context, setter *ent.PropertyUpdate, nodeID int) error {
+func (r mutationResolver) setNodePropertyUpdate(ctx context.Context, setter *ent.PropertyUpdateOne, nodeID int) error {
 	client := r.ClientFrom(ctx)
 	value, err := client.Node(ctx, nodeID)
 	if err != nil {
@@ -209,15 +208,14 @@ func (r mutationResolver) AddProperties(inputs []*models.PropertyInput, args res
 }
 
 func (r mutationResolver) AddPropertyTypes(
-	ctx context.Context, inputs ...*models.PropertyTypeInput,
-) ([]*ent.PropertyType, error) {
+	ctx context.Context, parentSetter func(ptc *ent.PropertyTypeCreate), inputs ...*models.PropertyTypeInput,
+) error {
 	var (
 		client = r.ClientFrom(ctx).PropertyType
-		types  = make([]*ent.PropertyType, len(inputs))
 		err    error
 	)
-	for i, input := range inputs {
-		if types[i], err = client.Create().
+	for _, input := range inputs {
+		query := client.Create().
 			SetName(input.Name).
 			SetType(input.Type.String()).
 			SetNillableNodeType(input.NodeType).
@@ -235,16 +233,18 @@ func (r mutationResolver) AddPropertyTypes(
 			SetNillableRangeToVal(input.RangeToValue).
 			SetNillableEditable(input.IsEditable).
 			SetNillableMandatory(input.IsMandatory).
-			SetNillableDeleted(input.IsDeleted).
-			Save(ctx); err != nil {
-			return nil, fmt.Errorf("creating property type: %w", err)
+			SetNillableDeleted(input.IsDeleted)
+		parentSetter(query)
+		_, err = query.Save(ctx)
+		if err != nil {
+			return fmt.Errorf("creating property type: %w", err)
 		}
 	}
-	return types, nil
+	return nil
 }
 
 func (r mutationResolver) AddSurveyTemplateCategories(
-	ctx context.Context, inputs ...*models.SurveyTemplateCategoryInput,
+	ctx context.Context, locationTypeID int, inputs ...*models.SurveyTemplateCategoryInput,
 ) ([]*ent.SurveyTemplateCategory, error) {
 	var (
 		client     = r.ClientFrom(ctx).SurveyTemplateCategory
@@ -259,6 +259,7 @@ func (r mutationResolver) AddSurveyTemplateCategories(
 			SetCategoryTitle(input.CategoryTitle).
 			SetCategoryDescription(input.CategoryDescription).
 			AddSurveyTemplateQuestions(questions...).
+			SetLocationTypeID(locationTypeID).
 			Save(ctx); err != nil {
 			return nil, fmt.Errorf("creating survey template categories: %w", err)
 		}
@@ -429,45 +430,45 @@ func (r mutationResolver) CreateSurvey(ctx context.Context, data models.SurveyCr
 		if sr.DateData != nil {
 			query.SetDateData(time.Unix(int64(*sr.DateData), 0))
 		}
-
-		if sr.PhotoData != nil {
-			f, err :=
-				r.createImage(
-					ctx,
-					&models.AddImageInput{
-						ImgKey:   sr.PhotoData.StoreKey,
-						FileName: sr.PhotoData.FileName,
-						FileSize: func() int {
-							if sr.PhotoData.SizeInBytes != nil {
-								return *sr.PhotoData.SizeInBytes
-							}
-							return 0
-						}(),
-						Modified: time.Now(),
-						ContentType: func() string {
-							if sr.PhotoData.MimeType != nil {
-								return *sr.PhotoData.MimeType
-							}
-							return "image/jpeg"
-						}(),
-					},
-				)
-			if err != nil {
-				return badID, err
-			}
-			query.AddPhotoData(f)
-		}
-
-		if sr.ImagesData != nil {
-			err = r.addSurveyQuestionImagesData(ctx, sr, query)
-			if err != nil {
-				return badID, err
-			}
-		}
-
 		question, err := query.Save(ctx)
 		if err != nil {
 			return badID, fmt.Errorf("creating survey question: %w", err)
+		}
+
+		if sr.PhotoData != nil {
+			if _, err = r.createImage(
+				ctx,
+				&models.AddImageInput{
+					ImgKey:   sr.PhotoData.StoreKey,
+					FileName: sr.PhotoData.FileName,
+					FileSize: func() int {
+						if sr.PhotoData.SizeInBytes != nil {
+							return *sr.PhotoData.SizeInBytes
+						}
+						return 0
+					}(),
+					Modified: time.Now(),
+					ContentType: func() string {
+						if sr.PhotoData.MimeType != nil {
+							return *sr.PhotoData.MimeType
+						}
+						return "image/jpeg"
+					}(),
+				},
+				func(create *ent.FileCreate) error {
+					create.SetPhotoSurveyQuestion(question)
+					return nil
+				},
+			); err != nil {
+				return badID, err
+			}
+		}
+
+		if sr.ImagesData != nil {
+			err = r.addSurveyQuestionImagesData(ctx, sr, question.ID)
+			if err != nil {
+				return badID, err
+			}
 		}
 
 		if sr.QuestionFormat != nil {
@@ -485,33 +486,34 @@ func (r mutationResolver) CreateSurvey(ctx context.Context, data models.SurveyCr
 	return srv.ID, nil
 }
 
-func (r mutationResolver) addSurveyQuestionImagesData(ctx context.Context, sr *models.SurveyQuestionResponse, query *ent.SurveyQuestionCreate) error {
+func (r mutationResolver) addSurveyQuestionImagesData(ctx context.Context, sr *models.SurveyQuestionResponse, surveyQuestionID int) error {
 	for _, imageData := range sr.ImagesData {
-		image, err :=
-			r.createImage(
-				ctx,
-				&models.AddImageInput{
-					ImgKey:   imageData.StoreKey,
-					FileName: imageData.FileName,
-					FileSize: func() int {
-						if imageData.SizeInBytes != nil {
-							return *imageData.SizeInBytes
-						}
-						return 0
-					}(),
-					Modified: time.Now(),
-					ContentType: func() string {
-						if imageData.MimeType != nil {
-							return *imageData.MimeType
-						}
-						return "image/jpeg"
-					}(),
-				},
-			)
-		if err != nil {
+		if _, err := r.createImage(
+			ctx,
+			&models.AddImageInput{
+				ImgKey:   imageData.StoreKey,
+				FileName: imageData.FileName,
+				FileSize: func() int {
+					if imageData.SizeInBytes != nil {
+						return *imageData.SizeInBytes
+					}
+					return 0
+				}(),
+				Modified: time.Now(),
+				ContentType: func() string {
+					if imageData.MimeType != nil {
+						return *imageData.MimeType
+					}
+					return "image/jpeg"
+				}(),
+			},
+			func(create *ent.FileCreate) error {
+				create.SetSurveyQuestionID(surveyQuestionID)
+				return nil
+			},
+		); err != nil {
 			return fmt.Errorf("creating and saving images while creating survey question: %w", err)
 		}
-		query.AddImages(image)
 	}
 
 	return nil
@@ -594,14 +596,6 @@ func (r mutationResolver) AddLocation(
 func (r mutationResolver) AddLocationType(
 	ctx context.Context, input models.AddLocationTypeInput,
 ) (*ent.LocationType, error) {
-	props, err := r.AddPropertyTypes(ctx, input.Properties...)
-	if err != nil {
-		return nil, err
-	}
-	categories, err := r.AddSurveyTemplateCategories(ctx, input.SurveyTemplateCategories...)
-	if err != nil {
-		return nil, err
-	}
 	index, err := r.ClientFrom(ctx).LocationType.Query().Count(ctx)
 	if err != nil {
 		return nil, err
@@ -613,14 +607,20 @@ func (r mutationResolver) AddLocationType(
 		SetNillableMapZoomLevel(input.MapZoomLevel).
 		SetNillableSite(input.IsSite).
 		SetIndex(index).
-		AddPropertyTypes(props...).
-		AddSurveyTemplateCategories(categories...).
 		Save(ctx)
 	if err != nil {
 		if ent.IsConstraintError(err) {
 			return nil, gqlerror.Errorf("A location type with the name %s already exists", input.Name)
 		}
 		return nil, fmt.Errorf("creating location type: %w", err)
+	}
+	if err := r.AddPropertyTypes(ctx, func(ptc *ent.PropertyTypeCreate) {
+		ptc.SetLocationTypeID(typ.ID)
+	}, input.Properties...); err != nil {
+		return nil, err
+	}
+	if _, err := r.AddSurveyTemplateCategories(ctx, typ.ID, input.SurveyTemplateCategories...); err != nil {
+		return nil, err
 	}
 	return typ, nil
 }
@@ -866,20 +866,10 @@ func (r mutationResolver) AddEquipmentPortDefinitions(
 func (r mutationResolver) AddEquipmentPortType(
 	ctx context.Context, input models.AddEquipmentPortTypeInput,
 ) (*ent.EquipmentPortType, error) {
-	props, err := r.AddPropertyTypes(ctx, input.Properties...)
-	if err != nil {
-		return nil, err
-	}
-	linkProps, err := r.AddPropertyTypes(ctx, input.LinkProperties...)
-	if err != nil {
-		return nil, err
-	}
 	et, err := r.ClientFrom(ctx).
 		EquipmentPortType.
 		Create().
 		SetName(input.Name).
-		AddPropertyTypes(props...).
-		AddLinkPropertyTypes(linkProps...).
 		Save(ctx)
 	if err != nil {
 		if ent.IsConstraintError(err) {
@@ -887,37 +877,45 @@ func (r mutationResolver) AddEquipmentPortType(
 		}
 		return nil, fmt.Errorf("creating equipment type: %w", err)
 	}
+	if err := r.AddPropertyTypes(ctx, func(ptc *ent.PropertyTypeCreate) {
+		ptc.SetEquipmentPortTypeID(et.ID)
+	}, input.Properties...); err != nil {
+		return nil, err
+	}
+	if err := r.AddPropertyTypes(ctx, func(ptc *ent.PropertyTypeCreate) {
+		ptc.SetLinkEquipmentPortTypeID(et.ID)
+	}, input.LinkProperties...); err != nil {
+		return nil, err
+	}
 	return et, nil
 }
 
 func (r mutationResolver) AddEquipmentType(
 	ctx context.Context, input models.AddEquipmentTypeInput,
 ) (*ent.EquipmentType, error) {
-	positions, err := r.AddEquipmentPositionDefinitions(ctx, input.Positions, nil)
-	if err != nil {
-		return nil, err
-	}
-	ports, err := r.AddEquipmentPortDefinitions(ctx, input.Ports, nil)
-	if err != nil {
-		return nil, err
-	}
-	props, err := r.AddPropertyTypes(ctx, input.Properties...)
-	if err != nil {
-		return nil, err
-	}
 	client := r.ClientFrom(ctx)
 	typ, err := client.
 		EquipmentType.Create().
 		SetName(input.Name).
-		AddPositionDefinitions(positions...).
-		AddPortDefinitions(ports...).
-		AddPropertyTypes(props...).
 		Save(ctx)
 	if err != nil {
 		if ent.IsConstraintError(err) {
 			return nil, gqlerror.Errorf("An equipment type with the name %v already exists", input.Name)
 		}
 		return nil, fmt.Errorf("creating equipment type: %w", err)
+	}
+	_, err = r.AddEquipmentPositionDefinitions(ctx, input.Positions, &typ.ID)
+	if err != nil {
+		return nil, err
+	}
+	_, err = r.AddEquipmentPortDefinitions(ctx, input.Ports, &typ.ID)
+	if err != nil {
+		return nil, err
+	}
+	if err := r.AddPropertyTypes(ctx, func(ptc *ent.PropertyTypeCreate) {
+		ptc.SetEquipmentTypeID(typ.ID)
+	}, input.Properties...); err != nil {
+		return nil, err
 	}
 	if input.Category != nil {
 		if typ, err = r.updateEquipmentTypeCategory(
@@ -1001,18 +999,27 @@ func (r mutationResolver) EditLocation(
 			return nil, fmt.Errorf("querying location property type %q: %w", input.PropertyTypeID, err)
 		}
 		if typ.Editable && typ.IsInstanceProperty {
-			query := client.Property.
-				Update().
-				Where(
-					property.HasLocationWith(location.ID(l.ID)),
-					property.ID(*input.ID),
-				)
-			if r.updatePropValues(ctx, input, query) != nil {
+			updater, err := getPropertyUpdater(ctx, client, *input.ID, property.HasLocationWith(location.ID(l.ID)))
+			if err != nil {
+				return nil, errors.Wrapf(err, "updating property of location: lid=%q", l.ID)
+			}
+			if r.updatePropValues(ctx, input, updater) != nil {
 				return nil, fmt.Errorf("updating property values: %w", err)
 			}
 		}
 	}
 	return l, nil
+}
+
+func getPropertyUpdater(ctx context.Context, client *ent.Client, propertyID int, inInstancePredicate predicate.Property) (*ent.PropertyUpdateOne, error) {
+	exists, err := client.Property.Query().Where(inInstancePredicate, property.ID(propertyID)).Exist(ctx)
+	if err != nil {
+		return nil, errors.Wrapf(err, "querying property is in instance: id=%q", propertyID)
+	}
+	if !exists {
+		return nil, errors.Errorf("property is not in instance: id=%q", propertyID)
+	}
+	return client.Property.UpdateOneID(propertyID), nil
 }
 
 func (r mutationResolver) RemoveEquipmentFromPosition(ctx context.Context, positionID int, workOrderID *int) (*ent.EquipmentPosition, error) {
@@ -1106,8 +1113,8 @@ func (r mutationResolver) MoveEquipmentToPosition(
 }
 
 // NOTE: Be aware that this method is used to create both images and files. Will be renamed in another Diff.
-func (r mutationResolver) createImage(ctx context.Context, input *models.AddImageInput) (*ent.File, error) {
-	img, err := r.ClientFrom(ctx).
+func (r mutationResolver) createImage(ctx context.Context, input *models.AddImageInput, entSetter func(*ent.FileCreate) error) (*ent.File, error) {
+	query := r.ClientFrom(ctx).
 		File.Create().
 		SetStoreKey(input.ImgKey).
 		SetName(input.FileName).
@@ -1121,85 +1128,57 @@ func (r mutationResolver) createImage(ctx context.Context, input *models.AddImag
 			return models.FileTypeFile.String()
 		}()).
 		SetContentType(input.ContentType).
-		SetNillableCategory(input.Category).
-		Save(ctx)
+		SetNillableCategory(input.Category)
+	if err := entSetter(query); err != nil {
+		return nil, err
+	}
+	img, err := query.Save(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("creating image for key %q: %w", input.ImgKey, err)
 	}
 	return img, nil
 }
 
-type execer interface{ Exec(context.Context) error }
-
 func (r mutationResolver) AddImage(ctx context.Context, input models.AddImageInput) (*ent.File, error) {
-	image, err := r.createImage(ctx, &input)
-	if err != nil {
-		return nil, err
-	}
-	var (
-		client = r.ClientFrom(ctx)
-		execer execer
-	)
-	switch input.EntityType {
-	case models.ImageEntityLocation:
-		execer = client.Location.
-			UpdateOneID(input.EntityID).
-			AddFiles(image)
-	case models.ImageEntitySiteSurvey:
-		execer = client.Survey.
-			UpdateOneID(input.EntityID).
-			SetSourceFile(image)
-	case models.ImageEntityWorkOrder:
-		execer = client.WorkOrder.
-			UpdateOneID(input.EntityID).
-			AddFiles(image)
-	case models.ImageEntityEquipment:
-		execer = client.Equipment.
-			UpdateOneID(input.EntityID).
-			AddFiles(image)
-	case models.ImageEntityUser:
-		execer = client.User.
-			UpdateOneID(input.EntityID).
-			SetProfilePhoto(image)
-	default:
-		return nil, fmt.Errorf("unknown image owner type: %s", input.EntityType)
-	}
-	if err := execer.Exec(ctx); err != nil {
-		return nil, fmt.Errorf("adding image to type %s: %w", input.EntityType, err)
-	}
-	return image, nil
+	return r.createImage(ctx, &input, func(create *ent.FileCreate) error {
+		switch input.EntityType {
+		case models.ImageEntityLocation:
+			create.SetLocationID(input.EntityID)
+		case models.ImageEntitySiteSurvey:
+			create.SetSurveyID(input.EntityID)
+		case models.ImageEntityWorkOrder:
+			create.SetWorkOrderID(input.EntityID)
+		case models.ImageEntityEquipment:
+			create.SetEquipmentID(input.EntityID)
+		case models.ImageEntityUser:
+			create.SetUserID(input.EntityID)
+		default:
+			return fmt.Errorf("unknown image owner type: %s", input.EntityType)
+		}
+		return nil
+	})
 }
 
 func (r mutationResolver) AddHyperlink(ctx context.Context, input models.AddHyperlinkInput) (*ent.Hyperlink, error) {
 	client := r.ClientFrom(ctx)
-	hyperlink, err := client.Hyperlink.
+	query := client.Hyperlink.
 		Create().
 		SetURL(input.URL).
 		SetNillableName(input.DisplayName).
-		SetNillableCategory(input.Category).
-		Save(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("creating hyperlink for url %q: %w", input.URL, err)
-	}
-	var execer execer
+		SetNillableCategory(input.Category)
 	switch input.EntityType {
 	case models.ImageEntityLocation:
-		execer = client.Location.
-			UpdateOneID(input.EntityID).
-			AddHyperlinks(hyperlink)
+		query = query.SetLocationID(input.EntityID)
 	case models.ImageEntityWorkOrder:
-		execer = client.WorkOrder.
-			UpdateOneID(input.EntityID).
-			AddHyperlinks(hyperlink)
+		query = query.SetWorkOrderID(input.EntityID)
 	case models.ImageEntityEquipment:
-		execer = client.Equipment.
-			UpdateOneID(input.EntityID).
-			AddHyperlinks(hyperlink)
+		query = query.SetEquipmentID(input.EntityID)
 	default:
 		return nil, fmt.Errorf("unknown hyperlink owner type: %s", input.EntityType)
 	}
-	if err := execer.Exec(ctx); err != nil {
-		return nil, fmt.Errorf("adding hyperlink to type %s: %w", input.EntityType, err)
+	hyperlink, err := query.Save(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("creating hyperlink for url %q: %w", input.URL, err)
 	}
 	return hyperlink, nil
 }
@@ -1234,28 +1213,20 @@ func (r mutationResolver) AddComment(ctx context.Context, input models.CommentIn
 	if !ok {
 		return nil, gqlerror.Errorf("could not be executed in automation")
 	}
-	c, err := client.Comment.Create().
+	query := client.Comment.Create().
 		SetAuthor(v.User()).
-		SetText(input.Text).
-		Save(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("creating comment: %w", err)
-	}
-	var execer execer
+		SetText(input.Text)
 	switch input.EntityType {
 	case models.CommentEntityWorkOrder:
-		execer = client.WorkOrder.
-			UpdateOneID(input.ID).
-			AddComments(c)
+		query = query.SetWorkOrderID(input.ID)
 	case models.CommentEntityProject:
-		execer = client.Project.
-			UpdateOneID(input.ID).
-			AddComments(c)
+		query = query.SetProjectID(input.ID)
 	default:
 		return nil, fmt.Errorf("unknown comment owner type: %s", input.EntityType)
 	}
-	if err := execer.Exec(ctx); err != nil {
-		return nil, fmt.Errorf("adding comment to type %s: %w", input.EntityType, err)
+	c, err := query.Save(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("creating comment: %w", err)
 	}
 	return c, nil
 }
@@ -1354,13 +1325,11 @@ func (r mutationResolver) EditLink(
 			return nil, fmt.Errorf("querying link property type %d: %w", input.PropertyTypeID, err)
 		}
 		if typ.Editable && typ.IsInstanceProperty {
-			query := client.Property.
-				Update().
-				Where(
-					property.HasLinkWith(link.ID(l.ID)),
-					property.ID(*input.ID),
-				)
-			if r.updatePropValues(ctx, input, query) != nil {
+			updater, err := getPropertyUpdater(ctx, client, *input.ID, property.HasLinkWith(link.ID(l.ID)))
+			if err != nil {
+				return nil, errors.Wrapf(err, "updating property of link: lid=%q", l.ID)
+			}
+			if r.updatePropValues(ctx, input, updater) != nil {
 				return nil, fmt.Errorf("updating property values: %w", err)
 			}
 		}
@@ -1426,23 +1395,36 @@ func (r mutationResolver) RemoveLink(ctx context.Context, id int, workOrderID *i
 
 func (r mutationResolver) removeSurveyQuestion(ctx context.Context, question *ent.SurveyQuestion) error {
 	client := r.ClientFrom(ctx)
-	if _, err := client.SurveyCellScan.Delete().
-		Where(surveycellscan.HasSurveyQuestionWith(surveyquestion.ID(question.ID))).
-		Exec(ctx); err != nil {
-		return errors.Wrapf(err, "deleting survey cell scan: id=%q", question.ID)
+	ids, err := question.QueryCellScan().IDs(ctx)
+	if err != nil {
+		return errors.Wrapf(err, "querying survey cell scan: id=%q", question.ID)
 	}
-	if _, err := r.ClientFrom(ctx).SurveyWiFiScan.Delete().
-		Where(surveywifiscan.HasSurveyQuestionWith(surveyquestion.ID(question.ID))).
-		Exec(ctx); err != nil {
-		return errors.Wrapf(err, "deleting survey wifi scan: id=%q", question.ID)
+	for _, id := range ids {
+		if err := client.SurveyCellScan.DeleteOneID(id).
+			Exec(ctx); err != nil {
+			return errors.Wrapf(err, "deleting survey cell scan: id=%q", id)
+		}
 	}
-	ids, err := question.QueryPhotoData().IDs(ctx)
+	ids, err = question.QueryWifiScan().IDs(ctx)
+	if err != nil {
+		return errors.Wrapf(err, "querying survey wifi scan: id=%q", question.ID)
+	}
+	for _, id := range ids {
+		if err := client.SurveyWiFiScan.DeleteOneID(id).
+			Exec(ctx); err != nil {
+			return errors.Wrapf(err, "deleting survey wifi scan: id=%q", id)
+		}
+	}
+	ids, err = question.QueryPhotoData().IDs(ctx)
 	if err != nil {
 		return errors.Wrapf(err, "querying question photos ids: id=%q", question.ID)
 	}
 	// TODO(T47446957): Delete S3 files of sitesurvey on sitesurvey graphql deletion
-	if _, err := client.File.Delete().Where(file.IDIn(ids...)).Exec(ctx); err != nil {
-		return errors.Wrapf(err, "deleting question photos: id=%q, count=%d", question.ID, len(ids))
+	for _, id := range ids {
+		if err := client.File.DeleteOneID(id).
+			Exec(ctx); err != nil {
+			return errors.Wrapf(err, "deleting survey photo: id=%q", id)
+		}
 	}
 	if err := client.SurveyQuestion.DeleteOne(question).Exec(ctx); err != nil {
 		return errors.Wrapf(err, "deleting survey question: id=%q", question.ID)
@@ -1483,8 +1465,14 @@ func (r mutationResolver) RemoveLocation(ctx context.Context, id int) (int, erro
 	if err != nil {
 		return id, errors.Wrapf(err, "querying location: id=%q", id)
 	}
-	if _, err := client.Property.Delete().Where(property.HasLocationWith(location.ID(id))).Exec(ctx); err != nil {
-		return id, errors.Wrapf(err, "deleting location properties: id=%q", id)
+	props, err := client.Property.Query().Where(property.HasLocationWith(location.ID(id))).All(ctx)
+	if err != nil {
+		return id, errors.Wrapf(err, "querying location properties: id=%q", id)
+	}
+	for _, prop := range props {
+		if err := client.Property.DeleteOne(prop).Exec(ctx); err != nil {
+			return id, errors.Wrapf(err, "deleting location property: id=%q", prop.ID)
+		}
 	}
 	if err := client.Location.DeleteOne(l).Exec(ctx); err != nil {
 		return id, errors.Wrapf(err, "deleting location: id=%q", id)
@@ -1549,12 +1537,17 @@ func (r mutationResolver) RemoveWorkOrder(ctx context.Context, id int) (int, err
 
 func (r mutationResolver) removeEquipment(ctx context.Context, e *ent.Equipment) error {
 	client := r.ClientFrom(ctx)
-	if _, err := r.ClientFrom(ctx).Property.Delete().
+	props, err := client.Property.Query().
 		Where(property.HasEquipmentWith(equipment.ID(e.ID))).
-		Exec(ctx); err != nil {
-		return errors.Wrapf(err, "deleting equipment properties e=%q", e.ID)
+		All(ctx)
+	if err != nil {
+		return errors.Wrapf(err, "querying equipment properties e=%q", e.ID)
 	}
-
+	for _, prop := range props {
+		if err := client.Property.DeleteOne(prop).Exec(ctx); err != nil {
+			return errors.Wrapf(err, "deleting equipment property id=%q", prop.ID)
+		}
+	}
 	ids, err := e.QueryPositions().IDs(ctx)
 	if err != nil {
 		return errors.Wrapf(err, "querying equipment positions: id=%q", e.ID)
@@ -1565,29 +1558,48 @@ func (r mutationResolver) removeEquipment(ctx context.Context, e *ent.Equipment)
 				return errors.Wrapf(err, "remove equipment from position e=%q, id=%q", e.ID, id)
 			}
 		}
-		if _, err := client.EquipmentPosition.Delete().
-			Where(equipmentposition.IDIn(ids...)).
-			Exec(ctx); err != nil {
-			return errors.Wrapf(err, "remove equipment positions e=%q", e.ID)
+		for _, id := range ids {
+			if err := client.EquipmentPosition.DeleteOneID(id).Exec(ctx); err != nil {
+				return errors.Wrapf(err, "deleting equipment position id=%q", id)
+			}
 		}
 	}
-
-	if _, err := client.Link.Delete().
+	links, err := client.Link.Query().
 		Where(link.HasPortsWith(equipmentport.HasParentWith(equipment.ID(e.ID)))).
-		Exec(ctx); err != nil {
-		return errors.Wrapf(err, "delete links of equipment e=%q", e.ID)
+		All(ctx)
+	if err != nil {
+		return errors.Wrapf(err, "query links of equipment e=%q", e.ID)
 	}
-	if _, err := client.ServiceEndpoint.Delete().
+	for _, l := range links {
+		if err := client.Link.DeleteOne(l).
+			Exec(ctx); err != nil {
+			return errors.Wrapf(err, "delete link of equipment l=%q", l.ID)
+		}
+	}
+	endpoints, err := client.ServiceEndpoint.Query().
 		Where(serviceendpoint.HasPortWith(equipmentport.HasParentWith(equipment.ID(e.ID)))).
-		Exec(ctx); err != nil {
-		return errors.Wrapf(err, "delete service endpoints of equipment e=%q", e.ID)
+		All(ctx)
+	if err != nil {
+		return errors.Wrapf(err, "query service endpoints of equipment e=%q", e.ID)
 	}
-	if _, err := client.EquipmentPort.Delete().
+	for _, endpoint := range endpoints {
+		if err := client.ServiceEndpoint.DeleteOne(endpoint).
+			Exec(ctx); err != nil {
+			return errors.Wrapf(err, "delete service endpoint of equipment e=%q", endpoint.ID)
+		}
+	}
+	ports, err := client.EquipmentPort.Query().
 		Where(equipmentport.HasParentWith(equipment.ID(e.ID))).
-		Exec(ctx); err != nil {
-		return errors.Wrapf(err, "delete ports of equipment e=%q", e.ID)
+		All(ctx)
+	if err != nil {
+		return errors.Wrapf(err, "query ports of equipment e=%q", e.ID)
 	}
-
+	for _, port := range ports {
+		if err := client.EquipmentPort.DeleteOne(port).
+			Exec(ctx); err != nil {
+			return errors.Wrapf(err, "delete port of equipment p=%q", port.ID)
+		}
+	}
 	if err := client.Equipment.DeleteOne(e).Exec(ctx); err != nil && !ent.IsNotFound(err) {
 		return errors.Wrapf(err, "delete equipment e=%q", e.ID)
 	}
@@ -1607,13 +1619,20 @@ func (r mutationResolver) RemoveEquipment(ctx context.Context, id int, workOrder
 		if err != nil || !exist {
 			return id, errors.Wrapf(err, "querying work order from equipment: e=%q, wo=%q", e.ID, *workOrderID)
 		}
-		if err := client.Link.Update().
+		linkIDs, err := client.Link.Query().
 			Where(link.HasPortsWith(equipmentport.HasParentWith(equipment.ID(e.ID)))).
-			ClearWorkOrder().
-			SetWorkOrderID(*workOrderID).
-			SetFutureState(models.FutureStateRemove.String()).
-			Exec(ctx); err != nil {
-			return id, errors.Wrapf(err, "delete links of equipment e=%q, wo=%q", e.ID, *workOrderID)
+			IDs(ctx)
+		if err != nil {
+			return id, errors.Wrapf(err, "query links of equipment e=%q, wo=%q", e.ID, *workOrderID)
+		}
+		for _, linkID := range linkIDs {
+			if err := client.Link.UpdateOneID(linkID).
+				ClearWorkOrder().
+				SetWorkOrderID(*workOrderID).
+				SetFutureState(models.FutureStateRemove.String()).
+				Exec(ctx); err != nil {
+				return id, errors.Wrapf(err, "delete link of equipment l=%q, wo=%q", linkID, *workOrderID)
+			}
 		}
 
 		ids, err := e.QueryPositions().IDs(ctx)
@@ -1649,10 +1668,15 @@ func (r mutationResolver) RemoveEquipmentPortType(ctx context.Context, id int) (
 	case exist:
 		return id, errors.Errorf("cannot delete location type with existing locations")
 	}
-	if _, err := client.PropertyType.Delete().
-		Where(propertytype.HasEquipmentPortTypeWith(equipmentporttype.ID(id))).
-		Exec(ctx); err != nil {
-		return id, errors.Wrap(err, "deleting property type")
+	propTypes, err := pt.QueryPropertyTypes().All(ctx)
+	if err != nil {
+		return id, errors.Wrapf(err, "querying property types: id=%q", id)
+	}
+	for _, propType := range propTypes {
+		if err := client.PropertyType.DeleteOne(propType).
+			Exec(ctx); err != nil {
+			return id, errors.Wrapf(err, "deleting property type: id=%q", propType.ID)
+		}
 	}
 	if err := client.EquipmentPortType.DeleteOne(pt).Exec(ctx); err != nil {
 		return id, errors.Wrap(err, "deleting equipment port type")
@@ -1671,20 +1695,41 @@ func (r mutationResolver) RemoveEquipmentType(ctx context.Context, id int) (int,
 	if err != nil {
 		return id, errors.Wrapf(err, "querying equipment type: id=%q", id)
 	}
-	if _, err := client.EquipmentPortDefinition.Delete().
+	portDefs, err := client.EquipmentPortDefinition.Query().
 		Where(equipmentportdefinition.HasEquipmentTypeWith(equipmenttype.ID(id))).
-		Exec(ctx); err != nil {
-		return id, errors.Wrap(err, "deleting equipment port definition")
+		All(ctx)
+	if err != nil {
+		return id, errors.Wrap(err, "querying equipment port definitions")
 	}
-	if _, err := client.EquipmentPositionDefinition.Delete().
+	for _, portDef := range portDefs {
+		if err := client.EquipmentPortDefinition.DeleteOne(portDef).
+			Exec(ctx); err != nil {
+			return id, errors.Wrapf(err, "deleting equipment port definition id=%q", portDef.ID)
+		}
+	}
+	posDefs, err := client.EquipmentPositionDefinition.Query().
 		Where(equipmentpositiondefinition.HasEquipmentTypeWith(equipmenttype.ID(id))).
-		Exec(ctx); err != nil {
-		return id, errors.Wrap(err, "deleting equipment position definition")
+		All(ctx)
+	if err != nil {
+		return id, errors.Wrap(err, "querying equipment position definitions")
 	}
-	if _, err := client.PropertyType.Delete().
+	for _, posDef := range posDefs {
+		if err := client.EquipmentPositionDefinition.DeleteOne(posDef).
+			Exec(ctx); err != nil {
+			return id, errors.Wrapf(err, "deleting equipment position definition id=%q", posDef.ID)
+		}
+	}
+	pTypes, err := client.PropertyType.Query().
 		Where(propertytype.HasEquipmentTypeWith(equipmenttype.ID(id))).
-		Exec(ctx); err != nil {
-		return id, errors.Wrap(err, "deleting property type")
+		All(ctx)
+	if err != nil {
+		return id, errors.Wrap(err, "querying property types")
+	}
+	for _, pType := range pTypes {
+		if err := client.PropertyType.DeleteOne(pType).
+			Exec(ctx); err != nil {
+			return id, errors.Wrapf(err, "deleting property type id=%q", pType.ID)
+		}
 	}
 	if err := client.EquipmentType.DeleteOne(t).Exec(ctx); err != nil {
 		return id, errors.Wrap(err, "deleting equipment type")
@@ -1799,10 +1844,15 @@ func (r mutationResolver) RemoveLocationType(ctx context.Context, id int) (int, 
 	case exist:
 		return id, errors.Errorf("cannot delete location type with existing locations: id=%q", id)
 	}
-	if _, err := client.PropertyType.Delete().
-		Where(propertytype.HasLocationTypeWith(locationtype.ID(id))).
-		Exec(ctx); err != nil {
-		return id, errors.Wrapf(err, "deleting property type: id=%q", id)
+	propTypes, err := lt.QueryPropertyTypes().All(ctx)
+	if err != nil {
+		return id, errors.Wrapf(err, "querying property types: id=%q", id)
+	}
+	for _, propType := range propTypes {
+		if err := client.PropertyType.DeleteOne(propType).
+			Exec(ctx); err != nil {
+			return id, errors.Wrapf(err, "deleting property type: id=%q", propType.ID)
+		}
 	}
 	if err := client.LocationType.DeleteOne(lt).Exec(ctx); err != nil {
 		return id, errors.Wrapf(err, "deleting location type: id=%q", id)
@@ -1859,7 +1909,6 @@ func (r mutationResolver) AddService(ctx context.Context, data models.ServiceCre
 	return s, nil
 }
 
-// nolint: funlen
 func (r mutationResolver) EditService(ctx context.Context, data models.ServiceEditData) (*ent.Service, error) {
 	client := r.ClientFrom(ctx)
 	s, err := client.Service.Get(ctx, data.ID)
@@ -1945,13 +1994,11 @@ func (r mutationResolver) EditService(ctx context.Context, data models.ServiceEd
 			return nil, fmt.Errorf("querying service property type %d: %w", input.PropertyTypeID, err)
 		}
 		if typ.Editable && typ.IsInstanceProperty {
-			query := client.Property.
-				Update().
-				Where(
-					property.HasServiceWith(service.ID(s.ID)),
-					property.ID(*input.ID),
-				)
-			if r.updatePropValues(ctx, input, query) != nil {
+			updater, err := getPropertyUpdater(ctx, client, *input.ID, property.HasServiceWith(service.ID(s.ID)))
+			if err != nil {
+				return nil, errors.Wrapf(err, "updating property of service: lid=%q", s.ID)
+			}
+			if r.updatePropValues(ctx, input, updater) != nil {
 				return nil, fmt.Errorf("updating property values: %w", err)
 			}
 		}
@@ -1984,15 +2031,6 @@ func (r mutationResolver) RemoveServiceLink(ctx context.Context, id, linkID int)
 }
 
 func (r mutationResolver) AddServiceType(ctx context.Context, data models.ServiceTypeCreateData) (*ent.ServiceType, error) {
-	types, err := r.AddPropertyTypes(ctx, data.Properties...)
-	if err != nil {
-		return nil, errors.WithMessage(err, "creating service type properties")
-	}
-
-	epTypes, err := r.addServiceEndpointDefinitions(ctx, data.Endpoints...)
-	if err != nil {
-		return nil, errors.WithMessage(err, "creating service endpoint definition")
-	}
 	var dm *servicetype.DiscoveryMethod
 	if data.DiscoveryMethod != nil {
 		err := servicetype.DiscoveryMethodValidator((servicetype.DiscoveryMethod)(*data.DiscoveryMethod))
@@ -2006,11 +2044,18 @@ func (r mutationResolver) AddServiceType(ctx context.Context, data models.Servic
 		SetName(data.Name).
 		SetNillableDiscoveryMethod(dm).
 		SetHasCustomer(data.HasCustomer).
-		AddPropertyTypes(types...).
-		AddEndpointDefinitions(epTypes...).
 		Save(ctx)
 	if err != nil {
 		return nil, gqlerror.Errorf("creating service type. error=%v", err.Error())
+	}
+	if err := r.AddPropertyTypes(ctx, func(ptc *ent.PropertyTypeCreate) {
+		ptc.SetServiceTypeID(st.ID)
+	}, data.Properties...); err != nil {
+		return nil, errors.WithMessage(err, "creating service type properties")
+	}
+
+	if err := r.addServiceEndpointDefinitions(ctx, st.ID, data.Endpoints...); err != nil {
+		return nil, errors.WithMessage(err, "creating service endpoint definition")
 	}
 	return st, nil
 }
@@ -2030,7 +2075,7 @@ func (r mutationResolver) EditServiceType(ctx context.Context, data models.Servi
 	for _, input := range data.Properties {
 		if input.ID == nil {
 			err = r.validateAndAddNewPropertyType(
-				ctx, input, func(b *ent.PropertyTypeUpdateOne) {
+				ctx, input, func(b *ent.PropertyTypeCreate) {
 					b.SetServiceType(typ)
 				},
 			)
@@ -2066,9 +2111,7 @@ func (r mutationResolver) EditServiceType(ctx context.Context, data models.Servi
 			return nil, err
 		}
 	}
-
 	return typ, nil
-
 }
 
 func (r mutationResolver) RemoveServiceType(ctx context.Context, id int) (int, error) {
@@ -2088,10 +2131,14 @@ func (r mutationResolver) RemoveServiceType(ctx context.Context, id int) (int, e
 		return id, nil
 	}
 
-	if _, err := client.Property.Delete().
-		Where(property.HasServiceWith(service.HasTypeWith(servicetype.ID(st.ID)))).
-		Exec(ctx); err != nil {
-		return id, fmt.Errorf("deleting service type %d properties: %w", id, err)
+	pTypeIDs, err := st.QueryPropertyTypes().IDs(ctx)
+	if err != nil {
+		return id, fmt.Errorf("querying service type %q properties: %w", id, err)
+	}
+	for _, pTypeID := range pTypeIDs {
+		if err := client.PropertyType.DeleteOneID(pTypeID).Exec(ctx); err != nil {
+			return id, fmt.Errorf("deleting service type property %q: %w", pTypeID, err)
+		}
 	}
 	if err := client.ServiceType.DeleteOne(st).Exec(ctx); err != nil {
 		return id, fmt.Errorf("deleting service type %q: %w", id, err)
@@ -2168,11 +2215,10 @@ func (r mutationResolver) EditEquipment(
 			return nil, errors.Wrapf(err, "querying equipment property type %q", input.PropertyTypeID)
 		}
 		if typ.Editable && typ.IsInstanceProperty {
-			updater := client.Property.Update().
-				Where(
-					property.HasEquipmentWith(equipment.ID(e.ID)),
-					property.ID(*input.ID),
-				)
+			updater, err := getPropertyUpdater(ctx, client, *input.ID, property.HasEquipmentWith(equipment.ID(e.ID)))
+			if err != nil {
+				return nil, errors.Wrapf(err, "updating property of equipment: eid=%q", e.ID)
+			}
 			if r.updatePropValues(ctx, input, updater) != nil {
 				return nil, errors.Wrap(err, "updating property values")
 			}
@@ -2248,12 +2294,10 @@ func (r mutationResolver) EditEquipmentPort(
 			return nil, errors.Wrapf(err, "querying equipment port property type %q", input.PropertyTypeID)
 		}
 		if typ.Editable && typ.IsInstanceProperty {
-			updater := client.Property.
-				Update().
-				Where(
-					property.HasEquipmentPortWith(equipmentport.ID(p.ID)),
-					property.ID(*input.ID),
-				)
+			updater, err := getPropertyUpdater(ctx, client, *input.ID, property.HasEquipmentPortWith(equipmentport.ID(p.ID)))
+			if err != nil {
+				return nil, errors.Wrapf(err, "updating property of port: pid=%q", p.ID)
+			}
 			if r.updatePropValues(ctx, input, updater) != nil {
 				return nil, errors.Wrap(err, "updating property values")
 			}
@@ -2300,7 +2344,7 @@ func (r mutationResolver) validateEquipmentNameIsUnique(ctx context.Context, nam
 	return nil
 }
 
-func (r mutationResolver) validateAndAddNewPropertyType(ctx context.Context, input *models.PropertyTypeInput, entSetter func(*ent.PropertyTypeUpdateOne)) error {
+func (r mutationResolver) validateAndAddNewPropertyType(ctx context.Context, input *models.PropertyTypeInput, entSetter func(*ent.PropertyTypeCreate)) error {
 	isEmpty, err := r.isEmptyProp(nil, input)
 	if err != nil {
 		return err
@@ -2308,20 +2352,7 @@ func (r mutationResolver) validateAndAddNewPropertyType(ctx context.Context, inp
 	if isEmpty {
 		return gqlerror.Errorf("The new property %v must have a default value", input.Name)
 	}
-	types, err := r.AddPropertyTypes(ctx, input)
-	if err != nil || len(types) == 0 {
-		return err
-	}
-	query := r.ClientFrom(ctx).
-		PropertyType.
-		UpdateOne(types[0])
-	entSetter(query)
-	if _, err =
-		query.
-			Save(ctx); ent.IsConstraintError(err) {
-		return gqlerror.Errorf("A property type with the name %v already exists under in the selected object", input.Name)
-	}
-	return err
+	return r.AddPropertyTypes(ctx, entSetter, input)
 }
 
 func (r mutationResolver) validateAndAddEndpointDefinition(ctx context.Context, input *models.ServiceEndpointDefinitionInput, serviceTypeID int) error {
@@ -2375,7 +2406,7 @@ func (r mutationResolver) EditLocationType(
 	for _, input := range input.Properties {
 		if input.ID == nil {
 			err = r.validateAndAddNewPropertyType(
-				ctx, input, func(b *ent.PropertyTypeUpdateOne) {
+				ctx, input, func(b *ent.PropertyTypeCreate) {
 					b.SetLocationType(typ)
 				},
 			)
@@ -2400,7 +2431,7 @@ func (r mutationResolver) EditLocationTypeSurveyTemplateCategories(
 	)
 	for i, input := range surveyTemplateCategories {
 		if input.ID == nil {
-			category, err := r.AddSurveyTemplateCategories(ctx, input)
+			category, err := r.AddSurveyTemplateCategories(ctx, id, input)
 			if err != nil {
 				return nil, err
 			}
@@ -2497,7 +2528,7 @@ func (r mutationResolver) EditEquipmentType(
 	for _, input := range input.Properties {
 		if input.ID == nil {
 			err = r.validateAndAddNewPropertyType(
-				ctx, input, func(b *ent.PropertyTypeUpdateOne) {
+				ctx, input, func(b *ent.PropertyTypeCreate) {
 					b.SetEquipmentTypeID(et.ID)
 				},
 			)
@@ -2584,7 +2615,7 @@ func (r mutationResolver) EditEquipmentPortType(
 	for _, input := range input.Properties {
 		if input.ID == nil {
 			if err := r.validateAndAddNewPropertyType(ctx, input,
-				func(b *ent.PropertyTypeUpdateOne) {
+				func(b *ent.PropertyTypeCreate) {
 					b.SetEquipmentPortTypeID(pt.ID)
 				}); err != nil {
 				return nil, err
@@ -2605,7 +2636,7 @@ func (r mutationResolver) EditEquipmentPortType(
 	for _, input := range input.LinkProperties {
 		if input.ID == nil {
 			if err := r.validateAndAddNewPropertyType(ctx, input,
-				func(b *ent.PropertyTypeUpdateOne) {
+				func(b *ent.PropertyTypeCreate) {
 					b.SetLinkEquipmentPortTypeID(pt.ID)
 				}); err != nil {
 				return nil, err
@@ -2652,7 +2683,7 @@ func (r mutationResolver) DeleteLocationTypeEquipments(ctx context.Context, loca
 	return len(equipments), nil
 }
 
-func (r mutationResolver) updatePropValues(ctx context.Context, input *models.PropertyInput, pu *ent.PropertyUpdate) error {
+func (r mutationResolver) updatePropValues(ctx context.Context, input *models.PropertyInput, pu *ent.PropertyUpdateOne) error {
 	pu = pu.SetNillableStringVal(input.StringValue).
 		SetNillableIntVal(input.IntValue).
 		SetNillableBoolVal(input.BooleanValue).
@@ -2965,11 +2996,6 @@ func (r mutationResolver) AddActionsRule(ctx context.Context, input models.AddAc
 }
 
 func (r mutationResolver) AddFloorPlan(ctx context.Context, input models.AddFloorPlanInput) (*ent.FloorPlan, error) {
-	img, err := r.createImage(ctx, input.Image)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to create image")
-	}
-
 	client := r.ClientFrom(ctx)
 	referencePoint, err := client.FloorPlanReferencePoint.Create().
 		SetX(input.ReferenceX).
@@ -2995,12 +3021,17 @@ func (r mutationResolver) AddFloorPlan(ctx context.Context, input models.AddFloo
 	floorPlan, err := client.FloorPlan.Create().
 		SetName(input.Name).
 		SetLocationID(input.LocationID).
-		SetImage(img).
 		SetReferencePoint(referencePoint).
 		SetScale(scale).
 		Save(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create floor plan")
+	}
+	if _, err = r.createImage(ctx, input.Image, func(create *ent.FileCreate) error {
+		create.SetFloorPlan(floorPlan)
+		return nil
+	}); err != nil {
+		return nil, errors.Wrap(err, "failed to create image")
 	}
 
 	return floorPlan, nil

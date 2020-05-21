@@ -162,7 +162,6 @@ func TestParentHierarchy(t *testing.T) {
 	require.Equal(t, hierarchy[3], posDef1.Name)
 	require.Equal(t, hierarchy[4], parentEquipment.Name)
 	require.Equal(t, hierarchy[5], posDef2.Name)
-
 }
 
 func TestPropertiesForCSV(t *testing.T) {

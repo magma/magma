@@ -13,7 +13,6 @@ from .api.equipment_type import (
 )
 from .api.location_type import _populate_location_types
 from .api.service import _populate_service_types
-from .common.cache import EQUIPMENT_TYPES, LOCATION_TYPES, PORT_TYPES, SERVICE_TYPES
 from .common.constant import __version__
 from .graphql.query.latest_python_package import LatestPythonPackageQuery
 
@@ -39,14 +38,7 @@ client.addEquipment('HW1569', 'Antenna HW', location, {'altitude': 53.5})
 
 class InventoryClient(SymphonyClient):
 
-    from .api.file import (
-        add_location_image,
-        add_site_survey_image,
-        delete_document,
-        delete_site_survey_image,
-        add_file,
-        add_files,
-    )
+    from .api.file import add_location_image, delete_document, add_file, add_files
     from .api.location_type import (
         add_location_type,
         delete_locations_by_location_type,
@@ -107,12 +99,6 @@ class InventoryClient(SymphonyClient):
         add_service_type,
         get_service,
         delete_service_type_with_services,
-    )
-    from .site_survey import (
-        upload_site_survey,
-        get_site_surveys,
-        delete_site_survey,
-        build_site_survey_from_survey_response,
     )
     from .api.location_template import (
         apply_location_template_to_location,
@@ -231,9 +217,3 @@ class InventoryClient(SymphonyClient):
         _populate_equipment_types(self)
         _populate_service_types(self)
         _populate_equipment_port_types(self)
-
-    def _clear_types(self) -> None:
-        LOCATION_TYPES.clear()
-        EQUIPMENT_TYPES.clear()
-        SERVICE_TYPES.clear()
-        PORT_TYPES.clear()

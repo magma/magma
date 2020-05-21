@@ -9,14 +9,17 @@
  */
 
 import type {FormAlertsContextType} from '@fbcnms/ui/components/design-system/Form/FormAlertsContext';
+import type {PermissionEnforcement} from '../components/admin/userManagement/utils/usePermissions';
 
 import * as React from 'react';
-import AppContext from '@fbcnms/ui/context/AppContext';
-import FormAlertsContext, {
+import fbt from 'fbt';
+import useFeatureFlag from '@fbcnms/ui/context/useFeatureFlag';
+import usePermissions from '../components/admin/userManagement/utils/usePermissions';
+import {
   DEFAULT_CONTEXT_VALUE as DEFAULT_ALERTS,
   FormAlertsContextProvider,
+  useFormAlertsContext,
 } from '@fbcnms/ui/components/design-system/Form/FormAlertsContext';
-import fbt from 'fbt';
 import {createContext, useContext} from 'react';
 import {useMainContext} from '../components/MainContext';
 
@@ -30,47 +33,52 @@ const DEFAULT_CONTEXT_VALUE = {
 
 const FormContext = createContext<FromContextType>(DEFAULT_CONTEXT_VALUE);
 
-type Props = {
+type Props = $ReadOnly<{|
   children: React.Node,
-  ignorePermissions?: ?boolean,
-};
+  permissions: PermissionEnforcement,
+|}>;
 
-export function FormContextProvider(props: Props) {
-  const {children, ignorePermissions = false} = props;
+function FormWrapper(props: Props) {
+  const {children, permissions} = props;
   const {me} = useMainContext();
-  const {isFeatureEnabled} = useContext(AppContext);
 
-  const permissionsEnforcementIsOn = isFeatureEnabled(
+  const permissionsEnforcementIsOn = useFeatureFlag(
     'permissions_ui_enforcement',
   );
+
+  const permissionPoliciesMode = useFeatureFlag('permission_policies');
   const shouldEnforcePermissions =
-    permissionsEnforcementIsOn && ignorePermissions != true;
+    permissionsEnforcementIsOn && permissions.ignorePermissions != true;
+
+  const permissionsRules = usePermissions();
+  const alerts = useFormAlertsContext();
+
+  if (permissionPoliciesMode) {
+    permissionsRules.check(permissions, 'Form Permissions');
+  } else if (shouldEnforcePermissions && me != null) {
+    alerts.missingPermissions.check({
+      fieldId: 'System Rules',
+      fieldDisplayName: 'Read Only User',
+      value: me?.permissions.canWrite,
+      checkCallback: canWrite =>
+        canWrite
+          ? ''
+          : `${fbt(
+              'Writing permissions are required. Contact your system administrator.',
+              '',
+            )}`,
+    });
+  }
 
   return (
+    <FormContext.Provider value={{alerts}}>{children}</FormContext.Provider>
+  );
+}
+
+export function FormContextProvider(props: Props) {
+  return (
     <FormAlertsContextProvider>
-      <FormAlertsContext.Consumer>
-        {alerts => {
-          if (shouldEnforcePermissions) {
-            alerts.editLock.check({
-              fieldId: 'System Rules',
-              fieldDisplayName: 'Read Only User',
-              value: me?.permissions.canWrite,
-              checkCallback: canWrite =>
-                canWrite
-                  ? ''
-                  : `${fbt(
-                      'Writing permissions are required. Contact your system administrator.',
-                      '',
-                    )}`,
-            });
-          }
-          return (
-            <FormContext.Provider value={{alerts}}>
-              {children}
-            </FormContext.Provider>
-          );
-        }}
-      </FormAlertsContext.Consumer>
+      <FormWrapper {...props} />
     </FormAlertsContextProvider>
   );
 }

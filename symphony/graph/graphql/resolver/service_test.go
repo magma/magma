@@ -523,21 +523,26 @@ func TestEditServiceWithProperties(t *testing.T) {
 		Type: "string",
 	}
 
+	p2Types := models.PropertyTypeInput{
+		Name: "str_prop2",
+		Type: "string",
+	}
+
 	serviceType, err := mr.AddServiceType(ctx, models.ServiceTypeCreateData{
 		Name:       "type_name_1",
-		Properties: []*models.PropertyTypeInput{&pTypes},
+		Properties: []*models.PropertyTypeInput{&pTypes, &p2Types},
 	})
 	require.NoError(t, err)
-	pTypeID := serviceType.QueryPropertyTypes().OnlyXID(ctx)
+	propTypes := serviceType.QueryPropertyTypes().AllX(ctx)
 
 	strValue := "Foo"
 	strProp := models.PropertyInput{
-		PropertyTypeID: pTypeID,
+		PropertyTypeID: propTypes[0].ID,
 		StringValue:    &strValue,
 	}
 	strValue2 := "Bar"
 	strProp2 := models.PropertyInput{
-		PropertyTypeID: pTypeID,
+		PropertyTypeID: propTypes[1].ID,
 		StringValue:    &strValue2,
 	}
 

@@ -56,6 +56,26 @@ pip3 install awscli
 aws configure
 ```
 
+### Orchestrator and NMS
+
+Orchestrator deployment depends on the following components:
+
+1. An AWS account
+2. A Docker image repository (e.g. Docker Hub, JFrog)
+3. A Helm chart repository (e.g. JFrog, Github)*
+4. A registered domain for Orchestrator endpoints
+
+\* See https://blog.softwaremill.com/hosting-helm-private-repository-from-github-ff3fa940d0b7
+to set up a private Github repository as a Helm repository.
+
+We recommend deploying the Orchestrator cloud component of magma into AWS.
+Our open-source Terraform scripts target an AWS deployment environment, but if
+you are familiar with devops and are willing to roll your own, Orchestrator can
+run on any public/private cloud with a Kubernetes cluster available to use.
+The deployment documentation will assume an AWS deployment environment - if
+this is your first time using or deploying Orchestrator, we recommend that you
+follow this guide before attempting to deploy it elsewhere.
+
 Provide the access key ID and secret key for an administrator user in AWS
 (don't use the root user) when prompted by `aws configure`. Skip this step if
 you will use something else for managing AWS credentials.
@@ -89,23 +109,3 @@ We currently have tested with the following EnodeB's:
 
 Support for other RAN hardware can be implemented inside the `enodebd` service
 on the AGW, but we recommend starting with one of these EnodeBs.
-
-### Orchestrator and NMS
-
-Orchestrator deployment depends on the following components:
-
-1. An AWS account
-2. A Docker image repository (e.g. Docker Hub, JFrog)
-3. A Helm chart repository (e.g. JFrog, Github)*
-4. A registered domain for Orchestrator endpoints
-
-\* See https://blog.softwaremill.com/hosting-helm-private-repository-from-github-ff3fa940d0b7
-to set up a private Github repository as a Helm repository.
-
-We recommend deploying the Orchestrator cloud component of magma into AWS.
-Our open-source Terraform scripts target an AWS deployment environment, but if
-you are familiar with devops and are willing to roll your own, Orchestrator can
-run on any public/private cloud with a Kubernetes cluster available to use.
-The deployment documentation will assume an AWS deployment environment - if
-this is your first time using or deploying Orchestrator, we recommend that you
-follow this guide before attempting to deploy it elsewhere.

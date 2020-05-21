@@ -100,6 +100,7 @@ service MockOCS {
     rpc ClearSubscribers(magma.orc8r.Void) returns (magma.orc8r.Void) {}
     rpc ReAuth(ChargingReAuthTarget) returns (ChargingReAuthAnswer) {}
     rpc GetCredits(magma.lte.SubscriberID) returns (CreditInfos) {}
+    rpc AbortSession(AbortSessionRequest) returns (AbortSessionAnswer) {}
 
     // Todo
     rpc SetExpectations(GyCreditControlExpectations) returns (magma.orc8r.Void) {}
@@ -147,7 +148,7 @@ service MockPCRF {
     rpc SetUsageMonitors (UsageMonitorConfiguration) returns (magma.orc8r.Void) {}
     rpc ClearSubscribers (magma.orc8r.Void) returns (magma.orc8r.Void) {}
     rpc ReAuth(PolicyReAuthTarget) returns (PolicyReAuthAnswer) {}
-    rpc AbortSession(PolicyAbortSessionRequest) returns (PolicyAbortSessionResponse) {}
+    rpc AbortSession(AbortSessionRequest) returns (AbortSessionAnswer) {}
 
     rpc SetExpectations(GxCreditControlExpectations) returns (magma.orc8r.Void) {}
     rpc AssertExpectations(magma.orc8r.Void) returns (GxCreditControlResult) {}
@@ -374,14 +375,11 @@ enum AbortCauseType {
     InsufficientServerResources = 1;
     InsufficientBearerResources = 2;
 }
-
-// gx interface
-message PolicyAbortSessionRequest {
+message AbortSessionRequest {
     string imsi = 1;
-    AbortCauseType cause = 2;
 }
 
-message PolicyAbortSessionResponse {
+message AbortSessionAnswer {
     string session_id = 1;
     uint32 result_code = 2;
     string error_message = 3;

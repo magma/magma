@@ -49,7 +49,7 @@ executors:
   terraform:
     parameters:
       tag:
-        default: 0.12.24
+        default: 0.12.25
         type: string
     docker:
       - image: hashicorp/terraform:<<parameters.tag>>
@@ -66,6 +66,11 @@ commands:
       - go/load-cache
       - go/mod-download
       - go/save-cache
+
+  helm-install:
+    steps:
+      - helm/install-helm-client:
+          version: v3.2.1
 
   helm-lint:
     parameters:
@@ -280,7 +285,7 @@ jobs:
         type: string
     steps:
       - checkout
-      - helm/install-helm-client
+      - helm-install
       - helm-lint:
           chart: inventory
           working_directory: <<parameters.working_directory>>
@@ -344,7 +349,7 @@ jobs:
           name: Collect tests results
           command: |
             mv integration/tests/integration.xml ~/test-results/
-            mv cli/tests/*.xml ~/test-results/
+            mv cli/TEST-*.xml ~/test-results/
           when: always
       - run:
           name: Stop and remove containers
@@ -579,7 +584,7 @@ workflows:
       - artifactory/upload:
           name: upload-charts
           build-steps:
-            - helm/install-helm-client
+            - helm-install
             - run: mkdir /tmp/helm-charts
             - helm-package:
                 chart: inventory

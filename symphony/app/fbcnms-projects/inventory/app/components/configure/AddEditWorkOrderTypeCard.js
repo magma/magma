@@ -8,28 +8,41 @@
  * @format
  */
 
+import type {AddEditWorkOrderTypeCard_workOrderType} from './__generated__/AddEditWorkOrderTypeCard_workOrderType.graphql';
+import type {ChecklistCategoriesMutateStateActionType} from '../checklist/ChecklistCategoriesMutateAction';
+import type {ChecklistCategoriesStateType} from '../checklist/ChecklistCategoriesMutateState';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WorkOrderType} from '../../common/WorkOrder';
 
 import Breadcrumbs from '@fbcnms/ui/components/Breadcrumbs';
 import Button from '@fbcnms/ui/components/design-system/Button';
+import CheckListCategoryExpandingPanel from '../checklist/checkListCategory/CheckListCategoryExpandingPanel';
+import ChecklistCategoriesMutateDispatchContext from '../checklist/ChecklistCategoriesMutateDispatchContext';
 import DeleteOutlineIcon from '@material-ui/icons/DeleteOutline';
 import ExpandingPanel from '@fbcnms/ui/components/ExpandingPanel';
 import ExperimentalPropertyTypesTable from '../form/ExperimentalPropertyTypesTable';
 import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
+import FormActionWithPermissions from '../../common/FormActionWithPermissions';
 import NameDescriptionSection from '@fbcnms/ui/components/NameDescriptionSection';
 import PropertyTypesTableDispatcher from '../form/context/property_types/PropertyTypesTableDispatcher';
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useReducer, useState} from 'react';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {FormContextProvider} from '../../common/FormContext';
 import {addWorkOrderType} from '../../mutations/AddWorkOrderTypeMutation';
+import {convertChecklistCategoriesStateToDefinitions} from '../checklist/ChecklistUtils';
+import {createFragmentContainer, graphql} from 'react-relay';
 import {deleteWorkOrderType} from '../../mutations/RemoveWorkOrderTypeMutation';
 import {editWorkOrderType} from '../../mutations/EditWorkOrderTypeMutation';
 import {generateTempId, isTempId} from '../../common/EntUtils';
+import {
+  getInitialStateFromChecklistDefinitions,
+  reducer,
+} from '../checklist/ChecklistCategoriesMutateReducer';
 import {makeStyles} from '@material-ui/styles';
+import {toMutablePropertyType} from '../../common/PropertyType';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {usePropertyTypesReducer} from '../form/context/property_types/PropertyTypesTableState';
 
@@ -69,8 +82,8 @@ const useStyles = makeStyles(() => ({
 type Props = $ReadOnly<{|
   open: boolean,
   onClose: () => void,
-  onSave: (workOrderType: WorkOrderType) => void,
-  workOrderType: ?WorkOrderType,
+  onSave: () => void,
+  workOrderType: ?AddEditWorkOrderTypeCard_workOrderType,
   ...WithAlert,
 |}>;
 
@@ -90,11 +103,29 @@ const AddEditWorkOrderTypeCard = ({
     description: workOrderType?.description,
     numberOfWorkOrders: workOrderType?.numberOfWorkOrders ?? 0,
     propertyTypes: [],
+    checklistCategoryDefinitions: [],
   });
   const [isSaving, setIsSaving] = useState(false);
   const [propertyTypes, propertyTypesDispatcher] = usePropertyTypesReducer(
-    workOrderType?.propertyTypes ?? [],
+    (workOrderType?.propertyTypes ?? [])
+      .filter(Boolean)
+      .map(toMutablePropertyType),
   );
+
+  // TODO (T66662674): Explore using combineReducers
+  const [editingCategories, dispatch] = useReducer<
+    ChecklistCategoriesStateType,
+    ChecklistCategoriesMutateStateActionType,
+    ?$ElementType<
+      AddEditWorkOrderTypeCard_workOrderType,
+      'checkListCategoryDefinitions',
+    >,
+  >(
+    reducer,
+    workOrderType?.checkListCategoryDefinitions,
+    getInitialStateFromChecklistDefinitions,
+  );
+
   const enqueueSnackbar = useEnqueueSnackbar();
 
   const onDelete = useCallback(() => {
@@ -136,12 +167,18 @@ const AddEditWorkOrderTypeCard = ({
 
   const onSaveClicked = () => {
     setIsSaving(true);
-    const workOrderToSave = {...editingWorkOrderType, propertyTypes};
+    const workOrderToSave: WorkOrderType = {
+      ...editingWorkOrderType,
+      checklistCategoryDefinitions: convertChecklistCategoriesStateToDefinitions(
+        editingCategories,
+      ),
+      propertyTypes,
+    };
     const saveAction = isTempId(editingWorkOrderType.id)
       ? addWorkOrderType
       : editWorkOrderType;
     saveAction(workOrderToSave)
-      .then(() => onSave(workOrderToSave))
+      .then(onSave)
       .catch((errorMessage: string) =>
         enqueueSnackbar(errorMessage, {
           children: key => (
@@ -152,8 +189,14 @@ const AddEditWorkOrderTypeCard = ({
       .finally(() => setIsSaving(false));
   };
 
+  const isOnEditMode = workOrderType != null;
+
   return (
-    <FormContextProvider>
+    <FormContextProvider
+      permissions={{
+        entity: 'workorderTemplate',
+        action: isOnEditMode ? 'update' : 'create',
+      }}>
       <div className={classes.root}>
         <div className={classes.header}>
           <Breadcrumbs
@@ -176,8 +219,9 @@ const AddEditWorkOrderTypeCard = ({
             size="large"
           />
           <div className={classes.buttons}>
-            {workOrderType != null && (
-              <FormAction>
+            {isOnEditMode && (
+              <FormActionWithPermissions
+                permissions={{entity: 'workorderTemplate', action: 'delete'}}>
                 <Button
                   className={classes.deleteButton}
                   variant="text"
@@ -185,7 +229,7 @@ const AddEditWorkOrderTypeCard = ({
                   onClick={onDelete}>
                   <DeleteOutlineIcon />
                 </Button>
-              </FormAction>
+              </FormActionWithPermissions>
             )}
             <Button
               className={classes.cancelButton}
@@ -222,10 +266,59 @@ const AddEditWorkOrderTypeCard = ({
               />
             </PropertyTypesTableDispatcher.Provider>
           </ExpandingPanel>
+          <ChecklistCategoriesMutateDispatchContext.Provider value={dispatch}>
+            <CheckListCategoryExpandingPanel
+              categories={editingCategories}
+              isDefinitionsOnly={true}
+            />
+          </ChecklistCategoriesMutateDispatchContext.Provider>
         </div>
       </div>
     </FormContextProvider>
   );
 };
 
-export default withAlert(AddEditWorkOrderTypeCard);
+export default createFragmentContainer(withAlert(AddEditWorkOrderTypeCard), {
+  workOrderType: graphql`
+    fragment AddEditWorkOrderTypeCard_workOrderType on WorkOrderType {
+      id
+      name
+      description
+      numberOfWorkOrders
+      propertyTypes {
+        id
+        name
+        type
+        nodeType
+        index
+        stringValue
+        intValue
+        booleanValue
+        floatValue
+        latitudeValue
+        longitudeValue
+        rangeFromValue
+        rangeToValue
+        isEditable
+        isMandatory
+        isInstanceProperty
+        isDeleted
+        category
+      }
+      checkListCategoryDefinitions {
+        id
+        title
+        description
+        checklistItemDefinitions {
+          id
+          title
+          type
+          index
+          enumValues
+          enumSelectionMode
+          helpText
+        }
+      }
+    }
+  `,
+});

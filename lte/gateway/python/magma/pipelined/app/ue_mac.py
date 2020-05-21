@@ -92,6 +92,10 @@ class UEMacAddressController(MagmaController):
         flows.delete_all_flows_from_table(datapath, self._ipfix_sample_tbl_num)
 
     def add_ue_mac_flow(self, sid, mac_addr):
+        # TODO report add flow result back to sessiond
+        if self._datapath is None:
+            return
+
         self._add_dhcp_passthrough_flows(sid, mac_addr)
         self._add_dns_passthrough_flows(sid, mac_addr)
 
@@ -115,6 +119,10 @@ class UEMacAddressController(MagmaController):
                                     next_table=self._ipfix_sample_tbl_num)
 
     def delete_ue_mac_flow(self, sid, mac_addr):
+        # TODO report add flow result back to sessiond
+        if self._datapath is None:
+            return
+
         self._delete_dhcp_passthrough_flows(sid, mac_addr)
         self._delete_dns_passthrough_flows(sid, mac_addr)
 

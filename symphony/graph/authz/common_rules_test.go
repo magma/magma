@@ -9,6 +9,8 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/facebookincubator/symphony/graph/authz/models"
+
 	"github.com/facebookincubator/symphony/graph/authz"
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/privacy"
@@ -63,7 +65,7 @@ func TestUserCanWrite(t *testing.T) {
 	location, err := client.LocationType.Create().SetName("LocationType").Save(ctx)
 	require.NoError(t, err)
 	permissions := authz.EmptyPermissions()
-	permissions.CanWrite = true
+	permissions.InventoryPolicy.LocationType.Update.IsAllowed = models.PermissionValueYes
 	ctx = viewertest.NewContext(ctx,
 		client,
 		viewertest.WithUser("user"),

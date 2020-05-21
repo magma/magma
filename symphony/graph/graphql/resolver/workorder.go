@@ -337,11 +337,8 @@ func (r mutationResolver) updateProperty(
 		return errors.Wrapf(err, "querying property type %q", input.PropertyTypeID)
 	}
 	if typ.Editable && typ.IsInstanceProperty {
-		existingPropQuery := client.Property.
-			Update().
-			Where(property.ID(existingProperty.ID))
-
-		if r.updatePropValues(ctx, input, existingPropQuery) != nil {
+		updater := client.Property.UpdateOneID(existingProperty.ID)
+		if r.updatePropValues(ctx, input, updater) != nil {
 			return errors.Wrap(err, "saving work order property value update")
 		}
 	}
@@ -480,13 +477,11 @@ func (r mutationResolver) deleteRemovedCheckListItemFiles(ctx context.Context, i
 }
 
 func (r mutationResolver) createAddedCheckListItemFiles(ctx context.Context, item *ent.CheckListItem, fileInputs []*models.FileInput) (*ent.CheckListItem, error) {
-	client := r.ClientFrom(ctx)
-	var addedFiles []*ent.File
 	for _, input := range fileInputs {
 		if input.ID != nil {
 			continue
 		}
-		f, err := r.createImage(
+		_, err := r.createImage(
 			ctx,
 			&models.AddImageInput{
 				ImgKey:   input.StoreKey,
@@ -505,20 +500,13 @@ func (r mutationResolver) createAddedCheckListItemFiles(ctx context.Context, ite
 					return "image/jpeg"
 				}(),
 			},
+			func(create *ent.FileCreate) error {
+				create.SetChecklistItem(item)
+				return nil
+			},
 		)
 		if err != nil {
 			return nil, err
-		}
-
-		addedFiles = append(addedFiles, f)
-	}
-
-	if len(addedFiles) > 0 {
-		if item, err := client.CheckListItem.
-			UpdateOne(item).
-			AddFiles(addedFiles...).
-			Save(ctx); err != nil {
-			return nil, fmt.Errorf("adding checklist file item=%q %w", item.ID, err)
 		}
 	}
 
@@ -605,17 +593,11 @@ func (r mutationResolver) addWorkOrderTypeCategoryDefinitions(ctx context.Contex
 
 func (r mutationResolver) AddWorkOrderType(
 	ctx context.Context, input models.AddWorkOrderTypeInput) (*ent.WorkOrderType, error) {
-	props, err := r.AddPropertyTypes(ctx, input.Properties...)
-	if err != nil {
-		return nil, err
-	}
-
 	client := r.ClientFrom(ctx)
 	typ, err := client.WorkOrderType.
 		Create().
 		SetName(input.Name).
 		SetNillableDescription(input.Description).
-		AddPropertyTypes(props...).
 		Save(ctx)
 
 	if err != nil {
@@ -624,7 +606,11 @@ func (r mutationResolver) AddWorkOrderType(
 		}
 		return nil, errors.Wrap(err, "creating work order type")
 	}
-
+	if err := r.AddPropertyTypes(ctx, func(ptc *ent.PropertyTypeCreate) {
+		ptc.SetWorkOrderTypeID(typ.ID)
+	}, input.Properties...); err != nil {
+		return nil, err
+	}
 	err = r.addWorkOrderTypeCategoryDefinitions(ctx, input, typ.ID)
 	if err != nil {
 		return nil, errors.Wrap(err, "creating checklist category definitions")
@@ -649,7 +635,7 @@ func (r mutationResolver) EditWorkOrderType(
 	}
 	for _, p := range input.Properties {
 		if p.ID == nil {
-			err = r.validateAndAddNewPropertyType(ctx, p, func(b *ent.PropertyTypeUpdateOne) { b.SetWorkOrderTypeID(input.ID) })
+			err = r.validateAndAddNewPropertyType(ctx, p, func(b *ent.PropertyTypeCreate) { b.SetWorkOrderTypeID(input.ID) })
 		} else {
 			err = r.updatePropType(ctx, p)
 		}
@@ -779,11 +765,19 @@ func (r mutationResolver) RemoveWorkOrderType(ctx context.Context, id int) (int,
 		logger.Warn("work order type has existing work orders", zap.Int("count", count))
 		return id, gqlerror.Errorf("cannot delete work order type with %d existing work orders", count)
 	}
-	if _, err := client.PropertyType.Delete().
+	pTypes, err := client.PropertyType.Query().
 		Where(propertytype.HasWorkOrderTypeWith(workordertype.ID(id))).
-		Exec(ctx); err != nil {
-		logger.Error("cannot delete properties of work order type", zap.Error(err))
-		return id, fmt.Errorf("deleting work order property types: %w", err)
+		All(ctx)
+	if err != nil {
+		logger.Error("cannot query properties of work order type", zap.Error(err))
+		return id, fmt.Errorf("querying work order property types: %w", err)
+	}
+	for _, pType := range pTypes {
+		if err := client.PropertyType.DeleteOne(pType).
+			Exec(ctx); err != nil {
+			logger.Error("cannot delete property of work order type", zap.Error(err))
+			return id, fmt.Errorf("deleting work order property type: %w", err)
+		}
 	}
 	switch err := client.WorkOrderType.DeleteOneID(id).Exec(ctx); err.(type) {
 	case nil:

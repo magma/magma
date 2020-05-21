@@ -509,7 +509,7 @@ func (c *Comment) Node(ctx context.Context) (node *Node, err error) {
 		ID:     c.ID,
 		Type:   "Comment",
 		Fields: make([]*Field, 3),
-		Edges:  make([]*Edge, 1),
+		Edges:  make([]*Edge, 3),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(c.CreateTime); err != nil {
@@ -547,6 +547,28 @@ func (c *Comment) Node(ctx context.Context) (node *Node, err error) {
 		IDs:  ids,
 		Type: "User",
 		Name: "Author",
+	}
+	ids, err = c.QueryWorkOrder().
+		Select(workorder.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		IDs:  ids,
+		Type: "WorkOrder",
+		Name: "WorkOrder",
+	}
+	ids, err = c.QueryProject().
+		Select(project.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[2] = &Edge{
+		IDs:  ids,
+		Type: "Project",
+		Name: "Project",
 	}
 	return node, nil
 }
@@ -1310,7 +1332,7 @@ func (f *File) Node(ctx context.Context) (node *Node, err error) {
 		ID:     f.ID,
 		Type:   "File",
 		Fields: make([]*Field, 10),
-		Edges:  make([]*Edge, 0),
+		Edges:  make([]*Edge, 9),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(f.CreateTime); err != nil {
@@ -1392,6 +1414,106 @@ func (f *File) Node(ctx context.Context) (node *Node, err error) {
 		Type:  "string",
 		Name:  "Category",
 		Value: string(buf),
+	}
+	var ids []int
+	ids, err = f.QueryLocation().
+		Select(location.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[0] = &Edge{
+		IDs:  ids,
+		Type: "Location",
+		Name: "Location",
+	}
+	ids, err = f.QueryEquipment().
+		Select(equipment.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		IDs:  ids,
+		Type: "Equipment",
+		Name: "Equipment",
+	}
+	ids, err = f.QueryUser().
+		Select(user.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[2] = &Edge{
+		IDs:  ids,
+		Type: "User",
+		Name: "User",
+	}
+	ids, err = f.QueryWorkOrder().
+		Select(workorder.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[3] = &Edge{
+		IDs:  ids,
+		Type: "WorkOrder",
+		Name: "WorkOrder",
+	}
+	ids, err = f.QueryChecklistItem().
+		Select(checklistitem.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[4] = &Edge{
+		IDs:  ids,
+		Type: "CheckListItem",
+		Name: "ChecklistItem",
+	}
+	ids, err = f.QuerySurvey().
+		Select(survey.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[5] = &Edge{
+		IDs:  ids,
+		Type: "Survey",
+		Name: "Survey",
+	}
+	ids, err = f.QueryFloorPlan().
+		Select(floorplan.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[6] = &Edge{
+		IDs:  ids,
+		Type: "FloorPlan",
+		Name: "FloorPlan",
+	}
+	ids, err = f.QueryPhotoSurveyQuestion().
+		Select(surveyquestion.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[7] = &Edge{
+		IDs:  ids,
+		Type: "SurveyQuestion",
+		Name: "PhotoSurveyQuestion",
+	}
+	ids, err = f.QuerySurveyQuestion().
+		Select(surveyquestion.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[8] = &Edge{
+		IDs:  ids,
+		Type: "SurveyQuestion",
+		Name: "SurveyQuestion",
 	}
 	return node, nil
 }
@@ -1607,7 +1729,7 @@ func (h *Hyperlink) Node(ctx context.Context) (node *Node, err error) {
 		ID:     h.ID,
 		Type:   "Hyperlink",
 		Fields: make([]*Field, 5),
-		Edges:  make([]*Edge, 0),
+		Edges:  make([]*Edge, 3),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(h.CreateTime); err != nil {
@@ -1649,6 +1771,40 @@ func (h *Hyperlink) Node(ctx context.Context) (node *Node, err error) {
 		Type:  "string",
 		Name:  "Category",
 		Value: string(buf),
+	}
+	var ids []int
+	ids, err = h.QueryEquipment().
+		Select(equipment.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[0] = &Edge{
+		IDs:  ids,
+		Type: "Equipment",
+		Name: "Equipment",
+	}
+	ids, err = h.QueryLocation().
+		Select(location.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		IDs:  ids,
+		Type: "Location",
+		Name: "Location",
+	}
+	ids, err = h.QueryWorkOrder().
+		Select(workorder.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[2] = &Edge{
+		IDs:  ids,
+		Type: "WorkOrder",
+		Name: "WorkOrder",
 	}
 	return node, nil
 }
@@ -3771,7 +3927,7 @@ func (stc *SurveyTemplateCategory) Node(ctx context.Context) (node *Node, err er
 		ID:     stc.ID,
 		Type:   "SurveyTemplateCategory",
 		Fields: make([]*Field, 4),
-		Edges:  make([]*Edge, 1),
+		Edges:  make([]*Edge, 2),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(stc.CreateTime); err != nil {
@@ -3817,6 +3973,17 @@ func (stc *SurveyTemplateCategory) Node(ctx context.Context) (node *Node, err er
 		IDs:  ids,
 		Type: "SurveyTemplateQuestion",
 		Name: "SurveyTemplateQuestions",
+	}
+	ids, err = stc.QueryLocationType().
+		Select(locationtype.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		IDs:  ids,
+		Type: "LocationType",
+		Name: "LocationType",
 	}
 	return node, nil
 }

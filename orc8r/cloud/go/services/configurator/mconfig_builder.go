@@ -53,11 +53,11 @@ func RegisterMconfigBuilders(builders ...MconfigBuilder) {
 }
 
 func CreateMconfig(networkID string, gatewayID string, graph *storage.EntityGraph, network *storage.Network) (*protos.GatewayConfigs, error) {
-	nativeGraph, err := (EntityGraph{}).fromStorageProto(graph)
+	nativeGraph, err := (EntityGraph{}).FromStorageProto(graph)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to convert storage graph to native type")
 	}
-	nativeNW, err := (Network{}).fromStorageProto(network)
+	nativeNW, err := (Network{}).FromStorageProto(network)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to convert storage network to native type")
 	}

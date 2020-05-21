@@ -24,11 +24,8 @@ import {createFragmentContainer, graphql} from 'react-relay';
 import {sortByIndex} from '../draggable/DraggableUtils';
 
 const useStyles = makeStyles(_theme => ({
-  table: {
-    marginBottom: '12px',
-  },
+  table: inventoryTheme.table,
   cell: {
-    ...inventoryTheme.textField,
     paddingLeft: '0px',
   },
 }));

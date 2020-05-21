@@ -1,0 +1,111 @@
+user root;
+worker_processes auto;
+pid /run/nginx.pid;
+include /etc/nginx/modules-enabled/*.conf;
+
+events {
+  worker_connections 1024;
+}
+
+http {
+  # Blackhole (9070) unrecognized services
+  map $srv $srvport {
+    default 9070;
+{%- for service, value in service_registry.items() %}
+  {%- if value['proxy_type'] == 'clientcert' %}
+    {{ service }} {{ value.port }};
+  {%- endif %}
+  {%- if 'proxy_aliases' in value -%}
+  {%- for alias, map in value['proxy_aliases'].items() %}
+    {{ alias }} {{ map.port }};
+  {%- endfor -%}
+  {%- endif -%}
+{%- endfor %}
+  }
+
+  # Blackhole (9070) any services that aren't proxy_type 'open'
+  map $srv $open_srvport {
+    default 9070;
+{%- for service, value in service_registry.items() %}
+  {%- if value['proxy_type'] == 'open' %}
+    {{ service }} {{ value.port }};
+  {%- endif %}
+{%- endfor %}
+  }
+
+  # Use a regex to pull the client cert common name out of the DN
+  map $ssl_client_s_dn $ssl_client_s_dn_cn {
+    default "";
+    ~/CN=(?<CN>[^/]+) $CN;
+  }
+
+  # Server block for controller
+  server {
+    listen              8443 ssl http2;
+    server_name         ~^(?<srv>.+)-{{ controller_hostname }}$;
+    root                /var/www;
+
+    error_log  /var/log/nginx/error.log info;
+    access_log /var/log/nginx/access.log;
+
+    ssl_certificate     /var/opt/magma/certs/controller.crt;
+    ssl_certificate_key /var/opt/magma/certs/controller.key;
+    ssl_verify_client on;
+    ssl_client_certificate /var/opt/magma/certs/certifier.pem;
+
+    location / {
+      {%- if resolver %}
+      resolver {{ resolver }};
+      {%- endif %}
+      grpc_pass grpc://{{ backend }}:$srvport;
+
+      grpc_set_header x-magma-client-cert-cn $ssl_client_s_dn_cn;
+      grpc_set_header x-magma-client-cert-serial $ssl_client_serial;
+    }
+  }
+
+  # Server block for bootstrapper and any other non-clientcert services
+  server {
+    listen 8444 ssl http2;
+    server_name         ~^(?<srv>.+)-{{ controller_hostname }}$;
+    root                /var/www;
+
+    error_log  /var/log/nginx/error.log info;
+    access_log /var/log/nginx/access.log;
+
+    ssl_certificate     /var/opt/magma/certs/controller.crt;
+    ssl_certificate_key /var/opt/magma/certs/controller.key;
+
+    location / {
+      {%- if resolver %}
+      resolver {{ resolver }};
+      {%- endif %}
+
+      grpc_pass grpc://{{ backend }}:$open_srvport;
+    }
+  }
+
+  # Catch-all server block for REST HTTP/1.1 requests from browsers
+  server {
+    listen 9443 ssl default_server;
+    server_name _;
+
+    error_log  /var/log/nginx/error.log info;
+    access_log /var/log/nginx/access.log;
+
+    ssl_certificate     /var/opt/magma/certs/controller.crt;
+    ssl_certificate_key /var/opt/magma/certs/controller.key;
+    ssl_verify_client on;
+    ssl_client_certificate /var/opt/magma/certs/certifier.pem;
+
+    location / {
+      {%- if resolver %}
+      resolver {{ resolver }};
+      {%- endif %}
+      proxy_pass http://{{ backend }}:9081;
+
+      proxy_set_header x-magma-client-cert-cn $ssl_client_s_dn_cn;
+      proxy_set_header x-magma-client-cert-serial $ssl_client_serial;
+    }
+  }
+}

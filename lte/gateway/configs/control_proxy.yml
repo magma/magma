@@ -21,10 +21,10 @@ local_port: 8443
 
 # Cloud address for reaching out to the cloud.
 cloud_address: controller.magma.test
-cloud_port: 9443
+cloud_port: 8443
 
 bootstrap_address: bootstrapper-controller.magma.test
-bootstrap_port: 9444
+bootstrap_port: 8444
 
 fluentd_address: fluentd.magma.test
 fluentd_port: 24224

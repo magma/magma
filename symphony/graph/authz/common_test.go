@@ -23,6 +23,12 @@ import (
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 )
 
+type cudOperations struct {
+	create func(ctx context.Context) error
+	update func(ctx context.Context) error
+	delete func(ctx context.Context) error
+}
+
 type policyTest struct {
 	operationName      string
 	initialPermissions func(p *models.PermissionSettings)

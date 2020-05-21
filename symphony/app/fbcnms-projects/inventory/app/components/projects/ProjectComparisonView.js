@@ -11,13 +11,14 @@ import useRouter from '@fbcnms/ui/hooks/useRouter';
 
 import AddProjectCard from './AddProjectCard';
 import AddProjectDialog from './AddProjectDialog';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import ErrorBoundary from '@fbcnms/ui/components/ErrorBoundary/ErrorBoundary';
+import FormActionWithPermissions from '../../common/FormActionWithPermissions';
 import InventoryView, {DisplayOptions} from '../InventoryViewContainer';
 import ProjectCard from './ProjectCard';
 import ProjectComparisonViewQueryRenderer from './ProjectComparisonViewQueryRenderer';
 import React, {useMemo, useState} from 'react';
 import fbt from 'fbt';
-import {ButtonAction} from '@fbcnms/ui/components/design-system/View/ViewHeaderActions';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {extractEntityIdFromUrl} from '../../common/RouterUtils';
 
@@ -74,21 +75,30 @@ const ProjectComparisonView = () => {
   const header = {
     title: 'Projects',
     actionButtons: [
-      <ButtonAction
-        action={() => {
-          setDialogOpen(true);
-          setDialogKey(dialogKey + 1);
-          ServerLogger.info(LogEvents.ADD_PROJECT_BUTTON_CLICKED);
+      <FormActionWithPermissions
+        permissions={{
+          entity: 'project',
+          action: 'create',
         }}>
-        <fbt desc="">Create Project</fbt>
-      </ButtonAction>,
+        <Button
+          onClick={() => {
+            setDialogOpen(true);
+            setDialogKey(dialogKey + 1);
+            ServerLogger.info(LogEvents.ADD_PROJECT_BUTTON_CLICKED);
+          }}>
+          <fbt desc="">Create Project</fbt>
+        </Button>
+      </FormActionWithPermissions>,
     ],
   };
   return (
     <ErrorBoundary>
       <InventoryView
         header={header}
-        onViewToggleClicked={setResultsDisplayMode}>
+        onViewToggleClicked={setResultsDisplayMode}
+        permissions={{
+          entity: 'project',
+        }}>
         <ProjectComparisonViewQueryRenderer
           limit={50}
           filters={[]}

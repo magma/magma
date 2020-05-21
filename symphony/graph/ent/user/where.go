@@ -879,7 +879,7 @@ func HasProfilePhoto() predicate.User {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(ProfilePhotoTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, ProfilePhotoTable, ProfilePhotoColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, ProfilePhotoTable, ProfilePhotoColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
@@ -891,7 +891,7 @@ func HasProfilePhotoWith(preds ...predicate.File) predicate.User {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(ProfilePhotoInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, ProfilePhotoTable, ProfilePhotoColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, ProfilePhotoTable, ProfilePhotoColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

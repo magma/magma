@@ -8,20 +8,17 @@ import (
 	"context"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/facebookincubator/symphony/graph/authz"
+	"github.com/facebookincubator/symphony/graph/ent/user"
+	"github.com/facebookincubator/symphony/graph/viewer"
+
 	models2 "github.com/facebookincubator/symphony/graph/authz/models"
 	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
-	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 )
-
-type cudOperations struct {
-	create func(ctx context.Context) error
-	update func(ctx context.Context) error
-	delete func(ctx context.Context) error
-}
 
 func getPropertyTypeCudOperations(ctx context.Context, c *ent.Client, setParent func(*ent.PropertyTypeCreate) *ent.PropertyTypeCreate) cudOperations {
 	propertyTypeQuery := c.PropertyType.Create().
@@ -53,14 +50,14 @@ func getPropertyTypeCudOperations(ctx context.Context, c *ent.Client, setParent 
 	}
 }
 
-func getPropertyCudOperations(ctx context.Context, c *ent.Client, setParent func(*ent.PropertyCreate) *ent.PropertyCreate) cudOperations {
+func getPropertyCudOperations(ctx context.Context, c *ent.Client, setParent func(*ent.PropertyCreate) *ent.PropertyCreate, setParent2 func(*ent.PropertyCreate) *ent.PropertyCreate) cudOperations {
 	propertyQuery := c.Property.Create().
 		SetStringVal("value")
 	propertyQuery = setParent(propertyQuery)
 	property := propertyQuery.SaveX(ctx)
 	createProperty := func(ctx context.Context) error {
 		propertyQuery := c.Property.Create()
-		propertyQuery = setParent(propertyQuery)
+		propertyQuery = setParent2(propertyQuery)
 		_, err := propertyQuery.Save(ctx)
 		return err
 	}
@@ -186,6 +183,13 @@ func TestLocationPropertyPolicyRule(t *testing.T) {
 		SetType("string").
 		SetLocationType(locationType).
 		SaveX(ctx)
+
+	PropertyType2 := c.PropertyType.Create().
+		SetName("PropertyType2").
+		SetType("string").
+		SetLocationType(locationType).
+		SaveX(ctx)
+
 	location := c.Location.Create().
 		SetName("Location").
 		SetType(locationType).
@@ -193,6 +197,8 @@ func TestLocationPropertyPolicyRule(t *testing.T) {
 
 	cudOperations := getPropertyCudOperations(ctx, c, func(ptc *ent.PropertyCreate) *ent.PropertyCreate {
 		return ptc.SetLocation(location).SetType(PropertyType)
+	}, func(ptc *ent.PropertyCreate) *ent.PropertyCreate {
+		return ptc.SetLocation(location).SetType(PropertyType2)
 	})
 	runCudPolicyTest(t, cudPolicyTest{
 		appendPermissions: func(p *models.PermissionSettings) {
@@ -218,6 +224,11 @@ func TestLocationByConditionPropertyPolicyRule(t *testing.T) {
 		SetType("string").
 		SetLocationType(locationType).
 		SaveX(ctx)
+	PropertyType2 := c.PropertyType.Create().
+		SetName("PropertyType2").
+		SetType("string").
+		SetLocationType(locationType).
+		SaveX(ctx)
 	location := c.Location.Create().
 		SetName("Location").
 		SetType(locationType).
@@ -225,6 +236,8 @@ func TestLocationByConditionPropertyPolicyRule(t *testing.T) {
 
 	cudOperations := getPropertyCudOperations(ctx, c, func(ptc *ent.PropertyCreate) *ent.PropertyCreate {
 		return ptc.SetLocation(location).SetType(PropertyType)
+	}, func(ptc *ent.PropertyCreate) *ent.PropertyCreate {
+		return ptc.SetLocation(location).SetType(PropertyType2)
 	})
 	runCudPolicyTest(t, cudPolicyTest{
 		initialPermissions: func(p *models.PermissionSettings) {
@@ -251,6 +264,11 @@ func TestEquipmentPropertyPolicyRule(t *testing.T) {
 		SetType("string").
 		SetEquipmentType(equipmentType).
 		SaveX(ctx)
+	PropertyType2 := c.PropertyType.Create().
+		SetName("PropertyType2").
+		SetType("string").
+		SetEquipmentType(equipmentType).
+		SaveX(ctx)
 	equipment := c.Equipment.Create().
 		SetName("Equipment").
 		SetType(equipmentType).
@@ -258,6 +276,8 @@ func TestEquipmentPropertyPolicyRule(t *testing.T) {
 
 	cudOperations := getPropertyCudOperations(ctx, c, func(ptc *ent.PropertyCreate) *ent.PropertyCreate {
 		return ptc.SetEquipment(equipment).SetType(PropertyType)
+	}, func(ptc *ent.PropertyCreate) *ent.PropertyCreate {
+		return ptc.SetEquipment(equipment).SetType(PropertyType2)
 	})
 	runCudPolicyTest(t, cudPolicyTest{
 		appendPermissions: func(p *models.PermissionSettings) {
@@ -280,6 +300,11 @@ func TestProjectPropertyPolicyRule(t *testing.T) {
 		SetType("string").
 		SetProjectType(projectType).
 		SaveX(ctx)
+	PropertyType2 := c.PropertyType.Create().
+		SetName("PropertyType2").
+		SetType("string").
+		SetProjectType(projectType).
+		SaveX(ctx)
 	project := c.Project.Create().
 		SetName("Project").
 		SetType(projectType).
@@ -287,6 +312,8 @@ func TestProjectPropertyPolicyRule(t *testing.T) {
 
 	cudOperations := getPropertyCudOperations(ctx, c, func(ptc *ent.PropertyCreate) *ent.PropertyCreate {
 		return ptc.SetProject(project).SetType(PropertyType)
+	}, func(ptc *ent.PropertyCreate) *ent.PropertyCreate {
+		return ptc.SetProject(project).SetType(PropertyType2)
 	})
 	runCudPolicyTest(t, cudPolicyTest{
 		initialPermissions: func(p *models.PermissionSettings) {
@@ -315,6 +342,11 @@ func TestProjectByConditionPropertyPolicyRule(t *testing.T) {
 		SetType("string").
 		SetProjectType(projectType).
 		SaveX(ctx)
+	PropertyType2 := c.PropertyType.Create().
+		SetName("PropertyType2").
+		SetType("string").
+		SetProjectType(projectType).
+		SaveX(ctx)
 	project := c.Project.Create().
 		SetName("Project").
 		SetType(projectType).
@@ -322,6 +354,8 @@ func TestProjectByConditionPropertyPolicyRule(t *testing.T) {
 
 	cudOperations := getPropertyCudOperations(ctx, c, func(ptc *ent.PropertyCreate) *ent.PropertyCreate {
 		return ptc.SetProject(project).SetType(PropertyType)
+	}, func(ptc *ent.PropertyCreate) *ent.PropertyCreate {
+		return ptc.SetProject(project).SetType(PropertyType2)
 	})
 	runCudPolicyTest(t, cudPolicyTest{
 		initialPermissions: func(p *models.PermissionSettings) {
@@ -353,7 +387,11 @@ func TestWorkOrderPropertyBasedOnOwnerPolicyRule(t *testing.T) {
 		SetType("string").
 		SetWorkOrderType(workOrderType).
 		SaveX(ctx)
-
+	PropertyType2 := c.PropertyType.Create().
+		SetName("PropertyType2").
+		SetType("string").
+		SetWorkOrderType(workOrderType).
+		SaveX(ctx)
 	withPermissionsContext := viewertest.NewContext(ctx, c,
 		viewertest.WithUser("MyOwner"),
 		viewertest.WithRole(user.RoleUSER),
@@ -365,6 +403,8 @@ func TestWorkOrderPropertyBasedOnOwnerPolicyRule(t *testing.T) {
 
 	cudOperations := getPropertyCudOperations(ctx, c, func(ptc *ent.PropertyCreate) *ent.PropertyCreate {
 		return ptc.SetWorkOrder(workOrder).SetType(PropertyType)
+	}, func(ptc *ent.PropertyCreate) *ent.PropertyCreate {
+		return ptc.SetWorkOrder(workOrder).SetType(PropertyType2)
 	})
 	tests := []contextBasedPolicyTest{
 		{
@@ -387,4 +427,136 @@ func TestWorkOrderPropertyBasedOnOwnerPolicyRule(t *testing.T) {
 		},
 	}
 	runContextBasedPolicyTest(t, tests)
+}
+
+func TestPropertyOfWorkOrderReadPolicyRule(t *testing.T) {
+	c := viewertest.NewTestClient(t)
+	ctx := viewertest.NewContext(context.Background(), c)
+	woType1, wo1 := prepareWorkOrderData(ctx, c)
+	woType2, wo2 := prepareWorkOrderData(ctx, c)
+	pType1 := c.PropertyType.Create().
+		SetName("pType1").
+		SetType("string").
+		SetWorkOrderType(woType1).
+		SaveX(ctx)
+	pType2 := c.PropertyType.Create().
+		SetName("pType2").
+		SetType("string").
+		SetWorkOrderType(woType2).
+		SaveX(ctx)
+	c.Property.Create().
+		SetType(pType1).
+		SetStringVal("Hi").
+		SetWorkOrder(wo1).
+		SaveX(ctx)
+	c.Property.Create().
+		SetType(pType2).
+		SetStringVal("Hi").
+		SetWorkOrder(wo2).
+		SaveX(ctx)
+	t.Run("EmptyPermissions", func(t *testing.T) {
+		permissions := authz.EmptyPermissions()
+		permissionsContext := viewertest.NewContext(
+			context.Background(),
+			c,
+			viewertest.WithUser("user"),
+			viewertest.WithRole(user.RoleUSER),
+			viewertest.WithPermissions(permissions))
+		count, err := c.Property.Query().Count(permissionsContext)
+		require.NoError(t, err)
+		require.Zero(t, count)
+	})
+	t.Run("PartialPermissions", func(t *testing.T) {
+		permissions := authz.EmptyPermissions()
+		permissions.WorkforcePolicy.Read.IsAllowed = models2.PermissionValueByCondition
+		permissions.WorkforcePolicy.Read.WorkOrderTypeIds = []int{woType1.ID}
+		permissionsContext := viewertest.NewContext(
+			context.Background(),
+			c,
+			viewertest.WithUser("user"),
+			viewertest.WithRole(user.RoleUSER),
+			viewertest.WithPermissions(permissions))
+		count, err := c.Property.Query().Count(permissionsContext)
+		require.NoError(t, err)
+		require.Equal(t, 1, count)
+	})
+	t.Run("FullPermissions", func(t *testing.T) {
+		permissions := authz.EmptyPermissions()
+		permissions.WorkforcePolicy.Read.IsAllowed = models2.PermissionValueYes
+		permissionsContext := viewertest.NewContext(
+			context.Background(),
+			c,
+			viewertest.WithUser("user"),
+			viewertest.WithRole(user.RoleUSER),
+			viewertest.WithPermissions(permissions))
+		count, err := c.Property.Query().Count(permissionsContext)
+		require.NoError(t, err)
+		require.Equal(t, 2, count)
+	})
+}
+
+func TestPropertyOfProjectReadPolicyRule(t *testing.T) {
+	c := viewertest.NewTestClient(t)
+	ctx := viewertest.NewContext(context.Background(), c)
+	projectType1, project1 := prepareProjectData(ctx, c)
+	projectType2, project2 := prepareProjectData(ctx, c)
+	pType1 := c.PropertyType.Create().
+		SetName("pType1").
+		SetType("string").
+		SetProjectType(projectType1).
+		SaveX(ctx)
+	pType2 := c.PropertyType.Create().
+		SetName("pType2").
+		SetType("string").
+		SetProjectType(projectType2).
+		SaveX(ctx)
+	c.Property.Create().
+		SetType(pType1).
+		SetStringVal("Hi").
+		SetProject(project1).
+		SaveX(ctx)
+	c.Property.Create().
+		SetType(pType2).
+		SetStringVal("Hi").
+		SetProject(project2).
+		SaveX(ctx)
+	t.Run("EmptyPermissions", func(t *testing.T) {
+		permissions := authz.EmptyPermissions()
+		permissionsContext := viewertest.NewContext(
+			context.Background(),
+			c,
+			viewertest.WithUser("user"),
+			viewertest.WithRole(user.RoleUSER),
+			viewertest.WithPermissions(permissions))
+		count, err := c.Property.Query().Count(permissionsContext)
+		require.NoError(t, err)
+		require.Zero(t, count)
+	})
+	t.Run("PartialPermissions", func(t *testing.T) {
+		permissions := authz.EmptyPermissions()
+		permissions.WorkforcePolicy.Read.IsAllowed = models2.PermissionValueByCondition
+		permissions.WorkforcePolicy.Read.ProjectTypeIds = []int{projectType1.ID}
+		permissionsContext := viewertest.NewContext(
+			context.Background(),
+			c,
+			viewertest.WithUser("user"),
+			viewertest.WithRole(user.RoleUSER),
+			viewertest.WithPermissions(permissions))
+		count, err := c.Property.Query().Count(permissionsContext)
+		require.NoError(t, err)
+		require.Equal(t, 1, count)
+	})
+	t.Run("FullPermissions", func(t *testing.T) {
+		permissions := authz.EmptyPermissions()
+		permissions.WorkforcePolicy.Read.IsAllowed = models2.PermissionValueYes
+		permissionsContext := viewertest.NewContext(
+			context.Background(),
+			c,
+			viewertest.WithUser("user"),
+			viewertest.WithRole(user.RoleUSER),
+			viewertest.WithPermissions(permissions))
+		count, err := c.Property.Query().Count(permissionsContext)
+		require.NoError(t, err)
+		require.Equal(t, 2, count)
+	})
 }

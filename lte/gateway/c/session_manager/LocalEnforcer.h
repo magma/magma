@@ -245,6 +245,7 @@ class LocalEnforcer {
   // [CWF-ONLY] This configures how long we should wait before terminating a
   // session after it is created without any monitoring quota
   long quota_exhaustion_termination_on_init_ms_;
+  std::chrono::seconds retry_timeout_;
 
  private:
   /**
@@ -265,8 +266,8 @@ class LocalEnforcer {
       SessionMap& session_map, SessionUpdate& session_update);
 
   void filter_rule_installs(
-      std::vector<StaticRuleInstall> static_rule_installs,
-      std::vector<DynamicRuleInstall> dynamic_rule_installs,
+      std::vector<StaticRuleInstall>& static_rule_installs,
+      std::vector<DynamicRuleInstall>& dynamic_rule_installs,
       const std::unordered_set<uint32_t>& successful_credits);
 
   std::vector<StaticRuleInstall> to_vec(
@@ -369,7 +370,7 @@ class LocalEnforcer {
       const std::string& imsi, const StaticRuleInstall& static_rule);
 
   void schedule_dynamic_rule_deactivation(
-      const std::string& imsi, const DynamicRuleInstall& dynamic_rule);
+      const std::string& imsi, DynamicRuleInstall& dynamic_rule);
 
   /**
    * Get the monitoring credits from PolicyReAuthRequest (RAR) message
@@ -396,8 +397,16 @@ class LocalEnforcer {
       const google::protobuf::RepeatedField<int>& event_triggers);
 
   void schedule_revalidation(
-      SessionMap& session_map,
+      const std::string& imsi,
       const google::protobuf::Timestamp& revalidation_time);
+
+  void handle_add_ue_mac_flow_callback(
+    const SubscriberID& sid,
+    const std::string& ue_mac_addr,
+    const std::string& msisdn,
+    const std::string& ap_mac_addr,
+    const std::string& ap_name,
+    Status status, FlowResponse resp);
 
   void check_usage_for_reporting(
       SessionMap& session_map, SessionUpdate& session_update,

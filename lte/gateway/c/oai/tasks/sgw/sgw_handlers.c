@@ -1086,20 +1086,24 @@ int sgw_handle_modify_bearer_request(
       rv = itti_send_msg_to_task(TASK_MME, INSTANCE_DEFAULT, message_p);
       OAILOG_FUNC_RETURN(LOG_SPGW_APP, rv);
     } else {
-      // TO DO
-      // delete the existing tunnel if enb_ip is different
-      if (
-        is_enb_ip_address_same(
-          &modify_bearer_pP->bearer_contexts_to_be_modified.bearer_contexts[0]
-             .s1_eNB_fteid,
+      // Send end marker to eNB and then delete the tunnel if enb_ip is different
+      if (is_enb_ip_address_same(
+          &modify_bearer_pP->bearer_contexts_to_be_modified.bearer_contexts[0].s1_eNB_fteid,
           &eps_bearer_ctxt_p->enb_ip_address_S1u) == false) {
-        // delete GTPv1-U tunnel
+
+        struct in_addr ue = eps_bearer_ctxt_p->paa.ipv4_address;
+        struct in_addr enb = {.s_addr = 0};
+        enb.s_addr = eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv4_address.s_addr;
+
+        // This is best effort, ignore return code.
+        gtp_tunnel_ops->send_end_marker(enb, modify_bearer_pP->teid);
+
         OAILOG_DEBUG_UE(
           LOG_SPGW_APP,
           imsi64,
           "Delete GTPv1-U tunnel for sgw_teid : %d\n",
           eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up);
-        struct in_addr ue = eps_bearer_ctxt_p->paa.ipv4_address;
+        // delete GTPv1-U tunnel
         rv = gtp_tunnel_ops->del_tunnel(
           ue,
           eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,

@@ -9,7 +9,12 @@
  */
 
 export default {
+  table: {
+    marginBottom: '12px',
+    maxWidth: '1366px',
+    overflowX: 'auto',
+  },
   textField: {
-    width: '280px',
+    width: '100%',
   },
 };

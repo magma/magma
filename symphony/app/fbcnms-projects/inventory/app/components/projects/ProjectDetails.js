@@ -26,6 +26,7 @@ import CommentsBox from '../comments/CommentsBox';
 import EditProjectMutation from '../../mutations/EditProjectMutation';
 import ExpandingPanel from '@fbcnms/ui/components/ExpandingPanel';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
+import FormFieldWithPermissions from '../../common/FormFieldWithPermissions';
 import FormSaveCancelPanel from '@fbcnms/ui/components/design-system/Form/FormSaveCancelPanel';
 import Grid from '@material-ui/core/Grid';
 import LocationBreadcrumbsTitle from '../location/LocationBreadcrumbsTitle';
@@ -215,7 +216,11 @@ class ProjectDetails extends React.Component<Props, State> {
     const {properties} = this.state;
     return (
       <div className={classes.root}>
-        <FormContextProvider>
+        <FormContextProvider
+          permissions={{
+            entity: 'project',
+            action: 'update',
+          }}>
           <div className={classes.nameHeader}>
             <div className={classes.breadcrumbs}>
               <Breadcrumbs
@@ -350,7 +355,11 @@ class ProjectDetails extends React.Component<Props, State> {
               </Grid>
               <Grid item xs={4} sm={4} lg={4} xl={4}>
                 <ExpandingPanel title="Team">
-                  <FormField>
+                  <FormFieldWithPermissions
+                    permissions={{
+                      entity: 'project',
+                      action: 'transferOwnership',
+                    }}>
                     <UserTypeahead
                       className={classes.input}
                       selectedUser={project.createdBy}
@@ -359,7 +368,7 @@ class ProjectDetails extends React.Component<Props, State> {
                         this._setProjectDetail('createdBy', user)
                       }
                     />
-                  </FormField>
+                  </FormFieldWithPermissions>
                 </ExpandingPanel>
                 <ExpandingPanel
                   title="Comments"

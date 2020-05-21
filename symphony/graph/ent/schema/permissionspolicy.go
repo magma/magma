@@ -8,6 +8,7 @@ import (
 	"github.com/facebookincubator/ent"
 	"github.com/facebookincubator/ent/schema/edge"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/authz"
 	"github.com/facebookincubator/symphony/graph/authz/models"
 )
 
@@ -40,4 +41,13 @@ func (PermissionsPolicy) Edges() []ent.Edge {
 		edge.From("groups", UsersGroup.Type).
 			Ref("policies"),
 	}
+}
+
+// Policy returns PermissionsPolicy policies.
+func (PermissionsPolicy) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithMutationRules(
+			authz.PermissionsPolicyWritePolicyRule(),
+		),
+	)
 }

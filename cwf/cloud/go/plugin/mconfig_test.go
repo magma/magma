@@ -18,6 +18,7 @@ import (
 	fegmconfig "magma/feg/cloud/go/protos/mconfig"
 	ltemconfig "magma/lte/cloud/go/protos/mconfig"
 	"magma/orc8r/cloud/go/orc8r"
+	orc8rplugin "magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
@@ -29,6 +30,7 @@ import (
 )
 
 func TestBuilder_Build(t *testing.T) {
+	orc8rplugin.RegisterPluginForTests(t, &plugin.CwfOrchestratorPlugin{})
 	builder := &plugin.Builder{}
 
 	// empty case: no cwf associated to magmad gateway
@@ -73,7 +75,7 @@ func TestBuilder_Build(t *testing.T) {
 				SessionMs:              43200000,
 				SessionAuthenticatedMs: 5000,
 			},
-			PlmnIds: []string{},
+			PlmnIds: nil,
 		},
 		"aaa_server": &fegmconfig.AAAConfig{LogLevel: 1,
 			IdleSessionTimeoutMs: 21600000,
@@ -136,7 +138,7 @@ var defaultnwConfig = &models.NetworkCarrierWifiConfigs{
 			SessionMs:              43200000,
 			SessionAuthenticatedMs: 5000,
 		},
-		PlmnIds: []string{},
+		PlmnIds: nil,
 	},
 	AaaServer: &models.AaaServer{
 		IDLESessionTimeoutMs: 21600000,

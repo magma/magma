@@ -93,6 +93,25 @@ func workOrderCudBasedCheck(ctx context.Context, cud *models.WorkforceCud, m *en
 	return checkWorkforce(cud.Delete, &workOrderTypeID, nil), nil
 }
 
+func workOrderReadPredicate(ctx context.Context) predicate.WorkOrder {
+	var predicates []predicate.WorkOrder
+	rule := FromContext(ctx).WorkforcePolicy.Read
+	switch rule.IsAllowed {
+	case models2.PermissionValueYes:
+		return nil
+	case models2.PermissionValueByCondition:
+		predicates = append(predicates,
+			workorder.HasTypeWith(workordertype.IDIn(rule.WorkOrderTypeIds...)))
+	}
+	if v, exists := viewer.FromContext(ctx).(*viewer.UserViewer); exists {
+		predicates = append(predicates,
+			workorder.HasOwnerWith(user.ID(v.User().ID)),
+			workorder.HasAssigneeWith(user.ID(v.User().ID)),
+		)
+	}
+	return workorder.Or(predicates...)
+}
+
 func AllowIfWorkOrderOwnerOrAssignee() privacy.MutationRule {
 	return privacy.WorkOrderMutationRuleFunc(func(ctx context.Context, m *ent.WorkOrderMutation) error {
 		workOrderID, exists := m.ID()
@@ -155,22 +174,10 @@ func WorkOrderWritePolicyRule() privacy.MutationRule {
 // WorkOrderReadPolicyRule grants read permission to work order based on policy.
 func WorkOrderReadPolicyRule() privacy.QueryRule {
 	return privacy.WorkOrderQueryRuleFunc(func(ctx context.Context, q *ent.WorkOrderQuery) error {
-		var predicates []predicate.WorkOrder
-		rule := FromContext(ctx).WorkforcePolicy.Read
-		switch rule.IsAllowed {
-		case models2.PermissionValueYes:
-			return privacy.Skip
-		case models2.PermissionValueByCondition:
-			predicates = append(predicates,
-				workorder.HasTypeWith(workordertype.IDIn(rule.WorkOrderTypeIds...)))
+		woPredicate := workOrderReadPredicate(ctx)
+		if woPredicate != nil {
+			q.Where(woPredicate)
 		}
-		if v, exists := viewer.FromContext(ctx).(*viewer.UserViewer); exists {
-			predicates = append(predicates,
-				workorder.HasOwnerWith(user.ID(v.User().ID)),
-				workorder.HasAssigneeWith(user.ID(v.User().ID)),
-			)
-		}
-		q.Where(workorder.Or(predicates...))
 		return privacy.Skip
 	})
 }

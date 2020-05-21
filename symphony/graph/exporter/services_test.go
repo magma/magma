@@ -13,15 +13,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/facebookincubator/symphony/graph/authz"
-
 	"github.com/AlekSi/pointer"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/ent/serviceendpointdefinition"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
-	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
-	"github.com/facebookincubator/symphony/pkg/log/logtest"
 	"github.com/stretchr/testify/require"
 )
 
@@ -222,11 +218,7 @@ func TestEmptyServicesDataExport(t *testing.T) {
 	log := r.exporter.log
 
 	e := &exporter{log, servicesRower{log}}
-	auth := authz.Handler(e, logtest.NewTestLogger(t))
-	th := viewer.TenancyHandler(auth,
-		viewer.NewFixedTenancy(r.client),
-		logtest.NewTestLogger(t),
-	)
+	th := viewertest.TestHandler(t, e, r.client)
 	server := httptest.NewServer(th)
 	defer server.Close()
 
@@ -264,11 +256,7 @@ func TestServicesExport(t *testing.T) {
 	log := r.exporter.log
 
 	e := &exporter{log, servicesRower{log}}
-	auth := authz.Handler(e, logtest.NewTestLogger(t))
-	th := viewer.TenancyHandler(auth,
-		viewer.NewFixedTenancy(r.client),
-		logtest.NewTestLogger(t),
-	)
+	th := viewertest.TestHandler(t, e, r.client)
 	server := httptest.NewServer(th)
 	defer server.Close()
 
@@ -387,11 +375,7 @@ func TestServiceWithFilters(t *testing.T) {
 	log := r.exporter.log
 
 	e := &exporter{log, servicesRower{log}}
-	auth := authz.Handler(e, logtest.NewTestLogger(t))
-	th := viewer.TenancyHandler(auth,
-		viewer.NewFixedTenancy(r.client),
-		logtest.NewTestLogger(t),
-	)
+	th := viewertest.TestHandler(t, e, r.client)
 	server := httptest.NewServer(th)
 	defer server.Close()
 

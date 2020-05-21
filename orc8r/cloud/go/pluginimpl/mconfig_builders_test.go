@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/services/configurator"
@@ -41,6 +42,7 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 	graph := configurator.EntityGraph{
 		Entities: []configurator.NetworkEntity{gw},
 	}
+	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 
 	// Make sure we get a 0.0.0-0 and no error if no tier
 	builder := &pluginimpl.BaseOrchestratorMconfigBuilder{}
@@ -56,9 +58,9 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 			AutoupgradeEnabled:      true,
 			AutoupgradePollInterval: 300,
 			PackageVersion:          "0.0.0-0",
-			Images:                  []*mconfig.ImageSpec{},
-			DynamicServices:         []string{},
-			FeatureFlags:            map[string]bool{},
+			Images:                  nil,
+			DynamicServices:         nil,
+			FeatureFlags:            nil,
 		},
 		"metricsd": &mconfig.MetricsD{LogLevel: protos.LogLevel_INFO},
 		"td-agent-bit": &mconfig.FluentBit{
@@ -69,7 +71,6 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 		},
 	}
 	assert.Equal(t, expected, actual)
-
 	// Put a tier in the graph
 	tier := configurator.NetworkEntity{
 		Type: orc8r.UpgradeTierEntityType,
@@ -105,8 +106,8 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 				{Name: "Image1", Order: 42},
 				{Name: "Image2", Order: 1},
 			},
-			DynamicServices: []string{},
-			FeatureFlags:    map[string]bool{},
+			DynamicServices: nil,
+			FeatureFlags:    nil,
 		},
 		"metricsd": &mconfig.MetricsD{LogLevel: protos.LogLevel_INFO},
 		"td-agent-bit": &mconfig.FluentBit{
@@ -127,8 +128,8 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 		AutoupgradePollInterval: 300,
 		CheckinInterval:         60,
 		CheckinTimeout:          10,
-		DynamicServices:         []string{},
-		FeatureFlags:            map[string]bool{},
+		DynamicServices:         nil,
+		FeatureFlags:            nil,
 		Logging: &models.GatewayLoggingConfigs{
 			Aggregation: &models.AggregationLoggingConfigs{
 				TargetFilesByTag: map[string]string{
@@ -163,8 +164,8 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 				{Name: "Image1", Order: 42},
 				{Name: "Image2", Order: 1},
 			},
-			DynamicServices: []string{},
-			FeatureFlags:    map[string]bool{},
+			DynamicServices: nil,
+			FeatureFlags:    nil,
 		},
 		"metricsd": &mconfig.MetricsD{LogLevel: protos.LogLevel_INFO},
 		"td-agent-bit": &mconfig.FluentBit{
@@ -186,8 +187,8 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 		AutoupgradePollInterval: 300,
 		CheckinInterval:         60,
 		CheckinTimeout:          10,
-		DynamicServices:         []string{},
-		FeatureFlags:            map[string]bool{},
+		DynamicServices:         nil,
+		FeatureFlags:            nil,
 		Logging: &models.GatewayLoggingConfigs{
 			Aggregation: &models.AggregationLoggingConfigs{
 				TargetFilesByTag: map[string]string{
@@ -220,8 +221,8 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 				{Name: "Image1", Order: 42},
 				{Name: "Image2", Order: 1},
 			},
-			DynamicServices: []string{},
-			FeatureFlags:    map[string]bool{},
+			DynamicServices: nil,
+			FeatureFlags:    nil,
 		},
 		"metricsd": &mconfig.MetricsD{LogLevel: protos.LogLevel_INFO},
 		"td-agent-bit": &mconfig.FluentBit{
@@ -239,6 +240,8 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 }
 
 func TestDnsdMconfigBuilder_Build(t *testing.T) {
+	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+
 	nw := configurator.Network{ID: "n1"}
 	gw := configurator.NetworkEntity{
 		Type: orc8r.MagmadGatewayType,

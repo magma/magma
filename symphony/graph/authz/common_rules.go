@@ -91,33 +91,32 @@ func cudBasedRule(cud *models.Cud, m ent.Mutation) error {
 	return privacy.Skip
 }
 
-// AllowWritePermissionsRule grants write permission.
-func AllowWritePermissionsRule() privacy.MutationRule {
+func allowWritePermissionsRule() privacy.MutationRule {
 	return privacy.MutationRuleFunc(func(ctx context.Context, _ ent.Mutation) error {
-		if FromContext(ctx).CanWrite {
-			return privacy.Allow
+		v := viewer.FromContext(ctx)
+		if v != nil && v.Features().Enabled(viewer.FeaturePermissionPolicies) {
+			return privacyDecision(v.Role() == user.RoleOWNER)
 		}
-		return privacy.Skip
+		return privacyDecision(FromContext(ctx).CanWrite)
 	})
 }
 
-// AllowReadPermissionsRule grants read permission.
-func AllowReadPermissionsRule() privacy.QueryRule {
+func allowReadPermissionsRule() privacy.QueryRule {
 	return privacy.QueryRuleFunc(func(ctx context.Context, _ ent.Query) error {
-		v := viewer.FromContext(ctx)
-		if v == nil {
+		switch v := viewer.FromContext(ctx); {
+		case v == nil:
+			return privacy.Skip
+		case !v.Features().Enabled(viewer.FeaturePermissionPolicies),
+			v.Role() == user.RoleOWNER:
+			return privacy.Allow
+		default:
 			return privacy.Skip
 		}
-		if !v.Features().Enabled(viewer.FeatureUserManagementDev) || v.Role() == user.RoleOWNER {
-			return privacy.Allow
-		}
-		return privacy.Skip
 	})
 }
 
-// AlwaysDenyMutationIfNoPermissionRule denies access if no permissions is present on context.
-func AlwaysDenyMutationIfNoPermissionRule() privacy.MutationRule {
-	return privacy.MutationRuleFunc(func(ctx context.Context, _ ent.Mutation) error {
+func denyIfNoPermissionSettingsRule() privacy.QueryMutationRule {
+	return privacy.ContextQueryMutationRule(func(ctx context.Context) error {
 		if FromContext(ctx) == nil {
 			return privacy.Deny
 		}
@@ -125,12 +124,31 @@ func AlwaysDenyMutationIfNoPermissionRule() privacy.MutationRule {
 	})
 }
 
-// AlwaysDenyQueryIfNoPermissionRule denies access if no permissions is present on context.
-func AlwaysDenyQueryIfNoPermissionRule() privacy.QueryRule {
-	return privacy.QueryRuleFunc(func(ctx context.Context, _ ent.Query) error {
-		if FromContext(ctx) == nil {
-			return privacy.Deny
+func allowOrSkipWorkOrder(ctx context.Context, p *models.PermissionSettings, wo *ent.WorkOrder) error {
+	switch allowed, err := workOrderIsEditable(ctx, wo); {
+	case err != nil:
+		return privacy.Denyf("cannot check work order editability: %w", err)
+	case allowed:
+		return privacy.Allow
+	}
+	workOrderTypeID, err := wo.QueryType().OnlyID(ctx)
+	if err != nil {
+		return privacy.Denyf("cannot fetch work order type id: %w", err)
+	}
+	return privacyDecision(
+		checkWorkforce(
+			p.WorkforcePolicy.Data.Update, &workOrderTypeID, nil,
+		),
+	)
+}
+
+func denyBulkEditOrDeleteRule() privacy.MutationRule {
+	rule := privacy.DenyMutationOperationRule(ent.OpUpdate | ent.OpDelete)
+	return privacy.MutationRuleFunc(func(ctx context.Context, m ent.Mutation) error {
+		if v := viewer.FromContext(ctx); v == nil ||
+			!v.Features().Enabled(viewer.FeaturePermissionPolicies) {
+			return privacy.Skip
 		}
-		return privacy.Skip
+		return rule.EvalMutation(ctx, m)
 	})
 }

@@ -13,8 +13,11 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
+	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
+
+	"github.com/AlekSi/pointer"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )
@@ -196,6 +199,89 @@ func TestAddLocationWithProperties(t *testing.T) {
 	require.Equal(t, rngFetchProp.QueryType().OnlyXID(ctx), rngProp.PropertyTypeID, "Comparing properties: PropertyType value")
 }
 
+func TestDontAddDuplicateProperties(t *testing.T) {
+	r := newTestResolver(t)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
+
+	mr, _ := r.Mutation(), r.Query()
+	strValue := "Foo"
+
+	locType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{
+		Name: "location_type_name_1",
+		Properties: []*models.PropertyTypeInput{
+			{
+				Name: "str_prop",
+				Type: models.PropertyKindString,
+			},
+		}})
+	require.NoError(t, err, "Adding location type")
+	eqType, err := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
+		Name: "equip_type",
+		Properties: []*models.PropertyTypeInput{
+			{
+				Name: "str_prop",
+				Type: models.PropertyKindString,
+			},
+		},
+	})
+	require.NoError(t, err, "Adding location type")
+
+	strProp := models.PropertyInput{
+		PropertyTypeID: locType.QueryPropertyTypes().Where(propertytype.Name("str_prop")).OnlyXID(ctx),
+		StringValue:    &strValue,
+	}
+
+	propInputs := []*models.PropertyInput{&strProp}
+	loc, err := mr.AddLocation(ctx, models.AddLocationInput{
+		Name:       "location_name_1",
+		Type:       locType.ID,
+		Properties: propInputs,
+	})
+	require.NoError(t, err, "Adding location instance")
+
+	strFetchProp := loc.QueryProperties().Where(property.HasTypeWith(propertytype.Name("str_prop"))).OnlyX(ctx)
+	require.Equal(t, strFetchProp.StringVal, *strProp.StringValue, "Comparing properties: string value")
+	require.Equal(t, strFetchProp.QueryType().OnlyXID(ctx), strProp.PropertyTypeID, "Comparing properties: PropertyType value")
+
+	require.NoError(t, err, "Adding location instance")
+
+	strProp.StringValue = pointer.ToString("new value")
+	loc, err = mr.EditLocation(ctx, models.EditLocationInput{
+		ID:         loc.ID,
+		Name:       "location_name_1",
+		Properties: []*models.PropertyInput{&strProp},
+	})
+	require.NoError(t, err)
+	strFetchProp = loc.QueryProperties().Where(property.HasTypeWith(propertytype.Name("str_prop"))).OnlyX(ctx)
+	require.Equal(t, strFetchProp.StringVal, *strProp.StringValue, "Comparing properties: string value")
+	require.Equal(t, strFetchProp.QueryType().OnlyXID(ctx), strProp.PropertyTypeID, "Comparing properties: PropertyType value")
+
+	// same for equipment
+	strProp = models.PropertyInput{
+		PropertyTypeID: eqType.QueryPropertyTypes().Where(propertytype.Name("str_prop")).OnlyXID(ctx),
+		StringValue:    &strValue,
+	}
+
+	eq, err := mr.AddEquipment(ctx, models.AddEquipmentInput{
+		Name:       "equip_name",
+		Location:   &loc.ID,
+		Type:       eqType.ID,
+		Properties: []*models.PropertyInput{&strProp},
+	})
+	require.NoError(t, err, "Adding location instance")
+	strFetchProp = eq.QueryProperties().OnlyX(ctx)
+	require.Equal(t, strFetchProp.StringVal, *strProp.StringValue, "Comparing properties: string value")
+
+	strProp.StringValue = pointer.ToString("new value")
+	_, err = mr.EditLocation(ctx, models.EditLocationInput{
+		ID:         eq.ID,
+		Name:       "equip_name",
+		Properties: []*models.PropertyInput{&strProp},
+	})
+	require.Error(t, err)
+}
+
 func TestAddLocationWithInvalidProperties(t *testing.T) {
 	t.Skip("skipping test until mandatory props are added - T57858029")
 	r := newTestResolver(t)
@@ -324,7 +410,8 @@ func TestAddMultiLevelLocations(t *testing.T) {
 func TestAddLocationCellScans(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.Close()
-	ctx := viewertest.NewContext(context.Background(), r.client)
+	// TODO(T66882071): Remove owner role
+	ctx := viewertest.NewContext(context.Background(), r.client, viewertest.WithRole(user.RoleOWNER))
 
 	mr, qr := r.Mutation(), r.Query()
 	locationType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{
@@ -480,21 +567,26 @@ func TestEditLocationWithProperties(t *testing.T) {
 		Type: "string",
 	}
 
+	p2Types := models.PropertyTypeInput{
+		Name: "str_prop2",
+		Type: "string",
+	}
+
 	locType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{
 		Name:       "type_name_1",
-		Properties: []*models.PropertyTypeInput{&pTypes},
+		Properties: []*models.PropertyTypeInput{&pTypes, &p2Types},
 	})
 	require.NoError(t, err)
-	pTypeID := locType.QueryPropertyTypes().OnlyXID(ctx)
+	pTypeID := locType.QueryPropertyTypes().AllX(ctx)
 
 	strValue := "Foo"
 	strProp := models.PropertyInput{
-		PropertyTypeID: pTypeID,
+		PropertyTypeID: pTypeID[0].ID,
 		StringValue:    &strValue,
 	}
 	strValue2 := "Bar"
 	strProp2 := models.PropertyInput{
-		PropertyTypeID: pTypeID,
+		PropertyTypeID: pTypeID[1].ID,
 		StringValue:    &strValue2,
 	}
 

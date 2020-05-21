@@ -262,7 +262,6 @@ class AddLinkToServiceDialog extends React.Component<Props, State> {
           {lastStep && (
             <Button
               disabled={activeLink === null}
-              color="primary"
               onClick={() => onAddLink(nullthrows(activeLink))}
               className={classes.actionButton}>
               Add

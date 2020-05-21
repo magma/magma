@@ -287,7 +287,7 @@ func (m *importer) getLocationPropertyInputs(ctx context.Context, importLine Imp
 	var inputs []*models.PropertyInput
 	for _, propType := range propTypes {
 		propName := propType.Name
-		inp, err := importLine.GetPropertyInput(m.ClientFrom(ctx), ctx, typ, propName)
+		inp, err := importLine.GetPropertyInput(ctx, typ, propName)
 		if inp == nil {
 			continue
 		}
@@ -357,6 +357,12 @@ func (m *importer) inputValidationsLocation(ctx context.Context, importHeader Im
 	if !equal(firstLine[:locStart], []string{"Location ID"}) {
 		return errors.New("first line should begin with 'Location ID'")
 	}
+	if importHeader.ExternalIDIdx() == -1 {
+		return errors.New("first line should include 'External ID'")
+	}
+	if importHeader.LatitudeIdx() == -1 || importHeader.LongitudeIdx() == -1 {
+		return errors.New("first line should include 'Longitude' and 'Latitude'")
+	}
 	if !equal(firstLine[importHeader.ExternalIDIdx():importHeader.PropertyStartIdx()], []string{"External ID", "Latitude", "Longitude"}) {
 		return errors.New("first line misses sequence: 'External ID', 'Latitude' and 'Longitude'")
 	}
@@ -372,7 +378,7 @@ func (m *importer) validatePropertiesForLocationType(ctx context.Context, line I
 	}
 	for _, propType := range propTypes {
 		ptypeName := propType.Name
-		pInput, err := line.GetPropertyInput(m.ClientFrom(ctx), ctx, locType, ptypeName)
+		pInput, err := line.GetPropertyInput(ctx, locType, ptypeName)
 		if err != nil {
 			return nil, err
 		}

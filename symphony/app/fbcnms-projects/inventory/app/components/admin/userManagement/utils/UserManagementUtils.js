@@ -9,8 +9,6 @@
  * @format
  */
 
-// flowlint untyped-import:off
-
 import type {
   AddPermissionsPolicyInput,
   BasicPermissionRuleInput,
@@ -20,6 +18,7 @@ import type {
   WorkforcePermissionRuleInput,
   WorkforcePolicyInput,
 } from '../../../../mutations/__generated__/AddPermissionsPolicyMutation.graphql';
+import type {EntsMap} from '../../../../common/EntUtils';
 import type {GroupSearchContextQueryResponse} from './search/__generated__/GroupSearchContextQuery.graphql';
 import type {
   PermissionValue,
@@ -30,6 +29,7 @@ import type {
 } from '../__generated__/UserManagementContextQuery.graphql';
 
 import fbt from 'fbt';
+import {ent2EntsMap} from '../../../../common/EntUtils';
 import {graphql} from 'relay-runtime';
 
 graphql`
@@ -370,32 +370,29 @@ export const usersResponse2Users = (usersResponse: UsersReponsePart) =>
         .filter(Boolean)
         .map<User>(userResponse2User);
 
-export type UsersMap = Map<string, User>;
-export const users2UsersMap: (Array<User>) => UsersMap = users =>
-  new Map<string, User>(users.map(user => [user.id, user]));
+export type UsersMap = EntsMap<User>;
+export const users2UsersMap = (users: Array<User>) => ent2EntsMap<User>(users);
 
 export const userFullName = (user: User) =>
   `${user.firstName} ${user.lastName}`.trim() || '_';
 
-export const groupResponse2Group: (
-  GroupReponseFieldsPart,
-  ?UsersMap,
-) => UserPermissionsGroup = (
-  groupResponse: GroupReponseFieldsPart,
+export function groupResponse2Group(
   usersMap?: ?UsersMap,
-) => ({
-  id: groupResponse.id,
-  name: groupResponse.name,
-  description: groupResponse.description || '',
-  status: groupResponse.status,
-  members: groupResponse.members,
-  memberUsers:
-    usersMap == null
-      ? []
-      : groupResponse.members
-          .map(member => usersMap.get(member.id))
-          .filter(Boolean),
-});
+): GroupReponseFieldsPart => UserPermissionsGroup {
+  return (groupResponse: GroupReponseFieldsPart) => ({
+    id: groupResponse.id,
+    name: groupResponse.name,
+    description: groupResponse.description || '',
+    status: groupResponse.status,
+    members: groupResponse.members,
+    memberUsers:
+      usersMap == null
+        ? []
+        : groupResponse.members
+            .map(member => usersMap.get(member.id))
+            .filter(Boolean),
+  });
+}
 
 export const groupsResponse2Groups = (
   groupsResponse: GroupsReponsePart | GroupsSearchReponsePart,
@@ -413,8 +410,12 @@ export const groupsResponse2Groups = (
 
   return resposeNodes
     .filter(Boolean)
-    .map<UserPermissionsGroup>(gr => groupResponse2Group(gr, usersMap));
+    .map<UserPermissionsGroup>(groupResponse2Group(usersMap));
 };
+
+export type GroupsMap = EntsMap<UserPermissionsGroup>;
+export const groups2GroupsMap = (groups: Array<UserPermissionsGroup>) =>
+  ent2EntsMap<UserPermissionsGroup>(groups);
 
 export const PERMISSION_RULE_VALUES = {
   YES: 'YES',
@@ -439,11 +440,15 @@ export type InventoryCatalogPolicy = $ReadOnly<{|
   serviceType: CUDPermissions,
 |}>;
 
-export type InventoryPolicy = $ReadOnly<{|
-  read: BasicPermissionRule,
+export type InventoryEntsPolicy = $ReadOnly<{|
   location: CUDPermissions,
   equipment: CUDPermissions,
   ...InventoryCatalogPolicy,
+|}>;
+
+export type InventoryPolicy = $ReadOnly<{|
+  read: BasicPermissionRule,
+  ...InventoryEntsPolicy,
 |}>;
 
 export type WorkforceBasicPermissions = BasicPermissionRule &
@@ -515,26 +520,30 @@ function tryGettingWorkforcePolicy(
   return null;
 }
 
-// line was too long. So made it shorter...
-type PPR2PP = PermissionsPoliciesReponseFieldsPart => PermissionsPolicy;
-export const permissionsPolicyResponse2PermissionsPolicy: PPR2PP = (
-  policyNode: PermissionsPoliciesReponseFieldsPart,
-) => {
-  const {__typename: type, ...policyRules} = policyNode.policy;
-  return {
-    id: policyNode.id,
-    name: policyNode.name,
-    description: policyNode.description || '',
-    type,
-    isGlobal: policyNode.isGlobal,
-    groups: [], // policyNode.groups,
-    inventoryRules: tryGettingInventoryPolicy(policyRules),
-    workforceRules: tryGettingWorkforcePolicy(policyRules),
+export function permissionsPolicyResponse2PermissionsPolicy(
+  groupsMap: GroupsMap,
+): PermissionsPoliciesReponseFieldsPart => PermissionsPolicy {
+  return (policyNode: PermissionsPoliciesReponseFieldsPart) => {
+    const {__typename: type, ...policyRules} = policyNode.policy;
+    return {
+      id: policyNode.id,
+      name: policyNode.name,
+      description: policyNode.description || '',
+      type,
+      isGlobal: policyNode.isGlobal,
+      groups: policyNode.groups
+        .filter(Boolean)
+        .map(group => groupsMap.get(group.id))
+        .filter(Boolean),
+      inventoryRules: tryGettingInventoryPolicy(policyRules),
+      workforceRules: tryGettingWorkforcePolicy(policyRules),
+    };
   };
-};
+}
 
 export const permissionsPoliciesResponse2PermissionsPolicies = (
   policiesResponse: PermissionsPoliciesReponsePart,
+  groupsMap: GroupsMap,
 ) =>
   policiesResponse?.edges == null
     ? []
@@ -542,7 +551,9 @@ export const permissionsPoliciesResponse2PermissionsPolicies = (
         .filter(Boolean)
         .map(ur => ur.node)
         .filter(Boolean)
-        .map<PermissionsPolicy>(permissionsPolicyResponse2PermissionsPolicy);
+        .map<PermissionsPolicy>(
+          permissionsPolicyResponse2PermissionsPolicy(groupsMap),
+        );
 
 export const permissionPolicyBasicRule2PermissionPolicyBasicRuleInput: (
   ?BasicPermissionRule,
@@ -667,6 +678,7 @@ export const permissionsPolicy2PermissionsPolicyInput: PP2APPI = (
       policy.type === POLICY_TYPES.WorkforcePolicy.key
         ? initWorkforceRulesInput(policy.workforceRules)
         : null,
+    groups: policy.groups.map(group => group.id),
   };
 };
 

@@ -21,6 +21,8 @@
 .*/node_modules/vis/.*
 
 .*/fbcnms-projects/hub/app/components/workflow/pages/diagramBuilder/NodeModels/.*
+.*/fbcnms-projects/hub/app/components/workflow/pages/diagramBuilder/Sidemenu/.*
+.*/fbcnms-projects/hub/app/components/workflow/pages/diagramBuilder/NodeModal/.*
 
 ; Mapbox disables these because of flow errors
 ; See https://github.com/mapbox/mapbox-gl-js/blob/master/.flowconfig
@@ -64,6 +66,7 @@ node_modules/mapbox-gl/dist/mapbox-gl.js.flow
 [declarations]
 <PROJECT_ROOT>/fbcnms-projects/inventory/node_modules/relay-runtime/.*
 <PROJECT_ROOT>/fbcnms-packages/fbcnms-ui/node_modules/relay-runtime/.*
+<PROJECT_ROOT>/node_modules/relay-runtime/.*
 
 [lints]
 all=warn

@@ -19,7 +19,6 @@ import (
 )
 
 func actionsContext(t *testing.T) (*TestResolver, context.Context) {
-
 	trigger1 := mocktrigger.New()
 	trigger1.On("ID").Return(core.TriggerID("trigger1"))
 	trigger2 := mocktrigger.New()

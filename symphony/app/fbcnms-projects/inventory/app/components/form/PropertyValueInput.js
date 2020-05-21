@@ -323,7 +323,9 @@ class PropertyValueInput<T: Property | PropertyType> extends React.Component<
     return (
       <FormContext.Consumer>
         {form => {
-          const input = this.getTextInput(form.alerts.editLock.detected);
+          const input = this.getTextInput(
+            form.alerts.missingPermissions.detected,
+          );
 
           const {property, headlineVariant, required} = this.props;
           const propertyType = !!property.propertyType

@@ -32,6 +32,7 @@ import {makeStyles} from '@material-ui/styles';
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import {useContext} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useHistory, useRouteMatch} from 'react-router-dom';
 import {useUserManagement} from '../UserManagementContext';
 
 const useStyles = makeStyles(() => ({
@@ -40,6 +41,9 @@ const useStyles = makeStyles(() => ({
     display: 'flex',
     backgroundColor: symphony.palette.white,
     borderRadius: '4px',
+  },
+  table: {
+    height: 'unset',
   },
   field: {
     margin: '2px',
@@ -57,8 +61,10 @@ const user2UserTableRow: User => UserTableRow = user => ({
   data: user,
 });
 
-export default function UsersTable() {
+function UsersTable() {
   const classes = useStyles();
+  const history = useHistory();
+  const match = useRouteMatch();
 
   const {isFeatureEnabled} = useContext(AppContext);
   const userManagementDevMode = isFeatureEnabled('user_management_dev');
@@ -67,7 +73,6 @@ export default function UsersTable() {
   const {users, editUser} = useUserManagement();
   useEffect(() => setUsersTableData(users.map(user2UserTableRow)), [users]);
   const [selectedUserIds, setSelectedUserIds] = useState<Array<TableRowId>>([]);
-  const [activeUserId, setActiveUserId] = useState(null);
 
   const userRow2UserRole = useCallback(
     userRow =>
@@ -76,6 +81,11 @@ export default function UsersTable() {
         : USER_ROLES[userRow.data.role].value || userRow.data.role,
     [],
   );
+
+  const activeUserId =
+    match.params.id != null && match.params.id != 'all'
+      ? match.params.id
+      : null;
 
   const columns = useMemo(() => {
     const isActiveUser = userId =>
@@ -180,12 +190,21 @@ export default function UsersTable() {
       />
     );
   }, [activeUserId, editUser, handleError, users]);
+
+  const navigateToUser = useCallback(
+    userId => {
+      history.push(match.path.replace(':id', `${userId ?? ''}`));
+    },
+    [history, match.path],
+  );
+
   return (
     <div className={classes.root}>
       <Table
+        className={classes.table}
         dataRowsSeparator="border"
         activeRowId={activeUserId}
-        onActiveRowIdChanged={setActiveUserId}
+        onActiveRowIdChanged={navigateToUser}
         selectedIds={selectedUserIds}
         onSelectionChanged={ids => setSelectedUserIds(ids)}
         data={usersTableData}
@@ -195,3 +214,5 @@ export default function UsersTable() {
     </div>
   );
 }
+
+export default UsersTable;

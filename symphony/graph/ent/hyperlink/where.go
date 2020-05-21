@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 )
 
@@ -641,6 +642,90 @@ func CategoryEqualFold(v string) predicate.Hyperlink {
 func CategoryContainsFold(v string) predicate.Hyperlink {
 	return predicate.Hyperlink(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldCategory), v))
+	})
+}
+
+// HasEquipment applies the HasEdge predicate on the "equipment" edge.
+func HasEquipment() predicate.Hyperlink {
+	return predicate.Hyperlink(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(EquipmentTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, EquipmentTable, EquipmentColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasEquipmentWith applies the HasEdge predicate on the "equipment" edge with a given conditions (other predicates).
+func HasEquipmentWith(preds ...predicate.Equipment) predicate.Hyperlink {
+	return predicate.Hyperlink(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(EquipmentInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, EquipmentTable, EquipmentColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasLocation applies the HasEdge predicate on the "location" edge.
+func HasLocation() predicate.Hyperlink {
+	return predicate.Hyperlink(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(LocationTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, LocationTable, LocationColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasLocationWith applies the HasEdge predicate on the "location" edge with a given conditions (other predicates).
+func HasLocationWith(preds ...predicate.Location) predicate.Hyperlink {
+	return predicate.Hyperlink(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(LocationInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, LocationTable, LocationColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasWorkOrder applies the HasEdge predicate on the "work_order" edge.
+func HasWorkOrder() predicate.Hyperlink {
+	return predicate.Hyperlink(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(WorkOrderTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, WorkOrderTable, WorkOrderColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasWorkOrderWith applies the HasEdge predicate on the "work_order" edge with a given conditions (other predicates).
+func HasWorkOrderWith(preds ...predicate.WorkOrder) predicate.Hyperlink {
+	return predicate.Hyperlink(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(WorkOrderInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, WorkOrderTable, WorkOrderColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
 	})
 }
 

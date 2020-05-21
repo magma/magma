@@ -279,7 +279,7 @@ func (sc *SurveyCreate) sqlSave(ctx context.Context) (*Survey, error) {
 	}
 	if nodes := sc.mutation.SourceFileIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
+			Rel:     sqlgraph.O2O,
 			Inverse: false,
 			Table:   survey.SourceFileTable,
 			Columns: []string{survey.SourceFileColumn},

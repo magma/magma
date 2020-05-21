@@ -66,16 +66,20 @@ export type FormRule = $ReadOnly<{|
   notAggregated?: boolean,
 |}>;
 
+export type AlertRuleCheck = (validationInfo: FormRule) => ?string;
+
 type FormAlertsContainer = $ReadOnly<{|
   detected: boolean,
   message: string,
-  check: (validationInfo: FormRule) => ?string,
+  check: AlertRuleCheck,
   set: (id: string, error: ?string) => ?string,
   clear: (id: string) => void,
 |}>;
 
 export type FormAlertsContextType = $ReadOnly<{|
+  isInitialized: boolean,
   error: FormAlertsContainer,
+  missingPermissions: FormAlertsContainer,
   editLock: FormAlertsContainer,
 |}>;
 
@@ -88,7 +92,9 @@ const emptyFormAlertsContainer = {
 };
 
 export const DEFAULT_CONTEXT_VALUE = {
+  isInitialized: false,
   error: emptyFormAlertsContainer,
+  missingPermissions: emptyFormAlertsContainer,
   editLock: emptyFormAlertsContainer,
 };
 
@@ -179,11 +185,14 @@ type Props = {
 
 export function FormAlertsContextProvider(props: Props) {
   const errorsContext = FormRulesMaintainer();
-  const editLocksContext = FormRulesMaintainer();
+  const missingPermissionsContext = FormRulesMaintainer();
+  const editLockContext = FormRulesMaintainer();
 
   const providerValue = {
+    isInitialized: true,
     error: errorsContext,
-    editLock: editLocksContext,
+    missingPermissions: missingPermissionsContext,
+    editLock: editLockContext,
   };
 
   return (

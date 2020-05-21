@@ -27,7 +27,7 @@ func (r queryResolver) PermissionsPolicies(ctx context.Context, after *ent.Curso
 func (r permissionsPolicyResolver) Policy(ctx context.Context, obj *ent.PermissionsPolicy) (models.SystemPolicy, error) {
 	if obj.InventoryPolicy != nil {
 		return authz.AppendInventoryPolicies(
-			authz.NewInventoryPolicy(false, false),
+			authz.NewInventoryPolicy(false),
 			obj.InventoryPolicy), nil
 	}
 	return authz.AppendWorkforcePolicies(
@@ -43,7 +43,6 @@ func (mutationResolver) AddPermissionsPolicy(
 	ctx context.Context,
 	input models.AddPermissionsPolicyInput,
 ) (*ent.PermissionsPolicy, error) {
-
 	client := ent.FromContext(ctx)
 	mutation := client.PermissionsPolicy.Create().
 		SetName(input.Name).
@@ -65,7 +64,7 @@ func (mutationResolver) AddPermissionsPolicy(
 	}
 	policy, err := mutation.Save(ctx)
 	if ent.IsConstraintError(err) {
-		return nil, fmt.Errorf("policy with the given name already exists: %s", input.Name)
+		return nil, gqlerror.Errorf("A policy with the given name already exists: %s", input.Name)
 	}
 	return policy, err
 }
@@ -74,7 +73,6 @@ func (mutationResolver) EditPermissionsPolicy(
 	ctx context.Context,
 	input models.EditPermissionsPolicyInput,
 ) (*ent.PermissionsPolicy, error) {
-
 	client := ent.FromContext(ctx)
 	p, err := client.PermissionsPolicy.Get(ctx, input.ID)
 	if err != nil {
@@ -113,7 +111,7 @@ func (mutationResolver) EditPermissionsPolicy(
 
 	if err != nil {
 		if ent.IsConstraintError(err) {
-			return nil, gqlerror.Errorf("A permissionsPolicy with the name %v already exists", input.Name)
+			return nil, gqlerror.Errorf("A policy with the name %v already exists", *input.Name)
 		}
 		return nil, fmt.Errorf("updating permissionsPolicy %q: %w", input.ID, err)
 	}

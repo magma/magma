@@ -446,9 +446,12 @@ var (
 		{Name: "category", Type: field.TypeString, Nullable: true},
 		{Name: "check_list_item_files", Type: field.TypeInt, Nullable: true},
 		{Name: "equipment_files", Type: field.TypeInt, Nullable: true},
+		{Name: "floor_plan_image", Type: field.TypeInt, Unique: true, Nullable: true},
 		{Name: "location_files", Type: field.TypeInt, Nullable: true},
+		{Name: "survey_source_file", Type: field.TypeInt, Unique: true, Nullable: true},
 		{Name: "survey_question_photo_data", Type: field.TypeInt, Nullable: true},
 		{Name: "survey_question_images", Type: field.TypeInt, Nullable: true},
+		{Name: "user_profile_photo", Type: field.TypeInt, Unique: true, Nullable: true},
 		{Name: "work_order_files", Type: field.TypeInt, Nullable: true},
 	}
 	// FilesTable holds the schema information for the "files" table.
@@ -472,29 +475,50 @@ var (
 				OnDelete:   schema.SetNull,
 			},
 			{
-				Symbol:  "files_locations_files",
+				Symbol:  "files_floor_plans_image",
 				Columns: []*schema.Column{FilesColumns[13]},
+
+				RefColumns: []*schema.Column{FloorPlansColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:  "files_locations_files",
+				Columns: []*schema.Column{FilesColumns[14]},
 
 				RefColumns: []*schema.Column{LocationsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
+				Symbol:  "files_surveys_source_file",
+				Columns: []*schema.Column{FilesColumns[15]},
+
+				RefColumns: []*schema.Column{SurveysColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
 				Symbol:  "files_survey_questions_photo_data",
-				Columns: []*schema.Column{FilesColumns[14]},
+				Columns: []*schema.Column{FilesColumns[16]},
 
 				RefColumns: []*schema.Column{SurveyQuestionsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "files_survey_questions_images",
-				Columns: []*schema.Column{FilesColumns[15]},
+				Columns: []*schema.Column{FilesColumns[17]},
 
 				RefColumns: []*schema.Column{SurveyQuestionsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
+				Symbol:  "files_users_profile_photo",
+				Columns: []*schema.Column{FilesColumns[18]},
+
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
 				Symbol:  "files_work_orders_files",
-				Columns: []*schema.Column{FilesColumns[16]},
+				Columns: []*schema.Column{FilesColumns[19]},
 
 				RefColumns: []*schema.Column{WorkOrdersColumns[0]},
 				OnDelete:   schema.SetNull,
@@ -510,7 +534,6 @@ var (
 		{Name: "floor_plan_location", Type: field.TypeInt, Nullable: true},
 		{Name: "floor_plan_reference_point", Type: field.TypeInt, Nullable: true},
 		{Name: "floor_plan_scale", Type: field.TypeInt, Nullable: true},
-		{Name: "floor_plan_image", Type: field.TypeInt, Nullable: true},
 	}
 	// FloorPlansTable holds the schema information for the "floor_plans" table.
 	FloorPlansTable = &schema.Table{
@@ -537,13 +560,6 @@ var (
 				Columns: []*schema.Column{FloorPlansColumns[6]},
 
 				RefColumns: []*schema.Column{FloorPlanScalesColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-			{
-				Symbol:  "floor_plans_files_image",
-				Columns: []*schema.Column{FloorPlansColumns[7]},
-
-				RefColumns: []*schema.Column{FilesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
@@ -912,6 +928,43 @@ var (
 				OnDelete:   schema.SetNull,
 			},
 		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "property_property_type_location_properties",
+				Unique:  true,
+				Columns: []*schema.Column{PropertiesColumns[16], PropertiesColumns[14]},
+			},
+			{
+				Name:    "property_property_type_equipment_properties",
+				Unique:  true,
+				Columns: []*schema.Column{PropertiesColumns[16], PropertiesColumns[11]},
+			},
+			{
+				Name:    "property_property_type_service_properties",
+				Unique:  true,
+				Columns: []*schema.Column{PropertiesColumns[16], PropertiesColumns[22]},
+			},
+			{
+				Name:    "property_property_type_equipment_port_properties",
+				Unique:  true,
+				Columns: []*schema.Column{PropertiesColumns[16], PropertiesColumns[12]},
+			},
+			{
+				Name:    "property_property_type_link_properties",
+				Unique:  true,
+				Columns: []*schema.Column{PropertiesColumns[16], PropertiesColumns[13]},
+			},
+			{
+				Name:    "property_property_type_work_order_properties",
+				Unique:  true,
+				Columns: []*schema.Column{PropertiesColumns[16], PropertiesColumns[23]},
+			},
+			{
+				Name:    "property_property_type_project_properties",
+				Unique:  true,
+				Columns: []*schema.Column{PropertiesColumns[16], PropertiesColumns[15]},
+			},
+		},
 	}
 	// PropertyTypesColumns holds the columns for the "property_types" table.
 	PropertyTypesColumns = []*schema.Column{
@@ -1194,7 +1247,6 @@ var (
 		{Name: "creation_timestamp", Type: field.TypeTime, Nullable: true},
 		{Name: "completion_timestamp", Type: field.TypeTime},
 		{Name: "survey_location", Type: field.TypeInt, Nullable: true},
-		{Name: "survey_source_file", Type: field.TypeInt, Nullable: true},
 	}
 	// SurveysTable holds the schema information for the "surveys" table.
 	SurveysTable = &schema.Table{
@@ -1207,13 +1259,6 @@ var (
 				Columns: []*schema.Column{SurveysColumns[7]},
 
 				RefColumns: []*schema.Column{LocationsColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-			{
-				Symbol:  "surveys_files_source_file",
-				Columns: []*schema.Column{SurveysColumns[8]},
-
-				RefColumns: []*schema.Column{FilesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
@@ -1433,22 +1478,13 @@ var (
 		{Name: "email", Type: field.TypeString, Nullable: true},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "DEACTIVATED"}, Default: "ACTIVE"},
 		{Name: "role", Type: field.TypeEnum, Enums: []string{"USER", "ADMIN", "OWNER"}, Default: "USER"},
-		{Name: "user_profile_photo", Type: field.TypeInt, Nullable: true},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{
-		Name:       "users",
-		Columns:    UsersColumns,
-		PrimaryKey: []*schema.Column{UsersColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:  "users_files_profile_photo",
-				Columns: []*schema.Column{UsersColumns[9]},
-
-				RefColumns: []*schema.Column{FilesColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-		},
+		Name:        "users",
+		Columns:     UsersColumns,
+		PrimaryKey:  []*schema.Column{UsersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{},
 	}
 	// UsersGroupsColumns holds the columns for the "users_groups" table.
 	UsersGroupsColumns = []*schema.Column{
@@ -1786,14 +1822,16 @@ func init() {
 	EquipmentTypesTable.ForeignKeys[0].RefTable = EquipmentCategoriesTable
 	FilesTable.ForeignKeys[0].RefTable = CheckListItemsTable
 	FilesTable.ForeignKeys[1].RefTable = EquipmentTable
-	FilesTable.ForeignKeys[2].RefTable = LocationsTable
-	FilesTable.ForeignKeys[3].RefTable = SurveyQuestionsTable
-	FilesTable.ForeignKeys[4].RefTable = SurveyQuestionsTable
-	FilesTable.ForeignKeys[5].RefTable = WorkOrdersTable
+	FilesTable.ForeignKeys[2].RefTable = FloorPlansTable
+	FilesTable.ForeignKeys[3].RefTable = LocationsTable
+	FilesTable.ForeignKeys[4].RefTable = SurveysTable
+	FilesTable.ForeignKeys[5].RefTable = SurveyQuestionsTable
+	FilesTable.ForeignKeys[6].RefTable = SurveyQuestionsTable
+	FilesTable.ForeignKeys[7].RefTable = UsersTable
+	FilesTable.ForeignKeys[8].RefTable = WorkOrdersTable
 	FloorPlansTable.ForeignKeys[0].RefTable = LocationsTable
 	FloorPlansTable.ForeignKeys[1].RefTable = FloorPlanReferencePointsTable
 	FloorPlansTable.ForeignKeys[2].RefTable = FloorPlanScalesTable
-	FloorPlansTable.ForeignKeys[3].RefTable = FilesTable
 	HyperlinksTable.ForeignKeys[0].RefTable = EquipmentTable
 	HyperlinksTable.ForeignKeys[1].RefTable = LocationsTable
 	HyperlinksTable.ForeignKeys[2].RefTable = WorkOrdersTable
@@ -1831,7 +1869,6 @@ func init() {
 	ServiceEndpointDefinitionsTable.ForeignKeys[0].RefTable = EquipmentTypesTable
 	ServiceEndpointDefinitionsTable.ForeignKeys[1].RefTable = ServiceTypesTable
 	SurveysTable.ForeignKeys[0].RefTable = LocationsTable
-	SurveysTable.ForeignKeys[1].RefTable = FilesTable
 	SurveyCellScansTable.ForeignKeys[0].RefTable = CheckListItemsTable
 	SurveyCellScansTable.ForeignKeys[1].RefTable = SurveyQuestionsTable
 	SurveyCellScansTable.ForeignKeys[2].RefTable = LocationsTable
@@ -1841,7 +1878,6 @@ func init() {
 	SurveyWiFiScansTable.ForeignKeys[0].RefTable = CheckListItemsTable
 	SurveyWiFiScansTable.ForeignKeys[1].RefTable = SurveyQuestionsTable
 	SurveyWiFiScansTable.ForeignKeys[2].RefTable = LocationsTable
-	UsersTable.ForeignKeys[0].RefTable = FilesTable
 	WorkOrdersTable.ForeignKeys[0].RefTable = ProjectsTable
 	WorkOrdersTable.ForeignKeys[1].RefTable = WorkOrderTypesTable
 	WorkOrdersTable.ForeignKeys[2].RefTable = LocationsTable

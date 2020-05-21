@@ -11,7 +11,7 @@ from grpc_tools import protoc
 
 OUTPUT_PATH = "pyinventory_tests/grpc"
 PROTO_PATH = "../../graph/graphgrpc"
-proto_include = pkg_resources.resource_filename("grpc_tools", "_proto")
+proto_include: str = pkg_resources.resource_filename("grpc_tools", "_proto")
 
 protoc.main(
     (

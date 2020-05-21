@@ -16,15 +16,18 @@ import Button from '@fbcnms/ui/components/design-system/Button';
 import CreateService from './CreateService';
 import HubVersion from './HubVersion';
 import NavListItem from '@fbcnms/ui/components/NavListItem';
-import React, {useContext} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import RouterIcon from '@material-ui/icons/Router';
 import Shuffle from '@material-ui/icons/Shuffle';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import WorkflowApp from './workflow/App';
+import WorkflowServiceApp from './workflow/ServiceUiApp';
 import nullthrows from '@fbcnms/util/nullthrows';
 import {Redirect, Route, Switch} from 'react-router-dom';
+import {conductorApiUrlPrefix} from './workflow/constants';
 import {getProjectLinks} from '@fbcnms/projects/projects';
+import {HttpClient as http} from './workflow/common/HttpClient';
 import {makeStyles} from '@material-ui/styles';
 import {shouldShowSettings} from '@fbcnms/magmalte/app/components/Settings';
 import {useRelativeUrl} from '@fbcnms/ui/hooks/useRouter';
@@ -108,9 +111,23 @@ function Main(subApp) {
 }
 
 export default () => {
+  const [edit, setEdit] = useState(false);
+  const [currentUser, setCurrentUser] = useState('');
+  const {user} = useContext(AppContext);
+
+  if (user !== currentUser) {
+    setCurrentUser(user);
+  }
+
+  useEffect(() => {
+    http.get(conductorApiUrlPrefix + '/rbac/editableworkflows').then(res => {
+      setEdit(res);
+    });
+  }, [currentUser]);
+
   const relativeUrl = useRelativeUrl();
   const cs = () => Main(CreateServiceForm());
-  const wf = () => Main(WorkflowApp());
+  const wf = () => Main(edit ? WorkflowApp() : WorkflowServiceApp());
   return (
     <ApplicationMain>
       <AppContextProvider>

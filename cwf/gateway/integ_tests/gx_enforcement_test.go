@@ -355,7 +355,7 @@ func TestGxAbortSessionRequest(t *testing.T) {
 	assert.Empty(t, recordsBySubID[prependIMSIPrefix(imsi)][ruleKey])
 
 	asa, err := sendPolicyAbortSession(
-		&fegProtos.PolicyAbortSessionRequest{
+		&fegProtos.AbortSessionRequest{
 			Imsi: imsi,
 		},
 	)
@@ -368,12 +368,14 @@ func TestGxAbortSessionRequest(t *testing.T) {
 	// processing disconnect
 	assert.Contains(t, asa.SessionId, "IMSI"+imsi)
 	assert.Equal(t, uint32(diam.LimitedSuccess), asa.ResultCode)
-
-	// Give some time for the Session Termination to process
-	tr.WaitForEnforcementStatsToSync()
 	// check if all rules have been cleaned up
-	record := recordsBySubID["IMSI"+imsi][ruleKey]
-	assert.Nil(t, record, fmt.Sprintf("Policy usage record for imsi: %v was not removed", imsi))
+	checkSessionAborted := func() bool {
+		recordsBySubID, err = tr.GetPolicyUsage()
+		assert.NoError(t, err)
+		return recordsBySubID["IMSI"+imsi][ruleKey] == nil
+	}
+	assert.Eventually(t, checkSessionAborted, 2*time.Minute, 5*time.Second,
+		"request not terminated as expected")
 }
 
 // - Set an expectation for a CCR-I to be sent up to PCRF, to which it will

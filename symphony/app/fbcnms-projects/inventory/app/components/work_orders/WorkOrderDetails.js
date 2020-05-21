@@ -30,6 +30,7 @@ import ExpandingPanel from '@fbcnms/ui/components/ExpandingPanel';
 import FileUploadButton from '../FileUpload/FileUploadButton';
 import FormContext, {FormContextProvider} from '../../common/FormContext';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
+import FormFieldWithPermissions from '../../common/FormFieldWithPermissions';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@fbcnms/ui/components/design-system/IconButton';
 import LinkIcon from '@fbcnms/ui/components/design-system/Icons/Actions/LinkIcon';
@@ -270,9 +271,18 @@ const WorkOrderDetails = ({
     'permissions_ui_enforcement',
   );
 
+  const isOwnerOrAssignee =
+    me?.user?.email === workOrder?.owner?.email ||
+    me?.user?.email === workOrder?.assignedTo?.email;
+
   return (
     <div className={classes.root}>
-      <FormContextProvider>
+      <FormContextProvider
+        permissions={{
+          entity: 'workorder',
+          action: 'update',
+          ignorePermissions: isOwnerOrAssignee,
+        }}>
         <WorkOrderHeader
           workOrderName={propsWorkOrder.name}
           workOrder={workOrder}
@@ -284,12 +294,6 @@ const WorkOrderDetails = ({
         />
         <FormContext.Consumer>
           {form => {
-            const noOwnerError = form.alerts.error.check({
-              fieldId: 'Owner',
-              fieldDisplayName: 'Owner',
-              value: workOrder.owner,
-              required: true,
-            });
             form.alerts.editLock.check({
               fieldId: 'status',
               fieldDisplayName: 'Status',
@@ -299,26 +303,14 @@ const WorkOrderDetails = ({
                   ? `Work order is on '${doneStatus.label}' state`
                   : '',
             });
-            if (permissionsEnforcementIsOn) {
-              form.alerts.editLock.check({
-                fieldId: 'OwnerRule',
-                fieldDisplayName: 'Owner rule',
-                value: propsWorkOrder,
-                checkCallback: workOrder =>
-                  userHasAdminPermissions ||
-                  me?.user?.email === workOrder?.owner.email ||
-                  me?.user?.email === workOrder?.assignedTo?.email
-                    ? ''
-                    : 'User is not allowed to edit this work order',
-              });
-            }
             const nonOwnerAssignee =
               permissionsEnforcementIsOn &&
-              form.alerts.editLock.check({
+              form.alerts.missingPermissions.check({
                 fieldId: 'NonOwnerAssigneeRule',
                 fieldDisplayName: 'Non Owner assignee rule',
                 value: propsWorkOrder,
                 checkCallback: workOrder =>
+                  !userHasAdminPermissions &&
                   me?.user?.email !== workOrder?.owner.email &&
                   me?.user?.email === workOrder?.assignedTo?.email
                     ? 'Assignee is not allowed to change owner'
@@ -553,12 +545,15 @@ const WorkOrderDetails = ({
                   </Grid>
                   <Grid item xs={4} sm={4} lg={4} xl={4}>
                     <ExpandingPanel title="Team" className={classes.card}>
-                      <FormField
+                      <FormFieldWithPermissions
                         className={classes.input}
                         label="Owner"
+                        permissions={{
+                          entity: 'workorder',
+                          action: 'transferOwnership',
+                        }}
                         required={true}
-                        hasError={!!noOwnerError}
-                        errorText={noOwnerError}
+                        validation={{id: 'owner', value: workOrder.owner?.id}}
                         disabled={!!nonOwnerAssignee}>
                         <UserTypeahead
                           selectedUser={workOrder.owner}
@@ -567,7 +562,7 @@ const WorkOrderDetails = ({
                           }
                           margin="dense"
                         />
-                      </FormField>
+                      </FormFieldWithPermissions>
                       <FormField label="Assignee" className={classes.input}>
                         <UserTypeahead
                           selectedUser={workOrder.assignedTo}

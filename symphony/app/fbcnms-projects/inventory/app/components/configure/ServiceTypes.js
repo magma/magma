@@ -15,7 +15,7 @@ import type {WithStyles} from '@material-ui/core';
 import AddEditServiceTypeCard from './AddEditServiceTypeCard';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import ConfigueTitle from '@fbcnms/ui/components/ConfigureTitle';
-import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
+import FormActionWithPermissions from '../../common/FormActionWithPermissions';
 import InventoryQueryRenderer from '../InventoryQueryRenderer';
 import React from 'react';
 import ServiceTypeItem from './ServiceTypeItem';
@@ -127,7 +127,10 @@ class ServiceTypes extends React.Component<Props, State> {
           }
 
           return (
-            <FormContextProvider>
+            <FormContextProvider
+              permissions={{
+                entity: 'serviceType',
+              }}>
               <div className={classes.typesList}>
                 <div className={classes.firstRow}>
                   <ConfigueTitle
@@ -136,13 +139,14 @@ class ServiceTypes extends React.Component<Props, State> {
                     subtitle={'Manage the types of services in your inventory'}
                   />
                   <div className={classes.addButtonContainer}>
-                    <FormAction>
+                    <FormActionWithPermissions
+                      permissions={{entity: 'serviceType', action: 'create'}}>
                       <Button
                         className={classes.addButton}
                         onClick={() => this.showAddEditServiceTypeCard(null)}>
                         Add Service Type
                       </Button>
-                    </FormAction>
+                    </FormActionWithPermissions>
                   </div>
                 </div>
                 <div className={classes.root}>

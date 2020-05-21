@@ -62,7 +62,7 @@ func (s *handlerTestSuite) TestUserHandler() {
 		privacy.DecisionContext(s.ctx, privacy.Allow),
 		viewertest.DefaultUser,
 		user.RoleOWNER)
-	s.viewer = viewer.NewUser(viewertest.DefaultTenant, u)
+	s.viewer = viewer.NewUser(viewertest.DefaultTenant, u, viewer.WithFeatures(viewer.FeaturePermissionPolicies))
 	s.testViewerPermissions()
 }
 
@@ -71,6 +71,7 @@ func (s *handlerTestSuite) TestAutomationHandler() {
 		viewertest.DefaultTenant,
 		viewertest.DefaultUser,
 		user.RoleOWNER,
+		viewer.WithFeatures(viewer.FeaturePermissionPolicies),
 	)
 	s.testViewerPermissions()
 }

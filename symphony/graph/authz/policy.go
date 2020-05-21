@@ -13,11 +13,12 @@ var (
 	// prePolicy is executed before privacy policy.
 	prePolicy = privacy.Policy{
 		Query: privacy.QueryPolicy{
-			AlwaysDenyQueryIfNoPermissionRule(),
-			AllowReadPermissionsRule(),
+			denyIfNoPermissionSettingsRule(),
+			allowReadPermissionsRule(),
 		},
 		Mutation: privacy.MutationPolicy{
-			AlwaysDenyMutationIfNoPermissionRule(),
+			denyBulkEditOrDeleteRule(),
+			denyIfNoPermissionSettingsRule(),
 		},
 	}
 
@@ -27,7 +28,7 @@ var (
 			privacy.AlwaysAllowRule(),
 		},
 		Mutation: privacy.MutationPolicy{
-			AllowWritePermissionsRule(),
+			allowWritePermissionsRule(),
 			privacy.AlwaysDenyRule(),
 		},
 	}

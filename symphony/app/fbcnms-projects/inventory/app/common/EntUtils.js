@@ -67,3 +67,10 @@ export function haveDifferentValues<T_ENT>(entA: T_ENT, entB: T_ENT): boolean {
   );
   return !!propsToCompare.find(prop => entA[prop] != entB[prop]);
 }
+
+export type EntsMap<T: EntWithID> = Map<string, T>;
+export function ent2EntsMap<T: EntWithID>(ents: Array<T>): EntsMap<T> {
+  return new Map<string, T>(
+    ents.filter(ent => ent.id != null).map(ent => [ent.id || '', ent]),
+  );
+}

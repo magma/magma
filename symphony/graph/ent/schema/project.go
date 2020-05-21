@@ -102,12 +102,12 @@ func (Project) Policy() ent.Policy {
 	)
 }
 
-// EquipmentPortDefinition defines the equipment port definition schema.
+// WorkOrderDefinition defines the work order definition schema.
 type WorkOrderDefinition struct {
 	schema
 }
 
-// Fields returns equipment port definition fields.
+// Fields returns work order definition fields.
 func (WorkOrderDefinition) Fields() []ent.Field {
 	return []ent.Field{
 		field.Int("index").
@@ -115,7 +115,7 @@ func (WorkOrderDefinition) Fields() []ent.Field {
 	}
 }
 
-// Edges returns equipment port definition edges.
+// Edges returns work order definition edges.
 func (WorkOrderDefinition) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("type", WorkOrderType.Type).
@@ -124,4 +124,13 @@ func (WorkOrderDefinition) Edges() []ent.Edge {
 			Ref("work_orders").
 			Unique(),
 	}
+}
+
+// Policy returns work order definition policy.
+func (WorkOrderDefinition) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithMutationRules(
+			authz.WorkOrderDefinitionWritePolicyRule(),
+		),
+	)
 }

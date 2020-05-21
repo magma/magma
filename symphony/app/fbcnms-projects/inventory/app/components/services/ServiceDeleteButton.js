@@ -17,8 +17,9 @@ import type {Service} from '../../common/Service';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithSnackbarProps} from 'notistack';
 
-import Button from '@fbcnms/ui//components/design-system/Button';
-import DeleteOutlineIcon from '@material-ui/icons/DeleteOutline';
+import DeleteIcon from '@fbcnms/ui/components/design-system/Icons/Actions/DeleteIcon';
+import FormActionWithPermissions from '../../common/FormActionWithPermissions';
+import IconButton from '@fbcnms/ui//components/design-system/IconButton';
 import React from 'react';
 import RemoveServiceMutation from '../../mutations/RemoveServiceMutation';
 import nullthrows from '@fbcnms/util/nullthrows';
@@ -26,24 +27,27 @@ import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {withSnackbar} from 'notistack';
 
-type Props = {
+type Props = $ReadOnly<{|
   className?: string,
   service: Service,
   onServiceRemoved: () => void,
-} & WithAlert &
-  WithSnackbarProps;
+  ...WithAlert,
+  ...WithSnackbarProps,
+|}>;
 
 class ServiceDeleteButton extends React.Component<Props> {
   render() {
     const {className} = this.props;
     return (
-      <Button
-        variant="text"
-        skin="gray"
-        className={className}
-        onClick={this.removeService}>
-        <DeleteOutlineIcon />
-      </Button>
+      <FormActionWithPermissions
+        permissions={{entity: 'service', action: 'delete'}}>
+        <IconButton
+          icon={DeleteIcon}
+          skin="gray"
+          className={className}
+          onClick={this.removeService}
+        />
+      </FormActionWithPermissions>
     );
   }
 

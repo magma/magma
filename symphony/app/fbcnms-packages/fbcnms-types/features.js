@@ -39,5 +39,6 @@ export type FeatureID =
   | 'saved_searches'
   | 'service_endpoints'
   | 'user_management_dev'
+  | 'permission_policies'
   | 'permissions_ui_enforcement'
   | 'dashboard_v2';

@@ -9,6 +9,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/facebookincubator/symphony/graph/ent/user"
+
 	"github.com/facebookincubator/symphony/graph/ent"
 
 	"github.com/facebookincubator/symphony/graph/ent/locationtype"
@@ -148,7 +150,8 @@ func TestAddLocationTypeWithEquipmentProperty(t *testing.T) {
 func TestAddLocationTypeWithSurveyTemplate(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.Close()
-	ctx := viewertest.NewContext(context.Background(), r.client)
+	// TODO(T66882071): Remove owner role
+	ctx := viewertest.NewContext(context.Background(), r.client, viewertest.WithRole(user.RoleOWNER))
 	mr := r.Mutation()
 
 	question := models.SurveyTemplateQuestionInput{
@@ -253,7 +256,8 @@ func TestEditLocationType(t *testing.T) {
 func TestEditLocationTypeWithSurveyTemplate(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.Close()
-	ctx := viewertest.NewContext(context.Background(), r.client)
+	// TODO(T66882071): Remove owner role
+	ctx := viewertest.NewContext(context.Background(), r.client, viewertest.WithRole(user.RoleOWNER))
 	mr := r.Mutation()
 
 	question := models.SurveyTemplateQuestionInput{

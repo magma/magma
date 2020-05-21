@@ -272,15 +272,15 @@ export type ButtonSkin =
   | 'green';
 type SvgIcon = React$ComponentType<SvgIconExports>;
 
-export type ButtonProps = {|
+export type ButtonProps = $ReadOnly<{|
   skin?: ButtonSkin,
   variant?: ButtonVariant,
   useEllipsis?: ?boolean,
   disabled?: boolean,
   tooltip?: string,
-|};
+|}>;
 
-export type Props = {
+export type Props = $ReadOnly<{|
   className?: string,
   children: React.Node,
   onClick?:
@@ -292,7 +292,7 @@ export type Props = {
   rightIcon?: SvgIcon,
   rightIconClass?: string,
   ...ButtonProps,
-};
+|}>;
 
 const Button = (props: Props, forwardedRef: TRefFor<HTMLButtonElement>) => {
   const {

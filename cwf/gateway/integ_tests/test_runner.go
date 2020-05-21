@@ -27,23 +27,26 @@ import (
 
 // todo make Op configurable, or export it in the UESimServer.
 const (
-	Op              = "\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"
-	Secret          = "123456"
-	MockHSSRemote   = "HSS_REMOTE"
-	MockPCRFRemote  = "PCRF_REMOTE"
-	MockOCSRemote   = "OCS_REMOTE"
-	MockPCRFRemote2 = "PCRF_REMOTE2"
-	MockOCSRemote2  = "OCS_REMOTE2"
-	PipelinedRemote = "pipelined.local"
-	RedisRemote     = "REDIS"
-	CwagIP          = "192.168.70.101"
-	OCSPort         = 9201
-	PCRFPort        = 9202
-	OCSPort2        = 9205
-	PCRFPort2       = 9206
-	HSSPort         = 9204
-	PipelinedPort   = 8443
-	RedisPort       = 6380
+	Op               = "\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"
+	Secret           = "123456"
+	MockHSSRemote    = "HSS_REMOTE"
+	MockPCRFRemote   = "PCRF_REMOTE"
+	MockOCSRemote    = "OCS_REMOTE"
+	MockPCRFRemote2  = "PCRF_REMOTE2"
+	MockOCSRemote2   = "OCS_REMOTE2"
+	PipelinedRemote  = "pipelined.local"
+	DirectorydRemote = "DIRECTORYD"
+	RedisRemote      = "REDIS"
+	CwagIP           = "192.168.70.101"
+	TrafficCltIP     = "192.168.128.2"
+	OCSPort          = 9201
+	PCRFPort         = 9202
+	OCSPort2         = 9205
+	PCRFPort2        = 9206
+	HSSPort          = 9204
+	PipelinedPort    = 8443
+	RedisPort        = 6380
+	DirectorydPort   = 8443
 
 	defaultMSISDN          = "5100001234"
 	defaultCalledStationID = "98-DE-D0-84-B5-47:CWF-TP-LINK_B547_5G"
@@ -56,6 +59,10 @@ const (
 	ReAuthMaxUsageBytes   = 5 * MegaBytes
 	ReAuthMaxUsageTimeSec = 1000 // in second
 	ReAuthValidityTime    = 60   // in second
+
+	GyMaxUsageBytes = 5 * MegaBytes
+	GyMaxUsageTime  = 1000 // in second
+	GyValidityTime  = 60   // in second
 )
 
 //TestRunner helps setting up all associated services
@@ -84,6 +91,8 @@ func NewTestRunner(t *testing.T) *TestRunner {
 	registry.AddService(PipelinedRemote, CwagIP, PipelinedPort)
 	fmt.Printf("Adding Redis service at %s:%d\n", CwagIP, RedisPort)
 	registry.AddService(RedisRemote, CwagIP, RedisPort)
+	fmt.Printf("Adding Directoryd service at %s:%d\n", CwagIP, DirectorydPort)
+	registry.AddService(DirectorydRemote, CwagIP, DirectorydPort)
 
 	testRunner := &TestRunner{t: t,
 		activePCRFs: []string{MockPCRFRemote},

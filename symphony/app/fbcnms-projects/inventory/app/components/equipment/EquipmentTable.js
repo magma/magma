@@ -22,6 +22,7 @@ import AppContext from '@fbcnms/ui/context/AppContext';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import CommonStrings from '@fbcnms/strings/Strings';
 import DeviceStatusCircle from '@fbcnms/ui/components/icons/DeviceStatusCircle';
+import FormActionWithPermissions from '../../common/FormActionWithPermissions';
 import IconButton from '@fbcnms/ui/components/design-system/IconButton';
 import React, {useCallback, useContext, useMemo} from 'react';
 import RemoveEquipmentMutation from '../../mutations/RemoveEquipmentMutation';
@@ -208,7 +209,10 @@ const EquipmentTable = (props: Props) => {
       titleClassName: classes.iconColumn,
       className: classes.iconColumn,
       render: row => (
-        <IconButton icon={DeleteIcon} onClick={() => onDelete(row)} />
+        <FormActionWithPermissions
+          permissions={{entity: 'equipment', action: 'delete'}}>
+          <IconButton icon={DeleteIcon} onClick={() => onDelete(row)} />
+        </FormActionWithPermissions>
       ),
     });
     return colsToReturn;

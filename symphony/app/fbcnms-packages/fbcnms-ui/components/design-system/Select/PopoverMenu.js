@@ -29,7 +29,7 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-export type PopoverMenuProps<TValue> = {
+export type PopoverMenuProps<TValue> = $ReadOnly<{|
   className?: string,
   menuClassName?: string,
   menuDockRight?: boolean,
@@ -42,22 +42,23 @@ export type PopoverMenuProps<TValue> = {
   onOptionsFetchRequested?: (searchTerm: string) => void,
   onVisibilityChange?: (isVisible: boolean) => void,
   ...ButtonProps,
-};
+|}>;
 
-const PopoverMenu = <TValue>({
-  className,
-  menuClassName,
-  children,
-  leftIcon,
-  rightIcon,
-  menuDockRight,
-  onChange,
-  variant,
-  skin,
-  disabled,
-  onVisibilityChange,
-  ...selectMenuProps
-}: PopoverMenuProps<TValue>) => {
+const PopoverMenu = <TValue>(props: PopoverMenuProps<TValue>) => {
+  const {
+    className,
+    menuClassName,
+    children,
+    leftIcon,
+    rightIcon,
+    menuDockRight,
+    onChange,
+    variant,
+    skin,
+    disabled,
+    onVisibilityChange,
+    ...selectMenuProps
+  } = props;
   const classes = useStyles();
   return (
     <BasePopoverTrigger

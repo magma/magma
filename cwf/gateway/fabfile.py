@@ -6,20 +6,20 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
-
-from distutils.util import strtobool
 from enum import Enum
 
 import sys
-from fabric.api import cd, env, execute, lcd, local, put, run, settings, sudo
-
+from fabric.api import (cd, env, execute, lcd, local, put, run, settings,
+                        sudo, shell_env)
 sys.path.append('../../orc8r')
+
 from tools.fab.hosts import ansible_setup, vagrant_setup
 
 CWAG_ROOT = "$MAGMA_ROOT/cwf/gateway"
 CWAG_INTEG_ROOT = "$MAGMA_ROOT/cwf/gateway/integ_tests"
 LTE_AGW_ROOT = "../../lte/gateway"
 
+CWAG_IP = "192.168.70.101"
 CWAG_TEST_IP = "192.168.128.2"
 TRF_SERVER_IP = "192.168.129.42"
 TRF_SERVER_SUBNET = "192.168.129.0"
@@ -34,6 +34,7 @@ class SubTests(Enum):
     GY = "gy"
     QOS = "qos"
     MULTISESSIONPROXY = "multi_session_proxy"
+    FEGFAILURE = "feg_failure"
 
     @staticmethod
     def list():
@@ -80,6 +81,7 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
         execute(_run_unit_tests)
 
     execute(_set_cwag_configs, "gateway.mconfig")
+    execute(_add_networkhost_docker)
     cwag_host_to_mac = execute(_get_br_mac, CWAG_BR_NAME)
     host = env.hosts[0]
     cwag_br_mac = cwag_host_to_mac[host]
@@ -134,8 +136,29 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     execute(_start_ue_simulator)
     execute(_set_cwag_test_networking, cwag_br_mac)
 
-    if tests_to_run.value != SubTests.MULTISESSIONPROXY.value:
+    if tests_to_run.value not in (SubTests.MULTISESSIONPROXY.value,
+                                    SubTests.FEGFAILURE.value):
         execute(_run_integ_tests, test_host, trf_host, tests_to_run, test_re)
+
+    # Setup environment for cwag_feg_link_down if required
+    if tests_to_run.value in (SubTests.ALL.value,
+                              SubTests.FEGFAILURE.value):
+        # CWAG VM
+        if not gateway_host:
+            vagrant_setup("cwag", False)
+        else:
+            ansible_setup(gateway_host, "cwag", "cwag_dev.yml")
+
+        # Stop not necessary services for this test case
+        execute(_stop_docker_services, ["ingress"])
+
+        # CWAG_TEST VM
+        if not test_host:
+            vagrant_setup("cwag_test", False)
+        else:
+            ansible_setup(test_host, "cwag_test", "cwag_test.yml")
+        execute(_run_integ_tests, test_host, trf_host,
+                SubTests.FEGFAILURE, test_re)
 
     # Setup environment for multi service proxy if required
     if tests_to_run.value in (SubTests.ALL.value,
@@ -148,7 +171,7 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
         # copy new config and restart the impacted services
         execute(_set_cwag_configs, "gateway.mconfig.multi_session_proxy")
         execute(_restart_docker_services, ["session_proxy", "pcrf", "ocs",
-                                           "pcrf2", "ocs2"])
+                                           "pcrf2", "ocs2", "ingress"])
 
         # CWAG_TEST VM
         if not test_host:
@@ -227,6 +250,33 @@ def _set_cwag_test_networking(mac):
     sudo('arp -s %s %s' % (TRF_SERVER_IP, mac))
 
 
+def _add_networkhost_docker():
+    ''' Add network host to docker engine '''
+
+    local_host = "unix:///var/run/docker.sock"
+    nw_host = "tcp://0.0.0.0:2375"
+    tmp_daemon_json_fn = "/tmp/daemon.json"
+    docker_cfg_dir = "/etc/docker/"
+
+    # add daemon json file
+    host_cfg = '\'{"hosts": [\"%s\", \"%s\"]}\'' % (local_host, nw_host)
+    run("""printf %s > %s""" % (host_cfg, tmp_daemon_json_fn))
+    sudo("mv %s %s" % (tmp_daemon_json_fn, docker_cfg_dir))
+
+    # modify docker service cmd to remove hosts
+    # https://docs.docker.com/config/daemon/#troubleshoot-conflicts-between-the-daemonjson-and-startup-scripts
+    tmp_docker_svc_fn = "/tmp/docker.conf"
+    svc_cmd = "'[Service]\nExecStart=\nExecStart=/usr/bin/dockerd'"
+    svc_cfg_dir = "/etc/systemd/system/docker.service.d/"
+    sudo("mkdir -p %s" % svc_cfg_dir)
+    run("printf %s > %s" % (svc_cmd, tmp_docker_svc_fn))
+    sudo("mv %s %s" % (tmp_docker_svc_fn, svc_cfg_dir))
+
+    # restart systemd and docker service
+    sudo("systemctl daemon-reload")
+    sudo("systemctl restart docker")
+
+
 def _stop_gateway():
     """ Stop the gateway docker images """
     with cd(CWAG_ROOT + '/docker'):
@@ -299,15 +349,24 @@ def _run_unit_tests():
         run('make test')
 
 
-def _run_integ_tests(test_host, trf_host, tests_to_run: SubTests, test_re=None):
+def _run_integ_tests(test_host, trf_host, tests_to_run: SubTests,
+                     test_re=None):
     """ Run the integration tests """
+    # add docker host environment as well
+    shell_env_vars = {
+        "DOCKER_HOST" : "tcp://%s:2375" % CWAG_IP,
+        "DOCKER_API_VERSION" : "1.40",
+    }
+    if test_re:
+        shell_env_vars["TESTS"] = test_re
 
-    go_test_cmd = "go test"
+    # QOS take a while to run. Increasing the timeout to 20m
+    go_test_cmd = "go test -timeout 20m"
     go_test_cmd += " -tags " + tests_to_run.value
     if test_re:
         go_test_cmd += " -run " + test_re
 
-    with cd(CWAG_INTEG_ROOT):
+    with cd(CWAG_INTEG_ROOT), shell_env(**shell_env_vars):
         result = run(go_test_cmd, warn_only=True)
         if result.return_code != 0:
             if not test_host and not trf_host:
@@ -315,6 +374,7 @@ def _run_integ_tests(test_host, trf_host, tests_to_run: SubTests, test_re=None):
                 execute(_clean_up)
             print("Integration Test returned ", result.return_code)
             sys.exit(result.return_code)
+
 
 
 def _clean_up():

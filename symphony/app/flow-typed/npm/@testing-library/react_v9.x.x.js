@@ -310,4 +310,57 @@ declare module '@testing-library/react' {
     text: TextMatch,
     options?: TextMatchOptions
   ): HTMLElement;
+
+  declare export var queries :{
+    queryByTestId(
+      container: HTMLElement,
+      id: TextMatch,
+      options?: TextMatchOptions
+    ): ?HTMLElement;
+    getByTestId(
+      container: HTMLElement,
+      id: TextMatch,
+      options?: TextMatchOptions
+    ): HTMLElement;
+    queryByText(
+      container: HTMLElement,
+      text: TextMatch,
+      options?: TextMatchOptions
+    ): ?HTMLElement;
+    getByText(
+      container: HTMLElement,
+      text: TextMatch,
+      options?: { selector?: string, ... } & TextMatchOptions
+    ): HTMLElement;
+    queryByPlaceholderText(
+      container: HTMLElement,
+      text: TextMatch,
+      options?: TextMatchOptions
+    ): ?HTMLElement;
+    getByPlaceholderText(
+      container: HTMLElement,
+      text: TextMatch,
+      options?: TextMatchOptions
+    ): HTMLElement;
+    queryByLabelText(
+      container: HTMLElement,
+      text: TextMatch,
+      options?: TextMatchOptions
+    ): ?HTMLElement;
+    getByLabelText(
+      container: HTMLElement,
+      text: TextMatch,
+      options?: { selector?: string, ... } & TextMatchOptions
+    ): HTMLElement;
+    queryByAltText(
+      container: HTMLElement,
+      text: TextMatch,
+      options?: TextMatchOptions
+    ): ?HTMLElement;
+    getByAltText(
+      container: HTMLElement,
+      text: TextMatch,
+      options?: TextMatchOptions
+    ): HTMLElement;
+  }
 }

@@ -51,7 +51,6 @@ const useStyles = makeStyles(() => ({
     width: '100%',
   },
   cell: {
-    ...inventoryTheme.textField,
     paddingLeft: '0px',
     width: 'unset',
   },
@@ -244,7 +243,6 @@ const ExperimentalPropertyTypesTable = ({
       </Table>
       <FormAction>
         <Button
-          color="primary"
           variant="text"
           onClick={() => dispatch({type: 'ADD_PROPERTY_TYPE'})}
           leftIcon={PlusIcon}>

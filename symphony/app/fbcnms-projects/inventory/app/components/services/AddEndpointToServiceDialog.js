@@ -255,7 +255,6 @@ class AddEndpointToServiceDialog extends React.Component<Props, State> {
               </Button>
               <Button
                 disabled={activePort === null}
-                color="primary"
                 onClick={() => onAddEndpoint(nullthrows(activePort))}
                 className={classes.actionButton}>
                 {Strings.common.addButton}

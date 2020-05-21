@@ -86,7 +86,6 @@ func Run(ctx context.Context, queue JobQueue, store servicers.StateServiceIntern
 func reindexOne(queue JobQueue, batches []reindexBatch) (err error) {
 	job, err := queue.ClaimAvailableJob()
 	if err != nil {
-		err = errors.Wrap(err, "claim available job")
 		return wrap(err, ErrDefault, "")
 	}
 	if job == nil {
@@ -168,6 +167,7 @@ func reportStatusMetrics(queue JobQueue) {
 		idx, err := indexer.GetIndexer(id)
 		if err != nil {
 			glog.Errorf("Report reindex metrics failed to get indexer %s from registry: %v", id, err)
+			continue
 		}
 		metrics.IndexerVersion.WithLabelValues(id).Set(float64(idx.GetVersion()))
 	}
