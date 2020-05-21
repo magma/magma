@@ -15,7 +15,7 @@ dependencies:
     repository: ""
     condition: metrics.enabled
   - name: nms
-    version: 0.1.5
+    version: 0.1.6
     repository: ""
     condition: nms.enabled
   - name: logging
