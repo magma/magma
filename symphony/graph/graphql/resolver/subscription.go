@@ -8,6 +8,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/AlekSi/pointer"
+
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/event"
 	"github.com/facebookincubator/symphony/graph/viewer"
@@ -21,7 +23,7 @@ func (r subscriptionResolver) subscribeAndListen(ctx context.Context, name strin
 	err := event.SubscribeAndListen(ctx, event.ListenerConfig{
 		Subscriber: r.event.Subscriber,
 		Logger:     logger,
-		Tenant:     viewer.FromContext(ctx).Tenant(),
+		Tenant:     pointer.ToString(viewer.FromContext(ctx).Tenant()),
 		Events:     []string{name},
 		Handler:    handler,
 	})
@@ -36,7 +38,7 @@ func (r subscriptionResolver) workOrderAddedDone(ctx context.Context, name strin
 	go func() {
 		defer close(events)
 		r.subscribeAndListen(ctx, name,
-			event.HandlerFunc(func(_ context.Context, _ string, body []byte) error {
+			event.HandlerFunc(func(_ context.Context, _, _ string, body []byte) error {
 				var wo *ent.WorkOrder
 				if err := event.Unmarshal(body, &wo); err != nil {
 					return fmt.Errorf("cannot unmarshal work order: %w", err)

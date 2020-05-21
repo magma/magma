@@ -47,10 +47,10 @@ func (s *logTestSuite) subscribeForOneEvent(wg *sync.WaitGroup, expect func(entr
 		err := SubscribeAndListen(ctx, ListenerConfig{
 			Subscriber: s.subscriber,
 			Logger:     s.logger.Background(),
-			Tenant:     viewertest.DefaultTenant,
 			Events:     events,
-			Handler: HandlerFunc(func(_ context.Context, name string, body []byte) error {
+			Handler: HandlerFunc(func(_ context.Context, tenant, name string, body []byte) error {
 				s.Assert().NotEmpty(body)
+				s.Assert().Equal(viewertest.DefaultTenant, tenant)
 				s.Assert().Equal(EntMutation, name)
 				var entry LogEntry
 				err := Unmarshal(body, &entry)
