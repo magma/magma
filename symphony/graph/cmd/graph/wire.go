@@ -25,12 +25,11 @@ import (
 	"google.golang.org/grpc"
 )
 
-// NewApplication creates a new graph application.
-func NewApplication(ctx context.Context, flags *cliFlags) (*application, func(), error) {
+func newApplication(ctx context.Context, flags *cliFlags) (*application, func(), error) {
 	wire.Build(
 		wire.FieldsOf(new(*cliFlags), "Log", "Census", "MySQL", "Event", "Orc8r"),
 		log.Provider,
-		newApplication,
+		newApp,
 		newTenancy,
 		newHealthChecks,
 		newMySQLTenancy,
@@ -47,7 +46,7 @@ func NewApplication(ctx context.Context, flags *cliFlags) (*application, func(),
 	return nil, nil, nil
 }
 
-func newApplication(logger log.Logger, httpServer *server.Server, grpcServer *grpc.Server, eventServer *graphevents.Server, flags *cliFlags) *application {
+func newApp(logger log.Logger, httpServer *server.Server, grpcServer *grpc.Server, eventServer *graphevents.Server, flags *cliFlags) *application {
 	var app application
 	app.Logger = logger.Background()
 	app.http.Server = httpServer

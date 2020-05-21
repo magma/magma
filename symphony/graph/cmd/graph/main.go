@@ -9,7 +9,6 @@ import (
 	"fmt"
 	stdlog "log"
 	"net"
-	"net/http"
 	"os"
 	"syscall"
 
@@ -57,10 +56,11 @@ func main() {
 		os.Interrupt,
 		syscall.SIGTERM,
 	)
-	app, _, err := NewApplication(ctx, &cf)
+	app, cleanup, err := newApplication(ctx, &cf)
 	if err != nil {
 		stdlog.Fatal(err)
 	}
+	defer cleanup()
 
 	app.Info("starting application",
 		zap.String("http", cf.HTTPAddress),
@@ -84,22 +84,25 @@ type application struct {
 }
 
 func (app *application) run(ctx context.Context) error {
+	ctx, cancel := context.WithCancel(ctx)
 	g := ctxgroup.WithContext(ctx)
 	g.Go(func(context.Context) error {
 		err := app.http.ListenAndServe(app.http.addr)
-		if err != nil && err != http.ErrServerClosed {
-			return fmt.Errorf("starting http server: %w", err)
-		}
-		return nil
+		app.Debug("http server terminated", zap.Error(err))
+		return err
 	})
 	g.Go(func(context.Context) error {
 		lis, err := net.Listen("tcp", app.grpc.addr)
 		if err != nil {
 			return fmt.Errorf("creating grpc listener: %w", err)
 		}
-		if err = app.grpc.Serve(lis); err != nil && err != grpc.ErrServerStopped {
-			return fmt.Errorf("starting grpc server: %w", err)
-		}
+		err = app.grpc.Serve(lis)
+		app.Debug("grpc server terminated", zap.Error(err))
+		return err
+	})
+	g.Go(func(ctx context.Context) error {
+		defer cancel()
+		<-ctx.Done()
 		return nil
 	})
 	g.Go(func(ctx context.Context) error {
@@ -112,13 +115,22 @@ func (app *application) run(ctx context.Context) error {
 	})
 	<-ctx.Done()
 
+	app.Warn("start application termination",
+		zap.NamedError("reason", ctx.Err()),
+	)
+	defer app.Debug("end application termination")
+
 	g.Go(func(context.Context) error {
+		app.Debug("start grpc server termination")
 		app.grpc.GracefulStop()
+		app.Debug("end grpc server termination")
 		return nil
 	})
 	g.Go(func(context.Context) error {
-		_ = app.http.Shutdown(context.Background())
-		return nil
+		app.Debug("start http server termination")
+		err := app.http.Shutdown(context.Background())
+		app.Debug("end http server termination", zap.Error(err))
+		return err
 	})
 	return g.Wait()
 }

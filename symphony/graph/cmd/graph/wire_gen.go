@@ -34,9 +34,9 @@ import (
 
 // Injectors from wire.go:
 
-func NewApplication(ctx context.Context, flags *cliFlags) (*application, func(), error) {
+func newApplication(ctx context.Context, flags *cliFlags) (*application, func(), error) {
 	config := flags.Log
-	logger, cleanup, err := log.Provider(config)
+	logger, cleanup, err := log.ProvideLogger(config)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -110,7 +110,7 @@ func NewApplication(ctx context.Context, flags *cliFlags) (*application, func(),
 		cleanup()
 		return nil, nil, err
 	}
-	mainApplication := newApplication(logger, server, grpcServer, grapheventsServer, flags)
+	mainApplication := newApp(logger, server, grpcServer, grapheventsServer, flags)
 	return mainApplication, func() {
 		cleanup5()
 		cleanup4()
@@ -122,7 +122,7 @@ func NewApplication(ctx context.Context, flags *cliFlags) (*application, func(),
 
 // wire.go:
 
-func newApplication(logger log.Logger, httpServer *server.Server, grpcServer *grpc.Server, eventServer *graphevents.Server, flags *cliFlags) *application {
+func newApp(logger log.Logger, httpServer *server.Server, grpcServer *grpc.Server, eventServer *graphevents.Server, flags *cliFlags) *application {
 	var app application
 	app.Logger = logger.Background()
 	app.http.Server = httpServer

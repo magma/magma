@@ -5,13 +5,10 @@
 package log
 
 import (
-	"bytes"
-	"log"
 	"testing"
 
 	"github.com/jessevdk/go-flags"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )
 
@@ -100,15 +97,4 @@ func TestMustNew(t *testing.T) {
 	assert.NotPanics(t, func() { _ = MustNew(config) })
 	config.Format = "baz"
 	assert.Panics(t, func() { _ = MustNew(config) })
-}
-
-func TestProvider(t *testing.T) {
-	var buf bytes.Buffer
-	log.SetOutput(&buf)
-	logger, restorer, err := Provider(Config{})
-	require.NoError(t, err)
-	defer restorer()
-	assert.Equal(t, logger.Background(), zap.L())
-	log.Println("suppressed message")
-	assert.Zero(t, buf.Len())
 }
