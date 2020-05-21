@@ -578,6 +578,7 @@ workflows:
       - lte-test
       - insync-checkin
       - nms-flow-test
+      - fossa-analyze
       - nms-yarn-test:
           requires:
             - nms-flow-test
@@ -585,15 +586,16 @@ workflows:
           requires:
             - cloud-test
             - orc8r-gateway-test
+            - insync-checkin
       - orc8r-noncore-build:
           requires:
             - cloud-test
             - orc8r-gateway-test
+            - insync-checkin
       - nms-build:
           requires:
               - cloud-test
               - orc8r-gateway-test
-      - fossa-analyze
 
   docusaurus_build_and_deploy:
     jobs:
