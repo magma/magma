@@ -40,26 +40,29 @@ func (s *logTestSuite) SetupSuite() {
 
 func (s *logTestSuite) subscribeForOneEvent(wg *sync.WaitGroup, expect func(entry LogEntry)) {
 	wg.Add(1)
+	ctx, cancel := context.WithCancel(s.ctx)
+	events := []string{EntMutation}
+	listener, err := NewListener(s.ctx, ListenerConfig{
+		Subscriber: s.subscriber,
+		Logger:     s.logger.Background(),
+		Events:     events,
+		Handler: HandlerFunc(func(_ context.Context, tenant, name string, body []byte) error {
+			s.Assert().NotEmpty(body)
+			s.Assert().Equal(viewertest.DefaultTenant, tenant)
+			s.Assert().Equal(EntMutation, name)
+			var entry LogEntry
+			err := Unmarshal(body, &entry)
+			s.NoError(err)
+			expect(entry)
+			cancel()
+			return nil
+		}),
+	})
+	s.Assert().NoError(err)
 	go func() {
 		defer wg.Done()
-		ctx, cancel := context.WithCancel(s.ctx)
-		events := []string{EntMutation}
-		err := SubscribeAndListen(ctx, ListenerConfig{
-			Subscriber: s.subscriber,
-			Logger:     s.logger.Background(),
-			Events:     events,
-			Handler: HandlerFunc(func(_ context.Context, tenant, name string, body []byte) error {
-				s.Assert().NotEmpty(body)
-				s.Assert().Equal(viewertest.DefaultTenant, tenant)
-				s.Assert().Equal(EntMutation, name)
-				var entry LogEntry
-				err := Unmarshal(body, &entry)
-				s.NoError(err)
-				expect(entry)
-				cancel()
-				return nil
-			}),
-		})
+		defer listener.Shutdown(ctx)
+		err := listener.Listen(ctx)
 		s.Require().True(errors.Is(err, context.Canceled))
 	}()
 }
