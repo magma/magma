@@ -1,0 +1,14 @@
+fragment ServiceFragment on Service {
+  id
+  name
+  externalId
+  customer {
+    ...CustomerFragment
+  }
+  endpoints {
+    ...ServiceEndpointFragment
+  }
+  links {
+    ...LinkFragment
+  }
+}

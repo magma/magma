@@ -1,0 +1,9 @@
+fragment ServiceEndpointFragment on ServiceEndpoint {
+  id
+  port {
+    ...EquipmentPortFragment
+  }
+  definition {
+    ...ServiceEndpointDefinitionFragment
+  }
+}

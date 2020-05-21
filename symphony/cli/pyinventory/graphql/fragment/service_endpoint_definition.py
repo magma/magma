@@ -14,28 +14,16 @@ from time import perf_counter
 from dataclasses_json import DataClassJsonMixin
 
 QUERY: List[str] = ["""
-fragment EquipmentPortDefinitionFragment on EquipmentPortDefinition {
+fragment ServiceEndpointDefinitionFragment on ServiceEndpointDefinition {
   id
+  role
   name
-  index
-  visibleLabel
-  portType {
-    id
-    name
-  }
 }
 
 """]
 
 @dataclass
-class EquipmentPortDefinitionFragment(DataClassJsonMixin):
-    @dataclass
-    class EquipmentPortType(DataClassJsonMixin):
-        id: str
-        name: str
-
+class ServiceEndpointDefinitionFragment(DataClassJsonMixin):
     id: str
     name: str
-    index: Optional[int]
-    visibleLabel: Optional[str]
-    portType: Optional[EquipmentPortType]
+    role: Optional[str]

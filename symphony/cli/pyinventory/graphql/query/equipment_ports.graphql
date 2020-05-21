@@ -2,21 +2,7 @@ query EquipmentPortsQuery($id: ID!) {
   equipment: node(id: $id) {
     ... on Equipment {
       ports {
-        id
-        properties {
-          ...PropertyFragment
-        }
-        definition {
-          id
-          name
-          portType {
-            id
-            name
-          }
-        }
-        link {
-          ...LinkFragment
-        }
+        ...EquipmentPortFragment
       }
     }
   }

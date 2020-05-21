@@ -3,4 +3,8 @@ fragment EquipmentPortDefinitionFragment on EquipmentPortDefinition {
   name
   index
   visibleLabel
+  portType {
+    id
+    name
+  }
 }

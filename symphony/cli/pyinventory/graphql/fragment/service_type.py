@@ -13,29 +13,26 @@ from typing import Any, Callable, List, Mapping, Optional
 from time import perf_counter
 from dataclasses_json import DataClassJsonMixin
 
-QUERY: List[str] = ["""
-fragment EquipmentPortDefinitionFragment on EquipmentPortDefinition {
+from ..fragment.property_type import PropertyTypeFragment, QUERY as PropertyTypeFragmentQuery
+QUERY: List[str] = PropertyTypeFragmentQuery + ["""
+fragment ServiceTypeFragment on ServiceType {
   id
   name
-  index
-  visibleLabel
-  portType {
-    id
-    name
+  hasCustomer
+  propertyTypes {
+    ...PropertyTypeFragment
   }
 }
 
 """]
 
 @dataclass
-class EquipmentPortDefinitionFragment(DataClassJsonMixin):
+class ServiceTypeFragment(DataClassJsonMixin):
     @dataclass
-    class EquipmentPortType(DataClassJsonMixin):
-        id: str
-        name: str
+    class PropertyType(PropertyTypeFragment):
+        pass
 
     id: str
     name: str
-    index: Optional[int]
-    visibleLabel: Optional[str]
-    portType: Optional[EquipmentPortType]
+    hasCustomer: bool
+    propertyTypes: List[PropertyType]

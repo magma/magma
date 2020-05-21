@@ -1,0 +1,5 @@
+fragment ServiceEndpointDefinitionFragment on ServiceEndpointDefinition {
+  id
+  role
+  name
+}
