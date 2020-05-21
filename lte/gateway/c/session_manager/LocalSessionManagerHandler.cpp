@@ -113,6 +113,11 @@ bool LocalSessionManagerHandlerImpl::is_pipelined_restarted() {
 void LocalSessionManagerHandlerImpl::handle_setup_callback(
     const std::uint64_t& epoch, Status status, SetupFlowsResult resp) {
   using namespace std::placeholders;
+  if current_epoch_ != epoch:
+    MLOG(MDEBUG) << "Received stale Pipelined setup callback for " << epoch
+                 << ", current epoch is " << current_epoch_;
+    return;
+
   if (!status.ok()) {
     MLOG(MERROR) << "Could not setup pipelined, rpc failed with: "
                  << status.error_message() << ", retrying pipelined setup.";
@@ -136,8 +141,7 @@ void LocalSessionManagerHandlerImpl::handle_setup_callback(
     MLOG(MWARNING) << "Pipelined setup call has outdated epoch, abandoning.";
   } else if (resp.result() == resp.FAILURE) {
     MLOG(MWARNING) << "Pipelined setup failed, retrying pipelined setup "
-                      "for epoch "
-                   << epoch;
+                      "for epoch " << epoch;
     enforcer_->get_event_base().runInEventBaseThread([=] {
       enforcer_->get_event_base().timer().scheduleTimeoutFn(
           std::move([=] {
@@ -151,7 +155,7 @@ void LocalSessionManagerHandlerImpl::handle_setup_callback(
           retry_timeout_);
     });
   } else {
-    MLOG(MDEBUG) << "Successfully setup pipelined.";
+    MLOG(MDEBUG) << "Successfully setup pipelined with epoch" << epoch;
   }
 }
 
