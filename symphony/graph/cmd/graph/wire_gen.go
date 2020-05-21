@@ -13,6 +13,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/facebookincubator/symphony/graph/event"
+	"github.com/facebookincubator/symphony/graph/graphevents"
 	"github.com/facebookincubator/symphony/graph/graphgrpc"
 	"github.com/facebookincubator/symphony/graph/graphhttp"
 	"github.com/facebookincubator/symphony/graph/viewer"
@@ -96,8 +97,22 @@ func NewApplication(ctx context.Context, flags *cliFlags) (*application, func(),
 		cleanup()
 		return nil, nil, err
 	}
-	mainApplication := newApplication(logger, server, grpcServer, flags)
+	grapheventsConfig := graphevents.Config{
+		Tenancy:    tenancy,
+		Subscriber: urlSubscriber,
+		Logger:     logger,
+	}
+	grapheventsServer, cleanup5, err := graphevents.NewServer(grapheventsConfig)
+	if err != nil {
+		cleanup4()
+		cleanup3()
+		cleanup2()
+		cleanup()
+		return nil, nil, err
+	}
+	mainApplication := newApplication(logger, server, grpcServer, grapheventsServer, flags)
 	return mainApplication, func() {
+		cleanup5()
 		cleanup4()
 		cleanup3()
 		cleanup2()
@@ -107,13 +122,14 @@ func NewApplication(ctx context.Context, flags *cliFlags) (*application, func(),
 
 // wire.go:
 
-func newApplication(logger log.Logger, httpServer *server.Server, grpcServer *grpc.Server, flags *cliFlags) *application {
+func newApplication(logger log.Logger, httpServer *server.Server, grpcServer *grpc.Server, eventServer *graphevents.Server, flags *cliFlags) *application {
 	var app application
 	app.Logger = logger.Background()
 	app.http.Server = httpServer
 	app.http.addr = flags.HTTPAddress
 	app.grpc.Server = grpcServer
 	app.grpc.addr = flags.GRPCAddress
+	app.event = eventServer
 	return &app
 }
 

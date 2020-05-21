@@ -14,6 +14,7 @@ import (
 	"syscall"
 
 	"github.com/facebookincubator/symphony/graph/event"
+	"github.com/facebookincubator/symphony/graph/graphevents"
 	"github.com/facebookincubator/symphony/pkg/ctxgroup"
 	"github.com/facebookincubator/symphony/pkg/ctxutil"
 	"github.com/facebookincubator/symphony/pkg/log"
@@ -79,6 +80,7 @@ type application struct {
 		*grpc.Server
 		addr string
 	}
+	event *graphevents.Server
 }
 
 func (app *application) run(ctx context.Context) error {
@@ -99,6 +101,14 @@ func (app *application) run(ctx context.Context) error {
 			return fmt.Errorf("starting grpc server: %w", err)
 		}
 		return nil
+	})
+	g.Go(func(ctx context.Context) error {
+		listener, err := app.event.Subscribe(ctx)
+		if err != nil {
+			return err
+		}
+		defer listener.Shutdown(ctx)
+		return listener.Listen(ctx)
 	})
 	<-ctx.Done()
 

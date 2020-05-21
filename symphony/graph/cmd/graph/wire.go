@@ -12,6 +12,7 @@ import (
 	"net/url"
 
 	"github.com/facebookincubator/symphony/graph/event"
+	"github.com/facebookincubator/symphony/graph/graphevents"
 	"github.com/facebookincubator/symphony/graph/graphgrpc"
 	"github.com/facebookincubator/symphony/graph/graphhttp"
 	"github.com/facebookincubator/symphony/graph/viewer"
@@ -40,17 +41,20 @@ func NewApplication(ctx context.Context, flags *cliFlags) (*application, func(),
 		wire.Struct(new(graphhttp.Config), "*"),
 		graphgrpc.NewServer,
 		wire.Struct(new(graphgrpc.Config), "*"),
+		graphevents.NewServer,
+		wire.Struct(new(graphevents.Config), "*"),
 	)
 	return nil, nil, nil
 }
 
-func newApplication(logger log.Logger, httpServer *server.Server, grpcServer *grpc.Server, flags *cliFlags) *application {
+func newApplication(logger log.Logger, httpServer *server.Server, grpcServer *grpc.Server, eventServer *graphevents.Server, flags *cliFlags) *application {
 	var app application
 	app.Logger = logger.Background()
 	app.http.Server = httpServer
 	app.http.addr = flags.HTTPAddress
 	app.grpc.Server = grpcServer
 	app.grpc.addr = flags.GRPCAddress
+	app.event = eventServer
 	return &app
 }
 
