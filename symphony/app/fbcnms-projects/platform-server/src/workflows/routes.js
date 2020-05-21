@@ -7,12 +7,16 @@
  * @flow
  * @format
  */
+import type {ExpressRequest, ExpressResponse} from 'express';
 const express = require('express');
 const proxy = require('http-proxy-middleware');
 const {WORKFLOWS_HOST} = require('../config');
 import onProxyReq from '../utils/OnProxyRequest';
 
-const router = express.Router();
+const router: express.Router<
+  ExpressRequest,
+  ExpressResponse,
+> = express.Router();
 
 router.use(
   '/',

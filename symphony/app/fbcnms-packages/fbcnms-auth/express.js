@@ -26,7 +26,7 @@ import {injectOrganizationParams} from './organization';
 import {isEmpty} from 'lodash';
 
 import type {AppContextAppData} from '@fbcnms/ui/context/AppContext';
-import type {ExpressResponse} from 'express';
+import type {ExpressRequest, ExpressResponse} from 'express';
 import type {FBCNMSRequest} from './access';
 import type {UserType} from '@fbcnms/sequelize-models/models/user';
 
@@ -40,13 +40,18 @@ type Options = {|
 |};
 
 export function unprotectedUserRoutes() {
-  const router = express.Router();
+  const router: express.Router<
+    ExpressRequest,
+    ExpressResponse,
+  > = express.Router();
   router.post(
     '/login/saml/callback',
     passport.authenticate('saml', {
       failureRedirect: '/user/login?failure=true',
     }),
     (req, res: ExpressResponse) => {
+      /* $FlowFixMe req.query is user-controlled input, properties and values
+       in this object are untrusted and should be validated before trusting */
       const redirectTo = ensureRelativeUrl(req.query.to) || '/';
       res.redirect(redirectTo);
     },
@@ -54,7 +59,7 @@ export function unprotectedUserRoutes() {
   return router;
 }
 
-function userMiddleware(options: Options): express.Router {
+function userMiddleware(options: Options): express.Router<FBCNMSRequest, *> {
   const router = express.Router();
 
   // Login / Logout Routes

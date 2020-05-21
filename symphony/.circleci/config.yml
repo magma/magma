@@ -494,7 +494,7 @@ jobs:
       - run:
           name: install flow
           <<: *appdir
-          command: yarn add --dev -W flow-bin@0.120
+          command: yarn add --dev -W flow-bin@0.125
       - restore_cache:
           name: Restore Yarn Package Cache
           keys:

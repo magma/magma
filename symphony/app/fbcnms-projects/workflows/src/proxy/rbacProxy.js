@@ -9,15 +9,20 @@
  */
 import Router from 'express';
 import {getUserGroups, getUserRole} from './utils.js';
-import type {AuthorizationCheck, GroupLoadingStrategy} from '../types';
+import type {
+  AuthorizationCheck,
+  GroupLoadingStrategy,
+  ProxyRequest,
+  ProxyResponse,
+} from '../types';
 
-const rbacRouter = Router();
+const rbacRouter = Router<ProxyRequest, ProxyResponse>();
 
 export default async function(
   authorizationCheck: AuthorizationCheck,
   groupLoadingStrategy: GroupLoadingStrategy,
 ) {
-  rbacRouter.get('/editableworkflows', async (req, res, _) => {
+  rbacRouter.get('/editableworkflows', async (req: ProxyRequest, res, _) => {
     const role = getUserRole(req);
     const groups = await getUserGroups(req, groupLoadingStrategy);
 

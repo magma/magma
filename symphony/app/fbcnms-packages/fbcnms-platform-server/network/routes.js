@@ -8,6 +8,7 @@
  * @format
  */
 
+import type {ExpressResponse} from 'express';
 import type {FBCNMSRequest} from '@fbcnms/auth/access';
 import type {
   network_cellular_configs,
@@ -25,7 +26,7 @@ import {access} from '@fbcnms/auth/access';
 
 const logger = require('@fbcnms/logging').getLogger(module);
 
-const router = express.Router();
+const router: express.Router<FBCNMSRequest, ExpressResponse> = express.Router();
 
 const DEFAULT_CELLULAR_CONFIG: network_cellular_configs = {
   epc: {

@@ -7,6 +7,7 @@
  * @flow strict-local
  * @format
  */
+import type {ExpressResponse} from 'express';
 import type {FBCNMSRequest} from '@fbcnms/auth/access';
 
 const express = require('express');
@@ -14,7 +15,7 @@ const proxy = require('express-http-proxy');
 
 const {DOCS_HOST} = require('../config');
 
-const router = express.Router();
+const router: express.Router<FBCNMSRequest, ExpressResponse> = express.Router();
 
 const PROXY_OPTIONS = {
   proxyReqPathResolver: (req: FBCNMSRequest) =>

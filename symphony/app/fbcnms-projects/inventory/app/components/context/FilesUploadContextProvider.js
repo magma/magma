@@ -70,6 +70,7 @@ export default function FilesUploadContextProvider({children}: Props) {
   };
 
   return (
+    // $FlowFixMe: Found while upgrading flow. Issue about id/name missing
     <FilesUploadContext.Provider value={value}>
       {children}
     </FilesUploadContext.Provider>

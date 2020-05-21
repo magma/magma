@@ -94,7 +94,7 @@ export type ScheduleRequest = {
 
 export type FrontendResponse = {
   text: string | {},
-  statusCode: Number,
+  statusCode: number,
 };
 
 export type TaskType = {

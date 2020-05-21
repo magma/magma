@@ -8,6 +8,7 @@
  * @format
  */
 
+import type {ExpressResponse} from 'express';
 import type {FBCNMSRequest} from '@fbcnms/auth/access';
 import type {FeatureID} from '@fbcnms/types/features';
 
@@ -22,7 +23,7 @@ import {getPropsToUpdate} from '@fbcnms/auth/util';
 
 const logger = require('@fbcnms/logging').getLogger(module);
 
-const router = express.Router();
+const router: express.Router<FBCNMSRequest, ExpressResponse> = express.Router();
 
 router.get(
   '/organization/async',

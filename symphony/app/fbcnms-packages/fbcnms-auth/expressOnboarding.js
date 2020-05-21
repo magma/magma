@@ -31,7 +31,10 @@ export default function() {
     next();
   };
 
-  const router = express.Router();
+  const router: express.Router<
+    FBCNMSRequest,
+    ExpressResponse,
+  > = express.Router();
 
   router.get(
     '/onboarding',
