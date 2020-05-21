@@ -297,16 +297,20 @@ metrics:
       worker-type: metrics
 
 nms:
-  enabled: false
-
   imagePullSecrets:
     - name: orc8r-secrets-registry
 
   magmalte:
-    create: true
+    manifests:
+      secrets: false
+      deployment: false
+      service: false
+      rbac: false
+
     image:
       repository: YOUR-DOCKER-REGISTRY/magmalte
       tag: v1.0.1
+
     env:
       api_host: controller.YOURDOMAIN.COM
       mysql_host: YOUR RDS MYSQL HOST
@@ -398,19 +402,32 @@ nms:
     - name: orc8r-secrets-registry
 
   magmalte:
-    create: true:
+    manifests:
+      secrets: false
+      deployment: false
+      service: false
+      rbac: false
+
     image:
       repository: YOUR-DOCKER-REGISTRY/magmalte
       tag: v1.0.1
+
     env:
       api_host: controller.YOURDOMAIN.COM
       mysql_host: YOUR RDS MYSQL HOST
       mysql_user: magma
       mysql_pass: YOUR RDS MYSQL PASSWORD
   nginx:
-    create: true
+    manifests:
+      configmap: false
+      secrets: false
+      deployment: false
+      service: false
+      rbac: false
+
     service:
       type: LoadBalancer
+
     deployment:
       spec:
         ssl_cert_name: controller.crt
