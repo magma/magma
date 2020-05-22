@@ -23,7 +23,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.define :cwag, primary: true do |cwag|
     cwag.vm.box = "generic/ubuntu1804"
-    cwag.disksize.size = '50GB'
+    cwag.disksize.size = '80GB'
     cwag.vm.box_version = "1.9.12"
     cwag.vbguest.auto_update = false
     cwag.vm.hostname = "cwag-dev"
@@ -50,6 +50,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.define :cwag_test, primary: true do |cwag_test|
     cwag_test.vm.box = "generic/ubuntu1804"
+    cwag_test.disksize.size = '80GB'
     cwag_test.vm.box_version = "1.9.12"
     cwag_test.vm.hostname = "cwag-test"
     cwag_test.vm.network "private_network", ip: "192.168.70.102", nic_type: "82540EM"
