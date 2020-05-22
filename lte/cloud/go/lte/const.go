@@ -28,4 +28,6 @@ const (
 	RatingGroupEntityType = "rating_group"
 
 	ApnEntityType = "apn"
+
+	SubscriberStreamName = "subscriberdb"
 )
