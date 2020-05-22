@@ -42,9 +42,9 @@ target_link_libraries(mme
     -Wl,--start-group
         COMMON
         LIB_3GPP LIB_S1AP LIB_SECU LIB_DIRECTORYD LIB_SGS_CLIENT LIB_BSTR
-        LIB_HASHTABLE LIB_S6A_PROXY 
+        LIB_HASHTABLE LIB_S6A_PROXY
         TASK_S1AP TASK_SCTP_SERVER TASK_SGS
-        TASK_S6A TASK_MME_APP TASK_GRPC_SERVICE TASK_NAS 
+        TASK_S6A TASK_MME_APP TASK_GRPC_SERVICE TASK_NAS
         ${ITTI_LIB} ${GCOV_LIB}
     -Wl,--end-group
     ${LFDS} pthread m sctp  rt crypt ${CRYPTO_LIBRARIES} ${OPENSSL_LIBRARIES}
@@ -53,13 +53,11 @@ target_link_libraries(mme
 )
 
 if ( NOT EMBEDDED_SGW )
-    target_link_libraries(mme
-    LIB_GTPV2C TASK_UDP)
-      
-#Message(EMBEDDED_SGW  should be unset is actually ${EMBEDDED_SGW})
+ target_link_libraries(mme
+  LIB_GTPV2C TASK_UDP)
+
 else ( EMBEDDED_SGW )
-#Message(EMBEDDED_SGW  should be set is actually ${EMBEDDED_SGW})
-    target_link_libraries( mme TASK_SGW )
+target_link_libraries( mme TASK_SGW )
 endif ( NOT EMBEDDED_SGW )
 
 #2020/04/06: we kept master content

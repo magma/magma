@@ -314,9 +314,6 @@ int mme_config_parse_file(mme_config_t *config_pP)
   char *s1_mme = NULL;
   char *if_name_s11 = NULL;
   char *s11 = NULL;
-  //#if EMBEDDED_SGW
-  //char *sgw_ip_address_for_s11 = NULL;
-  //#endif
   char *sgw_ip_address_for_s11 = NULL;
   bool swap = false;
   bstring address = NULL;
@@ -1169,7 +1166,7 @@ int mme_config_parse_file(mme_config_t *config_pP)
         config_pP->sgs_config.ts13_sec = (uint8_t) aint;
       }
     }
-
+#if (!EMBEDDED_SGW)
   // S-GW Setting
   setting =
      config_setting_get_member(setting_mme, MME_CONFIG_STRING_SGW_CONFIG);
@@ -1191,10 +1188,8 @@ int mme_config_parse_file(mme_config_t *config_pP)
             inet_ntoa(config_pP->e_dns_emulation.sgw_ip_addr[0]));
         }
      }
-
+#endif
   }
-
-
 
   config_destroy(&cfg);
   return 0;

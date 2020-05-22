@@ -50,7 +50,6 @@
 #include "intertask_interface.h"
 #include "intertask_interface_types.h"
 #if EMBEDDED_SGW
-//#include "pgw_defs.h"
 #include "service303.h"
 #include "shared_ts_log.h"
 #include "spgw_config.h"

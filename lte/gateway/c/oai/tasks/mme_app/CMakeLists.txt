@@ -61,11 +61,6 @@ add_library(TASK_MME_APP
     ${S11_RELATED_SRCS}
     )
 
-#set (MME_APP_SGW
-#mme_app_embedded_spgw.c)
-
-#set(ALLOW_DUPLICATE_CUSTOM_TARGETS TRUE)
-
 target_compile_definitions(TASK_MME_APP PRIVATE
   PACKAGE_NAME=\"MME\"
   PACKAGE_VERSION=\"0.1\"

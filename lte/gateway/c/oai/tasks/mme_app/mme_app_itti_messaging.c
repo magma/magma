@@ -55,7 +55,6 @@
 
 #if EMBEDDED_SGW
 #define TASK_SPGW TASK_SPGW_APP
-//#warning EMBEDDED_SGW = 1
 #else
 //#warning EMBEDDED_SGW = 0
 #define TASK_SPGW TASK_S11
@@ -362,12 +361,6 @@ int mme_app_send_s11_create_session_req(
   // TODO perform SGW selection
   // Actually, since S and P GW are bundled together, there is no PGW selection (based on PGW id in ULA, or DNS query based on FQDN)
   if (1) {
-    // TODO prototype may change
-   //memcpy(
-    // (struct in_addr *const)&session_request_p->edns_peer_ip,
-      //(struct in_addr *const)* sgw_in_addr,
-     // sizeof(mme_config.e_dns_emulation.sgw_ip_addr[0].s_addr));
-   
     mme_app_select_sgw(
       &ue_mm_context->emm_context.originating_tai, (struct sockaddr *const)&session_request_p->edns_peer_ip);
   }
@@ -385,8 +378,8 @@ int mme_app_send_s11_create_session_req(
   session_request_p->serving_network.mnc[2] =
     ue_mm_context->e_utran_cgi.plmn.mnc_digit3;
   session_request_p->selection_mode = MS_O_N_P_APN_S_V;
-  
-  
+
+
   OAILOG_INFO(
     TASK_MME_APP,
     "Sending S11 CREATE SESSION REQ message to SPGW for ue_id "

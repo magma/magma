@@ -56,9 +56,7 @@ typedef struct {
     struct sockaddr_in addrv4;
     struct sockaddr_in6 addrv6;
   } sock_addr;
-
   uint16_t peer_port;
-
 } udp_data_ind_t;
 
 #endif /* FILE_UDP_MESSAGES_TYPES_SEEN */
