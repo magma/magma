@@ -124,8 +124,8 @@ func GetObsidianHandlers() []obsidian.Handler {
 		ret = append(ret, obsidian.Handler{Path: LogQueryPath, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)})
 		ret = append(ret, obsidian.Handler{Path: eventdh.EventsPath, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)})
 	} else {
-		elasticHost := elasticConfig.GetRequiredStringParam("elasticHost")
-		elasticPort := elasticConfig.GetRequiredIntParam("elasticPort")
+		elasticHost := elasticConfig.MustGetString("elasticHost")
+		elasticPort := elasticConfig.MustGetInt("elasticPort")
 
 		client, err := elastic.NewSimpleClient(elastic.SetURL(fmt.Sprintf("http://%s:%d", elasticHost, elasticPort)))
 		if err != nil {

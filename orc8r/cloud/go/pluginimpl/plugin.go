@@ -141,7 +141,7 @@ func getMetricsProfiles(metricsConfig *config.ConfigMap) []metricsd.MetricsProfi
 		allCollectors = append(allCollectors, c)
 	}
 
-	prometheusAddresses := metricsConfig.GetRequiredStringArrayParam(metricsd.PrometheusPushAddresses)
+	prometheusAddresses := metricsConfig.MustGetStrings(metricsd.PrometheusPushAddresses)
 	prometheusCustomPushExporter := promeExp.NewCustomPushExporter(prometheusAddresses)
 
 	// Prometheus profile - Exports all service metric to Prometheus

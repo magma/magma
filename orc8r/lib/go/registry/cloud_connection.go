@@ -106,7 +106,7 @@ func getAuthority(
 	serviceConfig *config.ConfigMap,
 	service string,
 ) (string, error) {
-	cloudAddr, err := serviceConfig.GetStringParam("cloud_address")
+	cloudAddr, err := serviceConfig.GetString("cloud_address")
 	if err != nil {
 		return "", err
 	}
@@ -114,7 +114,7 @@ func getAuthority(
 }
 
 func (reg *ServiceRegistry) getProxyAddress(serviceConfig *config.ConfigMap) (string, error) {
-	localPort, err := serviceConfig.GetIntParam("local_port")
+	localPort, err := serviceConfig.GetInt("local_port")
 	if err != nil {
 		return "", err
 	}
@@ -127,12 +127,12 @@ func (reg *ServiceRegistry) getProxyAddress(serviceConfig *config.ConfigMap) (st
 }
 
 func getCloudServiceAddress(controlProxyConfig *config.ConfigMap) (string, error) {
-	cloudAddr, err := controlProxyConfig.GetStringParam("cloud_address")
+	cloudAddr, err := controlProxyConfig.GetString("cloud_address")
 	if err != nil {
 		return "", err
 	}
 	addrPieces := strings.Split(cloudAddr, ":")
-	port, err := controlProxyConfig.GetIntParam("cloud_port")
+	port, err := controlProxyConfig.GetInt("cloud_port")
 	if err != nil {
 		return "", err
 	}
@@ -140,7 +140,7 @@ func getCloudServiceAddress(controlProxyConfig *config.ConfigMap) (string, error
 }
 
 func getUseProxyCloudConnection(serviceConfig *config.ConfigMap) bool {
-	if proxied, err := serviceConfig.GetBoolParam("proxy_cloud_connections"); err == nil {
+	if proxied, err := serviceConfig.GetBool("proxy_cloud_connections"); err == nil {
 		return proxied
 	}
 	return true // Note: default is True -> proxy cloud connection
@@ -165,7 +165,7 @@ func getDialOptions(serviceConfig *config.ConfigMap, authority string, useProxy 
 			log.Printf("OS Cert Pool initialization error: %v", err)
 			certPool = x509.NewCertPool()
 		}
-		if rootCaFile, err := serviceConfig.GetStringParam("rootca_cert"); err == nil && len(rootCaFile) > 0 {
+		if rootCaFile, err := serviceConfig.GetString("rootca_cert"); err == nil && len(rootCaFile) > 0 {
 			// Add magma RootCA
 			if rootCa, err := ioutil.ReadFile(rootCaFile); err == nil {
 				if !certPool.AppendCertsFromPEM(rootCa) {
@@ -182,8 +182,8 @@ func getDialOptions(serviceConfig *config.ConfigMap, authority string, useProxy 
 			log.Print("Empty server certificate pool, using TLS InsecureSkipVerify")
 			tlsCfg.InsecureSkipVerify = true
 		}
-		if clientCaFile, err := serviceConfig.GetStringParam("gateway_cert"); err == nil && len(clientCaFile) > 0 {
-			if clientKeyFile, err := serviceConfig.GetStringParam("gateway_key"); err == nil && len(clientKeyFile) > 0 {
+		if clientCaFile, err := serviceConfig.GetString("gateway_cert"); err == nil && len(clientCaFile) > 0 {
+			if clientKeyFile, err := serviceConfig.GetString("gateway_key"); err == nil && len(clientKeyFile) > 0 {
 				clientCert, err := tls.LoadX509KeyPair(clientCaFile, clientKeyFile)
 				if err == nil {
 					tlsCfg.Certificates = []tls.Certificate{clientCert}
