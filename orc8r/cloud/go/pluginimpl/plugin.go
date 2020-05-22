@@ -110,7 +110,6 @@ func (*BaseOrchestratorPlugin) GetObsidianHandlers(metricsConfig *config.ConfigM
 func (*BaseOrchestratorPlugin) GetStreamerProviders() []providers.StreamProvider {
 	return []providers.StreamProvider{
 		mconfig.GetProvider(),
-		mconfig.GetViewProvider(),
 	}
 }
 
