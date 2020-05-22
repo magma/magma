@@ -11,10 +11,11 @@ package plugin
 import (
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/plugin/handlers"
+	"magma/orc8r/cloud/go/pluginimpl/legacy_stream_providers"
 	lteModels "magma/lte/cloud/go/plugin/models"
+	"magma/lte/cloud/go/plugin/stream_provider"
 	policyStreamer "magma/lte/cloud/go/services/policydb/streamer"
 	"magma/lte/cloud/go/services/subscriberdb"
-	subscriberStreamer "magma/lte/cloud/go/services/subscriberdb/streamer"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/serde"
@@ -81,8 +82,9 @@ func (*LteOrchestratorPlugin) GetObsidianHandlers(metricsConfig *config.ConfigMa
 }
 
 func (*LteOrchestratorPlugin) GetStreamerProviders() []providers.StreamProvider {
+	factory := legacy_stream_providers.LegacyProviderFactory{}
 	return []providers.StreamProvider{
-		&subscriberStreamer.SubscribersProvider{},
+		factory.CreateLegacyProvider(lte.SubscriberStreamName, &stream_provider.LteStreamProviderServicer{}),
 		&policyStreamer.PoliciesProvider{},
 		&policyStreamer.BaseNamesProvider{},
 		&policyStreamer.RuleMappingsProvider{},
