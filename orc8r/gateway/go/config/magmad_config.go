@@ -166,7 +166,7 @@ func NewDefaultMgmadCfg() *MagmadCfg {
 }
 
 // UpdateFromYml of StructuredConfign interface - updates given magmad config struct from corresponding YML file
-// returns updated MagmadCfg, main YML CFG file path & owerwrite YML CFG file path (if any)
+// returns updated MagmadCfg, main YML CFG file path & overwrite YML CFG file path (if any)
 func (mdc *MagmadCfg) UpdateFromYml() (StructuredConfig, string, string) {
 	var newCfg *MagmadCfg
 	if mdc != nil {
