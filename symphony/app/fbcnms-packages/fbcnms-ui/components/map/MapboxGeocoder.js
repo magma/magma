@@ -112,9 +112,9 @@ class MapboxGeocoder extends React.Component<Props, State> {
 
     // Construct GET request
     // See: https://www.mapbox.com/api-documentation/#search-for-places
+    // $FlowIssue T56760595
     const params: {[string]: string} = {
       access_token: accessToken,
-      // $FlowIssue T56760595
       ...this.getProximity(),
     };
     const encodedParams = Object.keys(params)
