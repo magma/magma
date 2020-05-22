@@ -24,20 +24,10 @@ import (
 	"magma/orc8r/lib/go/protos"
 )
 
-const (
-	policyStreamName   = "policydb"
-	baseNameStreamName = "base_names"
-	mappingsStreamName = "rule_mappings"
-	networkWideRules   = "network_wide_rules"
-)
-
 type PoliciesProvider struct{}
 
-func (provider *PoliciesProvider) GetStreamName() string {
-	return policyStreamName
-}
-
-func (provider *PoliciesProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
+// GetUpdatesImpl implements GetUpdates for the policies stream provider
+func (provider *PoliciesProvider) GetUpdatesImpl(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
 	gwEnt, err := configurator.LoadEntityForPhysicalID(gatewayId, configurator.EntityLoadCriteria{})
 	if err != nil {
 		return nil, err
@@ -80,10 +70,11 @@ func rulesToUpdates(rules []*lteProtos.PolicyRule) ([]*protos.DataUpdate, error)
 type BaseNamesProvider struct{}
 
 func (provider *BaseNamesProvider) GetStreamName() string {
-	return baseNameStreamName
+	return lte.BaseNameStreamName
 }
 
-func (provider *BaseNamesProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
+// GetUpdatesImpl implements GetUpdates for the base names stream provider
+func (provider *BaseNamesProvider) GetUpdatesImpl(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
 	gwEnt, err := configurator.LoadEntityForPhysicalID(gatewayId, configurator.EntityLoadCriteria{})
 	if err != nil {
 		return nil, err
@@ -130,11 +121,8 @@ type RuleMappingsProvider struct {
 	DeterministicReturn bool
 }
 
-func (r *RuleMappingsProvider) GetStreamName() string {
-	return mappingsStreamName
-}
-
-func (r *RuleMappingsProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
+// GetUpdatesImpl implements GetUpdates for the rule mapppings stream provider
+func (r *RuleMappingsProvider) GetUpdatesImpl(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
 	gwEnt, err := configurator.LoadEntityForPhysicalID(gatewayId, configurator.EntityLoadCriteria{})
 	if err != nil {
 		return nil, err
@@ -213,11 +201,9 @@ func sortUpdates(updates []*protos.DataUpdate) {
 
 type NetworkWideRulesProvider struct{}
 
-func (r *NetworkWideRulesProvider) GetStreamName() string {
-	return networkWideRules
-}
-
-func (r *NetworkWideRulesProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
+// GetUpdatesImpl implements GetUpdates for the network wide rules stream
+// provider
+func (r *NetworkWideRulesProvider) GetUpdatesImpl(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
 	gwEnt, err := configurator.LoadEntityForPhysicalID(gatewayId, configurator.EntityLoadCriteria{})
 	if err != nil {
 		return nil, err
