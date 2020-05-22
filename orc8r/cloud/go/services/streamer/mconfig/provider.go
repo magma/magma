@@ -11,8 +11,6 @@ package mconfig
 import (
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/streamer"
-	"magma/orc8r/cloud/go/services/streamer/providers"
-	"magma/orc8r/lib/go/definitions"
 	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
@@ -20,18 +18,12 @@ import (
 	"github.com/golang/protobuf/ptypes/any"
 )
 
-// GetProvider returns the StreamProvider for on demand mconfigs.
-func GetProvider() providers.StreamProvider {
-	return &ConfigProvider{}
-}
-
+// ConfigProvider implements the legacy StreamProvider plugin interface for
+// mconfigs
 type ConfigProvider struct{}
 
-func (provider *ConfigProvider) GetStreamName() string {
-	return definitions.MconfigStreamName
-}
-
-func (provider *ConfigProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
+// GetUpdatesImpl implements GetUpdates for the mconfig stream provider
+func (s *ConfigProvider) GetUpdatesImpl(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
 	resp, err := configurator.GetMconfigFor(gatewayId)
 	if err != nil {
 		return nil, err
