@@ -14,6 +14,7 @@ import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import DashboardIcon from '@material-ui/icons/Dashboard';
+import GatewaySummary from './GatewaySummary';
 import GraphicEqIcon from '@material-ui/icons/GraphicEq';
 import Grid from '@material-ui/core/Grid';
 import ListAltIcon from '@material-ui/icons/ListAlt';
@@ -71,20 +72,7 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export function GatewayEquipmentPage() {
-  const {relativeUrl, relativePath} = useRouter();
-  return (
-    <Switch>
-      <Route
-        path={relativePath('/gateway/:gatewayId')}
-        component={GatewayDashboard}
-      />
-      <Redirect to={relativeUrl('/gateway/gw1')} />
-    </Switch>
-  );
-}
-
-function GatewayDashboard() {
+export function GatewayDetail() {
   const classes = useStyles();
   const {relativePath, relativeUrl, match} = useRouter();
   const gatewayId: string = nullthrows(match.params.gatewayId);
@@ -158,17 +146,14 @@ function GatewayDashboard() {
       </AppBar>
 
       <Switch>
-        <Route
-          path={relativePath('/overview')}
-          component={GatewayMainDashboard}
-        />
+        <Route path={relativePath('/overview')} component={GatewayOverview} />
         <Redirect to={relativeUrl('/overview')} />
       </Switch>
     </>
   );
 }
 
-function GatewayMainDashboard() {
+function GatewayOverview() {
   const classes = useStyles();
   const {match} = useRouter();
   const gatewayId: string = nullthrows(match.params.gatewayId);
@@ -181,7 +166,7 @@ function GatewayMainDashboard() {
             <Text>
               <CellWifiIcon /> {gatewayId}
             </Text>
-            <Paper className={classes.paper}>Gateway Information</Paper>
+            <GatewaySummary />
           </Grid>
           <Grid item xs={12}>
             <Text>
@@ -269,4 +254,4 @@ function AlertTabLabel() {
   );
 }
 
-export default GatewayEquipmentPage;
+export default GatewayDetail;
