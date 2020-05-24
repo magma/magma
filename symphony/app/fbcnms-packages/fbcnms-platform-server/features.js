@@ -147,7 +147,6 @@ const arrayConfigs = [
     id: 'planned_equipment',
     title: 'Planned Equipment',
     enabledByDefault: false,
-    rules: [AlwaysEnabledInTestEnvRule],
   },
   {
     id: 'multi_subject_reports',
