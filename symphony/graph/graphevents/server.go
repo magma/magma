@@ -24,16 +24,16 @@ const (
 
 // A Handler handles incoming events.
 type Handler interface {
-	Handle(context.Context, event.LogEntry)
+	Handle(context.Context, event.LogEntry) error
 }
 
 // The HandlerFunc type is an adapter to allow the use of
 // ordinary functions as handlers.
-type HandlerFunc func(context.Context, event.LogEntry)
+type HandlerFunc func(context.Context, event.LogEntry) error
 
 // Handle returns f(ctx, entry).
-func (f HandlerFunc) Handle(ctx context.Context, entry event.LogEntry) {
-	f(ctx, entry)
+func (f HandlerFunc) Handle(ctx context.Context, entry event.LogEntry) error {
+	return f(ctx, entry)
 }
 
 type serverConfig struct {
@@ -105,8 +105,34 @@ func (s *Server) handleEventLog(handlers []Handler) event.Handler {
 			return fmt.Errorf("%s: %w", msg, err)
 		}
 		for _, h := range handlers {
-			h.Handle(ctx, entry)
+			if err := s.runHandlerWithTransaction(ctx, h, entry); err != nil {
+				return fmt.Errorf("running handler: %w", err)
+			}
 		}
 		return nil
 	})
+}
+func (s *Server) runHandlerWithTransaction(ctx context.Context, h Handler, entry event.LogEntry) error {
+	tx, err := ent.FromContext(ctx).Tx(ctx)
+	if err != nil {
+		return fmt.Errorf("creating transaction: %w", err)
+	}
+	ctx = ent.NewTxContext(ctx, tx)
+	defer func() {
+		if r := recover(); r != nil {
+			_ = tx.Rollback()
+			panic(r)
+		}
+	}()
+	ctx = ent.NewContext(ctx, tx.Client())
+	if err := h.Handle(ctx, entry); err != nil {
+		if r := tx.Rollback(); r != nil {
+			err = fmt.Errorf("rolling back transaction: %v", r)
+		}
+		return err
+	}
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("committing transaction: %w", err)
+	}
+	return nil
 }

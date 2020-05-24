@@ -53,10 +53,9 @@ func getEntIdentifiers(entry event.LogEntry) (int, string) {
 	return entry.CurrState.ID, entry.CurrState.Type
 }
 
-func (e eventLog) Handle(ctx context.Context, entry event.LogEntry) {
+func (e eventLog) Handle(ctx context.Context, entry event.LogEntry) error {
 	changedFields := getChangedFields(entry)
 	id, typ := getEntIdentifiers(entry)
-
 	e.logger.For(ctx).Info(
 		"ent mutation",
 		zap.String("user_name", entry.UserName),
@@ -64,4 +63,5 @@ func (e eventLog) Handle(ctx context.Context, entry event.LogEntry) {
 		zap.Int("id", id),
 		zap.String("type", typ),
 		zap.Strings("changed_fields", changedFields))
+	return nil
 }
