@@ -13,20 +13,14 @@ from typing import Any, Callable, List, Mapping, Optional
 from time import perf_counter
 from dataclasses_json import DataClassJsonMixin
 
-from ..fragment.property import PropertyFragment, QUERY as PropertyFragmentQuery
+from ..fragment.link import LinkFragment, QUERY as LinkFragmentQuery
 from ..input.edit_link import EditLinkInput
 
 
-QUERY: List[str] = PropertyFragmentQuery + ["""
+QUERY: List[str] = LinkFragmentQuery + ["""
 mutation EditLinkMutation($input: EditLinkInput!) {
   editLink(input: $input) {
-    id
-    properties {
-      ...PropertyFragment
-    }
-    services {
-      id
-    }
+    ...LinkFragment
   }
 }
 
@@ -37,18 +31,8 @@ class EditLinkMutation(DataClassJsonMixin):
     @dataclass
     class EditLinkMutationData(DataClassJsonMixin):
         @dataclass
-        class Link(DataClassJsonMixin):
-            @dataclass
-            class Property(PropertyFragment):
-                pass
-
-            @dataclass
-            class Service(DataClassJsonMixin):
-                id: str
-
-            id: str
-            properties: List[Property]
-            services: List[Service]
+        class Link(LinkFragment):
+            pass
 
         editLink: Link
 
