@@ -38,7 +38,7 @@ let schemaPath = path.resolve(
 if (!fs.existsSync(schemaPath)) {
   schemaPath = path.resolve(
     __dirname,
-    '../../../../symphony/graph/graphql/schema/symphony.graphql',
+    '../../../graph/graphql/schema/symphony.graphql',
   )
 }
 const schemaFile = fs.readFileSync(schemaPath, {encoding: 'utf8'});

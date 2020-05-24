@@ -107,6 +107,12 @@ message ActivateFlowsResult {
 }
 
 message DeactivateFlowsResult {
+  enum Result {
+    SUCCESS = 0;
+    FAILURE = 1;
+    OUTDATED_EPOCH = 2;
+  }
+  Result result = 1;
 }
 
 message FlowRequest {
@@ -119,6 +125,12 @@ message FlowRequest {
 }
 
 message FlowResponse {
+  enum Result {
+    SUCCESS = 0;
+    FAILURE = 1;
+    OUTDATED_EPOCH = 2;
+  }
+  Result result = 1;
 }
 
 // UEMacFlowRequest is used to link a subscriber ID to a MAC address.

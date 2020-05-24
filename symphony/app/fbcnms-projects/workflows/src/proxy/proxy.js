@@ -24,7 +24,7 @@ import type {
 } from '../types';
 
 const logger = logging.getLogger(module);
-const router = Router();
+const router = Router<ProxyRequest, ProxyResponse>();
 router.use(bodyParser.urlencoded({extended: false}));
 router.use('/', bodyParser.json());
 

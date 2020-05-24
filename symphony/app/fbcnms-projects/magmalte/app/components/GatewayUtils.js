@@ -163,3 +163,15 @@ type GatewayStatusPayload = {
   kernel_version?: string,
   kernel_versions_installed?: Array<string>,
 };
+
+const GATEWAY_KEEPALIVE_TIMEOUT_MS = 1000 * 5 * 60;
+
+export default function isGatewayHealthy({status}: lte_gateway) {
+  if (status != null) {
+    const checkin = status.checkin_time;
+    if (checkin != null) {
+      return Date.now() - checkin < GATEWAY_KEEPALIVE_TIMEOUT_MS;
+    }
+  }
+  return false;
+}

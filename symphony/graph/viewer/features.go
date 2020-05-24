@@ -8,4 +8,5 @@ package viewer
 // To query if feature is allowed use FeatureSet.Enabled
 const (
 	FeaturePermissionPolicies = "permission_policies"
+	FeatureGraphEventLogging  = "graph_event_logging"
 )

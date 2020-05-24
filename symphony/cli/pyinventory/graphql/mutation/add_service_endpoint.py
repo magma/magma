@@ -13,32 +13,14 @@ from typing import Any, Callable, List, Mapping, Optional
 from time import perf_counter
 from dataclasses_json import DataClassJsonMixin
 
-from ..fragment.customer import CustomerFragment, QUERY as CustomerFragmentQuery
-from ..fragment.link import LinkFragment, QUERY as LinkFragmentQuery
+from ..fragment.service import ServiceFragment, QUERY as ServiceFragmentQuery
 from ..input.add_service_endpoint import AddServiceEndpointInput
 
 
-QUERY: List[str] = CustomerFragmentQuery + LinkFragmentQuery + ["""
+QUERY: List[str] = ServiceFragmentQuery + ["""
 mutation AddServiceEndpointMutation($input: AddServiceEndpointInput!) {
   addServiceEndpoint(input: $input) {
-    id
-    name
-    externalId
-    customer {
-      ...CustomerFragment
-    }
-    endpoints {
-      id
-      port {
-        id
-      }
-      definition {
-        role
-      }
-    }
-    links {
-      ...LinkFragment
-    }
+    ...ServiceFragment
   }
 }
 
@@ -49,35 +31,8 @@ class AddServiceEndpointMutation(DataClassJsonMixin):
     @dataclass
     class AddServiceEndpointMutationData(DataClassJsonMixin):
         @dataclass
-        class Service(DataClassJsonMixin):
-            @dataclass
-            class Customer(CustomerFragment):
-                pass
-
-            @dataclass
-            class ServiceEndpoint(DataClassJsonMixin):
-                @dataclass
-                class EquipmentPort(DataClassJsonMixin):
-                    id: str
-
-                @dataclass
-                class ServiceEndpointDefinition(DataClassJsonMixin):
-                    role: Optional[str]
-
-                id: str
-                definition: ServiceEndpointDefinition
-                port: Optional[EquipmentPort]
-
-            @dataclass
-            class Link(LinkFragment):
-                pass
-
-            id: str
-            name: str
-            endpoints: List[ServiceEndpoint]
-            links: List[Link]
-            externalId: Optional[str]
-            customer: Optional[Customer]
+        class Service(ServiceFragment):
+            pass
 
         addServiceEndpoint: Service
 

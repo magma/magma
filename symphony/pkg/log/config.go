@@ -104,14 +104,3 @@ func MustNew(config Config) Logger {
 	}
 	return logger
 }
-
-// Provider is a wire provider that produces a logger from config.
-func Provider(config Config) (Logger, func(), error) {
-	logger, err := New(config)
-	if err != nil {
-		return nil, nil, err
-	}
-	restoreGlobal := zap.ReplaceGlobals(logger.Background())
-	restoreStdLog := zap.RedirectStdLog(logger.Background())
-	return logger, func() { restoreStdLog(); restoreGlobal() }, nil
-}

@@ -2,12 +2,7 @@ query ServiceTypesQuery {
   serviceTypes {
     edges {
       node {
-        id
-        name
-        hasCustomer
-        propertyTypes {
-          ...PropertyTypeFragment
-        }
+        ...ServiceTypeFragment
       }
     }
   }

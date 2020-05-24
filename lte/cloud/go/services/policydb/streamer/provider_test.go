@@ -136,7 +136,7 @@ func TestPolicyStreamers(t *testing.T) {
 			return &orcprotos.DataUpdate{Key: r.Id, Value: data}
 		},
 	)
-	actual, err := policyPro.GetUpdates("hw1", nil)
+	actual, err := policyPro.GetUpdatesImpl("hw1", nil)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
@@ -153,7 +153,7 @@ func TestPolicyStreamers(t *testing.T) {
 			return &orcprotos.DataUpdate{Key: bn.Name, Value: data}
 		},
 	)
-	actual, err = bnPro.GetUpdates("hw1", nil)
+	actual, err = bnPro.GetUpdatesImpl("hw1", nil)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 }
@@ -208,7 +208,7 @@ func TestRuleMappingsProvider(t *testing.T) {
 	expected[0].Key, expected[1].Key = "s1", "s2"
 
 	mappingPro := &pdbstreamer.RuleMappingsProvider{DeterministicReturn: true}
-	actual, err := mappingPro.GetUpdates("hw1", nil)
+	actual, err := mappingPro.GetUpdatesImpl("hw1", nil)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 }
@@ -257,7 +257,7 @@ func TestNetworkWideRulesProvider(t *testing.T) {
 	).([]*orcprotos.DataUpdate)
 
 	mappingPro := &pdbstreamer.NetworkWideRulesProvider{}
-	actual, err := mappingPro.GetUpdates("hw1", nil)
+	actual, err := mappingPro.GetUpdatesImpl("hw1", nil)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 }

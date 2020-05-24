@@ -31,7 +31,7 @@ type eventTestSuite struct {
 	subscriber Subscriber
 }
 
-func (s *eventTestSuite) SetupSuite() {
+func (s *eventTestSuite) SetupSuite(opts ...viewertest.Option) {
 	db, name, err := testdb.Open()
 	s.Require().NoError(err)
 	db.SetMaxOpenConns(1)
@@ -40,7 +40,7 @@ func (s *eventTestSuite) SetupSuite() {
 		enttest.WithOptions(ent.Driver(sql.OpenDB(name, db))),
 		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
 	)
-	s.ctx = viewertest.NewContext(context.Background(), s.client)
+	s.ctx = viewertest.NewContext(context.Background(), s.client, opts...)
 	s.user = viewer.FromContext(s.ctx).(*viewer.UserViewer).User()
 	s.logger = logtest.NewTestLogger(s.T())
 

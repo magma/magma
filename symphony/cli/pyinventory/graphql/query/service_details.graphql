@@ -1,34 +1,7 @@
 query ServiceDetailsQuery($id: ID!) {
   service: node(id: $id) {
     ... on Service {
-      id
-      name
-      externalId
-      customer {
-        ...CustomerFragment
-      }
-      endpoints {
-        id
-        port {
-          id
-          properties {
-            ...PropertyFragment
-          }
-          definition {
-            id
-            name
-          }
-          link {
-            ...LinkFragment
-          }
-        }
-        definition {
-          role
-        }
-      }
-      links {
-        ...LinkFragment
-      }
+      ...ServiceFragment
     }
   }
 }

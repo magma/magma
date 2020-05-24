@@ -9,6 +9,7 @@
  */
 
 import type {AppContextAppData} from '@fbcnms/ui/context/AppContext';
+import type {ExpressResponse} from 'express';
 import type {FBCNMSRequest} from '@fbcnms/auth/access';
 
 import asyncHandler from '@fbcnms/util/asyncHandler';
@@ -24,7 +25,7 @@ import {masterOrgMiddleware} from '@fbcnms/platform-server/master/middleware';
 
 import {TABS} from '@fbcnms/types/tabs';
 
-const router = express.Router();
+const router: express.Router<FBCNMSRequest, ExpressResponse> = express.Router();
 
 const handleReact = tab =>
   async function(req: FBCNMSRequest, res) {

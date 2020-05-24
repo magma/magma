@@ -15,7 +15,9 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl/handlers"
+	"magma/orc8r/cloud/go/pluginimpl/legacy_stream_providers"
 	"magma/orc8r/cloud/go/pluginimpl/models"
+	"magma/orc8r/cloud/go/pluginimpl/stream_providers"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/device"
@@ -29,9 +31,9 @@ import (
 	promeExp "magma/orc8r/cloud/go/services/metricsd/prometheus/exporters"
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/services/state/indexer"
-	"magma/orc8r/cloud/go/services/streamer/mconfig"
 	"magma/orc8r/cloud/go/services/streamer/providers"
 	tenantsh "magma/orc8r/cloud/go/services/tenants/obsidian/handlers"
+	"magma/orc8r/lib/go/definitions"
 	"magma/orc8r/lib/go/registry"
 	"magma/orc8r/lib/go/service/config"
 	"magma/orc8r/lib/go/service/serviceregistry"
@@ -108,9 +110,9 @@ func (*BaseOrchestratorPlugin) GetObsidianHandlers(metricsConfig *config.ConfigM
 }
 
 func (*BaseOrchestratorPlugin) GetStreamerProviders() []providers.StreamProvider {
+	factory := legacy_stream_providers.LegacyProviderFactory{}
 	return []providers.StreamProvider{
-		mconfig.GetProvider(),
-		mconfig.GetViewProvider(),
+		factory.CreateLegacyProvider(definitions.MconfigStreamName, &stream_providers.BaseOrchestratorStreamProviderServicer{}),
 	}
 }
 
@@ -139,7 +141,7 @@ func getMetricsProfiles(metricsConfig *config.ConfigMap) []metricsd.MetricsProfi
 		allCollectors = append(allCollectors, c)
 	}
 
-	prometheusAddresses := metricsConfig.GetRequiredStringArrayParam(metricsd.PrometheusPushAddresses)
+	prometheusAddresses := metricsConfig.MustGetStrings(metricsd.PrometheusPushAddresses)
 	prometheusCustomPushExporter := promeExp.NewCustomPushExporter(prometheusAddresses)
 
 	// Prometheus profile - Exports all service metric to Prometheus

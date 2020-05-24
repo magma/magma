@@ -31,7 +31,7 @@ const (
 // GetObsidianHandlers returns all obsidian handlers for metricsd
 func GetObsidianHandlers(configMap *config.ConfigMap) []obsidian.Handler {
 	var ret []obsidian.Handler
-	client, err := promAPI.NewClient(promAPI.Config{Address: configMap.GetRequiredStringParam(metricsd.PrometheusQueryAddress)})
+	client, err := promAPI.NewClient(promAPI.Config{Address: configMap.MustGetString(metricsd.PrometheusQueryAddress)})
 	if err != nil {
 		ret = append(ret,
 			// V1
@@ -75,9 +75,9 @@ func GetObsidianHandlers(configMap *config.ConfigMap) []obsidian.Handler {
 		)
 	}
 
-	alertmanagerConfigServiceURL := configMap.GetRequiredStringParam(metricsd.AlertmanagerConfigServiceURL)
-	prometheusConfigServiceURL := configMap.GetRequiredStringParam(metricsd.PrometheusConfigServiceURL)
-	alertmanagerURL := configMap.GetRequiredStringParam(metricsd.AlertmanagerApiURL)
+	alertmanagerConfigServiceURL := configMap.MustGetString(metricsd.AlertmanagerConfigServiceURL)
+	prometheusConfigServiceURL := configMap.MustGetString(metricsd.PrometheusConfigServiceURL)
+	alertmanagerURL := configMap.MustGetString(metricsd.AlertmanagerApiURL)
 
 	// V1
 	ret = append(ret,

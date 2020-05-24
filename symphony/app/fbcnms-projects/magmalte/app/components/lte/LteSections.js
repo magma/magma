@@ -14,7 +14,7 @@ import AlarmIcon from '@material-ui/icons/Alarm';
 import Alarms from '@fbcnms/ui/insights/Alarms/Alarms';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import Enodebs from './Enodebs';
-import GatewayEquipmentPage from '../GatewayDashboard';
+import EquipmentDashboard from '../../views/equipment/EquipmentDashboard';
 import Gateways from '../Gateways';
 import Insights from '@fbcnms/ui/insights/Insights';
 import ListIcon from '@material-ui/icons/List';
@@ -101,10 +101,10 @@ export function getLteSections(
       component: LteDashboard,
     });
     sections[1].splice(3, 0, {
-      path: 'gatewaydashboard',
-      label: 'GatewayV2',
+      path: 'equipment',
+      label: 'EquipmentV2',
       icon: <RouterIcon />,
-      component: GatewayEquipmentPage,
+      component: EquipmentDashboard,
     });
   }
   return sections;

@@ -39,7 +39,6 @@ s1aptests/test_attach_detach_emm_status.py \
 s1aptests/test_attach_detach_enb_rlf_initial_ue_msg.py \
 s1aptests/test_attach_detach_ICS_Failure.py \
 s1aptests/test_attach_detach_ps_service_not_available.py \
-s1aptests/test_attach_emergency.py \
 s1aptests/test_attach_missing_imsi.py \
 s1aptests/test_duplicate_attach.py \
 s1aptests/test_enb_partial_reset_con_dereg.py \

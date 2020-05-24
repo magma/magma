@@ -51,7 +51,6 @@ def get_property_types(
         raise EntityNotFoundError(entity=entity_type)
 
     existing_entity_type = None
-    # pyre-fixme[16]: `None` has no attribute `__getitem__`.
     if entity_name in existing_entity_types:
         existing_entity_type = existing_entity_types[entity_name]
 

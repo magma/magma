@@ -207,6 +207,11 @@ const arrayConfigs = [
     rules: [AlwaysEnabledInTestEnvRule],
   },
   {
+    id: 'graph_event_logging',
+    title: 'Graph Event Loggng',
+    enabledByDefault: false,
+  },
+  {
     id: 'dashboard_v2',
     title: 'V2 LTE Dashboard',
     enabledByDefault: false,

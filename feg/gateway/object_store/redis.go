@@ -39,11 +39,11 @@ func NewRedisClient() (RedisClient, error) {
 	if err != nil {
 		return nil, err
 	}
-	bindAddr, err := redisConfig.GetStringParam("bind")
+	bindAddr, err := redisConfig.GetString("bind")
 	if err != nil {
 		bindAddr = "127.0.0.1"
 	}
-	port, err := redisConfig.GetIntParam("port")
+	port, err := redisConfig.GetInt("port")
 	if err != nil {
 		return nil, err
 	}

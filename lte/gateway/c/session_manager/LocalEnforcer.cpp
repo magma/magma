@@ -1644,21 +1644,31 @@ void LocalEnforcer::handle_add_ue_mac_flow_callback(
     const std::string& apn_name,
     Status status, FlowResponse resp) {
   using namespace std::placeholders;
-  if (!status.ok()) {
-    evb_->runInEventBaseThread([=] {
-      evb_->timer().scheduleTimeoutFn(
-          std::move([=] {
-          MLOG(MERROR) << "Could not activate ue mac flows for subscriber "
-              << sid.id() << ": " << status.error_message() << ", retrying...";
-          pipelined_client_->add_ue_mac_flow(
-          sid, ue_mac_addr, msisdn, apn_mac_addr, apn_name,
-          std::bind(
-            &LocalEnforcer::handle_add_ue_mac_flow_callback,
-            this, sid, ue_mac_addr, msisdn, apn_mac_addr, apn_name, _1, _2));
-          }),
-          retry_timeout_);
-    });
+  if (status.ok() && resp.result() == resp.SUCCESS) {
+    MLOG(MDEBUG) << "Pipelined add ue mac flow succeeded for " << ue_mac_addr;
+    return;
   }
+
+  if (!status.ok()) {
+    MLOG(MERROR) << "Could not add ue mac flow, rpc failed with: "
+                 << status.error_message() << ", retrying...";
+  } else if (resp.result() == resp.FAILURE) {
+    MLOG(MWARNING) << "Pipelined add ue mac flow failed, retrying...";
+  }
+
+  evb_->runInEventBaseThread([=] {
+    evb_->timer().scheduleTimeoutFn(
+        std::move([=] {
+        MLOG(MERROR) << "Could not activate ue mac flows for subscriber "
+            << sid.id() << ": " << status.error_message() << ", retrying...";
+        pipelined_client_->add_ue_mac_flow(
+        sid, ue_mac_addr, msisdn, apn_mac_addr, apn_name,
+        std::bind(
+          &LocalEnforcer::handle_add_ue_mac_flow_callback,
+          this, sid, ue_mac_addr, msisdn, apn_mac_addr, apn_name, _1, _2));
+        }),
+        retry_timeout_);
+  });
 }
 
 void LocalEnforcer::create_bearer(

@@ -128,7 +128,7 @@ func GetConfiguredSubscribers() ([]*protos.SubscriberData, error) {
 		configMap := &config.ConfigMap{RawMap: rawMap}
 
 		// If auth_key is incorrect, skip subscriber
-		authKey, err := configMap.GetStringParam("auth_key")
+		authKey, err := configMap.GetString("auth_key")
 		if err != nil {
 			glog.Errorf("Could not add subscriber due to missing auth_key: %s", err)
 			continue
@@ -138,7 +138,7 @@ func GetConfiguredSubscribers() ([]*protos.SubscriberData, error) {
 			glog.Errorf("Could not add subscriber due to incorrect auth key format: %s", err)
 			continue
 		}
-		non3gppEnabled, err := configMap.GetBoolParam("non_3gpp_enabled")
+		non3gppEnabled, err := configMap.GetBool("non_3gpp_enabled")
 		if err != nil {
 			non3gppEnabled = true
 		}

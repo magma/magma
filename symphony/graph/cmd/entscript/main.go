@@ -32,7 +32,7 @@ func main() {
 	logcfg := log.AddFlags(kingpin.CommandLine)
 	kingpin.Parse()
 
-	logger, _, _ := log.Provider(*logcfg)
+	logger, _, _ := log.ProvideLogger(*logcfg)
 	ctx := context.Background()
 
 	logger.For(ctx).Info("params",

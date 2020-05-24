@@ -26,6 +26,7 @@ import {
 
 import type {Task} from './handlers';
 
+import type {ExpressResponse} from 'express';
 import type {FBCNMSRequest} from '@fbcnms/auth/access';
 
 const GRAFANA_PROTOCOL = 'http';
@@ -34,7 +35,7 @@ const GRAFANA_URL = `${GRAFANA_PROTOCOL}://${GRAFANA_ADDRESS}`;
 
 const AUTH_PROXY_HEADER = 'X-WEBAUTH-USER';
 
-const router = express.Router();
+const router: express.Router<FBCNMSRequest, ExpressResponse> = express.Router();
 
 const grafanaAdminClient = Client(GRAFANA_URL, {
   [AUTH_PROXY_HEADER]: 'admin',

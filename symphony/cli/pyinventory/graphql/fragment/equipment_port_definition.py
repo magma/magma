@@ -19,13 +19,23 @@ fragment EquipmentPortDefinitionFragment on EquipmentPortDefinition {
   name
   index
   visibleLabel
+  portType {
+    id
+    name
+  }
 }
 
 """]
 
 @dataclass
 class EquipmentPortDefinitionFragment(DataClassJsonMixin):
+    @dataclass
+    class EquipmentPortType(DataClassJsonMixin):
+        id: str
+        name: str
+
     id: str
     name: str
     index: Optional[int]
     visibleLabel: Optional[str]
+    portType: Optional[EquipmentPortType]
