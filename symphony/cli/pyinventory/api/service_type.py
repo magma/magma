@@ -3,17 +3,28 @@
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from pysymphony import SymphonyClient
 
-from .._utils import format_property_definitions
+from .._utils import format_property_definitions, get_graphql_property_type_inputs
 from ..common.cache import SERVICE_TYPES
-from ..common.data_class import PropertyDefinition, ServiceType
+from ..common.data_class import (
+    PropertyDefinition,
+    PropertyValue,
+    ServiceEndpointDefinition,
+    ServiceType,
+)
 from ..common.data_enum import Entity
 from ..exceptions import EntityNotFoundError
 from ..graphql.input.service_type_create_data import ServiceTypeCreateData
+from ..graphql.input.service_type_edit_data import (
+    ServiceEndpointDefinitionInput,
+    ServiceTypeEditData,
+)
 from ..graphql.mutation.add_service_type import AddServiceTypeMutation
+from ..graphql.mutation.edit_service_type import EditServiceTypeMutation
+from ..graphql.mutation.remove_service_type import RemoveServiceTypeMutation
 from ..graphql.query.service_types import ServiceTypesQuery
 
 
@@ -118,3 +129,104 @@ def get_service_type(client: SymphonyClient, service_type_id: str) -> ServiceTyp
             return service_type
 
     raise EntityNotFoundError(entity=Entity.ServiceType, entity_id=service_type_id)
+
+
+def edit_service_type(
+    client: SymphonyClient,
+    service_type: ServiceType,
+    new_name: Optional[str] = None,
+    new_has_customer: Optional[bool] = None,
+    new_properties: Optional[Dict[str, PropertyValue]] = None,
+    new_endpoints: Optional[List[ServiceEndpointDefinition]] = None,
+) -> ServiceType:
+    """Edit existing service type by ID.
+
+        Args:
+            service_type ( `pyinventory.common.data_class.ServiceType` ): existing service type object
+            new_name (Optional[ str ]): new name
+            new_has_customer (Optional[ bool ]): flag customer existance
+            new_properties: (Optional[ Dict[ str, PropertyValue ] ]): dictionary
+            - str - property type name
+            - PropertyValue - new value of the same type for this property
+
+            new_endpoints (Optional[ List[ `pyinventory.common.data_class.ServiceEndpointDefinition` ] ]): endpoint definitions list
+
+        Returns:
+            `pyinventory.common.data_class.ServiceType`
+
+        Raises:
+            `pyinventory.exceptions.EntityNotFoundError`: if service type with id=`service_type_id` does not found
+
+        Example:
+            ```
+            service_type = client.edit_service_type(
+                service_type=service_type,
+                new_name="new service type name",
+                new_properties={"existing property name": "new value"},
+                new_endpoints=[
+                    ServiceEndpointDefinition(
+                        id="endpoint_def_id",
+                        name="endpoint_def_name",
+                        role="endpoint_def_role",
+                        index=1,
+                    ),
+                ],
+            )
+            ```
+    """
+    new_name = service_type.name if new_name is None else new_name
+    new_has_customer = (
+        service_type.has_customer if new_has_customer is None else new_has_customer
+    )
+
+    new_property_type_inputs = []
+    if new_properties:
+        property_types = SERVICE_TYPES[service_type.name].property_types
+        new_property_type_inputs = get_graphql_property_type_inputs(
+            property_types, new_properties
+        )
+
+    new_endpoints_definition_inputs = []
+    if new_endpoints:
+        for endpoint in new_endpoints:
+            new_endpoints_definition_inputs.append(
+                ServiceEndpointDefinitionInput(
+                    id=endpoint.id,
+                    name=endpoint.name,
+                    role=endpoint.role,
+                    index=endpoint.endpoint_definition_index,
+                    equipmentTypeID=endpoint.equipment_type_id,
+                )
+            )
+
+    result = EditServiceTypeMutation.execute(
+        client,
+        ServiceTypeEditData(
+            id=service_type.id,
+            name=new_name,
+            hasCustomer=new_has_customer,
+            properties=new_property_type_inputs,
+            endpoints=new_endpoints_definition_inputs,
+        ),
+    )
+    return ServiceType(
+        id=result.id,
+        name=result.name,
+        has_customer=result.hasCustomer,
+        property_types=result.propertyTypes,
+    )
+
+
+def delete_service_type(client: SymphonyClient, service_type_id: str) -> None:
+    """This function deletes an service type.
+        It can get only the requested service type ID
+
+        Args:
+            service_type_id (str): service type ID
+
+        Example:
+            ```
+            client.delete_service_type(service_type_id=service_type.id)
+            ```
+    """
+    RemoveServiceTypeMutation.execute(client, id=service_type_id)

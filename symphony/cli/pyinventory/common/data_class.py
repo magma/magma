@@ -221,19 +221,6 @@ class Customer(NamedTuple):
     external_id: Optional[str]
 
 
-class ServiceEndpoint(NamedTuple):
-    """
-    Attributes:
-        id (str): ID
-        port (Optional[EquipmentPort]): port
-        type (str): type
-    """
-
-    id: str
-    port: Optional[EquipmentPort]
-    type: str
-
-
 class Service(NamedTuple):
     """
     Attributes:
@@ -249,6 +236,40 @@ class Service(NamedTuple):
     external_id: Optional[str]
     customer: Optional[Customer]
     properties: Sequence[PropertyFragment]
+
+
+class ServiceEndpointDefinition(NamedTuple):
+    """
+    Attributes:
+        id (str): ID
+        name (str): name
+        index (int): index
+        role (str): role
+        equipment_type_id (str): equipment type ID
+    """
+
+    id: str
+    name: str
+    endpoint_definition_index: int
+    role: Optional[str]
+    equipment_type_id: str
+
+
+class ServiceEndpoint(NamedTuple):
+    """
+    Attributes:
+        id (str): ID
+        port (Optional[EquipmentPort]): port
+        equipment (Equipment): equipment
+        service (Service): service
+        definition (ServiceEndpointDefinition): endpoint definition
+    """
+
+    id: str
+    port: Optional[EquipmentPort]
+    equipment: Equipment
+    service: Service
+    definition: ServiceEndpointDefinition
 
 
 class Document(NamedTuple):
