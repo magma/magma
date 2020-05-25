@@ -379,6 +379,56 @@ func TestWorkOrderAssignWritePolicyRule(t *testing.T) {
 	runPolicyTest(t, tests)
 }
 
+func TestWorkOrderAssigneeUnchangedWritePolicyRule(t *testing.T) {
+	c := viewertest.NewTestClient(t)
+	ctx := viewertest.NewContext(context.Background(), c)
+	_, workOrder := prepareWorkOrderData(ctx, c)
+	_, workOrder2 := prepareWorkOrderData(ctx, c)
+	u := viewer.MustGetOrCreateUser(ctx, "SomeUser", user.RoleUSER)
+	c.WorkOrder.UpdateOne(workOrder).
+		SetAssigneeID(u.ID).
+		ExecX(ctx)
+	permissions := authz.EmptyPermissions()
+	permissions.WorkforcePolicy.Data.Update.IsAllowed = models2.PermissionValueYes
+	ctx = viewertest.NewContext(
+		context.Background(),
+		c,
+		viewertest.WithUser("user"),
+		viewertest.WithRole(user.RoleUSER),
+		viewertest.WithPermissions(permissions))
+	err := c.WorkOrder.UpdateOne(workOrder).
+		SetAssigneeID(u.ID).
+		Exec(ctx)
+	require.NoError(t, err)
+	err = c.WorkOrder.UpdateOne(workOrder2).
+		ClearAssignee().
+		Exec(ctx)
+	require.NoError(t, err)
+	err = c.WorkOrder.UpdateOne(workOrder).
+		ClearAssignee().
+		Exec(ctx)
+	require.Error(t, err)
+}
+
+func TestWorkOrderOwnerUnchangedWritePolicyRule(t *testing.T) {
+	c := viewertest.NewTestClient(t)
+	ctx := viewertest.NewContext(context.Background(), c)
+	_, workOrder := prepareWorkOrderData(ctx, c)
+	permissions := authz.EmptyPermissions()
+	permissions.WorkforcePolicy.Data.Update.IsAllowed = models2.PermissionValueYes
+	ctx = viewertest.NewContext(
+		context.Background(),
+		c,
+		viewertest.WithUser("user"),
+		viewertest.WithRole(user.RoleUSER),
+		viewertest.WithPermissions(permissions))
+	ownerID := workOrder.QueryOwner().OnlyXID(ctx)
+	err := c.WorkOrder.UpdateOne(workOrder).
+		SetOwnerID(ownerID).
+		Exec(ctx)
+	require.NoError(t, err)
+}
+
 func TestWorkorderTypeWritePolicyRule(t *testing.T) {
 	c := viewertest.NewTestClient(t)
 	ctx := viewertest.NewContext(context.Background(), c)

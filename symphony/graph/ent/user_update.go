@@ -15,8 +15,10 @@ import (
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/file"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
+	"github.com/facebookincubator/symphony/graph/ent/project"
 	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/ent/usersgroup"
+	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
 
 // UserUpdate is the builder for updating User entities.
@@ -155,6 +157,51 @@ func (uu *UserUpdate) AddGroups(u ...*UsersGroup) *UserUpdate {
 	return uu.AddGroupIDs(ids...)
 }
 
+// AddOwnedWorkOrderIDs adds the owned_work_orders edge to WorkOrder by ids.
+func (uu *UserUpdate) AddOwnedWorkOrderIDs(ids ...int) *UserUpdate {
+	uu.mutation.AddOwnedWorkOrderIDs(ids...)
+	return uu
+}
+
+// AddOwnedWorkOrders adds the owned_work_orders edges to WorkOrder.
+func (uu *UserUpdate) AddOwnedWorkOrders(w ...*WorkOrder) *UserUpdate {
+	ids := make([]int, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return uu.AddOwnedWorkOrderIDs(ids...)
+}
+
+// AddAssignedWorkOrderIDs adds the assigned_work_orders edge to WorkOrder by ids.
+func (uu *UserUpdate) AddAssignedWorkOrderIDs(ids ...int) *UserUpdate {
+	uu.mutation.AddAssignedWorkOrderIDs(ids...)
+	return uu
+}
+
+// AddAssignedWorkOrders adds the assigned_work_orders edges to WorkOrder.
+func (uu *UserUpdate) AddAssignedWorkOrders(w ...*WorkOrder) *UserUpdate {
+	ids := make([]int, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return uu.AddAssignedWorkOrderIDs(ids...)
+}
+
+// AddCreatedProjectIDs adds the created_projects edge to Project by ids.
+func (uu *UserUpdate) AddCreatedProjectIDs(ids ...int) *UserUpdate {
+	uu.mutation.AddCreatedProjectIDs(ids...)
+	return uu
+}
+
+// AddCreatedProjects adds the created_projects edges to Project.
+func (uu *UserUpdate) AddCreatedProjects(p ...*Project) *UserUpdate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return uu.AddCreatedProjectIDs(ids...)
+}
+
 // ClearProfilePhoto clears the profile_photo edge to File.
 func (uu *UserUpdate) ClearProfilePhoto() *UserUpdate {
 	uu.mutation.ClearProfilePhoto()
@@ -174,6 +221,51 @@ func (uu *UserUpdate) RemoveGroups(u ...*UsersGroup) *UserUpdate {
 		ids[i] = u[i].ID
 	}
 	return uu.RemoveGroupIDs(ids...)
+}
+
+// RemoveOwnedWorkOrderIDs removes the owned_work_orders edge to WorkOrder by ids.
+func (uu *UserUpdate) RemoveOwnedWorkOrderIDs(ids ...int) *UserUpdate {
+	uu.mutation.RemoveOwnedWorkOrderIDs(ids...)
+	return uu
+}
+
+// RemoveOwnedWorkOrders removes owned_work_orders edges to WorkOrder.
+func (uu *UserUpdate) RemoveOwnedWorkOrders(w ...*WorkOrder) *UserUpdate {
+	ids := make([]int, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return uu.RemoveOwnedWorkOrderIDs(ids...)
+}
+
+// RemoveAssignedWorkOrderIDs removes the assigned_work_orders edge to WorkOrder by ids.
+func (uu *UserUpdate) RemoveAssignedWorkOrderIDs(ids ...int) *UserUpdate {
+	uu.mutation.RemoveAssignedWorkOrderIDs(ids...)
+	return uu
+}
+
+// RemoveAssignedWorkOrders removes assigned_work_orders edges to WorkOrder.
+func (uu *UserUpdate) RemoveAssignedWorkOrders(w ...*WorkOrder) *UserUpdate {
+	ids := make([]int, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return uu.RemoveAssignedWorkOrderIDs(ids...)
+}
+
+// RemoveCreatedProjectIDs removes the created_projects edge to Project by ids.
+func (uu *UserUpdate) RemoveCreatedProjectIDs(ids ...int) *UserUpdate {
+	uu.mutation.RemoveCreatedProjectIDs(ids...)
+	return uu
+}
+
+// RemoveCreatedProjects removes created_projects edges to Project.
+func (uu *UserUpdate) RemoveCreatedProjects(p ...*Project) *UserUpdate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return uu.RemoveCreatedProjectIDs(ids...)
 }
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
@@ -407,6 +499,120 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if nodes := uu.mutation.RemovedOwnedWorkOrdersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   user.OwnedWorkOrdersTable,
+			Columns: []string{user.OwnedWorkOrdersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workorder.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.OwnedWorkOrdersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   user.OwnedWorkOrdersTable,
+			Columns: []string{user.OwnedWorkOrdersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workorder.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if nodes := uu.mutation.RemovedAssignedWorkOrdersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   user.AssignedWorkOrdersTable,
+			Columns: []string{user.AssignedWorkOrdersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workorder.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.AssignedWorkOrdersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   user.AssignedWorkOrdersTable,
+			Columns: []string{user.AssignedWorkOrdersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workorder.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if nodes := uu.mutation.RemovedCreatedProjectsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   user.CreatedProjectsTable,
+			Columns: []string{user.CreatedProjectsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: project.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.CreatedProjectsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   user.CreatedProjectsTable,
+			Columns: []string{user.CreatedProjectsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: project.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, uu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
@@ -547,6 +753,51 @@ func (uuo *UserUpdateOne) AddGroups(u ...*UsersGroup) *UserUpdateOne {
 	return uuo.AddGroupIDs(ids...)
 }
 
+// AddOwnedWorkOrderIDs adds the owned_work_orders edge to WorkOrder by ids.
+func (uuo *UserUpdateOne) AddOwnedWorkOrderIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.AddOwnedWorkOrderIDs(ids...)
+	return uuo
+}
+
+// AddOwnedWorkOrders adds the owned_work_orders edges to WorkOrder.
+func (uuo *UserUpdateOne) AddOwnedWorkOrders(w ...*WorkOrder) *UserUpdateOne {
+	ids := make([]int, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return uuo.AddOwnedWorkOrderIDs(ids...)
+}
+
+// AddAssignedWorkOrderIDs adds the assigned_work_orders edge to WorkOrder by ids.
+func (uuo *UserUpdateOne) AddAssignedWorkOrderIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.AddAssignedWorkOrderIDs(ids...)
+	return uuo
+}
+
+// AddAssignedWorkOrders adds the assigned_work_orders edges to WorkOrder.
+func (uuo *UserUpdateOne) AddAssignedWorkOrders(w ...*WorkOrder) *UserUpdateOne {
+	ids := make([]int, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return uuo.AddAssignedWorkOrderIDs(ids...)
+}
+
+// AddCreatedProjectIDs adds the created_projects edge to Project by ids.
+func (uuo *UserUpdateOne) AddCreatedProjectIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.AddCreatedProjectIDs(ids...)
+	return uuo
+}
+
+// AddCreatedProjects adds the created_projects edges to Project.
+func (uuo *UserUpdateOne) AddCreatedProjects(p ...*Project) *UserUpdateOne {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return uuo.AddCreatedProjectIDs(ids...)
+}
+
 // ClearProfilePhoto clears the profile_photo edge to File.
 func (uuo *UserUpdateOne) ClearProfilePhoto() *UserUpdateOne {
 	uuo.mutation.ClearProfilePhoto()
@@ -566,6 +817,51 @@ func (uuo *UserUpdateOne) RemoveGroups(u ...*UsersGroup) *UserUpdateOne {
 		ids[i] = u[i].ID
 	}
 	return uuo.RemoveGroupIDs(ids...)
+}
+
+// RemoveOwnedWorkOrderIDs removes the owned_work_orders edge to WorkOrder by ids.
+func (uuo *UserUpdateOne) RemoveOwnedWorkOrderIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.RemoveOwnedWorkOrderIDs(ids...)
+	return uuo
+}
+
+// RemoveOwnedWorkOrders removes owned_work_orders edges to WorkOrder.
+func (uuo *UserUpdateOne) RemoveOwnedWorkOrders(w ...*WorkOrder) *UserUpdateOne {
+	ids := make([]int, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return uuo.RemoveOwnedWorkOrderIDs(ids...)
+}
+
+// RemoveAssignedWorkOrderIDs removes the assigned_work_orders edge to WorkOrder by ids.
+func (uuo *UserUpdateOne) RemoveAssignedWorkOrderIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.RemoveAssignedWorkOrderIDs(ids...)
+	return uuo
+}
+
+// RemoveAssignedWorkOrders removes assigned_work_orders edges to WorkOrder.
+func (uuo *UserUpdateOne) RemoveAssignedWorkOrders(w ...*WorkOrder) *UserUpdateOne {
+	ids := make([]int, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return uuo.RemoveAssignedWorkOrderIDs(ids...)
+}
+
+// RemoveCreatedProjectIDs removes the created_projects edge to Project by ids.
+func (uuo *UserUpdateOne) RemoveCreatedProjectIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.RemoveCreatedProjectIDs(ids...)
+	return uuo
+}
+
+// RemoveCreatedProjects removes created_projects edges to Project.
+func (uuo *UserUpdateOne) RemoveCreatedProjects(p ...*Project) *UserUpdateOne {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return uuo.RemoveCreatedProjectIDs(ids...)
 }
 
 // Save executes the query and returns the updated entity.
@@ -789,6 +1085,120 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (u *User, err error) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: usersgroup.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if nodes := uuo.mutation.RemovedOwnedWorkOrdersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   user.OwnedWorkOrdersTable,
+			Columns: []string{user.OwnedWorkOrdersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workorder.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.OwnedWorkOrdersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   user.OwnedWorkOrdersTable,
+			Columns: []string{user.OwnedWorkOrdersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workorder.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if nodes := uuo.mutation.RemovedAssignedWorkOrdersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   user.AssignedWorkOrdersTable,
+			Columns: []string{user.AssignedWorkOrdersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workorder.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.AssignedWorkOrdersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   user.AssignedWorkOrdersTable,
+			Columns: []string{user.AssignedWorkOrdersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workorder.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if nodes := uuo.mutation.RemovedCreatedProjectsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   user.CreatedProjectsTable,
+			Columns: []string{user.CreatedProjectsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: project.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.CreatedProjectsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   user.CreatedProjectsTable,
+			Columns: []string{user.CreatedProjectsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: project.FieldID,
 				},
 			},
 		}

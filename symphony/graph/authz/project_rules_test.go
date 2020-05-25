@@ -193,6 +193,37 @@ func TestProjectTransferOwnershipWritePolicyRule(t *testing.T) {
 	runPolicyTest(t, tests)
 }
 
+func TestProjectCreatorUnchangedWritePolicyRule(t *testing.T) {
+	c := viewertest.NewTestClient(t)
+	ctx := viewertest.NewContext(context.Background(), c)
+	_, project := prepareProjectData(ctx, c)
+	_, project2 := prepareProjectData(ctx, c)
+	u := viewer.MustGetOrCreateUser(ctx, "SomeUser", user.RoleUSER)
+	c.Project.UpdateOne(project).
+		SetCreatorID(u.ID).
+		ExecX(ctx)
+	permissions := authz.EmptyPermissions()
+	permissions.WorkforcePolicy.Data.Update.IsAllowed = models2.PermissionValueYes
+	ctx = viewertest.NewContext(
+		context.Background(),
+		c,
+		viewertest.WithUser("user"),
+		viewertest.WithRole(user.RoleUSER),
+		viewertest.WithPermissions(permissions))
+	err := c.Project.UpdateOne(project).
+		SetCreatorID(u.ID).
+		Exec(ctx)
+	require.NoError(t, err)
+	err = c.Project.UpdateOne(project2).
+		ClearCreator().
+		Exec(ctx)
+	require.NoError(t, err)
+	err = c.Project.UpdateOne(project).
+		ClearCreator().
+		Exec(ctx)
+	require.Error(t, err)
+}
+
 func TestProjectTypeWritePolicyRule(t *testing.T) {
 	c := viewertest.NewTestClient(t)
 	ctx := viewertest.NewContext(context.Background(), c)

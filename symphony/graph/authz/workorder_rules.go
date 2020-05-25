@@ -112,6 +112,68 @@ func workOrderReadPredicate(ctx context.Context) predicate.WorkOrder {
 	return workorder.Or(predicates...)
 }
 
+func isAssigneeChanged(ctx context.Context, m *ent.WorkOrderMutation) (bool, error) {
+	var currAssigneeID *int
+	assigneeIDToSet, assigned := m.AssigneeID()
+	assigneeCleared := m.AssigneeCleared()
+	if !assigned && !assigneeCleared {
+		return false, nil
+	}
+	workOrderID, exists := m.ID()
+	if !exists {
+		return assigned, nil
+	}
+	assigneeID, err := m.Client().User.Query().
+		Where(user.HasAssignedWorkOrdersWith(workorder.ID(workOrderID))).
+		OnlyID(ctx)
+	if err == nil {
+		currAssigneeID = &assigneeID
+	}
+	if err != nil && !ent.IsNotFound(err) {
+		return false, privacy.Denyf("failed to fetch assignee: %w", err)
+	}
+	switch {
+	case currAssigneeID == nil && assigned:
+		return true, nil
+	case currAssigneeID != nil && assigned && *currAssigneeID != assigneeIDToSet:
+		return true, nil
+	case currAssigneeID != nil && assigneeCleared:
+		return true, nil
+	}
+	return false, nil
+}
+
+func isOwnerChanged(ctx context.Context, m *ent.WorkOrderMutation) (bool, error) {
+	var currOwnerID *int
+	ownerIDToSet, owned := m.OwnerID()
+	ownerCleared := m.OwnerCleared()
+	if !owned && !ownerCleared {
+		return false, nil
+	}
+	workOrderID, exists := m.ID()
+	if !exists {
+		return owned, nil
+	}
+	ownerID, err := m.Client().User.Query().
+		Where(user.HasOwnedWorkOrdersWith(workorder.ID(workOrderID))).
+		OnlyID(ctx)
+	if err == nil {
+		currOwnerID = &ownerID
+	}
+	if err != nil && !ent.IsNotFound(err) {
+		return false, privacy.Denyf("failed to fetch owner: %w", err)
+	}
+	switch {
+	case currOwnerID == nil && owned:
+		return true, nil
+	case currOwnerID != nil && owned && *currOwnerID != ownerIDToSet:
+		return true, nil
+	case currOwnerID != nil && ownerCleared:
+		return true, nil
+	}
+	return false, nil
+}
+
 func AllowIfWorkOrderOwnerOrAssignee() privacy.MutationRule {
 	return privacy.WorkOrderMutationRuleFunc(func(ctx context.Context, m *ent.WorkOrderMutation) error {
 		workOrderID, exists := m.ID()
@@ -148,7 +210,7 @@ func AllowIfWorkOrderOwnerOrAssignee() privacy.MutationRule {
 	})
 }
 
-// WorkOrderWritePolicyRule grants write permission to workorder based on policy.
+// WorkOrderWritePolicyRule grants write permission to work order based on policy.
 func WorkOrderWritePolicyRule() privacy.MutationRule {
 	return privacy.WorkOrderMutationRuleFunc(func(ctx context.Context, m *ent.WorkOrderMutation) error {
 		cud := FromContext(ctx).WorkforcePolicy.Data
@@ -156,12 +218,18 @@ func WorkOrderWritePolicyRule() privacy.MutationRule {
 		if err != nil {
 			return privacy.Denyf(err.Error())
 		}
-		_, assigned := m.AssigneeID()
-		if assigned || m.AssigneeCleared() {
+		assigneeChanged, err := isAssigneeChanged(ctx, m)
+		if err != nil {
+			return privacy.Denyf(err.Error())
+		}
+		if assigneeChanged {
 			allowed = allowed && (cud.Assign.IsAllowed == models2.PermissionValueYes)
 		}
-		_, owned := m.OwnerID()
-		if owned || m.OwnerCleared() {
+		ownerChanged, err := isOwnerChanged(ctx, m)
+		if err != nil {
+			return privacy.Denyf(err.Error())
+		}
+		if ownerChanged {
 			allowed = allowed && (cud.TransferOwnership.IsAllowed == models2.PermissionValueYes)
 		}
 		if allowed {

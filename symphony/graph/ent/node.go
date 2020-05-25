@@ -4681,7 +4681,7 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 		ID:     u.ID,
 		Type:   "User",
 		Fields: make([]*Field, 8),
-		Edges:  make([]*Edge, 2),
+		Edges:  make([]*Edge, 5),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(u.CreateTime); err != nil {
@@ -4770,6 +4770,39 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 		IDs:  ids,
 		Type: "UsersGroup",
 		Name: "Groups",
+	}
+	ids, err = u.QueryOwnedWorkOrders().
+		Select(workorder.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[2] = &Edge{
+		IDs:  ids,
+		Type: "WorkOrder",
+		Name: "OwnedWorkOrders",
+	}
+	ids, err = u.QueryAssignedWorkOrders().
+		Select(workorder.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[3] = &Edge{
+		IDs:  ids,
+		Type: "WorkOrder",
+		Name: "AssignedWorkOrders",
+	}
+	ids, err = u.QueryCreatedProjects().
+		Select(project.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[4] = &Edge{
+		IDs:  ids,
+		Type: "Project",
+		Name: "CreatedProjects",
 	}
 	return node, nil
 }

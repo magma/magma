@@ -51,6 +51,12 @@ func (User) Edges() []ent.Edge {
 			Unique(),
 		edge.From("groups", UsersGroup.Type).
 			Ref("members"),
+		edge.From("owned_work_orders", WorkOrder.Type).
+			Ref("owner"),
+		edge.From("assigned_work_orders", WorkOrder.Type).
+			Ref("assignee"),
+		edge.From("created_projects", Project.Type).
+			Ref("creator"),
 	}
 }
 

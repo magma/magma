@@ -48,9 +48,15 @@ type UserEdges struct {
 	ProfilePhoto *File
 	// Groups holds the value of the groups edge.
 	Groups []*UsersGroup
+	// OwnedWorkOrders holds the value of the owned_work_orders edge.
+	OwnedWorkOrders []*WorkOrder
+	// AssignedWorkOrders holds the value of the assigned_work_orders edge.
+	AssignedWorkOrders []*WorkOrder
+	// CreatedProjects holds the value of the created_projects edge.
+	CreatedProjects []*Project
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [5]bool
 }
 
 // ProfilePhotoOrErr returns the ProfilePhoto value or an error if the edge
@@ -74,6 +80,33 @@ func (e UserEdges) GroupsOrErr() ([]*UsersGroup, error) {
 		return e.Groups, nil
 	}
 	return nil, &NotLoadedError{edge: "groups"}
+}
+
+// OwnedWorkOrdersOrErr returns the OwnedWorkOrders value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) OwnedWorkOrdersOrErr() ([]*WorkOrder, error) {
+	if e.loadedTypes[2] {
+		return e.OwnedWorkOrders, nil
+	}
+	return nil, &NotLoadedError{edge: "owned_work_orders"}
+}
+
+// AssignedWorkOrdersOrErr returns the AssignedWorkOrders value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) AssignedWorkOrdersOrErr() ([]*WorkOrder, error) {
+	if e.loadedTypes[3] {
+		return e.AssignedWorkOrders, nil
+	}
+	return nil, &NotLoadedError{edge: "assigned_work_orders"}
+}
+
+// CreatedProjectsOrErr returns the CreatedProjects value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) CreatedProjectsOrErr() ([]*Project, error) {
+	if e.loadedTypes[4] {
+		return e.CreatedProjects, nil
+	}
+	return nil, &NotLoadedError{edge: "created_projects"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -154,6 +187,21 @@ func (u *User) QueryProfilePhoto() *FileQuery {
 // QueryGroups queries the groups edge of the User.
 func (u *User) QueryGroups() *UsersGroupQuery {
 	return (&UserClient{config: u.config}).QueryGroups(u)
+}
+
+// QueryOwnedWorkOrders queries the owned_work_orders edge of the User.
+func (u *User) QueryOwnedWorkOrders() *WorkOrderQuery {
+	return (&UserClient{config: u.config}).QueryOwnedWorkOrders(u)
+}
+
+// QueryAssignedWorkOrders queries the assigned_work_orders edge of the User.
+func (u *User) QueryAssignedWorkOrders() *WorkOrderQuery {
+	return (&UserClient{config: u.config}).QueryAssignedWorkOrders(u)
+}
+
+// QueryCreatedProjects queries the created_projects edge of the User.
+func (u *User) QueryCreatedProjects() *ProjectQuery {
+	return (&UserClient{config: u.config}).QueryCreatedProjects(u)
 }
 
 // Update returns a builder for updating this User.

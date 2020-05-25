@@ -36064,23 +36064,29 @@ func (m *SurveyWiFiScanMutation) ResetEdge(name string) error {
 // nodes in the graph.
 type UserMutation struct {
 	config
-	op                   Op
-	typ                  string
-	id                   *int
-	create_time          *time.Time
-	update_time          *time.Time
-	auth_id              *string
-	first_name           *string
-	last_name            *string
-	email                *string
-	status               *user.Status
-	role                 *user.Role
-	clearedFields        map[string]struct{}
-	profile_photo        *int
-	clearedprofile_photo bool
-	groups               map[int]struct{}
-	removedgroups        map[int]struct{}
-	oldValue             func(context.Context) (*User, error)
+	op                          Op
+	typ                         string
+	id                          *int
+	create_time                 *time.Time
+	update_time                 *time.Time
+	auth_id                     *string
+	first_name                  *string
+	last_name                   *string
+	email                       *string
+	status                      *user.Status
+	role                        *user.Role
+	clearedFields               map[string]struct{}
+	profile_photo               *int
+	clearedprofile_photo        bool
+	groups                      map[int]struct{}
+	removedgroups               map[int]struct{}
+	owned_work_orders           map[int]struct{}
+	removedowned_work_orders    map[int]struct{}
+	assigned_work_orders        map[int]struct{}
+	removedassigned_work_orders map[int]struct{}
+	created_projects            map[int]struct{}
+	removedcreated_projects     map[int]struct{}
+	oldValue                    func(context.Context) (*User, error)
 }
 
 var _ ent.Mutation = (*UserMutation)(nil)
@@ -36558,6 +36564,132 @@ func (m *UserMutation) ResetGroups() {
 	m.removedgroups = nil
 }
 
+// AddOwnedWorkOrderIDs adds the owned_work_orders edge to WorkOrder by ids.
+func (m *UserMutation) AddOwnedWorkOrderIDs(ids ...int) {
+	if m.owned_work_orders == nil {
+		m.owned_work_orders = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.owned_work_orders[ids[i]] = struct{}{}
+	}
+}
+
+// RemoveOwnedWorkOrderIDs removes the owned_work_orders edge to WorkOrder by ids.
+func (m *UserMutation) RemoveOwnedWorkOrderIDs(ids ...int) {
+	if m.removedowned_work_orders == nil {
+		m.removedowned_work_orders = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.removedowned_work_orders[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedOwnedWorkOrders returns the removed ids of owned_work_orders.
+func (m *UserMutation) RemovedOwnedWorkOrdersIDs() (ids []int) {
+	for id := range m.removedowned_work_orders {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// OwnedWorkOrdersIDs returns the owned_work_orders ids in the mutation.
+func (m *UserMutation) OwnedWorkOrdersIDs() (ids []int) {
+	for id := range m.owned_work_orders {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetOwnedWorkOrders reset all changes of the "owned_work_orders" edge.
+func (m *UserMutation) ResetOwnedWorkOrders() {
+	m.owned_work_orders = nil
+	m.removedowned_work_orders = nil
+}
+
+// AddAssignedWorkOrderIDs adds the assigned_work_orders edge to WorkOrder by ids.
+func (m *UserMutation) AddAssignedWorkOrderIDs(ids ...int) {
+	if m.assigned_work_orders == nil {
+		m.assigned_work_orders = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.assigned_work_orders[ids[i]] = struct{}{}
+	}
+}
+
+// RemoveAssignedWorkOrderIDs removes the assigned_work_orders edge to WorkOrder by ids.
+func (m *UserMutation) RemoveAssignedWorkOrderIDs(ids ...int) {
+	if m.removedassigned_work_orders == nil {
+		m.removedassigned_work_orders = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.removedassigned_work_orders[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedAssignedWorkOrders returns the removed ids of assigned_work_orders.
+func (m *UserMutation) RemovedAssignedWorkOrdersIDs() (ids []int) {
+	for id := range m.removedassigned_work_orders {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// AssignedWorkOrdersIDs returns the assigned_work_orders ids in the mutation.
+func (m *UserMutation) AssignedWorkOrdersIDs() (ids []int) {
+	for id := range m.assigned_work_orders {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetAssignedWorkOrders reset all changes of the "assigned_work_orders" edge.
+func (m *UserMutation) ResetAssignedWorkOrders() {
+	m.assigned_work_orders = nil
+	m.removedassigned_work_orders = nil
+}
+
+// AddCreatedProjectIDs adds the created_projects edge to Project by ids.
+func (m *UserMutation) AddCreatedProjectIDs(ids ...int) {
+	if m.created_projects == nil {
+		m.created_projects = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.created_projects[ids[i]] = struct{}{}
+	}
+}
+
+// RemoveCreatedProjectIDs removes the created_projects edge to Project by ids.
+func (m *UserMutation) RemoveCreatedProjectIDs(ids ...int) {
+	if m.removedcreated_projects == nil {
+		m.removedcreated_projects = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.removedcreated_projects[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCreatedProjects returns the removed ids of created_projects.
+func (m *UserMutation) RemovedCreatedProjectsIDs() (ids []int) {
+	for id := range m.removedcreated_projects {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CreatedProjectsIDs returns the created_projects ids in the mutation.
+func (m *UserMutation) CreatedProjectsIDs() (ids []int) {
+	for id := range m.created_projects {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCreatedProjects reset all changes of the "created_projects" edge.
+func (m *UserMutation) ResetCreatedProjects() {
+	m.created_projects = nil
+	m.removedcreated_projects = nil
+}
+
 // Op returns the operation name.
 func (m *UserMutation) Op() Op {
 	return m.op
@@ -36813,12 +36945,21 @@ func (m *UserMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this
 // mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 5)
 	if m.profile_photo != nil {
 		edges = append(edges, user.EdgeProfilePhoto)
 	}
 	if m.groups != nil {
 		edges = append(edges, user.EdgeGroups)
+	}
+	if m.owned_work_orders != nil {
+		edges = append(edges, user.EdgeOwnedWorkOrders)
+	}
+	if m.assigned_work_orders != nil {
+		edges = append(edges, user.EdgeAssignedWorkOrders)
+	}
+	if m.created_projects != nil {
+		edges = append(edges, user.EdgeCreatedProjects)
 	}
 	return edges
 }
@@ -36837,6 +36978,24 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeOwnedWorkOrders:
+		ids := make([]ent.Value, 0, len(m.owned_work_orders))
+		for id := range m.owned_work_orders {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeAssignedWorkOrders:
+		ids := make([]ent.Value, 0, len(m.assigned_work_orders))
+		for id := range m.assigned_work_orders {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeCreatedProjects:
+		ids := make([]ent.Value, 0, len(m.created_projects))
+		for id := range m.created_projects {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
@@ -36844,9 +37003,18 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this
 // mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 5)
 	if m.removedgroups != nil {
 		edges = append(edges, user.EdgeGroups)
+	}
+	if m.removedowned_work_orders != nil {
+		edges = append(edges, user.EdgeOwnedWorkOrders)
+	}
+	if m.removedassigned_work_orders != nil {
+		edges = append(edges, user.EdgeAssignedWorkOrders)
+	}
+	if m.removedcreated_projects != nil {
+		edges = append(edges, user.EdgeCreatedProjects)
 	}
 	return edges
 }
@@ -36861,6 +37029,24 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeOwnedWorkOrders:
+		ids := make([]ent.Value, 0, len(m.removedowned_work_orders))
+		for id := range m.removedowned_work_orders {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeAssignedWorkOrders:
+		ids := make([]ent.Value, 0, len(m.removedassigned_work_orders))
+		for id := range m.removedassigned_work_orders {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeCreatedProjects:
+		ids := make([]ent.Value, 0, len(m.removedcreated_projects))
+		for id := range m.removedcreated_projects {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
@@ -36868,7 +37054,7 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this
 // mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 5)
 	if m.clearedprofile_photo {
 		edges = append(edges, user.EdgeProfilePhoto)
 	}
@@ -36906,6 +37092,15 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	case user.EdgeGroups:
 		m.ResetGroups()
+		return nil
+	case user.EdgeOwnedWorkOrders:
+		m.ResetOwnedWorkOrders()
+		return nil
+	case user.EdgeAssignedWorkOrders:
+		m.ResetAssignedWorkOrders()
+		return nil
+	case user.EdgeCreatedProjects:
+		m.ResetCreatedProjects()
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)
