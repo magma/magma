@@ -77,8 +77,8 @@ func TestServiceWritePolicyRule(t *testing.T) {
 			Exec(ctx)
 	}
 	runCudPolicyTest(t, cudPolicyTest{
-		appendPermissions: func(p *models.PermissionSettings) {
-			p.InventoryPolicy.Equipment.Update.IsAllowed = models2.PermissionValueYes
+		getCud: func(p *models.PermissionSettings) *models.Cud {
+			return p.InventoryPolicy.Equipment
 		},
 		create: createService,
 		update: updateService,

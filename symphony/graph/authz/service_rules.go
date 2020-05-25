@@ -21,7 +21,7 @@ func ServiceTypeWritePolicyRule() privacy.MutationRule {
 // ServiceWritePolicyRule grants write permission to service based on policy.
 func ServiceWritePolicyRule() privacy.MutationRule {
 	return privacy.MutationRuleFunc(func(ctx context.Context, m ent.Mutation) error {
-		return allowOrSkip(FromContext(ctx).InventoryPolicy.Equipment.Update)
+		return cudBasedRule(FromContext(ctx).InventoryPolicy.Equipment, m)
 	})
 }
 
