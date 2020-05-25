@@ -34,7 +34,7 @@ def add_customer(
     """
     customer_input = AddCustomerInput(name=name, externalId=external_id)
     result = AddCustomerMutation.execute(client, input=customer_input)
-    return Customer(name=result.name, id=result.id, externalId=result.externalId)
+    return Customer(name=result.name, id=result.id, external_id=result.externalId)
 
 
 def get_all_customers(client: SymphonyClient) -> List[Customer]:
@@ -57,7 +57,7 @@ def get_all_customers(client: SymphonyClient) -> List[Customer]:
         node = customer.node
         if node:
             result.append(
-                Customer(name=node.name, id=node.id, externalId=node.externalId)
+                Customer(name=node.name, id=node.id, external_id=node.externalId)
             )
     return result
 

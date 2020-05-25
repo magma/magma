@@ -77,7 +77,7 @@ def add_service(
     result = AddServiceMutation.execute(client, data=service_create_data)
     if customer is not None:
         customer = Customer(
-            id=customer.id, name=customer.name, externalId=customer.externalId
+            id=customer.id, name=customer.name, external_id=customer.external_id
         )
     return Service(
         id=result.id,
@@ -112,7 +112,7 @@ def get_service(client: SymphonyClient, id: str) -> Service:
     customer = result.customer if result.customer is not None else None
     if customer is not None:
         customer = Customer(
-            id=customer.id, name=customer.name, externalId=customer.externalId
+            id=customer.id, name=customer.name, external_id=customer.externalId
         )
     return Service(
         id=result.id,

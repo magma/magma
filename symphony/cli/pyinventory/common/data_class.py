@@ -211,14 +211,14 @@ class ServiceType(NamedTuple):
 class Customer(NamedTuple):
     """
     Attributes:
-        name (str): name
         id (str): ID
-        externalId (Optional[str]): external ID
+        name (str): name
+        external_id (Optional[str]): external ID
     """
 
-    name: str
     id: str
-    externalId: Optional[str]
+    name: str
+    external_id: Optional[str]
 
 
 class ServiceEndpoint(NamedTuple):
