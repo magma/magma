@@ -24,7 +24,9 @@ from ..graphql.input.service_type_edit_data import (
 )
 from ..graphql.mutation.add_service_type import AddServiceTypeMutation
 from ..graphql.mutation.edit_service_type import EditServiceTypeMutation
+from ..graphql.mutation.remove_service import RemoveServiceMutation
 from ..graphql.mutation.remove_service_type import RemoveServiceTypeMutation
+from ..graphql.query.service_type_services import ServiceTypeServicesQuery
 from ..graphql.query.service_types import ServiceTypesQuery
 
 
@@ -217,16 +219,45 @@ def edit_service_type(
     )
 
 
-def delete_service_type(client: SymphonyClient, service_type_id: str) -> None:
+def delete_service_type(client: SymphonyClient, service_type: ServiceType) -> None:
     """This function deletes an service type.
         It can get only the requested service type ID
 
         Args:
-            service_type_id (str): service type ID
+            service_type ( `pyinventory.common.data_class.ServiceType` ): service type object
 
         Example:
             ```
             client.delete_service_type(service_type_id=service_type.id)
             ```
     """
-    RemoveServiceTypeMutation.execute(client, id=service_type_id)
+    RemoveServiceTypeMutation.execute(client, id=service_type.id)
+    del SERVICE_TYPES[service_type.name]
+
+
+def delete_service_type_with_services(
+    client: SymphonyClient, service_type: ServiceType
+) -> None:
+    """Delete service type with existing services.
+
+        Args:
+            service_type ( `pyinventory.common.data_class.ServiceType` ): service type object
+
+        Raises:
+            `pyinventory.exceptions.EntityNotFoundError`: if service_type does not exist
+
+        Example:
+            ```
+            client.delete_service_type_with_services(service_type=service_type)
+            ```
+    """
+    service_type_with_services = ServiceTypeServicesQuery.execute(
+        client, id=service_type.id
+    )
+    if not service_type_with_services:
+        raise EntityNotFoundError(entity=Entity.ServiceType, entity_id=service_type.id)
+    services = service_type_with_services.services
+    for service in services:
+        RemoveServiceMutation.execute(client, id=service.id)
+    RemoveServiceTypeMutation.execute(client, id=service_type.id)
+    del SERVICE_TYPES[service_type.name]

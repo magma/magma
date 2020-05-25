@@ -97,9 +97,14 @@ class InventoryClient(SymphonyClient):
         add_service_endpoint,
         add_service_link,
         get_service,
+    )
+    from .api.service_type import (
+        add_service_type,
+        get_service_type,
+        edit_service_type,
+        delete_service_type,
         delete_service_type_with_services,
     )
-    from .api.service_type import add_service_type, get_service_type
     from .api.location_template import (
         apply_location_template_to_location,
         copy_equipment_with_all_attachments,
