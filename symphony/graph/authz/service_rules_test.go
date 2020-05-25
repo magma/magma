@@ -45,6 +45,44 @@ func TestServiceTypeWritePolicyRule(t *testing.T) {
 	})
 }
 
+func TestServiceTypeUpdateWithIsDeleted(t *testing.T) {
+	c := viewertest.NewTestClient(t)
+	ctx := viewertest.NewContext(context.Background(), c)
+	serviceType := c.ServiceType.Create().
+		SetName("ServiceType").
+		SaveX(ctx)
+	updateServiceType := func(ctx context.Context) error {
+		return c.ServiceType.UpdateOne(serviceType).
+			SetIsDeleted(false).
+			Exec(ctx)
+	}
+	deleteServiceType := func(ctx context.Context) error {
+		return c.ServiceType.UpdateOne(serviceType).
+			SetIsDeleted(true).
+			Exec(ctx)
+	}
+	tests := []policyTest{
+		{
+			operationName: "Update",
+			appendPermissions: func(p *models.PermissionSettings) {
+				p.InventoryPolicy.ServiceType.Update.IsAllowed = models2.PermissionValueYes
+			},
+			operation: updateServiceType,
+		},
+		{
+			operationName: "UpdateWithDelete",
+			initialPermissions: func(p *models.PermissionSettings) {
+				p.InventoryPolicy.ServiceType.Update.IsAllowed = models2.PermissionValueYes
+			},
+			appendPermissions: func(p *models.PermissionSettings) {
+				p.InventoryPolicy.ServiceType.Delete.IsAllowed = models2.PermissionValueYes
+			},
+			operation: deleteServiceType,
+		},
+	}
+	runPolicyTest(t, tests)
+}
+
 func TestServiceWritePolicyRule(t *testing.T) {
 	c := viewertest.NewTestClient(t)
 	ctx := viewertest.NewContext(context.Background(), c)

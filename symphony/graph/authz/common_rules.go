@@ -85,10 +85,7 @@ func checkWorkforce(r *models.WorkforcePermissionRule, workOrderTypeID *int, pro
 }
 
 func cudBasedRule(cud *models.Cud, m ent.Mutation) error {
-	if cudBasedCheck(cud, m) {
-		return privacy.Allow
-	}
-	return privacy.Skip
+	return privacyDecision(cudBasedCheck(cud, m))
 }
 
 func allowWritePermissionsRule() privacy.MutationRule {
