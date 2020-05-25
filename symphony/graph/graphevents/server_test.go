@@ -67,13 +67,14 @@ func TestServer(t *testing.T) {
 	require.NoError(t, err)
 	client := viewertest.NewTestClient(t)
 	ctx, cancel := context.WithCancel(context.Background())
-	h := HandlerFunc(func(ctx context.Context, entry event.LogEntry) {
+	h := HandlerFunc(func(ctx context.Context, entry event.LogEntry) error {
 		v := viewer.FromContext(ctx)
 		require.Equal(t, tenantName, v.Tenant())
 		require.Equal(t, serviceName, v.Name())
 		require.Equal(t, user.RoleOWNER, v.Role())
 		require.EqualValues(t, logEntry, entry)
 		cancel()
+		return nil
 	})
 	server := newTestServer(t, client, subscriber, []Handler{h})
 	listener, err := server.Subscribe(ctx)
@@ -100,8 +101,9 @@ func TestServerBadData(t *testing.T) {
 	}()
 	client := viewertest.NewTestClient(t)
 	ctx, cancel := context.WithCancel(context.Background())
-	h := HandlerFunc(func(context.Context, event.LogEntry) {
+	h := HandlerFunc(func(context.Context, event.LogEntry) error {
 		cancel()
+		return nil
 	})
 	server := newTestServer(t, client, subscriber, []Handler{h})
 	listener, err := server.Subscribe(ctx)
@@ -117,6 +119,43 @@ func TestServerBadData(t *testing.T) {
 		require.False(t, errors.Is(err, context.Canceled))
 	}()
 	err = emitter.Emit(ctx, viewertest.DefaultTenant, event.EntMutation, []byte(""))
+	require.NoError(t, err)
+	wg.Wait()
+}
+
+func TestServerHandlerError(t *testing.T) {
+	tenantName := "Random"
+	emitter, subscriber := event.Pipe()
+	defer func() {
+		ctx := context.Background()
+		_ = emitter.Shutdown(ctx)
+		_ = subscriber.Shutdown(ctx)
+	}()
+	logEntry := getLogEntry()
+	data, err := event.Marshal(logEntry)
+	require.NoError(t, err)
+	client := viewertest.NewTestClient(t)
+	ctx := viewertest.NewContext(context.Background(), client)
+	h := HandlerFunc(func(ctx context.Context, entry event.LogEntry) error {
+		client := ent.FromContext(ctx)
+		client.LocationType.Create().
+			SetName("LocationType").
+			SaveX(ctx)
+		return errors.New("operation failed")
+	})
+	server := newTestServer(t, client, subscriber, []Handler{h})
+	listener, err := server.Subscribe(ctx)
+	require.NoError(t, err)
+	defer listener.Shutdown(ctx)
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		err := listener.Listen(ctx)
+		require.Error(t, err)
+		require.False(t, client.LocationType.Query().Where().ExistX(ctx))
+	}()
+	err = emitter.Emit(ctx, tenantName, event.EntMutation, data)
 	require.NoError(t, err)
 	wg.Wait()
 }

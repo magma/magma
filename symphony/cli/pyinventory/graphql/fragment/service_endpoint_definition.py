@@ -18,12 +18,22 @@ fragment ServiceEndpointDefinitionFragment on ServiceEndpointDefinition {
   id
   role
   name
+  index
+  equipmentType {
+    id
+  }
 }
 
 """]
 
 @dataclass
 class ServiceEndpointDefinitionFragment(DataClassJsonMixin):
+    @dataclass
+    class EquipmentType(DataClassJsonMixin):
+        id: str
+
     id: str
     name: str
+    index: int
+    equipmentType: EquipmentType
     role: Optional[str]

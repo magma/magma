@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/facebookincubator/symphony/graph/ent/privacy"
+
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 
 	"github.com/facebookincubator/symphony/graph/ent"
@@ -2380,6 +2382,9 @@ func (r mutationResolver) EditLocationTypesIndex(ctx context.Context, locationTy
 				zap.Int("id", obj.LocationTypeID),
 				zap.Int("index", obj.Index),
 			)
+			if errors.Is(err, privacy.Deny) {
+				return nil, fmt.Errorf("couldn't update location type: %w", err)
+			}
 			return nil, gqlerror.Errorf("couldn't update location type. id=%q, index=%q", obj.LocationTypeID, obj.Index)
 		}
 		updated = append(updated, saved)

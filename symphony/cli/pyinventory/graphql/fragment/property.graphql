@@ -1,7 +1,9 @@
 fragment PropertyFragment on Property {
   id
   propertyType {
-    ...PropertyTypeFragment
+    id
+    externalId
+    name
   }
   stringValue
   intValue

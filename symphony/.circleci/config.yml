@@ -208,6 +208,7 @@ commands:
 jobs:
   lint:
     executor: golangci
+    resource_class: large
     steps:
       - checkout
       - *mktestdir

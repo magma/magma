@@ -99,10 +99,7 @@ const performCheck = (
 
   let actionPermissionValue: ?BasicPermissionRule;
 
-  if (
-    permissionsEnforcement.entity === 'service' ||
-    permissionsEnforcement.entity === 'port'
-  ) {
+  if (permissionsEnforcement.entity === 'port') {
     actionPermissionValue = userPermissions.inventoryPolicy.equipment.update;
   } else if (!permissionsEnforcement.action) {
     return PASSED_VALUE;
@@ -128,16 +125,19 @@ const performCheck = (
     permissionsEnforcement.entity === 'locationType' ||
     permissionsEnforcement.entity === 'equipmentType' ||
     permissionsEnforcement.entity === 'portType' ||
-    permissionsEnforcement.entity === 'serviceType'
+    permissionsEnforcement.entity === 'serviceType' ||
+    permissionsEnforcement.entity === 'service'
   ) {
     const enforcement: InventoryPermissionEnforcement = permissionsEnforcement;
     if (!enforcement.action) {
       return PASSED_VALUE;
     }
+    const entity =
+      permissionsEnforcement.entity === 'service'
+        ? 'equipment'
+        : permissionsEnforcement.entity;
     actionPermissionValue =
-      userPermissions.inventoryPolicy[permissionsEnforcement.entity][
-        enforcement.action
-      ];
+      userPermissions.inventoryPolicy[entity][enforcement.action];
   }
 
   if (actionPermissionValue == null) {

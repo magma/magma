@@ -39,16 +39,11 @@ func CheckListCategoryCreatePolicyRule() privacy.MutationRule {
 			return privacy.Skip
 		}
 		if woID, exists := m.WorkOrderID(); exists {
-			workOrderTypeID, err := m.Client().WorkOrder.Query().
-				Where(workorder.ID(woID)).
-				QueryType().
-				OnlyID(ctx)
-
+			workOrder, err := m.Client().WorkOrder.Get(ctx, woID)
 			if err != nil {
-				return privacy.Denyf("failed to fetch work order type: %w", err)
+				return privacy.Denyf("failed to fetch work order: %w", err)
 			}
-
-			return privacyDecision(checkWorkforce(FromContext(ctx).WorkforcePolicy.Data.Update, &workOrderTypeID, nil))
+			return allowOrSkipWorkOrder(ctx, FromContext(ctx), workOrder)
 		}
 		return privacy.Skip
 	})
@@ -61,16 +56,14 @@ func CheckListCategoryWritePolicyRule() privacy.MutationRule {
 		if !exists {
 			return privacy.Skip
 		}
-		workOrderTypeID, err := m.Client().CheckListCategory.Query().
+		workOrder, err := m.Client().CheckListCategory.Query().
 			Where(checklistcategory.ID(categoryID)).
 			QueryWorkOrder().
-			QueryType().
-			OnlyID(ctx)
-
+			Only(ctx)
 		if err != nil {
-			return privacy.Denyf("failed to fetch work order type id: %w", err)
+			return privacy.Denyf("failed to fetch work order: %w", err)
 		}
-		return privacyDecision(checkWorkforce(FromContext(ctx).WorkforcePolicy.Data.Update, &workOrderTypeID, nil))
+		return allowOrSkipWorkOrder(ctx, FromContext(ctx), workOrder)
 	})
 }
 
@@ -82,16 +75,13 @@ func CheckListItemCreatePolicyRule() privacy.MutationRule {
 			return privacy.Skip
 		}
 		if categoryID, exists := m.CheckListCategoryID(); exists {
-			workOrderTypeID, err := m.Client().WorkOrder.Query().
+			workOrder, err := m.Client().WorkOrder.Query().
 				Where(workorder.HasCheckListCategoriesWith(checklistcategory.ID(categoryID))).
-				QueryType().
-				OnlyID(ctx)
-
+				Only(ctx)
 			if err != nil {
-				return privacy.Denyf("failed to fetch work order type: %w", err)
+				return privacy.Denyf("failed to fetch work order: %w", err)
 			}
-
-			return privacyDecision(checkWorkforce(FromContext(ctx).WorkforcePolicy.Data.Update, &workOrderTypeID, nil))
+			return allowOrSkipWorkOrder(ctx, FromContext(ctx), workOrder)
 		}
 		return privacy.Skip
 	})
@@ -104,17 +94,15 @@ func CheckListItemWritePolicyRule() privacy.MutationRule {
 		if !exists {
 			return privacy.Skip
 		}
-		workOrderTypeID, err := m.Client().CheckListItem.Query().
+		workOrder, err := m.Client().CheckListItem.Query().
 			Where(checklistitem.ID(itemID)).
 			QueryCheckListCategory().
 			QueryWorkOrder().
-			QueryType().
-			OnlyID(ctx)
-
+			Only(ctx)
 		if err != nil {
-			return privacy.Denyf("failed to fetch work order type id: %w", err)
+			return privacy.Denyf("failed to fetch work order: %w", err)
 		}
-		return privacyDecision(checkWorkforce(FromContext(ctx).WorkforcePolicy.Data.Update, &workOrderTypeID, nil))
+		return allowOrSkipWorkOrder(ctx, FromContext(ctx), workOrder)
 	})
 }
 

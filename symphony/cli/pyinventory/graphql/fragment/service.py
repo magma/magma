@@ -14,9 +14,8 @@ from time import perf_counter
 from dataclasses_json import DataClassJsonMixin
 
 from ..fragment.customer import CustomerFragment, QUERY as CustomerFragmentQuery
-from ..fragment.link import LinkFragment, QUERY as LinkFragmentQuery
-from ..fragment.service_endpoint import ServiceEndpointFragment, QUERY as ServiceEndpointFragmentQuery
-QUERY: List[str] = CustomerFragmentQuery + LinkFragmentQuery + ServiceEndpointFragmentQuery + ["""
+from ..fragment.property import PropertyFragment, QUERY as PropertyFragmentQuery
+QUERY: List[str] = CustomerFragmentQuery + PropertyFragmentQuery + ["""
 fragment ServiceFragment on Service {
   id
   name
@@ -24,11 +23,8 @@ fragment ServiceFragment on Service {
   customer {
     ...CustomerFragment
   }
-  endpoints {
-    ...ServiceEndpointFragment
-  }
-  links {
-    ...LinkFragment
+  properties {
+    ...PropertyFragment
   }
 }
 
@@ -41,16 +37,11 @@ class ServiceFragment(DataClassJsonMixin):
         pass
 
     @dataclass
-    class ServiceEndpoint(ServiceEndpointFragment):
-        pass
-
-    @dataclass
-    class Link(LinkFragment):
+    class Property(PropertyFragment):
         pass
 
     id: str
     name: str
-    endpoints: List[ServiceEndpoint]
-    links: List[Link]
+    properties: List[Property]
     externalId: Optional[str]
     customer: Optional[Customer]

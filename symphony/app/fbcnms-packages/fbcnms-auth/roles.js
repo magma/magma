@@ -17,14 +17,8 @@ export const AccessRoles = {
 };
 
 export function accessRoleToString(role: number): string {
-  if (role === AccessRoles.USER) {
-    return 'user';
-  }
-  if (role === AccessRoles.READ_ONLY_USER) {
-    return 'readonly';
-  }
   if (role === AccessRoles.SUPERUSER) {
-    return 'superuser';
+    return 'OWNER';
   }
-  return 'unknown';
+  return 'USER';
 }

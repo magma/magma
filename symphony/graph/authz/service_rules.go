@@ -7,21 +7,35 @@ package authz
 import (
 	"context"
 
+	models2 "github.com/facebookincubator/symphony/graph/authz/models"
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/privacy"
 )
 
 // ServiceTypeWritePolicyRule grants write permission to service type based on policy.
 func ServiceTypeWritePolicyRule() privacy.MutationRule {
-	return privacy.MutationRuleFunc(func(ctx context.Context, m ent.Mutation) error {
-		return cudBasedRule(FromContext(ctx).InventoryPolicy.ServiceType, m)
+	return privacy.ServiceTypeMutationRuleFunc(func(ctx context.Context, m *ent.ServiceTypeMutation) error {
+		deleted, deletedExists := m.IsDeleted()
+		allowed := true
+		switch {
+		case m.Op().Is(ent.OpCreate):
+			allowed = allowed && (FromContext(ctx).InventoryPolicy.ServiceType.Create.IsAllowed == models2.PermissionValueYes)
+		case m.Op().Is(ent.OpUpdateOne | ent.OpUpdate):
+			allowed = allowed && (FromContext(ctx).InventoryPolicy.ServiceType.Update.IsAllowed == models2.PermissionValueYes)
+		case m.Op().Is(ent.OpDeleteOne | ent.OpDelete):
+			allowed = allowed && (FromContext(ctx).InventoryPolicy.ServiceType.Delete.IsAllowed == models2.PermissionValueYes)
+		}
+		if deletedExists && deleted {
+			allowed = allowed && (FromContext(ctx).InventoryPolicy.ServiceType.Delete.IsAllowed == models2.PermissionValueYes)
+		}
+		return privacyDecision(allowed)
 	})
 }
 
 // ServiceWritePolicyRule grants write permission to service based on policy.
 func ServiceWritePolicyRule() privacy.MutationRule {
 	return privacy.MutationRuleFunc(func(ctx context.Context, m ent.Mutation) error {
-		return allowOrSkip(FromContext(ctx).InventoryPolicy.Equipment.Update)
+		return cudBasedRule(FromContext(ctx).InventoryPolicy.Equipment, m)
 	})
 }
 
