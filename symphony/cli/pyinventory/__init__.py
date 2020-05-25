@@ -12,7 +12,7 @@ from .api.equipment_type import (
     _populate_equipment_types,
 )
 from .api.location_type import _populate_location_types
-from .api.service import _populate_service_types
+from .api.service_type import _populate_service_types
 from .common.constant import __version__
 from .graphql.query.latest_python_package import LatestPythonPackageQuery
 
@@ -96,10 +96,10 @@ class InventoryClient(SymphonyClient):
         add_service,
         add_service_endpoint,
         add_service_link,
-        add_service_type,
         get_service,
         delete_service_type_with_services,
     )
+    from .api.service_type import add_service_type, get_service_type
     from .api.location_template import (
         apply_location_template_to_location,
         copy_equipment_with_all_attachments,

@@ -198,13 +198,13 @@ class ServiceType(NamedTuple):
     Attributes:
         name (str): name
         id (str): ID
-        hasCustomer (bool): customer existence flag
+        has_customer (bool): customer existence flag
         property_types (Sequence[PropertyTypeFragment]): property types sequence
     """
 
     name: str
     id: str
-    hasCustomer: bool
+    has_customer: bool
     property_types: Sequence[PropertyTypeFragment]
 
 
@@ -239,18 +239,16 @@ class Service(NamedTuple):
     Attributes:
         name (str): name
         id (str): ID
-        externalId (Optional[str]): external ID
+        external_id (Optional[str]): external ID
         customer (Optional[Customer]): customer
-        endpoints (List[ServiceEndpoint]): service endpoints list
-        links (List[Link]): links
+        properties (Sequence[PropertyFragment]): properties sequence
     """
 
-    name: str
     id: str
-    externalId: Optional[str]
+    name: str
+    external_id: Optional[str]
     customer: Optional[Customer]
-    endpoints: List[ServiceEndpoint]
-    links: List[Link]
+    properties: Sequence[PropertyFragment]
 
 
 class Document(NamedTuple):

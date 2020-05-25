@@ -5,10 +5,7 @@ fragment ServiceFragment on Service {
   customer {
     ...CustomerFragment
   }
-  endpoints {
-    ...ServiceEndpointFragment
-  }
-  links {
-    ...LinkFragment
+  properties {
+    ...PropertyFragment
   }
 }
