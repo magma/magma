@@ -314,7 +314,9 @@ int mme_config_parse_file(mme_config_t *config_pP)
   char *s1_mme = NULL;
   char *if_name_s11 = NULL;
   char *s11 = NULL;
+  #if !EMBEDDED_SGW
   char *sgw_ip_address_for_s11 = NULL;
+  #endif
   bool swap = false;
   bstring address = NULL;
   bstring cidr = NULL;

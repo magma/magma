@@ -73,8 +73,9 @@ s11_mme_create_session_request (
 
   OAILOG_FUNC_IN (LOG_S11);
 
-
   DevAssert (stack_p );
+  //if( stack_p == NULL)
+
   DevAssert (req_p );
   memset (&ulp_req, 0, sizeof (nw_gtpv2c_ulp_api_t));
   ulp_req.apiType = NW_GTPV2C_ULP_API_INITIAL_REQ;

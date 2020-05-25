@@ -150,11 +150,13 @@ s11_mme_send_udp_msg (
   uint16_t peerPort)
 {
   // Create and alloc new message
-  MessageDef                             *message_p;
+  MessageDef                             *message_p = NULL;
   udp_data_req_t                         *udp_data_req_p;
   int                                     ret = 0;
 
   message_p = itti_alloc_new_message (TASK_S11, UDP_DATA_REQ);
+  if (message_p == NULL)
+  return (NW_FAILURE);
   udp_data_req_p = &message_p->ittiMsg.udp_data_req;
   udp_data_req_p->local_port = localPort;
   udp_data_req_p->peer_address = peerIpAddr;
