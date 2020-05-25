@@ -64,6 +64,10 @@ func projectReadPredicate(ctx context.Context) predicate.Project {
 			project.HasCreatorWith(user.ID(v.User().ID)),
 		)
 	}
+	if woPredicate := workOrderReadPredicate(ctx); woPredicate != nil {
+		predicates = append(predicates,
+			project.HasWorkOrdersWith(woPredicate))
+	}
 	return project.Or(predicates...)
 }
 

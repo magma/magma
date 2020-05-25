@@ -301,6 +301,50 @@ func TestProjectReadPolicyRule(t *testing.T) {
 	})
 }
 
+func TestProjectOfWorkOrderReadPolicyRule(t *testing.T) {
+	c := viewertest.NewTestClient(t)
+	ctx := viewertest.NewContext(context.Background(), c)
+	workOrderType, workOrder := prepareWorkOrderData(ctx, c)
+	_, project := prepareProjectData(ctx, c)
+	c.Project.UpdateOne(project).
+		AddWorkOrders(workOrder).
+		ExecX(ctx)
+	permissions := authz.EmptyPermissions()
+	permissions.WorkforcePolicy.Read.IsAllowed = models2.PermissionValueByCondition
+	permissions.WorkforcePolicy.Read.WorkOrderTypeIds = []int{workOrderType.ID}
+	permissionsContext := viewertest.NewContext(
+		context.Background(),
+		c,
+		viewertest.WithUser("theOwner"),
+		viewertest.WithPermissions(permissions))
+	count, err := c.Project.Query().Count(permissionsContext)
+	require.NoError(t, err)
+	require.Equal(t, 1, count)
+}
+
+func TestProjectOfOwnedWorkOrderReadPolicyRule(t *testing.T) {
+	c := viewertest.NewTestClient(t)
+	ctx := viewertest.NewContext(context.Background(), c)
+	_, workOrder := prepareWorkOrderData(ctx, c)
+	_, project := prepareProjectData(ctx, c)
+	c.Project.UpdateOne(project).
+		AddWorkOrders(workOrder).
+		ExecX(ctx)
+	u := viewer.MustGetOrCreateUser(ctx, "theOwner", user.RoleUSER)
+	c.WorkOrder.UpdateOne(workOrder).
+		SetOwner(u).
+		ExecX(ctx)
+	permissions := authz.EmptyPermissions()
+	permissionsContext := viewertest.NewContext(
+		context.Background(),
+		c,
+		viewertest.WithUser("theOwner"),
+		viewertest.WithPermissions(permissions))
+	count, err := c.Project.Query().Count(permissionsContext)
+	require.NoError(t, err)
+	require.Equal(t, 1, count)
+}
+
 func TestWorkOrderDefinitionWritePolicyRule(t *testing.T) {
 	c := viewertest.NewTestClient(t)
 	ctx := viewertest.NewContext(context.Background(), c)
