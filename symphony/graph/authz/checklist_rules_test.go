@@ -62,7 +62,7 @@ func TestCheckListCategoryDefinitionWritePolicyRule(t *testing.T) {
 func TestCheckListCategoryWritePolicyRule(t *testing.T) {
 	c := viewertest.NewTestClient(t)
 	ctx := viewertest.NewContext(context.Background(), c)
-
+	u := viewer.MustGetOrCreateUser(ctx, "anotherOne", user.RoleUSER)
 	workOrderType := c.WorkOrderType.Create().
 		SetName("WorkOrderType").
 		SaveX(ctx)
@@ -71,7 +71,7 @@ func TestCheckListCategoryWritePolicyRule(t *testing.T) {
 		SetName("WorkOrder").
 		SetTypeID(workOrderType.ID).
 		SetCreationDate(time.Now()).
-		SetOwner(viewer.FromContext(ctx).(*viewer.UserViewer).User()).
+		SetOwner(u).
 		SaveX(ctx)
 
 	clc := c.CheckListCategory.Create().
@@ -96,6 +96,9 @@ func TestCheckListCategoryWritePolicyRule(t *testing.T) {
 			Exec(ctx)
 	}
 	runCudPolicyTest(t, cudPolicyTest{
+		initialPermissions: func(p *models.PermissionSettings) {
+			p.WorkforcePolicy.Read.IsAllowed = models2.PermissionValueYes
+		},
 		appendPermissions: func(p *models.PermissionSettings) {
 			p.WorkforcePolicy.Data.Update.IsAllowed = models2.PermissionValueByCondition
 			p.WorkforcePolicy.Data.Update.WorkOrderTypeIds = []int{workOrderType.ID}
@@ -155,7 +158,7 @@ func TestCheckListItemDefinitionWritePolicyRule(t *testing.T) {
 func TestCheckListItemWritePolicyRule(t *testing.T) {
 	c := viewertest.NewTestClient(t)
 	ctx := viewertest.NewContext(context.Background(), c)
-
+	u := viewer.MustGetOrCreateUser(ctx, "anotherOne", user.RoleUSER)
 	workOrderType := c.WorkOrderType.Create().
 		SetName("WorkOrderType").
 		SaveX(ctx)
@@ -164,7 +167,7 @@ func TestCheckListItemWritePolicyRule(t *testing.T) {
 		SetName("WorkOrder").
 		SetTypeID(workOrderType.ID).
 		SetCreationDate(time.Now()).
-		SetOwner(viewer.FromContext(ctx).(*viewer.UserViewer).User()).
+		SetOwner(u).
 		SaveX(ctx)
 
 	clc := c.CheckListCategory.Create().
@@ -196,6 +199,9 @@ func TestCheckListItemWritePolicyRule(t *testing.T) {
 			Exec(ctx)
 	}
 	runCudPolicyTest(t, cudPolicyTest{
+		initialPermissions: func(p *models.PermissionSettings) {
+			p.WorkforcePolicy.Read.IsAllowed = models2.PermissionValueYes
+		},
 		appendPermissions: func(p *models.PermissionSettings) {
 			p.WorkforcePolicy.Data.Update.IsAllowed = models2.PermissionValueByCondition
 			p.WorkforcePolicy.Data.Update.WorkOrderTypeIds = []int{workOrderType.ID}

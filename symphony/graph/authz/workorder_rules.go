@@ -44,7 +44,7 @@ func isUserWOAssignee(ctx context.Context, userID int, workOrder *ent.WorkOrder)
 	return assigneeID == userID, nil
 }
 
-func workOrderIsEditable(ctx context.Context, workOrder *ent.WorkOrder) (bool, error) {
+func isViewerWorkOrderOwnerOrAssignee(ctx context.Context, workOrder *ent.WorkOrder) (bool, error) {
 	userViewer, ok := viewer.FromContext(ctx).(*viewer.UserViewer)
 	if !ok {
 		return false, nil
@@ -191,6 +191,7 @@ func AllowIfWorkOrderOwnerOrAssignee() privacy.MutationRule {
 			}
 			return privacy.Skip
 		}
+
 		isOwner, err := isUserWOOwner(ctx, userViewer.User().ID, workOrder)
 		if err != nil {
 			return privacy.Denyf(err.Error())
