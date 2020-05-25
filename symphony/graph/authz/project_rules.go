@@ -115,7 +115,11 @@ func ProjectWritePolicyRule() privacy.MutationRule {
 			return privacy.Denyf(err.Error())
 		}
 		if creatorChanged {
-			allowed = allowed && (cud.TransferOwnership.IsAllowed == models2.PermissionValueYes)
+			v, isUser := viewer.FromContext(ctx).(*viewer.UserViewer)
+			creatorID, exists := m.CreatorID()
+			if !m.Op().Is(ent.OpCreate) || !isUser || !exists || v.User().ID != creatorID {
+				allowed = allowed && (cud.TransferOwnership.IsAllowed == models2.PermissionValueYes)
+			}
 		}
 		if allowed {
 			return privacy.Allow

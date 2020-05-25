@@ -139,11 +139,11 @@ func TestProjectTransferOwnershipWritePolicyRule(t *testing.T) {
 	getCud := func(p *models.PermissionSettings) *models.WorkforceCud {
 		return p.WorkforcePolicy.Data
 	}
+	u := viewer.MustGetOrCreateUser(ctx, "SomeUser", user.RoleUSER)
 	appendTransferOwnership := func(p *models.PermissionSettings) {
 		getCud(p).TransferOwnership.IsAllowed = models2.PermissionValueYes
 	}
 	createProjectWithCreator := func(ctx context.Context) error {
-		u := viewer.FromContext(ctx).(*viewer.UserViewer).User()
 		_, err := c.Project.Create().
 			SetName("NewProject").
 			SetType(projectType).
@@ -152,7 +152,6 @@ func TestProjectTransferOwnershipWritePolicyRule(t *testing.T) {
 		return err
 	}
 	updateProjectCreator := func(ctx context.Context) error {
-		u := viewer.FromContext(ctx).(*viewer.UserViewer).User()
 		_, err := c.Project.UpdateOne(project).
 			SetCreator(u).
 			Save(ctx)
@@ -191,6 +190,22 @@ func TestProjectTransferOwnershipWritePolicyRule(t *testing.T) {
 		},
 	}
 	runPolicyTest(t, tests)
+}
+
+func TestProjectCreateWithViewerCreator(t *testing.T) {
+	c := viewertest.NewTestClient(t)
+	ctx := viewertest.NewContext(context.Background(), c)
+	projectType, _ := prepareProjectData(ctx, c)
+	ctx = userContextWithPermissions(ctx, "SomeUser", func(p *models.PermissionSettings) {
+		p.WorkforcePolicy.Data.Create.IsAllowed = models2.PermissionValueYes
+	})
+	u := viewer.FromContext(ctx).(*viewer.UserViewer).User()
+	_, err := c.Project.Create().
+		SetName("NewProject").
+		SetType(projectType).
+		SetCreator(u).
+		Save(ctx)
+	require.NoError(t, err)
 }
 
 func TestProjectCreatorUnchangedWritePolicyRule(t *testing.T) {

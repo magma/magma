@@ -215,23 +215,29 @@ func AllowIfWorkOrderOwnerOrAssignee() privacy.MutationRule {
 func WorkOrderWritePolicyRule() privacy.MutationRule {
 	return privacy.WorkOrderMutationRuleFunc(func(ctx context.Context, m *ent.WorkOrderMutation) error {
 		cud := FromContext(ctx).WorkforcePolicy.Data
+		v, isUser := viewer.FromContext(ctx).(*viewer.UserViewer)
 		allowed, err := workOrderCudBasedCheck(ctx, cud, m)
 		if err != nil {
 			return privacy.Denyf(err.Error())
 		}
-		assigneeChanged, err := isAssigneeChanged(ctx, m)
-		if err != nil {
-			return privacy.Denyf(err.Error())
-		}
-		if assigneeChanged {
-			allowed = allowed && (cud.Assign.IsAllowed == models2.PermissionValueYes)
+		if !m.Op().Is(ent.OpCreate) {
+			assigneeChanged, err := isAssigneeChanged(ctx, m)
+			if err != nil {
+				return privacy.Denyf(err.Error())
+			}
+			if assigneeChanged {
+				allowed = allowed && (cud.Assign.IsAllowed == models2.PermissionValueYes)
+			}
 		}
 		ownerChanged, err := isOwnerChanged(ctx, m)
 		if err != nil {
 			return privacy.Denyf(err.Error())
 		}
 		if ownerChanged {
-			allowed = allowed && (cud.TransferOwnership.IsAllowed == models2.PermissionValueYes)
+			ownerID, exists := m.OwnerID()
+			if !m.Op().Is(ent.OpCreate) || !isUser || !exists || v.User().ID != ownerID {
+				allowed = allowed && (cud.TransferOwnership.IsAllowed == models2.PermissionValueYes)
+			}
 		}
 		if allowed {
 			return privacy.Allow
