@@ -188,6 +188,7 @@ const arrayConfigs = [
     id: 'permission_policies',
     title: 'Permission - Policies',
     enabledByDefault: false,
+    rules: [AlwaysEnabledInTestEnvRule],
   },
   {
     id: 'permissions_ui_enforcement',
@@ -198,12 +199,6 @@ const arrayConfigs = [
     id: 'grafana_metrics',
     title: 'Include tab for Grafana in the Metrics page',
     enabledByDefault: true,
-  },
-  {
-    id: 'service_endpoints',
-    title: 'Service Endpoints',
-    enabledByDefault: false,
-    rules: [AlwaysEnabledInTestEnvRule],
   },
   {
     id: 'graph_event_logging',
