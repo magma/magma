@@ -203,8 +203,11 @@ func AllowIfWorkOrderOwnerOrAssignee() privacy.MutationRule {
 		if err != nil {
 			return privacy.Denyf(err.Error())
 		}
-		_, owned := m.OwnerID()
-		if isAssignee && !m.Op().Is(ent.OpDeleteOne) && !owned && !m.OwnerCleared() {
+		ownerChanged, err := isOwnerChanged(ctx, m)
+		if err != nil {
+			return privacy.Denyf(err.Error())
+		}
+		if isAssignee && !m.Op().Is(ent.OpDeleteOne) && !ownerChanged {
 			return privacy.Allow
 		}
 		return privacy.Skip
