@@ -8,6 +8,7 @@ import (
 	"github.com/facebookincubator/ent"
 	"github.com/facebookincubator/ent/schema/edge"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/authz"
 )
 
 // SurveyCellScan holds the schema definition for the SurveyCellScan entity.
@@ -85,7 +86,7 @@ func (SurveyCellScan) Fields() []ent.Field {
 	}
 }
 
-// Edges of the SurveyCellScan.
+// Edges returns SurveyCellScan edges.
 func (SurveyCellScan) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("checklist_item", CheckListItem.Type).
@@ -95,4 +96,17 @@ func (SurveyCellScan) Edges() []ent.Edge {
 		edge.To("location", Location.Type).
 			Unique(),
 	}
+}
+
+// Policy returns SurveyCellScan policy.
+func (SurveyCellScan) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithQueryRules(
+			authz.SurveyCellScanReadPolicyRule(),
+		),
+		authz.WithMutationRules(
+			authz.SurveyCellScanWritePolicyRule(),
+			authz.SurveyCellScanCreatePolicyRule(),
+		),
+	)
 }
