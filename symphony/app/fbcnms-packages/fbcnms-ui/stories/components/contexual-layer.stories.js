@@ -18,6 +18,8 @@ import {storiesOf} from '@storybook/react';
 const useStyles = makeStyles(_theme => ({
   root: {
     width: '100%',
+    height: '100vh',
+    boxSizing: 'border-box',
   },
   card: {
     marginBottom: '16px',

@@ -15,6 +15,9 @@ import {makeStyles} from '@material-ui/styles';
 const useStyles = makeStyles(() => ({
   root: {
     padding: '16px',
+    boxSizing: 'border-box',
+    width: '100%',
+    height: '100%',
   },
   header: {
     marginBottom: '24px',
