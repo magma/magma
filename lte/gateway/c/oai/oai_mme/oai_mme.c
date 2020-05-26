@@ -51,9 +51,9 @@
 #include "intertask_interface_types.h"
 #if EMBEDDED_SGW
 #include "service303.h"
+#include "sgw_defs.h"
 #include "shared_ts_log.h"
 #include "spgw_config.h"
-#include "sgw_defs.h"
 #endif
 #include "udp_primitives_server.h"
 #include "s11_mme.h"

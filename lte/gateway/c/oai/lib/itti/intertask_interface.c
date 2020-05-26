@@ -219,8 +219,6 @@ int itti_free(task_id_t task_id, void* ptr)
 {
   int rc = EXIT_SUCCESS;
 
-  //if (ptr == NULL) return;
-
   rc = memory_pools_free(itti_desc.memory_pools_handle, ptr, task_id);
 
   AssertFatal(

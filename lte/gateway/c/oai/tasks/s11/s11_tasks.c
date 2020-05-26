@@ -62,6 +62,9 @@ static void s11_mme_exit (void);
 
 
 //------------------------------------------------------------------------------
+/*
+Function used for logging purposes over Gtpv2-c stack
+*/
 static nw_rc_t
 s11_mme_log_wrapper (
   nw_gtpv2c_log_mgr_handle_t hLogMgr,
