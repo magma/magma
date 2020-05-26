@@ -11,9 +11,9 @@ import unittest
 import warnings
 from concurrent.futures import Future
 
-from ryu.lib import hub
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
 from lte.protos.policydb_pb2 import FlowMatch
+from lte.protos.pipelined_pb2 import FlowRequest
 
 
 from magma.pipelined.tests.app.start_pipelined import (
@@ -97,6 +97,7 @@ class DPITest(unittest.TestCase):
         Test DPI classifier flows are properly added
 
         Assert:
+            1 FLOW_CREATED -> no rule added as its not classified yet
             1 App not tracked -> no rule installed(`notanAPP`)
             3 App types are matched on:
                 facebook other
@@ -122,15 +123,25 @@ class DPITest(unittest.TestCase):
         flow_match_for_no_proto = FlowMatch(
             ip_proto=FlowMatch.IPPROTO_UDP, ipv4_dst='1.1.1.1'
         )
+        flow_match_not_added = FlowMatch(
+            ip_proto=FlowMatch.IPPROTO_UDP, ipv4_src='22.22.22.22'
+        )
         self.dpi_controller.add_classify_flow(
-            flow_match_for_no_proto, 'notanAPP', 'null', MAC_DEST, MAC_DEST)
+            flow_match_not_added, FlowRequest.FLOW_CREATED,
+            'nickproto', 'bestproto', MAC_DEST, MAC_DEST)
         self.dpi_controller.add_classify_flow(
-            flow_match1, 'base.ip.http.facebook', 'NotReal', MAC_DEST, MAC_DEST)
+            flow_match_for_no_proto, FlowRequest.FLOW_PARTIAL_CLASSIFICATION,
+            'notanAPP', 'null', MAC_DEST, MAC_DEST)
         self.dpi_controller.add_classify_flow(
-            flow_match2, 'base.ip.https.google_gen.google_docs', 'MAGMA',
+            flow_match1, FlowRequest.FLOW_PARTIAL_CLASSIFICATION,
+            'base.ip.http.facebook', 'NotReal', MAC_DEST, MAC_DEST)
+        self.dpi_controller.add_classify_flow(
+            flow_match2, FlowRequest.FLOW_PARTIAL_CLASSIFICATION,
+            'base.ip.https.google_gen.google_docs', 'MAGMA',
             MAC_DEST, MAC_DEST)
         self.dpi_controller.add_classify_flow(
-            flow_match3, 'base.ip.udp.viber', 'AudioTransfer Receiving',
+            flow_match3, FlowRequest.FLOW_PARTIAL_CLASSIFICATION,
+            'base.ip.udp.viber', 'AudioTransfer Receiving',
             MAC_DEST, MAC_DEST)
 
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,

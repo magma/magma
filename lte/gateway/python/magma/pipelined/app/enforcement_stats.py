@@ -199,6 +199,7 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
     def _handle_error(self, ev):
         self._msg_hub.handle_error(ev)
 
+    # pylint: disable=protected-access
     def _get_rule_match_flow_msgs(self, imsi, rule):
         """
         Returns flow add messages used for rule matching.
