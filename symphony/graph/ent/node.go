@@ -16,6 +16,7 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/schema"
 	"github.com/facebookincubator/symphony/graph/ent/actionsrule"
+	"github.com/facebookincubator/symphony/graph/ent/activity"
 	"github.com/facebookincubator/symphony/graph/ent/checklistcategory"
 	"github.com/facebookincubator/symphony/graph/ent/checklistcategorydefinition"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
@@ -155,6 +156,100 @@ func (ar *ActionsRuleMutation) Node(ctx context.Context) (node *Node, err error)
 		return nil, nil
 	}
 	ent, err := ar.Client().ActionsRule.Get(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return ent.Node(ctx)
+}
+
+func (a *Activity) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     a.ID,
+		Type:   "Activity",
+		Fields: make([]*Field, 6),
+		Edges:  make([]*Edge, 2),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(a.CreateTime); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "time.Time",
+		Name:  "CreateTime",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(a.UpdateTime); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "time.Time",
+		Name:  "UpdateTime",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(a.ChangedField); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "activity.ChangedField",
+		Name:  "ChangedField",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(a.IsCreate); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "bool",
+		Name:  "IsCreate",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(a.OldValue); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "string",
+		Name:  "OldValue",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(a.NewValue); err != nil {
+		return nil, err
+	}
+	node.Fields[5] = &Field{
+		Type:  "string",
+		Name:  "NewValue",
+		Value: string(buf),
+	}
+	var ids []int
+	ids, err = a.QueryAuthor().
+		Select(user.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[0] = &Edge{
+		IDs:  ids,
+		Type: "User",
+		Name: "Author",
+	}
+	ids, err = a.QueryWorkOrder().
+		Select(workorder.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		IDs:  ids,
+		Type: "WorkOrder",
+		Name: "WorkOrder",
+	}
+	return node, nil
+}
+
+func (a *ActivityMutation) Node(ctx context.Context) (node *Node, err error) {
+	id, exists := a.ID()
+	if !exists {
+		return nil, nil
+	}
+	ent, err := a.Client().Activity.Get(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -4910,7 +5005,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 		ID:     wo.ID,
 		Type:   "WorkOrder",
 		Fields: make([]*Field, 10),
-		Edges:  make([]*Edge, 12),
+		Edges:  make([]*Edge, 13),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(wo.CreateTime); err != nil {
@@ -5071,13 +5166,24 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 		Type: "Comment",
 		Name: "Comments",
 	}
+	ids, err = wo.QueryActivities().
+		Select(activity.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[7] = &Edge{
+		IDs:  ids,
+		Type: "Activity",
+		Name: "Activities",
+	}
 	ids, err = wo.QueryProperties().
 		Select(property.FieldID).
 		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[7] = &Edge{
+	node.Edges[8] = &Edge{
 		IDs:  ids,
 		Type: "Property",
 		Name: "Properties",
@@ -5088,7 +5194,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[8] = &Edge{
+	node.Edges[9] = &Edge{
 		IDs:  ids,
 		Type: "CheckListCategory",
 		Name: "CheckListCategories",
@@ -5099,7 +5205,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[9] = &Edge{
+	node.Edges[10] = &Edge{
 		IDs:  ids,
 		Type: "Project",
 		Name: "Project",
@@ -5110,7 +5216,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[10] = &Edge{
+	node.Edges[11] = &Edge{
 		IDs:  ids,
 		Type: "User",
 		Name: "Owner",
@@ -5121,7 +5227,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[11] = &Edge{
+	node.Edges[12] = &Edge{
 		IDs:  ids,
 		Type: "User",
 		Name: "Assignee",
@@ -5337,6 +5443,15 @@ func (c *Client) noder(ctx context.Context, tbl string, id int) (Noder, error) {
 		n, err := c.ActionsRule.Query().
 			Where(actionsrule.ID(id)).
 			CollectFields(ctx, "ActionsRule").
+			Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case activity.Table:
+		n, err := c.Activity.Query().
+			Where(activity.ID(id)).
+			CollectFields(ctx, "Activity").
 			Only(ctx)
 		if err != nil {
 			return nil, err

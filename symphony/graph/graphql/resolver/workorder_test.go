@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/facebookincubator/symphony/graph/ent/activity"
+
 	"github.com/facebookincubator/symphony/graph/authz"
 	"github.com/facebookincubator/symphony/graph/ent/user"
 
@@ -441,6 +443,41 @@ func TestAddWorkOrderWithComment(t *testing.T) {
 	require.NoError(t, err)
 	assert.Len(t, comments, 1)
 	assert.Equal(t, ctxt, comments[0].Text)
+}
+
+func TestAddWorkOrderWithActivity(t *testing.T) {
+	r := newTestResolver(t)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
+	qr := r.Query()
+	w := createWorkOrder(ctx, t, *r, "Foo")
+
+	node, err := qr.Node(ctx, w.ID)
+	require.NoError(t, err)
+	w = node.(*ent.WorkOrder)
+	activities, err := w.QueryActivities().All(ctx)
+	require.NoError(t, err)
+	assert.Len(t, activities, 0)
+
+	v := viewer.FromContext(ctx).(*viewer.UserViewer)
+	act, err := r.client.Activity.Create().
+		SetWorkOrder(w).
+		SetChangedField(activity.ChangedFieldPRIORITY).
+		SetOldValue(models.WorkOrderPriorityLow.String()).
+		SetNewValue(models.WorkOrderPriorityHigh.String()).
+		SetAuthor(v.User()).
+		Save(ctx)
+
+	require.NoError(t, err)
+	assert.Equal(t, models.WorkOrderPriorityHigh.String(), act.NewValue)
+
+	node, err = qr.Node(ctx, w.ID)
+	require.NoError(t, err)
+	w = node.(*ent.WorkOrder)
+	activities, err = w.QueryActivities().All(ctx)
+	require.NoError(t, err)
+	assert.Len(t, activities, 1)
+	assert.Equal(t, models.WorkOrderPriorityLow.String(), activities[0].OldValue)
 }
 
 func TestAddWorkOrderNoDescription(t *testing.T) {

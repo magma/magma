@@ -14,6 +14,7 @@ import (
 
 	"github.com/facebookincubator/symphony/graph/authz/models"
 	"github.com/facebookincubator/symphony/graph/ent/actionsrule"
+	"github.com/facebookincubator/symphony/graph/ent/activity"
 	"github.com/facebookincubator/symphony/graph/ent/checklistcategory"
 	"github.com/facebookincubator/symphony/graph/ent/checklistcategorydefinition"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
@@ -72,6 +73,7 @@ const (
 
 	// Node types.
 	TypeActionsRule                 = "ActionsRule"
+	TypeActivity                    = "Activity"
 	TypeCheckListCategory           = "CheckListCategory"
 	TypeCheckListCategoryDefinition = "CheckListCategoryDefinition"
 	TypeCheckListItem               = "CheckListItem"
@@ -666,6 +668,726 @@ func (m *ActionsRuleMutation) ClearEdge(name string) error {
 // defined in the schema.
 func (m *ActionsRuleMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown ActionsRule edge %s", name)
+}
+
+// ActivityMutation represents an operation that mutate the Activities
+// nodes in the graph.
+type ActivityMutation struct {
+	config
+	op                Op
+	typ               string
+	id                *int
+	create_time       *time.Time
+	update_time       *time.Time
+	changed_field     *activity.ChangedField
+	is_create         *bool
+	old_value         *string
+	new_value         *string
+	clearedFields     map[string]struct{}
+	author            *int
+	clearedauthor     bool
+	work_order        *int
+	clearedwork_order bool
+	oldValue          func(context.Context) (*Activity, error)
+}
+
+var _ ent.Mutation = (*ActivityMutation)(nil)
+
+// activityOption allows to manage the mutation configuration using functional options.
+type activityOption func(*ActivityMutation)
+
+// newActivityMutation creates new mutation for $n.Name.
+func newActivityMutation(c config, op Op, opts ...activityOption) *ActivityMutation {
+	m := &ActivityMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeActivity,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withActivityID sets the id field of the mutation.
+func withActivityID(id int) activityOption {
+	return func(m *ActivityMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Activity
+		)
+		m.oldValue = func(ctx context.Context) (*Activity, error) {
+			once.Do(func() {
+				value, err = m.Client().Activity.Get(ctx, id)
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withActivity sets the old Activity of the mutation.
+func withActivity(node *Activity) activityOption {
+	return func(m *ActivityMutation) {
+		m.oldValue = func(context.Context) (*Activity, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ActivityMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ActivityMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, fmt.Errorf("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the id value in the mutation. Note that, the id
+// is available only if it was provided to the builder.
+func (m *ActivityMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// SetCreateTime sets the create_time field.
+func (m *ActivityMutation) SetCreateTime(t time.Time) {
+	m.create_time = &t
+}
+
+// CreateTime returns the create_time value in the mutation.
+func (m *ActivityMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.create_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreateTime returns the old create_time value, if exists.
+// An error is returned if the mutation operation is not UpdateOne, or database query fails.
+func (m *ActivityMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldCreateTime is allowed only on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldCreateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
+	}
+	return oldValue.CreateTime, nil
+}
+
+// ResetCreateTime reset all changes of the "create_time" field.
+func (m *ActivityMutation) ResetCreateTime() {
+	m.create_time = nil
+}
+
+// SetUpdateTime sets the update_time field.
+func (m *ActivityMutation) SetUpdateTime(t time.Time) {
+	m.update_time = &t
+}
+
+// UpdateTime returns the update_time value in the mutation.
+func (m *ActivityMutation) UpdateTime() (r time.Time, exists bool) {
+	v := m.update_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdateTime returns the old update_time value, if exists.
+// An error is returned if the mutation operation is not UpdateOne, or database query fails.
+func (m *ActivityMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldUpdateTime is allowed only on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldUpdateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
+	}
+	return oldValue.UpdateTime, nil
+}
+
+// ResetUpdateTime reset all changes of the "update_time" field.
+func (m *ActivityMutation) ResetUpdateTime() {
+	m.update_time = nil
+}
+
+// SetChangedField sets the changed_field field.
+func (m *ActivityMutation) SetChangedField(af activity.ChangedField) {
+	m.changed_field = &af
+}
+
+// ChangedField returns the changed_field value in the mutation.
+func (m *ActivityMutation) ChangedField() (r activity.ChangedField, exists bool) {
+	v := m.changed_field
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldChangedField returns the old changed_field value, if exists.
+// An error is returned if the mutation operation is not UpdateOne, or database query fails.
+func (m *ActivityMutation) OldChangedField(ctx context.Context) (v activity.ChangedField, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldChangedField is allowed only on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldChangedField requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldChangedField: %w", err)
+	}
+	return oldValue.ChangedField, nil
+}
+
+// ResetChangedField reset all changes of the "changed_field" field.
+func (m *ActivityMutation) ResetChangedField() {
+	m.changed_field = nil
+}
+
+// SetIsCreate sets the is_create field.
+func (m *ActivityMutation) SetIsCreate(b bool) {
+	m.is_create = &b
+}
+
+// IsCreate returns the is_create value in the mutation.
+func (m *ActivityMutation) IsCreate() (r bool, exists bool) {
+	v := m.is_create
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsCreate returns the old is_create value, if exists.
+// An error is returned if the mutation operation is not UpdateOne, or database query fails.
+func (m *ActivityMutation) OldIsCreate(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldIsCreate is allowed only on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldIsCreate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsCreate: %w", err)
+	}
+	return oldValue.IsCreate, nil
+}
+
+// ResetIsCreate reset all changes of the "is_create" field.
+func (m *ActivityMutation) ResetIsCreate() {
+	m.is_create = nil
+}
+
+// SetOldValue sets the old_value field.
+func (m *ActivityMutation) SetOldValue(s string) {
+	m.old_value = &s
+}
+
+// OldValue returns the old_value value in the mutation.
+func (m *ActivityMutation) OldValue() (r string, exists bool) {
+	v := m.old_value
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOldValue returns the old old_value value, if exists.
+// An error is returned if the mutation operation is not UpdateOne, or database query fails.
+func (m *ActivityMutation) OldOldValue(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldOldValue is allowed only on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldOldValue requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOldValue: %w", err)
+	}
+	return oldValue.OldValue, nil
+}
+
+// ClearOldValue clears the value of old_value.
+func (m *ActivityMutation) ClearOldValue() {
+	m.old_value = nil
+	m.clearedFields[activity.FieldOldValue] = struct{}{}
+}
+
+// OldValueCleared returns if the field old_value was cleared in this mutation.
+func (m *ActivityMutation) OldValueCleared() bool {
+	_, ok := m.clearedFields[activity.FieldOldValue]
+	return ok
+}
+
+// ResetOldValue reset all changes of the "old_value" field.
+func (m *ActivityMutation) ResetOldValue() {
+	m.old_value = nil
+	delete(m.clearedFields, activity.FieldOldValue)
+}
+
+// SetNewValue sets the new_value field.
+func (m *ActivityMutation) SetNewValue(s string) {
+	m.new_value = &s
+}
+
+// NewValue returns the new_value value in the mutation.
+func (m *ActivityMutation) NewValue() (r string, exists bool) {
+	v := m.new_value
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNewValue returns the old new_value value, if exists.
+// An error is returned if the mutation operation is not UpdateOne, or database query fails.
+func (m *ActivityMutation) OldNewValue(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldNewValue is allowed only on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldNewValue requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNewValue: %w", err)
+	}
+	return oldValue.NewValue, nil
+}
+
+// ClearNewValue clears the value of new_value.
+func (m *ActivityMutation) ClearNewValue() {
+	m.new_value = nil
+	m.clearedFields[activity.FieldNewValue] = struct{}{}
+}
+
+// NewValueCleared returns if the field new_value was cleared in this mutation.
+func (m *ActivityMutation) NewValueCleared() bool {
+	_, ok := m.clearedFields[activity.FieldNewValue]
+	return ok
+}
+
+// ResetNewValue reset all changes of the "new_value" field.
+func (m *ActivityMutation) ResetNewValue() {
+	m.new_value = nil
+	delete(m.clearedFields, activity.FieldNewValue)
+}
+
+// SetAuthorID sets the author edge to User by id.
+func (m *ActivityMutation) SetAuthorID(id int) {
+	m.author = &id
+}
+
+// ClearAuthor clears the author edge to User.
+func (m *ActivityMutation) ClearAuthor() {
+	m.clearedauthor = true
+}
+
+// AuthorCleared returns if the edge author was cleared.
+func (m *ActivityMutation) AuthorCleared() bool {
+	return m.clearedauthor
+}
+
+// AuthorID returns the author id in the mutation.
+func (m *ActivityMutation) AuthorID() (id int, exists bool) {
+	if m.author != nil {
+		return *m.author, true
+	}
+	return
+}
+
+// AuthorIDs returns the author ids in the mutation.
+// Note that ids always returns len(ids) <= 1 for unique edges, and you should use
+// AuthorID instead. It exists only for internal usage by the builders.
+func (m *ActivityMutation) AuthorIDs() (ids []int) {
+	if id := m.author; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetAuthor reset all changes of the "author" edge.
+func (m *ActivityMutation) ResetAuthor() {
+	m.author = nil
+	m.clearedauthor = false
+}
+
+// SetWorkOrderID sets the work_order edge to WorkOrder by id.
+func (m *ActivityMutation) SetWorkOrderID(id int) {
+	m.work_order = &id
+}
+
+// ClearWorkOrder clears the work_order edge to WorkOrder.
+func (m *ActivityMutation) ClearWorkOrder() {
+	m.clearedwork_order = true
+}
+
+// WorkOrderCleared returns if the edge work_order was cleared.
+func (m *ActivityMutation) WorkOrderCleared() bool {
+	return m.clearedwork_order
+}
+
+// WorkOrderID returns the work_order id in the mutation.
+func (m *ActivityMutation) WorkOrderID() (id int, exists bool) {
+	if m.work_order != nil {
+		return *m.work_order, true
+	}
+	return
+}
+
+// WorkOrderIDs returns the work_order ids in the mutation.
+// Note that ids always returns len(ids) <= 1 for unique edges, and you should use
+// WorkOrderID instead. It exists only for internal usage by the builders.
+func (m *ActivityMutation) WorkOrderIDs() (ids []int) {
+	if id := m.work_order; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetWorkOrder reset all changes of the "work_order" edge.
+func (m *ActivityMutation) ResetWorkOrder() {
+	m.work_order = nil
+	m.clearedwork_order = false
+}
+
+// Op returns the operation name.
+func (m *ActivityMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (Activity).
+func (m *ActivityMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during
+// this mutation. Note that, in order to get all numeric
+// fields that were in/decremented, call AddedFields().
+func (m *ActivityMutation) Fields() []string {
+	fields := make([]string, 0, 6)
+	if m.create_time != nil {
+		fields = append(fields, activity.FieldCreateTime)
+	}
+	if m.update_time != nil {
+		fields = append(fields, activity.FieldUpdateTime)
+	}
+	if m.changed_field != nil {
+		fields = append(fields, activity.FieldChangedField)
+	}
+	if m.is_create != nil {
+		fields = append(fields, activity.FieldIsCreate)
+	}
+	if m.old_value != nil {
+		fields = append(fields, activity.FieldOldValue)
+	}
+	if m.new_value != nil {
+		fields = append(fields, activity.FieldNewValue)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name.
+// The second boolean value indicates that this field was
+// not set, or was not define in the schema.
+func (m *ActivityMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case activity.FieldCreateTime:
+		return m.CreateTime()
+	case activity.FieldUpdateTime:
+		return m.UpdateTime()
+	case activity.FieldChangedField:
+		return m.ChangedField()
+	case activity.FieldIsCreate:
+		return m.IsCreate()
+	case activity.FieldOldValue:
+		return m.OldValue()
+	case activity.FieldNewValue:
+		return m.NewValue()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database.
+// An error is returned if the mutation operation is not UpdateOne,
+// or the query to the database was failed.
+func (m *ActivityMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case activity.FieldCreateTime:
+		return m.OldCreateTime(ctx)
+	case activity.FieldUpdateTime:
+		return m.OldUpdateTime(ctx)
+	case activity.FieldChangedField:
+		return m.OldChangedField(ctx)
+	case activity.FieldIsCreate:
+		return m.OldIsCreate(ctx)
+	case activity.FieldOldValue:
+		return m.OldOldValue(ctx)
+	case activity.FieldNewValue:
+		return m.OldNewValue(ctx)
+	}
+	return nil, fmt.Errorf("unknown Activity field %s", name)
+}
+
+// SetField sets the value for the given name. It returns an
+// error if the field is not defined in the schema, or if the
+// type mismatch the field type.
+func (m *ActivityMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case activity.FieldCreateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreateTime(v)
+		return nil
+	case activity.FieldUpdateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdateTime(v)
+		return nil
+	case activity.FieldChangedField:
+		v, ok := value.(activity.ChangedField)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetChangedField(v)
+		return nil
+	case activity.FieldIsCreate:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsCreate(v)
+		return nil
+	case activity.FieldOldValue:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOldValue(v)
+		return nil
+	case activity.FieldNewValue:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNewValue(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Activity field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented
+// or decremented during this mutation.
+func (m *ActivityMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was in/decremented
+// from a field with the given name. The second value indicates
+// that this field was not set, or was not define in the schema.
+func (m *ActivityMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value for the given name. It returns an
+// error if the field is not defined in the schema, or if the
+// type mismatch the field type.
+func (m *ActivityMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Activity numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared
+// during this mutation.
+func (m *ActivityMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(activity.FieldOldValue) {
+		fields = append(fields, activity.FieldOldValue)
+	}
+	if m.FieldCleared(activity.FieldNewValue) {
+		fields = append(fields, activity.FieldNewValue)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicates if this field was
+// cleared in this mutation.
+func (m *ActivityMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value for the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ActivityMutation) ClearField(name string) error {
+	switch name {
+	case activity.FieldOldValue:
+		m.ClearOldValue()
+		return nil
+	case activity.FieldNewValue:
+		m.ClearNewValue()
+		return nil
+	}
+	return fmt.Errorf("unknown Activity nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation regarding the
+// given field name. It returns an error if the field is not
+// defined in the schema.
+func (m *ActivityMutation) ResetField(name string) error {
+	switch name {
+	case activity.FieldCreateTime:
+		m.ResetCreateTime()
+		return nil
+	case activity.FieldUpdateTime:
+		m.ResetUpdateTime()
+		return nil
+	case activity.FieldChangedField:
+		m.ResetChangedField()
+		return nil
+	case activity.FieldIsCreate:
+		m.ResetIsCreate()
+		return nil
+	case activity.FieldOldValue:
+		m.ResetOldValue()
+		return nil
+	case activity.FieldNewValue:
+		m.ResetNewValue()
+		return nil
+	}
+	return fmt.Errorf("unknown Activity field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this
+// mutation.
+func (m *ActivityMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.author != nil {
+		edges = append(edges, activity.EdgeAuthor)
+	}
+	if m.work_order != nil {
+		edges = append(edges, activity.EdgeWorkOrder)
+	}
+	return edges
+}
+
+// AddedIDs returns all ids (to other nodes) that were added for
+// the given edge name.
+func (m *ActivityMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case activity.EdgeAuthor:
+		if id := m.author; id != nil {
+			return []ent.Value{*id}
+		}
+	case activity.EdgeWorkOrder:
+		if id := m.work_order; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this
+// mutation.
+func (m *ActivityMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all ids (to other nodes) that were removed for
+// the given edge name.
+func (m *ActivityMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this
+// mutation.
+func (m *ActivityMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedauthor {
+		edges = append(edges, activity.EdgeAuthor)
+	}
+	if m.clearedwork_order {
+		edges = append(edges, activity.EdgeWorkOrder)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean indicates if this edge was
+// cleared in this mutation.
+func (m *ActivityMutation) EdgeCleared(name string) bool {
+	switch name {
+	case activity.EdgeAuthor:
+		return m.clearedauthor
+	case activity.EdgeWorkOrder:
+		return m.clearedwork_order
+	}
+	return false
+}
+
+// ClearEdge clears the value for the given name. It returns an
+// error if the edge name is not defined in the schema.
+func (m *ActivityMutation) ClearEdge(name string) error {
+	switch name {
+	case activity.EdgeAuthor:
+		m.ClearAuthor()
+		return nil
+	case activity.EdgeWorkOrder:
+		m.ClearWorkOrder()
+		return nil
+	}
+	return fmt.Errorf("unknown Activity unique edge %s", name)
+}
+
+// ResetEdge resets all changes in the mutation regarding the
+// given edge name. It returns an error if the edge is not
+// defined in the schema.
+func (m *ActivityMutation) ResetEdge(name string) error {
+	switch name {
+	case activity.EdgeAuthor:
+		m.ResetAuthor()
+		return nil
+	case activity.EdgeWorkOrder:
+		m.ResetWorkOrder()
+		return nil
+	}
+	return fmt.Errorf("unknown Activity edge %s", name)
 }
 
 // CheckListCategoryMutation represents an operation that mutate the CheckListCategories
@@ -37799,6 +38521,8 @@ type WorkOrderMutation struct {
 	clearedlocation              bool
 	comments                     map[int]struct{}
 	removedcomments              map[int]struct{}
+	activities                   map[int]struct{}
+	removedactivities            map[int]struct{}
 	properties                   map[int]struct{}
 	removedproperties            map[int]struct{}
 	check_list_categories        map[int]struct{}
@@ -38598,6 +39322,48 @@ func (m *WorkOrderMutation) ResetComments() {
 	m.removedcomments = nil
 }
 
+// AddActivityIDs adds the activities edge to Activity by ids.
+func (m *WorkOrderMutation) AddActivityIDs(ids ...int) {
+	if m.activities == nil {
+		m.activities = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.activities[ids[i]] = struct{}{}
+	}
+}
+
+// RemoveActivityIDs removes the activities edge to Activity by ids.
+func (m *WorkOrderMutation) RemoveActivityIDs(ids ...int) {
+	if m.removedactivities == nil {
+		m.removedactivities = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.removedactivities[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedActivities returns the removed ids of activities.
+func (m *WorkOrderMutation) RemovedActivitiesIDs() (ids []int) {
+	for id := range m.removedactivities {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ActivitiesIDs returns the activities ids in the mutation.
+func (m *WorkOrderMutation) ActivitiesIDs() (ids []int) {
+	for id := range m.activities {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetActivities reset all changes of the "activities" edge.
+func (m *WorkOrderMutation) ResetActivities() {
+	m.activities = nil
+	m.removedactivities = nil
+}
+
 // AddPropertyIDs adds the properties edge to Property by ids.
 func (m *WorkOrderMutation) AddPropertyIDs(ids ...int) {
 	if m.properties == nil {
@@ -39109,7 +39875,7 @@ func (m *WorkOrderMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this
 // mutation.
 func (m *WorkOrderMutation) AddedEdges() []string {
-	edges := make([]string, 0, 12)
+	edges := make([]string, 0, 13)
 	if m._type != nil {
 		edges = append(edges, workorder.EdgeType)
 	}
@@ -39130,6 +39896,9 @@ func (m *WorkOrderMutation) AddedEdges() []string {
 	}
 	if m.comments != nil {
 		edges = append(edges, workorder.EdgeComments)
+	}
+	if m.activities != nil {
+		edges = append(edges, workorder.EdgeActivities)
 	}
 	if m.properties != nil {
 		edges = append(edges, workorder.EdgeProperties)
@@ -39191,6 +39960,12 @@ func (m *WorkOrderMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case workorder.EdgeActivities:
+		ids := make([]ent.Value, 0, len(m.activities))
+		for id := range m.activities {
+			ids = append(ids, id)
+		}
+		return ids
 	case workorder.EdgeProperties:
 		ids := make([]ent.Value, 0, len(m.properties))
 		for id := range m.properties {
@@ -39222,7 +39997,7 @@ func (m *WorkOrderMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this
 // mutation.
 func (m *WorkOrderMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 12)
+	edges := make([]string, 0, 13)
 	if m.removedequipment != nil {
 		edges = append(edges, workorder.EdgeEquipment)
 	}
@@ -39237,6 +40012,9 @@ func (m *WorkOrderMutation) RemovedEdges() []string {
 	}
 	if m.removedcomments != nil {
 		edges = append(edges, workorder.EdgeComments)
+	}
+	if m.removedactivities != nil {
+		edges = append(edges, workorder.EdgeActivities)
 	}
 	if m.removedproperties != nil {
 		edges = append(edges, workorder.EdgeProperties)
@@ -39281,6 +40059,12 @@ func (m *WorkOrderMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case workorder.EdgeActivities:
+		ids := make([]ent.Value, 0, len(m.removedactivities))
+		for id := range m.removedactivities {
+			ids = append(ids, id)
+		}
+		return ids
 	case workorder.EdgeProperties:
 		ids := make([]ent.Value, 0, len(m.removedproperties))
 		for id := range m.removedproperties {
@@ -39300,7 +40084,7 @@ func (m *WorkOrderMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this
 // mutation.
 func (m *WorkOrderMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 12)
+	edges := make([]string, 0, 13)
 	if m.cleared_type {
 		edges = append(edges, workorder.EdgeType)
 	}
@@ -39385,6 +40169,9 @@ func (m *WorkOrderMutation) ResetEdge(name string) error {
 		return nil
 	case workorder.EdgeComments:
 		m.ResetComments()
+		return nil
+	case workorder.EdgeActivities:
+		m.ResetActivities()
 		return nil
 	case workorder.EdgeProperties:
 		m.ResetProperties()

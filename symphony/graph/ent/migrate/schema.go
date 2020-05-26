@@ -29,6 +29,40 @@ var (
 		PrimaryKey:  []*schema.Column{ActionsRulesColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{},
 	}
+	// ActivitiesColumns holds the columns for the "activities" table.
+	ActivitiesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "changed_field", Type: field.TypeEnum, Enums: []string{"STATUS", "PRIORITY", "ASSIGNEE", "CREATION_DATE", "OWNER"}},
+		{Name: "is_create", Type: field.TypeBool},
+		{Name: "old_value", Type: field.TypeString, Nullable: true},
+		{Name: "new_value", Type: field.TypeString, Nullable: true},
+		{Name: "activity_author", Type: field.TypeInt, Nullable: true},
+		{Name: "work_order_activities", Type: field.TypeInt, Nullable: true},
+	}
+	// ActivitiesTable holds the schema information for the "activities" table.
+	ActivitiesTable = &schema.Table{
+		Name:       "activities",
+		Columns:    ActivitiesColumns,
+		PrimaryKey: []*schema.Column{ActivitiesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:  "activities_users_author",
+				Columns: []*schema.Column{ActivitiesColumns[7]},
+
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:  "activities_work_orders_activities",
+				Columns: []*schema.Column{ActivitiesColumns[8]},
+
+				RefColumns: []*schema.Column{WorkOrdersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// CheckListCategoriesColumns holds the columns for the "check_list_categories" table.
 	CheckListCategoriesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -1748,6 +1782,7 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		ActionsRulesTable,
+		ActivitiesTable,
 		CheckListCategoriesTable,
 		CheckListCategoryDefinitionsTable,
 		CheckListItemsTable,
@@ -1800,6 +1835,8 @@ var (
 )
 
 func init() {
+	ActivitiesTable.ForeignKeys[0].RefTable = UsersTable
+	ActivitiesTable.ForeignKeys[1].RefTable = WorkOrdersTable
 	CheckListCategoriesTable.ForeignKeys[0].RefTable = WorkOrdersTable
 	CheckListCategoryDefinitionsTable.ForeignKeys[0].RefTable = WorkOrderTypesTable
 	CheckListItemsTable.ForeignKeys[0].RefTable = CheckListCategoriesTable

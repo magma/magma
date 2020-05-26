@@ -16,6 +16,7 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/ent/activity"
 	"github.com/facebookincubator/symphony/graph/ent/checklistcategory"
 	"github.com/facebookincubator/symphony/graph/ent/comment"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
@@ -47,6 +48,7 @@ type WorkOrderQuery struct {
 	withHyperlinks          *HyperlinkQuery
 	withLocation            *LocationQuery
 	withComments            *CommentQuery
+	withActivities          *ActivityQuery
 	withProperties          *PropertyQuery
 	withCheckListCategories *CheckListCategoryQuery
 	withProject             *ProjectQuery
@@ -201,6 +203,24 @@ func (woq *WorkOrderQuery) QueryComments() *CommentQuery {
 			sqlgraph.From(workorder.Table, workorder.FieldID, woq.sqlQuery()),
 			sqlgraph.To(comment.Table, comment.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, workorder.CommentsTable, workorder.CommentsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(woq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryActivities chains the current query on the activities edge.
+func (woq *WorkOrderQuery) QueryActivities() *ActivityQuery {
+	query := &ActivityQuery{config: woq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := woq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(workorder.Table, workorder.FieldID, woq.sqlQuery()),
+			sqlgraph.To(activity.Table, activity.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, workorder.ActivitiesTable, workorder.ActivitiesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(woq.driver.Dialect(), step)
 		return fromU, nil
@@ -554,6 +574,17 @@ func (woq *WorkOrderQuery) WithComments(opts ...func(*CommentQuery)) *WorkOrderQ
 	return woq
 }
 
+//  WithActivities tells the query-builder to eager-loads the nodes that are connected to
+// the "activities" edge. The optional arguments used to configure the query builder of the edge.
+func (woq *WorkOrderQuery) WithActivities(opts ...func(*ActivityQuery)) *WorkOrderQuery {
+	query := &ActivityQuery{config: woq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	woq.withActivities = query
+	return woq
+}
+
 //  WithProperties tells the query-builder to eager-loads the nodes that are connected to
 // the "properties" edge. The optional arguments used to configure the query builder of the edge.
 func (woq *WorkOrderQuery) WithProperties(opts ...func(*PropertyQuery)) *WorkOrderQuery {
@@ -679,7 +710,7 @@ func (woq *WorkOrderQuery) sqlAll(ctx context.Context) ([]*WorkOrder, error) {
 		nodes       = []*WorkOrder{}
 		withFKs     = woq.withFKs
 		_spec       = woq.querySpec()
-		loadedTypes = [12]bool{
+		loadedTypes = [13]bool{
 			woq.withType != nil,
 			woq.withEquipment != nil,
 			woq.withLinks != nil,
@@ -687,6 +718,7 @@ func (woq *WorkOrderQuery) sqlAll(ctx context.Context) ([]*WorkOrder, error) {
 			woq.withHyperlinks != nil,
 			woq.withLocation != nil,
 			woq.withComments != nil,
+			woq.withActivities != nil,
 			woq.withProperties != nil,
 			woq.withCheckListCategories != nil,
 			woq.withProject != nil,
@@ -911,6 +943,34 @@ func (woq *WorkOrderQuery) sqlAll(ctx context.Context) ([]*WorkOrder, error) {
 				return nil, fmt.Errorf(`unexpected foreign-key "work_order_comments" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Comments = append(node.Edges.Comments, n)
+		}
+	}
+
+	if query := woq.withActivities; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[int]*WorkOrder)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.Activity(func(s *sql.Selector) {
+			s.Where(sql.InValues(workorder.ActivitiesColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.work_order_activities
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "work_order_activities" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_activities" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Activities = append(node.Edges.Activities, n)
 		}
 	}
 

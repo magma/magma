@@ -36,7 +36,7 @@ func NewServer(cfg Config) (*Server, func(), error) {
 
 // wire.go:
 
-// Config defines the http server config.
+// Config defines the events server config.
 type Config struct {
 	Tenancy    viewer.Tenancy
 	Subscriber event.Subscriber

@@ -15,6 +15,7 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/ent/activity"
 	"github.com/facebookincubator/symphony/graph/ent/checklistcategory"
 	"github.com/facebookincubator/symphony/graph/ent/comment"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
@@ -284,6 +285,21 @@ func (wou *WorkOrderUpdate) AddComments(c ...*Comment) *WorkOrderUpdate {
 	return wou.AddCommentIDs(ids...)
 }
 
+// AddActivityIDs adds the activities edge to Activity by ids.
+func (wou *WorkOrderUpdate) AddActivityIDs(ids ...int) *WorkOrderUpdate {
+	wou.mutation.AddActivityIDs(ids...)
+	return wou
+}
+
+// AddActivities adds the activities edges to Activity.
+func (wou *WorkOrderUpdate) AddActivities(a ...*Activity) *WorkOrderUpdate {
+	ids := make([]int, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return wou.AddActivityIDs(ids...)
+}
+
 // AddPropertyIDs adds the properties edge to Property by ids.
 func (wou *WorkOrderUpdate) AddPropertyIDs(ids ...int) *WorkOrderUpdate {
 	wou.mutation.AddPropertyIDs(ids...)
@@ -448,6 +464,21 @@ func (wou *WorkOrderUpdate) RemoveComments(c ...*Comment) *WorkOrderUpdate {
 		ids[i] = c[i].ID
 	}
 	return wou.RemoveCommentIDs(ids...)
+}
+
+// RemoveActivityIDs removes the activities edge to Activity by ids.
+func (wou *WorkOrderUpdate) RemoveActivityIDs(ids ...int) *WorkOrderUpdate {
+	wou.mutation.RemoveActivityIDs(ids...)
+	return wou
+}
+
+// RemoveActivities removes activities edges to Activity.
+func (wou *WorkOrderUpdate) RemoveActivities(a ...*Activity) *WorkOrderUpdate {
+	ids := make([]int, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return wou.RemoveActivityIDs(ids...)
 }
 
 // RemovePropertyIDs removes the properties edge to Property by ids.
@@ -934,6 +965,44 @@ func (wou *WorkOrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if nodes := wou.mutation.RemovedActivitiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   workorder.ActivitiesTable,
+			Columns: []string{workorder.ActivitiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: activity.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wou.mutation.ActivitiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   workorder.ActivitiesTable,
+			Columns: []string{workorder.ActivitiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: activity.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if nodes := wou.mutation.RemovedPropertiesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -1373,6 +1442,21 @@ func (wouo *WorkOrderUpdateOne) AddComments(c ...*Comment) *WorkOrderUpdateOne {
 	return wouo.AddCommentIDs(ids...)
 }
 
+// AddActivityIDs adds the activities edge to Activity by ids.
+func (wouo *WorkOrderUpdateOne) AddActivityIDs(ids ...int) *WorkOrderUpdateOne {
+	wouo.mutation.AddActivityIDs(ids...)
+	return wouo
+}
+
+// AddActivities adds the activities edges to Activity.
+func (wouo *WorkOrderUpdateOne) AddActivities(a ...*Activity) *WorkOrderUpdateOne {
+	ids := make([]int, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return wouo.AddActivityIDs(ids...)
+}
+
 // AddPropertyIDs adds the properties edge to Property by ids.
 func (wouo *WorkOrderUpdateOne) AddPropertyIDs(ids ...int) *WorkOrderUpdateOne {
 	wouo.mutation.AddPropertyIDs(ids...)
@@ -1537,6 +1621,21 @@ func (wouo *WorkOrderUpdateOne) RemoveComments(c ...*Comment) *WorkOrderUpdateOn
 		ids[i] = c[i].ID
 	}
 	return wouo.RemoveCommentIDs(ids...)
+}
+
+// RemoveActivityIDs removes the activities edge to Activity by ids.
+func (wouo *WorkOrderUpdateOne) RemoveActivityIDs(ids ...int) *WorkOrderUpdateOne {
+	wouo.mutation.RemoveActivityIDs(ids...)
+	return wouo
+}
+
+// RemoveActivities removes activities edges to Activity.
+func (wouo *WorkOrderUpdateOne) RemoveActivities(a ...*Activity) *WorkOrderUpdateOne {
+	ids := make([]int, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return wouo.RemoveActivityIDs(ids...)
 }
 
 // RemovePropertyIDs removes the properties edge to Property by ids.
@@ -2013,6 +2112,44 @@ func (wouo *WorkOrderUpdateOne) sqlSave(ctx context.Context) (wo *WorkOrder, err
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: comment.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if nodes := wouo.mutation.RemovedActivitiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   workorder.ActivitiesTable,
+			Columns: []string{workorder.ActivitiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: activity.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wouo.mutation.ActivitiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   workorder.ActivitiesTable,
+			Columns: []string{workorder.ActivitiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: activity.FieldID,
 				},
 			},
 		}

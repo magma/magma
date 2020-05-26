@@ -70,6 +70,8 @@ type WorkOrderEdges struct {
 	Location *Location
 	// Comments holds the value of the comments edge.
 	Comments []*Comment
+	// Activities holds the value of the activities edge.
+	Activities []*Activity
 	// Properties holds the value of the properties edge.
 	Properties []*Property
 	// CheckListCategories holds the value of the check_list_categories edge.
@@ -82,7 +84,7 @@ type WorkOrderEdges struct {
 	Assignee *User
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [12]bool
+	loadedTypes [13]bool
 }
 
 // TypeOrErr returns the Type value or an error if the edge
@@ -158,10 +160,19 @@ func (e WorkOrderEdges) CommentsOrErr() ([]*Comment, error) {
 	return nil, &NotLoadedError{edge: "comments"}
 }
 
+// ActivitiesOrErr returns the Activities value or an error if the edge
+// was not loaded in eager-loading.
+func (e WorkOrderEdges) ActivitiesOrErr() ([]*Activity, error) {
+	if e.loadedTypes[7] {
+		return e.Activities, nil
+	}
+	return nil, &NotLoadedError{edge: "activities"}
+}
+
 // PropertiesOrErr returns the Properties value or an error if the edge
 // was not loaded in eager-loading.
 func (e WorkOrderEdges) PropertiesOrErr() ([]*Property, error) {
-	if e.loadedTypes[7] {
+	if e.loadedTypes[8] {
 		return e.Properties, nil
 	}
 	return nil, &NotLoadedError{edge: "properties"}
@@ -170,7 +181,7 @@ func (e WorkOrderEdges) PropertiesOrErr() ([]*Property, error) {
 // CheckListCategoriesOrErr returns the CheckListCategories value or an error if the edge
 // was not loaded in eager-loading.
 func (e WorkOrderEdges) CheckListCategoriesOrErr() ([]*CheckListCategory, error) {
-	if e.loadedTypes[8] {
+	if e.loadedTypes[9] {
 		return e.CheckListCategories, nil
 	}
 	return nil, &NotLoadedError{edge: "check_list_categories"}
@@ -179,7 +190,7 @@ func (e WorkOrderEdges) CheckListCategoriesOrErr() ([]*CheckListCategory, error)
 // ProjectOrErr returns the Project value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e WorkOrderEdges) ProjectOrErr() (*Project, error) {
-	if e.loadedTypes[9] {
+	if e.loadedTypes[10] {
 		if e.Project == nil {
 			// The edge project was loaded in eager-loading,
 			// but was not found.
@@ -193,7 +204,7 @@ func (e WorkOrderEdges) ProjectOrErr() (*Project, error) {
 // OwnerOrErr returns the Owner value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e WorkOrderEdges) OwnerOrErr() (*User, error) {
-	if e.loadedTypes[10] {
+	if e.loadedTypes[11] {
 		if e.Owner == nil {
 			// The edge owner was loaded in eager-loading,
 			// but was not found.
@@ -207,7 +218,7 @@ func (e WorkOrderEdges) OwnerOrErr() (*User, error) {
 // AssigneeOrErr returns the Assignee value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e WorkOrderEdges) AssigneeOrErr() (*User, error) {
-	if e.loadedTypes[11] {
+	if e.loadedTypes[12] {
 		if e.Assignee == nil {
 			// The edge assignee was loaded in eager-loading,
 			// but was not found.
@@ -377,6 +388,11 @@ func (wo *WorkOrder) QueryLocation() *LocationQuery {
 // QueryComments queries the comments edge of the WorkOrder.
 func (wo *WorkOrder) QueryComments() *CommentQuery {
 	return (&WorkOrderClient{config: wo.config}).QueryComments(wo)
+}
+
+// QueryActivities queries the activities edge of the WorkOrder.
+func (wo *WorkOrder) QueryActivities() *ActivityQuery {
+	return (&WorkOrderClient{config: wo.config}).QueryActivities(wo)
 }
 
 // QueryProperties queries the properties edge of the WorkOrder.

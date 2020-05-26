@@ -26,6 +26,19 @@ func (f ActionsRuleFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value,
 	return f(ctx, mv)
 }
 
+// The ActivityFunc type is an adapter to allow the use of ordinary
+// function as Activity mutator.
+type ActivityFunc func(context.Context, *ent.ActivityMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ActivityFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.ActivityMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ActivityMutation", m)
+	}
+	return f(ctx, mv)
+}
+
 // The CheckListCategoryFunc type is an adapter to allow the use of ordinary
 // function as CheckListCategory mutator.
 type CheckListCategoryFunc func(context.Context, *ent.CheckListCategoryMutation) (ent.Value, error)
