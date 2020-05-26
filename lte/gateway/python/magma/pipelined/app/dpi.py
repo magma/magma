@@ -19,6 +19,7 @@ from magma.pipelined.openflow.registers import Direction, DPI_REG
 from magma.pipelined.policy_converters import FlowMatchError, \
     flow_match_to_magma_match, flip_flow_match, flow_match_to_actions
 from lte.protos.policydb_pb2 import FlowMatch
+from lte.protos.pipelined_pb2 import FlowRequest
 
 from ryu.lib.packet import ether_types
 from ryu.lib.packet import packet
@@ -108,8 +109,8 @@ class DPIController(MagmaController):
         flows.delete_all_flows_from_table(datapath, self.tbl_num)
         flows.delete_all_flows_from_table(datapath, self._app_set_tbl_num)
 
-    def add_classify_flow(self, flow_match, app: str, service_type: str,
-                          src_mac: str, dst_mac: str):
+    def add_classify_flow(self, flow_match, flow_state, app: str,
+                          service_type: str, src_mac: str, dst_mac: str):
         """
         Parse DPI output and set the register for future packets matching this
         flow. APP is split into tokens as the top level app is not supported,
@@ -133,13 +134,16 @@ class DPIController(MagmaController):
         actions = [parser.NXActionRegLoad2(dst=DPI_REG, value=app_id)]
         actions_w_mirror = \
             [parser.OFPActionOutput(self._mon_port_number)] + actions
-        flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num,
-            ul_match, actions_w_mirror, priority=flows.DEFAULT_PRIORITY,
-            resubmit_table=self.next_table, idle_timeout=self._idle_timeout)
-        flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num,
-            dl_match, actions_w_mirror, priority=flows.DEFAULT_PRIORITY,
-            resubmit_table=self.next_table, idle_timeout=self._idle_timeout)
+        # No reason to create a flow here
+        if flow_state != FlowRequest.FLOW_CREATED:
+            flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num,
+                ul_match, actions_w_mirror, priority=flows.DEFAULT_PRIORITY,
+                resubmit_table=self.next_table, idle_timeout=self._idle_timeout)
+            flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num,
+                dl_match, actions_w_mirror, priority=flows.DEFAULT_PRIORITY,
+                resubmit_table=self.next_table, idle_timeout=self._idle_timeout)
 
+        # TODO Check if this is required on FLOW_PARTIAL_CLASSIFICATION
         if self._service_manager.is_app_enabled(IPFIXController.APP_NAME):
             self._generate_ipfix_sampling_pkt(flow_match, src_mac, dst_mac)
             flows.add_resubmit_next_service_flow(
