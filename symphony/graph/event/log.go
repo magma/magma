@@ -6,9 +6,6 @@ package event
 
 import (
 	"context"
-	"time"
-
-	"go.uber.org/zap"
 
 	"github.com/facebookincubator/symphony/graph/viewer"
 
@@ -20,61 +17,16 @@ const (
 	EntMutation = "ent/mutation"
 )
 
-// LogEntry holds an information on a single ent mutation that happened
-type LogEntry struct {
-	UserName  string    `json:"user_name"`
-	UserID    *int      `json:"user_id"`
-	Time      time.Time `json:"time"`
-	Operation ent.Op    `json:"operation"`
-	PrevState *ent.Node `json:"prevState"`
-	CurrState *ent.Node `json:"currState"`
-}
-
 func (e *Eventer) logHook() ent.Hook {
 	return func(next ent.Mutator) ent.Mutator {
-		return ent.MutateFunc(func(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+		return e.hookWithLog(func(ctx context.Context, entry LogEntry) error {
 			v := viewer.FromContext(ctx)
 			if v == nil ||
-				!v.Features().Enabled(viewer.FeatureGraphEventLogging) ||
-				m.Op().Is(ent.OpDelete) || m.Op().Is(ent.OpUpdate) {
-				return next.Mutate(ctx, m)
-			}
-			entry := LogEntry{
-				UserName:  v.Name(),
-				Operation: m.Op(),
-				Time:      time.Now(),
-			}
-			if v, ok := v.(*viewer.UserViewer); ok {
-				entry.UserID = &v.User().ID
-			}
-			if !m.Op().Is(ent.OpCreate) {
-				if prevNoder, ok := m.(ent.Noder); ok {
-					node, err := prevNoder.Node(ctx)
-					if err != nil {
-						if !ent.IsNotFound(err) {
-							e.Logger.For(ctx).Error("query mutation previous value", zap.Error(err))
-						}
-						return next.Mutate(ctx, m)
-					}
-					entry.PrevState = node
-				}
-			}
-			value, err := next.Mutate(ctx, m)
-			if err != nil {
-				return value, err
-			}
-			if !m.Op().Is(ent.OpDeleteOne) {
-				if currNoder, ok := value.(ent.Noder); ok {
-					node, err := currNoder.Node(ctx)
-					if err != nil {
-						e.Logger.For(ctx).Error("query mutation current value", zap.Error(err))
-						return value, err
-					}
-					entry.CurrState = node
-				}
+				!v.Features().Enabled(viewer.FeatureGraphEventLogging) {
+				return nil
 			}
 			e.emit(ctx, EntMutation, entry)
-			return value, nil
-		})
+			return nil
+		}, next)
 	}
 }
