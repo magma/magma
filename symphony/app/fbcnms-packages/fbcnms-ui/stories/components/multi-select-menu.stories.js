@@ -106,7 +106,6 @@ const SelectMenuRoot = () => {
       <MultiSelectMenu
         className={classes.select}
         size="normal"
-        label="Project"
         searchable={true}
         onOptionsFetchRequested={searchTerm =>
           setOptions(

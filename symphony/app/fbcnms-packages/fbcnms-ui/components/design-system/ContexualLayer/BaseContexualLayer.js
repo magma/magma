@@ -23,7 +23,7 @@ const useStyles = makeStyles(() => ({
 export type ContextualLayerPosition = 'below' | 'above';
 
 export type ContextualLayerOptions = $ReadOnly<{|
-  align?: 'middle',
+  align?: 'middle' | 'stretch',
   position?: ContextualLayerPosition,
 |}>;
 
@@ -56,6 +56,7 @@ const BaseContexualLayer = ({
   position,
   context,
   hidden = false,
+  align = 'middle',
 }: Props) => {
   const classes = useStyles();
 
@@ -77,7 +78,10 @@ const BaseContexualLayer = ({
           style.transform = 'translate(0, -100%)';
           break;
       }
-      style.width = contextRect.right - contextRect.left;
+      if (align === 'stretch') {
+        style.width = contextRect.right - contextRect.left;
+      }
+
       return style;
     };
 
@@ -94,7 +98,7 @@ const BaseContexualLayer = ({
       });
     }
     setHasCalculated(true);
-  }, [context, position]);
+  }, [context, position, align]);
 
   useLayoutEffect(() => {
     if (!hidden) {

@@ -43,10 +43,7 @@ const ProjectsTableView = (props: Props) => {
           key: 'name',
           title: 'Name',
           render: row => (
-            <Button
-              variant="text"
-              useEllipsis={true}
-              onClick={() => onProjectSelected(row.id)}>
+            <Button variant="text" onClick={() => onProjectSelected(row.id)}>
               {row.name}
             </Button>
           ),

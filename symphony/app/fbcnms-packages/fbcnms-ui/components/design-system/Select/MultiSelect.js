@@ -8,7 +8,7 @@
  * @format
  */
 
-import type {OptionProps} from './SelectMenu';
+import type {MultiSelectMenuProps} from './MultiSelectMenu';
 
 import * as React from 'react';
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
@@ -37,19 +37,16 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-type Props<TValue> = {
-  className?: string,
+type Props<TValue> = $ReadOnly<{|
+  ...MultiSelectMenuProps<TValue>,
   label: React.Node,
-  options: Array<OptionProps<TValue>>,
-  onChange: (option: OptionProps<TValue>) => void | (() => void),
-  selectedValues: Array<OptionProps<TValue>>,
-  onOptionsFetchRequested?: (searchTerm: string) => void,
-  searchable?: boolean,
-};
+  disabled?: boolean,
+|}>;
 
 const MultiSelect = <TValue>({
   label,
   className,
+  disabled,
   ...selectMenuProps
 }: Props<TValue>) => {
   const classes = useStyles();
@@ -69,7 +66,8 @@ const MultiSelect = <TValue>({
           ref={contextRef}
           onClick={onShow}
           skin="regular"
-          rightIcon={ArrowDropDownIcon}>
+          rightIcon={ArrowDropDownIcon}
+          disabled={disabled}>
           <span className={classes.label}>{label}</span>
           {selectedValues.length > 0 ? ': ' : null}
           {selectedValues.length === 1 ? (

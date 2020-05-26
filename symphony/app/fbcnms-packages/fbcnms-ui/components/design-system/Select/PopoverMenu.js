@@ -38,7 +38,6 @@ export type PopoverMenuProps<TValue> = $ReadOnly<{|
   onChange?: (value: TValue) => void | (() => void),
   leftIcon?: React$ComponentType<SvgIconExports>,
   rightIcon?: React$ComponentType<SvgIconExports>,
-  searchable?: boolean,
   onOptionsFetchRequested?: (searchTerm: string) => void,
   onVisibilityChange?: (isVisible: boolean) => void,
   ...ButtonProps,
@@ -57,6 +56,8 @@ const PopoverMenu = <TValue>(props: PopoverMenuProps<TValue>) => {
     skin,
     disabled,
     onVisibilityChange,
+    tooltip,
+    useEllipsis,
     ...selectMenuProps
   } = props;
   const classes = useStyles();
@@ -82,7 +83,9 @@ const PopoverMenu = <TValue>(props: PopoverMenuProps<TValue>) => {
           disabled={disabled}
           className={className}
           leftIcon={leftIcon}
-          rightIcon={rightIcon}>
+          rightIcon={rightIcon}
+          tooltip={tooltip}
+          useEllipsis={useEllipsis}>
           {children}
         </Button>
       )}

@@ -8,8 +8,10 @@
  * @format
  */
 
+import MenuItemPhoto from '../../components/design-system/Select/MenuItemPhoto';
 import React, {useState} from 'react';
 import SelectMenu from '../../components/design-system/Select/SelectMenu';
+import {DeleteIcon, EditIcon} from '../../components/design-system/Icons';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {makeStyles} from '@material-ui/styles';
 import {storiesOf} from '@storybook/react';
@@ -74,7 +76,6 @@ const SelectMenuRoot = () => {
     <div className={classes.root}>
       <SelectMenu
         className={classes.select}
-        label="Project"
         size="normal"
         options={[
           {
@@ -87,14 +88,54 @@ const SelectMenuRoot = () => {
             label: 'Option 2',
             value: '2',
           },
+          {
+            key: 'option_3',
+            label: 'Option with a long long long label',
+            value: '3',
+          },
+          {
+            key: 'option_4',
+            label: 'Option with icon',
+            value: '4',
+            leftAux: {
+              type: 'icon',
+              icon: EditIcon,
+            },
+          },
+          {
+            key: 'option_5',
+            label: 'User Name',
+            value: '5',
+            leftAux: {
+              type: 'node',
+              node: (
+                <MenuItemPhoto src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNc/R8AAlsBrPwu9ZMAAAAASUVORK5CYII=" />
+              ),
+            },
+            secondaryText: 'User role',
+          },
+          {
+            key: 'option_6',
+            label: 'Disabled option',
+            value: '6',
+            disabled: true,
+          },
+          {
+            key: 'option_7',
+            label: 'Warning option',
+            value: '7',
+            skin: 'red',
+            leftAux: {
+              type: 'icon',
+              icon: DeleteIcon,
+            },
+          },
         ]}
         onChange={value => window.alert(`Click option #${value}`)}
       />
       <SelectMenu
         className={classes.select}
         size="normal"
-        label="Project"
-        searchable={true}
         onOptionsFetchRequested={searchTerm =>
           setOptions(
             searchTerm === ''

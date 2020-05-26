@@ -239,7 +239,6 @@ class PropertyValueInput<T: Property | PropertyType> extends React.Component<
       case 'bool':
         return (
           <Select
-            id="property-value"
             className={classNames(classes.input, className)}
             label={label}
             disabled={disabled}
