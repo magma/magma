@@ -421,11 +421,11 @@ pipeline {
             copyTo2ndServer('make_mme_run.sh', 'lte/gateway', new_host_flag, new_host_user, new_host)
             timeout (time: 15, unit: 'MINUTES') {
               // removing the magma/.cache/gateway folder with speed down build from 3 minutes to 27 minutes
-              myShCmdWithLog('cd lte/gateway && vagrant ssh magma -c "cd magma/lte/gateway && chmod 755 make_mme_run.sh & ./make_mme_run.sh"', 'archives/magma_vagrant_make_run2.log', new_host_flag, new_host_user, new_host)
+              myShCmdWithLog('cd lte/gateway && vagrant ssh magma -c "cd magma/lte/gateway && chmod 755 make_mme_run.sh && ./make_mme_run.sh"', 'archives/magma_vagrant_make_run2.log', new_host_flag, new_host_user, new_host)
             }
             sh "echo 'make FEATURES=\"mme\" status' > make_mme_status.sh"
             copyTo2ndServer('make_mme_status.sh', 'lte/gateway', new_host_flag, new_host_user, new_host)
-            myShCmdWithLog('cd lte/gateway && vagrant ssh magma -c "cd magma/lte/gateway && chmod 755 make_mme_status.sh & ./make_mme_status.sh"', 'archives/magma_status2.log', new_host_flag, new_host_user, new_host)
+            myShCmdWithLog('cd lte/gateway && vagrant ssh magma -c "cd magma/lte/gateway && chmod 755 make_mme_status.sh && ./make_mme_status.sh"', 'archives/magma_status2.log', new_host_flag, new_host_user, new_host)
           }
         }
       }
