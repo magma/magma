@@ -254,7 +254,7 @@ pipeline {
 
               // We install a dedicated version (installed on our CI server).
               myShCmd('docker cp /opt/clang-format/9.0.0/bin/clang-format ci-cn-clang-formatter:/usr/local/bin', new_host_flag, new_host_user, new_host)
-              if (env.ghprbPullId != null) {
+              if ("MERGE".equals(env.gitlabActionType)) {
                 myShCmd('docker exec -it ci-cn-clang-formatter /bin/bash -c "cd /home && ./ci-scripts/checkCodingFormattingRules.sh --src-branch ' + env.ghprbSourceBranch +' --target-branch ' + env.ghprbTargetBranch + '"', new_host_flag, new_host_user, new_host)
               } else {
                 myShCmd('docker exec -it ci-cn-clang-formatter /bin/bash -c "cd /home && ./ci-scripts/checkCodingFormattingRules.sh"', new_host_flag, new_host_user, new_host)
