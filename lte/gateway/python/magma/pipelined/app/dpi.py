@@ -143,8 +143,12 @@ class DPIController(MagmaController):
                 dl_match, actions_w_mirror, priority=flows.DEFAULT_PRIORITY,
                 resubmit_table=self.next_table, idle_timeout=self._idle_timeout)
 
-        # TODO Check if this is required on FLOW_PARTIAL_CLASSIFICATION
         if self._service_manager.is_app_enabled(IPFIXController.APP_NAME):
+            if (
+                flow_state == FlowRequest.FLOW_PARTIAL_CLASSIFICATION
+                and app_id == DEFAULT_DPI_ID
+            ):
+                return
             self._generate_ipfix_sampling_pkt(flow_match, src_mac, dst_mac)
             flows.add_resubmit_next_service_flow(
                 self._datapath, self._app_set_tbl_num, ul_match, actions,
