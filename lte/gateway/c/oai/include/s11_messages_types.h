@@ -1153,7 +1153,7 @@ typedef struct itti_s11_delete_session_request_s {
 typedef struct itti_s11_delete_session_response_s {
   teid_t teid; ///< Remote Tunnel Endpoint Identifier
   gtpv2c_cause_t cause;
-  uint8_t internal_flags; ///
+  uint8_t internal_flags; ///< Flags used for response messages sen over gtpv2c stack
   //recovery_t recovery;              ///< This IE shall be included on the S5/S8, S4/S11 and S2b
   ///< interfaces if contacting the peer for the first time
   protocol_configuration_options_t

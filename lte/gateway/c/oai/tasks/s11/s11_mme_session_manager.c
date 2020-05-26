@@ -67,17 +67,15 @@ s11_mme_create_session_request (
   nw_gtpv2c_stack_handle_t * stack_p,
   itti_s11_create_session_request_t * req_p)
 {
-  nw_gtpv2c_ulp_api_t                         ulp_req;
+  nw_gtpv2c_ulp_api_t                         ulp_req = {0};
   nw_rc_t                                     rc;
   uint8_t                                     restart_counter = 0;
 
   OAILOG_FUNC_IN (LOG_S11);
 
-  DevAssert (stack_p );
-  //if( stack_p == NULL)
-
+  if(!stack_p)
+    return  RETURNerror;
   DevAssert (req_p );
-  memset (&ulp_req, 0, sizeof (nw_gtpv2c_ulp_api_t));
   ulp_req.apiType = NW_GTPV2C_ULP_API_INITIAL_REQ;
   /*
    * Prepare a new Create Session Request msg
@@ -96,7 +94,9 @@ s11_mme_create_session_request (
    * Add recovery if contacting the peer for the first time
    */
   rc = nwGtpv2cMsgAddIe ((ulp_req.hMsg), NW_GTPV2C_IE_RECOVERY, 1, 0, (uint8_t *) & restart_counter);
-  DevAssert (NW_OK == rc);
+  //DevAssert (NW_OK == rc);
+  if(rc != NW_OK)
+  return  rc;
   /*
    * Putting the information Elements
    */
@@ -387,6 +387,7 @@ s11_mme_handle_delete_session_response (
 
   DevAssert (stack_p );
   message_p = itti_alloc_new_message (TASK_S11, S11_DELETE_SESSION_RESPONSE);
+  //memset(resp_p, 0, sizeof(itti_s11_delete_session_response_t));
   resp_p = &message_p->ittiMsg.s11_delete_session_response;
 
   resp_p->teid = nwGtpv2cMsgGetTeid(pUlpApi->hMsg);
