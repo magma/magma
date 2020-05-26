@@ -264,7 +264,7 @@ class DPIController(MagmaController):
         self.logger.debug("Enabled monitor port ret %d", ret)
 
 
-def get_app_id(app: str, service_type: str) -> str:
+def get_app_id(app: str, service_type: str) -> int:
     """
     Classify the app/service_type to a numeric identifier to export
     """
