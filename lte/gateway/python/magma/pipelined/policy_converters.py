@@ -56,7 +56,7 @@ def flow_match_to_magma_match(match):
             if value is None:
                 return
         if attrib == 'app_name':
-            attrib = 'reg3'
+            attrib = DPI_REG
 
         match_kwargs[attrib] = value
     return MagmaMatch(direction=_get_direction_for_match(match),
