@@ -219,7 +219,6 @@ type ComplexityRoot struct {
 
 	Comment struct {
 		Author     func(childComplexity int) int
-		AuthorName func(childComplexity int) int
 		CreateTime func(childComplexity int) int
 		ID         func(childComplexity int) int
 		Text       func(childComplexity int) int
@@ -801,7 +800,6 @@ type ComplexityRoot struct {
 		Projects                 func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
 		PythonPackages           func(childComplexity int) int
 		ReportFilters            func(childComplexity int, entity models.FilterEntity) int
-		SearchForEntity          func(childComplexity int, name string, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
 		SearchForNode            func(childComplexity int, name string, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
 		ServiceSearch            func(childComplexity int, filters []*models.ServiceFilterInput, limit *int) int
 		ServiceTypes             func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
@@ -1073,7 +1071,6 @@ type ComplexityRoot struct {
 	}
 
 	Viewer struct {
-		Name        func(childComplexity int) int
 		Permissions func(childComplexity int) int
 		Tenant      func(childComplexity int) int
 		User        func(childComplexity int) int
@@ -1214,7 +1211,6 @@ type CheckListItemDefinitionResolver interface {
 	EnumSelectionMode(ctx context.Context, obj *ent.CheckListItemDefinition) (*checklistitem.EnumSelectionModeValue, error)
 }
 type CommentResolver interface {
-	AuthorName(ctx context.Context, obj *ent.Comment) (string, error)
 	Author(ctx context.Context, obj *ent.Comment) (*ent.User, error)
 }
 type EquipmentResolver interface {
@@ -1432,7 +1428,6 @@ type QueryResolver interface {
 	Users(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.UserConnection, error)
 	UsersGroups(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.UsersGroupConnection, error)
 	PermissionsPolicies(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.PermissionsPolicyConnection, error)
-	SearchForEntity(ctx context.Context, name string, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*models.SearchEntriesConnection, error)
 	SearchForNode(ctx context.Context, name string, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*models.SearchNodesConnection, error)
 	EquipmentSearch(ctx context.Context, filters []*models.EquipmentFilterInput, limit *int) (*models.EquipmentSearchResult, error)
 	WorkOrderSearch(ctx context.Context, filters []*models.WorkOrderFilterInput, limit *int) (*models.WorkOrderSearchResult, error)
@@ -2048,13 +2043,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Comment.Author(childComplexity), true
-
-	case "Comment.authorName":
-		if e.complexity.Comment.AuthorName == nil {
-			break
-		}
-
-		return e.complexity.Comment.AuthorName(childComplexity), true
 
 	case "Comment.createTime":
 		if e.complexity.Comment.CreateTime == nil {
@@ -5304,18 +5292,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.ReportFilters(childComplexity, args["entity"].(models.FilterEntity)), true
 
-	case "Query.searchForEntity":
-		if e.complexity.Query.SearchForEntity == nil {
-			break
-		}
-
-		args, err := ec.field_Query_searchForEntity_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.SearchForEntity(childComplexity, args["name"].(string), args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int)), true
-
 	case "Query.searchForNode":
 		if e.complexity.Query.SearchForNode == nil {
 			break
@@ -6622,13 +6598,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Vertex.Type(childComplexity), true
 
-	case "Viewer.email":
-		if e.complexity.Viewer.Name == nil {
-			break
-		}
-
-		return e.complexity.Viewer.Name(childComplexity), true
-
 	case "Viewer.permissions":
 		if e.complexity.Viewer.Permissions == nil {
 			break
@@ -7411,11 +7380,6 @@ input EditPermissionsPolicyInput {
 type Viewer
   @goModel(model: "github.com/facebookincubator/symphony/graph/viewer.Viewer") {
   tenant: String!
-  email: String!
-    @goField(name: "Name")
-    @deprecated(
-      reason: "Use ` + "`" + `Viewer.user.email` + "`" + ` instead. Will be removed on 2020-05-01"
-    )
   user: User
   permissions: PermissionSettings!
 }
@@ -7634,10 +7598,6 @@ input AddImageInput {
 
 type Comment implements Node {
   id: ID!
-  authorName: String!
-    @deprecated(
-      reason: "Use ` + "`" + `Comment.author.email` + "`" + ` instead. Will be removed on 2020-05-01"
-    )
   author: User!
   text: String!
   createTime: Time!
@@ -9159,18 +9119,10 @@ what type of work order we filter about
 enum WorkOrderFilterType {
   WORK_ORDER_NAME
   WORK_ORDER_STATUS
-  WORK_ORDER_OWNER
-    @deprecated(
-      reason: "Use ` + "`" + `WorkOrderFilterType.WORK_ORDER_OWNED_BY` + "`" + ` instead. Will be removed on 2020-05-01"
-    )
   WORK_ORDER_OWNED_BY
   WORK_ORDER_TYPE
   WORK_ORDER_CREATION_DATE
   WORK_ORDER_INSTALL_DATE
-  WORK_ORDER_ASSIGNEE
-    @deprecated(
-      reason: "Use ` + "`" + `WorkOrderFilterType.WORK_ORDER_ASSIGNED_TO` + "`" + ` instead. Will be removed on 2020-05-01"
-    )
   WORK_ORDER_ASSIGNED_TO
   WORK_ORDER_LOCATION_INST
   WORK_ORDER_PRIORITY
@@ -9843,16 +9795,6 @@ type Query {
     before: Cursor
     last: Int
   ): PermissionsPolicyConnection
-  searchForEntity(
-    name: String!
-    after: Cursor
-    first: Int = 10
-    before: Cursor
-    last: Int
-  ): SearchEntriesConnection!
-    @deprecated(
-      reason: "Use ` + "`" + `searchForNode` + "`" + ` instead. Will be removed on 2020-05-01"
-    )
   searchForNode(
     name: String!
     after: Cursor
@@ -12224,52 +12166,6 @@ func (ec *executionContext) field_Query_reportFilters_args(ctx context.Context, 
 		}
 	}
 	args["entity"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_searchForEntity_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["name"]; ok {
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["name"] = arg0
-	var arg1 *ent.Cursor
-	if tmp, ok := rawArgs["after"]; ok {
-		arg1, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["after"] = arg1
-	var arg2 *int
-	if tmp, ok := rawArgs["first"]; ok {
-		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["first"] = arg2
-	var arg3 *ent.Cursor
-	if tmp, ok := rawArgs["before"]; ok {
-		arg3, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["before"] = arg3
-	var arg4 *int
-	if tmp, ok := rawArgs["last"]; ok {
-		arg4, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["last"] = arg4
 	return args, nil
 }
 
@@ -14854,40 +14750,6 @@ func (ec *executionContext) _Comment_id(ctx context.Context, field graphql.Colle
 	res := resTmp.(int)
 	fc.Result = res
 	return ec.marshalNID2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Comment_authorName(ctx context.Context, field graphql.CollectedField, obj *ent.Comment) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "Comment",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Comment().AuthorName(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Comment_author(ctx context.Context, field graphql.CollectedField, obj *ent.Comment) (ret graphql.Marshaler) {
@@ -28170,47 +28032,6 @@ func (ec *executionContext) _Query_permissionsPolicies(ctx context.Context, fiel
 	return ec.marshalOPermissionsPolicyConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐPermissionsPolicyConnection(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_searchForEntity(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "Query",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_searchForEntity_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SearchForEntity(rctx, args["name"].(string), args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*models.SearchEntriesConnection)
-	fc.Result = res
-	return ec.marshalNSearchEntriesConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐSearchEntriesConnection(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Query_searchForNode(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -34670,40 +34491,6 @@ func (ec *executionContext) _Viewer_tenant(ctx context.Context, field graphql.Co
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Tenant(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Viewer_email(ctx context.Context, field graphql.CollectedField, obj viewer.Viewer) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "Viewer",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Name(), nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -43556,20 +43343,6 @@ func (ec *executionContext) _Comment(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
-		case "authorName":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Comment_authorName(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
 		case "author":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -47470,20 +47243,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				res = ec._Query_permissionsPolicies(ctx, field)
 				return res
 			})
-		case "searchForEntity":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_searchForEntity(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
 		case "searchForNode":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -49518,11 +49277,6 @@ func (ec *executionContext) _Viewer(ctx context.Context, sel ast.SelectionSet, o
 			out.Values[i] = graphql.MarshalString("Viewer")
 		case "tenant":
 			out.Values[i] = ec._Viewer_tenant(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "email":
-			out.Values[i] = ec._Viewer_email(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
@@ -54278,20 +54032,6 @@ func (ec *executionContext) marshalNReportFilter2ᚖgithubᚗcomᚋfacebookincub
 
 func (ec *executionContext) unmarshalNReportFilterInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐReportFilterInput(ctx context.Context, v interface{}) (models.ReportFilterInput, error) {
 	return ec.unmarshalInputReportFilterInput(ctx, v)
-}
-
-func (ec *executionContext) marshalNSearchEntriesConnection2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐSearchEntriesConnection(ctx context.Context, sel ast.SelectionSet, v models.SearchEntriesConnection) graphql.Marshaler {
-	return ec._SearchEntriesConnection(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNSearchEntriesConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐSearchEntriesConnection(ctx context.Context, sel ast.SelectionSet, v *models.SearchEntriesConnection) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	return ec._SearchEntriesConnection(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNSearchEntryEdge2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐSearchEntryEdge(ctx context.Context, sel ast.SelectionSet, v models.SearchEntryEdge) graphql.Marshaler {

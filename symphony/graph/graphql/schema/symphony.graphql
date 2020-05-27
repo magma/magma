@@ -244,11 +244,6 @@ input EditPermissionsPolicyInput {
 type Viewer
   @goModel(model: "github.com/facebookincubator/symphony/graph/viewer.Viewer") {
   tenant: String!
-  email: String!
-    @goField(name: "Name")
-    @deprecated(
-      reason: "Use `Viewer.user.email` instead. Will be removed on 2020-05-01"
-    )
   user: User
   permissions: PermissionSettings!
 }
@@ -467,10 +462,6 @@ input AddImageInput {
 
 type Comment implements Node {
   id: ID!
-  authorName: String!
-    @deprecated(
-      reason: "Use `Comment.author.email` instead. Will be removed on 2020-05-01"
-    )
   author: User!
   text: String!
   createTime: Time!
@@ -1992,18 +1983,10 @@ what type of work order we filter about
 enum WorkOrderFilterType {
   WORK_ORDER_NAME
   WORK_ORDER_STATUS
-  WORK_ORDER_OWNER
-    @deprecated(
-      reason: "Use `WorkOrderFilterType.WORK_ORDER_OWNED_BY` instead. Will be removed on 2020-05-01"
-    )
   WORK_ORDER_OWNED_BY
   WORK_ORDER_TYPE
   WORK_ORDER_CREATION_DATE
   WORK_ORDER_INSTALL_DATE
-  WORK_ORDER_ASSIGNEE
-    @deprecated(
-      reason: "Use `WorkOrderFilterType.WORK_ORDER_ASSIGNED_TO` instead. Will be removed on 2020-05-01"
-    )
   WORK_ORDER_ASSIGNED_TO
   WORK_ORDER_LOCATION_INST
   WORK_ORDER_PRIORITY
@@ -2676,16 +2659,6 @@ type Query {
     before: Cursor
     last: Int
   ): PermissionsPolicyConnection
-  searchForEntity(
-    name: String!
-    after: Cursor
-    first: Int = 10
-    before: Cursor
-    last: Int
-  ): SearchEntriesConnection!
-    @deprecated(
-      reason: "Use `searchForNode` instead. Will be removed on 2020-05-01"
-    )
   searchForNode(
     name: String!
     after: Cursor
