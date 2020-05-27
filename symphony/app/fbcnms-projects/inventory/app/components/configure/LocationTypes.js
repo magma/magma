@@ -211,8 +211,8 @@ class LocationTypes extends React.Component<Props, State> {
     );
   }
 
-  _onDragEnd = (result, locationTypes) => {
-    if (!result.destination) {
+  _onDragEnd = ({source, destination}, locationTypes) => {
+    if (destination == null) {
       return;
     }
     locationTypes = locationTypes.edges
@@ -220,11 +220,7 @@ class LocationTypes extends React.Component<Props, State> {
       .sort(sortByIndex);
 
     ServerLogger.info(LogEvents.LOCATION_TYPE_REORDERED);
-    const items = reorder(
-      locationTypes,
-      result.source.index,
-      result.destination.index,
-    );
+    const items = reorder(locationTypes, source.index, destination.index);
     const newItems = items.map((locTyp, i) => ({...locTyp, index: i}));
     this.saveOrder(newItems);
   };
