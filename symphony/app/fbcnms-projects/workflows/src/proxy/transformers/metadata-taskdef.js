@@ -33,7 +33,7 @@ const logger = logging.getLogger(module);
 /*
 curl  -H "x-auth-organization: fb-test" "localhost/proxy/api/metadata/taskdefs"
 */
-const getAllTaskdefsAfter: AfterFun = (tenantId, req, respObj) => {
+const getAllTaskdefsAfter: AfterFun = (tenantId, groups, req, respObj) => {
   const tasks = anythingTo<Array<Task>>(respObj);
   // iterate over taskdefs, keep only those belonging to tenantId or global
   // remove tenantId prefix, keep GLOBAL_
@@ -77,7 +77,13 @@ curl -X POST -H "x-auth-organization: fb-test"  \
 '
 */
 // TODO: should this be disabled?
-const postTaskdefsBefore: BeforeFun = (tenantId, req, res, proxyCallback) => {
+const postTaskdefsBefore: BeforeFun = (
+  tenantId,
+  groups,
+  req,
+  res,
+  proxyCallback,
+) => {
   // iterate over taskdefs, prefix with tenantId
   const reqObj = req.body;
   if (reqObj != null && Array.isArray(reqObj)) {
@@ -111,7 +117,13 @@ curl -X PUT -H "x-auth-organization: fb-test" \
 '
 */
 // TODO: should this be disabled?
-const putTaskdefBefore: BeforeFun = (tenantId, req, res, proxyCallback) => {
+const putTaskdefBefore: BeforeFun = (
+  tenantId,
+  groups,
+  req,
+  res,
+  proxyCallback,
+) => {
   const reqObj = req.body;
   if (reqObj != null && typeof reqObj === 'object') {
     const taskdef = anythingTo<Task>(reqObj);
@@ -130,6 +142,7 @@ curl -H "x-auth-organization: fb-test" \
 // Gets the task definition
 const getTaskdefByNameBefore: BeforeFun = (
   tenantId,
+  groups,
   req,
   res,
   proxyCallback,
@@ -140,7 +153,13 @@ const getTaskdefByNameBefore: BeforeFun = (
   proxyCallback();
 };
 
-const getTaskdefByNameAfter: AfterFun = (tenantId, req, respObj, res) => {
+const getTaskdefByNameAfter: AfterFun = (
+  tenantId,
+  groups,
+  req,
+  respObj,
+  res,
+) => {
   const task = anythingTo<Task>(respObj);
   const tenantWithInfixSeparator = withInfixSeparator(tenantId);
   // remove prefix
@@ -163,6 +182,7 @@ curl -H "x-auth-organization: fb-test" \
 */
 const deleteTaskdefByNameBefore: BeforeFun = (
   tenantId,
+  groups,
   req,
   res,
   proxyCallback,

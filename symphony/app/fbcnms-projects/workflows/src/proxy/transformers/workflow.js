@@ -34,17 +34,36 @@ const logger = logging.getLogger(module);
  curl -H "x-auth-organization: fb-test" \
   "localhost/proxy/api/workflow/search?query=status+IN+(FAILED)"
 */
-const getSearchBefore: BeforeFun = (tenantId, req, res, proxyCallback) => {
+export const getSearchBefore: BeforeFun = (
+  tenantId,
+  groups,
+  req,
+  res,
+  proxyCallback,
+) => {
   // prefix query with workflowType STARTS_WITH tenantId_
   const originalQueryString = req._parsedUrl.query;
-  const parsedQuery = qs.parse(originalQueryString);
   const limitToTenant = `workflowType STARTS_WITH \'${tenantId}_'`;
+  const newQueryString = updateQuery(originalQueryString, limitToTenant);
+  req.url = req._parsedUrl.pathname + '?' + newQueryString;
+  proxyCallback();
+};
+
+export const getSearchAfter: AfterFun = (tenantId, groups, req, respObj) => {
+  removeTenantPrefix(tenantId, respObj, 'results[*].workflowType', false);
+};
+
+export function updateQuery(
+  originalQueryString: string,
+  queryExpanded: string,
+): string {
+  const parsedQuery = qs.parse(originalQueryString);
   let q = parsedQuery['query'];
   if (q) {
     // TODO: validate conductor query to prevent security issues
-    q = limitToTenant + ' AND (' + q + ')';
+    q = `(${q} AND (${queryExpanded}))`;
   } else {
-    q = limitToTenant;
+    q = `(${queryExpanded})`;
   }
   parsedQuery['query'] = q;
   const newQueryString = qs.stringify(parsedQuery);
@@ -52,13 +71,8 @@ const getSearchBefore: BeforeFun = (tenantId, req, res, proxyCallback) => {
     `Transformed query string from ` +
       `'${originalQueryString}' to '${newQueryString}`,
   );
-  req.url = req._parsedUrl.pathname + '?' + newQueryString;
-  proxyCallback();
-};
-
-const getSearchAfter: AfterFun = (tenantId, req, respObj) => {
-  removeTenantPrefix(tenantId, respObj, 'results[*].workflowType', false);
-};
+  return newQueryString;
+}
 
 // Start a new workflow with StartWorkflowRequest, which allows task to be
 // executed in a domain
@@ -75,7 +89,13 @@ curl -X POST -H "x-auth-organization: fb-test" -H \
 }
 '
 */
-const postWorkflowBefore: BeforeFun = (tenantId, req, res, proxyCallback) => {
+export const postWorkflowBefore: BeforeFun = (
+  tenantId,
+  groups,
+  req,
+  res,
+  proxyCallback,
+) => {
   // name must start with prefix
   const tenantWithInfixSeparator = withInfixSeparator(tenantId);
   const reqObj = anythingTo<StartWorkflowRequest>(req.body);
@@ -110,7 +130,12 @@ const postWorkflowBefore: BeforeFun = (tenantId, req, res, proxyCallback) => {
 curl  -H "x-auth-organization: fb-test" \
     "localhost/proxy/api/workflow/c0a438d4-25b7-4c12-8a29-3473d98b1ad7"
 */
-const getExecutionStatusAfter: AfterFun = (tenantId, req, respObj) => {
+export const getExecutionStatusAfter: AfterFun = (
+  tenantId,
+  groups,
+  req,
+  respObj,
+) => {
   const jsonPathToAllowGlobal = {
     workflowName: false,
     workflowType: false,
@@ -137,7 +162,13 @@ curl  -H "x-auth-organization: fb-test" \
     "localhost/proxy/api/workflow/2dbb6e3e-c45d-464b-a9c9-2bbb16b7ca71/remove" \
     -X DELETE
 */
-const removeWorkflowBefore: BeforeFun = (tenantId, req, res, proxyCallback) => {
+export const removeWorkflowBefore: BeforeFun = (
+  tenantId,
+  groups,
+  req,
+  res,
+  proxyCallback,
+) => {
   const url = proxyTarget + '/api/workflow/' + req.params.workflowId;
   // first make a HTTP request to validate that this workflow belongs to tenant
   const requestOptions = {

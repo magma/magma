@@ -56,7 +56,7 @@ curl http://localhost/proxy/schedule \
   -H "X-Auth-Organization: fb-test" \
   -H 'Content-Type: application/json'
 */
-const getAllBefore: BeforeFun = (tenantId, req, res, proxyCallback) => {
+const getAllBefore: BeforeFun = (tenantId, groups, req, res, proxyCallback) => {
   req.url = '/schedule';
   proxyCallback({target: schellarTarget});
 };
@@ -84,7 +84,7 @@ function removeWrongPrefixesFromArray(
   }
 }
 
-const getAllAfter: AfterFun = (tenantId, req, respObj) => {
+const getAllAfter: AfterFun = (tenantId, groups, req, respObj) => {
   if (respObj != null && Array.isArray(respObj)) {
     removeWrongPrefixesFromArray(tenantId, anythingTo(respObj), '$.name');
     removeTenantPrefix(tenantId, respObj, '$[*].workflowName', false);
@@ -100,7 +100,7 @@ curl http://localhost/proxy/schedule/workflow1 \
   -H "X-Auth-Organization: fb-test" \
   -H 'Content-Type: application/json'
 */
-const getBefore: BeforeFun = (tenantId, req, res, proxyCallback) => {
+const getBefore: BeforeFun = (tenantId, groups, req, res, proxyCallback) => {
   const reqName = req.params.name;
   req.url = '/schedule/' + withInfixSeparator(tenantId) + reqName;
   proxyCallback({target: schellarTarget});
@@ -131,7 +131,7 @@ curl -X POST http://localhost/proxy/schedule \
   }
 '
 */
-const postBefore: BeforeFun = (tenantId, req, res, proxyCallback) => {
+const postBefore: BeforeFun = (tenantId, groups, req, res, proxyCallback) => {
   req.url = '/schedule';
   const schedule = anythingTo<ScheduleRequest>(req.body);
   sanitizeScheduleBefore(tenantId, schedule);
@@ -161,7 +161,7 @@ curl -X PUT http://localhost/proxy/schedule/workflow1 \
 '
 */
 // Renaming is not supported by proxy - url name must be equal to workflowName
-const putBefore: BeforeFun = (tenantId, req, res, proxyCallback) => {
+const putBefore: BeforeFun = (tenantId, groups, req, res, proxyCallback) => {
   const schedule = anythingTo<ScheduleRequest>(req.body);
   let reqName = req.params.name;
   if (reqName !== schedule.name) {
@@ -185,7 +185,7 @@ curl -X DELETE \
   -H 'Content-Type: application/json' \
   http://localhost/proxy/schedule/workflow1
 */
-const deleteBefore: BeforeFun = (tenantId, req, res, proxyCallback) => {
+const deleteBefore: BeforeFun = (tenantId, groups, req, res, proxyCallback) => {
   const reqName = req.params.name;
   req.url = '/schedule/' + withInfixSeparator(tenantId) + reqName;
   proxyCallback({target: schellarTarget});
