@@ -111,7 +111,7 @@ def get_service_config_value(service: str, param: str, default: Any) -> Any:
     cached_service_configs[service] = service_configs
 
     config_value = service_configs.get(param)
-    if config_value:
+    if config_value is not None:
         return config_value
     else:
         logging.error(
