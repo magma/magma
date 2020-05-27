@@ -104,7 +104,7 @@ async def run(cmd):
     await proc.communicate()
     if proc.returncode != 0:
         # This can happen because the NAT prerouting rule didn't exist
-        logger.info('Possible error running async subprocess: %s exited with '
+        logger.error('Possible error running async subprocess: %s exited with '
                      'return code [%d].', cmd, proc.returncode)
     return proc.returncode
 
