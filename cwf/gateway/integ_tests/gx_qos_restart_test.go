@@ -151,7 +151,7 @@ func testQosEnforcementRestart(t *testing.T, cfgCh chan string, restartCfg strin
 }
 
 func TestQosRestartMeter(t *testing.T) {
-	t.Log("Running TestQosRestartMeter")
+	fmt.Println("\nRunning TestQosRestartMeter")
 	cfgCh, err := configFileManager(pipelinedCfgFn)
 	defer func() {
 		close(cfgCh)
@@ -166,10 +166,10 @@ func TestQosRestartMeter(t *testing.T) {
 	}
 
 	// clean restart test
-	t.Log("Running TestQosRestartMeter - clean restart")
+	fmt.Println("\nRunning TestQosRestartMeter - clean restart")
 	testQosEnforcementRestart(t, cfgCh, cleanRestartYaml)
 
 	// non clean restart test
-	t.Log("Running TestQosRestartMeter - non clean restart")
+	fmt.Println("\nRunning TestQosRestartMeter - non clean restart")
 	testQosEnforcementRestart(t, cfgCh, nonCleanRestartYaml)
 }

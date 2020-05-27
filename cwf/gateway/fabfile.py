@@ -126,6 +126,7 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     else:
         ansible_setup(gateway_host, "cwag", "cwag_dev.yml")
     execute(_set_cwag_networking, cwag_test_br_mac)
+    execute(_check_docker_services)
 
     # Start main tests - except for multi session proxy
     if not test_host:
@@ -151,6 +152,7 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
 
         # Stop not necessary services for this test case
         execute(_stop_docker_services, ["ingress"])
+        execute(_check_docker_services)
 
         # CWAG_TEST VM
         if not test_host:
@@ -172,6 +174,7 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
         execute(_set_cwag_configs, "gateway.mconfig.multi_session_proxy")
         execute(_restart_docker_services, ["session_proxy", "pcrf", "ocs",
                                            "pcrf2", "ocs2", "ingress"])
+        execute(_check_docker_services)
 
         # CWAG_TEST VM
         if not test_host:
@@ -329,6 +332,15 @@ def _stop_docker_services(services):
             " -f docker-compose.nginx.yml"
             " -f docker-compose.integ-test.yml"
             " stop {}".format(" ".join(services))
+        )
+
+
+def _check_docker_services():
+    with cd(CWAG_ROOT + "/docker"):
+        run(
+            " DCPS=$(docker ps --format \"{{.Names}}\t{{.Status}}\" | grep Restarting);"
+            " [[ -z \"$DCPS\" ]] ||"
+            " ( echo \"Container restarting detected.\" ; echo \"$DCPS\"; exit 1 )"
         )
 
 
