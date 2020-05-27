@@ -294,6 +294,8 @@ pipeline {
             script {
               gitlabCommitStatus(name: "Activate-Test-VM") {
                 myShCmdWithLog('cd lte/gateway && vagrant destroy --force magma_test && vagrant up magma_test', 'archives/magma_vagrant_test_up.log', new_host_flag, new_host_user, new_host)
+                // The Traffic Testcases are disabled from the Mandatory suite --> will be run manually
+                myShCmd('sed -f ci-scripts/removeLastUlTestCases.sed lte/gateway/python/integ_tests/defs.mk', new_host_flag, new_host_user, new_host)
                 myShCmdWithLog('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/ && make"', 'archives/magma_vagrant_test_make1.log', new_host_flag, new_host_user, new_host)
                 myShCmdWithLog('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && make"', 'archives/magma_vagrant_test_make2.log', new_host_flag, new_host_user, new_host)
               }
@@ -348,14 +350,33 @@ pipeline {
                 sh "sleep 20"
 
                 echo "Starting the integration Tests - S1AP Tester"
-                timeout (time: 30, unit: 'MINUTES') {
+                // We have removed the traffic testcases from mandatory suite.
+                timeout (time: 20, unit: 'MINUTES') {
                   myShCmdWithLog('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test"', 'archives/magma_run_s1ap_tester.log', new_host_flag, new_host_user, new_host)
-                  // Adding a few tests not in the mandatory suite
+                }
+                // Adding a few tests not in the mandatory suite and the UL traffic scenarios (launched manually)
+                timeout (time: 30, unit: 'SECONDS') {
+                  try {
+                    myShCmdWithLogAppend('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test TESTS=s1aptests/test_attach_ul_udp_data.py"', 'archives/magma_run_s1ap_tester.log', new_host_flag, new_host_user, new_host)
+                  } catch (Exception e) {
+                    echo "s1aptests/test_attach_ul_udp_data testcase may fail"
+                  }
+                }
+                timeout (time: 30, unit: 'SECONDS') {
+                  try {
+                    myShCmdWithLogAppend('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test TESTS=s1aptests/test_attach_ul_tcp_data.py"', 'archives/magma_run_s1ap_tester.log', new_host_flag, new_host_user, new_host)
+                  } catch (Exception e) {
+                    echo "s1aptests/test_attach_ul_tcp_data testcase may fail"
+                  }
+                }
+                timeout (time: 30, unit: 'SECONDS') {
                   try {
                     myShCmdWithLogAppend('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test TESTS=s1aptests/test_attach_dl_udp_data.py"', 'archives/magma_run_s1ap_tester.log', new_host_flag, new_host_user, new_host)
                   } catch (Exception e) {
                     echo "s1aptests/test_attach_dl_udp_data testcase may fail"
                   }
+                }
+                timeout (time: 30, unit: 'SECONDS') {
                   try {
                     myShCmdWithLogAppend('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test TESTS=s1aptests/test_attach_dl_tcp_data.py"', 'archives/magma_run_s1ap_tester.log', new_host_flag, new_host_user, new_host)
                   } catch (Exception e) {
@@ -500,12 +521,15 @@ pipeline {
               sh "sleep 60"
               gitlabCommitStatus(name: "Test-AGW1-w-S11") {
                 echo "Starting the integration Tests - S1AP Tester"
-                timeout (time: 30, unit: 'MINUTES') {
+                timeout (time: 10, unit: 'MINUTES') {
                   myShCmdWithLog('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test TESTS=s1aptests/test_attach_detach.py"', 'archives/magma_run_s1ap_tester_s11.log', new_host_flag, new_host_user, new_host)
-                  //myShCmdWithLogAppend('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test TESTS=s1aptests/test_attach_ul_udp_data.py"', 'archives/magma_run_s1ap_tester_s11.log', new_host_flag, new_host_user, new_host)
-                  //myShCmdWithLogAppend('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test TESTS=s1aptests/test_attach_ul_tcp_data.py"', 'archives/magma_run_s1ap_tester_s11.log', new_host_flag, new_host_user, new_host)
-                  //myShCmdWithLogAppend('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test TESTS=s1aptests/test_attach_dl_udp_data.py"', 'archives/magma_run_s1ap_tester_s11.log', new_host_flag, new_host_user, new_host)
-                  //myShCmdWithLogAppend('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test TESTS=s1aptests/test_attach_dl_tcp_data.py"', 'archives/magma_run_s1ap_tester_s11.log', new_host_flag, new_host_user, new_host)
+                  myShCmdWithLogAppend('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test TESTS=s1aptests/test_attach_detach_multi_ue.py"', 'archives/magma_run_s1ap_tester_s11.log', new_host_flag, new_host_user, new_host)
+                  myShCmdWithLogAppend('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test TESTS=s1aptests/test_attach_detach_looped.py"', 'archives/magma_run_s1ap_tester_s11.log', new_host_flag, new_host_user, new_host)
+                  myShCmdWithLogAppend('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test TESTS=s1aptests/test_attach_emergency.py"', 'archives/magma_run_s1ap_tester_s11.log', new_host_flag, new_host_user, new_host)
+                  myShCmdWithLogAppend('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test TESTS=s1aptests/test_attach_combined_eps_imsi.py"', 'archives/magma_run_s1ap_tester_s11.log', new_host_flag, new_host_user, new_host)
+                  myShCmdWithLogAppend('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test TESTS=s1aptests/test_attach_via_guti.py"', 'archives/magma_run_s1ap_tester_s11.log', new_host_flag, new_host_user, new_host)
+                  myShCmdWithLogAppend('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test TESTS=s1aptests/test_attach_detach_after_ue_context_release.py"', 'archives/magma_run_s1ap_tester_s11.log', new_host_flag, new_host_user, new_host)
+                  myShCmdWithLogAppend('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test TESTS=s1aptests/test_no_auth_response.py"', 'archives/magma_run_s1ap_tester_s11.log', new_host_flag, new_host_user, new_host)
                 }
 
                 echo "Stopping the Traffic server in background"
@@ -572,7 +596,7 @@ pipeline {
   post {
     always {
       script {
-        myShCmd('git checkout -- lte/gateway/configs/mme.yml', new_host_flag, new_host_user, new_host)
+        myShCmd('git checkout -- lte/gateway/python/integ_tests/defs.mk lte/gateway/configs/mme.yml', new_host_flag, new_host_user, new_host)
 
         // Stopping the VMs and the Containers
         myShCmdWithLog('cd lte/gateway && vagrant halt magma', 'archives/magma_vagrant_halt.log', new_host_flag, new_host_user, new_host)
