@@ -396,6 +396,7 @@ func (sqc *SurveyQuestionCreate) Save(ctx context.Context) (*SurveyQuestion, err
 			}
 			sqc.mutation = mutation
 			node, err = sqc.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(sqc.hooks) - 1; i >= 0; i-- {

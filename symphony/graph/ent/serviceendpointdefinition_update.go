@@ -179,6 +179,7 @@ func (sedu *ServiceEndpointDefinitionUpdate) Save(ctx context.Context) (int, err
 			}
 			sedu.mutation = mutation
 			affected, err = sedu.sqlSave(ctx)
+			mutation.done = true
 			return affected, err
 		})
 		for i := len(sedu.hooks) - 1; i >= 0; i-- {
@@ -543,6 +544,7 @@ func (seduo *ServiceEndpointDefinitionUpdateOne) Save(ctx context.Context) (*Ser
 			}
 			seduo.mutation = mutation
 			node, err = seduo.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(seduo.hooks) - 1; i >= 0; i-- {

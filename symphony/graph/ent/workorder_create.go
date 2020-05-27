@@ -413,6 +413,7 @@ func (woc *WorkOrderCreate) Save(ctx context.Context) (*WorkOrder, error) {
 			}
 			woc.mutation = mutation
 			node, err = woc.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(woc.hooks) - 1; i >= 0; i-- {

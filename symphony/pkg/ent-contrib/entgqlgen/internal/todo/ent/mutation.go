@@ -41,6 +41,7 @@ type TodoMutation struct {
 	clearedparent   bool
 	children        map[int]struct{}
 	removedchildren map[int]struct{}
+	done            bool
 	oldValue        func(context.Context) (*Todo, error)
 }
 
@@ -73,7 +74,11 @@ func withTodoID(id int) todoOption {
 		)
 		m.oldValue = func(ctx context.Context) (*Todo, error) {
 			once.Do(func() {
-				value, err = m.Client().Todo.Get(ctx, id)
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Todo.Get(ctx, id)
+				}
 			})
 			return value, err
 		}
@@ -133,7 +138,9 @@ func (m *TodoMutation) Text() (r string, exists bool) {
 	return *v, true
 }
 
-// OldText returns the old text value, if exists.
+// OldText returns the old text value of the Todo.
+// If the Todo object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *TodoMutation) OldText(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {

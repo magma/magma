@@ -76,11 +76,6 @@ func (e *TopicEmitter) Set(url string) (err error) {
 	return nil
 }
 
-// UnmarshalFlag updates the value of the topic emitter.
-func (e *TopicEmitter) UnmarshalFlag(v string) error {
-	return e.Set(v)
-}
-
 // NewNopEmitter returns an emitter that drops all events and never fails.
 func NewNopEmitter() Emitter {
 	return EmitterFunc(func(context.Context, string, string, []byte) error {

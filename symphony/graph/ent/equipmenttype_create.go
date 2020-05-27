@@ -185,6 +185,7 @@ func (etc *EquipmentTypeCreate) Save(ctx context.Context) (*EquipmentType, error
 			}
 			etc.mutation = mutation
 			node, err = etc.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(etc.hooks) - 1; i >= 0; i-- {

@@ -5,6 +5,8 @@
 package telemetry
 
 import (
+	"fmt"
+
 	"contrib.go.opencensus.io/exporter/prometheus"
 	promclient "github.com/prometheus/client_golang/prometheus"
 	"go.opencensus.io/stats/view"
@@ -27,7 +29,7 @@ func NewPrometheusExporter(opts ViewExporterOptions) (view.Exporter, error) {
 	}
 	exporter, err := prometheus.NewExporter(o)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("cannot create prometheus exporter: %w", err)
 	}
 	return exporter, nil
 }

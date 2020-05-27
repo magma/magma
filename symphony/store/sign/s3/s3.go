@@ -6,10 +6,9 @@ package s3
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
-
-	"github.com/facebookincubator/symphony/store/sign"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/endpoints"
@@ -17,51 +16,72 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"github.com/facebookincubator/symphony/store/sign"
 	"github.com/google/wire"
-	"github.com/pkg/errors"
 	"go.opencensus.io/plugin/ochttp"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
-type (
-	// Config defines the s3 signer configuration.
-	Config struct {
-		Bucket   string        `env:"BUCKET" long:"bucket" description:"s3 bucket name" required:"true"`
-		Region   string        `env:"REGION" long:"region" description:"s3 bucket region"`
-		Endpoint string        `env:"ENDPOINT" long:"endpoint" description:"s3 service endpoint"`
-		Expire   time.Duration `env:"EXPIRE" long:"expire" default:"24h" description:"s3 signature expiration"`
-	}
+// Config defines the s3 signer configuration.
+type Config struct {
+	Bucket   string
+	Region   string
+	Endpoint string
+	Expire   time.Duration
+}
 
-	signer struct {
-		*s3.S3
-		bkt    *string
-		expire time.Duration
-	}
-)
+// AddFlagsVar adds the flags used by this package to the Kingpin application.
+func AddFlagsVar(a *kingpin.Application, config *Config) {
+	a.Flag("s3.bucket", "s3 bucket name").
+		Envar("S3_BUCKET").
+		Required().
+		StringVar(&config.Bucket)
+	a.Flag("s3.region", "s3 bucket region").
+		Envar("S3_REGION").
+		StringVar(&config.Region)
+	a.Flag("s3.endpoint", "s3 service endpoint").
+		Envar("S3_ENDPOINT").
+		StringVar(&config.Endpoint)
+	a.Flag("s3.expire", "s3 signature expiration").
+		Envar("S3_EXPIRE").
+		Default("24h").
+		DurationVar(&config.Expire)
+}
 
-// Set is a Wire provider set that produces a signer from config.
-var Set = wire.NewSet(
+// AddFlags adds the flags used by this package to the Kingpin application.
+func AddFlags(a *kingpin.Application) *Config {
+	config := &Config{}
+	AddFlagsVar(a, config)
+	return config
+}
+
+// Provider is a Wire provider set that produces a signer from config.
+var Provider = wire.NewSet(
 	NewSigner,
+	wire.Bind(new(sign.Signer), new(*Signer)),
 )
 
 // NewSigner create a new aws-s3 signer.
-func NewSigner(cfg Config) (sign.Signer, error) {
+func NewSigner(cfg Config) (*Signer, error) {
 	sess, err := session.NewSession()
 	if err != nil {
-		return nil, errors.Wrap(err, "creating session")
+		return nil, fmt.Errorf("creating session: %w", err)
 	}
 
 	if cfg.Region == "" {
-		cfg.Region, err = s3manager.GetBucketRegion(context.Background(), sess, cfg.Bucket, endpoints.UsEast1RegionID)
+		cfg.Region, err = s3manager.GetBucketRegion(
+			context.Background(), sess, cfg.Bucket, endpoints.UsEast1RegionID,
+		)
 		if err != nil {
-			return nil, errors.Wrapf(err, "getting bucket region: %s", cfg.Bucket)
+			return nil, fmt.Errorf("resolving bucket %q region: %w", cfg.Bucket, err)
 		}
 	}
 	if cfg.Expire == 0 {
 		cfg.Expire = 24 * time.Hour
 	}
 
-	return &signer{
-		S3: s3.New(sess, &aws.Config{
+	return &Signer{
+		client: s3.New(sess, &aws.Config{
 			Region: aws.String(cfg.Region),
 			Endpoint: func() *string {
 				if cfg.Endpoint != "" {
@@ -73,40 +93,50 @@ func NewSigner(cfg Config) (sign.Signer, error) {
 				Transport: &ochttp.Transport{},
 			},
 		}),
-		bkt:    aws.String(cfg.Bucket),
+		bucket: aws.String(cfg.Bucket),
 		expire: cfg.Expire,
 	}, nil
 }
 
-func (s *signer) Sign(ctx context.Context, op sign.Operation, key, filename string) (string, error) {
+// Signer signs s3 bucket requests.
+type Signer struct {
+	client *s3.S3
+	bucket *string
+	expire time.Duration
+}
+
+func (s *Signer) Sign(ctx context.Context, op sign.Operation, key, filename string) (string, error) {
 	var req *request.Request
 	switch op {
 	case sign.GetObject:
-		req, _ = s.GetObjectRequest(&s3.GetObjectInput{
-			Bucket: s.bkt,
+		req, _ = s.client.GetObjectRequest(&s3.GetObjectInput{
+			Bucket: s.bucket,
 			Key:    aws.String(key),
 		})
 	case sign.PutObject:
-		req, _ = s.PutObjectRequest(&s3.PutObjectInput{
-			Bucket: s.bkt,
+		req, _ = s.client.PutObjectRequest(&s3.PutObjectInput{
+			Bucket: s.bucket,
 			Key:    aws.String(key),
 		})
 	case sign.DeleteObject:
-		req, _ = s.DeleteObjectRequest(&s3.DeleteObjectInput{
-			Bucket: s.bkt,
+		req, _ = s.client.DeleteObjectRequest(&s3.DeleteObjectInput{
+			Bucket: s.bucket,
 			Key:    aws.String(key),
 		})
 	case sign.DownloadObject:
-		req, _ = s.GetObjectRequest(&s3.GetObjectInput{
-			Bucket:                     s.bkt,
+		req, _ = s.client.GetObjectRequest(&s3.GetObjectInput{
+			Bucket:                     s.bucket,
 			Key:                        aws.String(key),
 			ResponseContentDisposition: aws.String("attachment; filename=" + filename),
 		})
 	default:
-		return "", errors.Errorf("invalid sign operation: %d", op)
+		return "", fmt.Errorf("invalid sign operation: %d", op)
 	}
 	req.SetContext(ctx)
 
 	url, _, err := req.PresignRequest(s.expire)
-	return url, errors.Wrap(err, "pre-sign s3 request")
+	if err != nil {
+		return "", fmt.Errorf("pre-sign s3 request: %w", err)
+	}
+	return url, nil
 }

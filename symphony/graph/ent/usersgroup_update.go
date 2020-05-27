@@ -164,6 +164,7 @@ func (ugu *UsersGroupUpdate) Save(ctx context.Context) (int, error) {
 			}
 			ugu.mutation = mutation
 			affected, err = ugu.sqlSave(ctx)
+			mutation.done = true
 			return affected, err
 		})
 		for i := len(ugu.hooks) - 1; i >= 0; i-- {
@@ -475,6 +476,7 @@ func (uguo *UsersGroupUpdateOne) Save(ctx context.Context) (*UsersGroup, error) 
 			}
 			uguo.mutation = mutation
 			node, err = uguo.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(uguo.hooks) - 1; i >= 0; i-- {

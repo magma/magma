@@ -47,6 +47,7 @@ func (ard *ActionsRuleDelete) Exec(ctx context.Context) (int, error) {
 			}
 			ard.mutation = mutation
 			affected, err = ard.sqlExec(ctx)
+			mutation.done = true
 			return affected, err
 		})
 		for i := len(ard.hooks) - 1; i >= 0; i-- {

@@ -76,6 +76,7 @@ func (aru *ActionsRuleUpdate) Save(ctx context.Context) (int, error) {
 			}
 			aru.mutation = mutation
 			affected, err = aru.sqlSave(ctx)
+			mutation.done = true
 			return affected, err
 		})
 		for i := len(aru.hooks) - 1; i >= 0; i-- {
@@ -225,6 +226,7 @@ func (aruo *ActionsRuleUpdateOne) Save(ctx context.Context) (*ActionsRule, error
 			}
 			aruo.mutation = mutation
 			node, err = aruo.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(aruo.hooks) - 1; i >= 0; i-- {

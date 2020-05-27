@@ -47,6 +47,7 @@ func (wotd *WorkOrderTypeDelete) Exec(ctx context.Context) (int, error) {
 			}
 			wotd.mutation = mutation
 			affected, err = wotd.sqlExec(ctx)
+			mutation.done = true
 			return affected, err
 		})
 		for i := len(wotd.hooks) - 1; i >= 0; i-- {

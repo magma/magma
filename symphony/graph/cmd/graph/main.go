@@ -9,6 +9,7 @@ import (
 	"fmt"
 	stdlog "log"
 	"net"
+	"net/url"
 	"os"
 	"syscall"
 
@@ -17,39 +18,69 @@ import (
 	"github.com/facebookincubator/symphony/pkg/ctxgroup"
 	"github.com/facebookincubator/symphony/pkg/ctxutil"
 	"github.com/facebookincubator/symphony/pkg/log"
-	"github.com/facebookincubator/symphony/pkg/oc"
+	"github.com/facebookincubator/symphony/pkg/mysql"
 	"github.com/facebookincubator/symphony/pkg/orc8r"
 	"github.com/facebookincubator/symphony/pkg/server"
-
-	"github.com/jessevdk/go-flags"
+	"github.com/facebookincubator/symphony/pkg/telemetry"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"gopkg.in/alecthomas/kingpin.v2"
 
 	_ "github.com/facebookincubator/symphony/graph/ent/runtime"
-	_ "github.com/go-sql-driver/mysql"
 	_ "gocloud.dev/pubsub/mempubsub"
 	_ "gocloud.dev/pubsub/natspubsub"
 )
 
 type cliFlags struct {
-	HTTPAddress string       `env:"HTTP_ADDRESS" long:"http-address" default:":http" description:"the http address to listen on"`
-	GRPCAddress string       `env:"GRPC_ADDRESS" long:"grpc-address" default:":https" description:"the grpc address to listen on"`
-	MySQL       string       `env:"MYSQL_DSN" long:"mysql-dsn" description:"connection string to mysql"`
-	AuthURL     string       `env:"AUTH_URL" long:"auth-url" description:"websocket authentication url"`
-	Event       event.Config `env:"EVENT_URL" long:"event-url" default:"mem://events" description:"events pubsub url"`
-	Log         log.Config   `group:"log" namespace:"log" env-namespace:"LOG"`
-	Census      oc.Options   `group:"oc" namespace:"oc" env-namespace:"OC"`
-	Orc8r       orc8r.Config `group:"orc8r" namespace:"orc8r" env-namespace:"ORC8R"`
+	HTTPAddress     *net.TCPAddr
+	GRPCAddress     *net.TCPAddr
+	MySQLConfig     mysql.Config
+	AuthURL         *url.URL
+	EventConfig     event.Config
+	LogConfig       log.Config
+	TelemetryConfig telemetry.Config
+	Orc8rConfig     orc8r.Config
 }
 
 func main() {
 	var cf cliFlags
-	if _, err := flags.Parse(&cf); err != nil {
-		if flagsErr, ok := err.(*flags.Error); ok && flagsErr.Type == flags.ErrHelp {
-			os.Exit(0)
-		}
-		os.Exit(1)
-	}
+	kingpin.HelpFlag.Short('h')
+	kingpin.Flag(
+		"web.listen-address",
+		"Web address to listen on",
+	).
+		Default(":http").
+		TCPVar(&cf.HTTPAddress)
+	kingpin.Flag(
+		"grpc.listen-address",
+		"GRPC address to listen on",
+	).
+		Default(":https").
+		TCPVar(&cf.GRPCAddress)
+	kingpin.Flag(
+		"mysql.dsn",
+		"mysql connection string",
+	).
+		Envar("MYSQL_DSN").
+		Required().
+		SetValue(&cf.MySQLConfig)
+	kingpin.Flag(
+		"web.ws-auth-url",
+		"websocket authentication url",
+	).
+		Envar("WS_AUTH_URL").
+		URLVar(&cf.AuthURL)
+	kingpin.Flag(
+		"event.pubsub-url",
+		"events pubsub url",
+	).
+		Envar("EVENT_PUBSUB_URL").
+		Default("mem://events").
+		SetValue(&cf.EventConfig)
+	log.AddFlagsVar(kingpin.CommandLine, &cf.LogConfig)
+	telemetry.AddFlagsVar(kingpin.CommandLine, &cf.TelemetryConfig)
+	orc8r.AddFlagsVar(kingpin.CommandLine, &cf.Orc8rConfig)
+	kingpin.Parse()
 
 	ctx := ctxutil.WithSignal(
 		context.Background(),
@@ -63,8 +94,8 @@ func main() {
 	defer cleanup()
 
 	app.Info("starting application",
-		zap.String("http", cf.HTTPAddress),
-		zap.String("grpc", cf.GRPCAddress),
+		zap.Stringer("http", cf.HTTPAddress),
+		zap.Stringer("grpc", cf.GRPCAddress),
 	)
 	err = app.run(ctx)
 	app.Info("terminating application", zap.Error(err))

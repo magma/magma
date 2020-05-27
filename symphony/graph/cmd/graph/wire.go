@@ -9,7 +9,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"net/url"
 
 	"github.com/facebookincubator/symphony/graph/event"
 	"github.com/facebookincubator/symphony/graph/graphevents"
@@ -27,14 +26,20 @@ import (
 
 func newApplication(ctx context.Context, flags *cliFlags) (*application, func(), error) {
 	wire.Build(
-		wire.FieldsOf(new(*cliFlags), "Log", "Census", "MySQL", "Event", "Orc8r"),
+		wire.FieldsOf(new(*cliFlags),
+			"MySQLConfig",
+			"AuthURL",
+			"EventConfig",
+			"LogConfig",
+			"TelemetryConfig",
+			"Orc8rConfig",
+		),
 		log.Provider,
 		newApp,
 		newTenancy,
 		newHealthChecks,
 		newMySQLTenancy,
-		newAuthURL,
-		mysql.Open,
+		mysql.Provider,
 		event.Set,
 		graphhttp.NewServer,
 		wire.Struct(new(graphhttp.Config), "*"),
@@ -50,9 +55,9 @@ func newApp(logger log.Logger, httpServer *server.Server, grpcServer *grpc.Serve
 	var app application
 	app.Logger = logger.Background()
 	app.http.Server = httpServer
-	app.http.addr = flags.HTTPAddress
+	app.http.addr = flags.HTTPAddress.String()
 	app.grpc.Server = grpcServer
-	app.grpc.addr = flags.GRPCAddress
+	app.grpc.addr = flags.GRPCAddress.String()
 	app.event = eventServer
 	return &app
 }
@@ -66,20 +71,12 @@ func newHealthChecks(tenancy *viewer.MySQLTenancy) []health.Checker {
 	return []health.Checker{tenancy}
 }
 
-func newMySQLTenancy(dsn string, logger log.Logger) (*viewer.MySQLTenancy, error) {
-	tenancy, err := viewer.NewMySQLTenancy(dsn)
+func newMySQLTenancy(config mysql.Config, logger log.Logger) (*viewer.MySQLTenancy, error) {
+	tenancy, err := viewer.NewMySQLTenancy(config.String())
 	if err != nil {
 		return nil, fmt.Errorf("creating mysql tenancy: %w", err)
 	}
 	tenancy.SetLogger(logger)
 	mysql.SetLogger(logger)
 	return tenancy, nil
-}
-
-func newAuthURL(flags *cliFlags) (*url.URL, error) {
-	u, err := url.Parse(flags.AuthURL)
-	if err != nil {
-		return nil, fmt.Errorf("parsing auth url: %w", err)
-	}
-	return u, nil
 }

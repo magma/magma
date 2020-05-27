@@ -132,6 +132,7 @@ func (eptc *EquipmentPortTypeCreate) Save(ctx context.Context) (*EquipmentPortTy
 			}
 			eptc.mutation = mutation
 			node, err = eptc.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(eptc.hooks) - 1; i >= 0; i-- {

@@ -188,6 +188,7 @@ func (stc *ServiceTypeCreate) Save(ctx context.Context) (*ServiceType, error) {
 			}
 			stc.mutation = mutation
 			node, err = stc.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(stc.hooks) - 1; i >= 0; i-- {

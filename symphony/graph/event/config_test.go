@@ -16,12 +16,12 @@ import (
 func TestConfigFlag(t *testing.T) {
 	const goodURL = "file://test"
 	var cfg Config
-	err := cfg.UnmarshalFlag(goodURL)
+	err := cfg.Set(goodURL)
 	assert.NoError(t, err)
 	assert.Equal(t, goodURL, cfg.String())
 
 	var badURL = string([]byte{0x7f})
-	err = cfg.UnmarshalFlag(badURL)
+	err = cfg.Set(badURL)
 	assert.Error(t, err)
 }
 

@@ -559,6 +559,7 @@ func (wou *WorkOrderUpdate) Save(ctx context.Context) (int, error) {
 			}
 			wou.mutation = mutation
 			affected, err = wou.sqlSave(ctx)
+			mutation.done = true
 			return affected, err
 		})
 		for i := len(wou.hooks) - 1; i >= 0; i-- {
@@ -1716,6 +1717,7 @@ func (wouo *WorkOrderUpdateOne) Save(ctx context.Context) (*WorkOrder, error) {
 			}
 			wouo.mutation = mutation
 			node, err = wouo.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(wouo.hooks) - 1; i >= 0; i-- {

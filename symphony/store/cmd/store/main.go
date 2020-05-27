@@ -7,35 +7,40 @@ package main
 import (
 	"context"
 	stdlog "log"
+	"net"
 	"os"
 	"syscall"
 
 	"github.com/facebookincubator/symphony/pkg/ctxgroup"
 	"github.com/facebookincubator/symphony/pkg/ctxutil"
 	"github.com/facebookincubator/symphony/pkg/log"
-	"github.com/facebookincubator/symphony/pkg/oc"
 	"github.com/facebookincubator/symphony/pkg/server"
+	"github.com/facebookincubator/symphony/pkg/telemetry"
 	"github.com/facebookincubator/symphony/store/sign/s3"
 	"go.uber.org/zap"
-
-	"github.com/jessevdk/go-flags"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 type cliFlags struct {
-	Addr   string     `env:"ADDR" long:"addr" default:":http" description:"the address to listen on"`
-	S3     s3.Config  `group:"s3" namespace:"s3" env-namespace:"S3"`
-	Log    log.Config `group:"log" namespace:"log" env-namespace:"LOG"`
-	Census oc.Options `group:"oc" namespace:"oc" env-namespace:"OC"`
+	ListenAddress   *net.TCPAddr
+	S3Config        s3.Config
+	LogConfig       log.Config
+	TelemetryConfig telemetry.Config
 }
 
 func main() {
 	var cf cliFlags
-	if _, err := flags.Parse(&cf); err != nil {
-		if flagsErr, ok := err.(*flags.Error); ok && flagsErr.Type == flags.ErrHelp {
-			os.Exit(0)
-		}
-		os.Exit(1)
-	}
+	kingpin.HelpFlag.Short('h')
+	kingpin.Flag(
+		"web.listen-address",
+		"Address to listen on.",
+	).
+		Default(":http").
+		TCPVar(&cf.ListenAddress)
+	s3.AddFlagsVar(kingpin.CommandLine, &cf.S3Config)
+	log.AddFlagsVar(kingpin.CommandLine, &cf.LogConfig)
+	telemetry.AddFlagsVar(kingpin.CommandLine, &cf.TelemetryConfig)
+	kingpin.Parse()
 
 	app, cleanup, err := newApplication(&cf)
 	if err != nil {
@@ -44,7 +49,7 @@ func main() {
 	defer cleanup()
 
 	app.Info("starting application",
-		zap.String("address", cf.Addr),
+		zap.Stringer("address", cf.ListenAddress),
 	)
 	err = app.run(
 		ctxutil.WithSignal(
@@ -59,14 +64,14 @@ func main() {
 type application struct {
 	*zap.Logger
 	server *server.Server
-	addr   string
+	addr   *net.TCPAddr
 }
 
 func (app *application) run(ctx context.Context) error {
 	ctx, cancel := context.WithCancel(ctx)
 	g := ctxgroup.WithContext(ctx)
 	g.Go(func(context.Context) error {
-		err := app.server.ListenAndServe(app.addr)
+		err := app.server.ListenAndServe(app.addr.String())
 		app.Debug("server terminated", zap.Error(err))
 		return err
 	})

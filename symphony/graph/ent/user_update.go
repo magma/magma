@@ -314,6 +314,7 @@ func (uu *UserUpdate) Save(ctx context.Context) (int, error) {
 			}
 			uu.mutation = mutation
 			affected, err = uu.sqlSave(ctx)
+			mutation.done = true
 			return affected, err
 		})
 		for i := len(uu.hooks) - 1; i >= 0; i-- {
@@ -910,6 +911,7 @@ func (uuo *UserUpdateOne) Save(ctx context.Context) (*User, error) {
 			}
 			uuo.mutation = mutation
 			node, err = uuo.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(uuo.hooks) - 1; i >= 0; i-- {

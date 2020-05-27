@@ -133,6 +133,7 @@ type ActionsRuleMutation struct {
 	ruleFilters   *[]*core.ActionsRuleFilter
 	ruleActions   *[]*core.ActionsRuleAction
 	clearedFields map[string]struct{}
+	done          bool
 	oldValue      func(context.Context) (*ActionsRule, error)
 }
 
@@ -165,7 +166,11 @@ func withActionsRuleID(id int) actionsruleOption {
 		)
 		m.oldValue = func(ctx context.Context) (*ActionsRule, error) {
 			once.Do(func() {
-				value, err = m.Client().ActionsRule.Get(ctx, id)
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ActionsRule.Get(ctx, id)
+				}
 			})
 			return value, err
 		}
@@ -225,7 +230,9 @@ func (m *ActionsRuleMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldCreateTime returns the old create_time value, if exists.
+// OldCreateTime returns the old create_time value of the ActionsRule.
+// If the ActionsRule object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *ActionsRuleMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -260,7 +267,9 @@ func (m *ActionsRuleMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldUpdateTime returns the old update_time value, if exists.
+// OldUpdateTime returns the old update_time value of the ActionsRule.
+// If the ActionsRule object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *ActionsRuleMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -295,7 +304,9 @@ func (m *ActionsRuleMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// OldName returns the old name value, if exists.
+// OldName returns the old name value of the ActionsRule.
+// If the ActionsRule object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *ActionsRuleMutation) OldName(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -330,7 +341,9 @@ func (m *ActionsRuleMutation) TriggerID() (r string, exists bool) {
 	return *v, true
 }
 
-// OldTriggerID returns the old triggerID value, if exists.
+// OldTriggerID returns the old triggerID value of the ActionsRule.
+// If the ActionsRule object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *ActionsRuleMutation) OldTriggerID(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -365,7 +378,9 @@ func (m *ActionsRuleMutation) RuleFilters() (r []*core.ActionsRuleFilter, exists
 	return *v, true
 }
 
-// OldRuleFilters returns the old ruleFilters value, if exists.
+// OldRuleFilters returns the old ruleFilters value of the ActionsRule.
+// If the ActionsRule object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *ActionsRuleMutation) OldRuleFilters(ctx context.Context) (v []*core.ActionsRuleFilter, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -400,7 +415,9 @@ func (m *ActionsRuleMutation) RuleActions() (r []*core.ActionsRuleAction, exists
 	return *v, true
 }
 
-// OldRuleActions returns the old ruleActions value, if exists.
+// OldRuleActions returns the old ruleActions value of the ActionsRule.
+// If the ActionsRule object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *ActionsRuleMutation) OldRuleActions(ctx context.Context) (v []*core.ActionsRuleAction, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -1406,6 +1423,7 @@ type CheckListCategoryMutation struct {
 	removedcheck_list_items map[int]struct{}
 	work_order              *int
 	clearedwork_order       bool
+	done                    bool
 	oldValue                func(context.Context) (*CheckListCategory, error)
 }
 
@@ -1438,7 +1456,11 @@ func withCheckListCategoryID(id int) checklistcategoryOption {
 		)
 		m.oldValue = func(ctx context.Context) (*CheckListCategory, error) {
 			once.Do(func() {
-				value, err = m.Client().CheckListCategory.Get(ctx, id)
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().CheckListCategory.Get(ctx, id)
+				}
 			})
 			return value, err
 		}
@@ -1498,7 +1520,9 @@ func (m *CheckListCategoryMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldCreateTime returns the old create_time value, if exists.
+// OldCreateTime returns the old create_time value of the CheckListCategory.
+// If the CheckListCategory object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *CheckListCategoryMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -1533,7 +1557,9 @@ func (m *CheckListCategoryMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldUpdateTime returns the old update_time value, if exists.
+// OldUpdateTime returns the old update_time value of the CheckListCategory.
+// If the CheckListCategory object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *CheckListCategoryMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -1568,7 +1594,9 @@ func (m *CheckListCategoryMutation) Title() (r string, exists bool) {
 	return *v, true
 }
 
-// OldTitle returns the old title value, if exists.
+// OldTitle returns the old title value of the CheckListCategory.
+// If the CheckListCategory object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *CheckListCategoryMutation) OldTitle(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -1603,7 +1631,9 @@ func (m *CheckListCategoryMutation) Description() (r string, exists bool) {
 	return *v, true
 }
 
-// OldDescription returns the old description value, if exists.
+// OldDescription returns the old description value of the CheckListCategory.
+// If the CheckListCategory object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *CheckListCategoryMutation) OldDescription(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -2007,6 +2037,7 @@ type CheckListCategoryDefinitionMutation struct {
 	removedcheck_list_item_definitions map[int]struct{}
 	work_order_type                    *int
 	clearedwork_order_type             bool
+	done                               bool
 	oldValue                           func(context.Context) (*CheckListCategoryDefinition, error)
 }
 
@@ -2039,7 +2070,11 @@ func withCheckListCategoryDefinitionID(id int) checklistcategorydefinitionOption
 		)
 		m.oldValue = func(ctx context.Context) (*CheckListCategoryDefinition, error) {
 			once.Do(func() {
-				value, err = m.Client().CheckListCategoryDefinition.Get(ctx, id)
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().CheckListCategoryDefinition.Get(ctx, id)
+				}
 			})
 			return value, err
 		}
@@ -2099,7 +2134,9 @@ func (m *CheckListCategoryDefinitionMutation) CreateTime() (r time.Time, exists 
 	return *v, true
 }
 
-// OldCreateTime returns the old create_time value, if exists.
+// OldCreateTime returns the old create_time value of the CheckListCategoryDefinition.
+// If the CheckListCategoryDefinition object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *CheckListCategoryDefinitionMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -2134,7 +2171,9 @@ func (m *CheckListCategoryDefinitionMutation) UpdateTime() (r time.Time, exists 
 	return *v, true
 }
 
-// OldUpdateTime returns the old update_time value, if exists.
+// OldUpdateTime returns the old update_time value of the CheckListCategoryDefinition.
+// If the CheckListCategoryDefinition object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *CheckListCategoryDefinitionMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -2169,7 +2208,9 @@ func (m *CheckListCategoryDefinitionMutation) Title() (r string, exists bool) {
 	return *v, true
 }
 
-// OldTitle returns the old title value, if exists.
+// OldTitle returns the old title value of the CheckListCategoryDefinition.
+// If the CheckListCategoryDefinition object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *CheckListCategoryDefinitionMutation) OldTitle(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -2204,7 +2245,9 @@ func (m *CheckListCategoryDefinitionMutation) Description() (r string, exists bo
 	return *v, true
 }
 
-// OldDescription returns the old description value, if exists.
+// OldDescription returns the old description value of the CheckListCategoryDefinition.
+// If the CheckListCategoryDefinition object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *CheckListCategoryDefinitionMutation) OldDescription(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -2619,6 +2662,7 @@ type CheckListItemMutation struct {
 	removedcell_scan           map[int]struct{}
 	check_list_category        *int
 	clearedcheck_list_category bool
+	done                       bool
 	oldValue                   func(context.Context) (*CheckListItem, error)
 }
 
@@ -2651,7 +2695,11 @@ func withCheckListItemID(id int) checklistitemOption {
 		)
 		m.oldValue = func(ctx context.Context) (*CheckListItem, error) {
 			once.Do(func() {
-				value, err = m.Client().CheckListItem.Get(ctx, id)
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().CheckListItem.Get(ctx, id)
+				}
 			})
 			return value, err
 		}
@@ -2711,7 +2759,9 @@ func (m *CheckListItemMutation) Title() (r string, exists bool) {
 	return *v, true
 }
 
-// OldTitle returns the old title value, if exists.
+// OldTitle returns the old title value of the CheckListItem.
+// If the CheckListItem object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *CheckListItemMutation) OldTitle(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -2746,7 +2796,9 @@ func (m *CheckListItemMutation) GetType() (r string, exists bool) {
 	return *v, true
 }
 
-// OldType returns the old type value, if exists.
+// OldType returns the old type value of the CheckListItem.
+// If the CheckListItem object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *CheckListItemMutation) OldType(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -2782,7 +2834,9 @@ func (m *CheckListItemMutation) Index() (r int, exists bool) {
 	return *v, true
 }
 
-// OldIndex returns the old index value, if exists.
+// OldIndex returns the old index value of the CheckListItem.
+// If the CheckListItem object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *CheckListItemMutation) OldIndex(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -2850,7 +2904,9 @@ func (m *CheckListItemMutation) Checked() (r bool, exists bool) {
 	return *v, true
 }
 
-// OldChecked returns the old checked value, if exists.
+// OldChecked returns the old checked value of the CheckListItem.
+// If the CheckListItem object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *CheckListItemMutation) OldChecked(ctx context.Context) (v bool, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -2898,7 +2954,9 @@ func (m *CheckListItemMutation) StringVal() (r string, exists bool) {
 	return *v, true
 }
 
-// OldStringVal returns the old string_val value, if exists.
+// OldStringVal returns the old string_val value of the CheckListItem.
+// If the CheckListItem object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *CheckListItemMutation) OldStringVal(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -2946,7 +3004,9 @@ func (m *CheckListItemMutation) EnumValues() (r string, exists bool) {
 	return *v, true
 }
 
-// OldEnumValues returns the old enum_values value, if exists.
+// OldEnumValues returns the old enum_values value of the CheckListItem.
+// If the CheckListItem object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *CheckListItemMutation) OldEnumValues(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -2994,7 +3054,9 @@ func (m *CheckListItemMutation) EnumSelectionModeValue() (r checklistitem.EnumSe
 	return *v, true
 }
 
-// OldEnumSelectionModeValue returns the old enum_selection_mode_value value, if exists.
+// OldEnumSelectionModeValue returns the old enum_selection_mode_value value of the CheckListItem.
+// If the CheckListItem object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *CheckListItemMutation) OldEnumSelectionModeValue(ctx context.Context) (v checklistitem.EnumSelectionModeValue, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -3042,7 +3104,9 @@ func (m *CheckListItemMutation) SelectedEnumValues() (r string, exists bool) {
 	return *v, true
 }
 
-// OldSelectedEnumValues returns the old selected_enum_values value, if exists.
+// OldSelectedEnumValues returns the old selected_enum_values value of the CheckListItem.
+// If the CheckListItem object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *CheckListItemMutation) OldSelectedEnumValues(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -3090,7 +3154,9 @@ func (m *CheckListItemMutation) YesNoVal() (r checklistitem.YesNoVal, exists boo
 	return *v, true
 }
 
-// OldYesNoVal returns the old yes_no_val value, if exists.
+// OldYesNoVal returns the old yes_no_val value of the CheckListItem.
+// If the CheckListItem object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *CheckListItemMutation) OldYesNoVal(ctx context.Context) (v checklistitem.YesNoVal, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -3138,7 +3204,9 @@ func (m *CheckListItemMutation) HelpText() (r string, exists bool) {
 	return *v, true
 }
 
-// OldHelpText returns the old help_text value, if exists.
+// OldHelpText returns the old help_text value of the CheckListItem.
+// If the CheckListItem object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *CheckListItemMutation) OldHelpText(ctx context.Context) (v *string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -3830,6 +3898,7 @@ type CheckListItemDefinitionMutation struct {
 	clearedFields                         map[string]struct{}
 	check_list_category_definition        *int
 	clearedcheck_list_category_definition bool
+	done                                  bool
 	oldValue                              func(context.Context) (*CheckListItemDefinition, error)
 }
 
@@ -3862,7 +3931,11 @@ func withCheckListItemDefinitionID(id int) checklistitemdefinitionOption {
 		)
 		m.oldValue = func(ctx context.Context) (*CheckListItemDefinition, error) {
 			once.Do(func() {
-				value, err = m.Client().CheckListItemDefinition.Get(ctx, id)
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().CheckListItemDefinition.Get(ctx, id)
+				}
 			})
 			return value, err
 		}
@@ -3922,7 +3995,9 @@ func (m *CheckListItemDefinitionMutation) CreateTime() (r time.Time, exists bool
 	return *v, true
 }
 
-// OldCreateTime returns the old create_time value, if exists.
+// OldCreateTime returns the old create_time value of the CheckListItemDefinition.
+// If the CheckListItemDefinition object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *CheckListItemDefinitionMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -3957,7 +4032,9 @@ func (m *CheckListItemDefinitionMutation) UpdateTime() (r time.Time, exists bool
 	return *v, true
 }
 
-// OldUpdateTime returns the old update_time value, if exists.
+// OldUpdateTime returns the old update_time value of the CheckListItemDefinition.
+// If the CheckListItemDefinition object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *CheckListItemDefinitionMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -3992,7 +4069,9 @@ func (m *CheckListItemDefinitionMutation) Title() (r string, exists bool) {
 	return *v, true
 }
 
-// OldTitle returns the old title value, if exists.
+// OldTitle returns the old title value of the CheckListItemDefinition.
+// If the CheckListItemDefinition object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *CheckListItemDefinitionMutation) OldTitle(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -4027,7 +4106,9 @@ func (m *CheckListItemDefinitionMutation) GetType() (r string, exists bool) {
 	return *v, true
 }
 
-// OldType returns the old type value, if exists.
+// OldType returns the old type value of the CheckListItemDefinition.
+// If the CheckListItemDefinition object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *CheckListItemDefinitionMutation) OldType(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -4063,7 +4144,9 @@ func (m *CheckListItemDefinitionMutation) Index() (r int, exists bool) {
 	return *v, true
 }
 
-// OldIndex returns the old index value, if exists.
+// OldIndex returns the old index value of the CheckListItemDefinition.
+// If the CheckListItemDefinition object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *CheckListItemDefinitionMutation) OldIndex(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -4131,7 +4214,9 @@ func (m *CheckListItemDefinitionMutation) EnumValues() (r string, exists bool) {
 	return *v, true
 }
 
-// OldEnumValues returns the old enum_values value, if exists.
+// OldEnumValues returns the old enum_values value of the CheckListItemDefinition.
+// If the CheckListItemDefinition object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *CheckListItemDefinitionMutation) OldEnumValues(ctx context.Context) (v *string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -4179,7 +4264,9 @@ func (m *CheckListItemDefinitionMutation) EnumSelectionModeValue() (r checklisti
 	return *v, true
 }
 
-// OldEnumSelectionModeValue returns the old enum_selection_mode_value value, if exists.
+// OldEnumSelectionModeValue returns the old enum_selection_mode_value value of the CheckListItemDefinition.
+// If the CheckListItemDefinition object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *CheckListItemDefinitionMutation) OldEnumSelectionModeValue(ctx context.Context) (v checklistitemdefinition.EnumSelectionModeValue, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -4227,7 +4314,9 @@ func (m *CheckListItemDefinitionMutation) HelpText() (r string, exists bool) {
 	return *v, true
 }
 
-// OldHelpText returns the old help_text value, if exists.
+// OldHelpText returns the old help_text value of the CheckListItemDefinition.
+// If the CheckListItemDefinition object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *CheckListItemDefinitionMutation) OldHelpText(ctx context.Context) (v *string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -4670,6 +4759,7 @@ type CommentMutation struct {
 	clearedwork_order bool
 	project           *int
 	clearedproject    bool
+	done              bool
 	oldValue          func(context.Context) (*Comment, error)
 }
 
@@ -4702,7 +4792,11 @@ func withCommentID(id int) commentOption {
 		)
 		m.oldValue = func(ctx context.Context) (*Comment, error) {
 			once.Do(func() {
-				value, err = m.Client().Comment.Get(ctx, id)
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Comment.Get(ctx, id)
+				}
 			})
 			return value, err
 		}
@@ -4762,7 +4856,9 @@ func (m *CommentMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldCreateTime returns the old create_time value, if exists.
+// OldCreateTime returns the old create_time value of the Comment.
+// If the Comment object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *CommentMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -4797,7 +4893,9 @@ func (m *CommentMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldUpdateTime returns the old update_time value, if exists.
+// OldUpdateTime returns the old update_time value of the Comment.
+// If the Comment object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *CommentMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -4832,7 +4930,9 @@ func (m *CommentMutation) Text() (r string, exists bool) {
 	return *v, true
 }
 
-// OldText returns the old text value, if exists.
+// OldText returns the old text value of the Comment.
+// If the Comment object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *CommentMutation) OldText(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -5246,6 +5346,7 @@ type CustomerMutation struct {
 	clearedFields   map[string]struct{}
 	services        map[int]struct{}
 	removedservices map[int]struct{}
+	done            bool
 	oldValue        func(context.Context) (*Customer, error)
 }
 
@@ -5278,7 +5379,11 @@ func withCustomerID(id int) customerOption {
 		)
 		m.oldValue = func(ctx context.Context) (*Customer, error) {
 			once.Do(func() {
-				value, err = m.Client().Customer.Get(ctx, id)
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Customer.Get(ctx, id)
+				}
 			})
 			return value, err
 		}
@@ -5338,7 +5443,9 @@ func (m *CustomerMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldCreateTime returns the old create_time value, if exists.
+// OldCreateTime returns the old create_time value of the Customer.
+// If the Customer object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *CustomerMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -5373,7 +5480,9 @@ func (m *CustomerMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldUpdateTime returns the old update_time value, if exists.
+// OldUpdateTime returns the old update_time value of the Customer.
+// If the Customer object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *CustomerMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -5408,7 +5517,9 @@ func (m *CustomerMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// OldName returns the old name value, if exists.
+// OldName returns the old name value of the Customer.
+// If the Customer object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *CustomerMutation) OldName(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -5443,7 +5554,9 @@ func (m *CustomerMutation) ExternalID() (r string, exists bool) {
 	return *v, true
 }
 
-// OldExternalID returns the old external_id value, if exists.
+// OldExternalID returns the old external_id value of the Customer.
+// If the Customer object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *CustomerMutation) OldExternalID(ctx context.Context) (v *string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -5808,6 +5921,7 @@ type EquipmentMutation struct {
 	removedhyperlinks      map[int]struct{}
 	endpoints              map[int]struct{}
 	removedendpoints       map[int]struct{}
+	done                   bool
 	oldValue               func(context.Context) (*Equipment, error)
 }
 
@@ -5840,7 +5954,11 @@ func withEquipmentID(id int) equipmentOption {
 		)
 		m.oldValue = func(ctx context.Context) (*Equipment, error) {
 			once.Do(func() {
-				value, err = m.Client().Equipment.Get(ctx, id)
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Equipment.Get(ctx, id)
+				}
 			})
 			return value, err
 		}
@@ -5900,7 +6018,9 @@ func (m *EquipmentMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldCreateTime returns the old create_time value, if exists.
+// OldCreateTime returns the old create_time value of the Equipment.
+// If the Equipment object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *EquipmentMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -5935,7 +6055,9 @@ func (m *EquipmentMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldUpdateTime returns the old update_time value, if exists.
+// OldUpdateTime returns the old update_time value of the Equipment.
+// If the Equipment object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *EquipmentMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -5970,7 +6092,9 @@ func (m *EquipmentMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// OldName returns the old name value, if exists.
+// OldName returns the old name value of the Equipment.
+// If the Equipment object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *EquipmentMutation) OldName(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -6005,7 +6129,9 @@ func (m *EquipmentMutation) FutureState() (r string, exists bool) {
 	return *v, true
 }
 
-// OldFutureState returns the old future_state value, if exists.
+// OldFutureState returns the old future_state value of the Equipment.
+// If the Equipment object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *EquipmentMutation) OldFutureState(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -6053,7 +6179,9 @@ func (m *EquipmentMutation) DeviceID() (r string, exists bool) {
 	return *v, true
 }
 
-// OldDeviceID returns the old device_id value, if exists.
+// OldDeviceID returns the old device_id value of the Equipment.
+// If the Equipment object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *EquipmentMutation) OldDeviceID(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -6101,7 +6229,9 @@ func (m *EquipmentMutation) ExternalID() (r string, exists bool) {
 	return *v, true
 }
 
-// OldExternalID returns the old external_id value, if exists.
+// OldExternalID returns the old external_id value of the Equipment.
+// If the Equipment object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *EquipmentMutation) OldExternalID(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -7034,6 +7164,7 @@ type EquipmentCategoryMutation struct {
 	clearedFields map[string]struct{}
 	types         map[int]struct{}
 	removedtypes  map[int]struct{}
+	done          bool
 	oldValue      func(context.Context) (*EquipmentCategory, error)
 }
 
@@ -7066,7 +7197,11 @@ func withEquipmentCategoryID(id int) equipmentcategoryOption {
 		)
 		m.oldValue = func(ctx context.Context) (*EquipmentCategory, error) {
 			once.Do(func() {
-				value, err = m.Client().EquipmentCategory.Get(ctx, id)
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().EquipmentCategory.Get(ctx, id)
+				}
 			})
 			return value, err
 		}
@@ -7126,7 +7261,9 @@ func (m *EquipmentCategoryMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldCreateTime returns the old create_time value, if exists.
+// OldCreateTime returns the old create_time value of the EquipmentCategory.
+// If the EquipmentCategory object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *EquipmentCategoryMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -7161,7 +7298,9 @@ func (m *EquipmentCategoryMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldUpdateTime returns the old update_time value, if exists.
+// OldUpdateTime returns the old update_time value of the EquipmentCategory.
+// If the EquipmentCategory object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *EquipmentCategoryMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -7196,7 +7335,9 @@ func (m *EquipmentCategoryMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// OldName returns the old name value, if exists.
+// OldName returns the old name value of the EquipmentCategory.
+// If the EquipmentCategory object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *EquipmentCategoryMutation) OldName(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -7508,6 +7649,7 @@ type EquipmentPortMutation struct {
 	removedproperties map[int]struct{}
 	endpoints         map[int]struct{}
 	removedendpoints  map[int]struct{}
+	done              bool
 	oldValue          func(context.Context) (*EquipmentPort, error)
 }
 
@@ -7540,7 +7682,11 @@ func withEquipmentPortID(id int) equipmentportOption {
 		)
 		m.oldValue = func(ctx context.Context) (*EquipmentPort, error) {
 			once.Do(func() {
-				value, err = m.Client().EquipmentPort.Get(ctx, id)
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().EquipmentPort.Get(ctx, id)
+				}
 			})
 			return value, err
 		}
@@ -7600,7 +7746,9 @@ func (m *EquipmentPortMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldCreateTime returns the old create_time value, if exists.
+// OldCreateTime returns the old create_time value of the EquipmentPort.
+// If the EquipmentPort object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *EquipmentPortMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -7635,7 +7783,9 @@ func (m *EquipmentPortMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldUpdateTime returns the old update_time value, if exists.
+// OldUpdateTime returns the old update_time value of the EquipmentPort.
+// If the EquipmentPort object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *EquipmentPortMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -8165,6 +8315,7 @@ type EquipmentPortDefinitionMutation struct {
 	removedports               map[int]struct{}
 	equipment_type             *int
 	clearedequipment_type      bool
+	done                       bool
 	oldValue                   func(context.Context) (*EquipmentPortDefinition, error)
 }
 
@@ -8197,7 +8348,11 @@ func withEquipmentPortDefinitionID(id int) equipmentportdefinitionOption {
 		)
 		m.oldValue = func(ctx context.Context) (*EquipmentPortDefinition, error) {
 			once.Do(func() {
-				value, err = m.Client().EquipmentPortDefinition.Get(ctx, id)
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().EquipmentPortDefinition.Get(ctx, id)
+				}
 			})
 			return value, err
 		}
@@ -8257,7 +8412,9 @@ func (m *EquipmentPortDefinitionMutation) CreateTime() (r time.Time, exists bool
 	return *v, true
 }
 
-// OldCreateTime returns the old create_time value, if exists.
+// OldCreateTime returns the old create_time value of the EquipmentPortDefinition.
+// If the EquipmentPortDefinition object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *EquipmentPortDefinitionMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -8292,7 +8449,9 @@ func (m *EquipmentPortDefinitionMutation) UpdateTime() (r time.Time, exists bool
 	return *v, true
 }
 
-// OldUpdateTime returns the old update_time value, if exists.
+// OldUpdateTime returns the old update_time value of the EquipmentPortDefinition.
+// If the EquipmentPortDefinition object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *EquipmentPortDefinitionMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -8327,7 +8486,9 @@ func (m *EquipmentPortDefinitionMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// OldName returns the old name value, if exists.
+// OldName returns the old name value of the EquipmentPortDefinition.
+// If the EquipmentPortDefinition object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *EquipmentPortDefinitionMutation) OldName(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -8363,7 +8524,9 @@ func (m *EquipmentPortDefinitionMutation) Index() (r int, exists bool) {
 	return *v, true
 }
 
-// OldIndex returns the old index value, if exists.
+// OldIndex returns the old index value of the EquipmentPortDefinition.
+// If the EquipmentPortDefinition object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *EquipmentPortDefinitionMutation) OldIndex(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -8431,7 +8594,9 @@ func (m *EquipmentPortDefinitionMutation) Bandwidth() (r string, exists bool) {
 	return *v, true
 }
 
-// OldBandwidth returns the old bandwidth value, if exists.
+// OldBandwidth returns the old bandwidth value of the EquipmentPortDefinition.
+// If the EquipmentPortDefinition object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *EquipmentPortDefinitionMutation) OldBandwidth(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -8479,7 +8644,9 @@ func (m *EquipmentPortDefinitionMutation) VisibilityLabel() (r string, exists bo
 	return *v, true
 }
 
-// OldVisibilityLabel returns the old visibility_label value, if exists.
+// OldVisibilityLabel returns the old visibility_label value of the EquipmentPortDefinition.
+// If the EquipmentPortDefinition object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *EquipmentPortDefinitionMutation) OldVisibilityLabel(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -9002,6 +9169,7 @@ type EquipmentPortTypeMutation struct {
 	removedlink_property_types map[int]struct{}
 	port_definitions           map[int]struct{}
 	removedport_definitions    map[int]struct{}
+	done                       bool
 	oldValue                   func(context.Context) (*EquipmentPortType, error)
 }
 
@@ -9034,7 +9202,11 @@ func withEquipmentPortTypeID(id int) equipmentporttypeOption {
 		)
 		m.oldValue = func(ctx context.Context) (*EquipmentPortType, error) {
 			once.Do(func() {
-				value, err = m.Client().EquipmentPortType.Get(ctx, id)
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().EquipmentPortType.Get(ctx, id)
+				}
 			})
 			return value, err
 		}
@@ -9094,7 +9266,9 @@ func (m *EquipmentPortTypeMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldCreateTime returns the old create_time value, if exists.
+// OldCreateTime returns the old create_time value of the EquipmentPortType.
+// If the EquipmentPortType object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *EquipmentPortTypeMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -9129,7 +9303,9 @@ func (m *EquipmentPortTypeMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldUpdateTime returns the old update_time value, if exists.
+// OldUpdateTime returns the old update_time value of the EquipmentPortType.
+// If the EquipmentPortType object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *EquipmentPortTypeMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -9164,7 +9340,9 @@ func (m *EquipmentPortTypeMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// OldName returns the old name value, if exists.
+// OldName returns the old name value of the EquipmentPortType.
+// If the EquipmentPortType object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *EquipmentPortTypeMutation) OldName(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -9598,6 +9776,7 @@ type EquipmentPositionMutation struct {
 	clearedparent     bool
 	attachment        *int
 	clearedattachment bool
+	done              bool
 	oldValue          func(context.Context) (*EquipmentPosition, error)
 }
 
@@ -9630,7 +9809,11 @@ func withEquipmentPositionID(id int) equipmentpositionOption {
 		)
 		m.oldValue = func(ctx context.Context) (*EquipmentPosition, error) {
 			once.Do(func() {
-				value, err = m.Client().EquipmentPosition.Get(ctx, id)
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().EquipmentPosition.Get(ctx, id)
+				}
 			})
 			return value, err
 		}
@@ -9690,7 +9873,9 @@ func (m *EquipmentPositionMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldCreateTime returns the old create_time value, if exists.
+// OldCreateTime returns the old create_time value of the EquipmentPosition.
+// If the EquipmentPosition object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *EquipmentPositionMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -9725,7 +9910,9 @@ func (m *EquipmentPositionMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldUpdateTime returns the old update_time value, if exists.
+// OldUpdateTime returns the old update_time value of the EquipmentPosition.
+// If the EquipmentPosition object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *EquipmentPositionMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -10126,6 +10313,7 @@ type EquipmentPositionDefinitionMutation struct {
 	removedpositions      map[int]struct{}
 	equipment_type        *int
 	clearedequipment_type bool
+	done                  bool
 	oldValue              func(context.Context) (*EquipmentPositionDefinition, error)
 }
 
@@ -10158,7 +10346,11 @@ func withEquipmentPositionDefinitionID(id int) equipmentpositiondefinitionOption
 		)
 		m.oldValue = func(ctx context.Context) (*EquipmentPositionDefinition, error) {
 			once.Do(func() {
-				value, err = m.Client().EquipmentPositionDefinition.Get(ctx, id)
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().EquipmentPositionDefinition.Get(ctx, id)
+				}
 			})
 			return value, err
 		}
@@ -10218,7 +10410,9 @@ func (m *EquipmentPositionDefinitionMutation) CreateTime() (r time.Time, exists 
 	return *v, true
 }
 
-// OldCreateTime returns the old create_time value, if exists.
+// OldCreateTime returns the old create_time value of the EquipmentPositionDefinition.
+// If the EquipmentPositionDefinition object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *EquipmentPositionDefinitionMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -10253,7 +10447,9 @@ func (m *EquipmentPositionDefinitionMutation) UpdateTime() (r time.Time, exists 
 	return *v, true
 }
 
-// OldUpdateTime returns the old update_time value, if exists.
+// OldUpdateTime returns the old update_time value of the EquipmentPositionDefinition.
+// If the EquipmentPositionDefinition object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *EquipmentPositionDefinitionMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -10288,7 +10484,9 @@ func (m *EquipmentPositionDefinitionMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// OldName returns the old name value, if exists.
+// OldName returns the old name value of the EquipmentPositionDefinition.
+// If the EquipmentPositionDefinition object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *EquipmentPositionDefinitionMutation) OldName(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -10324,7 +10522,9 @@ func (m *EquipmentPositionDefinitionMutation) Index() (r int, exists bool) {
 	return *v, true
 }
 
-// OldIndex returns the old index value, if exists.
+// OldIndex returns the old index value of the EquipmentPositionDefinition.
+// If the EquipmentPositionDefinition object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *EquipmentPositionDefinitionMutation) OldIndex(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -10392,7 +10592,9 @@ func (m *EquipmentPositionDefinitionMutation) VisibilityLabel() (r string, exist
 	return *v, true
 }
 
-// OldVisibilityLabel returns the old visibility_label value, if exists.
+// OldVisibilityLabel returns the old visibility_label value of the EquipmentPositionDefinition.
+// If the EquipmentPositionDefinition object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *EquipmentPositionDefinitionMutation) OldVisibilityLabel(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -10841,6 +11043,7 @@ type EquipmentTypeMutation struct {
 	clearedcategory                     bool
 	service_endpoint_definitions        map[int]struct{}
 	removedservice_endpoint_definitions map[int]struct{}
+	done                                bool
 	oldValue                            func(context.Context) (*EquipmentType, error)
 }
 
@@ -10873,7 +11076,11 @@ func withEquipmentTypeID(id int) equipmenttypeOption {
 		)
 		m.oldValue = func(ctx context.Context) (*EquipmentType, error) {
 			once.Do(func() {
-				value, err = m.Client().EquipmentType.Get(ctx, id)
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().EquipmentType.Get(ctx, id)
+				}
 			})
 			return value, err
 		}
@@ -10933,7 +11140,9 @@ func (m *EquipmentTypeMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldCreateTime returns the old create_time value, if exists.
+// OldCreateTime returns the old create_time value of the EquipmentType.
+// If the EquipmentType object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *EquipmentTypeMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -10968,7 +11177,9 @@ func (m *EquipmentTypeMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldUpdateTime returns the old update_time value, if exists.
+// OldUpdateTime returns the old update_time value of the EquipmentType.
+// If the EquipmentType object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *EquipmentTypeMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -11003,7 +11214,9 @@ func (m *EquipmentTypeMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// OldName returns the old name value, if exists.
+// OldName returns the old name value of the EquipmentType.
+// If the EquipmentType object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *EquipmentTypeMutation) OldName(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -11641,6 +11854,7 @@ type FileMutation struct {
 	clearedphoto_survey_question bool
 	survey_question              *int
 	clearedsurvey_question       bool
+	done                         bool
 	oldValue                     func(context.Context) (*File, error)
 }
 
@@ -11673,7 +11887,11 @@ func withFileID(id int) fileOption {
 		)
 		m.oldValue = func(ctx context.Context) (*File, error) {
 			once.Do(func() {
-				value, err = m.Client().File.Get(ctx, id)
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().File.Get(ctx, id)
+				}
 			})
 			return value, err
 		}
@@ -11733,7 +11951,9 @@ func (m *FileMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldCreateTime returns the old create_time value, if exists.
+// OldCreateTime returns the old create_time value of the File.
+// If the File object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *FileMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -11768,7 +11988,9 @@ func (m *FileMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldUpdateTime returns the old update_time value, if exists.
+// OldUpdateTime returns the old update_time value of the File.
+// If the File object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *FileMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -11803,7 +12025,9 @@ func (m *FileMutation) GetType() (r string, exists bool) {
 	return *v, true
 }
 
-// OldType returns the old type value, if exists.
+// OldType returns the old type value of the File.
+// If the File object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *FileMutation) OldType(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -11838,7 +12062,9 @@ func (m *FileMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// OldName returns the old name value, if exists.
+// OldName returns the old name value of the File.
+// If the File object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *FileMutation) OldName(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -11874,7 +12100,9 @@ func (m *FileMutation) Size() (r int, exists bool) {
 	return *v, true
 }
 
-// OldSize returns the old size value, if exists.
+// OldSize returns the old size value of the File.
+// If the File object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *FileMutation) OldSize(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -11942,7 +12170,9 @@ func (m *FileMutation) ModifiedAt() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldModifiedAt returns the old modified_at value, if exists.
+// OldModifiedAt returns the old modified_at value of the File.
+// If the File object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *FileMutation) OldModifiedAt(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -11990,7 +12220,9 @@ func (m *FileMutation) UploadedAt() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldUploadedAt returns the old uploaded_at value, if exists.
+// OldUploadedAt returns the old uploaded_at value of the File.
+// If the File object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *FileMutation) OldUploadedAt(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -12038,7 +12270,9 @@ func (m *FileMutation) ContentType() (r string, exists bool) {
 	return *v, true
 }
 
-// OldContentType returns the old content_type value, if exists.
+// OldContentType returns the old content_type value of the File.
+// If the File object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *FileMutation) OldContentType(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -12073,7 +12307,9 @@ func (m *FileMutation) StoreKey() (r string, exists bool) {
 	return *v, true
 }
 
-// OldStoreKey returns the old store_key value, if exists.
+// OldStoreKey returns the old store_key value of the File.
+// If the File object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *FileMutation) OldStoreKey(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -12108,7 +12344,9 @@ func (m *FileMutation) Category() (r string, exists bool) {
 	return *v, true
 }
 
-// OldCategory returns the old category value, if exists.
+// OldCategory returns the old category value of the File.
+// If the File object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *FileMutation) OldCategory(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -13043,6 +13281,7 @@ type FloorPlanMutation struct {
 	clearedscale           bool
 	image                  *int
 	clearedimage           bool
+	done                   bool
 	oldValue               func(context.Context) (*FloorPlan, error)
 }
 
@@ -13075,7 +13314,11 @@ func withFloorPlanID(id int) floorplanOption {
 		)
 		m.oldValue = func(ctx context.Context) (*FloorPlan, error) {
 			once.Do(func() {
-				value, err = m.Client().FloorPlan.Get(ctx, id)
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().FloorPlan.Get(ctx, id)
+				}
 			})
 			return value, err
 		}
@@ -13135,7 +13378,9 @@ func (m *FloorPlanMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldCreateTime returns the old create_time value, if exists.
+// OldCreateTime returns the old create_time value of the FloorPlan.
+// If the FloorPlan object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *FloorPlanMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -13170,7 +13415,9 @@ func (m *FloorPlanMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldUpdateTime returns the old update_time value, if exists.
+// OldUpdateTime returns the old update_time value of the FloorPlan.
+// If the FloorPlan object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *FloorPlanMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -13205,7 +13452,9 @@ func (m *FloorPlanMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// OldName returns the old name value, if exists.
+// OldName returns the old name value of the FloorPlan.
+// If the FloorPlan object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *FloorPlanMutation) OldName(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -13680,6 +13929,7 @@ type FloorPlanReferencePointMutation struct {
 	longitude     *float64
 	addlongitude  *float64
 	clearedFields map[string]struct{}
+	done          bool
 	oldValue      func(context.Context) (*FloorPlanReferencePoint, error)
 }
 
@@ -13712,7 +13962,11 @@ func withFloorPlanReferencePointID(id int) floorplanreferencepointOption {
 		)
 		m.oldValue = func(ctx context.Context) (*FloorPlanReferencePoint, error) {
 			once.Do(func() {
-				value, err = m.Client().FloorPlanReferencePoint.Get(ctx, id)
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().FloorPlanReferencePoint.Get(ctx, id)
+				}
 			})
 			return value, err
 		}
@@ -13772,7 +14026,9 @@ func (m *FloorPlanReferencePointMutation) CreateTime() (r time.Time, exists bool
 	return *v, true
 }
 
-// OldCreateTime returns the old create_time value, if exists.
+// OldCreateTime returns the old create_time value of the FloorPlanReferencePoint.
+// If the FloorPlanReferencePoint object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *FloorPlanReferencePointMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -13807,7 +14063,9 @@ func (m *FloorPlanReferencePointMutation) UpdateTime() (r time.Time, exists bool
 	return *v, true
 }
 
-// OldUpdateTime returns the old update_time value, if exists.
+// OldUpdateTime returns the old update_time value of the FloorPlanReferencePoint.
+// If the FloorPlanReferencePoint object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *FloorPlanReferencePointMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -13843,7 +14101,9 @@ func (m *FloorPlanReferencePointMutation) X() (r int, exists bool) {
 	return *v, true
 }
 
-// OldX returns the old x value, if exists.
+// OldX returns the old x value of the FloorPlanReferencePoint.
+// If the FloorPlanReferencePoint object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *FloorPlanReferencePointMutation) OldX(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -13898,7 +14158,9 @@ func (m *FloorPlanReferencePointMutation) Y() (r int, exists bool) {
 	return *v, true
 }
 
-// OldY returns the old y value, if exists.
+// OldY returns the old y value of the FloorPlanReferencePoint.
+// If the FloorPlanReferencePoint object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *FloorPlanReferencePointMutation) OldY(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -13953,7 +14215,9 @@ func (m *FloorPlanReferencePointMutation) Latitude() (r float64, exists bool) {
 	return *v, true
 }
 
-// OldLatitude returns the old latitude value, if exists.
+// OldLatitude returns the old latitude value of the FloorPlanReferencePoint.
+// If the FloorPlanReferencePoint object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *FloorPlanReferencePointMutation) OldLatitude(ctx context.Context) (v float64, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -14008,7 +14272,9 @@ func (m *FloorPlanReferencePointMutation) Longitude() (r float64, exists bool) {
 	return *v, true
 }
 
-// OldLongitude returns the old longitude value, if exists.
+// OldLongitude returns the old longitude value of the FloorPlanReferencePoint.
+// If the FloorPlanReferencePoint object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *FloorPlanReferencePointMutation) OldLongitude(ctx context.Context) (v float64, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -14368,6 +14634,7 @@ type FloorPlanScaleMutation struct {
 	scale_in_meters       *float64
 	addscale_in_meters    *float64
 	clearedFields         map[string]struct{}
+	done                  bool
 	oldValue              func(context.Context) (*FloorPlanScale, error)
 }
 
@@ -14400,7 +14667,11 @@ func withFloorPlanScaleID(id int) floorplanscaleOption {
 		)
 		m.oldValue = func(ctx context.Context) (*FloorPlanScale, error) {
 			once.Do(func() {
-				value, err = m.Client().FloorPlanScale.Get(ctx, id)
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().FloorPlanScale.Get(ctx, id)
+				}
 			})
 			return value, err
 		}
@@ -14460,7 +14731,9 @@ func (m *FloorPlanScaleMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldCreateTime returns the old create_time value, if exists.
+// OldCreateTime returns the old create_time value of the FloorPlanScale.
+// If the FloorPlanScale object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *FloorPlanScaleMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -14495,7 +14768,9 @@ func (m *FloorPlanScaleMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldUpdateTime returns the old update_time value, if exists.
+// OldUpdateTime returns the old update_time value of the FloorPlanScale.
+// If the FloorPlanScale object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *FloorPlanScaleMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -14531,7 +14806,9 @@ func (m *FloorPlanScaleMutation) ReferencePoint1X() (r int, exists bool) {
 	return *v, true
 }
 
-// OldReferencePoint1X returns the old reference_point1_x value, if exists.
+// OldReferencePoint1X returns the old reference_point1_x value of the FloorPlanScale.
+// If the FloorPlanScale object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *FloorPlanScaleMutation) OldReferencePoint1X(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -14586,7 +14863,9 @@ func (m *FloorPlanScaleMutation) ReferencePoint1Y() (r int, exists bool) {
 	return *v, true
 }
 
-// OldReferencePoint1Y returns the old reference_point1_y value, if exists.
+// OldReferencePoint1Y returns the old reference_point1_y value of the FloorPlanScale.
+// If the FloorPlanScale object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *FloorPlanScaleMutation) OldReferencePoint1Y(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -14641,7 +14920,9 @@ func (m *FloorPlanScaleMutation) ReferencePoint2X() (r int, exists bool) {
 	return *v, true
 }
 
-// OldReferencePoint2X returns the old reference_point2_x value, if exists.
+// OldReferencePoint2X returns the old reference_point2_x value of the FloorPlanScale.
+// If the FloorPlanScale object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *FloorPlanScaleMutation) OldReferencePoint2X(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -14696,7 +14977,9 @@ func (m *FloorPlanScaleMutation) ReferencePoint2Y() (r int, exists bool) {
 	return *v, true
 }
 
-// OldReferencePoint2Y returns the old reference_point2_y value, if exists.
+// OldReferencePoint2Y returns the old reference_point2_y value of the FloorPlanScale.
+// If the FloorPlanScale object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *FloorPlanScaleMutation) OldReferencePoint2Y(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -14751,7 +15034,9 @@ func (m *FloorPlanScaleMutation) ScaleInMeters() (r float64, exists bool) {
 	return *v, true
 }
 
-// OldScaleInMeters returns the old scale_in_meters value, if exists.
+// OldScaleInMeters returns the old scale_in_meters value of the FloorPlanScale.
+// If the FloorPlanScale object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *FloorPlanScaleMutation) OldScaleInMeters(ctx context.Context) (v float64, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -15139,6 +15424,7 @@ type HyperlinkMutation struct {
 	clearedlocation   bool
 	work_order        *int
 	clearedwork_order bool
+	done              bool
 	oldValue          func(context.Context) (*Hyperlink, error)
 }
 
@@ -15171,7 +15457,11 @@ func withHyperlinkID(id int) hyperlinkOption {
 		)
 		m.oldValue = func(ctx context.Context) (*Hyperlink, error) {
 			once.Do(func() {
-				value, err = m.Client().Hyperlink.Get(ctx, id)
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Hyperlink.Get(ctx, id)
+				}
 			})
 			return value, err
 		}
@@ -15231,7 +15521,9 @@ func (m *HyperlinkMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldCreateTime returns the old create_time value, if exists.
+// OldCreateTime returns the old create_time value of the Hyperlink.
+// If the Hyperlink object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *HyperlinkMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -15266,7 +15558,9 @@ func (m *HyperlinkMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldUpdateTime returns the old update_time value, if exists.
+// OldUpdateTime returns the old update_time value of the Hyperlink.
+// If the Hyperlink object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *HyperlinkMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -15301,7 +15595,9 @@ func (m *HyperlinkMutation) URL() (r string, exists bool) {
 	return *v, true
 }
 
-// OldURL returns the old url value, if exists.
+// OldURL returns the old url value of the Hyperlink.
+// If the Hyperlink object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *HyperlinkMutation) OldURL(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -15336,7 +15632,9 @@ func (m *HyperlinkMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// OldName returns the old name value, if exists.
+// OldName returns the old name value of the Hyperlink.
+// If the Hyperlink object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *HyperlinkMutation) OldName(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -15384,7 +15682,9 @@ func (m *HyperlinkMutation) Category() (r string, exists bool) {
 	return *v, true
 }
 
-// OldCategory returns the old category value, if exists.
+// OldCategory returns the old category value of the Hyperlink.
+// If the Hyperlink object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *HyperlinkMutation) OldCategory(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -15865,6 +16165,7 @@ type LinkMutation struct {
 	removedproperties map[int]struct{}
 	service           map[int]struct{}
 	removedservice    map[int]struct{}
+	done              bool
 	oldValue          func(context.Context) (*Link, error)
 }
 
@@ -15897,7 +16198,11 @@ func withLinkID(id int) linkOption {
 		)
 		m.oldValue = func(ctx context.Context) (*Link, error) {
 			once.Do(func() {
-				value, err = m.Client().Link.Get(ctx, id)
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Link.Get(ctx, id)
+				}
 			})
 			return value, err
 		}
@@ -15957,7 +16262,9 @@ func (m *LinkMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldCreateTime returns the old create_time value, if exists.
+// OldCreateTime returns the old create_time value of the Link.
+// If the Link object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *LinkMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -15992,7 +16299,9 @@ func (m *LinkMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldUpdateTime returns the old update_time value, if exists.
+// OldUpdateTime returns the old update_time value of the Link.
+// If the Link object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *LinkMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -16027,7 +16336,9 @@ func (m *LinkMutation) FutureState() (r string, exists bool) {
 	return *v, true
 }
 
-// OldFutureState returns the old future_state value, if exists.
+// OldFutureState returns the old future_state value of the Link.
+// If the Link object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *LinkMutation) OldFutureState(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -16565,6 +16876,7 @@ type LocationMutation struct {
 	removedwork_orders map[int]struct{}
 	floor_plans        map[int]struct{}
 	removedfloor_plans map[int]struct{}
+	done               bool
 	oldValue           func(context.Context) (*Location, error)
 }
 
@@ -16597,7 +16909,11 @@ func withLocationID(id int) locationOption {
 		)
 		m.oldValue = func(ctx context.Context) (*Location, error) {
 			once.Do(func() {
-				value, err = m.Client().Location.Get(ctx, id)
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Location.Get(ctx, id)
+				}
 			})
 			return value, err
 		}
@@ -16657,7 +16973,9 @@ func (m *LocationMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldCreateTime returns the old create_time value, if exists.
+// OldCreateTime returns the old create_time value of the Location.
+// If the Location object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *LocationMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -16692,7 +17010,9 @@ func (m *LocationMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldUpdateTime returns the old update_time value, if exists.
+// OldUpdateTime returns the old update_time value of the Location.
+// If the Location object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *LocationMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -16727,7 +17047,9 @@ func (m *LocationMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// OldName returns the old name value, if exists.
+// OldName returns the old name value of the Location.
+// If the Location object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *LocationMutation) OldName(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -16762,7 +17084,9 @@ func (m *LocationMutation) ExternalID() (r string, exists bool) {
 	return *v, true
 }
 
-// OldExternalID returns the old external_id value, if exists.
+// OldExternalID returns the old external_id value of the Location.
+// If the Location object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *LocationMutation) OldExternalID(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -16811,7 +17135,9 @@ func (m *LocationMutation) Latitude() (r float64, exists bool) {
 	return *v, true
 }
 
-// OldLatitude returns the old latitude value, if exists.
+// OldLatitude returns the old latitude value of the Location.
+// If the Location object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *LocationMutation) OldLatitude(ctx context.Context) (v float64, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -16866,7 +17192,9 @@ func (m *LocationMutation) Longitude() (r float64, exists bool) {
 	return *v, true
 }
 
-// OldLongitude returns the old longitude value, if exists.
+// OldLongitude returns the old longitude value of the Location.
+// If the Location object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *LocationMutation) OldLongitude(ctx context.Context) (v float64, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -16920,7 +17248,9 @@ func (m *LocationMutation) SiteSurveyNeeded() (r bool, exists bool) {
 	return *v, true
 }
 
-// OldSiteSurveyNeeded returns the old site_survey_needed value, if exists.
+// OldSiteSurveyNeeded returns the old site_survey_needed value of the Location.
+// If the Location object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *LocationMutation) OldSiteSurveyNeeded(ctx context.Context) (v bool, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -18039,6 +18369,7 @@ type LocationTypeMutation struct {
 	removedproperty_types             map[int]struct{}
 	survey_template_categories        map[int]struct{}
 	removedsurvey_template_categories map[int]struct{}
+	done                              bool
 	oldValue                          func(context.Context) (*LocationType, error)
 }
 
@@ -18071,7 +18402,11 @@ func withLocationTypeID(id int) locationtypeOption {
 		)
 		m.oldValue = func(ctx context.Context) (*LocationType, error) {
 			once.Do(func() {
-				value, err = m.Client().LocationType.Get(ctx, id)
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().LocationType.Get(ctx, id)
+				}
 			})
 			return value, err
 		}
@@ -18131,7 +18466,9 @@ func (m *LocationTypeMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldCreateTime returns the old create_time value, if exists.
+// OldCreateTime returns the old create_time value of the LocationType.
+// If the LocationType object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *LocationTypeMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -18166,7 +18503,9 @@ func (m *LocationTypeMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldUpdateTime returns the old update_time value, if exists.
+// OldUpdateTime returns the old update_time value of the LocationType.
+// If the LocationType object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *LocationTypeMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -18201,7 +18540,9 @@ func (m *LocationTypeMutation) Site() (r bool, exists bool) {
 	return *v, true
 }
 
-// OldSite returns the old site value, if exists.
+// OldSite returns the old site value of the LocationType.
+// If the LocationType object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *LocationTypeMutation) OldSite(ctx context.Context) (v bool, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -18236,7 +18577,9 @@ func (m *LocationTypeMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// OldName returns the old name value, if exists.
+// OldName returns the old name value of the LocationType.
+// If the LocationType object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *LocationTypeMutation) OldName(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -18271,7 +18614,9 @@ func (m *LocationTypeMutation) MapType() (r string, exists bool) {
 	return *v, true
 }
 
-// OldMapType returns the old map_type value, if exists.
+// OldMapType returns the old map_type value of the LocationType.
+// If the LocationType object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *LocationTypeMutation) OldMapType(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -18320,7 +18665,9 @@ func (m *LocationTypeMutation) MapZoomLevel() (r int, exists bool) {
 	return *v, true
 }
 
-// OldMapZoomLevel returns the old map_zoom_level value, if exists.
+// OldMapZoomLevel returns the old map_zoom_level value of the LocationType.
+// If the LocationType object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *LocationTypeMutation) OldMapZoomLevel(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -18389,7 +18736,9 @@ func (m *LocationTypeMutation) Index() (r int, exists bool) {
 	return *v, true
 }
 
-// OldIndex returns the old index value, if exists.
+// OldIndex returns the old index value of the LocationType.
+// If the LocationType object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *LocationTypeMutation) OldIndex(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -18953,6 +19302,7 @@ type PermissionsPolicyMutation struct {
 	clearedFields    map[string]struct{}
 	groups           map[int]struct{}
 	removedgroups    map[int]struct{}
+	done             bool
 	oldValue         func(context.Context) (*PermissionsPolicy, error)
 }
 
@@ -18985,7 +19335,11 @@ func withPermissionsPolicyID(id int) permissionspolicyOption {
 		)
 		m.oldValue = func(ctx context.Context) (*PermissionsPolicy, error) {
 			once.Do(func() {
-				value, err = m.Client().PermissionsPolicy.Get(ctx, id)
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().PermissionsPolicy.Get(ctx, id)
+				}
 			})
 			return value, err
 		}
@@ -19045,7 +19399,9 @@ func (m *PermissionsPolicyMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldCreateTime returns the old create_time value, if exists.
+// OldCreateTime returns the old create_time value of the PermissionsPolicy.
+// If the PermissionsPolicy object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *PermissionsPolicyMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -19080,7 +19436,9 @@ func (m *PermissionsPolicyMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldUpdateTime returns the old update_time value, if exists.
+// OldUpdateTime returns the old update_time value of the PermissionsPolicy.
+// If the PermissionsPolicy object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *PermissionsPolicyMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -19115,7 +19473,9 @@ func (m *PermissionsPolicyMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// OldName returns the old name value, if exists.
+// OldName returns the old name value of the PermissionsPolicy.
+// If the PermissionsPolicy object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *PermissionsPolicyMutation) OldName(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -19150,7 +19510,9 @@ func (m *PermissionsPolicyMutation) Description() (r string, exists bool) {
 	return *v, true
 }
 
-// OldDescription returns the old description value, if exists.
+// OldDescription returns the old description value of the PermissionsPolicy.
+// If the PermissionsPolicy object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *PermissionsPolicyMutation) OldDescription(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -19198,7 +19560,9 @@ func (m *PermissionsPolicyMutation) IsGlobal() (r bool, exists bool) {
 	return *v, true
 }
 
-// OldIsGlobal returns the old is_global value, if exists.
+// OldIsGlobal returns the old is_global value of the PermissionsPolicy.
+// If the PermissionsPolicy object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *PermissionsPolicyMutation) OldIsGlobal(ctx context.Context) (v bool, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -19246,7 +19610,9 @@ func (m *PermissionsPolicyMutation) InventoryPolicy() (r *models.InventoryPolicy
 	return *v, true
 }
 
-// OldInventoryPolicy returns the old inventory_policy value, if exists.
+// OldInventoryPolicy returns the old inventory_policy value of the PermissionsPolicy.
+// If the PermissionsPolicy object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *PermissionsPolicyMutation) OldInventoryPolicy(ctx context.Context) (v *models.InventoryPolicyInput, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -19294,7 +19660,9 @@ func (m *PermissionsPolicyMutation) WorkforcePolicy() (r *models.WorkforcePolicy
 	return *v, true
 }
 
-// OldWorkforcePolicy returns the old workforce_policy value, if exists.
+// OldWorkforcePolicy returns the old workforce_policy value of the PermissionsPolicy.
+// If the PermissionsPolicy object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *PermissionsPolicyMutation) OldWorkforcePolicy(ctx context.Context) (v *models.WorkforcePolicyInput, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -19718,6 +20086,7 @@ type ProjectMutation struct {
 	removedproperties  map[int]struct{}
 	creator            *int
 	clearedcreator     bool
+	done               bool
 	oldValue           func(context.Context) (*Project, error)
 }
 
@@ -19750,7 +20119,11 @@ func withProjectID(id int) projectOption {
 		)
 		m.oldValue = func(ctx context.Context) (*Project, error) {
 			once.Do(func() {
-				value, err = m.Client().Project.Get(ctx, id)
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Project.Get(ctx, id)
+				}
 			})
 			return value, err
 		}
@@ -19810,7 +20183,9 @@ func (m *ProjectMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldCreateTime returns the old create_time value, if exists.
+// OldCreateTime returns the old create_time value of the Project.
+// If the Project object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *ProjectMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -19845,7 +20220,9 @@ func (m *ProjectMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldUpdateTime returns the old update_time value, if exists.
+// OldUpdateTime returns the old update_time value of the Project.
+// If the Project object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *ProjectMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -19880,7 +20257,9 @@ func (m *ProjectMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// OldName returns the old name value, if exists.
+// OldName returns the old name value of the Project.
+// If the Project object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *ProjectMutation) OldName(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -19915,7 +20294,9 @@ func (m *ProjectMutation) Description() (r string, exists bool) {
 	return *v, true
 }
 
-// OldDescription returns the old description value, if exists.
+// OldDescription returns the old description value of the Project.
+// If the Project object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *ProjectMutation) OldDescription(ctx context.Context) (v *string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -20561,6 +20942,7 @@ type ProjectTypeMutation struct {
 	removedproperties  map[int]struct{}
 	work_orders        map[int]struct{}
 	removedwork_orders map[int]struct{}
+	done               bool
 	oldValue           func(context.Context) (*ProjectType, error)
 }
 
@@ -20593,7 +20975,11 @@ func withProjectTypeID(id int) projecttypeOption {
 		)
 		m.oldValue = func(ctx context.Context) (*ProjectType, error) {
 			once.Do(func() {
-				value, err = m.Client().ProjectType.Get(ctx, id)
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ProjectType.Get(ctx, id)
+				}
 			})
 			return value, err
 		}
@@ -20653,7 +21039,9 @@ func (m *ProjectTypeMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldCreateTime returns the old create_time value, if exists.
+// OldCreateTime returns the old create_time value of the ProjectType.
+// If the ProjectType object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *ProjectTypeMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -20688,7 +21076,9 @@ func (m *ProjectTypeMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldUpdateTime returns the old update_time value, if exists.
+// OldUpdateTime returns the old update_time value of the ProjectType.
+// If the ProjectType object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *ProjectTypeMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -20723,7 +21113,9 @@ func (m *ProjectTypeMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// OldName returns the old name value, if exists.
+// OldName returns the old name value of the ProjectType.
+// If the ProjectType object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *ProjectTypeMutation) OldName(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -20758,7 +21150,9 @@ func (m *ProjectTypeMutation) Description() (r string, exists bool) {
 	return *v, true
 }
 
-// OldDescription returns the old description value, if exists.
+// OldDescription returns the old description value of the ProjectType.
+// If the ProjectType object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *ProjectTypeMutation) OldDescription(ctx context.Context) (v *string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -21265,6 +21659,7 @@ type PropertyMutation struct {
 	clearedwork_order_value bool
 	user_value              *int
 	cleareduser_value       bool
+	done                    bool
 	oldValue                func(context.Context) (*Property, error)
 }
 
@@ -21297,7 +21692,11 @@ func withPropertyID(id int) propertyOption {
 		)
 		m.oldValue = func(ctx context.Context) (*Property, error) {
 			once.Do(func() {
-				value, err = m.Client().Property.Get(ctx, id)
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Property.Get(ctx, id)
+				}
 			})
 			return value, err
 		}
@@ -21357,7 +21756,9 @@ func (m *PropertyMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldCreateTime returns the old create_time value, if exists.
+// OldCreateTime returns the old create_time value of the Property.
+// If the Property object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *PropertyMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -21392,7 +21793,9 @@ func (m *PropertyMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldUpdateTime returns the old update_time value, if exists.
+// OldUpdateTime returns the old update_time value of the Property.
+// If the Property object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *PropertyMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -21428,7 +21831,9 @@ func (m *PropertyMutation) IntVal() (r int, exists bool) {
 	return *v, true
 }
 
-// OldIntVal returns the old int_val value, if exists.
+// OldIntVal returns the old int_val value of the Property.
+// If the Property object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *PropertyMutation) OldIntVal(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -21496,7 +21901,9 @@ func (m *PropertyMutation) BoolVal() (r bool, exists bool) {
 	return *v, true
 }
 
-// OldBoolVal returns the old bool_val value, if exists.
+// OldBoolVal returns the old bool_val value of the Property.
+// If the Property object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *PropertyMutation) OldBoolVal(ctx context.Context) (v bool, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -21545,7 +21952,9 @@ func (m *PropertyMutation) FloatVal() (r float64, exists bool) {
 	return *v, true
 }
 
-// OldFloatVal returns the old float_val value, if exists.
+// OldFloatVal returns the old float_val value of the Property.
+// If the Property object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *PropertyMutation) OldFloatVal(ctx context.Context) (v float64, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -21614,7 +22023,9 @@ func (m *PropertyMutation) LatitudeVal() (r float64, exists bool) {
 	return *v, true
 }
 
-// OldLatitudeVal returns the old latitude_val value, if exists.
+// OldLatitudeVal returns the old latitude_val value of the Property.
+// If the Property object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *PropertyMutation) OldLatitudeVal(ctx context.Context) (v float64, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -21683,7 +22094,9 @@ func (m *PropertyMutation) LongitudeVal() (r float64, exists bool) {
 	return *v, true
 }
 
-// OldLongitudeVal returns the old longitude_val value, if exists.
+// OldLongitudeVal returns the old longitude_val value of the Property.
+// If the Property object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *PropertyMutation) OldLongitudeVal(ctx context.Context) (v float64, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -21752,7 +22165,9 @@ func (m *PropertyMutation) RangeFromVal() (r float64, exists bool) {
 	return *v, true
 }
 
-// OldRangeFromVal returns the old range_from_val value, if exists.
+// OldRangeFromVal returns the old range_from_val value of the Property.
+// If the Property object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *PropertyMutation) OldRangeFromVal(ctx context.Context) (v float64, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -21821,7 +22236,9 @@ func (m *PropertyMutation) RangeToVal() (r float64, exists bool) {
 	return *v, true
 }
 
-// OldRangeToVal returns the old range_to_val value, if exists.
+// OldRangeToVal returns the old range_to_val value of the Property.
+// If the Property object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *PropertyMutation) OldRangeToVal(ctx context.Context) (v float64, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -21889,7 +22306,9 @@ func (m *PropertyMutation) StringVal() (r string, exists bool) {
 	return *v, true
 }
 
-// OldStringVal returns the old string_val value, if exists.
+// OldStringVal returns the old string_val value of the Property.
+// If the Property object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *PropertyMutation) OldStringVal(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -23168,6 +23587,7 @@ type PropertyTypeMutation struct {
 	clearedwork_order_type          bool
 	project_type                    *int
 	clearedproject_type             bool
+	done                            bool
 	oldValue                        func(context.Context) (*PropertyType, error)
 }
 
@@ -23200,7 +23620,11 @@ func withPropertyTypeID(id int) propertytypeOption {
 		)
 		m.oldValue = func(ctx context.Context) (*PropertyType, error) {
 			once.Do(func() {
-				value, err = m.Client().PropertyType.Get(ctx, id)
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().PropertyType.Get(ctx, id)
+				}
 			})
 			return value, err
 		}
@@ -23260,7 +23684,9 @@ func (m *PropertyTypeMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldCreateTime returns the old create_time value, if exists.
+// OldCreateTime returns the old create_time value of the PropertyType.
+// If the PropertyType object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *PropertyTypeMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -23295,7 +23721,9 @@ func (m *PropertyTypeMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldUpdateTime returns the old update_time value, if exists.
+// OldUpdateTime returns the old update_time value of the PropertyType.
+// If the PropertyType object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *PropertyTypeMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -23330,7 +23758,9 @@ func (m *PropertyTypeMutation) GetType() (r string, exists bool) {
 	return *v, true
 }
 
-// OldType returns the old type value, if exists.
+// OldType returns the old type value of the PropertyType.
+// If the PropertyType object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *PropertyTypeMutation) OldType(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -23365,7 +23795,9 @@ func (m *PropertyTypeMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// OldName returns the old name value, if exists.
+// OldName returns the old name value of the PropertyType.
+// If the PropertyType object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *PropertyTypeMutation) OldName(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -23400,7 +23832,9 @@ func (m *PropertyTypeMutation) ExternalID() (r string, exists bool) {
 	return *v, true
 }
 
-// OldExternalID returns the old external_id value, if exists.
+// OldExternalID returns the old external_id value of the PropertyType.
+// If the PropertyType object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *PropertyTypeMutation) OldExternalID(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -23449,7 +23883,9 @@ func (m *PropertyTypeMutation) Index() (r int, exists bool) {
 	return *v, true
 }
 
-// OldIndex returns the old index value, if exists.
+// OldIndex returns the old index value of the PropertyType.
+// If the PropertyType object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *PropertyTypeMutation) OldIndex(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -23517,7 +23953,9 @@ func (m *PropertyTypeMutation) Category() (r string, exists bool) {
 	return *v, true
 }
 
-// OldCategory returns the old category value, if exists.
+// OldCategory returns the old category value of the PropertyType.
+// If the PropertyType object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *PropertyTypeMutation) OldCategory(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -23566,7 +24004,9 @@ func (m *PropertyTypeMutation) IntVal() (r int, exists bool) {
 	return *v, true
 }
 
-// OldIntVal returns the old int_val value, if exists.
+// OldIntVal returns the old int_val value of the PropertyType.
+// If the PropertyType object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *PropertyTypeMutation) OldIntVal(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -23634,7 +24074,9 @@ func (m *PropertyTypeMutation) BoolVal() (r bool, exists bool) {
 	return *v, true
 }
 
-// OldBoolVal returns the old bool_val value, if exists.
+// OldBoolVal returns the old bool_val value of the PropertyType.
+// If the PropertyType object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *PropertyTypeMutation) OldBoolVal(ctx context.Context) (v bool, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -23683,7 +24125,9 @@ func (m *PropertyTypeMutation) FloatVal() (r float64, exists bool) {
 	return *v, true
 }
 
-// OldFloatVal returns the old float_val value, if exists.
+// OldFloatVal returns the old float_val value of the PropertyType.
+// If the PropertyType object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *PropertyTypeMutation) OldFloatVal(ctx context.Context) (v float64, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -23752,7 +24196,9 @@ func (m *PropertyTypeMutation) LatitudeVal() (r float64, exists bool) {
 	return *v, true
 }
 
-// OldLatitudeVal returns the old latitude_val value, if exists.
+// OldLatitudeVal returns the old latitude_val value of the PropertyType.
+// If the PropertyType object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *PropertyTypeMutation) OldLatitudeVal(ctx context.Context) (v float64, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -23821,7 +24267,9 @@ func (m *PropertyTypeMutation) LongitudeVal() (r float64, exists bool) {
 	return *v, true
 }
 
-// OldLongitudeVal returns the old longitude_val value, if exists.
+// OldLongitudeVal returns the old longitude_val value of the PropertyType.
+// If the PropertyType object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *PropertyTypeMutation) OldLongitudeVal(ctx context.Context) (v float64, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -23889,7 +24337,9 @@ func (m *PropertyTypeMutation) StringVal() (r string, exists bool) {
 	return *v, true
 }
 
-// OldStringVal returns the old string_val value, if exists.
+// OldStringVal returns the old string_val value of the PropertyType.
+// If the PropertyType object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *PropertyTypeMutation) OldStringVal(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -23938,7 +24388,9 @@ func (m *PropertyTypeMutation) RangeFromVal() (r float64, exists bool) {
 	return *v, true
 }
 
-// OldRangeFromVal returns the old range_from_val value, if exists.
+// OldRangeFromVal returns the old range_from_val value of the PropertyType.
+// If the PropertyType object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *PropertyTypeMutation) OldRangeFromVal(ctx context.Context) (v float64, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -24007,7 +24459,9 @@ func (m *PropertyTypeMutation) RangeToVal() (r float64, exists bool) {
 	return *v, true
 }
 
-// OldRangeToVal returns the old range_to_val value, if exists.
+// OldRangeToVal returns the old range_to_val value of the PropertyType.
+// If the PropertyType object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *PropertyTypeMutation) OldRangeToVal(ctx context.Context) (v float64, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -24075,7 +24529,9 @@ func (m *PropertyTypeMutation) IsInstanceProperty() (r bool, exists bool) {
 	return *v, true
 }
 
-// OldIsInstanceProperty returns the old is_instance_property value, if exists.
+// OldIsInstanceProperty returns the old is_instance_property value of the PropertyType.
+// If the PropertyType object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *PropertyTypeMutation) OldIsInstanceProperty(ctx context.Context) (v bool, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -24110,7 +24566,9 @@ func (m *PropertyTypeMutation) Editable() (r bool, exists bool) {
 	return *v, true
 }
 
-// OldEditable returns the old editable value, if exists.
+// OldEditable returns the old editable value of the PropertyType.
+// If the PropertyType object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *PropertyTypeMutation) OldEditable(ctx context.Context) (v bool, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -24145,7 +24603,9 @@ func (m *PropertyTypeMutation) Mandatory() (r bool, exists bool) {
 	return *v, true
 }
 
-// OldMandatory returns the old mandatory value, if exists.
+// OldMandatory returns the old mandatory value of the PropertyType.
+// If the PropertyType object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *PropertyTypeMutation) OldMandatory(ctx context.Context) (v bool, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -24180,7 +24640,9 @@ func (m *PropertyTypeMutation) Deleted() (r bool, exists bool) {
 	return *v, true
 }
 
-// OldDeleted returns the old deleted value, if exists.
+// OldDeleted returns the old deleted value of the PropertyType.
+// If the PropertyType object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *PropertyTypeMutation) OldDeleted(ctx context.Context) (v bool, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -24215,7 +24677,9 @@ func (m *PropertyTypeMutation) NodeType() (r string, exists bool) {
 	return *v, true
 }
 
-// OldNodeType returns the old nodeType value, if exists.
+// OldNodeType returns the old nodeType value of the PropertyType.
+// If the PropertyType object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *PropertyTypeMutation) OldNodeType(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -25383,6 +25847,7 @@ type ReportFilterMutation struct {
 	entity        *reportfilter.Entity
 	filters       *string
 	clearedFields map[string]struct{}
+	done          bool
 	oldValue      func(context.Context) (*ReportFilter, error)
 }
 
@@ -25415,7 +25880,11 @@ func withReportFilterID(id int) reportfilterOption {
 		)
 		m.oldValue = func(ctx context.Context) (*ReportFilter, error) {
 			once.Do(func() {
-				value, err = m.Client().ReportFilter.Get(ctx, id)
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ReportFilter.Get(ctx, id)
+				}
 			})
 			return value, err
 		}
@@ -25475,7 +25944,9 @@ func (m *ReportFilterMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldCreateTime returns the old create_time value, if exists.
+// OldCreateTime returns the old create_time value of the ReportFilter.
+// If the ReportFilter object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *ReportFilterMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -25510,7 +25981,9 @@ func (m *ReportFilterMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldUpdateTime returns the old update_time value, if exists.
+// OldUpdateTime returns the old update_time value of the ReportFilter.
+// If the ReportFilter object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *ReportFilterMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -25545,7 +26018,9 @@ func (m *ReportFilterMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// OldName returns the old name value, if exists.
+// OldName returns the old name value of the ReportFilter.
+// If the ReportFilter object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *ReportFilterMutation) OldName(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -25580,7 +26055,9 @@ func (m *ReportFilterMutation) Entity() (r reportfilter.Entity, exists bool) {
 	return *v, true
 }
 
-// OldEntity returns the old entity value, if exists.
+// OldEntity returns the old entity value of the ReportFilter.
+// If the ReportFilter object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *ReportFilterMutation) OldEntity(ctx context.Context) (v reportfilter.Entity, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -25615,7 +26092,9 @@ func (m *ReportFilterMutation) Filters() (r string, exists bool) {
 	return *v, true
 }
 
-// OldFilters returns the old filters value, if exists.
+// OldFilters returns the old filters value of the ReportFilter.
+// If the ReportFilter object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *ReportFilterMutation) OldFilters(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -25895,6 +26374,7 @@ type ServiceMutation struct {
 	removedcustomer   map[int]struct{}
 	endpoints         map[int]struct{}
 	removedendpoints  map[int]struct{}
+	done              bool
 	oldValue          func(context.Context) (*Service, error)
 }
 
@@ -25927,7 +26407,11 @@ func withServiceID(id int) serviceOption {
 		)
 		m.oldValue = func(ctx context.Context) (*Service, error) {
 			once.Do(func() {
-				value, err = m.Client().Service.Get(ctx, id)
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Service.Get(ctx, id)
+				}
 			})
 			return value, err
 		}
@@ -25987,7 +26471,9 @@ func (m *ServiceMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldCreateTime returns the old create_time value, if exists.
+// OldCreateTime returns the old create_time value of the Service.
+// If the Service object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *ServiceMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -26022,7 +26508,9 @@ func (m *ServiceMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldUpdateTime returns the old update_time value, if exists.
+// OldUpdateTime returns the old update_time value of the Service.
+// If the Service object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *ServiceMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -26057,7 +26545,9 @@ func (m *ServiceMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// OldName returns the old name value, if exists.
+// OldName returns the old name value of the Service.
+// If the Service object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *ServiceMutation) OldName(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -26092,7 +26582,9 @@ func (m *ServiceMutation) ExternalID() (r string, exists bool) {
 	return *v, true
 }
 
-// OldExternalID returns the old external_id value, if exists.
+// OldExternalID returns the old external_id value of the Service.
+// If the Service object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *ServiceMutation) OldExternalID(ctx context.Context) (v *string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -26140,7 +26632,9 @@ func (m *ServiceMutation) Status() (r string, exists bool) {
 	return *v, true
 }
 
-// OldStatus returns the old status value, if exists.
+// OldStatus returns the old status value of the Service.
+// If the Service object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *ServiceMutation) OldStatus(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -26865,6 +27359,7 @@ type ServiceEndpointMutation struct {
 	clearedservice    bool
 	definition        *int
 	cleareddefinition bool
+	done              bool
 	oldValue          func(context.Context) (*ServiceEndpoint, error)
 }
 
@@ -26897,7 +27392,11 @@ func withServiceEndpointID(id int) serviceendpointOption {
 		)
 		m.oldValue = func(ctx context.Context) (*ServiceEndpoint, error) {
 			once.Do(func() {
-				value, err = m.Client().ServiceEndpoint.Get(ctx, id)
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ServiceEndpoint.Get(ctx, id)
+				}
 			})
 			return value, err
 		}
@@ -26957,7 +27456,9 @@ func (m *ServiceEndpointMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldCreateTime returns the old create_time value, if exists.
+// OldCreateTime returns the old create_time value of the ServiceEndpoint.
+// If the ServiceEndpoint object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *ServiceEndpointMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -26992,7 +27493,9 @@ func (m *ServiceEndpointMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldUpdateTime returns the old update_time value, if exists.
+// OldUpdateTime returns the old update_time value of the ServiceEndpoint.
+// If the ServiceEndpoint object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *ServiceEndpointMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -27452,6 +27955,7 @@ type ServiceEndpointDefinitionMutation struct {
 	clearedservice_type   bool
 	equipment_type        *int
 	clearedequipment_type bool
+	done                  bool
 	oldValue              func(context.Context) (*ServiceEndpointDefinition, error)
 }
 
@@ -27484,7 +27988,11 @@ func withServiceEndpointDefinitionID(id int) serviceendpointdefinitionOption {
 		)
 		m.oldValue = func(ctx context.Context) (*ServiceEndpointDefinition, error) {
 			once.Do(func() {
-				value, err = m.Client().ServiceEndpointDefinition.Get(ctx, id)
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ServiceEndpointDefinition.Get(ctx, id)
+				}
 			})
 			return value, err
 		}
@@ -27544,7 +28052,9 @@ func (m *ServiceEndpointDefinitionMutation) CreateTime() (r time.Time, exists bo
 	return *v, true
 }
 
-// OldCreateTime returns the old create_time value, if exists.
+// OldCreateTime returns the old create_time value of the ServiceEndpointDefinition.
+// If the ServiceEndpointDefinition object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *ServiceEndpointDefinitionMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -27579,7 +28089,9 @@ func (m *ServiceEndpointDefinitionMutation) UpdateTime() (r time.Time, exists bo
 	return *v, true
 }
 
-// OldUpdateTime returns the old update_time value, if exists.
+// OldUpdateTime returns the old update_time value of the ServiceEndpointDefinition.
+// If the ServiceEndpointDefinition object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *ServiceEndpointDefinitionMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -27614,7 +28126,9 @@ func (m *ServiceEndpointDefinitionMutation) Role() (r string, exists bool) {
 	return *v, true
 }
 
-// OldRole returns the old role value, if exists.
+// OldRole returns the old role value of the ServiceEndpointDefinition.
+// If the ServiceEndpointDefinition object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *ServiceEndpointDefinitionMutation) OldRole(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -27662,7 +28176,9 @@ func (m *ServiceEndpointDefinitionMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// OldName returns the old name value, if exists.
+// OldName returns the old name value of the ServiceEndpointDefinition.
+// If the ServiceEndpointDefinition object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *ServiceEndpointDefinitionMutation) OldName(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -27698,7 +28214,9 @@ func (m *ServiceEndpointDefinitionMutation) Index() (r int, exists bool) {
 	return *v, true
 }
 
-// OldIndex returns the old index value, if exists.
+// OldIndex returns the old index value of the ServiceEndpointDefinition.
+// If the ServiceEndpointDefinition object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *ServiceEndpointDefinitionMutation) OldIndex(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -28201,6 +28719,7 @@ type ServiceTypeMutation struct {
 	removedproperty_types       map[int]struct{}
 	endpoint_definitions        map[int]struct{}
 	removedendpoint_definitions map[int]struct{}
+	done                        bool
 	oldValue                    func(context.Context) (*ServiceType, error)
 }
 
@@ -28233,7 +28752,11 @@ func withServiceTypeID(id int) servicetypeOption {
 		)
 		m.oldValue = func(ctx context.Context) (*ServiceType, error) {
 			once.Do(func() {
-				value, err = m.Client().ServiceType.Get(ctx, id)
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ServiceType.Get(ctx, id)
+				}
 			})
 			return value, err
 		}
@@ -28293,7 +28816,9 @@ func (m *ServiceTypeMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldCreateTime returns the old create_time value, if exists.
+// OldCreateTime returns the old create_time value of the ServiceType.
+// If the ServiceType object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *ServiceTypeMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -28328,7 +28853,9 @@ func (m *ServiceTypeMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldUpdateTime returns the old update_time value, if exists.
+// OldUpdateTime returns the old update_time value of the ServiceType.
+// If the ServiceType object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *ServiceTypeMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -28363,7 +28890,9 @@ func (m *ServiceTypeMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// OldName returns the old name value, if exists.
+// OldName returns the old name value of the ServiceType.
+// If the ServiceType object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *ServiceTypeMutation) OldName(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -28398,7 +28927,9 @@ func (m *ServiceTypeMutation) HasCustomer() (r bool, exists bool) {
 	return *v, true
 }
 
-// OldHasCustomer returns the old has_customer value, if exists.
+// OldHasCustomer returns the old has_customer value of the ServiceType.
+// If the ServiceType object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *ServiceTypeMutation) OldHasCustomer(ctx context.Context) (v bool, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -28433,7 +28964,9 @@ func (m *ServiceTypeMutation) IsDeleted() (r bool, exists bool) {
 	return *v, true
 }
 
-// OldIsDeleted returns the old is_deleted value, if exists.
+// OldIsDeleted returns the old is_deleted value of the ServiceType.
+// If the ServiceType object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *ServiceTypeMutation) OldIsDeleted(ctx context.Context) (v bool, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -28468,7 +29001,9 @@ func (m *ServiceTypeMutation) DiscoveryMethod() (r servicetype.DiscoveryMethod, 
 	return *v, true
 }
 
-// OldDiscoveryMethod returns the old discovery_method value, if exists.
+// OldDiscoveryMethod returns the old discovery_method value of the ServiceType.
+// If the ServiceType object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *ServiceTypeMutation) OldDiscoveryMethod(ctx context.Context) (v servicetype.DiscoveryMethod, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -28979,6 +29514,7 @@ type SurveyMutation struct {
 	clearedsource_file   bool
 	questions            map[int]struct{}
 	removedquestions     map[int]struct{}
+	done                 bool
 	oldValue             func(context.Context) (*Survey, error)
 }
 
@@ -29011,7 +29547,11 @@ func withSurveyID(id int) surveyOption {
 		)
 		m.oldValue = func(ctx context.Context) (*Survey, error) {
 			once.Do(func() {
-				value, err = m.Client().Survey.Get(ctx, id)
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Survey.Get(ctx, id)
+				}
 			})
 			return value, err
 		}
@@ -29071,7 +29611,9 @@ func (m *SurveyMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldCreateTime returns the old create_time value, if exists.
+// OldCreateTime returns the old create_time value of the Survey.
+// If the Survey object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -29106,7 +29648,9 @@ func (m *SurveyMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldUpdateTime returns the old update_time value, if exists.
+// OldUpdateTime returns the old update_time value of the Survey.
+// If the Survey object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -29141,7 +29685,9 @@ func (m *SurveyMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// OldName returns the old name value, if exists.
+// OldName returns the old name value of the Survey.
+// If the Survey object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyMutation) OldName(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -29176,7 +29722,9 @@ func (m *SurveyMutation) OwnerName() (r string, exists bool) {
 	return *v, true
 }
 
-// OldOwnerName returns the old owner_name value, if exists.
+// OldOwnerName returns the old owner_name value of the Survey.
+// If the Survey object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyMutation) OldOwnerName(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -29224,7 +29772,9 @@ func (m *SurveyMutation) CreationTimestamp() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldCreationTimestamp returns the old creation_timestamp value, if exists.
+// OldCreationTimestamp returns the old creation_timestamp value of the Survey.
+// If the Survey object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyMutation) OldCreationTimestamp(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -29272,7 +29822,9 @@ func (m *SurveyMutation) CompletionTimestamp() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldCompletionTimestamp returns the old completion_timestamp value, if exists.
+// OldCompletionTimestamp returns the old completion_timestamp value of the Survey.
+// If the Survey object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyMutation) OldCompletionTimestamp(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -29787,6 +30339,7 @@ type SurveyCellScanMutation struct {
 	clearedsurvey_question  bool
 	location                *int
 	clearedlocation         bool
+	done                    bool
 	oldValue                func(context.Context) (*SurveyCellScan, error)
 }
 
@@ -29819,7 +30372,11 @@ func withSurveyCellScanID(id int) surveycellscanOption {
 		)
 		m.oldValue = func(ctx context.Context) (*SurveyCellScan, error) {
 			once.Do(func() {
-				value, err = m.Client().SurveyCellScan.Get(ctx, id)
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().SurveyCellScan.Get(ctx, id)
+				}
 			})
 			return value, err
 		}
@@ -29879,7 +30436,9 @@ func (m *SurveyCellScanMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldCreateTime returns the old create_time value, if exists.
+// OldCreateTime returns the old create_time value of the SurveyCellScan.
+// If the SurveyCellScan object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyCellScanMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -29914,7 +30473,9 @@ func (m *SurveyCellScanMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldUpdateTime returns the old update_time value, if exists.
+// OldUpdateTime returns the old update_time value of the SurveyCellScan.
+// If the SurveyCellScan object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyCellScanMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -29949,7 +30510,9 @@ func (m *SurveyCellScanMutation) NetworkType() (r string, exists bool) {
 	return *v, true
 }
 
-// OldNetworkType returns the old network_type value, if exists.
+// OldNetworkType returns the old network_type value of the SurveyCellScan.
+// If the SurveyCellScan object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyCellScanMutation) OldNetworkType(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -29985,7 +30548,9 @@ func (m *SurveyCellScanMutation) SignalStrength() (r int, exists bool) {
 	return *v, true
 }
 
-// OldSignalStrength returns the old signal_strength value, if exists.
+// OldSignalStrength returns the old signal_strength value of the SurveyCellScan.
+// If the SurveyCellScan object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyCellScanMutation) OldSignalStrength(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -30039,7 +30604,9 @@ func (m *SurveyCellScanMutation) Timestamp() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldTimestamp returns the old timestamp value, if exists.
+// OldTimestamp returns the old timestamp value of the SurveyCellScan.
+// If the SurveyCellScan object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyCellScanMutation) OldTimestamp(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -30087,7 +30654,9 @@ func (m *SurveyCellScanMutation) BaseStationID() (r string, exists bool) {
 	return *v, true
 }
 
-// OldBaseStationID returns the old base_station_id value, if exists.
+// OldBaseStationID returns the old base_station_id value of the SurveyCellScan.
+// If the SurveyCellScan object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyCellScanMutation) OldBaseStationID(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -30135,7 +30704,9 @@ func (m *SurveyCellScanMutation) NetworkID() (r string, exists bool) {
 	return *v, true
 }
 
-// OldNetworkID returns the old network_id value, if exists.
+// OldNetworkID returns the old network_id value of the SurveyCellScan.
+// If the SurveyCellScan object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyCellScanMutation) OldNetworkID(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -30183,7 +30754,9 @@ func (m *SurveyCellScanMutation) SystemID() (r string, exists bool) {
 	return *v, true
 }
 
-// OldSystemID returns the old system_id value, if exists.
+// OldSystemID returns the old system_id value of the SurveyCellScan.
+// If the SurveyCellScan object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyCellScanMutation) OldSystemID(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -30231,7 +30804,9 @@ func (m *SurveyCellScanMutation) CellID() (r string, exists bool) {
 	return *v, true
 }
 
-// OldCellID returns the old cell_id value, if exists.
+// OldCellID returns the old cell_id value of the SurveyCellScan.
+// If the SurveyCellScan object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyCellScanMutation) OldCellID(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -30279,7 +30854,9 @@ func (m *SurveyCellScanMutation) LocationAreaCode() (r string, exists bool) {
 	return *v, true
 }
 
-// OldLocationAreaCode returns the old location_area_code value, if exists.
+// OldLocationAreaCode returns the old location_area_code value of the SurveyCellScan.
+// If the SurveyCellScan object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyCellScanMutation) OldLocationAreaCode(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -30327,7 +30904,9 @@ func (m *SurveyCellScanMutation) MobileCountryCode() (r string, exists bool) {
 	return *v, true
 }
 
-// OldMobileCountryCode returns the old mobile_country_code value, if exists.
+// OldMobileCountryCode returns the old mobile_country_code value of the SurveyCellScan.
+// If the SurveyCellScan object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyCellScanMutation) OldMobileCountryCode(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -30375,7 +30954,9 @@ func (m *SurveyCellScanMutation) MobileNetworkCode() (r string, exists bool) {
 	return *v, true
 }
 
-// OldMobileNetworkCode returns the old mobile_network_code value, if exists.
+// OldMobileNetworkCode returns the old mobile_network_code value of the SurveyCellScan.
+// If the SurveyCellScan object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyCellScanMutation) OldMobileNetworkCode(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -30423,7 +31004,9 @@ func (m *SurveyCellScanMutation) PrimaryScramblingCode() (r string, exists bool)
 	return *v, true
 }
 
-// OldPrimaryScramblingCode returns the old primary_scrambling_code value, if exists.
+// OldPrimaryScramblingCode returns the old primary_scrambling_code value of the SurveyCellScan.
+// If the SurveyCellScan object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyCellScanMutation) OldPrimaryScramblingCode(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -30471,7 +31054,9 @@ func (m *SurveyCellScanMutation) Operator() (r string, exists bool) {
 	return *v, true
 }
 
-// OldOperator returns the old operator value, if exists.
+// OldOperator returns the old operator value of the SurveyCellScan.
+// If the SurveyCellScan object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyCellScanMutation) OldOperator(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -30520,7 +31105,9 @@ func (m *SurveyCellScanMutation) Arfcn() (r int, exists bool) {
 	return *v, true
 }
 
-// OldArfcn returns the old arfcn value, if exists.
+// OldArfcn returns the old arfcn value of the SurveyCellScan.
+// If the SurveyCellScan object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyCellScanMutation) OldArfcn(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -30588,7 +31175,9 @@ func (m *SurveyCellScanMutation) PhysicalCellID() (r string, exists bool) {
 	return *v, true
 }
 
-// OldPhysicalCellID returns the old physical_cell_id value, if exists.
+// OldPhysicalCellID returns the old physical_cell_id value of the SurveyCellScan.
+// If the SurveyCellScan object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyCellScanMutation) OldPhysicalCellID(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -30636,7 +31225,9 @@ func (m *SurveyCellScanMutation) TrackingAreaCode() (r string, exists bool) {
 	return *v, true
 }
 
-// OldTrackingAreaCode returns the old tracking_area_code value, if exists.
+// OldTrackingAreaCode returns the old tracking_area_code value of the SurveyCellScan.
+// If the SurveyCellScan object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyCellScanMutation) OldTrackingAreaCode(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -30685,7 +31276,9 @@ func (m *SurveyCellScanMutation) TimingAdvance() (r int, exists bool) {
 	return *v, true
 }
 
-// OldTimingAdvance returns the old timing_advance value, if exists.
+// OldTimingAdvance returns the old timing_advance value of the SurveyCellScan.
+// If the SurveyCellScan object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyCellScanMutation) OldTimingAdvance(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -30754,7 +31347,9 @@ func (m *SurveyCellScanMutation) Earfcn() (r int, exists bool) {
 	return *v, true
 }
 
-// OldEarfcn returns the old earfcn value, if exists.
+// OldEarfcn returns the old earfcn value of the SurveyCellScan.
+// If the SurveyCellScan object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyCellScanMutation) OldEarfcn(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -30823,7 +31418,9 @@ func (m *SurveyCellScanMutation) Uarfcn() (r int, exists bool) {
 	return *v, true
 }
 
-// OldUarfcn returns the old uarfcn value, if exists.
+// OldUarfcn returns the old uarfcn value of the SurveyCellScan.
+// If the SurveyCellScan object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyCellScanMutation) OldUarfcn(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -30892,7 +31489,9 @@ func (m *SurveyCellScanMutation) Latitude() (r float64, exists bool) {
 	return *v, true
 }
 
-// OldLatitude returns the old latitude value, if exists.
+// OldLatitude returns the old latitude value of the SurveyCellScan.
+// If the SurveyCellScan object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyCellScanMutation) OldLatitude(ctx context.Context) (v float64, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -30961,7 +31560,9 @@ func (m *SurveyCellScanMutation) Longitude() (r float64, exists bool) {
 	return *v, true
 }
 
-// OldLongitude returns the old longitude value, if exists.
+// OldLongitude returns the old longitude value of the SurveyCellScan.
+// If the SurveyCellScan object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyCellScanMutation) OldLongitude(ctx context.Context) (v float64, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -31961,6 +32562,7 @@ type SurveyQuestionMutation struct {
 	removedphoto_data    map[int]struct{}
 	images               map[int]struct{}
 	removedimages        map[int]struct{}
+	done                 bool
 	oldValue             func(context.Context) (*SurveyQuestion, error)
 }
 
@@ -31993,7 +32595,11 @@ func withSurveyQuestionID(id int) surveyquestionOption {
 		)
 		m.oldValue = func(ctx context.Context) (*SurveyQuestion, error) {
 			once.Do(func() {
-				value, err = m.Client().SurveyQuestion.Get(ctx, id)
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().SurveyQuestion.Get(ctx, id)
+				}
 			})
 			return value, err
 		}
@@ -32053,7 +32659,9 @@ func (m *SurveyQuestionMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldCreateTime returns the old create_time value, if exists.
+// OldCreateTime returns the old create_time value of the SurveyQuestion.
+// If the SurveyQuestion object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyQuestionMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -32088,7 +32696,9 @@ func (m *SurveyQuestionMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldUpdateTime returns the old update_time value, if exists.
+// OldUpdateTime returns the old update_time value of the SurveyQuestion.
+// If the SurveyQuestion object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyQuestionMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -32123,7 +32733,9 @@ func (m *SurveyQuestionMutation) FormName() (r string, exists bool) {
 	return *v, true
 }
 
-// OldFormName returns the old form_name value, if exists.
+// OldFormName returns the old form_name value of the SurveyQuestion.
+// If the SurveyQuestion object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyQuestionMutation) OldFormName(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -32171,7 +32783,9 @@ func (m *SurveyQuestionMutation) FormDescription() (r string, exists bool) {
 	return *v, true
 }
 
-// OldFormDescription returns the old form_description value, if exists.
+// OldFormDescription returns the old form_description value of the SurveyQuestion.
+// If the SurveyQuestion object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyQuestionMutation) OldFormDescription(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -32220,7 +32834,9 @@ func (m *SurveyQuestionMutation) FormIndex() (r int, exists bool) {
 	return *v, true
 }
 
-// OldFormIndex returns the old form_index value, if exists.
+// OldFormIndex returns the old form_index value of the SurveyQuestion.
+// If the SurveyQuestion object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyQuestionMutation) OldFormIndex(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -32274,7 +32890,9 @@ func (m *SurveyQuestionMutation) QuestionType() (r string, exists bool) {
 	return *v, true
 }
 
-// OldQuestionType returns the old question_type value, if exists.
+// OldQuestionType returns the old question_type value of the SurveyQuestion.
+// If the SurveyQuestion object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyQuestionMutation) OldQuestionType(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -32322,7 +32940,9 @@ func (m *SurveyQuestionMutation) QuestionFormat() (r string, exists bool) {
 	return *v, true
 }
 
-// OldQuestionFormat returns the old question_format value, if exists.
+// OldQuestionFormat returns the old question_format value of the SurveyQuestion.
+// If the SurveyQuestion object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyQuestionMutation) OldQuestionFormat(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -32370,7 +32990,9 @@ func (m *SurveyQuestionMutation) QuestionText() (r string, exists bool) {
 	return *v, true
 }
 
-// OldQuestionText returns the old question_text value, if exists.
+// OldQuestionText returns the old question_text value of the SurveyQuestion.
+// If the SurveyQuestion object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyQuestionMutation) OldQuestionText(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -32419,7 +33041,9 @@ func (m *SurveyQuestionMutation) QuestionIndex() (r int, exists bool) {
 	return *v, true
 }
 
-// OldQuestionIndex returns the old question_index value, if exists.
+// OldQuestionIndex returns the old question_index value of the SurveyQuestion.
+// If the SurveyQuestion object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyQuestionMutation) OldQuestionIndex(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -32473,7 +33097,9 @@ func (m *SurveyQuestionMutation) BoolData() (r bool, exists bool) {
 	return *v, true
 }
 
-// OldBoolData returns the old bool_data value, if exists.
+// OldBoolData returns the old bool_data value of the SurveyQuestion.
+// If the SurveyQuestion object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyQuestionMutation) OldBoolData(ctx context.Context) (v bool, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -32521,7 +33147,9 @@ func (m *SurveyQuestionMutation) EmailData() (r string, exists bool) {
 	return *v, true
 }
 
-// OldEmailData returns the old email_data value, if exists.
+// OldEmailData returns the old email_data value of the SurveyQuestion.
+// If the SurveyQuestion object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyQuestionMutation) OldEmailData(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -32570,7 +33198,9 @@ func (m *SurveyQuestionMutation) Latitude() (r float64, exists bool) {
 	return *v, true
 }
 
-// OldLatitude returns the old latitude value, if exists.
+// OldLatitude returns the old latitude value of the SurveyQuestion.
+// If the SurveyQuestion object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyQuestionMutation) OldLatitude(ctx context.Context) (v float64, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -32639,7 +33269,9 @@ func (m *SurveyQuestionMutation) Longitude() (r float64, exists bool) {
 	return *v, true
 }
 
-// OldLongitude returns the old longitude value, if exists.
+// OldLongitude returns the old longitude value of the SurveyQuestion.
+// If the SurveyQuestion object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyQuestionMutation) OldLongitude(ctx context.Context) (v float64, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -32708,7 +33340,9 @@ func (m *SurveyQuestionMutation) LocationAccuracy() (r float64, exists bool) {
 	return *v, true
 }
 
-// OldLocationAccuracy returns the old location_accuracy value, if exists.
+// OldLocationAccuracy returns the old location_accuracy value of the SurveyQuestion.
+// If the SurveyQuestion object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyQuestionMutation) OldLocationAccuracy(ctx context.Context) (v float64, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -32777,7 +33411,9 @@ func (m *SurveyQuestionMutation) Altitude() (r float64, exists bool) {
 	return *v, true
 }
 
-// OldAltitude returns the old altitude value, if exists.
+// OldAltitude returns the old altitude value of the SurveyQuestion.
+// If the SurveyQuestion object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyQuestionMutation) OldAltitude(ctx context.Context) (v float64, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -32845,7 +33481,9 @@ func (m *SurveyQuestionMutation) PhoneData() (r string, exists bool) {
 	return *v, true
 }
 
-// OldPhoneData returns the old phone_data value, if exists.
+// OldPhoneData returns the old phone_data value of the SurveyQuestion.
+// If the SurveyQuestion object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyQuestionMutation) OldPhoneData(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -32893,7 +33531,9 @@ func (m *SurveyQuestionMutation) TextData() (r string, exists bool) {
 	return *v, true
 }
 
-// OldTextData returns the old text_data value, if exists.
+// OldTextData returns the old text_data value of the SurveyQuestion.
+// If the SurveyQuestion object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyQuestionMutation) OldTextData(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -32942,7 +33582,9 @@ func (m *SurveyQuestionMutation) FloatData() (r float64, exists bool) {
 	return *v, true
 }
 
-// OldFloatData returns the old float_data value, if exists.
+// OldFloatData returns the old float_data value of the SurveyQuestion.
+// If the SurveyQuestion object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyQuestionMutation) OldFloatData(ctx context.Context) (v float64, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -33011,7 +33653,9 @@ func (m *SurveyQuestionMutation) IntData() (r int, exists bool) {
 	return *v, true
 }
 
-// OldIntData returns the old int_data value, if exists.
+// OldIntData returns the old int_data value of the SurveyQuestion.
+// If the SurveyQuestion object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyQuestionMutation) OldIntData(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -33079,7 +33723,9 @@ func (m *SurveyQuestionMutation) DateData() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldDateData returns the old date_data value, if exists.
+// OldDateData returns the old date_data value of the SurveyQuestion.
+// If the SurveyQuestion object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyQuestionMutation) OldDateData(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -34133,6 +34779,7 @@ type SurveyTemplateCategoryMutation struct {
 	removedsurvey_template_questions map[int]struct{}
 	location_type                    *int
 	clearedlocation_type             bool
+	done                             bool
 	oldValue                         func(context.Context) (*SurveyTemplateCategory, error)
 }
 
@@ -34165,7 +34812,11 @@ func withSurveyTemplateCategoryID(id int) surveytemplatecategoryOption {
 		)
 		m.oldValue = func(ctx context.Context) (*SurveyTemplateCategory, error) {
 			once.Do(func() {
-				value, err = m.Client().SurveyTemplateCategory.Get(ctx, id)
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().SurveyTemplateCategory.Get(ctx, id)
+				}
 			})
 			return value, err
 		}
@@ -34225,7 +34876,9 @@ func (m *SurveyTemplateCategoryMutation) CreateTime() (r time.Time, exists bool)
 	return *v, true
 }
 
-// OldCreateTime returns the old create_time value, if exists.
+// OldCreateTime returns the old create_time value of the SurveyTemplateCategory.
+// If the SurveyTemplateCategory object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyTemplateCategoryMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -34260,7 +34913,9 @@ func (m *SurveyTemplateCategoryMutation) UpdateTime() (r time.Time, exists bool)
 	return *v, true
 }
 
-// OldUpdateTime returns the old update_time value, if exists.
+// OldUpdateTime returns the old update_time value of the SurveyTemplateCategory.
+// If the SurveyTemplateCategory object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyTemplateCategoryMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -34295,7 +34950,9 @@ func (m *SurveyTemplateCategoryMutation) CategoryTitle() (r string, exists bool)
 	return *v, true
 }
 
-// OldCategoryTitle returns the old category_title value, if exists.
+// OldCategoryTitle returns the old category_title value of the SurveyTemplateCategory.
+// If the SurveyTemplateCategory object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyTemplateCategoryMutation) OldCategoryTitle(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -34330,7 +34987,9 @@ func (m *SurveyTemplateCategoryMutation) CategoryDescription() (r string, exists
 	return *v, true
 }
 
-// OldCategoryDescription returns the old category_description value, if exists.
+// OldCategoryDescription returns the old category_description value of the SurveyTemplateCategory.
+// If the SurveyTemplateCategory object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyTemplateCategoryMutation) OldCategoryDescription(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -34713,6 +35372,7 @@ type SurveyTemplateQuestionMutation struct {
 	clearedFields        map[string]struct{}
 	category             *int
 	clearedcategory      bool
+	done                 bool
 	oldValue             func(context.Context) (*SurveyTemplateQuestion, error)
 }
 
@@ -34745,7 +35405,11 @@ func withSurveyTemplateQuestionID(id int) surveytemplatequestionOption {
 		)
 		m.oldValue = func(ctx context.Context) (*SurveyTemplateQuestion, error) {
 			once.Do(func() {
-				value, err = m.Client().SurveyTemplateQuestion.Get(ctx, id)
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().SurveyTemplateQuestion.Get(ctx, id)
+				}
 			})
 			return value, err
 		}
@@ -34805,7 +35469,9 @@ func (m *SurveyTemplateQuestionMutation) CreateTime() (r time.Time, exists bool)
 	return *v, true
 }
 
-// OldCreateTime returns the old create_time value, if exists.
+// OldCreateTime returns the old create_time value of the SurveyTemplateQuestion.
+// If the SurveyTemplateQuestion object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyTemplateQuestionMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -34840,7 +35506,9 @@ func (m *SurveyTemplateQuestionMutation) UpdateTime() (r time.Time, exists bool)
 	return *v, true
 }
 
-// OldUpdateTime returns the old update_time value, if exists.
+// OldUpdateTime returns the old update_time value of the SurveyTemplateQuestion.
+// If the SurveyTemplateQuestion object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyTemplateQuestionMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -34875,7 +35543,9 @@ func (m *SurveyTemplateQuestionMutation) QuestionTitle() (r string, exists bool)
 	return *v, true
 }
 
-// OldQuestionTitle returns the old question_title value, if exists.
+// OldQuestionTitle returns the old question_title value of the SurveyTemplateQuestion.
+// If the SurveyTemplateQuestion object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyTemplateQuestionMutation) OldQuestionTitle(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -34910,7 +35580,9 @@ func (m *SurveyTemplateQuestionMutation) QuestionDescription() (r string, exists
 	return *v, true
 }
 
-// OldQuestionDescription returns the old question_description value, if exists.
+// OldQuestionDescription returns the old question_description value of the SurveyTemplateQuestion.
+// If the SurveyTemplateQuestion object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyTemplateQuestionMutation) OldQuestionDescription(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -34945,7 +35617,9 @@ func (m *SurveyTemplateQuestionMutation) QuestionType() (r string, exists bool) 
 	return *v, true
 }
 
-// OldQuestionType returns the old question_type value, if exists.
+// OldQuestionType returns the old question_type value of the SurveyTemplateQuestion.
+// If the SurveyTemplateQuestion object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyTemplateQuestionMutation) OldQuestionType(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -34981,7 +35655,9 @@ func (m *SurveyTemplateQuestionMutation) Index() (r int, exists bool) {
 	return *v, true
 }
 
-// OldIndex returns the old index value, if exists.
+// OldIndex returns the old index value of the SurveyTemplateQuestion.
+// If the SurveyTemplateQuestion object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyTemplateQuestionMutation) OldIndex(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -35385,6 +36061,7 @@ type SurveyWiFiScanMutation struct {
 	clearedsurvey_question bool
 	location               *int
 	clearedlocation        bool
+	done                   bool
 	oldValue               func(context.Context) (*SurveyWiFiScan, error)
 }
 
@@ -35417,7 +36094,11 @@ func withSurveyWiFiScanID(id int) surveywifiscanOption {
 		)
 		m.oldValue = func(ctx context.Context) (*SurveyWiFiScan, error) {
 			once.Do(func() {
-				value, err = m.Client().SurveyWiFiScan.Get(ctx, id)
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().SurveyWiFiScan.Get(ctx, id)
+				}
 			})
 			return value, err
 		}
@@ -35477,7 +36158,9 @@ func (m *SurveyWiFiScanMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldCreateTime returns the old create_time value, if exists.
+// OldCreateTime returns the old create_time value of the SurveyWiFiScan.
+// If the SurveyWiFiScan object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyWiFiScanMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -35512,7 +36195,9 @@ func (m *SurveyWiFiScanMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldUpdateTime returns the old update_time value, if exists.
+// OldUpdateTime returns the old update_time value of the SurveyWiFiScan.
+// If the SurveyWiFiScan object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyWiFiScanMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -35547,7 +36232,9 @@ func (m *SurveyWiFiScanMutation) Ssid() (r string, exists bool) {
 	return *v, true
 }
 
-// OldSsid returns the old ssid value, if exists.
+// OldSsid returns the old ssid value of the SurveyWiFiScan.
+// If the SurveyWiFiScan object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyWiFiScanMutation) OldSsid(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -35595,7 +36282,9 @@ func (m *SurveyWiFiScanMutation) Bssid() (r string, exists bool) {
 	return *v, true
 }
 
-// OldBssid returns the old bssid value, if exists.
+// OldBssid returns the old bssid value of the SurveyWiFiScan.
+// If the SurveyWiFiScan object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyWiFiScanMutation) OldBssid(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -35630,7 +36319,9 @@ func (m *SurveyWiFiScanMutation) Timestamp() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldTimestamp returns the old timestamp value, if exists.
+// OldTimestamp returns the old timestamp value of the SurveyWiFiScan.
+// If the SurveyWiFiScan object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyWiFiScanMutation) OldTimestamp(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -35666,7 +36357,9 @@ func (m *SurveyWiFiScanMutation) Frequency() (r int, exists bool) {
 	return *v, true
 }
 
-// OldFrequency returns the old frequency value, if exists.
+// OldFrequency returns the old frequency value of the SurveyWiFiScan.
+// If the SurveyWiFiScan object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyWiFiScanMutation) OldFrequency(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -35721,7 +36414,9 @@ func (m *SurveyWiFiScanMutation) Channel() (r int, exists bool) {
 	return *v, true
 }
 
-// OldChannel returns the old channel value, if exists.
+// OldChannel returns the old channel value of the SurveyWiFiScan.
+// If the SurveyWiFiScan object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyWiFiScanMutation) OldChannel(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -35775,7 +36470,9 @@ func (m *SurveyWiFiScanMutation) Band() (r string, exists bool) {
 	return *v, true
 }
 
-// OldBand returns the old band value, if exists.
+// OldBand returns the old band value of the SurveyWiFiScan.
+// If the SurveyWiFiScan object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyWiFiScanMutation) OldBand(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -35824,7 +36521,9 @@ func (m *SurveyWiFiScanMutation) ChannelWidth() (r int, exists bool) {
 	return *v, true
 }
 
-// OldChannelWidth returns the old channel_width value, if exists.
+// OldChannelWidth returns the old channel_width value of the SurveyWiFiScan.
+// If the SurveyWiFiScan object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyWiFiScanMutation) OldChannelWidth(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -35892,7 +36591,9 @@ func (m *SurveyWiFiScanMutation) Capabilities() (r string, exists bool) {
 	return *v, true
 }
 
-// OldCapabilities returns the old capabilities value, if exists.
+// OldCapabilities returns the old capabilities value of the SurveyWiFiScan.
+// If the SurveyWiFiScan object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyWiFiScanMutation) OldCapabilities(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -35941,7 +36642,9 @@ func (m *SurveyWiFiScanMutation) Strength() (r int, exists bool) {
 	return *v, true
 }
 
-// OldStrength returns the old strength value, if exists.
+// OldStrength returns the old strength value of the SurveyWiFiScan.
+// If the SurveyWiFiScan object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyWiFiScanMutation) OldStrength(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -35996,7 +36699,9 @@ func (m *SurveyWiFiScanMutation) Latitude() (r float64, exists bool) {
 	return *v, true
 }
 
-// OldLatitude returns the old latitude value, if exists.
+// OldLatitude returns the old latitude value of the SurveyWiFiScan.
+// If the SurveyWiFiScan object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyWiFiScanMutation) OldLatitude(ctx context.Context) (v float64, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -36065,7 +36770,9 @@ func (m *SurveyWiFiScanMutation) Longitude() (r float64, exists bool) {
 	return *v, true
 }
 
-// OldLongitude returns the old longitude value, if exists.
+// OldLongitude returns the old longitude value of the SurveyWiFiScan.
+// If the SurveyWiFiScan object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *SurveyWiFiScanMutation) OldLongitude(ctx context.Context) (v float64, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -36808,6 +37515,7 @@ type UserMutation struct {
 	removedassigned_work_orders map[int]struct{}
 	created_projects            map[int]struct{}
 	removedcreated_projects     map[int]struct{}
+	done                        bool
 	oldValue                    func(context.Context) (*User, error)
 }
 
@@ -36840,7 +37548,11 @@ func withUserID(id int) userOption {
 		)
 		m.oldValue = func(ctx context.Context) (*User, error) {
 			once.Do(func() {
-				value, err = m.Client().User.Get(ctx, id)
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().User.Get(ctx, id)
+				}
 			})
 			return value, err
 		}
@@ -36900,7 +37612,9 @@ func (m *UserMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldCreateTime returns the old create_time value, if exists.
+// OldCreateTime returns the old create_time value of the User.
+// If the User object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *UserMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -36935,7 +37649,9 @@ func (m *UserMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldUpdateTime returns the old update_time value, if exists.
+// OldUpdateTime returns the old update_time value of the User.
+// If the User object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *UserMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -36970,7 +37686,9 @@ func (m *UserMutation) AuthID() (r string, exists bool) {
 	return *v, true
 }
 
-// OldAuthID returns the old auth_id value, if exists.
+// OldAuthID returns the old auth_id value of the User.
+// If the User object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *UserMutation) OldAuthID(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -37005,7 +37723,9 @@ func (m *UserMutation) FirstName() (r string, exists bool) {
 	return *v, true
 }
 
-// OldFirstName returns the old first_name value, if exists.
+// OldFirstName returns the old first_name value of the User.
+// If the User object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *UserMutation) OldFirstName(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -37053,7 +37773,9 @@ func (m *UserMutation) LastName() (r string, exists bool) {
 	return *v, true
 }
 
-// OldLastName returns the old last_name value, if exists.
+// OldLastName returns the old last_name value of the User.
+// If the User object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *UserMutation) OldLastName(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -37101,7 +37823,9 @@ func (m *UserMutation) Email() (r string, exists bool) {
 	return *v, true
 }
 
-// OldEmail returns the old email value, if exists.
+// OldEmail returns the old email value of the User.
+// If the User object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *UserMutation) OldEmail(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -37149,7 +37873,9 @@ func (m *UserMutation) Status() (r user.Status, exists bool) {
 	return *v, true
 }
 
-// OldStatus returns the old status value, if exists.
+// OldStatus returns the old status value of the User.
+// If the User object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *UserMutation) OldStatus(ctx context.Context) (v user.Status, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -37184,7 +37910,9 @@ func (m *UserMutation) Role() (r user.Role, exists bool) {
 	return *v, true
 }
 
-// OldRole returns the old role value, if exists.
+// OldRole returns the old role value of the User.
+// If the User object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *UserMutation) OldRole(ctx context.Context) (v user.Role, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -37845,6 +38573,7 @@ type UsersGroupMutation struct {
 	removedmembers  map[int]struct{}
 	policies        map[int]struct{}
 	removedpolicies map[int]struct{}
+	done            bool
 	oldValue        func(context.Context) (*UsersGroup, error)
 }
 
@@ -37877,7 +38606,11 @@ func withUsersGroupID(id int) usersgroupOption {
 		)
 		m.oldValue = func(ctx context.Context) (*UsersGroup, error) {
 			once.Do(func() {
-				value, err = m.Client().UsersGroup.Get(ctx, id)
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().UsersGroup.Get(ctx, id)
+				}
 			})
 			return value, err
 		}
@@ -37937,7 +38670,9 @@ func (m *UsersGroupMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldCreateTime returns the old create_time value, if exists.
+// OldCreateTime returns the old create_time value of the UsersGroup.
+// If the UsersGroup object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *UsersGroupMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -37972,7 +38707,9 @@ func (m *UsersGroupMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldUpdateTime returns the old update_time value, if exists.
+// OldUpdateTime returns the old update_time value of the UsersGroup.
+// If the UsersGroup object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *UsersGroupMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -38007,7 +38744,9 @@ func (m *UsersGroupMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// OldName returns the old name value, if exists.
+// OldName returns the old name value of the UsersGroup.
+// If the UsersGroup object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *UsersGroupMutation) OldName(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -38042,7 +38781,9 @@ func (m *UsersGroupMutation) Description() (r string, exists bool) {
 	return *v, true
 }
 
-// OldDescription returns the old description value, if exists.
+// OldDescription returns the old description value of the UsersGroup.
+// If the UsersGroup object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *UsersGroupMutation) OldDescription(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -38090,7 +38831,9 @@ func (m *UsersGroupMutation) Status() (r usersgroup.Status, exists bool) {
 	return *v, true
 }
 
-// OldStatus returns the old status value, if exists.
+// OldStatus returns the old status value of the UsersGroup.
+// If the UsersGroup object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *UsersGroupMutation) OldStatus(ctx context.Context) (v usersgroup.Status, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -38533,6 +39276,7 @@ type WorkOrderMutation struct {
 	clearedowner                 bool
 	assignee                     *int
 	clearedassignee              bool
+	done                         bool
 	oldValue                     func(context.Context) (*WorkOrder, error)
 }
 
@@ -38565,7 +39309,11 @@ func withWorkOrderID(id int) workorderOption {
 		)
 		m.oldValue = func(ctx context.Context) (*WorkOrder, error) {
 			once.Do(func() {
-				value, err = m.Client().WorkOrder.Get(ctx, id)
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().WorkOrder.Get(ctx, id)
+				}
 			})
 			return value, err
 		}
@@ -38625,7 +39373,9 @@ func (m *WorkOrderMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldCreateTime returns the old create_time value, if exists.
+// OldCreateTime returns the old create_time value of the WorkOrder.
+// If the WorkOrder object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *WorkOrderMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -38660,7 +39410,9 @@ func (m *WorkOrderMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldUpdateTime returns the old update_time value, if exists.
+// OldUpdateTime returns the old update_time value of the WorkOrder.
+// If the WorkOrder object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *WorkOrderMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -38695,7 +39447,9 @@ func (m *WorkOrderMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// OldName returns the old name value, if exists.
+// OldName returns the old name value of the WorkOrder.
+// If the WorkOrder object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *WorkOrderMutation) OldName(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -38730,7 +39484,9 @@ func (m *WorkOrderMutation) Status() (r string, exists bool) {
 	return *v, true
 }
 
-// OldStatus returns the old status value, if exists.
+// OldStatus returns the old status value of the WorkOrder.
+// If the WorkOrder object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *WorkOrderMutation) OldStatus(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -38765,7 +39521,9 @@ func (m *WorkOrderMutation) Priority() (r string, exists bool) {
 	return *v, true
 }
 
-// OldPriority returns the old priority value, if exists.
+// OldPriority returns the old priority value of the WorkOrder.
+// If the WorkOrder object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *WorkOrderMutation) OldPriority(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -38800,7 +39558,9 @@ func (m *WorkOrderMutation) Description() (r string, exists bool) {
 	return *v, true
 }
 
-// OldDescription returns the old description value, if exists.
+// OldDescription returns the old description value of the WorkOrder.
+// If the WorkOrder object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *WorkOrderMutation) OldDescription(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -38848,7 +39608,9 @@ func (m *WorkOrderMutation) InstallDate() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldInstallDate returns the old install_date value, if exists.
+// OldInstallDate returns the old install_date value of the WorkOrder.
+// If the WorkOrder object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *WorkOrderMutation) OldInstallDate(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -38896,7 +39658,9 @@ func (m *WorkOrderMutation) CreationDate() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldCreationDate returns the old creation_date value, if exists.
+// OldCreationDate returns the old creation_date value of the WorkOrder.
+// If the WorkOrder object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *WorkOrderMutation) OldCreationDate(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -38932,7 +39696,9 @@ func (m *WorkOrderMutation) Index() (r int, exists bool) {
 	return *v, true
 }
 
-// OldIndex returns the old index value, if exists.
+// OldIndex returns the old index value of the WorkOrder.
+// If the WorkOrder object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *WorkOrderMutation) OldIndex(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -39000,7 +39766,9 @@ func (m *WorkOrderMutation) CloseDate() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldCloseDate returns the old close_date value, if exists.
+// OldCloseDate returns the old close_date value of the WorkOrder.
+// If the WorkOrder object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *WorkOrderMutation) OldCloseDate(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -40208,6 +40976,7 @@ type WorkOrderDefinitionMutation struct {
 	cleared_type        bool
 	project_type        *int
 	clearedproject_type bool
+	done                bool
 	oldValue            func(context.Context) (*WorkOrderDefinition, error)
 }
 
@@ -40240,7 +41009,11 @@ func withWorkOrderDefinitionID(id int) workorderdefinitionOption {
 		)
 		m.oldValue = func(ctx context.Context) (*WorkOrderDefinition, error) {
 			once.Do(func() {
-				value, err = m.Client().WorkOrderDefinition.Get(ctx, id)
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().WorkOrderDefinition.Get(ctx, id)
+				}
 			})
 			return value, err
 		}
@@ -40300,7 +41073,9 @@ func (m *WorkOrderDefinitionMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldCreateTime returns the old create_time value, if exists.
+// OldCreateTime returns the old create_time value of the WorkOrderDefinition.
+// If the WorkOrderDefinition object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *WorkOrderDefinitionMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -40335,7 +41110,9 @@ func (m *WorkOrderDefinitionMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldUpdateTime returns the old update_time value, if exists.
+// OldUpdateTime returns the old update_time value of the WorkOrderDefinition.
+// If the WorkOrderDefinition object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *WorkOrderDefinitionMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -40371,7 +41148,9 @@ func (m *WorkOrderDefinitionMutation) Index() (r int, exists bool) {
 	return *v, true
 }
 
-// OldIndex returns the old index value, if exists.
+// OldIndex returns the old index value of the WorkOrderDefinition.
+// If the WorkOrderDefinition object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *WorkOrderDefinitionMutation) OldIndex(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -40791,6 +41570,7 @@ type WorkOrderTypeMutation struct {
 	removeddefinitions                     map[int]struct{}
 	check_list_category_definitions        map[int]struct{}
 	removedcheck_list_category_definitions map[int]struct{}
+	done                                   bool
 	oldValue                               func(context.Context) (*WorkOrderType, error)
 }
 
@@ -40823,7 +41603,11 @@ func withWorkOrderTypeID(id int) workordertypeOption {
 		)
 		m.oldValue = func(ctx context.Context) (*WorkOrderType, error) {
 			once.Do(func() {
-				value, err = m.Client().WorkOrderType.Get(ctx, id)
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().WorkOrderType.Get(ctx, id)
+				}
 			})
 			return value, err
 		}
@@ -40883,7 +41667,9 @@ func (m *WorkOrderTypeMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldCreateTime returns the old create_time value, if exists.
+// OldCreateTime returns the old create_time value of the WorkOrderType.
+// If the WorkOrderType object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *WorkOrderTypeMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -40918,7 +41704,9 @@ func (m *WorkOrderTypeMutation) UpdateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldUpdateTime returns the old update_time value, if exists.
+// OldUpdateTime returns the old update_time value of the WorkOrderType.
+// If the WorkOrderType object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *WorkOrderTypeMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -40953,7 +41741,9 @@ func (m *WorkOrderTypeMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// OldName returns the old name value, if exists.
+// OldName returns the old name value of the WorkOrderType.
+// If the WorkOrderType object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *WorkOrderTypeMutation) OldName(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
@@ -40988,7 +41778,9 @@ func (m *WorkOrderTypeMutation) Description() (r string, exists bool) {
 	return *v, true
 }
 
-// OldDescription returns the old description value, if exists.
+// OldDescription returns the old description value of the WorkOrderType.
+// If the WorkOrderType object wasn't provided to the builder, the object is fetched
+// from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
 func (m *WorkOrderTypeMutation) OldDescription(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {

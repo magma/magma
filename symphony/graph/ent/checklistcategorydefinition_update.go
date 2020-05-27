@@ -136,6 +136,7 @@ func (clcdu *CheckListCategoryDefinitionUpdate) Save(ctx context.Context) (int, 
 			}
 			clcdu.mutation = mutation
 			affected, err = clcdu.sqlSave(ctx)
+			mutation.done = true
 			return affected, err
 		})
 		for i := len(clcdu.hooks) - 1; i >= 0; i-- {
@@ -408,6 +409,7 @@ func (clcduo *CheckListCategoryDefinitionUpdateOne) Save(ctx context.Context) (*
 			}
 			clcduo.mutation = mutation
 			node, err = clcduo.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(clcduo.hooks) - 1; i >= 0; i-- {

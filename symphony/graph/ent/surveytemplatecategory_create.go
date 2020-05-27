@@ -130,6 +130,7 @@ func (stcc *SurveyTemplateCategoryCreate) Save(ctx context.Context) (*SurveyTemp
 			}
 			stcc.mutation = mutation
 			node, err = stcc.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(stcc.hooks) - 1; i >= 0; i-- {
