@@ -37,6 +37,7 @@ enable_sync_rpc: True
 
 upgrader_factory:
   gateway_module: openwrt
+  use_proxy: True
 
 mconfig_modules:
 
