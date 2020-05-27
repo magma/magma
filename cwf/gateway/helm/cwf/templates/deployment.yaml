@@ -139,8 +139,8 @@ spec:
 {{ toYaml .Values.virtlet.user | indent 10 }}
 {{- end }}
           runcmd:
-          - /opt/magma/bin/bootstrap.sh
-          - /opt/magma/bin/install_gateway.sh {{ .Values.cwf.type }}
+          - /opt/magma/bootstrap.sh
+          - /opt/magma/install_gateway.sh {{ .Values.cwf.type }}
     spec:
       {{- if .Values.manifests.rbac }}
       serviceAccountName: {{ $serviceAccountName }}
@@ -168,22 +168,43 @@ spec:
           tty: true
           stdin: true
           volumeMounts:
-            - name: cwf-bin
-              mountPath: /opt/magma/bin
+            {{- if .Values.secret.gwinfo }}
+            - name: hwid
+              mountPath: /etc/snowflake
+              subPath: snowflake
+            {{- end }}
+            {{- if .Values.secret.gwinfo }}
+            - name: gw-challenge-key
+              mountPath: /var/opt/magma/certs/gw_challenge.key
+              subPath: gw_challenge.key
+            {{- end }}
             - name: cwf-env
-              mountPath: /opt/magma/env
+              mountPath: /opt/magma
             - name: orc8r-secrets-certs
-              mountPath: /opt/magma/certs/rootCA.pem
+              mountPath: /opt/magma/rootCA.pem
               subPath: rootCA.pem
             {{- if .Values.secret.configs }}
             - name: {{ $envAll.Values.secret.configs.cwf }}
               mountPath: /var/opt/magma/configs
             {{- end }}
+            {{- if .Values.secret.dpi_license }}
+            - name: cwf-dpi-license
+              mountPath: /opt/magma/{{ $envAll.Values.cwf.dpi.dpi_license_name }}
+              subPath: {{ $envAll.Values.cwf.dpi.dpi_license_name }}
+            {{- end }}
       volumes:
-        - name: cwf-bin
-          configMap:
-            name: {{ $envAll.Release.Name}}-bin
+        {{- if .Values.secret.gwinfo }}
+        - name: hwid
+          secret:
+            secretName: {{ required "secret.gwinfo must be provided" .Values.secret.gwinfo }}
             defaultMode: 0755
+        {{- end}}
+        {{- if .Values.secret.gwinfo }}
+        - name: gw-challenge-key
+          secret:
+            secretName: {{ required "secret.gwinfo must be provided" .Values.secret.gwinfo }}
+            defaultMode: 0755
+        {{- end }}
         - name: cwf-env
           configMap:
             name: {{ $envAll.Release.Name}}-env
@@ -196,5 +217,10 @@ spec:
         - name: {{ $envAll.Values.secret.configs.cwf }}
           secret:
             secretName: {{ $envAll.Values.secret.configs.cwf }}
+        {{- end }}
+        {{- if .Values.secret.dpi_license }}
+        - name: cwf-dpi-license
+          secret:
+            secretName: {{ required "secret.dpi_license must be provided" .Values.secret.dpi_license }}
         {{- end }}
 {{- end }}

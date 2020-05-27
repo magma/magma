@@ -8,6 +8,8 @@ package property
 
 import (
 	"time"
+
+	"github.com/facebookincubator/ent"
 )
 
 const (
@@ -48,6 +50,10 @@ const (
 	EdgeLocationValue = "location_value"
 	// EdgeServiceValue holds the string denoting the service_value edge name in mutations.
 	EdgeServiceValue = "service_value"
+	// EdgeWorkOrderValue holds the string denoting the work_order_value edge name in mutations.
+	EdgeWorkOrderValue = "work_order_value"
+	// EdgeUserValue holds the string denoting the user_value edge name in mutations.
+	EdgeUserValue = "user_value"
 
 	// Table holds the table name of the property in the database.
 	Table = "properties"
@@ -128,6 +134,20 @@ const (
 	ServiceValueInverseTable = "services"
 	// ServiceValueColumn is the table column denoting the service_value relation/edge.
 	ServiceValueColumn = "property_service_value"
+	// WorkOrderValueTable is the table the holds the work_order_value relation/edge.
+	WorkOrderValueTable = "properties"
+	// WorkOrderValueInverseTable is the table name for the WorkOrder entity.
+	// It exists in this package in order to avoid circular dependency with the "workorder" package.
+	WorkOrderValueInverseTable = "work_orders"
+	// WorkOrderValueColumn is the table column denoting the work_order_value relation/edge.
+	WorkOrderValueColumn = "property_work_order_value"
+	// UserValueTable is the table the holds the user_value relation/edge.
+	UserValueTable = "properties"
+	// UserValueInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	UserValueInverseTable = "users"
+	// UserValueColumn is the table column denoting the user_value relation/edge.
+	UserValueColumn = "property_user_value"
 )
 
 // Columns holds all SQL columns for property fields.
@@ -156,11 +176,21 @@ var ForeignKeys = []string{
 	"property_equipment_value",
 	"property_location_value",
 	"property_service_value",
+	"property_work_order_value",
+	"property_user_value",
 	"service_properties",
 	"work_order_properties",
 }
 
+// Note that the variables below are initialized by the runtime
+// package on the initialization of the application. Therefore,
+// it should be imported in the main as follows:
+//
+//	import _ "github.com/facebookincubator/symphony/graph/ent/runtime"
+//
 var (
+	Hooks  [1]ent.Hook
+	Policy ent.Policy
 	// DefaultCreateTime holds the default value on creation for the create_time field.
 	DefaultCreateTime func() time.Time
 	// DefaultUpdateTime holds the default value on creation for the update_time field.

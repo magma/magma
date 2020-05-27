@@ -50,13 +50,9 @@ storiesOf(`${STORY_CATEGORIES.MUI_COMPONENTS}/auth.EditUserDialog`, module)
     />
   ));
 
-storiesOf(`${STORY_CATEGORIES.MUI_COMPONENTS}/auth.LoginForm`, module).add(
-  'default',
-  () => (
-    <LoginForm
-      action="/test/user/login"
-      title="My title"
-      csrfToken="abcd1234"
-    />
-  ),
-);
+storiesOf(
+  `${STORY_CATEGORIES.MUI_COMPONENTS}/auth.LoginForm`,
+  module,
+).add('default', () => (
+  <LoginForm action="/test/user/login" title="My title" csrfToken="abcd1234" />
+));

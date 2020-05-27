@@ -7,11 +7,13 @@
  * @flow strict-local
  * @format
  */
-import type {ActionButtonProps} from '../../components/design-system/View/ViewHeader';
 
+import Button from '../../components/design-system/Button';
 import DeleteIcon from '../../components/design-system/Icons/Actions/DeleteIcon';
+import IconButton from '../../components/design-system/IconButton';
 import ListAltIcon from '@material-ui/icons/ListAlt';
 import MapIcon from '@material-ui/icons/Map';
+import PopoverMenu from '../../components/design-system/Select/PopoverMenu';
 import React from 'react';
 import ViewHeader from '../../components/design-system/View/ViewHeader';
 import {STORY_CATEGORIES} from '../storybookUtils';
@@ -32,22 +34,32 @@ const ViewHeaderRoot = () => {
   const classes = useStyles();
   const [selectedButton, setSelectedButton] = useState('1');
 
-  const actionButtons: Array<ActionButtonProps> = [
-    {
-      title: <DeleteIcon color="error" />,
-      action: () => alert('Doing DELETE'),
-      variant: 'text',
-    },
-    {
-      title: 'Action B',
-      action: () => alert('Doing action B'),
-      variant: 'text',
-      skin: 'gray',
-    },
-    {
-      title: 'Action A',
-      action: () => alert('Doing action A'),
-    },
+  const actionButtons = [
+    <IconButton
+      icon={DeleteIcon}
+      skin="gray"
+      onClick={() => alert('Doing DELETE')}
+    />,
+    <Button variant="text" skin="gray" onClick={() => alert('Doing action!')}>
+      Do action
+    </Button>,
+    <PopoverMenu
+      options={[
+        {
+          key: '1',
+          value: '1',
+          label: 'option A',
+        },
+        {
+          key: '2',
+          value: '2',
+          label: 'option B',
+        },
+      ]}
+      skin="primary"
+      onChange={option => alert(`Doing option #${option}`)}>
+      pick option
+    </PopoverMenu>,
   ];
 
   const subTitle =

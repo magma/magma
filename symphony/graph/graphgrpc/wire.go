@@ -27,7 +27,7 @@ type Config struct {
 	DB      *sql.DB
 	Logger  log.Logger
 	Orc8r   orc8r.Config
-	Tenancy *viewer.MySQLTenancy
+	Tenancy viewer.Tenancy
 }
 
 // NewServer creates a server from config.
@@ -37,7 +37,6 @@ func NewServer(cfg Config) (*grpc.Server, func(), error) {
 		newOrc8rClient,
 		newActionsRegistry,
 		newServer,
-		wire.Bind(new(viewer.Tenancy), new(*viewer.MySQLTenancy)),
 	)
 	return nil, nil, nil
 }

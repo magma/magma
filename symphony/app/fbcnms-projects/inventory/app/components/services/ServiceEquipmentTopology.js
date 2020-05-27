@@ -37,22 +37,22 @@ const ServiceEquipmentTopology = (props: Props) => {
   const {topology, endpoints, classes} = props;
 
   const getEndpointTopLevelEquipment = endpoint => {
-    const port = endpoint.port;
-    const positionHierarchySize = port.parentEquipment.positionHierarchy.length;
+    const {equipment} = endpoint;
+    const positionHierarchySize = equipment.positionHierarchy.length;
     if (positionHierarchySize > 0) {
-      return port.parentEquipment.positionHierarchy[0].parentEquipment.id;
+      return equipment.positionHierarchy[0].parentEquipment.id;
     }
-    return port.parentEquipment.id;
+    return equipment.id;
   };
 
   const renderNode = useCallback(
     (id: string) => {
       const node = topology.nodes.find(node => node.id === id);
       const consumerIds = endpoints
-        .filter(endpoint => endpoint.role == 'CONSUMER')
+        .filter(endpoint => endpoint.definition.role == 'CONSUMER')
         .map(getEndpointTopLevelEquipment);
       const providerIds = endpoints
-        .filter(endpoint => endpoint.role == 'PROVIDER')
+        .filter(endpoint => endpoint.definition.role == 'PROVIDER')
         .map(getEndpointTopLevelEquipment);
       return consumerIds.includes(id) ? (
         <g transform="translate(-18 -18)">
@@ -101,14 +101,14 @@ export default withStyles(styles)(
     endpoints: graphql`
       fragment ServiceEquipmentTopology_endpoints on ServiceEndpoint
         @relay(plural: true) {
-        role
-        port {
-          parentEquipment {
-            id
-            positionHierarchy {
-              parentEquipment {
-                id
-              }
+        definition {
+          role
+        }
+        equipment {
+          id
+          positionHierarchy {
+            parentEquipment {
+              id
             }
           }
         }

@@ -26,6 +26,7 @@ import CommentsBox from '../comments/CommentsBox';
 import EditProjectMutation from '../../mutations/EditProjectMutation';
 import ExpandingPanel from '@fbcnms/ui/components/ExpandingPanel';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
+import FormFieldWithPermissions from '../../common/FormFieldWithPermissions';
 import FormSaveCancelPanel from '@fbcnms/ui/components/design-system/Form/FormSaveCancelPanel';
 import Grid from '@material-ui/core/Grid';
 import LocationBreadcrumbsTitle from '../location/LocationBreadcrumbsTitle';
@@ -42,6 +43,7 @@ import update from 'immutability-helper';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {FormContextProvider} from '../../common/FormContext';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
+import {NAVIGATION_OPTIONS} from '../location/LocationBreadcrumbsTitle';
 import {createFragmentContainer, graphql} from 'react-relay';
 import {getGraphError} from '../../common/EntUtils';
 import {sortPropertiesByIndex, toPropertyInput} from '../../common/Property';
@@ -214,7 +216,11 @@ class ProjectDetails extends React.Component<Props, State> {
     const {properties} = this.state;
     return (
       <div className={classes.root}>
-        <FormContextProvider>
+        <FormContextProvider
+          permissions={{
+            entity: 'project',
+            action: 'update',
+          }}>
           <div className={classes.nameHeader}>
             <div className={classes.breadcrumbs}>
               <Breadcrumbs
@@ -315,6 +321,7 @@ class ProjectDetails extends React.Component<Props, State> {
                         <LocationBreadcrumbsTitle
                           locationDetails={location}
                           size="small"
+                          navigateOnClick={NAVIGATION_OPTIONS.NEW_TAB}
                         />
                         <Grid container spacing={2}>
                           <Grid item xs={12} md={12}>
@@ -348,7 +355,11 @@ class ProjectDetails extends React.Component<Props, State> {
               </Grid>
               <Grid item xs={4} sm={4} lg={4} xl={4}>
                 <ExpandingPanel title="Team">
-                  <FormField>
+                  <FormFieldWithPermissions
+                    permissions={{
+                      entity: 'project',
+                      action: 'transferOwnership',
+                    }}>
                     <UserTypeahead
                       className={classes.input}
                       selectedUser={project.createdBy}
@@ -357,7 +368,7 @@ class ProjectDetails extends React.Component<Props, State> {
                         this._setProjectDetail('createdBy', user)
                       }
                     />
-                  </FormField>
+                  </FormFieldWithPermissions>
                 </ExpandingPanel>
                 <ExpandingPanel
                   title="Comments"
@@ -437,11 +448,7 @@ export default withRouter(
                 longitudeValue
                 rangeFromValue
                 rangeToValue
-                equipmentValue {
-                  id
-                  name
-                }
-                locationValue {
+                nodeValue {
                   id
                   name
                 }
@@ -449,6 +456,7 @@ export default withRouter(
                   id
                   name
                   type
+                  nodeType
                   isEditable
                   isMandatory
                   isInstanceProperty

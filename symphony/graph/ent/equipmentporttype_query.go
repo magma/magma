@@ -27,7 +27,7 @@ type EquipmentPortTypeQuery struct {
 	config
 	limit      *int
 	offset     *int
-	order      []Order
+	order      []OrderFunc
 	unique     []string
 	predicates []predicate.EquipmentPortType
 	// eager-loading edges.
@@ -58,7 +58,7 @@ func (eptq *EquipmentPortTypeQuery) Offset(offset int) *EquipmentPortTypeQuery {
 }
 
 // Order adds an order step to the query.
-func (eptq *EquipmentPortTypeQuery) Order(o ...Order) *EquipmentPortTypeQuery {
+func (eptq *EquipmentPortTypeQuery) Order(o ...OrderFunc) *EquipmentPortTypeQuery {
 	eptq.order = append(eptq.order, o...)
 	return eptq
 }
@@ -287,7 +287,7 @@ func (eptq *EquipmentPortTypeQuery) Clone() *EquipmentPortTypeQuery {
 		config:     eptq.config,
 		limit:      eptq.limit,
 		offset:     eptq.offset,
-		order:      append([]Order{}, eptq.order...),
+		order:      append([]OrderFunc{}, eptq.order...),
 		unique:     append([]string{}, eptq.unique...),
 		predicates: append([]predicate.EquipmentPortType{}, eptq.predicates...),
 		// clone intermediate query.
@@ -387,6 +387,9 @@ func (eptq *EquipmentPortTypeQuery) prepareQuery(ctx context.Context) error {
 			return err
 		}
 		eptq.sql = prev
+	}
+	if err := equipmentporttype.Policy.EvalQuery(ctx, eptq); err != nil {
+		return err
 	}
 	return nil
 }
@@ -587,14 +590,14 @@ func (eptq *EquipmentPortTypeQuery) sqlQuery() *sql.Selector {
 type EquipmentPortTypeGroupBy struct {
 	config
 	fields []string
-	fns    []Aggregate
+	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (eptgb *EquipmentPortTypeGroupBy) Aggregate(fns ...Aggregate) *EquipmentPortTypeGroupBy {
+func (eptgb *EquipmentPortTypeGroupBy) Aggregate(fns ...AggregateFunc) *EquipmentPortTypeGroupBy {
 	eptgb.fns = append(eptgb.fns, fns...)
 	return eptgb
 }

@@ -1320,6 +1320,62 @@ func HasServiceValueWith(preds ...predicate.Service) predicate.Property {
 	})
 }
 
+// HasWorkOrderValue applies the HasEdge predicate on the "work_order_value" edge.
+func HasWorkOrderValue() predicate.Property {
+	return predicate.Property(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(WorkOrderValueTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, WorkOrderValueTable, WorkOrderValueColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasWorkOrderValueWith applies the HasEdge predicate on the "work_order_value" edge with a given conditions (other predicates).
+func HasWorkOrderValueWith(preds ...predicate.WorkOrder) predicate.Property {
+	return predicate.Property(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(WorkOrderValueInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, WorkOrderValueTable, WorkOrderValueColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasUserValue applies the HasEdge predicate on the "user_value" edge.
+func HasUserValue() predicate.Property {
+	return predicate.Property(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(UserValueTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, UserValueTable, UserValueColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasUserValueWith applies the HasEdge predicate on the "user_value" edge with a given conditions (other predicates).
+func HasUserValueWith(preds ...predicate.User) predicate.Property {
+	return predicate.Property(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(UserValueInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, UserValueTable, UserValueColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups list of predicates with the AND operator between them.
 func And(predicates ...predicate.Property) predicate.Property {
 	return predicate.Property(func(s *sql.Selector) {

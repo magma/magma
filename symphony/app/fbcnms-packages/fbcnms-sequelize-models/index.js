@@ -42,7 +42,10 @@ export const User = db.User;
 export const FeatureFlag = db.FeatureFlag;
 
 export function jsonArrayContains(column: string, value: string) {
-  if (sequelize.getDialect() === 'mysql') {
+  if (
+    sequelize.getDialect() === 'mysql' ||
+    sequelize.getDialect() === 'mariadb'
+  ) {
     return Sequelize.fn('JSON_CONTAINS', Sequelize.col(column), `"${value}"`);
   } else {
     // sqlite

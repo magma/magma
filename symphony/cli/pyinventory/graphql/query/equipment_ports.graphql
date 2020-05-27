@@ -1,0 +1,9 @@
+query EquipmentPortsQuery($id: ID!) {
+  equipment: node(id: $id) {
+    ... on Equipment {
+      ports {
+        ...EquipmentPortFragment
+      }
+    }
+  }
+}

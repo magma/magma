@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 657efef3d2de26e52629af7f2c087efc
+ * @relayHash 34457bc3724841da77080612f2818c1f
  */
 
 /* eslint-disable */
@@ -15,17 +15,20 @@
 
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
-export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "float" | "gps_location" | "int" | "node" | "range" | "string" | "%future added value";
 export type ServiceTypeEditData = {|
   id: string,
   name: string,
   hasCustomer: boolean,
   properties?: ?$ReadOnlyArray<?PropertyTypeInput>,
+  endpoints?: ?$ReadOnlyArray<?ServiceEndpointDefinitionInput>,
 |};
 export type PropertyTypeInput = {|
   id?: ?string,
+  externalId?: ?string,
   name: string,
   type: PropertyKind,
+  nodeType?: ?string,
   index?: ?number,
   category?: ?string,
   stringValue?: ?string,
@@ -41,6 +44,13 @@ export type PropertyTypeInput = {|
   isMandatory?: ?boolean,
   isDeleted?: ?boolean,
 |};
+export type ServiceEndpointDefinitionInput = {|
+  id?: ?string,
+  name: string,
+  role?: ?string,
+  index: number,
+  equipmentTypeID: string,
+|};
 export type EditServiceTypeMutationVariables = {|
   data: ServiceTypeEditData
 |};
@@ -52,6 +62,7 @@ export type EditServiceTypeMutationResponse = {|
       +id: string,
       +name: string,
       +type: PropertyKind,
+      +nodeType: ?string,
       +index: ?number,
       +stringValue: ?string,
       +intValue: ?number,
@@ -64,6 +75,18 @@ export type EditServiceTypeMutationResponse = {|
       +isEditable: ?boolean,
       +isInstanceProperty: ?boolean,
       +isMandatory: ?boolean,
+      +category: ?string,
+      +isDeleted: ?boolean,
+    |}>,
+    +endpointDefinitions: $ReadOnlyArray<{|
+      +id: string,
+      +name: string,
+      +role: ?string,
+      +index: number,
+      +equipmentType: {|
+        +id: string,
+        +name: string,
+      |},
     |}>,
   |}
 |};
@@ -85,6 +108,7 @@ mutation EditServiceTypeMutation(
       id
       name
       type
+      nodeType
       index
       stringValue
       intValue
@@ -97,6 +121,18 @@ mutation EditServiceTypeMutation(
       isEditable
       isInstanceProperty
       isMandatory
+      category
+      isDeleted
+    }
+    endpointDefinitions {
+      id
+      name
+      role
+      index
+      equipmentType {
+        id
+        name
+      }
     }
   }
 }
@@ -125,7 +161,14 @@ v2 = {
   "args": null,
   "storageKey": null
 },
-v3 = [
+v3 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "index",
+  "args": null,
+  "storageKey": null
+},
+v4 = [
   {
     "kind": "LinkedField",
     "alias": null,
@@ -164,10 +207,11 @@ v3 = [
           {
             "kind": "ScalarField",
             "alias": null,
-            "name": "index",
+            "name": "nodeType",
             "args": null,
             "storageKey": null
           },
+          (v3/*: any*/),
           {
             "kind": "ScalarField",
             "alias": null,
@@ -244,6 +288,54 @@ v3 = [
             "name": "isMandatory",
             "args": null,
             "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "category",
+            "args": null,
+            "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "isDeleted",
+            "args": null,
+            "storageKey": null
+          }
+        ]
+      },
+      {
+        "kind": "LinkedField",
+        "alias": null,
+        "name": "endpointDefinitions",
+        "storageKey": null,
+        "args": null,
+        "concreteType": "ServiceEndpointDefinition",
+        "plural": true,
+        "selections": [
+          (v1/*: any*/),
+          (v2/*: any*/),
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "role",
+            "args": null,
+            "storageKey": null
+          },
+          (v3/*: any*/),
+          {
+            "kind": "LinkedField",
+            "alias": null,
+            "name": "equipmentType",
+            "storageKey": null,
+            "args": null,
+            "concreteType": "EquipmentType",
+            "plural": false,
+            "selections": [
+              (v1/*: any*/),
+              (v2/*: any*/)
+            ]
           }
         ]
       }
@@ -258,23 +350,23 @@ return {
     "type": "Mutation",
     "metadata": null,
     "argumentDefinitions": (v0/*: any*/),
-    "selections": (v3/*: any*/)
+    "selections": (v4/*: any*/)
   },
   "operation": {
     "kind": "Operation",
     "name": "EditServiceTypeMutation",
     "argumentDefinitions": (v0/*: any*/),
-    "selections": (v3/*: any*/)
+    "selections": (v4/*: any*/)
   },
   "params": {
     "operationKind": "mutation",
     "name": "EditServiceTypeMutation",
     "id": null,
-    "text": "mutation EditServiceTypeMutation(\n  $data: ServiceTypeEditData!\n) {\n  editServiceType(data: $data) {\n    id\n    name\n    propertyTypes {\n      id\n      name\n      type\n      index\n      stringValue\n      intValue\n      booleanValue\n      floatValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      isEditable\n      isInstanceProperty\n      isMandatory\n    }\n  }\n}\n",
+    "text": "mutation EditServiceTypeMutation(\n  $data: ServiceTypeEditData!\n) {\n  editServiceType(data: $data) {\n    id\n    name\n    propertyTypes {\n      id\n      name\n      type\n      nodeType\n      index\n      stringValue\n      intValue\n      booleanValue\n      floatValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      isEditable\n      isInstanceProperty\n      isMandatory\n      category\n      isDeleted\n    }\n    endpointDefinitions {\n      id\n      name\n      role\n      index\n      equipmentType {\n        id\n        name\n      }\n    }\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '62dc1ba932d0513784b4b8cde29e0f6b';
+(node/*: any*/).hash = '52080020a26a9e4e43dc488816bd10eb';
 module.exports = node;

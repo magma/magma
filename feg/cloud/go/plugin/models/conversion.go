@@ -263,6 +263,22 @@ func (m *DiameterClientConfigs) ToMconfig() *mconfig.DiamClientConfig {
 	return res
 }
 
+// TODO: remove this once backwards compatibility is not needed for the field server
+func ToMultipleServersMconfig(server *DiameterClientConfigs, servers []*DiameterClientConfigs) []*mconfig.DiamClientConfig {
+	diamClientMconfigs := make([]*mconfig.DiamClientConfig, 0, len(servers)+1)
+	if server != nil {
+		// prepend server to Servers
+		tmpSrv := append([]*DiameterClientConfigs{server}, servers...)
+		servers = tmpSrv
+	}
+	for _, diamClientProto := range servers {
+		diamClientConf := &mconfig.DiamClientConfig{}
+		protos.FillIn(diamClientProto, diamClientConf)
+		diamClientMconfigs = append(diamClientMconfigs, diamClientConf)
+	}
+	return diamClientMconfigs
+}
+
 func (m *DiameterServerConfigs) ToMconfig() *mconfig.DiamServerConfig {
 	res := &mconfig.DiamServerConfig{}
 	protos.FillIn(m, res)

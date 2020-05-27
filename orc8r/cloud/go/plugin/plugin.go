@@ -56,7 +56,7 @@ type OrchestratorPlugin interface {
 	// mconfigs to pass down to gateways.
 	GetMconfigBuilders() []configurator.MconfigBuilder
 
-	// GetMetricsProfile returns the metricsd profiles that this module
+	// GetMetricsProfiles returns the metricsd profiles that this module
 	// supplies. This will make specific configurations available for metricsd
 	// to load on startup. See MetricsProfile for additional documentation.
 	GetMetricsProfiles(metricsConfig *config.ConfigMap) []metricsd.MetricsProfile
@@ -84,7 +84,7 @@ func LoadAllPluginsFatalOnError(loader OrchestratorPluginLoader) {
 	}
 }
 
-// LoadAlPlugins loads and registers all orchestrator plugins, returning the
+// LoadAllPlugins loads and registers all orchestrator plugins, returning the
 // first error encountered during the process. Standard use-cases should pass
 // DefaultOrchestratorPluginLoader.
 //
@@ -183,7 +183,7 @@ func registerPlugin(orc8rPlugin OrchestratorPlugin, metricsConfig *config.Config
 		return err
 	}
 	configurator.RegisterMconfigBuilders(orc8rPlugin.GetMconfigBuilders()...)
-	if err := indexer.RegisterIndexers(orc8rPlugin.GetStateIndexers()...); err != nil {
+	if err := indexer.RegisterAll(orc8rPlugin.GetStateIndexers()...); err != nil {
 		return err
 	}
 

@@ -18,6 +18,7 @@ const TableHeaderCheckbox = () => {
     <Checkbox
       indeterminate={selectionMode === 'some'}
       checked={selectionMode === 'all'}
+      title={null}
       onChange={changeHeaderSelectionMode}
     />
   );

@@ -35,29 +35,28 @@ const useStyles = makeStyles(() => ({
   errorColor: {
     fill: symphony.palette.R600,
   },
+  inheritColor: {
+    fill: 'inherit',
+  },
 }));
 
 export type SvgIconStyleProps = {
   className?: string,
-  color?: 'light' | 'regular' | 'primary' | 'error' | 'gray',
+  color?: 'light' | 'regular' | 'primary' | 'error' | 'gray' | 'inherit',
 };
 
 type Props = {
   children: React.Node,
 } & SvgIconStyleProps;
 
-const SvgIcon = ({className, children, color, ...rest}: Props) => {
+const SvgIcon = ({className, children, color = 'regular', ...rest}: Props) => {
   const classes = useStyles();
   return (
     <svg
       viewBox="0 0 24 24"
       width="24px"
       height="24px"
-      className={classNames(
-        classes.root,
-        classes[`${color ?? 'regular'}Color`],
-        className,
-      )}
+      className={classNames(classes.root, classes[`${color}Color`], className)}
       {...rest}>
       {children}
     </svg>

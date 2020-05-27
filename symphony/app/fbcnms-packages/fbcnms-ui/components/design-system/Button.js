@@ -14,6 +14,7 @@ import * as React from 'react';
 import Text from './Text';
 import classNames from 'classnames';
 import symphony from '../../theme/symphony';
+import {joinNullableStrings} from '@fbcnms/util/strings';
 import {makeStyles} from '@material-ui/styles';
 import {useFormElementContext} from './Form/FormElementContext';
 import {useMemo} from 'react';
@@ -25,10 +26,12 @@ const useStyles = makeStyles(_theme => ({
     '&:focus': {
       outline: 'none',
     },
+    flexShrink: 0,
     display: 'inline-flex',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    maxWidth: '100%',
   },
   icon: {},
   hasIcon: {
@@ -39,11 +42,11 @@ const useStyles = makeStyles(_theme => ({
   },
   rightIcon: {
     alignSelf: 'flex-end',
-    marginLeft: '6px',
+    marginLeft: '8px',
   },
   leftIcon: {
     alignSelf: 'flex-start',
-    marginRight: '6px',
+    marginRight: '8px',
   },
   hasRightIcon: {
     '& $buttonText': {
@@ -65,7 +68,7 @@ const useStyles = makeStyles(_theme => ({
   containedVariant: {
     height: '32px',
     minWidth: '88px',
-    padding: '4px 18px',
+    padding: '4px 12px',
     borderRadius: '4px',
     '&$hasRightIcon': {
       padding: '4px 6px 4px 12px',
@@ -173,6 +176,7 @@ const useStyles = makeStyles(_theme => ({
     background: 'none',
     padding: 0,
     height: '24px',
+    maxWidth: '100%',
     '&$primarySkin': {
       '&:not($disabled)': {
         '& $buttonText, $icon': {
@@ -253,6 +257,7 @@ const useStyles = makeStyles(_theme => ({
       cursor: 'default',
       '& $buttonText, $icon': {
         color: symphony.palette.disabled,
+        fill: symphony.palette.disabled,
       },
     },
   },
@@ -268,23 +273,27 @@ export type ButtonSkin =
   | 'green';
 type SvgIcon = React$ComponentType<SvgIconExports>;
 
-export type ButtonProps = {|
+export type ButtonProps = $ReadOnly<{|
   skin?: ButtonSkin,
   variant?: ButtonVariant,
+  useEllipsis?: ?boolean,
   disabled?: boolean,
-|};
+  tooltip?: string,
+|}>;
 
-export type Props = {
+export type Props = $ReadOnly<{|
   className?: string,
   children: React.Node,
-  onClick?: void | (() => void | Promise<void>),
+  onClick?:
+    | void
+    | (void | ((SyntheticMouseEvent<HTMLElement>) => void | Promise<void>)),
+
   leftIcon?: SvgIcon,
   leftIconClass?: string,
   rightIcon?: SvgIcon,
   rightIconClass?: string,
-  tooltip?: string,
   ...ButtonProps,
-};
+|}>;
 
 const Button = (props: Props, forwardedRef: TRefFor<HTMLButtonElement>) => {
   const {
@@ -293,21 +302,30 @@ const Button = (props: Props, forwardedRef: TRefFor<HTMLButtonElement>) => {
     skin = 'primary',
     disabled: disabledProp = false,
     variant = 'contained',
+    useEllipsis = true,
     onClick,
     leftIcon: LeftIcon = null,
     leftIconClass = null,
     rightIcon: RightIcon = null,
     rightIconClass = null,
-    tooltip,
+    tooltip: tooltipProp,
   } = props;
   const classes = useStyles();
 
-  const {disabled: contextDisabled} = useFormElementContext();
+  const {
+    disabled: contextDisabled,
+    tooltip: contextTooltip,
+  } = useFormElementContext();
 
   const disabled = useMemo(() => disabledProp || contextDisabled, [
     disabledProp,
     contextDisabled,
   ]);
+
+  const tooltip = useMemo(
+    () => joinNullableStrings([tooltipProp, contextTooltip]),
+    [contextTooltip, tooltipProp],
+  );
 
   return (
     <button
@@ -335,7 +353,11 @@ const Button = (props: Props, forwardedRef: TRefFor<HTMLButtonElement>) => {
           size="small"
         />
       ) : null}
-      <Text variant="body2" weight="medium" className={classes.buttonText}>
+      <Text
+        variant="body2"
+        weight="medium"
+        useEllipsis={useEllipsis}
+        className={classes.buttonText}>
         {children}
       </Text>
       {RightIcon ? (

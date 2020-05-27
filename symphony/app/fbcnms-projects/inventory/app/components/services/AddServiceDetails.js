@@ -99,6 +99,7 @@ const serviceTypeQuery = graphql`
           id
           name
           type
+          nodeType
           index
           stringValue
           intValue
@@ -221,7 +222,11 @@ const AddServiceDetails = (props: Props) => {
   };
 
   return (
-    <FormContextProvider>
+    <FormContextProvider
+      permissions={{
+        entity: 'service',
+        action: 'create',
+      }}>
       <DialogTitle className={classes.dialogTitle}>
         <Text variant="h6">{service.serviceType.name}</Text>
       </DialogTitle>

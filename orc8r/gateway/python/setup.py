@@ -82,5 +82,13 @@ setup(
         'jsonpickle',
         'bravado-core==5.16.1',
         'jsonschema==3.1.0',
-    ]
+        "strict-rfc3339>=0.7",
+        "rfc3987>=1.3.0",
+        "jsonpointer>=1.13",
+        "webcolors>=1.11.1",
+    ],
+    extras_require={
+        'dev': [
+        ],
+    },
 )

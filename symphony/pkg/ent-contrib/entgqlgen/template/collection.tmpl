@@ -20,20 +20,20 @@ in the LICENSE file in the root directory of this source tree.
 {{ $query := print $node.QueryName -}}
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
 func ({{ $receiver }} *{{ $query }}) CollectFields(ctx context.Context, satisfies ...string) *{{ $query }} {
-	if resctx := graphql.GetResolverContext(ctx); resctx != nil {
-		{{ $receiver }} = {{ $receiver }}.collectField(graphql.GetRequestContext(ctx), resctx.Field, satisfies...)
+	if fc := graphql.GetFieldContext(ctx); fc != nil {
+		{{ $receiver }} = {{ $receiver }}.collectField(graphql.GetOperationContext(ctx), fc.Field, satisfies...)
 	}
 	return {{ $receiver }}
 }
 
-func ({{ $receiver }} *{{ $query }}) collectField(reqctx *graphql.RequestContext, field graphql.CollectedField, satisfies ...string) *{{ $query }} {
+func ({{ $receiver }} *{{ $query }}) collectField(ctx *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *{{ $query }} {
 	{{- with $taggedEdges }}
-		for _, field := range graphql.CollectFields(reqctx, field.Selections, satisfies) {
+		for _, field := range graphql.CollectFields(ctx, field.Selections, satisfies) {
 			switch field.Name {
 				{{- range $name, $values := . }}
 					case {{ range $i, $tag := split (index $values 1) "," }}{{ if gt $i 0 }}, {{ end }}"{{ $tag }}"{{ end }}:
 						{{ $receiver }} = {{ $receiver }}.With{{ pascal $name }}(func(query *{{ pascal (index $values 0) }}Query) {
-							query.collectField(reqctx, field)
+							query.collectField(ctx, field)
 						})
 				{{- end }}
 			}

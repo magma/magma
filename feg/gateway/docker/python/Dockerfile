@@ -70,7 +70,8 @@ RUN apt-get -y update && apt-get -y install \
   python3-pip \
   python3.5-dev \
   redis-server \
-  git
+  git \
+  netcat
 
 # Install docker.
 RUN curl -sSL https://get.docker.com/ > /tmp/get_docker.sh && \

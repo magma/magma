@@ -1319,6 +1319,34 @@ func HasCommentsWith(preds ...predicate.Comment) predicate.WorkOrder {
 	})
 }
 
+// HasActivities applies the HasEdge predicate on the "activities" edge.
+func HasActivities() predicate.WorkOrder {
+	return predicate.WorkOrder(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(ActivitiesTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ActivitiesTable, ActivitiesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasActivitiesWith applies the HasEdge predicate on the "activities" edge with a given conditions (other predicates).
+func HasActivitiesWith(preds ...predicate.Activity) predicate.WorkOrder {
+	return predicate.WorkOrder(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(ActivitiesInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ActivitiesTable, ActivitiesColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasProperties applies the HasEdge predicate on the "properties" edge.
 func HasProperties() predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
@@ -1366,62 +1394,6 @@ func HasCheckListCategoriesWith(preds ...predicate.CheckListCategory) predicate.
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(CheckListCategoriesInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, CheckListCategoriesTable, CheckListCategoriesColumn),
-		)
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasCheckListItems applies the HasEdge predicate on the "check_list_items" edge.
-func HasCheckListItems() predicate.WorkOrder {
-	return predicate.WorkOrder(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(CheckListItemsTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, CheckListItemsTable, CheckListItemsColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasCheckListItemsWith applies the HasEdge predicate on the "check_list_items" edge with a given conditions (other predicates).
-func HasCheckListItemsWith(preds ...predicate.CheckListItem) predicate.WorkOrder {
-	return predicate.WorkOrder(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(CheckListItemsInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, CheckListItemsTable, CheckListItemsColumn),
-		)
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasTechnician applies the HasEdge predicate on the "technician" edge.
-func HasTechnician() predicate.WorkOrder {
-	return predicate.WorkOrder(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(TechnicianTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, TechnicianTable, TechnicianColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasTechnicianWith applies the HasEdge predicate on the "technician" edge with a given conditions (other predicates).
-func HasTechnicianWith(preds ...predicate.Technician) predicate.WorkOrder {
-	return predicate.WorkOrder(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(TechnicianInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, TechnicianTable, TechnicianColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

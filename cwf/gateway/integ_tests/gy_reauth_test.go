@@ -1,3 +1,5 @@
+// +build all gy
+
 /*
  * Copyright (c) Facebook, Inc. and its affiliates.
  * All rights reserved.
@@ -6,7 +8,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package integ_tests
+package integration
 
 import (
 	"fmt"
@@ -20,12 +22,6 @@ import (
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/stretchr/testify/assert"
-)
-
-const (
-	ReAuthMaxUsageBytes   = 5 * MegaBytes
-	ReAuthMaxUsageTimeSec = 1000 // in second
-	ReAuthValidityTime    = 60   // in second
 )
 
 func TestGyReAuth(t *testing.T) {
@@ -113,7 +109,7 @@ func TestGyReAuth(t *testing.T) {
 	// Check ReAuth success
 	assert.NoError(t, err)
 	assert.Contains(t, raa.SessionId, "IMSI"+imsi)
-	assert.Equal(t, uint32(diam.LimitedSuccess), raa.ResultCode)
+	assert.Equal(t, diam.LimitedSuccess, int(raa.ResultCode))
 
 	// Generate over 7M of data to check that initial quota was updated
 	req = &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: "5M"}}
@@ -130,8 +126,7 @@ func TestGyReAuth(t *testing.T) {
 	assert.True(t, record.BytesTx <= uint64(10*MegaBytes+Buffer), fmt.Sprintf("policy usage: %v", record))
 
 	// trigger disconnection
-	_, err = tr.Disconnect(imsi)
-	assert.NoError(t, err)
+	tr.DisconnectAndAssertSuccess(imsi)
 	fmt.Println("wait for flows to get deactivated")
 	time.Sleep(3 * time.Second)
 }

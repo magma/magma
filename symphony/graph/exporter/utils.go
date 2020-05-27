@@ -40,9 +40,8 @@ const (
 	gpsLocationVal      = "gps_location"
 	rangeVal            = "range"
 	enum                = "enum"
-	equipmentVal        = "equipment"
-	locationVal         = "location"
-	serviceVal          = "service"
+	datetimeLocalVal    = "datetime_local"
+	nodeVal             = "node"
 )
 
 func toIntSlice(a []string) ([]int, error) {
@@ -197,6 +196,45 @@ func locationHierarchy(ctx context.Context, location *ent.Location, orderedLocTy
 	return parents, nil
 }
 
+func getLastLocations(ctx context.Context, e *ent.Equipment, level int) (*string, error) {
+	ppos, err := e.QueryParentPosition().Only(ctx)
+	if err != nil && !ent.IsNotFound(err) {
+		return nil, fmt.Errorf("querying parent position: %w", err)
+	}
+
+	var lastPosition *ent.EquipmentPosition
+	for ppos != nil {
+		lastPosition = ppos
+		ppos, err = ppos.QueryParent().QueryParentPosition().Only(ctx)
+		if err != nil && !ent.IsNotFound(err) {
+			return nil, fmt.Errorf("querying parent position: %w", err)
+		}
+	}
+	var query *ent.LocationQuery
+	if lastPosition != nil {
+		query = lastPosition.QueryParent().QueryLocation()
+	} else {
+		query = e.QueryLocation()
+	}
+	loc, err := query.Only(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("querying equipemnt location: %w", err)
+	}
+	locations := loc.Name
+
+	for i := 0; i < level-1; i++ {
+		loc, err = loc.QueryParent().Only(ctx)
+		if ent.MaskNotFound(err) != nil {
+			return nil, fmt.Errorf("querying location for equipment: %w", err)
+		}
+		if ent.IsNotFound(err) || loc == nil {
+			break
+		}
+		locations = loc.Name + "; " + locations
+	}
+	return &locations, nil
+}
+
 // nolint: funlen
 func propertyTypesSlice(ctx context.Context, ids []int, c *ent.Client, entity models.PropertyEntity) ([]string, error) {
 	var (
@@ -295,7 +333,6 @@ func propertyTypesSlice(ctx context.Context, ids []int, c *ent.Client, entity mo
 				} else {
 					relevantPortTypes = append(relevantPortTypes, *portType)
 				}
-
 			} else if entity == models.PropertyEntityPort {
 				// TODO (T59268484) solve the case where there are too many IDs to check (trying to optimize)
 				if len(ids) < 50 {
@@ -495,7 +532,7 @@ func propertyValue(ctx context.Context, typ string, v interface{}) (string, erro
 	}
 	vo := reflect.ValueOf(v).Elem()
 	switch typ {
-	case emailVal, stringVal, dateVal, enum:
+	case emailVal, stringVal, dateVal, enum, datetimeLocalVal:
 		return vo.FieldByName("StringVal").String(), nil
 	case intVal:
 		i := vo.FieldByName("IntVal").Int()
@@ -510,28 +547,28 @@ func propertyValue(ctx context.Context, typ string, v interface{}) (string, erro
 		return fmt.Sprintf("%.3f", rf) + " - " + fmt.Sprintf("%.3f", rt), nil
 	case boolVal:
 		return strconv.FormatBool(vo.FieldByName("BoolVal").Bool()), nil
-	case equipmentVal, locationVal:
+	case nodeVal:
 		p, ok := v.(*ent.Property)
 		if !ok {
 			return "", nil
 		}
 		var id int
-		if typ == equipmentVal {
-			id, _ = p.QueryEquipmentValue().OnlyID(ctx)
-		} else {
-			id, _ = p.QueryLocationValue().OnlyID(ctx)
+		if i, err := p.QueryEquipmentValue().OnlyID(ctx); err == nil {
+			id = i
+		}
+		if i, err := p.QueryLocationValue().OnlyID(ctx); err == nil {
+			id = i
+		}
+		if i, err := p.QueryServiceValue().OnlyID(ctx); err == nil {
+			id = i
+		}
+		if i, err := p.QueryWorkOrderValue().OnlyID(ctx); err == nil {
+			id = i
+		}
+		if i, err := p.QueryUserValue().OnlyID(ctx); err == nil {
+			id = i
 		}
 		return strconv.Itoa(id), nil
-	case serviceVal:
-		p, ok := v.(*ent.Property)
-		if !ok {
-			return "", nil
-		}
-		value, _ := p.QueryServiceValue().Only(ctx)
-		if value == nil {
-			return "", nil
-		}
-		return value.Name, nil
 	default:
 		return "", errors.Errorf("type not supported %s", typ)
 	}

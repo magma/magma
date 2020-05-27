@@ -15,6 +15,7 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/surveycellscan"
@@ -26,10 +27,11 @@ type SurveyCellScanQuery struct {
 	config
 	limit      *int
 	offset     *int
-	order      []Order
+	order      []OrderFunc
 	unique     []string
 	predicates []predicate.SurveyCellScan
 	// eager-loading edges.
+	withChecklistItem  *CheckListItemQuery
 	withSurveyQuestion *SurveyQuestionQuery
 	withLocation       *LocationQuery
 	withFKs            bool
@@ -57,9 +59,27 @@ func (scsq *SurveyCellScanQuery) Offset(offset int) *SurveyCellScanQuery {
 }
 
 // Order adds an order step to the query.
-func (scsq *SurveyCellScanQuery) Order(o ...Order) *SurveyCellScanQuery {
+func (scsq *SurveyCellScanQuery) Order(o ...OrderFunc) *SurveyCellScanQuery {
 	scsq.order = append(scsq.order, o...)
 	return scsq
+}
+
+// QueryChecklistItem chains the current query on the checklist_item edge.
+func (scsq *SurveyCellScanQuery) QueryChecklistItem() *CheckListItemQuery {
+	query := &CheckListItemQuery{config: scsq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := scsq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(surveycellscan.Table, surveycellscan.FieldID, scsq.sqlQuery()),
+			sqlgraph.To(checklistitem.Table, checklistitem.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, surveycellscan.ChecklistItemTable, surveycellscan.ChecklistItemColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(scsq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // QuerySurveyQuestion chains the current query on the survey_question edge.
@@ -268,13 +288,24 @@ func (scsq *SurveyCellScanQuery) Clone() *SurveyCellScanQuery {
 		config:     scsq.config,
 		limit:      scsq.limit,
 		offset:     scsq.offset,
-		order:      append([]Order{}, scsq.order...),
+		order:      append([]OrderFunc{}, scsq.order...),
 		unique:     append([]string{}, scsq.unique...),
 		predicates: append([]predicate.SurveyCellScan{}, scsq.predicates...),
 		// clone intermediate query.
 		sql:  scsq.sql.Clone(),
 		path: scsq.path,
 	}
+}
+
+//  WithChecklistItem tells the query-builder to eager-loads the nodes that are connected to
+// the "checklist_item" edge. The optional arguments used to configure the query builder of the edge.
+func (scsq *SurveyCellScanQuery) WithChecklistItem(opts ...func(*CheckListItemQuery)) *SurveyCellScanQuery {
+	query := &CheckListItemQuery{config: scsq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	scsq.withChecklistItem = query
+	return scsq
 }
 
 //  WithSurveyQuestion tells the query-builder to eager-loads the nodes that are connected to
@@ -358,6 +389,9 @@ func (scsq *SurveyCellScanQuery) prepareQuery(ctx context.Context) error {
 		}
 		scsq.sql = prev
 	}
+	if err := surveycellscan.Policy.EvalQuery(ctx, scsq); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -366,12 +400,13 @@ func (scsq *SurveyCellScanQuery) sqlAll(ctx context.Context) ([]*SurveyCellScan,
 		nodes       = []*SurveyCellScan{}
 		withFKs     = scsq.withFKs
 		_spec       = scsq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
+			scsq.withChecklistItem != nil,
 			scsq.withSurveyQuestion != nil,
 			scsq.withLocation != nil,
 		}
 	)
-	if scsq.withSurveyQuestion != nil || scsq.withLocation != nil {
+	if scsq.withChecklistItem != nil || scsq.withSurveyQuestion != nil || scsq.withLocation != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -399,6 +434,31 @@ func (scsq *SurveyCellScanQuery) sqlAll(ctx context.Context) ([]*SurveyCellScan,
 	}
 	if len(nodes) == 0 {
 		return nodes, nil
+	}
+
+	if query := scsq.withChecklistItem; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*SurveyCellScan)
+		for i := range nodes {
+			if fk := nodes[i].survey_cell_scan_checklist_item; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(checklistitem.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "survey_cell_scan_checklist_item" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.ChecklistItem = n
+			}
+		}
 	}
 
 	if query := scsq.withSurveyQuestion; query != nil {
@@ -532,14 +592,14 @@ func (scsq *SurveyCellScanQuery) sqlQuery() *sql.Selector {
 type SurveyCellScanGroupBy struct {
 	config
 	fields []string
-	fns    []Aggregate
+	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (scsgb *SurveyCellScanGroupBy) Aggregate(fns ...Aggregate) *SurveyCellScanGroupBy {
+func (scsgb *SurveyCellScanGroupBy) Aggregate(fns ...AggregateFunc) *SurveyCellScanGroupBy {
 	scsgb.fns = append(scsgb.fns, fns...)
 	return scsgb
 }

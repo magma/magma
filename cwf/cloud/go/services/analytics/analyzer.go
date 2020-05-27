@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/golang/glog"
+	"github.com/prometheus/client_golang/api"
 	"github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/common/model"
 	"github.com/robfig/cron/v3"
@@ -39,8 +40,8 @@ type PrometheusAnalyzer struct {
 }
 
 type PrometheusAPI interface {
-	Query(ctx context.Context, query string, ts time.Time) (model.Value, error)
-	QueryRange(ctx context.Context, query string, r v1.Range) (model.Value, error)
+	Query(ctx context.Context, query string, ts time.Time) (model.Value, api.Warnings, error)
+	QueryRange(ctx context.Context, query string, r v1.Range) (model.Value, api.Warnings, error)
 }
 
 func NewPrometheusAnalyzer(prometheusClient v1.API, calculations []Calculation, exporter Exporter) Analyzer {

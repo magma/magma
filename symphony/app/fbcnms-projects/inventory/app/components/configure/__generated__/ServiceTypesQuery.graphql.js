@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 00ed11c77a864b85d1e6ceb9681281bc
+ * @relayHash 05c5a9ccbed6f494dd3facf3b5eaf25f
  */
 
 /* eslint-disable */
@@ -24,6 +24,7 @@ export type ServiceTypesQueryResponse = {|
       +node: ?{|
         +id: string,
         +name: string,
+        +isDeleted: boolean,
         +$fragmentRefs: ServiceTypeItem_serviceType$ref & AddEditServiceTypeCard_editingServiceType$ref,
       |}
     |}>
@@ -45,6 +46,7 @@ query ServiceTypesQuery {
         ...AddEditServiceTypeCard_editingServiceType
         id
         name
+        isDeleted
         __typename
       }
       cursor
@@ -60,10 +62,12 @@ fragment AddEditServiceTypeCard_editingServiceType on ServiceType {
   id
   name
   numberOfServices
+  discoveryMethod
   propertyTypes {
     id
     name
     type
+    nodeType
     index
     stringValue
     intValue
@@ -77,12 +81,23 @@ fragment AddEditServiceTypeCard_editingServiceType on ServiceType {
     isMandatory
     isInstanceProperty
   }
+  endpointDefinitions {
+    id
+    index
+    role
+    name
+    equipmentType {
+      name
+      id
+    }
+  }
 }
 
 fragment PropertyTypeFormField_propertyType on PropertyType {
   id
   name
   type
+  nodeType
   index
   stringValue
   intValue
@@ -95,13 +110,31 @@ fragment PropertyTypeFormField_propertyType on PropertyType {
   isEditable
   isInstanceProperty
   isMandatory
+  category
+  isDeleted
+}
+
+fragment ServiceEndpointDefinitionStaticTable_serviceEndpointDefinitions on ServiceEndpointDefinition {
+  id
+  name
+  role
+  index
+  equipmentType {
+    id
+    name
+  }
 }
 
 fragment ServiceTypeItem_serviceType on ServiceType {
   id
   name
+  discoveryMethod
   propertyTypes {
     ...PropertyTypeFormField_propertyType
+    id
+  }
+  endpointDefinitions {
+    ...ServiceEndpointDefinitionStaticTable_serviceEndpointDefinitions
     id
   }
   numberOfServices
@@ -126,18 +159,25 @@ v1 = {
 v2 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "__typename",
+  "name": "isDeleted",
   "args": null,
   "storageKey": null
 },
 v3 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "cursor",
+  "name": "__typename",
   "args": null,
   "storageKey": null
 },
 v4 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "cursor",
+  "args": null,
+  "storageKey": null
+},
+v5 = {
   "kind": "LinkedField",
   "alias": null,
   "name": "pageInfo",
@@ -162,13 +202,20 @@ v4 = {
     }
   ]
 },
-v5 = [
+v6 = [
   {
     "kind": "Literal",
     "name": "first",
     "value": 500
   }
-];
+],
+v7 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "index",
+  "args": null,
+  "storageKey": null
+};
 return {
   "kind": "Request",
   "fragment": {
@@ -208,6 +255,7 @@ return {
                   (v0/*: any*/),
                   (v1/*: any*/),
                   (v2/*: any*/),
+                  (v3/*: any*/),
                   {
                     "kind": "FragmentSpread",
                     "name": "ServiceTypeItem_serviceType",
@@ -220,10 +268,10 @@ return {
                   }
                 ]
               },
-              (v3/*: any*/)
+              (v4/*: any*/)
             ]
           },
-          (v4/*: any*/)
+          (v5/*: any*/)
         ]
       }
     ]
@@ -238,7 +286,7 @@ return {
         "alias": null,
         "name": "serviceTypes",
         "storageKey": "serviceTypes(first:500)",
-        "args": (v5/*: any*/),
+        "args": (v6/*: any*/),
         "concreteType": "ServiceTypeConnection",
         "plural": false,
         "selections": [
@@ -263,6 +311,13 @@ return {
                   (v0/*: any*/),
                   (v1/*: any*/),
                   {
+                    "kind": "ScalarField",
+                    "alias": null,
+                    "name": "discoveryMethod",
+                    "args": null,
+                    "storageKey": null
+                  },
+                  {
                     "kind": "LinkedField",
                     "alias": null,
                     "name": "propertyTypes",
@@ -283,10 +338,11 @@ return {
                       {
                         "kind": "ScalarField",
                         "alias": null,
-                        "name": "index",
+                        "name": "nodeType",
                         "args": null,
                         "storageKey": null
                       },
+                      (v7/*: any*/),
                       {
                         "kind": "ScalarField",
                         "alias": null,
@@ -363,6 +419,48 @@ return {
                         "name": "isMandatory",
                         "args": null,
                         "storageKey": null
+                      },
+                      {
+                        "kind": "ScalarField",
+                        "alias": null,
+                        "name": "category",
+                        "args": null,
+                        "storageKey": null
+                      },
+                      (v2/*: any*/)
+                    ]
+                  },
+                  {
+                    "kind": "LinkedField",
+                    "alias": null,
+                    "name": "endpointDefinitions",
+                    "storageKey": null,
+                    "args": null,
+                    "concreteType": "ServiceEndpointDefinition",
+                    "plural": true,
+                    "selections": [
+                      (v0/*: any*/),
+                      (v1/*: any*/),
+                      {
+                        "kind": "ScalarField",
+                        "alias": null,
+                        "name": "role",
+                        "args": null,
+                        "storageKey": null
+                      },
+                      (v7/*: any*/),
+                      {
+                        "kind": "LinkedField",
+                        "alias": null,
+                        "name": "equipmentType",
+                        "storageKey": null,
+                        "args": null,
+                        "concreteType": "EquipmentType",
+                        "plural": false,
+                        "selections": [
+                          (v0/*: any*/),
+                          (v1/*: any*/)
+                        ]
                       }
                     ]
                   },
@@ -373,20 +471,21 @@ return {
                     "args": null,
                     "storageKey": null
                   },
-                  (v2/*: any*/)
+                  (v2/*: any*/),
+                  (v3/*: any*/)
                 ]
               },
-              (v3/*: any*/)
+              (v4/*: any*/)
             ]
           },
-          (v4/*: any*/)
+          (v5/*: any*/)
         ]
       },
       {
         "kind": "LinkedHandle",
         "alias": null,
         "name": "serviceTypes",
-        "args": (v5/*: any*/),
+        "args": (v6/*: any*/),
         "handle": "connection",
         "key": "ServiceTypes_serviceTypes",
         "filters": null
@@ -397,7 +496,7 @@ return {
     "operationKind": "query",
     "name": "ServiceTypesQuery",
     "id": null,
-    "text": "query ServiceTypesQuery {\n  serviceTypes(first: 500) {\n    edges {\n      node {\n        ...ServiceTypeItem_serviceType\n        ...AddEditServiceTypeCard_editingServiceType\n        id\n        name\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n}\n\nfragment AddEditServiceTypeCard_editingServiceType on ServiceType {\n  id\n  name\n  numberOfServices\n  propertyTypes {\n    id\n    name\n    type\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    isEditable\n    isMandatory\n    isInstanceProperty\n  }\n}\n\nfragment PropertyTypeFormField_propertyType on PropertyType {\n  id\n  name\n  type\n  index\n  stringValue\n  intValue\n  booleanValue\n  floatValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  isEditable\n  isInstanceProperty\n  isMandatory\n}\n\nfragment ServiceTypeItem_serviceType on ServiceType {\n  id\n  name\n  propertyTypes {\n    ...PropertyTypeFormField_propertyType\n    id\n  }\n  numberOfServices\n}\n",
+    "text": "query ServiceTypesQuery {\n  serviceTypes(first: 500) {\n    edges {\n      node {\n        ...ServiceTypeItem_serviceType\n        ...AddEditServiceTypeCard_editingServiceType\n        id\n        name\n        isDeleted\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n}\n\nfragment AddEditServiceTypeCard_editingServiceType on ServiceType {\n  id\n  name\n  numberOfServices\n  discoveryMethod\n  propertyTypes {\n    id\n    name\n    type\n    nodeType\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    isEditable\n    isMandatory\n    isInstanceProperty\n  }\n  endpointDefinitions {\n    id\n    index\n    role\n    name\n    equipmentType {\n      name\n      id\n    }\n  }\n}\n\nfragment PropertyTypeFormField_propertyType on PropertyType {\n  id\n  name\n  type\n  nodeType\n  index\n  stringValue\n  intValue\n  booleanValue\n  floatValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  isEditable\n  isInstanceProperty\n  isMandatory\n  category\n  isDeleted\n}\n\nfragment ServiceEndpointDefinitionStaticTable_serviceEndpointDefinitions on ServiceEndpointDefinition {\n  id\n  name\n  role\n  index\n  equipmentType {\n    id\n    name\n  }\n}\n\nfragment ServiceTypeItem_serviceType on ServiceType {\n  id\n  name\n  discoveryMethod\n  propertyTypes {\n    ...PropertyTypeFormField_propertyType\n    id\n  }\n  endpointDefinitions {\n    ...ServiceEndpointDefinitionStaticTable_serviceEndpointDefinitions\n    id\n  }\n  numberOfServices\n}\n",
     "metadata": {
       "connection": [
         {
@@ -414,5 +513,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'e999faea7c30e4abdb32ffb7757c25f5';
+(node/*: any*/).hash = '27909e6e8675e10f68f441661a634c35';
 module.exports = node;

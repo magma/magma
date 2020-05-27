@@ -29,7 +29,7 @@ type LinkQuery struct {
 	config
 	limit      *int
 	offset     *int
-	order      []Order
+	order      []OrderFunc
 	unique     []string
 	predicates []predicate.Link
 	// eager-loading edges.
@@ -62,7 +62,7 @@ func (lq *LinkQuery) Offset(offset int) *LinkQuery {
 }
 
 // Order adds an order step to the query.
-func (lq *LinkQuery) Order(o ...Order) *LinkQuery {
+func (lq *LinkQuery) Order(o ...OrderFunc) *LinkQuery {
 	lq.order = append(lq.order, o...)
 	return lq
 }
@@ -309,7 +309,7 @@ func (lq *LinkQuery) Clone() *LinkQuery {
 		config:     lq.config,
 		limit:      lq.limit,
 		offset:     lq.offset,
-		order:      append([]Order{}, lq.order...),
+		order:      append([]OrderFunc{}, lq.order...),
 		unique:     append([]string{}, lq.unique...),
 		predicates: append([]predicate.Link{}, lq.predicates...),
 		// clone intermediate query.
@@ -420,6 +420,9 @@ func (lq *LinkQuery) prepareQuery(ctx context.Context) error {
 			return err
 		}
 		lq.sql = prev
+	}
+	if err := link.Policy.EvalQuery(ctx, lq); err != nil {
+		return err
 	}
 	return nil
 }
@@ -691,14 +694,14 @@ func (lq *LinkQuery) sqlQuery() *sql.Selector {
 type LinkGroupBy struct {
 	config
 	fields []string
-	fns    []Aggregate
+	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (lgb *LinkGroupBy) Aggregate(fns ...Aggregate) *LinkGroupBy {
+func (lgb *LinkGroupBy) Aggregate(fns ...AggregateFunc) *LinkGroupBy {
 	lgb.fns = append(lgb.fns, fns...)
 	return lgb
 }

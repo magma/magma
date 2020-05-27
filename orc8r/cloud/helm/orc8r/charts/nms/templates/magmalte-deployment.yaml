@@ -76,6 +76,8 @@ spec:
               value: {{ .Values.magmalte.env.mysql_db | quote }}
             - name: MYSQL_HOST
               value: {{ .Values.magmalte.env.mysql_host | quote }}
+            - name: MYSQL_DIALECT
+              value: {{ .Values.magmalte.env.mysql_dialect | quote }}
             - name: MYSQL_PASS
               valueFrom:
                 secretKeyRef:
@@ -86,6 +88,8 @@ spec:
                 secretKeyRef:
                   name: magmalte-mysql-secrets
                   key: MYSQL_USER
+            - name: USER_GRAFANA_ADDRESS
+              value: {{ .Values.magmalte.env.grafana_address }}
           livenessProbe:
             exec:
               command:

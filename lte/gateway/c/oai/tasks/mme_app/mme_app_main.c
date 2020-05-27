@@ -91,8 +91,6 @@ void *mme_app_thread(void *args)
     }
 
     imsi64_t imsi64 = itti_get_associated_imsi(received_message_p);
-    OAILOG_DEBUG(
-      LOG_MME_APP, "Received message with imsi: " IMSI_64_FMT, imsi64);
 
     OAILOG_DEBUG(LOG_MME_APP, "Getting mme_nas_state");
     mme_app_desc_p = get_mme_nas_state(false);
@@ -375,7 +373,7 @@ void *mme_app_thread(void *args)
       case S6A_AUTH_INFO_ANS: {
         /*
          * We received the authentication vectors from HSS,
-         * Normaly should trigger an authentication procedure towards UE.
+         * Normally should trigger an authentication procedure towards UE.
          */
         nas_proc_authentication_info_answer(
           mme_app_desc_p, &S6A_AUTH_INFO_ANS(received_message_p));

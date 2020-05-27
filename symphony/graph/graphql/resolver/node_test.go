@@ -16,8 +16,8 @@ import (
 
 func TestQueryNode(t *testing.T) {
 	resolver := newTestResolver(t)
-	defer resolver.drv.Close()
-	c := newGraphClient(t, resolver)
+	defer resolver.Close()
+	c := resolver.GraphClient()
 
 	var lt struct{ AddLocationType struct{ ID string } }
 	c.MustPost(
@@ -68,7 +68,7 @@ func TestQueryNode(t *testing.T) {
 		assert.True(t, ok)
 		assert.Nil(t, v)
 	})
-	t.Run("BadID", func(t *testing.T) {
+	t.Run("badID", func(t *testing.T) {
 		rsp, err := c.RawPost(`query { node(id: "-1") { id } }`)
 		require.NoError(t, err)
 		assert.Empty(t, rsp.Errors)

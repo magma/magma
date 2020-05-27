@@ -13,8 +13,14 @@ import (
 // ActionsRule is the predicate function for actionsrule builders.
 type ActionsRule func(*sql.Selector)
 
+// Activity is the predicate function for activity builders.
+type Activity func(*sql.Selector)
+
 // CheckListCategory is the predicate function for checklistcategory builders.
 type CheckListCategory func(*sql.Selector)
+
+// CheckListCategoryDefinition is the predicate function for checklistcategorydefinition builders.
+type CheckListCategoryDefinition func(*sql.Selector)
 
 // CheckListItem is the predicate function for checklistitem builders.
 type CheckListItem func(*sql.Selector)
@@ -76,6 +82,9 @@ type Location func(*sql.Selector)
 // LocationType is the predicate function for locationtype builders.
 type LocationType func(*sql.Selector)
 
+// PermissionsPolicy is the predicate function for permissionspolicy builders.
+type PermissionsPolicy func(*sql.Selector)
+
 // Project is the predicate function for project builders.
 type Project func(*sql.Selector)
 
@@ -97,6 +106,9 @@ type Service func(*sql.Selector)
 // ServiceEndpoint is the predicate function for serviceendpoint builders.
 type ServiceEndpoint func(*sql.Selector)
 
+// ServiceEndpointDefinition is the predicate function for serviceendpointdefinition builders.
+type ServiceEndpointDefinition func(*sql.Selector)
+
 // ServiceType is the predicate function for servicetype builders.
 type ServiceType func(*sql.Selector)
 
@@ -117,9 +129,6 @@ type SurveyTemplateQuestion func(*sql.Selector)
 
 // SurveyWiFiScan is the predicate function for surveywifiscan builders.
 type SurveyWiFiScan func(*sql.Selector)
-
-// Technician is the predicate function for technician builders.
-type Technician func(*sql.Selector)
 
 // User is the predicate function for user builders.
 type User func(*sql.Selector)

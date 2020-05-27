@@ -84,7 +84,7 @@ bool s1ap_dump_enb_hash_cb(
 bool s1ap_dump_ue_hash_cb(
   const hash_key_t keyP,
   void* const ue_void,
-  void* unused_param,
+  void* parameter,
   void** unused_res);
 void* s1ap_mme_thread(void* args);
 
@@ -299,9 +299,10 @@ void* s1ap_mme_thread(__attribute__((unused)) void* args)
           if (timer_arg.timer_class == S1AP_UE_TIMER) {
             mme_ue_s1ap_id_t mme_ue_s1ap_id = timer_arg.instance_id;
             if (
-              (ue_ref_p = s1ap_state_get_ue_mmeid(state, mme_ue_s1ap_id)) ==
+              (ue_ref_p = s1ap_state_get_ue_mmeid(mme_ue_s1ap_id)) ==
               NULL) {
-              OAILOG_WARNING(
+              OAILOG_WARNING_UE(
+                imsi64,
                 LOG_S1AP,
                 "Timer expired but no assoicated UE context for UE id %d\n",
                 mme_ue_s1ap_id);
@@ -313,8 +314,9 @@ void* s1ap_mme_thread(__attribute__((unused)) void* args)
               received_message_p->ittiMsg.timer_has_expired.timer_id ==
               ue_ref_p->s1ap_ue_context_rel_timer.id) {
               // UE context release complete timer expiry handler
-              OAILOG_INFO(
+              OAILOG_WARNING_UE(
                 LOG_S1AP,
+                imsi64,
                 "ue_context_release_command_timer_expired for UE id %d\n",
                 mme_ue_s1ap_id);
               increment_counter(
@@ -324,7 +326,8 @@ void* s1ap_mme_thread(__attribute__((unused)) void* args)
           } else if (timer_arg.timer_class == S1AP_ENB_TIMER) {
             sctp_assoc_id_t assoc_id = timer_arg.instance_id;
             if ((enb_ref_p = s1ap_state_get_enb(state, assoc_id)) == NULL) {
-              OAILOG_WARNING(
+              OAILOG_WARNING_UE(
+                imsi64,
                 LOG_S1AP,
                 "Timer expired but no assoicated eNB context for eNB assoc_id "
                 "%d\n",
@@ -336,7 +339,8 @@ void* s1ap_mme_thread(__attribute__((unused)) void* args)
             if (
               received_message_p->ittiMsg.timer_has_expired.timer_id ==
               enb_ref_p->s1ap_enb_assoc_clean_up_timer.id) {
-              OAILOG_INFO(
+              OAILOG_DEBUG_UE(
+                imsi64,
                 LOG_S1AP,
                 "enb_sctp_shutdown_ue_clean_up_timer_expired for enb assoc_id "
                 "%d\n",
@@ -346,8 +350,9 @@ void* s1ap_mme_thread(__attribute__((unused)) void* args)
               s1ap_enb_assoc_clean_up_timer_expiry(state, enb_ref_p);
             }
           } else {
-            OAILOG_WARNING(
+            OAILOG_WARNING_UE(
               LOG_S1AP,
+              imsi64,
               " S1AP Timer expired with invalid timer class  %u \n",
               timer_arg.timer_class);
           }
@@ -383,6 +388,7 @@ void* s1ap_mme_thread(__attribute__((unused)) void* args)
 
     put_s1ap_state();
     put_s1ap_imsi_map();
+    put_s1ap_ue_state(imsi64);
 
     itti_free_msg_content(received_message_p);
     itti_free(ITTI_MSG_ORIGIN_ID(received_message_p), received_message_p);
@@ -485,10 +491,13 @@ void s1ap_dump_enb(const enb_description_t* const enb_ref)
   eNB_LIST_OUT("SCTP outstreams:   %d", enb_ref->outstreams);
   eNB_LIST_OUT("UE attache to eNB: %d", enb_ref->nb_ue_associated);
   indent++;
+  sctp_assoc_id_t sctp_assoc_id = enb_ref->sctp_assoc_id;
+
+  hash_table_ts_t* state_ue_ht = get_s1ap_ue_state();
   hashtable_ts_apply_callback_on_elements(
-    (hash_table_ts_t* const) & enb_ref->ue_coll,
+    (hash_table_ts_t* const) state_ue_ht,
     s1ap_dump_ue_hash_cb,
-    NULL,
+    &sctp_assoc_id,
     NULL);
   indent--;
   eNB_LIST_OUT("");
@@ -501,14 +510,18 @@ void s1ap_dump_enb(const enb_description_t* const enb_ref)
 bool s1ap_dump_ue_hash_cb(
   __attribute__((unused)) const hash_key_t keyP,
   void* const ue_void,
-  void __attribute__((unused)) * unused_parameterP,
+  void* parameter,
   void __attribute__((unused)) * *unused_resultP)
 {
   ue_description_t* ue_ref = (ue_description_t*) ue_void;
+  sctp_assoc_id_t* sctp_assoc_id = (sctp_assoc_id_t *) parameter;
   if (ue_ref == NULL) {
     return false;
   }
-  s1ap_dump_ue(ue_ref);
+
+  if(ue_ref->sctp_assoc_id == *sctp_assoc_id) {
+    s1ap_dump_ue(ue_ref);
+  }
   return false;
 }
 
@@ -541,8 +554,8 @@ enb_description_t* s1ap_new_enb(s1ap_state_t* state)
   // Update number of eNB associated
   state->num_enbs++;
   bstring bs = bfromcstr("s1ap_ue_coll");
-  hashtable_ts_init(
-    &enb_ref->ue_coll, mme_config.max_ues, NULL, free_wrapper, bs);
+  hashtable_uint64_ts_init(
+    &enb_ref->ue_id_coll, mme_config.max_ues, NULL,  bs);
   bdestroy_wrapper(&bs);
   enb_ref->nb_ue_associated = 0;
   enb_ref->s1ap_enb_assoc_clean_up_timer.sec = S1ap_TimeToWait_v20s;
@@ -568,11 +581,14 @@ ue_description_t* s1ap_new_ue(
    * * * * TODO: Notify eNB with a cause like Hardware Failure.
    */
   DevAssert(ue_ref != NULL);
-  ue_ref->enb = enb_ref;
+  ue_ref->sctp_assoc_id = sctp_assoc_id;
   ue_ref->enb_ue_s1ap_id = enb_ue_s1ap_id;
+  ue_ref->comp_s1ap_id = s1ap_get_comp_s1ap_id(sctp_assoc_id, enb_ue_s1ap_id);
 
+  hash_table_ts_t* state_ue_ht = get_s1ap_ue_state();
   hashtable_rc_t hashrc = hashtable_ts_insert(
-    &enb_ref->ue_coll, (const hash_key_t) enb_ue_s1ap_id, (void*) ue_ref);
+    state_ue_ht, (const hash_key_t) ue_ref->comp_s1ap_id, (void*) ue_ref);
+
   if (HASH_TABLE_OK != hashrc) {
     OAILOG_ERROR(
       LOG_S1AP,
@@ -597,7 +613,7 @@ void s1ap_remove_ue(s1ap_state_t* state, ue_description_t* ue_ref)
   if (ue_ref == NULL) return;
 
   mme_ue_s1ap_id_t mme_ue_s1ap_id = ue_ref->mme_ue_s1ap_id;
-  enb_ref = ue_ref->enb;
+  enb_ref = s1ap_state_get_enb(state, ue_ref->sctp_assoc_id);
   /*
    * Updating number of UE
    */
@@ -628,13 +644,18 @@ void s1ap_remove_ue(s1ap_state_t* state, ue_description_t* ue_ref)
     enb_ref->enb_id);
 
   ue_ref->s1_ue_state = S1AP_UE_INVALID_STATE;
-  hashtable_ts_free(&enb_ref->ue_coll, ue_ref->enb_ue_s1ap_id);
-  hashtable_ts_free(&state->mmeid2associd, mme_ue_s1ap_id);
 
-  s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
-  hashtable_uint64_ts_remove(
-    imsi_map->mme_ue_id_imsi_htbl,
-    (const hash_key_t) mme_ue_s1ap_id);
+  hash_table_ts_t* state_ue_ht = get_s1ap_ue_state();
+  hashtable_ts_free(state_ue_ht, ue_ref->comp_s1ap_id);
+  hashtable_ts_free(&state->mmeid2associd, mme_ue_s1ap_id);
+  hashtable_uint64_ts_free(&enb_ref->ue_id_coll, mme_ue_s1ap_id);
+
+  imsi64_t imsi64 = INVALID_IMSI64;
+  s1ap_imsi_map_t* s1ap_imsi_map = get_s1ap_imsi_map();
+  hashtable_uint64_ts_get(
+      s1ap_imsi_map->mme_ue_id_imsi_htbl, (const hash_key_t) mme_ue_s1ap_id,
+      &imsi64);
+  delete_s1ap_ue_state(imsi64);
 
   if (!enb_ref->nb_ue_associated) {
     if (enb_ref->s1_state == S1AP_RESETING) {
@@ -657,7 +678,9 @@ void s1ap_remove_enb(s1ap_state_t* state, enb_description_t* enb_ref)
   }
   // Stop associated UEs clean_up timer,if running
   if (enb_ref->s1ap_enb_assoc_clean_up_timer.id != S1AP_TIMER_INACTIVE_ID) {
-    if (timer_remove(enb_ref->s1ap_enb_assoc_clean_up_timer.id, NULL)) {
+    s1ap_timer_arg_t* timer_argP = NULL;
+    if (timer_remove(
+            enb_ref->s1ap_enb_assoc_clean_up_timer.id, (void**) &timer_argP)) {
       OAILOG_ERROR(
         LOG_MME_APP,
         "Failed to stop wait_for_ue_cleanup timer for eNB association id  %u "
@@ -668,11 +691,14 @@ void s1ap_remove_enb(s1ap_state_t* state, enb_description_t* enb_ref)
         LOG_MME_APP,
         "Stopped wait_for_ue_cleanup timer for eNB association id  %u \n",
         enb_ref->sctp_assoc_id);
+      if (timer_argP) {
+        free_wrapper((void**) &timer_argP);
+      }
     }
     enb_ref->s1ap_enb_assoc_clean_up_timer.id = S1AP_TIMER_INACTIVE_ID;
   }
   enb_ref->s1_state = S1AP_INIT;
-  hashtable_ts_destroy(&enb_ref->ue_coll);
+  hashtable_uint64_ts_destroy(&enb_ref->ue_id_coll);
   hashtable_ts_free(&state->enbs, enb_ref->sctp_assoc_id);
   state->num_enbs--;
 }

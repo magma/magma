@@ -13,13 +13,13 @@ class FailedOperationException(Exception):
         reporter: "Reporter",
         err_msg: str,
         err_id: str,
-        mutation_name: str,
+        operation_name: str,
         variables: Dict[str, Any],
     ) -> None:
         self.reporter = reporter
         self.err_msg = err_msg
         self.err_id = err_id
-        self.mutation_name = mutation_name
+        self.operation_name = operation_name
         self.variables = variables
 
     def log_failed_operation(self, row_identifier: str, row: Dict[str, Any]) -> None:
@@ -32,7 +32,11 @@ class FailedOperationException(Exception):
 class Reporter(ABC):
     @abstractmethod
     def log_successful_operation(
-        self, mutation_name: str, variables: Dict[str, Any]
+        self,
+        operation_name: str,
+        variables: Dict[str, Any],
+        network_time: float,
+        decode_time: float,
     ) -> None:
         pass
 
@@ -43,31 +47,22 @@ class Reporter(ABC):
         pass
 
 
-class InventoryReporter(Reporter):
+class CSVReporter(Reporter):
     def __init__(self, out_file_path: str, err_file_path: str) -> None:
 
-        """Reporting utility for the InventoryClient to report on
-            successful and failed mutations.
-            In order to report on failed mutation, user is required to catch
+        """Reporting utility for the SymphonyClient to report on
+            successful and failed operations.
+            In order to report on failed operation, user is required to catch
             FailedOperationException and call logFailedOperation with date
             identifier (row number) & full data for easier debugging later.
 
             Args:
-                out_file_path (str): Path to write csv of successful mutations.
-                    Format: mutationName, variables
-                err_file_path (str): Path to write csv of failed mutations.
-                    Format:
-                        mutationName,
-                        variables,
-                        error_msg,
-                        error_id,
-                        row_identifier,
-                        row
+                out_file_path (str): Path to write csv of successful operations.
+                err_file_path (str): Path to write csv of failed operations.
 
             Example:
             ```
-            from pyinventory.reporter import InventoryReporter, FailedOperationException
-            reporter = InventoryReporter(csvOutPath, csvErrPath)
+            reporter = CSVReporter(csvOutPath, csvErrPath)
             client = InventoryClient(email, password, "fb-test", reporter=reporter)
             try:
                 location = client.addLocation(..)
@@ -77,17 +72,21 @@ class InventoryReporter(Reporter):
 
         """
 
-        self.outFile: UnicodeWriter = writer(
+        # pyre-fixme[8]: Attribute has type `UnicodeWriter`; used as `_writer`.
+        self.out_file: UnicodeWriter = writer(
             open(out_file_path, "wb"), encoding="utf-8"
         )
-        self.outFile.writerow(["mutationName", "variables"])
+        self.out_file.writerow(
+            ["operation_name", "variables", "network_time", "decode_time"]
+        )
 
-        self.errFile: UnicodeWriter = writer(
+        # pyre-fixme[8]: Attribute has type `UnicodeWriter`; used as `_writer`.
+        self.err_file: UnicodeWriter = writer(
             open(err_file_path, "wb"), encoding="utf-8"
         )
-        self.errFile.writerow(
+        self.err_file.writerow(
             [
-                "mutationName",
+                "operation_name",
                 "variables",
                 "error_msg",
                 "error_id",
@@ -97,16 +96,22 @@ class InventoryReporter(Reporter):
         )
 
     def log_successful_operation(
-        self, mutation_name: str, variables: Dict[str, Any]
+        self,
+        operation_name: str,
+        variables: Dict[str, Any],
+        network_time: float,
+        decode_time: float,
     ) -> None:
-        self.outFile.writerow([mutation_name, str(variables)])
+        self.out_file.writerow(
+            [operation_name, str(variables), network_time, decode_time]
+        )
 
     def log_failed_operation(
         self, row_identifier: str, row: Dict[str, Any], e: FailedOperationException
     ) -> None:
-        self.errFile.writerow(
+        self.err_file.writerow(
             [
-                e.mutation_name,
+                e.operation_name,
                 str(e.variables),
                 e.err_msg,
                 e.err_id,
@@ -116,12 +121,48 @@ class InventoryReporter(Reporter):
         )
 
 
+class PrintReporter(Reporter):
+    def log_successful_operation(
+        self,
+        operation_name: str,
+        variables: Dict[str, Any],
+        network_time: float,
+        decode_time: float,
+    ) -> None:
+        print(
+            {
+                "operation_name": operation_name,
+                "variables": variables,
+                "network_time": network_time,
+                "decode_time": decode_time,
+            }
+        )
+
+    def log_failed_operation(
+        self, row_identifier: str, row: Dict[str, Any], e: FailedOperationException
+    ) -> None:
+        print(
+            {
+                "operation_name": e.operation_name,
+                "variables": str(e.variables),
+                "error_msg": e.err_msg,
+                "error_id": e.err_id,
+                "row_identifier": row_identifier,
+                "row": str(row),
+            }
+        )
+
+
 class DummyReporter(Reporter):
     def __init__(self) -> None:
         pass
 
     def log_successful_operation(
-        self, mutation_name: str, variables: Dict[str, Any]
+        self,
+        operation_name: str,
+        variables: Dict[str, Any],
+        network_time: float,
+        decode_time: float,
     ) -> None:
         pass
 

@@ -9,10 +9,12 @@
 package indexer_test
 
 import (
-	"github.com/stretchr/testify/assert"
+	"testing"
+
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/services/state/indexer"
-	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -27,24 +29,24 @@ var emptyMatch []string
 func TestSubscription_Match(t *testing.T) {
 	sub := indexer.Subscription{Type: type0}
 
-	state00 := state.State{ReporterID: imsi0, Type: type0}
-	state10 := state.State{ReporterID: imsi1, Type: type0}
-	state01 := state.State{ReporterID: imsi0, Type: type1}
-	state11 := state.State{ReporterID: imsi1, Type: type1}
+	id00 := state.ID{DeviceID: imsi0, Type: type0}
+	id10 := state.ID{DeviceID: imsi1, Type: type0}
+	id01 := state.ID{DeviceID: imsi0, Type: type1}
+	id11 := state.ID{DeviceID: imsi1, Type: type1}
 
 	// Match all
 	sub.KeyMatcher = indexer.MatchAll
-	assert.True(t, sub.Match(state00))
-	assert.True(t, sub.Match(state10))
-	assert.False(t, sub.Match(state01))
-	assert.False(t, sub.Match(state11))
+	assert.True(t, sub.Match(id00))
+	assert.True(t, sub.Match(id10))
+	assert.False(t, sub.Match(id01))
+	assert.False(t, sub.Match(id11))
 
 	// Match exact
 	sub.KeyMatcher = indexer.NewMatchExact(imsi0)
-	assert.True(t, sub.Match(state00))
-	assert.False(t, sub.Match(state10))
-	assert.False(t, sub.Match(state01))
-	assert.False(t, sub.Match(state11))
+	assert.True(t, sub.Match(id00))
+	assert.False(t, sub.Match(id10))
+	assert.False(t, sub.Match(id01))
+	assert.False(t, sub.Match(id11))
 }
 
 func TestMatchAll_Match(t *testing.T) {

@@ -26,10 +26,23 @@ export function base64ToHex(base64String: string): string {
   return Buffer.from(base64String, 'base64').toString('hex');
 }
 
+export function decodeBase64(base64String: string): string {
+  return Buffer.from(base64String, 'base64').toString();
+}
+
 export function isValidHex(hexString: string): boolean {
   return hexString.match(/^[a-fA-F0-9]*$/) !== null;
 }
 
 export function capitalize(s: string) {
   return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+export function joinNullableStrings(
+  strings: Array<?string>,
+  separator?: ?string,
+): string {
+  return strings
+    .filter(str => str != null && str != '')
+    .join(separator ?? undefined);
 }

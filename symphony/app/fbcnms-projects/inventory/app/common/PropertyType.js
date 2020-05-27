@@ -9,13 +9,18 @@
  */
 
 import type {Property} from './Property';
+import type {PropertyFormField_property} from '../components/form/__generated__/PropertyFormField_property.graphql';
 import type {PropertyKind} from '../components/form/__generated__/PropertyTypeFormField_propertyType.graphql';
+import type {PropertyTypeInput} from '../components/configure/mutations/__generated__/EditProjectTypeMutation.graphql';
+
+import {isTempId} from './EntUtils';
 
 export type PropertyType = {|
   id: string,
   type: PropertyKind,
+  nodeType?: ?string,
   name: string,
-  index: number,
+  index?: ?number,
   category?: ?string,
   // one or more of the following potential value fields will have actual data,
   // depending on the property type selected for this property.
@@ -64,9 +69,7 @@ export const getPropertyDefaultValue = (propertyType: PropertyType) => {
               ', ' +
               (propertyType.longitudeValue ?? '')
           : '';
-      case 'equipment':
-      case 'location':
-      case 'service':
+      case 'node':
         return '';
     }
   }
@@ -86,7 +89,44 @@ export const getInitialPropertyFromType = (
     longitudeValue: propType.longitudeValue,
     rangeFromValue: propType.rangeFromValue,
     rangeToValue: propType.rangeToValue,
-    isInstanceProperty: propType.isInstanceProperty,
-    equipmentValue: null,
+    nodeValue: null,
   };
+};
+
+export const toMutablePropertyType = (
+  immutablePropertyType: $ReadOnly<
+    $ElementType<PropertyFormField_property, 'propertyType'>,
+  >,
+): PropertyType => ({
+  id: immutablePropertyType.id,
+  type: immutablePropertyType.type,
+  nodeType: immutablePropertyType.nodeType,
+  name: immutablePropertyType.name,
+  index: immutablePropertyType.index,
+  category: immutablePropertyType.category,
+  booleanValue: immutablePropertyType.booleanValue,
+  stringValue: immutablePropertyType.stringValue,
+  intValue: immutablePropertyType.intValue,
+  floatValue: immutablePropertyType.floatValue,
+  latitudeValue: immutablePropertyType.latitudeValue,
+  longitudeValue: immutablePropertyType.longitudeValue,
+  rangeFromValue: immutablePropertyType.rangeFromValue,
+  rangeToValue: immutablePropertyType.rangeToValue,
+  isEditable: immutablePropertyType.isEditable,
+  isInstanceProperty: immutablePropertyType.isInstanceProperty,
+  isMandatory: immutablePropertyType.isMandatory,
+  isDeleted: immutablePropertyType.isDeleted,
+});
+
+export const convertPropertyTypeToMutationInput = (
+  propertyTypes: Array<PropertyType>,
+): Array<PropertyTypeInput> => {
+  return propertyTypes
+    .filter(propType => !!propType.name)
+    .map(prop => {
+      return {
+        ...prop,
+        id: isTempId(prop.id) ? undefined : prop.id,
+      };
+    });
 };

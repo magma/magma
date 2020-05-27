@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 54e1e9a764754c4d8b98aaaad5324326
+ * @relayHash 2527b9a9305c42d473879d93072c0c83
  */
 
 /* eslint-disable */
@@ -17,7 +17,7 @@
 import type { ConcreteRequest } from 'relay-runtime';
 type AddEditProjectTypeCard_editingProjectType$ref = any;
 type ProjectTypeCard_projectType$ref = any;
-export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "float" | "gps_location" | "int" | "node" | "range" | "string" | "%future added value";
 export type AddProjectTypeInput = {|
   name: string,
   description?: ?string,
@@ -26,8 +26,10 @@ export type AddProjectTypeInput = {|
 |};
 export type PropertyTypeInput = {|
   id?: ?string,
+  externalId?: ?string,
   name: string,
   type: PropertyKind,
+  nodeType?: ?string,
   index?: ?number,
   category?: ?string,
   stringValue?: ?string,
@@ -89,6 +91,7 @@ fragment AddEditProjectTypeCard_editingProjectType on ProjectType {
     id
     name
     type
+    nodeType
     index
     stringValue
     intValue
@@ -254,6 +257,13 @@ return {
               {
                 "kind": "ScalarField",
                 "alias": null,
+                "name": "nodeType",
+                "args": null,
+                "storageKey": null
+              },
+              {
+                "kind": "ScalarField",
+                "alias": null,
                 "name": "index",
                 "args": null,
                 "storageKey": null
@@ -352,7 +362,7 @@ return {
     "operationKind": "mutation",
     "name": "CreateProjectTypeMutation",
     "id": null,
-    "text": "mutation CreateProjectTypeMutation(\n  $input: AddProjectTypeInput!\n) {\n  createProjectType(input: $input) {\n    ...ProjectTypeCard_projectType\n    ...AddEditProjectTypeCard_editingProjectType\n    id\n  }\n}\n\nfragment AddEditProjectTypeCard_editingProjectType on ProjectType {\n  id\n  name\n  description\n  workOrders {\n    id\n    type {\n      id\n      name\n    }\n  }\n  properties {\n    id\n    name\n    type\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    isEditable\n    isMandatory\n    isInstanceProperty\n    isDeleted\n  }\n}\n\nfragment ProjectTypeCard_projectType on ProjectType {\n  id\n  name\n  description\n  numberOfProjects\n  workOrders {\n    id\n  }\n}\n",
+    "text": "mutation CreateProjectTypeMutation(\n  $input: AddProjectTypeInput!\n) {\n  createProjectType(input: $input) {\n    ...ProjectTypeCard_projectType\n    ...AddEditProjectTypeCard_editingProjectType\n    id\n  }\n}\n\nfragment AddEditProjectTypeCard_editingProjectType on ProjectType {\n  id\n  name\n  description\n  workOrders {\n    id\n    type {\n      id\n      name\n    }\n  }\n  properties {\n    id\n    name\n    type\n    nodeType\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    isEditable\n    isMandatory\n    isInstanceProperty\n    isDeleted\n  }\n}\n\nfragment ProjectTypeCard_projectType on ProjectType {\n  id\n  name\n  description\n  numberOfProjects\n  workOrders {\n    id\n  }\n}\n",
     "metadata": {}
   }
 };

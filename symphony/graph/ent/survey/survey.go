@@ -8,6 +8,8 @@ package survey
 
 import (
 	"time"
+
+	"github.com/facebookincubator/ent"
 )
 
 const (
@@ -39,7 +41,7 @@ const (
 	// LocationColumn is the table column denoting the location relation/edge.
 	LocationColumn = "survey_location"
 	// SourceFileTable is the table the holds the source_file relation/edge.
-	SourceFileTable = "surveys"
+	SourceFileTable = "files"
 	// SourceFileInverseTable is the table name for the File entity.
 	// It exists in this package in order to avoid circular dependency with the "file" package.
 	SourceFileInverseTable = "files"
@@ -68,10 +70,17 @@ var Columns = []string{
 // ForeignKeys holds the SQL foreign-keys that are owned by the Survey type.
 var ForeignKeys = []string{
 	"survey_location",
-	"survey_source_file",
 }
 
+// Note that the variables below are initialized by the runtime
+// package on the initialization of the application. Therefore,
+// it should be imported in the main as follows:
+//
+//	import _ "github.com/facebookincubator/symphony/graph/ent/runtime"
+//
 var (
+	Hooks  [1]ent.Hook
+	Policy ent.Policy
 	// DefaultCreateTime holds the default value on creation for the create_time field.
 	DefaultCreateTime func() time.Time
 	// DefaultUpdateTime holds the default value on creation for the update_time field.

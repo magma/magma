@@ -6,22 +6,26 @@
 package resolver
 
 import (
+	"context"
 	"testing"
 	"time"
 
+	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
+	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 
+	"github.com/AlekSi/pointer"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )
 
 func TestAddLocation(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
 	locationType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{Name: "location_type_name_1"})
@@ -35,10 +39,12 @@ func TestAddLocation(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, locationType.ID, location.QueryType().OnlyXID(ctx), "Verifying 'AddLocation' return value")
 
-	fetchedLocation, err := qr.Location(ctx, location.ID)
+	fetchedNode, err := qr.Node(ctx, location.ID)
 	require.NoError(t, err)
+	fetchedLocation, ok := fetchedNode.(*ent.Location)
+	require.True(t, ok)
 
-	l, err := qr.Location(ctx, -1)
+	l, err := qr.Node(ctx, -1)
 	require.Nil(t, l, "Tried to fetch missing location")
 	require.NoError(t, err, "Missing location is not an error")
 
@@ -54,8 +60,8 @@ func TestAddLocation(t *testing.T) {
 
 func TestAddLocationWithExternalID(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
 	locationType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{Name: "location_type_name_1"})
@@ -78,8 +84,8 @@ func TestAddLocationWithExternalID(t *testing.T) {
 
 func TestAddLocationWithSameName(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
 	locationTypeParent, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{Name: "type_parent"})
@@ -111,8 +117,11 @@ func TestAddLocationWithSameName(t *testing.T) {
 		Parent: &parentLocation.ID,
 	})
 	require.Error(t, err, "Trying to add  child location instance with same name")
-	parent, _ := qr.Location(ctx, parentLocation.ID)
-	children, _ := r.Location().Children(ctx, parent)
+	parentNode, err := qr.Node(ctx, parentLocation.ID)
+	require.NoError(t, err)
+	parentLocation, ok := parentNode.(*ent.Location)
+	require.True(t, ok)
+	children, _ := r.Location().Children(ctx, parentLocation)
 
 	onlyTopLevel := true
 	require.Len(t, children, 2, "Parent location has two children")
@@ -123,8 +132,8 @@ func TestAddLocationWithSameName(t *testing.T) {
 
 func TestAddLocationWithProperties(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
 	strValue := "Foo"
@@ -171,8 +180,10 @@ func TestAddLocationWithProperties(t *testing.T) {
 	})
 	require.NoError(t, err, "Adding location instance")
 
-	fetchedLoc, err := qr.Location(ctx, loc.ID)
+	fetchedNode, err := qr.Node(ctx, loc.ID)
 	require.NoError(t, err, "Querying location instance")
+	fetchedLoc, ok := fetchedNode.(*ent.Location)
+	require.True(t, ok)
 
 	intFetchProp := fetchedLoc.QueryProperties().Where(property.HasTypeWith(propertytype.Name("int_prop"))).OnlyX(ctx)
 	require.Equal(t, intFetchProp.IntVal, *intProp.IntValue, "Comparing properties: int value")
@@ -188,11 +199,94 @@ func TestAddLocationWithProperties(t *testing.T) {
 	require.Equal(t, rngFetchProp.QueryType().OnlyXID(ctx), rngProp.PropertyTypeID, "Comparing properties: PropertyType value")
 }
 
+func TestDontAddDuplicateProperties(t *testing.T) {
+	r := newTestResolver(t)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
+
+	mr, _ := r.Mutation(), r.Query()
+	strValue := "Foo"
+
+	locType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{
+		Name: "location_type_name_1",
+		Properties: []*models.PropertyTypeInput{
+			{
+				Name: "str_prop",
+				Type: models.PropertyKindString,
+			},
+		}})
+	require.NoError(t, err, "Adding location type")
+	eqType, err := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
+		Name: "equip_type",
+		Properties: []*models.PropertyTypeInput{
+			{
+				Name: "str_prop",
+				Type: models.PropertyKindString,
+			},
+		},
+	})
+	require.NoError(t, err, "Adding location type")
+
+	strProp := models.PropertyInput{
+		PropertyTypeID: locType.QueryPropertyTypes().Where(propertytype.Name("str_prop")).OnlyXID(ctx),
+		StringValue:    &strValue,
+	}
+
+	propInputs := []*models.PropertyInput{&strProp}
+	loc, err := mr.AddLocation(ctx, models.AddLocationInput{
+		Name:       "location_name_1",
+		Type:       locType.ID,
+		Properties: propInputs,
+	})
+	require.NoError(t, err, "Adding location instance")
+
+	strFetchProp := loc.QueryProperties().Where(property.HasTypeWith(propertytype.Name("str_prop"))).OnlyX(ctx)
+	require.Equal(t, strFetchProp.StringVal, *strProp.StringValue, "Comparing properties: string value")
+	require.Equal(t, strFetchProp.QueryType().OnlyXID(ctx), strProp.PropertyTypeID, "Comparing properties: PropertyType value")
+
+	require.NoError(t, err, "Adding location instance")
+
+	strProp.StringValue = pointer.ToString("new value")
+	loc, err = mr.EditLocation(ctx, models.EditLocationInput{
+		ID:         loc.ID,
+		Name:       "location_name_1",
+		Properties: []*models.PropertyInput{&strProp},
+	})
+	require.NoError(t, err)
+	strFetchProp = loc.QueryProperties().Where(property.HasTypeWith(propertytype.Name("str_prop"))).OnlyX(ctx)
+	require.Equal(t, strFetchProp.StringVal, *strProp.StringValue, "Comparing properties: string value")
+	require.Equal(t, strFetchProp.QueryType().OnlyXID(ctx), strProp.PropertyTypeID, "Comparing properties: PropertyType value")
+
+	// same for equipment
+	strProp = models.PropertyInput{
+		PropertyTypeID: eqType.QueryPropertyTypes().Where(propertytype.Name("str_prop")).OnlyXID(ctx),
+		StringValue:    &strValue,
+	}
+
+	eq, err := mr.AddEquipment(ctx, models.AddEquipmentInput{
+		Name:       "equip_name",
+		Location:   &loc.ID,
+		Type:       eqType.ID,
+		Properties: []*models.PropertyInput{&strProp},
+	})
+	require.NoError(t, err, "Adding location instance")
+	strFetchProp = eq.QueryProperties().OnlyX(ctx)
+	require.Equal(t, strFetchProp.StringVal, *strProp.StringValue, "Comparing properties: string value")
+
+	strProp.StringValue = pointer.ToString("new value")
+	_, err = mr.EditLocation(ctx, models.EditLocationInput{
+		ID:         eq.ID,
+		Name:       "equip_name",
+		Properties: []*models.PropertyInput{&strProp},
+	})
+	require.Error(t, err)
+}
+
 func TestAddLocationWithInvalidProperties(t *testing.T) {
 	t.Skip("skipping test until mandatory props are added - T57858029")
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr := r.Mutation()
 	latlongPropType := models.PropertyTypeInput{
@@ -220,8 +314,8 @@ func TestAddLocationWithInvalidProperties(t *testing.T) {
 
 func TestAddMultiLevelLocations(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr, lr, ltr := r.Mutation(), r.Query(), r.Location(), r.LocationType()
 	locationTypeA, _ := mr.AddLocationType(ctx, models.AddLocationTypeInput{Name: "ta"})
@@ -315,8 +409,9 @@ func TestAddMultiLevelLocations(t *testing.T) {
 
 func TestAddLocationCellScans(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	// TODO(T66882071): Remove owner role
+	ctx := viewertest.NewContext(context.Background(), r.client, viewertest.WithRole(user.RoleOWNER))
 
 	mr, qr := r.Mutation(), r.Query()
 	locationType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{
@@ -351,8 +446,10 @@ func TestAddLocationCellScans(t *testing.T) {
 	cells, err := mr.AddCellScans(ctx, cellScans, location.ID)
 	require.NoError(t, err, "Adding cell scans")
 
-	fetchedLocation, err := qr.Location(ctx, location.ID)
+	fetchedNode, err := qr.Node(ctx, location.ID)
 	require.NoError(t, err, "Fetching location")
+	fetchedLocation, ok := fetchedNode.(*ent.Location)
+	require.True(t, ok)
 
 	fetchedCells, _ := fetchedLocation.QueryCellScan().All(ctx)
 	require.Equal(t, len(fetchedCells), len(cellScans))
@@ -370,8 +467,8 @@ func TestAddLocationCellScans(t *testing.T) {
 
 func TestEditLocation(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
 
@@ -395,7 +492,10 @@ func TestEditLocation(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	fetchedLocation, _ := qr.Location(ctx, location.ID)
+	fetchedNode, err := qr.Node(ctx, location.ID)
+	require.NoError(t, err)
+	fetchedLocation, ok := fetchedNode.(*ent.Location)
+	require.True(t, ok)
 	require.Equal(t, newLocation.Name, fetchedLocation.Name)
 	require.Equal(t, newLocation.Latitude, fetchedLocation.Latitude)
 	require.Equal(t, newLocation.Longitude, fetchedLocation.Longitude)
@@ -403,8 +503,8 @@ func TestEditLocation(t *testing.T) {
 
 func TestEditLocationWithExternalID(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
 
@@ -418,7 +518,10 @@ func TestEditLocationWithExternalID(t *testing.T) {
 		Type: locationType.ID,
 	})
 	require.NoError(t, err)
-	fetchedLocation, _ := qr.Location(ctx, location.ID)
+	fetchedNode, err := qr.Node(ctx, location.ID)
+	require.NoError(t, err)
+	fetchedLocation, ok := fetchedNode.(*ent.Location)
+	require.True(t, ok)
 	require.Equal(t, "", fetchedLocation.ExternalID)
 
 	externalID1 := "externalID1"
@@ -430,7 +533,10 @@ func TestEditLocationWithExternalID(t *testing.T) {
 		ExternalID: &externalID1,
 	})
 	require.NoError(t, err)
-	fetchedLocation, _ = qr.Location(ctx, location.ID)
+	fetchedNode, err = qr.Node(ctx, location.ID)
+	require.NoError(t, err)
+	fetchedLocation, ok = fetchedNode.(*ent.Location)
+	require.True(t, ok)
 	require.Equal(t, externalID1, fetchedLocation.ExternalID)
 
 	externalID2 := "externalID2"
@@ -442,14 +548,17 @@ func TestEditLocationWithExternalID(t *testing.T) {
 		ExternalID: &externalID2,
 	})
 	require.NoError(t, err)
-	fetchedLocation, _ = qr.Location(ctx, location.ID)
+	fetchedNode, err = qr.Node(ctx, location.ID)
+	require.NoError(t, err)
+	fetchedLocation, ok = fetchedNode.(*ent.Location)
+	require.True(t, ok)
 	require.Equal(t, externalID2, fetchedLocation.ExternalID)
 }
 
 func TestEditLocationWithProperties(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
 
@@ -458,21 +567,26 @@ func TestEditLocationWithProperties(t *testing.T) {
 		Type: "string",
 	}
 
+	p2Types := models.PropertyTypeInput{
+		Name: "str_prop2",
+		Type: "string",
+	}
+
 	locType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{
 		Name:       "type_name_1",
-		Properties: []*models.PropertyTypeInput{&pTypes},
+		Properties: []*models.PropertyTypeInput{&pTypes, &p2Types},
 	})
 	require.NoError(t, err)
-	pTypeID := locType.QueryPropertyTypes().OnlyXID(ctx)
+	pTypeID := locType.QueryPropertyTypes().AllX(ctx)
 
 	strValue := "Foo"
 	strProp := models.PropertyInput{
-		PropertyTypeID: pTypeID,
+		PropertyTypeID: pTypeID[0].ID,
 		StringValue:    &strValue,
 	}
 	strValue2 := "Bar"
 	strProp2 := models.PropertyInput{
-		PropertyTypeID: pTypeID,
+		PropertyTypeID: pTypeID[1].ID,
 		StringValue:    &strValue2,
 	}
 
@@ -482,7 +596,10 @@ func TestEditLocationWithProperties(t *testing.T) {
 		Properties: []*models.PropertyInput{&strProp, &strProp2},
 	})
 	require.NoError(t, err)
-	fetchedLoc, _ := qr.Location(ctx, location.ID)
+	fetchedNode, err := qr.Node(ctx, location.ID)
+	require.NoError(t, err)
+	fetchedLoc, ok := fetchedNode.(*ent.Location)
+	require.True(t, ok)
 	fetchedProps, _ := fetchedLoc.QueryProperties().All(ctx)
 
 	// Property[] -> PropertyInput[]
@@ -504,8 +621,10 @@ func TestEditLocationWithProperties(t *testing.T) {
 	})
 	require.NoError(t, err, "Editing location")
 
-	newFetchedLoc, err := qr.Location(ctx, location.ID)
+	newFetchedNode, err := qr.Node(ctx, location.ID)
 	require.NoError(t, err)
+	newFetchedLoc, ok := newFetchedNode.(*ent.Location)
+	require.True(t, ok)
 	existA := newFetchedLoc.QueryProperties().Where(property.StringVal("Foo-2")).ExistX(ctx)
 	require.NoError(t, err)
 	require.True(t, existA, "Property with the new name should exist on location")
@@ -522,13 +641,13 @@ func TestEditLocationWithProperties(t *testing.T) {
 //	ra, err := newTestResolver(t)
 //	require.NoError(t, err)
 //	defer ra.drv.Close()
-//	ctx1 := viewertest.NewContext(viewertest.WithTenant(ra.tenant))
+//	ctx1 := viewertest.NewContext(context.Background(), viewertest.WithTenant(ra.tenant))
 //	mra, qra := ra.Mutation(), ra.Query()
 //
 //	rb, err := newTestResolver(t)
 //	require.NoError(t, err)
 //	defer rb.drv.Close()
-//	ctx2 := viewertest.NewContext(viewertest.WithTenant(rb.tenant))
+//	ctx2 := viewertest.NewContext(context.Background(), viewertest.WithTenant(rb.tenant))
 //	mrb, qrb := rb.Mutation(), rb.Query()
 //
 //	locationType1, err := mra.AddLocationType(ctx1, "location_type_1", nil, nil, nil, nil)
@@ -559,8 +678,8 @@ func TestEditLocationWithProperties(t *testing.T) {
 
 func TestAddAndDeleteLocationImages(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, lr := r.Mutation(), r.Location()
 
 	locationType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{
@@ -631,8 +750,8 @@ func TestAddAndDeleteLocationImages(t *testing.T) {
 
 func TestAddAndDeleteLocationHyperlink(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, lr := r.Mutation(), r.Location()
 
 	locationType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{
@@ -678,8 +797,8 @@ func TestAddAndDeleteLocationHyperlink(t *testing.T) {
 
 func TestDeleteLocation(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
 	locationType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{
@@ -698,15 +817,15 @@ func TestDeleteLocation(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, deletedLocationID, location.ID, "returned id from deletion matched location id")
 
-	fetchedLocation, err := qr.Location(ctx, location.ID)
+	fetchedNode, err := qr.Node(ctx, location.ID)
 	require.NoError(t, err)
-	require.Nil(t, fetchedLocation, "no location with that id")
+	require.Nil(t, fetchedNode, "no location with that id")
 }
 
 func TestDeleteLocationWithEquipmentsFails(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
 
@@ -744,15 +863,17 @@ func TestDeleteLocationWithEquipmentsFails(t *testing.T) {
 	require.Empty(t, deletedLocationID)
 	require.Error(t, err, "can't remove location with equipment")
 
-	fetchedLocation, err := qr.Location(ctx, location.ID)
+	fetchedNode, err := qr.Node(ctx, location.ID)
 	require.NoError(t, err)
+	fetchedLocation, ok := fetchedNode.(*ent.Location)
+	require.True(t, ok)
 	require.NotNil(t, fetchedLocation, "location exists after deletion attempt")
 }
 
 func TestQueryParentLocation(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, loc := r.Mutation(), r.Location()
 
 	locationType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{
@@ -784,8 +905,8 @@ func TestQueryParentLocation(t *testing.T) {
 
 func TestGetLocationsByType(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
 	locationType1, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{
@@ -827,8 +948,8 @@ func TestGetLocationsByType(t *testing.T) {
 
 func TestOnlyTopLevelLocationsFilter(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
 	locationType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{
@@ -863,8 +984,8 @@ func TestOnlyTopLevelLocationsFilter(t *testing.T) {
 
 func TestGetLocationsByName(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
 	locationType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{
@@ -906,8 +1027,8 @@ func TestGetLocationsForSiteSurvey(t *testing.T) {
 
 func TestMoveLocation(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 
 	locationType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{
@@ -952,8 +1073,8 @@ func TestMoveLocation(t *testing.T) {
 
 func TestMoveLocationDuplicateName(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 
 	locationType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{
@@ -992,8 +1113,8 @@ func TestMoveLocationDuplicateName(t *testing.T) {
 
 func TestMoveLocationWrongHierarchy(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 
 	typA, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{Name: "ta"})
@@ -1019,8 +1140,8 @@ func TestMoveLocationWrongHierarchy(t *testing.T) {
 
 func TestDistanceKm(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 
 	locationType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{
@@ -1046,8 +1167,8 @@ func TestDistanceKm(t *testing.T) {
 
 func TestNearestSites(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
 	isSite := true
@@ -1106,8 +1227,8 @@ func TestNearestSites(t *testing.T) {
 
 func TestAddLocationWithEquipmentProperty(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 
 	elt, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{
@@ -1134,7 +1255,7 @@ func TestAddLocationWithEquipmentProperty(t *testing.T) {
 	index := 0
 	eqPropType := models.PropertyTypeInput{
 		Name:  "eq_prop",
-		Type:  "equipment",
+		Type:  "node",
 		Index: &index,
 	}
 
@@ -1147,8 +1268,8 @@ func TestAddLocationWithEquipmentProperty(t *testing.T) {
 
 	propType := lt.QueryPropertyTypes().OnlyX(ctx)
 	eqPropInput := models.PropertyInput{
-		PropertyTypeID:   propType.ID,
-		EquipmentIDValue: &equipment.ID,
+		PropertyTypeID: propType.ID,
+		NodeIDValue:    &equipment.ID,
 	}
 
 	l, err := mr.AddLocation(ctx, models.AddLocationInput{
@@ -1166,8 +1287,8 @@ func TestAddLocationWithEquipmentProperty(t *testing.T) {
 
 func TestAddLocationWithLocationProperty(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 
 	elt, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{
@@ -1196,8 +1317,8 @@ func TestAddLocationWithLocationProperty(t *testing.T) {
 
 	propType := lt.QueryPropertyTypes().OnlyX(ctx)
 	locationPropInput := models.PropertyInput{
-		PropertyTypeID:  propType.ID,
-		LocationIDValue: &el.ID,
+		PropertyTypeID: propType.ID,
+		NodeIDValue:    &el.ID,
 	}
 
 	l, err := mr.AddLocation(ctx, models.AddLocationInput{

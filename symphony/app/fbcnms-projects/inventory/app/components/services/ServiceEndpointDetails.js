@@ -26,7 +26,7 @@ import {makeStyles} from '@material-ui/styles';
 
 type Props = {
   endpoint: ServiceEndpoint,
-  onDeleteEndpoint: () => void,
+  onDeleteEndpoint: ?() => void,
 };
 
 const useStyles = makeStyles(_ => ({
@@ -99,7 +99,7 @@ const ServiceEndpointDetails = (props: Props) => {
       <div className={classes.linkRow}>
         <div className={classes.detail}>
           <EndpointIcon className={classes.icon} />
-          {endpoint.role == 'CONSUMER' ? (
+          {endpoint.definition.role == 'CONSUMER' ? (
             <ActiveConsumerEndpointIcon
               variant="small"
               className={classes.activeIcon}
@@ -112,17 +112,17 @@ const ServiceEndpointDetails = (props: Props) => {
           )}
           <div>
             <Text variant="subtitle2" className={classes.componentName}>
-              {`${endpoint.port.parentEquipment.name} (${camelCase(
-                endpoint.role,
+              {`${endpoint.equipment.name} (${camelCase(
+                endpoint.definition.name,
               )})`}
             </Text>
             <Text
               variant="body2"
               className={classNames(classes.componentName, classes.portName)}>
-              {endpoint.port.definition.name}
+              {endpoint.definition.role}
             </Text>
             <EquipmentBreadcrumbs
-              equipment={endpoint.port.parentEquipment}
+              equipment={endpoint.equipment}
               showSelfEquipment={false}
               variant="body2"
               className={classes.componentName}
@@ -131,23 +131,24 @@ const ServiceEndpointDetails = (props: Props) => {
           </div>
         </div>
       </div>
-
-      <OptionsPopoverButton
-        options={[
-          {
-            caption: fbt(
-              'Remove Endpoint',
-              'Menu option to delete endpoint pressed',
-            ),
-            onClick: () => {
-              ServerLogger.info(
-                LogEvents.DELETE_SERVICE_ENDPOINT_BUTTON_CLICKED,
-              );
-              onDeleteEndpoint();
+      {onDeleteEndpoint ? (
+        <OptionsPopoverButton
+          options={[
+            {
+              caption: fbt(
+                'Remove Endpoint',
+                'Menu option to delete endpoint pressed',
+              ),
+              onClick: () => {
+                ServerLogger.info(
+                  LogEvents.DELETE_SERVICE_ENDPOINT_BUTTON_CLICKED,
+                );
+                onDeleteEndpoint();
+              },
             },
-          },
-        ]}
-      />
+          ]}
+        />
+      ) : null}
     </div>
   );
 };

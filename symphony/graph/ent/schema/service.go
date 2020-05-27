@@ -8,6 +8,9 @@ import (
 	"github.com/facebookincubator/ent"
 	"github.com/facebookincubator/ent/schema/edge"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/ent/schema/index"
+	"github.com/facebookincubator/symphony/graph/authz"
+	"github.com/facebookincubator/symphony/graph/ent/privacy"
 )
 
 // Customer holds the schema definition for the ServiceType entity.
@@ -37,6 +40,15 @@ func (Customer) Edges() []ent.Edge {
 	}
 }
 
+// Policy returns Customer policy.
+func (Customer) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithMutationRules(
+			privacy.AlwaysAllowRule(),
+		),
+	)
+}
+
 // ServiceType holds the schema definition for the ServiceType entity.
 type ServiceType struct {
 	schema
@@ -48,6 +60,11 @@ func (ServiceType) Fields() []ent.Field {
 		field.String("name").
 			Unique(),
 		field.Bool("has_customer").Default(false),
+		field.Bool("is_deleted").Default(false),
+		field.Enum("discovery_method").
+			Comment("how will service of this type be discovered? (null means manual adding and not discovery)").
+			Values("INVENTORY").
+			Optional(),
 	}
 }
 
@@ -57,7 +74,17 @@ func (ServiceType) Edges() []ent.Edge {
 		edge.From("services", Service.Type).
 			Ref("type"),
 		edge.To("property_types", PropertyType.Type),
+		edge.To("endpoint_definitions", ServiceEndpointDefinition.Type),
 	}
+}
+
+// Policy returns service type policy.
+func (ServiceType) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithMutationRules(
+			authz.ServiceTypeWritePolicyRule(),
+		),
+	)
 }
 
 // ServiceEndpoint holds the schema definition for the ServiceEndpoint entity.
@@ -65,19 +92,72 @@ type ServiceEndpoint struct {
 	schema
 }
 
-// Fields of the ServiceType.
-func (ServiceEndpoint) Fields() []ent.Field {
-	return []ent.Field{
-		field.String("role"),
-	}
-}
-
-// Edges of the ServiceType.
+// Edges of the ServiceEndpoint.
 func (ServiceEndpoint) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("port", EquipmentPort.Type).Unique(),
-		edge.From("service", Service.Type).Ref("endpoints").Unique(),
+		edge.To("equipment", Equipment.Type).Unique().Required(),
+		edge.From("service", Service.Type).Ref("endpoints").Unique().Required(),
+		edge.From("definition", ServiceEndpointDefinition.Type).Ref("endpoints").Unique(),
 	}
+}
+
+// Policy returns ServiceEndPoint policy.
+func (ServiceEndpoint) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithMutationRules(
+			authz.ServiceEndpointWritePolicyRule(),
+		),
+	)
+}
+
+// ServiceEndpointDefinition holds the schema definition for the ServiceEndpointDefinition entity.
+type ServiceEndpointDefinition struct {
+	schema
+}
+
+// Fields of the ServiceEndpointDefinition.
+func (ServiceEndpointDefinition) Fields() []ent.Field {
+	return []ent.Field{
+		field.String("role").
+			Optional(),
+		field.String("name").NotEmpty(),
+		field.Int("index"),
+	}
+}
+
+// Edges of the ServiceEndpointDefinition.
+func (ServiceEndpointDefinition) Edges() []ent.Edge {
+	return []ent.Edge{
+		edge.To("endpoints", ServiceEndpoint.Type),
+		edge.From("service_type", ServiceType.Type).
+			Unique().
+			Ref("endpoint_definitions"),
+		edge.From("equipment_type", EquipmentType.Type).
+			Unique().
+			Ref("service_endpoint_definitions"),
+	}
+}
+
+// Indexes returns ServiceEndpointDefinition indexes.
+func (ServiceEndpointDefinition) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Fields("index").
+			Edges("service_type").
+			Unique(),
+		index.Fields("name").
+			Edges("service_type").
+			Unique(),
+	}
+}
+
+// Policy returns ServiceEndpointDefinition policy.
+func (ServiceEndpointDefinition) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithMutationRules(
+			authz.ServiceEndpointDefinitionWritePolicyRule(),
+		),
+	)
 }
 
 // Service holds the schema definition for the Service entity.
@@ -113,4 +193,13 @@ func (Service) Edges() []ent.Edge {
 		edge.To("customer", Customer.Type),
 		edge.To("endpoints", ServiceEndpoint.Type),
 	}
+}
+
+// Policy returns service policy.
+func (Service) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithMutationRules(
+			authz.ServiceWritePolicyRule(),
+		),
+	)
 }

@@ -10,6 +10,7 @@ import (
 	"fmt"
 
 	"github.com/facebookincubator/symphony/graph/graphactions"
+	"github.com/facebookincubator/symphony/graph/graphgrpc/schema"
 	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/pkg/actions"
 	"github.com/facebookincubator/symphony/pkg/actions/executor"
@@ -37,12 +38,12 @@ func newServer(tenancy viewer.Tenancy, db *sql.DB, logger log.Logger, registry *
 		)),
 		grpc.StatsHandler(&ocgrpc.ServerHandler{}),
 	)
-	RegisterTenantServiceServer(s,
+	schema.RegisterTenantServiceServer(s,
 		NewTenantService(func(ctx context.Context) ExecQueryer {
 			return sqltx.FromContext(ctx)
 		}),
 	)
-	RegisterActionsAlertServiceServer(s,
+	schema.RegisterActionsAlertServiceServer(s,
 		NewActionsAlertService(func(ctx context.Context, tenantID string) (*actions.Client, error) {
 			entClient, err := tenancy.ClientFor(ctx, tenantID)
 			if err != nil {
@@ -62,7 +63,7 @@ func newServer(tenancy viewer.Tenancy, db *sql.DB, logger log.Logger, registry *
 			return actions.NewClient(exc), nil
 		}),
 	)
-	RegisterUserServiceServer(s, NewUserService(tenancy.ClientFor))
+	schema.RegisterUserServiceServer(s, NewUserService(tenancy.ClientFor))
 
 	reflection.Register(s)
 	err := view.Register(ocgrpc.DefaultServerViews...)

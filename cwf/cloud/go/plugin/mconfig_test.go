@@ -14,9 +14,11 @@ import (
 	"magma/cwf/cloud/go/cwf"
 	"magma/cwf/cloud/go/plugin"
 	"magma/cwf/cloud/go/plugin/models"
+	cwfmconfig "magma/cwf/cloud/go/protos/mconfig"
 	fegmconfig "magma/feg/cloud/go/protos/mconfig"
 	ltemconfig "magma/lte/cloud/go/protos/mconfig"
 	"magma/orc8r/cloud/go/orc8r"
+	orc8rplugin "magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
@@ -28,6 +30,7 @@ import (
 )
 
 func TestBuilder_Build(t *testing.T) {
+	orc8rplugin.RegisterPluginForTests(t, &plugin.CwfOrchestratorPlugin{})
 	builder := &plugin.Builder{}
 
 	// empty case: no cwf associated to magmad gateway
@@ -72,7 +75,7 @@ func TestBuilder_Build(t *testing.T) {
 				SessionMs:              43200000,
 				SessionAuthenticatedMs: 5000,
 			},
-			PlmnIds: []string{},
+			PlmnIds: nil,
 		},
 		"aaa_server": &fegmconfig.AAAConfig{LogLevel: 1,
 			IdleSessionTimeoutMs: 21600000,
@@ -93,6 +96,9 @@ func TestBuilder_Build(t *testing.T) {
 				{Ip: "1.2.3.4/24"},
 				{Ip: "1.1.1.1/24", Key: 111},
 			},
+			LiImsis: []string{
+				"IMSI001010000000013",
+			},
 			IpdrExportDst: &ltemconfig.PipelineD_IPDRExportDst{
 				Ip:   "192.168.128.88",
 				Port: 2040,
@@ -108,6 +114,16 @@ func TestBuilder_Build(t *testing.T) {
 		"directoryd": &orcmconfig.DirectoryD{
 			LogLevel: protos.LogLevel_INFO,
 		},
+		"health": &cwfmconfig.CwfGatewayHealthConfig{
+			CpuUtilThresholdPct: 0.9,
+			MemUtilThresholdPct: 0.8,
+			GreProbeInterval:    5,
+			IcmpProbePktCount:   3,
+			GrePeers: []*cwfmconfig.CwfGatewayHealthConfigGrePeer{
+				{Ip: "1.2.3.4/24"},
+				{Ip: "1.1.1.1/24"},
+			},
+		},
 	}
 	err = builder.Build("n1", "gw1", graph, nw, actual)
 	assert.NoError(t, err)
@@ -122,7 +138,7 @@ var defaultnwConfig = &models.NetworkCarrierWifiConfigs{
 			SessionMs:              43200000,
 			SessionAuthenticatedMs: 5000,
 		},
-		PlmnIds: []string{},
+		PlmnIds: nil,
 	},
 	AaaServer: &models.AaaServer{
 		IDLESessionTimeoutMs: 21600000,
@@ -138,8 +154,17 @@ var defaultgwConfig = &models.GatewayCwfConfigs{
 		{IP: "1.2.3.4/24"},
 		{IP: "1.1.1.1/24", Key: swag.Uint32(111)},
 	},
+	LiImsis: []string{
+		"IMSI001010000000013",
+	},
 	IPDRExportDst: &models.IPDRExportDst{
 		IP:   "192.168.128.88",
 		Port: 2040,
+	},
+	GatewayHealthConfigs: &models.GatewayHealthConfigs{
+		CPUUtilThresholdPct:  0.9,
+		MemUtilThresholdPct:  0.8,
+		GreProbeIntervalSecs: 5,
+		IcmpProbePktCount:    3,
 	},
 }

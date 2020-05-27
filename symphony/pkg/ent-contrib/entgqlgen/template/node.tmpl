@@ -43,7 +43,7 @@ type Edge struct {
 }
 
 {{/* loop over all types and add implement the Node interface. */}}
-{{ range $_, $n := $.Nodes -}}
+{{ range $n := $.Nodes -}}
 	{{ $receiver := $n.Receiver }}
 	func ({{ $receiver }} *{{ $n.Name }}) Node(ctx context.Context) (node *Node, err error) {
 		node = &Node{
@@ -82,6 +82,18 @@ type Edge struct {
 			{{- end }}
 		{{- end }}
 		return node, nil
+	}
+
+	func ({{ $receiver }} *{{ $n.Name }}Mutation) Node(ctx context.Context) (node *Node, err error) {
+		id, exists := {{ $receiver }}.ID()
+		if !exists {
+			return nil, nil
+		}
+		ent, err := {{ $receiver }}.Client().{{ $n.Name }}.Get(ctx, id)
+		if err != nil {
+			return nil, err
+		}
+		return ent.Node(ctx)
 	}
 {{ end }}
 

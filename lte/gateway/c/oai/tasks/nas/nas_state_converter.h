@@ -89,8 +89,8 @@ class NasStateConverter : StateConverter {
     NodeType* state_identity,
     int size)
   {
-    strncpy(
-      (char*) &state_identity->u.value, identity_proto.value().c_str(), size);
+    memcpy(
+      (void*) &state_identity->u.value, identity_proto.value().data(), size);
     state_identity->length = identity_proto.num_digits();
   }
 
@@ -312,7 +312,7 @@ class NasStateConverter : StateConverter {
 
   static void eutran_vectors_to_proto(
     eutran_vector_t** state_eutran_vector_array,
-    int num_vectors,
+    uint8_t num_vectors,
     AuthInfoProc* auth_info_proc_proto);
 
   static void proto_to_eutran_vectors(

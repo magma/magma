@@ -7,22 +7,27 @@
  * @flow
  * @format
  */
-import type {WithStyles} from '@material-ui/core';
+
+import type {
+  InventoryEntName,
+  InventoryPermissionEnforcement,
+} from '../admin/userManagement/utils/usePermissions';
 
 import * as React from 'react';
-import Avatar from '@material-ui/core/Avatar';
-import Button from '@fbcnms/ui/components/design-system/Button';
-import DeleteIcon from '@material-ui/icons/Delete';
-import EditIcon from '@material-ui/icons/Edit';
-import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
+import FormActionWithPermissions from '../../common/FormActionWithPermissions';
 import Grid from '@material-ui/core/Grid';
+import IconButton from '@fbcnms/ui/components/design-system/IconButton';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import Tooltip from '@material-ui/core/Tooltip';
 import classNames from 'classnames';
-import {withStyles} from '@material-ui/core/styles';
+import fbt from 'fbt';
+import symphony from '@fbcnms/ui/theme/symphony';
+import {DeleteIcon, EditIcon} from '@fbcnms/ui/components/design-system/Icons';
+import {makeStyles} from '@material-ui/styles';
 
-type Props = {
-  icon: React.Element<any>,
+type Props = $ReadOnly<{|
+  icon: React.Node,
+  entityName: InventoryEntName,
   instanceCount: number,
   instanceNamePlural: string,
   instanceNameSingular: string,
@@ -30,9 +35,9 @@ type Props = {
   onDelete: () => void,
   onEdit?: ?() => void,
   allowDelete?: ?boolean,
-} & WithStyles<typeof styles>;
+|}>;
 
-const styles = theme => ({
+const useStyles = makeStyles(() => ({
   inline: {
     display: 'flex',
     alignItems: 'center',
@@ -41,10 +46,18 @@ const styles = theme => ({
   root: {
     flexGrow: 1,
   },
-  icon: {
-    backgroundColor: theme.palette.grey[50],
-    color: theme.palette.grey[500],
-    marginRight: 15,
+  iconContainer: {
+    borderRadius: '50%',
+    marginRight: '16px',
+    backgroundColor: symphony.palette.D50,
+    color: symphony.palette.D500,
+    width: '48px',
+    height: '48px',
+    display: 'flex',
+    flexShrink: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...symphony.typography.h5,
   },
   iconButton: {
     marginLeft: '16px',
@@ -67,94 +80,117 @@ const styles = theme => ({
   checkbox: {
     margin: '12px',
   },
-});
+}));
 
-class ConfigureExpansionPanel extends React.Component<Props> {
-  render() {
-    const {
-      classes,
-      icon,
-      instanceCount,
-      instanceNamePlural,
-      instanceNameSingular,
-      name,
-      onEdit,
-    } = this.props;
-    return (
-      <Grid
-        container
-        className={classes.root}
-        direction="row"
-        justify="space-between"
-        alignItems="center">
-        <Grid item xs>
-          <div className={classes.inline}>
-            <Avatar className={classes.icon}>{icon}</Avatar>
-            <Text
-              className={classNames(classes.text, classes.boldText)}
-              variant="subtitle1">
-              {name}
-            </Text>
-          </div>
-        </Grid>
-        <Grid item xs>
-          <Text
-            className={classNames(classes.text, classes.counter)}
-            variant="body2">
-            {`${instanceCount.toLocaleString()}
-                  ${
-                    instanceCount == 1
-                      ? instanceNameSingular
-                      : instanceNamePlural
-                  } of this type`}
-          </Text>
-        </Grid>
-        <Grid item xs>
-          <div className={classes.actionButtons}>
-            {this.deleteButton()}
-            {onEdit && (
-              <FormAction>
-                <Button
-                  skin="primary"
-                  variant="text"
-                  className={classes.iconButton}
-                  onClick={onEdit}>
-                  <EditIcon />
-                </Button>
-              </FormAction>
-            )}
-          </div>
-        </Grid>
-      </Grid>
-    );
-  }
+function ConfigureExpansionPanel(props: Props) {
+  const {
+    icon,
+    entityName,
+    instanceCount,
+    instanceNamePlural,
+    instanceNameSingular,
+    name,
+    onEdit,
+    allowDelete,
+    onDelete,
+  } = props;
+  const classes = useStyles();
 
-  deleteButton = () => {
-    const {classes, instanceCount, allowDelete} = this.props;
-    const disabled =
-      allowDelete !== undefined && allowDelete !== null
-        ? !allowDelete
-        : instanceCount > 0;
-    const deleteButton = (
-      <FormAction>
-        <Button
-          className={classes.iconButton}
-          skin="primary"
-          variant="text"
-          disabled={disabled}
-          onClick={this.props.onDelete}>
-          <DeleteIcon />
-        </Button>
-      </FormAction>
-    );
-    const tooltip = `Cannot delete a type that is in use`;
-
-    return disabled ? (
-      <Tooltip title={tooltip}>{deleteButton}</Tooltip>
-    ) : (
-      deleteButton
-    );
+  const editButtonPermissions: InventoryPermissionEnforcement = {
+    entity: entityName,
+    action: 'update',
   };
+
+  return (
+    <Grid
+      container
+      className={classes.root}
+      direction="row"
+      justify="space-between"
+      alignItems="center">
+      <Grid item xs>
+        <div className={classes.inline}>
+          <div className={classes.iconContainer}>{icon}</div>
+          <Text
+            className={classNames(classes.text, classes.boldText)}
+            variant="subtitle1">
+            {name}
+          </Text>
+        </div>
+      </Grid>
+      <Grid item xs>
+        <Text
+          className={classNames(classes.text, classes.counter)}
+          variant="body2">
+          {`${instanceCount.toLocaleString()}
+                ${
+                  instanceCount == 1 ? instanceNameSingular : instanceNamePlural
+                } of this type`}
+        </Text>
+      </Grid>
+      <Grid item xs>
+        <div className={classes.actionButtons}>
+          <DeleteButton
+            entityName={entityName}
+            instanceCount={instanceCount}
+            onDelete={onDelete}
+            allowDelete={allowDelete}
+          />
+          {onEdit && (
+            <FormActionWithPermissions permissions={editButtonPermissions}>
+              <IconButton
+                skin="primary"
+                className={classes.iconButton}
+                onClick={onEdit}
+                icon={EditIcon}
+              />
+            </FormActionWithPermissions>
+          )}
+        </div>
+      </Grid>
+    </Grid>
+  );
 }
 
-export default withStyles(styles)(ConfigureExpansionPanel);
+type DeleteButtonProps = $ReadOnly<{|
+  entityName: InventoryEntName,
+  instanceCount: number,
+  allowDelete?: ?boolean,
+  onDelete: () => void,
+|}>;
+
+function DeleteButton(props: DeleteButtonProps) {
+  const {entityName, instanceCount, allowDelete, onDelete} = props;
+  const classes = useStyles();
+
+  const disabled =
+    allowDelete !== undefined && allowDelete !== null
+      ? !allowDelete
+      : instanceCount > 0;
+
+  const deleteButtonPermissions: InventoryPermissionEnforcement = {
+    entity: entityName,
+    action: 'delete',
+  };
+
+  const deleteButton = (
+    <FormActionWithPermissions permissions={deleteButtonPermissions}>
+      <IconButton
+        className={classes.iconButton}
+        skin="primary"
+        disabled={disabled}
+        onClick={onDelete}
+        icon={DeleteIcon}
+      />
+    </FormActionWithPermissions>
+  );
+  const tooltip = fbt('Cannot delete a type that is in use', '');
+
+  return disabled ? (
+    <Tooltip title={tooltip}>{deleteButton}</Tooltip>
+  ) : (
+    deleteButton
+  );
+}
+
+export default ConfigureExpansionPanel;

@@ -2,12 +2,13 @@
 
 from typing import List, Optional
 
-from ..client import SymphonyClient
-from ..consts import Customer
-from ..graphql.add_customer_input import AddCustomerInput
-from ..graphql.add_customer_mutation import AddCustomerMutation
-from ..graphql.customers_query import CustomersQuery
-from ..graphql.remove_customer_mutation import RemoveCustomerMutation
+from pysymphony import SymphonyClient
+
+from ..common.data_class import Customer
+from ..graphql.input.add_customer import AddCustomerInput
+from ..graphql.mutation.add_customer import AddCustomerMutation
+from ..graphql.mutation.remove_customer import RemoveCustomerMutation
+from ..graphql.query.customers import CustomersQuery
 
 
 def add_customer(
@@ -20,20 +21,20 @@ def add_customer(
             external_id (Optional[str]): external ID for the Customer
 
         Returns:
-            pyinventory.consts.Customer object
+            `pyinventory.common.data_class.Customer` object
 
         Example:
             ```
-            new_customers = client.add_customer(name="new_customer") 
+            new_customers = client.add_customer(name="new_customer")
             ```
             or
             ```
-            new_customers = client.add_customer(name="new_customer", external_id="12345678") 
+            new_customers = client.add_customer(name="new_customer", external_id="12345678")
             ```
     """
     customer_input = AddCustomerInput(name=name, externalId=external_id)
-    result = AddCustomerMutation.execute(client, input=customer_input).addCustomer
-    return Customer(name=result.name, id=result.id, externalId=result.externalId)
+    result = AddCustomerMutation.execute(client, input=customer_input)
+    return Customer(name=result.name, id=result.id, external_id=result.externalId)
 
 
 def get_all_customers(client: SymphonyClient) -> List[Customer]:
@@ -41,14 +42,14 @@ def get_all_customers(client: SymphonyClient) -> List[Customer]:
     """This function returns all Customers.
 
         Returns:
-            List[ `pyinventory.consts.Customer` ]
+            List[ `pyinventory.common.data_class.Customer` ]
 
         Example:
             ```
-            customers = client.get_all_customers() 
+            customers = client.get_all_customers()
             ```
     """
-    customers = CustomersQuery.execute(client).customers
+    customers = CustomersQuery.execute(client)
     if not customers:
         return []
     result = []
@@ -56,20 +57,20 @@ def get_all_customers(client: SymphonyClient) -> List[Customer]:
         node = customer.node
         if node:
             result.append(
-                Customer(name=node.name, id=node.id, externalId=node.externalId)
+                Customer(name=node.name, id=node.id, external_id=node.externalId)
             )
     return result
 
 
 def delete_customer(client: SymphonyClient, customer: Customer) -> None:
     """This function delete Customer.
-        
+
         Args:
-            customer (pyinventory.consts.Customer object): customer object
-        
+            customer ( `pyinventory.common.data_class.Customer` ): customer object
+
         Example:
             ```
-            client.delete_customer(customer) 
+            client.delete_customer(customer)
             ```
     """
     RemoveCustomerMutation.execute(client, id=customer.id)

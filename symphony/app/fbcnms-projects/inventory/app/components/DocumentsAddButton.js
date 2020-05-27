@@ -22,10 +22,11 @@ import AddImageMutation from '../mutations/AddImageMutation';
 import AppContext from '@fbcnms/ui/context/AppContext';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import FileUploadButton from './FileUpload/FileUploadButton';
+import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import PopoverMenu from '@fbcnms/ui/components/design-system/Select/PopoverMenu';
 import React from 'react';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
-import Strings from '../common/CommonStrings';
+import Strings from '../common/InventoryStrings';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import {LogEvents, ServerLogger} from '../common/LoggingUtils';
 import {withSnackbar} from 'notistack';
@@ -76,7 +77,7 @@ class DocumentsAddButton extends React.Component<Props, State> {
     }
 
     return (
-      <>
+      <FormAction>
         {categoriesEnabled && Strings.documents.categories.length ? (
           <PopoverMenu
             skin="primary"
@@ -111,7 +112,7 @@ class DocumentsAddButton extends React.Component<Props, State> {
             )}
           </FileUploadButton>
         )}
-      </>
+      </FormAction>
     );
   }
 
@@ -134,20 +135,21 @@ class DocumentsAddButton extends React.Component<Props, State> {
     };
 
     const updater = store => {
-      // $FlowFixMe (T62907961) Relay flow types
+      const {entityId} = this.props;
+      if (entityId == null) {
+        return;
+      }
       const newNode = store.getRootField('addImage');
+      const entityProxy = store.get(entityId);
+      if (newNode == null || entityProxy == null) {
+        return;
+      }
       const fileType = newNode.getValue('fileType');
-      // $FlowFixMe (T62907961) Relay flow types
-      const entityProxy = store.get(this.props.entityId);
       if (fileType == FileTypeEnum.IMAGE) {
-        // $FlowFixMe (T62907961) Relay flow types
         const imageNodes = entityProxy.getLinkedRecords('images') || [];
-        // $FlowFixMe (T62907961) Relay flow types
         entityProxy.setLinkedRecords([...imageNodes, newNode], 'images');
       } else {
-        // $FlowFixMe (T62907961) Relay flow types
         const fileNodes = entityProxy.getLinkedRecords('files') || [];
-        // $FlowFixMe (T62907961) Relay flow types
         entityProxy.setLinkedRecords([...fileNodes, newNode], 'files');
       }
     };

@@ -14,7 +14,9 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/migrate"
 
 	"github.com/facebookincubator/symphony/graph/ent/actionsrule"
+	"github.com/facebookincubator/symphony/graph/ent/activity"
 	"github.com/facebookincubator/symphony/graph/ent/checklistcategory"
+	"github.com/facebookincubator/symphony/graph/ent/checklistcategorydefinition"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitemdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/comment"
@@ -35,6 +37,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/link"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/locationtype"
+	"github.com/facebookincubator/symphony/graph/ent/permissionspolicy"
 	"github.com/facebookincubator/symphony/graph/ent/project"
 	"github.com/facebookincubator/symphony/graph/ent/projecttype"
 	"github.com/facebookincubator/symphony/graph/ent/property"
@@ -42,6 +45,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/reportfilter"
 	"github.com/facebookincubator/symphony/graph/ent/service"
 	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
+	"github.com/facebookincubator/symphony/graph/ent/serviceendpointdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/servicetype"
 	"github.com/facebookincubator/symphony/graph/ent/survey"
 	"github.com/facebookincubator/symphony/graph/ent/surveycellscan"
@@ -49,7 +53,6 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/surveytemplatecategory"
 	"github.com/facebookincubator/symphony/graph/ent/surveytemplatequestion"
 	"github.com/facebookincubator/symphony/graph/ent/surveywifiscan"
-	"github.com/facebookincubator/symphony/graph/ent/technician"
 	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/ent/usersgroup"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
@@ -68,8 +71,12 @@ type Client struct {
 	Schema *migrate.Schema
 	// ActionsRule is the client for interacting with the ActionsRule builders.
 	ActionsRule *ActionsRuleClient
+	// Activity is the client for interacting with the Activity builders.
+	Activity *ActivityClient
 	// CheckListCategory is the client for interacting with the CheckListCategory builders.
 	CheckListCategory *CheckListCategoryClient
+	// CheckListCategoryDefinition is the client for interacting with the CheckListCategoryDefinition builders.
+	CheckListCategoryDefinition *CheckListCategoryDefinitionClient
 	// CheckListItem is the client for interacting with the CheckListItem builders.
 	CheckListItem *CheckListItemClient
 	// CheckListItemDefinition is the client for interacting with the CheckListItemDefinition builders.
@@ -110,6 +117,8 @@ type Client struct {
 	Location *LocationClient
 	// LocationType is the client for interacting with the LocationType builders.
 	LocationType *LocationTypeClient
+	// PermissionsPolicy is the client for interacting with the PermissionsPolicy builders.
+	PermissionsPolicy *PermissionsPolicyClient
 	// Project is the client for interacting with the Project builders.
 	Project *ProjectClient
 	// ProjectType is the client for interacting with the ProjectType builders.
@@ -124,6 +133,8 @@ type Client struct {
 	Service *ServiceClient
 	// ServiceEndpoint is the client for interacting with the ServiceEndpoint builders.
 	ServiceEndpoint *ServiceEndpointClient
+	// ServiceEndpointDefinition is the client for interacting with the ServiceEndpointDefinition builders.
+	ServiceEndpointDefinition *ServiceEndpointDefinitionClient
 	// ServiceType is the client for interacting with the ServiceType builders.
 	ServiceType *ServiceTypeClient
 	// Survey is the client for interacting with the Survey builders.
@@ -138,8 +149,6 @@ type Client struct {
 	SurveyTemplateQuestion *SurveyTemplateQuestionClient
 	// SurveyWiFiScan is the client for interacting with the SurveyWiFiScan builders.
 	SurveyWiFiScan *SurveyWiFiScanClient
-	// Technician is the client for interacting with the Technician builders.
-	Technician *TechnicianClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 	// UsersGroup is the client for interacting with the UsersGroup builders.
@@ -167,7 +176,9 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.ActionsRule = NewActionsRuleClient(c.config)
+	c.Activity = NewActivityClient(c.config)
 	c.CheckListCategory = NewCheckListCategoryClient(c.config)
+	c.CheckListCategoryDefinition = NewCheckListCategoryDefinitionClient(c.config)
 	c.CheckListItem = NewCheckListItemClient(c.config)
 	c.CheckListItemDefinition = NewCheckListItemDefinitionClient(c.config)
 	c.Comment = NewCommentClient(c.config)
@@ -188,6 +199,7 @@ func (c *Client) init() {
 	c.Link = NewLinkClient(c.config)
 	c.Location = NewLocationClient(c.config)
 	c.LocationType = NewLocationTypeClient(c.config)
+	c.PermissionsPolicy = NewPermissionsPolicyClient(c.config)
 	c.Project = NewProjectClient(c.config)
 	c.ProjectType = NewProjectTypeClient(c.config)
 	c.Property = NewPropertyClient(c.config)
@@ -195,6 +207,7 @@ func (c *Client) init() {
 	c.ReportFilter = NewReportFilterClient(c.config)
 	c.Service = NewServiceClient(c.config)
 	c.ServiceEndpoint = NewServiceEndpointClient(c.config)
+	c.ServiceEndpointDefinition = NewServiceEndpointDefinitionClient(c.config)
 	c.ServiceType = NewServiceTypeClient(c.config)
 	c.Survey = NewSurveyClient(c.config)
 	c.SurveyCellScan = NewSurveyCellScanClient(c.config)
@@ -202,7 +215,6 @@ func (c *Client) init() {
 	c.SurveyTemplateCategory = NewSurveyTemplateCategoryClient(c.config)
 	c.SurveyTemplateQuestion = NewSurveyTemplateQuestionClient(c.config)
 	c.SurveyWiFiScan = NewSurveyWiFiScanClient(c.config)
-	c.Technician = NewTechnicianClient(c.config)
 	c.User = NewUserClient(c.config)
 	c.UsersGroup = NewUsersGroupClient(c.config)
 	c.WorkOrder = NewWorkOrderClient(c.config)
@@ -239,7 +251,9 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	return &Tx{
 		config:                      cfg,
 		ActionsRule:                 NewActionsRuleClient(cfg),
+		Activity:                    NewActivityClient(cfg),
 		CheckListCategory:           NewCheckListCategoryClient(cfg),
+		CheckListCategoryDefinition: NewCheckListCategoryDefinitionClient(cfg),
 		CheckListItem:               NewCheckListItemClient(cfg),
 		CheckListItemDefinition:     NewCheckListItemDefinitionClient(cfg),
 		Comment:                     NewCommentClient(cfg),
@@ -260,6 +274,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Link:                        NewLinkClient(cfg),
 		Location:                    NewLocationClient(cfg),
 		LocationType:                NewLocationTypeClient(cfg),
+		PermissionsPolicy:           NewPermissionsPolicyClient(cfg),
 		Project:                     NewProjectClient(cfg),
 		ProjectType:                 NewProjectTypeClient(cfg),
 		Property:                    NewPropertyClient(cfg),
@@ -267,6 +282,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ReportFilter:                NewReportFilterClient(cfg),
 		Service:                     NewServiceClient(cfg),
 		ServiceEndpoint:             NewServiceEndpointClient(cfg),
+		ServiceEndpointDefinition:   NewServiceEndpointDefinitionClient(cfg),
 		ServiceType:                 NewServiceTypeClient(cfg),
 		Survey:                      NewSurveyClient(cfg),
 		SurveyCellScan:              NewSurveyCellScanClient(cfg),
@@ -274,7 +290,66 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		SurveyTemplateCategory:      NewSurveyTemplateCategoryClient(cfg),
 		SurveyTemplateQuestion:      NewSurveyTemplateQuestionClient(cfg),
 		SurveyWiFiScan:              NewSurveyWiFiScanClient(cfg),
-		Technician:                  NewTechnicianClient(cfg),
+		User:                        NewUserClient(cfg),
+		UsersGroup:                  NewUsersGroupClient(cfg),
+		WorkOrder:                   NewWorkOrderClient(cfg),
+		WorkOrderDefinition:         NewWorkOrderDefinitionClient(cfg),
+		WorkOrderType:               NewWorkOrderTypeClient(cfg),
+	}, nil
+}
+
+// BeginTx returns a transactional client with options.
+func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) {
+	if _, ok := c.driver.(*txDriver); ok {
+		return nil, fmt.Errorf("ent: cannot start a transaction within a transaction")
+	}
+	tx, err := c.driver.(*sql.Driver).BeginTx(ctx, opts)
+	if err != nil {
+		return nil, fmt.Errorf("ent: starting a transaction: %v", err)
+	}
+	cfg := config{driver: &txDriver{tx: tx, drv: c.driver}, log: c.log, debug: c.debug, hooks: c.hooks}
+	return &Tx{
+		config:                      cfg,
+		ActionsRule:                 NewActionsRuleClient(cfg),
+		Activity:                    NewActivityClient(cfg),
+		CheckListCategory:           NewCheckListCategoryClient(cfg),
+		CheckListCategoryDefinition: NewCheckListCategoryDefinitionClient(cfg),
+		CheckListItem:               NewCheckListItemClient(cfg),
+		CheckListItemDefinition:     NewCheckListItemDefinitionClient(cfg),
+		Comment:                     NewCommentClient(cfg),
+		Customer:                    NewCustomerClient(cfg),
+		Equipment:                   NewEquipmentClient(cfg),
+		EquipmentCategory:           NewEquipmentCategoryClient(cfg),
+		EquipmentPort:               NewEquipmentPortClient(cfg),
+		EquipmentPortDefinition:     NewEquipmentPortDefinitionClient(cfg),
+		EquipmentPortType:           NewEquipmentPortTypeClient(cfg),
+		EquipmentPosition:           NewEquipmentPositionClient(cfg),
+		EquipmentPositionDefinition: NewEquipmentPositionDefinitionClient(cfg),
+		EquipmentType:               NewEquipmentTypeClient(cfg),
+		File:                        NewFileClient(cfg),
+		FloorPlan:                   NewFloorPlanClient(cfg),
+		FloorPlanReferencePoint:     NewFloorPlanReferencePointClient(cfg),
+		FloorPlanScale:              NewFloorPlanScaleClient(cfg),
+		Hyperlink:                   NewHyperlinkClient(cfg),
+		Link:                        NewLinkClient(cfg),
+		Location:                    NewLocationClient(cfg),
+		LocationType:                NewLocationTypeClient(cfg),
+		PermissionsPolicy:           NewPermissionsPolicyClient(cfg),
+		Project:                     NewProjectClient(cfg),
+		ProjectType:                 NewProjectTypeClient(cfg),
+		Property:                    NewPropertyClient(cfg),
+		PropertyType:                NewPropertyTypeClient(cfg),
+		ReportFilter:                NewReportFilterClient(cfg),
+		Service:                     NewServiceClient(cfg),
+		ServiceEndpoint:             NewServiceEndpointClient(cfg),
+		ServiceEndpointDefinition:   NewServiceEndpointDefinitionClient(cfg),
+		ServiceType:                 NewServiceTypeClient(cfg),
+		Survey:                      NewSurveyClient(cfg),
+		SurveyCellScan:              NewSurveyCellScanClient(cfg),
+		SurveyQuestion:              NewSurveyQuestionClient(cfg),
+		SurveyTemplateCategory:      NewSurveyTemplateCategoryClient(cfg),
+		SurveyTemplateQuestion:      NewSurveyTemplateQuestionClient(cfg),
+		SurveyWiFiScan:              NewSurveyWiFiScanClient(cfg),
 		User:                        NewUserClient(cfg),
 		UsersGroup:                  NewUsersGroupClient(cfg),
 		WorkOrder:                   NewWorkOrderClient(cfg),
@@ -309,7 +384,9 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	c.ActionsRule.Use(hooks...)
+	c.Activity.Use(hooks...)
 	c.CheckListCategory.Use(hooks...)
+	c.CheckListCategoryDefinition.Use(hooks...)
 	c.CheckListItem.Use(hooks...)
 	c.CheckListItemDefinition.Use(hooks...)
 	c.Comment.Use(hooks...)
@@ -330,6 +407,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.Link.Use(hooks...)
 	c.Location.Use(hooks...)
 	c.LocationType.Use(hooks...)
+	c.PermissionsPolicy.Use(hooks...)
 	c.Project.Use(hooks...)
 	c.ProjectType.Use(hooks...)
 	c.Property.Use(hooks...)
@@ -337,6 +415,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.ReportFilter.Use(hooks...)
 	c.Service.Use(hooks...)
 	c.ServiceEndpoint.Use(hooks...)
+	c.ServiceEndpointDefinition.Use(hooks...)
 	c.ServiceType.Use(hooks...)
 	c.Survey.Use(hooks...)
 	c.SurveyCellScan.Use(hooks...)
@@ -344,7 +423,6 @@ func (c *Client) Use(hooks ...Hook) {
 	c.SurveyTemplateCategory.Use(hooks...)
 	c.SurveyTemplateQuestion.Use(hooks...)
 	c.SurveyWiFiScan.Use(hooks...)
-	c.Technician.Use(hooks...)
 	c.User.Use(hooks...)
 	c.UsersGroup.Use(hooks...)
 	c.WorkOrder.Use(hooks...)
@@ -382,13 +460,13 @@ func (c *ActionsRuleClient) Update() *ActionsRuleUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *ActionsRuleClient) UpdateOne(ar *ActionsRule) *ActionsRuleUpdateOne {
-	return c.UpdateOneID(ar.ID)
+	mutation := newActionsRuleMutation(c.config, OpUpdateOne, withActionsRule(ar))
+	return &ActionsRuleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *ActionsRuleClient) UpdateOneID(id int) *ActionsRuleUpdateOne {
-	mutation := newActionsRuleMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newActionsRuleMutation(c.config, OpUpdateOne, withActionsRuleID(id))
 	return &ActionsRuleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -432,7 +510,124 @@ func (c *ActionsRuleClient) GetX(ctx context.Context, id int) *ActionsRule {
 
 // Hooks returns the client hooks.
 func (c *ActionsRuleClient) Hooks() []Hook {
-	return c.hooks.ActionsRule
+	hooks := c.hooks.ActionsRule
+	return append(hooks[:len(hooks):len(hooks)], actionsrule.Hooks[:]...)
+}
+
+// ActivityClient is a client for the Activity schema.
+type ActivityClient struct {
+	config
+}
+
+// NewActivityClient returns a client for the Activity from the given config.
+func NewActivityClient(c config) *ActivityClient {
+	return &ActivityClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `activity.Hooks(f(g(h())))`.
+func (c *ActivityClient) Use(hooks ...Hook) {
+	c.hooks.Activity = append(c.hooks.Activity, hooks...)
+}
+
+// Create returns a create builder for Activity.
+func (c *ActivityClient) Create() *ActivityCreate {
+	mutation := newActivityMutation(c.config, OpCreate)
+	return &ActivityCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Update returns an update builder for Activity.
+func (c *ActivityClient) Update() *ActivityUpdate {
+	mutation := newActivityMutation(c.config, OpUpdate)
+	return &ActivityUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ActivityClient) UpdateOne(a *Activity) *ActivityUpdateOne {
+	mutation := newActivityMutation(c.config, OpUpdateOne, withActivity(a))
+	return &ActivityUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ActivityClient) UpdateOneID(id int) *ActivityUpdateOne {
+	mutation := newActivityMutation(c.config, OpUpdateOne, withActivityID(id))
+	return &ActivityUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Activity.
+func (c *ActivityClient) Delete() *ActivityDelete {
+	mutation := newActivityMutation(c.config, OpDelete)
+	return &ActivityDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *ActivityClient) DeleteOne(a *Activity) *ActivityDeleteOne {
+	return c.DeleteOneID(a.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *ActivityClient) DeleteOneID(id int) *ActivityDeleteOne {
+	builder := c.Delete().Where(activity.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ActivityDeleteOne{builder}
+}
+
+// Create returns a query builder for Activity.
+func (c *ActivityClient) Query() *ActivityQuery {
+	return &ActivityQuery{config: c.config}
+}
+
+// Get returns a Activity entity by its id.
+func (c *ActivityClient) Get(ctx context.Context, id int) (*Activity, error) {
+	return c.Query().Where(activity.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ActivityClient) GetX(ctx context.Context, id int) *Activity {
+	a, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return a
+}
+
+// QueryAuthor queries the author edge of a Activity.
+func (c *ActivityClient) QueryAuthor(a *Activity) *UserQuery {
+	query := &UserQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := a.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(activity.Table, activity.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, activity.AuthorTable, activity.AuthorColumn),
+		)
+		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryWorkOrder queries the work_order edge of a Activity.
+func (c *ActivityClient) QueryWorkOrder(a *Activity) *WorkOrderQuery {
+	query := &WorkOrderQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := a.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(activity.Table, activity.FieldID, id),
+			sqlgraph.To(workorder.Table, workorder.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, activity.WorkOrderTable, activity.WorkOrderColumn),
+		)
+		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ActivityClient) Hooks() []Hook {
+	hooks := c.hooks.Activity
+	return append(hooks[:len(hooks):len(hooks)], activity.Hooks[:]...)
 }
 
 // CheckListCategoryClient is a client for the CheckListCategory schema.
@@ -465,13 +660,13 @@ func (c *CheckListCategoryClient) Update() *CheckListCategoryUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *CheckListCategoryClient) UpdateOne(clc *CheckListCategory) *CheckListCategoryUpdateOne {
-	return c.UpdateOneID(clc.ID)
+	mutation := newCheckListCategoryMutation(c.config, OpUpdateOne, withCheckListCategory(clc))
+	return &CheckListCategoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *CheckListCategoryClient) UpdateOneID(id int) *CheckListCategoryUpdateOne {
-	mutation := newCheckListCategoryMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newCheckListCategoryMutation(c.config, OpUpdateOne, withCheckListCategoryID(id))
 	return &CheckListCategoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -529,9 +724,142 @@ func (c *CheckListCategoryClient) QueryCheckListItems(clc *CheckListCategory) *C
 	return query
 }
 
+// QueryWorkOrder queries the work_order edge of a CheckListCategory.
+func (c *CheckListCategoryClient) QueryWorkOrder(clc *CheckListCategory) *WorkOrderQuery {
+	query := &WorkOrderQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := clc.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(checklistcategory.Table, checklistcategory.FieldID, id),
+			sqlgraph.To(workorder.Table, workorder.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, checklistcategory.WorkOrderTable, checklistcategory.WorkOrderColumn),
+		)
+		fromV = sqlgraph.Neighbors(clc.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *CheckListCategoryClient) Hooks() []Hook {
-	return c.hooks.CheckListCategory
+	hooks := c.hooks.CheckListCategory
+	return append(hooks[:len(hooks):len(hooks)], checklistcategory.Hooks[:]...)
+}
+
+// CheckListCategoryDefinitionClient is a client for the CheckListCategoryDefinition schema.
+type CheckListCategoryDefinitionClient struct {
+	config
+}
+
+// NewCheckListCategoryDefinitionClient returns a client for the CheckListCategoryDefinition from the given config.
+func NewCheckListCategoryDefinitionClient(c config) *CheckListCategoryDefinitionClient {
+	return &CheckListCategoryDefinitionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `checklistcategorydefinition.Hooks(f(g(h())))`.
+func (c *CheckListCategoryDefinitionClient) Use(hooks ...Hook) {
+	c.hooks.CheckListCategoryDefinition = append(c.hooks.CheckListCategoryDefinition, hooks...)
+}
+
+// Create returns a create builder for CheckListCategoryDefinition.
+func (c *CheckListCategoryDefinitionClient) Create() *CheckListCategoryDefinitionCreate {
+	mutation := newCheckListCategoryDefinitionMutation(c.config, OpCreate)
+	return &CheckListCategoryDefinitionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Update returns an update builder for CheckListCategoryDefinition.
+func (c *CheckListCategoryDefinitionClient) Update() *CheckListCategoryDefinitionUpdate {
+	mutation := newCheckListCategoryDefinitionMutation(c.config, OpUpdate)
+	return &CheckListCategoryDefinitionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CheckListCategoryDefinitionClient) UpdateOne(clcd *CheckListCategoryDefinition) *CheckListCategoryDefinitionUpdateOne {
+	mutation := newCheckListCategoryDefinitionMutation(c.config, OpUpdateOne, withCheckListCategoryDefinition(clcd))
+	return &CheckListCategoryDefinitionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CheckListCategoryDefinitionClient) UpdateOneID(id int) *CheckListCategoryDefinitionUpdateOne {
+	mutation := newCheckListCategoryDefinitionMutation(c.config, OpUpdateOne, withCheckListCategoryDefinitionID(id))
+	return &CheckListCategoryDefinitionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for CheckListCategoryDefinition.
+func (c *CheckListCategoryDefinitionClient) Delete() *CheckListCategoryDefinitionDelete {
+	mutation := newCheckListCategoryDefinitionMutation(c.config, OpDelete)
+	return &CheckListCategoryDefinitionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *CheckListCategoryDefinitionClient) DeleteOne(clcd *CheckListCategoryDefinition) *CheckListCategoryDefinitionDeleteOne {
+	return c.DeleteOneID(clcd.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *CheckListCategoryDefinitionClient) DeleteOneID(id int) *CheckListCategoryDefinitionDeleteOne {
+	builder := c.Delete().Where(checklistcategorydefinition.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CheckListCategoryDefinitionDeleteOne{builder}
+}
+
+// Create returns a query builder for CheckListCategoryDefinition.
+func (c *CheckListCategoryDefinitionClient) Query() *CheckListCategoryDefinitionQuery {
+	return &CheckListCategoryDefinitionQuery{config: c.config}
+}
+
+// Get returns a CheckListCategoryDefinition entity by its id.
+func (c *CheckListCategoryDefinitionClient) Get(ctx context.Context, id int) (*CheckListCategoryDefinition, error) {
+	return c.Query().Where(checklistcategorydefinition.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CheckListCategoryDefinitionClient) GetX(ctx context.Context, id int) *CheckListCategoryDefinition {
+	clcd, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return clcd
+}
+
+// QueryCheckListItemDefinitions queries the check_list_item_definitions edge of a CheckListCategoryDefinition.
+func (c *CheckListCategoryDefinitionClient) QueryCheckListItemDefinitions(clcd *CheckListCategoryDefinition) *CheckListItemDefinitionQuery {
+	query := &CheckListItemDefinitionQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := clcd.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(checklistcategorydefinition.Table, checklistcategorydefinition.FieldID, id),
+			sqlgraph.To(checklistitemdefinition.Table, checklistitemdefinition.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, checklistcategorydefinition.CheckListItemDefinitionsTable, checklistcategorydefinition.CheckListItemDefinitionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(clcd.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryWorkOrderType queries the work_order_type edge of a CheckListCategoryDefinition.
+func (c *CheckListCategoryDefinitionClient) QueryWorkOrderType(clcd *CheckListCategoryDefinition) *WorkOrderTypeQuery {
+	query := &WorkOrderTypeQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := clcd.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(checklistcategorydefinition.Table, checklistcategorydefinition.FieldID, id),
+			sqlgraph.To(workordertype.Table, workordertype.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, checklistcategorydefinition.WorkOrderTypeTable, checklistcategorydefinition.WorkOrderTypeColumn),
+		)
+		fromV = sqlgraph.Neighbors(clcd.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *CheckListCategoryDefinitionClient) Hooks() []Hook {
+	hooks := c.hooks.CheckListCategoryDefinition
+	return append(hooks[:len(hooks):len(hooks)], checklistcategorydefinition.Hooks[:]...)
 }
 
 // CheckListItemClient is a client for the CheckListItem schema.
@@ -564,13 +892,13 @@ func (c *CheckListItemClient) Update() *CheckListItemUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *CheckListItemClient) UpdateOne(cli *CheckListItem) *CheckListItemUpdateOne {
-	return c.UpdateOneID(cli.ID)
+	mutation := newCheckListItemMutation(c.config, OpUpdateOne, withCheckListItem(cli))
+	return &CheckListItemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *CheckListItemClient) UpdateOneID(id int) *CheckListItemUpdateOne {
-	mutation := newCheckListItemMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newCheckListItemMutation(c.config, OpUpdateOne, withCheckListItemID(id))
 	return &CheckListItemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -628,15 +956,47 @@ func (c *CheckListItemClient) QueryFiles(cli *CheckListItem) *FileQuery {
 	return query
 }
 
-// QueryWorkOrder queries the work_order edge of a CheckListItem.
-func (c *CheckListItemClient) QueryWorkOrder(cli *CheckListItem) *WorkOrderQuery {
-	query := &WorkOrderQuery{config: c.config}
+// QueryWifiScan queries the wifi_scan edge of a CheckListItem.
+func (c *CheckListItemClient) QueryWifiScan(cli *CheckListItem) *SurveyWiFiScanQuery {
+	query := &SurveyWiFiScanQuery{config: c.config}
 	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
 		id := cli.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(checklistitem.Table, checklistitem.FieldID, id),
-			sqlgraph.To(workorder.Table, workorder.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, checklistitem.WorkOrderTable, checklistitem.WorkOrderColumn),
+			sqlgraph.To(surveywifiscan.Table, surveywifiscan.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, checklistitem.WifiScanTable, checklistitem.WifiScanColumn),
+		)
+		fromV = sqlgraph.Neighbors(cli.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCellScan queries the cell_scan edge of a CheckListItem.
+func (c *CheckListItemClient) QueryCellScan(cli *CheckListItem) *SurveyCellScanQuery {
+	query := &SurveyCellScanQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := cli.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(checklistitem.Table, checklistitem.FieldID, id),
+			sqlgraph.To(surveycellscan.Table, surveycellscan.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, checklistitem.CellScanTable, checklistitem.CellScanColumn),
+		)
+		fromV = sqlgraph.Neighbors(cli.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCheckListCategory queries the check_list_category edge of a CheckListItem.
+func (c *CheckListItemClient) QueryCheckListCategory(cli *CheckListItem) *CheckListCategoryQuery {
+	query := &CheckListCategoryQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := cli.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(checklistitem.Table, checklistitem.FieldID, id),
+			sqlgraph.To(checklistcategory.Table, checklistcategory.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, checklistitem.CheckListCategoryTable, checklistitem.CheckListCategoryColumn),
 		)
 		fromV = sqlgraph.Neighbors(cli.driver.Dialect(), step)
 		return fromV, nil
@@ -646,7 +1006,8 @@ func (c *CheckListItemClient) QueryWorkOrder(cli *CheckListItem) *WorkOrderQuery
 
 // Hooks returns the client hooks.
 func (c *CheckListItemClient) Hooks() []Hook {
-	return c.hooks.CheckListItem
+	hooks := c.hooks.CheckListItem
+	return append(hooks[:len(hooks):len(hooks)], checklistitem.Hooks[:]...)
 }
 
 // CheckListItemDefinitionClient is a client for the CheckListItemDefinition schema.
@@ -679,13 +1040,13 @@ func (c *CheckListItemDefinitionClient) Update() *CheckListItemDefinitionUpdate 
 
 // UpdateOne returns an update builder for the given entity.
 func (c *CheckListItemDefinitionClient) UpdateOne(clid *CheckListItemDefinition) *CheckListItemDefinitionUpdateOne {
-	return c.UpdateOneID(clid.ID)
+	mutation := newCheckListItemDefinitionMutation(c.config, OpUpdateOne, withCheckListItemDefinition(clid))
+	return &CheckListItemDefinitionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *CheckListItemDefinitionClient) UpdateOneID(id int) *CheckListItemDefinitionUpdateOne {
-	mutation := newCheckListItemDefinitionMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newCheckListItemDefinitionMutation(c.config, OpUpdateOne, withCheckListItemDefinitionID(id))
 	return &CheckListItemDefinitionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -727,15 +1088,15 @@ func (c *CheckListItemDefinitionClient) GetX(ctx context.Context, id int) *Check
 	return clid
 }
 
-// QueryWorkOrderType queries the work_order_type edge of a CheckListItemDefinition.
-func (c *CheckListItemDefinitionClient) QueryWorkOrderType(clid *CheckListItemDefinition) *WorkOrderTypeQuery {
-	query := &WorkOrderTypeQuery{config: c.config}
+// QueryCheckListCategoryDefinition queries the check_list_category_definition edge of a CheckListItemDefinition.
+func (c *CheckListItemDefinitionClient) QueryCheckListCategoryDefinition(clid *CheckListItemDefinition) *CheckListCategoryDefinitionQuery {
+	query := &CheckListCategoryDefinitionQuery{config: c.config}
 	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
 		id := clid.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(checklistitemdefinition.Table, checklistitemdefinition.FieldID, id),
-			sqlgraph.To(workordertype.Table, workordertype.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, checklistitemdefinition.WorkOrderTypeTable, checklistitemdefinition.WorkOrderTypeColumn),
+			sqlgraph.To(checklistcategorydefinition.Table, checklistcategorydefinition.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, checklistitemdefinition.CheckListCategoryDefinitionTable, checklistitemdefinition.CheckListCategoryDefinitionColumn),
 		)
 		fromV = sqlgraph.Neighbors(clid.driver.Dialect(), step)
 		return fromV, nil
@@ -745,7 +1106,8 @@ func (c *CheckListItemDefinitionClient) QueryWorkOrderType(clid *CheckListItemDe
 
 // Hooks returns the client hooks.
 func (c *CheckListItemDefinitionClient) Hooks() []Hook {
-	return c.hooks.CheckListItemDefinition
+	hooks := c.hooks.CheckListItemDefinition
+	return append(hooks[:len(hooks):len(hooks)], checklistitemdefinition.Hooks[:]...)
 }
 
 // CommentClient is a client for the Comment schema.
@@ -778,13 +1140,13 @@ func (c *CommentClient) Update() *CommentUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *CommentClient) UpdateOne(co *Comment) *CommentUpdateOne {
-	return c.UpdateOneID(co.ID)
+	mutation := newCommentMutation(c.config, OpUpdateOne, withComment(co))
+	return &CommentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *CommentClient) UpdateOneID(id int) *CommentUpdateOne {
-	mutation := newCommentMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newCommentMutation(c.config, OpUpdateOne, withCommentID(id))
 	return &CommentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -842,9 +1204,42 @@ func (c *CommentClient) QueryAuthor(co *Comment) *UserQuery {
 	return query
 }
 
+// QueryWorkOrder queries the work_order edge of a Comment.
+func (c *CommentClient) QueryWorkOrder(co *Comment) *WorkOrderQuery {
+	query := &WorkOrderQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := co.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(comment.Table, comment.FieldID, id),
+			sqlgraph.To(workorder.Table, workorder.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, comment.WorkOrderTable, comment.WorkOrderColumn),
+		)
+		fromV = sqlgraph.Neighbors(co.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryProject queries the project edge of a Comment.
+func (c *CommentClient) QueryProject(co *Comment) *ProjectQuery {
+	query := &ProjectQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := co.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(comment.Table, comment.FieldID, id),
+			sqlgraph.To(project.Table, project.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, comment.ProjectTable, comment.ProjectColumn),
+		)
+		fromV = sqlgraph.Neighbors(co.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *CommentClient) Hooks() []Hook {
-	return c.hooks.Comment
+	hooks := c.hooks.Comment
+	return append(hooks[:len(hooks):len(hooks)], comment.Hooks[:]...)
 }
 
 // CustomerClient is a client for the Customer schema.
@@ -877,13 +1272,13 @@ func (c *CustomerClient) Update() *CustomerUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *CustomerClient) UpdateOne(cu *Customer) *CustomerUpdateOne {
-	return c.UpdateOneID(cu.ID)
+	mutation := newCustomerMutation(c.config, OpUpdateOne, withCustomer(cu))
+	return &CustomerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *CustomerClient) UpdateOneID(id int) *CustomerUpdateOne {
-	mutation := newCustomerMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newCustomerMutation(c.config, OpUpdateOne, withCustomerID(id))
 	return &CustomerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -943,7 +1338,8 @@ func (c *CustomerClient) QueryServices(cu *Customer) *ServiceQuery {
 
 // Hooks returns the client hooks.
 func (c *CustomerClient) Hooks() []Hook {
-	return c.hooks.Customer
+	hooks := c.hooks.Customer
+	return append(hooks[:len(hooks):len(hooks)], customer.Hooks[:]...)
 }
 
 // EquipmentClient is a client for the Equipment schema.
@@ -976,13 +1372,13 @@ func (c *EquipmentClient) Update() *EquipmentUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *EquipmentClient) UpdateOne(e *Equipment) *EquipmentUpdateOne {
-	return c.UpdateOneID(e.ID)
+	mutation := newEquipmentMutation(c.config, OpUpdateOne, withEquipment(e))
+	return &EquipmentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *EquipmentClient) UpdateOneID(id int) *EquipmentUpdateOne {
-	mutation := newEquipmentMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newEquipmentMutation(c.config, OpUpdateOne, withEquipmentID(id))
 	return &EquipmentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -1168,9 +1564,26 @@ func (c *EquipmentClient) QueryHyperlinks(e *Equipment) *HyperlinkQuery {
 	return query
 }
 
+// QueryEndpoints queries the endpoints edge of a Equipment.
+func (c *EquipmentClient) QueryEndpoints(e *Equipment) *ServiceEndpointQuery {
+	query := &ServiceEndpointQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := e.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(equipment.Table, equipment.FieldID, id),
+			sqlgraph.To(serviceendpoint.Table, serviceendpoint.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, equipment.EndpointsTable, equipment.EndpointsColumn),
+		)
+		fromV = sqlgraph.Neighbors(e.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *EquipmentClient) Hooks() []Hook {
-	return c.hooks.Equipment
+	hooks := c.hooks.Equipment
+	return append(hooks[:len(hooks):len(hooks)], equipment.Hooks[:]...)
 }
 
 // EquipmentCategoryClient is a client for the EquipmentCategory schema.
@@ -1203,13 +1616,13 @@ func (c *EquipmentCategoryClient) Update() *EquipmentCategoryUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *EquipmentCategoryClient) UpdateOne(ec *EquipmentCategory) *EquipmentCategoryUpdateOne {
-	return c.UpdateOneID(ec.ID)
+	mutation := newEquipmentCategoryMutation(c.config, OpUpdateOne, withEquipmentCategory(ec))
+	return &EquipmentCategoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *EquipmentCategoryClient) UpdateOneID(id int) *EquipmentCategoryUpdateOne {
-	mutation := newEquipmentCategoryMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newEquipmentCategoryMutation(c.config, OpUpdateOne, withEquipmentCategoryID(id))
 	return &EquipmentCategoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -1269,7 +1682,8 @@ func (c *EquipmentCategoryClient) QueryTypes(ec *EquipmentCategory) *EquipmentTy
 
 // Hooks returns the client hooks.
 func (c *EquipmentCategoryClient) Hooks() []Hook {
-	return c.hooks.EquipmentCategory
+	hooks := c.hooks.EquipmentCategory
+	return append(hooks[:len(hooks):len(hooks)], equipmentcategory.Hooks[:]...)
 }
 
 // EquipmentPortClient is a client for the EquipmentPort schema.
@@ -1302,13 +1716,13 @@ func (c *EquipmentPortClient) Update() *EquipmentPortUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *EquipmentPortClient) UpdateOne(ep *EquipmentPort) *EquipmentPortUpdateOne {
-	return c.UpdateOneID(ep.ID)
+	mutation := newEquipmentPortMutation(c.config, OpUpdateOne, withEquipmentPort(ep))
+	return &EquipmentPortUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *EquipmentPortClient) UpdateOneID(id int) *EquipmentPortUpdateOne {
-	mutation := newEquipmentPortMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newEquipmentPortMutation(c.config, OpUpdateOne, withEquipmentPortID(id))
 	return &EquipmentPortUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -1432,7 +1846,8 @@ func (c *EquipmentPortClient) QueryEndpoints(ep *EquipmentPort) *ServiceEndpoint
 
 // Hooks returns the client hooks.
 func (c *EquipmentPortClient) Hooks() []Hook {
-	return c.hooks.EquipmentPort
+	hooks := c.hooks.EquipmentPort
+	return append(hooks[:len(hooks):len(hooks)], equipmentport.Hooks[:]...)
 }
 
 // EquipmentPortDefinitionClient is a client for the EquipmentPortDefinition schema.
@@ -1465,13 +1880,13 @@ func (c *EquipmentPortDefinitionClient) Update() *EquipmentPortDefinitionUpdate 
 
 // UpdateOne returns an update builder for the given entity.
 func (c *EquipmentPortDefinitionClient) UpdateOne(epd *EquipmentPortDefinition) *EquipmentPortDefinitionUpdateOne {
-	return c.UpdateOneID(epd.ID)
+	mutation := newEquipmentPortDefinitionMutation(c.config, OpUpdateOne, withEquipmentPortDefinition(epd))
+	return &EquipmentPortDefinitionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *EquipmentPortDefinitionClient) UpdateOneID(id int) *EquipmentPortDefinitionUpdateOne {
-	mutation := newEquipmentPortDefinitionMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newEquipmentPortDefinitionMutation(c.config, OpUpdateOne, withEquipmentPortDefinitionID(id))
 	return &EquipmentPortDefinitionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -1563,7 +1978,8 @@ func (c *EquipmentPortDefinitionClient) QueryEquipmentType(epd *EquipmentPortDef
 
 // Hooks returns the client hooks.
 func (c *EquipmentPortDefinitionClient) Hooks() []Hook {
-	return c.hooks.EquipmentPortDefinition
+	hooks := c.hooks.EquipmentPortDefinition
+	return append(hooks[:len(hooks):len(hooks)], equipmentportdefinition.Hooks[:]...)
 }
 
 // EquipmentPortTypeClient is a client for the EquipmentPortType schema.
@@ -1596,13 +2012,13 @@ func (c *EquipmentPortTypeClient) Update() *EquipmentPortTypeUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *EquipmentPortTypeClient) UpdateOne(ept *EquipmentPortType) *EquipmentPortTypeUpdateOne {
-	return c.UpdateOneID(ept.ID)
+	mutation := newEquipmentPortTypeMutation(c.config, OpUpdateOne, withEquipmentPortType(ept))
+	return &EquipmentPortTypeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *EquipmentPortTypeClient) UpdateOneID(id int) *EquipmentPortTypeUpdateOne {
-	mutation := newEquipmentPortTypeMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newEquipmentPortTypeMutation(c.config, OpUpdateOne, withEquipmentPortTypeID(id))
 	return &EquipmentPortTypeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -1694,7 +2110,8 @@ func (c *EquipmentPortTypeClient) QueryPortDefinitions(ept *EquipmentPortType) *
 
 // Hooks returns the client hooks.
 func (c *EquipmentPortTypeClient) Hooks() []Hook {
-	return c.hooks.EquipmentPortType
+	hooks := c.hooks.EquipmentPortType
+	return append(hooks[:len(hooks):len(hooks)], equipmentporttype.Hooks[:]...)
 }
 
 // EquipmentPositionClient is a client for the EquipmentPosition schema.
@@ -1727,13 +2144,13 @@ func (c *EquipmentPositionClient) Update() *EquipmentPositionUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *EquipmentPositionClient) UpdateOne(ep *EquipmentPosition) *EquipmentPositionUpdateOne {
-	return c.UpdateOneID(ep.ID)
+	mutation := newEquipmentPositionMutation(c.config, OpUpdateOne, withEquipmentPosition(ep))
+	return &EquipmentPositionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *EquipmentPositionClient) UpdateOneID(id int) *EquipmentPositionUpdateOne {
-	mutation := newEquipmentPositionMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newEquipmentPositionMutation(c.config, OpUpdateOne, withEquipmentPositionID(id))
 	return &EquipmentPositionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -1825,7 +2242,8 @@ func (c *EquipmentPositionClient) QueryAttachment(ep *EquipmentPosition) *Equipm
 
 // Hooks returns the client hooks.
 func (c *EquipmentPositionClient) Hooks() []Hook {
-	return c.hooks.EquipmentPosition
+	hooks := c.hooks.EquipmentPosition
+	return append(hooks[:len(hooks):len(hooks)], equipmentposition.Hooks[:]...)
 }
 
 // EquipmentPositionDefinitionClient is a client for the EquipmentPositionDefinition schema.
@@ -1858,13 +2276,13 @@ func (c *EquipmentPositionDefinitionClient) Update() *EquipmentPositionDefinitio
 
 // UpdateOne returns an update builder for the given entity.
 func (c *EquipmentPositionDefinitionClient) UpdateOne(epd *EquipmentPositionDefinition) *EquipmentPositionDefinitionUpdateOne {
-	return c.UpdateOneID(epd.ID)
+	mutation := newEquipmentPositionDefinitionMutation(c.config, OpUpdateOne, withEquipmentPositionDefinition(epd))
+	return &EquipmentPositionDefinitionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *EquipmentPositionDefinitionClient) UpdateOneID(id int) *EquipmentPositionDefinitionUpdateOne {
-	mutation := newEquipmentPositionDefinitionMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newEquipmentPositionDefinitionMutation(c.config, OpUpdateOne, withEquipmentPositionDefinitionID(id))
 	return &EquipmentPositionDefinitionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -1940,7 +2358,8 @@ func (c *EquipmentPositionDefinitionClient) QueryEquipmentType(epd *EquipmentPos
 
 // Hooks returns the client hooks.
 func (c *EquipmentPositionDefinitionClient) Hooks() []Hook {
-	return c.hooks.EquipmentPositionDefinition
+	hooks := c.hooks.EquipmentPositionDefinition
+	return append(hooks[:len(hooks):len(hooks)], equipmentpositiondefinition.Hooks[:]...)
 }
 
 // EquipmentTypeClient is a client for the EquipmentType schema.
@@ -1973,13 +2392,13 @@ func (c *EquipmentTypeClient) Update() *EquipmentTypeUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *EquipmentTypeClient) UpdateOne(et *EquipmentType) *EquipmentTypeUpdateOne {
-	return c.UpdateOneID(et.ID)
+	mutation := newEquipmentTypeMutation(c.config, OpUpdateOne, withEquipmentType(et))
+	return &EquipmentTypeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *EquipmentTypeClient) UpdateOneID(id int) *EquipmentTypeUpdateOne {
-	mutation := newEquipmentTypeMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newEquipmentTypeMutation(c.config, OpUpdateOne, withEquipmentTypeID(id))
 	return &EquipmentTypeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -2101,9 +2520,26 @@ func (c *EquipmentTypeClient) QueryCategory(et *EquipmentType) *EquipmentCategor
 	return query
 }
 
+// QueryServiceEndpointDefinitions queries the service_endpoint_definitions edge of a EquipmentType.
+func (c *EquipmentTypeClient) QueryServiceEndpointDefinitions(et *EquipmentType) *ServiceEndpointDefinitionQuery {
+	query := &ServiceEndpointDefinitionQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := et.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(equipmenttype.Table, equipmenttype.FieldID, id),
+			sqlgraph.To(serviceendpointdefinition.Table, serviceendpointdefinition.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, equipmenttype.ServiceEndpointDefinitionsTable, equipmenttype.ServiceEndpointDefinitionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(et.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *EquipmentTypeClient) Hooks() []Hook {
-	return c.hooks.EquipmentType
+	hooks := c.hooks.EquipmentType
+	return append(hooks[:len(hooks):len(hooks)], equipmenttype.Hooks[:]...)
 }
 
 // FileClient is a client for the File schema.
@@ -2136,13 +2572,13 @@ func (c *FileClient) Update() *FileUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *FileClient) UpdateOne(f *File) *FileUpdateOne {
-	return c.UpdateOneID(f.ID)
+	mutation := newFileMutation(c.config, OpUpdateOne, withFile(f))
+	return &FileUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *FileClient) UpdateOneID(id int) *FileUpdateOne {
-	mutation := newFileMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newFileMutation(c.config, OpUpdateOne, withFileID(id))
 	return &FileUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -2184,9 +2620,154 @@ func (c *FileClient) GetX(ctx context.Context, id int) *File {
 	return f
 }
 
+// QueryLocation queries the location edge of a File.
+func (c *FileClient) QueryLocation(f *File) *LocationQuery {
+	query := &LocationQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := f.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(file.Table, file.FieldID, id),
+			sqlgraph.To(location.Table, location.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, file.LocationTable, file.LocationColumn),
+		)
+		fromV = sqlgraph.Neighbors(f.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryEquipment queries the equipment edge of a File.
+func (c *FileClient) QueryEquipment(f *File) *EquipmentQuery {
+	query := &EquipmentQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := f.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(file.Table, file.FieldID, id),
+			sqlgraph.To(equipment.Table, equipment.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, file.EquipmentTable, file.EquipmentColumn),
+		)
+		fromV = sqlgraph.Neighbors(f.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUser queries the user edge of a File.
+func (c *FileClient) QueryUser(f *File) *UserQuery {
+	query := &UserQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := f.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(file.Table, file.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, file.UserTable, file.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(f.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryWorkOrder queries the work_order edge of a File.
+func (c *FileClient) QueryWorkOrder(f *File) *WorkOrderQuery {
+	query := &WorkOrderQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := f.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(file.Table, file.FieldID, id),
+			sqlgraph.To(workorder.Table, workorder.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, file.WorkOrderTable, file.WorkOrderColumn),
+		)
+		fromV = sqlgraph.Neighbors(f.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryChecklistItem queries the checklist_item edge of a File.
+func (c *FileClient) QueryChecklistItem(f *File) *CheckListItemQuery {
+	query := &CheckListItemQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := f.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(file.Table, file.FieldID, id),
+			sqlgraph.To(checklistitem.Table, checklistitem.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, file.ChecklistItemTable, file.ChecklistItemColumn),
+		)
+		fromV = sqlgraph.Neighbors(f.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySurvey queries the survey edge of a File.
+func (c *FileClient) QuerySurvey(f *File) *SurveyQuery {
+	query := &SurveyQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := f.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(file.Table, file.FieldID, id),
+			sqlgraph.To(survey.Table, survey.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, file.SurveyTable, file.SurveyColumn),
+		)
+		fromV = sqlgraph.Neighbors(f.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryFloorPlan queries the floor_plan edge of a File.
+func (c *FileClient) QueryFloorPlan(f *File) *FloorPlanQuery {
+	query := &FloorPlanQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := f.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(file.Table, file.FieldID, id),
+			sqlgraph.To(floorplan.Table, floorplan.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, file.FloorPlanTable, file.FloorPlanColumn),
+		)
+		fromV = sqlgraph.Neighbors(f.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryPhotoSurveyQuestion queries the photo_survey_question edge of a File.
+func (c *FileClient) QueryPhotoSurveyQuestion(f *File) *SurveyQuestionQuery {
+	query := &SurveyQuestionQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := f.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(file.Table, file.FieldID, id),
+			sqlgraph.To(surveyquestion.Table, surveyquestion.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, file.PhotoSurveyQuestionTable, file.PhotoSurveyQuestionColumn),
+		)
+		fromV = sqlgraph.Neighbors(f.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySurveyQuestion queries the survey_question edge of a File.
+func (c *FileClient) QuerySurveyQuestion(f *File) *SurveyQuestionQuery {
+	query := &SurveyQuestionQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := f.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(file.Table, file.FieldID, id),
+			sqlgraph.To(surveyquestion.Table, surveyquestion.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, file.SurveyQuestionTable, file.SurveyQuestionColumn),
+		)
+		fromV = sqlgraph.Neighbors(f.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *FileClient) Hooks() []Hook {
-	return c.hooks.File
+	hooks := c.hooks.File
+	return append(hooks[:len(hooks):len(hooks)], file.Hooks[:]...)
 }
 
 // FloorPlanClient is a client for the FloorPlan schema.
@@ -2219,13 +2800,13 @@ func (c *FloorPlanClient) Update() *FloorPlanUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *FloorPlanClient) UpdateOne(fp *FloorPlan) *FloorPlanUpdateOne {
-	return c.UpdateOneID(fp.ID)
+	mutation := newFloorPlanMutation(c.config, OpUpdateOne, withFloorPlan(fp))
+	return &FloorPlanUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *FloorPlanClient) UpdateOneID(id int) *FloorPlanUpdateOne {
-	mutation := newFloorPlanMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newFloorPlanMutation(c.config, OpUpdateOne, withFloorPlanID(id))
 	return &FloorPlanUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -2323,7 +2904,7 @@ func (c *FloorPlanClient) QueryImage(fp *FloorPlan) *FileQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(floorplan.Table, floorplan.FieldID, id),
 			sqlgraph.To(file.Table, file.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, floorplan.ImageTable, floorplan.ImageColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, floorplan.ImageTable, floorplan.ImageColumn),
 		)
 		fromV = sqlgraph.Neighbors(fp.driver.Dialect(), step)
 		return fromV, nil
@@ -2333,7 +2914,8 @@ func (c *FloorPlanClient) QueryImage(fp *FloorPlan) *FileQuery {
 
 // Hooks returns the client hooks.
 func (c *FloorPlanClient) Hooks() []Hook {
-	return c.hooks.FloorPlan
+	hooks := c.hooks.FloorPlan
+	return append(hooks[:len(hooks):len(hooks)], floorplan.Hooks[:]...)
 }
 
 // FloorPlanReferencePointClient is a client for the FloorPlanReferencePoint schema.
@@ -2366,13 +2948,13 @@ func (c *FloorPlanReferencePointClient) Update() *FloorPlanReferencePointUpdate 
 
 // UpdateOne returns an update builder for the given entity.
 func (c *FloorPlanReferencePointClient) UpdateOne(fprp *FloorPlanReferencePoint) *FloorPlanReferencePointUpdateOne {
-	return c.UpdateOneID(fprp.ID)
+	mutation := newFloorPlanReferencePointMutation(c.config, OpUpdateOne, withFloorPlanReferencePoint(fprp))
+	return &FloorPlanReferencePointUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *FloorPlanReferencePointClient) UpdateOneID(id int) *FloorPlanReferencePointUpdateOne {
-	mutation := newFloorPlanReferencePointMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newFloorPlanReferencePointMutation(c.config, OpUpdateOne, withFloorPlanReferencePointID(id))
 	return &FloorPlanReferencePointUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -2416,7 +2998,8 @@ func (c *FloorPlanReferencePointClient) GetX(ctx context.Context, id int) *Floor
 
 // Hooks returns the client hooks.
 func (c *FloorPlanReferencePointClient) Hooks() []Hook {
-	return c.hooks.FloorPlanReferencePoint
+	hooks := c.hooks.FloorPlanReferencePoint
+	return append(hooks[:len(hooks):len(hooks)], floorplanreferencepoint.Hooks[:]...)
 }
 
 // FloorPlanScaleClient is a client for the FloorPlanScale schema.
@@ -2449,13 +3032,13 @@ func (c *FloorPlanScaleClient) Update() *FloorPlanScaleUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *FloorPlanScaleClient) UpdateOne(fps *FloorPlanScale) *FloorPlanScaleUpdateOne {
-	return c.UpdateOneID(fps.ID)
+	mutation := newFloorPlanScaleMutation(c.config, OpUpdateOne, withFloorPlanScale(fps))
+	return &FloorPlanScaleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *FloorPlanScaleClient) UpdateOneID(id int) *FloorPlanScaleUpdateOne {
-	mutation := newFloorPlanScaleMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newFloorPlanScaleMutation(c.config, OpUpdateOne, withFloorPlanScaleID(id))
 	return &FloorPlanScaleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -2499,7 +3082,8 @@ func (c *FloorPlanScaleClient) GetX(ctx context.Context, id int) *FloorPlanScale
 
 // Hooks returns the client hooks.
 func (c *FloorPlanScaleClient) Hooks() []Hook {
-	return c.hooks.FloorPlanScale
+	hooks := c.hooks.FloorPlanScale
+	return append(hooks[:len(hooks):len(hooks)], floorplanscale.Hooks[:]...)
 }
 
 // HyperlinkClient is a client for the Hyperlink schema.
@@ -2532,13 +3116,13 @@ func (c *HyperlinkClient) Update() *HyperlinkUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *HyperlinkClient) UpdateOne(h *Hyperlink) *HyperlinkUpdateOne {
-	return c.UpdateOneID(h.ID)
+	mutation := newHyperlinkMutation(c.config, OpUpdateOne, withHyperlink(h))
+	return &HyperlinkUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *HyperlinkClient) UpdateOneID(id int) *HyperlinkUpdateOne {
-	mutation := newHyperlinkMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newHyperlinkMutation(c.config, OpUpdateOne, withHyperlinkID(id))
 	return &HyperlinkUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -2580,9 +3164,58 @@ func (c *HyperlinkClient) GetX(ctx context.Context, id int) *Hyperlink {
 	return h
 }
 
+// QueryEquipment queries the equipment edge of a Hyperlink.
+func (c *HyperlinkClient) QueryEquipment(h *Hyperlink) *EquipmentQuery {
+	query := &EquipmentQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := h.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(hyperlink.Table, hyperlink.FieldID, id),
+			sqlgraph.To(equipment.Table, equipment.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, hyperlink.EquipmentTable, hyperlink.EquipmentColumn),
+		)
+		fromV = sqlgraph.Neighbors(h.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryLocation queries the location edge of a Hyperlink.
+func (c *HyperlinkClient) QueryLocation(h *Hyperlink) *LocationQuery {
+	query := &LocationQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := h.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(hyperlink.Table, hyperlink.FieldID, id),
+			sqlgraph.To(location.Table, location.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, hyperlink.LocationTable, hyperlink.LocationColumn),
+		)
+		fromV = sqlgraph.Neighbors(h.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryWorkOrder queries the work_order edge of a Hyperlink.
+func (c *HyperlinkClient) QueryWorkOrder(h *Hyperlink) *WorkOrderQuery {
+	query := &WorkOrderQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := h.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(hyperlink.Table, hyperlink.FieldID, id),
+			sqlgraph.To(workorder.Table, workorder.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, hyperlink.WorkOrderTable, hyperlink.WorkOrderColumn),
+		)
+		fromV = sqlgraph.Neighbors(h.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *HyperlinkClient) Hooks() []Hook {
-	return c.hooks.Hyperlink
+	hooks := c.hooks.Hyperlink
+	return append(hooks[:len(hooks):len(hooks)], hyperlink.Hooks[:]...)
 }
 
 // LinkClient is a client for the Link schema.
@@ -2615,13 +3248,13 @@ func (c *LinkClient) Update() *LinkUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *LinkClient) UpdateOne(l *Link) *LinkUpdateOne {
-	return c.UpdateOneID(l.ID)
+	mutation := newLinkMutation(c.config, OpUpdateOne, withLink(l))
+	return &LinkUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *LinkClient) UpdateOneID(id int) *LinkUpdateOne {
-	mutation := newLinkMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newLinkMutation(c.config, OpUpdateOne, withLinkID(id))
 	return &LinkUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -2729,7 +3362,8 @@ func (c *LinkClient) QueryService(l *Link) *ServiceQuery {
 
 // Hooks returns the client hooks.
 func (c *LinkClient) Hooks() []Hook {
-	return c.hooks.Link
+	hooks := c.hooks.Link
+	return append(hooks[:len(hooks):len(hooks)], link.Hooks[:]...)
 }
 
 // LocationClient is a client for the Location schema.
@@ -2762,13 +3396,13 @@ func (c *LocationClient) Update() *LocationUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *LocationClient) UpdateOne(l *Location) *LocationUpdateOne {
-	return c.UpdateOneID(l.ID)
+	mutation := newLocationMutation(c.config, OpUpdateOne, withLocation(l))
+	return &LocationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *LocationClient) UpdateOneID(id int) *LocationUpdateOne {
-	mutation := newLocationMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newLocationMutation(c.config, OpUpdateOne, withLocationID(id))
 	return &LocationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -3004,7 +3638,8 @@ func (c *LocationClient) QueryFloorPlans(l *Location) *FloorPlanQuery {
 
 // Hooks returns the client hooks.
 func (c *LocationClient) Hooks() []Hook {
-	return c.hooks.Location
+	hooks := c.hooks.Location
+	return append(hooks[:len(hooks):len(hooks)], location.Hooks[:]...)
 }
 
 // LocationTypeClient is a client for the LocationType schema.
@@ -3037,13 +3672,13 @@ func (c *LocationTypeClient) Update() *LocationTypeUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *LocationTypeClient) UpdateOne(lt *LocationType) *LocationTypeUpdateOne {
-	return c.UpdateOneID(lt.ID)
+	mutation := newLocationTypeMutation(c.config, OpUpdateOne, withLocationType(lt))
+	return &LocationTypeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *LocationTypeClient) UpdateOneID(id int) *LocationTypeUpdateOne {
-	mutation := newLocationTypeMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newLocationTypeMutation(c.config, OpUpdateOne, withLocationTypeID(id))
 	return &LocationTypeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -3135,7 +3770,108 @@ func (c *LocationTypeClient) QuerySurveyTemplateCategories(lt *LocationType) *Su
 
 // Hooks returns the client hooks.
 func (c *LocationTypeClient) Hooks() []Hook {
-	return c.hooks.LocationType
+	hooks := c.hooks.LocationType
+	return append(hooks[:len(hooks):len(hooks)], locationtype.Hooks[:]...)
+}
+
+// PermissionsPolicyClient is a client for the PermissionsPolicy schema.
+type PermissionsPolicyClient struct {
+	config
+}
+
+// NewPermissionsPolicyClient returns a client for the PermissionsPolicy from the given config.
+func NewPermissionsPolicyClient(c config) *PermissionsPolicyClient {
+	return &PermissionsPolicyClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `permissionspolicy.Hooks(f(g(h())))`.
+func (c *PermissionsPolicyClient) Use(hooks ...Hook) {
+	c.hooks.PermissionsPolicy = append(c.hooks.PermissionsPolicy, hooks...)
+}
+
+// Create returns a create builder for PermissionsPolicy.
+func (c *PermissionsPolicyClient) Create() *PermissionsPolicyCreate {
+	mutation := newPermissionsPolicyMutation(c.config, OpCreate)
+	return &PermissionsPolicyCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Update returns an update builder for PermissionsPolicy.
+func (c *PermissionsPolicyClient) Update() *PermissionsPolicyUpdate {
+	mutation := newPermissionsPolicyMutation(c.config, OpUpdate)
+	return &PermissionsPolicyUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PermissionsPolicyClient) UpdateOne(pp *PermissionsPolicy) *PermissionsPolicyUpdateOne {
+	mutation := newPermissionsPolicyMutation(c.config, OpUpdateOne, withPermissionsPolicy(pp))
+	return &PermissionsPolicyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PermissionsPolicyClient) UpdateOneID(id int) *PermissionsPolicyUpdateOne {
+	mutation := newPermissionsPolicyMutation(c.config, OpUpdateOne, withPermissionsPolicyID(id))
+	return &PermissionsPolicyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for PermissionsPolicy.
+func (c *PermissionsPolicyClient) Delete() *PermissionsPolicyDelete {
+	mutation := newPermissionsPolicyMutation(c.config, OpDelete)
+	return &PermissionsPolicyDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *PermissionsPolicyClient) DeleteOne(pp *PermissionsPolicy) *PermissionsPolicyDeleteOne {
+	return c.DeleteOneID(pp.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *PermissionsPolicyClient) DeleteOneID(id int) *PermissionsPolicyDeleteOne {
+	builder := c.Delete().Where(permissionspolicy.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PermissionsPolicyDeleteOne{builder}
+}
+
+// Create returns a query builder for PermissionsPolicy.
+func (c *PermissionsPolicyClient) Query() *PermissionsPolicyQuery {
+	return &PermissionsPolicyQuery{config: c.config}
+}
+
+// Get returns a PermissionsPolicy entity by its id.
+func (c *PermissionsPolicyClient) Get(ctx context.Context, id int) (*PermissionsPolicy, error) {
+	return c.Query().Where(permissionspolicy.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PermissionsPolicyClient) GetX(ctx context.Context, id int) *PermissionsPolicy {
+	pp, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return pp
+}
+
+// QueryGroups queries the groups edge of a PermissionsPolicy.
+func (c *PermissionsPolicyClient) QueryGroups(pp *PermissionsPolicy) *UsersGroupQuery {
+	query := &UsersGroupQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := pp.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(permissionspolicy.Table, permissionspolicy.FieldID, id),
+			sqlgraph.To(usersgroup.Table, usersgroup.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, permissionspolicy.GroupsTable, permissionspolicy.GroupsPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(pp.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *PermissionsPolicyClient) Hooks() []Hook {
+	hooks := c.hooks.PermissionsPolicy
+	return append(hooks[:len(hooks):len(hooks)], permissionspolicy.Hooks[:]...)
 }
 
 // ProjectClient is a client for the Project schema.
@@ -3168,13 +3904,13 @@ func (c *ProjectClient) Update() *ProjectUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *ProjectClient) UpdateOne(pr *Project) *ProjectUpdateOne {
-	return c.UpdateOneID(pr.ID)
+	mutation := newProjectMutation(c.config, OpUpdateOne, withProject(pr))
+	return &ProjectUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *ProjectClient) UpdateOneID(id int) *ProjectUpdateOne {
-	mutation := newProjectMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newProjectMutation(c.config, OpUpdateOne, withProjectID(id))
 	return &ProjectUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -3314,7 +4050,8 @@ func (c *ProjectClient) QueryCreator(pr *Project) *UserQuery {
 
 // Hooks returns the client hooks.
 func (c *ProjectClient) Hooks() []Hook {
-	return c.hooks.Project
+	hooks := c.hooks.Project
+	return append(hooks[:len(hooks):len(hooks)], project.Hooks[:]...)
 }
 
 // ProjectTypeClient is a client for the ProjectType schema.
@@ -3347,13 +4084,13 @@ func (c *ProjectTypeClient) Update() *ProjectTypeUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *ProjectTypeClient) UpdateOne(pt *ProjectType) *ProjectTypeUpdateOne {
-	return c.UpdateOneID(pt.ID)
+	mutation := newProjectTypeMutation(c.config, OpUpdateOne, withProjectType(pt))
+	return &ProjectTypeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *ProjectTypeClient) UpdateOneID(id int) *ProjectTypeUpdateOne {
-	mutation := newProjectTypeMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newProjectTypeMutation(c.config, OpUpdateOne, withProjectTypeID(id))
 	return &ProjectTypeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -3445,7 +4182,8 @@ func (c *ProjectTypeClient) QueryWorkOrders(pt *ProjectType) *WorkOrderDefinitio
 
 // Hooks returns the client hooks.
 func (c *ProjectTypeClient) Hooks() []Hook {
-	return c.hooks.ProjectType
+	hooks := c.hooks.ProjectType
+	return append(hooks[:len(hooks):len(hooks)], projecttype.Hooks[:]...)
 }
 
 // PropertyClient is a client for the Property schema.
@@ -3478,13 +4216,13 @@ func (c *PropertyClient) Update() *PropertyUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *PropertyClient) UpdateOne(pr *Property) *PropertyUpdateOne {
-	return c.UpdateOneID(pr.ID)
+	mutation := newPropertyMutation(c.config, OpUpdateOne, withProperty(pr))
+	return &PropertyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *PropertyClient) UpdateOneID(id int) *PropertyUpdateOne {
-	mutation := newPropertyMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newPropertyMutation(c.config, OpUpdateOne, withPropertyID(id))
 	return &PropertyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -3702,9 +4440,42 @@ func (c *PropertyClient) QueryServiceValue(pr *Property) *ServiceQuery {
 	return query
 }
 
+// QueryWorkOrderValue queries the work_order_value edge of a Property.
+func (c *PropertyClient) QueryWorkOrderValue(pr *Property) *WorkOrderQuery {
+	query := &WorkOrderQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := pr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(property.Table, property.FieldID, id),
+			sqlgraph.To(workorder.Table, workorder.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, property.WorkOrderValueTable, property.WorkOrderValueColumn),
+		)
+		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUserValue queries the user_value edge of a Property.
+func (c *PropertyClient) QueryUserValue(pr *Property) *UserQuery {
+	query := &UserQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := pr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(property.Table, property.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, property.UserValueTable, property.UserValueColumn),
+		)
+		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *PropertyClient) Hooks() []Hook {
-	return c.hooks.Property
+	hooks := c.hooks.Property
+	return append(hooks[:len(hooks):len(hooks)], property.Hooks[:]...)
 }
 
 // PropertyTypeClient is a client for the PropertyType schema.
@@ -3737,13 +4508,13 @@ func (c *PropertyTypeClient) Update() *PropertyTypeUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *PropertyTypeClient) UpdateOne(pt *PropertyType) *PropertyTypeUpdateOne {
-	return c.UpdateOneID(pt.ID)
+	mutation := newPropertyTypeMutation(c.config, OpUpdateOne, withPropertyType(pt))
+	return &PropertyTypeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *PropertyTypeClient) UpdateOneID(id int) *PropertyTypeUpdateOne {
-	mutation := newPropertyTypeMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newPropertyTypeMutation(c.config, OpUpdateOne, withPropertyTypeID(id))
 	return &PropertyTypeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -3915,7 +4686,8 @@ func (c *PropertyTypeClient) QueryProjectType(pt *PropertyType) *ProjectTypeQuer
 
 // Hooks returns the client hooks.
 func (c *PropertyTypeClient) Hooks() []Hook {
-	return c.hooks.PropertyType
+	hooks := c.hooks.PropertyType
+	return append(hooks[:len(hooks):len(hooks)], propertytype.Hooks[:]...)
 }
 
 // ReportFilterClient is a client for the ReportFilter schema.
@@ -3948,13 +4720,13 @@ func (c *ReportFilterClient) Update() *ReportFilterUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *ReportFilterClient) UpdateOne(rf *ReportFilter) *ReportFilterUpdateOne {
-	return c.UpdateOneID(rf.ID)
+	mutation := newReportFilterMutation(c.config, OpUpdateOne, withReportFilter(rf))
+	return &ReportFilterUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *ReportFilterClient) UpdateOneID(id int) *ReportFilterUpdateOne {
-	mutation := newReportFilterMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newReportFilterMutation(c.config, OpUpdateOne, withReportFilterID(id))
 	return &ReportFilterUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -3998,7 +4770,8 @@ func (c *ReportFilterClient) GetX(ctx context.Context, id int) *ReportFilter {
 
 // Hooks returns the client hooks.
 func (c *ReportFilterClient) Hooks() []Hook {
-	return c.hooks.ReportFilter
+	hooks := c.hooks.ReportFilter
+	return append(hooks[:len(hooks):len(hooks)], reportfilter.Hooks[:]...)
 }
 
 // ServiceClient is a client for the Service schema.
@@ -4031,13 +4804,13 @@ func (c *ServiceClient) Update() *ServiceUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *ServiceClient) UpdateOne(s *Service) *ServiceUpdateOne {
-	return c.UpdateOneID(s.ID)
+	mutation := newServiceMutation(c.config, OpUpdateOne, withService(s))
+	return &ServiceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *ServiceClient) UpdateOneID(id int) *ServiceUpdateOne {
-	mutation := newServiceMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newServiceMutation(c.config, OpUpdateOne, withServiceID(id))
 	return &ServiceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -4193,7 +4966,8 @@ func (c *ServiceClient) QueryEndpoints(s *Service) *ServiceEndpointQuery {
 
 // Hooks returns the client hooks.
 func (c *ServiceClient) Hooks() []Hook {
-	return c.hooks.Service
+	hooks := c.hooks.Service
+	return append(hooks[:len(hooks):len(hooks)], service.Hooks[:]...)
 }
 
 // ServiceEndpointClient is a client for the ServiceEndpoint schema.
@@ -4226,13 +5000,13 @@ func (c *ServiceEndpointClient) Update() *ServiceEndpointUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *ServiceEndpointClient) UpdateOne(se *ServiceEndpoint) *ServiceEndpointUpdateOne {
-	return c.UpdateOneID(se.ID)
+	mutation := newServiceEndpointMutation(c.config, OpUpdateOne, withServiceEndpoint(se))
+	return &ServiceEndpointUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *ServiceEndpointClient) UpdateOneID(id int) *ServiceEndpointUpdateOne {
-	mutation := newServiceEndpointMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newServiceEndpointMutation(c.config, OpUpdateOne, withServiceEndpointID(id))
 	return &ServiceEndpointUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -4290,6 +5064,22 @@ func (c *ServiceEndpointClient) QueryPort(se *ServiceEndpoint) *EquipmentPortQue
 	return query
 }
 
+// QueryEquipment queries the equipment edge of a ServiceEndpoint.
+func (c *ServiceEndpointClient) QueryEquipment(se *ServiceEndpoint) *EquipmentQuery {
+	query := &EquipmentQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := se.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(serviceendpoint.Table, serviceendpoint.FieldID, id),
+			sqlgraph.To(equipment.Table, equipment.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, serviceendpoint.EquipmentTable, serviceendpoint.EquipmentColumn),
+		)
+		fromV = sqlgraph.Neighbors(se.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryService queries the service edge of a ServiceEndpoint.
 func (c *ServiceEndpointClient) QueryService(se *ServiceEndpoint) *ServiceQuery {
 	query := &ServiceQuery{config: c.config}
@@ -4306,9 +5096,158 @@ func (c *ServiceEndpointClient) QueryService(se *ServiceEndpoint) *ServiceQuery 
 	return query
 }
 
+// QueryDefinition queries the definition edge of a ServiceEndpoint.
+func (c *ServiceEndpointClient) QueryDefinition(se *ServiceEndpoint) *ServiceEndpointDefinitionQuery {
+	query := &ServiceEndpointDefinitionQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := se.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(serviceendpoint.Table, serviceendpoint.FieldID, id),
+			sqlgraph.To(serviceendpointdefinition.Table, serviceendpointdefinition.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, serviceendpoint.DefinitionTable, serviceendpoint.DefinitionColumn),
+		)
+		fromV = sqlgraph.Neighbors(se.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *ServiceEndpointClient) Hooks() []Hook {
-	return c.hooks.ServiceEndpoint
+	hooks := c.hooks.ServiceEndpoint
+	return append(hooks[:len(hooks):len(hooks)], serviceendpoint.Hooks[:]...)
+}
+
+// ServiceEndpointDefinitionClient is a client for the ServiceEndpointDefinition schema.
+type ServiceEndpointDefinitionClient struct {
+	config
+}
+
+// NewServiceEndpointDefinitionClient returns a client for the ServiceEndpointDefinition from the given config.
+func NewServiceEndpointDefinitionClient(c config) *ServiceEndpointDefinitionClient {
+	return &ServiceEndpointDefinitionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `serviceendpointdefinition.Hooks(f(g(h())))`.
+func (c *ServiceEndpointDefinitionClient) Use(hooks ...Hook) {
+	c.hooks.ServiceEndpointDefinition = append(c.hooks.ServiceEndpointDefinition, hooks...)
+}
+
+// Create returns a create builder for ServiceEndpointDefinition.
+func (c *ServiceEndpointDefinitionClient) Create() *ServiceEndpointDefinitionCreate {
+	mutation := newServiceEndpointDefinitionMutation(c.config, OpCreate)
+	return &ServiceEndpointDefinitionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Update returns an update builder for ServiceEndpointDefinition.
+func (c *ServiceEndpointDefinitionClient) Update() *ServiceEndpointDefinitionUpdate {
+	mutation := newServiceEndpointDefinitionMutation(c.config, OpUpdate)
+	return &ServiceEndpointDefinitionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ServiceEndpointDefinitionClient) UpdateOne(sed *ServiceEndpointDefinition) *ServiceEndpointDefinitionUpdateOne {
+	mutation := newServiceEndpointDefinitionMutation(c.config, OpUpdateOne, withServiceEndpointDefinition(sed))
+	return &ServiceEndpointDefinitionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ServiceEndpointDefinitionClient) UpdateOneID(id int) *ServiceEndpointDefinitionUpdateOne {
+	mutation := newServiceEndpointDefinitionMutation(c.config, OpUpdateOne, withServiceEndpointDefinitionID(id))
+	return &ServiceEndpointDefinitionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ServiceEndpointDefinition.
+func (c *ServiceEndpointDefinitionClient) Delete() *ServiceEndpointDefinitionDelete {
+	mutation := newServiceEndpointDefinitionMutation(c.config, OpDelete)
+	return &ServiceEndpointDefinitionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *ServiceEndpointDefinitionClient) DeleteOne(sed *ServiceEndpointDefinition) *ServiceEndpointDefinitionDeleteOne {
+	return c.DeleteOneID(sed.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *ServiceEndpointDefinitionClient) DeleteOneID(id int) *ServiceEndpointDefinitionDeleteOne {
+	builder := c.Delete().Where(serviceendpointdefinition.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ServiceEndpointDefinitionDeleteOne{builder}
+}
+
+// Create returns a query builder for ServiceEndpointDefinition.
+func (c *ServiceEndpointDefinitionClient) Query() *ServiceEndpointDefinitionQuery {
+	return &ServiceEndpointDefinitionQuery{config: c.config}
+}
+
+// Get returns a ServiceEndpointDefinition entity by its id.
+func (c *ServiceEndpointDefinitionClient) Get(ctx context.Context, id int) (*ServiceEndpointDefinition, error) {
+	return c.Query().Where(serviceendpointdefinition.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ServiceEndpointDefinitionClient) GetX(ctx context.Context, id int) *ServiceEndpointDefinition {
+	sed, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return sed
+}
+
+// QueryEndpoints queries the endpoints edge of a ServiceEndpointDefinition.
+func (c *ServiceEndpointDefinitionClient) QueryEndpoints(sed *ServiceEndpointDefinition) *ServiceEndpointQuery {
+	query := &ServiceEndpointQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := sed.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(serviceendpointdefinition.Table, serviceendpointdefinition.FieldID, id),
+			sqlgraph.To(serviceendpoint.Table, serviceendpoint.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, serviceendpointdefinition.EndpointsTable, serviceendpointdefinition.EndpointsColumn),
+		)
+		fromV = sqlgraph.Neighbors(sed.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryServiceType queries the service_type edge of a ServiceEndpointDefinition.
+func (c *ServiceEndpointDefinitionClient) QueryServiceType(sed *ServiceEndpointDefinition) *ServiceTypeQuery {
+	query := &ServiceTypeQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := sed.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(serviceendpointdefinition.Table, serviceendpointdefinition.FieldID, id),
+			sqlgraph.To(servicetype.Table, servicetype.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, serviceendpointdefinition.ServiceTypeTable, serviceendpointdefinition.ServiceTypeColumn),
+		)
+		fromV = sqlgraph.Neighbors(sed.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryEquipmentType queries the equipment_type edge of a ServiceEndpointDefinition.
+func (c *ServiceEndpointDefinitionClient) QueryEquipmentType(sed *ServiceEndpointDefinition) *EquipmentTypeQuery {
+	query := &EquipmentTypeQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := sed.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(serviceendpointdefinition.Table, serviceendpointdefinition.FieldID, id),
+			sqlgraph.To(equipmenttype.Table, equipmenttype.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, serviceendpointdefinition.EquipmentTypeTable, serviceendpointdefinition.EquipmentTypeColumn),
+		)
+		fromV = sqlgraph.Neighbors(sed.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ServiceEndpointDefinitionClient) Hooks() []Hook {
+	hooks := c.hooks.ServiceEndpointDefinition
+	return append(hooks[:len(hooks):len(hooks)], serviceendpointdefinition.Hooks[:]...)
 }
 
 // ServiceTypeClient is a client for the ServiceType schema.
@@ -4341,13 +5280,13 @@ func (c *ServiceTypeClient) Update() *ServiceTypeUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *ServiceTypeClient) UpdateOne(st *ServiceType) *ServiceTypeUpdateOne {
-	return c.UpdateOneID(st.ID)
+	mutation := newServiceTypeMutation(c.config, OpUpdateOne, withServiceType(st))
+	return &ServiceTypeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *ServiceTypeClient) UpdateOneID(id int) *ServiceTypeUpdateOne {
-	mutation := newServiceTypeMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newServiceTypeMutation(c.config, OpUpdateOne, withServiceTypeID(id))
 	return &ServiceTypeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -4421,9 +5360,26 @@ func (c *ServiceTypeClient) QueryPropertyTypes(st *ServiceType) *PropertyTypeQue
 	return query
 }
 
+// QueryEndpointDefinitions queries the endpoint_definitions edge of a ServiceType.
+func (c *ServiceTypeClient) QueryEndpointDefinitions(st *ServiceType) *ServiceEndpointDefinitionQuery {
+	query := &ServiceEndpointDefinitionQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := st.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(servicetype.Table, servicetype.FieldID, id),
+			sqlgraph.To(serviceendpointdefinition.Table, serviceendpointdefinition.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, servicetype.EndpointDefinitionsTable, servicetype.EndpointDefinitionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(st.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *ServiceTypeClient) Hooks() []Hook {
-	return c.hooks.ServiceType
+	hooks := c.hooks.ServiceType
+	return append(hooks[:len(hooks):len(hooks)], servicetype.Hooks[:]...)
 }
 
 // SurveyClient is a client for the Survey schema.
@@ -4456,13 +5412,13 @@ func (c *SurveyClient) Update() *SurveyUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *SurveyClient) UpdateOne(s *Survey) *SurveyUpdateOne {
-	return c.UpdateOneID(s.ID)
+	mutation := newSurveyMutation(c.config, OpUpdateOne, withSurvey(s))
+	return &SurveyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *SurveyClient) UpdateOneID(id int) *SurveyUpdateOne {
-	mutation := newSurveyMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newSurveyMutation(c.config, OpUpdateOne, withSurveyID(id))
 	return &SurveyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -4528,7 +5484,7 @@ func (c *SurveyClient) QuerySourceFile(s *Survey) *FileQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(survey.Table, survey.FieldID, id),
 			sqlgraph.To(file.Table, file.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, survey.SourceFileTable, survey.SourceFileColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, survey.SourceFileTable, survey.SourceFileColumn),
 		)
 		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
 		return fromV, nil
@@ -4554,7 +5510,8 @@ func (c *SurveyClient) QueryQuestions(s *Survey) *SurveyQuestionQuery {
 
 // Hooks returns the client hooks.
 func (c *SurveyClient) Hooks() []Hook {
-	return c.hooks.Survey
+	hooks := c.hooks.Survey
+	return append(hooks[:len(hooks):len(hooks)], survey.Hooks[:]...)
 }
 
 // SurveyCellScanClient is a client for the SurveyCellScan schema.
@@ -4587,13 +5544,13 @@ func (c *SurveyCellScanClient) Update() *SurveyCellScanUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *SurveyCellScanClient) UpdateOne(scs *SurveyCellScan) *SurveyCellScanUpdateOne {
-	return c.UpdateOneID(scs.ID)
+	mutation := newSurveyCellScanMutation(c.config, OpUpdateOne, withSurveyCellScan(scs))
+	return &SurveyCellScanUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *SurveyCellScanClient) UpdateOneID(id int) *SurveyCellScanUpdateOne {
-	mutation := newSurveyCellScanMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newSurveyCellScanMutation(c.config, OpUpdateOne, withSurveyCellScanID(id))
 	return &SurveyCellScanUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -4635,6 +5592,22 @@ func (c *SurveyCellScanClient) GetX(ctx context.Context, id int) *SurveyCellScan
 	return scs
 }
 
+// QueryChecklistItem queries the checklist_item edge of a SurveyCellScan.
+func (c *SurveyCellScanClient) QueryChecklistItem(scs *SurveyCellScan) *CheckListItemQuery {
+	query := &CheckListItemQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := scs.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(surveycellscan.Table, surveycellscan.FieldID, id),
+			sqlgraph.To(checklistitem.Table, checklistitem.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, surveycellscan.ChecklistItemTable, surveycellscan.ChecklistItemColumn),
+		)
+		fromV = sqlgraph.Neighbors(scs.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QuerySurveyQuestion queries the survey_question edge of a SurveyCellScan.
 func (c *SurveyCellScanClient) QuerySurveyQuestion(scs *SurveyCellScan) *SurveyQuestionQuery {
 	query := &SurveyQuestionQuery{config: c.config}
@@ -4669,7 +5642,8 @@ func (c *SurveyCellScanClient) QueryLocation(scs *SurveyCellScan) *LocationQuery
 
 // Hooks returns the client hooks.
 func (c *SurveyCellScanClient) Hooks() []Hook {
-	return c.hooks.SurveyCellScan
+	hooks := c.hooks.SurveyCellScan
+	return append(hooks[:len(hooks):len(hooks)], surveycellscan.Hooks[:]...)
 }
 
 // SurveyQuestionClient is a client for the SurveyQuestion schema.
@@ -4702,13 +5676,13 @@ func (c *SurveyQuestionClient) Update() *SurveyQuestionUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *SurveyQuestionClient) UpdateOne(sq *SurveyQuestion) *SurveyQuestionUpdateOne {
-	return c.UpdateOneID(sq.ID)
+	mutation := newSurveyQuestionMutation(c.config, OpUpdateOne, withSurveyQuestion(sq))
+	return &SurveyQuestionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *SurveyQuestionClient) UpdateOneID(id int) *SurveyQuestionUpdateOne {
-	mutation := newSurveyQuestionMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newSurveyQuestionMutation(c.config, OpUpdateOne, withSurveyQuestionID(id))
 	return &SurveyQuestionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -4814,9 +5788,26 @@ func (c *SurveyQuestionClient) QueryPhotoData(sq *SurveyQuestion) *FileQuery {
 	return query
 }
 
+// QueryImages queries the images edge of a SurveyQuestion.
+func (c *SurveyQuestionClient) QueryImages(sq *SurveyQuestion) *FileQuery {
+	query := &FileQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := sq.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(surveyquestion.Table, surveyquestion.FieldID, id),
+			sqlgraph.To(file.Table, file.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, surveyquestion.ImagesTable, surveyquestion.ImagesColumn),
+		)
+		fromV = sqlgraph.Neighbors(sq.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *SurveyQuestionClient) Hooks() []Hook {
-	return c.hooks.SurveyQuestion
+	hooks := c.hooks.SurveyQuestion
+	return append(hooks[:len(hooks):len(hooks)], surveyquestion.Hooks[:]...)
 }
 
 // SurveyTemplateCategoryClient is a client for the SurveyTemplateCategory schema.
@@ -4849,13 +5840,13 @@ func (c *SurveyTemplateCategoryClient) Update() *SurveyTemplateCategoryUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *SurveyTemplateCategoryClient) UpdateOne(stc *SurveyTemplateCategory) *SurveyTemplateCategoryUpdateOne {
-	return c.UpdateOneID(stc.ID)
+	mutation := newSurveyTemplateCategoryMutation(c.config, OpUpdateOne, withSurveyTemplateCategory(stc))
+	return &SurveyTemplateCategoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *SurveyTemplateCategoryClient) UpdateOneID(id int) *SurveyTemplateCategoryUpdateOne {
-	mutation := newSurveyTemplateCategoryMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newSurveyTemplateCategoryMutation(c.config, OpUpdateOne, withSurveyTemplateCategoryID(id))
 	return &SurveyTemplateCategoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -4913,9 +5904,26 @@ func (c *SurveyTemplateCategoryClient) QuerySurveyTemplateQuestions(stc *SurveyT
 	return query
 }
 
+// QueryLocationType queries the location_type edge of a SurveyTemplateCategory.
+func (c *SurveyTemplateCategoryClient) QueryLocationType(stc *SurveyTemplateCategory) *LocationTypeQuery {
+	query := &LocationTypeQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := stc.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(surveytemplatecategory.Table, surveytemplatecategory.FieldID, id),
+			sqlgraph.To(locationtype.Table, locationtype.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, surveytemplatecategory.LocationTypeTable, surveytemplatecategory.LocationTypeColumn),
+		)
+		fromV = sqlgraph.Neighbors(stc.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *SurveyTemplateCategoryClient) Hooks() []Hook {
-	return c.hooks.SurveyTemplateCategory
+	hooks := c.hooks.SurveyTemplateCategory
+	return append(hooks[:len(hooks):len(hooks)], surveytemplatecategory.Hooks[:]...)
 }
 
 // SurveyTemplateQuestionClient is a client for the SurveyTemplateQuestion schema.
@@ -4948,13 +5956,13 @@ func (c *SurveyTemplateQuestionClient) Update() *SurveyTemplateQuestionUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *SurveyTemplateQuestionClient) UpdateOne(stq *SurveyTemplateQuestion) *SurveyTemplateQuestionUpdateOne {
-	return c.UpdateOneID(stq.ID)
+	mutation := newSurveyTemplateQuestionMutation(c.config, OpUpdateOne, withSurveyTemplateQuestion(stq))
+	return &SurveyTemplateQuestionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *SurveyTemplateQuestionClient) UpdateOneID(id int) *SurveyTemplateQuestionUpdateOne {
-	mutation := newSurveyTemplateQuestionMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newSurveyTemplateQuestionMutation(c.config, OpUpdateOne, withSurveyTemplateQuestionID(id))
 	return &SurveyTemplateQuestionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -5014,7 +6022,8 @@ func (c *SurveyTemplateQuestionClient) QueryCategory(stq *SurveyTemplateQuestion
 
 // Hooks returns the client hooks.
 func (c *SurveyTemplateQuestionClient) Hooks() []Hook {
-	return c.hooks.SurveyTemplateQuestion
+	hooks := c.hooks.SurveyTemplateQuestion
+	return append(hooks[:len(hooks):len(hooks)], surveytemplatequestion.Hooks[:]...)
 }
 
 // SurveyWiFiScanClient is a client for the SurveyWiFiScan schema.
@@ -5047,13 +6056,13 @@ func (c *SurveyWiFiScanClient) Update() *SurveyWiFiScanUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *SurveyWiFiScanClient) UpdateOne(swfs *SurveyWiFiScan) *SurveyWiFiScanUpdateOne {
-	return c.UpdateOneID(swfs.ID)
+	mutation := newSurveyWiFiScanMutation(c.config, OpUpdateOne, withSurveyWiFiScan(swfs))
+	return &SurveyWiFiScanUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *SurveyWiFiScanClient) UpdateOneID(id int) *SurveyWiFiScanUpdateOne {
-	mutation := newSurveyWiFiScanMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newSurveyWiFiScanMutation(c.config, OpUpdateOne, withSurveyWiFiScanID(id))
 	return &SurveyWiFiScanUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -5095,6 +6104,22 @@ func (c *SurveyWiFiScanClient) GetX(ctx context.Context, id int) *SurveyWiFiScan
 	return swfs
 }
 
+// QueryChecklistItem queries the checklist_item edge of a SurveyWiFiScan.
+func (c *SurveyWiFiScanClient) QueryChecklistItem(swfs *SurveyWiFiScan) *CheckListItemQuery {
+	query := &CheckListItemQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := swfs.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(surveywifiscan.Table, surveywifiscan.FieldID, id),
+			sqlgraph.To(checklistitem.Table, checklistitem.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, surveywifiscan.ChecklistItemTable, surveywifiscan.ChecklistItemColumn),
+		)
+		fromV = sqlgraph.Neighbors(swfs.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QuerySurveyQuestion queries the survey_question edge of a SurveyWiFiScan.
 func (c *SurveyWiFiScanClient) QuerySurveyQuestion(swfs *SurveyWiFiScan) *SurveyQuestionQuery {
 	query := &SurveyQuestionQuery{config: c.config}
@@ -5129,106 +6154,8 @@ func (c *SurveyWiFiScanClient) QueryLocation(swfs *SurveyWiFiScan) *LocationQuer
 
 // Hooks returns the client hooks.
 func (c *SurveyWiFiScanClient) Hooks() []Hook {
-	return c.hooks.SurveyWiFiScan
-}
-
-// TechnicianClient is a client for the Technician schema.
-type TechnicianClient struct {
-	config
-}
-
-// NewTechnicianClient returns a client for the Technician from the given config.
-func NewTechnicianClient(c config) *TechnicianClient {
-	return &TechnicianClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `technician.Hooks(f(g(h())))`.
-func (c *TechnicianClient) Use(hooks ...Hook) {
-	c.hooks.Technician = append(c.hooks.Technician, hooks...)
-}
-
-// Create returns a create builder for Technician.
-func (c *TechnicianClient) Create() *TechnicianCreate {
-	mutation := newTechnicianMutation(c.config, OpCreate)
-	return &TechnicianCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Update returns an update builder for Technician.
-func (c *TechnicianClient) Update() *TechnicianUpdate {
-	mutation := newTechnicianMutation(c.config, OpUpdate)
-	return &TechnicianUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *TechnicianClient) UpdateOne(t *Technician) *TechnicianUpdateOne {
-	return c.UpdateOneID(t.ID)
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *TechnicianClient) UpdateOneID(id int) *TechnicianUpdateOne {
-	mutation := newTechnicianMutation(c.config, OpUpdateOne)
-	mutation.id = &id
-	return &TechnicianUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for Technician.
-func (c *TechnicianClient) Delete() *TechnicianDelete {
-	mutation := newTechnicianMutation(c.config, OpDelete)
-	return &TechnicianDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a delete builder for the given entity.
-func (c *TechnicianClient) DeleteOne(t *Technician) *TechnicianDeleteOne {
-	return c.DeleteOneID(t.ID)
-}
-
-// DeleteOneID returns a delete builder for the given id.
-func (c *TechnicianClient) DeleteOneID(id int) *TechnicianDeleteOne {
-	builder := c.Delete().Where(technician.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &TechnicianDeleteOne{builder}
-}
-
-// Create returns a query builder for Technician.
-func (c *TechnicianClient) Query() *TechnicianQuery {
-	return &TechnicianQuery{config: c.config}
-}
-
-// Get returns a Technician entity by its id.
-func (c *TechnicianClient) Get(ctx context.Context, id int) (*Technician, error) {
-	return c.Query().Where(technician.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *TechnicianClient) GetX(ctx context.Context, id int) *Technician {
-	t, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return t
-}
-
-// QueryWorkOrders queries the work_orders edge of a Technician.
-func (c *TechnicianClient) QueryWorkOrders(t *Technician) *WorkOrderQuery {
-	query := &WorkOrderQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
-		id := t.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(technician.Table, technician.FieldID, id),
-			sqlgraph.To(workorder.Table, workorder.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, true, technician.WorkOrdersTable, technician.WorkOrdersColumn),
-		)
-		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// Hooks returns the client hooks.
-func (c *TechnicianClient) Hooks() []Hook {
-	return c.hooks.Technician
+	hooks := c.hooks.SurveyWiFiScan
+	return append(hooks[:len(hooks):len(hooks)], surveywifiscan.Hooks[:]...)
 }
 
 // UserClient is a client for the User schema.
@@ -5261,13 +6188,13 @@ func (c *UserClient) Update() *UserUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *UserClient) UpdateOne(u *User) *UserUpdateOne {
-	return c.UpdateOneID(u.ID)
+	mutation := newUserMutation(c.config, OpUpdateOne, withUser(u))
+	return &UserUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *UserClient) UpdateOneID(id int) *UserUpdateOne {
-	mutation := newUserMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newUserMutation(c.config, OpUpdateOne, withUserID(id))
 	return &UserUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -5317,7 +6244,7 @@ func (c *UserClient) QueryProfilePhoto(u *User) *FileQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(file.Table, file.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, user.ProfilePhotoTable, user.ProfilePhotoColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, user.ProfilePhotoTable, user.ProfilePhotoColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil
@@ -5341,9 +6268,58 @@ func (c *UserClient) QueryGroups(u *User) *UsersGroupQuery {
 	return query
 }
 
+// QueryOwnedWorkOrders queries the owned_work_orders edge of a User.
+func (c *UserClient) QueryOwnedWorkOrders(u *User) *WorkOrderQuery {
+	query := &WorkOrderQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(workorder.Table, workorder.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, user.OwnedWorkOrdersTable, user.OwnedWorkOrdersColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAssignedWorkOrders queries the assigned_work_orders edge of a User.
+func (c *UserClient) QueryAssignedWorkOrders(u *User) *WorkOrderQuery {
+	query := &WorkOrderQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(workorder.Table, workorder.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, user.AssignedWorkOrdersTable, user.AssignedWorkOrdersColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCreatedProjects queries the created_projects edge of a User.
+func (c *UserClient) QueryCreatedProjects(u *User) *ProjectQuery {
+	query := &ProjectQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(project.Table, project.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, user.CreatedProjectsTable, user.CreatedProjectsColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *UserClient) Hooks() []Hook {
-	return c.hooks.User
+	hooks := c.hooks.User
+	return append(hooks[:len(hooks):len(hooks)], user.Hooks[:]...)
 }
 
 // UsersGroupClient is a client for the UsersGroup schema.
@@ -5376,13 +6352,13 @@ func (c *UsersGroupClient) Update() *UsersGroupUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *UsersGroupClient) UpdateOne(ug *UsersGroup) *UsersGroupUpdateOne {
-	return c.UpdateOneID(ug.ID)
+	mutation := newUsersGroupMutation(c.config, OpUpdateOne, withUsersGroup(ug))
+	return &UsersGroupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *UsersGroupClient) UpdateOneID(id int) *UsersGroupUpdateOne {
-	mutation := newUsersGroupMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newUsersGroupMutation(c.config, OpUpdateOne, withUsersGroupID(id))
 	return &UsersGroupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -5440,9 +6416,26 @@ func (c *UsersGroupClient) QueryMembers(ug *UsersGroup) *UserQuery {
 	return query
 }
 
+// QueryPolicies queries the policies edge of a UsersGroup.
+func (c *UsersGroupClient) QueryPolicies(ug *UsersGroup) *PermissionsPolicyQuery {
+	query := &PermissionsPolicyQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := ug.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(usersgroup.Table, usersgroup.FieldID, id),
+			sqlgraph.To(permissionspolicy.Table, permissionspolicy.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, usersgroup.PoliciesTable, usersgroup.PoliciesPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(ug.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *UsersGroupClient) Hooks() []Hook {
-	return c.hooks.UsersGroup
+	hooks := c.hooks.UsersGroup
+	return append(hooks[:len(hooks):len(hooks)], usersgroup.Hooks[:]...)
 }
 
 // WorkOrderClient is a client for the WorkOrder schema.
@@ -5475,13 +6468,13 @@ func (c *WorkOrderClient) Update() *WorkOrderUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *WorkOrderClient) UpdateOne(wo *WorkOrder) *WorkOrderUpdateOne {
-	return c.UpdateOneID(wo.ID)
+	mutation := newWorkOrderMutation(c.config, OpUpdateOne, withWorkOrder(wo))
+	return &WorkOrderUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *WorkOrderClient) UpdateOneID(id int) *WorkOrderUpdateOne {
-	mutation := newWorkOrderMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newWorkOrderMutation(c.config, OpUpdateOne, withWorkOrderID(id))
 	return &WorkOrderUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -5635,6 +6628,22 @@ func (c *WorkOrderClient) QueryComments(wo *WorkOrder) *CommentQuery {
 	return query
 }
 
+// QueryActivities queries the activities edge of a WorkOrder.
+func (c *WorkOrderClient) QueryActivities(wo *WorkOrder) *ActivityQuery {
+	query := &ActivityQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := wo.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(workorder.Table, workorder.FieldID, id),
+			sqlgraph.To(activity.Table, activity.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, workorder.ActivitiesTable, workorder.ActivitiesColumn),
+		)
+		fromV = sqlgraph.Neighbors(wo.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryProperties queries the properties edge of a WorkOrder.
 func (c *WorkOrderClient) QueryProperties(wo *WorkOrder) *PropertyQuery {
 	query := &PropertyQuery{config: c.config}
@@ -5660,38 +6669,6 @@ func (c *WorkOrderClient) QueryCheckListCategories(wo *WorkOrder) *CheckListCate
 			sqlgraph.From(workorder.Table, workorder.FieldID, id),
 			sqlgraph.To(checklistcategory.Table, checklistcategory.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, workorder.CheckListCategoriesTable, workorder.CheckListCategoriesColumn),
-		)
-		fromV = sqlgraph.Neighbors(wo.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryCheckListItems queries the check_list_items edge of a WorkOrder.
-func (c *WorkOrderClient) QueryCheckListItems(wo *WorkOrder) *CheckListItemQuery {
-	query := &CheckListItemQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
-		id := wo.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(workorder.Table, workorder.FieldID, id),
-			sqlgraph.To(checklistitem.Table, checklistitem.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, workorder.CheckListItemsTable, workorder.CheckListItemsColumn),
-		)
-		fromV = sqlgraph.Neighbors(wo.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryTechnician queries the technician edge of a WorkOrder.
-func (c *WorkOrderClient) QueryTechnician(wo *WorkOrder) *TechnicianQuery {
-	query := &TechnicianQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
-		id := wo.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(workorder.Table, workorder.FieldID, id),
-			sqlgraph.To(technician.Table, technician.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, workorder.TechnicianTable, workorder.TechnicianColumn),
 		)
 		fromV = sqlgraph.Neighbors(wo.driver.Dialect(), step)
 		return fromV, nil
@@ -5749,7 +6726,8 @@ func (c *WorkOrderClient) QueryAssignee(wo *WorkOrder) *UserQuery {
 
 // Hooks returns the client hooks.
 func (c *WorkOrderClient) Hooks() []Hook {
-	return c.hooks.WorkOrder
+	hooks := c.hooks.WorkOrder
+	return append(hooks[:len(hooks):len(hooks)], workorder.Hooks[:]...)
 }
 
 // WorkOrderDefinitionClient is a client for the WorkOrderDefinition schema.
@@ -5782,13 +6760,13 @@ func (c *WorkOrderDefinitionClient) Update() *WorkOrderDefinitionUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *WorkOrderDefinitionClient) UpdateOne(wod *WorkOrderDefinition) *WorkOrderDefinitionUpdateOne {
-	return c.UpdateOneID(wod.ID)
+	mutation := newWorkOrderDefinitionMutation(c.config, OpUpdateOne, withWorkOrderDefinition(wod))
+	return &WorkOrderDefinitionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *WorkOrderDefinitionClient) UpdateOneID(id int) *WorkOrderDefinitionUpdateOne {
-	mutation := newWorkOrderDefinitionMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newWorkOrderDefinitionMutation(c.config, OpUpdateOne, withWorkOrderDefinitionID(id))
 	return &WorkOrderDefinitionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -5864,7 +6842,8 @@ func (c *WorkOrderDefinitionClient) QueryProjectType(wod *WorkOrderDefinition) *
 
 // Hooks returns the client hooks.
 func (c *WorkOrderDefinitionClient) Hooks() []Hook {
-	return c.hooks.WorkOrderDefinition
+	hooks := c.hooks.WorkOrderDefinition
+	return append(hooks[:len(hooks):len(hooks)], workorderdefinition.Hooks[:]...)
 }
 
 // WorkOrderTypeClient is a client for the WorkOrderType schema.
@@ -5897,13 +6876,13 @@ func (c *WorkOrderTypeClient) Update() *WorkOrderTypeUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *WorkOrderTypeClient) UpdateOne(wot *WorkOrderType) *WorkOrderTypeUpdateOne {
-	return c.UpdateOneID(wot.ID)
+	mutation := newWorkOrderTypeMutation(c.config, OpUpdateOne, withWorkOrderType(wot))
+	return &WorkOrderTypeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *WorkOrderTypeClient) UpdateOneID(id int) *WorkOrderTypeUpdateOne {
-	mutation := newWorkOrderTypeMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newWorkOrderTypeMutation(c.config, OpUpdateOne, withWorkOrderTypeID(id))
 	return &WorkOrderTypeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -5993,31 +6972,15 @@ func (c *WorkOrderTypeClient) QueryDefinitions(wot *WorkOrderType) *WorkOrderDef
 	return query
 }
 
-// QueryCheckListCategories queries the check_list_categories edge of a WorkOrderType.
-func (c *WorkOrderTypeClient) QueryCheckListCategories(wot *WorkOrderType) *CheckListCategoryQuery {
-	query := &CheckListCategoryQuery{config: c.config}
+// QueryCheckListCategoryDefinitions queries the check_list_category_definitions edge of a WorkOrderType.
+func (c *WorkOrderTypeClient) QueryCheckListCategoryDefinitions(wot *WorkOrderType) *CheckListCategoryDefinitionQuery {
+	query := &CheckListCategoryDefinitionQuery{config: c.config}
 	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
 		id := wot.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(workordertype.Table, workordertype.FieldID, id),
-			sqlgraph.To(checklistcategory.Table, checklistcategory.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, workordertype.CheckListCategoriesTable, workordertype.CheckListCategoriesColumn),
-		)
-		fromV = sqlgraph.Neighbors(wot.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryCheckListDefinitions queries the check_list_definitions edge of a WorkOrderType.
-func (c *WorkOrderTypeClient) QueryCheckListDefinitions(wot *WorkOrderType) *CheckListItemDefinitionQuery {
-	query := &CheckListItemDefinitionQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
-		id := wot.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(workordertype.Table, workordertype.FieldID, id),
-			sqlgraph.To(checklistitemdefinition.Table, checklistitemdefinition.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, workordertype.CheckListDefinitionsTable, workordertype.CheckListDefinitionsColumn),
+			sqlgraph.To(checklistcategorydefinition.Table, checklistcategorydefinition.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, workordertype.CheckListCategoryDefinitionsTable, workordertype.CheckListCategoryDefinitionsColumn),
 		)
 		fromV = sqlgraph.Neighbors(wot.driver.Dialect(), step)
 		return fromV, nil
@@ -6027,5 +6990,6 @@ func (c *WorkOrderTypeClient) QueryCheckListDefinitions(wot *WorkOrderType) *Che
 
 // Hooks returns the client hooks.
 func (c *WorkOrderTypeClient) Hooks() []Hook {
-	return c.hooks.WorkOrderType
+	hooks := c.hooks.WorkOrderType
+	return append(hooks[:len(hooks):len(hooks)], workordertype.Hooks[:]...)
 }

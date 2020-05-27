@@ -20,6 +20,7 @@ import {Draggable} from 'react-beautiful-dnd';
 import {ReorderIcon} from '@fbcnms/ui/components/design-system/Icons';
 import {makeStyles} from '@material-ui/styles';
 import {sortByIndex} from '../../draggable/DraggableUtils';
+import {useFormContext} from '../../../common/FormContext';
 
 type Props = {
   items: Array<CheckListItem>,
@@ -55,6 +56,7 @@ const useStyles = makeStyles(() => ({
 const ChecklistDefinitionsList = ({items, editedDefinitionId}: Props) => {
   const classes = useStyles();
   const dispatch = useContext(ChecklistItemsDialogMutateDispatchContext);
+  const form = useFormContext();
 
   const checklistItems = items.sort(sortByIndex).map(item => {
     return (
@@ -62,7 +64,10 @@ const ChecklistDefinitionsList = ({items, editedDefinitionId}: Props) => {
         key={item.id}
         draggableId={item.id}
         index={item.index}
-        isDragDisabled={item.id !== editedDefinitionId}>
+        isDragDisabled={
+          form.alerts.missingPermissions.detected ||
+          item.id !== editedDefinitionId
+        }>
         {(provided, snapshot) => (
           <div
             className={classes.listItem}

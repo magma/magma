@@ -17,15 +17,15 @@ import type {
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithSnackbarProps} from 'notistack';
 
-import Button from '@fbcnms/ui/components/design-system/Button';
-import DeleteOutlineIcon from '@material-ui/icons/DeleteOutline';
-import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
+import FormActionWithPermissions from '../../common/FormActionWithPermissions';
+import IconButton from '@fbcnms/ui/components/design-system/IconButton';
 import React from 'react';
 import RemoveLocationMutation from '../../mutations/RemoveLocationMutation';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
 import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {ConnectionHandler} from 'relay-runtime';
+import {DeleteIcon} from '@fbcnms/ui/components/design-system/Icons';
 import {createFragmentContainer, graphql} from 'react-relay';
 import {withSnackbar} from 'notistack';
 
@@ -40,11 +40,14 @@ type Props = {
 class LocationMoreActionsButton extends React.Component<Props> {
   render() {
     return (
-      <FormAction>
-        <Button variant="text" skin="gray" onClick={this.removeLocation}>
-          <DeleteOutlineIcon />
-        </Button>
-      </FormAction>
+      <FormActionWithPermissions
+        permissions={{entity: 'location', action: 'delete'}}>
+        <IconButton
+          skin="gray"
+          onClick={this.removeLocation}
+          icon={DeleteIcon}
+        />
+      </FormActionWithPermissions>
     );
   }
 

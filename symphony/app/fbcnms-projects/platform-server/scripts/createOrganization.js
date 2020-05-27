@@ -16,7 +16,7 @@ import {Organization} from '@fbcnms/sequelize-models';
 import {coerceToTab} from '@fbcnms/types/tabs';
 import {createGraphTenant} from '../src/graphgrpc/tenant';
 import {difference} from 'lodash';
-import {getProjectTabs} from '@fbcnms/magmalte/app/common/projects';
+import {getProjectTabs} from '@fbcnms/projects/projects';
 import {union} from 'lodash';
 
 type OrganizationObject = {
@@ -90,7 +90,10 @@ function main() {
 
   const validTabs = getProjectTabs();
   const tabs = args[1].split(',').map(tab => coerceToTab(tab));
-  const invalidTabs = difference(tabs, validTabs.map(tab => tab.id)).join(', ');
+  const invalidTabs = difference(
+    tabs,
+    validTabs.map(tab => tab.id),
+  ).join(', ');
   if (invalidTabs) {
     console.log(
       `tab should be one of: ${validTabs.join(', ')}. Got: ${invalidTabs}`,

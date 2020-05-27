@@ -6,9 +6,10 @@ package resolverutil
 
 import (
 	"context"
+
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/service"
-	"github.com/vektah/gqlparser/gqlerror"
+	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
 func CheckServiceNameNotExist(ctx context.Context, client *ent.Client, name string) error {

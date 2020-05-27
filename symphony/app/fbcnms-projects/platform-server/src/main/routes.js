@@ -9,6 +9,7 @@
  */
 
 import type {AppContextAppData} from '@fbcnms/ui/context/AppContext';
+import type {ExpressResponse} from 'express';
 import type {FBCNMSRequest} from '@fbcnms/auth/access';
 
 import asyncHandler from '@fbcnms/util/asyncHandler';
@@ -22,7 +23,7 @@ import {access} from '@fbcnms/auth/access';
 import {getEnabledFeatures} from '@fbcnms/platform-server/features';
 import {masterOrgMiddleware} from '@fbcnms/platform-server/master/middleware';
 
-const router = express.Router();
+const router: express.Router<FBCNMSRequest, ExpressResponse> = express.Router();
 
 const handleReact = tab =>
   async function(req: FBCNMSRequest, res) {
@@ -30,6 +31,7 @@ const handleReact = tab =>
     if (
       tab !== 'admin' &&
       tab !== 'id' &&
+      tab !== 'deactivated' &&
       organization &&
       organization.tabs &&
       organization.tabs.indexOf(tab) === -1
@@ -54,13 +56,21 @@ const handleReact = tab =>
       ssoSelectedType,
       csvCharset: organization?.csvCharset,
     };
-    res.render('index', {
-      staticDist,
-      configJson: JSON.stringify({
-        appData,
-        MAPBOX_ACCESS_TOKEN: req.user && MAPBOX_ACCESS_TOKEN,
-      }),
-    });
+    const tabs = organization?.tabs;
+    res.render(
+      // if an org has 'inventory' or 'workorders' tabs, show inventory UI
+      // otherwise magmalte
+      tabs?.indexOf('inventory') != -1 || tabs?.indexOf('workorders') != -1
+        ? 'index'
+        : 'magma',
+      {
+        staticDist,
+        configJson: JSON.stringify({
+          appData,
+          MAPBOX_ACCESS_TOKEN: req.user && MAPBOX_ACCESS_TOKEN,
+        }),
+      },
+    );
   };
 
 router.use('/healthz', (req: FBCNMSRequest, res) => res.send('OK'));
@@ -69,9 +79,15 @@ router.use(
   access(AccessRoles.SUPERUSER),
   require('@fbcnms/platform-server/admin/routes').default,
 );
+router.get(
+  '/deactivated*',
+  access(AccessRoles.USER),
+  handleReact('deactivated'),
+);
 router.get('/admin*', access(AccessRoles.SUPERUSER), handleReact('admin'));
 router.get('/automation*', access(AccessRoles.USER), handleReact('automation'));
 router.get('/inventory*', access(AccessRoles.USER), handleReact('inventory'));
+router.get('/hub*', access(AccessRoles.USER), handleReact('inventory'));
 router.get('/workorders*', access(AccessRoles.USER), handleReact('workorders'));
 router.get('/id*', access(AccessRoles.USER), handleReact('id'));
 router.use(

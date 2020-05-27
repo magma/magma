@@ -27,7 +27,7 @@ type EquipmentPositionQuery struct {
 	config
 	limit      *int
 	offset     *int
-	order      []Order
+	order      []OrderFunc
 	unique     []string
 	predicates []predicate.EquipmentPosition
 	// eager-loading edges.
@@ -59,7 +59,7 @@ func (epq *EquipmentPositionQuery) Offset(offset int) *EquipmentPositionQuery {
 }
 
 // Order adds an order step to the query.
-func (epq *EquipmentPositionQuery) Order(o ...Order) *EquipmentPositionQuery {
+func (epq *EquipmentPositionQuery) Order(o ...OrderFunc) *EquipmentPositionQuery {
 	epq.order = append(epq.order, o...)
 	return epq
 }
@@ -288,7 +288,7 @@ func (epq *EquipmentPositionQuery) Clone() *EquipmentPositionQuery {
 		config:     epq.config,
 		limit:      epq.limit,
 		offset:     epq.offset,
-		order:      append([]Order{}, epq.order...),
+		order:      append([]OrderFunc{}, epq.order...),
 		unique:     append([]string{}, epq.unique...),
 		predicates: append([]predicate.EquipmentPosition{}, epq.predicates...),
 		// clone intermediate query.
@@ -388,6 +388,9 @@ func (epq *EquipmentPositionQuery) prepareQuery(ctx context.Context) error {
 			return err
 		}
 		epq.sql = prev
+	}
+	if err := equipmentposition.Policy.EvalQuery(ctx, epq); err != nil {
+		return err
 	}
 	return nil
 }
@@ -592,14 +595,14 @@ func (epq *EquipmentPositionQuery) sqlQuery() *sql.Selector {
 type EquipmentPositionGroupBy struct {
 	config
 	fields []string
-	fns    []Aggregate
+	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (epgb *EquipmentPositionGroupBy) Aggregate(fns ...Aggregate) *EquipmentPositionGroupBy {
+func (epgb *EquipmentPositionGroupBy) Aggregate(fns ...AggregateFunc) *EquipmentPositionGroupBy {
 	epgb.fns = append(epgb.fns, fns...)
 	return epgb
 }

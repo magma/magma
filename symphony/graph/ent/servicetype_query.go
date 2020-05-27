@@ -19,6 +19,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/ent/service"
+	"github.com/facebookincubator/symphony/graph/ent/serviceendpointdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/servicetype"
 )
 
@@ -27,12 +28,13 @@ type ServiceTypeQuery struct {
 	config
 	limit      *int
 	offset     *int
-	order      []Order
+	order      []OrderFunc
 	unique     []string
 	predicates []predicate.ServiceType
 	// eager-loading edges.
-	withServices      *ServiceQuery
-	withPropertyTypes *PropertyTypeQuery
+	withServices            *ServiceQuery
+	withPropertyTypes       *PropertyTypeQuery
+	withEndpointDefinitions *ServiceEndpointDefinitionQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -57,7 +59,7 @@ func (stq *ServiceTypeQuery) Offset(offset int) *ServiceTypeQuery {
 }
 
 // Order adds an order step to the query.
-func (stq *ServiceTypeQuery) Order(o ...Order) *ServiceTypeQuery {
+func (stq *ServiceTypeQuery) Order(o ...OrderFunc) *ServiceTypeQuery {
 	stq.order = append(stq.order, o...)
 	return stq
 }
@@ -91,6 +93,24 @@ func (stq *ServiceTypeQuery) QueryPropertyTypes() *PropertyTypeQuery {
 			sqlgraph.From(servicetype.Table, servicetype.FieldID, stq.sqlQuery()),
 			sqlgraph.To(propertytype.Table, propertytype.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, servicetype.PropertyTypesTable, servicetype.PropertyTypesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(stq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryEndpointDefinitions chains the current query on the endpoint_definitions edge.
+func (stq *ServiceTypeQuery) QueryEndpointDefinitions() *ServiceEndpointDefinitionQuery {
+	query := &ServiceEndpointDefinitionQuery{config: stq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := stq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(servicetype.Table, servicetype.FieldID, stq.sqlQuery()),
+			sqlgraph.To(serviceendpointdefinition.Table, serviceendpointdefinition.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, servicetype.EndpointDefinitionsTable, servicetype.EndpointDefinitionsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(stq.driver.Dialect(), step)
 		return fromU, nil
@@ -268,7 +288,7 @@ func (stq *ServiceTypeQuery) Clone() *ServiceTypeQuery {
 		config:     stq.config,
 		limit:      stq.limit,
 		offset:     stq.offset,
-		order:      append([]Order{}, stq.order...),
+		order:      append([]OrderFunc{}, stq.order...),
 		unique:     append([]string{}, stq.unique...),
 		predicates: append([]predicate.ServiceType{}, stq.predicates...),
 		// clone intermediate query.
@@ -296,6 +316,17 @@ func (stq *ServiceTypeQuery) WithPropertyTypes(opts ...func(*PropertyTypeQuery))
 		opt(query)
 	}
 	stq.withPropertyTypes = query
+	return stq
+}
+
+//  WithEndpointDefinitions tells the query-builder to eager-loads the nodes that are connected to
+// the "endpoint_definitions" edge. The optional arguments used to configure the query builder of the edge.
+func (stq *ServiceTypeQuery) WithEndpointDefinitions(opts ...func(*ServiceEndpointDefinitionQuery)) *ServiceTypeQuery {
+	query := &ServiceEndpointDefinitionQuery{config: stq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	stq.withEndpointDefinitions = query
 	return stq
 }
 
@@ -358,6 +389,9 @@ func (stq *ServiceTypeQuery) prepareQuery(ctx context.Context) error {
 		}
 		stq.sql = prev
 	}
+	if err := servicetype.Policy.EvalQuery(ctx, stq); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -365,9 +399,10 @@ func (stq *ServiceTypeQuery) sqlAll(ctx context.Context) ([]*ServiceType, error)
 	var (
 		nodes       = []*ServiceType{}
 		_spec       = stq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			stq.withServices != nil,
 			stq.withPropertyTypes != nil,
+			stq.withEndpointDefinitions != nil,
 		}
 	)
 	_spec.ScanValues = func() []interface{} {
@@ -444,6 +479,34 @@ func (stq *ServiceTypeQuery) sqlAll(ctx context.Context) ([]*ServiceType, error)
 				return nil, fmt.Errorf(`unexpected foreign-key "service_type_property_types" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.PropertyTypes = append(node.Edges.PropertyTypes, n)
+		}
+	}
+
+	if query := stq.withEndpointDefinitions; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[int]*ServiceType)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.ServiceEndpointDefinition(func(s *sql.Selector) {
+			s.Where(sql.InValues(servicetype.EndpointDefinitionsColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.service_type_endpoint_definitions
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "service_type_endpoint_definitions" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "service_type_endpoint_definitions" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.EndpointDefinitions = append(node.Edges.EndpointDefinitions, n)
 		}
 	}
 
@@ -528,14 +591,14 @@ func (stq *ServiceTypeQuery) sqlQuery() *sql.Selector {
 type ServiceTypeGroupBy struct {
 	config
 	fields []string
-	fns    []Aggregate
+	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (stgb *ServiceTypeGroupBy) Aggregate(fns ...Aggregate) *ServiceTypeGroupBy {
+func (stgb *ServiceTypeGroupBy) Aggregate(fns ...AggregateFunc) *ServiceTypeGroupBy {
 	stgb.fns = append(stgb.fns, fns...)
 	return stgb
 }

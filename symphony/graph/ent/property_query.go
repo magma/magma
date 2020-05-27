@@ -24,6 +24,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/ent/service"
+	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
 
@@ -32,7 +33,7 @@ type PropertyQuery struct {
 	config
 	limit      *int
 	offset     *int
-	order      []Order
+	order      []OrderFunc
 	unique     []string
 	predicates []predicate.Property
 	// eager-loading edges.
@@ -47,6 +48,8 @@ type PropertyQuery struct {
 	withEquipmentValue *EquipmentQuery
 	withLocationValue  *LocationQuery
 	withServiceValue   *ServiceQuery
+	withWorkOrderValue *WorkOrderQuery
+	withUserValue      *UserQuery
 	withFKs            bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -72,7 +75,7 @@ func (pq *PropertyQuery) Offset(offset int) *PropertyQuery {
 }
 
 // Order adds an order step to the query.
-func (pq *PropertyQuery) Order(o ...Order) *PropertyQuery {
+func (pq *PropertyQuery) Order(o ...OrderFunc) *PropertyQuery {
 	pq.order = append(pq.order, o...)
 	return pq
 }
@@ -275,6 +278,42 @@ func (pq *PropertyQuery) QueryServiceValue() *ServiceQuery {
 	return query
 }
 
+// QueryWorkOrderValue chains the current query on the work_order_value edge.
+func (pq *PropertyQuery) QueryWorkOrderValue() *WorkOrderQuery {
+	query := &WorkOrderQuery{config: pq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(property.Table, property.FieldID, pq.sqlQuery()),
+			sqlgraph.To(workorder.Table, workorder.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, property.WorkOrderValueTable, property.WorkOrderValueColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryUserValue chains the current query on the user_value edge.
+func (pq *PropertyQuery) QueryUserValue() *UserQuery {
+	query := &UserQuery{config: pq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(property.Table, property.FieldID, pq.sqlQuery()),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, property.UserValueTable, property.UserValueColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first Property entity in the query. Returns *NotFoundError when no property was found.
 func (pq *PropertyQuery) First(ctx context.Context) (*Property, error) {
 	prs, err := pq.Limit(1).All(ctx)
@@ -445,7 +484,7 @@ func (pq *PropertyQuery) Clone() *PropertyQuery {
 		config:     pq.config,
 		limit:      pq.limit,
 		offset:     pq.offset,
-		order:      append([]Order{}, pq.order...),
+		order:      append([]OrderFunc{}, pq.order...),
 		unique:     append([]string{}, pq.unique...),
 		predicates: append([]predicate.Property{}, pq.predicates...),
 		// clone intermediate query.
@@ -575,6 +614,28 @@ func (pq *PropertyQuery) WithServiceValue(opts ...func(*ServiceQuery)) *Property
 	return pq
 }
 
+//  WithWorkOrderValue tells the query-builder to eager-loads the nodes that are connected to
+// the "work_order_value" edge. The optional arguments used to configure the query builder of the edge.
+func (pq *PropertyQuery) WithWorkOrderValue(opts ...func(*WorkOrderQuery)) *PropertyQuery {
+	query := &WorkOrderQuery{config: pq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	pq.withWorkOrderValue = query
+	return pq
+}
+
+//  WithUserValue tells the query-builder to eager-loads the nodes that are connected to
+// the "user_value" edge. The optional arguments used to configure the query builder of the edge.
+func (pq *PropertyQuery) WithUserValue(opts ...func(*UserQuery)) *PropertyQuery {
+	query := &UserQuery{config: pq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	pq.withUserValue = query
+	return pq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -634,6 +695,9 @@ func (pq *PropertyQuery) prepareQuery(ctx context.Context) error {
 		}
 		pq.sql = prev
 	}
+	if err := property.Policy.EvalQuery(ctx, pq); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -642,7 +706,7 @@ func (pq *PropertyQuery) sqlAll(ctx context.Context) ([]*Property, error) {
 		nodes       = []*Property{}
 		withFKs     = pq.withFKs
 		_spec       = pq.querySpec()
-		loadedTypes = [11]bool{
+		loadedTypes = [13]bool{
 			pq.withType != nil,
 			pq.withLocation != nil,
 			pq.withEquipment != nil,
@@ -654,9 +718,11 @@ func (pq *PropertyQuery) sqlAll(ctx context.Context) ([]*Property, error) {
 			pq.withEquipmentValue != nil,
 			pq.withLocationValue != nil,
 			pq.withServiceValue != nil,
+			pq.withWorkOrderValue != nil,
+			pq.withUserValue != nil,
 		}
 	)
-	if pq.withType != nil || pq.withLocation != nil || pq.withEquipment != nil || pq.withService != nil || pq.withEquipmentPort != nil || pq.withLink != nil || pq.withWorkOrder != nil || pq.withProject != nil || pq.withEquipmentValue != nil || pq.withLocationValue != nil || pq.withServiceValue != nil {
+	if pq.withType != nil || pq.withLocation != nil || pq.withEquipment != nil || pq.withService != nil || pq.withEquipmentPort != nil || pq.withLink != nil || pq.withWorkOrder != nil || pq.withProject != nil || pq.withEquipmentValue != nil || pq.withLocationValue != nil || pq.withServiceValue != nil || pq.withWorkOrderValue != nil || pq.withUserValue != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -961,6 +1027,56 @@ func (pq *PropertyQuery) sqlAll(ctx context.Context) ([]*Property, error) {
 		}
 	}
 
+	if query := pq.withWorkOrderValue; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Property)
+		for i := range nodes {
+			if fk := nodes[i].property_work_order_value; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(workorder.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "property_work_order_value" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.WorkOrderValue = n
+			}
+		}
+	}
+
+	if query := pq.withUserValue; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Property)
+		for i := range nodes {
+			if fk := nodes[i].property_user_value; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(user.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "property_user_value" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.UserValue = n
+			}
+		}
+	}
+
 	return nodes, nil
 }
 
@@ -1042,14 +1158,14 @@ func (pq *PropertyQuery) sqlQuery() *sql.Selector {
 type PropertyGroupBy struct {
 	config
 	fields []string
-	fns    []Aggregate
+	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (pgb *PropertyGroupBy) Aggregate(fns ...Aggregate) *PropertyGroupBy {
+func (pgb *PropertyGroupBy) Aggregate(fns ...AggregateFunc) *PropertyGroupBy {
 	pgb.fns = append(pgb.fns, fns...)
 	return pgb
 }

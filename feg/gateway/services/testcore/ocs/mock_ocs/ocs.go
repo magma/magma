@@ -9,7 +9,6 @@ LICENSE file in the root directory of this source tree.
 package mock_ocs
 
 import (
-	"errors"
 	"fmt"
 	"net"
 	"time"
@@ -17,6 +16,7 @@ import (
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/services/session_proxy/credit_control/gy"
+	"magma/feg/gateway/services/testcore/mock_driver"
 	lteprotos "magma/lte/cloud/go/protos"
 	orcprotos "magma/orc8r/lib/go/protos"
 
@@ -26,13 +26,11 @@ import (
 	"github.com/fiorix/go-diameter/v4/diam/sm"
 	"github.com/fiorix/go-diameter/v4/diam/sm/smpeer"
 	"github.com/golang/glog"
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
 
-const (
-	TerminateAction            = 0
-	DiameterCreditLimitReached = 4012
-)
+const DiameterCreditLimitReached = 4012
 
 type CreditBucket struct {
 	Unit   protos.CreditInfo_UnitType
@@ -50,20 +48,24 @@ type SubscriberAccount struct {
 }
 
 type OCSConfig struct {
-	MaxUsageOctets *protos.Octets
-	MaxUsageTime   uint32
-	ValidityTime   uint32
-	ServerConfig   *diameter.DiameterServerConfig
-	GyInitMethod   gy.InitMethod
+	MaxUsageOctets  *protos.Octets
+	MaxUsageTime    uint32
+	ValidityTime    uint32
+	ServerConfig    *diameter.DiameterServerConfig
+	GyInitMethod    gy.InitMethod
+	UseMockDriver   bool
+	RedirectAddress string
+	FinalUnitAction protos.FinalUnitAction
 }
 
 // OCSDiamServer wraps an OCS storing subscriber accounts and their credit
 type OCSDiamServer struct {
-	diameterSettings    *diameter.DiameterClientConfig
-	ocsConfig           *OCSConfig
-	accounts            map[string]*SubscriberAccount // map of IMSI to subscriber account
-	mux                 *sm.StateMachine
-	LastMessageReceived *ccrMessage
+	diameterSettings        *diameter.DiameterClientConfig
+	ocsConfig               *OCSConfig
+	accounts                map[string]*SubscriberAccount // map of IMSI to subscriber account
+	mux                     *sm.StateMachine
+	lastDiamMessageReceived *diam.Message
+	mockDriver              *mock_driver.MockDriver
 }
 
 // NewOCSDiamServer initializes an OCS with an empty account map
@@ -86,7 +88,7 @@ func NewOCSDiamServer(
 // Reset is an GRPC procedure which resets the server to its default state.
 // It will be called from the gateway.
 func (srv *OCSDiamServer) Reset(
-	ctx context.Context,
+	_ context.Context,
 	req *orcprotos.Void,
 ) (*orcprotos.Void, error) {
 	return nil, errors.New("Not implemented")
@@ -95,7 +97,7 @@ func (srv *OCSDiamServer) Reset(
 // ConfigServer is an GRPC procedure which configure the server to respond
 // to requests. It will be called from the gateway
 func (srv *OCSDiamServer) ConfigServer(
-	ctx context.Context,
+	_ context.Context,
 	config *protos.ServerConfiguration,
 ) (*orcprotos.Void, error) {
 	return nil, errors.New("Not implemented")
@@ -144,7 +146,7 @@ func (srv *OCSDiamServer) StartListener() (net.Listener, error) {
 // NewAccount adds a subscriber to the OCS to be tracked
 // Input: string containing the subscriber IMSI (can be in any form)
 func (srv *OCSDiamServer) CreateAccount(
-	ctx context.Context,
+	_ context.Context,
 	subscriberID *lteprotos.SubscriberID,
 ) (*orcprotos.Void, error) {
 	srv.accounts[subscriberID.Id] = &SubscriberAccount{
@@ -160,13 +162,16 @@ func (srv *OCSDiamServer) CreateAccount(
 //			  *uint32 optional maximum time to return in a CCA
 //			  *uint32 optional credit validity time to return in a CCA
 func (srv *OCSDiamServer) SetOCSSettings(
-	ctx context.Context,
+	_ context.Context,
 	ocsConfig *protos.OCSConfig,
 ) (*orcprotos.Void, error) {
 	config := srv.ocsConfig
 	config.MaxUsageOctets = ocsConfig.MaxUsageOctets
 	config.MaxUsageTime = ocsConfig.MaxUsageTime
 	config.ValidityTime = ocsConfig.ValidityTime
+	config.UseMockDriver = ocsConfig.UseMockDriver
+	config.RedirectAddress = ocsConfig.RedirectAddress
+	config.FinalUnitAction = ocsConfig.FinalUnitAction
 	return &orcprotos.Void{}, nil
 }
 
@@ -177,7 +182,7 @@ func (srv *OCSDiamServer) SetOCSSettings(
 //		    UnitType dictating which unit the volume represents
 // Output: error if account could not be found
 func (srv *OCSDiamServer) SetCredit(
-	ctx context.Context,
+	_ context.Context,
 	creditInfo *protos.CreditInfo,
 ) (*orcprotos.Void, error) {
 	account, ok := srv.accounts[creditInfo.Imsi]
@@ -195,19 +200,59 @@ func (srv *OCSDiamServer) SetCredit(
 // Input: string IMSI for the account
 // Output: map[uint32]*CreditBucket a map of charging key to credit bucket
 //			   error if account could not be found
-func (srv *OCSDiamServer) GetCredits(imsi string) (map[uint32]*CreditBucket, error) {
-	account, ok := srv.accounts[imsi]
+func (srv *OCSDiamServer) GetCredits(
+	_ context.Context,
+	subscriberID *lteprotos.SubscriberID,
+) (*protos.CreditInfos, error) {
+	account, ok := srv.accounts[subscriberID.Id]
 	if !ok {
-		return nil, fmt.Errorf("Could not find imsi %s", imsi)
+		return &protos.CreditInfos{}, fmt.Errorf("Could not find imsi %s", subscriberID.Id)
 	}
-	return account.ChargingCredit, nil
+	infos := make(map[uint32]*protos.CreditInfo)
+	for id, chargingCredit := range account.ChargingCredit {
+		infos[id] =
+			&protos.CreditInfo{
+				UnitType: chargingCredit.Unit,
+				Volume:   chargingCredit.Volume,
+			}
+	}
+	return &protos.CreditInfos{CreditInformation: infos}, nil
 }
 
 // Reset eliminates all the accounts allocated for the system.
-func (srv *OCSDiamServer) ClearSubscribers(ctx context.Context, void *orcprotos.Void) (*orcprotos.Void, error) {
+func (srv *OCSDiamServer) ClearSubscribers(_ context.Context, void *orcprotos.Void) (*orcprotos.Void, error) {
+	glog.V(2).Infof("Accounts (%d) will be deleted from OCS:", len(srv.accounts))
+	for imsi, subs := range srv.accounts {
+		glog.V(2).Infof("\tRemaing credit for IMSI: %s", imsi)
+		for key, credits := range subs.ChargingCredit {
+			glog.V(2).Infof("\t - key %d, Total:%d Tx:%d Rx:%d",
+				key,
+				credits.Volume.TotalOctets,
+				credits.Volume.OutputOctets,
+				credits.Volume.InputOctets,
+			)
+		}
+	}
 	srv.accounts = make(map[string]*SubscriberAccount)
 	glog.V(2).Info("All accounts deleted.")
 	return &orcprotos.Void{}, nil
+}
+
+func (srv *OCSDiamServer) SetExpectations(_ context.Context, req *protos.GyCreditControlExpectations) (*orcprotos.Void, error) {
+	es := []mock_driver.Expectation{}
+	for _, e := range req.Expectations {
+		es = append(es, mock_driver.Expectation(GyExpectation{e}))
+	}
+	srv.mockDriver = mock_driver.NewMockDriver(es, req.UnexpectedRequestBehavior, GyAnswer{req.GyDefaultCca})
+	return &orcprotos.Void{}, nil
+}
+
+func (srv *OCSDiamServer) AssertExpectations(_ context.Context, void *orcprotos.Void) (*protos.GyCreditControlResult, error) {
+	srv.mockDriver.Lock()
+	defer srv.mockDriver.Unlock()
+
+	results, errs := srv.mockDriver.AggregateResults()
+	return &protos.GyCreditControlResult{Results: results, Errors: errs}, nil
 }
 
 // ReAuth initiates a reauth call for a subscriber and optional rating group.
@@ -225,12 +270,64 @@ func (srv *OCSDiamServer) ReAuth(
 	}
 	done := make(chan *gy.ChargingReAuthAnswer)
 	srv.mux.Handle(diam.RAA, handleRAA(done))
-	sendRAR(account.CurrentState, &target.RatingGroup, srv.mux.Settings())
+	err := sendRAR(account.CurrentState, &target.RatingGroup, srv.mux.Settings())
+	if err != nil {
+		glog.Errorf("Error sending RaR for target IMSI=%v, RG=%v: %v", target.GetImsi(), target.GetRatingGroup(), err)
+		return nil, err
+	}
 	select {
 	case raa := <-done:
 		return &protos.ChargingReAuthAnswer{SessionId: diameter.DecodeSessionID(raa.SessionID), ResultCode: raa.ResultCode}, nil
 	case <-time.After(10 * time.Second):
 		return nil, fmt.Errorf("No RAA received")
+	}
+}
+
+// GetLastAVPreceived gets the last message in diam format received
+// Message gets overwriten every time a new CCR is sent
+func (srv *OCSDiamServer) GetLastAVPreceived() (*diam.Message, error) {
+	if srv.lastDiamMessageReceived == nil {
+		return nil, fmt.Errorf("No AVP message received")
+	}
+	return srv.lastDiamMessageReceived, nil
+}
+
+// AbortSession call for a subscriber
+// Initiate a Abort session request and provide the response
+func (srv *OCSDiamServer) AbortSession(
+	_ context.Context,
+	req *protos.AbortSessionRequest,
+) (*protos.AbortSessionAnswer, error) {
+	glog.V(1).Infof("AbortSession: imsi %s", req.GetImsi())
+	account, ok := srv.accounts[req.Imsi]
+	if !ok {
+		return nil, fmt.Errorf("Could not find imsi %s", req.Imsi)
+	}
+	if account.CurrentState == nil {
+		return nil, fmt.Errorf("Credit client State unknown for imsi %s", req.Imsi)
+	}
+
+	var asaHandler diam.HandlerFunc
+	resp := make(chan *diameter.ASA)
+	asaHandler = func(conn diam.Conn, msg *diam.Message) {
+		var asa diameter.ASA
+		if err := msg.Unmarshal(&asa); err != nil {
+			glog.Errorf("Received unparseable ASA over Gx, %s\n%s", err, msg)
+			return
+		}
+		glog.V(2).Infof("Received ASA \n%s", msg)
+		resp <- &diameter.ASA{SessionID: asa.SessionID, ResultCode: asa.ResultCode}
+	}
+	srv.mux.Handle(diam.ASA, asaHandler)
+	err := sendASR(account.CurrentState, srv.mux.Settings())
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to send Gy ASR")
+	}
+	select {
+	case asa := <-resp:
+		return &protos.AbortSessionAnswer{SessionId: diameter.DecodeSessionID(asa.SessionID), ResultCode: asa.ResultCode}, nil
+	case <-time.After(10 * time.Second):
+		return nil, fmt.Errorf("No ASA received")
 	}
 }
 
@@ -249,6 +346,23 @@ func sendRAR(state *SubscriberSessionState, ratingGroup *uint32, cfg *sm.Setting
 		m.NewAVP(avp.RatingGroup, avp.Mbit, 0, datatype.Unsigned32(*ratingGroup))
 	}
 	glog.V(2).Infof("Sending RAR to %s\n%s", state.Connection.RemoteAddr(), m)
+	_, err := m.WriteTo(state.Connection)
+	return err
+}
+
+func sendASR(state *SubscriberSessionState, cfg *sm.Settings) error {
+	meta, ok := smpeer.FromContext(state.Connection.Context())
+	if !ok {
+		return fmt.Errorf("peer metadata unavailable")
+	}
+	m := diameter.NewProxiableRequest(diam.AbortSession, diam.CHARGING_CONTROL_APP_ID, nil)
+	m.NewAVP(avp.SessionID, avp.Mbit, 0, datatype.UTF8String(state.SessionID))
+	m.NewAVP(avp.OriginHost, avp.Mbit, 0, cfg.OriginHost)
+	m.NewAVP(avp.OriginRealm, avp.Mbit, 0, cfg.OriginRealm)
+	m.NewAVP(avp.DestinationRealm, avp.Mbit, 0, meta.OriginRealm)
+	m.NewAVP(avp.DestinationHost, avp.Mbit, 0, meta.OriginHost)
+	fmt.Printf("Sending Abort Session to %s\n%s", state.Connection.RemoteAddr(), m)
+	glog.V(2).Infof("Sending Abort Session to %s\n%s", state.Connection.RemoteAddr(), m)
 	_, err := m.WriteTo(state.Connection)
 	return err
 }

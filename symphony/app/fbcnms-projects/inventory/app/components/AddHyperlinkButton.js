@@ -24,9 +24,9 @@ import AddHyperlinkMutation from '../mutations/AddHyperlinkMutation';
 import AppContext from '@fbcnms/ui/context/AppContext';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
+import InventoryStrings from '../common/InventoryStrings';
 import PopoverMenu from '@fbcnms/ui/components/design-system/Select/PopoverMenu';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
-import Strings from '../common/CommonStrings';
 import {LogEvents, ServerLogger} from '../common/LoggingUtils';
 import {useCallback, useContext, useState} from 'react';
 import {withSnackbar} from 'notistack';
@@ -47,13 +47,13 @@ const addNewHyperlink = (input: AddHyperlinkInput, onError: string => void) => {
   };
 
   const updater = store => {
-    // $FlowFixMe (T62907961) Relay flow types
     const newNode = store.getRootField('addHyperlink');
-    // $FlowFixMe (T62907961) Relay flow types
     const entityProxy = store.get(input.entityId);
-    // $FlowFixMe (T62907961) Relay flow types
+    if (newNode == null || entityProxy == null) {
+      return;
+    }
+
     const hyperlinkNodes = entityProxy.getLinkedRecords('hyperlinks') || [];
-    // $FlowFixMe (T62907961) Relay flow types
     entityProxy.setLinkedRecords([...hyperlinkNodes, newNode], 'hyperlinks');
   };
 
@@ -121,17 +121,17 @@ const AddHyperlinkButton = (props: Props) => {
 
   return (
     <FormAction>
-      {categoriesEnabled && Strings.documents.categories.length ? (
+      {categoriesEnabled && InventoryStrings.documents.categories.length ? (
         <PopoverMenu
           skin={skin}
           menuDockRight={true}
-          options={Strings.documents.categories.map(category => ({
+          options={InventoryStrings.documents.categories.map(category => ({
             key: category,
             label: category,
             value: category,
           }))}
           onChange={openDialog}>
-          {children ?? Strings.documents.addLinkButton}
+          {children ?? InventoryStrings.documents.addLinkButton}
         </PopoverMenu>
       ) : (
         <Button
@@ -140,16 +140,18 @@ const AddHyperlinkButton = (props: Props) => {
           skin={skin}
           variant={variant}
           disabled={disabled}>
-          {children ?? Strings.documents.addLinkButton}
+          {children ?? InventoryStrings.documents.addLinkButton}
         </Button>
       )}
-      <AddHyperlinkDialog
-        key={dialogKey}
-        isOpened={addHyperlinkDialogOpened}
-        onAdd={callAddNewHyperlink.bind(this)}
-        onClose={() => setAddHyperlinkDialogOpened(false)}
-        targetCategory={selectedCategory}
-      />
+      {addHyperlinkDialogOpened ? (
+        <AddHyperlinkDialog
+          key={dialogKey}
+          isOpened={true}
+          onAdd={callAddNewHyperlink.bind(this)}
+          onClose={() => setAddHyperlinkDialogOpened(false)}
+          targetCategory={selectedCategory}
+        />
+      ) : null}
     </FormAction>
   );
 };

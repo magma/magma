@@ -9,6 +9,7 @@ import (
 	"github.com/facebookincubator/ent/schema/edge"
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/ent/schema/index"
+	"github.com/facebookincubator/symphony/graph/authz"
 )
 
 // PropertyType defines the property type schema.
@@ -21,6 +22,9 @@ func (PropertyType) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("type"),
 		field.String("name"),
+		field.String("external_id").
+			Unique().
+			Optional(),
 		field.Int("index").
 			Optional(),
 		field.String("category").
@@ -61,6 +65,7 @@ func (PropertyType) Fields() []ent.Field {
 		field.Bool("deleted").
 			StructTag(`gqlgen:"isDeleted"`).
 			Default(false),
+		field.String("nodeType").Optional(),
 	}
 }
 
@@ -112,6 +117,16 @@ func (PropertyType) Indexes() []ent.Index {
 			Edges("work_order_type").
 			Unique(),
 	}
+}
+
+// Policy returns property type policy.
+func (PropertyType) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithMutationRules(
+			authz.PropertyTypeWritePolicyRule(),
+			authz.PropertyTypeCreatePolicyRule(),
+		),
+	)
 }
 
 // Property defines the property schema.
@@ -186,5 +201,42 @@ func (Property) Edges() []ent.Edge {
 			Unique(),
 		edge.To("service_value", Service.Type).
 			Unique(),
+		edge.To("work_order_value", WorkOrder.Type).
+			Unique(),
+		edge.To("user_value", User.Type).
+			Unique(),
 	}
+}
+
+// Indexes returns property indexes.
+func (Property) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Edges("type", "location").
+			Unique(),
+		index.Edges("type", "equipment").
+			Unique(),
+		index.Edges("type", "service").
+			Unique(),
+		index.Edges("type", "equipment_port").
+			Unique(),
+		index.Edges("type", "link").
+			Unique(),
+		index.Edges("type", "work_order").
+			Unique(),
+		index.Edges("type", "project").
+			Unique(),
+	}
+}
+
+// Policy returns property policy.
+func (Property) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithQueryRules(
+			authz.PropertyReadPolicyRule(),
+		),
+		authz.WithMutationRules(
+			authz.PropertyWritePolicyRule(),
+			authz.PropertyCreatePolicyRule(),
+		),
+	)
 }

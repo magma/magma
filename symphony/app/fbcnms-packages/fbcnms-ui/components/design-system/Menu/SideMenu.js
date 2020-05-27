@@ -62,10 +62,10 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-export type MenuItem = {
+export type MenuItem = $ReadOnly<{|
   label: React.Node,
   tooltip?: ?string,
-};
+|}>;
 
 type Props = {
   header?: ?React.Node,
@@ -80,7 +80,7 @@ export default function SideMenu(props: Props) {
 
   return (
     <div className={classes.root}>
-      <Text variant="body1" className={classes.menuHeader}>
+      <Text className={classes.menuHeader} variant="body1" weight="medium">
         {header}
       </Text>
       <div className={classes.menuItemsContainer}>

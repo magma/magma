@@ -18,18 +18,19 @@ import (
 
 	"github.com/facebookincubator/ent/dialect"
 	"github.com/facebookincubator/ent/dialect/sql"
-	"github.com/facebookincubator/ent/dialect/sql/schema"
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/ent/enttest"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentpositiondefinition"
+	"github.com/facebookincubator/symphony/graph/ent/migrate"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
+	"github.com/facebookincubator/symphony/graph/ent/serviceendpointdefinition"
 	"github.com/facebookincubator/symphony/graph/event"
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/graphql/resolver"
 	"github.com/facebookincubator/symphony/graph/importer"
-	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 	"github.com/facebookincubator/symphony/pkg/log/logtest"
 	"github.com/facebookincubator/symphony/pkg/testdb"
@@ -41,7 +42,6 @@ import (
 var debug = flag.Bool("debug", false, "run database driver on debug mode")
 
 const (
-	tenantHeader               = viewer.TenantHeader
 	equipmentTypeName          = "equipmentType"
 	equipmentType2Name         = "equipmentType2"
 	parentEquip                = "parentEquipmentName"
@@ -101,18 +101,15 @@ func newResolver(t *testing.T, drv dialect.Driver) *TestExporterResolver {
 	if *debug {
 		drv = dialect.Debug(drv)
 	}
-	client := ent.NewClient(ent.Driver(drv))
-	err := client.Schema.Create(context.Background(), schema.WithGlobalUniqueID(true))
-	require.NoError(t, err)
-
+	client := enttest.NewClient(t,
+		enttest.WithOptions(ent.Driver(drv)),
+		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
+	)
 	logger := logtest.NewTestLogger(t)
-	emitter, subscriber := event.Pipe()
 	r := resolver.New(resolver.Config{
 		Logger:     logger,
-		Emitter:    emitter,
-		Subscriber: subscriber,
+		Subscriber: event.NewNopSubscriber(),
 	})
-
 	e := exporter{logger, equipmentRower{logger}}
 	return &TestExporterResolver{r, drv, client, e}
 }
@@ -309,7 +306,25 @@ func prepareData(ctx context.Context, t *testing.T, r TestExporterResolver) {
 	portID2, err := childEquip.QueryPorts().Where(equipmentport.HasDefinitionWith(equipmentportdefinition.ID(portDef2.ID))).OnlyID(ctx)
 	require.NoError(t, err)
 
-	serviceType, _ := mr.AddServiceType(ctx, models.ServiceTypeCreateData{Name: "L2 Service", HasCustomer: false})
+	serviceType, _ := mr.AddServiceType(ctx,
+		models.ServiceTypeCreateData{
+			Name:        "L2 Service",
+			HasCustomer: false,
+			Endpoints: []*models.ServiceEndpointDefinitionInput{
+				{
+					Name:            "endpoint type1",
+					Role:            pointer.ToString("CONSUMER"),
+					Index:           0,
+					EquipmentTypeID: equipmentType.ID,
+				},
+				{
+					Index:           1,
+					Name:            "endpoint type2",
+					Role:            pointer.ToString("PROVIDER"),
+					EquipmentTypeID: equipmentType2.ID,
+				},
+			},
+		})
 	s1, err := mr.AddService(ctx, models.ServiceCreateData{
 		Name:          firstServiceName,
 		ServiceTypeID: serviceType.ID,
@@ -323,20 +338,29 @@ func prepareData(ctx context.Context, t *testing.T, r TestExporterResolver) {
 	})
 	require.NoError(t, err)
 
+	ept0 := serviceType.QueryEndpointDefinitions().Where(serviceendpointdefinition.Index(0)).OnlyX(ctx)
+
 	_, _ = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
-		ID:     s1.ID,
-		PortID: portID1,
-		Role:   models.ServiceEndpointRoleConsumer,
+		ID:          s1.ID,
+		EquipmentID: parentEquipment.ID,
+		PortID:      pointer.ToInt(portID1),
+		Definition:  ept0.ID,
 	})
+
 	_, _ = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
-		ID:     s2.ID,
-		PortID: portID1,
-		Role:   models.ServiceEndpointRoleConsumer,
+		ID:          s2.ID,
+		EquipmentID: parentEquipment.ID,
+		PortID:      pointer.ToInt(portID1),
+		Definition:  ept0.ID,
 	})
+
+	ept1 := serviceType.QueryEndpointDefinitions().Where(serviceendpointdefinition.Index(1)).OnlyX(ctx)
+
 	_, _ = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
-		ID:     s1.ID,
-		PortID: portID2,
-		Role:   models.ServiceEndpointRoleProvider,
+		ID:          s1.ID,
+		EquipmentID: childEquip.ID,
+		PortID:      pointer.ToInt(portID2),
+		Definition:  ept1.ID,
 	})
 	/*
 		helper: data now is of type:
@@ -355,15 +379,15 @@ func prepareData(ctx context.Context, t *testing.T, r TestExporterResolver) {
 }
 
 func prepareHandlerAndExport(t *testing.T, r *TestExporterResolver, e http.Handler) (context.Context, *http.Response) {
-	th := viewer.TenancyHandler(e, viewer.NewFixedTenancy(r.client))
+	th := viewertest.TestHandler(t, e, r.client)
 	server := httptest.NewServer(th)
 	defer server.Close()
 
 	req, err := http.NewRequest(http.MethodGet, server.URL, nil)
 	require.NoError(t, err)
-	req.Header.Set(tenantHeader, "fb-test")
+	viewertest.SetDefaultViewerHeaders(req)
 
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	prepareData(ctx, t, *r)
 	locs := r.client.Location.Query().AllX(ctx)
 	require.Len(t, locs, 3)
@@ -383,15 +407,13 @@ func importLinksPortsFile(t *testing.T, client *ent.Client, r io.Reader, entity 
 		buf, contentType = writeModifiedPortsCSV(t, readr, skipLines, withVerify)
 	}
 
-	emitter, subscriber := event.Pipe()
 	h, _ := importer.NewHandler(
 		importer.Config{
 			Logger:     logtest.NewTestLogger(t),
-			Emitter:    emitter,
-			Subscriber: subscriber,
+			Subscriber: event.NewNopSubscriber(),
 		},
 	)
-	th := viewer.TenancyHandler(h, viewer.NewFixedTenancy(client))
+	th := viewertest.TestHandler(t, h, client)
 	server := httptest.NewServer(th)
 	defer server.Close()
 	switch entity {
@@ -404,7 +426,7 @@ func importLinksPortsFile(t *testing.T, client *ent.Client, r io.Reader, entity 
 	req, err := http.NewRequest(http.MethodPost, url, buf)
 	require.Nil(t, err)
 
-	req.Header.Set(tenantHeader, "fb-test")
+	viewertest.SetDefaultViewerHeaders(req)
 	req.Header.Set("Content-Type", contentType)
 	resp, err := http.DefaultClient.Do(req)
 	require.Nil(t, err)

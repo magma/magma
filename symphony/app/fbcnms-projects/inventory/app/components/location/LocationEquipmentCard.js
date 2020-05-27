@@ -14,7 +14,7 @@ import Button from '@fbcnms/ui/components/design-system/Button';
 import Card from '@fbcnms/ui/components/design-system/Card/Card';
 import CardHeader from '@fbcnms/ui/components/design-system/Card/CardHeader';
 import EquipmentTable from '../equipment/EquipmentTable';
-import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
+import FormActionWithPermissions from '../../common/FormActionWithPermissions';
 import React from 'react';
 import classNames from 'classnames';
 import {makeStyles} from '@material-ui/styles';
@@ -51,9 +51,10 @@ const LocationEquipmentCard = (props: Props) => {
           [classes.cardHasNoContent]: equipment.filter(Boolean).length === 0,
         })}
         rightContent={
-          <FormAction>
+          <FormActionWithPermissions
+            permissions={{entity: 'equipment', action: 'create'}}>
             <Button onClick={onAddEquipment}>Add Equipment</Button>
-          </FormAction>
+          </FormActionWithPermissions>
         }>
         Equipment
       </CardHeader>

@@ -8,22 +8,20 @@ package main
 
 import (
 	"github.com/facebookincubator/symphony/pkg/log"
-	"github.com/facebookincubator/symphony/pkg/server"
 	"github.com/facebookincubator/symphony/pkg/server/xserver"
 	"github.com/facebookincubator/symphony/store/handler"
 	"github.com/facebookincubator/symphony/store/sign/s3"
-
 	"github.com/google/wire"
 	"gocloud.dev/server/health"
 )
 
-// NewServer provider a store http service from cli flags.
-func NewServer(flags *cliFlags) (*server.Server, func(), error) {
+func newApplication(flags *cliFlags) (*application, func(), error) {
 	wire.Build(
+		wire.Struct(new(application), "*"),
+		wire.FieldsOf(new(*cliFlags), "Addr", "Log", "Census", "S3"),
+		log.Provider,
 		xserver.ServiceSet,
 		xserver.DefaultViews,
-		log.Provider,
-		wire.FieldsOf(new(*cliFlags), "Census", "Log", "S3"),
 		wire.Value([]health.Checker(nil)),
 		s3.Set,
 		handler.Set,

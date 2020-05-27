@@ -8,6 +8,8 @@ package equipmenttype
 
 import (
 	"time"
+
+	"github.com/facebookincubator/ent"
 )
 
 const (
@@ -29,6 +31,8 @@ const (
 	EdgeEquipment = "equipment"
 	// EdgeCategory holds the string denoting the category edge name in mutations.
 	EdgeCategory = "category"
+	// EdgeServiceEndpointDefinitions holds the string denoting the service_endpoint_definitions edge name in mutations.
+	EdgeServiceEndpointDefinitions = "service_endpoint_definitions"
 
 	// Table holds the table name of the equipmenttype in the database.
 	Table = "equipment_types"
@@ -67,6 +71,13 @@ const (
 	CategoryInverseTable = "equipment_categories"
 	// CategoryColumn is the table column denoting the category relation/edge.
 	CategoryColumn = "equipment_type_category"
+	// ServiceEndpointDefinitionsTable is the table the holds the service_endpoint_definitions relation/edge.
+	ServiceEndpointDefinitionsTable = "service_endpoint_definitions"
+	// ServiceEndpointDefinitionsInverseTable is the table name for the ServiceEndpointDefinition entity.
+	// It exists in this package in order to avoid circular dependency with the "serviceendpointdefinition" package.
+	ServiceEndpointDefinitionsInverseTable = "service_endpoint_definitions"
+	// ServiceEndpointDefinitionsColumn is the table column denoting the service_endpoint_definitions relation/edge.
+	ServiceEndpointDefinitionsColumn = "equipment_type_service_endpoint_definitions"
 )
 
 // Columns holds all SQL columns for equipmenttype fields.
@@ -82,7 +93,15 @@ var ForeignKeys = []string{
 	"equipment_type_category",
 }
 
+// Note that the variables below are initialized by the runtime
+// package on the initialization of the application. Therefore,
+// it should be imported in the main as follows:
+//
+//	import _ "github.com/facebookincubator/symphony/graph/ent/runtime"
+//
 var (
+	Hooks  [1]ent.Hook
+	Policy ent.Policy
 	// DefaultCreateTime holds the default value on creation for the create_time field.
 	DefaultCreateTime func() time.Time
 	// DefaultUpdateTime holds the default value on creation for the update_time field.

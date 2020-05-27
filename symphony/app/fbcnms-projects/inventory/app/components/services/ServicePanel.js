@@ -11,7 +11,6 @@
 import type {
   AddServiceEndpointMutationResponse,
   AddServiceEndpointMutationVariables,
-  ServiceEndpointRole,
 } from '../../mutations/__generated__/AddServiceEndpointMutation.graphql';
 import type {
   AddServiceLinkMutationResponse,
@@ -139,12 +138,15 @@ const ServicePanel = React.forwardRef((props: Props, ref) => {
   const [endpointsExpanded, setEndpointsExpanded] = useState(false);
   const [linksExpanded, setLinksExpanded] = useState(false);
 
-  const onAddEndpoint = (port: EquipmentPort, role: ServiceEndpointRole) => {
+  const hideEditButtons = service.serviceType?.discoveryMethod != 'MANUAL';
+
+  const onAddEndpoint = (port: EquipmentPort, endpointDefinition: string) => {
     const variables: AddServiceEndpointMutationVariables = {
       input: {
         id: service.id,
         portId: port.id,
-        role: role,
+        equipmentID: port.parentEquipment.id,
+        definition: endpointDefinition,
       },
     };
     const callbacks: MutationCallbacks<AddServiceEndpointMutationResponse> = {
@@ -278,14 +280,16 @@ const ServicePanel = React.forwardRef((props: Props, ref) => {
           expanded={endpointsExpanded}
           onChange={expanded => setEndpointsExpanded(expanded)}
           rightContent={
-            <ServiceEndpointsMenu
-              service={{id: service.id, name: service.name}}
-              onAddEndpoint={onAddEndpoint}
-            />
+            hideEditButtons ? null : (
+              <ServiceEndpointsMenu
+                service={service}
+                onAddEndpoint={onAddEndpoint}
+              />
+            )
           }>
           <ServiceEndpointsView
             endpoints={service.endpoints}
-            onDeleteEndpoint={onDeleteEndpoint}
+            onDeleteEndpoint={hideEditButtons ? null : onDeleteEndpoint}
           />
         </ExpandingPanel>
       </>
@@ -300,12 +304,17 @@ const ServicePanel = React.forwardRef((props: Props, ref) => {
         expanded={linksExpanded}
         onChange={expanded => setLinksExpanded(expanded)}
         rightContent={
-          <ServiceLinksSubservicesMenu
-            service={{id: service.id, name: service.name}}
-            onAddLink={onAddLink}
-          />
+          hideEditButtons ? null : (
+            <ServiceLinksSubservicesMenu
+              service={{id: service.id, name: service.name}}
+              onAddLink={onAddLink}
+            />
+          )
         }>
-        <ServiceLinksView links={service.links} onDeleteLink={onDeleteLink} />
+        <ServiceLinksView
+          links={service.links}
+          onDeleteLink={hideEditButtons ? null : onDeleteLink}
+        />
       </ExpandingPanel>
       <div className={classes.separator} />
     </div>
@@ -324,12 +333,27 @@ export default createFragmentContainer(ServicePanel, {
       }
       serviceType {
         name
+        discoveryMethod
+        endpointDefinitions {
+          id
+          name
+          role
+          equipmentType {
+            id
+            name
+          }
+        }
       }
       links {
         id
         ...ServiceLinksView_links
       }
       endpoints {
+        id
+        definition {
+          id
+          name
+        }
         ...ServiceEndpointsView_endpoints
       }
     }

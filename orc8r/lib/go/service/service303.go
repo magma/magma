@@ -40,13 +40,13 @@ func (service *Service) StopService(ctx context.Context, void *protos.Void) (*pr
 
 // GetMetrics returns a MetricsContainer with all metrics for the service.
 func (service *Service) GetMetrics(ctx context.Context, void *protos.Void) (*protos.MetricsContainer, error) {
-	met := protos.MetricsContainer{}
+	met := &protos.MetricsContainer{}
 	metricsFamilies, err := metrics.GetMetrics()
 	if err != nil {
-		return &met, err
+		return met, err
 	}
-	met.Family = append(met.Family, metricsFamilies...)
-	return &met, nil
+	met.Family = metricsFamilies
+	return met, nil
 }
 
 // SetLogLevel sets the logging level for the service.

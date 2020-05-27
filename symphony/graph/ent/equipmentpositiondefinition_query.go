@@ -27,7 +27,7 @@ type EquipmentPositionDefinitionQuery struct {
 	config
 	limit      *int
 	offset     *int
-	order      []Order
+	order      []OrderFunc
 	unique     []string
 	predicates []predicate.EquipmentPositionDefinition
 	// eager-loading edges.
@@ -58,7 +58,7 @@ func (epdq *EquipmentPositionDefinitionQuery) Offset(offset int) *EquipmentPosit
 }
 
 // Order adds an order step to the query.
-func (epdq *EquipmentPositionDefinitionQuery) Order(o ...Order) *EquipmentPositionDefinitionQuery {
+func (epdq *EquipmentPositionDefinitionQuery) Order(o ...OrderFunc) *EquipmentPositionDefinitionQuery {
 	epdq.order = append(epdq.order, o...)
 	return epdq
 }
@@ -269,7 +269,7 @@ func (epdq *EquipmentPositionDefinitionQuery) Clone() *EquipmentPositionDefiniti
 		config:     epdq.config,
 		limit:      epdq.limit,
 		offset:     epdq.offset,
-		order:      append([]Order{}, epdq.order...),
+		order:      append([]OrderFunc{}, epdq.order...),
 		unique:     append([]string{}, epdq.unique...),
 		predicates: append([]predicate.EquipmentPositionDefinition{}, epdq.predicates...),
 		// clone intermediate query.
@@ -358,6 +358,9 @@ func (epdq *EquipmentPositionDefinitionQuery) prepareQuery(ctx context.Context) 
 			return err
 		}
 		epdq.sql = prev
+	}
+	if err := equipmentpositiondefinition.Policy.EvalQuery(ctx, epdq); err != nil {
+		return err
 	}
 	return nil
 }
@@ -536,14 +539,14 @@ func (epdq *EquipmentPositionDefinitionQuery) sqlQuery() *sql.Selector {
 type EquipmentPositionDefinitionGroupBy struct {
 	config
 	fields []string
-	fns    []Aggregate
+	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (epdgb *EquipmentPositionDefinitionGroupBy) Aggregate(fns ...Aggregate) *EquipmentPositionDefinitionGroupBy {
+func (epdgb *EquipmentPositionDefinitionGroupBy) Aggregate(fns ...AggregateFunc) *EquipmentPositionDefinitionGroupBy {
 	epdgb.fns = append(epdgb.fns, fns...)
 	return epdgb
 }

@@ -20,7 +20,7 @@ import (
 	"go.uber.org/zap"
 )
 
-const minimalLineLength = 6
+const minimalLineLength = 22
 
 // processExportedService imports service csv generated from the export feature
 // nolint: staticcheck, dupl
@@ -189,7 +189,6 @@ func (m *importer) processExportedService(w http.ResponseWriter, r *http.Request
 						errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: fmt.Sprintf("validating existing service: id %v", id)})
 						continue
 					}
-
 					propertiesValid := false
 					for i, propInput := range propInputs {
 						propID, err := service.QueryProperties().Where(property.HasTypeWith(propertytype.ID(propInput.PropertyTypeID))).OnlyID(ctx)
@@ -239,13 +238,18 @@ func (m *importer) processExportedService(w http.ResponseWriter, r *http.Request
 }
 
 func (m *importer) validateLineForExistingService(ctx context.Context, serviceID int, importLine ImportRecord) (*ent.Service, error) {
-	service, err := m.r.Query().Service(ctx, serviceID)
+	client := m.ClientFrom(ctx)
+	service, err := client.Service.Get(ctx, serviceID)
 	if err != nil {
 		return nil, errors.Wrapf(err, "fetching service")
 	}
 	typ := service.QueryType().OnlyX(ctx)
 	if typ.Name != importLine.TypeName() {
 		return nil, errors.Errorf("wrong service type. should be %v, but %v", typ.Name, importLine.TypeName())
+	}
+
+	if typ.DiscoveryMethod != "" && typ.DiscoveryMethod.String() != models.DiscoveryMethodManual.String() {
+		return nil, errors.Errorf("can't add services which are not manually discoverable. %v", typ.Name)
 	}
 	return service, nil
 }
@@ -276,7 +280,7 @@ func (m *importer) validatePropertiesForServiceType(ctx context.Context, line Im
 	}
 	for _, ptype := range propTypes {
 		ptypeName := ptype.Name
-		pInput, err := line.GetPropertyInput(m.ClientFrom(ctx), ctx, serviceType, ptypeName)
+		pInput, err := line.GetPropertyInput(ctx, serviceType, ptypeName)
 		if err != nil {
 			return nil, err
 		}

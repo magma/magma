@@ -14,7 +14,8 @@
 
 /*::
 import type { ReaderFragment } from 'relay-runtime';
-export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
+export type DiscoveryMethod = "INVENTORY" | "MANUAL" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "float" | "gps_location" | "int" | "node" | "range" | "string" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type AddEditServiceTypeCard_editingServiceType$ref: FragmentReference;
 declare export opaque type AddEditServiceTypeCard_editingServiceType$fragmentType: AddEditServiceTypeCard_editingServiceType$ref;
@@ -22,10 +23,12 @@ export type AddEditServiceTypeCard_editingServiceType = {|
   +id: string,
   +name: string,
   +numberOfServices: number,
+  +discoveryMethod: DiscoveryMethod,
   +propertyTypes: $ReadOnlyArray<?{|
     +id: string,
     +name: string,
     +type: PropertyKind,
+    +nodeType: ?string,
     +index: ?number,
     +stringValue: ?string,
     +intValue: ?number,
@@ -38,6 +41,16 @@ export type AddEditServiceTypeCard_editingServiceType = {|
     +isEditable: ?boolean,
     +isMandatory: ?boolean,
     +isInstanceProperty: ?boolean,
+  |}>,
+  +endpointDefinitions: $ReadOnlyArray<{|
+    +id: string,
+    +index: number,
+    +role: ?string,
+    +name: string,
+    +equipmentType: {|
+      +name: string,
+      +id: string,
+    |},
   |}>,
   +$refType: AddEditServiceTypeCard_editingServiceType$ref,
 |};
@@ -64,6 +77,13 @@ v1 = {
   "name": "name",
   "args": null,
   "storageKey": null
+},
+v2 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "index",
+  "args": null,
+  "storageKey": null
 };
 return {
   "kind": "Fragment",
@@ -78,6 +98,13 @@ return {
       "kind": "ScalarField",
       "alias": null,
       "name": "numberOfServices",
+      "args": null,
+      "storageKey": null
+    },
+    {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "discoveryMethod",
       "args": null,
       "storageKey": null
     },
@@ -102,10 +129,11 @@ return {
         {
           "kind": "ScalarField",
           "alias": null,
-          "name": "index",
+          "name": "nodeType",
           "args": null,
           "storageKey": null
         },
+        (v2/*: any*/),
         {
           "kind": "ScalarField",
           "alias": null,
@@ -184,10 +212,44 @@ return {
           "storageKey": null
         }
       ]
+    },
+    {
+      "kind": "LinkedField",
+      "alias": null,
+      "name": "endpointDefinitions",
+      "storageKey": null,
+      "args": null,
+      "concreteType": "ServiceEndpointDefinition",
+      "plural": true,
+      "selections": [
+        (v0/*: any*/),
+        (v2/*: any*/),
+        {
+          "kind": "ScalarField",
+          "alias": null,
+          "name": "role",
+          "args": null,
+          "storageKey": null
+        },
+        (v1/*: any*/),
+        {
+          "kind": "LinkedField",
+          "alias": null,
+          "name": "equipmentType",
+          "storageKey": null,
+          "args": null,
+          "concreteType": "EquipmentType",
+          "plural": false,
+          "selections": [
+            (v1/*: any*/),
+            (v0/*: any*/)
+          ]
+        }
+      ]
     }
   ]
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '1b8a927e2cc45461b99d2e031cdb8d3b';
+(node/*: any*/).hash = 'a30bbf291d8bcee70f5da0491ec834a7';
 module.exports = node;

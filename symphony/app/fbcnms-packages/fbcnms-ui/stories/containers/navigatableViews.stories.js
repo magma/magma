@@ -8,6 +8,7 @@
  * @format
  */
 
+import Button from '../../components/design-system/Button';
 import NavigatableViews from '../../components/design-system/View/NavigatableViews';
 import React from 'react';
 import symphony from '../../theme/symphony';
@@ -46,13 +47,14 @@ const ViewHeaderRoot = () => {
           subtitle:
             'The Company is a secret group of multinational corporate alliances known only by those who work for them or oppose them. Its influence and power over individuals stretches to the White House, controlling every decision the country makes.',
           actionButtons: [
-            {
-              title: 'Open Door',
-              action: () =>
+            <Button
+              onClick={() =>
                 console.log(
                   'If this is home, we probably need to be able to open the door...',
-                ),
-            },
+                )
+              }>
+              Open Door
+            </Button>,
           ],
         },
         children: <div className={classes.childView} />,
@@ -68,10 +70,9 @@ const ViewHeaderRoot = () => {
           title: 'Products',
           subtitle: 'Ever heard of Sona..?',
           actionButtons: [
-            {
-              title: 'Purchase',
-              action: () => console.log('I want to buy things!!'),
-            },
+            <Button onClick={() => console.log('I want to buy things!!')}>
+              Purchase
+            </Button>,
           ],
         },
         children: <div className={classes.childView} />,
@@ -86,10 +87,7 @@ const ViewHeaderRoot = () => {
         header: {
           title: 'Downloads',
           actionButtons: [
-            {
-              title: 'Go Torrent!',
-              action: () => console.log('sh...'),
-            },
+            <Button onClick={() => console.log('sh...')}>Go search!</Button>,
           ],
         },
         children: <div className={classes.childView} />,
@@ -104,10 +102,9 @@ const ViewHeaderRoot = () => {
         header: {
           title: 'About',
           actionButtons: [
-            {
-              title: 'Contact',
-              action: () => console.log('Send some mail..'),
-            },
+            <Button onClick={() => console.log('Send some mail..')}>
+              Contact
+            </Button>,
           ],
         },
         children: <div className={classes.childView} />,

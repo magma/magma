@@ -18,7 +18,7 @@ import type {WithStyles} from '@material-ui/core';
 import type {WorkOrderDetailsPaneLinkItem_link} from './__generated__/WorkOrderDetailsPaneLinkItem_link.graphql.js';
 
 type Props = WithStyles<typeof styles> & {
-  equipment: WorkOrderDetailsPaneLinkItem_link,
+  link: WorkOrderDetailsPaneLinkItem_link,
   futureState: FutureState,
 };
 
@@ -31,10 +31,10 @@ const styles = theme => ({
 
 class WorkOrderDetailsPaneEquipmentItem extends React.Component<Props> {
   render() {
-    const {equipment} = this.props;
+    const {link} = this.props;
     return (
       <WorkOrderDetailsPaneItem
-        text={this._getLinkDescription(equipment, 'INSTALL')}
+        text={this._getLinkDescription(link, 'INSTALL')}
       />
     );
   }

@@ -16,12 +16,31 @@ import (
 )
 
 func handleLocationFilter(q *ent.LocationQuery, filter *models.LocationFilterInput) (*ent.LocationQuery, error) {
-	if filter.FilterType == models.LocationFilterTypeLocationInst {
+	switch filter.FilterType {
+	case models.LocationFilterTypeLocationInst:
 		return LocationFilterPredicate(q, filter)
-	} else if filter.FilterType == models.LocationFilterTypeLocationInstHasEquipment {
+	case models.LocationFilterTypeLocationInstHasEquipment:
 		return locationHasEquipmentFilter(q, filter)
+	case models.LocationFilterTypeLocationInstName:
+		return locationNameFilter(q, filter)
+	case models.LocationFilterTypeLocationInstExternalID:
+		return locationExternalIDFilter(q, filter)
 	}
 	return nil, errors.Errorf("filter type is not supported: %s", filter.FilterType)
+}
+
+func locationExternalIDFilter(q *ent.LocationQuery, filter *models.LocationFilterInput) (*ent.LocationQuery, error) {
+	if filter.Operator == models.FilterOperatorIs {
+		return q.Where(location.ExternalID(*filter.StringValue)), nil
+	}
+	return nil, errors.Errorf("operation %s is not supported", filter.Operator)
+}
+
+func locationNameFilter(q *ent.LocationQuery, filter *models.LocationFilterInput) (*ent.LocationQuery, error) {
+	if filter.Operator == models.FilterOperatorIs {
+		return q.Where(location.NameEqualFold(*filter.StringValue)), nil
+	}
+	return nil, errors.Errorf("operation %s is not supported", filter.Operator)
 }
 
 func locationHasEquipmentFilter(q *ent.LocationQuery, filter *models.LocationFilterInput) (*ent.LocationQuery, error) {
@@ -120,5 +139,4 @@ func handleLocationPropertyFilter(q *ent.LocationQuery, filter *models.LocationF
 	default:
 		return nil, errors.Errorf("operator %q not supported", filter.Operator)
 	}
-
 }

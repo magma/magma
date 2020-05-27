@@ -18,9 +18,9 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/migrate"
 	"github.com/facebookincubator/symphony/pkg/log"
 	pkgmysql "github.com/facebookincubator/symphony/pkg/mysql"
-	"go.opencensus.io/trace"
 
 	"github.com/go-sql-driver/mysql"
+	"go.opencensus.io/trace"
 	"go.uber.org/zap"
 	"gocloud.dev/server/health"
 	"gocloud.dev/server/health/sqlhealth"
@@ -51,11 +51,58 @@ func (f FixedTenancy) Client() *ent.Client {
 	return f.client
 }
 
+// CacheTenancy is a tenancy wrapper cashing underlying clients.
+type CacheTenancy struct {
+	tenancy  Tenancy
+	initFunc func(*ent.Client)
+	clients  map[string]*ent.Client
+	mu       sync.RWMutex
+}
+
+// NewCacheTenancy creates a tenancy cache.
+func NewCacheTenancy(tenancy Tenancy, initFunc func(*ent.Client)) *CacheTenancy {
+	return &CacheTenancy{
+		tenancy:  tenancy,
+		initFunc: initFunc,
+		clients:  map[string]*ent.Client{},
+	}
+}
+
+// ClientFor implements Tenancy interface.
+func (c *CacheTenancy) ClientFor(ctx context.Context, name string) (*ent.Client, error) {
+	c.mu.RLock()
+	client, ok := c.clients[name]
+	c.mu.RUnlock()
+	if ok {
+		return client, nil
+	}
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if client, ok := c.clients[name]; ok {
+		return client, nil
+	}
+	client, err := c.tenancy.ClientFor(ctx, name)
+	if err != nil {
+		return client, err
+	}
+	if c.initFunc != nil {
+		c.initFunc(client)
+	}
+	c.clients[name] = client
+	return client, nil
+}
+
+// CheckHealth implements health.Checker interface.
+func (c *CacheTenancy) CheckHealth() error {
+	if checker, ok := c.tenancy.(health.Checker); ok {
+		return checker.CheckHealth()
+	}
+	return nil
+}
+
 // MySQLTenancy provides logical database per tenant.
 type MySQLTenancy struct {
 	health.Checker
-	clients sync.Map
-	mu      sync.Mutex
 	logger  log.Logger
 	config  *mysql.Config
 	closers []func()
@@ -83,31 +130,13 @@ func NewMySQLTenancy(dsn string) (*MySQLTenancy, error) {
 	return tenancy, nil
 }
 
-// WithLogger sets tenancy logger.
-func (m *MySQLTenancy) WithLogger(logger log.Logger) *MySQLTenancy {
+// SetLogger sets tenancy logger.
+func (m *MySQLTenancy) SetLogger(logger log.Logger) {
 	m.logger = logger
-	return m
 }
 
 // ClientFor implements Tenancy interface.
 func (m *MySQLTenancy) ClientFor(ctx context.Context, name string) (*ent.Client, error) {
-	if client, ok := m.clients.Load(name); ok {
-		return client.(*ent.Client), nil
-	}
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	if client, ok := m.clients.Load(name); ok {
-		return client.(*ent.Client), nil
-	}
-	client, err := m.clientFor(ctx, name)
-	if err != nil {
-		return nil, err
-	}
-	m.clients.Store(name, client)
-	return client, nil
-}
-
-func (m *MySQLTenancy) clientFor(ctx context.Context, name string) (*ent.Client, error) {
 	client := ent.NewClient(ent.Driver(entsql.OpenDB(dialect.MySQL, m.dbFor(name))))
 	if err := m.migrate(ctx, client); err != nil {
 		return nil, err

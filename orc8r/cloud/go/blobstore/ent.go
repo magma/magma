@@ -25,6 +25,13 @@ import (
 	"github.com/thoas/go-funk"
 )
 
+// NewEntStorage returns an ent-based implementation of blobstore.
+//
+// Note: due to constraints on how we use the ent-generated code across
+// multiple tables, only one ent storage object can exist per process.
+// As a result:
+//	- DO NOT use more than one ent storage (table name) per service
+//	- DO NOT use ent as the backing store for test services
 func NewEntStorage(tableName string, db *sql.DB, builder sqorc.StatementBuilder) BlobStorageFactory {
 	dialect, ok := os.LookupEnv("SQL_DRIVER")
 	if !ok {
@@ -93,10 +100,18 @@ func (e *entStorage) GetMany(networkID string, ids []storage.TypeAndKey) ([]Blob
 	return blobs, nil
 }
 
-func (e *entStorage) Search(filter SearchFilter) (map[string][]Blob, error) {
+func (e *entStorage) Search(filter SearchFilter, criteria LoadCriteria) (map[string][]Blob, error) {
 	ctx := context.Background()
 
-	preds := []predicate.Blob{}
+	// Get fields from load criteria
+	selectField := blob.FieldNetworkID
+	selectFields := []string{blob.FieldType, blob.FieldKey, blob.FieldVersion}
+	if criteria.LoadValue {
+		selectFields = append(selectFields, blob.FieldValue)
+	}
+
+	// Get predicates from search filter
+	var preds []predicate.Blob
 	if filter.NetworkID != nil {
 		preds = append(preds, blob.NetworkID(*filter.NetworkID))
 	}
@@ -107,16 +122,16 @@ func (e *entStorage) Search(filter SearchFilter) (map[string][]Blob, error) {
 		preds = append(preds, blob.KeyIn(filter.GetKeys()...))
 	}
 
+	ret := map[string][]Blob{}
 	var blobs []blobWithNetworkID
 	err := e.Blob.Query().
 		Where(blob.And(preds...)).
-		Select(blob.FieldNetworkID, blob.FieldType, blob.FieldKey, blob.FieldValue, blob.FieldVersion).
+		Select(selectField, selectFields...). // handle ent select's at-least-once variadic method signature
 		Scan(ctx, &blobs)
 	if err != nil {
-		return map[string][]Blob{}, err
+		return ret, err
 	}
 
-	ret := map[string][]Blob{}
 	for _, b := range blobs {
 		nidCol := ret[b.NetworkID]
 		nidCol = append(nidCol, b.toBlob())

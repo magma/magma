@@ -12,11 +12,12 @@
     - user: "{{ ansible_user }}"
     - full_provision: true
   roles:
+    - role: gomod_cache
     - role: apt_cache
     - role: pkgrepo
       vars:
         distribution: "bionic"
-        repo: "cwf"
+        repo: "cwf-prod"
     - role: ovs
     - role: resolv_conf
       vars:

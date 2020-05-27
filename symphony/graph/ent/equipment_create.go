@@ -22,6 +22,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/hyperlink"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/property"
+	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
 
@@ -249,6 +250,21 @@ func (ec *EquipmentCreate) AddHyperlinks(h ...*Hyperlink) *EquipmentCreate {
 		ids[i] = h[i].ID
 	}
 	return ec.AddHyperlinkIDs(ids...)
+}
+
+// AddEndpointIDs adds the endpoints edge to ServiceEndpoint by ids.
+func (ec *EquipmentCreate) AddEndpointIDs(ids ...int) *EquipmentCreate {
+	ec.mutation.AddEndpointIDs(ids...)
+	return ec
+}
+
+// AddEndpoints adds the endpoints edges to ServiceEndpoint.
+func (ec *EquipmentCreate) AddEndpoints(s ...*ServiceEndpoint) *EquipmentCreate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return ec.AddEndpointIDs(ids...)
 }
 
 // Save creates the Equipment in the database.
@@ -534,6 +550,25 @@ func (ec *EquipmentCreate) sqlSave(ctx context.Context) (*Equipment, error) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: hyperlink.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ec.mutation.EndpointsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   equipment.EndpointsTable,
+			Columns: []string{equipment.EndpointsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: serviceendpoint.FieldID,
 				},
 			},
 		}

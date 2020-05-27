@@ -2595,6 +2595,34 @@ func LongitudeNotNil() predicate.SurveyCellScan {
 	})
 }
 
+// HasChecklistItem applies the HasEdge predicate on the "checklist_item" edge.
+func HasChecklistItem() predicate.SurveyCellScan {
+	return predicate.SurveyCellScan(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(ChecklistItemTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, ChecklistItemTable, ChecklistItemColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasChecklistItemWith applies the HasEdge predicate on the "checklist_item" edge with a given conditions (other predicates).
+func HasChecklistItemWith(preds ...predicate.CheckListItem) predicate.SurveyCellScan {
+	return predicate.SurveyCellScan(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(ChecklistItemInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, ChecklistItemTable, ChecklistItemColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasSurveyQuestion applies the HasEdge predicate on the "survey_question" edge.
 func HasSurveyQuestion() predicate.SurveyCellScan {
 	return predicate.SurveyCellScan(func(s *sql.Selector) {

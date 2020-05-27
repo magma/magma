@@ -14,9 +14,11 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
 	"github.com/facebookincubator/symphony/graph/ent/service"
 	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
+	"github.com/facebookincubator/symphony/graph/ent/serviceendpointdefinition"
 )
 
 // ServiceEndpointCreate is the builder for creating a ServiceEndpoint entity.
@@ -54,12 +56,6 @@ func (sec *ServiceEndpointCreate) SetNillableUpdateTime(t *time.Time) *ServiceEn
 	return sec
 }
 
-// SetRole sets the role field.
-func (sec *ServiceEndpointCreate) SetRole(s string) *ServiceEndpointCreate {
-	sec.mutation.SetRole(s)
-	return sec
-}
-
 // SetPortID sets the port edge to EquipmentPort by id.
 func (sec *ServiceEndpointCreate) SetPortID(id int) *ServiceEndpointCreate {
 	sec.mutation.SetPortID(id)
@@ -79,23 +75,45 @@ func (sec *ServiceEndpointCreate) SetPort(e *EquipmentPort) *ServiceEndpointCrea
 	return sec.SetPortID(e.ID)
 }
 
+// SetEquipmentID sets the equipment edge to Equipment by id.
+func (sec *ServiceEndpointCreate) SetEquipmentID(id int) *ServiceEndpointCreate {
+	sec.mutation.SetEquipmentID(id)
+	return sec
+}
+
+// SetEquipment sets the equipment edge to Equipment.
+func (sec *ServiceEndpointCreate) SetEquipment(e *Equipment) *ServiceEndpointCreate {
+	return sec.SetEquipmentID(e.ID)
+}
+
 // SetServiceID sets the service edge to Service by id.
 func (sec *ServiceEndpointCreate) SetServiceID(id int) *ServiceEndpointCreate {
 	sec.mutation.SetServiceID(id)
 	return sec
 }
 
-// SetNillableServiceID sets the service edge to Service by id if the given value is not nil.
-func (sec *ServiceEndpointCreate) SetNillableServiceID(id *int) *ServiceEndpointCreate {
+// SetService sets the service edge to Service.
+func (sec *ServiceEndpointCreate) SetService(s *Service) *ServiceEndpointCreate {
+	return sec.SetServiceID(s.ID)
+}
+
+// SetDefinitionID sets the definition edge to ServiceEndpointDefinition by id.
+func (sec *ServiceEndpointCreate) SetDefinitionID(id int) *ServiceEndpointCreate {
+	sec.mutation.SetDefinitionID(id)
+	return sec
+}
+
+// SetNillableDefinitionID sets the definition edge to ServiceEndpointDefinition by id if the given value is not nil.
+func (sec *ServiceEndpointCreate) SetNillableDefinitionID(id *int) *ServiceEndpointCreate {
 	if id != nil {
-		sec = sec.SetServiceID(*id)
+		sec = sec.SetDefinitionID(*id)
 	}
 	return sec
 }
 
-// SetService sets the service edge to Service.
-func (sec *ServiceEndpointCreate) SetService(s *Service) *ServiceEndpointCreate {
-	return sec.SetServiceID(s.ID)
+// SetDefinition sets the definition edge to ServiceEndpointDefinition.
+func (sec *ServiceEndpointCreate) SetDefinition(s *ServiceEndpointDefinition) *ServiceEndpointCreate {
+	return sec.SetDefinitionID(s.ID)
 }
 
 // Save creates the ServiceEndpoint in the database.
@@ -108,8 +126,11 @@ func (sec *ServiceEndpointCreate) Save(ctx context.Context) (*ServiceEndpoint, e
 		v := serviceendpoint.DefaultUpdateTime()
 		sec.mutation.SetUpdateTime(v)
 	}
-	if _, ok := sec.mutation.Role(); !ok {
-		return nil, errors.New("ent: missing required field \"role\"")
+	if _, ok := sec.mutation.EquipmentID(); !ok {
+		return nil, errors.New("ent: missing required edge \"equipment\"")
+	}
+	if _, ok := sec.mutation.ServiceID(); !ok {
+		return nil, errors.New("ent: missing required edge \"service\"")
 	}
 	var (
 		err  error
@@ -173,14 +194,6 @@ func (sec *ServiceEndpointCreate) sqlSave(ctx context.Context) (*ServiceEndpoint
 		})
 		se.UpdateTime = value
 	}
-	if value, ok := sec.mutation.Role(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: serviceendpoint.FieldRole,
-		})
-		se.Role = value
-	}
 	if nodes := sec.mutation.PortIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -200,6 +213,25 @@ func (sec *ServiceEndpointCreate) sqlSave(ctx context.Context) (*ServiceEndpoint
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
+	if nodes := sec.mutation.EquipmentIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   serviceendpoint.EquipmentTable,
+			Columns: []string{serviceendpoint.EquipmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: equipment.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	if nodes := sec.mutation.ServiceIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -211,6 +243,25 @@ func (sec *ServiceEndpointCreate) sqlSave(ctx context.Context) (*ServiceEndpoint
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: service.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := sec.mutation.DefinitionIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   serviceendpoint.DefinitionTable,
+			Columns: []string{serviceendpoint.DefinitionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: serviceendpointdefinition.FieldID,
 				},
 			},
 		}

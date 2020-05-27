@@ -24,7 +24,7 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
-import Strings from '../../../common/CommonStrings';
+import Strings from '@fbcnms/strings/Strings';
 import TabsBar from '@fbcnms/ui/components/design-system/Tabs/TabsBar';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import fbt from 'fbt';
@@ -34,9 +34,12 @@ import {makeStyles} from '@material-ui/styles';
 import {useReducer, useState} from 'react';
 
 const useStyles = makeStyles(() => ({
+  root: {
+    minHeight: '480px',
+  },
   dialogHeader: {
     display: 'flex',
-    flexDirection: 1,
+    flexDirection: 'row',
     alignItems: 'center',
   },
   tabs: {
@@ -45,15 +48,19 @@ const useStyles = makeStyles(() => ({
   dialogActions: {
     padding: '24px',
   },
+  addItemButton: {
+    marginLeft: 'auto',
+  },
 }));
 
-type Props = {
+type Props = $ReadOnly<{|
   isOpened?: boolean,
   onCancel?: () => void,
   onSave?: (items: Array<CheckListItem>) => void,
   categoryTitle: string,
   initialItems: Array<CheckListItem>,
-};
+  isDefinitionsOnly?: boolean,
+|}>;
 
 const TabViewValues = {
   items: 0,
@@ -69,7 +76,7 @@ type View = {
 };
 
 const DESIGN_VIEW: View = {
-  label: `${fbt('items', 'Header for tab showing checklist items')}`,
+  label: `${fbt('Items', 'Header for tab showing checklist items')}`,
   labelSuffix: itemsList => (itemsList ? ` (${itemsList.length})` : ''),
   value: 0,
 };
@@ -90,22 +97,28 @@ const RESPONSE_VIEW: View = {
 };
 const VIEWS = [DESIGN_VIEW, RESPONSE_VIEW];
 
-const CheckListCategoryItemsDialog = ({
-  initialItems,
-  onCancel,
-  onSave,
-  categoryTitle,
-}: Props) => {
+const CheckListCategoryItemsDialog = (props: Props) => {
+  const {
+    initialItems,
+    onCancel,
+    onSave,
+    categoryTitle,
+    isDefinitionsOnly = false,
+  } = props;
   const classes = useStyles();
   const [dialogState, dispatch] = useReducer<
     ChecklistItemsDialogStateType,
     ChecklistItemsDialogMutateStateActionType,
     Array<CheckListItem>,
   >(reducer, initialItems, getInitialState);
-
   const [pickedView, setPickedView] = useState<number>(DESIGN_VIEW.value);
+
   return (
-    <Dialog fullWidth={true} maxWidth="md" open={true}>
+    <Dialog
+      classes={{paper: classes.root}}
+      fullWidth={true}
+      maxWidth="lg"
+      open={true}>
       <DialogTitle disableTypography={true}>
         <Text variant="h6">
           <fbt desc="">Checklist</fbt>
@@ -114,18 +127,22 @@ const CheckListCategoryItemsDialog = ({
       </DialogTitle>
       <DialogContent>
         <div className={classes.dialogHeader}>
-          <TabsBar
-            className={classes.tabs}
-            tabs={VIEWS.map(view => ({
-              label: `${view.label}${view.labelSuffix(dialogState.items)}`,
-            }))}
-            activeTabIndex={pickedView}
-            onChange={setPickedView}
-            spread={true}
-          />
+          {!isDefinitionsOnly ? (
+            <TabsBar
+              className={classes.tabs}
+              tabs={VIEWS.map(view => ({
+                label: `${view.label}${view.labelSuffix(dialogState.items)}`,
+              }))}
+              activeTabIndex={pickedView}
+              onChange={setPickedView}
+              spread={false}
+              size="small"
+            />
+          ) : null}
           {pickedView === TabViewValues.items && (
             <FormAction>
               <Button
+                className={classes.addItemButton}
                 onClick={() => dispatch({type: 'ADD_ITEM'})}
                 leftIcon={PlusIcon}>
                 <fbt desc="">Add Item</fbt>
@@ -148,9 +165,11 @@ const CheckListCategoryItemsDialog = ({
         <Button skin="gray" onClick={onCancel}>
           {Strings.common.cancelButton}
         </Button>
-        <Button onClick={() => onSave && onSave(dialogState.items)}>
-          {Strings.common.saveButton}
-        </Button>
+        <FormAction>
+          <Button onClick={() => onSave && onSave(dialogState.items)}>
+            {Strings.common.saveButton}
+          </Button>
+        </FormAction>
       </DialogActions>
     </Dialog>
   );

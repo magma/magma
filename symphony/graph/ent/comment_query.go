@@ -17,7 +17,9 @@ import (
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/comment"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
+	"github.com/facebookincubator/symphony/graph/ent/project"
 	"github.com/facebookincubator/symphony/graph/ent/user"
+	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
 
 // CommentQuery is the builder for querying Comment entities.
@@ -25,12 +27,14 @@ type CommentQuery struct {
 	config
 	limit      *int
 	offset     *int
-	order      []Order
+	order      []OrderFunc
 	unique     []string
 	predicates []predicate.Comment
 	// eager-loading edges.
-	withAuthor *UserQuery
-	withFKs    bool
+	withAuthor    *UserQuery
+	withWorkOrder *WorkOrderQuery
+	withProject   *ProjectQuery
+	withFKs       bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -55,7 +59,7 @@ func (cq *CommentQuery) Offset(offset int) *CommentQuery {
 }
 
 // Order adds an order step to the query.
-func (cq *CommentQuery) Order(o ...Order) *CommentQuery {
+func (cq *CommentQuery) Order(o ...OrderFunc) *CommentQuery {
 	cq.order = append(cq.order, o...)
 	return cq
 }
@@ -71,6 +75,42 @@ func (cq *CommentQuery) QueryAuthor() *UserQuery {
 			sqlgraph.From(comment.Table, comment.FieldID, cq.sqlQuery()),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, comment.AuthorTable, comment.AuthorColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryWorkOrder chains the current query on the work_order edge.
+func (cq *CommentQuery) QueryWorkOrder() *WorkOrderQuery {
+	query := &WorkOrderQuery{config: cq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := cq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(comment.Table, comment.FieldID, cq.sqlQuery()),
+			sqlgraph.To(workorder.Table, workorder.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, comment.WorkOrderTable, comment.WorkOrderColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryProject chains the current query on the project edge.
+func (cq *CommentQuery) QueryProject() *ProjectQuery {
+	query := &ProjectQuery{config: cq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := cq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(comment.Table, comment.FieldID, cq.sqlQuery()),
+			sqlgraph.To(project.Table, project.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, comment.ProjectTable, comment.ProjectColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
 		return fromU, nil
@@ -248,7 +288,7 @@ func (cq *CommentQuery) Clone() *CommentQuery {
 		config:     cq.config,
 		limit:      cq.limit,
 		offset:     cq.offset,
-		order:      append([]Order{}, cq.order...),
+		order:      append([]OrderFunc{}, cq.order...),
 		unique:     append([]string{}, cq.unique...),
 		predicates: append([]predicate.Comment{}, cq.predicates...),
 		// clone intermediate query.
@@ -265,6 +305,28 @@ func (cq *CommentQuery) WithAuthor(opts ...func(*UserQuery)) *CommentQuery {
 		opt(query)
 	}
 	cq.withAuthor = query
+	return cq
+}
+
+//  WithWorkOrder tells the query-builder to eager-loads the nodes that are connected to
+// the "work_order" edge. The optional arguments used to configure the query builder of the edge.
+func (cq *CommentQuery) WithWorkOrder(opts ...func(*WorkOrderQuery)) *CommentQuery {
+	query := &WorkOrderQuery{config: cq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	cq.withWorkOrder = query
+	return cq
+}
+
+//  WithProject tells the query-builder to eager-loads the nodes that are connected to
+// the "project" edge. The optional arguments used to configure the query builder of the edge.
+func (cq *CommentQuery) WithProject(opts ...func(*ProjectQuery)) *CommentQuery {
+	query := &ProjectQuery{config: cq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	cq.withProject = query
 	return cq
 }
 
@@ -327,6 +389,9 @@ func (cq *CommentQuery) prepareQuery(ctx context.Context) error {
 		}
 		cq.sql = prev
 	}
+	if err := comment.Policy.EvalQuery(ctx, cq); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -335,11 +400,13 @@ func (cq *CommentQuery) sqlAll(ctx context.Context) ([]*Comment, error) {
 		nodes       = []*Comment{}
 		withFKs     = cq.withFKs
 		_spec       = cq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [3]bool{
 			cq.withAuthor != nil,
+			cq.withWorkOrder != nil,
+			cq.withProject != nil,
 		}
 	)
-	if cq.withAuthor != nil {
+	if cq.withAuthor != nil || cq.withWorkOrder != nil || cq.withProject != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -390,6 +457,56 @@ func (cq *CommentQuery) sqlAll(ctx context.Context) ([]*Comment, error) {
 			}
 			for i := range nodes {
 				nodes[i].Edges.Author = n
+			}
+		}
+	}
+
+	if query := cq.withWorkOrder; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Comment)
+		for i := range nodes {
+			if fk := nodes[i].work_order_comments; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(workorder.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_comments" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.WorkOrder = n
+			}
+		}
+	}
+
+	if query := cq.withProject; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Comment)
+		for i := range nodes {
+			if fk := nodes[i].project_comments; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(project.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "project_comments" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Project = n
 			}
 		}
 	}
@@ -475,14 +592,14 @@ func (cq *CommentQuery) sqlQuery() *sql.Selector {
 type CommentGroupBy struct {
 	config
 	fields []string
-	fns    []Aggregate
+	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (cgb *CommentGroupBy) Aggregate(fns ...Aggregate) *CommentGroupBy {
+func (cgb *CommentGroupBy) Aggregate(fns ...AggregateFunc) *CommentGroupBy {
 	cgb.fns = append(cgb.fns, fns...)
 	return cgb
 }

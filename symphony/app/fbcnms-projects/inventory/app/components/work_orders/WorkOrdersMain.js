@@ -4,23 +4,25 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow strict-local
+ * @flow
  * @format
  */
 
 import AppContent from '@fbcnms/ui/components/layout/AppContent';
-import AppContext, {AppContextProvider} from '@fbcnms/ui/context/AppContext';
+import AppContext from '@fbcnms/ui/context/AppContext';
 import AppSideBar from '@fbcnms/ui/components/layout/AppSideBar';
 import ApplicationMain from '@fbcnms/ui/components/ApplicationMain';
 import ProjectComparisonView from '../projects/ProjectComparisonView';
 import React, {useContext} from 'react';
+import RelayEnvironment from '../../common/RelayEnvironment';
 import WorkOrderComparisonView from './WorkOrderComparisonView';
 import WorkOrderConfigure from './WorkOrderConfigure';
-import nullthrows from '@fbcnms/util/nullthrows';
 import {Redirect, Route, Switch} from 'react-router-dom';
+import {RelayEnvironmentProvider} from 'react-relay/hooks';
 import {WorkOrdersNavListItems} from './WorkOrdersNavListItems';
-import {getProjectLinks} from '@fbcnms/magmalte/app/common/projects';
+import {getProjectLinks} from '@fbcnms/projects/projects';
 import {makeStyles} from '@material-ui/styles';
+import {useMainContext} from '../../components/MainContext';
 import {useRelativeUrl} from '@fbcnms/ui/hooks/useRouter';
 
 const useStyles = makeStyles(theme => ({
@@ -35,33 +37,36 @@ const useStyles = makeStyles(theme => ({
 
 function WorkOrdersMain() {
   const classes = useStyles();
-  const {tabs, user} = useContext(AppContext);
+  const {tabs} = useContext(AppContext);
   const relativeUrl = useRelativeUrl();
+  const {integrationUserDefinition} = useMainContext();
 
   return (
     <div className={classes.root}>
       <AppSideBar
         mainItems={<WorkOrdersNavListItems />}
-        projects={getProjectLinks(tabs, user)}
+        projects={getProjectLinks(tabs, integrationUserDefinition)}
         showSettings={true}
-        user={nullthrows(user)}
+        user={integrationUserDefinition}
       />
       <AppContent>
-        <Switch>
-          <Route
-            path={relativeUrl('/search')}
-            component={WorkOrderComparisonView}
-          />
-          <Route
-            path={relativeUrl('/projects/search')}
-            component={ProjectComparisonView}
-          />
-          <Route
-            path={relativeUrl('/configure')}
-            component={WorkOrderConfigure}
-          />
-          <Redirect to={relativeUrl('/search')} />
-        </Switch>
+        <RelayEnvironmentProvider environment={RelayEnvironment}>
+          <Switch>
+            <Route
+              path={relativeUrl('/search')}
+              component={WorkOrderComparisonView}
+            />
+            <Route
+              path={relativeUrl('/projects/search')}
+              component={ProjectComparisonView}
+            />
+            <Route
+              path={relativeUrl('/configure')}
+              component={WorkOrderConfigure}
+            />
+            <Redirect to={relativeUrl('/search')} />
+          </Switch>
+        </RelayEnvironmentProvider>
       </AppContent>
     </div>
   );
@@ -70,9 +75,7 @@ function WorkOrdersMain() {
 export default () => {
   return (
     <ApplicationMain>
-      <AppContextProvider>
-        <WorkOrdersMain />
-      </AppContextProvider>
+      <WorkOrdersMain />
     </ApplicationMain>
   );
 };

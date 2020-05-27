@@ -14,13 +14,9 @@ import (
 	"encoding/json"
 	"io"
 	"log"
-	"reflect"
-	"strings"
 	"sync"
 	"time"
 
-	"github.com/golang/protobuf/jsonpb"
-	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/any"
 
@@ -75,18 +71,6 @@ func (c *Configurator) ReportError(e error) error {
 
 type anyResolver struct{}
 
-func (anyResolver) Resolve(typeUrl string) (proto.Message, error) {
-	mname := typeUrl
-	if slash := strings.LastIndex(mname, "/"); slash >= 0 {
-		mname = mname[slash+1:]
-	}
-	mt := proto.MessageType(mname)
-	if mt == nil {
-		return &protos.Void{}, nil
-	}
-	return reflect.New(mt.Elem()).Interface().(proto.Message), nil
-}
-
 func (c *Configurator) Update(ub *protos.DataUpdateBatch) bool {
 	updates := ub.GetUpdates()
 	if len(updates) == 0 {
@@ -96,8 +80,7 @@ func (c *Configurator) Update(ub *protos.DataUpdateBatch) bool {
 	u := updates[0]
 	// Validate the received mconfig payload
 	cfg := &protos.GatewayConfigs{}
-	unmarshaler := &jsonpb.Unmarshaler{AllowUnknownFields: true, AnyResolver: anyResolver{}}
-	err := unmarshaler.Unmarshal(bytes.NewReader(u.GetValue()), cfg)
+	err := protos.UnmarshalMconfig(u.GetValue(), cfg)
 	if err != nil {
 		log.Printf("error unmarshaling mconfig update for GW %s: %v", u.GetKey(), err)
 		return false // re-establish stream on error
@@ -113,8 +96,8 @@ func (c *Configurator) Update(ub *protos.DataUpdateBatch) bool {
 	}
 	c.Lock()
 	updateChan := c.updateChan
-	oldCfgJson, err := c.saveConfigs(u.GetValue(), updateChan != nil)
-	if err != err {
+	oldCfgJson, err := SaveConfigs(u.GetValue(), updateChan != nil)
+	if err != nil {
 		log.Printf("error saving new gateway mconfig: %v", err)
 		c.Unlock()
 		return false
@@ -131,6 +114,9 @@ func (c *Configurator) Update(ub *protos.DataUpdateBatch) bool {
 			log.Printf("error encoding mconfig digest: %v", err)
 		}
 	}
+	// check if we need to update static copy of configs & update them
+	updateStaticConfigs(u.GetValue())
+
 	c.Unlock()
 
 	// Prepare a list of service names with changed mconfigs and

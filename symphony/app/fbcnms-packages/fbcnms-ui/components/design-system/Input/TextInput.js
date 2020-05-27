@@ -22,6 +22,7 @@ import {useCallback, useContext, useMemo, useState} from 'react';
 export const KEYBOARD_KEYS = {
   CODES: {
     ENTER: 13,
+    ESC: 27,
   },
   MODIFIERS: {
     SHIFT: 'shift',
@@ -34,6 +35,8 @@ const useStyles = makeStyles(() => ({
     flexDirection: 'column',
   },
   inputContainer: {
+    position: 'relative',
+    overflow: 'hidden',
     padding: '0px 8px',
     border: `1px solid ${symphony.palette.D100}`,
     borderRadius: '4px',
@@ -102,6 +105,29 @@ const useStyles = makeStyles(() => ({
     marginRight: '-2px',
     marginLeft: '8px',
   },
+  processingIndicator: {
+    position: 'absolute',
+    borderBottom: `3px solid transparent`,
+    bottom: 0,
+    left: '0%',
+  },
+  showProcessingIndicator: {
+    borderBottomColor: symphony.palette.primary,
+    animation: '$progress 2s infinite',
+  },
+  '@keyframes progress': {
+    '0%': {
+      right: '100%',
+      left: '0%',
+    },
+    '50%': {
+      left: '0%',
+    },
+    '100%': {
+      right: '0%',
+      left: '100%',
+    },
+  },
 }));
 
 export type FocusEvent<T> = {
@@ -121,6 +147,7 @@ type Props = {
   autoFocus?: boolean,
   disabled?: boolean,
   hasError?: boolean,
+  isProcessing?: ?boolean,
   prefix?: React.Node,
   hint?: string,
   suffix?: React.Node,
@@ -128,6 +155,7 @@ type Props = {
   onFocus?: () => void,
   onBlur?: FocusEventFn<HTMLInputElement>,
   onEnterPressed?: (e: KeyboardEvent) => void,
+  onEscPressed?: (e: KeyboardEvent) => void,
 };
 
 function TextInput(props: Props, forwardedRef: TRefFor<HTMLInputElement>) {
@@ -143,8 +171,10 @@ function TextInput(props: Props, forwardedRef: TRefFor<HTMLInputElement>) {
     onBlur,
     onChange,
     onEnterPressed,
+    onEscPressed,
     type,
     rows = 2,
+    isProcessing = false,
     ...rest
   } = props;
   const classes = useStyles();
@@ -185,13 +215,16 @@ function TextInput(props: Props, forwardedRef: TRefFor<HTMLInputElement>) {
 
   const onKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (e.keyCode !== KEYBOARD_KEYS.CODES.ENTER) {
-        return;
+      switch (e.keyCode) {
+        case KEYBOARD_KEYS.CODES.ENTER:
+          onEnterPressed && onEnterPressed(e);
+          break;
+        case KEYBOARD_KEYS.CODES.ESC:
+          onEscPressed && onEscPressed(e);
+          break;
       }
-
-      onEnterPressed && onEnterPressed(e);
     },
-    [onEnterPressed],
+    [onEnterPressed, onEscPressed],
   );
 
   const isMultiline = useMemo(() => type === 'multiline', [type]);
@@ -235,6 +268,11 @@ function TextInput(props: Props, forwardedRef: TRefFor<HTMLInputElement>) {
           )}
           {suffix && <div className={classes.suffix}>{suffix}</div>}
         </InputContext.Provider>
+        <div
+          className={classNames(classes.processingIndicator, {
+            [classes.showProcessingIndicator]: isProcessing,
+          })}
+        />
       </div>
       {hint && (
         <div className={classes.hint}>

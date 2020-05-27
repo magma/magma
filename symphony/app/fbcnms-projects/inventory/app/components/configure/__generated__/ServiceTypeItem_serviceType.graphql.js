@@ -15,14 +15,20 @@
 /*::
 import type { ReaderFragment } from 'relay-runtime';
 type PropertyTypeFormField_propertyType$ref = any;
+type ServiceEndpointDefinitionStaticTable_serviceEndpointDefinitions$ref = any;
+export type DiscoveryMethod = "INVENTORY" | "MANUAL" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type ServiceTypeItem_serviceType$ref: FragmentReference;
 declare export opaque type ServiceTypeItem_serviceType$fragmentType: ServiceTypeItem_serviceType$ref;
 export type ServiceTypeItem_serviceType = {|
   +id: string,
   +name: string,
+  +discoveryMethod: DiscoveryMethod,
   +propertyTypes: $ReadOnlyArray<?{|
     +$fragmentRefs: PropertyTypeFormField_propertyType$ref
+  |}>,
+  +endpointDefinitions: $ReadOnlyArray<{|
+    +$fragmentRefs: ServiceEndpointDefinitionStaticTable_serviceEndpointDefinitions$ref
   |}>,
   +numberOfServices: number,
   +$refType: ServiceTypeItem_serviceType$ref,
@@ -58,6 +64,13 @@ const node/*: ReaderFragment*/ = {
       "storageKey": null
     },
     {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "discoveryMethod",
+      "args": null,
+      "storageKey": null
+    },
+    {
       "kind": "LinkedField",
       "alias": null,
       "name": "propertyTypes",
@@ -74,6 +87,22 @@ const node/*: ReaderFragment*/ = {
       ]
     },
     {
+      "kind": "LinkedField",
+      "alias": null,
+      "name": "endpointDefinitions",
+      "storageKey": null,
+      "args": null,
+      "concreteType": "ServiceEndpointDefinition",
+      "plural": true,
+      "selections": [
+        {
+          "kind": "FragmentSpread",
+          "name": "ServiceEndpointDefinitionStaticTable_serviceEndpointDefinitions",
+          "args": null
+        }
+      ]
+    },
+    {
       "kind": "ScalarField",
       "alias": null,
       "name": "numberOfServices",
@@ -83,5 +112,5 @@ const node/*: ReaderFragment*/ = {
   ]
 };
 // prettier-ignore
-(node/*: any*/).hash = '64aa4c97eaf3183bfa12c3cd93b03c4b';
+(node/*: any*/).hash = 'bdd10c4d5e7ee31784df58baac76728d';
 module.exports = node;

@@ -18,6 +18,7 @@ type ObjectMap interface {
 	Delete(key string) error
 	Get(key string) (interface{}, error)
 	GetAll() (map[string]interface{}, error)
+	DeleteAll() error
 }
 
 // Serializer turns an object into a string
@@ -87,4 +88,18 @@ func (rm *RedisMap) GetAll() (map[string]interface{}, error) {
 		}
 	}
 	return returnVals, nil
+}
+
+func (rm *RedisMap) DeleteAll() error {
+	valMap, err := rm.client.HGetAll(rm.hash)
+	if err != nil {
+		return err
+	}
+	for key := range valMap {
+		err = rm.Delete(key)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

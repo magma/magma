@@ -76,12 +76,15 @@ def main():
     # Add pipelined rpc servicer
     pipelined_srv = PipelinedRpcServicer(
         service.loop,
+        manager.applications.get('GYController', None),
         manager.applications.get('EnforcementController', None),
         manager.applications.get('EnforcementStatsController', None),
         manager.applications.get('DPIController', None),
         manager.applications.get('UEMacAddressController', None),
         manager.applications.get('CheckQuotaController', None),
         manager.applications.get('IPFIXController', None),
+        manager.applications.get('VlanLearnController', None),
+        manager.applications.get('TunnelLearnController', None),
         service_manager)
     pipelined_srv.add_to_server(service.rpc_server)
 

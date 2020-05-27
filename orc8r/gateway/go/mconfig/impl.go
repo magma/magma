@@ -20,12 +20,13 @@ import (
 	"time"
 	"unsafe"
 
+	"magma/gateway/config"
 	"magma/orc8r/lib/go/protos"
 )
 
 var (
 	localConfig   unsafe.Pointer
-	cfgMu         sync.Mutex
+	cfgMu         sync.RWMutex
 	lastFileInfo  os.FileInfo
 	lastFilePath  string
 	refreshTicker *time.Ticker
@@ -71,7 +72,7 @@ func ConfigFilePath() string {
 
 // DefaultConfigFilePath returns default GW mconfig file path
 func DefaultConfigFilePath() string {
-	return filepath.Join(DefaultConfigFileDir, MconfigFileName)
+	return filepath.Join(staticConfigFileDir(), MconfigFileName)
 }
 
 // RefreshConfigsFrom checks if Managed Config File mcpath has changed
@@ -108,7 +109,18 @@ func sameFile(oldInfo, newInfo os.FileInfo) bool {
 func configFileDir() string {
 	mcdir := os.Getenv(ConfigFileDirEnv)
 	if len(mcdir) == 0 {
-		mcdir = DefaultDynamicConfigFileDir
+		mcdir = config.GetMagmadConfigs().DynamicMconfigDir
+		if len(mcdir) == 0 {
+			mcdir = DefaultDynamicConfigFileDir
+		}
+	}
+	return mcdir
+}
+
+func staticConfigFileDir() string {
+	mcdir := config.GetMagmadConfigs().StaticMconfigDir
+	if len(mcdir) == 0 {
+		mcdir = DefaultConfigFileDir
 	}
 	return mcdir
 }
@@ -137,4 +149,11 @@ func StopRefreshTicker() {
 		refreshTicker.Stop()
 	}
 	cfgMu.Unlock()
+}
+
+// Info returns last used mconfig file information
+func Info() (fullPath string, fileInfo os.FileInfo) {
+	cfgMu.RLock()
+	defer cfgMu.RUnlock()
+	return lastFilePath, lastFileInfo
 }

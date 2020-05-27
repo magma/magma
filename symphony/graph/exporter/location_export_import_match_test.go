@@ -18,7 +18,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/event"
 	"github.com/facebookincubator/symphony/graph/importer"
-	"github.com/facebookincubator/symphony/graph/viewer"
+	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 	"github.com/facebookincubator/symphony/pkg/log/logtest"
 	"github.com/stretchr/testify/require"
 )
@@ -73,9 +73,9 @@ func writeModifiedLocationsCSV(t *testing.T, r *csv.Reader, method method, withV
 		lines[3][5] = "should"
 		lines[3][6] = "fail"
 	}
-	for _, l := range lines {
-		stringLine := strings.Join(l, ",")
-		fileWriter.Write([]byte(stringLine + "\n"))
+	for _, line := range lines {
+		stringLine := strings.Join(line, ",")
+		_, _ = io.WriteString(fileWriter, stringLine+"\n")
 	}
 	ct := bw.FormDataContentType()
 	require.NoError(t, bw.Close())
@@ -86,21 +86,21 @@ func importLocationsFile(t *testing.T, client *ent.Client, r io.Reader, method m
 	readr := csv.NewReader(r)
 	buf, contentType := writeModifiedLocationsCSV(t, readr, method, withVerify, skipLines)
 
+	logger := logtest.NewTestLogger(t)
 	h, _ := importer.NewHandler(
 		importer.Config{
-			Logger:     logtest.NewTestLogger(t),
-			Emitter:    event.NewNopEmitter(),
+			Logger:     logger,
 			Subscriber: event.NewNopSubscriber(),
 		},
 	)
-	th := viewer.TenancyHandler(h, viewer.NewFixedTenancy(client))
+	th := viewertest.TestHandler(t, h, client)
 	server := httptest.NewServer(th)
 	defer server.Close()
 
 	req, err := http.NewRequest(http.MethodPost, server.URL+"/export_locations", buf)
 	require.Nil(t, err)
 
-	req.Header.Set(tenantHeader, "fb-test")
+	viewertest.SetDefaultViewerHeaders(req)
 	req.Header.Set("Content-Type", contentType)
 
 	resp, err := http.DefaultClient.Do(req)

@@ -1,0 +1,5 @@
+mutation AddServiceMutation($data: ServiceCreateData!) {
+  addService(data: $data) {
+    ...ServiceFragment
+  }
+}

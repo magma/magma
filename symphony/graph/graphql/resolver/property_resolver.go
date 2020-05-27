@@ -6,6 +6,7 @@ package resolver
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
@@ -23,17 +24,28 @@ func (propertyResolver) PropertyType(ctx context.Context, obj *ent.Property) (*e
 	return obj.QueryType().Only(ctx)
 }
 
-func (propertyResolver) EquipmentValue(ctx context.Context, obj *ent.Property) (*ent.Equipment, error) {
-	e, err := obj.QueryEquipmentValue().Only(ctx)
-	return e, ent.MaskNotFound(err)
-}
-
-func (propertyResolver) LocationValue(ctx context.Context, obj *ent.Property) (*ent.Location, error) {
-	e, err := obj.QueryLocationValue().Only(ctx)
-	return e, ent.MaskNotFound(err)
-}
-
-func (propertyResolver) ServiceValue(ctx context.Context, obj *ent.Property) (*ent.Service, error) {
-	e, err := obj.QueryServiceValue().Only(ctx)
-	return e, ent.MaskNotFound(err)
+func (propertyResolver) NodeValue(ctx context.Context, property *ent.Property) (models.NamedNode, error) {
+	propertyType, err := property.QueryType().Only(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("querying property type %w", err)
+	}
+	switch propertyType.NodeType {
+	case "location":
+		l, err := property.QueryLocationValue().Only(ctx)
+		return l, ent.MaskNotFound(err)
+	case "equipment":
+		e, err := property.QueryEquipmentValue().Only(ctx)
+		return e, ent.MaskNotFound(err)
+	case "service":
+		s, err := property.QueryServiceValue().Only(ctx)
+		return s, ent.MaskNotFound(err)
+	case "work_order":
+		s, err := property.QueryWorkOrderValue().Only(ctx)
+		return s, ent.MaskNotFound(err)
+	case "user":
+		s, err := property.QueryUserValue().Only(ctx)
+		return s, ent.MaskNotFound(err)
+	default:
+		return nil, nil
+	}
 }

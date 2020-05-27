@@ -125,6 +125,13 @@ func Name(v string) predicate.PropertyType {
 	})
 }
 
+// ExternalID applies equality check predicate on the "external_id" field. It's identical to ExternalIDEQ.
+func ExternalID(v string) predicate.PropertyType {
+	return predicate.PropertyType(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldExternalID), v))
+	})
+}
+
 // Index applies equality check predicate on the "index" field. It's identical to IndexEQ.
 func Index(v int) predicate.PropertyType {
 	return predicate.PropertyType(func(s *sql.Selector) {
@@ -220,6 +227,13 @@ func Mandatory(v bool) predicate.PropertyType {
 func Deleted(v bool) predicate.PropertyType {
 	return predicate.PropertyType(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldDeleted), v))
+	})
+}
+
+// NodeType applies equality check predicate on the "nodeType" field. It's identical to NodeTypeEQ.
+func NodeType(v string) predicate.PropertyType {
+	return predicate.PropertyType(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldNodeType), v))
 	})
 }
 
@@ -594,6 +608,131 @@ func NameEqualFold(v string) predicate.PropertyType {
 func NameContainsFold(v string) predicate.PropertyType {
 	return predicate.PropertyType(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldName), v))
+	})
+}
+
+// ExternalIDEQ applies the EQ predicate on the "external_id" field.
+func ExternalIDEQ(v string) predicate.PropertyType {
+	return predicate.PropertyType(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldExternalID), v))
+	})
+}
+
+// ExternalIDNEQ applies the NEQ predicate on the "external_id" field.
+func ExternalIDNEQ(v string) predicate.PropertyType {
+	return predicate.PropertyType(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldExternalID), v))
+	})
+}
+
+// ExternalIDIn applies the In predicate on the "external_id" field.
+func ExternalIDIn(vs ...string) predicate.PropertyType {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.PropertyType(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(vs) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldExternalID), v...))
+	})
+}
+
+// ExternalIDNotIn applies the NotIn predicate on the "external_id" field.
+func ExternalIDNotIn(vs ...string) predicate.PropertyType {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.PropertyType(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(vs) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldExternalID), v...))
+	})
+}
+
+// ExternalIDGT applies the GT predicate on the "external_id" field.
+func ExternalIDGT(v string) predicate.PropertyType {
+	return predicate.PropertyType(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldExternalID), v))
+	})
+}
+
+// ExternalIDGTE applies the GTE predicate on the "external_id" field.
+func ExternalIDGTE(v string) predicate.PropertyType {
+	return predicate.PropertyType(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldExternalID), v))
+	})
+}
+
+// ExternalIDLT applies the LT predicate on the "external_id" field.
+func ExternalIDLT(v string) predicate.PropertyType {
+	return predicate.PropertyType(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldExternalID), v))
+	})
+}
+
+// ExternalIDLTE applies the LTE predicate on the "external_id" field.
+func ExternalIDLTE(v string) predicate.PropertyType {
+	return predicate.PropertyType(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldExternalID), v))
+	})
+}
+
+// ExternalIDContains applies the Contains predicate on the "external_id" field.
+func ExternalIDContains(v string) predicate.PropertyType {
+	return predicate.PropertyType(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldExternalID), v))
+	})
+}
+
+// ExternalIDHasPrefix applies the HasPrefix predicate on the "external_id" field.
+func ExternalIDHasPrefix(v string) predicate.PropertyType {
+	return predicate.PropertyType(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldExternalID), v))
+	})
+}
+
+// ExternalIDHasSuffix applies the HasSuffix predicate on the "external_id" field.
+func ExternalIDHasSuffix(v string) predicate.PropertyType {
+	return predicate.PropertyType(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldExternalID), v))
+	})
+}
+
+// ExternalIDIsNil applies the IsNil predicate on the "external_id" field.
+func ExternalIDIsNil() predicate.PropertyType {
+	return predicate.PropertyType(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldExternalID)))
+	})
+}
+
+// ExternalIDNotNil applies the NotNil predicate on the "external_id" field.
+func ExternalIDNotNil() predicate.PropertyType {
+	return predicate.PropertyType(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldExternalID)))
+	})
+}
+
+// ExternalIDEqualFold applies the EqualFold predicate on the "external_id" field.
+func ExternalIDEqualFold(v string) predicate.PropertyType {
+	return predicate.PropertyType(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldExternalID), v))
+	})
+}
+
+// ExternalIDContainsFold applies the ContainsFold predicate on the "external_id" field.
+func ExternalIDContainsFold(v string) predicate.PropertyType {
+	return predicate.PropertyType(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldExternalID), v))
 	})
 }
 
@@ -1558,6 +1697,131 @@ func DeletedEQ(v bool) predicate.PropertyType {
 func DeletedNEQ(v bool) predicate.PropertyType {
 	return predicate.PropertyType(func(s *sql.Selector) {
 		s.Where(sql.NEQ(s.C(FieldDeleted), v))
+	})
+}
+
+// NodeTypeEQ applies the EQ predicate on the "nodeType" field.
+func NodeTypeEQ(v string) predicate.PropertyType {
+	return predicate.PropertyType(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldNodeType), v))
+	})
+}
+
+// NodeTypeNEQ applies the NEQ predicate on the "nodeType" field.
+func NodeTypeNEQ(v string) predicate.PropertyType {
+	return predicate.PropertyType(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldNodeType), v))
+	})
+}
+
+// NodeTypeIn applies the In predicate on the "nodeType" field.
+func NodeTypeIn(vs ...string) predicate.PropertyType {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.PropertyType(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(vs) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldNodeType), v...))
+	})
+}
+
+// NodeTypeNotIn applies the NotIn predicate on the "nodeType" field.
+func NodeTypeNotIn(vs ...string) predicate.PropertyType {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.PropertyType(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(vs) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldNodeType), v...))
+	})
+}
+
+// NodeTypeGT applies the GT predicate on the "nodeType" field.
+func NodeTypeGT(v string) predicate.PropertyType {
+	return predicate.PropertyType(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldNodeType), v))
+	})
+}
+
+// NodeTypeGTE applies the GTE predicate on the "nodeType" field.
+func NodeTypeGTE(v string) predicate.PropertyType {
+	return predicate.PropertyType(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldNodeType), v))
+	})
+}
+
+// NodeTypeLT applies the LT predicate on the "nodeType" field.
+func NodeTypeLT(v string) predicate.PropertyType {
+	return predicate.PropertyType(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldNodeType), v))
+	})
+}
+
+// NodeTypeLTE applies the LTE predicate on the "nodeType" field.
+func NodeTypeLTE(v string) predicate.PropertyType {
+	return predicate.PropertyType(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldNodeType), v))
+	})
+}
+
+// NodeTypeContains applies the Contains predicate on the "nodeType" field.
+func NodeTypeContains(v string) predicate.PropertyType {
+	return predicate.PropertyType(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldNodeType), v))
+	})
+}
+
+// NodeTypeHasPrefix applies the HasPrefix predicate on the "nodeType" field.
+func NodeTypeHasPrefix(v string) predicate.PropertyType {
+	return predicate.PropertyType(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldNodeType), v))
+	})
+}
+
+// NodeTypeHasSuffix applies the HasSuffix predicate on the "nodeType" field.
+func NodeTypeHasSuffix(v string) predicate.PropertyType {
+	return predicate.PropertyType(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldNodeType), v))
+	})
+}
+
+// NodeTypeIsNil applies the IsNil predicate on the "nodeType" field.
+func NodeTypeIsNil() predicate.PropertyType {
+	return predicate.PropertyType(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldNodeType)))
+	})
+}
+
+// NodeTypeNotNil applies the NotNil predicate on the "nodeType" field.
+func NodeTypeNotNil() predicate.PropertyType {
+	return predicate.PropertyType(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldNodeType)))
+	})
+}
+
+// NodeTypeEqualFold applies the EqualFold predicate on the "nodeType" field.
+func NodeTypeEqualFold(v string) predicate.PropertyType {
+	return predicate.PropertyType(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldNodeType), v))
+	})
+}
+
+// NodeTypeContainsFold applies the ContainsFold predicate on the "nodeType" field.
+func NodeTypeContainsFold(v string) predicate.PropertyType {
+	return predicate.PropertyType(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldNodeType), v))
 	})
 }
 

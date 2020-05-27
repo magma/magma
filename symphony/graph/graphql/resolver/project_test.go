@@ -5,7 +5,11 @@
 package resolver
 
 import (
+	"context"
+	"errors"
 	"testing"
+
+	"github.com/facebookincubator/symphony/graph/ent/privacy"
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/property"
@@ -21,8 +25,8 @@ import (
 
 func TestNumOfProjects(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, ptr := r.Mutation(), r.ProjectType()
 
 	pType, err := mr.CreateProjectType(ctx, models.AddProjectTypeInput{Name: "example_type"})
@@ -82,8 +86,8 @@ func TestProjectQuery(t *testing.T) {
 
 func TestProjectWithWorkOrders(t *testing.T) {
 	resolver := newTestResolver(t)
-	defer resolver.drv.Close()
-	ctx := viewertest.NewContext(resolver.client)
+	defer resolver.Close()
+	ctx := viewertest.NewContext(context.Background(), resolver.client)
 	mutation := resolver.Mutation()
 
 	woType, err := mutation.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "example_type_a"})
@@ -229,7 +233,7 @@ func TestProjectMutation(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, deleted)
 	deleted, err = mutation.DeleteProject(ctx, project.ID)
-	assert.EqualError(t, err, errNoProject.Error(), "project cannot be deleted twice")
+	assert.True(t, errors.Is(err, privacy.Deny))
 	assert.False(t, deleted)
 
 	deleted, err = mutation.DeleteProjectType(ctx, typ.ID)
@@ -255,8 +259,7 @@ func TestEditProject(t *testing.T) {
 
 	var project *ent.Project
 	{
-		u, err := viewer.UserFromContext(ctx)
-		require.NoError(t, err)
+		u := viewer.FromContext(ctx).(*viewer.UserViewer).User()
 		input := models.AddProjectInput{
 			Name:        "test",
 			Description: pointer.ToString("desc"),
@@ -286,8 +289,8 @@ func TestEditProject(t *testing.T) {
 
 func TestEditProjectLocation(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 	location := createLocation(ctx, t, *r)
 	typ, err := mr.CreateProjectType(ctx, models.AddProjectTypeInput{Name: "example_type"})
@@ -314,7 +317,7 @@ func TestEditProjectLocation(t *testing.T) {
 
 func TestAddProjectWithProperties(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	mutation, ctx := mutationctx(t)
 
 	mr, qr, pr := r.Mutation(), r.Query(), r.Project()
@@ -363,8 +366,7 @@ func TestAddProjectWithProperties(t *testing.T) {
 		RangeToValue:   &fl2,
 	}
 	propInputs := []*models.PropertyInput{&strProp, &strFixedProp, &intProp, &rngProp}
-	u, err := viewer.UserFromContext(ctx)
-	require.NoError(t, err)
+	u := viewer.FromContext(ctx).(*viewer.UserViewer).User()
 	input := models.AddProjectInput{
 		Name:        "test",
 		Description: pointer.ToString("desc"),
@@ -453,8 +455,8 @@ func TestAddProjectWithProperties(t *testing.T) {
 
 func TestEditProjectType(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
 	pType, err := mr.CreateProjectType(ctx, models.AddProjectTypeInput{Name: "example_type_name"})
@@ -488,8 +490,8 @@ func TestEditProjectType(t *testing.T) {
 
 func TestProjectWithWorkOrdersAndProperties(t *testing.T) {
 	resolver := newTestResolver(t)
-	defer resolver.drv.Close()
-	ctx := viewertest.NewContext(resolver.client)
+	defer resolver.Close()
+	ctx := viewertest.NewContext(context.Background(), resolver.client)
 	mutation := resolver.Mutation()
 
 	strPropType := models.PropertyTypeInput{

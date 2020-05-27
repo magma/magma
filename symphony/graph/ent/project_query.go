@@ -31,7 +31,7 @@ type ProjectQuery struct {
 	config
 	limit      *int
 	offset     *int
-	order      []Order
+	order      []OrderFunc
 	unique     []string
 	predicates []predicate.Project
 	// eager-loading edges.
@@ -66,7 +66,7 @@ func (pq *ProjectQuery) Offset(offset int) *ProjectQuery {
 }
 
 // Order adds an order step to the query.
-func (pq *ProjectQuery) Order(o ...Order) *ProjectQuery {
+func (pq *ProjectQuery) Order(o ...OrderFunc) *ProjectQuery {
 	pq.order = append(pq.order, o...)
 	return pq
 }
@@ -349,7 +349,7 @@ func (pq *ProjectQuery) Clone() *ProjectQuery {
 		config:     pq.config,
 		limit:      pq.limit,
 		offset:     pq.offset,
-		order:      append([]Order{}, pq.order...),
+		order:      append([]OrderFunc{}, pq.order...),
 		unique:     append([]string{}, pq.unique...),
 		predicates: append([]predicate.Project{}, pq.predicates...),
 		// clone intermediate query.
@@ -482,6 +482,9 @@ func (pq *ProjectQuery) prepareQuery(ctx context.Context) error {
 			return err
 		}
 		pq.sql = prev
+	}
+	if err := project.Policy.EvalQuery(ctx, pq); err != nil {
+		return err
 	}
 	return nil
 }
@@ -770,14 +773,14 @@ func (pq *ProjectQuery) sqlQuery() *sql.Selector {
 type ProjectGroupBy struct {
 	config
 	fields []string
-	fns    []Aggregate
+	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (pgb *ProjectGroupBy) Aggregate(fns ...Aggregate) *ProjectGroupBy {
+func (pgb *ProjectGroupBy) Aggregate(fns ...AggregateFunc) *ProjectGroupBy {
 	pgb.fns = append(pgb.fns, fns...)
 	return pgb
 }

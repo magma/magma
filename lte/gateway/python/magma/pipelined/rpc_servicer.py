@@ -15,6 +15,7 @@ import grpc
 from lte.protos import pipelined_pb2_grpc
 from lte.protos.pipelined_pb2 import (
     SetupFlowsResult,
+    RequestOriginType,
     ActivateFlowsResult,
     DeactivateFlowsResult,
     FlowResponse,
@@ -33,6 +34,8 @@ from magma.pipelined.app.enforcement_stats import EnforcementStatsController, \
 from magma.pipelined.app.ue_mac import UEMacAddressController
 from magma.pipelined.app.ipfix import IPFIXController
 from magma.pipelined.app.check_quota import CheckQuotaController
+from magma.pipelined.app.vlan_learn import VlanLearnController
+from magma.pipelined.app.tunnel_learn import TunnelLearnController
 from magma.pipelined.metrics import (
     ENFORCEMENT_STATS_RULE_INSTALL_FAIL,
     ENFORCEMENT_RULE_INSTALL_FAIL,
@@ -44,15 +47,19 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     gRPC based server for Pipelined.
     """
 
-    def __init__(self, loop, enforcer_app, enforcement_stats, dpi_app,
-                 ue_mac_app, check_quota_app, ipfix_app, service_manager):
+    def __init__(self, loop, gy_app, enforcer_app, enforcement_stats, dpi_app,
+                 ue_mac_app, check_quota_app, ipfix_app, vlan_learn_app,
+                 tunnel_learn_app, service_manager):
         self._loop = loop
+        self._gy_app = gy_app
         self._enforcer_app = enforcer_app
         self._enforcement_stats = enforcement_stats
         self._dpi_app = dpi_app
         self._ue_mac_app = ue_mac_app
         self._check_quota_app = check_quota_app
         self._ipfix_app = ipfix_app
+        self._vlan_learn_app = vlan_learn_app
+        self._tunnel_learn_app = tunnel_learn_app
         self._service_manager = service_manager
 
     def add_to_server(self, server):
@@ -75,9 +82,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             context.set_details('Service not enabled!')
             return None
 
-        ret = self._enforcer_app.is_ready_for_restart_recovery(request.epoch)
-        if ret != SetupFlowsResult.SUCCESS:
-            return SetupFlowsResult(result=ret)
+        for controller in [self._gy_app, self._enforcer_app,
+                           self._enforcement_stats]:
+            ret = controller.is_ready_for_restart_recovery(request.epoch)
+            if ret != SetupFlowsResult.SUCCESS:
+                return SetupFlowsResult(result=ret)
 
         fut = Future()
         self._loop.call_soon_threadsafe(self._setup_flows,
@@ -87,9 +96,14 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     def _setup_flows(self, request: SetupPolicyRequest,
                      fut: 'Future[List[SetupFlowsResult]]'
                      ) -> SetupFlowsResult:
-        enforcement_res = self._enforcer_app.handle_restart(request.requests)
-        # TODO check enf_stats result
-        self._enforcement_stats.handle_restart(request.requests)
+        gx_reqs = [req for req in request.requests
+                   if req.request_origin.type == RequestOriginType.GX]
+        gy_reqs = [req for req in request.requests
+                   if req.request_origin.type == RequestOriginType.GY]
+        enforcement_res = self._enforcer_app.handle_restart(gx_reqs)
+        # TODO check these results and aggregate
+        self._gy_app.handle_restart(gy_reqs)
+        self._enforcement_stats.handle_restart(gx_reqs)
         fut.set_result(enforcement_res)
 
     def ActivateFlows(self, request, context):
@@ -103,13 +117,17 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             return None
 
         fut = Future()  # type: Future[ActivateFlowsResult]
-        self._loop.call_soon_threadsafe(self._activate_flows,
-                                        request, fut)
+        if request.request_origin.type == RequestOriginType.GX:
+            self._loop.call_soon_threadsafe(self._activate_flows_gx,
+                                            request, fut)
+        else:
+            self._loop.call_soon_threadsafe(self._activate_flows_gy,
+                                            request, fut)
         return fut.result()
 
-    def _activate_flows(self, request: ActivateFlowsRequest,
-                        fut: 'Future[ActivateFlowsResult]'
-                        ) -> ActivateFlowsResult:
+    def _activate_flows_gx(self, request: ActivateFlowsRequest,
+                           fut: 'Future[ActivateFlowsResult]'
+                           ) -> ActivateFlowsResult:
         """
         Ensure that the RuleModResult is only successful if the flows are
         successfully added in both the enforcer app and enforcement_stats.
@@ -117,7 +135,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         flow install fails after, no traffic will be directed to the
         enforcement_stats flows.
         """
-        logging.debug('Activating flows for %s', request.sid.id)
+        logging.debug('Activating GX flows for %s', request.sid.id)
         for rule_id in request.rule_ids:
             self._service_manager.session_rule_version_mapper.update_version(
                 request.sid.id, rule_id)
@@ -144,6 +162,29 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             failed_dynamic_rule_results)
         fut.set_result(enforcement_res)
 
+    def _activate_flows_gy(self, request: ActivateFlowsRequest,
+                           fut: 'Future[ActivateFlowsResult]'
+                           ) -> ActivateFlowsResult:
+        """
+        Ensure that the RuleModResult is only successful if the flows are
+        successfully added in both the enforcer app and enforcement_stats.
+        Install enforcement_stats flows first because even if the enforcement
+        flow install fails after, no traffic will be directed to the
+        enforcement_stats flows.
+        """
+        logging.debug('Activating GY flows for %s', request.sid.id)
+        for rule_id in request.rule_ids:
+            self._service_manager.session_rule_version_mapper.update_version(
+                request.sid.id, rule_id)
+        for rule in request.dynamic_rules:
+            self._service_manager.session_rule_version_mapper.update_version(
+                request.sid.id, rule.id)
+
+        res = self._activate_rules_in_gy(request.sid.id, request.ip_addr,
+            request.rule_ids, request.dynamic_rules)
+
+        fut.set_result(res)
+
     def _activate_rules_in_enforcement_stats(self, imsi: str, ip_addr: str,
                                              static_rule_ids: List[str],
                                              dynamic_rules: List[PolicyRule]
@@ -168,6 +209,15 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         _report_enforcement_failures(enforcement_res, imsi)
         return enforcement_res
 
+    def _activate_rules_in_gy(self, imsi: str, ip_addr: str,
+                              static_rule_ids: List[str],
+                              dynamic_rules: List[PolicyRule]
+                              ) -> ActivateFlowsResult:
+        gy_res = self._gy_app.activate_rules(imsi, ip_addr, static_rule_ids,
+                                             dynamic_rules)
+        # TODO: add metrics
+        return gy_res
+
     def DeactivateFlows(self, request, context):
         """
         Deactivate flows for a subscriber
@@ -178,12 +228,16 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             context.set_details('Service not enabled!')
             return None
 
-        self._loop.call_soon_threadsafe(self._deactivate_flows,
-                                        request)
+        if request.request_origin.type == RequestOriginType.GX:
+            self._loop.call_soon_threadsafe(self._deactivate_flows_gx,
+                                            request)
+        else:
+            self._loop.call_soon_threadsafe(self._deactivate_flows_gy,
+                                            request)
         return DeactivateFlowsResult()
 
-    def _deactivate_flows(self, request):
-        logging.debug('Deactivating flows for %s', request.sid.id)
+    def _deactivate_flows_gx(self, request):
+        logging.debug('Deactivating GX flows for %s', request.sid.id)
         if request.rule_ids:
             for rule_id in request.rule_ids:
                 self._service_manager.session_rule_version_mapper \
@@ -193,6 +247,10 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             self._service_manager.session_rule_version_mapper.update_version(
                 request.sid.id)
         self._enforcer_app.deactivate_rules(request.sid.id, request.rule_ids)
+
+    def _deactivate_flows_gy(self, request):
+        logging.debug('Deactivating GY flows for %s', request.sid.id)
+        self._gy_app.deactivate_rules(request.sid.id, request.rule_ids)
 
     def GetPolicyUsage(self, request, context):
         """
@@ -216,6 +274,23 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             return None
 
     # --------------------------
+    # IPFIX App
+    # --------------------------
+
+    def UpdateIPFIXFlow(self, request, context):
+        """
+        Update IPFIX sampling record
+        """
+        if self._service_manager.is_app_enabled(IPFIXController.APP_NAME):
+            # Install trace flow
+            self._loop.call_soon_threadsafe(
+                self._ipfix_app.add_ue_sample_flow, request.sid.id,
+                request.msisdn, request.ap_mac_addr, request.ap_name)
+
+        resp = FlowResponse()
+        return resp
+
+    # --------------------------
     # DPI App
     # --------------------------
 
@@ -230,8 +305,9 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             return None
         resp = FlowResponse()
         self._loop.call_soon_threadsafe(self._dpi_app.add_classify_flow,
-                                        request.match, request.app_name,
-                                        request.service_type)
+                                        request.match, request.state,
+                                        request.app_name, request.service_type,
+                                        request.src_mac, request.dst_mac)
         return resp
 
     def RemoveFlow(self, request, context):
@@ -245,7 +321,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             return None
         resp = FlowResponse()
         self._loop.call_soon_threadsafe(self._dpi_app.remove_classify_flow,
-                                        request.match)
+                                        request.match, request.src_mac,
+                                        request.dst_mac)
         return resp
 
     def UpdateFlowStats(self, request, context):
@@ -312,18 +389,20 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             context.set_details('Invalid UE MAC address provided')
             return None
 
-        self._loop.call_soon_threadsafe(
-            self._ue_mac_app.add_ue_mac_flow,
-            request.sid.id, request.mac_addr)
+        fut = Future()
+        self._loop.call_soon_threadsafe(self._add_ue_mac_flow, request, fut)
 
+        return fut.result()
+
+    def _add_ue_mac_flow(self, request, fut: 'Future(FlowResponse)'):
+        res = self._ue_mac_app.add_ue_mac_flow(request.sid.id, request.mac_addr)
+
+        # Install IPFIX trace flow if app is enabled
         if self._service_manager.is_app_enabled(IPFIXController.APP_NAME):
-            # Install trace flow
-            self._loop.call_soon_threadsafe(
-                self._ipfix_app.add_ue_sample_flow, request.sid.id,
-                request.msisdn, request.ap_mac_addr, request.ap_name)
+            self._ipfix_app.add_ue_sample_flow(request.sid.id, request.msisdn,
+                request.ap_mac_addr, request.ap_name)
 
-        resp = FlowResponse()
-        return resp
+        fut.set_result(res)
 
     def DeleteUEMacFlow(self, request, context):
         """
@@ -348,6 +427,14 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         if self._service_manager.is_app_enabled(CheckQuotaController.APP_NAME):
             self._loop.call_soon_threadsafe(
                 self._check_quota_app.remove_subscriber_flow, request.sid.id)
+
+        if self._service_manager.is_app_enabled(VlanLearnController.APP_NAME):
+            self._loop.call_soon_threadsafe(
+                self._vlan_learn_app.remove_subscriber_flow, request.sid.id)
+
+        if self._service_manager.is_app_enabled(TunnelLearnController.APP_NAME):
+            self._loop.call_soon_threadsafe(
+                self._tunnel_learn_app.remove_subscriber_flow, request.mac_addr)
 
         if self._service_manager.is_app_enabled(IPFIXController.APP_NAME):
             # Delete trace flow

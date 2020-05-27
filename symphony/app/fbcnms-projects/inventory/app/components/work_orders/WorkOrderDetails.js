@@ -14,6 +14,7 @@ import type {ChecklistCategoriesMutateStateActionType} from '../checklist/Checkl
 import type {ChecklistCategoriesStateType} from '../checklist/ChecklistCategoriesMutateState';
 import type {ContextRouter} from 'react-router-dom';
 import type {MutationCallbacks} from '../../mutations/MutationCallbacks.js';
+import type {Property} from '../../common/Property';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WorkOrderDetails_workOrder} from './__generated__/WorkOrderDetails_workOrder.graphql.js';
 
@@ -23,15 +24,16 @@ import AppContext from '@fbcnms/ui/context/AppContext';
 import CheckListCategoryExpandingPanel from '../checklist/checkListCategory/CheckListCategoryExpandingPanel';
 import ChecklistCategoriesMutateDispatchContext from '../checklist/ChecklistCategoriesMutateDispatchContext';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import CloudUploadOutlinedIcon from '@material-ui/icons/CloudUploadOutlined';
 import CommentsBox from '../comments/CommentsBox';
 import EntityDocumentsTable from '../EntityDocumentsTable';
 import ExpandingPanel from '@fbcnms/ui/components/ExpandingPanel';
 import FileUploadButton from '../FileUpload/FileUploadButton';
 import FormContext, {FormContextProvider} from '../../common/FormContext';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
+import FormFieldWithPermissions from '../../common/FormFieldWithPermissions';
 import Grid from '@material-ui/core/Grid';
-import InsertLinkIcon from '@material-ui/icons/InsertLink';
+import IconButton from '@fbcnms/ui/components/design-system/IconButton';
+import LinkIcon from '@fbcnms/ui/components/design-system/Icons/Actions/LinkIcon';
 import LocationBreadcrumbsTitle from '../location/LocationBreadcrumbsTitle';
 import LocationMapSnippet from '../location/LocationMapSnippet';
 import LocationTypeahead from '../typeahead/LocationTypeahead';
@@ -40,15 +42,17 @@ import ProjectTypeahead from '../typeahead/ProjectTypeahead';
 import PropertyValueInput from '../form/PropertyValueInput';
 import React, {useContext, useReducer, useState} from 'react';
 import Select from '@fbcnms/ui/components/design-system/Select/Select';
-import Strings from '../../common/CommonStrings';
+import Strings from '@fbcnms/strings/Strings';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
+import UploadIcon from '@fbcnms/ui/components/design-system/Icons/Actions/UploadIcon';
 import UserTypeahead from '../typeahead/UserTypeahead';
 import WorkOrderDetailsPane from './WorkOrderDetailsPane';
 import WorkOrderHeader from './WorkOrderHeader';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
+import {NAVIGATION_OPTIONS} from '../location/LocationBreadcrumbsTitle';
 import {createFragmentContainer, graphql} from 'react-relay';
 import {doneStatus, priorityValues, statusValues} from '../../common/WorkOrder';
 import {formatDateForTextInput} from '@fbcnms/ui/utils/displayUtils';
@@ -57,7 +61,8 @@ import {
   reducer,
 } from '../checklist/ChecklistCategoriesMutateReducer';
 import {makeStyles} from '@material-ui/styles';
-import {sortPropertiesByIndex} from '../../common/Property';
+import {sortPropertiesByIndex, toMutableProperty} from '../../common/Property';
+import {useMainContext} from '../MainContext';
 import {withRouter} from 'react-router-dom';
 
 type Props = {
@@ -111,7 +116,8 @@ const useStyles = makeStyles(() => ({
     fill: symphony.palette.primary,
   },
   minimizedButton: {
-    minWidth: 'unset',
+    marginRight: '4px',
+    marginLeft: '8px',
   },
   dense: {
     paddingTop: '9px',
@@ -149,13 +155,18 @@ const WorkOrderDetails = ({
   const [workOrder, setWorkOrder] = useState<WorkOrderDetails_workOrder>(
     propsWorkOrder,
   );
-  const [properties, setProperties] = useState(
-    // eslint-disable-next-line flowtype/no-weak-types
-    ([...propsWorkOrder.properties]: any).sort(sortPropertiesByIndex),
+  const [properties, setProperties] = useState<Array<Property>>(
+    propsWorkOrder.properties
+      .filter(Boolean)
+      .slice()
+      .map<Property>(toMutableProperty)
+      .sort(sortPropertiesByIndex),
   );
   const [locationId, setLocationId] = useState(propsWorkOrder.location?.id);
   const [isLoadingDocument, setIsLoadingDocument] = useState(false);
-  const {user, isFeatureEnabled} = useContext(AppContext);
+  const {isFeatureEnabled} = useContext(AppContext);
+
+  const {userHasAdminPermissions, me} = useMainContext();
 
   const [editingCategories, dispatch] = useReducer<
     ChecklistCategoriesStateType,
@@ -178,21 +189,18 @@ const WorkOrderDetails = ({
     };
 
     const updater = store => {
-      // $FlowFixMe (T62907961) Relay flow types
       const newNode = store.getRootField('addImage');
-      const fileType = newNode.getValue('fileType');
-
-      // $FlowFixMe (T62907961) Relay flow types
       const workOrderProxy = store.get(workOrderId);
+      if (newNode == null || workOrderProxy == null) {
+        return;
+      }
+
+      const fileType = newNode.getValue('fileType');
       if (fileType === FileTypeEnum.IMAGE) {
-        // $FlowFixMe (T62907961) Relay flow types
         const imageNodes = workOrderProxy.getLinkedRecords('images') || [];
-        // $FlowFixMe (T62907961) Relay flow types
         workOrderProxy.setLinkedRecords([...imageNodes, newNode], 'images');
       } else {
-        // $FlowFixMe (T62907961) Relay flow types
         const fileNodes = workOrderProxy.getLinkedRecords('files') || [];
-        // $FlowFixMe (T62907961) Relay flow types
         workOrderProxy.setLinkedRecords([...fileNodes, newNode], 'files');
       }
     };
@@ -259,9 +267,22 @@ const WorkOrderDetails = ({
 
   const {location} = workOrder;
   const actionsEnabled = isFeatureEnabled('planned_equipment');
+  const permissionsEnforcementIsOn = isFeatureEnabled(
+    'permissions_ui_enforcement',
+  );
+
+  const isOwnerOrAssignee =
+    me?.user?.email === workOrder?.owner?.email ||
+    me?.user?.email === workOrder?.assignedTo?.email;
+
   return (
     <div className={classes.root}>
-      <FormContextProvider>
+      <FormContextProvider
+        permissions={{
+          entity: 'workorder',
+          action: 'update',
+          ignorePermissions: isOwnerOrAssignee,
+        }}>
         <WorkOrderHeader
           workOrderName={propsWorkOrder.name}
           workOrder={workOrder}
@@ -273,12 +294,6 @@ const WorkOrderDetails = ({
         />
         <FormContext.Consumer>
           {form => {
-            const noOwnerError = form.alerts.error.check({
-              fieldId: 'Owner',
-              fieldDisplayName: 'Owner',
-              value: workOrder.owner,
-              required: true,
-            });
             form.alerts.editLock.check({
               fieldId: 'status',
               fieldDisplayName: 'Status',
@@ -288,28 +303,20 @@ const WorkOrderDetails = ({
                   ? `Work order is on '${doneStatus.label}' state`
                   : '',
             });
-            form.alerts.editLock.check({
-              fieldId: 'OwnerRule',
-              fieldDisplayName: 'Owner rule',
-              value: {user, workOrder: propsWorkOrder},
-              checkCallback: checkData =>
-                checkData?.user.isSuperUser ||
-                checkData?.user.email === checkData?.workOrder.owner.email ||
-                checkData?.user.email === checkData?.workOrder.assignedTo?.email
-                  ? ''
-                  : 'User is not allowed to edit this work order',
-            });
-            const nonOwnerAssignee = form.alerts.editLock.check({
-              fieldId: 'NonOwnerAssigneeRule',
-              fieldDisplayName: 'Non Owner assignee rule',
-              value: {user, workOrder: propsWorkOrder},
-              checkCallback: checkData =>
-                checkData?.user.email !== checkData?.workOrder.owner.email &&
-                checkData?.user.email === checkData?.workOrder.assignedTo?.email
-                  ? 'Assignee is not allowed to change owner'
-                  : '',
-              notAggregated: true,
-            });
+            const nonOwnerAssignee =
+              permissionsEnforcementIsOn &&
+              form.alerts.missingPermissions.check({
+                fieldId: 'NonOwnerAssigneeRule',
+                fieldDisplayName: 'Non Owner assignee rule',
+                value: propsWorkOrder,
+                checkCallback: workOrder =>
+                  !userHasAdminPermissions &&
+                  me?.user?.email !== workOrder?.owner.email &&
+                  me?.user?.email === workOrder?.assignedTo?.email
+                    ? 'Assignee is not allowed to change owner'
+                    : '',
+                notAggregated: true,
+              });
             return (
               <div className={classes.cards}>
                 <Grid container spacing={2}>
@@ -460,6 +467,7 @@ const WorkOrderDetails = ({
                             <LocationBreadcrumbsTitle
                               locationDetails={location}
                               size="small"
+                              navigateOnClick={NAVIGATION_OPTIONS.NEW_TAB}
                             />
                             <Grid container spacing={2}>
                               <Grid item xs={12} md={12}>
@@ -495,23 +503,23 @@ const WorkOrderDetails = ({
                         <div className={classes.uploadButtonContainer}>
                           <AddHyperlinkButton
                             className={classes.minimizedButton}
-                            skin="regular"
+                            variant="text"
                             entityType="WORK_ORDER"
                             allowCategories={false}
                             entityId={workOrder.id}>
-                            <InsertLinkIcon color="primary" />
+                            <IconButton icon={LinkIcon} />
                           </AddHyperlinkButton>
                           {isLoadingDocument ? (
                             <CircularProgress size={24} />
                           ) : (
                             <FileUploadButton
-                              className={classes.minimizedButton}
                               onFileUploaded={onDocumentUploaded}
                               onProgress={() => setIsLoadingDocument(true)}>
                               {openFileUploadDialog => (
-                                <CloudUploadOutlinedIcon
-                                  className={classes.uploadButton}
+                                <IconButton
+                                  className={classes.minimizedButton}
                                   onClick={openFileUploadDialog}
+                                  icon={UploadIcon}
                                 />
                               )}
                             </FileUploadButton>
@@ -537,12 +545,15 @@ const WorkOrderDetails = ({
                   </Grid>
                   <Grid item xs={4} sm={4} lg={4} xl={4}>
                     <ExpandingPanel title="Team" className={classes.card}>
-                      <FormField
+                      <FormFieldWithPermissions
                         className={classes.input}
                         label="Owner"
+                        permissions={{
+                          entity: 'workorder',
+                          action: 'transferOwnership',
+                        }}
                         required={true}
-                        hasError={!!noOwnerError}
-                        errorText={noOwnerError}
+                        validation={{id: 'owner', value: workOrder.owner?.id}}
                         disabled={!!nonOwnerAssignee}>
                         <UserTypeahead
                           selectedUser={workOrder.owner}
@@ -551,8 +562,14 @@ const WorkOrderDetails = ({
                           }
                           margin="dense"
                         />
-                      </FormField>
-                      <FormField label="Assignee" className={classes.input}>
+                      </FormFieldWithPermissions>
+                      <FormFieldWithPermissions
+                        label="Assignee"
+                        className={classes.input}
+                        permissions={{
+                          entity: 'workorder',
+                          action: 'assign',
+                        }}>
                         <UserTypeahead
                           selectedUser={workOrder.assignedTo}
                           onUserSelection={user =>
@@ -560,7 +577,7 @@ const WorkOrderDetails = ({
                           }
                           margin="dense"
                         />
-                      </FormField>
+                      </FormFieldWithPermissions>
                     </ExpandingPanel>
                     <ExpandingPanel
                       title="Comments"
@@ -669,6 +686,43 @@ export default withRouter(
                 fileType
                 storeKey
                 category
+              }
+              cellData {
+                id
+                networkType
+                signalStrength
+                timestamp
+                baseStationID
+                networkID
+                systemID
+                cellID
+                locationAreaCode
+                mobileCountryCode
+                mobileNetworkCode
+                primaryScramblingCode
+                operator
+                arfcn
+                physicalCellID
+                trackingAreaCode
+                timingAdvance
+                earfcn
+                uarfcn
+                latitude
+                longitude
+              }
+              wifiData {
+                id
+                timestamp
+                frequency
+                channel
+                bssid
+                strength
+                ssid
+                band
+                channelWidth
+                capabilities
+                latitude
+                longitude
               }
             }
           }

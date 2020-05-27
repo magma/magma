@@ -104,8 +104,7 @@ class PowerSearchLocationsResultsTable extends React.Component<Props> {
   };
 
   _onLocationClickedCallback = locationId => {
-    const {history} = this.props;
-    history.replace(InventoryAPIUrls.location(locationId));
+    window.open(InventoryAPIUrls.location(locationId));
   };
 
   _cellRenderer = ({dataKey, rowData, cellData}) => {
@@ -116,6 +115,7 @@ class PowerSearchLocationsResultsTable extends React.Component<Props> {
       content = (
         <Button
           variant="text"
+          useEllipsis={true}
           onClick={() => this._onLocationClickedCallback(rowData.id)}>
           {cellData}
         </Button>
@@ -264,15 +264,7 @@ export default withRouter(
               longitudeValue
               rangeFromValue
               rangeToValue
-              equipmentValue {
-                id
-                name
-              }
-              locationValue {
-                id
-                name
-              }
-              serviceValue {
+              nodeValue {
                 id
                 name
               }
@@ -280,6 +272,7 @@ export default withRouter(
                 id
                 name
                 type
+                nodeType
                 isEditable
                 isInstanceProperty
                 stringValue

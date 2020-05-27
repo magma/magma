@@ -14,12 +14,15 @@ from ryu.lib.packet import packet
 from ryu.lib.packet import ether_types, dhcp
 from ryu.ofproto.inet import IPPROTO_TCP, IPPROTO_UDP
 
-from lte.protos.pipelined_pb2 import SetupFlowsResult, UEMacFlowRequest
+from lte.protos.pipelined_pb2 import FlowResponse, SetupFlowsResult, \
+    UEMacFlowRequest
 from magma.pipelined.app.base import MagmaController, ControllerType
 from magma.pipelined.app.inout import INGRESS
 from magma.pipelined.directoryd_client import update_record
 from magma.pipelined.imsi import encode_imsi, decode_imsi
 from magma.pipelined.openflow import flows
+from magma.pipelined.app.ipfix import IPFIXController
+from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.openflow.exceptions import MagmaOFError
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import IMSI_REG, load_passthrough
@@ -46,6 +49,14 @@ class UEMacAddressController(MagmaController):
         self._datapath = None
         self._dhcp_learn_scratch = \
             self._service_manager.allocate_scratch_tables(self.APP_NAME, 1)[0]
+        self._li_port = None
+        self._imsi_set_tbl_num = \
+            self._service_manager.INTERNAL_IMSI_SET_TABLE_NUM
+        self._ipfix_sample_tbl_num = \
+            self._service_manager.INTERNAL_IPFIX_SAMPLE_TABLE_NUM
+        if 'li_local_iface' in kwargs['config']:
+            self._li_port = \
+                BridgeTools.get_ofport(kwargs['config']['li_local_iface'])
 
     def initialize_on_connect(self, datapath):
         self.delete_all_flows(datapath)
@@ -73,13 +84,19 @@ class UEMacAddressController(MagmaController):
                 self.arp_contoller = self.arpd_controller_fut.result()
             self.arp_contoller.handle_restart(ue_requests)
 
+        self.init_finished = True
         return SetupFlowsResult(result=SetupFlowsResult.SUCCESS)
 
     def delete_all_flows(self, datapath):
         flows.delete_all_flows_from_table(datapath, self.tbl_num)
         flows.delete_all_flows_from_table(datapath, self._dhcp_learn_scratch)
+        flows.delete_all_flows_from_table(datapath, self._ipfix_sample_tbl_num)
 
     def add_ue_mac_flow(self, sid, mac_addr):
+        # TODO report add flow result back to sessiond
+        if self._datapath is None:
+            return FlowResponse(result=FlowResponse.SUCCESS)
+
         self._add_dhcp_passthrough_flows(sid, mac_addr)
         self._add_dns_passthrough_flows(sid, mac_addr)
 
@@ -91,7 +108,24 @@ class UEMacAddressController(MagmaController):
         self._add_resubmit_flow(sid, downlink_match,
                                 priority=flows.UE_FLOW_PRIORITY)
 
+        # For handling internal ipfix pkt sampling
+        if self._service_manager.is_app_enabled(IPFIXController.APP_NAME):
+            self._add_resubmit_flow(sid, uplink_match,
+                                    priority=flows.UE_FLOW_PRIORITY,
+                                    tbl_num=self._imsi_set_tbl_num,
+                                    next_table=self._ipfix_sample_tbl_num)
+            self._add_resubmit_flow(sid, downlink_match,
+                                    priority=flows.UE_FLOW_PRIORITY,
+                                    tbl_num=self._imsi_set_tbl_num,
+                                    next_table=self._ipfix_sample_tbl_num)
+
+        return FlowResponse(result=FlowResponse.SUCCESS)
+
     def delete_ue_mac_flow(self, sid, mac_addr):
+        # TODO report add flow result back to sessiond
+        if self._datapath is None:
+            return
+
         self._delete_dhcp_passthrough_flows(sid, mac_addr)
         self._delete_dns_passthrough_flows(sid, mac_addr)
 
@@ -101,14 +135,20 @@ class UEMacAddressController(MagmaController):
         downlink_match = MagmaMatch(eth_dst=mac_addr)
         self._delete_resubmit_flow(sid, downlink_match)
 
+        if self._service_manager.is_app_enabled(IPFIXController.APP_NAME):
+            self._delete_resubmit_flow(sid, uplink_match,
+                                       tbl_num=self._imsi_set_tbl_num)
+            self._delete_resubmit_flow(sid, downlink_match,
+                                       tbl_num=self._imsi_set_tbl_num)
+
     def add_arp_response_flow(self, imsi, yiaddr, chaddr):
         if self.arp_contoller or self.arpd_controller_fut.done():
             if not self.arp_contoller:
                 self.arp_contoller = self.arpd_controller_fut.result()
             self.arp_contoller.add_ue_arp_flows(self._datapath,
                                                 yiaddr, chaddr)
-            self.logger.info("Learned imsi %s, ip %s and mac %s",
-                             imsi, yiaddr, chaddr)
+            self.logger.debug("From DHCP learn: IMSI %s, has ip %s and mac %s",
+                              imsi, yiaddr, chaddr)
 
             # Associate IMSI to IPv4 addr in directory service
             threading.Thread(target=update_record, args=(str(imsi),
@@ -118,7 +158,7 @@ class UEMacAddressController(MagmaController):
 
     def _add_resubmit_flow(self, sid, match, action=None,
                            priority=flows.DEFAULT_PRIORITY,
-                           next_table=None):
+                           next_table=None, tbl_num=None):
         parser = self._datapath.ofproto_parser
 
         if action is None:
@@ -127,29 +167,33 @@ class UEMacAddressController(MagmaController):
             actions = [action]
         if next_table is None:
             next_table = self.next_table
+        if tbl_num is None:
+            tbl_num = self.tbl_num
 
         # Add IMSI metadata
         actions.append(
             parser.NXActionRegLoad2(dst=IMSI_REG, value=encode_imsi(sid)))
 
-        flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num,
+        flows.add_resubmit_next_service_flow(self._datapath, tbl_num,
                                              match, actions=actions,
                                              priority=priority,
                                              resubmit_table=next_table)
 
-    def _delete_resubmit_flow(self, sid, match, action=None):
+    def _delete_resubmit_flow(self, sid, match, action=None, tbl_num=None):
         parser = self._datapath.ofproto_parser
 
         if action is None:
             actions = []
         else:
             actions = [action]
+        if tbl_num is None:
+            tbl_num = self.tbl_num
 
         # Add IMSI metadata
         actions.append(
             parser.NXActionRegLoad2(dst=IMSI_REG, value=encode_imsi(sid)))
 
-        flows.delete_flow(self._datapath, self.tbl_num, match, actions=actions)
+        flows.delete_flow(self._datapath, tbl_num, match, actions=actions)
 
     def _add_dns_passthrough_flows(self, sid, mac_addr):
         parser = self._datapath.ofproto_parser
@@ -182,6 +226,21 @@ class UEMacAddressController(MagmaController):
         dlink_match_tcp = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
                                      ip_proto=IPPROTO_TCP,
                                      tcp_src=53,
+                                     eth_dst=mac_addr)
+        self._add_resubmit_flow(sid, dlink_match_tcp, action,
+                                flows.PASSTHROUGH_PRIORITY)
+
+        # Install TCP flows for DNS over tls
+        ulink_match_tcp = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
+                                     ip_proto=IPPROTO_TCP,
+                                     tcp_dst=853,
+                                     eth_src=mac_addr)
+        self._add_resubmit_flow(sid, ulink_match_tcp, action,
+                                flows.PASSTHROUGH_PRIORITY)
+
+        dlink_match_tcp = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
+                                     ip_proto=IPPROTO_TCP,
+                                     tcp_src=853,
                                      eth_dst=mac_addr)
         self._add_resubmit_flow(sid, dlink_match_tcp, action,
                                 flows.PASSTHROUGH_PRIORITY)
@@ -310,6 +369,12 @@ class UEMacAddressController(MagmaController):
         """
         # Allows arp packets from uplink(no eth dst set) to go to the arp table
         self._add_uplink_arp_allow_flow()
+
+        if self._li_port:
+            match = MagmaMatch(in_port=self._li_port)
+            flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num,
+                match, actions=[], priority=flows.DEFAULT_PRIORITY,
+                resubmit_table=self.next_table)
 
         # TODO We might want a default drop all rule with min priority, but
         # adding it breakes all unit tests for this controller(needs work)

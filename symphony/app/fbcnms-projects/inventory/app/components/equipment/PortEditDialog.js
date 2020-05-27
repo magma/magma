@@ -72,9 +72,10 @@ const getEditingPort = (port: EquipmentPort): EquipmentPort => {
   if (propertyTypes) {
     initialProps = [
       ...initialProps,
-      ...getNonInstancePropertyTypes(initialProps, propertyTypes).map(
-        propType => getInitialPropertyFromType(propType),
-      ),
+      ...getNonInstancePropertyTypes(
+        initialProps,
+        propertyTypes,
+      ).map(propType => getInitialPropertyFromType(propType)),
     ].sort(sortPropertiesByIndex);
   }
 

@@ -5,6 +5,7 @@
 package resolver
 
 import (
+	"context"
 	"sort"
 	"testing"
 
@@ -21,8 +22,8 @@ import (
 
 func TestAddEquipmentTypesSameName(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr := r.Mutation()
 	equipmentType, err := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
@@ -38,8 +39,8 @@ func TestAddEquipmentTypesSameName(t *testing.T) {
 
 func TestQueryEquipmentTypes(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
 	for _, suffix := range []string{"a", "b"} {
@@ -71,8 +72,8 @@ func TestQueryEquipmentTypes(t *testing.T) {
 
 func TestAddEquipmentTypeWithPositions(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
 	position1 := models.EquipmentPositionInput{
@@ -83,8 +84,10 @@ func TestAddEquipmentTypeWithPositions(t *testing.T) {
 		Positions: []*models.EquipmentPositionInput{&position1},
 	})
 	require.NoError(t, err)
-	fetchedEquipmentType, err := qr.EquipmentType(ctx, equipmentType.ID)
+	fetchedNode, err := qr.Node(ctx, equipmentType.ID)
 	require.NoError(t, err)
+	fetchedEquipmentType, ok := fetchedNode.(*ent.EquipmentType)
+	require.True(t, ok)
 
 	require.Equal(t, equipmentType.ID, fetchedEquipmentType.ID, "Verifying saved equipment type vs fetched equipmenttype : ID")
 	require.Equal(t, equipmentType.Name, fetchedEquipmentType.Name, "Verifying saved equipment type  vs fetched equipment type : Name")
@@ -93,15 +96,16 @@ func TestAddEquipmentTypeWithPositions(t *testing.T) {
 
 func TestAddEquipmentTypeWithProperties(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr, etr := r.Mutation(), r.Query(), r.EquipmentType()
-
+	extID := "12345"
 	ptype := models.PropertyTypeInput{
 		Name:        "str_prop",
 		Type:        "string",
 		Index:       pointer.ToInt(5),
 		StringValue: pointer.ToString("Foo"),
+		ExternalID:  &extID,
 	}
 	equipmentType, err := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
 		Name:       "example_type_a",
@@ -109,18 +113,22 @@ func TestAddEquipmentTypeWithProperties(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	fetchedEquipmentType, _ := qr.EquipmentType(ctx, equipmentType.ID)
+	fetchedNode, err := qr.Node(ctx, equipmentType.ID)
+	require.NoError(t, err)
+	fetchedEquipmentType, ok := fetchedNode.(*ent.EquipmentType)
+	require.True(t, ok)
 	fetchedPropertyTypes, _ := etr.PropertyTypes(ctx, fetchedEquipmentType)
 	require.Len(t, fetchedPropertyTypes, 1)
 	assert.Equal(t, fetchedPropertyTypes[0].Name, "str_prop")
 	assert.Equal(t, fetchedPropertyTypes[0].Type, "string")
 	assert.Equal(t, fetchedPropertyTypes[0].Index, 5)
+	assert.Equal(t, fetchedPropertyTypes[0].ExternalID, extID)
 }
 
 func TestAddEquipmentTypeWithoutPositionNames(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr := r.Mutation()
 	equipmentType, err := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
@@ -134,8 +142,8 @@ func TestAddEquipmentTypeWithoutPositionNames(t *testing.T) {
 
 func TestAddEquipmentTypeWithPorts(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
 	visibleLabel := "Eth1"
@@ -151,7 +159,10 @@ func TestAddEquipmentTypeWithPorts(t *testing.T) {
 		Ports: []*models.EquipmentPortInput{&portDef},
 	})
 	require.NoError(t, err)
-	fetchedEquipmentType, _ := qr.EquipmentType(ctx, equipmentType.ID)
+	fetchedNode, err := qr.Node(ctx, equipmentType.ID)
+	require.NoError(t, err)
+	fetchedEquipmentType, ok := fetchedNode.(*ent.EquipmentType)
+	require.True(t, ok)
 	ports := fetchedEquipmentType.QueryPortDefinitions().AllX(ctx)
 	require.Len(t, ports, 1)
 
@@ -162,8 +173,8 @@ func TestAddEquipmentTypeWithPorts(t *testing.T) {
 
 func TestRemoveEquipmentTypeWithExistingEquipments(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
 	equipmentType, err := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
@@ -190,15 +201,17 @@ func TestRemoveEquipmentTypeWithExistingEquipments(t *testing.T) {
 	_, err = mr.RemoveEquipmentType(ctx, equipmentType.ID)
 	require.Error(t, err)
 
-	fetchedEquipmentType, err := qr.EquipmentType(ctx, equipmentType.ID)
+	fetchedNode, err := qr.Node(ctx, equipmentType.ID)
 	require.NoError(t, err)
+	fetchedEquipmentType, ok := fetchedNode.(*ent.EquipmentType)
+	require.True(t, ok)
 	assert.Equal(t, fetchedEquipmentType.ID, equipmentType.ID)
 }
 
 func TestRemoveEquipmentType(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
 	portDef := models.EquipmentPortInput{
@@ -226,9 +239,9 @@ func TestRemoveEquipmentType(t *testing.T) {
 	_, err = mr.RemoveEquipmentType(ctx, equipmentType.ID)
 	require.NoError(t, err)
 
-	deletedEquipmentType, err := qr.EquipmentType(ctx, equipmentType.ID)
+	deletedNode, err := qr.Node(ctx, equipmentType.ID)
 	require.NoError(t, err)
-	assert.Nil(t, deletedEquipmentType)
+	assert.Nil(t, deletedNode)
 
 	propertyTypes := equipmentType.QueryPropertyTypes().AllX(ctx)
 	assert.Empty(t, propertyTypes)
@@ -236,8 +249,8 @@ func TestRemoveEquipmentType(t *testing.T) {
 
 func TestEditEquipmentType(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
 	eqType, err := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
@@ -272,15 +285,17 @@ func TestEditEquipmentType(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, types.Edges, 2)
 
-	typ, err := qr.EquipmentType(ctx, eqType.ID)
+	node, err := qr.Node(ctx, eqType.ID)
 	require.NoError(t, err)
+	typ, ok := node.(*ent.EquipmentType)
+	require.True(t, ok)
 	require.Equal(t, "example_type_name_2", typ.Name)
 }
 
 func TestEditEquipmentTypeRemoveCategory(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr := r.Mutation()
 	eqType, err := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
@@ -304,8 +319,8 @@ func TestEditEquipmentTypeRemoveCategory(t *testing.T) {
 
 func TestEditEquipmentTypeWithProperties(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr := r.Mutation()
 	strPropType := models.PropertyTypeInput{
@@ -365,8 +380,8 @@ func TestEditEquipmentTypeWithProperties(t *testing.T) {
 
 func TestEditEquipmentTypeWithPortsAndPositions(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr := r.Mutation()
 	bandwidth := "b1"

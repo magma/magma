@@ -5,6 +5,7 @@
 package exporter
 
 import (
+	"context"
 	"encoding/csv"
 	"encoding/json"
 	"io"
@@ -17,7 +18,6 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
-	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 	"github.com/stretchr/testify/require"
 )
@@ -36,22 +36,21 @@ const linkEID = "Linked Equipment ID"
 const linkEName = "Linked Equipment"
 const propStr = "propStr"
 const propStr2 = "propStr2"
-const consumerEndpointServices = "Consumer Endpoint for These Services"
-const providerEndpointServices = "Provider Endpoint for These Services"
+const servicesTitle = "Service Names"
 
 func TestEmptyPortsDataExport(t *testing.T) {
 	r := newExporterTestResolver(t)
 	log := r.exporter.log
 
 	e := &exporter{log, portsRower{log}}
-	th := viewer.TenancyHandler(e, viewer.NewFixedTenancy(r.client))
+	th := viewertest.TestHandler(t, e, r.client)
 	server := httptest.NewServer(th)
 	defer server.Close()
 
 	req, err := http.NewRequest(http.MethodGet, server.URL, nil)
 	require.NoError(t, err)
 
-	req.Header.Set(tenantHeader, "fb-test")
+	viewertest.SetDefaultViewerHeaders(req)
 	res, err := http.DefaultClient.Do(req)
 	require.NoError(t, err)
 	defer res.Body.Close()
@@ -77,8 +76,7 @@ func TestEmptyPortsDataExport(t *testing.T) {
 			linkPName,
 			linkEID,
 			linkEName,
-			consumerEndpointServices,
-			providerEndpointServices,
+			servicesTitle,
 		}, ln)
 	}
 }
@@ -88,15 +86,15 @@ func TestPortsExport(t *testing.T) {
 	log := r.exporter.log
 
 	e := &exporter{log, portsRower{log}}
-	th := viewer.TenancyHandler(e, viewer.NewFixedTenancy(r.client))
+	th := viewertest.TestHandler(t, e, r.client)
 	server := httptest.NewServer(th)
 	defer server.Close()
 
-	req, err := http.NewRequest("GET", server.URL, nil)
+	req, err := http.NewRequest(http.MethodGet, server.URL, nil)
 	require.NoError(t, err)
-	req.Header.Set(tenantHeader, "fb-test")
+	viewertest.SetDefaultViewerHeaders(req)
 
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	prepareData(ctx, t, *r)
 	require.NoError(t, err)
 	res, err := http.DefaultClient.Do(req)
@@ -129,8 +127,7 @@ func TestPortsExport(t *testing.T) {
 				linkPName,
 				linkEID,
 				linkEName,
-				consumerEndpointServices,
-				providerEndpointServices,
+				servicesTitle,
 				propStr,
 				propStr2,
 			}, ln)
@@ -154,7 +151,6 @@ func TestPortsExport(t *testing.T) {
 				"--",
 				currEquip,
 				"S1;S2",
-				"",
 				"t1",
 				"",
 			})
@@ -177,7 +173,6 @@ func TestPortsExport(t *testing.T) {
 				portName1,
 				"--",
 				parentEquip,
-				"",
 				"S1",
 				"",
 				"",
@@ -191,9 +186,9 @@ func TestPortsExport(t *testing.T) {
 func TestPortWithFilters(t *testing.T) {
 	r := newExporterTestResolver(t)
 	log := r.exporter.log
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	e := &exporter{log, portsRower{log}}
-	th := viewer.TenancyHandler(e, viewer.NewFixedTenancy(r.client))
+	th := viewertest.TestHandler(t, e, r.client)
 	server := httptest.NewServer(th)
 	defer server.Close()
 
@@ -245,7 +240,7 @@ func TestPortWithFilters(t *testing.T) {
 	for i, filter := range [][]byte{f1, f2, f3} {
 		req, err := http.NewRequest("GET", server.URL, nil)
 		require.NoError(t, err)
-		req.Header.Set(tenantHeader, "fb-test")
+		viewertest.SetDefaultViewerHeaders(req)
 
 		q := req.URL.Query()
 		q.Add("filters", string(filter))
@@ -286,7 +281,6 @@ func TestPortWithFilters(t *testing.T) {
 						"",
 						"",
 						"",
-						"",
 					}, ln[1:])
 					require.Equal(t, 2, linesCount)
 				}
@@ -312,7 +306,6 @@ func TestPortWithFilters(t *testing.T) {
 						"--",
 						currEquip,
 						"S1;S2",
-						"",
 						"t1",
 						"",
 					}, ln[1:])

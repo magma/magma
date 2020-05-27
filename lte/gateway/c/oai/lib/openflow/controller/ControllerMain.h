@@ -58,6 +58,10 @@ int openflow_controller_forward_data_on_tunnel(
   struct ipv4flow_dl *flow_dl,
   uint32_t flow_precedence_dl);
 
+int openflow_controller_add_paging_rule(struct in_addr ue_ip);
+
+int openflow_controller_delete_paging_rule(struct in_addr ue_ip);
+
 #ifdef __cplusplus
 }
 #endif

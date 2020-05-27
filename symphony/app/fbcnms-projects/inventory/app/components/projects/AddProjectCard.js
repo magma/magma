@@ -115,6 +115,7 @@ const addProjectCard__projectTypeQuery = graphql`
           id
           name
           type
+          nodeType
           index
           stringValue
           intValue
@@ -159,7 +160,11 @@ class AddProjectCard extends React.Component<Props, State> {
     const {properties} = project;
     return (
       <div className={classes.root}>
-        <FormContextProvider>
+        <FormContextProvider
+          permissions={{
+            entity: 'project',
+            action: 'create',
+          }}>
           <div className={classes.nameHeader}>
             <div className={classes.breadcrumbs}>
               <Breadcrumbs
@@ -256,14 +261,16 @@ class AddProjectCard extends React.Component<Props, State> {
                 </Grid>
                 <Grid item xs={4} sm={4} lg={4} xl={4}>
                   <ExpandingPanel title="Team">
-                    <UserTypeahead
-                      className={classes.input}
-                      headline="Owner"
-                      onUserSelection={user =>
-                        this._setProjectDetail('creatorId', user?.id)
-                      }
-                      margin="dense"
-                    />
+                    <FormField>
+                      <UserTypeahead
+                        className={classes.input}
+                        headline="Owner"
+                        onUserSelection={user =>
+                          this._setProjectDetail('creatorId', user?.id)
+                        }
+                        margin="dense"
+                      />
+                    </FormField>
                   </ExpandingPanel>
                 </Grid>
               </Grid>

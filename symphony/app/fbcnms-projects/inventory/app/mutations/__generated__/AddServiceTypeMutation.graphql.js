@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 7b975cbb1dfebb7976f45ccbffd74b78
+ * @relayHash 1c75648d2d718621d7ab192611ac38fc
  */
 
 /* eslint-disable */
@@ -15,16 +15,21 @@
 
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
-export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
+export type DiscoveryMethod = "INVENTORY" | "MANUAL" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "float" | "gps_location" | "int" | "node" | "range" | "string" | "%future added value";
 export type ServiceTypeCreateData = {|
   name: string,
   hasCustomer: boolean,
   properties?: ?$ReadOnlyArray<?PropertyTypeInput>,
+  endpoints?: ?$ReadOnlyArray<?ServiceEndpointDefinitionInput>,
+  discoveryMethod?: ?DiscoveryMethod,
 |};
 export type PropertyTypeInput = {|
   id?: ?string,
+  externalId?: ?string,
   name: string,
   type: PropertyKind,
+  nodeType?: ?string,
   index?: ?number,
   category?: ?string,
   stringValue?: ?string,
@@ -40,6 +45,13 @@ export type PropertyTypeInput = {|
   isMandatory?: ?boolean,
   isDeleted?: ?boolean,
 |};
+export type ServiceEndpointDefinitionInput = {|
+  id?: ?string,
+  name: string,
+  role?: ?string,
+  index: number,
+  equipmentTypeID: string,
+|};
 export type AddServiceTypeMutationVariables = {|
   data: ServiceTypeCreateData
 |};
@@ -47,10 +59,12 @@ export type AddServiceTypeMutationResponse = {|
   +addServiceType: {|
     +id: string,
     +name: string,
+    +discoveryMethod: DiscoveryMethod,
     +propertyTypes: $ReadOnlyArray<?{|
       +id: string,
       +name: string,
       +type: PropertyKind,
+      +nodeType: ?string,
       +index: ?number,
       +stringValue: ?string,
       +intValue: ?number,
@@ -63,6 +77,18 @@ export type AddServiceTypeMutationResponse = {|
       +isEditable: ?boolean,
       +isInstanceProperty: ?boolean,
       +isMandatory: ?boolean,
+      +category: ?string,
+      +isDeleted: ?boolean,
+    |}>,
+    +endpointDefinitions: $ReadOnlyArray<{|
+      +id: string,
+      +index: number,
+      +role: ?string,
+      +name: string,
+      +equipmentType: {|
+        +id: string,
+        +name: string,
+      |},
     |}>,
     +numberOfServices: number,
   |}
@@ -81,10 +107,12 @@ mutation AddServiceTypeMutation(
   addServiceType(data: $data) {
     id
     name
+    discoveryMethod
     propertyTypes {
       id
       name
       type
+      nodeType
       index
       stringValue
       intValue
@@ -97,6 +125,18 @@ mutation AddServiceTypeMutation(
       isEditable
       isInstanceProperty
       isMandatory
+      category
+      isDeleted
+    }
+    endpointDefinitions {
+      id
+      index
+      role
+      name
+      equipmentType {
+        id
+        name
+      }
     }
     numberOfServices
   }
@@ -126,7 +166,14 @@ v2 = {
   "args": null,
   "storageKey": null
 },
-v3 = [
+v3 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "index",
+  "args": null,
+  "storageKey": null
+},
+v4 = [
   {
     "kind": "LinkedField",
     "alias": null,
@@ -144,6 +191,13 @@ v3 = [
     "selections": [
       (v1/*: any*/),
       (v2/*: any*/),
+      {
+        "kind": "ScalarField",
+        "alias": null,
+        "name": "discoveryMethod",
+        "args": null,
+        "storageKey": null
+      },
       {
         "kind": "LinkedField",
         "alias": null,
@@ -165,10 +219,11 @@ v3 = [
           {
             "kind": "ScalarField",
             "alias": null,
-            "name": "index",
+            "name": "nodeType",
             "args": null,
             "storageKey": null
           },
+          (v3/*: any*/),
           {
             "kind": "ScalarField",
             "alias": null,
@@ -245,6 +300,54 @@ v3 = [
             "name": "isMandatory",
             "args": null,
             "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "category",
+            "args": null,
+            "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "isDeleted",
+            "args": null,
+            "storageKey": null
+          }
+        ]
+      },
+      {
+        "kind": "LinkedField",
+        "alias": null,
+        "name": "endpointDefinitions",
+        "storageKey": null,
+        "args": null,
+        "concreteType": "ServiceEndpointDefinition",
+        "plural": true,
+        "selections": [
+          (v1/*: any*/),
+          (v3/*: any*/),
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "role",
+            "args": null,
+            "storageKey": null
+          },
+          (v2/*: any*/),
+          {
+            "kind": "LinkedField",
+            "alias": null,
+            "name": "equipmentType",
+            "storageKey": null,
+            "args": null,
+            "concreteType": "EquipmentType",
+            "plural": false,
+            "selections": [
+              (v1/*: any*/),
+              (v2/*: any*/)
+            ]
           }
         ]
       },
@@ -266,23 +369,23 @@ return {
     "type": "Mutation",
     "metadata": null,
     "argumentDefinitions": (v0/*: any*/),
-    "selections": (v3/*: any*/)
+    "selections": (v4/*: any*/)
   },
   "operation": {
     "kind": "Operation",
     "name": "AddServiceTypeMutation",
     "argumentDefinitions": (v0/*: any*/),
-    "selections": (v3/*: any*/)
+    "selections": (v4/*: any*/)
   },
   "params": {
     "operationKind": "mutation",
     "name": "AddServiceTypeMutation",
     "id": null,
-    "text": "mutation AddServiceTypeMutation(\n  $data: ServiceTypeCreateData!\n) {\n  addServiceType(data: $data) {\n    id\n    name\n    propertyTypes {\n      id\n      name\n      type\n      index\n      stringValue\n      intValue\n      booleanValue\n      floatValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      isEditable\n      isInstanceProperty\n      isMandatory\n    }\n    numberOfServices\n  }\n}\n",
+    "text": "mutation AddServiceTypeMutation(\n  $data: ServiceTypeCreateData!\n) {\n  addServiceType(data: $data) {\n    id\n    name\n    discoveryMethod\n    propertyTypes {\n      id\n      name\n      type\n      nodeType\n      index\n      stringValue\n      intValue\n      booleanValue\n      floatValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      isEditable\n      isInstanceProperty\n      isMandatory\n      category\n      isDeleted\n    }\n    endpointDefinitions {\n      id\n      index\n      role\n      name\n      equipmentType {\n        id\n        name\n      }\n    }\n    numberOfServices\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'e64cda3fab3a4676ea12bf4d4a8d41d0';
+(node/*: any*/).hash = '2da5f23bba8fbfa795de89f4661ed755';
 module.exports = node;

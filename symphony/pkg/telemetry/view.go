@@ -36,6 +36,11 @@ func MustRegisterViewExporter(name string, f ViewExporterInitFunc) {
 	}
 }
 
+// UnregisterViewExporter unregisters a view exporter.
+func UnregisterViewExporter(name string) {
+	viewExporters.Delete(name)
+}
+
 // AvailableViewExporters gets the names of registered view exporters.
 func AvailableViewExporters() []string {
 	return availableExporters(&viewExporters)

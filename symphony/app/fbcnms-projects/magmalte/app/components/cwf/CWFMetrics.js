@@ -12,7 +12,7 @@ import APMetrics from './APMetrics';
 import AppBar from '@material-ui/core/AppBar';
 import AppContext from '@fbcnms/ui/context/AppContext';
 import CWFNetworkMetrics from './CWFNetworkMetrics';
-import Grafana from '../insights/Grafana';
+import Grafana from '@fbcnms/ui/insights/Grafana';
 import IMSIMetrics from './IMSIMetrics';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import React from 'react';

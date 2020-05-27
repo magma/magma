@@ -11,15 +11,32 @@
 import {isEqual, sortBy} from 'lodash';
 
 import MagmaV1API from '@fbcnms/platform-server/magma/index';
+import {
+  AccessPointDashboard,
+  CWFNetworkDashboard,
+  SubscribersDashboard,
+} from './dashboards/CWFDashboards';
+import {
+  GatewaysDashboard,
+  InternalDashboard,
+  NetworksDashboard,
+  TemplateDashboard,
+} from './dashboards/Dashboards';
 import {Organization} from '@fbcnms/sequelize-models';
 import {apiCredentials} from '../config';
 
-import type {Datasource, PostDatasource} from './GrafanaAPIType';
+import type {
+  CreateDashboardResponse,
+  Datasource,
+  PostDatasource,
+} from './GrafanaAPIType';
 import type {FBCNMSRequest} from '@fbcnms/auth/access';
-import type {GrafanaClient} from './GrafanaAPI';
+import type {GrafanaClient, GrafanaResponse} from './GrafanaAPI';
 import type {OrganizationType} from '@fbcnms/sequelize-models/models/organization';
 import type {UserType} from '@fbcnms/sequelize-models/models/user';
 import type {tenant} from '../../fbcnms-magma-api';
+
+const logger = require('@fbcnms/logging').getLogger(module);
 
 export type Task = {name: string, status: number, message: string};
 
@@ -418,6 +435,96 @@ export async function syncTenants(): Promise<{
   return {completedTasks};
 }
 
+export async function syncDashboards(
+  client: GrafanaClient,
+  req: FBCNMSRequest,
+): Promise<{
+  completedTasks: Array<Task>,
+  errorTask?: Task,
+}> {
+  const completedTasks: Array<Task> = [];
+  const grafanaOrgID = await getUserGrafanaOrgID(client, req.user);
+
+  const org = await Organization.findOne({
+    where: {
+      name: req.user.organization || '',
+    },
+  });
+  let networks: Array<string> = [];
+  if (org) {
+    networks = org.networkIDs;
+  }
+  if (networks.length === 0) {
+    return {
+      completedTasks,
+      errorTask: {
+        name: `Finding Organization's networks`,
+        status: 500,
+        message: 'Unable to get the networks of an organization',
+      },
+    };
+  }
+
+  const dashboardData = db => ({
+    dashboard: db,
+    folderId: 0,
+    overwrite: true,
+    message: '',
+  });
+
+  // Basic dashboards
+  const networksDB = NetworksDashboard().generate();
+  const gatewaysDB = GatewaysDashboard().generate();
+  const internalDB = InternalDashboard().generate();
+  const templateDB = TemplateDashboard().generate();
+  const posts = [
+    dashboardData(networksDB),
+    dashboardData(gatewaysDB),
+    dashboardData(internalDB),
+    dashboardData(templateDB),
+  ];
+
+  // If an org contains CWF networks, add the CWF-specific dashboards
+  if (await hasCWFNetwork(networks)) {
+    console.log('Creating cwf dashboards');
+    posts.push(
+      dashboardData(SubscribersDashboard().generate()),
+      dashboardData(AccessPointDashboard().generate()),
+      dashboardData(CWFNetworkDashboard().generate()),
+    );
+  }
+
+  for (const post of posts) {
+    // eslint-disable-next-line max-len
+    const createDBResp: GrafanaResponse<CreateDashboardResponse> = await client.createDashboard(
+      post,
+      grafanaOrgID,
+    );
+    if (createDBResp.status !== 200) {
+      return {
+        completedTasks,
+        errorTask: {
+          name: 'Create Networks Dashboard',
+          status: createDBResp.status,
+          message: JSON.stringify(createDBResp.data),
+        },
+      };
+    }
+
+    // Starring the dashboard shouldn't break the page if it fails, so
+    // just log response
+    const dbID = createDBResp.data.id;
+    const username = makeGrafanaUsername(req.user.id);
+    const starDBResp = await client.starDashboard(dbID, grafanaOrgID, username);
+    if (starDBResp.status !== 200) {
+      console.log(
+        `Error starring Dashboard: ${dbID}: ${JSON.stringify(starDBResp)}`,
+      );
+    }
+  }
+  return {completedTasks};
+}
+
 export function makeGrafanaUsername(userID: number): string {
   return `NMSUser_${userID}`;
 }
@@ -490,4 +597,20 @@ function organizationsEqual(
     nmsOrg.name == orc8rTenant.name &&
     isEqual(sortBy(nmsOrg.networkIDs), sortBy(orc8rTenant.networks))
   );
+}
+
+async function hasCWFNetwork(networks: Array<string>): Promise<boolean> {
+  for (const networkId of networks) {
+    try {
+      const networkInfo = await MagmaV1API.getNetworksByNetworkId({networkId});
+      if (networkInfo.type === 'carrier_wifi_network') {
+        return true;
+      }
+    } catch (error) {
+      logger.error(
+        `Error retrieving network info for network while building dashboards: ${networkId}. Error: ${error}`,
+      );
+    }
+  }
+  return false;
 }

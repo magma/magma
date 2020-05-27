@@ -48,8 +48,8 @@ provider "helm" {
     load_config_file       = false
   }
 
-  service_account = kubernetes_service_account.tiller.metadata.0.name
-  namespace       = kubernetes_service_account.tiller.metadata.0.namespace
+  service_account = var.existing_tiller_service_account_name == null ? kubernetes_service_account.tiller[0].metadata.0.name : var.existing_tiller_service_account_name
+  namespace       = var.existing_tiller_service_account_name == null ? kubernetes_service_account.tiller[0].metadata.0.namespace : var.tiller_namespace
   tiller_image    = "gcr.io/kubernetes-helm/tiller:v2.16.3"
   install_tiller  = var.install_tiller
   max_history     = 100

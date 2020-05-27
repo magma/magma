@@ -133,6 +133,10 @@ declare module "@material-ui/core/Button" {
   declare module.exports: $Exports<"@material-ui/core/Button/Button">;
 }
 
+declare module "@material-ui/core/ButtonGroup" {
+  declare module.exports: $Exports<"@material-ui/core/ButtonGroup/ButtonGroup">;
+}
+
 declare module "@material-ui/core/ButtonBase/ButtonBase" {
   import type {ComponentType, ElementType, Node} from "react";
 
@@ -332,20 +336,24 @@ declare module "@material-ui/core/CssBaseline" {
   declare module.exports: $Exports<"@material-ui/core/CssBaseline/CssBaseline">;
 }
 
+declare type Hue = {|
+  [string|number]:string
+|}
+
 declare module "@material-ui/core/colors/amber" {
-  declare module.exports: any;
+  declare module.exports: Hue;
 }
 
 declare module "@material-ui/core/colors/blue" {
-  declare module.exports: any;
+  declare module.exports: Hue;
 }
 
 declare module "@material-ui/core/colors/blueGrey" {
-  declare module.exports: any;
+  declare module.exports: Hue;
 }
 
 declare module "@material-ui/core/colors/brown" {
-  declare module.exports: any;
+  declare module.exports: Hue;
 }
 
 declare module "@material-ui/core/colors/common" {
@@ -358,23 +366,23 @@ declare module "@material-ui/core/colors/common" {
 }
 
 declare module "@material-ui/core/colors/cyan" {
-  declare module.exports: any;
+  declare module.exports: Hue;
 }
 
 declare module "@material-ui/core/colors/deepOrange" {
-  declare module.exports: any;
+  declare module.exports: Hue;
 }
 
 declare module "@material-ui/core/colors/deepPurple" {
-  declare module.exports: any;
+  declare module.exports: Hue;
 }
 
 declare module "@material-ui/core/colors/green" {
-  declare module.exports: any;
+  declare module.exports: Hue;
 }
 
 declare module "@material-ui/core/colors/grey" {
-  declare module.exports: any;
+  declare module.exports: Hue;
 }
 
 declare module "@material-ui/core/colors" {
@@ -382,43 +390,43 @@ declare module "@material-ui/core/colors" {
 }
 
 declare module "@material-ui/core/colors/indigo" {
-  declare module.exports: any;
+  declare module.exports: Hue;
 }
 
 declare module "@material-ui/core/colors/lightBlue" {
-  declare module.exports: any;
+  declare module.exports: Hue;
 }
 
 declare module "@material-ui/core/colors/lightGreen" {
-  declare module.exports: any;
+  declare module.exports: Hue;
 }
 
 declare module "@material-ui/core/colors/lime" {
-  declare module.exports: any;
+  declare module.exports: Hue;
 }
 
 declare module "@material-ui/core/colors/orange" {
-  declare module.exports: any;
+  declare module.exports: Hue;
 }
 
 declare module "@material-ui/core/colors/pink" {
-  declare module.exports: any;
+  declare module.exports: Hue;
 }
 
 declare module "@material-ui/core/colors/purple" {
-  declare module.exports: any;
+  declare module.exports: Hue;
 }
 
 declare module "@material-ui/core/colors/red" {
-  declare module.exports: any;
+  declare module.exports: Hue;
 }
 
 declare module "@material-ui/core/colors/teal" {
-  declare module.exports: any;
+  declare module.exports: Hue;
 }
 
 declare module "@material-ui/core/colors/yellow" {
-  declare module.exports: any;
+  declare module.exports: Hue;
 }
 
 declare module "@material-ui/core/Dialog/Dialog" {
@@ -2569,6 +2577,10 @@ declare module "@material-ui/core/TableBody" {
   declare export default $Exports<"@material-ui/core/TableBody/TableBody">;
 }
 
+declare module "@material-ui/core/TableContainer" {
+  declare export default $Exports<"@material-ui/core/TableContainer/TableContainer">;
+}
+
 declare module "@material-ui/core/TableCell" {
   declare export default $Exports<"@material-ui/core/TableCell/TableCell">;
 }
@@ -2616,6 +2628,16 @@ declare module "@material-ui/core/TableBody/TableBody" {
     classes?: Object,
     className?: string,
     component?: ElementType
+  }>;
+}
+
+declare module "@material-ui/core/TableContainer/TableContainer" {
+  import type {ElementType, Node} from "react";
+
+  declare module.exports: ComponentType<{
+    children: Node,
+    classes?: Object,
+    component?: ElementType,
   }>;
 }
 
@@ -3915,6 +3937,12 @@ declare module "@material-ui/core/TableBody/index.js" {
 declare module "@material-ui/core/TableBody/TableBody.js" {
   declare module.exports: $Exports<"@material-ui/core/TableBody/TableBody">;
 }
+declare module "@material-ui/core/TableContainer/index.js" {
+  declare module.exports: $Exports<"@material-ui/core/TableContainer">;
+}
+declare module "@material-ui/core/TableContainer/TableContainer.js" {
+  declare module.exports: $Exports<"@material-ui/core/TableContainer/TableContainer">;
+}
 declare module "@material-ui/core/TableCell/index.js" {
   declare module.exports: $Exports<"@material-ui/core/TableCell">;
 }
@@ -4242,6 +4270,9 @@ declare module "@material-ui/core" {
   declare export var Table: $Exports<"@material-ui/core/Table/Table">;
   declare export var TableBody: $Exports<
     "@material-ui/core/TableBody/TableBody"
+  >;
+  declare export var TableContainer: $Exports<
+    "@material-ui/core/TableContainer/TableContainer"
   >;
   declare export var TableCell: $Exports<
     "@material-ui/core/TableCell/TableCell"

@@ -56,6 +56,14 @@ message SetupFlowsResult {
   Result result = 1;
 }
 
+message RequestOriginType {
+  enum OriginType {
+    GX = 0;
+    GY = 1;
+  }
+  OriginType type = 1;
+}
+
 message ActivateFlowsRequest {
   SubscriberID sid = 1;
 
@@ -67,6 +75,9 @@ message ActivateFlowsRequest {
 
   // List of dynamic rules obtained from PCRF
   repeated PolicyRule dynamic_rules = 4;
+
+  // Activate flow source (GX/GY)
+  RequestOriginType request_origin = 5;
 }
 
 // DeactivateFlowsRequest can be used to deactivate all flows for a subscriber,
@@ -77,6 +88,7 @@ message ActivateFlowsRequest {
 message DeactivateFlowsRequest {
   SubscriberID sid = 1;
   repeated string rule_ids = 2;
+  RequestOriginType request_origin = 3;
 }
 
 message RuleModResult {
@@ -95,6 +107,12 @@ message ActivateFlowsResult {
 }
 
 message DeactivateFlowsResult {
+  enum Result {
+    SUCCESS = 0;
+    FAILURE = 1;
+    OUTDATED_EPOCH = 2;
+  }
+  Result result = 1;
 }
 
 message FlowRequest {
@@ -102,9 +120,24 @@ message FlowRequest {
   string app_name = 2;
   uint64 bytes_rx = 3;
   string service_type = 4;
+  string src_mac = 5;
+  string dst_mac = 6;
+  enum FlowState {
+    FLOW_CREATED = 0;
+    FLOW_PARTIAL_CLASSIFICATION = 1;
+    FLOW_FINAL_CLASSIFICATION = 2;
+    FLOW_EXPIRED = 3;
+  }
+  FlowState state = 7;
 }
 
 message FlowResponse {
+  enum Result {
+    SUCCESS = 0;
+    FAILURE = 1;
+    OUTDATED_EPOCH = 2;
+  }
+  Result result = 1;
 }
 
 // UEMacFlowRequest is used to link a subscriber ID to a MAC address.
@@ -214,6 +247,13 @@ service Pipelined {
 
   // Delete a flow for a subscriber by matching the provided UE MAC address
   rpc DeleteUEMacFlow (UEMacFlowRequest) returns (FlowResponse) {}
+
+  // -----------
+  // IPFIX App:
+  // -----------
+
+  // Update subscriber IPFIX flows
+  rpc UpdateIPFIXFlow (UEMacFlowRequest) returns (FlowResponse) {}
 
   // --------
   // Debugging:

@@ -33,6 +33,7 @@ static_services: [
   'access_control',
   'tunnel_learn',
   'vlan_learn',
+  'li_mirror',
   'startup_flows',
   'ryu_rest_service',
 ]
@@ -98,9 +99,20 @@ enodeb_iface: eth1
 bridge_name: cwag_br0
 # Bridge ip comes from 99-ovscfg.yaml
 bridge_ip_address: 192.168.128.1
+# For CWF internal redirection, same subnet as the ovs bridge ip address
+internal_ip_subnet: '192.168.0.0/16'
 
-#QoS Queue Programming
-enable_queue_pgm: true
+# QoS parameters
+qos:
+ enable: true
+ impl: ovs_meter
+ max_rate: 1000000000
+ linux_tc:
+  min_idx: 2
+  max_idx: 65534
+ ovs_meter:
+  min_idx: 2
+  max_idx: 100000
 
 monitored_ifaces: ['cwag_br0',
                    'gre0',
@@ -111,14 +123,19 @@ monitored_ifaces: ['cwag_br0',
 clean_restart: true
 
 # Information for cwf check quota servers
-quota_check_ip: '192.168.128.99'
+quota_check_ip: '192.0.0.1'
 has_quota_port: 51115
 no_quota_port: 51125
+
+# Configuration for LI mirroring
+li_local_iface: li_port
+li_mirror_all: false
+#li_dst_iface: eth4
 
 # Configuration for IPFIX sampling
 ipfix:
   enabled: false
-  probability: 30000
+  probability: 65
   collector_set_id: 1
   cache_timeout: 60
   obs_domain_id: 1

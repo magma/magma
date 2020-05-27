@@ -6,32 +6,55 @@ title: Python API Release Notes
 <!--
 ***
 This is template for release notes
-#3 new version number
-### Features
-### Changes
-### Deprecated
-### Removed
-### Bug fixes
+# new version number
+ Features
+ Changes
+ Deprecated
+ Removed
+ Bug fixes
 ***
 -->
 
-<!--
+
 ***
-## new version number
+## 2.6.1 - release date 23.04.2020
+### Changes
+- `get_location` and `get_location_by_external_id` performance is improved (`get_location_by_external_id` had 3X time improvement from 0.9 seconds to 0.3 seconds)
+### Bug fixes
+- Fixed a server breaking change introduced on 15.4.2020. The changes breaks all APIs that add or edit properties for all pyinventory versions.
+***
+
+
+***
+## 2.6.0 - release date 14.04.2020
 ### Features
 - Equipment functionality:
     - `get_equipments_by_type`
     - `get_equipments_by_location`
     - `get_equipment_by_external_id`
+- EquipmentType functionality:
+    - `get_equipment_type_property_type`
+    - `get_equipment_type_property_type_by_external_id`
+    - `edit_equipment_type_property_type`
+- PropertyType functionality:
+    - `get_property_type_id`
+- PropertyDefinition:
+    - `is_mandatory` value added
 ### Changes
-### Deprecated
-### Removed
+- Equipment functionality:
+    - `external_id` variable added to functions
+        - `add_equipment`
+        - `add_equipment_to_position`
+        - `copy_equipment_in_position`
+        - `copy_equipment`
+        - `get_or_create_equipment`
+        - `get_or_create_equipment_in_position`
 ### Bug fixes
 ***
--->
+
 
 ***
-## 2.5.0 -release date 23.03.2020
+## 2.5.0 - release date 23.03.2020
 ### Features
 
 - User functionality:

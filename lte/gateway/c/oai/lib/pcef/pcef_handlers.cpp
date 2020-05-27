@@ -149,7 +149,7 @@ static char _convert_digit_to_char(char digit)
     return digit;
   } else {
     OAILOG_ERROR(
-      LOG_PGW_APP,
+      LOG_SPGW_APP,
       "The input value for digit is not in a valid range: "
       "Session request would likely be rejected on Gx or Gy interface\n");
     return '0';

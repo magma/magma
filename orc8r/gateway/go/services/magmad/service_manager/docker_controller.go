@@ -11,8 +11,11 @@ package service_manager
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"os/exec"
 )
+
+const MaxDockerContainersToTail = 32
 
 // DockerController - docker based controller implementation
 type DockerController struct{}
@@ -48,6 +51,20 @@ func (dc DockerController) GetState(service string) (ServiceState, error) {
 		err = fmt.Errorf("%v for service '%s', raw output: %s", err, service, string(out))
 	}
 	return state, err
+}
+
+// TailLogs executes command to start tailing service logs and returns string chan to receive log strings
+// closing the chan will terminate tailing
+func (dc DockerController) TailLogs(service string) (chan string, *os.Process, error) {
+	var cmd *exec.Cmd
+	if len(service) == 0 {
+		cmdStr := fmt.Sprintf("%s ps -q | xargs -L 1 -P %d %s logs -tf --details",
+			dc.Name(), MaxDockerContainersToTail, dc.Name())
+		cmd = exec.Command("sh", "-c", cmdStr)
+	} else {
+		cmd = exec.Command(dc.Name(), "logs", "--details", "-tf", service)
+	}
+	return StartCmdWithStderrStdoutTailer(cmd)
 }
 
 func parseDockerInspectResult(out []byte) (ServiceState, error) {

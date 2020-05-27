@@ -8,22 +8,16 @@
  * @format
  */
 
+import type {PermissionEnforcement} from './admin/userManagement/utils/usePermissions';
 import type {ViewContainerProps} from '@fbcnms/ui/components/design-system/View/ViewContainer';
 
 import * as React from 'react';
 import ListAltIcon from '@material-ui/icons/ListAlt';
 import MapIcon from '@material-ui/icons/Map';
 import ViewContainer from '@fbcnms/ui/components/design-system/View/ViewContainer';
+import {FormContextProvider} from '../common/FormContext';
 import {VARIANTS} from '@fbcnms/ui/components/design-system/View/ViewBody';
-import {makeStyles} from '@material-ui/styles';
-import {useState} from 'react';
-
-const useStyles = makeStyles(() => ({
-  root: {
-    display: 'flex',
-    height: '100%',
-  },
-}));
+import {useMemo, useState} from 'react';
 
 export const DisplayOptions = {
   table: 'table',
@@ -31,50 +25,75 @@ export const DisplayOptions = {
 };
 export type DisplayOptionTypes = $Keys<typeof DisplayOptions>;
 
-type ViewToggleProps = {
+type ViewToggleProps = $ReadOnly<{|
   onViewToggleClicked?: (id: string) => void,
-};
+|}>;
 
-type Props = ViewContainerProps & ViewToggleProps;
+type Props = $ReadOnly<{|
+  ...ViewContainerProps,
+  ...ViewToggleProps,
+  permissions: PermissionEnforcement,
+|}>;
 
 const InventoryView = (props: Props) => {
-  const {onViewToggleClicked, ...restProps} = props;
-  const viewProps: ViewContainerProps = {
-    ...restProps,
-  };
-  const classes = useStyles();
+  const {
+    onViewToggleClicked,
+    header: headerProp,
+    bodyVariant: bodyVariantProp,
+    permissions,
+    ...restProps
+  } = props;
   const [selectedDisplayOption, setSelectedDisplayOption] = useState(
     DisplayOptions.table,
   );
-  if (selectedDisplayOption == DisplayOptions.map) {
-    viewProps.bodyVariant = VARIANTS.plain;
-  }
-  if (viewProps.header && onViewToggleClicked) {
+  const bodyVariant = useMemo(
+    () =>
+      selectedDisplayOption === DisplayOptions.map
+        ? VARIANTS.plain
+        : bodyVariantProp,
+    [bodyVariantProp, selectedDisplayOption],
+  );
+  const header = useMemo(() => {
+    if (headerProp == null || onViewToggleClicked == null) {
+      return headerProp;
+    }
     const onViewOptionClicked = displayOptionId => {
       setSelectedDisplayOption(displayOptionId);
       if (onViewToggleClicked) {
         onViewToggleClicked(displayOptionId);
       }
     };
-    viewProps.header.viewOptions = {
-      onItemClicked: onViewOptionClicked,
-      selectedButtonId: selectedDisplayOption,
-      buttons: [
-        {
-          item: <ListAltIcon />,
-          id: DisplayOptions.table,
-        },
-        {
-          item: <MapIcon />,
-          id: DisplayOptions.map,
-        },
-      ],
+    return {
+      ...headerProp,
+      viewOptions: {
+        onItemClicked: onViewOptionClicked,
+        selectedButtonId: selectedDisplayOption,
+        buttons: [
+          {
+            item: <ListAltIcon />,
+            id: DisplayOptions.table,
+          },
+          {
+            item: <MapIcon />,
+            id: DisplayOptions.map,
+          },
+        ],
+      },
     };
-  }
+  }, [headerProp, onViewToggleClicked, selectedDisplayOption]);
+
+  const viewProps: ViewContainerProps = useMemo(
+    () => ({
+      ...restProps,
+      header,
+      bodyVariant,
+    }),
+    [bodyVariant, header, restProps],
+  );
   return (
-    <div className={classes.root}>
+    <FormContextProvider permissions={permissions}>
       <ViewContainer {...viewProps} />
-    </div>
+    </FormContextProvider>
   );
 };
 

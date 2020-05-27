@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash c615695b312379ef96124f7721c8c734
+ * @relayHash 541594022b88bbdde7811183fc28f5cc
  */
 
 /* eslint-disable */
@@ -106,11 +106,8 @@ fragment ProjectDetails_project on Project {
     longitudeValue
     rangeFromValue
     rangeToValue
-    equipmentValue {
-      id
-      name
-    }
-    locationValue {
+    nodeValue {
+      __typename
       id
       name
     }
@@ -118,6 +115,7 @@ fragment ProjectDetails_project on Project {
       id
       name
       type
+      nodeType
       isEditable
       isMandatory
       isInstanceProperty
@@ -195,99 +193,102 @@ v1 = [
 v2 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "id",
+  "name": "__typename",
   "args": null,
   "storageKey": null
 },
 v3 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "name",
+  "name": "id",
   "args": null,
   "storageKey": null
 },
 v4 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "description",
+  "name": "name",
   "args": null,
   "storageKey": null
 },
 v5 = {
   "kind": "ScalarField",
   "alias": null,
+  "name": "description",
+  "args": null,
+  "storageKey": null
+},
+v6 = {
+  "kind": "ScalarField",
+  "alias": null,
   "name": "email",
   "args": null,
   "storageKey": null
 },
-v6 = [
-  (v2/*: any*/),
-  (v5/*: any*/)
-],
 v7 = [
   (v3/*: any*/),
-  (v2/*: any*/)
+  (v6/*: any*/)
 ],
-v8 = {
+v8 = [
+  (v4/*: any*/),
+  (v3/*: any*/)
+],
+v9 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "stringValue",
   "args": null,
   "storageKey": null
 },
-v9 = {
+v10 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "intValue",
   "args": null,
   "storageKey": null
 },
-v10 = {
+v11 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "floatValue",
   "args": null,
   "storageKey": null
 },
-v11 = {
+v12 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "booleanValue",
   "args": null,
   "storageKey": null
 },
-v12 = {
+v13 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "latitudeValue",
   "args": null,
   "storageKey": null
 },
-v13 = {
+v14 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "longitudeValue",
   "args": null,
   "storageKey": null
 },
-v14 = {
+v15 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "rangeFromValue",
   "args": null,
   "storageKey": null
 },
-v15 = {
+v16 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "rangeToValue",
   "args": null,
   "storageKey": null
-},
-v16 = [
-  (v2/*: any*/),
-  (v3/*: any*/)
-];
+};
 return {
   "kind": "Request",
   "fragment": {
@@ -340,19 +341,13 @@ return {
         "concreteType": null,
         "plural": false,
         "selections": [
-          {
-            "kind": "ScalarField",
-            "alias": null,
-            "name": "__typename",
-            "args": null,
-            "storageKey": null
-          },
           (v2/*: any*/),
+          (v3/*: any*/),
           {
             "kind": "InlineFragment",
             "type": "Project",
             "selections": [
-              (v3/*: any*/),
+              (v4/*: any*/),
               {
                 "kind": "ScalarField",
                 "alias": null,
@@ -360,7 +355,7 @@ return {
                 "args": null,
                 "storageKey": null
               },
-              (v4/*: any*/),
+              (v5/*: any*/),
               {
                 "kind": "LinkedField",
                 "alias": null,
@@ -369,7 +364,7 @@ return {
                 "args": null,
                 "concreteType": "User",
                 "plural": false,
-                "selections": (v6/*: any*/)
+                "selections": (v7/*: any*/)
               },
               {
                 "kind": "LinkedField",
@@ -379,7 +374,7 @@ return {
                 "args": null,
                 "concreteType": "ProjectType",
                 "plural": false,
-                "selections": (v7/*: any*/)
+                "selections": (v8/*: any*/)
               },
               {
                 "kind": "LinkedField",
@@ -390,8 +385,8 @@ return {
                 "concreteType": "Location",
                 "plural": false,
                 "selections": [
-                  (v2/*: any*/),
                   (v3/*: any*/),
+                  (v4/*: any*/),
                   {
                     "kind": "ScalarField",
                     "alias": null,
@@ -429,8 +424,8 @@ return {
                         "args": null,
                         "storageKey": null
                       },
-                      (v2/*: any*/),
-                      (v3/*: any*/)
+                      (v3/*: any*/),
+                      (v4/*: any*/)
                     ]
                   },
                   {
@@ -442,8 +437,8 @@ return {
                     "concreteType": "Location",
                     "plural": true,
                     "selections": [
-                      (v2/*: any*/),
                       (v3/*: any*/),
+                      (v4/*: any*/),
                       {
                         "kind": "LinkedField",
                         "alias": null,
@@ -452,7 +447,7 @@ return {
                         "args": null,
                         "concreteType": "LocationType",
                         "plural": false,
-                        "selections": (v7/*: any*/)
+                        "selections": (v8/*: any*/)
                       }
                     ]
                   }
@@ -467,8 +462,7 @@ return {
                 "concreteType": "Property",
                 "plural": true,
                 "selections": [
-                  (v2/*: any*/),
-                  (v8/*: any*/),
+                  (v3/*: any*/),
                   (v9/*: any*/),
                   (v10/*: any*/),
                   (v11/*: any*/),
@@ -476,25 +470,20 @@ return {
                   (v13/*: any*/),
                   (v14/*: any*/),
                   (v15/*: any*/),
+                  (v16/*: any*/),
                   {
                     "kind": "LinkedField",
                     "alias": null,
-                    "name": "equipmentValue",
+                    "name": "nodeValue",
                     "storageKey": null,
                     "args": null,
-                    "concreteType": "Equipment",
+                    "concreteType": null,
                     "plural": false,
-                    "selections": (v16/*: any*/)
-                  },
-                  {
-                    "kind": "LinkedField",
-                    "alias": null,
-                    "name": "locationValue",
-                    "storageKey": null,
-                    "args": null,
-                    "concreteType": "Location",
-                    "plural": false,
-                    "selections": (v16/*: any*/)
+                    "selections": [
+                      (v2/*: any*/),
+                      (v3/*: any*/),
+                      (v4/*: any*/)
+                    ]
                   },
                   {
                     "kind": "LinkedField",
@@ -505,12 +494,19 @@ return {
                     "concreteType": "PropertyType",
                     "plural": false,
                     "selections": [
-                      (v2/*: any*/),
                       (v3/*: any*/),
+                      (v4/*: any*/),
                       {
                         "kind": "ScalarField",
                         "alias": null,
                         "name": "type",
+                        "args": null,
+                        "storageKey": null
+                      },
+                      {
+                        "kind": "ScalarField",
+                        "alias": null,
+                        "name": "nodeType",
                         "args": null,
                         "storageKey": null
                       },
@@ -535,14 +531,14 @@ return {
                         "args": null,
                         "storageKey": null
                       },
-                      (v8/*: any*/),
                       (v9/*: any*/),
                       (v10/*: any*/),
                       (v11/*: any*/),
                       (v12/*: any*/),
                       (v13/*: any*/),
                       (v14/*: any*/),
-                      (v15/*: any*/)
+                      (v15/*: any*/),
+                      (v16/*: any*/)
                     ]
                   }
                 ]
@@ -556,7 +552,7 @@ return {
                 "concreteType": "WorkOrder",
                 "plural": true,
                 "selections": [
-                  (v2/*: any*/),
+                  (v3/*: any*/),
                   {
                     "kind": "LinkedField",
                     "alias": null,
@@ -565,10 +561,10 @@ return {
                     "args": null,
                     "concreteType": "WorkOrderType",
                     "plural": false,
-                    "selections": (v7/*: any*/)
+                    "selections": (v8/*: any*/)
                   },
-                  (v3/*: any*/),
                   (v4/*: any*/),
+                  (v5/*: any*/),
                   {
                     "kind": "LinkedField",
                     "alias": null,
@@ -577,7 +573,7 @@ return {
                     "args": null,
                     "concreteType": "User",
                     "plural": false,
-                    "selections": (v6/*: any*/)
+                    "selections": (v7/*: any*/)
                   },
                   {
                     "kind": "ScalarField",
@@ -618,7 +614,7 @@ return {
                 "concreteType": "Comment",
                 "plural": true,
                 "selections": [
-                  (v2/*: any*/),
+                  (v3/*: any*/),
                   {
                     "kind": "LinkedField",
                     "alias": null,
@@ -628,8 +624,8 @@ return {
                     "concreteType": "User",
                     "plural": false,
                     "selections": [
-                      (v5/*: any*/),
-                      (v2/*: any*/)
+                      (v6/*: any*/),
+                      (v3/*: any*/)
                     ]
                   },
                   {
@@ -658,7 +654,7 @@ return {
     "operationKind": "query",
     "name": "ProjectCardQuery",
     "id": null,
-    "text": "query ProjectCardQuery(\n  $projectId: ID!\n) {\n  project: node(id: $projectId) {\n    __typename\n    ... on Project {\n      ...ProjectMoreActionsButton_project\n      ...ProjectDetails_project\n    }\n    id\n  }\n}\n\nfragment CommentsBox_comments on Comment {\n  ...CommentsLog_comments\n}\n\nfragment CommentsLog_comments on Comment {\n  id\n  ...TextCommentPost_comment\n}\n\nfragment LocationBreadcrumbsTitle_locationDetails on Location {\n  id\n  name\n  locationType {\n    name\n    id\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n}\n\nfragment ProjectDetails_project on Project {\n  id\n  name\n  description\n  createdBy {\n    id\n    email\n  }\n  type {\n    name\n    id\n  }\n  location {\n    id\n    name\n    latitude\n    longitude\n    locationType {\n      mapType\n      mapZoomLevel\n      id\n    }\n    ...LocationBreadcrumbsTitle_locationDetails\n  }\n  properties {\n    id\n    stringValue\n    intValue\n    floatValue\n    booleanValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    equipmentValue {\n      id\n      name\n    }\n    locationValue {\n      id\n      name\n    }\n    propertyType {\n      id\n      name\n      type\n      isEditable\n      isMandatory\n      isInstanceProperty\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n    }\n  }\n  workOrders {\n    ...ProjectWorkOrdersList_workOrders\n    id\n  }\n  comments {\n    ...CommentsBox_comments\n    id\n  }\n}\n\nfragment ProjectMoreActionsButton_project on Project {\n  id\n  name\n  numberOfWorkOrders\n}\n\nfragment ProjectWorkOrdersList_workOrders on WorkOrder {\n  id\n  workOrderType {\n    name\n    id\n  }\n  name\n  description\n  owner {\n    id\n    email\n  }\n  creationDate\n  installDate\n  status\n  priority\n}\n\nfragment TextCommentPost_comment on Comment {\n  id\n  author {\n    email\n    id\n  }\n  text\n  createTime\n}\n",
+    "text": "query ProjectCardQuery(\n  $projectId: ID!\n) {\n  project: node(id: $projectId) {\n    __typename\n    ... on Project {\n      ...ProjectMoreActionsButton_project\n      ...ProjectDetails_project\n    }\n    id\n  }\n}\n\nfragment CommentsBox_comments on Comment {\n  ...CommentsLog_comments\n}\n\nfragment CommentsLog_comments on Comment {\n  id\n  ...TextCommentPost_comment\n}\n\nfragment LocationBreadcrumbsTitle_locationDetails on Location {\n  id\n  name\n  locationType {\n    name\n    id\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n}\n\nfragment ProjectDetails_project on Project {\n  id\n  name\n  description\n  createdBy {\n    id\n    email\n  }\n  type {\n    name\n    id\n  }\n  location {\n    id\n    name\n    latitude\n    longitude\n    locationType {\n      mapType\n      mapZoomLevel\n      id\n    }\n    ...LocationBreadcrumbsTitle_locationDetails\n  }\n  properties {\n    id\n    stringValue\n    intValue\n    floatValue\n    booleanValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    nodeValue {\n      __typename\n      id\n      name\n    }\n    propertyType {\n      id\n      name\n      type\n      nodeType\n      isEditable\n      isMandatory\n      isInstanceProperty\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n    }\n  }\n  workOrders {\n    ...ProjectWorkOrdersList_workOrders\n    id\n  }\n  comments {\n    ...CommentsBox_comments\n    id\n  }\n}\n\nfragment ProjectMoreActionsButton_project on Project {\n  id\n  name\n  numberOfWorkOrders\n}\n\nfragment ProjectWorkOrdersList_workOrders on WorkOrder {\n  id\n  workOrderType {\n    name\n    id\n  }\n  name\n  description\n  owner {\n    id\n    email\n  }\n  creationDate\n  installDate\n  status\n  priority\n}\n\nfragment TextCommentPost_comment on Comment {\n  id\n  author {\n    email\n    id\n  }\n  text\n  createTime\n}\n",
     "metadata": {}
   }
 };

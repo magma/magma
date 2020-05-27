@@ -30,7 +30,7 @@ type ServiceQuery struct {
 	config
 	limit      *int
 	offset     *int
-	order      []Order
+	order      []OrderFunc
 	unique     []string
 	predicates []predicate.Service
 	// eager-loading edges.
@@ -66,7 +66,7 @@ func (sq *ServiceQuery) Offset(offset int) *ServiceQuery {
 }
 
 // Order adds an order step to the query.
-func (sq *ServiceQuery) Order(o ...Order) *ServiceQuery {
+func (sq *ServiceQuery) Order(o ...OrderFunc) *ServiceQuery {
 	sq.order = append(sq.order, o...)
 	return sq
 }
@@ -367,7 +367,7 @@ func (sq *ServiceQuery) Clone() *ServiceQuery {
 		config:     sq.config,
 		limit:      sq.limit,
 		offset:     sq.offset,
-		order:      append([]Order{}, sq.order...),
+		order:      append([]OrderFunc{}, sq.order...),
 		unique:     append([]string{}, sq.unique...),
 		predicates: append([]predicate.Service{}, sq.predicates...),
 		// clone intermediate query.
@@ -511,6 +511,9 @@ func (sq *ServiceQuery) prepareQuery(ctx context.Context) error {
 			return err
 		}
 		sq.sql = prev
+	}
+	if err := service.Policy.EvalQuery(ctx, sq); err != nil {
+		return err
 	}
 	return nil
 }
@@ -974,14 +977,14 @@ func (sq *ServiceQuery) sqlQuery() *sql.Selector {
 type ServiceGroupBy struct {
 	config
 	fields []string
-	fns    []Aggregate
+	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (sgb *ServiceGroupBy) Aggregate(fns ...Aggregate) *ServiceGroupBy {
+func (sgb *ServiceGroupBy) Aggregate(fns ...AggregateFunc) *ServiceGroupBy {
 	sgb.fns = append(sgb.fns, fns...)
 	return sgb
 }

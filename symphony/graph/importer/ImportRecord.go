@@ -9,8 +9,6 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/facebookincubator/symphony/graph/ent/service"
-
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
@@ -134,7 +132,7 @@ func (l ImportRecord) validatePropertiesMismatch(ctx context.Context, typs []int
 }
 
 // GetPropertyInput returns a PropertyInput model from a proptypeName
-func (l ImportRecord) GetPropertyInput(client *ent.Client, ctx context.Context, typ interface{}, proptypeName string) (*models.PropertyInput, error) {
+func (l ImportRecord) GetPropertyInput(ctx context.Context, typ interface{}, proptypeName string) (*models.PropertyInput, error) {
 	var pTyp *ent.PropertyType
 	var err error
 	switch l.entity() {
@@ -165,14 +163,6 @@ func (l ImportRecord) GetPropertyInput(client *ent.Client, ctx context.Context, 
 		return nil, nil
 	}
 	value := l.line[idx]
-
-	if pTyp.Type == models.PropertyKindService.String() && value != "" {
-		id, err := client.Service.Query().Where(service.Name(value)).OnlyID(ctx)
-		if err != nil {
-			return nil, errors.Wrapf(err, "cannot query service by name: %q", l.line[idx])
-		}
-		value = strconv.Itoa(id)
-	}
 	return getPropInput(*pTyp, value)
 }
 
@@ -286,16 +276,6 @@ func (l ImportRecord) PortData() (*PortData, error) {
 		}, nil
 	}
 	return nil, errors.New("unsupported entity for link port Data")
-}
-
-// ConsumerPortsServices is the list of services where the port is their consumer endpoint
-func (l ImportRecord) ConsumerPortsServices() string {
-	return l.line[l.title.ConsumerPortsServicesIdx()]
-}
-
-// ProviderPortsServices is the list of services where the port is their provider endpoint
-func (l ImportRecord) ProviderPortsServices() string {
-	return l.line[l.title.ProviderPortsServicesIdx()]
 }
 
 func (l ImportRecord) ServiceNames() string {

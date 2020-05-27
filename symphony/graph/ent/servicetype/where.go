@@ -125,6 +125,13 @@ func HasCustomer(v bool) predicate.ServiceType {
 	})
 }
 
+// IsDeleted applies equality check predicate on the "is_deleted" field. It's identical to IsDeletedEQ.
+func IsDeleted(v bool) predicate.ServiceType {
+	return predicate.ServiceType(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldIsDeleted), v))
+	})
+}
+
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.ServiceType {
 	return predicate.ServiceType(func(s *sql.Selector) {
@@ -402,6 +409,82 @@ func HasCustomerNEQ(v bool) predicate.ServiceType {
 	})
 }
 
+// IsDeletedEQ applies the EQ predicate on the "is_deleted" field.
+func IsDeletedEQ(v bool) predicate.ServiceType {
+	return predicate.ServiceType(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldIsDeleted), v))
+	})
+}
+
+// IsDeletedNEQ applies the NEQ predicate on the "is_deleted" field.
+func IsDeletedNEQ(v bool) predicate.ServiceType {
+	return predicate.ServiceType(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldIsDeleted), v))
+	})
+}
+
+// DiscoveryMethodEQ applies the EQ predicate on the "discovery_method" field.
+func DiscoveryMethodEQ(v DiscoveryMethod) predicate.ServiceType {
+	return predicate.ServiceType(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldDiscoveryMethod), v))
+	})
+}
+
+// DiscoveryMethodNEQ applies the NEQ predicate on the "discovery_method" field.
+func DiscoveryMethodNEQ(v DiscoveryMethod) predicate.ServiceType {
+	return predicate.ServiceType(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldDiscoveryMethod), v))
+	})
+}
+
+// DiscoveryMethodIn applies the In predicate on the "discovery_method" field.
+func DiscoveryMethodIn(vs ...DiscoveryMethod) predicate.ServiceType {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.ServiceType(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(vs) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldDiscoveryMethod), v...))
+	})
+}
+
+// DiscoveryMethodNotIn applies the NotIn predicate on the "discovery_method" field.
+func DiscoveryMethodNotIn(vs ...DiscoveryMethod) predicate.ServiceType {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.ServiceType(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(vs) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldDiscoveryMethod), v...))
+	})
+}
+
+// DiscoveryMethodIsNil applies the IsNil predicate on the "discovery_method" field.
+func DiscoveryMethodIsNil() predicate.ServiceType {
+	return predicate.ServiceType(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldDiscoveryMethod)))
+	})
+}
+
+// DiscoveryMethodNotNil applies the NotNil predicate on the "discovery_method" field.
+func DiscoveryMethodNotNil() predicate.ServiceType {
+	return predicate.ServiceType(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldDiscoveryMethod)))
+	})
+}
+
 // HasServices applies the HasEdge predicate on the "services" edge.
 func HasServices() predicate.ServiceType {
 	return predicate.ServiceType(func(s *sql.Selector) {
@@ -449,6 +532,34 @@ func HasPropertyTypesWith(preds ...predicate.PropertyType) predicate.ServiceType
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(PropertyTypesInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, PropertyTypesTable, PropertyTypesColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasEndpointDefinitions applies the HasEdge predicate on the "endpoint_definitions" edge.
+func HasEndpointDefinitions() predicate.ServiceType {
+	return predicate.ServiceType(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(EndpointDefinitionsTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, EndpointDefinitionsTable, EndpointDefinitionsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasEndpointDefinitionsWith applies the HasEdge predicate on the "endpoint_definitions" edge with a given conditions (other predicates).
+func HasEndpointDefinitionsWith(preds ...predicate.ServiceEndpointDefinition) predicate.ServiceType {
+	return predicate.ServiceType(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(EndpointDefinitionsInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, EndpointDefinitionsTable, EndpointDefinitionsColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

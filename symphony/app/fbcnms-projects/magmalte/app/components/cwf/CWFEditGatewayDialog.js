@@ -48,6 +48,10 @@ export default function(props: Props) {
   const [allowedGREPeers, setAllowedGREPeers] = useState(
     props.gateway.carrier_wifi.allowed_gre_peers,
   );
+  const [ipdrExportDst, setIPDRExportDst] = useState(
+    props.gateway.carrier_wifi.ipdr_export_dst,
+  );
+
   const classes = useStyles();
   const {match} = useRouter();
   const enqueueSnackbar = useEnqueueSnackbar();
@@ -63,6 +67,7 @@ export default function(props: Props) {
           ...props.gateway,
           carrier_wifi: {
             allowed_gre_peers: allowedGREPeers,
+            ipdr_export_dst: ipdrExportDst,
           },
           magmad: getMagmaConfigs(magmaConfigs),
         },
@@ -87,6 +92,8 @@ export default function(props: Props) {
         <CWFGatewayConfigFields
           allowedGREPeers={allowedGREPeers}
           onChange={setAllowedGREPeers}
+          ipdrExportDst={ipdrExportDst}
+          onIPDRChanged={setIPDRExportDst}
         />
       );
       break;
@@ -128,7 +135,7 @@ export default function(props: Props) {
           textColor="primary"
           value={tab}
           onChange={(_, tab) => setTab(tab)}>
-          <Tab label="GRE Peers" />
+          <Tab label="Carrier Wifi" />
           <Tab label="Controller" />
           <Tab label="Command" />
         </Tabs>

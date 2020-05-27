@@ -71,15 +71,15 @@ func TestGetConfigWithoutOverride(t *testing.T) {
 
 	configMap, err := getServiceConfigImpl("", "test", TestConfigDir, "", TestConfigOverrideDir)
 	assert.NoError(t, err)
-	foo, err := configMap.GetIntParam("foo")
+	foo, err := configMap.GetInt("foo")
 	assert.NoError(t, err)
 	assert.Equal(t, 8443, foo)
 
-	bar, err := configMap.GetStringParam("bar")
+	bar, err := configMap.GetString("bar")
 	assert.NoError(t, err)
 	assert.Equal(t, "something", bar)
 
-	baz, err := configMap.GetStringArrayParam("baz")
+	baz, err := configMap.GetStrings("baz")
 	assert.NoError(t, err)
 	assert.Equal(t, 3, len(baz))
 
@@ -87,7 +87,7 @@ func TestGetConfigWithoutOverride(t *testing.T) {
 	assert.Equal(t, "second", baz[1])
 	assert.Equal(t, "third", baz[2])
 
-	mapParam, err := configMap.GetMapParam("map1")
+	mapParam, err := configMap.GetMap("map1")
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(mapParam))
 	assert.Equal(t, "value_1", mapParam["key1"])
@@ -116,15 +116,15 @@ func TestGetConfigWithOverride(t *testing.T) {
 	for _, serviceName := range []string{"test_service", "TEST_SERVICE", "TesT_sERviCE"} {
 		configMap, err := getServiceConfigImpl("", serviceName, TestConfigDir, "", TestConfigOverrideDir)
 		assert.NoError(t, err)
-		foo, err := configMap.GetIntParam("foo")
+		foo, err := configMap.GetInt("foo")
 		assert.NoError(t, err)
 		assert.Equal(t, 1234, foo)
 
-		bar, err := configMap.GetStringParam("bar")
+		bar, err := configMap.GetString("bar")
 		assert.NoError(t, err)
 		assert.Equal(t, "something", bar)
 
-		la, err := configMap.GetStringParam("la")
+		la, err := configMap.GetString("la")
 		assert.NoError(t, err)
 		assert.Equal(t, "override", la)
 	}

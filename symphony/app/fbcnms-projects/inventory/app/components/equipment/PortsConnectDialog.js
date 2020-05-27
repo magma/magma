@@ -19,6 +19,7 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import EquipmentComparisonViewQueryRenderer from '../comparison_view/EquipmentComparisonViewQueryRenderer';
 import InventoryQueryRenderer from '../InventoryQueryRenderer';
+import NodePropertyInput from '../NodePropertyInput';
 import PortsConnectConfirmation from './PortsConnectConfirmation';
 import PowerSearchEquipmentResultsTable from '../comparison_view/PowerSearchEquipmentResultsTable';
 import PropertiesAddEditSection from '../form/PropertiesAddEditSection';
@@ -221,6 +222,7 @@ class PortsConnectDialog extends React.Component<Props, State> {
           <PropertiesAddEditSection
             properties={linkProperties}
             onChange={index => this._propertyChangedHandler(index)}
+            nodeInput={NodePropertyInput}
           />
         );
       case 3:
@@ -312,7 +314,6 @@ class PortsConnectDialog extends React.Component<Props, State> {
           {lastStep && (
             <Button
               disabled={activeStep < steps.length - 1}
-              color="primary"
               onClick={() =>
                 this.props.onConnectPorts(
                   nullthrows(targetPort),

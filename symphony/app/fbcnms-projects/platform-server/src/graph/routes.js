@@ -7,16 +7,16 @@
  * @flow
  * @format
  */
+import type {ExpressRequest, ExpressResponse} from 'express';
 const express = require('express');
-const querystring = require('querystring');
 const proxy = require('http-proxy-middleware');
 const {GRAPH_HOST} = require('../config');
-import {accessRoleToString} from '@fbcnms/auth/roles';
-import {oidcAccessToken} from '@fbcnms/auth/oidc/middleware';
-import type {ClientRequest} from 'http';
-import type {FBCNMSRequest} from '@fbcnms/auth/access';
+import onProxyReq from '../utils/OnProxyRequest';
 
-const router = express.Router();
+const router: express.Router<
+  ExpressRequest,
+  ExpressResponse,
+> = express.Router();
 
 router.use(
   '/',
@@ -31,38 +31,7 @@ router.use(
     pathRewrite: (path: string): string => path.replace(/^\/graph/, ''),
 
     // subscribe to http-proxy's proxyReq event
-    onProxyReq: (proxyReq: ClientRequest, req: FBCNMSRequest): void => {
-      if (req.user.organization) {
-        proxyReq.setHeader('x-auth-organization', req.user.organization);
-      }
-      proxyReq.setHeader('x-auth-user-email', req.user.email);
-      proxyReq.setHeader('x-auth-user-role', accessRoleToString(req.user.role));
-
-      const accessToken = oidcAccessToken(req);
-      if (accessToken != null) {
-        proxyReq.setHeader('authorization', 'Bearer ' + accessToken);
-      }
-
-      if (!req.body || !Object.keys(req.body).length) {
-        return;
-      }
-
-      const writeBody = (body: string) => {
-        proxyReq.setHeader(
-          'Content-Length',
-          Buffer.byteLength(body).toString(),
-        );
-        proxyReq.write(body);
-        proxyReq.end();
-      };
-
-      const contentType = proxyReq.getHeader('Content-Type');
-      if (contentType.includes('application/json')) {
-        writeBody(JSON.stringify(req.body));
-      } else if (contentType.includes('application/x-www-form-urlencoded')) {
-        writeBody(querystring.stringify(req.body));
-      }
-    },
+    onProxyReq: onProxyReq,
   }),
 );
 

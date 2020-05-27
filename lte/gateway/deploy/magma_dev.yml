@@ -30,7 +30,6 @@
         distribution: "stretch"
         repo: "dev"
         config_dir: "lte/gateway/configs"
-    - role: python_dev
     - role: dev_common
       vars:
         c_build: /home/{{ ansible_user }}/build/c/

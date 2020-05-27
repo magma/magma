@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 3a266e39bf608a984ed6190af1e94f7b
+ * @relayHash c7a8cee339668dacde96d4f3aa14b10b
  */
 
 /* eslint-disable */
@@ -16,8 +16,8 @@
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
 export type FilterOperator = "CONTAINS" | "DATE_GREATER_THAN" | "DATE_LESS_THAN" | "IS" | "IS_NOT_ONE_OF" | "IS_ONE_OF" | "%future added value";
-export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
-export type ServiceFilterType = "EQUIPMENT_IN_SERVICE" | "LOCATION_INST" | "PROPERTY" | "SERVICE_INST_CUSTOMER_NAME" | "SERVICE_INST_EXTERNAL_ID" | "SERVICE_INST_NAME" | "SERVICE_STATUS" | "SERVICE_TYPE" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "float" | "gps_location" | "int" | "node" | "range" | "string" | "%future added value";
+export type ServiceFilterType = "EQUIPMENT_IN_SERVICE" | "LOCATION_INST" | "PROPERTY" | "SERVICE_DISCOVERY_METHOD" | "SERVICE_INST_CUSTOMER_NAME" | "SERVICE_INST_EXTERNAL_ID" | "SERVICE_INST_NAME" | "SERVICE_STATUS" | "SERVICE_TYPE" | "%future added value";
 export type ServiceFilterInput = {|
   filterType: ServiceFilterType,
   operator: FilterOperator,
@@ -29,8 +29,10 @@ export type ServiceFilterInput = {|
 |};
 export type PropertyTypeInput = {|
   id?: ?string,
+  externalId?: ?string,
   name: string,
   type: PropertyKind,
+  nodeType?: ?string,
   index?: ?number,
   category?: ?string,
   stringValue?: ?string,

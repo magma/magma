@@ -1,3 +1,5 @@
+// +build all
+
 /*
  * Copyright (c) Facebook, Inc. and its affiliates.
  * All rights reserved.
@@ -6,7 +8,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package integ_tests
+package integration
 
 import (
 	"fmt"
@@ -64,17 +66,11 @@ func TestOmnipresentRules(t *testing.T) {
 	assert.NoError(t, err)
 	tr.WaitForPoliciesToSync()
 
-	usageMonitorInfo := []*protos.UsageMonitoringInformation{
-		{
-			MonitoringLevel: protos.MonitoringLevel_RuleLevel,
-			MonitoringKey:   []byte("mkey1"),
-			Octets:          &protos.Octets{TotalOctets: 1 * MegaBytes},
-		},
-	}
-	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL, 1)
+	usageMonitorInfo := getUsageInformation("mkey1", 1*MegaBytes)
+	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL)
 	initAnswer := protos.NewGxCCAnswer(diam.Success).
 		SetStaticRuleInstalls([]string{"static-block-all"}, []string{}).
-		SetUsageMonitorInfos(usageMonitorInfo)
+		SetUsageMonitorInfo(usageMonitorInfo)
 	initExpectation := protos.NewGxCreditControlExpectation().Expect(initRequest).Return(initAnswer)
 	expectations := []*protos.GxCreditControlExpectation{initExpectation}
 	assert.NoError(t, setPCRFExpectations(expectations, nil)) // we don't expect any update requests
@@ -105,17 +101,20 @@ func TestOmnipresentRules(t *testing.T) {
 	}
 	fmt.Printf("Sending a ReAuthRequest with target %v\n", target)
 	raa, err := sendPolicyReAuthRequest(target)
+	tr.WaitForReAuthToProcess()
 
+	// Check ReAuth success
 	assert.NoError(t, err)
-	// Wait for RAR to be processed
-	time.Sleep(3 * time.Second)
+	assert.Contains(t, raa.SessionId, "IMSI"+imsi)
 	assert.Equal(t, uint32(diam.Success), raa.ResultCode)
 
 	// With all monitored rules gone, the session should terminate
 	recordsBySubID, err = tr.GetPolicyUsage()
 	assert.NoError(t, err)
-	assert.Empty(t, recordsBySubID)
+	assert.Empty(t, recordsBySubID[prependIMSIPrefix(imsi)])
 
-	// Wait for session termination to complete
-	time.Sleep(4 * time.Second)
+	// trigger disconnection
+	tr.DisconnectAndAssertSuccess(imsi)
+	fmt.Println("wait for flows to get deactivated")
+	time.Sleep(3 * time.Second)
 }

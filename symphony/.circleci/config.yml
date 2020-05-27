@@ -26,6 +26,9 @@ aliases:
   - &tfvardir
     vardir: /tmp/tfvars
 
+  - &appdir
+    working_directory: app
+
 orbs:
   artifactory: circleci/artifactory@1.0.0
   docker: circleci/docker@1.0.0
@@ -39,20 +42,23 @@ executors:
   golangci:
     parameters:
       tag:
-        default: v1.23.8
+        default: v1.26.0
         type: string
     docker:
       - image: golangci/golangci-lint:<<parameters.tag>>
   terraform:
     parameters:
       tag:
-        default: 0.12.24
+        default: 0.12.25
         type: string
     docker:
       - image: hashicorp/terraform:<<parameters.tag>>
   testim:
     docker:
-      - image: testim/docker-cli
+      - image: testim/docker-cli:node-8
+  yarnnode:
+    docker:
+      - image: circleci/node:10-buster-browsers-legacy
 
 commands:
   getmods:
@@ -60,6 +66,11 @@ commands:
       - go/load-cache
       - go/mod-download
       - go/save-cache
+
+  helm-install:
+    steps:
+      - helm/install-helm-client:
+          version: v3.2.1
 
   helm-lint:
     parameters:
@@ -178,9 +189,26 @@ commands:
             done
             circleci step halt
 
+  yarn-install:
+    steps:
+      - restore_cache:
+          name: Restore Yarn Package Cache
+          keys:
+            - yarn-packages-{{ checksum "app/yarn.lock" }}
+      - run:
+          name: Install Dependencies
+          <<: *appdir
+          command: yarn install --frozen-lockfile
+      - save_cache:
+          name: Save Yarn Package Cache
+          key: yarn-packages-{{ checksum "app/yarn.lock" }}
+          paths:
+            - ~/.cache/yarn
+
 jobs:
   lint:
     executor: golangci
+    resource_class: large
     steps:
       - checkout
       - *mktestdir
@@ -196,6 +224,7 @@ jobs:
       - image: circleci/mysql:5.7
         environment:
           MYSQL_ROOT_PASSWORD: root
+    resource_class: large
     steps:
       - checkout
       - run:
@@ -273,7 +302,7 @@ jobs:
         type: string
     steps:
       - checkout
-      - helm/install-helm-client
+      - helm-install
       - helm-lint:
           chart: inventory
           working_directory: <<parameters.working_directory>>
@@ -337,7 +366,7 @@ jobs:
           name: Collect tests results
           command: |
             mv integration/tests/integration.xml ~/test-results/
-            mv cli/tests/*.xml ~/test-results/
+            mv cli/TEST-*.xml ~/test-results/
           when: always
       - run:
           name: Stop and remove containers
@@ -475,12 +504,51 @@ jobs:
               <<#parameters.options>><<parameters.options>><</parameters.options>>
       - *storetestdir
 
+  flowtest:
+    executor: yarnnode
+    steps:
+      - checkout
+      - run:
+          name: install flow
+          <<: *appdir
+          command: yarn add --dev -W flow-bin@0.125
+      - yarn-install
+      - run:
+          name: flow typecheck
+          <<: *appdir
+          command: yarn run flow
+
+  yarntest:
+    executor: yarnnode
+    steps:
+      - checkout
+      - yarn-install
+      - run:
+          name: yarn test
+          <<: *appdir
+          command: yarn test:ci
+
+  eslint:
+    executor: yarnnode
+    steps:
+      - checkout
+      - yarn-install
+      - run:
+          name: eslint
+          <<: *appdir
+          command: yarn run eslint ./
+
 workflows:
   version: 2.1
   all:
     jobs:
       - lint
+      - eslint
       - unit
+      - flowtest
+      - yarntest:
+          requires:
+            - flowtest
       - docker-publish:
           name: graph/publish
           dockerfile: graph/Dockerfile
@@ -488,11 +556,6 @@ workflows:
           requires: &dpreq
             - lint
             - unit
-      - docker-publish:
-          name: frontier/publish
-          dockerfile: frontier/Dockerfile
-          image: frontier
-          requires: *dpreq
       - docker-publish:
           name: store/publish
           dockerfile: store/Dockerfile
@@ -515,12 +578,16 @@ workflows:
           path: app
           image: storybook
           requires: *dpreq
+      - docker-publish:
+          name: jobrunner/publish
+          dockerfile: jobrunner/Dockerfile
+          image: jobrunner
+          requires: *dpreq
       - helm-lint
       - tflint
       - integration:
           requires:
             - graph/publish
-            - frontier/publish
             - store/publish
             - front/publish
       - promote-images: &promote
@@ -528,12 +595,13 @@ workflows:
             - integration
             - docs/publish
             - storybook/publish
+            - jobrunner/publish
             - helm-lint
           <<: *onlymaster
       - artifactory/upload:
           name: upload-charts
           build-steps:
-            - helm/install-helm-client
+            - helm-install
             - run: mkdir /tmp/helm-charts
             - helm-package:
                 chart: inventory

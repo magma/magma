@@ -21,12 +21,13 @@ import (
 
 // Injectors from wire.go:
 
-func NewServer(flags *cliFlags) (*server.Server, func(), error) {
+func newApplication(flags *cliFlags) (*application, func(), error) {
 	config := flags.Log
-	logger, cleanup, err := log.Provider(config)
+	logger, cleanup, err := log.ProvideLogger(config)
 	if err != nil {
 		return nil, nil, err
 	}
+	zapLogger := log.ProvideZapLogger(logger)
 	s3Config := flags.S3
 	signer, err := s3.NewSigner(s3Config)
 	if err != nil {
@@ -38,7 +39,7 @@ func NewServer(flags *cliFlags) (*server.Server, func(), error) {
 		Signer: signer,
 	}
 	handlerHandler := handler.New(handlerConfig)
-	zapLogger := xserver.NewRequestLogger(logger)
+	xserverZapLogger := xserver.NewRequestLogger(logger)
 	v := _wireValue
 	v2 := xserver.DefaultViews()
 	exporter, err := xserver.NewPrometheusExporter(logger)
@@ -58,7 +59,7 @@ func NewServer(flags *cliFlags) (*server.Server, func(), error) {
 	handlerFunc := xserver.NewRecoveryHandler(logger)
 	defaultDriver := _wireDefaultDriverValue
 	serverOptions := &server.Options{
-		RequestLogger:         zapLogger,
+		RequestLogger:         xserverZapLogger,
 		HealthChecks:          v,
 		Views:                 v2,
 		ViewExporter:          exporter,
@@ -69,7 +70,13 @@ func NewServer(flags *cliFlags) (*server.Server, func(), error) {
 		Driver:                defaultDriver,
 	}
 	serverServer := server.New(handlerHandler, serverOptions)
-	return serverServer, func() {
+	string2 := flags.Addr
+	mainApplication := &application{
+		Logger: zapLogger,
+		server: serverServer,
+		addr:   string2,
+	}
+	return mainApplication, func() {
 		cleanup2()
 		cleanup()
 	}, nil

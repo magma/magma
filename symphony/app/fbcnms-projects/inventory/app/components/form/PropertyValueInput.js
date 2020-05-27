@@ -16,14 +16,12 @@ import type {WithStyles} from '@material-ui/core';
 import * as React from 'react';
 import EnumPropertySelectValueInput from './EnumPropertySelectValueInput';
 import EnumPropertyValueInput from './EnumPropertyValueInput';
-import EquipmentTypeahead from '../typeahead/EquipmentTypeahead';
 import FormContext from '../../common/FormContext';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
 import GPSPropertyValueInput from './GPSPropertyValueInput';
-import LocationTypeahead from '../typeahead/LocationTypeahead';
+import NodePropertyInput from '../NodePropertyInput';
 import RangePropertyValueInput from './RangePropertyValueInput';
 import Select from '@fbcnms/ui/components/design-system/Select/Select';
-import ServiceTypeahead from '../typeahead/ServiceTypeahead';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import classNames from 'classnames';
@@ -31,16 +29,16 @@ import update from 'immutability-helper';
 import {getPropertyValue} from '../../common/Property';
 import {withStyles} from '@material-ui/core/styles';
 
-type Props = {
+type Props<T: Property | PropertyType> = {
   autoFocus: boolean,
   className: string,
   inputClassName?: ?string,
   label: ?string,
   inputType: 'Property' | 'PropertyType',
-  property: Property | PropertyType,
+  property: T,
   required: boolean,
   disabled: boolean,
-  onChange: (Property | PropertyType) => void,
+  onChange: T => void,
   onBlur?: (e: FocusEvent<HTMLInputElement>) => void,
   onKeyDown?: ?(e: SyntheticKeyboardEvent<>) => void,
   margin: 'none' | 'dense' | 'normal',
@@ -50,7 +48,8 @@ type Props = {
 
 const styles = {
   input: {
-    width: (props: Props): string => (props.fullWidth ? 'auto' : '300px'),
+    width: (props: Props<Property | PropertyType>): string =>
+      props.fullWidth ? 'auto' : '300px',
     display: 'flex',
     '&&': {
       margin: '0px',
@@ -72,7 +71,9 @@ const styles = {
   },
 };
 
-class PropertyValueInput extends React.Component<Props> {
+class PropertyValueInput<T: Property | PropertyType> extends React.Component<
+  Props<T>,
+> {
   static defaultProps = {
     required: false,
     autoFocus: false,
@@ -238,7 +239,6 @@ class PropertyValueInput extends React.Component<Props> {
       case 'bool':
         return (
           <Select
-            id="property-value"
             className={classNames(classes.input, className)}
             label={label}
             disabled={disabled}
@@ -296,59 +296,22 @@ class PropertyValueInput extends React.Component<Props> {
             }
           />
         );
-      case 'equipment':
+      case 'node':
         return inputType == 'Property' ? (
-          <EquipmentTypeahead
-            margin="dense"
+          <NodePropertyInput
+            type={propertyType.nodeType ?? ''}
             // eslint-disable-next-line no-warning-comments
             // $FlowFixMe - need to fix this entire file as it receives either property or property type
-            selectedEquipment={property.equipmentValue}
-            onEquipmentSelection={equipment =>
-              onChange(
-                update(property, {
-                  equipmentValue: {$set: equipment},
-                }),
-              )
+            value={property.nodeValue}
+            onChange={node =>
+              // eslint-disable-next-line no-warning-comments
+              // $FlowFixMe - need to fix this entire file as it receives either property or property type
+              onChange({
+                ...property,
+                nodeValue: node,
+              })
             }
-            headline={label}
-          />
-        ) : (
-          <Text>-</Text>
-        );
-      case 'location':
-        return inputType == 'Property' ? (
-          <LocationTypeahead
-            margin="dense"
-            // eslint-disable-next-line no-warning-comments
-            // $FlowFixMe - need to fix this entire file as it receives either property or property type
-            selectedLocation={property.locationValue}
-            onLocationSelection={location =>
-              onChange(
-                update(property, {
-                  locationValue: {$set: location},
-                }),
-              )
-            }
-            headline={label}
-          />
-        ) : (
-          <Text>-</Text>
-        );
-      case 'service':
-        return inputType == 'Property' ? (
-          <ServiceTypeahead
-            margin="dense"
-            // eslint-disable-next-line no-warning-comments
-            // $FlowFixMe - need to fix this entire file as it receives either property or property type
-            selectedService={property.serviceValue}
-            onServiceSelection={service =>
-              onChange(
-                update(property, {
-                  serviceValue: {$set: service},
-                }),
-              )
-            }
-            headline={label}
+            label={label}
           />
         ) : (
           <Text>-</Text>
@@ -361,7 +324,9 @@ class PropertyValueInput extends React.Component<Props> {
     return (
       <FormContext.Consumer>
         {form => {
-          const input = this.getTextInput(form.alerts.editLock.detected);
+          const input = this.getTextInput(
+            form.alerts.missingPermissions.detected,
+          );
 
           const {property, headlineVariant, required} = this.props;
           const propertyType = !!property.propertyType

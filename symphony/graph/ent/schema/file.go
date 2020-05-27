@@ -6,7 +6,9 @@ package schema
 
 import (
 	"github.com/facebookincubator/ent"
+	"github.com/facebookincubator/ent/schema/edge"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/authz"
 )
 
 // File defines the file schema.
@@ -36,4 +38,49 @@ func (File) Fields() []ent.Field {
 		field.String("category").
 			Optional(),
 	}
+}
+
+// Edges of the File
+func (File) Edges() []ent.Edge {
+	return []ent.Edge{
+		edge.From("location", Location.Type).
+			Ref("files").
+			Unique(),
+		edge.From("equipment", Equipment.Type).
+			Ref("files").
+			Unique(),
+		edge.From("user", User.Type).
+			Ref("profile_photo").
+			Unique(),
+		edge.From("work_order", WorkOrder.Type).
+			Ref("files").
+			Unique(),
+		edge.From("checklist_item", CheckListItem.Type).
+			Ref("files").
+			Unique(),
+		edge.From("survey", Survey.Type).
+			Ref("source_file").
+			Unique(),
+		edge.From("floor_plan", FloorPlan.Type).
+			Ref("image").
+			Unique(),
+		edge.From("photo_survey_question", SurveyQuestion.Type).
+			Ref("photo_data").
+			Unique(),
+		edge.From("survey_question", SurveyQuestion.Type).
+			Ref("images").
+			Unique(),
+	}
+}
+
+// Policy returns file policy.
+func (File) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithQueryRules(
+			authz.FileReadPolicyRule(),
+		),
+		authz.WithMutationRules(
+			authz.FileWritePolicyRule(),
+			authz.FileCreatePolicyRule(),
+		))
 }

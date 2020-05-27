@@ -853,15 +853,25 @@ definitions:
     properties:
       server:
         $ref: '#/definitions/diameter_client_configs'
+      servers:
+        type: array
+        items:
+          $ref: '#/definitions/diameter_client_configs'
       overwrite_apn:
         type: string
         example: ""
+
+
 
   gy:
     type: object
     properties:
       server:
         $ref: '#/definitions/diameter_client_configs'
+      servers:
+        type: array
+        items:
+          $ref: '#/definitions/diameter_client_configs'
       init_method:
         type: integer
         format: uint32
@@ -881,6 +891,10 @@ definitions:
     properties:
       server:
         $ref: '#/definitions/diameter_client_configs'
+      servers:
+        type: array
+        items:
+          $ref: '#/definitions/diameter_client_configs'
       verify_authorization:
         type: boolean
         example: false

@@ -9,6 +9,8 @@ package user
 import (
 	"fmt"
 	"time"
+
+	"github.com/facebookincubator/ent"
 )
 
 const (
@@ -29,11 +31,17 @@ const (
 	EdgeProfilePhoto = "profile_photo"
 	// EdgeGroups holds the string denoting the groups edge name in mutations.
 	EdgeGroups = "groups"
+	// EdgeOwnedWorkOrders holds the string denoting the owned_work_orders edge name in mutations.
+	EdgeOwnedWorkOrders = "owned_work_orders"
+	// EdgeAssignedWorkOrders holds the string denoting the assigned_work_orders edge name in mutations.
+	EdgeAssignedWorkOrders = "assigned_work_orders"
+	// EdgeCreatedProjects holds the string denoting the created_projects edge name in mutations.
+	EdgeCreatedProjects = "created_projects"
 
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// ProfilePhotoTable is the table the holds the profile_photo relation/edge.
-	ProfilePhotoTable = "users"
+	ProfilePhotoTable = "files"
 	// ProfilePhotoInverseTable is the table name for the File entity.
 	// It exists in this package in order to avoid circular dependency with the "file" package.
 	ProfilePhotoInverseTable = "files"
@@ -44,6 +52,27 @@ const (
 	// GroupsInverseTable is the table name for the UsersGroup entity.
 	// It exists in this package in order to avoid circular dependency with the "usersgroup" package.
 	GroupsInverseTable = "users_groups"
+	// OwnedWorkOrdersTable is the table the holds the owned_work_orders relation/edge.
+	OwnedWorkOrdersTable = "work_orders"
+	// OwnedWorkOrdersInverseTable is the table name for the WorkOrder entity.
+	// It exists in this package in order to avoid circular dependency with the "workorder" package.
+	OwnedWorkOrdersInverseTable = "work_orders"
+	// OwnedWorkOrdersColumn is the table column denoting the owned_work_orders relation/edge.
+	OwnedWorkOrdersColumn = "work_order_owner"
+	// AssignedWorkOrdersTable is the table the holds the assigned_work_orders relation/edge.
+	AssignedWorkOrdersTable = "work_orders"
+	// AssignedWorkOrdersInverseTable is the table name for the WorkOrder entity.
+	// It exists in this package in order to avoid circular dependency with the "workorder" package.
+	AssignedWorkOrdersInverseTable = "work_orders"
+	// AssignedWorkOrdersColumn is the table column denoting the assigned_work_orders relation/edge.
+	AssignedWorkOrdersColumn = "work_order_assignee"
+	// CreatedProjectsTable is the table the holds the created_projects relation/edge.
+	CreatedProjectsTable = "projects"
+	// CreatedProjectsInverseTable is the table name for the Project entity.
+	// It exists in this package in order to avoid circular dependency with the "project" package.
+	CreatedProjectsInverseTable = "projects"
+	// CreatedProjectsColumn is the table column denoting the created_projects relation/edge.
+	CreatedProjectsColumn = "project_creator"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -59,18 +88,21 @@ var Columns = []string{
 	FieldRole,
 }
 
-// ForeignKeys holds the SQL foreign-keys that are owned by the User type.
-var ForeignKeys = []string{
-	"user_profile_photo",
-}
-
 var (
 	// GroupsPrimaryKey and GroupsColumn2 are the table columns denoting the
 	// primary key for the groups relation (M2M).
 	GroupsPrimaryKey = []string{"users_group_id", "user_id"}
 )
 
+// Note that the variables below are initialized by the runtime
+// package on the initialization of the application. Therefore,
+// it should be imported in the main as follows:
+//
+//	import _ "github.com/facebookincubator/symphony/graph/ent/runtime"
+//
 var (
+	Hooks  [2]ent.Hook
+	Policy ent.Policy
 	// DefaultCreateTime holds the default value on creation for the create_time field.
 	DefaultCreateTime func() time.Time
 	// DefaultUpdateTime holds the default value on creation for the update_time field.

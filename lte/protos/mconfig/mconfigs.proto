@@ -102,6 +102,7 @@ message PipelineD {
       uint32 port = 2;
     }
     IPDRExportDst ipdr_export_dst = 10;
+    repeated string li_imsis = 11;
     // DEPRECATED
     // repeated string apps = 4;
 }
@@ -191,6 +192,11 @@ message MME {
     // DEPRECATED
     // Use relay_enabled instead
     // bool s6a_relay_enabled = 13;
+
+    // Primary DNS server
+    string dns_primary = 20;
+    // Secondary DNS server
+    string dns_secondary = 21;
 }
 
 

@@ -16,7 +16,7 @@ import type {
   EditLocationTypeSurveyTemplateCategoriesMutationVariables,
 } from './__generated__/EditLocationTypeSurveyTemplateCategoriesMutation.graphql';
 import type {MutationCallbacks} from './MutationCallbacks.js';
-import type {StoreUpdater} from '../common/RelayEnvironment';
+import type {SelectorStoreUpdater} from 'relay-runtime';
 
 export const mutation = graphql`
   mutation EditLocationTypeSurveyTemplateCategoriesMutation(
@@ -35,7 +35,7 @@ export const mutation = graphql`
 export default (
   variables: EditLocationTypeSurveyTemplateCategoriesMutationVariables,
   callbacks?: MutationCallbacks<EditLocationTypeSurveyTemplateCategoriesMutationResponse>,
-  updater?: StoreUpdater,
+  updater?: SelectorStoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
   commitMutation<EditLocationTypeSurveyTemplateCategoriesMutation>(

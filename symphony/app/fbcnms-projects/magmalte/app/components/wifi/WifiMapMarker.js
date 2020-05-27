@@ -8,7 +8,7 @@
  * @format
  */
 
-import type {MapMarkerProps} from '@fbcnms/magmalte/app/components/MapTypes';
+import type {MapMarkerProps} from '@fbcnms/ui/insights/map/MapTypes';
 import type {WithStyles} from '@material-ui/core';
 
 import React from 'react';

@@ -27,7 +27,13 @@ terminate_service_when_quota_exhausted: true
 # Maximum time to wait for the flow to be deleted by pipelined before forcefully
 # terminating the session. This should be at least twice the poll interval of
 # pipelined
-session_force_termination_timeout_ms: 5000
+session_force_termination_timeout_ms: 3000
 
 # Set to true to enable sessiond support of carrier wifi
 support_carrier_wifi: true
+
+# Set to true to store session state in Redis for persistence.
+support_stateless: false
+
+# Redis table name for session state.
+sessions_table: sessiond:sessions

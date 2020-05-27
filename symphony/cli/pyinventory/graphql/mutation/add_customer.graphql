@@ -1,0 +1,5 @@
+mutation AddCustomerMutation($input: AddCustomerInput!) {
+  addCustomer(input: $input) {
+    ...CustomerFragment
+  }
+}

@@ -20,13 +20,14 @@
 # Changes to this file has to be replicated in pipelined.yml_prod
 
 # Differentiate between the setup type(CWF or LTE)
-setup_type: CWF
+setup_type: XWF
 
 log_level: INFO
 # Enable the services in PipelineD. Tables will be assigned to the services in
 # the same order as the list. Cloud managed services will be initialized
 # after these static services.
 static_services: [
+  'xwf_passthru',
   'tunnel_learn',
   'vlan_learn',
   'startup_flows',
@@ -88,7 +89,7 @@ ipfix:
   enabled: true
   collector_ip: '10.22.20.116'
   collector_port: 4740
-  probability: 30000
+  probability: 650
   collector_set_id: 1
   obs_domain_id: 1
   obs_point_id: 1
@@ -104,8 +105,17 @@ bridge_name: cwag_br0
 # Bridge ip comes from 99-ovscfg.yaml
 bridge_ip_address: 192.168.128.1
 
-#QoS Queue Programming
-enable_queue_pgm: true
+# QoS parameters
+qos:
+ enable: true
+ impl: linux_tc
+ max_rate: 1000000000
+ linux_tc:
+  min_idx: 2
+  max_idx: 65534
+ ovs_meter:
+  min_idx: 2
+  max_idx: 100000
 
 monitored_ifaces: ['cwag_br0',
                    'gre0',
@@ -116,7 +126,7 @@ monitored_ifaces: ['cwag_br0',
 clean_restart: true
 
 # Information for cwf check quota servers
-quota_check_ip: '192.168.128.99'
+quota_check_ip: '192.0.0.1'
 has_quota_port: 51115
 no_quota_port: 51125
 

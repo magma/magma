@@ -10,8 +10,9 @@ import (
 
 	"github.com/facebookincubator/ent/dialect"
 	"github.com/facebookincubator/ent/dialect/sql"
-	"github.com/facebookincubator/ent/dialect/sql/schema"
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/ent/enttest"
+	"github.com/facebookincubator/symphony/graph/ent/migrate"
 	"github.com/facebookincubator/symphony/graph/event"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/graphql/resolver"
@@ -25,7 +26,6 @@ const (
 	svcName  = "serviceName"
 	svc2Name = "serviceName2"
 	svc3Name = "serviceName3"
-	svc4Name = "serviceName4"
 )
 
 type TestImporterResolver struct {
@@ -42,15 +42,13 @@ func newImporterTestResolver(t *testing.T) *TestImporterResolver {
 }
 
 func newResolver(t *testing.T, drv dialect.Driver) *TestImporterResolver {
-	client := ent.NewClient(ent.Driver(drv))
-	err := client.Schema.Create(context.Background(), schema.WithGlobalUniqueID(true))
-	require.NoError(t, err)
-
-	emitter, subscriber := event.Pipe()
+	client := enttest.NewClient(t,
+		enttest.WithOptions(ent.Driver(drv)),
+		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
+	)
 	r := resolver.New(resolver.Config{
 		Logger:     logtest.NewTestLogger(t),
-		Emitter:    emitter,
-		Subscriber: subscriber,
+		Subscriber: event.NewNopSubscriber(),
 	})
 	return &TestImporterResolver{
 		drv:    drv,

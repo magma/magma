@@ -33,7 +33,7 @@ import Tooltip from '@material-ui/core/Tooltip';
 
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import nullthrows from '@fbcnms/util/nullthrows';
-import useMagmaAPI from '../../common/useMagmaAPI';
+import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {Route} from 'react-router-dom';
 import {findIndex} from 'lodash';
@@ -196,7 +196,10 @@ function GatewayRow(props: {
   const {match, history, relativeUrl} = useRouter();
   const {isLoading, response} = useMagmaAPI(
     MagmaV1API.getFegByNetworkIdGatewaysByGatewayIdHealthStatus,
-    {networkId: nullthrows(match.params.networkId), gatewayId: gateway.id},
+    {
+      networkId: nullthrows(match.params.networkId),
+      gatewayId: gateway.id,
+    },
   );
 
   return (

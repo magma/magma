@@ -28,22 +28,22 @@ import type {WithSnackbarProps} from 'notistack';
 import * as React from 'react';
 
 import AddReportFilterMutation from '../mutations/AddReportFilterMutation';
-import BookmarksIcon from '@material-ui/icons/Bookmarks';
-import BookmarksOutlinedIcon from '@material-ui/icons/BookmarksOutlined';
+import BookmarkFilledIcon from '@fbcnms/ui/components/design-system/Icons/Actions/BookmarkFilled';
+import BookmarkIcon from '@fbcnms/ui/components/design-system/Icons/Actions/Bookmark';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import DeleteOutlineIcon from '@material-ui/icons/DeleteOutline';
 import DeleteReportFilterMutation from '../mutations/DeleteReportFilterMutation';
 import DialogActions from '@material-ui/core/DialogActions';
 import EditReportFilterMutation from '../mutations/EditReportFilterMutation';
+import IconButton from '@fbcnms/ui/components/design-system/IconButton';
 import Popover from '@material-ui/core/Popover';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
-import Strings from '../common/CommonStrings';
+import Strings from '@fbcnms/strings/Strings';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import fbt from 'fbt';
 import nullthrows from '@fbcnms/util/nullthrows';
-import symphony from '../../../../fbcnms-packages/fbcnms-ui/theme/symphony';
 import {LogEvents, ServerLogger} from '../common/LoggingUtils';
 import {getGraphError} from '../common/EntUtils';
 import {makeStyles} from '@material-ui/styles';
@@ -55,21 +55,13 @@ import {withSnackbar} from 'notistack';
 const useStyles = makeStyles(() => ({
   filledBookmarkButton: {
     cursor: 'pointer',
-    color: symphony.palette.B600,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     margin: '0px 4px 0px 8px',
-    '&:hover:not($disabled)': {
-      color: symphony.palette.B700,
-    },
   },
   bookmarkButton: {
-    color: symphony.palette.D500,
     margin: '0px 4px 0px 8px',
-    '&:hover:not($disabled)': {
-      color: symphony.palette.D900,
-    },
   },
   dialogActions: {
     padding: '8px 0px 0px 0px',
@@ -103,7 +95,7 @@ const FilterBookmark = (props: Props) => {
     setName(bookmark?.name ?? '');
   }, [bookmark]);
 
-  const handleClick = event => {
+  const handleClick = (event: SyntheticMouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
 
@@ -285,23 +277,28 @@ const FilterBookmark = (props: Props) => {
     AddReportFilterMutation(variables, callbacks);
   };
   const isBookmark = bookmark != null;
+
+  if (filters.length === 0) {
+    return null;
+  }
+
   return (
     <>
-      <div onClick={handleClick}>
-        <Button variant="text" skin="gray">
-          {isBookmark ? (
-            <BookmarksIcon
-              className={classes.filledBookmarkButton}
-              color="inherit"
-            />
-          ) : (
-            <BookmarksOutlinedIcon
-              className={classes.bookmarkButton}
-              color="inherit"
-            />
-          )}
-        </Button>
-      </div>
+      {isBookmark ? (
+        <IconButton
+          icon={BookmarkFilledIcon}
+          onClick={handleClick}
+          skin="gray"
+          className={classes.filledBookmarkButton}
+        />
+      ) : (
+        <IconButton
+          icon={BookmarkIcon}
+          onClick={handleClick}
+          skin="gray"
+          className={classes.bookmarkButton}
+        />
+      )}
       <Popover
         open={Boolean(anchorEl)}
         anchorEl={anchorEl}

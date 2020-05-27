@@ -1,0 +1,7 @@
+query LocationDetailsQuery($id: ID!) {
+  location: node(id: $id) {
+    ... on Location {
+      ...LocationFragment
+    }
+  }
+}

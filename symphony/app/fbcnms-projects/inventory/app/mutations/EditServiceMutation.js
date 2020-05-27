@@ -16,7 +16,7 @@ import type {
   EditServiceMutationVariables,
 } from './__generated__/EditServiceMutation.graphql';
 import type {MutationCallbacks} from './MutationCallbacks.js';
-import type {StoreUpdater} from '../common/RelayEnvironment';
+import type {SelectorStoreUpdater} from 'relay-runtime';
 
 const mutation = graphql`
   mutation EditServiceMutation($data: ServiceEditData!) {
@@ -29,7 +29,7 @@ const mutation = graphql`
 export default (
   variables: EditServiceMutationVariables,
   callbacks?: MutationCallbacks<EditServiceMutationResponse>,
-  updater?: StoreUpdater,
+  updater?: SelectorStoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
   commitMutation<EditServiceMutation>(RelayEnvironemnt, {

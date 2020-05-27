@@ -143,7 +143,7 @@ func TestDirectorydStateMethods(t *testing.T) {
 		DeviceID: imsi0,
 		Value:    serializedRecord,
 	}
-	stateID := state.StateID{
+	stateID := state.ID{
 		Type:     st.Type,
 		DeviceID: st.DeviceID,
 	}
@@ -171,7 +171,7 @@ func TestDirectorydStateMethods(t *testing.T) {
 	assert.Equal(t, sid0, sid)
 
 	// Delete state
-	err = state.DeleteStates(nid0, []state.StateID{stateID})
+	err = state.DeleteStates(nid0, []state.ID{stateID})
 	assert.NoError(t, err)
 
 	// Get imsi0->hwid0, should be gone

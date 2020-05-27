@@ -8,9 +8,9 @@
  * @format
  */
 
-import type {MetricGraphConfig} from '../insights/Metrics';
+import type {MetricGraphConfig} from '@fbcnms/ui/insights/Metrics';
 
-import NetworkMetrics from '../insights/NetworkMetrics';
+import NetworkMetrics from '@fbcnms/ui/insights/NetworkMetrics';
 import React from 'react';
 
 const chartConfigs: MetricGraphConfig[] = [

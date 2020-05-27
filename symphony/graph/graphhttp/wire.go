@@ -30,13 +30,13 @@ import (
 
 // Config defines the http server config.
 type Config struct {
-	Tenancy    *viewer.MySQLTenancy
-	AuthURL    *url.URL
-	Emitter    event.Emitter
-	Subscriber event.Subscriber
-	Logger     log.Logger
-	Census     oc.Options
-	Orc8r      orc8r.Config
+	Tenancy      viewer.Tenancy
+	AuthURL      *url.URL
+	Subscriber   event.Subscriber
+	Logger       log.Logger
+	Census       oc.Options
+	HealthChecks []health.Checker
+	Orc8r        orc8r.Config
 }
 
 // NewServer creates a server from config.
@@ -44,17 +44,12 @@ func NewServer(cfg Config) (*server.Server, func(), error) {
 	wire.Build(
 		xserver.ServiceSet,
 		provideViews,
-		newHealthChecker,
-		wire.FieldsOf(new(Config), "Tenancy", "Logger", "Census"),
+		wire.FieldsOf(new(Config), "Logger", "Census", "HealthChecks"),
 		newRouterConfig,
 		newRouter,
 		wire.Bind(new(http.Handler), new(*mux.Router)),
 	)
 	return nil, nil, nil
-}
-
-func newHealthChecker(tenancy *viewer.MySQLTenancy) []health.Checker {
-	return []health.Checker{tenancy}
 }
 
 func newRouterConfig(config Config) (cfg routerConfig, err error) {
@@ -69,7 +64,6 @@ func newRouterConfig(config Config) (cfg routerConfig, err error) {
 	cfg = routerConfig{logger: config.Logger}
 	cfg.viewer.tenancy = config.Tenancy
 	cfg.viewer.authurl = config.AuthURL.String()
-	cfg.events.emitter = config.Emitter
 	cfg.events.subscriber = config.Subscriber
 	cfg.orc8r.client = client
 	cfg.actions.registry = registry

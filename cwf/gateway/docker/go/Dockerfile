@@ -67,6 +67,7 @@ RUN printenv > /etc/environment
 # This step allows us to cache the downloads, and prevents reaching out to
 # the internet unless any of the go.mod or go.sum files are changed.
 COPY cwf/cloud/go/go.* $MAGMA_ROOT/cwf/cloud/go/
+COPY cwf/gateway/go.* $MAGMA_ROOT/cwf/gateway/
 COPY lte/cloud/go/go.* $MAGMA_ROOT/lte/cloud/go/
 COPY feg/cloud/go/go.* $MAGMA_ROOT/feg/cloud/go/
 COPY feg/cloud/go/protos/go.* $MAGMA_ROOT/feg/cloud/go/protos/
@@ -108,10 +109,10 @@ RUN make -C $MAGMA_ROOT/cwf/gateway build
 # -----------------------------------------------------------------------------
 # Production image
 # -----------------------------------------------------------------------------
-FROM ubuntu:xenial AS uesim
+FROM ubuntu:xenial AS cwag_go
 
 # Install envdir.
-RUN apt-get -y update && apt-get -y install daemontools
+RUN apt-get -y update && apt-get -y install daemontools curl iptables
 
 # Copy the build artifacts.
 COPY --from=builder /var/opt/magma/bin /var/opt/magma/bin

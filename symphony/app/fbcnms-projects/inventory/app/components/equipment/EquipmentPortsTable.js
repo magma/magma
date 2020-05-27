@@ -316,7 +316,7 @@ const EquipmentPortsTable = (props: Props) => {
                           ))}
                         {port.serviceEndpoints.map(endpoint => (
                           <Box>{`${endpoint.service.name}: ${lowerCase(
-                            endpoint.role,
+                            endpoint.definition.role,
                           )}`}</Box>
                         ))}
                       </TableCell>
@@ -448,7 +448,9 @@ graphql`
       ...PropertyFormField_property @relay(mask: false)
     }
     serviceEndpoints {
-      role
+      definition {
+        role
+      }
       service {
         name
       }
@@ -511,7 +513,9 @@ graphql`
       ...EquipmentBreadcrumbs_equipment
     }
     serviceEndpoints {
-      role
+      definition {
+        role
+      }
       service {
         name
       }

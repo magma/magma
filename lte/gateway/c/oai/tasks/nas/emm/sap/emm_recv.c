@@ -1064,6 +1064,10 @@ int emm_recv_authentication_failure(
    */
   rc = emm_proc_authentication_failure(
     ue_id, msg->emmcause, msg->authenticationfailureparameter);
+  /*
+   * Free authenticationfailureparameter IE
+   */
+  bdestroy(msg->authenticationfailureparameter);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 

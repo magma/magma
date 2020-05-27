@@ -8,9 +8,12 @@
  * @format
  */
 
+import type {MenuItemLeftAux} from './SelectMenuItem';
 import type {OptionProps} from './SelectMenu';
 
 import * as React from 'react';
+import CheckBoxIcon from '@material-ui/icons/CheckBox';
+import CheckBoxOutlineBlankIcon from '@material-ui/icons/CheckBoxOutlineBlank';
 import SelectMenuItem from './SelectMenuItem';
 import SelectSearchInput from './SelectSearchInput';
 import Text from '../Text';
@@ -47,40 +50,67 @@ const useStyles = makeStyles(() => ({
     borderTop: `1px solid ${symphony.palette.D50}`,
     margin: '8px 16px 12px 16px',
   },
+  checkedIcon: {
+    color: symphony.palette.primary,
+  },
+  uncheckedIcon: {
+    color: symphony.palette.D200,
+  },
 }));
 
-type Props<TValue> = {
+export type MultiSelectOptionProps<TValue> = $ReadOnly<
+  $Rest<OptionProps<TValue>, {|leftAux?: MenuItemLeftAux|}>,
+>;
+
+export type MultiSelectMenuProps<TValue> = $ReadOnly<{|
   className?: string,
-  onChange: (option: OptionProps<TValue>) => void | (() => void),
-  options: Array<OptionProps<TValue>>,
+  onChange: (option: MultiSelectOptionProps<TValue>) => void | (() => void),
+  options: Array<MultiSelectOptionProps<TValue>>,
   searchable?: boolean,
   onOptionsFetchRequested?: (searchTerm: string) => void,
-  selectedValues: Array<OptionProps<TValue>>,
+  selectedValues: Array<MultiSelectOptionProps<TValue>>,
   size?: 'normal' | 'full',
-};
+|}>;
 
-type MultiSelectMenuItemsProps<TValue> = {
-  options: Array<OptionProps<TValue>>,
-  isSelected: (option: OptionProps<TValue>) => boolean,
-  onChange: (option: OptionProps<TValue>) => void | (() => void),
-};
+type MultiSelectMenuItemsProps<TValue> = $ReadOnly<{|
+  options: Array<MultiSelectOptionProps<TValue>>,
+  isSelected: (option: MultiSelectOptionProps<TValue>) => boolean,
+  onChange: (option: MultiSelectOptionProps<TValue>) => void | (() => void),
+|}>;
 
 const MultiSelectMenuItems = <TValue>({
   options,
   isSelected,
   onChange,
-}: MultiSelectMenuItemsProps<TValue>) =>
-  options.map(option => (
-    <SelectMenuItem
-      key={`option_${String(option.value)}`}
-      label={option.label}
-      value={option.value}
-      onClick={() => {
-        onChange(option);
-      }}
-      isSelected={isSelected(option)}
-    />
-  ));
+}: MultiSelectMenuItemsProps<TValue>) => {
+  const classes = useStyles();
+  return options.map(option => {
+    const isSelectedValue = isSelected(option);
+    const Icon = isSelectedValue ? CheckBoxIcon : CheckBoxOutlineBlankIcon;
+    return (
+      <SelectMenuItem
+        key={`option_${String(option.value)}`}
+        label={option.label}
+        value={option.value}
+        onClick={() => {
+          onChange(option);
+        }}
+        leftAux={{
+          type: 'node',
+          node: (
+            <Icon
+              className={
+                isSelectedValue ? classes.checkedIcon : classes.uncheckedIcon
+              }
+              size="small"
+            />
+          ),
+        }}
+        isSelected={isSelectedValue}
+      />
+    );
+  });
+};
 
 const MultiSelectMenu = <TValue>({
   className,
@@ -90,7 +120,7 @@ const MultiSelectMenu = <TValue>({
   size = 'full',
   searchable = false,
   onOptionsFetchRequested,
-}: Props<TValue>) => {
+}: MultiSelectMenuProps<TValue>) => {
   const thisElement = useRef(null);
   const classes = useStyles();
   const [searchTerm, setSearchTerm] = useState('');

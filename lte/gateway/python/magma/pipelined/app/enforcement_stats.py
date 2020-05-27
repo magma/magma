@@ -29,10 +29,12 @@ from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.messages import MsgChannel, MessageHub
 
 from magma.pipelined.openflow.registers import Direction, DIRECTION_REG, \
-    IMSI_REG, RULE_VERSION_REG
+    IMSI_REG, RULE_VERSION_REG, SCRATCH_REGS
 
 
 ETH_FRAME_SIZE_BYTES = 14
+PROCESS_STATS = 0x0
+IGNORE_STATS = 0x1
 
 
 class RelayDisabledException(Exception):
@@ -79,6 +81,7 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         # Store last usage excluding deleted flows for calculating deltas
         self.last_usage_for_delta = {}
         self.failed_usage = {}  # Store failed usage to retry rpc to sessiond
+        self._unmatched_bytes = 0  # Store bytes matched by default rule if any
         self._clean_restart = kwargs['config']['clean_restart']
         if not self._relay_enabled:
             self.logger.info('Relay mode is not enabled. '
@@ -88,6 +91,17 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
 
     def delete_all_flows(self, datapath):
         flows.delete_all_flows_from_table(datapath, self.tbl_num)
+
+    def cleanup_state(self):
+        """
+        When we remove/reinsert flows we need to remove old usage maps as new
+        flows will have reset stat counters
+        """
+        self.unhandled_stats_msgs = []
+        self.total_usage = {}
+        self.last_usage_for_delta = {}
+        self.failed_usage = {}
+        self._unmatched_bytes = 0
 
     def _check_relay(func):  # pylint: disable=no-self-argument
         def wrapped(self, *args, **kwargs):
@@ -185,6 +199,7 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
     def _handle_error(self, ev):
         self._msg_hub.handle_error(ev)
 
+    # pylint: disable=protected-access
     def _get_rule_match_flow_msgs(self, imsi, rule):
         """
         Returns flow add messages used for rule matching.
@@ -199,7 +214,9 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         outbound_rule_match = _generate_rule_match(imsi, rule_num, version,
                                                    Direction.OUT)
 
-        return [
+        inbound_rule_match._match_kwargs[SCRATCH_REGS[1]] = PROCESS_STATS
+        outbound_rule_match._match_kwargs[SCRATCH_REGS[1]] = PROCESS_STATS
+        msgs = [
             flows.get_add_resubmit_next_service_flow_msg(
                 self._datapath,
                 self.tbl_num,
@@ -217,6 +234,29 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
                 cookie=rule_num,
                 resubmit_table=self.next_table),
         ]
+
+        if rule.app_name:
+            inbound_rule_match._match_kwargs[SCRATCH_REGS[1]] = IGNORE_STATS
+            outbound_rule_match._match_kwargs[SCRATCH_REGS[1]] = IGNORE_STATS
+            msgs.extend([
+                flows.get_add_resubmit_next_service_flow_msg(
+                    self._datapath,
+                    self.tbl_num,
+                    inbound_rule_match,
+                    [],
+                    priority=flows.DEFAULT_PRIORITY,
+                    cookie=rule_num,
+                    resubmit_table=self.next_table),
+                flows.get_add_resubmit_next_service_flow_msg(
+                    self._datapath,
+                    self.tbl_num,
+                    outbound_rule_match,
+                    [],
+                    priority=flows.DEFAULT_PRIORITY,
+                    cookie=rule_num,
+                    resubmit_table=self.next_table),
+            ])
+        return msgs
 
     def _get_default_flow_msg_for_subscriber(self, _):
         return None
@@ -354,10 +394,15 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         if rule_id == "":
             default_flow_matched = \
                 flow_stat.cookie == self.DEFAULT_FLOW_COOKIE and \
-                flow_stat.byte_count != 0
+                flow_stat.byte_count != 0 and \
+                self._unmatched_bytes != flow_stat.byte_count
             if default_flow_matched:
                 self.logger.error('%s bytes total not reported.',
                                   flow_stat.byte_count)
+                self._unmatched_bytes = flow_stat.byte_count
+            return current_usage
+        # If this is a pass through app name flow ignore stats
+        if flow_stat.match[SCRATCH_REGS[1]] == IGNORE_STATS:
             return current_usage
         sid = _get_sid(flow_stat)
 

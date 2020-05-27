@@ -109,6 +109,7 @@ func NewClient(reg service_registry.GatewayRegistry) *SyncRpcClient {
 		serviceRegistry: reg,
 		cfg:             *cfg, // copy configs
 		terminatedReqs:  make(map[uint32]bool),
+		outstandingReqs: make(map[uint32]context.CancelFunc),
 		respCh:          make(chan *protos.SyncRPCResponse),
 		broker:          newbrokerImpl(cfg),
 	}

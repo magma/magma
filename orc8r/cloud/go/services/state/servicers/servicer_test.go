@@ -14,6 +14,7 @@ import (
 
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/blobstore/mocks"
+	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/services/state/servicers"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
@@ -28,7 +29,10 @@ func TestStateServicer_GetStates(t *testing.T) {
 	// mock setup: expect 1 RPC to result in a search, the other to a concrete
 	// GetMany
 	mockStore := &mocks.TransactionalBlobStorage{}
-	mockStore.On("Search", blobstore.CreateSearchFilter(strPtr("network1"), []string{"t1", "t2"}, []string{"k1", "k2"})).
+	mockStore.On("Search",
+		blobstore.CreateSearchFilter(strPtr("network1"), []string{"t1", "t2"}, []string{"k1", "k2"}),
+		blobstore.GetDefaultLoadCriteria(),
+	).
 		Return(map[string][]blobstore.Blob{
 			"network1": {
 				{Type: "t1", Key: "k1", Value: []byte("v1"), Version: 42},
@@ -53,6 +57,7 @@ func TestStateServicer_GetStates(t *testing.T) {
 		NetworkID:  "network1",
 		TypeFilter: []string{"t1", "t2"},
 		IdFilter:   []string{"k1", "k2"},
+		LoadValues: true,
 	})
 	assert.NoError(t, err)
 	expected := &protos.GetStatesResponse{
@@ -82,12 +87,51 @@ func TestStateServicer_GetStates(t *testing.T) {
 		},
 		TypeFilter: []string{"t1", "t2"},
 		IdFilter:   []string{"k1", "k2"},
+		LoadValues: false,
 	})
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
 	mockStore.AssertExpectations(t)
 	fact.AssertExpectations(t)
+}
+
+func TestStateServicer_GetAllIDs(t *testing.T) {
+	mockStore := &mocks.TransactionalBlobStorage{}
+	mockStore.On("Search",
+		blobstore.CreateSearchFilter(nil, nil, nil),
+		blobstore.LoadCriteria{LoadValue: false},
+	).
+		Return(map[string][]blobstore.Blob{
+			"network1": {
+				{Type: "t1", Key: "k1", Version: 42},
+				{Type: "t2", Key: "k2", Version: 43},
+			},
+			"network2": {
+				{Type: "t3", Key: "k3", Version: 44},
+			},
+		}, nil)
+	mockStore.On("Commit").Return(nil)
+
+	fact := &mocks.BlobStorageFactory{}
+	fact.On("StartTransaction", mock.Anything).Return(mockStore, nil)
+
+	srv, err := servicers.NewStateServicer(fact)
+	assert.NoError(t, err)
+
+	ids, err := srv.GetAllIDs()
+	assert.NoError(t, err)
+
+	expected := state.IDsByNetwork{
+		"network1": {
+			{Type: "t1", DeviceID: "k1"},
+			{Type: "t2", DeviceID: "k2"},
+		},
+		"network2": {
+			{Type: "t3", DeviceID: "k3"},
+		},
+	}
+	assert.Equal(t, expected, ids)
 }
 
 func strPtr(s string) *string {

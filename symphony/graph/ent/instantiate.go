@@ -13,9 +13,21 @@ func (c *ActionsRuleClient) Instantiate(ar *ActionsRule) *ActionsRule {
 }
 
 // Instantiate entity configuration.
+func (c *ActivityClient) Instantiate(a *Activity) *Activity {
+	a.config = c.config
+	return a
+}
+
+// Instantiate entity configuration.
 func (c *CheckListCategoryClient) Instantiate(clc *CheckListCategory) *CheckListCategory {
 	clc.config = c.config
 	return clc
+}
+
+// Instantiate entity configuration.
+func (c *CheckListCategoryDefinitionClient) Instantiate(clcd *CheckListCategoryDefinition) *CheckListCategoryDefinition {
+	clcd.config = c.config
+	return clcd
 }
 
 // Instantiate entity configuration.
@@ -139,6 +151,12 @@ func (c *LocationTypeClient) Instantiate(lt *LocationType) *LocationType {
 }
 
 // Instantiate entity configuration.
+func (c *PermissionsPolicyClient) Instantiate(pp *PermissionsPolicy) *PermissionsPolicy {
+	pp.config = c.config
+	return pp
+}
+
+// Instantiate entity configuration.
 func (c *ProjectClient) Instantiate(pr *Project) *Project {
 	pr.config = c.config
 	return pr
@@ -181,6 +199,12 @@ func (c *ServiceEndpointClient) Instantiate(se *ServiceEndpoint) *ServiceEndpoin
 }
 
 // Instantiate entity configuration.
+func (c *ServiceEndpointDefinitionClient) Instantiate(sed *ServiceEndpointDefinition) *ServiceEndpointDefinition {
+	sed.config = c.config
+	return sed
+}
+
+// Instantiate entity configuration.
 func (c *ServiceTypeClient) Instantiate(st *ServiceType) *ServiceType {
 	st.config = c.config
 	return st
@@ -220,12 +244,6 @@ func (c *SurveyTemplateQuestionClient) Instantiate(stq *SurveyTemplateQuestion) 
 func (c *SurveyWiFiScanClient) Instantiate(swfs *SurveyWiFiScan) *SurveyWiFiScan {
 	swfs.config = c.config
 	return swfs
-}
-
-// Instantiate entity configuration.
-func (c *TechnicianClient) Instantiate(t *Technician) *Technician {
-	t.config = c.config
-	return t
 }
 
 // Instantiate entity configuration.

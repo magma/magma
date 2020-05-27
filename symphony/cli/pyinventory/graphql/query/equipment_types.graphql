@@ -1,0 +1,9 @@
+query EquipmentTypesQuery {
+  equipmentTypes {
+    edges {
+      node {
+        ...EquipmentTypeFragment
+      }
+    }
+  }
+}

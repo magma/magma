@@ -15,7 +15,7 @@
 /*::
 import type { ReaderFragment } from 'relay-runtime';
 type EquipmentBreadcrumbs_equipment$ref = any;
-export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "float" | "gps_location" | "int" | "node" | "range" | "string" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type PowerSearchPortsResultsTable_ports$ref: FragmentReference;
 declare export opaque type PowerSearchPortsResultsTable_ports$fragmentType: PowerSearchPortsResultsTable_ports$ref;
@@ -61,6 +61,7 @@ export type PowerSearchPortsResultsTable_ports = $ReadOnlyArray<{|
         +id: string,
         +name: string,
         +type: PropertyKind,
+        +nodeType: ?string,
         +isEditable: ?boolean,
         +isInstanceProperty: ?boolean,
         +stringValue: ?string,
@@ -97,6 +98,7 @@ export type PowerSearchPortsResultsTable_ports = $ReadOnlyArray<{|
       +id: string,
       +name: string,
       +type: PropertyKind,
+      +nodeType: ?string,
       +isEditable: ?boolean,
       +isInstanceProperty: ?boolean,
       +stringValue: ?string,
@@ -249,6 +251,13 @@ v13 = {
         {
           "kind": "ScalarField",
           "alias": null,
+          "name": "nodeType",
+          "args": null,
+          "storageKey": null
+        },
+        {
+          "kind": "ScalarField",
+          "alias": null,
           "name": "isEditable",
           "args": null,
           "storageKey": null
@@ -375,5 +384,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '7fb84f69f15cea5d756e7bf0b91bb3cb';
+(node/*: any*/).hash = 'f3d4baf07d506ffa9fd1278d4f19fe50';
 module.exports = node;

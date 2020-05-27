@@ -14,8 +14,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
-	"github.com/facebookincubator/symphony/graph/ent/checklistcategory"
-	"github.com/facebookincubator/symphony/graph/ent/checklistitemdefinition"
+	"github.com/facebookincubator/symphony/graph/ent/checklistcategorydefinition"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 	"github.com/facebookincubator/symphony/graph/ent/workorderdefinition"
@@ -122,34 +121,19 @@ func (wotc *WorkOrderTypeCreate) AddDefinitions(w ...*WorkOrderDefinition) *Work
 	return wotc.AddDefinitionIDs(ids...)
 }
 
-// AddCheckListCategoryIDs adds the check_list_categories edge to CheckListCategory by ids.
-func (wotc *WorkOrderTypeCreate) AddCheckListCategoryIDs(ids ...int) *WorkOrderTypeCreate {
-	wotc.mutation.AddCheckListCategoryIDs(ids...)
+// AddCheckListCategoryDefinitionIDs adds the check_list_category_definitions edge to CheckListCategoryDefinition by ids.
+func (wotc *WorkOrderTypeCreate) AddCheckListCategoryDefinitionIDs(ids ...int) *WorkOrderTypeCreate {
+	wotc.mutation.AddCheckListCategoryDefinitionIDs(ids...)
 	return wotc
 }
 
-// AddCheckListCategories adds the check_list_categories edges to CheckListCategory.
-func (wotc *WorkOrderTypeCreate) AddCheckListCategories(c ...*CheckListCategory) *WorkOrderTypeCreate {
+// AddCheckListCategoryDefinitions adds the check_list_category_definitions edges to CheckListCategoryDefinition.
+func (wotc *WorkOrderTypeCreate) AddCheckListCategoryDefinitions(c ...*CheckListCategoryDefinition) *WorkOrderTypeCreate {
 	ids := make([]int, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
-	return wotc.AddCheckListCategoryIDs(ids...)
-}
-
-// AddCheckListDefinitionIDs adds the check_list_definitions edge to CheckListItemDefinition by ids.
-func (wotc *WorkOrderTypeCreate) AddCheckListDefinitionIDs(ids ...int) *WorkOrderTypeCreate {
-	wotc.mutation.AddCheckListDefinitionIDs(ids...)
-	return wotc
-}
-
-// AddCheckListDefinitions adds the check_list_definitions edges to CheckListItemDefinition.
-func (wotc *WorkOrderTypeCreate) AddCheckListDefinitions(c ...*CheckListItemDefinition) *WorkOrderTypeCreate {
-	ids := make([]int, len(c))
-	for i := range c {
-		ids[i] = c[i].ID
-	}
-	return wotc.AddCheckListDefinitionIDs(ids...)
+	return wotc.AddCheckListCategoryDefinitionIDs(ids...)
 }
 
 // Save creates the WorkOrderType in the database.
@@ -300,36 +284,17 @@ func (wotc *WorkOrderTypeCreate) sqlSave(ctx context.Context) (*WorkOrderType, e
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := wotc.mutation.CheckListCategoriesIDs(); len(nodes) > 0 {
+	if nodes := wotc.mutation.CheckListCategoryDefinitionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   workordertype.CheckListCategoriesTable,
-			Columns: []string{workordertype.CheckListCategoriesColumn},
+			Table:   workordertype.CheckListCategoryDefinitionsTable,
+			Columns: []string{workordertype.CheckListCategoryDefinitionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: checklistcategory.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := wotc.mutation.CheckListDefinitionsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   workordertype.CheckListDefinitionsTable,
-			Columns: []string{workordertype.CheckListDefinitionsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: checklistitemdefinition.FieldID,
+					Column: checklistcategorydefinition.FieldID,
 				},
 			},
 		}

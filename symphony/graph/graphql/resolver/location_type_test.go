@@ -6,7 +6,12 @@
 package resolver
 
 import (
+	"context"
 	"testing"
+
+	"github.com/facebookincubator/symphony/graph/ent/user"
+
+	"github.com/facebookincubator/symphony/graph/ent"
 
 	"github.com/facebookincubator/symphony/graph/ent/locationtype"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
@@ -18,8 +23,8 @@ import (
 
 func TestAddLocationType(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
 	mapType := "map"
@@ -32,7 +37,10 @@ func TestAddLocationType(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	fetchedLocType, _ := qr.LocationType(ctx, locType.ID)
+	fetchedNode, err := qr.Node(ctx, locType.ID)
+	require.NoError(t, err)
+	fetchedLocType, ok := fetchedNode.(*ent.LocationType)
+	require.True(t, ok)
 	require.Equal(t, fetchedLocType.Name, "example_type", "verifying location type name")
 	require.Equal(t, fetchedLocType.MapType, mapType, "verifying location type map type")
 	require.Equal(t, fetchedLocType.MapZoomLevel, mapZoomLvl, "verifying location type zoom level")
@@ -40,8 +48,8 @@ func TestAddLocationType(t *testing.T) {
 
 func TestAddLocationTypes(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
 	_, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{Name: "a"})
@@ -55,8 +63,8 @@ func TestAddLocationTypes(t *testing.T) {
 
 func TestAddLocationTypeWithProperties(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 
 	strValue, strIndex := "Foo", 7
@@ -96,8 +104,8 @@ func TestAddLocationTypeWithProperties(t *testing.T) {
 
 func TestAddLocationTypeWithEquipmentProperty(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 
 	lt, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{Name: "location_type"})
@@ -123,7 +131,7 @@ func TestAddLocationTypeWithEquipmentProperty(t *testing.T) {
 	index := 0
 	eqPropType := models.PropertyTypeInput{
 		Name:  "eq_prop",
-		Type:  "equipment",
+		Type:  "node",
 		Index: &index,
 	}
 	propTypeInputs := []*models.PropertyTypeInput{&eqPropType}
@@ -133,16 +141,17 @@ func TestAddLocationTypeWithEquipmentProperty(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	eqProp := locType.QueryPropertyTypes().Where(propertytype.Type("equipment")).OnlyX(ctx)
+	eqProp := locType.QueryPropertyTypes().Where(propertytype.Type("node")).OnlyX(ctx)
 
 	require.Equal(t, "eq_prop", eqProp.Name)
-	require.Equal(t, "equipment", eqProp.Type)
+	require.Equal(t, "node", eqProp.Type)
 }
 
 func TestAddLocationTypeWithSurveyTemplate(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	// TODO(T66882071): Remove owner role
+	ctx := viewertest.NewContext(context.Background(), r.client, viewertest.WithRole(user.RoleOWNER))
 	mr := r.Mutation()
 
 	question := models.SurveyTemplateQuestionInput{
@@ -175,8 +184,8 @@ func TestAddLocationTypeWithSurveyTemplate(t *testing.T) {
 
 func TestAddLocationTypesSameName(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
 	locType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{Name: "example_type_name"})
@@ -190,8 +199,8 @@ func TestAddLocationTypesSameName(t *testing.T) {
 
 func TestRemoveLocationType(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
 	locType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{Name: "example_type_name"})
@@ -212,8 +221,8 @@ func TestRemoveLocationType(t *testing.T) {
 
 func TestEditLocationType(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
 	locType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{Name: "example_type_name"})
@@ -237,15 +246,18 @@ func TestEditLocationType(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, types.Edges, 2)
 
-	typ, err := qr.LocationType(ctx, locType.ID)
+	node, err := qr.Node(ctx, locType.ID)
 	require.NoError(t, err)
+	typ, ok := node.(*ent.LocationType)
+	require.True(t, ok)
 	require.Equal(t, "example_type_name_2", typ.Name)
 }
 
 func TestEditLocationTypeWithSurveyTemplate(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	// TODO(T66882071): Remove owner role
+	ctx := viewertest.NewContext(context.Background(), r.client, viewertest.WithRole(user.RoleOWNER))
 	mr := r.Mutation()
 
 	question := models.SurveyTemplateQuestionInput{
@@ -321,8 +333,8 @@ func TestEditLocationTypeWithSurveyTemplate(t *testing.T) {
 
 func TestEditLocationTypeWithProperties(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 
 	strValue := "Foo"
@@ -382,8 +394,8 @@ func TestEditLocationTypeWithProperties(t *testing.T) {
 
 func TestMarkLocationTypeAsSite(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
 	mapType := "map"
@@ -398,14 +410,17 @@ func TestMarkLocationTypeAsSite(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	fetchedLocType, _ := qr.LocationType(ctx, locType.ID)
+	fetchedNode, err := qr.Node(ctx, locType.ID)
+	require.NoError(t, err)
+	fetchedLocType, ok := fetchedNode.(*ent.LocationType)
+	require.True(t, ok)
 	require.True(t, fetchedLocType.Site)
 }
 
 func TestEditLocationTypesIndex(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 
 	mapType := "map"

@@ -7,7 +7,9 @@
 package ent
 
 import (
+	"context"
 	"fmt"
+	"sync"
 
 	"github.com/facebookincubator/symphony/pkg/ent-contrib/entgqlgen/internal/todo/ent/todo"
 
@@ -39,17 +41,53 @@ type TodoMutation struct {
 	clearedparent   bool
 	children        map[int]struct{}
 	removedchildren map[int]struct{}
+	oldValue        func(context.Context) (*Todo, error)
 }
 
 var _ ent.Mutation = (*TodoMutation)(nil)
 
+// todoOption allows to manage the mutation configuration using functional options.
+type todoOption func(*TodoMutation)
+
 // newTodoMutation creates new mutation for $n.Name.
-func newTodoMutation(c config, op Op) *TodoMutation {
-	return &TodoMutation{
+func newTodoMutation(c config, op Op, opts ...todoOption) *TodoMutation {
+	m := &TodoMutation{
 		config:        c,
 		op:            op,
 		typ:           TypeTodo,
 		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withTodoID sets the id field of the mutation.
+func withTodoID(id int) todoOption {
+	return func(m *TodoMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Todo
+		)
+		m.oldValue = func(ctx context.Context) (*Todo, error) {
+			once.Do(func() {
+				value, err = m.Client().Todo.Get(ctx, id)
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withTodo sets the old Todo of the mutation.
+func withTodo(node *Todo) todoOption {
+	return func(m *TodoMutation) {
+		m.oldValue = func(context.Context) (*Todo, error) {
+			return node, nil
+		}
+		m.id = &node.ID
 	}
 }
 
@@ -95,7 +133,23 @@ func (m *TodoMutation) Text() (r string, exists bool) {
 	return *v, true
 }
 
-// ResetText reset all changes of the text field.
+// OldText returns the old text value, if exists.
+// An error is returned if the mutation operation is not UpdateOne, or database query fails.
+func (m *TodoMutation) OldText(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldText is allowed only on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldText requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldText: %w", err)
+	}
+	return oldValue.Text, nil
+}
+
+// ResetText reset all changes of the "text" field.
 func (m *TodoMutation) ResetText() {
 	m.text = nil
 }
@@ -133,7 +187,7 @@ func (m *TodoMutation) ParentIDs() (ids []int) {
 	return
 }
 
-// ResetParent reset all changes of the parent edge.
+// ResetParent reset all changes of the "parent" edge.
 func (m *TodoMutation) ResetParent() {
 	m.parent = nil
 	m.clearedparent = false
@@ -175,7 +229,7 @@ func (m *TodoMutation) ChildrenIDs() (ids []int) {
 	return
 }
 
-// ResetChildren reset all changes of the children edge.
+// ResetChildren reset all changes of the "children" edge.
 func (m *TodoMutation) ResetChildren() {
 	m.children = nil
 	m.removedchildren = nil
@@ -211,6 +265,17 @@ func (m *TodoMutation) Field(name string) (ent.Value, bool) {
 		return m.Text()
 	}
 	return nil, false
+}
+
+// OldField returns the old value of the field from the database.
+// An error is returned if the mutation operation is not UpdateOne,
+// or the query to the database was failed.
+func (m *TodoMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case todo.FieldText:
+		return m.OldText(ctx)
+	}
+	return nil, fmt.Errorf("unknown Todo field %s", name)
 }
 
 // SetField sets the value for the given name. It returns an

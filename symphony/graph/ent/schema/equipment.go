@@ -8,6 +8,8 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/facebookincubator/symphony/graph/authz"
+
 	"github.com/facebookincubator/ent"
 	"github.com/facebookincubator/ent/schema/edge"
 	"github.com/facebookincubator/ent/schema/field"
@@ -38,6 +40,15 @@ func (EquipmentPortType) Edges() []ent.Edge {
 			Ref("equipment_port_type").
 			StructTag(`gqlgen:"numberOfPortDefinitions"`),
 	}
+}
+
+// Policy returns equipment port type policy.
+func (EquipmentPortType) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithMutationRules(
+			authz.EquipmentPortTypeWritePolicyRule(),
+		),
+	)
 }
 
 // EquipmentPortDefinition defines the equipment port definition schema.
@@ -71,6 +82,15 @@ func (EquipmentPortDefinition) Edges() []ent.Edge {
 			Ref("port_definitions").
 			Unique(),
 	}
+}
+
+// Policy returns equipment port definition policy.
+func (EquipmentPortDefinition) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithMutationRules(
+			authz.EquipmentPortDefinitionWritePolicyRule(),
+		),
+	)
 }
 
 // EquipmentPort defines the equipment port schema.
@@ -108,6 +128,15 @@ func (EquipmentPort) Indexes() []ent.Index {
 	}
 }
 
+// Policy returns equipment port policy.
+func (EquipmentPort) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithMutationRules(
+			authz.EquipmentPortWritePolicyRule(),
+		),
+	)
+}
+
 // EquipmentPositionDefinition defines the equipment position definition schema.
 type EquipmentPositionDefinition struct {
 	schema
@@ -134,6 +163,15 @@ func (EquipmentPositionDefinition) Edges() []ent.Edge {
 			Ref("position_definitions").
 			Unique(),
 	}
+}
+
+// Policy returns equipment position definition policy.
+func (EquipmentPositionDefinition) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithMutationRules(
+			authz.EquipmentPositionDefinitionWritePolicyRule(),
+		),
+	)
 }
 
 // EquipmentPosition defines the equipment position schema.
@@ -166,6 +204,15 @@ func (EquipmentPosition) Indexes() []ent.Index {
 	}
 }
 
+// Policy returns equipment position policy.
+func (EquipmentPosition) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithMutationRules(
+			authz.EquipmentPositionWritePolicyRule(),
+		),
+	)
+}
+
 // EquipmentCategory defines the equipment category schema.
 type EquipmentCategory struct {
 	schema
@@ -185,6 +232,15 @@ func (EquipmentCategory) Edges() []ent.Edge {
 		edge.From("types", EquipmentType.Type).
 			Ref("category"),
 	}
+}
+
+// Policy returns equipment category policy.
+func (EquipmentCategory) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithMutationRules(
+			authz.EquipmentCategoryWritePolicyRule(),
+		),
+	)
 }
 
 // EquipmentType defines the equipment type schema.
@@ -215,7 +271,18 @@ func (EquipmentType) Edges() []ent.Edge {
 		edge.To("category", EquipmentCategory.Type).
 			Unique().
 			StructTag(`gqlgen:"category"`),
+		edge.To("service_endpoint_definitions", ServiceEndpointDefinition.Type).
+			StructTag(`gqlgen:"serviceEndpointDefinitions"`),
 	}
+}
+
+// Policy returns equipment type policy.
+func (EquipmentType) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithMutationRules(
+			authz.EquipmentTypeWritePolicyRule(),
+		),
+	)
 }
 
 // Equipment defines the equipment schema.
@@ -272,5 +339,16 @@ func (Equipment) Edges() []ent.Edge {
 			StructTag(`gqlgen:"files"`),
 		edge.To("hyperlinks", Hyperlink.Type).
 			StructTag(`gqlgen:"hyperlinks"`),
+		edge.From("endpoints", ServiceEndpoint.Type).
+			Ref("equipment"),
 	}
+}
+
+// Policy returns equipment policy.
+func (Equipment) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithMutationRules(
+			authz.EquipmentWritePolicyRule(),
+		),
+	)
 }

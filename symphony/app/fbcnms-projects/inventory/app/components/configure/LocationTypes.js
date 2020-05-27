@@ -24,7 +24,7 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import ConfigueTitle from '@fbcnms/ui/components/ConfigureTitle';
 import DroppableTableBody from '../draggable/DroppableTableBody';
 import EditLocationTypesIndexMutation from '../../mutations/EditLocationTypesIndexMutation';
-import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
+import FormActionWithPermissions from '../../common/FormActionWithPermissions';
 import InventoryQueryRenderer from '../InventoryQueryRenderer';
 import LocationTypeItem from './LocationTypeItem';
 import React from 'react';
@@ -151,7 +151,10 @@ class LocationTypes extends React.Component<Props, State> {
             );
           }
           return (
-            <FormContextProvider>
+            <FormContextProvider
+              permissions={{
+                entity: 'locationType',
+              }}>
               <div className={classes.typesList}>
                 <div className={classes.firstRow}>
                   <ConfigueTitle
@@ -165,13 +168,14 @@ class LocationTypes extends React.Component<Props, State> {
                     {this.state.isSaving ? (
                       <CircularProgress className={classes.progress} />
                     ) : null}
-                    <FormAction>
+                    <FormActionWithPermissions
+                      permissions={{entity: 'locationType', action: 'create'}}>
                       <Button
                         className={classes.addButton}
                         onClick={() => this.showAddEditLocationTypeCard(null)}>
                         Add Location Type
                       </Button>
-                    </FormAction>
+                    </FormActionWithPermissions>
                   </div>
                 </div>
                 <div className={classes.root}>

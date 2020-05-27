@@ -32,7 +32,7 @@ func (srv *CentralSessionController) sendInitialGxRequest(imsi string, pReq *pro
 		SessionID:     pReq.SessionId,
 		Type:          credit_control.CRTInit,
 		IMSI:          imsi,
-		RequestNumber: 1,
+		RequestNumber: 0,
 		IPAddr:        pReq.UeIpv4,
 		SpgwIPV4:      pReq.SpgwIpv4,
 		Apn:           pReq.Apn,

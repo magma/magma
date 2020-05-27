@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash eb0ec8bf335ee780b1c3b8e0e0b8a13d
+ * @relayHash ce35ddcc78f931bce3aa2514eb40bc42
  */
 
 /* eslint-disable */
@@ -15,24 +15,23 @@
 
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
-type AddEditWorkOrderTypeCard_editingWorkOrderType$ref = any;
+type AddEditWorkOrderTypeCard_workOrderType$ref = any;
 export type CheckListItemEnumSelectionMode = "multiple" | "single" | "%future added value";
-export type CheckListItemType = "enum" | "files" | "simple" | "string" | "yes_no" | "%future added value";
-export type FileType = "FILE" | "IMAGE" | "%future added value";
-export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
-export type YesNoResponse = "NO" | "YES" | "%future added value";
+export type CheckListItemType = "cell_scan" | "enum" | "files" | "simple" | "string" | "wifi_scan" | "yes_no" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "float" | "gps_location" | "int" | "node" | "range" | "string" | "%future added value";
 export type EditWorkOrderTypeInput = {|
   id: string,
   name: string,
   description?: ?string,
   properties?: ?$ReadOnlyArray<?PropertyTypeInput>,
-  checkList?: ?$ReadOnlyArray<?CheckListDefinitionInput>,
-  checkListCategories?: ?$ReadOnlyArray<CheckListCategoryInput>,
+  checkListCategories?: ?$ReadOnlyArray<CheckListCategoryDefinitionInput>,
 |};
 export type PropertyTypeInput = {|
   id?: ?string,
+  externalId?: ?string,
   name: string,
   type: PropertyKind,
+  nodeType?: ?string,
   index?: ?number,
   category?: ?string,
   stringValue?: ?string,
@@ -48,43 +47,20 @@ export type PropertyTypeInput = {|
   isMandatory?: ?boolean,
   isDeleted?: ?boolean,
 |};
+export type CheckListCategoryDefinitionInput = {|
+  id?: ?string,
+  title: string,
+  description?: ?string,
+  checkList: $ReadOnlyArray<CheckListDefinitionInput>,
+|};
 export type CheckListDefinitionInput = {|
   id?: ?string,
   title: string,
   type: CheckListItemType,
   index?: ?number,
   enumValues?: ?string,
-  helpText?: ?string,
-|};
-export type CheckListCategoryInput = {|
-  id?: ?string,
-  title: string,
-  description?: ?string,
-  checkList?: ?$ReadOnlyArray<CheckListItemInput>,
-|};
-export type CheckListItemInput = {|
-  id?: ?string,
-  title: string,
-  type: CheckListItemType,
-  index?: ?number,
-  helpText?: ?string,
-  enumValues?: ?string,
   enumSelectionMode?: ?CheckListItemEnumSelectionMode,
-  selectedEnumValues?: ?string,
-  stringValue?: ?string,
-  checked?: ?boolean,
-  files?: ?$ReadOnlyArray<FileInput>,
-  yesNoResponse?: ?YesNoResponse,
-|};
-export type FileInput = {|
-  id?: ?string,
-  fileName: string,
-  sizeInBytes?: ?number,
-  modificationTime?: ?number,
-  uploadTime?: ?number,
-  fileType?: ?FileType,
-  mimeType?: ?string,
-  storeKey: string,
+  helpText?: ?string,
 |};
 export type EditWorkOrderTypeMutationVariables = {|
   input: EditWorkOrderTypeInput
@@ -93,7 +69,8 @@ export type EditWorkOrderTypeMutationResponse = {|
   +editWorkOrderType: {|
     +id: string,
     +name: string,
-    +$fragmentRefs: AddEditWorkOrderTypeCard_editingWorkOrderType$ref,
+    +description: ?string,
+    +$fragmentRefs: AddEditWorkOrderTypeCard_workOrderType$ref,
   |}
 |};
 export type EditWorkOrderTypeMutation = {|
@@ -110,11 +87,12 @@ mutation EditWorkOrderTypeMutation(
   editWorkOrderType(input: $input) {
     id
     name
-    ...AddEditWorkOrderTypeCard_editingWorkOrderType
+    description
+    ...AddEditWorkOrderTypeCard_workOrderType
   }
 }
 
-fragment AddEditWorkOrderTypeCard_editingWorkOrderType on WorkOrderType {
+fragment AddEditWorkOrderTypeCard_workOrderType on WorkOrderType {
   id
   name
   description
@@ -123,6 +101,7 @@ fragment AddEditWorkOrderTypeCard_editingWorkOrderType on WorkOrderType {
     id
     name
     type
+    nodeType
     index
     stringValue
     intValue
@@ -136,6 +115,21 @@ fragment AddEditWorkOrderTypeCard_editingWorkOrderType on WorkOrderType {
     isMandatory
     isInstanceProperty
     isDeleted
+    category
+  }
+  checkListCategoryDefinitions {
+    id
+    title
+    description
+    checklistItemDefinitions {
+      id
+      title
+      type
+      index
+      enumValues
+      enumSelectionMode
+      helpText
+    }
   }
 }
 */
@@ -169,6 +163,34 @@ v3 = {
   "name": "name",
   "args": null,
   "storageKey": null
+},
+v4 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "description",
+  "args": null,
+  "storageKey": null
+},
+v5 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "type",
+  "args": null,
+  "storageKey": null
+},
+v6 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "index",
+  "args": null,
+  "storageKey": null
+},
+v7 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "title",
+  "args": null,
+  "storageKey": null
 };
 return {
   "kind": "Request",
@@ -190,9 +212,10 @@ return {
         "selections": [
           (v2/*: any*/),
           (v3/*: any*/),
+          (v4/*: any*/),
           {
             "kind": "FragmentSpread",
-            "name": "AddEditWorkOrderTypeCard_editingWorkOrderType",
+            "name": "AddEditWorkOrderTypeCard_workOrderType",
             "args": null
           }
         ]
@@ -215,13 +238,7 @@ return {
         "selections": [
           (v2/*: any*/),
           (v3/*: any*/),
-          {
-            "kind": "ScalarField",
-            "alias": null,
-            "name": "description",
-            "args": null,
-            "storageKey": null
-          },
+          (v4/*: any*/),
           {
             "kind": "ScalarField",
             "alias": null,
@@ -240,20 +257,15 @@ return {
             "selections": [
               (v2/*: any*/),
               (v3/*: any*/),
+              (v5/*: any*/),
               {
                 "kind": "ScalarField",
                 "alias": null,
-                "name": "type",
+                "name": "nodeType",
                 "args": null,
                 "storageKey": null
               },
-              {
-                "kind": "ScalarField",
-                "alias": null,
-                "name": "index",
-                "args": null,
-                "storageKey": null
-              },
+              (v6/*: any*/),
               {
                 "kind": "ScalarField",
                 "alias": null,
@@ -337,6 +349,63 @@ return {
                 "name": "isDeleted",
                 "args": null,
                 "storageKey": null
+              },
+              {
+                "kind": "ScalarField",
+                "alias": null,
+                "name": "category",
+                "args": null,
+                "storageKey": null
+              }
+            ]
+          },
+          {
+            "kind": "LinkedField",
+            "alias": null,
+            "name": "checkListCategoryDefinitions",
+            "storageKey": null,
+            "args": null,
+            "concreteType": "CheckListCategoryDefinition",
+            "plural": true,
+            "selections": [
+              (v2/*: any*/),
+              (v7/*: any*/),
+              (v4/*: any*/),
+              {
+                "kind": "LinkedField",
+                "alias": null,
+                "name": "checklistItemDefinitions",
+                "storageKey": null,
+                "args": null,
+                "concreteType": "CheckListItemDefinition",
+                "plural": true,
+                "selections": [
+                  (v2/*: any*/),
+                  (v7/*: any*/),
+                  (v5/*: any*/),
+                  (v6/*: any*/),
+                  {
+                    "kind": "ScalarField",
+                    "alias": null,
+                    "name": "enumValues",
+                    "args": null,
+                    "storageKey": null
+                  },
+                  {
+                    "kind": "ScalarField",
+                    "alias": null,
+                    "name": "enumSelectionMode",
+                    "args": null,
+                    "storageKey": null
+                  },
+                  {
+                    "kind": "ScalarField",
+                    "alias": null,
+                    "name": "helpText",
+                    "args": null,
+                    "storageKey": null
+                  }
+                ]
               }
             ]
           }
@@ -348,11 +417,11 @@ return {
     "operationKind": "mutation",
     "name": "EditWorkOrderTypeMutation",
     "id": null,
-    "text": "mutation EditWorkOrderTypeMutation(\n  $input: EditWorkOrderTypeInput!\n) {\n  editWorkOrderType(input: $input) {\n    id\n    name\n    ...AddEditWorkOrderTypeCard_editingWorkOrderType\n  }\n}\n\nfragment AddEditWorkOrderTypeCard_editingWorkOrderType on WorkOrderType {\n  id\n  name\n  description\n  numberOfWorkOrders\n  propertyTypes {\n    id\n    name\n    type\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    isEditable\n    isMandatory\n    isInstanceProperty\n    isDeleted\n  }\n}\n",
+    "text": "mutation EditWorkOrderTypeMutation(\n  $input: EditWorkOrderTypeInput!\n) {\n  editWorkOrderType(input: $input) {\n    id\n    name\n    description\n    ...AddEditWorkOrderTypeCard_workOrderType\n  }\n}\n\nfragment AddEditWorkOrderTypeCard_workOrderType on WorkOrderType {\n  id\n  name\n  description\n  numberOfWorkOrders\n  propertyTypes {\n    id\n    name\n    type\n    nodeType\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    isEditable\n    isMandatory\n    isInstanceProperty\n    isDeleted\n    category\n  }\n  checkListCategoryDefinitions {\n    id\n    title\n    description\n    checklistItemDefinitions {\n      id\n      title\n      type\n      index\n      enumValues\n      enumSelectionMode\n      helpText\n    }\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '8fad9d18663268f869507ab8bd510f66';
+(node/*: any*/).hash = '596f95371ce767dedca8dafd518212b2';
 module.exports = node;

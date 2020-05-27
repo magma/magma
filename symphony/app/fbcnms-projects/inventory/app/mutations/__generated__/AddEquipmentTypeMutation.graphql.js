@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash e3d46498f0d7c9345cfa68d6fa3b043a
+ * @relayHash cc39ff1e1440bbb5969320d172e4ffec
  */
 
 /* eslint-disable */
@@ -16,7 +16,7 @@
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
 type EquipmentTypeItem_equipmentType$ref = any;
-export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "float" | "gps_location" | "int" | "node" | "range" | "string" | "%future added value";
 export type AddEquipmentTypeInput = {|
   name: string,
   category?: ?string,
@@ -40,8 +40,10 @@ export type EquipmentPortInput = {|
 |};
 export type PropertyTypeInput = {|
   id?: ?string,
+  externalId?: ?string,
   name: string,
   type: PropertyKind,
+  nodeType?: ?string,
   index?: ?number,
   category?: ?string,
   stringValue?: ?string,
@@ -131,6 +133,7 @@ fragment PropertyTypeFormField_propertyType on PropertyType {
   id
   name
   type
+  nodeType
   index
   stringValue
   intValue
@@ -143,6 +146,8 @@ fragment PropertyTypeFormField_propertyType on PropertyType {
   isEditable
   isInstanceProperty
   isMandatory
+  category
+  isDeleted
 }
 */
 
@@ -253,6 +258,13 @@ return {
                 "args": null,
                 "storageKey": null
               },
+              {
+                "kind": "ScalarField",
+                "alias": null,
+                "name": "nodeType",
+                "args": null,
+                "storageKey": null
+              },
               (v4/*: any*/),
               {
                 "kind": "ScalarField",
@@ -330,6 +342,20 @@ return {
                 "name": "isMandatory",
                 "args": null,
                 "storageKey": null
+              },
+              {
+                "kind": "ScalarField",
+                "alias": null,
+                "name": "category",
+                "args": null,
+                "storageKey": null
+              },
+              {
+                "kind": "ScalarField",
+                "alias": null,
+                "name": "isDeleted",
+                "args": null,
+                "storageKey": null
               }
             ]
           },
@@ -391,7 +417,7 @@ return {
     "operationKind": "mutation",
     "name": "AddEquipmentTypeMutation",
     "id": null,
-    "text": "mutation AddEquipmentTypeMutation(\n  $input: AddEquipmentTypeInput!\n) {\n  addEquipmentType(input: $input) {\n    id\n    name\n    ...EquipmentTypeItem_equipmentType\n  }\n}\n\nfragment DynamicPropertyTypesGrid_propertyTypes on PropertyType {\n  ...PropertyTypeFormField_propertyType\n  id\n  index\n}\n\nfragment EquipmentTypeItem_equipmentType on EquipmentType {\n  id\n  name\n  propertyTypes {\n    ...DynamicPropertyTypesGrid_propertyTypes\n    id\n  }\n  positionDefinitions {\n    ...PositionDefinitionsTable_positionDefinitions\n    id\n  }\n  portDefinitions {\n    ...PortDefinitionsTable_portDefinitions\n    id\n  }\n  numberOfEquipment\n}\n\nfragment PortDefinitionsTable_portDefinitions on EquipmentPortDefinition {\n  id\n  name\n  index\n  visibleLabel\n  portType {\n    id\n    name\n  }\n}\n\nfragment PositionDefinitionsTable_positionDefinitions on EquipmentPositionDefinition {\n  id\n  name\n  index\n  visibleLabel\n}\n\nfragment PropertyTypeFormField_propertyType on PropertyType {\n  id\n  name\n  type\n  index\n  stringValue\n  intValue\n  booleanValue\n  floatValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  isEditable\n  isInstanceProperty\n  isMandatory\n}\n",
+    "text": "mutation AddEquipmentTypeMutation(\n  $input: AddEquipmentTypeInput!\n) {\n  addEquipmentType(input: $input) {\n    id\n    name\n    ...EquipmentTypeItem_equipmentType\n  }\n}\n\nfragment DynamicPropertyTypesGrid_propertyTypes on PropertyType {\n  ...PropertyTypeFormField_propertyType\n  id\n  index\n}\n\nfragment EquipmentTypeItem_equipmentType on EquipmentType {\n  id\n  name\n  propertyTypes {\n    ...DynamicPropertyTypesGrid_propertyTypes\n    id\n  }\n  positionDefinitions {\n    ...PositionDefinitionsTable_positionDefinitions\n    id\n  }\n  portDefinitions {\n    ...PortDefinitionsTable_portDefinitions\n    id\n  }\n  numberOfEquipment\n}\n\nfragment PortDefinitionsTable_portDefinitions on EquipmentPortDefinition {\n  id\n  name\n  index\n  visibleLabel\n  portType {\n    id\n    name\n  }\n}\n\nfragment PositionDefinitionsTable_positionDefinitions on EquipmentPositionDefinition {\n  id\n  name\n  index\n  visibleLabel\n}\n\nfragment PropertyTypeFormField_propertyType on PropertyType {\n  id\n  name\n  type\n  nodeType\n  index\n  stringValue\n  intValue\n  booleanValue\n  floatValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  isEditable\n  isInstanceProperty\n  isMandatory\n  category\n  isDeleted\n}\n",
     "metadata": {}
   }
 };

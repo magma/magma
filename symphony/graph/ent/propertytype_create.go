@@ -71,6 +71,20 @@ func (ptc *PropertyTypeCreate) SetName(s string) *PropertyTypeCreate {
 	return ptc
 }
 
+// SetExternalID sets the external_id field.
+func (ptc *PropertyTypeCreate) SetExternalID(s string) *PropertyTypeCreate {
+	ptc.mutation.SetExternalID(s)
+	return ptc
+}
+
+// SetNillableExternalID sets the external_id field if the given value is not nil.
+func (ptc *PropertyTypeCreate) SetNillableExternalID(s *string) *PropertyTypeCreate {
+	if s != nil {
+		ptc.SetExternalID(*s)
+	}
+	return ptc
+}
+
 // SetIndex sets the index field.
 func (ptc *PropertyTypeCreate) SetIndex(i int) *PropertyTypeCreate {
 	ptc.mutation.SetIndex(i)
@@ -263,6 +277,20 @@ func (ptc *PropertyTypeCreate) SetDeleted(b bool) *PropertyTypeCreate {
 func (ptc *PropertyTypeCreate) SetNillableDeleted(b *bool) *PropertyTypeCreate {
 	if b != nil {
 		ptc.SetDeleted(*b)
+	}
+	return ptc
+}
+
+// SetNodeType sets the nodeType field.
+func (ptc *PropertyTypeCreate) SetNodeType(s string) *PropertyTypeCreate {
+	ptc.mutation.SetNodeType(s)
+	return ptc
+}
+
+// SetNillableNodeType sets the nodeType field if the given value is not nil.
+func (ptc *PropertyTypeCreate) SetNillableNodeType(s *string) *PropertyTypeCreate {
+	if s != nil {
+		ptc.SetNodeType(*s)
 	}
 	return ptc
 }
@@ -525,6 +553,14 @@ func (ptc *PropertyTypeCreate) sqlSave(ctx context.Context) (*PropertyType, erro
 		})
 		pt.Name = value
 	}
+	if value, ok := ptc.mutation.ExternalID(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: propertytype.FieldExternalID,
+		})
+		pt.ExternalID = value
+	}
 	if value, ok := ptc.mutation.Index(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
@@ -636,6 +672,14 @@ func (ptc *PropertyTypeCreate) sqlSave(ctx context.Context) (*PropertyType, erro
 			Column: propertytype.FieldDeleted,
 		})
 		pt.Deleted = value
+	}
+	if value, ok := ptc.mutation.NodeType(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: propertytype.FieldNodeType,
+		})
+		pt.NodeType = value
 	}
 	if nodes := ptc.mutation.PropertiesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

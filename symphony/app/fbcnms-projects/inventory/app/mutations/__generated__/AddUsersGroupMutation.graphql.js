@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash ca60654977ef551a728cbca55d3a8dfd
+ * @relayHash a29bc168362e56501e1b4bf4ec43fa42
  */
 
 /* eslint-disable */
@@ -19,6 +19,8 @@ export type UsersGroupStatus = "ACTIVE" | "DEACTIVATED" | "%future added value";
 export type AddUsersGroupInput = {|
   name: string,
   description?: ?string,
+  members?: ?$ReadOnlyArray<string>,
+  policies?: ?$ReadOnlyArray<string>,
 |};
 export type AddUsersGroupMutationVariables = {|
   input: AddUsersGroupInput
@@ -161,5 +163,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '555d6e302edd997446420df8d76b81d2';
+(node/*: any*/).hash = 'a7b68e738f78bffc91dc722538502f62';
 module.exports = node;

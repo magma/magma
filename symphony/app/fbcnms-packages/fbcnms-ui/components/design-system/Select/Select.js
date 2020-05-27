@@ -9,13 +9,14 @@
  */
 
 import type {ButtonProps} from '../Button';
-import type {OptionProps} from './SelectMenu';
+import type {SelectMenuProps} from './SelectMenu';
 
 import * as React from 'react';
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import BasePopoverTrigger from '../ContexualLayer/BasePopoverTrigger';
 import Button from '../Button';
 import SelectMenu from './SelectMenu';
+import Text from '../Text';
 import classNames from 'classnames';
 import symphony from '@fbcnms/ui/theme/symphony';
 import {makeStyles} from '@material-ui/styles';
@@ -31,12 +32,14 @@ const useStyles = makeStyles(() => ({
     border: `1px solid ${symphony.palette.D100}`,
     '&$disabled': {
       backgroundColor: symphony.palette.background,
+      color: symphony.palette.secondary,
     },
   },
   disabled: {
     '&&': {
       '&&': {
         color: symphony.palette.secondary,
+        fill: symphony.palette.secondary,
       },
     },
   },
@@ -51,28 +54,26 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-type Props<TValue> = {
+type Props<TValue> = $ReadOnly<{|
   className?: string,
   label?: React.Node,
-  options: Array<OptionProps<TValue>>,
-  onChange: (value: TValue) => void | (() => void),
-  selectedValue: ?TValue,
   ...ButtonProps,
-};
+  ...SelectMenuProps<TValue>,
+|}>;
 
-const Select = <TValue>({
-  label,
-  className,
-  ...selectMenuProps
-}: Props<TValue>) => {
-  const classes = useStyles();
+const Select = <TValue>(props: Props<TValue>) => {
   const {
-    options,
-    selectedValue,
-    skin,
-    variant,
+    label,
+    className,
     disabled: disabledProp,
-  } = selectMenuProps;
+    skin,
+    tooltip,
+    useEllipsis = true,
+    variant,
+    ...selectMenuProps
+  } = props;
+  const {selectedValue, options} = selectMenuProps;
+  const classes = useStyles();
   const {disabled: contextDisabled} = useFormElementContext();
   const disabled = useMemo(
     () => (disabledProp ? disabledProp : contextDisabled),
@@ -92,21 +93,25 @@ const Select = <TValue>({
           variant={variant}
           disabled={disabled}
           rightIcon={ArrowDropDownIcon}
-          rightIconClass={classNames({[classes.disabled]: disabled})}>
-          <span className={classes.label}>{label}</span>
-          {selectedValue != null && !!label ? ': ' : null}
-          {selectedValue != null ? (
-            <span
-              className={
-                classNames({
-                  [classes.formValue]: !label,
-                  [classes.disabled]: !label && disabled,
-                }) || null
-              }>
-              {options.find(option => option.value === selectedValue)?.label ??
-                ''}
-            </span>
-          ) : null}
+          rightIconClass={classNames({[classes.disabled]: disabled})}
+          tooltip={tooltip}
+          useEllipsis={useEllipsis}>
+          <Text variant="body2">
+            <span className={classes.label}>{label}</span>
+            {selectedValue != null && !!label ? ': ' : null}
+            {selectedValue != null ? (
+              <span
+                className={
+                  classNames({
+                    [classes.formValue]: !label,
+                    [classes.disabled]: !label && disabled,
+                  }) || null
+                }>
+                {options.find(option => option.value === selectedValue)
+                  ?.label ?? ''}
+              </span>
+            ) : null}
+          </Text>
         </Button>
       )}
     </BasePopoverTrigger>

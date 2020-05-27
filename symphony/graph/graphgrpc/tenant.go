@@ -10,6 +10,7 @@ import (
 	"fmt"
 
 	"github.com/facebookincubator/symphony/graph/ent/migrate"
+	"github.com/facebookincubator/symphony/graph/graphgrpc/schema"
 	"github.com/facebookincubator/symphony/graph/viewer"
 
 	"github.com/golang/protobuf/ptypes/empty"
@@ -38,7 +39,7 @@ func NewTenantService(provider Provider) TenantService {
 }
 
 // Create a tenant by name.
-func (s TenantService) Create(ctx context.Context, name *wrappers.StringValue) (*Tenant, error) {
+func (s TenantService) Create(ctx context.Context, name *wrappers.StringValue) (*schema.Tenant, error) {
 	if name.Value == "" {
 		return nil, status.Error(codes.InvalidArgument, "missing tenant name")
 	}
@@ -52,11 +53,11 @@ func (s TenantService) Create(ctx context.Context, name *wrappers.StringValue) (
 	if _, err := s.DB(ctx).ExecContext(ctx, fmt.Sprintf("CREATE DATABASE `%s` DEFAULT CHARACTER SET utf8mb4 DEFAULT COLLATE utf8mb4_bin", viewer.DBName(name.Value))); err != nil {
 		return nil, status.FromContextError(err).Err()
 	}
-	return &Tenant{Id: name.Value, Name: name.Value}, nil
+	return &schema.Tenant{Id: name.Value, Name: name.Value}, nil
 }
 
 // List all tenants.
-func (s TenantService) List(ctx context.Context, _ *empty.Empty) (*TenantList, error) {
+func (s TenantService) List(ctx context.Context, _ *empty.Empty) (*schema.TenantList, error) {
 	rows, err := s.DB(ctx).QueryContext(ctx,
 		"SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME LIKE ?", viewer.DBName("%"),
 	)
@@ -64,20 +65,20 @@ func (s TenantService) List(ctx context.Context, _ *empty.Empty) (*TenantList, e
 		return nil, status.FromContextError(err).Err()
 	}
 	defer rows.Close()
-	var tenants []*Tenant
+	var tenants []*schema.Tenant
 	for rows.Next() {
 		var name string
 		if err := rows.Scan(&name); err != nil {
 			return nil, status.FromContextError(err).Err()
 		}
 		name = viewer.FromDBName(name)
-		tenants = append(tenants, &Tenant{Id: name, Name: name})
+		tenants = append(tenants, &schema.Tenant{Id: name, Name: name})
 	}
-	return &TenantList{Tenants: tenants}, rows.Err()
+	return &schema.TenantList{Tenants: tenants}, rows.Err()
 }
 
 // Get tenant by name.
-func (s TenantService) Get(ctx context.Context, name *wrappers.StringValue) (*Tenant, error) {
+func (s TenantService) Get(ctx context.Context, name *wrappers.StringValue) (*schema.Tenant, error) {
 	if name.Value == "" {
 		return nil, status.Error(codes.InvalidArgument, "missing tenant name")
 	}
@@ -87,7 +88,7 @@ func (s TenantService) Get(ctx context.Context, name *wrappers.StringValue) (*Te
 	case !exist:
 		return nil, status.Errorf(codes.NotFound, "missing tenant %s", name.Value)
 	default:
-		return &Tenant{Id: name.Value, Name: name.Value}, nil
+		return &schema.Tenant{Id: name.Value, Name: name.Value}, nil
 	}
 }
 

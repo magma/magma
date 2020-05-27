@@ -7,6 +7,8 @@ package resolver
 import (
 	"context"
 
+	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
+
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 )
@@ -23,11 +25,6 @@ func (checkListItemResolver) Type(ctx context.Context, obj *ent.CheckListItem) (
 	return models.CheckListItemType(obj.Type), nil
 }
 
-func (checkListItemResolver) EnumSelectionMode(_ context.Context, item *ent.CheckListItem) (*models.CheckListItemEnumSelectionMode, error) {
-	selectionMode := models.CheckListItemEnumSelectionMode(item.EnumSelectionMode)
-	return &selectionMode, nil
-}
-
 func (checkListItemResolver) Files(ctx context.Context, item *ent.CheckListItem) ([]*ent.File, error) {
 	return item.QueryFiles().All(ctx)
 }
@@ -40,8 +37,30 @@ func (checkListItemResolver) YesNoResponse(ctx context.Context, item *ent.CheckL
 	return nil, nil
 }
 
+func (checkListItemResolver) WifiData(ctx context.Context, item *ent.CheckListItem) ([]*ent.SurveyWiFiScan, error) {
+	return item.QueryWifiScan().All(ctx)
+}
+
+func (checkListItemResolver) CellData(ctx context.Context, item *ent.CheckListItem) ([]*ent.SurveyCellScan, error) {
+	return item.QueryCellScan().All(ctx)
+}
+
+func (checkListItemResolver) EnumSelectionMode(ctx context.Context, item *ent.CheckListItem) (*checklistitem.EnumSelectionModeValue, error) {
+	return &item.EnumSelectionModeValue, nil
+}
+
+type checkListCategoryDefinitionResolver struct{}
+
+func (checkListCategoryDefinitionResolver) ChecklistItemDefinitions(ctx context.Context, category *ent.CheckListCategoryDefinition) ([]*ent.CheckListItemDefinition, error) {
+	return category.QueryCheckListItemDefinitions().All(ctx)
+}
+
 type checkListItemDefinitionResolver struct{}
 
 func (checkListItemDefinitionResolver) Type(ctx context.Context, obj *ent.CheckListItemDefinition) (models.CheckListItemType, error) {
 	return models.CheckListItemType(obj.Type), nil
+}
+
+func (checkListItemDefinitionResolver) EnumSelectionMode(ctx context.Context, item *ent.CheckListItemDefinition) (*checklistitem.EnumSelectionModeValue, error) {
+	return (*checklistitem.EnumSelectionModeValue)(&item.EnumSelectionModeValue), nil
 }

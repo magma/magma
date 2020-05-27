@@ -13,11 +13,11 @@ replace (
 )
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.3.3
 	github.com/Masterminds/squirrel v1.1.1-0.20190513200039-d13326f0be73
 	github.com/coreos/go-systemd v0.0.0-20181031085051-9002847aa142
 	github.com/emakeev/snowflake v0.0.0-20200206205012-767080b052fe
 	github.com/facebookincubator/ent v0.0.0-20191128071424-29c7b0a0d805
-	github.com/go-logfmt/logfmt v0.4.0 // indirect
 	github.com/go-openapi/analysis v0.18.0 // indirect
 	github.com/go-openapi/errors v0.19.2
 	github.com/go-openapi/jsonpointer v0.18.0 // indirect
@@ -47,10 +47,10 @@ require (
 	github.com/onsi/gomega v1.4.3 // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/prometheus/alertmanager v0.17.0
-	github.com/prometheus/client_golang v0.9.3-0.20190127221311-3c4408c8b829
+	github.com/prometheus/client_golang v1.2.1
 	github.com/prometheus/client_model v0.2.0
-	github.com/prometheus/common v0.2.0
-	github.com/prometheus/procfs v0.0.0-20190117184657-bf6a532e95b1
+	github.com/prometheus/common v0.7.0
+	github.com/prometheus/procfs v0.0.5
 	github.com/prometheus/prometheus v0.0.0-20190115164134-b639fe140c1f
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/viper v1.3.1 // indirect
@@ -59,7 +59,7 @@ require (
 	github.com/toqueteos/webbrowser v1.1.0 // indirect
 	github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5
 	golang.org/x/lint v0.0.0-20190409202823-959b441ac422
-	golang.org/x/net v0.0.0-20200202094626-16171245cfb2
+	golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e
 	golang.org/x/tools v0.0.0-20191012152004-8de300cfc20a
 	google.golang.org/api v0.3.1 // indirect
 	google.golang.org/grpc v1.27.1

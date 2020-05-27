@@ -163,7 +163,7 @@ func (store *memoryBlobStorage) GetMany(networkID string, ids []storage.TypeAndK
 	return store.updateBlobsWithLocalChangesUnsafe(networkID, ids, sharedBlobs), nil
 }
 
-func (store *memoryBlobStorage) Search(filter SearchFilter) (map[string][]Blob, error) {
+func (store *memoryBlobStorage) Search(filter SearchFilter, criteria LoadCriteria) (map[string][]Blob, error) {
 	store.RLock()
 	defer store.RUnlock()
 
@@ -175,7 +175,10 @@ func (store *memoryBlobStorage) Search(filter SearchFilter) (map[string][]Blob, 
 	sharedBlobs := store.searchFromShared(filter)
 	store.shared.RUnlock()
 
-	return store.searchForLocalChangesUnsafe(filter, sharedBlobs), nil
+	withLocalChanges := store.searchForLocalChangesUnsafe(filter, sharedBlobs)
+	withParedFields := handleLoadCriteria(withLocalChanges, criteria)
+
+	return withParedFields, nil
 }
 
 func (store *memoryBlobStorage) CreateOrUpdate(networkID string, blobs []Blob) error {
@@ -353,7 +356,7 @@ func (set *nIDAndTKSet) sortAndRemoveDuplicate() []string {
 // Must be called with read lock on change map.
 func (store *memoryBlobStorage) validateTx() error {
 	if store.transactionExists == false {
-		return errors.New("No transaction is available")
+		return errors.New("no transaction is available")
 	}
 	return nil
 }
@@ -540,7 +543,7 @@ func (blob *Blob) toID() storage.TypeAndKey {
 }
 
 func blobsToIDs(blobs []Blob) []storage.TypeAndKey {
-	ids := []storage.TypeAndKey{}
+	var ids []storage.TypeAndKey
 	for _, blob := range blobs {
 		ids = append(ids, blob.toID())
 	}
@@ -548,7 +551,7 @@ func blobsToIDs(blobs []Blob) []storage.TypeAndKey {
 }
 
 func (blobSet blobsByID) toBlobList() []Blob {
-	blobs := []Blob{}
+	var blobs []Blob
 	for _, blob := range blobSet {
 		blobs = append(blobs, blob)
 	}
@@ -556,10 +559,27 @@ func (blobSet blobsByID) toBlobList() []Blob {
 }
 
 func fromKeySet(keySet map[string]struct{}) []string {
-	keys := []string{}
+	var keys []string
 	for k := range keySet {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
 	return keys
+}
+
+// Map blobs -> blobs, zeroing fields according to load criteria.
+func handleLoadCriteria(blobsByNetwork map[string][]Blob, criteria LoadCriteria) map[string][]Blob {
+	ret := map[string][]Blob{}
+
+	for network, blobs := range blobsByNetwork {
+		ret[network] = make([]Blob, 0, len(blobs))
+		for _, blob := range blobs {
+			if !criteria.LoadValue {
+				blob.Value = nil
+			}
+			ret[network] = append(ret[network], blob)
+		}
+	}
+
+	return ret
 }

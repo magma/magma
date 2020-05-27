@@ -8,6 +8,8 @@ package propertytype
 
 import (
 	"time"
+
+	"github.com/facebookincubator/ent"
 )
 
 const (
@@ -18,7 +20,8 @@ const (
 	FieldCreateTime         = "create_time"          // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
 	FieldUpdateTime         = "update_time"          // FieldType holds the string denoting the type vertex property in the database.
 	FieldType               = "type"                 // FieldName holds the string denoting the name vertex property in the database.
-	FieldName               = "name"                 // FieldIndex holds the string denoting the index vertex property in the database.
+	FieldName               = "name"                 // FieldExternalID holds the string denoting the external_id vertex property in the database.
+	FieldExternalID         = "external_id"          // FieldIndex holds the string denoting the index vertex property in the database.
 	FieldIndex              = "index"                // FieldCategory holds the string denoting the category vertex property in the database.
 	FieldCategory           = "category"             // FieldIntVal holds the string denoting the int_val vertex property in the database.
 	FieldIntVal             = "int_val"              // FieldBoolVal holds the string denoting the bool_val vertex property in the database.
@@ -32,7 +35,8 @@ const (
 	FieldIsInstanceProperty = "is_instance_property" // FieldEditable holds the string denoting the editable vertex property in the database.
 	FieldEditable           = "editable"             // FieldMandatory holds the string denoting the mandatory vertex property in the database.
 	FieldMandatory          = "mandatory"            // FieldDeleted holds the string denoting the deleted vertex property in the database.
-	FieldDeleted            = "deleted"
+	FieldDeleted            = "deleted"              // FieldNodeType holds the string denoting the nodetype vertex property in the database.
+	FieldNodeType           = "node_type"
 
 	// EdgeProperties holds the string denoting the properties edge name in mutations.
 	EdgeProperties = "properties"
@@ -118,6 +122,7 @@ var Columns = []string{
 	FieldUpdateTime,
 	FieldType,
 	FieldName,
+	FieldExternalID,
 	FieldIndex,
 	FieldCategory,
 	FieldIntVal,
@@ -132,6 +137,7 @@ var Columns = []string{
 	FieldEditable,
 	FieldMandatory,
 	FieldDeleted,
+	FieldNodeType,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the PropertyType type.
@@ -145,7 +151,15 @@ var ForeignKeys = []string{
 	"work_order_type_property_types",
 }
 
+// Note that the variables below are initialized by the runtime
+// package on the initialization of the application. Therefore,
+// it should be imported in the main as follows:
+//
+//	import _ "github.com/facebookincubator/symphony/graph/ent/runtime"
+//
 var (
+	Hooks  [1]ent.Hook
+	Policy ent.Policy
 	// DefaultCreateTime holds the default value on creation for the create_time field.
 	DefaultCreateTime func() time.Time
 	// DefaultUpdateTime holds the default value on creation for the update_time field.

@@ -32,6 +32,18 @@ class TestWrapper(object):
     Module wrapping boiler plate code for all test setups and cleanups.
     """
 
+    # With the current mask value of 24 in TEST_IP_BLOCK, we can allocate a
+    # maximum of 255 UE IP addresses only. Moreover, magma has reserved 12 IP
+    # addresses for testing purpose, hence maximum allowed free IP addresses
+    # are 243. We need to change this mask value in order to allocate more than
+    # 243 UE IP addresses. Therefore, with the mask value of n, the maximum
+    # number of UE IP addresses allowed will be ((2^(32-n)) - 13).
+    # Example:
+    #  mask value 24, max allowed UE IP addresses = ((2^(32-24)) - 13) = 243
+    #  mask value 20, max allowed UE IP addresses = ((2^(32-20)) - 13) = 4083
+    #  mask value 17, max allowed UE IP addresses = ((2^(32-17)) - 13) = 32755
+    # Decreasing the mask value will provide more UE IP addresses in the free
+    # IP address pool
     TEST_IP_BLOCK = "192.168.128.0/24"
     MSX_S1_RETRY = 2
 
@@ -306,25 +318,20 @@ class TestWrapper(object):
         req = s1ap_types.multiEnbConfigReq_t()
         req.numOfEnbs = num_of_enbs
         # ENB Parameter column index initialization
-        PLMN_LENGTH = 6
         CELLID_COL_IDX = 0
         TAC_COL_IDX = 1
         ENBTYPE_COL_IDX = 2
         PLMNID_COL_IDX = 3
+        PLMN_LENGTH_IDX = 4
 
         for idx1 in range(num_of_enbs):
             req.multiEnbCfgParam[idx1].cell_id = enb_list[idx1][CELLID_COL_IDX]
-
-        for idx1 in range(num_of_enbs):
             req.multiEnbCfgParam[idx1].tac = enb_list[idx1][TAC_COL_IDX]
-
-        for idx1 in range(num_of_enbs):
             req.multiEnbCfgParam[idx1].enbType = enb_list[idx1][ENBTYPE_COL_IDX]
-
-        for idx1 in range(num_of_enbs):
-            for idx3 in range(PLMN_LENGTH):
-                val = enb_list[idx1][PLMNID_COL_IDX][idx3]
-                req.multiEnbCfgParam[idx1].plmn_id[idx3] = int(val)
+            req.multiEnbCfgParam[idx1].plmn_length = enb_list[idx1][PLMN_LENGTH_IDX]
+            for idx2 in range(req.multiEnbCfgParam[idx1].plmn_length):
+                val = enb_list[idx1][PLMNID_COL_IDX][idx2]
+                req.multiEnbCfgParam[idx1].plmn_id[idx2] = int(val)
 
         print("***************** Sending Multiple Enb Config Request\n")
         assert (
@@ -339,7 +346,8 @@ class TestWrapper(object):
             s1ap_types.tfwCmd.UE_ACT_DED_BER_ACC, act_ded_bearer_acc
         )
         print(
-            "************** Sending activate dedicated EPS bearer " "context accept\n"
+            "************** Sending activate dedicated EPS bearer "
+            "context accept\n"
         )
 
     def sendDeactDedicatedBearerAccept(self, ue_id, bearerId):
@@ -351,19 +359,27 @@ class TestWrapper(object):
         )
         print("************* Sending deactivate EPS bearer context accept\n")
 
-    def sendPdnConnectivityReq(self, ue_id, apn):
+    def sendPdnConnectivityReq(
+        self, ue_id, apn, pdn_type=1, pcscf_addr_type=None
+    ):
         req = s1ap_types.uepdnConReq_t()
         req.ue_Id = ue_id
         # Initial Request
         req.reqType = 1
         req.pdnType_pr.pres = 1
-        # PDN Type = IPv4
-        req.pdnType_pr.pdn_type = 1
+        # PDN Type 1 = IPv4, 2 = IPv6, 3 = IPv4v6
+        req.pdnType_pr.pdn_type = pdn_type
         req.pdnAPN_pr.pres = 1
         req.pdnAPN_pr.len = len(apn)
         req.pdnAPN_pr.pdn_apn = (ctypes.c_ubyte * 100)(
             *[ctypes.c_ubyte(ord(c)) for c in apn[:100]]
         )
+        print("********* PDN type", pdn_type)
+        # Populate PCO if pcscf_addr_type is set
+        if pcscf_addr_type:
+            print("********* pcscf_addr_type", pcscf_addr_type)
+            self._s1_util.populate_pco(req.protCfgOpts_pr, pcscf_addr_type)
+
         self.s1_util.issue_cmd(s1ap_types.tfwCmd.UE_PDN_CONN_REQ, req)
 
         print("************* Sending Standalone PDN Connectivity Request\n")

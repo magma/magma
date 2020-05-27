@@ -34,8 +34,8 @@ func websocket(client *client.Client, query string) *client.Subscription {
 
 func TestSubscriptionWorkOrder(t *testing.T) {
 	resolver := newTestResolver(t)
-	defer resolver.drv.Close()
-	c := newGraphClient(t, resolver)
+	defer resolver.Close()
+	c := resolver.GraphClient()
 
 	var typ string
 	{

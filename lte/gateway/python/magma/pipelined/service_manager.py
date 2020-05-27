@@ -45,16 +45,20 @@ from magma.pipelined.app.tunnel_learn import TunnelLearnController
 from magma.pipelined.app.vlan_learn import VlanLearnController
 from magma.pipelined.app.arp import ArpController
 from magma.pipelined.app.dpi import DPIController
+from magma.pipelined.app.gy import GYController
 from magma.pipelined.app.enforcement import EnforcementController
 from magma.pipelined.app.ipfix import IPFIXController
+from magma.pipelined.app.li_mirror import LIMirrorController
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController
 from magma.pipelined.app.inout import EGRESS, INGRESS, PHYSICAL_TO_LOGICAL, \
     InOutController
 from magma.pipelined.app.ue_mac import UEMacAddressController
+from magma.pipelined.app.xwf_passthru import XWFPassthruController
 from magma.pipelined.app.startup_flows import StartupFlows
 from magma.pipelined.app.check_quota import CheckQuotaController
 from magma.pipelined.rule_mappers import RuleIDToNumMapper, \
     SessionRuleToVersionMapper
+from magma.pipelined.internal_ip_allocator import InternalIPAllocator
 from ryu.base.app_manager import AppManager
 
 from magma.common.service import MagmaService
@@ -126,7 +130,9 @@ class _TableManager:
     EGRESS_TABLE_NUM = 20
     LOGICAL_TABLE_LIMIT_NUM = EGRESS_TABLE_NUM  # exclusive
     SCRATCH_TABLE_START_NUM = EGRESS_TABLE_NUM + 1  # 21
-    SCRATCH_TABLE_LIMIT_NUM = 255  # exclusive
+    SCRATCH_TABLE_LIMIT_NUM = 200
+    # 200 - 255 is used for apps that share a table
+    ALL_TABLE_LIMIT_NUM = 255  # exclusive
 
     def __init__(self):
         self._table_ranges = {
@@ -217,7 +223,7 @@ class _TableManager:
         resp = OrderedDict(sorted(self._tables_by_app.items(),
                                   key=lambda kv: (kv[1].main_table, kv[0])))
         # Include table 0 when it is managed by the EPC, for completeness.
-        if 'ue_mac' not in self._tables_by_app:
+        if not any(table in ['ue_mac', 'xwf_passthru'] for table in self._tables_by_app):
             resp['mme'] = Tables(main_table=0, type=None)
             resp.move_to_end('mme', last=False)
         return resp
@@ -247,6 +253,13 @@ class ServiceManager:
     RYU_REST_APP_NAME = 'ryu_rest_app'
     STARTUP_FLOWS_RECIEVER_CONTROLLER = 'startup_flows'
     CHECK_QUOTA_SERVICE_NAME = 'check_quota'
+    LI_MIRROR_SERVICE_NAME = 'li_mirror'
+    XWF_PASSTHRU_NAME = 'xwf_passthru'
+
+    INTERNAL_APP_SET_TABLE_NUM = 201
+    INTERNAL_IMSI_SET_TABLE_NUM = 202
+    INTERNAL_IPFIX_SAMPLE_TABLE_NUM = 203
+    INTERNAL_MAC_IP_REWRITE_TBL_NUM = 204
 
     # Mapping between services defined in mconfig and the names and modules of
     # the corresponding Ryu apps in PipelineD. The module is used for the Ryu
@@ -254,6 +267,10 @@ class ServiceManager:
     # Note that a service may require multiple apps.
     DYNAMIC_SERVICE_TO_APPS = {
         PipelineD.ENFORCEMENT: [
+            App(name=GYController.APP_NAME,
+                module=GYController.__module__,
+                type=GYController.APP_TYPE,
+                order_priority=499),
             App(name=EnforcementController.APP_NAME,
                 module=EnforcementController.__module__,
                 type=EnforcementController.APP_TYPE,
@@ -266,7 +283,7 @@ class ServiceManager:
         PipelineD.DPI: [
             App(name=DPIController.APP_NAME, module=DPIController.__module__,
                 type=DPIController.APP_TYPE,
-                order_priority=700),
+                order_priority=400),
         ],
     }
 
@@ -326,6 +343,18 @@ class ServiceManager:
                 type=IPFIXController.APP_TYPE,
                 order_priority=800),
         ],
+        LI_MIRROR_SERVICE_NAME: [
+            App(name=LIMirrorController.APP_NAME,
+                module=LIMirrorController.__module__,
+                type=LIMirrorController.APP_TYPE,
+                order_priority=900),
+        ],
+        XWF_PASSTHRU_NAME: [
+            App(name=XWFPassthruController.APP_NAME,
+                module=XWFPassthruController.__module__,
+                type=XWFPassthruController.APP_TYPE,
+                order_priority=0),
+        ],
     }
 
     # Some apps do not use a table, so they need to be excluded from table
@@ -358,7 +387,7 @@ class ServiceManager:
             if app.name in self.STATIC_APP_WITH_NO_TABLE:
                 continue
             # UE MAC service must be registered with Table 0
-            if app.name == self.UE_MAC_ADDRESS_SERVICE_NAME:
+            if app.name in [self.UE_MAC_ADDRESS_SERVICE_NAME, self.XWF_PASSTHRU_NAME]:
                 self._table_manager.register_apps_for_table0_service([app])
                 continue
             self._table_manager.register_apps_for_service([app])
@@ -409,6 +438,8 @@ class ServiceManager:
         contexts[
             'session_rule_version_mapper'] = self.session_rule_version_mapper
         contexts['app_futures'] = {app.name: Future() for app in self._apps}
+        contexts['internal_ip_allocator'] = \
+            InternalIPAllocator(self._magma_service.config)
         contexts['config'] = self._magma_service.config
         contexts['mconfig'] = self._magma_service.mconfig
         contexts['loop'] = self._magma_service.loop

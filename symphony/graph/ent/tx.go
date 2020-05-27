@@ -8,6 +8,7 @@ package ent
 
 import (
 	"context"
+	"sync"
 
 	"github.com/facebookincubator/ent/dialect"
 )
@@ -17,8 +18,12 @@ type Tx struct {
 	config
 	// ActionsRule is the client for interacting with the ActionsRule builders.
 	ActionsRule *ActionsRuleClient
+	// Activity is the client for interacting with the Activity builders.
+	Activity *ActivityClient
 	// CheckListCategory is the client for interacting with the CheckListCategory builders.
 	CheckListCategory *CheckListCategoryClient
+	// CheckListCategoryDefinition is the client for interacting with the CheckListCategoryDefinition builders.
+	CheckListCategoryDefinition *CheckListCategoryDefinitionClient
 	// CheckListItem is the client for interacting with the CheckListItem builders.
 	CheckListItem *CheckListItemClient
 	// CheckListItemDefinition is the client for interacting with the CheckListItemDefinition builders.
@@ -59,6 +64,8 @@ type Tx struct {
 	Location *LocationClient
 	// LocationType is the client for interacting with the LocationType builders.
 	LocationType *LocationTypeClient
+	// PermissionsPolicy is the client for interacting with the PermissionsPolicy builders.
+	PermissionsPolicy *PermissionsPolicyClient
 	// Project is the client for interacting with the Project builders.
 	Project *ProjectClient
 	// ProjectType is the client for interacting with the ProjectType builders.
@@ -73,6 +80,8 @@ type Tx struct {
 	Service *ServiceClient
 	// ServiceEndpoint is the client for interacting with the ServiceEndpoint builders.
 	ServiceEndpoint *ServiceEndpointClient
+	// ServiceEndpointDefinition is the client for interacting with the ServiceEndpointDefinition builders.
+	ServiceEndpointDefinition *ServiceEndpointDefinitionClient
 	// ServiceType is the client for interacting with the ServiceType builders.
 	ServiceType *ServiceTypeClient
 	// Survey is the client for interacting with the Survey builders.
@@ -87,8 +96,6 @@ type Tx struct {
 	SurveyTemplateQuestion *SurveyTemplateQuestionClient
 	// SurveyWiFiScan is the client for interacting with the SurveyWiFiScan builders.
 	SurveyWiFiScan *SurveyWiFiScanClient
-	// Technician is the client for interacting with the Technician builders.
-	Technician *TechnicianClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 	// UsersGroup is the client for interacting with the UsersGroup builders.
@@ -99,28 +106,67 @@ type Tx struct {
 	WorkOrderDefinition *WorkOrderDefinitionClient
 	// WorkOrderType is the client for interacting with the WorkOrderType builders.
 	WorkOrderType *WorkOrderTypeClient
+
+	// lazily loaded.
+	client     *Client
+	clientOnce sync.Once
+
+	// completion callbacks.
+	mu         sync.Mutex
+	onCommit   []func(error)
+	onRollback []func(error)
 }
 
 // Commit commits the transaction.
 func (tx *Tx) Commit() error {
-	return tx.config.driver.(*txDriver).tx.Commit()
+	err := tx.config.driver.(*txDriver).tx.Commit()
+	tx.mu.Lock()
+	defer tx.mu.Unlock()
+	for _, f := range tx.onCommit {
+		f(err)
+	}
+	return err
+}
+
+// OnCommit adds a function to call on commit.
+func (tx *Tx) OnCommit(f func(error)) {
+	tx.mu.Lock()
+	defer tx.mu.Unlock()
+	tx.onCommit = append(tx.onCommit, f)
 }
 
 // Rollback rollbacks the transaction.
 func (tx *Tx) Rollback() error {
-	return tx.config.driver.(*txDriver).tx.Rollback()
+	err := tx.config.driver.(*txDriver).tx.Rollback()
+	tx.mu.Lock()
+	defer tx.mu.Unlock()
+	for _, f := range tx.onRollback {
+		f(err)
+	}
+	return err
+}
+
+// OnRollback adds a function to call on rollback.
+func (tx *Tx) OnRollback(f func(error)) {
+	tx.mu.Lock()
+	defer tx.mu.Unlock()
+	tx.onRollback = append(tx.onRollback, f)
 }
 
 // Client returns a Client that binds to current transaction.
 func (tx *Tx) Client() *Client {
-	client := &Client{config: tx.config}
-	client.init()
-	return client
+	tx.clientOnce.Do(func() {
+		tx.client = &Client{config: tx.config}
+		tx.client.init()
+	})
+	return tx.client
 }
 
 func (tx *Tx) init() {
 	tx.ActionsRule = NewActionsRuleClient(tx.config)
+	tx.Activity = NewActivityClient(tx.config)
 	tx.CheckListCategory = NewCheckListCategoryClient(tx.config)
+	tx.CheckListCategoryDefinition = NewCheckListCategoryDefinitionClient(tx.config)
 	tx.CheckListItem = NewCheckListItemClient(tx.config)
 	tx.CheckListItemDefinition = NewCheckListItemDefinitionClient(tx.config)
 	tx.Comment = NewCommentClient(tx.config)
@@ -141,6 +187,7 @@ func (tx *Tx) init() {
 	tx.Link = NewLinkClient(tx.config)
 	tx.Location = NewLocationClient(tx.config)
 	tx.LocationType = NewLocationTypeClient(tx.config)
+	tx.PermissionsPolicy = NewPermissionsPolicyClient(tx.config)
 	tx.Project = NewProjectClient(tx.config)
 	tx.ProjectType = NewProjectTypeClient(tx.config)
 	tx.Property = NewPropertyClient(tx.config)
@@ -148,6 +195,7 @@ func (tx *Tx) init() {
 	tx.ReportFilter = NewReportFilterClient(tx.config)
 	tx.Service = NewServiceClient(tx.config)
 	tx.ServiceEndpoint = NewServiceEndpointClient(tx.config)
+	tx.ServiceEndpointDefinition = NewServiceEndpointDefinitionClient(tx.config)
 	tx.ServiceType = NewServiceTypeClient(tx.config)
 	tx.Survey = NewSurveyClient(tx.config)
 	tx.SurveyCellScan = NewSurveyCellScanClient(tx.config)
@@ -155,7 +203,6 @@ func (tx *Tx) init() {
 	tx.SurveyTemplateCategory = NewSurveyTemplateCategoryClient(tx.config)
 	tx.SurveyTemplateQuestion = NewSurveyTemplateQuestionClient(tx.config)
 	tx.SurveyWiFiScan = NewSurveyWiFiScanClient(tx.config)
-	tx.Technician = NewTechnicianClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 	tx.UsersGroup = NewUsersGroupClient(tx.config)
 	tx.WorkOrder = NewWorkOrderClient(tx.config)

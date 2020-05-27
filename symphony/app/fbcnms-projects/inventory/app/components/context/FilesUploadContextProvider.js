@@ -12,12 +12,12 @@
 import type {FileItem} from '@fbcnms/ui/components/design-system/Experimental/FilesUploadSnackbar';
 
 import * as React from 'react';
-import * as imm from 'immutable';
 import emptyFunction from '@fbcnms/util/emptyFunction';
 import {FileUploadStatuses} from '@fbcnms/ui/components/design-system/Experimental/FileUploadStatus';
+import {Map as immMap} from 'immutable';
 import {useState} from 'react';
 
-type FilesStore = imm.Map<string, FileItem>;
+type FilesStore = immMap<string, FileItem>;
 
 type Context = {
   addFile: (id: string, name: string) => void,
@@ -30,7 +30,7 @@ export const FilesUploadContext = React.createContext<Context>({
   addFile: emptyFunction,
   setFileProgress: emptyFunction,
   setFileUploadError: emptyFunction,
-  files: new imm.Map(),
+  files: new immMap<string, FileItem>(),
 });
 
 type Props = {
@@ -38,7 +38,7 @@ type Props = {
 };
 
 export default function FilesUploadContextProvider({children}: Props) {
-  const [files, setFiles] = useState(new imm.Map());
+  const [files, setFiles] = useState(new immMap<string, FileItem>());
   const getStatus = (progress: number) =>
     progress === 100 ? FileUploadStatuses.DONE : FileUploadStatuses.UPLOADING;
 
@@ -70,6 +70,7 @@ export default function FilesUploadContextProvider({children}: Props) {
   };
 
   return (
+    // $FlowFixMe: Found while upgrading flow. Issue about id/name missing
     <FilesUploadContext.Provider value={value}>
       {children}
     </FilesUploadContext.Provider>

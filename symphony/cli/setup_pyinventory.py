@@ -21,16 +21,18 @@ def find_version(*file_paths):
 
 
 GQL_PACKAGES = ["gql", "gql.*"]
+PYSYMPHONY_PACKAGES = ["pysymphony", "pysymphony.*"]
 PYINVENTORY_PACKAGES = ["pyinventory", "pyinventory.*"]
-PYHUB_PACKAGES = ["pyhub", "pyhub.*"]
 
 
 setuptools.setup(
     name="pyinventory",
-    version=find_version("pyinventory", "consts.py"),
+    version=find_version("pyinventory", "common", "constant.py"),
     author="Facebook Inc.",
     description="Tool for accessing and modifying FBC Platform Inventory database",
-    packages=setuptools.find_packages(include=GQL_PACKAGES + PYINVENTORY_PACKAGES),
+    packages=setuptools.find_packages(
+        include=GQL_PACKAGES + PYSYMPHONY_PACKAGES + PYINVENTORY_PACKAGES
+    ),
     classifiers=["Programming Language :: Python :: 3.6"],
     include_package_data=True,
     install_requires=[
@@ -47,8 +49,11 @@ setuptools.setup(
         "dataclasses==0.6",
         "dataclasses-json==0.3.2",
         "dacite>=1.0.2",
-        "pdoc3>=0.7.1",
+        "pdoc3>=0.7.5",
         "colorama>=0.4.1",
         "unittest-xml-reporting>=2.5.2",
+        "protobuf>=3.11.3",
+        "grpcio>=1.27.2",
+        "grpcio-tools>=1.27.2",
     ],
 )

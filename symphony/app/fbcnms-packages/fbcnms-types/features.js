@@ -37,4 +37,8 @@ export type FeatureID =
   | 'external_id'
   | 'checklistcategories'
   | 'saved_searches'
-  | 'user_management';
+  | 'user_management_dev'
+  | 'permission_policies'
+  | 'permissions_ui_enforcement'
+  | 'graph_event_logging'
+  | 'dashboard_v2';

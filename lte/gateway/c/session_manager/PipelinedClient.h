@@ -71,7 +71,8 @@ class PipelinedClient {
   virtual bool deactivate_flows_for_rules(
     const std::string& imsi,
     const std::vector<std::string>& rule_ids,
-    const std::vector<PolicyRule>& dynamic_rules) = 0;
+    const std::vector<PolicyRule>& dynamic_rules,
+    const RequestOriginType_OriginType origin_type) = 0;
 
   /**
    * Activate all rules for the specified rules, using a normal vector
@@ -91,6 +92,17 @@ class PipelinedClient {
     const std::string &ue_mac_addr,
     const std::string &msisdn,
     const std::string &ap_mac_addr,
+    const std::string &ap_name,
+    std::function<void(Status status, FlowResponse)> callback) = 0;
+
+  /**
+   * Update the IPFIX export rule in pipeliend
+   */
+  virtual bool update_ipfix_flow(
+    const SubscriberID &sid,
+    const std::string &ue_mac_addr,
+    const std::string &msisdn,
+    const std::string &ap_mac_addr,
     const std::string &ap_name) = 0;
 
   /**
@@ -106,6 +118,15 @@ class PipelinedClient {
    */
   virtual bool update_subscriber_quota_state(
     const std::vector<SubscriberQuotaUpdate>& updates) = 0;
+
+  /**
+   * Activate the GY final action policy
+   */
+  virtual bool add_gy_final_action_flow(
+    const std::string &imsi,
+    const std::string &ip_addr,
+    const std::vector<std::string> &static_rules,
+    const std::vector<PolicyRule> &dynamic_rules) = 0;
 };
 
 /**
@@ -159,7 +180,8 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
   bool deactivate_flows_for_rules(
     const std::string& imsi,
     const std::vector<std::string>& rule_ids,
-    const std::vector<PolicyRule>& dynamic_rules);
+    const std::vector<PolicyRule>& dynamic_rules,
+    const RequestOriginType_OriginType origin_type);
 
   /**
    * Activate all rules for the specified rules, using a normal vector
@@ -179,6 +201,17 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
     const std::string& ue_mac_addr,
     const std::string& msisdn,
     const std::string& ap_mac_addr,
+    const std::string& ap_name,
+    std::function<void(Status status, FlowResponse)> callback);
+
+  /**
+   * Update the IPFIX export rule in pipeliend
+   */
+  bool update_ipfix_flow(
+    const SubscriberID& sid,
+    const std::string& ue_mac_addr,
+    const std::string& msisdn,
+    const std::string& ap_mac_addr,
     const std::string& ap_name);
 
   /**
@@ -190,6 +223,18 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
   bool delete_ue_mac_flow(
     const SubscriberID &sid,
     const std::string &ue_mac_addr);
+
+  bool add_gy_final_action_flow(
+    const std::string &imsi,
+    const std::string &ip_addr,
+    const std::vector<std::string> &static_rules,
+    const std::vector<PolicyRule> &dynamic_rules);
+
+  void handle_add_ue_mac_callback(
+      const magma::UEMacFlowRequest req,
+      const int retries,
+      Status status,
+      FlowResponse resp);
 
  private:
   static const uint32_t RESPONSE_TIMEOUT = 6; // seconds
@@ -213,6 +258,10 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
     std::function<void(Status, ActivateFlowsResult)> callback);
 
   void add_ue_mac_flow_rpc(
+    const UEMacFlowRequest& request,
+    std::function<void(Status, FlowResponse)> callback);
+
+  void update_ipfix_flow_rpc(
     const UEMacFlowRequest& request,
     std::function<void(Status, FlowResponse)> callback);
 

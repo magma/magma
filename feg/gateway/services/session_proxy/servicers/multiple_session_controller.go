@@ -10,74 +10,90 @@ package servicers
 
 import (
 	"fmt"
-	"strconv"
-	"strings"
 	"sync"
 
 	fegprotos "magma/feg/cloud/go/protos"
+	"magma/feg/gateway/multiplex"
 	"magma/feg/gateway/policydb"
 	"magma/feg/gateway/services/session_proxy/credit_control/gx"
 	"magma/feg/gateway/services/session_proxy/credit_control/gy"
 	"magma/lte/cloud/go/protos"
+	"magma/orc8r/lib/go/errors"
 	orcprotos "magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
 )
 
-/*
-* ##########################################
-* How CentralSessionControllers works
-*
-* CentralSessionControllers holds an slice of N Controllers. Each controller uses an particular diameter
-* client to an specific PCRF and OCS. Each diameter client is configured with its own src and dst port
-*
-* Subscribers are forwarded to a different controller based on their IMSI that comes either in IMSI form on
-* CreateSession or as SessionId (IMSI######-1234) for UpdateSession and Terminate session
-*
-* CreateSession and Terminate session gRPC message come per IMSI so they are forwarded to the controller directly
-*
-* UpdateSession gRPC message comes in groups, so before sending to each controller we look into each Credit and Policy
-* request and forward it to the right controller depending on IMSI
-*
-* Health, Enable and Disable returns error if any of the controllers return errors. No partial results are give.
-* ##########################################
- */
+// How CentralSessionControllers works
+//
+// CentralSessionControllers holds an slice of N Controllers. Each controller uses an particular diameter
+// client to a specific PCRF and OCS. Each diameter client is configured with its own src and dst port
+// Subscribers are forwarded to a different controller using algorithm defined in multiplex object
+//
+// CreateSession and Terminate session gRPC message come per subscriber so they are forwarded to
+// the controller directly
+//
+// UpdateSession gRPC message comes in groups, so before sending the request to each controller we look
+// into each Credit and Policy request and forward it to the right controller depending on multiplex
+//
+// Health, Enable and Disable returns error if any of the controllers return errors. No partial results are give.
+
+// CentralSessionControllerServerWithHealth is an interface just to group CentralSessionControllerServer
+// and ServiceHealthServer. This is used by NewCentralSessionControllerWithHealth to be able to return
+// either CentralSessionControllers or CentralSessionController (without S)
+type CentralSessionControllerServerWithHealth interface {
+	protos.CentralSessionControllerServer
+	fegprotos.ServiceHealthServer
+}
 
 type CentralSessionControllers struct {
 	centralControllers []*CentralSessionController
+	multiplexor        multiplex.Multiplexor
 }
 
-func NewCentralSessionControllers(
-	creditClient []gy.CreditClient,
-	policyClient []gx.PolicyClient,
-	dbClient policydb.PolicyDBClient,
-	cfg []*SessionControllerConfig,
-) *CentralSessionControllers {
-	totalLen := len(creditClient)
-	if totalLen != len(policyClient) || totalLen != len(cfg) {
-		panic("Same size required for CreditClient (Gy), PolicyClient (Gx) and SessionControllersConfig")
-	}
+type ControllerParam struct {
+	CreditClient gy.CreditClient
+	PolicyClient gx.PolicyClient
+	Config       *SessionControllerConfig
+}
 
-	controllers := make([]*CentralSessionController, 0)
-	centralControllers := CentralSessionControllers{}
-	for n := 0; n < len(creditClient); n++ {
-		singleController := NewCentralSessionController(creditClient[n], policyClient[n], dbClient, cfg[n])
+// NewCentralSessionControllers creates centralControllers which is a slice of centralController.
+// This should be used only if more than one server is configred
+func NewCentralSessionControllers(
+	controlParam []*ControllerParam,
+	dbClient policydb.PolicyDBClient,
+	mux multiplex.Multiplexor,
+) *CentralSessionControllers {
+	totalLen := len(controlParam)
+	controllers := make([]*CentralSessionController, 0, totalLen)
+	for _, cp := range controlParam {
+		singleController := NewCentralSessionController(cp.CreditClient, cp.PolicyClient, dbClient, cp.Config)
 		controllers = append(controllers, singleController)
 	}
-	centralControllers.centralControllers = controllers
-	return &centralControllers
+	return &CentralSessionControllers{
+		centralControllers: controllers,
+		multiplexor:        mux,
+	}
 }
 
-func NewCentralSessionControllers_SingleServer(
-	creditClient gy.CreditClient,
-	policyClient gx.PolicyClient,
+// NewCentralSessionControllerDefaultMultiplesWithHealth returns a different type of controller depending on the amount
+// of servers configured. In case only one server is configured, there is no need to calculate where this
+// subscriber should be sent, so in that case we return CentralSessionController (without S). In case of multiple servers
+// configured, it creates a CentralSessionControllers and uses a **StaticMultiplexByIMSI** as a multiplexor
+func NewCentralSessionControllerDefaultMultiplexWithHealth(
+	controlParam []*ControllerParam,
 	dbClient policydb.PolicyDBClient,
-	cfg *SessionControllerConfig,
-) *CentralSessionControllers {
-	return NewCentralSessionControllers(
-		[]gy.CreditClient{creditClient}, []gx.PolicyClient{policyClient},
-		dbClient, []*SessionControllerConfig{cfg})
+) (CentralSessionControllerServerWithHealth, error) {
+	if len(controlParam) == 1 {
+		cp := controlParam[0]
+		return NewCentralSessionController(cp.CreditClient, cp.PolicyClient, dbClient, cp.Config), nil
+	}
+	mux, err := multiplex.NewStaticMultiplexByIMSI(len(controlParam))
+	if err != nil {
+		return nil, err
+	}
+	return NewCentralSessionControllers(controlParam, dbClient, mux), nil
 }
 
 // CreateSession begins a UE session by requesting rules from PCEF
@@ -90,8 +106,11 @@ func (srv *CentralSessionControllers) CreateSession(
 	if subs == nil || len(subs.GetId()) == 0 {
 		return nil, fmt.Errorf("Create Session Request Request malformed. Missing Subscriber.id")
 	}
-	imsi := subs.GetId()
-	controller, err := getControllerFromImsi(imsi, srv.centralControllers)
+	controller, err := getControllerPerKey(
+		srv.centralControllers,
+		srv.multiplexor,
+		multiplex.NewContext().WithIMSI(subs.GetId()),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -104,11 +123,10 @@ func (srv *CentralSessionControllers) UpdateSession(
 	ctx context.Context,
 	request *protos.UpdateSessionRequest,
 ) (*protos.UpdateSessionResponse, error) {
-	requestsByController, err := getUpdateSessionRequestPerController(request, srv.centralControllers)
+	requestsByController, err := getUpdateSessionRequestPerController(request, srv.centralControllers, srv.multiplexor)
 	if err != nil {
 		return nil, err
 	}
-
 	jobs := make(chan *protos.UpdateSessionResponse)
 	wg := sync.WaitGroup{}
 	// Create and run N producers (N controllers)
@@ -161,11 +179,12 @@ func (srv *CentralSessionControllers) TerminateSession(
 	if request == nil || len(request.GetSessionId()) == 0 {
 		return nil, fmt.Errorf("Could not terminate session")
 	}
-	imsi, err := parseImsiFromSessionId(request.GetSessionId())
-	if err != nil {
-		return nil, err
-	}
-	controller, err := getControllerFromImsi(imsi, srv.centralControllers)
+	// be aware that this is sessionID format, not IMSI!!
+	controller, err := getControllerPerKey(
+		srv.centralControllers,
+		srv.multiplexor,
+		multiplex.NewContext().WithSessionId(request.GetSessionId()),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -178,16 +197,12 @@ func (srv *CentralSessionControllers) Disable(
 	ctx context.Context,
 	req *fegprotos.DisableMessage,
 ) (*orcprotos.Void, error) {
-	var hasErrors []string
-	for _, controller := range srv.centralControllers {
-		_, err := controller.Disable(ctx, req)
-		if err != nil {
-			hasErrors = append(hasErrors, err.Error())
-		}
+	if req == nil {
+		return nil, fmt.Errorf("Nil Disable Request")
 	}
-	if hasErrors != nil {
-		return nil, fmt.Errorf("Errors found while disabling SessionProxy: %s",
-			fmt.Errorf(strings.Join(hasErrors, "\n")))
+	for _, controller := range srv.centralControllers {
+		// this will never error. Error was check on req == nil
+		controller.Disable(ctx, req)
 	}
 	return &orcprotos.Void{}, nil
 }
@@ -199,23 +214,16 @@ func (srv *CentralSessionControllers) Enable(
 	ctx context.Context,
 	void *orcprotos.Void,
 ) (*orcprotos.Void, error) {
-	var hasErrors []string
-	for _, controller := range srv.centralControllers {
+	multiError := errors.NewMulti()
+	for i, controller := range srv.centralControllers {
 		_, err := controller.Enable(ctx, void)
-		if err != nil {
-			hasErrors = append(hasErrors, err.Error())
-		}
+		multiError = multiError.AddFmt(err, "error(%d):", i+1)
 	}
-	if hasErrors != nil {
-		return nil, fmt.Errorf("Errors found while disabling SessionProxy: %s",
-			fmt.Errorf(strings.Join(hasErrors, "\n")))
-	}
-	return &orcprotos.Void{}, nil
+	return &orcprotos.Void{}, multiError.AsError()
 }
 
 // GetHealthStatus retrieves a health status object which contains the current
 // health of the service
-// TODO: report per each service
 func (srv *CentralSessionControllers) GetHealthStatus(
 	ctx context.Context,
 	void *orcprotos.Void,
@@ -232,87 +240,64 @@ func (srv *CentralSessionControllers) GetHealthStatus(
 	}, nil
 }
 
-// splitUpdateSessionRequest creates a new UpdateSessionRequest per controller depending on the IMSIS of
-// each request
+// getUpdateSessionRequestPerController creates a new UpdateSessionRequest per
+// controller depending on the IMSIS of each request
 func getUpdateSessionRequestPerController(
 	request *protos.UpdateSessionRequest,
 	controllers []*CentralSessionController,
+	mux multiplex.Multiplexor,
 ) (map[*CentralSessionController]*protos.UpdateSessionRequest, error) {
 	controllersToRequest := make(map[*CentralSessionController]*protos.UpdateSessionRequest)
+
 	//Gy - Credit
 	for _, creditUpdate := range request.GetUpdates() {
-		controller, err := getControllerFromSessionId(controllers, creditUpdate.GetSessionId())
+		controller, err := getControllerPerKey(
+			controllers, mux,
+			multiplex.NewContext().WithSessionId(creditUpdate.GetSessionId()),
+		)
 		if err != nil {
 			return nil, err
 		}
-		_, found := controllersToRequest[controller]
-		if !found {
-			controllersToRequest[controller] = &protos.UpdateSessionRequest{}
-		}
+		fillMapWithUpdateSessionRequestIfEmpty(controllersToRequest, controller)
 		controllersToRequest[controller].Updates = append(controllersToRequest[controller].Updates, creditUpdate)
 	}
+
 	//Gx - Policy
 	for _, usageM := range request.GetUsageMonitors() {
-		controller, err := getControllerFromSessionId(controllers, usageM.GetSessionId())
+		controller, err := getControllerPerKey(
+			controllers, mux,
+			multiplex.NewContext().WithSessionId(usageM.GetSessionId()),
+		)
 		if err != nil {
 			return nil, err
 		}
-		_, found := controllersToRequest[controller]
-		if found == false {
-			controllersToRequest[controller] = &protos.UpdateSessionRequest{}
-		}
+		fillMapWithUpdateSessionRequestIfEmpty(controllersToRequest, controller)
 		controllersToRequest[controller].UsageMonitors = append(controllersToRequest[controller].UsageMonitors, usageM)
 	}
 	return controllersToRequest, nil
 }
 
-// getControllerFromSessionId provides the controllerId on a given SessionID (note session ID contains the IMSI)
-func getControllerFromSessionId(controllers []*CentralSessionController, sessionId string) (*CentralSessionController, error) {
-	imsiStr, err := parseImsiFromSessionId(sessionId)
-	if err != nil {
-		glog.Error(err)
-		return nil, err
+func fillMapWithUpdateSessionRequestIfEmpty(
+	controllersToRequest map[*CentralSessionController]*protos.UpdateSessionRequest,
+	controller *CentralSessionController) {
+	_, found := controllersToRequest[controller]
+	if found == false {
+		controllersToRequest[controller] = &protos.UpdateSessionRequest{}
 	}
-	controller, err := getControllerFromImsi(imsiStr, controllers)
-	if err != nil {
-		return nil, err
-	}
-	return controller, nil
 }
 
-// getControllerFromImsi returns the controller that should serve that subscriber
-func getControllerFromImsi(imsi string, controllers []*CentralSessionController) (*CentralSessionController, error) {
-	if controllers == nil {
-		return nil, fmt.Errorf("No controllers available.")
-	}
-	size := len(controllers)
-	index, err := GetControllerIndexFromImsi(imsi, size)
+// getControllerPerKey provides the controllerId on a given selector (selector may include IMSI numeric, IMSIstr and Session ID)
+func getControllerPerKey(
+	controllers []*CentralSessionController,
+	mux multiplex.Multiplexor,
+	muxCtx *multiplex.Context,
+) (*CentralSessionController, error) {
+	index, err := mux.GetIndex(muxCtx)
 	if err != nil {
 		return nil, err
+	}
+	if index >= len(controllers) {
+		return nil, fmt.Errorf("Index %d is bigger than the ammount of controllers %d", index, len(controllers))
 	}
 	return controllers[index], nil
-}
-
-// parseImsiFromSessionId extracts IMSI from a sessionId. SessionId format is is considered
-// to be IMMSIxxxxxx-1234, where xxxxx is the imsi to be extracted
-func parseImsiFromSessionId(sessionId string) (string, error) {
-	sessionId = strings.TrimPrefix(sessionId, "IMSI")
-	data := strings.Split(sessionId, "-")
-	if len(data) != 2 {
-		return "", fmt.Errorf("Couldn't parse Subscrier ID from sessionID. Format should be IMISxxxxx-RandomNumber")
-	}
-	return data[0], nil
-}
-
-// GetControllerIndexFromImsi describes how we allocate the subscriber on the controllers
-func GetControllerIndexFromImsi(imsi string, numberControlers int) (int, error) {
-	//Remove the prefix if any
-	imsi = strings.TrimPrefix(imsi, "IMSI")
-	//IMSI must be parsed with 64 bitSize
-	imsiUint, err := strconv.ParseUint(imsi, 10, 64)
-	if err != nil {
-		return -1, err
-	}
-	index := int(imsiUint % uint64(numberControlers))
-	return index, nil
 }

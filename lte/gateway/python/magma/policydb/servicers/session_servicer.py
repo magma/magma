@@ -71,6 +71,7 @@ class SessionRpcServicer(CentralSessionControllerServicer):
             credits=self._get_credits(imsi),
             static_rules=self._get_rules_for_imsi(imsi),
             dynamic_rules=self._get_default_dynamic_rules(imsi),
+            session_id=request.session_id,
         )
 
     def UpdateSession(
@@ -178,7 +179,6 @@ class SessionRpcServicer(CentralSessionControllerServicer):
                 success=True,
                 sid=sid,
                 charging_key=self.infinite_credit_charging_keys[0],
-                type=CreditUpdateResponse.ResponseType.Value('UPDATE'),
                 result_code=1,
                 limit_type=CreditUpdateResponse.CreditLimitType.Value(
                     "INFINITE_UNMETERED",

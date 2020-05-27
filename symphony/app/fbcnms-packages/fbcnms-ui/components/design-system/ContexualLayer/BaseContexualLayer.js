@@ -23,7 +23,7 @@ const useStyles = makeStyles(() => ({
 export type ContextualLayerPosition = 'below' | 'above';
 
 export type ContextualLayerOptions = $ReadOnly<{|
-  align?: 'middle',
+  align?: 'middle' | 'stretch',
   position?: ContextualLayerPosition,
 |}>;
 
@@ -53,35 +53,64 @@ type Props = {
 
 const BaseContexualLayer = ({
   children,
-  position,
+  position: preferredPosition,
   context,
   hidden = false,
+  align = 'middle',
 }: Props) => {
   const classes = useStyles();
+  const [position, setPosition] = useState(() => preferredPosition);
 
   const [_hasCalculated, setHasCalculated] = useState(false);
   const contextualLayerRef = useRef<HTMLDivElement | null>(null);
 
   const recalculateStyles = useCallback(() => {
+    const contextualLayerElement = contextualLayerRef.current;
+    const documentElement = document.documentElement;
+    if (contextualLayerElement == null || documentElement == null) {
+      return;
+    }
+
     const contextRect = getElementPosition(context);
+    const documentRect = getElementPosition(documentElement);
+
     const getPositioningStyles = () => {
       const style = {};
       switch (position) {
         case 'below':
+          if (
+            contextRect.bottom + contextualLayerElement.clientHeight >
+            documentRect.bottom
+          ) {
+            setPosition('above');
+            break;
+          }
+
           style.top = contextRect.bottom;
           style.left = contextRect.left;
           break;
         case 'above':
           style.left = contextRect.left;
+
+          if (
+            contextRect.top - contextualLayerElement.clientHeight <
+            documentRect.top
+          ) {
+            setPosition('below');
+            break;
+          }
+
           style.top = contextRect.top;
           style.transform = 'translate(0, -100%)';
           break;
       }
-      style.width = contextRect.right - contextRect.left;
+      if (align === 'stretch') {
+        style.width = contextRect.right - contextRect.left;
+      }
+
       return style;
     };
 
-    const contextualLayerElement = contextualLayerRef.current;
     if (contextualLayerElement != null) {
       contextualLayerElement.removeAttribute('style'); // Unset all styles
       const style = getPositioningStyles();
@@ -94,7 +123,16 @@ const BaseContexualLayer = ({
       });
     }
     setHasCalculated(true);
-  }, [context, position]);
+  }, [context, position, align]);
+
+  const preferredPositionRef = useRef(preferredPosition);
+  useLayoutEffect(() => {
+    if (preferredPosition !== preferredPositionRef.current) {
+      setPosition(preferredPosition);
+      recalculateStyles();
+    }
+    preferredPositionRef.current = preferredPosition;
+  }, [preferredPosition, recalculateStyles]);
 
   useLayoutEffect(() => {
     if (!hidden) {

@@ -17,8 +17,8 @@ import (
 type (
 	// Config configures resolver.
 	Config struct {
+		Client     *ent.Client
 		Logger     log.Logger
-		Emitter    event.Emitter
 		Subscriber event.Subscriber
 	}
 
@@ -26,11 +26,8 @@ type (
 	Option func(*resolver)
 
 	resolver struct {
-		logger log.Logger
-		event  struct {
-			event.Emitter
-			event.Subscriber
-		}
+		logger   log.Logger
+		event    struct{ event.Subscriber }
 		mutation struct{ transactional bool }
 		orc8r    struct{ client *http.Client }
 	}
@@ -39,7 +36,6 @@ type (
 // New creates a graphql resolver.
 func New(cfg Config, opts ...Option) generated.ResolverRoot {
 	r := &resolver{logger: cfg.Logger}
-	r.event.Emitter = cfg.Emitter
 	r.event.Subscriber = cfg.Subscriber
 	r.mutation.transactional = true
 	for _, opt := range opts {
@@ -127,11 +123,6 @@ func (r resolver) Mutation() (mr generated.MutationResolver) {
 	if r.mutation.transactional {
 		mr = txResolver{mr}
 	}
-	mr = eventResolver{
-		MutationResolver: mr,
-		emitter:          r.event.Emitter,
-		logger:           r.logger,
-	}
 	return mr
 }
 
@@ -215,6 +206,10 @@ func (resolver) CheckListItem() generated.CheckListItemResolver {
 	return checkListItemResolver{}
 }
 
+func (resolver) CheckListCategoryDefinition() generated.CheckListCategoryDefinitionResolver {
+	return checkListCategoryDefinitionResolver{}
+}
+
 func (resolver) CheckListItemDefinition() generated.CheckListItemDefinitionResolver {
 	return checkListItemDefinitionResolver{}
 }
@@ -245,4 +240,12 @@ func (r resolver) ReportFilter() generated.ReportFilterResolver {
 
 func (r resolver) Comment() generated.CommentResolver {
 	return commentResolver{}
+}
+
+func (r resolver) ServiceEndpointDefinition() generated.ServiceEndpointDefinitionResolver {
+	return serviceEndpointTypeResolver{}
+}
+
+func (r resolver) PermissionsPolicy() generated.PermissionsPolicyResolver {
+	return permissionsPolicyResolver{}
 }

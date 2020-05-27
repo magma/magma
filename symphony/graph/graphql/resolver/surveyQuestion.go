@@ -34,3 +34,7 @@ func (surveyQuestionResolver) WifiData(ctx context.Context, obj *ent.SurveyQuest
 func (surveyQuestionResolver) CellData(ctx context.Context, obj *ent.SurveyQuestion) ([]*ent.SurveyCellScan, error) {
 	return obj.QueryCellScan().All(ctx)
 }
+
+func (surveyQuestionResolver) Images(ctx context.Context, obj *ent.SurveyQuestion) ([]*ent.File, error) {
+	return obj.QueryImages().All(ctx)
+}

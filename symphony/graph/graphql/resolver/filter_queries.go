@@ -27,6 +27,15 @@ func (r queryResolver) LinkSearch(ctx context.Context, filters []*models.LinkFil
 	return resolverutil.LinkSearch(ctx, r.ClientFrom(ctx), filters, limit)
 }
 
+func (r queryResolver) Links(
+	ctx context.Context,
+	after *ent.Cursor, first *int,
+	before *ent.Cursor, last *int,
+) (*ent.LinkConnection, error) {
+	return r.ClientFrom(ctx).Link.Query().
+		Paginate(ctx, after, first, before, last)
+}
+
 func (r queryResolver) PortSearch(ctx context.Context, filters []*models.PortFilterInput, limit *int) (*models.PortSearchResult, error) {
 	return resolverutil.PortSearch(ctx, r.ClientFrom(ctx), filters, limit)
 }
@@ -43,6 +52,14 @@ func (r queryResolver) UserSearch(ctx context.Context, filters []*models.UserFil
 	return resolverutil.UserSearch(ctx, r.ClientFrom(ctx), filters, limit)
 }
 
+func (r queryResolver) PermissionsPolicySearch(ctx context.Context, filters []*models.PermissionsPolicyFilterInput, limit *int) (*models.PermissionsPolicySearchResult, error) {
+	return resolverutil.PermissionsPolicySearch(ctx, r.ClientFrom(ctx), filters, limit)
+}
+
+func (r queryResolver) UsersGroupSearch(ctx context.Context, filters []*models.UsersGroupFilterInput, limit *int) (*models.UsersGroupSearchResult, error) {
+	return resolverutil.UsersGroupSearch(ctx, r.ClientFrom(ctx), filters, limit)
+}
+
 func (r queryResolver) ProjectSearch(ctx context.Context, filters []*models.ProjectFilterInput, limit *int) ([]*ent.Project, error) {
 	var (
 		query = r.ClientFrom(ctx).Project.Query()
@@ -53,6 +70,15 @@ func (r queryResolver) ProjectSearch(ctx context.Context, filters []*models.Proj
 		return nil, errors.Wrapf(err, "Querying projects failed")
 	}
 	return pros, nil
+}
+
+func (r queryResolver) Projects(
+	ctx context.Context,
+	after *ent.Cursor, first *int,
+	before *ent.Cursor, last *int,
+) (*ent.ProjectConnection, error) {
+	return r.ClientFrom(ctx).Project.Query().
+		Paginate(ctx, after, first, before, last)
 }
 
 func (r queryResolver) CustomerSearch(ctx context.Context, limit *int) ([]*ent.Customer, error) {

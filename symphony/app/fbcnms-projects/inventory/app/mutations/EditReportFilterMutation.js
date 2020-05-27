@@ -13,7 +13,7 @@ import type {
   EditReportFilterMutationVariables,
 } from './__generated__/EditReportFilterMutation.graphql';
 import type {MutationCallbacks} from './MutationCallbacks.js';
-import type {StoreUpdater} from '../common/RelayEnvironment';
+import type {SelectorStoreUpdater} from 'relay-runtime';
 
 import RelayEnvironemnt from '../common/RelayEnvironment.js';
 import {commitMutation, graphql} from 'react-relay';
@@ -36,6 +36,7 @@ const mutation = graphql`
           id
           name
           type
+          nodeType
           isEditable
           isInstanceProperty
           stringValue
@@ -55,7 +56,7 @@ const mutation = graphql`
 export default (
   variables: EditReportFilterMutationVariables,
   callbacks?: MutationCallbacks<EditReportFilterMutationResponse>,
-  updater?: StoreUpdater,
+  updater?: SelectorStoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
   commitMutation<EditReportFilterMutation>(RelayEnvironemnt, {

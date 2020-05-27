@@ -48,16 +48,6 @@ test('renders /configure', () => {
   expect(getByText('ConfigurePage')).toBeInTheDocument();
 });
 
-test('renders /settings', () => {
-  const {getByTestId} = render(
-    <Wrapper path={'/inventory/settings'}>
-      <Inventory />
-    </Wrapper>,
-  );
-
-  expect(getByTestId('change-password-title')).toBeInTheDocument();
-});
-
 test('renders /inventory', () => {
   const {getByText} = render(
     <Wrapper path={'/inventory/inventory'}>

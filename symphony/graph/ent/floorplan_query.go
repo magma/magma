@@ -8,6 +8,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"math"
@@ -28,7 +29,7 @@ type FloorPlanQuery struct {
 	config
 	limit      *int
 	offset     *int
-	order      []Order
+	order      []OrderFunc
 	unique     []string
 	predicates []predicate.FloorPlan
 	// eager-loading edges.
@@ -61,7 +62,7 @@ func (fpq *FloorPlanQuery) Offset(offset int) *FloorPlanQuery {
 }
 
 // Order adds an order step to the query.
-func (fpq *FloorPlanQuery) Order(o ...Order) *FloorPlanQuery {
+func (fpq *FloorPlanQuery) Order(o ...OrderFunc) *FloorPlanQuery {
 	fpq.order = append(fpq.order, o...)
 	return fpq
 }
@@ -130,7 +131,7 @@ func (fpq *FloorPlanQuery) QueryImage() *FileQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(floorplan.Table, floorplan.FieldID, fpq.sqlQuery()),
 			sqlgraph.To(file.Table, file.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, floorplan.ImageTable, floorplan.ImageColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, floorplan.ImageTable, floorplan.ImageColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(fpq.driver.Dialect(), step)
 		return fromU, nil
@@ -308,7 +309,7 @@ func (fpq *FloorPlanQuery) Clone() *FloorPlanQuery {
 		config:     fpq.config,
 		limit:      fpq.limit,
 		offset:     fpq.offset,
-		order:      append([]Order{}, fpq.order...),
+		order:      append([]OrderFunc{}, fpq.order...),
 		unique:     append([]string{}, fpq.unique...),
 		predicates: append([]predicate.FloorPlan{}, fpq.predicates...),
 		// clone intermediate query.
@@ -420,6 +421,9 @@ func (fpq *FloorPlanQuery) prepareQuery(ctx context.Context) error {
 		}
 		fpq.sql = prev
 	}
+	if err := floorplan.Policy.EvalQuery(ctx, fpq); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -435,7 +439,7 @@ func (fpq *FloorPlanQuery) sqlAll(ctx context.Context) ([]*FloorPlan, error) {
 			fpq.withImage != nil,
 		}
 	)
-	if fpq.withLocation != nil || fpq.withReferencePoint != nil || fpq.withScale != nil || fpq.withImage != nil {
+	if fpq.withLocation != nil || fpq.withReferencePoint != nil || fpq.withScale != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -541,27 +545,30 @@ func (fpq *FloorPlanQuery) sqlAll(ctx context.Context) ([]*FloorPlan, error) {
 	}
 
 	if query := fpq.withImage; query != nil {
-		ids := make([]int, 0, len(nodes))
-		nodeids := make(map[int][]*FloorPlan)
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[int]*FloorPlan)
 		for i := range nodes {
-			if fk := nodes[i].floor_plan_image; fk != nil {
-				ids = append(ids, *fk)
-				nodeids[*fk] = append(nodeids[*fk], nodes[i])
-			}
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
 		}
-		query.Where(file.IDIn(ids...))
+		query.withFKs = true
+		query.Where(predicate.File(func(s *sql.Selector) {
+			s.Where(sql.InValues(floorplan.ImageColumn, fks...))
+		}))
 		neighbors, err := query.All(ctx)
 		if err != nil {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			nodes, ok := nodeids[n.ID]
+			fk := n.floor_plan_image
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "floor_plan_image" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "floor_plan_image" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "floor_plan_image" returned %v for node %v`, *fk, n.ID)
 			}
-			for i := range nodes {
-				nodes[i].Edges.Image = n
-			}
+			node.Edges.Image = n
 		}
 	}
 
@@ -646,14 +653,14 @@ func (fpq *FloorPlanQuery) sqlQuery() *sql.Selector {
 type FloorPlanGroupBy struct {
 	config
 	fields []string
-	fns    []Aggregate
+	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (fpgb *FloorPlanGroupBy) Aggregate(fns ...Aggregate) *FloorPlanGroupBy {
+func (fpgb *FloorPlanGroupBy) Aggregate(fns ...AggregateFunc) *FloorPlanGroupBy {
 	fpgb.fns = append(fpgb.fns, fns...)
 	return fpgb
 }

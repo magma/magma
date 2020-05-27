@@ -31,15 +31,17 @@ class DataclassesRenderer:
         buffer.write("from datetime import datetime")
         buffer.write("from gql.gql.datetime_utils import DATETIME_FIELD")
         buffer.write("from gql.gql.graphql_client import GraphqlClient")
+        buffer.write("from gql.gql.client import OperationException")
+        buffer.write("from gql.gql.reporter import FailedOperationException")
         buffer.write("from functools import partial")
         buffer.write("from numbers import Number")
         buffer.write("from typing import Any, Callable, List, Mapping, Optional")
-        buffer.write("")
+        buffer.write("from time import perf_counter")
         buffer.write("from dataclasses_json import DataClassJsonMixin")
         buffer.write("")
         for fragment_name in sorted(set(parsed_query.used_fragments)):
             buffer.write(
-                f"from .{get_fragment_filename(fragment_name)} import {fragment_name}, QUERY as {fragment_name}Query"
+                f"from ..fragment.{get_fragment_filename(fragment_name)} import {fragment_name}, QUERY as {fragment_name}Query"
             )
         enum_names = set()
         for enum in parsed_query.enums:
@@ -47,7 +49,9 @@ class DataclassesRenderer:
         if enum_names:
             buffer.write("from gql.gql.enum_utils import enum_field")
             for enum_name in sorted(enum_names):
-                buffer.write(f"from .{get_enum_filename(enum_name)} import {enum_name}")
+                buffer.write(
+                    f"from ..enum.{get_enum_filename(enum_name)} import {enum_name}"
+                )
             buffer.write("")
         input_object_names = set()
         for input_object in parsed_query.input_objects:
@@ -55,7 +59,7 @@ class DataclassesRenderer:
         if input_object_names:
             for input_object_name in sorted(input_object_names):
                 buffer.write(
-                    f"from .{get_input_filename(input_object_name)} "
+                    f"from ..input.{get_input_filename(input_object_name)} "
                     f"import {input_object_name}"
                 )
             buffer.write("")
@@ -77,11 +81,11 @@ class DataclassesRenderer:
                     f"{fragment_name}Query"
                     for fragment_name in sorted(set(parsed_query.used_fragments))
                 ]
-                buffer.write(f'QUERY: str = {" + ".join(queries)} + """')
+                buffer.write(f'QUERY: List[str] = {" + ".join(queries)} + ["""')
             else:
-                buffer.write('QUERY: str = """')
+                buffer.write('QUERY: List[str] = ["""')
             buffer.write(parsed_query.query)
-            buffer.write('"""')
+            buffer.write('"""]')
             buffer.write("")
 
         for obj in parsed_query.fragment_objects:
@@ -141,7 +145,7 @@ class DataclassesRenderer:
                 buffer.write("from gql.gql.enum_utils import enum_field")
                 for enum_name in sorted(enum_names):
                     buffer.write(
-                        f"from .{get_enum_filename(enum_name)} import {enum_name}"
+                        f"from ..enum.{get_enum_filename(enum_name)} import {enum_name}"
                     )
                 buffer.write("")
             input_object_names = set()
@@ -149,18 +153,22 @@ class DataclassesRenderer:
                 input_object_names.add(input_dep.name)
             for input_object_name in sorted(input_object_names):
                 buffer.write(
-                    f"from .{get_input_filename(input_object_name)} "
+                    f"from ..input.{get_input_filename(input_object_name)} "
                     f"import {input_object_name}"
                 )
 
-            self.__render_object(parsed_query, buffer, input_object)
+            self.__render_object(parsed_query, buffer, input_object, True)
             buffer.write("")
             result[input_object.name] = str(buffer)
 
         return result
 
     def __render_object(
-        self, parsed_query: ParsedQuery, buffer: CodeChunk, obj: ParsedObject
+        self,
+        parsed_query: ParsedQuery,
+        buffer: CodeChunk,
+        obj: ParsedObject,
+        is_input: bool = False,
     ) -> None:
         class_parents = (
             "(DataClassJsonMixin)" if not obj.parents else f'({", ".join(obj.parents)})'
@@ -172,13 +180,13 @@ class DataclassesRenderer:
             children_names = set()
             for child_object in obj.children:
                 if child_object.name not in children_names:
-                    self.__render_object(parsed_query, buffer, child_object)
+                    self.__render_object(parsed_query, buffer, child_object, is_input)
                 children_names.add(child_object.name)
 
             # render fields
             sorted_fields = sorted(obj.fields, key=lambda f: 1 if f.nullable else 0)
             for field in sorted_fields:
-                self.__render_field(parsed_query, buffer, field)
+                self.__render_field(parsed_query, buffer, field, is_input)
 
             # pass if not children or fields
             if not (obj.children or obj.fields):
@@ -213,6 +221,17 @@ class DataclassesRenderer:
     def __render_operation(
         self, parsed_query: ParsedQuery, buffer: CodeChunk, parsed_op: ParsedOperation
     ) -> None:
+        if len(parsed_query.used_fragments):
+            queries = [
+                f"{fragment_name}Query"
+                for fragment_name in sorted(set(parsed_query.used_fragments))
+            ]
+            buffer.write(f'QUERY: List[str] = {" + ".join(queries)} + ["""')
+        else:
+            buffer.write('QUERY: List[str] = ["""')
+        buffer.write(parsed_query.query)
+        buffer.write('"""]')
+        buffer.write("")
         buffer.write("@dataclass")
         with buffer.write_block(f"class {parsed_op.name}(DataClassJsonMixin):"):
             # Render children
@@ -242,31 +261,48 @@ class DataclassesRenderer:
                 vars_args = ""
                 variables_dict = "{}"
 
-            if len(parsed_query.used_fragments):
-                queries = [
-                    f"{fragment_name}Query"
-                    for fragment_name in sorted(set(parsed_query.used_fragments))
-                ]
-                buffer.write(f'__QUERY__: str = {" + ".join(queries)} + """')
-            else:
-                buffer.write('__QUERY__: str = """')
-            buffer.write(parsed_query.query)
-            buffer.write('"""')
-            buffer.write("")
-
             buffer.write("@classmethod")
             buffer.write("# fmt: off")
+            assert len(parsed_op.children) == 1
+            child = parsed_op.children[0]
+            assert len(child.fields) == 1
+            query = child.fields[0]
+            query_name = query.name
+            query_result_type = f"{query.type}"
+            if query_result_type not in ("int", "str"):
+                query_result_type = f"{parsed_op.name}Data.{query.type}"
+            if query.nullable:
+                query_result_type = f"Optional[{query_result_type}]"
+            if query.is_list:
+                query_result_type = f"List[{query_result_type}]"
             with buffer.write_block(
                 f"def execute(cls, client: GraphqlClient{vars_args})"
-                f" -> {parsed_op.name}Data:"
+                f" -> {query_result_type}:"
             ):
                 buffer.write("# fmt: off")
                 buffer.write(f"variables = {variables_dict}")
-                buffer.write(
-                    "response_text = client.call(cls.__QUERY__, " "variables=variables)"
-                )
-                buffer.write("return cls.from_json(response_text).data")
-
+                with buffer.write_block("try:"):
+                    buffer.write("network_start = perf_counter()")
+                    buffer.write(
+                        "response_text = client.call(''.join(set(QUERY)), "
+                        "variables=variables)"
+                    )
+                    buffer.write("decode_start = perf_counter()")
+                    buffer.write("res = cls.from_json(response_text).data")
+                    buffer.write("decode_time = perf_counter() - decode_start")
+                    buffer.write("network_time = decode_start - network_start")
+                    buffer.write(
+                        f'client.reporter.log_successful_operation("{parsed_op.name}", variables, network_time, decode_time)'
+                    )
+                    buffer.write(f"return res.{query_name}")
+                with buffer.write_block("except OperationException as e:"):
+                    with buffer.write_block("raise FailedOperationException("):
+                        buffer.write("client.reporter,")
+                        buffer.write("e.err_msg,")
+                        buffer.write("e.err_id,")
+                        buffer.write(f'"{parsed_op.name}",')
+                        buffer.write("variables,")
+                    buffer.write(")")
             buffer.write("")
 
     @staticmethod
@@ -288,22 +324,28 @@ class DataclassesRenderer:
 
     @staticmethod
     def __render_field(
-        parsed_query: ParsedQuery, buffer: CodeChunk, field: ParsedField
+        parsed_query: ParsedQuery,
+        buffer: CodeChunk,
+        field: ParsedField,
+        is_input: bool = False,
     ) -> None:
         enum_names = [e.name for e in parsed_query.enums + parsed_query.internal_enums]
         is_enum = field.type in enum_names
         suffix = ""
         field_type = field.type
+        if field.is_list:
+            field_type = f"List[{field_type}]"
 
         if is_enum:
-            suffix = f" = enum_field({field.type})"
+            suffix = f" = enum_field({field_type})"
 
-        if field.type == "DateTime":
+        if field_type == "DateTime":
             suffix = " = DATETIME_FIELD"
             field_type = "datetime"
 
         if field.nullable:
-            suffix = f" = {field.default_value}"
+            if is_input:
+                suffix = f" = {field.default_value}"
             buffer.write(f"{field.name}: Optional[{field_type}]{suffix}")
         else:
             buffer.write(f"{field.name}: {field_type}{suffix}")

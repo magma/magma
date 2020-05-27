@@ -6,7 +6,7 @@ package resolver
 
 import (
 	"context"
-	"fmt"
+	"strings"
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/user"
@@ -15,16 +15,18 @@ import (
 
 type userResolver struct{}
 
-func (r userResolver) ProfilePhoto(ctx context.Context, user *ent.User) (*ent.File, error) {
-	profilePhoto, err := user.Edges.ProfilePhotoOrErr()
+func (userResolver) ProfilePhoto(ctx context.Context, user *ent.User) (*ent.File, error) {
+	photo, err := user.Edges.ProfilePhotoOrErr()
 	if ent.IsNotLoaded(err) {
-		profilePhoto, err = user.QueryProfilePhoto().Only(ctx)
+		photo, err = user.QueryProfilePhoto().Only(ctx)
 	}
-	return profilePhoto, ent.MaskNotFound(err)
+	return photo, ent.MaskNotFound(err)
 }
 
 func (r queryResolver) User(ctx context.Context, authID string) (*ent.User, error) {
-	u, err := r.ClientFrom(ctx).User.Query().Where(user.AuthID(authID)).Only(ctx)
+	u, err := r.ClientFrom(ctx).User.Query().
+		Where(user.AuthID(authID)).
+		Only(ctx)
 	return u, ent.MaskNotFound(err)
 }
 
@@ -33,21 +35,38 @@ func (r queryResolver) Users(ctx context.Context, after *ent.Cursor, first *int,
 		Paginate(ctx, after, first, before, last)
 }
 
-func (userResolver) Groups(ctx context.Context, obj *ent.User) ([]*ent.UsersGroup, error) {
-	return obj.QueryGroups().All(ctx)
+func (userResolver) Groups(ctx context.Context, user *ent.User) ([]*ent.UsersGroup, error) {
+	return user.QueryGroups().All(ctx)
+}
+
+func (userResolver) Name(_ context.Context, user *ent.User) (string, error) {
+	parts := make([]string, 0, 2)
+	if user.FirstName != "" {
+		parts = append(parts, user.FirstName)
+	}
+	if user.LastName != "" {
+		parts = append(parts, user.LastName)
+	}
+	if len(parts) > 0 {
+		return strings.Join(parts, " "), nil
+	}
+	return user.Email, nil
 }
 
 func (r mutationResolver) EditUser(ctx context.Context, input models.EditUserInput) (*ent.User, error) {
-	client := r.ClientFrom(ctx)
-
-	u, err := client.User.UpdateOneID(input.ID).
+	return r.ClientFrom(ctx).User.
+		UpdateOneID(input.ID).
 		SetNillableFirstName(input.FirstName).
 		SetNillableLastName(input.LastName).
 		SetNillableStatus(input.Status).
 		SetNillableRole(input.Role).
 		Save(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("edit user: %w", err)
-	}
-	return u, nil
+}
+
+func (r mutationResolver) UpdateUserGroups(ctx context.Context, input models.UpdateUserGroupsInput) (*ent.User, error) {
+	return r.ClientFrom(ctx).User.
+		UpdateOneID(input.ID).
+		AddGroupIDs(input.AddGroupIds...).
+		RemoveGroupIDs(input.RemoveGroupIds...).
+		Save(ctx)
 }

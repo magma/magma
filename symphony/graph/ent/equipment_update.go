@@ -23,6 +23,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/property"
+	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
 
@@ -249,6 +250,21 @@ func (eu *EquipmentUpdate) AddHyperlinks(h ...*Hyperlink) *EquipmentUpdate {
 	return eu.AddHyperlinkIDs(ids...)
 }
 
+// AddEndpointIDs adds the endpoints edge to ServiceEndpoint by ids.
+func (eu *EquipmentUpdate) AddEndpointIDs(ids ...int) *EquipmentUpdate {
+	eu.mutation.AddEndpointIDs(ids...)
+	return eu
+}
+
+// AddEndpoints adds the endpoints edges to ServiceEndpoint.
+func (eu *EquipmentUpdate) AddEndpoints(s ...*ServiceEndpoint) *EquipmentUpdate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return eu.AddEndpointIDs(ids...)
+}
+
 // ClearType clears the type edge to EquipmentType.
 func (eu *EquipmentUpdate) ClearType() *EquipmentUpdate {
 	eu.mutation.ClearType()
@@ -346,6 +362,21 @@ func (eu *EquipmentUpdate) RemoveHyperlinks(h ...*Hyperlink) *EquipmentUpdate {
 		ids[i] = h[i].ID
 	}
 	return eu.RemoveHyperlinkIDs(ids...)
+}
+
+// RemoveEndpointIDs removes the endpoints edge to ServiceEndpoint by ids.
+func (eu *EquipmentUpdate) RemoveEndpointIDs(ids ...int) *EquipmentUpdate {
+	eu.mutation.RemoveEndpointIDs(ids...)
+	return eu
+}
+
+// RemoveEndpoints removes endpoints edges to ServiceEndpoint.
+func (eu *EquipmentUpdate) RemoveEndpoints(s ...*ServiceEndpoint) *EquipmentUpdate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return eu.RemoveEndpointIDs(ids...)
 }
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
@@ -818,6 +849,44 @@ func (eu *EquipmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if nodes := eu.mutation.RemovedEndpointsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   equipment.EndpointsTable,
+			Columns: []string{equipment.EndpointsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: serviceendpoint.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := eu.mutation.EndpointsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   equipment.EndpointsTable,
+			Columns: []string{equipment.EndpointsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: serviceendpoint.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, eu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{equipment.Label}
@@ -1045,6 +1114,21 @@ func (euo *EquipmentUpdateOne) AddHyperlinks(h ...*Hyperlink) *EquipmentUpdateOn
 	return euo.AddHyperlinkIDs(ids...)
 }
 
+// AddEndpointIDs adds the endpoints edge to ServiceEndpoint by ids.
+func (euo *EquipmentUpdateOne) AddEndpointIDs(ids ...int) *EquipmentUpdateOne {
+	euo.mutation.AddEndpointIDs(ids...)
+	return euo
+}
+
+// AddEndpoints adds the endpoints edges to ServiceEndpoint.
+func (euo *EquipmentUpdateOne) AddEndpoints(s ...*ServiceEndpoint) *EquipmentUpdateOne {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return euo.AddEndpointIDs(ids...)
+}
+
 // ClearType clears the type edge to EquipmentType.
 func (euo *EquipmentUpdateOne) ClearType() *EquipmentUpdateOne {
 	euo.mutation.ClearType()
@@ -1142,6 +1226,21 @@ func (euo *EquipmentUpdateOne) RemoveHyperlinks(h ...*Hyperlink) *EquipmentUpdat
 		ids[i] = h[i].ID
 	}
 	return euo.RemoveHyperlinkIDs(ids...)
+}
+
+// RemoveEndpointIDs removes the endpoints edge to ServiceEndpoint by ids.
+func (euo *EquipmentUpdateOne) RemoveEndpointIDs(ids ...int) *EquipmentUpdateOne {
+	euo.mutation.RemoveEndpointIDs(ids...)
+	return euo
+}
+
+// RemoveEndpoints removes endpoints edges to ServiceEndpoint.
+func (euo *EquipmentUpdateOne) RemoveEndpoints(s ...*ServiceEndpoint) *EquipmentUpdateOne {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return euo.RemoveEndpointIDs(ids...)
 }
 
 // Save executes the query and returns the updated entity.
@@ -1604,6 +1703,44 @@ func (euo *EquipmentUpdateOne) sqlSave(ctx context.Context) (e *Equipment, err e
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: hyperlink.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if nodes := euo.mutation.RemovedEndpointsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   equipment.EndpointsTable,
+			Columns: []string{equipment.EndpointsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: serviceendpoint.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := euo.mutation.EndpointsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   equipment.EndpointsTable,
+			Columns: []string{equipment.EndpointsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: serviceendpoint.FieldID,
 				},
 			},
 		}

@@ -21,6 +21,8 @@ import React from 'react';
 import {themes} from '@storybook/theming';
 import Theme from '../theme/symphony';
 import {compareStoriesName} from '../stories/storybookUtils';
+import {makeStyles} from '@material-ui/styles';
+import Story from '../stories/Story';
 
 // automatically import all files ending in *.stories.js
 const req = require.context('../stories', true, /.stories.js$/);
@@ -44,23 +46,34 @@ function loadStories() {
     .forEach(filename => req(filename));
 }
 
-addDecorator(story => (
-  <BrowserRouter>
-    <MuiThemeProvider theme={defaultTheme}>
-      <MuiStylesThemeProvider theme={defaultTheme}>
-        <SnackbarProvider
-          maxSnack={3}
-          autoHideDuration={10000}
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'right',
-          }}>
-          {story()}
-        </SnackbarProvider>
-      </MuiStylesThemeProvider>
-    </MuiThemeProvider>
-  </BrowserRouter>
-));
+const useStyles = makeStyles(() => ({
+  '@global': {
+    body: {
+      margin: 0,
+    },
+  },
+}));
+
+addDecorator((story, config) => {
+  const _classes = useStyles();
+  return (
+    <BrowserRouter>
+      <MuiThemeProvider theme={defaultTheme}>
+        <MuiStylesThemeProvider theme={defaultTheme}>
+          <SnackbarProvider
+            maxSnack={3}
+            autoHideDuration={10000}
+            anchorOrigin={{
+              vertical: 'bottom',
+              horizontal: 'right',
+            }}>
+            <Story name={config.name}>{story()}</Story>
+          </SnackbarProvider>
+        </MuiStylesThemeProvider>
+      </MuiThemeProvider>
+    </BrowserRouter>
+  );
+});
 
 addParameters({
   options: {

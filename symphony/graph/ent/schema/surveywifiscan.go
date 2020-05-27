@@ -53,6 +53,8 @@ func (SurveyWiFiScan) Fields() []ent.Field {
 // Edges of the SurveyWiFiScan.
 func (SurveyWiFiScan) Edges() []ent.Edge {
 	return []ent.Edge{
+		edge.To("checklist_item", CheckListItem.Type).
+			Unique(),
 		edge.To("survey_question", SurveyQuestion.Type).
 			Unique(),
 		edge.To("location", Location.Type).

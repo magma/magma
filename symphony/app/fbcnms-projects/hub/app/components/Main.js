@@ -13,14 +13,21 @@ import AppContext, {AppContextProvider} from '@fbcnms/ui/context/AppContext';
 import AppSideBar from '@fbcnms/ui/components/layout/AppSideBar';
 import ApplicationMain from '@fbcnms/ui/components/ApplicationMain';
 import Button from '@fbcnms/ui/components/design-system/Button';
+import CreateService from './CreateService';
+import HubVersion from './HubVersion';
 import NavListItem from '@fbcnms/ui/components/NavListItem';
-import React, {useContext} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import RouterIcon from '@material-ui/icons/Router';
+import Shuffle from '@material-ui/icons/Shuffle';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
+import WorkflowApp from './workflow/App';
+import WorkflowServiceApp from './workflow/ServiceUiApp';
 import nullthrows from '@fbcnms/util/nullthrows';
 import {Redirect, Route, Switch} from 'react-router-dom';
-import {getProjectLinks} from '@fbcnms/magmalte/app/common/projects';
+import {conductorApiUrlPrefix} from './workflow/constants';
+import {getProjectLinks} from '@fbcnms/projects/projects';
+import {HttpClient as http} from './workflow/common/HttpClient';
 import {makeStyles} from '@material-ui/styles';
 import {shouldShowSettings} from '@fbcnms/magmalte/app/components/Settings';
 import {useRelativeUrl} from '@fbcnms/ui/hooks/useRouter';
@@ -47,6 +54,13 @@ function NavBarItems() {
       icon={<RouterIcon />}
       onClick={() => {}}
     />,
+    <NavListItem
+      key={2}
+      label="Workflows"
+      path="/hub/workflows"
+      icon={<Shuffle />}
+      onClick={() => {}}
+    />,
   ];
 }
 
@@ -58,15 +72,25 @@ function CreateServiceForm() {
         <Text variant="h5">Create a Service</Text>
       </div>
       <br />
-      <Text>Service Name</Text>
-      <TextInput />
+      <HubVersion />
       <br />
-      <Button>Create Service</Button>
+      <Text>
+        Create a simple service (only single port vlan is supported for now).
+      </Text>
+      <br />
+      <br />
+      <CreateService />
+      <br />
+      <br />
+      <br />
+      <Text>Service ID</Text>
+      <TextInput />
+      <Button>Delete Service</Button>
     </div>
   );
 }
 
-function Main() {
+function Main(subApp) {
   const {user, tabs, ssoEnabled} = useContext(AppContext);
   const classes = useStyles();
   return (
@@ -81,21 +105,37 @@ function Main() {
         })}
         user={nullthrows(user)}
       />
-      <AppContent>
-        <CreateServiceForm />
-      </AppContent>
+      <AppContent>{subApp}</AppContent>
     </div>
   );
 }
 
 export default () => {
+  const [edit, setEdit] = useState(false);
+  const [currentUser, setCurrentUser] = useState('');
+  const {user} = useContext(AppContext);
+
+  if (user !== currentUser) {
+    setCurrentUser(user);
+  }
+
+  useEffect(() => {
+    http.get(conductorApiUrlPrefix + '/rbac/editableworkflows').then(res => {
+      setEdit(res);
+    });
+  }, [currentUser]);
+
   const relativeUrl = useRelativeUrl();
+  const cs = () => Main(CreateServiceForm());
+  const wf = () => Main(edit ? WorkflowApp() : WorkflowServiceApp());
   return (
     <ApplicationMain>
       <AppContextProvider>
         <Switch>
+          <Route path={relativeUrl('/services')} component={cs} />
+          <Route path={relativeUrl('/workflows')} component={wf} />
+          <Redirect exact from="/" to={relativeUrl('/hub')} />
           <Redirect exact from="/hub" to={relativeUrl('/services')} />
-          <Route path="/hub/services" component={Main} />
         </Switch>
       </AppContextProvider>
     </ApplicationMain>

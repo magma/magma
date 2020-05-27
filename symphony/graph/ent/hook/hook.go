@@ -26,6 +26,19 @@ func (f ActionsRuleFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value,
 	return f(ctx, mv)
 }
 
+// The ActivityFunc type is an adapter to allow the use of ordinary
+// function as Activity mutator.
+type ActivityFunc func(context.Context, *ent.ActivityMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ActivityFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.ActivityMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ActivityMutation", m)
+	}
+	return f(ctx, mv)
+}
+
 // The CheckListCategoryFunc type is an adapter to allow the use of ordinary
 // function as CheckListCategory mutator.
 type CheckListCategoryFunc func(context.Context, *ent.CheckListCategoryMutation) (ent.Value, error)
@@ -35,6 +48,19 @@ func (f CheckListCategoryFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.
 	mv, ok := m.(*ent.CheckListCategoryMutation)
 	if !ok {
 		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CheckListCategoryMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The CheckListCategoryDefinitionFunc type is an adapter to allow the use of ordinary
+// function as CheckListCategoryDefinition mutator.
+type CheckListCategoryDefinitionFunc func(context.Context, *ent.CheckListCategoryDefinitionMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CheckListCategoryDefinitionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.CheckListCategoryDefinitionMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CheckListCategoryDefinitionMutation", m)
 	}
 	return f(ctx, mv)
 }
@@ -299,6 +325,19 @@ func (f LocationTypeFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value
 	return f(ctx, mv)
 }
 
+// The PermissionsPolicyFunc type is an adapter to allow the use of ordinary
+// function as PermissionsPolicy mutator.
+type PermissionsPolicyFunc func(context.Context, *ent.PermissionsPolicyMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PermissionsPolicyFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.PermissionsPolicyMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PermissionsPolicyMutation", m)
+	}
+	return f(ctx, mv)
+}
+
 // The ProjectFunc type is an adapter to allow the use of ordinary
 // function as Project mutator.
 type ProjectFunc func(context.Context, *ent.ProjectMutation) (ent.Value, error)
@@ -390,6 +429,19 @@ func (f ServiceEndpointFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Va
 	return f(ctx, mv)
 }
 
+// The ServiceEndpointDefinitionFunc type is an adapter to allow the use of ordinary
+// function as ServiceEndpointDefinition mutator.
+type ServiceEndpointDefinitionFunc func(context.Context, *ent.ServiceEndpointDefinitionMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ServiceEndpointDefinitionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.ServiceEndpointDefinitionMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ServiceEndpointDefinitionMutation", m)
+	}
+	return f(ctx, mv)
+}
+
 // The ServiceTypeFunc type is an adapter to allow the use of ordinary
 // function as ServiceType mutator.
 type ServiceTypeFunc func(context.Context, *ent.ServiceTypeMutation) (ent.Value, error)
@@ -477,19 +529,6 @@ func (f SurveyWiFiScanFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Val
 	mv, ok := m.(*ent.SurveyWiFiScanMutation)
 	if !ok {
 		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SurveyWiFiScanMutation", m)
-	}
-	return f(ctx, mv)
-}
-
-// The TechnicianFunc type is an adapter to allow the use of ordinary
-// function as Technician mutator.
-type TechnicianFunc func(context.Context, *ent.TechnicianMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f TechnicianFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.TechnicianMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TechnicianMutation", m)
 	}
 	return f(ctx, mv)
 }
@@ -591,4 +630,40 @@ func Reject(op ent.Op) ent.Hook {
 			return next.Mutate(ctx, m)
 		})
 	}
+}
+
+// Chain acts as a list of hooks and is effectively immutable.
+// Once created, it will always hold the same set of hooks in the same order.
+type Chain struct {
+	hooks []ent.Hook
+}
+
+// NewChain creates a new chain of hooks.
+func NewChain(hooks ...ent.Hook) Chain {
+	return Chain{append([]ent.Hook(nil), hooks...)}
+}
+
+// Hook chains the list of hooks and returns the final hook.
+func (c Chain) Hook() ent.Hook {
+	return func(mutator ent.Mutator) ent.Mutator {
+		for i := len(c.hooks) - 1; i >= 0; i-- {
+			mutator = c.hooks[i](mutator)
+		}
+		return mutator
+	}
+}
+
+// Append extends a chain, adding the specified hook
+// as the last ones in the mutation flow.
+func (c Chain) Append(hooks ...ent.Hook) Chain {
+	newHooks := make([]ent.Hook, 0, len(c.hooks)+len(hooks))
+	newHooks = append(newHooks, c.hooks...)
+	newHooks = append(newHooks, hooks...)
+	return Chain{newHooks}
+}
+
+// Extend extends a chain, adding the specified chain
+// as the last ones in the mutation flow.
+func (c Chain) Extend(chain Chain) Chain {
+	return c.Append(chain.hooks...)
 }

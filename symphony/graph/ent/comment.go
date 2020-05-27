@@ -13,7 +13,9 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/symphony/graph/ent/comment"
+	"github.com/facebookincubator/symphony/graph/ent/project"
 	"github.com/facebookincubator/symphony/graph/ent/user"
+	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
 
 // Comment is the model entity for the Comment schema.
@@ -39,9 +41,13 @@ type Comment struct {
 type CommentEdges struct {
 	// Author holds the value of the author edge.
 	Author *User
+	// WorkOrder holds the value of the work_order edge.
+	WorkOrder *WorkOrder
+	// Project holds the value of the project edge.
+	Project *Project
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [3]bool
 }
 
 // AuthorOrErr returns the Author value or an error if the edge
@@ -56,6 +62,34 @@ func (e CommentEdges) AuthorOrErr() (*User, error) {
 		return e.Author, nil
 	}
 	return nil, &NotLoadedError{edge: "author"}
+}
+
+// WorkOrderOrErr returns the WorkOrder value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e CommentEdges) WorkOrderOrErr() (*WorkOrder, error) {
+	if e.loadedTypes[1] {
+		if e.WorkOrder == nil {
+			// The edge work_order was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: workorder.Label}
+		}
+		return e.WorkOrder, nil
+	}
+	return nil, &NotLoadedError{edge: "work_order"}
+}
+
+// ProjectOrErr returns the Project value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e CommentEdges) ProjectOrErr() (*Project, error) {
+	if e.loadedTypes[2] {
+		if e.Project == nil {
+			// The edge project was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: project.Label}
+		}
+		return e.Project, nil
+	}
+	return nil, &NotLoadedError{edge: "project"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -131,6 +165,16 @@ func (c *Comment) assignValues(values ...interface{}) error {
 // QueryAuthor queries the author edge of the Comment.
 func (c *Comment) QueryAuthor() *UserQuery {
 	return (&CommentClient{config: c.config}).QueryAuthor(c)
+}
+
+// QueryWorkOrder queries the work_order edge of the Comment.
+func (c *Comment) QueryWorkOrder() *WorkOrderQuery {
+	return (&CommentClient{config: c.config}).QueryWorkOrder(c)
+}
+
+// QueryProject queries the project edge of the Comment.
+func (c *Comment) QueryProject() *ProjectQuery {
+	return (&CommentClient{config: c.config}).QueryProject(c)
 }
 
 // Update returns a builder for updating this Comment.

@@ -9,7 +9,7 @@
  */
 
 import type {FilterSpecification} from 'mapbox-gl/src/style-spec/types';
-import type {MagmaConnectionFeature} from '@fbcnms/magmalte/app/common/GeoJSON';
+import type {MagmaConnectionFeature} from '@fbcnms/ui/insights/map/GeoJSON';
 import type {WifiGateway} from './WifiUtils';
 
 import {CONNECTION_TYPE_L2_ESTAB, CONNECTION_TYPE_L3_OPENR} from './WifiUtils';

@@ -69,6 +69,7 @@ const styles = _ => ({
 type Props = ContextRouter & {
   onSelect: (serviceTypeId: string) => void,
   onClose: () => void,
+  showNonManualDiscovery?: boolean,
 } & WithStyles<typeof styles>;
 
 type State = {
@@ -80,6 +81,7 @@ graphql`
   fragment ServiceTypesListQuery_serviceType on ServiceType {
     id
     name
+    discoveryMethod
   }
 `;
 
@@ -106,7 +108,7 @@ class ServiceTypesList extends React.Component<Props, State> {
     // $FlowFixMe (T62907961) Relay flow types
     fetchQuery(RelayEnvironment, serviceTypesQuery).then(response => {
       this.setState({
-        serviceTypes: response.serviceTypes.edges.map(x => x.node),
+        serviceTypes: response.serviceTypes.edges.map(y => y.node),
       });
     });
   }
@@ -119,6 +121,11 @@ class ServiceTypesList extends React.Component<Props, State> {
       .sort((serviceTypeA, serviceTypeB) =>
         sortLexicographically(serviceTypeA.name, serviceTypeB.name),
       )
+      .filter(node => {
+        return (
+          this.props.showNonManualDiscovery || node.discoveryMethod == 'MANUAL'
+        );
+      })
       .map(serviceType => (
         <ListItem
           className={classes.listItem}

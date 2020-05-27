@@ -70,7 +70,7 @@ struct ipv4flow_dl {
 };
 
 /*
- * This structure defines the management hooks for GTP tunnels.
+ * This structure defines the management hooks for GTP tunnels and paging support.
  * The following hooks can be defined; unless noted otherwise, they are
  * optional and can be filled with a null pointer.
  *
@@ -115,6 +115,13 @@ struct ipv4flow_dl {
  *         @i_tei: RX GTP Tunnel ID
  *         @flow_dl: Downlink flow rule
  *         @flow_precedence_dl: Downlink flow rule precedence
+ *
+ * int (*add_paging_rule)(struct in_addr ue);
+ *        @ue: UE IP address
+ *
+ * int (*send_end_marker) (struct in_addr enb, uint32_t i_tei);
+ *        @enb: eNB IP address
+ *        @i_tei: RX GTP Tunnel ID
  */
 struct gtp_tunnel_ops {
   int (*init)(
@@ -143,6 +150,9 @@ struct gtp_tunnel_ops {
     uint32_t i_tei,
     struct ipv4flow_dl* flow_dl,
     uint32_t flow_precedence_dl);
+  int (*add_paging_rule)(struct in_addr ue);
+  int (*delete_paging_rule)(struct in_addr ue);
+  int (*send_end_marker) (struct in_addr enbode, uint32_t i_tei);
 };
 
 #if ENABLE_OPENFLOW

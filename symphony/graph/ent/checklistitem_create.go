@@ -13,9 +13,11 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/ent/checklistcategory"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
 	"github.com/facebookincubator/symphony/graph/ent/file"
-	"github.com/facebookincubator/symphony/graph/ent/workorder"
+	"github.com/facebookincubator/symphony/graph/ent/surveycellscan"
+	"github.com/facebookincubator/symphony/graph/ent/surveywifiscan"
 )
 
 // CheckListItemCreate is the builder for creating a CheckListItem entity.
@@ -93,16 +95,16 @@ func (clic *CheckListItemCreate) SetNillableEnumValues(s *string) *CheckListItem
 	return clic
 }
 
-// SetEnumSelectionMode sets the enum_selection_mode field.
-func (clic *CheckListItemCreate) SetEnumSelectionMode(s string) *CheckListItemCreate {
-	clic.mutation.SetEnumSelectionMode(s)
+// SetEnumSelectionModeValue sets the enum_selection_mode_value field.
+func (clic *CheckListItemCreate) SetEnumSelectionModeValue(csmv checklistitem.EnumSelectionModeValue) *CheckListItemCreate {
+	clic.mutation.SetEnumSelectionModeValue(csmv)
 	return clic
 }
 
-// SetNillableEnumSelectionMode sets the enum_selection_mode field if the given value is not nil.
-func (clic *CheckListItemCreate) SetNillableEnumSelectionMode(s *string) *CheckListItemCreate {
-	if s != nil {
-		clic.SetEnumSelectionMode(*s)
+// SetNillableEnumSelectionModeValue sets the enum_selection_mode_value field if the given value is not nil.
+func (clic *CheckListItemCreate) SetNillableEnumSelectionModeValue(csmv *checklistitem.EnumSelectionModeValue) *CheckListItemCreate {
+	if csmv != nil {
+		clic.SetEnumSelectionModeValue(*csmv)
 	}
 	return clic
 }
@@ -164,23 +166,45 @@ func (clic *CheckListItemCreate) AddFiles(f ...*File) *CheckListItemCreate {
 	return clic.AddFileIDs(ids...)
 }
 
-// SetWorkOrderID sets the work_order edge to WorkOrder by id.
-func (clic *CheckListItemCreate) SetWorkOrderID(id int) *CheckListItemCreate {
-	clic.mutation.SetWorkOrderID(id)
+// AddWifiScanIDs adds the wifi_scan edge to SurveyWiFiScan by ids.
+func (clic *CheckListItemCreate) AddWifiScanIDs(ids ...int) *CheckListItemCreate {
+	clic.mutation.AddWifiScanIDs(ids...)
 	return clic
 }
 
-// SetNillableWorkOrderID sets the work_order edge to WorkOrder by id if the given value is not nil.
-func (clic *CheckListItemCreate) SetNillableWorkOrderID(id *int) *CheckListItemCreate {
-	if id != nil {
-		clic = clic.SetWorkOrderID(*id)
+// AddWifiScan adds the wifi_scan edges to SurveyWiFiScan.
+func (clic *CheckListItemCreate) AddWifiScan(s ...*SurveyWiFiScan) *CheckListItemCreate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
 	}
+	return clic.AddWifiScanIDs(ids...)
+}
+
+// AddCellScanIDs adds the cell_scan edge to SurveyCellScan by ids.
+func (clic *CheckListItemCreate) AddCellScanIDs(ids ...int) *CheckListItemCreate {
+	clic.mutation.AddCellScanIDs(ids...)
 	return clic
 }
 
-// SetWorkOrder sets the work_order edge to WorkOrder.
-func (clic *CheckListItemCreate) SetWorkOrder(w *WorkOrder) *CheckListItemCreate {
-	return clic.SetWorkOrderID(w.ID)
+// AddCellScan adds the cell_scan edges to SurveyCellScan.
+func (clic *CheckListItemCreate) AddCellScan(s ...*SurveyCellScan) *CheckListItemCreate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return clic.AddCellScanIDs(ids...)
+}
+
+// SetCheckListCategoryID sets the check_list_category edge to CheckListCategory by id.
+func (clic *CheckListItemCreate) SetCheckListCategoryID(id int) *CheckListItemCreate {
+	clic.mutation.SetCheckListCategoryID(id)
+	return clic
+}
+
+// SetCheckListCategory sets the check_list_category edge to CheckListCategory.
+func (clic *CheckListItemCreate) SetCheckListCategory(c *CheckListCategory) *CheckListItemCreate {
+	return clic.SetCheckListCategoryID(c.ID)
 }
 
 // Save creates the CheckListItem in the database.
@@ -191,10 +215,18 @@ func (clic *CheckListItemCreate) Save(ctx context.Context) (*CheckListItem, erro
 	if _, ok := clic.mutation.GetType(); !ok {
 		return nil, errors.New("ent: missing required field \"type\"")
 	}
+	if v, ok := clic.mutation.EnumSelectionModeValue(); ok {
+		if err := checklistitem.EnumSelectionModeValueValidator(v); err != nil {
+			return nil, fmt.Errorf("ent: validator failed for field \"enum_selection_mode_value\": %v", err)
+		}
+	}
 	if v, ok := clic.mutation.YesNoVal(); ok {
 		if err := checklistitem.YesNoValValidator(v); err != nil {
 			return nil, fmt.Errorf("ent: validator failed for field \"yes_no_val\": %v", err)
 		}
+	}
+	if _, ok := clic.mutation.CheckListCategoryID(); !ok {
+		return nil, errors.New("ent: missing required edge \"check_list_category\"")
 	}
 	var (
 		err  error
@@ -290,13 +322,13 @@ func (clic *CheckListItemCreate) sqlSave(ctx context.Context) (*CheckListItem, e
 		})
 		cli.EnumValues = value
 	}
-	if value, ok := clic.mutation.EnumSelectionMode(); ok {
+	if value, ok := clic.mutation.EnumSelectionModeValue(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
+			Type:   field.TypeEnum,
 			Value:  value,
-			Column: checklistitem.FieldEnumSelectionMode,
+			Column: checklistitem.FieldEnumSelectionModeValue,
 		})
-		cli.EnumSelectionMode = value
+		cli.EnumSelectionModeValue = value
 	}
 	if value, ok := clic.mutation.SelectedEnumValues(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -341,17 +373,55 @@ func (clic *CheckListItemCreate) sqlSave(ctx context.Context) (*CheckListItem, e
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := clic.mutation.WorkOrderIDs(); len(nodes) > 0 {
+	if nodes := clic.mutation.WifiScanIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
+			Rel:     sqlgraph.O2M,
 			Inverse: true,
-			Table:   checklistitem.WorkOrderTable,
-			Columns: []string{checklistitem.WorkOrderColumn},
+			Table:   checklistitem.WifiScanTable,
+			Columns: []string{checklistitem.WifiScanColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: workorder.FieldID,
+					Column: surveywifiscan.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := clic.mutation.CellScanIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   checklistitem.CellScanTable,
+			Columns: []string{checklistitem.CellScanColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: surveycellscan.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := clic.mutation.CheckListCategoryIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   checklistitem.CheckListCategoryTable,
+			Columns: []string{checklistitem.CheckListCategoryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: checklistcategory.FieldID,
 				},
 			},
 		}

@@ -54,13 +54,8 @@ const PowerSearchPropertyFilter = (props: FilterProps) => {
       name: 'property',
       operator: editedOperator,
       propertyValue: {
-        id: String(Math.floor(Math.random() * 10 ** 5)),
-        name: newValue.propertyType
-          ? newValue.propertyType.name
-          : newValue.name,
-        type: newValue.propertyType
-          ? newValue.propertyType.type
-          : newValue.type,
+        name: newValue.name,
+        type: newValue.type,
         index: 0,
         booleanValue: newValue.booleanValue,
         stringValue: newValue.stringValue,
@@ -109,6 +104,7 @@ const PowerSearchPropertyFilter = (props: FilterProps) => {
                 propertyValue.type === 'enum' ||
                 propertyValue.type === 'bool'
               ) {
+                // $FlowFixMe: interim state where ID is int in client (usually it's string)
                 onNewInputBlurred(onChange(newValue));
               } else {
                 onChange(newValue);

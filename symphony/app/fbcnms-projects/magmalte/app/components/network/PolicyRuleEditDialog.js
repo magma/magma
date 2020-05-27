@@ -8,6 +8,7 @@
  * @format
  */
 
+import type {NetworkType} from '@fbcnms/types/network';
 import type {policy_rule} from '@fbcnms/magma-api';
 
 import AddCircleOutline from '@material-ui/icons/AddCircleOutline';
@@ -25,14 +26,15 @@ import React from 'react';
 import TextField from '@material-ui/core/TextField';
 import TypedSelect from '@fbcnms/ui/components/TypedSelect';
 import Typography from '@material-ui/core/Typography';
+
 import nullthrows from '@fbcnms/util/nullthrows';
 import {ACTION, DIRECTION, PROTOCOL} from './PolicyTypes';
 import {CWF, FEG, LTE} from '@fbcnms/types/network';
+import {base64ToHex, decodeBase64} from '@fbcnms/util/strings';
 import {coalesceNetworkType} from '@fbcnms/types/network';
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useState} from 'react';
 import {useRouter} from '@fbcnms/ui/hooks';
-import type {NetworkType} from '@fbcnms/types/network';
 
 const useStyles = makeStyles(() => ({
   input: {width: '100%'},
@@ -207,12 +209,28 @@ export default function PolicyRuleEditDialog(props: Props) {
         <TextField
           required
           className={classes.input}
-          label="Monitoring Key"
+          label="Monitoring Key (base64)"
           margin="normal"
-          value={rule.monitoring_key}
+          value={rule.monitoring_key ?? ''}
           onChange={({target}) =>
             setRule({...rule, monitoring_key: target.value})
           }
+        />
+        <TextField
+          required
+          className={classes.input}
+          label="Monitoring Key (hex)"
+          margin="normal"
+          disabled={true}
+          value={base64ToHex(rule.monitoring_key ?? '')}
+        />
+        <TextField
+          required
+          className={classes.input}
+          label="Monitoring Key (ascii)"
+          margin="normal"
+          disabled={true}
+          value={decodeBase64(rule.monitoring_key ?? '')}
         />
         <TextField
           required

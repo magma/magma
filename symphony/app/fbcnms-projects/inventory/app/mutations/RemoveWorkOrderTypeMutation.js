@@ -8,15 +8,18 @@
  * @format
  */
 
-import RelayEnvironment from '../common/RelayEnvironment.js';
-import {commitMutation, graphql} from 'react-relay';
 import type {MutationCallbacks} from './MutationCallbacks.js';
 import type {
   RemoveWorkOrderTypeMutation,
   RemoveWorkOrderTypeMutationResponse,
   RemoveWorkOrderTypeMutationVariables,
 } from './__generated__/RemoveWorkOrderTypeMutation.graphql';
-import type {StoreUpdater} from '../common/RelayEnvironment';
+import type {SelectorStoreUpdater} from 'relay-runtime';
+
+import RelayEnvironment from '../common/RelayEnvironment.js';
+import {ConnectionHandler} from 'relay-runtime';
+import {commitMutation, graphql} from 'react-relay';
+import {getGraphError} from '../common/EntUtils';
 
 const mutation = graphql`
   mutation RemoveWorkOrderTypeMutation($id: ID!) {
@@ -24,10 +27,40 @@ const mutation = graphql`
   }
 `;
 
-export default (
+export const deleteWorkOrderType = (workOrderTypeId: string): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    CommitRemoveWorkOrderTypeMutation(
+      {
+        id: workOrderTypeId,
+      },
+      {
+        onCompleted: (response, errors) => {
+          if (errors && errors[0]) {
+            return reject(getGraphError(errors[0]));
+          }
+          resolve();
+        },
+        onError: (error: Error) => reject(getGraphError(error)),
+      },
+      store => {
+        const rootQuery = store.getRoot();
+        const workOrderTypes = ConnectionHandler.getConnection(
+          rootQuery,
+          'Configure_workOrderTypes',
+        );
+        if (workOrderTypes != null) {
+          ConnectionHandler.deleteNode(workOrderTypes, workOrderTypeId);
+        }
+        store.delete(workOrderTypeId);
+      },
+    );
+  });
+};
+
+const CommitRemoveWorkOrderTypeMutation = (
   variables: RemoveWorkOrderTypeMutationVariables,
   callbacks?: MutationCallbacks<RemoveWorkOrderTypeMutationResponse>,
-  updater?: StoreUpdater,
+  updater?: SelectorStoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
   commitMutation<RemoveWorkOrderTypeMutation>(RelayEnvironment, {
@@ -38,3 +71,5 @@ export default (
     onError,
   });
 };
+
+export default CommitRemoveWorkOrderTypeMutation;

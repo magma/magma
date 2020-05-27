@@ -13,8 +13,9 @@ import type {WorkOrdersView_workOrder} from './__generated__/WorkOrdersView_work
 import Button from '@fbcnms/ui/components/design-system/Button';
 import DateTimeFormat from '../../common/DateTimeFormat';
 import LocationLink from '../location/LocationLink';
-import React, {useMemo, useState} from 'react';
+import React, {useMemo} from 'react';
 import Table from '@fbcnms/ui/components/design-system/Table/Table';
+import fbt from 'fbt';
 import nullthrows from '@fbcnms/util/nullthrows';
 import {InventoryAPIUrls} from '../../common/InventoryAPI';
 import {createFragmentContainer, graphql} from 'react-relay';
@@ -29,22 +30,11 @@ type Props = {
 
 const WorkOrdersView = (props: Props) => {
   const {workOrder, onWorkOrderSelected} = props;
-  const [sortDirection, setSortDirection] = useState('desc');
-  const [sortColumn, setSortColumn] = useState('name');
   const history = useHistory();
 
-  const sortedWorkOrders = useMemo(
-    () =>
-      workOrder
-        .slice()
-        .sort(
-          (wo1, wo2) =>
-            wo1[sortColumn].localeCompare(wo2[sortColumn]) *
-            (sortDirection === 'asc' ? -1 : 1),
-        )
-        .map(wo => ({...wo, key: wo.id})),
-    [sortColumn, sortDirection, workOrder],
-  );
+  const data = useMemo(() => workOrder.map(wo => ({...wo, key: wo.id})), [
+    workOrder,
+  ]);
 
   if (workOrder.length === 0) {
     return <div />;
@@ -52,35 +42,28 @@ const WorkOrdersView = (props: Props) => {
 
   return (
     <Table
-      data={sortedWorkOrders}
-      onSortClicked={col => {
-        if (sortColumn === col) {
-          setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-        } else {
-          setSortColumn(col);
-          setSortDirection('desc');
-        }
-      }}
+      data={data}
       columns={[
         {
           key: 'name',
           title: 'Name',
+          getSortingValue: row => row.name,
           render: row => (
             <Button variant="text" onClick={() => onWorkOrderSelected(row.id)}>
               {row.name}
             </Button>
           ),
-          sortable: true,
-          sortDirection: sortColumn === 'name' ? sortDirection : undefined,
         },
         {
           key: 'type',
-          title: 'Type',
+          title: `${fbt('Template', '')}`,
+          getSortingValue: row => row.workOrderType?.name,
           render: row => row.workOrderType?.name ?? '',
         },
         {
           key: 'project',
           title: 'Project',
+          getSortingValue: row => row.project?.name,
           render: row =>
             row.project ? (
               <Button
@@ -97,39 +80,50 @@ const WorkOrdersView = (props: Props) => {
         {
           key: 'owner',
           title: 'Owner',
+          getSortingValue: row => row.owner.email,
           render: row => row.owner.email ?? '',
         },
         {
           key: 'status',
           title: 'Status',
+          getSortingValue: row => row.status,
           render: row => formatMultiSelectValue(statusValues, row.status) ?? '',
         },
         {
           key: 'creationDate',
           title: 'Creation Time',
+          getSortingValue: row => row.creationDate,
           render: row => DateTimeFormat.dateTime(row.creationDate),
         },
         {
           key: 'dueDate',
           title: 'Due Date',
+          getSortingValue: row => row.installDate,
           render: row => DateTimeFormat.dateOnly(row.installDate),
         },
         {
           key: 'location',
           title: 'Location',
+          getSortingValue: row => row.location?.name,
           render: row =>
             row.location ? (
-              <LocationLink title={row.location.name} id={row.location.id} />
+              <LocationLink
+                title={row.location.name}
+                id={row.location.id}
+                newTab={true}
+              />
             ) : null,
         },
         {
           key: 'assignee',
           title: 'Assignee',
+          getSortingValue: row => row.assignedTo?.email,
           render: row => row.assignedTo?.email || null,
         },
         {
           key: 'closeDate',
           title: 'Close Time',
+          getSortingValue: row => row.closeDate,
           render: row => DateTimeFormat.dateTime(row.closeDate),
         },
       ]}

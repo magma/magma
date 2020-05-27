@@ -20,6 +20,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/equipmenttype"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
+	"github.com/facebookincubator/symphony/graph/ent/serviceendpointdefinition"
 )
 
 // EquipmentTypeUpdate is the builder for updating EquipmentType entities.
@@ -121,6 +122,21 @@ func (etu *EquipmentTypeUpdate) SetCategory(e *EquipmentCategory) *EquipmentType
 	return etu.SetCategoryID(e.ID)
 }
 
+// AddServiceEndpointDefinitionIDs adds the service_endpoint_definitions edge to ServiceEndpointDefinition by ids.
+func (etu *EquipmentTypeUpdate) AddServiceEndpointDefinitionIDs(ids ...int) *EquipmentTypeUpdate {
+	etu.mutation.AddServiceEndpointDefinitionIDs(ids...)
+	return etu
+}
+
+// AddServiceEndpointDefinitions adds the service_endpoint_definitions edges to ServiceEndpointDefinition.
+func (etu *EquipmentTypeUpdate) AddServiceEndpointDefinitions(s ...*ServiceEndpointDefinition) *EquipmentTypeUpdate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return etu.AddServiceEndpointDefinitionIDs(ids...)
+}
+
 // RemovePortDefinitionIDs removes the port_definitions edge to EquipmentPortDefinition by ids.
 func (etu *EquipmentTypeUpdate) RemovePortDefinitionIDs(ids ...int) *EquipmentTypeUpdate {
 	etu.mutation.RemovePortDefinitionIDs(ids...)
@@ -185,6 +201,21 @@ func (etu *EquipmentTypeUpdate) RemoveEquipment(e ...*Equipment) *EquipmentTypeU
 func (etu *EquipmentTypeUpdate) ClearCategory() *EquipmentTypeUpdate {
 	etu.mutation.ClearCategory()
 	return etu
+}
+
+// RemoveServiceEndpointDefinitionIDs removes the service_endpoint_definitions edge to ServiceEndpointDefinition by ids.
+func (etu *EquipmentTypeUpdate) RemoveServiceEndpointDefinitionIDs(ids ...int) *EquipmentTypeUpdate {
+	etu.mutation.RemoveServiceEndpointDefinitionIDs(ids...)
+	return etu
+}
+
+// RemoveServiceEndpointDefinitions removes service_endpoint_definitions edges to ServiceEndpointDefinition.
+func (etu *EquipmentTypeUpdate) RemoveServiceEndpointDefinitions(s ...*ServiceEndpointDefinition) *EquipmentTypeUpdate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return etu.RemoveServiceEndpointDefinitionIDs(ids...)
 }
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
@@ -461,6 +492,44 @@ func (etu *EquipmentTypeUpdate) sqlSave(ctx context.Context) (n int, err error) 
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if nodes := etu.mutation.RemovedServiceEndpointDefinitionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   equipmenttype.ServiceEndpointDefinitionsTable,
+			Columns: []string{equipmenttype.ServiceEndpointDefinitionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: serviceendpointdefinition.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := etu.mutation.ServiceEndpointDefinitionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   equipmenttype.ServiceEndpointDefinitionsTable,
+			Columns: []string{equipmenttype.ServiceEndpointDefinitionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: serviceendpointdefinition.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, etu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{equipmenttype.Label}
@@ -564,6 +633,21 @@ func (etuo *EquipmentTypeUpdateOne) SetCategory(e *EquipmentCategory) *Equipment
 	return etuo.SetCategoryID(e.ID)
 }
 
+// AddServiceEndpointDefinitionIDs adds the service_endpoint_definitions edge to ServiceEndpointDefinition by ids.
+func (etuo *EquipmentTypeUpdateOne) AddServiceEndpointDefinitionIDs(ids ...int) *EquipmentTypeUpdateOne {
+	etuo.mutation.AddServiceEndpointDefinitionIDs(ids...)
+	return etuo
+}
+
+// AddServiceEndpointDefinitions adds the service_endpoint_definitions edges to ServiceEndpointDefinition.
+func (etuo *EquipmentTypeUpdateOne) AddServiceEndpointDefinitions(s ...*ServiceEndpointDefinition) *EquipmentTypeUpdateOne {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return etuo.AddServiceEndpointDefinitionIDs(ids...)
+}
+
 // RemovePortDefinitionIDs removes the port_definitions edge to EquipmentPortDefinition by ids.
 func (etuo *EquipmentTypeUpdateOne) RemovePortDefinitionIDs(ids ...int) *EquipmentTypeUpdateOne {
 	etuo.mutation.RemovePortDefinitionIDs(ids...)
@@ -628,6 +712,21 @@ func (etuo *EquipmentTypeUpdateOne) RemoveEquipment(e ...*Equipment) *EquipmentT
 func (etuo *EquipmentTypeUpdateOne) ClearCategory() *EquipmentTypeUpdateOne {
 	etuo.mutation.ClearCategory()
 	return etuo
+}
+
+// RemoveServiceEndpointDefinitionIDs removes the service_endpoint_definitions edge to ServiceEndpointDefinition by ids.
+func (etuo *EquipmentTypeUpdateOne) RemoveServiceEndpointDefinitionIDs(ids ...int) *EquipmentTypeUpdateOne {
+	etuo.mutation.RemoveServiceEndpointDefinitionIDs(ids...)
+	return etuo
+}
+
+// RemoveServiceEndpointDefinitions removes service_endpoint_definitions edges to ServiceEndpointDefinition.
+func (etuo *EquipmentTypeUpdateOne) RemoveServiceEndpointDefinitions(s ...*ServiceEndpointDefinition) *EquipmentTypeUpdateOne {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return etuo.RemoveServiceEndpointDefinitionIDs(ids...)
 }
 
 // Save executes the query and returns the updated entity.
@@ -894,6 +993,44 @@ func (etuo *EquipmentTypeUpdateOne) sqlSave(ctx context.Context) (et *EquipmentT
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: equipmentcategory.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if nodes := etuo.mutation.RemovedServiceEndpointDefinitionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   equipmenttype.ServiceEndpointDefinitionsTable,
+			Columns: []string{equipmenttype.ServiceEndpointDefinitionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: serviceendpointdefinition.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := etuo.mutation.ServiceEndpointDefinitionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   equipmenttype.ServiceEndpointDefinitionsTable,
+			Columns: []string{equipmenttype.ServiceEndpointDefinitionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: serviceendpointdefinition.FieldID,
 				},
 			},
 		}

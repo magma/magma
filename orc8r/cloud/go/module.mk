@@ -33,7 +33,6 @@ gen::
 # So for e.g., a swagger file under orc8r/cloud/go/pluginimpl/swagger/swagger.v1.yml
 # will end up as orc8r_pluginimpl_swagger_swagger.v1.yml
 copy_swagger_files:
-	find . -name "swagger.yml" | xargs -I% --no-run-if-empty bash -c 'cp % $${SWAGGER_TEMP_GEN}/$$(echo % | sed "s#/#_#g; s/\._//g")'
 	find . -name "swagger.v1.yml" | xargs -I% --no-run-if-empty bash -c 'cp % $${SWAGGER_V1_TEMP_GEN}/$$(echo % | sed "s#/#_#g; s/\._//g" | xargs -I @ echo "$$(basename $$(realpath $$(pwd)/../..))_@")'
 
 lint:

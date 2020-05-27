@@ -28,6 +28,10 @@ type ServiceType struct {
 	Name string `json:"name,omitempty"`
 	// HasCustomer holds the value of the "has_customer" field.
 	HasCustomer bool `json:"has_customer,omitempty"`
+	// IsDeleted holds the value of the "is_deleted" field.
+	IsDeleted bool `json:"is_deleted,omitempty"`
+	// DiscoveryMethod holds the value of the "discovery_method" field.
+	DiscoveryMethod servicetype.DiscoveryMethod `json:"discovery_method,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ServiceTypeQuery when eager-loading is set.
 	Edges ServiceTypeEdges `json:"edges"`
@@ -39,9 +43,11 @@ type ServiceTypeEdges struct {
 	Services []*Service
 	// PropertyTypes holds the value of the property_types edge.
 	PropertyTypes []*PropertyType
+	// EndpointDefinitions holds the value of the endpoint_definitions edge.
+	EndpointDefinitions []*ServiceEndpointDefinition
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // ServicesOrErr returns the Services value or an error if the edge
@@ -62,6 +68,15 @@ func (e ServiceTypeEdges) PropertyTypesOrErr() ([]*PropertyType, error) {
 	return nil, &NotLoadedError{edge: "property_types"}
 }
 
+// EndpointDefinitionsOrErr returns the EndpointDefinitions value or an error if the edge
+// was not loaded in eager-loading.
+func (e ServiceTypeEdges) EndpointDefinitionsOrErr() ([]*ServiceEndpointDefinition, error) {
+	if e.loadedTypes[2] {
+		return e.EndpointDefinitions, nil
+	}
+	return nil, &NotLoadedError{edge: "endpoint_definitions"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*ServiceType) scanValues() []interface{} {
 	return []interface{}{
@@ -70,6 +85,8 @@ func (*ServiceType) scanValues() []interface{} {
 		&sql.NullTime{},   // update_time
 		&sql.NullString{}, // name
 		&sql.NullBool{},   // has_customer
+		&sql.NullBool{},   // is_deleted
+		&sql.NullString{}, // discovery_method
 	}
 }
 
@@ -105,6 +122,16 @@ func (st *ServiceType) assignValues(values ...interface{}) error {
 	} else if value.Valid {
 		st.HasCustomer = value.Bool
 	}
+	if value, ok := values[4].(*sql.NullBool); !ok {
+		return fmt.Errorf("unexpected type %T for field is_deleted", values[4])
+	} else if value.Valid {
+		st.IsDeleted = value.Bool
+	}
+	if value, ok := values[5].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field discovery_method", values[5])
+	} else if value.Valid {
+		st.DiscoveryMethod = servicetype.DiscoveryMethod(value.String)
+	}
 	return nil
 }
 
@@ -116,6 +143,11 @@ func (st *ServiceType) QueryServices() *ServiceQuery {
 // QueryPropertyTypes queries the property_types edge of the ServiceType.
 func (st *ServiceType) QueryPropertyTypes() *PropertyTypeQuery {
 	return (&ServiceTypeClient{config: st.config}).QueryPropertyTypes(st)
+}
+
+// QueryEndpointDefinitions queries the endpoint_definitions edge of the ServiceType.
+func (st *ServiceType) QueryEndpointDefinitions() *ServiceEndpointDefinitionQuery {
+	return (&ServiceTypeClient{config: st.config}).QueryEndpointDefinitions(st)
 }
 
 // Update returns a builder for updating this ServiceType.
@@ -149,6 +181,10 @@ func (st *ServiceType) String() string {
 	builder.WriteString(st.Name)
 	builder.WriteString(", has_customer=")
 	builder.WriteString(fmt.Sprintf("%v", st.HasCustomer))
+	builder.WriteString(", is_deleted=")
+	builder.WriteString(fmt.Sprintf("%v", st.IsDeleted))
+	builder.WriteString(", discovery_method=")
+	builder.WriteString(fmt.Sprintf("%v", st.DiscoveryMethod))
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -17,8 +17,20 @@ resource "kubernetes_persistent_volume_claim" "storage" {
       storage     = "64Gi"
     }
     grafanadata = {
-      access_mode = "ReadWriteOnce"
+      access_mode = "ReadWriteMany"
       storage     = "2Gi"
+    }
+    grafanadashboards = {
+      access_mode = "ReadWriteMany"
+      storage     = "2Gi"
+    }
+    grafanaproviders = {
+      access_mode = "ReadWriteMany"
+      storage     = "100M"
+    }
+    grafanadatasources = {
+      access_mode = "ReadWriteMany"
+      storage     = "100M"
     }
     openvpn = {
       access_mode = "ReadWriteOnce"
@@ -28,7 +40,7 @@ resource "kubernetes_persistent_volume_claim" "storage" {
 
   metadata {
     name      = each.key
-    namespace = var.orc8r_kubernetes_namespace
+    namespace = kubernetes_namespace.orc8r.metadata[0].name
   }
 
   spec {
@@ -40,4 +52,6 @@ resource "kubernetes_persistent_volume_claim" "storage" {
     }
     storage_class_name = "efs"
   }
+
+  depends_on = [helm_release.efs_provisioner]
 }

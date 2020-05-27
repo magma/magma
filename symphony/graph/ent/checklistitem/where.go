@@ -137,13 +137,6 @@ func EnumValues(v string) predicate.CheckListItem {
 	})
 }
 
-// EnumSelectionMode applies equality check predicate on the "enum_selection_mode" field. It's identical to EnumSelectionModeEQ.
-func EnumSelectionMode(v string) predicate.CheckListItem {
-	return predicate.CheckListItem(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldEnumSelectionMode), v))
-	})
-}
-
 // SelectedEnumValues applies equality check predicate on the "selected_enum_values" field. It's identical to SelectedEnumValuesEQ.
 func SelectedEnumValues(v string) predicate.CheckListItem {
 	return predicate.CheckListItem(func(s *sql.Selector) {
@@ -748,22 +741,22 @@ func EnumValuesContainsFold(v string) predicate.CheckListItem {
 	})
 }
 
-// EnumSelectionModeEQ applies the EQ predicate on the "enum_selection_mode" field.
-func EnumSelectionModeEQ(v string) predicate.CheckListItem {
+// EnumSelectionModeValueEQ applies the EQ predicate on the "enum_selection_mode_value" field.
+func EnumSelectionModeValueEQ(v EnumSelectionModeValue) predicate.CheckListItem {
 	return predicate.CheckListItem(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldEnumSelectionMode), v))
+		s.Where(sql.EQ(s.C(FieldEnumSelectionModeValue), v))
 	})
 }
 
-// EnumSelectionModeNEQ applies the NEQ predicate on the "enum_selection_mode" field.
-func EnumSelectionModeNEQ(v string) predicate.CheckListItem {
+// EnumSelectionModeValueNEQ applies the NEQ predicate on the "enum_selection_mode_value" field.
+func EnumSelectionModeValueNEQ(v EnumSelectionModeValue) predicate.CheckListItem {
 	return predicate.CheckListItem(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldEnumSelectionMode), v))
+		s.Where(sql.NEQ(s.C(FieldEnumSelectionModeValue), v))
 	})
 }
 
-// EnumSelectionModeIn applies the In predicate on the "enum_selection_mode" field.
-func EnumSelectionModeIn(vs ...string) predicate.CheckListItem {
+// EnumSelectionModeValueIn applies the In predicate on the "enum_selection_mode_value" field.
+func EnumSelectionModeValueIn(vs ...EnumSelectionModeValue) predicate.CheckListItem {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -775,12 +768,12 @@ func EnumSelectionModeIn(vs ...string) predicate.CheckListItem {
 			s.Where(sql.False())
 			return
 		}
-		s.Where(sql.In(s.C(FieldEnumSelectionMode), v...))
+		s.Where(sql.In(s.C(FieldEnumSelectionModeValue), v...))
 	})
 }
 
-// EnumSelectionModeNotIn applies the NotIn predicate on the "enum_selection_mode" field.
-func EnumSelectionModeNotIn(vs ...string) predicate.CheckListItem {
+// EnumSelectionModeValueNotIn applies the NotIn predicate on the "enum_selection_mode_value" field.
+func EnumSelectionModeValueNotIn(vs ...EnumSelectionModeValue) predicate.CheckListItem {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -792,84 +785,21 @@ func EnumSelectionModeNotIn(vs ...string) predicate.CheckListItem {
 			s.Where(sql.False())
 			return
 		}
-		s.Where(sql.NotIn(s.C(FieldEnumSelectionMode), v...))
+		s.Where(sql.NotIn(s.C(FieldEnumSelectionModeValue), v...))
 	})
 }
 
-// EnumSelectionModeGT applies the GT predicate on the "enum_selection_mode" field.
-func EnumSelectionModeGT(v string) predicate.CheckListItem {
+// EnumSelectionModeValueIsNil applies the IsNil predicate on the "enum_selection_mode_value" field.
+func EnumSelectionModeValueIsNil() predicate.CheckListItem {
 	return predicate.CheckListItem(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldEnumSelectionMode), v))
+		s.Where(sql.IsNull(s.C(FieldEnumSelectionModeValue)))
 	})
 }
 
-// EnumSelectionModeGTE applies the GTE predicate on the "enum_selection_mode" field.
-func EnumSelectionModeGTE(v string) predicate.CheckListItem {
+// EnumSelectionModeValueNotNil applies the NotNil predicate on the "enum_selection_mode_value" field.
+func EnumSelectionModeValueNotNil() predicate.CheckListItem {
 	return predicate.CheckListItem(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldEnumSelectionMode), v))
-	})
-}
-
-// EnumSelectionModeLT applies the LT predicate on the "enum_selection_mode" field.
-func EnumSelectionModeLT(v string) predicate.CheckListItem {
-	return predicate.CheckListItem(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldEnumSelectionMode), v))
-	})
-}
-
-// EnumSelectionModeLTE applies the LTE predicate on the "enum_selection_mode" field.
-func EnumSelectionModeLTE(v string) predicate.CheckListItem {
-	return predicate.CheckListItem(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldEnumSelectionMode), v))
-	})
-}
-
-// EnumSelectionModeContains applies the Contains predicate on the "enum_selection_mode" field.
-func EnumSelectionModeContains(v string) predicate.CheckListItem {
-	return predicate.CheckListItem(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldEnumSelectionMode), v))
-	})
-}
-
-// EnumSelectionModeHasPrefix applies the HasPrefix predicate on the "enum_selection_mode" field.
-func EnumSelectionModeHasPrefix(v string) predicate.CheckListItem {
-	return predicate.CheckListItem(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldEnumSelectionMode), v))
-	})
-}
-
-// EnumSelectionModeHasSuffix applies the HasSuffix predicate on the "enum_selection_mode" field.
-func EnumSelectionModeHasSuffix(v string) predicate.CheckListItem {
-	return predicate.CheckListItem(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldEnumSelectionMode), v))
-	})
-}
-
-// EnumSelectionModeIsNil applies the IsNil predicate on the "enum_selection_mode" field.
-func EnumSelectionModeIsNil() predicate.CheckListItem {
-	return predicate.CheckListItem(func(s *sql.Selector) {
-		s.Where(sql.IsNull(s.C(FieldEnumSelectionMode)))
-	})
-}
-
-// EnumSelectionModeNotNil applies the NotNil predicate on the "enum_selection_mode" field.
-func EnumSelectionModeNotNil() predicate.CheckListItem {
-	return predicate.CheckListItem(func(s *sql.Selector) {
-		s.Where(sql.NotNull(s.C(FieldEnumSelectionMode)))
-	})
-}
-
-// EnumSelectionModeEqualFold applies the EqualFold predicate on the "enum_selection_mode" field.
-func EnumSelectionModeEqualFold(v string) predicate.CheckListItem {
-	return predicate.CheckListItem(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldEnumSelectionMode), v))
-	})
-}
-
-// EnumSelectionModeContainsFold applies the ContainsFold predicate on the "enum_selection_mode" field.
-func EnumSelectionModeContainsFold(v string) predicate.CheckListItem {
-	return predicate.CheckListItem(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldEnumSelectionMode), v))
+		s.Where(sql.NotNull(s.C(FieldEnumSelectionModeValue)))
 	})
 }
 
@@ -1213,25 +1143,81 @@ func HasFilesWith(preds ...predicate.File) predicate.CheckListItem {
 	})
 }
 
-// HasWorkOrder applies the HasEdge predicate on the "work_order" edge.
-func HasWorkOrder() predicate.CheckListItem {
+// HasWifiScan applies the HasEdge predicate on the "wifi_scan" edge.
+func HasWifiScan() predicate.CheckListItem {
 	return predicate.CheckListItem(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(WorkOrderTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, WorkOrderTable, WorkOrderColumn),
+			sqlgraph.To(WifiScanTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, WifiScanTable, WifiScanColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasWorkOrderWith applies the HasEdge predicate on the "work_order" edge with a given conditions (other predicates).
-func HasWorkOrderWith(preds ...predicate.WorkOrder) predicate.CheckListItem {
+// HasWifiScanWith applies the HasEdge predicate on the "wifi_scan" edge with a given conditions (other predicates).
+func HasWifiScanWith(preds ...predicate.SurveyWiFiScan) predicate.CheckListItem {
 	return predicate.CheckListItem(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(WorkOrderInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, WorkOrderTable, WorkOrderColumn),
+			sqlgraph.To(WifiScanInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, WifiScanTable, WifiScanColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCellScan applies the HasEdge predicate on the "cell_scan" edge.
+func HasCellScan() predicate.CheckListItem {
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CellScanTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, CellScanTable, CellScanColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCellScanWith applies the HasEdge predicate on the "cell_scan" edge with a given conditions (other predicates).
+func HasCellScanWith(preds ...predicate.SurveyCellScan) predicate.CheckListItem {
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CellScanInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, CellScanTable, CellScanColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCheckListCategory applies the HasEdge predicate on the "check_list_category" edge.
+func HasCheckListCategory() predicate.CheckListItem {
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CheckListCategoryTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, CheckListCategoryTable, CheckListCategoryColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCheckListCategoryWith applies the HasEdge predicate on the "check_list_category" edge with a given conditions (other predicates).
+func HasCheckListCategoryWith(preds ...predicate.CheckListCategory) predicate.CheckListItem {
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CheckListCategoryInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, CheckListCategoryTable, CheckListCategoryColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

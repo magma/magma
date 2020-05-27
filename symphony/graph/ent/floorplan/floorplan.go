@@ -8,6 +8,8 @@ package floorplan
 
 import (
 	"time"
+
+	"github.com/facebookincubator/ent"
 )
 
 const (
@@ -52,7 +54,7 @@ const (
 	// ScaleColumn is the table column denoting the scale relation/edge.
 	ScaleColumn = "floor_plan_scale"
 	// ImageTable is the table the holds the image relation/edge.
-	ImageTable = "floor_plans"
+	ImageTable = "files"
 	// ImageInverseTable is the table name for the File entity.
 	// It exists in this package in order to avoid circular dependency with the "file" package.
 	ImageInverseTable = "files"
@@ -73,10 +75,17 @@ var ForeignKeys = []string{
 	"floor_plan_location",
 	"floor_plan_reference_point",
 	"floor_plan_scale",
-	"floor_plan_image",
 }
 
+// Note that the variables below are initialized by the runtime
+// package on the initialization of the application. Therefore,
+// it should be imported in the main as follows:
+//
+//	import _ "github.com/facebookincubator/symphony/graph/ent/runtime"
+//
 var (
+	Hooks  [1]ent.Hook
+	Policy ent.Policy
 	// DefaultCreateTime holds the default value on creation for the create_time field.
 	DefaultCreateTime func() time.Time
 	// DefaultUpdateTime holds the default value on creation for the update_time field.

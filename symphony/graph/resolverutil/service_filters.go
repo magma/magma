@@ -26,6 +26,8 @@ func handleServiceFilter(q *ent.ServiceQuery, filter *models.ServiceFilterInput)
 		return serviceNameFilter(q, filter)
 	case models.ServiceFilterTypeServiceStatus:
 		return serviceStatusFilter(q, filter)
+	case models.ServiceFilterTypeServiceDiscoveryMethod:
+		return serviceDiscoveryMethodFilter(q, filter)
 	case models.ServiceFilterTypeServiceType:
 		return serviceTypeFilter(q, filter)
 	case models.ServiceFilterTypeServiceInstExternalID:
@@ -47,6 +49,29 @@ func serviceNameFilter(q *ent.ServiceQuery, filter *models.ServiceFilterInput) (
 func serviceStatusFilter(q *ent.ServiceQuery, filter *models.ServiceFilterInput) (*ent.ServiceQuery, error) {
 	if filter.Operator == models.FilterOperatorIsOneOf {
 		return q.Where(service.StatusIn(filter.StringSet...)), nil
+	}
+	return nil, errors.Errorf("operation is not supported: %s", filter.Operator)
+}
+
+func serviceDiscoveryMethodFilter(q *ent.ServiceQuery, filter *models.ServiceFilterInput) (*ent.ServiceQuery, error) {
+	if filter.Operator == models.FilterOperatorIsOneOf {
+		var predicateArr []predicate.Service
+
+		for _, dm := range filter.StringSet {
+			if dm == models.DiscoveryMethodManual.String() {
+				predicateArr = append(predicateArr, service.HasTypeWith(servicetype.DiscoveryMethodIsNil()))
+				continue
+			}
+			method := servicetype.DiscoveryMethod(dm)
+			err := servicetype.DiscoveryMethodValidator(method)
+			if err != nil {
+				return nil, err
+			}
+			predicateArr = append(predicateArr, service.HasTypeWith(servicetype.DiscoveryMethodEQ(method)))
+		}
+		return q.Where(service.Or(
+			predicateArr...,
+		)), nil
 	}
 	return nil, errors.Errorf("operation is not supported: %s", filter.Operator)
 }
@@ -137,8 +162,8 @@ func serviceLocationFilter(q *ent.ServiceQuery, filter *models.ServiceFilterInpu
 				1,
 				*filter.MaxDepth)
 			ps = append(ps, service.HasEndpointsWith(
-				serviceendpoint.HasPortWith(equipmentport.HasParentWith(eqPred)),
-				serviceendpoint.Role(models.ServiceEndpointRoleConsumer.String())))
+				serviceendpoint.HasEquipmentWith(eqPred)),
+			)
 		}
 		return q.Where(service.Or(ps...)), nil
 	}

@@ -31,10 +31,16 @@ const path = require('path');
 const {buildSchema, printSchema} = require('graphql');
 const fs = require('fs');
 
-const schemaPath = path.resolve(
+let schemaPath = path.resolve(
   __dirname,
   '../../../../fbcode/fbc/symphony/graph/graphql/schema/symphony.graphql',
 );
+if (!fs.existsSync(schemaPath)) {
+  schemaPath = path.resolve(
+    __dirname,
+    '../../../graph/graphql/schema/symphony.graphql',
+  )
+}
 const schemaFile = fs.readFileSync(schemaPath, {encoding: 'utf8'});
 const schemaObject = buildSchema(schemaFile);
 

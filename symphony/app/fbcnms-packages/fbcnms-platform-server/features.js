@@ -8,7 +8,8 @@
  * @format
  */
 
-import type {ExpressRequest} from 'express';
+import type {ExpressRequest, ExpressResponse, NextFunction} from 'express';
+import type {FBCNMSRequest} from '@fbcnms/auth/access';
 import type {FeatureID} from '@fbcnms/types/features';
 
 // A rule that gets evaluated when the featureflag is checked
@@ -146,7 +147,6 @@ const arrayConfigs = [
     id: 'planned_equipment',
     title: 'Planned Equipment',
     enabledByDefault: false,
-    rules: [AlwaysEnabledInTestEnvRule],
   },
   {
     id: 'multi_subject_reports',
@@ -177,16 +177,39 @@ const arrayConfigs = [
     id: 'saved_searches',
     title: 'Saved Searches',
     enabledByDefault: false,
+    rules: [AlwaysEnabledInTestEnvRule],
   },
   {
-    id: 'user_management',
-    title: 'User Management - Users and Permissions admin section',
+    id: 'user_management_dev',
+    title: 'User Management - Dev mode',
     enabledByDefault: false,
+  },
+  {
+    id: 'permission_policies',
+    title: 'Permission - Policies',
+    enabledByDefault: false,
+    rules: [AlwaysEnabledInTestEnvRule],
+  },
+  {
+    id: 'permissions_ui_enforcement',
+    title: 'Permissions - UI enforcement',
+    enabledByDefault: true,
   },
   {
     id: 'grafana_metrics',
     title: 'Include tab for Grafana in the Metrics page',
+    enabledByDefault: true,
+  },
+  {
+    id: 'graph_event_logging',
+    title: 'Graph Event Loggng',
     enabledByDefault: false,
+  },
+  {
+    id: 'dashboard_v2',
+    title: 'V2 LTE Dashboard',
+    enabledByDefault: false,
+    rules: [AlwaysEnabledInTestEnvRule],
   },
 ];
 
@@ -231,6 +254,26 @@ export async function getEnabledFeatures(
   );
 
   return results.filter(Boolean);
+}
+
+export function insertFeatures(
+  req: FBCNMSRequest,
+  res: ExpressResponse,
+  next: NextFunction,
+) {
+  if (req.user.organization) {
+    getEnabledFeatures(req, req.user.organization)
+      .then(enabledFeatures => {
+        const features = Array.from(enabledFeatures, feature =>
+          String(feature),
+        ).join();
+        req.headers['x-auth-features'] = features;
+        next();
+      })
+      .catch(err => next(err));
+  } else {
+    next();
+  }
 }
 
 export default {...featureConfigs};

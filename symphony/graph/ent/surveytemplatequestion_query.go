@@ -25,7 +25,7 @@ type SurveyTemplateQuestionQuery struct {
 	config
 	limit      *int
 	offset     *int
-	order      []Order
+	order      []OrderFunc
 	unique     []string
 	predicates []predicate.SurveyTemplateQuestion
 	// eager-loading edges.
@@ -55,7 +55,7 @@ func (stqq *SurveyTemplateQuestionQuery) Offset(offset int) *SurveyTemplateQuest
 }
 
 // Order adds an order step to the query.
-func (stqq *SurveyTemplateQuestionQuery) Order(o ...Order) *SurveyTemplateQuestionQuery {
+func (stqq *SurveyTemplateQuestionQuery) Order(o ...OrderFunc) *SurveyTemplateQuestionQuery {
 	stqq.order = append(stqq.order, o...)
 	return stqq
 }
@@ -248,7 +248,7 @@ func (stqq *SurveyTemplateQuestionQuery) Clone() *SurveyTemplateQuestionQuery {
 		config:     stqq.config,
 		limit:      stqq.limit,
 		offset:     stqq.offset,
-		order:      append([]Order{}, stqq.order...),
+		order:      append([]OrderFunc{}, stqq.order...),
 		unique:     append([]string{}, stqq.unique...),
 		predicates: append([]predicate.SurveyTemplateQuestion{}, stqq.predicates...),
 		// clone intermediate query.
@@ -326,6 +326,9 @@ func (stqq *SurveyTemplateQuestionQuery) prepareQuery(ctx context.Context) error
 			return err
 		}
 		stqq.sql = prev
+	}
+	if err := surveytemplatequestion.Policy.EvalQuery(ctx, stqq); err != nil {
+		return err
 	}
 	return nil
 }
@@ -475,14 +478,14 @@ func (stqq *SurveyTemplateQuestionQuery) sqlQuery() *sql.Selector {
 type SurveyTemplateQuestionGroupBy struct {
 	config
 	fields []string
-	fns    []Aggregate
+	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (stqgb *SurveyTemplateQuestionGroupBy) Aggregate(fns ...Aggregate) *SurveyTemplateQuestionGroupBy {
+func (stqgb *SurveyTemplateQuestionGroupBy) Aggregate(fns ...AggregateFunc) *SurveyTemplateQuestionGroupBy {
 	stqgb.fns = append(stqgb.fns, fns...)
 	return stqgb
 }

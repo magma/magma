@@ -13,7 +13,7 @@ import AppContent from '@fbcnms/ui/components/layout/AppContent';
 import AppContext from '@fbcnms/ui/context/AppContext';
 import AppSideBar from '@fbcnms/ui/components/layout/AppSideBar';
 
-import {getProjectLinks} from '../../common/projects';
+import {getProjectLinks} from '@fbcnms/projects/projects';
 import {makeStyles} from '@material-ui/styles';
 import {shouldShowSettings} from '../Settings';
 

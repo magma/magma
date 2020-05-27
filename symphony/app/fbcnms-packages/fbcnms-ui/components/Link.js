@@ -8,35 +8,33 @@
  * @format
  */
 
-import type {WithStyles} from '@material-ui/core';
-
 import * as React from 'react';
-import symphony from '../theme/symphony';
-import {withStyles} from '@material-ui/core/styles';
+
+import Button from './design-system/Button';
+import {makeStyles} from '@material-ui/styles';
 
 type Props = {
   onClick: () => void,
   children: React.Node,
-} & WithStyles<typeof styles>;
+};
 
-const styles = () => ({
+const useStyles = makeStyles(() => ({
   root: {
-    cursor: 'pointer',
     textDecoration: 'underline',
-    color: symphony.palette.primary,
   },
-});
+}));
 
 // TODO(T38660666) - style according to design
-class Link extends React.Component<Props> {
-  render() {
-    const {classes, onClick, children} = this.props;
-    return (
-      <a className={classes.root} onClick={onClick}>
-        {children}
-      </a>
-    );
-  }
+export default function Link(props: Props) {
+  const classes = useStyles();
+  const {onClick, children} = props;
+  return (
+    <Button
+      variant="text"
+      useEllipsis={true}
+      className={classes.root}
+      onClick={onClick}>
+      {children}
+    </Button>
+  );
 }
-
-export default withStyles(styles)(Link);

@@ -15,8 +15,10 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/file"
+	"github.com/facebookincubator/symphony/graph/ent/project"
 	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/ent/usersgroup"
+	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
 
 // UserCreate is the builder for creating a User entity.
@@ -162,6 +164,51 @@ func (uc *UserCreate) AddGroups(u ...*UsersGroup) *UserCreate {
 		ids[i] = u[i].ID
 	}
 	return uc.AddGroupIDs(ids...)
+}
+
+// AddOwnedWorkOrderIDs adds the owned_work_orders edge to WorkOrder by ids.
+func (uc *UserCreate) AddOwnedWorkOrderIDs(ids ...int) *UserCreate {
+	uc.mutation.AddOwnedWorkOrderIDs(ids...)
+	return uc
+}
+
+// AddOwnedWorkOrders adds the owned_work_orders edges to WorkOrder.
+func (uc *UserCreate) AddOwnedWorkOrders(w ...*WorkOrder) *UserCreate {
+	ids := make([]int, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return uc.AddOwnedWorkOrderIDs(ids...)
+}
+
+// AddAssignedWorkOrderIDs adds the assigned_work_orders edge to WorkOrder by ids.
+func (uc *UserCreate) AddAssignedWorkOrderIDs(ids ...int) *UserCreate {
+	uc.mutation.AddAssignedWorkOrderIDs(ids...)
+	return uc
+}
+
+// AddAssignedWorkOrders adds the assigned_work_orders edges to WorkOrder.
+func (uc *UserCreate) AddAssignedWorkOrders(w ...*WorkOrder) *UserCreate {
+	ids := make([]int, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return uc.AddAssignedWorkOrderIDs(ids...)
+}
+
+// AddCreatedProjectIDs adds the created_projects edge to Project by ids.
+func (uc *UserCreate) AddCreatedProjectIDs(ids ...int) *UserCreate {
+	uc.mutation.AddCreatedProjectIDs(ids...)
+	return uc
+}
+
+// AddCreatedProjects adds the created_projects edges to Project.
+func (uc *UserCreate) AddCreatedProjects(p ...*Project) *UserCreate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return uc.AddCreatedProjectIDs(ids...)
 }
 
 // Save creates the User in the database.
@@ -327,7 +374,7 @@ func (uc *UserCreate) sqlSave(ctx context.Context) (*User, error) {
 	}
 	if nodes := uc.mutation.ProfilePhotoIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
+			Rel:     sqlgraph.O2O,
 			Inverse: false,
 			Table:   user.ProfilePhotoTable,
 			Columns: []string{user.ProfilePhotoColumn},
@@ -355,6 +402,63 @@ func (uc *UserCreate) sqlSave(ctx context.Context) (*User, error) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: usersgroup.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.OwnedWorkOrdersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   user.OwnedWorkOrdersTable,
+			Columns: []string{user.OwnedWorkOrdersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workorder.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.AssignedWorkOrdersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   user.AssignedWorkOrdersTable,
+			Columns: []string{user.AssignedWorkOrdersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workorder.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.CreatedProjectsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   user.CreatedProjectsTable,
+			Columns: []string{user.CreatedProjectsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: project.FieldID,
 				},
 			},
 		}

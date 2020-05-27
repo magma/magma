@@ -16,18 +16,12 @@ import type {
   EditUserMutationVariables,
 } from './__generated__/EditUserMutation.graphql';
 import type {MutationCallbacks} from './MutationCallbacks.js';
-import type {StoreUpdater} from '../common/RelayEnvironment';
+import type {SelectorStoreUpdater} from 'relay-runtime';
 
 const mutation = graphql`
   mutation EditUserMutation($input: EditUserInput!) {
     editUser(input: $input) {
-      id
-      authID
-      firstName
-      lastName
-      email
-      status
-      role
+      ...UserManagementUtils_user @relay(mask: false)
     }
   }
 `;
@@ -35,7 +29,7 @@ const mutation = graphql`
 export default (
   variables: EditUserMutationVariables,
   callbacks?: MutationCallbacks<EditUserMutationResponse>,
-  updater?: StoreUpdater,
+  updater?: SelectorStoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
   commitMutation<EditUserMutation>(RelayEnvironemnt, {

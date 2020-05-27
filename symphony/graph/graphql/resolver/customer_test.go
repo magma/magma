@@ -5,6 +5,7 @@
 package resolver
 
 import (
+	"context"
 	"testing"
 
 	"github.com/facebookincubator/symphony/graph/graphql/models"
@@ -16,9 +17,9 @@ import (
 
 func TestAddDeleteAndSearchCustomers(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	qr, mr := r.Query(), r.Mutation()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	_, err := mr.AddCustomer(ctx, models.AddCustomerInput{Name: "Donald Duck", ExternalID: pointer.ToString("S43493")})
 	require.NoError(t, err)

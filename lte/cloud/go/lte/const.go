@@ -28,4 +28,10 @@ const (
 	RatingGroupEntityType = "rating_group"
 
 	ApnEntityType = "apn"
+
+	SubscriberStreamName = "subscriberdb"
+	PolicyStreamName     = "policydb"
+	BaseNameStreamName   = "base_names"
+	MappingsStreamName   = "rule_mappings"
+	NetworkWideRules     = "network_wide_rules"
 )

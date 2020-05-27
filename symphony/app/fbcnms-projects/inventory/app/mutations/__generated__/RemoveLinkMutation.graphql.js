@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash f92382725eaf8e3005a30186115b5744
+ * @relayHash ae25bb864089314a5fece6dd880b3b10
  */
 
 /* eslint-disable */
@@ -17,8 +17,7 @@
 import type { ConcreteRequest } from 'relay-runtime';
 type EquipmentBreadcrumbs_equipment$ref = any;
 export type FutureState = "INSTALL" | "REMOVE" | "%future added value";
-export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
-export type ServiceEndpointRole = "CONSUMER" | "PROVIDER" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "float" | "gps_location" | "int" | "node" | "range" | "string" | "%future added value";
 export type WorkOrderStatus = "DONE" | "PENDING" | "PLANNED" | "%future added value";
 export type RemoveLinkMutationVariables = {|
   id: string,
@@ -39,6 +38,7 @@ export type RemoveLinkMutationResponse = {|
             +id: string,
             +name: string,
             +type: PropertyKind,
+            +nodeType: ?string,
             +index: ?number,
             +stringValue: ?string,
             +intValue: ?number,
@@ -51,6 +51,8 @@ export type RemoveLinkMutationResponse = {|
             +isEditable: ?boolean,
             +isInstanceProperty: ?boolean,
             +isMandatory: ?boolean,
+            +category: ?string,
+            +isDeleted: ?boolean,
           |}>
         |},
       |},
@@ -75,7 +77,9 @@ export type RemoveLinkMutationResponse = {|
         +$fragmentRefs: EquipmentBreadcrumbs_equipment$ref,
       |},
       +serviceEndpoints: $ReadOnlyArray<{|
-        +role: ServiceEndpointRole,
+        +definition: {|
+          +role: ?string
+        |},
         +service: {|
           +name: string
         |},
@@ -91,10 +95,21 @@ export type RemoveLinkMutationResponse = {|
         +id: string,
         +name: string,
         +type: PropertyKind,
-        +isEditable: ?boolean,
-        +isMandatory: ?boolean,
-        +isInstanceProperty: ?boolean,
+        +nodeType: ?string,
+        +index: ?number,
         +stringValue: ?string,
+        +intValue: ?number,
+        +booleanValue: ?boolean,
+        +floatValue: ?number,
+        +latitudeValue: ?number,
+        +longitudeValue: ?number,
+        +rangeFromValue: ?number,
+        +rangeToValue: ?number,
+        +isEditable: ?boolean,
+        +isInstanceProperty: ?boolean,
+        +isMandatory: ?boolean,
+        +category: ?string,
+        +isDeleted: ?boolean,
       |},
       +stringValue: ?string,
       +intValue: ?number,
@@ -104,15 +119,7 @@ export type RemoveLinkMutationResponse = {|
       +longitudeValue: ?number,
       +rangeFromValue: ?number,
       +rangeToValue: ?number,
-      +equipmentValue: ?{|
-        +id: string,
-        +name: string,
-      |},
-      +locationValue: ?{|
-        +id: string,
-        +name: string,
-      |},
-      +serviceValue: ?{|
+      +nodeValue: ?{|
         +id: string,
         +name: string,
       |},
@@ -149,6 +156,7 @@ mutation RemoveLinkMutation(
             id
             name
             type
+            nodeType
             index
             stringValue
             intValue
@@ -161,6 +169,8 @@ mutation RemoveLinkMutation(
             isEditable
             isInstanceProperty
             isMandatory
+            category
+            isDeleted
           }
           id
         }
@@ -186,7 +196,10 @@ mutation RemoveLinkMutation(
         ...EquipmentBreadcrumbs_equipment
       }
       serviceEndpoints {
-        role
+        definition {
+          role
+          id
+        }
         service {
           name
           id
@@ -204,10 +217,21 @@ mutation RemoveLinkMutation(
         id
         name
         type
-        isEditable
-        isMandatory
-        isInstanceProperty
+        nodeType
+        index
         stringValue
+        intValue
+        booleanValue
+        floatValue
+        latitudeValue
+        longitudeValue
+        rangeFromValue
+        rangeToValue
+        isEditable
+        isInstanceProperty
+        isMandatory
+        category
+        isDeleted
       }
       stringValue
       intValue
@@ -217,15 +241,8 @@ mutation RemoveLinkMutation(
       longitudeValue
       rangeFromValue
       rangeToValue
-      equipmentValue {
-        id
-        name
-      }
-      locationValue {
-        id
-        name
-      }
-      serviceValue {
+      nodeValue {
+        __typename
         id
         name
       }
@@ -329,88 +346,128 @@ v5 = {
 v6 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "type",
+  "name": "stringValue",
   "args": null,
   "storageKey": null
 },
 v7 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "stringValue",
+  "name": "intValue",
   "args": null,
   "storageKey": null
 },
 v8 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "intValue",
+  "name": "booleanValue",
   "args": null,
   "storageKey": null
 },
 v9 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "booleanValue",
+  "name": "floatValue",
   "args": null,
   "storageKey": null
 },
 v10 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "floatValue",
+  "name": "latitudeValue",
   "args": null,
   "storageKey": null
 },
 v11 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "latitudeValue",
+  "name": "longitudeValue",
   "args": null,
   "storageKey": null
 },
 v12 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "longitudeValue",
+  "name": "rangeFromValue",
   "args": null,
   "storageKey": null
 },
 v13 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "rangeFromValue",
-  "args": null,
-  "storageKey": null
-},
-v14 = {
-  "kind": "ScalarField",
-  "alias": null,
   "name": "rangeToValue",
   "args": null,
   "storageKey": null
 },
+v14 = [
+  (v2/*: any*/),
+  (v4/*: any*/),
+  {
+    "kind": "ScalarField",
+    "alias": null,
+    "name": "type",
+    "args": null,
+    "storageKey": null
+  },
+  {
+    "kind": "ScalarField",
+    "alias": null,
+    "name": "nodeType",
+    "args": null,
+    "storageKey": null
+  },
+  {
+    "kind": "ScalarField",
+    "alias": null,
+    "name": "index",
+    "args": null,
+    "storageKey": null
+  },
+  (v6/*: any*/),
+  (v7/*: any*/),
+  (v8/*: any*/),
+  (v9/*: any*/),
+  (v10/*: any*/),
+  (v11/*: any*/),
+  (v12/*: any*/),
+  (v13/*: any*/),
+  {
+    "kind": "ScalarField",
+    "alias": null,
+    "name": "isEditable",
+    "args": null,
+    "storageKey": null
+  },
+  {
+    "kind": "ScalarField",
+    "alias": null,
+    "name": "isInstanceProperty",
+    "args": null,
+    "storageKey": null
+  },
+  {
+    "kind": "ScalarField",
+    "alias": null,
+    "name": "isMandatory",
+    "args": null,
+    "storageKey": null
+  },
+  {
+    "kind": "ScalarField",
+    "alias": null,
+    "name": "category",
+    "args": null,
+    "storageKey": null
+  },
+  {
+    "kind": "ScalarField",
+    "alias": null,
+    "name": "isDeleted",
+    "args": null,
+    "storageKey": null
+  }
+],
 v15 = {
-  "kind": "ScalarField",
-  "alias": null,
-  "name": "isEditable",
-  "args": null,
-  "storageKey": null
-},
-v16 = {
-  "kind": "ScalarField",
-  "alias": null,
-  "name": "isInstanceProperty",
-  "args": null,
-  "storageKey": null
-},
-v17 = {
-  "kind": "ScalarField",
-  "alias": null,
-  "name": "isMandatory",
-  "args": null,
-  "storageKey": null
-},
-v18 = {
   "kind": "LinkedField",
   "alias": null,
   "name": "linkPropertyTypes",
@@ -418,35 +475,13 @@ v18 = {
   "args": null,
   "concreteType": "PropertyType",
   "plural": true,
-  "selections": [
-    (v2/*: any*/),
-    (v4/*: any*/),
-    (v6/*: any*/),
-    {
-      "kind": "ScalarField",
-      "alias": null,
-      "name": "index",
-      "args": null,
-      "storageKey": null
-    },
-    (v7/*: any*/),
-    (v8/*: any*/),
-    (v9/*: any*/),
-    (v10/*: any*/),
-    (v11/*: any*/),
-    (v12/*: any*/),
-    (v13/*: any*/),
-    (v14/*: any*/),
-    (v15/*: any*/),
-    (v16/*: any*/),
-    (v17/*: any*/)
-  ]
+  "selections": (v14/*: any*/)
 },
-v19 = [
+v16 = [
   (v2/*: any*/),
   (v4/*: any*/)
 ],
-v20 = {
+v17 = {
   "kind": "LinkedField",
   "alias": null,
   "name": "equipmentType",
@@ -484,20 +519,20 @@ v20 = {
           "args": null,
           "concreteType": "EquipmentPortType",
           "plural": false,
-          "selections": (v19/*: any*/)
+          "selections": (v16/*: any*/)
         }
       ]
     }
   ]
 },
-v21 = {
+v18 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "role",
   "args": null,
   "storageKey": null
 },
-v22 = {
+v19 = {
   "kind": "LinkedField",
   "alias": null,
   "name": "workOrder",
@@ -516,75 +551,17 @@ v22 = {
     }
   ]
 },
-v23 = {
+v20 = {
   "kind": "LinkedField",
   "alias": null,
-  "name": "properties",
+  "name": "propertyType",
   "storageKey": null,
   "args": null,
-  "concreteType": "Property",
-  "plural": true,
-  "selections": [
-    (v2/*: any*/),
-    {
-      "kind": "LinkedField",
-      "alias": null,
-      "name": "propertyType",
-      "storageKey": null,
-      "args": null,
-      "concreteType": "PropertyType",
-      "plural": false,
-      "selections": [
-        (v2/*: any*/),
-        (v4/*: any*/),
-        (v6/*: any*/),
-        (v15/*: any*/),
-        (v17/*: any*/),
-        (v16/*: any*/),
-        (v7/*: any*/)
-      ]
-    },
-    (v7/*: any*/),
-    (v8/*: any*/),
-    (v10/*: any*/),
-    (v9/*: any*/),
-    (v11/*: any*/),
-    (v12/*: any*/),
-    (v13/*: any*/),
-    (v14/*: any*/),
-    {
-      "kind": "LinkedField",
-      "alias": null,
-      "name": "equipmentValue",
-      "storageKey": null,
-      "args": null,
-      "concreteType": "Equipment",
-      "plural": false,
-      "selections": (v19/*: any*/)
-    },
-    {
-      "kind": "LinkedField",
-      "alias": null,
-      "name": "locationValue",
-      "storageKey": null,
-      "args": null,
-      "concreteType": "Location",
-      "plural": false,
-      "selections": (v19/*: any*/)
-    },
-    {
-      "kind": "LinkedField",
-      "alias": null,
-      "name": "serviceValue",
-      "storageKey": null,
-      "args": null,
-      "concreteType": "Service",
-      "plural": false,
-      "selections": (v19/*: any*/)
-    }
-  ]
+  "concreteType": "PropertyType",
+  "plural": false,
+  "selections": (v14/*: any*/)
 },
-v24 = {
+v21 = {
   "kind": "LinkedField",
   "alias": null,
   "name": "services",
@@ -592,9 +569,9 @@ v24 = {
   "args": null,
   "concreteType": "Service",
   "plural": true,
-  "selections": (v19/*: any*/)
+  "selections": (v16/*: any*/)
 },
-v25 = [
+v22 = [
   (v4/*: any*/),
   (v2/*: any*/)
 ];
@@ -649,7 +626,7 @@ return {
                     "concreteType": "EquipmentPortType",
                     "plural": false,
                     "selections": [
-                      (v18/*: any*/)
+                      (v15/*: any*/)
                     ]
                   }
                 ]
@@ -666,7 +643,7 @@ return {
                   (v2/*: any*/),
                   (v4/*: any*/),
                   (v3/*: any*/),
-                  (v20/*: any*/),
+                  (v17/*: any*/),
                   {
                     "kind": "FragmentSpread",
                     "name": "EquipmentBreadcrumbs_equipment",
@@ -683,7 +660,18 @@ return {
                 "concreteType": "ServiceEndpoint",
                 "plural": true,
                 "selections": [
-                  (v21/*: any*/),
+                  {
+                    "kind": "LinkedField",
+                    "alias": null,
+                    "name": "definition",
+                    "storageKey": null,
+                    "args": null,
+                    "concreteType": "ServiceEndpointDefinition",
+                    "plural": false,
+                    "selections": [
+                      (v18/*: any*/)
+                    ]
+                  },
                   {
                     "kind": "LinkedField",
                     "alias": null,
@@ -700,9 +688,39 @@ return {
               }
             ]
           },
-          (v22/*: any*/),
-          (v23/*: any*/),
-          (v24/*: any*/)
+          (v19/*: any*/),
+          {
+            "kind": "LinkedField",
+            "alias": null,
+            "name": "properties",
+            "storageKey": null,
+            "args": null,
+            "concreteType": "Property",
+            "plural": true,
+            "selections": [
+              (v2/*: any*/),
+              (v20/*: any*/),
+              (v6/*: any*/),
+              (v7/*: any*/),
+              (v9/*: any*/),
+              (v8/*: any*/),
+              (v10/*: any*/),
+              (v11/*: any*/),
+              (v12/*: any*/),
+              (v13/*: any*/),
+              {
+                "kind": "LinkedField",
+                "alias": null,
+                "name": "nodeValue",
+                "storageKey": null,
+                "args": null,
+                "concreteType": null,
+                "plural": false,
+                "selections": (v16/*: any*/)
+              }
+            ]
+          },
+          (v21/*: any*/)
         ]
       }
     ]
@@ -754,7 +772,7 @@ return {
                     "concreteType": "EquipmentPortType",
                     "plural": false,
                     "selections": [
-                      (v18/*: any*/),
+                      (v15/*: any*/),
                       (v2/*: any*/)
                     ]
                   }
@@ -772,7 +790,7 @@ return {
                   (v2/*: any*/),
                   (v4/*: any*/),
                   (v3/*: any*/),
-                  (v20/*: any*/),
+                  (v17/*: any*/),
                   {
                     "kind": "LinkedField",
                     "alias": null,
@@ -792,7 +810,7 @@ return {
                         "args": null,
                         "concreteType": "LocationType",
                         "plural": false,
-                        "selections": (v25/*: any*/)
+                        "selections": (v22/*: any*/)
                       }
                     ]
                   },
@@ -839,7 +857,7 @@ return {
                             "args": null,
                             "concreteType": "EquipmentType",
                             "plural": false,
-                            "selections": (v19/*: any*/)
+                            "selections": (v16/*: any*/)
                           }
                         ]
                       }
@@ -856,7 +874,19 @@ return {
                 "concreteType": "ServiceEndpoint",
                 "plural": true,
                 "selections": [
-                  (v21/*: any*/),
+                  {
+                    "kind": "LinkedField",
+                    "alias": null,
+                    "name": "definition",
+                    "storageKey": null,
+                    "args": null,
+                    "concreteType": "ServiceEndpointDefinition",
+                    "plural": false,
+                    "selections": [
+                      (v18/*: any*/),
+                      (v2/*: any*/)
+                    ]
+                  },
                   {
                     "kind": "LinkedField",
                     "alias": null,
@@ -865,16 +895,56 @@ return {
                     "args": null,
                     "concreteType": "Service",
                     "plural": false,
-                    "selections": (v25/*: any*/)
+                    "selections": (v22/*: any*/)
                   },
                   (v2/*: any*/)
                 ]
               }
             ]
           },
-          (v22/*: any*/),
-          (v23/*: any*/),
-          (v24/*: any*/)
+          (v19/*: any*/),
+          {
+            "kind": "LinkedField",
+            "alias": null,
+            "name": "properties",
+            "storageKey": null,
+            "args": null,
+            "concreteType": "Property",
+            "plural": true,
+            "selections": [
+              (v2/*: any*/),
+              (v20/*: any*/),
+              (v6/*: any*/),
+              (v7/*: any*/),
+              (v9/*: any*/),
+              (v8/*: any*/),
+              (v10/*: any*/),
+              (v11/*: any*/),
+              (v12/*: any*/),
+              (v13/*: any*/),
+              {
+                "kind": "LinkedField",
+                "alias": null,
+                "name": "nodeValue",
+                "storageKey": null,
+                "args": null,
+                "concreteType": null,
+                "plural": false,
+                "selections": [
+                  {
+                    "kind": "ScalarField",
+                    "alias": null,
+                    "name": "__typename",
+                    "args": null,
+                    "storageKey": null
+                  },
+                  (v2/*: any*/),
+                  (v4/*: any*/)
+                ]
+              }
+            ]
+          },
+          (v21/*: any*/)
         ]
       }
     ]
@@ -883,7 +953,7 @@ return {
     "operationKind": "mutation",
     "name": "RemoveLinkMutation",
     "id": null,
-    "text": "mutation RemoveLinkMutation(\n  $id: ID!\n  $workOrderId: ID\n) {\n  removeLink(id: $id, workOrderId: $workOrderId) {\n    id\n    futureState\n    ports {\n      id\n      definition {\n        id\n        name\n        visibleLabel\n        portType {\n          linkPropertyTypes {\n            id\n            name\n            type\n            index\n            stringValue\n            intValue\n            booleanValue\n            floatValue\n            latitudeValue\n            longitudeValue\n            rangeFromValue\n            rangeToValue\n            isEditable\n            isInstanceProperty\n            isMandatory\n          }\n          id\n        }\n      }\n      parentEquipment {\n        id\n        name\n        futureState\n        equipmentType {\n          id\n          name\n          portDefinitions {\n            id\n            name\n            visibleLabel\n            bandwidth\n            portType {\n              id\n              name\n            }\n          }\n        }\n        ...EquipmentBreadcrumbs_equipment\n      }\n      serviceEndpoints {\n        role\n        service {\n          name\n          id\n        }\n        id\n      }\n    }\n    workOrder {\n      id\n      status\n    }\n    properties {\n      id\n      propertyType {\n        id\n        name\n        type\n        isEditable\n        isMandatory\n        isInstanceProperty\n        stringValue\n      }\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      equipmentValue {\n        id\n        name\n      }\n      locationValue {\n        id\n        name\n      }\n      serviceValue {\n        id\n        name\n      }\n    }\n    services {\n      id\n      name\n    }\n  }\n}\n\nfragment EquipmentBreadcrumbs_equipment on Equipment {\n  id\n  name\n  equipmentType {\n    id\n    name\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n  positionHierarchy {\n    id\n    definition {\n      id\n      name\n      visibleLabel\n    }\n    parentEquipment {\n      id\n      name\n      equipmentType {\n        id\n        name\n      }\n    }\n  }\n}\n",
+    "text": "mutation RemoveLinkMutation(\n  $id: ID!\n  $workOrderId: ID\n) {\n  removeLink(id: $id, workOrderId: $workOrderId) {\n    id\n    futureState\n    ports {\n      id\n      definition {\n        id\n        name\n        visibleLabel\n        portType {\n          linkPropertyTypes {\n            id\n            name\n            type\n            nodeType\n            index\n            stringValue\n            intValue\n            booleanValue\n            floatValue\n            latitudeValue\n            longitudeValue\n            rangeFromValue\n            rangeToValue\n            isEditable\n            isInstanceProperty\n            isMandatory\n            category\n            isDeleted\n          }\n          id\n        }\n      }\n      parentEquipment {\n        id\n        name\n        futureState\n        equipmentType {\n          id\n          name\n          portDefinitions {\n            id\n            name\n            visibleLabel\n            bandwidth\n            portType {\n              id\n              name\n            }\n          }\n        }\n        ...EquipmentBreadcrumbs_equipment\n      }\n      serviceEndpoints {\n        definition {\n          role\n          id\n        }\n        service {\n          name\n          id\n        }\n        id\n      }\n    }\n    workOrder {\n      id\n      status\n    }\n    properties {\n      id\n      propertyType {\n        id\n        name\n        type\n        nodeType\n        index\n        stringValue\n        intValue\n        booleanValue\n        floatValue\n        latitudeValue\n        longitudeValue\n        rangeFromValue\n        rangeToValue\n        isEditable\n        isInstanceProperty\n        isMandatory\n        category\n        isDeleted\n      }\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      nodeValue {\n        __typename\n        id\n        name\n      }\n    }\n    services {\n      id\n      name\n    }\n  }\n}\n\nfragment EquipmentBreadcrumbs_equipment on Equipment {\n  id\n  name\n  equipmentType {\n    id\n    name\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n  positionHierarchy {\n    id\n    definition {\n      id\n      name\n      visibleLabel\n    }\n    parentEquipment {\n      id\n      name\n      equipmentType {\n        id\n        name\n      }\n    }\n  }\n}\n",
     "metadata": {}
   }
 };

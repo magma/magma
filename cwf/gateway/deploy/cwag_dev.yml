@@ -13,6 +13,7 @@
     - user: "{{ ansible_user }}"
     - full_provision: true
   roles:
+    - role: gomod_cache
     - role: distro_snapshot
       vars:
         distro: bionic
@@ -26,7 +27,7 @@
     - role: pkgrepo
       vars:
         distribution: "bionic"
-        repo: "cwf"
+        repo: "cwf-prod"
     - role: test_certs
     - role: ovs
     - role: golang

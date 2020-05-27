@@ -8,30 +8,79 @@
  * @format
  */
 
-import RelayEnvironment from '../common/RelayEnvironment.js';
-import {commitMutation, graphql} from 'react-relay';
 import type {
   AddWorkOrderTypeMutation,
   AddWorkOrderTypeMutationResponse,
   AddWorkOrderTypeMutationVariables,
 } from './__generated__/AddWorkOrderTypeMutation.graphql';
 import type {MutationCallbacks} from './MutationCallbacks.js';
-import type {StoreUpdater} from '../common/RelayEnvironment';
+import type {SelectorStoreUpdater} from 'relay-runtime';
+import type {WorkOrderType} from '../common/WorkOrder';
+
+import RelayEnvironment from '../common/RelayEnvironment.js';
+import {ConnectionHandler} from 'relay-runtime';
+import {commitMutation, graphql} from 'react-relay';
+import {convertWorkOrderTypeToMutationInput} from '../common/WorkOrder';
+import {getGraphError} from '../common/EntUtils';
 
 const mutation = graphql`
   mutation AddWorkOrderTypeMutation($input: AddWorkOrderTypeInput!) {
     addWorkOrderType(input: $input) {
       id
       name
-      ...AddEditWorkOrderTypeCard_editingWorkOrderType
+      description
+      ...AddEditWorkOrderTypeCard_workOrderType
     }
   }
 `;
 
-export default (
+export const addWorkOrderType = (
+  workOrderType: WorkOrderType,
+): Promise<AddWorkOrderTypeMutationResponse> => {
+  const variables: AddWorkOrderTypeMutationVariables = {
+    input: convertWorkOrderTypeToMutationInput(workOrderType),
+  };
+
+  return new Promise((resolve, reject) => {
+    const callbacks: MutationCallbacks<AddWorkOrderTypeMutationResponse> = {
+      onCompleted: (response, errors) => {
+        if (errors && errors[0]) {
+          return reject(getGraphError(errors[0]));
+        } else {
+          resolve(response);
+        }
+      },
+      onError: (error: Error) => reject(getGraphError(error)),
+    };
+    const updater = store => {
+      const rootQuery = store.getRoot();
+      const newNode = store.getRootField('addWorkOrderType');
+      if (!newNode) {
+        return;
+      }
+      const types = ConnectionHandler.getConnection(
+        rootQuery,
+        'Configure_workOrderTypes',
+      );
+      if (types == null) {
+        return;
+      }
+      const edge = ConnectionHandler.createEdge(
+        store,
+        types,
+        newNode,
+        'WorkOrderTypesEdge',
+      );
+      ConnectionHandler.insertEdgeBefore(types, edge);
+    };
+    CommitWorkOrderTypeMutation(variables, callbacks, updater);
+  });
+};
+
+const CommitWorkOrderTypeMutation = (
   variables: AddWorkOrderTypeMutationVariables,
   callbacks?: MutationCallbacks<AddWorkOrderTypeMutationResponse>,
-  updater?: StoreUpdater,
+  updater?: SelectorStoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
   commitMutation<AddWorkOrderTypeMutation>(RelayEnvironment, {
@@ -42,3 +91,5 @@ export default (
     onError,
   });
 };
+
+export default CommitWorkOrderTypeMutation;

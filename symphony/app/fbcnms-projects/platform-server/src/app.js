@@ -7,7 +7,8 @@
  * @flow
  * @format
  */
-
+import type {ExpressResponse} from 'express';
+import type {FBCNMSRequest} from '@fbcnms/auth/access';
 import type {UserModel} from '@fbcnms/sequelize-models/models/user';
 
 const {LOG_FORMAT, LOG_LEVEL} = require('./config');
@@ -26,6 +27,7 @@ const {
   organizationMiddleware,
   sessionMiddleware,
 } = require('@fbcnms/express-middleware');
+const {insertFeatures} = require('@fbcnms/platform-server/features');
 const {oidcAuthMiddleware} = require('@fbcnms/auth/oidc/middleware');
 const connectSession = require('connect-session-sequelize');
 const express = require('express');
@@ -82,7 +84,7 @@ User.beforeBulkDestroy(async (options: Object) => {
 });
 
 // FBC express initialization
-const app = express();
+const app = express<FBCNMSRequest, ExpressResponse>();
 app.set('trust proxy', 1);
 app.use(organizationMiddleware());
 app.use(appMiddleware());
@@ -128,13 +130,20 @@ app.use('/user', require('@fbcnms/auth/express').unprotectedUserRoutes());
 
 app.use(configureAccess({loginUrl: '/user/login'}));
 
-// All /graph, /store and /webhooks endpoints don't use CORS and are JSON (no form),
-// so no CSRF is needed
+// All /graph, /workflows, /store and /webhooks endpoints don't use CORS and
+// are JSON (no form), so no CSRF is needed
 app.use(
   '/graph',
   passport.authenticate(['basic_local', 'session'], {session: false}),
   access(USER),
+  insertFeatures,
   require('./graph/routes'),
+);
+app.use(
+  '/workflows',
+  passport.authenticate(['basic_local', 'session'], {session: false}),
+  access(USER),
+  require('./workflows/routes'),
 );
 app.use(
   '/store',

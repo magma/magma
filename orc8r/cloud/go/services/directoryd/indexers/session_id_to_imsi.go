@@ -15,15 +15,14 @@ import (
 	"magma/orc8r/cloud/go/services/directoryd"
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/services/state/indexer"
-	"magma/orc8r/cloud/go/storage"
 
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
 )
 
 const (
-	sidID      = "directoryd_session_id"
-	sidVersion = uint64(1)
+	sidID                      = "directoryd_session_id"
+	sidVersion indexer.Version = 1
 )
 
 type sessionIDToIMSI struct{}
@@ -44,7 +43,7 @@ func (s *sessionIDToIMSI) GetID() string {
 	return sidID
 }
 
-func (s *sessionIDToIMSI) GetVersion() uint64 {
+func (s *sessionIDToIMSI) GetVersion() indexer.Version {
 	return sidVersion
 }
 
@@ -54,28 +53,26 @@ func (s *sessionIDToIMSI) GetSubscriptions() []indexer.Subscription {
 	}
 }
 
-// No reindex preparation needed since all storage is handled by directoryd service.
-func (s *sessionIDToIMSI) PrepareReindex(from, to uint64, isFirstReindex bool) error {
+// PrepareReindex needs no action since all storage is handled by directoryd service.
+func (s *sessionIDToIMSI) PrepareReindex(from, to indexer.Version, isFirstReindex bool) error {
 	return nil
 }
 
-func (s *sessionIDToIMSI) CompleteReindex(from, to uint64) error {
+func (s *sessionIDToIMSI) CompleteReindex(from, to indexer.Version) error {
 	if from == 0 && to == 1 {
 		return nil
 	}
-
 	return fmt.Errorf("unsupported from/to for CompleteReindex: %v to %v", from, to)
 }
 
-func (s *sessionIDToIMSI) Index(networkID, reporterHWID string, states []state.State) (indexer.StateErrors, error) {
+func (s *sessionIDToIMSI) Index(networkID string, states state.StatesByID) (indexer.StateErrors, error) {
 	sessionIDToIMSI := map[string]string{}
-	errs := map[storage.TypeAndKey]error{}
+	errs := indexer.StateErrors{}
 
-	for _, st := range states {
-		sessionID, imsi, err := getSessionIDAndIMSI(st)
+	for id, st := range states {
+		sessionID, imsi, err := getSessionIDAndIMSI(id, st)
 		if err != nil {
-			tk := storage.TypeAndKey{Type: st.Type, Key: st.ReporterID}
-			errs[tk] = err
+			errs[id] = err
 			continue
 		}
 		if sessionID == "" {
@@ -92,7 +89,7 @@ func (s *sessionIDToIMSI) Index(networkID, reporterHWID string, states []state.S
 
 	err := directoryd.MapSessionIDsToIMSIs(networkID, sessionIDToIMSI)
 	if err != nil {
-		return errs, errors.Wrap(err, "failed to update directoryd mapping of session IDs to IMSIs")
+		return errs, errors.Wrapf(err, "update directoryd mapping of session IDs to IMSIs %+v", sessionIDToIMSI)
 	}
 
 	return errs, nil
@@ -100,19 +97,22 @@ func (s *sessionIDToIMSI) Index(networkID, reporterHWID string, states []state.S
 
 // getSessionIDAndIMSI extracts session ID and IMSI from the state.
 // Returns (session ID, IMSI, error).
-func getSessionIDAndIMSI(st state.State) (string, string, error) {
-	imsi := st.ReporterID
+func getSessionIDAndIMSI(id state.ID, st state.State) (string, string, error) {
+	imsi := id.DeviceID
 
 	// Cast to directory record
 	record, ok := st.ReportedState.(*directoryd.DirectoryRecord)
 	if !ok {
-		return "", "", fmt.Errorf("failed to convert reported state %s to type %s", st.ReporterID, orc8r.DirectoryRecordType)
+		return "", "", fmt.Errorf(
+			"convert reported state (id: <%+v>, state: <%+v>) to type %s",
+			id, st, orc8r.DirectoryRecordType,
+		)
 	}
 
 	// Get session ID
 	sessionID, err := record.GetSessionID()
 	if err != nil {
-		return "", "", errors.Wrap(err, "failed to extract session ID from record")
+		return "", "", errors.Wrap(err, "extract session ID from record")
 	}
 
 	return sessionID, imsi, nil

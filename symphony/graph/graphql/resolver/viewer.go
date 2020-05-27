@@ -7,30 +7,22 @@ package resolver
 import (
 	"context"
 
+	"github.com/facebookincubator/symphony/graph/authz"
+
 	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer"
 )
 
 type viewerResolver struct{}
 
-func (viewerResolver) User(ctx context.Context, obj *viewer.Viewer) (*ent.User, error) {
-	return viewer.UserFromContext(ctx)
+func (viewerResolver) User(_ context.Context, v viewer.Viewer) (*ent.User, error) {
+	if v, ok := v.(*viewer.UserViewer); ok {
+		return v.User(), nil
+	}
+	return nil, nil
 }
 
-func (viewerResolver) Permissions(ctx context.Context, obj *viewer.Viewer) (*models.PermissionSettings, error) {
-	u, err := viewer.UserFromContext(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	adminPolicy := models.AdministrativePolicy{
-		CanRead: u.Role == user.RoleADMIN || u.Role == user.RoleOWNER,
-	}
-	res := models.PermissionSettings{
-		CanWrite:    obj.Role != "readonly",
-		AdminPolicy: &adminPolicy,
-	}
-	return &res, nil
+func (viewerResolver) Permissions(ctx context.Context, _ viewer.Viewer) (*models.PermissionSettings, error) {
+	return authz.Permissions(ctx)
 }

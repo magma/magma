@@ -15,6 +15,7 @@
 #include "LocalEnforcer.h"
 #include "SessionReporter.h"
 #include "MagmaService.h"
+#include "RedisStoreClient.h"
 #include "RestartHandler.h"
 #include "ServiceRegistrySingleton.h"
 #include "PolicyLoader.h"
@@ -180,7 +181,7 @@ int main(int argc, char *argv[])
     // reports usage faster than sessiond can report it. This value should be
     // reasonably big, as the usage will be eventually reported properly.
     // So use the default value if it seems small.
-    if (margin_from_config > DEFAULT_EXTRA_QUOTA_MARGIN) {
+    if (margin_from_config >= DEFAULT_EXTRA_QUOTA_MARGIN) {
       margin = margin_from_config;
     } else {
       MLOG(MWARNING) << "The extra_quota_margin from the config "
@@ -212,10 +213,29 @@ int main(int argc, char *argv[])
       DEFAULT_QUOTA_EXHAUSTION_TERMINATION_MS;
   }
 
-  magma::SessionMap session_map{};
+  magma::SessionStore* session_store;
+  bool is_stateless = config["support_stateless"].IsDefined()
+      && config["support_stateless"].as<bool>();
+  if (is_stateless) {
+    auto store_client = std::make_shared<magma::lte::RedisStoreClient>(
+        std::make_shared<cpp_redis::client>(),
+        config["sessions_table"].as<std::string>(),
+        rule_store);
+    bool connected;
+    do {
+      MLOG(MINFO) << "Attempting to connect to Redis";
+      connected = store_client->try_redis_connect();
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    } while (!connected);
+    session_store = new magma::SessionStore(rule_store, store_client);
+    MLOG(MINFO) << "Successfully connected to Redis";
+  } else {
+    session_store = new magma::SessionStore(rule_store);
+  }
   auto monitor = std::make_shared<magma::LocalEnforcer>(
     reporter,
     rule_store,
+    *session_store,
     pipelined_client,
     directoryd_client,
     eventd_client,
@@ -226,15 +246,19 @@ int main(int argc, char *argv[])
 
   magma::service303::MagmaService server(SESSIOND_SERVICE, SESSIOND_VERSION);
   auto local_handler = std::make_unique<magma::LocalSessionManagerHandlerImpl>(
-    monitor, reporter.get(), directoryd_client, session_map);
-  auto proxy_handler =
-    std::make_unique<magma::SessionProxyResponderHandlerImpl>(monitor, session_map);
+    monitor, reporter.get(), directoryd_client, *session_store);
+  auto proxy_handler =std::make_unique<magma::SessionProxyResponderHandlerImpl>(
+    monitor, *session_store);
 
   auto restart_handler = std::make_shared<magma::sessiond::RestartHandler>(
-    directoryd_client, monitor, reporter.get(), session_map);
+      directoryd_client, aaa_client, monitor, reporter.get(), *session_store);
   std::thread restart_handler_thread([&]() {
     MLOG(MINFO) << "Started sessiond restart handler thread";
-    restart_handler->cleanup_previous_sessions();
+    if (!is_stateless) {
+      restart_handler->cleanup_previous_sessions();
+    } else if (config["support_carrier_wifi"].as<bool>()) {
+      restart_handler->setup_aaa_sessions();
+    }
   });
 
   magma::LocalSessionManagerAsyncService local_service(
@@ -258,6 +282,7 @@ int main(int argc, char *argv[])
 
   // Block on main monitor (to keep evb in this thread)
   monitor->attachEventBase(evb);
+  monitor->sync_sessions_on_restart(time(NULL));
   monitor->start();
   server.Stop();
 

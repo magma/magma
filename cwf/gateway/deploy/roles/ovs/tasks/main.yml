@@ -37,12 +37,20 @@
        - openvswitch-common
        - openvswitch-switch
        - python-openvswitch
+       - openvswitch-datapath-dkms
+
+- name: Load the ovs kernel module
+  become: true
+  script: reload_ovs_kmod.sh
+  tags:
+      - kernel_module_reload
 
 - name: Start OVS
   service:
     name: openvswitch-switch
     state: started
     enabled: yes
+    use: service
   become: true
 
 - name: Ensure OVS switch will not auto-upgrade

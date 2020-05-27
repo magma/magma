@@ -4,19 +4,19 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow strict-local
+ * @flow
  * @format
  */
 
-import React from 'react';
-import SideNavigationPanel from '@fbcnms/ui/components/SideNavigationPanel';
+import InventorySuspense from '../../common/InventorySuspense';
+import NavigatableViews from '@fbcnms/ui/components/design-system/View/NavigatableViews';
+import React, {useMemo} from 'react';
+import RelayEnvironment from '../../common/RelayEnvironment';
 import WorkOrderProjectTypes from '../configure/WorkOrderProjectTypes';
 import WorkOrderTypes from '../configure/WorkOrderTypes';
-import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
-import {Redirect, Route, Switch} from 'react-router-dom';
+import fbt from 'fbt';
+import {RelayEnvironmentProvider} from 'react-relay/hooks';
 import {makeStyles} from '@material-ui/styles';
-import {useRelativeUrl} from '@fbcnms/ui/hooks/useRouter';
-import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -27,48 +27,44 @@ const useStyles = makeStyles(() => ({
 }));
 
 export default function WorkOrderConfigure() {
-  const relativeUrl = useRelativeUrl();
-  const {location, history} = useRouter();
+  const menuItems = useMemo(
+    () => [
+      {
+        menuItem: {
+          label: `${fbt('Work Orders', '')}`,
+          tooltip: '',
+        },
+        component: {
+          children: <WorkOrderTypes />,
+        },
+        routingPath: 'work_order_types',
+      },
+      {
+        menuItem: {
+          label: `${fbt('Projects', '')}`,
+          tooltip: '',
+        },
+        component: {
+          children: <WorkOrderProjectTypes />,
+        },
+        routingPath: 'project_types',
+      },
+    ],
+    [],
+  );
+
   const classes = useStyles();
   return (
     <div className={classes.root}>
-      <SideNavigationPanel
-        title="Templates"
-        items={[
-          {
-            key: 'work_order_types',
-            label: 'Work Orders',
-          },
-          {
-            key: 'project_types',
-            label: 'Projects',
-          },
-        ]}
-        selectedItemId={location.pathname.match(/([^\/]*)\/*$/)[1]}
-        onItemClicked={item => {
-          ServerLogger.info(
-            LogEvents.WORK_ORDERS_CONFIGURE_TAB_NAVIGATION_CLICKED,
-            {
-              tab: item.key,
-            },
-          );
-          history.push(`/workorders/configure/${item.key}`);
-        }}
-      />
-      <Switch>
-        <Route
-          path={relativeUrl('/work_order_types')}
-          component={WorkOrderTypes}
-        />
-        <Route
-          path={relativeUrl('/project_types')}
-          component={WorkOrderProjectTypes}
-        />
-        <Redirect
-          from={relativeUrl('/')}
-          to={relativeUrl('/work_order_types')}
-        />
-      </Switch>
+      <RelayEnvironmentProvider environment={RelayEnvironment}>
+        <InventorySuspense>
+          <NavigatableViews
+            header={<fbt desc="">Templates</fbt>}
+            views={menuItems}
+            routingBasePath="/workorders/configure"
+          />
+        </InventorySuspense>
+      </RelayEnvironmentProvider>
     </div>
   );
 }

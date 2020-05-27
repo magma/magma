@@ -55,15 +55,16 @@ type usedServiceUnitAVP struct {
 }
 
 // getCCRHandler returns a handler to be called when the server receives a CCR
-func getCCRHandler(srv *PCRFDiamServer) diam.HandlerFunc {
+func getCCRHandler(srv *PCRFServer) diam.HandlerFunc {
 	return func(c diam.Conn, m *diam.Message) {
 		glog.V(2).Infof("Received CCR from %s\n", c.RemoteAddr())
+		srv.lastDiamMessageReceived = m
 		var ccr ccrMessage
 		if err := m.Unmarshal(&ccr); err != nil {
 			glog.Errorf("Failed to unmarshal CCR %s", err)
 			return
 		}
-		srv.LastMessageReceived = &ccr
+
 		imsi, err := ccr.GetIMSI()
 		if err != nil {
 			glog.Errorf("Could not parse CCR: %s", err.Error())
@@ -84,9 +85,9 @@ func getCCRHandler(srv *PCRFDiamServer) diam.HandlerFunc {
 		}
 
 		if srv.serviceConfig.UseMockDriver {
-			srv.mockDriverLock.Lock()
+			srv.mockDriver.Lock()
 			iAnswer := srv.mockDriver.GetAnswerFromExpectations(ccr)
-			srv.mockDriverLock.Unlock()
+			srv.mockDriver.Unlock()
 			if iAnswer == nil {
 				sendAnswer(ccr, c, m, diam.UnableToComply)
 				return
@@ -97,7 +98,9 @@ func getCCRHandler(srv *PCRFDiamServer) diam.HandlerFunc {
 		}
 
 		avps := []*diam.AVP{}
-		if credit_control.CreditRequestType(ccr.RequestType) == credit_control.CRTInit {
+		ccrType := credit_control.CreditRequestType(ccr.RequestType)
+		if ccrType == credit_control.CRTInit {
+			glog.V(2).Infof("\tGot xCRT-Init from %s. Rules will be sent: %v - %v\n", imsi, account.RuleBaseNames, account.UsageMonitors)
 			// Install all rules attached to the subscriber for the initial answer
 			ruleInstalls := toRuleInstallAVPs(account.RuleNames, account.RuleBaseNames, account.RuleDefinitions, nil, nil)
 			// Install all monitors attached to the subscriber for the initial answer
@@ -105,6 +108,7 @@ func getCCRHandler(srv *PCRFDiamServer) diam.HandlerFunc {
 			avps = append(ruleInstalls, usageMonitors...)
 		} else {
 			// Update the subscriber state with the usage updates in CCR-U/T
+			glog.V(2).Infof("\tGot xCCR type \"%d\" from IMSI %s. Quota be updated\n", ccrType, imsi)
 			creditByMkey, err := updateSubscriberAccountWithUsageUpdates(account, ccr.UsageMonitors)
 			if err != nil {
 				glog.Errorf("Failed to update quota: %v", err)
@@ -154,16 +158,17 @@ func (m *ccrMessage) GetIMSI() (string, error) {
 	return "", errors.New("Could not obtain IMSI from CCR message")
 }
 
+// TODO: Remove this when not needed anymore (use findAVP from diam library)
 // Searches on ccr message for an specific AVP message based on the avp tag on ccr type (ie "Session-Id")
 // It returns on the first match it finds.
 func GetAVP(message *ccrMessage, AVPToFind string) (interface{}, error) {
 	elem := reflect.ValueOf(message)
-	calledStationID, err := findAVP(elem, "avp", AVPToFind)
+	avpFound, err := findAVP(elem, "avp", AVPToFind)
 	if err != nil {
 		glog.Errorf("Failed to find %s: %s\n", AVPToFind, err)
 		return "", err
 	}
-	return calledStationID, nil
+	return avpFound, nil
 }
 
 // Depth Search First of a specific tag:value on a element (accepts structs, pointers, slices)

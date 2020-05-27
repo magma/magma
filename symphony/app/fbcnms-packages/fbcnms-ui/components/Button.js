@@ -16,24 +16,20 @@ type Props = {
   children: React.Node,
 };
 
-type State = {};
-
-export default class Button extends React.Component<Props, State> {
-  render() {
-    const styles = {
-      border: '1px solid #bbb',
-      borderRadius: 6,
-      cursor: 'pointer',
-      fontSize: 15,
-      padding: '3px 10px',
-    };
-    if (this.props.error != null) {
-      styles['border'] = '1px solid red';
-    }
-    return (
-      <button style={styles} onClick={this.props.onClick}>
-        {this.props.children}
-      </button>
-    );
+export default function Button(props: Props) {
+  const styles = {
+    border: '1px solid #bbb',
+    borderRadius: 6,
+    cursor: 'pointer',
+    fontSize: 15,
+    padding: '3px 10px',
+  };
+  if (props.error != null) {
+    styles['border'] = '1px solid red';
   }
+  return (
+    <button style={styles} onClick={props.onClick}>
+      {props.children}
+    </button>
+  );
 }

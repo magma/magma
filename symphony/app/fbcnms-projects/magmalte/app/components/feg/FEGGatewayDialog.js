@@ -35,7 +35,7 @@ import Tabs from '@material-ui/core/Tabs';
 import TextField from '@material-ui/core/TextField';
 
 import nullthrows from '@fbcnms/util/nullthrows';
-import useMagmaAPI from '../../common/useMagmaAPI';
+import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 import {
   AddGatewayFields,
   EMPTY_GATEWAY_FIELDS,
@@ -161,7 +161,9 @@ export default function FEGGatewayDialog(props: Props) {
   const networkID = nullthrows(match.params.networkId);
   const {response: tiers, isLoading} = useMagmaAPI(
     MagmaV1API.getNetworksByNetworkIdTiers,
-    {networkId: networkID},
+    {
+      networkId: networkID,
+    },
   );
 
   if (isLoading || !tiers) {

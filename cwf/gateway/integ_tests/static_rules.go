@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package integ_tests
+package integration
 
 import (
 	"magma/feg/cloud/go/protos"
@@ -16,13 +16,11 @@ import (
 	"github.com/go-openapi/swag"
 )
 
-func getUsageInformation(monitorKey string, quota uint64) []*protos.UsageMonitoringInformation {
-	return []*protos.UsageMonitoringInformation{
-		{
-			MonitoringLevel: protos.MonitoringLevel_RuleLevel,
-			MonitoringKey:   []byte(monitorKey),
-			Octets:          &protos.Octets{TotalOctets: quota},
-		},
+func getUsageInformation(monitorKey string, quota uint64) *protos.UsageMonitoringInformation {
+	return &protos.UsageMonitoringInformation{
+		MonitoringLevel: protos.MonitoringLevel_RuleLevel,
+		MonitoringKey:   []byte(monitorKey),
+		Octets:          &protos.Octets{TotalOctets: quota},
 	}
 }
 

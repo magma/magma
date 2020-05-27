@@ -77,13 +77,7 @@ message ChargingReAuthRequest {
 }
 
 message ChargingReAuthAnswer {
-  enum Result {
-    UPDATE_INITIATED = 0;
-    UPDATE_NOT_NEEDED = 1;
-    SESSION_NOT_FOUND = 2;
-    OTHER_FAILURE = 3;
-  }
-  Result result = 1;
+  ReAuthResult result = 1;
 }
 
 enum EventTrigger {
@@ -320,14 +314,10 @@ message CreditUsageUpdate {
 }
 
 message CreditUpdateResponse {
-  enum ResponseType {
-    UPDATE = 0;
-  }
   bool success = 1;
   string sid = 2; // System Identification Number
   uint32 charging_key = 3;
   ChargingCredit credit = 4;
-  ResponseType type = 5;
   uint32 result_code = 6;
   ServiceIdentifier service_identifier = 7;
   enum CreditLimitType {
@@ -442,12 +432,14 @@ message CreateSessionResponse {
 message StaticRuleInstall {
   string rule_id = 1;
   google.protobuf.Timestamp activation_time = 2;
+  // Optional field. Set as 0 to mark as unused
   google.protobuf.Timestamp deactivation_time = 3;
 }
 
 message DynamicRuleInstall {
   PolicyRule policy_rule = 1;
   google.protobuf.Timestamp activation_time = 2;
+  // Optional field. Set as 0 to mark as unused
   google.protobuf.Timestamp deactivation_time = 3;
 }
 

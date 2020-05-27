@@ -65,6 +65,10 @@ ENV GOPROXY https://proxy.golang.org
 
 RUN printenv > /etc/environment
 
+COPY feg/radius/lib/go/ /radius/lib/go
+COPY feg/radius/src/go.* /radius/src/
+WORKDIR /radius/src
+RUN go mod download
 
 # Copy just the go.mod and go.sum files to download the golang deps.
 # This step allows us to cache the downloads, and prevents reaching out to
@@ -104,6 +108,9 @@ FROM base as builder
 # RUN make -C $MAGMA_ROOT/feg/gateway gen
 RUN make -C $MAGMA_ROOT/feg/gateway build
 
+WORKDIR $MAGMA_ROOT/feg/radius/src
+RUN ./run.sh build
+
 # -----------------------------------------------------------------------------
 # Go-cache base image
 # -----------------------------------------------------------------------------
@@ -116,15 +123,18 @@ COPY --from=builder /root/.cache /root/.cache
 FROM ubuntu:xenial AS gateway_go
 
 # Install envdir.
-RUN apt-get -y update && apt-get -y install daemontools
+RUN apt-get -y update && apt-get -y install daemontools netcat gettext musl
 
+ENV MAGMA_ROOT /magma
 # Copy the build artifacts.
 COPY --from=builder /var/opt/magma/bin /var/opt/magma/bin
+COPY --from=builder $MAGMA_ROOT/feg/radius/src/radius /var/opt/magma/bin/radius
+COPY --from=builder $MAGMA_ROOT/feg/radius/src/config/samples/radius.cwf.config.json.template /etc/magma/templates/radius.conf.template
 
 # Copy the configs.
 COPY feg/gateway/configs /etc/magma
 
 # Create empty envdir directory
 RUN mkdir -p /var/opt/magma/envdir
-
 RUN mkdir -p /var/opt/magma/configs
+RUN mkdir -p /var/opt/magma/tmp

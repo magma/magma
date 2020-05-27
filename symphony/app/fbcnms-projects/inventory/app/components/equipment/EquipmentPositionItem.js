@@ -22,7 +22,8 @@ import type {WithStyles} from '@material-ui/core';
 import ActionButton from '@fbcnms/ui/components/ActionButton';
 import AddToEquipmentDialog from './AddToEquipmentDialog';
 import Button from '@fbcnms/ui/components/design-system/Button';
-import CommonStrings from '../../common/CommonStrings';
+import CommonStrings from '@fbcnms/strings/Strings';
+import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import React from 'react';
 import RemoveEquipmentFromPositionMutation from '../../mutations/RemoveEquipmentFromPositionMutation';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
@@ -117,55 +118,59 @@ class EquipmentPositionItem extends React.Component<Props, State> {
           [classes.equipmentRoot]: true,
         })}>
         <div className={classes.positionBody}>{this.renderEquipment()}</div>
-        <ActionButton
-          action={positionOccupied ? 'remove' : 'add'}
-          onClick={() => {
-            if (position.attachedEquipment == null) {
-              this.setState({isNewEquipmentDialogOpen: true});
-              return;
+        <FormAction>
+          <ActionButton
+            action={positionOccupied ? 'remove' : 'add'}
+            onClick={() => {
+              if (position.attachedEquipment == null) {
+                this.setState({isNewEquipmentDialogOpen: true});
+                return;
+              }
+              this.props
+                .confirm({
+                  title: <fbt desc="">Delete Equipment?</fbt>,
+                  message: (
+                    <div>
+                      <fbt desc="">
+                        By removing{' '}
+                        <fbt:param name="equipment name">
+                          {position.attachedEquipment.name}
+                        </fbt:param>{' '}
+                        from this position, all information related to this
+                        equipment, like links and sub-positions, will be
+                        deleted.
+                      </fbt>
+                      {position.attachedEquipment.services.length > 0 && (
+                        <p>
+                          <fbt desc="">
+                            This attached equipment is used by some services and
+                            deleting it can potentially break them.
+                          </fbt>
+                        </p>
+                      )}
+                    </div>
+                  ),
+                  checkboxLabel: <fbt desc="">I understand</fbt>,
+                  cancelLabel: CommonStrings.common.cancelButton,
+                  confirmLabel: CommonStrings.common.deleteButton,
+                  skin: 'red',
+                })
+                .then(
+                  confirmed =>
+                    confirmed && this.onDetachEquipmentFromPosition(),
+                );
+            }}
+          />
+          <AddToEquipmentDialog
+            open={this.state.isNewEquipmentDialogOpen}
+            onClose={() => this.setState({isNewEquipmentDialogOpen: false})}
+            onEquipmentTypeSelected={equipmentType =>
+              this.props.onAttachingEquipmentToPosition(equipmentType, position)
             }
-            this.props
-              .confirm({
-                title: <fbt desc="">Delete Equipment?</fbt>,
-                message: (
-                  <div>
-                    <fbt desc="">
-                      By removing{' '}
-                      <fbt:param name="equipment name">
-                        {position.attachedEquipment.name}
-                      </fbt:param>{' '}
-                      from this position, all information related to this
-                      equipment, like links and sub-positions, will be deleted.
-                    </fbt>
-                    {position.attachedEquipment.services.length > 0 && (
-                      <p>
-                        <fbt desc="">
-                          This attached equipment is used by some services and
-                          deleting it can potentially break them.
-                        </fbt>
-                      </p>
-                    )}
-                  </div>
-                ),
-                checkboxLabel: <fbt desc="">I understand</fbt>,
-                cancelLabel: CommonStrings.common.cancelButton,
-                confirmLabel: CommonStrings.common.deleteButton,
-                skin: 'red',
-              })
-              .then(
-                confirmed => confirmed && this.onDetachEquipmentFromPosition(),
-              );
-          }}
-        />
-        <AddToEquipmentDialog
-          open={this.state.isNewEquipmentDialogOpen}
-          onClose={() => this.setState({isNewEquipmentDialogOpen: false})}
-          onEquipmentTypeSelected={equipmentType =>
-            this.props.onAttachingEquipmentToPosition(equipmentType, position)
-          }
-          parentEquipment={this.props.equipment}
-          position={position}
-        />
+            parentEquipment={this.props.equipment}
+            position={position}
+          />
+        </FormAction>
       </div>
     );
   }

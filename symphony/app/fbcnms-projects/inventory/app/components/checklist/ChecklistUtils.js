@@ -8,8 +8,16 @@
  * @format
  */
 
+import type {
+  CheckListCategoryInput,
+  CheckListItemInput,
+} from '../../mutations/__generated__/AddWorkOrderMutation.graphql';
 import type {CheckListItem} from './checkListCategory/ChecklistItemsDialogMutateState';
 import type {CheckListItemType} from '../work_orders/__generated__/WorkOrderDetails_workOrder.graphql';
+import type {ChecklistCategoriesStateType} from './ChecklistCategoriesMutateState';
+import type {ChecklistCategoryDefinition} from './ChecklistCategoriesMutateState';
+
+import {isTempId} from '../../common/EntUtils';
 
 export const getValidChecklistItemType = (
   type: CheckListItemType,
@@ -25,6 +33,10 @@ export const getValidChecklistItemType = (
       return 'files';
     case 'yes_no':
       return 'yes_no';
+    case 'cell_scan':
+      return 'cell_scan';
+    case 'wifi_scan':
+      return 'wifi_scan';
     default:
       throw new Error(
         `Invariant violation - checklist item type not found: ${type}`,
@@ -35,7 +47,10 @@ export const getValidChecklistItemType = (
 export const isChecklistItemDone = (item: CheckListItem): boolean => {
   switch (item.type) {
     case 'enum':
-      return item.enumValues != null && item.enumValues.trim().length > 0;
+      return (
+        item.selectedEnumValues != null &&
+        item.selectedEnumValues.trim().length > 0
+      );
     case 'simple':
       return item.checked === true;
     case 'string':
@@ -44,6 +59,10 @@ export const isChecklistItemDone = (item: CheckListItem): boolean => {
       return item.files != null && item.files.length > 0;
     case 'yes_no':
       return item.yesNoResponse != null;
+    case 'cell_scan':
+      return item.cellData != null;
+    case 'wifi_scan':
+      return item.wifiData != null;
     default:
       throw new Error(
         `Invariant violation - checklist item type not found: ${item.type}`,
@@ -55,4 +74,62 @@ export const enumStringToArray = (enumString: ?string): Array<string> => {
   return enumString != null && enumString !== ''
     ? enumString.split(',')
     : ([]: Array<string>);
+};
+
+export const convertChecklistCategoriesStateToInput = (
+  checkListCategories: ChecklistCategoriesStateType,
+): Array<CheckListCategoryInput> => {
+  return checkListCategories.map(category => {
+    const checkList: Array<CheckListItemInput> = category.checkList.map(
+      item => {
+        return {
+          id: isTempId(item.id) ? undefined : item.id,
+          title: item.title,
+          type: item.type,
+          index: item.index,
+          helpText: item.helpText,
+          enumValues: item.enumValues,
+          selectedEnumValues: item.selectedEnumValues,
+          enumSelectionMode: item.enumSelectionMode,
+          stringValue: item.stringValue,
+          checked: item.checked,
+          yesNoResponse: item.yesNoResponse,
+          files: item.files?.map(file => ({
+            id: isTempId(file.id) ? undefined : file.id,
+            storeKey: file.storeKey,
+            fileName: file.fileName,
+            sizeInBytes: file.sizeInBytes,
+            modificationTime: file.modificationTime,
+            uploadTime: file.uploadTime,
+            fileType: 'FILE',
+          })),
+        };
+      },
+    );
+    return {
+      id: isTempId(category.id) ? undefined : category.id,
+      title: category.title,
+      description: category.description,
+      checkList,
+    };
+  });
+};
+
+export const convertChecklistCategoriesStateToDefinitions = (
+  editingCategories: ChecklistCategoriesStateType,
+): Array<ChecklistCategoryDefinition> => {
+  return editingCategories.map(category => ({
+    id: category.id,
+    title: category.title,
+    description: category.description,
+    checkList: category.checkList.map(item => ({
+      id: item.id,
+      title: item.title,
+      type: item.type,
+      index: item.index,
+      enumValues: item.enumValues,
+      enumSelectionMode: item.enumSelectionMode,
+      helpText: item.helpText,
+    })),
+  }));
 };

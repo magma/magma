@@ -25,6 +25,7 @@ logging.configure({
 const {
   appMiddleware,
   csrfMiddleware,
+  organizationMiddleware,
   sessionMiddleware,
   webpackSmartMiddleware,
 } = require('@fbcnms/express-middleware');
@@ -41,8 +42,11 @@ const OrganizationLocalStrategy = require('@fbcnms/auth/strategies/OrganizationL
 
 const {access, configureAccess} = require('@fbcnms/auth/access');
 const {
-  AccessRoles: {USER},
+  AccessRoles: {SUPERUSER, USER},
 } = require('@fbcnms/auth/roles');
+
+import type {ExpressResponse} from 'express';
+import type {FBCNMSRequest} from '@fbcnms/auth/access';
 
 const devMode = process.env.NODE_ENV !== 'production';
 
@@ -51,8 +55,9 @@ const SessionStore = connectSession(session.Store);
 const sequelizeSessionStore = new SessionStore({db: sequelize});
 
 // FBC express initialization
-const app = express();
+const app = express<FBCNMSRequest, ExpressResponse>();
 app.set('trust proxy', 1);
+app.use(organizationMiddleware());
 app.use(appMiddleware());
 app.use(
   sessionMiddleware({
@@ -83,6 +88,15 @@ app.use(
 app.use('/user', require('@fbcnms/auth/express').unprotectedUserRoutes());
 
 app.use(configureAccess({loginUrl: '/user/login'}));
+
+// Grafana uses its own CSRF, so we don't need to handle it on our side.
+// Grafana can access all metrics of an org, so it must be restricted
+// to superusers
+app.use(
+  '/grafana',
+  access(SUPERUSER),
+  require('@fbcnms/platform-server/grafana/routes').default,
+);
 
 app.use('/', csrfMiddleware(), access(USER), require('./main/routes').default);
 

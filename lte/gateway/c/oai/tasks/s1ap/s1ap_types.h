@@ -84,13 +84,13 @@ enum s1_ue_state_s {
  *  Generated every time a new InitialUEMessage is received
  **/
 typedef struct ue_description_s {
-  struct enb_description_s *enb; ///< Which eNB this UE is attached to
-
   enum s1_ue_state_s s1_ue_state; ///< S1AP UE state
 
   enb_ue_s1ap_id_t
     enb_ue_s1ap_id : 24;           ///< Unique UE id over eNB (24 bits wide)
   mme_ue_s1ap_id_t mme_ue_s1ap_id; ///< Unique UE id over MME (32 bits wide)
+  sctp_assoc_id_t sctp_assoc_id; ///< Assoc id of eNB which this UE is attached
+  uint64_t comp_s1ap_id; ///< Unique composite UE id (sctp_assoc_id & enb_ue_s1ap_id)
 
   /** SCTP stream on which S1 message will be sent/received.
    *  During an UE S1 connection, a pair of streams is
@@ -146,8 +146,8 @@ typedef struct enb_description_s {
   /** UE list for this eNB **/
   /*@{*/
   uint32_t nb_ue_associated; ///< Number of NAS associated UE on this eNB
-  hash_table_ts_t
-    ue_coll; // contains ue_description_s, key is ue_description_s.?;
+  hash_table_uint64_ts_t ue_id_coll; ///< Contains comp_s1ap_id assoc to
+                                     ///< enodeb, key is mme_ue_s1ap_id;
   /*@}*/
   // Wait for associated UE clean-up timer during sctp shutdown
   struct s1ap_timer_t s1ap_enb_assoc_clean_up_timer;

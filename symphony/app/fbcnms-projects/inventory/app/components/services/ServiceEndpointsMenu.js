@@ -9,61 +9,69 @@
  */
 
 import type {EquipmentPort} from '../../common/Equipment';
-import type {ServiceEndpointRole} from '../../mutations/__generated__/AddServiceEndpointMutation.graphql';
+import type {ServicePanel_service} from './__generated__/ServicePanel_service.graphql';
 
 import AddEndpointToServiceDialog from './AddEndpointToServiceDialog';
 import React, {useState} from 'react';
 import ServiceMenu from './ServiceMenu';
-import fbt from 'fbt';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 
 type Props = {
-  service: {id: string, name: string},
-  onAddEndpoint: (port: EquipmentPort, role: ServiceEndpointRole) => void,
+  service: ServicePanel_service,
+  onAddEndpoint: (port: EquipmentPort, role: string) => void,
+};
+
+export type EndpointDef = {
+  name: string,
+  equipmentTypeID: string,
+  id: string,
 };
 
 const ServiceEndpointsMenu = (props: Props) => {
   const {service, onAddEndpoint} = props;
-  const [addingEndpoint, setAddingEndpoint] = useState<?ServiceEndpointRole>(
-    null,
+  const [addingEndpoint, setAddingEndpoint] = useState<?EndpointDef>(null);
+
+  const serviceEPDefinitions = service.serviceType.endpointDefinitions;
+  const items = serviceEPDefinitions
+    .map(endpointDef => {
+      return {
+        caption: endpointDef.name,
+        onClick: () => {
+          ServerLogger.info(LogEvents.ADD_ENDPOINT_BUTTON_CLICKED);
+          setAddingEndpoint({
+            name: endpointDef.name,
+            equipmentTypeID: endpointDef.equipmentType.id,
+            id: endpointDef.id,
+          });
+        },
+      };
+    })
+    .filter(x => !!x);
+
+  const remainingItems = items.filter(
+    item =>
+      !service.endpoints.map(ep => ep?.definition?.name).includes(item.caption),
   );
+
+  if (remainingItems.length == 0) {
+    return null;
+  }
 
   return (
     <ServiceMenu
       isOpen={!!addingEndpoint}
       onClose={() => setAddingEndpoint(null)}
-      items={[
-        {
-          caption: fbt(
-            'Add Consumer Endpoint',
-            'Menu option to open a dialog to add customer endpoint to a service',
-          ),
-          onClick: () => {
-            ServerLogger.info(LogEvents.ADD_CONSUMER_ENDPOINT_BUTTON_CLICKED);
-            setAddingEndpoint('CONSUMER');
-          },
-        },
-        {
-          caption: fbt(
-            'Add Provider Endpoint',
-            'Menu option to open a dialog to add provider endpoint to a service',
-          ),
-          onClick: () => {
-            ServerLogger.info(LogEvents.ADD_PROVIDER_ENDPOINT_BUTTON_CLICKED);
-            setAddingEndpoint('PROVIDER');
-          },
-        },
-      ]}>
+      items={remainingItems}>
       <AddEndpointToServiceDialog
         service={service}
         onClose={() => setAddingEndpoint(null)}
         onAddEndpoint={port => {
           if (addingEndpoint) {
-            onAddEndpoint(port, addingEndpoint);
+            onAddEndpoint(port, addingEndpoint.id);
             setAddingEndpoint(null);
           }
         }}
-        endpointRole={addingEndpoint ?? 'CONSUMER'}
+        endpointDef={addingEndpoint}
       />
     </ServiceMenu>
   );

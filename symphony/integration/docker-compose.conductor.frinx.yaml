@@ -17,6 +17,7 @@ services:
 #      - redis_data:/var/lib/redis
     networks:
       - private
+    restart: on-failure
 
   elasticsearch:
     image: frinx/fm-elasticsearch:latest
@@ -36,6 +37,7 @@ services:
 #      - elastic_data:/usr/share/elasticsearch/data
     networks:
       - private
+    restart: on-failure
     healthcheck:
       test: ["CMD", "curl", "-IGET", "http://localhost:9200"]
       interval: 2s
@@ -43,9 +45,11 @@ services:
       retries: 1
 
   conductor-server:
+    build:
+      context: ${FBCODE_FBC_DIR}/symphony/integration/workflows/conductor
     environment:
       - CONFIG_PROP=config.properties
-    image: frinx/fm-conductor-server:latest
+      - LOG4J_PROP=log4j-fluentd-appender.properties
     container_name: conductor-server
     links:
       - elasticsearch:es
@@ -64,6 +68,50 @@ services:
       - public
       - private
     command: ["/app/wait_for.sh", "-t", "120",  "elasticsearch:9300", "--", "/app/startup.sh"]
+    restart: on-failure
+
+  schellar:
+    image: flaviostutz/schellar
+    environment:
+      - CONDUCTOR_API_URL=http://conductor-server:8080/api
+      - MONGO_ADDRESS=mongo
+      - MONGO_USERNAME=root
+      - MONGO_PASSWORD=root
+      - LOG_LEVEL=info
+    ports:
+      - 3000:3000
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20MB"
+        max-file: "5"
+    networks:
+      - private
+      - public
+    restart: on-failure
+
+  mongo:
+    image: mongo:4.1.10
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=root
+    ports:
+      - 27017-27019:27017-27019
+    networks:
+      - private
+    restart: on-failure
+
+  mongo-express:
+    image: mongo-express:0.49.0
+    ports:
+      - 8081:8081
+    environment:
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=root
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=root
+    networks:
+      - private
+      - public
+    restart: on-failure
 
 networks:
   public:

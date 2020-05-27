@@ -8,6 +8,8 @@ package surveyquestion
 
 import (
 	"time"
+
+	"github.com/facebookincubator/ent"
 )
 
 const (
@@ -44,6 +46,8 @@ const (
 	EdgeCellScan = "cell_scan"
 	// EdgePhotoData holds the string denoting the photo_data edge name in mutations.
 	EdgePhotoData = "photo_data"
+	// EdgeImages holds the string denoting the images edge name in mutations.
+	EdgeImages = "images"
 
 	// Table holds the table name of the surveyquestion in the database.
 	Table = "survey_questions"
@@ -75,6 +79,13 @@ const (
 	PhotoDataInverseTable = "files"
 	// PhotoDataColumn is the table column denoting the photo_data relation/edge.
 	PhotoDataColumn = "survey_question_photo_data"
+	// ImagesTable is the table the holds the images relation/edge.
+	ImagesTable = "files"
+	// ImagesInverseTable is the table name for the File entity.
+	// It exists in this package in order to avoid circular dependency with the "file" package.
+	ImagesInverseTable = "files"
+	// ImagesColumn is the table column denoting the images relation/edge.
+	ImagesColumn = "survey_question_images"
 )
 
 // Columns holds all SQL columns for surveyquestion fields.
@@ -107,7 +118,15 @@ var ForeignKeys = []string{
 	"survey_question_survey",
 }
 
+// Note that the variables below are initialized by the runtime
+// package on the initialization of the application. Therefore,
+// it should be imported in the main as follows:
+//
+//	import _ "github.com/facebookincubator/symphony/graph/ent/runtime"
+//
 var (
+	Hooks  [1]ent.Hook
+	Policy ent.Policy
 	// DefaultCreateTime holds the default value on creation for the create_time field.
 	DefaultCreateTime func() time.Time
 	// DefaultUpdateTime holds the default value on creation for the update_time field.

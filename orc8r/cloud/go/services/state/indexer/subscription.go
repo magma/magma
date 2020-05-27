@@ -25,11 +25,11 @@ type KeyMatcher interface {
 	Match(s string) bool
 }
 
-func (s *Subscription) Match(st state.State) bool {
-	if typeMatch := s.Type == st.Type; !typeMatch {
+func (s Subscription) Match(id state.ID) bool {
+	if typeMatch := s.Type == id.Type; !typeMatch {
 		return false
 	}
-	return s.KeyMatcher.Match(st.ReporterID)
+	return s.KeyMatcher.Match(id.DeviceID)
 }
 
 type matchAll struct{}

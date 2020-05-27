@@ -37,10 +37,12 @@ import SectionedCard from '@fbcnms/ui/components/SectionedCard';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
+import fbt from 'fbt';
 import nullthrows from '@fbcnms/util/nullthrows';
 import update from 'immutability-helper';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {ConnectionHandler} from 'relay-runtime';
+import {FormContextProvider} from '../../common/FormContext';
 import {createFragmentContainer, graphql} from 'react-relay';
 import {getGraphError} from '../../common/EntUtils';
 import {getPropertyDefaultValue} from '../../common/PropertyType';
@@ -116,20 +118,27 @@ class AddEditEquipmentTypeCard extends React.Component<Props, State> {
       .sort(sortByIndex)
       .map(x => Object.freeze(x));
 
+    const isOnEdit = !!this.props.editingEquipmentType;
     return (
-      <>
+      <FormContextProvider
+        permissions={{
+          entity: 'equipmentType',
+          action: isOnEdit ? 'update' : 'create',
+        }}>
         <div className={classes.cards}>
           <SectionedCard>
             <div className={classes.header}>
               <Text className={classes.headerText}>
-                {this.props.editingEquipmentType
-                  ? 'Edit Equipment Type'
-                  : 'New Equipment Type'}
+                {isOnEdit ? (
+                  <fbt desc="">Edit Equipment Type</fbt>
+                ) : (
+                  <fbt desc="">New Equipment Type</fbt>
+                )}
               </Text>
             </div>
             <Grid container spacing={2}>
               <Grid item xs={6}>
-                <FormField label="Name" required>
+                <FormField label={`${fbt('Equipment Name', '')}`} required>
                   <TextInput
                     name="name"
                     variant="outlined"
@@ -206,7 +215,7 @@ class AddEditEquipmentTypeCard extends React.Component<Props, State> {
             Save
           </Button>
         </PageFooter>
-      </>
+      </FormContextProvider>
     );
   }
   isSaveDisabled() {
@@ -429,6 +438,7 @@ class AddEditEquipmentTypeCard extends React.Component<Props, State> {
           id: 'PropertyType@tmp',
           name: '',
           type: 'string',
+          nodeType: null,
           index: editingEquipmentType?.propertyTypes.length ?? 0,
           booleanValue: false,
           stringValue: null,
@@ -457,6 +467,7 @@ export default withStyles(styles)(
               id
               name
               type
+              nodeType
               index
               stringValue
               intValue

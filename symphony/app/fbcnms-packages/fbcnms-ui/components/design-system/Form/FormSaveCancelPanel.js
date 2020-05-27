@@ -10,8 +10,8 @@
 
 import Button from '@fbcnms/ui/components/design-system/Button';
 import FormAction from './FormAction';
-import FormAlertsContext from '@fbcnms/ui/components/design-system/Form/FormAlertsContext';
-import React, {useContext} from 'react';
+import React from 'react';
+import Strings from '../../../../fbcnms-strings/Strings';
 import classNames from 'classnames';
 import {makeStyles} from '@material-ui/styles';
 
@@ -37,27 +37,37 @@ type Props = {
 };
 
 const FormSaveCancelPanel = (props: Props) => {
+  const {
+    captions,
+    classes: propsClasses,
+    isDisabled,
+    disabledMessage,
+    onCancel,
+    onSave,
+  } = props;
   const classes = useStyles();
-  const validationContext = useContext(FormAlertsContext);
   return (
-    <div title={props.isDisabled && props.disabledMessage}>
-      <Button
-        className={classNames(
-          classes.cancelButton,
-          props.classes?.cancelButton,
-        )}
-        disabled={props.isDisabled}
-        onClick={props.onCancel}
-        skin="regular">
-        {props.captions?.cancelButton || 'Cancel'}
-      </Button>
-      <FormAction>
+    <div title={isDisabled && disabledMessage}>
+      <FormAction
+        ignorePermissions={true}
+        disabled={isDisabled}
+        tooltip={isDisabled ? disabledMessage : undefined}>
         <Button
-          className={props.classes?.saveButton}
-          onClick={props.onSave}
-          tooltip={validationContext.error.message}
-          disabled={props.isDisabled || validationContext.error.detected}>
-          {props.captions?.saveButton || 'Save'}
+          className={classNames(
+            classes.cancelButton,
+            propsClasses?.cancelButton,
+          )}
+          onClick={onCancel}
+          skin="regular">
+          {captions?.cancelButton || Strings.common.cancelButton}
+        </Button>
+      </FormAction>
+      <FormAction
+        disableOnFromError={true}
+        disabled={isDisabled}
+        tooltip={isDisabled ? disabledMessage : undefined}>
+        <Button className={propsClasses?.saveButton} onClick={onSave}>
+          {captions?.saveButton || Strings.common.saveButton}
         </Button>
       </FormAction>
     </div>

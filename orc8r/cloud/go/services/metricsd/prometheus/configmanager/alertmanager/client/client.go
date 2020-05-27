@@ -171,12 +171,18 @@ func (c *client) ModifyTenantRoute(tenantID string, route *config.Route) error {
 
 	// ensure base route is valid base route for this tenant
 	baseRoute := c.getBaseRouteForTenant(tenantID, conf)
-	route.Receiver = baseRoute.Receiver
+	if route.Receiver != baseRoute.Receiver {
+		return fmt.Errorf("route base receiver is incorrect (should be \"%s\"). "+
+			"The base node should match nothing, then add routes as children of the base node", baseRoute.Receiver)
+	}
+
 	if route.Match == nil {
 		route.Match = map[string]string{}
 	}
 
-	route.Match[c.tenancy.RestrictorLabel] = tenantID
+	if c.tenancy.RestrictorLabel != "" {
+		route.Match[c.tenancy.RestrictorLabel] = tenantID
+	}
 
 	for _, childRoute := range route.Routes {
 		if childRoute == nil {
@@ -299,7 +305,9 @@ func secureRoute(tenantID string, route *config.Route) {
 // unsecureRoute traverses a routing tree and reverts receiver
 // names to their non-prefixed original names
 func unsecureRoute(tenantID string, route *config.Route) {
-	route.Receiver = config.UnsecureReceiverName(route.Receiver, tenantID)
+	if !strings.HasSuffix(route.Receiver, config.TenantBaseRoutePostfix) {
+		route.Receiver = config.UnsecureReceiverName(route.Receiver, tenantID)
+	}
 	for _, childRoute := range route.Routes {
 		unsecureRoute(tenantID, childRoute)
 	}

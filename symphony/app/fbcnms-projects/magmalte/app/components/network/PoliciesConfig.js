@@ -31,7 +31,7 @@ import Text from '@fbcnms/ui/components/design-system/Text';
 import Toolbar from '@material-ui/core/Toolbar';
 
 import nullthrows from '@fbcnms/util/nullthrows';
-import useMagmaAPI from '../../common/useMagmaAPI';
+import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {Route} from 'react-router-dom';
 import {findIndex} from 'lodash';
@@ -72,7 +72,10 @@ function PoliciesConfig(props: WithAlert & {mirrorNetwork?: string}) {
 
   const onDelete = id => {
     const newRuleIDs = [...nullthrows(ruleIDs)];
-    newRuleIDs.splice(findIndex(newRuleIDs, id2 => id2 === id), 1);
+    newRuleIDs.splice(
+      findIndex(newRuleIDs, id2 => id2 === id),
+      1,
+    );
     setRuleIDs(newRuleIDs);
   };
 
@@ -99,7 +102,10 @@ function PoliciesConfig(props: WithAlert & {mirrorNetwork?: string}) {
       );
 
       const newBaseNames = [...nullthrows(baseNames)];
-      newBaseNames.splice(findIndex(newBaseNames, name2 => name2 === name), 1);
+      newBaseNames.splice(
+        findIndex(newBaseNames, name2 => name2 === name),
+        1,
+      );
       setBaseNames(newBaseNames);
     }
   };

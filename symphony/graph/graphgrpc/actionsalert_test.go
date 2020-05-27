@@ -6,6 +6,9 @@ package graphgrpc
 
 import (
 	"context"
+	"testing"
+
+	"github.com/facebookincubator/symphony/graph/graphgrpc/schema"
 	"github.com/facebookincubator/symphony/pkg/actions"
 	"github.com/facebookincubator/symphony/pkg/actions/action/mockaction"
 	"github.com/facebookincubator/symphony/pkg/actions/core"
@@ -13,7 +16,6 @@ import (
 	"github.com/facebookincubator/symphony/pkg/actions/trigger/mocktrigger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"testing"
 )
 
 const (
@@ -87,7 +89,7 @@ func TestActionsAlertServiceClient_Receive(t *testing.T) {
 		return actions.NewClient(testExecutor), nil
 	})
 
-	_, err := as.Trigger(context.Background(), &AlertPayload{
+	_, err := as.Trigger(context.Background(), &schema.AlertPayload{
 		TenantID:  "tenant1",
 		Alertname: "testAlert",
 		NetworkID: testNetworkID,
@@ -96,7 +98,7 @@ func TestActionsAlertServiceClient_Receive(t *testing.T) {
 	assert.NoError(t, err)
 	action.AssertExpectations(t)
 
-	_, err = as.Trigger(context.Background(), &AlertPayload{
+	_, err = as.Trigger(context.Background(), &schema.AlertPayload{
 		TenantID:  "tenant1",
 		Alertname: "testAlert",
 		NetworkID: testNetworkID,

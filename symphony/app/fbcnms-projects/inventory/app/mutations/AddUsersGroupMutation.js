@@ -16,19 +16,12 @@ import type {
   AddUsersGroupMutationVariables,
 } from './__generated__/AddUsersGroupMutation.graphql';
 import type {MutationCallbacks} from './MutationCallbacks.js';
-import type {StoreUpdater} from '../common/RelayEnvironment';
+import type {SelectorStoreUpdater} from 'relay-runtime';
 
 const mutation = graphql`
   mutation AddUsersGroupMutation($input: AddUsersGroupInput!) {
     addUsersGroup(input: $input) {
-      id
-      name
-      description
-      status
-      members {
-        id
-        authID
-      }
+      ...UserManagementUtils_group @relay(mask: false)
     }
   }
 `;
@@ -36,7 +29,7 @@ const mutation = graphql`
 export default (
   variables: AddUsersGroupMutationVariables,
   callbacks?: MutationCallbacks<AddUsersGroupMutationResponse>,
-  updater?: StoreUpdater,
+  updater?: SelectorStoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
   commitMutation<AddUsersGroupMutation>(RelayEnvironemnt, {

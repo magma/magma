@@ -12,7 +12,10 @@ import type {FilterConfig} from '../comparison_view/ComparisonViewTypes';
 
 import AddWorkOrderCard from './AddWorkOrderCard';
 import AddWorkOrderDialog from './AddWorkOrderDialog';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import ErrorBoundary from '@fbcnms/ui/components/ErrorBoundary/ErrorBoundary';
+import FormActionWithPermissions from '../../common/FormActionWithPermissions';
+import InventorySuspense from '../../common/InventorySuspense';
 import InventoryView, {DisplayOptions} from '../InventoryViewContainer';
 import PowerSearchBar from '../power_search/PowerSearchBar';
 import React, {useMemo, useState} from 'react';
@@ -101,7 +104,9 @@ const WorkOrderComparisonView = () => {
   if (selectedWorkOrderTypeId != null) {
     return (
       <ErrorBoundary>
-        <AddWorkOrderCard workOrderTypeId={selectedWorkOrderTypeId} />
+        <InventorySuspense>
+          <AddWorkOrderCard workOrderTypeId={selectedWorkOrderTypeId} />
+        </InventorySuspense>
       </ErrorBoundary>
     );
   }
@@ -160,20 +165,26 @@ const WorkOrderComparisonView = () => {
       </div>
     ),
     actionButtons: [
-      {
-        title: 'Add Work Order',
-        action: showDialog,
-      },
+      <FormActionWithPermissions
+        permissions={{
+          entity: 'workorder',
+          action: 'create',
+        }}>
+        <Button onClick={showDialog}>
+          <fbt desc="">Create Work Order</fbt>
+        </Button>
+      </FormActionWithPermissions>,
     ],
   };
 
   return (
     <ErrorBoundary>
       <InventoryView
+        permissions={{entity: 'workorder'}}
         header={header}
         onViewToggleClicked={setResultsDisplayMode}>
         <WorkOrderComparisonViewQueryRenderer
-          limit={50}
+          limit={QUERY_LIMIT}
           filters={filters}
           onWorkOrderSelected={selectedWorkOrderCardId =>
             navigateToWorkOrder(selectedWorkOrderCardId)

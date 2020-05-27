@@ -152,7 +152,6 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 					if err != nil {
 						errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: "error while creating/verifying equipment hierarchy"})
 						continue
-
 					}
 					if parentEquipmentID != nil && positionDefinitionID != nil {
 						parentLoc = nil
@@ -238,7 +237,7 @@ func (m *importer) getEquipmentPropertyInputs(ctx context.Context, importLine Im
 	props := ic.equipmentTypeIDToProperties[typ.ID]
 	var inputs []*models.PropertyInput
 	for _, propName := range props {
-		inp, err := importLine.GetPropertyInput(m.ClientFrom(ctx), ctx, typ, propName)
+		inp, err := importLine.GetPropertyInput(ctx, typ, propName)
 		propType := typ.QueryPropertyTypes().Where(propertytype.Name(propName)).OnlyX(ctx)
 		if err != nil {
 			return nil, fmt.Sprintf("getting property input: prop %v", propName), err
@@ -257,10 +256,12 @@ func (m *importer) getEquipmentPropertyInputs(ctx context.Context, importLine Im
 }
 
 func (m *importer) validateLineForExistingEquipment(ctx context.Context, equipID int, importLine ImportRecord) (*ent.Equipment, error) {
-	equipment, err := m.r.Query().Equipment(ctx, equipID)
+	client := m.ClientFrom(ctx)
+	equipment, err := client.Equipment.Get(ctx, equipID)
 	if err != nil {
 		return nil, errors.Wrapf(err, "fetching equipment")
 	}
+
 	typ := equipment.QueryType().OnlyX(ctx)
 	if typ.Name != importLine.TypeName() {
 		return nil, errors.Errorf("wrong equipment type. should be %v, but %v", typ.Name, importLine.TypeName())
@@ -306,7 +307,7 @@ func (m *importer) validatePropertiesForEquipmentType(ctx context.Context, line 
 	}
 	for _, ptype := range propTypes {
 		ptypeName := ptype.Name
-		pInput, err := line.GetPropertyInput(m.ClientFrom(ctx), ctx, equipType, ptypeName)
+		pInput, err := line.GetPropertyInput(ctx, equipType, ptypeName)
 		if err != nil {
 			return nil, err
 		}

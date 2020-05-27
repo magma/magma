@@ -29,7 +29,9 @@ type config struct {
 // hooks per client, for fast access.
 type hooks struct {
 	ActionsRule                 []ent.Hook
+	Activity                    []ent.Hook
 	CheckListCategory           []ent.Hook
+	CheckListCategoryDefinition []ent.Hook
 	CheckListItem               []ent.Hook
 	CheckListItemDefinition     []ent.Hook
 	Comment                     []ent.Hook
@@ -50,6 +52,7 @@ type hooks struct {
 	Link                        []ent.Hook
 	Location                    []ent.Hook
 	LocationType                []ent.Hook
+	PermissionsPolicy           []ent.Hook
 	Project                     []ent.Hook
 	ProjectType                 []ent.Hook
 	Property                    []ent.Hook
@@ -57,6 +60,7 @@ type hooks struct {
 	ReportFilter                []ent.Hook
 	Service                     []ent.Hook
 	ServiceEndpoint             []ent.Hook
+	ServiceEndpointDefinition   []ent.Hook
 	ServiceType                 []ent.Hook
 	Survey                      []ent.Hook
 	SurveyCellScan              []ent.Hook
@@ -64,7 +68,6 @@ type hooks struct {
 	SurveyTemplateCategory      []ent.Hook
 	SurveyTemplateQuestion      []ent.Hook
 	SurveyWiFiScan              []ent.Hook
-	Technician                  []ent.Hook
 	User                        []ent.Hook
 	UsersGroup                  []ent.Hook
 	WorkOrder                   []ent.Hook

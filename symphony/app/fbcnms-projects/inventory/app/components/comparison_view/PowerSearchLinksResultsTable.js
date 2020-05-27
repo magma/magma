@@ -106,7 +106,7 @@ class PowerSearchLinksResultsTable extends React.Component<Props> {
   };
 
   _cellRenderer = ({dataKey, rowData, cellData}) => {
-    const {classes, history} = this.props;
+    const {classes} = this.props;
     let content = null;
 
     if (dataKey === 'portType' || dataKey === 'equipmentType') {
@@ -126,10 +126,10 @@ class PowerSearchLinksResultsTable extends React.Component<Props> {
           equipment={rowData.ports[index].parentEquipment}
           showSelfEquipment={true}
           onParentLocationClicked={locationId =>
-            history.replace(InventoryAPIUrls.location(locationId))
+            window.open(InventoryAPIUrls.location(locationId))
           }
           onEquipmentClicked={equipmentId =>
-            history.replace(InventoryAPIUrls.equipment(equipmentId))
+            window.open(InventoryAPIUrls.equipment(equipmentId))
           }
           size="small"
         />
@@ -354,6 +354,7 @@ export default withRouter(
                 id
                 name
                 type
+                nodeType
                 isEditable
                 isInstanceProperty
                 stringValue

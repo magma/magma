@@ -17,11 +17,10 @@ import (
 	"time"
 
 	"github.com/AlekSi/pointer"
-	"github.com/facebookincubator/symphony/graph/graphgrpc"
+	"github.com/cenkalti/backoff/v4"
+	"github.com/facebookincubator/symphony/graph/graphgrpc/schema"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/pkg/ctxgroup"
-
-	"github.com/cenkalti/backoff"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/google/uuid"
 	"github.com/shurcooL/graphql"
@@ -37,10 +36,11 @@ import (
 )
 
 type client struct {
-	client *graphql.Client
-	log    *zap.Logger
-	tenant string
-	user   string
+	client     *graphql.Client
+	log        *zap.Logger
+	tenant     string
+	user       string
+	automation bool
 }
 
 func TestMain(m *testing.M) {
@@ -77,7 +77,15 @@ func waitFor(services ...string) error {
 	return g.Wait()
 }
 
-func newClient(t *testing.T, tenant, user string) *client {
+type option func(*client)
+
+func withAutomation() option {
+	return func(c *client) {
+		c.automation = true
+	}
+}
+
+func newClient(t *testing.T, tenant, user string, opts ...option) *client {
 	c := client{
 		log: zaptest.NewLogger(t).With(
 			zap.String("tenant", tenant),
@@ -89,13 +97,22 @@ func newClient(t *testing.T, tenant, user string) *client {
 		"http://graph/query",
 		&http.Client{Transport: &c},
 	)
+	for _, opt := range opts {
+		opt(&c)
+	}
 	require.NoError(t, c.createTenant())
+	require.NoError(t, c.createOwnerUser())
 	return &c
 }
 
 func (c *client) RoundTrip(req *http.Request) (*http.Response, error) {
 	req.Header.Set("x-auth-organization", c.tenant)
-	req.Header.Set("x-auth-user-email", c.user)
+	if !c.automation {
+		req.Header.Set("x-auth-user-email", c.user)
+	} else {
+		req.Header.Set("x-auth-automation-name", c.user)
+	}
+	req.Header.Set("x-auth-user-role", "OWNER")
 	return http.DefaultTransport.RoundTrip(req)
 }
 
@@ -104,7 +121,7 @@ func (c *client) createTenant() error {
 	if err != nil {
 		return err
 	}
-	_, err = graphgrpc.NewTenantServiceClient(conn).
+	_, err = schema.NewTenantServiceClient(conn).
 		Create(context.Background(), &wrappers.StringValue{Value: c.tenant})
 	switch st, _ := status.FromError(err); st.Code() {
 	case codes.OK, codes.AlreadyExists:
@@ -114,14 +131,32 @@ func (c *client) createTenant() error {
 	return nil
 }
 
-type addLocationTypeResponse struct {
-	ID   graphql.ID
-	Name graphql.String
+func (c *client) createOwnerUser() error {
+	conn, err := grpc.Dial("graph:443", grpc.WithInsecure())
+	if err != nil {
+		return err
+	}
+	_, err = schema.NewUserServiceClient(conn).
+		Create(context.Background(), &schema.AddUserInput{Tenant: c.tenant, Id: c.user, IsOwner: true})
+	switch st, _ := status.FromError(err); st.Code() {
+	case codes.OK:
+	default:
+		return st.Err()
+	}
+	return nil
 }
 
-func (c *client) addLocationType(name string, properties ...*models.PropertyTypeInput) (*addLocationTypeResponse, error) {
+type locationTypeResponse struct {
+	ID            graphql.ID
+	Name          graphql.String
+	PropertyTypes []struct {
+		ID graphql.ID
+	}
+}
+
+func (c *client) addLocationType(name string, properties ...*models.PropertyTypeInput) (*locationTypeResponse, error) {
 	var m struct {
-		Response addLocationTypeResponse `graphql:"addLocationType(input: $input)"`
+		Response locationTypeResponse `graphql:"addLocationType(input: $input)"`
 	}
 	vars := map[string]interface{}{
 		"input": models.AddLocationTypeInput{
@@ -190,6 +225,24 @@ type queryLocationResponse struct {
 			Name graphql.String
 		} `graphql:"locationType"`
 	}
+}
+
+func (c *client) queryLocationType(id graphql.ID) (*locationTypeResponse, error) {
+	var q struct {
+		Node struct {
+			Response locationTypeResponse `graphql:"... on LocationType"`
+		} `graphql:"node(id: $id)"`
+	}
+	vars := map[string]interface{}{
+		"id": id,
+	}
+	switch err := c.client.Query(context.Background(), &q, vars); {
+	case err != nil:
+		return nil, err
+	case q.Node.Response.ID == nil:
+		return nil, errors.New("location type not found")
+	}
+	return &q.Node.Response, nil
 }
 
 func (c *client) queryLocation(id graphql.ID) (*queryLocationResponse, error) {
@@ -432,6 +485,15 @@ func TestAddLocation(t *testing.T) {
 
 func TestAddLocationType(t *testing.T) {
 	c := newClient(t, testTenant, testUser)
+	name := "location_type_" + uuid.New().String()
+	typ, err := c.addLocationType(name)
+	require.NoError(t, err)
+	assert.NotNil(t, typ.ID)
+	assert.EqualValues(t, name, typ.Name)
+}
+
+func TestAddLocationWithAutomation(t *testing.T) {
+	c := newClient(t, testTenant, testUser, withAutomation())
 	name := "location_type_" + uuid.New().String()
 	typ, err := c.addLocationType(name)
 	require.NoError(t, err)

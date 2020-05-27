@@ -5,7 +5,10 @@
 package resolver
 
 import (
+	"context"
 	"testing"
+
+	"github.com/facebookincubator/symphony/graph/ent"
 
 	"github.com/AlekSi/pointer"
 
@@ -27,8 +30,8 @@ func pointerToServiceStatus(status models.ServiceStatus) *models.ServiceStatus {
 
 func TestAddServiceWithProperties(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr := r.Mutation()
 	serviceTypeStrValue := "Foo"
@@ -67,8 +70,8 @@ func TestAddServiceWithProperties(t *testing.T) {
 
 func TestAddServiceWithExternalIdUnique(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr := r.Mutation()
 	serviceType, err := mr.AddServiceType(ctx, models.ServiceTypeCreateData{
@@ -113,8 +116,8 @@ func TestAddServiceWithExternalIdUnique(t *testing.T) {
 
 func TestAddServiceWithCustomer(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
 	serviceType, err := mr.AddServiceType(ctx, models.ServiceTypeCreateData{
@@ -135,8 +138,10 @@ func TestAddServiceWithCustomer(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	fetchedService, err := qr.Service(ctx, s.ID)
+	fetchedNode, err := qr.Node(ctx, s.ID)
 	require.NoError(t, err)
+	fetchedService, ok := fetchedNode.(*ent.Service)
+	require.True(t, ok)
 
 	customer = fetchedService.QueryCustomer().OnlyX(ctx)
 
@@ -146,8 +151,8 @@ func TestAddServiceWithCustomer(t *testing.T) {
 
 func TestServiceTopologyReturnsCorrectLinksAndEquipment(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr := r.Mutation()
 
@@ -204,7 +209,17 @@ func TestServiceTopologyReturnsCorrectLinksAndEquipment(t *testing.T) {
 	})
 
 	st, _ := mr.AddServiceType(ctx, models.ServiceTypeCreateData{
-		Name: "Internet Access", HasCustomer: false})
+		Name:        "Internet Access",
+		HasCustomer: false,
+		Endpoints: []*models.ServiceEndpointDefinitionInput{
+			{
+				Name:            "endpoint type1",
+				Role:            pointer.ToString("CONSUMER"),
+				Index:           0,
+				EquipmentTypeID: eqt.ID,
+			},
+		},
+	})
 
 	s, err := mr.AddService(ctx, models.ServiceCreateData{
 		Name:          "Internet Access Room 2",
@@ -216,10 +231,14 @@ func TestServiceTopologyReturnsCorrectLinksAndEquipment(t *testing.T) {
 	require.NoError(t, err)
 	_, err = mr.AddServiceLink(ctx, s.ID, l2.ID)
 	require.NoError(t, err)
+
+	ept := st.QueryEndpointDefinitions().OnlyX(ctx)
+
 	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
-		ID:     s.ID,
-		PortID: ep1.ID,
-		Role:   models.ServiceEndpointRoleConsumer,
+		ID:          s.ID,
+		EquipmentID: eq1.ID,
+		PortID:      pointer.ToInt(ep1.ID),
+		Definition:  ept.ID,
 	})
 	require.NoError(t, err)
 
@@ -232,8 +251,8 @@ func TestServiceTopologyReturnsCorrectLinksAndEquipment(t *testing.T) {
 
 func TestServiceTopologyWithSlots(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr := r.Mutation()
 
@@ -301,7 +320,17 @@ func TestServiceTopologyWithSlots(t *testing.T) {
 	ep1 := card1.QueryPorts().Where(equipmentport.HasDefinitionWith(equipmentportdefinition.ID(portDefs[0].ID))).OnlyX(ctx)
 
 	st, _ := mr.AddServiceType(ctx, models.ServiceTypeCreateData{
-		Name: "Internet Access", HasCustomer: false})
+		Name:        "Internet Access",
+		HasCustomer: false,
+		Endpoints: []*models.ServiceEndpointDefinitionInput{
+			{
+				Name:            "endpoint type1",
+				Role:            pointer.ToString("CONSUMER"),
+				Index:           0,
+				EquipmentTypeID: card.ID,
+			},
+		},
+	})
 
 	s, err := mr.AddService(ctx, models.ServiceCreateData{
 		Name:          "Internet Access Room 2",
@@ -311,10 +340,14 @@ func TestServiceTopologyWithSlots(t *testing.T) {
 	require.NoError(t, err)
 	_, err = mr.AddServiceLink(ctx, s.ID, l.ID)
 	require.NoError(t, err)
+
+	ept := st.QueryEndpointDefinitions().OnlyX(ctx)
+
 	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
-		ID:     s.ID,
-		PortID: ep1.ID,
-		Role:   models.ServiceEndpointRoleConsumer,
+		ID:          s.ID,
+		EquipmentID: card1.ID,
+		PortID:      pointer.ToInt(ep1.ID),
+		Definition:  ept.ID,
 	})
 	require.NoError(t, err)
 
@@ -334,8 +367,8 @@ func TestServiceTopologyWithSlots(t *testing.T) {
 
 func TestEditService(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
 	serviceType, err := mr.AddServiceType(ctx, models.ServiceTypeCreateData{
@@ -358,14 +391,17 @@ func TestEditService(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "new_service_name", newService.Name)
 
-	fetchedService, _ := qr.Service(ctx, service.ID)
+	fetchedNode, err := qr.Node(ctx, service.ID)
+	require.NoError(t, err)
+	fetchedService, ok := fetchedNode.(*ent.Service)
+	require.True(t, ok)
 	require.Equal(t, newService.Name, fetchedService.Name)
 }
 
 func TestEditServiceWithExternalID(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
 	serviceType, err := mr.AddServiceType(ctx, models.ServiceTypeCreateData{
@@ -380,7 +416,10 @@ func TestEditServiceWithExternalID(t *testing.T) {
 		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
-	fetchedService, _ := qr.Service(ctx, service.ID)
+	fetchedNode, err := qr.Node(ctx, service.ID)
+	require.NoError(t, err)
+	fetchedService, ok := fetchedNode.(*ent.Service)
+	require.True(t, ok)
 	require.Nil(t, fetchedService.ExternalID)
 
 	externalID1 := "externalID1"
@@ -390,7 +429,10 @@ func TestEditServiceWithExternalID(t *testing.T) {
 		ExternalID: &externalID1,
 	})
 	require.NoError(t, err)
-	fetchedService, _ = qr.Service(ctx, service.ID)
+	fetchedNode, err = qr.Node(ctx, service.ID)
+	require.NoError(t, err)
+	fetchedService, ok = fetchedNode.(*ent.Service)
+	require.True(t, ok)
 	require.Equal(t, externalID1, *fetchedService.ExternalID)
 
 	externalID2 := "externalID2"
@@ -400,14 +442,17 @@ func TestEditServiceWithExternalID(t *testing.T) {
 		ExternalID: &externalID2,
 	})
 	require.NoError(t, err)
-	fetchedService, _ = qr.Service(ctx, service.ID)
+	fetchedNode, err = qr.Node(ctx, service.ID)
+	require.NoError(t, err)
+	fetchedService, ok = fetchedNode.(*ent.Service)
+	require.True(t, ok)
 	require.Equal(t, externalID2, *fetchedService.ExternalID)
 }
 
 func TestEditServiceWithCustomer(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
 	serviceType, err := mr.AddServiceType(ctx, models.ServiceTypeCreateData{
@@ -423,7 +468,10 @@ func TestEditServiceWithCustomer(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	fetchedService, _ := qr.Service(ctx, service.ID)
+	fetchedNode, err := qr.Node(ctx, service.ID)
+	require.NoError(t, err)
+	fetchedService, ok := fetchedNode.(*ent.Service)
+	require.True(t, ok)
 	exist := fetchedService.QueryCustomer().ExistX(ctx)
 	require.Equal(t, false, exist)
 
@@ -443,7 +491,10 @@ func TestEditServiceWithCustomer(t *testing.T) {
 		CustomerID: &donald.ID,
 	})
 	require.NoError(t, err)
-	fetchedService, _ = qr.Service(ctx, service.ID)
+	fetchedNode, err = qr.Node(ctx, service.ID)
+	require.NoError(t, err)
+	fetchedService, ok = fetchedNode.(*ent.Service)
+	require.True(t, ok)
 	fetchedCustomer := fetchedService.QueryCustomer().OnlyX(ctx)
 	require.Equal(t, donald.ID, fetchedCustomer.ID)
 
@@ -453,15 +504,18 @@ func TestEditServiceWithCustomer(t *testing.T) {
 		CustomerID: &dafi.ID,
 	})
 	require.NoError(t, err)
-	fetchedService, _ = qr.Service(ctx, service.ID)
+	fetchedNode, err = qr.Node(ctx, service.ID)
+	require.NoError(t, err)
+	fetchedService, ok = fetchedNode.(*ent.Service)
+	require.True(t, ok)
 	fetchedCustomer = fetchedService.QueryCustomer().OnlyX(ctx)
 	require.Equal(t, dafi.ID, fetchedCustomer.ID)
 }
 
 func TestEditServiceWithProperties(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
 	pTypes := models.PropertyTypeInput{
@@ -469,21 +523,26 @@ func TestEditServiceWithProperties(t *testing.T) {
 		Type: "string",
 	}
 
+	p2Types := models.PropertyTypeInput{
+		Name: "str_prop2",
+		Type: "string",
+	}
+
 	serviceType, err := mr.AddServiceType(ctx, models.ServiceTypeCreateData{
 		Name:       "type_name_1",
-		Properties: []*models.PropertyTypeInput{&pTypes},
+		Properties: []*models.PropertyTypeInput{&pTypes, &p2Types},
 	})
 	require.NoError(t, err)
-	pTypeID := serviceType.QueryPropertyTypes().OnlyXID(ctx)
+	propTypes := serviceType.QueryPropertyTypes().AllX(ctx)
 
 	strValue := "Foo"
 	strProp := models.PropertyInput{
-		PropertyTypeID: pTypeID,
+		PropertyTypeID: propTypes[0].ID,
 		StringValue:    &strValue,
 	}
 	strValue2 := "Bar"
 	strProp2 := models.PropertyInput{
-		PropertyTypeID: pTypeID,
+		PropertyTypeID: propTypes[1].ID,
 		StringValue:    &strValue2,
 	}
 
@@ -494,7 +553,10 @@ func TestEditServiceWithProperties(t *testing.T) {
 		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
-	fetchedService, _ := qr.Service(ctx, service.ID)
+	fetchedNode, err := qr.Node(ctx, service.ID)
+	require.NoError(t, err)
+	fetchedService, ok := fetchedNode.(*ent.Service)
+	require.True(t, ok)
 	fetchedProps, _ := fetchedService.QueryProperties().All(ctx)
 
 	// Property[] -> PropertyInput[]
@@ -516,8 +578,10 @@ func TestEditServiceWithProperties(t *testing.T) {
 	})
 	require.NoError(t, err, "Editing service")
 
-	newFetchedService, err := qr.Service(ctx, service.ID)
+	newFetchedNode, err := qr.Node(ctx, service.ID)
 	require.NoError(t, err)
+	newFetchedService, ok := newFetchedNode.(*ent.Service)
+	require.True(t, ok)
 	existA := newFetchedService.QueryProperties().Where(property.StringVal("Foo-2")).ExistX(ctx)
 	require.NoError(t, err)
 	require.True(t, existA, "Property with the new name should exist on service")
@@ -531,8 +595,8 @@ func TestEditServiceWithProperties(t *testing.T) {
 
 func TestAddEndpointsToService(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
 	locType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{
@@ -585,6 +649,13 @@ func TestAddEndpointsToService(t *testing.T) {
 
 	serviceType, err := mr.AddServiceType(ctx, models.ServiceTypeCreateData{
 		Name: "service_type_name",
+		Endpoints: []*models.ServiceEndpointDefinitionInput{
+			{
+				Name:            "endpoint type1",
+				Role:            pointer.ToString("CONSUMER"),
+				EquipmentTypeID: eqType.ID,
+			},
+		},
 	})
 	require.NoError(t, err)
 	require.Equal(t, "service_type_name", serviceType.Name)
@@ -596,21 +667,28 @@ func TestAddEndpointsToService(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	ept := serviceType.QueryEndpointDefinitions().OnlyX(ctx)
+
 	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
-		ID:     service.ID,
-		PortID: ep1.ID,
-		Role:   models.ServiceEndpointRoleConsumer,
+		ID:          service.ID,
+		EquipmentID: eq1.ID,
+		PortID:      pointer.ToInt(ep1.ID),
+		Definition:  ept.ID,
 	})
 	require.NoError(t, err)
 
 	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
-		ID:     service.ID,
-		PortID: ep2.ID,
-		Role:   models.ServiceEndpointRoleConsumer,
+		ID:          service.ID,
+		EquipmentID: eq2.ID,
+		PortID:      pointer.ToInt(ep2.ID),
+		Definition:  ept.ID,
 	})
 	require.NoError(t, err)
 
-	fetchedService, _ := qr.Service(ctx, service.ID)
+	fetchedNode, err := qr.Node(ctx, service.ID)
+	require.NoError(t, err)
+	fetchedService, ok := fetchedNode.(*ent.Service)
+	require.True(t, ok)
 	endpoints := fetchedService.QueryEndpoints().QueryPort().IDsX(ctx)
 	require.Len(t, endpoints, 2)
 	require.NotContains(t, endpoints, eq3.ID)
@@ -618,9 +696,10 @@ func TestAddEndpointsToService(t *testing.T) {
 	e1 := fetchedService.QueryEndpoints().Where(serviceendpoint.HasPortWith(equipmentport.ID(ep1.ID))).OnlyX(ctx)
 
 	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
-		ID:     service.ID,
-		PortID: ep3.ID,
-		Role:   models.ServiceEndpointRoleProvider,
+		ID:          service.ID,
+		EquipmentID: eq3.ID,
+		PortID:      pointer.ToInt(ep3.ID),
+		Definition:  ept.ID,
 	})
 	require.NoError(t, err)
 
@@ -628,7 +707,10 @@ func TestAddEndpointsToService(t *testing.T) {
 	require.NoError(t, err)
 
 	require.NoError(t, err)
-	fetchedService, _ = qr.Service(ctx, service.ID)
+	fetchedNode, err = qr.Node(ctx, service.ID)
+	require.NoError(t, err)
+	fetchedService, ok = fetchedNode.(*ent.Service)
+	require.True(t, ok)
 	endpoints = fetchedService.QueryEndpoints().QueryPort().IDsX(ctx)
 	require.Len(t, endpoints, 2)
 	require.Contains(t, endpoints, ep3.ID)
@@ -637,8 +719,8 @@ func TestAddEndpointsToService(t *testing.T) {
 
 func TestServicesOfEquipment(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr := r.Mutation()
 	locType, _ := mr.AddLocationType(ctx, models.AddLocationTypeInput{
@@ -696,7 +778,15 @@ func TestServicesOfEquipment(t *testing.T) {
 	})
 
 	st, _ := mr.AddServiceType(ctx, models.ServiceTypeCreateData{
-		Name: "Internet Access", HasCustomer: false})
+		Name:        "Internet Access",
+		HasCustomer: false,
+		Endpoints: []*models.ServiceEndpointDefinitionInput{
+			{
+				Name:            "endpoint type1",
+				Role:            pointer.ToString("CONSUMER"),
+				EquipmentTypeID: eqt.ID,
+			},
+		}})
 
 	s1, err := mr.AddService(ctx, models.ServiceCreateData{
 		Name:          "Internet Access Room 2a",
@@ -704,10 +794,14 @@ func TestServicesOfEquipment(t *testing.T) {
 		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
+
+	ept := st.QueryEndpointDefinitions().OnlyX(ctx)
+
 	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
-		ID:     s1.ID,
-		PortID: ep1.ID,
-		Role:   models.ServiceEndpointRoleConsumer,
+		ID:          s1.ID,
+		EquipmentID: eq1.ID,
+		PortID:      pointer.ToInt(ep1.ID),
+		Definition:  ept.ID,
 	})
 	require.NoError(t, err)
 
@@ -722,9 +816,10 @@ func TestServicesOfEquipment(t *testing.T) {
 	_, err = mr.AddServiceLink(ctx, s2.ID, l2.ID)
 	require.NoError(t, err)
 	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
-		ID:     s2.ID,
-		PortID: ep1.ID,
-		Role:   models.ServiceEndpointRoleConsumer,
+		ID:          s2.ID,
+		EquipmentID: eq1.ID,
+		PortID:      pointer.ToInt(ep1.ID),
+		Definition:  ept.ID,
 	})
 	require.NoError(t, err)
 
@@ -740,8 +835,8 @@ func TestServicesOfEquipment(t *testing.T) {
 
 func TestAddServiceWithServiceProperty(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr := r.Mutation()
 	serviceType, err := mr.AddServiceType(ctx, models.ServiceTypeCreateData{
@@ -758,7 +853,7 @@ func TestAddServiceWithServiceProperty(t *testing.T) {
 	index := 0
 	servicePropType := models.PropertyTypeInput{
 		Name:  "service_prop",
-		Type:  "service",
+		Type:  "node",
 		Index: &index,
 	}
 
@@ -773,7 +868,7 @@ func TestAddServiceWithServiceProperty(t *testing.T) {
 	propType := serviceTypeWithServiceProp.QueryPropertyTypes().OnlyX(ctx)
 	servicePropInput := models.PropertyInput{
 		PropertyTypeID: propType.ID,
-		ServiceIDValue: &service1.ID,
+		NodeIDValue:    &service1.ID,
 	}
 
 	service2, err := mr.AddService(ctx, models.ServiceCreateData{
@@ -788,4 +883,114 @@ func TestAddServiceWithServiceProperty(t *testing.T) {
 	serviceValue := serviceProp.QueryServiceValue().OnlyX(ctx)
 
 	require.Equal(t, "service_1", serviceValue.Name)
+}
+
+func TestAddServiceEndpointType(t *testing.T) {
+	r := newTestResolver(t)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
+	mr := r.Mutation()
+
+	locType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{
+		Name: "loc_type_name",
+	})
+	require.NoError(t, err)
+
+	location, err := mr.AddLocation(ctx, models.AddLocationInput{
+		Name: "loc_inst_name",
+		Type: locType.ID,
+	})
+	require.NoError(t, err)
+
+	eqType1, err := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
+		Name: "eq_type_name",
+		Ports: []*models.EquipmentPortInput{
+			{Name: "typ1_p1"},
+		},
+	})
+	require.NoError(t, err)
+	defs1 := eqType1.QueryPortDefinitions().AllX(ctx)
+
+	eqType2, err := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
+		Name: "eq_type_name2",
+		Ports: []*models.EquipmentPortInput{
+			{Name: "typ1_p1"},
+		},
+	})
+	require.NoError(t, err)
+	defs2 := eqType2.QueryPortDefinitions().AllX(ctx)
+
+	eq1, err := mr.AddEquipment(ctx, models.AddEquipmentInput{
+		Name:     "eq_inst_name_1",
+		Type:     eqType1.ID,
+		Location: &location.ID,
+	})
+	require.NoError(t, err)
+
+	ep1 := eq1.QueryPorts().Where(equipmentport.HasDefinitionWith(equipmentportdefinition.ID(defs1[0].ID))).OnlyX(ctx)
+
+	eq2, err := mr.AddEquipment(ctx, models.AddEquipmentInput{
+		Name:     "eq_inst_name_2",
+		Type:     eqType2.ID,
+		Location: &location.ID,
+	})
+	require.NoError(t, err)
+
+	ep2 := eq2.QueryPorts().Where(equipmentport.HasDefinitionWith(equipmentportdefinition.ID(defs2[0].ID))).OnlyX(ctx)
+
+	serviceType1, err := mr.AddServiceType(ctx, models.ServiceTypeCreateData{
+		Name: "service_type_name",
+		Endpoints: []*models.ServiceEndpointDefinitionInput{
+			{
+				Name:            "endpoint type1",
+				Role:            pointer.ToString("CONSUMER"),
+				EquipmentTypeID: eqType1.ID,
+			},
+		},
+	})
+	require.NoError(t, err)
+	require.Equal(t, "service_type_name", serviceType1.Name)
+
+	ept1 := serviceType1.QueryEndpointDefinitions().OnlyX(ctx)
+
+	service1, err := mr.AddService(ctx, models.ServiceCreateData{
+		Name:          "Kent building, room 201",
+		ServiceTypeID: serviceType1.ID,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
+	})
+	require.NoError(t, err)
+	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
+		ID:          service1.ID,
+		EquipmentID: eq1.ID,
+		PortID:      pointer.ToInt(ep1.ID),
+		Definition:  ept1.ID,
+	})
+	require.NoError(t, err)
+
+	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
+		ID:          service1.ID,
+		EquipmentID: eq2.ID,
+		PortID:      pointer.ToInt(ep2.ID),
+		Definition:  ept1.ID,
+	})
+	require.Error(t, err, "port equipment is of different type than service type")
+
+	serviceType2, err := mr.AddServiceType(ctx, models.ServiceTypeCreateData{
+		Name: "service_type_name2",
+	})
+	require.NoError(t, err)
+	service2, err := mr.AddService(ctx, models.ServiceCreateData{
+		Name:          "Kent2 building, room 401",
+		ServiceTypeID: serviceType2.ID,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
+	})
+	require.NoError(t, err)
+
+	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
+		ID:          service2.ID,
+		EquipmentID: eq2.ID,
+		PortID:      pointer.ToInt(ep1.ID),
+		Definition:  ept1.ID,
+	})
+	require.Error(t, err, "service is of different type than service endpoint type")
 }

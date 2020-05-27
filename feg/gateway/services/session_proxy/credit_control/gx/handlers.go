@@ -20,6 +20,7 @@ import (
 	"magma/feg/gateway/services/session_proxy/metrics"
 	"magma/feg/gateway/services/session_proxy/relay"
 	"magma/gateway/service_registry"
+	"magma/lte/cloud/go/protos"
 )
 
 // ccaHandler parses a CCADiameterMessage received over Gx and returns the
@@ -57,7 +58,7 @@ type PolicyReAuthHandler func(request *PolicyReAuthRequest) *PolicyReAuthAnswer
 func GetGxReAuthHandler(cloudRegistry service_registry.GatewayRegistry, policyDBClient policydb.PolicyDBClient) PolicyReAuthHandler {
 	return func(request *PolicyReAuthRequest) *PolicyReAuthAnswer {
 		sid := diameter.DecodeSessionID(request.SessionID)
-		imsi, err := relay.GetIMSIFromSessionID(sid)
+		imsi, err := protos.GetIMSIwithPrefixFromSessionId(sid)
 		if err != nil {
 			glog.Errorf("Error retrieving IMSI from session ID %s: %s", request.SessionID, err)
 			return &PolicyReAuthAnswer{

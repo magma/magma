@@ -35,11 +35,12 @@ enum UserRole
   OWNER
 }
 
-type User implements Node {
+type User implements Node & NamedNode {
   id: ID!
   authID: String!
   firstName: String!
   lastName: String!
+  name: String!
   email: String!
   status: UserStatus!
   role: UserRole!
@@ -61,26 +62,194 @@ type UsersGroup implements Node {
   description: String
   status: UsersGroupStatus!
   members: [User!]!
-}
-
-type AdministrativePolicy {
-  canRead: Boolean!
+  policies: [PermissionsPolicy!]!
 }
 
 type PermissionSettings {
   canWrite: Boolean!
   adminPolicy: AdministrativePolicy!
+  inventoryPolicy: InventoryPolicy!
+  workforcePolicy: WorkforcePolicy!
+}
+
+enum PermissionValue
+  @goModel(
+    model: "github.com/facebookincubator/symphony/graph/authz/models.PermissionValue"
+  ) {
+  YES
+  NO
+  BY_CONDITION
+}
+
+type BasicPermissionRule {
+  isAllowed: PermissionValue!
+}
+
+type LocationPermissionRule {
+  isAllowed: PermissionValue!
+  locationTypeIds: [ID!]
+}
+
+type WorkforcePermissionRule {
+  isAllowed: PermissionValue!
+  projectTypeIds: [ID!]
+  workOrderTypeIds: [ID!]
+}
+
+input BasicPermissionRuleInput
+  @goModel(
+    model: "github.com/facebookincubator/symphony/graph/authz/models.BasicPermissionRuleInput"
+  ) {
+  isAllowed: PermissionValue!
+}
+
+input LocationPermissionRuleInput
+  @goModel(
+    model: "github.com/facebookincubator/symphony/graph/authz/models.LocationPermissionRuleInput"
+  ) {
+  isAllowed: PermissionValue!
+  locationTypeIds: [ID!]
+}
+
+input WorkforcePermissionRuleInput
+  @goModel(
+    model: "github.com/facebookincubator/symphony/graph/authz/models.WorkforcePermissionRuleInput"
+  ) {
+  isAllowed: PermissionValue!
+  projectTypeIds: [ID!]
+  workOrderTypeIds: [ID!]
+}
+
+type CUD {
+  create: BasicPermissionRule!
+  update: BasicPermissionRule!
+  delete: BasicPermissionRule!
+}
+
+type LocationCUD {
+  create: LocationPermissionRule!
+  update: LocationPermissionRule!
+  delete: LocationPermissionRule!
+}
+
+input BasicCUDInput
+  @goModel(
+    model: "github.com/facebookincubator/symphony/graph/authz/models.BasicCUDInput"
+  ) {
+  create: BasicPermissionRuleInput
+  update: BasicPermissionRuleInput
+  delete: BasicPermissionRuleInput
+}
+
+input LocationCUDInput
+  @goModel(
+    model: "github.com/facebookincubator/symphony/graph/authz/models.LocationCUDInput"
+  ) {
+  create: LocationPermissionRuleInput
+  update: LocationPermissionRuleInput
+  delete: LocationPermissionRuleInput
+}
+
+type AdministrativePolicy {
+  access: BasicPermissionRule!
+}
+
+type InventoryPolicy {
+  read: BasicPermissionRule!
+  location: LocationCUD!
+  equipment: CUD!
+  equipmentType: CUD!
+  locationType: CUD!
+  portType: CUD!
+  serviceType: CUD!
+}
+
+input InventoryPolicyInput
+  @goModel(
+    model: "github.com/facebookincubator/symphony/graph/authz/models.InventoryPolicyInput"
+  ) {
+  read: BasicPermissionRuleInput
+  location: LocationCUDInput
+  equipment: BasicCUDInput
+  equipmentType: BasicCUDInput
+  locationType: BasicCUDInput
+  portType: BasicCUDInput
+  serviceType: BasicCUDInput
+}
+
+type WorkforceCUD {
+  create: WorkforcePermissionRule!
+  update: WorkforcePermissionRule!
+  delete: WorkforcePermissionRule!
+  assign: WorkforcePermissionRule!
+  transferOwnership: WorkforcePermissionRule!
+}
+
+input WorkforceCUDInput
+  @goModel(
+    model: "github.com/facebookincubator/symphony/graph/authz/models.WorkforceCUDInput"
+  ) {
+  create: WorkforcePermissionRuleInput
+  update: WorkforcePermissionRuleInput
+  delete: WorkforcePermissionRuleInput
+  assign: WorkforcePermissionRuleInput
+  transferOwnership: WorkforcePermissionRuleInput
+}
+
+type WorkforcePolicy {
+  read: WorkforcePermissionRule!
+  data: WorkforceCUD!
+  templates: CUD!
+}
+
+input WorkforcePolicyInput
+  @goModel(
+    model: "github.com/facebookincubator/symphony/graph/authz/models.WorkforcePolicyInput"
+  ) {
+  read: WorkforcePermissionRuleInput
+  data: WorkforceCUDInput
+  templates: BasicCUDInput
+}
+
+union SystemPolicy = InventoryPolicy | WorkforcePolicy
+
+type PermissionsPolicy implements Node {
+  id: ID!
+  name: String!
+  description: String
+  isGlobal: Boolean!
+  policy: SystemPolicy!
+  groups: [UsersGroup!]!
+}
+
+input AddPermissionsPolicyInput {
+  name: String!
+  description: String
+  isGlobal: Boolean
+  inventoryInput: InventoryPolicyInput
+  workforceInput: WorkforcePolicyInput
+  groups: [ID!]
+}
+
+input EditPermissionsPolicyInput {
+  id: ID!
+  name: String
+  description: String
+  isGlobal: Boolean
+  inventoryInput: InventoryPolicyInput
+  workforceInput: WorkforcePolicyInput
+  groups: [ID!]
 }
 
 type Viewer
   @goModel(model: "github.com/facebookincubator/symphony/graph/viewer.Viewer") {
   tenant: String!
   email: String!
-    @goField(name: "user")
+    @goField(name: "Name")
     @deprecated(
       reason: "Use `Viewer.user.email` instead. Will be removed on 2020-05-01"
     )
-  user: User!
+  user: User
   permissions: PermissionSettings!
 }
 
@@ -93,6 +262,17 @@ interface Node
   The id of the object.
   """
   id: ID!
+}
+
+interface NamedNode {
+  """
+  The id of the object.
+  """
+  id: ID!
+  """
+  The name of the object.
+  """
+  name: String!
 }
 
 type Field {
@@ -115,21 +295,8 @@ type Vertex
   edges: [Edge!]!
 }
 
-"""
-Represents a technician
-"""
-type Technician {
-  name: String!
-  email: String!
-}
-
-input TechnicianInput {
-  name: String!
-  email: String!
-}
-
 # location or site: e.g. building at specific address.
-type Location implements Node {
+type Location implements Node & NamedNode {
   id: ID!
   externalId: String
   name: String!
@@ -162,9 +329,17 @@ input EditUserInput {
   role: UserRole
 }
 
+input UpdateUserGroupsInput {
+  id: ID!
+  addGroupIds: [ID!]!
+  removeGroupIds: [ID!]!
+}
+
 input AddUsersGroupInput {
   name: String!
   description: String
+  members: [ID!]
+  policies: [ID!]
 }
 
 input EditUsersGroupInput {
@@ -172,6 +347,8 @@ input EditUsersGroupInput {
   name: String
   description: String
   status: UsersGroupStatus
+  members: [ID!]
+  policies: [ID!]
 }
 
 input AddLocationInput {
@@ -306,7 +483,7 @@ input CommentInput {
 }
 
 # specific equipment instance: e.g. Wifi Access Point X at Location Y.
-type Equipment implements Node {
+type Equipment implements Node & NamedNode {
   id: ID!
   externalId: String
   name: String!
@@ -320,6 +497,7 @@ type Equipment implements Node {
   futureState: FutureState
   workOrder: WorkOrder
   locationHierarchy: [Location!]!
+  firstLocation: Location!
   positionHierarchy: [EquipmentPosition!]!
   device: Device
   services: [Service]!
@@ -424,9 +602,7 @@ input AddWorkOrderTypeInput {
   description: String
   properties: [PropertyTypeInput]
     @uniqueField(typ: "property type", field: "Name")
-  checkList: [CheckListDefinitionInput]
-    @uniqueField(typ: "check list definition", field: "Name")
-  checkListCategories: [CheckListCategoryInput!]
+  checkListCategories: [CheckListCategoryDefinitionInput!]
 }
 
 input EditWorkOrderTypeInput {
@@ -435,9 +611,7 @@ input EditWorkOrderTypeInput {
   description: String
   properties: [PropertyTypeInput]
     @uniqueField(typ: "property type", field: "Name")
-  checkList: [CheckListDefinitionInput]
-    @uniqueField(typ: "check list definition", field: "Name")
-  checkListCategories: [CheckListCategoryInput!]
+  checkListCategories: [CheckListCategoryDefinitionInput!]
 }
 
 input AddWorkOrderInput {
@@ -503,6 +677,9 @@ input TechnicianCheckListItemInput {
   stringValue: String
   checked: Boolean
   yesNoResponse: YesNoResponse
+  wifiData: [SurveyWiFiScanData!]
+  cellData: [SurveyCellScanData!]
+  filesData: [FileInput!]
 }
 
 input TechnicianWorkOrderUploadInput {
@@ -683,6 +860,34 @@ type EquipmentPortDefinitionEdge {
 }
 
 """
+A connection to a list of equipment ports.
+"""
+type EquipmentPortConnection {
+  """
+  A list of equipment port edges.
+  """
+  edges: [EquipmentPortEdge!]!
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+}
+
+"""
+An equipment port edge in a connection.
+"""
+type EquipmentPortEdge {
+  """
+  The equipment port at the end of the edge.
+  """
+  node: EquipmentPort
+  """
+  A cursor for use in pagination.
+  """
+  cursor: Cursor!
+}
+
+"""
 A connection to a list of equipment types.
 """
 type EquipmentTypeConnection {
@@ -704,6 +909,34 @@ type EquipmentTypeEdge {
   The equipment type at the end of the edge.
   """
   node: EquipmentType
+  """
+  A cursor for use in pagination.
+  """
+  cursor: Cursor!
+}
+
+"""
+A connection to a list of equipments.
+"""
+type EquipmentConnection {
+  """
+  A list of equipment edges.
+  """
+  edges: [EquipmentEdge!]!
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+}
+
+"""
+An equipment edge in a connection.
+"""
+type EquipmentEdge {
+  """
+  The equipment at the end of the edge.
+  """
+  node: Equipment
   """
   A cursor for use in pagination.
   """
@@ -760,6 +993,34 @@ type LocationEdge {
   The location at the end of the edge.
   """
   node: Location
+  """
+  A cursor for use in pagination.
+  """
+  cursor: Cursor!
+}
+
+"""
+A connection to a list of links.
+"""
+type LinkConnection {
+  """
+  A list of link edges.
+  """
+  edges: [LinkEdge!]!
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+}
+
+"""
+A link edge in a connection.
+"""
+type LinkEdge {
+  """
+  The link at the end of the edge.
+  """
+  node: Link
   """
   A cursor for use in pagination.
   """
@@ -838,16 +1099,16 @@ enum PropertyKind {
   range
   email
   gps_location
-  equipment
-  location
-  service
   datetime_local
+  node
 }
 
 type PropertyType implements Node {
   id: ID!
+  externalId: String
   name: String!
   type: PropertyKind!
+  nodeType: String
   index: Int
   category: String
   stringValue: String
@@ -866,8 +1127,10 @@ type PropertyType implements Node {
 
 input PropertyTypeInput {
   id: ID
+  externalId: String
   name: String!
   type: PropertyKind!
+  nodeType: String
   index: Int
   category: String
   stringValue: String
@@ -895,9 +1158,7 @@ type Property implements Node {
   longitudeValue: Float
   rangeFromValue: Float
   rangeToValue: Float
-  equipmentValue: Equipment
-  locationValue: Location
-  serviceValue: Service
+  nodeValue: NamedNode
 }
 
 input PropertyInput {
@@ -911,9 +1172,7 @@ input PropertyInput {
   longitudeValue: Float
   rangeFromValue: Float
   rangeToValue: Float
-  equipmentIDValue: ID
-  locationIDValue: ID
-  serviceIDValue: ID
+  nodeIDValue: ID
   isEditable: Boolean
   isInstanceProperty: Boolean
 }
@@ -1028,11 +1287,23 @@ enum CheckListItemType {
   enum
   files
   yes_no
+  cell_scan
+  wifi_scan
 }
 
-enum CheckListItemEnumSelectionMode {
+enum CheckListItemEnumSelectionMode
+  @goModel(
+    model: "github.com/facebookincubator/symphony/graph/ent/checklistitem.EnumSelectionModeValue"
+  ) {
   single
   multiple
+}
+
+type CheckListCategoryDefinition {
+  id: ID!
+  title: String!
+  description: String
+  checklistItemDefinitions: [CheckListItemDefinition!]!
 }
 
 type CheckListItemDefinition {
@@ -1041,6 +1312,7 @@ type CheckListItemDefinition {
   type: CheckListItemType!
   index: Int
   enumValues: String
+  enumSelectionMode: CheckListItemEnumSelectionMode
   helpText: String
 }
 
@@ -1050,7 +1322,15 @@ input CheckListDefinitionInput {
   type: CheckListItemType!
   index: Int
   enumValues: String
+  enumSelectionMode: CheckListItemEnumSelectionMode
   helpText: String
+}
+
+input CheckListCategoryDefinitionInput {
+  id: ID
+  title: String!
+  description: String
+  checkList: [CheckListDefinitionInput!]!
 }
 
 type CheckListCategory implements Node {
@@ -1071,8 +1351,10 @@ type CheckListItem implements Node {
   selectedEnumValues: String
   stringValue: String
   checked: Boolean
-  files: [File!]!
+  files: [File!]
   yesNoResponse: YesNoResponse
+  wifiData: [SurveyWiFiScan!]
+  cellData: [SurveyCellScan!]
 }
 
 input CheckListCategoryInput {
@@ -1155,14 +1437,13 @@ type WorkOrderType implements Node {
   description: String
   propertyTypes: [PropertyType]!
   numberOfWorkOrders: Int!
-  checkListDefinitions: [CheckListItemDefinition]!
-  checkListCategories: [CheckListCategory!]!
+  checkListCategoryDefinitions: [CheckListCategoryDefinition!]!
 }
 
 """
 Work Order instance - capturing information about a change in the network
 """
-type WorkOrder implements Node {
+type WorkOrder implements Node & NamedNode {
   id: ID!
   workOrderType: WorkOrderType!
   name: String!
@@ -1192,7 +1473,6 @@ type WorkOrder implements Node {
   location: Location
   properties: [Property]!
   project: Project
-  checkList: [CheckListItem]!
   checkListCategories: [CheckListCategory!]!
   hyperlinks: [Hyperlink!]!
   closeDate: Time
@@ -1206,6 +1486,20 @@ type UserConnection {
   A list of user type edges.
   """
   edges: [UserEdge!]!
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+}
+
+"""
+A connection to a list of permissions policies.
+"""
+type PermissionsPolicyConnection {
+  """
+  A list of permissions policies type edges.
+  """
+  edges: [PermissionsPolicyEdge!]!
   """
   Information to aid in pagination.
   """
@@ -1234,6 +1528,20 @@ type UserEdge {
   The user type at the end of the edge.
   """
   node: User
+  """
+  A cursor for use in pagination.
+  """
+  cursor: Cursor!
+}
+
+"""
+A permission policy type edge in a connection.
+"""
+type PermissionsPolicyEdge {
+  """
+  The permission policy type at the end of the edge.
+  """
+  node: PermissionsPolicy
   """
   A cursor for use in pagination.
   """
@@ -1389,6 +1697,34 @@ type ProjectTypeEdge {
   cursor: Cursor!
 }
 
+"""
+A connection to a list of projects.
+"""
+type ProjectConnection {
+  """
+  A list of project edges.
+  """
+  edges: [ProjectEdge!]!
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+}
+
+"""
+A project edge in a connection.
+"""
+type ProjectEdge {
+  """
+  The project at the end of the edge.
+  """
+  node: Project
+  """
+  A cursor for use in pagination.
+  """
+  cursor: Cursor!
+}
+
 type Project implements Node {
   id: ID!
   name: String! @length(min: 1)
@@ -1500,6 +1836,16 @@ type WorkOrderSearchResult {
   count: Int!
 }
 
+type PermissionsPolicySearchResult {
+  permissionsPolicies: [PermissionsPolicy]!
+  count: Int!
+}
+
+type UsersGroupSearchResult {
+  usersGroups: [UsersGroup]!
+  count: Int!
+}
+
 """
 what filters should we apply on ports
 """
@@ -1529,6 +1875,8 @@ what filters should we apply on locations
 """
 enum LocationFilterType {
   LOCATION_INST
+  LOCATION_INST_NAME
+  LOCATION_INST_EXTERNAL_ID
   LOCATION_TYPE
   LOCATION_INST_HAS_EQUIPMENT
   PROPERTY
@@ -1540,6 +1888,7 @@ what filters should we apply on services
 enum ServiceFilterType {
   SERVICE_INST_NAME
   SERVICE_STATUS
+  SERVICE_DISCOVERY_METHOD
   SERVICE_TYPE
   SERVICE_INST_EXTERNAL_ID
   SERVICE_INST_CUSTOMER_NAME
@@ -1553,6 +1902,21 @@ what filters should we apply on users
 """
 enum UserFilterType {
   USER_NAME
+  USER_STATUS
+}
+
+"""
+what filters should we apply on permissionsPolicy
+"""
+enum PermissionsPolicyFilterType {
+  PERMISSIONS_POLICY_NAME
+}
+
+"""
+what filters should we apply on usersGroups
+"""
+enum UsersGroupFilterType {
+  GROUP_NAME
 }
 
 input PortFilterInput {
@@ -1602,8 +1966,23 @@ input UserFilterInput {
   operator: FilterOperator!
   stringValue: String
   propertyValue: PropertyTypeInput
+  statusValue: UserStatus
   idSet: [ID!]
   stringSet: [String!]
+  maxDepth: Int = 5
+}
+
+input PermissionsPolicyFilterInput {
+  filterType: PermissionsPolicyFilterType!
+  operator: FilterOperator!
+  stringValue: String
+  maxDepth: Int = 5
+}
+
+input UsersGroupFilterInput {
+  filterType: UsersGroupFilterType!
+  operator: FilterOperator!
+  stringValue: String
   maxDepth: Int = 5
 }
 
@@ -1685,22 +2064,18 @@ type Customer implements Node {
   externalId: String
 }
 
-enum ServiceEndpointRole {
-  CONSUMER
-  PROVIDER
-}
-
 type ServiceEndpoint implements Node {
   id: ID!
-  port: EquipmentPort!
-  role: ServiceEndpointRole!
+  port: EquipmentPort
+  equipment: Equipment!
   service: Service!
+  definition: ServiceEndpointDefinition!
 }
 
 """
 Modeling a specific service: e.g. a L2 VPN instance.
 """
-type Service implements Node {
+type Service implements Node & NamedNode {
   id: ID!
   name: String!
   externalId: String
@@ -1715,16 +2090,29 @@ type Service implements Node {
   topology: NetworkTopology!
 }
 
+type ServiceEndpointDefinition implements Node {
+  id: ID!
+  index: Int!
+  role: String
+  name: String!
+  endpoints: [ServiceEndpoint]!
+  equipmentType: EquipmentType!
+  serviceType: ServiceType!
+}
+
 """
 Service type schema: e.g. L2 VPN.
 """
 type ServiceType implements Node {
   id: ID!
   name: String!
+  isDeleted: Boolean!
   hasCustomer: Boolean!
   propertyTypes: [PropertyType]!
   services: [Service]!
   numberOfServices: Int!
+  endpointDefinitions: [ServiceEndpointDefinition!]!
+  discoveryMethod: DiscoveryMethod!
 }
 
 directive @uniqueField(
@@ -1737,11 +2125,18 @@ input LocationTypeIndex {
   index: Int!
 }
 
+enum DiscoveryMethod {
+  MANUAL
+  INVENTORY
+}
+
 input ServiceTypeCreateData {
   name: String!
   hasCustomer: Boolean!
   properties: [PropertyTypeInput]
     @uniqueField(typ: "property type", field: "Name")
+  endpoints: [ServiceEndpointDefinitionInput]
+  discoveryMethod: DiscoveryMethod
 }
 
 input ServiceTypeEditData {
@@ -1750,6 +2145,7 @@ input ServiceTypeEditData {
   hasCustomer: Boolean!
   properties: [PropertyTypeInput]
     @uniqueField(typ: "property type", field: "Name")
+  endpoints: [ServiceEndpointDefinitionInput]
 }
 
 input ServiceCreateData {
@@ -1774,8 +2170,17 @@ input ServiceEditData {
 
 input AddServiceEndpointInput {
   id: ID!
-  portId: ID!
-  role: ServiceEndpointRole!
+  portId: ID
+  equipmentID: ID!
+  definition: ID!
+}
+
+input ServiceEndpointDefinitionInput {
+  id: ID
+  name: String!
+  role: String
+  index: Int!
+  equipmentTypeID: ID!
 }
 
 input SurveyCreateData {
@@ -1906,6 +2311,7 @@ input SurveyQuestionResponse {
   photoData: FileInput
   wifiData: [SurveyWiFiScanData!]
   cellData: [SurveyCellScanData!]
+  imagesData: [FileInput!]
 }
 
 type SurveyQuestion implements Node {
@@ -1930,6 +2336,7 @@ type SurveyQuestion implements Node {
   photoData: File
   wifiData: [SurveyWiFiScan]
   cellData: [SurveyCellScan]
+  images: [File!]
 }
 
 enum SurveyQuestionType {
@@ -2190,10 +2597,6 @@ type Query {
     id: ID!
   ): Node
   user(authID: String!): User
-  location(id: ID!): Location
-    @deprecated(reason: "Use `node` instead. Will be removed on 2020-04-01")
-  locationType(id: ID!): LocationType
-    @deprecated(reason: "Use `node` instead. Will be removed on 2020-04-01")
   locationTypes(
     after: Cursor
     first: Int
@@ -2210,10 +2613,6 @@ type Query {
     before: Cursor
     last: Int
   ): LocationConnection
-  equipment(id: ID!): Equipment
-    @deprecated(reason: "Use `node` instead. Will be removed on 2020-04-01")
-  equipmentType(id: ID!): EquipmentType
-    @deprecated(reason: "Use `node` instead. Will be removed on 2020-04-01")
   equipmentPortTypes(
     after: Cursor
     first: Int
@@ -2226,24 +2625,30 @@ type Query {
     before: Cursor
     last: Int
   ): EquipmentPortDefinitionConnection!
+  equipmentPorts(
+    after: Cursor
+    first: Int
+    before: Cursor
+    last: Int
+  ): EquipmentPortConnection!
   equipmentTypes(
     after: Cursor
     first: Int
     before: Cursor
     last: Int
   ): EquipmentTypeConnection!
-  service(id: ID!): Service
-    @deprecated(reason: "Use `node` instead. Will be removed on 2020-04-01")
-  serviceType(id: ID!): ServiceType
-    @deprecated(reason: "Use `node` instead. Will be removed on 2020-04-01")
+  equipments(
+    after: Cursor
+    first: Int
+    before: Cursor
+    last: Int
+  ): EquipmentConnection!
   serviceTypes(
     after: Cursor
     first: Int
     before: Cursor
     last: Int
   ): ServiceTypeConnection
-  workOrder(id: ID!): WorkOrder
-    @deprecated(reason: "Use `node` instead. Will be removed on 2020-04-01")
   workOrders(
     after: Cursor
     first: Int
@@ -2257,6 +2662,7 @@ type Query {
     before: Cursor
     last: Int
   ): WorkOrderTypeConnection
+  links(after: Cursor, first: Int, before: Cursor, last: Int): LinkConnection!
   users(after: Cursor, first: Int, before: Cursor, last: Int): UserConnection
   usersGroups(
     after: Cursor
@@ -2264,6 +2670,12 @@ type Query {
     before: Cursor
     last: Int
   ): UsersGroupConnection
+  permissionsPolicies(
+    after: Cursor
+    first: Int
+    before: Cursor
+    last: Int
+  ): PermissionsPolicyConnection
   searchForEntity(
     name: String!
     after: Cursor
@@ -2308,23 +2720,36 @@ type Query {
     limit: Int = 500
   ): ServiceSearchResult!
   userSearch(filters: [UserFilterInput!]!, limit: Int = 500): UserSearchResult!
+  permissionsPolicySearch(
+    filters: [PermissionsPolicyFilterInput!]!
+    limit: Int = 500
+  ): PermissionsPolicySearchResult!
+  usersGroupSearch(
+    filters: [UsersGroupFilterInput!]!
+    limit: Int = 500
+  ): UsersGroupSearchResult!
   possibleProperties(entityType: PropertyEntity!): [PropertyType!]!
   surveys: [Survey!]!
   latestPythonPackage: LatestPythonPackageResult
+  pythonPackages: [PythonPackage!]!
   nearestSites(
     latitude: Float!
     longitude: Float!
     first: Int! = 10
   ): [Location!]!
   vertex(id: ID!): Vertex
-  projectType(id: ID!): ProjectType
-    @deprecated(reason: "Use `node` instead. Will be removed on 2020-04-01")
   projectTypes(
     after: Cursor
     first: Int
     before: Cursor
     last: Int
   ): ProjectTypeConnection
+  projects(
+    after: Cursor
+    first: Int
+    before: Cursor
+    last: Int
+  ): ProjectConnection
   customers(
     after: Cursor
     first: Int
@@ -2340,6 +2765,8 @@ type Mutation {
   editUser(input: EditUserInput!): User!
   addUsersGroup(input: AddUsersGroupInput!): UsersGroup!
   editUsersGroup(input: EditUsersGroupInput!): UsersGroup!
+  updateUserGroups(input: UpdateUserGroupsInput!): User!
+  deleteUsersGroup(id: ID!): Boolean!
   createSurvey(data: SurveyCreateData!): ID!
   addLocation(input: AddLocationInput!): Location!
   editLocation(input: EditLocationInput!): Location!
@@ -2377,6 +2804,7 @@ type Mutation {
   removeServiceEndpoint(serviceEndpointId: ID!): Service!
   addServiceType(
     """
+    AddServiceEndpointInput
     data to edit service type
     """
     data: ServiceTypeCreateData!
@@ -2489,7 +2917,6 @@ type Mutation {
     """
     locationTypesIndex: [LocationTypeIndex]!
   ): [LocationType]
-  addTechnician(input: TechnicianInput!): Technician!
   addWorkOrder(input: AddWorkOrderInput!): WorkOrder!
   editWorkOrder(input: EditWorkOrderInput!): WorkOrder!
   addWorkOrderType(input: AddWorkOrderTypeInput!): WorkOrderType!
@@ -2514,6 +2941,9 @@ type Mutation {
   addReportFilter(input: ReportFilterInput!): ReportFilter!
   editReportFilter(input: EditReportFilterInput!): ReportFilter!
   deleteReportFilter(id: ID!): Boolean!
+  addPermissionsPolicy(input: AddPermissionsPolicyInput!): PermissionsPolicy!
+  editPermissionsPolicy(input: EditPermissionsPolicyInput!): PermissionsPolicy!
+  deletePermissionsPolicy(id: ID!): Boolean!
 }
 
 type Subscription {

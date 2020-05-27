@@ -39,7 +39,6 @@ s1aptests/test_attach_detach_emm_status.py \
 s1aptests/test_attach_detach_enb_rlf_initial_ue_msg.py \
 s1aptests/test_attach_detach_ICS_Failure.py \
 s1aptests/test_attach_detach_ps_service_not_available.py \
-s1aptests/test_attach_emergency.py \
 s1aptests/test_attach_missing_imsi.py \
 s1aptests/test_duplicate_attach.py \
 s1aptests/test_enb_partial_reset_con_dereg.py \
@@ -80,8 +79,12 @@ s1aptests/test_attach_detach_secondary_pdn_with_dedicated_bearer_deactivate.py \
 s1aptests/test_attach_detach_disconnect_default_pdn.py \
 s1aptests/test_attach_detach_maxbearers_twopdns.py \
 s1aptests/test_attach_detach_multiple_secondary_pdn.py \
+s1aptests/test_attach_detach_nw_triggered_delete_secondary_pdn.py \
+s1aptests/test_attach_detach_nw_triggered_delete_last_pdn.py \
 s1aptests/test_attach_ul_udp_data.py \
-s1aptests/test_attach_ul_tcp_data.py
+s1aptests/test_attach_ul_tcp_data.py \
+s1aptests/test_attach_detach_rar_tcp_data.py \
+s1aptests/test_attach_detach_attach_ul_tcp_data.py
 #s1aptests/test_attach_ue_ctxt_release_cmp_delay.py \
 #s1aptests/test_attach_dl_udp_data.py \
 #s1aptests/test_attach_dl_tcp_data.py

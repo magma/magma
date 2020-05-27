@@ -78,6 +78,22 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	}, nil
 }
 
+// BeginTx returns a transactional client with options.
+func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) {
+	if _, ok := c.driver.(*txDriver); ok {
+		return nil, fmt.Errorf("ent: cannot start a transaction within a transaction")
+	}
+	tx, err := c.driver.(*sql.Driver).BeginTx(ctx, opts)
+	if err != nil {
+		return nil, fmt.Errorf("ent: starting a transaction: %v", err)
+	}
+	cfg := config{driver: &txDriver{tx: tx, drv: c.driver}, log: c.log, debug: c.debug, hooks: c.hooks}
+	return &Tx{
+		config: cfg,
+		Todo:   NewTodoClient(cfg),
+	}, nil
+}
+
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
@@ -136,13 +152,13 @@ func (c *TodoClient) Update() *TodoUpdate {
 
 // UpdateOne returns an update builder for the given entity.
 func (c *TodoClient) UpdateOne(t *Todo) *TodoUpdateOne {
-	return c.UpdateOneID(t.ID)
+	mutation := newTodoMutation(c.config, OpUpdateOne, withTodo(t))
+	return &TodoUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
 func (c *TodoClient) UpdateOneID(id int) *TodoUpdateOne {
-	mutation := newTodoMutation(c.config, OpUpdateOne)
-	mutation.id = &id
+	mutation := newTodoMutation(c.config, OpUpdateOne, withTodoID(id))
 	return &TodoUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 

@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash a323ea73d724af52e171808fb66ad0c5
+ * @relayHash 8844618d6e9b1747492a09cc58aeb87d
  */
 
 /* eslint-disable */
@@ -17,8 +17,8 @@
 import type { ConcreteRequest } from 'relay-runtime';
 type PowerSearchLocationsResultsTable_locations$ref = any;
 export type FilterOperator = "CONTAINS" | "DATE_GREATER_THAN" | "DATE_LESS_THAN" | "IS" | "IS_NOT_ONE_OF" | "IS_ONE_OF" | "%future added value";
-export type LocationFilterType = "LOCATION_INST" | "LOCATION_INST_HAS_EQUIPMENT" | "LOCATION_TYPE" | "PROPERTY" | "%future added value";
-export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
+export type LocationFilterType = "LOCATION_INST" | "LOCATION_INST_EXTERNAL_ID" | "LOCATION_INST_HAS_EQUIPMENT" | "LOCATION_INST_NAME" | "LOCATION_TYPE" | "PROPERTY" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "float" | "gps_location" | "int" | "node" | "range" | "string" | "%future added value";
 export type LocationFilterInput = {|
   filterType: LocationFilterType,
   operator: FilterOperator,
@@ -31,8 +31,10 @@ export type LocationFilterInput = {|
 |};
 export type PropertyTypeInput = {|
   id?: ?string,
+  externalId?: ?string,
   name: string,
   type: PropertyKind,
+  nodeType?: ?string,
   index?: ?number,
   category?: ?string,
   stringValue?: ?string,
@@ -110,15 +112,8 @@ fragment PowerSearchLocationsResultsTable_locations on Location {
     longitudeValue
     rangeFromValue
     rangeToValue
-    equipmentValue {
-      id
-      name
-    }
-    locationValue {
-      id
-      name
-    }
-    serviceValue {
+    nodeValue {
+      __typename
       id
       name
     }
@@ -126,6 +121,7 @@ fragment PowerSearchLocationsResultsTable_locations on Location {
       id
       name
       type
+      nodeType
       isEditable
       isInstanceProperty
       stringValue
@@ -252,11 +248,7 @@ v12 = {
   "name": "rangeToValue",
   "args": null,
   "storageKey": null
-},
-v13 = [
-  (v3/*: any*/),
-  (v4/*: any*/)
-];
+};
 return {
   "kind": "Request",
   "fragment": {
@@ -382,32 +374,22 @@ return {
                   {
                     "kind": "LinkedField",
                     "alias": null,
-                    "name": "equipmentValue",
+                    "name": "nodeValue",
                     "storageKey": null,
                     "args": null,
-                    "concreteType": "Equipment",
+                    "concreteType": null,
                     "plural": false,
-                    "selections": (v13/*: any*/)
-                  },
-                  {
-                    "kind": "LinkedField",
-                    "alias": null,
-                    "name": "locationValue",
-                    "storageKey": null,
-                    "args": null,
-                    "concreteType": "Location",
-                    "plural": false,
-                    "selections": (v13/*: any*/)
-                  },
-                  {
-                    "kind": "LinkedField",
-                    "alias": null,
-                    "name": "serviceValue",
-                    "storageKey": null,
-                    "args": null,
-                    "concreteType": "Service",
-                    "plural": false,
-                    "selections": (v13/*: any*/)
+                    "selections": [
+                      {
+                        "kind": "ScalarField",
+                        "alias": null,
+                        "name": "__typename",
+                        "args": null,
+                        "storageKey": null
+                      },
+                      (v3/*: any*/),
+                      (v4/*: any*/)
+                    ]
                   },
                   {
                     "kind": "LinkedField",
@@ -424,6 +406,13 @@ return {
                         "kind": "ScalarField",
                         "alias": null,
                         "name": "type",
+                        "args": null,
+                        "storageKey": null
+                      },
+                      {
+                        "kind": "ScalarField",
+                        "alias": null,
+                        "name": "nodeType",
                         "args": null,
                         "storageKey": null
                       },
@@ -490,7 +479,7 @@ return {
     "operationKind": "query",
     "name": "LocationViewQueryRendererSearchQuery",
     "id": null,
-    "text": "query LocationViewQueryRendererSearchQuery(\n  $limit: Int\n  $filters: [LocationFilterInput!]!\n) {\n  locationSearch(limit: $limit, filters: $filters) {\n    locations {\n      ...PowerSearchLocationsResultsTable_locations\n      id\n    }\n    count\n  }\n}\n\nfragment PowerSearchLocationsResultsTable_locations on Location {\n  id\n  name\n  externalId\n  locationType {\n    id\n    name\n    propertyTypes {\n      id\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n    }\n  }\n  properties {\n    id\n    stringValue\n    intValue\n    floatValue\n    booleanValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    equipmentValue {\n      id\n      name\n    }\n    locationValue {\n      id\n      name\n    }\n    serviceValue {\n      id\n      name\n    }\n    propertyType {\n      id\n      name\n      type\n      isEditable\n      isInstanceProperty\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n    }\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n}\n",
+    "text": "query LocationViewQueryRendererSearchQuery(\n  $limit: Int\n  $filters: [LocationFilterInput!]!\n) {\n  locationSearch(limit: $limit, filters: $filters) {\n    locations {\n      ...PowerSearchLocationsResultsTable_locations\n      id\n    }\n    count\n  }\n}\n\nfragment PowerSearchLocationsResultsTable_locations on Location {\n  id\n  name\n  externalId\n  locationType {\n    id\n    name\n    propertyTypes {\n      id\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n    }\n  }\n  properties {\n    id\n    stringValue\n    intValue\n    floatValue\n    booleanValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    nodeValue {\n      __typename\n      id\n      name\n    }\n    propertyType {\n      id\n      name\n      type\n      nodeType\n      isEditable\n      isInstanceProperty\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n    }\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n}\n",
     "metadata": {}
   }
 };

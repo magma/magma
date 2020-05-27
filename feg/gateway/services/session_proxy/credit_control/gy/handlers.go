@@ -25,7 +25,7 @@ import (
 func GetGyReAuthHandler(cloudRegistry service_registry.GatewayRegistry) ChargingReAuthHandler {
 	return ChargingReAuthHandler(func(request *ChargingReAuthRequest) *ChargingReAuthAnswer {
 		sid := diameter.DecodeSessionID(request.SessionID)
-		imsi, err := relay.GetIMSIFromSessionID(sid)
+		imsi, err := protos.GetIMSIwithPrefixFromSessionId(sid)
 		if err != nil {
 			glog.Errorf("Error retreiving IMSI from Session ID %s: %s", request.SessionID, err)
 			return &ChargingReAuthAnswer{
@@ -72,13 +72,13 @@ func getGyReAuthAnswerDiamMsg(
 	protoAns *protos.ChargingReAuthAnswer,
 ) *ChargingReAuthAnswer {
 	var resultCode uint32
-	if protoAns.Result == protos.ChargingReAuthAnswer_UPDATE_INITIATED {
+	if protoAns.Result == protos.ReAuthResult_UPDATE_INITIATED {
 		resultCode = diam.LimitedSuccess
-	} else if protoAns.Result == protos.ChargingReAuthAnswer_UPDATE_NOT_NEEDED {
+	} else if protoAns.Result == protos.ReAuthResult_UPDATE_NOT_NEEDED {
 		resultCode = diam.Success
-	} else if protoAns.Result == protos.ChargingReAuthAnswer_SESSION_NOT_FOUND {
+	} else if protoAns.Result == protos.ReAuthResult_SESSION_NOT_FOUND {
 		resultCode = diam.UnknownSessionID
-	} else {
+	} else { // ReAuthResult_OTHER_FAILURE
 		resultCode = diam.UnableToComply
 	}
 	return &ChargingReAuthAnswer{

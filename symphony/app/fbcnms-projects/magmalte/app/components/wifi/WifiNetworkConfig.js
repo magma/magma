@@ -19,7 +19,7 @@ import React from 'react';
 import TextField from '@material-ui/core/TextField';
 
 import nullthrows from '@fbcnms/util/nullthrows';
-import useMagmaAPI from '../../common/useMagmaAPI';
+import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 import {
   additionalPropsToArray,
   additionalPropsToObject,

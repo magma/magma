@@ -58,8 +58,10 @@ const LocationMapSnippet = (props: Props) => {
   const hasGeoLocation =
     location.latitude !== null &&
     location.longitude !== null &&
-    (location.latitude >= -90 && location.latitude <= 90) &&
-    (location.longitude >= -180 && location.longitude <= 180) &&
+    location.latitude >= -90 &&
+    location.latitude <= 90 &&
+    location.longitude >= -180 &&
+    location.longitude <= 180 &&
     (location.latitude !== 0 || location.longitude !== 0);
 
   if (!hasGeoLocation) {

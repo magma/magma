@@ -14,7 +14,7 @@
 
 /*::
 import type { ReaderFragment } from 'relay-runtime';
-export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "float" | "gps_location" | "int" | "node" | "range" | "string" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type EquipmentPortsTable_portDefinition$ref: FragmentReference;
 declare export opaque type EquipmentPortsTable_portDefinition$fragmentType: EquipmentPortsTable_portDefinition$ref;
@@ -30,6 +30,7 @@ export type EquipmentPortsTable_portDefinition = {|
       +id: string,
       +name: string,
       +type: PropertyKind,
+      +nodeType: ?string,
       +index: ?number,
       +stringValue: ?string,
       +intValue: ?number,
@@ -42,11 +43,14 @@ export type EquipmentPortsTable_portDefinition = {|
       +isEditable: ?boolean,
       +isInstanceProperty: ?boolean,
       +isMandatory: ?boolean,
+      +category: ?string,
+      +isDeleted: ?boolean,
     |}>,
     +linkPropertyTypes: $ReadOnlyArray<?{|
       +id: string,
       +name: string,
       +type: PropertyKind,
+      +nodeType: ?string,
       +index: ?number,
       +stringValue: ?string,
       +intValue: ?number,
@@ -59,6 +63,8 @@ export type EquipmentPortsTable_portDefinition = {|
       +isEditable: ?boolean,
       +isInstanceProperty: ?boolean,
       +isMandatory: ?boolean,
+      +category: ?string,
+      +isDeleted: ?boolean,
     |}>,
   |},
   +$refType: EquipmentPortsTable_portDefinition$ref,
@@ -101,6 +107,13 @@ v3 = [
     "kind": "ScalarField",
     "alias": null,
     "name": "type",
+    "args": null,
+    "storageKey": null
+  },
+  {
+    "kind": "ScalarField",
+    "alias": null,
+    "name": "nodeType",
     "args": null,
     "storageKey": null
   },
@@ -179,6 +192,20 @@ v3 = [
     "kind": "ScalarField",
     "alias": null,
     "name": "isMandatory",
+    "args": null,
+    "storageKey": null
+  },
+  {
+    "kind": "ScalarField",
+    "alias": null,
+    "name": "category",
+    "args": null,
+    "storageKey": null
+  },
+  {
+    "kind": "ScalarField",
+    "alias": null,
+    "name": "isDeleted",
     "args": null,
     "storageKey": null
   }

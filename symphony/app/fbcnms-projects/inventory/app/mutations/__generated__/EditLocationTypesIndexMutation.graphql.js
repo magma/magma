@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 2b296509b2c7577d7787da32411123e2
+ * @relayHash acfb43662c3361d084edb8a2c35fc503
  */
 
 /* eslint-disable */
@@ -63,6 +63,7 @@ fragment AddEditLocationTypeCard_editingLocationType on LocationType {
     id
     name
     type
+    nodeType
     index
     stringValue
     intValue
@@ -111,6 +112,7 @@ fragment PropertyTypeFormField_propertyType on PropertyType {
   id
   name
   type
+  nodeType
   index
   stringValue
   intValue
@@ -123,6 +125,8 @@ fragment PropertyTypeFormField_propertyType on PropertyType {
   isEditable
   isInstanceProperty
   isMandatory
+  category
+  isDeleted
 }
 */
 
@@ -233,6 +237,13 @@ return {
                 "args": null,
                 "storageKey": null
               },
+              {
+                "kind": "ScalarField",
+                "alias": null,
+                "name": "nodeType",
+                "args": null,
+                "storageKey": null
+              },
               (v4/*: any*/),
               {
                 "kind": "ScalarField",
@@ -308,6 +319,20 @@ return {
                 "kind": "ScalarField",
                 "alias": null,
                 "name": "isMandatory",
+                "args": null,
+                "storageKey": null
+              },
+              {
+                "kind": "ScalarField",
+                "alias": null,
+                "name": "category",
+                "args": null,
+                "storageKey": null
+              },
+              {
+                "kind": "ScalarField",
+                "alias": null,
+                "name": "isDeleted",
                 "args": null,
                 "storageKey": null
               }
@@ -409,7 +434,7 @@ return {
     "operationKind": "mutation",
     "name": "EditLocationTypesIndexMutation",
     "id": null,
-    "text": "mutation EditLocationTypesIndexMutation(\n  $locationTypeIndex: [LocationTypeIndex]!\n) {\n  editLocationTypesIndex(locationTypesIndex: $locationTypeIndex) {\n    id\n    name\n    index\n    ...LocationTypeItem_locationType\n    ...AddEditLocationTypeCard_editingLocationType\n  }\n}\n\nfragment AddEditLocationTypeCard_editingLocationType on LocationType {\n  id\n  name\n  mapType\n  mapZoomLevel\n  numberOfLocations\n  isSite\n  propertyTypes {\n    id\n    name\n    type\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    isEditable\n    isMandatory\n    isInstanceProperty\n  }\n  surveyTemplateCategories {\n    id\n    categoryTitle\n    categoryDescription\n    surveyTemplateQuestions {\n      id\n      questionTitle\n      questionDescription\n      questionType\n      index\n    }\n  }\n}\n\nfragment DynamicPropertyTypesGrid_propertyTypes on PropertyType {\n  ...PropertyTypeFormField_propertyType\n  id\n  index\n}\n\nfragment LocationTypeItem_locationType on LocationType {\n  id\n  name\n  index\n  propertyTypes {\n    ...DynamicPropertyTypesGrid_propertyTypes\n    id\n  }\n  numberOfLocations\n}\n\nfragment PropertyTypeFormField_propertyType on PropertyType {\n  id\n  name\n  type\n  index\n  stringValue\n  intValue\n  booleanValue\n  floatValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  isEditable\n  isInstanceProperty\n  isMandatory\n}\n",
+    "text": "mutation EditLocationTypesIndexMutation(\n  $locationTypeIndex: [LocationTypeIndex]!\n) {\n  editLocationTypesIndex(locationTypesIndex: $locationTypeIndex) {\n    id\n    name\n    index\n    ...LocationTypeItem_locationType\n    ...AddEditLocationTypeCard_editingLocationType\n  }\n}\n\nfragment AddEditLocationTypeCard_editingLocationType on LocationType {\n  id\n  name\n  mapType\n  mapZoomLevel\n  numberOfLocations\n  isSite\n  propertyTypes {\n    id\n    name\n    type\n    nodeType\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    isEditable\n    isMandatory\n    isInstanceProperty\n  }\n  surveyTemplateCategories {\n    id\n    categoryTitle\n    categoryDescription\n    surveyTemplateQuestions {\n      id\n      questionTitle\n      questionDescription\n      questionType\n      index\n    }\n  }\n}\n\nfragment DynamicPropertyTypesGrid_propertyTypes on PropertyType {\n  ...PropertyTypeFormField_propertyType\n  id\n  index\n}\n\nfragment LocationTypeItem_locationType on LocationType {\n  id\n  name\n  index\n  propertyTypes {\n    ...DynamicPropertyTypesGrid_propertyTypes\n    id\n  }\n  numberOfLocations\n}\n\nfragment PropertyTypeFormField_propertyType on PropertyType {\n  id\n  name\n  type\n  nodeType\n  index\n  stringValue\n  intValue\n  booleanValue\n  floatValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  isEditable\n  isInstanceProperty\n  isMandatory\n  category\n  isDeleted\n}\n",
     "metadata": {}
   }
 };

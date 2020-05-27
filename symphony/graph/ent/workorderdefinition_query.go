@@ -26,7 +26,7 @@ type WorkOrderDefinitionQuery struct {
 	config
 	limit      *int
 	offset     *int
-	order      []Order
+	order      []OrderFunc
 	unique     []string
 	predicates []predicate.WorkOrderDefinition
 	// eager-loading edges.
@@ -57,7 +57,7 @@ func (wodq *WorkOrderDefinitionQuery) Offset(offset int) *WorkOrderDefinitionQue
 }
 
 // Order adds an order step to the query.
-func (wodq *WorkOrderDefinitionQuery) Order(o ...Order) *WorkOrderDefinitionQuery {
+func (wodq *WorkOrderDefinitionQuery) Order(o ...OrderFunc) *WorkOrderDefinitionQuery {
 	wodq.order = append(wodq.order, o...)
 	return wodq
 }
@@ -268,7 +268,7 @@ func (wodq *WorkOrderDefinitionQuery) Clone() *WorkOrderDefinitionQuery {
 		config:     wodq.config,
 		limit:      wodq.limit,
 		offset:     wodq.offset,
-		order:      append([]Order{}, wodq.order...),
+		order:      append([]OrderFunc{}, wodq.order...),
 		unique:     append([]string{}, wodq.unique...),
 		predicates: append([]predicate.WorkOrderDefinition{}, wodq.predicates...),
 		// clone intermediate query.
@@ -357,6 +357,9 @@ func (wodq *WorkOrderDefinitionQuery) prepareQuery(ctx context.Context) error {
 			return err
 		}
 		wodq.sql = prev
+	}
+	if err := workorderdefinition.Policy.EvalQuery(ctx, wodq); err != nil {
+		return err
 	}
 	return nil
 }
@@ -532,14 +535,14 @@ func (wodq *WorkOrderDefinitionQuery) sqlQuery() *sql.Selector {
 type WorkOrderDefinitionGroupBy struct {
 	config
 	fields []string
-	fns    []Aggregate
+	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (wodgb *WorkOrderDefinitionGroupBy) Aggregate(fns ...Aggregate) *WorkOrderDefinitionGroupBy {
+func (wodgb *WorkOrderDefinitionGroupBy) Aggregate(fns ...AggregateFunc) *WorkOrderDefinitionGroupBy {
 	wodgb.fns = append(wodgb.fns, fns...)
 	return wodgb
 }

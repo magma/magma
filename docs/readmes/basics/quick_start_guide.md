@@ -16,8 +16,9 @@ register your local access gateway with your local cloud for management.
 
 We will be spinning up a virtual machine and some docker containers for this
 full setup, so you'll probably want to do this on a system with at least 8GB
-of memory. Our development VM's are in the 192.168.80.0/24 address space, so
-make sure that you don't have anything running which hijacks that (e.g. VPN).
+of memory. Our development VM's are in the 192.168.60.0/24, 192.168.128.0/24 and
+192.168.129.0/24 address spaces, so make sure that you don't have anything
+running which hijacks those (e.g. VPN).
 
 In the following steps, note the prefix in terminal commands. `HOST` means to
 run the indicated command on your host machine, and `MAGMA-VM` on the `magma`
@@ -40,6 +41,10 @@ HOST [magma/lte/gateway]$ vagrant up magma
 
 This will take a few minutes to spin up the VM. While that runs, switch over
 to...
+
+**Note**: If you are looking to test/develop the LTE features of AGW, without
+cloud based network management, you can skip the rest of this guide and try the
+[S1AP integration tests](../lte/s1ap_tests.md) now.
 
 ### Terminal Tab 2: Build Orchestrator
 
@@ -187,6 +192,16 @@ HOST [magma/symphony/app/fbcnms-projects/magmalte] $ ./scripts/dev_setup.sh
 ```
 
 After this, you will be able to access the UI by visiting
-[https://localhost](https://localhost), and using the email `admin@magma.test`
+[https://magma-test.localhost](https://magma-test.localhost), and using the email `admin@magma.test`
 and password `password1234`. We recommend Firefox or Chrome. If you see Gateway Error 502, don't worry, the
 NMS can take upto 60 seconds to finish starting up.
+
+You will probably want to enable this organization (magma-test) to access all networks,
+so go to [master.localhost](https://master.localhost) and login with the same credentials.
+Once there, you can click on the organization and then select "Enable all networks".
+
+**Note**: If you want to test the access gateway VM with a physical eNB and UE,
+refer to
+the [Connecting a physical eNodeb and UE device to gateway
+VM](../lte/dev_notes.md#connecting-a-physical-enodeb-and-ue-to-gateway-vm)
+section.

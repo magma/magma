@@ -14,6 +14,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/surveyquestion"
 	"github.com/facebookincubator/symphony/graph/ent/surveywifiscan"
@@ -166,6 +167,25 @@ func (swfsc *SurveyWiFiScanCreate) SetNillableLongitude(f *float64) *SurveyWiFiS
 		swfsc.SetLongitude(*f)
 	}
 	return swfsc
+}
+
+// SetChecklistItemID sets the checklist_item edge to CheckListItem by id.
+func (swfsc *SurveyWiFiScanCreate) SetChecklistItemID(id int) *SurveyWiFiScanCreate {
+	swfsc.mutation.SetChecklistItemID(id)
+	return swfsc
+}
+
+// SetNillableChecklistItemID sets the checklist_item edge to CheckListItem by id if the given value is not nil.
+func (swfsc *SurveyWiFiScanCreate) SetNillableChecklistItemID(id *int) *SurveyWiFiScanCreate {
+	if id != nil {
+		swfsc = swfsc.SetChecklistItemID(*id)
+	}
+	return swfsc
+}
+
+// SetChecklistItem sets the checklist_item edge to CheckListItem.
+func (swfsc *SurveyWiFiScanCreate) SetChecklistItem(c *CheckListItem) *SurveyWiFiScanCreate {
+	return swfsc.SetChecklistItemID(c.ID)
 }
 
 // SetSurveyQuestionID sets the survey_question edge to SurveyQuestion by id.
@@ -380,6 +400,25 @@ func (swfsc *SurveyWiFiScanCreate) sqlSave(ctx context.Context) (*SurveyWiFiScan
 			Column: surveywifiscan.FieldLongitude,
 		})
 		swfs.Longitude = value
+	}
+	if nodes := swfsc.mutation.ChecklistItemIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   surveywifiscan.ChecklistItemTable,
+			Columns: []string{surveywifiscan.ChecklistItemColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: checklistitem.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := swfsc.mutation.SurveyQuestionIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

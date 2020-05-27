@@ -90,6 +90,7 @@ class UEMacAddressTest(unittest.TestCase):
                 'allow_unknown_arps': False,
                 'bridge_name': cls.BRIDGE,
                 'bridge_ip_address': cls.BRIDGE_IP,
+                'internal_ip_subnet': '192.168.0.0/16',
                 'ovs_gtp_port_number': 32768,
                 'virtual_interface': 'testing_br',
                 'local_ue_eth_addr': False,
@@ -160,18 +161,18 @@ class UEMacAddressTest(unittest.TestCase):
         ]
 
         # =========================== Verification ===========================
-        # Verify 9 flows installed for ue_mac table (3 pkts matched)
+        # Verify 11 flows installed for ue_mac table (3 pkts matched)
         #        4 flows installed for inout (3 pkts matched)
         #        2 flows installed (2 pkts matches)
         flow_verifier = FlowVerifier(
             [
                 FlowTest(FlowQuery(self._tbl_num,
-                                   self.testing_controller), 4, 9),
+                                   self.testing_controller), 4, 11),
                 FlowTest(FlowQuery(self._ingress_tbl_num,
                                    self.testing_controller), 4, 2),
                 FlowTest(FlowQuery(self._egress_tbl_num,
                                    self.testing_controller), 3, 2),
-                FlowTest(flow_queries[0], 4, 4),
+                FlowTest(flow_queries[0], 4, 5),
             ], lambda: wait_after_send(self.testing_controller))
 
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,

@@ -51,6 +51,7 @@ message S6aConfig {
 message GxConfig {
     DiamClientConfig server = 1;
     string OverwriteApn = 2;
+    repeated DiamClientConfig servers = 3;
 }
 
 enum GyInitMethod {
@@ -63,6 +64,7 @@ message GyConfig {
     DiamClientConfig server = 1;
     GyInitMethod init_method = 2;
     string OverwriteApn = 3;
+    repeated DiamClientConfig servers = 4;
 }
 
 message SessionProxyConfig {
@@ -91,6 +93,9 @@ message SwxConfig {
     bool derive_unregister_realm = 8;
     // PLMN IDs served by HLR
     repeated string hlr_plmn_ids = 9;
+    // Server where SWx points to (can be one or more than one)
+    repeated DiamClientConfig servers = 10;
+
 }
 
 message EapAkaConfig {

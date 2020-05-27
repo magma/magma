@@ -12,39 +12,36 @@ package main
 import (
 	"context"
 	"fmt"
-	"net/url"
-
 	"github.com/facebookincubator/symphony/graph/event"
+	"github.com/facebookincubator/symphony/graph/graphevents"
 	"github.com/facebookincubator/symphony/graph/graphgrpc"
 	"github.com/facebookincubator/symphony/graph/graphhttp"
 	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/pkg/log"
 	"github.com/facebookincubator/symphony/pkg/mysql"
 	"github.com/facebookincubator/symphony/pkg/server"
+	"gocloud.dev/server/health"
 	"google.golang.org/grpc"
+	"net/url"
+)
 
+import (
+	_ "github.com/facebookincubator/symphony/graph/ent/runtime"
 	_ "github.com/go-sql-driver/mysql"
-
 	_ "gocloud.dev/pubsub/mempubsub"
-
 	_ "gocloud.dev/pubsub/natspubsub"
 )
 
 // Injectors from wire.go:
 
-func NewApplication(ctx context.Context, flags *cliFlags) (*application, func(), error) {
+func newApplication(ctx context.Context, flags *cliFlags) (*application, func(), error) {
 	config := flags.Log
-	logger, cleanup, err := log.Provider(config)
+	logger, cleanup, err := log.ProvideLogger(config)
 	if err != nil {
 		return nil, nil, err
 	}
 	string2 := flags.MySQL
-	mySQLTenancy, err := newTenancy(logger, string2)
-	if err != nil {
-		cleanup()
-		return nil, nil, err
-	}
-	url, err := newAuthURL(flags)
+	mySQLTenancy, err := newMySQLTenancy(string2, logger)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
@@ -55,17 +52,30 @@ func NewApplication(ctx context.Context, flags *cliFlags) (*application, func(),
 		cleanup()
 		return nil, nil, err
 	}
+	tenancy, err := newTenancy(mySQLTenancy, logger, topicEmitter)
+	if err != nil {
+		cleanup2()
+		cleanup()
+		return nil, nil, err
+	}
+	url, err := newAuthURL(flags)
+	if err != nil {
+		cleanup2()
+		cleanup()
+		return nil, nil, err
+	}
 	urlSubscriber := event.ProvideSubscriber(eventConfig)
 	options := flags.Census
+	v := newHealthChecks(mySQLTenancy)
 	orc8rConfig := flags.Orc8r
 	graphhttpConfig := graphhttp.Config{
-		Tenancy:    mySQLTenancy,
-		AuthURL:    url,
-		Emitter:    topicEmitter,
-		Subscriber: urlSubscriber,
-		Logger:     logger,
-		Census:     options,
-		Orc8r:      orc8rConfig,
+		Tenancy:      tenancy,
+		AuthURL:      url,
+		Subscriber:   urlSubscriber,
+		Logger:       logger,
+		Census:       options,
+		HealthChecks: v,
+		Orc8r:        orc8rConfig,
 	}
 	server, cleanup3, err := graphhttp.NewServer(graphhttpConfig)
 	if err != nil {
@@ -78,7 +88,7 @@ func NewApplication(ctx context.Context, flags *cliFlags) (*application, func(),
 		DB:      db,
 		Logger:  logger,
 		Orc8r:   orc8rConfig,
-		Tenancy: mySQLTenancy,
+		Tenancy: tenancy,
 	}
 	grpcServer, cleanup4, err := graphgrpc.NewServer(graphgrpcConfig)
 	if err != nil {
@@ -87,8 +97,22 @@ func NewApplication(ctx context.Context, flags *cliFlags) (*application, func(),
 		cleanup()
 		return nil, nil, err
 	}
-	mainApplication := newApplication(logger, server, grpcServer, flags)
+	grapheventsConfig := graphevents.Config{
+		Tenancy:    tenancy,
+		Subscriber: urlSubscriber,
+		Logger:     logger,
+	}
+	grapheventsServer, cleanup5, err := graphevents.NewServer(grapheventsConfig)
+	if err != nil {
+		cleanup4()
+		cleanup3()
+		cleanup2()
+		cleanup()
+		return nil, nil, err
+	}
+	mainApplication := newApp(logger, server, grpcServer, grapheventsServer, flags)
 	return mainApplication, func() {
+		cleanup5()
 		cleanup4()
 		cleanup3()
 		cleanup2()
@@ -98,21 +122,32 @@ func NewApplication(ctx context.Context, flags *cliFlags) (*application, func(),
 
 // wire.go:
 
-func newApplication(logger log.Logger, httpServer *server.Server, grpcServer *grpc.Server, flags *cliFlags) *application {
+func newApp(logger log.Logger, httpServer *server.Server, grpcServer *grpc.Server, eventServer *graphevents.Server, flags *cliFlags) *application {
 	var app application
 	app.Logger = logger.Background()
 	app.http.Server = httpServer
 	app.http.addr = flags.HTTPAddress
 	app.grpc.Server = grpcServer
 	app.grpc.addr = flags.GRPCAddress
+	app.event = eventServer
 	return &app
 }
 
-func newTenancy(logger log.Logger, dsn string) (*viewer.MySQLTenancy, error) {
+func newTenancy(tenancy *viewer.MySQLTenancy, logger log.Logger, emitter event.Emitter) (viewer.Tenancy, error) {
+	eventer := event.Eventer{Logger: logger, Emitter: emitter}
+	return viewer.NewCacheTenancy(tenancy, eventer.HookTo), nil
+}
+
+func newHealthChecks(tenancy *viewer.MySQLTenancy) []health.Checker {
+	return []health.Checker{tenancy}
+}
+
+func newMySQLTenancy(dsn string, logger log.Logger) (*viewer.MySQLTenancy, error) {
 	tenancy, err := viewer.NewMySQLTenancy(dsn)
 	if err != nil {
 		return nil, fmt.Errorf("creating mysql tenancy: %w", err)
 	}
+	tenancy.SetLogger(logger)
 	mysql.SetLogger(logger)
 	return tenancy, nil
 }

@@ -20,7 +20,6 @@ type (
 	// Config configures import handler.
 	Config struct {
 		Logger     log.Logger
-		Emitter    event.Emitter
 		Subscriber event.Subscriber
 	}
 
@@ -35,7 +34,6 @@ func NewHandler(cfg Config) (http.Handler, error) {
 	r := resolver.New(
 		resolver.Config{
 			Logger:     cfg.Logger,
-			Emitter:    cfg.Emitter,
 			Subscriber: cfg.Subscriber,
 		},
 		resolver.WithTransaction(false),

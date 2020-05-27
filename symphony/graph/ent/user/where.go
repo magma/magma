@@ -879,7 +879,7 @@ func HasProfilePhoto() predicate.User {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(ProfilePhotoTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, ProfilePhotoTable, ProfilePhotoColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, ProfilePhotoTable, ProfilePhotoColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
@@ -891,7 +891,7 @@ func HasProfilePhotoWith(preds ...predicate.File) predicate.User {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(ProfilePhotoInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, ProfilePhotoTable, ProfilePhotoColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, ProfilePhotoTable, ProfilePhotoColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
@@ -920,6 +920,90 @@ func HasGroupsWith(preds ...predicate.UsersGroup) predicate.User {
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(GroupsInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, true, GroupsTable, GroupsPrimaryKey...),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasOwnedWorkOrders applies the HasEdge predicate on the "owned_work_orders" edge.
+func HasOwnedWorkOrders() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(OwnedWorkOrdersTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, OwnedWorkOrdersTable, OwnedWorkOrdersColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasOwnedWorkOrdersWith applies the HasEdge predicate on the "owned_work_orders" edge with a given conditions (other predicates).
+func HasOwnedWorkOrdersWith(preds ...predicate.WorkOrder) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(OwnedWorkOrdersInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, OwnedWorkOrdersTable, OwnedWorkOrdersColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasAssignedWorkOrders applies the HasEdge predicate on the "assigned_work_orders" edge.
+func HasAssignedWorkOrders() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(AssignedWorkOrdersTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, AssignedWorkOrdersTable, AssignedWorkOrdersColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasAssignedWorkOrdersWith applies the HasEdge predicate on the "assigned_work_orders" edge with a given conditions (other predicates).
+func HasAssignedWorkOrdersWith(preds ...predicate.WorkOrder) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(AssignedWorkOrdersInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, AssignedWorkOrdersTable, AssignedWorkOrdersColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCreatedProjects applies the HasEdge predicate on the "created_projects" edge.
+func HasCreatedProjects() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CreatedProjectsTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, CreatedProjectsTable, CreatedProjectsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCreatedProjectsWith applies the HasEdge predicate on the "created_projects" edge with a given conditions (other predicates).
+func HasCreatedProjectsWith(preds ...predicate.Project) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CreatedProjectsInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, CreatedProjectsTable, CreatedProjectsColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

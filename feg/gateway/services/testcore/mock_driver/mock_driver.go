@@ -9,6 +9,8 @@
 package mock_driver
 
 import (
+	"sync"
+
 	"magma/feg/cloud/go/protos"
 )
 
@@ -26,6 +28,7 @@ type MockDriver struct {
 	errorMessages             []*protos.ErrorByIndex
 	unexpectedRequestBehavior protos.UnexpectedRequestBehavior
 	defaultAnswer             interface{}
+	sync.Mutex
 }
 
 func NewMockDriver(expectations []Expectation, behavior protos.UnexpectedRequestBehavior, defaultAnswer interface{}) *MockDriver {

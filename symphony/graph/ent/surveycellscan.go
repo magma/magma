@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/surveycellscan"
 	"github.com/facebookincubator/symphony/graph/ent/surveyquestion"
@@ -69,25 +70,42 @@ type SurveyCellScan struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SurveyCellScanQuery when eager-loading is set.
 	Edges                            SurveyCellScanEdges `json:"edges"`
+	survey_cell_scan_checklist_item  *int
 	survey_cell_scan_survey_question *int
 	survey_cell_scan_location        *int
 }
 
 // SurveyCellScanEdges holds the relations/edges for other nodes in the graph.
 type SurveyCellScanEdges struct {
+	// ChecklistItem holds the value of the checklist_item edge.
+	ChecklistItem *CheckListItem
 	// SurveyQuestion holds the value of the survey_question edge.
 	SurveyQuestion *SurveyQuestion
 	// Location holds the value of the location edge.
 	Location *Location
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
+}
+
+// ChecklistItemOrErr returns the ChecklistItem value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e SurveyCellScanEdges) ChecklistItemOrErr() (*CheckListItem, error) {
+	if e.loadedTypes[0] {
+		if e.ChecklistItem == nil {
+			// The edge checklist_item was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: checklistitem.Label}
+		}
+		return e.ChecklistItem, nil
+	}
+	return nil, &NotLoadedError{edge: "checklist_item"}
 }
 
 // SurveyQuestionOrErr returns the SurveyQuestion value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e SurveyCellScanEdges) SurveyQuestionOrErr() (*SurveyQuestion, error) {
-	if e.loadedTypes[0] {
+	if e.loadedTypes[1] {
 		if e.SurveyQuestion == nil {
 			// The edge survey_question was loaded in eager-loading,
 			// but was not found.
@@ -101,7 +119,7 @@ func (e SurveyCellScanEdges) SurveyQuestionOrErr() (*SurveyQuestion, error) {
 // LocationOrErr returns the Location value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e SurveyCellScanEdges) LocationOrErr() (*Location, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[2] {
 		if e.Location == nil {
 			// The edge location was loaded in eager-loading,
 			// but was not found.
@@ -144,6 +162,7 @@ func (*SurveyCellScan) scanValues() []interface{} {
 // fkValues returns the types for scanning foreign-keys values from sql.Rows.
 func (*SurveyCellScan) fkValues() []interface{} {
 	return []interface{}{
+		&sql.NullInt64{}, // survey_cell_scan_checklist_item
 		&sql.NullInt64{}, // survey_cell_scan_survey_question
 		&sql.NullInt64{}, // survey_cell_scan_location
 	}
@@ -274,12 +293,18 @@ func (scs *SurveyCellScan) assignValues(values ...interface{}) error {
 	values = values[22:]
 	if len(values) == len(surveycellscan.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field survey_cell_scan_checklist_item", value)
+		} else if value.Valid {
+			scs.survey_cell_scan_checklist_item = new(int)
+			*scs.survey_cell_scan_checklist_item = int(value.Int64)
+		}
+		if value, ok := values[1].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field survey_cell_scan_survey_question", value)
 		} else if value.Valid {
 			scs.survey_cell_scan_survey_question = new(int)
 			*scs.survey_cell_scan_survey_question = int(value.Int64)
 		}
-		if value, ok := values[1].(*sql.NullInt64); !ok {
+		if value, ok := values[2].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field survey_cell_scan_location", value)
 		} else if value.Valid {
 			scs.survey_cell_scan_location = new(int)
@@ -287,6 +312,11 @@ func (scs *SurveyCellScan) assignValues(values ...interface{}) error {
 		}
 	}
 	return nil
+}
+
+// QueryChecklistItem queries the checklist_item edge of the SurveyCellScan.
+func (scs *SurveyCellScan) QueryChecklistItem() *CheckListItemQuery {
+	return (&SurveyCellScanClient{config: scs.config}).QueryChecklistItem(scs)
 }
 
 // QuerySurveyQuestion queries the survey_question edge of the SurveyCellScan.

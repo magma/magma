@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/facebookincubator/symphony/graph/ent"
+
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
@@ -27,6 +29,11 @@ type serviceIds struct {
 	serviceTypeID2 int
 	serviceTypeID3 int
 	serviceTypeID4 int
+}
+
+var endpointHeader = [...]string{"Endpoint Definition 1", "Location 1", "Equipment 1",
+	"Endpoint Definition 2", "Location 2", "Equipment 2", "Endpoint Definition 3", "Location 3", "Equipment 3",
+	"Endpoint Definition 4", "Location 4", "Equipment 4", "Endpoint Definition 5", "Location 5", "Equipment 5",
 }
 
 func prepareServiceTypeData(ctx context.Context, t *testing.T, r TestImporterResolver) serviceIds {
@@ -60,11 +67,11 @@ func prepareServiceTypeData(ctx context.Context, t *testing.T, r TestImporterRes
 	}
 	propDefInput7 := models.PropertyTypeInput{
 		Name: propName7,
-		Type: "location",
+		Type: "node",
 	}
 	propDefInput8 := models.PropertyTypeInput{
 		Name: propName8,
-		Type: "service",
+		Type: "node",
 	}
 
 	serviceType1, err := mr.AddServiceType(ctx, models.ServiceTypeCreateData{
@@ -100,7 +107,7 @@ func TestValidatePropertiesForServiceType(t *testing.T) {
 	importer := r.importer
 	q := r.importer.r.Query()
 	defer r.drv.Close()
-	ctx := newImportContext(viewertest.NewContext(r.client))
+	ctx := newImportContext(viewertest.NewContext(context.Background(), r.client))
 	data := prepareServiceTypeData(ctx, t, *r)
 
 	mr := r.importer.r.Mutation()
@@ -119,19 +126,21 @@ func TestValidatePropertiesForServiceType(t *testing.T) {
 	require.NoError(t, err)
 
 	var (
-		dataHeader = [...]string{"Service ID", "Service Name", "Service Type", "Service External ID", "Customer Name", "Customer External ID", "Status"}
-		row1       = []string{"", "s1", serviceTypeName, "M123", "", "", "IN_SERVICE", "strVal", "54", "", "", "", "", "", ""}
-		row2       = []string{"", "s2", serviceType2Name, "M456", "", "", "MAINTENANCE", "", "", "29/03/88", "false", "", "", "", ""}
-		row3       = []string{"", "s3", serviceType3Name, "M789", "", "", "DISCONNECTED", "", "", "", "", "30.23-50", "45.8,88.9", "", ""}
-		row4       = []string{"", "s3", serviceType4Name, "M789", "", "", "DISCONNECTED", "", "", "", "", "", "", strconv.Itoa(loc.ID), service.Name}
+		dataHeader = [...]string{"Service ID", "Service Name", "Service Type", "Discovery Method", "Service External ID", "Customer Name", "Customer External ID", "Status"}
+		row1       = []string{"", "s1", serviceTypeName, "MANUAL", "M123", "", "", "IN_SERVICE", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "strVal", "54", "", "", "", "", "", ""}
+		row2       = []string{"", "s2", serviceType2Name, "MANUAL", "M456", "", "", "MAINTENANCE", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "29/03/88", "false", "", "", "", ""}
+		row3       = []string{"", "s3", serviceType3Name, "MANUAL", "M789", "", "", "DISCONNECTED", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "30.23-50", "45.8,88.9", "", ""}
+		row4       = []string{"", "s3", serviceType4Name, "MANUAL", "M789", "", "", "DISCONNECTED", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", strconv.Itoa(loc.ID), strconv.Itoa(service.ID)}
 	)
-
-	titleWithProperties := append(dataHeader[:], propName1, propName2, propName3, propName4, propName5, propName6, propName7, propName8)
+	titleWithEndpoint := append(dataHeader[:], endpointHeader[:]...)
+	titleWithProperties := append(titleWithEndpoint, propName1, propName2, propName3, propName4, propName5, propName6, propName7, propName8)
 	fl, _ := NewImportHeader(titleWithProperties, ImportEntityService)
 	r1, _ := NewImportRecord(row1, fl)
 	require.NoError(t, err)
-	styp1, err := q.ServiceType(ctx, data.serviceTypeID)
+	node1, err := q.Node(ctx, data.serviceTypeID)
 	require.NoError(t, err)
+	styp1, ok := node1.(*ent.ServiceType)
+	require.True(t, ok)
 	ptypes, err := importer.validatePropertiesForServiceType(ctx, r1, styp1)
 	require.NoError(t, err)
 	require.Len(t, ptypes, 2)
@@ -149,8 +158,10 @@ func TestValidatePropertiesForServiceType(t *testing.T) {
 			require.Fail(t, "property type name should be one of the two")
 		}
 	}
-	styp2, err := q.ServiceType(ctx, data.serviceTypeID2)
+	node2, err := q.Node(ctx, data.serviceTypeID2)
 	require.NoError(t, err)
+	styp2, ok := node2.(*ent.ServiceType)
+	require.True(t, ok)
 
 	r2, _ := NewImportRecord(row2, fl)
 	ptypes2, err := importer.validatePropertiesForServiceType(ctx, r2, styp2)
@@ -170,8 +181,10 @@ func TestValidatePropertiesForServiceType(t *testing.T) {
 		}
 	}
 
-	styp3, err := q.ServiceType(ctx, data.serviceTypeID3)
+	node3, err := q.Node(ctx, data.serviceTypeID3)
 	require.NoError(t, err)
+	styp3, ok := node3.(*ent.ServiceType)
+	require.True(t, ok)
 
 	r3, _ := NewImportRecord(row3, fl)
 	ptypes3, err := importer.validatePropertiesForServiceType(ctx, r3, styp3)
@@ -194,8 +207,10 @@ func TestValidatePropertiesForServiceType(t *testing.T) {
 		}
 	}
 
-	styp4, err := q.ServiceType(ctx, data.serviceTypeID4)
+	node4, err := q.Node(ctx, data.serviceTypeID4)
 	require.NoError(t, err)
+	styp4, ok := node4.(*ent.ServiceType)
+	require.True(t, ok)
 
 	r4, _ := NewImportRecord(row4, fl)
 	ptypes4, err := importer.validatePropertiesForServiceType(ctx, r4, styp4)
@@ -206,11 +221,11 @@ func TestValidatePropertiesForServiceType(t *testing.T) {
 		ptyp := styp4.QueryPropertyTypes().Where(propertytype.ID(value.PropertyTypeID)).OnlyX(ctx)
 		switch ptyp.Name {
 		case propName7:
-			require.Equal(t, *value.LocationIDValue, loc.ID)
-			require.Equal(t, ptyp.Type, "location")
+			require.Equal(t, *value.NodeIDValue, loc.ID)
+			require.Equal(t, ptyp.Type, "node")
 		case propName8:
-			require.Equal(t, *value.ServiceIDValue, service.ID)
-			require.Equal(t, ptyp.Type, "service")
+			require.Equal(t, *value.NodeIDValue, service.ID)
+			require.Equal(t, ptyp.Type, "node")
 		default:
 			require.Fail(t, "property type name should be one of the two")
 		}
@@ -221,10 +236,10 @@ func TestValidateForExistingService(t *testing.T) {
 	r := newImporterTestResolver(t)
 	importer := r.importer
 	defer r.drv.Close()
-	ctx := newImportContext(viewertest.NewContext(r.client))
+	ctx := newImportContext(viewertest.NewContext(context.Background(), r.client))
 	prepareServiceTypeData(ctx, t, *r)
 
-	titleWithProperties := []string{"Service ID", "Service Name", "Service Type", "Service External ID", "Customer Name", "Customer External ID", "Status"}
+	titleWithProperties := []string{"Service ID", "Service Name", "Service Type", "Discovery Method", "Service External ID", "Customer Name", "Customer External ID", "Status"}
 	title, _ := NewImportHeader(titleWithProperties, ImportEntityService)
 
 	serviceType, err := importer.r.Mutation().AddServiceType(ctx, models.ServiceTypeCreateData{

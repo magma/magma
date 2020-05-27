@@ -16,7 +16,7 @@ import type {
   AddCommentMutationVariables,
 } from './__generated__/AddCommentMutation.graphql';
 import type {MutationCallbacks} from './MutationCallbacks.js';
-import type {StoreUpdater} from '../common/RelayEnvironment';
+import type {SelectorStoreUpdater} from 'relay-runtime';
 
 const mutation = graphql`
   mutation AddCommentMutation($input: CommentInput!) {
@@ -29,7 +29,7 @@ const mutation = graphql`
 export default (
   variables: AddCommentMutationVariables,
   callbacks?: MutationCallbacks<AddCommentMutationResponse>,
-  updater?: StoreUpdater,
+  updater?: SelectorStoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
   commitMutation<AddCommentMutation>(RelayEnvironment, {

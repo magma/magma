@@ -2,17 +2,23 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package graphactions
+package graphactions_test
 
 import (
 	"context"
 	"testing"
 
 	"github.com/facebookincubator/ent/dialect/sql"
-	"github.com/facebookincubator/ent/dialect/sql/schema"
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/ent/enttest"
+	"github.com/facebookincubator/symphony/graph/ent/migrate"
+	"github.com/facebookincubator/symphony/graph/ent/user"
+	"github.com/facebookincubator/symphony/graph/graphactions"
+	"github.com/facebookincubator/symphony/graph/graphgrpc"
+	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 	"github.com/facebookincubator/symphony/pkg/actions/core"
 	"github.com/facebookincubator/symphony/pkg/testdb"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -22,18 +28,23 @@ func newClient(t *testing.T) *ent.Client {
 	require.NoError(t, err)
 	db.SetMaxOpenConns(1)
 	drv := sql.OpenDB(name, db)
-	client := ent.NewClient(ent.Driver(drv))
-	require.NoError(t, client.Schema.Create(context.Background(), schema.WithGlobalUniqueID(true)))
-	return client
+	return enttest.NewClient(t,
+		enttest.WithOptions(ent.Driver(drv)),
+		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
+	)
 }
 
 func TestQueryRules(t *testing.T) {
 	client := newClient(t)
-	ctx := context.Background()
+	ctx, err := graphgrpc.CreateServiceContext(
+		context.Background(),
+		viewertest.DefaultTenant,
+		graphgrpc.ActionsAlertServiceName,
+		user.RoleOWNER)
+	require.NoError(t, err)
+	dataLoader := graphactions.EntDataLoader{client}
 
-	dataLoader := EntDataLoader{client}
-
-	_, err := client.
+	_, err = client.
 		ActionsRule.Create().
 		SetName("testInput").
 		SetTriggerID("trigger1").

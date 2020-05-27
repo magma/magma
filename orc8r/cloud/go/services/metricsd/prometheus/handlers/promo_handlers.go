@@ -30,11 +30,12 @@ import (
 )
 
 const (
-	queryPart      = "query"
-	queryRangePart = "query_range"
-	seriesPart     = "series"
-	paramMatch     = "match"
-	paramPromMatch = "match[]"
+	targetsMetadata = "targets_metadata"
+	queryPart       = "query"
+	queryRangePart  = "query_range"
+	seriesPart      = "series"
+	paramMatch      = "match"
+	paramPromMatch  = "match[]"
 
 	PrometheusV1Root = handlers.ManageNetworkPath + obsidian.UrlSep + "prometheus"
 
@@ -55,6 +56,8 @@ const (
 	TenantPromV1SeriesURL     = tenantQueryRoot + prometheusAPIRoot + seriesPart
 	TenantPromV1ValuesURL     = tenantQueryRoot + prometheusAPIRoot + "label/:label_name/values"
 
+	TargetsMetadata = tenantH.TenantRootPath + obsidian.UrlSep + targetsMetadata
+
 	defaultStepWidth = "15s"
 )
 
@@ -67,6 +70,19 @@ func tenantQueryRestrictorProvider(tenantID int64) (restrictor.QueryRestrictor, 
 		return restrictor.QueryRestrictor{}, err
 	}
 	return *restrictor.NewQueryRestrictor(restrictor.Opts{ReplaceExistingLabel: false}).AddMatcher(metrics.NetworkLabelName, tenant.Networks...), nil
+}
+
+func GetPrometheusTargetsMetadata(api v1.API) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		res, err := api.TargetsMetadata(context.Background(),
+			c.QueryParam(utils.ParamMatchTarget),
+			c.QueryParam(utils.ParamMetric),
+			c.QueryParam(utils.ParamLimit))
+		if err != nil {
+			return obsidian.HttpError(err, http.StatusInternalServerError)
+		}
+		return c.JSON(http.StatusOK, res)
+	}
 }
 
 func GetPrometheusQueryHandler(api v1.API) func(c echo.Context) error {
@@ -90,7 +106,8 @@ func prometheusQuery(c echo.Context, query string, apiClient v1.API) error {
 		return obsidian.HttpError(fmt.Errorf("unable to parse %s parameter: %v", utils.ParamTime, err), http.StatusBadRequest)
 	}
 
-	res, err := apiClient.Query(context.Background(), query, queryTime)
+	// TODO: catch the warnings replacing _
+	res, _, err := apiClient.Query(context.Background(), query, queryTime)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -129,7 +146,8 @@ func prometheusQueryRange(c echo.Context, query string, apiClient v1.API) error 
 	}
 	timeRange := v1.Range{Start: startTime, End: endTime, Step: step}
 
-	res, err := apiClient.QueryRange(context.Background(), query, timeRange)
+	// TODO: catch the warnings replacing _
+	res, _, err := apiClient.QueryRange(context.Background(), query, timeRange)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -284,7 +302,8 @@ func prometheusSeries(c echo.Context, seriesMatches []string, apiClient v1.API) 
 		return []model.LabelSet{}, obsidian.HttpError(fmt.Errorf("unable to parse %s parameter: %v", utils.ParamRangeEnd, err), http.StatusBadRequest)
 	}
 
-	res, err := apiClient.Series(context.Background(), seriesMatches, startTime, endTime)
+	// TODO: catch the warnings replacing _
+	res, _, err := apiClient.Series(context.Background(), seriesMatches, startTime, endTime)
 	if err != nil {
 		return []model.LabelSet{}, obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -315,10 +334,15 @@ func getSeriesMatches(c echo.Context, matchParam string, queryRestrictor restric
 	return seriesMatchers, nil
 }
 
-// GetTenantPromV1ValuesHandler returns the values of a given label for a tenant.
-// We can't just proxy the request to Prometheus since this endpoint has no way
-// of restricting the query, so we have to simulate it by doing a series request
-// and then manipulating the result
+/* GetTenantPromV1ValuesHandler returns the values of a given label for a tenant.
+ * We can't just proxy the request to Prometheus since this endpoint has no way
+ * of restricting the query, so we have to simulate it by doing a series request
+ * and then manipulating the result
+ *
+ * We have found that on large deployments the query time for `api/v1/series`
+ * can take a very long time and fail after a while. To fix this, we set the
+ * default start time to 3 hours ago, rather than having no limit.
+ */
 func GetTenantPromValuesHandler(api v1.API) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		oID, oerr := obsidian.GetTenantID(c)
@@ -337,7 +361,13 @@ func GetTenantPromValuesHandler(api v1.API) func(c echo.Context) error {
 		for _, matcher := range queryRestrictor.Matchers() {
 			seriesMatchers = append(seriesMatchers, fmt.Sprintf("{%s}", matcher.String()))
 		}
-		res, err := api.Series(context.Background(), seriesMatchers, minTime, maxTime)
+
+		defaultStartTime := time.Now().Add(-3 * time.Hour)
+		startTime, err := utils.ParseTime(c.QueryParam(utils.ParamRangeStart), &defaultStartTime)
+		endTime, err := utils.ParseTime(c.QueryParam(utils.ParamRangeEnd), &maxTime)
+
+		// TODO: catch the warnings replacing _
+		res, _, err := api.Series(context.Background(), seriesMatchers, startTime, endTime)
 		if err != nil {
 			return obsidian.HttpError(err, http.StatusInternalServerError)
 		}

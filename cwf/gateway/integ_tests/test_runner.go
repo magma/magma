@@ -6,51 +6,71 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package integ_tests
+package integration
 
 import (
 	"fmt"
 	"math/rand"
-	"reflect"
 	"strconv"
 	"testing"
 	"time"
 
 	"fbc/lib/go/radius"
-	"fbc/lib/go/radius/rfc2869"
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/cwf/gateway/registry"
 	"magma/cwf/gateway/services/uesim"
-	"magma/feg/gateway/services/eap"
 	"magma/lte/cloud/go/crypto"
 	lteprotos "magma/lte/cloud/go/protos"
 
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
 )
 
 // todo make Op configurable, or export it in the UESimServer.
 const (
-	Op              = "\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"
-	Secret          = "123456"
-	MockHSSRemote   = "HSS_REMOTE"
-	MockPCRFRemote  = "PCRF_REMOTE"
-	MockOCSRemote   = "OCS_REMOTE"
-	PipelinedRemote = "pipelined.local"
-	RedisRemote     = "REDIS"
-	CwagIP          = "192.168.70.101"
-	OCSPort         = 9201
-	PCRFPort        = 9202
-	HSSPort         = 9204
-	PipelinedPort   = 8443
-	RedisPort       = 6380
+	Op               = "\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"
+	Secret           = "123456"
+	MockHSSRemote    = "HSS_REMOTE"
+	MockPCRFRemote   = "PCRF_REMOTE"
+	MockOCSRemote    = "OCS_REMOTE"
+	MockPCRFRemote2  = "PCRF_REMOTE2"
+	MockOCSRemote2   = "OCS_REMOTE2"
+	PipelinedRemote  = "pipelined.local"
+	DirectorydRemote = "DIRECTORYD"
+	RedisRemote      = "REDIS"
+	CwagIP           = "192.168.70.101"
+	TrafficCltIP     = "192.168.128.2"
+	OCSPort          = 9201
+	PCRFPort         = 9202
+	OCSPort2         = 9205
+	PCRFPort2        = 9206
+	HSSPort          = 9204
+	PipelinedPort    = 8443
+	RedisPort        = 6380
+	DirectorydPort   = 8443
 
-	defaultMSISDN = "5100001234"
+	defaultMSISDN          = "5100001234"
+	defaultCalledStationID = "98-DE-D0-84-B5-47:CWF-TP-LINK_B547_5G"
+
+	KiloBytes                = 1024
+	MegaBytes                = 1024 * KiloBytes
+	Buffer                   = 100 * KiloBytes
+	RevalidationTimeoutEvent = 17
+
+	ReAuthMaxUsageBytes   = 5 * MegaBytes
+	ReAuthMaxUsageTimeSec = 1000 // in second
+	ReAuthValidityTime    = 60   // in second
+
+	GyMaxUsageBytes = 5 * MegaBytes
+	GyMaxUsageTime  = 1000 // in second
+	GyValidityTime  = 60   // in second
 )
 
+//TestRunner helps setting up all associated services
 type TestRunner struct {
-	t     *testing.T
-	imsis map[string]bool
+	t           *testing.T
+	imsis       map[string]bool
+	activePCRFs []string
+	activeOCSs  []string
 }
 
 // imsi -> ruleID -> record
@@ -60,9 +80,7 @@ type RecordByIMSI map[string]map[string]*lteprotos.RuleRecord
 // and setting the next IMSI.
 func NewTestRunner(t *testing.T) *TestRunner {
 	fmt.Println("************************* TestRunner setup")
-	testRunner := &TestRunner{t: t}
 
-	testRunner.imsis = make(map[string]bool)
 	fmt.Printf("Adding Mock HSS service at %s:%d\n", CwagIP, HSSPort)
 	registry.AddService(MockHSSRemote, CwagIP, HSSPort)
 	fmt.Printf("Adding Mock PCRF service at %s:%d\n", CwagIP, PCRFPort)
@@ -73,15 +91,38 @@ func NewTestRunner(t *testing.T) *TestRunner {
 	registry.AddService(PipelinedRemote, CwagIP, PipelinedPort)
 	fmt.Printf("Adding Redis service at %s:%d\n", CwagIP, RedisPort)
 	registry.AddService(RedisRemote, CwagIP, RedisPort)
+	fmt.Printf("Adding Directoryd service at %s:%d\n", CwagIP, DirectorydPort)
+	registry.AddService(DirectorydRemote, CwagIP, DirectorydPort)
 
+	testRunner := &TestRunner{t: t,
+		activePCRFs: []string{MockPCRFRemote},
+		activeOCSs:  []string{MockOCSRemote},
+	}
+	testRunner.imsis = make(map[string]bool)
 	return testRunner
+}
+
+// NewTestRunnerWithTwoPCRFandOCS does the same as NewTestRunner but it inclides 2 PCRF and 2 OCS
+// Used in scenarios that run 2 PCRFs and 2 OCSs
+func NewTestRunnerWithTwoPCRFandOCS(t *testing.T) *TestRunner {
+	tr := NewTestRunner(t)
+
+	fmt.Printf("Adding Mock PCRF #2 service at %s:%d\n", CwagIP, PCRFPort2)
+	registry.AddService(MockPCRFRemote2, CwagIP, PCRFPort2)
+	fmt.Printf("Adding Mock OCS #2 service at %s:%d\n", CwagIP, OCSPort2)
+	registry.AddService(MockOCSRemote2, CwagIP, OCSPort2)
+
+	// add the extra two servers for clean up
+	tr.activePCRFs = append(tr.activePCRFs, MockPCRFRemote2)
+	tr.activeOCSs = append(tr.activeOCSs, MockOCSRemote2)
+
+	return tr
 }
 
 // ConfigUEs creates and adds the specified number of UEs and Subscribers
 // to the UE Simulator and the HSS.
 func (tr *TestRunner) ConfigUEs(numUEs int) ([]*cwfprotos.UEConfig, error) {
-	fmt.Printf("************************* Configuring %d UE(s)\n", numUEs)
-	ues := make([]*cwfprotos.UEConfig, 0)
+	IMSIs := make([]string, 0, numUEs)
 	for i := 0; i < numUEs; i++ {
 		imsi := ""
 		for {
@@ -90,6 +131,20 @@ func (tr *TestRunner) ConfigUEs(numUEs int) ([]*cwfprotos.UEConfig, error) {
 			if !present {
 				break
 			}
+		}
+		IMSIs = append(IMSIs, imsi)
+	}
+	return tr.ConfigUEsPerInstance(IMSIs, MockPCRFRemote, MockOCSRemote)
+}
+
+// ConfigUEsPerInstance same as ConfigUEs but per specific PCRF and OCS instance
+func (tr *TestRunner) ConfigUEsPerInstance(IMSIs []string, pcrfInstance, ocsInstance string) ([]*cwfprotos.UEConfig, error) {
+	fmt.Printf("************************* Configuring %d UE(s)\n", len(IMSIs))
+	ues := make([]*cwfprotos.UEConfig, 0)
+	for _, imsi := range IMSIs {
+		// If IMSIs were generated properly they should never give an error here
+		if _, present := tr.imsis[imsi]; present {
+			return nil, errors.Errorf("IMSI %s already exist in database, use generateRandomIMSIS(num, tr.imsis) to create unique list", imsi)
 		}
 		key, opc, err := getRandKeyOpcFromOp([]byte(Op))
 		if err != nil {
@@ -108,29 +163,29 @@ func (tr *TestRunner) ConfigUEs(numUEs int) ([]*cwfprotos.UEConfig, error) {
 		if err != nil {
 			return nil, errors.Wrap(err, "Error adding Subscriber to HSS")
 		}
-		err = addSubscriberToPCRF(sub.GetSid())
+		err = addSubscriberToPCRFPerInstance(pcrfInstance, sub.GetSid())
 		if err != nil {
 			return nil, errors.Wrap(err, "Error adding Subscriber to PCRF")
 		}
-		err = addSubscriberToOCS(sub.GetSid())
+		err = addSubscriberToOCSPerInstance(ocsInstance, sub.GetSid())
 		if err != nil {
 			return nil, errors.Wrap(err, "Error adding Subscriber to OCS")
 		}
 
 		ues = append(ues, ue)
-		fmt.Printf("Added UE to Simulator, HSS, PCRF, and OCS:\n"+
-			"\tIMSI: %s\tKey: %x\tOpc: %x\tSeq: %d\n", imsi, key, opc, seq)
+		fmt.Printf("Added UE to Simulator, %s, %s, and %s:\n"+
+			"\tIMSI: %s\tKey: %x\tOpc: %x\tSeq: %d\n", MockHSSRemote, pcrfInstance, ocsInstance, imsi, key, opc, seq)
 		tr.imsis[imsi] = true
 	}
 	fmt.Println("Successfully configured UE(s)")
 	return ues, nil
 }
 
-// Authenticate simulates an authentication between the UE with the specified
-// IMSI and the HSS, and returns the resulting Radius packet.
-func (tr *TestRunner) Authenticate(imsi string) (*radius.Packet, error) {
+// Authenticate simulates an authentication between the UE and the HSS with the specified
+// IMSI and CalledStationID, and returns the resulting Radius packet.
+func (tr *TestRunner) Authenticate(imsi, calledStationID string) (*radius.Packet, error) {
 	fmt.Printf("************************* Authenticating UE with IMSI: %s\n", imsi)
-	res, err := uesim.Authenticate(&cwfprotos.AuthenticateRequest{Imsi: imsi})
+	res, err := uesim.Authenticate(&cwfprotos.AuthenticateRequest{Imsi: imsi, CalledStationID: calledStationID})
 	if err != nil {
 		fmt.Println(err)
 		return &radius.Packet{}, err
@@ -146,29 +201,11 @@ func (tr *TestRunner) Authenticate(imsi string) (*radius.Packet, error) {
 	return radiusP, nil
 }
 
-func (tr *TestRunner) AuthenticateAndAssertSuccess(imsi string) {
-	radiusP, err := tr.Authenticate(imsi)
-	assert.NoError(tr.t, err)
-
-	eapMessage := radiusP.Attributes.Get(rfc2869.EAPMessage_Type)
-	assert.NotNil(tr.t, eapMessage, fmt.Sprintf("EAP Message from authentication is nil"))
-	assert.True(tr.t, reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode), fmt.Sprintf("UE Authentication did not return success"))
-}
-
-func (tr *TestRunner) AuthenticateAndAssertFail(imsi string) {
-	radiusP, err := tr.Authenticate(imsi)
-	assert.NoError(tr.t, err)
-
-	eapMessage := radiusP.Attributes.Get(rfc2869.EAPMessage_Type)
-	assert.NotNil(tr.t, eapMessage)
-	assert.True(tr.t, reflect.DeepEqual(int(eapMessage[0]), eap.FailureCode))
-}
-
-// Authenticate simulates an authentication between the UE with the specified
-// IMSI and the HSS, and returns the resulting Radius packet.
-func (tr *TestRunner) Disconnect(imsi string) (*radius.Packet, error) {
+// Authenticate simulates an authentication between the UE and the HSS with the specified
+// IMSI and CalledStationID, and returns the resulting Radius packet.
+func (tr *TestRunner) Disconnect(imsi, calledStationID string) (*radius.Packet, error) {
 	fmt.Printf("************************* Sending a disconnect request UE with IMSI: %s\n", imsi)
-	res, err := uesim.Disconnect(&cwfprotos.DisconnectRequest{Imsi: imsi})
+	res, err := uesim.Disconnect(&cwfprotos.DisconnectRequest{Imsi: imsi, CalledStationID: calledStationID})
 	if err != nil {
 		return &radius.Packet{}, err
 	}
@@ -181,6 +218,14 @@ func (tr *TestRunner) Disconnect(imsi string) (*radius.Packet, error) {
 	}
 	tr.t.Logf("Finished Discconnecting UE. Resulting RADIUS Packet: %d\n", radiusP)
 	return radiusP, nil
+}
+
+// ResetUESeq reset sequence for a UE allowing multiple authentication.
+//
+func (tr *TestRunner) ResetUESeq(ue *cwfprotos.UEConfig) error {
+	fmt.Printf("************************* Reset Ue Sequence for IMSI: %v\n", ue.Imsi)
+	ue.Seq--
+	return uesim.AddUE(ue)
 }
 
 // GenULTraffic simulates the UE sending traffic through the CWAG to the Internet
@@ -200,15 +245,18 @@ func (tr *TestRunner) CleanUp() error {
 			return err
 		}
 	}
-	err := clearSubscribersFromPCRF()
-	if err != nil {
-		return err
+	for _, instance := range tr.activePCRFs {
+		err := clearSubscribersFromPCRFPerInstance(instance)
+		if err != nil {
+			return err
+		}
 	}
-	err = clearSubscribersFromOCS()
-	if err != nil {
-		return err
+	for _, instance := range tr.activeOCSs {
+		err := clearSubscribersFromOCSPerInstance(instance)
+		if err != nil {
+			return err
+		}
 	}
-
 	return nil
 }
 
@@ -246,6 +294,30 @@ func (tr *TestRunner) WaitForPoliciesToSync() {
 func (tr *TestRunner) WaitForReAuthToProcess() {
 	// Todo figure out the best way to figure out when RAR is processed
 	time.Sleep(3 * time.Second)
+}
+
+// generateRandomIMSIS creates a slice of unique Random IMSIs taking into consideration a previous list with IMSIS
+func generateRandomIMSIS(numIMSIs int, preExistingIMSIS map[string]interface{}) []string {
+	set := make(map[string]bool)
+	IMSIs := make([]string, 0, numIMSIs)
+	for i := 0; i < numIMSIs; i++ {
+		imsi := ""
+		for {
+			imsi = getRandomIMSI()
+			// Check if IMSI is in the preexisting list of IMSI or in the current generated list
+			presentPreExistingIMSIs := false
+			if preExistingIMSIS != nil {
+				_, presentPreExistingIMSIs = preExistingIMSIS[imsi]
+			}
+			_, present := set[imsi]
+			if !present && !presentPreExistingIMSIs {
+				break
+			}
+		}
+		set[imsi] = true
+		IMSIs = append(IMSIs, imsi)
+	}
+	return IMSIs
 }
 
 // getRandomIMSI makes a random 15-digit IMSI that is not added to the UESim or HSS.

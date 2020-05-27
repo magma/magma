@@ -11,31 +11,23 @@
 import type {WorkOrderProjectTypesQueryResponse} from './__generated__/WorkOrderProjectTypesQuery.graphql';
 
 import AddEditProjectTypeCard from './AddEditProjectTypeCard';
-import InventoryConfigureHeader from '../InventoryConfigureHeader';
+import Button from '@fbcnms/ui/components/design-system/Button';
+import FormActionWithPermissions from '../../common/FormActionWithPermissions';
 import InventoryQueryRenderer from '../InventoryQueryRenderer';
+import InventoryView from '../InventoryViewContainer';
 import ProjectTypeCard from './ProjectTypeCard';
 import React, {useState} from 'react';
+import fbt from 'fbt';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {graphql} from 'relay-runtime';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(() => ({
-  root: {
-    flexGrow: 1,
-    padding: '24px 16px',
-  },
-  header: {
-    margin: '0px 8px',
-  },
-  subtitle: {
-    fontSize: '14px',
-    lineHeight: '24px',
-    color: '#73839e',
-  },
   typeCards: {
     display: 'flex',
     flexWrap: 'wrap',
     flexDirection: 'row',
+    alignContent: 'flex-start',
   },
   typeCard: {
     padding: '8px',
@@ -93,6 +85,7 @@ const WorkOrderProjectTypes = () => {
     setEditingProjectType(null);
     setShowAddEditCard(false);
   };
+
   return (
     <InventoryQueryRenderer
       query={projectTypesQuery}
@@ -111,23 +104,33 @@ const WorkOrderProjectTypes = () => {
         }
 
         return (
-          <div className={classes.root}>
-            <InventoryConfigureHeader
-              className={classes.header}
-              title="Project Templates"
-              subtitle="Create and manage reusable project workflows."
-              actionButtons={[
-                {
-                  title: 'Add Project Template',
-                  action: () => {
-                    ServerLogger.info(
-                      LogEvents.ADD_PROJECT_TEMPLATE_BUTTON_CLICKED,
-                    );
-                    setShowAddEditCard(true);
-                  },
-                },
-              ]}
-            />
+          <InventoryView
+            header={{
+              title: <fbt desc="">Project Templates</fbt>,
+              subtitle: (
+                <fbt desc="">Create and manage reusable project workflows.</fbt>
+              ),
+              actionButtons: [
+                <FormActionWithPermissions
+                  permissions={{
+                    entity: 'projectTemplate',
+                    action: 'create',
+                  }}>
+                  <Button
+                    onClick={() => {
+                      ServerLogger.info(
+                        LogEvents.ADD_PROJECT_TEMPLATE_BUTTON_CLICKED,
+                      );
+                      setShowAddEditCard(true);
+                    }}>
+                    <fbt desc="">Create Project Template</fbt>
+                  </Button>
+                </FormActionWithPermissions>,
+              ],
+            }}
+            permissions={{
+              entity: 'projectTemplate',
+            }}>
             <div className={classes.typeCards}>
               {(props.projectTypes?.edges ?? [])
                 .map(edge => edge.node)
@@ -141,7 +144,7 @@ const WorkOrderProjectTypes = () => {
                   </div>
                 ))}
             </div>
-          </div>
+          </InventoryView>
         );
       }}
     />

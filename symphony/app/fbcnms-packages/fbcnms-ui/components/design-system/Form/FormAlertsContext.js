@@ -9,11 +9,10 @@
  */
 
 import * as React from 'react';
-import * as imm from 'immutable';
-import AppContext from '@fbcnms/ui/context/AppContext';
 import emptyFunction from '@fbcnms/util/emptyFunction';
 import fbt from 'fbt';
 import {createContext, useCallback, useContext, useMemo, useState} from 'react';
+import {Map as immMap} from 'immutable';
 
 type Range = {
   from: number,
@@ -67,16 +66,20 @@ export type FormRule = $ReadOnly<{|
   notAggregated?: boolean,
 |}>;
 
+export type AlertRuleCheck = (validationInfo: FormRule) => ?string;
+
 type FormAlertsContainer = $ReadOnly<{|
   detected: boolean,
   message: string,
-  check: (validationInfo: FormRule) => ?string,
+  check: AlertRuleCheck,
   set: (id: string, error: ?string) => ?string,
   clear: (id: string) => void,
 |}>;
 
 export type FormAlertsContextType = $ReadOnly<{|
+  isInitialized: boolean,
   error: FormAlertsContainer,
+  missingPermissions: FormAlertsContainer,
   editLock: FormAlertsContainer,
 |}>;
 
@@ -89,7 +92,9 @@ const emptyFormAlertsContainer = {
 };
 
 export const DEFAULT_CONTEXT_VALUE = {
+  isInitialized: false,
   error: emptyFormAlertsContainer,
+  missingPermissions: emptyFormAlertsContainer,
   editLock: emptyFormAlertsContainer,
 };
 
@@ -97,16 +102,14 @@ const FormAlertsContext = createContext<FormAlertsContextType>(
   DEFAULT_CONTEXT_VALUE,
 );
 
-type AlertsMap = $ReadOnly<imm.Map<string, string>>;
-
 const FormRulesMaintainer = function() {
-  const [alertsMap, setAlertsMap] = useState<AlertsMap>(
-    new imm.Map<string, string>(),
+  const [alertsMap, setAlertsMap] = useState<immMap<string, string>>(
+    new immMap<string, string>(),
   );
   const [alertMessage, setAlertMessage] = useState('');
   const [hasAlerts, setHasAlerts] = useState(false);
 
-  const updateContext = useCallback((newAlertsMap: AlertsMap) => {
+  const updateContext = useCallback((newAlertsMap: immMap<string, string>) => {
     setAlertsMap(newAlertsMap);
     const aggregatedAlertMessage = newAlertsMap.join();
     setAlertMessage(aggregatedAlertMessage);
@@ -181,21 +184,16 @@ type Props = {
 };
 
 export function FormAlertsContextProvider(props: Props) {
-  const {user} = useContext(AppContext);
   const errorsContext = FormRulesMaintainer();
-  const editLocksContext = FormRulesMaintainer();
+  const missingPermissionsContext = FormRulesMaintainer();
+  const editLockContext = FormRulesMaintainer();
 
   const providerValue = {
+    isInitialized: true,
     error: errorsContext,
-    editLock: editLocksContext,
+    missingPermissions: missingPermissionsContext,
+    editLock: editLockContext,
   };
-
-  editLocksContext.check({
-    fieldId: 'System Rules',
-    fieldDisplayName: 'Read Only User',
-    value: user?.isReadOnlyUser,
-    checkCallback: isReadOnlyUser => (isReadOnlyUser ? 'Read Only User' : ''),
-  });
 
   return (
     <FormAlertsContext.Provider value={providerValue}>

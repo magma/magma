@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/facebookincubator/symphony/graph/ent"
+
 	"github.com/AlekSi/pointer"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
@@ -84,7 +86,7 @@ func TestLocationTitleInputValidation(t *testing.T) {
 	importer := r.importer
 	defer r.drv.Close()
 
-	ctx := newImportContext(viewertest.NewContext(r.client))
+	ctx := newImportContext(viewertest.NewContext(context.Background(), r.client))
 	prepareBasicData(ctx, t, *r)
 
 	header, _ := NewImportHeader([]string{"aa"}, ImportEntityLocation)
@@ -112,7 +114,7 @@ func TestImportLocationHierarchy(t *testing.T) {
 	r := newImporterTestResolver(t)
 	importer := r.importer
 	defer r.drv.Close()
-	ctx := newImportContext(viewertest.NewContext(r.client))
+	ctx := newImportContext(viewertest.NewContext(context.Background(), r.client))
 
 	ids := prepareBasicData(ctx, t, *r)
 
@@ -177,7 +179,7 @@ func TestValidateLocationPropertiesForType(t *testing.T) {
 	importer := r.importer
 	q := r.importer.r.Query()
 	defer r.drv.Close()
-	ctx := newImportContext(viewertest.NewContext(r.client))
+	ctx := newImportContext(viewertest.NewContext(context.Background(), r.client))
 	data := prepareLocationTypesWithProperties(ctx, t, *r)
 
 	var (
@@ -196,8 +198,10 @@ func TestValidateLocationPropertiesForType(t *testing.T) {
 	fl, _ = NewImportHeader(finalFirstRow, ImportEntityLocation)
 	r1, _ := NewImportRecord(test1, fl)
 	require.NoError(t, err)
-	lType1, err := q.LocationType(ctx, data.locTypeIDS)
+	node1, err := q.Node(ctx, data.locTypeIDS)
 	require.NoError(t, err)
+	lType1, ok := node1.(*ent.LocationType)
+	require.True(t, ok)
 
 	ptypes, err := importer.validatePropertiesForLocationType(ctx, r1, lType1)
 	require.NoError(t, err)
@@ -216,8 +220,10 @@ func TestValidateLocationPropertiesForType(t *testing.T) {
 			require.Fail(t, "property type name should be one of the two")
 		}
 	}
-	lType2, err := q.LocationType(ctx, data.locTypeIDM)
+	node2, err := q.Node(ctx, data.locTypeIDM)
 	require.NoError(t, err)
+	lType2, ok := node2.(*ent.LocationType)
+	require.True(t, ok)
 
 	r2, _ := NewImportRecord(test2, fl)
 	ptypes2, err := importer.validatePropertiesForLocationType(ctx, r2, lType2)
@@ -237,8 +243,10 @@ func TestValidateLocationPropertiesForType(t *testing.T) {
 		}
 	}
 
-	lType3, err := q.LocationType(ctx, data.locTypeIDL)
+	node3, err := q.Node(ctx, data.locTypeIDL)
 	require.NoError(t, err)
+	lType3, ok := node3.(*ent.LocationType)
+	require.True(t, ok)
 
 	r3, _ := NewImportRecord(test3, fl)
 	ptypes3, err := importer.validatePropertiesForLocationType(ctx, r3, lType3)
@@ -266,7 +274,7 @@ func TestValidateForExistingLocation(t *testing.T) {
 	r := newImporterTestResolver(t)
 	importer := r.importer
 	defer r.drv.Close()
-	ctx := newImportContext(viewertest.NewContext(r.client))
+	ctx := newImportContext(viewertest.NewContext(context.Background(), r.client))
 	ids := prepareLocationTypesWithProperties(ctx, t, *r)
 
 	firstRowLocations := append(append(locationIDHeader, []string{locTypeNameL, locTypeNameM, locTypeNameS}...), locationFixedDataHeader...)

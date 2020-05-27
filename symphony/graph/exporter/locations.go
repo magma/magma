@@ -167,7 +167,7 @@ func paramToLocationFilterInput(params string) ([]*models.LocationFilterInput, e
 		}
 		intIDSet, err := toIntSlice(f.IDSet)
 		if err != nil {
-			return nil, fmt.Errorf("wrong id set %q: %w", f.IDSet, err)
+			return nil, fmt.Errorf("wrong id set %v: %w", f.IDSet, err)
 		}
 		inp := models.LocationFilterInput{
 			FilterType:    models.LocationFilterType(upperName),

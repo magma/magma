@@ -38,6 +38,7 @@ import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import update from 'immutability-helper';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {ConnectionHandler} from 'relay-runtime';
+import {FormContextProvider} from '../../common/FormContext';
 import {createFragmentContainer, graphql} from 'react-relay';
 import {getGraphError} from '../../common/EntUtils';
 import {getPropertyDefaultValue} from '../../common/PropertyType';
@@ -111,8 +112,14 @@ class AddEditEquipmentPortTypeCard extends React.Component<Props, State> {
     const linkPropertyTypes = editingEquipmentPortType.linkPropertyTypes
       .slice()
       .sort(sortByIndex);
+
+    const isOnEdit = !!this.props.editingEquipmentPortType;
     return (
-      <>
+      <FormContextProvider
+        permissions={{
+          entity: 'portType',
+          action: isOnEdit ? 'update' : 'create',
+        }}>
         <div className={classes.cards}>
           <SectionedCard>
             <div className={classes.header}>
@@ -179,7 +186,7 @@ class AddEditEquipmentPortTypeCard extends React.Component<Props, State> {
             Save
           </Button>
         </PageFooter>
-      </>
+      </FormContextProvider>
     );
   }
 
@@ -312,9 +319,7 @@ class AddEditEquipmentPortTypeCard extends React.Component<Props, State> {
       },
     };
     const updater = store => {
-      // $FlowFixMe (T62907961) Relay flow types
       const rootQuery = store.getRoot();
-      // $FlowFixMe (T62907961) Relay flow types
       const newNode = store.getRootField('addEquipmentPortType');
       if (!newNode) {
         return;
@@ -323,15 +328,16 @@ class AddEditEquipmentPortTypeCard extends React.Component<Props, State> {
         rootQuery,
         'EquipmentPortTypes_equipmentPortTypes',
       );
+      if (types == null) {
+        return;
+      }
+
       const edge = ConnectionHandler.createEdge(
-        // $FlowFixMe (T62907961) Relay flow types
         store,
-        // $FlowFixMe (T62907961) Relay flow types
         types,
         newNode,
         'EquipmentPortTypesEdge',
       );
-      // $FlowFixMe (T62907961) Relay flow types
       ConnectionHandler.insertEdgeBefore(types, edge);
     };
     AddEquipmentPortTypeMutation(variables, callbacks, updater);
@@ -382,6 +388,7 @@ class AddEditEquipmentPortTypeCard extends React.Component<Props, State> {
           name: '',
           index: index,
           type: 'string',
+          nodeType: null,
           booleanValue: false,
           stringValue: null,
           intValue: null,
@@ -399,6 +406,7 @@ class AddEditEquipmentPortTypeCard extends React.Component<Props, State> {
           name: '',
           index: index,
           type: 'string',
+          nodeType: null,
           booleanValue: false,
           stringValue: null,
           intValue: null,
@@ -427,6 +435,7 @@ export default withStyles(styles)(
               id
               name
               type
+              nodeType
               index
               stringValue
               intValue
@@ -441,6 +450,7 @@ export default withStyles(styles)(
               id
               name
               type
+              nodeType
               index
               stringValue
               intValue

@@ -6,7 +6,10 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-// Package clock provides a simple abstraction around Golang's time.Now().
-// This package exposes the ability to set and "feeze" the wall clock in
-// test code.
+// Package clock provides a simple abstraction around the standard time package.
+//	- Set and "freeze" the wall clock in test code, with provided wrappers for
+//		- time.Now
+//		- time.Since
+//	- Skip sleeps in test code, with provided wrappers for
+//		- time.Sleep
 package clock

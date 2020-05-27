@@ -11,6 +11,9 @@ package indexer
 import (
 	"fmt"
 	"sync"
+	"testing"
+
+	merrors "magma/orc8r/lib/go/errors"
 )
 
 type indexerRegistry struct {
@@ -18,13 +21,14 @@ type indexerRegistry struct {
 	indexers map[string]Indexer
 }
 
+// registry is a singleton providing process-global access to registered indexers.
 var registry = &indexerRegistry{
 	indexers: map[string]Indexer{},
 }
 
-// RegisterIndexers registers Indexers with the state service to be called
+// RegisterAll registers indexers with the state service to be called
 // on updates to synced state.
-func RegisterIndexers(indexers ...Indexer) error {
+func RegisterAll(indexers ...Indexer) error {
 	registry.Lock()
 	defer registry.Unlock()
 	for i, indexer := range indexers {
@@ -34,6 +38,45 @@ func RegisterIndexers(indexers ...Indexer) error {
 		}
 	}
 	return nil
+}
+
+// GetIndexer returns the registered indexer with ID.
+// If not found, returns ErrNotFound from magma/orc8r/lib/go/errors.
+func GetIndexer(id string) (Indexer, error) {
+	registry.Lock()
+	defer registry.Unlock()
+
+	indexer, exists := registry.indexers[id]
+	if !exists {
+		return nil, merrors.ErrNotFound
+	}
+	return indexer, nil
+}
+
+// GetAllIndexers returns all registered indexers.
+func GetAllIndexers() []Indexer {
+	registry.Lock()
+	defer registry.Unlock()
+
+	indexers := make([]Indexer, 0, len(registry.indexers))
+	for _, indexer := range registry.indexers {
+		indexers = append(indexers, indexer)
+	}
+
+	return indexers
+}
+
+// GetAllIndexerVersionsByID returns a map of registered indexer IDs to their registered ("desired") versions.
+func GetAllIndexerVersionsByID() map[string]Version {
+	registry.Lock()
+	defer registry.Unlock()
+
+	versions := make(map[string]Version, len(registry.indexers))
+	for _, indexer := range registry.indexers {
+		versions[indexer.GetID()] = indexer.GetVersion()
+	}
+
+	return versions
 }
 
 func registerUnsafe(indexer Indexer) error {
@@ -49,4 +92,23 @@ func unregisterUnsafe(indexers []Indexer) {
 	for _, indexer := range indexers {
 		delete(registry.indexers, indexer.GetID())
 	}
+}
+
+// DeregisterAllForTest deregisters all previously-registered indexers.
+// This should only be called by test code.
+func DeregisterAllForTest(t *testing.T) {
+	if t == nil {
+		panic("for tests only")
+	}
+	registry.indexers = map[string]Indexer{}
+}
+
+// RegisterForTest sets an indexer in the registry.
+// Overwrites any existing indexer with the same indexer ID.
+// This should only be called by test code.
+func RegisterForTest(t *testing.T, idx Indexer) {
+	if t == nil {
+		panic("for tests only")
+	}
+	registry.indexers[idx.GetID()] = idx
 }

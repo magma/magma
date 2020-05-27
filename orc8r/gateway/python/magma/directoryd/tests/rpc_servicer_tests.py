@@ -9,7 +9,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 from concurrent import futures
 import grpc
 from unittest import TestCase, mock
-from magma.common.redis.mocks.mock_redis import MockRedis
+from magma.common.redis.mocks.mock_redis import MockRedis, MockUnavailableRedis
 from magma.directoryd.rpc_servicer import GatewayDirectoryServiceRpcServicer
 from orc8r.protos.common_pb2 import Void
 from orc8r.protos.directoryd_pb2 import UpdateRecordRequest, \
@@ -151,3 +151,33 @@ class DirectorydRpcServiceTests(TestCase):
                                  "aa:bb:aa:bb:aa:bb")
             else:
                 raise AssertionError()
+
+    @mock.patch("redis.Redis", MockUnavailableRedis)
+    @mock.patch('snowflake.snowflake', get_mock_snowflake)
+    def test_redis_unavailable(self):
+        self._servicer._redis_dict = MockUnavailableRedis("localhost", 6380)
+        req = UpdateRecordRequest()
+        req.id = "IMSI557"
+        req.fields["mac_addr"] = "aa:bb:aa:bb:aa:bb"
+
+        with self.assertRaises(grpc.RpcError) as err:
+            self._stub.UpdateRecord(req)
+        self.assertEqual(err.exception.code(), grpc.StatusCode.UNAVAILABLE)
+
+        get_req = GetDirectoryFieldRequest()
+        get_req.id = "IMSI557"
+        get_req.field_key = "mac_addr"
+        with self.assertRaises(grpc.RpcError) as err:
+            self._stub.GetDirectoryField(get_req)
+        self.assertEqual(err.exception.code(), grpc.StatusCode.UNAVAILABLE)
+
+        del_req = DeleteRecordRequest()
+        del_req.id = "IMSI557"
+        with self.assertRaises(grpc.RpcError) as err:
+            self._stub.DeleteRecord(del_req)
+        self.assertEqual(err.exception.code(), grpc.StatusCode.UNAVAILABLE)
+
+        void_req = Void()
+        with self.assertRaises(grpc.RpcError) as err:
+            self._stub.GetAllDirectoryRecords(void_req)
+        self.assertEqual(err.exception.code(), grpc.StatusCode.UNAVAILABLE)

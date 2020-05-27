@@ -31,12 +31,14 @@ import PropertyTypeTable from '../form/PropertyTypeTable';
 import React from 'react';
 import SectionedCard from '@fbcnms/ui/components/SectionedCard';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
-import SurveyTemplateCategories from '../form/SurveyTemplateCategories';
+import SurveyTemplateCategories from '../survey_templates/SurveyTemplateCategories';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
+import fbt from 'fbt';
 import update from 'immutability-helper';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {ConnectionHandler} from 'relay-runtime';
+import {FormContextProvider} from '../../common/FormContext';
 import {createFragmentContainer, graphql} from 'react-relay';
 import {getGraphError} from '../../common/EntUtils';
 import {getPropertyDefaultValue} from '../../common/PropertyType';
@@ -119,22 +121,25 @@ class AddEditLocationTypeCard extends React.Component<Props, State> {
     ) : null;
 
     const {mapType, mapZoomLevel, isSite} = editingLocationType;
+    const isOnEdit = !!this.props.editingLocationType;
     return (
-      <>
+      <FormContextProvider
+        permissions={{
+          entity: 'locationType',
+          action: isOnEdit ? 'update' : 'create',
+        }}>
         <div className={classes.cards}>
           <SectionedCard>
             <div className={classes.header}>
               <Text className={classes.headerText}>
-                {this.props.editingLocationType
-                  ? 'Edit Location Type'
-                  : 'New Location Type'}
+                {isOnEdit ? 'Edit Location Type' : 'New Location Type'}
               </Text>
             </div>
             <div>
               {error}
               <Grid container spacing={2}>
                 <Grid item xs={6}>
-                  <FormField label="Name" required>
+                  <FormField label={`${fbt('Location Name', '')}`} required>
                     <TextInput
                       name="name"
                       variant="outlined"
@@ -153,12 +158,14 @@ class AddEditLocationTypeCard extends React.Component<Props, State> {
                 onMapZoomLevelChanged={this.mapZoomLevelChanged}
               />
               <div className={classes.isSiteContainer}>
-                <Checkbox
-                  className={classes.checkbox}
-                  checked={isSite}
-                  onChange={this.isSiteChanged}
-                />
-                <Text variant="body2">This Location Type is a Site</Text>
+                <FormField>
+                  <Checkbox
+                    className={classes.checkbox}
+                    title={fbt('This Location Type is a Site', '')}
+                    checked={isSite}
+                    onChange={this.isSiteChanged}
+                  />
+                </FormField>
               </div>
             </div>
           </SectionedCard>
@@ -197,7 +204,7 @@ class AddEditLocationTypeCard extends React.Component<Props, State> {
             Save
           </Button>
         </PageFooter>
-      </>
+      </FormContextProvider>
     );
   }
 
@@ -307,21 +314,19 @@ class AddEditLocationTypeCard extends React.Component<Props, State> {
   };
 
   editLocationType = () => {
-    const onError = (error: Error) =>
-      this.setState({error: getGraphError(error), isSaving: false});
+    const onError = (error: Error) => {
+      this.setState({isSaving: false});
+      const errorMessage = getGraphError(error);
+      this.props.enqueueSnackbar(errorMessage, {
+        children: key => (
+          <SnackbarItem id={key} message={errorMessage} variant="error" />
+        ),
+      });
+    };
 
     const handleErrors = errors => {
       if (errors && errors[0]) {
-        this.setState({isSaving: false});
-        this.props.enqueueSnackbar(errors[0].message, {
-          children: key => (
-            <SnackbarItem
-              id={key}
-              message={errors[0].message}
-              variant="error"
-            />
-          ),
-        });
+        onError(errors[0]);
       }
     };
 
@@ -411,8 +416,20 @@ class AddEditLocationTypeCard extends React.Component<Props, State> {
       },
     });
 
-  mapTypeChanged = this.fieldChangedHandler('mapType');
-  mapZoomLevelChanged = this.fieldChangedHandler('mapZoomLevel');
+  mapTypeChanged = mapType =>
+    this.setState({
+      editingLocationType: {
+        ...this.state.editingLocationType,
+        mapType,
+      },
+    });
+  mapZoomLevelChanged = mapZoomLevel =>
+    this.setState({
+      editingLocationType: {
+        ...this.state.editingLocationType,
+        mapZoomLevel,
+      },
+    });
   nameChanged = this.fieldChangedHandler('name');
   isSiteChanged = selection => {
     this.setState({
@@ -454,6 +471,7 @@ class AddEditLocationTypeCard extends React.Component<Props, State> {
         name: p.name,
         index: p.index || 0,
         type: p.type,
+        nodeType: p.nodeType,
         booleanValue: p.booleanValue,
         stringValue: p.stringValue,
         intValue: p.intValue,
@@ -500,6 +518,7 @@ class AddEditLocationTypeCard extends React.Component<Props, State> {
                 name: '',
                 index: editingLocationType?.propertyTypes?.length ?? 0,
                 type: 'string',
+                nodeType: null,
                 booleanValue: false,
                 stringValue: null,
                 intValue: null,
@@ -542,6 +561,7 @@ export default withStyles(styles)(
               id
               name
               type
+              nodeType
               index
               stringValue
               intValue

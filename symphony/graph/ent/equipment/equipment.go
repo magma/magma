@@ -8,6 +8,8 @@ package equipment
 
 import (
 	"time"
+
+	"github.com/facebookincubator/ent"
 )
 
 const (
@@ -40,6 +42,8 @@ const (
 	EdgeFiles = "files"
 	// EdgeHyperlinks holds the string denoting the hyperlinks edge name in mutations.
 	EdgeHyperlinks = "hyperlinks"
+	// EdgeEndpoints holds the string denoting the endpoints edge name in mutations.
+	EdgeEndpoints = "endpoints"
 
 	// Table holds the table name of the equipment in the database.
 	Table = "equipment"
@@ -106,6 +110,13 @@ const (
 	HyperlinksInverseTable = "hyperlinks"
 	// HyperlinksColumn is the table column denoting the hyperlinks relation/edge.
 	HyperlinksColumn = "equipment_hyperlinks"
+	// EndpointsTable is the table the holds the endpoints relation/edge.
+	EndpointsTable = "service_endpoints"
+	// EndpointsInverseTable is the table name for the ServiceEndpoint entity.
+	// It exists in this package in order to avoid circular dependency with the "serviceendpoint" package.
+	EndpointsInverseTable = "service_endpoints"
+	// EndpointsColumn is the table column denoting the endpoints relation/edge.
+	EndpointsColumn = "service_endpoint_equipment"
 )
 
 // Columns holds all SQL columns for equipment fields.
@@ -127,7 +138,15 @@ var ForeignKeys = []string{
 	"location_equipment",
 }
 
+// Note that the variables below are initialized by the runtime
+// package on the initialization of the application. Therefore,
+// it should be imported in the main as follows:
+//
+//	import _ "github.com/facebookincubator/symphony/graph/ent/runtime"
+//
 var (
+	Hooks  [1]ent.Hook
+	Policy ent.Policy
 	// DefaultCreateTime holds the default value on creation for the create_time field.
 	DefaultCreateTime func() time.Time
 	// DefaultUpdateTime holds the default value on creation for the update_time field.

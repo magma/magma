@@ -13,7 +13,7 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
 	"github.com/facebookincubator/symphony/pkg/log"
-	"github.com/vektah/gqlparser/gqlerror"
+	"github.com/vektah/gqlparser/v2/gqlerror"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
 	"go.uber.org/zap"

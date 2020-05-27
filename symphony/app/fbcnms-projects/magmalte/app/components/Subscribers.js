@@ -31,7 +31,7 @@ import TableRow from '@material-ui/core/TableRow';
 import Text from '@fbcnms/ui/components/design-system/Text';
 
 import nullthrows from '@fbcnms/util/nullthrows';
-import useMagmaAPI from '../common/useMagmaAPI';
+import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {Route} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
@@ -72,12 +72,16 @@ function Subscribers() {
 
   const {isLoading: subProfilesLoading, response: epcConfigs} = useMagmaAPI(
     MagmaV1API.getLteByNetworkIdCellularEpc,
-    {networkId: nullthrows(match.params.networkId)},
+    {
+      networkId: nullthrows(match.params.networkId),
+    },
   );
 
   const {isLoading: apnsLoading, response: networkAPNs} = useMagmaAPI(
     MagmaV1API.getLteByNetworkIdApns,
-    {networkId: nullthrows(match.params.networkId)},
+    {
+      networkId: nullthrows(match.params.networkId),
+    },
   );
 
   if (isLoading || subProfilesLoading || apnsLoading) {

@@ -41,6 +41,7 @@ export default withStyles(styles)(
         id
         name
         type
+        nodeType
         index
         stringValue
         intValue
@@ -53,6 +54,8 @@ export default withStyles(styles)(
         isEditable
         isInstanceProperty
         isMandatory
+        category
+        isDeleted
       }
     `,
   }),

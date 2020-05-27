@@ -15,9 +15,9 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/ent/checklistcategorydefinition"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitemdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
-	"github.com/facebookincubator/symphony/graph/ent/workordertype"
 )
 
 // CheckListItemDefinitionQuery is the builder for querying CheckListItemDefinition entities.
@@ -25,12 +25,12 @@ type CheckListItemDefinitionQuery struct {
 	config
 	limit      *int
 	offset     *int
-	order      []Order
+	order      []OrderFunc
 	unique     []string
 	predicates []predicate.CheckListItemDefinition
 	// eager-loading edges.
-	withWorkOrderType *WorkOrderTypeQuery
-	withFKs           bool
+	withCheckListCategoryDefinition *CheckListCategoryDefinitionQuery
+	withFKs                         bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -55,22 +55,22 @@ func (clidq *CheckListItemDefinitionQuery) Offset(offset int) *CheckListItemDefi
 }
 
 // Order adds an order step to the query.
-func (clidq *CheckListItemDefinitionQuery) Order(o ...Order) *CheckListItemDefinitionQuery {
+func (clidq *CheckListItemDefinitionQuery) Order(o ...OrderFunc) *CheckListItemDefinitionQuery {
 	clidq.order = append(clidq.order, o...)
 	return clidq
 }
 
-// QueryWorkOrderType chains the current query on the work_order_type edge.
-func (clidq *CheckListItemDefinitionQuery) QueryWorkOrderType() *WorkOrderTypeQuery {
-	query := &WorkOrderTypeQuery{config: clidq.config}
+// QueryCheckListCategoryDefinition chains the current query on the check_list_category_definition edge.
+func (clidq *CheckListItemDefinitionQuery) QueryCheckListCategoryDefinition() *CheckListCategoryDefinitionQuery {
+	query := &CheckListCategoryDefinitionQuery{config: clidq.config}
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := clidq.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(checklistitemdefinition.Table, checklistitemdefinition.FieldID, clidq.sqlQuery()),
-			sqlgraph.To(workordertype.Table, workordertype.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, checklistitemdefinition.WorkOrderTypeTable, checklistitemdefinition.WorkOrderTypeColumn),
+			sqlgraph.To(checklistcategorydefinition.Table, checklistcategorydefinition.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, checklistitemdefinition.CheckListCategoryDefinitionTable, checklistitemdefinition.CheckListCategoryDefinitionColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(clidq.driver.Dialect(), step)
 		return fromU, nil
@@ -248,7 +248,7 @@ func (clidq *CheckListItemDefinitionQuery) Clone() *CheckListItemDefinitionQuery
 		config:     clidq.config,
 		limit:      clidq.limit,
 		offset:     clidq.offset,
-		order:      append([]Order{}, clidq.order...),
+		order:      append([]OrderFunc{}, clidq.order...),
 		unique:     append([]string{}, clidq.unique...),
 		predicates: append([]predicate.CheckListItemDefinition{}, clidq.predicates...),
 		// clone intermediate query.
@@ -257,14 +257,14 @@ func (clidq *CheckListItemDefinitionQuery) Clone() *CheckListItemDefinitionQuery
 	}
 }
 
-//  WithWorkOrderType tells the query-builder to eager-loads the nodes that are connected to
-// the "work_order_type" edge. The optional arguments used to configure the query builder of the edge.
-func (clidq *CheckListItemDefinitionQuery) WithWorkOrderType(opts ...func(*WorkOrderTypeQuery)) *CheckListItemDefinitionQuery {
-	query := &WorkOrderTypeQuery{config: clidq.config}
+//  WithCheckListCategoryDefinition tells the query-builder to eager-loads the nodes that are connected to
+// the "check_list_category_definition" edge. The optional arguments used to configure the query builder of the edge.
+func (clidq *CheckListItemDefinitionQuery) WithCheckListCategoryDefinition(opts ...func(*CheckListCategoryDefinitionQuery)) *CheckListItemDefinitionQuery {
+	query := &CheckListCategoryDefinitionQuery{config: clidq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
-	clidq.withWorkOrderType = query
+	clidq.withCheckListCategoryDefinition = query
 	return clidq
 }
 
@@ -327,6 +327,9 @@ func (clidq *CheckListItemDefinitionQuery) prepareQuery(ctx context.Context) err
 		}
 		clidq.sql = prev
 	}
+	if err := checklistitemdefinition.Policy.EvalQuery(ctx, clidq); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -336,10 +339,10 @@ func (clidq *CheckListItemDefinitionQuery) sqlAll(ctx context.Context) ([]*Check
 		withFKs     = clidq.withFKs
 		_spec       = clidq.querySpec()
 		loadedTypes = [1]bool{
-			clidq.withWorkOrderType != nil,
+			clidq.withCheckListCategoryDefinition != nil,
 		}
 	)
-	if clidq.withWorkOrderType != nil {
+	if clidq.withCheckListCategoryDefinition != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -369,16 +372,16 @@ func (clidq *CheckListItemDefinitionQuery) sqlAll(ctx context.Context) ([]*Check
 		return nodes, nil
 	}
 
-	if query := clidq.withWorkOrderType; query != nil {
+	if query := clidq.withCheckListCategoryDefinition; query != nil {
 		ids := make([]int, 0, len(nodes))
 		nodeids := make(map[int][]*CheckListItemDefinition)
 		for i := range nodes {
-			if fk := nodes[i].work_order_type_check_list_definitions; fk != nil {
+			if fk := nodes[i].check_list_category_definition_check_list_item_definitions; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
 		}
-		query.Where(workordertype.IDIn(ids...))
+		query.Where(checklistcategorydefinition.IDIn(ids...))
 		neighbors, err := query.All(ctx)
 		if err != nil {
 			return nil, err
@@ -386,10 +389,10 @@ func (clidq *CheckListItemDefinitionQuery) sqlAll(ctx context.Context) ([]*Check
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "work_order_type_check_list_definitions" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "check_list_category_definition_check_list_item_definitions" returned %v`, n.ID)
 			}
 			for i := range nodes {
-				nodes[i].Edges.WorkOrderType = n
+				nodes[i].Edges.CheckListCategoryDefinition = n
 			}
 		}
 	}
@@ -475,14 +478,14 @@ func (clidq *CheckListItemDefinitionQuery) sqlQuery() *sql.Selector {
 type CheckListItemDefinitionGroupBy struct {
 	config
 	fields []string
-	fns    []Aggregate
+	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (clidgb *CheckListItemDefinitionGroupBy) Aggregate(fns ...Aggregate) *CheckListItemDefinitionGroupBy {
+func (clidgb *CheckListItemDefinitionGroupBy) Aggregate(fns ...AggregateFunc) *CheckListItemDefinitionGroupBy {
 	clidgb.fns = append(clidgb.fns, fns...)
 	return clidgb
 }

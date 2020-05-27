@@ -9,10 +9,13 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/99designs/gqlgen/handler"
+	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/facebookincubator/symphony/pkg/ent-contrib/entgqlgen/internal/todo"
 	"github.com/facebookincubator/symphony/pkg/ent-contrib/entgqlgen/internal/todo/ent"
 	"github.com/facebookincubator/symphony/pkg/ent-contrib/entgqlgen/internal/todo/ent/migrate"
+
+	_ "github.com/facebookincubator/symphony/pkg/ent-contrib/entgqlgen/internal/todo/ent/runtime"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -31,8 +34,8 @@ func main() {
 		log.Fatalln("running schema migration", err)
 	}
 
-	http.Handle("/", handler.Playground("Todo", "/query"))
-	http.Handle("/query", handler.GraphQL(
+	http.Handle("/", playground.Handler("Todo", "/query"))
+	http.Handle("/query", handler.NewDefaultServer(
 		todo.NewExecutableSchema(todo.New(client)),
 	))
 	log.Fatal(http.ListenAndServe(":8081", nil))

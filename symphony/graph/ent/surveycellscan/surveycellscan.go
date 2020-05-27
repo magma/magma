@@ -8,6 +8,8 @@ package surveycellscan
 
 import (
 	"time"
+
+	"github.com/facebookincubator/ent"
 )
 
 const (
@@ -38,6 +40,8 @@ const (
 	FieldLatitude              = "latitude"                // FieldLongitude holds the string denoting the longitude vertex property in the database.
 	FieldLongitude             = "longitude"
 
+	// EdgeChecklistItem holds the string denoting the checklist_item edge name in mutations.
+	EdgeChecklistItem = "checklist_item"
 	// EdgeSurveyQuestion holds the string denoting the survey_question edge name in mutations.
 	EdgeSurveyQuestion = "survey_question"
 	// EdgeLocation holds the string denoting the location edge name in mutations.
@@ -45,6 +49,13 @@ const (
 
 	// Table holds the table name of the surveycellscan in the database.
 	Table = "survey_cell_scans"
+	// ChecklistItemTable is the table the holds the checklist_item relation/edge.
+	ChecklistItemTable = "survey_cell_scans"
+	// ChecklistItemInverseTable is the table name for the CheckListItem entity.
+	// It exists in this package in order to avoid circular dependency with the "checklistitem" package.
+	ChecklistItemInverseTable = "check_list_items"
+	// ChecklistItemColumn is the table column denoting the checklist_item relation/edge.
+	ChecklistItemColumn = "survey_cell_scan_checklist_item"
 	// SurveyQuestionTable is the table the holds the survey_question relation/edge.
 	SurveyQuestionTable = "survey_cell_scans"
 	// SurveyQuestionInverseTable is the table name for the SurveyQuestion entity.
@@ -90,11 +101,20 @@ var Columns = []string{
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the SurveyCellScan type.
 var ForeignKeys = []string{
+	"survey_cell_scan_checklist_item",
 	"survey_cell_scan_survey_question",
 	"survey_cell_scan_location",
 }
 
+// Note that the variables below are initialized by the runtime
+// package on the initialization of the application. Therefore,
+// it should be imported in the main as follows:
+//
+//	import _ "github.com/facebookincubator/symphony/graph/ent/runtime"
+//
 var (
+	Hooks  [1]ent.Hook
+	Policy ent.Policy
 	// DefaultCreateTime holds the default value on creation for the create_time field.
 	DefaultCreateTime func() time.Time
 	// DefaultUpdateTime holds the default value on creation for the update_time field.

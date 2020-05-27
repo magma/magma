@@ -196,15 +196,21 @@ const AddEditProjectTypeCard = (props: Props) => {
     onProjectTypeSaved,
   ]);
 
+  const isOnEditMode = editingProjectType !== null;
+
   const onSave = useCallback(() => {
-    if (editingProjectType !== null) {
+    if (isOnEditMode) {
       return onEdit();
     }
     return onAdd();
-  }, [editingProjectType, onAdd, onEdit]);
+  }, [isOnEditMode, onAdd, onEdit]);
 
   return (
-    <FormContextProvider>
+    <FormContextProvider
+      permissions={{
+        entity: 'projectTemplate',
+        action: isOnEditMode ? 'update' : 'create',
+      }}>
       <div className={classes.root}>
         <div className={classes.header}>
           <Breadcrumbs
@@ -309,6 +315,7 @@ export default createFragmentContainer(AddEditProjectTypeCard, {
         id
         name
         type
+        nodeType
         index
         stringValue
         intValue

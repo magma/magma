@@ -11,6 +11,7 @@
 import type {AppContextType} from '@fbcnms/ui/context/AppContext';
 import type {FeatureID} from '@fbcnms/types/features';
 import type {Property} from '../../common/Property';
+import type {PropertyKind} from '../../mutations/__generated__/AddEquipmentPortTypeMutation.graphql';
 import type {PropertyType} from '../../common/PropertyType';
 import type {WithStyles} from '@material-ui/core';
 
@@ -18,25 +19,25 @@ import * as React from 'react';
 import AppContext from '@fbcnms/ui/context/AppContext';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import Checkbox from '@fbcnms/ui/components/design-system/Checkbox/Checkbox';
-import DeleteIcon from '@material-ui/icons/Delete';
 import DraggableTableRow from '../draggable/DraggableTableRow';
 import DroppableTableBody from '../draggable/DroppableTableBody';
 import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
+import IconButton from '@fbcnms/ui/components/design-system/IconButton';
+import PropertyTypeSelect from './PropertyTypeSelect';
 import PropertyValueInput from './PropertyValueInput';
-import Select from '@fbcnms/ui/components/design-system/Select/Select';
 import Table from '@material-ui/core/Table';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import inventoryTheme from '../../common/theme';
-import symphony from '@fbcnms/ui/theme/symphony';
+import {DeleteIcon, PlusIcon} from '@fbcnms/ui/components/design-system/Icons';
 import {removeItem, setItem, updateItem} from '@fbcnms/util/arrays';
 import {reorder} from '../draggable/DraggableUtils';
 import {withStyles} from '@material-ui/core/styles';
 
-const styles = _theme => ({
+const styles = () => ({
   container: {
     maxWidth: '1366px',
     overflowX: 'auto',
@@ -56,17 +57,6 @@ const styles = _theme => ({
     paddingLeft: '0px',
     width: 'unset',
   },
-  addButton: {
-    padding: '4px 18px',
-    height: '32px',
-    borderRadius: '4px',
-    border: '1px solid',
-    borderColor: symphony.palette.primary,
-    '&:hover': {
-      borderColor: symphony.palette.B800,
-      backgroundColor: symphony.palette.B50,
-    },
-  },
   selectMenu: {
     height: '14px',
   },
@@ -75,26 +65,11 @@ const styles = _theme => ({
   },
 });
 
-type PropertyTypeInfo = {|
+export type PropertyTypeInfo = $ReadOnly<{|
+  kind: PropertyKind,
   label: string,
   featureFlag?: FeatureID,
-|};
-
-const propertyTypeLabels: {[string]: PropertyTypeInfo} = {
-  date: {label: 'Date'},
-  datetime_local: {label: 'Date & Time'},
-  int: {label: 'Number'},
-  float: {label: 'Float'},
-  string: {label: 'Text'},
-  email: {label: 'Email'},
-  gps_location: {label: 'Coordinates'},
-  bool: {label: 'True or False'},
-  range: {label: 'Range'},
-  enum: {label: 'Multiple choice'},
-  equipment: {label: 'Equipment'},
-  location: {label: 'Location'},
-  service: {label: 'Service', featureFlag: 'services'},
-};
+|}>;
 
 type Props = {
   propertyTypes: Array<PropertyType>,
@@ -167,23 +142,9 @@ class PropertyTypeTable extends React.Component<Props> {
                     component="div"
                     scope="row">
                     <FormField>
-                      <Select
-                        className={classes.input}
-                        options={Object.keys(propertyTypeLabels)
-                          .filter(
-                            type =>
-                              !propertyTypeLabels[type].featureFlag ||
-                              this.context.isFeatureEnabled(
-                                propertyTypeLabels[type].featureFlag,
-                              ),
-                          )
-                          .map(type => ({
-                            key: type,
-                            value: type,
-                            label: propertyTypeLabels[type].label,
-                          }))}
-                        selectedValue={property.type}
-                        onChange={this._handleTypeChange(i)}
+                      <PropertyTypeSelect
+                        propertyType={property}
+                        onPropertyTypeChange={this._handleTypeChange(i)}
                       />
                     </FormField>
                   </TableCell>
@@ -204,6 +165,7 @@ class PropertyTypeTable extends React.Component<Props> {
                     <FormField>
                       <Checkbox
                         checked={!property.isInstanceProperty}
+                        title={null}
                         onChange={this._handleChecked(i)}
                       />
                     </FormField>
@@ -213,6 +175,7 @@ class PropertyTypeTable extends React.Component<Props> {
                       <FormField>
                         <Checkbox
                           checked={!!property.isMandatory}
+                          title={null}
                           onChange={this._handleIsMandatoryChecked(i)}
                         />
                       </FormField>
@@ -223,16 +186,15 @@ class PropertyTypeTable extends React.Component<Props> {
                     align="right"
                     component="div">
                     <FormAction>
-                      <Button
-                        variant="text"
+                      <IconButton
                         skin="primary"
                         onClick={this._onRemovePropertyClicked(i, property)}
                         disabled={
                           !this.props.supportDelete &&
                           !property.id.includes('@tmp')
-                        }>
-                        <DeleteIcon />
-                      </Button>
+                        }
+                        icon={DeleteIcon}
+                      />
                     </FormAction>
                   </TableCell>
                 </DraggableTableRow>
@@ -242,10 +204,9 @@ class PropertyTypeTable extends React.Component<Props> {
         </Table>
         <FormAction>
           <Button
-            className={classes.addButton}
-            color="primary"
             variant="text"
-            onClick={this._onAddProperty}>
+            onClick={this._onAddProperty}
+            leftIcon={PlusIcon}>
             Add Property
           </Button>
         </FormAction>
@@ -277,16 +238,12 @@ class PropertyTypeTable extends React.Component<Props> {
     );
   };
 
-  _handleTypeChange = index => value => {
-    this.props.onPropertiesChanged(
-      updateItem<PropertyType, 'type'>(
-        this.props.propertyTypes,
-        index,
-        'type',
-        // $FlowFixMe: need to figure out how to cast string to PropertyKind
-        value,
-      ),
-    );
+  _handleTypeChange = (index: number) => (value: PropertyType) => {
+    this.props.onPropertiesChanged([
+      ...this.props.propertyTypes.slice(0, index),
+      value,
+      ...this.props.propertyTypes.slice(index + 1),
+    ]);
   };
 
   _handleNameBlur = index => {
@@ -373,6 +330,7 @@ class PropertyTypeTable extends React.Component<Props> {
       name: '',
       index: this.props.propertyTypes.length,
       type: 'string',
+      nodeType: null,
       booleanValue: false,
       stringValue: null,
       intValue: null,

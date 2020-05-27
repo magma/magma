@@ -159,10 +159,7 @@ export const buildPropertyFilterConfigs = (
   }
 
   return definitions
-    .filter(
-      d =>
-        d.type !== 'equipment' && d.type !== 'location' && d.type !== 'service',
-    )
+    .filter(d => d.type !== 'node')
     .map(definition => ({
       key: `property_${definition.name}_${definition.type}`,
       name: 'property',
@@ -187,7 +184,7 @@ export function getPossibleProperties(
         type: prop.type,
         name: prop.name,
         index: index,
-        stringValue: '',
+        stringValue: prop.stringValue,
       })),
     prop => prop.name + prop.type,
   );

@@ -9,13 +9,16 @@
  */
 
 import type {FileAttachmentType} from '../../common/FileAttachment';
+import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 
 import * as React from 'react';
 import DocumentMenu from '../DocumentMenu';
 import ImageDialog from '../ImageDialog';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import classNames from 'classnames';
+import fbt from 'fbt';
 import nullthrows from '@fbcnms/util/nullthrows';
+import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {DocumentAPIUrls} from '../../common/DocumentAPI';
 import {
   WIDE_DIMENSION_HEIGHT_PX,
@@ -78,13 +81,18 @@ type Props = {
   file: FileAttachmentType,
   onFileDeleted: (file: FileAttachmentType) => void,
   className?: string,
+  ...WithAlert,
 };
 
-const FilePreview = ({file, onFileDeleted, className}: Props): React.Node => {
+const FilePreview = ({
+  file,
+  onFileDeleted,
+  className,
+  confirm,
+}: Props): React.Node => {
   const classes = useStyles();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isPreviewDialogOpen, setIsPreviewDialogOpen] = useState(false);
-
   return (
     <div className={classNames(classes.root, className)}>
       <img
@@ -104,7 +112,15 @@ const FilePreview = ({file, onFileDeleted, className}: Props): React.Node => {
       <DocumentMenu
         document={file}
         onDialogOpen={() => setIsPreviewDialogOpen(true)}
-        onDocumentDeleted={() => onFileDeleted(file)}
+        onDocumentDeleted={() => {
+          confirm(
+            <fbt desc="">
+              Are you sure you want to delete "<fbt:param name="file name">
+                {file.fileName}
+              </fbt:param>"?'
+            </fbt>,
+          ).then(confirmed => confirmed && onFileDeleted(file));
+        }}
         popoverMenuClassName={classNames(classes.popoverMenu, {
           [classes.visiblePopoverMenu]: isMenuOpen,
         })}
@@ -119,4 +135,4 @@ const FilePreview = ({file, onFileDeleted, className}: Props): React.Node => {
   );
 };
 
-export default FilePreview;
+export default withAlert(FilePreview);

@@ -5,6 +5,7 @@
 package exporter
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"testing"
@@ -23,7 +24,7 @@ const strVal = "defVal"
 func TestLocationHierarchy(t *testing.T) {
 	r := newExporterTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr := r.Mutation()
 	locTypeL, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{Name: "example_type_large"})
@@ -96,7 +97,7 @@ func TestLocationHierarchy(t *testing.T) {
 func TestParentHierarchy(t *testing.T) {
 	r := newExporterTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr := r.Mutation()
 	mapType := "map"
@@ -161,13 +162,12 @@ func TestParentHierarchy(t *testing.T) {
 	require.Equal(t, hierarchy[3], posDef1.Name)
 	require.Equal(t, hierarchy[4], parentEquipment.Name)
 	require.Equal(t, hierarchy[5], posDef2.Name)
-
 }
 
 func TestPropertiesForCSV(t *testing.T) {
 	r := newExporterTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	client := ent.FromContext(ctx)
 
 	mr := r.Mutation()
@@ -202,22 +202,33 @@ func TestPropertiesForCSV(t *testing.T) {
 	}
 	propInput6 := models.PropertyTypeInput{
 		Name: "Property type6",
-		Type: "equipment",
+		Type: "node",
 	}
 	propInput7 := models.PropertyTypeInput{
 		Name: "Property type7",
-		Type: "location",
+		Type: "node",
 	}
 
 	propInput8 := models.PropertyTypeInput{
 		Name: "Property type8",
-		Type: "service",
+		Type: "node",
+	}
+
+	propInput9 := models.PropertyTypeInput{
+		Name: "Property type9",
+		Type: "node",
+	}
+
+	propInput10 := models.PropertyTypeInput{
+		Name: "Property type10",
+		Type: "node",
 	}
 
 	equipmentType, err := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
 		Name: "equipment_type",
 		Properties: []*models.PropertyTypeInput{
 			&propInput1, &propInput2, &propInput3, &propInput4, &propInput5, &propInput6, &propInput7, &propInput8,
+			&propInput9, &propInput10,
 		},
 	})
 	require.NoError(t, err)
@@ -229,6 +240,8 @@ func TestPropertiesForCSV(t *testing.T) {
 	propType6 := equipmentType.QueryPropertyTypes().Where(propertytype.Name("Property type6")).OnlyX(ctx)
 	propType7 := equipmentType.QueryPropertyTypes().Where(propertytype.Name("Property type7")).OnlyX(ctx)
 	propType8 := equipmentType.QueryPropertyTypes().Where(propertytype.Name("Property type8")).OnlyX(ctx)
+	propType9 := equipmentType.QueryPropertyTypes().Where(propertytype.Name("Property type9")).OnlyX(ctx)
+	propType10 := equipmentType.QueryPropertyTypes().Where(propertytype.Name("Property type10")).OnlyX(ctx)
 
 	intVal := 40
 	strVal := strVal
@@ -275,8 +288,8 @@ func TestPropertiesForCSV(t *testing.T) {
 	})
 	require.NoError(t, err)
 	prop6 := models.PropertyInput{
-		PropertyTypeID:   propType6.ID,
-		EquipmentIDValue: &propEquipment.ID,
+		PropertyTypeID: propType6.ID,
+		NodeIDValue:    &propEquipment.ID,
 	}
 
 	propLocationType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{Name: "prop_loc_type"})
@@ -287,8 +300,8 @@ func TestPropertiesForCSV(t *testing.T) {
 	})
 	require.NoError(t, err)
 	prop7 := models.PropertyInput{
-		PropertyTypeID:  propType7.ID,
-		LocationIDValue: &propLocation.ID,
+		PropertyTypeID: propType7.ID,
+		NodeIDValue:    &propLocation.ID,
 	}
 
 	propServiceType, err := mr.AddServiceType(ctx, models.ServiceTypeCreateData{Name: "prop_service_type", HasCustomer: false})
@@ -301,14 +314,35 @@ func TestPropertiesForCSV(t *testing.T) {
 	require.NoError(t, err)
 	prop8 := models.PropertyInput{
 		PropertyTypeID: propType8.ID,
-		ServiceIDValue: &propService.ID,
+		NodeIDValue:    &propService.ID,
+	}
+
+	propWorkOrderType, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "prop_work_order_type"})
+	require.NoError(t, err)
+	propWorkOrder, err := mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
+		Name:            "Work Order",
+		WorkOrderTypeID: propWorkOrderType.ID,
+	})
+	require.NoError(t, err)
+	prop9 := models.PropertyInput{
+		PropertyTypeID: propType9.ID,
+		NodeIDValue:    &propWorkOrder.ID,
+	}
+
+	user, err := client.User.Create().SetAuthID("user").SetFirstName("FB").SetLastName("User").Save(ctx)
+	require.NoError(t, err)
+	prop10 := models.PropertyInput{
+		PropertyTypeID: propType10.ID,
+		NodeIDValue:    &user.ID,
 	}
 
 	equipment, err := mr.AddEquipment(ctx, models.AddEquipmentInput{
-		Name:       "child_equipment",
-		Type:       equipmentType.ID,
-		Location:   &location.ID,
-		Properties: []*models.PropertyInput{&prop1, &prop2, &prop3, &prop4, &prop5, &prop6, &prop7, &prop8},
+		Name:     "child_equipment",
+		Type:     equipmentType.ID,
+		Location: &location.ID,
+		Properties: []*models.PropertyInput{
+			&prop1, &prop2, &prop3, &prop4, &prop5, &prop6, &prop7, &prop8, &prop9, &prop10,
+		},
 	})
 	require.NoError(t, err)
 
@@ -327,7 +361,7 @@ func TestPropertiesForCSV(t *testing.T) {
 func TestPropertyTypesForCSV(t *testing.T) {
 	r := newExporterTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	client := ent.FromContext(ctx)
 
 	mr := r.Mutation()
@@ -409,7 +443,7 @@ func TestPropertyTypesForCSV(t *testing.T) {
 func TestSamePropertyTypesForCSV(t *testing.T) {
 	r := newExporterTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	client := ent.FromContext(ctx)
 
 	mr := r.Mutation()

@@ -46,12 +46,12 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-type Props = {
+export type FormFieldProps = $ReadOnly<{|
   className?: string,
   label?: string,
   helpText?: string,
   children: React.Node,
-  disabled: boolean,
+  disabled?: ?boolean,
   hasError?: boolean,
   required?: boolean,
   errorText?: ?string,
@@ -60,9 +60,10 @@ type Props = {
     id: string,
     value: string | number,
   },
-};
+  ignorePermissions?: ?boolean,
+|}>;
 
-const FormField = (props: Props) => {
+const FormField = (props: FormFieldProps) => {
   const {
     children,
     label,
@@ -74,13 +75,23 @@ const FormField = (props: Props) => {
     hasSpacer,
     required = false,
     validation,
+    ignorePermissions,
   } = props;
   const classes = useStyles();
 
   const validationContext = useContext(FormAlertsContext);
   const disabled = useMemo(
-    () => disabledProp || validationContext.editLock.detected,
-    [disabledProp, validationContext.editLock.detected],
+    () =>
+      disabledProp ||
+      (validationContext.missingPermissions.detected &&
+        ignorePermissions != true) ||
+      validationContext.editLock.detected,
+    [
+      disabledProp,
+      ignorePermissions,
+      validationContext.editLock.detected,
+      validationContext.missingPermissions.detected,
+    ],
   );
 
   const requireFieldError =

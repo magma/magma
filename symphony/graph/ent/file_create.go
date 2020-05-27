@@ -14,7 +14,15 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
+	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/file"
+	"github.com/facebookincubator/symphony/graph/ent/floorplan"
+	"github.com/facebookincubator/symphony/graph/ent/location"
+	"github.com/facebookincubator/symphony/graph/ent/survey"
+	"github.com/facebookincubator/symphony/graph/ent/surveyquestion"
+	"github.com/facebookincubator/symphony/graph/ent/user"
+	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
 
 // FileCreate is the builder for creating a File entity.
@@ -130,6 +138,177 @@ func (fc *FileCreate) SetNillableCategory(s *string) *FileCreate {
 		fc.SetCategory(*s)
 	}
 	return fc
+}
+
+// SetLocationID sets the location edge to Location by id.
+func (fc *FileCreate) SetLocationID(id int) *FileCreate {
+	fc.mutation.SetLocationID(id)
+	return fc
+}
+
+// SetNillableLocationID sets the location edge to Location by id if the given value is not nil.
+func (fc *FileCreate) SetNillableLocationID(id *int) *FileCreate {
+	if id != nil {
+		fc = fc.SetLocationID(*id)
+	}
+	return fc
+}
+
+// SetLocation sets the location edge to Location.
+func (fc *FileCreate) SetLocation(l *Location) *FileCreate {
+	return fc.SetLocationID(l.ID)
+}
+
+// SetEquipmentID sets the equipment edge to Equipment by id.
+func (fc *FileCreate) SetEquipmentID(id int) *FileCreate {
+	fc.mutation.SetEquipmentID(id)
+	return fc
+}
+
+// SetNillableEquipmentID sets the equipment edge to Equipment by id if the given value is not nil.
+func (fc *FileCreate) SetNillableEquipmentID(id *int) *FileCreate {
+	if id != nil {
+		fc = fc.SetEquipmentID(*id)
+	}
+	return fc
+}
+
+// SetEquipment sets the equipment edge to Equipment.
+func (fc *FileCreate) SetEquipment(e *Equipment) *FileCreate {
+	return fc.SetEquipmentID(e.ID)
+}
+
+// SetUserID sets the user edge to User by id.
+func (fc *FileCreate) SetUserID(id int) *FileCreate {
+	fc.mutation.SetUserID(id)
+	return fc
+}
+
+// SetNillableUserID sets the user edge to User by id if the given value is not nil.
+func (fc *FileCreate) SetNillableUserID(id *int) *FileCreate {
+	if id != nil {
+		fc = fc.SetUserID(*id)
+	}
+	return fc
+}
+
+// SetUser sets the user edge to User.
+func (fc *FileCreate) SetUser(u *User) *FileCreate {
+	return fc.SetUserID(u.ID)
+}
+
+// SetWorkOrderID sets the work_order edge to WorkOrder by id.
+func (fc *FileCreate) SetWorkOrderID(id int) *FileCreate {
+	fc.mutation.SetWorkOrderID(id)
+	return fc
+}
+
+// SetNillableWorkOrderID sets the work_order edge to WorkOrder by id if the given value is not nil.
+func (fc *FileCreate) SetNillableWorkOrderID(id *int) *FileCreate {
+	if id != nil {
+		fc = fc.SetWorkOrderID(*id)
+	}
+	return fc
+}
+
+// SetWorkOrder sets the work_order edge to WorkOrder.
+func (fc *FileCreate) SetWorkOrder(w *WorkOrder) *FileCreate {
+	return fc.SetWorkOrderID(w.ID)
+}
+
+// SetChecklistItemID sets the checklist_item edge to CheckListItem by id.
+func (fc *FileCreate) SetChecklistItemID(id int) *FileCreate {
+	fc.mutation.SetChecklistItemID(id)
+	return fc
+}
+
+// SetNillableChecklistItemID sets the checklist_item edge to CheckListItem by id if the given value is not nil.
+func (fc *FileCreate) SetNillableChecklistItemID(id *int) *FileCreate {
+	if id != nil {
+		fc = fc.SetChecklistItemID(*id)
+	}
+	return fc
+}
+
+// SetChecklistItem sets the checklist_item edge to CheckListItem.
+func (fc *FileCreate) SetChecklistItem(c *CheckListItem) *FileCreate {
+	return fc.SetChecklistItemID(c.ID)
+}
+
+// SetSurveyID sets the survey edge to Survey by id.
+func (fc *FileCreate) SetSurveyID(id int) *FileCreate {
+	fc.mutation.SetSurveyID(id)
+	return fc
+}
+
+// SetNillableSurveyID sets the survey edge to Survey by id if the given value is not nil.
+func (fc *FileCreate) SetNillableSurveyID(id *int) *FileCreate {
+	if id != nil {
+		fc = fc.SetSurveyID(*id)
+	}
+	return fc
+}
+
+// SetSurvey sets the survey edge to Survey.
+func (fc *FileCreate) SetSurvey(s *Survey) *FileCreate {
+	return fc.SetSurveyID(s.ID)
+}
+
+// SetFloorPlanID sets the floor_plan edge to FloorPlan by id.
+func (fc *FileCreate) SetFloorPlanID(id int) *FileCreate {
+	fc.mutation.SetFloorPlanID(id)
+	return fc
+}
+
+// SetNillableFloorPlanID sets the floor_plan edge to FloorPlan by id if the given value is not nil.
+func (fc *FileCreate) SetNillableFloorPlanID(id *int) *FileCreate {
+	if id != nil {
+		fc = fc.SetFloorPlanID(*id)
+	}
+	return fc
+}
+
+// SetFloorPlan sets the floor_plan edge to FloorPlan.
+func (fc *FileCreate) SetFloorPlan(f *FloorPlan) *FileCreate {
+	return fc.SetFloorPlanID(f.ID)
+}
+
+// SetPhotoSurveyQuestionID sets the photo_survey_question edge to SurveyQuestion by id.
+func (fc *FileCreate) SetPhotoSurveyQuestionID(id int) *FileCreate {
+	fc.mutation.SetPhotoSurveyQuestionID(id)
+	return fc
+}
+
+// SetNillablePhotoSurveyQuestionID sets the photo_survey_question edge to SurveyQuestion by id if the given value is not nil.
+func (fc *FileCreate) SetNillablePhotoSurveyQuestionID(id *int) *FileCreate {
+	if id != nil {
+		fc = fc.SetPhotoSurveyQuestionID(*id)
+	}
+	return fc
+}
+
+// SetPhotoSurveyQuestion sets the photo_survey_question edge to SurveyQuestion.
+func (fc *FileCreate) SetPhotoSurveyQuestion(s *SurveyQuestion) *FileCreate {
+	return fc.SetPhotoSurveyQuestionID(s.ID)
+}
+
+// SetSurveyQuestionID sets the survey_question edge to SurveyQuestion by id.
+func (fc *FileCreate) SetSurveyQuestionID(id int) *FileCreate {
+	fc.mutation.SetSurveyQuestionID(id)
+	return fc
+}
+
+// SetNillableSurveyQuestionID sets the survey_question edge to SurveyQuestion by id if the given value is not nil.
+func (fc *FileCreate) SetNillableSurveyQuestionID(id *int) *FileCreate {
+	if id != nil {
+		fc = fc.SetSurveyQuestionID(*id)
+	}
+	return fc
+}
+
+// SetSurveyQuestion sets the survey_question edge to SurveyQuestion.
+func (fc *FileCreate) SetSurveyQuestion(s *SurveyQuestion) *FileCreate {
+	return fc.SetSurveyQuestionID(s.ID)
 }
 
 // Save creates the File in the database.
@@ -284,6 +463,177 @@ func (fc *FileCreate) sqlSave(ctx context.Context) (*File, error) {
 			Column: file.FieldCategory,
 		})
 		f.Category = value
+	}
+	if nodes := fc.mutation.LocationIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   file.LocationTable,
+			Columns: []string{file.LocationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: location.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := fc.mutation.EquipmentIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   file.EquipmentTable,
+			Columns: []string{file.EquipmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: equipment.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := fc.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   file.UserTable,
+			Columns: []string{file.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := fc.mutation.WorkOrderIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   file.WorkOrderTable,
+			Columns: []string{file.WorkOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workorder.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := fc.mutation.ChecklistItemIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   file.ChecklistItemTable,
+			Columns: []string{file.ChecklistItemColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: checklistitem.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := fc.mutation.SurveyIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   file.SurveyTable,
+			Columns: []string{file.SurveyColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: survey.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := fc.mutation.FloorPlanIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   file.FloorPlanTable,
+			Columns: []string{file.FloorPlanColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: floorplan.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := fc.mutation.PhotoSurveyQuestionIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   file.PhotoSurveyQuestionTable,
+			Columns: []string{file.PhotoSurveyQuestionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: surveyquestion.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := fc.mutation.SurveyQuestionIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   file.SurveyQuestionTable,
+			Columns: []string{file.SurveyQuestionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: surveyquestion.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if err := sqlgraph.CreateNode(ctx, fc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {

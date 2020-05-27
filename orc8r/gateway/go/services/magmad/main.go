@@ -19,7 +19,9 @@ import (
 	"magma/gateway/services/bootstrapper/gateway_info"
 	bootstrapper "magma/gateway/services/bootstrapper/service"
 	configurator "magma/gateway/services/configurator/service"
+	"magma/gateway/services/magmad/service"
 	"magma/gateway/services/magmad/service_manager"
+	"magma/gateway/services/magmad/status"
 	sync_rpc "magma/gateway/services/sync_rpc/service"
 )
 
@@ -105,11 +107,19 @@ func main() {
 		go syncRpcService.Run()
 	}
 
+	// start service status collector & reporter
+	go status.StartReporter()
+
 	// Start configurator & block on main()
 	cfg := configurator.NewConfigurator(eventChan)
 	log.Printf("Starting Configurator")
-	if err := cfg.Start(); err != nil {
-		log.Fatalf("configurator start error: %v", err)
+	go func() {
+		if err := cfg.Start(); err != nil {
+			log.Fatalf("configurator start error: %v", err)
+		}
+	}()
+	if err := service.StartMagmadServer(); err != nil {
+		log.Fatalf("magmad start error: %v", err)
 	}
 }
 

@@ -121,6 +121,8 @@ class FlowVerifier:
         """
         for f, i, test in zip(self._final, self._initial, self._flow_tests):
             if test.flow_count is not None:
+                print(f)
+                print(test)
                 TestCase().assertEqual(f.flow_count, test.flow_count)
             TestCase().assertEqual(f.pkts, i.pkts + test.match_num)
 
@@ -294,6 +296,7 @@ def wait_for_enforcement_stats(controller, rule_list, wait_time=1,
     while not all(stats_reported[rule] for rule in rule_list):
         hub.sleep(wait_time)
         for reported_stats in controller._report_usage.call_args_list:
+            #logging.error(reported_stats)
             stats = reported_stats[0][0]
             for rule in rule_list:
                 if rule in stats:
@@ -421,6 +424,40 @@ def assert_bridge_snapshot_match(test_case: TestCase, bridge_name: str,
                                          tofile='current snapshot'))))
 
 
+def wait_for_snapshots(bridge_name: str,
+                       service_manager: ServiceManager,
+                       wait_time: int = 1, max_sleep_time: int = 20):
+    """
+    Wait after checking ovs snapshot as new changes might still come in,
+
+    Args:
+        wait_time (int): wait time between ovs stat queries
+        max_sleep_time (int): max wait time, if exceeded return
+
+    Returns when waiting is done
+
+    Throws a WaitTimeExceeded Exception if max_sleep_time exceeded
+    """
+    sleep_time = 0
+    old_snapshot = _get_current_bridge_snapshot(bridge_name, service_manager)
+    while True:
+        hub.sleep(wait_time)
+
+        new_snapshot = _get_current_bridge_snapshot(bridge_name,
+                                                    service_manager)
+        if new_snapshot == old_snapshot:
+            return
+        else:
+            old_snapshot = new_snapshot
+
+        sleep_time = sleep_time + wait_time
+        if (sleep_time >= max_sleep_time):
+            raise WaitTimeExceeded(
+                "Waiting on pkts exceeded the max({}) sleep time".
+                format(max_sleep_time)
+            )
+
+
 class SnapshotVerifier:
     """
     SnapshotVerifier is a context wrapper for verifying bridge snapshots.
@@ -428,7 +465,8 @@ class SnapshotVerifier:
 
     def __init__(self, test_case: TestCase, bridge_name: str,
                  service_manager: ServiceManager,
-                 snapshot_name: Optional[str] = None):
+                 snapshot_name: Optional[str] = None,
+                 include_stats: bool = True):
         """
         These arguments are used to call assert_bridge_snapshot_match on exit.
 
@@ -444,6 +482,7 @@ class SnapshotVerifier:
         self._bridge_name = bridge_name
         self._service_manager = service_manager
         self._snapshot_name = snapshot_name
+        self._include_stats = include_stats
 
     def __enter__(self):
         pass
@@ -452,6 +491,10 @@ class SnapshotVerifier:
         """
         Runs after finishing 'with' (Verify snapshot)
         """
+        try:
+            wait_for_snapshots(self._bridge_name, self._service_manager)
+        except WaitTimeExceeded as e:
+            TestCase().fail(e)
         assert_bridge_snapshot_match(self._test_case, self._bridge_name,
                                      self._service_manager,
-                                     self._snapshot_name)
+                                     self._snapshot_name, self._include_stats)

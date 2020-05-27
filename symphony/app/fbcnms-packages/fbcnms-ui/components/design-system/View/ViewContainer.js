@@ -27,21 +27,27 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-export type ViewContainerProps = {
+export type ViewContainerProps = $ReadOnly<{|
   header?: ?FullViewHeaderProps,
   useBodyScrollingEffect?: ?boolean,
   bodyVariant?: ?Variant,
   children: React.Node,
-};
+|}>;
 
 export default function ViewContainer(props: ViewContainerProps) {
   const {header, useBodyScrollingEffect = true, bodyVariant, children} = props;
   const classes = useStyles();
+  const headerElement = useRef(null);
   const bodyElement = useRef(null);
   const [bodyIsScrolled, setBodyIsScrolled] = useState(false);
 
   const handleBodyScroll = verticalScrollValues => {
-    setBodyIsScrolled(verticalScrollValues.startIsHidden);
+    if (headerElement?.current == null) {
+      return;
+    }
+    setBodyIsScrolled(
+      verticalScrollValues.scrollTop > headerElement.current.clientHeight,
+    );
   };
 
   useVerticalScrollingEffect(
@@ -52,7 +58,13 @@ export default function ViewContainer(props: ViewContainerProps) {
 
   return (
     <div className={classes.viewPanel}>
-      {!!header && <ViewHeader {...header} showMinimal={bodyIsScrolled} />}
+      {!!header && (
+        <ViewHeader
+          ref={headerElement}
+          {...header}
+          showMinimal={bodyIsScrolled}
+        />
+      )}
       <ViewBody ref={bodyElement} variant={bodyVariant}>
         {children}
       </ViewBody>

@@ -6,20 +6,20 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
-
-import sys
-from distutils.util import strtobool
 from enum import Enum
 
-from fabric.api import cd, env, execute, lcd, local, put, run, settings, sudo
-
+import sys
+from fabric.api import (cd, env, execute, lcd, local, put, run, settings,
+                        sudo, shell_env)
 sys.path.append('../../orc8r')
+
 from tools.fab.hosts import ansible_setup, vagrant_setup
 
 CWAG_ROOT = "$MAGMA_ROOT/cwf/gateway"
 CWAG_INTEG_ROOT = "$MAGMA_ROOT/cwf/gateway/integ_tests"
 LTE_AGW_ROOT = "../../lte/gateway"
 
+CWAG_IP = "192.168.70.101"
 CWAG_TEST_IP = "192.168.128.2"
 TRF_SERVER_IP = "192.168.129.42"
 TRF_SERVER_SUBNET = "192.168.129.0"
@@ -28,10 +28,13 @@ CWAG_TEST_BR_NAME = "cwag_test_br0"
 
 
 class SubTests(Enum):
-    ALL = "integ_test"
+    ALL = "all"
     AUTH = "authenticate"
     GX = "gx"
     GY = "gy"
+    QOS = "qos"
+    MULTISESSIONPROXY = "multi_session_proxy"
+    FEGFAILURE = "feg_failure"
 
     @staticmethod
     def list():
@@ -39,7 +42,8 @@ class SubTests(Enum):
 
 
 def integ_test(gateway_host=None, test_host=None, trf_host=None,
-               destroy_vm="False", no_build="False", tests_to_run="integ_test"):
+               transfer_images=False, destroy_vm=False, no_build=False,
+               tests_to_run="all", skip_unit_tests=False, test_re=None):
     """
     Run the integration tests. This defaults to running on local vagrant
     machines, but can also be pointed to an arbitrary host (e.g. amazon) by
@@ -65,8 +69,6 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
         print("{} is not a valid value. We support {}".format(
             tests_to_run, SubTests.list()))
         return
-    destroy_vm = bool(strtobool(destroy_vm))
-    no_build = bool(strtobool(no_build))
 
     # Setup the gateway: use the provided gateway if given, else default to the
     # vagrant machine
@@ -75,20 +77,25 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     else:
         ansible_setup(gateway_host, "cwag", "cwag_dev.yml")
 
-    execute(_run_unit_tests)
-    execute(_set_cwag_configs)
+    if not skip_unit_tests:
+        execute(_run_unit_tests)
+
+    execute(_set_cwag_configs, "gateway.mconfig")
+    execute(_add_networkhost_docker)
     cwag_host_to_mac = execute(_get_br_mac, CWAG_BR_NAME)
     host = env.hosts[0]
     cwag_br_mac = cwag_host_to_mac[host]
 
     # Transfer built images from local machine to CWAG host
-    if gateway_host:
+    if gateway_host or transfer_images:
         execute(_transfer_docker_images)
     else:
         execute(_stop_gateway)
         if not no_build:
             execute(_build_gateway)
     execute(_run_gateway)
+    # Stop not necessary services for this test case
+    execute(_stop_docker_services, ["pcrf2", "ocs2"])
 
     # Setup the trfserver: use the provided trfserver if given, else default to the
     # vagrant machine
@@ -114,19 +121,84 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
 
     # Get back to the gateway vm to setup static arp
     if not gateway_host:
-        vagrant_setup("cwag", destroy_vm)
+        # We do NOT want to destroy this VM after we just set it up...
+        vagrant_setup("cwag", False)
     else:
         ansible_setup(gateway_host, "cwag", "cwag_dev.yml")
     execute(_set_cwag_networking, cwag_test_br_mac)
 
-    # Start tests
+    # Start main tests - except for multi session proxy
     if not test_host:
-        vagrant_setup("cwag_test", destroy_vm)
+        # No, definitely do NOT destroy this VM
+        vagrant_setup("cwag_test", False)
     else:
         ansible_setup(test_host, "cwag_test", "cwag_test.yml")
     execute(_start_ue_simulator)
     execute(_set_cwag_test_networking, cwag_br_mac)
-    execute(_run_integ_tests, test_host, trf_host, tests_to_run)
+
+    if tests_to_run.value not in (SubTests.MULTISESSIONPROXY.value,
+                                    SubTests.FEGFAILURE.value):
+        execute(_run_integ_tests, test_host, trf_host, tests_to_run, test_re)
+
+    # Setup environment for cwag_feg_link_down if required
+    if tests_to_run.value in (SubTests.ALL.value,
+                              SubTests.FEGFAILURE.value):
+        # CWAG VM
+        if not gateway_host:
+            vagrant_setup("cwag", False)
+        else:
+            ansible_setup(gateway_host, "cwag", "cwag_dev.yml")
+
+        # Stop not necessary services for this test case
+        execute(_stop_docker_services, ["ingress"])
+
+        # CWAG_TEST VM
+        if not test_host:
+            vagrant_setup("cwag_test", False)
+        else:
+            ansible_setup(test_host, "cwag_test", "cwag_test.yml")
+        execute(_run_integ_tests, test_host, trf_host,
+                SubTests.FEGFAILURE, test_re)
+
+    # Setup environment for multi service proxy if required
+    if tests_to_run.value in (SubTests.ALL.value,
+                              SubTests.MULTISESSIONPROXY.value):
+        # CWAG VM
+        if not gateway_host:
+            vagrant_setup("cwag", False)
+        else:
+            ansible_setup(gateway_host, "cwag", "cwag_dev.yml")
+        # copy new config and restart the impacted services
+        execute(_set_cwag_configs, "gateway.mconfig.multi_session_proxy")
+        execute(_restart_docker_services, ["session_proxy", "pcrf", "ocs",
+                                           "pcrf2", "ocs2", "ingress"])
+
+        # CWAG_TEST VM
+        if not test_host:
+            vagrant_setup("cwag_test", False)
+        else:
+            ansible_setup(test_host, "cwag_test", "cwag_test.yml")
+        execute(_run_integ_tests, test_host, trf_host,
+                SubTests.MULTISESSIONPROXY, test_re)
+
+    # If we got here means everything work well!!
+    if not test_host and not trf_host:
+        # Clean up only for now when running locally
+        execute(_clean_up)
+    print('Integration Test Passed for "{}"!'.format(tests_to_run.value))
+    sys.exit(0)
+
+
+def transfer_service_logs(services="sessiond session_proxy"):
+    services = services.strip().split(' ')
+    print("Transferring logs for " + str(services))
+
+    # We do NOT want to destroy this VM after we just set it up...
+    vagrant_setup("cwag", False)
+    with cd(CWAG_ROOT):
+        for service in services:
+            run("docker logs -t " + service + " &> " + service + ".log")
+            # For vagrant the files should already be in CWAG_ROOT
 
 
 def _transfer_docker_images():
@@ -144,13 +216,13 @@ def _transfer_docker_images():
         run('docker load -i %s.tar' % image)
 
 
-def _set_cwag_configs():
+def _set_cwag_configs(configfile):
     """ Set the necessary config overrides """
 
     with cd(CWAG_INTEG_ROOT):
         sudo('mkdir -p /var/opt/magma')
         sudo('mkdir -p /var/opt/magma/configs')
-        sudo('cp gateway.mconfig /var/opt/magma/configs/')
+        sudo("cp {} /var/opt/magma/configs/gateway.mconfig".format(configfile))
 
 
 def _set_cwag_networking(mac):
@@ -176,6 +248,33 @@ def _set_cwag_test_networking(mac):
         sudo('ip route add %s/24 dev %s proto static scope link' %
              (TRF_SERVER_SUBNET, CWAG_TEST_BR_NAME))
     sudo('arp -s %s %s' % (TRF_SERVER_IP, mac))
+
+
+def _add_networkhost_docker():
+    ''' Add network host to docker engine '''
+
+    local_host = "unix:///var/run/docker.sock"
+    nw_host = "tcp://0.0.0.0:2375"
+    tmp_daemon_json_fn = "/tmp/daemon.json"
+    docker_cfg_dir = "/etc/docker/"
+
+    # add daemon json file
+    host_cfg = '\'{"hosts": [\"%s\", \"%s\"]}\'' % (local_host, nw_host)
+    run("""printf %s > %s""" % (host_cfg, tmp_daemon_json_fn))
+    sudo("mv %s %s" % (tmp_daemon_json_fn, docker_cfg_dir))
+
+    # modify docker service cmd to remove hosts
+    # https://docs.docker.com/config/daemon/#troubleshoot-conflicts-between-the-daemonjson-and-startup-scripts
+    tmp_docker_svc_fn = "/tmp/docker.conf"
+    svc_cmd = "'[Service]\nExecStart=\nExecStart=/usr/bin/dockerd'"
+    svc_cfg_dir = "/etc/systemd/system/docker.service.d/"
+    sudo("mkdir -p %s" % svc_cfg_dir)
+    run("printf %s > %s" % (svc_cmd, tmp_docker_svc_fn))
+    sudo("mv %s %s" % (tmp_docker_svc_fn, svc_cfg_dir))
+
+    # restart systemd and docker service
+    sudo("systemctl daemon-reload")
+    sudo("systemctl restart docker")
 
 
 def _stop_gateway():
@@ -209,6 +308,30 @@ def _run_gateway():
              ' up -d ')
 
 
+def _restart_docker_services(services):
+    with cd(CWAG_ROOT + "/docker"):
+        sudo(
+            " docker-compose"
+            " -f docker-compose.yml"
+            " -f docker-compose.override.yml"
+            " -f docker-compose.nginx.yml"
+            " -f docker-compose.integ-test.yml"
+            " restart {}".format(" ".join(services))
+        )
+
+
+def _stop_docker_services(services):
+    with cd(CWAG_ROOT + "/docker"):
+        sudo(
+            " docker-compose"
+            " -f docker-compose.yml"
+            " -f docker-compose.override.yml"
+            " -f docker-compose.nginx.yml"
+            " -f docker-compose.integ-test.yml"
+            " stop {}".format(" ".join(services))
+        )
+
+
 def _start_ue_simulator():
     """ Starts the UE Sim Service """
     with cd(CWAG_ROOT + '/services/uesim/uesim'):
@@ -222,32 +345,42 @@ def _start_trfserver():
 
 def _run_unit_tests():
     """ Run the cwag unit tests """
-
     with cd(CWAG_ROOT):
         run('make test')
 
 
-def _run_integ_tests(test_host, trf_host, tests_to_run: SubTests):
+def _run_integ_tests(test_host, trf_host, tests_to_run: SubTests,
+                     test_re=None):
     """ Run the integration tests """
-    with cd(CWAG_INTEG_ROOT):
-        command = "make " + str(tests_to_run.value)
-        result = run(command, warn_only=True)
-    if not test_host and not trf_host:
-        # Clean up only for now when running locally
-        execute(_clean_up)
-    if result.return_code == 0:
-        print("Integration Test Passed!")
-        sys.exit(0)
-    else:
-        print("Integration Test returned ", result.return_code)
-        sys.exit(result.return_code)
+    # add docker host environment as well
+    shell_env_vars = {
+        "DOCKER_HOST" : "tcp://%s:2375" % CWAG_IP,
+        "DOCKER_API_VERSION" : "1.40",
+    }
+    if test_re:
+        shell_env_vars["TESTS"] = test_re
+
+    # QOS take a while to run. Increasing the timeout to 20m
+    go_test_cmd = "go test -timeout 20m"
+    go_test_cmd += " -tags " + tests_to_run.value
+    if test_re:
+        go_test_cmd += " -run " + test_re
+
+    with cd(CWAG_INTEG_ROOT), shell_env(**shell_env_vars):
+        result = run(go_test_cmd, warn_only=True)
+        if result.return_code != 0:
+            if not test_host and not trf_host:
+                # Clean up only for now when running locally
+                execute(_clean_up)
+            print("Integration Test returned ", result.return_code)
+            sys.exit(result.return_code)
+
 
 
 def _clean_up():
     # already in cwag test vm at this point
     # Kill uesim service
     run('pkill go', warn_only=True)
-
     with lcd(LTE_AGW_ROOT):
         vagrant_setup("magma_trfserver", False)
         run('pkill iperf3 > /dev/null &', pty=False, warn_only=True)

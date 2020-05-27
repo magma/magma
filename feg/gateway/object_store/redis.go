@@ -12,6 +12,7 @@ import (
 	"fmt"
 
 	"magma/feg/gateway/registry"
+	"magma/orc8r/lib/go/service/config"
 
 	"github.com/go-redis/redis"
 )
@@ -34,13 +35,21 @@ type RedisClientImpl struct {
 // NewRedisClient gets the redis configuration from the service config and returns
 // a new client or an error if something went wrong
 func NewRedisClient() (RedisClient, error) {
-	address, err := registry.GetServiceAddress(registry.REDIS)
+	redisConfig, err := config.GetServiceConfig("", registry.REDIS)
+	if err != nil {
+		return nil, err
+	}
+	bindAddr, err := redisConfig.GetString("bind")
+	if err != nil {
+		bindAddr = "127.0.0.1"
+	}
+	port, err := redisConfig.GetInt("port")
 	if err != nil {
 		return nil, err
 	}
 	return &RedisClientImpl{
 		RawClient: redis.NewClient(&redis.Options{
-			Addr: fmt.Sprintf(address),
+			Addr: fmt.Sprintf("%s:%d", bindAddr, port),
 		}),
 	}, nil
 }

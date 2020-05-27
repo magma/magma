@@ -46,7 +46,7 @@ class Job(abc.ABC):
         self._cond = self._cond = asyncio.Condition(loop=self._loop)
 
     @abc.abstractmethod
-    def _run(self):
+    async def _run(self):
         """
         Once implemented by a subclass, this function will contain the actual
         work of this Job.

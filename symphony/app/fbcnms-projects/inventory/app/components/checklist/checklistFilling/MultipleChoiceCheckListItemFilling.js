@@ -9,7 +9,6 @@
  */
 
 import type {CheckListItemFillingProps} from './CheckListItemFilling';
-import type {OptionProps} from '@fbcnms/ui/components/design-system/Select/SelectMenu';
 
 import * as React from 'react';
 import MultiSelect from '@fbcnms/ui/components/design-system/Select/MultiSelect';
@@ -38,11 +37,10 @@ const MultipleChoiceCheckListItemFilling = ({
       label: v,
       value: v,
     }));
-  const options: Array<OptionProps<string>> = useMemo(
-    () => enumArrayToOptions(item.enumValues),
-    [item.enumValues],
-  );
-  const selectedValues: Array<OptionProps<string>> = useMemo(
+  const options = useMemo(() => enumArrayToOptions(item.enumValues), [
+    item.enumValues,
+  ]);
+  const selectedValues = useMemo(
     () => enumArrayToOptions(item.selectedEnumValues),
     [item.selectedEnumValues],
   );
@@ -70,7 +68,7 @@ const MultipleChoiceCheckListItemFilling = ({
           : null
       }
       onChange={value => updateOnChange(value)}
-      disabled={form.alerts.editLock.detected}
+      disabled={form.alerts.missingPermissions.detected}
     />
   ) : (
     <MultiSelect
@@ -88,7 +86,7 @@ const MultipleChoiceCheckListItemFilling = ({
         );
       }}
       selectedValues={selectedValues}
-      disabled={form.alerts.editLock.detected}
+      disabled={form.alerts.missingPermissions.detected}
     />
   );
 };

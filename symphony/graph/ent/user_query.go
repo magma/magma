@@ -18,8 +18,10 @@ import (
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/file"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
+	"github.com/facebookincubator/symphony/graph/ent/project"
 	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/ent/usersgroup"
+	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
 
 // UserQuery is the builder for querying User entities.
@@ -27,13 +29,15 @@ type UserQuery struct {
 	config
 	limit      *int
 	offset     *int
-	order      []Order
+	order      []OrderFunc
 	unique     []string
 	predicates []predicate.User
 	// eager-loading edges.
-	withProfilePhoto *FileQuery
-	withGroups       *UsersGroupQuery
-	withFKs          bool
+	withProfilePhoto       *FileQuery
+	withGroups             *UsersGroupQuery
+	withOwnedWorkOrders    *WorkOrderQuery
+	withAssignedWorkOrders *WorkOrderQuery
+	withCreatedProjects    *ProjectQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -58,7 +62,7 @@ func (uq *UserQuery) Offset(offset int) *UserQuery {
 }
 
 // Order adds an order step to the query.
-func (uq *UserQuery) Order(o ...Order) *UserQuery {
+func (uq *UserQuery) Order(o ...OrderFunc) *UserQuery {
 	uq.order = append(uq.order, o...)
 	return uq
 }
@@ -73,7 +77,7 @@ func (uq *UserQuery) QueryProfilePhoto() *FileQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, uq.sqlQuery()),
 			sqlgraph.To(file.Table, file.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, user.ProfilePhotoTable, user.ProfilePhotoColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, user.ProfilePhotoTable, user.ProfilePhotoColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -92,6 +96,60 @@ func (uq *UserQuery) QueryGroups() *UsersGroupQuery {
 			sqlgraph.From(user.Table, user.FieldID, uq.sqlQuery()),
 			sqlgraph.To(usersgroup.Table, usersgroup.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, true, user.GroupsTable, user.GroupsPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryOwnedWorkOrders chains the current query on the owned_work_orders edge.
+func (uq *UserQuery) QueryOwnedWorkOrders() *WorkOrderQuery {
+	query := &WorkOrderQuery{config: uq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, uq.sqlQuery()),
+			sqlgraph.To(workorder.Table, workorder.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, user.OwnedWorkOrdersTable, user.OwnedWorkOrdersColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryAssignedWorkOrders chains the current query on the assigned_work_orders edge.
+func (uq *UserQuery) QueryAssignedWorkOrders() *WorkOrderQuery {
+	query := &WorkOrderQuery{config: uq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, uq.sqlQuery()),
+			sqlgraph.To(workorder.Table, workorder.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, user.AssignedWorkOrdersTable, user.AssignedWorkOrdersColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCreatedProjects chains the current query on the created_projects edge.
+func (uq *UserQuery) QueryCreatedProjects() *ProjectQuery {
+	query := &ProjectQuery{config: uq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, uq.sqlQuery()),
+			sqlgraph.To(project.Table, project.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, user.CreatedProjectsTable, user.CreatedProjectsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -269,7 +327,7 @@ func (uq *UserQuery) Clone() *UserQuery {
 		config:     uq.config,
 		limit:      uq.limit,
 		offset:     uq.offset,
-		order:      append([]Order{}, uq.order...),
+		order:      append([]OrderFunc{}, uq.order...),
 		unique:     append([]string{}, uq.unique...),
 		predicates: append([]predicate.User{}, uq.predicates...),
 		// clone intermediate query.
@@ -297,6 +355,39 @@ func (uq *UserQuery) WithGroups(opts ...func(*UsersGroupQuery)) *UserQuery {
 		opt(query)
 	}
 	uq.withGroups = query
+	return uq
+}
+
+//  WithOwnedWorkOrders tells the query-builder to eager-loads the nodes that are connected to
+// the "owned_work_orders" edge. The optional arguments used to configure the query builder of the edge.
+func (uq *UserQuery) WithOwnedWorkOrders(opts ...func(*WorkOrderQuery)) *UserQuery {
+	query := &WorkOrderQuery{config: uq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withOwnedWorkOrders = query
+	return uq
+}
+
+//  WithAssignedWorkOrders tells the query-builder to eager-loads the nodes that are connected to
+// the "assigned_work_orders" edge. The optional arguments used to configure the query builder of the edge.
+func (uq *UserQuery) WithAssignedWorkOrders(opts ...func(*WorkOrderQuery)) *UserQuery {
+	query := &WorkOrderQuery{config: uq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withAssignedWorkOrders = query
+	return uq
+}
+
+//  WithCreatedProjects tells the query-builder to eager-loads the nodes that are connected to
+// the "created_projects" edge. The optional arguments used to configure the query builder of the edge.
+func (uq *UserQuery) WithCreatedProjects(opts ...func(*ProjectQuery)) *UserQuery {
+	query := &ProjectQuery{config: uq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withCreatedProjects = query
 	return uq
 }
 
@@ -359,32 +450,28 @@ func (uq *UserQuery) prepareQuery(ctx context.Context) error {
 		}
 		uq.sql = prev
 	}
+	if err := user.Policy.EvalQuery(ctx, uq); err != nil {
+		return err
+	}
 	return nil
 }
 
 func (uq *UserQuery) sqlAll(ctx context.Context) ([]*User, error) {
 	var (
 		nodes       = []*User{}
-		withFKs     = uq.withFKs
 		_spec       = uq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [5]bool{
 			uq.withProfilePhoto != nil,
 			uq.withGroups != nil,
+			uq.withOwnedWorkOrders != nil,
+			uq.withAssignedWorkOrders != nil,
+			uq.withCreatedProjects != nil,
 		}
 	)
-	if uq.withProfilePhoto != nil {
-		withFKs = true
-	}
-	if withFKs {
-		_spec.Node.Columns = append(_spec.Node.Columns, user.ForeignKeys...)
-	}
 	_spec.ScanValues = func() []interface{} {
 		node := &User{config: uq.config}
 		nodes = append(nodes, node)
 		values := node.scanValues()
-		if withFKs {
-			values = append(values, node.fkValues()...)
-		}
 		return values
 	}
 	_spec.Assign = func(values ...interface{}) error {
@@ -403,27 +490,30 @@ func (uq *UserQuery) sqlAll(ctx context.Context) ([]*User, error) {
 	}
 
 	if query := uq.withProfilePhoto; query != nil {
-		ids := make([]int, 0, len(nodes))
-		nodeids := make(map[int][]*User)
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[int]*User)
 		for i := range nodes {
-			if fk := nodes[i].user_profile_photo; fk != nil {
-				ids = append(ids, *fk)
-				nodeids[*fk] = append(nodeids[*fk], nodes[i])
-			}
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
 		}
-		query.Where(file.IDIn(ids...))
+		query.withFKs = true
+		query.Where(predicate.File(func(s *sql.Selector) {
+			s.Where(sql.InValues(user.ProfilePhotoColumn, fks...))
+		}))
 		neighbors, err := query.All(ctx)
 		if err != nil {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			nodes, ok := nodeids[n.ID]
+			fk := n.user_profile_photo
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "user_profile_photo" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "user_profile_photo" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "user_profile_photo" returned %v for node %v`, *fk, n.ID)
 			}
-			for i := range nodes {
-				nodes[i].Edges.ProfilePhoto = n
-			}
+			node.Edges.ProfilePhoto = n
 		}
 	}
 
@@ -487,6 +577,90 @@ func (uq *UserQuery) sqlAll(ctx context.Context) ([]*User, error) {
 			for i := range nodes {
 				nodes[i].Edges.Groups = append(nodes[i].Edges.Groups, n)
 			}
+		}
+	}
+
+	if query := uq.withOwnedWorkOrders; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[int]*User)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.WorkOrder(func(s *sql.Selector) {
+			s.Where(sql.InValues(user.OwnedWorkOrdersColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.work_order_owner
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "work_order_owner" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_owner" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.OwnedWorkOrders = append(node.Edges.OwnedWorkOrders, n)
+		}
+	}
+
+	if query := uq.withAssignedWorkOrders; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[int]*User)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.WorkOrder(func(s *sql.Selector) {
+			s.Where(sql.InValues(user.AssignedWorkOrdersColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.work_order_assignee
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "work_order_assignee" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_assignee" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.AssignedWorkOrders = append(node.Edges.AssignedWorkOrders, n)
+		}
+	}
+
+	if query := uq.withCreatedProjects; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[int]*User)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.Project(func(s *sql.Selector) {
+			s.Where(sql.InValues(user.CreatedProjectsColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.project_creator
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "project_creator" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "project_creator" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.CreatedProjects = append(node.Edges.CreatedProjects, n)
 		}
 	}
 
@@ -571,14 +745,14 @@ func (uq *UserQuery) sqlQuery() *sql.Selector {
 type UserGroupBy struct {
 	config
 	fields []string
-	fns    []Aggregate
+	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (ugb *UserGroupBy) Aggregate(fns ...Aggregate) *UserGroupBy {
+func (ugb *UserGroupBy) Aggregate(fns ...AggregateFunc) *UserGroupBy {
 	ugb.fns = append(ugb.fns, fns...)
 	return ugb
 }

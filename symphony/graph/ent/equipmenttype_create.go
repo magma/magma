@@ -20,6 +20,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/equipmentpositiondefinition"
 	"github.com/facebookincubator/symphony/graph/ent/equipmenttype"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
+	"github.com/facebookincubator/symphony/graph/ent/serviceendpointdefinition"
 )
 
 // EquipmentTypeCreate is the builder for creating a EquipmentType entity.
@@ -140,6 +141,21 @@ func (etc *EquipmentTypeCreate) SetNillableCategoryID(id *int) *EquipmentTypeCre
 // SetCategory sets the category edge to EquipmentCategory.
 func (etc *EquipmentTypeCreate) SetCategory(e *EquipmentCategory) *EquipmentTypeCreate {
 	return etc.SetCategoryID(e.ID)
+}
+
+// AddServiceEndpointDefinitionIDs adds the service_endpoint_definitions edge to ServiceEndpointDefinition by ids.
+func (etc *EquipmentTypeCreate) AddServiceEndpointDefinitionIDs(ids ...int) *EquipmentTypeCreate {
+	etc.mutation.AddServiceEndpointDefinitionIDs(ids...)
+	return etc
+}
+
+// AddServiceEndpointDefinitions adds the service_endpoint_definitions edges to ServiceEndpointDefinition.
+func (etc *EquipmentTypeCreate) AddServiceEndpointDefinitions(s ...*ServiceEndpointDefinition) *EquipmentTypeCreate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return etc.AddServiceEndpointDefinitionIDs(ids...)
 }
 
 // Save creates the EquipmentType in the database.
@@ -312,6 +328,25 @@ func (etc *EquipmentTypeCreate) sqlSave(ctx context.Context) (*EquipmentType, er
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: equipmentcategory.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := etc.mutation.ServiceEndpointDefinitionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   equipmenttype.ServiceEndpointDefinitionsTable,
+			Columns: []string{equipmenttype.ServiceEndpointDefinitionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: serviceendpointdefinition.FieldID,
 				},
 			},
 		}

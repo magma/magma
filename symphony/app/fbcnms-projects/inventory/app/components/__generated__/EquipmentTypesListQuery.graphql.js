@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash bb336ecb492b65485e6a18f1da6874bd
+ * @relayHash 7e3863d1db3b83987e4f14df97a15b33
  */
 
 /* eslint-disable */
@@ -15,7 +15,7 @@
 
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
-export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "float" | "gps_location" | "int" | "node" | "range" | "string" | "%future added value";
 export type EquipmentTypesListQueryVariables = {||};
 export type EquipmentTypesListQueryResponse = {|
   +equipmentTypes: {|
@@ -27,6 +27,7 @@ export type EquipmentTypesListQueryResponse = {|
           +id: string,
           +name: string,
           +type: PropertyKind,
+          +nodeType: ?string,
           +index: ?number,
           +stringValue: ?string,
           +intValue: ?number,
@@ -39,6 +40,8 @@ export type EquipmentTypesListQueryResponse = {|
           +isEditable: ?boolean,
           +isInstanceProperty: ?boolean,
           +isMandatory: ?boolean,
+          +category: ?string,
+          +isDeleted: ?boolean,
         |}>,
       |}
     |}>
@@ -62,6 +65,7 @@ query EquipmentTypesListQuery {
           id
           name
           type
+          nodeType
           index
           stringValue
           intValue
@@ -74,6 +78,8 @@ query EquipmentTypesListQuery {
           isEditable
           isInstanceProperty
           isMandatory
+          category
+          isDeleted
         }
       }
     }
@@ -141,6 +147,13 @@ v2 = [
                     "kind": "ScalarField",
                     "alias": null,
                     "name": "type",
+                    "args": null,
+                    "storageKey": null
+                  },
+                  {
+                    "kind": "ScalarField",
+                    "alias": null,
+                    "name": "nodeType",
                     "args": null,
                     "storageKey": null
                   },
@@ -227,6 +240,20 @@ v2 = [
                     "name": "isMandatory",
                     "args": null,
                     "storageKey": null
+                  },
+                  {
+                    "kind": "ScalarField",
+                    "alias": null,
+                    "name": "category",
+                    "args": null,
+                    "storageKey": null
+                  },
+                  {
+                    "kind": "ScalarField",
+                    "alias": null,
+                    "name": "isDeleted",
+                    "args": null,
+                    "storageKey": null
                   }
                 ]
               }
@@ -257,7 +284,7 @@ return {
     "operationKind": "query",
     "name": "EquipmentTypesListQuery",
     "id": null,
-    "text": "query EquipmentTypesListQuery {\n  equipmentTypes {\n    edges {\n      node {\n        id\n        name\n        propertyTypes {\n          id\n          name\n          type\n          index\n          stringValue\n          intValue\n          booleanValue\n          floatValue\n          latitudeValue\n          longitudeValue\n          rangeFromValue\n          rangeToValue\n          isEditable\n          isInstanceProperty\n          isMandatory\n        }\n      }\n    }\n  }\n}\n",
+    "text": "query EquipmentTypesListQuery {\n  equipmentTypes {\n    edges {\n      node {\n        id\n        name\n        propertyTypes {\n          id\n          name\n          type\n          nodeType\n          index\n          stringValue\n          intValue\n          booleanValue\n          floatValue\n          latitudeValue\n          longitudeValue\n          rangeFromValue\n          rangeToValue\n          isEditable\n          isInstanceProperty\n          isMandatory\n          category\n          isDeleted\n        }\n      }\n    }\n  }\n}\n",
     "metadata": {}
   }
 };

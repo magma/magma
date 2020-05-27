@@ -65,7 +65,7 @@ spec:
             - name: dashboards
               mountPath: /var/lib/grafana/dashboards
             - name: datasources
-              mountPath: /etc/grafana/provisiong/datasources/
+              mountPath: /etc/grafana/provisioning/datasources/
             - name: dashboardproviders
               mountPath: /etc/grafana/provisioning/dashboards/
             - name: grafana-data
@@ -73,26 +73,26 @@ spec:
 
           livenessProbe:
             httpGet:
-              path: /
+              path: /api/health
               port: 3000
             initialDelaySeconds: 10
             periodSeconds: 30
+
+          resources:
+{{ toYaml .Values.userGrafana.resources | indent 12 }}
 
       volumes:
         - name: "config"
           configMap:
             name: grafana-config-file
         - name: "datasources"
-{{ toYaml .Values.userGrafana.volumes.datasources.volumeSpec | indent 10 }}
+{{ toYaml .Values.userGrafana.volumes.datasources | indent 10 }}
         - name: "dashboardproviders"
-{{ toYaml .Values.userGrafana.volumes.dashboardproviders.volumeSpec | indent 10 }}
+{{ toYaml .Values.userGrafana.volumes.dashboardproviders | indent 10 }}
         - name: "dashboards"
-{{ toYaml .Values.userGrafana.volumes.dashboards.volumeSpec | indent 10 }}
+{{ toYaml .Values.userGrafana.volumes.dashboards | indent 10 }}
         - name: "grafana-data"
-{{ toYaml .Values.userGrafana.volumes.grafanaData.volumeSpec | indent 10 }}
-
-          resources:
-{{ toYaml .Values.grafana.resources | indent 12 }}
+{{ toYaml .Values.userGrafana.volumes.grafanaData | indent 10 }}
 
 
 ---
@@ -111,4 +111,7 @@ data:
     header_name = X-WEBAUTH-USER
     header_property = username
     auto_sign_up = false
+
+    [server]
+    root_url = {{ .Values.userGrafana.rootURL }}
 {{- end}}

@@ -15,7 +15,9 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/comment"
+	"github.com/facebookincubator/symphony/graph/ent/project"
 	"github.com/facebookincubator/symphony/graph/ent/user"
+	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
 
 // CommentCreate is the builder for creating a Comment entity.
@@ -68,6 +70,44 @@ func (cc *CommentCreate) SetAuthorID(id int) *CommentCreate {
 // SetAuthor sets the author edge to User.
 func (cc *CommentCreate) SetAuthor(u *User) *CommentCreate {
 	return cc.SetAuthorID(u.ID)
+}
+
+// SetWorkOrderID sets the work_order edge to WorkOrder by id.
+func (cc *CommentCreate) SetWorkOrderID(id int) *CommentCreate {
+	cc.mutation.SetWorkOrderID(id)
+	return cc
+}
+
+// SetNillableWorkOrderID sets the work_order edge to WorkOrder by id if the given value is not nil.
+func (cc *CommentCreate) SetNillableWorkOrderID(id *int) *CommentCreate {
+	if id != nil {
+		cc = cc.SetWorkOrderID(*id)
+	}
+	return cc
+}
+
+// SetWorkOrder sets the work_order edge to WorkOrder.
+func (cc *CommentCreate) SetWorkOrder(w *WorkOrder) *CommentCreate {
+	return cc.SetWorkOrderID(w.ID)
+}
+
+// SetProjectID sets the project edge to Project by id.
+func (cc *CommentCreate) SetProjectID(id int) *CommentCreate {
+	cc.mutation.SetProjectID(id)
+	return cc
+}
+
+// SetNillableProjectID sets the project edge to Project by id if the given value is not nil.
+func (cc *CommentCreate) SetNillableProjectID(id *int) *CommentCreate {
+	if id != nil {
+		cc = cc.SetProjectID(*id)
+	}
+	return cc
+}
+
+// SetProject sets the project edge to Project.
+func (cc *CommentCreate) SetProject(p *Project) *CommentCreate {
+	return cc.SetProjectID(p.ID)
 }
 
 // Save creates the Comment in the database.
@@ -167,6 +207,44 @@ func (cc *CommentCreate) sqlSave(ctx context.Context) (*Comment, error) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := cc.mutation.WorkOrderIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   comment.WorkOrderTable,
+			Columns: []string{comment.WorkOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workorder.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := cc.mutation.ProjectIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   comment.ProjectTable,
+			Columns: []string{comment.ProjectColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: project.FieldID,
 				},
 			},
 		}

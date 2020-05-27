@@ -8,6 +8,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/facebookincubator/symphony/graph/ent"
+
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 
 	"github.com/AlekSi/pointer"
@@ -272,8 +274,8 @@ func prepareLinkDataByHirerchy(ctx context.Context, r *TestResolver) linkSearchH
 
 func TestSearchLinksFutureState(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	data := prepareLinkData(ctx, r, nil)
 	/*
@@ -311,8 +313,8 @@ func TestSearchLinksFutureState(t *testing.T) {
 
 func TestSearchLinksByLocation(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	data := prepareLinkData(ctx, r, nil)
 	/*
@@ -360,8 +362,8 @@ func TestSearchLinksByLocation(t *testing.T) {
 
 func TestSearchLinksByEquipmentTyp(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	data := prepareLinkData(ctx, r, nil)
 	/*
@@ -379,9 +381,15 @@ func TestSearchLinksByEquipmentTyp(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, all.Links, 2)
 	maxDepth := 2
-	e1, _ := qr.Equipment(ctx, data.e1)
+	node1, err := qr.Node(ctx, data.e1)
+	require.NoError(t, err)
+	e1, ok := node1.(*ent.Equipment)
+	require.True(t, ok)
 	typ1 := e1.QueryType().OnlyX(ctx)
-	e3, _ := qr.Equipment(ctx, data.e3)
+	node3, err := qr.Node(ctx, data.e3)
+	require.NoError(t, err)
+	e3, ok := node3.(*ent.Equipment)
+	require.True(t, ok)
 	typ2 := e3.QueryType().OnlyX(ctx)
 
 	emptyTyp, _ := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{Name: "empty_typ"})
@@ -418,8 +426,8 @@ func TestSearchLinksByEquipmentTyp(t *testing.T) {
 
 func TestSearchLinksByEquipment(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	data := prepareLinkData(ctx, r, nil)
 	/*
@@ -461,8 +469,8 @@ func TestSearchLinksByEquipment(t *testing.T) {
 
 func TestSearchLinksByEquipmentHirerchy(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	data := prepareLinkDataByHirerchy(ctx, r)
 	/*
@@ -509,8 +517,8 @@ func TestSearchLinksByEquipmentHirerchy(t *testing.T) {
 
 func TestSearchLinksByService(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	data := prepareLinkData(ctx, r, nil)
 	/*
@@ -593,13 +601,12 @@ func TestSearchLinksByService(t *testing.T) {
 	res4, err := qr.LinkSearch(ctx, []*models.LinkFilterInput{&f4}, &limit)
 	require.NoError(t, err)
 	require.Len(t, res4.Links, 0)
-
 }
 
 func TestSearchLinksByProperty(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	prepareLinkData(ctx, r, nil)
 	/*
@@ -647,8 +654,8 @@ func TestSearchLinksByProperty(t *testing.T) {
 
 func TestSearchLinksByServiceName(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	_ = prepareLinkData(ctx, r, nil)
 	/*

@@ -19,6 +19,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/checklistcategory"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
+	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
 
 // CheckListCategoryQuery is the builder for querying CheckListCategory entities.
@@ -26,11 +27,12 @@ type CheckListCategoryQuery struct {
 	config
 	limit      *int
 	offset     *int
-	order      []Order
+	order      []OrderFunc
 	unique     []string
 	predicates []predicate.CheckListCategory
 	// eager-loading edges.
 	withCheckListItems *CheckListItemQuery
+	withWorkOrder      *WorkOrderQuery
 	withFKs            bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -56,7 +58,7 @@ func (clcq *CheckListCategoryQuery) Offset(offset int) *CheckListCategoryQuery {
 }
 
 // Order adds an order step to the query.
-func (clcq *CheckListCategoryQuery) Order(o ...Order) *CheckListCategoryQuery {
+func (clcq *CheckListCategoryQuery) Order(o ...OrderFunc) *CheckListCategoryQuery {
 	clcq.order = append(clcq.order, o...)
 	return clcq
 }
@@ -72,6 +74,24 @@ func (clcq *CheckListCategoryQuery) QueryCheckListItems() *CheckListItemQuery {
 			sqlgraph.From(checklistcategory.Table, checklistcategory.FieldID, clcq.sqlQuery()),
 			sqlgraph.To(checklistitem.Table, checklistitem.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, checklistcategory.CheckListItemsTable, checklistcategory.CheckListItemsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(clcq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryWorkOrder chains the current query on the work_order edge.
+func (clcq *CheckListCategoryQuery) QueryWorkOrder() *WorkOrderQuery {
+	query := &WorkOrderQuery{config: clcq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := clcq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(checklistcategory.Table, checklistcategory.FieldID, clcq.sqlQuery()),
+			sqlgraph.To(workorder.Table, workorder.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, checklistcategory.WorkOrderTable, checklistcategory.WorkOrderColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(clcq.driver.Dialect(), step)
 		return fromU, nil
@@ -249,7 +269,7 @@ func (clcq *CheckListCategoryQuery) Clone() *CheckListCategoryQuery {
 		config:     clcq.config,
 		limit:      clcq.limit,
 		offset:     clcq.offset,
-		order:      append([]Order{}, clcq.order...),
+		order:      append([]OrderFunc{}, clcq.order...),
 		unique:     append([]string{}, clcq.unique...),
 		predicates: append([]predicate.CheckListCategory{}, clcq.predicates...),
 		// clone intermediate query.
@@ -266,6 +286,17 @@ func (clcq *CheckListCategoryQuery) WithCheckListItems(opts ...func(*CheckListIt
 		opt(query)
 	}
 	clcq.withCheckListItems = query
+	return clcq
+}
+
+//  WithWorkOrder tells the query-builder to eager-loads the nodes that are connected to
+// the "work_order" edge. The optional arguments used to configure the query builder of the edge.
+func (clcq *CheckListCategoryQuery) WithWorkOrder(opts ...func(*WorkOrderQuery)) *CheckListCategoryQuery {
+	query := &WorkOrderQuery{config: clcq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	clcq.withWorkOrder = query
 	return clcq
 }
 
@@ -328,6 +359,9 @@ func (clcq *CheckListCategoryQuery) prepareQuery(ctx context.Context) error {
 		}
 		clcq.sql = prev
 	}
+	if err := checklistcategory.Policy.EvalQuery(ctx, clcq); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -336,10 +370,14 @@ func (clcq *CheckListCategoryQuery) sqlAll(ctx context.Context) ([]*CheckListCat
 		nodes       = []*CheckListCategory{}
 		withFKs     = clcq.withFKs
 		_spec       = clcq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			clcq.withCheckListItems != nil,
+			clcq.withWorkOrder != nil,
 		}
 	)
+	if clcq.withWorkOrder != nil {
+		withFKs = true
+	}
 	if withFKs {
 		_spec.Node.Columns = append(_spec.Node.Columns, checklistcategory.ForeignKeys...)
 	}
@@ -392,6 +430,31 @@ func (clcq *CheckListCategoryQuery) sqlAll(ctx context.Context) ([]*CheckListCat
 				return nil, fmt.Errorf(`unexpected foreign-key "check_list_category_check_list_items" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.CheckListItems = append(node.Edges.CheckListItems, n)
+		}
+	}
+
+	if query := clcq.withWorkOrder; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*CheckListCategory)
+		for i := range nodes {
+			if fk := nodes[i].work_order_check_list_categories; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(workorder.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_check_list_categories" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.WorkOrder = n
+			}
 		}
 	}
 
@@ -476,14 +539,14 @@ func (clcq *CheckListCategoryQuery) sqlQuery() *sql.Selector {
 type CheckListCategoryGroupBy struct {
 	config
 	fields []string
-	fns    []Aggregate
+	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (clcgb *CheckListCategoryGroupBy) Aggregate(fns ...Aggregate) *CheckListCategoryGroupBy {
+func (clcgb *CheckListCategoryGroupBy) Aggregate(fns ...AggregateFunc) *CheckListCategoryGroupBy {
 	clcgb.fns = append(clcgb.fns, fns...)
 	return clcgb
 }

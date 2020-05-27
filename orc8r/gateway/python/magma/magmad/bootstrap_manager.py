@@ -99,7 +99,7 @@ class BootstrapManager(SDWatchdogTask):
         elif self._state == BootstrapState.SCHEDULED_BOOTSTRAP:
             await self._bootstrap_now()
         elif self._state == BootstrapState.SCHEDULED_CHECK:
-            await self._bootstrap_now()
+            await self._bootstrap_check()
         elif self._state == BootstrapState.IDLE:
             pass
 

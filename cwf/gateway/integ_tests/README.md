@@ -21,6 +21,8 @@ to simulate a UE device in the test.
 ### `magma-trfserver`
 This VM runs an iperf3 server.
 
+![TestSetup](./IntegTestSetup.jpg)
+
 ## Current Tests
 
 * UE Authentication
@@ -100,7 +102,7 @@ to see specific errors.
 &rightarrow; Since docker does not garbage collect previously built images, we 
 will have to manually prune them. Run `docker system df` to see memory usage 
 and what can be deleted. To remove these images, run 
-`docker system prune to docker image prune -*filter until=24h`.
+`docker image prune --filter until=12h`.
 
 #### All traffic hang and then fail
 &rightarrow; This is an issue we've observed occasionally. We have not found 

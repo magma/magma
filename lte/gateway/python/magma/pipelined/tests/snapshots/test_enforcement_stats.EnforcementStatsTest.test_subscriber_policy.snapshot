@@ -3,10 +3,10 @@
  cookie=0x1, table=enforcement(main_table), n_packets=128, n_bytes=4352, priority=65532,ip,reg1=0x1,metadata=0x7594587a06d,nw_dst=45.10.0.0/25 actions=note:b'tx_match',set_field:0x1->reg2,set_field:0x1->reg4,resubmit(,enforcement_stats(main_table))
  cookie=0x2, table=enforcement(main_table), n_packets=256, n_bytes=8704, priority=65530,ip,reg1=0x10,metadata=0x7594587a06d,nw_src=45.10.0.0/24 actions=note:b'rx_match',set_field:0x2->reg2,set_field:0x1->reg4,resubmit(,enforcement_stats(main_table))
  cookie=0x0, table=enforcement(main_table), n_packets=7808, n_bytes=265472, priority=1,metadata=0x7594587a06d actions=drop
- cookie=0x0, table=enforcement(main_table), n_packets=0, n_bytes=0, priority=0,ip,reg1=0x10 actions=resubmit(,enforcement_stats(main_table)),set_field:0->reg0
- cookie=0x0, table=enforcement(main_table), n_packets=0, n_bytes=0, priority=0,ip,reg1=0x1 actions=resubmit(,enforcement_stats(main_table)),set_field:0->reg0
- cookie=0x1, table=enforcement_stats(main_table), n_packets=0, n_bytes=0, priority=10,reg1=0x10,reg2=0x1,reg4=0x1,metadata=0x7594587a06d actions=resubmit(,egress(main_table)),set_field:0->reg0
- cookie=0x1, table=enforcement_stats(main_table), n_packets=128, n_bytes=4352, priority=10,reg1=0x1,reg2=0x1,reg4=0x1,metadata=0x7594587a06d actions=resubmit(,egress(main_table)),set_field:0->reg0
- cookie=0x2, table=enforcement_stats(main_table), n_packets=256, n_bytes=8704, priority=10,reg1=0x10,reg2=0x2,reg4=0x1,metadata=0x7594587a06d actions=resubmit(,egress(main_table)),set_field:0->reg0
- cookie=0x2, table=enforcement_stats(main_table), n_packets=0, n_bytes=0, priority=10,reg1=0x1,reg2=0x2,reg4=0x1,metadata=0x7594587a06d actions=resubmit(,egress(main_table)),set_field:0->reg0
- cookie=0xfffffffffffffffe, table=enforcement_stats(main_table), n_packets=0, n_bytes=0, priority=0 actions=resubmit(,egress(main_table)),set_field:0->reg0
+ cookie=0x0, table=enforcement(main_table), n_packets=0, n_bytes=0, priority=0,ip,reg1=0x10 actions=resubmit(,enforcement_stats(main_table)),set_field:0->reg0,set_field:0->reg3
+ cookie=0x0, table=enforcement(main_table), n_packets=0, n_bytes=0, priority=0,ip,reg1=0x1 actions=resubmit(,enforcement_stats(main_table)),set_field:0->reg0,set_field:0->reg3
+ cookie=0x1, table=enforcement_stats(main_table), n_packets=0, n_bytes=0, priority=10,reg1=0x10,reg2=0x1,reg3=0,reg4=0x1,metadata=0x7594587a06d actions=resubmit(,egress(main_table)),set_field:0->reg0,set_field:0->reg3
+ cookie=0x1, table=enforcement_stats(main_table), n_packets=128, n_bytes=4352, priority=10,reg1=0x1,reg2=0x1,reg3=0,reg4=0x1,metadata=0x7594587a06d actions=resubmit(,egress(main_table)),set_field:0->reg0,set_field:0->reg3
+ cookie=0x2, table=enforcement_stats(main_table), n_packets=256, n_bytes=8704, priority=10,reg1=0x10,reg2=0x2,reg3=0,reg4=0x1,metadata=0x7594587a06d actions=resubmit(,egress(main_table)),set_field:0->reg0,set_field:0->reg3
+ cookie=0x2, table=enforcement_stats(main_table), n_packets=0, n_bytes=0, priority=10,reg1=0x1,reg2=0x2,reg3=0,reg4=0x1,metadata=0x7594587a06d actions=resubmit(,egress(main_table)),set_field:0->reg0,set_field:0->reg3
+ cookie=0xfffffffffffffffe, table=enforcement_stats(main_table), n_packets=0, n_bytes=0, priority=0 actions=resubmit(,egress(main_table)),set_field:0->reg0,set_field:0->reg3

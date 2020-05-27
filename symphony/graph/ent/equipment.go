@@ -65,9 +65,11 @@ type EquipmentEdges struct {
 	Files []*File `gqlgen:"files"`
 	// Hyperlinks holds the value of the hyperlinks edge.
 	Hyperlinks []*Hyperlink `gqlgen:"hyperlinks"`
+	// Endpoints holds the value of the endpoints edge.
+	Endpoints []*ServiceEndpoint
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [9]bool
+	loadedTypes [10]bool
 }
 
 // TypeOrErr returns the Type value or an error if the edge
@@ -169,6 +171,15 @@ func (e EquipmentEdges) HyperlinksOrErr() ([]*Hyperlink, error) {
 		return e.Hyperlinks, nil
 	}
 	return nil, &NotLoadedError{edge: "hyperlinks"}
+}
+
+// EndpointsOrErr returns the Endpoints value or an error if the edge
+// was not loaded in eager-loading.
+func (e EquipmentEdges) EndpointsOrErr() ([]*ServiceEndpoint, error) {
+	if e.loadedTypes[9] {
+		return e.Endpoints, nil
+	}
+	return nil, &NotLoadedError{edge: "endpoints"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -309,6 +320,11 @@ func (e *Equipment) QueryFiles() *FileQuery {
 // QueryHyperlinks queries the hyperlinks edge of the Equipment.
 func (e *Equipment) QueryHyperlinks() *HyperlinkQuery {
 	return (&EquipmentClient{config: e.config}).QueryHyperlinks(e)
+}
+
+// QueryEndpoints queries the endpoints edge of the Equipment.
+func (e *Equipment) QueryEndpoints() *ServiceEndpointQuery {
+	return (&EquipmentClient{config: e.config}).QueryEndpoints(e)
 }
 
 // Update returns a builder for updating this Equipment.

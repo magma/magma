@@ -11,6 +11,7 @@ import type {ServiceTypeItem_serviceType} from './__generated__/ServiceTypeItem_
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
 
+import CommonStrings from '@fbcnms/strings/Strings';
 import ConfigureExpansionPanel from './ConfigureExpansionPanel';
 import DynamicPropertyTypesGrid from '../DynamicPropertyTypesGrid';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
@@ -20,6 +21,8 @@ import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
 import LinearScaleIcon from '@material-ui/icons/LinearScale';
 import React from 'react';
 import RemoveServiceTypeMutation from '../../mutations/RemoveServiceTypeMutation';
+import ServiceEndpointDefinitionStaticTable from './ServiceEndpointDefinitionStaticTable';
+import fbt from 'fbt';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {ConnectionHandler} from 'relay-runtime';
 import {createFragmentContainer, graphql} from 'react-relay';
@@ -35,7 +38,7 @@ const styles = {
   detailsContainer: {
     width: '100%',
   },
-  properties: {
+  section: {
     marginBottom: '24px',
   },
 };
@@ -48,21 +51,28 @@ class ServiceTypeItem extends React.Component<Props> {
         <ExpansionPanel>
           <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
             <ConfigureExpansionPanel
+              entityName="serviceType"
               icon={<LinearScaleIcon />}
               name={serviceType.name}
               instanceCount={serviceType.numberOfServices}
               instanceNameSingular="service"
               instanceNamePlural="services"
               onDelete={this.onDelete}
+              allowDelete={true}
               onEdit={onEdit}
             />
           </ExpansionPanelSummary>
           <ExpansionPanelDetails>
             <div className={classes.detailsContainer}>
-              <div className={classes.properties}>
+              <div className={classes.section}>
                 <DynamicPropertyTypesGrid
                   key={serviceType.id}
                   propertyTypes={serviceType.propertyTypes}
+                />
+              </div>
+              <div className={classes.section}>
+                <ServiceEndpointDefinitionStaticTable
+                  serviceEndpointDefinitions={serviceType.endpointDefinitions}
                 />
               </div>
             </div>
@@ -74,9 +84,18 @@ class ServiceTypeItem extends React.Component<Props> {
 
   onDelete = () => {
     this.props
-      .confirm(
-        `Are you sure you want to delete "${this.props.serviceType.name}"?`,
-      )
+      .confirm({
+        title: <fbt desc="">Delete Service Type?</fbt>,
+        message: fbt(
+          'Are you sure you want to delete' +
+            fbt.param('service name', this.props.serviceType.name) +
+            "? The service type, and all it's instances will be deleted soon, in the background",
+          'deletion message',
+        ),
+        cancelLabel: CommonStrings.common.cancelButton,
+        confirmLabel: CommonStrings.common.deleteButton,
+        skin: 'red',
+      })
       .then(confirm => {
         if (!confirm) {
           return;
@@ -115,8 +134,12 @@ export default withStyles(styles)(
         fragment ServiceTypeItem_serviceType on ServiceType {
           id
           name
+          discoveryMethod
           propertyTypes {
             ...PropertyTypeFormField_propertyType
+          }
+          endpointDefinitions {
+            ...ServiceEndpointDefinitionStaticTable_serviceEndpointDefinitions
           }
           numberOfServices
         }

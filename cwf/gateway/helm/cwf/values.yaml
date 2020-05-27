@@ -17,11 +17,15 @@ release_group: null
 imagePullSecrets: []
 # - name: orc8r-secrets-registry
 
+# secrets sub-chart configuration.
+secrets:
+  create: false
+
 # Define which secrets should be mounted by pods.
 secret:
   certs: orc8r-secrets-certs
-  configs:
-    cwf: cwf01-secrets-configs
+#  gwinfo: cwf-secrets-gwinfo
+#  dpi_licence: cwf-secrets-dpi
 
 ## Key Values for docker inside VM
 cwf:
@@ -40,6 +44,10 @@ cwf:
   repo:
     url: https://github.com/facebookincubator/magma.git
     branch: master
+#  dpi:
+#    dpi_license_name: cwftest.bin
+#  env: |
+#    key=value
 
 ## Key Values for VM running using virtlet runtime
 image:
@@ -93,6 +101,10 @@ service:
       port: 1813
       targetport: 1813
       nodePort: ""
+    health:
+      port: 9107
+      target: 9107
+      nodePort: ""
 tolerations: []
 
 affinity: {}
@@ -120,6 +132,4 @@ manifests:
   deployment: true
   service: true
   configmap_env: true
-  configmap_bin: true
-  secrets: true
   rbac: true

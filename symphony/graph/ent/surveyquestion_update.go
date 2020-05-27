@@ -481,6 +481,21 @@ func (squ *SurveyQuestionUpdate) AddPhotoData(f ...*File) *SurveyQuestionUpdate 
 	return squ.AddPhotoDatumIDs(ids...)
 }
 
+// AddImageIDs adds the images edge to File by ids.
+func (squ *SurveyQuestionUpdate) AddImageIDs(ids ...int) *SurveyQuestionUpdate {
+	squ.mutation.AddImageIDs(ids...)
+	return squ
+}
+
+// AddImages adds the images edges to File.
+func (squ *SurveyQuestionUpdate) AddImages(f ...*File) *SurveyQuestionUpdate {
+	ids := make([]int, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return squ.AddImageIDs(ids...)
+}
+
 // ClearSurvey clears the survey edge to Survey.
 func (squ *SurveyQuestionUpdate) ClearSurvey() *SurveyQuestionUpdate {
 	squ.mutation.ClearSurvey()
@@ -530,6 +545,21 @@ func (squ *SurveyQuestionUpdate) RemovePhotoData(f ...*File) *SurveyQuestionUpda
 		ids[i] = f[i].ID
 	}
 	return squ.RemovePhotoDatumIDs(ids...)
+}
+
+// RemoveImageIDs removes the images edge to File by ids.
+func (squ *SurveyQuestionUpdate) RemoveImageIDs(ids ...int) *SurveyQuestionUpdate {
+	squ.mutation.RemoveImageIDs(ids...)
+	return squ
+}
+
+// RemoveImages removes images edges to File.
+func (squ *SurveyQuestionUpdate) RemoveImages(f ...*File) *SurveyQuestionUpdate {
+	ids := make([]int, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return squ.RemoveImageIDs(ids...)
 }
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
@@ -1043,6 +1073,44 @@ func (squ *SurveyQuestionUpdate) sqlSave(ctx context.Context) (n int, err error)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if nodes := squ.mutation.RemovedImagesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   surveyquestion.ImagesTable,
+			Columns: []string{surveyquestion.ImagesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: file.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := squ.mutation.ImagesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   surveyquestion.ImagesTable,
+			Columns: []string{surveyquestion.ImagesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: file.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, squ.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{surveyquestion.Label}
@@ -1505,6 +1573,21 @@ func (squo *SurveyQuestionUpdateOne) AddPhotoData(f ...*File) *SurveyQuestionUpd
 	return squo.AddPhotoDatumIDs(ids...)
 }
 
+// AddImageIDs adds the images edge to File by ids.
+func (squo *SurveyQuestionUpdateOne) AddImageIDs(ids ...int) *SurveyQuestionUpdateOne {
+	squo.mutation.AddImageIDs(ids...)
+	return squo
+}
+
+// AddImages adds the images edges to File.
+func (squo *SurveyQuestionUpdateOne) AddImages(f ...*File) *SurveyQuestionUpdateOne {
+	ids := make([]int, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return squo.AddImageIDs(ids...)
+}
+
 // ClearSurvey clears the survey edge to Survey.
 func (squo *SurveyQuestionUpdateOne) ClearSurvey() *SurveyQuestionUpdateOne {
 	squo.mutation.ClearSurvey()
@@ -1554,6 +1637,21 @@ func (squo *SurveyQuestionUpdateOne) RemovePhotoData(f ...*File) *SurveyQuestion
 		ids[i] = f[i].ID
 	}
 	return squo.RemovePhotoDatumIDs(ids...)
+}
+
+// RemoveImageIDs removes the images edge to File by ids.
+func (squo *SurveyQuestionUpdateOne) RemoveImageIDs(ids ...int) *SurveyQuestionUpdateOne {
+	squo.mutation.RemoveImageIDs(ids...)
+	return squo
+}
+
+// RemoveImages removes images edges to File.
+func (squo *SurveyQuestionUpdateOne) RemoveImages(f ...*File) *SurveyQuestionUpdateOne {
+	ids := make([]int, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return squo.RemoveImageIDs(ids...)
 }
 
 // Save executes the query and returns the updated entity.
@@ -2052,6 +2150,44 @@ func (squo *SurveyQuestionUpdateOne) sqlSave(ctx context.Context) (sq *SurveyQue
 			Inverse: false,
 			Table:   surveyquestion.PhotoDataTable,
 			Columns: []string{surveyquestion.PhotoDataColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: file.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if nodes := squo.mutation.RemovedImagesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   surveyquestion.ImagesTable,
+			Columns: []string{surveyquestion.ImagesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: file.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := squo.mutation.ImagesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   surveyquestion.ImagesTable,
+			Columns: []string{surveyquestion.ImagesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{

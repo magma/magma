@@ -9,26 +9,26 @@ from typing import Callable, Dict, List, Mapping, Optional, Sequence, Tuple, Uni
 
 from dacite import Config, from_dict
 
-from .consts import (
+from .common.data_class import (
     TYPE_AND_FIELD_NAME,
     DataTypeName,
-    Entity,
     PropertyDefinition,
     PropertyValue,
     ReturnType,
 )
+from .common.data_enum import Entity
 from .exceptions import EntityNotFoundError
-from .graphql.equipment_port_definition_fragment import EquipmentPortDefinitionFragment
-from .graphql.equipment_port_input import EquipmentPortInput
-from .graphql.equipment_position_definition_fragment import (
+from .graphql.enum.property_kind import PropertyKind
+from .graphql.fragment.equipment_port_definition import EquipmentPortDefinitionFragment
+from .graphql.fragment.equipment_position_definition import (
     EquipmentPositionDefinitionFragment,
 )
-from .graphql.equipment_position_input import EquipmentPositionInput
-from .graphql.property_fragment import PropertyFragment
-from .graphql.property_input import PropertyInput
-from .graphql.property_kind_enum import PropertyKind
-from .graphql.property_type_fragment import PropertyTypeFragment
-from .graphql.property_type_input import PropertyTypeInput
+from .graphql.fragment.property import PropertyFragment
+from .graphql.fragment.property_type import PropertyTypeFragment
+from .graphql.input.equipment_port import EquipmentPortInput
+from .graphql.input.equipment_position import EquipmentPositionInput
+from .graphql.input.property import PropertyInput
+from .graphql.input.property_type import PropertyTypeInput
 
 
 def format_to_type_and_field_name(type_key: str) -> Optional[DataTypeName]:
@@ -75,19 +75,19 @@ def get_graphql_property_type_inputs(
     properties_dict: Dict[str, PropertyValue],
 ) -> List[PropertyTypeInput]:
     """This function gets existing property types and dictionary, where key - are type names, and keys - new values
-    formats data, validates existence of keys from properties_dict in property_types and returns list of PropertyTypeInput
- 
+    formats data, validates existence of keys from `properties_dict` in `property_types` and returns list of PropertyTypeInput
+
         Args:
-            property_types (List[pyinventory.graphql.property_type_fragment.PropertyTypeFragment]): list of existing property types
-            properties_dict (Dict[str, pyinventory.consts.PropertyValue]): dictionary of properties, where
-                str: name of existing property
-                PropertyValue: new value of existing type for this property
-       
+            property_types (List[ `pyinventory.graphql.fragment.property_type.PropertyTypeFragment` ]): list of existing property types
+            properties_dict (Dict[str, PropertyValue]): dictionary of properties, where
+            - str - name of existing property
+            - PropertyValue - new value of existing type for this property
+
         Returns:
-            List[pyinventory.graphql.property_type_input.PropertyTypeInput]
- 
+            List['pyinventory.graphql.input.property_type.PropertyTypeInput']
+
         Raises:
-            EntityNotFoundError if there any unknown property name in properties_dict keys
+            `pyinventory.exceptions.EntityNotFoundError`: if there any unknown property name in `properties_dict` keys
     """
     properties = []
     property_type_names = {}
@@ -127,25 +127,25 @@ def get_graphql_property_inputs(
     properties_dict: Mapping[str, PropertyValue],
 ) -> List[PropertyInput]:
     """This function gets existing property types and dictionary, where key - are type names, and keys - new values
-    formats data, validates existence of keys from properties_dict in property_types and returns list of PropertyInput
- 
+    formats data, validates existence of keys from `properties_dict` in `property_types` and returns list of PropertyInput
+
         Args:
-            property_types (Sequence[pyinventory.graphql.property_type_fragment.PropertyTypeFragment]): list of existing property types
-            properties_dict (Mapping[str, pyinventory.consts.PropertyValue]): dictionary of properties, where
+            property_types (Sequence[ `pyinventory.graphql.fragment.property_type.PropertyTypeFragment` ]): list of existing property types
+            properties_dict (Mapping[str, PropertyValue]): dictionary of properties, where
                 str: name of existing property
                 PropertyValue: new value of existing type for this property
-       
+
         Returns:
-            List[pyinventory.graphql.property_input.PropertyInput]
- 
+            List[ `pyinventory.graphql.input.property.PropertyInput` ]
+
         Raises:
-            EntityNotFoundError if there any unknown property name in properties_dict keys
-       
+            `pyinventory.exceptions.EntityNotFoundError`: if there any unknown property name in properties_dict keys
+
         Example:
-        ```
-            property_types = client.locationTypes[location_type].property_types
+            ```
+            property_types = LOCATION_TYPES[location_type].property_types
             properties = get_graphql_property_inputs(property_types, properties_dict)
-        ```
+            ```
     """
     properties = []
     property_type_names = {}
@@ -242,6 +242,9 @@ def get_property_type_input(
         name=property_type.name,
         type=property_type.type,
         id=property_type.id if not is_new else None,
+        externalId=property_type.externalId
+        if not is_new and property_type.externalId
+        else None,
         index=property_type.index,
         category=property_type.category,
         stringValue=property_type.stringValue,
@@ -282,7 +285,7 @@ def get_port_definition_input(
 
 
 def format_property_definitions(
-    properties: List[PropertyDefinition]
+    properties: List[PropertyDefinition],
 ) -> List[PropertyTypeInput]:
     property_types = [
         from_dict(
@@ -291,10 +294,13 @@ def format_property_definitions(
                 "name": prop.property_name,
                 "type": PropertyKind(prop.property_kind),
                 "index": i,
+                "externalId": prop.external_id,
+                "isMandatory": prop.is_mandatory,
                 **_get_property_default_value(
                     prop.property_name, prop.property_kind.value, prop.default_value
                 ),
                 "isInstanceProperty": not prop.is_fixed,
+                "isDeleted": prop.is_deleted,
             },
             config=Config(strict=True),
         )
@@ -304,7 +310,9 @@ def format_property_definitions(
 
 
 def deprecated(
-    deprecated_in: str, deprecated_by: str
+    deprecated_in: str,
+    deprecated_by: str
+    # pyre-fixme[34]: `Variable[ReturnType]` isn't present in the function's parameters.
 ) -> Callable[[Callable[..., ReturnType]], Callable[..., ReturnType]]:
     def wrapped(func: Callable[..., ReturnType]) -> Callable[..., ReturnType]:
         def wrapper(*args: str, **kwargs: int) -> Callable[..., ReturnType]:

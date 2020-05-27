@@ -17,7 +17,9 @@
 namespace magma {
 namespace lte {
 
-typedef std::unordered_map<std::string, std::vector<std::unique_ptr<SessionState>>> SessionMap;
+typedef std::unordered_map<
+    std::string, std::vector<std::unique_ptr<SessionState>>>
+    SessionMap;
 
 /**
  * StoreClient is responsible for reading/writing sessions to/from storage.
@@ -32,7 +34,16 @@ class StoreClient {
    * @param subscriber_ids typically in IMSI
    * @return All sessions for the subscribers
    */
-  virtual SessionMap read_sessions(std::vector<std::string> subscriber_ids) = 0;
+  virtual SessionMap read_sessions(std::set<std::string> subscriber_ids) = 0;
+
+  /**
+   * Directly read all subscriber sessions from storage
+   *
+   * If one or more of the subscribers have no sessions, empty entries will be
+   * returned.
+   * @return All sessions for the subscribers
+   */
+  virtual SessionMap read_all_sessions() = 0;
 
   /**
    * Directly write the subscriber sessions into storage, overwriting previous
@@ -44,5 +55,5 @@ class StoreClient {
   virtual bool write_sessions(SessionMap sessions) = 0;
 };
 
-} // namespace lte
-} // namespace magma
+}  // namespace lte
+}  // namespace magma

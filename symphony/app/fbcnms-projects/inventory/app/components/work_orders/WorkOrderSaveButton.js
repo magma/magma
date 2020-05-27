@@ -8,10 +8,6 @@
  * @format
  */
 
-import type {
-  CheckListCategoryInput,
-  CheckListItemInput,
-} from '../../mutations/__generated__/EditWorkOrderMutation.graphql';
 import type {ChecklistCategoriesStateType} from '../checklist/ChecklistCategoriesMutateState';
 import type {
   EditWorkOrderMutationResponse,
@@ -26,13 +22,13 @@ import EditWorkOrderMutation from '../../mutations/EditWorkOrderMutation';
 import FormAction from '../../../../../fbcnms-packages/fbcnms-ui/components/design-system/Form/FormAction';
 import React, {useCallback} from 'react';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
+import Strings from '../../../../../fbcnms-packages/fbcnms-strings/Strings';
 import useRouter from '@fbcnms/ui/hooks/useRouter';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
+import {convertChecklistCategoriesStateToInput} from '../checklist/ChecklistUtils';
 import {getGraphError} from '../../common/EntUtils';
-import {isTempId} from '../../common/EntUtils';
 import {toPropertyInput} from '../../common/Property';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
-import {useFormContext} from '../../common/FormContext';
 
 type Props = {
   workOrder: WorkOrderDetails_workOrder,
@@ -69,42 +65,6 @@ const WorkOrderSaveButton = (props: Props) => {
       assignedTo,
       project,
     } = workOrder;
-    const checkListCategoriesInput: Array<CheckListCategoryInput> = checkListCategories.map(
-      category => {
-        const checkList: Array<CheckListItemInput> = category.checkList.map(
-          item => {
-            return {
-              id: isTempId(item.id) ? undefined : item.id,
-              title: item.title,
-              type: item.type,
-              index: item.index,
-              helpText: item.helpText,
-              enumValues: item.enumValues,
-              selectedEnumValues: item.selectedEnumValues,
-              enumSelectionMode: item.enumSelectionMode,
-              stringValue: item.stringValue,
-              checked: item.checked,
-              yesNoResponse: item.yesNoResponse,
-              files: item.files?.map(file => ({
-                id: file.id,
-                storeKey: file.storeKey,
-                fileName: file.fileName,
-                sizeInBytes: file.sizeInBytes,
-                modificationTime: file.modificationTime,
-                uploadTime: file.uploadTime,
-                fileType: 'FILE',
-              })),
-            };
-          },
-        );
-        return {
-          id: isTempId(category.id) ? undefined : category.id,
-          title: category.title,
-          description: category.description,
-          checkList,
-        };
-      },
-    );
     const variables: EditWorkOrderMutationVariables = {
       input: {
         id,
@@ -118,7 +78,9 @@ const WorkOrderSaveButton = (props: Props) => {
         projectId: project?.id,
         properties: toPropertyInput(properties),
         locationId,
-        checkListCategories: checkListCategoriesInput,
+        checkListCategories: convertChecklistCategoriesStateToInput(
+          checkListCategories,
+        ),
       },
     };
     const callbacks: MutationCallbacks<EditWorkOrderMutationResponse> = {
@@ -148,13 +110,9 @@ const WorkOrderSaveButton = (props: Props) => {
     match.url,
   ]);
 
-  const form = useFormContext();
-
   return (
-    <FormAction disabled={form.alerts.error.detected}>
-      <Button tooltip={form.alerts.error.message} onClick={saveWorkOrder}>
-        Save
-      </Button>
+    <FormAction disableOnFromError={true}>
+      <Button onClick={saveWorkOrder}>{Strings.common.saveButton}</Button>
     </FormAction>
   );
 };

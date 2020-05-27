@@ -50,6 +50,26 @@ func (ptu *PropertyTypeUpdate) SetName(s string) *PropertyTypeUpdate {
 	return ptu
 }
 
+// SetExternalID sets the external_id field.
+func (ptu *PropertyTypeUpdate) SetExternalID(s string) *PropertyTypeUpdate {
+	ptu.mutation.SetExternalID(s)
+	return ptu
+}
+
+// SetNillableExternalID sets the external_id field if the given value is not nil.
+func (ptu *PropertyTypeUpdate) SetNillableExternalID(s *string) *PropertyTypeUpdate {
+	if s != nil {
+		ptu.SetExternalID(*s)
+	}
+	return ptu
+}
+
+// ClearExternalID clears the value of external_id.
+func (ptu *PropertyTypeUpdate) ClearExternalID() *PropertyTypeUpdate {
+	ptu.mutation.ClearExternalID()
+	return ptu
+}
+
 // SetIndex sets the index field.
 func (ptu *PropertyTypeUpdate) SetIndex(i int) *PropertyTypeUpdate {
 	ptu.mutation.ResetIndex()
@@ -355,6 +375,26 @@ func (ptu *PropertyTypeUpdate) SetNillableDeleted(b *bool) *PropertyTypeUpdate {
 	return ptu
 }
 
+// SetNodeType sets the nodeType field.
+func (ptu *PropertyTypeUpdate) SetNodeType(s string) *PropertyTypeUpdate {
+	ptu.mutation.SetNodeType(s)
+	return ptu
+}
+
+// SetNillableNodeType sets the nodeType field if the given value is not nil.
+func (ptu *PropertyTypeUpdate) SetNillableNodeType(s *string) *PropertyTypeUpdate {
+	if s != nil {
+		ptu.SetNodeType(*s)
+	}
+	return ptu
+}
+
+// ClearNodeType clears the value of nodeType.
+func (ptu *PropertyTypeUpdate) ClearNodeType() *PropertyTypeUpdate {
+	ptu.mutation.ClearNodeType()
+	return ptu
+}
+
 // AddPropertyIDs adds the properties edge to Property by ids.
 func (ptu *PropertyTypeUpdate) AddPropertyIDs(ids ...int) *PropertyTypeUpdate {
 	ptu.mutation.AddPropertyIDs(ids...)
@@ -654,6 +694,19 @@ func (ptu *PropertyTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: propertytype.FieldName,
 		})
 	}
+	if value, ok := ptu.mutation.ExternalID(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: propertytype.FieldExternalID,
+		})
+	}
+	if ptu.mutation.ExternalIDCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: propertytype.FieldExternalID,
+		})
+	}
 	if value, ok := ptu.mutation.Index(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
@@ -859,6 +912,19 @@ func (ptu *PropertyTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Type:   field.TypeBool,
 			Value:  value,
 			Column: propertytype.FieldDeleted,
+		})
+	}
+	if value, ok := ptu.mutation.NodeType(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: propertytype.FieldNodeType,
+		})
+	}
+	if ptu.mutation.NodeTypeCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: propertytype.FieldNodeType,
 		})
 	}
 	if nodes := ptu.mutation.RemovedPropertiesIDs(); len(nodes) > 0 {
@@ -1174,6 +1240,26 @@ func (ptuo *PropertyTypeUpdateOne) SetName(s string) *PropertyTypeUpdateOne {
 	return ptuo
 }
 
+// SetExternalID sets the external_id field.
+func (ptuo *PropertyTypeUpdateOne) SetExternalID(s string) *PropertyTypeUpdateOne {
+	ptuo.mutation.SetExternalID(s)
+	return ptuo
+}
+
+// SetNillableExternalID sets the external_id field if the given value is not nil.
+func (ptuo *PropertyTypeUpdateOne) SetNillableExternalID(s *string) *PropertyTypeUpdateOne {
+	if s != nil {
+		ptuo.SetExternalID(*s)
+	}
+	return ptuo
+}
+
+// ClearExternalID clears the value of external_id.
+func (ptuo *PropertyTypeUpdateOne) ClearExternalID() *PropertyTypeUpdateOne {
+	ptuo.mutation.ClearExternalID()
+	return ptuo
+}
+
 // SetIndex sets the index field.
 func (ptuo *PropertyTypeUpdateOne) SetIndex(i int) *PropertyTypeUpdateOne {
 	ptuo.mutation.ResetIndex()
@@ -1479,6 +1565,26 @@ func (ptuo *PropertyTypeUpdateOne) SetNillableDeleted(b *bool) *PropertyTypeUpda
 	return ptuo
 }
 
+// SetNodeType sets the nodeType field.
+func (ptuo *PropertyTypeUpdateOne) SetNodeType(s string) *PropertyTypeUpdateOne {
+	ptuo.mutation.SetNodeType(s)
+	return ptuo
+}
+
+// SetNillableNodeType sets the nodeType field if the given value is not nil.
+func (ptuo *PropertyTypeUpdateOne) SetNillableNodeType(s *string) *PropertyTypeUpdateOne {
+	if s != nil {
+		ptuo.SetNodeType(*s)
+	}
+	return ptuo
+}
+
+// ClearNodeType clears the value of nodeType.
+func (ptuo *PropertyTypeUpdateOne) ClearNodeType() *PropertyTypeUpdateOne {
+	ptuo.mutation.ClearNodeType()
+	return ptuo
+}
+
 // AddPropertyIDs adds the properties edge to Property by ids.
 func (ptuo *PropertyTypeUpdateOne) AddPropertyIDs(ids ...int) *PropertyTypeUpdateOne {
 	ptuo.mutation.AddPropertyIDs(ids...)
@@ -1776,6 +1882,19 @@ func (ptuo *PropertyTypeUpdateOne) sqlSave(ctx context.Context) (pt *PropertyTyp
 			Column: propertytype.FieldName,
 		})
 	}
+	if value, ok := ptuo.mutation.ExternalID(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: propertytype.FieldExternalID,
+		})
+	}
+	if ptuo.mutation.ExternalIDCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: propertytype.FieldExternalID,
+		})
+	}
 	if value, ok := ptuo.mutation.Index(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
@@ -1981,6 +2100,19 @@ func (ptuo *PropertyTypeUpdateOne) sqlSave(ctx context.Context) (pt *PropertyTyp
 			Type:   field.TypeBool,
 			Value:  value,
 			Column: propertytype.FieldDeleted,
+		})
+	}
+	if value, ok := ptuo.mutation.NodeType(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: propertytype.FieldNodeType,
+		})
+	}
+	if ptuo.mutation.NodeTypeCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: propertytype.FieldNodeType,
 		})
 	}
 	if nodes := ptuo.mutation.RemovedPropertiesIDs(); len(nodes) > 0 {

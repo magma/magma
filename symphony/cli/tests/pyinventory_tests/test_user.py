@@ -8,7 +8,6 @@ import random
 import string
 
 from gql.gql.transport.session import UserDeactivatedException
-from pyinventory import InventoryClient
 from pyinventory.api.user import (
     activate_user,
     add_user,
@@ -16,20 +15,20 @@ from pyinventory.api.user import (
     edit_user,
     get_active_users,
 )
-from pyinventory.graphql.user_role_enum import UserRole
-from pyinventory.graphql.user_status_enum import UserStatus
+from pyinventory.graphql.enum.user_role import UserRole
+from pyinventory.graphql.enum.user_status import UserStatus
+from pysymphony import SymphonyClient
 
-from .utils import init_client
-from .utils.base_test import BaseTest
-from .utils.constant import TEST_USER_EMAIL
+from ..utils import init_client
+from ..utils.base_test import BaseTest
+from ..utils.grpc.rpc_pb2_grpc import TenantServiceStub
 
 
 class TestUser(BaseTest):
-    def tearDown(self) -> None:
-        active_users = get_active_users(self.client)
-        for user in active_users:
-            if user.email != TEST_USER_EMAIL:
-                deactivate_user(self.client, user)
+    def __init__(
+        self, testName: str, client: SymphonyClient, stub: TenantServiceStub
+    ) -> None:
+        super().__init__(testName, client, stub)
 
     @staticmethod
     def random_string(stringLength: int = 10) -> str:
@@ -38,37 +37,42 @@ class TestUser(BaseTest):
 
     def test_user_created(self) -> None:
         user_name = f"{self.random_string()}@fb.com"
-        u = add_user(self.client, user_name, user_name)
+        u = add_user(client=self.client, email=user_name, password=user_name)
         self.assertEqual(user_name, u.email)
         self.assertEqual(UserStatus.ACTIVE, u.status)
-        active_users = get_active_users(self.client)
+        active_users = get_active_users(client=self.client)
         self.assertEqual(2, len(active_users))
-        client2 = init_client(user_name, user_name)
-        active_users = get_active_users(client2)
+        client2 = init_client(email=user_name, password=user_name)
+        active_users = get_active_users(client=client2)
         self.assertEqual(2, len(active_users))
 
     def test_user_edited(self) -> None:
         user_name = f"{self.random_string()}@fb.com"
         new_password = self.random_string()
-        u = add_user(self.client, user_name, user_name)
-        edit_user(self.client, u, new_password, UserRole.OWNER)
-        client2 = init_client(user_name, new_password)
-        active_users = get_active_users(client2)
+        u = add_user(client=self.client, email=user_name, password=user_name)
+        edit_user(
+            client=self.client,
+            user=u,
+            new_password=new_password,
+            new_role=UserRole.OWNER,
+        )
+        client2 = init_client(email=user_name, password=new_password)
+        active_users = get_active_users(client=client2)
         self.assertEqual(2, len(active_users))
 
     def test_user_deactivated(self) -> None:
         user_name = f"{self.random_string()}@fb.com"
-        u = add_user(self.client, user_name, user_name)
-        deactivate_user(self.client, u)
-        active_users = get_active_users(self.client)
+        u = add_user(client=self.client, email=user_name, password=user_name)
+        deactivate_user(client=self.client, user=u)
+        active_users = get_active_users(client=self.client)
         self.assertEqual(1, len(active_users))
         with self.assertRaises(UserDeactivatedException):
-            init_client(user_name, user_name)
+            init_client(email=user_name, password=user_name)
 
     def test_user_reactivated(self) -> None:
         user_name = f"{self.random_string()}@fb.com"
-        u = add_user(self.client, user_name, user_name)
-        deactivate_user(self.client, u)
-        activate_user(self.client, u)
-        active_users = get_active_users(self.client)
+        u = add_user(client=self.client, email=user_name, password=user_name)
+        deactivate_user(client=self.client, user=u)
+        activate_user(client=self.client, user=u)
+        active_users = get_active_users(client=self.client)
         self.assertEqual(2, len(active_users))

@@ -22,6 +22,7 @@
 #include "ServiceRegistrySingleton.h"
 #include "SessionManagerServer.h"
 #include "SessiondMocks.h"
+#include "SessionStore.h"
 #include "LocalEnforcer.h"
 
 #define SESSION_TERMINATION_TIMEOUT_MS 100
@@ -40,7 +41,7 @@ class SessiondTest : public ::testing::Test {
   {
     auto test_channel = ServiceRegistrySingleton::Instance()->GetGrpcChannel(
       "test_service", ServiceRegistrySingleton::LOCAL);
-    folly::EventBase *evb = folly::EventBaseManager::get()->getEventBase();
+    evb = new folly::EventBase();
 
     controller_mock = std::make_shared<MockCentralController>();
     pipelined_mock = std::make_shared<MockPipelined>();
@@ -50,6 +51,7 @@ class SessiondTest : public ::testing::Test {
     eventd_client = std::make_shared<AsyncEventdClient>(test_channel);
     spgw_client = std::make_shared<AsyncSpgwServiceClient>(test_channel);
     auto rule_store = std::make_shared<StaticRuleStore>();
+    session_store = std::make_shared<SessionStore>(rule_store);
     insert_static_rule(rule_store, 1, "rule1");
     insert_static_rule(rule_store, 1, "rule2");
     insert_static_rule(rule_store, 2, "rule3");
@@ -58,6 +60,7 @@ class SessiondTest : public ::testing::Test {
     monitor = std::make_shared<LocalEnforcer>(
       reporter,
       rule_store,
+      *session_store,
       pipelined_client,
       directoryd_client,
       eventd_client,
@@ -72,11 +75,12 @@ class SessiondTest : public ::testing::Test {
     session_manager = std::make_shared<LocalSessionManagerAsyncService>(
       local_service->GetNewCompletionQueue(),
       std::make_unique<LocalSessionManagerHandlerImpl>(
-        monitor, reporter.get(), directoryd_client, session_map));
+        monitor, reporter.get(), directoryd_client, *session_store));
 
     proxy_responder = std::make_shared<SessionProxyResponderAsyncService>(
       local_service->GetNewCompletionQueue(),
-      std::make_unique<SessionProxyResponderHandlerImpl>(monitor, session_map));
+      std::make_unique<SessionProxyResponderHandlerImpl>(
+        monitor, *session_store));
 
     local_service->AddServiceToServer(session_manager.get());
     local_service->AddServiceToServer(proxy_responder.get());
@@ -97,6 +101,7 @@ class SessiondTest : public ::testing::Test {
     std::thread([&]() { spgw_client->rpc_response_loop(); }).detach();
     std::thread([&]() {
       std::cout << "Started monitor thread\n";
+      folly::EventBaseManager::get()->setEventBase(evb, 0);
       monitor->attachEventBase(evb);
       monitor->start();
     }).detach();
@@ -112,6 +117,7 @@ class SessiondTest : public ::testing::Test {
       std::cout << "Started local grpc thread\n";
       proxy_responder->wait_for_requests();
     }).detach();
+    evb->waitUntilRunning();
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
 
@@ -122,6 +128,24 @@ class SessiondTest : public ::testing::Test {
     reporter->stop();
     test_service->Stop();
     pipelined_client->stop();
+    // This is a failsafe in case callbacks keep running on the event loop
+    // longer than intended for the unit test
+    evb->terminateLoopSoon();
+    bool has_exited = !evb->isRunning();
+    for (int i = 0; i < 10; i++) {
+      if (has_exited) {
+        break;
+      }
+      std::this_thread::sleep_for(std::chrono::milliseconds(250));
+      has_exited = !evb->isRunning();
+    }
+    if (!has_exited) {
+      std::cout << "EventBase eventloop is still running and should not be. "
+                << "You might see a segfault as everything scheduled to run "
+                << "is not guaranteed to have access to the things they should."
+                << std::endl;
+      EXPECT_TRUE(false);
+    }
   }
 
   void insert_static_rule(
@@ -147,6 +171,7 @@ class SessiondTest : public ::testing::Test {
   }
 
  protected:
+  folly::EventBase *evb;
   std::shared_ptr<MockCentralController> controller_mock;
   std::shared_ptr<MockPipelined> pipelined_mock;
   std::shared_ptr<LocalEnforcer> monitor;
@@ -159,6 +184,7 @@ class SessiondTest : public ::testing::Test {
   std::shared_ptr<AsyncDirectorydClient> directoryd_client;
   std::shared_ptr<AsyncEventdClient> eventd_client;
   std::shared_ptr<AsyncSpgwServiceClient> spgw_client;
+  std::shared_ptr<SessionStore> session_store;
   SessionMap session_map;
 };
 
@@ -327,7 +353,7 @@ TEST_F(SessiondTest, end_to_end_success)
   // The thread needs to be halted before proceeding to call EndSession()
   // because the call to FeG within ReportRuleStats() is an async call,
   // and the call to FeG, UpdateSession(), is assumed in this test
-  // to happend before the EndSession().
+  // to happened before the EndSession().
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   LocalEndSessionResponse update_resp;
@@ -391,7 +417,7 @@ TEST_F(SessiondTest, end_to_end_cloud_down)
     EXPECT_CALL(
       *controller_mock,
       UpdateSession(testing::_, CheckSingleUpdate(second_update), testing::_))
-      .Times(1)
+    .Times(1)
       .WillOnce(SetEndPromise(&end_promise, Status::OK));
   }
 
@@ -421,8 +447,8 @@ TEST_F(SessiondTest, end_to_end_cloud_down)
 
   RuleRecordTable table2;
   record_list = table2.mutable_records();
-  create_rule_record("IMSI1", "rule1", 1, 0, record_list->Add());
-  create_rule_record("IMSI1", "rule2", 0, 0, record_list->Add());
+  create_rule_record("IMSI1", "rule1", 1, 512, record_list->Add());
+  create_rule_record("IMSI1", "rule2", 512, 0, record_list->Add());
   grpc::ClientContext update_context2;
   stub->ReportRuleStats(&update_context2, table2, &void_resp);
 

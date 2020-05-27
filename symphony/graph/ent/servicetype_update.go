@@ -16,6 +16,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/ent/service"
+	"github.com/facebookincubator/symphony/graph/ent/serviceendpointdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/servicetype"
 )
 
@@ -53,6 +54,40 @@ func (stu *ServiceTypeUpdate) SetNillableHasCustomer(b *bool) *ServiceTypeUpdate
 	return stu
 }
 
+// SetIsDeleted sets the is_deleted field.
+func (stu *ServiceTypeUpdate) SetIsDeleted(b bool) *ServiceTypeUpdate {
+	stu.mutation.SetIsDeleted(b)
+	return stu
+}
+
+// SetNillableIsDeleted sets the is_deleted field if the given value is not nil.
+func (stu *ServiceTypeUpdate) SetNillableIsDeleted(b *bool) *ServiceTypeUpdate {
+	if b != nil {
+		stu.SetIsDeleted(*b)
+	}
+	return stu
+}
+
+// SetDiscoveryMethod sets the discovery_method field.
+func (stu *ServiceTypeUpdate) SetDiscoveryMethod(sm servicetype.DiscoveryMethod) *ServiceTypeUpdate {
+	stu.mutation.SetDiscoveryMethod(sm)
+	return stu
+}
+
+// SetNillableDiscoveryMethod sets the discovery_method field if the given value is not nil.
+func (stu *ServiceTypeUpdate) SetNillableDiscoveryMethod(sm *servicetype.DiscoveryMethod) *ServiceTypeUpdate {
+	if sm != nil {
+		stu.SetDiscoveryMethod(*sm)
+	}
+	return stu
+}
+
+// ClearDiscoveryMethod clears the value of discovery_method.
+func (stu *ServiceTypeUpdate) ClearDiscoveryMethod() *ServiceTypeUpdate {
+	stu.mutation.ClearDiscoveryMethod()
+	return stu
+}
+
 // AddServiceIDs adds the services edge to Service by ids.
 func (stu *ServiceTypeUpdate) AddServiceIDs(ids ...int) *ServiceTypeUpdate {
 	stu.mutation.AddServiceIDs(ids...)
@@ -81,6 +116,21 @@ func (stu *ServiceTypeUpdate) AddPropertyTypes(p ...*PropertyType) *ServiceTypeU
 		ids[i] = p[i].ID
 	}
 	return stu.AddPropertyTypeIDs(ids...)
+}
+
+// AddEndpointDefinitionIDs adds the endpoint_definitions edge to ServiceEndpointDefinition by ids.
+func (stu *ServiceTypeUpdate) AddEndpointDefinitionIDs(ids ...int) *ServiceTypeUpdate {
+	stu.mutation.AddEndpointDefinitionIDs(ids...)
+	return stu
+}
+
+// AddEndpointDefinitions adds the endpoint_definitions edges to ServiceEndpointDefinition.
+func (stu *ServiceTypeUpdate) AddEndpointDefinitions(s ...*ServiceEndpointDefinition) *ServiceTypeUpdate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return stu.AddEndpointDefinitionIDs(ids...)
 }
 
 // RemoveServiceIDs removes the services edge to Service by ids.
@@ -113,11 +163,31 @@ func (stu *ServiceTypeUpdate) RemovePropertyTypes(p ...*PropertyType) *ServiceTy
 	return stu.RemovePropertyTypeIDs(ids...)
 }
 
+// RemoveEndpointDefinitionIDs removes the endpoint_definitions edge to ServiceEndpointDefinition by ids.
+func (stu *ServiceTypeUpdate) RemoveEndpointDefinitionIDs(ids ...int) *ServiceTypeUpdate {
+	stu.mutation.RemoveEndpointDefinitionIDs(ids...)
+	return stu
+}
+
+// RemoveEndpointDefinitions removes endpoint_definitions edges to ServiceEndpointDefinition.
+func (stu *ServiceTypeUpdate) RemoveEndpointDefinitions(s ...*ServiceEndpointDefinition) *ServiceTypeUpdate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return stu.RemoveEndpointDefinitionIDs(ids...)
+}
+
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (stu *ServiceTypeUpdate) Save(ctx context.Context) (int, error) {
 	if _, ok := stu.mutation.UpdateTime(); !ok {
 		v := servicetype.UpdateDefaultUpdateTime()
 		stu.mutation.SetUpdateTime(v)
+	}
+	if v, ok := stu.mutation.DiscoveryMethod(); ok {
+		if err := servicetype.DiscoveryMethodValidator(v); err != nil {
+			return 0, fmt.Errorf("ent: validator failed for field \"discovery_method\": %v", err)
+		}
 	}
 
 	var (
@@ -207,6 +277,26 @@ func (stu *ServiceTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: servicetype.FieldHasCustomer,
 		})
 	}
+	if value, ok := stu.mutation.IsDeleted(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Value:  value,
+			Column: servicetype.FieldIsDeleted,
+		})
+	}
+	if value, ok := stu.mutation.DiscoveryMethod(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeEnum,
+			Value:  value,
+			Column: servicetype.FieldDiscoveryMethod,
+		})
+	}
+	if stu.mutation.DiscoveryMethodCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeEnum,
+			Column: servicetype.FieldDiscoveryMethod,
+		})
+	}
 	if nodes := stu.mutation.RemovedServicesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -283,6 +373,44 @@ func (stu *ServiceTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if nodes := stu.mutation.RemovedEndpointDefinitionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   servicetype.EndpointDefinitionsTable,
+			Columns: []string{servicetype.EndpointDefinitionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: serviceendpointdefinition.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := stu.mutation.EndpointDefinitionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   servicetype.EndpointDefinitionsTable,
+			Columns: []string{servicetype.EndpointDefinitionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: serviceendpointdefinition.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, stu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{servicetype.Label}
@@ -321,6 +449,40 @@ func (stuo *ServiceTypeUpdateOne) SetNillableHasCustomer(b *bool) *ServiceTypeUp
 	return stuo
 }
 
+// SetIsDeleted sets the is_deleted field.
+func (stuo *ServiceTypeUpdateOne) SetIsDeleted(b bool) *ServiceTypeUpdateOne {
+	stuo.mutation.SetIsDeleted(b)
+	return stuo
+}
+
+// SetNillableIsDeleted sets the is_deleted field if the given value is not nil.
+func (stuo *ServiceTypeUpdateOne) SetNillableIsDeleted(b *bool) *ServiceTypeUpdateOne {
+	if b != nil {
+		stuo.SetIsDeleted(*b)
+	}
+	return stuo
+}
+
+// SetDiscoveryMethod sets the discovery_method field.
+func (stuo *ServiceTypeUpdateOne) SetDiscoveryMethod(sm servicetype.DiscoveryMethod) *ServiceTypeUpdateOne {
+	stuo.mutation.SetDiscoveryMethod(sm)
+	return stuo
+}
+
+// SetNillableDiscoveryMethod sets the discovery_method field if the given value is not nil.
+func (stuo *ServiceTypeUpdateOne) SetNillableDiscoveryMethod(sm *servicetype.DiscoveryMethod) *ServiceTypeUpdateOne {
+	if sm != nil {
+		stuo.SetDiscoveryMethod(*sm)
+	}
+	return stuo
+}
+
+// ClearDiscoveryMethod clears the value of discovery_method.
+func (stuo *ServiceTypeUpdateOne) ClearDiscoveryMethod() *ServiceTypeUpdateOne {
+	stuo.mutation.ClearDiscoveryMethod()
+	return stuo
+}
+
 // AddServiceIDs adds the services edge to Service by ids.
 func (stuo *ServiceTypeUpdateOne) AddServiceIDs(ids ...int) *ServiceTypeUpdateOne {
 	stuo.mutation.AddServiceIDs(ids...)
@@ -349,6 +511,21 @@ func (stuo *ServiceTypeUpdateOne) AddPropertyTypes(p ...*PropertyType) *ServiceT
 		ids[i] = p[i].ID
 	}
 	return stuo.AddPropertyTypeIDs(ids...)
+}
+
+// AddEndpointDefinitionIDs adds the endpoint_definitions edge to ServiceEndpointDefinition by ids.
+func (stuo *ServiceTypeUpdateOne) AddEndpointDefinitionIDs(ids ...int) *ServiceTypeUpdateOne {
+	stuo.mutation.AddEndpointDefinitionIDs(ids...)
+	return stuo
+}
+
+// AddEndpointDefinitions adds the endpoint_definitions edges to ServiceEndpointDefinition.
+func (stuo *ServiceTypeUpdateOne) AddEndpointDefinitions(s ...*ServiceEndpointDefinition) *ServiceTypeUpdateOne {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return stuo.AddEndpointDefinitionIDs(ids...)
 }
 
 // RemoveServiceIDs removes the services edge to Service by ids.
@@ -381,11 +558,31 @@ func (stuo *ServiceTypeUpdateOne) RemovePropertyTypes(p ...*PropertyType) *Servi
 	return stuo.RemovePropertyTypeIDs(ids...)
 }
 
+// RemoveEndpointDefinitionIDs removes the endpoint_definitions edge to ServiceEndpointDefinition by ids.
+func (stuo *ServiceTypeUpdateOne) RemoveEndpointDefinitionIDs(ids ...int) *ServiceTypeUpdateOne {
+	stuo.mutation.RemoveEndpointDefinitionIDs(ids...)
+	return stuo
+}
+
+// RemoveEndpointDefinitions removes endpoint_definitions edges to ServiceEndpointDefinition.
+func (stuo *ServiceTypeUpdateOne) RemoveEndpointDefinitions(s ...*ServiceEndpointDefinition) *ServiceTypeUpdateOne {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return stuo.RemoveEndpointDefinitionIDs(ids...)
+}
+
 // Save executes the query and returns the updated entity.
 func (stuo *ServiceTypeUpdateOne) Save(ctx context.Context) (*ServiceType, error) {
 	if _, ok := stuo.mutation.UpdateTime(); !ok {
 		v := servicetype.UpdateDefaultUpdateTime()
 		stuo.mutation.SetUpdateTime(v)
+	}
+	if v, ok := stuo.mutation.DiscoveryMethod(); ok {
+		if err := servicetype.DiscoveryMethodValidator(v); err != nil {
+			return nil, fmt.Errorf("ent: validator failed for field \"discovery_method\": %v", err)
+		}
 	}
 
 	var (
@@ -473,6 +670,26 @@ func (stuo *ServiceTypeUpdateOne) sqlSave(ctx context.Context) (st *ServiceType,
 			Column: servicetype.FieldHasCustomer,
 		})
 	}
+	if value, ok := stuo.mutation.IsDeleted(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Value:  value,
+			Column: servicetype.FieldIsDeleted,
+		})
+	}
+	if value, ok := stuo.mutation.DiscoveryMethod(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeEnum,
+			Value:  value,
+			Column: servicetype.FieldDiscoveryMethod,
+		})
+	}
+	if stuo.mutation.DiscoveryMethodCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeEnum,
+			Column: servicetype.FieldDiscoveryMethod,
+		})
+	}
 	if nodes := stuo.mutation.RemovedServicesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -541,6 +758,44 @@ func (stuo *ServiceTypeUpdateOne) sqlSave(ctx context.Context) (st *ServiceType,
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: propertytype.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if nodes := stuo.mutation.RemovedEndpointDefinitionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   servicetype.EndpointDefinitionsTable,
+			Columns: []string{servicetype.EndpointDefinitionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: serviceendpointdefinition.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := stuo.mutation.EndpointDefinitionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   servicetype.EndpointDefinitionsTable,
+			Columns: []string{servicetype.EndpointDefinitionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: serviceendpointdefinition.FieldID,
 				},
 			},
 		}

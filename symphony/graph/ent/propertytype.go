@@ -34,6 +34,8 @@ type PropertyType struct {
 	Type string `json:"type,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
+	// ExternalID holds the value of the "external_id" field.
+	ExternalID string `json:"external_id,omitempty"`
 	// Index holds the value of the "index" field.
 	Index int `json:"index,omitempty"`
 	// Category holds the value of the "category" field.
@@ -62,6 +64,8 @@ type PropertyType struct {
 	Mandatory bool `json:"mandatory,omitempty" gqlgen:"isMandatory"`
 	// Deleted holds the value of the "deleted" field.
 	Deleted bool `json:"deleted,omitempty" gqlgen:"isDeleted"`
+	// NodeType holds the value of the "nodeType" field.
+	NodeType string `json:"nodeType,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the PropertyTypeQuery when eager-loading is set.
 	Edges                                   PropertyTypeEdges `json:"edges"`
@@ -212,6 +216,7 @@ func (*PropertyType) scanValues() []interface{} {
 		&sql.NullTime{},    // update_time
 		&sql.NullString{},  // type
 		&sql.NullString{},  // name
+		&sql.NullString{},  // external_id
 		&sql.NullInt64{},   // index
 		&sql.NullString{},  // category
 		&sql.NullInt64{},   // int_val
@@ -226,6 +231,7 @@ func (*PropertyType) scanValues() []interface{} {
 		&sql.NullBool{},    // editable
 		&sql.NullBool{},    // mandatory
 		&sql.NullBool{},    // deleted
+		&sql.NullString{},  // nodeType
 	}
 }
 
@@ -274,77 +280,87 @@ func (pt *PropertyType) assignValues(values ...interface{}) error {
 	} else if value.Valid {
 		pt.Name = value.String
 	}
-	if value, ok := values[4].(*sql.NullInt64); !ok {
-		return fmt.Errorf("unexpected type %T for field index", values[4])
+	if value, ok := values[4].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field external_id", values[4])
+	} else if value.Valid {
+		pt.ExternalID = value.String
+	}
+	if value, ok := values[5].(*sql.NullInt64); !ok {
+		return fmt.Errorf("unexpected type %T for field index", values[5])
 	} else if value.Valid {
 		pt.Index = int(value.Int64)
 	}
-	if value, ok := values[5].(*sql.NullString); !ok {
-		return fmt.Errorf("unexpected type %T for field category", values[5])
+	if value, ok := values[6].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field category", values[6])
 	} else if value.Valid {
 		pt.Category = value.String
 	}
-	if value, ok := values[6].(*sql.NullInt64); !ok {
-		return fmt.Errorf("unexpected type %T for field int_val", values[6])
+	if value, ok := values[7].(*sql.NullInt64); !ok {
+		return fmt.Errorf("unexpected type %T for field int_val", values[7])
 	} else if value.Valid {
 		pt.IntVal = int(value.Int64)
 	}
-	if value, ok := values[7].(*sql.NullBool); !ok {
-		return fmt.Errorf("unexpected type %T for field bool_val", values[7])
+	if value, ok := values[8].(*sql.NullBool); !ok {
+		return fmt.Errorf("unexpected type %T for field bool_val", values[8])
 	} else if value.Valid {
 		pt.BoolVal = value.Bool
 	}
-	if value, ok := values[8].(*sql.NullFloat64); !ok {
-		return fmt.Errorf("unexpected type %T for field float_val", values[8])
+	if value, ok := values[9].(*sql.NullFloat64); !ok {
+		return fmt.Errorf("unexpected type %T for field float_val", values[9])
 	} else if value.Valid {
 		pt.FloatVal = value.Float64
 	}
-	if value, ok := values[9].(*sql.NullFloat64); !ok {
-		return fmt.Errorf("unexpected type %T for field latitude_val", values[9])
+	if value, ok := values[10].(*sql.NullFloat64); !ok {
+		return fmt.Errorf("unexpected type %T for field latitude_val", values[10])
 	} else if value.Valid {
 		pt.LatitudeVal = value.Float64
 	}
-	if value, ok := values[10].(*sql.NullFloat64); !ok {
-		return fmt.Errorf("unexpected type %T for field longitude_val", values[10])
+	if value, ok := values[11].(*sql.NullFloat64); !ok {
+		return fmt.Errorf("unexpected type %T for field longitude_val", values[11])
 	} else if value.Valid {
 		pt.LongitudeVal = value.Float64
 	}
-	if value, ok := values[11].(*sql.NullString); !ok {
-		return fmt.Errorf("unexpected type %T for field string_val", values[11])
+	if value, ok := values[12].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field string_val", values[12])
 	} else if value.Valid {
 		pt.StringVal = value.String
 	}
-	if value, ok := values[12].(*sql.NullFloat64); !ok {
-		return fmt.Errorf("unexpected type %T for field range_from_val", values[12])
+	if value, ok := values[13].(*sql.NullFloat64); !ok {
+		return fmt.Errorf("unexpected type %T for field range_from_val", values[13])
 	} else if value.Valid {
 		pt.RangeFromVal = value.Float64
 	}
-	if value, ok := values[13].(*sql.NullFloat64); !ok {
-		return fmt.Errorf("unexpected type %T for field range_to_val", values[13])
+	if value, ok := values[14].(*sql.NullFloat64); !ok {
+		return fmt.Errorf("unexpected type %T for field range_to_val", values[14])
 	} else if value.Valid {
 		pt.RangeToVal = value.Float64
 	}
-	if value, ok := values[14].(*sql.NullBool); !ok {
-		return fmt.Errorf("unexpected type %T for field is_instance_property", values[14])
+	if value, ok := values[15].(*sql.NullBool); !ok {
+		return fmt.Errorf("unexpected type %T for field is_instance_property", values[15])
 	} else if value.Valid {
 		pt.IsInstanceProperty = value.Bool
 	}
-	if value, ok := values[15].(*sql.NullBool); !ok {
-		return fmt.Errorf("unexpected type %T for field editable", values[15])
+	if value, ok := values[16].(*sql.NullBool); !ok {
+		return fmt.Errorf("unexpected type %T for field editable", values[16])
 	} else if value.Valid {
 		pt.Editable = value.Bool
 	}
-	if value, ok := values[16].(*sql.NullBool); !ok {
-		return fmt.Errorf("unexpected type %T for field mandatory", values[16])
+	if value, ok := values[17].(*sql.NullBool); !ok {
+		return fmt.Errorf("unexpected type %T for field mandatory", values[17])
 	} else if value.Valid {
 		pt.Mandatory = value.Bool
 	}
-	if value, ok := values[17].(*sql.NullBool); !ok {
-		return fmt.Errorf("unexpected type %T for field deleted", values[17])
+	if value, ok := values[18].(*sql.NullBool); !ok {
+		return fmt.Errorf("unexpected type %T for field deleted", values[18])
 	} else if value.Valid {
 		pt.Deleted = value.Bool
 	}
-	values = values[18:]
+	if value, ok := values[19].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field nodeType", values[19])
+	} else if value.Valid {
+		pt.NodeType = value.String
+	}
+	values = values[20:]
 	if len(values) == len(propertytype.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field equipment_port_type_property_types", value)
@@ -463,6 +479,8 @@ func (pt *PropertyType) String() string {
 	builder.WriteString(pt.Type)
 	builder.WriteString(", name=")
 	builder.WriteString(pt.Name)
+	builder.WriteString(", external_id=")
+	builder.WriteString(pt.ExternalID)
 	builder.WriteString(", index=")
 	builder.WriteString(fmt.Sprintf("%v", pt.Index))
 	builder.WriteString(", category=")
@@ -491,6 +509,8 @@ func (pt *PropertyType) String() string {
 	builder.WriteString(fmt.Sprintf("%v", pt.Mandatory))
 	builder.WriteString(", deleted=")
 	builder.WriteString(fmt.Sprintf("%v", pt.Deleted))
+	builder.WriteString(", nodeType=")
+	builder.WriteString(pt.NodeType)
 	builder.WriteByte(')')
 	return builder.String()
 }

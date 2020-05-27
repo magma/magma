@@ -45,6 +45,9 @@ const styles = {
   warningColor: {
     color: symphony.palette.Y600,
   },
+  inheritColor: {
+    color: 'inherit',
+  },
   lightWeight: {
     fontWeight: 300,
   },
@@ -85,7 +88,14 @@ type Props = {
   className?: string,
   useEllipsis?: ?boolean,
   weight?: 'inherit' | 'light' | 'regular' | 'medium' | 'bold',
-  color?: 'light' | 'regular' | 'primary' | 'error' | 'gray' | 'warning',
+  color?:
+    | 'light'
+    | 'regular'
+    | 'primary'
+    | 'error'
+    | 'gray'
+    | 'warning'
+    | 'inherit',
 };
 
 const Text = (props: Props) => {

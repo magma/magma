@@ -69,6 +69,16 @@ class BridgeTools:
             )
         return int(port_num)
 
+    @staticmethod
+    def create_internal_iface(bridge_name, iface_name, ip):
+        """
+        Creates a simple bridge, sets up an interface.
+        Used when running unit tests
+        """
+        subprocess.Popen(["ovs-vsctl", "add-port", bridge_name, iface_name,
+                          "--", "set", "Interface", iface_name,
+                          "type=internal"]).wait()
+        subprocess.Popen(["ifconfig", iface_name, ip]).wait()
 
     @staticmethod
     def create_bridge(bridge_name, iface_name):

@@ -11,7 +11,9 @@ import (
 	"time"
 
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 
 	"github.com/99designs/gqlgen/client"
@@ -140,8 +142,8 @@ func prepareWOData(ctx context.Context, r *TestResolver, name string) woSearchDa
 	woType2, _ := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "wo_type_b"})
 	assigneeName1 := "user1@fb.com"
 	assigneeName2 := "user2@fb.com"
-	assignee1 := viewertest.CreateUserEnt(ctx, r.client, assigneeName1)
-	assignee2 := viewertest.CreateUserEnt(ctx, r.client, assigneeName2)
+	assignee1 := viewer.MustGetOrCreateUser(ctx, assigneeName1, user.RoleOWNER)
+	assignee2 := viewer.MustGetOrCreateUser(ctx, assigneeName2, user.RoleOWNER)
 	desc := "random description"
 
 	wo1, _ := mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
@@ -173,7 +175,7 @@ func prepareWOData(ctx context.Context, r *TestResolver, name string) woSearchDa
 
 	installDate := time.Now()
 	ownerName := "owner"
-	owner := viewertest.CreateUserEnt(ctx, r.client, ownerName)
+	owner := viewer.MustGetOrCreateUser(ctx, ownerName, user.RoleOWNER)
 	_, _ = mr.EditWorkOrder(ctx, models.EditWorkOrderInput{
 		ID:          wo1.ID,
 		Name:        wo1.Name,
@@ -197,9 +199,9 @@ func prepareWOData(ctx context.Context, r *TestResolver, name string) woSearchDa
 
 func TestSearchEquipmentByName(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
-	c := newGraphClient(t, r)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
+	c := r.GraphClient()
 
 	mr := r.Mutation()
 
@@ -264,8 +266,8 @@ func TestSearchEquipmentByName(t *testing.T) {
 
 func TestEquipmentSearch(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	owner := "Ted"
 	prop := models.PropertyInput{
@@ -371,8 +373,8 @@ func TestEquipmentSearch(t *testing.T) {
 
 func TestUnsupportedEquipmentSearch(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	qr := r.Query()
 	limit := 100
@@ -405,8 +407,8 @@ func TestUnsupportedEquipmentSearch(t *testing.T) {
 
 func TestQueryEquipmentPossibleProperties(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
 
@@ -436,8 +438,8 @@ func TestQueryEquipmentPossibleProperties(t *testing.T) {
 
 func TestSearchEquipmentByLocation(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
 	locType, _ := mr.AddLocationType(ctx, models.AddLocationTypeInput{
@@ -493,8 +495,8 @@ func TestSearchEquipmentByLocation(t *testing.T) {
 
 func TestSearchEquipmentByDate(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
 	locType, _ := mr.AddLocationType(ctx, models.AddLocationTypeInput{
@@ -572,10 +574,10 @@ func TestSearchEquipmentByDate(t *testing.T) {
 
 func TestSearchWO(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := ent.NewContext(viewertest.NewContext(r.client), r.client)
+	defer r.Close()
+	ctx := ent.NewContext(viewertest.NewContext(context.Background(), r.client), r.client)
 
-	c := newGraphClient(t, r)
+	c := r.GraphClient()
 	data := prepareWOData(ctx, r, "A")
 	/*
 		helper: data now is of type:
@@ -709,10 +711,10 @@ func TestSearchWO(t *testing.T) {
 
 func TestSearchWOByPriority(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := ent.NewContext(viewertest.NewContext(r.client), r.client)
+	defer r.Close()
+	ctx := ent.NewContext(viewertest.NewContext(context.Background(), r.client), r.client)
 	data := prepareWOData(ctx, r, "B")
-	c := newGraphClient(t, r)
+	c := r.GraphClient()
 
 	var result woSearchResult
 	c.MustPost(
@@ -746,9 +748,9 @@ func TestSearchWOByPriority(t *testing.T) {
 
 func TestSearchWOByLocation(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
-	c := newGraphClient(t, r)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
+	c := r.GraphClient()
 
 	data := prepareWOData(ctx, r, "A")
 	/*

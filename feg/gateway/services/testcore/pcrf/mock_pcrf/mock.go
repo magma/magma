@@ -12,26 +12,19 @@ import (
 	"fmt"
 
 	"magma/feg/cloud/go/protos"
+	"magma/feg/gateway/services/testcore/mock_driver"
 
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/golang/glog"
 )
 
+// Here we wrap the protobuf definitions to easily define instance methods
 type GxExpectation struct {
 	*protos.GxCreditControlExpectation
 }
 
 type GxAnswer struct {
 	*protos.GxCreditControlAnswer
-}
-
-type requestPK struct {
-	imsi        string
-	requestType protos.CCRequestType
-}
-
-func (r requestPK) String() string {
-	return fmt.Sprintf("Imsi: %v, Type: %v", r.imsi, r.requestType)
 }
 
 func (e GxExpectation) GetAnswer() interface{} {
@@ -41,12 +34,18 @@ func (e GxExpectation) GetAnswer() interface{} {
 func (e GxExpectation) DoesMatch(message interface{}) error {
 	expected := e.ExpectedRequest
 	ccr := message.(ccrMessage)
-	expectedPK := requestPK{imsi: expected.Imsi, requestType: expected.RequestType}
+	expectedPK := mock_driver.NewCCRequestPK(expected.Imsi, expected.RequestType)
 	actualImsi, _ := ccr.GetIMSI()
-	actualPK := requestPK{imsi: actualImsi, requestType: protos.CCRequestType(ccr.RequestType)}
+	actualPK := mock_driver.NewCCRequestPK(actualImsi, protos.CCRequestType(ccr.RequestType))
 	// For better readability of errors, we will check for the IMSI and the request type first.
 	if expectedPK != actualPK {
 		return fmt.Errorf("Expected: %v, Received: %v", expectedPK, actualPK)
+	}
+	expectedRN := expected.GetRequestNumber()
+	if expectedRN != nil {
+		if err := mock_driver.CompareRequestNumber(actualPK, expectedRN, ccr.RequestNumber); err != nil {
+			return err
+		}
 	}
 	expectedUsageReports := expected.GetUsageMonitoringReports()
 	if !compareUsageMonitorsAgainstExpected(ccr.UsageMonitors, expectedUsageReports, expected.GetUsageReportDelta()) {
@@ -86,6 +85,14 @@ func (answer GxAnswer) toAVPs() ([]*diam.AVP, uint32) {
 			avps = append(avps, toUsageMonitoringInfoAVP(string(monitor.MonitoringKey), octets, monitor.MonitoringLevel))
 		}
 	}
+	eventTriggers := answer.GetEventTriggers()
+	if eventTriggers != nil {
+		avps = append(avps, toEventTriggersAVPs(eventTriggers)...)
+	}
+	revalidationTime := answer.GetRevalidationTime()
+	if revalidationTime != nil {
+		avps = append(avps, toRevalidationTimeAVPs(revalidationTime))
+	}
 	return avps, answer.GetResultCode()
 }
 
@@ -115,7 +122,9 @@ func compareUsageMonitorsAgainstExpected(actual []*usageMonitorRequestAVP, expec
 		if protos.MonitoringLevel(actualMonitor.Level) != expectedMonitor.MonitoringLevel {
 			return false
 		}
-		if !equalWithinDelta(actualMonitor.UsedServiceUnit.TotalOctets, expectedMonitor.GetOctets().GetTotalOctets(), delta) {
+		actualTotal := actualMonitor.UsedServiceUnit.TotalOctets
+		expectedTotal := expectedMonitor.GetOctets().GetTotalOctets()
+		if !mock_driver.EqualWithinDelta(actualTotal, expectedTotal, delta) {
 			return false
 		}
 	}
@@ -128,14 +137,4 @@ func toProtosMonitorByKey(monitors []*protos.UsageMonitoringInformation) map[str
 		result[string(monitor.MonitoringKey)] = monitor
 	}
 	return result
-}
-
-func equalWithinDelta(a, b, delta uint64) bool {
-	if b >= a && b-a <= delta {
-		return true
-	}
-	if a >= b && a-b <= delta {
-		return true
-	}
-	return false
 }
