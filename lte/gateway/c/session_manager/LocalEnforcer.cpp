@@ -265,7 +265,7 @@ void LocalEnforcer::aggregate_records(
     }
     if (record.bytes_tx() > 0 || record.bytes_rx() > 0) {
       MLOG(MINFO) << "";
-      MLOG(MINFO) << "Subscriber " << record.sid() << " used "
+      MLOG(MINFO) << record.sid() << " used "
                   << record.bytes_tx() << " tx bytes and " << record.bytes_rx()
                   << " rx bytes for rule " << record.rule_id();
     }

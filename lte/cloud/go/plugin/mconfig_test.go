@@ -159,6 +159,9 @@ func TestBuilder_Build(t *testing.T) {
 		"sessiond": &mconfig.SessionD{
 			LogLevel:     protos.LogLevel_INFO,
 			RelayEnabled: false,
+			WalletExhaustDetection: &mconfig.WalletExhaustDetection{
+				TerminateOnExhaust: false,
+			},
 		},
 	}
 
@@ -277,6 +280,9 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 		"sessiond": &mconfig.SessionD{
 			LogLevel:     protos.LogLevel_INFO,
 			RelayEnabled: false,
+			WalletExhaustDetection: &mconfig.WalletExhaustDetection{
+				TerminateOnExhaust: false,
+			},
 		},
 	}
 	err := builder.Build("n1", "gw1", graph, nw, actual)
@@ -402,6 +408,9 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 		"sessiond": &mconfig.SessionD{
 			LogLevel:     protos.LogLevel_INFO,
 			RelayEnabled: false,
+			WalletExhaustDetection: &mconfig.WalletExhaustDetection{
+				TerminateOnExhaust: false,
+			},
 		},
 	}
 	err := builder.Build("n1", "gw1", graph, nw, actual)

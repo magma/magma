@@ -114,6 +114,20 @@ message SessionD {
     orc8r.LogLevel log_level = 1;
     // Enable forwarding S6a related requests to Federated GW
     bool relay_enabled = 2;
+    WalletExhaustDetection wallet_exhaust_detection = 3;
+}
+
+message WalletExhaustDetection {
+    // Enable the feature where session is terminated on wallet exhaust
+    bool terminate_on_exhaust = 1;
+    enum Method {
+        // If # of Gx Tracked Rules are > 0, then the wallet is still valid
+        GxTrackedRules = 0;
+    }
+    // How wallet exhast is detected on SessionD
+    Method method = 2;
+    // How long to wait before terminating a out-of-wallet subscriber on attach
+    uint32 timeout_ms = 3;
 }
 
 //------------------------------------------------------------------------------
