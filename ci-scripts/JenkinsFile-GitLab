@@ -295,7 +295,7 @@ pipeline {
               gitlabCommitStatus(name: "Activate-Test-VM") {
                 myShCmdWithLog('cd lte/gateway && vagrant destroy --force magma_test && vagrant up magma_test', 'archives/magma_vagrant_test_up.log', new_host_flag, new_host_user, new_host)
                 // The Traffic Testcases are disabled from the Mandatory suite --> will be run manually
-                myShCmd('sed -f ci-scripts/removeLastUlTestCases.sed lte/gateway/python/integ_tests/defs.mk', new_host_flag, new_host_user, new_host)
+                myShCmd('sed -i -f ci-scripts/removeLastUlTestCases.sed lte/gateway/python/integ_tests/defs.mk', new_host_flag, new_host_user, new_host)
                 myShCmdWithLog('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/ && make"', 'archives/magma_vagrant_test_make1.log', new_host_flag, new_host_user, new_host)
                 myShCmdWithLog('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && make"', 'archives/magma_vagrant_test_make2.log', new_host_flag, new_host_user, new_host)
               }
