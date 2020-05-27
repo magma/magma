@@ -13,12 +13,13 @@ from typing import Any, Callable, List, Mapping, Optional
 from time import perf_counter
 from dataclasses_json import DataClassJsonMixin
 
-from ..fragment.property_type import PropertyTypeFragment, QUERY as PropertyTypeFragmentQuery
-QUERY: List[str] = PropertyTypeFragmentQuery + ["""
+QUERY: List[str] = ["""
 fragment PropertyFragment on Property {
   id
   propertyType {
-    ...PropertyTypeFragment
+    id
+    externalId
+    name
   }
   stringValue
   intValue
@@ -35,8 +36,10 @@ fragment PropertyFragment on Property {
 @dataclass
 class PropertyFragment(DataClassJsonMixin):
     @dataclass
-    class PropertyType(PropertyTypeFragment):
-        pass
+    class PropertyType(DataClassJsonMixin):
+        id: str
+        name: str
+        externalId: Optional[str]
 
     id: str
     propertyType: PropertyType

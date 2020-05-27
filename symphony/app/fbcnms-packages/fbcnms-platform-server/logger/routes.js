@@ -8,12 +8,17 @@
  * @format
  */
 
+import type {ExpressRequest, ExpressResponse} from 'express';
+
 const express = require('express');
 const proxy = require('express-http-proxy');
 
 const {LOGGER_HOST} = require('../config');
 
-const router = express.Router();
+const router: express.Router<
+  ExpressRequest,
+  ExpressResponse,
+> = express.Router();
 
 router.use('/', proxy(LOGGER_HOST));
 

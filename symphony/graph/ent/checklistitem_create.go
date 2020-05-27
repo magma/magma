@@ -242,6 +242,7 @@ func (clic *CheckListItemCreate) Save(ctx context.Context) (*CheckListItem, erro
 			}
 			clic.mutation = mutation
 			node, err = clic.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(clic.hooks) - 1; i >= 0; i-- {

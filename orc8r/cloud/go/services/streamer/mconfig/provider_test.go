@@ -12,15 +12,17 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/orc8r"
+	legacyProviders "magma/orc8r/cloud/go/pluginimpl/legacy_stream_providers"
+	"magma/orc8r/cloud/go/pluginimpl/stream_providers"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/mocks"
 	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/services/streamer"
-	mconfigProvider "magma/orc8r/cloud/go/services/streamer/mconfig"
 	"magma/orc8r/cloud/go/services/streamer/mconfig/factory"
 	"magma/orc8r/cloud/go/services/streamer/mconfig/test_protos"
 	"magma/orc8r/cloud/go/services/streamer/providers"
 	streamerTestInit "magma/orc8r/cloud/go/services/streamer/test_init"
+	"magma/orc8r/lib/go/definitions"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
 
@@ -35,7 +37,11 @@ import (
 func TestMconfigStreamer_Configurator(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
 	streamerTestInit.StartTestService(t)
-	_ = providers.RegisterStreamProvider(&mconfigProvider.ConfigProvider{})
+	legacyProviderFactory := legacyProviders.LegacyProviderFactory{}
+	legacyProvider := legacyProviderFactory.CreateLegacyProvider(
+		definitions.MconfigStreamName,
+		&stream_providers.BaseOrchestratorStreamProviderServicer{})
+	_ = providers.RegisterStreamProvider(legacyProvider)
 
 	// set up mock mconfig builders (legacy and new)
 	configurator.ClearMconfigBuilders(t)

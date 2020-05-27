@@ -233,6 +233,7 @@ func (ltu *LocationTypeUpdate) Save(ctx context.Context) (int, error) {
 			}
 			ltu.mutation = mutation
 			affected, err = ltu.sqlSave(ctx)
+			mutation.done = true
 			return affected, err
 		})
 		for i := len(ltu.hooks) - 1; i >= 0; i-- {
@@ -684,6 +685,7 @@ func (ltuo *LocationTypeUpdateOne) Save(ctx context.Context) (*LocationType, err
 			}
 			ltuo.mutation = mutation
 			node, err = ltuo.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(ltuo.hooks) - 1; i >= 0; i-- {

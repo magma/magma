@@ -13,14 +13,6 @@ import (
 
 type commentResolver struct{}
 
-func (commentResolver) AuthorName(ctx context.Context, obj *ent.Comment) (string, error) {
-	author, err := obj.QueryAuthor().Only(ctx)
-	if err != nil {
-		return "", fmt.Errorf("querying author: %w", err)
-	}
-	return author.Email, nil
-}
-
 func (commentResolver) Author(ctx context.Context, obj *ent.Comment) (*ent.User, error) {
 	author, err := obj.QueryAuthor().Only(ctx)
 	if err != nil {

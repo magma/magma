@@ -52,6 +52,7 @@ class EquipmentPortTypeItem extends React.Component<Props> {
         <ExpansionPanel>
           <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
             <ConfigureExpansionPanel
+              entityName="portType"
               icon={<SettingsEthernetIcon />}
               name={equipmentPortType.name}
               instanceCount={equipmentPortType.numberOfPortDefinitions}

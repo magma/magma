@@ -44,6 +44,8 @@ resource "helm_release" "orc8r" {
 
     controller_replicas = var.orc8r_controller_replicas
     proxy_replicas      = var.orc8r_proxy_replicas
+    create_nginx        = var.use_nginx_proxy
+    nginx_replicas      = var.orc8r_proxy_replicas
 
     controller_hostname = format("controller.%s", var.orc8r_domain_name)
     api_hostname        = format("api.%s", var.orc8r_domain_name)

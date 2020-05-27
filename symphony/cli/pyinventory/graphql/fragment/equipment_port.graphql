@@ -1,0 +1,12 @@
+fragment EquipmentPortFragment on EquipmentPort {
+  id
+  properties {
+    ...PropertyFragment
+  }
+  definition {
+    ...EquipmentPortDefinitionFragment
+  }
+  link {
+    ...LinkFragment
+  }
+}

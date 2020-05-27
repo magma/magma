@@ -96,7 +96,7 @@ class EnforcementStatsTest(unittest.TestCase):
             config={
                 'bridge_name': self.BRIDGE,
                 'bridge_ip_address': '192.168.128.1',
-                'enforcement': {'poll_interval': 5},
+                'enforcement': {'poll_interval': 2},
                 'nat_iface': 'eth2',
                 'enodeb_iface': 'eth1',
                 'qos': {'enable': False},
@@ -572,7 +572,6 @@ class EnforcementStatsTest(unittest.TestCase):
         #self.assertEqual(stats[enf_stat_name].bytes_tx,
         #                 num_pkts_tx_match * len(packet))
         self.assertEqual(len(stats), 1)
-
 
 
 if __name__ == "__main__":

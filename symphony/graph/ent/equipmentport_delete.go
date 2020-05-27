@@ -47,6 +47,7 @@ func (epd *EquipmentPortDelete) Exec(ctx context.Context) (int, error) {
 			}
 			epd.mutation = mutation
 			affected, err = epd.sqlExec(ctx)
+			mutation.done = true
 			return affected, err
 		})
 		for i := len(epd.hooks) - 1; i >= 0; i-- {

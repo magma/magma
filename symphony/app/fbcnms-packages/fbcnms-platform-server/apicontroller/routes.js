@@ -20,7 +20,7 @@ import auditLoggingDecorator from './auditLoggingDecorator';
 
 import {intersection} from 'lodash';
 
-const router = express.Router();
+const router: express.Router<FBCNMSRequest, ExpressResponse> = express.Router();
 
 const PROXY_TIMEOUT_MS = 30000;
 

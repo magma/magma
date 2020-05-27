@@ -151,6 +151,7 @@ func (ppc *PermissionsPolicyCreate) Save(ctx context.Context) (*PermissionsPolic
 			}
 			ppc.mutation = mutation
 			node, err = ppc.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(ppc.hooks) - 1; i >= 0; i-- {

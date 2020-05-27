@@ -197,9 +197,6 @@ def _get_property_default_value(
 ) -> Dict[str, PropertyValue]:
     if value is None:
         return {}
-    # pyre-fixme[6]: Expected `Union[Tuple[float, float], bool, datetime.date,
-    #  float, int, str]` for 3rd param but got `Union[None, Tuple[float, float], bool,
-    #  datetime.date, float, int, str]`.
     return get_graphql_input_field(property_type_name=name, type_key=type, value=value)
 
 
@@ -313,7 +310,9 @@ def format_property_definitions(
 
 
 def deprecated(
-    deprecated_in: str, deprecated_by: str
+    deprecated_in: str,
+    deprecated_by: str
+    # pyre-fixme[34]: `Variable[ReturnType]` isn't present in the function's parameters.
 ) -> Callable[[Callable[..., ReturnType]], Callable[..., ReturnType]]:
     def wrapped(func: Callable[..., ReturnType]) -> Callable[..., ReturnType]:
         def wrapper(*args: str, **kwargs: int) -> Callable[..., ReturnType]:

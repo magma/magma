@@ -21,13 +21,11 @@ import (
 	"github.com/golang/protobuf/ptypes/any"
 )
 
+// SubscriberProvider provides the implementation for subscriber streaming
 type SubscribersProvider struct{}
 
-func (provider *SubscribersProvider) GetStreamName() string {
-	return "subscriberdb"
-}
-
-func (provider *SubscribersProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
+// GetUpdatesImpl implements GetUpdates for the subscribers stream provider
+func (provider *SubscribersProvider) GetUpdatesImpl(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
 	ent, err := configurator.LoadEntityForPhysicalID(gatewayId, configurator.EntityLoadCriteria{})
 	if err != nil {
 		return nil, err

@@ -50,7 +50,7 @@ def verify_or_write_rendered(filename: str, rendered: str, verify: bool) -> None
 def make_python_package(pkg_name: str) -> None:
     if not os.path.exists(pkg_name):
         os.makedirs(pkg_name)
-        with open("__init__.py", "w") as outfile:
+        with open(os.path.join([pkg_name, "__init__.py"]), "w") as outfile:
             buffer = CodeChunk()
             buffer.write("#!/usr/bin/env python3")
             buffer.write("# Copyright (c) 2004-present Facebook All rights reserved.")

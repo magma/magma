@@ -552,6 +552,7 @@ func (scsu *SurveyCellScanUpdate) Save(ctx context.Context) (int, error) {
 			}
 			scsu.mutation = mutation
 			affected, err = scsu.sqlSave(ctx)
+			mutation.done = true
 			return affected, err
 		})
 		for i := len(scsu.hooks) - 1; i >= 0; i-- {
@@ -1548,6 +1549,7 @@ func (scsuo *SurveyCellScanUpdateOne) Save(ctx context.Context) (*SurveyCellScan
 			}
 			scsuo.mutation = mutation
 			node, err = scsuo.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(scsuo.hooks) - 1; i >= 0; i-- {

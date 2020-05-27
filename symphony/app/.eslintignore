@@ -8,9 +8,12 @@ flow-typed/npm/**/*.js
 **/thrift/gen-nodejs/*.js
 config/webpack.*.js
 tgnms/**/*.js
+fbcnms-packages/eslint-config-fbcnms/index.js
 fbcnms-packages/fbcnms-magma-api/__generated__/*.js
 fbcnms-projects/tgnms/shared/types/*.js
 fbcnms-projects/magmalte/app/common/__generated__/*.js
 fbcnms-projects/inventory/**/__generated__/*.js
 fbcnms-projects/hub/app/components/workflow/**/*.js
+fbcnms-projects/hub/app/components/__generated__/*.js
 fbcnms-packages/fbcnms-alarms/components/prometheus/__generated__/*.js
+fbcnms-packages/fbcnms-alarms/lib/*.js

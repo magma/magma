@@ -36,9 +36,9 @@ import {useMessageShowingContext} from '@fbcnms/ui/components/design-system/Dial
 
 const useStyles = makeStyles(() => ({
   root: {
+    flexGrow: 1,
     display: 'flex',
     flexDirection: 'column',
-    height: '100%',
   },
   form: {
     flexBasis: 'auto',

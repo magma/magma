@@ -15,16 +15,16 @@ import (
 
 // A Handler handles incoming events.
 type Handler interface {
-	Handle(context.Context, string, []byte) error
+	Handle(context.Context, string, string, []byte) error
 }
 
 // The HandlerFunc type is an adapter to allow the use of
 // ordinary functions as event handlers.
-type HandlerFunc func(context.Context, string, []byte) error
+type HandlerFunc func(context.Context, string, string, []byte) error
 
 // Handle returns f(ctx, name, body).
-func (f HandlerFunc) Handle(ctx context.Context, name string, body []byte) error {
-	return f(ctx, name, body)
+func (f HandlerFunc) Handle(ctx context.Context, tenant string, name string, body []byte) error {
+	return f(ctx, tenant, name, body)
 }
 
 type (
@@ -32,7 +32,7 @@ type (
 	ListenerConfig struct {
 		Subscriber Subscriber
 		Logger     *zap.Logger
-		Tenant     string
+		Tenant     *string
 		Events     []string
 		Handler    Handler
 	}
@@ -41,7 +41,7 @@ type (
 	Listener struct {
 		subscription *pubsub.Subscription
 		logger       *zap.Logger
-		tenant       string
+		tenant       *string
 		events       map[string]struct{}
 		handler      Handler
 	}
@@ -49,9 +49,6 @@ type (
 
 // NewListener creates an events listener from config.
 func NewListener(ctx context.Context, cfg ListenerConfig) (*Listener, error) {
-	if cfg.Tenant == "" {
-		return nil, errors.New("tenant must be provided")
-	}
 	if len(cfg.Events) == 0 {
 		return nil, errors.New("events cannot be empty")
 	}
@@ -104,7 +101,7 @@ func (l *Listener) receive(ctx context.Context) error {
 		l.logger.Warn("received event without tenant header")
 		return nil
 	}
-	if tenant != l.tenant {
+	if l.tenant != nil && tenant != *l.tenant {
 		return nil
 	}
 
@@ -117,7 +114,7 @@ func (l *Listener) receive(ctx context.Context) error {
 		return nil
 	}
 
-	if err := l.handler.Handle(ctx, name, msg.Body); err != nil {
+	if err := l.handler.Handle(ctx, tenant, name, msg.Body); err != nil {
 		return fmt.Errorf("handling event %q: %w", name, err)
 	}
 	l.logger.Debug("handled event", zap.String("name", name))

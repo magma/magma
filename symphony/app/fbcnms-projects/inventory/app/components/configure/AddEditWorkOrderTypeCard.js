@@ -22,6 +22,7 @@ import DeleteOutlineIcon from '@material-ui/icons/DeleteOutline';
 import ExpandingPanel from '@fbcnms/ui/components/ExpandingPanel';
 import ExperimentalPropertyTypesTable from '../form/ExperimentalPropertyTypesTable';
 import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
+import FormActionWithPermissions from '../../common/FormActionWithPermissions';
 import NameDescriptionSection from '@fbcnms/ui/components/NameDescriptionSection';
 import PropertyTypesTableDispatcher from '../form/context/property_types/PropertyTypesTableDispatcher';
 import React, {useCallback, useReducer, useState} from 'react';
@@ -219,7 +220,8 @@ const AddEditWorkOrderTypeCard = ({
           />
           <div className={classes.buttons}>
             {isOnEditMode && (
-              <FormAction>
+              <FormActionWithPermissions
+                permissions={{entity: 'workorderTemplate', action: 'delete'}}>
                 <Button
                   className={classes.deleteButton}
                   variant="text"
@@ -227,7 +229,7 @@ const AddEditWorkOrderTypeCard = ({
                   onClick={onDelete}>
                   <DeleteOutlineIcon />
                 </Button>
-              </FormAction>
+              </FormActionWithPermissions>
             )}
             <Button
               className={classes.cancelButton}

@@ -33,11 +33,6 @@ func (l *AllowedLevel) Set(s string) error {
 	return nil
 }
 
-// UnmarshalFlag updates the value of the allowed level.
-func (l *AllowedLevel) UnmarshalFlag(s string) error {
-	return l.Set(s)
-}
-
 // AllowedFormat is a settable identifier for the output
 // format that the logger can have.
 type AllowedFormat string
@@ -56,11 +51,6 @@ func (f *AllowedFormat) Set(s string) error {
 		return fmt.Errorf("unrecognized format: %q", s)
 	}
 	return nil
-}
-
-// UnmarshalFlag updates the value of the allowed format.
-func (f *AllowedFormat) UnmarshalFlag(s string) error {
-	return f.Set(s)
 }
 
 // Config is a struct containing configurable settings for the logger.
@@ -103,15 +93,4 @@ func MustNew(config Config) Logger {
 		panic(err)
 	}
 	return logger
-}
-
-// Provider is a wire provider that produces a logger from config.
-func Provider(config Config) (Logger, func(), error) {
-	logger, err := New(config)
-	if err != nil {
-		return nil, nil, err
-	}
-	restoreGlobal := zap.ReplaceGlobals(logger.Background())
-	restoreStdLog := zap.RedirectStdLog(logger.Background())
-	return logger, func() { restoreStdLog(); restoreGlobal() }, nil
 }

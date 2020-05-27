@@ -117,7 +117,7 @@ class AddEditEquipmentPortTypeCard extends React.Component<Props, State> {
     return (
       <FormContextProvider
         permissions={{
-          entity: 'location',
+          entity: 'portType',
           action: isOnEdit ? 'update' : 'create',
         }}>
         <div className={classes.cards}>

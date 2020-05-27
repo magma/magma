@@ -53,6 +53,7 @@ class EquipmentTypeItem extends React.Component<Props> {
         <ExpansionPanel>
           <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
             <ConfigureExpansionPanel
+              entityName="equipmentType"
               icon={<RouterIcon />}
               name={equipmentType.name}
               instanceCount={equipmentType.numberOfEquipment}

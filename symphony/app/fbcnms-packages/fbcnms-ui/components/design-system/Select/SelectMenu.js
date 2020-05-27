@@ -8,60 +8,37 @@
  * @format
  */
 
-import type {PermissionHandlingProps} from '../Form/FormAction';
+import type {MenuBaseProps} from './MenuBase';
+import type {SelectMenuItemBaseProps} from './SelectMenuItem';
 
 import * as React from 'react';
+import MenuBase from './MenuBase';
 import SelectMenuItem from './SelectMenuItem';
 import SelectSearchInput from './SelectSearchInput';
-import classNames from 'classnames';
-import symphony from '../../../theme/symphony';
-import {makeStyles} from '@material-ui/styles';
 import {useCallback, useState} from 'react';
 import {useMenuContext} from './MenuContext';
 
-const useStyles = makeStyles(() => ({
-  root: {
-    backgroundColor: symphony.palette.white,
-    boxShadow: symphony.shadows.DP1,
-    borderRadius: '4px',
-    maxHeight: '322px',
-    overflowY: 'auto',
-  },
-  fullWidth: {
-    width: '100%',
-  },
-  normalWidth: {
-    width: '236px',
-  },
-}));
-
-export type OptionProps<TValue> = {|
+export type OptionProps<TValue> = $ReadOnly<{|
+  ...SelectMenuItemBaseProps<TValue>,
   key: string,
-  label: React.Node,
-  searchTerm?: string,
-  value: TValue,
-  className?: ?string,
-  ...PermissionHandlingProps,
-|};
+|}>;
 
-type Props<TValue> = {
-  className?: string,
+export type SelectMenuProps<TValue> = $ReadOnly<{|
   onChange: (value: TValue) => void | (() => void),
   options: Array<OptionProps<TValue>>,
   onOptionsFetchRequested?: (searchTerm: string) => void,
   selectedValue?: ?TValue,
-  size?: 'normal' | 'full',
-};
+  ...MenuBaseProps,
+|}>;
 
-const SelectMenu = <TValue>({
-  className,
-  options,
-  onChange,
-  selectedValue,
-  size = 'full',
-  onOptionsFetchRequested,
-}: Props<TValue>) => {
-  const classes = useStyles();
+const SelectMenu = <TValue>(props: SelectMenuProps<TValue>) => {
+  const {
+    options,
+    onChange,
+    selectedValue,
+    onOptionsFetchRequested,
+    ...menuBaseProps
+  } = props;
   const {onClose} = useMenuContext();
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -74,11 +51,7 @@ const SelectMenu = <TValue>({
   );
 
   return (
-    <div
-      className={classNames(classes.root, className, {
-        [classes.fullWidth]: size === 'full',
-        [classes.normalWidth]: size === 'normal',
-      })}>
+    <MenuBase {...menuBaseProps}>
       {onOptionsFetchRequested && (
         <SelectSearchInput
           searchTerm={searchTerm}
@@ -87,32 +60,23 @@ const SelectMenu = <TValue>({
       )}
       {options
         .map(option => {
-          const {
-            key,
-            label,
-            value,
-            ignorePermissions,
-            hideOnMissingPermissions,
-            className,
-          } = option;
+          const {key, label, value, ...menuItemProps} = option;
           return (
             <SelectMenuItem
               key={key}
               label={label}
               value={value}
-              className={className}
-              ignorePermissions={ignorePermissions}
-              hideOnMissingPermissions={hideOnMissingPermissions}
               onClick={value => {
                 onChange(value);
                 onClose();
               }}
               isSelected={selectedValue === option.value}
+              {...menuItemProps}
             />
           );
         })
         .filter(Boolean)}
-    </div>
+    </MenuBase>
   );
 };
 

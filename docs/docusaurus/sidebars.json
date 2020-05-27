@@ -11,6 +11,13 @@
           "orc8r/deploy_install",
           "orc8r/deploy_upgrade"
         ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Orchestrator Users Guide",
+        "ids": [
+          "orc8r/ue_metering"
+        ]
       }
     ],
     "NMS User Guide": ["nms/nms_organizations", "nms/nms_grafana"],

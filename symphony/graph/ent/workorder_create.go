@@ -14,6 +14,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/ent/activity"
 	"github.com/facebookincubator/symphony/graph/ent/checklistcategory"
 	"github.com/facebookincubator/symphony/graph/ent/comment"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
@@ -272,6 +273,21 @@ func (woc *WorkOrderCreate) AddComments(c ...*Comment) *WorkOrderCreate {
 	return woc.AddCommentIDs(ids...)
 }
 
+// AddActivityIDs adds the activities edge to Activity by ids.
+func (woc *WorkOrderCreate) AddActivityIDs(ids ...int) *WorkOrderCreate {
+	woc.mutation.AddActivityIDs(ids...)
+	return woc
+}
+
+// AddActivities adds the activities edges to Activity.
+func (woc *WorkOrderCreate) AddActivities(a ...*Activity) *WorkOrderCreate {
+	ids := make([]int, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return woc.AddActivityIDs(ids...)
+}
+
 // AddPropertyIDs adds the properties edge to Property by ids.
 func (woc *WorkOrderCreate) AddPropertyIDs(ids ...int) *WorkOrderCreate {
 	woc.mutation.AddPropertyIDs(ids...)
@@ -397,6 +413,7 @@ func (woc *WorkOrderCreate) Save(ctx context.Context) (*WorkOrder, error) {
 			}
 			woc.mutation = mutation
 			node, err = woc.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(woc.hooks) - 1; i >= 0; i-- {
@@ -634,6 +651,25 @@ func (woc *WorkOrderCreate) sqlSave(ctx context.Context) (*WorkOrder, error) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: comment.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := woc.mutation.ActivitiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   workorder.ActivitiesTable,
+			Columns: []string{workorder.ActivitiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: activity.FieldID,
 				},
 			},
 		}

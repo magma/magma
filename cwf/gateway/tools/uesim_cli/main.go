@@ -252,7 +252,7 @@ func getConfiguredSubscribers() ([]*protos.UEConfig, error) {
 		configMap := &config.ConfigMap{RawMap: rawMap}
 
 		// If auth_key is incorrect, skip subscriber
-		authKey, err := configMap.GetStringParam("auth_key")
+		authKey, err := configMap.GetString("auth_key")
 		if err != nil {
 			glog.Errorf("Could not add subscriber due to missing auth_key: %s", err)
 			continue
@@ -282,7 +282,7 @@ func createUeConfig(imsi string, auth_key []byte, seq_num uint64) (*protos.UECon
 	if err != nil {
 		op = DefaultOp
 	}
-	op, err = uecfg.GetStringParam("op")
+	op, err = uecfg.GetString("op")
 	if err != nil {
 		op = DefaultOp
 	}
@@ -303,7 +303,7 @@ func getRadiusSecret() string {
 	if err != nil {
 		return DefaultRadiusSecret
 	}
-	radiusSecret, err := uecfg.GetStringParam("radius_secret")
+	radiusSecret, err := uecfg.GetString("radius_secret")
 	if err != nil {
 		return DefaultRadiusSecret
 	}

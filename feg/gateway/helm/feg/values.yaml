@@ -24,7 +24,7 @@ secrets:
 # Define which secrets should be mounted by pods.
 secret:
   certs: orc8r-secrets-certs
-  gwinfo: feg-secrets-gwinfo
+#  gwinfo: feg-secrets-gwinfo
 
 ## Key Values for docker inside VM
 feg:

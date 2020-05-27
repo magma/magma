@@ -122,7 +122,7 @@ class AddEditEquipmentTypeCard extends React.Component<Props, State> {
     return (
       <FormContextProvider
         permissions={{
-          entity: 'equipment',
+          entity: 'equipmentType',
           action: isOnEdit ? 'update' : 'create',
         }}>
         <div className={classes.cards}>

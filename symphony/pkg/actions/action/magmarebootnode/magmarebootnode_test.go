@@ -31,7 +31,7 @@ func TestMagmaRebootNode(t *testing.T) {
 	require.NoError(t, err)
 
 	orc8rClient := srv.Client()
-	orc8rClient.Transport = orc8r.Transport{
+	orc8rClient.Transport = &orc8r.Transport{
 		Base: orc8rClient.Transport,
 		Host: uri.Host,
 	}

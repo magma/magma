@@ -17,9 +17,9 @@ from pyinventory.api.service import (
     add_service,
     add_service_endpoint,
     add_service_link,
-    add_service_type,
     get_service,
 )
+from pyinventory.api.service_type import add_service_type
 from pyinventory.common.data_class import PropertyDefinition
 from pyinventory.graphql.enum.property_kind import PropertyKind
 from pysymphony import SymphonyClient
@@ -36,6 +36,60 @@ class TestService(BaseTest):
 
     def setUp(self) -> None:
         super().setUp()
+        self.service_type = add_service_type(
+            client=self.client,
+            name="Internet Access",
+            has_customer=True,
+            properties=[
+                PropertyDefinition(
+                    property_name="Service Package",
+                    property_kind=PropertyKind.string,
+                    default_value="Public 5G",
+                    is_fixed=False,
+                ),
+                PropertyDefinition(
+                    property_name="Address Family",
+                    property_kind=PropertyKind.string,
+                    default_value=None,
+                    is_fixed=False,
+                ),
+            ],
+        )
+        self.service = add_service(
+            client=self.client,
+            name="Room 201 Internet Access",
+            external_id="S3232",
+            service_type=self.service_type.name,
+            customer=None,
+            properties_dict={"Address Family": "v4"},
+        )
+        self.customer = add_customer(
+            client=self.client, name="Donald", external_id="S322"
+        )
+        self.service_with_customer = add_service(
+            client=self.client,
+            name="Room 202 Internet Access",
+            external_id="S32325",
+            service_type=self.service_type.name,
+            customer=self.customer,
+            properties_dict={"Address Family": "v4"},
+        )
+
+    def test_service_created(self) -> None:
+        fetched_service = get_service(client=self.client, id=self.service.id)
+        self.assertEqual(fetched_service, self.service)
+
+    def test_service_with_customer_created(self) -> None:
+        fetched_service = get_service(
+            client=self.client, id=self.service_with_customer.id
+        )
+        self.assertEqual(fetched_service, self.service_with_customer)
+        fetched_customer = fetched_service.customer
+        self.assertNotEqual(fetched_customer, None)
+        self.assertEqual(fetched_customer, self.customer)
+
+    @unittest.skip("Will be restored once new endpoint schema is finalized")
+    def test_service_with_topology_created(self) -> None:
         add_equipment_port_type(
             self.client,
             name="port type 1",
@@ -56,19 +110,17 @@ class TestService(BaseTest):
                 )
             ],
         )
-        add_service_type(
-            client=self.client,
-            name="Internet Access",
-            hasCustomer=True,
-            properties=[
-                ("Service Package", "string", "Public 5G", True),
-                ("Address Family", "string", None, True),
-            ],
-        )
         add_location_type(
             client=self.client,
             name="Room",
             properties=[("Contact", "email", None, True)],
+        )
+        location = add_location(
+            client=self.client,
+            location_hirerchy=[("Room", "Room 201")],
+            properties_dict={"Contact": "user@google.com"},
+            lat=10,
+            long=20,
         )
         add_equipment_type(
             client=self.client,
@@ -77,28 +129,6 @@ class TestService(BaseTest):
             properties=[("IP", "string", None, True)],
             ports_dict={"Port 1": "port type 1", "Port 2": "port type 1"},
             position_list=[],
-        )
-
-    def test_service_created(self) -> None:
-        service = add_service(
-            client=self.client,
-            name="Room 201 Internet Access",
-            external_id="S3232",
-            service_type="Internet Access",
-            customer=None,
-            properties_dict={"Address Family": "v4"},
-        )
-        fetch_service = get_service(client=self.client, id=service.id)
-        self.assertEqual(service, fetch_service)
-
-    @unittest.skip("Will be restored once new endpoint schema is finalized")
-    def test_service_with_topology_created(self) -> None:
-        location = add_location(
-            client=self.client,
-            location_hirerchy=[("Room", "Room 201")],
-            properties_dict={"Contact": "user@google.com"},
-            lat=10,
-            long=20,
         )
         router1 = add_equipment(
             client=self.client,
@@ -135,39 +165,25 @@ class TestService(BaseTest):
             equipment_b=router3,
             port_name_b="Port 1",
         )
+
         endpoint_port = get_port(
             client=self.client, equipment=router1, port_name="Port 2"
         )
-        service = add_service(
-            self.client,
-            name="Room 201 Internet Access",
-            external_id="S3232",
-            service_type="Internet Access",
-            customer=None,
-            properties_dict={"Address Family": "v4"},
-        )
-        for link in [link1, link2]:
-            add_service_link(client=self.client, service=service, link=link)
-        # TODO add service_endpoint_type api
-        add_service_endpoint(client=self.client, service=service, port=endpoint_port)
 
-        service = get_service(
-            client=self.client, id=service.id if service is not None else ""
+        for link in [link1, link2]:
+            add_service_link(
+                client=self.client, service_id=self.service.id, link_id=link.id
+            )
+        # TODO add service_endpoint_defintion api
+        add_service_endpoint(
+            client=self.client,
+            service_id=self.service.id,
+            equipment_id="1",
+            endpoint_definition_id="1",
         )
-        ports = [e.port for e in service.endpoints]
+
+        ports = [e.port for e in self.service.endpoints]
         self.assertEqual(
             [endpoint_port.id], [p.id if p is not None else None for p in ports]
         )
-        self.assertEqual([link1.id, link2.id], [s.id for s in service.links])
-
-    def test_service_with_customer_created(self) -> None:
-        customer = add_customer(client=self.client, name="Donald", external_id="S322")
-        service = add_service(
-            client=self.client,
-            name="Room 201 Internet Access",
-            external_id=None,
-            service_type="Internet Access",
-            customer=customer,
-            properties_dict={},
-        )
-        self.assertEqual(customer, service.customer)
+        self.assertEqual([link1.id, link2.id], [s.id for s in self.service.links])

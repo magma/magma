@@ -67,6 +67,11 @@ commands:
       - go/mod-download
       - go/save-cache
 
+  helm-install:
+    steps:
+      - helm/install-helm-client:
+          version: v3.2.1
+
   helm-lint:
     parameters:
       chart:
@@ -184,9 +189,26 @@ commands:
             done
             circleci step halt
 
+  yarn-install:
+    steps:
+      - restore_cache:
+          name: Restore Yarn Package Cache
+          keys:
+            - yarn-packages-{{ checksum "app/yarn.lock" }}
+      - run:
+          name: Install Dependencies
+          <<: *appdir
+          command: yarn install --frozen-lockfile
+      - save_cache:
+          name: Save Yarn Package Cache
+          key: yarn-packages-{{ checksum "app/yarn.lock" }}
+          paths:
+            - ~/.cache/yarn
+
 jobs:
   lint:
     executor: golangci
+    resource_class: large
     steps:
       - checkout
       - *mktestdir
@@ -280,7 +302,7 @@ jobs:
         type: string
     steps:
       - checkout
-      - helm/install-helm-client
+      - helm-install
       - helm-lint:
           chart: inventory
           working_directory: <<parameters.working_directory>>
@@ -489,7 +511,10 @@ jobs:
       - run:
           name: install flow
           <<: *appdir
-          command: yarn add --dev -W flow-bin@0.120
+          # Extract the specified flow version from the .flowconfig
+          command: yarn add --dev -W flow-bin@$(x=$(grep "\[version\]" .flowconfig -A 1 | tail -n 1); echo ${x:1})
+
+      - yarn-install
       - run:
           name: flow typecheck
           <<: *appdir
@@ -499,29 +524,28 @@ jobs:
     executor: yarnnode
     steps:
       - checkout
-      - restore_cache:
-          name: Restore Yarn Package Cache
-          keys:
-            - yarn-packages-{{ checksum "app/yarn.lock" }}
-      - run:
-          name: Install Dependencies
-          <<: *appdir
-          command: yarn install --frozen-lockfile
-      - save_cache:
-          name: Save Yarn Package Cache
-          key: yarn-packages-{{ checksum "app/yarn.lock" }}
-          paths:
-            - ~/.cache/yarn
+      - yarn-install
       - run:
           name: yarn test
           <<: *appdir
           command: yarn test:ci
+
+  eslint:
+    executor: yarnnode
+    steps:
+      - checkout
+      - yarn-install
+      - run:
+          name: eslint
+          <<: *appdir
+          command: yarn run eslint ./
 
 workflows:
   version: 2.1
   all:
     jobs:
       - lint
+      - eslint
       - unit
       - flowtest
       - yarntest:
@@ -579,7 +603,7 @@ workflows:
       - artifactory/upload:
           name: upload-charts
           build-steps:
-            - helm/install-helm-client
+            - helm-install
             - run: mkdir /tmp/helm-charts
             - helm-package:
                 chart: inventory

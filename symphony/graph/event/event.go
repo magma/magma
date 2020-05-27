@@ -36,6 +36,7 @@ type Eventer struct {
 
 // HookTo hooks eventer to ent client.
 func (e *Eventer) HookTo(client *ent.Client) {
+	client.Use(e.logHook())
 	client.WorkOrder.Use(e.workOrderHook())
 }
 

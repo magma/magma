@@ -532,6 +532,7 @@ export function permissionsPolicyResponse2PermissionsPolicy(
       type,
       isGlobal: policyNode.isGlobal,
       groups: policyNode.groups
+        .filter(Boolean)
         .map(group => groupsMap.get(group.id))
         .filter(Boolean),
       inventoryRules: tryGettingInventoryPolicy(policyRules),

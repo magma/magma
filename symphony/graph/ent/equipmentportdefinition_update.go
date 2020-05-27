@@ -208,6 +208,7 @@ func (epdu *EquipmentPortDefinitionUpdate) Save(ctx context.Context) (int, error
 			}
 			epdu.mutation = mutation
 			affected, err = epdu.sqlSave(ctx)
+			mutation.done = true
 			return affected, err
 		})
 		for i := len(epdu.hooks) - 1; i >= 0; i-- {
@@ -620,6 +621,7 @@ func (epduo *EquipmentPortDefinitionUpdateOne) Save(ctx context.Context) (*Equip
 			}
 			epduo.mutation = mutation
 			node, err = epduo.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(epduo.hooks) - 1; i >= 0; i-- {

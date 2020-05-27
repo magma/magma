@@ -8,6 +8,7 @@
  * @format
  */
 
+import type {ExpressResponse} from 'express';
 import type {FBCNMSRequest} from '@fbcnms/auth/access';
 
 import asyncHandler from '@fbcnms/util/asyncHandler';
@@ -15,10 +16,10 @@ import express from 'express';
 
 import {AuditLogEntry} from '@fbcnms/sequelize-models';
 
-const router = express.Router();
+const router: express.Router<FBCNMSRequest, ExpressResponse> = express.Router();
 router.get(
   '/auditlog/async',
-  asyncHandler(async (req: FBCNMSRequest, res) => {
+  asyncHandler(async (req: FBCNMSRequest, res: ExpressResponse) => {
     const organization = await req.organization();
     const data = await AuditLogEntry.findAll({
       where: {organization: organization.name},

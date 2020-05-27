@@ -13,6 +13,12 @@ func (c *ActionsRuleClient) Instantiate(ar *ActionsRule) *ActionsRule {
 }
 
 // Instantiate entity configuration.
+func (c *ActivityClient) Instantiate(a *Activity) *Activity {
+	a.config = c.config
+	return a
+}
+
+// Instantiate entity configuration.
 func (c *CheckListCategoryClient) Instantiate(clc *CheckListCategory) *CheckListCategory {
 	clc.config = c.config
 	return clc

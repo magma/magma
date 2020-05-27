@@ -621,6 +621,7 @@ func (ptu *PropertyTypeUpdate) Save(ctx context.Context) (int, error) {
 			}
 			ptu.mutation = mutation
 			affected, err = ptu.sqlSave(ctx)
+			mutation.done = true
 			return affected, err
 		})
 		for i := len(ptu.hooks) - 1; i >= 0; i-- {
@@ -1811,6 +1812,7 @@ func (ptuo *PropertyTypeUpdateOne) Save(ctx context.Context) (*PropertyType, err
 			}
 			ptuo.mutation = mutation
 			node, err = ptuo.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(ptuo.hooks) - 1; i >= 0; i-- {

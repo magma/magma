@@ -176,6 +176,7 @@ func (hu *HyperlinkUpdate) Save(ctx context.Context) (int, error) {
 			}
 			hu.mutation = mutation
 			affected, err = hu.sqlSave(ctx)
+			mutation.done = true
 			return affected, err
 		})
 		for i := len(hu.hooks) - 1; i >= 0; i-- {
@@ -533,6 +534,7 @@ func (huo *HyperlinkUpdateOne) Save(ctx context.Context) (*Hyperlink, error) {
 			}
 			huo.mutation = mutation
 			node, err = huo.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(huo.hooks) - 1; i >= 0; i-- {

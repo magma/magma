@@ -40,6 +40,11 @@ SessionMap SessionStore::read_sessions_for_reporting(const SessionRead& req) {
   auto session_map_2 = store_client_->read_sessions(req);
   // For all sessions of the subscriber, increment the request numbers
   for (const std::string& imsi : req) {
+    if (session_map_2.find(imsi) == session_map_2.end()
+          || session_map_2[imsi].size() == 0) {
+      MLOG(MWARNING) << "No sessions under " << imsi
+                     << " was found in SessionStore. This might be unexpected";
+    }
     for (auto& session : session_map_2[imsi]) {
       session->increment_request_number(session->get_credit_key_count());
     }

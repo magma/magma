@@ -14,7 +14,8 @@ from ryu.lib.packet import packet
 from ryu.lib.packet import ether_types, dhcp
 from ryu.ofproto.inet import IPPROTO_TCP, IPPROTO_UDP
 
-from lte.protos.pipelined_pb2 import SetupFlowsResult, UEMacFlowRequest
+from lte.protos.pipelined_pb2 import FlowResponse, SetupFlowsResult, \
+    UEMacFlowRequest
 from magma.pipelined.app.base import MagmaController, ControllerType
 from magma.pipelined.app.inout import INGRESS
 from magma.pipelined.directoryd_client import update_record
@@ -94,7 +95,7 @@ class UEMacAddressController(MagmaController):
     def add_ue_mac_flow(self, sid, mac_addr):
         # TODO report add flow result back to sessiond
         if self._datapath is None:
-            return
+            return FlowResponse(result=FlowResponse.SUCCESS)
 
         self._add_dhcp_passthrough_flows(sid, mac_addr)
         self._add_dns_passthrough_flows(sid, mac_addr)
@@ -117,6 +118,8 @@ class UEMacAddressController(MagmaController):
                                     priority=flows.UE_FLOW_PRIORITY,
                                     tbl_num=self._imsi_set_tbl_num,
                                     next_table=self._ipfix_sample_tbl_num)
+
+        return FlowResponse(result=FlowResponse.SUCCESS)
 
     def delete_ue_mac_flow(self, sid, mac_addr):
         # TODO report add flow result back to sessiond

@@ -11,6 +11,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/AlekSi/pointer"
+
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 
 	"github.com/facebookincubator/symphony/graph/ent"
@@ -48,9 +50,9 @@ func (s *workOrderTestSuite) TestWorkOrderCreate() {
 		err := SubscribeAndListen(ctx, ListenerConfig{
 			Subscriber: s.subscriber,
 			Logger:     s.logger.Background(),
-			Tenant:     viewertest.DefaultTenant,
+			Tenant:     pointer.ToString(viewertest.DefaultTenant),
 			Events:     events,
-			Handler: HandlerFunc(func(_ context.Context, name string, body []byte) error {
+			Handler: HandlerFunc(func(_ context.Context, _ string, name string, body []byte) error {
 				s.Assert().NotEmpty(body)
 				_, ok := emitted[name]
 				s.Assert().True(ok)
@@ -93,9 +95,9 @@ func (s *workOrderTestSuite) TestWorkOrderUpdateOne() {
 		err := SubscribeAndListen(ctx, ListenerConfig{
 			Subscriber: s.subscriber,
 			Logger:     s.logger.Background(),
-			Tenant:     viewertest.DefaultTenant,
+			Tenant:     pointer.ToString(viewertest.DefaultTenant),
 			Events:     []string{WorkOrderDone},
-			Handler: HandlerFunc(func(_ context.Context, name string, body []byte) error {
+			Handler: HandlerFunc(func(_ context.Context, tenant string, name string, body []byte) error {
 				s.Assert().Equal(WorkOrderDone, name)
 				s.Assert().NotEmpty(body)
 				cancel()

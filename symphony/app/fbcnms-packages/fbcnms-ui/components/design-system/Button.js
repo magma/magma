@@ -31,6 +31,7 @@ const useStyles = makeStyles(_theme => ({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    maxWidth: '100%',
   },
   icon: {},
   hasIcon: {
@@ -272,15 +273,15 @@ export type ButtonSkin =
   | 'green';
 type SvgIcon = React$ComponentType<SvgIconExports>;
 
-export type ButtonProps = {|
+export type ButtonProps = $ReadOnly<{|
   skin?: ButtonSkin,
   variant?: ButtonVariant,
   useEllipsis?: ?boolean,
   disabled?: boolean,
   tooltip?: string,
-|};
+|}>;
 
-export type Props = {
+export type Props = $ReadOnly<{|
   className?: string,
   children: React.Node,
   onClick?:
@@ -292,7 +293,7 @@ export type Props = {
   rightIcon?: SvgIcon,
   rightIconClass?: string,
   ...ButtonProps,
-};
+|}>;
 
 const Button = (props: Props, forwardedRef: TRefFor<HTMLButtonElement>) => {
   const {
@@ -301,7 +302,7 @@ const Button = (props: Props, forwardedRef: TRefFor<HTMLButtonElement>) => {
     skin = 'primary',
     disabled: disabledProp = false,
     variant = 'contained',
-    useEllipsis = false,
+    useEllipsis = true,
     onClick,
     leftIcon: LeftIcon = null,
     leftIconClass = null,

@@ -86,6 +86,7 @@ func (WorkOrder) Edges() []ent.Edge {
 		edge.To("location", Location.Type).
 			Unique(),
 		edge.To("comments", Comment.Type),
+		edge.To("activities", Activity.Type),
 		edge.To("properties", Property.Type),
 		edge.To("check_list_categories", CheckListCategory.Type),
 		edge.From("project", Project.Type).

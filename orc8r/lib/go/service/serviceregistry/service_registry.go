@@ -80,15 +80,15 @@ func convertToServiceLocations(rawMap rawMapType) ([]registry.ServiceLocation, e
 			return nil, fmt.Errorf("The value associated with key:%v is not a map: %v", k, v)
 		}
 		configMap := &config.ConfigMap{RawMap: rawMap}
-		host, err := configMap.GetStringParam("host")
+		host, err := configMap.GetString("host")
 		if err != nil {
 			// Check old/py format: 'ip_address'
 			var ipErr error
-			if host, ipErr = configMap.GetStringParam("ip_address"); ipErr != nil {
+			if host, ipErr = configMap.GetString("ip_address"); ipErr != nil {
 				return nil, err
 			}
 		}
-		port, err := configMap.GetIntParam("port")
+		port, err := configMap.GetInt("port")
 		if err != nil {
 			return nil, err
 		}

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Accordion,
   Button,
@@ -47,8 +47,11 @@ const Scheduling = props => {
     });
   }
 
-  // if no network request was executed yet...
-  !(data || error) && refresh();
+  useEffect(() => {
+    // do network request just once
+    refresh();
+  }, []);
+
 
   const deselectActiveRow = () => {
     setActiveRow(null);

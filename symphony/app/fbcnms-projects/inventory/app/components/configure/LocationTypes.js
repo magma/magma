@@ -24,7 +24,7 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import ConfigueTitle from '@fbcnms/ui/components/ConfigureTitle';
 import DroppableTableBody from '../draggable/DroppableTableBody';
 import EditLocationTypesIndexMutation from '../../mutations/EditLocationTypesIndexMutation';
-import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
+import FormActionWithPermissions from '../../common/FormActionWithPermissions';
 import InventoryQueryRenderer from '../InventoryQueryRenderer';
 import LocationTypeItem from './LocationTypeItem';
 import React from 'react';
@@ -168,13 +168,14 @@ class LocationTypes extends React.Component<Props, State> {
                     {this.state.isSaving ? (
                       <CircularProgress className={classes.progress} />
                     ) : null}
-                    <FormAction>
+                    <FormActionWithPermissions
+                      permissions={{entity: 'locationType', action: 'create'}}>
                       <Button
                         className={classes.addButton}
                         onClick={() => this.showAddEditLocationTypeCard(null)}>
                         Add Location Type
                       </Button>
-                    </FormAction>
+                    </FormActionWithPermissions>
                   </div>
                 </div>
                 <div className={classes.root}>
@@ -210,8 +211,8 @@ class LocationTypes extends React.Component<Props, State> {
     );
   }
 
-  _onDragEnd = (result, locationTypes) => {
-    if (!result.destination) {
+  _onDragEnd = ({source, destination}, locationTypes) => {
+    if (destination == null) {
       return;
     }
     locationTypes = locationTypes.edges
@@ -219,11 +220,7 @@ class LocationTypes extends React.Component<Props, State> {
       .sort(sortByIndex);
 
     ServerLogger.info(LogEvents.LOCATION_TYPE_REORDERED);
-    const items = reorder(
-      locationTypes,
-      result.source.index,
-      result.destination.index,
-    );
+    const items = reorder(locationTypes, source.index, destination.index);
     const newItems = items.map((locTyp, i) => ({...locTyp, index: i}));
     this.saveOrder(newItems);
   };

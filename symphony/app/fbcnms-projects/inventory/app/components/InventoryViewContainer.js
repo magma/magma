@@ -8,7 +8,7 @@
  * @format
  */
 
-import type {PermissionEnforcement} from '../common/FormContext';
+import type {PermissionEnforcement} from './admin/userManagement/utils/usePermissions';
 import type {ViewContainerProps} from '@fbcnms/ui/components/design-system/View/ViewContainer';
 
 import * as React from 'react';

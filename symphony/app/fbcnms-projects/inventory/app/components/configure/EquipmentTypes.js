@@ -17,7 +17,7 @@ import AddEditEquipmentTypeCard from './AddEditEquipmentTypeCard';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import ConfigueTitle from '@fbcnms/ui/components/ConfigureTitle';
 import EquipmentTypeItem from './EquipmentTypeItem';
-import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
+import FormActionWithPermissions from '../../common/FormActionWithPermissions';
 import React, {useState} from 'react';
 import fbt from 'fbt';
 import {FormContextProvider} from '../../common/FormContext';
@@ -158,13 +158,14 @@ const EquipmentTypes = () => {
             subtitle={'Manage the types of equipment in your inventory'}
           />
           <div className={classes.addButtonContainer}>
-            <FormAction>
+            <FormActionWithPermissions
+              permissions={{entity: 'equipmentType', action: 'create'}}>
               <Button
                 className={classes.addButton}
                 onClick={() => showAddEditEquipmentTypeCard(null)}>
                 <fbt desc="">Add Equipment Type</fbt>
               </Button>
-            </FormAction>
+            </FormActionWithPermissions>
           </div>
         </div>
         <div className={classes.root}>

@@ -19,7 +19,7 @@ const logger = require('@fbcnms/logging').getLogger(module);
 
 const defaultResolver = (req: FBCNMSRequest, type: string) => {
   const {search} = url.parse(req.originalUrl);
-  const params = new URLSearchParams(search);
+  const params = new URLSearchParams(search ?? '');
   return [params.get('requested_id'), type];
 };
 

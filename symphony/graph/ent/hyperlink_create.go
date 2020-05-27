@@ -173,6 +173,7 @@ func (hc *HyperlinkCreate) Save(ctx context.Context) (*Hyperlink, error) {
 			}
 			hc.mutation = mutation
 			node, err = hc.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(hc.hooks) - 1; i >= 0; i-- {

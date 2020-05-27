@@ -51,15 +51,8 @@ services:
 
   store:
     image: ${DOCKER_REGISTRY}/store:${TAG}
-    environment:
-      AUTH_URL: http://platform-server/user/me
-      S3_ENDPOINT: fb-test.thesymphony.cloud:9000
-      S3_BUCKET: store.blobs
-      S3_REGION: us-east-1
-      AWS_ACCESS_KEY_ID: AKIAIOSFODNN7EXAMPLE
-      AWS_SECRET_ACCESS_KEY: /wJalrXUtnFEMIK7MDENG/bPxRfiCYEXAMPLEKEY
     env_file:
-      - conf/graph.env
+      - conf/store.env
       - conf/log.env
     healthcheck: *healthcheck
     restart: on-failure

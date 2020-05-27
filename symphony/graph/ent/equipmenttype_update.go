@@ -239,6 +239,7 @@ func (etu *EquipmentTypeUpdate) Save(ctx context.Context) (int, error) {
 			}
 			etu.mutation = mutation
 			affected, err = etu.sqlSave(ctx)
+			mutation.done = true
 			return affected, err
 		})
 		for i := len(etu.hooks) - 1; i >= 0; i-- {
@@ -750,6 +751,7 @@ func (etuo *EquipmentTypeUpdateOne) Save(ctx context.Context) (*EquipmentType, e
 			}
 			etuo.mutation = mutation
 			node, err = etuo.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(etuo.hooks) - 1; i >= 0; i-- {

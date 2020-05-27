@@ -11,6 +11,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/AlekSi/pointer"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -26,9 +28,9 @@ func TestNewListener(t *testing.T) {
 			return nil, nil
 		}),
 		Logger: zaptest.NewLogger(t),
-		Tenant: "test",
+		Tenant: pointer.ToString("test"),
 		Events: []string{t.Name()},
-		Handler: HandlerFunc(func(context.Context, string, []byte) error {
+		Handler: HandlerFunc(func(context.Context, string, string, []byte) error {
 			return nil
 		}),
 	}
@@ -36,12 +38,6 @@ func TestNewListener(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, listener)
 
-	t.Run("NoTenant", func(t *testing.T) {
-		config := cfg
-		config.Tenant = ""
-		_, err := NewListener(ctx, config)
-		assert.Error(t, err)
-	})
 	t.Run("NoEvents", func(t *testing.T) {
 		config := cfg
 		config.Events = nil
@@ -69,8 +65,8 @@ type testHandler struct {
 	mock.Mock
 }
 
-func (t *testHandler) Handle(ctx context.Context, name string, data []byte) error {
-	return t.Called(ctx, name, data).Error(0)
+func (t *testHandler) Handle(ctx context.Context, tenant string, name string, data []byte) error {
+	return t.Called(ctx, tenant, name, data).Error(0)
 }
 
 func TestSubscribeAndListen(t *testing.T) {
@@ -86,9 +82,9 @@ func TestSubscribeAndListen(t *testing.T) {
 	const tenant = "test-tenant"
 	testBody := []byte("test-body")
 	var h testHandler
-	h.On("Handle", ctx, t.Name(), mock.AnythingOfType("[]uint8")).
+	h.On("Handle", ctx, tenant, t.Name(), mock.AnythingOfType("[]uint8")).
 		Run(func(args mock.Arguments) {
-			body := args.Get(2).([]byte)
+			body := args.Get(3).([]byte)
 			assert.Equal(t, testBody, body)
 			cancel()
 		}).
@@ -104,7 +100,7 @@ func TestSubscribeAndListen(t *testing.T) {
 			ListenerConfig{
 				Subscriber: subscriber,
 				Logger:     zaptest.NewLogger(t),
-				Tenant:     tenant,
+				Tenant:     pointer.ToString(tenant),
 				Events:     []string{t.Name()},
 				Handler:    &h,
 			})

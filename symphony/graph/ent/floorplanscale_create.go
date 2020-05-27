@@ -121,6 +121,7 @@ func (fpsc *FloorPlanScaleCreate) Save(ctx context.Context) (*FloorPlanScale, er
 			}
 			fpsc.mutation = mutation
 			node, err = fpsc.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(fpsc.hooks) - 1; i >= 0; i-- {

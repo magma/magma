@@ -204,7 +204,6 @@ class PropertyTypeTable extends React.Component<Props> {
         </Table>
         <FormAction>
           <Button
-            color="primary"
             variant="text"
             onClick={this._onAddProperty}
             leftIcon={PlusIcon}>

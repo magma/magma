@@ -187,6 +187,11 @@ spec:
             - name: {{ $envAll.Values.secret.configs.cwf }}
               mountPath: /var/opt/magma/configs
             {{- end }}
+            {{- if .Values.secret.dpi_license }}
+            - name: cwf-dpi-license
+              mountPath: /opt/magma/{{ $envAll.Values.cwf.dpi.dpi_license_name }}
+              subPath: {{ $envAll.Values.cwf.dpi.dpi_license_name }}
+            {{- end }}
       volumes:
         {{- if .Values.secret.gwinfo }}
         - name: hwid
@@ -212,5 +217,10 @@ spec:
         - name: {{ $envAll.Values.secret.configs.cwf }}
           secret:
             secretName: {{ $envAll.Values.secret.configs.cwf }}
+        {{- end }}
+        {{- if .Values.secret.dpi_license }}
+        - name: cwf-dpi-license
+          secret:
+            secretName: {{ required "secret.dpi_license must be provided" .Values.secret.dpi_license }}
         {{- end }}
 {{- end }}

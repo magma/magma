@@ -171,6 +171,10 @@ func buildFromConfigs(nwConfig *models.NetworkCarrierWifiConfigs, gwConfig *mode
 	ret["sessiond"] = &ltemconfig.SessionD{
 		LogLevel:     protos.LogLevel_INFO,
 		RelayEnabled: true,
+		WalletExhaustDetection: &ltemconfig.WalletExhaustDetection{
+			TerminateOnExhaust: true,
+			Method:             ltemconfig.WalletExhaustDetection_GxTrackedRules,
+		},
 	}
 	ret["redirectd"] = &ltemconfig.RedirectD{
 		LogLevel: protos.LogLevel_INFO,

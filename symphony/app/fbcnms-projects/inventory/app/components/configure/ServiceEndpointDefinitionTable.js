@@ -16,6 +16,7 @@ import Button from '@fbcnms/ui/components/design-system/Button';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import DraggableTableRow from '../draggable/DraggableTableRow';
 import DroppableTableBody from '../draggable/DroppableTableBody';
+import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import IconButton from '@fbcnms/ui/components/design-system/IconButton';
 import ListItemText from '@material-ui/core/ListItemText';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -206,14 +207,15 @@ class ServiceEndpointDefinitionTable extends React.Component<Props, State> {
             ))}
           </DroppableTableBody>
         </Table>
-        <Button
-          className={classes.addButton}
-          color="primary"
-          variant="text"
-          leftIcon={PlusIcon}
-          onClick={this.onAddEndpoint}>
-          <fbt desc="">Add Endpoint</fbt>
-        </Button>
+        <FormAction>
+          <Button
+            className={classes.addButton}
+            variant="text"
+            leftIcon={PlusIcon}
+            onClick={this.onAddEndpoint}>
+            <fbt desc="">Add Endpoint</fbt>
+          </Button>
+        </FormAction>
       </div>
     );
   }

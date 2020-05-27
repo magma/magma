@@ -13,19 +13,14 @@ from typing import Any, Callable, List, Mapping, Optional
 from time import perf_counter
 from dataclasses_json import DataClassJsonMixin
 
-from ..fragment.property_type import PropertyTypeFragment, QUERY as PropertyTypeFragmentQuery
+from ..fragment.service_type import ServiceTypeFragment, QUERY as ServiceTypeFragmentQuery
 from ..input.service_type_create_data import ServiceTypeCreateData
 
 
-QUERY: List[str] = PropertyTypeFragmentQuery + ["""
+QUERY: List[str] = ServiceTypeFragmentQuery + ["""
 mutation AddServiceTypeMutation($data: ServiceTypeCreateData!) {
   addServiceType(data: $data) {
-    id
-    name
-    hasCustomer
-    propertyTypes {
-      ...PropertyTypeFragment
-    }
+    ...ServiceTypeFragment
   }
 }
 
@@ -36,15 +31,8 @@ class AddServiceTypeMutation(DataClassJsonMixin):
     @dataclass
     class AddServiceTypeMutationData(DataClassJsonMixin):
         @dataclass
-        class ServiceType(DataClassJsonMixin):
-            @dataclass
-            class PropertyType(PropertyTypeFragment):
-                pass
-
-            id: str
-            name: str
-            hasCustomer: bool
-            propertyTypes: List[PropertyType]
+        class ServiceType(ServiceTypeFragment):
+            pass
 
         addServiceType: ServiceType
 

@@ -13,18 +13,14 @@ from typing import Any, Callable, List, Mapping, Optional
 from time import perf_counter
 from dataclasses_json import DataClassJsonMixin
 
-from ..fragment.property_type import PropertyTypeFragment, QUERY as PropertyTypeFragmentQuery
+from ..fragment.location_type import LocationTypeFragment, QUERY as LocationTypeFragmentQuery
 from ..input.add_location_type import AddLocationTypeInput
 
 
-QUERY: List[str] = PropertyTypeFragmentQuery + ["""
+QUERY: List[str] = LocationTypeFragmentQuery + ["""
 mutation AddLocationTypeMutation($input: AddLocationTypeInput!) {
   addLocationType(input: $input) {
-    id
-    name
-    propertyTypes {
-      ...PropertyTypeFragment
-    }
+    ...LocationTypeFragment
   }
 }
 
@@ -35,14 +31,8 @@ class AddLocationTypeMutation(DataClassJsonMixin):
     @dataclass
     class AddLocationTypeMutationData(DataClassJsonMixin):
         @dataclass
-        class LocationType(DataClassJsonMixin):
-            @dataclass
-            class PropertyType(PropertyTypeFragment):
-                pass
-
-            id: str
-            name: str
-            propertyTypes: List[PropertyType]
+        class LocationType(LocationTypeFragment):
+            pass
 
         addLocationType: LocationType
 

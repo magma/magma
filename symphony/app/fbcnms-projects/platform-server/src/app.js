@@ -7,7 +7,8 @@
  * @flow
  * @format
  */
-
+import type {ExpressResponse} from 'express';
+import type {FBCNMSRequest} from '@fbcnms/auth/access';
 import type {UserModel} from '@fbcnms/sequelize-models/models/user';
 
 const {LOG_FORMAT, LOG_LEVEL} = require('./config');
@@ -83,7 +84,7 @@ User.beforeBulkDestroy(async (options: Object) => {
 });
 
 // FBC express initialization
-const app = express();
+const app = express<FBCNMSRequest, ExpressResponse>();
 app.set('trust proxy', 1);
 app.use(organizationMiddleware());
 app.use(appMiddleware());

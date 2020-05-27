@@ -101,6 +101,7 @@ func (ecc *EquipmentCategoryCreate) Save(ctx context.Context) (*EquipmentCategor
 			}
 			ecc.mutation = mutation
 			node, err = ecc.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(ecc.hooks) - 1; i >= 0; i-- {

@@ -125,7 +125,7 @@ class AddEditLocationTypeCard extends React.Component<Props, State> {
     return (
       <FormContextProvider
         permissions={{
-          entity: 'location',
+          entity: 'locationType',
           action: isOnEdit ? 'update' : 'create',
         }}>
         <div className={classes.cards}>

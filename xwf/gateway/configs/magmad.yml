@@ -11,6 +11,10 @@ magma_services:
   - control_proxy
   - pipelined
 
+# List of services that don't provide service303 interface
+non_service303_services:
+  - control_proxy
+
 # list of services that are required to have meta before checking in
 # (meta = data gathered via MagmaService.register_get_status_callback())
 # skip limit specified by config 'max_skipped_checkins'
@@ -29,16 +33,14 @@ bootstrap_config:
 enable_config_streamer: True
 enable_upgrade_manager: True
 enable_network_monitor: True
-enable_systemd_tailer: False
 enable_sync_rpc: True
 enable_kernel_version_checking: True
-
-systemd_tailer_poll_interval: 30 # seconds
 
 upgrader_factory:
   module: magma.magmad.upgrade.docker_upgrader
   class: DockerUpgraderFactory
-  gateway_module: cwf
+  gateway_module: xwf
+  use_proxy: False
 
 mconfig_modules:
   - orc8r.protos.mconfig.mconfigs_pb2
@@ -60,9 +62,3 @@ metricsd:
   services:
     - magmad
     - pipelined
-    - sessiond
-    - eap_aka
-    - aaa_server
-    - radiusd
-    - directoryd
-    - state

@@ -301,6 +301,7 @@ func (su *ServiceUpdate) Save(ctx context.Context) (int, error) {
 			}
 			su.mutation = mutation
 			affected, err = su.sqlSave(ctx)
+			mutation.done = true
 			return affected, err
 		})
 		for i := len(su.hooks) - 1; i >= 0; i-- {
@@ -932,6 +933,7 @@ func (suo *ServiceUpdateOne) Save(ctx context.Context) (*Service, error) {
 			}
 			suo.mutation = mutation
 			node, err = suo.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(suo.hooks) - 1; i >= 0; i-- {

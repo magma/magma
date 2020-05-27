@@ -177,7 +177,7 @@ get_action_instruction')
 
         qos_mgr = QosManager(MagicMock, asyncio.new_event_loop(), self.config)
         qos_mgr._qos_store = {}
-        qos_mgr.setup()
+        qos_mgr._setupInternal()
         imsi, rule_num, d, qos_info = "imsi1234", 0, 0, QosInfo(100000, 100000)
 
         # add new subscriber qos queue
@@ -236,7 +236,7 @@ get_action_instruction')
         - Finally we delete everything and verify if that behavior is right'''
         qos_mgr = QosManager(MagicMock, asyncio.new_event_loop(), self.config)
         qos_mgr._qos_store = {}
-        qos_mgr.setup()
+        qos_mgr._setupInternal()
         rule_list1 = [("imsi1", 0, 0),
                       ("imsi1", 1, 0),
                       ("imsi1", 2, 1),
@@ -313,10 +313,10 @@ get_action_instruction')
         self.assertTrue("imsi1" not in qos_mgr._subscriber_map)
 
         # deactivate same imsi again and ensure nothing bad happens
-        with self.assertLogs('pipelined.qos.common', level='ERROR') as cm:
+        with self.assertLogs('pipelined.qos.common', level='DEBUG') as cm:
             qos_mgr.remove_subscriber_qos("imsi1")
         error_msg = "unable to find imsi imsi1"
-        self.assertTrue(cm.output[0].endswith(error_msg))
+        self.assertTrue(error_msg in cm.output[-1])
 
         # now only imsi2 should remain
         self.assertTrue(len(qos_mgr._qos_store) == 1)
@@ -413,7 +413,7 @@ get_action_instruction')
         else:
             mock_traffic_cls.read_all_classes.side_effect = tc_read
 
-        qos_mgr.setup()
+        qos_mgr._setupInternal()
 
         # run async loop once to ensure ready items are cleared
         loop._run_once()
@@ -450,7 +450,7 @@ get_action_instruction')
         else:
             mock_traffic_cls.read_all_classes.side_effect = lambda _: []
 
-        qos_mgr.setup()
+        qos_mgr._setupInternal()
 
         # run async loop once to ensure ready items are cleared
         loop._run_once()
@@ -472,7 +472,7 @@ get_action_instruction')
         else:
             mock_traffic_cls.read_all_classes.side_effect = tc_read
 
-        qos_mgr.setup()
+        qos_mgr._setupInternal()
 
         # run async loop once to ensure ready items are cleared
         loop._run_once()
@@ -499,6 +499,28 @@ get_action_instruction')
         for impl_type in (QosImplType.LINUX_TC, QosImplType.OVS_METER,):
             self.config["qos"]["impl"] = impl_type
             self._testMultipleSubscribers()
+
+    def testRedisConnectionFailure(self,):
+        self.config["qos"]["impl"] = QosImplType.LINUX_TC
+        qos_mgr = QosManager(MagicMock, asyncio.new_event_loop(), self.config)
+
+        redisConnFailureCount = 5
+
+        def mockRedisAvail(*args, **kw):
+            if not hasattr(mockRedisAvail, "count"):
+                mockRedisAvail.count = 0
+            mockRedisAvail.count += 1
+            if mockRedisAvail.count > redisConnFailureCount:
+                return True
+            return False
+
+        qos_mgr.redisAvailable = mockRedisAvail
+        qos_mgr._setupInternal = lambda: True
+        with self.assertLogs('pipelined.qos.common', level='INFO') as cm:
+            qos_mgr.setup()
+        self.assertTrue(len(cm.output), redisConnFailureCount)
+        for output in cm.output:
+            self.assertTrue("failed to connect to redis" in output)
 
     def testUncleanRestart(self,):
         with patch.dict(self.config, {"clean_restart": False}):
@@ -539,14 +561,14 @@ class TestTrafficClass(unittest.TestCase):
         mock_del_cls.assert_called_with("en0", 2, show_error=False,
                                         throw_except=False)
         mock_check_call.assert_any_call(['tc', 'class', 'add', 'dev', 'en0',
-                                         'parent', '1:fffe', 'classid', '1:2',
+                                         'parent', '1:fffe', 'classid', '1:0x2',
                                          'htb', 'rate', '12000', 'ceil', '10'])
         mock_check_call.assert_any_call(['tc', 'qdisc', 'add', 'dev', 'en0',
-                                         'parent', '1:2', 'fq_codel'])
+                                         'parent', '1:0x2', 'fq_codel'])
         mock_check_call.assert_any_call(['tc', 'filter', 'add', 'dev', 'en0',
                                          'protocol', 'ip', 'parent', '1:',
-                                         'prio', '1', 'handle', '2', 'fw',
-                                         'flowid', '1:2'])
+                                         'prio', '1', 'handle', '0x2', 'fw',
+                                         'flowid', '1:0x2'])
 
     @patch('subprocess.check_call')
     @patch('os.geteuid', return_value=1)

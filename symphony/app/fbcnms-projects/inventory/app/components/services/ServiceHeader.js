@@ -69,16 +69,16 @@ const ServiceHeader = (props: Props) => {
           size="large"
         />
       </div>
-      <FormAction>
-        <ServiceDeleteButton
-          className={classes.deleteButton}
-          service={service}
-          onServiceRemoved={onServiceRemoved}
-        />
+      <ServiceDeleteButton
+        className={classes.deleteButton}
+        service={service}
+        onServiceRemoved={onServiceRemoved}
+      />
+      <FormAction ignorePermissions={true}>
+        <Button onClick={onBackClicked} disabled={form.alerts.error.detected}>
+          Done
+        </Button>
       </FormAction>
-      <Button onClick={onBackClicked} disabled={form.alerts.error.detected}>
-        Done
-      </Button>
     </div>
   );
 };

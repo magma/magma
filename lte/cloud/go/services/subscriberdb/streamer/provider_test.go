@@ -79,7 +79,7 @@ func TestSubscriberdbStreamer(t *testing.T) {
 			return &orcprotos.DataUpdate{Key: "IMSI" + sub.Sid.Id, Value: data}
 		},
 	)
-	actual, err := pro.GetUpdates("hw1", nil)
+	actual, err := pro.GetUpdatesImpl("hw1", nil)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
@@ -110,7 +110,7 @@ func TestSubscriberdbStreamer(t *testing.T) {
 			return &orcprotos.DataUpdate{Key: "IMSI" + sub.Sid.Id, Value: data}
 		},
 	)
-	actual, err = pro.GetUpdates("hw1", nil)
+	actual, err = pro.GetUpdatesImpl("hw1", nil)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 }

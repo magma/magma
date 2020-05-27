@@ -684,7 +684,7 @@ TEST_F(LocalEnforcerTest, test_termination_scheduling_on_sync_sessions) {
   const std::string imsi = "IMSI1";
   const std::string session_id = "1234";
   rules_to_install.push_back("rule1");
-  insert_static_rule(1, "m1", "rule1");
+  insert_static_rule(0, "m1", "rule1");
 
   // Create a CreateSessionResponse with one Gx monitor:m1 and one rule:rule1
   create_session_create_response(imsi, "m1", rules_to_install, &response);
@@ -1407,9 +1407,10 @@ TEST_F(LocalEnforcerTest, test_revalidation_timer_on_update) {
   UpdateSessionResponse update_response;
   std::vector<std::string> rules_to_install;
   std::vector<EventTrigger> event_triggers{EventTrigger::REVALIDATION_TIMEOUT};
-  const std::string mkey = "m1";
+  const std::string mkey1 = "m1";
+  const std::string mkey2 = "m2";
   rules_to_install.push_back("rule1");
-  insert_static_rule(1, mkey, "rule1");
+  insert_static_rule(1, mkey1, "rule1");
 
   // create two sessions
   const std::string imsi1 = "IMSI1";
@@ -1417,18 +1418,15 @@ TEST_F(LocalEnforcerTest, test_revalidation_timer_on_update) {
   const std::string imsi2 = "IMSI2";
   const std::string session_id2 = "5678";
 
-
   // Create a CreateSessionResponse with one Gx monitor, PCC rule
-  create_session_create_response(imsi1, mkey, rules_to_install, &create_response);
+  create_session_create_response(imsi1, mkey1, rules_to_install, &create_response);
   local_enforcer->init_session_credit(session_map, imsi1, session_id1, test_cfg,
                                       create_response);
 
   create_response.Clear();
-  create_session_create_response(imsi2, mkey, rules_to_install, &create_response);
+  create_session_create_response(imsi2, mkey1, rules_to_install, &create_response);
   local_enforcer->init_session_credit(session_map, imsi2, session_id2, test_cfg,
                                       create_response);
-  EXPECT_EQ(session_map[imsi1].size(), 1);
-  EXPECT_EQ(session_map[imsi2].size(), 1);
 
   // Write and read into session store, assert success
   bool success = session_store->create_sessions(imsi1, std::move(session_map[imsi1]));
@@ -1439,12 +1437,17 @@ TEST_F(LocalEnforcerTest, test_revalidation_timer_on_update) {
   EXPECT_EQ(session_map[imsi1].size(), 1);
   EXPECT_EQ(session_map[imsi2].size(), 1);
 
-  // Create a UpdateSessionResponse with a REVALIDATION event trigger
+  auto revalidation_timer = time(NULL);
+  // IMSI1 has two separate monitors with the same revalidation timer
+  // IMSI2 does not have a revalidation timer
   auto monitor = update_response.mutable_usage_monitor_responses()->Add();
-  create_monitor_update_response(imsi1, mkey, MonitoringLevel::PCC_RULE_LEVEL,
-                                 1024, event_triggers, time(NULL), monitor);
+  create_monitor_update_response(imsi1, mkey1, MonitoringLevel::PCC_RULE_LEVEL,
+                                 1024, event_triggers, revalidation_timer, monitor);
   monitor = update_response.mutable_usage_monitor_responses()->Add();
-  create_monitor_update_response(imsi2, mkey, MonitoringLevel::PCC_RULE_LEVEL,
+  create_monitor_update_response(imsi1, mkey2, MonitoringLevel::PCC_RULE_LEVEL,
+                                 1024, event_triggers, revalidation_timer, monitor);
+  monitor = update_response.mutable_usage_monitor_responses()->Add();
+  create_monitor_update_response(imsi1, mkey1, MonitoringLevel::PCC_RULE_LEVEL,
                                  1024, monitor);
   auto update = SessionStore::get_default_session_update(session_map);
   // This should trigger a revalidation to be scheduled
@@ -1455,8 +1458,9 @@ TEST_F(LocalEnforcerTest, test_revalidation_timer_on_update) {
   success = session_store->update_sessions(update);
   EXPECT_TRUE(success);
 
-  EXPECT_CALL(*reporter, report_updates(CheckUpdateRequestCount(1, 0), _)).Times(1);
-  // schedule_revalidation puts two things on the event loop
+  // Report 2 monitors for IMSI1
+  EXPECT_CALL(*reporter, report_updates(CheckUpdateRequestCount(2, 0), _)).Times(1);
+  // a single schedule_revalidation puts two things on the event loop
   evb->loopOnce();
   evb->loopOnce();
 }

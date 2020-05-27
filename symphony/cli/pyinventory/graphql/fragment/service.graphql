@@ -1,0 +1,11 @@
+fragment ServiceFragment on Service {
+  id
+  name
+  externalId
+  customer {
+    ...CustomerFragment
+  }
+  properties {
+    ...PropertyFragment
+  }
+}

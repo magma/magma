@@ -16,6 +16,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/facebookincubator/symphony/graph/ent/actionsrule"
+	"github.com/facebookincubator/symphony/graph/ent/activity"
 	"github.com/facebookincubator/symphony/graph/ent/checklistcategory"
 	"github.com/facebookincubator/symphony/graph/ent/checklistcategorydefinition"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
@@ -197,6 +198,98 @@ func (ar *ActionsRuleQuery) collectConnectionFields(ctx context.Context) *Action
 		ar = ar.collectField(graphql.GetOperationContext(ctx), *field)
 	}
 	return ar
+}
+
+// ActivityEdge is the edge representation of Activity.
+type ActivityEdge struct {
+	Node   *Activity `json:"node"`
+	Cursor Cursor    `json:"cursor"`
+}
+
+// ActivityConnection is the connection containing edges to Activity.
+type ActivityConnection struct {
+	Edges    []*ActivityEdge `json:"edges"`
+	PageInfo PageInfo        `json:"pageInfo"`
+}
+
+// Paginate executes the query and returns a relay based cursor connection to Activity.
+func (a *ActivityQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*ActivityConnection, error) {
+	if first != nil && last != nil {
+		return nil, ErrInvalidPagination
+	}
+	if first != nil {
+		if *first == 0 {
+			return &ActivityConnection{
+				Edges: []*ActivityEdge{},
+			}, nil
+		} else if *first < 0 {
+			return nil, ErrInvalidPagination
+		}
+	}
+	if last != nil {
+		if *last == 0 {
+			return &ActivityConnection{
+				Edges: []*ActivityEdge{},
+			}, nil
+		} else if *last < 0 {
+			return nil, ErrInvalidPagination
+		}
+	}
+
+	if after != nil {
+		a = a.Where(activity.IDGT(after.ID))
+	}
+	if before != nil {
+		a = a.Where(activity.IDLT(before.ID))
+	}
+	if first != nil {
+		a = a.Order(Asc(activity.FieldID)).Limit(*first + 1)
+	}
+	if last != nil {
+		a = a.Order(Desc(activity.FieldID)).Limit(*last + 1)
+	}
+	a = a.collectConnectionFields(ctx)
+
+	nodes, err := a.All(ctx)
+	if err != nil || len(nodes) == 0 {
+		return &ActivityConnection{
+			Edges: []*ActivityEdge{},
+		}, err
+	}
+	if last != nil {
+		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
+			nodes[left], nodes[right] = nodes[right], nodes[left]
+		}
+	}
+
+	var conn ActivityConnection
+	if first != nil && len(nodes) > *first {
+		conn.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && len(nodes) > *last {
+		conn.PageInfo.HasPreviousPage = true
+		nodes = nodes[1:]
+	}
+	conn.Edges = make([]*ActivityEdge, len(nodes))
+	for i, node := range nodes {
+		conn.Edges[i] = &ActivityEdge{
+			Node: node,
+			Cursor: Cursor{
+				ID: node.ID,
+			},
+		}
+	}
+	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
+	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
+
+	return &conn, nil
+}
+
+func (a *ActivityQuery) collectConnectionFields(ctx context.Context) *ActivityQuery {
+	if field := fieldForPath(ctx, "edges", "node"); field != nil {
+		a = a.collectField(graphql.GetOperationContext(ctx), *field)
+	}
+	return a
 }
 
 // CheckListCategoryEdge is the edge representation of CheckListCategory.

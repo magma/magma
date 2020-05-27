@@ -135,6 +135,7 @@ func (clcdc *CheckListCategoryDefinitionCreate) Save(ctx context.Context) (*Chec
 			}
 			clcdc.mutation = mutation
 			node, err = clcdc.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(clcdc.hooks) - 1; i >= 0; i-- {

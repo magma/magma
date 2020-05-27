@@ -79,6 +79,12 @@ variable "orc8r_proxy_replicas" {
   default     = 2
 }
 
+variable "use_nginx_proxy" {
+  description = "Feature flag for Nginx proxy"
+  type        = bool
+  default     = false
+}
+
 variable "orc8r_db_name" {
   description = "DB name for Orchestrator database connection"
   type        = string

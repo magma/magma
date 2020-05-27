@@ -113,46 +113,43 @@ bool LocalSessionManagerHandlerImpl::is_pipelined_restarted() {
 void LocalSessionManagerHandlerImpl::handle_setup_callback(
     const std::uint64_t& epoch, Status status, SetupFlowsResult resp) {
   using namespace std::placeholders;
-  if (!status.ok()) {
-    MLOG(MERROR) << "Could not setup pipelined, rpc failed with: "
-                 << status.error_message() << ", retrying pipelined setup.";
 
-    enforcer_->get_event_base().runInEventBaseThread([=] {
-      enforcer_->get_event_base().timer().scheduleTimeoutFn(
-          std::move([=] {
-            auto session_map = session_store_.read_all_sessions();
-            enforcer_->setup(
-                session_map, epoch,
-                std::bind(
-                    &LocalSessionManagerHandlerImpl::handle_setup_callback,
-                    this, epoch, _1, _2));
-          }),
-          retry_timeout_);
-    });
+  if (status.ok() && resp.result() == resp.SUCCESS) {
+    MLOG(MDEBUG) << "Successfully setup pipelined with epoch" << epoch;
     return;
   }
 
-  if (resp.result() == resp.OUTDATED_EPOCH) {
+  if (current_epoch_ != epoch) {
+    MLOG(MDEBUG) << "Received stale Pipelined setup callback for " << epoch
+                 << ", current epoch is " << current_epoch_;
+    return;
+  }
+
+  if (!status.ok()) {
+    MLOG(MERROR) << "Could not setup pipelined, rpc failed with: "
+                 << status.error_message() << ", retrying pipelined setup "
+                 << "for epoch " << epoch;
+
+  } else if (resp.result() == resp.OUTDATED_EPOCH) {
     MLOG(MWARNING) << "Pipelined setup call has outdated epoch, abandoning.";
+    return;
   } else if (resp.result() == resp.FAILURE) {
     MLOG(MWARNING) << "Pipelined setup failed, retrying pipelined setup "
-                      "for epoch "
-                   << epoch;
-    enforcer_->get_event_base().runInEventBaseThread([=] {
-      enforcer_->get_event_base().timer().scheduleTimeoutFn(
-          std::move([=] {
-            auto session_map = session_store_.read_all_sessions();
-            enforcer_->setup(
-                session_map, epoch,
-                std::bind(
-                    &LocalSessionManagerHandlerImpl::handle_setup_callback,
-                    this, epoch, _1, _2));
-          }),
-          retry_timeout_);
-    });
-  } else {
-    MLOG(MDEBUG) << "Successfully setup pipelined.";
+                      "for epoch " << epoch;
   }
+
+  enforcer_->get_event_base().runInEventBaseThread([=] {
+    enforcer_->get_event_base().timer().scheduleTimeoutFn(
+        std::move([=] {
+          auto session_map = session_store_.read_all_sessions();
+          enforcer_->setup(
+              session_map, epoch,
+              std::bind(
+                  &LocalSessionManagerHandlerImpl::handle_setup_callback,
+                  this, epoch, _1, _2));
+        }),
+        retry_timeout_);
+  });
 }
 
 bool LocalSessionManagerHandlerImpl::restart_pipelined(

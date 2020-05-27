@@ -212,7 +212,7 @@ func paramToLinkFilterInput(params string) ([]*models.LinkFilterInput, error) {
 		}
 		intIDSet, err := toIntSlice(f.IDSet)
 		if err != nil {
-			return nil, fmt.Errorf("wrong id set %q: %w", f.IDSet, err)
+			return nil, fmt.Errorf("wrong id set %v: %w", f.IDSet, err)
 		}
 		inp := models.LinkFilterInput{
 			FilterType:    models.LinkFilterType(upperName),

@@ -54,11 +54,6 @@ func (u *URLSubscriber) Set(v string) error {
 	return nil
 }
 
-// UnmarshalFlag updates the value of the url opener.
-func (u *URLSubscriber) UnmarshalFlag(v string) error {
-	return u.Set(v)
-}
-
 // NewNopSubscriber returns a subscriber that always fails to open subscriptions.
 func NewNopSubscriber() Subscriber {
 	return SubscriberFunc(func(context.Context) (*pubsub.Subscription, error) {

@@ -211,6 +211,7 @@ class LocationPropertiesCard extends React.Component<Props, State> {
             <FormContextProvider
               permissions={{
                 entity: 'location',
+                action: 'update',
               }}>
               <div className={classes.root}>
                 <div className={classes.cardHeader}>

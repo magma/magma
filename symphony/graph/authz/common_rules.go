@@ -85,10 +85,7 @@ func checkWorkforce(r *models.WorkforcePermissionRule, workOrderTypeID *int, pro
 }
 
 func cudBasedRule(cud *models.Cud, m ent.Mutation) error {
-	if cudBasedCheck(cud, m) {
-		return privacy.Allow
-	}
-	return privacy.Skip
+	return privacyDecision(cudBasedCheck(cud, m))
 }
 
 func allowWritePermissionsRule() privacy.MutationRule {
@@ -125,9 +122,9 @@ func denyIfNoPermissionSettingsRule() privacy.QueryMutationRule {
 }
 
 func allowOrSkipWorkOrder(ctx context.Context, p *models.PermissionSettings, wo *ent.WorkOrder) error {
-	switch allowed, err := workOrderIsEditable(ctx, wo); {
+	switch allowed, err := isViewerWorkOrderOwnerOrAssignee(ctx, wo); {
 	case err != nil:
-		return privacy.Denyf("cannot check work order editability: %w", err)
+		return privacy.Denyf("cannot check work order viewer relation: %w", err)
 	case allowed:
 		return privacy.Allow
 	}
