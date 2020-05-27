@@ -112,6 +112,7 @@ func (fprpc *FloorPlanReferencePointCreate) Save(ctx context.Context) (*FloorPla
 			}
 			fprpc.mutation = mutation
 			node, err = fprpc.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(fprpc.hooks) - 1; i >= 0; i-- {

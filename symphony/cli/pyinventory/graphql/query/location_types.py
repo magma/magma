@@ -13,18 +13,14 @@ from typing import Any, Callable, List, Mapping, Optional
 from time import perf_counter
 from dataclasses_json import DataClassJsonMixin
 
-from ..fragment.property_type import PropertyTypeFragment, QUERY as PropertyTypeFragmentQuery
+from ..fragment.location_type import LocationTypeFragment, QUERY as LocationTypeFragmentQuery
 
-QUERY: List[str] = PropertyTypeFragmentQuery + ["""
+QUERY: List[str] = LocationTypeFragmentQuery + ["""
 query LocationTypesQuery {
   locationTypes {
     edges {
       node {
-        id
-        name
-        propertyTypes {
-          ...PropertyTypeFragment
-        }
+        ...LocationTypeFragment
       }
     }
   }
@@ -41,14 +37,8 @@ class LocationTypesQuery(DataClassJsonMixin):
             @dataclass
             class LocationTypeEdge(DataClassJsonMixin):
                 @dataclass
-                class LocationType(DataClassJsonMixin):
-                    @dataclass
-                    class PropertyType(PropertyTypeFragment):
-                        pass
-
-                    id: str
-                    name: str
-                    propertyTypes: List[PropertyType]
+                class LocationType(LocationTypeFragment):
+                    pass
 
                 node: Optional[LocationType]
 

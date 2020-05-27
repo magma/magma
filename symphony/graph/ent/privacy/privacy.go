@@ -238,6 +238,30 @@ func (f ActionsRuleMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mut
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.ActionsRuleMutation", m)
 }
 
+// The ActivityQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type ActivityQueryRuleFunc func(context.Context, *ent.ActivityQuery) error
+
+// EvalQuery return f(ctx, q).
+func (f ActivityQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.ActivityQuery); ok {
+		return f(ctx, q)
+	}
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.ActivityQuery", q)
+}
+
+// The ActivityMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type ActivityMutationRuleFunc func(context.Context, *ent.ActivityMutation) error
+
+// EvalMutation calls f(ctx, m).
+func (f ActivityMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
+	if m, ok := m.(*ent.ActivityMutation); ok {
+		return f(ctx, m)
+	}
+	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.ActivityMutation", m)
+}
+
 // The CheckListCategoryQueryRuleFunc type is an adapter to allow the use of ordinary
 // functions as a query rule.
 type CheckListCategoryQueryRuleFunc func(context.Context, *ent.CheckListCategoryQuery) error

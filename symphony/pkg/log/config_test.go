@@ -5,44 +5,46 @@
 package log
 
 import (
-	"bytes"
-	"log"
 	"testing"
 
-	"github.com/jessevdk/go-flags"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func TestConfigParse(t *testing.T) {
 	t.Run("Default", func(t *testing.T) {
-		var config Config
-		_, err := flags.ParseArgs(&config, nil)
+		app := kingpin.New(t.Name(), "")
+		config := AddFlags(app)
+		_, err := app.Parse(nil)
 		assert.NoError(t, err)
 		assert.Equal(t, "info", config.Level.String())
 		assert.Equal(t, "console", config.Format.String())
 	})
 	t.Run("OK", func(t *testing.T) {
-		var config Config
-		_, err := flags.ParseArgs(&config, []string{
-			"--level", "error", "--format", "json",
+		app := kingpin.New(t.Name(), "")
+		config := AddFlags(app)
+		_, err := app.Parse([]string{
+			"--" + LevelFlagName, "error",
+			"--" + FormatFlagName, "json",
 		})
 		assert.NoError(t, err)
 		assert.Equal(t, "error", config.Level.String())
 		assert.Equal(t, "json", config.Format.String())
 	})
 	t.Run("BadLevel", func(t *testing.T) {
-		var cfg Config
-		_, err := flags.ParseArgs(&cfg, []string{
-			"--level", "foo",
+		app := kingpin.New(t.Name(), "")
+		_ = AddFlags(app)
+		_, err := app.Parse([]string{
+			"--" + LevelFlagName, "foo",
 		})
 		assert.Error(t, err)
 	})
 	t.Run("BadFormat", func(t *testing.T) {
-		var cfg Config
-		_, err := flags.ParseArgs(&cfg, []string{
-			"--format", "bar",
+		app := kingpin.New(t.Name(), "")
+		_ = AddFlags(app)
+		_, err := app.Parse([]string{
+			"--" + FormatFlagName, "bar",
 		})
 		assert.Error(t, err)
 	})
@@ -100,15 +102,4 @@ func TestMustNew(t *testing.T) {
 	assert.NotPanics(t, func() { _ = MustNew(config) })
 	config.Format = "baz"
 	assert.Panics(t, func() { _ = MustNew(config) })
-}
-
-func TestProvider(t *testing.T) {
-	var buf bytes.Buffer
-	log.SetOutput(&buf)
-	logger, restorer, err := Provider(Config{})
-	require.NoError(t, err)
-	defer restorer()
-	assert.Equal(t, logger.Background(), zap.L())
-	log.Println("suppressed message")
-	assert.Zero(t, buf.Len())
 }

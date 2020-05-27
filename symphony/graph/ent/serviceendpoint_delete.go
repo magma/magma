@@ -47,6 +47,7 @@ func (sed *ServiceEndpointDelete) Exec(ctx context.Context) (int, error) {
 			}
 			sed.mutation = mutation
 			affected, err = sed.sqlExec(ctx)
+			mutation.done = true
 			return affected, err
 		})
 		for i := len(sed.hooks) - 1; i >= 0; i-- {

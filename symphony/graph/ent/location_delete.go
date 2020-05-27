@@ -47,6 +47,7 @@ func (ld *LocationDelete) Exec(ctx context.Context) (int, error) {
 			}
 			ld.mutation = mutation
 			affected, err = ld.sqlExec(ctx)
+			mutation.done = true
 			return affected, err
 		})
 		for i := len(ld.hooks) - 1; i >= 0; i-- {

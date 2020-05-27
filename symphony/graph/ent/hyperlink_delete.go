@@ -47,6 +47,7 @@ func (hd *HyperlinkDelete) Exec(ctx context.Context) (int, error) {
 			}
 			hd.mutation = mutation
 			affected, err = hd.sqlExec(ctx)
+			mutation.done = true
 			return affected, err
 		})
 		for i := len(hd.hooks) - 1; i >= 0; i-- {

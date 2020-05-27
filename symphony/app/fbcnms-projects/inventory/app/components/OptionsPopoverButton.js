@@ -8,7 +8,10 @@
  * @format
  */
 
-import type {PermissionHandlingProps} from '@fbcnms/ui/components/design-system/Form/FormAction';
+import type {
+  ErrorHandlingProps,
+  PermissionHandlingProps,
+} from '@fbcnms/ui/components/design-system/Form/FormAction';
 
 import * as React from 'react';
 import PopoverMenu from '@fbcnms/ui/components/design-system/Select/PopoverMenu';
@@ -21,6 +24,7 @@ export type MenuOption = {|
   onClick: () => void,
   caption: React.Node,
   ...PermissionHandlingProps,
+  ...ErrorHandlingProps,
 |};
 
 type Props = {|

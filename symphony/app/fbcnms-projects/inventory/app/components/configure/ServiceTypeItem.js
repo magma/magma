@@ -51,6 +51,7 @@ class ServiceTypeItem extends React.Component<Props> {
         <ExpansionPanel>
           <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
             <ConfigureExpansionPanel
+              entityName="serviceType"
               icon={<LinearScaleIcon />}
               name={serviceType.name}
               instanceCount={serviceType.numberOfServices}

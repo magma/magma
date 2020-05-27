@@ -157,6 +157,7 @@ func (lc *LinkCreate) Save(ctx context.Context) (*Link, error) {
 			}
 			lc.mutation = mutation
 			node, err = lc.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(lc.hooks) - 1; i >= 0; i-- {

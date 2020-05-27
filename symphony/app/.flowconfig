@@ -51,7 +51,6 @@
 .*/node_modules/express-graphql/.*
 .*/node_modules/graphql/.*
 .*/node_modules/mapbox-gl/src/.*
-.*/node_modules/react-beautiful-dnd/.*
 
 [options]
 esproposal.optional_chaining=enable
@@ -66,6 +65,8 @@ node_modules/mapbox-gl/dist/mapbox-gl.js.flow
 [declarations]
 <PROJECT_ROOT>/fbcnms-projects/inventory/node_modules/relay-runtime/.*
 <PROJECT_ROOT>/fbcnms-packages/fbcnms-ui/node_modules/relay-runtime/.*
+<PROJECT_ROOT>/node_modules/relay-runtime/.*
+.*/node_modules/react-beautiful-dnd/.*
 
 [lints]
 all=warn
@@ -93,4 +94,4 @@ untyped-import
 untyped-type-import
 
 [version]
-^0.120.0
+^0.125.1

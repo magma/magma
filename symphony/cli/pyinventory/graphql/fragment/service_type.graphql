@@ -1,0 +1,8 @@
+fragment ServiceTypeFragment on ServiceType {
+  id
+  name
+  hasCustomer
+  propertyTypes {
+    ...PropertyTypeFragment
+  }
+}

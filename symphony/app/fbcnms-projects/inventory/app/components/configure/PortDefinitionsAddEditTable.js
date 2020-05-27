@@ -187,7 +187,6 @@ class PortDefinitionsAddEditTable extends React.Component<Props, State> {
         </Table>
         <Button
           className={classes.addButton}
-          color="primary"
           variant="text"
           leftIcon={PlusIcon}
           onClick={this.onAddPort}>

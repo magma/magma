@@ -47,6 +47,7 @@ func (sqd *SurveyQuestionDelete) Exec(ctx context.Context) (int, error) {
 			}
 			sqd.mutation = mutation
 			affected, err = sqd.sqlExec(ctx)
+			mutation.done = true
 			return affected, err
 		})
 		for i := len(sqd.hooks) - 1; i >= 0; i-- {

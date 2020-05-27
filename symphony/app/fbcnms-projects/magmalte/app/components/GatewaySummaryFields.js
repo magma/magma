@@ -159,7 +159,7 @@ export default function GatewaySummaryFields(props: Props) {
         <Divider className={classes.divider} />
         <Text variant="subtitle1">Commands</Text>
         <FormField label="Reboot Gateway">
-          <Button onClick={handleRebootGateway} variant="text" color="primary">
+          <Button onClick={handleRebootGateway} variant="text">
             Reboot
           </Button>
           <Fade in={showRebootCheck} timeout={500}>
@@ -167,10 +167,7 @@ export default function GatewaySummaryFields(props: Props) {
           </Fade>
         </FormField>
         <FormField label="">
-          <Button
-            onClick={handleRestartServices}
-            variant="text"
-            color="primary">
+          <Button onClick={handleRestartServices} variant="text">
             Restart services
           </Button>
           <Fade in={showRestartCheck} timeout={500}>

@@ -47,6 +47,7 @@ func (ppd *PermissionsPolicyDelete) Exec(ctx context.Context) (int, error) {
 			}
 			ppd.mutation = mutation
 			affected, err = ppd.sqlExec(ctx)
+			mutation.done = true
 			return affected, err
 		})
 		for i := len(ppd.hooks) - 1; i >= 0; i-- {

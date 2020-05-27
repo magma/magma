@@ -202,7 +202,6 @@ const PositionDefinitionsAddEditTable = (props: Props) => {
       <FormAction>
         <Button
           className={classes.addButton}
-          color="primary"
           variant="text"
           leftIcon={PlusIcon}
           onClick={onAddPosition}>

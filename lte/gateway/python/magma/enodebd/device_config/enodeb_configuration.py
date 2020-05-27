@@ -148,5 +148,5 @@ class EnodebConfiguration():
         trparam_model = self.data_model
         tr_param = trparam_model.get_parameter(param_name)
         if tr_param is None:
-            logger.error('Parameter <%s> not defined in model', param_name)
+            logger.warning('Parameter <%s> not defined in model', param_name)
             raise ConfigurationError("Parameter not defined in model.")

@@ -17,7 +17,7 @@ import type {
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithSnackbarProps} from 'notistack';
 
-import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
+import FormActionWithPermissions from '../../common/FormActionWithPermissions';
 import IconButton from '@fbcnms/ui/components/design-system/IconButton';
 import React from 'react';
 import RemoveLocationMutation from '../../mutations/RemoveLocationMutation';
@@ -40,13 +40,14 @@ type Props = {
 class LocationMoreActionsButton extends React.Component<Props> {
   render() {
     return (
-      <FormAction>
+      <FormActionWithPermissions
+        permissions={{entity: 'location', action: 'delete'}}>
         <IconButton
           skin="gray"
           onClick={this.removeLocation}
           icon={DeleteIcon}
         />
-      </FormAction>
+      </FormActionWithPermissions>
     );
   }
 

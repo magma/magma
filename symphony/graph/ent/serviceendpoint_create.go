@@ -146,6 +146,7 @@ func (sec *ServiceEndpointCreate) Save(ctx context.Context) (*ServiceEndpoint, e
 			}
 			sec.mutation = mutation
 			node, err = sec.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(sec.hooks) - 1; i >= 0; i-- {

@@ -58,12 +58,12 @@ const ChecklistDefinitionsList = ({items, editedDefinitionId}: Props) => {
   const dispatch = useContext(ChecklistItemsDialogMutateDispatchContext);
   const form = useFormContext();
 
-  const checklistItems = items.sort(sortByIndex).map(item => {
+  const checklistItems = items.sort(sortByIndex).map((item, index) => {
     return (
       <Draggable
         key={item.id}
         draggableId={item.id}
-        index={item.index}
+        index={index}
         isDragDisabled={
           form.alerts.missingPermissions.detected ||
           item.id !== editedDefinitionId
@@ -101,12 +101,14 @@ const ChecklistDefinitionsList = ({items, editedDefinitionId}: Props) => {
   return (
     <div className={classes.itemsList}>
       <DragDropContext
-        onDragEnd={result => {
-          dispatch({
-            type: 'CHANGE_ITEM_POSITION',
-            sourceIndex: result.source.index,
-            destinationIndex: result.destination.index,
-          });
+        onDragEnd={({source, destination}) => {
+          if (destination != null) {
+            dispatch({
+              type: 'CHANGE_ITEM_POSITION',
+              sourceIndex: source.index,
+              destinationIndex: destination.index,
+            });
+          }
         }}>
         <Droppable droppableId="checklist_definitions_droppable">
           {provided => (

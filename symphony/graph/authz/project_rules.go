@@ -64,7 +64,42 @@ func projectReadPredicate(ctx context.Context) predicate.Project {
 			project.HasCreatorWith(user.ID(v.User().ID)),
 		)
 	}
+	if woPredicate := workOrderReadPredicate(ctx); woPredicate != nil {
+		predicates = append(predicates,
+			project.HasWorkOrdersWith(woPredicate))
+	}
 	return project.Or(predicates...)
+}
+
+func isCreatorChanged(ctx context.Context, m *ent.ProjectMutation) (bool, error) {
+	var currCreatorID *int
+	creatorIDToSet, created := m.CreatorID()
+	creatorCleared := m.CreatorCleared()
+	if !created && !creatorCleared {
+		return false, nil
+	}
+	projectID, exists := m.ID()
+	if !exists {
+		return created, nil
+	}
+	creatorID, err := m.Client().User.Query().
+		Where(user.HasCreatedProjectsWith(project.ID(projectID))).
+		OnlyID(ctx)
+	if err == nil {
+		currCreatorID = &creatorID
+	}
+	if err != nil && !ent.IsNotFound(err) {
+		return false, privacy.Denyf("failed to fetch creator: %w", err)
+	}
+	switch {
+	case currCreatorID == nil && created:
+		return true, nil
+	case currCreatorID != nil && created && *currCreatorID != creatorIDToSet:
+		return true, nil
+	case currCreatorID != nil && creatorCleared:
+		return true, nil
+	}
+	return false, nil
 }
 
 // ProjectWritePolicyRule grants write permission to project based on policy.
@@ -75,9 +110,16 @@ func ProjectWritePolicyRule() privacy.MutationRule {
 		if err != nil {
 			return privacy.Denyf(err.Error())
 		}
-		_, owned := m.CreatorID()
-		if owned || m.CreatorCleared() {
-			allowed = allowed && (cud.TransferOwnership.IsAllowed == models2.PermissionValueYes)
+		creatorChanged, err := isCreatorChanged(ctx, m)
+		if err != nil {
+			return privacy.Denyf(err.Error())
+		}
+		if creatorChanged {
+			v, isUser := viewer.FromContext(ctx).(*viewer.UserViewer)
+			creatorID, exists := m.CreatorID()
+			if !m.Op().Is(ent.OpCreate) || !isUser || !exists || v.User().ID != creatorID {
+				allowed = allowed && (cud.TransferOwnership.IsAllowed == models2.PermissionValueYes)
+			}
 		}
 		if allowed {
 			return privacy.Allow

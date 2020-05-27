@@ -72,6 +72,7 @@ class CSVReporter(Reporter):
 
         """
 
+        # pyre-fixme[8]: Attribute has type `UnicodeWriter`; used as `_writer`.
         self.out_file: UnicodeWriter = writer(
             open(out_file_path, "wb"), encoding="utf-8"
         )
@@ -79,6 +80,7 @@ class CSVReporter(Reporter):
             ["operation_name", "variables", "network_time", "decode_time"]
         )
 
+        # pyre-fixme[8]: Attribute has type `UnicodeWriter`; used as `_writer`.
         self.err_file: UnicodeWriter = writer(
             open(err_file_path, "wb"), encoding="utf-8"
         )

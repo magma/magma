@@ -87,7 +87,6 @@ const Alert = ({
           {confirmLabel && (
             <Button
               onClick={onConfirm}
-              autoFocus
               skin={skin}
               disabled={checkboxLabel != null && !checkboxChecked}>
               {confirmLabel}

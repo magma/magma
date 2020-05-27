@@ -13,6 +13,9 @@ import (
 // ActionsRule is the predicate function for actionsrule builders.
 type ActionsRule func(*sql.Selector)
 
+// Activity is the predicate function for activity builders.
+type Activity func(*sql.Selector)
+
 // CheckListCategory is the predicate function for checklistcategory builders.
 type CheckListCategory func(*sql.Selector)
 

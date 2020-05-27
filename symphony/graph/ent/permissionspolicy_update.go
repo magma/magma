@@ -159,6 +159,7 @@ func (ppu *PermissionsPolicyUpdate) Save(ctx context.Context) (int, error) {
 			}
 			ppu.mutation = mutation
 			affected, err = ppu.sqlSave(ctx)
+			mutation.done = true
 			return affected, err
 		})
 		for i := len(ppu.hooks) - 1; i >= 0; i-- {
@@ -459,6 +460,7 @@ func (ppuo *PermissionsPolicyUpdateOne) Save(ctx context.Context) (*PermissionsP
 			}
 			ppuo.mutation = mutation
 			node, err = ppuo.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(ppuo.hooks) - 1; i >= 0; i-- {

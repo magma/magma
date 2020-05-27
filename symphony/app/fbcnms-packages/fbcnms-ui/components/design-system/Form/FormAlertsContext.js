@@ -77,6 +77,7 @@ type FormAlertsContainer = $ReadOnly<{|
 |}>;
 
 export type FormAlertsContextType = $ReadOnly<{|
+  isInitialized: boolean,
   error: FormAlertsContainer,
   missingPermissions: FormAlertsContainer,
   editLock: FormAlertsContainer,
@@ -91,6 +92,7 @@ const emptyFormAlertsContainer = {
 };
 
 export const DEFAULT_CONTEXT_VALUE = {
+  isInitialized: false,
   error: emptyFormAlertsContainer,
   missingPermissions: emptyFormAlertsContainer,
   editLock: emptyFormAlertsContainer,
@@ -187,6 +189,7 @@ export function FormAlertsContextProvider(props: Props) {
   const editLockContext = FormRulesMaintainer();
 
   const providerValue = {
+    isInitialized: true,
     error: errorsContext,
     missingPermissions: missingPermissionsContext,
     editLock: editLockContext,

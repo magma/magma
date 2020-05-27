@@ -227,6 +227,7 @@ func (sc *ServiceCreate) Save(ctx context.Context) (*Service, error) {
 			}
 			sc.mutation = mutation
 			node, err = sc.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(sc.hooks) - 1; i >= 0; i-- {

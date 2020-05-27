@@ -140,7 +140,10 @@ class DockerUpgrader(Upgrader2):
                 target_image,
             )
 
-            await download_update(target_image, git_hash)
+            use_proxy = self.service.config["upgrader_factory"]\
+                .get("use_proxy", True)
+
+            await download_update(target_image, git_hash, use_proxy)
             await self.prepare_upgrade(
                 current_version,
                 pathlib.Path(MAGMA_GITHUB_PATH, "magma"),
@@ -161,7 +164,11 @@ class DockerUpgrader(Upgrader2):
             )
 
 
-async def download_update(target_image: str, git_hash: str) -> None:
+async def download_update(
+    target_image: str,
+    git_hash: str,
+    use_proxy: bool,
+) -> None:
     """
     Download the images for the given tag and clones the github repo.
     """
@@ -175,11 +182,18 @@ async def download_update(target_image: str, git_hash: str) -> None:
                       format(control_proxy_config['rootca_cert']), shell=True,
                       check=True)
     await run_command("update-ca-certificates", shell=True, check=True)
-    git_clone_cmd = "git -c http.proxy=https://{}:{} -C {} clone {}".format(
-        control_proxy_config['bootstrap_address'],
-        control_proxy_config['bootstrap_port'], MAGMA_GITHUB_PATH,
-        MAGMA_GITHUB_URL)
+
+    if use_proxy:
+        git_clone_cmd = "git -c http.proxy=https://{}:{} -C {} clone {}".format(
+            control_proxy_config['bootstrap_address'],
+            control_proxy_config['bootstrap_port'], MAGMA_GITHUB_PATH,
+            MAGMA_GITHUB_URL)
+    else:
+        git_clone_cmd = "git -C {} clone {}".format(MAGMA_GITHUB_PATH,
+            MAGMA_GITHUB_URL)
+
     await run_command(git_clone_cmd, shell=True, check=True)
+
     git_checkout_cmd = "git -C {}/magma checkout {}".format(
         MAGMA_GITHUB_PATH, git_hash,
     )

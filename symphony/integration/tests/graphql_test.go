@@ -628,11 +628,11 @@ func TestViewer(t *testing.T) {
 	var q struct {
 		Viewer struct {
 			Tenant graphql.String
-			Email  graphql.String
+			User   User
 		} `graphql:"me"`
 	}
 	err := c.client.Query(context.Background(), &q, nil)
 	require.NoError(t, err)
 	assert.EqualValues(t, testTenant, q.Viewer.Tenant)
-	assert.EqualValues(t, testUser, q.Viewer.Email)
+	assert.EqualValues(t, testUser, q.Viewer.User.Email)
 }

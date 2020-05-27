@@ -109,7 +109,6 @@ def _parse_isoformat_time(tstr: str) -> Tuple[int, int, int, int, Optional[tzinf
 # TODO(T63529698): Remove this function and use builtin fromisoformat
 def fromisoformat(date_string: str) -> datetime:
     """Construct a datetime from the output of datetime.isoformat()."""
-    # pyre-fixme[25]: Assertion will always fail.
     if not isinstance(date_string, str):
         raise TypeError("fromisoformat: argument must be str")
 

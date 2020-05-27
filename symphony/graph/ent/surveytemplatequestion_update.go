@@ -109,6 +109,7 @@ func (stqu *SurveyTemplateQuestionUpdate) Save(ctx context.Context) (int, error)
 			}
 			stqu.mutation = mutation
 			affected, err = stqu.sqlSave(ctx)
+			mutation.done = true
 			return affected, err
 		})
 		for i := len(stqu.hooks) - 1; i >= 0; i-- {
@@ -333,6 +334,7 @@ func (stquo *SurveyTemplateQuestionUpdateOne) Save(ctx context.Context) (*Survey
 			}
 			stquo.mutation = mutation
 			node, err = stquo.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(stquo.hooks) - 1; i >= 0; i-- {

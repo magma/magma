@@ -10,7 +10,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/facebookincubator/symphony/graph/ent"
+
 	"github.com/facebookincubator/symphony/graph/ent/user"
+	"github.com/facebookincubator/symphony/graph/viewer"
 
 	"github.com/stretchr/testify/require"
 
@@ -52,6 +55,17 @@ type cudPolicyTest struct {
 	delete             func(ctx context.Context) error
 }
 
+func userContextWithPermissions(ctx context.Context, name string, setter func(p *models.PermissionSettings)) context.Context {
+	permissions := authz.EmptyPermissions()
+	setter(permissions)
+	viewer.MustGetOrCreateUser(ctx, name, user.RoleUSER)
+	return viewertest.NewContext(
+		context.Background(),
+		ent.FromContext(ctx),
+		viewertest.WithUser(name),
+		viewertest.WithRole(user.RoleUSER),
+		viewertest.WithPermissions(permissions))
+}
 func runPolicyTest(t *testing.T, tests []policyTest) {
 	var contextBasedTests []contextBasedPolicyTest
 	for _, test := range tests {

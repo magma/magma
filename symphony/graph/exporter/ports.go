@@ -243,7 +243,7 @@ func paramToPortFilterInput(params string) ([]*models.PortFilterInput, error) {
 		propertyValue := f.PropertyValue
 		intIDSet, err := toIntSlice(f.IDSet)
 		if err != nil {
-			return nil, fmt.Errorf("wrong id set %q: %w", f.IDSet, err)
+			return nil, fmt.Errorf("wrong id set %v: %w", f.IDSet, err)
 		}
 		inp := models.PortFilterInput{
 			FilterType:    models.PortFilterType(upperName),

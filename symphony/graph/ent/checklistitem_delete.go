@@ -47,6 +47,7 @@ func (clid *CheckListItemDelete) Exec(ctx context.Context) (int, error) {
 			}
 			clid.mutation = mutation
 			affected, err = clid.sqlExec(ctx)
+			mutation.done = true
 			return affected, err
 		})
 		for i := len(clid.hooks) - 1; i >= 0; i-- {

@@ -1,0 +1,9 @@
+fragment ServiceEndpointDefinitionFragment on ServiceEndpointDefinition {
+  id
+  role
+  name
+  index
+  equipmentType {
+    id
+  }
+}

@@ -8,6 +8,7 @@ import (
 	"context"
 	"database/sql"
 	"database/sql/driver"
+	"fmt"
 	"time"
 
 	"contrib.go.opencensus.io/integrations/ocsql"
@@ -16,6 +17,24 @@ import (
 	"github.com/go-sql-driver/mysql"
 	"go.uber.org/zap"
 )
+
+// Config is a configuration parsed from a DSN string.
+type Config mysql.Config
+
+// String returns the textual representation of a config.
+func (c *Config) String() string {
+	return (*mysql.Config)(c).FormatDSN()
+}
+
+// Set updates the value of a config.
+func (c *Config) Set(value string) error {
+	cfg, err := mysql.ParseDSN(value)
+	if err != nil {
+		return fmt.Errorf("cannot parse dsn: %w", err)
+	}
+	*c = *(*Config)(cfg)
+	return nil
+}
 
 // Open new connection and start stats recorder.
 func Open(dsn string) *sql.DB {
@@ -61,3 +80,9 @@ func (connector) Driver() driver.Driver {
 
 // DefaultViews are predefined views for opencensus metrics.
 var DefaultViews = ocsql.DefaultViews
+
+// Provider is a wire provider that produces *sql.DB from config.
+func Provider(config *Config) (*sql.DB, func()) {
+	db := Open(config.String())
+	return db, RecordStats(db)
+}

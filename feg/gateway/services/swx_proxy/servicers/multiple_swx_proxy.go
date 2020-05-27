@@ -20,19 +20,15 @@ import (
 	orcprotos "magma/orc8r/lib/go/protos"
 )
 
-/*
-* ##########################################
-* How SwxProxies works
-*
-* SwxProxies holds an slice of N Proxies. Each proxy uses an particular diameter
-* client to an specific HSS. Each diameter client is configured with its own src and dst port
-*
-* Subscribers are forwarded to a different proxies based on their IMSI that comes either in Authenticate, Register,
-* Deregister requests
-*
-* Health, Enable and Disable returns error if any of the proxies return errors. No partial results are give.
-* ##########################################
- */
+// How SwxProxies works
+//
+// SwxProxies holds an slice of N Proxies. Each proxy uses an particular diameter
+// client to an specific HSS. Each diameter client is configured with its own src and dst port
+//
+// Subscribers are forwarded to a different proxies based on algorithm defined in multiplex using
+// some fields (right now just IMSI) that comes either in Authenticate, Register Deregister requests
+//
+// Health, Enable and Disable returns error if any of the proxies return errors. No partial results are give.
 
 // SwxProxiesWithHealth is an interface just to group SwxProxies and ServiceHealthServer.
 // This is used to be able to return either SwxProxies or SwxProxy (without S)
@@ -55,13 +51,13 @@ func NewSwxProxies(configs []*SwxProxyConfig, mux multiplex.Multiplexor) (*SwxPr
 	// create a shared cache for all the proxies
 	cache := createCache(configs[0])
 	proxies := make([]*swxProxy, 0, len(configs))
-	for i, config := range configs {
+	for _, config := range configs {
 		fixConfigCacheMinTTL(config)
 		proxy, err := NewSwxProxyWithCache(config, cache)
 		if err != nil {
 			return nil, err
 		}
-		proxies[i] = proxy
+		proxies = append(proxies, proxy)
 	}
 	swxProxies := &SwxProxies{
 		proxies:     proxies,

@@ -34,7 +34,7 @@ class IdManager(object):
             if idx == self._max_idx:
                 raise ValueError("maximum id allocation exceeded")
             self._counter += 1
-        LOG.info("allocating idx %d ", idx)
+        LOG.debug("allocating idx %d ", idx)
         return idx
 
     def release_idx(self, idx):
@@ -62,5 +62,6 @@ class IdManager(object):
 
 class QosStore(RedisHashDict):
     def __init__(self, redis_type):
-        super().__init__(get_default_client(), redis_type,
+        self.client = get_default_client()
+        super().__init__(self.client, redis_type,
                          get_json_serializer(), get_json_deserializer())

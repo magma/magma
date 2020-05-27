@@ -265,7 +265,7 @@ void LocalEnforcer::aggregate_records(
     }
     if (record.bytes_tx() > 0 || record.bytes_rx() > 0) {
       MLOG(MINFO) << "";
-      MLOG(MINFO) << "Subscriber " << record.sid() << " used "
+      MLOG(MINFO) << record.sid() << " used "
                   << record.bytes_tx() << " tx bytes and " << record.bytes_rx()
                   << " rx bytes for rule " << record.rule_id();
     }
@@ -731,11 +731,11 @@ void LocalEnforcer::schedule_dynamic_rule_deactivation(
 }
 
 void LocalEnforcer::filter_rule_installs(
-    std::vector<StaticRuleInstall> static_installs,
-    std::vector<DynamicRuleInstall> dynamic_installs,
+    std::vector<StaticRuleInstall>& static_installs,
+    std::vector<DynamicRuleInstall>& dynamic_installs,
     const std::unordered_set<uint32_t>& successful_credits) {
   // Filter out static rules that we will not install nor schedule
-  std::remove_if(
+  auto end_of_valid_st_rules = std::remove_if(
       static_installs.begin(), static_installs.end(),
       [&](StaticRuleInstall& rule_install) {
         auto& id = rule_install.rule_id();
@@ -747,13 +747,15 @@ void LocalEnforcer::filter_rule_installs(
         }
         return !should_activate(rule, successful_credits);
       });
+  static_installs.erase(end_of_valid_st_rules, static_installs.end());
 
   // Filter out dynamic rules that we will not install nor schedule
-  std::remove_if(
+  auto end_of_valid_dy_rules = std::remove_if(
       dynamic_installs.begin(), dynamic_installs.end(),
       [&](DynamicRuleInstall& rule_install) {
         return !should_activate(rule_install.policy_rule(), successful_credits);
       });
+  dynamic_installs.erase(end_of_valid_dy_rules, dynamic_installs.end());
 }
 
 // return true if any credit unit is valid and has non-zero volume
@@ -835,12 +837,7 @@ bool LocalEnforcer::init_session_credit(
 
   for (const auto& monitor : response.usage_monitors()) {
     if (!revalidation_scheduled && revalidation_required(monitor.event_triggers())) {
-      // TODO This will not work since the session is not initialized properly
-      // at this point
-      schedule_revalidation(imsi, monitor.revalidation_time());
       revalidation_scheduled = true;
-
-      // TODO remove after confirming this isn't causing issues
       revalidation_time = monitor.revalidation_time();
     } else if (revalidation_scheduled &&
           !revalidation_required(monitor.event_triggers())) {
@@ -895,6 +892,11 @@ bool LocalEnforcer::init_session_credit(
 
   if (session_state->is_radius_cwf_session() == false) {
     session_events::session_created(eventd_client_, imsi, session_id);
+  }
+  if (revalidation_scheduled) {
+    // TODO This might not work since the session is not initialized properly
+    // at this point
+    schedule_revalidation(imsi, revalidation_time);
   }
 
   return rule_update_success;
@@ -1086,6 +1088,12 @@ void LocalEnforcer::update_monitoring_credits_and_rules(
     SessionMap& session_map, const UpdateSessionResponse& response,
     std::unordered_set<std::string>& subscribers_to_terminate,
     SessionUpdate& session_update) {
+  // Since revalidation timer is session wide, we will only schedule one for
+  // the entire session. The expectation is that if event triggers should be
+  // included in all monitors or none.
+  // To keep track of which timer is already tracked, we will have a set of
+  // IMSIs that have pending re-validations
+  std::unordered_set<std::string> imsis_with_revalidation;
   for (const auto& usage_monitor_resp : response.usage_monitor_responses()) {
     const std::string& imsi = usage_monitor_resp.sid();
 
@@ -1101,15 +1109,6 @@ void LocalEnforcer::update_monitoring_credits_and_rules(
                    << " during update";
       continue;
     }
-
-    // Since revalidation timer is session wide, we will only schedule one for
-    // the entire session
-
-    // TODO [REMOVE] We will log error in case we get an unexpected input here
-    // The expectation is that if event triggers should be included in all
-    // monitors or none
-    bool revalidation_scheduled = false;
-    google::protobuf::Timestamp revalidation_time;
 
     for (const auto& session : it->second) {
       auto& update_criteria = session_update[imsi][session->get_session_id()];
@@ -1166,19 +1165,18 @@ void LocalEnforcer::update_monitoring_credits_and_rules(
         subscribers_to_terminate.insert(imsi);
       }
 
-      if (!revalidation_scheduled &&
-          revalidation_required(usage_monitor_resp.event_triggers())) {
-        schedule_revalidation(imsi, usage_monitor_resp.revalidation_time());
-        revalidation_scheduled = true;
-        // TODO remove after confirming this isn't causing issues
-        revalidation_time = usage_monitor_resp.revalidation_time();
-      } else if (revalidation_scheduled &&
-          !revalidation_required(usage_monitor_resp.event_triggers())) {
-        // TODO [Remove This Clause]
-        auto time_from_now_ms = time_difference_from_now(revalidation_time);
-        MLOG(MWARNING) << imsi << " received some usage monitors with a "
-                       << "revalidation timer in " << time_from_now_ms.count()
-                       << " and some without";
+      if (revalidation_required(usage_monitor_resp.event_triggers()) &&
+            imsis_with_revalidation.count(imsi) == 0) {
+        // All usage monitors under the same session will have the same event
+        // trigger. See proto message / FeG for why. We will modify this input
+        // logic later (Move event trigger out of UsageMonitorResponse), but
+        // here we use a set to indicate whether a timer is already accounted
+        // for.
+        // Only schedule if no other revalidation timer was scheduled for
+        // this IMSI
+        auto revalidation_time = usage_monitor_resp.revalidation_time();
+        imsis_with_revalidation.insert(imsi);
+        schedule_revalidation(imsi, revalidation_time);
       }
     }
   }
@@ -1614,17 +1612,19 @@ bool LocalEnforcer::revalidation_required(
   return it != event_triggers.end();
 }
 
+// Todo support scheduling revalidation for different sessions for a IMSI
 void LocalEnforcer::schedule_revalidation(
     const std::string& imsi,
     const google::protobuf::Timestamp& revalidation_time) {
   SessionRead req = {imsi};
-
   auto delta = time_difference_from_now(revalidation_time);
+  MLOG(MINFO) << imsi << " Scheduling revalidation in "
+              << delta.count() << "ms";
   evb_->runInEventBaseThread([=] {
     evb_->timer().scheduleTimeoutFn(
         std::move([=] {
+          MLOG(MINFO) << imsi << " Revalidation timeout!";
           auto session_map = session_store_.read_sessions_for_reporting(req);
-          MLOG(MDEBUG) << "Revalidation timeout!";
           SessionUpdate update =
               SessionStore::get_default_session_update(session_map);
           check_usage_for_reporting(session_map, update, true);
@@ -1641,21 +1641,31 @@ void LocalEnforcer::handle_add_ue_mac_flow_callback(
     const std::string& apn_name,
     Status status, FlowResponse resp) {
   using namespace std::placeholders;
-  if (!status.ok()) {
-    evb_->runInEventBaseThread([=] {
-      evb_->timer().scheduleTimeoutFn(
-          std::move([=] {
-          MLOG(MERROR) << "Could not activate ue mac flows for subscriber "
-              << sid.id() << ": " << status.error_message() << ", retrying...";
-          pipelined_client_->add_ue_mac_flow(
-          sid, ue_mac_addr, msisdn, apn_mac_addr, apn_name,
-          std::bind(
-            &LocalEnforcer::handle_add_ue_mac_flow_callback,
-            this, sid, ue_mac_addr, msisdn, apn_mac_addr, apn_name, _1, _2));
-          }),
-          retry_timeout_);
-    });
+  if (status.ok() && resp.result() == resp.SUCCESS) {
+    MLOG(MDEBUG) << "Pipelined add ue mac flow succeeded for " << ue_mac_addr;
+    return;
   }
+
+  if (!status.ok()) {
+    MLOG(MERROR) << "Could not add ue mac flow, rpc failed with: "
+                 << status.error_message() << ", retrying...";
+  } else if (resp.result() == resp.FAILURE) {
+    MLOG(MWARNING) << "Pipelined add ue mac flow failed, retrying...";
+  }
+
+  evb_->runInEventBaseThread([=] {
+    evb_->timer().scheduleTimeoutFn(
+        std::move([=] {
+        MLOG(MERROR) << "Could not activate ue mac flows for subscriber "
+            << sid.id() << ": " << status.error_message() << ", retrying...";
+        pipelined_client_->add_ue_mac_flow(
+        sid, ue_mac_addr, msisdn, apn_mac_addr, apn_name,
+        std::bind(
+          &LocalEnforcer::handle_add_ue_mac_flow_callback,
+          this, sid, ue_mac_addr, msisdn, apn_mac_addr, apn_name, _1, _2));
+        }),
+        retry_timeout_);
+  });
 }
 
 void LocalEnforcer::create_bearer(

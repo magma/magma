@@ -45,6 +45,9 @@ const {
   AccessRoles: {SUPERUSER, USER},
 } = require('@fbcnms/auth/roles');
 
+import type {ExpressResponse} from 'express';
+import type {FBCNMSRequest} from '@fbcnms/auth/access';
+
 const devMode = process.env.NODE_ENV !== 'production';
 
 // Create Sequelize Store
@@ -52,7 +55,7 @@ const SessionStore = connectSession(session.Store);
 const sequelizeSessionStore = new SessionStore({db: sequelize});
 
 // FBC express initialization
-const app = express();
+const app = express<FBCNMSRequest, ExpressResponse>();
 app.set('trust proxy', 1);
 app.use(organizationMiddleware());
 app.use(appMiddleware());

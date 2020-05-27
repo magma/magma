@@ -10,12 +10,13 @@
 import type ProjectTypeCard_projectType from './__generated__/ProjectTypeCard_projectType.graphql';
 
 import Button from '@fbcnms/ui/components/design-system/Button';
-import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
+import FormActionWithPermissions from '../../common/FormActionWithPermissions';
 import ProjectTypeDeleteButton from './ProjectTypeDeleteButton';
 import ProjectTypeWorkOrdersCount from './ProjectTypeWorkOrdersCount';
-import React from 'react';
+import React, {useMemo} from 'react';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import classNames from 'classnames';
+import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
 import {FormContextProvider} from '../../common/FormContext';
 import {createFragmentContainer, graphql} from 'react-relay';
@@ -68,16 +69,27 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-type Props = {
+type Props = $ReadOnly<{|
   className?: string,
   // $FlowFixMe (T62907961) Relay flow types
   projectType: ProjectTypeCard_projectType,
   onEditClicked: () => void,
-};
+|}>;
 
 const ProjectTypeCard = ({className, projectType, onEditClicked}: Props) => {
   const {name, description, numberOfProjects, workOrders} = projectType;
   const classes = useStyles();
+
+  const deleteButtonDisabledTooltip = useMemo(
+    () =>
+      numberOfProjects === 0
+        ? null
+        : `${fbt(
+            'This project template cannot be deleted since is used on existing projects.',
+            '',
+          )}`,
+    [numberOfProjects],
+  );
   return (
     <FormContextProvider
       permissions={{
@@ -93,23 +105,27 @@ const ProjectTypeCard = ({className, projectType, onEditClicked}: Props) => {
               onClick={onEditClicked}>
               {name}
             </Text>
-            {numberOfProjects === 0 && (
-              <ProjectTypeDeleteButton
-                className={classes.iconButton}
-                projectType={projectType}
-              />
-            )}
+            <ProjectTypeDeleteButton
+              disabled={!!deleteButtonDisabledTooltip}
+              tooltip={deleteButtonDisabledTooltip}
+              className={classes.iconButton}
+              projectType={projectType}
+            />
           </div>
           <Text className={classes.description}>{description}</Text>
         </div>
         <div className={classes.divider} />
         <div className={classes.buttonContainer}>
           <ProjectTypeWorkOrdersCount count={workOrders.length} />
-          <FormAction>
+          <FormActionWithPermissions
+            permissions={{
+              entity: 'projectTemplate',
+              action: 'update',
+            }}>
             <Button variant="text" skin="primary" onClick={onEditClicked}>
               Edit
             </Button>
-          </FormAction>
+          </FormActionWithPermissions>
         </div>
       </div>
     </FormContextProvider>

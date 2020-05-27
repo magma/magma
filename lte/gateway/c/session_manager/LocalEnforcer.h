@@ -266,8 +266,8 @@ class LocalEnforcer {
       SessionMap& session_map, SessionUpdate& session_update);
 
   void filter_rule_installs(
-      std::vector<StaticRuleInstall> static_rule_installs,
-      std::vector<DynamicRuleInstall> dynamic_rule_installs,
+      std::vector<StaticRuleInstall>& static_rule_installs,
+      std::vector<DynamicRuleInstall>& dynamic_rule_installs,
       const std::unordered_set<uint32_t>& successful_credits);
 
   std::vector<StaticRuleInstall> to_vec(

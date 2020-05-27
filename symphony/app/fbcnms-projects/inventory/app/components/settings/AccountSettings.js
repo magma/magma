@@ -82,7 +82,7 @@ function UserAccountWrapper() {
         title: <fbt desc="">User Settings</fbt>,
         subtitle: <fbt desc="">Manage your own private settings.</fbt>,
       }}>
-      <FormContextProvider permissions={{ignore: true}}>
+      <FormContextProvider permissions={{ignorePermissions: true}}>
         <div className={classes.settingsPage}>
           <UserAccountPane
             user={loggedInUser}

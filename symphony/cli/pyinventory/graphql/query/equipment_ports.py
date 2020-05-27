@@ -13,29 +13,14 @@ from typing import Any, Callable, List, Mapping, Optional
 from time import perf_counter
 from dataclasses_json import DataClassJsonMixin
 
-from ..fragment.link import LinkFragment, QUERY as LinkFragmentQuery
-from ..fragment.property import PropertyFragment, QUERY as PropertyFragmentQuery
+from ..fragment.equipment_port import EquipmentPortFragment, QUERY as EquipmentPortFragmentQuery
 
-QUERY: List[str] = LinkFragmentQuery + PropertyFragmentQuery + ["""
+QUERY: List[str] = EquipmentPortFragmentQuery + ["""
 query EquipmentPortsQuery($id: ID!) {
   equipment: node(id: $id) {
     ... on Equipment {
       ports {
-        id
-        properties {
-          ...PropertyFragment
-        }
-        definition {
-          id
-          name
-          portType {
-            id
-            name
-          }
-        }
-        link {
-          ...LinkFragment
-        }
+        ...EquipmentPortFragment
       }
     }
   }
@@ -50,30 +35,8 @@ class EquipmentPortsQuery(DataClassJsonMixin):
         @dataclass
         class Node(DataClassJsonMixin):
             @dataclass
-            class EquipmentPort(DataClassJsonMixin):
-                @dataclass
-                class Property(PropertyFragment):
-                    pass
-
-                @dataclass
-                class EquipmentPortDefinition(DataClassJsonMixin):
-                    @dataclass
-                    class EquipmentPortType(DataClassJsonMixin):
-                        id: str
-                        name: str
-
-                    id: str
-                    name: str
-                    portType: Optional[EquipmentPortType]
-
-                @dataclass
-                class Link(LinkFragment):
-                    pass
-
-                id: str
-                properties: List[Property]
-                definition: EquipmentPortDefinition
-                link: Optional[Link]
+            class EquipmentPort(EquipmentPortFragment):
+                pass
 
             ports: List[EquipmentPort]
 

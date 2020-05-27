@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/symphony/graph/ent/actionsrule"
+	"github.com/facebookincubator/symphony/graph/ent/activity"
 	"github.com/facebookincubator/symphony/graph/ent/checklistcategory"
 	"github.com/facebookincubator/symphony/graph/ent/checklistcategorydefinition"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
@@ -86,6 +87,33 @@ func init() {
 	actionsrule.DefaultUpdateTime = actionsruleDescUpdateTime.Default.(func() time.Time)
 	// actionsrule.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
 	actionsrule.UpdateDefaultUpdateTime = actionsruleDescUpdateTime.UpdateDefault.(func() time.Time)
+	activityMixin := schema.Activity{}.Mixin()
+	activity.Policy = schema.Activity{}.Policy()
+	activity.Hooks[0] = func(next ent.Mutator) ent.Mutator {
+		return ent.MutateFunc(func(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+			if err := activity.Policy.EvalMutation(ctx, m); err != nil {
+				return nil, err
+			}
+			return next.Mutate(ctx, m)
+		})
+	}
+	activityMixinFields0 := activityMixin[0].Fields()
+	activityFields := schema.Activity{}.Fields()
+	_ = activityFields
+	// activityDescCreateTime is the schema descriptor for create_time field.
+	activityDescCreateTime := activityMixinFields0[0].Descriptor()
+	// activity.DefaultCreateTime holds the default value on creation for the create_time field.
+	activity.DefaultCreateTime = activityDescCreateTime.Default.(func() time.Time)
+	// activityDescUpdateTime is the schema descriptor for update_time field.
+	activityDescUpdateTime := activityMixinFields0[1].Descriptor()
+	// activity.DefaultUpdateTime holds the default value on creation for the update_time field.
+	activity.DefaultUpdateTime = activityDescUpdateTime.Default.(func() time.Time)
+	// activity.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	activity.UpdateDefaultUpdateTime = activityDescUpdateTime.UpdateDefault.(func() time.Time)
+	// activityDescIsCreate is the schema descriptor for is_create field.
+	activityDescIsCreate := activityFields[1].Descriptor()
+	// activity.DefaultIsCreate holds the default value on creation for the is_create field.
+	activity.DefaultIsCreate = activityDescIsCreate.Default.(bool)
 	checklistcategoryMixin := schema.CheckListCategory{}.Mixin()
 	checklistcategory.Policy = schema.CheckListCategory{}.Policy()
 	checklistcategory.Hooks[0] = func(next ent.Mutator) ent.Mutator {
@@ -1215,6 +1243,6 @@ func init() {
 }
 
 const (
-	Version = "v0.2.2-0.20200517145822-b0e43f01f05f"            // Version of ent codegen.
-	Sum     = "h1:RwkpDxPe2N7mY9S1R2wlewY25MPIywBhNYuXBkjiPWw=" // Sum of ent codegen.
+	Version = "v0.2.2"                                          // Version of ent codegen.
+	Sum     = "h1:XqR5HP29L6dmTQlT6qvO1MiAwW5YeAi+pRXxbf3LNKc=" // Sum of ent codegen.
 )

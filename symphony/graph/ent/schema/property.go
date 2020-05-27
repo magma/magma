@@ -208,6 +208,26 @@ func (Property) Edges() []ent.Edge {
 	}
 }
 
+// Indexes returns property indexes.
+func (Property) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Edges("type", "location").
+			Unique(),
+		index.Edges("type", "equipment").
+			Unique(),
+		index.Edges("type", "service").
+			Unique(),
+		index.Edges("type", "equipment_port").
+			Unique(),
+		index.Edges("type", "link").
+			Unique(),
+		index.Edges("type", "work_order").
+			Unique(),
+		index.Edges("type", "project").
+			Unique(),
+	}
+}
+
 // Policy returns property policy.
 func (Property) Policy() ent.Policy {
 	return authz.NewPolicy(

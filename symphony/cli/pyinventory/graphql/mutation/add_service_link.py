@@ -13,45 +13,12 @@ from typing import Any, Callable, List, Mapping, Optional
 from time import perf_counter
 from dataclasses_json import DataClassJsonMixin
 
-from ..fragment.customer import CustomerFragment, QUERY as CustomerFragmentQuery
-from ..fragment.link import LinkFragment, QUERY as LinkFragmentQuery
-from ..fragment.property import PropertyFragment, QUERY as PropertyFragmentQuery
+from ..fragment.service import ServiceFragment, QUERY as ServiceFragmentQuery
 
-QUERY: List[str] = CustomerFragmentQuery + LinkFragmentQuery + PropertyFragmentQuery + ["""
+QUERY: List[str] = ServiceFragmentQuery + ["""
 mutation AddServiceLinkMutation($id: ID!, $linkId: ID!) {
   addServiceLink(id: $id, linkId: $linkId) {
-    id
-    name
-    externalId
-    customer {
-      ...CustomerFragment
-    }
-    endpoints {
-      id
-      port {
-        id
-        properties {
-          ...PropertyFragment
-        }
-        definition {
-          id
-          name
-          portType {
-            id
-            name
-          }
-        }
-        link {
-          ...LinkFragment
-        }
-      }
-      definition {
-        role
-      }
-    }
-    links {
-      ...LinkFragment
-    }
+    ...ServiceFragment
   }
 }
 
@@ -62,57 +29,8 @@ class AddServiceLinkMutation(DataClassJsonMixin):
     @dataclass
     class AddServiceLinkMutationData(DataClassJsonMixin):
         @dataclass
-        class Service(DataClassJsonMixin):
-            @dataclass
-            class Customer(CustomerFragment):
-                pass
-
-            @dataclass
-            class ServiceEndpoint(DataClassJsonMixin):
-                @dataclass
-                class EquipmentPort(DataClassJsonMixin):
-                    @dataclass
-                    class Property(PropertyFragment):
-                        pass
-
-                    @dataclass
-                    class EquipmentPortDefinition(DataClassJsonMixin):
-                        @dataclass
-                        class EquipmentPortType(DataClassJsonMixin):
-                            id: str
-                            name: str
-
-                        id: str
-                        name: str
-                        portType: Optional[EquipmentPortType]
-
-                    @dataclass
-                    class Link(LinkFragment):
-                        pass
-
-                    id: str
-                    properties: List[Property]
-                    definition: EquipmentPortDefinition
-                    link: Optional[Link]
-
-                @dataclass
-                class ServiceEndpointDefinition(DataClassJsonMixin):
-                    role: Optional[str]
-
-                id: str
-                definition: ServiceEndpointDefinition
-                port: Optional[EquipmentPort]
-
-            @dataclass
-            class Link(LinkFragment):
-                pass
-
-            id: str
-            name: str
-            endpoints: List[ServiceEndpoint]
-            links: List[Link]
-            externalId: Optional[str]
-            customer: Optional[Customer]
+        class Service(ServiceFragment):
+            pass
 
         addServiceLink: Service
 

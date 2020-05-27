@@ -146,6 +146,9 @@ func (s *LteMconfigBuilderServicer) Build(
 		"sessiond": &mconfig.SessionD{
 			LogLevel:     protos.LogLevel_INFO,
 			RelayEnabled: swag.BoolValue(nwEpc.RelayEnabled),
+			WalletExhaustDetection: &mconfig.WalletExhaustDetection{
+				TerminateOnExhaust: false,
+			},
 		},
 	}
 	for k, v := range vals {

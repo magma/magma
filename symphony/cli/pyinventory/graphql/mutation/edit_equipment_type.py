@@ -13,27 +13,14 @@ from typing import Any, Callable, List, Mapping, Optional
 from time import perf_counter
 from dataclasses_json import DataClassJsonMixin
 
-from ..fragment.equipment_port_definition import EquipmentPortDefinitionFragment, QUERY as EquipmentPortDefinitionFragmentQuery
-from ..fragment.equipment_position_definition import EquipmentPositionDefinitionFragment, QUERY as EquipmentPositionDefinitionFragmentQuery
-from ..fragment.property_type import PropertyTypeFragment, QUERY as PropertyTypeFragmentQuery
+from ..fragment.equipment_type import EquipmentTypeFragment, QUERY as EquipmentTypeFragmentQuery
 from ..input.edit_equipment_type import EditEquipmentTypeInput
 
 
-QUERY: List[str] = EquipmentPortDefinitionFragmentQuery + EquipmentPositionDefinitionFragmentQuery + PropertyTypeFragmentQuery + ["""
+QUERY: List[str] = EquipmentTypeFragmentQuery + ["""
 mutation EditEquipmentTypeMutation($input: EditEquipmentTypeInput!) {
   editEquipmentType(input: $input) {
-    id
-    name
-    category
-    propertyTypes {
-      ...PropertyTypeFragment
-    }
-    positionDefinitions {
-      ...EquipmentPositionDefinitionFragment
-    }
-    portDefinitions {
-      ...EquipmentPortDefinitionFragment
-    }
+    ...EquipmentTypeFragment
   }
 }
 
@@ -44,25 +31,8 @@ class EditEquipmentTypeMutation(DataClassJsonMixin):
     @dataclass
     class EditEquipmentTypeMutationData(DataClassJsonMixin):
         @dataclass
-        class EquipmentType(DataClassJsonMixin):
-            @dataclass
-            class PropertyType(PropertyTypeFragment):
-                pass
-
-            @dataclass
-            class EquipmentPositionDefinition(EquipmentPositionDefinitionFragment):
-                pass
-
-            @dataclass
-            class EquipmentPortDefinition(EquipmentPortDefinitionFragment):
-                pass
-
-            id: str
-            name: str
-            propertyTypes: List[PropertyType]
-            positionDefinitions: List[EquipmentPositionDefinition]
-            portDefinitions: List[EquipmentPortDefinition]
-            category: Optional[str]
+        class EquipmentType(EquipmentTypeFragment):
+            pass
 
         editEquipmentType: EquipmentType
 

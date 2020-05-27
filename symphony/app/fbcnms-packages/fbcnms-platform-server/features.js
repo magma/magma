@@ -147,7 +147,6 @@ const arrayConfigs = [
     id: 'planned_equipment',
     title: 'Planned Equipment',
     enabledByDefault: false,
-    rules: [AlwaysEnabledInTestEnvRule],
   },
   {
     id: 'multi_subject_reports',
@@ -189,6 +188,7 @@ const arrayConfigs = [
     id: 'permission_policies',
     title: 'Permission - Policies',
     enabledByDefault: false,
+    rules: [AlwaysEnabledInTestEnvRule],
   },
   {
     id: 'permissions_ui_enforcement',
@@ -201,10 +201,9 @@ const arrayConfigs = [
     enabledByDefault: true,
   },
   {
-    id: 'service_endpoints',
-    title: 'Service Endpoints',
+    id: 'graph_event_logging',
+    title: 'Graph Event Loggng',
     enabledByDefault: false,
-    rules: [AlwaysEnabledInTestEnvRule],
   },
   {
     id: 'dashboard_v2',

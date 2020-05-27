@@ -23,6 +23,7 @@ def load_tests(
     from .test_location import TestLocation
     from .test_port_type import TestEquipmentPortType
     from .test_service import TestService
+    from .test_service_type import TestServiceType
     from .test_user import TestUser
     from ..utils.grpc.rpc_pb2_grpc import TenantServiceStub
 
@@ -33,6 +34,7 @@ def load_tests(
         TestLocation,
         TestEquipmentPortType,
         TestService,
+        TestServiceType,
         TestUser,
     ]
 

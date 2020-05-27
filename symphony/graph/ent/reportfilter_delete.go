@@ -47,6 +47,7 @@ func (rfd *ReportFilterDelete) Exec(ctx context.Context) (int, error) {
 			}
 			rfd.mutation = mutation
 			affected, err = rfd.sqlExec(ctx)
+			mutation.done = true
 			return affected, err
 		})
 		for i := len(rfd.hooks) - 1; i >= 0; i-- {

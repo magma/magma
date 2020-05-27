@@ -93,7 +93,6 @@ const PopoverMenuRoot = () => {
         Add Filter
       </PopoverMenu>
       <PopoverMenu
-        searchable={true}
         onOptionsFetchRequested={searchTerm =>
           setOptions(
             searchTerm === ''

@@ -127,12 +127,12 @@ def edit_equipment_port_type(
 
         Args:
             port_type ( `pyinventory.common.data_class.EquipmentPortType` ): existing eqipment port type object
-            new_name (str): new name
-            new_properties: (Dict[str, PropertyValue]): dictionary
+            new_name (Optional[ str ]): new name
+            new_properties: (Optional[ Dict[ str, PropertyValue ] ]): dictionary
             - str - property type name
             - PropertyValue - new value of the same type for this property
 
-            new_link_properties: (Dict[str, PropertyValue]): dictionary
+            new_link_properties: (Optional[ Dict[ str, PropertyValue ] ]): dictionary
             - str - link property type name
             - PropertyValue - new value of the same type for this link property
 

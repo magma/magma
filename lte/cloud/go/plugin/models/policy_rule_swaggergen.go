@@ -20,6 +20,14 @@ import (
 // swagger:model policy_rule
 type PolicyRule struct {
 
+	// app name
+	// Enum: [NO_APP_NAME FACEBOOK FACEBOOK_MESSENGER INSTAGRAM YOUTUBE GOOGLE GMAIL GOOGLE_DOCS NETFLIX APPLE MICROSOFT REDDIT WHATSAPP GOOGLE_PLAY APPSTORE AMAZON WECHAT TIKTOK TWITTER WIKIPEDIA GOOGLE_MAPS YAHOO IMO]
+	AppName string `json:"app_name,omitempty"`
+
+	// app service type
+	// Enum: [NO_SERVICE_TYPE CHAT AUDIO VIDEO]
+	AppServiceType string `json:"app_service_type,omitempty"`
+
 	// Subscribers which have been assigned this policy not as part of a base name
 	AssignedSubscribers []SubscriberID `json:"assigned_subscribers,omitempty"`
 
@@ -56,6 +64,14 @@ type PolicyRule struct {
 func (m *PolicyRule) Validate(formats strfmt.Registry) error {
 	var res []error
 
+	if err := m.validateAppName(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateAppServiceType(formats); err != nil {
+		res = append(res, err)
+	}
+
 	if err := m.validateAssignedSubscribers(formats); err != nil {
 		res = append(res, err)
 	}
@@ -87,6 +103,161 @@ func (m *PolicyRule) Validate(formats strfmt.Registry) error {
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+var policyRuleTypeAppNamePropEnum []interface{}
+
+func init() {
+	var res []string
+	if err := json.Unmarshal([]byte(`["NO_APP_NAME","FACEBOOK","FACEBOOK_MESSENGER","INSTAGRAM","YOUTUBE","GOOGLE","GMAIL","GOOGLE_DOCS","NETFLIX","APPLE","MICROSOFT","REDDIT","WHATSAPP","GOOGLE_PLAY","APPSTORE","AMAZON","WECHAT","TIKTOK","TWITTER","WIKIPEDIA","GOOGLE_MAPS","YAHOO","IMO"]`), &res); err != nil {
+		panic(err)
+	}
+	for _, v := range res {
+		policyRuleTypeAppNamePropEnum = append(policyRuleTypeAppNamePropEnum, v)
+	}
+}
+
+const (
+
+	// PolicyRuleAppNameNOAPPNAME captures enum value "NO_APP_NAME"
+	PolicyRuleAppNameNOAPPNAME string = "NO_APP_NAME"
+
+	// PolicyRuleAppNameFACEBOOK captures enum value "FACEBOOK"
+	PolicyRuleAppNameFACEBOOK string = "FACEBOOK"
+
+	// PolicyRuleAppNameFACEBOOKMESSENGER captures enum value "FACEBOOK_MESSENGER"
+	PolicyRuleAppNameFACEBOOKMESSENGER string = "FACEBOOK_MESSENGER"
+
+	// PolicyRuleAppNameINSTAGRAM captures enum value "INSTAGRAM"
+	PolicyRuleAppNameINSTAGRAM string = "INSTAGRAM"
+
+	// PolicyRuleAppNameYOUTUBE captures enum value "YOUTUBE"
+	PolicyRuleAppNameYOUTUBE string = "YOUTUBE"
+
+	// PolicyRuleAppNameGOOGLE captures enum value "GOOGLE"
+	PolicyRuleAppNameGOOGLE string = "GOOGLE"
+
+	// PolicyRuleAppNameGMAIL captures enum value "GMAIL"
+	PolicyRuleAppNameGMAIL string = "GMAIL"
+
+	// PolicyRuleAppNameGOOGLEDOCS captures enum value "GOOGLE_DOCS"
+	PolicyRuleAppNameGOOGLEDOCS string = "GOOGLE_DOCS"
+
+	// PolicyRuleAppNameNETFLIX captures enum value "NETFLIX"
+	PolicyRuleAppNameNETFLIX string = "NETFLIX"
+
+	// PolicyRuleAppNameAPPLE captures enum value "APPLE"
+	PolicyRuleAppNameAPPLE string = "APPLE"
+
+	// PolicyRuleAppNameMICROSOFT captures enum value "MICROSOFT"
+	PolicyRuleAppNameMICROSOFT string = "MICROSOFT"
+
+	// PolicyRuleAppNameREDDIT captures enum value "REDDIT"
+	PolicyRuleAppNameREDDIT string = "REDDIT"
+
+	// PolicyRuleAppNameWHATSAPP captures enum value "WHATSAPP"
+	PolicyRuleAppNameWHATSAPP string = "WHATSAPP"
+
+	// PolicyRuleAppNameGOOGLEPLAY captures enum value "GOOGLE_PLAY"
+	PolicyRuleAppNameGOOGLEPLAY string = "GOOGLE_PLAY"
+
+	// PolicyRuleAppNameAPPSTORE captures enum value "APPSTORE"
+	PolicyRuleAppNameAPPSTORE string = "APPSTORE"
+
+	// PolicyRuleAppNameAMAZON captures enum value "AMAZON"
+	PolicyRuleAppNameAMAZON string = "AMAZON"
+
+	// PolicyRuleAppNameWECHAT captures enum value "WECHAT"
+	PolicyRuleAppNameWECHAT string = "WECHAT"
+
+	// PolicyRuleAppNameTIKTOK captures enum value "TIKTOK"
+	PolicyRuleAppNameTIKTOK string = "TIKTOK"
+
+	// PolicyRuleAppNameTWITTER captures enum value "TWITTER"
+	PolicyRuleAppNameTWITTER string = "TWITTER"
+
+	// PolicyRuleAppNameWIKIPEDIA captures enum value "WIKIPEDIA"
+	PolicyRuleAppNameWIKIPEDIA string = "WIKIPEDIA"
+
+	// PolicyRuleAppNameGOOGLEMAPS captures enum value "GOOGLE_MAPS"
+	PolicyRuleAppNameGOOGLEMAPS string = "GOOGLE_MAPS"
+
+	// PolicyRuleAppNameYAHOO captures enum value "YAHOO"
+	PolicyRuleAppNameYAHOO string = "YAHOO"
+
+	// PolicyRuleAppNameIMO captures enum value "IMO"
+	PolicyRuleAppNameIMO string = "IMO"
+)
+
+// prop value enum
+func (m *PolicyRule) validateAppNameEnum(path, location string, value string) error {
+	if err := validate.Enum(path, location, value, policyRuleTypeAppNamePropEnum); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *PolicyRule) validateAppName(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.AppName) { // not required
+		return nil
+	}
+
+	// value enum
+	if err := m.validateAppNameEnum("app_name", "body", m.AppName); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+var policyRuleTypeAppServiceTypePropEnum []interface{}
+
+func init() {
+	var res []string
+	if err := json.Unmarshal([]byte(`["NO_SERVICE_TYPE","CHAT","AUDIO","VIDEO"]`), &res); err != nil {
+		panic(err)
+	}
+	for _, v := range res {
+		policyRuleTypeAppServiceTypePropEnum = append(policyRuleTypeAppServiceTypePropEnum, v)
+	}
+}
+
+const (
+
+	// PolicyRuleAppServiceTypeNOSERVICETYPE captures enum value "NO_SERVICE_TYPE"
+	PolicyRuleAppServiceTypeNOSERVICETYPE string = "NO_SERVICE_TYPE"
+
+	// PolicyRuleAppServiceTypeCHAT captures enum value "CHAT"
+	PolicyRuleAppServiceTypeCHAT string = "CHAT"
+
+	// PolicyRuleAppServiceTypeAUDIO captures enum value "AUDIO"
+	PolicyRuleAppServiceTypeAUDIO string = "AUDIO"
+
+	// PolicyRuleAppServiceTypeVIDEO captures enum value "VIDEO"
+	PolicyRuleAppServiceTypeVIDEO string = "VIDEO"
+)
+
+// prop value enum
+func (m *PolicyRule) validateAppServiceTypeEnum(path, location string, value string) error {
+	if err := validate.Enum(path, location, value, policyRuleTypeAppServiceTypePropEnum); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *PolicyRule) validateAppServiceType(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.AppServiceType) { // not required
+		return nil
+	}
+
+	// value enum
+	if err := m.validateAppServiceTypeEnum("app_service_type", "body", m.AppServiceType); err != nil {
+		return err
+	}
+
 	return nil
 }
 

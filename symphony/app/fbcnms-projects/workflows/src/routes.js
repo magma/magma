@@ -20,13 +20,14 @@ import moment from 'moment';
 import transform from 'lodash/fp/transform';
 import {anythingTo} from './proxy/utils';
 
+import type {ExpressRequest, ExpressResponse} from 'express';
 import type {TaskType} from './types';
 
 const logger = logging.getLogger(module);
 const http = HttpClient;
 
 //TODO merge with proxy
-const router = Router();
+const router = Router<ExpressRequest, ExpressResponse>();
 const baseURL = 'http://localhost/proxy/';
 const baseApiURL = baseURL + 'api/';
 const baseURLWorkflow = baseApiURL + 'workflow/';
@@ -38,7 +39,7 @@ const baseURLSchedule = baseURL + 'schedule/';
 router.use(bodyParser.urlencoded({extended: false}));
 router.use('/', bodyParser.json());
 
-router.get('/metadata/taskdefs', async (req, res, next) => {
+router.get('/metadata/taskdefs', async (req: ExpressRequest, res, next) => {
   try {
     const result = await http.get(baseURLMeta + 'taskdefs', req);
     res.status(200).send({result});
@@ -47,7 +48,7 @@ router.get('/metadata/taskdefs', async (req, res, next) => {
   }
 });
 
-router.post('/metadata/taskdef', async (req, res, next) => {
+router.post('/metadata/taskdef', async (req: ExpressRequest, res, next) => {
   try {
     const result = await http.post(baseURLMeta + 'taskdefs', req.body, req);
     res.status(200).send(result);
@@ -57,30 +58,36 @@ router.post('/metadata/taskdef', async (req, res, next) => {
   }
 });
 
-router.get('/metadata/taskdef/:name', async (req, res, next) => {
-  try {
-    const result = await http.get(
-      baseURLMeta + 'taskdefs/' + req.params.name,
-      req,
-    );
-    res.status(200).send({result});
-  } catch (err) {
-    next(err);
-  }
-});
+router.get(
+  '/metadata/taskdef/:name',
+  async (req: ExpressRequest, res, next) => {
+    try {
+      const result = await http.get(
+        baseURLMeta + 'taskdefs/' + req.params.name,
+        req,
+      );
+      res.status(200).send({result});
+    } catch (err) {
+      next(err);
+    }
+  },
+);
 
-router.delete('/metadata/taskdef/:name', async (req, res, next) => {
-  try {
-    const result = await http.delete(
-      baseURLMeta + 'taskdefs/' + req.params.name,
-      null,
-      req,
-    );
-    res.status(200).send({result});
-  } catch (err) {
-    next(err);
-  }
-});
+router.delete(
+  '/metadata/taskdef/:name',
+  async (req: ExpressRequest, res, next) => {
+    try {
+      const result = await http.delete(
+        baseURLMeta + 'taskdefs/' + req.params.name,
+        null,
+        req,
+      );
+      res.status(200).send({result});
+    } catch (err) {
+      next(err);
+    }
+  },
+);
 
 const findSchedule = (schedules, name) => {
   for (const schedule of schedules) {
@@ -91,7 +98,7 @@ const findSchedule = (schedules, name) => {
   return null;
 };
 
-router.get('/metadata/workflow', async (req, res, next) => {
+router.get('/metadata/workflow', async (req: ExpressRequest, res, next) => {
   try {
     const result = await http.get(baseURLMeta + 'workflow', req);
     // combine with schedules
@@ -109,36 +116,42 @@ router.get('/metadata/workflow', async (req, res, next) => {
   }
 });
 
-router.delete('/metadata/workflow/:name/:version', async (req, res, next) => {
-  try {
-    const result = await http.delete(
-      baseURLMeta + 'workflow/' + req.params.name + '/' + req.params.version,
-      null,
-      req,
-    );
-    res.status(200).send({result});
-  } catch (err) {
-    next(err);
-  }
-});
+router.delete(
+  '/metadata/workflow/:name/:version',
+  async (req: ExpressRequest, res, next) => {
+    try {
+      const result = await http.delete(
+        baseURLMeta + 'workflow/' + req.params.name + '/' + req.params.version,
+        null,
+        req,
+      );
+      res.status(200).send({result});
+    } catch (err) {
+      next(err);
+    }
+  },
+);
 
-router.get('/metadata/workflow/:name/:version', async (req, res, next) => {
-  try {
-    const result = await http.get(
-      baseURLMeta +
-        'workflow/' +
-        req.params.name +
-        '?version=' +
-        req.params.version,
-      req,
-    );
-    res.status(200).send({result});
-  } catch (err) {
-    next(err);
-  }
-});
+router.get(
+  '/metadata/workflow/:name/:version',
+  async (req: ExpressRequest, res, next) => {
+    try {
+      const result = await http.get(
+        baseURLMeta +
+          'workflow/' +
+          req.params.name +
+          '?version=' +
+          req.params.version,
+        req,
+      );
+      res.status(200).send({result});
+    } catch (err) {
+      next(err);
+    }
+  },
+);
 
-router.put('/metadata', async (req, res, next) => {
+router.put('/metadata', async (req: ExpressRequest, res, next) => {
   try {
     const result = await http.put(baseURLMeta + 'workflow/', req.body, req);
     res.status(200).send(result);
@@ -151,7 +164,7 @@ router.put('/metadata', async (req, res, next) => {
 // Conductor only allows POST for event handler creation
 // and PUT for updating. This code works around the issue by
 // trying PUT if POST fails.
-router.post('/event', async (req, res, next) => {
+router.post('/event', async (req: ExpressRequest, res, next) => {
   try {
     const result = await http.post(eventURL, req.body, req);
     res.status(200).send(result);
@@ -168,7 +181,7 @@ router.post('/event', async (req, res, next) => {
   }
 });
 
-router.post('/workflow', async (req, res, next) => {
+router.post('/workflow', async (req: ExpressRequest, res, next) => {
   try {
     const result = await http.post(baseURLWorkflow, req.body, req);
     res.status(200).send(result);
@@ -177,7 +190,7 @@ router.post('/workflow', async (req, res, next) => {
   }
 });
 
-router.get('/executions', async (req, res, next) => {
+router.get('/executions', async (req: ExpressRequest, res, next) => {
   try {
     const freeText = [];
     if (req.query.freeText !== '') {
@@ -186,19 +199,24 @@ router.get('/executions', async (req, res, next) => {
       freeText.push('*');
     }
 
-    let h = '-1';
+    let h: string = '-1';
     if (req.query.h !== 'undefined' && req.query.h !== '') {
+      /* $FlowFixMe req.query is user-controlled input, properties and values
+       in this object are untrusted and should be validated before trusting */
       h = req.query.h;
     }
     if (h !== '-1') {
       freeText.push('startTime:[now-' + h + 'h TO now]');
     }
-    let start = 0;
+    let start: number = 0;
     if (!isNaN(req.query.start)) {
+      // $FlowFixMe: isNaN is sketchy and accepts arrays
       start = req.query.start;
     }
-    let size = 1000;
+    let size: number = 1000;
     if (req.query.size !== 'undefined' && req.query.size !== '') {
+      /* $FlowFixMe req.query is user-controlled input, properties and values
+       in this object are untrusted and should be validated before trusting */
       size = req.query.size;
     }
 
@@ -213,6 +231,8 @@ router.get('/executions', async (req, res, next) => {
       '&start=' +
       start +
       '&query=' +
+      /* $FlowFixMe: req.query is user-controlled input and could
+        be an array. Needs to be checked */
       encodeURIComponent(query);
     const result = await http.get(url, req);
     const hits = result.results;
@@ -222,7 +242,7 @@ router.get('/executions', async (req, res, next) => {
   }
 });
 
-router.delete('/bulk/terminate', async (req, res, next) => {
+router.delete('/bulk/terminate', async (req: ExpressRequest, res, next) => {
   try {
     const result = await http.delete(
       baseURLWorkflow + 'bulk/terminate',
@@ -235,7 +255,7 @@ router.delete('/bulk/terminate', async (req, res, next) => {
   }
 });
 
-router.put('/bulk/pause', async (req, res, next) => {
+router.put('/bulk/pause', async (req: ExpressRequest, res, next) => {
   try {
     const result = await http.put(
       baseURLWorkflow + 'bulk/pause',
@@ -248,7 +268,7 @@ router.put('/bulk/pause', async (req, res, next) => {
   }
 });
 
-router.put('/bulk/resume', async (req, res, next) => {
+router.put('/bulk/resume', async (req: ExpressRequest, res, next) => {
   try {
     const result = await http.put(
       baseURLWorkflow + 'bulk/resume',
@@ -261,7 +281,7 @@ router.put('/bulk/resume', async (req, res, next) => {
   }
 });
 
-router.post('/bulk/retry', async (req, res, next) => {
+router.post('/bulk/retry', async (req: ExpressRequest, res, next) => {
   try {
     const result = await http.post(
       baseURLWorkflow + 'bulk/retry',
@@ -274,7 +294,7 @@ router.post('/bulk/retry', async (req, res, next) => {
   }
 });
 
-router.post('/bulk/restart', async (req, res, next) => {
+router.post('/bulk/restart', async (req: ExpressRequest, res, next) => {
   try {
     const result = await http.post(
       baseURLWorkflow + 'bulk/restart',
@@ -287,24 +307,27 @@ router.post('/bulk/restart', async (req, res, next) => {
   }
 });
 
-router.delete('/workflow/:workflowId', async (req, res, next) => {
-  const archiveWorkflow = req.query.archiveWorkflow === 'true';
-  try {
-    const result = await http.delete(
-      baseURLWorkflow +
-        req.params.workflowId +
-        '/remove?archiveWorkflow=' +
-        archiveWorkflow,
-      req.body,
-      req,
-    );
-    res.status(200).send(result);
-  } catch (err) {
-    next(err);
-  }
-});
+router.delete(
+  '/workflow/:workflowId',
+  async (req: ExpressRequest, res, next) => {
+    const archiveWorkflow = req.query.archiveWorkflow === 'true';
+    try {
+      const result = await http.delete(
+        baseURLWorkflow +
+          req.params.workflowId +
+          '/remove?archiveWorkflow=' +
+          archiveWorkflow.toString(),
+        req.body,
+        req,
+      );
+      res.status(200).send(result);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
 
-router.get('/id/:workflowId', async (req, res, next) => {
+router.get('/id/:workflowId', async (req: ExpressRequest, res, next) => {
   try {
     const result = await http.get(
       baseURLWorkflow + req.params.workflowId + '?includeTasks=true',
@@ -387,16 +410,19 @@ router.get('/id/:workflowId', async (req, res, next) => {
   }
 });
 
-router.get('/hierarchical', async (req, res, next) => {
+router.get('/hierarchical', async (req: ExpressRequest, res, next) => {
   try {
-    let size = 1000;
+    let size: number = 1000;
     if (req.query.size !== 'undefined' && req.query.size !== '') {
+      /* $FlowFixMe req.query is user-controlled input, properties and values
+       in this object are untrusted and should be validated before trusting */
       size = req.query.size;
     }
 
     let count = 0;
-    let start = 0;
+    let start: number = 0;
     if (!isNaN(req.query.start)) {
+      // $FlowFixMe: isNaN is sketchy and accepts arrays
       start = req.query.start;
       count = Number(start);
     }
@@ -494,7 +520,7 @@ router.get('/hierarchical', async (req, res, next) => {
   }
 });
 
-router.get('/schedule/?', async (req, res, next) => {
+router.get('/schedule/?', async (req: ExpressRequest, res, next) => {
   try {
     const result = await http.get(baseURLSchedule, req);
     res.status(200).send(result);
@@ -503,7 +529,7 @@ router.get('/schedule/?', async (req, res, next) => {
   }
 });
 
-router.get('/schedule/:name', async (req, res, next) => {
+router.get('/schedule/:name', async (req: ExpressRequest, res, next) => {
   try {
     const result = await http.get(baseURLSchedule + req.params.name, req);
     res.status(200).send(result);
@@ -512,7 +538,7 @@ router.get('/schedule/:name', async (req, res, next) => {
   }
 });
 
-router.put('/schedule/:name', async (req, res, next) => {
+router.put('/schedule/:name', async (req: ExpressRequest, res, next) => {
   const urlWithName = baseURLSchedule + req.params.name;
   try {
     // create using POST

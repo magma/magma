@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/facebookincubator/symphony/graph/ent/privacy"
+
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 
 	"github.com/facebookincubator/symphony/graph/ent"
@@ -2380,6 +2382,9 @@ func (r mutationResolver) EditLocationTypesIndex(ctx context.Context, locationTy
 				zap.Int("id", obj.LocationTypeID),
 				zap.Int("index", obj.Index),
 			)
+			if errors.Is(err, privacy.Deny) {
+				return nil, fmt.Errorf("couldn't update location type: %w", err)
+			}
 			return nil, gqlerror.Errorf("couldn't update location type. id=%q, index=%q", obj.LocationTypeID, obj.Index)
 		}
 		updated = append(updated, saved)
@@ -2839,31 +2844,6 @@ func (r mutationResolver) MarkLocationPropertyAsExternalID(ctx context.Context, 
 		}
 	}
 	return name, nil
-}
-
-func (r mutationResolver) deleteLocationHierarchy(ctx context.Context, l *ent.Location) error {
-	children, err := l.QueryChildren().All(ctx)
-	if err != nil {
-		return errors.Wrapf(err, "failed querying child locations l=%v", l.ID)
-	}
-	for _, child := range children {
-		if err := r.deleteLocationHierarchy(ctx, child); err != nil {
-			return err
-		}
-	}
-	err = r.ClientFrom(ctx).Location.DeleteOne(l).Exec(ctx)
-	if err != nil {
-		return errors.Wrapf(err, "failed to delete location l=%v", l.ID)
-	}
-	return nil
-}
-
-func (r mutationResolver) DeleteLocationHierarchy(ctx context.Context, id int) (int, error) {
-	l, err := r.ClientFrom(ctx).Location.Get(ctx, id)
-	if err != nil {
-		return id, errors.Wrapf(err, "can't query location l=%v", id)
-	}
-	return id, r.deleteLocationHierarchy(ctx, l)
 }
 
 func (r mutationResolver) MoveLocation(ctx context.Context, locationID int, parentLocationID *int) (*ent.Location, error) {

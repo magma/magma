@@ -17,10 +17,10 @@ import (
 	"github.com/facebookincubator/symphony/pkg/actions/trigger/magmaalert"
 	"github.com/facebookincubator/symphony/pkg/log"
 	"github.com/facebookincubator/symphony/pkg/mysql"
-	"github.com/facebookincubator/symphony/pkg/oc"
 	"github.com/facebookincubator/symphony/pkg/orc8r"
 	"github.com/facebookincubator/symphony/pkg/server"
 	"github.com/facebookincubator/symphony/pkg/server/xserver"
+	"github.com/facebookincubator/symphony/pkg/telemetry"
 	"go.opencensus.io/stats/view"
 
 	"github.com/google/wire"
@@ -34,7 +34,7 @@ type Config struct {
 	AuthURL      *url.URL
 	Subscriber   event.Subscriber
 	Logger       log.Logger
-	Census       oc.Options
+	Telemetry    *telemetry.Config
 	HealthChecks []health.Checker
 	Orc8r        orc8r.Config
 }
@@ -44,7 +44,7 @@ func NewServer(cfg Config) (*server.Server, func(), error) {
 	wire.Build(
 		xserver.ServiceSet,
 		provideViews,
-		wire.FieldsOf(new(Config), "Logger", "Census", "HealthChecks"),
+		wire.FieldsOf(new(Config), "Logger", "Telemetry", "HealthChecks"),
 		newRouterConfig,
 		newRouter,
 		wire.Bind(new(http.Handler), new(*mux.Router)),

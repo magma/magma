@@ -31,11 +31,6 @@ func (c *Config) Set(v string) error {
 	return nil
 }
 
-// UnmarshalFlag updates the value of the config.
-func (c *Config) UnmarshalFlag(v string) error {
-	return c.Set(v)
-}
-
 // Set is a wire provider that provides an emitter/subscriber
 // given context and config.
 var Set = wire.NewSet(

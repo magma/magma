@@ -107,6 +107,10 @@ func TestBuilder_Build(t *testing.T) {
 		"sessiond": &ltemconfig.SessionD{
 			LogLevel:     protos.LogLevel_INFO,
 			RelayEnabled: true,
+			WalletExhaustDetection: &ltemconfig.WalletExhaustDetection{
+				TerminateOnExhaust: true,
+				Method:             ltemconfig.WalletExhaustDetection_GxTrackedRules,
+			},
 		},
 		"redirectd": &ltemconfig.RedirectD{
 			LogLevel: protos.LogLevel_INFO,

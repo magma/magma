@@ -14,7 +14,6 @@ import type {
   AddServiceTypeMutationVariables,
   ServiceTypeCreateData,
 } from '../../mutations/__generated__/AddServiceTypeMutation.graphql';
-import type {AppContextType} from '@fbcnms/ui/context/AppContext';
 import type {
   EditServiceTypeMutationResponse,
   EditServiceTypeMutationVariables,
@@ -31,7 +30,6 @@ import type {WithSnackbarProps} from 'notistack';
 import type {WithStyles} from '@material-ui/core';
 
 import AddServiceTypeMutation from '../../mutations/AddServiceTypeMutation';
-import AppContext from '@fbcnms/ui/context/AppContext';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import CardSection from '../CardSection';
 import EditServiceTypeMutation from '../../mutations/EditServiceTypeMutation';
@@ -108,15 +106,9 @@ class AddEditServiceTypeCard extends React.Component<Props, State> {
     editingServiceType: this.getEditingServiceType(),
   };
 
-  static contextType = AppContext;
-  context: AppContextType;
-
   render() {
     const {classes, onClose} = this.props;
     const {editingServiceType} = this.state;
-    const serviceEndpointsEnabled = this.context.isFeatureEnabled(
-      'service_endpoints',
-    );
 
     const propertyTypes = editingServiceType.propertyTypes
       .slice()
@@ -152,39 +144,35 @@ class AddEditServiceTypeCard extends React.Component<Props, State> {
                   />
                 </FormField>
               </Grid>
-              {serviceEndpointsEnabled ? (
-                <Grid item xs={12} xl={7}>
-                  <FormField label="Discovery Method" className={classes.input}>
-                    <TextField
-                      select
-                      variant="outlined"
-                      disabled={this.props.editingServiceType != null}
-                      className={classes.input}
-                      value={
-                        editingServiceType.discoveryMethod ??
-                        discoveryMethods.MANUAL
-                      }
-                      onChange={this.discoveryMethodChanged}
-                      SelectProps={{
-                        classes: {selectMenu: classes.selectMenu},
-                        MenuProps: {
-                          className: classes.menu,
-                        },
-                      }}
-                      margin="dense">
-                      {Object.keys(discoveryMethods).map(discoveryMethod => {
-                        return (
-                          <MenuItem
-                            key={discoveryMethod}
-                            value={discoveryMethod}>
-                            {discoveryMethods[discoveryMethod] ?? ''}
-                          </MenuItem>
-                        );
-                      })}
-                    </TextField>
-                  </FormField>
-                </Grid>
-              ) : null}
+              <Grid item xs={12} xl={7}>
+                <FormField label="Discovery Method" className={classes.input}>
+                  <TextField
+                    select
+                    variant="outlined"
+                    disabled={this.props.editingServiceType != null}
+                    className={classes.input}
+                    value={
+                      editingServiceType.discoveryMethod ??
+                      discoveryMethods.MANUAL
+                    }
+                    onChange={this.discoveryMethodChanged}
+                    SelectProps={{
+                      classes: {selectMenu: classes.selectMenu},
+                      MenuProps: {
+                        className: classes.menu,
+                      },
+                    }}
+                    margin="dense">
+                    {Object.keys(discoveryMethods).map(discoveryMethod => {
+                      return (
+                        <MenuItem key={discoveryMethod} value={discoveryMethod}>
+                          {discoveryMethods[discoveryMethod] ?? ''}
+                        </MenuItem>
+                      );
+                    })}
+                  </TextField>
+                </FormField>
+              </Grid>
             </Grid>
           </SectionedCard>
           <SectionedCard>

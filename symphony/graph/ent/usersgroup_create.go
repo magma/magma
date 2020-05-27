@@ -159,6 +159,7 @@ func (ugc *UsersGroupCreate) Save(ctx context.Context) (*UsersGroup, error) {
 			}
 			ugc.mutation = mutation
 			node, err = ugc.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(ugc.hooks) - 1; i >= 0; i-- {

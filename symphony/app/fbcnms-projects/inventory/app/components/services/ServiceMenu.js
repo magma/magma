@@ -12,6 +12,7 @@ import type {MenuOption} from '../OptionsPopoverButton';
 import * as React from 'react';
 import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
 import Dialog from '@material-ui/core/Dialog';
+import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import OptionsPopoverButton from '../OptionsPopoverButton';
 import symphony from '@fbcnms/ui/theme/symphony';
 import {makeStyles} from '@material-ui/styles';
@@ -41,7 +42,7 @@ const ServiceMenu = (props: Props) => {
   const {items, isOpen, onClose, children} = props;
 
   return (
-    <>
+    <FormAction>
       <OptionsPopoverButton
         options={items}
         menuIcon={<AddCircleOutlineIcon className={classes.addIcon} />}
@@ -54,7 +55,7 @@ const ServiceMenu = (props: Props) => {
         classes={{paperFullWidth: classes.dialog}}>
         {children}
       </Dialog>
-    </>
+    </FormAction>
   );
 };
 

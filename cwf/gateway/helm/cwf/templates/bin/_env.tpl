@@ -26,6 +26,11 @@ CONFIGS_TEMPLATES_PATH=/etc/magma/templates
 CERTS_VOLUME=/var/opt/magma/certs
 CONFIGS_OVERRIDE_VOLUME=/var/opt/magma/configs
 CONFIGS_DEFAULT_VOLUME=/etc/magma
+SECRETS_VOLUME=/var/opt/magma/secrets
+
+{{ if .Values.cwf.dpi }}
+DPI_LICENSE_NAME={{ .Values.cwf.dpi.dpi_license_name }}
+{{- end }}
 
 {{ if .Values.cwf.env }}
 {{ .Values.cwf.env }}

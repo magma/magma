@@ -78,7 +78,7 @@ class ServiceManagerSystemdTest(TestCase):
         verify functionality beyond the tests above
         """
         mgr = ServiceManager(['dummy1', 'dummy2'], init_system='systemd',
-                             service_poller=MagicMock(), loop=MagicMock())
+                             service_poller=MagicMock())
 
         self._loop.run_until_complete(mgr.start_services())
         self.subprocess_mock.return_value = b'active\n'
@@ -100,7 +100,7 @@ class ServiceManagerSystemdTest(TestCase):
         verify functionality beyond the tests above
         """
         mgr = ServiceManager(
-            ['dummy1', 'dummy2'], 'systemd', MagicMock(), MagicMock(), ['redirectd'], []
+            ['dummy1', 'dummy2'], 'systemd', MagicMock(), ['redirectd'], []
         )
 
         self.subprocess_mock.return_value = b'inactive\n'
@@ -196,7 +196,7 @@ class ServiceManagerRunitTest(TestCase):
             return
 
         mgr = ServiceManager(['dummy1', 'dummy2'], init_system='runit',
-                             service_poller=MagicMock(), loop=MagicMock())
+                             service_poller=MagicMock())
 
         mgr.start_services()
         self.subprocess_mock.return_value = (
@@ -227,7 +227,7 @@ class ServiceManagerRunitTest(TestCase):
             return
 
         mgr = ServiceManager(
-            ['dummy1', 'dummy2'], 'runit', MagicMock(), MagicMock(), ['redirectd'], []
+            ['dummy1', 'dummy2'], 'runit', MagicMock(), ['redirectd'], []
         )
 
         self.subprocess_mock.return_value = (
@@ -321,7 +321,7 @@ class ServiceManagerDockerTest(TestCase):
         verify functionality beyond the tests above
         """
         mgr = ServiceManager(['dummy1', 'dummy2'], init_system='docker',
-                             service_poller=MagicMock(), loop=MagicMock())
+                             service_poller=MagicMock())
 
         try:
             self._loop.run_until_complete(mgr.start_services())

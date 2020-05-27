@@ -357,6 +357,12 @@ func (m *importer) inputValidationsLocation(ctx context.Context, importHeader Im
 	if !equal(firstLine[:locStart], []string{"Location ID"}) {
 		return errors.New("first line should begin with 'Location ID'")
 	}
+	if importHeader.ExternalIDIdx() == -1 {
+		return errors.New("first line should include 'External ID'")
+	}
+	if importHeader.LatitudeIdx() == -1 || importHeader.LongitudeIdx() == -1 {
+		return errors.New("first line should include 'Longitude' and 'Latitude'")
+	}
 	if !equal(firstLine[importHeader.ExternalIDIdx():importHeader.PropertyStartIdx()], []string{"External ID", "Latitude", "Longitude"}) {
 		return errors.New("first line misses sequence: 'External ID', 'Latitude' and 'Longitude'")
 	}

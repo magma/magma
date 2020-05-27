@@ -115,7 +115,6 @@ const GPSPropertyValueInput = (props: Props) => {
         </FormField>
         <FormField
           required={required}
-          useLabelPlaceholder={!!label}
           errorText={errorLongitude}
           hasError={!!errorLongitude}
           className={classNames(classes.lngField, classes.field)}>

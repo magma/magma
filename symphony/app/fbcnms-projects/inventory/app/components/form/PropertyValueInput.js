@@ -239,7 +239,6 @@ class PropertyValueInput<T: Property | PropertyType> extends React.Component<
       case 'bool':
         return (
           <Select
-            id="property-value"
             className={classNames(classes.input, className)}
             label={label}
             disabled={disabled}
@@ -305,6 +304,8 @@ class PropertyValueInput<T: Property | PropertyType> extends React.Component<
             // $FlowFixMe - need to fix this entire file as it receives either property or property type
             value={property.nodeValue}
             onChange={node =>
+              // eslint-disable-next-line no-warning-comments
+              // $FlowFixMe - need to fix this entire file as it receives either property or property type
               onChange({
                 ...property,
                 nodeValue: node,

@@ -178,6 +178,7 @@ func (sc *SurveyCreate) Save(ctx context.Context) (*Survey, error) {
 			}
 			sc.mutation = mutation
 			node, err = sc.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(sc.hooks) - 1; i >= 0; i-- {

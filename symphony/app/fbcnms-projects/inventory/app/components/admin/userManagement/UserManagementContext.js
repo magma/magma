@@ -13,6 +13,7 @@
 
 import type {AddPermissionsPolicyMutationResponse} from '../../../mutations/__generated__/AddPermissionsPolicyMutation.graphql';
 import type {AddUsersGroupMutationResponse} from '../../../mutations/__generated__/AddUsersGroupMutation.graphql';
+import type {DeletePermissionsPolicyMutationResponse} from '../../../mutations/__generated__/DeletePermissionsPolicyMutation.graphql';
 import type {DeleteUsersGroupMutationResponse} from '../../../mutations/__generated__/DeleteUsersGroupMutation.graphql';
 import type {EditPermissionsPolicyMutationResponse} from '../../../mutations/__generated__/EditPermissionsPolicyMutation.graphql';
 import type {EditUserMutationResponse} from '../../../mutations/__generated__/EditUserMutation.graphql';
@@ -35,6 +36,7 @@ import type {UserManagementContext_UserQuery} from './__generated__/UserManageme
 import * as React from 'react';
 import AddPermissionsPolicyMutation from '../../../mutations/AddPermissionsPolicyMutation';
 import AddUsersGroupMutation from '../../../mutations/AddUsersGroupMutation';
+import DeletePermissionsPolicyMutation from '../../../mutations/DeletePermissionsPolicyMutation';
 import DeleteUsersGroupMutation from '../../../mutations/DeleteUsersGroupMutation';
 import EditPermissionsPolicyMutation from '../../../mutations/EditPermissionsPolicyMutation';
 import EditUserMutation from '../../../mutations/EditUserMutation';
@@ -394,16 +396,33 @@ const editPermissionsPolicy = (groupsMap: GroupsMap) => (
   });
 };
 
-const deletePermissionsPolicy = (_poilicyId: string) => {
-  return Promise.reject('not implemented yet');
-};
-
-const updatePolicyGroups = (
-  _policy: PermissionsPolicy,
-  _addUserIds: Array<string>,
-  _removeUserIds: Array<string>,
-) => {
-  return Promise.reject('not implemented yet');
+const deletePermissionsPolicy = (id: string) => {
+  return new Promise((resolve, reject) => {
+    const cbs: MutationCallbacks<DeletePermissionsPolicyMutationResponse> = {
+      onCompleted: (response, errors) => {
+        if (errors && errors[0]) {
+          reject(getGraphError(errors[0]));
+        }
+        resolve();
+      },
+      onError: e => {
+        reject(getGraphError(e));
+      },
+    };
+    const removePolicyFromStore = store => {
+      const rootQuery = store.getRoot();
+      const policies = ConnectionHandler.getConnection(
+        rootQuery,
+        'UserManagementContext_permissionsPolicies',
+      );
+      if (policies == null) {
+        return;
+      }
+      ConnectionHandler.deleteNode(policies, id);
+      store.delete(id);
+    };
+    DeletePermissionsPolicyMutation({id}, cbs, removePolicyFromStore);
+  });
 };
 
 type UserManagementContextValue = {
@@ -427,11 +446,6 @@ type UserManagementContextValue = {
   addPermissionsPolicy: PermissionsPolicy => Promise<PermissionsPolicy>,
   editPermissionsPolicy: PermissionsPolicy => Promise<PermissionsPolicy>,
   deletePermissionsPolicy: (id: string) => Promise<void>,
-  updatePolicyGroups: (
-    policy: PermissionsPolicy,
-    addUserIds: Array<string>,
-    removeUserIds: Array<string>,
-  ) => Promise<PermissionsPolicy>,
 };
 
 const emptyUsersMap = new Map<string, User>();
@@ -451,7 +465,6 @@ const UserManagementContext = React.createContext<UserManagementContextValue>({
   addPermissionsPolicy: addPermissionsPolicy(emptyGroupsMap),
   editPermissionsPolicy: editPermissionsPolicy(emptyGroupsMap),
   deletePermissionsPolicy,
-  updatePolicyGroups,
 });
 
 type Props = {
@@ -502,7 +515,6 @@ function ProviderWrap(props: Props) {
     addPermissionsPolicy: addPermissionsPolicy(groupsMap),
     editPermissionsPolicy: editPermissionsPolicy(groupsMap),
     deletePermissionsPolicy,
-    updatePolicyGroups,
   });
 
   const data = useLazyLoadQuery<UserManagementContextQuery>(dataQuery);

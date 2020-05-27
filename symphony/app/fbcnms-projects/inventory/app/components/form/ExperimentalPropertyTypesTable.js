@@ -115,13 +115,15 @@ const ExperimentalPropertyTypesTable = ({
           </TableRow>
         </TableHead>
         <DroppableTableBody
-          onDragEnd={({source, destination}) =>
-            dispatch({
-              type: 'CHANGE_PROPERTY_TYPE_INDEX',
-              sourceIndex: source.index,
-              destinationIndex: destination.index,
-            })
-          }>
+          onDragEnd={({source, destination}) => {
+            if (destination != null) {
+              dispatch({
+                type: 'CHANGE_PROPERTY_TYPE_INDEX',
+                sourceIndex: source.index,
+                destinationIndex: destination.index,
+              });
+            }
+          }}>
           {propertyTypes
             .slice()
             .sort(sortByIndex)
@@ -243,7 +245,6 @@ const ExperimentalPropertyTypesTable = ({
       </Table>
       <FormAction>
         <Button
-          color="primary"
           variant="text"
           onClick={() => dispatch({type: 'ADD_PROPERTY_TYPE'})}
           leftIcon={PlusIcon}>

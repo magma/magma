@@ -114,8 +114,7 @@ const AddToEquipmentDialog = (props: Props) => {
                 },
               );
             }
-          }}
-          color="primary">
+          }}>
           OK
         </Button>
       </DialogActions>

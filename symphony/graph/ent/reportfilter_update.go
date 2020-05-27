@@ -87,6 +87,7 @@ func (rfu *ReportFilterUpdate) Save(ctx context.Context) (int, error) {
 			}
 			rfu.mutation = mutation
 			affected, err = rfu.sqlSave(ctx)
+			mutation.done = true
 			return affected, err
 		})
 		for i := len(rfu.hooks) - 1; i >= 0; i-- {
@@ -241,6 +242,7 @@ func (rfuo *ReportFilterUpdateOne) Save(ctx context.Context) (*ReportFilter, err
 			}
 			rfuo.mutation = mutation
 			node, err = rfuo.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(rfuo.hooks) - 1; i >= 0; i-- {

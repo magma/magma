@@ -30,6 +30,7 @@ import ExpandingPanel from '@fbcnms/ui/components/ExpandingPanel';
 import FileUploadButton from '../FileUpload/FileUploadButton';
 import FormContext, {FormContextProvider} from '../../common/FormContext';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
+import FormFieldWithPermissions from '../../common/FormFieldWithPermissions';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@fbcnms/ui/components/design-system/IconButton';
 import LinkIcon from '@fbcnms/ui/components/design-system/Icons/Actions/LinkIcon';
@@ -280,7 +281,7 @@ const WorkOrderDetails = ({
         permissions={{
           entity: 'workorder',
           action: 'update',
-          ignore: isOwnerOrAssignee,
+          ignorePermissions: isOwnerOrAssignee,
         }}>
         <WorkOrderHeader
           workOrderName={propsWorkOrder.name}
@@ -544,9 +545,13 @@ const WorkOrderDetails = ({
                   </Grid>
                   <Grid item xs={4} sm={4} lg={4} xl={4}>
                     <ExpandingPanel title="Team" className={classes.card}>
-                      <FormField
+                      <FormFieldWithPermissions
                         className={classes.input}
                         label="Owner"
+                        permissions={{
+                          entity: 'workorder',
+                          action: 'transferOwnership',
+                        }}
                         required={true}
                         validation={{id: 'owner', value: workOrder.owner?.id}}
                         disabled={!!nonOwnerAssignee}>
@@ -557,8 +562,14 @@ const WorkOrderDetails = ({
                           }
                           margin="dense"
                         />
-                      </FormField>
-                      <FormField label="Assignee" className={classes.input}>
+                      </FormFieldWithPermissions>
+                      <FormFieldWithPermissions
+                        label="Assignee"
+                        className={classes.input}
+                        permissions={{
+                          entity: 'workorder',
+                          action: 'assign',
+                        }}>
                         <UserTypeahead
                           selectedUser={workOrder.assignedTo}
                           onUserSelection={user =>
@@ -566,7 +577,7 @@ const WorkOrderDetails = ({
                           }
                           margin="dense"
                         />
-                      </FormField>
+                      </FormFieldWithPermissions>
                     </ExpandingPanel>
                     <ExpandingPanel
                       title="Comments"

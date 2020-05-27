@@ -406,6 +406,7 @@ func (scsc *SurveyCellScanCreate) Save(ctx context.Context) (*SurveyCellScan, er
 			}
 			scsc.mutation = mutation
 			node, err = scsc.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(scsc.hooks) - 1; i >= 0; i-- {

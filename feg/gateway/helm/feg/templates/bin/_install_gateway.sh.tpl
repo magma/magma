@@ -101,9 +101,6 @@ if [ "$GW_TYPE" == "$FEG" ]; then
 fi
 
 cp "$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/docker/docker-compose.yml .
-if [ "$GW_TYPE" == "$CWAG" ]; then
-cp "$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/docker/docker-compose-dpi.override.yml .
-fi
 cp "$INSTALL_DIR"/magma/orc8r/tools/docker/recreate_services.sh .
 cp "$INSTALL_DIR"/magma/orc8r/tools/docker/recreate_services_cron .
 
@@ -162,13 +159,27 @@ cp .env /var/opt/magma/docker/
 cp recreate_services.sh /var/opt/magma/docker/
 cp recreate_services_cron /etc/cron.d/
 
+# Copy DPI docker files
+if [ "$GW_TYPE" == "$CWAG" ] && [ -f "$DPI_LICENSE_NAME" ]; then
+  MODULE_DIR="cwf"
+  mkdir -p "$SECRETS_VOLUME"
+  cp "$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/docker/docker-compose-dpi.override.yml /var/opt/magma/docker/
+  cp "$DPI_LICENSE_NAME" "$SECRETS_VOLUME"
+fi
+
 cd /var/opt/magma/docker
 
-{{- if and .Values.feg.image.username .Values.feg.image.password }}
+if [ ! -z "$DOCKER_USERNAME" ] && [ ! -z "$DOCKER_PASSWORD" ] && [ ! -z "$DOCKER_REGISTRY" ]; then
 echo "Logging into docker registry at $DOCKER_REGISTRY"
-docker login "$DOCKER_REGISTRY" --username {{ .Values.feg.image.username }} --password {{ .Values.feg.image.password }}
-{{- end }}
+docker login "$DOCKER_REGISTRY" --username "$DOCKER_USERNAME" --password "$DOCKER_PASSWORD"
+fi
 docker-compose pull
 docker-compose -f docker-compose.yml up -d
+
+# Pull and Run DPI container
+if [ "$GW_TYPE" == "$CWAG" ] && [ -f "$DPI_LICENSE_NAME" ]; then
+  docker-compose -f docker-compose-dpi.override.yml pull
+  docker-compose -f docker-compose-dpi.override.yml up -d
+fi
 
 echo "Installed successfully!!"

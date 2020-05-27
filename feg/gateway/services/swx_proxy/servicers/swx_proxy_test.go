@@ -10,8 +10,10 @@ package servicers_test
 
 import (
 	"context"
+	"fmt"
 	"math/rand"
 	"net"
+	"runtime"
 	"strconv"
 	"testing"
 	"time"
@@ -25,9 +27,22 @@ import (
 	"google.golang.org/grpc"
 )
 
-const (
-	TEST_LOOPS = 33
-)
+const TEST_LOOPS = 33
+
+var TCPorSCTP = systemBasedTCPorSCTP() // sctp if run in linux, tcp if run in MAC
+
+// systemBasedTCPorSCTP decides to run the test in TCP or SCTP. By default tests should
+// be run in SCTP, but if test are run on MacOs, TCP is the only supported protocol
+func systemBasedTCPorSCTP() string {
+	if runtime.GOOS == "darwin" {
+		fmt.Println(
+			"Running servers with TCP. MacOS detected, SCTP not supported in this system. " +
+				"Use this mode only for debugging!!!")
+		return "tcp"
+	}
+	fmt.Println("Running servers with SCTP")
+	return "sctp"
+}
 
 // TestSwxProxyService_VerifyAuthorization tests swx_proxy by sending Authenticate
 // gRPC request (with VerifyAuthorization set to true) and then sending Register gRPC
@@ -43,7 +58,7 @@ func TestSwxProxyService_VerifyAuthorization(t *testing.T) {
 	}
 	defer conn.Close()
 	client := protos.NewSwxProxyClient(conn)
-	swxStandardTest(t, client)
+	swxStandardTest(t, client, TEST_LOOPS)
 }
 
 // TestSwxProxyService_VerifyAuthorizationOff tests swx_proxy by sending Authenticate
@@ -60,7 +75,7 @@ func TestSwxProxyService_VerifyAuthorizationOff(t *testing.T) {
 	}
 	defer conn.Close()
 	client := protos.NewSwxProxyClient(conn)
-	swxStandardTest(t, client)
+	swxStandardTest(t, client, TEST_LOOPS)
 }
 
 // TestSwxProxyService_ValidationErrors tests the swx proxy service error handling
@@ -76,7 +91,7 @@ func TestSwxProxyService_ValidationErrors(t *testing.T) {
 	}
 	defer conn.Close()
 	client := protos.NewSwxProxyClient(conn)
-	swxStandardTest(t, client)
+	swxStandardTest(t, client, TEST_LOOPS)
 
 	// Test Auth Error Handling
 	_, err = client.Authenticate(context.Background(), nil)
@@ -118,8 +133,8 @@ func TestSwxProxyService_ValidationErrors(t *testing.T) {
 	assert.EqualError(t, err, "rpc error: code = InvalidArgument desc = Provided username 1234567890123456 is greater than 15 digits")
 }
 
-func swxStandardTest(t *testing.T, client protos.SwxProxyClient) {
-	complChan := make(chan error, TEST_LOOPS+1)
+func swxStandardTest(t *testing.T, client protos.SwxProxyClient, test_loops int) {
+	complChan := make(chan error, test_loops+1)
 
 	// Happy path
 	testHappyPath := func(reqId uint32) {
@@ -185,15 +200,17 @@ func swxStandardTest(t *testing.T, client protos.SwxProxyClient) {
 			return
 		}
 	case <-time.After(time.Second * 5):
-		t.Fatal("Timed out")
+		t.Fatal("Timed out. \n" +
+			"!!! If this happened during multiple_swx_porxy_test, that may mean that the " +
+			"multiplexor sent the request to the wrong diam server (HSS)")
 		return
 	}
 
 	// Multi-threaded test ensures session-id logic handling works
-	for round := 0; round < TEST_LOOPS; round++ {
+	for round := 0; round < test_loops; round++ {
 		go testHappyPath(uint32(round))
 	}
-	for round := 0; round < TEST_LOOPS; round++ {
+	for round := 0; round < test_loops; round++ {
 		testErr := <-complChan
 		if testErr != nil {
 			t.Fatal(testErr)
@@ -203,33 +220,36 @@ func swxStandardTest(t *testing.T, client protos.SwxProxyClient) {
 }
 
 func initSwxTestSetup(t *testing.T, config *servicers.SwxProxyConfig) string {
-	serverAddr, err := test.StartTestSwxServer("sctp", "127.0.0.1:0")
+	// ---- CORE 3gpp ----
+	// create the mockHSS server/servers (depending on the config)
+	serverAddr, err := test.StartTestSwxServer(TCPorSCTP, "127.0.0.1:0")
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Logf("Started Swx Server at %s", serverAddr)
+	// Update config address with address of where test swx server is running
+	config.ServerCfg.Addr = serverAddr
 
-	lis, err := net.Listen("tcp", "")
+	// ---- GRPC ----
+	grpcListener, err := net.Listen("tcp", "")
 	if err != nil {
 		t.Fatalf("failed to listen: %v", err)
 	}
-	// Update config address with address of where test swx server is running
-	config.ServerCfg.Addr = serverAddr
-	s := grpc.NewServer()
 	service, err := servicers.NewSwxProxy(config)
 	if err != nil {
 		t.Fatalf("failed to create SwxProxy: %v", err)
-
 	}
-	protos.RegisterSwxProxyServer(s, service)
+	grpcServer := grpc.NewServer()
+	protos.RegisterSwxProxyServer(grpcServer, service)
+	// start GRPC server
 	go func() {
-		if err := s.Serve(lis); err != nil {
+		if err := grpcServer.Serve(grpcListener); err != nil {
 			t.Fatalf("failed to serve: %v", err)
 		}
 	}()
-	addr := lis.Addr()
-	t.Logf("Started Swx GRPC Proxy on %s", addr.String())
-	return addr.String()
+	grpcAddress := grpcListener.Addr()
+	t.Logf("Started Swx GRPC Proxy on %s", grpcAddress.String())
+	return grpcAddress.String()
 }
 
 func getSwxTestConfig(verify bool) *servicers.SwxProxyConfig {
@@ -239,8 +259,8 @@ func getSwxTestConfig(verify bool) *servicers.SwxProxyConfig {
 			Realm: "openair4G.eur",           // diameter realm,
 		},
 		ServerCfg: &diameter.DiameterServerConfig{DiameterServerConnConfig: diameter.DiameterServerConnConfig{
-			Addr:     "",      // to be filled in once server addr is started
-			Protocol: "sctp"}, // tcp/sctp
+			Addr:     "",         // to be filled in once server addr is started
+			Protocol: TCPorSCTP}, // tcp/sctp
 		},
 		VerifyAuthorization: verify,
 	}

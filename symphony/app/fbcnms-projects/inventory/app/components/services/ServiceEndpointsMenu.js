@@ -48,16 +48,20 @@ const ServiceEndpointsMenu = (props: Props) => {
     })
     .filter(x => !!x);
 
+  const remainingItems = items.filter(
+    item =>
+      !service.endpoints.map(ep => ep?.definition?.name).includes(item.caption),
+  );
+
+  if (remainingItems.length == 0) {
+    return null;
+  }
+
   return (
     <ServiceMenu
       isOpen={!!addingEndpoint}
       onClose={() => setAddingEndpoint(null)}
-      items={items.filter(
-        item =>
-          !service.endpoints
-            .map(ep => ep?.definition?.name)
-            .includes(item.caption),
-      )}>
+      items={remainingItems}>
       <AddEndpointToServiceDialog
         service={service}
         onClose={() => setAddingEndpoint(null)}

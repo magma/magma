@@ -178,6 +178,7 @@ func (clidu *CheckListItemDefinitionUpdate) Save(ctx context.Context) (int, erro
 			}
 			clidu.mutation = mutation
 			affected, err = clidu.sqlSave(ctx)
+			mutation.done = true
 			return affected, err
 		})
 		for i := len(clidu.hooks) - 1; i >= 0; i-- {
@@ -508,6 +509,7 @@ func (cliduo *CheckListItemDefinitionUpdateOne) Save(ctx context.Context) (*Chec
 			}
 			cliduo.mutation = mutation
 			node, err = cliduo.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(cliduo.hooks) - 1; i >= 0; i-- {

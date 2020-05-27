@@ -37,7 +37,7 @@ func main() {
 	protos.RegisterMetricsControllerServer(srv.GrpcServer, controllerServer)
 	srv.GrpcServer.RegisterService(protos.GetLegacyMetricsdDesc(), controllerServer)
 
-	profileArg := srv.Config.GetRequiredStringParam(metricsd.Profile)
+	profileArg := srv.Config.MustGetString(metricsd.Profile)
 	selectedProfile, err := metricsd.GetMetricsProfile(profileArg)
 	if err != nil {
 		log.Fatalf("Error loading metrics profile: %s", err)
