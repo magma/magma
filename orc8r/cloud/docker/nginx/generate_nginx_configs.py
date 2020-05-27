@@ -45,11 +45,8 @@ def main():
         'service_registry': _load_services(),
         'controller_hostname': os.environ['CONTROLLER_HOSTNAME'],
         'backend': os.environ['PROXY_BACKENDS'],
+        'resolver': os.environ['RESOLVER'],
     }
-    # We need to set the resolver when running in docker-compose
-    # In k8s the /etc/resolv.conf has search domains so this isn't needed
-    if os.environ['TEST_MODE'] == '1':
-        context['resolver'] = '127.0.0.11'
     _generate_config(context)
 
 

@@ -127,6 +127,79 @@ proxy:
   # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
   affinity: {}
 
+nginx:
+  create: false
+
+  # Configure pod disruption budgets for proxy
+  # ref: https://kubernetes.io/docs/tasks/run-application/configure-pdb/#specifying-a-poddisruptionbudget
+  podDisruptionBudget:
+    enabled: false
+    minAvailable: 1
+    maxUnavailable: ""
+
+  # Service configuration.
+  service:
+    enabled: true
+    legacyEnabled: true
+    name: bootstrapper-orc8r-nginx
+    annotations: {}
+    extraAnnotations:
+      bootstrapLagacy: {}
+      clientcertLegacy: {}
+      proxy: {}
+    labels: {}
+    type: ClusterIP
+    port:
+      clientcert:
+        port: 8443
+        targetPort: 8443
+        nodePort: ""
+      open:
+        port: 8444
+        targetPort: 8444
+        nodePort: ""
+      api:
+        port: 443
+        targetPort: 9443
+        nodePort: ""
+    loadBalancerIP: ""
+    loadBalancerSourceRanges: []
+
+  # proxy image
+  image:
+    repository:
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  # Settings affecting proxy application
+  spec:
+    # magma controller domain name
+    hostname: ""
+
+  # Number of proxy replicas desired
+  replicas: 1
+
+  # Resource limits & requests
+  resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+  # Define which Nodes the Pods are scheduled on.
+  # ref: https://kubernetes.io/docs/user-guide/node-selection/
+  nodeSelector: {}
+
+  # Tolerations for use with node taints
+  # ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  tolerations: []
+
+  # Assign proxy to run on specific nodes
+  # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+  affinity: {}
+
 controller:
   # Configure pod disruption budgets for controller
   # ref: https://kubernetes.io/docs/tasks/run-application/configure-pdb/#specifying-a-poddisruptionbudget
