@@ -68,7 +68,7 @@ def bandwidth(bandwidth_rbs: Union[str, int, float]) -> float:
     if bandwidth_rbs in BANDWIDTH_RBS_TO_MHZ_MAP:
         return BANDWIDTH_RBS_TO_MHZ_MAP[bandwidth_rbs]
 
-    logger.debug('Unknown bandwidth_rbs (%s)', str(bandwidth_rbs))
+    logger.warning('Unknown bandwidth_rbs (%s)', str(bandwidth_rbs))
     if bandwidth_rbs in BANDWIDTH_MHZ_LIST:
         return bandwidth_rbs
     elif isinstance(bandwidth_rbs, str):
