@@ -355,28 +355,28 @@ pipeline {
                   myShCmdWithLog('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test"', 'archives/magma_run_s1ap_tester.log', new_host_flag, new_host_user, new_host)
                 }
                 // Adding a few tests not in the mandatory suite and the UL traffic scenarios (launched manually)
-                timeout (time: 30, unit: 'SECONDS') {
+                timeout (time: 45, unit: 'SECONDS') {
                   try {
                     myShCmdWithLogAppend('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test TESTS=s1aptests/test_attach_ul_udp_data.py"', 'archives/magma_run_s1ap_tester.log', new_host_flag, new_host_user, new_host)
                   } catch (Exception e) {
                     echo "s1aptests/test_attach_ul_udp_data testcase may fail"
                   }
                 }
-                timeout (time: 30, unit: 'SECONDS') {
+                timeout (time: 45, unit: 'SECONDS') {
                   try {
                     myShCmdWithLogAppend('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test TESTS=s1aptests/test_attach_ul_tcp_data.py"', 'archives/magma_run_s1ap_tester.log', new_host_flag, new_host_user, new_host)
                   } catch (Exception e) {
                     echo "s1aptests/test_attach_ul_tcp_data testcase may fail"
                   }
                 }
-                timeout (time: 30, unit: 'SECONDS') {
+                timeout (time: 45, unit: 'SECONDS') {
                   try {
                     myShCmdWithLogAppend('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test TESTS=s1aptests/test_attach_dl_udp_data.py"', 'archives/magma_run_s1ap_tester.log', new_host_flag, new_host_user, new_host)
                   } catch (Exception e) {
                     echo "s1aptests/test_attach_dl_udp_data testcase may fail"
                   }
                 }
-                timeout (time: 30, unit: 'SECONDS') {
+                timeout (time: 45, unit: 'SECONDS') {
                   try {
                     myShCmdWithLogAppend('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test TESTS=s1aptests/test_attach_dl_tcp_data.py"', 'archives/magma_run_s1ap_tester.log', new_host_flag, new_host_user, new_host)
                   } catch (Exception e) {
@@ -385,7 +385,11 @@ pipeline {
                 }
 
                 echo "Stopping the Traffic server in background"
-                myShCmd('cd lte/gateway && vagrant ssh magma_trfserver -c "sudo killall python3"', new_host_flag, new_host_user, new_host)
+                try {
+                  myShCmd('cd lte/gateway && vagrant ssh magma_trfserver -c "sudo killall python3"', new_host_flag, new_host_user, new_host)
+                } catch (Exception e) {
+                  echo "Maybe Traffic server crashed"
+                }
               }
             }
           }
