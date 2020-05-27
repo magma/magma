@@ -1796,9 +1796,8 @@ func TestTechnicianCheckinToWorkOrder(t *testing.T) {
 func TestTechnicianUploadDataToWorkOrder(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.Close()
-	// TODO(T66882071): Remove owner role from two rows
-	c := r.GraphClient(viewertest.WithRole(user.RoleOWNER))
-	ctx := viewertest.NewContext(context.Background(), r.client, viewertest.WithRole(user.RoleOWNER))
+	c := r.GraphClient()
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 	wo := createWorkOrder(ctx, t, *r, "Foo")
 	u := viewer.FromContext(ctx).(*viewer.UserViewer).User()

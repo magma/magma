@@ -7,9 +7,9 @@ package authz
 import (
 	"context"
 
-	"github.com/facebookincubator/symphony/graph/ent/surveycellscan"
-
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
+
+	"github.com/facebookincubator/symphony/graph/ent/surveycellscan"
 
 	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
 
@@ -19,21 +19,24 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/privacy"
 )
 
+func allowOrSkipCheckListItemCreate(ctx context.Context, client *ent.Client, checkListItemID int) error {
+	workOrder, err := client.WorkOrder.Query().
+		Where(workorder.HasCheckListCategoriesWith(checklistcategory.HasCheckListItemsWith(checklistitem.ID(checkListItemID)))).
+		Only(ctx)
+	if err != nil {
+		return privacy.Denyf("failed to fetch work order: %w", err)
+	}
+	return allowOrSkipWorkOrder(ctx, FromContext(ctx), workOrder)
+}
+
 // SurveyCellScanCreatePolicyRule grants create permission to SurveyCellScan based on policy.
-// nolint: dupl
 func SurveyCellScanCreatePolicyRule() privacy.MutationRule {
 	return privacy.SurveyCellScanMutationRuleFunc(func(ctx context.Context, m *ent.SurveyCellScanMutation) error {
 		if !m.Op().Is(ent.OpCreate) {
 			return privacy.Skip
 		}
 		if checkListItemID, exists := m.ChecklistItemID(); exists {
-			workOrder, err := m.Client().WorkOrder.Query().
-				Where(workorder.HasCheckListCategoriesWith(checklistcategory.HasCheckListItemsWith(checklistitem.ID(checkListItemID)))).
-				Only(ctx)
-			if err != nil {
-				return privacy.Denyf("failed to fetch work order: %w", err)
-			}
-			return allowOrSkipWorkOrder(ctx, FromContext(ctx), workOrder)
+			return allowOrSkipCheckListItemCreate(ctx, m.Client(), checkListItemID)
 		}
 		return privacy.Skip
 	})
