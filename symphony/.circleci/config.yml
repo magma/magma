@@ -511,7 +511,9 @@ jobs:
       - run:
           name: install flow
           <<: *appdir
-          command: yarn add --dev -W flow-bin@0.125
+          # Extract the specified flow version from the .flowconfig
+          command: yarn add --dev -W flow-bin@$(x=$(grep "\[version\]" .flowconfig -A 1 | tail -n 1); echo ${x:1})
+
       - yarn-install
       - run:
           name: flow typecheck
