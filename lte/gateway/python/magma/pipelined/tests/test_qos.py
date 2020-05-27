@@ -177,7 +177,7 @@ get_action_instruction')
 
         qos_mgr = QosManager(MagicMock, asyncio.new_event_loop(), self.config)
         qos_mgr._qos_store = {}
-        qos_mgr.setup()
+        qos_mgr._setupInternal()
         imsi, rule_num, d, qos_info = "imsi1234", 0, 0, QosInfo(100000, 100000)
 
         # add new subscriber qos queue
@@ -236,7 +236,7 @@ get_action_instruction')
         - Finally we delete everything and verify if that behavior is right'''
         qos_mgr = QosManager(MagicMock, asyncio.new_event_loop(), self.config)
         qos_mgr._qos_store = {}
-        qos_mgr.setup()
+        qos_mgr._setupInternal()
         rule_list1 = [("imsi1", 0, 0),
                       ("imsi1", 1, 0),
                       ("imsi1", 2, 1),
@@ -413,7 +413,7 @@ get_action_instruction')
         else:
             mock_traffic_cls.read_all_classes.side_effect = tc_read
 
-        qos_mgr.setup()
+        qos_mgr._setupInternal()
 
         # run async loop once to ensure ready items are cleared
         loop._run_once()
@@ -450,7 +450,7 @@ get_action_instruction')
         else:
             mock_traffic_cls.read_all_classes.side_effect = lambda _: []
 
-        qos_mgr.setup()
+        qos_mgr._setupInternal()
 
         # run async loop once to ensure ready items are cleared
         loop._run_once()
@@ -472,7 +472,7 @@ get_action_instruction')
         else:
             mock_traffic_cls.read_all_classes.side_effect = tc_read
 
-        qos_mgr.setup()
+        qos_mgr._setupInternal()
 
         # run async loop once to ensure ready items are cleared
         loop._run_once()
@@ -499,6 +499,28 @@ get_action_instruction')
         for impl_type in (QosImplType.LINUX_TC, QosImplType.OVS_METER,):
             self.config["qos"]["impl"] = impl_type
             self._testMultipleSubscribers()
+
+    def testRedisConnectionFailure(self,):
+        self.config["qos"]["impl"] = QosImplType.LINUX_TC
+        qos_mgr = QosManager(MagicMock, asyncio.new_event_loop(), self.config)
+
+        redisConnFailureCount = 5
+
+        def mockRedisAvail(*args, **kw):
+            if not hasattr(mockRedisAvail, "count"):
+                mockRedisAvail.count = 0
+            mockRedisAvail.count += 1
+            if mockRedisAvail.count > redisConnFailureCount:
+                return True
+            return False
+
+        qos_mgr.redisAvailable = mockRedisAvail
+        qos_mgr._setupInternal = lambda: True
+        with self.assertLogs('pipelined.qos.common', level='INFO') as cm:
+            qos_mgr.setup()
+        self.assertTrue(len(cm.output), redisConnFailureCount)
+        for output in cm.output:
+            self.assertTrue("failed to connect to redis" in output)
 
     def testUncleanRestart(self,):
         with patch.dict(self.config, {"clean_restart": False}):

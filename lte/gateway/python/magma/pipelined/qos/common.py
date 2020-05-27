@@ -45,6 +45,13 @@ class QosManager(object):
         else:
             return TCManager(datapath, loop, config)
 
+    def redisAvailable(self):
+        try:
+            self._qos_store.client.ping()
+        except ConnectionError:
+            return False
+        return True
+
     def __init__(self, datapath, loop, config):
         # pylint: disable=unnecessary-lambda
         self._enable_qos = config['qos']['enable']
@@ -56,13 +63,23 @@ class QosManager(object):
         self._clean_restart = config['clean_restart']
         self._qos_store = QosStore(self.__class__.__name__)
         self._initialized = False
+        self._redis_conn_retry_secs = 1
 
-    def setup(self, ):
+    def setup(self):
         if not self._enable_qos:
             return
 
+        if self.redisAvailable():
+            return self._setupInternal()
+        else:
+            LOG.info("failed to connect to redis..retrying in %d secs",
+                     self._redis_conn_retry_secs)
+            self._loop.call_later(self._redis_conn_retry_secs, self.setup)
+
+    def _setupInternal(self, ):
+        LOG.info("Qos Setup")
         if self._clean_restart:
-            LOG.info("recovering existing state")
+            LOG.info("clean start, wiping out existing state")
             self.qos_impl.destroy()
             self._qos_store.clear()
             self.qos_impl.setup()
@@ -123,7 +140,7 @@ class QosManager(object):
         k = get_subscriber_key(imsi, rule_num, direction)
         qos_handle = self._qos_store.get(get_json(k))
         if qos_handle:
-            LOG.info("qos handle already exists for %s", k)
+            LOG.debug("qos handle already exists for %s", k)
             return self.qos_impl.get_action_instruction(qos_handle)
 
         qos_handle = self.qos_impl.add_qos(direction, qos_info)
@@ -141,7 +158,7 @@ class QosManager(object):
         LOG.debug("removing Qos for imsi %s rule_num %d", imsi, rule_num)
         if imsi:
             if imsi not in self._subscriber_map:
-                LOG.error("unable to find imsi %s", imsi)
+                LOG.debug("unable to find imsi %s", imsi)
                 return
 
             if rule_num != -1:
