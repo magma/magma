@@ -162,6 +162,10 @@ nginx:
         port: 443
         targetPort: 9443
         nodePort: ""
+      health:
+        port: 80
+        targetPort: 80
+        nodePort: ""
     loadBalancerIP: ""
     loadBalancerSourceRanges: []
 

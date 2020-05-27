@@ -66,6 +66,8 @@ spec:
               containerPort: {{ .Values.nginx.service.port.open.targetPort }}
             - name: api
               containerPort: {{ .Values.nginx.service.port.api.targetPort }}
+            - name: health
+              containerPort: {{ .Values.nginx.service.port.health.targetPort }}
           env:
             - name: PROXY_BACKENDS
               value: {{ print .Release.Name "-controller" | quote }}
@@ -75,12 +77,12 @@ spec:
               value: "kube-dns.kube-system.svc.cluster.local"
           livenessProbe:
             tcpSocket:
-              port: clientcert
+              port: health
             initialDelaySeconds: 10
             periodSeconds: 30
           readinessProbe:
             tcpSocket:
-              port: clientcert
+              port: health
             initialDelaySeconds: 5
             periodSeconds: 10
           resources:
