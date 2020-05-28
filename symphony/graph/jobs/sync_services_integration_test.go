@@ -8,14 +8,14 @@ import (
 	"context"
 	"testing"
 
-	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
+	"github.com/facebookincubator/symphony/pkg/ent/equipmentportdefinition"
 
 	"github.com/AlekSi/pointer"
 	"github.com/stretchr/testify/require"
 
-	"github.com/facebookincubator/symphony/graph/ent/serviceendpointdefinition"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
-	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
+	"github.com/facebookincubator/symphony/pkg/ent/serviceendpointdefinition"
+	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
 )
 
 func TestAddNewService(t *testing.T) {

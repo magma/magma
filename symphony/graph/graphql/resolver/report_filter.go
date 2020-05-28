@@ -8,8 +8,8 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/pkg/ent"
 )
 
 type reportFilterResolver struct{}

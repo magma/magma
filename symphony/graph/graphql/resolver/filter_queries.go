@@ -9,9 +9,9 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 
-	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/resolverutil"
+	"github.com/facebookincubator/symphony/pkg/ent"
 	"github.com/pkg/errors"
 )
 

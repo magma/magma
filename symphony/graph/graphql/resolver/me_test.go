@@ -7,7 +7,7 @@ package resolver
 import (
 	"testing"
 
-	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
+	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
 
 	"github.com/stretchr/testify/assert"
 )

@@ -8,11 +8,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/ent/user"
-	"github.com/facebookincubator/symphony/graph/ent/usersgroup"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/resolverutil"
+	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/ent/user"
+	"github.com/facebookincubator/symphony/pkg/ent/usersgroup"
 	"github.com/pkg/errors"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )

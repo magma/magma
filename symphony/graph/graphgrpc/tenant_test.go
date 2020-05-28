@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/facebookincubator/symphony/graph/ent/migrate"
+	"github.com/facebookincubator/symphony/pkg/ent/migrate"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"

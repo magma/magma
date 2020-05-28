@@ -16,15 +16,15 @@ import (
 	"testing"
 
 	"github.com/AlekSi/pointer"
-	"github.com/facebookincubator/symphony/graph/ent/property"
-	"github.com/facebookincubator/symphony/graph/ent/propertytype"
-	"github.com/facebookincubator/symphony/graph/ent/service"
 	"github.com/facebookincubator/symphony/graph/exporter"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/pkg/ent/property"
+	"github.com/facebookincubator/symphony/pkg/ent/propertytype"
+	"github.com/facebookincubator/symphony/pkg/ent/service"
 	"github.com/facebookincubator/symphony/pkg/log/logtest"
 
-	"github.com/facebookincubator/symphony/graph/viewer"
-	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
+	"github.com/facebookincubator/symphony/pkg/viewer"
+	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
 
 	"github.com/stretchr/testify/require"
 )

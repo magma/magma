@@ -8,7 +8,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/pkg/ent"
 )
 
 type commentResolver struct{}

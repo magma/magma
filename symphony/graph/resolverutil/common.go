@@ -8,13 +8,13 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/facebookincubator/symphony/graph/ent/user"
+	"github.com/facebookincubator/symphony/pkg/ent/user"
 
-	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/ent/predicate"
-	"github.com/facebookincubator/symphony/graph/ent/property"
-	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/ent/predicate"
+	"github.com/facebookincubator/symphony/pkg/ent/property"
+	"github.com/facebookincubator/symphony/pkg/ent/propertytype"
 	"github.com/pkg/errors"
 )
 

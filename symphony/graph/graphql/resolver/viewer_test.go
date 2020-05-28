@@ -8,14 +8,14 @@ import (
 	"context"
 	"testing"
 
-	"github.com/facebookincubator/symphony/graph/authz"
-	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
-	"github.com/facebookincubator/symphony/graph/viewer"
-	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
+	"github.com/facebookincubator/symphony/pkg/authz"
+	"github.com/facebookincubator/symphony/pkg/ent/user"
+	"github.com/facebookincubator/symphony/pkg/viewer"
+	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
 	"github.com/stretchr/testify/require"
 
-	models2 "github.com/facebookincubator/symphony/graph/authz/models"
+	models2 "github.com/facebookincubator/symphony/pkg/authz/models"
 )
 
 func TestUserViewer(t *testing.T) {

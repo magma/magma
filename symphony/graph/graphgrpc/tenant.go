@@ -9,9 +9,9 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/facebookincubator/symphony/graph/ent/migrate"
 	"github.com/facebookincubator/symphony/graph/graphgrpc/schema"
-	"github.com/facebookincubator/symphony/graph/viewer"
+	"github.com/facebookincubator/symphony/pkg/ent/migrate"
+	"github.com/facebookincubator/symphony/pkg/viewer"
 
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/golang/protobuf/ptypes/wrappers"

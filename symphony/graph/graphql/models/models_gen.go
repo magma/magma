@@ -12,12 +12,12 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/facebookincubator/symphony/graph/authz/models"
-	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
-	"github.com/facebookincubator/symphony/graph/ent/user"
-	"github.com/facebookincubator/symphony/graph/ent/usersgroup"
 	"github.com/facebookincubator/symphony/pkg/actions/core"
+	"github.com/facebookincubator/symphony/pkg/authz/models"
+	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/ent/checklistitem"
+	"github.com/facebookincubator/symphony/pkg/ent/user"
+	"github.com/facebookincubator/symphony/pkg/ent/usersgroup"
 )
 
 type NamedNode interface {

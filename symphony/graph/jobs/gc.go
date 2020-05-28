@@ -9,12 +9,12 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/facebookincubator/symphony/graph/ent/servicetype"
+	"github.com/facebookincubator/symphony/pkg/ent/servicetype"
 
 	"go.uber.org/zap"
 
-	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/ent/propertytype"
+	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/ent/propertytype"
 )
 
 // syncServices job syncs the services according to changes

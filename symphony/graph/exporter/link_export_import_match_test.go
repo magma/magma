@@ -13,8 +13,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/importer"
+	"github.com/facebookincubator/symphony/pkg/ent/equipment"
 	"github.com/stretchr/testify/require"
 )
 

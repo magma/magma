@@ -8,9 +8,9 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/ent/actionsrule"
 	"github.com/facebookincubator/symphony/pkg/actions/core"
+	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/ent/actionsrule"
 	"github.com/pkg/errors"
 )
 

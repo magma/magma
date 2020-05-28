@@ -11,12 +11,12 @@ import (
 
 	"database/sql"
 
-	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/pkg/actions/action/magmarebootnode"
 	"github.com/facebookincubator/symphony/pkg/actions/executor"
 	"github.com/facebookincubator/symphony/pkg/actions/trigger/magmaalert"
 	"github.com/facebookincubator/symphony/pkg/log"
 	"github.com/facebookincubator/symphony/pkg/orc8r"
+	"github.com/facebookincubator/symphony/pkg/viewer"
 
 	"github.com/google/wire"
 	"google.golang.org/grpc"

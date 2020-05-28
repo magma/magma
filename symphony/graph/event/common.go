@@ -8,8 +8,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/viewer"
+	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/viewer"
 	"go.uber.org/zap"
 )
 

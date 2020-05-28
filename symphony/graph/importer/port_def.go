@@ -10,10 +10,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
-	"github.com/facebookincubator/symphony/graph/ent/equipmentporttype"
-	"github.com/facebookincubator/symphony/graph/ent/equipmenttype"
+	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/ent/equipmentportdefinition"
+	"github.com/facebookincubator/symphony/pkg/ent/equipmentporttype"
+	"github.com/facebookincubator/symphony/pkg/ent/equipmenttype"
 
 	"go.uber.org/zap"
 )

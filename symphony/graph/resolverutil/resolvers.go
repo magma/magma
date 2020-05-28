@@ -8,12 +8,12 @@ import (
 	"context"
 	"strings"
 
-	"github.com/facebookincubator/symphony/graph/ent/service"
-	"github.com/facebookincubator/symphony/graph/ent/servicetype"
+	"github.com/facebookincubator/symphony/pkg/ent/service"
+	"github.com/facebookincubator/symphony/pkg/ent/servicetype"
 
-	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/ent/equipment"
 
 	"github.com/pkg/errors"
 )

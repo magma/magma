@@ -11,8 +11,8 @@ package graphevents
 
 import (
 	"github.com/facebookincubator/symphony/graph/event"
-	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/pkg/log"
+	"github.com/facebookincubator/symphony/pkg/viewer"
 )
 
 // Injectors from wire.go:

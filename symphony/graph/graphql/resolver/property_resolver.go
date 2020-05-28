@@ -8,8 +8,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/pkg/ent"
 )
 
 type propertyTypeResolver struct{}

@@ -12,16 +12,16 @@ import (
 	"sort"
 
 	"github.com/AlekSi/pointer"
-	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/ent/equipment"
-	"github.com/facebookincubator/symphony/graph/ent/location"
-	"github.com/facebookincubator/symphony/graph/ent/locationtype"
-	"github.com/facebookincubator/symphony/graph/ent/reportfilter"
-	"github.com/facebookincubator/symphony/graph/ent/workorder"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
-	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/pkg/actions"
 	"github.com/facebookincubator/symphony/pkg/actions/core"
+	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/ent/equipment"
+	"github.com/facebookincubator/symphony/pkg/ent/location"
+	"github.com/facebookincubator/symphony/pkg/ent/locationtype"
+	"github.com/facebookincubator/symphony/pkg/ent/reportfilter"
+	"github.com/facebookincubator/symphony/pkg/ent/workorder"
+	"github.com/facebookincubator/symphony/pkg/viewer"
 
 	"go.uber.org/zap"
 )

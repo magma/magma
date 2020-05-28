@@ -10,8 +10,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/facebookincubator/symphony/graph/ent/equipmenttype"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/pkg/ent/equipmenttype"
 
 	"go.uber.org/zap"
 )

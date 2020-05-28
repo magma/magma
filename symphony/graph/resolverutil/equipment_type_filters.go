@@ -5,10 +5,10 @@
 package resolverutil
 
 import (
-	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/ent/equipment"
-	"github.com/facebookincubator/symphony/graph/ent/equipmenttype"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/ent/equipment"
+	"github.com/facebookincubator/symphony/pkg/ent/equipmenttype"
 
 	"github.com/pkg/errors"
 )

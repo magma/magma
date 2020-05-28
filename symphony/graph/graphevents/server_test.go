@@ -12,15 +12,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/facebookincubator/symphony/graph/ent/user"
-	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
+	"github.com/facebookincubator/symphony/pkg/ent/user"
+	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
 	"github.com/stretchr/testify/require"
 
-	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/event"
+	"github.com/facebookincubator/symphony/pkg/ent"
 
-	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/pkg/log/logtest"
+	"github.com/facebookincubator/symphony/pkg/viewer"
 )
 
 func newTestServer(t *testing.T, client *ent.Client, subscriber event.Subscriber, handlers []Handler) *Server {
