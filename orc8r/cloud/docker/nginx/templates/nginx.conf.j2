@@ -8,6 +8,11 @@ events {
 }
 
 http {
+  # See https://kubernetes.github.io/ingress-nginx/examples/grpc/#notes-on-using-responserequest-streams
+  grpc_send_timeout 1200s;
+  grpc_read_timeout 1200s;
+  client_body_timeout 1200s;
+
   # Blackhole (9070) unrecognized services
   map $srv $srvport {
     default 9070;
