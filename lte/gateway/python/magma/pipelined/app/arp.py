@@ -120,6 +120,7 @@ class ArpController(MagmaController):
         Setup the arp flows for the controller, this is used when the controller
         restarts. Only setup those UEs that are passed from sessiond.
         """
+        self._current_ues = []
         self.delete_all_flows(self._datapath)
         self._install_default_flows(self._datapath)
         records = get_all_records()
