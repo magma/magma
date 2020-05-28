@@ -75,7 +75,7 @@ func indexImpl(networkID string, states state_types.StatesByID) []error {
 }
 
 func indexOne(networkID string, idx indexer.Indexer, states state_types.StatesByID) error {
-	filtered := filterStates(idx, states)
+	filtered := indexer.FilterStates(idx.GetSubscriptions(), states)
 	if len(filtered) == 0 {
 		return nil
 	}
@@ -98,21 +98,6 @@ func indexOne(networkID string, idx indexer.Indexer, states state_types.StatesBy
 	}
 
 	return nil
-}
-
-// Filter to states matching at least one subscription
-func filterStates(idx indexer.Indexer, states state_types.StatesByID) state_types.StatesByID {
-	ret := state_types.StatesByID{}
-	subs := idx.GetSubscriptions()
-	for id, st := range states {
-		for _, s := range subs {
-			if s.Match(id) {
-				ret[id] = st
-				break
-			}
-		}
-	}
-	return ret
 }
 
 func getVersion(idx indexer.Indexer) string {

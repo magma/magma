@@ -33,8 +33,6 @@ const (
 	did3 = "some_deviceid_3"
 
 	type0 = "some_type_0"
-	type1 = "some_type_1"
-	type2 = "some_type_2"
 
 	iid0 = "some_indexerid_0"
 	iid1 = "some_indexerid_1"
@@ -47,92 +45,6 @@ var (
 
 func init() {
 	//_ = flag.Set("alsologtostderr", "true") // uncomment to view logs during test
-}
-
-func TestFilterStates(t *testing.T) {
-	id0 := state_types.ID{Type: type0, DeviceID: did0}
-	id1 := state_types.ID{Type: type1, DeviceID: did1}
-	id2 := state_types.ID{Type: type2, DeviceID: did2}
-
-	st0 := state_types.State{ReportedState: 42, Type: type0}
-	st1 := state_types.State{ReportedState: 42, Type: type1}
-	st2 := state_types.State{ReportedState: 42, Type: type2}
-
-	type args struct {
-		idx    indexer.Indexer
-		states state_types.StatesByID
-	}
-	tests := []struct {
-		name string
-		args args
-		want state_types.StatesByID
-	}{
-		{
-			name: "one state one sub",
-			args: args{
-				idx:    getIndexerFull("", []indexer.Subscription{{Type: type0, KeyMatcher: indexer.MatchAll}}),
-				states: state_types.StatesByID{id0: st0},
-			},
-			want: state_types.StatesByID{id0: st0},
-		},
-		{
-			name: "one state zero sub",
-			args: args{
-				idx:    getIndexerFull("", nil),
-				states: state_types.StatesByID{id0: st0},
-			},
-			want: state_types.StatesByID{},
-		},
-		{
-			name: "zero state one sub",
-			args: args{
-				idx:    getIndexerFull("", []indexer.Subscription{{Type: type0, KeyMatcher: indexer.MatchAll}}),
-				states: state_types.StatesByID{},
-			},
-			want: state_types.StatesByID{},
-		},
-		{
-			name: "wrong type",
-			args: args{
-				idx:    getIndexerFull("", []indexer.Subscription{{Type: type1, KeyMatcher: indexer.MatchAll}}),
-				states: state_types.StatesByID{id0: st0},
-			},
-			want: state_types.StatesByID{},
-		},
-		{
-			name: "wrong device ID",
-			args: args{
-				idx:    getIndexerFull("", []indexer.Subscription{{Type: type0, KeyMatcher: indexer.NewMatchExact("0xdeadbeef")}}),
-				states: state_types.StatesByID{id0: st0},
-			},
-			want: state_types.StatesByID{},
-		},
-		{
-			name: "multi state multi sub",
-			args: args{
-				idx: getIndexerFull("", []indexer.Subscription{
-					{Type: type0, KeyMatcher: indexer.MatchAll},
-					{Type: type1, KeyMatcher: indexer.NewMatchPrefix(id1.DeviceID[0:3])},
-					{Type: type2, KeyMatcher: indexer.NewMatchExact(id2.DeviceID[0:3])},
-				}),
-				states: state_types.StatesByID{
-					id0: st0,
-					id1: st1,
-					id2: st2,
-				},
-			},
-			want: state_types.StatesByID{
-				id0: st0,
-				id1: st1,
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := filterStates(tt.args.idx, tt.args.states)
-			assert.Equal(t, tt.want, got, tt.want)
-		})
-	}
 }
 
 func TestIndexImpl_HappyPath(t *testing.T) {
@@ -232,15 +144,6 @@ func TestIndexImpl_AllStatesFiltered(t *testing.T) {
 	assert.Empty(t, actual)
 	idx0.AssertNotCalled(t, "Index", mock.Anything, mock.Anything)
 	idx1.AssertNotCalled(t, "Index", mock.Anything, mock.Anything)
-}
-
-func getIndexerFull(id string, subs []indexer.Subscription) *mocks.Indexer {
-	idx := &mocks.Indexer{}
-	idx.On("GetID").Return(id)
-	idx.On("GetSubscriptions").Return(subs)
-	idx.On("GetVersion").Return(indexer.Version(42))
-	idx.On("Index", mock.Anything, mock.Anything).Return(nil, nil).Once()
-	return idx
 }
 
 func getIndexerWithVersion(id string, subs []indexer.Subscription) *mocks.Indexer {

@@ -13,7 +13,9 @@
 //	- TEST_DATABASE_PORT_POSTGRES=5433
 //	- TEST_DATABASE_PORT_MARIA=3307
 
-package reindex
+// reindex_test.go also contains the consts and vars shared by reindex testing code.
+
+package reindex_test
 
 import (
 	"context"
@@ -34,29 +36,68 @@ import (
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/services/state/indexer"
 	"magma/orc8r/cloud/go/services/state/indexer/mocks"
-	"magma/orc8r/cloud/go/services/state/servicers"
+	"magma/orc8r/cloud/go/services/state/indexer/reindex"
 	state_test_init "magma/orc8r/cloud/go/services/state/test_init"
 	state_test "magma/orc8r/cloud/go/services/state/test_utils"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/lib/go/protos"
 
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 	assert "github.com/stretchr/testify/require"
 )
 
 const (
-	singleAttempt      = 1
+	queueTableName   = "reindex_job_queue"
+	versionTableName = "indexer_versions"
+
+	twoAttempts = 2
+
+	defaultJobTimeout  = 5 * time.Minute // copied from queue_sql.go
 	defaultTestTimeout = 5 * time.Second
 
 	// Cause 3 batches per network
-	numBatches       = numNetworks * 3
-	numNetworks      = 3
-	statesPerNetwork = 2*numStatesToReindexPerCall + 1
+	numStatesToReindexPerCall = 100 // copied from reindex.go
+	numBatches                = numNetworks * 3
+	numNetworks               = 3
+	statesPerNetwork          = 2*numStatesToReindexPerCall + 1
+
+	nid0 = "some_networkid_0"
+	nid1 = "some_networkid_1"
+	nid2 = "some_networkid_2"
+
+	hwid0 = "some_hwid_0"
+	hwid1 = "some_hwid_1"
+	hwid2 = "some_hwid_2"
+
+	id0 = "some_indexerid_0"
+	id1 = "some_indexerid_1"
+	id2 = "some_indexerid_2"
+	id3 = "some_indexerid_3"
+	id4 = "some_indexerid_4"
+
+	zero      indexer.Version = 0
+	version0  indexer.Version = 10
+	version0a indexer.Version = 100
+	version1  indexer.Version = 20
+	version1a indexer.Version = 200
+	version2  indexer.Version = 30
+	version2a indexer.Version = 300
+	version3  indexer.Version = 40
+	version3a indexer.Version = 400
+	version4  indexer.Version = 50
+	version4a indexer.Version = 500
 )
 
 var (
-	matchAll = []indexer.Subscription{{Type: orc8r.DirectoryRecordType, KeyMatcher: indexer.MatchAll}}
-	matchOne = []indexer.Subscription{{Type: orc8r.DirectoryRecordType, KeyMatcher: indexer.NewMatchExact("imsi0")}}
+	someErr  = errors.New("some_error")
+	someErr1 = errors.New("some_error_1")
+	someErr2 = errors.New("some_error_2")
+	someErr3 = errors.New("some_error_3")
+
+	matchAll  = []indexer.Subscription{{Type: orc8r.DirectoryRecordType, KeyMatcher: indexer.MatchAll}}
+	matchOne  = []indexer.Subscription{{Type: orc8r.DirectoryRecordType, KeyMatcher: indexer.NewMatchExact("imsi0")}}
+	matchNone = []indexer.Subscription{{Type: orc8r.DirectoryRecordType, KeyMatcher: indexer.NewMatchExact("0xdeadbeef")}}
 )
 
 func init() {
@@ -64,19 +105,19 @@ func init() {
 }
 
 func TestRun(t *testing.T) {
-	dbName := "state___reindex_test"
+	dbName := "state___reindex_test___run"
 
 	// Writes to channel after completing a job
 	ch := make(chan interface{})
-	testHookReindexComplete = func() { ch <- nil }
-	defer func() { testHookReindexComplete = func() {} }()
+	reindex.TestHookReindexComplete = func() { ch <- nil }
+	defer func() { reindex.TestHookReindexComplete = func() {} }()
 
 	clock.SkipSleeps(t)
 	defer clock.ResumeSleeps(t)
 
-	q, store := initReindexTest(t, dbName)
+	r, q := initReindexTest(t, dbName)
 	ctx, cancel := context.WithCancel(context.Background())
-	go Run(ctx, q, store)
+	go r.Run(ctx)
 	defer cancel()
 
 	// Single indexer
@@ -125,12 +166,74 @@ func TestRun(t *testing.T) {
 	fail1.AssertExpectations(t)
 	fail2.AssertExpectations(t)
 	fail3.AssertExpectations(t)
-	assertErrored(t, q, id1, ErrPrepare, someErr1)
-	assertErrored(t, q, id2, ErrReindex, someErr2)
-	assertErrored(t, q, id3, ErrComplete, someErr3)
+	assertErrored(t, q, id1, reindex.ErrPrepare, someErr1)
+	assertErrored(t, q, id2, reindex.ErrReindex, someErr2)
+	assertErrored(t, q, id3, reindex.ErrComplete, someErr3)
 }
 
-func initReindexTest(t *testing.T, dbName string) (JobQueue, servicers.StateServiceInternal) {
+func TestRunUnsafe(t *testing.T) {
+	dbName := "state___reindex_test___run_unsafe"
+	r, q := initReindexTest(t, dbName)
+	ctx := context.Background()
+
+	// New indexer => reindex
+	idx0 := getIndexer(id0, zero, version0, true)
+	idx0.On("GetSubscriptions").Return(matchAll).Once()
+	register(t, idx0)
+
+	updates := func(m string) {
+		assert.Contains(t, m, id0)
+	}
+	err := r.RunUnsafe(ctx, id0, updates) // this run gets a ctx+updates to ensure it doesn't break
+	assert.NoError(t, err)
+	assertVersions(t, q, id0, version0, version0)
+
+	// Old version => reindex
+	idx0a := getIndexer(id0, version0, version0a, false)
+	idx0a.On("GetSubscriptions").Return(matchAll).Once()
+	register(t, idx0a)
+	err = r.RunUnsafe(nil, id0, nil)
+	assert.NoError(t, err)
+	assertVersions(t, q, id0, version0a, version0a)
+
+	// Up-to-date version => no reindex
+	idx0b := getIndexer(id0, version0a, version0a, false)
+	idx0b.On("GetSubscriptions").Return(matchAll).Once()
+	register(t, idx0b)
+	err = r.RunUnsafe(nil, id0, nil)
+	assert.NoError(t, err)
+	assertVersions(t, q, id0, version0a, version0a)
+
+	// Reindex: filter all but one state
+	idx1 := getIndexerNoIndex(id1, zero, version1, true)
+	idx1.On("GetSubscriptions").Return(matchOne).Once()
+	idx1.On("Index", mock.Anything, mock.Anything).Return(nil, nil).Times(numNetworks)
+	register(t, idx1)
+	err = r.RunUnsafe(nil, id1, nil)
+	assert.NoError(t, err)
+	assertVersions(t, q, id1, version1, version1)
+
+	// Reindex: filter all
+	idx2 := getIndexerNoIndex(id2, zero, version2, true)
+	idx2.On("GetSubscriptions").Return(matchNone).Once()
+	register(t, idx2)
+	err = r.RunUnsafe(nil, id2, nil)
+	assert.NoError(t, err)
+	assertVersions(t, q, id2, version2, version2)
+
+	// Two new indexers => reindex
+	idx3 := getIndexer(id3, zero, version3, true)
+	idx4 := getIndexer(id4, zero, version4, true)
+	idx3.On("GetSubscriptions").Return(matchAll).Once()
+	idx4.On("GetSubscriptions").Return(matchAll).Once()
+	register(t, idx3, idx4)
+	err = r.RunUnsafe(nil, "", nil)
+	assert.NoError(t, err)
+	assertVersions(t, q, id3, version3, version3)
+	assertVersions(t, q, id4, version4, version4)
+}
+
+func initReindexTest(t *testing.T, dbName string) (reindex.Reindexer, reindex.JobQueue) {
 	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
 	indexer.DeregisterAllForTest(t)
 
@@ -143,7 +246,7 @@ func initReindexTest(t *testing.T, dbName string) (JobQueue, servicers.StateServ
 	configurator_test.RegisterGateway(t, nid1, hwid1, &models.GatewayDevice{HardwareID: hwid1})
 	configurator_test.RegisterGateway(t, nid2, hwid2, &models.GatewayDevice{HardwareID: hwid2})
 
-	db, store := state_test_init.StartTestServiceInternal(t, dbName, sqorc.PostgresDriver)
+	reindexer, q := state_test_init.StartTestServiceInternal(t, dbName, sqorc.PostgresDriver)
 
 	ctxByNetwork := map[string]context.Context{
 		nid0: state_test.GetContextWithCertificate(t, hwid0),
@@ -162,10 +265,7 @@ func initReindexTest(t *testing.T, dbName string) (JobQueue, servicers.StateServ
 		reportStates(t, ctxByNetwork[nid], deviceIDs, records)
 	}
 
-	q := NewSQLJobQueue(singleAttempt, db, sqorc.GetSqlBuilder())
-	err := q.Initialize()
-	assert.NoError(t, err)
-	return q, store
+	return reindexer, q
 }
 
 func reportStates(t *testing.T, ctx context.Context, deviceIDs []string, records []*directoryd.DirectoryRecord) {
@@ -214,10 +314,14 @@ func getIndexer(id string, from, to indexer.Version, isFirstReindex bool) *mocks
 	return idx
 }
 
-func registerAndPopulate(t *testing.T, q JobQueue, idx ...indexer.Indexer) {
+func register(t *testing.T, idx ...indexer.Indexer) {
 	indexer.DeregisterAllForTest(t)
 	err := indexer.RegisterAll(idx...)
 	assert.NoError(t, err)
+}
+
+func registerAndPopulate(t *testing.T, q reindex.JobQueue, idx ...indexer.Indexer) {
+	register(t, idx...)
 	populated, err := q.PopulateJobs()
 	assert.True(t, populated)
 	assert.NoError(t, err)
@@ -232,23 +336,30 @@ func recvCh(t *testing.T, ch chan interface{}) {
 	}
 }
 
-func assertComplete(t *testing.T, q JobQueue, id string) {
-	st, err := GetStatus(q, id)
+func assertComplete(t *testing.T, q reindex.JobQueue, id string) {
+	st, err := reindex.GetStatus(q, id)
 	assert.NoError(t, err)
-	assert.Equal(t, StatusComplete, st)
-	e, err := GetError(q, id)
+	assert.Equal(t, reindex.StatusComplete, st)
+	e, err := reindex.GetError(q, id)
 	assert.NoError(t, err)
 	assert.Empty(t, e)
 }
 
-func assertErrored(t *testing.T, q JobQueue, indexerID string, sentinel Error, rootErr error) {
-	st, err := GetStatus(q, indexerID)
+func assertErrored(t *testing.T, q reindex.JobQueue, indexerID string, sentinel reindex.Error, rootErr error) {
+	st, err := reindex.GetStatus(q, indexerID)
 	assert.NoError(t, err)
-	assert.Equal(t, StatusAvailable, st)
-	e, err := GetError(q, indexerID)
+	assert.Equal(t, reindex.StatusAvailable, st)
+	e, err := reindex.GetError(q, indexerID)
 	assert.NoError(t, err)
 	// Job err contains relevant info
 	assert.Contains(t, e, indexerID)
 	assert.Contains(t, e, sentinel)
 	assert.Contains(t, e, rootErr.Error())
+}
+
+func assertVersions(t *testing.T, queue reindex.JobQueue, indexerID string, actual, desired indexer.Version) {
+	v, err := reindex.GetIndexerVersion(queue, indexerID)
+	assert.NoError(t, err)
+	assert.Equal(t, actual, v.Actual)
+	assert.Equal(t, desired, v.Desired)
 }

@@ -17,7 +17,6 @@ package indexer_test
 
 import (
 	"context"
-	"database/sql"
 	"testing"
 	"time"
 
@@ -35,7 +34,6 @@ import (
 	"magma/orc8r/cloud/go/services/state/indexer"
 	"magma/orc8r/cloud/go/services/state/indexer/mocks"
 	"magma/orc8r/cloud/go/services/state/indexer/reindex"
-	"magma/orc8r/cloud/go/services/state/servicers"
 	state_test_init "magma/orc8r/cloud/go/services/state/test_init"
 	state_test "magma/orc8r/cloud/go/services/state/test_utils"
 	state_types "magma/orc8r/cloud/go/services/state/types"
@@ -47,13 +45,12 @@ import (
 )
 
 const (
-	id0 = "some_indexerid_0"
+	id0   = "some_indexerid_0"
+	nid0  = "some_networkid_0"
+	hwid0 = "some_hwid_0"
 
 	zero     indexer.Version = 0
 	version0 indexer.Version = 100
-
-	nid0  = "some_networkid_0"
-	hwid0 = "some_hwid_0"
 
 	indexTimeout = 5 * time.Second
 )
@@ -83,7 +80,7 @@ func TestStateIndexing(t *testing.T) {
 	defer clock.ResumeSleeps(t)
 
 	dbName := "state___integ_test"
-	db, store := initTestServices(t, dbName)
+	r, q := initTestServices(t, dbName)
 
 	idx0 := mocks.NewMockIndexer(id0, version0, subs0, prepare0, complete0, index0)
 	err := indexer.RegisterAll(idx0)
@@ -98,7 +95,10 @@ func TestStateIndexing(t *testing.T) {
 		assertEqualRecord(t, recv[1], sid0)
 	})
 
-	cancel := startAsyncJobs(t, db, store)
+	_, err = q.PopulateJobs()
+	assert.NoError(t, err)
+	ctx, cancel := context.WithCancel(context.Background())
+	go r.Run(ctx)
 	defer cancel()
 
 	t.Run("reindex", func(t *testing.T) {
@@ -120,7 +120,7 @@ func TestStateIndexing(t *testing.T) {
 	})
 }
 
-func initTestServices(t *testing.T, dbName string) (*sql.DB, servicers.StateServiceInternal) {
+func initTestServices(t *testing.T, dbName string) (reindex.Reindexer, reindex.JobQueue) {
 	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
 	indexer.DeregisterAllForTest(t)
 
@@ -130,18 +130,6 @@ func initTestServices(t *testing.T, dbName string) (*sql.DB, servicers.StateServ
 	configurator_test.RegisterGateway(t, nid0, hwid0, &models.GatewayDevice{HardwareID: hwid0})
 
 	return state_test_init.StartTestServiceInternal(t, dbName, sqorc.PostgresDriver)
-}
-
-func startAsyncJobs(t *testing.T, db *sql.DB, store servicers.StateServiceInternal) context.CancelFunc {
-	q := reindex.NewSQLJobQueue(reindex.DefaultMaxAttempts, db, sqorc.GetSqlBuilder())
-	err := q.Initialize()
-	assert.NoError(t, err)
-	_, err = q.PopulateJobs()
-	assert.NoError(t, err)
-
-	ctx, cancel := context.WithCancel(context.Background())
-	go reindex.Run(ctx, q, store)
-	return cancel
 }
 
 func reportDirectoryStateForID(t *testing.T, id state_types.ID) {

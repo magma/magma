@@ -20,6 +20,34 @@ type Subscription struct {
 	KeyMatcher KeyMatcher
 }
 
+// FilterIDs to the subset that match at least one subscription.
+func FilterIDs(subs []Subscription, ids []state_types.ID) []state_types.ID {
+	var ret []state_types.ID
+	for _, id := range ids {
+		for _, s := range subs {
+			if s.Match(id) {
+				ret = append(ret, id)
+				break
+			}
+		}
+	}
+	return ret
+}
+
+// FilterStates to the subset that match at least one subscription.
+func FilterStates(subs []Subscription, states state_types.StatesByID) state_types.StatesByID {
+	ret := state_types.StatesByID{}
+	for id, st := range states {
+		for _, s := range subs {
+			if s.Match(id) {
+				ret[id] = st
+				break
+			}
+		}
+	}
+	return ret
+}
+
 // KeyMatcher indicates whether a particular key matches some pattern.
 type KeyMatcher interface {
 	Match(s string) bool

@@ -21,30 +21,7 @@ import (
 	"magma/orc8r/cloud/go/sqorc"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/pkg/errors"
 	assert "github.com/stretchr/testify/require"
-)
-
-const (
-	queueTableName   = "reindex_job_queue"
-	versionTableName = "indexer_versions"
-	defaultTimeout   = 5 * time.Minute
-
-	id0 = "some_indexerid_0"
-	id1 = "some_indexerid_1"
-	id2 = "some_indexerid_2"
-	id3 = "some_indexerid_3"
-	id4 = "some_indexerid_4"
-
-	zero      indexer.Version = 0
-	version0  indexer.Version = 100
-	version0a indexer.Version = 1000
-	version1  indexer.Version = 200
-	version1a indexer.Version = 2000
-	version2  indexer.Version = 300
-	version2a indexer.Version = 3000
-	version3  indexer.Version = 400
-	version4  indexer.Version = 500
 )
 
 var (
@@ -53,14 +30,11 @@ var (
 	queueColsJoined   = strings.Join(queueCols, ", ")
 	versionColsJoined = strings.Join(versionCols, ", ")
 
-	someErr  = errors.New("some_error")
-	someErr1 = errors.New("some_error_1")
-
-	indexer0 = mocks.NewMockIndexer(id0, version0, nil, nil, nil, nil)
-	indexer1 = mocks.NewMockIndexer(id1, version1a, nil, nil, nil, nil)
-	indexer2 = mocks.NewMockIndexer(id2, version2a, nil, nil, nil, nil)
-	indexer3 = mocks.NewMockIndexer(id3, version3, nil, nil, nil, nil)
-	indexer4 = mocks.NewMockIndexer(id4, version4, nil, nil, nil, nil)
+	sqlIndexer0 = mocks.NewMockIndexer(id0, version0, nil, nil, nil, nil)
+	sqlIndexer1 = mocks.NewMockIndexer(id1, version1a, nil, nil, nil, nil)
+	sqlIndexer2 = mocks.NewMockIndexer(id2, version2a, nil, nil, nil, nil)
+	sqlIndexer3 = mocks.NewMockIndexer(id3, version3, nil, nil, nil, nil)
+	sqlIndexer4 = mocks.NewMockIndexer(id4, version4, nil, nil, nil, nil)
 )
 
 func init() {
@@ -72,7 +46,7 @@ func TestSqlJobQueue_PopulateJobs(t *testing.T) {
 	defer clock.UnfreezeClock(t)
 	now := clock.Now()
 	recent := now.Add(-time.Minute)
-	pastTimeout := recent.Add(-defaultTimeout)
+	pastTimeout := recent.Add(-defaultJobTimeout)
 
 	// Five indexers
 	//	- id0 tracked, needs upgrade, previous reindex job doesn't exist
@@ -91,6 +65,19 @@ func TestSqlJobQueue_PopulateJobs(t *testing.T) {
 						AddRow(id2, zero, version2).
 						AddRow(id3, version3, version3),
 				)
+			// Clear tracked versions
+			m.ExpectExec(fmt.Sprintf("DELETE FROM %s", versionTableName)).
+				WillReturnResult(sqlmock.NewResult(1, 1))
+			// Insert new versions
+			m.ExpectExec(fmt.Sprintf("INSERT INTO %s", versionTableName)).
+				WithArgs(
+					id0, zero, version0,
+					id1, version1, version1a,
+					id2, zero, version2a,
+					id3, version3, version3,
+					id4, zero, version4,
+				).
+				WillReturnResult(sqlmock.NewResult(1, 1))
 			// Get existing jobs
 			m.ExpectQuery(fmt.Sprintf("SELECT %s FROM %s", queueColsJoined, queueTableName)).
 				WillReturnRows(
@@ -109,23 +96,10 @@ func TestSqlJobQueue_PopulateJobs(t *testing.T) {
 					id4, zero, version4, now.Unix(),
 				).
 				WillReturnResult(sqlmock.NewResult(1, 1))
-			// Clear tracked versions
-			m.ExpectExec(fmt.Sprintf("DELETE FROM %s", versionTableName)).
-				WillReturnResult(sqlmock.NewResult(1, 1))
-			// Insert new versions
-			m.ExpectExec(fmt.Sprintf("INSERT INTO %s", versionTableName)).
-				WithArgs(
-					id0, zero, version0,
-					id1, version1, version1a,
-					id2, zero, version2a,
-					id3, version3, version3,
-					id4, zero, version4,
-				).
-				WillReturnResult(sqlmock.NewResult(1, 1))
 			m.ExpectCommit()
 		},
 
-		registered: []indexer.Indexer{indexer0, indexer1, indexer2, indexer3, indexer4},
+		registered: []indexer.Indexer{sqlIndexer0, sqlIndexer1, sqlIndexer2, sqlIndexer3, sqlIndexer4},
 		run:        func(queue reindex.JobQueue) (interface{}, error) { return queue.PopulateJobs() },
 		result:     true,
 	}
@@ -168,9 +142,9 @@ func TestSqlJobQueue_ClaimAvailableJob(t *testing.T) {
 			m.ExpectCommit()
 		},
 
-		registered: []indexer.Indexer{indexer0, indexer1, indexer2},
+		registered: []indexer.Indexer{sqlIndexer0, sqlIndexer1, sqlIndexer2},
 		run:        func(queue reindex.JobQueue) (interface{}, error) { return queue.ClaimAvailableJob() },
-		result:     &reindex.Job{Idx: indexer0, From: version0, To: version0a},
+		result:     &reindex.Job{Idx: sqlIndexer0, From: version0, To: version0a},
 	}
 
 	selectEmpty := &testCase{
@@ -179,7 +153,7 @@ func TestSqlJobQueue_ClaimAvailableJob(t *testing.T) {
 				WillReturnRows(sqlmock.NewRows(queueCols))
 			m.ExpectRollback()
 		},
-		registered: []indexer.Indexer{indexer0, indexer1, indexer2},
+		registered: []indexer.Indexer{sqlIndexer0, sqlIndexer1, sqlIndexer2},
 		run:        func(queue reindex.JobQueue) (interface{}, error) { return queue.ClaimAvailableJob() },
 		result:     nil,
 	}
@@ -190,7 +164,7 @@ func TestSqlJobQueue_ClaimAvailableJob(t *testing.T) {
 				WillReturnError(someErr)
 			m.ExpectRollback()
 		},
-		registered: []indexer.Indexer{indexer0, indexer1, indexer2},
+		registered: []indexer.Indexer{sqlIndexer0, sqlIndexer1, sqlIndexer2},
 		run:        func(queue reindex.JobQueue) (interface{}, error) { return queue.ClaimAvailableJob() },
 		err:        someErr,
 	}
@@ -207,7 +181,7 @@ func TestSqlJobQueue_ClaimAvailableJob(t *testing.T) {
 				WillReturnError(someErr)
 			m.ExpectRollback()
 		},
-		registered: []indexer.Indexer{indexer0, indexer1, indexer2},
+		registered: []indexer.Indexer{sqlIndexer0, sqlIndexer1, sqlIndexer2},
 		run:        func(queue reindex.JobQueue) (interface{}, error) { return queue.ClaimAvailableJob() },
 		err:        someErr,
 	}
@@ -235,7 +209,7 @@ func TestSqlJobQueue_CompleteJob(t *testing.T) {
 		},
 
 		run: func(queue reindex.JobQueue) (interface{}, error) {
-			return nil, queue.CompleteJob(&reindex.Job{Idx: indexer0, From: version0, To: version0a}, nil)
+			return nil, queue.CompleteJob(&reindex.Job{Idx: sqlIndexer0, From: version0, To: version0a}, nil)
 		},
 	}
 
@@ -248,7 +222,7 @@ func TestSqlJobQueue_CompleteJob(t *testing.T) {
 		},
 
 		run: func(queue reindex.JobQueue) (interface{}, error) {
-			return nil, queue.CompleteJob(&reindex.Job{Idx: indexer0, From: version0, To: version0a}, someErr)
+			return nil, queue.CompleteJob(&reindex.Job{Idx: sqlIndexer0, From: version0, To: version0a}, someErr)
 		},
 	}
 
@@ -261,7 +235,7 @@ func TestSqlJobQueue_CompleteJob(t *testing.T) {
 		},
 
 		run: func(queue reindex.JobQueue) (interface{}, error) {
-			return nil, queue.CompleteJob(&reindex.Job{Idx: indexer0, From: version0, To: version0a}, nil)
+			return nil, queue.CompleteJob(&reindex.Job{Idx: sqlIndexer0, From: version0, To: version0a}, nil)
 		},
 		err: someErr,
 	}
@@ -278,7 +252,7 @@ func TestSqlJobQueue_CompleteJob(t *testing.T) {
 		},
 
 		run: func(queue reindex.JobQueue) (interface{}, error) {
-			return nil, queue.CompleteJob(&reindex.Job{Idx: indexer0, From: version0, To: version0a}, nil)
+			return nil, queue.CompleteJob(&reindex.Job{Idx: sqlIndexer0, From: version0, To: version0a}, nil)
 		},
 		err: someErr,
 	}
@@ -301,7 +275,7 @@ func TestSqlJobQueue_GetAllErrors(t *testing.T) {
 			m.ExpectCommit()
 		},
 
-		run:    func(queue reindex.JobQueue) (interface{}, error) { return queue.GetAllErrors() },
+		run:    func(queue reindex.JobQueue) (interface{}, error) { return reindex.GetErrors(queue) },
 		result: map[string]string{id0: someErr.Error(), id1: someErr1.Error()},
 	}
 
@@ -312,7 +286,7 @@ func TestSqlJobQueue_GetAllErrors(t *testing.T) {
 			m.ExpectCommit()
 		},
 
-		run:    func(queue reindex.JobQueue) (interface{}, error) { return queue.GetAllErrors() },
+		run:    func(queue reindex.JobQueue) (interface{}, error) { return reindex.GetErrors(queue) },
 		result: map[string]string{},
 	}
 
@@ -323,7 +297,7 @@ func TestSqlJobQueue_GetAllErrors(t *testing.T) {
 			m.ExpectRollback()
 		},
 
-		run: func(queue reindex.JobQueue) (interface{}, error) { return queue.GetAllErrors() },
+		run: func(queue reindex.JobQueue) (interface{}, error) { return reindex.GetErrors(queue) },
 		err: someErr,
 	}
 
@@ -333,23 +307,39 @@ func TestSqlJobQueue_GetAllErrors(t *testing.T) {
 }
 
 func TestSqlJobQueue_GetAllJobInfo(t *testing.T) {
-	threeFound := &testCase{
+	clock.SetAndFreezeClock(t, time.Unix(0, 0).Add(4*time.Hour))
+	defer clock.UnfreezeClock(t)
+	now := clock.Now()
+	timedOut := clock.Now().Add(-10 * time.Minute)
+	maxAttempts := reindex.DefaultMaxAttempts
+
+	// Jobs:
+	//	- max attempts, available => err
+	//	- max attempts, in progress + timed out => err
+	//	- max attempts, in progress + not timed out => no err
+	//	- min attempts, available => no err
+	//	- complete => no err
+	happyPath := &testCase{
 		setup: func(m sqlmock.Sqlmock) {
 			m.ExpectQuery(fmt.Sprintf("SELECT %s FROM %s", queueColsJoined, queueTableName)).
 				WillReturnRows(
 					sqlmock.NewRows(queueCols).
-						AddRow(id0, version0, version0a, reindex.StatusAvailable, 42, someErr.Error(), 42).
-						AddRow(id1, version1, version1a, reindex.StatusInProgress, 43, someErr1.Error(), 43).
-						AddRow(id2, version2, version2a, reindex.StatusComplete, 44, "", 44),
+						AddRow(id0, version0, version0a, reindex.StatusAvailable, maxAttempts, someErr.Error(), now.Unix()).
+						AddRow(id1, version1, version1a, reindex.StatusInProgress, maxAttempts, someErr1.Error(), timedOut.Unix()).
+						AddRow(id2, version2, version2a, reindex.StatusInProgress, maxAttempts, someErr2.Error(), now.Unix()).
+						AddRow(id3, version3, version3a, reindex.StatusAvailable, 1, someErr3.Error(), timedOut.Unix()).
+						AddRow(id4, version4, version4a, reindex.StatusComplete, 1, "", timedOut.Unix()),
 				)
 			m.ExpectCommit()
 		},
 
-		run: func(queue reindex.JobQueue) (interface{}, error) { return queue.GetAllJobInfo() },
+		run: func(queue reindex.JobQueue) (interface{}, error) { return queue.GetJobInfos() },
 		result: map[string]reindex.JobInfo{
-			id0: {Status: reindex.StatusAvailable, Attempts: 42},
-			id1: {Status: reindex.StatusInProgress, Attempts: 43},
-			id2: {Status: reindex.StatusComplete, Attempts: 44},
+			id0: {IndexerID: id0, Status: reindex.StatusAvailable, Error: someErr.Error(), Attempts: maxAttempts},
+			id1: {IndexerID: id1, Status: reindex.StatusInProgress, Error: someErr1.Error(), Attempts: maxAttempts},
+			id2: {IndexerID: id2, Status: reindex.StatusInProgress, Error: "", Attempts: maxAttempts},
+			id3: {IndexerID: id3, Status: reindex.StatusAvailable, Error: "", Attempts: 1},
+			id4: {IndexerID: id4, Status: reindex.StatusComplete, Error: "", Attempts: 1},
 		},
 	}
 
@@ -360,7 +350,7 @@ func TestSqlJobQueue_GetAllJobInfo(t *testing.T) {
 			m.ExpectCommit()
 		},
 
-		run:    func(queue reindex.JobQueue) (interface{}, error) { return queue.GetAllJobInfo() },
+		run:    func(queue reindex.JobQueue) (interface{}, error) { return queue.GetJobInfos() },
 		result: map[string]reindex.JobInfo{},
 	}
 
@@ -371,11 +361,11 @@ func TestSqlJobQueue_GetAllJobInfo(t *testing.T) {
 			m.ExpectRollback()
 		},
 
-		run: func(queue reindex.JobQueue) (interface{}, error) { return queue.GetAllJobInfo() },
+		run: func(queue reindex.JobQueue) (interface{}, error) { return queue.GetJobInfos() },
 		err: someErr,
 	}
 
-	runCase(t, threeFound)
+	runCase(t, happyPath)
 	runCase(t, zeroFound)
 	runCase(t, selectErr)
 }
