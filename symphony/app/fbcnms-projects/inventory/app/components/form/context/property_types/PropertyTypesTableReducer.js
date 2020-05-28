@@ -46,7 +46,10 @@ export function reducer(
     case 'ADD_PROPERTY_TYPE':
       return [...state, getInitialPropertyType(state.length)];
     case 'REMOVE_PROPERTY_TYPE':
-      return state.slice().filter(p => p.id !== action.id);
+      return editPropertyType(state, action.id, pt => ({
+        ...pt,
+        isDeleted: true,
+      }));
     case 'UPDATE_PROPERTY_TYPE_NAME':
       return editPropertyType(state, action.id, pt => ({
         ...pt,
