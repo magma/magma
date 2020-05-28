@@ -8,9 +8,11 @@
  * @flow strict-local
  * @format
  */
+import type {gateway_id, lte_gateway} from '@fbcnms/magma-api';
 
 import CellWifiIcon from '@material-ui/icons/CellWifi';
-import DataUsageIcon from '@material-ui/icons/DataUsage';
+import EquipmentGatewayKPIs from './EquipmentGatewayKPIs';
+import GatewayCheckinChart from './GatewayCheckinChart';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
@@ -30,10 +32,10 @@ import Text from '@fbcnms/ui/components/design-system/Text';
 import isGatewayHealthy from '../../components/GatewayUtils';
 import nullthrows from '@fbcnms/util/nullthrows';
 import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
+
 import {makeStyles} from '@material-ui/styles';
 import {useHistory} from 'react-router-dom';
 import {useRouter} from '@fbcnms/ui/hooks';
-import type {gateway_id, lte_gateway} from '@fbcnms/magma-api';
 
 export const DATE_TO_STRING_PARAMS = [
   'en-US',
@@ -92,16 +94,16 @@ const useStyles = makeStyles(theme => ({
 
 export default function Gateway() {
   const classes = useStyles();
+
   return (
     <div className={classes.dashboardRoot}>
-      <Grid container spacing={3} alignItems="stretch">
+      <Grid container justify="space-between" spacing={3}>
         <Grid item xs={12}>
-          <Text>
-            <DataUsageIcon /> Gateway Check-Ins
-          </Text>
-          <Paper className={classes.paper}>Gateway Check in chart</Paper>
+          <GatewayCheckinChart />
         </Grid>
-
+        <Grid item xs={12}>
+          <EquipmentGatewayKPIs />
+        </Grid>
         <Grid item xs={12}>
           <Text>
             <CellWifiIcon /> Gateways

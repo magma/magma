@@ -8,13 +8,13 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/facebookincubator/symphony/graph/authz"
-	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/ent/user"
+	"github.com/facebookincubator/symphony/pkg/authz"
+	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/ent/user"
 
 	"github.com/facebookincubator/symphony/graph/event"
-	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/pkg/log"
+	"github.com/facebookincubator/symphony/pkg/viewer"
 	"go.uber.org/zap"
 )
 

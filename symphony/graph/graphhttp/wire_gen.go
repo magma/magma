@@ -11,7 +11,6 @@ package graphhttp
 
 import (
 	"github.com/facebookincubator/symphony/graph/event"
-	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/pkg/actions/action/magmarebootnode"
 	"github.com/facebookincubator/symphony/pkg/actions/executor"
 	"github.com/facebookincubator/symphony/pkg/actions/trigger/magmaalert"
@@ -21,6 +20,7 @@ import (
 	"github.com/facebookincubator/symphony/pkg/server"
 	"github.com/facebookincubator/symphony/pkg/server/xserver"
 	"github.com/facebookincubator/symphony/pkg/telemetry"
+	"github.com/facebookincubator/symphony/pkg/viewer"
 	"go.opencensus.io/stats/view"
 	"gocloud.dev/server/health"
 	"net/url"

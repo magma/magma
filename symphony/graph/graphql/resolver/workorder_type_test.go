@@ -9,19 +9,19 @@ import (
 	"context"
 	"testing"
 
-	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
+	"github.com/facebookincubator/symphony/pkg/ent/checklistitem"
 
-	"github.com/facebookincubator/symphony/graph/ent/checklistcategorydefinition"
-	"github.com/facebookincubator/symphony/graph/ent/checklistitemdefinition"
+	"github.com/facebookincubator/symphony/pkg/ent/checklistcategorydefinition"
+	"github.com/facebookincubator/symphony/pkg/ent/checklistitemdefinition"
 
 	"github.com/99designs/gqlgen/client"
 
-	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/pkg/ent"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
-	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
+	"github.com/facebookincubator/symphony/pkg/ent/propertytype"
+	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
 
 	"github.com/AlekSi/pointer"
 	"github.com/stretchr/testify/require"

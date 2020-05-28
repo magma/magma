@@ -11,18 +11,18 @@ import (
 
 	"github.com/prometheus/common/log"
 
-	"github.com/facebookincubator/symphony/graph/ent/equipment"
-	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
-	"github.com/facebookincubator/symphony/graph/ent/equipmenttype"
-	"github.com/facebookincubator/symphony/graph/ent/link"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/pkg/ent/equipment"
+	"github.com/facebookincubator/symphony/pkg/ent/equipmentport"
+	"github.com/facebookincubator/symphony/pkg/ent/equipmenttype"
+	"github.com/facebookincubator/symphony/pkg/ent/link"
 	"github.com/pkg/errors"
 
-	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/ent/service"
-	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
-	"github.com/facebookincubator/symphony/graph/ent/serviceendpointdefinition"
-	"github.com/facebookincubator/symphony/graph/ent/servicetype"
+	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/ent/service"
+	"github.com/facebookincubator/symphony/pkg/ent/serviceendpoint"
+	"github.com/facebookincubator/symphony/pkg/ent/serviceendpointdefinition"
+	"github.com/facebookincubator/symphony/pkg/ent/servicetype"
 )
 
 func getStructuredCurrentServicesForType(ctx context.Context, sType *ent.ServiceType) ([]serviceEquipmentListData, error) {

@@ -7,7 +7,7 @@ package resolver
 import (
 	"context"
 
-	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/pkg/ent"
 )
 
 type floorPlanResolver struct{}

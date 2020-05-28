@@ -63,9 +63,9 @@ services:
 
 secrets:
   api_cert:
-    file: ${API_CERT_FILENAME:-../../../.cache/test_certs/admin_operator.pem}
+    file: ${API_CERT_FILENAME:-../../../../.cache/test_certs/admin_operator.pem}
   api_key:
-    file: ${API_PRIVATE_KEY_FILENAME:-../../../.cache/test_certs/admin_operator.key.pem}
+    file: ${API_PRIVATE_KEY_FILENAME:-../../../../.cache/test_certs/admin_operator.key.pem}
 
 networks:
   orc8r_default:

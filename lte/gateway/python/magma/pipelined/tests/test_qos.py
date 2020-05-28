@@ -313,10 +313,10 @@ get_action_instruction')
         self.assertTrue("imsi1" not in qos_mgr._subscriber_map)
 
         # deactivate same imsi again and ensure nothing bad happens
-        with self.assertLogs('pipelined.qos.common', level='ERROR') as cm:
+        with self.assertLogs('pipelined.qos.common', level='DEBUG') as cm:
             qos_mgr.remove_subscriber_qos("imsi1")
         error_msg = "unable to find imsi imsi1"
-        self.assertTrue(cm.output[0].endswith(error_msg))
+        self.assertTrue(error_msg in cm.output[-1])
 
         # now only imsi2 should remain
         self.assertTrue(len(qos_mgr._qos_store) == 1)
@@ -561,14 +561,14 @@ class TestTrafficClass(unittest.TestCase):
         mock_del_cls.assert_called_with("en0", 2, show_error=False,
                                         throw_except=False)
         mock_check_call.assert_any_call(['tc', 'class', 'add', 'dev', 'en0',
-                                         'parent', '1:fffe', 'classid', '1:2',
+                                         'parent', '1:fffe', 'classid', '1:0x2',
                                          'htb', 'rate', '12000', 'ceil', '10'])
         mock_check_call.assert_any_call(['tc', 'qdisc', 'add', 'dev', 'en0',
-                                         'parent', '1:2', 'fq_codel'])
+                                         'parent', '1:0x2', 'fq_codel'])
         mock_check_call.assert_any_call(['tc', 'filter', 'add', 'dev', 'en0',
                                          'protocol', 'ip', 'parent', '1:',
-                                         'prio', '1', 'handle', '2', 'fw',
-                                         'flowid', '1:2'])
+                                         'prio', '1', 'handle', '0x2', 'fw',
+                                         'flowid', '1:0x2'])
 
     @patch('subprocess.check_call')
     @patch('os.geteuid', return_value=1)

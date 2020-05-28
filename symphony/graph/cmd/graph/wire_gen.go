@@ -16,16 +16,16 @@ import (
 	"github.com/facebookincubator/symphony/graph/graphevents"
 	"github.com/facebookincubator/symphony/graph/graphgrpc"
 	"github.com/facebookincubator/symphony/graph/graphhttp"
-	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/pkg/log"
 	"github.com/facebookincubator/symphony/pkg/mysql"
 	"github.com/facebookincubator/symphony/pkg/server"
+	"github.com/facebookincubator/symphony/pkg/viewer"
 	"gocloud.dev/server/health"
 	"google.golang.org/grpc"
 )
 
 import (
-	_ "github.com/facebookincubator/symphony/graph/ent/runtime"
+	_ "github.com/facebookincubator/symphony/pkg/ent/runtime"
 	_ "gocloud.dev/pubsub/mempubsub"
 	_ "gocloud.dev/pubsub/natspubsub"
 )

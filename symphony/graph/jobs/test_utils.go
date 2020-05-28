@@ -10,9 +10,9 @@ import (
 	"github.com/AlekSi/pointer"
 
 	"github.com/facebookincubator/ent/dialect"
-	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/ent/equipmentportdefinition"
 )
 
 type (

@@ -17,13 +17,26 @@ import defaultTheme from '@fbcnms/ui/theme/default';
 import {MemoryRouter, Route} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {cleanup, render, wait} from '@testing-library/react';
-import type {lte_gateway} from '@fbcnms/magma-api';
+import type {lte_gateway, promql_return_object} from '@fbcnms/magma-api';
 
 jest.mock('axios');
 jest.mock('@fbcnms/magma-api');
 jest.mock('@fbcnms/ui/hooks/useSnackbar');
 
 afterEach(cleanup);
+
+const mockCheckinMetric: promql_return_object = {
+  status: 'success',
+  data: {
+    resultType: 'matrix',
+    result: [
+      {
+        metric: {},
+        values: [['1588898968.042', '6']],
+      },
+    ],
+  },
+};
 
 const mockGw0: lte_gateway = {
   id: 'test_gw0',
@@ -85,6 +98,10 @@ describe('<Gateway />', () => {
       test2: mockGw1,
       test3: mockGw2,
     });
+    // eslint-disable-next-line max-len
+    MagmaAPIBindings.getNetworksByNetworkIdPrometheusQueryRange.mockResolvedValue(
+      mockCheckinMetric,
+    );
   });
 
   afterEach(() => {
@@ -104,6 +121,11 @@ describe('<Gateway />', () => {
   it('renders', async () => {
     const {getByTestId} = render(<Wrapper />);
     await wait();
+
+    expect(
+      MagmaAPIBindings.getNetworksByNetworkIdPrometheusQueryRange,
+    ).toHaveBeenCalledTimes(1);
+
     expect(MagmaAPIBindings.getLteByNetworkIdGateways).toHaveBeenCalledTimes(1);
     let testElem = getByTestId('gatewayInfo-0');
     expect(testElem).toHaveTextContent('test_gw0');

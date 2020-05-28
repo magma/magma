@@ -26,7 +26,7 @@ import (
 	"google.golang.org/grpc"
 	"gopkg.in/alecthomas/kingpin.v2"
 
-	_ "github.com/facebookincubator/symphony/graph/ent/runtime"
+	_ "github.com/facebookincubator/symphony/pkg/ent/runtime"
 	_ "gocloud.dev/pubsub/mempubsub"
 	_ "gocloud.dev/pubsub/natspubsub"
 )

@@ -7,9 +7,9 @@ package graphgrpc
 import (
 	"context"
 
-	"github.com/facebookincubator/symphony/graph/authz"
-	"github.com/facebookincubator/symphony/graph/ent/user"
-	"github.com/facebookincubator/symphony/graph/viewer"
+	"github.com/facebookincubator/symphony/pkg/authz"
+	"github.com/facebookincubator/symphony/pkg/ent/user"
+	"github.com/facebookincubator/symphony/pkg/viewer"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
