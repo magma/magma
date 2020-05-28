@@ -462,7 +462,7 @@ pipeline {
         always {
           script {
             try {
-              copyFrom2ndServer('archives/magma_status.log', 'archives', new_host_flag, new_host_user, new_host)
+              copyFrom2ndServer('archives/magma_status2.log', 'archives', new_host_flag, new_host_user, new_host)
             } catch (Exception e) {
               echo "Maybe we failed before retrieving the Magma Services Status"
             }
