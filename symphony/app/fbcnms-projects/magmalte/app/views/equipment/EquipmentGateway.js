@@ -11,6 +11,7 @@
 import type {gateway_id, lte_gateway} from '@fbcnms/magma-api';
 
 import CellWifiIcon from '@material-ui/icons/CellWifi';
+import EquipmentGatewayKPIs from './EquipmentGatewayKPIs';
 import GatewayCheckinChart from './GatewayCheckinChart';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
@@ -100,12 +101,15 @@ export default function Gateway() {
         <Grid item xs={12}>
           <GatewayCheckinChart />
         </Grid>
-      </Grid>
-      <Grid item xs={12}>
-        <Text>
-          <CellWifiIcon /> Gateways
-        </Text>
-        <GatewayTable />
+        <Grid item xs={12}>
+          <EquipmentGatewayKPIs />
+        </Grid>
+        <Grid item xs={12}>
+          <Text>
+            <CellWifiIcon /> Gateways
+          </Text>
+          <GatewayTable />
+        </Grid>
       </Grid>
     </div>
   );

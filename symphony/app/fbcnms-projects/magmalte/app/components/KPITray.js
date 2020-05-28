@@ -17,42 +17,51 @@ import type {ComponentType} from 'react';
 
 export type KPIData = {category: string, value: number};
 type Props = {
-  icon: ComponentType<SvgIconExports>,
-  description: string,
+  icon?: ComponentType<SvgIconExports>,
+  description?: string,
   data: KPIData[],
 };
 
 export default function KPITray(props: Props) {
-  const KpiIcon = props.icon;
-  return (
-    <Grid container alignItems="center" justify="center">
+  const kpiTray = [];
+  if (props.icon) {
+    const KpiIcon = props.icon;
+    kpiTray.push(
       <Grid item>
         <Card elevation={0}>
           <CardContent>
             <KpiIcon fontSize="large" />
           </CardContent>
         </Card>
-      </Grid>
+      </Grid>,
       <Grid item>
         <Card elevation={0}>
           <CardContent>
             <Text variant="h6">{props.description}</Text>
           </CardContent>
         </Card>
+      </Grid>,
+    );
+  }
+
+  kpiTray.push(
+    props.data.map((kpi, i) => (
+      <Grid item xs key={i}>
+        <Card>
+          <CardHeader
+            title={kpi.category}
+            subheader={kpi.value}
+            titleTypographyProps={{align: 'center'}}
+            subheaderTypographyProps={{variant: 'h5', align: 'center'}}
+            data-testid={kpi.category}
+          />
+        </Card>
       </Grid>
-      {props.data.map((kpi, i) => (
-        <Grid item xs key={i}>
-          <Card>
-            <CardHeader
-              title={kpi.category}
-              subheader={kpi.value}
-              titleTypographyProps={{align: 'center'}}
-              subheaderTypographyProps={{variant: 'h5', align: 'center'}}
-              data-testid={kpi.category}
-            />
-          </Card>
-        </Grid>
-      ))}
+    )),
+  );
+  return (
+    <Grid container alignItems="center" justify="center">
+      {kpiTray}
     </Grid>
   );
 }
