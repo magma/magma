@@ -31,6 +31,13 @@ const (
 	DefaultMaxAttempts = 3
 )
 
+// TODO(hcgatewood): remove this later in the diff stack
+type Version struct {
+	IndexerID string
+	Actual    indexer.Version
+	Desired   indexer.Version
+}
+
 // Job required to carry out a reindex job.
 type Job struct {
 	Idx  indexer.Indexer

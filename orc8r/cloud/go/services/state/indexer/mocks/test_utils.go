@@ -23,7 +23,7 @@ import (
 //	- prepare	-- write PrepareReindex args to chan when called
 //	- complete	-- write CompleteReindex args to chan when called
 //	- index		-- write Index args to chan when called
-func NewMockIndexer(id string, version indexer.Version, subs []indexer.Subscription, prepare, complete, index chan mock.Arguments) indexer.Indexer {
+func NewMockIndexer(id string, version indexer.Version, subs []indexer.Subscription, prepare, complete, index chan mock.Arguments) *Indexer {
 	idx := &Indexer{}
 
 	idx.On("GetID").Return(id)
