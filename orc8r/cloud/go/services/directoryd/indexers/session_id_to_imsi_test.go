@@ -16,7 +16,7 @@ import (
 	"magma/orc8r/cloud/go/services/directoryd"
 	"magma/orc8r/cloud/go/services/directoryd/indexers"
 	directoryd_test "magma/orc8r/cloud/go/services/directoryd/test_init"
-	"magma/orc8r/cloud/go/services/state"
+	state_types "magma/orc8r/cloud/go/services/state/types"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -39,11 +39,11 @@ func TestIndexerSessionID(t *testing.T) {
 		},
 	}
 
-	id := state.ID{
+	id := state_types.ID{
 		Type:     orc8r.DirectoryRecordType,
 		DeviceID: imsi0,
 	}
-	st := state.State{
+	st := state_types.State{
 		Type:               orc8r.DirectoryRecordType,
 		ReportedState:      record,
 		Version:            44,
@@ -59,7 +59,7 @@ func TestIndexerSessionID(t *testing.T) {
 	assert.True(t, indexer.GetSubscriptions()[0].Match(id))
 
 	// Index the imsi0->sid0 state, result is sid0->imsi0 reverse mapping
-	errs, err := indexer.Index(nid0, state.StatesByID{id: st})
+	errs, err := indexer.Index(nid0, state_types.StatesByID{id: st})
 	assert.NoError(t, err)
 	assert.Empty(t, errs)
 	imsi, err := directoryd.GetIMSIForSessionID(nid0, sid0)
@@ -69,7 +69,7 @@ func TestIndexerSessionID(t *testing.T) {
 	// Update sid -- index imsi0->sid1, result is sid1->imsi0 reverse mapping
 	// Note that we specifically don't test for the presence of {sid0 -> ?}, as we allow stale derived state to persist.
 	st.ReportedState.(*directoryd.DirectoryRecord).Identifiers[directoryd.RecordKeySessionID] = sid1
-	errs, err = indexer.Index(nid0, state.StatesByID{id: st})
+	errs, err = indexer.Index(nid0, state_types.StatesByID{id: st})
 	assert.NoError(t, err)
 	assert.Empty(t, errs)
 	imsi, err = directoryd.GetIMSIForSessionID(nid0, sid1)
@@ -79,7 +79,7 @@ func TestIndexerSessionID(t *testing.T) {
 	// Update imsi -- index imsi1->sid1, result is sid1->imsi1 reverse mapping
 	// Note that we specifically don't test for the presence of {sid0 -> ?}, as we allow stale derived state to persist.
 	id.DeviceID = imsi1
-	errs, err = indexer.Index(nid0, state.StatesByID{id: st})
+	errs, err = indexer.Index(nid0, state_types.StatesByID{id: st})
 	assert.NoError(t, err)
 	assert.Empty(t, errs)
 	imsi, err = directoryd.GetIMSIForSessionID(nid0, sid1)
@@ -88,7 +88,7 @@ func TestIndexerSessionID(t *testing.T) {
 
 	// Errs contains an err when e.g. reported state is wrong type -- and sid1->imsi1 still intact
 	st.ReportedState = 42
-	errs, err = indexer.Index(nid0, state.StatesByID{id: st})
+	errs, err = indexer.Index(nid0, state_types.StatesByID{id: st})
 	assert.NoError(t, err)
 	assert.Error(t, errs[id])
 	imsi, err = directoryd.GetIMSIForSessionID(nid0, sid1)

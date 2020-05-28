@@ -13,9 +13,9 @@ import (
 	"time"
 
 	"magma/orc8r/cloud/go/clock"
-	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/services/state/indexer"
 	"magma/orc8r/cloud/go/services/state/indexer/metrics"
+	state_types "magma/orc8r/cloud/go/services/state/types"
 
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
@@ -38,7 +38,7 @@ const (
 
 // Index forwards states to all registered indexers, according to their subscriptions.
 // Returns after completing attempt at indexing states.
-func Index(networkID string, states state.StatesByID) {
+func Index(networkID string, states state_types.StatesByID) {
 	errs := indexImpl(networkID, states)
 	for _, e := range errs {
 		glog.Error(e)
@@ -47,7 +47,7 @@ func Index(networkID string, states state.StatesByID) {
 	glog.V(2).Infof("Completed state index for network %s with %d states", networkID, len(states))
 }
 
-func indexImpl(networkID string, states state.StatesByID) []error {
+func indexImpl(networkID string, states state_types.StatesByID) []error {
 	errByIdx := map[string]error{}
 	indexers := indexer.GetAllIndexers()
 
@@ -74,7 +74,7 @@ func indexImpl(networkID string, states state.StatesByID) []error {
 	return errs
 }
 
-func indexOne(networkID string, idx indexer.Indexer, states state.StatesByID) error {
+func indexOne(networkID string, idx indexer.Indexer, states state_types.StatesByID) error {
 	filtered := filterStates(idx, states)
 	if len(filtered) == 0 {
 		return nil
@@ -101,8 +101,8 @@ func indexOne(networkID string, idx indexer.Indexer, states state.StatesByID) er
 }
 
 // Filter to states matching at least one subscription
-func filterStates(idx indexer.Indexer, states state.StatesByID) state.StatesByID {
-	ret := state.StatesByID{}
+func filterStates(idx indexer.Indexer, states state_types.StatesByID) state_types.StatesByID {
+	ret := state_types.StatesByID{}
 	subs := idx.GetSubscriptions()
 	for id, st := range states {
 		for _, s := range subs {

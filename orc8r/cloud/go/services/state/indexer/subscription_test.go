@@ -11,8 +11,8 @@ package indexer_test
 import (
 	"testing"
 
-	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/services/state/indexer"
+	state_types "magma/orc8r/cloud/go/services/state/types"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -29,10 +29,10 @@ var emptyMatch []string
 func TestSubscription_Match(t *testing.T) {
 	sub := indexer.Subscription{Type: type0}
 
-	id00 := state.ID{DeviceID: imsi0, Type: type0}
-	id10 := state.ID{DeviceID: imsi1, Type: type0}
-	id01 := state.ID{DeviceID: imsi0, Type: type1}
-	id11 := state.ID{DeviceID: imsi1, Type: type1}
+	id00 := state_types.ID{DeviceID: imsi0, Type: type0}
+	id10 := state_types.ID{DeviceID: imsi1, Type: type0}
+	id01 := state_types.ID{DeviceID: imsi0, Type: type1}
+	id11 := state_types.ID{DeviceID: imsi1, Type: type1}
 
 	// Match all
 	sub.KeyMatcher = indexer.MatchAll

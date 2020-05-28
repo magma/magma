@@ -38,6 +38,7 @@ import (
 	"magma/orc8r/cloud/go/services/state/servicers"
 	state_test_init "magma/orc8r/cloud/go/services/state/test_init"
 	state_test "magma/orc8r/cloud/go/services/state/test_utils"
+	state_types "magma/orc8r/cloud/go/services/state/types"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/lib/go/protos"
 
@@ -59,12 +60,12 @@ const (
 
 var (
 	subs0 = []indexer.Subscription{{Type: orc8r.DirectoryRecordType, KeyMatcher: indexer.NewMatchExact(imsi0)}}
-	sid0  = state.ID{Type: orc8r.DirectoryRecordType, DeviceID: imsi0}
+	sid0  = state_types.ID{Type: orc8r.DirectoryRecordType, DeviceID: imsi0}
 
-	hwidByID = map[state.ID]string{
+	hwidByID = map[state_types.ID]string{
 		sid0: hwid0,
 	}
-	recordByID = map[state.ID]*directoryd.DirectoryRecord{
+	recordByID = map[state_types.ID]*directoryd.DirectoryRecord{
 		sid0: {LocationHistory: []string{hwid0}},
 	}
 
@@ -84,14 +85,14 @@ func TestStateIndexing(t *testing.T) {
 	dbName := "state___integ_test"
 	db, store := initTestServices(t, dbName)
 
-	idx0 := mocks.NewTestIndexer(id0, version0, subs0, prepare0, complete0, index0)
+	idx0 := mocks.NewMockIndexer(id0, version0, subs0, prepare0, complete0, index0)
 	err := indexer.RegisterAll(idx0)
 	assert.NoError(t, err)
 
 	t.Run("index", func(t *testing.T) {
 		reportDirectoryStateForID(t, sid0)
 
-		// Index args: (networkID string, states state.StatesByID)
+		// Index args: (networkID string, states state_types.StatesByID)
 		recv := recvArgs(t, index0, "index0")
 		assertEqualStr(t, nid0, recv[0])
 		assertEqualRecord(t, recv[1], sid0)
@@ -107,7 +108,7 @@ func TestStateIndexing(t *testing.T) {
 		assertEqualVersion(t, version0, recvPrepare0[1])
 		assertEqualBool(t, true, recvPrepare0[2])
 
-		// Index args: (networkID string, states state.StatesByID)
+		// Index args: (networkID string, states state_types.StatesByID)
 		recvIndex0 := recvArgs(t, index0, "index0")
 		assertEqualStr(t, nid0, recvIndex0[0])
 		assertEqualRecord(t, recvIndex0[1], sid0)
@@ -123,8 +124,8 @@ func initTestServices(t *testing.T, dbName string) (*sql.DB, servicers.StateServ
 	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
 	indexer.DeregisterAllForTest(t)
 
-	configurator_test_init.StartTestService(t)
 	device_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
 	configurator_test.RegisterNetwork(t, nid0, "Network 0 for indexer integ test")
 	configurator_test.RegisterGateway(t, nid0, hwid0, &models.GatewayDevice{HardwareID: hwid0})
 
@@ -143,7 +144,7 @@ func startAsyncJobs(t *testing.T, db *sql.DB, store servicers.StateServiceIntern
 	return cancel
 }
 
-func reportDirectoryStateForID(t *testing.T, id state.ID) {
+func reportDirectoryStateForID(t *testing.T, id state_types.ID) {
 	ctx := state_test.GetContextWithCertificate(t, hwidByID[id])
 	record := recordByID[id]
 
@@ -190,10 +191,10 @@ func assertEqualBool(t *testing.T, expected bool, recv interface{}) {
 	assert.Equal(t, expected, recvVal)
 }
 
-func assertEqualRecord(t *testing.T, recv interface{}, sid state.ID) {
+func assertEqualRecord(t *testing.T, recv interface{}, sid state_types.ID) {
 	hwid := hwidByID[sid]
 	reported := recordByID[sid]
-	recvStates := recv.(state.StatesByID)
+	recvStates := recv.(state_types.StatesByID)
 	assert.Len(t, recvStates, 1)
 	assert.Equal(t, orc8r.DirectoryRecordType, recvStates[sid].Type)
 	assert.Equal(t, hwid, recvStates[sid].ReporterID)

@@ -11,7 +11,7 @@ package indexer
 import (
 	"strings"
 
-	"magma/orc8r/cloud/go/services/state"
+	state_types "magma/orc8r/cloud/go/services/state/types"
 )
 
 // Subscription denotes a set of primary keys.
@@ -25,7 +25,7 @@ type KeyMatcher interface {
 	Match(s string) bool
 }
 
-func (s Subscription) Match(id state.ID) bool {
+func (s Subscription) Match(id state_types.ID) bool {
 	if typeMatch := s.Type == id.Type; !typeMatch {
 		return false
 	}

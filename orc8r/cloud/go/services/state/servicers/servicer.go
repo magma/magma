@@ -14,8 +14,8 @@ import (
 
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/clock"
-	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/services/state/indexer/index"
+	state_types "magma/orc8r/cloud/go/services/state/types"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
 
@@ -100,7 +100,7 @@ func (srv *stateServicer) ReportStates(context context.Context, req *protos.Repo
 		return res, internalErr(err, "ReportStates blobstore commit transaction")
 	}
 
-	byID, err := state.MakeStatesByID(req.States)
+	byID, err := state_types.MakeStatesByID(req.States)
 	if err != nil {
 		return res, internalErr(err, "ReportStates make states by ID")
 	}
@@ -194,7 +194,7 @@ func (srv *stateServicer) SyncStates(context context.Context, req *protos.SyncSt
 	return &protos.SyncStatesResponse{UnsyncedStates: unsyncedStates}, nil
 }
 
-func (srv *stateServicer) GetAllIDs() (state.IDsByNetwork, error) {
+func (srv *stateServicer) GetAllIDs() (state_types.IDsByNetwork, error) {
 	store, err := srv.factory.StartTransaction(nil)
 	if err != nil {
 		return nil, internalErr(err, "GetAllIDs blobstore start transaction")
@@ -277,7 +277,7 @@ func isStateSynced(deviceIdToStates map[string][]*protos.State, reqIdAndVersion 
 }
 
 func wrapStateWithAdditionalInfo(st *protos.State, hwID string, time uint64, certExpiry int64) ([]byte, error) {
-	wrap := state.SerializedStateWithMeta{
+	wrap := state_types.SerializedStateWithMeta{
 		ReporterID:              hwID,
 		TimeMs:                  time,
 		CertExpirationTime:      certExpiry,
@@ -323,11 +323,11 @@ func idAndVersionsToTKs(IDs []*protos.IDAndVersion) []storage.TypeAndKey {
 	return ids
 }
 
-func blobsToIDs(byNetwork map[string][]blobstore.Blob) state.IDsByNetwork {
-	ids := state.IDsByNetwork{}
+func blobsToIDs(byNetwork map[string][]blobstore.Blob) state_types.IDsByNetwork {
+	ids := state_types.IDsByNetwork{}
 	for network, blobs := range byNetwork {
 		for _, b := range blobs {
-			ids[network] = append(ids[network], state.ID{Type: b.Type, DeviceID: b.Key})
+			ids[network] = append(ids[network], state_types.ID{Type: b.Type, DeviceID: b.Key})
 		}
 	}
 	return ids

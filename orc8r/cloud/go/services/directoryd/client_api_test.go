@@ -14,15 +14,16 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/serde"
-	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
-	configuratorTestUtils "magma/orc8r/cloud/go/services/configurator/test_utils"
+	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
+	configurator_test_utils "magma/orc8r/cloud/go/services/configurator/test_utils"
 	"magma/orc8r/cloud/go/services/device"
-	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
+	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
 	"magma/orc8r/cloud/go/services/directoryd"
-	directorydTestInit "magma/orc8r/cloud/go/services/directoryd/test_init"
+	directoryd_test_init "magma/orc8r/cloud/go/services/directoryd/test_init"
 	"magma/orc8r/cloud/go/services/state"
-	stateTestInit "magma/orc8r/cloud/go/services/state/test_init"
+	state_test_init "magma/orc8r/cloud/go/services/state/test_init"
 	"magma/orc8r/cloud/go/services/state/test_utils"
+	state_types "magma/orc8r/cloud/go/services/state/types"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
 
@@ -73,7 +74,7 @@ func TestGetSessionID(t *testing.T) {
 }
 
 func TestDirectorydMethods(t *testing.T) {
-	directorydTestInit.StartTestService(t)
+	directoryd_test_init.StartTestService(t)
 
 	// Empty initially
 	_, err := directoryd.GetSessionIDForIMSI(nid0, imsi0)
@@ -110,11 +111,11 @@ func TestDirectorydMethods(t *testing.T) {
 }
 
 func TestDirectorydStateMethods(t *testing.T) {
-	configuratorTestInit.StartTestService(t)
-	deviceTestInit.StartTestService(t)
+	configurator_test_init.StartTestService(t)
+	device_test_init.StartTestService(t)
 
-	directorydTestInit.StartTestService(t)
-	stateTestInit.StartTestService(t)
+	directoryd_test_init.StartTestService(t)
+	state_test_init.StartTestService(t)
 
 	stateClient, err := getStateServiceClient(t)
 	assert.NoError(t, err)
@@ -125,8 +126,8 @@ func TestDirectorydStateMethods(t *testing.T) {
 	)
 	assert.NoError(t, err)
 
-	configuratorTestUtils.RegisterNetwork(t, nid0, "DirectoryD Service Test")
-	configuratorTestUtils.RegisterGateway(t, nid0, hwid0, &models.GatewayDevice{HardwareID: hwid0})
+	configurator_test_utils.RegisterNetwork(t, nid0, "DirectoryD Service Test")
+	configurator_test_utils.RegisterGateway(t, nid0, hwid0, &models.GatewayDevice{HardwareID: hwid0})
 	ctx := test_utils.GetContextWithCertificate(t, hwid0)
 
 	record := &directoryd.DirectoryRecord{
@@ -143,7 +144,7 @@ func TestDirectorydStateMethods(t *testing.T) {
 		DeviceID: imsi0,
 		Value:    serializedRecord,
 	}
-	stateID := state.ID{
+	stateID := state_types.ID{
 		Type:     st.Type,
 		DeviceID: st.DeviceID,
 	}
@@ -171,7 +172,7 @@ func TestDirectorydStateMethods(t *testing.T) {
 	assert.Equal(t, sid0, sid)
 
 	// Delete state
-	err = state.DeleteStates(nid0, []state.ID{stateID})
+	err = state.DeleteStates(nid0, []state_types.ID{stateID})
 	assert.NoError(t, err)
 
 	// Get imsi0->hwid0, should be gone

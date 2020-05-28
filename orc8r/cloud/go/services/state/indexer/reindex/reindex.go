@@ -18,6 +18,7 @@ import (
 	"magma/orc8r/cloud/go/services/state/indexer"
 	"magma/orc8r/cloud/go/services/state/indexer/metrics"
 	"magma/orc8r/cloud/go/services/state/servicers"
+	state_types "magma/orc8r/cloud/go/services/state/types"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/util"
 
@@ -51,7 +52,7 @@ var (
 
 type reindexBatch struct {
 	networkID string
-	stateIDs  []state.ID
+	stateIDs  []state_types.ID
 }
 
 // Run to progressively complete required reindex jobs.
@@ -175,7 +176,7 @@ func reportStatusMetrics(queue JobQueue) {
 
 // Get network-segregated reindex batches with capped number of state IDs per batch.
 func getReindexBatches(store servicers.StateServiceInternal) []reindexBatch {
-	var idsByNetwork state.IDsByNetwork
+	var idsByNetwork state_types.IDsByNetwork
 	for {
 		ids, err := store.GetAllIDs()
 		if err == nil {
@@ -187,7 +188,7 @@ func getReindexBatches(store servicers.StateServiceInternal) []reindexBatch {
 		clock.Sleep(failedGetBatchesSleep)
 	}
 
-	var current, rest []state.ID
+	var current, rest []state_types.ID
 	var batches []reindexBatch
 	for networkID, ids := range idsByNetwork {
 		rest = ids
@@ -214,8 +215,8 @@ func isCanceled(ctx context.Context) bool {
 }
 
 // filterIDs to the subset that match at least one subscription.
-func filterIDs(subs []indexer.Subscription, ids []state.ID) []state.ID {
-	var ret []state.ID
+func filterIDs(subs []indexer.Subscription, ids []state_types.ID) []state_types.ID {
+	var ret []state_types.ID
 	for _, id := range ids {
 		for _, s := range subs {
 			if s.Match(id) {

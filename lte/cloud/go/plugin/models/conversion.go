@@ -22,7 +22,7 @@ import (
 	"magma/orc8r/cloud/go/pluginimpl/handlers"
 	orc8rModels "magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/services/configurator"
-	"magma/orc8r/cloud/go/services/state"
+	state_types "magma/orc8r/cloud/go/services/state/types"
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
 	orc8rProtos "magma/orc8r/lib/go/protos"
@@ -449,7 +449,7 @@ func (m *Enodeb) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
 	}
 }
 
-func (m *Subscriber) FromBackendModels(ent configurator.NetworkEntity, statesByType map[string]state.State) *Subscriber {
+func (m *Subscriber) FromBackendModels(ent configurator.NetworkEntity, statesByType map[string]state_types.State) *Subscriber {
 	m.ID = SubscriberID(ent.Key)
 	m.Lte = ent.Config.(*LteSubscription)
 	// If no profile in backend, return "default"

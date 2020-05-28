@@ -9,7 +9,7 @@
 package servicers
 
 import (
-	"magma/orc8r/cloud/go/services/state"
+	state_types "magma/orc8r/cloud/go/services/state/types"
 )
 
 // StateServiceInternal provides a cross-network DAO for local usage
@@ -17,5 +17,5 @@ import (
 type StateServiceInternal interface {
 	// GetAllIDs returns all IDs known to the state service, keyed
 	// by network ID.
-	GetAllIDs() (state.IDsByNetwork, error)
+	GetAllIDs() (state_types.IDsByNetwork, error)
 }

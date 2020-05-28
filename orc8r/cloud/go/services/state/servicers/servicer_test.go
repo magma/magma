@@ -14,8 +14,8 @@ import (
 
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/blobstore/mocks"
-	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/services/state/servicers"
+	state_types "magma/orc8r/cloud/go/services/state/types"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
 
@@ -122,7 +122,7 @@ func TestStateServicer_GetAllIDs(t *testing.T) {
 	ids, err := srv.GetAllIDs()
 	assert.NoError(t, err)
 
-	expected := state.IDsByNetwork{
+	expected := state_types.IDsByNetwork{
 		"network1": {
 			{Type: "t1", DeviceID: "k1"},
 			{Type: "t2", DeviceID: "k2"},

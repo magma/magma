@@ -56,11 +56,11 @@ var (
 	someErr  = errors.New("some_error")
 	someErr1 = errors.New("some_error_1")
 
-	indexer0 = mocks.NewTestIndexer(id0, version0, nil, nil, nil, nil)
-	indexer1 = mocks.NewTestIndexer(id1, version1a, nil, nil, nil, nil)
-	indexer2 = mocks.NewTestIndexer(id2, version2a, nil, nil, nil, nil)
-	indexer3 = mocks.NewTestIndexer(id3, version3, nil, nil, nil, nil)
-	indexer4 = mocks.NewTestIndexer(id4, version4, nil, nil, nil, nil)
+	indexer0 = mocks.NewMockIndexer(id0, version0, nil, nil, nil, nil)
+	indexer1 = mocks.NewMockIndexer(id1, version1a, nil, nil, nil, nil)
+	indexer2 = mocks.NewMockIndexer(id2, version2a, nil, nil, nil, nil)
+	indexer3 = mocks.NewMockIndexer(id3, version3, nil, nil, nil, nil)
+	indexer4 = mocks.NewMockIndexer(id4, version4, nil, nil, nil, nil)
 )
 
 func init() {
