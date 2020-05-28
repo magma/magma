@@ -16,6 +16,7 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/services/state/indexer/reindex"
+	state_protos "magma/orc8r/cloud/go/services/state/protos"
 	"magma/orc8r/cloud/go/services/state/servicers"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/test_utils"
@@ -55,9 +56,8 @@ func startService(t *testing.T, db *sql.DB) (reindex.Reindexer, reindex.JobQueue
 	queue := reindex.NewSQLJobQueue(singleAttempt, db, sqorc.GetSqlBuilder())
 	require.NoError(t, queue.Initialize())
 	reindexer := reindex.NewReindexer(queue, reindex.NewStore(factory))
-	// TODO(hcgatewood): uncomment below later in stack
-	//indexerServicer := servicers.NewIndexerServicer(reindexer, false)
-	//state_protos.RegisterIndexerServer(srv.GrpcServer, indexerServicer)
+	indexerServicer := servicers.NewIndexerServicer(reindexer, false)
+	state_protos.RegisterIndexerServer(srv.GrpcServer, indexerServicer)
 
 	go srv.RunTest(lis)
 	return reindexer, queue
