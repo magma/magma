@@ -71,10 +71,7 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
 
     # Setup the gateway: use the provided gateway if given, else default to the
     # vagrant machine
-    if not gateway_host:
-        vagrant_setup("cwag", destroy_vm)
-    else:
-        ansible_setup(gateway_host, "cwag", "cwag_dev.yml")
+    _switch_to_vm(gateway_host, "cwag", "cwag_dev.yml", destroy_vm)
 
     if not skip_unit_tests:
         execute(_run_unit_tests)
@@ -92,26 +89,22 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
         execute(_stop_gateway)
         if not no_build:
             execute(_build_gateway)
+
     execute(_run_gateway)
     # Stop not necessary services for this test case
     execute(_stop_docker_services, ["pcrf2", "ocs2"])
 
-    # Setup the trfserver: use the provided trfserver if given, else default to the
-    # vagrant machine
+    # Setup the trfserver: use the provided trfserver if given, else default to
+    # the vagrant machine
     with lcd(LTE_AGW_ROOT):
-        if not trf_host:
-            vagrant_setup("magma_trfserver", destroy_vm)
-        else:
-            ansible_setup(trf_host, "trfserver", "magma_trfserver.yml")
+        _switch_to_vm(gateway_host, "magma_trfserver",
+                      "magma_trfserver.yml", destroy_vm)
 
     execute(_start_trfserver)
 
     # Run the tests: use the provided test machine if given, else default to
     # the vagrant machine
-    if not test_host:
-        vagrant_setup("cwag_test", destroy_vm)
-    else:
-        ansible_setup(test_host, "cwag_test", "cwag_test.yml")
+    _switch_to_vm(gateway_host, "cwag_test", "cwag_test.yml", destroy_vm)
 
     cwag_test_host_to_mac = execute(_get_br_mac, CWAG_TEST_BR_NAME)
     host = env.hosts[0]
@@ -119,20 +112,11 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     execute(_set_cwag_test_configs)
 
     # Get back to the gateway vm to setup static arp
-    if not gateway_host:
-        # We do NOT want to destroy this VM after we just set it up...
-        vagrant_setup("cwag", False)
-    else:
-        ansible_setup(gateway_host, "cwag", "cwag_dev.yml")
+    _switch_to_vm_no_destroy(gateway_host, "cwag", "cwag_dev.yml")
     execute(_set_cwag_networking, cwag_test_br_mac)
     execute(_check_docker_services)
 
-    # Start main tests - except for multi session proxy
-    if not test_host:
-        # No, definitely do NOT destroy this VM
-        vagrant_setup("cwag_test", False)
-    else:
-        ansible_setup(test_host, "cwag_test", "cwag_test.yml")
+    _switch_to_vm_no_destroy(gateway_host, "cwag_test", "cwag_test.yml")
     execute(_start_ue_simulator)
     execute(_set_cwag_test_networking, cwag_br_mac)
 
@@ -142,22 +126,15 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     # Setup environment for multi service proxy if required
     if tests_to_run.value in (SubTests.ALL.value,
                               SubTests.MULTISESSIONPROXY.value):
-        # CWAG VM
-        if not gateway_host:
-            vagrant_setup("cwag", False)
-        else:
-            ansible_setup(gateway_host, "cwag", "cwag_dev.yml")
+        _switch_to_vm_no_destroy(gateway_host, "cwag", "cwag_dev.yml")
+
         # copy new config and restart the impacted services
         execute(_set_cwag_configs, "gateway.mconfig.multi_session_proxy")
         execute(_restart_docker_services, ["session_proxy", "pcrf", "ocs",
                                            "pcrf2", "ocs2", "ingress"])
         execute(_check_docker_services)
 
-        # CWAG_TEST VM
-        if not test_host:
-            vagrant_setup("cwag_test", False)
-        else:
-            ansible_setup(test_host, "cwag_test", "cwag_test.yml")
+        _switch_to_vm_no_destroy(gateway_host, "cwag_test", "cwag_test.yml")
         execute(_run_integ_tests, test_host, trf_host,
                 SubTests.MULTISESSIONPROXY, test_re)
 
@@ -167,7 +144,6 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
         execute(_clean_up)
     print('Integration Test Passed for "{}"!'.format(tests_to_run.value))
     sys.exit(0)
-
 
 def transfer_service_logs(services="sessiond session_proxy"):
     services = services.strip().split(' ')
@@ -179,6 +155,16 @@ def transfer_service_logs(services="sessiond session_proxy"):
         for service in services:
             run("docker logs -t " + service + " &> " + service + ".log")
             # For vagrant the files should already be in CWAG_ROOT
+
+def _switch_to_vm(addr, host_name, ansible_file, destroy_vm):
+    if not addr:
+        vagrant_setup(host_name, destroy_vm)
+    else:
+        ansible_setup(addr, host_name, ansible_file)
+
+
+def _switch_to_vm_no_destroy(addr, host_name, ansible_file):
+    _switch_to_vm(addr, host_name, ansible_file, False)
 
 
 def _transfer_docker_images():
@@ -198,7 +184,6 @@ def _transfer_docker_images():
 
 def _set_cwag_configs(configfile):
     """ Set the necessary config overrides """
-
     with cd(CWAG_INTEG_ROOT):
         sudo('mkdir -p /var/opt/magma')
         sudo('mkdir -p /var/opt/magma/configs')
@@ -216,7 +201,6 @@ def _get_br_mac(bridge_name):
 
 def _set_cwag_test_configs():
     """ Set the necessary test configs """
-
     sudo('mkdir -p /etc/magma')
     # Create empty uesim config
     sudo('touch /etc/magma/uesim.yml')
