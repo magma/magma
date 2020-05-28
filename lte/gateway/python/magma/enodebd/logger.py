@@ -12,7 +12,6 @@ from logging.handlers import RotatingFileHandler
 
 
 LOG_FILE = 'var/log/enodebd.log'
-LOGGER_NAME = 'debug'
 MAX_BYTES = 1024 * 1024 * 10  # 10MB
 BACKUP_COUNT = 5  # 10MB, 5 files, 50MB total
 
@@ -25,7 +24,7 @@ class EnodebdLogger:
     debug level.
     """
 
-    _LOGGER = logging.getLogger(LOGGER_NAME)  # type: logging.Logger
+    _LOGGER = logging.getLogger(__name__)  # type: logging.Logger
 
     @staticmethod
     def init() -> None:
