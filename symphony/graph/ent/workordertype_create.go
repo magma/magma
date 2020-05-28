@@ -163,6 +163,7 @@ func (wotc *WorkOrderTypeCreate) Save(ctx context.Context) (*WorkOrderType, erro
 			}
 			wotc.mutation = mutation
 			node, err = wotc.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(wotc.hooks) - 1; i >= 0; i-- {

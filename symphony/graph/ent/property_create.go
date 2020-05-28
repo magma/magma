@@ -439,6 +439,7 @@ func (pc *PropertyCreate) Save(ctx context.Context) (*Property, error) {
 			}
 			pc.mutation = mutation
 			node, err = pc.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(pc.hooks) - 1; i >= 0; i-- {

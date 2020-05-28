@@ -8,6 +8,7 @@ import (
 	"github.com/facebookincubator/ent"
 	"github.com/facebookincubator/ent/schema/edge"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/authz"
 )
 
 // SurveyWiFiScan holds the schema definition for the SurveyWifiScan entity.
@@ -60,4 +61,17 @@ func (SurveyWiFiScan) Edges() []ent.Edge {
 		edge.To("location", Location.Type).
 			Unique(),
 	}
+}
+
+// Policy returns SurveyWiFiScan policy.
+func (SurveyWiFiScan) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithQueryRules(
+			authz.SurveyWiFiScanReadPolicyRule(),
+		),
+		authz.WithMutationRules(
+			authz.SurveyWiFiScanWritePolicyRule(),
+			authz.SurveyWiFiScanCreatePolicyRule(),
+		),
+	)
 }

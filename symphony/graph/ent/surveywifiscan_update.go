@@ -323,6 +323,7 @@ func (swfsu *SurveyWiFiScanUpdate) Save(ctx context.Context) (int, error) {
 			}
 			swfsu.mutation = mutation
 			affected, err = swfsu.sqlSave(ctx)
+			mutation.done = true
 			return affected, err
 		})
 		for i := len(swfsu.hooks) - 1; i >= 0; i-- {
@@ -948,6 +949,7 @@ func (swfsuo *SurveyWiFiScanUpdateOne) Save(ctx context.Context) (*SurveyWiFiSca
 			}
 			swfsuo.mutation = mutation
 			node, err = swfsuo.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(swfsuo.hooks) - 1; i >= 0; i-- {

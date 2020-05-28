@@ -19,12 +19,39 @@ proxy:
   service:
     enabled: true
     legacyEnabled: true
+    %{~ if create_nginx ~}
+    %{~ else ~}
     extraAnnotations:
       bootstrapLagacy:
         external-dns.alpha.kubernetes.io/hostname: bootstrapper-${controller_hostname}
       clientcertLegacy:
         external-dns.alpha.kubernetes.io/hostname: ${controller_hostname},${api_hostname}
+    %{~ endif ~}
     name: orc8r-bootstrap-legacy
+    type: LoadBalancer
+  spec:
+    hostname: ${controller_hostname}
+
+nginx:
+  create: ${create_nginx}
+
+  podDisruptionBudget:
+    enabled: true
+  image:
+    repository: ${docker_registry}/nginx
+    tag: "${docker_tag}"
+  replicas: ${nginx_replicas}
+  service:
+    enabled: true
+    legacyEnabled: true
+    extraAnnotations:
+      proxy:
+        external-dns.alpha.kubernetes.io/hostname: ${api_hostname}
+      bootstrapLagacy:
+        external-dns.alpha.kubernetes.io/hostname: bootstrapper-${controller_hostname}
+      clientcertLegacy:
+        external-dns.alpha.kubernetes.io/hostname: ${controller_hostname}
+    name: orc8r-bootstrap-nginx
     type: LoadBalancer
   spec:
     hostname: ${controller_hostname}

@@ -361,6 +361,7 @@ func (lc *LocationCreate) Save(ctx context.Context) (*Location, error) {
 			}
 			lc.mutation = mutation
 			node, err = lc.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(lc.hooks) - 1; i >= 0; i-- {

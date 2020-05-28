@@ -1,4 +1,4 @@
-// +build feg_failure
+// +build all
 
 /*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -27,12 +27,14 @@ func TestLinkFailureCWAGtoFEG(t *testing.T) {
 	tr := NewTestRunner(t)
 	ruleManager, err := NewRuleManager()
 	assert.NoError(t, err)
+	assert.NoError(t, tr.PauseService("ingress"))
 
 	defer func() {
 		// Clear hss, ocs, and pcrf
 		assert.NoError(t, clearOCSMockDriver())
 		assert.NoError(t, ruleManager.RemoveInstalledRules())
 		assert.NoError(t, tr.CleanUp())
+		assert.NoError(t, tr.RestartService("ingress"))
 	}()
 
 	ues, err := tr.ConfigUEs(1)

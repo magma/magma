@@ -26,17 +26,11 @@ func handleWorkOrderFilter(q *ent.WorkOrderQuery, filter *models.WorkOrderFilter
 	if filter.FilterType == models.WorkOrderFilterTypeWorkOrderStatus {
 		return statusFilter(q, filter)
 	}
-	if filter.FilterType == models.WorkOrderFilterTypeWorkOrderOwner {
-		return ownerFilter(q, filter)
-	}
 	if filter.FilterType == models.WorkOrderFilterTypeWorkOrderOwnedBy {
 		return ownedByFilter(q, filter)
 	}
 	if filter.FilterType == models.WorkOrderFilterTypeWorkOrderType {
 		return typeFilter(q, filter)
-	}
-	if filter.FilterType == models.WorkOrderFilterTypeWorkOrderAssignee {
-		return assigneeFilter(q, filter)
 	}
 	if filter.FilterType == models.WorkOrderFilterTypeWorkOrderAssignedTo {
 		return assignedToFilter(q, filter)
@@ -70,13 +64,6 @@ func statusFilter(q *ent.WorkOrderQuery, filter *models.WorkOrderFilterInput) (*
 	return nil, errors.Errorf("operation is not supported: %s", filter.Operator)
 }
 
-func ownerFilter(q *ent.WorkOrderQuery, filter *models.WorkOrderFilterInput) (*ent.WorkOrderQuery, error) {
-	if filter.Operator == models.FilterOperatorIsOneOf {
-		return q.Where(workorder.HasOwnerWith(user.AuthIDIn(filter.StringSet...))), nil
-	}
-	return nil, errors.Errorf("operation is not supported: %s", filter.Operator)
-}
-
 func ownedByFilter(q *ent.WorkOrderQuery, filter *models.WorkOrderFilterInput) (*ent.WorkOrderQuery, error) {
 	if filter.Operator == models.FilterOperatorIsOneOf {
 		return q.Where(workorder.HasOwnerWith(user.IDIn(filter.IDSet...))), nil
@@ -87,13 +74,6 @@ func ownedByFilter(q *ent.WorkOrderQuery, filter *models.WorkOrderFilterInput) (
 func typeFilter(q *ent.WorkOrderQuery, filter *models.WorkOrderFilterInput) (*ent.WorkOrderQuery, error) {
 	if filter.Operator == models.FilterOperatorIsOneOf {
 		return q.Where(workorder.HasTypeWith(workordertype.IDIn(filter.IDSet...))), nil
-	}
-	return nil, errors.Errorf("operation is not supported: %s", filter.Operator)
-}
-
-func assigneeFilter(q *ent.WorkOrderQuery, filter *models.WorkOrderFilterInput) (*ent.WorkOrderQuery, error) {
-	if filter.Operator == models.FilterOperatorIsOneOf {
-		return q.Where(workorder.HasAssigneeWith(user.AuthIDIn(filter.StringSet...))), nil
 	}
 	return nil, errors.Errorf("operation is not supported: %s", filter.Operator)
 }

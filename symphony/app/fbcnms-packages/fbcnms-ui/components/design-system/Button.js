@@ -31,6 +31,7 @@ const useStyles = makeStyles(_theme => ({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    maxWidth: '100%',
   },
   icon: {},
   hasIcon: {
@@ -301,7 +302,7 @@ const Button = (props: Props, forwardedRef: TRefFor<HTMLButtonElement>) => {
     skin = 'primary',
     disabled: disabledProp = false,
     variant = 'contained',
-    useEllipsis = false,
+    useEllipsis = true,
     onClick,
     leftIcon: LeftIcon = null,
     leftIconClass = null,

@@ -2846,31 +2846,6 @@ func (r mutationResolver) MarkLocationPropertyAsExternalID(ctx context.Context, 
 	return name, nil
 }
 
-func (r mutationResolver) deleteLocationHierarchy(ctx context.Context, l *ent.Location) error {
-	children, err := l.QueryChildren().All(ctx)
-	if err != nil {
-		return errors.Wrapf(err, "failed querying child locations l=%v", l.ID)
-	}
-	for _, child := range children {
-		if err := r.deleteLocationHierarchy(ctx, child); err != nil {
-			return err
-		}
-	}
-	err = r.ClientFrom(ctx).Location.DeleteOne(l).Exec(ctx)
-	if err != nil {
-		return errors.Wrapf(err, "failed to delete location l=%v", l.ID)
-	}
-	return nil
-}
-
-func (r mutationResolver) DeleteLocationHierarchy(ctx context.Context, id int) (int, error) {
-	l, err := r.ClientFrom(ctx).Location.Get(ctx, id)
-	if err != nil {
-		return id, errors.Wrapf(err, "can't query location l=%v", id)
-	}
-	return id, r.deleteLocationHierarchy(ctx, l)
-}
-
 func (r mutationResolver) MoveLocation(ctx context.Context, locationID int, parentLocationID *int) (*ent.Location, error) {
 	client := r.ClientFrom(ctx)
 	l, err := client.Location.Get(ctx, locationID)

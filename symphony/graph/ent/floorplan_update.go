@@ -162,6 +162,7 @@ func (fpu *FloorPlanUpdate) Save(ctx context.Context) (int, error) {
 			}
 			fpu.mutation = mutation
 			affected, err = fpu.sqlSave(ctx)
+			mutation.done = true
 			return affected, err
 		})
 		for i := len(fpu.hooks) - 1; i >= 0; i-- {
@@ -513,6 +514,7 @@ func (fpuo *FloorPlanUpdateOne) Save(ctx context.Context) (*FloorPlan, error) {
 			}
 			fpuo.mutation = mutation
 			node, err = fpuo.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(fpuo.hooks) - 1; i >= 0; i-- {

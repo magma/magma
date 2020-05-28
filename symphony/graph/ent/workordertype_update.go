@@ -202,6 +202,7 @@ func (wotu *WorkOrderTypeUpdate) Save(ctx context.Context) (int, error) {
 			}
 			wotu.mutation = mutation
 			affected, err = wotu.sqlSave(ctx)
+			mutation.done = true
 			return affected, err
 		})
 		for i := len(wotu.hooks) - 1; i >= 0; i-- {
@@ -618,6 +619,7 @@ func (wotuo *WorkOrderTypeUpdateOne) Save(ctx context.Context) (*WorkOrderType, 
 			}
 			wotuo.mutation = mutation
 			node, err = wotuo.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(wotuo.hooks) - 1; i >= 0; i-- {

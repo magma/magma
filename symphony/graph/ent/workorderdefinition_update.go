@@ -131,6 +131,7 @@ func (wodu *WorkOrderDefinitionUpdate) Save(ctx context.Context) (int, error) {
 			}
 			wodu.mutation = mutation
 			affected, err = wodu.sqlSave(ctx)
+			mutation.done = true
 			return affected, err
 		})
 		for i := len(wodu.hooks) - 1; i >= 0; i-- {
@@ -396,6 +397,7 @@ func (woduo *WorkOrderDefinitionUpdateOne) Save(ctx context.Context) (*WorkOrder
 			}
 			woduo.mutation = mutation
 			node, err = woduo.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(woduo.hooks) - 1; i >= 0; i-- {

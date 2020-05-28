@@ -149,6 +149,7 @@ func (seu *ServiceEndpointUpdate) Save(ctx context.Context) (int, error) {
 			}
 			seu.mutation = mutation
 			affected, err = seu.sqlSave(ctx)
+			mutation.done = true
 			return affected, err
 		})
 		for i := len(seu.hooks) - 1; i >= 0; i-- {
@@ -479,6 +480,7 @@ func (seuo *ServiceEndpointUpdateOne) Save(ctx context.Context) (*ServiceEndpoin
 			}
 			seuo.mutation = mutation
 			node, err = seuo.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(seuo.hooks) - 1; i >= 0; i-- {

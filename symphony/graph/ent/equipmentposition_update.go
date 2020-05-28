@@ -126,6 +126,7 @@ func (epu *EquipmentPositionUpdate) Save(ctx context.Context) (int, error) {
 			}
 			epu.mutation = mutation
 			affected, err = epu.sqlSave(ctx)
+			mutation.done = true
 			return affected, err
 		})
 		for i := len(epu.hooks) - 1; i >= 0; i-- {
@@ -400,6 +401,7 @@ func (epuo *EquipmentPositionUpdateOne) Save(ctx context.Context) (*EquipmentPos
 			}
 			epuo.mutation = mutation
 			node, err = epuo.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(epuo.hooks) - 1; i >= 0; i-- {

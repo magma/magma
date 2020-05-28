@@ -149,6 +149,7 @@ func (epdc *EquipmentPositionDefinitionCreate) Save(ctx context.Context) (*Equip
 			}
 			epdc.mutation = mutation
 			node, err = epdc.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(epdc.hooks) - 1; i >= 0; i-- {

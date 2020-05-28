@@ -9,7 +9,7 @@ from pysymphony import SymphonyClient
 
 from .._utils import PropertyValue, get_graphql_property_inputs
 from ..common.cache import SERVICE_TYPES
-from ..common.data_class import Customer, Service, ServiceType
+from ..common.data_class import Customer, Service
 from ..common.data_enum import Entity
 from ..exceptions import EntityNotFoundError
 from ..graphql.enum.service_status import ServiceStatus
@@ -18,10 +18,7 @@ from ..graphql.input.service_create_data import ServiceCreateData
 from ..graphql.mutation.add_service import AddServiceMutation
 from ..graphql.mutation.add_service_endpoint import AddServiceEndpointMutation
 from ..graphql.mutation.add_service_link import AddServiceLinkMutation
-from ..graphql.mutation.remove_service import RemoveServiceMutation
-from ..graphql.mutation.remove_service_type import RemoveServiceTypeMutation
 from ..graphql.query.service_details import ServiceDetailsQuery
-from ..graphql.query.service_type_services import ServiceTypeServicesQuery
 
 
 def add_service(
@@ -176,30 +173,3 @@ def add_service_link(client: SymphonyClient, service_id: str, link_id: str) -> N
             ```
     """
     AddServiceLinkMutation.execute(client, id=service_id, linkId=link_id)
-
-
-def delete_service_type_with_services(
-    client: SymphonyClient, service_type: ServiceType
-) -> None:
-    """Delete service type with existing services.
-
-        Args:
-            service_type (`pyinventory.common.data_class.ServiceType`): service type object
-
-        Raises:
-            `pyinventory.exceptions.EntityNotFoundError`: if service_type does not exist
-
-        Example:
-            ```
-            client.delete_service_type_with_services(service_type=service_type)
-            ```
-    """
-    service_type_with_services = ServiceTypeServicesQuery.execute(
-        client, id=service_type.id
-    )
-    if not service_type_with_services:
-        raise EntityNotFoundError(entity=Entity.ServiceType, entity_id=service_type.id)
-    services = service_type_with_services.services
-    for service in services:
-        RemoveServiceMutation.execute(client, id=service.id)
-    RemoveServiceTypeMutation.execute(client, id=service_type.id)

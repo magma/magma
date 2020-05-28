@@ -10,7 +10,6 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/jessevdk/go-flags"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gocloud.dev/pubsub"
@@ -37,14 +36,9 @@ func TestURLSubscriber(t *testing.T) {
 	t.Run("Flag", func(t *testing.T) {
 		var subscriber URLSubscriber
 		assert.Implements(t, (*flag.Value)(nil), &subscriber)
-		assert.Implements(t, (*flags.Unmarshaler)(nil), &subscriber)
 
 		const goodURL = "file://test"
 		err := subscriber.Set(goodURL)
-		assert.NoError(t, err)
-		assert.Equal(t, goodURL, subscriber.String())
-
-		err = subscriber.UnmarshalFlag(goodURL)
 		assert.NoError(t, err)
 		assert.Equal(t, goodURL, subscriber.String())
 

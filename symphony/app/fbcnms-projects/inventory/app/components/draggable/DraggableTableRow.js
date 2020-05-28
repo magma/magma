@@ -16,13 +16,14 @@ import TableRow from '@material-ui/core/TableRow';
 import {Draggable} from 'react-beautiful-dnd';
 import {withStyles} from '@material-ui/core/styles';
 
-type Props = {
+type Props = $ReadOnly<{|
   id: string,
   index: number,
   children?: React.Node,
   className?: string,
   draggableCellClassName?: string,
-} & WithStyles<typeof styles>;
+|}> &
+  WithStyles<typeof styles>;
 
 const styles = {
   dragIndicatorIcon: {

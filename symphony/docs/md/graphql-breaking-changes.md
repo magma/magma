@@ -6,16 +6,14 @@ title: Graphql API Breaking Changes
 [//]: <> (@generated This file was created by cli/extract_graphql_deprecations.pydo not change it manually)
 
 ## Deprecated Queries
-* `searchForEntity` - Use `searchForNode` instead. Will be removed on 2020-05-01
+
 
 ## Deprecated Mutations
 
 
 ## Deprecated Fields
-* `Viewer.email` - Use `Viewer.user.email` instead. Will be removed on 2020-05-01
 * `WorkOrder.ownerName` - Use `WorkOrder.owner.email` instead. Will be removed on 2020-05-01
 * `WorkOrder.assignee` - Use `WorkOrder.assignedTo.email` instead. Will be removed on 2020-05-01
-* `Comment.authorName` - Use `Comment.author.email` instead. Will be removed on 2020-05-01
 * `Project.creator` - Use `Project.createdBy.email` instead. Will be removed on 2020-05-01
 
 ## Deprecated Input Fields
@@ -27,6 +25,5 @@ title: Graphql API Breaking Changes
 * `EditProjectInput.creator` - Use `EditProjectInput.creatorId` instead. Will be removed on 2020-05-01. You cannot use `EditProjectInput.creator` and `EditProjectInput.creatorId` together
 
 ## Deprecated Enums
-* `WorkOrderFilterType.WORK_ORDER_OWNER` - Use `WorkOrderFilterType.WORK_ORDER_OWNED_BY` instead. Will be removed on 2020-05-01
-* `WorkOrderFilterType.WORK_ORDER_ASSIGNEE` - Use `WorkOrderFilterType.WORK_ORDER_ASSIGNED_TO` instead. Will be removed on 2020-05-01
+
 

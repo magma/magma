@@ -108,4 +108,14 @@ http {
       proxy_set_header x-magma-client-cert-serial $ssl_client_serial;
     }
   }
+
+  # Open port 80 for k8s liveness check. Just returns a 200.
+  server {
+    listen 80;
+    server_name _;
+
+    location / {
+      return 200;
+    }
+  }
 }

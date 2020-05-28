@@ -22,12 +22,10 @@ import (
 	"github.com/facebookincubator/symphony/pkg/server"
 	"gocloud.dev/server/health"
 	"google.golang.org/grpc"
-	"net/url"
 )
 
 import (
 	_ "github.com/facebookincubator/symphony/graph/ent/runtime"
-	_ "github.com/go-sql-driver/mysql"
 	_ "gocloud.dev/pubsub/mempubsub"
 	_ "gocloud.dev/pubsub/natspubsub"
 )
@@ -35,18 +33,18 @@ import (
 // Injectors from wire.go:
 
 func newApplication(ctx context.Context, flags *cliFlags) (*application, func(), error) {
-	config := flags.Log
+	config := flags.LogConfig
 	logger, cleanup, err := log.ProvideLogger(config)
 	if err != nil {
 		return nil, nil, err
 	}
-	string2 := flags.MySQL
-	mySQLTenancy, err := newMySQLTenancy(string2, logger)
+	mysqlConfig := flags.MySQLConfig
+	mySQLTenancy, err := newMySQLTenancy(mysqlConfig, logger)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
 	}
-	eventConfig := flags.Event
+	eventConfig := flags.EventConfig
 	topicEmitter, cleanup2, err := event.ProvideEmitter(ctx, eventConfig)
 	if err != nil {
 		cleanup()
@@ -58,22 +56,17 @@ func newApplication(ctx context.Context, flags *cliFlags) (*application, func(),
 		cleanup()
 		return nil, nil, err
 	}
-	url, err := newAuthURL(flags)
-	if err != nil {
-		cleanup2()
-		cleanup()
-		return nil, nil, err
-	}
+	url := flags.AuthURL
 	urlSubscriber := event.ProvideSubscriber(eventConfig)
-	options := flags.Census
+	telemetryConfig := &flags.TelemetryConfig
 	v := newHealthChecks(mySQLTenancy)
-	orc8rConfig := flags.Orc8r
+	orc8rConfig := flags.Orc8rConfig
 	graphhttpConfig := graphhttp.Config{
 		Tenancy:      tenancy,
 		AuthURL:      url,
 		Subscriber:   urlSubscriber,
 		Logger:       logger,
-		Census:       options,
+		Telemetry:    telemetryConfig,
 		HealthChecks: v,
 		Orc8r:        orc8rConfig,
 	}
@@ -83,15 +76,17 @@ func newApplication(ctx context.Context, flags *cliFlags) (*application, func(),
 		cleanup()
 		return nil, nil, err
 	}
-	db := mysql.Open(string2)
+	config2 := &flags.MySQLConfig
+	db, cleanup4 := mysql.Provider(config2)
 	graphgrpcConfig := graphgrpc.Config{
 		DB:      db,
 		Logger:  logger,
 		Orc8r:   orc8rConfig,
 		Tenancy: tenancy,
 	}
-	grpcServer, cleanup4, err := graphgrpc.NewServer(graphgrpcConfig)
+	grpcServer, cleanup5, err := graphgrpc.NewServer(graphgrpcConfig)
 	if err != nil {
+		cleanup4()
 		cleanup3()
 		cleanup2()
 		cleanup()
@@ -102,8 +97,9 @@ func newApplication(ctx context.Context, flags *cliFlags) (*application, func(),
 		Subscriber: urlSubscriber,
 		Logger:     logger,
 	}
-	grapheventsServer, cleanup5, err := graphevents.NewServer(grapheventsConfig)
+	grapheventsServer, cleanup6, err := graphevents.NewServer(grapheventsConfig)
 	if err != nil {
+		cleanup5()
 		cleanup4()
 		cleanup3()
 		cleanup2()
@@ -112,6 +108,7 @@ func newApplication(ctx context.Context, flags *cliFlags) (*application, func(),
 	}
 	mainApplication := newApp(logger, server, grpcServer, grapheventsServer, flags)
 	return mainApplication, func() {
+		cleanup6()
 		cleanup5()
 		cleanup4()
 		cleanup3()
@@ -126,9 +123,9 @@ func newApp(logger log.Logger, httpServer *server.Server, grpcServer *grpc.Serve
 	var app application
 	app.Logger = logger.Background()
 	app.http.Server = httpServer
-	app.http.addr = flags.HTTPAddress
+	app.http.addr = flags.HTTPAddress.String()
 	app.grpc.Server = grpcServer
-	app.grpc.addr = flags.GRPCAddress
+	app.grpc.addr = flags.GRPCAddress.String()
 	app.event = eventServer
 	return &app
 }
@@ -142,20 +139,12 @@ func newHealthChecks(tenancy *viewer.MySQLTenancy) []health.Checker {
 	return []health.Checker{tenancy}
 }
 
-func newMySQLTenancy(dsn string, logger log.Logger) (*viewer.MySQLTenancy, error) {
-	tenancy, err := viewer.NewMySQLTenancy(dsn)
+func newMySQLTenancy(config mysql.Config, logger log.Logger) (*viewer.MySQLTenancy, error) {
+	tenancy, err := viewer.NewMySQLTenancy(config.String())
 	if err != nil {
 		return nil, fmt.Errorf("creating mysql tenancy: %w", err)
 	}
 	tenancy.SetLogger(logger)
 	mysql.SetLogger(logger)
 	return tenancy, nil
-}
-
-func newAuthURL(flags *cliFlags) (*url.URL, error) {
-	u, err := url.Parse(flags.AuthURL)
-	if err != nil {
-		return nil, fmt.Errorf("parsing auth url: %w", err)
-	}
-	return u, nil
 }

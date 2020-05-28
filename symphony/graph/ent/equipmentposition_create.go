@@ -130,6 +130,7 @@ func (epc *EquipmentPositionCreate) Save(ctx context.Context) (*EquipmentPositio
 			}
 			epc.mutation = mutation
 			node, err = epc.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(epc.hooks) - 1; i >= 0; i-- {

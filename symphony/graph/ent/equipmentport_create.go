@@ -163,6 +163,7 @@ func (epc *EquipmentPortCreate) Save(ctx context.Context) (*EquipmentPort, error
 			}
 			epc.mutation = mutation
 			node, err = epc.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(epc.hooks) - 1; i >= 0; i-- {

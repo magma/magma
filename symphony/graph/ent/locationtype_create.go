@@ -201,6 +201,7 @@ func (ltc *LocationTypeCreate) Save(ctx context.Context) (*LocationType, error) 
 			}
 			ltc.mutation = mutation
 			node, err = ltc.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(ltc.hooks) - 1; i >= 0; i-- {

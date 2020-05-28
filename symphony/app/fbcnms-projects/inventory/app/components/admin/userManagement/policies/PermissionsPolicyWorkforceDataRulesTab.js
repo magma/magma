@@ -87,6 +87,26 @@ function WorkforceDataRulesSection(props: InventoryDataRulesSectionProps) {
           })
         }>
         <HierarchicalCheckbox
+          id="assign"
+          title={
+            <DataRuleTitle>
+              <fbt desc="">Assign</fbt>
+            </DataRuleTitle>
+          }
+          disabled={disabled}
+          value={!disabled && permissionRuleValue2Bool(rule.assign.isAllowed)}
+          onChange={checked =>
+            onChange({
+              ...rule,
+              assign: {
+                isAllowed: bool2PermissionRuleValue(checked),
+              },
+            })
+          }
+          hierarchicalRelation={HIERARCHICAL_RELATION.PARENT_REQUIRED}
+          className={classes.rule}
+        />
+        <HierarchicalCheckbox
           id="transferOwnership"
           title={
             <DataRuleTitle>

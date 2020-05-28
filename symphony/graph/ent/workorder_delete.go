@@ -47,6 +47,7 @@ func (wod *WorkOrderDelete) Exec(ctx context.Context) (int, error) {
 			}
 			wod.mutation = mutation
 			affected, err = wod.sqlExec(ctx)
+			mutation.done = true
 			return affected, err
 		})
 		for i := len(wod.hooks) - 1; i >= 0; i-- {

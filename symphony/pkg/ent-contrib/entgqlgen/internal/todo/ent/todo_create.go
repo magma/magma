@@ -87,6 +87,7 @@ func (tc *TodoCreate) Save(ctx context.Context) (*Todo, error) {
 			}
 			tc.mutation = mutation
 			node, err = tc.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(tc.hooks) - 1; i >= 0; i-- {

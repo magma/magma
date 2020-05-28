@@ -191,6 +191,7 @@ func (lu *LinkUpdate) Save(ctx context.Context) (int, error) {
 			}
 			lu.mutation = mutation
 			affected, err = lu.sqlSave(ctx)
+			mutation.done = true
 			return affected, err
 		})
 		for i := len(lu.hooks) - 1; i >= 0; i-- {
@@ -586,6 +587,7 @@ func (luo *LinkUpdateOne) Save(ctx context.Context) (*Link, error) {
 			}
 			luo.mutation = mutation
 			node, err = luo.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(luo.hooks) - 1; i >= 0; i-- {

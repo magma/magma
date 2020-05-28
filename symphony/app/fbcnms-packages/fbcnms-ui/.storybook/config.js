@@ -56,7 +56,6 @@ const useStyles = makeStyles(() => ({
 
 addDecorator((story, config) => {
   const _classes = useStyles();
-  console.log('config', config);
   return (
     <BrowserRouter>
       <MuiThemeProvider theme={defaultTheme}>

@@ -563,7 +563,13 @@ const WorkOrderDetails = ({
                           margin="dense"
                         />
                       </FormFieldWithPermissions>
-                      <FormField label="Assignee" className={classes.input}>
+                      <FormFieldWithPermissions
+                        label="Assignee"
+                        className={classes.input}
+                        permissions={{
+                          entity: 'workorder',
+                          action: 'assign',
+                        }}>
                         <UserTypeahead
                           selectedUser={workOrder.assignedTo}
                           onUserSelection={user =>
@@ -571,7 +577,7 @@ const WorkOrderDetails = ({
                           }
                           margin="dense"
                         />
-                      </FormField>
+                      </FormFieldWithPermissions>
                     </ExpandingPanel>
                     <ExpandingPanel
                       title="Comments"

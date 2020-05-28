@@ -204,6 +204,7 @@ func (stu *ServiceTypeUpdate) Save(ctx context.Context) (int, error) {
 			}
 			stu.mutation = mutation
 			affected, err = stu.sqlSave(ctx)
+			mutation.done = true
 			return affected, err
 		})
 		for i := len(stu.hooks) - 1; i >= 0; i-- {
@@ -599,6 +600,7 @@ func (stuo *ServiceTypeUpdateOne) Save(ctx context.Context) (*ServiceType, error
 			}
 			stuo.mutation = mutation
 			node, err = stuo.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(stuo.hooks) - 1; i >= 0; i-- {

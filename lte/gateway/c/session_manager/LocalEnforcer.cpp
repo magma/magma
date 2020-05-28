@@ -265,7 +265,7 @@ void LocalEnforcer::aggregate_records(
     }
     if (record.bytes_tx() > 0 || record.bytes_rx() > 0) {
       MLOG(MINFO) << "";
-      MLOG(MINFO) << "Subscriber " << record.sid() << " used "
+      MLOG(MINFO) << record.sid() << " used "
                   << record.bytes_tx() << " tx bytes and " << record.bytes_rx()
                   << " rx bytes for rule " << record.rule_id();
     }
@@ -1088,6 +1088,12 @@ void LocalEnforcer::update_monitoring_credits_and_rules(
     SessionMap& session_map, const UpdateSessionResponse& response,
     std::unordered_set<std::string>& subscribers_to_terminate,
     SessionUpdate& session_update) {
+  // Since revalidation timer is session wide, we will only schedule one for
+  // the entire session. The expectation is that if event triggers should be
+  // included in all monitors or none.
+  // To keep track of which timer is already tracked, we will have a set of
+  // IMSIs that have pending re-validations
+  std::unordered_set<std::string> imsis_with_revalidation;
   for (const auto& usage_monitor_resp : response.usage_monitor_responses()) {
     const std::string& imsi = usage_monitor_resp.sid();
 
@@ -1103,15 +1109,6 @@ void LocalEnforcer::update_monitoring_credits_and_rules(
                    << " during update";
       continue;
     }
-
-    // Since revalidation timer is session wide, we will only schedule one for
-    // the entire session
-
-    // TODO [REMOVE] We will log error in case we get an unexpected input here
-    // The expectation is that if event triggers should be included in all
-    // monitors or none
-    bool revalidation_scheduled = false;
-    google::protobuf::Timestamp revalidation_time;
 
     for (const auto& session : it->second) {
       auto& update_criteria = session_update[imsi][session->get_session_id()];
@@ -1168,19 +1165,18 @@ void LocalEnforcer::update_monitoring_credits_and_rules(
         subscribers_to_terminate.insert(imsi);
       }
 
-      if (!revalidation_scheduled &&
-          revalidation_required(usage_monitor_resp.event_triggers())) {
-        schedule_revalidation(imsi, usage_monitor_resp.revalidation_time());
-        revalidation_scheduled = true;
-        // TODO remove after confirming this isn't causing issues
-        revalidation_time = usage_monitor_resp.revalidation_time();
-      } else if (revalidation_scheduled &&
-          !revalidation_required(usage_monitor_resp.event_triggers())) {
-        // TODO [Remove This Clause]
-        auto time_from_now_ms = time_difference_from_now(revalidation_time);
-        MLOG(MWARNING) << imsi << " received some usage monitors with a "
-                       << "revalidation timer in " << time_from_now_ms.count()
-                       << " and some without";
+      if (revalidation_required(usage_monitor_resp.event_triggers()) &&
+            imsis_with_revalidation.count(imsi) == 0) {
+        // All usage monitors under the same session will have the same event
+        // trigger. See proto message / FeG for why. We will modify this input
+        // logic later (Move event trigger out of UsageMonitorResponse), but
+        // here we use a set to indicate whether a timer is already accounted
+        // for.
+        // Only schedule if no other revalidation timer was scheduled for
+        // this IMSI
+        auto revalidation_time = usage_monitor_resp.revalidation_time();
+        imsis_with_revalidation.insert(imsi);
+        schedule_revalidation(imsi, revalidation_time);
       }
     }
   }
@@ -1616,6 +1612,7 @@ bool LocalEnforcer::revalidation_required(
   return it != event_triggers.end();
 }
 
+// Todo support scheduling revalidation for different sessions for a IMSI
 void LocalEnforcer::schedule_revalidation(
     const std::string& imsi,
     const google::protobuf::Timestamp& revalidation_time) {

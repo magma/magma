@@ -34,7 +34,6 @@ class SubTests(Enum):
     GY = "gy"
     QOS = "qos"
     MULTISESSIONPROXY = "multi_session_proxy"
-    FEGFAILURE = "feg_failure"
 
     @staticmethod
     def list():
@@ -126,6 +125,7 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     else:
         ansible_setup(gateway_host, "cwag", "cwag_dev.yml")
     execute(_set_cwag_networking, cwag_test_br_mac)
+    execute(_check_docker_services)
 
     # Start main tests - except for multi session proxy
     if not test_host:
@@ -136,29 +136,8 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     execute(_start_ue_simulator)
     execute(_set_cwag_test_networking, cwag_br_mac)
 
-    if tests_to_run.value not in (SubTests.MULTISESSIONPROXY.value,
-                                    SubTests.FEGFAILURE.value):
+    if tests_to_run.value not in SubTests.MULTISESSIONPROXY.value:
         execute(_run_integ_tests, test_host, trf_host, tests_to_run, test_re)
-
-    # Setup environment for cwag_feg_link_down if required
-    if tests_to_run.value in (SubTests.ALL.value,
-                              SubTests.FEGFAILURE.value):
-        # CWAG VM
-        if not gateway_host:
-            vagrant_setup("cwag", False)
-        else:
-            ansible_setup(gateway_host, "cwag", "cwag_dev.yml")
-
-        # Stop not necessary services for this test case
-        execute(_stop_docker_services, ["ingress"])
-
-        # CWAG_TEST VM
-        if not test_host:
-            vagrant_setup("cwag_test", False)
-        else:
-            ansible_setup(test_host, "cwag_test", "cwag_test.yml")
-        execute(_run_integ_tests, test_host, trf_host,
-                SubTests.FEGFAILURE, test_re)
 
     # Setup environment for multi service proxy if required
     if tests_to_run.value in (SubTests.ALL.value,
@@ -172,6 +151,7 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
         execute(_set_cwag_configs, "gateway.mconfig.multi_session_proxy")
         execute(_restart_docker_services, ["session_proxy", "pcrf", "ocs",
                                            "pcrf2", "ocs2", "ingress"])
+        execute(_check_docker_services)
 
         # CWAG_TEST VM
         if not test_host:
@@ -329,6 +309,15 @@ def _stop_docker_services(services):
             " -f docker-compose.nginx.yml"
             " -f docker-compose.integ-test.yml"
             " stop {}".format(" ".join(services))
+        )
+
+
+def _check_docker_services():
+    with cd(CWAG_ROOT + "/docker"):
+        run(
+            " DCPS=$(docker ps --format \"{{.Names}}\t{{.Status}}\" | grep Restarting);"
+            " [[ -z \"$DCPS\" ]] ||"
+            " ( echo \"Container restarting detected.\" ; echo \"$DCPS\"; exit 1 )"
         )
 
 

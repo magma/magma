@@ -44,6 +44,39 @@ message PolicyRule{
   TrackingType tracking_type = 10;
   uint32 hard_timeout = 11; // optional
   ServiceIdentifier service_identifier = 12; // optional
+  enum AppName {
+    NO_APP_NAME = 0;
+    FACEBOOK = 1;
+    FACEBOOK_MESSENGER = 2;
+    INSTAGRAM = 3;
+    YOUTUBE = 4;
+    GOOGLE = 5;
+    GMAIL = 6;
+    GOOGLE_DOCS = 7;
+    NETFLIX = 8;
+    APPLE = 9;
+    MICROSOFT = 10;
+    REDDIT = 11;
+    WHATSAPP = 12;
+    GOOGLE_PLAY = 13;
+    APPSTORE = 14;
+    AMAZON = 15;
+    WECHAT = 16;
+    TIKTOK = 17;
+    TWITTER = 18;
+    WIKIPEDIA = 19;
+    GOOGLE_MAPS = 20;
+    YAHOO = 21;
+    IMO = 22;
+  }
+  AppName app_name = 13; // optional
+  enum AppServiceType {
+    NO_SERVICE_TYPE = 0;
+    CHAT = 1;
+    AUDIO = 2;
+    VIDEO = 3;
+  }
+  AppServiceType app_service_type = 14; // optional
 }
 
 message ServiceIdentifier {

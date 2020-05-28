@@ -258,6 +258,7 @@ func TestExportWOWithFilters(t *testing.T) {
 	require.NoError(t, err)
 	viewertest.SetDefaultViewerHeaders(req)
 
+	userID := viewer.FromContext(ctx).(*viewer.UserViewer).User().ID
 	f, err := json.Marshal([]equipmentFilterInput{
 		{
 			Name:      "WORK_ORDER_STATUS",
@@ -265,9 +266,9 @@ func TestExportWOWithFilters(t *testing.T) {
 			StringSet: []string{"DONE"},
 		},
 		{
-			Name:      "WORK_ORDER_ASSIGNEE",
-			Operator:  "IS_ONE_OF",
-			StringSet: []string{"tester@example.com"},
+			Name:     "WORK_ORDER_ASSIGNED_TO",
+			Operator: "IS_ONE_OF",
+			IDSet:    []string{strconv.Itoa(userID)},
 		},
 	})
 	require.NoError(t, err)

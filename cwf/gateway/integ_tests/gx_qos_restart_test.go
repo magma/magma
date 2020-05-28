@@ -67,9 +67,7 @@ const (
 func testQosEnforcementRestart(t *testing.T, cfgCh chan string, restartCfg string) {
 	tr := NewTestRunner(t)
 
-	err := tr.RestartService("pipelined", true)
-	fmt.Println("Restarting service")
-
+	err := tr.RestartService("pipelined")
 	if err != nil {
 		fmt.Printf("error restarting pipelined %v", err)
 		assert.Fail(t, "failed restarting pipelined")
@@ -130,7 +128,7 @@ func testQosEnforcementRestart(t *testing.T, cfgCh chan string, restartCfg strin
 
 	// modify pipelined yml to set clean_restart
 	cfgCh <- restartCfg
-	err = tr.RestartService("pipelined", true)
+	err = tr.RestartService("pipelined")
 	if err != nil {
 		fmt.Printf("error restarting pipelined %v", err)
 		assert.Fail(t, "failed restarting pipelined")
@@ -151,7 +149,7 @@ func testQosEnforcementRestart(t *testing.T, cfgCh chan string, restartCfg strin
 }
 
 func TestQosRestartMeter(t *testing.T) {
-	t.Log("Running TestQosRestartMeter")
+	fmt.Println("\nRunning TestQosRestartMeter")
 	cfgCh, err := configFileManager(pipelinedCfgFn)
 	defer func() {
 		close(cfgCh)
@@ -166,10 +164,10 @@ func TestQosRestartMeter(t *testing.T) {
 	}
 
 	// clean restart test
-	t.Log("Running TestQosRestartMeter - clean restart")
+	fmt.Println("\nRunning TestQosRestartMeter - clean restart")
 	testQosEnforcementRestart(t, cfgCh, cleanRestartYaml)
 
 	// non clean restart test
-	t.Log("Running TestQosRestartMeter - non clean restart")
+	fmt.Println("\nRunning TestQosRestartMeter - non clean restart")
 	testQosEnforcementRestart(t, cfgCh, nonCleanRestartYaml)
 }

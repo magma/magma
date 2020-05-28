@@ -17,17 +17,18 @@ func (tr *TestRunner) findContainer(cli *dockerClient.Client, serviceName string
 	filter.Add("name", serviceName)
 	sessiondContainerFilter := dockerTypes.ContainerListOptions{Filters: filter}
 	containers, err := cli.ContainerList(context.Background(), sessiondContainerFilter)
-	if err != nil || len(containers) == 0 {
-		if len(containers) == 0 {
-			err = fmt.Errorf("container %s not found ", serviceName)
-		}
+	if err != nil {
 		return "", err
+	}
+	if len(containers) == 0 {
+		return "", fmt.Errorf("container %s not found ", serviceName)
 	}
 	return containers[0].ID, nil
 }
 
 //RestartService adds ability to restart a particular service managed by docker
-func (tr *TestRunner) RestartService(serviceName string, cleanRestart bool) error {
+func (tr *TestRunner) RestartService(serviceName string) error {
+	fmt.Printf("Restarting docker container: %v\n", serviceName)
 	ctx := context.Background()
 	cli, err := dockerClient.NewEnvClient()
 	if err != nil {
@@ -39,8 +40,26 @@ func (tr *TestRunner) RestartService(serviceName string, cleanRestart bool) erro
 		fmt.Printf("error %v getting container id \n", err)
 		return err
 	}
-	timeout := time.Duration(30 * time.Second)
+	timeout := 30 * time.Second
 	err = cli.ContainerRestart(ctx, containerID, &timeout)
+	return err
+}
+
+//StopService adds ability to stop a particular service managed by docker
+func (tr *TestRunner) PauseService(serviceName string) error {
+	fmt.Printf("Pausing docker container: %v\n", serviceName)
+	ctx := context.Background()
+	cli, err := dockerClient.NewEnvClient()
+	if err != nil {
+		fmt.Printf("error %v getting a new client \n", err)
+		return err
+	}
+	containerID, err := tr.findContainer(cli, serviceName)
+	if err != nil {
+		fmt.Printf("error %v getting container id \n", err)
+		return err
+	}
+	err = cli.ContainerPause(ctx, containerID)
 	return err
 }
 

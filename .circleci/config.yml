@@ -76,6 +76,22 @@ commands:
           cd << parameters.workdir >>
           retry << parameters.command >>
 
+  yarn-install:
+    steps:
+      - restore_cache:
+          name: Restore Yarn Package Cache
+          keys:
+            - yarn-packages-{{ checksum "symphony/app/yarn.lock" }}
+      - run:
+          name: Install Dependencies
+          <<: *appdir
+          command: yarn install --frozen-lockfile
+      - save_cache:
+          name: Save Yarn Package Cache
+          key: yarn-packages-{{ checksum "symphony/app/yarn.lock" }}
+          paths:
+            - ~/.cache/yarn
+
 jobs:
   integ-test:
     machine:
@@ -366,19 +382,7 @@ jobs:
     executor: node
     steps:
       - checkout
-      - restore_cache:
-          name: Restore Yarn Package Cache
-          keys:
-            - yarn-packages-{{ checksum "symphony/app/yarn.lock" }}
-      - run:
-          name: Install Dependencies
-          <<: *appdir
-          command: yarn install --frozen-lockfile
-      - save_cache:
-          name: Save Yarn Package Cache
-          key: yarn-packages-{{ checksum "symphony/app/yarn.lock" }}
-          paths:
-            - ~/.cache/yarn
+      - yarn-install
       - run:
           name: yarn test
           <<: *appdir
@@ -391,11 +395,23 @@ jobs:
       - run:
           name: install flow
           <<: *appdir
-          command: yarn add --dev -W flow-bin@0.125
+          # Extract the specified flow version from the .flowconfig
+          command: yarn add --dev -W flow-bin@$(x=$(grep "\[version\]" .flowconfig -A 1 | tail -n 1); echo ${x:1})
+      - yarn-install
       - run:
           name: flow typecheck
           <<: *appdir
           command: yarn run flow
+
+  eslint:
+    executor: node
+    steps:
+      - checkout
+      - yarn-install
+      - run:
+          name: eslint
+          <<: *appdir
+          command: yarn run eslint ./
 
   fossa-analyze:
     docker:
@@ -579,6 +595,7 @@ workflows:
       - insync-checkin
       - nms-flow-test
       - fossa-analyze
+      - eslint
       - nms-yarn-test:
           requires:
             - nms-flow-test

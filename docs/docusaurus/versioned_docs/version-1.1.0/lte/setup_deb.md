@@ -48,7 +48,7 @@ installation process to get an IP using DHCP.
 
 ```bash
 su
-wget https://raw.githubusercontent.com/facebookincubator/magma/master/lte/gateway/deploy/agw_install.sh
+wget https://raw.githubusercontent.com/facebookincubator/magma/v1.1/lte/gateway/deploy/agw_install.sh
 sh agw_install.sh
 ```
 

@@ -20,14 +20,12 @@ func TestQueryMe(t *testing.T) {
 	var rsp struct {
 		Me struct {
 			Tenant string
-			Email  string
 			User   struct {
 				AuthID string
 			}
 		}
 	}
-	c.MustPost("query { me { tenant, email user { authID } } }", &rsp)
+	c.MustPost("query { me { tenant, user { authID } } }", &rsp)
 	assert.Equal(t, viewertest.DefaultTenant, rsp.Me.Tenant)
-	assert.Equal(t, viewertest.DefaultUser, rsp.Me.Email)
 	assert.Equal(t, viewertest.DefaultUser, rsp.Me.User.AuthID)
 }

@@ -169,6 +169,7 @@ func (sedc *ServiceEndpointDefinitionCreate) Save(ctx context.Context) (*Service
 			}
 			sedc.mutation = mutation
 			node, err = sedc.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(sedc.hooks) - 1; i >= 0; i-- {
