@@ -145,8 +145,7 @@ def _get_context():
     context["csfb_mcc"] = _get_csfb_mcc()
     context["csfb_mnc"] = _get_csfb_mnc()
     context["lac"] = _get_lac()
-    use_stateless = get_service_config_value("mme", "use_stateless", False)
-    context["use_stateless"] = "" if use_stateless == False else use_stateless    
+    context["use_stateless"] = get_service_config_value("mme", "use_stateless", "") or ""
     context["attached_enodeb_tacs"] = _get_attached_enodeb_tacs()
     # set ovs params
     for key in (
