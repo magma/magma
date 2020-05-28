@@ -121,7 +121,7 @@ func (r *reindexerImpl) RunUnsafe(ctx context.Context, indexerID string, sendUpd
 			return err
 		}
 		if sendUpdate != nil {
-			sendUpdate(fmt.Sprintf("indexer %s successfully reindexed from version %d to version %d", j.Idx, j.From, j.To))
+			sendUpdate(fmt.Sprintf("indexer %s successfully reindexed from version %d to version %d", j.Idx.GetID(), j.From, j.To))
 		}
 	}
 	return nil
