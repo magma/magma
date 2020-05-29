@@ -1,4 +1,4 @@
-// +build all gx qos
+// +build all qos
 
 /*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -67,6 +67,9 @@ func verifyEgressRate(t *testing.T, tr *TestRunner, req *cwfprotos.GenTrafficReq
 // bitrate
 func TestGxUplinkTrafficQosEnforcement(t *testing.T) {
 	fmt.Println("\nRunning TestGxUplinkTrafficQosEnforcement")
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
 	tr := NewTestRunner(t)
 	ruleManager, err := NewRuleManager()
 	assert.NoError(t, err)
@@ -204,6 +207,9 @@ func TestGxDownlinkTrafficQosEnforcement(t *testing.T) {
 // that the observed bitrate maches the newly configured bitrate
 func TestGxQosDowngradeWithCCAUpdate(t *testing.T) {
 	fmt.Println("\nRunning TestGxQosDowngradeWithCCAUpdate")
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
 	tr := NewTestRunner(t)
 	ruleManager, err := NewRuleManager()
 	assert.NoError(t, err)
@@ -320,6 +326,9 @@ func TestGxQosDowngradeWithCCAUpdate(t *testing.T) {
 // downgraded bitrate
 func TestGxQosDowngradeWithReAuth(t *testing.T) {
 	fmt.Println("\nRunning TestGxQosDowngradeWithReAuth")
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
 	tr := NewTestRunner(t)
 	ruleManager, err := NewRuleManager()
 	assert.NoError(t, err)

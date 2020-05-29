@@ -346,7 +346,7 @@ def _run_integ_tests(test_host, trf_host, tests_to_run: SubTests,
         shell_env_vars["TESTS"] = test_re
 
     # QOS take a while to run. Increasing the timeout to 20m
-    go_test_cmd = "go test -timeout 20m"
+    go_test_cmd = "go test -v -test.short -timeout 20m"
     go_test_cmd += " -tags " + tests_to_run.value
     if test_re:
         go_test_cmd += " -run " + test_re

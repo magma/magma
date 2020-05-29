@@ -1,4 +1,4 @@
-// +build all gx qos
+// +build all qos
 
 /*
  * Copyright (c) Facebook, Inc. and its affiliates.
