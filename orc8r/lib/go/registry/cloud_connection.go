@@ -110,7 +110,7 @@ func getAuthority(
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("%s-%s", service, cloudAddr), nil
+	return fmt.Sprintf("%s-%s", strings.ToLower(service), cloudAddr), nil
 }
 
 func (reg *ServiceRegistry) getProxyAddress(serviceConfig *config.ConfigMap) (string, error) {
