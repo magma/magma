@@ -21,7 +21,7 @@ import (
 )
 
 func PeriodicallyReportGatewayStatus(dur time.Duration) {
-	for _ = range time.Tick(dur) {
+	for range time.Tick(dur) {
 		err := reportGatewayStatus()
 		if err != nil {
 			glog.Errorf("err in reportGatewayStatus: %v\n", err)

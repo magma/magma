@@ -9,8 +9,8 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/facebookincubator/symphony/graph/ent/equipmentpositiondefinition"
-	"github.com/facebookincubator/symphony/graph/ent/equipmenttype"
+	"github.com/facebookincubator/symphony/pkg/ent/equipmentpositiondefinition"
+	"github.com/facebookincubator/symphony/pkg/ent/equipmenttype"
 
 	"go.uber.org/zap"
 )

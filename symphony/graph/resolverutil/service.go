@@ -7,8 +7,8 @@ package resolverutil
 import (
 	"context"
 
-	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/ent/service"
+	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/ent/service"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 

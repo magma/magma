@@ -12,9 +12,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/viewer"
+	"github.com/facebookincubator/symphony/pkg/ent"
 	"github.com/facebookincubator/symphony/pkg/log"
+	"github.com/facebookincubator/symphony/pkg/viewer"
 	"github.com/hashicorp/go-multierror"
 	"go.uber.org/zap"
 	"gocloud.dev/pubsub"

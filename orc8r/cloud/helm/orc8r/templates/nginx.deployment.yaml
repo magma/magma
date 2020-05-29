@@ -70,11 +70,11 @@ spec:
               containerPort: {{ .Values.nginx.service.port.health.targetPort }}
           env:
             - name: PROXY_BACKENDS
-              value: {{ print .Release.Name "-controller" | quote }}
+              value: {{ print .Release.Name "-controller." .Release.Namespace ".svc.cluster.local" | quote }}
             - name: CONTROLLER_HOSTNAME
               value: {{ required "nginx.spec.hostname must be provided" .Values.nginx.spec.hostname | quote }}
             - name: RESOLVER
-              value: "kube-dns.kube-system.svc.cluster.local"
+              value: {{ .Values.nginx.spec.resolver | quote }}
           livenessProbe:
             tcpSocket:
               port: health

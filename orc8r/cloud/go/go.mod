@@ -30,6 +30,7 @@ require (
 	github.com/go-sql-driver/mysql v1.4.1-0.20190510102335-877a9775f068
 	github.com/go-swagger/go-swagger v0.18.0
 	github.com/go-swagger/scan-repo-boundary v0.0.0-20180623220736-973b3573c013 // indirect
+	github.com/go-test/deep v1.0.6
 	github.com/godbus/dbus v0.0.0-20181101234600-2ff6f7ffd60f // indirect
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.3.3
@@ -42,6 +43,7 @@ require (
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0
 	github.com/lib/pq v1.2.0
 	github.com/mattn/go-sqlite3 v1.11.0
+	github.com/mitchellh/go-homedir v0.0.0-20180523094522-3864e76763d9
 	github.com/olivere/elastic/v7 v7.0.6
 	github.com/onsi/ginkgo v1.7.0 // indirect
 	github.com/onsi/gomega v1.4.3 // indirect
@@ -53,7 +55,7 @@ require (
 	github.com/prometheus/procfs v0.0.5
 	github.com/prometheus/prometheus v0.0.0-20190115164134-b639fe140c1f
 	github.com/spf13/cobra v0.0.3
-	github.com/spf13/viper v1.3.1 // indirect
+	github.com/spf13/viper v1.3.1
 	github.com/stretchr/testify v1.4.0
 	github.com/thoas/go-funk v0.4.0
 	github.com/toqueteos/webbrowser v1.1.0 // indirect

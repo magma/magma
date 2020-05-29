@@ -8,44 +8,21 @@
  * @flow strict-local
  * @format
  */
+import type {gateway_id, lte_gateway} from '@fbcnms/magma-api';
 
+import ActionTable from '../../components/ActionTable';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
-import DataUsageIcon from '@material-ui/icons/DataUsage';
+import EquipmentGatewayKPIs from './EquipmentGatewayKPIs';
+import GatewayCheckinChart from './GatewayCheckinChart';
 import Grid from '@material-ui/core/Grid';
-import IconButton from '@material-ui/core/IconButton';
-import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
-import Menu from '@material-ui/core/Menu';
-import MenuItem from '@material-ui/core/MenuItem';
-import MoreVertIcon from '@material-ui/icons/MoreVert';
-import Paper from '@material-ui/core/Paper';
-import React from 'react';
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableContainer from '@material-ui/core/TableContainer';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
-import Text from '@fbcnms/ui/components/design-system/Text';
+import React, {useState} from 'react';
 import isGatewayHealthy from '../../components/GatewayUtils';
 import nullthrows from '@fbcnms/util/nullthrows';
 import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
-import {makeStyles} from '@material-ui/styles';
-import {useHistory} from 'react-router-dom';
-import {useRouter} from '@fbcnms/ui/hooks';
-import type {gateway_id, lte_gateway} from '@fbcnms/magma-api';
 
-export const DATE_TO_STRING_PARAMS = [
-  'en-US',
-  {
-    year: 'numeric',
-    month: 'numeric',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: 'numeric',
-    second: 'numeric',
-  },
-];
+import {makeStyles} from '@material-ui/styles';
+import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
@@ -92,20 +69,17 @@ const useStyles = makeStyles(theme => ({
 
 export default function Gateway() {
   const classes = useStyles();
+
   return (
     <div className={classes.dashboardRoot}>
-      <Grid container spacing={3} alignItems="stretch">
+      <Grid container justify="space-between" spacing={3}>
         <Grid item xs={12}>
-          <Text>
-            <DataUsageIcon /> Gateway Check-Ins
-          </Text>
-          <Paper className={classes.paper}>Gateway Check in chart</Paper>
+          <GatewayCheckinChart />
         </Grid>
-
         <Grid item xs={12}>
-          <Text>
-            <CellWifiIcon /> Gateways
-          </Text>
+          <EquipmentGatewayKPIs />
+        </Grid>
+        <Grid item xs={12}>
           <GatewayTable />
         </Grid>
       </Grid>
@@ -113,117 +87,87 @@ export default function Gateway() {
   );
 }
 
-function GatewayTable() {
-  const {match} = useRouter();
-  const networkId: string = nullthrows(match.params.networkId);
-  const {response, isLoading} = useMagmaAPI(
-    MagmaV1API.getLteByNetworkIdGateways,
-    {
-      networkId: networkId,
-    },
-  );
+type EquipmentGatewayRowType = {
+  name: string,
+  id: gateway_id,
+  num_enodeb: number,
+  num_subscribers: number,
+  health: string,
+  checkInTime: Date,
+};
 
-  if (isLoading || !response) {
-    return <LoadingFiller />;
+function GatewayTable() {
+  const {match, history, relativeUrl} = useRouter();
+  const networkId: string = nullthrows(match.params.networkId);
+  const [currRow, setCurrRow] = useState<EquipmentGatewayRowType>({});
+
+  const {response} = useMagmaAPI(MagmaV1API.getLteByNetworkIdGateways, {
+    networkId: networkId,
+  });
+  if (!response) {
+    return null;
   }
   const lte_gateways: {[string]: lte_gateway} = response;
-  return (
-    <TableContainer component={Paper}>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>Name</TableCell>
-            <TableCell>ID</TableCell>
-            <TableCell>eNodeBs</TableCell>
-            <TableCell>Subscribers</TableCell>
-            <TableCell>Health</TableCell>
-            <TableCell>Check In Time</TableCell>
-            {/* placeholder column for "actionMenu" */}
-            <TableCell />
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {Object.keys(lte_gateways)
-            .map((gwId: string) => lte_gateways[gwId])
-            .filter((g: lte_gateway) => g.cellular && g.id)
-            .map((gateway: lte_gateway, rowIdx) => {
-              return (
-                <TableRow key={rowIdx} data-testid={'gatewayInfo-' + rowIdx}>
-                  <TableCell key={'name-' + rowIdx} component="th" scope="row">
-                    {gateway.name}
-                  </TableCell>
+  const lte_gateway_rows: Array<EquipmentGatewayRowType> = Object.keys(
+    lte_gateways,
+  )
+    .map((gwId: string) => lte_gateways[gwId])
+    .filter((g: lte_gateway) => g.cellular && g.id)
+    .map((gateway: lte_gateway) => {
+      let numEnodeBs = 0;
+      if (gateway.connected_enodeb_serials) {
+        numEnodeBs = gateway.connected_enodeb_serials.length;
+      }
 
-                  <TableCell key={'id-' + rowIdx}>{gateway.id}</TableCell>
+      let checkInTime = new Date(0);
+      if (
+        gateway.status &&
+        (gateway.status.checkin_time !== undefined ||
+          gateway.status.checkin_time === null)
+      ) {
+        checkInTime = new Date(gateway.status.checkin_time);
+      }
 
-                  <TableCell key={'enbs-' + rowIdx}>
-                    {gateway.connected_enodeb_serials
-                      ? gateway.connected_enodeb_serials.length
-                      : 0}
-                  </TableCell>
-
-                  <TableCell key={'subs-' + rowIdx}>0</TableCell>
-
-                  <TableCell key={'health-' + rowIdx}>
-                    {isGatewayHealthy(gateway) ? 'Good' : 'Bad'}
-                  </TableCell>
-
-                  <TableCell key={'created-' + rowIdx}>
-                    {gateway.status &&
-                    (gateway.status.checkin_time !== undefined ||
-                      gateway.status.checkin_time === null)
-                      ? new Date(
-                          gateway.status.checkin_time,
-                        ).toLocaleDateString(...DATE_TO_STRING_PARAMS)
-                      : 0}
-                  </TableCell>
-
-                  <TableCell align="right" key={'action-' + rowIdx}>
-                    <GatewayActionMenu gwId={gateway.id} />
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-        </TableBody>
-      </Table>
-    </TableContainer>
-  );
-}
-
-function GatewayActionMenu({gwId}: {gwId: gateway_id}) {
-  const history = useHistory();
-
-  const [anchorEl, setAnchorEl] = React.useState(null);
-  const {relativeUrl} = useRouter();
-  const handleClick = event => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
-
-  const handleView = () => {
-    setAnchorEl(null);
-    history.push(relativeUrl('/' + gwId));
-  };
+      return {
+        name: gateway.name,
+        id: gateway.id,
+        num_enodeb: numEnodeBs,
+        num_subscribers: 0,
+        health: isGatewayHealthy(gateway) ? 'Good' : 'Bad',
+        checkInTime: checkInTime,
+      };
+    });
 
   return (
-    <div>
-      <IconButton onClick={handleClick}>
-        <MoreVertIcon />
-      </IconButton>
-      <Menu
-        id="simple-menu"
-        anchorEl={anchorEl}
-        keepMounted
-        open={Boolean(anchorEl)}
-        onClose={handleClose}>
-        <MenuItem onClick={handleView}>View</MenuItem>
-        <MenuItem onClick={handleClose}>Edit</MenuItem>
-        <MenuItem onClick={handleClose}>Reboot</MenuItem>
-        <MenuItem onClick={handleClose}>Deactivate</MenuItem>
-        <MenuItem onClick={handleClose}>Remove</MenuItem>
-      </Menu>
-    </div>
+    <ActionTable
+      titleIcon={CellWifiIcon}
+      title={'Gateways'}
+      data={lte_gateway_rows}
+      columns={[
+        {title: 'Name', field: 'name'},
+        {title: 'ID', field: 'id'},
+        {title: 'enodeBs', field: 'num_enodeb', type: 'numeric'},
+        {title: 'Subscribers', field: 'num_subscribers', type: 'numeric'},
+        {title: 'Health', field: 'health'},
+        {title: 'Check In Time', field: 'checkInTime', type: 'datetime'},
+      ]}
+      handleCurrRow={(row: EquipmentGatewayRowType) => setCurrRow(row)}
+      menuItems={[
+        {
+          name: 'View',
+          handleFunc: () => {
+            history.push(relativeUrl('/' + currRow.id));
+          },
+        },
+        {name: 'Edit'},
+        {name: 'Remove'},
+        {name: 'Deactivate'},
+        {name: 'Reboot'},
+      ]}
+      options={{
+        actionsColumnIndex: -1,
+        pageSizeOptions: [5, 10],
+      }}
+    />
   );
 }

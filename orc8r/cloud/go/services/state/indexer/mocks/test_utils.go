@@ -9,19 +9,21 @@
 package mocks
 
 import (
+	"fmt"
+
 	"magma/orc8r/cloud/go/services/state/indexer"
 
 	"github.com/stretchr/testify/mock"
 )
 
-// NewTestIndexer returns a do-nothing test indexer with specified elements.
+// NewMockIndexer returns a do-nothing test indexer with specified elements.
 // 	- id		-- GetID return
 //	- version	-- GetVersion return
 //	- subs		-- GetSubscriptions return
 //	- prepare	-- write PrepareReindex args to chan when called
 //	- complete	-- write CompleteReindex args to chan when called
 //	- index		-- write Index args to chan when called
-func NewTestIndexer(id string, version indexer.Version, subs []indexer.Subscription, prepare, complete, index chan mock.Arguments) indexer.Indexer {
+func NewMockIndexer(id string, version indexer.Version, subs []indexer.Subscription, prepare, complete, index chan mock.Arguments) *Indexer {
 	idx := &Indexer{}
 
 	idx.On("GetID").Return(id)
@@ -44,4 +46,8 @@ func NewTestIndexer(id string, version indexer.Version, subs []indexer.Subscript
 	}).Return(nil, nil)
 
 	return idx
+}
+
+func (_m *Indexer) String() string {
+	return fmt.Sprintf("{id: %s, version: %d}", _m.GetID(), _m.GetVersion())
 }

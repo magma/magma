@@ -7,10 +7,10 @@ package resolver
 import (
 	"context"
 
-	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
+	"github.com/facebookincubator/symphony/pkg/ent/checklistitem"
 
-	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/pkg/ent"
 )
 
 type checkListCategoryResolver struct{}

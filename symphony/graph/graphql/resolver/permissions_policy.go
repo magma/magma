@@ -11,9 +11,9 @@ import (
 	"github.com/facebookincubator/symphony/graph/resolverutil"
 	"github.com/pkg/errors"
 
-	"github.com/facebookincubator/symphony/graph/authz"
-	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/pkg/authz"
+	"github.com/facebookincubator/symphony/pkg/ent"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 

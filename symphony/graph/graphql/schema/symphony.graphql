@@ -21,15 +21,13 @@ directive @deprecatedInput(
 ) on INPUT_FIELD_DEFINITION
 
 enum UserStatus
-  @goModel(
-    model: "github.com/facebookincubator/symphony/graph/ent/user.Status"
-  ) {
+  @goModel(model: "github.com/facebookincubator/symphony/pkg/ent/user.Status") {
   ACTIVE
   DEACTIVATED
 }
 
 enum UserRole
-  @goModel(model: "github.com/facebookincubator/symphony/graph/ent/user.Role") {
+  @goModel(model: "github.com/facebookincubator/symphony/pkg/ent/user.Role") {
   USER
   ADMIN
   OWNER
@@ -50,7 +48,7 @@ type User implements Node & NamedNode {
 
 enum UsersGroupStatus
   @goModel(
-    model: "github.com/facebookincubator/symphony/graph/ent/usersgroup.Status"
+    model: "github.com/facebookincubator/symphony/pkg/ent/usersgroup.Status"
   ) {
   ACTIVE
   DEACTIVATED
@@ -74,7 +72,7 @@ type PermissionSettings {
 
 enum PermissionValue
   @goModel(
-    model: "github.com/facebookincubator/symphony/graph/authz/models.PermissionValue"
+    model: "github.com/facebookincubator/symphony/pkg/authz/models.PermissionValue"
   ) {
   YES
   NO
@@ -98,14 +96,14 @@ type WorkforcePermissionRule {
 
 input BasicPermissionRuleInput
   @goModel(
-    model: "github.com/facebookincubator/symphony/graph/authz/models.BasicPermissionRuleInput"
+    model: "github.com/facebookincubator/symphony/pkg/authz/models.BasicPermissionRuleInput"
   ) {
   isAllowed: PermissionValue!
 }
 
 input LocationPermissionRuleInput
   @goModel(
-    model: "github.com/facebookincubator/symphony/graph/authz/models.LocationPermissionRuleInput"
+    model: "github.com/facebookincubator/symphony/pkg/authz/models.LocationPermissionRuleInput"
   ) {
   isAllowed: PermissionValue!
   locationTypeIds: [ID!]
@@ -113,7 +111,7 @@ input LocationPermissionRuleInput
 
 input WorkforcePermissionRuleInput
   @goModel(
-    model: "github.com/facebookincubator/symphony/graph/authz/models.WorkforcePermissionRuleInput"
+    model: "github.com/facebookincubator/symphony/pkg/authz/models.WorkforcePermissionRuleInput"
   ) {
   isAllowed: PermissionValue!
   projectTypeIds: [ID!]
@@ -134,7 +132,7 @@ type LocationCUD {
 
 input BasicCUDInput
   @goModel(
-    model: "github.com/facebookincubator/symphony/graph/authz/models.BasicCUDInput"
+    model: "github.com/facebookincubator/symphony/pkg/authz/models.BasicCUDInput"
   ) {
   create: BasicPermissionRuleInput
   update: BasicPermissionRuleInput
@@ -143,7 +141,7 @@ input BasicCUDInput
 
 input LocationCUDInput
   @goModel(
-    model: "github.com/facebookincubator/symphony/graph/authz/models.LocationCUDInput"
+    model: "github.com/facebookincubator/symphony/pkg/authz/models.LocationCUDInput"
   ) {
   create: LocationPermissionRuleInput
   update: LocationPermissionRuleInput
@@ -166,7 +164,7 @@ type InventoryPolicy {
 
 input InventoryPolicyInput
   @goModel(
-    model: "github.com/facebookincubator/symphony/graph/authz/models.InventoryPolicyInput"
+    model: "github.com/facebookincubator/symphony/pkg/authz/models.InventoryPolicyInput"
   ) {
   read: BasicPermissionRuleInput
   location: LocationCUDInput
@@ -187,7 +185,7 @@ type WorkforceCUD {
 
 input WorkforceCUDInput
   @goModel(
-    model: "github.com/facebookincubator/symphony/graph/authz/models.WorkforceCUDInput"
+    model: "github.com/facebookincubator/symphony/pkg/authz/models.WorkforceCUDInput"
   ) {
   create: WorkforcePermissionRuleInput
   update: WorkforcePermissionRuleInput
@@ -204,7 +202,7 @@ type WorkforcePolicy {
 
 input WorkforcePolicyInput
   @goModel(
-    model: "github.com/facebookincubator/symphony/graph/authz/models.WorkforcePolicyInput"
+    model: "github.com/facebookincubator/symphony/pkg/authz/models.WorkforcePolicyInput"
   ) {
   read: WorkforcePermissionRuleInput
   data: WorkforceCUDInput
@@ -242,7 +240,7 @@ input EditPermissionsPolicyInput {
 }
 
 type Viewer
-  @goModel(model: "github.com/facebookincubator/symphony/graph/viewer.Viewer") {
+  @goModel(model: "github.com/facebookincubator/symphony/pkg/viewer.Viewer") {
   tenant: String!
   user: User
   permissions: PermissionSettings!
@@ -252,7 +250,7 @@ type Viewer
 An object with an ID
 """
 interface Node
-  @goModel(model: "github.com/facebookincubator/symphony/graph/ent.Noder") {
+  @goModel(model: "github.com/facebookincubator/symphony/pkg/ent.Noder") {
   """
   The id of the object.
   """
@@ -283,7 +281,7 @@ type Edge {
 }
 
 type Vertex
-  @goModel(model: "github.com/facebookincubator/symphony/graph/ent.Node") {
+  @goModel(model: "github.com/facebookincubator/symphony/pkg/ent.Node") {
   id: ID!
   type: String!
   fields: [Field!]!
@@ -1284,7 +1282,7 @@ enum CheckListItemType {
 
 enum CheckListItemEnumSelectionMode
   @goModel(
-    model: "github.com/facebookincubator/symphony/graph/ent/checklistitem.EnumSelectionModeValue"
+    model: "github.com/facebookincubator/symphony/pkg/ent/checklistitem.EnumSelectionModeValue"
   ) {
   single
   multiple

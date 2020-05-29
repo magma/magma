@@ -9,14 +9,14 @@
 package indexer
 
 import (
-	"magma/orc8r/cloud/go/services/state"
+	state_types "magma/orc8r/cloud/go/services/state/types"
 )
 
 // Version of the indexer. Capped to uint32 to fit into Postgres/Maria integer (int32).
 type Version uint32
 
 // StateErrors is a mapping of state ID to error experienced indexing the state.
-type StateErrors map[state.ID]error
+type StateErrors map[state_types.ID]error
 
 // Indexer creates a set of secondary indices for consumption by a service.
 // Each Indexer should
@@ -55,7 +55,7 @@ type Indexer interface {
 	CompleteReindex(from, to Version) error
 
 	// Index updates secondary indices based on the added/updated states.
-	Index(networkID string, states state.StatesByID) (StateErrors, error)
+	Index(networkID string, states state_types.StatesByID) (StateErrors, error)
 
 	// TODO(4/10/20): consider adding support for removing states from an indexer
 	// IndexRemove updates secondary indices based on the removed states.

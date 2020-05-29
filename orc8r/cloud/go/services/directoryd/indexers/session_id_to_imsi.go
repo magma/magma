@@ -13,8 +13,8 @@ import (
 
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/directoryd"
-	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/services/state/indexer"
+	state_types "magma/orc8r/cloud/go/services/state/types"
 
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
@@ -65,7 +65,7 @@ func (s *sessionIDToIMSI) CompleteReindex(from, to indexer.Version) error {
 	return fmt.Errorf("unsupported from/to for CompleteReindex: %v to %v", from, to)
 }
 
-func (s *sessionIDToIMSI) Index(networkID string, states state.StatesByID) (indexer.StateErrors, error) {
+func (s *sessionIDToIMSI) Index(networkID string, states state_types.StatesByID) (indexer.StateErrors, error) {
 	sessionIDToIMSI := map[string]string{}
 	errs := indexer.StateErrors{}
 
@@ -97,7 +97,7 @@ func (s *sessionIDToIMSI) Index(networkID string, states state.StatesByID) (inde
 
 // getSessionIDAndIMSI extracts session ID and IMSI from the state.
 // Returns (session ID, IMSI, error).
-func getSessionIDAndIMSI(id state.ID, st state.State) (string, string, error) {
+func getSessionIDAndIMSI(id state_types.ID, st state_types.State) (string, string, error) {
 	imsi := id.DeviceID
 
 	// Cast to directory record
