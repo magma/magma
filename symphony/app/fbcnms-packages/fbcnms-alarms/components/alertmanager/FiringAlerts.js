@@ -14,12 +14,12 @@ import Grid from '@material-ui/core/Grid';
 import React from 'react';
 import SimpleTable, {toLabels} from '../table/SimpleTable';
 import Slide from '@material-ui/core/Slide';
-import useRouter from '@fbcnms/alarms/hooks/useRouter';
+import useRouter from '../../hooks/useRouter';
 import {SEVERITY} from '../severity/Severity';
 import {get} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from '../AlarmContext';
-import {useEnqueueSnackbar} from '@fbcnms/alarms/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useState} from 'react';
 
 import type {FiringAlarm} from '../AlarmAPIType';
