@@ -15,9 +15,17 @@
     "prepublish": "yarn run build"
   },
   "dependencies": {
+    "@material-ui/core": "^4.0.0",
+    "@material-ui/icons": "^4.0.0",
+    "@material-ui/lab": "^4.0.0-alpha.30",
+    "@material-ui/styles": "^4.0.0",
+    "axios": "^0.18.0",
     "classnames": "^2.2.5",
+    "copy-to-clipboard": "^3.0.8",
+    "moment": "^2.24.0",
     "moo": "^0.5.1",
-    "nearley": "^2.19.0"
+    "nearley": "^2.19.0",
+    "notistack": "^0.8.5"
   },
   "peerDependencies": {
     "react": "^16.8.6",
