@@ -158,23 +158,7 @@ class SessionState {
 
   std::string get_session_id() const;
 
-  std::string get_subscriber_ip_addr() const;
-
-  std::string get_mac_addr() const;
-
-  std::string get_msisdn() const;
-
-  std::string get_hardware_addr() const { return config_.hardware_addr; }
-
-  std::string get_radius_session_id() const;
-
-  std::string get_apn() const;
-
   std::string get_core_session_id() const { return core_session_id_; };
-
-  uint32_t get_bearer_id() const;
-
-  uint32_t get_qci() const;
 
   SubscriberQuotaUpdate_Type get_subscriber_quota_state() const;
 
@@ -183,8 +167,6 @@ class SessionState {
   bool is_same_config(const SessionConfig& new_config) const;
 
   void get_session_info(SessionState::SessionInfo& info);
-
-  bool qos_enabled() const;
 
   void set_tgpp_context(
       const magma::lte::TgppContext& tgpp_context,
@@ -325,9 +307,11 @@ class SessionState {
     SessionFsmState new_state,
     SessionStateUpdateCriteria& uc = UNUSED_UPDATE_CRITERIA);
 
-  StaticRuleInstall get_static_rule_install(const std::string& rule_id);
+  StaticRuleInstall get_static_rule_install(
+    const std::string& rule_id, const RuleLifetime& lifetime);
 
-  DynamicRuleInstall get_dynamic_rule_install(const std::string& rule_id);
+  DynamicRuleInstall get_dynamic_rule_install(
+    const std::string& rule_id, const RuleLifetime& lifetime);
 
   SessionFsmState get_state();
 

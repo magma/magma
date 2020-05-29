@@ -400,22 +400,6 @@ std::string SessionState::get_session_id() const {
   return session_id_;
 }
 
-std::string SessionState::get_subscriber_ip_addr() const {
-  return config_.ue_ipv4;
-}
-
-std::string SessionState::get_mac_addr() const {
-  return config_.mac_addr;
-}
-
-std::string SessionState::get_msisdn() const {
-  return config_.msisdn;
-}
-
-std::string SessionState::get_apn() const {
-  return config_.apn;
-}
-
 SessionConfig SessionState::get_config() {
   return config_;
 }
@@ -428,32 +412,12 @@ bool SessionState::is_radius_cwf_session() const {
   return (config_.rat_type == RATType::TGPP_WLAN);
 }
 
-std::string SessionState::get_radius_session_id() const {
-  return config_.radius_session_id;
-}
-
 void SessionState::get_session_info(SessionState::SessionInfo& info) {
   info.imsi    = imsi_;
   info.ip_addr = config_.ue_ipv4;
   get_dynamic_rules().get_rules(info.dynamic_rules);
   get_gy_dynamic_rules().get_rules(info.gy_dynamic_rules);
   info.static_rules = active_static_rules_;
-}
-
-uint32_t SessionState::get_qci() const {
-  if (!config_.qos_info.enabled) {
-    MLOG(MWARNING) << "QoS is not enabled.";
-    return 0;
-  }
-  return config_.qos_info.qci;
-}
-
-uint32_t SessionState::get_bearer_id() const {
-  return config_.bearer_id;
-}
-
-bool SessionState::qos_enabled() const {
-  return config_.qos_info.enabled;
 }
 
 void SessionState::set_tgpp_context(
@@ -668,9 +632,9 @@ uint32_t SessionState::total_monitored_rules_count() {
   uint32_t monitored_dynamic_rules = dynamic_rules_.monitored_rules_count();
   uint32_t monitored_static_rules  = 0;
   for (auto& rule_id : active_static_rules_) {
-    std::string mkey;  // ignore value
+    std::string _;
     auto is_monitored =
-        static_rules_.get_monitoring_key_for_rule_id(rule_id, &mkey);
+        static_rules_.get_monitoring_key_for_rule_id(rule_id, &_);
     if (is_monitored) {
       monitored_static_rules++;
     }
@@ -777,18 +741,18 @@ bool SessionState::should_rule_be_deactivated(
   return lifetime.deactivation_time > 0 && lifetime.deactivation_time < time;
 }
 
-StaticRuleInstall SessionState::get_static_rule_install(const std::string& rule_id) {
+StaticRuleInstall SessionState::get_static_rule_install(
+  const std::string& rule_id, const RuleLifetime& lifetime) {
   StaticRuleInstall rule_install{};
-  auto lifetime = get_rule_lifetime(rule_id);
   rule_install.set_rule_id(rule_id);
   rule_install.mutable_activation_time()->set_seconds(lifetime.activation_time);
   rule_install.mutable_deactivation_time()->set_seconds(lifetime.deactivation_time);
   return rule_install;
 }
 
-DynamicRuleInstall SessionState::get_dynamic_rule_install(const std::string& rule_id) {
+DynamicRuleInstall SessionState::get_dynamic_rule_install(
+  const std::string& rule_id, const RuleLifetime& lifetime) {
   DynamicRuleInstall rule_install{};
-  auto lifetime = get_rule_lifetime(rule_id);
   PolicyRule* policy_rule = rule_install.mutable_policy_rule();
   if (!dynamic_rules_.get_rule(rule_id, policy_rule)) {
     scheduled_dynamic_rules_.get_rule(rule_id, policy_rule);
