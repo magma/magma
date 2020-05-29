@@ -151,13 +151,13 @@ bool LocalEnforcer::setup(
       SessionState::SessionInfo session_info;
       session->get_session_info(session_info);
       session_infos.push_back(session_info);
-      auto ue_mac_addr = session->get_mac_addr();
+      auto ue_mac_addr = session->get_config().mac_addr;
       ue_mac_addrs.push_back(ue_mac_addr);
-      auto msisdn = session->get_msisdn();
+      auto msisdn = session->get_config().msisdn;
       msisdns.push_back(msisdn);
       std::string apn_mac_addr;
       std::string apn_name;
-      auto apn = session->get_apn();
+      auto apn = session->get_config().apn;
       if (!parse_apn(apn, apn_mac_addr, apn_name)) {
         MLOG(MWARNING) << "Failed mac/name parsiong for apn " << apn;
         apn_mac_addr = "";
@@ -199,19 +199,19 @@ void LocalEnforcer::sync_sessions_on_restart(std::time_t current_time) {
       }
 
       session->sync_rules_to_time(current_time, uc);
-      auto ip_addr = session->get_subscriber_ip_addr();
+      auto ip_addr = session->get_config().ue_ipv4;
 
       for (std::string rule_id : session->get_static_rules()) {
         auto lifetime = session->get_rule_lifetime(rule_id);
         if (lifetime.deactivation_time > current_time) {
-          auto rule_install = session->get_static_rule_install(rule_id);
+          auto rule_install = session->get_static_rule_install(rule_id, lifetime);
           schedule_static_rule_deactivation(imsi, rule_install);
         }
       }
       // Schedule rule activations / deactivations
       for (std::string rule_id : session->get_scheduled_static_rules()) {
-        auto rule_install = session->get_static_rule_install(rule_id);
         auto lifetime = session->get_rule_lifetime(rule_id);
+        auto rule_install = session->get_static_rule_install(rule_id, lifetime);
         schedule_static_rule_activation(imsi, ip_addr, rule_install);
         if (lifetime.deactivation_time > current_time) {
           schedule_static_rule_deactivation(imsi, rule_install);
@@ -223,14 +223,14 @@ void LocalEnforcer::sync_sessions_on_restart(std::time_t current_time) {
       for (std::string rule_id : rule_ids) {
         auto lifetime = session->get_rule_lifetime(rule_id);
         if (lifetime.deactivation_time > current_time) {
-          auto rule_install = session->get_dynamic_rule_install(rule_id);
+          auto rule_install = session->get_dynamic_rule_install(rule_id, lifetime);
           schedule_dynamic_rule_deactivation(imsi, rule_install);
         }
       }
       session->get_scheduled_dynamic_rules().get_rule_ids(rule_ids);
       for (auto rule_id : rule_ids) {
-        auto rule_install = session->get_dynamic_rule_install(rule_id);
         auto lifetime = session->get_rule_lifetime(rule_id);
+        auto rule_install = session->get_dynamic_rule_install(rule_id, lifetime);
         schedule_dynamic_rule_activation(imsi, ip_addr, rule_install);
         if (lifetime.deactivation_time > current_time) {
           schedule_dynamic_rule_deactivation(imsi, rule_install);
@@ -239,8 +239,8 @@ void LocalEnforcer::sync_sessions_on_restart(std::time_t current_time) {
     }
   }
   if (!imsis_to_terminate.empty()) {
-    schedule_termination(imsis_to_terminate);
     MLOG(MDEBUG) << "Scheduling termination for one or more IMSIs";
+    schedule_termination(imsis_to_terminate);
   }
   bool success = session_store_.update_sessions(session_update);
   if (success) {
@@ -259,7 +259,7 @@ void LocalEnforcer::aggregate_records(
   for (const RuleRecord &record : records.records()) {
     auto it = session_map.find(record.sid());
     if (it == session_map.end()) {
-      MLOG(MERROR) << "Could not find session for IMSI " << record.sid()
+      MLOG(MERROR) << "Could not find session for " << record.sid()
                    << " during record aggregation";
       continue;
     }
@@ -348,14 +348,15 @@ void LocalEnforcer::terminate_service(
     session->start_termination(update_criteria);
 
     // tell AAA service to terminate radius session if necessary
+    auto config = session->get_config();
     if (session->is_radius_cwf_session()) {
-      auto radius_session_id = session->get_radius_session_id();
+      auto radius_session_id = config.radius_session_id;
       MLOG(MDEBUG) << "Asking AAA service to terminate session with "
                    << "Radius ID: " << radius_session_id << ", IMSI: " << imsi;
       aaa_client_->terminate_session(radius_session_id, imsi);
 
       MLOG(MDEBUG) << "Deleting UE MAC flow for subscriber " << imsi;
-      auto mac_addr = session->get_mac_addr();
+      auto mac_addr = config.mac_addr;
       SubscriberID sid;
       sid.set_id(imsi);
       bool delete_ue_mac_flow_success =
@@ -373,7 +374,7 @@ void LocalEnforcer::terminate_service(
       // Deleting the PDN session by triggering network issued default bearer
       // deactivation
       spgw_client_->delete_default_bearer(
-          imsi, session->get_subscriber_ip_addr(), session->get_bearer_id());
+        imsi, config.ue_ipv4, config.bearer_id);
     }
 
     std::string session_id = session->get_session_id();
@@ -601,7 +602,7 @@ void LocalEnforcer::schedule_static_rule_activation(
                            << static_rule.rule_id();
           } else {
             for (const auto& session : it->second) {
-              if (session->get_subscriber_ip_addr() == ip_addr) {
+              if (session->get_config().ue_ipv4 == ip_addr) {
                 auto& uc = session_update[imsi][session->get_session_id()];
                 session->install_scheduled_static_rule(
                     static_rule.rule_id(), uc);
@@ -640,7 +641,7 @@ void LocalEnforcer::schedule_dynamic_rule_activation(
                            << dynamic_rule.policy_rule().id();
           } else {
             for (const auto& session : it->second) {
-              if (session->get_subscriber_ip_addr() == ip_addr) {
+              if (session->get_config().ue_ipv4 == ip_addr) {
                 auto& uc = session_update[imsi][session->get_session_id()];
                 session->install_scheduled_dynamic_rule(
                     dynamic_rule.policy_rule().id(), uc);
@@ -769,7 +770,7 @@ bool LocalEnforcer::handle_session_init_rule_updates(
     SessionMap& session_map, const std::string& imsi,
     SessionState& session_state, const CreateSessionResponse& response,
     std::unordered_set<uint32_t>& charging_credits_received) {
-  auto ip_addr = session_state.get_subscriber_ip_addr();
+  auto ip_addr = session_state.get_config().ue_ipv4;
 
   RulesToProcess rules_to_activate;
   RulesToProcess rules_to_deactivate;
@@ -866,7 +867,7 @@ bool LocalEnforcer::init_session_credit(
       apn_mac_addr = "";
       apn_name     = cfg.apn;
     }
-    auto ue_mac_addr             = session_state->get_mac_addr();
+    auto ue_mac_addr             = session_state->get_config().mac_addr;
     bool add_ue_mac_flow_success = pipelined_client_->add_ue_mac_flow(
         sid, ue_mac_addr, cfg.msisdn, apn_mac_addr, apn_name,
         std::bind(
@@ -905,7 +906,7 @@ bool LocalEnforcer::init_session_credit(
 void LocalEnforcer::handle_session_init_subscriber_quota_state(
     SessionMap& session_map, const std::string& imsi,
     SessionState& session_state) {
-  auto ue_mac_addr = session_state.get_mac_addr();
+  auto ue_mac_addr = session_state.get_config().mac_addr;
   // This method only used for session creation and not updates, so
   // UpdateCriteria is unused.
   auto uc = get_default_update_criteria();
@@ -1128,7 +1129,7 @@ void LocalEnforcer::update_monitoring_credits_and_rules(
           to_vec(usage_monitor_resp.dynamic_rules_to_install()),
           rules_to_activate, rules_to_deactivate, update_criteria);
 
-      auto ip_addr            = session->get_subscriber_ip_addr();
+      auto ip_addr            = session->get_config().ue_ipv4;
       bool deactivate_success = true;
       bool activate_success   = true;
 
@@ -1212,7 +1213,8 @@ void LocalEnforcer::terminate_subscriber(
   }
 
   for (const auto& session : it->second) {
-    if (session->get_apn() == apn) {
+    auto config = session->get_config();
+    if (config.apn == apn) {
       SessionStateUpdateCriteria& update_criteria =
           session_update[imsi][session->get_session_id()];
       RulesToProcess rules_to_deactivate;
@@ -1239,8 +1241,9 @@ void LocalEnforcer::terminate_subscriber(
         MLOG(MDEBUG) << "Deleting UE MAC flow for subscriber " << imsi;
         SubscriberID sid;
         sid.set_id(imsi);
+        auto mac_addr = config.mac_addr;
         bool delete_ue_mac_flow_success =
-            pipelined_client_->delete_ue_mac_flow(sid, session->get_mac_addr());
+            pipelined_client_->delete_ue_mac_flow(sid, mac_addr);
         if (!delete_ue_mac_flow_success) {
           MLOG(MERROR) << "Failed to delete UE MAC flow for subscriber "
                        << imsi;
@@ -1248,8 +1251,7 @@ void LocalEnforcer::terminate_subscriber(
         session->set_subscriber_quota_state(
             SubscriberQuotaUpdate_Type_TERMINATE, update_criteria);
         report_subscriber_state_to_pipelined(
-            imsi, session->get_mac_addr(),
-            SubscriberQuotaUpdate_Type_TERMINATE);
+            imsi, mac_addr, SubscriberQuotaUpdate_Type_TERMINATE);
       }
 
       session->start_termination(update_criteria);
@@ -1436,7 +1438,7 @@ void LocalEnforcer::init_policy_reauth_for_session(
       to_vec(request.dynamic_rules_to_install()), rules_to_activate,
       rules_to_deactivate, update_criteria);
 
-  auto ip_addr = session->get_subscriber_ip_addr();
+  auto ip_addr = session->get_config().ue_ipv4;
   if (rules_to_process_is_not_empty(rules_to_deactivate)) {
     deactivate_success = pipelined_client_->deactivate_flows_for_rules(
         request.imsi(), rules_to_deactivate.static_rules,
@@ -1544,7 +1546,7 @@ void LocalEnforcer::process_rules_to_install(
     RulesToProcess& rules_to_activate, RulesToProcess& rules_to_deactivate,
     SessionStateUpdateCriteria& update_criteria) {
   std::time_t current_time = time(NULL);
-  std::string ip_addr      = session.get_subscriber_ip_addr();
+  std::string ip_addr      = session.get_config().ue_ipv4;
   for (const auto& rule_install : static_rule_installs) {
     const auto& id = rule_install.rule_id();
     auto activation_time =
@@ -1672,17 +1674,17 @@ void LocalEnforcer::create_bearer(
     const bool activate_success, const std::unique_ptr<SessionState>& session,
     const PolicyReAuthRequest& request,
     const std::vector<PolicyRule>& dynamic_rules) {
-  if (!activate_success || !session->qos_enabled() || !request.has_qos_info()) {
+  auto config = session->get_config();
+  if (!activate_success || !config.qos_info.enabled || !request.has_qos_info()) {
     MLOG(MDEBUG) << "Not creating bearer";
     return;
   }
-
-  auto default_qci = QCI(session->get_qci());
+  auto default_qci = QCI(config.qos_info.qci);
   if (request.qos_info().qci() != default_qci) {
     MLOG(MDEBUG) << "QCI sent in RAR is different from default QCI";
     spgw_client_->create_dedicated_bearer(
-        request.imsi(), session->get_subscriber_ip_addr(),
-        session->get_bearer_id(), dynamic_rules);
+        request.imsi(), config.ue_ipv4,
+        config.bearer_id, dynamic_rules);
   }
   return;
 }
@@ -1742,7 +1744,7 @@ bool LocalEnforcer::session_with_apn_exists(
     return false;
   }
   for (const auto& session : it->second) {
-    if (session->get_apn() == apn) {
+    if (session->get_config().apn == apn) {
       return true;
     }
   }
@@ -1816,7 +1818,7 @@ void LocalEnforcer::handle_cwf_roaming(
         apn_mac_addr = "";
         apn_name     = config.apn;
       }
-      auto ue_mac_addr             = session->get_mac_addr();
+      auto ue_mac_addr             = session->get_config().mac_addr;
       bool add_ue_mac_flow_success = pipelined_client_->update_ipfix_flow(
           sid, ue_mac_addr, config.msisdn, apn_mac_addr, apn_name);
       if (!add_ue_mac_flow_success) {
