@@ -25,6 +25,7 @@ import (
 const (
 	sessiondServiceName = "sessiond"
 	radiusServiceName   = "radius"
+	aaaServiceName      = "aaa_server"
 )
 
 type GatewayHealthServicer struct {
@@ -61,7 +62,12 @@ func (s *GatewayHealthServicer) Disable(ctx context.Context, req *protos.Disable
 		return ret, err
 	}
 	// Stop the RADIUS server so that the WLC perceives it as down.
-	err = s.serviceHealth.Disable(radiusServiceName)
+	err = s.serviceHealth.Stop(radiusServiceName)
+	if err != nil {
+		return ret, err
+	}
+	// Restart the AAA server to clear in-memory sessions
+	err = s.serviceHealth.Restart(aaaServiceName)
 	if err != nil {
 		return ret, err
 	}
@@ -77,11 +83,11 @@ func (s *GatewayHealthServicer) Enable(ctx context.Context, req *orcprotos.Void)
 	if err != nil {
 		return ret, err
 	}
-	err = s.serviceHealth.Enable(sessiondServiceName)
+	err = s.serviceHealth.Restart(sessiondServiceName)
 	if err != nil {
 		return ret, err
 	}
-	err = s.serviceHealth.Enable(radiusServiceName)
+	err = s.serviceHealth.Restart(radiusServiceName)
 	if err != nil {
 		return ret, err
 	}
