@@ -9,11 +9,8 @@
  */
 import 'jest-dom/extend-expect';
 import GatewaySummary from '../GatewaySummary';
-import MagmaAPIBindings from '@fbcnms/magma-api';
 import React from 'react';
-import axiosMock from 'axios';
-import {MemoryRouter, Route} from 'react-router-dom';
-import {cleanup, render, wait} from '@testing-library/react';
+import {cleanup, render} from '@testing-library/react';
 import type {lte_gateway} from '@fbcnms/magma-api';
 
 jest.mock('axios');
@@ -65,34 +62,8 @@ const mockGatewaySt: lte_gateway = {
 };
 
 describe('<GatewaySummary />', () => {
-  beforeEach(() => {
-    // eslint-disable-next-line max-len
-    MagmaAPIBindings.getLteByNetworkIdGatewaysByGatewayId.mockResolvedValue(
-      mockGatewaySt,
-    );
-  });
-
-  afterEach(() => {
-    axiosMock.get.mockClear();
-  });
-
-  const Wrapper = () => (
-    <MemoryRouter
-      initialEntries={['/nms/mynetwork/gateway/mygateway']}
-      initialIndex={0}>
-      <Route
-        path="/nms/:networkId/gateway/:gatewayId"
-        component={GatewaySummary}
-      />
-    </MemoryRouter>
-  );
-
   it('renders', async () => {
-    const {container} = render(<Wrapper />);
-    await wait();
-    expect(
-      MagmaAPIBindings.getLteByNetworkIdGatewaysByGatewayId,
-    ).toHaveBeenCalledTimes(1);
+    const {container} = render(<GatewaySummary gw_info={mockGatewaySt} />);
     expect(container).toHaveTextContent('mpk_dogfooding');
     expect(container).toHaveTextContent('1.1.0-1590005479-e6e781a9');
     expect(container).toHaveTextContent('e059637f-cd55-4109-816c-ce6ebc69020d');

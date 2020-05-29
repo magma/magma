@@ -80,24 +80,6 @@ const currTime = Date.now();
 describe('<Gateway />', () => {
   beforeEach(() => {
     // eslint-disable-next-line max-len
-    const mockGw1 = Object.assign({}, mockGw0);
-    const mockGw2 = Object.assign({}, mockGw0);
-    mockGw1.id = 'test_gw1';
-    mockGw1.name = 'test_gateway1';
-    mockGw1.connected_enodeb_serials = ['xxx', 'yyy'];
-
-    mockGw2.id = 'test_gw2';
-    mockGw2.name = 'test_gateway2';
-    mockGw2.connected_enodeb_serials = ['xxx'];
-    mockGw2.status = {
-      checkin_time: currTime,
-    };
-    MagmaAPIBindings.getLteByNetworkIdGateways.mockResolvedValue({
-      test1: mockGw0,
-      test2: mockGw1,
-      test3: mockGw2,
-    });
-    // eslint-disable-next-line max-len
     MagmaAPIBindings.getNetworksByNetworkIdPrometheusQueryRange.mockResolvedValue(
       mockCheckinMetric,
     );
@@ -107,11 +89,32 @@ describe('<Gateway />', () => {
     axiosMock.get.mockClear();
   });
 
+  const mockGw1 = Object.assign({}, mockGw0);
+  const mockGw2 = Object.assign({}, mockGw0);
+  mockGw1.id = 'test_gw1';
+  mockGw1.name = 'test_gateway1';
+  mockGw1.connected_enodeb_serials = ['xxx', 'yyy'];
+
+  mockGw2.id = 'test_gw2';
+  mockGw2.name = 'test_gateway2';
+  mockGw2.connected_enodeb_serials = ['xxx'];
+  mockGw2.status = {
+    checkin_time: currTime,
+  };
+  const lte_gateways = {
+    test1: mockGw0,
+    test2: mockGw1,
+    test3: mockGw2,
+  };
+
   const Wrapper = () => (
     <MemoryRouter initialEntries={['/nms/mynetwork/gateway']} initialIndex={0}>
       <MuiThemeProvider theme={defaultTheme}>
         <MuiStylesThemeProvider theme={defaultTheme}>
-          <Route path="/nms/:networkId/gateway/" component={Gateway} />
+          <Route
+            path="/nms/:networkId/gateway/"
+            render={props => <Gateway {...props} lte_gateways={lte_gateways} />}
+          />
         </MuiStylesThemeProvider>
       </MuiThemeProvider>
     </MemoryRouter>
@@ -125,7 +128,6 @@ describe('<Gateway />', () => {
       MagmaAPIBindings.getNetworksByNetworkIdPrometheusQueryRange,
     ).toHaveBeenCalledTimes(1);
 
-    expect(MagmaAPIBindings.getLteByNetworkIdGateways).toHaveBeenCalledTimes(1);
     const rowItems = await getAllByRole('row');
 
     // first row is the header
