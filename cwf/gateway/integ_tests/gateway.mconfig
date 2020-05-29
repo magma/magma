@@ -113,6 +113,10 @@
    "services": [
       "ENFORCEMENT"
    ],
+   "ipdrExportDst": {
+     "ip": "192.168.40.12",
+     "port": 4740
+   },
    "allowedGrePeers": [
     {"ip": "192.168.70.102"}
    ]
