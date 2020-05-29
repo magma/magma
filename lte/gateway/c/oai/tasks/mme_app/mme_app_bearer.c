@@ -767,7 +767,6 @@ imsi64_t mme_app_handle_initial_ue_message(mme_app_desc_t *mme_app_desc_p,
       "Sending NAS Establishment Indication to NAS for ue_id = (%d)\n",
     ue_context_p->mme_ue_s1ap_id );
 
-  mme_ue_s1ap_id_t ue_id = ue_context_p->mme_ue_s1ap_id;
   nas_proc_establish_ind(
     ue_context_p->mme_ue_s1ap_id,
     is_mm_ctx_new,
@@ -776,15 +775,14 @@ imsi64_t mme_app_handle_initial_ue_message(mme_app_desc_t *mme_app_desc_p,
     initial_pP->rrc_establishment_cause,
     s_tmsi,
     &initial_pP->nas);
+  // s1ap_initial_ue_message_t transparent; may be needed :
+  // OLD CODE memcpy (
+  //   &message_p->ittiMsg.nas_initial_ue_message.transparent,
+  //   (const void*)&initial_pP->transparent,
+  //   sizeof (message_p->ittiMsg.nas_initial_ue_message.transparent));
 
   initial_pP->nas = NULL;
-  if (INVALID_MME_UE_S1AP_ID != ue_id) {
-    hash_table_ts_t* mme_state_ue_id_ht = get_mme_ue_state();
-    if (hashtable_ts_is_key_exists(
-            mme_state_ue_id_ht, (const hash_key_t) ue_id) == HASH_TABLE_OK) {
-      imsi64 = ue_context_p->emm_context._imsi64;
-    }
-  }
+  imsi64 = ue_context_p->emm_context._imsi64;
 
   OAILOG_FUNC_RETURN(LOG_MME_APP, imsi64);
 }
