@@ -586,5 +586,26 @@ export default async function(
     }
   });
 
+  router.get('/event', async (req: ExpressRequest, res, next) => {
+    try {
+      const result = await http.get(baseApiURL + 'event/', req);
+      res.status(200).send(result);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  router.delete('/event/:name', async (req: ExpressRequest, res, next) => {
+    try {
+      const result = await http.delete(
+        baseApiURL + 'event/' + req.params.name,
+        req,
+      );
+      res.status(200).send(result);
+    } catch (err) {
+      next(err);
+    }
+  });
+
   return router;
 }
