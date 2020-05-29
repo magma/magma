@@ -16,6 +16,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
@@ -27,10 +28,13 @@ import (
 )
 
 var (
-	cmdRegistry = new(commands.Map)
-	config      servicers.SwxProxyConfig
-	imsi        string
-	numVectors  uint64 = 3
+	cmdRegistry  = new(commands.Map)
+	config       servicers.SwxProxyConfig
+	imsi         string
+	numVectors   uint64 = 3
+	useRemote    bool
+	loopDelaySec int64
+	ignoreErrors bool
 )
 
 const (
@@ -77,8 +81,24 @@ func (s swxBuiltIn) Register(
 
 func init() {
 	// Enable logging
-	flag.Set("v", "10")             // enable the most verbose logging
-	flag.Set("logtostderr", "true") // enable printing to console
+	flag.Set("v", "10")             // enable the most verbose logging, can be overwritten by 'v' flag
+	flag.Set("logtostderr", "true") // enable printing to console, can be overwritten by 'logtostderr' flag
+
+	flag.BoolVar(
+		&useRemote,
+		"remote_service",
+		false,
+		"Use remote SWX service (based on the Gateway control proxy configuration)")
+	flag.Int64Var(
+		&loopDelaySec,
+		"loop_delay",
+		0,
+		"Loop request indefinitely with specified delay between requests in seconds (<= 0 value disables looping)")
+	flag.BoolVar(
+		&ignoreErrors,
+		"ignore_errors",
+		false,
+		"Ignore errors & continue requests (only valid with non zero loop_delay)")
 
 	config = servicers.SwxProxyConfig{
 		ClientCfg: &diameter.DiameterClientConfig{
@@ -100,15 +120,36 @@ func init() {
 			"\tUsage: %s [OPTIONS] %s [%s OPTIONS] <IMSI>\n", os.Args[0], marCmd.Name(), marCmd.Name())
 		marFlags.PrintDefaults()
 	}
-	marFlags.StringVar(&config.ServerCfg.Addr, "hss_addr", config.ServerCfg.Addr, "HSS address - use to send requests directly to HSS")
-	marFlags.StringVar(&config.ServerCfg.Protocol, "network", config.ServerCfg.Protocol, "HSS network: tcp/sctp")
-	marFlags.StringVar(&config.ServerCfg.LocalAddr, "local_addr", config.ServerCfg.LocalAddr, "swx client local address to bind to")
+	marFlags.StringVar(
+		&config.ServerCfg.Addr,
+		"hss_addr",
+		config.ServerCfg.Addr,
+		"HSS address - use to send requests directly to HSS")
+	marFlags.StringVar(
+		&config.ServerCfg.Protocol,
+		"network",
+		config.ServerCfg.Protocol,
+		"HSS network: tcp/sctp")
+	marFlags.StringVar(
+		&config.ServerCfg.LocalAddr,
+		"local_addr",
+		config.ServerCfg.LocalAddr,
+		"swx client local address to bind to")
 	marFlags.StringVar(&config.ClientCfg.Host, "origin_host", config.ClientCfg.Host, "swx origin host")
 	marFlags.StringVar(&config.ClientCfg.Realm, "origin_realm", config.ClientCfg.Realm, "swx origin realm")
 	marFlags.StringVar(&config.ServerCfg.DestHost, "dest_host", config.ServerCfg.DestHost, "swx destination host")
-	marFlags.StringVar(&config.ServerCfg.DestRealm, "dest_realm", config.ServerCfg.DestRealm, "swx destination realm")
+	marFlags.StringVar(
+		&config.ServerCfg.DestRealm,
+		"dest_realm",
+		config.ServerCfg.DestRealm,
+		"swx destination realm")
 	marFlags.Uint64Var(&numVectors, "num_vectors", numVectors, "number of authentication vectors requested")
-	marFlags.BoolVar(&config.VerifyAuthorization, "verify_authorization", config.VerifyAuthorization, "Ensure that subscriber has NON-3GPP-IP-Access enabled")
+	marFlags.BoolVar(
+		&config.VerifyAuthorization,
+		"verify_authorization",
+		config.VerifyAuthorization,
+		"Ensure that subscriber has NON-3GPP-IP-Access enabled")
+
 	// Use the same flag set for both MAR and SAR
 	*sarFlags = *marFlags
 	sarFlags.Usage = func() {
@@ -129,7 +170,7 @@ func handleSwxCmd(cmd *commands.Command, args []string) int {
 		return 1
 	}
 	if f.NArg() > 1 {
-		fmt.Printf("Please provide only an IMSI argument - all other parameters should be provided with flags\n")
+		fmt.Printf("Please provide only an IMSI argument - all other parameters should be provided with flags: %+v\n", f.Args())
 		return 1
 	}
 	imsi = strings.TrimSpace(f.Arg(0))
@@ -157,7 +198,11 @@ func sendSwxRequest(requestName string) int {
 		addr = config.ServerCfg.Addr
 	} else {
 		swxCli = swxProxyCli{}
-		addr, _ = registry.GetServiceAddress(registry.SWX_PROXY)
+		if useRemote {
+			addr = "<REMOTE Address>"
+		} else {
+			addr, _ = registry.GetServiceAddress(registry.SWX_PROXY)
+		}
 	}
 	if requestName == "sar" {
 		return sendSar(addr, swxCli)
@@ -295,24 +340,28 @@ func main() {
 		fmt.Printf(
 			"\nUsage: \033[1m%s command [OPTIONS]\033[0m\n\n",
 			filepath.Base(cmd))
+		flag.PrintDefaults()
 		fmt.Println("Commands:")
 		cmdRegistry.Usage()
 	}
 	flag.Parse()
-	cmdName := flag.Arg(0)
-	if len(flag.Args()) < 1 || cmdName == "" || cmdName == "help" || cmdName == "h" {
-		flag.Usage()
-		os.Exit(1)
+	if useRemote {
+		os.Setenv("USE_REMOTE_SWX_PROXY", "true")
+	} else {
+		os.Setenv("USE_REMOTE_SWX_PROXY", "false")
 	}
-	cmd := cmdRegistry.Get(cmdName)
-	if cmd == nil {
-		fmt.Println("\nInvalid Command: ", cmdName)
-		flag.Usage()
-		os.Exit(1)
+	loopInterval := time.Second * time.Duration(loopDelaySec)
+	for {
+		exitCode, err := cmdRegistry.HandleCommand()
+		if err != nil {
+			fmt.Fprint(os.Stderr, err)
+			flag.Usage()
+		}
+		if loopInterval <= 0 || (exitCode != 0 && (!ignoreErrors)) {
+			os.Exit(exitCode)
+		}
+		time.Sleep(loopInterval)
 	}
-	args := os.Args[2:]
-	cmd.Flags().Parse(args)
-	os.Exit(cmd.Handle(args))
 }
 
 func getInteractiveRequestParameters(reader *bufio.Reader, requestType string) error {
