@@ -493,7 +493,7 @@ UpdateSessionRequest LocalEnforcer::collect_updates(
     for (const auto& session : session_pair.second) {
       std::string imsi     = session_pair.first;
       std::string sid      = session->get_session_id();
-      auto update_criteria = session_update[imsi][sid];
+      auto& update_criteria = session_update[imsi][sid];
       session->get_updates(request, &actions, update_criteria, force_update);
     }
   }
