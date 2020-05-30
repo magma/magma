@@ -51,6 +51,10 @@
       "radiusMetricsPort": 9100,
       "radiusMetricsPath": "metrics",
       "updateIntervalSecs": 60
+    },
+    "dpid": {
+      "@type": "type.googleapis.com/magma.mconfig.DPID",
+      "logLevel": "INFO"
     }
   }
 }
