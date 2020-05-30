@@ -38,8 +38,6 @@ import (
 // - Expect a CCR-T, trigger a UE disconnect, and assert the CCR-T is received.
 // - Assert that IPDR records were properly exported
 func TestIpfixEnforcement(t *testing.T) {
-	t.Skip("Skipping ipfix test as sourceforge dl freezes on CI nodes")
-
 	fmt.Println("\nRunning IPFIX TEST...")
 	tr := NewTestRunner(t)
 
