@@ -24,6 +24,11 @@ magma_services:
 non_service303_services:
   - control_proxy
   - redis
+  - td-agent-bit
+
+# List of all possible dynamic services (enabled from gateway.mconfig)
+registered_dynamic_services:
+  - td-agent-bit
 
 # Init system to use to control services
 # Supported systems include: [systemd, runit, docker]
