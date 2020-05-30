@@ -90,7 +90,7 @@ class UEMacAddressController(MagmaController):
     def delete_all_flows(self, datapath):
         flows.delete_all_flows_from_table(datapath, self.tbl_num)
         flows.delete_all_flows_from_table(datapath, self._dhcp_learn_scratch)
-        flows.delete_all_flows_from_table(datapath, self._ipfix_sample_tbl_num)
+        flows.delete_all_flows_from_table(datapath, self._imsi_set_tbl_num)
 
     def add_ue_mac_flow(self, sid, mac_addr):
         # TODO report add flow result back to sessiond
