@@ -73,14 +73,16 @@ export const ROW_SEPARATOR_TYPES = {
 };
 export type RowsSeparationTypes = $Keys<typeof ROW_SEPARATOR_TYPES>;
 
-type Props<T> = {
-  data: Array<TableRowDataType<T>>,
-  columns: Array<TableColumnType<T>>,
+type Props<T> = $ReadOnly<{|
+  data: $ReadOnlyArray<TableRowDataType<T>>,
+  columns: $ReadOnlyArray<TableColumnType<T>>,
   rowsSeparator?: RowsSeparationTypes,
   dataRowClassName?: string,
   cellClassName?: string,
   fwdRef?: TRefFor<HTMLElement>,
-};
+|}>;
+
+const requiredOnTopValue = row => (row.alwaysShowOnTop === true ? 1 : 0);
 
 const TableContent = <T>(props: Props<T>) => {
   const {
@@ -100,27 +102,27 @@ const TableContent = <T>(props: Props<T>) => {
 
   useEffect(() => {
     const sortSettings = settings.sort;
-    if (sortSettings == null) {
-      return setSortedData(data);
-    }
-    const sortingColumn = columns.find(
-      col => col.key == sortSettings.columnKey,
-    );
-    if (sortingColumn == null || sortingColumn.getSortingValue == null) {
-      return setSortedData(data);
-    }
-
-    const getSortingValue = sortingColumn.getSortingValue;
+    const sortingColumn =
+      sortSettings && columns.find(col => col.key == sortSettings.columnKey);
+    const getSortingValue = sortingColumn?.getSortingValue;
     const sortingFactor =
-      sortSettings.order === TABLE_SORT_ORDER.ascending ? 1 : -1;
+      sortSettings?.order === TABLE_SORT_ORDER.descending ? -1 : 1;
+
     setSortedData(
-      data
-        .slice()
-        .sort(
-          (row1, row2) =>
+      data.slice().sort((row1, row2) => {
+        const topRowsSortingValue =
+          requiredOnTopValue(row2) - requiredOnTopValue(row1);
+        if (topRowsSortingValue !== 0) {
+          return topRowsSortingValue;
+        }
+        if (getSortingValue != null) {
+          return (
             sortMixed(getSortingValue(row1), getSortingValue(row2)) *
-            sortingFactor,
-        ),
+            sortingFactor
+          );
+        }
+        return 0;
+      }),
     );
   }, [columns, data, settings.sort]);
 

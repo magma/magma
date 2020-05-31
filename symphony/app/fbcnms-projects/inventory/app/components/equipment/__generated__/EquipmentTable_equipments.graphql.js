@@ -17,9 +17,9 @@ import type { ReaderFragment } from 'relay-runtime';
 export type FutureState = "INSTALL" | "REMOVE" | "%future added value";
 export type WorkOrderStatus = "DONE" | "PENDING" | "PLANNED" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
-declare export opaque type EquipmentTable_equipment$ref: FragmentReference;
-declare export opaque type EquipmentTable_equipment$fragmentType: EquipmentTable_equipment$ref;
-export type EquipmentTable_equipment = $ReadOnlyArray<{|
+declare export opaque type EquipmentTable_equipments$ref: FragmentReference;
+declare export opaque type EquipmentTable_equipments$fragmentType: EquipmentTable_equipments$ref;
+export type EquipmentTable_equipments = $ReadOnlyArray<{|
   +id: string,
   +name: string,
   +futureState: ?FutureState,
@@ -37,12 +37,12 @@ export type EquipmentTable_equipment = $ReadOnlyArray<{|
   +services: $ReadOnlyArray<?{|
     +id: string
   |}>,
-  +$refType: EquipmentTable_equipment$ref,
+  +$refType: EquipmentTable_equipments$ref,
 |}>;
-export type EquipmentTable_equipment$data = EquipmentTable_equipment;
-export type EquipmentTable_equipment$key = $ReadOnlyArray<{
-  +$data?: EquipmentTable_equipment$data,
-  +$fragmentRefs: EquipmentTable_equipment$ref,
+export type EquipmentTable_equipments$data = EquipmentTable_equipments;
+export type EquipmentTable_equipments$key = $ReadOnlyArray<{
+  +$data?: EquipmentTable_equipments$data,
+  +$fragmentRefs: EquipmentTable_equipments$ref,
   ...
 }>;
 */
@@ -65,7 +65,7 @@ v1 = {
 };
 return {
   "kind": "Fragment",
-  "name": "EquipmentTable_equipment",
+  "name": "EquipmentTable_equipments",
   "type": "Equipment",
   "metadata": {
     "plural": true
@@ -147,5 +147,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'cd50b22725719d42497777ab6583e2e5';
+(node/*: any*/).hash = 'ad1708fe40398b5cab77735cbd8a6417';
 module.exports = node;

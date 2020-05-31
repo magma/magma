@@ -142,7 +142,7 @@ const locationsPropertiesCardQuery = graphql`
           id
         }
         equipments {
-          ...EquipmentTable_equipment
+          ...EquipmentTable_equipments
         }
         properties {
           ...PropertyFormField_property
