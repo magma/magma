@@ -27,6 +27,7 @@ import ViewContainer from '@fbcnms/ui/components/design-system/View/ViewContaine
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
+import {FormContextProvider} from '../../../../common/FormContext';
 import {
   NEW_DIALOG_PARAM,
   PERMISSION_RULE_VALUES,
@@ -37,6 +38,7 @@ import {generateTempId} from '../../../../common/EntUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useFormAlertsContext} from '@fbcnms/ui/components/design-system/Form/FormAlertsContext';
 import {useLocation} from 'react-router-dom';
 import {useParams} from 'react-router';
 import {useUserManagement} from '../UserManagementContext';
@@ -148,7 +150,6 @@ const getInitialNewPolicy: (policyType: ?string) => PermissionsPolicy = (
 
 function PermissionsPolicyCard(props: Props) {
   const {redirectToPoliciesView, onClose} = props;
-  const classes = useStyles();
   const location = useLocation();
   const {
     policies,
@@ -195,52 +196,63 @@ function PermissionsPolicyCard(props: Props) {
         name: isOnNewPolicy ? `${fbt('New Policy', '')}` : policy?.name || '',
       },
     ];
-    const actions = [
-      <FormAction ignorePermissions={true}>
-        <Button skin="regular" onClick={onClose}>
-          {Strings.common.cancelButton}
-        </Button>
-      </FormAction>,
-      <FormAction disableOnFromError={true}>
-        <Button
-          onClick={() => {
-            if (policy == null) {
-              return;
-            }
+    const actions =
+      policy?.isSystemDefault === true
+        ? [
+            <FormAction ignorePermissions={true} ignoreEditLocks={true}>
+              <Button onClick={onClose}>{Strings.common.doneButton}</Button>
+            </FormAction>,
+          ]
+        : [
+            <FormAction ignorePermissions={true}>
+              <Button skin="regular" onClick={onClose}>
+                {Strings.common.cancelButton}
+              </Button>
+            </FormAction>,
+            <FormAction disableOnFromError={true}>
+              <Button
+                onClick={() => {
+                  if (policy == null) {
+                    return;
+                  }
 
-            const saveAction = isOnNewPolicy
-              ? addPermissionsPolicy
-              : editPermissionsPolicy;
-            saveAction(policy)
-              .then(onClose)
-              .catch(handleError);
-          }}>
-          {Strings.common.saveButton}
-        </Button>
-      </FormAction>,
-    ];
-    if (!isOnNewPolicy) {
+                  const saveAction = isOnNewPolicy
+                    ? addPermissionsPolicy
+                    : editPermissionsPolicy;
+                  saveAction(policy)
+                    .then(onClose)
+                    .catch(handleError);
+                }}>
+                {Strings.common.saveButton}
+              </Button>
+            </FormAction>,
+          ];
+    if (!isOnNewPolicy && policy?.isSystemDefault !== true) {
       actions.unshift(
-        <IconButton
-          icon={DeleteIcon}
-          skin="gray"
-          onClick={() => {
-            if (policy == null) {
-              return;
-            }
-            props
-              .confirm(
-                <fbt desc="">Are you sure you want to delete this policy?</fbt>,
-              )
-              .then(confirm => {
-                if (!confirm) {
-                  return;
-                }
-                return deletePermissionsPolicy(policy.id).then(onClose);
-              })
-              .catch(handleError);
-          }}
-        />,
+        <FormAction>
+          <IconButton
+            icon={DeleteIcon}
+            skin="gray"
+            onClick={() => {
+              if (policy == null) {
+                return;
+              }
+              props
+                .confirm(
+                  <fbt desc="">
+                    Are you sure you want to delete this policy?
+                  </fbt>,
+                )
+                .then(confirm => {
+                  if (!confirm) {
+                    return;
+                  }
+                  return deletePermissionsPolicy(policy.id).then(onClose);
+                })
+                .catch(handleError);
+            }}
+          />
+        </FormAction>,
       );
     }
     return {
@@ -265,30 +277,74 @@ function PermissionsPolicyCard(props: Props) {
   }
   return (
     <InventoryErrorBoundary>
-      <ViewContainer header={header} useBodyScrollingEffect={false}>
-        <Grid container spacing={2} className={classes.container}>
-          <Grid item xs={8} sm={8} lg={8} xl={8} className={classes.container}>
-            <PermissionsPolicyDetailsPane
-              policy={policy}
-              onChange={setPolicy}
-              className={classes.detailsPane}
-            />
-            <PermissionsPolicyRulesPane
-              policy={policy}
-              onChange={setPolicy}
-              className={classes.detailsPane}
-            />
-          </Grid>
-          <Grid item xs={4} sm={4} lg={4} xl={4} className={classes.container}>
-            <PermissionsPolicyGroupsPane
-              policy={policy}
-              onChange={setPolicy}
-              className={classes.detailsPane}
-            />
-          </Grid>
-        </Grid>
-      </ViewContainer>
+      <FormContextProvider permissions={{adminRightsRequired: true}}>
+        <ViewContainer header={header} useBodyScrollingEffect={false}>
+          <PermissionsPolicyCardBody policy={policy} onChange={setPolicy} />
+        </ViewContainer>
+      </FormContextProvider>
     </InventoryErrorBoundary>
+  );
+}
+
+type PermissionsPolicyCardBodyProps = $ReadOnly<{|
+  policy: PermissionsPolicy,
+  onChange: PermissionsPolicy => void,
+|}>;
+
+function PermissionsPolicyCardBody(props: PermissionsPolicyCardBodyProps) {
+  const {policy, onChange} = props;
+  const classes = useStyles();
+
+  const alerts = useFormAlertsContext();
+  alerts.editLock.check({
+    fieldId: 'system_default_policy',
+    fieldDisplayName: 'Workforce Default Policy',
+    value: policy.isSystemDefault,
+    checkCallback: isSystemDefault =>
+      isSystemDefault
+        ? `${fbt(
+            'This policy is applied to all users by default. It cannot be edited or removed.',
+            '',
+          )}`
+        : '',
+  });
+
+  const policyDetailsPart = (
+    <PermissionsPolicyDetailsPane
+      policy={policy}
+      onChange={onChange}
+      className={classes.detailsPane}
+    />
+  );
+
+  if (policy.isSystemDefault) {
+    return (
+      <Grid container spacing={2} className={classes.container}>
+        <Grid item xs={12} className={classes.container}>
+          {policyDetailsPart}
+        </Grid>
+      </Grid>
+    );
+  }
+
+  return (
+    <Grid container spacing={2} className={classes.container}>
+      <Grid item xs={8} sm={8} lg={8} xl={8} className={classes.container}>
+        {policyDetailsPart}
+        <PermissionsPolicyRulesPane
+          policy={policy}
+          onChange={onChange}
+          className={classes.detailsPane}
+        />
+      </Grid>
+      <Grid item xs={4} sm={4} lg={4} xl={4} className={classes.container}>
+        <PermissionsPolicyGroupsPane
+          policy={policy}
+          onChange={onChange}
+          className={classes.detailsPane}
+        />
+      </Grid>
+    </Grid>
   );
 }
 

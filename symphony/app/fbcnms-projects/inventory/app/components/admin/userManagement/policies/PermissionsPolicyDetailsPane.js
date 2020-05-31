@@ -28,7 +28,7 @@ const useStyles = makeStyles(() => ({
     marginRight: '8px',
   },
   descriptionField: {
-    marginTop: '8px',
+    marginTop: '16px',
   },
 }));
 
@@ -62,6 +62,7 @@ export default function PermissionsPolicyDetailsPane(props: Props) {
           </Grid>
           <Grid item xs={12}>
             <FormFieldTextInput
+              type="multiline"
               className={classes.descriptionField}
               label={`${fbt('Policy Description', '')}`}
               value={policy.description || ''}
