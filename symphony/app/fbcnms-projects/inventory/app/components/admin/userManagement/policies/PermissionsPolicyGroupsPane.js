@@ -13,7 +13,9 @@ import type {PermissionsPolicy} from '../utils/UserManagementUtils';
 import * as React from 'react';
 import Card from '@fbcnms/ui/components/design-system/Card/Card';
 import GroupSearchBox from '../utils/search/GroupSearchBox';
+import InfoTinyIcon from '@fbcnms/ui/components/design-system/Icons/Indications/InfoTinyIcon';
 import PermissionsPolicyGroupsList from './PermissionsPolicyGroupsList';
+import Switch from '@fbcnms/ui/components/design-system/switch/Switch';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import ViewContainer from '@fbcnms/ui/components/design-system/View/ViewContainer';
 import classNames from 'classnames';
@@ -29,8 +31,11 @@ import {useMemo} from 'react';
 
 const useStyles = makeStyles(() => ({
   root: {
-    height: '100%',
+    '&:not($isGlobal)': {
+      height: '100%',
+    },
   },
+  isGlobal: {},
   header: {
     paddingBottom: '5px',
   },
@@ -51,6 +56,11 @@ const useStyles = makeStyles(() => ({
     marginTop: '12px',
     marginBottom: '-3px',
   },
+  body: {
+    display: 'flex',
+    flexDirection: 'column',
+    width: '100%',
+  },
   noMembers: {
     width: '124px',
     paddingTop: '50%',
@@ -66,6 +76,19 @@ const useStyles = makeStyles(() => ({
   },
   clearSearch: {
     ...symphony.typography.subtitle1,
+  },
+  globalGroupContainer: {
+    display: 'flex',
+    margin: '16px 0',
+  },
+  captionContainer: {
+    display: 'flex',
+  },
+  switchWrapper: {
+    flexGrow: 1,
+  },
+  switch: {
+    float: 'right',
   },
 }));
 
@@ -131,7 +154,10 @@ export default function PermissionsPolicyGroupsPane(props: Props) {
     [],
   );
 
-  const searchBar = useMemo(() => <SearchBar policy={policy} />, [policy]);
+  const searchBar = useMemo(
+    () => (policy.isGlobal ? null : <SearchBar policy={policy} />),
+    [policy],
+  );
 
   const header = useMemo(
     () => ({
@@ -144,10 +170,47 @@ export default function PermissionsPolicyGroupsPane(props: Props) {
   );
 
   return (
-    <Card className={classNames(classes.root, className)} margins="none">
+    <Card
+      className={classNames(classes.root, className, {
+        [classes.isGlobal]: policy.isGlobal,
+      })}
+      margins="none">
       <GroupSearchContextProvider>
         <ViewContainer header={header}>
-          <PermissionsPolicyGroupsList policy={policy} onChange={onChange} />
+          <div className={classes.body}>
+            {policy.isGlobal !== true ? (
+              <PermissionsPolicyGroupsList
+                policy={policy}
+                onChange={onChange}
+              />
+            ) : null}
+            <div className={classes.globalGroupContainer}>
+              <div
+                className={classes.captionContainer}
+                title={`${fbt(
+                  'When turned on, all current and future users will have this policy applied.',
+                  '',
+                )}`}>
+                <Text>
+                  <fbt desc="">Apply this policy on all users</fbt>
+                </Text>
+                <InfoTinyIcon />
+              </div>
+              <div className={classes.switchWrapper}>
+                <Switch
+                  title=""
+                  checked={policy.isGlobal}
+                  onChange={isGlobal => {
+                    onChange({
+                      ...policy,
+                      isGlobal,
+                    });
+                  }}
+                  className={classes.switch}
+                />
+              </div>
+            </div>
+          </div>
         </ViewContainer>
       </GroupSearchContextProvider>
     </Card>

@@ -21,7 +21,9 @@ import {useGroupSearchContext} from '../utils/search/GroupSearchContext';
 import {useMemo} from 'react';
 
 const useStyles = makeStyles(() => ({
-  root: {},
+  root: {
+    flexGrow: '1',
+  },
   noGroups: {
     width: '124px',
     paddingTop: '50%',
@@ -107,6 +109,7 @@ export default function PermissionsPolicyGroupsList(props: Props) {
           : TOGGLE_BUTTON_DISPLAY.always
       }
       emptyState={emptyState}
+      className={classes.root}
     />
   );
 }

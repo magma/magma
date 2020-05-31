@@ -696,6 +696,7 @@ export const permissionsPolicy2PermissionsPolicyInput: PP2APPI = (
       policy.type === POLICY_TYPES.WorkforcePolicy.key
         ? initWorkforceRulesInput(policy.workforceRules)
         : null,
+    isGlobal: policy.isGlobal,
     groups: policy.groups.map(group => group.id),
   };
 };
