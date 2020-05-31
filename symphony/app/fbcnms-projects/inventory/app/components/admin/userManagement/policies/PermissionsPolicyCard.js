@@ -14,6 +14,7 @@ import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import * as React from 'react';
 import Breadcrumbs from '@fbcnms/ui/components/Breadcrumbs';
 import Button from '@fbcnms/ui/components/design-system/Button';
+import Card from '@fbcnms/ui/components/design-system/Card/Card';
 import DeleteIcon from '@fbcnms/ui/components/design-system/Icons/Actions/DeleteIcon';
 import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import Grid from '@material-ui/core/Grid';
@@ -23,7 +24,9 @@ import PermissionsPolicyDetailsPane from './PermissionsPolicyDetailsPane';
 import PermissionsPolicyGroupsPane from './PermissionsPolicyGroupsPane';
 import PermissionsPolicyRulesPane from './PermissionsPolicyRulesPane';
 import Strings from '@fbcnms/strings/Strings';
+import Text from '@fbcnms/ui/components/design-system/Text';
 import ViewContainer from '@fbcnms/ui/components/design-system/View/ViewContainer';
+import WorkOrdersIcon from '@fbcnms/ui/components/design-system/Icons/Indications/WorkOrdersIcon';
 import classNames from 'classnames';
 import fbt from 'fbt';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
@@ -34,6 +37,7 @@ import {
   POLICY_TYPES,
 } from '../utils/UserManagementUtils';
 import {PERMISSION_POLICIES_VIEW_NAME} from './PermissionsPoliciesView';
+import {SYSTEM_DEFAULT_POLICY_PREFIX} from './PermissionsPoliciesView';
 import {generateTempId} from '../../../../common/EntUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useEffect, useMemo, useState} from 'react';
@@ -51,6 +55,16 @@ const useStyles = makeStyles(() => ({
     '&>:not(:first-child)': {
       marginTop: '16px',
     },
+  },
+  defaultPolicyMessage: {
+    display: 'flex',
+    flexDirection: 'row',
+    '&>:not(:first-child)': {
+      marginLeft: '8px',
+    },
+  },
+  defaultPolicyMessageHeader: {
+    display: 'block',
   },
 }));
 
@@ -313,6 +327,24 @@ function PermissionsPolicyCardBody(props: PermissionsPolicyCardBodyProps) {
     return (
       <Grid container spacing={2} className={classes.container}>
         <Grid item xs={12} className={classes.container}>
+          <Card
+            variant="message"
+            contentClassName={classes.defaultPolicyMessage}>
+            <WorkOrdersIcon />
+            <div>
+              <Text
+                variant="subtitle1"
+                className={classes.defaultPolicyMessageHeader}>
+                {SYSTEM_DEFAULT_POLICY_PREFIX}
+              </Text>
+              <Text variant="body2">
+                <fbt desc="">
+                  This policy is applied to all users by default. It cannot be
+                  edited or removed.
+                </fbt>
+              </Text>
+            </div>
+          </Card>
           {policyDetailsPart}
         </Grid>
       </Grid>

@@ -28,6 +28,8 @@ export const PERMISSION_POLICIES_VIEW_NAME = fbt(
   'Header for view showing system permissions policies settings',
 );
 
+export const SYSTEM_DEFAULT_POLICY_PREFIX = fbt('Default Policy', '');
+
 const ALL_USERS = `${fbt('All Users', '')}`;
 
 const useStyles = makeStyles(() => ({
@@ -113,7 +115,7 @@ export default function PermissionsPoliciesView() {
         <>
           {PolicyRow.isSystemDefault && (
             <Text variant="body2" className={classes.defaultPolicyPrefix}>
-              <fbt desc="">Default Policy: </fbt>
+              {SYSTEM_DEFAULT_POLICY_PREFIX}:
             </Text>
           )}
           {PolicyRow.description}
