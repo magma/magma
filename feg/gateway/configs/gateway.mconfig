@@ -20,6 +20,13 @@
       "radiusMetricsPort": 9100,
       "radiusMetricsPath": "metrics",
       "updateIntervalSecs": 60
+    },
+    "td-agent-bit": {
+      "@type": "type.googleapis.com/magma.mconfig.FluentBit",
+      "extraTags": {},
+      "throttleRate": 1000,
+      "throttleWindow": 5,
+      "throttleInterval": "1m"
     }
   }
 }
