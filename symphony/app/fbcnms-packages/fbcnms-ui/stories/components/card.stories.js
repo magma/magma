@@ -9,7 +9,7 @@
  */
 
 import Button from '../../components/design-system/Button';
-import Card from '../../components/design-system/Card/Card';
+import Card, {CARD_MARGINS} from '../../components/design-system/Card/Card';
 import CardHeader from '../../components/design-system/Card/CardHeader';
 import React from 'react';
 import Text from '../../components/design-system/Text';
@@ -21,24 +21,32 @@ const useStyles = makeStyles(_theme => ({
   root: {
     width: '100%',
   },
-  card: {
-    marginBottom: '16px',
+  mapContent: {
+    padding: '120px',
+    background: 'gray',
+    backgroundClip: 'padding-box',
   },
 }));
 
 const CardsRoot = () => {
   const classes = useStyles();
-
   return (
     <div className={classes.root}>
-      <Card className={classes.card}>
+      <Card>
         <Text>Content</Text>
       </Card>
-      <Card className={classes.card}>
+      <Card margins={CARD_MARGINS.none}>
+        <div className={classes.mapContent}>
+          <Text variant="h5" color="light">
+            my content here needs no margins
+          </Text>
+        </div>
+      </Card>
+      <Card>
         <CardHeader>Title</CardHeader>
         <Text>Content</Text>
       </Card>
-      <Card className={classes.card}>
+      <Card>
         <CardHeader rightContent={<Button>Action</Button>}>Title</CardHeader>
         <Text>Content</Text>
       </Card>

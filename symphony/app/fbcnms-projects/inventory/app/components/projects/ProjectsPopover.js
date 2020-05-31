@@ -26,8 +26,6 @@ import {makeStyles} from '@material-ui/styles';
 const cardTop = '116px';
 const useStyles = makeStyles(theme => ({
   card: {
-    display: 'flex',
-    flexDirection: 'column',
     position: 'absolute',
     right: '10px',
     top: cardTop,

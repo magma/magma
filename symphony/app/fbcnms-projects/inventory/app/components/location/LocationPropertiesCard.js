@@ -61,8 +61,6 @@ const styles = theme => ({
     height: '100%',
     display: 'flex',
     flexDirection: 'column',
-    paddingLeft: '0px',
-    paddingRight: '0px',
   },
   contentRoot: {
     position: 'relative',
@@ -109,9 +107,6 @@ const styles = theme => ({
   },
   tabsContainer: {
     marginBottom: '16px',
-  },
-  documentsTable: {
-    padding: '24px',
   },
 });
 
@@ -294,10 +289,7 @@ class LocationPropertiesCard extends React.Component<Props, State> {
                     />
                   ) : null}
                   {this.state.selectedTab === 'documents' ? (
-                    <LocationDocumentsCard
-                      className={classes.documentsTable}
-                      location={location}
-                    />
+                    <LocationDocumentsCard location={location} />
                   ) : null}
                   {this.state.selectedTab === 'network_map' ? (
                     <LocationNetworkMapTab locationId={location.id} />

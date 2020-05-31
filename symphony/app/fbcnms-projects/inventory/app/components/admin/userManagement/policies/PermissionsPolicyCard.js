@@ -24,8 +24,8 @@ import PermissionsPolicyGroupsPane from './PermissionsPolicyGroupsPane';
 import PermissionsPolicyRulesPane from './PermissionsPolicyRulesPane';
 import Strings from '@fbcnms/strings/Strings';
 import ViewContainer from '@fbcnms/ui/components/design-system/View/ViewContainer';
+import classNames from 'classnames';
 import fbt from 'fbt';
-import symphony from '@fbcnms/ui/theme/symphony';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {FormContextProvider} from '../../../../common/FormContext';
 import {
@@ -44,17 +44,13 @@ import {useParams} from 'react-router';
 import {useUserManagement} from '../UserManagementContext';
 
 const useStyles = makeStyles(() => ({
-  detailsPane: {
-    display: 'flex',
-    flexDirection: 'column',
-    borderRadius: '4px',
-    boxShadow: symphony.shadows.DP1,
-    '&:not(:first-child)': {
-      marginTop: '16px',
-    },
-  },
   container: {
     maxHeight: '100%',
+  },
+  vertical: {
+    '&>:not(:first-child)': {
+      marginTop: '16px',
+    },
   },
 }));
 
@@ -310,11 +306,7 @@ function PermissionsPolicyCardBody(props: PermissionsPolicyCardBodyProps) {
   });
 
   const policyDetailsPart = (
-    <PermissionsPolicyDetailsPane
-      policy={policy}
-      onChange={onChange}
-      className={classes.detailsPane}
-    />
+    <PermissionsPolicyDetailsPane policy={policy} onChange={onChange} />
   );
 
   if (policy.isSystemDefault) {
@@ -329,20 +321,18 @@ function PermissionsPolicyCardBody(props: PermissionsPolicyCardBodyProps) {
 
   return (
     <Grid container spacing={2} className={classes.container}>
-      <Grid item xs={8} sm={8} lg={8} xl={8} className={classes.container}>
+      <Grid
+        item
+        xs={8}
+        sm={8}
+        lg={8}
+        xl={8}
+        className={classNames(classes.container, classes.vertical)}>
         {policyDetailsPart}
-        <PermissionsPolicyRulesPane
-          policy={policy}
-          onChange={onChange}
-          className={classes.detailsPane}
-        />
+        <PermissionsPolicyRulesPane policy={policy} onChange={onChange} />
       </Grid>
       <Grid item xs={4} sm={4} lg={4} xl={4} className={classes.container}>
-        <PermissionsPolicyGroupsPane
-          policy={policy}
-          onChange={onChange}
-          className={classes.detailsPane}
-        />
+        <PermissionsPolicyGroupsPane policy={policy} onChange={onChange} />
       </Grid>
     </Grid>
   );

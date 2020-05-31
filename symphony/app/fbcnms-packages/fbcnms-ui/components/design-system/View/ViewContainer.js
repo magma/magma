@@ -14,6 +14,7 @@ import type {Variant} from './ViewBody';
 import * as React from 'react';
 import ViewBody from './ViewBody';
 import ViewHeader from './ViewHeader';
+import classNames from 'classnames';
 import useVerticalScrollingEffect from '../hooks/useVerticalScrollingEffect';
 import {makeStyles} from '@material-ui/styles';
 import {useRef, useState} from 'react';
@@ -31,11 +32,18 @@ export type ViewContainerProps = $ReadOnly<{|
   header?: ?FullViewHeaderProps,
   useBodyScrollingEffect?: ?boolean,
   bodyVariant?: ?Variant,
+  className?: ?string,
   children: React.Node,
 |}>;
 
 export default function ViewContainer(props: ViewContainerProps) {
-  const {header, useBodyScrollingEffect = true, bodyVariant, children} = props;
+  const {
+    header,
+    useBodyScrollingEffect = true,
+    bodyVariant,
+    className,
+    children,
+  } = props;
   const classes = useStyles();
   const headerElement = useRef(null);
   const bodyElement = useRef(null);
@@ -57,7 +65,7 @@ export default function ViewContainer(props: ViewContainerProps) {
   );
 
   return (
-    <div className={classes.viewPanel}>
+    <div className={classNames(classes.viewPanel, className)}>
       {!!header && (
         <ViewHeader
           ref={headerElement}
