@@ -9,7 +9,10 @@
  */
 
 import Button from '../../components/design-system/Button';
-import Card, {CARD_MARGINS} from '../../components/design-system/Card/Card';
+import Card, {
+  CARD_MARGINS,
+  CARD_VARIANTS,
+} from '../../components/design-system/Card/Card';
 import CardHeader from '../../components/design-system/Card/CardHeader';
 import React from 'react';
 import Text from '../../components/design-system/Text';
@@ -45,6 +48,10 @@ const CardsRoot = () => {
       <Card>
         <CardHeader>Title</CardHeader>
         <Text>Content</Text>
+      </Card>
+      <Card variant={CARD_VARIANTS.message}>
+        <CardHeader>This is a system message</CardHeader>
+        <Text>System message content</Text>
       </Card>
       <Card>
         <CardHeader rightContent={<Button>Action</Button>}>Title</CardHeader>

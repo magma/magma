@@ -29,8 +29,15 @@ const useStyles = makeStyles(_theme => ({
     display: 'flex',
     flexDirection: 'column',
     borderRadius: '4px',
+  },
+  standardVariant: {
     boxShadow: symphony.shadows.DP1,
     backgroundColor: symphony.palette.white,
+  },
+  messageVariant: {
+    border: '1px solid',
+    borderColor: symphony.palette.B200,
+    backgroundColor: symphony.palette.B50,
   },
   standardMargins: {
     padding: '24px',
@@ -43,17 +50,31 @@ export const CARD_MARGINS = {
 };
 type Margins = $Keys<typeof CARD_MARGINS>;
 
+export const CARD_VARIANTS = {
+  standard: 'standard',
+  message: 'message',
+};
+type Variants = $Keys<typeof CARD_VARIANTS>;
+
 type Props = $ReadOnly<{|
   className?: ?string,
   contentClassName?: ?string,
   margins?: ?Margins,
+  variant?: ?Variants,
   children: React.Node,
 |}>;
 
 const Card = (props: Props) => {
-  const {children, margins: marginsProp, className, contentClassName} = props;
+  const {
+    children,
+    margins: marginsProp,
+    variant: variantProp,
+    className,
+    contentClassName,
+  } = props;
   const classes = useStyles();
   const margins: string & Margins = marginsProp || CARD_MARGINS.standard;
+  const variant: string & Variants = variantProp || CARD_VARIANTS.standard;
 
   return (
     <div className={classNames(classes.root, className)}>
@@ -61,6 +82,7 @@ const Card = (props: Props) => {
         className={classNames(
           classes.cardContainer,
           classes[`${margins}Margins`],
+          classes[`${variant}Variant`],
           contentClassName,
         )}>
         {children}
