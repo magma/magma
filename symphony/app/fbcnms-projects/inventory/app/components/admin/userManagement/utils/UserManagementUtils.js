@@ -482,6 +482,7 @@ export type PermissionsPolicy = $ReadOnly<{|
   groups: Array<UserPermissionsGroup>,
   inventoryRules?: ?InventoryPolicy,
   workforceRules?: ?WorkforcePolicy,
+  isSystemDefault?: ?true,
 |}>;
 
 function tryGettingInventoryPolicy(
@@ -544,16 +545,33 @@ export function permissionsPolicyResponse2PermissionsPolicy(
 export const permissionsPoliciesResponse2PermissionsPolicies = (
   policiesResponse: PermissionsPoliciesReponsePart,
   groupsMap: GroupsMap,
-) =>
-  policiesResponse?.edges == null
-    ? []
-    : policiesResponse?.edges
-        .filter(Boolean)
-        .map(ur => ur.node)
-        .filter(Boolean)
-        .map<PermissionsPolicy>(
-          permissionsPolicyResponse2PermissionsPolicy(groupsMap),
-        );
+) => {
+  const allPolicies =
+    policiesResponse?.edges == null
+      ? []
+      : policiesResponse?.edges
+          .filter(Boolean)
+          .map(ur => ur.node)
+          .filter(Boolean)
+          .map<PermissionsPolicy>(
+            permissionsPolicyResponse2PermissionsPolicy(groupsMap),
+          );
+
+  allPolicies.unshift({
+    id: 'system_workorder',
+    name: `${fbt('Work orders editing', '')}`,
+    description: `${fbt(
+      'all active users can view and edit work orders and projects assigned to and owned by them (including changing assignment). An active user who owns the work order can transfer ownership to other user and even delete it. When a work order is part of a project, that project will be visible as well.',
+      '',
+    )}`,
+    type: POLICY_TYPES.WorkforcePolicy.key,
+    isGlobal: true,
+    groups: [],
+    isSystemDefault: true,
+  });
+
+  return allPolicies;
+};
 
 export const permissionPolicyBasicRule2PermissionPolicyBasicRuleInput: (
   ?BasicPermissionRule,

@@ -13,7 +13,10 @@ import type {TableRowDataType} from '@fbcnms/ui/components/design-system/Table/T
 
 import * as React from 'react';
 import Table from '@fbcnms/ui/components/design-system/Table/Table';
+import Text from '@fbcnms/ui/components/design-system/Text';
+import WorkOrdersIcon from '@fbcnms/ui/components/design-system/Icons/Indications/WorkOrdersIcon';
 import fbt from 'fbt';
+import symphony from '@fbcnms/ui/theme/symphony';
 import {POLICY_TYPES} from '../utils/UserManagementUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
@@ -37,6 +40,18 @@ const useStyles = makeStyles(() => ({
   wideColumn: {
     width: '170%',
   },
+  nameCell: {
+    display: 'flex',
+    alignItems: 'center',
+    fill: symphony.palette.D700,
+    '&>:not(:first-child)': {
+      marginLeft: '8px',
+    },
+  },
+  defaultPolicyPrefix: {
+    textDecoration: 'underline',
+    marginRight: '4px',
+  },
 }));
 
 type PolicyTableRow = TableRowDataType<PermissionsPolicy>;
@@ -45,6 +60,7 @@ type PolicyTableData = Array<PolicyTableRow>;
 const policy2PolicyTableRow: PermissionsPolicy => PolicyTableRow = policy => ({
   key: policy.id,
   ...policy,
+  alwaysShowOnTop: policy.isSystemDefault,
 });
 
 const getPolicyUsersCount = (PolicyRow: PolicyTableRow) =>
@@ -78,7 +94,12 @@ export default function PermissionsPoliciesView() {
         </fbt>
       ),
       getSortingValue: PolicyRow => PolicyRow.name,
-      render: PolicyRow => PolicyRow.name,
+      render: PolicyRow => (
+        <div className={classes.nameCell}>
+          {PolicyRow.isSystemDefault && <WorkOrdersIcon color="inherit" />}
+          <span>{PolicyRow.name}</span>
+        </div>
+      ),
     },
     {
       key: 'description',
@@ -88,7 +109,16 @@ export default function PermissionsPoliciesView() {
         </fbt>
       ),
       getSortingValue: PolicyRow => PolicyRow.description,
-      render: PolicyRow => PolicyRow.description,
+      render: PolicyRow => (
+        <>
+          {PolicyRow.isSystemDefault && (
+            <Text variant="body2" className={classes.defaultPolicyPrefix}>
+              <fbt desc="">Default Policy: </fbt>
+            </Text>
+          )}
+          {PolicyRow.description}
+        </>
+      ),
       titleClassName: classes.wideColumn,
       className: classes.wideColumn,
     },
