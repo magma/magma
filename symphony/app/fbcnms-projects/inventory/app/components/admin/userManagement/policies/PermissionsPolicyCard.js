@@ -20,13 +20,13 @@ import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@fbcnms/ui/components/design-system/IconButton';
 import InventoryErrorBoundary from '../../../../common/InventoryErrorBoundary';
+import LockIcon from '@fbcnms/ui/components/design-system/Icons/Indications/LockIcon';
 import PermissionsPolicyDetailsPane from './PermissionsPolicyDetailsPane';
 import PermissionsPolicyGroupsPane from './PermissionsPolicyGroupsPane';
 import PermissionsPolicyRulesPane from './PermissionsPolicyRulesPane';
 import Strings from '@fbcnms/strings/Strings';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import ViewContainer from '@fbcnms/ui/components/design-system/View/ViewContainer';
-import WorkOrdersIcon from '@fbcnms/ui/components/design-system/Icons/Indications/WorkOrdersIcon';
 import classNames from 'classnames';
 import fbt from 'fbt';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
@@ -330,7 +330,7 @@ function PermissionsPolicyCardBody(props: PermissionsPolicyCardBodyProps) {
           <Card
             variant="message"
             contentClassName={classes.defaultPolicyMessage}>
-            <WorkOrdersIcon />
+            <LockIcon />
             <div>
               <Text
                 variant="subtitle1"

@@ -12,9 +12,9 @@ import type {PermissionsPolicy} from '../utils/UserManagementUtils';
 import type {TableRowDataType} from '@fbcnms/ui/components/design-system/Table/Table';
 
 import * as React from 'react';
+import LockIcon from '@fbcnms/ui/components/design-system/Icons/Indications/LockIcon';
 import Table from '@fbcnms/ui/components/design-system/Table/Table';
 import Text from '@fbcnms/ui/components/design-system/Text';
-import WorkOrdersIcon from '@fbcnms/ui/components/design-system/Icons/Indications/WorkOrdersIcon';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
 import {POLICY_TYPES} from '../utils/UserManagementUtils';
@@ -98,7 +98,7 @@ export default function PermissionsPoliciesView() {
       getSortingValue: PolicyRow => PolicyRow.name,
       render: PolicyRow => (
         <div className={classes.nameCell}>
-          {PolicyRow.isSystemDefault && <WorkOrdersIcon color="inherit" />}
+          {PolicyRow.isSystemDefault && <LockIcon color="inherit" />}
           <span>{PolicyRow.name}</span>
         </div>
       ),
