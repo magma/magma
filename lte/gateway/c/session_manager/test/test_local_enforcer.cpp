@@ -124,6 +124,13 @@ MATCHER_P2(CheckUpdateRequestCount, monitorCount, chargingCount, "") {
          req.usage_monitors().size() == monitorCount;
 }
 
+MATCHER_P3(CheckTerminateRequestCount, imsi, monitorCount, chargingCount, "") {
+  auto req = static_cast<const SessionTerminateRequest>(arg);
+  return req.sid() == imsi &&
+         req.credit_usages().size() == chargingCount &&
+         req.monitor_usages().size() == monitorCount;
+}
+
 MATCHER_P2(CheckActivateFlows, imsi, rule_count, "") {
   auto request = static_cast<const ActivateFlowsRequest *>(arg);
   return request->sid().id() == imsi && request->rule_ids_size() == rule_count;
@@ -325,21 +332,8 @@ TEST_F(LocalEnforcerTest, test_aggregate_records_for_termination) {
   insert_static_rule(1, "", "rule2");
   insert_static_rule(2, "", "rule3");
 
-  std::promise<void> termination_promise;
-  auto future = termination_promise.get_future();
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->terminate_subscriber(session_map, "IMSI1", "IMS", update);
-
-  local_enforcer->set_termination_callback(
-      session_map, "IMSI1", "IMS",
-      [&termination_promise](SessionTerminateRequest req) {
-        termination_promise.set_value();
-
-        EXPECT_EQ(req.credit_usages_size(), 2);
-        for (const auto &usage : req.credit_usages()) {
-          EXPECT_EQ(usage.type(), CreditUsage::TERMINATED);
-        }
-      });
 
   RuleRecordTable table;
   auto record_list = table.mutable_records();
@@ -347,19 +341,13 @@ TEST_F(LocalEnforcerTest, test_aggregate_records_for_termination) {
   create_rule_record("IMSI1", "rule2", 5, 15, record_list->Add());
   create_rule_record("IMSI1", "rule3", 100, 150, record_list->Add());
 
+  EXPECT_CALL(*reporter,
+    report_terminate_session(
+      CheckTerminateRequestCount("IMSI1", 0, 2), _)).Times(1);
   local_enforcer->aggregate_records(session_map, table, update);
 
-  // Termination should not have been completed since we are still aggregating
-  // the records.
-  auto status = future.wait_for(std::chrono::seconds(0));
-  EXPECT_EQ(status, std::future_status::timeout);
-
   RuleRecordTable empty_table;
-
   local_enforcer->aggregate_records(session_map, empty_table, update);
-
-  status = future.wait_for(std::chrono::seconds(0));
-  EXPECT_EQ(status, std::future_status::ready);
 }
 
 TEST_F(LocalEnforcerTest, test_collect_updates) {
@@ -506,6 +494,7 @@ TEST_F(LocalEnforcerTest, test_terminate_credit) {
   CreateSessionResponse response2;
   create_credit_update_response("IMSI2", 1, 4096,
                                 response2.mutable_credits()->Add());
+
   session_map = session_store->read_sessions(SessionRead{"IMSI1"});
   local_enforcer->init_session_credit(session_map, "IMSI1", "1234", test_cfg,
                                       response);
@@ -515,27 +504,17 @@ TEST_F(LocalEnforcerTest, test_terminate_credit) {
                                       response2);
   session_store->create_sessions("IMSI2", std::move(session_map["IMSI2"]));
 
-  std::promise<void> termination_promise;
   session_map = session_store->read_sessions(SessionRead{"IMSI1"});
   auto update = SessionStore::get_default_session_update(session_map);
-  local_enforcer->terminate_subscriber(session_map, "IMSI1", "IMS", update);
 
-  session_map = session_store->read_sessions(SessionRead{"IMSI1"});
-  local_enforcer->set_termination_callback(
-      session_map, "IMSI1", "IMS",
-      [&termination_promise](SessionTerminateRequest req) {
-        termination_promise.set_value();
+  EXPECT_CALL(*reporter, report_terminate_session(
+    CheckTerminateRequestCount("IMSI1", 0, 2), _)).Times(1);
+  local_enforcer->terminate_subscriber(session_map, "IMSI1", test_cfg.apn, update);
 
-        EXPECT_EQ(req.credit_usages_size(), 2);
-        for (const auto &usage : req.credit_usages()) {
-          EXPECT_EQ(usage.type(), CreditUsage::TERMINATED);
-        }
-      });
-
+  RuleRecordTable empty_table;
+  local_enforcer->aggregate_records(session_map, empty_table, update);
   run_evb();
-  auto status =
-      termination_promise.get_future().wait_for(std::chrono::seconds(0));
-  EXPECT_EQ(status, std::future_status::timeout);
+  run_evb();
 
   // No longer in system
   session_map = session_store->read_sessions(SessionRead{"IMSI1"});
@@ -553,6 +532,8 @@ TEST_F(LocalEnforcerTest, test_terminate_credit_during_reporting) {
                                 response.mutable_credits()->Add());
   create_credit_update_response("IMSI1", 2, 2048,
                                 response.mutable_credits()->Add());
+  create_monitor_update_response("IMSI1", "m1", MonitoringLevel::PCC_RULE_LEVEL,
+                                 1024, response.mutable_usage_monitors()->Add());
   local_enforcer->init_session_credit(session_map, "IMSI1", "1234", test_cfg,
                                       response);
   insert_static_rule(1, "", "rule1");
@@ -578,19 +559,14 @@ TEST_F(LocalEnforcerTest, test_terminate_credit_during_reporting) {
 
   session_map = session_store->read_sessions(SessionRead{"IMSI1"});
   // Collecting terminations should key 1 anyways during reporting
-  std::promise<void> termination_promise;
   local_enforcer->terminate_subscriber(session_map, "IMSI1", "IMS", update);
-  local_enforcer->set_termination_callback(
-      session_map, "IMSI1", "IMS",
-      [&termination_promise](SessionTerminateRequest term_req) {
-        termination_promise.set_value();
 
-        EXPECT_EQ(term_req.credit_usages_size(), 2);
-      });
+  EXPECT_CALL(*reporter, report_terminate_session(
+    CheckTerminateRequestCount("IMSI1", 1, 2), _)).Times(1);
+
+  RuleRecordTable empty_table;
+  local_enforcer->aggregate_records(session_map, empty_table, update);
   run_evb();
-  auto status =
-      termination_promise.get_future().wait_for(std::chrono::seconds(0));
-  EXPECT_EQ(status, std::future_status::timeout);
 }
 
 TEST_F(LocalEnforcerTest, test_sync_sessions_on_restart) {
@@ -927,20 +903,14 @@ TEST_F(LocalEnforcerTest, test_all) {
       1024);
 
   // Terminate IMSI1
-  std::promise<void> termination_promise;
   local_enforcer->terminate_subscriber(session_map, "IMSI1", "IMS", update);
-  local_enforcer->set_termination_callback(
-      session_map, "IMSI1", "IMS",
-      [&termination_promise](SessionTerminateRequest term_req) {
-        termination_promise.set_value();
 
-        EXPECT_EQ(term_req.sid(), "IMSI1");
-        EXPECT_EQ(term_req.credit_usages_size(), 1);
-      });
+  EXPECT_CALL(*reporter, report_terminate_session(
+    CheckTerminateRequestCount("IMSI1", 0, 1), _)).Times(1);
   run_evb();
-  auto status =
-      termination_promise.get_future().wait_for(std::chrono::seconds(0));
-  EXPECT_EQ(status, std::future_status::timeout);
+
+  RuleRecordTable empty_table;
+  local_enforcer->aggregate_records(session_map, empty_table, update);
 }
 
 TEST_F(LocalEnforcerTest, test_re_auth) {

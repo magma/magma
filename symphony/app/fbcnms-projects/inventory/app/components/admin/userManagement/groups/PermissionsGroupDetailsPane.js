@@ -13,22 +13,20 @@ import type {UsersGroupStatus} from '../__generated__/UserManagementContextQuery
 
 import * as React from 'react';
 import AppContext from '@fbcnms/ui/context/AppContext';
+import Card from '@fbcnms/ui/components/design-system/Card/Card';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
 import FormFieldTextInput from '../utils/FormFieldTextInput';
 import Grid from '@material-ui/core/Grid';
 import Select from '@fbcnms/ui/components/design-system/Select/Select';
 import ViewContainer from '@fbcnms/ui/components/design-system/View/ViewContainer';
-import classNames from 'classnames';
 import fbt from 'fbt';
-import symphony from '@fbcnms/ui/theme/symphony';
 import {GROUP_STATUSES} from '../utils/UserManagementUtils';
 import {isTempId} from '../../../../common/EntUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useMemo} from 'react';
 
 const useStyles = makeStyles(() => ({
-  root: {
-    backgroundColor: symphony.palette.white,
+  viewContainer: {
     paddingBottom: '16px',
   },
   nameField: {
@@ -63,8 +61,10 @@ export default function PermissionsGroupDetailsPane(props: Props) {
   );
 
   return (
-    <div className={classNames(classes.root, className)}>
-      <ViewContainer header={{title: <fbt desc="">Group Details</fbt>}}>
+    <Card className={className} margins="none">
+      <ViewContainer
+        className={classes.viewContainer}
+        header={{title: <fbt desc="">Group Details</fbt>}}>
         <Grid container>
           <Grid item xs={12} sm={6} lg={6} xl={6}>
             <FormFieldTextInput
@@ -112,6 +112,6 @@ export default function PermissionsGroupDetailsPane(props: Props) {
           </Grid>
         </Grid>
       </ViewContainer>
-    </div>
+    </Card>
   );
 }

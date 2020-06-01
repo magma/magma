@@ -24,10 +24,6 @@ type NamedNode interface {
 	IsNamedNode()
 }
 
-type SystemPolicy interface {
-	IsSystemPolicy()
-}
-
 type ActionsAction struct {
 	ActionID    core.ActionID `json:"actionID"`
 	Description string        `json:"description"`
@@ -235,20 +231,6 @@ type AddWorkOrderTypeInput struct {
 	Description         *string                             `json:"description"`
 	Properties          []*PropertyTypeInput                `json:"properties"`
 	CheckListCategories []*CheckListCategoryDefinitionInput `json:"checkListCategories"`
-}
-
-type AdministrativePolicy struct {
-	Access *BasicPermissionRule `json:"access"`
-}
-
-type BasicPermissionRule struct {
-	IsAllowed models.PermissionValue `json:"isAllowed"`
-}
-
-type Cud struct {
-	Create *BasicPermissionRule `json:"create"`
-	Update *BasicPermissionRule `json:"update"`
-	Delete *BasicPermissionRule `json:"delete"`
 }
 
 type CheckListCategoryDefinitionInput struct {
@@ -497,18 +479,6 @@ type GeneralFilterInput struct {
 	PropertyValue *PropertyTypeInput `json:"propertyValue"`
 }
 
-type InventoryPolicy struct {
-	Read          *BasicPermissionRule `json:"read"`
-	Location      *LocationCud         `json:"location"`
-	Equipment     *Cud                 `json:"equipment"`
-	EquipmentType *Cud                 `json:"equipmentType"`
-	LocationType  *Cud                 `json:"locationType"`
-	PortType      *Cud                 `json:"portType"`
-	ServiceType   *Cud                 `json:"serviceType"`
-}
-
-func (InventoryPolicy) IsSystemPolicy() {}
-
 type LatestPythonPackageResult struct {
 	LastPythonPackage         *PythonPackage `json:"lastPythonPackage"`
 	LastBreakingPythonPackage *PythonPackage `json:"lastBreakingPythonPackage"`
@@ -534,12 +504,6 @@ type LinkSide struct {
 	Port      int `json:"port"`
 }
 
-type LocationCud struct {
-	Create *LocationPermissionRule `json:"create"`
-	Update *LocationPermissionRule `json:"update"`
-	Delete *LocationPermissionRule `json:"delete"`
-}
-
 type LocationFilterInput struct {
 	FilterType    LocationFilterType `json:"filterType"`
 	Operator      FilterOperator     `json:"operator"`
@@ -549,11 +513,6 @@ type LocationFilterInput struct {
 	IDSet         []int              `json:"idSet"`
 	StringSet     []string           `json:"stringSet"`
 	MaxDepth      *int               `json:"maxDepth"`
-}
-
-type LocationPermissionRule struct {
-	IsAllowed       models.PermissionValue `json:"isAllowed"`
-	LocationTypeIds []int                  `json:"locationTypeIds"`
 }
 
 type LocationSearchResult struct {
@@ -569,13 +528,6 @@ type LocationTypeIndex struct {
 type NetworkTopology struct {
 	Nodes []ent.Noder     `json:"nodes"`
 	Links []*TopologyLink `json:"links"`
-}
-
-type PermissionSettings struct {
-	CanWrite        bool                  `json:"canWrite"`
-	AdminPolicy     *AdministrativePolicy `json:"adminPolicy"`
-	InventoryPolicy *InventoryPolicy      `json:"inventoryPolicy"`
-	WorkforcePolicy *WorkforcePolicy      `json:"workforcePolicy"`
 }
 
 type PermissionsPolicyFilterInput struct {
@@ -933,28 +885,6 @@ type WorkOrderSearchResult struct {
 	WorkOrders []*ent.WorkOrder `json:"workOrders"`
 	Count      int              `json:"count"`
 }
-
-type WorkforceCud struct {
-	Create            *WorkforcePermissionRule `json:"create"`
-	Update            *WorkforcePermissionRule `json:"update"`
-	Delete            *WorkforcePermissionRule `json:"delete"`
-	Assign            *WorkforcePermissionRule `json:"assign"`
-	TransferOwnership *WorkforcePermissionRule `json:"transferOwnership"`
-}
-
-type WorkforcePermissionRule struct {
-	IsAllowed        models.PermissionValue `json:"isAllowed"`
-	ProjectTypeIds   []int                  `json:"projectTypeIds"`
-	WorkOrderTypeIds []int                  `json:"workOrderTypeIds"`
-}
-
-type WorkforcePolicy struct {
-	Read      *WorkforcePermissionRule `json:"read"`
-	Data      *WorkforceCud            `json:"data"`
-	Templates *Cud                     `json:"templates"`
-}
-
-func (WorkforcePolicy) IsSystemPolicy() {}
 
 type CellularNetworkType string
 

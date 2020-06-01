@@ -22,15 +22,17 @@ import (
 	"github.com/Masterminds/squirrel"
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
+	"github.com/thoas/go-funk"
 )
 
 const (
 	// queueTableName is the name of the SQL table acting as the reindex job queue.
 	queueTableName = "reindex_job_queue"
+
 	// versionTableName is the name of the SQL table acting as the source of truth for indexer versions.
 	versionTableName = "indexer_versions"
 
-	// Columns of queue table
+	// Job queue columns
 	idCol         = "indexer_id"
 	fromCol       = "from_version"
 	toCol         = "to_version"
@@ -39,21 +41,22 @@ const (
 	errorCol      = "error"
 	lastChangeCol = "last_status_change"
 
-	// Columns of indexer versions table
+	// Version tracker columns
 	idColVersions      = "indexer_id"
 	actualColVersions  = "version_actual"
 	desiredColVersions = "version_desired"
 
-	// defaultTimeout after which reindex jobs are considered failed.
-	defaultTimeout = 5 * time.Minute
+	// defaultJobTimeout after which reindex jobs are considered failed.
+	defaultJobTimeout = 5 * time.Minute
 )
 
 var (
-	// testHookPopulateStart is an empty hook function which tests can use to coordinate job populations.
-	testHookPopulateStart = func() {}
+	// TestHookGet is an empty hook function for test coordination.
+	// This should only be set by test code.
+	TestHookGet = func() {}
 )
 
-// sqlJobQueue wraps a Postgres/Maria table to provide a job queue for reindex jobs.
+// sqlJobQueue wraps a Postgres table to provide a job queue for state reindex jobs.
 //
 // sqlJobQueue stores the "actual" versions of state indexers, compares to the desired versions
 // denoted in each registered indexer, then creates reindex jobs based on those discrepancies.
@@ -73,17 +76,17 @@ var (
 //	- version_actual		-- actual version of the indexer
 //
 // Notes:
-//	- Reindex jobs are assumed to take less than 5 minutes (defaultTimeout) to complete. For jobs that
+//	- Reindex jobs are assumed to take less than 5 minutes (defaultJobTimeout) to complete. For jobs that
 //	  happen to take longer, multiple controller instances may try to complete the job concurrently,
 //	  under the assumption that previous jobs failed. Individual indexers should handle this gracefully.
 //	  Last writer wins for storing error strings.
 //	- As with other SQL usages in magma, multiple concurrent calls to Initialize can cause a race condition in Postgres's
 //	  DDL table creation, which will return an error.
-//	- Indexer versions (uint32) are stored in Postgres/Maria default integer types (int32). While this isn't expected to
+//	- Indexer versions (uint32) are stored in Postgres default integer types (int32). While this isn't expected to
 //	  be an issue, future updates to this type should consider the possibility of a sufficiently-large version being misinterpreted
 //	  by a SQL WHERE clause.
 type sqlJobQueue struct {
-	maxAttempts int
+	maxAttempts uint
 	db          *sql.DB
 	builder     sqorc.StatementBuilder
 }
@@ -106,8 +109,8 @@ type sqlJobQueue struct {
 //		  so for now each controller warning-logs either success or failure to write to the job queue, and manual
 //		  inspection of the logs would be required (thankfully, we also have tests to ensure this doesn't happen in the expected case).
 //
-// Only provides Postgres/Maria support due to use of the non-standard "FOR UPDATE SKIP LOCKED" clause.
-func NewSQLJobQueue(maxAttempts int, db *sql.DB, builder sqorc.StatementBuilder) JobQueue {
+// Only provides Postgres support due to use of the non-standard "FOR UPDATE SKIP LOCKED" clause.
+func NewSQLJobQueue(maxAttempts uint, db *sql.DB, builder sqorc.StatementBuilder) JobQueue {
 	return &sqlJobQueue{maxAttempts: maxAttempts, db: db, builder: builder}
 }
 
@@ -116,8 +119,7 @@ func (s *sqlJobQueue) Initialize() error {
 	if err != nil {
 		return err
 	}
-	err = s.initQueueTable()
-	return err
+	return s.initQueueTable()
 }
 
 // PopulateJobs tries to add necessary reindex jobs to the job queue.
@@ -129,29 +131,19 @@ func (s *sqlJobQueue) Initialize() error {
 // it was due to serializing the update with other controller instances.
 func (s *sqlJobQueue) PopulateJobs() (bool, error) {
 	txFn := func(tx *sql.Tx) (interface{}, error) {
-		versions, err := s.getComposedVersions(tx)
+		jobs, err := s.getNewJobs(tx)
 		if err != nil {
 			return false, err
 		}
-
-		// Test hook after first db call so the tx has "officially" started by acquiring some locks
-		testHookPopulateStart()
-
-		newJobs := getNewJobs(versions)
-		if len(newJobs) == 0 {
+		if len(jobs) == 0 {
 			glog.Info("All desired and actual indexer versions equal, not populating job queue")
 			return false, nil
 		}
-		err = s.addJobs(tx, newJobs)
+
+		err = s.addJobs(tx, jobs)
 		if err != nil {
 			return false, err
 		}
-
-		err = s.overwriteAllIndexerDesiredVersions(tx, versions)
-		if err != nil {
-			return false, err
-		}
-
 		return true, nil
 	}
 	ret, err := sqorc.ExecInTx(s.db, &sql.TxOptions{Isolation: sql.LevelSerializable}, nil, txFn)
@@ -211,7 +203,7 @@ func (s *sqlJobQueue) CompleteJob(job *Job, withErr error) error {
 
 		// Only update indexer actual versions on successful job completion
 		if withErr == nil {
-			err := s.updateIndexerActualVersion(tx, job.Idx.GetID(), job.To)
+			err := s.setIndexerActualVersionImpl(tx, job.Idx.GetID(), job.To)
 			if err != nil {
 				return nil, err
 			}
@@ -235,63 +227,13 @@ func (s *sqlJobQueue) CompleteJob(job *Job, withErr error) error {
 	return err
 }
 
-func (s *sqlJobQueue) GetAllErrors() (map[string]string, error) {
-	txFn := func(tx *sql.Tx) (interface{}, error) {
-		now := clock.Now()
-		timeoutThreshold := now.Add(-defaultTimeout)
-
-		rows, err := s.selectAll().
-			From(queueTableName).
-			Where(
-				squirrel.And{
-					// Attempts >= max
-					squirrel.GtOrEq{attemptsCol: s.maxAttempts},
-					// Available || in_progress+timeout
-					squirrel.Or{
-						squirrel.Eq{statusCol: StatusAvailable},
-						squirrel.And{
-							squirrel.Eq{statusCol: StatusInProgress},
-							squirrel.Lt{lastChangeCol: timeoutThreshold.Unix()},
-						},
-					},
-				},
-			).
-			RunWith(tx).
-			Query()
-		if err != nil {
-			return nil, errors.Wrap(err, "select all reindex job errors")
-		}
-		defer sqorc.CloseRowsLogOnError(rows, "GetAllErrors")
-
-		jobs, err := scanJobs(rows)
-		if err != nil {
-			return nil, err
-		}
-
-		return jobs, nil
-	}
-
-	txRet, err := sqorc.ExecInTx(s.db, nil, nil, txFn)
-	if err != nil {
-		return nil, err
-	}
-	jobs := txRet.(map[string]*reindexJob)
-
-	ret := map[string]string{}
-	for id, job := range jobs {
-		ret[id] = job.error
-	}
-
-	return ret, nil
-}
-
-func (s *sqlJobQueue) GetAllJobInfo() (map[string]JobInfo, error) {
+func (s *sqlJobQueue) GetJobInfos() (map[string]JobInfo, error) {
 	txFn := func(tx *sql.Tx) (interface{}, error) {
 		rows, err := s.selectAll().From(queueTableName).RunWith(tx).Query()
 		if err != nil {
 			return nil, errors.Wrap(err, "select all reindex job infos")
 		}
-		defer sqorc.CloseRowsLogOnError(rows, "GetAllJobInfo")
+		defer sqorc.CloseRowsLogOnError(rows, "GetJobInfos")
 
 		jobs, err := scanJobs(rows)
 		if err != nil {
@@ -309,10 +251,30 @@ func (s *sqlJobQueue) GetAllJobInfo() (map[string]JobInfo, error) {
 
 	infos := map[string]JobInfo{}
 	for id, job := range jobs {
-		infos[id] = JobInfo{Status: job.status, Attempts: job.attempts}
+		infos[id] = JobInfo{IndexerID: job.id, Status: job.status, Error: job.getError(s.maxAttempts), Attempts: job.attempts}
 	}
 
 	return infos, nil
+}
+
+func (s *sqlJobQueue) GetIndexerVersions() ([]*Version, error) {
+	txFn := func(tx *sql.Tx) (interface{}, error) {
+		return s.getIndexerVersionsImpl(tx)
+	}
+	txRet, err := sqorc.ExecInTx(s.db, &sql.TxOptions{Isolation: sql.LevelSerializable}, nil, txFn)
+	if err != nil {
+		return nil, err
+	}
+	ret := txRet.([]*Version)
+	return ret, nil
+}
+
+func (s *sqlJobQueue) SetIndexerActualVersion(indexerID string, version indexer.Version) error {
+	txFn := func(tx *sql.Tx) (interface{}, error) {
+		return nil, s.setIndexerActualVersionImpl(tx, indexerID, version)
+	}
+	_, err := sqorc.ExecInTx(s.db, &sql.TxOptions{Isolation: sql.LevelSerializable}, nil, txFn)
+	return err
 }
 
 func (s *sqlJobQueue) initQueueTable() error {
@@ -334,9 +296,24 @@ func (s *sqlJobQueue) initQueueTable() error {
 	return err
 }
 
+func (s *sqlJobQueue) initVersionTable() error {
+	txFn := func(tx *sql.Tx) (interface{}, error) {
+		_, err := s.builder.CreateTable(versionTableName).
+			IfNotExists().
+			Column(idColVersions).Type(sqorc.ColumnTypeText).NotNull().PrimaryKey().EndColumn().
+			Column(actualColVersions).Type(sqorc.ColumnTypeInt).Default(0).NotNull().EndColumn().
+			Column(desiredColVersions).Type(sqorc.ColumnTypeInt).NotNull().EndColumn().
+			RunWith(tx).
+			Exec()
+		return nil, errors.Wrap(err, "initialize indexer versions table")
+	}
+	_, err := sqorc.ExecInTx(s.db, &sql.TxOptions{Isolation: sql.LevelRepeatableRead}, nil, txFn)
+	return err
+}
+
 // addJobs adds reindex jobs to the table.
 func (s *sqlJobQueue) addJobs(tx *sql.Tx, newJobs []*reindexJob) error {
-	jobsToInsert, err := s.getAllJobs(tx, newJobs)
+	jobsToInsert, err := s.getComposedJobs(tx, newJobs)
 	if err != nil {
 		return err
 	}
@@ -361,15 +338,19 @@ func (s *sqlJobQueue) addJobs(tx *sql.Tx, newJobs []*reindexJob) error {
 
 // getNewJobs returns slice of reindex jobs to run.
 // Includes jobs where desired != actual.
-func getNewJobs(versions []*indexerVersions) []*reindexJob {
+func (s *sqlJobQueue) getNewJobs(tx *sql.Tx) ([]*reindexJob, error) {
+	versions, err := s.getIndexerVersionsImpl(tx)
+	if err != nil {
+		return nil, err
+	}
 	var jobs []*reindexJob
 	for _, v := range versions {
-		if v.desired == v.actual {
+		if v.Desired == v.Actual {
 			continue
 		}
-		jobs = append(jobs, &reindexJob{id: v.indexerID, from: v.actual, to: v.desired})
+		jobs = append(jobs, &reindexJob{id: v.IndexerID, from: v.Actual, to: v.Desired})
 	}
-	return jobs
+	return jobs, nil
 }
 
 // Venn diagram of indexer IDs in old and new jobs
@@ -377,7 +358,7 @@ func getNewJobs(versions []*indexerVersions) []*reindexJob {
 //	- new_only:	indexer ID only present in new jobs -- existing job not found, and new job needed
 //	- both:		indexer ID present in both old and new jobs -- existing job uncomplete, and new job also needed
 // {    old_only    [    both    }    new_only    ]
-func (s *sqlJobQueue) getAllJobs(tx *sql.Tx, newJobs []*reindexJob) ([]*reindexJob, error) {
+func (s *sqlJobQueue) getComposedJobs(tx *sql.Tx, newJobs []*reindexJob) ([]*reindexJob, error) {
 	oldJobs, err := s.getExistingIncompleteJobs(tx)
 	if err != nil {
 		return nil, err
@@ -400,12 +381,11 @@ func (s *sqlJobQueue) getAllJobs(tx *sql.Tx, newJobs []*reindexJob) ([]*reindexJ
 		}
 	}
 
-	// Sort for deterministic testing
 	var ret []*reindexJob
 	for _, j := range insertJobs {
 		ret = append(ret, j)
 	}
-	sort.Slice(ret, func(i, j int) bool { return ret[i].id < ret[j].id })
+	sort.Slice(ret, func(i, j int) bool { return ret[i].id < ret[j].id }) // for deterministic testing
 
 	return ret, nil
 }
@@ -434,7 +414,7 @@ func (s *sqlJobQueue) getExistingIncompleteJobs(tx *sql.Tx) (map[string]*reindex
 func (s *sqlJobQueue) claimAvailableJob() (*reindexJob, error) {
 	txFn := func(tx *sql.Tx) (interface{}, error) {
 		now := clock.Now()
-		timeoutThreshold := now.Add(-defaultTimeout)
+		timeoutThreshold := now.Add(-defaultJobTimeout)
 
 		rows, err := s.selectAll().
 			From(queueTableName).
@@ -493,46 +473,99 @@ func (s *sqlJobQueue) claimAvailableJob() (*reindexJob, error) {
 	return job, nil
 }
 
-// getComposedVersions returns the full understanding of desired and actual versions.
-// Determining whether an indexer needs to be reindexed depends on three recorded version infos per indexer
-//	- new_desired	-- desired version from indexer registry
-//	- old_desired	-- desired version from existing reindex jobs
-//	- actual		-- actual version updated upon successful reindex job completion
-func (s *sqlJobQueue) getComposedVersions(tx *sql.Tx) ([]*indexerVersions, error) {
-	newVersions := indexer.GetAllIndexerVersionsByID()
-	oldVersions, err := s.getAllIndexerVersions(tx)
+func (s *sqlJobQueue) selectAll() squirrel.SelectBuilder {
+	return s.builder.Select(idCol, fromCol, toCol, statusCol, attemptsCol, errorCol, lastChangeCol)
+}
+
+func (s *sqlJobQueue) getIndexerVersionsImpl(tx *sql.Tx) ([]*Version, error) {
+	old, err := s.getTrackedVersions(tx)
 	if err != nil {
 		return nil, err
 	}
 
-	versions := map[string]*indexerVersions{}
-
-	// Insert all old versions -- old_desired and actual values
-	for id, version := range oldVersions {
-		versions[id] = version
+	composed := getComposedVersions(old)
+	if EqualVersions(composed, old) {
+		return composed, nil
 	}
 
-	// Insert all new versions -- new_desired overwrite any existing old_desired
-	for id, newDesired := range newVersions {
-		if _, present := versions[id]; present {
-			versions[id].desired = newDesired
-			continue
+	// Test hook after first db call so the tx has "officially" started by acquiring some locks
+	TestHookGet()
+
+	err = s.overwriteAllVersions(tx, composed)
+	if err != nil {
+		return nil, err
+	}
+
+	return composed, nil
+}
+
+func (s *sqlJobQueue) setIndexerActualVersionImpl(tx *sql.Tx, indexerID string, version indexer.Version) error {
+	_, err := s.builder.Update(versionTableName).
+		Set(actualColVersions, version).
+		Where(squirrel.Eq{idColVersions: indexerID}).
+		RunWith(tx).
+		Exec()
+	if err != nil {
+		return errors.Wrapf(err, "update indexer actual version for %s to %d", indexerID, version)
+	}
+	return nil
+}
+
+func (s *sqlJobQueue) getTrackedVersions(tx *sql.Tx) ([]*Version, error) {
+	var ret []*Version
+
+	rows, err := s.builder.Select(idColVersions, actualColVersions, desiredColVersions).
+		From(versionTableName).
+		RunWith(tx).
+		Query()
+	if err != nil {
+		return nil, errors.Wrap(err, "get all indexer versions, select existing versions")
+	}
+
+	defer sqorc.CloseRowsLogOnError(rows, "GetAllIndexerVersions")
+
+	var idVal string
+	var actualVal, desiredVal int64 // int64 is driver's default int type, though these cols are actually int32 storing a uint32
+	for rows.Next() {
+		err = rows.Scan(&idVal, &actualVal, &desiredVal)
+		if err != nil {
+			return ret, errors.Wrap(err, "get all indexer versions, SQL row scan error")
 		}
-		versions[id] = &indexerVersions{indexerID: id, actual: 0, desired: newDesired}
-	}
-
-	// Sort for deterministic testing
-	var ret []*indexerVersions
-	for _, v := range versions {
+		v, err := newVersions(idVal, actualVal, desiredVal)
+		if err != nil {
+			return nil, err
+		}
 		ret = append(ret, v)
 	}
-	sort.Slice(ret, func(i, j int) bool { return ret[i].indexerID < ret[j].indexerID })
 
+	err = rows.Err()
+	if err != nil {
+		return ret, errors.Wrap(err, "get all indexer versions, SQL rows error")
+	}
+	sort.Slice(ret, func(i, j int) bool { return ret[i].IndexerID < ret[j].IndexerID }) // for deterministic equality
 	return ret, nil
 }
 
-func (s *sqlJobQueue) selectAll() squirrel.SelectBuilder {
-	return s.builder.Select(idCol, fromCol, toCol, statusCol, attemptsCol, errorCol, lastChangeCol)
+func (s *sqlJobQueue) overwriteAllVersions(tx *sql.Tx, versions []*Version) error {
+	_, err := s.builder.Delete(versionTableName).RunWith(tx).Exec()
+	if err != nil {
+		return errors.Wrap(err, "overwrite all indexer versions, delete existing versions")
+	}
+
+	if len(versions) == 0 {
+		return nil
+	}
+
+	builder := s.builder.Insert(versionTableName).Columns(idColVersions, actualColVersions, desiredColVersions)
+	for _, v := range versions {
+		builder = builder.Values(v.IndexerID, v.Actual, v.Desired)
+	}
+	_, err = builder.RunWith(tx).Exec()
+	if err != nil {
+		return errors.Wrapf(err, "overwrite all indexer desired versions, insert new versions %+v", versions)
+	}
+
+	return nil
 }
 
 // If no job available, returns ErrNotFound from magma/orc8r/lib/go/errors.
@@ -576,105 +609,37 @@ func scanJobs(rows *sql.Rows) (map[string]*reindexJob, error) {
 	return jobs, nil
 }
 
-// Initialize the versioner.
-func (s *sqlJobQueue) initVersionTable() error {
-	txFn := func(tx *sql.Tx) (interface{}, error) {
-		_, err := s.builder.CreateTable(versionTableName).
-			IfNotExists().
-			Column(idColVersions).Type(sqorc.ColumnTypeText).NotNull().PrimaryKey().EndColumn().
-			Column(actualColVersions).Type(sqorc.ColumnTypeInt).Default(0).NotNull().EndColumn().
-			Column(desiredColVersions).Type(sqorc.ColumnTypeInt).NotNull().EndColumn().
-			RunWith(tx).
-			Exec()
-		return nil, errors.Wrap(err, "initialize indexer versions table")
+// getComposedVersions writes the composition of tracked (old) and local (new) indexers to store.
+// Determining whether an indexer needs to be reindexed depends on three recorded version infos per indexer:
+//	- new_desired	-- desired version from indexer registry
+//	- old_desired	-- desired version from existing reindex jobs
+//	- actual		-- actual version updated upon successful reindex job completion
+func getComposedVersions(old []*Version) []*Version {
+	newv := indexer.GetAllIndexerVersionsByID()
+	composed := map[string]*Version{}
+
+	// Insert all old versions -- old_desired and actual values
+	for _, v := range old {
+		composed[v.IndexerID] = v
 	}
 
-	_, err := sqorc.ExecInTx(s.db, &sql.TxOptions{Isolation: sql.LevelRepeatableRead}, nil, txFn)
-	return err
-}
-
-// getAllIndexerVersions returns a map of all stored indexer IDs to their desired and actual versions.
-func (s *sqlJobQueue) getAllIndexerVersions(tx *sql.Tx) (map[string]*indexerVersions, error) {
-	ret := map[string]*indexerVersions{}
-
-	rows, err := s.builder.Select(idColVersions, actualColVersions, desiredColVersions).
-		From(versionTableName).
-		RunWith(tx).
-		Query()
-	if err != nil {
-		return nil, errors.Wrap(err, "get all indexer versions, select existing versions")
-	}
-
-	defer sqorc.CloseRowsLogOnError(rows, "GetAllIndexerVersions")
-
-	var idVal string
-	var actualVal, desiredVal int64 // int64 is driver's default int type, though these cols are actually int32 storing a uint32
-	for rows.Next() {
-		err = rows.Scan(&idVal, &actualVal, &desiredVal)
-		if err != nil {
-			return ret, errors.Wrap(err, "get all indexer versions, SQL row scan error")
+	// Insert all new versions -- new_desired overwrite any existing old_desired
+	for id, newDesired := range newv {
+		if _, present := composed[id]; present {
+			composed[id].Desired = newDesired
+		} else {
+			composed[id] = &Version{IndexerID: id, Actual: 0, Desired: newDesired}
 		}
-
-		versions, err := newIndexerVersions(idVal, actualVal, desiredVal)
-		if err != nil {
-			return nil, err
-		}
-
-		ret[idVal] = versions
 	}
 
-	err = rows.Err()
-	if err != nil {
-		return ret, errors.Wrap(err, "get all indexer versions, SQL rows error")
-	}
-
-	return ret, nil
+	ret := funk.Map(composed, func(k string, v *Version) *Version { return v }).([]*Version)
+	sort.Slice(ret, func(i, j int) bool { return ret[i].IndexerID < ret[j].IndexerID }) // for deterministic equality
+	return ret
 }
 
-// overwriteAllIndexerDesiredVersions clears all stored indexer IDs then writes the passed ID to versions map.
-func (s *sqlJobQueue) overwriteAllIndexerDesiredVersions(tx *sql.Tx, versions []*indexerVersions) error {
-	_, err := s.builder.Delete(versionTableName).RunWith(tx).Exec()
-	if err != nil {
-		return errors.Wrap(err, "overwrite all indexer versions, delete existing versions")
-	}
-
-	builder := s.builder.Insert(versionTableName).Columns(idColVersions, actualColVersions, desiredColVersions)
-	for _, v := range versions {
-		builder = builder.Values(v.indexerID, v.actual, v.desired)
-	}
-	_, err = builder.RunWith(tx).Exec()
-	if err != nil {
-		return errors.Wrapf(err, "overwrite all indexer desired versions, insert new versions %+v", versions)
-	}
-
-	return nil
-}
-
-// updateIndexerActualVersion updates the actual version of an indexer.
-func (s *sqlJobQueue) updateIndexerActualVersion(tx *sql.Tx, indexerID string, version indexer.Version) error {
-	_, err := s.builder.Update(versionTableName).
-		Set(actualColVersions, version).
-		Where(squirrel.Eq{idColVersions: indexerID}).
-		RunWith(tx).
-		Exec()
-
-	if err != nil {
-		return errors.Wrapf(err, "update indexer actual version for %s to %d", indexerID, version)
-	}
-
-	return nil
-}
-
-// indexerVersions represents the discrepancy between an indexer's versions -- desired vs. actual.
-type indexerVersions struct {
-	indexerID string
-	actual    indexer.Version
-	desired   indexer.Version
-}
-
-// newIndexerVersions returns a new indexer versions view.
+// newVersions returns a new indexer versions view.
 // First checks the indexer versions fit in an indexer.Version.
-func newIndexerVersions(indexerID string, actualVersion, desiredVersion int64) (*indexerVersions, error) {
+func newVersions(indexerID string, actualVersion, desiredVersion int64) (*Version, error) {
 	td, ta := indexer.Version(desiredVersion), indexer.Version(actualVersion)
 	if int64(td) < desiredVersion || int64(ta) < actualVersion {
 		return nil, fmt.Errorf(
@@ -682,16 +647,12 @@ func newIndexerVersions(indexerID string, actualVersion, desiredVersion int64) (
 			indexerID, desiredVersion, actualVersion, indexer.Version(0),
 		)
 	}
-	v := &indexerVersions{
-		indexerID: indexerID,
-		actual:    ta,
-		desired:   td,
+	v := &Version{
+		IndexerID: indexerID,
+		Actual:    ta,
+		Desired:   td,
 	}
 	return v, nil
-}
-
-func (i *indexerVersions) String() string {
-	return fmt.Sprintf("{id: %s, actual: %d, desired: %d}", i.indexerID, i.actual, i.desired)
 }
 
 // reindexJob is the internal representation of a reindex job.
@@ -707,10 +668,27 @@ type reindexJob struct {
 	lastChange time.Time
 }
 
+func (j *reindexJob) String() string {
+	return fmt.Sprintf("{id: %s, from: %d, to: %d}", j.id, j.from, j.to)
+}
+
 func (j *reindexJob) isSameVersions(job *reindexJob) bool {
 	return j.from == job.from && j.to == job.to
 }
 
-func (j *reindexJob) String() string {
-	return fmt.Sprintf("{id: %s, from: %d, to: %d}", j.id, j.from, j.to)
+// getError for the reindex job.
+// Only returns err if the reindex job has unsuccessfully passed the passed max
+// number of reindex attempts.
+func (j *reindexJob) getError(maxAttempts uint) string {
+	now := clock.Now()
+	timeoutThreshold := now.Add(-defaultJobTimeout)
+
+	tooManyAttempts := j.attempts >= maxAttempts
+	stalled := j.status == StatusAvailable ||
+		(j.status == StatusInProgress && j.lastChange.Before(timeoutThreshold))
+
+	if tooManyAttempts && stalled {
+		return j.error
+	}
+	return ""
 }

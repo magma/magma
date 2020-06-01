@@ -34,6 +34,7 @@ static_services: [
   'tunnel_learn',
   'vlan_learn',
   'li_mirror',
+  #'ipfix',
   'startup_flows',
   'ryu_rest_service',
 ]
@@ -134,8 +135,8 @@ li_mirror_all: false
 
 # Configuration for IPFIX sampling
 ipfix:
-  enabled: false
-  probability: 65
+  enabled: true
+  probability: 65535
   collector_set_id: 1
   cache_timeout: 60
   obs_domain_id: 1

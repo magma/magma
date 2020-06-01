@@ -110,6 +110,7 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     host = env.hosts[0]
     cwag_test_br_mac = cwag_test_host_to_mac[host]
     execute(_set_cwag_test_configs)
+    execute(_start_ipfix_controller)
 
     # Get back to the gateway vm to setup static arp
     _switch_to_vm_no_destroy(gateway_host, "cwag", "cwag_dev.yml")
@@ -204,6 +205,17 @@ def _set_cwag_test_configs():
     sudo('mkdir -p /etc/magma')
     # Create empty uesim config
     sudo('touch /etc/magma/uesim.yml')
+
+
+def _start_ipfix_controller():
+    """ Install and start the ipfix collector"""
+    with cd("$MAGMA_ROOT"):
+        sudo('curl -L https://sourceforge.net/projects/libipfix/files/RELEASES/libipfix-dev_0.8.1-1ubuntu1_amd64.deb/download?use_mirror=autoselect --output  libipfix-dev_0.8.1-1ubuntu1_amd64.deb')
+        sudo('apt install ./libipfix-dev_0.8.1-1ubuntu1_amd64.deb')
+        sudo('mkdir -p records')
+        sudo('rm -rf records/*')
+        sudo('pkill ipfix_collector > /dev/null &', pty=False, warn_only=True)
+        sudo('tmux new -d \'/usr/bin/ipfix_collector -4tu -p 4740 -o /home/vagrant/magma/records\'')
 
 
 def _set_cwag_test_networking(mac):
@@ -334,7 +346,7 @@ def _run_integ_tests(test_host, trf_host, tests_to_run: SubTests,
         shell_env_vars["TESTS"] = test_re
 
     # QOS take a while to run. Increasing the timeout to 20m
-    go_test_cmd = "go test -timeout 20m"
+    go_test_cmd = "go test -v -test.short -timeout 20m"
     go_test_cmd += " -tags " + tests_to_run.value
     if test_re:
         go_test_cmd += " -run " + test_re
@@ -347,7 +359,6 @@ def _run_integ_tests(test_host, trf_host, tests_to_run: SubTests,
                 execute(_clean_up)
             print("Integration Test returned ", result.return_code)
             sys.exit(result.return_code)
-
 
 
 def _clean_up():

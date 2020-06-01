@@ -8,8 +8,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/facebookincubator/symphony/graph/graphql/models"
-	models2 "github.com/facebookincubator/symphony/pkg/authz/models"
+	"github.com/facebookincubator/symphony/pkg/authz/models"
 	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
 )
 
@@ -66,14 +65,14 @@ func TestLocationWritePolicyRule(t *testing.T) {
 		{
 			operationName: "Create",
 			appendPermissions: func(p *models.PermissionSettings) {
-				p.InventoryPolicy.Location.Create.IsAllowed = models2.PermissionValueYes
+				p.InventoryPolicy.Location.Create.IsAllowed = models.PermissionValueYes
 			},
 			operation: createLocation,
 		},
 		{
 			operationName: "CreateWithType",
 			initialPermissions: func(p *models.PermissionSettings) {
-				p.InventoryPolicy.Location.Create.IsAllowed = models2.PermissionValueByCondition
+				p.InventoryPolicy.Location.Create.IsAllowed = models.PermissionValueByCondition
 				p.InventoryPolicy.Location.Create.LocationTypeIds = []int{locationType.ID}
 			},
 			appendPermissions: func(p *models.PermissionSettings) {
@@ -84,14 +83,14 @@ func TestLocationWritePolicyRule(t *testing.T) {
 		{
 			operationName: "Update",
 			appendPermissions: func(p *models.PermissionSettings) {
-				p.InventoryPolicy.Location.Update.IsAllowed = models2.PermissionValueYes
+				p.InventoryPolicy.Location.Update.IsAllowed = models.PermissionValueYes
 			},
 			operation: updateLocation,
 		},
 		{
 			operationName: "UpdateWithType",
 			initialPermissions: func(p *models.PermissionSettings) {
-				p.InventoryPolicy.Location.Update.IsAllowed = models2.PermissionValueByCondition
+				p.InventoryPolicy.Location.Update.IsAllowed = models.PermissionValueByCondition
 				p.InventoryPolicy.Location.Update.LocationTypeIds = []int{locationType.ID}
 			},
 			appendPermissions: func(p *models.PermissionSettings) {
@@ -102,14 +101,14 @@ func TestLocationWritePolicyRule(t *testing.T) {
 		{
 			operationName: "Delete",
 			appendPermissions: func(p *models.PermissionSettings) {
-				p.InventoryPolicy.Location.Delete.IsAllowed = models2.PermissionValueYes
+				p.InventoryPolicy.Location.Delete.IsAllowed = models.PermissionValueYes
 			},
 			operation: deleteLocation,
 		},
 		{
 			operationName: "DeleteWithType",
 			initialPermissions: func(p *models.PermissionSettings) {
-				p.InventoryPolicy.Location.Delete.IsAllowed = models2.PermissionValueByCondition
+				p.InventoryPolicy.Location.Delete.IsAllowed = models.PermissionValueByCondition
 				p.InventoryPolicy.Location.Delete.LocationTypeIds = []int{locationType.ID}
 			},
 			appendPermissions: func(p *models.PermissionSettings) {

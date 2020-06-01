@@ -10,20 +10,14 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/facebookincubator/symphony/pkg/authz"
+	"github.com/facebookincubator/symphony/pkg/authz/models"
 	"github.com/facebookincubator/symphony/pkg/ent"
-
+	"github.com/facebookincubator/symphony/pkg/ent/privacy"
 	"github.com/facebookincubator/symphony/pkg/ent/user"
 	"github.com/facebookincubator/symphony/pkg/viewer"
-
-	"github.com/stretchr/testify/require"
-
-	"github.com/facebookincubator/symphony/pkg/authz"
-	"github.com/facebookincubator/symphony/pkg/ent/privacy"
-
-	models2 "github.com/facebookincubator/symphony/pkg/authz/models"
-
-	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
+	"github.com/stretchr/testify/require"
 )
 
 type cudOperations struct {
@@ -131,7 +125,7 @@ func runCudPolicyTest(t *testing.T, test cudPolicyTest) {
 				if test.appendPermissions != nil {
 					test.appendPermissions(p)
 				} else {
-					test.getCud(p).Create.IsAllowed = models2.PermissionValueYes
+					test.getCud(p).Create.IsAllowed = models.PermissionValueYes
 				}
 			},
 			operation: test.create,
@@ -143,7 +137,7 @@ func runCudPolicyTest(t *testing.T, test cudPolicyTest) {
 				if test.appendPermissions != nil {
 					test.appendPermissions(p)
 				} else {
-					test.getCud(p).Update.IsAllowed = models2.PermissionValueYes
+					test.getCud(p).Update.IsAllowed = models.PermissionValueYes
 				}
 			},
 			operation: test.update,
@@ -155,7 +149,7 @@ func runCudPolicyTest(t *testing.T, test cudPolicyTest) {
 				if test.appendPermissions != nil {
 					test.appendPermissions(p)
 				} else {
-					test.getCud(p).Delete.IsAllowed = models2.PermissionValueYes
+					test.getCud(p).Delete.IsAllowed = models.PermissionValueYes
 				}
 			},
 			operation: test.delete,

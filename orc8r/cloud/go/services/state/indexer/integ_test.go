@@ -17,7 +17,6 @@ package indexer_test
 
 import (
 	"context"
-	"database/sql"
 	"testing"
 	"time"
 
@@ -35,9 +34,9 @@ import (
 	"magma/orc8r/cloud/go/services/state/indexer"
 	"magma/orc8r/cloud/go/services/state/indexer/mocks"
 	"magma/orc8r/cloud/go/services/state/indexer/reindex"
-	"magma/orc8r/cloud/go/services/state/servicers"
 	state_test_init "magma/orc8r/cloud/go/services/state/test_init"
 	state_test "magma/orc8r/cloud/go/services/state/test_utils"
+	state_types "magma/orc8r/cloud/go/services/state/types"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/lib/go/protos"
 
@@ -46,25 +45,24 @@ import (
 )
 
 const (
-	id0 = "some_indexerid_0"
+	id0   = "some_indexerid_0"
+	nid0  = "some_networkid_0"
+	hwid0 = "some_hwid_0"
 
 	zero     indexer.Version = 0
 	version0 indexer.Version = 100
-
-	nid0  = "some_networkid_0"
-	hwid0 = "some_hwid_0"
 
 	indexTimeout = 5 * time.Second
 )
 
 var (
 	subs0 = []indexer.Subscription{{Type: orc8r.DirectoryRecordType, KeyMatcher: indexer.NewMatchExact(imsi0)}}
-	sid0  = state.ID{Type: orc8r.DirectoryRecordType, DeviceID: imsi0}
+	sid0  = state_types.ID{Type: orc8r.DirectoryRecordType, DeviceID: imsi0}
 
-	hwidByID = map[state.ID]string{
+	hwidByID = map[state_types.ID]string{
 		sid0: hwid0,
 	}
-	recordByID = map[state.ID]*directoryd.DirectoryRecord{
+	recordByID = map[state_types.ID]*directoryd.DirectoryRecord{
 		sid0: {LocationHistory: []string{hwid0}},
 	}
 
@@ -82,22 +80,25 @@ func TestStateIndexing(t *testing.T) {
 	defer clock.ResumeSleeps(t)
 
 	dbName := "state___integ_test"
-	db, store := initTestServices(t, dbName)
+	r, q := initTestServices(t, dbName)
 
-	idx0 := mocks.NewTestIndexer(id0, version0, subs0, prepare0, complete0, index0)
+	idx0 := mocks.NewMockIndexer(id0, version0, subs0, prepare0, complete0, index0)
 	err := indexer.RegisterAll(idx0)
 	assert.NoError(t, err)
 
 	t.Run("index", func(t *testing.T) {
 		reportDirectoryStateForID(t, sid0)
 
-		// Index args: (networkID string, states state.StatesByID)
+		// Index args: (networkID string, states state_types.StatesByID)
 		recv := recvArgs(t, index0, "index0")
 		assertEqualStr(t, nid0, recv[0])
 		assertEqualRecord(t, recv[1], sid0)
 	})
 
-	cancel := startAsyncJobs(t, db, store)
+	_, err = q.PopulateJobs()
+	assert.NoError(t, err)
+	ctx, cancel := context.WithCancel(context.Background())
+	go r.Run(ctx)
 	defer cancel()
 
 	t.Run("reindex", func(t *testing.T) {
@@ -107,7 +108,7 @@ func TestStateIndexing(t *testing.T) {
 		assertEqualVersion(t, version0, recvPrepare0[1])
 		assertEqualBool(t, true, recvPrepare0[2])
 
-		// Index args: (networkID string, states state.StatesByID)
+		// Index args: (networkID string, states state_types.StatesByID)
 		recvIndex0 := recvArgs(t, index0, "index0")
 		assertEqualStr(t, nid0, recvIndex0[0])
 		assertEqualRecord(t, recvIndex0[1], sid0)
@@ -119,31 +120,19 @@ func TestStateIndexing(t *testing.T) {
 	})
 }
 
-func initTestServices(t *testing.T, dbName string) (*sql.DB, servicers.StateServiceInternal) {
+func initTestServices(t *testing.T, dbName string) (reindex.Reindexer, reindex.JobQueue) {
 	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
 	indexer.DeregisterAllForTest(t)
 
-	configurator_test_init.StartTestService(t)
 	device_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
 	configurator_test.RegisterNetwork(t, nid0, "Network 0 for indexer integ test")
 	configurator_test.RegisterGateway(t, nid0, hwid0, &models.GatewayDevice{HardwareID: hwid0})
 
 	return state_test_init.StartTestServiceInternal(t, dbName, sqorc.PostgresDriver)
 }
 
-func startAsyncJobs(t *testing.T, db *sql.DB, store servicers.StateServiceInternal) context.CancelFunc {
-	q := reindex.NewSQLJobQueue(reindex.DefaultMaxAttempts, db, sqorc.GetSqlBuilder())
-	err := q.Initialize()
-	assert.NoError(t, err)
-	_, err = q.PopulateJobs()
-	assert.NoError(t, err)
-
-	ctx, cancel := context.WithCancel(context.Background())
-	go reindex.Run(ctx, q, store)
-	return cancel
-}
-
-func reportDirectoryStateForID(t *testing.T, id state.ID) {
+func reportDirectoryStateForID(t *testing.T, id state_types.ID) {
 	ctx := state_test.GetContextWithCertificate(t, hwidByID[id])
 	record := recordByID[id]
 
@@ -190,10 +179,10 @@ func assertEqualBool(t *testing.T, expected bool, recv interface{}) {
 	assert.Equal(t, expected, recvVal)
 }
 
-func assertEqualRecord(t *testing.T, recv interface{}, sid state.ID) {
+func assertEqualRecord(t *testing.T, recv interface{}, sid state_types.ID) {
 	hwid := hwidByID[sid]
 	reported := recordByID[sid]
-	recvStates := recv.(state.StatesByID)
+	recvStates := recv.(state_types.StatesByID)
 	assert.Len(t, recvStates, 1)
 	assert.Equal(t, orc8r.DirectoryRecordType, recvStates[sid].Type)
 	assert.Equal(t, hwid, recvStates[sid].ReporterID)

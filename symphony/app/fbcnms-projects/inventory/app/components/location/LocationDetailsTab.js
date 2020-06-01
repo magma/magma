@@ -58,7 +58,7 @@ const LocationDetailsTab = (props: Props) => {
       </Card>
       <LocationEquipmentCard
         className={classes.card}
-        equipment={location.equipments}
+        equipments={location.equipments}
         selectedWorkOrderId={selectedWorkOrderId}
         onEquipmentSelected={onEquipmentSelected}
         onWorkOrderSelected={onWorkOrderSelected}

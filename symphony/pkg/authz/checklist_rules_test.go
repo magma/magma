@@ -10,14 +10,11 @@ import (
 	"time"
 
 	"github.com/facebookincubator/symphony/pkg/authz"
+	"github.com/facebookincubator/symphony/pkg/authz/models"
 	"github.com/facebookincubator/symphony/pkg/ent/user"
 	"github.com/facebookincubator/symphony/pkg/viewer"
-	"github.com/stretchr/testify/require"
-
-	models2 "github.com/facebookincubator/symphony/pkg/authz/models"
-
-	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCheckListCategoryDefinitionWritePolicyRule(t *testing.T) {
@@ -51,7 +48,7 @@ func TestCheckListCategoryDefinitionWritePolicyRule(t *testing.T) {
 	}
 	runCudPolicyTest(t, cudPolicyTest{
 		appendPermissions: func(p *models.PermissionSettings) {
-			p.WorkforcePolicy.Templates.Update.IsAllowed = models2.PermissionValueYes
+			p.WorkforcePolicy.Templates.Update.IsAllowed = models.PermissionValueYes
 		},
 		create: createItem,
 		update: updateItem,
@@ -97,10 +94,10 @@ func TestCheckListCategoryWritePolicyRule(t *testing.T) {
 	}
 	runCudPolicyTest(t, cudPolicyTest{
 		initialPermissions: func(p *models.PermissionSettings) {
-			p.WorkforcePolicy.Read.IsAllowed = models2.PermissionValueYes
+			p.WorkforcePolicy.Read.IsAllowed = models.PermissionValueYes
 		},
 		appendPermissions: func(p *models.PermissionSettings) {
-			p.WorkforcePolicy.Data.Update.IsAllowed = models2.PermissionValueByCondition
+			p.WorkforcePolicy.Data.Update.IsAllowed = models.PermissionValueByCondition
 			p.WorkforcePolicy.Data.Update.WorkOrderTypeIds = []int{workOrderType.ID}
 		},
 		create: createItem,
@@ -147,7 +144,7 @@ func TestCheckListItemDefinitionWritePolicyRule(t *testing.T) {
 	}
 	runCudPolicyTest(t, cudPolicyTest{
 		appendPermissions: func(p *models.PermissionSettings) {
-			p.WorkforcePolicy.Templates.Update.IsAllowed = models2.PermissionValueYes
+			p.WorkforcePolicy.Templates.Update.IsAllowed = models.PermissionValueYes
 		},
 		create: createItem,
 		update: updateItem,
@@ -200,10 +197,10 @@ func TestCheckListItemWritePolicyRule(t *testing.T) {
 	}
 	runCudPolicyTest(t, cudPolicyTest{
 		initialPermissions: func(p *models.PermissionSettings) {
-			p.WorkforcePolicy.Read.IsAllowed = models2.PermissionValueYes
+			p.WorkforcePolicy.Read.IsAllowed = models.PermissionValueYes
 		},
 		appendPermissions: func(p *models.PermissionSettings) {
-			p.WorkforcePolicy.Data.Update.IsAllowed = models2.PermissionValueByCondition
+			p.WorkforcePolicy.Data.Update.IsAllowed = models.PermissionValueByCondition
 			p.WorkforcePolicy.Data.Update.WorkOrderTypeIds = []int{workOrderType.ID}
 		},
 		create: createItem,
@@ -239,7 +236,7 @@ func TestCheckListCategoryReadPolicyRule(t *testing.T) {
 	})
 	t.Run("PartialPermissions", func(t *testing.T) {
 		permissions := authz.EmptyPermissions()
-		permissions.WorkforcePolicy.Read.IsAllowed = models2.PermissionValueByCondition
+		permissions.WorkforcePolicy.Read.IsAllowed = models.PermissionValueByCondition
 		permissions.WorkforcePolicy.Read.WorkOrderTypeIds = []int{woType1.ID}
 		permissionsContext := viewertest.NewContext(
 			context.Background(),
@@ -253,7 +250,7 @@ func TestCheckListCategoryReadPolicyRule(t *testing.T) {
 	})
 	t.Run("FullPermissions", func(t *testing.T) {
 		permissions := authz.EmptyPermissions()
-		permissions.WorkforcePolicy.Read.IsAllowed = models2.PermissionValueYes
+		permissions.WorkforcePolicy.Read.IsAllowed = models.PermissionValueYes
 		permissionsContext := viewertest.NewContext(
 			context.Background(),
 			c,
@@ -303,7 +300,7 @@ func TestCheckListItemReadPolicyRule(t *testing.T) {
 	})
 	t.Run("PartialPermissions", func(t *testing.T) {
 		permissions := authz.EmptyPermissions()
-		permissions.WorkforcePolicy.Read.IsAllowed = models2.PermissionValueByCondition
+		permissions.WorkforcePolicy.Read.IsAllowed = models.PermissionValueByCondition
 		permissions.WorkforcePolicy.Read.WorkOrderTypeIds = []int{woType1.ID}
 		permissionsContext := viewertest.NewContext(
 			context.Background(),
@@ -317,7 +314,7 @@ func TestCheckListItemReadPolicyRule(t *testing.T) {
 	})
 	t.Run("FullPermissions", func(t *testing.T) {
 		permissions := authz.EmptyPermissions()
-		permissions.WorkforcePolicy.Read.IsAllowed = models2.PermissionValueYes
+		permissions.WorkforcePolicy.Read.IsAllowed = models.PermissionValueYes
 		permissionsContext := viewertest.NewContext(
 			context.Background(),
 			c,

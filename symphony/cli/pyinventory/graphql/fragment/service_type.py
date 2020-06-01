@@ -14,13 +14,17 @@ from time import perf_counter
 from dataclasses_json import DataClassJsonMixin
 
 from ..fragment.property_type import PropertyTypeFragment, QUERY as PropertyTypeFragmentQuery
-QUERY: List[str] = PropertyTypeFragmentQuery + ["""
+from ..fragment.service_endpoint_definition import ServiceEndpointDefinitionFragment, QUERY as ServiceEndpointDefinitionFragmentQuery
+QUERY: List[str] = PropertyTypeFragmentQuery + ServiceEndpointDefinitionFragmentQuery + ["""
 fragment ServiceTypeFragment on ServiceType {
   id
   name
   hasCustomer
   propertyTypes {
     ...PropertyTypeFragment
+  }
+  endpointDefinitions {
+    ...ServiceEndpointDefinitionFragment
   }
 }
 
@@ -32,7 +36,12 @@ class ServiceTypeFragment(DataClassJsonMixin):
     class PropertyType(PropertyTypeFragment):
         pass
 
+    @dataclass
+    class ServiceEndpointDefinition(ServiceEndpointDefinitionFragment):
+        pass
+
     id: str
     name: str
     hasCustomer: bool
     propertyTypes: List[PropertyType]
+    endpointDefinitions: List[ServiceEndpointDefinition]

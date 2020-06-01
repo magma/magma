@@ -8,7 +8,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/pkg/authz/models"
 	"github.com/facebookincubator/symphony/pkg/log"
 	"go.uber.org/zap"
 )

@@ -1,4 +1,4 @@
-// +build all gx qos
+// +build all qos
 
 /*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -41,7 +41,6 @@ func verifyEgressRate(t *testing.T, tr *TestRunner, req *cwfprotos.GenTrafficReq
 	}
 	// Wait for the traffic to go through
 	time.Sleep(6 * time.Second)
-
 	if resp != nil {
 		var perfResp map[string]interface{}
 		json.Unmarshal([]byte(resp.Output), &perfResp)
@@ -50,7 +49,7 @@ func verifyEgressRate(t *testing.T, tr *TestRunner, req *cwfprotos.GenTrafficReq
 		b := respEndRcvMap["bits_per_second"].(float64)
 
 		errRate := math.Abs((b-expRate)/expRate) * 100
-		fmt.Printf("bit rate observed at server %f err rate %f", b, errRate)
+		fmt.Printf("bit rate observed at server %.0fbps, err rate %.2f%%\n", b, errRate)
 		if (b > expRate) && (errRate > ErrMargin) {
 			fmt.Printf("recd bps %f exp bps %f\n", b, expRate)
 			assert.Fail(t, "error greater than acceptable margin")
@@ -67,6 +66,9 @@ func verifyEgressRate(t *testing.T, tr *TestRunner, req *cwfprotos.GenTrafficReq
 // bitrate
 func TestGxUplinkTrafficQosEnforcement(t *testing.T) {
 	fmt.Println("\nRunning TestGxUplinkTrafficQosEnforcement")
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
 	tr := NewTestRunner(t)
 	ruleManager, err := NewRuleManager()
 	assert.NoError(t, err)
@@ -204,6 +206,9 @@ func TestGxDownlinkTrafficQosEnforcement(t *testing.T) {
 // that the observed bitrate maches the newly configured bitrate
 func TestGxQosDowngradeWithCCAUpdate(t *testing.T) {
 	fmt.Println("\nRunning TestGxQosDowngradeWithCCAUpdate")
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
 	tr := NewTestRunner(t)
 	ruleManager, err := NewRuleManager()
 	assert.NoError(t, err)
@@ -320,6 +325,9 @@ func TestGxQosDowngradeWithCCAUpdate(t *testing.T) {
 // downgraded bitrate
 func TestGxQosDowngradeWithReAuth(t *testing.T) {
 	fmt.Println("\nRunning TestGxQosDowngradeWithReAuth")
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
 	tr := NewTestRunner(t)
 	ruleManager, err := NewRuleManager()
 	assert.NoError(t, err)

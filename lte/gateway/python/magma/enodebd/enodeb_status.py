@@ -115,7 +115,7 @@ def update_status_metrics(status: EnodebStatus) -> None:
 
 # TODO: Remove after checkins support multiple eNB status
 def get_service_status_old(
-    enb_acs_manager: StateMachineManager,
+        enb_acs_manager: StateMachineManager,
 ) -> Dict[str, Any]:
     """ Get service status compatible with older controller """
     enb_status_by_serial = get_all_enb_status(enb_acs_manager)
@@ -157,7 +157,7 @@ def get_service_status(enb_acs_manager: StateMachineManager) -> Dict[str, Any]:
 
 
 def _get_enodebd_status(
-    enb_acs_manager: StateMachineManager,
+        enb_acs_manager: StateMachineManager,
 ) -> MagmaEnodebdStatus:
     enb_status_by_serial = get_all_enb_status(enb_acs_manager)
     # Start from default values for enodebd status
@@ -209,7 +209,7 @@ def _get_enodebd_status(
 
 
 def get_all_enb_status(
-    enb_acs_manager: StateMachineManager,
+        enb_acs_manager: StateMachineManager,
 ) -> Dict[str, EnodebStatus]:
     enb_status_by_serial = {}
     serial_list = enb_acs_manager.get_connected_serial_id_list()
@@ -252,8 +252,9 @@ def get_enb_status(enodeb: EnodebAcsStateMachine) -> EnodebStatus:
     enodeb_connected = enodeb.is_enodeb_connected()
     opstate_enabled = _parse_param_as_bool(enodeb, ParameterName.OP_STATE)
     rf_tx_on = _parse_param_as_bool(enodeb, ParameterName.RF_TX_STATUS)
+    rf_tx_on = rf_tx_on and enodeb_connected
     try:
-        enb_serial =\
+        enb_serial = \
             enodeb.device_cfg.get_parameter(ParameterName.SERIAL_NUMBER)
         rf_tx_desired = get_enb_rf_tx_desired(enodeb.mconfig, enb_serial)
     except (KeyError, ConfigurationError):
@@ -279,8 +280,8 @@ def get_enb_status(enodeb: EnodebAcsStateMachine) -> EnodebStatus:
 
 
 def get_single_enb_status(
-    device_serial: str,
-    state_machine_manager: StateMachineManager
+        device_serial: str,
+        state_machine_manager: StateMachineManager
 ) -> SingleEnodebStatus:
     try:
         handler = state_machine_manager.get_handler_by_serial(device_serial)
@@ -317,7 +318,7 @@ def get_single_enb_status(
 
 
 def get_operational_states(
-    enb_acs_manager: StateMachineManager,
+        enb_acs_manager: StateMachineManager,
 ) -> List[State]:
     """
     Returns: A list of State with EnodebStatus encoded as JSON
@@ -354,8 +355,8 @@ def _empty_enb_status() -> SingleEnodebStatus:
 
 
 def _parse_param_as_bool(
-    enodeb: EnodebAcsStateMachine,
-    param_name: ParameterName
+        enodeb: EnodebAcsStateMachine,
+        param_name: ParameterName
 ) -> bool:
     try:
         return _format_as_bool(enodeb.get_parameter(param_name), param_name)
@@ -364,8 +365,8 @@ def _parse_param_as_bool(
 
 
 def _format_as_bool(
-    param_value: Union[bool, str, int],
-    param_name: Optional[Union[ParameterName, str]] = None,
+        param_value: Union[bool, str, int],
+        param_name: Optional[Union[ParameterName, str]] = None,
 ) -> bool:
     """ Returns '1' for true, and '0' for false """
     stripped_value = str(param_value).lower().strip()
@@ -399,7 +400,8 @@ def _get_gps_status_as_bool(enodeb: EnodebAcsStateMachine) -> bool:
         return False
 
 
-def _get_and_cache_gps_coords(enodeb: EnodebAcsStateMachine) -> Tuple[str, str]:
+def _get_and_cache_gps_coords(enodeb: EnodebAcsStateMachine) -> Tuple[
+    str, str]:
     """
     Read the GPS coordinates of the enB from its configuration or the
     cached coordinate file if the preceding read fails. If reading from
@@ -444,8 +446,8 @@ def _read_gps_coords_from_file():
             lines = f.readlines()
             if len(lines) != 2:
                 logger.warning('Expected to find 2 lines in GPS '
-                                'coordinate file but only found %d',
-                                len(lines))
+                               'coordinate file but only found %d',
+                               len(lines))
                 return '0', '0'
             return tuple(map(lambda l: l.strip(), lines))
     except OSError:
@@ -477,6 +479,7 @@ def _write_gps_coords_to_file(gps_lat, gps_lon):
         )
     except OSError:
         pass
+
 
 def _bool_to_str(b: bool) -> str:
     if b is True:

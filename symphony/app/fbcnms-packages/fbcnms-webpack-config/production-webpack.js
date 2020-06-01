@@ -150,7 +150,6 @@ function createProductionWebpackConfig(options: Options) {
         analyzerMode: 'static',
         reportFilename: 'report.html',
       }),
-      new webpack.NoEmitOnErrorsPlugin(),
       // remove excess locales in moment bloating the bundle
       new webpack.ContextReplacementPlugin(/moment[/\\]locale$/, /en/),
     ],

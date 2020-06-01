@@ -8,11 +8,9 @@ import (
 	"context"
 	"testing"
 
+	"github.com/facebookincubator/symphony/pkg/authz/models"
 	"github.com/facebookincubator/symphony/pkg/ent/user"
 	"github.com/facebookincubator/symphony/pkg/viewer"
-
-	"github.com/facebookincubator/symphony/graph/graphql/models"
-	models2 "github.com/facebookincubator/symphony/pkg/authz/models"
 	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
 )
 
@@ -42,7 +40,7 @@ func TestUsersGroupWritePolicyRule(t *testing.T) {
 	}
 	runCudPolicyTest(t, cudPolicyTest{
 		appendPermissions: func(p *models.PermissionSettings) {
-			p.AdminPolicy.Access.IsAllowed = models2.PermissionValueYes
+			p.AdminPolicy.Access.IsAllowed = models.PermissionValueYes
 		},
 		create: createGroup,
 		update: updateGroup,

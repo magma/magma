@@ -74,6 +74,10 @@
   file: src='{{ c_build }}/session_manager/sessiond' path=/usr/local/bin/sessiond state=link force=yes follow=no
   when: full_provision
 
+- name: Create symlink for dpid binary
+  file: src='{{ c_build }}/dpi/dpid' path=/usr/local/bin/dpid state=link force=yes follow=no
+  when: full_provision
+
 - name: Create symlink for corefile collection script
   file: src='{{ magma_root }}/lte/gateway/deploy/roles/magma/files/coredump' path=/usr/local/bin/coredump state=link force=yes follow=no
   when: full_provision

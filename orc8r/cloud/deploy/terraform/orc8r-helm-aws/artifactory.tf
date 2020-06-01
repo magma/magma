@@ -13,6 +13,9 @@ locals {
       password = var.docker_pass
     }
   }
+
+  stable_helm_repo    = "https://kubernetes-charts.storage.googleapis.com"
+  incubator_helm_repo = "http://storage.googleapis.com/kubernetes-charts-incubator"
 }
 
 resource "kubernetes_secret" "artifactory" {
@@ -23,11 +26,4 @@ resource "kubernetes_secret" "artifactory" {
 
   data = { ".dockercfg" = jsonencode(local.dockercfg) }
   type = "kubernetes.io/dockercfg"
-}
-
-data "helm_repository" "artifactory" {
-  name     = "orc8r_artifactory"
-  url      = var.helm_repo
-  username = var.helm_user
-  password = var.helm_pass
 }

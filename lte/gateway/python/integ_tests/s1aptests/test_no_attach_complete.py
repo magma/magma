@@ -67,12 +67,6 @@ class NoAttachComplete(unittest.TestCase):
             labels={str(metricsd.result): "success"},
             value=1,
         ),
-        MetricValue(
-            service="mme",
-            name=str(metricsd.spgw_create_session),
-            labels={str(metricsd.result): "success"},
-            value=1,
-        ),
     ]
 
     def setUp(self):

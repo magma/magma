@@ -8,6 +8,13 @@
  * @format
  */
 
+import type {
+  // $FlowFixMe (T62907961) Relay flow types
+  CheckListCategoryTable_list,
+  WorkOrderDetails_workOrder,
+} from './__generated__/WorkOrderDetails_workOrder.graphql.js';
+import type {Property} from '../../common/Property';
+
 import Breadcrumbs from '@fbcnms/ui/components/Breadcrumbs';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import React from 'react';
@@ -16,13 +23,8 @@ import WorkOrderSaveButton from './WorkOrderSaveButton';
 import nullthrows from '@fbcnms/util/nullthrows';
 import {InventoryAPIUrls} from '../../common/InventoryAPI';
 import {makeStyles} from '@material-ui/styles';
+import {useMainContext} from '../MainContext';
 import {useRouter} from '@fbcnms/ui/hooks';
-import type {
-  // $FlowFixMe (T62907961) Relay flow types
-  CheckListCategoryTable_list,
-  WorkOrderDetails_workOrder,
-} from './__generated__/WorkOrderDetails_workOrder.graphql.js';
-import type {Property} from '../../common/Property';
 
 const useStyles = makeStyles(_theme => ({
   nameHeader: {
@@ -71,6 +73,10 @@ const WorkOrderHeader = (props: Props) => {
     onWorkOrderRemoved,
     onCancelClicked,
   } = props;
+
+  const {me} = useMainContext();
+  const isOwner = me?.user?.email === workOrder?.owner?.email;
+
   return (
     <div className={classes.nameHeader}>
       <div className={classes.breadcrumbs}>
@@ -104,6 +110,7 @@ const WorkOrderHeader = (props: Props) => {
           className={classes.deleteButton}
           workOrderId={workOrder.id}
           onWorkOrderRemoved={onWorkOrderRemoved}
+          ignorePermissions={isOwner}
         />
         <Button
           className={classes.cancelButton}

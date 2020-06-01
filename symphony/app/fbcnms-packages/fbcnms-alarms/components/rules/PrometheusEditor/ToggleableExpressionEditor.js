@@ -25,11 +25,11 @@ import ToggleButton from '@material-ui/lab/ToggleButton';
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
-import useRouter from '@fbcnms/alarms/hooks/useRouter';
+import useRouter from '../../../hooks/useRouter';
 import {groupBy} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from '../../AlarmContext';
-import {useEnqueueSnackbar} from '@fbcnms/alarms/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 
 import type {InputChangeFunc} from './PrometheusEditor';
 

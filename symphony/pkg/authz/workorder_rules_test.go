@@ -10,9 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/pkg/authz"
-	models2 "github.com/facebookincubator/symphony/pkg/authz/models"
+	"github.com/facebookincubator/symphony/pkg/authz/models"
 	"github.com/facebookincubator/symphony/pkg/ent"
 	"github.com/facebookincubator/symphony/pkg/ent/privacy"
 	"github.com/facebookincubator/symphony/pkg/ent/user"
@@ -154,14 +153,14 @@ func TestWorkOrderWritePolicyRule(t *testing.T) {
 			Exec(ctx)
 	}
 	initialPermissions := func(p *models.PermissionSettings) {
-		p.WorkforcePolicy.Data.TransferOwnership.IsAllowed = models2.PermissionValueYes
+		p.WorkforcePolicy.Data.TransferOwnership.IsAllowed = models.PermissionValueYes
 	}
 	tests := []policyTest{
 		{
 			operationName:      "Create",
 			initialPermissions: initialPermissions,
 			appendPermissions: func(p *models.PermissionSettings) {
-				p.WorkforcePolicy.Data.Create.IsAllowed = models2.PermissionValueYes
+				p.WorkforcePolicy.Data.Create.IsAllowed = models.PermissionValueYes
 			},
 			operation: createWorkOrder,
 		},
@@ -169,7 +168,7 @@ func TestWorkOrderWritePolicyRule(t *testing.T) {
 			operationName: "CreateWithType",
 			initialPermissions: func(p *models.PermissionSettings) {
 				initialPermissions(p)
-				p.WorkforcePolicy.Data.Create.IsAllowed = models2.PermissionValueByCondition
+				p.WorkforcePolicy.Data.Create.IsAllowed = models.PermissionValueByCondition
 				p.WorkforcePolicy.Data.Create.WorkOrderTypeIds = []int{workOrderType.ID}
 			},
 			appendPermissions: func(p *models.PermissionSettings) {
@@ -181,7 +180,7 @@ func TestWorkOrderWritePolicyRule(t *testing.T) {
 			operationName:      "Update",
 			initialPermissions: initialPermissions,
 			appendPermissions: func(p *models.PermissionSettings) {
-				p.WorkforcePolicy.Data.Update.IsAllowed = models2.PermissionValueYes
+				p.WorkforcePolicy.Data.Update.IsAllowed = models.PermissionValueYes
 			},
 			operation: updateWorkOrder,
 		},
@@ -189,7 +188,7 @@ func TestWorkOrderWritePolicyRule(t *testing.T) {
 			operationName: "UpdateWithType",
 			initialPermissions: func(p *models.PermissionSettings) {
 				initialPermissions(p)
-				p.WorkforcePolicy.Data.Update.IsAllowed = models2.PermissionValueByCondition
+				p.WorkforcePolicy.Data.Update.IsAllowed = models.PermissionValueByCondition
 				p.WorkforcePolicy.Data.Update.WorkOrderTypeIds = []int{workOrderType.ID}
 			},
 			appendPermissions: func(p *models.PermissionSettings) {
@@ -201,7 +200,7 @@ func TestWorkOrderWritePolicyRule(t *testing.T) {
 			operationName:      "Delete",
 			initialPermissions: initialPermissions,
 			appendPermissions: func(p *models.PermissionSettings) {
-				p.WorkforcePolicy.Data.Delete.IsAllowed = models2.PermissionValueYes
+				p.WorkforcePolicy.Data.Delete.IsAllowed = models.PermissionValueYes
 			},
 			operation: deleteWorkOrder,
 		},
@@ -209,7 +208,7 @@ func TestWorkOrderWritePolicyRule(t *testing.T) {
 			operationName: "DeleteWithType",
 			initialPermissions: func(p *models.PermissionSettings) {
 				initialPermissions(p)
-				p.WorkforcePolicy.Data.Delete.IsAllowed = models2.PermissionValueByCondition
+				p.WorkforcePolicy.Data.Delete.IsAllowed = models.PermissionValueByCondition
 				p.WorkforcePolicy.Data.Delete.WorkOrderTypeIds = []int{workOrderType.ID}
 			},
 			appendPermissions: func(p *models.PermissionSettings) {
@@ -240,7 +239,7 @@ func TestWorkOrderReadPolicyRule(t *testing.T) {
 	})
 	t.Run("PartialPermissions", func(t *testing.T) {
 		permissions := authz.EmptyPermissions()
-		permissions.WorkforcePolicy.Read.IsAllowed = models2.PermissionValueByCondition
+		permissions.WorkforcePolicy.Read.IsAllowed = models.PermissionValueByCondition
 		permissions.WorkforcePolicy.Read.WorkOrderTypeIds = []int{workOrderType.ID}
 		permissionsContext := viewertest.NewContext(
 			context.Background(),
@@ -254,7 +253,7 @@ func TestWorkOrderReadPolicyRule(t *testing.T) {
 	})
 	t.Run("FullPermissions", func(t *testing.T) {
 		permissions := authz.EmptyPermissions()
-		permissions.WorkforcePolicy.Read.IsAllowed = models2.PermissionValueYes
+		permissions.WorkforcePolicy.Read.IsAllowed = models.PermissionValueYes
 		permissionsContext := viewertest.NewContext(
 			context.Background(),
 			c,
@@ -276,7 +275,7 @@ func TestWorkOrderTransferOwnershipWritePolicyRule(t *testing.T) {
 	}
 	u := viewer.MustGetOrCreateUser(ctx, "SomeUser", user.RoleUSER)
 	appendTransferOwnership := func(p *models.PermissionSettings) {
-		getCud(p).TransferOwnership.IsAllowed = models2.PermissionValueYes
+		getCud(p).TransferOwnership.IsAllowed = models.PermissionValueYes
 	}
 	createWorkOrderWithOwner := func(ctx context.Context) error {
 		_, err := c.WorkOrder.Create().
@@ -297,7 +296,7 @@ func TestWorkOrderTransferOwnershipWritePolicyRule(t *testing.T) {
 		{
 			operationName: "CreateWithOwner",
 			initialPermissions: func(p *models.PermissionSettings) {
-				getCud(p).Create.IsAllowed = models2.PermissionValueYes
+				getCud(p).Create.IsAllowed = models.PermissionValueYes
 			},
 			appendPermissions: appendTransferOwnership,
 			operation:         createWorkOrderWithOwner,
@@ -305,7 +304,7 @@ func TestWorkOrderTransferOwnershipWritePolicyRule(t *testing.T) {
 		{
 			operationName: "UpdateWithOwner",
 			initialPermissions: func(p *models.PermissionSettings) {
-				getCud(p).Update.IsAllowed = models2.PermissionValueYes
+				getCud(p).Update.IsAllowed = models.PermissionValueYes
 			},
 			appendPermissions: appendTransferOwnership,
 			operation:         updateWorkOrderOwner,
@@ -319,7 +318,7 @@ func TestWorkOrderCreateWithViewerAssigneeOwner(t *testing.T) {
 	ctx := viewertest.NewContext(context.Background(), c)
 	workOrderType, _ := prepareWorkOrderData(ctx, c)
 	ctx = userContextWithPermissions(ctx, "SomeUser", func(p *models.PermissionSettings) {
-		p.WorkforcePolicy.Data.Create.IsAllowed = models2.PermissionValueYes
+		p.WorkforcePolicy.Data.Create.IsAllowed = models.PermissionValueYes
 	})
 	u := viewer.FromContext(ctx).(*viewer.UserViewer).User()
 	_, err := c.WorkOrder.Create().
@@ -341,7 +340,7 @@ func TestWorkOrderUpdateAssignee(t *testing.T) {
 	}
 	u := viewer.MustGetOrCreateUser(ctx, "SomeUser", user.RoleUSER)
 	appendAssign := func(p *models.PermissionSettings) {
-		getCud(p).Assign.IsAllowed = models2.PermissionValueYes
+		getCud(p).Assign.IsAllowed = models.PermissionValueYes
 	}
 	updateWorkOrderAssignee := func(ctx context.Context) error {
 		_, err := c.WorkOrder.UpdateOne(workOrder).
@@ -359,7 +358,7 @@ func TestWorkOrderUpdateAssignee(t *testing.T) {
 		{
 			operationName: "UpdateWithAssignee",
 			initialPermissions: func(p *models.PermissionSettings) {
-				getCud(p).Update.IsAllowed = models2.PermissionValueYes
+				getCud(p).Update.IsAllowed = models.PermissionValueYes
 			},
 			appendPermissions: appendAssign,
 			operation:         updateWorkOrderAssignee,
@@ -367,7 +366,7 @@ func TestWorkOrderUpdateAssignee(t *testing.T) {
 		{
 			operationName: "ClearWorkOrderAssignee",
 			initialPermissions: func(p *models.PermissionSettings) {
-				getCud(p).Update.IsAllowed = models2.PermissionValueYes
+				getCud(p).Update.IsAllowed = models.PermissionValueYes
 			},
 			appendPermissions: appendAssign,
 			operation:         clearWorkOrderAssignee,
@@ -386,7 +385,7 @@ func TestWorkOrderAssigneeUnchangedWritePolicyRule(t *testing.T) {
 		SetAssigneeID(u.ID).
 		ExecX(ctx)
 	permissions := authz.EmptyPermissions()
-	permissions.WorkforcePolicy.Data.Update.IsAllowed = models2.PermissionValueYes
+	permissions.WorkforcePolicy.Data.Update.IsAllowed = models.PermissionValueYes
 	ctx = viewertest.NewContext(
 		context.Background(),
 		c,
@@ -412,7 +411,7 @@ func TestWorkOrderOwnerUnchangedWritePolicyRule(t *testing.T) {
 	ctx := viewertest.NewContext(context.Background(), c)
 	_, workOrder := prepareWorkOrderData(ctx, c)
 	permissions := authz.EmptyPermissions()
-	permissions.WorkforcePolicy.Data.Update.IsAllowed = models2.PermissionValueYes
+	permissions.WorkforcePolicy.Data.Update.IsAllowed = models.PermissionValueYes
 	ctx = viewertest.NewContext(
 		context.Background(),
 		c,

@@ -12,7 +12,7 @@ import * as React from 'react';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
-import useRouter from '@fbcnms/alarms/hooks/useRouter';
+import useRouter from '../../../hooks/useRouter';
 import {useAlarmContext} from '../../AlarmContext';
 
 type Props = {

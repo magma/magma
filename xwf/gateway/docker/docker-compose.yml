@@ -79,3 +79,17 @@ services:
         /usr/bin/ovs-vsctl set-controller cwag_br0 tcp:127.0.0.1:6633 &&
         /usr/bin/ovs-vsctl set-fail-mode cwag_br0 secure &&
         python3 -m magma.pipelined.main"
+
+  radius:
+    <<: *service
+    image: ${DOCKER_REGISTRY}gateway_go:${IMAGE_VERSION}
+    container_name: radius
+    environment:
+      - ODS_ACCESS_TOKEN=${ODS_ACCESS_TOKEN}
+      - SCUBA_ACCESS_TOKEN=${SCUBA_ACCESS_TOKEN}
+      - AAA_ENDPOINT=https://graph.expresswifi.com/radius/authorization
+      - AAA_ACCESS_TOKEN=${AAA_ACCESS_TOKEN}
+      - RADIUS_SECRET=123456
+      - TEMPLATE_ENV=radius.ofpanalytics.config.json.template
+    command: >
+      /bin/sh -c "./docker-entrypoint.sh"

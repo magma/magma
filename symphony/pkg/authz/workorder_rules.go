@@ -9,17 +9,14 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/facebookincubator/symphony/pkg/ent/predicate"
-	"github.com/facebookincubator/symphony/pkg/ent/user"
-
-	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/pkg/authz/models"
 	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/ent/predicate"
 	"github.com/facebookincubator/symphony/pkg/ent/privacy"
+	"github.com/facebookincubator/symphony/pkg/ent/user"
 	"github.com/facebookincubator/symphony/pkg/ent/workorder"
 	"github.com/facebookincubator/symphony/pkg/ent/workordertype"
 	"github.com/facebookincubator/symphony/pkg/viewer"
-
-	models2 "github.com/facebookincubator/symphony/pkg/authz/models"
 )
 
 func isUserWOOwner(ctx context.Context, userID int, workOrder *ent.WorkOrder) (bool, error) {
@@ -97,9 +94,9 @@ func workOrderReadPredicate(ctx context.Context) predicate.WorkOrder {
 	var predicates []predicate.WorkOrder
 	rule := FromContext(ctx).WorkforcePolicy.Read
 	switch rule.IsAllowed {
-	case models2.PermissionValueYes:
+	case models.PermissionValueYes:
 		return nil
-	case models2.PermissionValueByCondition:
+	case models.PermissionValueByCondition:
 		predicates = append(predicates,
 			workorder.HasTypeWith(workordertype.IDIn(rule.WorkOrderTypeIds...)))
 	}
@@ -229,7 +226,7 @@ func WorkOrderWritePolicyRule() privacy.MutationRule {
 				return privacy.Denyf(err.Error())
 			}
 			if assigneeChanged {
-				allowed = allowed && (cud.Assign.IsAllowed == models2.PermissionValueYes)
+				allowed = allowed && (cud.Assign.IsAllowed == models.PermissionValueYes)
 			}
 		}
 		ownerChanged, err := isOwnerChanged(ctx, m)
@@ -239,7 +236,7 @@ func WorkOrderWritePolicyRule() privacy.MutationRule {
 		if ownerChanged {
 			ownerID, exists := m.OwnerID()
 			if !m.Op().Is(ent.OpCreate) || !isUser || !exists || v.User().ID != ownerID {
-				allowed = allowed && (cud.TransferOwnership.IsAllowed == models2.PermissionValueYes)
+				allowed = allowed && (cud.TransferOwnership.IsAllowed == models.PermissionValueYes)
 			}
 		}
 		if allowed {

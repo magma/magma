@@ -20,10 +20,10 @@ import SettingsIcon from '@material-ui/icons/Settings';
 import SimpleTable from '../../table/SimpleTable';
 import TableActionDialog from '../../table/TableActionDialog';
 import TableAddButton from '../../table/TableAddButton';
-import useRouter from '@fbcnms/alarms/hooks/useRouter';
+import useRouter from '../../../hooks/useRouter';
 import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from '../../AlarmContext';
-import {useEnqueueSnackbar} from '@fbcnms/alarms/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 import type {AlertReceiver} from '../../AlarmAPIType';
 
 const useStyles = makeStyles(theme => ({

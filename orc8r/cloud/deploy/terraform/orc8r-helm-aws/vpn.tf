@@ -4,7 +4,7 @@ resource "helm_release" "ovpn" {
   chart      = "openvpn"
   name       = "openvpn"
   namespace  = kubernetes_namespace.orc8r.metadata[0].name
-  repository = data.helm_repository.stable.id
+  repository = local.stable_helm_repo
 
   # TCP ovpn because ELB does not support UDP
   values = [<<EOT

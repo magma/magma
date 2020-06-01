@@ -8,6 +8,7 @@
  * @flow strict-local
  * @format
  */
+import type {lte_gateway} from '@fbcnms/magma-api';
 
 import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
@@ -15,10 +16,14 @@ import CellWifiIcon from '@material-ui/icons/CellWifi';
 import Gateway from './EquipmentGateway';
 import GatewayDetail from './GatewayDetailMain';
 import Grid from '@material-ui/core/Grid';
+import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import React from 'react';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
 import Tab from '@material-ui/core/Tab';
+import nullthrows from '@fbcnms/util/nullthrows';
+import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 
 import Tabs from '@material-ui/core/Tabs';
 import Text from '@fbcnms/ui/components/design-system/Text';
@@ -72,7 +77,19 @@ const useStyles = makeStyles(theme => ({
 
 function EquipmentDashboard() {
   const classes = useStyles();
-  const {relativePath, relativeUrl} = useRouter();
+  const {match, relativePath, relativeUrl} = useRouter();
+  const networkId: string = nullthrows(match.params.networkId);
+
+  const {response, isLoading} = useMagmaAPI(
+    MagmaV1API.getLteByNetworkIdGateways,
+    {
+      networkId: networkId,
+    },
+  );
+  if (!response || isLoading) {
+    return <LoadingFiller />;
+  }
+  const lte_gateways: {[string]: lte_gateway} = response;
   return (
     <>
       <div className={classes.topBar}>
@@ -124,9 +141,15 @@ function EquipmentDashboard() {
       <Switch>
         <Route
           path={relativePath('/gateway/:gatewayId')}
-          component={GatewayDetail}
+          render={props => (
+            <GatewayDetail {...props} lte_gateways={lte_gateways} />
+          )}
         />
-        <Route path={relativePath('/gateway')} component={Gateway} />
+
+        <Route
+          path={relativePath('/gateway')}
+          render={props => <Gateway {...props} lte_gateways={lte_gateways} />}
+        />
         <Redirect to={relativeUrl('/gateway')} />
       </Switch>
     </>

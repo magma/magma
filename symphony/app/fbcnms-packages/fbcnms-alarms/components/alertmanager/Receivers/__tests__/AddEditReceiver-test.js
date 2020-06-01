@@ -11,7 +11,7 @@ import 'jest-dom/extend-expect';
 import * as React from 'react';
 import AddEditReceiver from '../AddEditReceiver';
 import {act, cleanup, fireEvent, render} from '@testing-library/react';
-import {alarmTestUtil} from '@fbcnms/alarms/test/testHelpers';
+import {alarmTestUtil} from '../../../../test/testHelpers';
 
 const {apiUtil, AlarmsWrapper} = alarmTestUtil();
 

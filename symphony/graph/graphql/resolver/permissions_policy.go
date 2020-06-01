@@ -8,6 +8,8 @@ import (
 	"context"
 	"fmt"
 
+	models2 "github.com/facebookincubator/symphony/pkg/authz/models"
+
 	"github.com/facebookincubator/symphony/graph/resolverutil"
 	"github.com/pkg/errors"
 
@@ -24,7 +26,7 @@ func (r queryResolver) PermissionsPolicies(ctx context.Context, after *ent.Curso
 		Paginate(ctx, after, first, before, last)
 }
 
-func (r permissionsPolicyResolver) Policy(ctx context.Context, obj *ent.PermissionsPolicy) (models.SystemPolicy, error) {
+func (r permissionsPolicyResolver) Policy(ctx context.Context, obj *ent.PermissionsPolicy) (models2.SystemPolicy, error) {
 	if obj.InventoryPolicy != nil {
 		return authz.AppendInventoryPolicies(
 			authz.NewInventoryPolicy(false),
