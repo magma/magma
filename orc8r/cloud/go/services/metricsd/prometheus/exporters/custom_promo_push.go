@@ -69,7 +69,7 @@ func NewCustomPushExporter(pushAddresses []string) mxd_exp.Exporter {
 func (e *CustomPushExporter) Submit(metrics []mxd_exp.MetricAndContext) error {
 	metricAndContexts := []*protos.MetricAndContext{}
 	for _, metric := range metrics {
-		metricAndContext := e.convertMetricAndContext(metric)
+		metricAndContext := mxd_exp.ConvertMetricAndContextToProto(metric)
 		metricAndContexts = append(metricAndContexts, metricAndContext)
 	}
 	submitRequest := &protos.SubmitMetricsRequest{
@@ -77,37 +77,6 @@ func (e *CustomPushExporter) Submit(metrics []mxd_exp.MetricAndContext) error {
 	}
 	_, err := e.servicer.Submit(submitRequest)
 	return err
-}
-
-func (e *CustomPushExporter) convertMetricAndContext(metric mxd_exp.MetricAndContext) *protos.MetricAndContext {
-	metricAndContext := &protos.MetricAndContext{
-		Family: metric.Family,
-		Context: &protos.MetricContext{
-			MetricName: metric.Context.MetricName,
-		},
-	}
-	switch additionalCtx := metric.Context.AdditionalContext.(type) {
-	case *mxd_exp.CloudMetricContext:
-		metricAndContext.Context.MetricOriginContext = &protos.MetricContext_CloudMetric{
-			CloudMetric: &protos.CloudMetricContext{
-				CloudHost: additionalCtx.CloudHost,
-			},
-		}
-	case *mxd_exp.GatewayMetricContext:
-		metricAndContext.Context.MetricOriginContext = &protos.MetricContext_GatewayMetric{
-			GatewayMetric: &protos.GatewayMetricContext{
-				NetworkId: additionalCtx.NetworkID,
-				GatewayId: additionalCtx.GatewayID,
-			},
-		}
-	case *mxd_exp.PushedMetricContext:
-		metricAndContext.Context.MetricOriginContext = &protos.MetricContext_PushedMetric{
-			PushedMetric: &protos.PushedMetricContext{
-				NetworkId: additionalCtx.NetworkID,
-			},
-		}
-	}
-	return metricAndContext
 }
 
 func (e *CustomPushExporter) Start() {
