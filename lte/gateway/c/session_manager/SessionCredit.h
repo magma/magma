@@ -184,13 +184,6 @@ public:
   static float USAGE_REPORTING_THRESHOLD;
 
   /**
-   * Extra number of bytes an user could use after the quota is exhausted.
-   * Session manager will deactivate the service when
-   * used quota >= (granted quota + EXTRA_QUOTA_MARGIN)
-   */
-  static uint64_t EXTRA_QUOTA_MARGIN;
-
-  /**
    * Set to true to terminate service when the quota of a session is exhausted.
    * An user can still use up to the extra margin.
    * Set to false to allow users to use without any constraint.
@@ -224,17 +217,12 @@ private:
    * SessionUpdate.
    * We mark quota as exhausted if usage_reporting_threshold * available quota
    * is reached. (so the default is 100% of quota)
-   * We will also add a extra_quota_margin on to the available quota if it is
-   * specified.
    * Check if the session has exhausted its quota granted since the last report.
    *
    * @param usage_reporting_threshold
-   * @param extra_quota_margin Extra bytes of usage allowable before quota
-   *        is exhausted.
    * @return true if quota is exhausted for the session
    */
-  bool is_quota_exhausted(float usage_reporting_threshold = 1,
-                          uint64_t extra_quota_margin = 0) const;
+  bool is_quota_exhausted(float usage_reporting_threshold = 1) const;
 
   void log_quota_and_usage() const;
 
