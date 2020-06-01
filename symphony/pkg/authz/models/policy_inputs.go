@@ -4,14 +4,6 @@
 
 package models
 
-type PermissionValue string
-
-const (
-	PermissionValueYes         PermissionValue = "YES"
-	PermissionValueNo          PermissionValue = "NO"
-	PermissionValueByCondition PermissionValue = "BY_CONDITION"
-)
-
 type BasicPermissionRuleInput struct {
 	IsAllowed PermissionValue `json:"isAllowed"`
 }

@@ -8,45 +8,43 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/pkg/authz/models"
 	"github.com/facebookincubator/symphony/pkg/ent"
 	"github.com/facebookincubator/symphony/pkg/ent/permissionspolicy"
 	"github.com/facebookincubator/symphony/pkg/ent/user"
 	"github.com/facebookincubator/symphony/pkg/ent/usersgroup"
 	"github.com/facebookincubator/symphony/pkg/viewer"
-
-	models2 "github.com/facebookincubator/symphony/pkg/authz/models"
 )
 
 // WritePermissionGroupName is the name of the group that its member has write permission for all symphony.
 const WritePermissionGroupName = "Write Permission"
 
-var allowedEnums = map[models2.PermissionValue]int{
-	models2.PermissionValueNo:          1,
-	models2.PermissionValueByCondition: 2,
-	models2.PermissionValueYes:         3,
+var allowedEnums = map[models.PermissionValue]int{
+	models.PermissionValueNo:          1,
+	models.PermissionValueByCondition: 2,
+	models.PermissionValueYes:         3,
 }
 
 func newBasicPermissionRule(allowed bool) *models.BasicPermissionRule {
-	rule := models2.PermissionValueNo
+	rule := models.PermissionValueNo
 	if allowed {
-		rule = models2.PermissionValueYes
+		rule = models.PermissionValueYes
 	}
 	return &models.BasicPermissionRule{IsAllowed: rule}
 }
 
 func newLocationPermissionRule(allowed bool) *models.LocationPermissionRule {
-	rule := models2.PermissionValueNo
+	rule := models.PermissionValueNo
 	if allowed {
-		rule = models2.PermissionValueYes
+		rule = models.PermissionValueYes
 	}
 	return &models.LocationPermissionRule{IsAllowed: rule}
 }
 
 func newWorkforcePermissionRule(allowed bool) *models.WorkforcePermissionRule {
-	rule := models2.PermissionValueNo
+	rule := models.PermissionValueNo
 	if allowed {
-		rule = models2.PermissionValueYes
+		rule = models.PermissionValueYes
 	}
 	return &models.WorkforcePermissionRule{IsAllowed: rule}
 }
@@ -106,14 +104,14 @@ func NewAdministrativePolicy(isAdmin bool) *models.AdministrativePolicy {
 	}
 }
 
-func appendBasicPermissionRule(rule *models.BasicPermissionRule, addRule *models2.BasicPermissionRuleInput) *models.BasicPermissionRule {
+func appendBasicPermissionRule(rule *models.BasicPermissionRule, addRule *models.BasicPermissionRuleInput) *models.BasicPermissionRule {
 	if addRule != nil && allowedEnums[addRule.IsAllowed] >= allowedEnums[rule.IsAllowed] {
 		rule.IsAllowed = addRule.IsAllowed
 	}
 	return rule
 }
 
-func appendLocationPermissionRule(rule *models.LocationPermissionRule, addRule *models2.LocationPermissionRuleInput) *models.LocationPermissionRule {
+func appendLocationPermissionRule(rule *models.LocationPermissionRule, addRule *models.LocationPermissionRuleInput) *models.LocationPermissionRule {
 	if addRule == nil {
 		return rule
 	}
@@ -121,17 +119,17 @@ func appendLocationPermissionRule(rule *models.LocationPermissionRule, addRule *
 		rule.IsAllowed = addRule.IsAllowed
 	}
 	switch rule.IsAllowed {
-	case models2.PermissionValueYes:
+	case models.PermissionValueYes:
 		rule.LocationTypeIds = nil
-	case models2.PermissionValueNo:
+	case models.PermissionValueNo:
 		rule.LocationTypeIds = nil
-	case models2.PermissionValueByCondition:
+	case models.PermissionValueByCondition:
 		rule.LocationTypeIds = append(rule.LocationTypeIds, addRule.LocationTypeIds...)
 	}
 	return rule
 }
 
-func appendWorkforcePermissionRule(rule *models.WorkforcePermissionRule, addRule *models2.WorkforcePermissionRuleInput) *models.WorkforcePermissionRule {
+func appendWorkforcePermissionRule(rule *models.WorkforcePermissionRule, addRule *models.WorkforcePermissionRuleInput) *models.WorkforcePermissionRule {
 	if addRule == nil {
 		return rule
 	}
@@ -139,20 +137,20 @@ func appendWorkforcePermissionRule(rule *models.WorkforcePermissionRule, addRule
 		rule.IsAllowed = addRule.IsAllowed
 	}
 	switch rule.IsAllowed {
-	case models2.PermissionValueYes:
+	case models.PermissionValueYes:
 		rule.WorkOrderTypeIds = nil
 		rule.ProjectTypeIds = nil
-	case models2.PermissionValueNo:
+	case models.PermissionValueNo:
 		rule.WorkOrderTypeIds = nil
 		rule.ProjectTypeIds = nil
-	case models2.PermissionValueByCondition:
+	case models.PermissionValueByCondition:
 		rule.WorkOrderTypeIds = append(rule.WorkOrderTypeIds, addRule.WorkOrderTypeIds...)
 		rule.ProjectTypeIds = append(rule.ProjectTypeIds, addRule.ProjectTypeIds...)
 	}
 	return rule
 }
 
-func appendCUD(cud *models.Cud, addCUD *models2.BasicCUDInput) *models.Cud {
+func appendCUD(cud *models.Cud, addCUD *models.BasicCUDInput) *models.Cud {
 	if addCUD == nil {
 		return cud
 	}
@@ -162,7 +160,7 @@ func appendCUD(cud *models.Cud, addCUD *models2.BasicCUDInput) *models.Cud {
 	return cud
 }
 
-func appendLocationCUD(cud *models.LocationCud, addCUD *models2.LocationCUDInput) *models.LocationCud {
+func appendLocationCUD(cud *models.LocationCud, addCUD *models.LocationCUDInput) *models.LocationCud {
 	if addCUD == nil {
 		return cud
 	}
@@ -172,7 +170,7 @@ func appendLocationCUD(cud *models.LocationCud, addCUD *models2.LocationCUDInput
 	return cud
 }
 
-func appendWorkforceCUD(cud *models.WorkforceCud, addCUD *models2.WorkforceCUDInput) *models.WorkforceCud {
+func appendWorkforceCUD(cud *models.WorkforceCud, addCUD *models.WorkforceCUDInput) *models.WorkforceCud {
 	if addCUD == nil {
 		return cud
 	}
@@ -185,7 +183,7 @@ func appendWorkforceCUD(cud *models.WorkforceCud, addCUD *models2.WorkforceCUDIn
 }
 
 // AppendInventoryPolicies append a list of inventory policy inputs to a inventory policy
-func AppendInventoryPolicies(policy *models.InventoryPolicy, inputs ...*models2.InventoryPolicyInput) *models.InventoryPolicy {
+func AppendInventoryPolicies(policy *models.InventoryPolicy, inputs ...*models.InventoryPolicyInput) *models.InventoryPolicy {
 	for _, input := range inputs {
 		if input == nil {
 			continue
@@ -202,7 +200,7 @@ func AppendInventoryPolicies(policy *models.InventoryPolicy, inputs ...*models2.
 }
 
 // AppendInventoryPolicies append a list of workforce policy inputs to a workforce policy
-func AppendWorkforcePolicies(policy *models.WorkforcePolicy, inputs ...*models2.WorkforcePolicyInput) *models.WorkforcePolicy {
+func AppendWorkforcePolicies(policy *models.WorkforcePolicy, inputs ...*models.WorkforcePolicyInput) *models.WorkforcePolicy {
 	for _, input := range inputs {
 		if input == nil {
 			continue

@@ -8,9 +8,7 @@ import (
 	"context"
 	"testing"
 
-	models2 "github.com/facebookincubator/symphony/pkg/authz/models"
-
-	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/pkg/authz/models"
 	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
 )
 
@@ -140,7 +138,7 @@ func TestEquipmentPortDefinitionWritePolicyRule(t *testing.T) {
 	}
 	runCudPolicyTest(t, cudPolicyTest{
 		appendPermissions: func(p *models.PermissionSettings) {
-			p.InventoryPolicy.EquipmentType.Update.IsAllowed = models2.PermissionValueYes
+			p.InventoryPolicy.EquipmentType.Update.IsAllowed = models.PermissionValueYes
 		},
 		create: createEquipmentPortDefinition,
 		update: updateEquipmentPortDefinition,
@@ -171,7 +169,7 @@ func TestEquipmentCategoryWritePolicyRule(t *testing.T) {
 	}
 	runCudPolicyTest(t, cudPolicyTest{
 		appendPermissions: func(p *models.PermissionSettings) {
-			p.InventoryPolicy.EquipmentType.Update.IsAllowed = models2.PermissionValueYes
+			p.InventoryPolicy.EquipmentType.Update.IsAllowed = models.PermissionValueYes
 		},
 		create: createEquipmentCategory,
 		update: updateEquipmentCategory,
@@ -213,7 +211,7 @@ func TestEquipmentPortWritePolicyRule(t *testing.T) {
 	}
 	runCudPolicyTest(t, cudPolicyTest{
 		appendPermissions: func(p *models.PermissionSettings) {
-			p.InventoryPolicy.Equipment.Update.IsAllowed = models2.PermissionValueYes
+			p.InventoryPolicy.Equipment.Update.IsAllowed = models.PermissionValueYes
 		},
 		create: createEquipmentPort,
 		update: updateEquipmentPort,
@@ -250,7 +248,7 @@ func TestEquipmentPositionDefinitionWritePolicyRule(t *testing.T) {
 	}
 	runCudPolicyTest(t, cudPolicyTest{
 		appendPermissions: func(p *models.PermissionSettings) {
-			p.InventoryPolicy.EquipmentType.Update.IsAllowed = models2.PermissionValueYes
+			p.InventoryPolicy.EquipmentType.Update.IsAllowed = models.PermissionValueYes
 		},
 		create: createEquipmentPositionDefinition,
 		update: updateEquipmentPositionDefinition,
@@ -293,7 +291,7 @@ func TestEquipmentPositionWritePolicyRule(t *testing.T) {
 	}
 	runCudPolicyTest(t, cudPolicyTest{
 		appendPermissions: func(p *models.PermissionSettings) {
-			p.InventoryPolicy.Equipment.Update.IsAllowed = models2.PermissionValueYes
+			p.InventoryPolicy.Equipment.Update.IsAllowed = models.PermissionValueYes
 		},
 		create: createEquipmentPosition,
 		update: updateEquipmentPosition,
