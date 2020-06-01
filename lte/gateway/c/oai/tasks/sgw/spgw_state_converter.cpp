@@ -50,9 +50,6 @@ void SpgwStateConverter::state_to_proto(
 {
   proto->Clear();
 
-  proto->set_sgw_ip_address_s1u_s12_s4_up(
-    spgw_state->sgw_ip_address_S1u_S12_S4_up.s_addr);
-
   gtpv1u_data_to_proto(&spgw_state->gtpv1u_data, proto->mutable_gtpv1u_data());
 
   proto->set_last_tunnel_id(spgw_state->tunnel_id);
@@ -73,9 +70,6 @@ void SpgwStateConverter::proto_to_state(
   const SpgwState& proto,
   spgw_state_t* spgw_state)
 {
-  spgw_state->sgw_ip_address_S1u_S12_S4_up.s_addr =
-    proto.sgw_ip_address_s1u_s12_s4_up();
-
   proto_to_gtpv1u_data(proto.gtpv1u_data(), &spgw_state->gtpv1u_data);
   spgw_state->tunnel_id = proto.last_tunnel_id();
   spgw_state->gtpv1u_teid = proto.gtpv1u_teid();
