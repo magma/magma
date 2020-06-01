@@ -15,7 +15,7 @@ import React from 'react';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import type {ComponentType} from 'react';
 
-export type KPIData = {category: string, value: number};
+export type KPIData = {category: string, value: number | string, unit?: string};
 type Props = {
   icon?: ComponentType<SvgIconExports>,
   description?: string,
@@ -27,14 +27,14 @@ export default function KPITray(props: Props) {
   if (props.icon) {
     const KpiIcon = props.icon;
     kpiTray.push(
-      <Grid item>
+      <Grid item key="kpiIcon">
         <Card elevation={0}>
           <CardContent>
             <KpiIcon fontSize="large" />
           </CardContent>
         </Card>
       </Grid>,
-      <Grid item>
+      <Grid item key="kpiTitle">
         <Card elevation={0}>
           <CardContent>
             <Text variant="h6">{props.description}</Text>
@@ -46,12 +46,12 @@ export default function KPITray(props: Props) {
 
   kpiTray.push(
     props.data.map((kpi, i) => (
-      <Grid item xs key={i}>
+      <Grid item xs key={'data-' + i}>
         <Card>
           <CardHeader
             title={kpi.category}
-            subheader={kpi.value}
-            titleTypographyProps={{align: 'center'}}
+            subheader={kpi.value + (kpi.unit ?? '')}
+            titleTypographyProps={{align: 'center', variant: 'body1'}}
             subheaderTypographyProps={{variant: 'h5', align: 'center'}}
             data-testid={kpi.category}
           />
