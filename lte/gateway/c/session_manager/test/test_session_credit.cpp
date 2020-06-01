@@ -236,6 +236,7 @@ TEST(test_get_action_for_charging, test_session_credit) {
   charging_credit.add_used_credit(2048, 0, uc);
   charging_credit.add_used_credit(30, 20, uc);
   auto term_action = charging_credit.get_action(uc);
+  // Check that the update criteria also includes the changes
   EXPECT_EQ(term_action, TERMINATE_SERVICE);
 
   // Termination action only returned once
@@ -302,30 +303,57 @@ TEST(test_final_unit_action_redirect, test_session_credit) {
   EXPECT_EQ(charging_credit.get_action(uc), REDIRECT);
 }
 
+// test_tolerance_quota_exhausted checks that user will not be terminated if
+// quota is exhausted but not final unit indication is received.
+// That can happen if the quota reported by pipeline is too big and we go over both the
+// threshold (0.8) and the maximum allowed quota
 TEST(test_tolerance_quota_exhausted, test_session_credit) {
   SessionCredit credit(CreditType::CHARGING);
   SessionCreditUpdateCriteria uc{};
-  credit.receive_credit(1024, HIGH_CREDIT, HIGH_CREDIT, 0, false,
+  credit.receive_credit(1000, HIGH_CREDIT, HIGH_CREDIT, 0, false,
                         default_final_action_info, uc);
-  // continue the service when there was still available tolerance quota
-  credit.add_used_credit(1024, 0, uc);
+
+  credit.add_used_credit(2000, 0, uc);
+  // continue the service even we are over the quota (but not final unit)
   EXPECT_EQ(credit.get_action(uc), CONTINUE_SERVICE);
-  // terminate the service when granted quota and tolerance quota are exhausted
-  credit.add_used_credit(1024, 0, uc);
+
+  // Check how much we will report (as much as the total allowed, the rest
+  // will be left unreported and reported in future updates)
+  auto update = credit.get_usage_for_reporting(uc);
+  EXPECT_EQ(update.bytes_tx, 1000);
+  // we have used 2000 but we will report only what we were granted
+  EXPECT_EQ(credit.get_credit(USED_TX), 2000);
+  EXPECT_EQ(credit.get_credit(REPORTING_TX), 1000);
+
+  // receive some more grant that will go over part of the used and not reported credit
+  credit.receive_credit(1000, HIGH_CREDIT, HIGH_CREDIT, 0, true,
+                        default_final_action_info, uc);
+  EXPECT_EQ(credit.get_credit(ALLOWED_TOTAL), 2000);
+  EXPECT_EQ(credit.get_credit(REPORTED_TX), 1000);
+
+  // use enough to triger quota expiration. All credit will be reported
+  credit.add_used_credit(50, 0, uc);
+  update = credit.get_usage_for_reporting(uc);
+  EXPECT_EQ(update.bytes_tx, 1050);
+  EXPECT_EQ(credit.get_credit(REPORTING_TX), 1050);
+  EXPECT_EQ(credit.get_credit(USED_TX), 2050);
+  EXPECT_EQ(credit.get_credit(USED_RX), 0);
+
+  // Set the action to terminate once quota is exhausted
   EXPECT_EQ(credit.get_action(uc), TERMINATE_SERVICE);
 }
 
 TEST(test_failures, test_session_credit) {
   SessionCredit credit(CreditType::CHARGING);
   SessionCreditUpdateCriteria uc{};
-  credit.receive_credit(1024, HIGH_CREDIT, HIGH_CREDIT, 0, false,
+  credit.receive_credit(1000, HIGH_CREDIT, HIGH_CREDIT, 0, true,
                         default_final_action_info, uc);
-  credit.add_used_credit(1024, 0, uc);
+  credit.add_used_credit(500, 0, uc);
   EXPECT_EQ(credit.get_action(uc), CONTINUE_SERVICE);
   credit.mark_failure(0, uc);
   EXPECT_EQ(credit.get_action(uc), CONTINUE_SERVICE);
   // extra tolerance quota are exhausted
-  credit.add_used_credit(1024, 0, uc);
+  credit.add_used_credit(1000, 0, uc);
   credit.mark_failure(0, uc);
   EXPECT_EQ(credit.get_action(uc), TERMINATE_SERVICE);
 }
