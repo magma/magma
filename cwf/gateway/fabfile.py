@@ -208,10 +208,8 @@ def _set_cwag_test_configs():
 
 
 def _start_ipfix_controller():
-    """ Install and start the ipfix collector"""
+    """ Start the IPFIX collector"""
     with cd("$MAGMA_ROOT"):
-        sudo('curl -L https://sourceforge.net/projects/libipfix/files/RELEASES/libipfix-dev_0.8.1-1ubuntu1_amd64.deb/download?use_mirror=autoselect --output  libipfix-dev_0.8.1-1ubuntu1_amd64.deb')
-        sudo('apt install ./libipfix-dev_0.8.1-1ubuntu1_amd64.deb')
         sudo('mkdir -p records')
         sudo('rm -rf records/*')
         sudo('pkill ipfix_collector > /dev/null &', pty=False, warn_only=True)

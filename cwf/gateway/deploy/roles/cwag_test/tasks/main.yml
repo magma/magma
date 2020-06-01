@@ -20,3 +20,6 @@
 
 - name: Install iperf3 to use for traffic tests
   apt: pkg=iperf3 state=present update_cache=yes
+
+- name: Install lipipfix to use for ipfix tests
+  apt: pkg=libipfix-dev state=present update_cache=yes
