@@ -35,7 +35,7 @@
             "config": {
               "URI": "$AAA_ENDPOINT",
               "AccessToken": "$AAA_ACCESS_TOKEN",
-              "DryRun": true
+              "DryRun": false
             }
           }
         ]
