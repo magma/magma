@@ -11,6 +11,8 @@ LICENSE file in the root directory of this source tree.
 package exporters
 
 import (
+	"magma/orc8r/lib/go/protos"
+
 	dto "github.com/prometheus/client_model/go"
 )
 
@@ -61,3 +63,36 @@ type PushedMetricContext struct {
 }
 
 func (c *PushedMetricContext) isExtraMetricContext() {}
+
+// ConvertMetricAndContextToProto converts metricAndContext objects to their
+// protobuf representation.
+func ConvertMetricAndContextToProto(metric MetricAndContext) *protos.MetricAndContext {
+	metricAndContext := &protos.MetricAndContext{
+		Family: metric.Family,
+		Context: &protos.MetricContext{
+			MetricName: metric.Context.MetricName,
+		},
+	}
+	switch additionalCtx := metric.Context.AdditionalContext.(type) {
+	case *CloudMetricContext:
+		metricAndContext.Context.MetricOriginContext = &protos.MetricContext_CloudMetric{
+			CloudMetric: &protos.CloudMetricContext{
+				CloudHost: additionalCtx.CloudHost,
+			},
+		}
+	case *GatewayMetricContext:
+		metricAndContext.Context.MetricOriginContext = &protos.MetricContext_GatewayMetric{
+			GatewayMetric: &protos.GatewayMetricContext{
+				NetworkId: additionalCtx.NetworkID,
+				GatewayId: additionalCtx.GatewayID,
+			},
+		}
+	case *PushedMetricContext:
+		metricAndContext.Context.MetricOriginContext = &protos.MetricContext_PushedMetric{
+			PushedMetric: &protos.PushedMetricContext{
+				NetworkId: additionalCtx.NetworkID,
+			},
+		}
+	}
+	return metricAndContext
+}
