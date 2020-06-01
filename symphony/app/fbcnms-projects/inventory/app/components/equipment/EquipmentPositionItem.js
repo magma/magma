@@ -23,7 +23,7 @@ import ActionButton from '@fbcnms/ui/components/ActionButton';
 import AddToEquipmentDialog from './AddToEquipmentDialog';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import CommonStrings from '@fbcnms/strings/Strings';
-import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
+import FormActionWithPermissions from '../../common/FormActionWithPermissions';
 import React from 'react';
 import RemoveEquipmentFromPositionMutation from '../../mutations/RemoveEquipmentFromPositionMutation';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
@@ -118,7 +118,16 @@ class EquipmentPositionItem extends React.Component<Props, State> {
           [classes.equipmentRoot]: true,
         })}>
         <div className={classes.positionBody}>{this.renderEquipment()}</div>
-        <FormAction>
+        <FormActionWithPermissions
+          permissions={
+            positionOccupied == true
+              ? {
+                  entity: 'equipment',
+                  action: 'delete',
+                }
+              : {}
+          }
+          includingParentFormPermissions={true}>
           <ActionButton
             action={positionOccupied ? 'remove' : 'add'}
             onClick={() => {
@@ -170,7 +179,7 @@ class EquipmentPositionItem extends React.Component<Props, State> {
             parentEquipment={this.props.equipment}
             position={position}
           />
-        </FormAction>
+        </FormActionWithPermissions>
       </div>
     );
   }
