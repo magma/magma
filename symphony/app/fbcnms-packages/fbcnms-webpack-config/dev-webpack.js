@@ -167,6 +167,11 @@ function createDevWebpackConfig(options: Options) {
         },
       },
     },
+    devServer: {
+      watchOptions: {
+        ignored: /node_modules/,
+      },
+    },
   };
 }
 
