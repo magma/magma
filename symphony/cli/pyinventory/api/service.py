@@ -9,7 +9,7 @@ from pysymphony import SymphonyClient
 
 from .._utils import PropertyValue, get_graphql_property_inputs
 from ..common.cache import SERVICE_TYPES
-from ..common.data_class import Customer, Service, ServiceEndpoint
+from ..common.data_class import Customer, Link, Service, ServiceEndpoint
 from ..common.data_enum import Entity
 from ..exceptions import EntityNotFoundError
 from ..graphql.enum.service_status import ServiceStatus
@@ -20,6 +20,7 @@ from ..graphql.mutation.add_service_endpoint import AddServiceEndpointMutation
 from ..graphql.mutation.add_service_link import AddServiceLinkMutation
 from ..graphql.query.service_details import ServiceDetailsQuery
 from ..graphql.query.service_endpoints import ServiceEndpointsQuery
+from ..graphql.query.service_links import ServiceLinksQuery
 
 
 def add_service(
@@ -202,6 +203,39 @@ def add_service_endpoint(
             id=service.id, definition=endpoint_definition_id, equipmentID=equipment_id
         ),
     )
+
+
+def get_service_links(client: SymphonyClient, service_id: str) -> List[Link]:
+    """This function returns list of Links.
+
+        Args:
+            service_id (str): existing service ID
+
+        Returns:
+            List[ `pyinventory.common.data_class.Link` ]
+
+        Raises:
+            `pyinventory.exceptions.EntityNotFoundError`: service does not exist
+            FailedOperationException: internal inventory error
+
+        Example:
+            ```
+            links = client.get_service_links(id="service_id")
+            ```
+    """
+    service_data = ServiceLinksQuery.execute(client, id=service_id)
+
+    if not service_data:
+        raise EntityNotFoundError(entity=Entity.Service, entity_id=service_id)
+
+    return [
+        Link(
+            id=link.id,
+            properties=link.properties,
+            service_ids=[s.id for s in link.services],
+        )
+        for link in service_data.links
+    ]
 
 
 def add_service_link(client: SymphonyClient, service_id: str, link_id: str) -> None:

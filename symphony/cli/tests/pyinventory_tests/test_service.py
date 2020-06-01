@@ -6,14 +6,17 @@
 from pyinventory.api.customer import add_customer
 from pyinventory.api.equipment import add_equipment
 from pyinventory.api.equipment_type import add_equipment_type
+from pyinventory.api.link import add_link
 from pyinventory.api.location import add_location
 from pyinventory.api.location_type import add_location_type
 from pyinventory.api.port_type import add_equipment_port_type
 from pyinventory.api.service import (
     add_service,
     add_service_endpoint,
+    add_service_link,
     get_service,
     get_service_endpoints,
+    get_service_links,
 )
 from pyinventory.api.service_type import add_service_type, edit_service_type
 from pyinventory.common.cache import SERVICE_TYPES
@@ -166,3 +169,88 @@ class TestService(BaseTest):
             client=self.client, service_id=self.service.id
         )
         self.assertEqual(len(endpoints), 1)
+
+    def test_service_link_added(self) -> None:
+        add_equipment_port_type(
+            self.client,
+            name="port type 1",
+            properties=[
+                PropertyDefinition(
+                    property_name="port property",
+                    property_kind=PropertyKind.string,
+                    default_value="port property value",
+                    is_fixed=False,
+                )
+            ],
+            link_properties=[
+                PropertyDefinition(
+                    property_name="link property",
+                    property_kind=PropertyKind.string,
+                    default_value="link property value",
+                    is_fixed=False,
+                )
+            ],
+        )
+        add_location_type(
+            client=self.client,
+            name="Room",
+            properties=[("Contact", "email", None, True)],
+        )
+        location = add_location(
+            client=self.client,
+            location_hirerchy=[("Room", "Room 201")],
+            properties_dict={"Contact": "user@google.com"},
+            lat=10,
+            long=20,
+        )
+        equipment_type = add_equipment_type(
+            client=self.client,
+            name="Tp-Link T1600G",
+            category="Router",
+            properties=[("IP", "string", None, True)],
+            ports_dict={"Port 1": "port type 1", "Port 2": "port type 1"},
+            position_list=[],
+        )
+        router1 = add_equipment(
+            client=self.client,
+            name="TPLinkRouter1",
+            equipment_type=equipment_type.name,
+            location=location,
+            properties_dict={"IP": "192.688.0.1"},
+        )
+        router2 = add_equipment(
+            client=self.client,
+            name="TPLinkRouter2",
+            equipment_type=equipment_type.name,
+            location=location,
+            properties_dict={"IP": "192.688.0.2"},
+        )
+        router3 = add_equipment(
+            client=self.client,
+            name="TPLinkRouter3",
+            equipment_type=equipment_type.name,
+            location=location,
+            properties_dict={"IP": "192.688.0.3"},
+        )
+        link1 = add_link(
+            client=self.client,
+            equipment_a=router1,
+            port_name_a="Port 1",
+            equipment_b=router2,
+            port_name_b="Port 1",
+        )
+        link2 = add_link(
+            client=self.client,
+            equipment_a=router2,
+            port_name_a="Port 2",
+            equipment_b=router3,
+            port_name_b="Port 1",
+        )
+        links = get_service_links(client=self.client, service_id=self.service.id)
+        self.assertFalse(links)
+        for link in [link1, link2]:
+            add_service_link(
+                client=self.client, service_id=self.service.id, link_id=link.id
+            )
+        links = get_service_links(client=self.client, service_id=self.service.id)
+        self.assertEqual(len(links), 2)
