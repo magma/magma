@@ -294,7 +294,8 @@ void ChargingCreditPool::merge_credit_update(
   if (it == credit_map_.end()) {
     return;
   }
-  it->second->set_is_final_grant(credit_update.is_final, credit_update);
+  it->second->set_is_final_grant_and_final_action(
+        credit_update.is_final, credit_update.final_action_info, credit_update);
   it->second->set_reauth(credit_update.reauth_state, credit_update);
   it->second->set_service_state(credit_update.service_state, credit_update);
   it->second->set_expiry_time(credit_update.expiry_time, credit_update);
@@ -604,7 +605,9 @@ void UsageMonitoringCreditPool::merge_credit_update(
   if (it == monitor_map_.end()) {
     return;
   }
-  it->second->credit.set_is_final_grant(credit_update.is_final, credit_update);
+
+  it->second->credit.set_is_final_grant_and_final_action(
+        credit_update.is_final, credit_update.final_action_info, credit_update);
   it->second->credit.set_reauth(credit_update.reauth_state, credit_update);
   it->second->credit.set_service_state(credit_update.service_state,
                                        credit_update);

@@ -137,8 +137,9 @@ public:
    * NOTE: Use only for merging updates into SessionStore
    * @param is_final_grant
    */
-  void set_is_final_grant(bool is_final_grant,
-                          SessionCreditUpdateCriteria &update_criteria);
+  void set_is_final_grant_and_final_action(
+      bool is_final_grant, FinalActionInfo final_action_info,
+      SessionCreditUpdateCriteria& update_criteria);
 
   /**
    * Set ReAuthState.

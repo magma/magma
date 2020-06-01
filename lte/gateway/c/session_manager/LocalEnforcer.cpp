@@ -1048,7 +1048,6 @@ void LocalEnforcer::update_charging_credits(
       session->get_charging_pool().receive_credit(
           credit_update_resp, update_criteria);
       session->set_tgpp_context(credit_update_resp.tgpp_ctx(), update_criteria);
-
       SessionState::SessionInfo info;
       std::vector<PolicyRule> gy_rules_to_deactivate;
       session->get_session_info(info);
