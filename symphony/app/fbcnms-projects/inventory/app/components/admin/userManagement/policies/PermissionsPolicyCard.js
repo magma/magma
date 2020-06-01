@@ -267,7 +267,9 @@ function PermissionsPolicyCard(props: Props) {
     }
     return {
       title: <Breadcrumbs breadcrumbs={breadcrumbs} />,
-      subtitle: fbt('Edit this policy and apply it to groups.', ''),
+      subtitle: policy?.isSystemDefault
+        ? fbt('Default policy details.', '')
+        : fbt('Edit this policy and apply it to groups.', ''),
       actionButtons: actions,
     };
   }, [

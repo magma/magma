@@ -166,7 +166,7 @@ const WorkOrderDetails = ({
   const [isLoadingDocument, setIsLoadingDocument] = useState(false);
   const {isFeatureEnabled} = useContext(AppContext);
 
-  const {userHasAdminPermissions, me} = useMainContext();
+  const {me} = useMainContext();
 
   const [editingCategories, dispatch] = useReducer<
     ChecklistCategoriesStateType,
@@ -267,13 +267,9 @@ const WorkOrderDetails = ({
 
   const {location} = workOrder;
   const actionsEnabled = isFeatureEnabled('planned_equipment');
-  const permissionsEnforcementIsOn = isFeatureEnabled(
-    'permissions_ui_enforcement',
-  );
 
-  const isOwnerOrAssignee =
-    me?.user?.email === workOrder?.owner?.email ||
-    me?.user?.email === workOrder?.assignedTo?.email;
+  const isOwner = me?.user?.email === workOrder?.owner?.email;
+  const isAssignee = me?.user?.email === workOrder?.assignedTo?.email;
 
   return (
     <div className={classes.root}>
@@ -281,7 +277,7 @@ const WorkOrderDetails = ({
         permissions={{
           entity: 'workorder',
           action: 'update',
-          ignorePermissions: isOwnerOrAssignee,
+          ignorePermissions: isOwner || isAssignee,
         }}>
         <WorkOrderHeader
           workOrderName={propsWorkOrder.name}
@@ -303,20 +299,6 @@ const WorkOrderDetails = ({
                   ? `Work order is on '${doneStatus.label}' state`
                   : '',
             });
-            const nonOwnerAssignee =
-              permissionsEnforcementIsOn &&
-              form.alerts.missingPermissions.check({
-                fieldId: 'NonOwnerAssigneeRule',
-                fieldDisplayName: 'Non Owner assignee rule',
-                value: propsWorkOrder,
-                checkCallback: workOrder =>
-                  !userHasAdminPermissions &&
-                  me?.user?.email !== workOrder?.owner.email &&
-                  me?.user?.email === workOrder?.assignedTo?.email
-                    ? 'Assignee is not allowed to change owner'
-                    : '',
-                notAggregated: true,
-              });
             return (
               <div className={classes.cards}>
                 <Grid container spacing={2}>
@@ -551,10 +533,10 @@ const WorkOrderDetails = ({
                         permissions={{
                           entity: 'workorder',
                           action: 'transferOwnership',
+                          ignorePermissions: isOwner,
                         }}
                         required={true}
-                        validation={{id: 'owner', value: workOrder.owner?.id}}
-                        disabled={!!nonOwnerAssignee}>
+                        validation={{id: 'owner', value: workOrder.owner?.id}}>
                         <UserTypeahead
                           selectedUser={workOrder.owner}
                           onUserSelection={user =>
@@ -569,6 +551,7 @@ const WorkOrderDetails = ({
                         permissions={{
                           entity: 'workorder',
                           action: 'assign',
+                          ignorePermissions: isOwner || isAssignee,
                         }}>
                         <UserTypeahead
                           selectedUser={workOrder.assignedTo}
