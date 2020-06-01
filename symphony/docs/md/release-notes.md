@@ -15,6 +15,11 @@ The team is currently working on:
 
 
 ### Release Notes
+* 05/22/2020
+    * Mobile App
+        * **[My Tasks][Checklist]**	Photos upload in checklist:	The user is now able to upload more than 1 photo per checklist item during site survey. The user can choose whether to upload photos from the phone gallery or take photos via the camera.
+        * **[My Tasks]**	Offline mode:	The user is now able to complete a work order tasks even if the device does not have internet connection.
+        
 * 4/30/2020
     * Mobile App
         * **New Release**: New major app release. This release includes work order: view work orders, edit work orders, edit checklist. Download from here: [https://play.google.com/apps/testing/cloud.thesymphony](https://play.google.com/apps/testing/cloud.thesymphony)
