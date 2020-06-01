@@ -251,11 +251,6 @@ void SessionState::start_termination(
   set_fsm_state(SESSION_TERMINATING_FLOW_ACTIVE, update_criteria);
 }
 
-void SessionState::set_termination_callback(
-    std::function<void(SessionTerminateRequest)> on_termination_callback) {
-  on_termination_callback_ = on_termination_callback;
-}
-
 bool SessionState::can_complete_termination() const {
   return curr_state_ == SESSION_TERMINATING_FLOW_DELETED;
 }
@@ -288,18 +283,9 @@ void SessionState::complete_termination(
   }
   // mark entire session as terminated
   set_fsm_state(SESSION_TERMINATED, update_criteria);
-
   auto termination_req = make_termination_request(update_criteria);
-  try {
-    on_termination_callback_(termination_req);
-  } catch (std::bad_function_call&) {
-    on_termination_callback_ = [&reporter](SessionTerminateRequest term_req) {
-      // report to cloud
-      auto logging_cb = SessionReporter::get_terminate_logging_cb(term_req);
-      reporter.report_terminate_session(term_req, logging_cb);
-    };
-    on_termination_callback_(termination_req);
-  }
+  auto logging_cb = SessionReporter::get_terminate_logging_cb(termination_req);
+  reporter.report_terminate_session(termination_req, logging_cb);
 }
 
 SessionTerminateRequest SessionState::make_termination_request(
