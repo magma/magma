@@ -13,16 +13,15 @@ from typing import Any, Callable, List, Mapping, Optional
 from time import perf_counter
 from dataclasses_json import DataClassJsonMixin
 
-from ..fragment.equipment_port import EquipmentPortFragment, QUERY as EquipmentPortFragmentQuery
 from ..fragment.service_endpoint_definition import ServiceEndpointDefinitionFragment, QUERY as ServiceEndpointDefinitionFragmentQuery
-QUERY: List[str] = EquipmentPortFragmentQuery + ServiceEndpointDefinitionFragmentQuery + ["""
+QUERY: List[str] = ServiceEndpointDefinitionFragmentQuery + ["""
 fragment ServiceEndpointFragment on ServiceEndpoint {
   id
-  port {
-    ...EquipmentPortFragment
-  }
   definition {
     ...ServiceEndpointDefinitionFragment
+  }
+  equipment {
+    id
   }
 }
 
@@ -31,13 +30,13 @@ fragment ServiceEndpointFragment on ServiceEndpoint {
 @dataclass
 class ServiceEndpointFragment(DataClassJsonMixin):
     @dataclass
-    class EquipmentPort(EquipmentPortFragment):
-        pass
-
-    @dataclass
     class ServiceEndpointDefinition(ServiceEndpointDefinitionFragment):
         pass
 
+    @dataclass
+    class Equipment(DataClassJsonMixin):
+        id: str
+
     id: str
     definition: ServiceEndpointDefinition
-    port: Optional[EquipmentPort]
+    equipment: Equipment

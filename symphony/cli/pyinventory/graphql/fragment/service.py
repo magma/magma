@@ -20,6 +20,10 @@ fragment ServiceFragment on Service {
   id
   name
   externalId
+  serviceType {
+    id
+    name
+  }
   customer {
     ...CustomerFragment
   }
@@ -33,6 +37,11 @@ fragment ServiceFragment on Service {
 @dataclass
 class ServiceFragment(DataClassJsonMixin):
     @dataclass
+    class ServiceType(DataClassJsonMixin):
+        id: str
+        name: str
+
+    @dataclass
     class Customer(CustomerFragment):
         pass
 
@@ -42,6 +51,7 @@ class ServiceFragment(DataClassJsonMixin):
 
     id: str
     name: str
+    serviceType: ServiceType
     properties: List[Property]
     externalId: Optional[str]
     customer: Optional[Customer]

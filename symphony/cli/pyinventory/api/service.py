@@ -3,13 +3,13 @@
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
-from typing import Mapping, Optional
+from typing import List, Mapping, Optional
 
 from pysymphony import SymphonyClient
 
 from .._utils import PropertyValue, get_graphql_property_inputs
 from ..common.cache import SERVICE_TYPES
-from ..common.data_class import Customer, Service
+from ..common.data_class import Customer, Service, ServiceEndpoint
 from ..common.data_enum import Entity
 from ..exceptions import EntityNotFoundError
 from ..graphql.enum.service_status import ServiceStatus
@@ -19,6 +19,7 @@ from ..graphql.mutation.add_service import AddServiceMutation
 from ..graphql.mutation.add_service_endpoint import AddServiceEndpointMutation
 from ..graphql.mutation.add_service_link import AddServiceLinkMutation
 from ..graphql.query.service_details import ServiceDetailsQuery
+from ..graphql.query.service_endpoints import ServiceEndpointsQuery
 
 
 def add_service(
@@ -80,6 +81,7 @@ def add_service(
         id=result.id,
         name=result.name,
         external_id=result.externalId,
+        service_type_name=result.serviceType.name,
         customer=customer,
         properties=result.properties,
     )
@@ -115,21 +117,58 @@ def get_service(client: SymphonyClient, id: str) -> Service:
         id=result.id,
         name=result.name,
         external_id=result.externalId if result.externalId else None,
+        service_type_name=result.serviceType.name,
         customer=customer,
         properties=result.properties,
     )
 
 
+def get_service_endpoints(
+    client: SymphonyClient, service_id: str
+) -> List[ServiceEndpoint]:
+    """This function returns service endpoints list.
+
+        Args:
+            service_id (str): existing service ID
+
+        Returns:
+            List[ `pyinventory.common.data_class.ServiceEndpoint` ]
+
+        Raises:
+            `pyinventory.exceptions.EntityNotFoundError`: service does not exist
+            FailedOperationException: internal inventory error
+
+        Example:
+            ```
+            endpoints = client.get_service_endpoint_definitions(id="service_id")
+            ```
+    """
+    service_data = ServiceEndpointsQuery.execute(client, id=service_id)
+
+    if not service_data:
+        raise EntityNotFoundError(entity=Entity.Service, entity_id=service_id)
+
+    return [
+        ServiceEndpoint(
+            id=endpoint.id,
+            equipment_id=endpoint.equipment.id,
+            service_id=service_id,
+            definition_id=endpoint.definition.id,
+        )
+        for endpoint in service_data.endpoints
+    ]
+
+
 def add_service_endpoint(
     client: SymphonyClient,
-    service_id: str,
+    service: Service,
     equipment_id: str,
     endpoint_definition_id: str,
 ) -> None:
     """This function adds existing endpoint to existing service.
 
         Args:
-            service_id (str): existing service ID
+            service (str): existing service object
             equipment_id (str): existing equipment ID
             endpoint_definition_id (str): existing endpoint definition ID
 
@@ -142,18 +181,26 @@ def add_service_endpoint(
             location = client.get_location(location_hirerchy=[("Country", "LS_IND_Prod_Copy")])
             equipment = client.get_equipment(name="indProdCpy1_AIO", location=location)
             client.add_service_endpoint(
-                service_id=service.id,
+                service=service,
                 equipment_id=equipment.id,
                 endpoint_definition_id="endpoint_definition_id,
             )
             ```
     """
-    #  definition should be from service type
-    #  remove portID
-    #  use equipmentID instead of portId
+    endpoint_definition_ids = [
+        ed.id for ed in SERVICE_TYPES[service.service_type_name].endpoint_definitions
+    ]
+
+    if endpoint_definition_id not in endpoint_definition_ids:
+        raise EntityNotFoundError(
+            entity=Entity.ServiceEndpointDefinition, entity_id=endpoint_definition_id
+        )
+
     AddServiceEndpointMutation.execute(
         client,
-        input=AddServiceEndpointInput(id=service_id, definition="1", equipmentID="1"),
+        input=AddServiceEndpointInput(
+            id=service.id, definition=endpoint_definition_id, equipmentID=equipment_id
+        ),
     )
 
 

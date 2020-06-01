@@ -3,24 +3,21 @@
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
-
-import unittest
-
 from pyinventory.api.customer import add_customer
 from pyinventory.api.equipment import add_equipment
 from pyinventory.api.equipment_type import add_equipment_type
-from pyinventory.api.link import add_link, get_port
 from pyinventory.api.location import add_location
 from pyinventory.api.location_type import add_location_type
 from pyinventory.api.port_type import add_equipment_port_type
 from pyinventory.api.service import (
     add_service,
     add_service_endpoint,
-    add_service_link,
     get_service,
+    get_service_endpoints,
 )
-from pyinventory.api.service_type import add_service_type
-from pyinventory.common.data_class import PropertyDefinition
+from pyinventory.api.service_type import add_service_type, edit_service_type
+from pyinventory.common.cache import SERVICE_TYPES
+from pyinventory.common.data_class import PropertyDefinition, ServiceEndpointDefinition
 from pyinventory.graphql.enum.property_kind import PropertyKind
 from pysymphony import SymphonyClient
 
@@ -54,6 +51,7 @@ class TestService(BaseTest):
                     is_fixed=False,
                 ),
             ],
+            endpoint_definitions=[],
         )
         self.service = add_service(
             client=self.client,
@@ -88,8 +86,7 @@ class TestService(BaseTest):
         self.assertNotEqual(fetched_customer, None)
         self.assertEqual(fetched_customer, self.customer)
 
-    @unittest.skip("Will be restored once new endpoint schema is finalized")
-    def test_service_with_topology_created(self) -> None:
+    def test_service_endpoint_added(self) -> None:
         add_equipment_port_type(
             self.client,
             name="port type 1",
@@ -122,7 +119,7 @@ class TestService(BaseTest):
             lat=10,
             long=20,
         )
-        add_equipment_type(
+        equipment_type = add_equipment_type(
             client=self.client,
             name="Tp-Link T1600G",
             category="Router",
@@ -133,57 +130,39 @@ class TestService(BaseTest):
         router1 = add_equipment(
             client=self.client,
             name="TPLinkRouter1",
-            equipment_type="Tp-Link T1600G",
+            equipment_type=equipment_type.name,
             location=location,
             properties_dict={"IP": "192.688.0.1"},
         )
-        router2 = add_equipment(
-            client=self.client,
-            name="TPLinkRouter2",
-            equipment_type="Tp-Link T1600G",
-            location=location,
-            properties_dict={"IP": "192.688.0.2"},
-        )
-        router3 = add_equipment(
-            client=self.client,
-            name="TPLinkRouter3",
-            equipment_type="Tp-Link T1600G",
-            location=location,
-            properties_dict={"IP": "192.688.0.3"},
-        )
-        link1 = add_link(
-            client=self.client,
-            equipment_a=router1,
-            port_name_a="Port 1",
-            equipment_b=router2,
-            port_name_b="Port 1",
-        )
-        link2 = add_link(
-            client=self.client,
-            equipment_a=router2,
-            port_name_a="Port 2",
-            equipment_b=router3,
-            port_name_b="Port 1",
-        )
 
-        endpoint_port = get_port(
-            client=self.client, equipment=router1, port_name="Port 2"
+        edit_service_type(
+            client=self.client,
+            service_type=self.service_type,
+            new_endpoints=[
+                ServiceEndpointDefinition(
+                    id=None,
+                    name="EndpointDefinition",
+                    role="CPE",
+                    endpoint_definition_index=0,
+                    equipment_type_id=equipment_type.id,
+                )
+            ],
         )
-
-        for link in [link1, link2]:
-            add_service_link(
-                client=self.client, service_id=self.service.id, link_id=link.id
-            )
-        # TODO add service_endpoint_defintion api
+        endpoint_definitions = SERVICE_TYPES[
+            self.service_type.name
+        ].endpoint_definitions
+        endpoints = get_service_endpoints(
+            client=self.client, service_id=self.service.id
+        )
+        self.assertFalse(endpoints)
+        endpoint_definition_id = endpoint_definitions[0].id
         add_service_endpoint(
             client=self.client,
-            service_id=self.service.id,
-            equipment_id="1",
-            endpoint_definition_id="1",
+            service=self.service,
+            equipment_id=router1.id,
+            endpoint_definition_id=endpoint_definition_id,
         )
-
-        ports = [e.port for e in self.service.endpoints]
-        self.assertEqual(
-            [endpoint_port.id], [p.id if p is not None else None for p in ports]
+        endpoints = get_service_endpoints(
+            client=self.client, service_id=self.service.id
         )
-        self.assertEqual([link1.id, link2.id], [s.id for s in self.service.links])
+        self.assertEqual(len(endpoints), 1)

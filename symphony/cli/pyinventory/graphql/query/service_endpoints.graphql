@@ -1,0 +1,12 @@
+query ServiceEndpointsQuery($id: ID!) {
+  service: node(id: $id) {
+    ... on Service {
+      serviceType {
+        id
+      }
+      endpoints {
+        ...ServiceEndpointFragment
+      }
+    }
+  }
+}

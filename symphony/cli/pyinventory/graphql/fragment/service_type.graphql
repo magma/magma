@@ -5,4 +5,7 @@ fragment ServiceTypeFragment on ServiceType {
   propertyTypes {
     ...PropertyTypeFragment
   }
+  endpointDefinitions {
+    ...ServiceEndpointDefinitionFragment
+  }
 }
