@@ -25,18 +25,18 @@ const useStyles = makeStyles(_theme => ({
   },
 }));
 
-type Props = {
+type Props = $ReadOnly<{|
   className?: string,
-  equipment: Array<Equipment>,
+  equipments: Array<Equipment>,
   selectedWorkOrderId: ?string,
   onEquipmentSelected: Equipment => void,
   onWorkOrderSelected: (workOrderId: string) => void,
   onAddEquipment: () => void,
-};
+|}>;
 
 const LocationEquipmentCard = (props: Props) => {
   const {
-    equipment,
+    equipments,
     className,
     selectedWorkOrderId,
     onEquipmentSelected,
@@ -48,7 +48,7 @@ const LocationEquipmentCard = (props: Props) => {
     <Card className={className}>
       <CardHeader
         className={classNames({
-          [classes.cardHasNoContent]: equipment.filter(Boolean).length === 0,
+          [classes.cardHasNoContent]: equipments.filter(Boolean).length === 0,
         })}
         rightContent={
           <FormActionWithPermissions
@@ -59,7 +59,7 @@ const LocationEquipmentCard = (props: Props) => {
         Equipment
       </CardHeader>
       <EquipmentTable
-        equipment={equipment}
+        equipments={equipments}
         selectedWorkOrderId={selectedWorkOrderId}
         onEquipmentSelected={onEquipmentSelected}
         onWorkOrderSelected={onWorkOrderSelected}
