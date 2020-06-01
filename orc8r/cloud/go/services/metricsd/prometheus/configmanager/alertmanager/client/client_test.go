@@ -109,7 +109,7 @@ func TestClient_GetReceivers(t *testing.T) {
 
 	recs, err = client.GetReceivers(otherNID)
 	assert.NoError(t, err)
-	assert.Equal(t, 2, len(recs))
+	assert.Equal(t, 1, len(recs))
 
 	recs, err = client.GetReceivers("bad_nid")
 	assert.NoError(t, err)
