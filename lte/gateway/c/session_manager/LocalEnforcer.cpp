@@ -306,20 +306,6 @@ void LocalEnforcer::execute_actions(
   }
 }
 
-void LocalEnforcer::set_termination_callback(
-    SessionMap& session_map, const std::string& imsi, const std::string& apn,
-    std::function<void(SessionTerminateRequest)> on_termination_callback) {
-  auto it = session_map.find(imsi);
-  if (it == session_map.end()) {
-    MLOG(MERROR) << "Could not find session for IMSI " << imsi
-                 << " during termination";
-    throw SessionNotFound();
-  }
-  for (const auto& session : it->second) {
-    session->set_termination_callback(on_termination_callback);
-  }
-}
-
 // Terminates sessions that correspond to the given IMSI.
 // (For session termination triggered by sessiond)
 void LocalEnforcer::terminate_service(

@@ -112,9 +112,6 @@ class SessionState {
    */
   void start_termination(SessionStateUpdateCriteria& update_criteria);
 
-  void set_termination_callback(
-      std::function<void(SessionTerminateRequest)> on_termination_callback);
-
   /**
    * mark_as_awaiting_termination transitions the session state from
    * SESSION_ACTIVE to SESSION_TERMINATION_SCHEDULED
