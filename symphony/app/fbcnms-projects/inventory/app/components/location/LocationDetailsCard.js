@@ -20,10 +20,6 @@ import React, {useContext} from 'react';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(() => ({
-  detailsHeaderContainer: {
-    display: 'flex',
-    flexDirection: 'row',
-  },
   header: {
     flexGrow: 1,
   },
@@ -46,52 +42,50 @@ const LocationDetailsCard = (props: Props) => {
 
   return (
     <Card className={className}>
-      <div className={classes.detailsHeaderContainer}>
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={4}>
-            <CardHeader className={classes.header}>Details</CardHeader>
-            <Grid container>
-              <LocationDetailsCardProperty
-                title="Type"
-                value={location.locationType.name}
-              />
-              {externalIDEnabled && location.externalId && (
-                <LocationDetailsCardProperty
-                  title="External ID"
-                  value={location.externalId}
-                />
-              )}
-              {location.latitude !== 0 && (
-                <LocationDetailsCardProperty
-                  title="Lat"
-                  value={String(location.latitude)}
-                />
-              )}
-              {location.longitude !== 0 && (
-                <LocationDetailsCardProperty
-                  title="Long"
-                  value={String(location.longitude)}
-                />
-              )}
-            </Grid>
-          </Grid>
-          <Grid item xs={12} md={8}>
-            <LocationMapSnippet
-              className={classes.map}
-              location={{
-                id: location.id,
-                name: location.name,
-                latitude: location.latitude,
-                longitude: location.longitude,
-                locationType: {
-                  mapType: location.locationType.mapType,
-                  mapZoomLevel: location.locationType.mapZoomLevel,
-                },
-              }}
+      <Grid container spacing={2}>
+        <Grid item xs={12} md={4}>
+          <CardHeader className={classes.header}>Details</CardHeader>
+          <Grid container>
+            <LocationDetailsCardProperty
+              title="Type"
+              value={location.locationType.name}
             />
+            {externalIDEnabled && location.externalId && (
+              <LocationDetailsCardProperty
+                title="External ID"
+                value={location.externalId}
+              />
+            )}
+            {location.latitude !== 0 && (
+              <LocationDetailsCardProperty
+                title="Lat"
+                value={String(location.latitude)}
+              />
+            )}
+            {location.longitude !== 0 && (
+              <LocationDetailsCardProperty
+                title="Long"
+                value={String(location.longitude)}
+              />
+            )}
           </Grid>
         </Grid>
-      </div>
+        <Grid item xs={12} md={8}>
+          <LocationMapSnippet
+            className={classes.map}
+            location={{
+              id: location.id,
+              name: location.name,
+              latitude: location.latitude,
+              longitude: location.longitude,
+              locationType: {
+                mapType: location.locationType.mapType,
+                mapZoomLevel: location.locationType.mapZoomLevel,
+              },
+            }}
+          />
+        </Grid>
+      </Grid>
     </Card>
   );
 };

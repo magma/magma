@@ -17,6 +17,7 @@ class Entity(Enum):
     Service = "Service"
     ServiceType = "ServiceType"
     ServiceEndpoint = "ServiceEndpoint"
+    ServiceEndpointDefinition = "ServiceEndpointDefinition"
     SiteSurvey = "SiteSurvey"
     Customer = "Customer"
     Document = "Document"

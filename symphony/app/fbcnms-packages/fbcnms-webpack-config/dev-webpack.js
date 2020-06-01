@@ -52,12 +52,7 @@ function createDevWebpackConfig(options: Options) {
         ? `/${options.projectName}/static/dist/`
         : '/static/dist/',
     },
-    plugins: options.hot
-      ? [
-          new webpack.HotModuleReplacementPlugin(),
-          new webpack.NoEmitOnErrorsPlugin(),
-        ]
-      : [new webpack.NoEmitOnErrorsPlugin()],
+    plugins: options.hot ? [new webpack.HotModuleReplacementPlugin()] : [],
     module: {
       rules: [
         {
@@ -170,6 +165,11 @@ function createDevWebpackConfig(options: Options) {
             filename: 'vendor.js',
           },
         },
+      },
+    },
+    devServer: {
+      watchOptions: {
+        ignored: /node_modules/,
       },
     },
   };

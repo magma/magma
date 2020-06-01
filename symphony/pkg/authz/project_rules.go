@@ -9,17 +9,14 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/facebookincubator/symphony/pkg/ent/predicate"
-	"github.com/facebookincubator/symphony/pkg/ent/user"
-	"github.com/facebookincubator/symphony/pkg/viewer"
-
-	models2 "github.com/facebookincubator/symphony/pkg/authz/models"
-
-	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/pkg/authz/models"
 	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/ent/predicate"
 	"github.com/facebookincubator/symphony/pkg/ent/privacy"
 	"github.com/facebookincubator/symphony/pkg/ent/project"
 	"github.com/facebookincubator/symphony/pkg/ent/projecttype"
+	"github.com/facebookincubator/symphony/pkg/ent/user"
+	"github.com/facebookincubator/symphony/pkg/viewer"
 )
 
 func projectCudBasedCheck(ctx context.Context, cud *models.WorkforceCud, m *ent.ProjectMutation) (bool, error) {
@@ -53,9 +50,9 @@ func projectReadPredicate(ctx context.Context) predicate.Project {
 	var predicates []predicate.Project
 	rule := FromContext(ctx).WorkforcePolicy.Read
 	switch rule.IsAllowed {
-	case models2.PermissionValueYes:
+	case models.PermissionValueYes:
 		return nil
-	case models2.PermissionValueByCondition:
+	case models.PermissionValueByCondition:
 		predicates = append(predicates,
 			project.HasTypeWith(projecttype.IDIn(rule.ProjectTypeIds...)))
 	}
@@ -118,7 +115,7 @@ func ProjectWritePolicyRule() privacy.MutationRule {
 			v, isUser := viewer.FromContext(ctx).(*viewer.UserViewer)
 			creatorID, exists := m.CreatorID()
 			if !m.Op().Is(ent.OpCreate) || !isUser || !exists || v.User().ID != creatorID {
-				allowed = allowed && (cud.TransferOwnership.IsAllowed == models2.PermissionValueYes)
+				allowed = allowed && (cud.TransferOwnership.IsAllowed == models.PermissionValueYes)
 			}
 		}
 		if allowed {

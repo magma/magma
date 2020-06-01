@@ -11,24 +11,22 @@
 import type {PermissionsPolicy} from '../utils/UserManagementUtils';
 
 import * as React from 'react';
+import Card from '@fbcnms/ui/components/design-system/Card/Card';
 import FormFieldTextInput from '../utils/FormFieldTextInput';
 import Grid from '@material-ui/core/Grid';
 import ViewContainer from '@fbcnms/ui/components/design-system/View/ViewContainer';
-import classNames from 'classnames';
 import fbt from 'fbt';
-import symphony from '@fbcnms/ui/theme/symphony';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(() => ({
-  root: {
-    backgroundColor: symphony.palette.white,
+  content: {
     paddingBottom: '16px',
   },
   nameField: {
     marginRight: '8px',
   },
   descriptionField: {
-    marginTop: '8px',
+    marginTop: '16px',
   },
 }));
 
@@ -43,8 +41,10 @@ export default function PermissionsPolicyDetailsPane(props: Props) {
   const classes = useStyles();
 
   return (
-    <div className={classNames(classes.root, className)}>
-      <ViewContainer header={{title: <fbt desc="">Policy Details</fbt>}}>
+    <Card className={className} margins="none">
+      <ViewContainer
+        className={classes.content}
+        header={{title: <fbt desc="">Policy Details</fbt>}}>
         <Grid container>
           <Grid item xs={12} sm={6} lg={6} xl={6}>
             <FormFieldTextInput
@@ -62,6 +62,7 @@ export default function PermissionsPolicyDetailsPane(props: Props) {
           </Grid>
           <Grid item xs={12}>
             <FormFieldTextInput
+              type="multiline"
               className={classes.descriptionField}
               label={`${fbt('Policy Description', '')}`}
               value={policy.description || ''}
@@ -75,6 +76,6 @@ export default function PermissionsPolicyDetailsPane(props: Props) {
           </Grid>
         </Grid>
       </ViewContainer>
-    </div>
+    </Card>
   );
 }

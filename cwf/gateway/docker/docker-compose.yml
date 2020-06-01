@@ -83,6 +83,11 @@ services:
       retries: 3
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/eap_aka -logtostderr=true -v=0
 
+  eventd:
+    <<: *pyservice
+    container_name: eventd
+    command: python3.5 -m magma.eventd.main
+
   health:
     <<: *feggoservice
     image: ${DOCKER_REGISTRY}cwag_go:${IMAGE_VERSION}
@@ -139,6 +144,7 @@ services:
         /usr/bin/ovs-vsctl set-controller cwag_br0 tcp:127.0.0.1:6633 &&
         /usr/bin/ovs-vsctl set-fail-mode cwag_br0 secure &&
         /usr/bin/ovs-vsctl set bridge cwag_br0 other-config:disable-in-band=true &&
+        /var/opt/magma/scripts/add_uplink_bridge_flows.sh &&
         python3 -m magma.pipelined.main"
 
   policydb:
@@ -213,3 +219,12 @@ services:
     depends_on:
       - redis
     command: python3.5 -m magma.state.main
+
+  td-agent-bit:
+    <<: *pyservice
+    container_name: td-agent-bit
+    command: >
+        /bin/bash -c "/usr/local/bin/generate_fluent_bit_config.py &&
+        /opt/td-agent-bit/bin/td-agent-bit -c /var/opt/magma/tmp/td-agent-bit.conf"
+
+

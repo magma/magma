@@ -88,7 +88,7 @@ func OpenForTest(t *testing.T, dbName, dbDriver string) *sql.DB {
 func setDialect(driver string) {
 	old, ok := os.LookupEnv("SQL_DIALECT")
 	if ok {
-		glog.Warningf("Overwriting existing SQL_DIALECT %s", old)
+		glog.Infof("Overwriting existing SQL_DIALECT %s", old)
 	}
 	switch driver {
 	case PostgresDriver:

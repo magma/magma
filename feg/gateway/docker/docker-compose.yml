@@ -52,6 +52,11 @@ services:
       USE_REMOTE_SWX_PROXY: 0
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/eap_aka -logtostderr=true -v=0
 
+  eventd:
+    <<: *pyservice
+    container_name: eventd
+    command: python3.5 -m magma.eventd.main
+
   aaa_server:
     <<: *goservice
     container_name: aaa_server
@@ -125,3 +130,10 @@ services:
       /bin/bash -c "/usr/local/bin/generate_service_config.py --service=redis --template=redis &&
              /usr/bin/redis-server /var/opt/magma/tmp/redis.conf --daemonize no &&
              /usr/bin/redis-cli shutdown"
+
+  td-agent-bit:
+    <<: *pyservice
+    container_name: td-agent-bit
+    command: >
+        /bin/bash -c "/usr/local/bin/generate_fluent_bit_config.py &&
+        /opt/td-agent-bit/bin/td-agent-bit -c /var/opt/magma/tmp/td-agent-bit.conf"

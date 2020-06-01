@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash cfb6db113cb712a2295c1dda13303ca9
+ * @relayHash 467af7d7fd438f2ac5f780a177482db7
  */
 
 /* eslint-disable */
@@ -15,7 +15,7 @@
 
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
-type EquipmentTable_equipment$ref = any;
+type EquipmentTable_equipments$ref = any;
 export type AddEquipmentInput = {|
   name: string,
   type: string,
@@ -46,7 +46,7 @@ export type AddEquipmentMutationVariables = {|
 |};
 export type AddEquipmentMutationResponse = {|
   +addEquipment: {|
-    +$fragmentRefs: EquipmentTable_equipment$ref
+    +$fragmentRefs: EquipmentTable_equipments$ref
   |}
 |};
 export type AddEquipmentMutation = {|
@@ -61,12 +61,12 @@ mutation AddEquipmentMutation(
   $input: AddEquipmentInput!
 ) {
   addEquipment(input: $input) {
-    ...EquipmentTable_equipment
+    ...EquipmentTable_equipments
     id
   }
 }
 
-fragment EquipmentTable_equipment on Equipment {
+fragment EquipmentTable_equipments on Equipment {
   id
   name
   futureState
@@ -137,7 +137,7 @@ return {
         "selections": [
           {
             "kind": "FragmentSpread",
-            "name": "EquipmentTable_equipment",
+            "name": "EquipmentTable_equipments",
             "args": null
           }
         ]
@@ -237,11 +237,11 @@ return {
     "operationKind": "mutation",
     "name": "AddEquipmentMutation",
     "id": null,
-    "text": "mutation AddEquipmentMutation(\n  $input: AddEquipmentInput!\n) {\n  addEquipment(input: $input) {\n    ...EquipmentTable_equipment\n    id\n  }\n}\n\nfragment EquipmentTable_equipment on Equipment {\n  id\n  name\n  futureState\n  equipmentType {\n    id\n    name\n  }\n  workOrder {\n    id\n    status\n  }\n  device {\n    up\n  }\n  services {\n    id\n  }\n}\n",
+    "text": "mutation AddEquipmentMutation(\n  $input: AddEquipmentInput!\n) {\n  addEquipment(input: $input) {\n    ...EquipmentTable_equipments\n    id\n  }\n}\n\nfragment EquipmentTable_equipments on Equipment {\n  id\n  name\n  futureState\n  equipmentType {\n    id\n    name\n  }\n  workOrder {\n    id\n    status\n  }\n  device {\n    up\n  }\n  services {\n    id\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '4e7f825e2543f45850548645d993cd19';
+(node/*: any*/).hash = '8ae42940d356604b163281a83494cce1';
 module.exports = node;

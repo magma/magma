@@ -10,15 +10,10 @@ import (
 	"testing"
 
 	"github.com/facebookincubator/symphony/pkg/authz"
-
-	models2 "github.com/facebookincubator/symphony/pkg/authz/models"
-
-	"github.com/facebookincubator/symphony/graph/graphql/models"
-
-	"github.com/facebookincubator/symphony/pkg/viewer"
-
+	"github.com/facebookincubator/symphony/pkg/authz/models"
 	"github.com/facebookincubator/symphony/pkg/ent/privacy"
 	"github.com/facebookincubator/symphony/pkg/ent/user"
+	"github.com/facebookincubator/symphony/pkg/viewer"
 	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
 	"github.com/stretchr/testify/require"
 )
@@ -48,14 +43,14 @@ func TestUserWritePolicyRule(t *testing.T) {
 			Exec(ctx)
 	}
 	deleteUser := func(ctx context.Context) error {
-		if authz.FromContext(ctx).AdminPolicy.Access.IsAllowed == models2.PermissionValueYes {
+		if authz.FromContext(ctx).AdminPolicy.Access.IsAllowed == models.PermissionValueYes {
 			return nil
 		}
 		return privacy.Deny
 	}
 	runCudPolicyTest(t, cudPolicyTest{
 		appendPermissions: func(p *models.PermissionSettings) {
-			p.AdminPolicy.Access.IsAllowed = models2.PermissionValueYes
+			p.AdminPolicy.Access.IsAllowed = models.PermissionValueYes
 		},
 		create: createUser,
 		update: updateUser,

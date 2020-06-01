@@ -13,7 +13,6 @@ from xml.etree import ElementTree
 from aiohttp import web
 from magma.common.misc_utils import get_ip_from_if
 from magma.configuration.service_configs import load_service_config
-from magma.enodebd.data_models.data_model_parameters import ParameterName
 from magma.enodebd.enodeb_status import get_enb_status, \
     update_status_metrics
 from magma.enodebd.state_machines.enb_acs import EnodebAcsStateMachine
@@ -112,16 +111,12 @@ class StatsManager:
             self._check_rf_tx_for_handler(handler)
 
     def _check_rf_tx_for_handler(self, handler: EnodebAcsStateMachine) -> None:
-        if handler.device_cfg.has_parameter(ParameterName.RF_TX_STATUS):
-            rf_tx = handler \
-                .device_cfg \
-                .get_parameter(ParameterName.RF_TX_STATUS)
-            if self._prev_rf_tx is True and rf_tx is False:
-                self._clear_stats()
-            self._prev_rf_tx = rf_tx
+        status = get_enb_status(handler)
+        if self._prev_rf_tx and not status.rf_tx_on:
+            self._clear_stats()
+        self._prev_rf_tx = status.rf_tx_on
 
         # Update status metrics
-        status = get_enb_status(handler)
         update_status_metrics(status)
 
     @asyncio.coroutine

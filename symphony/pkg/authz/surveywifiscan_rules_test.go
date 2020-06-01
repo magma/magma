@@ -10,14 +10,12 @@ import (
 	"time"
 
 	"github.com/facebookincubator/symphony/pkg/authz"
+	"github.com/facebookincubator/symphony/pkg/authz/models"
 	"github.com/facebookincubator/symphony/pkg/ent/user"
 	"github.com/facebookincubator/symphony/pkg/viewer"
-	"github.com/stretchr/testify/require"
-
-	models2 "github.com/facebookincubator/symphony/pkg/authz/models"
-
-	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestSurveyWiFiScanWritePolicyRule(t *testing.T) {
@@ -79,10 +77,10 @@ func TestSurveyWiFiScanWritePolicyRule(t *testing.T) {
 	}
 	runCudPolicyTest(t, cudPolicyTest{
 		initialPermissions: func(p *models.PermissionSettings) {
-			p.WorkforcePolicy.Read.IsAllowed = models2.PermissionValueYes
+			p.WorkforcePolicy.Read.IsAllowed = models.PermissionValueYes
 		},
 		appendPermissions: func(p *models.PermissionSettings) {
-			p.WorkforcePolicy.Data.Update.IsAllowed = models2.PermissionValueByCondition
+			p.WorkforcePolicy.Data.Update.IsAllowed = models.PermissionValueByCondition
 			p.WorkforcePolicy.Data.Update.WorkOrderTypeIds = []int{workOrderType.ID}
 		},
 		create: createSurveyWiFiScan,
@@ -148,7 +146,7 @@ func TestSurveyWiFiScanReadPolicyRule(t *testing.T) {
 	})
 	t.Run("PartialPermissions", func(t *testing.T) {
 		permissions := authz.EmptyPermissions()
-		permissions.WorkforcePolicy.Read.IsAllowed = models2.PermissionValueByCondition
+		permissions.WorkforcePolicy.Read.IsAllowed = models.PermissionValueByCondition
 		permissions.WorkforcePolicy.Read.WorkOrderTypeIds = []int{woType1.ID}
 		permissionsContext := viewertest.NewContext(
 			context.Background(),
@@ -162,7 +160,7 @@ func TestSurveyWiFiScanReadPolicyRule(t *testing.T) {
 	})
 	t.Run("FullPermissions", func(t *testing.T) {
 		permissions := authz.EmptyPermissions()
-		permissions.WorkforcePolicy.Read.IsAllowed = models2.PermissionValueYes
+		permissions.WorkforcePolicy.Read.IsAllowed = models.PermissionValueYes
 		permissionsContext := viewertest.NewContext(
 			context.Background(),
 			c,

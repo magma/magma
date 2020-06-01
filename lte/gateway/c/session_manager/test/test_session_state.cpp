@@ -396,19 +396,6 @@ TEST_F(SessionStateTest, test_insert_credit) {
             1024);
 }
 
-TEST_F(SessionStateTest, test_termination) {
-  std::promise<void> termination_promise;
-  MockSessionReporter reporter;
-
-  session_state->start_termination(update_criteria);
-  session_state->set_termination_callback([&termination_promise](
-      SessionTerminateRequest term_req) { termination_promise.set_value(); });
-  session_state->complete_termination(reporter, update_criteria);
-  auto status =
-      termination_promise.get_future().wait_for(std::chrono::seconds(0));
-  EXPECT_EQ(status, std::future_status::ready);
-}
-
 TEST_F(SessionStateTest, test_can_complete_termination) {
   MockSessionReporter reporter;
 

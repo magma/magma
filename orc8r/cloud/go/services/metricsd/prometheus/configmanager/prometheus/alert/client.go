@@ -240,9 +240,12 @@ func (c *client) ReloadPrometheus() error {
 
 func (c *client) writeRuleFile(ruleFile *File, filename string) error {
 	yamlFile, err := yaml.Marshal(ruleFile)
+	if err != nil {
+		return fmt.Errorf("error writing rules file: %v", err)
+	}
 	err = c.fsClient.WriteFile(filename, yamlFile, 0666)
 	if err != nil {
-		return fmt.Errorf("error writing rules file: %v\n", yamlFile)
+		return fmt.Errorf("error writing rules file: %v", err)
 	}
 	return nil
 }

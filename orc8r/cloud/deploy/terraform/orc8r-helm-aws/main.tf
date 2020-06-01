@@ -20,13 +20,15 @@ locals {
 }
 
 resource "helm_release" "orc8r" {
-  name       = var.helm_deployment_name
-  namespace  = kubernetes_namespace.orc8r.metadata[0].name
-  repository = data.helm_repository.artifactory.id
-  chart      = "orc8r"
-  version    = var.orc8r_chart_version
-  keyring    = ""
-  timeout    = 600
+  name                = var.helm_deployment_name
+  namespace           = kubernetes_namespace.orc8r.metadata[0].name
+  repository          = var.helm_repo
+  repository_username = var.helm_user
+  repository_password = var.helm_pass
+  chart               = "orc8r"
+  version             = var.orc8r_chart_version
+  keyring             = ""
+  timeout             = 600
 
   values = [templatefile("${path.module}/templates/orc8r-values.tpl", {
     image_pull_secret = kubernetes_secret.artifactory.metadata.0.name

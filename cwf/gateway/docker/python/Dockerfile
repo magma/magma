@@ -69,7 +69,7 @@ RUN apt-get -y update && apt-get -y install \
     libcap-ng-dev \
     linux-headers-generic \
     netcat
-    
+
 RUN pip3 install \
     Cython \
     fire \
@@ -100,7 +100,11 @@ RUN pip3 install \
     click \
     pycares \
     python-dateutil \
-    jsonpickle 
+    jsonpickle
+
+# Temporary workaround to restore uplink bridge flows
+RUN mkdir -p /var/opt/magma/scripts
+COPY cwf/gateway/deploy/roles/cwag/files/add_uplink_bridge_flows.sh /var/opt/magma/scripts
 
 # Install OVS via Magma bionic pkg repo
 RUN git clone --single-branch --branch v2.12.0 https://github.com/openvswitch/ovs.git

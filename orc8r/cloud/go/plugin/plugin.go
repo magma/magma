@@ -139,7 +139,10 @@ func (DefaultOrchestratorPluginLoader) LoadPlugins() ([]OrchestratorPlugin, erro
 	}
 
 	for _, file := range files {
-		isPlugin := strings.HasSuffix(file.Name(), ".so") && !file.IsDir()
+		if file.IsDir() {
+			continue
+		}
+		isPlugin := strings.HasSuffix(file.Name(), ".so")
 		if !isPlugin {
 			glog.Infof("Not loading file %s in plugin directory because it does not appear to be a valid plugin", file.Name())
 			continue

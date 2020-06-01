@@ -110,6 +110,10 @@
       "@type": "type.googleapis.com/magma.mconfig.MonitorD",
       "logLevel": "INFO",
       "pollingInterval": 60
+    },
+    "dpid": {
+      "@type": "type.googleapis.com/magma.mconfig.DPID",
+      "logLevel": "INFO"
     }
   }
 }

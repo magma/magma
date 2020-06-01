@@ -8,9 +8,7 @@ import (
 	"context"
 	"testing"
 
-	models2 "github.com/facebookincubator/symphony/pkg/authz/models"
-
-	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/pkg/authz/models"
 	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
 )
 
@@ -65,17 +63,17 @@ func TestServiceTypeUpdateWithIsDeleted(t *testing.T) {
 		{
 			operationName: "Update",
 			appendPermissions: func(p *models.PermissionSettings) {
-				p.InventoryPolicy.ServiceType.Update.IsAllowed = models2.PermissionValueYes
+				p.InventoryPolicy.ServiceType.Update.IsAllowed = models.PermissionValueYes
 			},
 			operation: updateServiceType,
 		},
 		{
 			operationName: "UpdateWithDelete",
 			initialPermissions: func(p *models.PermissionSettings) {
-				p.InventoryPolicy.ServiceType.Update.IsAllowed = models2.PermissionValueYes
+				p.InventoryPolicy.ServiceType.Update.IsAllowed = models.PermissionValueYes
 			},
 			appendPermissions: func(p *models.PermissionSettings) {
-				p.InventoryPolicy.ServiceType.Delete.IsAllowed = models2.PermissionValueYes
+				p.InventoryPolicy.ServiceType.Delete.IsAllowed = models.PermissionValueYes
 			},
 			operation: deleteServiceType,
 		},
@@ -181,7 +179,7 @@ func TestServiceEndpointsWritePolicyRule(t *testing.T) {
 	}
 	runCudPolicyTest(t, cudPolicyTest{
 		appendPermissions: func(p *models.PermissionSettings) {
-			p.InventoryPolicy.Equipment.Update.IsAllowed = models2.PermissionValueYes
+			p.InventoryPolicy.Equipment.Update.IsAllowed = models.PermissionValueYes
 		},
 		create: createServiceEP,
 		update: updateServiceEP,
@@ -228,7 +226,7 @@ func TestServiceEndpointDefinitionWritePolicyRule(t *testing.T) {
 	}
 	runCudPolicyTest(t, cudPolicyTest{
 		appendPermissions: func(p *models.PermissionSettings) {
-			p.InventoryPolicy.ServiceType.Update.IsAllowed = models2.PermissionValueYes
+			p.InventoryPolicy.ServiceType.Update.IsAllowed = models.PermissionValueYes
 		},
 		create: createServiceEndpointDefinition,
 		update: updateServiceEndpointDefinition,

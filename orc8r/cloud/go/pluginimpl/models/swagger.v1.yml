@@ -1314,6 +1314,7 @@ definitions:
           type: string
         example:
           mme: '/var/log/mme.log'
+          enodebd: '/var/log/enodebd.log'
           otherlog: '/var/log/otherlog.log'
       throttle_rate:
         type: integer

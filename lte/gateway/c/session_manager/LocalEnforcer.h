@@ -219,10 +219,6 @@ class LocalEnforcer {
       const std::vector<std::unique_ptr<ServiceAction>>& actions,
       SessionUpdate& session_update);
 
-  void set_termination_callback(
-      SessionMap& session_map, const std::string& imsi, const std::string& apn,
-      std::function<void(SessionTerminateRequest)> on_termination_callback);
-
   static uint32_t REDIRECT_FLOW_PRIORITY;
 
  private:

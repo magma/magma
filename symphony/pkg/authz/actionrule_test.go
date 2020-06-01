@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestActionsRuleCanAlwayBeWritten(t *testing.T) {
+func TestActionsRuleCanAlwaysBeWritten(t *testing.T) {
 	c := viewertest.NewTestClient(t)
 	ctx := viewertest.NewContext(context.Background(), c, viewertest.WithPermissions(authz.EmptyPermissions()))
 	filter := &core.ActionsRuleFilter{

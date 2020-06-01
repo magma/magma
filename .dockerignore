@@ -20,6 +20,7 @@
 !lte/gateway/Makefile
 !lte/gateway/c
 !lte/protos/
+!lte/swagger/
 !lte/gateway/deploy
 !lte/gateway/docker/deploy
 
@@ -38,9 +39,11 @@
 !orc8r/cloud/Makefile
 !orc8r/gateway/
 !orc8r/protos/
+!orc8r/swagger/
 !orc8r/tools/ansible/roles/gateway_services/files
 !orc8r/tools/ansible/roles/pkgrepo/files
 !orc8r/tools/ansible/roles/pkgrepo/tasks
+!orc8r/tools/ansible/roles/fluent_bit/files
 !orc8r/tools/docker/
 
 !protos/

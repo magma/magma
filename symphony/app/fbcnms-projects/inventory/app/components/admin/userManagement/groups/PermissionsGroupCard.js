@@ -25,8 +25,8 @@ import PermissionsGroupMembersPane from './PermissionsGroupMembersPane';
 import PermissionsGroupPoliciesPane from './PermissionsGroupPoliciesPane';
 import Strings from '@fbcnms/strings/Strings';
 import ViewContainer from '@fbcnms/ui/components/design-system/View/ViewContainer';
+import classNames from 'classnames';
 import fbt from 'fbt';
-import symphony from '@fbcnms/ui/theme/symphony';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {GROUP_STATUSES, NEW_DIALOG_PARAM} from '../utils/UserManagementUtils';
 import {PERMISSION_GROUPS_VIEW_NAME} from './PermissionsGroupsView';
@@ -38,17 +38,13 @@ import {useRouteMatch} from 'react-router-dom';
 import {useUserManagement} from '../UserManagementContext';
 
 const useStyles = makeStyles(() => ({
-  detailsPane: {
-    display: 'flex',
-    flexDirection: 'column',
-    borderRadius: '4px',
-    boxShadow: symphony.shadows.DP1,
-    '&:not(:first-child)': {
-      marginTop: '16px',
-    },
-  },
   container: {
     maxHeight: '100%',
+  },
+  vertical: {
+    '&>:not(:first-child)': {
+      marginTop: '16px',
+    },
   },
 }));
 
@@ -186,25 +182,20 @@ function PermissionsGroupCard(props: Props) {
     <InventoryErrorBoundary>
       <ViewContainer header={header} useBodyScrollingEffect={false}>
         <Grid container spacing={2} className={classes.container}>
-          <Grid item xs={8} sm={8} lg={8} xl={8} className={classes.container}>
-            <PermissionsGroupDetailsPane
-              group={group}
-              onChange={setGroup}
-              className={classes.detailsPane}
-            />
+          <Grid
+            item
+            xs={8}
+            sm={8}
+            lg={8}
+            xl={8}
+            className={classNames(classes.container, classes.vertical)}>
+            <PermissionsGroupDetailsPane group={group} onChange={setGroup} />
             {userManagementDevMode ? (
-              <PermissionsGroupPoliciesPane
-                group={group}
-                className={classes.detailsPane}
-              />
+              <PermissionsGroupPoliciesPane group={group} />
             ) : null}
           </Grid>
           <Grid item xs={4} sm={4} lg={4} xl={4} className={classes.container}>
-            <PermissionsGroupMembersPane
-              group={group}
-              onChange={setGroup}
-              className={classes.detailsPane}
-            />
+            <PermissionsGroupMembersPane group={group} onChange={setGroup} />
           </Grid>
         </Grid>
       </ViewContainer>

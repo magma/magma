@@ -61,8 +61,8 @@ func (d *DockerServiceHealthProvider) GetUnhealthyServices() ([]string, error) {
 	return unhealthyServices, nil
 }
 
-// Enable restarts the service provided
-func (d *DockerServiceHealthProvider) Enable(service string) error {
+// Restart restarts the service provided
+func (d *DockerServiceHealthProvider) Restart(service string) error {
 	sessiondID, err := d.getContainerID(service)
 	if err != nil {
 		return err
@@ -71,14 +71,14 @@ func (d *DockerServiceHealthProvider) Enable(service string) error {
 	return d.dockerClient.ContainerRestart(context.Background(), sessiondID, &timeout)
 }
 
-// Disable stops the service provided
-func (d *DockerServiceHealthProvider) Disable(service string) error {
-	sessiondID, err := d.getContainerID(service)
+// Stop stops the service provided
+func (d *DockerServiceHealthProvider) Stop(service string) error {
+	serviceID, err := d.getContainerID(service)
 	if err != nil {
 		return err
 	}
 	timeout := dockerRequestTimeout
-	return d.dockerClient.ContainerStop(context.Background(), sessiondID, &timeout)
+	return d.dockerClient.ContainerStop(context.Background(), serviceID, &timeout)
 }
 
 func (d *DockerServiceHealthProvider) getContainerID(serviceName string) (string, error) {

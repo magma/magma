@@ -12,11 +12,11 @@ import * as React from 'react';
 import AlertRules from '../AlertRules';
 import {act, cleanup, fireEvent, render} from '@testing-library/react';
 import {alarmTestUtil} from '../../test/testHelpers';
-import {assertType} from '@fbcnms/alarms/util/assert';
+import {assertType} from '../../util/assert';
 import {mockPrometheusRule} from '../../test/testData';
 
-jest.mock('@fbcnms/alarms/hooks/useSnackbar');
-jest.mock('@fbcnms/alarms/hooks/useRouter');
+jest.mock('../../hooks/useSnackbar');
+jest.mock('../../hooks/useRouter');
 
 afterEach(() => {
   cleanup();
@@ -27,10 +27,10 @@ const {apiUtil, AlarmsWrapper} = alarmTestUtil();
 
 const enqueueSnackbarMock = jest.fn();
 jest
-  .spyOn(require('@fbcnms/alarms/hooks/useSnackbar'), 'useEnqueueSnackbar')
+  .spyOn(require('../../hooks/useSnackbar'), 'useEnqueueSnackbar')
   .mockReturnValue(enqueueSnackbarMock);
 jest
-  .spyOn(require('@fbcnms/alarms/hooks/useRouter'), 'default')
+  .spyOn(require('../../hooks/useRouter'), 'default')
   .mockReturnValue({match: {params: {networkId: 'test'}}});
 
 const useLoadRulesMock = jest
@@ -197,7 +197,7 @@ describe('AddEditAlert > Prometheus Editor', () => {
   test('a snackbar is enqueued if adding a rule fails', async () => {
     const enqueueMock = jest.fn();
     jest
-      .spyOn(require('@fbcnms/alarms/hooks/useSnackbar'), 'useEnqueueSnackbar')
+      .spyOn(require('../../hooks/useSnackbar'), 'useEnqueueSnackbar')
       .mockReturnValue(enqueueMock);
 
     axiosMock.mockRejectedValueOnce({

@@ -193,21 +193,6 @@ class EquipmentPort(NamedTuple):
     link: Optional[Link]
 
 
-class ServiceType(NamedTuple):
-    """
-    Attributes:
-        name (str): name
-        id (str): ID
-        has_customer (bool): customer existence flag
-        property_types (Sequence[PropertyTypeFragment]): property types sequence
-    """
-
-    name: str
-    id: str
-    has_customer: bool
-    property_types: Sequence[PropertyTypeFragment]
-
-
 class Customer(NamedTuple):
     """
     Attributes:
@@ -227,6 +212,7 @@ class Service(NamedTuple):
         name (str): name
         id (str): ID
         external_id (Optional[str]): external ID
+        service_type_name (str): existing service tyoe name
         customer (Optional[Customer]): customer
         properties (Sequence[PropertyFragment]): properties sequence
     """
@@ -234,6 +220,7 @@ class Service(NamedTuple):
     id: str
     name: str
     external_id: Optional[str]
+    service_type_name: str
     customer: Optional[Customer]
     properties: Sequence[PropertyFragment]
 
@@ -243,12 +230,12 @@ class ServiceEndpointDefinition(NamedTuple):
     Attributes:
         id (str): ID
         name (str): name
-        index (int): index
+        endpoint_definition_index (int): index
         role (str): role
         equipment_type_id (str): equipment type ID
     """
 
-    id: str
+    id: Optional[str]
     name: str
     endpoint_definition_index: int
     role: Optional[str]
@@ -259,17 +246,32 @@ class ServiceEndpoint(NamedTuple):
     """
     Attributes:
         id (str): ID
-        port (Optional[EquipmentPort]): port
-        equipment (Equipment): equipment
-        service (Service): service
-        definition (ServiceEndpointDefinition): endpoint definition
+        equipment_id (str): existing equipment ID
+        service_id (str): existing service ID
+        definition_id (str): existing service endpoint definition ID
     """
 
     id: str
-    port: Optional[EquipmentPort]
-    equipment: Equipment
-    service: Service
-    definition: ServiceEndpointDefinition
+    equipment_id: str
+    service_id: str
+    definition_id: str
+
+
+class ServiceType(NamedTuple):
+    """
+    Attributes:
+        name (str): name
+        id (str): ID
+        has_customer (bool): customer existence flag
+        property_types (Sequence[PropertyTypeFragment]): property types sequence
+        endpoint_definitions (List[ServiceEndpointDefinition]): service endpoint definitions list
+    """
+
+    name: str
+    id: str
+    has_customer: bool
+    property_types: Sequence[PropertyTypeFragment]
+    endpoint_definitions: List[ServiceEndpointDefinition]
 
 
 class Document(NamedTuple):

@@ -250,3 +250,10 @@ message MonitorD {
     orc8r.LogLevel log_level = 1;
     int32 polling_interval = 60;
 }
+
+//------------------------------------------------------------------------------
+// DPID configs
+//------------------------------------------------------------------------------
+message DPID {
+    orc8r.LogLevel log_level = 1;
+}
