@@ -1,6 +1,6 @@
 # Provides all dependent services
 
-version: '3.6'
+version: "3.6"
 
 services:
   mariadb:
@@ -29,7 +29,7 @@ services:
     build:
       context: ../..
       dockerfile: fbcnms-projects/magmalte/Dockerfile
-    command: "/usr/local/bin/wait-for-it.sh -s -t 30 mariadb:3306 -- yarn run start:dev"
+    command: "yarn run start:dev"
     volumes:
       - ../../fbcnms-packages:/usr/src/fbcnms-packages
       - ../../fbcnms-projects/magmalte/app:/usr/src/fbcnms-projects/magmalte/app
@@ -69,7 +69,7 @@ secrets:
 
 networks:
   orc8r_default:
-    external: true
+    external: false
 
 volumes:
   nmsdb:
