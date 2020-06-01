@@ -499,6 +499,8 @@ jobs:
               --grid "<<parameters.grid>>" \
               --token "$<<parameters.token>>" \
               --retries 3 \
+              --result-label "push-blocking" \
+              --parallel 5 \
               --report-file ~/test-results/testim.xml \
               --base-url testimio.staging.thesymphony.cloud/ \
               <<#parameters.options>><<parameters.options>><</parameters.options>>
