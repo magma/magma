@@ -31,12 +31,7 @@ export default function FormFieldWithPermissions(props: Props) {
 
   const permissionsRules = usePermissions();
 
-  const missingPermissionsMessage = permissionsRules.check(
-    permissions,
-    includingParentFormPermissions === true
-      ? `${JSON.stringify(permissions)}`
-      : null,
-  );
+  const missingPermissionsMessage = permissionsRules.check(permissions);
 
   return (
     <FormField
