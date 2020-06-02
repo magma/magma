@@ -8,11 +8,12 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/facebookincubator/symphony/pkg/pubsub"
+
 	"github.com/facebookincubator/symphony/pkg/authz"
 	"github.com/facebookincubator/symphony/pkg/ent"
 	"github.com/facebookincubator/symphony/pkg/ent/user"
 
-	"github.com/facebookincubator/symphony/graph/event"
 	"github.com/facebookincubator/symphony/pkg/log"
 	"github.com/facebookincubator/symphony/pkg/viewer"
 	"go.uber.org/zap"
@@ -24,28 +25,28 @@ const (
 
 // A Handler handles incoming events.
 type Handler interface {
-	Handle(context.Context, event.LogEntry) error
+	Handle(context.Context, pubsub.LogEntry) error
 }
 
 // The HandlerFunc type is an adapter to allow the use of
 // ordinary functions as handlers.
-type HandlerFunc func(context.Context, event.LogEntry) error
+type HandlerFunc func(context.Context, pubsub.LogEntry) error
 
 // Handle returns f(ctx, entry).
-func (f HandlerFunc) Handle(ctx context.Context, entry event.LogEntry) error {
+func (f HandlerFunc) Handle(ctx context.Context, entry pubsub.LogEntry) error {
 	return f(ctx, entry)
 }
 
 type serverConfig struct {
 	tenancy    viewer.Tenancy
 	logger     log.Logger
-	subscriber event.Subscriber
+	subscriber pubsub.Subscriber
 }
 
 // NewServer is the events server.
 type Server struct {
 	tenancy    viewer.Tenancy
-	subscriber event.Subscriber
+	subscriber pubsub.Subscriber
 	logger     log.Logger
 	handlers   []Handler
 }
@@ -64,17 +65,17 @@ func newServer(cfg serverConfig) (*Server, func(), error) {
 }
 
 // Subscribe returns listener to the relevant events.
-func (s *Server) Subscribe(ctx context.Context) (*event.Listener, error) {
-	return event.NewListener(ctx, event.ListenerConfig{
+func (s *Server) Subscribe(ctx context.Context) (*pubsub.Listener, error) {
+	return pubsub.NewListener(ctx, pubsub.ListenerConfig{
 		Subscriber: s.subscriber,
 		Logger:     s.logger.For(ctx),
-		Events:     []string{event.EntMutation},
+		Events:     []string{pubsub.EntMutation},
 		Handler:    s.handleEventLog(s.handlers),
 	})
 }
 
-func (s *Server) handleEventLog(handlers []Handler) event.Handler {
-	return event.HandlerFunc(func(ctx context.Context, tenant string, name string, body []byte) error {
+func (s *Server) handleEventLog(handlers []Handler) pubsub.Handler {
+	return pubsub.HandlerFunc(func(ctx context.Context, tenant string, name string, body []byte) error {
 		client, err := s.tenancy.ClientFor(ctx, tenant)
 		if err != nil {
 			const msg = "cannot get tenancy client"
@@ -95,8 +96,8 @@ func (s *Server) handleEventLog(handlers []Handler) event.Handler {
 		}
 		ctx = authz.NewContext(ctx, permissions)
 
-		var entry event.LogEntry
-		err = event.Unmarshal(body, &entry)
+		var entry pubsub.LogEntry
+		err = pubsub.Unmarshal(body, &entry)
 		if err != nil {
 			const msg = "cannot unmarshal log entry"
 			s.logger.For(ctx).Error(msg,
@@ -112,7 +113,7 @@ func (s *Server) handleEventLog(handlers []Handler) event.Handler {
 		return nil
 	})
 }
-func (s *Server) runHandlerWithTransaction(ctx context.Context, h Handler, entry event.LogEntry) error {
+func (s *Server) runHandlerWithTransaction(ctx context.Context, h Handler, entry pubsub.LogEntry) error {
 	tx, err := ent.FromContext(ctx).Tx(ctx)
 	if err != nil {
 		return fmt.Errorf("creating transaction: %w", err)

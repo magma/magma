@@ -13,17 +13,17 @@ import (
 	"time"
 
 	"github.com/facebookincubator/symphony/pkg/ent/user"
+	"github.com/facebookincubator/symphony/pkg/pubsub"
 	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
 	"github.com/stretchr/testify/require"
 
-	"github.com/facebookincubator/symphony/graph/event"
 	"github.com/facebookincubator/symphony/pkg/ent"
 
 	"github.com/facebookincubator/symphony/pkg/log/logtest"
 	"github.com/facebookincubator/symphony/pkg/viewer"
 )
 
-func newTestServer(t *testing.T, client *ent.Client, subscriber event.Subscriber, handlers []Handler) *Server {
+func newTestServer(t *testing.T, client *ent.Client, subscriber pubsub.Subscriber, handlers []Handler) *Server {
 	return &Server{
 		tenancy:    viewer.NewFixedTenancy(client),
 		logger:     logtest.NewTestLogger(t),
@@ -32,8 +32,8 @@ func newTestServer(t *testing.T, client *ent.Client, subscriber event.Subscriber
 	}
 }
 
-func getLogEntry() event.LogEntry {
-	return event.LogEntry{
+func getLogEntry() pubsub.LogEntry {
+	return pubsub.LogEntry{
 		UserName:  "",
 		UserID:    nil,
 		Time:      time.Time{},
@@ -56,18 +56,18 @@ func getLogEntry() event.LogEntry {
 
 func TestServer(t *testing.T) {
 	tenantName := "Random"
-	emitter, subscriber := event.Pipe()
+	emitter, subscriber := pubsub.Pipe()
 	defer func() {
 		ctx := context.Background()
 		_ = emitter.Shutdown(ctx)
 		_ = subscriber.Shutdown(ctx)
 	}()
 	logEntry := getLogEntry()
-	data, err := event.Marshal(logEntry)
+	data, err := pubsub.Marshal(logEntry)
 	require.NoError(t, err)
 	client := viewertest.NewTestClient(t)
 	ctx, cancel := context.WithCancel(context.Background())
-	h := HandlerFunc(func(ctx context.Context, entry event.LogEntry) error {
+	h := HandlerFunc(func(ctx context.Context, entry pubsub.LogEntry) error {
 		v := viewer.FromContext(ctx)
 		require.Equal(t, tenantName, v.Tenant())
 		require.Equal(t, serviceName, v.Name())
@@ -87,13 +87,13 @@ func TestServer(t *testing.T) {
 		err := listener.Listen(ctx)
 		require.True(t, errors.Is(err, context.Canceled))
 	}()
-	err = emitter.Emit(ctx, tenantName, event.EntMutation, data)
+	err = emitter.Emit(ctx, tenantName, pubsub.EntMutation, data)
 	require.NoError(t, err)
 	wg.Wait()
 }
 
 func TestServerBadData(t *testing.T) {
-	emitter, subscriber := event.Pipe()
+	emitter, subscriber := pubsub.Pipe()
 	defer func() {
 		ctx := context.Background()
 		_ = emitter.Shutdown(ctx)
@@ -101,7 +101,7 @@ func TestServerBadData(t *testing.T) {
 	}()
 	client := viewertest.NewTestClient(t)
 	ctx, cancel := context.WithCancel(context.Background())
-	h := HandlerFunc(func(context.Context, event.LogEntry) error {
+	h := HandlerFunc(func(context.Context, pubsub.LogEntry) error {
 		cancel()
 		return nil
 	})
@@ -118,25 +118,25 @@ func TestServerBadData(t *testing.T) {
 		require.Error(t, err)
 		require.False(t, errors.Is(err, context.Canceled))
 	}()
-	err = emitter.Emit(ctx, viewertest.DefaultTenant, event.EntMutation, []byte(""))
+	err = emitter.Emit(ctx, viewertest.DefaultTenant, pubsub.EntMutation, []byte(""))
 	require.NoError(t, err)
 	wg.Wait()
 }
 
 func TestServerHandlerError(t *testing.T) {
 	tenantName := "Random"
-	emitter, subscriber := event.Pipe()
+	emitter, subscriber := pubsub.Pipe()
 	defer func() {
 		ctx := context.Background()
 		_ = emitter.Shutdown(ctx)
 		_ = subscriber.Shutdown(ctx)
 	}()
 	logEntry := getLogEntry()
-	data, err := event.Marshal(logEntry)
+	data, err := pubsub.Marshal(logEntry)
 	require.NoError(t, err)
 	client := viewertest.NewTestClient(t)
 	ctx := viewertest.NewContext(context.Background(), client)
-	h := HandlerFunc(func(ctx context.Context, entry event.LogEntry) error {
+	h := HandlerFunc(func(ctx context.Context, entry pubsub.LogEntry) error {
 		client := ent.FromContext(ctx)
 		client.LocationType.Create().
 			SetName("LocationType").
@@ -155,7 +155,7 @@ func TestServerHandlerError(t *testing.T) {
 		require.Error(t, err)
 		require.False(t, client.LocationType.Query().Where().ExistX(ctx))
 	}()
-	err = emitter.Emit(ctx, tenantName, event.EntMutation, data)
+	err = emitter.Emit(ctx, tenantName, pubsub.EntMutation, data)
 	require.NoError(t, err)
 	wg.Wait()
 }

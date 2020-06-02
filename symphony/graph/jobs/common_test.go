@@ -13,12 +13,12 @@ import (
 
 	"github.com/facebookincubator/ent/dialect"
 	"github.com/facebookincubator/ent/dialect/sql"
-	"github.com/facebookincubator/symphony/graph/event"
 	"github.com/facebookincubator/symphony/graph/graphql/resolver"
 	"github.com/facebookincubator/symphony/pkg/ent"
 	"github.com/facebookincubator/symphony/pkg/ent/enttest"
 	"github.com/facebookincubator/symphony/pkg/ent/migrate"
 	"github.com/facebookincubator/symphony/pkg/log/logtest"
+	"github.com/facebookincubator/symphony/pkg/pubsub"
 	"github.com/facebookincubator/symphony/pkg/testdb"
 	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
 	"github.com/stretchr/testify/require"
@@ -38,7 +38,7 @@ func newResolver(t *testing.T, drv dialect.Driver) *TestJobsResolver {
 	)
 	r := resolver.New(resolver.Config{
 		Logger:     logtest.NewTestLogger(t),
-		Subscriber: event.NewNopSubscriber(),
+		Subscriber: pubsub.NewNopSubscriber(),
 	})
 	return &TestJobsResolver{
 		drv:    drv,
@@ -54,7 +54,7 @@ func syncServicesRequest(t *testing.T, r *TestJobsResolver) *http.Response {
 	h, _ := NewHandler(
 		Config{
 			Logger:     logtest.NewTestLogger(t),
-			Subscriber: event.NewNopSubscriber(),
+			Subscriber: pubsub.NewNopSubscriber(),
 		},
 	)
 

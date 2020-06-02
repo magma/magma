@@ -16,6 +16,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/graphhttp"
 	"github.com/facebookincubator/symphony/pkg/log"
 	"github.com/facebookincubator/symphony/pkg/mysql"
+	"github.com/facebookincubator/symphony/pkg/pubsub"
 	"github.com/facebookincubator/symphony/pkg/server"
 	"github.com/facebookincubator/symphony/pkg/viewer"
 	"gocloud.dev/server/health"
@@ -40,7 +41,7 @@ func newApplication(ctx context.Context, flags *cliFlags) (*application, func(),
 		newHealthChecks,
 		newMySQLTenancy,
 		mysql.Provider,
-		event.Set,
+		pubsub.Set,
 		graphhttp.NewServer,
 		wire.Struct(new(graphhttp.Config), "*"),
 		graphgrpc.NewServer,
@@ -62,7 +63,7 @@ func newApp(logger log.Logger, httpServer *server.Server, grpcServer *grpc.Serve
 	return &app
 }
 
-func newTenancy(tenancy *viewer.MySQLTenancy, logger log.Logger, emitter event.Emitter) (viewer.Tenancy, error) {
+func newTenancy(tenancy *viewer.MySQLTenancy, logger log.Logger, emitter pubsub.Emitter) (viewer.Tenancy, error) {
 	eventer := event.Eventer{Logger: logger, Emitter: emitter}
 	return viewer.NewCacheTenancy(tenancy, eventer.HookTo), nil
 }
