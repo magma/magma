@@ -47,7 +47,6 @@
 #include "intertask_interface.h"
 #include "itti_free_defined_msg.h"
 #include "log.h"
-#include "msc.h"
 #include "queue.h"
 #include "udp_primitives_server.h"
 
@@ -203,12 +202,6 @@ static void udp_server_receive_and_process(
       }
     }
   }
-  // close(udp_sock_pP->sd);
-  // udp_sock_pP->sd = -1;
-  // pthread_mutex_lock(&udp_socket_list_mutex);
-  // STAILQ_REMOVE(&udp_socket_list, udp_sock_pP, udp_socket_desc_s, entries);
-  // pthread_mutex_unlock(&udp_socket_list_mutex);
-  // return NULL;
 }
 
 //------------------------------------------------------------------------------

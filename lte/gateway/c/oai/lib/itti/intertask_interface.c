@@ -91,9 +91,7 @@ typedef volatile enum task_state_s {
 
 typedef struct thread_desc_s {
 
-   // pthread associated with the thread
-
-  pthread_t task_thread;
+  pthread_t task_thread; // pthread associated with the thread
 
 
    // State of the thread
@@ -103,7 +101,6 @@ typedef struct thread_desc_s {
    // This fd is used internally by ITTI.
 
   int epoll_fd;
-
 
    // The thread fd
 
@@ -118,9 +115,9 @@ typedef struct thread_desc_s {
 
   /*
    * Array of events monitored by the task.
-   * * * By default only one fd is monitored (the one used to received messages
-   * * * from other tasks).
-   * * * More events can be suscribed later by the task itself.
+   * By default only one fd is monitored (the one used to received messages
+   * from other tasks).
+   * More events can be suscribed later by the task itself.
    */
   struct epoll_event *events;
 

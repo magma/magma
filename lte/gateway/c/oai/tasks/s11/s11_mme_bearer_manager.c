@@ -37,10 +37,9 @@
 #include "hashtable.h"
 #include "obj_hashtable.h"
 #include "log.h"
-//#include "msc.h"
+#include "msc.h"
 #include "assertions.h"
 #include "intertask_interface.h"
-//#include "msc.h"
 
 #include "NwGtpv2c.h"
 #include "NwGtpv2cIe.h"

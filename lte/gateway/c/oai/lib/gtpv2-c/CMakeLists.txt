@@ -1,11 +1,6 @@
-
-
-set(GTPV2C_DIR  ${PROJECT_SOURCE_DIR}/lib/gtpv2-c/nwgtpv2c-0.11/src)
-Message(${PROJECT_SOURCE_DIR}  set is actually ${GTPV2C_DIR})
-
-set(GTPV2C_IE_FORMATTER_DIR  ${PROJECT_SOURCE_DIR}/lib/gtpv2-c/gtpv2c_ie_formatter/src)
-
-Message(${PROJECT_SOURCE_DIR}  set is actually ${GTPV2C_IE_FORMATTER_DIR})
+set(NWGTPV2C_DIR  ${PROJECT_SOURCE_DIR}/lib/gtpv2-c/nwgtpv2c-0.11/src)
+#set(GTPV2C_DIR  ${PROJECT_SOURCE_DIR}/lib/gtpv2-c/nwgtpv2c-0.11/src)
+set(GTPV2C_IE_FORMATTER_DIR ${PROJECT_SOURCE_DIR}/lib/gtpv2-c/gtpv2c_ie_formatter/src)
 
 add_library(LIB_GTPV2C
     ${GTPV2C_DIR}/NwGtpv2cTrxn.c

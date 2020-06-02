@@ -29,10 +29,10 @@
 #ifndef FILE_SGW_IE_DEFS_SEEN
 #define FILE_SGW_IE_DEFS_SEEN
 #include "common_types.h"
+#include "3gpp_23.003.h"
 #include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
 #include "3gpp_29.274.h"
-#include "3gpp_23.003.h"
 
 typedef uint8_t DelayValue_t;
 typedef uint32_t SequenceNumber_t;

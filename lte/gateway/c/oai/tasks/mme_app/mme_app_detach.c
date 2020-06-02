@@ -79,13 +79,6 @@ void mme_app_send_delete_session_request(
   S11_DELETE_SESSION_REQUEST(message_p).teid =
       ue_context_p->pdn_contexts[cid]->s_gw_teid_s11_s4;
   S11_DELETE_SESSION_REQUEST(message_p).lbi = ebi;  // default bearer
-  /*
-  memcpy((void *)&S11_DELETE_SESSION_REQUEST(message_p).edns_peer_ip,
-         saegw_s11_addr,
-         saegw_s11_addr->sa_family == AF_INET ? sizeof(struct sockaddr_in)
-                                              : sizeof(struct sockaddr_in6));
-  */
-
   S11_DELETE_SESSION_REQUEST(message_p).edns_peer_ip.addr_v4.sin_addr =
   ue_context_p->pdn_contexts[cid]->s_gw_address_s11_s4.address.ipv4_address;
   S11_DELETE_SESSION_REQUEST(message_p).edns_peer_ip.addr_v4.sin_family = AF_INET;

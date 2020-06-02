@@ -1,6 +1,6 @@
 
 include_directories(${S1AP_C_DIR})
-include_directories(converged-mme/lte/gateway/c/oai/lib/gtpv2-c/gtpv2c_ie_formatter/shared)
+include_directories(${PROJECT_SOURCE_DIR}/lib/gtpv2-c/gtpv2c_ie_formatter/shared)
 include_directories(converged-mme/lte/gateway/c/oai/lib/gtpv2-c/nwgtpv2c-0.11/include)
 include_directories(converged-mme/lte/gateway/c/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared)
 
