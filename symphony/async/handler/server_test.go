@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package graphevents
+package handler
 
 import (
 	"context"
@@ -67,7 +67,7 @@ func TestServer(t *testing.T) {
 	require.NoError(t, err)
 	client := viewertest.NewTestClient(t)
 	ctx, cancel := context.WithCancel(context.Background())
-	h := HandlerFunc(func(ctx context.Context, entry pubsub.LogEntry) error {
+	h := Func(func(ctx context.Context, entry pubsub.LogEntry) error {
 		v := viewer.FromContext(ctx)
 		require.Equal(t, tenantName, v.Tenant())
 		require.Equal(t, serviceName, v.Name())
@@ -101,7 +101,7 @@ func TestServerBadData(t *testing.T) {
 	}()
 	client := viewertest.NewTestClient(t)
 	ctx, cancel := context.WithCancel(context.Background())
-	h := HandlerFunc(func(context.Context, pubsub.LogEntry) error {
+	h := Func(func(context.Context, pubsub.LogEntry) error {
 		cancel()
 		return nil
 	})
@@ -136,7 +136,7 @@ func TestServerHandlerError(t *testing.T) {
 	require.NoError(t, err)
 	client := viewertest.NewTestClient(t)
 	ctx := viewertest.NewContext(context.Background(), client)
-	h := HandlerFunc(func(ctx context.Context, entry pubsub.LogEntry) error {
+	h := Func(func(ctx context.Context, entry pubsub.LogEntry) error {
 		client := ent.FromContext(ctx)
 		client.LocationType.Create().
 			SetName("LocationType").

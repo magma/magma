@@ -2,19 +2,18 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package graphevents
+package handler
 
 import (
 	"context"
 	"fmt"
 
-	"github.com/facebookincubator/symphony/pkg/pubsub"
-
 	"github.com/facebookincubator/symphony/pkg/authz"
 	"github.com/facebookincubator/symphony/pkg/ent"
 	"github.com/facebookincubator/symphony/pkg/ent/user"
-
 	"github.com/facebookincubator/symphony/pkg/log"
+	"github.com/facebookincubator/symphony/pkg/pubsub"
+	"github.com/facebookincubator/symphony/pkg/telemetry"
 	"github.com/facebookincubator/symphony/pkg/viewer"
 	"go.uber.org/zap"
 )
@@ -28,19 +27,13 @@ type Handler interface {
 	Handle(context.Context, pubsub.LogEntry) error
 }
 
-// The HandlerFunc type is an adapter to allow the use of
+// The Func type is an adapter to allow the use of
 // ordinary functions as handlers.
-type HandlerFunc func(context.Context, pubsub.LogEntry) error
+type Func func(context.Context, pubsub.LogEntry) error
 
 // Handle returns f(ctx, entry).
-func (f HandlerFunc) Handle(ctx context.Context, entry pubsub.LogEntry) error {
+func (f Func) Handle(ctx context.Context, entry pubsub.LogEntry) error {
 	return f(ctx, entry)
-}
-
-type serverConfig struct {
-	tenancy    viewer.Tenancy
-	logger     log.Logger
-	subscriber pubsub.Subscriber
 }
 
 // NewServer is the events server.
@@ -51,17 +44,25 @@ type Server struct {
 	handlers   []Handler
 }
 
-func newServer(cfg serverConfig) (*Server, func(), error) {
+// Config defines the async server config.
+type Config struct {
+	Tenancy    viewer.Tenancy
+	Logger     log.Logger
+	Subscriber pubsub.Subscriber
+	Telemetry  *telemetry.Config
+}
+
+func NewServer(cfg Config) *Server {
 	return &Server{
-		tenancy:    cfg.tenancy,
-		logger:     cfg.logger,
-		subscriber: cfg.subscriber,
+		tenancy:    cfg.Tenancy,
+		logger:     cfg.Logger,
+		subscriber: cfg.Subscriber,
 		handlers: []Handler{
 			eventLog{
-				logger: cfg.logger,
+				logger: cfg.Logger,
 			},
 		},
-	}, nil, nil
+	}
 }
 
 // Subscribe returns listener to the relevant events.

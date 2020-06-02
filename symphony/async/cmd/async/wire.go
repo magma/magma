@@ -2,66 +2,65 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-//+build wireinject
+// +build wireinject
 
 package main
 
 import (
 	"context"
 	"fmt"
+	"net/http"
 
-	"github.com/facebookincubator/symphony/graph/event"
-	"github.com/facebookincubator/symphony/graph/graphgrpc"
-	"github.com/facebookincubator/symphony/graph/graphhttp"
+	"go.uber.org/zap"
+
+	"github.com/facebookincubator/symphony/async/handler"
 	"github.com/facebookincubator/symphony/pkg/log"
 	"github.com/facebookincubator/symphony/pkg/mysql"
 	"github.com/facebookincubator/symphony/pkg/pubsub"
 	"github.com/facebookincubator/symphony/pkg/server"
+	"github.com/facebookincubator/symphony/pkg/server/xserver"
 	"github.com/facebookincubator/symphony/pkg/viewer"
-	"gocloud.dev/server/health"
-
 	"github.com/google/wire"
-	"google.golang.org/grpc"
+	"github.com/gorilla/mux"
+	"go.opencensus.io/stats/view"
+	"gocloud.dev/server/health"
 )
 
-func newApplication(ctx context.Context, flags *cliFlags) (*application, func(), error) {
+// NewApplication creates a new graph application.
+func NewApplication(ctx context.Context, flags *cliFlags) (*application, func(), error) {
 	wire.Build(
 		wire.FieldsOf(new(*cliFlags),
 			"MySQLConfig",
-			"AuthURL",
 			"EventConfig",
 			"LogConfig",
 			"TelemetryConfig",
-			"Orc8rConfig",
 		),
 		log.Provider,
-		newApp,
 		newTenancy,
-		newHealthChecks,
 		newMySQLTenancy,
-		mysql.Provider,
+		newHealthChecks,
+		mux.NewRouter,
+		wire.Bind(new(http.Handler), new(*mux.Router)),
+		xserver.ServiceSet,
+		provideViews,
 		pubsub.Set,
-		graphhttp.NewServer,
-		wire.Struct(new(graphhttp.Config), "*"),
-		graphgrpc.NewServer,
-		wire.Struct(new(graphgrpc.Config), "*"),
+		wire.Struct(new(handler.Config), "*"),
+		handler.NewServer,
+		newApplication,
 	)
 	return nil, nil, nil
 }
 
-func newApp(logger log.Logger, httpServer *server.Server, grpcServer *grpc.Server, flags *cliFlags) *application {
+func newApplication(server *handler.Server, http *server.Server, logger *zap.Logger) *application {
 	var app application
-	app.Logger = logger.Background()
-	app.http.Server = httpServer
-	app.http.addr = flags.HTTPAddress.String()
-	app.grpc.Server = grpcServer
-	app.grpc.addr = flags.GRPCAddress.String()
+	app.logger = logger
+	app.server = server
+	app.http = http
 	return &app
 }
 
 func newTenancy(tenancy *viewer.MySQLTenancy, logger log.Logger, emitter pubsub.Emitter) (viewer.Tenancy, error) {
-	eventer := event.Eventer{Logger: logger, Emitter: emitter}
-	return viewer.NewCacheTenancy(tenancy, eventer.HookTo), nil
+	return viewer.NewCacheTenancy(tenancy, nil), nil
 }
 
 func newHealthChecks(tenancy *viewer.MySQLTenancy) []health.Checker {
@@ -76,4 +75,11 @@ func newMySQLTenancy(config mysql.Config, logger log.Logger) (*viewer.MySQLTenan
 	tenancy.SetLogger(logger)
 	mysql.SetLogger(logger)
 	return tenancy, nil
+}
+
+func provideViews() []*view.View {
+	views := xserver.DefaultViews()
+	views = append(views, mysql.DefaultViews...)
+	views = append(views, pubsub.DefaultViews...)
+	return views
 }

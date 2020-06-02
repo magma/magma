@@ -8,54 +8,36 @@ import (
 	"context"
 	"fmt"
 	stdlog "log"
-	"net"
-	"net/url"
 	"os"
 	"syscall"
 
+	"github.com/facebookincubator/symphony/async/handler"
 	"github.com/facebookincubator/symphony/pkg/ctxgroup"
 	"github.com/facebookincubator/symphony/pkg/ctxutil"
 	"github.com/facebookincubator/symphony/pkg/log"
 	"github.com/facebookincubator/symphony/pkg/mysql"
-	"github.com/facebookincubator/symphony/pkg/orc8r"
 	"github.com/facebookincubator/symphony/pkg/pubsub"
 	"github.com/facebookincubator/symphony/pkg/server"
 	"github.com/facebookincubator/symphony/pkg/telemetry"
-	"go.uber.org/zap"
-	"google.golang.org/grpc"
 	"gopkg.in/alecthomas/kingpin.v2"
 
-	_ "github.com/facebookincubator/symphony/pkg/ent/runtime"
+	"go.uber.org/zap"
+
+	_ "github.com/go-sql-driver/mysql"
 	_ "gocloud.dev/pubsub/mempubsub"
 	_ "gocloud.dev/pubsub/natspubsub"
 )
 
 type cliFlags struct {
-	HTTPAddress     *net.TCPAddr
-	GRPCAddress     *net.TCPAddr
 	MySQLConfig     mysql.Config
-	AuthURL         *url.URL
 	EventConfig     pubsub.Config
 	LogConfig       log.Config
 	TelemetryConfig telemetry.Config
-	Orc8rConfig     orc8r.Config
 }
 
 func main() {
 	var cf cliFlags
 	kingpin.HelpFlag.Short('h')
-	kingpin.Flag(
-		"web.listen-address",
-		"Web address to listen on",
-	).
-		Default(":http").
-		TCPVar(&cf.HTTPAddress)
-	kingpin.Flag(
-		"grpc.listen-address",
-		"GRPC address to listen on",
-	).
-		Default(":https").
-		TCPVar(&cf.GRPCAddress)
 	kingpin.Flag(
 		"mysql.dsn",
 		"mysql connection string",
@@ -63,12 +45,6 @@ func main() {
 		Envar("MYSQL_DSN").
 		Required().
 		SetValue(&cf.MySQLConfig)
-	kingpin.Flag(
-		"web.ws-auth-url",
-		"websocket authentication url",
-	).
-		Envar("WS_AUTH_URL").
-		URLVar(&cf.AuthURL)
 	kingpin.Flag(
 		"event.pubsub-url",
 		"events pubsub url",
@@ -78,7 +54,6 @@ func main() {
 		SetValue(&cf.EventConfig)
 	log.AddFlagsVar(kingpin.CommandLine, &cf.LogConfig)
 	telemetry.AddFlagsVar(kingpin.CommandLine, &cf.TelemetryConfig)
-	orc8r.AddFlagsVar(kingpin.CommandLine, &cf.Orc8rConfig)
 	kingpin.Parse()
 
 	ctx := ctxutil.WithSignal(
@@ -86,71 +61,44 @@ func main() {
 		os.Interrupt,
 		syscall.SIGTERM,
 	)
-	app, cleanup, err := newApplication(ctx, &cf)
+	app, cleanup, err := NewApplication(ctx, &cf)
 	if err != nil {
 		stdlog.Fatal(err)
 	}
 	defer cleanup()
 
-	app.Info("starting application",
-		zap.Stringer("http", cf.HTTPAddress),
-		zap.Stringer("grpc", cf.GRPCAddress),
-	)
+	app.logger.Info("starting application")
 	err = app.run(ctx)
-	app.Info("terminating application", zap.Error(err))
+	app.logger.Info("terminating application", zap.Error(err))
 }
 
 type application struct {
-	*zap.Logger
-	http struct {
-		*server.Server
-		addr string
-	}
-	grpc struct {
-		*grpc.Server
-		addr string
-	}
+	logger *zap.Logger
+	http   *server.Server
+	server *handler.Server
 }
 
 func (app *application) run(ctx context.Context) error {
-	ctx, cancel := context.WithCancel(ctx)
 	g := ctxgroup.WithContext(ctx)
 	g.Go(func(context.Context) error {
-		err := app.http.ListenAndServe(app.http.addr)
-		app.Debug("http server terminated", zap.Error(err))
+		err := app.http.ListenAndServe(":80")
+		app.logger.Debug("server terminated", zap.Error(err))
 		return err
 	})
 	g.Go(func(context.Context) error {
-		lis, err := net.Listen("tcp", app.grpc.addr)
+		listener, err := app.server.Subscribe(ctx)
 		if err != nil {
-			return fmt.Errorf("creating grpc listener: %w", err)
+			return fmt.Errorf("creating event listener: %w", err)
 		}
-		err = app.grpc.Serve(lis)
-		app.Debug("grpc server terminated", zap.Error(err))
-		return err
-	})
-	g.Go(func(ctx context.Context) error {
-		defer cancel()
-		<-ctx.Done()
-		return nil
+		defer listener.Shutdown(ctx)
+		return listener.Listen(ctx)
 	})
 	<-ctx.Done()
 
-	app.Warn("start application termination",
-		zap.NamedError("reason", ctx.Err()),
-	)
-	defer app.Debug("end application termination")
-
 	g.Go(func(context.Context) error {
-		app.Debug("start grpc server termination")
-		app.grpc.GracefulStop()
-		app.Debug("end grpc server termination")
-		return nil
-	})
-	g.Go(func(context.Context) error {
-		app.Debug("start http server termination")
+		app.logger.Debug("start server termination")
 		err := app.http.Shutdown(context.Background())
-		app.Debug("end http server termination", zap.Error(err))
+		app.logger.Debug("end server termination", zap.Error(err))
 		return err
 	})
 	return g.Wait()
