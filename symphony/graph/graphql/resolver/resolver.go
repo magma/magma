@@ -249,3 +249,7 @@ func (r resolver) ServiceEndpointDefinition() generated.ServiceEndpointDefinitio
 func (r resolver) PermissionsPolicy() generated.PermissionsPolicyResolver {
 	return permissionsPolicyResolver{}
 }
+
+func (r resolver) Activity() generated.ActivityResolver {
+	return activityResolver{}
+}

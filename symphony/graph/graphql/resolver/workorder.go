@@ -56,6 +56,10 @@ func (workOrderTypeResolver) NumberOfWorkOrders(ctx context.Context, obj *ent.Wo
 
 type workOrderResolver struct{}
 
+func (r workOrderResolver) Activities(ctx context.Context, obj *ent.WorkOrder) ([]*ent.Activity, error) {
+	return obj.QueryActivities().All(ctx)
+}
+
 func (workOrderResolver) WorkOrderType(ctx context.Context, obj *ent.WorkOrder) (*ent.WorkOrderType, error) {
 	return obj.QueryType().Only(ctx)
 }

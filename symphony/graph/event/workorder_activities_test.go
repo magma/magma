@@ -59,6 +59,7 @@ func (s *workOrderActivitiesTestSuite) TestAddWorkOrderActivities() {
 			s.Require().Equal(a.NewValue, strconv.FormatInt(t.Unix(), 10))
 			s.Require().True(a.IsCreate)
 		case activity.ChangedFieldOWNER:
+			fallthrough
 		case activity.ChangedFieldASSIGNEE:
 			s.Require().Empty(a.OldValue)
 			s.Require().Equal(a.NewValue, strconv.Itoa(s.user.ID))
@@ -79,6 +80,7 @@ func (s *workOrderActivitiesTestSuite) TestAddWorkOrderActivities() {
 
 func (s *workOrderActivitiesTestSuite) TestEditWorkOrderActivities() {
 	t := time.Now()
+
 	wo := s.client.WorkOrder.Create().
 		SetName("wo2").
 		SetType(s.typ).

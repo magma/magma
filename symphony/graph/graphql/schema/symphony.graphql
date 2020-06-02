@@ -506,6 +506,27 @@ input CommentInput {
   text: String!
 }
 
+enum ActivityField @goModel(model: "github.com/facebookincubator/symphony/pkg/ent/activity.ChangedField") {
+  STATUS
+  PRIORITY
+  ASSIGNEE
+  CREATION_DATE
+  OWNER
+}
+
+type Activity implements Node {
+  id: ID!
+  author: User
+  isCreate: Boolean!
+  changedField: ActivityField!
+  newRelatedNode: Node
+  oldRelatedNode: Node
+  oldValue: String
+  newValue: String
+  createTime: Time!
+  workOrder: WorkOrder!
+}
+
 # specific equipment instance: e.g. Wifi Access Point X at Location Y.
 type Equipment implements Node & NamedNode {
   id: ID!
@@ -1494,6 +1515,7 @@ type WorkOrder implements Node & NamedNode {
   images: [File]!
   files: [File]!
   comments: [Comment]!
+  activities: [Activity!]!
   location: Location
   properties: [Property]!
   project: Project
