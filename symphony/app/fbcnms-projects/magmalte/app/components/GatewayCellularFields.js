@@ -58,6 +58,12 @@ export default function GatewayCellularFields(props: Props) {
     props.gateway.epc.natEnabled,
   );
   const [ipBlock, setIpBlock] = useState<string>(cellular?.epc?.ip_block);
+  const [ipDnsPrimary, setIpDnsPrimary] = useState<string>(
+    cellular?.epc?.dns_primary || '',
+  );
+  const [ipDnsSecondary, setIpDnsSecondary] = useState<string>(
+    cellular?.epc?.dns_secondary || '',
+  );
   const [attachedEnodebSerials, setAttachedEnodebSerials] = useState<string[]>(
     connected_enodeb_serials || [],
   );
@@ -102,6 +108,8 @@ export default function GatewayCellularFields(props: Props) {
         ...cellular.epc,
         nat_enabled: natEnabled,
         ip_block: ipBlock,
+        dns_primary: ipDnsPrimary,
+        dns_secondary: ipDnsSecondary,
       },
       ran: {
         ...cellular.ran,
@@ -160,6 +168,22 @@ export default function GatewayCellularFields(props: Props) {
             value={ipBlock}
             onChange={({target}) => setIpBlock(target.value)}
             placeholder="E.g. 20.20.20.0/24"
+          />
+        </FormField>
+        <FormField label="DNS Primary">
+          <Input
+            className={classes.input}
+            value={ipDnsPrimary}
+            onChange={({target}) => setIpDnsPrimary(target.value)}
+            placeholder="8.8.8.8"
+          />
+        </FormField>
+        <FormField label="DNS Secondary">
+          <Input
+            className={classes.input}
+            value={ipDnsSecondary}
+            onChange={({target}) => setIpDnsSecondary(target.value)}
+            placeholder="8.8.4.4"
           />
         </FormField>
         <Divider className={classes.divider} />
