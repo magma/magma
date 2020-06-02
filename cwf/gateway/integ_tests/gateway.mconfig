@@ -54,7 +54,10 @@
   "sessiond": {
    "@type": "type.googleapis.com/magma.mconfig.SessionD",
    "logLevel": "INFO",
-   "relayEnabled": true
+   "relayEnabled": true,
+   "walletExhaustDetection": {
+    "terminateOnExhaust": true
+   }
   },
   "aaa_server": {
    "@type": "type.googleapis.com/magma.mconfig.AAAConfig",
