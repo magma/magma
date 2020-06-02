@@ -174,7 +174,7 @@ function LteNetworkDashboard({startEnd}: {startEnd: [moment, moment]}) {
         </Grid>
 
         <Grid item xs={6}>
-          <Paper elevation={2}>
+          <Paper>
             <GatewayKPIs />
           </Paper>
         </Grid>
