@@ -13,36 +13,27 @@ import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React, {useEffect, useState} from 'react';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
 import nullthrows from '@fbcnms/util/nullthrows';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 import {useRouter} from '@fbcnms/ui/hooks';
 import type {KPIData} from './KPITray';
 import type {enodeb, enodeb_state} from '@fbcnms/magma-api';
 
 export default function EnodebKPIs() {
-  const [enodebInfo, setEnodebInfo] = useState<{[string]: enodeb}>({});
   const [enodebSt, setEnodebSt] = useState<{[string]: enodeb_state}>({});
   const {match} = useRouter();
   const networkId: string = nullthrows(match.params.networkId);
-  const enqueueSnackbar = useEnqueueSnackbar();
 
-  useEffect(() => {
-    const fetchEnodeInfo = async () => {
-      try {
-        const enbInfo = await MagmaV1API.getLteByNetworkIdEnodebs({
-          networkId: networkId,
-        });
-        setEnodebInfo(enbInfo);
-      } catch (error) {
-        enqueueSnackbar('Error getting enodeb information', {
-          variant: 'error',
-        });
-      }
-    };
-    fetchEnodeInfo();
-  }, [networkId, enqueueSnackbar]);
+  const {response} = useMagmaAPI(MagmaV1API.getLteByNetworkIdEnodebs, {
+    networkId: networkId,
+  });
 
   useEffect(() => {
     const fetchEnodebState = async () => {
+      if (!response) {
+        return;
+      }
+
+      const enodebInfo: {[string]: enodeb} = response;
       const requests = Object.keys(enodebInfo).map(async k => {
         const {serial} = enodebInfo[k];
         try {
@@ -59,7 +50,6 @@ export default function EnodebKPIs() {
           return null;
         }
       });
-
       Promise.all(requests).then(allResponses => {
         const enodebState = {};
         allResponses.filter(Boolean).forEach(r => {
@@ -69,7 +59,7 @@ export default function EnodebKPIs() {
       });
     };
     fetchEnodebState();
-  }, [networkId, enqueueSnackbar, enodebInfo]);
+  }, [networkId, response]);
 
   const [total, transmitting] = enodebStatus(enodebSt);
   const kpiData: KPIData[] = [
