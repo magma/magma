@@ -7,8 +7,9 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
-	"net/url"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/facebookincubator/symphony/pkg/log"
 	"github.com/google/uuid"
 	"github.com/google/wire"
@@ -28,21 +29,24 @@ var Set = wire.NewSet(
 // Handler implements signer endpoints.
 type Handler struct {
 	http.Handler
-	logger log.Logger
-	bucket *blob.Bucket
+	logger     log.Logger
+	bucket     *blob.Bucket
+	bucketName string
 }
 
 // Config is the set of handler parameters.
 type Config struct {
-	Logger log.Logger
-	Bucket *blob.Bucket
+	Logger     log.Logger
+	Bucket     *blob.Bucket
+	BucketName string
 }
 
 // New creates a new sign handler from config.
 func New(cfg Config) *Handler {
 	h := &Handler{
-		logger: cfg.Logger,
-		bucket: cfg.Bucket,
+		logger:     cfg.Logger,
+		bucket:     cfg.Bucket,
+		bucketName: cfg.BucketName,
 	}
 
 	router := mux.NewRouter()
@@ -170,19 +174,27 @@ func (h *Handler) download(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "", http.StatusBadRequest)
 		return
 	}
-	rawurl, err := h.bucket.SignedURL(ctx, key, nil)
+	var client *s3.S3
+	if !h.bucket.As(&client) {
+		logger.Error("signing download url requires s3 bucket")
+		http.Error(w, "", http.StatusServiceUnavailable)
+		return
+	}
+	in := &s3.GetObjectInput{
+		Bucket:                     aws.String(h.bucketName),
+		Key:                        aws.String(key),
+		ResponseContentDisposition: aws.String("attachment; filename=" + filename),
+	}
+	req, _ := client.GetObjectRequest(in)
+	u, err := req.Presign(blob.DefaultSignedURLExpiry)
 	if err != nil {
 		logger.Error("cannot sign get object url", zap.Error(err))
 		http.Error(w, "", http.StatusInternalServerError)
 		return
 	}
-	u, _ := url.Parse(rawurl)
-	q := u.Query()
-	q.Set("response-content-disposition", "attachment; filename="+filename)
-	u.RawQuery = q.Encode()
 	logger.Debug("signed download url",
 		zap.String("key", key),
 		zap.String("filename", filename),
 	)
-	http.Redirect(w, r, u.String(), http.StatusSeeOther)
+	http.Redirect(w, r, u, http.StatusSeeOther)
 }

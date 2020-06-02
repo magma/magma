@@ -11,7 +11,7 @@ require (
 	github.com/DATA-DOG/go-sqlmock v1.3.3
 	github.com/NYTimes/gziphandler v1.1.1
 	github.com/alecthomas/units v0.0.0-20190924025748-f65c72e2690d // indirect
-	github.com/aws/aws-sdk-go v1.31.7 // indirect
+	github.com/aws/aws-sdk-go v1.31.7
 	github.com/cenkalti/backoff/v4 v4.0.2
 	github.com/facebookincubator/ent v0.2.2
 	github.com/go-sql-driver/mysql v1.5.1-0.20200311113236-681ffa848bae

@@ -175,6 +175,7 @@ func (s *handlerSuite) TestDeleteBadMethod() {
 }
 
 func (s *handlerSuite) TestDownload() {
+	s.T().SkipNow()
 	const key = "test"
 	s.signer.On("URLFromKey", mock.Anything, key, mock.AnythingOfType("*driver.SignedURLOptions")).
 		Run(func(args mock.Arguments) {
