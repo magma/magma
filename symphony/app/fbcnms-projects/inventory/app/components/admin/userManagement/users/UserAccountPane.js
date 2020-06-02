@@ -14,6 +14,7 @@ import * as React from 'react';
 import UserAccountDetailsPane, {
   ACCOUNT_DISPLAY_VARIANTS,
 } from './UserAccountDetailsPane';
+import {FormContextProvider} from '../../../../common/FormContext';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useUserManagement} from '../UserManagementContext';
@@ -48,25 +49,28 @@ export default function UserAccountPane(props: Props) {
 
   return (
     <div className={classes.root}>
-      <UserAccountDetailsPane
-        variant={
-          isForCurrentUserSettings
-            ? ACCOUNT_DISPLAY_VARIANTS.userSettingsView
-            : ACCOUNT_DISPLAY_VARIANTS.userDetailsCard
-        }
-        user={user}
-        onChange={(user, password, currentPassword) => {
-          if (isForCurrentUserSettings && currentPassword != null) {
-            return userManagement
-              .changeCurrentUserPassword(currentPassword, password)
-              .catch(handleError);
+      <FormContextProvider
+        permissions={{ignorePermissions: isForCurrentUserSettings}}>
+        <UserAccountDetailsPane
+          variant={
+            isForCurrentUserSettings
+              ? ACCOUNT_DISPLAY_VARIANTS.userSettingsView
+              : ACCOUNT_DISPLAY_VARIANTS.userDetailsCard
           }
-          return userManagement
-            .changeUserPassword(user, password)
-            .then(() => undefined)
-            .catch(handleError);
-        }}
-      />
+          user={user}
+          onChange={(user, password, currentPassword) => {
+            if (isForCurrentUserSettings && currentPassword != null) {
+              return userManagement
+                .changeCurrentUserPassword(currentPassword, password)
+                .catch(handleError);
+            }
+            return userManagement
+              .changeUserPassword(user, password)
+              .then(() => undefined)
+              .catch(handleError);
+          }}
+        />
+      </FormContextProvider>
     </div>
   );
 }
