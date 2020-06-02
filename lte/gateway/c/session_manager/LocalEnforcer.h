@@ -453,6 +453,10 @@ class LocalEnforcer {
       SessionMap& session_map, const std::string& imsi,
       SessionState& session_state);
 
+  bool is_wallet_exhausted(SessionState& session_state);
+
+  bool terminate_on_wallet_exhaust();
+
   void schedule_termination(std::unordered_set<std::string>& imsis);
 };
 
