@@ -1,7 +1,3 @@
-// Copyright (c) 2004-present Facebook All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 // Code generated (@generated) by entc, DO NOT EDIT.
 
 package ent
@@ -60,7 +56,7 @@ func (t *Todo) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[0] = &Field{
 		Type:  "string",
-		Name:  "Text",
+		Name:  "text",
 		Value: string(buf),
 	}
 	var ids []int
@@ -73,7 +69,7 @@ func (t *Todo) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[0] = &Edge{
 		IDs:  ids,
 		Type: "Todo",
-		Name: "Parent",
+		Name: "parent",
 	}
 	ids, err = t.QueryChildren().
 		Select(todo.FieldID).
@@ -84,7 +80,7 @@ func (t *Todo) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[1] = &Edge{
 		IDs:  ids,
 		Type: "Todo",
-		Name: "Children",
+		Name: "children",
 	}
 	return node, nil
 }

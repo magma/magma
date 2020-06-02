@@ -6,9 +6,9 @@ package event
 
 import (
 	"context"
-	"regexp"
-	"strings"
 	"time"
+
+	"github.com/AlekSi/pointer"
 
 	"github.com/facebookincubator/symphony/pkg/ent"
 	"github.com/facebookincubator/symphony/pkg/viewer"
@@ -24,8 +24,6 @@ type LogEntry struct {
 	PrevState *ent.Node `json:"prevState"`
 	CurrState *ent.Node `json:"currState"`
 }
-
-var link = regexp.MustCompile("(^[A-Za-z])|_([A-Za-z])")
 
 func (e *Eventer) hookWithLog(handler func(context.Context, LogEntry) error, next ent.Mutator) ent.Mutator {
 	return ent.MutateFunc(func(ctx context.Context, m ent.Mutation) (ent.Value, error) {
@@ -97,8 +95,8 @@ func getDiffOfUniqueEdge(entry *LogEntry, edge string) (*int, *int, bool) {
 	var newIntVal, oldsIntVal *int
 	newEdges := entry.CurrState.Edges
 	oldEdges := entry.PrevState.Edges
-	newEdge, newFound := findEdge(newEdges, toCamelCase(edge))
-	oldEdge, oldFound := findEdge(oldEdges, toCamelCase(edge))
+	newEdge, newFound := findEdge(newEdges, edge)
+	oldEdge, oldFound := findEdge(oldEdges, edge)
 	if newFound && len(newEdge.IDs) > 0 {
 		newIntVal = &newEdge.IDs[0]
 	}
@@ -109,25 +107,19 @@ func getDiffOfUniqueEdge(entry *LogEntry, edge string) (*int, *int, bool) {
 	return newIntVal, oldsIntVal, shouldUpdate
 }
 
-func getDiffValuesField(entry *LogEntry, field string) (*string, *string, bool) {
+func getStringDiffValuesField(entry *LogEntry, field string) (*string, *string, bool) {
 	var newStrVal, oldStrVal *string
 	newFields := entry.CurrState.Fields
 	oldFields := entry.PrevState.Fields
-	newField, newFound := findField(newFields, toCamelCase(field))
-	oldField, oldFound := findField(oldFields, toCamelCase(field))
+	newField, newFound := findField(newFields, field)
+	oldField, oldFound := findField(oldFields, field)
 	if newFound && newField != nil {
-		newStrVal = &newField.Value
+		newStrVal = pointer.ToString(newField.MustGetString())
 	}
 	if oldFound && oldField != nil {
-		oldStrVal = &oldField.Value
+		oldStrVal = pointer.ToString(oldField.MustGetString())
 	}
 
 	shouldUpdate := (newFound != oldFound) || (newStrVal != nil && oldStrVal != nil && *newStrVal != *oldStrVal)
 	return newStrVal, oldStrVal, shouldUpdate
-}
-
-func toCamelCase(str string) string {
-	return link.ReplaceAllStringFunc(str, func(s string) string {
-		return strings.ToUpper(strings.Replace(s, "_", "", -1))
-	})
 }

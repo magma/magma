@@ -17,6 +17,7 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import {makeStyles} from '@material-ui/styles';
+import {pascalCaseGoStyle} from '../../common/EntUtils';
 
 const useStyles = makeStyles(theme => ({
   table: {
@@ -65,7 +66,9 @@ const FanbtlNeame = (props: Props) => {
       <TableBody>
         {edges.map(edge => (
           <TableRow key={edge.name} className={classes.row}>
-            <TableCell className={classes.tableCell}>{edge.name}</TableCell>
+            <TableCell className={classes.tableCell}>
+              {pascalCaseGoStyle(edge.name)}
+            </TableCell>
             <TableCell className={classes.tableCell}>
               <div>
                 {edge.ids.map((edgeId, i) => (
