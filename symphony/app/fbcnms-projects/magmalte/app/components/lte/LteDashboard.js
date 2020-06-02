@@ -23,14 +23,14 @@ import Tabs from '@material-ui/core/Tabs';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import moment from 'moment';
 import {DateTimePicker} from '@material-ui/pickers';
-import {GpsFixed, NetworkCheck} from '@material-ui/icons';
+import {GpsFixed, NetworkCheck, People} from '@material-ui/icons';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
-    margin: theme.spacing(3),
+    margin: theme.spacing(5),
   },
   topBar: {
     backgroundColor: theme.palette.magmalte.background,
@@ -38,7 +38,7 @@ const useStyles = makeStyles(theme => ({
   },
   tabBar: {
     backgroundColor: theme.palette.magmalte.appbar,
-    padding: '0 0 0 20px',
+    padding: `0 ${theme.spacing(5)}px`,
   },
   tabs: {
     color: 'white',
@@ -48,18 +48,24 @@ const useStyles = makeStyles(theme => ({
     textTransform: 'none',
   },
   tabLabel: {
-    padding: '20px 0 20px 0',
+    padding: '16px 0 16px 0',
+    display: 'flex',
+    alignItems: 'center',
   },
   tabIconLabel: {
-    verticalAlign: 'middle',
-    margin: '0 5px 3px 0',
+    marginRight: '8px',
+  },
+  input: {
+    color: 'white',
+    backgroundColor: '#545F77',
+    border: 'none',
+    borderRadius: '4px',
+    textAlign: 'center',
+    padding: `${theme.spacing(1)}px 0`,
   },
   // TODO: remove this when we actually fill out the grid sections
   contentPlaceholder: {
     padding: '50px 0',
-  },
-  input: {
-    color: 'white',
   },
 }));
 
@@ -80,7 +86,7 @@ function LteDashboard() {
       </div>
 
       <AppBar position="static" color="default" className={classes.tabBar}>
-        <Grid container>
+        <Grid container direction="row" justify="flex-end" alignItems="center">
           <Grid item xs={6}>
             <Tabs
               value={0}
@@ -91,43 +97,50 @@ function LteDashboard() {
               <Tab
                 key="Network"
                 component={NestedRouteLink}
-                label={<NetworkDashboardTabLabel />}
+                label={<DashboardTabLabel label="Network" />}
                 to="/network"
+                className={classes.tab}
+              />
+              <Tab
+                key="Subscribers"
+                component={NestedRouteLink}
+                label={<DashboardTabLabel label="Subscribers" />}
+                to="#"
                 className={classes.tab}
               />
             </Tabs>
           </Grid>
-          <Grid item xs={6}>
-            <Grid container justify="flex-end" alignItems="center" spacing={1}>
+          <Grid
+            item
+            xs={6}
+            direction="row"
+            justify="flex-end"
+            alignItems="center">
+            <Grid container justify="flex-end" alignItems="center" spacing={2}>
               <Grid item>
                 <Text color="light">Filter By Date</Text>
               </Grid>
+              <DateTimePicker
+                autoOk
+                inputVariant="outlined"
+                maxDate={endDate}
+                disableFuture
+                value={startDate}
+                inputProps={{className: classes.input}}
+                onChange={setStartDate}
+              />
               <Grid item>
-                <DateTimePicker
-                  autoOk
-                  variant="inline"
-                  inputVariant="outlined"
-                  maxDate={endDate}
-                  disableFuture
-                  value={startDate}
-                  inputProps={{className: classes.input}}
-                  onChange={setStartDate}
-                />
+                <Text color="light">to</Text>
               </Grid>
-              <Grid item>
-                <Text color="light">To</Text>
-              </Grid>
-              <Grid item>
-                <DateTimePicker
-                  autoOk
-                  variant="inline"
-                  inputVariant="outlined"
-                  disableFuture
-                  value={endDate}
-                  inputProps={{className: classes.input}}
-                  onChange={setEndDate}
-                />
-              </Grid>
+              <DateTimePicker
+                autoOk
+                variant="inline"
+                inputVariant="outlined"
+                disableFuture
+                value={endDate}
+                inputProps={{className: classes.input}}
+                onChange={setEndDate}
+              />
             </Grid>
           </Grid>
         </Grid>
@@ -189,12 +202,17 @@ function LteNetworkDashboard({startEnd}: {startEnd: [moment, moment]}) {
   );
 }
 
-function NetworkDashboardTabLabel() {
+function DashboardTabLabel(props) {
   const classes = useStyles();
 
   return (
     <div className={classes.tabLabel}>
-      <NetworkCheck className={classes.tabIconLabel} /> Network
+      {props.label === 'Subscribers' ? (
+        <People className={classes.tabIconLabel} />
+      ) : props.label === 'Network' ? (
+        <NetworkCheck className={classes.tabIconLabel} />
+      ) : null}
+      {props.label}
     </div>
   );
 }
