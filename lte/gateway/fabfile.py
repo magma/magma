@@ -326,7 +326,13 @@ def _oai_coverage():
     """ Get the code coverage statistic for OAI """
 
     with cd(AGW_ROOT):
-        run('make coverage_oai')
+        """
+        coverage_oai_terminate stops magma services for graceful termination
+        before generating coverage info so that coverage includes cleanup
+        function calls also and memory leak summary can be dumped in the
+        syslog by LeakSanitizer
+        """
+        run("make coverage_oai_terminate")
 
 
 def _run_unit_tests():
