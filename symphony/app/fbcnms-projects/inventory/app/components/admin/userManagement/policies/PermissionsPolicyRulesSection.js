@@ -8,7 +8,10 @@
  * @format
  */
 
-import type {CUDPermissions} from '../utils/UserManagementUtils';
+import type {
+  BasicPermissionRule,
+  CUDPermissions,
+} from '../utils/UserManagementUtils';
 
 import * as React from 'react';
 import HierarchicalCheckbox, {
@@ -22,6 +25,7 @@ import {
   permissionRuleValue2Bool,
 } from '../utils/UserManagementUtils';
 import {makeStyles} from '@material-ui/styles';
+import {useCallback, useEffect, useState} from 'react';
 
 const useStyles = makeStyles(() => ({
   section: {
@@ -52,7 +56,7 @@ type InventoryDataRuleProps = $ReadOnly<{|
   rule: CUDPermissions,
   cudAction: string & CUDPermissionsKey,
   disabled: boolean,
-  onChange: CUDPermissions => void,
+  onChange: BasicPermissionRule => void,
   children?: React.Node,
 |}>;
 
@@ -72,10 +76,7 @@ function InventoryDataRule(props: InventoryDataRuleProps) {
       value={!disabled && permissionRuleValue2Bool(rule[cudAction].isAllowed)}
       onChange={checked =>
         onChange({
-          ...rule,
-          [cudAction]: {
-            isAllowed: bool2PermissionRuleValue(checked),
-          },
+          isAllowed: bool2PermissionRuleValue(checked),
         })
       }
       hierarchicalRelation={HIERARCHICAL_RELATION.PARENT_REQUIRED}
@@ -102,7 +103,7 @@ type Props = $ReadOnly<{|
   title?: React.Node,
   subtitle?: React.Node,
   mainCheckHeaderPrefix?: React.Node,
-  rule: ?CUDPermissions,
+  rule: CUDPermissions,
   disabled?: ?boolean,
   className?: ?string,
   onChange: CUDPermissions => void,
@@ -114,13 +115,31 @@ export default function PermissionsPolicyRulesSection(props: Props) {
     title,
     subtitle,
     mainCheckHeaderPrefix,
-    rule,
+    rule: ruleProp,
     disabled,
     className,
     onChange,
     children,
   } = props;
   const classes = useStyles();
+  const [rule, setRule] = useState<CUDPermissions>(ruleProp);
+  useEffect(() => setRule(ruleProp), [ruleProp]);
+
+  const updateRuleChange = useCallback(
+    (cudAction: string & CUDPermissionsKey) => (
+      actionValue: BasicPermissionRule,
+    ) => {
+      setRule(currentRule => {
+        const newRuleValue: CUDPermissions = {
+          ...currentRule,
+          [cudAction]: actionValue,
+        };
+        onChange(newRuleValue);
+        return newRuleValue;
+      });
+    },
+    [onChange],
+  );
 
   if (rule == null) {
     return null;
@@ -162,14 +181,14 @@ export default function PermissionsPolicyRulesSection(props: Props) {
         rule={rule}
         cudAction="update"
         disabled={disabled == true}
-        onChange={onChange}>
+        onChange={updateRuleChange('update')}>
         {dependantDataRules.map(dRule => (
           <InventoryDataRule
             title={<DataRuleTitle>{dRule.title}</DataRuleTitle>}
             rule={rule}
             cudAction={dRule.key}
             disabled={disabled == true}
-            onChange={onChange}
+            onChange={updateRuleChange(dRule.key)}
           />
         ))}
         {children}
