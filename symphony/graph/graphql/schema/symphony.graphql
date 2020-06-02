@@ -1204,6 +1204,7 @@ type Property implements Node {
   rangeFromValue: Float
   rangeToValue: Float
   nodeValue: NamedNode
+  rawValue: String
 }
 
 input PropertyInput {

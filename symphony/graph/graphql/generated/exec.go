@@ -754,6 +754,7 @@ type ComplexityRoot struct {
 		PropertyType func(childComplexity int) int
 		RangeFromVal func(childComplexity int) int
 		RangeToVal   func(childComplexity int) int
+		RawValue     func(childComplexity int) int
 		StringVal    func(childComplexity int) int
 	}
 
@@ -1430,6 +1431,7 @@ type PropertyResolver interface {
 	PropertyType(ctx context.Context, obj *ent.Property) (*ent.PropertyType, error)
 
 	NodeValue(ctx context.Context, obj *ent.Property) (models.NamedNode, error)
+	RawValue(ctx context.Context, obj *ent.Property) (*string, error)
 }
 type PropertyTypeResolver interface {
 	Type(ctx context.Context, obj *ent.PropertyType) (models.PropertyKind, error)
@@ -4907,6 +4909,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Property.RangeToVal(childComplexity), true
+
+	case "Property.rawValue":
+		if e.complexity.Property.RawValue == nil {
+			break
+		}
+
+		return e.complexity.Property.RawValue(childComplexity), true
 
 	case "Property.stringValue":
 		if e.complexity.Property.StringVal == nil {
@@ -8442,6 +8451,7 @@ type Property implements Node {
   rangeFromValue: Float
   rangeToValue: Float
   nodeValue: NamedNode
+  rawValue: String
 }
 
 input PropertyInput {
@@ -27118,6 +27128,37 @@ func (ec *executionContext) _Property_nodeValue(ctx context.Context, field graph
 	res := resTmp.(models.NamedNode)
 	fc.Result = res
 	return ec.marshalONamedNode2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐNamedNode(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Property_rawValue(ctx context.Context, field graphql.CollectedField, obj *ent.Property) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Property",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Property().RawValue(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PropertyType_id(ctx context.Context, field graphql.CollectedField, obj *ent.PropertyType) (ret graphql.Marshaler) {
@@ -47501,6 +47542,17 @@ func (ec *executionContext) _Property(ctx context.Context, sel ast.SelectionSet,
 					}
 				}()
 				res = ec._Property_nodeValue(ctx, field, obj)
+				return res
+			})
+		case "rawValue":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Property_rawValue(ctx, field, obj)
 				return res
 			})
 		default:
