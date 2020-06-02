@@ -31,7 +31,7 @@ func updateActivitiesOnWOCreate(ctx context.Context, entry *LogEntry) error {
 		return err
 	}
 
-	if assignee, found := findEdge(wo.Edges, toCamelCase(workorder.EdgeAssignee)); found {
+	if assignee, found := findEdge(wo.Edges, workorder.EdgeAssignee); found {
 		assgnID := assignee.IDs[0]
 		_, err = client.Activity.Create().
 			SetChangedField(activity.ChangedFieldASSIGNEE).
@@ -45,7 +45,7 @@ func updateActivitiesOnWOCreate(ctx context.Context, entry *LogEntry) error {
 		}
 	}
 
-	if owner, found := findEdge(wo.Edges, toCamelCase(workorder.EdgeOwner)); found {
+	if owner, found := findEdge(wo.Edges, workorder.EdgeOwner); found {
 		ownerID := owner.IDs[0]
 
 		_, err = client.Activity.Create().
@@ -60,28 +60,26 @@ func updateActivitiesOnWOCreate(ctx context.Context, entry *LogEntry) error {
 		}
 	}
 
-	if st, found := findField(wo.Fields, toCamelCase(workorder.FieldStatus)); found {
-		status := st.Value
+	if st, found := findField(wo.Fields, workorder.FieldStatus); found {
 		_, err = client.Activity.Create().
 			SetChangedField(activity.ChangedFieldSTATUS).
 			SetIsCreate(true).
 			SetNillableAuthorID(userID).
 			SetWorkOrderID(wo.ID).
-			SetNewValue(status).
+			SetNewValue(st.MustGetString()).
 			Save(ctx)
 		if err != nil {
 			return err
 		}
 	}
 
-	if prio, found := findField(wo.Fields, toCamelCase(workorder.FieldPriority)); found {
-		pri := prio.Value
+	if pri, found := findField(wo.Fields, workorder.FieldPriority); found {
 		_, err = client.Activity.Create().
 			SetChangedField(activity.ChangedFieldPRIORITY).
 			SetIsCreate(true).
 			SetNillableAuthorID(userID).
 			SetWorkOrderID(wo.ID).
-			SetNewValue(pri).
+			SetNewValue(pri.MustGetString()).
 			Save(ctx)
 		if err != nil {
 			return err
@@ -124,7 +122,7 @@ func updateActivitiesOnWOUpdate(ctx context.Context, entry *LogEntry) error {
 		}
 	}
 
-	newVal, oldVal, shouldUpdate = getDiffValuesField(entry, workorder.FieldStatus)
+	newVal, oldVal, shouldUpdate = getStringDiffValuesField(entry, workorder.FieldStatus)
 	if shouldUpdate {
 		_, err := client.Activity.Create().
 			SetChangedField(activity.ChangedFieldSTATUS).
@@ -139,7 +137,7 @@ func updateActivitiesOnWOUpdate(ctx context.Context, entry *LogEntry) error {
 		}
 	}
 
-	newVal, oldVal, shouldUpdate = getDiffValuesField(entry, workorder.FieldPriority)
+	newVal, oldVal, shouldUpdate = getStringDiffValuesField(entry, workorder.FieldPriority)
 	if shouldUpdate {
 		_, err := client.Activity.Create().
 			SetChangedField(activity.ChangedFieldPRIORITY).

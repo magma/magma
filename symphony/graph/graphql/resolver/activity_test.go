@@ -20,10 +20,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func addQuotes(s string) string {
-	return "\"" + s + "\""
-}
-
 func TestAddWorkOrderActivities(t *testing.T) {
 	r := newTestResolver(t)
 	tim := time.Now()
@@ -72,12 +68,12 @@ func TestAddWorkOrderActivities(t *testing.T) {
 			require.Nil(t, oldNode)
 		case activity.ChangedFieldSTATUS:
 			require.Empty(t, a.OldValue)
-			require.Equal(t, a.NewValue, addQuotes(models.WorkOrderStatusPlanned.String()))
+			require.Equal(t, a.NewValue, models.WorkOrderStatusPlanned.String())
 			require.Nil(t, newNode)
 			require.Nil(t, oldNode)
 		case activity.ChangedFieldPRIORITY:
 			require.Empty(t, a.OldValue)
-			require.Equal(t, a.NewValue, addQuotes(models.WorkOrderPriorityNone.String()))
+			require.Equal(t, a.NewValue, models.WorkOrderPriorityNone.String())
 			require.Nil(t, newNode)
 			require.Nil(t, oldNode)
 		default:
@@ -152,13 +148,13 @@ func TestEditWorkOrderActivities(t *testing.T) {
 			require.Empty(t, a.OldValue)
 			require.Equal(t, fetchedNodeNew.ID, u.ID)
 		case activity.ChangedFieldSTATUS:
-			require.Equal(t, a.NewValue, addQuotes(models.WorkOrderStatusPending.String()))
-			require.Equal(t, a.OldValue, addQuotes(models.WorkOrderStatusPlanned.String()))
+			require.Equal(t, a.NewValue, models.WorkOrderStatusPending.String())
+			require.Equal(t, a.OldValue, models.WorkOrderStatusPlanned.String())
 			require.Nil(t, newNode)
 			require.Nil(t, oldNode)
 		case activity.ChangedFieldPRIORITY:
-			require.Equal(t, a.NewValue, addQuotes(models.WorkOrderPriorityHigh.String()))
-			require.Equal(t, a.OldValue, addQuotes(models.WorkOrderPriorityNone.String()))
+			require.Equal(t, a.NewValue, models.WorkOrderPriorityHigh.String())
+			require.Equal(t, a.OldValue, models.WorkOrderPriorityNone.String())
 			require.Nil(t, newNode)
 			require.Nil(t, oldNode)
 		default:

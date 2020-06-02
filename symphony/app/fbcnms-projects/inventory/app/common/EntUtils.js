@@ -10,6 +10,8 @@
 
 import shortid from 'shortid';
 
+import {camelCase, startCase, toUpper} from 'lodash';
+
 type EntWithID = $ReadOnly<{
   id?: ?string,
   ...
@@ -21,6 +23,48 @@ export type ShortUser = $ReadOnly<{
   id: string,
   email: string,
 }>;
+
+// http://github.com/golang/lint/blob/master/lint.go
+const commonGoInitialisms = [
+  'ACL',
+  'API',
+  'ASCII',
+  'CPU',
+  'CSS',
+  'DNS',
+  'EOF',
+  'GUID',
+  'HTML',
+  'HTTP',
+  'HTTPS',
+  'ID',
+  'IP',
+  'JSON',
+  'LHS',
+  'QPS',
+  'RAM',
+  'RHS',
+  'RPC',
+  'SLA',
+  'SMTP',
+  'SQL',
+  'SSH',
+  'TCP',
+  'TLS',
+  'TTL',
+  'UDP',
+  'UI',
+  'UID',
+  'UUID',
+  'URI',
+  'URL',
+  'UTF8',
+  'VM',
+  'XML',
+  'XMPP',
+  'XSRF',
+  'XSS',
+];
 
 export const ENT_TEMP_ID_PREFIX = '@tmp';
 
@@ -51,6 +95,13 @@ export const removeTempID = (ent: EntWithID) => {
 
 export const removeTempIDs = (ents: Iterable<EntWithID>) => {
   return Array.prototype.map.call(ents, removeTempID);
+};
+
+export const pascalCaseGoStyle = (word: string) => {
+  return startCase(camelCase(word))
+    .split(' ')
+    .map(w => (commonGoInitialisms.includes(toUpper(w)) ? toUpper(w) : w))
+    .join('');
 };
 
 export function haveDifferentValues<T_ENT>(entA: T_ENT, entB: T_ENT): boolean {

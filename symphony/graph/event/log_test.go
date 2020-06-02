@@ -7,13 +7,12 @@ package event
 import (
 	"context"
 	"errors"
-	"strconv"
 	"sync"
 	"testing"
 
-	"github.com/facebookincubator/symphony/pkg/viewer"
-
 	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/ent/locationtype"
+	"github.com/facebookincubator/symphony/pkg/viewer"
 	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
 	"github.com/stretchr/testify/suite"
 )
@@ -79,12 +78,12 @@ func (s *logTestSuite) TestCreateEnt() {
 		found := 0
 		for _, field := range entry.CurrState.Fields {
 			switch field.Name {
-			case "Name":
-				s.Assert().Equal(strconv.Quote("SomeName"), field.Value)
+			case locationtype.FieldName:
+				s.Assert().Equal("SomeName", field.MustGetString())
 				s.Assert().Equal("string", field.Type)
 				found++
-			case "Index":
-				s.Assert().Equal("3", field.Value)
+			case locationtype.FieldIndex:
+				s.Assert().Equal(3, field.MustGetInt())
 				s.Assert().Equal("int", field.Type)
 				found++
 			}
@@ -107,16 +106,16 @@ func (s *logTestSuite) TestUpdateEnt() {
 		s.Assert().NotNil(entry.PrevState)
 		found := 0
 		for _, field := range entry.PrevState.Fields {
-			if field.Name == "Name" {
-				s.Assert().Equal(strconv.Quote("LocationTypeToUpdate"), field.Value)
+			if field.Name == locationtype.FieldName {
+				s.Assert().Equal("LocationTypeToUpdate", field.MustGetString())
 				s.Assert().Equal("string", field.Type)
 				found++
 			}
 		}
 		s.Assert().NotNil(entry.CurrState)
 		for _, field := range entry.CurrState.Fields {
-			if field.Name == "Name" {
-				s.Assert().Equal(strconv.Quote("NewName"), field.Value)
+			if field.Name == locationtype.FieldName {
+				s.Assert().Equal("NewName", field.MustGetString())
 				s.Assert().Equal("string", field.Type)
 				found++
 			}
@@ -138,8 +137,8 @@ func (s *logTestSuite) TestDeleteEnt() {
 		s.Assert().NotNil(entry.PrevState)
 		found := 0
 		for _, field := range entry.PrevState.Fields {
-			if field.Name == "Name" {
-				s.Assert().Equal(strconv.Quote("LocationTypeToDelete"), field.Value)
+			if field.Name == locationtype.FieldName {
+				s.Assert().Equal("LocationTypeToDelete", field.MustGetString())
 				s.Assert().Equal("string", field.Type)
 				found++
 			}

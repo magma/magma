@@ -34,10 +34,6 @@ func (s *workOrderActivitiesTestSuite) SetupSuite() {
 		SaveX(s.ctx)
 }
 
-func addQuotes(s string) string {
-	return "\"" + s + "\""
-}
-
 func (s *workOrderActivitiesTestSuite) TestAddWorkOrderActivities() {
 	t := time.Now()
 	wo := s.client.WorkOrder.Create().
@@ -66,11 +62,11 @@ func (s *workOrderActivitiesTestSuite) TestAddWorkOrderActivities() {
 			s.Require().True(a.IsCreate)
 		case activity.ChangedFieldSTATUS:
 			s.Require().Empty(a.OldValue)
-			s.Require().Equal(a.NewValue, addQuotes(models.WorkOrderStatusPlanned.String()))
+			s.Require().Equal(a.NewValue, models.WorkOrderStatusPlanned.String())
 			s.Require().True(a.IsCreate)
 		case activity.ChangedFieldPRIORITY:
 			s.Require().Empty(a.OldValue)
-			s.Require().Equal(a.NewValue, addQuotes(models.WorkOrderPriorityNone.String()))
+			s.Require().Equal(a.NewValue, models.WorkOrderPriorityNone.String())
 			s.Require().True(a.IsCreate)
 		default:
 			s.Require().Fail("unsupported changed field")
@@ -114,9 +110,9 @@ func (s *workOrderActivitiesTestSuite) TestEditWorkOrderActivities() {
 			s.Require().False(a.IsCreate)
 			s.Require().Equal(a.OldValue, strconv.Itoa(s.user.ID))
 		case activity.ChangedFieldSTATUS:
-			s.Require().Equal(a.NewValue, addQuotes(models.WorkOrderStatusPending.String()))
+			s.Require().Equal(a.NewValue, models.WorkOrderStatusPending.String())
 			s.Require().False(a.IsCreate)
-			s.Require().Equal(a.OldValue, addQuotes(models.WorkOrderStatusPlanned.String()))
+			s.Require().Equal(a.OldValue, models.WorkOrderStatusPlanned.String())
 		default:
 			s.Require().Fail("unsupported changed field")
 		}
