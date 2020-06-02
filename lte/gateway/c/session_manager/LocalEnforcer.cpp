@@ -71,7 +71,8 @@ LocalEnforcer::LocalEnforcer(
     std::shared_ptr<SpgwServiceClient> spgw_client,
     std::shared_ptr<aaa::AAAClient> aaa_client,
     long session_force_termination_timeout_ms,
-    long quota_exhaustion_termination_on_init_ms)
+    long quota_exhaustion_termination_on_init_ms,
+    magma::mconfig::SessionD mconfig)
     : reporter_(reporter),
       rule_store_(rule_store),
       session_store_(session_store),
@@ -84,7 +85,8 @@ LocalEnforcer::LocalEnforcer(
           session_force_termination_timeout_ms),
       quota_exhaustion_termination_on_init_ms_(
           quota_exhaustion_termination_on_init_ms),
-      retry_timeout_(1) {}
+      retry_timeout_(1),
+      mconfig_(mconfig){}
 
 void LocalEnforcer::notify_new_report_for_sessions(
     SessionMap &session_map, SessionUpdate &session_update) {

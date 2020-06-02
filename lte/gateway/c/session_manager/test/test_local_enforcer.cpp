@@ -49,9 +49,11 @@ protected:
     eventd_client = std::make_shared<MockEventdClient>();
     spgw_client = std::make_shared<MockSpgwServiceClient>();
     aaa_client = std::make_shared<MockAAAClient>();
+    auto default_mconfig = get_default_mconfig();
     local_enforcer = std::make_unique<LocalEnforcer>(
         reporter, rule_store, *session_store, pipelined_client,
-        directoryd_client, eventd_client, spgw_client, aaa_client, 0, 0);
+        directoryd_client, eventd_client, spgw_client,
+        aaa_client, 0, 0, default_mconfig);
     evb = folly::EventBaseManager::get()->getEventBase();
     local_enforcer->attachEventBase(evb);
     session_map = SessionMap{};

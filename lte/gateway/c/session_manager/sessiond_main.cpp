@@ -43,6 +43,8 @@ static magma::mconfig::SessionD get_default_mconfig()
   magma::mconfig::SessionD mconfig;
   mconfig.set_log_level(magma::orc8r::LogLevel::INFO);
   mconfig.set_relay_enabled(false);
+  auto wallet_config = mconfig.mutable_wallet_exhaust_detection();
+  wallet_config->set_terminate_on_exhaust(false);
   return mconfig;
 }
 
@@ -242,7 +244,8 @@ int main(int argc, char *argv[])
     spgw_client,
     aaa_client,
     config["session_force_termination_timeout_ms"].as<long>(),
-    quota_exhaust_termination_on_init_ms);
+    quota_exhaust_termination_on_init_ms,
+    mconfig);
 
   magma::service303::MagmaService server(SESSIOND_SERVICE, SESSIOND_VERSION);
   auto local_handler = std::make_unique<magma::LocalSessionManagerHandlerImpl>(
