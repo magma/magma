@@ -5,7 +5,6 @@ set (  SCTP_DUMP_LIST                  False )
 set (  TRACE_HASHTABLE                 False )
 set (  TRACE_3GPP_SPEC                 False )
 
-
 # Dependencies
 pkg_search_module(LIBXML2 libxml-2.0 REQUIRED)
 include_directories(${LIBXML2_INCLUDE_DIRS})
@@ -55,7 +54,6 @@ target_link_libraries(mme
 if ( NOT EMBEDDED_SGW )
  target_link_libraries(mme
   LIB_GTPV2C TASK_UDP)
-
 else ( EMBEDDED_SGW )
 target_link_libraries( mme TASK_SGW )
 endif ( NOT EMBEDDED_SGW )

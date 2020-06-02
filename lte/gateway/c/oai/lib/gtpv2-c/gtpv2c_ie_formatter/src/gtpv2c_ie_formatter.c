@@ -97,48 +97,14 @@ gtpv2c_imsi_ie_set (
 {
   nw_rc_t                                   rc;
   imsi_t                                  imsi_nbo = {0};
-  //imsi_t                                  imsistandard;
   DevAssert (msg );
   DevAssert (imsi );
-
-//  memcpy(&imsi_nbo, imsi, sizeof (imsi_nbo));
-
-//  hexa_to_ascii((uint8_t *)imsi_pP->u.value,
-//                NAS_PDN_CONNECTIVITY_REQ(message_p).imsi,
-//                8);
-
-//  NAS_PDN_CONNECTIVITY_REQ(message_p).pti             = ptiP;
-//  NAS_PDN_CONNECTIVITY_REQ(message_p).ue_id           = ue_idP;
-//
-//
-//  NAS_PDN_CONNECTIVITY_REQ(message_p).imsi[15]        = '\0';
-//
-//  if (isdigit(NAS_PDN_CONNECTIVITY_REQ(message_p).imsi[14])) {
-//    NAS_PDN_CONNECTIVITY_REQ(message_p).imsi_length = 15;
-//  } else {
-//    NAS_PDN_CONNECTIVITY_REQ(message_p).imsi_length = 14;
-//    NAS_PDN_CONNECTIVITY_REQ(message_p).imsi[14] = '\0';
-//  }
 
   for (int i = 0; i < IMSI_BCD8_SIZE; i++) {
     uint8_t tmp = imsi->u.value[i];
     imsi_nbo.u.value[i] = (tmp >> 4) | (tmp << 4);
   }
   imsi_nbo.length = imsi->length;
-
-//  uint8_t digits[IMSI_BCD_DIGITS_MAX+1];
-//  int j = 0;
-//  for (int i = 0; i < imsi->length; i++) {
-//    if ((9 >= (imsi->u.value[i] & 0x0F)) && (j < IMSI_BCD_DIGITS_MAX)){
-//      imsi_nbo.u.value[j++]=imsi_nbo.u.value[i] & 0x0F;
-//    }
-//    if ((0x90 >= (imsi_nbo.u.value[i] & 0xF0)) && (j < IMSI_BCD_DIGITS_MAX)){
-//      imsi_nbo.u.value[j++]=(imsi_nbo.u.value[i] & 0xF0) >> 4;
-//    }
-//  }
-//    hexa_to_ascii((uint8_t *)imsi->u.value,
-//        imsi_nbo.u.value,
-//        8);
 
   rc = nwGtpv2cMsgAddIe(*msg, NW_GTPV2C_IE_IMSI, (imsi_nbo.length +1)/2, 0,(uint8_t *)imsi_nbo.u.value);
   DevAssert(NW_OK == rc);
@@ -882,10 +848,6 @@ gtpv2c_target_identification_ie_set (
     target_id[2] = ((target_identification->mnc[1] & 0x0F) << 4) | (target_identification->mnc[0] & 0x0F);
   }
 
-  /** Check the eNB type. */
-
-  //tac = target_identification->target_id.macro_enb_id.tac;
-
   /** Build an array for the TargetIe payload. */
 
   uint8_t enbId[4];
@@ -987,9 +949,6 @@ gtpv2c_bearer_context_created_ie_get (
       DevAssert (NW_OK == rc);
       break;
 
-//    case NW_GTPV2C_IE_FTEID:
-//      rc = gtpv2c_fteid_ie_get (ie_p->t, ntohs (ie_p->l), ie_p->i, &ieValue[read + sizeof (nw_gtpv2c_ie_tlv_t)], &bearer_context->s1u_sgw_fteid);
-//      break;
     case NW_GTPV2C_IE_FTEID:
       switch (ie_p->i) {
       case 0:

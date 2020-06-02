@@ -44,6 +44,7 @@ endif
 
 ifeq ($(MAIN_FEATURE),mme)
 # Here force S6A to use freeDiameter
+# Set DS6A_OVER_GRPC=False if using OAI-HSS
 OAI_FLAGS = -DS6A_OVER_GRPC=True
 else ifeq ($(MAIN_FEATURE),agw_gtpnl)
 OAI_FLAGS = $(S6A_FLAGS) -DEMBEDDED_SGW=True -DENABLE_OPENFLOW=False -DSPGW_ENABLE_SESSIOND_AND_MOBILITYD=False

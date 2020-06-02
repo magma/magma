@@ -60,5 +60,3 @@ typedef enum nw_rc_e {
 #endif
 
 #endif /* __NW_ERROR_CODE_H__ */
-
-

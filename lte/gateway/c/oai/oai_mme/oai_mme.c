@@ -45,11 +45,11 @@
 #include "oai_mme.h"
 #include "pid_file.h"
 #include "service303_message_utils.h"
-#include "mme_app_embedded_spgw.h"
 #include "bstrlib.h"
 #include "intertask_interface.h"
 #include "intertask_interface_types.h"
 #if EMBEDDED_SGW
+#include "mme_app_embedded_spgw.h"
 #include "service303.h"
 #include "sgw_defs.h"
 #include "shared_ts_log.h"

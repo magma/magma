@@ -56,7 +56,6 @@
 #if EMBEDDED_SGW
 #define TASK_SPGW TASK_SPGW_APP
 #else
-//#warning EMBEDDED_SGW = 0
 #define TASK_SPGW TASK_S11
 #endif
 
@@ -378,7 +377,6 @@ int mme_app_send_s11_create_session_req(
   session_request_p->serving_network.mnc[2] =
     ue_mm_context->e_utran_cgi.plmn.mnc_digit3;
   session_request_p->selection_mode = MS_O_N_P_APN_S_V;
-
 
   OAILOG_INFO(
     TASK_MME_APP,

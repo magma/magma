@@ -353,7 +353,6 @@ int mme_config_parse_file(mme_config_t *config_pP)
   setting_mme = config_lookup(&cfg, MME_CONFIG_STRING_MME_CONFIG);
 
   if (setting_mme != NULL) {
-//OAILOG_DEBUG("reading mme config")
 
     // LOGGING setting
     setting = config_setting_get_member(setting_mme, LOG_CONFIG_STRING_LOGGING);
@@ -1174,7 +1173,7 @@ int mme_config_parse_file(mme_config_t *config_pP)
      config_setting_get_member(setting_mme, MME_CONFIG_STRING_SGW_CONFIG);
 
      if (setting != NULL) {
-     if ((config_setting_lookup_string(setting,SGW_CONFIG_STRING_SGW_IPV4_ADDRESS_FOR_S11,(const char **) &sgw_ip_address_for_s11)))
+     if ((config_setting_lookup_string(setting,MME_CONFIG_STRING_SGW_IPV4_ADDRESS_FOR_S11,(const char **) &sgw_ip_address_for_s11)))
                            {
 
           OAILOG_DEBUG ( LOG_MME_APP, "sgw interface IP information %s\n", sgw_ip_address_for_s11);
