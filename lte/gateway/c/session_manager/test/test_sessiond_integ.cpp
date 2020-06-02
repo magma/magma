@@ -155,10 +155,9 @@ class SessiondTest : public ::testing::Test {
     uint32_t charging_key,
     const std::string &rule_id)
   {
+    auto mkey = "";
     PolicyRule rule;
-    rule.set_id(rule_id);
-    rule.set_rating_group(charging_key);
-    rule.set_tracking_type(PolicyRule::ONLY_OCS);
+    create_policy_rule(rule_id, mkey, charging_key, &rule);
     rule_store->insert_rule(rule);
   }
 

@@ -95,5 +95,11 @@ void create_session_create_response(
   std::vector<std::string>& static_rules,
   CreateSessionResponse* response);
 
+void create_policy_rule(
+  const std::string &rule_id,
+  const std::string &m_key,
+  uint32_t rating_group,
+  PolicyRule* rule);
+
 magma::mconfig::SessionD get_default_mconfig();
 } // namespace magma
