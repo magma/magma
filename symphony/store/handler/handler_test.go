@@ -97,6 +97,9 @@ func (s *handlerSuite) TestPut() {
 		Return(&url.URL{Host: host}, nil).
 		Once()
 	req := httptest.NewRequest(http.MethodGet, "/put", nil)
+	query := req.URL.Query()
+	query.Set("contentType", "image/png")
+	req.URL.RawQuery = query.Encode()
 	rec := httptest.NewRecorder()
 	s.handler.ServeHTTP(rec, req)
 	s.Assert().Equal(http.StatusOK, rec.Code)

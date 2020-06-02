@@ -156,7 +156,7 @@ nms:
       tag: "${docker_tag}"
 
     env:
-      api_host: ${controller_hostname}
+      api_host: ${api_hostname}
       mysql_host: ${nms_db_host}
       mysql_user: ${nms_db_user}
       grafana_address: ${user_grafana_hostname}

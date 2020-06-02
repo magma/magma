@@ -16,11 +16,13 @@ import (
 	"path/filepath"
 	"strings"
 
+	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/tools/accessc/handlers"
 )
 
 func main() {
 	flag.Parse()
+	plugin.LoadAllPluginsFatalOnError(&plugin.DefaultOrchestratorPluginLoader{})
 
 	// Init help for all commands
 	flag.Usage = func() {

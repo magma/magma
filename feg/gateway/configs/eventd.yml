@@ -14,3 +14,15 @@ event_registry:
   mock_subscriber_event:
     module: orc8r
     filename: mock_event_definitions.v1.yml
+  deleted_stored_mconfig:
+    module: orc8r
+    filename: magmad_events.v1.yml
+  updated_stored_mconfig:
+    module: orc8r
+    filename: magmad_events.v1.yml
+  processed_updates:
+    module: orc8r
+    filename: magmad_events.v1.yml
+  restarted_services:
+    module: orc8r
+    filename: magmad_events.v1.yml

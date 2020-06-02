@@ -13,13 +13,12 @@ import (
 	"os"
 	"syscall"
 
-	"github.com/facebookincubator/symphony/graph/event"
-	"github.com/facebookincubator/symphony/graph/graphevents"
 	"github.com/facebookincubator/symphony/pkg/ctxgroup"
 	"github.com/facebookincubator/symphony/pkg/ctxutil"
 	"github.com/facebookincubator/symphony/pkg/log"
 	"github.com/facebookincubator/symphony/pkg/mysql"
 	"github.com/facebookincubator/symphony/pkg/orc8r"
+	"github.com/facebookincubator/symphony/pkg/pubsub"
 	"github.com/facebookincubator/symphony/pkg/server"
 	"github.com/facebookincubator/symphony/pkg/telemetry"
 	"go.uber.org/zap"
@@ -36,7 +35,7 @@ type cliFlags struct {
 	GRPCAddress     *net.TCPAddr
 	MySQLConfig     mysql.Config
 	AuthURL         *url.URL
-	EventConfig     event.Config
+	EventConfig     pubsub.Config
 	LogConfig       log.Config
 	TelemetryConfig telemetry.Config
 	Orc8rConfig     orc8r.Config
@@ -111,7 +110,6 @@ type application struct {
 		*grpc.Server
 		addr string
 	}
-	event *graphevents.Server
 }
 
 func (app *application) run(ctx context.Context) error {
@@ -135,14 +133,6 @@ func (app *application) run(ctx context.Context) error {
 		defer cancel()
 		<-ctx.Done()
 		return nil
-	})
-	g.Go(func(ctx context.Context) error {
-		listener, err := app.event.Subscribe(ctx)
-		if err != nil {
-			return err
-		}
-		defer listener.Shutdown(ctx)
-		return listener.Listen(ctx)
 	})
 	<-ctx.Done()
 

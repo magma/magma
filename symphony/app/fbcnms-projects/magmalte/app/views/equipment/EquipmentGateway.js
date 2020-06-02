@@ -78,7 +78,7 @@ export default function Gateway({
           <GatewayCheckinChart />
         </Grid>
         <Grid item xs={12}>
-          <EquipmentGatewayKPIs />
+          <EquipmentGatewayKPIs lte_gateways={lte_gateways} />
         </Grid>
         <Grid item xs={12}>
           <GatewayTable lte_gateways={lte_gateways} />

@@ -10,39 +10,30 @@
 
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import KPITray from './KPITray';
+import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
-import React, {useEffect, useState} from 'react';
+import React from 'react';
+import isGatewayHealthy from './GatewayUtils';
 import nullthrows from '@fbcnms/util/nullthrows';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 import {useRouter} from '@fbcnms/ui/hooks';
 import type {KPIData} from './KPITray';
 import type {lte_gateway} from '@fbcnms/magma-api';
 
-const GATEWAY_KEEPALIVE_TIMEOUT_MS = 1000 * 5 * 60;
-
 export default function GatewayKPIs() {
-  const [gatewaySt, setGatewaySt] = useState<{[string]: lte_gateway}>({});
   const {match} = useRouter();
   const networkId: string = nullthrows(match.params.networkId);
-  const enqueueSnackbar = useEnqueueSnackbar();
+  const {response: lteGateways, isLoading} = useMagmaAPI(
+    MagmaV1API.getLteByNetworkIdGateways,
+    {
+      networkId: networkId,
+    },
+  );
 
-  useEffect(() => {
-    const fetchSt = async () => {
-      try {
-        const resp = await MagmaV1API.getLteByNetworkIdGateways({
-          networkId: networkId,
-        });
-        setGatewaySt(resp);
-      } catch (error) {
-        enqueueSnackbar('Error getting gateway information', {
-          variant: 'error',
-        });
-      }
-    };
-    fetchSt();
-  }, [networkId, enqueueSnackbar]);
-
-  const [upCount, downCount] = gatewayStatus(gatewaySt);
+  if (isLoading || !lteGateways) {
+    return <LoadingFiller />;
+  }
+  const [upCount, downCount] = gatewayStatus(lteGateways);
   const kpiData: KPIData[] = [
     {category: 'Severe Events', value: 0},
     {category: 'Connected', value: upCount || 0},
@@ -58,16 +49,7 @@ function gatewayStatus(gatewaySt: {[string]: lte_gateway}): [number, number] {
     .map((k: string) => gatewaySt[k])
     .filter((g: lte_gateway) => g.cellular && g.id)
     .map(function(gateway: lte_gateway) {
-      const {status} = gateway;
-      let isBackhaulDown = true;
-      if (status != null) {
-        const checkin = status.checkin_time;
-        if (checkin != null) {
-          const duration = Date.now() - checkin;
-          isBackhaulDown = duration > GATEWAY_KEEPALIVE_TIMEOUT_MS;
-        }
-      }
-      isBackhaulDown ? downCount++ : upCount++;
+      isGatewayHealthy(gateway) ? upCount++ : downCount++;
     });
   return [upCount, downCount];
 }

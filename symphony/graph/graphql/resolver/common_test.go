@@ -23,6 +23,7 @@ import (
 	"github.com/facebookincubator/symphony/pkg/ent/migrate"
 	"github.com/facebookincubator/symphony/pkg/log"
 	"github.com/facebookincubator/symphony/pkg/log/logtest"
+	"github.com/facebookincubator/symphony/pkg/pubsub"
 	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -31,8 +32,8 @@ type TestResolver struct {
 	generated.ResolverRoot
 	logger     log.Logger
 	client     *ent.Client
-	emitter    *event.PipeEmitter
-	subscriber *event.PipeSubscriber
+	emitter    *pubsub.PipeEmitter
+	subscriber *pubsub.PipeSubscriber
 }
 
 func newTestResolver(t *testing.T, opts ...Option) *TestResolver {
@@ -45,7 +46,7 @@ func newTestResolver(t *testing.T, opts ...Option) *TestResolver {
 		),
 	)
 
-	emitter, subscriber := event.Pipe()
+	emitter, subscriber := pubsub.Pipe()
 	logger := logtest.NewTestLogger(t)
 	eventer := event.Eventer{Logger: logger, Emitter: emitter}
 	eventer.HookTo(c)

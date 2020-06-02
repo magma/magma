@@ -54,6 +54,7 @@ func New(cfg Config) *Handler {
 		)
 	router.Path("/put").
 		Methods(http.MethodGet).
+		Queries("contentType", "{contentType}").
 		Handler(ochttp.WithRouteTag(
 			http.HandlerFunc(h.put), "put",
 		))
@@ -115,7 +116,10 @@ func (h *Handler) put(w http.ResponseWriter, r *http.Request) {
 	rsp.Key = uuid.New().String()
 	key := h.key(r, rsp.Key)
 	if rsp.URL, err = h.bucket.SignedURL(ctx, key,
-		&blob.SignedURLOptions{Method: http.MethodPut},
+		&blob.SignedURLOptions{
+			Method:      http.MethodPut,
+			ContentType: mux.Vars(r)["contentType"],
+		},
 	); err != nil {
 		logger.Error("cannot sign put object url", zap.Error(err))
 		http.Error(w, "", http.StatusInternalServerError)

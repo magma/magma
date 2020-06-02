@@ -7,13 +7,13 @@ package event
 import (
 	"context"
 	"errors"
-	"strconv"
 	"sync"
 	"testing"
 
-	"github.com/facebookincubator/symphony/pkg/viewer"
-
 	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/ent/locationtype"
+	"github.com/facebookincubator/symphony/pkg/pubsub"
+	"github.com/facebookincubator/symphony/pkg/viewer"
 	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
 	"github.com/stretchr/testify/suite"
 )
@@ -38,20 +38,20 @@ func (s *logTestSuite) SetupSuite() {
 		SaveX(s.ctx)
 }
 
-func (s *logTestSuite) subscribeForOneEvent(wg *sync.WaitGroup, expect func(entry LogEntry)) {
+func (s *logTestSuite) subscribeForOneEvent(wg *sync.WaitGroup, expect func(entry pubsub.LogEntry)) {
 	wg.Add(1)
 	ctx, cancel := context.WithCancel(s.ctx)
-	events := []string{EntMutation}
-	listener, err := NewListener(s.ctx, ListenerConfig{
+	events := []string{pubsub.EntMutation}
+	listener, err := pubsub.NewListener(s.ctx, pubsub.ListenerConfig{
 		Subscriber: s.subscriber,
 		Logger:     s.logger.Background(),
 		Events:     events,
-		Handler: HandlerFunc(func(_ context.Context, tenant, name string, body []byte) error {
+		Handler: pubsub.HandlerFunc(func(_ context.Context, tenant, name string, body []byte) error {
 			s.Assert().NotEmpty(body)
 			s.Assert().Equal(viewertest.DefaultTenant, tenant)
-			s.Assert().Equal(EntMutation, name)
-			var entry LogEntry
-			err := Unmarshal(body, &entry)
+			s.Assert().Equal(pubsub.EntMutation, name)
+			var entry pubsub.LogEntry
+			err := pubsub.Unmarshal(body, &entry)
 			s.NoError(err)
 			expect(entry)
 			cancel()
@@ -69,7 +69,7 @@ func (s *logTestSuite) subscribeForOneEvent(wg *sync.WaitGroup, expect func(entr
 
 func (s *logTestSuite) TestCreateEnt() {
 	var wg sync.WaitGroup
-	s.subscribeForOneEvent(&wg, func(entry LogEntry) {
+	s.subscribeForOneEvent(&wg, func(entry pubsub.LogEntry) {
 		s.Assert().Equal(s.user.AuthID, entry.UserName)
 		s.Assert().Equal(s.user.ID, *entry.UserID)
 		s.Assert().Equal(ent.OpCreate, entry.Operation)
@@ -79,12 +79,12 @@ func (s *logTestSuite) TestCreateEnt() {
 		found := 0
 		for _, field := range entry.CurrState.Fields {
 			switch field.Name {
-			case "Name":
-				s.Assert().Equal(strconv.Quote("SomeName"), field.Value)
+			case locationtype.FieldName:
+				s.Assert().Equal("SomeName", field.MustGetString())
 				s.Assert().Equal("string", field.Type)
 				found++
-			case "Index":
-				s.Assert().Equal("3", field.Value)
+			case locationtype.FieldIndex:
+				s.Assert().Equal(3, field.MustGetInt())
 				s.Assert().Equal("int", field.Type)
 				found++
 			}
@@ -100,23 +100,23 @@ func (s *logTestSuite) TestCreateEnt() {
 
 func (s *logTestSuite) TestUpdateEnt() {
 	var wg sync.WaitGroup
-	s.subscribeForOneEvent(&wg, func(entry LogEntry) {
+	s.subscribeForOneEvent(&wg, func(entry pubsub.LogEntry) {
 		s.Assert().Equal(s.user.AuthID, entry.UserName)
 		s.Assert().Equal(s.user.ID, *entry.UserID)
 		s.Assert().Equal(ent.OpUpdateOne, entry.Operation)
 		s.Assert().NotNil(entry.PrevState)
 		found := 0
 		for _, field := range entry.PrevState.Fields {
-			if field.Name == "Name" {
-				s.Assert().Equal(strconv.Quote("LocationTypeToUpdate"), field.Value)
+			if field.Name == locationtype.FieldName {
+				s.Assert().Equal("LocationTypeToUpdate", field.MustGetString())
 				s.Assert().Equal("string", field.Type)
 				found++
 			}
 		}
 		s.Assert().NotNil(entry.CurrState)
 		for _, field := range entry.CurrState.Fields {
-			if field.Name == "Name" {
-				s.Assert().Equal(strconv.Quote("NewName"), field.Value)
+			if field.Name == locationtype.FieldName {
+				s.Assert().Equal("NewName", field.MustGetString())
 				s.Assert().Equal("string", field.Type)
 				found++
 			}
@@ -131,15 +131,15 @@ func (s *logTestSuite) TestUpdateEnt() {
 
 func (s *logTestSuite) TestDeleteEnt() {
 	var wg sync.WaitGroup
-	s.subscribeForOneEvent(&wg, func(entry LogEntry) {
+	s.subscribeForOneEvent(&wg, func(entry pubsub.LogEntry) {
 		s.Assert().Equal(s.user.AuthID, entry.UserName)
 		s.Assert().Equal(s.user.ID, *entry.UserID)
 		s.Assert().Equal(ent.OpDeleteOne, entry.Operation)
 		s.Assert().NotNil(entry.PrevState)
 		found := 0
 		for _, field := range entry.PrevState.Fields {
-			if field.Name == "Name" {
-				s.Assert().Equal(strconv.Quote("LocationTypeToDelete"), field.Value)
+			if field.Name == locationtype.FieldName {
+				s.Assert().Equal("LocationTypeToDelete", field.MustGetString())
 				s.Assert().Equal("string", field.Type)
 				found++
 			}

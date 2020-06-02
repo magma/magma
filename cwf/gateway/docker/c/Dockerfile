@@ -9,7 +9,7 @@ RUN apt-get update && \
     apt-get install -y apt-utils software-properties-common apt-transport-https gnupg
 COPY orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub /tmp/jfrog.pub
 RUN apt-key add /tmp/jfrog.pub && \
-    apt-add-repository "deb https://magma.jfrog.io/magma/list/dev/ stretch main"
+    apt-add-repository "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev/ stretch main"
 
 # Install dependencies required for building
 RUN apt-get -y update && apt-get -y install \
@@ -76,7 +76,7 @@ RUN apt-get update && \
     apt-get install -y apt-utils software-properties-common apt-transport-https gnupg
 COPY orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub /tmp/jfrog.pub
 RUN apt-key add /tmp/jfrog.pub && \
-    apt-add-repository "deb https://magma.jfrog.io/magma/list/dev/ stretch main"
+    apt-add-repository "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev/ stretch main"
 
 # Install runtime dependencies
 RUN apt-get -y update && apt-get -y install \

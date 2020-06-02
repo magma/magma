@@ -241,6 +241,7 @@ jobs:
 
   docker-publish:
     executor: node
+    resource_class: large
     parameters:
       path:
         default: .
@@ -334,6 +335,7 @@ jobs:
     executor:
       name: docker/machine
       dlc: true
+    resource_class: large
     environment:
       COMPOSE_FILE: integration/docker-compose.ci.yaml
       DOCKER_REGISTRY: facebookconnectivity-symphony-dev-docker.jfrog.io
@@ -451,6 +453,7 @@ jobs:
       - checkout
       - when:
           condition: <<parameters.after_checkout>>
+          name: Run after_checkout lifecycle hook steps
           steps: <<parameters.after_checkout>>
       - tfinit:
           workspace: <<parameters.workspace>>
@@ -490,6 +493,7 @@ jobs:
     steps:
       - when:
           condition: <<parameters.before_test>>
+          name: Run before_test lifecycle hook steps
           steps: <<parameters.before_test>>
       - *mktestdir
       - run:
@@ -564,6 +568,11 @@ workflows:
           name: store/publish
           dockerfile: store/Dockerfile
           image: store
+          requires: *dpreq
+      - docker-publish:
+          name: async/publish
+          dockerfile: async/Dockerfile
+          image: async
           requires: *dpreq
       - docker-publish:
           name: docs/publish

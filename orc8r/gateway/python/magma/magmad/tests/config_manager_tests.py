@@ -7,7 +7,6 @@ LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
 import asyncio
-from collections import namedtuple
 from unittest import TestCase
 from unittest.mock import MagicMock, Mock, patch
 
@@ -17,6 +16,7 @@ from magma.configuration.mconfig_managers import MconfigManagerImpl
 from magma.magmad.config_manager import CONFIG_STREAM_NAME, ConfigManager
 from orc8r.protos.mconfig.mconfigs_pb2 import MagmaD, MetricsD
 from orc8r.protos.mconfig_pb2 import GatewayConfigs
+from orc8r.protos.streamer_pb2 import DataUpdate
 
 
 class ConfigManagerTest(TestCase):
@@ -31,7 +31,6 @@ class ConfigManagerTest(TestCase):
         # Set up fixture data
         # Update will simulate gateway moving from
         # test_mconfig -> updated_mconfig
-        TestUpdate = namedtuple('TestUpdate', ['value', 'key'])
         test_mconfig = GatewayConfigs()
         updated_mconfig = GatewayConfigs()
 
@@ -72,9 +71,12 @@ class ConfigManagerTest(TestCase):
             service_manager_mock,
             'restart_services', MagicMock(wraps=_mock_restart_services),
         )
+        processed_updates_mock = patch('magma.magmad.events.processed_updates')
 
-        with load_mock as loader, update_mock as updater, \
-                restart_service_mock as restarter:
+        with load_mock as loader,\
+                update_mock as updater, \
+                restart_service_mock as restarter,\
+                processed_updates_mock as processed_updates:
             loop = asyncio.new_event_loop()
             config_manager = ConfigManager(
                 ['magmad', 'metricsd'], service_manager_mock,
@@ -94,11 +96,9 @@ class ConfigManagerTest(TestCase):
             # Verify that config update restarts all services
             update_str = MessageToJson(updated_mconfig)
             updates = [
-                TestUpdate(value='', key='some key'),
-                TestUpdate(
-                    value=update_str.encode('utf-8'),
-                    key='last key',
-                ),
+                DataUpdate(value=''.encode('utf-8'), key='some key'),
+                DataUpdate(value=update_str.encode('utf-8'),
+                    key='last key'),
             ]
             config_manager.process_update(CONFIG_STREAM_NAME, updates, False)
 
@@ -106,3 +106,4 @@ class ConfigManagerTest(TestCase):
             loader.assert_called_once_with()
             restarter.assert_called_once_with(['metricsd'])
             updater.assert_called_once_with(update_str)
+            processed_updates.assert_called_once_with(updates)

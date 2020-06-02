@@ -7,10 +7,10 @@ package importer
 import (
 	"net/http"
 
-	"github.com/facebookincubator/symphony/graph/event"
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
 	"github.com/facebookincubator/symphony/graph/graphql/resolver"
 	"github.com/facebookincubator/symphony/pkg/log"
+	"github.com/facebookincubator/symphony/pkg/pubsub"
 
 	"github.com/gorilla/mux"
 	"go.opencensus.io/plugin/ochttp"
@@ -20,7 +20,7 @@ type (
 	// Config configures import handler.
 	Config struct {
 		Logger     log.Logger
-		Subscriber event.Subscriber
+		Subscriber pubsub.Subscriber
 	}
 
 	importer struct {

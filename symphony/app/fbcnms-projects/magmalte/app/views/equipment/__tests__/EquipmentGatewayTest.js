@@ -75,6 +75,24 @@ const mockGw0: lte_gateway = {
     },
   },
 };
+
+const mockKPIMetric: promql_return_object = {
+  status: 'success',
+  data: {
+    resultType: 'matrix',
+    result: [
+      {
+        metric: {},
+        value: ['1588898968.042', '6'],
+      },
+      {
+        metric: {},
+        value: ['1588898968.042', '8'],
+      },
+    ],
+  },
+};
+
 const currTime = Date.now();
 
 describe('<Gateway />', () => {
@@ -82,6 +100,9 @@ describe('<Gateway />', () => {
     // eslint-disable-next-line max-len
     MagmaAPIBindings.getNetworksByNetworkIdPrometheusQueryRange.mockResolvedValue(
       mockCheckinMetric,
+    );
+    MagmaAPIBindings.getNetworksByNetworkIdPrometheusQuery.mockResolvedValue(
+      mockKPIMetric,
     );
   });
 
@@ -127,6 +148,16 @@ describe('<Gateway />', () => {
     expect(
       MagmaAPIBindings.getNetworksByNetworkIdPrometheusQueryRange,
     ).toHaveBeenCalledTimes(1);
+
+    expect(
+      MagmaAPIBindings.getNetworksByNetworkIdPrometheusQuery,
+    ).toHaveBeenCalledTimes(3);
+
+    // verify KPI metrics
+    expect(getByTestId('Max Latency')).toHaveTextContent('8');
+    expect(getByTestId('Min Latency')).toHaveTextContent('6');
+    expect(getByTestId('Avg Latency')).toHaveTextContent('7');
+    expect(getByTestId('% Healthy Gateways')).toHaveTextContent('33.33');
 
     const rowItems = await getAllByRole('row');
 

@@ -60,7 +60,7 @@ type Edge struct {
 				}
 				node.Fields[{{ $i }}] = &Field{
 					Type:  "{{ $f.Type }}",
-					Name:  "{{ pascal $f.Name }}",
+					Name:  "{{ $f.Name }}",
 					Value: string(buf),
 				}
 			{{- end }}
@@ -77,7 +77,7 @@ type Edge struct {
 				node.Edges[{{ $i }}] = &Edge{
 					IDs: ids,
 					Type: "{{ $e.Type.Name }}",
-					Name: "{{ pascal $e.Name }}",
+					Name: "{{ $e.Name }}",
 				}
 			{{- end }}
 		{{- end }}

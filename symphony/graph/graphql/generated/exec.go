@@ -23,6 +23,7 @@ import (
 	"github.com/facebookincubator/symphony/pkg/actions/core"
 	models1 "github.com/facebookincubator/symphony/pkg/authz/models"
 	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/ent/activity"
 	"github.com/facebookincubator/symphony/pkg/ent/checklistitem"
 	"github.com/facebookincubator/symphony/pkg/ent/user"
 	"github.com/facebookincubator/symphony/pkg/ent/usersgroup"
@@ -53,6 +54,7 @@ type ResolverRoot interface {
 	ActionsRuleAction() ActionsRuleActionResolver
 	ActionsRuleFilter() ActionsRuleFilterResolver
 	ActionsTrigger() ActionsTriggerResolver
+	Activity() ActivityResolver
 	CheckListCategory() CheckListCategoryResolver
 	CheckListCategoryDefinition() CheckListCategoryDefinitionResolver
 	CheckListItem() CheckListItemResolver
@@ -160,6 +162,19 @@ type ComplexityRoot struct {
 	ActionsTriggersSearchResult struct {
 		Count   func(childComplexity int) int
 		Results func(childComplexity int) int
+	}
+
+	Activity struct {
+		Author         func(childComplexity int) int
+		ChangedField   func(childComplexity int) int
+		CreateTime     func(childComplexity int) int
+		ID             func(childComplexity int) int
+		IsCreate       func(childComplexity int) int
+		NewRelatedNode func(childComplexity int) int
+		NewValue       func(childComplexity int) int
+		OldRelatedNode func(childComplexity int) int
+		OldValue       func(childComplexity int) int
+		WorkOrder      func(childComplexity int) int
 	}
 
 	AdministrativePolicy struct {
@@ -739,6 +754,7 @@ type ComplexityRoot struct {
 		PropertyType func(childComplexity int) int
 		RangeFromVal func(childComplexity int) int
 		RangeToVal   func(childComplexity int) int
+		RawValue     func(childComplexity int) int
 		StringVal    func(childComplexity int) int
 	}
 
@@ -1077,6 +1093,7 @@ type ComplexityRoot struct {
 	}
 
 	WorkOrder struct {
+		Activities          func(childComplexity int) int
 		AssignedTo          func(childComplexity int) int
 		Assignee            func(childComplexity int) int
 		CheckListCategories func(childComplexity int) int
@@ -1188,6 +1205,14 @@ type ActionsRuleFilterResolver interface {
 type ActionsTriggerResolver interface {
 	SupportedActions(ctx context.Context, obj *models.ActionsTrigger) ([]*models.ActionsAction, error)
 	SupportedFilters(ctx context.Context, obj *models.ActionsTrigger) ([]*models.ActionsFilter, error)
+}
+type ActivityResolver interface {
+	Author(ctx context.Context, obj *ent.Activity) (*ent.User, error)
+
+	NewRelatedNode(ctx context.Context, obj *ent.Activity) (ent.Noder, error)
+	OldRelatedNode(ctx context.Context, obj *ent.Activity) (ent.Noder, error)
+
+	WorkOrder(ctx context.Context, obj *ent.Activity) (*ent.WorkOrder, error)
 }
 type CheckListCategoryResolver interface {
 	CheckList(ctx context.Context, obj *ent.CheckListCategory) ([]*ent.CheckListItem, error)
@@ -1406,6 +1431,7 @@ type PropertyResolver interface {
 	PropertyType(ctx context.Context, obj *ent.Property) (*ent.PropertyType, error)
 
 	NodeValue(ctx context.Context, obj *ent.Property) (models.NamedNode, error)
+	RawValue(ctx context.Context, obj *ent.Property) (*string, error)
 }
 type PropertyTypeResolver interface {
 	Type(ctx context.Context, obj *ent.PropertyType) (models.PropertyKind, error)
@@ -1552,6 +1578,7 @@ type WorkOrderResolver interface {
 	Images(ctx context.Context, obj *ent.WorkOrder) ([]*ent.File, error)
 	Files(ctx context.Context, obj *ent.WorkOrder) ([]*ent.File, error)
 	Comments(ctx context.Context, obj *ent.WorkOrder) ([]*ent.Comment, error)
+	Activities(ctx context.Context, obj *ent.WorkOrder) ([]*ent.Activity, error)
 	Location(ctx context.Context, obj *ent.WorkOrder) (*ent.Location, error)
 	Properties(ctx context.Context, obj *ent.WorkOrder) ([]*ent.Property, error)
 	Project(ctx context.Context, obj *ent.WorkOrder) (*ent.Project, error)
@@ -1798,6 +1825,76 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ActionsTriggersSearchResult.Results(childComplexity), true
+
+	case "Activity.author":
+		if e.complexity.Activity.Author == nil {
+			break
+		}
+
+		return e.complexity.Activity.Author(childComplexity), true
+
+	case "Activity.changedField":
+		if e.complexity.Activity.ChangedField == nil {
+			break
+		}
+
+		return e.complexity.Activity.ChangedField(childComplexity), true
+
+	case "Activity.createTime":
+		if e.complexity.Activity.CreateTime == nil {
+			break
+		}
+
+		return e.complexity.Activity.CreateTime(childComplexity), true
+
+	case "Activity.id":
+		if e.complexity.Activity.ID == nil {
+			break
+		}
+
+		return e.complexity.Activity.ID(childComplexity), true
+
+	case "Activity.isCreate":
+		if e.complexity.Activity.IsCreate == nil {
+			break
+		}
+
+		return e.complexity.Activity.IsCreate(childComplexity), true
+
+	case "Activity.newRelatedNode":
+		if e.complexity.Activity.NewRelatedNode == nil {
+			break
+		}
+
+		return e.complexity.Activity.NewRelatedNode(childComplexity), true
+
+	case "Activity.newValue":
+		if e.complexity.Activity.NewValue == nil {
+			break
+		}
+
+		return e.complexity.Activity.NewValue(childComplexity), true
+
+	case "Activity.oldRelatedNode":
+		if e.complexity.Activity.OldRelatedNode == nil {
+			break
+		}
+
+		return e.complexity.Activity.OldRelatedNode(childComplexity), true
+
+	case "Activity.oldValue":
+		if e.complexity.Activity.OldValue == nil {
+			break
+		}
+
+		return e.complexity.Activity.OldValue(childComplexity), true
+
+	case "Activity.workOrder":
+		if e.complexity.Activity.WorkOrder == nil {
+			break
+		}
+
+		return e.complexity.Activity.WorkOrder(childComplexity), true
 
 	case "AdministrativePolicy.access":
 		if e.complexity.AdministrativePolicy.Access == nil {
@@ -4813,6 +4910,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Property.RangeToVal(childComplexity), true
 
+	case "Property.rawValue":
+		if e.complexity.Property.RawValue == nil {
+			break
+		}
+
+		return e.complexity.Property.RawValue(childComplexity), true
+
 	case "Property.stringValue":
 		if e.complexity.Property.StringVal == nil {
 			break
@@ -6619,6 +6723,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Viewer.User(childComplexity), true
 
+	case "WorkOrder.activities":
+		if e.complexity.WorkOrder.Activities == nil {
+			break
+		}
+
+		return e.complexity.WorkOrder.Activities(childComplexity), true
+
 	case "WorkOrder.assignedTo":
 		if e.complexity.WorkOrder.AssignedTo == nil {
 			break
@@ -7642,6 +7753,27 @@ input CommentInput {
   text: String!
 }
 
+enum ActivityField @goModel(model: "github.com/facebookincubator/symphony/pkg/ent/activity.ChangedField") {
+  STATUS
+  PRIORITY
+  ASSIGNEE
+  CREATION_DATE
+  OWNER
+}
+
+type Activity implements Node {
+  id: ID!
+  author: User
+  isCreate: Boolean!
+  changedField: ActivityField!
+  newRelatedNode: Node
+  oldRelatedNode: Node
+  oldValue: String
+  newValue: String
+  createTime: Time!
+  workOrder: WorkOrder!
+}
+
 # specific equipment instance: e.g. Wifi Access Point X at Location Y.
 type Equipment implements Node & NamedNode {
   id: ID!
@@ -8319,6 +8451,7 @@ type Property implements Node {
   rangeFromValue: Float
   rangeToValue: Float
   nodeValue: NamedNode
+  rawValue: String
 }
 
 input PropertyInput {
@@ -8630,6 +8763,7 @@ type WorkOrder implements Node & NamedNode {
   images: [File]!
   files: [File]!
   comments: [Comment]!
+  activities: [Activity!]!
   location: Location
   properties: [Property]!
   project: Project
@@ -13644,6 +13778,331 @@ func (ec *executionContext) _ActionsTriggersSearchResult_count(ctx context.Conte
 	res := resTmp.(int)
 	fc.Result = res
 	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Activity_id(ctx context.Context, field graphql.CollectedField, obj *ent.Activity) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Activity",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Activity_author(ctx context.Context, field graphql.CollectedField, obj *ent.Activity) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Activity",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Activity().Author(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.User)
+	fc.Result = res
+	return ec.marshalOUser2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Activity_isCreate(ctx context.Context, field graphql.CollectedField, obj *ent.Activity) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Activity",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsCreate, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Activity_changedField(ctx context.Context, field graphql.CollectedField, obj *ent.Activity) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Activity",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ChangedField, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(activity.ChangedField)
+	fc.Result = res
+	return ec.marshalNActivityField2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋactivityᚐChangedField(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Activity_newRelatedNode(ctx context.Context, field graphql.CollectedField, obj *ent.Activity) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Activity",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Activity().NewRelatedNode(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(ent.Noder)
+	fc.Result = res
+	return ec.marshalONode2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐNoder(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Activity_oldRelatedNode(ctx context.Context, field graphql.CollectedField, obj *ent.Activity) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Activity",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Activity().OldRelatedNode(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(ent.Noder)
+	fc.Result = res
+	return ec.marshalONode2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐNoder(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Activity_oldValue(ctx context.Context, field graphql.CollectedField, obj *ent.Activity) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Activity",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OldValue, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Activity_newValue(ctx context.Context, field graphql.CollectedField, obj *ent.Activity) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Activity",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.NewValue, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Activity_createTime(ctx context.Context, field graphql.CollectedField, obj *ent.Activity) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Activity",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreateTime, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Activity_workOrder(ctx context.Context, field graphql.CollectedField, obj *ent.Activity) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Activity",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Activity().WorkOrder(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.WorkOrder)
+	fc.Result = res
+	return ec.marshalNWorkOrder2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐWorkOrder(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _AdministrativePolicy_access(ctx context.Context, field graphql.CollectedField, obj *models1.AdministrativePolicy) (ret graphql.Marshaler) {
@@ -26671,6 +27130,37 @@ func (ec *executionContext) _Property_nodeValue(ctx context.Context, field graph
 	return ec.marshalONamedNode2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐNamedNode(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Property_rawValue(ctx context.Context, field graphql.CollectedField, obj *ent.Property) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Property",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Property().RawValue(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _PropertyType_id(ctx context.Context, field graphql.CollectedField, obj *ent.PropertyType) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -35273,6 +35763,40 @@ func (ec *executionContext) _WorkOrder_comments(ctx context.Context, field graph
 	return ec.marshalNComment2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐComment(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _WorkOrder_activities(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrder) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "WorkOrder",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.WorkOrder().Activities(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.Activity)
+	fc.Result = res
+	return ec.marshalNActivity2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐActivityᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _WorkOrder_location(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrder) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -42409,6 +42933,11 @@ func (ec *executionContext) _Node(ctx context.Context, sel ast.SelectionSet, obj
 			return graphql.Null
 		}
 		return ec._Comment(ctx, sel, obj)
+	case *ent.Activity:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._Activity(ctx, sel, obj)
 	case *ent.Equipment:
 		if obj == nil {
 			return graphql.Null
@@ -42986,6 +43515,99 @@ func (ec *executionContext) _ActionsTriggersSearchResult(ctx context.Context, se
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var activityImplementors = []string{"Activity", "Node"}
+
+func (ec *executionContext) _Activity(ctx context.Context, sel ast.SelectionSet, obj *ent.Activity) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, activityImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Activity")
+		case "id":
+			out.Values[i] = ec._Activity_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "author":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Activity_author(ctx, field, obj)
+				return res
+			})
+		case "isCreate":
+			out.Values[i] = ec._Activity_isCreate(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "changedField":
+			out.Values[i] = ec._Activity_changedField(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "newRelatedNode":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Activity_newRelatedNode(ctx, field, obj)
+				return res
+			})
+		case "oldRelatedNode":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Activity_oldRelatedNode(ctx, field, obj)
+				return res
+			})
+		case "oldValue":
+			out.Values[i] = ec._Activity_oldValue(ctx, field, obj)
+		case "newValue":
+			out.Values[i] = ec._Activity_newValue(ctx, field, obj)
+		case "createTime":
+			out.Values[i] = ec._Activity_createTime(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "workOrder":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Activity_workOrder(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -46922,6 +47544,17 @@ func (ec *executionContext) _Property(ctx context.Context, sel ast.SelectionSet,
 				res = ec._Property_nodeValue(ctx, field, obj)
 				return res
 			})
+		case "rawValue":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Property_rawValue(ctx, field, obj)
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -49574,6 +50207,20 @@ func (ec *executionContext) _WorkOrder(ctx context.Context, sel ast.SelectionSet
 				}
 				return res
 			})
+		case "activities":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._WorkOrder_activities(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "location":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -50707,6 +51354,72 @@ func (ec *executionContext) marshalNActionsTrigger2ᚖgithubᚗcomᚋfacebookinc
 		return graphql.Null
 	}
 	return ec._ActionsTrigger(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNActivity2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐActivity(ctx context.Context, sel ast.SelectionSet, v ent.Activity) graphql.Marshaler {
+	return ec._Activity(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNActivity2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐActivityᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.Activity) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNActivity2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐActivity(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNActivity2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐActivity(ctx context.Context, sel ast.SelectionSet, v *ent.Activity) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Activity(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNActivityField2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋactivityᚐChangedField(ctx context.Context, v interface{}) (activity.ChangedField, error) {
+	tmp, err := graphql.UnmarshalString(v)
+	return activity.ChangedField(tmp), err
+}
+
+func (ec *executionContext) marshalNActivityField2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋactivityᚐChangedField(ctx context.Context, sel ast.SelectionSet, v activity.ChangedField) graphql.Marshaler {
+	res := graphql.MarshalString(string(v))
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
 }
 
 func (ec *executionContext) unmarshalNAddActionsRuleInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐAddActionsRuleInput(ctx context.Context, v interface{}) (models.AddActionsRuleInput, error) {

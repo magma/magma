@@ -2,13 +2,13 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package graphevents
+package handler
 
 import (
 	"context"
 
-	"github.com/facebookincubator/symphony/graph/event"
 	"github.com/facebookincubator/symphony/pkg/log"
+	"github.com/facebookincubator/symphony/pkg/pubsub"
 
 	"go.uber.org/zap"
 )
@@ -17,7 +17,7 @@ type eventLog struct {
 	logger log.Logger
 }
 
-func getChangedFields(entry event.LogEntry) []string {
+func getChangedFields(entry pubsub.LogEntry) []string {
 	values := make(map[string]*string)
 	var fields []string
 	if entry.PrevState != nil {
@@ -46,14 +46,14 @@ func getChangedFields(entry event.LogEntry) []string {
 	return fields
 }
 
-func getEntIdentifiers(entry event.LogEntry) (int, string) {
+func getEntIdentifiers(entry pubsub.LogEntry) (int, string) {
 	if entry.PrevState != nil {
 		return entry.PrevState.ID, entry.PrevState.Type
 	}
 	return entry.CurrState.ID, entry.CurrState.Type
 }
 
-func (e eventLog) Handle(ctx context.Context, entry event.LogEntry) error {
+func (e eventLog) Handle(ctx context.Context, entry pubsub.LogEntry) error {
 	changedFields := getChangedFields(entry)
 	id, typ := getEntIdentifiers(entry)
 	e.logger.For(ctx).Info(
