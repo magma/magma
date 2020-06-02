@@ -9,6 +9,7 @@
  */
 
 import type {NetworkType} from '@fbcnms/types/network';
+import type {QosState} from './PolicyQosFields';
 import type {policy_rule} from '@fbcnms/magma-api';
 
 import AddCircleOutline from '@material-ui/icons/AddCircleOutline';
@@ -22,6 +23,7 @@ import IconButton from '@material-ui/core/IconButton';
 import InputLabel from '@material-ui/core/InputLabel';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import PolicyFlowFields from './PolicyFlowFields';
+import PolicyQosFields from './PolicyQosFields';
 import React from 'react';
 import TextField from '@material-ui/core/TextField';
 import TypedSelect from '@fbcnms/ui/components/TypedSelect';
@@ -105,6 +107,18 @@ export default function PolicyRuleEditDialog(props: Props) {
       monitoring_key: '',
     },
   );
+
+  const handleQos = (qos_st: QosState) => {
+    if (qos_st.enabled) {
+      setRule({...rule, qos: qos_st.qos});
+    } else {
+      const currRule = {...rule};
+      if (currRule.qos) {
+        delete currRule.qos;
+      }
+      setRule(currRule);
+    }
+  };
 
   const handleAddFlow = () => {
     const flowList = [
@@ -276,6 +290,8 @@ export default function PolicyRuleEditDialog(props: Props) {
             }}
           />
         </FormControl>
+        <Typography variant="h6">Qos</Typography>
+        <PolicyQosFields onChange={handleQos} qos={props.rule?.qos} />
         <Typography variant="h6">
           Flows
           <IconButton onClick={handleAddFlow}>
