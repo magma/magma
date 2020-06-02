@@ -8,6 +8,7 @@
  */
 #pragma once
 
+#include <lte/protos/mconfig/mconfigs.pb.h>
 #include <lte/protos/session_manager.grpc.pb.h>
 #include <lte/protos/pipelined.grpc.pb.h>
 
@@ -93,4 +94,6 @@ void create_session_create_response(
   const std::string& monitoring_key,
   std::vector<std::string>& static_rules,
   CreateSessionResponse* response);
+
+magma::mconfig::SessionD get_default_mconfig();
 } // namespace magma

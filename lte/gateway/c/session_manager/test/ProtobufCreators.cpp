@@ -197,4 +197,13 @@ void create_session_create_response(
   }
 }
 
+magma::mconfig::SessionD get_default_mconfig()
+{
+  magma::mconfig::SessionD mconfig;
+  mconfig.set_log_level(magma::orc8r::LogLevel::INFO);
+  mconfig.set_relay_enabled(false);
+  auto wallet_config = mconfig.mutable_wallet_exhaust_detection();
+  wallet_config->set_terminate_on_exhaust(false);
+  return mconfig;
+}
 } // namespace magma

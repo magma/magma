@@ -57,6 +57,7 @@ class SessiondTest : public ::testing::Test {
     insert_static_rule(rule_store, 2, "rule3");
 
     reporter = std::make_shared<SessionReporterImpl>(evb, test_channel);
+    auto default_mconfig = get_default_mconfig();
     monitor = std::make_shared<LocalEnforcer>(
       reporter,
       rule_store,
@@ -67,7 +68,8 @@ class SessiondTest : public ::testing::Test {
       spgw_client,
       nullptr,
       SESSION_TERMINATION_TIMEOUT_MS,
-      0);
+      0,
+      default_mconfig);
     session_map = SessionMap{};
 
     local_service =
