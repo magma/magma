@@ -74,7 +74,7 @@ function LteDashboard() {
   const {relativePath, relativeUrl} = useRouter();
 
   // datetime picker
-  const [startDate, setStartDate] = useState(moment().subtract(3, 'hours'));
+  const [startDate, setStartDate] = useState(moment().subtract(3, 'days'));
   const [endDate, setEndDate] = useState(moment());
 
   return (
@@ -164,11 +164,9 @@ function LteNetworkDashboard({startEnd}: {startEnd: [moment, moment]}) {
 
   return (
     <div className={classes.dashboardRoot}>
-      <Grid container spacing={3}>
+      <Grid container spacing={4}>
         <Grid item xs={12}>
-          <Paper>
-            <EventAlertChart startEnd={startEnd} />
-          </Paper>
+          <EventAlertChart startEnd={startEnd} />
         </Grid>
 
         <Grid item xs={12}>

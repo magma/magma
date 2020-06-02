@@ -69,7 +69,7 @@ export default function({startEnd}: Props) {
               label={state.title}
               unit=""
               queries={['sum(ALERTS)']}
-              timeRange={'3_hours'}
+              timeRange={'3_days'}
               startEnd={isValid(start, end) ? startEnd : undefined}
               legendLabels={state.legendLabels}
             />
