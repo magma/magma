@@ -8,6 +8,8 @@ import (
 	"context"
 	"strconv"
 
+	"github.com/facebookincubator/symphony/pkg/pubsub"
+
 	"github.com/AlekSi/pointer"
 
 	"github.com/facebookincubator/symphony/pkg/ent"
@@ -15,7 +17,7 @@ import (
 	"github.com/facebookincubator/symphony/pkg/ent/workorder"
 )
 
-func updateActivitiesOnWOCreate(ctx context.Context, entry *LogEntry) error {
+func updateActivitiesOnWOCreate(ctx context.Context, entry *pubsub.LogEntry) error {
 	userID := entry.UserID
 	client := ent.FromContext(ctx)
 
@@ -88,7 +90,7 @@ func updateActivitiesOnWOCreate(ctx context.Context, entry *LogEntry) error {
 	return nil
 }
 
-func updateActivitiesOnWOUpdate(ctx context.Context, entry *LogEntry) error {
+func updateActivitiesOnWOUpdate(ctx context.Context, entry *pubsub.LogEntry) error {
 	userID := entry.UserID
 	client := ent.FromContext(ctx)
 
@@ -154,7 +156,7 @@ func updateActivitiesOnWOUpdate(ctx context.Context, entry *LogEntry) error {
 	return nil
 }
 
-func getDiffOfUniqueEdgeAsString(entry *LogEntry, edge string) (*string, *string, bool) {
+func getDiffOfUniqueEdgeAsString(entry *pubsub.LogEntry, edge string) (*string, *string, bool) {
 	newIntVal, oldIntVal, shouldUpdate := getDiffOfUniqueEdge(entry, edge)
 	var newStrVal, oldStrVal *string
 	if newIntVal != nil {

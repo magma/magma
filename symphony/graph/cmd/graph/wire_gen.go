@@ -18,6 +18,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/graphhttp"
 	"github.com/facebookincubator/symphony/pkg/log"
 	"github.com/facebookincubator/symphony/pkg/mysql"
+	"github.com/facebookincubator/symphony/pkg/pubsub"
 	"github.com/facebookincubator/symphony/pkg/server"
 	"github.com/facebookincubator/symphony/pkg/viewer"
 	"gocloud.dev/server/health"
@@ -44,8 +45,8 @@ func newApplication(ctx context.Context, flags *cliFlags) (*application, func(),
 		cleanup()
 		return nil, nil, err
 	}
-	eventConfig := flags.EventConfig
-	topicEmitter, cleanup2, err := event.ProvideEmitter(ctx, eventConfig)
+	pubsubConfig := flags.EventConfig
+	topicEmitter, cleanup2, err := pubsub.ProvideEmitter(ctx, pubsubConfig)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
@@ -57,7 +58,7 @@ func newApplication(ctx context.Context, flags *cliFlags) (*application, func(),
 		return nil, nil, err
 	}
 	url := flags.AuthURL
-	urlSubscriber := event.ProvideSubscriber(eventConfig)
+	urlSubscriber := pubsub.ProvideSubscriber(pubsubConfig)
 	telemetryConfig := &flags.TelemetryConfig
 	v := newHealthChecks(mySQLTenancy)
 	orc8rConfig := flags.Orc8rConfig
@@ -130,7 +131,7 @@ func newApp(logger log.Logger, httpServer *server.Server, grpcServer *grpc.Serve
 	return &app
 }
 
-func newTenancy(tenancy *viewer.MySQLTenancy, logger log.Logger, emitter event.Emitter) (viewer.Tenancy, error) {
+func newTenancy(tenancy *viewer.MySQLTenancy, logger log.Logger, emitter pubsub.Emitter) (viewer.Tenancy, error) {
 	eventer := event.Eventer{Logger: logger, Emitter: emitter}
 	return viewer.NewCacheTenancy(tenancy, eventer.HookTo), nil
 }

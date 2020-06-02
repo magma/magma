@@ -10,8 +10,8 @@
 package graphevents
 
 import (
-	"github.com/facebookincubator/symphony/graph/event"
 	"github.com/facebookincubator/symphony/pkg/log"
+	"github.com/facebookincubator/symphony/pkg/pubsub"
 	"github.com/facebookincubator/symphony/pkg/viewer"
 )
 
@@ -39,11 +39,11 @@ func NewServer(cfg Config) (*Server, func(), error) {
 // Config defines the events server config.
 type Config struct {
 	Tenancy    viewer.Tenancy
-	Subscriber event.Subscriber
+	Subscriber pubsub.Subscriber
 	Logger     log.Logger
 }
 
-func newServerConfig(tenancy viewer.Tenancy, logger log.Logger, subscriber event.Subscriber) (cfg serverConfig, err error) {
+func newServerConfig(tenancy viewer.Tenancy, logger log.Logger, subscriber pubsub.Subscriber) (cfg serverConfig, err error) {
 	cfg = serverConfig{
 		tenancy:    tenancy,
 		logger:     logger,

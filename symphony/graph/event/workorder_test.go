@@ -13,10 +13,10 @@ import (
 
 	"github.com/AlekSi/pointer"
 
-	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
-
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/pubsub"
+	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -47,12 +47,12 @@ func (s *workOrderTestSuite) TestWorkOrderCreate() {
 		for i := range events {
 			emitted[events[i]] = struct{}{}
 		}
-		err := SubscribeAndListen(ctx, ListenerConfig{
+		err := pubsub.SubscribeAndListen(ctx, pubsub.ListenerConfig{
 			Subscriber: s.subscriber,
 			Logger:     s.logger.Background(),
 			Tenant:     pointer.ToString(viewertest.DefaultTenant),
 			Events:     events,
-			Handler: HandlerFunc(func(_ context.Context, _ string, name string, body []byte) error {
+			Handler: pubsub.HandlerFunc(func(_ context.Context, _ string, name string, body []byte) error {
 				s.Assert().NotEmpty(body)
 				_, ok := emitted[name]
 				s.Assert().True(ok)
@@ -92,12 +92,12 @@ func (s *workOrderTestSuite) TestWorkOrderUpdateOne() {
 	go func() {
 		defer wg.Done()
 		ctx, cancel := context.WithCancel(s.ctx)
-		err := SubscribeAndListen(ctx, ListenerConfig{
+		err := pubsub.SubscribeAndListen(ctx, pubsub.ListenerConfig{
 			Subscriber: s.subscriber,
 			Logger:     s.logger.Background(),
 			Tenant:     pointer.ToString(viewertest.DefaultTenant),
 			Events:     []string{WorkOrderDone},
-			Handler: HandlerFunc(func(_ context.Context, tenant string, name string, body []byte) error {
+			Handler: pubsub.HandlerFunc(func(_ context.Context, tenant string, name string, body []byte) error {
 				s.Assert().Equal(WorkOrderDone, name)
 				s.Assert().NotEmpty(body)
 				cancel()

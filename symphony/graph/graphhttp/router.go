@@ -8,7 +8,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/facebookincubator/symphony/graph/event"
+	"github.com/facebookincubator/symphony/pkg/pubsub"
+
 	"github.com/facebookincubator/symphony/graph/exporter"
 	"github.com/facebookincubator/symphony/graph/graphql"
 	"github.com/facebookincubator/symphony/graph/importer"
@@ -28,7 +29,7 @@ type routerConfig struct {
 		authurl string
 	}
 	logger  log.Logger
-	events  struct{ subscriber event.Subscriber }
+	events  struct{ subscriber pubsub.Subscriber }
 	orc8r   struct{ client *http.Client }
 	actions struct{ registry *executor.Registry }
 }

@@ -2,13 +2,20 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package event
+package pubsub
 
 import (
 	"context"
 	"fmt"
 
 	"gocloud.dev/pubsub"
+)
+
+const (
+	// TenantHeader is the metadata key holding tenant name.
+	TenantHeader = "event/tenant"
+	// NameHeader is the metadata key holding event name.
+	NameHeader = "event/name"
 )
 
 // Emitter represents types than can emit events.

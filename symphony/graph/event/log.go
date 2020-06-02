@@ -7,25 +7,20 @@ package event
 import (
 	"context"
 
-	"github.com/facebookincubator/symphony/pkg/viewer"
-
 	"github.com/facebookincubator/symphony/pkg/ent"
-)
-
-// event log events.
-const (
-	EntMutation = "ent/mutation"
+	"github.com/facebookincubator/symphony/pkg/pubsub"
+	"github.com/facebookincubator/symphony/pkg/viewer"
 )
 
 func (e *Eventer) logHook() ent.Hook {
 	return func(next ent.Mutator) ent.Mutator {
-		return e.hookWithLog(func(ctx context.Context, entry LogEntry) error {
+		return e.hookWithLog(func(ctx context.Context, entry pubsub.LogEntry) error {
 			v := viewer.FromContext(ctx)
 			if v == nil ||
 				!v.Features().Enabled(viewer.FeatureGraphEventLogging) {
 				return nil
 			}
-			e.emit(ctx, EntMutation, entry)
+			e.emit(ctx, pubsub.EntMutation, entry)
 			return nil
 		}, next)
 	}

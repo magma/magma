@@ -9,6 +9,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/facebookincubator/symphony/pkg/pubsub"
+
 	"github.com/facebookincubator/symphony/pkg/ent"
 	"github.com/facebookincubator/symphony/pkg/viewer"
 
@@ -35,7 +37,7 @@ func (e *Eventer) workOrderHook() ent.Hook {
 
 func (e *Eventer) workOrderActivityHook() ent.Hook {
 	return func(next ent.Mutator) ent.Mutator {
-		return e.hookWithLog(func(ctx context.Context, entry LogEntry) error {
+		return e.hookWithLog(func(ctx context.Context, entry pubsub.LogEntry) error {
 			var err error
 			v := viewer.FromContext(ctx)
 			if v == nil ||

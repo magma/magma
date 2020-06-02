@@ -8,7 +8,6 @@ import (
 	"context"
 
 	"github.com/facebookincubator/ent/dialect/sql"
-	"github.com/facebookincubator/symphony/graph/event"
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
 	"github.com/facebookincubator/symphony/graph/graphql/resolver"
 	"github.com/facebookincubator/symphony/pkg/authz"
@@ -16,6 +15,7 @@ import (
 	"github.com/facebookincubator/symphony/pkg/ent/user"
 	"github.com/facebookincubator/symphony/pkg/log"
 	"github.com/facebookincubator/symphony/pkg/mysql"
+	"github.com/facebookincubator/symphony/pkg/pubsub"
 	"github.com/facebookincubator/symphony/pkg/viewer"
 
 	"go.uber.org/zap"
@@ -106,7 +106,7 @@ func main() {
 		r := resolver.New(
 			resolver.Config{
 				Logger:     logger,
-				Subscriber: event.NewNopSubscriber(),
+				Subscriber: pubsub.NewNopSubscriber(),
 			},
 			resolver.WithTransaction(false),
 		)

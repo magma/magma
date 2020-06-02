@@ -13,8 +13,9 @@ import (
 	"os"
 	"syscall"
 
-	"github.com/facebookincubator/symphony/graph/event"
 	"github.com/facebookincubator/symphony/graph/graphevents"
+	pubsub2 "github.com/facebookincubator/symphony/pkg/pubsub"
+
 	"github.com/facebookincubator/symphony/pkg/ctxgroup"
 	"github.com/facebookincubator/symphony/pkg/ctxutil"
 	"github.com/facebookincubator/symphony/pkg/log"
@@ -36,7 +37,7 @@ type cliFlags struct {
 	GRPCAddress     *net.TCPAddr
 	MySQLConfig     mysql.Config
 	AuthURL         *url.URL
-	EventConfig     event.Config
+	EventConfig     pubsub2.Config
 	LogConfig       log.Config
 	TelemetryConfig telemetry.Config
 	Orc8rConfig     orc8r.Config
