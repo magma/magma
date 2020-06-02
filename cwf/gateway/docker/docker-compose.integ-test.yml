@@ -78,7 +78,7 @@ services:
       - pcrf2
       - ocs2
     environment:
-      MAGMA_PRINT_GRPC_PAYLOAD: 0
+      MAGMA_PRINT_GRPC_PAYLOAD: 1
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/session_proxy -logtostderr=true -v=2
 
   hss:

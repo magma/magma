@@ -51,6 +51,7 @@ func (srv *CentralSessionController) sendInitialGxRequest(imsi string, pReq *pro
 }
 
 func (srv *CentralSessionController) sendTerminationGxRequest(pRequest *protos.SessionTerminateRequest) (*gx.CreditControlAnswer, error) {
+	glog.Errorf("making gx ccr-t")
 	reports := make([]*gx.UsageReport, 0, len(pRequest.MonitorUsages))
 	for _, update := range pRequest.MonitorUsages {
 		reports = append(reports, (&gx.UsageReport{}).FromUsageMonitorUpdate(update))
@@ -123,6 +124,7 @@ func getUsageMonitorsFromCCA_I(
 func getGxUpdateRequestsFromUsage(updates []*protos.UsageMonitoringUpdateRequest) []*gx.CreditControlRequest {
 	requests := []*gx.CreditControlRequest{}
 	for _, update := range updates {
+		glog.Errorf("Calling FromUsageMonitorUpdate")
 		requests = append(requests, (&gx.CreditControlRequest{}).FromUsageMonitorUpdate(update))
 	}
 	return requests
@@ -280,15 +282,14 @@ func (srv *CentralSessionController) getSingleUsageMonitorResponseFromCCA(
 		DynamicRulesToInstall: dynamicRules,
 		TgppCtx:               tgppCtx,
 	}
-	if len(answer.UsageMonitors) == 0 {
-		glog.Infof("No usage monitor response in CCA for subscriber %s", request.IMSI)
-		res.Credit =
-			&protos.UsageMonitoringCredit{
-				Action:        protos.UsageMonitoringCredit_DISABLE,
-				MonitoringKey: request.UsageReports[0].MonitoringKey,
-				Level:         protos.MonitoringLevel(request.UsageReports[0].Level)}
-	} else {
+	if len(answer.UsageMonitors) != 0 {
 		res.Credit = answer.UsageMonitors[0].ToUsageMonitoringCredit()
+	} else if len(request.UsageReports) != 0 {
+		glog.Infof("No usage monitor response in CCA for subscriber %s", request.IMSI)
+		res.Credit = &protos.UsageMonitoringCredit{
+			Action:        protos.UsageMonitoringCredit_DISABLE,
+			MonitoringKey: request.UsageReports[0].MonitoringKey,
+			Level:         protos.MonitoringLevel(request.UsageReports[0].Level)}
 	}
 
 	res.EventTriggers, res.RevalidationTime = gx.GetEventTriggersRelatedInfo(

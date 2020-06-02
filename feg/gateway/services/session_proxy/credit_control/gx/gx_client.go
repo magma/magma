@@ -374,7 +374,7 @@ func (gxClient *GxClient) getAdditionalAvps(request *CreditControlRequest) ([]*d
 		avpList = append(avpList, getUsageMonitoringAVP(usage))
 	}
 	if request.Type == credit_control.CRTUpdate {
-		avpList = append(avpList, gxClient.getUsageReportEventTrigger())
+		avpList = append(avpList, gxClient.getEventTriggerAVP(request.EventTrigger))
 	}
 
 	return avpList, nil
@@ -396,12 +396,13 @@ func getUsageMonitoringAVP(usage *UsageReport) *diam.AVP {
 	})
 }
 
-func (gxClient *GxClient) getUsageReportEventTrigger() *diam.AVP {
-	var urt = UsageReportTrigger
-	if gxClient.pcrf91Compliant {
-		urt = PCRF91UsageReportTrigger
+func (gxClient *GxClient) getEventTriggerAVP(eventTrigger EventTrigger) *diam.AVP {
+	if eventTrigger == UsageReportTrigger {
+		if gxClient.pcrf91Compliant {
+			eventTrigger = PCRF91UsageReportTrigger
+		}
 	}
-	return diam.NewAVP(avp.EventTrigger, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(urt))
+	return diam.NewAVP(avp.EventTrigger, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(eventTrigger))
 }
 
 // Is p all zeros?
