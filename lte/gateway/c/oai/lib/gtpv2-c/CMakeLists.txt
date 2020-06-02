@@ -1,4 +1,3 @@
-#set(NWGTPV2C_DIR  ${PROJECT_SOURCE_DIR}/lib/gtpv2-c/nwgtpv2c-0.11/src)
 set(GTPV2C_DIR  ${PROJECT_SOURCE_DIR}/lib/gtpv2-c/nwgtpv2c-0.11/src)
 set(GTPV2C_IE_FORMATTER_DIR ${PROJECT_SOURCE_DIR}/lib/gtpv2-c/gtpv2c_ie_formatter/src)
 
