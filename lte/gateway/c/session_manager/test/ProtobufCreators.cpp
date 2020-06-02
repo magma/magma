@@ -197,6 +197,26 @@ void create_session_create_response(
   }
 }
 
+void create_policy_rule(
+  const std::string &rule_id,
+  const std::string &m_key,
+  uint32_t rating_group,
+  PolicyRule* rule)
+{
+  rule->set_id(rule_id);
+  rule->set_rating_group(rating_group);
+  rule->set_monitoring_key(m_key);
+  if (rating_group == 0 && m_key.length() > 0) {
+    rule->set_tracking_type(PolicyRule::ONLY_PCRF);
+  } else if (rating_group > 0 && m_key.length() == 0) {
+    rule->set_tracking_type(PolicyRule::ONLY_OCS);
+  } else if (rating_group > 0 && m_key.length() > 0) {
+    rule->set_tracking_type(PolicyRule::OCS_AND_PCRF);
+  } else {
+    rule->set_tracking_type(PolicyRule::NO_TRACKING);
+  }
+}
+
 magma::mconfig::SessionD get_default_mconfig()
 {
   magma::mconfig::SessionD mconfig;

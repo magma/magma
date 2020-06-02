@@ -69,18 +69,7 @@ protected:
   void insert_static_rule(uint32_t rating_group, const std::string &m_key,
                           const std::string &rule_id) {
     PolicyRule rule;
-    rule.set_id(rule_id);
-    rule.set_rating_group(rating_group);
-    rule.set_monitoring_key(m_key);
-    if (rating_group == 0 && m_key.length() > 0) {
-      rule.set_tracking_type(PolicyRule::ONLY_PCRF);
-    } else if (rating_group > 0 && m_key.length() == 0) {
-      rule.set_tracking_type(PolicyRule::ONLY_OCS);
-    } else if (rating_group > 0 && m_key.length() > 0) {
-      rule.set_tracking_type(PolicyRule::OCS_AND_PCRF);
-    } else {
-      rule.set_tracking_type(PolicyRule::NO_TRACKING);
-    }
+    create_policy_rule(rule_id, m_key, rating_group, &rule);
     rule_store->insert_rule(rule);
   }
 
