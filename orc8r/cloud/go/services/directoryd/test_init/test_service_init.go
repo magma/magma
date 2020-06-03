@@ -39,6 +39,7 @@ func StartTestService(t *testing.T) {
 	servicer, err := servicers.NewDirectoryLookupServicer(store)
 	assert.NoError(t, err)
 	protos.RegisterDirectoryLookupServer(srv.GrpcServer, servicer)
+	protos.RegisterGatewayDirectoryServiceServer(srv.GrpcServer, servicers.NewDirectoryUpdateServicer())
 
 	// Run service
 	go srv.RunTest(lis)

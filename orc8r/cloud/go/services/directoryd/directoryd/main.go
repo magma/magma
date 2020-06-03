@@ -50,6 +50,9 @@ func main() {
 	}
 	protos.RegisterDirectoryLookupServer(srv.GrpcServer, servicer)
 
+	// Register GatewayDirectoryServiceServer on the same server port
+	protos.RegisterGatewayDirectoryServiceServer(srv.GrpcServer, servicers.NewDirectoryUpdateServicer())
+
 	// Run service
 	err = srv.Run()
 	if err != nil {
