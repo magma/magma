@@ -268,8 +268,8 @@ const WorkOrderDetails = ({
   const {location} = workOrder;
   const actionsEnabled = isFeatureEnabled('planned_equipment');
 
-  const isOwner = me?.user?.email === workOrder?.owner?.email;
-  const isAssignee = me?.user?.email === workOrder?.assignedTo?.email;
+  const isOwner = me?.user?.email === propsWorkOrder?.owner?.email;
+  const isAssignee = me?.user?.email === propsWorkOrder?.assignedTo?.email;
 
   return (
     <div className={classes.root}>
