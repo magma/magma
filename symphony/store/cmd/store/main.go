@@ -8,7 +8,6 @@ import (
 	"context"
 	stdlog "log"
 	"net"
-	"net/url"
 	"os"
 	"syscall"
 
@@ -17,15 +16,14 @@ import (
 	"github.com/facebookincubator/symphony/pkg/log"
 	"github.com/facebookincubator/symphony/pkg/server"
 	"github.com/facebookincubator/symphony/pkg/telemetry"
+	"github.com/facebookincubator/symphony/store/sign/s3"
 	"go.uber.org/zap"
 	"gopkg.in/alecthomas/kingpin.v2"
-
-	_ "gocloud.dev/blob/s3blob"
 )
 
 type cliFlags struct {
 	ListenAddress   *net.TCPAddr
-	BlobURL         *url.URL
+	S3Config        s3.Config
 	LogConfig       log.Config
 	TelemetryConfig telemetry.Config
 }
@@ -39,23 +37,12 @@ func main() {
 	).
 		Default(":http").
 		TCPVar(&cf.ListenAddress)
-	kingpin.Flag(
-		"bucket-url",
-		"Blob bucket url",
-	).
-		Envar("BUCKET_URL").
-		Required().
-		URLVar(&cf.BlobURL)
+	s3.AddFlagsVar(kingpin.CommandLine, &cf.S3Config)
 	log.AddFlagsVar(kingpin.CommandLine, &cf.LogConfig)
 	telemetry.AddFlagsVar(kingpin.CommandLine, &cf.TelemetryConfig)
 	kingpin.Parse()
 
-	ctx := ctxutil.WithSignal(
-		context.Background(),
-		os.Interrupt,
-		syscall.SIGTERM,
-	)
-	app, cleanup, err := newApplication(ctx, &cf)
+	app, cleanup, err := newApplication(&cf)
 	if err != nil {
 		stdlog.Fatal(err)
 	}
@@ -64,7 +51,13 @@ func main() {
 	app.Info("starting application",
 		zap.Stringer("address", cf.ListenAddress),
 	)
-	err = app.run(ctx)
+	err = app.run(
+		ctxutil.WithSignal(
+			context.Background(),
+			os.Interrupt,
+			syscall.SIGTERM,
+		),
+	)
 	app.Info("terminating application", zap.Error(err))
 }
 
