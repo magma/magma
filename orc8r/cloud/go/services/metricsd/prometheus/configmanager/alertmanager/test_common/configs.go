@@ -62,7 +62,7 @@ var (
 	SampleConfig = config.Config{
 		Route: &SampleRoute,
 		Receivers: []*config.Receiver{
-			&SampleSlackReceiver, &SampleReceiver, &SampleWebhookReceiver, &SampleEmailReceiver,
+			&SampleSlackReceiver, &SampleReceiver, &SamplePushoverReceiver, &SampleWebhookReceiver, &SampleEmailReceiver,
 		},
 	}
 )
