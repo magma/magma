@@ -49,6 +49,8 @@ services:
     build:
       context: $PWD/../../../orc8r
       dockerfile: $PWD/alertmanager-configurer/Dockerfile
+    ports:
+      - 9101:9101/tcp
     command:
       - '-port=9101'
       - '-alertmanager-conf=/etc/configs/alertmanager.yml'
