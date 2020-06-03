@@ -32,7 +32,14 @@ class TestEquipmentType(BaseTest):
             client=self.client,
             name="Tp-Link T1600G",
             category="Router",
-            properties=[("IP", "string", None, True)],
+            properties=[
+                PropertyDefinition(
+                    property_name="IP",
+                    property_kind=PropertyKind.string,
+                    default_value=None,
+                    is_fixed=False,
+                )
+            ],
             ports_dict={},
             position_list=[],
         )
@@ -42,7 +49,14 @@ class TestEquipmentType(BaseTest):
             client=self.client,
             name="Tp-Link T1600G",
             category="Router",
-            properties=[("IP", "string", None, True)],
+            properties=[
+                PropertyDefinition(
+                    property_name="IP",
+                    property_kind=PropertyKind.string,
+                    default_value=None,
+                    is_fixed=False,
+                )
+            ],
             ports_dict={},
             position_list=[],
         )

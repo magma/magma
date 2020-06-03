@@ -3,12 +3,12 @@
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
-from typing import Dict, List, Optional, Sequence, Tuple
+from typing import Dict, List, Optional
 
 from pysymphony import SymphonyClient
 
 from .._utils import (
-    format_properties,
+    format_property_definitions,
     get_port_definition_input,
     get_position_definition_input,
     get_property_type_input,
@@ -19,7 +19,6 @@ from ..common.data_class import (
     EquipmentPortType,
     EquipmentType,
     PropertyDefinition,
-    PropertyValue,
 )
 from ..common.data_enum import Entity
 from ..exceptions import EntityNotFoundError
@@ -97,7 +96,7 @@ def get_or_create_equipment_type(
     client: SymphonyClient,
     name: str,
     category: str,
-    properties: Sequence[Tuple[str, str, Optional[PropertyValue], Optional[bool]]],
+    properties: List[PropertyDefinition],
     ports_dict: Dict[str, str],
     position_list: List[str],
 ) -> EquipmentType:
@@ -107,13 +106,7 @@ def get_or_create_equipment_type(
         Args:
             name (str): equipment name
             category (str): category name
-            properties (Sequence[Tuple[str, str, Optional[PropertyValue], Optional[bool]]]):
-            - str - type name
-            - str - enum["string", "int", "bool", "float", "date", "enum", "range",
-            "email", "gps_location", "equipment", "location", "service", "datetime_local"]
-            - PropertyValue - default property value
-            - bool - fixed value flag
-
+            properties (List[ `pyinventory.common.data_class.PropertyDefinition` ]): list of property definitions
             ports_dict (Dict[str, str]): dict of property name to property value
             - str - port name
             - str - port type name
@@ -131,7 +124,14 @@ def get_or_create_equipment_type(
             e_type = client.get_or_create_equipment_type(
                 name="Tp-Link T1600G",
                 category="Router",
-                properties=[("IP", "string", None, True)],
+                properties=[
+                    PropertyDefinition(
+                        property_name="IP",
+                        property_kind=PropertyKind.string,
+                        default_value=None,
+                        is_fixed=True
+                    )
+                ],
                 ports_dict={"Port 1": "eth port", "port 2": "eth port"},
                 position_list=[],
             )
@@ -201,7 +201,7 @@ def add_equipment_type(
     client: SymphonyClient,
     name: str,
     category: str,
-    properties: Sequence[Tuple[str, str, Optional[PropertyValue], Optional[bool]]],
+    properties: List[PropertyDefinition],
     ports_dict: Dict[str, str],
     position_list: List[str],
 ) -> EquipmentType:
@@ -210,13 +210,7 @@ def add_equipment_type(
         Args:
             name (str): equipment type name
             category (str): category name
-            properties (Sequence[Tuple[str, str, Optional[PropertyValue], Optional[bool]]]):
-            - str - type name
-            - str - enum["string", "int", "bool", "float", "date", "enum", "range",
-            "email", "gps_location", "equipment", "location", "service", "datetime_local"]
-            - PropertyValue - default property value
-            - bool - fixed value flag
-
+            properties (List[ `pyinventory.common.data_class.PropertyDefinition` ]): list of property definitions
             ports_dict (Dict[str, str]): dictionary of port name to port type name
             - str - port name
             - str - port type name
@@ -234,13 +228,20 @@ def add_equipment_type(
             e_type = client.add_equipment_type(
                 name="Tp-Link T1600G",
                 category="Router",
-                properties=[("IP", "string", None, True)],
+                properties=[
+                    PropertyDefinition(
+                        property_name="IP",
+                        property_kind=PropertyKind.string,
+                        default_value=None,
+                        is_fixed=True
+                    )
+                ],
                 ports_dict={"Port 1": "eth port", "port 2": "eth port"},
                 position_list=[],
             )
             ```
     """
-    new_property_types = format_properties(properties)
+    new_property_types = format_property_definitions(properties)
 
     port_definitions = [
         EquipmentPortInput(name=name, portTypeID=PORT_TYPES[_type].id)
