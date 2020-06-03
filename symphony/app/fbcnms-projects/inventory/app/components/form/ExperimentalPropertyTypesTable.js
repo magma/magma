@@ -89,7 +89,7 @@ const ExperimentalPropertyTypesTable = ({
           <TableRow component="div">
             <TableCell size="small" padding="none" component="div" />
             <TableCell component="div" className={classes.cell}>
-              <fbt desc="">Experimental Name</fbt>
+              <fbt desc="">Name</fbt>
             </TableCell>
             <TableCell component="div" className={classes.cell}>
               <fbt desc="">Property Type</fbt>
