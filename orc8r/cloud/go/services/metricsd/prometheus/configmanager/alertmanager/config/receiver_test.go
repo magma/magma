@@ -112,6 +112,23 @@ func TestConfig_Validate(t *testing.T) {
 	}
 	err = invalidSlackAction.Validate()
 	assert.EqualError(t, err, `missing type in Slack action configuration`)
+
+	// Fail if pager duty contains no ServiceKey or RoutingKey
+	invalidPagerDuty := config.Config{
+		Route: &config.Route{
+			Receiver: "invalidPagerDuty",
+		},
+		Receivers: []*config.Receiver{{
+			Name: "invalidPagerDuty",
+			PagerDutyConfigs: []*config.PagerDutyConfig{{
+				Links: []*amconfig.PagerdutyLink{{
+					Text: "test",
+				}},
+			}},
+		}},
+	}
+	err = invalidPagerDuty.Validate()
+	assert.EqualError(t, err, `missing service or routing key in PagerDuty config`)
 }
 
 func TestConfig_GetReceiver(t *testing.T) {
@@ -125,6 +142,9 @@ func TestConfig_GetReceiver(t *testing.T) {
 	assert.NotNil(t, rec)
 
 	rec = tc.SampleConfig.GetReceiver("email_receiver")
+	assert.NotNil(t, rec)
+
+	rec = tc.SampleConfig.GetReceiver("pagerduty_receiver")
 	assert.NotNil(t, rec)
 
 	rec = tc.SampleConfig.GetReceiver("pushover_receiver")
