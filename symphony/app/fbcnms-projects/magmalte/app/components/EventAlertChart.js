@@ -60,7 +60,7 @@ export default function({startEnd}: Props) {
   };
   return (
     <Grid>
-      <Card>
+      <Card elevation={0}>
         <CardHeader
           title={<Text variant="h6">{state.title}</Text>}
           subheader={

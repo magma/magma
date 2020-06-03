@@ -17,14 +17,31 @@ import Grid from '@material-ui/core/Grid';
 import TableCell from '@material-ui/core/TableCell';
 import TableContainer from '@material-ui/core/TableContainer';
 import TableRow from '@material-ui/core/TableRow';
+import Text from '@fbcnms/ui/components/design-system/Text';
 import Tabs from '@material-ui/core/Tabs';
+import Link from '@material-ui/core/Link';
+import {gray7} from '@fbcnms/ui/theme/colors';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(theme => ({
   tab: {
     backgroundColor: '#FFF',
     borderRadius: '4px 4px 0 0',
-    margin: '0 1px',
+    boxShadow: `inset 0 -2px 0 0 ${gray7}`,
+
+    '& + &': {
+      marginLeft: '4px',
+    },
+  },
+  emptyTable: {
+    backgroundColor: '#FFF',
+    padding: theme.spacing(4),
+    minHeight: '96px',
+  },
+  emptyTableContent: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
   },
 }));
 
@@ -46,25 +63,26 @@ type TabPanelProps = {
 };
 
 function TabPanel(props: TabPanelProps) {
+  const classes = useStyles();
   const {currTabIndex, index, itemData, label} = props;
 
   if (itemData.length > 0) {
     return (
       <>
         {currTabIndex === index ? (
-          <TableContainer component={Paper}>
+          <TableContainer component={Paper} elevation={0}>
             <Table>
               <TableBody>
                 {itemData.map((rowItem, rowIdx) => {
                   return (
                     <TableRow key={rowIdx} data-testid={'alertName' + rowIdx}>
                       <TableCell component="th" scope="row">
-                        {rowItem.name}
+                        <Text>{rowItem.name}</Text>
                       </TableCell>
                       {rowItem.cols.map((cellItem, cellIdx) => {
                         return (
                           <TableCell key={rowIdx + '-' + cellIdx}>
-                            {cellItem}
+                            <Text variant="body2">{cellItem}</Text>
                           </TableCell>
                         );
                       })}
@@ -79,11 +97,21 @@ function TabPanel(props: TabPanelProps) {
     );
   } else {
     return currTabIndex === index ? (
-      <Grid container alignItems="center" justify="center" xs={12}>
-        <Grid item>
-          <h1>{label}</h1>
+      <Paper elevation={0}>
+        <Grid
+          container
+          alignItems="center"
+          justify="center"
+          xs={12}
+          className={classes.emptyTable}>
+          <Grid item className={classes.emptyTableContent}>
+            <Text>You have 0 {label} Alerts</Text>
+            <Text variant="body2">
+              To add alert triggers click <Link href="#">alert settings</Link>.
+            </Text>
+          </Grid>
         </Grid>
-      </Grid>
+      </Paper>
     ) : null;
   }
 }
