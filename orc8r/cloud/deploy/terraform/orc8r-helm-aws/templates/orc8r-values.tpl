@@ -110,8 +110,8 @@ metrics:
   prometheusCache:
     create: true
     image:
-      repository: ${docker_registry}/prometheus-cache
-      tag: "${docker_tag}"
+      repository: docker.io/facebookincubator/prometheus-edge-hub
+      tag: 1.0.0
     limit: 500000
   grafana:
     create: false
