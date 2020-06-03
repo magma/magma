@@ -92,6 +92,9 @@ func TestConfig_GetReceiver(t *testing.T) {
 	rec = tc.SampleConfig.GetReceiver("email_receiver")
 	assert.NotNil(t, rec)
 
+	rec = tc.SampleConfig.GetReceiver("pushover_receiver")
+	assert.NotNil(t, rec)
+
 	rec = tc.SampleConfig.GetReceiver("nonRoute")
 	assert.Nil(t, rec)
 }

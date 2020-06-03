@@ -35,8 +35,8 @@ var (
 	SamplePushoverReceiver = config.Receiver{
 		Name: "pushover_receiver",
 		PushoverConfigs: []*config.PushoverConfig{{
-			UserKey: 	"101",
-			Token:		"1",
+			UserKey: "101",
+			Token:   "1",
 		}},
 	}
 	SampleWebhookReceiver = config.Receiver{
@@ -62,7 +62,7 @@ var (
 	SampleConfig = config.Config{
 		Route: &SampleRoute,
 		Receivers: []*config.Receiver{
-			&SampleSlackReceiver, &SampleReceiver, &SampleWebhookReceiver, &SampleEmailReceiver,
+			&SampleSlackReceiver, &SampleReceiver, &SamplePushoverReceiver, &SampleWebhookReceiver, &SampleEmailReceiver,
 		},
 	}
 )

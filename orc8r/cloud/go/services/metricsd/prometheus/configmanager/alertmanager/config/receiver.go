@@ -20,10 +20,10 @@ import (
 type Receiver struct {
 	Name string `yaml:"name" json:"name"`
 
-	SlackConfigs   []*SlackConfig   	`yaml:"slack_configs,omitempty" json:"slack_configs,omitempty"`
-	WebhookConfigs []*WebhookConfig 	`yaml:"webhook_configs,omitempty" json:"webhook_configs,omitempty"`
-	EmailConfigs   []*EmailConfig   	`yaml:"email_configs,omitempty" json:"email_configs,omitempty"`
-	PushoverConfigs []*PushoverConfig 	`yaml:"pushover_configs,omitempty" json:"pushover_configs,omitempty"`
+	SlackConfigs    []*SlackConfig    `yaml:"slack_configs,omitempty" json:"slack_configs,omitempty"`
+	WebhookConfigs  []*WebhookConfig  `yaml:"webhook_configs,omitempty" json:"webhook_configs,omitempty"`
+	EmailConfigs    []*EmailConfig    `yaml:"email_configs,omitempty" json:"email_configs,omitempty"`
+	PushoverConfigs []*PushoverConfig `yaml:"pushover_configs,omitempty" json:"pushover_configs,omitempty"`
 }
 
 // Secure replaces the receiver's name with a tenantID prefix
@@ -100,18 +100,17 @@ type EmailConfig struct {
 // alertmanager handles secrets. Otherwise the secrets would be obscured on
 // write to the yml file, making it unusable.
 type PushoverConfig struct {
-HTTPConfig *common.HTTPConfig `yaml:"http_config,omitempty" json:"http_config,omitempty"`
+	HTTPConfig *common.HTTPConfig `yaml:"http_config,omitempty" json:"http_config,omitempty"`
 
-	UserKey		string		`yaml:"user_key" json:"user_key"`
-	Token 		string		`yaml:"token" json:"token"`
-	Title 		string		`yaml:"title,omitempty" json:"title,omitempty"`
-	Message		string		`yaml:"message,omitempty" json:"message,omitempty"`
-	URL			string		`yaml:"url,omitempty" json:"url,omitempty"`
-	Priority	string		`yaml:"priority,omitempty" json:"priority,omitempty"`
-	Retry		string		`yaml:"retry,omitempty" json:"retry,omitempty"`
-	Expire		string		`yaml:"expire,omitempty" json:"expire,omitempty"`
+	UserKey  string `yaml:"user_key" json:"user_key"`
+	Token    string `yaml:"token" json:"token"`
+	Title    string `yaml:"title,omitempty" json:"title,omitempty"`
+	Message  string `yaml:"message,omitempty" json:"message,omitempty"`
+	URL      string `yaml:"url,omitempty" json:"url,omitempty"`
+	Priority string `yaml:"priority,omitempty" json:"priority,omitempty"`
+	Retry    string `yaml:"retry,omitempty" json:"retry,omitempty"`
+	Expire   string `yaml:"expire,omitempty" json:"expire,omitempty"`
 }
-
 
 // MarshalYAML implements the yaml.Marshaler interface for EmailConfig and
 // forces RequireTLS to be false. RequireTLS must be false since we don't support
