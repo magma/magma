@@ -15,11 +15,24 @@ The team is currently working on:
 
 
 ### Release Notes
-* 05/22/2020
+* 5/22/2020
     * Mobile App
-        * **[My Tasks][Checklist]**	Photos upload in checklist:	The user is now able to upload more than 1 photo per checklist item during site survey. The user can choose whether to upload photos from the phone gallery or take photos via the camera.
+        * **[My Tasks]** **[Checklist]**	Photos upload in checklist:	The user is now able to upload more than 1 photo per checklist item during site survey. The user can choose whether to upload photos from the phone gallery or take photos via the camera.
         * **[My Tasks]**	Offline mode:	The user is now able to complete a work order tasks even if the device does not have internet connection.
-        
+    
+    * Platform
+        * **[Property type]**	Support of "User" property:	The user is able to add "user" as "property type" while creating/editing templates and assign a specific value from a drop down list.
+		
+    * Inventory Management
+    	* **[Services]** Added "discovery method" field in Services:	The user can now choose "inventory" as "discovery method" during the creation of a service type. When a new "service type" is defined and the option "inventory" is selected, all Services  matching that specific "service type" definition will be automatically detected every hour and presented in the list of Services.
+        * **[Services]**	Added "export" for Services: The user can now export the list of Services in csv format
+        * **[Services]**	Added "filter by location" for Services	The user can now filter Services also by "location type"
+    
+    * Workforce Management
+        * **[Work Orders]** **[UI]** 	Work Order's location opened in a new tab: When opening a Work order page, the user can click on the work order's location and a new tab in the browser will be opened, allowing the user to keep both tabs (Work order and Location's tabs) opened at the same time.  	
+        * **[Templates]**	Checklist definition: The user is now able to define checklist categories on a template and easily create work orders that inherit them. 
+        * **[Work Orders]** **[Checklist]**	Checklist response view enabled: The user is able to view the responses within the checklist categories even when the work order's status is in "done" status.
+     
 * 4/30/2020
     * Mobile App
         * **New Release**: New major app release. This release includes work order: view work orders, edit work orders, edit checklist. Download from here: [https://play.google.com/apps/testing/cloud.thesymphony](https://play.google.com/apps/testing/cloud.thesymphony)
