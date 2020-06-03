@@ -140,7 +140,7 @@ export default function PermissionsPoliciesView() {
       key: 'groups',
       title: (
         <fbt desc="Gropus Applied column header in permission groups table">
-          Gropus Applied
+          Groups Applied
         </fbt>
       ),
       getSortingValue: getPolicyUsersCount,
