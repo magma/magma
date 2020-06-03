@@ -33,7 +33,6 @@ StoredChargingCreditPool ChargingCreditPool::marshal() {
     auto key = CreditKey();
     key.rating_group = credit_pair.first.rating_group;
     key.service_identifier = credit_pair.first.service_identifier;
-    key.use_sid = credit_pair.first.use_sid;
     credit_map[key] = credit_pair.second->marshal();
   }
   marshaled.credit_map = credit_map;
