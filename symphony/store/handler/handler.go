@@ -5,17 +5,19 @@
 package handler
 
 import (
+	"encoding/json"
 	"net/http"
+	"strconv"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/facebookincubator/symphony/pkg/log"
-	"github.com/facebookincubator/symphony/store/sign"
-
 	"github.com/google/uuid"
 	"github.com/google/wire"
 	"github.com/gorilla/mux"
-	"github.com/unrolled/render"
 	"go.opencensus.io/plugin/ochttp"
 	"go.uber.org/zap"
+	"gocloud.dev/blob"
 )
 
 // Set is a Wire provider set that produces a handler from config.
@@ -28,26 +30,25 @@ var Set = wire.NewSet(
 // Handler implements signer endpoints.
 type Handler struct {
 	http.Handler
-	logger   log.Logger
-	renderer *render.Render
-	signer   sign.Signer
+	logger log.Logger
+	bucket struct {
+		*blob.Bucket
+		name string
+	}
 }
 
 // Config is the set of handler parameters.
 type Config struct {
-	Logger log.Logger
-	Signer sign.Signer
+	Logger     log.Logger
+	Bucket     *blob.Bucket
+	BucketName string
 }
 
 // New creates a new sign handler from config.
 func New(cfg Config) *Handler {
-	h := &Handler{
-		logger: cfg.Logger,
-		renderer: render.New(
-			render.Options{StreamingJSON: true},
-		),
-		signer: cfg.Signer,
-	}
+	h := &Handler{logger: cfg.Logger}
+	h.bucket.Bucket = cfg.Bucket
+	h.bucket.name = cfg.BucketName
 
 	router := mux.NewRouter()
 	router.Path("/get").
@@ -58,6 +59,7 @@ func New(cfg Config) *Handler {
 		)
 	router.Path("/put").
 		Methods(http.MethodGet).
+		Queries("contentType", "{contentType}").
 		Handler(ochttp.WithRouteTag(
 			http.HandlerFunc(h.put), "put",
 		))
@@ -77,9 +79,11 @@ func New(cfg Config) *Handler {
 	return h
 }
 
-func (h *Handler) key(r *http.Request, key string) string {
-	isGlobal := r.Header.Get("Is-Global")
-	if key != "" && isGlobal != "True" {
+func getKey(r *http.Request, key string) string {
+	if key == "" {
+		return key
+	}
+	if global, _ := strconv.ParseBool(r.Header.Get("Is-Global")); !global {
 		if ns := r.Header.Get("x-auth-organization"); ns != "" {
 			key = ns + "/" + key
 		}
@@ -88,69 +92,112 @@ func (h *Handler) key(r *http.Request, key string) string {
 }
 
 func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
-	key := h.key(r, mux.Vars(r)["key"])
+	ctx := r.Context()
+	logger := h.logger.For(ctx)
+	key := getKey(r, mux.Vars(r)["key"])
 	if key == "" {
-		h.logger.For(r.Context()).Error("cannot resolve object key")
+		logger.Error("cannot resolve object key")
 		http.Error(w, "", http.StatusBadRequest)
 		return
 	}
-	url, err := h.signer.Sign(r.Context(), sign.GetObject, key, "")
+	u, err := h.bucket.SignedURL(ctx, key, nil)
 	if err != nil {
-		h.logger.For(r.Context()).Error("cannot sign get object operation", zap.Error(err))
+		logger.Error("cannot sign get object url", zap.Error(err))
 		http.Error(w, "", http.StatusInternalServerError)
 		return
 	}
-	http.Redirect(w, r, url, http.StatusSeeOther)
+	logger.Debug("signed get url", zap.String("key", key))
+	http.Redirect(w, r, u, http.StatusSeeOther)
 }
 
 func (h *Handler) put(w http.ResponseWriter, r *http.Request) {
-	oid := uuid.New().String()
-	key := h.key(r, oid)
-	url, err := h.signer.Sign(r.Context(), sign.PutObject, key, "")
-	if err != nil {
-		h.logger.For(r.Context()).Error("cannot sign put object operation", zap.Error(err))
+	var (
+		ctx    = r.Context()
+		logger = h.logger.For(ctx)
+		rsp    struct {
+			URL string `json:"URL"`
+			Key string `json:"key"`
+		}
+		err error
+	)
+	rsp.Key = uuid.New().String()
+	key := getKey(r, rsp.Key)
+	if rsp.URL, err = h.bucket.SignedURL(ctx, key,
+		&blob.SignedURLOptions{
+			Method:      http.MethodPut,
+			ContentType: mux.Vars(r)["contentType"],
+		},
+	); err != nil {
+		logger.Error("cannot sign put object url", zap.Error(err))
 		http.Error(w, "", http.StatusInternalServerError)
 		return
 	}
-	if err = h.renderer.JSON(w, http.StatusOK, map[string]string{"URL": url, "key": oid}); err != nil {
-		h.logger.For(r.Context()).Error("cannot write put object response", zap.Error(err))
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(&rsp); err != nil {
+		logger.Error("cannot write put object response", zap.Error(err))
+		return
 	}
+	logger.Debug("signed put url", zap.String("key", key))
 }
 
 func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
-	key := h.key(r, mux.Vars(r)["key"])
+	ctx := r.Context()
+	logger := h.logger.For(ctx)
+	key := getKey(r, mux.Vars(r)["key"])
 	if key == "" {
-		h.logger.For(r.Context()).Error("cannot resolve object key")
+		logger.Error("cannot resolve object key")
 		http.Error(w, "", http.StatusBadRequest)
 		return
 	}
-	url, err := h.signer.Sign(r.Context(), sign.DeleteObject, key, "")
+	u, err := h.bucket.SignedURL(ctx, key,
+		&blob.SignedURLOptions{Method: http.MethodDelete},
+	)
 	if err != nil {
-		h.logger.For(r.Context()).Error("cannot sign delete object operation", zap.Error(err))
+		logger.Error("cannot sign delete object url", zap.Error(err))
 		http.Error(w, "", http.StatusInternalServerError)
 		return
 	}
-	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
+	logger.Debug("signed delete url", zap.String("key", key))
+	http.Redirect(w, r, u, http.StatusTemporaryRedirect)
 }
 
 func (h *Handler) download(w http.ResponseWriter, r *http.Request) {
-	key := h.key(r, mux.Vars(r)["key"])
+	ctx := r.Context()
+	vars := mux.Vars(r)
+	logger := h.logger.For(ctx)
+	key := getKey(r, vars["key"])
 	if key == "" {
-		h.logger.For(r.Context()).Error("cannot resolve object key")
+		logger.Error("cannot resolve object key")
 		http.Error(w, "", http.StatusBadRequest)
 		return
 	}
-	filename := mux.Vars(r)["filename"]
+	filename := vars["filename"]
 	if filename == "" {
-		h.logger.For(r.Context()).Error("cannot resolve object filename")
+		logger.Error("cannot resolve object filename")
 		http.Error(w, "", http.StatusBadRequest)
 		return
 	}
-	url, err := h.signer.Sign(r.Context(), sign.DownloadObject, key, filename)
+	var client *s3.S3
+	if !h.bucket.As(&client) {
+		logger.Error("signing download url requires s3 bucket")
+		http.Error(w, "", http.StatusServiceUnavailable)
+		return
+	}
+	in := &s3.GetObjectInput{
+		Bucket:                     aws.String(h.bucket.name),
+		Key:                        aws.String(key),
+		ResponseContentDisposition: aws.String("attachment; filename=" + filename),
+	}
+	req, _ := client.GetObjectRequest(in)
+	u, err := req.Presign(blob.DefaultSignedURLExpiry)
 	if err != nil {
-		h.logger.For(r.Context()).Error("cannot sign get object operation", zap.Error(err))
+		logger.Error("cannot sign get object url", zap.Error(err))
 		http.Error(w, "", http.StatusInternalServerError)
 		return
 	}
-	http.Redirect(w, r, url, http.StatusSeeOther)
+	logger.Debug("signed download url",
+		zap.String("key", key),
+		zap.String("filename", filename),
+	)
+	http.Redirect(w, r, u, http.StatusSeeOther)
 }
