@@ -11,6 +11,7 @@
 
 import AppBar from '@material-ui/core/AppBar';
 import DashboardAlertTable from '../DashboardAlertTable';
+import DashboardKPIs from '../DashboardKPIs';
 import EnodebKPIs from '../EnodebKPIs';
 import EventAlertChart from '../EventAlertChart';
 import GatewayKPIs from '../GatewayKPIs';
@@ -62,6 +63,12 @@ const useStyles = makeStyles(theme => ({
     borderRadius: '4px',
     textAlign: 'center',
     padding: `${theme.spacing(1)}px 0`,
+  },
+  cardTitle: {
+    marginBottom: theme.spacing(1),
+  },
+  cardTitleIcon: {
+    marginRight: theme.spacing(1),
   },
   // TODO: remove this when we actually fill out the grid sections
   contentPlaceholder: {
@@ -173,7 +180,11 @@ function LteNetworkDashboard({startEnd}: {startEnd: [moment, moment]}) {
           <DashboardAlertTable />
         </Grid>
 
-        <Grid item xs={6}>
+        <Grid item xs={12}>
+          <DashboardKPIs />
+        </Grid>
+
+        {/* <Grid item xs={6}>
           <Paper>
             <GatewayKPIs />
           </Paper>
@@ -194,7 +205,7 @@ function LteNetworkDashboard({startEnd}: {startEnd: [moment, moment]}) {
               Events Table Goes Here
             </div>
           </Paper>
-        </Grid>
+        </Grid>*/}
       </Grid>
     </div>
   );
