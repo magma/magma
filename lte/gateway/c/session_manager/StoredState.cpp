@@ -319,7 +319,7 @@ deserialize_stored_usage_monitoring_pool(std::string &serialized) {
 
 std::string serialize_stored_session(StoredSessionState &stored) {
   folly::dynamic marshaled = folly::dynamic::object;
-
+  marshaled["fsm_state"] = static_cast<int>(stored.fsm_state);
   marshaled["config"] = serialize_stored_session_config(stored.config);
   marshaled["charging_pool"] =
       serialize_stored_charging_credit_pool(stored.charging_pool);
@@ -360,7 +360,7 @@ StoredSessionState deserialize_stored_session(std::string &serialized) {
   folly::dynamic marshaled = folly::parseJson(folly_serialized);
 
   auto stored = StoredSessionState{};
-
+  stored.fsm_state = SessionFsmState(marshaled["fsm_state"].getInt());
   stored.config =
       deserialize_stored_session_config(marshaled["config"].getString());
   stored.charging_pool = deserialize_stored_charging_credit_pool(
