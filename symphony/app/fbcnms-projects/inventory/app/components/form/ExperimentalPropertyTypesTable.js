@@ -125,75 +125,86 @@ const ExperimentalPropertyTypesTable = ({
             }
           }}>
           {propertyTypes
-            .slice()
+            .filter(pt => !pt.isDeleted)
             .sort(sortByIndex)
-            .map((property, i) =>
-              property.isDeleted ? null : (
-                <DraggableTableRow id={property.id} index={i} key={property.id}>
-                  <TableCell
-                    className={classes.cell}
-                    component="div"
-                    scope="row">
-                    <FormField>
-                      <TextInput
-                        autoFocus={true}
-                        placeholder="Name"
-                        variant="outlined"
-                        className={classes.input}
-                        value={property.name}
-                        onChange={({target}) =>
-                          dispatch({
-                            type: 'UPDATE_PROPERTY_TYPE_NAME',
-                            id: property.id,
-                            name: target.value,
-                          })
-                        }
-                        onBlur={() =>
-                          dispatch({
-                            type: 'UPDATE_PROPERTY_TYPE_NAME',
-                            id: property.id,
-                            name: property.name.trim(),
-                          })
-                        }
-                      />
-                    </FormField>
-                  </TableCell>
-                  <TableCell
-                    className={classes.cell}
-                    component="div"
-                    scope="row">
-                    <FormField>
-                      <PropertyTypeSelect propertyType={property} />
-                    </FormField>
-                  </TableCell>
-                  <TableCell
-                    className={classes.cell}
-                    component="div"
-                    scope="row">
-                    <PropertyValueInput
-                      label={null}
+            .map((property, i) => (
+              <DraggableTableRow
+                id={property.id}
+                index={i}
+                key={`${i}.${property.id}`}>
+                <TableCell className={classes.cell} component="div" scope="row">
+                  <FormField>
+                    <TextInput
+                      autoFocus={true}
+                      placeholder="Name"
+                      variant="outlined"
                       className={classes.input}
-                      inputType="PropertyType"
-                      property={property}
-                      onChange={value =>
+                      value={property.name}
+                      onChange={({target}) =>
                         dispatch({
-                          type: 'UPDATE_PROPERTY_TYPE',
-                          value,
+                          type: 'UPDATE_PROPERTY_TYPE_NAME',
+                          id: property.id,
+                          name: target.value,
                         })
                       }
-                      margin="dense"
+                      onBlur={() =>
+                        dispatch({
+                          type: 'UPDATE_PROPERTY_TYPE_NAME',
+                          id: property.id,
+                          name: property.name.trim(),
+                        })
+                      }
                     />
-                  </TableCell>
+                  </FormField>
+                </TableCell>
+                <TableCell className={classes.cell} component="div" scope="row">
+                  <FormField>
+                    <PropertyTypeSelect propertyType={property} />
+                  </FormField>
+                </TableCell>
+                <TableCell className={classes.cell} component="div" scope="row">
+                  <PropertyValueInput
+                    label={null}
+                    className={classes.input}
+                    inputType="PropertyType"
+                    property={property}
+                    onChange={value =>
+                      dispatch({
+                        type: 'UPDATE_PROPERTY_TYPE',
+                        value,
+                      })
+                    }
+                    margin="dense"
+                  />
+                </TableCell>
+                <TableCell padding="checkbox" component="div">
+                  <FormField>
+                    <Checkbox
+                      checked={!property.isInstanceProperty}
+                      onChange={checkedNewValue =>
+                        dispatch({
+                          type: 'UPDATE_PROPERTY_TYPE',
+                          value: {
+                            ...property,
+                            isInstanceProperty: checkedNewValue !== 'checked',
+                          },
+                        })
+                      }
+                      title={null}
+                    />
+                  </FormField>
+                </TableCell>
+                {supportMandatory && (
                   <TableCell padding="checkbox" component="div">
                     <FormField>
                       <Checkbox
-                        checked={!property.isInstanceProperty}
+                        checked={!!property.isMandatory}
                         onChange={checkedNewValue =>
                           dispatch({
                             type: 'UPDATE_PROPERTY_TYPE',
                             value: {
                               ...property,
-                              isInstanceProperty: checkedNewValue !== 'checked',
+                              isMandatory: checkedNewValue === 'checked',
                             },
                           })
                         }
@@ -201,46 +212,27 @@ const ExperimentalPropertyTypesTable = ({
                       />
                     </FormField>
                   </TableCell>
-                  {supportMandatory && (
-                    <TableCell padding="checkbox" component="div">
-                      <FormField>
-                        <Checkbox
-                          checked={!!property.isMandatory}
-                          onChange={checkedNewValue =>
-                            dispatch({
-                              type: 'UPDATE_PROPERTY_TYPE',
-                              value: {
-                                ...property,
-                                isMandatory: checkedNewValue === 'checked',
-                              },
-                            })
-                          }
-                          title={null}
-                        />
-                      </FormField>
-                    </TableCell>
-                  )}
-                  <TableCell
-                    className={classes.actionsBar}
-                    align="right"
-                    component="div">
-                    <FormAction>
-                      <IconButton
-                        skin="primary"
-                        onClick={() =>
-                          dispatch({
-                            type: 'REMOVE_PROPERTY_TYPE',
-                            id: property.id,
-                          })
-                        }
-                        disabled={!supportDelete && !isTempId(property.id)}
-                        icon={DeleteIcon}
-                      />
-                    </FormAction>
-                  </TableCell>
-                </DraggableTableRow>
-              ),
-            )}
+                )}
+                <TableCell
+                  className={classes.actionsBar}
+                  align="right"
+                  component="div">
+                  <FormAction>
+                    <IconButton
+                      skin="primary"
+                      onClick={() =>
+                        dispatch({
+                          type: 'REMOVE_PROPERTY_TYPE',
+                          id: property.id,
+                        })
+                      }
+                      disabled={!supportDelete && !isTempId(property.id)}
+                      icon={DeleteIcon}
+                    />
+                  </FormAction>
+                </TableCell>
+              </DraggableTableRow>
+            ))}
         </DroppableTableBody>
       </Table>
       <FormAction>

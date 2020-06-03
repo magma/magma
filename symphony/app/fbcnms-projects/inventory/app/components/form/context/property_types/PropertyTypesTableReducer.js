@@ -14,6 +14,7 @@ import type {PropertyTypesTableState} from './PropertyTypesTableState';
 
 import {getInitialPropertyType} from './PropertyTypesTableState';
 import {reorder} from '../../../draggable/DraggableUtils';
+import {sortByIndex} from '../../../draggable/DraggableUtils';
 
 export function getInitialState(
   propertyTypes: Array<PropertyType>,
@@ -69,16 +70,22 @@ export function reducer(
         ...action.value,
       }));
     case 'CHANGE_PROPERTY_TYPE_INDEX':
-      return reorder<PropertyType>(
-        state,
-        action.sourceIndex,
-        action.destinationIndex,
-      ).map((p, index) => {
-        return {
-          ...p,
-          index,
-        };
-      });
+      const sortedNotDeletedState = state
+        .filter(pt => !pt.isDeleted)
+        .sort(sortByIndex);
+      return [
+        ...reorder<PropertyType>(
+          sortedNotDeletedState,
+          action.sourceIndex,
+          action.destinationIndex,
+        ).map((p, index) => {
+          return {
+            ...p,
+            index,
+          };
+        }),
+        ...state.filter(pt => pt.isDeleted),
+      ];
     default:
       return state;
   }
