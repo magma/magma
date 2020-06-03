@@ -175,6 +175,10 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/slack_receiver'
+      pushover_configs:
+        type: array
+        items:
+          $ref: '#/definitions/pushover_receiver'
 
   slack_receiver:
     type: object
@@ -274,6 +278,31 @@ definitions:
       ok_text:
         type: string
       dismiss_text:
+        type: string
+
+  pushover_receiver:
+    type: object
+    required:
+      - user_key
+      - token
+    properties:
+      http_config:
+        $ref: '#/definitions/http_config'
+      user_key:
+        type: string
+      token:
+        type: string
+      title:
+        type: string
+      message:
+        type: string
+      url:
+        type: string
+      priority:
+        type: string
+      retry:
+        type: string
+      expire:
         type: string
 
   routing_tree:
