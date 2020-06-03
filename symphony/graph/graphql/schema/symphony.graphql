@@ -506,7 +506,10 @@ input CommentInput {
   text: String!
 }
 
-enum ActivityField @goModel(model: "github.com/facebookincubator/symphony/pkg/ent/activity.ChangedField") {
+enum ActivityField
+  @goModel(
+    model: "github.com/facebookincubator/symphony/pkg/ent/activity.ChangedField"
+  ) {
   STATUS
   PRIORITY
   ASSIGNEE
