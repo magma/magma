@@ -8,7 +8,7 @@
  * @format
  */
 
-import type {CommentsLog_comments} from './__generated__/CommentsLog_comments.graphql.js';
+import type {CommentsActivitiesLog_comments} from './__generated__/CommentsActivitiesLog_comments.graphql.js';
 
 import CommentsLogEmptyState from './CommentsLogEmptyState';
 import React, {useRef} from 'react';
@@ -20,11 +20,11 @@ import {createFragmentContainer, graphql} from 'react-relay';
 import {makeStyles} from '@material-ui/styles';
 import {withSnackbar} from 'notistack';
 
-type Props = {
-  comments: CommentsLog_comments,
+type Props = $ReadOnly<{|
+  comments: CommentsActivitiesLog_comments,
   className?: string,
   postClassName?: string,
-};
+|}>;
 
 const useStyles = makeStyles(() => ({
   commentsLog: {
@@ -41,7 +41,7 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-const CommentsLog = (props: Props) => {
+const CommentsActivitiesLog = (props: Props) => {
   const classes = useStyles();
   const thisElement = useRef(null);
   const {comments, className, postClassName} = props;
@@ -73,11 +73,40 @@ const CommentsLog = (props: Props) => {
 
 export default withAlert(
   withSnackbar(
-    createFragmentContainer(CommentsLog, {
+    createFragmentContainer(CommentsActivitiesLog, {
       comments: graphql`
-        fragment CommentsLog_comments on Comment @relay(plural: true) {
+        fragment CommentsActivitiesLog_comments on Comment
+          @relay(plural: true) {
           id
           ...TextCommentPost_comment
+        }
+      `,
+      activities: graphql`
+        fragment CommentsActivitiesLog_activities on Activity
+          @relay(plural: true) {
+          id
+          author {
+            email
+          }
+          isCreate
+          changedField
+          newRelatedNode {
+            __typename
+            ... on User {
+              id
+              email
+            }
+          }
+          oldRelatedNode {
+            __typename
+            ... on User {
+              id
+              email
+            }
+          }
+          oldValue
+          newValue
+          createTime
         }
       `,
     }),
