@@ -1919,7 +1919,7 @@ static bool construct_s1ap_mme_full_reset_req(
 int s1ap_handle_sctp_disconnection(
     s1ap_state_t* state, const sctp_assoc_id_t assoc_id, bool reset) {
   arg_s1ap_send_enb_dereg_ind_t arg  = {0};
-  int itrn                           = 0;
+  uint8_t itrn                       = 0;
   MessageDef* message_p              = NULL;
   enb_description_t* enb_association = NULL;
   s1ap_timer_arg_t timer_arg         = {0};
