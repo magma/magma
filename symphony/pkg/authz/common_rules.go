@@ -135,6 +135,27 @@ func allowOrSkipWorkOrder(ctx context.Context, p *models.PermissionSettings, wo 
 	)
 }
 
+func allowOrSkipProject(ctx context.Context, p *models.PermissionSettings, proj *ent.Project) error {
+	if userViewer, ok := viewer.FromContext(ctx).(*viewer.UserViewer); ok {
+		switch isCreator, err := isUserProjectCreator(ctx, userViewer.User().ID, proj); {
+		case err != nil:
+			return privacy.Denyf("cannot check project viewer relation: %w", err)
+		case isCreator:
+			return privacy.Allow
+		}
+	}
+
+	projectTypeID, err := proj.QueryType().OnlyID(ctx)
+	if err != nil {
+		return privacy.Denyf("cannot fetch project type id: %w", err)
+	}
+	return privacyDecision(
+		checkWorkforce(
+			p.WorkforcePolicy.Data.Update, nil, &projectTypeID,
+		),
+	)
+}
+
 func denyBulkEditOrDeleteRule() privacy.MutationRule {
 	rule := privacy.DenyMutationOperationRule(ent.OpUpdate | ent.OpDelete)
 	return privacy.MutationRuleFunc(func(ctx context.Context, m ent.Mutation) error {
