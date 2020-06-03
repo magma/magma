@@ -6,12 +6,10 @@ title: Release Notes
 ### Work In Progress
 
 The team is currently working on:
-* Saved Searches: Ability to save past searches as bookmarks
 * Mobile app: View work orders and site surveys in the mobile app
 * Permission model: Customizeable infrastructure to enable roles and policies
-* API documentation: Improving documentation for existing APIs
-* Check lists for work orders: Enable check list items for work orders
-* Enable SSO integration via Keycloak
+* Workorder history: Show activity history for every workorder
+* Integration between work order and inventory (planned equipment)
 
 
 ### Release Notes
