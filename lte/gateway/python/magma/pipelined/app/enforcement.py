@@ -14,7 +14,7 @@ from magma.pipelined.app.base import MagmaController, ControllerType
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController, \
     IGNORE_STATS
 from magma.pipelined.app.policy_mixin import PolicyMixin
-from magma.pipelined.app.dpi import DEFAULT_DPI_ID, get_app_id
+from magma.pipelined.app.dpi import UNCLASSIFIED_PROTO_ID, get_app_id
 from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
@@ -290,7 +290,7 @@ class EnforcementController(PolicyMixin, MagmaController):
         if app_name:
             # We have to allow initial traffic to pass through, before it gets
             # classified by DPI, flow match set app_id to unclassified
-            flow_match.app_id = DEFAULT_DPI_ID
+            flow_match.app_id = UNCLASSIFIED_PROTO_ID
             # Set
             parser = self._datapath.ofproto_parser
             passthrough_actions = flow_match_actions + \
