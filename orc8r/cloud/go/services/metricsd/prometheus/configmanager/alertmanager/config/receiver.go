@@ -14,6 +14,8 @@ import (
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/common"
 
 	"github.com/prometheus/alertmanager/config"
+
+	"github.com/prometheus/common/model"
 )
 
 // Receiver uses custom notifier configs to allow for marshaling of secrets.
@@ -24,6 +26,17 @@ type Receiver struct {
 	WebhookConfigs  []*WebhookConfig  `yaml:"webhook_configs,omitempty" json:"webhook_configs,omitempty"`
 	EmailConfigs    []*EmailConfig    `yaml:"email_configs,omitempty" json:"email_configs,omitempty"`
 	PushoverConfigs []*PushoverConfig `yaml:"pushover_configs,omitempty" json:"pushover_configs,omitempty"`
+}
+
+// ReceiverJSONWrapper uses custom (JSON compatible) notifier configs to allow
+// for marshaling of secrets.
+type ReceiverJSONWrapper struct {
+	Name string `yaml:"name" json:"name"`
+
+	SlackConfigs    []*SlackConfig         `yaml:"slack_configs,omitempty" json:"slack_configs,omitempty"`
+	WebhookConfigs  []*WebhookConfig       `yaml:"webhook_configs,omitempty" json:"webhook_configs,omitempty"`
+	EmailConfigs    []*EmailConfig         `yaml:"email_configs,omitempty" json:"email_configs,omitempty"`
+	PushoverConfigs []*PushoverJSONWrapper `yaml:"pushover_configs,omitempty" json:"pushover_configs,omitempty"`
 }
 
 // Secure replaces the receiver's name with a tenantID prefix
@@ -102,6 +115,21 @@ type EmailConfig struct {
 type PushoverConfig struct {
 	HTTPConfig *common.HTTPConfig `yaml:"http_config,omitempty" json:"http_config,omitempty"`
 
+	UserKey  string         `yaml:"user_key" json:"user_key"`
+	Token    string         `yaml:"token" json:"token"`
+	Title    string         `yaml:"title,omitempty" json:"title,omitempty"`
+	Message  string         `yaml:"message,omitempty" json:"message,omitempty"`
+	URL      string         `yaml:"url,omitempty" json:"url,omitempty"`
+	Priority string         `yaml:"priority,omitempty" json:"priority,omitempty"`
+	Retry    model.Duration `yaml:"retry,omitempty" json:"retry,omitempty"`
+	Expire   model.Duration `yaml:"expire,omitempty" json:"expire,omitempty"`
+}
+
+// PushoverJSONWrapper uses strings instead of duration objects to allow easier
+// input and interaction through the API.
+type PushoverJSONWrapper struct {
+	HTTPConfig *common.HTTPConfig `yaml:"http_config,omitempty" json:"http_config,omitempty"`
+
 	UserKey  string `yaml:"user_key" json:"user_key"`
 	Token    string `yaml:"token" json:"token"`
 	Title    string `yaml:"title,omitempty" json:"title,omitempty"`
@@ -110,6 +138,47 @@ type PushoverConfig struct {
 	Priority string `yaml:"priority,omitempty" json:"priority,omitempty"`
 	Retry    string `yaml:"retry,omitempty" json:"retry,omitempty"`
 	Expire   string `yaml:"expire,omitempty" json:"expire,omitempty"`
+}
+
+// ToReceiverFmt convers the JSONWrapper object to a true Receiver object. This will
+// only be necessary when dealing with Pushover objects for the time being (due to
+// complexities surrounding JSON unmarshalling)
+func (r *ReceiverJSONWrapper) ToReceiverFmt() (Receiver, error) {
+	receiver := Receiver{
+		Name:           r.Name,
+		SlackConfigs:   r.SlackConfigs,
+		WebhookConfigs: r.WebhookConfigs,
+		EmailConfigs:   r.EmailConfigs,
+	}
+
+	for _, p := range r.PushoverConfigs {
+		pushoverConf := PushoverConfig{
+			HTTPConfig: p.HTTPConfig,
+			UserKey:    p.UserKey,
+			Token:      p.Token,
+			Title:      p.Title,
+			Message:    p.Message,
+			URL:        p.URL,
+			Priority:   p.Priority,
+		}
+		if p.Retry != "" {
+			modelRetry, err := model.ParseDuration(p.Retry)
+			if err != nil {
+				return receiver, err
+			}
+			pushoverConf.Retry = modelRetry
+		}
+		if p.Expire != "" {
+			modelExpire, err := model.ParseDuration(p.Expire)
+			if err != nil {
+				return receiver, err
+			}
+			pushoverConf.Expire = modelExpire
+		}
+		receiver.PushoverConfigs = append(receiver.PushoverConfigs, &pushoverConf)
+	}
+
+	return receiver, nil
 }
 
 // MarshalYAML implements the yaml.Marshaler interface for EmailConfig and
