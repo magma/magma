@@ -213,6 +213,7 @@ int main(int argc, char *argv[])
     session_store = new magma::SessionStore(rule_store, store_client);
     MLOG(MINFO) << "Successfully connected to Redis";
   } else {
+    MLOG(MINFO) << "Session store in memory";
     session_store = new magma::SessionStore(rule_store);
   }
   auto monitor = std::make_shared<magma::LocalEnforcer>(
