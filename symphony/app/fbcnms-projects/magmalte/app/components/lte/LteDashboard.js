@@ -183,29 +183,6 @@ function LteNetworkDashboard({startEnd}: {startEnd: [moment, moment]}) {
         <Grid item xs={12}>
           <DashboardKPIs />
         </Grid>
-
-        {/* <Grid item xs={6}>
-          <Paper>
-            <GatewayKPIs />
-          </Paper>
-        </Grid>
-
-        <Grid item xs={6}>
-          <Paper elevation={2}>
-            <EnodebKPIs />
-          </Paper>
-        </Grid>
-
-        <Grid item xs={12}>
-          <Text>
-            <GpsFixed /> Events (388)
-          </Text>
-          <Paper>
-            <div className={classes.contentPlaceholder}>
-              Events Table Goes Here
-            </div>
-          </Paper>
-        </Grid>*/}
       </Grid>
     </div>
   );

@@ -28,6 +28,7 @@ const useStyles = makeStyles(theme => ({
     marginBottom: theme.spacing(1),
   },
   cardTitleIcon: {
+    fill: '#545F77',
     marginRight: theme.spacing(1),
   },
 }));
