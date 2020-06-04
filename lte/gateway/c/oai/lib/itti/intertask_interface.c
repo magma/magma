@@ -101,23 +101,13 @@ typedef struct thread_desc_s {
 
   pthread_t task_thread; // pthread associated with the thread
 
+  volatile task_state_t task_state; // State of the thread
 
-   // State of the thread
+  int epoll_fd; // This fd is used internally by ITTI.
 
-  volatile task_state_t task_state;
+  int task_event_fd; // The thread fd
 
-   // This fd is used internally by ITTI.
-
-  int epoll_fd;
-
-   // The thread fd
-
-  int task_event_fd;
-
-
-   // Number of events to monitor
-
-  uint16_t nb_events;
+  uint16_t nb_events;    // Number of events to monitor
 
   int epoll_nb_events;
 
@@ -356,9 +346,7 @@ MessageDef* itti_alloc_new_message_sized(
 
   if (origin_task_id == TASK_UNKNOWN) {
 
-     // Try to identify real origin task ID
-
-    origin_task_id = itti_get_current_task_id();
+    origin_task_id = itti_get_current_task_id(); // Try to identify real origin task ID
   }
 
   new_msg =
@@ -412,9 +400,7 @@ int itti_send_msg_to_task(
   origin_task_id = ITTI_MSG_ORIGIN_ID(message);
   priority = itti_get_message_priority(message_id);
 
-   // Increment the global message number
-
-  message_number = itti_increment_message_number();
+  message_number = itti_increment_message_number(); // Increment the global message number
 
   if (destination_task_id != TASK_UNKNOWN) {
     memory_pools_set_info(

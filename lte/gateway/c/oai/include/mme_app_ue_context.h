@@ -251,7 +251,6 @@ typedef struct pdn_context_s {
    */
 
   ip_address_t s_gw_address_s11_s4;
-
   teid_t s_gw_teid_s11_s4;
 
   esm_pdn_t esm_data;
