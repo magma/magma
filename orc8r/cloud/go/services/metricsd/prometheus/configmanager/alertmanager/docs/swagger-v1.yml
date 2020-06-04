@@ -183,6 +183,14 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/pushover_receiver'
+      email_configs:
+        type: array
+        items:
+          $ref: '#/definitions/email_receiver'
+      webhook_configs:
+        type: array
+        items:
+          $ref: '#/definitions/webhook_receiver'
 
   slack_receiver:
     type: object
@@ -362,6 +370,53 @@ definitions:
       text:
         type: string
 
+  email_receiver:
+    type: object
+    required:
+      - to
+    properties:
+      notifier_config:
+        $ref: '#/definitions/notifier_config'
+      to:
+        type: string
+      from:
+        type: string
+      hello:
+        type: string
+      smarthost:
+        type: string
+      auth_username:
+        type: string
+      auth_password:
+        type: string
+      auth_secret:
+        type: string
+      auth_identity:
+        type: string
+      headers:
+        type: object
+        additionalProperties:
+          type: string
+      html:
+        type: string
+      text:
+        type: string
+      require_tls:
+        type: boolean
+
+  webhook_receiver:
+    type: object
+    required:
+      - url
+    properties:
+      notifier_config:
+        $ref: '#/definitions/notifier_config'
+      http_config:
+        $ref: '#/definitions/http_config'
+      url:
+        type: string
+        format: uri
+
   routing_tree:
     type: object
     required:
@@ -463,6 +518,12 @@ definitions:
         type: string
       password:
         type: string
+
+  notifier_config:
+    type: object
+    properties:
+      send_resolved:
+        type: boolean
 
   tls_config:
     type: object
