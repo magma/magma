@@ -776,6 +776,7 @@ type ComplexityRoot struct {
 		NodeType           func(childComplexity int) int
 		RangeFromVal       func(childComplexity int) int
 		RangeToVal         func(childComplexity int) int
+		RawValue           func(childComplexity int) int
 		StringVal          func(childComplexity int) int
 		Type               func(childComplexity int) int
 	}
@@ -1435,6 +1436,8 @@ type PropertyResolver interface {
 }
 type PropertyTypeResolver interface {
 	Type(ctx context.Context, obj *ent.PropertyType) (models.PropertyKind, error)
+
+	RawValue(ctx context.Context, obj *ent.PropertyType) (*string, error)
 }
 type QueryResolver interface {
 	Me(ctx context.Context) (viewer.Viewer, error)
@@ -5043,6 +5046,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PropertyType.RangeToVal(childComplexity), true
 
+	case "PropertyType.rawValue":
+		if e.complexity.PropertyType.RawValue == nil {
+			break
+		}
+
+		return e.complexity.PropertyType.RawValue(childComplexity), true
+
 	case "PropertyType.stringValue":
 		if e.complexity.PropertyType.StringVal == nil {
 			break
@@ -7753,7 +7763,10 @@ input CommentInput {
   text: String!
 }
 
-enum ActivityField @goModel(model: "github.com/facebookincubator/symphony/pkg/ent/activity.ChangedField") {
+enum ActivityField
+  @goModel(
+    model: "github.com/facebookincubator/symphony/pkg/ent/activity.ChangedField"
+  ) {
   STATUS
   PRIORITY
   ASSIGNEE
@@ -8403,6 +8416,7 @@ type PropertyType implements Node {
   nodeType: String
   index: Int
   category: String
+  rawValue: String
   stringValue: String
   intValue: Int
   booleanValue: Boolean
@@ -27385,6 +27399,37 @@ func (ec *executionContext) _PropertyType_category(ctx context.Context, field gr
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PropertyType_rawValue(ctx context.Context, field graphql.CollectedField, obj *ent.PropertyType) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "PropertyType",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.PropertyType().RawValue(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PropertyType_stringValue(ctx context.Context, field graphql.CollectedField, obj *ent.PropertyType) (ret graphql.Marshaler) {
@@ -47609,6 +47654,17 @@ func (ec *executionContext) _PropertyType(ctx context.Context, sel ast.Selection
 			out.Values[i] = ec._PropertyType_index(ctx, field, obj)
 		case "category":
 			out.Values[i] = ec._PropertyType_category(ctx, field, obj)
+		case "rawValue":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._PropertyType_rawValue(ctx, field, obj)
+				return res
+			})
 		case "stringValue":
 			out.Values[i] = ec._PropertyType_stringValue(ctx, field, obj)
 		case "intValue":
