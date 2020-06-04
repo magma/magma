@@ -48,6 +48,8 @@ const SYSTEM_TASK_TYPES: Array<string> = [
   'DO_WHILE',
 ];
 
+const WHITELISTED_SIMPLE_TASKS = ['GLOBAL___js', 'GLOBAL___py'];
+
 export function isLabeledWithGroup(
   workflowdef: Workflow,
   groups: string[],
@@ -86,8 +88,13 @@ export function isForkTask(task: Task): boolean {
   return FORK === task.type;
 }
 
+function isWhitelistedSimpleTask(task: Task): boolean {
+  return task.type == 'SIMPLE' && WHITELISTED_SIMPLE_TASKS.includes(task.name);
+}
+
+// TODO: remove 'System' from name
 export function assertAllowedSystemTask(task: Task): void {
-  if (!isAllowedSystemTask(task)) {
+  if (!isAllowedSystemTask(task) && !isWhitelistedSimpleTask(task)) {
     logger.error(
       `Task type is not allowed: ` + ` in '${JSON.stringify(task)}'`,
     );
@@ -127,7 +134,14 @@ export function withInfixSeparator(s: string): string {
 export function addTenantIdPrefix(
   tenantId: string,
   objectWithName: {name: string},
+  allowGlobal: boolean = false,
 ): void {
+  if (
+    allowGlobal &&
+    objectWithName.name.indexOf(withInfixSeparator(GLOBAL_PREFIX)) == 0
+  ) {
+    return;
+  }
   assertNameIsWithoutInfixSeparator(objectWithName);
   objectWithName.name = withInfixSeparator(tenantId) + objectWithName.name;
 }

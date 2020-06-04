@@ -169,7 +169,7 @@ export default async function(
       const result = await http.put(baseURLMeta + 'workflow/', req.body, req);
       res.status(200).send(result);
     } catch (err) {
-      res.status(400).send(err.response.body);
+      res.status(400).send(err?.response?.body);
       next(err);
     }
   });
