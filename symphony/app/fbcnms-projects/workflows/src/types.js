@@ -32,6 +32,7 @@ export type ProxyCallback = (proxyOptions?: mixed) => void;
 
 export type BeforeFun = (
   tenantId: string,
+  groups: string[],
   req: ProxyRequest,
   res: ProxyResponse,
   proxyCallback: ProxyCallback,
@@ -39,6 +40,7 @@ export type BeforeFun = (
 
 export type AfterFun = (
   tenantId: string,
+  groups: string[],
   req: ProxyRequest,
   respObj: ?mixed,
   res: ProxyResponse,
@@ -77,6 +79,7 @@ export type Event = {
 
 export type Workflow = {
   name: string,
+  description: string,
   tasks: Array<Task>,
 };
 
@@ -84,6 +87,7 @@ export type StartWorkflowRequest = {
   name: string,
   workflowDef?: mixed,
   taskToDomain?: mixed,
+  correlationId?: string,
 };
 
 export type ScheduleRequest = {

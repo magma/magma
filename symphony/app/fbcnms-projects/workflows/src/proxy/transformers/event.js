@@ -61,14 +61,26 @@ function sanitizeEvent(tenantId: string, event: Event) {
   }
 }
 
-const postEventBefore: BeforeFun = (tenantId, req, res, proxyCallback) => {
+const postEventBefore: BeforeFun = (
+  tenantId,
+  groups,
+  req,
+  res,
+  proxyCallback,
+) => {
   const reqObj = req.body;
   logger.debug('Transforming', {reqObj});
   sanitizeEvent(tenantId, anythingTo<Event>(reqObj));
   proxyCallback({buffer: createProxyOptionsBuffer(reqObj, req)});
 };
 
-const putEventBefore: BeforeFun = (tenantId, req, res, proxyCallback) => {
+const putEventBefore: BeforeFun = (
+  tenantId,
+  groups,
+  req,
+  res,
+  proxyCallback,
+) => {
   const reqObj = req.body;
   logger.debug('Transforming', {reqObj});
   sanitizeEvent(tenantId, anythingTo<Event>(reqObj));
