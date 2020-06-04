@@ -22,6 +22,9 @@ const useStyles = makeStyles(_theme => ({
     display: 'flex',
     alignItems: 'center',
     color: SymphonyTheme.palette.D400,
+    alignItems: 'center',
+    marginRight: '8px',
+    marginLeft: '4px',
   },
   hasValue: {},
   disabled: {

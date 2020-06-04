@@ -30,10 +30,6 @@ const useStyles = makeStyles(() => ({
   },
   disabledToken: {},
   text: {
-    display: 'flex',
-    flexDirection: 'row',
-    flexGrow: 1,
-    alignItems: 'center',
     padding: '2px 0px 2px 6px',
     '&$disabledToken': {
       paddingRight: '6px',
@@ -42,7 +38,7 @@ const useStyles = makeStyles(() => ({
 }));
 
 type Props = $ReadOnly<{|
-  label: React.Node,
+  label: string,
   onRemove?: () => void,
   disabled?: boolean,
   className?: string,
@@ -53,14 +49,14 @@ const Token = (props: Props) => {
   const classes = useStyles();
   return (
     <div className={classNames(classes.root, className)}>
-      <div
+      <Text
+        variant="body2"
         className={classNames(classes.text, {
           [classes.disabledToken]: disabled,
-        })}>
-        <Text variant="body2" useEllipsis={true}>
-          {label}
-        </Text>
-      </div>
+        })}
+        useEllipsis={true}>
+        {label}
+      </Text>
       {!disabled && (
         <IconButton
           icon={CloseTinyIcon}

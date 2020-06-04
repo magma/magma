@@ -8,10 +8,18 @@
  * @format
  */
 
+import type {TRefFor} from '../types/TRefFor.flow';
+
 import * as React from 'react';
 import Portal from '../Core/Portal';
 import {makeStyles} from '@material-ui/styles';
-import {useCallback, useLayoutEffect, useRef, useState} from 'react';
+import {
+  useCallback,
+  useImperativeHandle,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -20,6 +28,11 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
+export type ContextualLayerRef = $ReadOnly<{
+  reposition: () => void,
+  ...
+}>;
+
 export type ContextualLayerPosition = 'below' | 'above';
 
 export type ContextualLayerOptions = $ReadOnly<{|
@@ -27,12 +40,12 @@ export type ContextualLayerOptions = $ReadOnly<{|
   position?: ContextualLayerPosition,
 |}>;
 
-type PositionRect = {
+type PositionRect = {|
   bottom: number,
   left: number,
   right: number,
   top: number,
-};
+|};
 
 function getElementPosition(element: Element): PositionRect {
   const rect = element.getBoundingClientRect();
@@ -44,20 +57,21 @@ function getElementPosition(element: Element): PositionRect {
   };
 }
 
-type Props = {
+type Props = $ReadOnly<{|
   ...ContextualLayerOptions,
   children: React.Node,
   context: Element,
   hidden?: boolean,
-};
+|}>;
 
-const BaseContexualLayer = ({
-  children,
-  position: preferredPosition,
-  context,
-  hidden = false,
-  align = 'middle',
-}: Props) => {
+const BaseContexualLayer = (props: Props, ref: TRefFor<ContextualLayerRef>) => {
+  const {
+    children,
+    position: preferredPosition,
+    context,
+    hidden = false,
+    align = 'middle',
+  } = props;
   const classes = useStyles();
   const [position, setPosition] = useState(() => preferredPosition);
 
@@ -148,6 +162,16 @@ const BaseContexualLayer = ({
     [recalculateStyles],
   );
 
+  useImperativeHandle(
+    ref,
+    (): ContextualLayerRef => ({
+      reposition() {
+        recalculateStyles();
+      },
+    }),
+    [recalculateStyles],
+  );
+
   return (
     <Portal target={document.body}>
       <div
@@ -160,4 +184,6 @@ const BaseContexualLayer = ({
   );
 };
 
-export default BaseContexualLayer;
+export default (React.forwardRef<Props, ContextualLayerRef>(
+  BaseContexualLayer,
+): React.AbstractComponent<Props, ContextualLayerRef>);
