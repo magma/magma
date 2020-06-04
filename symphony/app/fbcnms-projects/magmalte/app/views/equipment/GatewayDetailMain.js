@@ -75,14 +75,14 @@ const useStyles = makeStyles(theme => ({
 }));
 
 export function GatewayDetail({
-  lte_gateways,
+  lteGateways,
 }: {
-  lte_gateways: {[string]: lte_gateway},
+  lteGateways: {[string]: lte_gateway},
 }) {
   const classes = useStyles();
   const {relativePath, relativeUrl, match} = useRouter();
   const gatewayId: string = nullthrows(match.params.gatewayId);
-  const gw_info = lte_gateways[gatewayId];
+  const gwInfo = lteGateways[gatewayId];
   return (
     <>
       <div className={classes.topBar}>
@@ -155,7 +155,7 @@ export function GatewayDetail({
       <Switch>
         <Route
           path={relativePath('/overview')}
-          render={props => <GatewayOverview {...props} gw_info={gw_info} />}
+          render={() => <GatewayOverview gwInfo={gwInfo} />}
         />
         <Redirect to={relativeUrl('/overview')} />
       </Switch>
@@ -163,7 +163,7 @@ export function GatewayDetail({
   );
 }
 
-function GatewayOverview({gw_info}: {gw_info: lte_gateway}) {
+function GatewayOverview({gwInfo}: {gwInfo: lte_gateway}) {
   const classes = useStyles();
   const {match} = useRouter();
   const gatewayId: string = nullthrows(match.params.gatewayId);
@@ -176,7 +176,7 @@ function GatewayOverview({gw_info}: {gw_info: lte_gateway}) {
             <Text>
               <CellWifiIcon /> {gatewayId}
             </Text>
-            <GatewaySummary gw_info={gw_info} />
+            <GatewaySummary gwInfo={gwInfo} />
           </Grid>
           <Grid item xs={12}>
             <Text>

@@ -76,7 +76,6 @@ const useStyles = makeStyles(theme => ({
 }));
 
 function EquipmentDashboard() {
-  const classes = useStyles();
   const {match, relativePath, relativeUrl} = useRouter();
   const networkId: string = nullthrows(match.params.networkId);
 
@@ -86,10 +85,36 @@ function EquipmentDashboard() {
       networkId: networkId,
     },
   );
-  if (!response || isLoading) {
+  if (isLoading) {
     return <LoadingFiller />;
   }
-  const lte_gateways: {[string]: lte_gateway} = response;
+  const lteGateways: {[string]: lte_gateway} = response ?? {};
+  return (
+    <>
+      <Switch>
+        <Route
+          path={relativePath('/overview/gateway/:gatewayId')}
+          render={() => <GatewayDetail lteGateways={lteGateways} />}
+        />
+        <Route
+          path={relativePath('/overview')}
+          render={() => (
+            <EquipmentDashboardInternal lteGateways={lteGateways} />
+          )}
+        />
+        <Redirect to={relativeUrl('/overview')} />
+      </Switch>
+    </>
+  );
+}
+
+function EquipmentDashboardInternal({
+  lteGateways,
+}: {
+  lteGateways: {[string]: lte_gateway},
+}) {
+  const classes = useStyles();
+  const {relativePath, relativeUrl} = useRouter();
   return (
     <>
       <div className={classes.topBar}>
@@ -137,18 +162,10 @@ function EquipmentDashboard() {
           </Grid>
         </Grid>
       </AppBar>
-
       <Switch>
         <Route
-          path={relativePath('/gateway/:gatewayId')}
-          render={props => (
-            <GatewayDetail {...props} lte_gateways={lte_gateways} />
-          )}
-        />
-
-        <Route
           path={relativePath('/gateway')}
-          render={props => <Gateway {...props} lte_gateways={lte_gateways} />}
+          render={() => <Gateway lteGateways={lteGateways} />}
         />
         <Redirect to={relativeUrl('/gateway')} />
       </Switch>

@@ -122,7 +122,7 @@ describe('<Gateway />', () => {
   mockGw2.status = {
     checkin_time: currTime,
   };
-  const lte_gateways = {
+  const lteGateways = {
     test1: mockGw0,
     test2: mockGw1,
     test3: mockGw2,
@@ -134,7 +134,7 @@ describe('<Gateway />', () => {
         <MuiStylesThemeProvider theme={defaultTheme}>
           <Route
             path="/nms/:networkId/gateway/"
-            render={props => <Gateway {...props} lte_gateways={lte_gateways} />}
+            render={props => <Gateway {...props} lteGateways={lteGateways} />}
           />
         </MuiStylesThemeProvider>
       </MuiThemeProvider>

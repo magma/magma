@@ -65,9 +65,9 @@ const useStyles = makeStyles(theme => ({
 }));
 
 export default function Gateway({
-  lte_gateways,
+  lteGateways,
 }: {
-  lte_gateways: {[string]: lte_gateway},
+  lteGateways: {[string]: lte_gateway},
 }) {
   const classes = useStyles();
 
@@ -78,10 +78,10 @@ export default function Gateway({
           <GatewayCheckinChart />
         </Grid>
         <Grid item xs={12}>
-          <EquipmentGatewayKPIs lte_gateways={lte_gateways} />
+          <EquipmentGatewayKPIs lteGateways={lteGateways} />
         </Grid>
         <Grid item xs={12}>
-          <GatewayTable lte_gateways={lte_gateways} />
+          <GatewayTable lteGateways={lteGateways} />
         </Grid>
       </Grid>
     </div>
@@ -97,13 +97,13 @@ type EquipmentGatewayRowType = {
   checkInTime: Date,
 };
 
-function GatewayTable({lte_gateways}: {lte_gateways: {[string]: lte_gateway}}) {
+function GatewayTable({lteGateways}: {lteGateways: {[string]: lte_gateway}}) {
   const {history, relativeUrl} = useRouter();
   const [currRow, setCurrRow] = useState<EquipmentGatewayRowType>({});
-  const lte_gateway_rows: Array<EquipmentGatewayRowType> = Object.keys(
-    lte_gateways,
+  const lteGatewayRows: Array<EquipmentGatewayRowType> = Object.keys(
+    lteGateways,
   )
-    .map((gwId: string) => lte_gateways[gwId])
+    .map((gwId: string) => lteGateways[gwId])
     .filter((g: lte_gateway) => g.cellular && g.id)
     .map((gateway: lte_gateway) => {
       let numEnodeBs = 0;
@@ -134,7 +134,7 @@ function GatewayTable({lte_gateways}: {lte_gateways: {[string]: lte_gateway}}) {
     <ActionTable
       titleIcon={CellWifiIcon}
       title={'Gateways'}
-      data={lte_gateway_rows}
+      data={lteGatewayRows}
       columns={[
         {title: 'Name', field: 'name'},
         {title: 'ID', field: 'id'},
