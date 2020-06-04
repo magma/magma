@@ -16,6 +16,7 @@ import (
 	"magma/gateway/directoryd"
 	orcprotos "magma/orc8r/lib/go/protos"
 
+	"github.com/emakeev/snowflake"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 
@@ -36,6 +37,16 @@ type eapAuth struct {
 }
 
 const MacAddrKey = "mac_addr"
+
+var gatewayHardwareId string
+
+func init() {
+	uuid, _ := snowflake.Get()
+	gatewayHardwareId = uuid.String()
+	if len(gatewayHardwareId) == 0 {
+		gatewayHardwareId = "hwid"
+	}
+}
 
 // NewEapAuthenticator returns a new instance of EAP Auth service
 func NewEapAuthenticator(
@@ -109,7 +120,7 @@ func (srv *eapAuth) Handle(ctx context.Context, in *protos.Eap) (*protos.Eap, er
 		}
 		updateRequest := &orcprotos.UpdateRecordRequest{
 			Id:       imsi,
-			Location: "hwid", // actual hwid will be filled in by directory service
+			Location: gatewayHardwareId,
 			Fields:   map[string]string{MacAddrKey: resp.Ctx.GetMacAddr()},
 		}
 		// execute in a new goroutine in case calls to directoryd take long time

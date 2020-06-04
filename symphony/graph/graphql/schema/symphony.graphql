@@ -63,7 +63,10 @@ type UsersGroup implements Node {
   policies: [PermissionsPolicy!]!
 }
 
-type PermissionSettings {
+type PermissionSettings
+  @goModel(
+    model: "github.com/facebookincubator/symphony/pkg/authz/models.PermissionSettings"
+  ) {
   canWrite: Boolean!
   adminPolicy: AdministrativePolicy!
   inventoryPolicy: InventoryPolicy!
@@ -79,16 +82,25 @@ enum PermissionValue
   BY_CONDITION
 }
 
-type BasicPermissionRule {
+type BasicPermissionRule
+  @goModel(
+    model: "github.com/facebookincubator/symphony/pkg/authz/models.BasicPermissionRule"
+  ) {
   isAllowed: PermissionValue!
 }
 
-type LocationPermissionRule {
+type LocationPermissionRule
+  @goModel(
+    model: "github.com/facebookincubator/symphony/pkg/authz/models.LocationPermissionRule"
+  ) {
   isAllowed: PermissionValue!
   locationTypeIds: [ID!]
 }
 
-type WorkforcePermissionRule {
+type WorkforcePermissionRule
+  @goModel(
+    model: "github.com/facebookincubator/symphony/pkg/authz/models.WorkforcePermissionRule"
+  ) {
   isAllowed: PermissionValue!
   projectTypeIds: [ID!]
   workOrderTypeIds: [ID!]
@@ -118,13 +130,19 @@ input WorkforcePermissionRuleInput
   workOrderTypeIds: [ID!]
 }
 
-type CUD {
+type CUD
+  @goModel(
+    model: "github.com/facebookincubator/symphony/pkg/authz/models.Cud"
+  ) {
   create: BasicPermissionRule!
   update: BasicPermissionRule!
   delete: BasicPermissionRule!
 }
 
-type LocationCUD {
+type LocationCUD
+  @goModel(
+    model: "github.com/facebookincubator/symphony/pkg/authz/models.LocationCud"
+  ) {
   create: LocationPermissionRule!
   update: LocationPermissionRule!
   delete: LocationPermissionRule!
@@ -148,11 +166,17 @@ input LocationCUDInput
   delete: LocationPermissionRuleInput
 }
 
-type AdministrativePolicy {
+type AdministrativePolicy
+  @goModel(
+    model: "github.com/facebookincubator/symphony/pkg/authz/models.AdministrativePolicy"
+  ) {
   access: BasicPermissionRule!
 }
 
-type InventoryPolicy {
+type InventoryPolicy
+  @goModel(
+    model: "github.com/facebookincubator/symphony/pkg/authz/models.InventoryPolicy"
+  ) {
   read: BasicPermissionRule!
   location: LocationCUD!
   equipment: CUD!
@@ -175,7 +199,10 @@ input InventoryPolicyInput
   serviceType: BasicCUDInput
 }
 
-type WorkforceCUD {
+type WorkforceCUD
+  @goModel(
+    model: "github.com/facebookincubator/symphony/pkg/authz/models.WorkforceCud"
+  ) {
   create: WorkforcePermissionRule!
   update: WorkforcePermissionRule!
   delete: WorkforcePermissionRule!
@@ -194,7 +221,10 @@ input WorkforceCUDInput
   transferOwnership: WorkforcePermissionRuleInput
 }
 
-type WorkforcePolicy {
+type WorkforcePolicy
+  @goModel(
+    model: "github.com/facebookincubator/symphony/pkg/authz/models.WorkforcePolicy"
+  ) {
   read: WorkforcePermissionRule!
   data: WorkforceCUD!
   templates: CUD!
@@ -209,7 +239,12 @@ input WorkforcePolicyInput
   templates: BasicCUDInput
 }
 
-union SystemPolicy = InventoryPolicy | WorkforcePolicy
+union SystemPolicy
+  @goModel(
+    model: "github.com/facebookincubator/symphony/pkg/authz/models.SystemPolicy"
+  ) =
+    InventoryPolicy
+  | WorkforcePolicy
 
 type PermissionsPolicy implements Node {
   id: ID!
@@ -469,6 +504,30 @@ input CommentInput {
   entityType: CommentEntity!
   id: ID!
   text: String!
+}
+
+enum ActivityField
+  @goModel(
+    model: "github.com/facebookincubator/symphony/pkg/ent/activity.ChangedField"
+  ) {
+  STATUS
+  PRIORITY
+  ASSIGNEE
+  CREATION_DATE
+  OWNER
+}
+
+type Activity implements Node {
+  id: ID!
+  author: User
+  isCreate: Boolean!
+  changedField: ActivityField!
+  newRelatedNode: Node
+  oldRelatedNode: Node
+  oldValue: String
+  newValue: String
+  createTime: Time!
+  workOrder: WorkOrder!
 }
 
 # specific equipment instance: e.g. Wifi Access Point X at Location Y.
@@ -1148,6 +1207,7 @@ type Property implements Node {
   rangeFromValue: Float
   rangeToValue: Float
   nodeValue: NamedNode
+  rawValue: String
 }
 
 input PropertyInput {
@@ -1459,6 +1519,7 @@ type WorkOrder implements Node & NamedNode {
   images: [File]!
   files: [File]!
   comments: [Comment]!
+  activities: [Activity!]!
   location: Location
   properties: [Property]!
   project: Project

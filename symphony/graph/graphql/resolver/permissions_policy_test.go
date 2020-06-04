@@ -80,7 +80,7 @@ func TestAddInventoryPolicy(t *testing.T) {
 	require.Equal(t, policyDescription, policy.Description)
 	res, err := ppr.Policy(ctx, policy)
 	require.NoError(t, err)
-	inventoryPolicy, ok := res.(*models.InventoryPolicy)
+	inventoryPolicy, ok := res.(*models2.InventoryPolicy)
 	require.True(t, ok)
 
 	require.Equal(t, models2.PermissionValueYes, inventoryPolicy.Read.IsAllowed)
@@ -112,7 +112,7 @@ func TestAddWorkOrderPolicy(t *testing.T) {
 	require.Equal(t, policyDescription, policy.Description)
 	res, err := ppr.Policy(ctx, policy)
 	require.NoError(t, err)
-	workforcePolicy, ok := res.(*models.WorkforcePolicy)
+	workforcePolicy, ok := res.(*models2.WorkforcePolicy)
 	require.True(t, ok)
 
 	require.Equal(t, models2.PermissionValueNo, workforcePolicy.Read.IsAllowed)

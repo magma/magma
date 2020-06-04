@@ -2,6 +2,10 @@ fragment ServiceFragment on Service {
   id
   name
   externalId
+  serviceType {
+    id
+    name
+  }
   customer {
     ...CustomerFragment
   }

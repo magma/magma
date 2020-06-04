@@ -287,8 +287,11 @@ func (r mutationResolver) CreateProject(ctx context.Context, input models.AddPro
 		return nil, fmt.Errorf("fetching work orders templates: %w", err)
 	}
 	for _, wo := range wos {
-		wot := wo.QueryType().FirstX(ctx)
-		_, err := r.internalAddWorkOrder(ctx, models.AddWorkOrderInput{
+		wot, err := wo.QueryType().Only(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("query work order definition type: %w", err)
+		}
+		_, err = r.internalAddWorkOrder(ctx, models.AddWorkOrderInput{
 			Name:            wot.Name,
 			Description:     &wot.Description,
 			WorkOrderTypeID: wot.ID,

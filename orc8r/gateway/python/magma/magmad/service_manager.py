@@ -15,6 +15,7 @@ from enum import Enum
 from typing import List, Tuple
 
 from magma.magmad.service_poller import ServicePoller
+import magma.magmad.events as magmad_events
 
 
 class ServiceState(Enum):
@@ -105,6 +106,7 @@ class ServiceManager(object):
         await asyncio.gather(
             *[self._service_control[s].restart_process() for s in services]
         )
+        magmad_events.restarted_services(services)
 
     async def update_dynamic_services(self, dynamic_services: List[str]):
         """

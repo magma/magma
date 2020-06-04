@@ -55,7 +55,7 @@ access_control:
   ip_blacklist: []
 
 meter:
-  enabled: true
+  enabled: false
   poll_interval: 5
   idle_timeout: 0
 
@@ -86,7 +86,7 @@ allow_unknown_arps: true
 
 # Configuration for IPFIX sampling
 ipfix:
-  enabled: true
+  enabled: false
   collector_ip: '10.22.20.116'
   collector_port: 4740
   probability: 650
@@ -107,7 +107,7 @@ bridge_ip_address: 192.168.128.1
 
 # QoS parameters
 qos:
- enable: true
+ enable: false
  impl: linux_tc
  max_rate: 1000000000
  linux_tc:

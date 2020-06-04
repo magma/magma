@@ -23,6 +23,10 @@ export type ErrorHandlingProps = $ReadOnly<{|
   disableOnFromError?: ?boolean,
 |}>;
 
+export type EditLocksHandlingProps = $ReadOnly<{|
+  ignoreEditLocks?: ?boolean,
+|}>;
+
 export type FormActionProps = $ReadOnly<{|
   children: React.Node,
   disabled?: boolean,
@@ -33,6 +37,7 @@ type Props = $ReadOnly<{|
   ...FormActionProps,
   ...PermissionHandlingProps,
   ...ErrorHandlingProps,
+  ...EditLocksHandlingProps,
 |}>;
 
 const FormAction = (props: Props) => {
@@ -41,6 +46,7 @@ const FormAction = (props: Props) => {
     disabled: disabledProp = false,
     tooltip: tooltipProp,
     ignorePermissions = false,
+    ignoreEditLocks = false,
     hideOnMissingPermissions = true,
     disableOnFromError = false,
   } = props;
@@ -49,7 +55,8 @@ const FormAction = (props: Props) => {
   const missingPermissions =
     ignorePermissions !== true && validationContext.missingPermissions.detected;
   const edittingLocked =
-    missingPermissions || validationContext.editLock.detected;
+    missingPermissions ||
+    (validationContext.editLock.detected && !ignoreEditLocks);
   const shouldHide = missingPermissions && hideOnMissingPermissions == true;
   const haveDisablingError =
     validationContext.error.detected && disableOnFromError;

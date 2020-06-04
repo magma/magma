@@ -9,8 +9,12 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/pkg/pubsub"
+
 	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/viewer"
+
+	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/pkg/ent/hook"
 )
 
@@ -26,8 +30,31 @@ func (e *Eventer) workOrderHook() ent.Hook {
 		e.workOrderCreateHook(),
 		e.workOrderUpdateHook(),
 		e.workOrderUpdateOneHook(),
+		e.workOrderActivityHook(),
 	)
 	return chain.Hook()
+}
+
+func (e *Eventer) workOrderActivityHook() ent.Hook {
+	return func(next ent.Mutator) ent.Mutator {
+		return e.hookWithLog(func(ctx context.Context, entry pubsub.LogEntry) error {
+			var err error
+			v := viewer.FromContext(ctx)
+			if v == nil ||
+				!v.Features().Enabled(viewer.FeatureWorkOrderActivities) {
+				return nil
+			}
+			if entry.Operation.Is(ent.OpCreate) {
+				err = updateActivitiesOnWOCreate(ctx, &entry)
+			} else if entry.Operation.Is(ent.OpUpdate) || entry.Operation.Is(ent.OpUpdateOne) {
+				err = updateActivitiesOnWOUpdate(ctx, &entry)
+			}
+			if err != nil {
+				return err
+			}
+			return nil
+		}, next)
+	}
 }
 
 func (e *Eventer) workOrderCreateHook() ent.Hook {

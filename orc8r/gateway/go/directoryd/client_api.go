@@ -14,23 +14,36 @@ import (
 	"fmt"
 	"strings"
 
-	platformregistry "magma/orc8r/lib/go/registry"
+	"github.com/golang/glog"
+	"golang.org/x/net/context"
+	"google.golang.org/grpc"
 
 	"magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/golang/glog"
-	"golang.org/x/net/context"
+	platformregistry "magma/orc8r/lib/go/registry"
+	"magma/orc8r/lib/go/util"
 )
 
 const (
 	ServiceName = "DIRECTORYD"
 	ImsiPrefix  = "IMSI"
+
+	UseCloudDirectordEnv = "USE_CLOUD_DIRECTORYD"
 )
+
+var useCloudDirectoryd = util.GetEnvBool(UseCloudDirectordEnv)
 
 // Get a thin RPC client to the gateway directory service.
 func GetGatewayDirectorydClient() (protos.GatewayDirectoryServiceClient, error) {
-	conn, err := platformregistry.GetConnection(ServiceName)
+	var (
+		conn *grpc.ClientConn
+		err  error
+	)
+	if useCloudDirectoryd {
+		conn, err = platformregistry.Get().GetSharedCloudConnection(strings.ToLower(ServiceName))
+	} else {
+		conn, err = platformregistry.Get().GetConnection(ServiceName)
+	}
 	if err != nil {
 		initErr := errors.NewInitError(err, ServiceName)
 		glog.Error(initErr)

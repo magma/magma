@@ -32,7 +32,6 @@ import type {ServicePanel_service} from './__generated__/ServicePanel_service.gr
 import AddServiceEndpointMutation from '../../mutations/AddServiceEndpointMutation';
 import AddServiceLinkMutation from '../../mutations/AddServiceLinkMutation';
 import Button from '@fbcnms/ui/components/design-system/Button';
-import Card from '@fbcnms/ui/components/design-system/Card/Card';
 import EditServiceMutation from '../../mutations/EditServiceMutation';
 import ExpandingPanel from '@fbcnms/ui/components/ExpandingPanel';
 import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
@@ -70,7 +69,6 @@ const useStyles = makeStyles(() => ({
     backgroundColor: symphony.palette.white,
   },
   detailsCard: {
-    boxShadow: 'none',
     padding: '32px 32px 12px 32px',
     position: 'relative',
   },
@@ -219,7 +217,7 @@ const ServicePanel = React.forwardRef((props: Props, ref) => {
 
   return (
     <div className={classes.root} ref={ref}>
-      <Card className={classes.detailsCard}>
+      <div className={classes.detailsCard}>
         <div className={classes.detail}>
           <Text variant="h6" className={classes.text}>
             {service.name}
@@ -267,7 +265,7 @@ const ServicePanel = React.forwardRef((props: Props, ref) => {
             </Text>
           </Button>
         </div>
-      </Card>
+      </div>
       <>
         <div className={classes.separator} />
         <ExpandingPanel

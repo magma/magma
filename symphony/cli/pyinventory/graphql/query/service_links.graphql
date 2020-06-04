@@ -1,0 +1,9 @@
+query ServiceLinksQuery($id: ID!) {
+  service: node(id: $id) {
+    ... on Service {
+      links {
+        ...LinkFragment
+      }
+    }
+  }
+}

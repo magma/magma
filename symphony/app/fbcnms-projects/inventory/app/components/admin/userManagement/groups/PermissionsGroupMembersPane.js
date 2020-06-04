@@ -11,6 +11,7 @@
 import type {UserPermissionsGroup} from '../utils/UserManagementUtils';
 
 import * as React from 'react';
+import Card from '@fbcnms/ui/components/design-system/Card/Card';
 import PermissionsGroupMembersList from './PermissionsGroupMembersList';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import UserSearchBox from '../utils/search/UserSearchBox';
@@ -28,7 +29,6 @@ import {useMemo} from 'react';
 
 const useStyles = makeStyles(() => ({
   root: {
-    backgroundColor: symphony.palette.white,
     height: '100%',
   },
   header: {
@@ -147,12 +147,12 @@ export default function PermissionsGroupMembersPane(props: Props) {
   );
 
   return (
-    <div className={classNames(classes.root, className)}>
+    <Card className={classNames(classes.root, className)} margins="none">
       <UserSearchContextProvider>
         <ViewContainer header={header}>
           <PermissionsGroupMembersList group={group} onChange={onChange} />
         </ViewContainer>
       </UserSearchContextProvider>
-    </div>
+    </Card>
   );
 }

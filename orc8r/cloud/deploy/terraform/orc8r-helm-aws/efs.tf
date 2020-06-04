@@ -9,7 +9,7 @@
 # k8s requires provisioner to treat efs as a persistent volume
 resource "helm_release" "efs_provisioner" {
   name       = "efs-provisioner"
-  repository = data.helm_repository.stable.id
+  repository = local.stable_helm_repo
   chart      = "efs-provisioner"
   version    = "0.11.0"
   namespace  = "kube-system"

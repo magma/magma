@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/tools/accessc/handlers"
@@ -27,25 +28,22 @@ func main() {
 	flag.Usage = func() {
 		cmd := os.Args[0]
 		fmt.Printf(
-			"\nUsage: \033[1m%s command [OPTIONS]\033[0m\n\n",
+			"\nUsage: \033[1m%s [GENERAL OPTIONS] command [COMMAND OPTIONS]\033[0m\n\n",
 			filepath.Base(cmd))
 		flag.PrintDefaults()
 		fmt.Println("\nCommands:")
 		handlers.CommandRegistry.Usage()
 	}
-	cmdName := flag.Arg(0)
-	if len(flag.Args()) < 1 || cmdName == "" || cmdName == "help" {
-		flag.Usage()
-		os.Exit(1)
-	}
 
-	cmd := handlers.CommandRegistry.Get(cmdName)
+	cmd, args := handlers.CommandRegistry.GetCommand()
 	if cmd == nil {
-		fmt.Println("\nInvalid Command: ", cmdName)
+		cmdName := strings.ToLower(flag.Arg(0))
+		if cmdName != "" && cmdName != "help" && cmdName != "h" {
+			fmt.Println("\nInvalid Command: ", cmdName)
+		}
 		flag.Usage()
 		os.Exit(1)
 	}
-	args := os.Args[2:]
 	cmd.Flags().Parse(args)
 	os.Exit(cmd.Handle(args))
 }

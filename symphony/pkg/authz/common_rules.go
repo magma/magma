@@ -7,15 +7,11 @@ package authz
 import (
 	"context"
 
-	"github.com/facebookincubator/symphony/pkg/ent/user"
-
-	"github.com/facebookincubator/symphony/pkg/viewer"
-
-	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/pkg/authz/models"
 	"github.com/facebookincubator/symphony/pkg/ent"
 	"github.com/facebookincubator/symphony/pkg/ent/privacy"
-
-	models2 "github.com/facebookincubator/symphony/pkg/authz/models"
+	"github.com/facebookincubator/symphony/pkg/ent/user"
+	"github.com/facebookincubator/symphony/pkg/viewer"
 )
 
 func cudBasedCheck(cud *models.Cud, m ent.Mutation) bool {
@@ -30,11 +26,11 @@ func cudBasedCheck(cud *models.Cud, m ent.Mutation) bool {
 	default:
 		return false
 	}
-	return permission.IsAllowed == models2.PermissionValueYes
+	return permission.IsAllowed == models.PermissionValueYes
 }
 
 func allowOrSkip(r *models.BasicPermissionRule) error {
-	if r.IsAllowed == models2.PermissionValueYes {
+	if r.IsAllowed == models.PermissionValueYes {
 		return privacy.Allow
 	}
 	return privacy.Skip
@@ -42,9 +38,9 @@ func allowOrSkip(r *models.BasicPermissionRule) error {
 
 func allowOrSkipLocations(r *models.LocationPermissionRule, locationTypeID int) error {
 	switch r.IsAllowed {
-	case models2.PermissionValueYes:
+	case models.PermissionValueYes:
 		return privacy.Allow
-	case models2.PermissionValueByCondition:
+	case models.PermissionValueByCondition:
 		for _, typeID := range r.LocationTypeIds {
 			if typeID == locationTypeID {
 				return privacy.Allow
@@ -63,9 +59,9 @@ func privacyDecision(allowed bool) error {
 
 func checkWorkforce(r *models.WorkforcePermissionRule, workOrderTypeID *int, projectTypeID *int) bool {
 	switch r.IsAllowed {
-	case models2.PermissionValueYes:
+	case models.PermissionValueYes:
 		return true
-	case models2.PermissionValueByCondition:
+	case models.PermissionValueByCondition:
 		if workOrderTypeID != nil {
 			for _, typeID := range r.WorkOrderTypeIds {
 				if typeID == *workOrderTypeID {
@@ -135,6 +131,27 @@ func allowOrSkipWorkOrder(ctx context.Context, p *models.PermissionSettings, wo 
 	return privacyDecision(
 		checkWorkforce(
 			p.WorkforcePolicy.Data.Update, &workOrderTypeID, nil,
+		),
+	)
+}
+
+func allowOrSkipProject(ctx context.Context, p *models.PermissionSettings, proj *ent.Project) error {
+	if userViewer, ok := viewer.FromContext(ctx).(*viewer.UserViewer); ok {
+		switch isCreator, err := isUserProjectCreator(ctx, userViewer.User().ID, proj); {
+		case err != nil:
+			return privacy.Denyf("cannot check project viewer relation: %w", err)
+		case isCreator:
+			return privacy.Allow
+		}
+	}
+
+	projectTypeID, err := proj.QueryType().OnlyID(ctx)
+	if err != nil {
+		return privacy.Denyf("cannot fetch project type id: %w", err)
+	}
+	return privacyDecision(
+		checkWorkforce(
+			p.WorkforcePolicy.Data.Update, nil, &projectTypeID,
 		),
 	)
 }

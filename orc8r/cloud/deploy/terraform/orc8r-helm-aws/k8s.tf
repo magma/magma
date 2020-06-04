@@ -15,7 +15,7 @@ resource "kubernetes_namespace" "orc8r" {
 # external dns maps route53 to ingress rosources
 resource "helm_release" "external_dns" {
   name       = "external-dns"
-  repository = data.helm_repository.stable.id
+  repository = local.stable_helm_repo
   chart      = "external-dns"
   version    = "2.19.1"
   namespace  = "kube-system"

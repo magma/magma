@@ -25,7 +25,9 @@ from pyinventory.api.location import (
     move_location,
 )
 from pyinventory.api.location_type import add_location_type
+from pyinventory.common.data_class import PropertyDefinition
 from pyinventory.exceptions import LocationCannotBeDeletedWithDependency
+from pyinventory.graphql.enum.property_kind import PropertyKind
 from pysymphony import SymphonyClient
 
 from ..utils.base_test import BaseTest
@@ -44,8 +46,18 @@ class TestLocation(BaseTest):
             client=self.client,
             name="City",
             properties=[
-                ("Mayor", "string", None, True),
-                ("Contact", "email", None, True),
+                PropertyDefinition(
+                    property_name="Mayor",
+                    property_kind=PropertyKind.string,
+                    default_value=None,
+                    is_fixed=False,
+                ),
+                PropertyDefinition(
+                    property_name="Contact",
+                    property_kind=PropertyKind.email,
+                    default_value=None,
+                    is_fixed=False,
+                ),
             ],
         )
         self.external_id = "test_external_id"

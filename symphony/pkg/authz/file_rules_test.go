@@ -69,7 +69,7 @@ func TestLocationFilePolicyRule(t *testing.T) {
 		return fc.SetLocation(location)
 	})
 	runCudPolicyTest(t, cudPolicyTest{
-		appendPermissions: func(p *models.PermissionSettings) {
+		appendPermissions: func(p *models2.PermissionSettings) {
 			p.InventoryPolicy.Location.Update.IsAllowed = models2.PermissionValueYes
 		},
 		create: cudOperations.create,
@@ -101,7 +101,7 @@ func TestEquipmentFilePolicyRule(t *testing.T) {
 		return fc.SetEquipment(equip)
 	})
 	runCudPolicyTest(t, cudPolicyTest{
-		appendPermissions: func(p *models.PermissionSettings) {
+		appendPermissions: func(p *models2.PermissionSettings) {
 			p.InventoryPolicy.Equipment.Update.IsAllowed = models2.PermissionValueYes
 		},
 		create: cudOperations.create,
@@ -150,7 +150,7 @@ func TestUserFilePolicyRule(t *testing.T) {
 	}
 
 	runCudPolicyTest(t, cudPolicyTest{
-		appendPermissions: func(p *models.PermissionSettings) {
+		appendPermissions: func(p *models2.PermissionSettings) {
 			p.AdminPolicy.Access.IsAllowed = models2.PermissionValueYes
 		},
 		create: createFile,
@@ -167,13 +167,13 @@ func TestWOFilePolicyRule(t *testing.T) {
 		return fc.SetWorkOrder(workOrder)
 	})
 	runCudPolicyTest(t, cudPolicyTest{
-		appendPermissions: func(p *models.PermissionSettings) {
+		appendPermissions: func(p *models2.PermissionSettings) {
 			p.WorkforcePolicy.Data.Update.IsAllowed = models2.PermissionValueYes
 		},
 		create: cudOperations.create,
 		update: cudOperations.update,
 		delete: cudOperations.delete,
-		initialPermissions: func(p *models.PermissionSettings) {
+		initialPermissions: func(p *models2.PermissionSettings) {
 			p.WorkforcePolicy.Read.IsAllowed = models2.PermissionValueYes
 		},
 	})
@@ -199,10 +199,10 @@ func TestChecklistItemFilePolicyRule(t *testing.T) {
 		return fc.SetChecklistItem(clItem)
 	})
 	runCudPolicyTest(t, cudPolicyTest{
-		appendPermissions: func(p *models.PermissionSettings) {
+		appendPermissions: func(p *models2.PermissionSettings) {
 			p.WorkforcePolicy.Data.Update.IsAllowed = models2.PermissionValueYes
 		},
-		initialPermissions: func(p *models.PermissionSettings) {
+		initialPermissions: func(p *models2.PermissionSettings) {
 			p.WorkforcePolicy.Read.IsAllowed = models2.PermissionValueYes
 		},
 		create: cudOperations.create,

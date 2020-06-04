@@ -9,17 +9,14 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/facebookincubator/symphony/pkg/ent/predicate"
-	"github.com/facebookincubator/symphony/pkg/ent/user"
-	"github.com/facebookincubator/symphony/pkg/viewer"
-
-	models2 "github.com/facebookincubator/symphony/pkg/authz/models"
-
-	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/pkg/authz/models"
 	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/ent/predicate"
 	"github.com/facebookincubator/symphony/pkg/ent/privacy"
 	"github.com/facebookincubator/symphony/pkg/ent/project"
 	"github.com/facebookincubator/symphony/pkg/ent/projecttype"
+	"github.com/facebookincubator/symphony/pkg/ent/user"
+	"github.com/facebookincubator/symphony/pkg/viewer"
 )
 
 func projectCudBasedCheck(ctx context.Context, cud *models.WorkforceCud, m *ent.ProjectMutation) (bool, error) {
@@ -53,9 +50,9 @@ func projectReadPredicate(ctx context.Context) predicate.Project {
 	var predicates []predicate.Project
 	rule := FromContext(ctx).WorkforcePolicy.Read
 	switch rule.IsAllowed {
-	case models2.PermissionValueYes:
+	case models.PermissionValueYes:
 		return nil
-	case models2.PermissionValueByCondition:
+	case models.PermissionValueByCondition:
 		predicates = append(predicates,
 			project.HasTypeWith(projecttype.IDIn(rule.ProjectTypeIds...)))
 	}
@@ -69,6 +66,17 @@ func projectReadPredicate(ctx context.Context) predicate.Project {
 			project.HasWorkOrdersWith(woPredicate))
 	}
 	return project.Or(predicates...)
+}
+
+func isUserProjectCreator(ctx context.Context, userID int, project *ent.Project) (bool, error) {
+	creatorID, err := project.QueryCreator().OnlyID(ctx)
+	if err != nil {
+		if !ent.IsNotFound(err) {
+			return false, fmt.Errorf("failed to fetch project creator: %w", err)
+		}
+		return false, nil
+	}
+	return creatorID == userID, nil
 }
 
 func isCreatorChanged(ctx context.Context, m *ent.ProjectMutation) (bool, error) {
@@ -110,18 +118,46 @@ func ProjectWritePolicyRule() privacy.MutationRule {
 		if err != nil {
 			return privacy.Denyf(err.Error())
 		}
-		creatorChanged, err := isCreatorChanged(ctx, m)
-		if err != nil {
-			return privacy.Denyf(err.Error())
-		}
-		if creatorChanged {
-			v, isUser := viewer.FromContext(ctx).(*viewer.UserViewer)
-			creatorID, exists := m.CreatorID()
-			if !m.Op().Is(ent.OpCreate) || !isUser || !exists || v.User().ID != creatorID {
-				allowed = allowed && (cud.TransferOwnership.IsAllowed == models2.PermissionValueYes)
+		if !m.Op().Is(ent.OpCreate) {
+			creatorChanged, err := isCreatorChanged(ctx, m)
+			if err != nil {
+				return privacy.Denyf(err.Error())
+			}
+			if creatorChanged {
+				allowed = allowed && (cud.TransferOwnership.IsAllowed == models.PermissionValueYes)
 			}
 		}
 		if allowed {
+			return privacy.Allow
+		}
+		return privacy.Skip
+	})
+}
+
+// AllowProjectCreatorWrite grants write permission if user is creator of project
+func AllowProjectCreatorWrite() privacy.MutationRule {
+	return privacy.ProjectMutationRuleFunc(func(ctx context.Context, m *ent.ProjectMutation) error {
+		projectID, exists := m.ID()
+		if !exists {
+			return privacy.Skip
+		}
+		userViewer, ok := viewer.FromContext(ctx).(*viewer.UserViewer)
+		if !ok {
+			return privacy.Skip
+		}
+		proj, err := m.Client().Project.Get(ctx, projectID)
+		if err != nil {
+			if !ent.IsNotFound(err) {
+				return privacy.Denyf("failed to fetch project: %w", err)
+			}
+			return privacy.Skip
+		}
+
+		isCreator, err := isUserProjectCreator(ctx, userViewer.User().ID, proj)
+		if err != nil {
+			return privacy.Denyf(err.Error())
+		}
+		if isCreator {
 			return privacy.Allow
 		}
 		return privacy.Skip

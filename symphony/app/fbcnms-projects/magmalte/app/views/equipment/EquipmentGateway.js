@@ -15,11 +15,8 @@ import CellWifiIcon from '@material-ui/icons/CellWifi';
 import EquipmentGatewayKPIs from './EquipmentGatewayKPIs';
 import GatewayCheckinChart from './GatewayCheckinChart';
 import Grid from '@material-ui/core/Grid';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React, {useState} from 'react';
 import isGatewayHealthy from '../../components/GatewayUtils';
-import nullthrows from '@fbcnms/util/nullthrows';
-import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
@@ -67,7 +64,11 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export default function Gateway() {
+export default function Gateway({
+  lte_gateways,
+}: {
+  lte_gateways: {[string]: lte_gateway},
+}) {
   const classes = useStyles();
 
   return (
@@ -77,10 +78,10 @@ export default function Gateway() {
           <GatewayCheckinChart />
         </Grid>
         <Grid item xs={12}>
-          <EquipmentGatewayKPIs />
+          <EquipmentGatewayKPIs lte_gateways={lte_gateways} />
         </Grid>
         <Grid item xs={12}>
-          <GatewayTable />
+          <GatewayTable lte_gateways={lte_gateways} />
         </Grid>
       </Grid>
     </div>
@@ -96,18 +97,9 @@ type EquipmentGatewayRowType = {
   checkInTime: Date,
 };
 
-function GatewayTable() {
-  const {match, history, relativeUrl} = useRouter();
-  const networkId: string = nullthrows(match.params.networkId);
+function GatewayTable({lte_gateways}: {lte_gateways: {[string]: lte_gateway}}) {
+  const {history, relativeUrl} = useRouter();
   const [currRow, setCurrRow] = useState<EquipmentGatewayRowType>({});
-
-  const {response} = useMagmaAPI(MagmaV1API.getLteByNetworkIdGateways, {
-    networkId: networkId,
-  });
-  if (!response) {
-    return null;
-  }
-  const lte_gateways: {[string]: lte_gateway} = response;
   const lte_gateway_rows: Array<EquipmentGatewayRowType> = Object.keys(
     lte_gateways,
   )

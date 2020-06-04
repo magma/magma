@@ -8,11 +8,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/facebookincubator/symphony/pkg/authz/models"
 	"github.com/facebookincubator/symphony/pkg/ent"
-
-	models2 "github.com/facebookincubator/symphony/pkg/authz/models"
-
-	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
 )
 
@@ -65,7 +62,7 @@ func TestLinkWritePolicyRule(t *testing.T) {
 	}
 	runCudPolicyTest(t, cudPolicyTest{
 		appendPermissions: func(p *models.PermissionSettings) {
-			p.InventoryPolicy.Equipment.Update.IsAllowed = models2.PermissionValueYes
+			p.InventoryPolicy.Equipment.Update.IsAllowed = models.PermissionValueYes
 		},
 		create: createLink,
 		update: updateLink,

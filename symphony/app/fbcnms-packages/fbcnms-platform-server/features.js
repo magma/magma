@@ -211,6 +211,12 @@ const arrayConfigs = [
     enabledByDefault: false,
     rules: [AlwaysEnabledInTestEnvRule],
   },
+  {
+    id: 'work_order_activities',
+    title: 'Work Order Activities',
+    enabledByDefault: false,
+    rules: [AlwaysEnabledInTestEnvRule],
+  },
 ];
 
 const featureConfigs: {[FeatureID]: FeatureConfig} = {};

@@ -110,8 +110,8 @@ metrics:
   prometheusCache:
     create: true
     image:
-      repository: ${docker_registry}/prometheus-cache
-      tag: "${docker_tag}"
+      repository: docker.io/facebookincubator/prometheus-edge-hub
+      tag: 1.0.0
     limit: 500000
   grafana:
     create: false
@@ -156,7 +156,7 @@ nms:
       tag: "${docker_tag}"
 
     env:
-      api_host: ${controller_hostname}
+      api_host: ${api_hostname}
       mysql_host: ${nms_db_host}
       mysql_user: ${nms_db_user}
       grafana_address: ${user_grafana_hostname}

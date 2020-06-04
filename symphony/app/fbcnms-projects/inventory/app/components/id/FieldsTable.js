@@ -16,6 +16,7 @@ import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import {makeStyles} from '@material-ui/styles';
+import {pascalCaseGoStyle} from '../../common/EntUtils';
 
 const useStyles = makeStyles(theme => ({
   table: {
@@ -62,7 +63,9 @@ const FanbtlNeame = (props: Props) => {
       <TableBody>
         {fields.map(field => (
           <TableRow key={field.name} className={classes.row}>
-            <TableCell className={classes.tableCell}>{field.name}</TableCell>
+            <TableCell className={classes.tableCell}>
+              {pascalCaseGoStyle(field.name)}
+            </TableCell>
             <TableCell className={classes.tableCell}>
               <FieldValue field={field} />
             </TableCell>

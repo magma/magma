@@ -30,7 +30,7 @@ function entry(value: any[], hot: boolean) {
 function createDevWebpackConfig(options: Options) {
   return {
     mode: 'development',
-    devtool: 'source-map',
+    devtool: 'eval-cheap-module-source-map',
     entry: Object.assign(
       {
         main: entry([paths.appIndexJs], options.hot),
@@ -47,17 +47,12 @@ function createDevWebpackConfig(options: Options) {
       pathinfo: true,
       path: paths.distPath,
       filename: '[name].js',
-      chunkFilename: 'static/js/[name].chunk.js',
+      chunkFilename: '[name].js',
       publicPath: options.projectName
         ? `/${options.projectName}/static/dist/`
         : '/static/dist/',
     },
-    plugins: options.hot
-      ? [
-          new webpack.HotModuleReplacementPlugin(),
-          new webpack.NoEmitOnErrorsPlugin(),
-        ]
-      : [new webpack.NoEmitOnErrorsPlugin()],
+    plugins: options.hot ? [new webpack.HotModuleReplacementPlugin()] : [],
     module: {
       rules: [
         {
@@ -165,11 +160,17 @@ function createDevWebpackConfig(options: Options) {
         cacheGroups: {
           vendor: {
             test: /[\\/]node_modules[\\/]/,
-            chunks: 'all',
+            chunks: 'initial',
             name: 'vendor',
-            filename: 'vendor.js',
+            priority: 10,
+            enforce: true,
           },
         },
+      },
+    },
+    devServer: {
+      watchOptions: {
+        ignored: /node_modules/,
       },
     },
   };

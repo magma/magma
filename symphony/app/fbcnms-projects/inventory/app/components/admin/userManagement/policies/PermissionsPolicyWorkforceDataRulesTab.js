@@ -9,6 +9,7 @@
  */
 
 import type {
+  BasicPermissionRule,
   WorkforceCUDPermissions,
   WorkforcePolicy,
 } from '../utils/UserManagementUtils';
@@ -27,7 +28,9 @@ import {
   bool2PermissionRuleValue,
   permissionRuleValue2Bool,
 } from '../utils/UserManagementUtils';
+import {debounce} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
+import {useCallback, useEffect, useState} from 'react';
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -57,18 +60,49 @@ const useStyles = makeStyles(() => ({
 }));
 
 type InventoryDataRulesSectionProps = $ReadOnly<{|
-  rule: ?WorkforceCUDPermissions,
+  rule: WorkforceCUDPermissions,
   disabled: boolean,
   onChange: WorkforceCUDPermissions => void,
 |}>;
 
+type WorkforceCUDPermissionsKey = $Keys<WorkforceCUDPermissions>;
+
 function WorkforceDataRulesSection(props: InventoryDataRulesSectionProps) {
-  const {rule, disabled, onChange} = props;
+  const {rule: ruleProp, disabled, onChange} = props;
   const classes = useStyles();
 
-  if (rule == null) {
-    return null;
-  }
+  const [rule, setRule] = useState<WorkforceCUDPermissions>(ruleProp);
+  useEffect(() => setRule(ruleProp), [ruleProp]);
+
+  const debouncedOnChange = useCallback(
+    debounce(
+      (newRuleValue: WorkforceCUDPermissions) => onChange(newRuleValue),
+      100,
+    ),
+    [],
+  );
+
+  const updateRuleChange = useCallback(
+    (
+      updates: Array<{|
+        cudAction: string & WorkforceCUDPermissionsKey,
+        actionValue: BasicPermissionRule,
+      |}>,
+    ) => {
+      setRule(currentRule => {
+        const newRuleValue: WorkforceCUDPermissions = updates.reduce(
+          (ruleSoFar, update) => ({
+            ...ruleSoFar,
+            [update.cudAction]: update.actionValue,
+          }),
+          currentRule,
+        );
+        debouncedOnChange(newRuleValue);
+        return newRuleValue;
+      });
+    },
+    [debouncedOnChange],
+  );
 
   return (
     <div className={classes.section}>
@@ -81,10 +115,20 @@ function WorkforceDataRulesSection(props: InventoryDataRulesSectionProps) {
         }}
         className={classes.section}
         onChange={ruleCUD =>
-          onChange({
-            ...rule,
-            ...ruleCUD,
-          })
+          updateRuleChange([
+            {
+              cudAction: 'create',
+              actionValue: ruleCUD.create,
+            },
+            {
+              cudAction: 'update',
+              actionValue: ruleCUD.update,
+            },
+            {
+              cudAction: 'delete',
+              actionValue: ruleCUD.delete,
+            },
+          ])
         }>
         <HierarchicalCheckbox
           id="assign"
@@ -119,12 +163,14 @@ function WorkforceDataRulesSection(props: InventoryDataRulesSectionProps) {
             permissionRuleValue2Bool(rule.transferOwnership.isAllowed)
           }
           onChange={checked =>
-            onChange({
-              ...rule,
-              transferOwnership: {
-                isAllowed: bool2PermissionRuleValue(checked),
+            updateRuleChange([
+              {
+                cudAction: 'transferOwnership',
+                actionValue: {
+                  isAllowed: bool2PermissionRuleValue(checked),
+                },
               },
-            })
+            ])
           }
           hierarchicalRelation={HIERARCHICAL_RELATION.PARENT_REQUIRED}
           className={classes.rule}

@@ -11,11 +11,11 @@ import (
 	"fmt"
 
 	"github.com/facebookincubator/symphony/graph/event"
-	"github.com/facebookincubator/symphony/graph/graphevents"
 	"github.com/facebookincubator/symphony/graph/graphgrpc"
 	"github.com/facebookincubator/symphony/graph/graphhttp"
 	"github.com/facebookincubator/symphony/pkg/log"
 	"github.com/facebookincubator/symphony/pkg/mysql"
+	"github.com/facebookincubator/symphony/pkg/pubsub"
 	"github.com/facebookincubator/symphony/pkg/server"
 	"github.com/facebookincubator/symphony/pkg/viewer"
 	"gocloud.dev/server/health"
@@ -40,29 +40,26 @@ func newApplication(ctx context.Context, flags *cliFlags) (*application, func(),
 		newHealthChecks,
 		newMySQLTenancy,
 		mysql.Provider,
-		event.Set,
+		pubsub.Set,
 		graphhttp.NewServer,
 		wire.Struct(new(graphhttp.Config), "*"),
 		graphgrpc.NewServer,
 		wire.Struct(new(graphgrpc.Config), "*"),
-		graphevents.NewServer,
-		wire.Struct(new(graphevents.Config), "*"),
 	)
 	return nil, nil, nil
 }
 
-func newApp(logger log.Logger, httpServer *server.Server, grpcServer *grpc.Server, eventServer *graphevents.Server, flags *cliFlags) *application {
+func newApp(logger log.Logger, httpServer *server.Server, grpcServer *grpc.Server, flags *cliFlags) *application {
 	var app application
 	app.Logger = logger.Background()
 	app.http.Server = httpServer
 	app.http.addr = flags.HTTPAddress.String()
 	app.grpc.Server = grpcServer
 	app.grpc.addr = flags.GRPCAddress.String()
-	app.event = eventServer
 	return &app
 }
 
-func newTenancy(tenancy *viewer.MySQLTenancy, logger log.Logger, emitter event.Emitter) (viewer.Tenancy, error) {
+func newTenancy(tenancy *viewer.MySQLTenancy, logger log.Logger, emitter pubsub.Emitter) (viewer.Tenancy, error) {
 	eventer := event.Eventer{Logger: logger, Emitter: emitter}
 	return viewer.NewCacheTenancy(tenancy, eventer.HookTo), nil
 }

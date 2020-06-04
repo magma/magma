@@ -136,7 +136,7 @@ function createProductionWebpackConfig(options: Options) {
       tls: 'empty',
     },
     output: {
-      chunkFilename: 'static/js/[name].chunk.js',
+      chunkFilename: '[name].[chunkhash].chunk.js',
       filename: '[name].[chunkhash].js',
       path: paths.distPath,
       pathinfo: true,
@@ -150,19 +150,13 @@ function createProductionWebpackConfig(options: Options) {
         analyzerMode: 'static',
         reportFilename: 'report.html',
       }),
-      new webpack.NoEmitOnErrorsPlugin(),
       // remove excess locales in moment bloating the bundle
       new webpack.ContextReplacementPlugin(/moment[/\\]locale$/, /en/),
     ],
     optimization: {
       minimizer: [
         new TerserPlugin({
-          chunkFilter: chunk => {
-            if (chunk.name === 'vendor') {
-              return false;
-            }
-            return true;
-          },
+          chunkFilter: chunk => chunk.name !== 'vendor',
           parallel: true,
         }),
       ],
@@ -170,9 +164,10 @@ function createProductionWebpackConfig(options: Options) {
         cacheGroups: {
           vendor: {
             test: /[\\/]node_modules[\\/]/,
-            chunks: 'all',
+            chunks: 'initial',
             name: 'vendor',
-            filename: 'vendor.[chunkhash].js',
+            priority: 10,
+            enforce: true,
           },
         },
       },

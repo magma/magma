@@ -40,6 +40,41 @@ func TestConfig_Validate(t *testing.T) {
 	err = invalidConfig.Validate()
 	assert.EqualError(t, err, `undefined receiver "testReceiver" used in route`)
 
+	invalidPushoverReceiverJSON := config.PushoverJSONWrapper{
+		UserKey: "0",
+		Token:   "0",
+		Expire:  "1m1s",
+	}
+	invalidPushoverReceiverWrapper := config.ReceiverJSONWrapper{
+		Name:            "invalidPushover",
+		PushoverConfigs: []*config.PushoverJSONWrapper{&invalidPushoverReceiverJSON},
+	}
+
+	_, err = invalidPushoverReceiverWrapper.ToReceiverFmt()
+	assert.EqualError(t, err, `not a valid duration string: "1m1s"`)
+
+	validPushoverReceiverJSON := config.PushoverJSONWrapper{
+		UserKey: "0",
+		Token:   "0",
+		Expire:  "1m",
+	}
+	validPushoverWrapper := config.ReceiverJSONWrapper{
+		Name:            "validPushover",
+		PushoverConfigs: []*config.PushoverJSONWrapper{&validPushoverReceiverJSON},
+	}
+	validPushoverReceiver, err := validPushoverWrapper.ToReceiverFmt()
+	assert.NoError(t, err)
+
+	validPushoverConfig := config.Config{
+		Route: &config.Route{
+			Receiver: "validPushover",
+		},
+		Receivers: []*config.Receiver{&validPushoverReceiver},
+		Global:    &defaultGlobalConf,
+	}
+	err = validPushoverConfig.Validate()
+	assert.NoError(t, err)
+
 	invalidSlackReceiver := config.Receiver{
 		Name: "invalidSlack",
 		SlackConfigs: []*config.SlackConfig{
@@ -77,6 +112,23 @@ func TestConfig_Validate(t *testing.T) {
 	}
 	err = invalidSlackAction.Validate()
 	assert.EqualError(t, err, `missing type in Slack action configuration`)
+
+	// Fail if pager duty contains no ServiceKey or RoutingKey
+	invalidPagerDuty := config.Config{
+		Route: &config.Route{
+			Receiver: "invalidPagerDuty",
+		},
+		Receivers: []*config.Receiver{{
+			Name: "invalidPagerDuty",
+			PagerDutyConfigs: []*config.PagerDutyConfig{{
+				Links: []*amconfig.PagerdutyLink{{
+					Text: "test",
+				}},
+			}},
+		}},
+	}
+	err = invalidPagerDuty.Validate()
+	assert.EqualError(t, err, `missing service or routing key in PagerDuty config`)
 }
 
 func TestConfig_GetReceiver(t *testing.T) {
@@ -90,6 +142,12 @@ func TestConfig_GetReceiver(t *testing.T) {
 	assert.NotNil(t, rec)
 
 	rec = tc.SampleConfig.GetReceiver("email_receiver")
+	assert.NotNil(t, rec)
+
+	rec = tc.SampleConfig.GetReceiver("pagerduty_receiver")
+	assert.NotNil(t, rec)
+
+	rec = tc.SampleConfig.GetReceiver("pushover_receiver")
 	assert.NotNil(t, rec)
 
 	rec = tc.SampleConfig.GetReceiver("nonRoute")

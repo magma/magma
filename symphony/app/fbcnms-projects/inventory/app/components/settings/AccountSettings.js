@@ -17,7 +17,6 @@ import UserAccountPane from '../admin/userManagement/users/UserAccountPane';
 import ViewContainer from '@fbcnms/ui/components/design-system/View/ViewContainer';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
-import {FormContextProvider} from '../../common/FormContext';
 import {UserManagementContextProvider} from '../admin/userManagement/UserManagementContext';
 import {graphql, useLazyLoadQuery} from 'react-relay/hooks';
 import {makeStyles} from '@material-ui/styles';
@@ -82,14 +81,9 @@ function UserAccountWrapper() {
         title: <fbt desc="">User Settings</fbt>,
         subtitle: <fbt desc="">Manage your own private settings.</fbt>,
       }}>
-      <FormContextProvider permissions={{ignorePermissions: true}}>
-        <div className={classes.settingsPage}>
-          <UserAccountPane
-            user={loggedInUser}
-            isForCurrentUserSettings={true}
-          />
-        </div>
-      </FormContextProvider>
+      <div className={classes.settingsPage}>
+        <UserAccountPane user={loggedInUser} isForCurrentUserSettings={true} />
+      </div>
     </ViewContainer>
   );
 }

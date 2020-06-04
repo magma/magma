@@ -1,4 +1,4 @@
-// +build all gx qos
+// +build all qos
 
 /*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -91,7 +91,7 @@ func testQosEnforcementRestart(t *testing.T, cfgCh chan string, restartCfg strin
 	monitorKey := fmt.Sprintf("monitor-ULQos-%d", ki)
 	ruleKey := fmt.Sprintf("static-ULQos-%d", ki)
 
-	uplinkBwMax := uint32(1000000)
+	uplinkBwMax := uint32(100000)
 	qos := &models.FlowQos{MaxReqBwUl: &uplinkBwMax}
 	rule := getStaticPassAll(ruleKey, monitorKey, 0, models.PolicyRuleTrackingTypeONLYPCRF, 3, qos)
 
@@ -99,7 +99,7 @@ func testQosEnforcementRestart(t *testing.T, cfgCh chan string, restartCfg strin
 	assert.NoError(t, err)
 	tr.WaitForPoliciesToSync()
 
-	usageMonitorInfo := getUsageInformation(monitorKey, 15*MegaBytes)
+	usageMonitorInfo := getUsageInformation(monitorKey, 1.5*MegaBytes)
 	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL)
 	initAnswer := protos.NewGxCCAnswer(diam.Success).
 		SetStaticRuleInstalls([]string{ruleKey}, []string{}).
@@ -113,7 +113,7 @@ func testQosEnforcementRestart(t *testing.T, cfgCh chan string, restartCfg strin
 	tr.AuthenticateAndAssertSuccess(imsi)
 	req := &cwfprotos.GenTrafficRequest{
 		Imsi:   imsi,
-		Volume: &wrappers.StringValue{Value: *swag.String("5M")},
+		Volume: &wrappers.StringValue{Value: *swag.String("500k")},
 	}
 	verifyEgressRate(t, tr, req, float64(uplinkBwMax))
 
@@ -153,21 +153,29 @@ func TestQosRestartMeter(t *testing.T) {
 	cfgCh, err := configFileManager(pipelinedCfgFn)
 	defer func() {
 		close(cfgCh)
-
 		// add a additional second for original file to be syncd
 		time.Sleep(time.Second)
 	}()
-
 	if err != nil {
 		t.Logf("failed modifying pipelined configs %v", err)
 		t.Fail()
 	}
-
 	// clean restart test
-	fmt.Println("\nRunning TestQosRestartMeter - clean restart")
 	testQosEnforcementRestart(t, cfgCh, cleanRestartYaml)
+}
 
+func TestQosRestartMeterNonCleanRestart(t *testing.T) {
+	fmt.Println("\nRunning TestQosRestartMeterNonCleanRestart...")
+	cfgCh, err := configFileManager(pipelinedCfgFn)
+	defer func() {
+		close(cfgCh)
+		// add a additional second for original file to be syncd
+		time.Sleep(time.Second)
+	}()
+	if err != nil {
+		t.Logf("failed modifying pipelined configs %v", err)
+		t.Fail()
+	}
 	// non clean restart test
-	fmt.Println("\nRunning TestQosRestartMeter - non clean restart")
 	testQosEnforcementRestart(t, cfgCh, nonCleanRestartYaml)
 }

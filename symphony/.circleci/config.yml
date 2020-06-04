@@ -49,7 +49,7 @@ executors:
   terraform:
     parameters:
       tag:
-        default: 0.12.25
+        default: 0.12.26
         type: string
     docker:
       - image: hashicorp/terraform:<<parameters.tag>>
@@ -241,6 +241,7 @@ jobs:
 
   docker-publish:
     executor: node
+    resource_class: large
     parameters:
       path:
         default: .
@@ -334,6 +335,7 @@ jobs:
     executor:
       name: docker/machine
       dlc: true
+    resource_class: large
     environment:
       COMPOSE_FILE: integration/docker-compose.ci.yaml
       DOCKER_REGISTRY: facebookconnectivity-symphony-dev-docker.jfrog.io
@@ -451,6 +453,7 @@ jobs:
       - checkout
       - when:
           condition: <<parameters.after_checkout>>
+          name: Run after_checkout lifecycle hook steps
           steps: <<parameters.after_checkout>>
       - tfinit:
           workspace: <<parameters.workspace>>
@@ -490,6 +493,7 @@ jobs:
     steps:
       - when:
           condition: <<parameters.before_test>>
+          name: Run before_test lifecycle hook steps
           steps: <<parameters.before_test>>
       - *mktestdir
       - run:
@@ -499,6 +503,8 @@ jobs:
               --grid "<<parameters.grid>>" \
               --token "$<<parameters.token>>" \
               --retries 3 \
+              --result-label "push-blocking" \
+              --parallel 5 \
               --report-file ~/test-results/testim.xml \
               --base-url testimio.staging.thesymphony.cloud/ \
               <<#parameters.options>><<parameters.options>><</parameters.options>>
@@ -562,6 +568,11 @@ workflows:
           name: store/publish
           dockerfile: store/Dockerfile
           image: store
+          requires: *dpreq
+      - docker-publish:
+          name: async/publish
+          dockerfile: async/Dockerfile
+          image: async
           requires: *dpreq
       - docker-publish:
           name: docs/publish

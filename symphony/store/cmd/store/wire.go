@@ -7,20 +7,22 @@
 package main
 
 import (
+	"context"
+	"fmt"
+
 	"github.com/facebookincubator/symphony/pkg/log"
 	"github.com/facebookincubator/symphony/pkg/server/xserver"
 	"github.com/facebookincubator/symphony/store/handler"
-	"github.com/facebookincubator/symphony/store/sign/s3"
 	"github.com/google/wire"
+	"gocloud.dev/blob"
 	"gocloud.dev/server/health"
 )
 
-func newApplication(flags *cliFlags) (*application, func(), error) {
+func newApplication(ctx context.Context, flags *cliFlags) (*application, func(), error) {
 	wire.Build(
 		wire.Struct(new(application), "*"),
 		wire.FieldsOf(new(*cliFlags),
 			"ListenAddress",
-			"S3Config",
 			"LogConfig",
 			"TelemetryConfig",
 		),
@@ -28,8 +30,21 @@ func newApplication(flags *cliFlags) (*application, func(), error) {
 		xserver.ServiceSet,
 		xserver.DefaultViews,
 		wire.Value([]health.Checker(nil)),
-		s3.Provider,
 		handler.Set,
+		newBucket,
+		newBucketName,
 	)
 	return nil, nil, nil
+}
+
+func newBucket(ctx context.Context, flags *cliFlags) (*blob.Bucket, func(), error) {
+	bucket, err := blob.OpenBucket(ctx, flags.BlobURL.String())
+	if err != nil {
+		return nil, nil, fmt.Errorf("cannot open blob bucket: %w", err)
+	}
+	return bucket, func() { _ = bucket.Close() }, nil
+}
+
+func newBucketName(flags *cliFlags) string {
+	return flags.BlobURL.Host
 }

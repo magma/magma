@@ -22,8 +22,8 @@ import fbt from 'fbt';
 import {LogEvents, ServerLogger} from '../common/LoggingUtils';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
+import {useHistory, useLocation} from 'react-router';
 import {useRelativeUrl} from '@fbcnms/ui/hooks/useRouter';
-import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -57,7 +57,8 @@ type RouteTab = {
 
 export default function Configure() {
   const relativeUrl = useRelativeUrl();
-  const {history, location} = useRouter();
+  const history = useHistory();
+  const location = useLocation();
   const classes = useStyles();
   const servicesEnabled = useContext(AppContext).isFeatureEnabled('services');
   const tabBars: Array<RouteTab> = useMemo(
@@ -97,8 +98,9 @@ export default function Configure() {
     ],
     [servicesEnabled],
   );
-  const tabURI = location.pathname.match(/([^\/]*)\/*$/)[1];
-  const tabIndex = tabBars.findIndex(el => el.id == tabURI);
+  const tabMatch = location.pathname.match(/([^\/]*)\/*$/);
+  const tabIndex =
+    tabMatch == null ? -1 : tabBars.findIndex(el => el.id === tabMatch[1]);
   const [activeTabBar, setActiveTabBar] = useState<number>(
     tabIndex !== -1 ? tabIndex : 0,
   );

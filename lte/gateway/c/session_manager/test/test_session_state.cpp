@@ -40,28 +40,11 @@ protected:
     DYNAMIC = 1,
   };
 
-  PolicyRule build_rule(uint32_t rating_group, const std::string &m_key,
-                   const std::string &rule_id) {
-    PolicyRule rule;
-    rule.set_id(rule_id);
-    rule.set_rating_group(rating_group);
-    rule.set_monitoring_key(m_key);
-    if (rating_group == 0 && m_key.length() > 0) {
-      rule.set_tracking_type(PolicyRule::ONLY_PCRF);
-    } else if (rating_group > 0 && m_key.length() == 0) {
-      rule.set_tracking_type(PolicyRule::ONLY_OCS);
-    } else if (rating_group > 0 && m_key.length() > 0) {
-      rule.set_tracking_type(PolicyRule::OCS_AND_PCRF);
-    } else {
-      rule.set_tracking_type(PolicyRule::NO_TRACKING);
-    }
-    return rule;
-  }
-
   void insert_rule(uint32_t rating_group, const std::string &m_key,
                    const std::string &rule_id, RuleType rule_type,
                    std::time_t activation_time, std::time_t deactivation_time) {
-    PolicyRule rule = build_rule(rating_group, m_key, rule_id);
+    PolicyRule rule;
+    create_policy_rule(rule_id, m_key, rating_group, &rule);
     RuleLifetime lifetime{
         .activation_time = activation_time,
         .deactivation_time = deactivation_time,
@@ -82,7 +65,8 @@ protected:
   void schedule_rule(uint32_t rating_group, const std::string &m_key,
                    const std::string &rule_id, RuleType rule_type,
                    std::time_t activation_time, std::time_t deactivation_time) {
-    PolicyRule rule = build_rule(rating_group, m_key, rule_id);
+    PolicyRule rule;
+    create_policy_rule(rule_id, m_key, rating_group, &rule);
     RuleLifetime lifetime{
       .activation_time = activation_time,
       .deactivation_time = deactivation_time,
@@ -149,28 +133,11 @@ protected:
                                                      update_criteria);
   }
 
-  PolicyRule get_rule(uint32_t rating_group, const std::string &m_key,
-                      const std::string &rule_id) {
-    PolicyRule rule;
-    rule.set_id(rule_id);
-    rule.set_rating_group(rating_group);
-    rule.set_monitoring_key(m_key);
-    if (rating_group == 0 && m_key.length() > 0) {
-      rule.set_tracking_type(PolicyRule::ONLY_PCRF);
-    } else if (rating_group > 0 && m_key.length() == 0) {
-      rule.set_tracking_type(PolicyRule::ONLY_OCS);
-    } else if (rating_group > 0 && m_key.length() > 0) {
-      rule.set_tracking_type(PolicyRule::OCS_AND_PCRF);
-    } else {
-      rule.set_tracking_type(PolicyRule::NO_TRACKING);
-    }
-    return rule;
-  }
-
   void activate_rule(uint32_t rating_group, const std::string &m_key,
                      const std::string &rule_id, RuleType rule_type,
                      std::time_t activation_time, std::time_t deactivation_time) {
-      PolicyRule rule = get_rule(rating_group, m_key, rule_id);
+    PolicyRule rule;
+    create_policy_rule(rule_id, m_key, rating_group, &rule);
     RuleLifetime lifetime{
         .activation_time = activation_time,
         .deactivation_time = deactivation_time,
@@ -394,19 +361,6 @@ TEST_F(SessionStateTest, test_insert_credit) {
   EXPECT_EQ(update_criteria.monitor_credit_to_install["m1"]
                 .credit.buckets[ALLOWED_TOTAL],
             1024);
-}
-
-TEST_F(SessionStateTest, test_termination) {
-  std::promise<void> termination_promise;
-  MockSessionReporter reporter;
-
-  session_state->start_termination(update_criteria);
-  session_state->set_termination_callback([&termination_promise](
-      SessionTerminateRequest term_req) { termination_promise.set_value(); });
-  session_state->complete_termination(reporter, update_criteria);
-  auto status =
-      termination_promise.get_future().wait_for(std::chrono::seconds(0));
-  EXPECT_EQ(status, std::future_status::ready);
 }
 
 TEST_F(SessionStateTest, test_can_complete_termination) {

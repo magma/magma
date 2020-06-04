@@ -8,23 +8,27 @@
  * @format
  */
 
-import Admin from './admin/Admin';
-import Automation from './automation/Automation';
 import DeactivatedPage, {DEACTIVATED_PAGE_PATH} from './DeactivatedPage';
 import FilesUploadContextProvider from './context/FilesUploadContextProvider';
-import Hub from '@fbcnms/hub/app/components/Main';
-import IDToolMain from './id/IDToolMain';
-import Inventory from './Inventory';
-import MagmaMain from '@fbcnms/magmalte/app/components/Main';
+import InventorySuspense from '../common/InventorySuspense';
 import MainContext, {MainContextProvider} from './MainContext';
 import React from 'react';
 import SymphonyFilesUploadSnackbar from './SymphonyFilesUploadSnackbar';
-import WorkOrdersMain from './work_orders/WorkOrdersMain';
 import {AppContextProvider} from '@fbcnms/ui/context/AppContext';
 
 import LoadingIndicator from '../common/LoadingIndicator';
-import Settings from './settings/Settings';
 import {Route, Switch} from 'react-router-dom';
+
+const Admin = React.lazy(() => import('./admin/Admin'));
+const IDToolMain = React.lazy(() => import('./id/IDToolMain'));
+const Automation = React.lazy(() => import('./automation/Automation'));
+const MagmaMain = React.lazy(() =>
+  import('@fbcnms/magmalte/app/components/Main'),
+);
+const Hub = React.lazy(() => import('@fbcnms/hub/app/components/Main'));
+const Inventory = React.lazy(() => import('./Inventory'));
+const Settings = React.lazy(() => import('./settings/Settings'));
+const WorkOrdersMain = React.lazy(() => import('./work_orders/WorkOrdersMain'));
 
 export default () => (
   <AppContextProvider>
@@ -35,22 +39,24 @@ export default () => (
             <LoadingIndicator />
           ) : (
             <FilesUploadContextProvider>
-              <Switch>
-                <Route
-                  path={DEACTIVATED_PAGE_PATH}
-                  component={DeactivatedPage}
-                />
-                <Route path="/nms" component={MagmaMain} />
-                <Route path="/hub" component={Hub} />
-                <Route path="/inventory" component={Inventory} />
-                <Route path="/workorders" component={WorkOrdersMain} />
-                <Route path="/admin/settings" component={Settings} />
-                {mainContext.userHasAdminPermissions ? (
-                  <Route path="/admin" component={Admin} />
-                ) : null}
-                <Route path="/automation" component={Automation} />
-                <Route path="/id" component={IDToolMain} />
-              </Switch>
+              <InventorySuspense>
+                <Switch>
+                  <Route
+                    path={DEACTIVATED_PAGE_PATH}
+                    component={DeactivatedPage}
+                  />
+                  <Route path="/nms" component={MagmaMain} />
+                  <Route path="/hub" component={Hub} />
+                  <Route path="/inventory" component={Inventory} />
+                  <Route path="/workorders" component={WorkOrdersMain} />
+                  <Route path="/admin/settings" component={Settings} />
+                  {mainContext.userHasAdminPermissions ? (
+                    <Route path="/admin" component={Admin} />
+                  ) : null}
+                  <Route path="/automation" component={Automation} />
+                  <Route path="/id" component={IDToolMain} />
+                </Switch>
+              </InventorySuspense>
               <SymphonyFilesUploadSnackbar />
             </FilesUploadContextProvider>
           )

@@ -217,7 +217,6 @@ message SpgwState {
     map<uint32, PccRule> predefined_pcc_rules = 4;
     repeated uint64 ipv4_list_free = 5;
     repeated uint64 ipv4_list_allocated = 6;
-    uint64 sgw_ip_address_s1u_s12_s4_up = 7;
-    GTPV1uData gtpv1u_data = 8;
+    GTPV1uData gtpv1u_data = 7;
 }
 

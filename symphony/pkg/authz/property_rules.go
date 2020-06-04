@@ -13,8 +13,6 @@ import (
 	"github.com/facebookincubator/symphony/pkg/ent/location"
 	"github.com/facebookincubator/symphony/pkg/ent/locationtype"
 	"github.com/facebookincubator/symphony/pkg/ent/privacy"
-	"github.com/facebookincubator/symphony/pkg/ent/project"
-	"github.com/facebookincubator/symphony/pkg/ent/projecttype"
 	"github.com/facebookincubator/symphony/pkg/ent/property"
 	"github.com/facebookincubator/symphony/pkg/ent/propertytype"
 )
@@ -145,11 +143,7 @@ func PropertyWritePolicyRule() privacy.MutationRule {
 		case prop.Edges.WorkOrder != nil:
 			return allowOrSkipWorkOrder(ctx, p, prop.Edges.WorkOrder)
 		case prop.Edges.Project != nil:
-			projectTypeID, err := prop.Edges.Project.QueryType().OnlyID(ctx)
-			if err != nil {
-				return privacy.Denyf("failed to fetch project type id: %w", err)
-			}
-			return privacyDecision(checkWorkforce(p.WorkforcePolicy.Data.Update, nil, &projectTypeID))
+			return allowOrSkipProject(ctx, p, prop.Edges.Project)
 		}
 		return privacy.Skip
 	})
@@ -198,16 +192,14 @@ func PropertyCreatePolicyRule() privacy.MutationRule {
 			return allowOrSkipWorkOrder(ctx, p, workOrder)
 		}
 		if projectID, exists := m.ProjectID(); exists {
-			projectTypeID, err := m.Client().ProjectType.Query().
-				Where(projecttype.HasProjectsWith(project.ID(projectID))).
-				OnlyID(ctx)
+			proj, err := m.Client().Project.Get(ctx, projectID)
 			if err != nil {
-				if ent.IsNotFound(err) {
-					return privacy.Skip
+				if !ent.IsNotFound(err) {
+					return privacy.Denyf("failed to fetch project: %w", err)
 				}
-				return privacy.Denyf("failed to fetch project type id: %w", err)
+				return privacy.Skip
 			}
-			return privacyDecision(checkWorkforce(p.WorkforcePolicy.Data.Update, nil, &projectTypeID))
+			return allowOrSkipProject(ctx, p, proj)
 		}
 		return privacy.Skip
 	})

@@ -175,6 +175,14 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/slack_receiver'
+      pagerduty_configs:
+        type: array
+        items:
+          $ref: '#/definitions/pagerduty_receiver'
+      pushover_configs:
+        type: array
+        items:
+          $ref: '#/definitions/pushover_receiver'
 
   slack_receiver:
     type: object
@@ -274,6 +282,84 @@ definitions:
       ok_text:
         type: string
       dismiss_text:
+        type: string
+
+  pushover_receiver:
+    type: object
+    required:
+      - user_key
+      - token
+    properties:
+      http_config:
+        $ref: '#/definitions/http_config'
+      user_key:
+        type: string
+      token:
+        type: string
+      title:
+        type: string
+      message:
+        type: string
+      url:
+        type: string
+      priority:
+        type: string
+      retry:
+        type: string
+      expire:
+        type: string
+
+  pagerduty_receiver:
+    type: object
+    required:
+      - service_key
+      - routing_key
+    properties:
+      http_config:
+        $ref: '#/definitions/http_config'
+      routing_key:
+        type: string
+      service_key:
+        type: string
+      url:
+        type: string
+      client:
+        type: string
+      client_url:
+        type: string
+      description:
+        type: string
+      severity:
+        type: string
+      details:
+        type: object
+        additionalProperties:
+          type: string
+      images:
+        type: array
+        items:
+          $ref: '#/definitions/pagerduty_images'
+      links:
+        type: array
+        items:
+          $ref: '#/definitions/pagerduty_links'
+
+  pagerduty_images:
+    type: object
+    properties:
+      src:
+        type: string
+      alt:
+        type: string
+      text:
+        type: string
+
+  pagerduty_links:
+    type: object
+    properties:
+      href:
+        type: string
+      text:
         type: string
 
   routing_tree:

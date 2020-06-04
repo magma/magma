@@ -17,6 +17,7 @@ import Typography from '@material-ui/core/Typography';
 import {QueryRenderer} from 'react-relay';
 import {graphql} from 'relay-runtime';
 import {makeStyles} from '@material-ui/styles';
+import {pascalCaseGoStyle} from '../../common/EntUtils';
 import {useHistory} from 'react-router';
 
 const useStyles = makeStyles(theme => ({
@@ -116,7 +117,9 @@ const GraphVertexDetails = ({vertexId}: Props) => {
                 {props.vertex.fields.map(field => (
                   <div>
                     <Typography className={classes.field}>
-                      <span className={classes.fieldName}>{field.name}:</span>{' '}
+                      <span className={classes.fieldName}>
+                        {pascalCaseGoStyle(field.name)}:
+                      </span>{' '}
                       {field.value}
                     </Typography>
                   </div>

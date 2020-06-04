@@ -14,7 +14,7 @@
 
 /*::
 import type { ReaderFragment } from 'relay-runtime';
-type CommentsBox_comments$ref = any;
+type CommentsActivitiesBox_comments$ref = any;
 type LocationBreadcrumbsTitle_locationDetails$ref = any;
 type ProjectWorkOrdersList_workOrders$ref = any;
 export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "float" | "gps_location" | "int" | "node" | "range" | "string" | "%future added value";
@@ -80,7 +80,7 @@ export type ProjectDetails_project = {|
     +$fragmentRefs: ProjectWorkOrdersList_workOrders$ref
   |}>,
   +comments: $ReadOnlyArray<?{|
-    +$fragmentRefs: CommentsBox_comments$ref
+    +$fragmentRefs: CommentsActivitiesBox_comments$ref
   |}>,
   +$refType: ProjectDetails_project$ref,
 |};
@@ -385,7 +385,7 @@ return {
       "selections": [
         {
           "kind": "FragmentSpread",
-          "name": "CommentsBox_comments",
+          "name": "CommentsActivitiesBox_comments",
           "args": null
         }
       ]
@@ -394,5 +394,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'd4000129f98b19e4debbd101af0e8b36';
+(node/*: any*/).hash = '6d59e4e433fadca289abe047e9f15d3c';
 module.exports = node;

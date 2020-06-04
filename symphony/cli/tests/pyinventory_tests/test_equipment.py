@@ -59,15 +59,32 @@ class TestEquipment(BaseTest):
             client=self.client,
             name="City",
             properties=[
-                ("Mayor", "string", None, True),
-                ("Contact", "email", None, True),
+                PropertyDefinition(
+                    property_name="Mayor",
+                    property_kind=PropertyKind.string,
+                    default_value=None,
+                    is_fixed=False,
+                ),
+                PropertyDefinition(
+                    property_name="Contact",
+                    property_kind=PropertyKind.email,
+                    default_value=None,
+                    is_fixed=False,
+                ),
             ],
         )
         add_equipment_type(
             client=self.client,
             name="Tp-Link T1600G",
             category="Router",
-            properties=[("IP", "string", None, True)],
+            properties=[
+                PropertyDefinition(
+                    property_name="IP",
+                    property_kind=PropertyKind.string,
+                    default_value=None,
+                    is_fixed=False,
+                )
+            ],
             ports_dict={"tp_link_port": "port type 1"},
             position_list=[],
         )

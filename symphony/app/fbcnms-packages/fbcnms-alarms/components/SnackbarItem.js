@@ -19,8 +19,8 @@ import classNames from 'classnames';
 import {blue60, gray4, green, red, yellow} from '../theme/colors';
 import {makeStyles} from '@material-ui/styles';
 import {useSnackbar} from 'notistack';
-import {withForwardRef} from '@fbcnms/alarms/components/ForwardRef';
-import type {ForwardRef} from '@fbcnms/alarms/components/ForwardRef';
+import {withForwardRef} from './ForwardRef';
+import type {ForwardRef} from './ForwardRef';
 import type {Variants} from 'notistack';
 
 const useStyles = makeStyles(theme => ({

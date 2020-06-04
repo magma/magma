@@ -64,11 +64,32 @@ services:
       - migrate
       - mysql
       - nats
+      - async
     healthcheck:
       test: curl -If localhost/healthz/liveness
     restart: on-failure
     ports:
       - 8083:443
+
+  async:
+    build:
+      context: ${FBCODE_FBC_DIR}/symphony
+      dockerfile: async/Dockerfile
+    image: integration_async
+    env_file:
+      - conf/async.env
+      - conf/log.env
+      - conf/telemetry.env
+    networks:
+      - private
+      - public
+    depends_on:
+      - migrate
+      - mysql
+      - nats
+    healthcheck:
+      test: curl -If localhost/healthz/liveness
+    restart: on-failure
 
   migrate:
     image: integration_graph

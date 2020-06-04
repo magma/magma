@@ -104,7 +104,7 @@ func (ar *ActionsRule) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[0] = &Field{
 		Type:  "time.Time",
-		Name:  "CreateTime",
+		Name:  "create_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(ar.UpdateTime); err != nil {
@@ -112,7 +112,7 @@ func (ar *ActionsRule) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[1] = &Field{
 		Type:  "time.Time",
-		Name:  "UpdateTime",
+		Name:  "update_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(ar.Name); err != nil {
@@ -120,7 +120,7 @@ func (ar *ActionsRule) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[2] = &Field{
 		Type:  "string",
-		Name:  "Name",
+		Name:  "name",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(ar.TriggerID); err != nil {
@@ -128,7 +128,7 @@ func (ar *ActionsRule) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[3] = &Field{
 		Type:  "string",
-		Name:  "TriggerID",
+		Name:  "triggerID",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(ar.RuleFilters); err != nil {
@@ -136,7 +136,7 @@ func (ar *ActionsRule) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[4] = &Field{
 		Type:  "[]*core.ActionsRuleFilter",
-		Name:  "RuleFilters",
+		Name:  "ruleFilters",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(ar.RuleActions); err != nil {
@@ -144,7 +144,7 @@ func (ar *ActionsRule) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[5] = &Field{
 		Type:  "[]*core.ActionsRuleAction",
-		Name:  "RuleActions",
+		Name:  "ruleActions",
 		Value: string(buf),
 	}
 	return node, nil
@@ -175,7 +175,7 @@ func (a *Activity) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[0] = &Field{
 		Type:  "time.Time",
-		Name:  "CreateTime",
+		Name:  "create_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(a.UpdateTime); err != nil {
@@ -183,7 +183,7 @@ func (a *Activity) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[1] = &Field{
 		Type:  "time.Time",
-		Name:  "UpdateTime",
+		Name:  "update_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(a.ChangedField); err != nil {
@@ -191,7 +191,7 @@ func (a *Activity) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[2] = &Field{
 		Type:  "activity.ChangedField",
-		Name:  "ChangedField",
+		Name:  "changed_field",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(a.IsCreate); err != nil {
@@ -199,7 +199,7 @@ func (a *Activity) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[3] = &Field{
 		Type:  "bool",
-		Name:  "IsCreate",
+		Name:  "is_create",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(a.OldValue); err != nil {
@@ -207,7 +207,7 @@ func (a *Activity) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[4] = &Field{
 		Type:  "string",
-		Name:  "OldValue",
+		Name:  "old_value",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(a.NewValue); err != nil {
@@ -215,7 +215,7 @@ func (a *Activity) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[5] = &Field{
 		Type:  "string",
-		Name:  "NewValue",
+		Name:  "new_value",
 		Value: string(buf),
 	}
 	var ids []int
@@ -228,7 +228,7 @@ func (a *Activity) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[0] = &Edge{
 		IDs:  ids,
 		Type: "User",
-		Name: "Author",
+		Name: "author",
 	}
 	ids, err = a.QueryWorkOrder().
 		Select(workorder.FieldID).
@@ -239,7 +239,7 @@ func (a *Activity) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[1] = &Edge{
 		IDs:  ids,
 		Type: "WorkOrder",
-		Name: "WorkOrder",
+		Name: "work_order",
 	}
 	return node, nil
 }
@@ -269,7 +269,7 @@ func (clc *CheckListCategory) Node(ctx context.Context) (node *Node, err error) 
 	}
 	node.Fields[0] = &Field{
 		Type:  "time.Time",
-		Name:  "CreateTime",
+		Name:  "create_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(clc.UpdateTime); err != nil {
@@ -277,7 +277,7 @@ func (clc *CheckListCategory) Node(ctx context.Context) (node *Node, err error) 
 	}
 	node.Fields[1] = &Field{
 		Type:  "time.Time",
-		Name:  "UpdateTime",
+		Name:  "update_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(clc.Title); err != nil {
@@ -285,7 +285,7 @@ func (clc *CheckListCategory) Node(ctx context.Context) (node *Node, err error) 
 	}
 	node.Fields[2] = &Field{
 		Type:  "string",
-		Name:  "Title",
+		Name:  "title",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(clc.Description); err != nil {
@@ -293,7 +293,7 @@ func (clc *CheckListCategory) Node(ctx context.Context) (node *Node, err error) 
 	}
 	node.Fields[3] = &Field{
 		Type:  "string",
-		Name:  "Description",
+		Name:  "description",
 		Value: string(buf),
 	}
 	var ids []int
@@ -306,7 +306,7 @@ func (clc *CheckListCategory) Node(ctx context.Context) (node *Node, err error) 
 	node.Edges[0] = &Edge{
 		IDs:  ids,
 		Type: "CheckListItem",
-		Name: "CheckListItems",
+		Name: "check_list_items",
 	}
 	ids, err = clc.QueryWorkOrder().
 		Select(workorder.FieldID).
@@ -317,7 +317,7 @@ func (clc *CheckListCategory) Node(ctx context.Context) (node *Node, err error) 
 	node.Edges[1] = &Edge{
 		IDs:  ids,
 		Type: "WorkOrder",
-		Name: "WorkOrder",
+		Name: "work_order",
 	}
 	return node, nil
 }
@@ -347,7 +347,7 @@ func (clcd *CheckListCategoryDefinition) Node(ctx context.Context) (node *Node, 
 	}
 	node.Fields[0] = &Field{
 		Type:  "time.Time",
-		Name:  "CreateTime",
+		Name:  "create_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(clcd.UpdateTime); err != nil {
@@ -355,7 +355,7 @@ func (clcd *CheckListCategoryDefinition) Node(ctx context.Context) (node *Node, 
 	}
 	node.Fields[1] = &Field{
 		Type:  "time.Time",
-		Name:  "UpdateTime",
+		Name:  "update_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(clcd.Title); err != nil {
@@ -363,7 +363,7 @@ func (clcd *CheckListCategoryDefinition) Node(ctx context.Context) (node *Node, 
 	}
 	node.Fields[2] = &Field{
 		Type:  "string",
-		Name:  "Title",
+		Name:  "title",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(clcd.Description); err != nil {
@@ -371,7 +371,7 @@ func (clcd *CheckListCategoryDefinition) Node(ctx context.Context) (node *Node, 
 	}
 	node.Fields[3] = &Field{
 		Type:  "string",
-		Name:  "Description",
+		Name:  "description",
 		Value: string(buf),
 	}
 	var ids []int
@@ -384,7 +384,7 @@ func (clcd *CheckListCategoryDefinition) Node(ctx context.Context) (node *Node, 
 	node.Edges[0] = &Edge{
 		IDs:  ids,
 		Type: "CheckListItemDefinition",
-		Name: "CheckListItemDefinitions",
+		Name: "check_list_item_definitions",
 	}
 	ids, err = clcd.QueryWorkOrderType().
 		Select(workordertype.FieldID).
@@ -395,7 +395,7 @@ func (clcd *CheckListCategoryDefinition) Node(ctx context.Context) (node *Node, 
 	node.Edges[1] = &Edge{
 		IDs:  ids,
 		Type: "WorkOrderType",
-		Name: "WorkOrderType",
+		Name: "work_order_type",
 	}
 	return node, nil
 }
@@ -425,7 +425,7 @@ func (cli *CheckListItem) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[0] = &Field{
 		Type:  "string",
-		Name:  "Title",
+		Name:  "title",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(cli.Type); err != nil {
@@ -433,7 +433,7 @@ func (cli *CheckListItem) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[1] = &Field{
 		Type:  "string",
-		Name:  "Type",
+		Name:  "type",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(cli.Index); err != nil {
@@ -441,7 +441,7 @@ func (cli *CheckListItem) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[2] = &Field{
 		Type:  "int",
-		Name:  "Index",
+		Name:  "index",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(cli.Checked); err != nil {
@@ -449,7 +449,7 @@ func (cli *CheckListItem) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[3] = &Field{
 		Type:  "bool",
-		Name:  "Checked",
+		Name:  "checked",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(cli.StringVal); err != nil {
@@ -457,7 +457,7 @@ func (cli *CheckListItem) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[4] = &Field{
 		Type:  "string",
-		Name:  "StringVal",
+		Name:  "string_val",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(cli.EnumValues); err != nil {
@@ -465,7 +465,7 @@ func (cli *CheckListItem) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[5] = &Field{
 		Type:  "string",
-		Name:  "EnumValues",
+		Name:  "enum_values",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(cli.EnumSelectionModeValue); err != nil {
@@ -473,7 +473,7 @@ func (cli *CheckListItem) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[6] = &Field{
 		Type:  "checklistitem.EnumSelectionModeValue",
-		Name:  "EnumSelectionModeValue",
+		Name:  "enum_selection_mode_value",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(cli.SelectedEnumValues); err != nil {
@@ -481,7 +481,7 @@ func (cli *CheckListItem) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[7] = &Field{
 		Type:  "string",
-		Name:  "SelectedEnumValues",
+		Name:  "selected_enum_values",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(cli.YesNoVal); err != nil {
@@ -489,7 +489,7 @@ func (cli *CheckListItem) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[8] = &Field{
 		Type:  "checklistitem.YesNoVal",
-		Name:  "YesNoVal",
+		Name:  "yes_no_val",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(cli.HelpText); err != nil {
@@ -497,7 +497,7 @@ func (cli *CheckListItem) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[9] = &Field{
 		Type:  "string",
-		Name:  "HelpText",
+		Name:  "help_text",
 		Value: string(buf),
 	}
 	var ids []int
@@ -510,7 +510,7 @@ func (cli *CheckListItem) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[0] = &Edge{
 		IDs:  ids,
 		Type: "File",
-		Name: "Files",
+		Name: "files",
 	}
 	ids, err = cli.QueryWifiScan().
 		Select(surveywifiscan.FieldID).
@@ -521,7 +521,7 @@ func (cli *CheckListItem) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[1] = &Edge{
 		IDs:  ids,
 		Type: "SurveyWiFiScan",
-		Name: "WifiScan",
+		Name: "wifi_scan",
 	}
 	ids, err = cli.QueryCellScan().
 		Select(surveycellscan.FieldID).
@@ -532,7 +532,7 @@ func (cli *CheckListItem) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[2] = &Edge{
 		IDs:  ids,
 		Type: "SurveyCellScan",
-		Name: "CellScan",
+		Name: "cell_scan",
 	}
 	ids, err = cli.QueryCheckListCategory().
 		Select(checklistcategory.FieldID).
@@ -543,7 +543,7 @@ func (cli *CheckListItem) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[3] = &Edge{
 		IDs:  ids,
 		Type: "CheckListCategory",
-		Name: "CheckListCategory",
+		Name: "check_list_category",
 	}
 	return node, nil
 }
@@ -573,7 +573,7 @@ func (clid *CheckListItemDefinition) Node(ctx context.Context) (node *Node, err 
 	}
 	node.Fields[0] = &Field{
 		Type:  "time.Time",
-		Name:  "CreateTime",
+		Name:  "create_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(clid.UpdateTime); err != nil {
@@ -581,7 +581,7 @@ func (clid *CheckListItemDefinition) Node(ctx context.Context) (node *Node, err 
 	}
 	node.Fields[1] = &Field{
 		Type:  "time.Time",
-		Name:  "UpdateTime",
+		Name:  "update_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(clid.Title); err != nil {
@@ -589,7 +589,7 @@ func (clid *CheckListItemDefinition) Node(ctx context.Context) (node *Node, err 
 	}
 	node.Fields[2] = &Field{
 		Type:  "string",
-		Name:  "Title",
+		Name:  "title",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(clid.Type); err != nil {
@@ -597,7 +597,7 @@ func (clid *CheckListItemDefinition) Node(ctx context.Context) (node *Node, err 
 	}
 	node.Fields[3] = &Field{
 		Type:  "string",
-		Name:  "Type",
+		Name:  "type",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(clid.Index); err != nil {
@@ -605,7 +605,7 @@ func (clid *CheckListItemDefinition) Node(ctx context.Context) (node *Node, err 
 	}
 	node.Fields[4] = &Field{
 		Type:  "int",
-		Name:  "Index",
+		Name:  "index",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(clid.EnumValues); err != nil {
@@ -613,7 +613,7 @@ func (clid *CheckListItemDefinition) Node(ctx context.Context) (node *Node, err 
 	}
 	node.Fields[5] = &Field{
 		Type:  "string",
-		Name:  "EnumValues",
+		Name:  "enum_values",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(clid.EnumSelectionModeValue); err != nil {
@@ -621,7 +621,7 @@ func (clid *CheckListItemDefinition) Node(ctx context.Context) (node *Node, err 
 	}
 	node.Fields[6] = &Field{
 		Type:  "checklistitemdefinition.EnumSelectionModeValue",
-		Name:  "EnumSelectionModeValue",
+		Name:  "enum_selection_mode_value",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(clid.HelpText); err != nil {
@@ -629,7 +629,7 @@ func (clid *CheckListItemDefinition) Node(ctx context.Context) (node *Node, err 
 	}
 	node.Fields[7] = &Field{
 		Type:  "string",
-		Name:  "HelpText",
+		Name:  "help_text",
 		Value: string(buf),
 	}
 	var ids []int
@@ -642,7 +642,7 @@ func (clid *CheckListItemDefinition) Node(ctx context.Context) (node *Node, err 
 	node.Edges[0] = &Edge{
 		IDs:  ids,
 		Type: "CheckListCategoryDefinition",
-		Name: "CheckListCategoryDefinition",
+		Name: "check_list_category_definition",
 	}
 	return node, nil
 }
@@ -672,7 +672,7 @@ func (c *Comment) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[0] = &Field{
 		Type:  "time.Time",
-		Name:  "CreateTime",
+		Name:  "create_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(c.UpdateTime); err != nil {
@@ -680,7 +680,7 @@ func (c *Comment) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[1] = &Field{
 		Type:  "time.Time",
-		Name:  "UpdateTime",
+		Name:  "update_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(c.Text); err != nil {
@@ -688,7 +688,7 @@ func (c *Comment) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[2] = &Field{
 		Type:  "string",
-		Name:  "Text",
+		Name:  "text",
 		Value: string(buf),
 	}
 	var ids []int
@@ -701,7 +701,7 @@ func (c *Comment) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[0] = &Edge{
 		IDs:  ids,
 		Type: "User",
-		Name: "Author",
+		Name: "author",
 	}
 	ids, err = c.QueryWorkOrder().
 		Select(workorder.FieldID).
@@ -712,7 +712,7 @@ func (c *Comment) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[1] = &Edge{
 		IDs:  ids,
 		Type: "WorkOrder",
-		Name: "WorkOrder",
+		Name: "work_order",
 	}
 	ids, err = c.QueryProject().
 		Select(project.FieldID).
@@ -723,7 +723,7 @@ func (c *Comment) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[2] = &Edge{
 		IDs:  ids,
 		Type: "Project",
-		Name: "Project",
+		Name: "project",
 	}
 	return node, nil
 }
@@ -753,7 +753,7 @@ func (c *Customer) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[0] = &Field{
 		Type:  "time.Time",
-		Name:  "CreateTime",
+		Name:  "create_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(c.UpdateTime); err != nil {
@@ -761,7 +761,7 @@ func (c *Customer) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[1] = &Field{
 		Type:  "time.Time",
-		Name:  "UpdateTime",
+		Name:  "update_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(c.Name); err != nil {
@@ -769,7 +769,7 @@ func (c *Customer) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[2] = &Field{
 		Type:  "string",
-		Name:  "Name",
+		Name:  "name",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(c.ExternalID); err != nil {
@@ -777,7 +777,7 @@ func (c *Customer) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[3] = &Field{
 		Type:  "string",
-		Name:  "ExternalID",
+		Name:  "external_id",
 		Value: string(buf),
 	}
 	var ids []int
@@ -790,7 +790,7 @@ func (c *Customer) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[0] = &Edge{
 		IDs:  ids,
 		Type: "Service",
-		Name: "Services",
+		Name: "services",
 	}
 	return node, nil
 }
@@ -820,7 +820,7 @@ func (e *Equipment) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[0] = &Field{
 		Type:  "time.Time",
-		Name:  "CreateTime",
+		Name:  "create_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(e.UpdateTime); err != nil {
@@ -828,7 +828,7 @@ func (e *Equipment) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[1] = &Field{
 		Type:  "time.Time",
-		Name:  "UpdateTime",
+		Name:  "update_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(e.Name); err != nil {
@@ -836,7 +836,7 @@ func (e *Equipment) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[2] = &Field{
 		Type:  "string",
-		Name:  "Name",
+		Name:  "name",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(e.FutureState); err != nil {
@@ -844,7 +844,7 @@ func (e *Equipment) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[3] = &Field{
 		Type:  "string",
-		Name:  "FutureState",
+		Name:  "future_state",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(e.DeviceID); err != nil {
@@ -852,7 +852,7 @@ func (e *Equipment) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[4] = &Field{
 		Type:  "string",
-		Name:  "DeviceID",
+		Name:  "device_id",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(e.ExternalID); err != nil {
@@ -860,7 +860,7 @@ func (e *Equipment) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[5] = &Field{
 		Type:  "string",
-		Name:  "ExternalID",
+		Name:  "external_id",
 		Value: string(buf),
 	}
 	var ids []int
@@ -873,7 +873,7 @@ func (e *Equipment) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[0] = &Edge{
 		IDs:  ids,
 		Type: "EquipmentType",
-		Name: "Type",
+		Name: "type",
 	}
 	ids, err = e.QueryLocation().
 		Select(location.FieldID).
@@ -884,7 +884,7 @@ func (e *Equipment) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[1] = &Edge{
 		IDs:  ids,
 		Type: "Location",
-		Name: "Location",
+		Name: "location",
 	}
 	ids, err = e.QueryParentPosition().
 		Select(equipmentposition.FieldID).
@@ -895,7 +895,7 @@ func (e *Equipment) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[2] = &Edge{
 		IDs:  ids,
 		Type: "EquipmentPosition",
-		Name: "ParentPosition",
+		Name: "parent_position",
 	}
 	ids, err = e.QueryPositions().
 		Select(equipmentposition.FieldID).
@@ -906,7 +906,7 @@ func (e *Equipment) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[3] = &Edge{
 		IDs:  ids,
 		Type: "EquipmentPosition",
-		Name: "Positions",
+		Name: "positions",
 	}
 	ids, err = e.QueryPorts().
 		Select(equipmentport.FieldID).
@@ -917,7 +917,7 @@ func (e *Equipment) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[4] = &Edge{
 		IDs:  ids,
 		Type: "EquipmentPort",
-		Name: "Ports",
+		Name: "ports",
 	}
 	ids, err = e.QueryWorkOrder().
 		Select(workorder.FieldID).
@@ -928,7 +928,7 @@ func (e *Equipment) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[5] = &Edge{
 		IDs:  ids,
 		Type: "WorkOrder",
-		Name: "WorkOrder",
+		Name: "work_order",
 	}
 	ids, err = e.QueryProperties().
 		Select(property.FieldID).
@@ -939,7 +939,7 @@ func (e *Equipment) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[6] = &Edge{
 		IDs:  ids,
 		Type: "Property",
-		Name: "Properties",
+		Name: "properties",
 	}
 	ids, err = e.QueryFiles().
 		Select(file.FieldID).
@@ -950,7 +950,7 @@ func (e *Equipment) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[7] = &Edge{
 		IDs:  ids,
 		Type: "File",
-		Name: "Files",
+		Name: "files",
 	}
 	ids, err = e.QueryHyperlinks().
 		Select(hyperlink.FieldID).
@@ -961,7 +961,7 @@ func (e *Equipment) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[8] = &Edge{
 		IDs:  ids,
 		Type: "Hyperlink",
-		Name: "Hyperlinks",
+		Name: "hyperlinks",
 	}
 	ids, err = e.QueryEndpoints().
 		Select(serviceendpoint.FieldID).
@@ -972,7 +972,7 @@ func (e *Equipment) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[9] = &Edge{
 		IDs:  ids,
 		Type: "ServiceEndpoint",
-		Name: "Endpoints",
+		Name: "endpoints",
 	}
 	return node, nil
 }
@@ -1002,7 +1002,7 @@ func (ec *EquipmentCategory) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[0] = &Field{
 		Type:  "time.Time",
-		Name:  "CreateTime",
+		Name:  "create_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(ec.UpdateTime); err != nil {
@@ -1010,7 +1010,7 @@ func (ec *EquipmentCategory) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[1] = &Field{
 		Type:  "time.Time",
-		Name:  "UpdateTime",
+		Name:  "update_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(ec.Name); err != nil {
@@ -1018,7 +1018,7 @@ func (ec *EquipmentCategory) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[2] = &Field{
 		Type:  "string",
-		Name:  "Name",
+		Name:  "name",
 		Value: string(buf),
 	}
 	var ids []int
@@ -1031,7 +1031,7 @@ func (ec *EquipmentCategory) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[0] = &Edge{
 		IDs:  ids,
 		Type: "EquipmentType",
-		Name: "Types",
+		Name: "types",
 	}
 	return node, nil
 }
@@ -1061,7 +1061,7 @@ func (ep *EquipmentPort) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[0] = &Field{
 		Type:  "time.Time",
-		Name:  "CreateTime",
+		Name:  "create_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(ep.UpdateTime); err != nil {
@@ -1069,7 +1069,7 @@ func (ep *EquipmentPort) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[1] = &Field{
 		Type:  "time.Time",
-		Name:  "UpdateTime",
+		Name:  "update_time",
 		Value: string(buf),
 	}
 	var ids []int
@@ -1082,7 +1082,7 @@ func (ep *EquipmentPort) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[0] = &Edge{
 		IDs:  ids,
 		Type: "EquipmentPortDefinition",
-		Name: "Definition",
+		Name: "definition",
 	}
 	ids, err = ep.QueryParent().
 		Select(equipment.FieldID).
@@ -1093,7 +1093,7 @@ func (ep *EquipmentPort) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[1] = &Edge{
 		IDs:  ids,
 		Type: "Equipment",
-		Name: "Parent",
+		Name: "parent",
 	}
 	ids, err = ep.QueryLink().
 		Select(link.FieldID).
@@ -1104,7 +1104,7 @@ func (ep *EquipmentPort) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[2] = &Edge{
 		IDs:  ids,
 		Type: "Link",
-		Name: "Link",
+		Name: "link",
 	}
 	ids, err = ep.QueryProperties().
 		Select(property.FieldID).
@@ -1115,7 +1115,7 @@ func (ep *EquipmentPort) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[3] = &Edge{
 		IDs:  ids,
 		Type: "Property",
-		Name: "Properties",
+		Name: "properties",
 	}
 	ids, err = ep.QueryEndpoints().
 		Select(serviceendpoint.FieldID).
@@ -1126,7 +1126,7 @@ func (ep *EquipmentPort) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[4] = &Edge{
 		IDs:  ids,
 		Type: "ServiceEndpoint",
-		Name: "Endpoints",
+		Name: "endpoints",
 	}
 	return node, nil
 }
@@ -1156,7 +1156,7 @@ func (epd *EquipmentPortDefinition) Node(ctx context.Context) (node *Node, err e
 	}
 	node.Fields[0] = &Field{
 		Type:  "time.Time",
-		Name:  "CreateTime",
+		Name:  "create_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(epd.UpdateTime); err != nil {
@@ -1164,7 +1164,7 @@ func (epd *EquipmentPortDefinition) Node(ctx context.Context) (node *Node, err e
 	}
 	node.Fields[1] = &Field{
 		Type:  "time.Time",
-		Name:  "UpdateTime",
+		Name:  "update_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(epd.Name); err != nil {
@@ -1172,7 +1172,7 @@ func (epd *EquipmentPortDefinition) Node(ctx context.Context) (node *Node, err e
 	}
 	node.Fields[2] = &Field{
 		Type:  "string",
-		Name:  "Name",
+		Name:  "name",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(epd.Index); err != nil {
@@ -1180,7 +1180,7 @@ func (epd *EquipmentPortDefinition) Node(ctx context.Context) (node *Node, err e
 	}
 	node.Fields[3] = &Field{
 		Type:  "int",
-		Name:  "Index",
+		Name:  "index",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(epd.Bandwidth); err != nil {
@@ -1188,7 +1188,7 @@ func (epd *EquipmentPortDefinition) Node(ctx context.Context) (node *Node, err e
 	}
 	node.Fields[4] = &Field{
 		Type:  "string",
-		Name:  "Bandwidth",
+		Name:  "bandwidth",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(epd.VisibilityLabel); err != nil {
@@ -1196,7 +1196,7 @@ func (epd *EquipmentPortDefinition) Node(ctx context.Context) (node *Node, err e
 	}
 	node.Fields[5] = &Field{
 		Type:  "string",
-		Name:  "VisibilityLabel",
+		Name:  "visibility_label",
 		Value: string(buf),
 	}
 	var ids []int
@@ -1209,7 +1209,7 @@ func (epd *EquipmentPortDefinition) Node(ctx context.Context) (node *Node, err e
 	node.Edges[0] = &Edge{
 		IDs:  ids,
 		Type: "EquipmentPortType",
-		Name: "EquipmentPortType",
+		Name: "equipment_port_type",
 	}
 	ids, err = epd.QueryPorts().
 		Select(equipmentport.FieldID).
@@ -1220,7 +1220,7 @@ func (epd *EquipmentPortDefinition) Node(ctx context.Context) (node *Node, err e
 	node.Edges[1] = &Edge{
 		IDs:  ids,
 		Type: "EquipmentPort",
-		Name: "Ports",
+		Name: "ports",
 	}
 	ids, err = epd.QueryEquipmentType().
 		Select(equipmenttype.FieldID).
@@ -1231,7 +1231,7 @@ func (epd *EquipmentPortDefinition) Node(ctx context.Context) (node *Node, err e
 	node.Edges[2] = &Edge{
 		IDs:  ids,
 		Type: "EquipmentType",
-		Name: "EquipmentType",
+		Name: "equipment_type",
 	}
 	return node, nil
 }
@@ -1261,7 +1261,7 @@ func (ept *EquipmentPortType) Node(ctx context.Context) (node *Node, err error) 
 	}
 	node.Fields[0] = &Field{
 		Type:  "time.Time",
-		Name:  "CreateTime",
+		Name:  "create_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(ept.UpdateTime); err != nil {
@@ -1269,7 +1269,7 @@ func (ept *EquipmentPortType) Node(ctx context.Context) (node *Node, err error) 
 	}
 	node.Fields[1] = &Field{
 		Type:  "time.Time",
-		Name:  "UpdateTime",
+		Name:  "update_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(ept.Name); err != nil {
@@ -1277,7 +1277,7 @@ func (ept *EquipmentPortType) Node(ctx context.Context) (node *Node, err error) 
 	}
 	node.Fields[2] = &Field{
 		Type:  "string",
-		Name:  "Name",
+		Name:  "name",
 		Value: string(buf),
 	}
 	var ids []int
@@ -1290,7 +1290,7 @@ func (ept *EquipmentPortType) Node(ctx context.Context) (node *Node, err error) 
 	node.Edges[0] = &Edge{
 		IDs:  ids,
 		Type: "PropertyType",
-		Name: "PropertyTypes",
+		Name: "property_types",
 	}
 	ids, err = ept.QueryLinkPropertyTypes().
 		Select(propertytype.FieldID).
@@ -1301,7 +1301,7 @@ func (ept *EquipmentPortType) Node(ctx context.Context) (node *Node, err error) 
 	node.Edges[1] = &Edge{
 		IDs:  ids,
 		Type: "PropertyType",
-		Name: "LinkPropertyTypes",
+		Name: "link_property_types",
 	}
 	ids, err = ept.QueryPortDefinitions().
 		Select(equipmentportdefinition.FieldID).
@@ -1312,7 +1312,7 @@ func (ept *EquipmentPortType) Node(ctx context.Context) (node *Node, err error) 
 	node.Edges[2] = &Edge{
 		IDs:  ids,
 		Type: "EquipmentPortDefinition",
-		Name: "PortDefinitions",
+		Name: "port_definitions",
 	}
 	return node, nil
 }
@@ -1342,7 +1342,7 @@ func (ep *EquipmentPosition) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[0] = &Field{
 		Type:  "time.Time",
-		Name:  "CreateTime",
+		Name:  "create_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(ep.UpdateTime); err != nil {
@@ -1350,7 +1350,7 @@ func (ep *EquipmentPosition) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[1] = &Field{
 		Type:  "time.Time",
-		Name:  "UpdateTime",
+		Name:  "update_time",
 		Value: string(buf),
 	}
 	var ids []int
@@ -1363,7 +1363,7 @@ func (ep *EquipmentPosition) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[0] = &Edge{
 		IDs:  ids,
 		Type: "EquipmentPositionDefinition",
-		Name: "Definition",
+		Name: "definition",
 	}
 	ids, err = ep.QueryParent().
 		Select(equipment.FieldID).
@@ -1374,7 +1374,7 @@ func (ep *EquipmentPosition) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[1] = &Edge{
 		IDs:  ids,
 		Type: "Equipment",
-		Name: "Parent",
+		Name: "parent",
 	}
 	ids, err = ep.QueryAttachment().
 		Select(equipment.FieldID).
@@ -1385,7 +1385,7 @@ func (ep *EquipmentPosition) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[2] = &Edge{
 		IDs:  ids,
 		Type: "Equipment",
-		Name: "Attachment",
+		Name: "attachment",
 	}
 	return node, nil
 }
@@ -1415,7 +1415,7 @@ func (epd *EquipmentPositionDefinition) Node(ctx context.Context) (node *Node, e
 	}
 	node.Fields[0] = &Field{
 		Type:  "time.Time",
-		Name:  "CreateTime",
+		Name:  "create_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(epd.UpdateTime); err != nil {
@@ -1423,7 +1423,7 @@ func (epd *EquipmentPositionDefinition) Node(ctx context.Context) (node *Node, e
 	}
 	node.Fields[1] = &Field{
 		Type:  "time.Time",
-		Name:  "UpdateTime",
+		Name:  "update_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(epd.Name); err != nil {
@@ -1431,7 +1431,7 @@ func (epd *EquipmentPositionDefinition) Node(ctx context.Context) (node *Node, e
 	}
 	node.Fields[2] = &Field{
 		Type:  "string",
-		Name:  "Name",
+		Name:  "name",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(epd.Index); err != nil {
@@ -1439,7 +1439,7 @@ func (epd *EquipmentPositionDefinition) Node(ctx context.Context) (node *Node, e
 	}
 	node.Fields[3] = &Field{
 		Type:  "int",
-		Name:  "Index",
+		Name:  "index",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(epd.VisibilityLabel); err != nil {
@@ -1447,7 +1447,7 @@ func (epd *EquipmentPositionDefinition) Node(ctx context.Context) (node *Node, e
 	}
 	node.Fields[4] = &Field{
 		Type:  "string",
-		Name:  "VisibilityLabel",
+		Name:  "visibility_label",
 		Value: string(buf),
 	}
 	var ids []int
@@ -1460,7 +1460,7 @@ func (epd *EquipmentPositionDefinition) Node(ctx context.Context) (node *Node, e
 	node.Edges[0] = &Edge{
 		IDs:  ids,
 		Type: "EquipmentPosition",
-		Name: "Positions",
+		Name: "positions",
 	}
 	ids, err = epd.QueryEquipmentType().
 		Select(equipmenttype.FieldID).
@@ -1471,7 +1471,7 @@ func (epd *EquipmentPositionDefinition) Node(ctx context.Context) (node *Node, e
 	node.Edges[1] = &Edge{
 		IDs:  ids,
 		Type: "EquipmentType",
-		Name: "EquipmentType",
+		Name: "equipment_type",
 	}
 	return node, nil
 }
@@ -1501,7 +1501,7 @@ func (et *EquipmentType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[0] = &Field{
 		Type:  "time.Time",
-		Name:  "CreateTime",
+		Name:  "create_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(et.UpdateTime); err != nil {
@@ -1509,7 +1509,7 @@ func (et *EquipmentType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[1] = &Field{
 		Type:  "time.Time",
-		Name:  "UpdateTime",
+		Name:  "update_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(et.Name); err != nil {
@@ -1517,7 +1517,7 @@ func (et *EquipmentType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[2] = &Field{
 		Type:  "string",
-		Name:  "Name",
+		Name:  "name",
 		Value: string(buf),
 	}
 	var ids []int
@@ -1530,7 +1530,7 @@ func (et *EquipmentType) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[0] = &Edge{
 		IDs:  ids,
 		Type: "EquipmentPortDefinition",
-		Name: "PortDefinitions",
+		Name: "port_definitions",
 	}
 	ids, err = et.QueryPositionDefinitions().
 		Select(equipmentpositiondefinition.FieldID).
@@ -1541,7 +1541,7 @@ func (et *EquipmentType) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[1] = &Edge{
 		IDs:  ids,
 		Type: "EquipmentPositionDefinition",
-		Name: "PositionDefinitions",
+		Name: "position_definitions",
 	}
 	ids, err = et.QueryPropertyTypes().
 		Select(propertytype.FieldID).
@@ -1552,7 +1552,7 @@ func (et *EquipmentType) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[2] = &Edge{
 		IDs:  ids,
 		Type: "PropertyType",
-		Name: "PropertyTypes",
+		Name: "property_types",
 	}
 	ids, err = et.QueryEquipment().
 		Select(equipment.FieldID).
@@ -1563,7 +1563,7 @@ func (et *EquipmentType) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[3] = &Edge{
 		IDs:  ids,
 		Type: "Equipment",
-		Name: "Equipment",
+		Name: "equipment",
 	}
 	ids, err = et.QueryCategory().
 		Select(equipmentcategory.FieldID).
@@ -1574,7 +1574,7 @@ func (et *EquipmentType) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[4] = &Edge{
 		IDs:  ids,
 		Type: "EquipmentCategory",
-		Name: "Category",
+		Name: "category",
 	}
 	ids, err = et.QueryServiceEndpointDefinitions().
 		Select(serviceendpointdefinition.FieldID).
@@ -1585,7 +1585,7 @@ func (et *EquipmentType) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[5] = &Edge{
 		IDs:  ids,
 		Type: "ServiceEndpointDefinition",
-		Name: "ServiceEndpointDefinitions",
+		Name: "service_endpoint_definitions",
 	}
 	return node, nil
 }
@@ -1615,7 +1615,7 @@ func (f *File) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[0] = &Field{
 		Type:  "time.Time",
-		Name:  "CreateTime",
+		Name:  "create_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(f.UpdateTime); err != nil {
@@ -1623,7 +1623,7 @@ func (f *File) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[1] = &Field{
 		Type:  "time.Time",
-		Name:  "UpdateTime",
+		Name:  "update_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(f.Type); err != nil {
@@ -1631,7 +1631,7 @@ func (f *File) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[2] = &Field{
 		Type:  "string",
-		Name:  "Type",
+		Name:  "type",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(f.Name); err != nil {
@@ -1639,7 +1639,7 @@ func (f *File) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[3] = &Field{
 		Type:  "string",
-		Name:  "Name",
+		Name:  "name",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(f.Size); err != nil {
@@ -1647,7 +1647,7 @@ func (f *File) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[4] = &Field{
 		Type:  "int",
-		Name:  "Size",
+		Name:  "size",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(f.ModifiedAt); err != nil {
@@ -1655,7 +1655,7 @@ func (f *File) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[5] = &Field{
 		Type:  "time.Time",
-		Name:  "ModifiedAt",
+		Name:  "modified_at",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(f.UploadedAt); err != nil {
@@ -1663,7 +1663,7 @@ func (f *File) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[6] = &Field{
 		Type:  "time.Time",
-		Name:  "UploadedAt",
+		Name:  "uploaded_at",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(f.ContentType); err != nil {
@@ -1671,7 +1671,7 @@ func (f *File) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[7] = &Field{
 		Type:  "string",
-		Name:  "ContentType",
+		Name:  "content_type",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(f.StoreKey); err != nil {
@@ -1679,7 +1679,7 @@ func (f *File) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[8] = &Field{
 		Type:  "string",
-		Name:  "StoreKey",
+		Name:  "store_key",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(f.Category); err != nil {
@@ -1687,7 +1687,7 @@ func (f *File) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[9] = &Field{
 		Type:  "string",
-		Name:  "Category",
+		Name:  "category",
 		Value: string(buf),
 	}
 	var ids []int
@@ -1700,7 +1700,7 @@ func (f *File) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[0] = &Edge{
 		IDs:  ids,
 		Type: "Location",
-		Name: "Location",
+		Name: "location",
 	}
 	ids, err = f.QueryEquipment().
 		Select(equipment.FieldID).
@@ -1711,7 +1711,7 @@ func (f *File) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[1] = &Edge{
 		IDs:  ids,
 		Type: "Equipment",
-		Name: "Equipment",
+		Name: "equipment",
 	}
 	ids, err = f.QueryUser().
 		Select(user.FieldID).
@@ -1722,7 +1722,7 @@ func (f *File) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[2] = &Edge{
 		IDs:  ids,
 		Type: "User",
-		Name: "User",
+		Name: "user",
 	}
 	ids, err = f.QueryWorkOrder().
 		Select(workorder.FieldID).
@@ -1733,7 +1733,7 @@ func (f *File) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[3] = &Edge{
 		IDs:  ids,
 		Type: "WorkOrder",
-		Name: "WorkOrder",
+		Name: "work_order",
 	}
 	ids, err = f.QueryChecklistItem().
 		Select(checklistitem.FieldID).
@@ -1744,7 +1744,7 @@ func (f *File) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[4] = &Edge{
 		IDs:  ids,
 		Type: "CheckListItem",
-		Name: "ChecklistItem",
+		Name: "checklist_item",
 	}
 	ids, err = f.QuerySurvey().
 		Select(survey.FieldID).
@@ -1755,7 +1755,7 @@ func (f *File) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[5] = &Edge{
 		IDs:  ids,
 		Type: "Survey",
-		Name: "Survey",
+		Name: "survey",
 	}
 	ids, err = f.QueryFloorPlan().
 		Select(floorplan.FieldID).
@@ -1766,7 +1766,7 @@ func (f *File) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[6] = &Edge{
 		IDs:  ids,
 		Type: "FloorPlan",
-		Name: "FloorPlan",
+		Name: "floor_plan",
 	}
 	ids, err = f.QueryPhotoSurveyQuestion().
 		Select(surveyquestion.FieldID).
@@ -1777,7 +1777,7 @@ func (f *File) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[7] = &Edge{
 		IDs:  ids,
 		Type: "SurveyQuestion",
-		Name: "PhotoSurveyQuestion",
+		Name: "photo_survey_question",
 	}
 	ids, err = f.QuerySurveyQuestion().
 		Select(surveyquestion.FieldID).
@@ -1788,7 +1788,7 @@ func (f *File) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[8] = &Edge{
 		IDs:  ids,
 		Type: "SurveyQuestion",
-		Name: "SurveyQuestion",
+		Name: "survey_question",
 	}
 	return node, nil
 }
@@ -1818,7 +1818,7 @@ func (fp *FloorPlan) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[0] = &Field{
 		Type:  "time.Time",
-		Name:  "CreateTime",
+		Name:  "create_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(fp.UpdateTime); err != nil {
@@ -1826,7 +1826,7 @@ func (fp *FloorPlan) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[1] = &Field{
 		Type:  "time.Time",
-		Name:  "UpdateTime",
+		Name:  "update_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(fp.Name); err != nil {
@@ -1834,7 +1834,7 @@ func (fp *FloorPlan) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[2] = &Field{
 		Type:  "string",
-		Name:  "Name",
+		Name:  "name",
 		Value: string(buf),
 	}
 	var ids []int
@@ -1847,7 +1847,7 @@ func (fp *FloorPlan) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[0] = &Edge{
 		IDs:  ids,
 		Type: "Location",
-		Name: "Location",
+		Name: "location",
 	}
 	ids, err = fp.QueryReferencePoint().
 		Select(floorplanreferencepoint.FieldID).
@@ -1858,7 +1858,7 @@ func (fp *FloorPlan) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[1] = &Edge{
 		IDs:  ids,
 		Type: "FloorPlanReferencePoint",
-		Name: "ReferencePoint",
+		Name: "reference_point",
 	}
 	ids, err = fp.QueryScale().
 		Select(floorplanscale.FieldID).
@@ -1869,7 +1869,7 @@ func (fp *FloorPlan) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[2] = &Edge{
 		IDs:  ids,
 		Type: "FloorPlanScale",
-		Name: "Scale",
+		Name: "scale",
 	}
 	ids, err = fp.QueryImage().
 		Select(file.FieldID).
@@ -1880,7 +1880,7 @@ func (fp *FloorPlan) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[3] = &Edge{
 		IDs:  ids,
 		Type: "File",
-		Name: "Image",
+		Name: "image",
 	}
 	return node, nil
 }
@@ -1910,7 +1910,7 @@ func (fprp *FloorPlanReferencePoint) Node(ctx context.Context) (node *Node, err 
 	}
 	node.Fields[0] = &Field{
 		Type:  "time.Time",
-		Name:  "CreateTime",
+		Name:  "create_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(fprp.UpdateTime); err != nil {
@@ -1918,7 +1918,7 @@ func (fprp *FloorPlanReferencePoint) Node(ctx context.Context) (node *Node, err 
 	}
 	node.Fields[1] = &Field{
 		Type:  "time.Time",
-		Name:  "UpdateTime",
+		Name:  "update_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(fprp.X); err != nil {
@@ -1926,7 +1926,7 @@ func (fprp *FloorPlanReferencePoint) Node(ctx context.Context) (node *Node, err 
 	}
 	node.Fields[2] = &Field{
 		Type:  "int",
-		Name:  "X",
+		Name:  "x",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(fprp.Y); err != nil {
@@ -1934,7 +1934,7 @@ func (fprp *FloorPlanReferencePoint) Node(ctx context.Context) (node *Node, err 
 	}
 	node.Fields[3] = &Field{
 		Type:  "int",
-		Name:  "Y",
+		Name:  "y",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(fprp.Latitude); err != nil {
@@ -1942,7 +1942,7 @@ func (fprp *FloorPlanReferencePoint) Node(ctx context.Context) (node *Node, err 
 	}
 	node.Fields[4] = &Field{
 		Type:  "float64",
-		Name:  "Latitude",
+		Name:  "latitude",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(fprp.Longitude); err != nil {
@@ -1950,7 +1950,7 @@ func (fprp *FloorPlanReferencePoint) Node(ctx context.Context) (node *Node, err 
 	}
 	node.Fields[5] = &Field{
 		Type:  "float64",
-		Name:  "Longitude",
+		Name:  "longitude",
 		Value: string(buf),
 	}
 	return node, nil
@@ -1981,7 +1981,7 @@ func (fps *FloorPlanScale) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[0] = &Field{
 		Type:  "time.Time",
-		Name:  "CreateTime",
+		Name:  "create_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(fps.UpdateTime); err != nil {
@@ -1989,7 +1989,7 @@ func (fps *FloorPlanScale) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[1] = &Field{
 		Type:  "time.Time",
-		Name:  "UpdateTime",
+		Name:  "update_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(fps.ReferencePoint1X); err != nil {
@@ -1997,7 +1997,7 @@ func (fps *FloorPlanScale) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[2] = &Field{
 		Type:  "int",
-		Name:  "ReferencePoint1X",
+		Name:  "reference_point1_x",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(fps.ReferencePoint1Y); err != nil {
@@ -2005,7 +2005,7 @@ func (fps *FloorPlanScale) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[3] = &Field{
 		Type:  "int",
-		Name:  "ReferencePoint1Y",
+		Name:  "reference_point1_y",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(fps.ReferencePoint2X); err != nil {
@@ -2013,7 +2013,7 @@ func (fps *FloorPlanScale) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[4] = &Field{
 		Type:  "int",
-		Name:  "ReferencePoint2X",
+		Name:  "reference_point2_x",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(fps.ReferencePoint2Y); err != nil {
@@ -2021,7 +2021,7 @@ func (fps *FloorPlanScale) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[5] = &Field{
 		Type:  "int",
-		Name:  "ReferencePoint2Y",
+		Name:  "reference_point2_y",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(fps.ScaleInMeters); err != nil {
@@ -2029,7 +2029,7 @@ func (fps *FloorPlanScale) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[6] = &Field{
 		Type:  "float64",
-		Name:  "ScaleInMeters",
+		Name:  "scale_in_meters",
 		Value: string(buf),
 	}
 	return node, nil
@@ -2060,7 +2060,7 @@ func (h *Hyperlink) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[0] = &Field{
 		Type:  "time.Time",
-		Name:  "CreateTime",
+		Name:  "create_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(h.UpdateTime); err != nil {
@@ -2068,7 +2068,7 @@ func (h *Hyperlink) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[1] = &Field{
 		Type:  "time.Time",
-		Name:  "UpdateTime",
+		Name:  "update_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(h.URL); err != nil {
@@ -2076,7 +2076,7 @@ func (h *Hyperlink) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[2] = &Field{
 		Type:  "string",
-		Name:  "URL",
+		Name:  "url",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(h.Name); err != nil {
@@ -2084,7 +2084,7 @@ func (h *Hyperlink) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[3] = &Field{
 		Type:  "string",
-		Name:  "Name",
+		Name:  "name",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(h.Category); err != nil {
@@ -2092,7 +2092,7 @@ func (h *Hyperlink) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[4] = &Field{
 		Type:  "string",
-		Name:  "Category",
+		Name:  "category",
 		Value: string(buf),
 	}
 	var ids []int
@@ -2105,7 +2105,7 @@ func (h *Hyperlink) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[0] = &Edge{
 		IDs:  ids,
 		Type: "Equipment",
-		Name: "Equipment",
+		Name: "equipment",
 	}
 	ids, err = h.QueryLocation().
 		Select(location.FieldID).
@@ -2116,7 +2116,7 @@ func (h *Hyperlink) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[1] = &Edge{
 		IDs:  ids,
 		Type: "Location",
-		Name: "Location",
+		Name: "location",
 	}
 	ids, err = h.QueryWorkOrder().
 		Select(workorder.FieldID).
@@ -2127,7 +2127,7 @@ func (h *Hyperlink) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[2] = &Edge{
 		IDs:  ids,
 		Type: "WorkOrder",
-		Name: "WorkOrder",
+		Name: "work_order",
 	}
 	return node, nil
 }
@@ -2157,7 +2157,7 @@ func (l *Link) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[0] = &Field{
 		Type:  "time.Time",
-		Name:  "CreateTime",
+		Name:  "create_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(l.UpdateTime); err != nil {
@@ -2165,7 +2165,7 @@ func (l *Link) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[1] = &Field{
 		Type:  "time.Time",
-		Name:  "UpdateTime",
+		Name:  "update_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(l.FutureState); err != nil {
@@ -2173,7 +2173,7 @@ func (l *Link) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[2] = &Field{
 		Type:  "string",
-		Name:  "FutureState",
+		Name:  "future_state",
 		Value: string(buf),
 	}
 	var ids []int
@@ -2186,7 +2186,7 @@ func (l *Link) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[0] = &Edge{
 		IDs:  ids,
 		Type: "EquipmentPort",
-		Name: "Ports",
+		Name: "ports",
 	}
 	ids, err = l.QueryWorkOrder().
 		Select(workorder.FieldID).
@@ -2197,7 +2197,7 @@ func (l *Link) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[1] = &Edge{
 		IDs:  ids,
 		Type: "WorkOrder",
-		Name: "WorkOrder",
+		Name: "work_order",
 	}
 	ids, err = l.QueryProperties().
 		Select(property.FieldID).
@@ -2208,7 +2208,7 @@ func (l *Link) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[2] = &Edge{
 		IDs:  ids,
 		Type: "Property",
-		Name: "Properties",
+		Name: "properties",
 	}
 	ids, err = l.QueryService().
 		Select(service.FieldID).
@@ -2219,7 +2219,7 @@ func (l *Link) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[3] = &Edge{
 		IDs:  ids,
 		Type: "Service",
-		Name: "Service",
+		Name: "service",
 	}
 	return node, nil
 }
@@ -2249,7 +2249,7 @@ func (l *Location) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[0] = &Field{
 		Type:  "time.Time",
-		Name:  "CreateTime",
+		Name:  "create_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(l.UpdateTime); err != nil {
@@ -2257,7 +2257,7 @@ func (l *Location) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[1] = &Field{
 		Type:  "time.Time",
-		Name:  "UpdateTime",
+		Name:  "update_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(l.Name); err != nil {
@@ -2265,7 +2265,7 @@ func (l *Location) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[2] = &Field{
 		Type:  "string",
-		Name:  "Name",
+		Name:  "name",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(l.ExternalID); err != nil {
@@ -2273,7 +2273,7 @@ func (l *Location) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[3] = &Field{
 		Type:  "string",
-		Name:  "ExternalID",
+		Name:  "external_id",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(l.Latitude); err != nil {
@@ -2281,7 +2281,7 @@ func (l *Location) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[4] = &Field{
 		Type:  "float64",
-		Name:  "Latitude",
+		Name:  "latitude",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(l.Longitude); err != nil {
@@ -2289,7 +2289,7 @@ func (l *Location) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[5] = &Field{
 		Type:  "float64",
-		Name:  "Longitude",
+		Name:  "longitude",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(l.SiteSurveyNeeded); err != nil {
@@ -2297,7 +2297,7 @@ func (l *Location) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[6] = &Field{
 		Type:  "bool",
-		Name:  "SiteSurveyNeeded",
+		Name:  "site_survey_needed",
 		Value: string(buf),
 	}
 	var ids []int
@@ -2310,7 +2310,7 @@ func (l *Location) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[0] = &Edge{
 		IDs:  ids,
 		Type: "LocationType",
-		Name: "Type",
+		Name: "type",
 	}
 	ids, err = l.QueryParent().
 		Select(location.FieldID).
@@ -2321,7 +2321,7 @@ func (l *Location) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[1] = &Edge{
 		IDs:  ids,
 		Type: "Location",
-		Name: "Parent",
+		Name: "parent",
 	}
 	ids, err = l.QueryChildren().
 		Select(location.FieldID).
@@ -2332,7 +2332,7 @@ func (l *Location) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[2] = &Edge{
 		IDs:  ids,
 		Type: "Location",
-		Name: "Children",
+		Name: "children",
 	}
 	ids, err = l.QueryFiles().
 		Select(file.FieldID).
@@ -2343,7 +2343,7 @@ func (l *Location) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[3] = &Edge{
 		IDs:  ids,
 		Type: "File",
-		Name: "Files",
+		Name: "files",
 	}
 	ids, err = l.QueryHyperlinks().
 		Select(hyperlink.FieldID).
@@ -2354,7 +2354,7 @@ func (l *Location) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[4] = &Edge{
 		IDs:  ids,
 		Type: "Hyperlink",
-		Name: "Hyperlinks",
+		Name: "hyperlinks",
 	}
 	ids, err = l.QueryEquipment().
 		Select(equipment.FieldID).
@@ -2365,7 +2365,7 @@ func (l *Location) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[5] = &Edge{
 		IDs:  ids,
 		Type: "Equipment",
-		Name: "Equipment",
+		Name: "equipment",
 	}
 	ids, err = l.QueryProperties().
 		Select(property.FieldID).
@@ -2376,7 +2376,7 @@ func (l *Location) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[6] = &Edge{
 		IDs:  ids,
 		Type: "Property",
-		Name: "Properties",
+		Name: "properties",
 	}
 	ids, err = l.QuerySurvey().
 		Select(survey.FieldID).
@@ -2387,7 +2387,7 @@ func (l *Location) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[7] = &Edge{
 		IDs:  ids,
 		Type: "Survey",
-		Name: "Survey",
+		Name: "survey",
 	}
 	ids, err = l.QueryWifiScan().
 		Select(surveywifiscan.FieldID).
@@ -2398,7 +2398,7 @@ func (l *Location) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[8] = &Edge{
 		IDs:  ids,
 		Type: "SurveyWiFiScan",
-		Name: "WifiScan",
+		Name: "wifi_scan",
 	}
 	ids, err = l.QueryCellScan().
 		Select(surveycellscan.FieldID).
@@ -2409,7 +2409,7 @@ func (l *Location) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[9] = &Edge{
 		IDs:  ids,
 		Type: "SurveyCellScan",
-		Name: "CellScan",
+		Name: "cell_scan",
 	}
 	ids, err = l.QueryWorkOrders().
 		Select(workorder.FieldID).
@@ -2420,7 +2420,7 @@ func (l *Location) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[10] = &Edge{
 		IDs:  ids,
 		Type: "WorkOrder",
-		Name: "WorkOrders",
+		Name: "work_orders",
 	}
 	ids, err = l.QueryFloorPlans().
 		Select(floorplan.FieldID).
@@ -2431,7 +2431,7 @@ func (l *Location) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[11] = &Edge{
 		IDs:  ids,
 		Type: "FloorPlan",
-		Name: "FloorPlans",
+		Name: "floor_plans",
 	}
 	return node, nil
 }
@@ -2461,7 +2461,7 @@ func (lt *LocationType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[0] = &Field{
 		Type:  "time.Time",
-		Name:  "CreateTime",
+		Name:  "create_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(lt.UpdateTime); err != nil {
@@ -2469,7 +2469,7 @@ func (lt *LocationType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[1] = &Field{
 		Type:  "time.Time",
-		Name:  "UpdateTime",
+		Name:  "update_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(lt.Site); err != nil {
@@ -2477,7 +2477,7 @@ func (lt *LocationType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[2] = &Field{
 		Type:  "bool",
-		Name:  "Site",
+		Name:  "site",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(lt.Name); err != nil {
@@ -2485,7 +2485,7 @@ func (lt *LocationType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[3] = &Field{
 		Type:  "string",
-		Name:  "Name",
+		Name:  "name",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(lt.MapType); err != nil {
@@ -2493,7 +2493,7 @@ func (lt *LocationType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[4] = &Field{
 		Type:  "string",
-		Name:  "MapType",
+		Name:  "map_type",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(lt.MapZoomLevel); err != nil {
@@ -2501,7 +2501,7 @@ func (lt *LocationType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[5] = &Field{
 		Type:  "int",
-		Name:  "MapZoomLevel",
+		Name:  "map_zoom_level",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(lt.Index); err != nil {
@@ -2509,7 +2509,7 @@ func (lt *LocationType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[6] = &Field{
 		Type:  "int",
-		Name:  "Index",
+		Name:  "index",
 		Value: string(buf),
 	}
 	var ids []int
@@ -2522,7 +2522,7 @@ func (lt *LocationType) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[0] = &Edge{
 		IDs:  ids,
 		Type: "Location",
-		Name: "Locations",
+		Name: "locations",
 	}
 	ids, err = lt.QueryPropertyTypes().
 		Select(propertytype.FieldID).
@@ -2533,7 +2533,7 @@ func (lt *LocationType) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[1] = &Edge{
 		IDs:  ids,
 		Type: "PropertyType",
-		Name: "PropertyTypes",
+		Name: "property_types",
 	}
 	ids, err = lt.QuerySurveyTemplateCategories().
 		Select(surveytemplatecategory.FieldID).
@@ -2544,7 +2544,7 @@ func (lt *LocationType) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[2] = &Edge{
 		IDs:  ids,
 		Type: "SurveyTemplateCategory",
-		Name: "SurveyTemplateCategories",
+		Name: "survey_template_categories",
 	}
 	return node, nil
 }
@@ -2574,7 +2574,7 @@ func (pp *PermissionsPolicy) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[0] = &Field{
 		Type:  "time.Time",
-		Name:  "CreateTime",
+		Name:  "create_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(pp.UpdateTime); err != nil {
@@ -2582,7 +2582,7 @@ func (pp *PermissionsPolicy) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[1] = &Field{
 		Type:  "time.Time",
-		Name:  "UpdateTime",
+		Name:  "update_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(pp.Name); err != nil {
@@ -2590,7 +2590,7 @@ func (pp *PermissionsPolicy) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[2] = &Field{
 		Type:  "string",
-		Name:  "Name",
+		Name:  "name",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(pp.Description); err != nil {
@@ -2598,7 +2598,7 @@ func (pp *PermissionsPolicy) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[3] = &Field{
 		Type:  "string",
-		Name:  "Description",
+		Name:  "description",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(pp.IsGlobal); err != nil {
@@ -2606,7 +2606,7 @@ func (pp *PermissionsPolicy) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[4] = &Field{
 		Type:  "bool",
-		Name:  "IsGlobal",
+		Name:  "is_global",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(pp.InventoryPolicy); err != nil {
@@ -2614,7 +2614,7 @@ func (pp *PermissionsPolicy) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[5] = &Field{
 		Type:  "*models.InventoryPolicyInput",
-		Name:  "InventoryPolicy",
+		Name:  "inventory_policy",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(pp.WorkforcePolicy); err != nil {
@@ -2622,7 +2622,7 @@ func (pp *PermissionsPolicy) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[6] = &Field{
 		Type:  "*models.WorkforcePolicyInput",
-		Name:  "WorkforcePolicy",
+		Name:  "workforce_policy",
 		Value: string(buf),
 	}
 	var ids []int
@@ -2635,7 +2635,7 @@ func (pp *PermissionsPolicy) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[0] = &Edge{
 		IDs:  ids,
 		Type: "UsersGroup",
-		Name: "Groups",
+		Name: "groups",
 	}
 	return node, nil
 }
@@ -2665,7 +2665,7 @@ func (pr *Project) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[0] = &Field{
 		Type:  "time.Time",
-		Name:  "CreateTime",
+		Name:  "create_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(pr.UpdateTime); err != nil {
@@ -2673,7 +2673,7 @@ func (pr *Project) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[1] = &Field{
 		Type:  "time.Time",
-		Name:  "UpdateTime",
+		Name:  "update_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(pr.Name); err != nil {
@@ -2681,7 +2681,7 @@ func (pr *Project) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[2] = &Field{
 		Type:  "string",
-		Name:  "Name",
+		Name:  "name",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(pr.Description); err != nil {
@@ -2689,7 +2689,7 @@ func (pr *Project) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[3] = &Field{
 		Type:  "string",
-		Name:  "Description",
+		Name:  "description",
 		Value: string(buf),
 	}
 	var ids []int
@@ -2702,7 +2702,7 @@ func (pr *Project) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[0] = &Edge{
 		IDs:  ids,
 		Type: "ProjectType",
-		Name: "Type",
+		Name: "type",
 	}
 	ids, err = pr.QueryLocation().
 		Select(location.FieldID).
@@ -2713,7 +2713,7 @@ func (pr *Project) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[1] = &Edge{
 		IDs:  ids,
 		Type: "Location",
-		Name: "Location",
+		Name: "location",
 	}
 	ids, err = pr.QueryComments().
 		Select(comment.FieldID).
@@ -2724,7 +2724,7 @@ func (pr *Project) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[2] = &Edge{
 		IDs:  ids,
 		Type: "Comment",
-		Name: "Comments",
+		Name: "comments",
 	}
 	ids, err = pr.QueryWorkOrders().
 		Select(workorder.FieldID).
@@ -2735,7 +2735,7 @@ func (pr *Project) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[3] = &Edge{
 		IDs:  ids,
 		Type: "WorkOrder",
-		Name: "WorkOrders",
+		Name: "work_orders",
 	}
 	ids, err = pr.QueryProperties().
 		Select(property.FieldID).
@@ -2746,7 +2746,7 @@ func (pr *Project) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[4] = &Edge{
 		IDs:  ids,
 		Type: "Property",
-		Name: "Properties",
+		Name: "properties",
 	}
 	ids, err = pr.QueryCreator().
 		Select(user.FieldID).
@@ -2757,7 +2757,7 @@ func (pr *Project) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[5] = &Edge{
 		IDs:  ids,
 		Type: "User",
-		Name: "Creator",
+		Name: "creator",
 	}
 	return node, nil
 }
@@ -2787,7 +2787,7 @@ func (pt *ProjectType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[0] = &Field{
 		Type:  "time.Time",
-		Name:  "CreateTime",
+		Name:  "create_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(pt.UpdateTime); err != nil {
@@ -2795,7 +2795,7 @@ func (pt *ProjectType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[1] = &Field{
 		Type:  "time.Time",
-		Name:  "UpdateTime",
+		Name:  "update_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(pt.Name); err != nil {
@@ -2803,7 +2803,7 @@ func (pt *ProjectType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[2] = &Field{
 		Type:  "string",
-		Name:  "Name",
+		Name:  "name",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(pt.Description); err != nil {
@@ -2811,7 +2811,7 @@ func (pt *ProjectType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[3] = &Field{
 		Type:  "string",
-		Name:  "Description",
+		Name:  "description",
 		Value: string(buf),
 	}
 	var ids []int
@@ -2824,7 +2824,7 @@ func (pt *ProjectType) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[0] = &Edge{
 		IDs:  ids,
 		Type: "Project",
-		Name: "Projects",
+		Name: "projects",
 	}
 	ids, err = pt.QueryProperties().
 		Select(propertytype.FieldID).
@@ -2835,7 +2835,7 @@ func (pt *ProjectType) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[1] = &Edge{
 		IDs:  ids,
 		Type: "PropertyType",
-		Name: "Properties",
+		Name: "properties",
 	}
 	ids, err = pt.QueryWorkOrders().
 		Select(workorderdefinition.FieldID).
@@ -2846,7 +2846,7 @@ func (pt *ProjectType) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[2] = &Edge{
 		IDs:  ids,
 		Type: "WorkOrderDefinition",
-		Name: "WorkOrders",
+		Name: "work_orders",
 	}
 	return node, nil
 }
@@ -2876,7 +2876,7 @@ func (pr *Property) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[0] = &Field{
 		Type:  "time.Time",
-		Name:  "CreateTime",
+		Name:  "create_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(pr.UpdateTime); err != nil {
@@ -2884,7 +2884,7 @@ func (pr *Property) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[1] = &Field{
 		Type:  "time.Time",
-		Name:  "UpdateTime",
+		Name:  "update_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(pr.IntVal); err != nil {
@@ -2892,7 +2892,7 @@ func (pr *Property) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[2] = &Field{
 		Type:  "int",
-		Name:  "IntVal",
+		Name:  "int_val",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(pr.BoolVal); err != nil {
@@ -2900,7 +2900,7 @@ func (pr *Property) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[3] = &Field{
 		Type:  "bool",
-		Name:  "BoolVal",
+		Name:  "bool_val",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(pr.FloatVal); err != nil {
@@ -2908,7 +2908,7 @@ func (pr *Property) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[4] = &Field{
 		Type:  "float64",
-		Name:  "FloatVal",
+		Name:  "float_val",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(pr.LatitudeVal); err != nil {
@@ -2916,7 +2916,7 @@ func (pr *Property) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[5] = &Field{
 		Type:  "float64",
-		Name:  "LatitudeVal",
+		Name:  "latitude_val",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(pr.LongitudeVal); err != nil {
@@ -2924,7 +2924,7 @@ func (pr *Property) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[6] = &Field{
 		Type:  "float64",
-		Name:  "LongitudeVal",
+		Name:  "longitude_val",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(pr.RangeFromVal); err != nil {
@@ -2932,7 +2932,7 @@ func (pr *Property) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[7] = &Field{
 		Type:  "float64",
-		Name:  "RangeFromVal",
+		Name:  "range_from_val",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(pr.RangeToVal); err != nil {
@@ -2940,7 +2940,7 @@ func (pr *Property) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[8] = &Field{
 		Type:  "float64",
-		Name:  "RangeToVal",
+		Name:  "range_to_val",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(pr.StringVal); err != nil {
@@ -2948,7 +2948,7 @@ func (pr *Property) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[9] = &Field{
 		Type:  "string",
-		Name:  "StringVal",
+		Name:  "string_val",
 		Value: string(buf),
 	}
 	var ids []int
@@ -2961,7 +2961,7 @@ func (pr *Property) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[0] = &Edge{
 		IDs:  ids,
 		Type: "PropertyType",
-		Name: "Type",
+		Name: "type",
 	}
 	ids, err = pr.QueryLocation().
 		Select(location.FieldID).
@@ -2972,7 +2972,7 @@ func (pr *Property) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[1] = &Edge{
 		IDs:  ids,
 		Type: "Location",
-		Name: "Location",
+		Name: "location",
 	}
 	ids, err = pr.QueryEquipment().
 		Select(equipment.FieldID).
@@ -2983,7 +2983,7 @@ func (pr *Property) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[2] = &Edge{
 		IDs:  ids,
 		Type: "Equipment",
-		Name: "Equipment",
+		Name: "equipment",
 	}
 	ids, err = pr.QueryService().
 		Select(service.FieldID).
@@ -2994,7 +2994,7 @@ func (pr *Property) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[3] = &Edge{
 		IDs:  ids,
 		Type: "Service",
-		Name: "Service",
+		Name: "service",
 	}
 	ids, err = pr.QueryEquipmentPort().
 		Select(equipmentport.FieldID).
@@ -3005,7 +3005,7 @@ func (pr *Property) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[4] = &Edge{
 		IDs:  ids,
 		Type: "EquipmentPort",
-		Name: "EquipmentPort",
+		Name: "equipment_port",
 	}
 	ids, err = pr.QueryLink().
 		Select(link.FieldID).
@@ -3016,7 +3016,7 @@ func (pr *Property) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[5] = &Edge{
 		IDs:  ids,
 		Type: "Link",
-		Name: "Link",
+		Name: "link",
 	}
 	ids, err = pr.QueryWorkOrder().
 		Select(workorder.FieldID).
@@ -3027,7 +3027,7 @@ func (pr *Property) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[6] = &Edge{
 		IDs:  ids,
 		Type: "WorkOrder",
-		Name: "WorkOrder",
+		Name: "work_order",
 	}
 	ids, err = pr.QueryProject().
 		Select(project.FieldID).
@@ -3038,7 +3038,7 @@ func (pr *Property) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[7] = &Edge{
 		IDs:  ids,
 		Type: "Project",
-		Name: "Project",
+		Name: "project",
 	}
 	ids, err = pr.QueryEquipmentValue().
 		Select(equipment.FieldID).
@@ -3049,7 +3049,7 @@ func (pr *Property) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[8] = &Edge{
 		IDs:  ids,
 		Type: "Equipment",
-		Name: "EquipmentValue",
+		Name: "equipment_value",
 	}
 	ids, err = pr.QueryLocationValue().
 		Select(location.FieldID).
@@ -3060,7 +3060,7 @@ func (pr *Property) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[9] = &Edge{
 		IDs:  ids,
 		Type: "Location",
-		Name: "LocationValue",
+		Name: "location_value",
 	}
 	ids, err = pr.QueryServiceValue().
 		Select(service.FieldID).
@@ -3071,7 +3071,7 @@ func (pr *Property) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[10] = &Edge{
 		IDs:  ids,
 		Type: "Service",
-		Name: "ServiceValue",
+		Name: "service_value",
 	}
 	ids, err = pr.QueryWorkOrderValue().
 		Select(workorder.FieldID).
@@ -3082,7 +3082,7 @@ func (pr *Property) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[11] = &Edge{
 		IDs:  ids,
 		Type: "WorkOrder",
-		Name: "WorkOrderValue",
+		Name: "work_order_value",
 	}
 	ids, err = pr.QueryUserValue().
 		Select(user.FieldID).
@@ -3093,7 +3093,7 @@ func (pr *Property) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[12] = &Edge{
 		IDs:  ids,
 		Type: "User",
-		Name: "UserValue",
+		Name: "user_value",
 	}
 	return node, nil
 }
@@ -3123,7 +3123,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[0] = &Field{
 		Type:  "time.Time",
-		Name:  "CreateTime",
+		Name:  "create_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(pt.UpdateTime); err != nil {
@@ -3131,7 +3131,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[1] = &Field{
 		Type:  "time.Time",
-		Name:  "UpdateTime",
+		Name:  "update_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(pt.Type); err != nil {
@@ -3139,7 +3139,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[2] = &Field{
 		Type:  "string",
-		Name:  "Type",
+		Name:  "type",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(pt.Name); err != nil {
@@ -3147,7 +3147,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[3] = &Field{
 		Type:  "string",
-		Name:  "Name",
+		Name:  "name",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(pt.ExternalID); err != nil {
@@ -3155,7 +3155,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[4] = &Field{
 		Type:  "string",
-		Name:  "ExternalID",
+		Name:  "external_id",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(pt.Index); err != nil {
@@ -3163,7 +3163,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[5] = &Field{
 		Type:  "int",
-		Name:  "Index",
+		Name:  "index",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(pt.Category); err != nil {
@@ -3171,7 +3171,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[6] = &Field{
 		Type:  "string",
-		Name:  "Category",
+		Name:  "category",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(pt.IntVal); err != nil {
@@ -3179,7 +3179,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[7] = &Field{
 		Type:  "int",
-		Name:  "IntVal",
+		Name:  "int_val",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(pt.BoolVal); err != nil {
@@ -3187,7 +3187,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[8] = &Field{
 		Type:  "bool",
-		Name:  "BoolVal",
+		Name:  "bool_val",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(pt.FloatVal); err != nil {
@@ -3195,7 +3195,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[9] = &Field{
 		Type:  "float64",
-		Name:  "FloatVal",
+		Name:  "float_val",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(pt.LatitudeVal); err != nil {
@@ -3203,7 +3203,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[10] = &Field{
 		Type:  "float64",
-		Name:  "LatitudeVal",
+		Name:  "latitude_val",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(pt.LongitudeVal); err != nil {
@@ -3211,7 +3211,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[11] = &Field{
 		Type:  "float64",
-		Name:  "LongitudeVal",
+		Name:  "longitude_val",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(pt.StringVal); err != nil {
@@ -3219,7 +3219,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[12] = &Field{
 		Type:  "string",
-		Name:  "StringVal",
+		Name:  "string_val",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(pt.RangeFromVal); err != nil {
@@ -3227,7 +3227,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[13] = &Field{
 		Type:  "float64",
-		Name:  "RangeFromVal",
+		Name:  "range_from_val",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(pt.RangeToVal); err != nil {
@@ -3235,7 +3235,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[14] = &Field{
 		Type:  "float64",
-		Name:  "RangeToVal",
+		Name:  "range_to_val",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(pt.IsInstanceProperty); err != nil {
@@ -3243,7 +3243,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[15] = &Field{
 		Type:  "bool",
-		Name:  "IsInstanceProperty",
+		Name:  "is_instance_property",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(pt.Editable); err != nil {
@@ -3251,7 +3251,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[16] = &Field{
 		Type:  "bool",
-		Name:  "Editable",
+		Name:  "editable",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(pt.Mandatory); err != nil {
@@ -3259,7 +3259,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[17] = &Field{
 		Type:  "bool",
-		Name:  "Mandatory",
+		Name:  "mandatory",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(pt.Deleted); err != nil {
@@ -3267,7 +3267,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[18] = &Field{
 		Type:  "bool",
-		Name:  "Deleted",
+		Name:  "deleted",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(pt.NodeType); err != nil {
@@ -3275,7 +3275,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[19] = &Field{
 		Type:  "string",
-		Name:  "NodeType",
+		Name:  "nodeType",
 		Value: string(buf),
 	}
 	var ids []int
@@ -3288,7 +3288,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[0] = &Edge{
 		IDs:  ids,
 		Type: "Property",
-		Name: "Properties",
+		Name: "properties",
 	}
 	ids, err = pt.QueryLocationType().
 		Select(locationtype.FieldID).
@@ -3299,7 +3299,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[1] = &Edge{
 		IDs:  ids,
 		Type: "LocationType",
-		Name: "LocationType",
+		Name: "location_type",
 	}
 	ids, err = pt.QueryEquipmentPortType().
 		Select(equipmentporttype.FieldID).
@@ -3310,7 +3310,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[2] = &Edge{
 		IDs:  ids,
 		Type: "EquipmentPortType",
-		Name: "EquipmentPortType",
+		Name: "equipment_port_type",
 	}
 	ids, err = pt.QueryLinkEquipmentPortType().
 		Select(equipmentporttype.FieldID).
@@ -3321,7 +3321,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[3] = &Edge{
 		IDs:  ids,
 		Type: "EquipmentPortType",
-		Name: "LinkEquipmentPortType",
+		Name: "link_equipment_port_type",
 	}
 	ids, err = pt.QueryEquipmentType().
 		Select(equipmenttype.FieldID).
@@ -3332,7 +3332,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[4] = &Edge{
 		IDs:  ids,
 		Type: "EquipmentType",
-		Name: "EquipmentType",
+		Name: "equipment_type",
 	}
 	ids, err = pt.QueryServiceType().
 		Select(servicetype.FieldID).
@@ -3343,7 +3343,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[5] = &Edge{
 		IDs:  ids,
 		Type: "ServiceType",
-		Name: "ServiceType",
+		Name: "service_type",
 	}
 	ids, err = pt.QueryWorkOrderType().
 		Select(workordertype.FieldID).
@@ -3354,7 +3354,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[6] = &Edge{
 		IDs:  ids,
 		Type: "WorkOrderType",
-		Name: "WorkOrderType",
+		Name: "work_order_type",
 	}
 	ids, err = pt.QueryProjectType().
 		Select(projecttype.FieldID).
@@ -3365,7 +3365,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[7] = &Edge{
 		IDs:  ids,
 		Type: "ProjectType",
-		Name: "ProjectType",
+		Name: "project_type",
 	}
 	return node, nil
 }
@@ -3395,7 +3395,7 @@ func (rf *ReportFilter) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[0] = &Field{
 		Type:  "time.Time",
-		Name:  "CreateTime",
+		Name:  "create_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(rf.UpdateTime); err != nil {
@@ -3403,7 +3403,7 @@ func (rf *ReportFilter) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[1] = &Field{
 		Type:  "time.Time",
-		Name:  "UpdateTime",
+		Name:  "update_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(rf.Name); err != nil {
@@ -3411,7 +3411,7 @@ func (rf *ReportFilter) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[2] = &Field{
 		Type:  "string",
-		Name:  "Name",
+		Name:  "name",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(rf.Entity); err != nil {
@@ -3419,7 +3419,7 @@ func (rf *ReportFilter) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[3] = &Field{
 		Type:  "reportfilter.Entity",
-		Name:  "Entity",
+		Name:  "entity",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(rf.Filters); err != nil {
@@ -3427,7 +3427,7 @@ func (rf *ReportFilter) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[4] = &Field{
 		Type:  "string",
-		Name:  "Filters",
+		Name:  "filters",
 		Value: string(buf),
 	}
 	return node, nil
@@ -3458,7 +3458,7 @@ func (s *Service) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[0] = &Field{
 		Type:  "time.Time",
-		Name:  "CreateTime",
+		Name:  "create_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(s.UpdateTime); err != nil {
@@ -3466,7 +3466,7 @@ func (s *Service) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[1] = &Field{
 		Type:  "time.Time",
-		Name:  "UpdateTime",
+		Name:  "update_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(s.Name); err != nil {
@@ -3474,7 +3474,7 @@ func (s *Service) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[2] = &Field{
 		Type:  "string",
-		Name:  "Name",
+		Name:  "name",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(s.ExternalID); err != nil {
@@ -3482,7 +3482,7 @@ func (s *Service) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[3] = &Field{
 		Type:  "string",
-		Name:  "ExternalID",
+		Name:  "external_id",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(s.Status); err != nil {
@@ -3490,7 +3490,7 @@ func (s *Service) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[4] = &Field{
 		Type:  "string",
-		Name:  "Status",
+		Name:  "status",
 		Value: string(buf),
 	}
 	var ids []int
@@ -3503,7 +3503,7 @@ func (s *Service) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[0] = &Edge{
 		IDs:  ids,
 		Type: "ServiceType",
-		Name: "Type",
+		Name: "type",
 	}
 	ids, err = s.QueryDownstream().
 		Select(service.FieldID).
@@ -3514,7 +3514,7 @@ func (s *Service) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[1] = &Edge{
 		IDs:  ids,
 		Type: "Service",
-		Name: "Downstream",
+		Name: "downstream",
 	}
 	ids, err = s.QueryUpstream().
 		Select(service.FieldID).
@@ -3525,7 +3525,7 @@ func (s *Service) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[2] = &Edge{
 		IDs:  ids,
 		Type: "Service",
-		Name: "Upstream",
+		Name: "upstream",
 	}
 	ids, err = s.QueryProperties().
 		Select(property.FieldID).
@@ -3536,7 +3536,7 @@ func (s *Service) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[3] = &Edge{
 		IDs:  ids,
 		Type: "Property",
-		Name: "Properties",
+		Name: "properties",
 	}
 	ids, err = s.QueryLinks().
 		Select(link.FieldID).
@@ -3547,7 +3547,7 @@ func (s *Service) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[4] = &Edge{
 		IDs:  ids,
 		Type: "Link",
-		Name: "Links",
+		Name: "links",
 	}
 	ids, err = s.QueryCustomer().
 		Select(customer.FieldID).
@@ -3558,7 +3558,7 @@ func (s *Service) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[5] = &Edge{
 		IDs:  ids,
 		Type: "Customer",
-		Name: "Customer",
+		Name: "customer",
 	}
 	ids, err = s.QueryEndpoints().
 		Select(serviceendpoint.FieldID).
@@ -3569,7 +3569,7 @@ func (s *Service) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[6] = &Edge{
 		IDs:  ids,
 		Type: "ServiceEndpoint",
-		Name: "Endpoints",
+		Name: "endpoints",
 	}
 	return node, nil
 }
@@ -3599,7 +3599,7 @@ func (se *ServiceEndpoint) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[0] = &Field{
 		Type:  "time.Time",
-		Name:  "CreateTime",
+		Name:  "create_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(se.UpdateTime); err != nil {
@@ -3607,7 +3607,7 @@ func (se *ServiceEndpoint) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[1] = &Field{
 		Type:  "time.Time",
-		Name:  "UpdateTime",
+		Name:  "update_time",
 		Value: string(buf),
 	}
 	var ids []int
@@ -3620,7 +3620,7 @@ func (se *ServiceEndpoint) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[0] = &Edge{
 		IDs:  ids,
 		Type: "EquipmentPort",
-		Name: "Port",
+		Name: "port",
 	}
 	ids, err = se.QueryEquipment().
 		Select(equipment.FieldID).
@@ -3631,7 +3631,7 @@ func (se *ServiceEndpoint) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[1] = &Edge{
 		IDs:  ids,
 		Type: "Equipment",
-		Name: "Equipment",
+		Name: "equipment",
 	}
 	ids, err = se.QueryService().
 		Select(service.FieldID).
@@ -3642,7 +3642,7 @@ func (se *ServiceEndpoint) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[2] = &Edge{
 		IDs:  ids,
 		Type: "Service",
-		Name: "Service",
+		Name: "service",
 	}
 	ids, err = se.QueryDefinition().
 		Select(serviceendpointdefinition.FieldID).
@@ -3653,7 +3653,7 @@ func (se *ServiceEndpoint) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[3] = &Edge{
 		IDs:  ids,
 		Type: "ServiceEndpointDefinition",
-		Name: "Definition",
+		Name: "definition",
 	}
 	return node, nil
 }
@@ -3683,7 +3683,7 @@ func (sed *ServiceEndpointDefinition) Node(ctx context.Context) (node *Node, err
 	}
 	node.Fields[0] = &Field{
 		Type:  "time.Time",
-		Name:  "CreateTime",
+		Name:  "create_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(sed.UpdateTime); err != nil {
@@ -3691,7 +3691,7 @@ func (sed *ServiceEndpointDefinition) Node(ctx context.Context) (node *Node, err
 	}
 	node.Fields[1] = &Field{
 		Type:  "time.Time",
-		Name:  "UpdateTime",
+		Name:  "update_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(sed.Role); err != nil {
@@ -3699,7 +3699,7 @@ func (sed *ServiceEndpointDefinition) Node(ctx context.Context) (node *Node, err
 	}
 	node.Fields[2] = &Field{
 		Type:  "string",
-		Name:  "Role",
+		Name:  "role",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(sed.Name); err != nil {
@@ -3707,7 +3707,7 @@ func (sed *ServiceEndpointDefinition) Node(ctx context.Context) (node *Node, err
 	}
 	node.Fields[3] = &Field{
 		Type:  "string",
-		Name:  "Name",
+		Name:  "name",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(sed.Index); err != nil {
@@ -3715,7 +3715,7 @@ func (sed *ServiceEndpointDefinition) Node(ctx context.Context) (node *Node, err
 	}
 	node.Fields[4] = &Field{
 		Type:  "int",
-		Name:  "Index",
+		Name:  "index",
 		Value: string(buf),
 	}
 	var ids []int
@@ -3728,7 +3728,7 @@ func (sed *ServiceEndpointDefinition) Node(ctx context.Context) (node *Node, err
 	node.Edges[0] = &Edge{
 		IDs:  ids,
 		Type: "ServiceEndpoint",
-		Name: "Endpoints",
+		Name: "endpoints",
 	}
 	ids, err = sed.QueryServiceType().
 		Select(servicetype.FieldID).
@@ -3739,7 +3739,7 @@ func (sed *ServiceEndpointDefinition) Node(ctx context.Context) (node *Node, err
 	node.Edges[1] = &Edge{
 		IDs:  ids,
 		Type: "ServiceType",
-		Name: "ServiceType",
+		Name: "service_type",
 	}
 	ids, err = sed.QueryEquipmentType().
 		Select(equipmenttype.FieldID).
@@ -3750,7 +3750,7 @@ func (sed *ServiceEndpointDefinition) Node(ctx context.Context) (node *Node, err
 	node.Edges[2] = &Edge{
 		IDs:  ids,
 		Type: "EquipmentType",
-		Name: "EquipmentType",
+		Name: "equipment_type",
 	}
 	return node, nil
 }
@@ -3780,7 +3780,7 @@ func (st *ServiceType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[0] = &Field{
 		Type:  "time.Time",
-		Name:  "CreateTime",
+		Name:  "create_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(st.UpdateTime); err != nil {
@@ -3788,7 +3788,7 @@ func (st *ServiceType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[1] = &Field{
 		Type:  "time.Time",
-		Name:  "UpdateTime",
+		Name:  "update_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(st.Name); err != nil {
@@ -3796,7 +3796,7 @@ func (st *ServiceType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[2] = &Field{
 		Type:  "string",
-		Name:  "Name",
+		Name:  "name",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(st.HasCustomer); err != nil {
@@ -3804,7 +3804,7 @@ func (st *ServiceType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[3] = &Field{
 		Type:  "bool",
-		Name:  "HasCustomer",
+		Name:  "has_customer",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(st.IsDeleted); err != nil {
@@ -3812,7 +3812,7 @@ func (st *ServiceType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[4] = &Field{
 		Type:  "bool",
-		Name:  "IsDeleted",
+		Name:  "is_deleted",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(st.DiscoveryMethod); err != nil {
@@ -3820,7 +3820,7 @@ func (st *ServiceType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[5] = &Field{
 		Type:  "servicetype.DiscoveryMethod",
-		Name:  "DiscoveryMethod",
+		Name:  "discovery_method",
 		Value: string(buf),
 	}
 	var ids []int
@@ -3833,7 +3833,7 @@ func (st *ServiceType) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[0] = &Edge{
 		IDs:  ids,
 		Type: "Service",
-		Name: "Services",
+		Name: "services",
 	}
 	ids, err = st.QueryPropertyTypes().
 		Select(propertytype.FieldID).
@@ -3844,7 +3844,7 @@ func (st *ServiceType) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[1] = &Edge{
 		IDs:  ids,
 		Type: "PropertyType",
-		Name: "PropertyTypes",
+		Name: "property_types",
 	}
 	ids, err = st.QueryEndpointDefinitions().
 		Select(serviceendpointdefinition.FieldID).
@@ -3855,7 +3855,7 @@ func (st *ServiceType) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[2] = &Edge{
 		IDs:  ids,
 		Type: "ServiceEndpointDefinition",
-		Name: "EndpointDefinitions",
+		Name: "endpoint_definitions",
 	}
 	return node, nil
 }
@@ -3885,7 +3885,7 @@ func (s *Survey) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[0] = &Field{
 		Type:  "time.Time",
-		Name:  "CreateTime",
+		Name:  "create_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(s.UpdateTime); err != nil {
@@ -3893,7 +3893,7 @@ func (s *Survey) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[1] = &Field{
 		Type:  "time.Time",
-		Name:  "UpdateTime",
+		Name:  "update_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(s.Name); err != nil {
@@ -3901,7 +3901,7 @@ func (s *Survey) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[2] = &Field{
 		Type:  "string",
-		Name:  "Name",
+		Name:  "name",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(s.OwnerName); err != nil {
@@ -3909,7 +3909,7 @@ func (s *Survey) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[3] = &Field{
 		Type:  "string",
-		Name:  "OwnerName",
+		Name:  "owner_name",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(s.CreationTimestamp); err != nil {
@@ -3917,7 +3917,7 @@ func (s *Survey) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[4] = &Field{
 		Type:  "time.Time",
-		Name:  "CreationTimestamp",
+		Name:  "creation_timestamp",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(s.CompletionTimestamp); err != nil {
@@ -3925,7 +3925,7 @@ func (s *Survey) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[5] = &Field{
 		Type:  "time.Time",
-		Name:  "CompletionTimestamp",
+		Name:  "completion_timestamp",
 		Value: string(buf),
 	}
 	var ids []int
@@ -3938,7 +3938,7 @@ func (s *Survey) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[0] = &Edge{
 		IDs:  ids,
 		Type: "Location",
-		Name: "Location",
+		Name: "location",
 	}
 	ids, err = s.QuerySourceFile().
 		Select(file.FieldID).
@@ -3949,7 +3949,7 @@ func (s *Survey) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[1] = &Edge{
 		IDs:  ids,
 		Type: "File",
-		Name: "SourceFile",
+		Name: "source_file",
 	}
 	ids, err = s.QueryQuestions().
 		Select(surveyquestion.FieldID).
@@ -3960,7 +3960,7 @@ func (s *Survey) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[2] = &Edge{
 		IDs:  ids,
 		Type: "SurveyQuestion",
-		Name: "Questions",
+		Name: "questions",
 	}
 	return node, nil
 }
@@ -3990,7 +3990,7 @@ func (scs *SurveyCellScan) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[0] = &Field{
 		Type:  "time.Time",
-		Name:  "CreateTime",
+		Name:  "create_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(scs.UpdateTime); err != nil {
@@ -3998,7 +3998,7 @@ func (scs *SurveyCellScan) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[1] = &Field{
 		Type:  "time.Time",
-		Name:  "UpdateTime",
+		Name:  "update_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(scs.NetworkType); err != nil {
@@ -4006,7 +4006,7 @@ func (scs *SurveyCellScan) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[2] = &Field{
 		Type:  "string",
-		Name:  "NetworkType",
+		Name:  "network_type",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(scs.SignalStrength); err != nil {
@@ -4014,7 +4014,7 @@ func (scs *SurveyCellScan) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[3] = &Field{
 		Type:  "int",
-		Name:  "SignalStrength",
+		Name:  "signal_strength",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(scs.Timestamp); err != nil {
@@ -4022,7 +4022,7 @@ func (scs *SurveyCellScan) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[4] = &Field{
 		Type:  "time.Time",
-		Name:  "Timestamp",
+		Name:  "timestamp",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(scs.BaseStationID); err != nil {
@@ -4030,7 +4030,7 @@ func (scs *SurveyCellScan) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[5] = &Field{
 		Type:  "string",
-		Name:  "BaseStationID",
+		Name:  "base_station_id",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(scs.NetworkID); err != nil {
@@ -4038,7 +4038,7 @@ func (scs *SurveyCellScan) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[6] = &Field{
 		Type:  "string",
-		Name:  "NetworkID",
+		Name:  "network_id",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(scs.SystemID); err != nil {
@@ -4046,7 +4046,7 @@ func (scs *SurveyCellScan) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[7] = &Field{
 		Type:  "string",
-		Name:  "SystemID",
+		Name:  "system_id",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(scs.CellID); err != nil {
@@ -4054,7 +4054,7 @@ func (scs *SurveyCellScan) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[8] = &Field{
 		Type:  "string",
-		Name:  "CellID",
+		Name:  "cell_id",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(scs.LocationAreaCode); err != nil {
@@ -4062,7 +4062,7 @@ func (scs *SurveyCellScan) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[9] = &Field{
 		Type:  "string",
-		Name:  "LocationAreaCode",
+		Name:  "location_area_code",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(scs.MobileCountryCode); err != nil {
@@ -4070,7 +4070,7 @@ func (scs *SurveyCellScan) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[10] = &Field{
 		Type:  "string",
-		Name:  "MobileCountryCode",
+		Name:  "mobile_country_code",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(scs.MobileNetworkCode); err != nil {
@@ -4078,7 +4078,7 @@ func (scs *SurveyCellScan) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[11] = &Field{
 		Type:  "string",
-		Name:  "MobileNetworkCode",
+		Name:  "mobile_network_code",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(scs.PrimaryScramblingCode); err != nil {
@@ -4086,7 +4086,7 @@ func (scs *SurveyCellScan) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[12] = &Field{
 		Type:  "string",
-		Name:  "PrimaryScramblingCode",
+		Name:  "primary_scrambling_code",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(scs.Operator); err != nil {
@@ -4094,7 +4094,7 @@ func (scs *SurveyCellScan) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[13] = &Field{
 		Type:  "string",
-		Name:  "Operator",
+		Name:  "operator",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(scs.Arfcn); err != nil {
@@ -4102,7 +4102,7 @@ func (scs *SurveyCellScan) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[14] = &Field{
 		Type:  "int",
-		Name:  "Arfcn",
+		Name:  "arfcn",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(scs.PhysicalCellID); err != nil {
@@ -4110,7 +4110,7 @@ func (scs *SurveyCellScan) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[15] = &Field{
 		Type:  "string",
-		Name:  "PhysicalCellID",
+		Name:  "physical_cell_id",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(scs.TrackingAreaCode); err != nil {
@@ -4118,7 +4118,7 @@ func (scs *SurveyCellScan) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[16] = &Field{
 		Type:  "string",
-		Name:  "TrackingAreaCode",
+		Name:  "tracking_area_code",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(scs.TimingAdvance); err != nil {
@@ -4126,7 +4126,7 @@ func (scs *SurveyCellScan) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[17] = &Field{
 		Type:  "int",
-		Name:  "TimingAdvance",
+		Name:  "timing_advance",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(scs.Earfcn); err != nil {
@@ -4134,7 +4134,7 @@ func (scs *SurveyCellScan) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[18] = &Field{
 		Type:  "int",
-		Name:  "Earfcn",
+		Name:  "earfcn",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(scs.Uarfcn); err != nil {
@@ -4142,7 +4142,7 @@ func (scs *SurveyCellScan) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[19] = &Field{
 		Type:  "int",
-		Name:  "Uarfcn",
+		Name:  "uarfcn",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(scs.Latitude); err != nil {
@@ -4150,7 +4150,7 @@ func (scs *SurveyCellScan) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[20] = &Field{
 		Type:  "float64",
-		Name:  "Latitude",
+		Name:  "latitude",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(scs.Longitude); err != nil {
@@ -4158,7 +4158,7 @@ func (scs *SurveyCellScan) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[21] = &Field{
 		Type:  "float64",
-		Name:  "Longitude",
+		Name:  "longitude",
 		Value: string(buf),
 	}
 	var ids []int
@@ -4171,7 +4171,7 @@ func (scs *SurveyCellScan) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[0] = &Edge{
 		IDs:  ids,
 		Type: "CheckListItem",
-		Name: "ChecklistItem",
+		Name: "checklist_item",
 	}
 	ids, err = scs.QuerySurveyQuestion().
 		Select(surveyquestion.FieldID).
@@ -4182,7 +4182,7 @@ func (scs *SurveyCellScan) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[1] = &Edge{
 		IDs:  ids,
 		Type: "SurveyQuestion",
-		Name: "SurveyQuestion",
+		Name: "survey_question",
 	}
 	ids, err = scs.QueryLocation().
 		Select(location.FieldID).
@@ -4193,7 +4193,7 @@ func (scs *SurveyCellScan) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[2] = &Edge{
 		IDs:  ids,
 		Type: "Location",
-		Name: "Location",
+		Name: "location",
 	}
 	return node, nil
 }
@@ -4223,7 +4223,7 @@ func (sq *SurveyQuestion) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[0] = &Field{
 		Type:  "time.Time",
-		Name:  "CreateTime",
+		Name:  "create_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(sq.UpdateTime); err != nil {
@@ -4231,7 +4231,7 @@ func (sq *SurveyQuestion) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[1] = &Field{
 		Type:  "time.Time",
-		Name:  "UpdateTime",
+		Name:  "update_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(sq.FormName); err != nil {
@@ -4239,7 +4239,7 @@ func (sq *SurveyQuestion) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[2] = &Field{
 		Type:  "string",
-		Name:  "FormName",
+		Name:  "form_name",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(sq.FormDescription); err != nil {
@@ -4247,7 +4247,7 @@ func (sq *SurveyQuestion) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[3] = &Field{
 		Type:  "string",
-		Name:  "FormDescription",
+		Name:  "form_description",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(sq.FormIndex); err != nil {
@@ -4255,7 +4255,7 @@ func (sq *SurveyQuestion) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[4] = &Field{
 		Type:  "int",
-		Name:  "FormIndex",
+		Name:  "form_index",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(sq.QuestionType); err != nil {
@@ -4263,7 +4263,7 @@ func (sq *SurveyQuestion) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[5] = &Field{
 		Type:  "string",
-		Name:  "QuestionType",
+		Name:  "question_type",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(sq.QuestionFormat); err != nil {
@@ -4271,7 +4271,7 @@ func (sq *SurveyQuestion) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[6] = &Field{
 		Type:  "string",
-		Name:  "QuestionFormat",
+		Name:  "question_format",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(sq.QuestionText); err != nil {
@@ -4279,7 +4279,7 @@ func (sq *SurveyQuestion) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[7] = &Field{
 		Type:  "string",
-		Name:  "QuestionText",
+		Name:  "question_text",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(sq.QuestionIndex); err != nil {
@@ -4287,7 +4287,7 @@ func (sq *SurveyQuestion) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[8] = &Field{
 		Type:  "int",
-		Name:  "QuestionIndex",
+		Name:  "question_index",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(sq.BoolData); err != nil {
@@ -4295,7 +4295,7 @@ func (sq *SurveyQuestion) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[9] = &Field{
 		Type:  "bool",
-		Name:  "BoolData",
+		Name:  "bool_data",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(sq.EmailData); err != nil {
@@ -4303,7 +4303,7 @@ func (sq *SurveyQuestion) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[10] = &Field{
 		Type:  "string",
-		Name:  "EmailData",
+		Name:  "email_data",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(sq.Latitude); err != nil {
@@ -4311,7 +4311,7 @@ func (sq *SurveyQuestion) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[11] = &Field{
 		Type:  "float64",
-		Name:  "Latitude",
+		Name:  "latitude",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(sq.Longitude); err != nil {
@@ -4319,7 +4319,7 @@ func (sq *SurveyQuestion) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[12] = &Field{
 		Type:  "float64",
-		Name:  "Longitude",
+		Name:  "longitude",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(sq.LocationAccuracy); err != nil {
@@ -4327,7 +4327,7 @@ func (sq *SurveyQuestion) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[13] = &Field{
 		Type:  "float64",
-		Name:  "LocationAccuracy",
+		Name:  "location_accuracy",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(sq.Altitude); err != nil {
@@ -4335,7 +4335,7 @@ func (sq *SurveyQuestion) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[14] = &Field{
 		Type:  "float64",
-		Name:  "Altitude",
+		Name:  "altitude",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(sq.PhoneData); err != nil {
@@ -4343,7 +4343,7 @@ func (sq *SurveyQuestion) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[15] = &Field{
 		Type:  "string",
-		Name:  "PhoneData",
+		Name:  "phone_data",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(sq.TextData); err != nil {
@@ -4351,7 +4351,7 @@ func (sq *SurveyQuestion) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[16] = &Field{
 		Type:  "string",
-		Name:  "TextData",
+		Name:  "text_data",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(sq.FloatData); err != nil {
@@ -4359,7 +4359,7 @@ func (sq *SurveyQuestion) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[17] = &Field{
 		Type:  "float64",
-		Name:  "FloatData",
+		Name:  "float_data",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(sq.IntData); err != nil {
@@ -4367,7 +4367,7 @@ func (sq *SurveyQuestion) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[18] = &Field{
 		Type:  "int",
-		Name:  "IntData",
+		Name:  "int_data",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(sq.DateData); err != nil {
@@ -4375,7 +4375,7 @@ func (sq *SurveyQuestion) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[19] = &Field{
 		Type:  "time.Time",
-		Name:  "DateData",
+		Name:  "date_data",
 		Value: string(buf),
 	}
 	var ids []int
@@ -4388,7 +4388,7 @@ func (sq *SurveyQuestion) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[0] = &Edge{
 		IDs:  ids,
 		Type: "Survey",
-		Name: "Survey",
+		Name: "survey",
 	}
 	ids, err = sq.QueryWifiScan().
 		Select(surveywifiscan.FieldID).
@@ -4399,7 +4399,7 @@ func (sq *SurveyQuestion) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[1] = &Edge{
 		IDs:  ids,
 		Type: "SurveyWiFiScan",
-		Name: "WifiScan",
+		Name: "wifi_scan",
 	}
 	ids, err = sq.QueryCellScan().
 		Select(surveycellscan.FieldID).
@@ -4410,7 +4410,7 @@ func (sq *SurveyQuestion) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[2] = &Edge{
 		IDs:  ids,
 		Type: "SurveyCellScan",
-		Name: "CellScan",
+		Name: "cell_scan",
 	}
 	ids, err = sq.QueryPhotoData().
 		Select(file.FieldID).
@@ -4421,7 +4421,7 @@ func (sq *SurveyQuestion) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[3] = &Edge{
 		IDs:  ids,
 		Type: "File",
-		Name: "PhotoData",
+		Name: "photo_data",
 	}
 	ids, err = sq.QueryImages().
 		Select(file.FieldID).
@@ -4432,7 +4432,7 @@ func (sq *SurveyQuestion) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[4] = &Edge{
 		IDs:  ids,
 		Type: "File",
-		Name: "Images",
+		Name: "images",
 	}
 	return node, nil
 }
@@ -4462,7 +4462,7 @@ func (stc *SurveyTemplateCategory) Node(ctx context.Context) (node *Node, err er
 	}
 	node.Fields[0] = &Field{
 		Type:  "time.Time",
-		Name:  "CreateTime",
+		Name:  "create_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(stc.UpdateTime); err != nil {
@@ -4470,7 +4470,7 @@ func (stc *SurveyTemplateCategory) Node(ctx context.Context) (node *Node, err er
 	}
 	node.Fields[1] = &Field{
 		Type:  "time.Time",
-		Name:  "UpdateTime",
+		Name:  "update_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(stc.CategoryTitle); err != nil {
@@ -4478,7 +4478,7 @@ func (stc *SurveyTemplateCategory) Node(ctx context.Context) (node *Node, err er
 	}
 	node.Fields[2] = &Field{
 		Type:  "string",
-		Name:  "CategoryTitle",
+		Name:  "category_title",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(stc.CategoryDescription); err != nil {
@@ -4486,7 +4486,7 @@ func (stc *SurveyTemplateCategory) Node(ctx context.Context) (node *Node, err er
 	}
 	node.Fields[3] = &Field{
 		Type:  "string",
-		Name:  "CategoryDescription",
+		Name:  "category_description",
 		Value: string(buf),
 	}
 	var ids []int
@@ -4499,7 +4499,7 @@ func (stc *SurveyTemplateCategory) Node(ctx context.Context) (node *Node, err er
 	node.Edges[0] = &Edge{
 		IDs:  ids,
 		Type: "SurveyTemplateQuestion",
-		Name: "SurveyTemplateQuestions",
+		Name: "survey_template_questions",
 	}
 	ids, err = stc.QueryLocationType().
 		Select(locationtype.FieldID).
@@ -4510,7 +4510,7 @@ func (stc *SurveyTemplateCategory) Node(ctx context.Context) (node *Node, err er
 	node.Edges[1] = &Edge{
 		IDs:  ids,
 		Type: "LocationType",
-		Name: "LocationType",
+		Name: "location_type",
 	}
 	return node, nil
 }
@@ -4540,7 +4540,7 @@ func (stq *SurveyTemplateQuestion) Node(ctx context.Context) (node *Node, err er
 	}
 	node.Fields[0] = &Field{
 		Type:  "time.Time",
-		Name:  "CreateTime",
+		Name:  "create_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(stq.UpdateTime); err != nil {
@@ -4548,7 +4548,7 @@ func (stq *SurveyTemplateQuestion) Node(ctx context.Context) (node *Node, err er
 	}
 	node.Fields[1] = &Field{
 		Type:  "time.Time",
-		Name:  "UpdateTime",
+		Name:  "update_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(stq.QuestionTitle); err != nil {
@@ -4556,7 +4556,7 @@ func (stq *SurveyTemplateQuestion) Node(ctx context.Context) (node *Node, err er
 	}
 	node.Fields[2] = &Field{
 		Type:  "string",
-		Name:  "QuestionTitle",
+		Name:  "question_title",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(stq.QuestionDescription); err != nil {
@@ -4564,7 +4564,7 @@ func (stq *SurveyTemplateQuestion) Node(ctx context.Context) (node *Node, err er
 	}
 	node.Fields[3] = &Field{
 		Type:  "string",
-		Name:  "QuestionDescription",
+		Name:  "question_description",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(stq.QuestionType); err != nil {
@@ -4572,7 +4572,7 @@ func (stq *SurveyTemplateQuestion) Node(ctx context.Context) (node *Node, err er
 	}
 	node.Fields[4] = &Field{
 		Type:  "string",
-		Name:  "QuestionType",
+		Name:  "question_type",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(stq.Index); err != nil {
@@ -4580,7 +4580,7 @@ func (stq *SurveyTemplateQuestion) Node(ctx context.Context) (node *Node, err er
 	}
 	node.Fields[5] = &Field{
 		Type:  "int",
-		Name:  "Index",
+		Name:  "index",
 		Value: string(buf),
 	}
 	var ids []int
@@ -4593,7 +4593,7 @@ func (stq *SurveyTemplateQuestion) Node(ctx context.Context) (node *Node, err er
 	node.Edges[0] = &Edge{
 		IDs:  ids,
 		Type: "SurveyTemplateCategory",
-		Name: "Category",
+		Name: "category",
 	}
 	return node, nil
 }
@@ -4623,7 +4623,7 @@ func (swfs *SurveyWiFiScan) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[0] = &Field{
 		Type:  "time.Time",
-		Name:  "CreateTime",
+		Name:  "create_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(swfs.UpdateTime); err != nil {
@@ -4631,7 +4631,7 @@ func (swfs *SurveyWiFiScan) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[1] = &Field{
 		Type:  "time.Time",
-		Name:  "UpdateTime",
+		Name:  "update_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(swfs.Ssid); err != nil {
@@ -4639,7 +4639,7 @@ func (swfs *SurveyWiFiScan) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[2] = &Field{
 		Type:  "string",
-		Name:  "Ssid",
+		Name:  "ssid",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(swfs.Bssid); err != nil {
@@ -4647,7 +4647,7 @@ func (swfs *SurveyWiFiScan) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[3] = &Field{
 		Type:  "string",
-		Name:  "Bssid",
+		Name:  "bssid",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(swfs.Timestamp); err != nil {
@@ -4655,7 +4655,7 @@ func (swfs *SurveyWiFiScan) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[4] = &Field{
 		Type:  "time.Time",
-		Name:  "Timestamp",
+		Name:  "timestamp",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(swfs.Frequency); err != nil {
@@ -4663,7 +4663,7 @@ func (swfs *SurveyWiFiScan) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[5] = &Field{
 		Type:  "int",
-		Name:  "Frequency",
+		Name:  "frequency",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(swfs.Channel); err != nil {
@@ -4671,7 +4671,7 @@ func (swfs *SurveyWiFiScan) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[6] = &Field{
 		Type:  "int",
-		Name:  "Channel",
+		Name:  "channel",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(swfs.Band); err != nil {
@@ -4679,7 +4679,7 @@ func (swfs *SurveyWiFiScan) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[7] = &Field{
 		Type:  "string",
-		Name:  "Band",
+		Name:  "band",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(swfs.ChannelWidth); err != nil {
@@ -4687,7 +4687,7 @@ func (swfs *SurveyWiFiScan) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[8] = &Field{
 		Type:  "int",
-		Name:  "ChannelWidth",
+		Name:  "channel_width",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(swfs.Capabilities); err != nil {
@@ -4695,7 +4695,7 @@ func (swfs *SurveyWiFiScan) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[9] = &Field{
 		Type:  "string",
-		Name:  "Capabilities",
+		Name:  "capabilities",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(swfs.Strength); err != nil {
@@ -4703,7 +4703,7 @@ func (swfs *SurveyWiFiScan) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[10] = &Field{
 		Type:  "int",
-		Name:  "Strength",
+		Name:  "strength",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(swfs.Latitude); err != nil {
@@ -4711,7 +4711,7 @@ func (swfs *SurveyWiFiScan) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[11] = &Field{
 		Type:  "float64",
-		Name:  "Latitude",
+		Name:  "latitude",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(swfs.Longitude); err != nil {
@@ -4719,7 +4719,7 @@ func (swfs *SurveyWiFiScan) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[12] = &Field{
 		Type:  "float64",
-		Name:  "Longitude",
+		Name:  "longitude",
 		Value: string(buf),
 	}
 	var ids []int
@@ -4732,7 +4732,7 @@ func (swfs *SurveyWiFiScan) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[0] = &Edge{
 		IDs:  ids,
 		Type: "CheckListItem",
-		Name: "ChecklistItem",
+		Name: "checklist_item",
 	}
 	ids, err = swfs.QuerySurveyQuestion().
 		Select(surveyquestion.FieldID).
@@ -4743,7 +4743,7 @@ func (swfs *SurveyWiFiScan) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[1] = &Edge{
 		IDs:  ids,
 		Type: "SurveyQuestion",
-		Name: "SurveyQuestion",
+		Name: "survey_question",
 	}
 	ids, err = swfs.QueryLocation().
 		Select(location.FieldID).
@@ -4754,7 +4754,7 @@ func (swfs *SurveyWiFiScan) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[2] = &Edge{
 		IDs:  ids,
 		Type: "Location",
-		Name: "Location",
+		Name: "location",
 	}
 	return node, nil
 }
@@ -4784,7 +4784,7 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[0] = &Field{
 		Type:  "time.Time",
-		Name:  "CreateTime",
+		Name:  "create_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(u.UpdateTime); err != nil {
@@ -4792,7 +4792,7 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[1] = &Field{
 		Type:  "time.Time",
-		Name:  "UpdateTime",
+		Name:  "update_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(u.AuthID); err != nil {
@@ -4800,7 +4800,7 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[2] = &Field{
 		Type:  "string",
-		Name:  "AuthID",
+		Name:  "auth_id",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(u.FirstName); err != nil {
@@ -4808,7 +4808,7 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[3] = &Field{
 		Type:  "string",
-		Name:  "FirstName",
+		Name:  "first_name",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(u.LastName); err != nil {
@@ -4816,7 +4816,7 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[4] = &Field{
 		Type:  "string",
-		Name:  "LastName",
+		Name:  "last_name",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(u.Email); err != nil {
@@ -4824,7 +4824,7 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[5] = &Field{
 		Type:  "string",
-		Name:  "Email",
+		Name:  "email",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(u.Status); err != nil {
@@ -4832,7 +4832,7 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[6] = &Field{
 		Type:  "user.Status",
-		Name:  "Status",
+		Name:  "status",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(u.Role); err != nil {
@@ -4840,7 +4840,7 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[7] = &Field{
 		Type:  "user.Role",
-		Name:  "Role",
+		Name:  "role",
 		Value: string(buf),
 	}
 	var ids []int
@@ -4853,7 +4853,7 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[0] = &Edge{
 		IDs:  ids,
 		Type: "File",
-		Name: "ProfilePhoto",
+		Name: "profile_photo",
 	}
 	ids, err = u.QueryGroups().
 		Select(usersgroup.FieldID).
@@ -4864,7 +4864,7 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[1] = &Edge{
 		IDs:  ids,
 		Type: "UsersGroup",
-		Name: "Groups",
+		Name: "groups",
 	}
 	ids, err = u.QueryOwnedWorkOrders().
 		Select(workorder.FieldID).
@@ -4875,7 +4875,7 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[2] = &Edge{
 		IDs:  ids,
 		Type: "WorkOrder",
-		Name: "OwnedWorkOrders",
+		Name: "owned_work_orders",
 	}
 	ids, err = u.QueryAssignedWorkOrders().
 		Select(workorder.FieldID).
@@ -4886,7 +4886,7 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[3] = &Edge{
 		IDs:  ids,
 		Type: "WorkOrder",
-		Name: "AssignedWorkOrders",
+		Name: "assigned_work_orders",
 	}
 	ids, err = u.QueryCreatedProjects().
 		Select(project.FieldID).
@@ -4897,7 +4897,7 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[4] = &Edge{
 		IDs:  ids,
 		Type: "Project",
-		Name: "CreatedProjects",
+		Name: "created_projects",
 	}
 	return node, nil
 }
@@ -4927,7 +4927,7 @@ func (ug *UsersGroup) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[0] = &Field{
 		Type:  "time.Time",
-		Name:  "CreateTime",
+		Name:  "create_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(ug.UpdateTime); err != nil {
@@ -4935,7 +4935,7 @@ func (ug *UsersGroup) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[1] = &Field{
 		Type:  "time.Time",
-		Name:  "UpdateTime",
+		Name:  "update_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(ug.Name); err != nil {
@@ -4943,7 +4943,7 @@ func (ug *UsersGroup) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[2] = &Field{
 		Type:  "string",
-		Name:  "Name",
+		Name:  "name",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(ug.Description); err != nil {
@@ -4951,7 +4951,7 @@ func (ug *UsersGroup) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[3] = &Field{
 		Type:  "string",
-		Name:  "Description",
+		Name:  "description",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(ug.Status); err != nil {
@@ -4959,7 +4959,7 @@ func (ug *UsersGroup) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[4] = &Field{
 		Type:  "usersgroup.Status",
-		Name:  "Status",
+		Name:  "status",
 		Value: string(buf),
 	}
 	var ids []int
@@ -4972,7 +4972,7 @@ func (ug *UsersGroup) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[0] = &Edge{
 		IDs:  ids,
 		Type: "User",
-		Name: "Members",
+		Name: "members",
 	}
 	ids, err = ug.QueryPolicies().
 		Select(permissionspolicy.FieldID).
@@ -4983,7 +4983,7 @@ func (ug *UsersGroup) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[1] = &Edge{
 		IDs:  ids,
 		Type: "PermissionsPolicy",
-		Name: "Policies",
+		Name: "policies",
 	}
 	return node, nil
 }
@@ -5013,7 +5013,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[0] = &Field{
 		Type:  "time.Time",
-		Name:  "CreateTime",
+		Name:  "create_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(wo.UpdateTime); err != nil {
@@ -5021,7 +5021,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[1] = &Field{
 		Type:  "time.Time",
-		Name:  "UpdateTime",
+		Name:  "update_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(wo.Name); err != nil {
@@ -5029,7 +5029,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[2] = &Field{
 		Type:  "string",
-		Name:  "Name",
+		Name:  "name",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(wo.Status); err != nil {
@@ -5037,7 +5037,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[3] = &Field{
 		Type:  "string",
-		Name:  "Status",
+		Name:  "status",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(wo.Priority); err != nil {
@@ -5045,7 +5045,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[4] = &Field{
 		Type:  "string",
-		Name:  "Priority",
+		Name:  "priority",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(wo.Description); err != nil {
@@ -5053,7 +5053,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[5] = &Field{
 		Type:  "string",
-		Name:  "Description",
+		Name:  "description",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(wo.InstallDate); err != nil {
@@ -5061,7 +5061,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[6] = &Field{
 		Type:  "time.Time",
-		Name:  "InstallDate",
+		Name:  "install_date",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(wo.CreationDate); err != nil {
@@ -5069,7 +5069,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[7] = &Field{
 		Type:  "time.Time",
-		Name:  "CreationDate",
+		Name:  "creation_date",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(wo.Index); err != nil {
@@ -5077,7 +5077,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[8] = &Field{
 		Type:  "int",
-		Name:  "Index",
+		Name:  "index",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(wo.CloseDate); err != nil {
@@ -5085,7 +5085,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[9] = &Field{
 		Type:  "time.Time",
-		Name:  "CloseDate",
+		Name:  "close_date",
 		Value: string(buf),
 	}
 	var ids []int
@@ -5098,7 +5098,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[0] = &Edge{
 		IDs:  ids,
 		Type: "WorkOrderType",
-		Name: "Type",
+		Name: "type",
 	}
 	ids, err = wo.QueryEquipment().
 		Select(equipment.FieldID).
@@ -5109,7 +5109,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[1] = &Edge{
 		IDs:  ids,
 		Type: "Equipment",
-		Name: "Equipment",
+		Name: "equipment",
 	}
 	ids, err = wo.QueryLinks().
 		Select(link.FieldID).
@@ -5120,7 +5120,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[2] = &Edge{
 		IDs:  ids,
 		Type: "Link",
-		Name: "Links",
+		Name: "links",
 	}
 	ids, err = wo.QueryFiles().
 		Select(file.FieldID).
@@ -5131,7 +5131,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[3] = &Edge{
 		IDs:  ids,
 		Type: "File",
-		Name: "Files",
+		Name: "files",
 	}
 	ids, err = wo.QueryHyperlinks().
 		Select(hyperlink.FieldID).
@@ -5142,7 +5142,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[4] = &Edge{
 		IDs:  ids,
 		Type: "Hyperlink",
-		Name: "Hyperlinks",
+		Name: "hyperlinks",
 	}
 	ids, err = wo.QueryLocation().
 		Select(location.FieldID).
@@ -5153,7 +5153,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[5] = &Edge{
 		IDs:  ids,
 		Type: "Location",
-		Name: "Location",
+		Name: "location",
 	}
 	ids, err = wo.QueryComments().
 		Select(comment.FieldID).
@@ -5164,7 +5164,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[6] = &Edge{
 		IDs:  ids,
 		Type: "Comment",
-		Name: "Comments",
+		Name: "comments",
 	}
 	ids, err = wo.QueryActivities().
 		Select(activity.FieldID).
@@ -5175,7 +5175,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[7] = &Edge{
 		IDs:  ids,
 		Type: "Activity",
-		Name: "Activities",
+		Name: "activities",
 	}
 	ids, err = wo.QueryProperties().
 		Select(property.FieldID).
@@ -5186,7 +5186,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[8] = &Edge{
 		IDs:  ids,
 		Type: "Property",
-		Name: "Properties",
+		Name: "properties",
 	}
 	ids, err = wo.QueryCheckListCategories().
 		Select(checklistcategory.FieldID).
@@ -5197,7 +5197,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[9] = &Edge{
 		IDs:  ids,
 		Type: "CheckListCategory",
-		Name: "CheckListCategories",
+		Name: "check_list_categories",
 	}
 	ids, err = wo.QueryProject().
 		Select(project.FieldID).
@@ -5208,7 +5208,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[10] = &Edge{
 		IDs:  ids,
 		Type: "Project",
-		Name: "Project",
+		Name: "project",
 	}
 	ids, err = wo.QueryOwner().
 		Select(user.FieldID).
@@ -5219,7 +5219,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[11] = &Edge{
 		IDs:  ids,
 		Type: "User",
-		Name: "Owner",
+		Name: "owner",
 	}
 	ids, err = wo.QueryAssignee().
 		Select(user.FieldID).
@@ -5230,7 +5230,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[12] = &Edge{
 		IDs:  ids,
 		Type: "User",
-		Name: "Assignee",
+		Name: "assignee",
 	}
 	return node, nil
 }
@@ -5260,7 +5260,7 @@ func (wod *WorkOrderDefinition) Node(ctx context.Context) (node *Node, err error
 	}
 	node.Fields[0] = &Field{
 		Type:  "time.Time",
-		Name:  "CreateTime",
+		Name:  "create_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(wod.UpdateTime); err != nil {
@@ -5268,7 +5268,7 @@ func (wod *WorkOrderDefinition) Node(ctx context.Context) (node *Node, err error
 	}
 	node.Fields[1] = &Field{
 		Type:  "time.Time",
-		Name:  "UpdateTime",
+		Name:  "update_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(wod.Index); err != nil {
@@ -5276,7 +5276,7 @@ func (wod *WorkOrderDefinition) Node(ctx context.Context) (node *Node, err error
 	}
 	node.Fields[2] = &Field{
 		Type:  "int",
-		Name:  "Index",
+		Name:  "index",
 		Value: string(buf),
 	}
 	var ids []int
@@ -5289,7 +5289,7 @@ func (wod *WorkOrderDefinition) Node(ctx context.Context) (node *Node, err error
 	node.Edges[0] = &Edge{
 		IDs:  ids,
 		Type: "WorkOrderType",
-		Name: "Type",
+		Name: "type",
 	}
 	ids, err = wod.QueryProjectType().
 		Select(projecttype.FieldID).
@@ -5300,7 +5300,7 @@ func (wod *WorkOrderDefinition) Node(ctx context.Context) (node *Node, err error
 	node.Edges[1] = &Edge{
 		IDs:  ids,
 		Type: "ProjectType",
-		Name: "ProjectType",
+		Name: "project_type",
 	}
 	return node, nil
 }
@@ -5330,7 +5330,7 @@ func (wot *WorkOrderType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[0] = &Field{
 		Type:  "time.Time",
-		Name:  "CreateTime",
+		Name:  "create_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(wot.UpdateTime); err != nil {
@@ -5338,7 +5338,7 @@ func (wot *WorkOrderType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[1] = &Field{
 		Type:  "time.Time",
-		Name:  "UpdateTime",
+		Name:  "update_time",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(wot.Name); err != nil {
@@ -5346,7 +5346,7 @@ func (wot *WorkOrderType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[2] = &Field{
 		Type:  "string",
-		Name:  "Name",
+		Name:  "name",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(wot.Description); err != nil {
@@ -5354,7 +5354,7 @@ func (wot *WorkOrderType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Fields[3] = &Field{
 		Type:  "string",
-		Name:  "Description",
+		Name:  "description",
 		Value: string(buf),
 	}
 	var ids []int
@@ -5367,7 +5367,7 @@ func (wot *WorkOrderType) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[0] = &Edge{
 		IDs:  ids,
 		Type: "WorkOrder",
-		Name: "WorkOrders",
+		Name: "work_orders",
 	}
 	ids, err = wot.QueryPropertyTypes().
 		Select(propertytype.FieldID).
@@ -5378,7 +5378,7 @@ func (wot *WorkOrderType) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[1] = &Edge{
 		IDs:  ids,
 		Type: "PropertyType",
-		Name: "PropertyTypes",
+		Name: "property_types",
 	}
 	ids, err = wot.QueryDefinitions().
 		Select(workorderdefinition.FieldID).
@@ -5389,7 +5389,7 @@ func (wot *WorkOrderType) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[2] = &Edge{
 		IDs:  ids,
 		Type: "WorkOrderDefinition",
-		Name: "Definitions",
+		Name: "definitions",
 	}
 	ids, err = wot.QueryCheckListCategoryDefinitions().
 		Select(checklistcategorydefinition.FieldID).
@@ -5400,7 +5400,7 @@ func (wot *WorkOrderType) Node(ctx context.Context) (node *Node, err error) {
 	node.Edges[3] = &Edge{
 		IDs:  ids,
 		Type: "CheckListCategoryDefinition",
-		Name: "CheckListCategoryDefinitions",
+		Name: "check_list_category_definitions",
 	}
 	return node, nil
 }

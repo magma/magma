@@ -37,17 +37,22 @@ class StatsManagerTest(TestCase):
 
     def test_check_rf_tx(self):
         """ Check that stats are cleared when transmit is disabled on eNB """
-        handler = EnodebAcsStateMachineBuilder\
+        handler = EnodebAcsStateMachineBuilder \
             .build_acs_state_machine(EnodebDeviceName.BAICELLS)
-        handler.device_cfg.set_parameter(ParameterName.RF_TX_STATUS, True)
-        handler.device_cfg.set_parameter(ParameterName.SERIAL_NUMBER, '123454')
-        with mock.patch('magma.enodebd.stats_manager.StatsManager'
-                        '._clear_stats') as func:
-            self.mgr._check_rf_tx_for_handler(handler)
-            func.assert_not_called()
-            handler.device_cfg.set_parameter(ParameterName.RF_TX_STATUS, False)
-            self.mgr._check_rf_tx_for_handler(handler)
-            func.assert_any_call()
+        with mock.patch(
+                'magma.enodebd.devices.baicells.BaicellsHandler.is_enodeb_connected',
+                return_value=True):
+            handler.device_cfg.set_parameter(ParameterName.RF_TX_STATUS, True)
+            handler.device_cfg.set_parameter(ParameterName.SERIAL_NUMBER,
+                                             '123454')
+            with mock.patch('magma.enodebd.stats_manager.StatsManager'
+                            '._clear_stats') as func:
+                self.mgr._check_rf_tx_for_handler(handler)
+                func.assert_not_called()
+                handler.device_cfg.set_parameter(ParameterName.RF_TX_STATUS,
+                                                 False)
+                self.mgr._check_rf_tx_for_handler(handler)
+                func.assert_any_call()
 
     def test_parse_stats(self):
         """ Test that example statistics from eNodeB can be parsed, and metrics

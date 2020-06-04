@@ -13,6 +13,8 @@ import (
 	"strings"
 	"unicode"
 
+	"github.com/facebookincubator/symphony/graph/resolverutil"
+
 	"github.com/facebookincubator/symphony/pkg/ent/property"
 	"github.com/facebookincubator/symphony/pkg/ent/propertytype"
 	"github.com/facebookincubator/symphony/pkg/ent/workorder"
@@ -31,17 +33,6 @@ import (
 
 const (
 	maxEquipmentParents = 3
-	boolVal             = "bool"
-	emailVal            = "email"
-	stringVal           = "string"
-	dateVal             = "date"
-	intVal              = "int"
-	floatVal            = "float"
-	gpsLocationVal      = "gps_location"
-	rangeVal            = "range"
-	enum                = "enum"
-	datetimeLocalVal    = "datetime_local"
-	nodeVal             = "node"
 )
 
 func toIntSlice(a []string) ([]int, error) {
@@ -497,7 +488,7 @@ func propertiesSlice(ctx context.Context, instance interface{}, propertyTypes []
 		if idx == -1 {
 			continue
 		}
-		val, err := propertyValue(ctx, typ.Type, typ)
+		val, err := resolverutil.PropertyValue(ctx, typ.Type, typ)
 		if err != nil {
 			return nil, err
 		}
@@ -515,61 +506,11 @@ func propertiesSlice(ctx context.Context, instance interface{}, propertyTypes []
 			return nil, errors.Errorf("Property type does not exist in header: %s", propTypeName)
 		}
 		typ := propTyp.Type
-		val, err := propertyValue(ctx, typ, p)
+		val, err := resolverutil.PropertyValue(ctx, typ, p)
 		if err != nil {
 			return nil, err
 		}
 		ret[idx] = val
 	}
 	return ret, nil
-}
-
-func propertyValue(ctx context.Context, typ string, v interface{}) (string, error) {
-	switch v.(type) {
-	case *ent.PropertyType, *ent.Property:
-	default:
-		return "", errors.Errorf("invalid type: %T", v)
-	}
-	vo := reflect.ValueOf(v).Elem()
-	switch typ {
-	case emailVal, stringVal, dateVal, enum, datetimeLocalVal:
-		return vo.FieldByName("StringVal").String(), nil
-	case intVal:
-		i := vo.FieldByName("IntVal").Int()
-		return strconv.Itoa(int(i)), nil
-	case floatVal:
-		return fmt.Sprintf("%.3f", vo.FieldByName("FloatVal").Float()), nil
-	case gpsLocationVal:
-		la, lo := vo.FieldByName("LatitudeVal").Float(), vo.FieldByName("LongitudeVal").Float()
-		return fmt.Sprintf("%f", la) + ", " + fmt.Sprintf("%f", lo), nil
-	case rangeVal:
-		rf, rt := vo.FieldByName("RangeFromVal").Float(), vo.FieldByName("RangeToVal").Float()
-		return fmt.Sprintf("%.3f", rf) + " - " + fmt.Sprintf("%.3f", rt), nil
-	case boolVal:
-		return strconv.FormatBool(vo.FieldByName("BoolVal").Bool()), nil
-	case nodeVal:
-		p, ok := v.(*ent.Property)
-		if !ok {
-			return "", nil
-		}
-		var id int
-		if i, err := p.QueryEquipmentValue().OnlyID(ctx); err == nil {
-			id = i
-		}
-		if i, err := p.QueryLocationValue().OnlyID(ctx); err == nil {
-			id = i
-		}
-		if i, err := p.QueryServiceValue().OnlyID(ctx); err == nil {
-			id = i
-		}
-		if i, err := p.QueryWorkOrderValue().OnlyID(ctx); err == nil {
-			id = i
-		}
-		if i, err := p.QueryUserValue().OnlyID(ctx); err == nil {
-			id = i
-		}
-		return strconv.Itoa(id), nil
-	default:
-		return "", errors.Errorf("type not supported %s", typ)
-	}
 }

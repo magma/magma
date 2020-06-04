@@ -14,6 +14,7 @@ import (
 	"strconv"
 	"testing"
 	"time"
+	"strings"
 
 	"fbc/lib/go/radius"
 	cwfprotos "magma/cwf/cloud/go/protos"
@@ -39,6 +40,7 @@ const (
 	RedisRemote      = "REDIS"
 	CwagIP           = "192.168.70.101"
 	TrafficCltIP     = "192.168.128.2"
+	IPDRControllerIP = "192.168.40.11"
 	OCSPort          = 9201
 	PCRFPort         = 9202
 	OCSPort2         = 9205
@@ -48,8 +50,13 @@ const (
 	RedisPort        = 6380
 	DirectorydPort   = 8443
 
+        // If updating these, also update the ipfix exported hex values
 	defaultMSISDN          = "5100001234"
 	defaultCalledStationID = "98-DE-D0-84-B5-47:CWF-TP-LINK_B547_5G"
+
+	ipfixMSISDN        = "0x35313030303031323334000000000000"
+	ipfixApnMacAddress = "0x98ded084b547"
+	ipfixApnName       = "0x4357462d54502d4c494e4b5f423534375f35470000000000"
 
 	KiloBytes                = 1024
 	MegaBytes                = 1024 * KiloBytes
@@ -384,4 +391,16 @@ func makeSubscriber(imsi string, key []byte, opc []byte, seq uint64) *lteprotos.
 			ApnConfig:           []*lteprotos.APNConfiguration{&lteprotos.APNConfiguration{}},
 		},
 	}
+}
+
+// Get the Pipelined encoded version of IMSI (set in metadata register)
+func getEncodedIMSI(imsiStr string) (string, error) {
+	imsi, err := strconv.Atoi(imsiStr)
+	if err != nil {
+		return "", err
+	}
+
+    prefixLen := len(imsiStr) - len(strings.TrimLeft(imsiStr, "0"))
+    compacted := (imsi << 2) | (prefixLen & 0x3)
+	return fmt.Sprintf("0x%016x", compacted << 1 | 0x1), nil
 }

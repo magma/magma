@@ -18,7 +18,6 @@ import (
 
 	"github.com/facebookincubator/ent/dialect"
 	"github.com/facebookincubator/ent/dialect/sql"
-	"github.com/facebookincubator/symphony/graph/event"
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/graphql/resolver"
@@ -32,6 +31,7 @@ import (
 	"github.com/facebookincubator/symphony/pkg/ent/propertytype"
 	"github.com/facebookincubator/symphony/pkg/ent/serviceendpointdefinition"
 	"github.com/facebookincubator/symphony/pkg/log/logtest"
+	"github.com/facebookincubator/symphony/pkg/pubsub"
 	"github.com/facebookincubator/symphony/pkg/testdb"
 	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
 
@@ -108,7 +108,7 @@ func newResolver(t *testing.T, drv dialect.Driver) *TestExporterResolver {
 	logger := logtest.NewTestLogger(t)
 	r := resolver.New(resolver.Config{
 		Logger:     logger,
-		Subscriber: event.NewNopSubscriber(),
+		Subscriber: pubsub.NewNopSubscriber(),
 	})
 	e := exporter{logger, equipmentRower{logger}}
 	return &TestExporterResolver{r, drv, client, e}
@@ -410,7 +410,7 @@ func importLinksPortsFile(t *testing.T, client *ent.Client, r io.Reader, entity 
 	h, _ := importer.NewHandler(
 		importer.Config{
 			Logger:     logtest.NewTestLogger(t),
-			Subscriber: event.NewNopSubscriber(),
+			Subscriber: pubsub.NewNopSubscriber(),
 		},
 	)
 	th := viewertest.TestHandler(t, h, client)

@@ -19,6 +19,7 @@ import (
 	"time"
 
 	mxd_exp "magma/orc8r/cloud/go/services/metricsd/exporters"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
 	"github.com/prometheus/client_model/go"
@@ -36,6 +37,10 @@ var (
 
 // CustomPushExporter pushes metrics to one or more custom prometheus pushgateways
 type CustomPushExporter struct {
+	servicer *MetricsExporterServicer
+}
+
+type MetricsExporterServicer struct {
 	familiesByName map[string]*io_prometheus_client.MetricFamily
 	exportInterval time.Duration
 	pushAddresses  []string
@@ -49,20 +54,40 @@ func NewCustomPushExporter(pushAddresses []string) mxd_exp.Exporter {
 			pushAddresses[i] = fmt.Sprintf("http://%s", addr)
 		}
 	}
-	return &CustomPushExporter{
+	exporter := &MetricsExporterServicer{
 		familiesByName: make(map[string]*io_prometheus_client.MetricFamily),
 		exportInterval: pushInterval,
 		pushAddresses:  pushAddresses,
+	}
+	return &CustomPushExporter{
+		servicer: exporter,
 	}
 }
 
 // Submit takes in a MetricAndContext, adds labels and timestamps to the metrics
 // and stores them to be pushed later
 func (e *CustomPushExporter) Submit(metrics []mxd_exp.MetricAndContext) error {
-	e.Lock()
-	defer e.Unlock()
+	metricAndContexts := []*protos.MetricAndContext{}
+	for _, metric := range metrics {
+		metricAndContext := mxd_exp.ConvertMetricAndContextToProto(metric)
+		metricAndContexts = append(metricAndContexts, metricAndContext)
+	}
+	submitRequest := &protos.SubmitMetricsRequest{
+		Metrics: metricAndContexts,
+	}
+	_, err := e.servicer.Submit(submitRequest)
+	return err
+}
 
-	for _, metricAndContext := range metrics {
+func (e *CustomPushExporter) Start() {
+	go e.servicer.ExportEvery()
+}
+
+func (s *MetricsExporterServicer) Submit(request *protos.SubmitMetricsRequest) (*protos.Void, error) {
+	s.Lock()
+	defer s.Unlock()
+
+	for _, metricAndContext := range request.GetMetrics() {
 		// Don't register family if it has 0 metrics. Would cause prometheus scrape
 		// to fail.
 		if len(metricAndContext.Family.Metric) == 0 {
@@ -86,18 +111,14 @@ func (e *CustomPushExporter) Submit(metrics []mxd_exp.MetricAndContext) error {
 					metric.TimestampMs = &timeStamp
 				}
 			}
-			if baseFamily, ok := e.familiesByName[familyName]; ok {
+			if baseFamily, ok := s.familiesByName[familyName]; ok {
 				addMetricsToFamily(baseFamily, fam)
 			} else {
-				e.familiesByName[familyName] = fam
+				s.familiesByName[familyName] = fam
 			}
 		}
 	}
-	return nil
-}
-
-func (e *CustomPushExporter) Start() {
-	go e.exportEvery()
+	return &protos.Void{}, nil
 }
 
 // dropInvalidMetrics because invalid label names would cause the entire scrape
@@ -136,25 +157,25 @@ func familyToString(family *io_prometheus_client.MetricFamily) (string, error) {
 	return buf.String(), nil
 }
 
-func (e *CustomPushExporter) exportEvery() {
-	for range time.Tick(e.exportInterval) {
-		errs := e.pushFamilies()
-		e.resetFamilies()
+func (s *MetricsExporterServicer) ExportEvery() {
+	for range time.Tick(s.exportInterval) {
+		errs := s.pushFamilies()
+		s.resetFamilies()
 		if len(errs) > 0 {
 			glog.Errorf("error in pushing to pushgateway: %v", errs)
 		}
 	}
 }
 
-func (e *CustomPushExporter) pushFamilies() []error {
+func (s *MetricsExporterServicer) pushFamilies() []error {
 	var errs []error
-	if len(e.familiesByName) == 0 {
+	if len(s.familiesByName) == 0 {
 		return []error{}
 	}
 	builder := strings.Builder{}
 
-	e.Lock()
-	for _, fam := range e.familiesByName {
+	s.Lock()
+	for _, fam := range s.familiesByName {
 		familyString, err := familyToString(fam)
 		if err != nil {
 			errs = append(errs, err)
@@ -163,11 +184,11 @@ func (e *CustomPushExporter) pushFamilies() []error {
 		builder.WriteString(familyString)
 		builder.WriteString("\n")
 	}
-	e.Unlock()
+	s.Unlock()
 
 	body := builder.String()
 	client := http.Client{}
-	for _, address := range e.pushAddresses {
+	for _, address := range s.pushAddresses {
 		resp, err := client.Post(address, "text/plain", bytes.NewBufferString(body))
 		if err != nil {
 			errs = append(errs, fmt.Errorf("error sending request to pushgateway %s: %v", address, err))
@@ -182,8 +203,8 @@ func (e *CustomPushExporter) pushFamilies() []error {
 	return errs
 }
 
-func (e *CustomPushExporter) resetFamilies() {
-	e.familiesByName = make(map[string]*io_prometheus_client.MetricFamily)
+func (s *MetricsExporterServicer) resetFamilies() {
+	s.familiesByName = make(map[string]*io_prometheus_client.MetricFamily)
 }
 
 func makeStringPointer(str string) *string {

@@ -25,10 +25,8 @@
       "natEnabled": true,
       "relayEnabled": true,
       "apps": [],
-      "services": [
-      ],
-      "allowedGrePeers": [
-      ],
+      "services": [],
+      "allowedGrePeers": [],
       "liImsis": []
     },
     "policydb": {

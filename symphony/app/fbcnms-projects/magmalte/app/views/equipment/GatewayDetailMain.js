@@ -8,6 +8,7 @@
  * @flow strict-local
  * @format
  */
+import type {lte_gateway} from '@fbcnms/magma-api';
 
 import AccessAlarmIcon from '@material-ui/icons/AccessAlarm';
 import AppBar from '@material-ui/core/AppBar';
@@ -29,6 +30,7 @@ import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
+
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
@@ -72,10 +74,15 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export function GatewayDetail() {
+export function GatewayDetail({
+  lte_gateways,
+}: {
+  lte_gateways: {[string]: lte_gateway},
+}) {
   const classes = useStyles();
   const {relativePath, relativeUrl, match} = useRouter();
   const gatewayId: string = nullthrows(match.params.gatewayId);
+  const gw_info = lte_gateways[gatewayId];
   return (
     <>
       <div className={classes.topBar}>
@@ -146,14 +153,17 @@ export function GatewayDetail() {
       </AppBar>
 
       <Switch>
-        <Route path={relativePath('/overview')} component={GatewayOverview} />
+        <Route
+          path={relativePath('/overview')}
+          render={props => <GatewayOverview {...props} gw_info={gw_info} />}
+        />
         <Redirect to={relativeUrl('/overview')} />
       </Switch>
     </>
   );
 }
 
-function GatewayOverview() {
+function GatewayOverview({gw_info}: {gw_info: lte_gateway}) {
   const classes = useStyles();
   const {match} = useRouter();
   const gatewayId: string = nullthrows(match.params.gatewayId);
@@ -166,7 +176,7 @@ function GatewayOverview() {
             <Text>
               <CellWifiIcon /> {gatewayId}
             </Text>
-            <GatewaySummary />
+            <GatewaySummary gw_info={gw_info} />
           </Grid>
           <Grid item xs={12}>
             <Text>

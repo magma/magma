@@ -54,7 +54,10 @@
   "sessiond": {
    "@type": "type.googleapis.com/magma.mconfig.SessionD",
    "logLevel": "INFO",
-   "relayEnabled": true
+   "relayEnabled": true,
+   "walletExhaustDetection": {
+    "terminateOnExhaust": true
+   }
   },
   "aaa_server": {
    "@type": "type.googleapis.com/magma.mconfig.AAAConfig",
@@ -113,6 +116,10 @@
    "services": [
       "ENFORCEMENT"
    ],
+   "ipdrExportDst": {
+     "ip": "192.168.40.12",
+     "port": 4740
+   },
    "allowedGrePeers": [
     {"ip": "192.168.70.102"}
    ]
@@ -163,6 +170,13 @@
    },
    "requestFailureThreshold": 0.5,
    "minimumRequestThreshold": 1
+  },
+  "td-agent-bit": {
+   "@type": "type.googleapis.com/magma.mconfig.FluentBit",
+   "extraTags": {},
+   "throttleRate": 1000,
+   "throttleWindow": 5,
+   "throttleInterval": "1m"
   }
  },
  "metadata": {

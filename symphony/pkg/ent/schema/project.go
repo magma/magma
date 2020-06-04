@@ -98,6 +98,7 @@ func (Project) Policy() ent.Policy {
 		),
 		authz.WithMutationRules(
 			authz.ProjectWritePolicyRule(),
+			authz.AllowProjectCreatorWrite(),
 		),
 	)
 }

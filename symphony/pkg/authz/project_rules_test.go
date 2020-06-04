@@ -8,20 +8,14 @@ import (
 	"context"
 	"testing"
 
-	"github.com/facebookincubator/symphony/pkg/ent/user"
-
 	"github.com/facebookincubator/symphony/pkg/authz"
-	"github.com/stretchr/testify/require"
-
-	"github.com/google/uuid"
-
-	"github.com/facebookincubator/symphony/pkg/viewer"
-
-	models2 "github.com/facebookincubator/symphony/pkg/authz/models"
+	"github.com/facebookincubator/symphony/pkg/authz/models"
 	"github.com/facebookincubator/symphony/pkg/ent"
-
-	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/pkg/ent/user"
+	"github.com/facebookincubator/symphony/pkg/viewer"
 	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
+	"github.com/google/uuid"
+	"github.com/stretchr/testify/require"
 )
 
 func prepareProjectData(ctx context.Context, c *ent.Client) (*ent.ProjectType, *ent.Project) {
@@ -77,14 +71,14 @@ func TestProjectWritePolicyRule(t *testing.T) {
 		{
 			operationName: "Create",
 			appendPermissions: func(p *models.PermissionSettings) {
-				p.WorkforcePolicy.Data.Create.IsAllowed = models2.PermissionValueYes
+				p.WorkforcePolicy.Data.Create.IsAllowed = models.PermissionValueYes
 			},
 			operation: createProject,
 		},
 		{
 			operationName: "CreateWithType",
 			initialPermissions: func(p *models.PermissionSettings) {
-				p.WorkforcePolicy.Data.Create.IsAllowed = models2.PermissionValueByCondition
+				p.WorkforcePolicy.Data.Create.IsAllowed = models.PermissionValueByCondition
 				p.WorkforcePolicy.Data.Create.ProjectTypeIds = []int{projectType.ID}
 			},
 			appendPermissions: func(p *models.PermissionSettings) {
@@ -95,14 +89,14 @@ func TestProjectWritePolicyRule(t *testing.T) {
 		{
 			operationName: "Update",
 			appendPermissions: func(p *models.PermissionSettings) {
-				p.WorkforcePolicy.Data.Update.IsAllowed = models2.PermissionValueYes
+				p.WorkforcePolicy.Data.Update.IsAllowed = models.PermissionValueYes
 			},
 			operation: updateProject,
 		},
 		{
 			operationName: "UpdateWithType",
 			initialPermissions: func(p *models.PermissionSettings) {
-				p.WorkforcePolicy.Data.Update.IsAllowed = models2.PermissionValueByCondition
+				p.WorkforcePolicy.Data.Update.IsAllowed = models.PermissionValueByCondition
 				p.WorkforcePolicy.Data.Update.ProjectTypeIds = []int{projectType.ID}
 			},
 			appendPermissions: func(p *models.PermissionSettings) {
@@ -113,14 +107,14 @@ func TestProjectWritePolicyRule(t *testing.T) {
 		{
 			operationName: "Delete",
 			appendPermissions: func(p *models.PermissionSettings) {
-				p.WorkforcePolicy.Data.Delete.IsAllowed = models2.PermissionValueYes
+				p.WorkforcePolicy.Data.Delete.IsAllowed = models.PermissionValueYes
 			},
 			operation: deleteProject,
 		},
 		{
 			operationName: "DeleteWithType",
 			initialPermissions: func(p *models.PermissionSettings) {
-				p.WorkforcePolicy.Data.Delete.IsAllowed = models2.PermissionValueByCondition
+				p.WorkforcePolicy.Data.Delete.IsAllowed = models.PermissionValueByCondition
 				p.WorkforcePolicy.Data.Delete.ProjectTypeIds = []int{projectType.ID}
 			},
 			appendPermissions: func(p *models.PermissionSettings) {
@@ -141,7 +135,7 @@ func TestProjectTransferOwnershipWritePolicyRule(t *testing.T) {
 	}
 	u := viewer.MustGetOrCreateUser(ctx, "SomeUser", user.RoleUSER)
 	appendTransferOwnership := func(p *models.PermissionSettings) {
-		getCud(p).TransferOwnership.IsAllowed = models2.PermissionValueYes
+		getCud(p).TransferOwnership.IsAllowed = models.PermissionValueYes
 	}
 	createProjectWithCreator := func(ctx context.Context) error {
 		_, err := c.Project.Create().
@@ -166,16 +160,15 @@ func TestProjectTransferOwnershipWritePolicyRule(t *testing.T) {
 	tests := []policyTest{
 		{
 			operationName: "CreateWithCreator",
-			initialPermissions: func(p *models.PermissionSettings) {
-				getCud(p).Create.IsAllowed = models2.PermissionValueYes
+			appendPermissions: func(p *models.PermissionSettings) {
+				getCud(p).Create.IsAllowed = models.PermissionValueYes
 			},
-			appendPermissions: appendTransferOwnership,
-			operation:         createProjectWithCreator,
+			operation: createProjectWithCreator,
 		},
 		{
 			operationName: "UpdateWithCreator",
 			initialPermissions: func(p *models.PermissionSettings) {
-				getCud(p).Update.IsAllowed = models2.PermissionValueYes
+				getCud(p).Update.IsAllowed = models.PermissionValueYes
 			},
 			appendPermissions: appendTransferOwnership,
 			operation:         updateProjectCreator,
@@ -183,7 +176,7 @@ func TestProjectTransferOwnershipWritePolicyRule(t *testing.T) {
 		{
 			operationName: "ClearProjectCreator",
 			initialPermissions: func(p *models.PermissionSettings) {
-				getCud(p).Update.IsAllowed = models2.PermissionValueYes
+				getCud(p).Update.IsAllowed = models.PermissionValueYes
 			},
 			appendPermissions: appendTransferOwnership,
 			operation:         clearProjectCreator,
@@ -192,19 +185,40 @@ func TestProjectTransferOwnershipWritePolicyRule(t *testing.T) {
 	runPolicyTest(t, tests)
 }
 
-func TestProjectCreateWithViewerCreator(t *testing.T) {
+func TestProjectCreatorCanEditProject(t *testing.T) {
 	c := viewertest.NewTestClient(t)
 	ctx := viewertest.NewContext(context.Background(), c)
 	projectType, _ := prepareProjectData(ctx, c)
+	u2 := viewer.MustGetOrCreateUser(ctx, "AnotherUser", user.RoleUSER)
 	ctx = userContextWithPermissions(ctx, "SomeUser", func(p *models.PermissionSettings) {
-		p.WorkforcePolicy.Data.Create.IsAllowed = models2.PermissionValueYes
+		p.WorkforcePolicy.Data.Create.IsAllowed = models.PermissionValueYes
 	})
 	u := viewer.FromContext(ctx).(*viewer.UserViewer).User()
-	_, err := c.Project.Create().
+	proj, err := c.Project.Create().
 		SetName("NewProject").
 		SetType(projectType).
 		SetCreator(u).
 		Save(ctx)
+	require.NoError(t, err)
+	err = c.Project.UpdateOne(proj).
+		SetName("NewName").
+		Exec(ctx)
+	require.NoError(t, err)
+	err = c.Project.UpdateOne(proj).
+		SetCreator(u2).
+		Exec(ctx)
+	require.NoError(t, err)
+	err = c.Project.DeleteOne(proj).
+		Exec(ctx)
+	require.Error(t, err)
+	proj2, err := c.Project.Create().
+		SetName("NewProject2").
+		SetType(projectType).
+		SetCreator(u).
+		Save(ctx)
+	require.NoError(t, err)
+	err = c.Project.DeleteOne(proj2).
+		Exec(ctx)
 	require.NoError(t, err)
 }
 
@@ -218,7 +232,7 @@ func TestProjectCreatorUnchangedWritePolicyRule(t *testing.T) {
 		SetCreatorID(u.ID).
 		ExecX(ctx)
 	permissions := authz.EmptyPermissions()
-	permissions.WorkforcePolicy.Data.Update.IsAllowed = models2.PermissionValueYes
+	permissions.WorkforcePolicy.Data.Update.IsAllowed = models.PermissionValueYes
 	ctx = viewertest.NewContext(
 		context.Background(),
 		c,
@@ -289,7 +303,7 @@ func TestProjectReadPolicyRule(t *testing.T) {
 	})
 	t.Run("PartialPermissions", func(t *testing.T) {
 		permissions := authz.EmptyPermissions()
-		permissions.WorkforcePolicy.Read.IsAllowed = models2.PermissionValueByCondition
+		permissions.WorkforcePolicy.Read.IsAllowed = models.PermissionValueByCondition
 		permissions.WorkforcePolicy.Read.ProjectTypeIds = []int{projectType.ID}
 		permissionsContext := viewertest.NewContext(
 			context.Background(),
@@ -303,7 +317,7 @@ func TestProjectReadPolicyRule(t *testing.T) {
 	})
 	t.Run("FullPermissions", func(t *testing.T) {
 		permissions := authz.EmptyPermissions()
-		permissions.WorkforcePolicy.Read.IsAllowed = models2.PermissionValueYes
+		permissions.WorkforcePolicy.Read.IsAllowed = models.PermissionValueYes
 		permissionsContext := viewertest.NewContext(
 			context.Background(),
 			c,
@@ -325,7 +339,7 @@ func TestProjectOfWorkOrderReadPolicyRule(t *testing.T) {
 		AddWorkOrders(workOrder).
 		ExecX(ctx)
 	permissions := authz.EmptyPermissions()
-	permissions.WorkforcePolicy.Read.IsAllowed = models2.PermissionValueByCondition
+	permissions.WorkforcePolicy.Read.IsAllowed = models.PermissionValueByCondition
 	permissions.WorkforcePolicy.Read.WorkOrderTypeIds = []int{workOrderType.ID}
 	permissionsContext := viewertest.NewContext(
 		context.Background(),
@@ -395,7 +409,7 @@ func TestWorkOrderDefinitionWritePolicyRule(t *testing.T) {
 	}
 	runCudPolicyTest(t, cudPolicyTest{
 		appendPermissions: func(p *models.PermissionSettings) {
-			p.WorkforcePolicy.Templates.Update.IsAllowed = models2.PermissionValueYes
+			p.WorkforcePolicy.Templates.Update.IsAllowed = models.PermissionValueYes
 		},
 		create: createItem,
 		update: updateItem,

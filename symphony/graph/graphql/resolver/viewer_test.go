@@ -8,14 +8,12 @@ import (
 	"context"
 	"testing"
 
-	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/pkg/authz"
+	"github.com/facebookincubator/symphony/pkg/authz/models"
 	"github.com/facebookincubator/symphony/pkg/ent/user"
 	"github.com/facebookincubator/symphony/pkg/viewer"
 	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
 	"github.com/stretchr/testify/require"
-
-	models2 "github.com/facebookincubator/symphony/pkg/authz/models"
 )
 
 func TestUserViewer(t *testing.T) {
@@ -28,7 +26,7 @@ func TestUserViewer(t *testing.T) {
 	r.client.User.UpdateOne(v.User()).SetRole(user.RoleUSER).ExecX(ctx)
 	permissions, err := vr.Permissions(ctx, v)
 	require.NoError(t, err)
-	require.Equal(t, &models.BasicPermissionRule{IsAllowed: models2.PermissionValueNo}, permissions.AdminPolicy.Access)
+	require.Equal(t, &models.BasicPermissionRule{IsAllowed: models.PermissionValueNo}, permissions.AdminPolicy.Access)
 	require.False(t, permissions.CanWrite)
 }
 
@@ -47,7 +45,7 @@ func TestUserViewerInWriteGroup(t *testing.T) {
 
 	permissions, err := vr.Permissions(ctx, v)
 	require.NoError(t, err)
-	require.Equal(t, &models.BasicPermissionRule{IsAllowed: models2.PermissionValueNo}, permissions.AdminPolicy.Access)
+	require.Equal(t, &models.BasicPermissionRule{IsAllowed: models.PermissionValueNo}, permissions.AdminPolicy.Access)
 	require.True(t, permissions.CanWrite)
 }
 
@@ -61,7 +59,7 @@ func TestAdminViewer(t *testing.T) {
 	r.client.User.UpdateOne(v.User()).SetRole(user.RoleADMIN).ExecX(ctx)
 	permissions, err := vr.Permissions(ctx, v)
 	require.NoError(t, err)
-	require.Equal(t, &models.BasicPermissionRule{IsAllowed: models2.PermissionValueYes}, permissions.AdminPolicy.Access)
+	require.Equal(t, &models.BasicPermissionRule{IsAllowed: models.PermissionValueYes}, permissions.AdminPolicy.Access)
 	require.False(t, permissions.CanWrite)
 }
 
