@@ -130,9 +130,9 @@ typedef struct itti_s11_nw_init_deactv_bearer_rsp_s {
   teid_t s_gw_teid_s11_s4;
 } itti_s11_nw_init_deactv_bearer_rsp_t;
 
-
 //-------------
-
+/** typedef edns peer ip instead of defining it multiple times for each message.
+ */
 typedef union {
     struct sockaddr_in
         addr_v4;  ///< MME ipv4 address for S-GW or S-GW ipv4 address for MME

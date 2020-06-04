@@ -62,7 +62,6 @@ typedef struct msc_private_s {
   uint32_t                                message_bin_size;
 } msc_private_t;
 
-
 // Access stratum
 #define MSC_AS_TIME_FMT "%05u:%02u"
 
