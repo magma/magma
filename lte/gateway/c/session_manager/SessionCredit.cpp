@@ -16,7 +16,6 @@
 namespace magma {
 
 float SessionCredit::USAGE_REPORTING_THRESHOLD = 0.8;
-uint64_t SessionCredit::EXTRA_QUOTA_MARGIN = 1024;
 bool SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED = true;
 std::string final_action_to_str(ChargingCredit_FinalAction final_action);
 std::string service_state_to_str(ServiceState state);
@@ -225,8 +224,7 @@ void SessionCredit::log_quota_and_usage() const {
                << " Total: " << buckets_[REPORTED_RX] + buckets_[REPORTED_TX];
 }
 
-bool SessionCredit::is_quota_exhausted(float usage_reporting_threshold,
-                                       uint64_t extra_quota_margin) const {
+bool SessionCredit::is_quota_exhausted(float usage_reporting_threshold) const {
   // used quota since last report
   uint64_t total_reported_usage = buckets_[REPORTED_TX] + buckets_[REPORTED_RX];
   uint64_t total_usage_since_report =
@@ -239,7 +237,6 @@ bool SessionCredit::is_quota_exhausted(float usage_reporting_threshold,
 
   // available quota since last report
   auto total_usage_reporting_threshold =
-      extra_quota_margin +
       std::max(0.0f, (buckets_[ALLOWED_TOTAL] - total_reported_usage) *
                          usage_reporting_threshold);
 
@@ -247,11 +244,9 @@ bool SessionCredit::is_quota_exhausted(float usage_reporting_threshold,
   // because some OCS/PCRF might not track tx/rx,
   // and 0 is added to the allowed credit when an credit update is received
   auto tx_usage_reporting_threshold =
-      extra_quota_margin +
       std::max(0.0f, (buckets_[ALLOWED_TX] - buckets_[REPORTED_TX]) *
                          usage_reporting_threshold);
   auto rx_usage_reporting_threshold =
-      extra_quota_margin +
       std::max(0.0f, (buckets_[ALLOWED_RX] - buckets_[REPORTED_RX]) *
                          usage_reporting_threshold);
 
@@ -284,20 +279,10 @@ bool SessionCredit::should_deactivate_service() const {
     return false;
   }
   if (is_final_grant_ && is_quota_exhausted()) {
-    // If we've exhausted the last grant, we should terminate
+    // We only terminate when we receive a Final Unit Indication (final Grant)
+    // and we've exhausted all quota
     MLOG(MINFO) << "Terminating service because we have exhausted the given "
                 << "quota and it is the final grant";
-    return true;
-  }
-  if (is_quota_exhausted(1, SessionCredit::EXTRA_QUOTA_MARGIN)) {
-    MLOG(MINFO) << "Terminating service because we have exhausted the "
-                << "given quota AND the extra quota margin="
-                << SessionCredit::EXTRA_QUOTA_MARGIN;
-    // extra quota margin is configured in sessiond.yml
-    // We will terminate if we've exceeded (given quota + extra quota margin).
-    // If the gateway loses connection to the reporter, we should not allow the
-    // UE to use internet for too long. This quota should be reasonably big so
-    // that we don't terminate the session too easily.
     return true;
   }
   return false;
@@ -315,7 +300,7 @@ CreditUpdateType SessionCredit::get_update_type() const {
   } else if (is_final_grant_ && is_quota_exhausted()) {
     // Don't request updates if there's no quota left
     return CREDIT_NO_UPDATE;
-  } else if (is_quota_exhausted(SessionCredit::USAGE_REPORTING_THRESHOLD, 0)) {
+  } else if (is_quota_exhausted(SessionCredit::USAGE_REPORTING_THRESHOLD)) {
     return CREDIT_QUOTA_EXHAUSTED;
   } else if (validity_timer_expired()) {
     return CREDIT_VALIDITY_TIMER_EXPIRED;

@@ -16,9 +16,6 @@ rule_update_inteval_sec: 1
 # completely uses up the quota.
 usage_reporting_threshold: 0.8
 
-# Extra number of bytes an user could use after the quota is exhausted
-extra_quota_margin: 1024
-
 # Set to true to terminate service when the quota of a session is exhausted.
 # An user can still use up to the extra margin.
 # Set to false to allow users to use without any constraint.
