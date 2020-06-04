@@ -7,8 +7,7 @@ RUN mkdir -p /magma/build/ && \
     mkdir -p /build/c
 
 # Add Converged MME sources to the container
-COPY converged-mme /magma
-COPY patch_libfluid.sh /
+COPY ./ /magma
 
 RUN apt-get update && \
     apt-get -y install autoconf automake libtool wget curl make g++ unzip git \
@@ -210,7 +209,9 @@ RUN apt-get -y install libunwind8-dev libelf-dev libdwarf-dev bzip2 && \
 #     git -C libfluid_base checkout $LIBFLUID_BASE_COMMIT
 # RUN git clone https://github.com/OpenNetworkingFoundation/libfluid_msg.git && \
 #     git -C libfluid_msg checkout $LIBFLUID_MSG_COMMIT
+# TODO(119vik): (move patch_libfluid.sh in to main magma repo third_party folder)
 # COPY patch_libfluid.sh /patch_libfluid.sh
+# COPY patch_libfluid.sh /
 # RUN . /patch_libfluid.sh
 
 RUN ldconfig && \
