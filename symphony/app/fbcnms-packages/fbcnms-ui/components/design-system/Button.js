@@ -64,6 +64,7 @@ const useStyles = makeStyles(_theme => ({
   greenSkin: {},
   regularSkin: {},
   graySkin: {},
+  secondaryGraySkin: {},
   disabled: {},
   containedVariant: {
     height: '32px',
@@ -160,6 +161,27 @@ const useStyles = makeStyles(_theme => ({
         },
       },
     },
+    '&$secondaryGraySkin': {
+      backgroundColor: symphony.palette.background,
+      '&:not($disabled)': {
+        '& $buttonText, $icon': {
+          color: symphony.palette.D500,
+          fill: symphony.palette.D500,
+        },
+      },
+      '&:hover:not($disabled)': {
+        '& $buttonText, $icon': {
+          color: symphony.palette.D900,
+          fill: symphony.palette.D900,
+        },
+      },
+      '&:active:not($disabled)': {
+        '& $buttonText, $icon': {
+          color: symphony.palette.B700,
+          fill: symphony.palette.B700,
+        },
+      },
+    },
     '&$disabled': {
       cursor: 'default',
       backgroundColor: symphony.palette.disabled,
@@ -169,7 +191,9 @@ const useStyles = makeStyles(_theme => ({
       },
     },
   },
-  buttonText: {},
+  buttonText: {
+    display: 'flex',
+  },
   textVariant: {
     display: 'inline-flex',
     textAlign: 'left',
@@ -253,6 +277,26 @@ const useStyles = makeStyles(_theme => ({
         },
       },
     },
+    '&$secondaryGraySkin': {
+      '&:not($disabled)': {
+        '& $buttonText, $icon': {
+          color: symphony.palette.D500,
+          fill: symphony.palette.D500,
+        },
+      },
+      '&:hover:not($disabled)': {
+        '& $buttonText, $icon': {
+          color: symphony.palette.D900,
+          fill: symphony.palette.D900,
+        },
+      },
+      '&:active:not($disabled)': {
+        '& $buttonText, $icon': {
+          color: symphony.palette.primary,
+          fill: symphony.palette.primary,
+        },
+      },
+    },
     '&$disabled': {
       cursor: 'default',
       '& $buttonText, $icon': {
@@ -269,6 +313,7 @@ export type ButtonSkin =
   | 'regular'
   | 'red'
   | 'gray'
+  | 'secondaryGray'
   | 'orange'
   | 'green';
 type SvgIcon = React$ComponentType<SvgIconExports>;
