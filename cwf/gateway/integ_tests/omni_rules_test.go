@@ -107,7 +107,7 @@ func TestOmnipresentRules(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Contains(t, raa.SessionId, "IMSI"+imsi)
 	fmt.Printf("RAA result code=%v, should be=%v\n", int(raa.ResultCode), diam.Success)
-	//assert.Equal(t, uint32(diam.Success), raa.ResultCode)
+	//assert.Equal(t, diam.Success, int(raa.ResultCode))
 
 	// With all monitored rules gone, the session should terminate
 	recordsBySubID, err = tr.GetPolicyUsage()
