@@ -1,0 +1,218 @@
+FROM ubuntu:bionic
+ENV MAGMA_ROOT=/magma
+ENV FEATURES=mme
+ENV C_BUILD=/build/c
+
+RUN mkdir -p /magma/build/ && \
+    mkdir -p /build/c
+
+# Add Converged MME sources to the container
+COPY converged-mme /magma
+COPY patch_libfluid.sh /
+
+RUN apt-get update && \
+    apt-get -y install autoconf automake libtool wget curl make g++ unzip git \
+    build-essential autoconf libtool pkg-config gcc-6 g++-6 apt-transport-https \
+    ca-certificates gnupg software-properties-common wget apt-utils vim \
+    libssl-dev ninja-build golang python2.7 automake perl libgmp3-dev && \
+    ln -s /usr/bin/python2.7 /usr/local/bin/python && \
+    update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 10 && \
+    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-7 10 && \
+    update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-6 20 && \
+    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-6 20
+
+##### CMake
+RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | apt-key add - && \
+    apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main' && \
+    apt-get update && \
+    apt-get -y install cmake
+
+##### GRPC
+RUN git clone --recurse-submodules -b v1.15.0 https://github.com/grpc/grpc 
+
+# Install c-ares
+RUN  cd grpc && \
+    cd third_party/cares/cares && \
+    git fetch origin && \
+    git checkout cares-1_13_0 && \
+    mkdir -p cmake/build && \
+    cd cmake/build && \
+    cmake -DCMAKE_BUILD_TYPE=Release ../.. && \
+    make -j4 && \
+    make install && \
+    cd ../../../../.. && \
+    rm -rf third_party/cares/cares  # wipe out to prevent influencing the grpc build
+
+# Install zlib
+RUN  cd grpc && \
+    cd third_party/zlib && \
+    mkdir -p cmake/build && \
+    cd cmake/build && \
+    cmake -DCMAKE_BUILD_TYPE=Release ../.. && \
+    make -j4 && \
+    make install && \
+    cd ../../../.. && \
+    rm -rf third_party/zlib  # wipe out to prevent influencing the grpc build
+
+# # Install protobuf
+RUN  cd grpc && \
+    cd third_party/protobuf && \
+    git submodule update --init --recursive  && \
+    ./autogen.sh  && \
+    ./configure  && \
+    make -j4 && \
+    make install && \
+    cd ../.. && \
+    rm -rf third_party/protobuf && \
+    ldconfig
+
+# Install grpc
+RUN cd grpc && \
+    mkdir -p cmake/build && \
+    cd cmake/build && \
+    cmake \
+        -DgRPC_INSTALL=ON \
+        -DBUILD_SHARED_LIBS=ON \
+        -DgRPC_BUILD_TESTS=OFF \
+        -DgRPC_PROTOBUF_PROVIDER=package \
+        -DgRPC_ZLIB_PROVIDER=package \
+        -DgRPC_CARES_PROVIDER=package \
+        -DgRPC_SSL_PROVIDER=package \
+        -DCMAKE_BUILD_TYPE=Release \
+        ../.. && \
+    make -j4 && \
+    make install
+
+##### Prometeus CPP
+RUN wget -qO- https://repos.influxdata.com/influxdb.key | apt-key add - 
+RUN ["/bin/bash", "-c", "source /etc/lsb-release && echo \"deb https://repos.influxdata.com/${DISTRIB_ID,,} ${DISTRIB_CODENAME} stable\" | tee /etc/apt/sources.list.d/influxdb.list"]
+RUN apt-get update && \
+    apt-get -y install telegraf && \
+    git clone https://github.com/jupp0r/prometheus-cpp.git && \
+    cd prometheus-cpp && \
+    git checkout 57f4ce18bec8ed4f9d8ba262078693d583d5b369 && \
+    git submodule init && git submodule update && \
+    mkdir _build && \
+    cd _build/ && \
+    cmake .. && \
+    make -j4 && \
+    make install
+
+##### REDIS-ccp
+RUN git clone https://github.com/cpp-redis/cpp_redis.git && \
+    cd cpp_redis && \
+    git checkout bbe38a7f83de943ffcc90271092d689ae02b3489 && \
+    git submodule init && git submodule update && \
+    mkdir build && cd build && \
+    cmake .. -DCMAKE_BUILD_TYPE=Release && \
+    make -j4 && \
+    make install
+
+##### NETTLE
+RUN apt-get install -y libgoogle-glog-dev libconfig-dev libxml2-dev libyaml-cpp-dev nlohmann-json-dev && \
+    wget https://ftp.gnu.org/gnu/nettle/nettle-2.5.tar.gz && \
+    tar -xf nettle-2.5.tar.gz && \
+    cd nettle-2.5 && \
+    mkdir build && \
+    cd build/ && \
+    ../configure  && \
+    make -j4 && \
+    make install 
+
+##### liblfds
+# https://www.liblfds.org/mediawiki/index.php?title=r7.1.0:Building_Guide_(liblfds)
+RUN wget https://liblfds.org/downloads/liblfds%20release%207.1.0%20source.tar.bz2  && \
+    tar -xf liblfds\ release\ 7.1.0\ source.tar.bz2  && \
+    cd liblfds/liblfds7.1.0/liblfds710/build/gcc_gnumake/ && \
+    make -j4 && \
+    make ar_install
+
+##### libgtpnl
+# review https://github.com/OPENAIRINTERFACE/openair-cn/blob/master/build/tools/build_helper.gtpnl
+RUN apt-get -y install libmnl-dev && \
+    git clone git://git.osmocom.org/libgtpnl && \
+    cd libgtpnl && \
+    git reset --hard 345d687 && \
+    autoreconf -fi && \
+    ./configure && \
+    make -j10 && \
+    make install && \
+    ldconfig
+
+#####  asn1c
+RUN git clone https://gitlab.eurecom.fr/oai/asn1c.git && \
+    cd asn1c && \
+    ./configure && \
+    make -j4 && \
+    make install
+
+##### FreeDiameter
+RUN apt-get -y install libsctp1 \
+    libsctp-dev \
+    libgnutls28-dev \
+    libgcrypt-dev \
+    bison \
+    flex \
+    libidn11-dev && \
+    git clone https://github.com/OPENAIRINTERFACE/openair-cn.git && \
+    GIT_SSL_NO_VERIFY=true git clone https://gitlab.eurecom.fr/oai/freediameter.git -b eurecom-1.2.0 && \
+    cd freediameter && \
+    patch -p1 < /openair-cn/src/s6a/freediameter/freediameter_eurecom-1.2.0_0001-S6a-dictionary-add-CLR-Flags.patch && \
+    mkdir build && \
+    cd build && \
+    cmake ../ && \
+    make -j4 && \
+    make install
+
+##### Facebook Folly C++ lib
+RUN apt-get -y install \
+    libboost-all-dev \
+    libevent-dev \
+    libdouble-conversion-dev \
+    libgoogle-glog-dev \
+    libgflags-dev \
+    libiberty-dev \
+    liblz4-dev \
+    liblzma-dev \
+    libsnappy-dev \
+    binutils-dev \
+    libjemalloc-dev \
+    libssl-dev \
+    pkg-config \
+    libunwind-dev
+
+### FMT required for folly
+RUN apt-get -y install libunwind8-dev libelf-dev libdwarf-dev bzip2 && \
+    git clone https://github.com/fmtlib/fmt.git && cd fmt && \
+    mkdir _build && cd _build && \
+    cmake .. && \
+    make -j4 && \
+    make install && \
+    cd / && \
+    git clone https://github.com/facebook/folly && cd folly && \
+    git checkout 7c996f43bc368cd9b7e91f5bff0594a72db4fd3a && \
+    mkdir _build && \
+    cd _build && \
+    cmake -DBUILD_SHARED_LIBS=ON -Wno-dev .. && \
+    make -j4 && \
+    make install
+
+### Following  is required to build MME with OVS support
+# WARNING!!! for the moment it'snot working well cause libfluid linked with Ubuntu incorrectly 
+# ENV FEATURES=agw_of
+# RUN git clone https://github.com/facebookincubator/magma.git /fb_magma
+# Clone repos and checkout latest commit
+# ENV LIBFLUID_BASE_COMMIT=56df5e20c49387ab8e6b5cd363c6c10d309f263e
+# Latest master commit with fixes passed v0.1.0
+# ENV LIBFLUID_MSG_COMMIT=71a4fccdedfabece730082fbe87ef8ae5f92059f
+# ENV SCRIPT_DIR=/fb_magma/third_party/libfluid
+# RUN git clone https://github.com/OpenNetworkingFoundation/libfluid_base.git && \
+#     git -C libfluid_base checkout $LIBFLUID_BASE_COMMIT
+# RUN git clone https://github.com/OpenNetworkingFoundation/libfluid_msg.git && \
+#     git -C libfluid_msg checkout $LIBFLUID_MSG_COMMIT
+# COPY patch_libfluid.sh /patch_libfluid.sh
+# RUN . /patch_libfluid.sh
+
+RUN ldconfig && \
+    cd /magma/lte/gateway && \
+    make build_oai
