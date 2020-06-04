@@ -444,8 +444,18 @@ int itti_send_msg_to_task(
       /*
        * Enqueue message in destination task queue
        */
-      lfds710_queue_bmm_enqueue(
-        &itti_desc.tasks[destination_task_id].message_queue, NULL, new);
+
+      if (!lfds710_queue_bmm_enqueue(
+              &itti_desc.tasks[destination_task_id].message_queue, NULL, new)) {
+        OAILOG_ERROR(
+            LOG_ITTI, "Task queue is full; cannot send message %s from thread %s to thread %s",
+            itti_desc.messages_info[message_id].name,
+            itti_get_task_name(origin_task_id),
+            itti_desc.tasks_info[destination_thread_id].name);
+        itti_free(origin_task_id, message);
+        itti_free(origin_task_id, new);
+        return 0;
+      }
 
       /*
         * Only use event fd for tasks, subtasks will pool the queue
