@@ -103,7 +103,18 @@ class MagmaService(Service303Servicer):
         self._version = '0.0.0'
         # Load the service version if available
         try:
-            self._version = pkg_resources.get_distribution('orc8r').version
+            # Check if service on docker
+            if self._config and 'init_system' in self._config \
+                    and self._config['init_system'] == 'docker':
+                # image comes in form of "feg_gateway_python:<IMAGE_TAG>\n"
+                # Skip the "feg_gateway_python:" part
+                image = os.popen(
+                    'docker ps --filter name=magmad --format "{{.Image}}" | '
+                    'cut -d ":" -f 2')
+                image_tag = image.read().strip('\n')
+                self._version = image_tag
+            else:
+                self._version = pkg_resources.get_distribution('orc8r').version
         except pkg_resources.ResolutionError as e:
             logging.info(e)
 
