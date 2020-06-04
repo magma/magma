@@ -15,6 +15,7 @@ import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import DashboardIcon from '@material-ui/icons/Dashboard';
+import GatewayLogs from './GatewayLogs';
 import GatewaySummary from './GatewaySummary';
 import GraphicEqIcon from '@material-ui/icons/GraphicEq';
 import Grid from '@material-ui/core/Grid';
@@ -80,6 +81,7 @@ export function GatewayDetail({
   lteGateways: {[string]: lte_gateway},
 }) {
   const classes = useStyles();
+  const [tabPos, setTabPos] = React.useState(0);
   const {relativePath, relativeUrl, match} = useRouter();
   const gatewayId: string = nullthrows(match.params.gatewayId);
   const gwInfo = lteGateways[gatewayId];
@@ -95,7 +97,8 @@ export function GatewayDetail({
         <Grid container>
           <Grid item xs={6}>
             <Tabs
-              value={0}
+              value={tabPos}
+              onChange={(event, v) => setTabPos(v)}
               indicatorColor="primary"
               TabIndicatorProps={{style: {height: '5px'}}}
               textColor="inherit"
@@ -118,7 +121,7 @@ export function GatewayDetail({
                 key="Log"
                 component={NestedRouteLink}
                 label={<LogTabLabel />}
-                to="/log"
+                to="/logs"
                 className={classes.tab}
               />
               <Tab
@@ -157,6 +160,7 @@ export function GatewayDetail({
           path={relativePath('/overview')}
           render={() => <GatewayOverview gwInfo={gwInfo} />}
         />
+        <Route path={relativePath('/logs')} component={GatewayLogs} />
         <Redirect to={relativeUrl('/overview')} />
       </Switch>
     </>
