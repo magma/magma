@@ -132,7 +132,7 @@ coverage: ## Generate full code coverage report
 	rm -f `find $(OAI_BUILD) -name *.gcda`
 	rm -f `find $(C_BUILD)/session_manager -name *.gcda`
 	# Stop processes to generate gcda
-	sudo pkill -USR1 mme
+	sudo service magma@mme stop
 	sudo pkill -INT sessiond
 	# Wait for gcov output to be generated
 	@echo "Waiting for $(SLEEP_SECS) for gcov to write files"
@@ -150,20 +150,7 @@ coverage: ## Generate full code coverage report
 
 coverage_oai: ## Generate code coverage report for OAI
 	rm -f `find $(OAI_BUILD) -name *.gcda`
-	sudo pkill -USR1 mme
-	@echo "Waiting for $(SLEEP_SECS) for gcov to write files"
-	sleep $(SLEEP_SECS)
-	lcov --capture --directory $(OAI_BUILD) --output-file $(COV_OUTPUT_OAI)
-	lcov --remove $(COV_OUTPUT_OAI) '/usr/include/*' '/usr/local/include/*' -o $(COV_OUTPUT_OAI) --quiet
-	genhtml $(COV_OUTPUT_OAI) --output-directory $(COV_HTML_DIR_OAI)
-	@echo "Generated coverage output to $(COV_HTML_DIR_OAI)/index.html"
-
-coverage_oai_terminate: ## Generate code coverage report for OAI
-	rm -f `find $(OAI_BUILD) -name *.gcda`
-	# Stop the magma services for graceful termination so that coverage
-	# includes cleanup function calls also and memory leak summary can be
-	# dumped in the syslog by LeakSanitizer
-	sudo service magma@* stop
+	sudo service magma@mme stop
 	@echo "Waiting for $(SLEEP_SECS) for gcov to write files"
 	sleep $(SLEEP_SECS)
 	lcov --capture --directory $(OAI_BUILD) --output-file $(COV_OUTPUT_OAI)
