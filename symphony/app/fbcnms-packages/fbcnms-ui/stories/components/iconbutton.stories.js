@@ -20,6 +20,7 @@ const IconButtonsRoot = () => {
     <div>
       <IconButton icon={AddIcon} onClick={onClick} />
       <IconButton icon={AddIcon} skin="gray" onClick={onClick} />
+      <IconButton icon={AddIcon} skin="secondaryGray" onClick={onClick} />
       <IconButton icon={AddIcon} disabled={true} onClick={onClick} />
     </div>
   );

@@ -19,6 +19,10 @@ type propertyTypeResolver struct{}
 func (propertyTypeResolver) Type(_ context.Context, obj *ent.PropertyType) (models.PropertyKind, error) {
 	return models.PropertyKind(obj.Type), nil
 }
+func (propertyTypeResolver) RawValue(ctx context.Context, propertyType *ent.PropertyType) (*string, error) {
+	raw, err := resolverutil.PropertyValue(ctx, propertyType.Type, propertyType)
+	return &raw, err
+}
 
 type propertyResolver struct{}
 

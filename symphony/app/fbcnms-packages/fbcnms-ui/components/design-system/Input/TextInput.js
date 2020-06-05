@@ -21,6 +21,7 @@ import {useCallback, useContext, useMemo, useState} from 'react';
 
 export const KEYBOARD_KEYS = {
   CODES: {
+    BACKSPACE: 8,
     ENTER: 13,
     ESC: 27,
   },
@@ -41,7 +42,7 @@ const useStyles = makeStyles(() => ({
     border: `1px solid ${symphony.palette.D100}`,
     borderRadius: '4px',
     display: 'flex',
-    height: '32px',
+    minHeight: '32px',
     boxSizing: 'border-box',
     backgroundColor: symphony.palette.white,
     '&$hasFocus': {
@@ -77,8 +78,11 @@ const useStyles = makeStyles(() => ({
     border: 0,
     outline: 0,
     background: 'transparent',
+    minWidth: '48px',
+    flexBasis: '48px',
     flexGrow: 1,
-    width: '100%',
+    flexShrink: 1,
+    padding: '5px 8px',
     ...symphony.typography.body2,
     '&::placeholder': {
       color: symphony.palette.D400,
@@ -86,12 +90,6 @@ const useStyles = makeStyles(() => ({
   },
   multilineInput: {
     resize: 'none',
-  },
-  prefix: {
-    display: 'flex',
-    alignItems: 'center',
-    marginRight: '8px',
-    marginLeft: '4px',
   },
   hint: {
     paddingTop: '4px',
@@ -142,6 +140,7 @@ type Props = {
   type?: string,
   value?: string | number,
   className?: string,
+  containerClassName?: string,
   placeholder?: string,
   rows?: number,
   autoFocus?: boolean,
@@ -156,11 +155,13 @@ type Props = {
   onBlur?: FocusEventFn<HTMLInputElement>,
   onEnterPressed?: (e: KeyboardEvent) => void,
   onEscPressed?: (e: KeyboardEvent) => void,
+  onBackspacePressed?: (e: KeyboardEvent) => void,
 };
 
 function TextInput(props: Props, forwardedRef: TRefFor<HTMLInputElement>) {
   const {
     className,
+    containerClassName,
     hasError: hasErrorProp,
     disabled: disabledProp,
     prefix,
@@ -172,6 +173,7 @@ function TextInput(props: Props, forwardedRef: TRefFor<HTMLInputElement>) {
     onChange,
     onEnterPressed,
     onEscPressed,
+    onBackspacePressed,
     type,
     rows = 2,
     isProcessing = false,
@@ -222,9 +224,12 @@ function TextInput(props: Props, forwardedRef: TRefFor<HTMLInputElement>) {
         case KEYBOARD_KEYS.CODES.ESC:
           onEscPressed && onEscPressed(e);
           break;
+        case KEYBOARD_KEYS.CODES.BACKSPACE:
+          onBackspacePressed && onBackspacePressed(e);
+          break;
       }
     },
-    [onEnterPressed, onEscPressed],
+    [onEnterPressed, onEscPressed, onBackspacePressed],
   );
 
   const isMultiline = useMemo(() => type === 'multiline', [type]);
@@ -232,14 +237,18 @@ function TextInput(props: Props, forwardedRef: TRefFor<HTMLInputElement>) {
   return (
     <div className={classNames(classes.root, className)}>
       <div
-        className={classNames(classes.inputContainer, {
-          [classes.multilineInputContainer]: isMultiline,
-          [classes.hasFocus]: hasFocus,
-          [classes.disabled]: disabled,
-          [classes.hasError]: hasError,
-        })}>
+        className={classNames(
+          classes.inputContainer,
+          {
+            [classes.multilineInputContainer]: isMultiline,
+            [classes.hasFocus]: hasFocus,
+            [classes.disabled]: disabled,
+            [classes.hasError]: hasError,
+          },
+          containerClassName,
+        )}>
         <InputContext.Provider value={{disabled, value: value ?? ''}}>
-          {prefix && <div className={classes.prefix}>{prefix}</div>}
+          {prefix}
           {isMultiline ? (
             <textarea
               {...rest}

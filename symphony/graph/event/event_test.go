@@ -6,7 +6,6 @@ package event
 
 import (
 	"context"
-	"testing"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/symphony/pkg/ent"
@@ -14,12 +13,11 @@ import (
 	"github.com/facebookincubator/symphony/pkg/ent/migrate"
 	"github.com/facebookincubator/symphony/pkg/log"
 	"github.com/facebookincubator/symphony/pkg/log/logtest"
+	"github.com/facebookincubator/symphony/pkg/pubsub"
 	"github.com/facebookincubator/symphony/pkg/testdb"
 	"github.com/facebookincubator/symphony/pkg/viewer"
 	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
-	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	"gocloud.dev/gcerrors"
 )
 
 type eventTestSuite struct {
@@ -28,7 +26,7 @@ type eventTestSuite struct {
 	logger     log.Logger
 	client     *ent.Client
 	user       *ent.User
-	subscriber Subscriber
+	subscriber pubsub.Subscriber
 }
 
 func (s *eventTestSuite) SetupSuite(opts ...viewertest.Option) {
@@ -45,35 +43,6 @@ func (s *eventTestSuite) SetupSuite(opts ...viewertest.Option) {
 	s.logger = logtest.NewTestLogger(s.T())
 
 	eventer := Eventer{Logger: s.logger}
-	eventer.Emitter, s.subscriber = Pipe()
+	eventer.Emitter, s.subscriber = pubsub.Pipe()
 	eventer.HookTo(s.client)
-}
-
-func TestPipe(t *testing.T) {
-	emitter, subscriber := Pipe()
-	require.NotNil(t, emitter)
-	require.NotNil(t, subscriber)
-	ctx := context.Background()
-	subscription, err := subscriber.Subscribe(ctx)
-	require.NoError(t, err)
-
-	err = emitter.Emit(ctx, t.Name(), t.Name(), nil)
-	require.NoError(t, err)
-	msg, err := subscription.Receive(ctx)
-	require.NoError(t, err)
-	require.Equal(t, t.Name(), msg.Metadata[TenantHeader])
-	require.Equal(t, t.Name(), msg.Metadata[NameHeader])
-	require.Empty(t, msg.Body)
-
-	err = emitter.Shutdown(ctx)
-	require.NoError(t, err)
-	err = emitter.Emit(ctx, t.Name(), t.Name(), nil)
-	require.Error(t, err)
-
-	err = subscriber.Shutdown(ctx)
-	require.NoError(t, err)
-	_, err = subscriber.Subscribe(ctx)
-	require.Error(t, err)
-	err = subscription.Shutdown(ctx)
-	require.Equal(t, gcerrors.FailedPrecondition, gcerrors.Code(err))
 }

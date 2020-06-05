@@ -115,6 +115,28 @@ const ButtonsRoot = () => {
           Default
         </Button>
       </div>
+      <div
+        className={classNames(classes.container, classes.grayButtonContainer)}>
+        <Button onClick={onButtonClicked} skin="secondaryGray">
+          Default
+        </Button>
+        <Button onClick={onButtonClicked} skin="secondaryGray" disabled>
+          Default
+        </Button>
+        <Button
+          onClick={onButtonClicked}
+          skin="secondaryGray"
+          rightIcon={PlusIcon}>
+          Default
+        </Button>
+        <Button
+          onClick={onButtonClicked}
+          skin="secondaryGray"
+          leftIcon={PlusIcon}
+          disabled>
+          Default
+        </Button>
+      </div>
       <div className={classes.container}>
         <Button onClick={onButtonClicked} variant="text">
           Default

@@ -8,6 +8,7 @@
  * @format
  */
 
+import type {enodeb, enodeb_state} from '@fbcnms/magma-api';
 import type {enodeb_configuration} from '@fbcnms/magma-api';
 
 export const EnodebDeviceClass: {
@@ -28,3 +29,12 @@ export const EnodebBandwidthOption: {
   '15': 15,
   '20': 20,
 });
+
+export type EnodebInfo = {
+  enb: enodeb,
+  enb_state: enodeb_state,
+};
+
+export function isEnodebHealthy(enbInfo: EnodebInfo) {
+  return enbInfo.enb.config.transmit_enabled === enbInfo.enb_state.rf_tx_on;
+}

@@ -3,13 +3,13 @@
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
-from typing import List, Optional, Tuple
+from typing import List
 
 from pysymphony import SymphonyClient
 
-from .._utils import format_properties
+from .._utils import format_property_definitions
 from ..common.cache import LOCATION_TYPES
-from ..common.data_class import Location, LocationType, PropertyValue
+from ..common.data_class import Location, LocationType, PropertyDefinition
 from ..common.data_enum import Entity
 from ..exceptions import EntityNotFoundError
 from ..graphql.input.add_location_type import AddLocationTypeInput
@@ -36,20 +36,14 @@ def _populate_location_types(client: SymphonyClient) -> None:
 def add_location_type(
     client: SymphonyClient,
     name: str,
-    properties: List[Tuple[str, str, Optional[PropertyValue], Optional[bool]]],
+    properties: List[PropertyDefinition],
     map_zoom_level: int = 8,
 ) -> LocationType:
     """This function creates new location type.
 
         Args:
             name (str): location type name
-            properties (List[Tuple[str, str, Optional[PropertyValue], Optional[bool]]]):
-            - str - type name
-            - str - enum["string", "int", "bool", "float", "date", "enum", "range",
-            "email", "gps_location", "equipment", "location", "service", "datetime_local"]
-            - PropertyValue - default property value
-            - bool - fixed value flag
-
+            properties (List[ `pyinventory.common.data_class.PropertyDefinition` ]): list of property definitions
             map_zoom_level (int): map zoom level
 
         Returns:
@@ -62,12 +56,19 @@ def add_location_type(
             ```
             location_type = client.add_location_type(
                 name="city",
-                properties=[("Contact", "email", None, True)],
+                properties=[
+                    PropertyDefinition(
+                        property_name="Contact",
+                        property_kind=PropertyKind.string,
+                        default_value=None,
+                        is_fixed=True
+                    )
+                ],
                 map_zoom_level=5,
             )
             ```
     """
-    new_property_types = format_properties(properties)
+    new_property_types = format_property_definitions(properties)
     result = AddLocationTypeMutation.execute(
         client,
         AddLocationTypeInput(

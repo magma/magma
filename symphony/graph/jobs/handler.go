@@ -7,10 +7,10 @@ package jobs
 import (
 	"net/http"
 
-	"github.com/facebookincubator/symphony/graph/event"
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
 	"github.com/facebookincubator/symphony/graph/graphql/resolver"
 	"github.com/facebookincubator/symphony/pkg/log"
+	"github.com/facebookincubator/symphony/pkg/pubsub"
 
 	"github.com/gorilla/mux"
 )
@@ -19,7 +19,7 @@ type (
 	// Config configures jobs handler.
 	Config struct {
 		Logger     log.Logger
-		Subscriber event.Subscriber
+		Subscriber pubsub.Subscriber
 	}
 
 	jobs struct {

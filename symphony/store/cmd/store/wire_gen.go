@@ -39,9 +39,11 @@ func newApplication(ctx context.Context, flags *cliFlags) (*application, func(),
 		cleanup()
 		return nil, nil, err
 	}
+	string2 := newBucketName(flags)
 	handlerConfig := handler.Config{
-		Logger: logger,
-		Bucket: bucket,
+		Logger:     logger,
+		Bucket:     bucket,
+		BucketName: string2,
 	}
 	handlerHandler := handler.New(handlerConfig)
 	xserverZapLogger := xserver.NewRequestLogger(logger)
@@ -103,4 +105,8 @@ func newBucket(ctx context.Context, flags *cliFlags) (*blob.Bucket, func(), erro
 		return nil, nil, fmt.Errorf("cannot open blob bucket: %w", err)
 	}
 	return bucket, func() { _ = bucket.Close() }, nil
+}
+
+func newBucketName(flags *cliFlags) string {
+	return flags.BlobURL.Host
 }

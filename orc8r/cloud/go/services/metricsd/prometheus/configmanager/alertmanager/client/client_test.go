@@ -87,6 +87,11 @@ func TestClient_CreateReceiver(t *testing.T) {
 	assert.NoError(t, err)
 	fsClient.AssertCalled(t, "WriteFile", "test/alertmanager.yml", mock.Anything, mock.Anything)
 
+	// Create Pushover Receiver
+	err = client.CreateReceiver(testNID, tc.SamplePushoverReceiver)
+	assert.NoError(t, err)
+	fsClient.AssertCalled(t, "WriteFile", "test/alertmanager.yml", mock.Anything, mock.Anything)
+
 	// Create Email receiver
 	err = client.CreateReceiver(testNID, tc.SampleEmailReceiver)
 	assert.NoError(t, err)
@@ -100,6 +105,7 @@ func TestClient_CreateReceiver(t *testing.T) {
 func TestClient_GetReceivers(t *testing.T) {
 	client, _ := newTestClient()
 	recs, err := client.GetReceivers(testNID)
+
 	assert.NoError(t, err)
 	assert.Equal(t, 4, len(recs))
 	assert.Equal(t, "receiver", recs[0].Name)
@@ -109,7 +115,7 @@ func TestClient_GetReceivers(t *testing.T) {
 
 	recs, err = client.GetReceivers(otherNID)
 	assert.NoError(t, err)
-	assert.Equal(t, 2, len(recs))
+	assert.Equal(t, 1, len(recs))
 
 	recs, err = client.GetReceivers("bad_nid")
 	assert.NoError(t, err)

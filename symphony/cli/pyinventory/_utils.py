@@ -200,41 +200,6 @@ def _get_property_default_value(
     return get_graphql_input_field(property_type_name=name, type_key=type, value=value)
 
 
-def _make_property_types(
-    properties: Sequence[Tuple[str, str, Optional[PropertyValue], Optional[bool]]]
-) -> List[PropertyTypeInput]:
-    property_types = [
-        from_dict(
-            data_class=PropertyTypeInput,
-            data={
-                "name": arg[0],
-                "type": PropertyKind(arg[1]),
-                "index": i,
-                **_get_property_default_value(arg[0], arg[1], arg[2]),
-                "isInstanceProperty": arg[3],
-            },
-            config=Config(strict=True),
-        )
-        for i, arg in enumerate(properties)
-    ]
-    return property_types
-
-
-# TODO(T63055378): remove
-def property_type_to_kind(
-    key: str, value: PropertyValue
-) -> Union[PropertyValue, PropertyKind]:
-    return value if key != "type" else PropertyKind(value)
-
-
-# TODO(T63055378): remove and change usage to format_property_definitions
-def format_properties(
-    properties: Sequence[Tuple[str, str, Optional[PropertyValue], Optional[bool]]]
-) -> List[PropertyTypeInput]:
-    property_types = _make_property_types(properties)
-    return property_types
-
-
 def get_property_type_input(
     property_type: PropertyTypeFragment, is_new: bool = True
 ) -> PropertyTypeInput:

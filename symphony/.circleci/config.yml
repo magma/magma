@@ -570,6 +570,11 @@ workflows:
           image: store
           requires: *dpreq
       - docker-publish:
+          name: async/publish
+          dockerfile: async/Dockerfile
+          image: async
+          requires: *dpreq
+      - docker-publish:
           name: docs/publish
           path: docs
           image: docs

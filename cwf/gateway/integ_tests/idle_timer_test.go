@@ -36,7 +36,7 @@ func TestIdleTimer(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NoError(t, tr.RestartService("aaa_server"))
 	// give it a second after the restart...
-	time.Sleep(1 * time.Second)
+	time.Sleep(2 * time.Second)
 	defer func() {
 		err = tr.OverwriteMConfig("gateway.mconfig", "aaa_server")
 		assert.NoError(t, err)

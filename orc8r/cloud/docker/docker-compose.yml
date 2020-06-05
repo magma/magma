@@ -100,8 +100,8 @@ services:
 
   nginx:
     ports:
-      - 8443:8443/tcp   # controller GRPC port
-      - 8444:8444/tcp   # bootstrapper port
+      - 7443:8443/tcp   # controller GRPC port
+      - 7444:8444/tcp   # bootstrapper port
       - 9443:9443/tcp   # API port
     volumes:
       - $PWD/../../../.cache/test_certs:/var/opt/magma/certs
@@ -111,6 +111,13 @@ services:
       TEST_MODE: "1"
       RESOLVER: "127.0.0.11"
     restart: always
+#    logging:
+#      driver: fluentd
+#      options:
+#        fluentd-address: 'host.docker.internal:24225'
+#        tag: orc8r.nginx
+#        fluentd-retry-wait: '1s'
+#        fluentd-max-retries: '120'
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.3.1

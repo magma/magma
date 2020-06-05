@@ -16,9 +16,6 @@ rule_update_inteval_sec: 1
 # completely uses up the quota. 
 usage_reporting_threshold: 0.8
 
-# Extra number of bytes an user could use after the quota is exhausted
-extra_quota_margin: 1024
-
 # Set to true to terminate service when the quota of a session is exhausted.
 # An user can still use up to the extra margin.
 # Set to false to allow users to use without any constraint.
@@ -33,7 +30,7 @@ session_force_termination_timeout_ms: 3000
 support_carrier_wifi: true
 
 # Set to true to store session state in Redis for persistence.
-support_stateless: false
+support_stateless: true
 
 # Redis table name for session state.
 sessions_table: sessiond:sessions

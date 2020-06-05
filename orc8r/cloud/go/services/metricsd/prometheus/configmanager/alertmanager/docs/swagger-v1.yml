@@ -175,6 +175,22 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/slack_receiver'
+      pagerduty_configs:
+        type: array
+        items:
+          $ref: '#/definitions/pagerduty_receiver'
+      pushover_configs:
+        type: array
+        items:
+          $ref: '#/definitions/pushover_receiver'
+      email_configs:
+        type: array
+        items:
+          $ref: '#/definitions/email_receiver'
+      webhook_configs:
+        type: array
+        items:
+          $ref: '#/definitions/webhook_receiver'
 
   slack_receiver:
     type: object
@@ -275,6 +291,131 @@ definitions:
         type: string
       dismiss_text:
         type: string
+
+  pushover_receiver:
+    type: object
+    required:
+      - user_key
+      - token
+    properties:
+      http_config:
+        $ref: '#/definitions/http_config'
+      user_key:
+        type: string
+      token:
+        type: string
+      title:
+        type: string
+      message:
+        type: string
+      url:
+        type: string
+      priority:
+        type: string
+      retry:
+        type: string
+      expire:
+        type: string
+
+  pagerduty_receiver:
+    type: object
+    required:
+      - service_key
+      - routing_key
+    properties:
+      http_config:
+        $ref: '#/definitions/http_config'
+      routing_key:
+        type: string
+      service_key:
+        type: string
+      url:
+        type: string
+      client:
+        type: string
+      client_url:
+        type: string
+      description:
+        type: string
+      severity:
+        type: string
+      details:
+        type: object
+        additionalProperties:
+          type: string
+      images:
+        type: array
+        items:
+          $ref: '#/definitions/pagerduty_images'
+      links:
+        type: array
+        items:
+          $ref: '#/definitions/pagerduty_links'
+
+  pagerduty_images:
+    type: object
+    properties:
+      src:
+        type: string
+      alt:
+        type: string
+      text:
+        type: string
+
+  pagerduty_links:
+    type: object
+    properties:
+      href:
+        type: string
+      text:
+        type: string
+
+  email_receiver:
+    type: object
+    required:
+      - to
+    properties:
+      notifier_config:
+        $ref: '#/definitions/notifier_config'
+      to:
+        type: string
+      from:
+        type: string
+      hello:
+        type: string
+      smarthost:
+        type: string
+      auth_username:
+        type: string
+      auth_password:
+        type: string
+      auth_secret:
+        type: string
+      auth_identity:
+        type: string
+      headers:
+        type: object
+        additionalProperties:
+          type: string
+      html:
+        type: string
+      text:
+        type: string
+      require_tls:
+        type: boolean
+
+  webhook_receiver:
+    type: object
+    required:
+      - url
+    properties:
+      notifier_config:
+        $ref: '#/definitions/notifier_config'
+      http_config:
+        $ref: '#/definitions/http_config'
+      url:
+        type: string
+        format: uri
 
   routing_tree:
     type: object
@@ -377,6 +518,12 @@ definitions:
         type: string
       password:
         type: string
+
+  notifier_config:
+    type: object
+    properties:
+      send_resolved:
+        type: boolean
 
   tls_config:
     type: object

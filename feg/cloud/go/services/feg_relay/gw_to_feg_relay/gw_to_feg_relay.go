@@ -104,6 +104,7 @@ func (server *GatewayToFeGServer) useDispatcherHandler(
 				http.StatusBadRequest))
 		return
 	}
+	glog.V(4).Infof("Forwarding request to FeG %s via %s", fegHwId, addr)
 	// create request to dispatcher http server
 	newReq, newReqErr := createNewRequest(req, addr, fegHwId)
 	if newReqErr != nil {
@@ -142,6 +143,7 @@ func createNewRequest(req *http.Request, addr, hwId string) (*http.Request, *htt
 	if auth := strings.Split(req.Host, "-"); len(auth) > 0 {
 		newReq.Host = auth[0]
 	}
+	glog.V(4).Info("Cloned request from GW:")
 	http2.LogRequestWithVerbosity(newReq, 4)
 	return newReq, nil
 }

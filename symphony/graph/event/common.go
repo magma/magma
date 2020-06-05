@@ -11,27 +11,19 @@ import (
 	"github.com/AlekSi/pointer"
 
 	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/ent/privacy"
+	"github.com/facebookincubator/symphony/pkg/pubsub"
 	"github.com/facebookincubator/symphony/pkg/viewer"
 	"go.uber.org/zap"
 )
 
-// LogEntry holds an information on a single ent mutation that happened
-type LogEntry struct {
-	UserName  string    `json:"user_name"`
-	UserID    *int      `json:"user_id"`
-	Time      time.Time `json:"time"`
-	Operation ent.Op    `json:"operation"`
-	PrevState *ent.Node `json:"prevState"`
-	CurrState *ent.Node `json:"currState"`
-}
-
-func (e *Eventer) hookWithLog(handler func(context.Context, LogEntry) error, next ent.Mutator) ent.Mutator {
+func (e *Eventer) hookWithLog(handler func(context.Context, pubsub.LogEntry) error, next ent.Mutator) ent.Mutator {
 	return ent.MutateFunc(func(ctx context.Context, m ent.Mutation) (ent.Value, error) {
 		v := viewer.FromContext(ctx)
 		if m.Op().Is(ent.OpDelete) || m.Op().Is(ent.OpUpdate) || v == nil {
 			return next.Mutate(ctx, m)
 		}
-		entry := LogEntry{
+		entry := pubsub.LogEntry{
 			UserName:  v.Name(),
 			Operation: m.Op(),
 			Time:      time.Now(),
@@ -41,7 +33,7 @@ func (e *Eventer) hookWithLog(handler func(context.Context, LogEntry) error, nex
 		}
 		if !m.Op().Is(ent.OpCreate) {
 			if prevNoder, ok := m.(ent.Noder); ok {
-				node, err := prevNoder.Node(ctx)
+				node, err := prevNoder.Node(privacy.DecisionContext(ctx, privacy.Allow))
 				if err != nil {
 					if !ent.IsNotFound(err) {
 						e.Logger.For(ctx).Error("query mutation previous value", zap.Error(err))
@@ -57,7 +49,7 @@ func (e *Eventer) hookWithLog(handler func(context.Context, LogEntry) error, nex
 		}
 		if !m.Op().Is(ent.OpDeleteOne) {
 			if currNoder, ok := value.(ent.Noder); ok {
-				node, err := currNoder.Node(ctx)
+				node, err := currNoder.Node(privacy.DecisionContext(ctx, privacy.Allow))
 				if err != nil {
 					e.Logger.For(ctx).Error("query mutation current value", zap.Error(err))
 					return value, err
@@ -91,7 +83,7 @@ func findField(fields []*ent.Field, val string) (*ent.Field, bool) {
 	return nil, false
 }
 
-func getDiffOfUniqueEdge(entry *LogEntry, edge string) (*int, *int, bool) {
+func getDiffOfUniqueEdge(entry *pubsub.LogEntry, edge string) (*int, *int, bool) {
 	var newIntVal, oldsIntVal *int
 	newEdges := entry.CurrState.Edges
 	oldEdges := entry.PrevState.Edges
@@ -107,7 +99,7 @@ func getDiffOfUniqueEdge(entry *LogEntry, edge string) (*int, *int, bool) {
 	return newIntVal, oldsIntVal, shouldUpdate
 }
 
-func getStringDiffValuesField(entry *LogEntry, field string) (*string, *string, bool) {
+func getStringDiffValuesField(entry *pubsub.LogEntry, field string) (*string, *string, bool) {
 	var newStrVal, oldStrVal *string
 	newFields := entry.CurrState.Fields
 	oldFields := entry.PrevState.Fields

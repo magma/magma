@@ -20,6 +20,7 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
 )
 
 const (
@@ -57,6 +58,8 @@ func main() {
 	}
 
 	e := echo.New()
+	e.Use(middleware.CORS())
+
 	handlers.RegisterBaseHandlers(e)
 	handlers.RegisterV0Handlers(e, alertClient)
 	handlers.RegisterV1Handlers(e, alertClient)
