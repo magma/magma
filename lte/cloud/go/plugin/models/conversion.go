@@ -574,7 +574,7 @@ func (m *PolicyRule) getConfig() *PolicyRuleConfig {
 		RatingGroup:    m.RatingGroup,
 		Redirect:       m.Redirect,
 		TrackingType:   m.TrackingType,
-		AppName: 	    m.AppName,
+		AppName:        m.AppName,
 		AppServiceType: m.AppServiceType,
 	}
 }

@@ -160,11 +160,10 @@ func TestProjectTransferOwnershipWritePolicyRule(t *testing.T) {
 	tests := []policyTest{
 		{
 			operationName: "CreateWithCreator",
-			initialPermissions: func(p *models.PermissionSettings) {
+			appendPermissions: func(p *models.PermissionSettings) {
 				getCud(p).Create.IsAllowed = models.PermissionValueYes
 			},
-			appendPermissions: appendTransferOwnership,
-			operation:         createProjectWithCreator,
+			operation: createProjectWithCreator,
 		},
 		{
 			operationName: "UpdateWithCreator",
@@ -186,19 +185,40 @@ func TestProjectTransferOwnershipWritePolicyRule(t *testing.T) {
 	runPolicyTest(t, tests)
 }
 
-func TestProjectCreateWithViewerCreator(t *testing.T) {
+func TestProjectCreatorCanEditProject(t *testing.T) {
 	c := viewertest.NewTestClient(t)
 	ctx := viewertest.NewContext(context.Background(), c)
 	projectType, _ := prepareProjectData(ctx, c)
+	u2 := viewer.MustGetOrCreateUser(ctx, "AnotherUser", user.RoleUSER)
 	ctx = userContextWithPermissions(ctx, "SomeUser", func(p *models.PermissionSettings) {
 		p.WorkforcePolicy.Data.Create.IsAllowed = models.PermissionValueYes
 	})
 	u := viewer.FromContext(ctx).(*viewer.UserViewer).User()
-	_, err := c.Project.Create().
+	proj, err := c.Project.Create().
 		SetName("NewProject").
 		SetType(projectType).
 		SetCreator(u).
 		Save(ctx)
+	require.NoError(t, err)
+	err = c.Project.UpdateOne(proj).
+		SetName("NewName").
+		Exec(ctx)
+	require.NoError(t, err)
+	err = c.Project.UpdateOne(proj).
+		SetCreator(u2).
+		Exec(ctx)
+	require.NoError(t, err)
+	err = c.Project.DeleteOne(proj).
+		Exec(ctx)
+	require.Error(t, err)
+	proj2, err := c.Project.Create().
+		SetName("NewProject2").
+		SetType(projectType).
+		SetCreator(u).
+		Save(ctx)
+	require.NoError(t, err)
+	err = c.Project.DeleteOne(proj2).
+		Exec(ctx)
 	require.NoError(t, err)
 }
 

@@ -8,8 +8,6 @@ import (
 	"context"
 
 	"github.com/facebookincubator/symphony/pkg/ent/predicate"
-	"github.com/facebookincubator/symphony/pkg/ent/project"
-	"github.com/facebookincubator/symphony/pkg/ent/projecttype"
 
 	"github.com/facebookincubator/symphony/pkg/ent"
 	"github.com/facebookincubator/symphony/pkg/ent/comment"
@@ -63,11 +61,7 @@ func CommentWritePolicyRule() privacy.MutationRule {
 		case comm.Edges.WorkOrder != nil:
 			return allowOrSkipWorkOrder(ctx, p, comm.Edges.WorkOrder)
 		case comm.Edges.Project != nil:
-			projectTypeID, err := comm.Edges.Project.QueryType().OnlyID(ctx)
-			if err != nil {
-				return privacy.Denyf("failed to fetch project type id: %w", err)
-			}
-			return privacyDecision(checkWorkforce(p.WorkforcePolicy.Data.Update, nil, &projectTypeID))
+			return allowOrSkipProject(ctx, p, comm.Edges.Project)
 		}
 		return privacy.Skip
 	})
@@ -92,16 +86,14 @@ func CommentCreatePolicyRule() privacy.MutationRule {
 			return allowOrSkipWorkOrder(ctx, p, workOrder)
 		}
 		if projectID, exists := m.ProjectID(); exists {
-			projectTypeID, err := m.Client().ProjectType.Query().
-				Where(projecttype.HasProjectsWith(project.ID(projectID))).
-				OnlyID(ctx)
+			proj, err := m.Client().Project.Get(ctx, projectID)
 			if err != nil {
 				if ent.IsNotFound(err) {
 					return privacy.Skip
 				}
-				return privacy.Denyf("failed to fetch project type id: %w", err)
+				return privacy.Denyf("failed to fetch project: %w", err)
 			}
-			return privacyDecision(checkWorkforce(p.WorkforcePolicy.Data.Update, nil, &projectTypeID))
+			return allowOrSkipProject(ctx, p, proj)
 		}
 		return privacy.Skip
 	})

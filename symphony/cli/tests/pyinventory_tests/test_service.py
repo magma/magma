@@ -113,7 +113,14 @@ class TestService(BaseTest):
         add_location_type(
             client=self.client,
             name="Room",
-            properties=[("Contact", "email", None, True)],
+            properties=[
+                PropertyDefinition(
+                    property_name="Contact",
+                    property_kind=PropertyKind.email,
+                    default_value=None,
+                    is_fixed=False,
+                )
+            ],
         )
         location = add_location(
             client=self.client,
@@ -126,7 +133,14 @@ class TestService(BaseTest):
             client=self.client,
             name="Tp-Link T1600G",
             category="Router",
-            properties=[("IP", "string", None, True)],
+            properties=[
+                PropertyDefinition(
+                    property_name="IP",
+                    property_kind=PropertyKind.string,
+                    default_value=None,
+                    is_fixed=False,
+                )
+            ],
             ports_dict={"Port 1": "port type 1", "Port 2": "port type 1"},
             position_list=[],
         )
@@ -194,7 +208,14 @@ class TestService(BaseTest):
         add_location_type(
             client=self.client,
             name="Room",
-            properties=[("Contact", "email", None, True)],
+            properties=[
+                PropertyDefinition(
+                    property_name="Contact",
+                    property_kind=PropertyKind.email,
+                    default_value=None,
+                    is_fixed=False,
+                )
+            ],
         )
         location = add_location(
             client=self.client,
@@ -207,7 +228,14 @@ class TestService(BaseTest):
             client=self.client,
             name="Tp-Link T1600G",
             category="Router",
-            properties=[("IP", "string", None, True)],
+            properties=[
+                PropertyDefinition(
+                    property_name="IP",
+                    property_kind=PropertyKind.string,
+                    default_value=None,
+                    is_fixed=False,
+                )
+            ],
             ports_dict={"Port 1": "port type 1", "Port 2": "port type 1"},
             position_list=[],
         )

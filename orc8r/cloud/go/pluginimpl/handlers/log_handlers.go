@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"regexp"
@@ -30,12 +30,70 @@ const (
 	queryParamSimpleQuery = "simple_query"
 	queryParamStart       = "start"
 	queryParamEnd         = "end"
+	queryParamFrom        = "from"
 )
+
+var errParamNotFound = errors.New("param not found")
+
+func queryParamToInteger(c echo.Context, param string) (int, error) {
+	if valStr := c.QueryParam(param); valStr != "" {
+		return strconv.Atoi(valStr)
+	}
+	return 0, errParamNotFound
+}
 
 func GetQueryLogHandler(client *elastic.Client) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		return queryLogs(c, client)
 	}
+}
+
+//GetCountLogHandler returns the count query handler
+func GetCountLogHandler(client *elastic.Client) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		return countLogs(c, client)
+	}
+}
+
+func countLogs(c echo.Context, client *elastic.Client) error {
+	networkID, nerr := obsidian.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	params, err := getCountParameters(c)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+	query := secureElasticQuery(networkID, params)
+	result, err := client.Count().
+		Index("").
+		Query(query).
+		Do(c.Request().Context())
+	if err != nil {
+		glog.Fatalf("Error getting response: %s", err)
+	}
+	return c.JSON(http.StatusOK, result)
+}
+
+func getCountParameters(c echo.Context) (logQueryParams, error) {
+	filters, err := getFilterPairs(c.QueryParam(queryParamFilters))
+	if err != nil {
+		return logQueryParams{}, err
+	}
+	fieldsStr := c.QueryParam(queryParamFields)
+	fields := make([]string, 0)
+	if fieldsStr != "" {
+		fields = strings.Split(fieldsStr, urlListDelimiter)
+	}
+	params := logQueryParams{
+		SimpleQuery: c.QueryParam(queryParamSimpleQuery),
+		Fields:      fields,
+		Filters:     filters,
+		StartTime:   c.QueryParam(queryParamStart),
+		EndTime:     c.QueryParam(queryParamEnd),
+	}
+	return params, nil
 }
 
 func queryLogs(c echo.Context, client *elastic.Client) error {
@@ -52,10 +110,11 @@ func queryLogs(c echo.Context, client *elastic.Client) error {
 
 	result, err := client.Search().
 		Index("").
+		From(params.From).
 		Size(params.Size).
 		Sort(sortTag, false).
 		Query(query).
-		Do(context.Background())
+		Do(c.Request().Context())
 	if err != nil {
 		glog.Fatalf("Error getting response: %s", err)
 	}
@@ -83,17 +142,29 @@ func getQueryParameters(c echo.Context) (logQueryParams, error) {
 		StartTime:   c.QueryParam(queryParamStart),
 		EndTime:     c.QueryParam(queryParamEnd),
 		Size:        defaultSearchSize,
+		From:        0,
 	}
-	sizeStr := c.QueryParam(queryParamSize)
-	if sizeStr == "" {
-		return params, nil
-	}
-
-	size, err := strconv.Atoi(sizeStr)
-	if err != nil {
+	size, err := queryParamToInteger(c, queryParamSize)
+	switch err {
+	case nil:
+		params.Size = size
+	case errParamNotFound:
+		break
+	default:
+		glog.Errorf("error converting from %v", err)
 		return logQueryParams{}, err
 	}
-	params.Size = size
+
+	from, err := queryParamToInteger(c, queryParamFrom)
+	switch err {
+	case nil:
+		params.From = from
+	case errParamNotFound:
+		break
+	default:
+		glog.Errorf("error converting from %v", err)
+		return logQueryParams{}, err
+	}
 	return params, nil
 }
 
@@ -131,6 +202,7 @@ type logQueryParams struct {
 	StartTime   string
 	EndTime     string
 	Size        int
+	From        int
 }
 
 func (b *logQueryParams) ToElasticBoolQuery() *elastic.BoolQuery {

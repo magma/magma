@@ -39,6 +39,8 @@ APP_PROTOS = {"facebook_messenger": 1, "instagram": 2, "youtube": 3,
               "tiktok": 106, "twitter": 107, "wikipedia": 108, "yahoo": 109}
 SERVICE_IDS = {"other": 0, "chat": 1, "audio": 2, "video": 3}
 DEFAULT_DPI_ID = 0
+# Max register value
+UNCLASSIFIED_PROTO_ID = 0xFFFFFFFF
 
 LOG = logging.getLogger('pipelined.app.dpi')
 
@@ -225,10 +227,11 @@ class DPIController(MagmaController):
                                    direction=Direction.IN)
         outbound_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
                                     direction=Direction.OUT)
+
+        actions = [parser.NXActionRegLoad2(dst=DPI_REG,
+                                           value=UNCLASSIFIED_PROTO_ID)]
         if self._dpi_enabled:
-            actions = [parser.OFPActionOutput(self._mon_port_number)]
-        else:
-            actions = []
+            actions.append(parser.OFPActionOutput(self._mon_port_number))
 
         flows.add_resubmit_next_service_flow(datapath, self.tbl_num,
                                              inbound_match, actions,

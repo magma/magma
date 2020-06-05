@@ -19,6 +19,7 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
 )
 
 const (
@@ -39,6 +40,7 @@ func main() {
 	}
 
 	e := echo.New()
+	e.Use(middleware.CORS())
 
 	receiverClient := client.NewClient(*alertmanagerConfPath, *alertmanagerURL, tenancy, fsclient.NewFSClient())
 

@@ -36,7 +36,13 @@ curl  -H "x-auth-organization: fb-test" \
     -d '["7d40eb5f-6a0d-438d-a35c-3b2111e2744b"]'
 
 */
-const bulkOperationBefore: BeforeFun = (tenantId, req, res, proxyCallback) => {
+const bulkOperationBefore: BeforeFun = (
+  tenantId,
+  groups,
+  req,
+  res,
+  proxyCallback,
+) => {
   const requestWorkflowIds = req.body; // expect JS array
   if (!Array.isArray(requestWorkflowIds) || requestWorkflowIds.length == 0) {
     logger.error('Expected non empty array', {requestWorkflowIds});

@@ -16,17 +16,17 @@
 import type { ReaderFragment } from 'relay-runtime';
 type TextCommentPost_comment$ref = any;
 import type { FragmentReference } from "relay-runtime";
-declare export opaque type CommentsLog_comments$ref: FragmentReference;
-declare export opaque type CommentsLog_comments$fragmentType: CommentsLog_comments$ref;
-export type CommentsLog_comments = $ReadOnlyArray<{|
+declare export opaque type CommentsActivitiesLog_comments$ref: FragmentReference;
+declare export opaque type CommentsActivitiesLog_comments$fragmentType: CommentsActivitiesLog_comments$ref;
+export type CommentsActivitiesLog_comments = $ReadOnlyArray<{|
   +id: string,
   +$fragmentRefs: TextCommentPost_comment$ref,
-  +$refType: CommentsLog_comments$ref,
+  +$refType: CommentsActivitiesLog_comments$ref,
 |}>;
-export type CommentsLog_comments$data = CommentsLog_comments;
-export type CommentsLog_comments$key = $ReadOnlyArray<{
-  +$data?: CommentsLog_comments$data,
-  +$fragmentRefs: CommentsLog_comments$ref,
+export type CommentsActivitiesLog_comments$data = CommentsActivitiesLog_comments;
+export type CommentsActivitiesLog_comments$key = $ReadOnlyArray<{
+  +$data?: CommentsActivitiesLog_comments$data,
+  +$fragmentRefs: CommentsActivitiesLog_comments$ref,
   ...
 }>;
 */
@@ -34,7 +34,7 @@ export type CommentsLog_comments$key = $ReadOnlyArray<{
 
 const node/*: ReaderFragment*/ = {
   "kind": "Fragment",
-  "name": "CommentsLog_comments",
+  "name": "CommentsActivitiesLog_comments",
   "type": "Comment",
   "metadata": {
     "plural": true
@@ -56,5 +56,5 @@ const node/*: ReaderFragment*/ = {
   ]
 };
 // prettier-ignore
-(node/*: any*/).hash = 'f895f92613d4a87fed5271af1064b73d';
+(node/*: any*/).hash = 'e4b437292785a1a9a105a715bbccfce4';
 module.exports = node;

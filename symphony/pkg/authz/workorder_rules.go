@@ -171,7 +171,8 @@ func isOwnerChanged(ctx context.Context, m *ent.WorkOrderMutation) (bool, error)
 	return false, nil
 }
 
-func AllowIfWorkOrderOwnerOrAssignee() privacy.MutationRule {
+// AllowWorkOrderOwnerOrAssigneeWrite grants write permission if user is owner or assignee of workorder
+func AllowWorkOrderOwnerOrAssigneeWrite() privacy.MutationRule {
 	return privacy.WorkOrderMutationRuleFunc(func(ctx context.Context, m *ent.WorkOrderMutation) error {
 		workOrderID, exists := m.ID()
 		if !exists {
@@ -215,7 +216,6 @@ func AllowIfWorkOrderOwnerOrAssignee() privacy.MutationRule {
 func WorkOrderWritePolicyRule() privacy.MutationRule {
 	return privacy.WorkOrderMutationRuleFunc(func(ctx context.Context, m *ent.WorkOrderMutation) error {
 		cud := FromContext(ctx).WorkforcePolicy.Data
-		v, isUser := viewer.FromContext(ctx).(*viewer.UserViewer)
 		allowed, err := workOrderCudBasedCheck(ctx, cud, m)
 		if err != nil {
 			return privacy.Denyf(err.Error())
@@ -228,14 +228,11 @@ func WorkOrderWritePolicyRule() privacy.MutationRule {
 			if assigneeChanged {
 				allowed = allowed && (cud.Assign.IsAllowed == models.PermissionValueYes)
 			}
-		}
-		ownerChanged, err := isOwnerChanged(ctx, m)
-		if err != nil {
-			return privacy.Denyf(err.Error())
-		}
-		if ownerChanged {
-			ownerID, exists := m.OwnerID()
-			if !m.Op().Is(ent.OpCreate) || !isUser || !exists || v.User().ID != ownerID {
+			ownerChanged, err := isOwnerChanged(ctx, m)
+			if err != nil {
+				return privacy.Denyf(err.Error())
+			}
+			if ownerChanged {
 				allowed = allowed && (cud.TransferOwnership.IsAllowed == models.PermissionValueYes)
 			}
 		}

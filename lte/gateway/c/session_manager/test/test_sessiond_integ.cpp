@@ -57,6 +57,7 @@ class SessiondTest : public ::testing::Test {
     insert_static_rule(rule_store, 2, "rule3");
 
     reporter = std::make_shared<SessionReporterImpl>(evb, test_channel);
+    auto default_mconfig = get_default_mconfig();
     monitor = std::make_shared<LocalEnforcer>(
       reporter,
       rule_store,
@@ -67,7 +68,8 @@ class SessiondTest : public ::testing::Test {
       spgw_client,
       nullptr,
       SESSION_TERMINATION_TIMEOUT_MS,
-      0);
+      0,
+      default_mconfig);
     session_map = SessionMap{};
 
     local_service =
@@ -153,10 +155,9 @@ class SessiondTest : public ::testing::Test {
     uint32_t charging_key,
     const std::string &rule_id)
   {
+    auto mkey = "";
     PolicyRule rule;
-    rule.set_id(rule_id);
-    rule.set_rating_group(charging_key);
-    rule.set_tracking_type(PolicyRule::ONLY_OCS);
+    create_policy_rule(rule_id, mkey, charging_key, &rule);
     rule_store->insert_rule(rule);
   }
 

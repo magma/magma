@@ -98,6 +98,9 @@ func (c *client) GetReceivers(tenantID string) ([]config.Receiver, error) {
 	recs := make([]config.Receiver, 0)
 	for _, rec := range conf.Receivers {
 		if strings.HasPrefix(rec.Name, config.ReceiverTenantPrefix(tenantID)) {
+			if rec.Name == config.ReceiverTenantPrefix(tenantID)+config.TenantBaseRoutePostfix {
+				continue
+			}
 			rec.Unsecure(tenantID)
 			recs = append(recs, *rec)
 		}
