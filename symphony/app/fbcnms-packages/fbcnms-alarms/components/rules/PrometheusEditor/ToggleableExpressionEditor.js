@@ -94,7 +94,9 @@ export default function ToggleableExpressionEditor(props: {
     networkId: match.params.networkId,
   });
   if (error) {
-    enqueueSnackbar('Error retrieving metrics: ' + error);
+    enqueueSnackbar('Error retrieving metrics: ' + error, {
+      variant: 'error',
+    });
   }
   const metricsByName = groupBy(response, '__name__');
 

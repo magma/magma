@@ -11,6 +11,7 @@ import (
 	"github.com/AlekSi/pointer"
 
 	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/ent/privacy"
 	"github.com/facebookincubator/symphony/pkg/pubsub"
 	"github.com/facebookincubator/symphony/pkg/viewer"
 	"go.uber.org/zap"
@@ -32,7 +33,7 @@ func (e *Eventer) hookWithLog(handler func(context.Context, pubsub.LogEntry) err
 		}
 		if !m.Op().Is(ent.OpCreate) {
 			if prevNoder, ok := m.(ent.Noder); ok {
-				node, err := prevNoder.Node(ctx)
+				node, err := prevNoder.Node(privacy.DecisionContext(ctx, privacy.Allow))
 				if err != nil {
 					if !ent.IsNotFound(err) {
 						e.Logger.For(ctx).Error("query mutation previous value", zap.Error(err))
@@ -48,7 +49,7 @@ func (e *Eventer) hookWithLog(handler func(context.Context, pubsub.LogEntry) err
 		}
 		if !m.Op().Is(ent.OpDeleteOne) {
 			if currNoder, ok := value.(ent.Noder); ok {
-				node, err := currNoder.Node(ctx)
+				node, err := currNoder.Node(privacy.DecisionContext(ctx, privacy.Allow))
 				if err != nil {
 					e.Logger.For(ctx).Error("query mutation current value", zap.Error(err))
 					return value, err

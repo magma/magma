@@ -13,6 +13,7 @@
 #include <vector>
 
 #include <folly/io/async/EventBaseManager.h>
+#include <lte/protos/mconfig/mconfigs.pb.h>
 #include <lte/protos/policydb.pb.h>
 #include <lte/protos/session_manager.grpc.pb.h>
 #include <orc8r/protos/directoryd.pb.h>
@@ -51,7 +52,8 @@ class LocalEnforcer {
       std::shared_ptr<SpgwServiceClient> spgw_client,
       std::shared_ptr<aaa::AAAClient> aaa_client,
       long session_force_termination_timeout_ms,
-      long quota_exhaustion_termination_on_init_ms);
+      long quota_exhaustion_termination_on_init_ms,
+      magma::mconfig::SessionD mconfig);
 
   void attachEventBase(folly::EventBase* evb);
 
@@ -242,6 +244,7 @@ class LocalEnforcer {
   // session after it is created without any monitoring quota
   long quota_exhaustion_termination_on_init_ms_;
   std::chrono::seconds retry_timeout_;
+  magma::mconfig::SessionD mconfig_;
 
  private:
   /**
@@ -449,6 +452,10 @@ class LocalEnforcer {
   void handle_session_init_subscriber_quota_state(
       SessionMap& session_map, const std::string& imsi,
       SessionState& session_state);
+
+  bool is_wallet_exhausted(SessionState& session_state);
+
+  bool terminate_on_wallet_exhaust();
 
   void schedule_termination(std::unordered_set<std::string>& imsis);
 };

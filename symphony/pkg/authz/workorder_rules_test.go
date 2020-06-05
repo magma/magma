@@ -295,11 +295,10 @@ func TestWorkOrderTransferOwnershipWritePolicyRule(t *testing.T) {
 	tests := []policyTest{
 		{
 			operationName: "CreateWithOwner",
-			initialPermissions: func(p *models.PermissionSettings) {
+			appendPermissions: func(p *models.PermissionSettings) {
 				getCud(p).Create.IsAllowed = models.PermissionValueYes
 			},
-			appendPermissions: appendTransferOwnership,
-			operation:         createWorkOrderWithOwner,
+			operation: createWorkOrderWithOwner,
 		},
 		{
 			operationName: "UpdateWithOwner",

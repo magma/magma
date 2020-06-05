@@ -71,7 +71,8 @@ LocalEnforcer::LocalEnforcer(
     std::shared_ptr<SpgwServiceClient> spgw_client,
     std::shared_ptr<aaa::AAAClient> aaa_client,
     long session_force_termination_timeout_ms,
-    long quota_exhaustion_termination_on_init_ms)
+    long quota_exhaustion_termination_on_init_ms,
+    magma::mconfig::SessionD mconfig)
     : reporter_(reporter),
       rule_store_(rule_store),
       session_store_(session_store),
@@ -84,7 +85,8 @@ LocalEnforcer::LocalEnforcer(
           session_force_termination_timeout_ms),
       quota_exhaustion_termination_on_init_ms_(
           quota_exhaustion_termination_on_init_ms),
-      retry_timeout_(1) {}
+      retry_timeout_(1),
+      mconfig_(mconfig){}
 
 void LocalEnforcer::notify_new_report_for_sessions(
     SessionMap &session_map, SessionUpdate &session_update) {
@@ -862,9 +864,10 @@ bool LocalEnforcer::init_session_credit(
     if (!add_ue_mac_flow_success) {
       MLOG(MERROR) << "Failed to add UE MAC flow for subscriber " << imsi;
     }
-
-    handle_session_init_subscriber_quota_state(
+    if (terminate_on_wallet_exhaust()) {
+      handle_session_init_subscriber_quota_state(
         session_map, imsi, *session_state);
+    }
   }
 
   auto it = session_map.find(imsi);
@@ -889,37 +892,56 @@ bool LocalEnforcer::init_session_credit(
   return rule_update_success;
 }
 
+bool LocalEnforcer::terminate_on_wallet_exhaust() {
+  return mconfig_.has_wallet_exhaust_detection()
+        && mconfig_.wallet_exhaust_detection().terminate_on_exhaust();
+}
+
+bool LocalEnforcer::is_wallet_exhausted(SessionState& session_state) {
+  switch(mconfig_.wallet_exhaust_detection().method()) {
+    case magma::mconfig::WalletExhaustDetection_Method_GxTrackedRules:
+      return !session_state.active_monitored_rules_exist();
+    default:
+      MLOG(MWARNING) << "This method is not yet supported...";
+      return false;
+  }
+}
+
 void LocalEnforcer::handle_session_init_subscriber_quota_state(
     SessionMap& session_map, const std::string& imsi,
     SessionState& session_state) {
   auto ue_mac_addr = session_state.get_config().mac_addr;
+  bool is_exhausted = is_wallet_exhausted(session_state);
+  
   // This method only used for session creation and not updates, so
   // UpdateCriteria is unused.
-  auto uc = get_default_update_criteria();
-  if (session_state.active_monitored_rules_exist()) {
-    MLOG(MDEBUG) << "Setting subscriber quota state as VALID "
-                 << "for subscriber " << imsi;
+  auto _ = get_default_update_criteria();
+  if (is_exhausted) {
+    MLOG(MINFO) << imsi << " Subscriber wallet is exhausted, setting subscriber"
+                << " quota state as NO_QUOTA";
     session_state.set_subscriber_quota_state(
-        SubscriberQuotaUpdate_Type_VALID_QUOTA, uc);
+        SubscriberQuotaUpdate_Type_NO_QUOTA, _);
     report_subscriber_state_to_pipelined(
-        imsi, ue_mac_addr, SubscriberQuotaUpdate_Type_VALID_QUOTA);
+        imsi, ue_mac_addr, SubscriberQuotaUpdate_Type_NO_QUOTA);
+    // Schedule a session termination for a configured number of seconds after
+    // session create
+    session_state.mark_as_awaiting_termination(_);
+    MLOG(MINFO) << imsi << " Scheduling session for subscriber "
+                << "to be terminated in "
+                << quota_exhaustion_termination_on_init_ms_ << " ms";
+    auto imsi_set = std::unordered_set<std::string>{imsi};
+    schedule_termination(imsi_set);
     return;
   }
-  MLOG(MDEBUG) << "No monitoring rules are installed, setting subscriber "
-               << "quota state as NO_QUOTA for subscriber " << imsi;
-  session_state.set_subscriber_quota_state(
-      SubscriberQuotaUpdate_Type_NO_QUOTA, uc);
-  report_subscriber_state_to_pipelined(
-      imsi, ue_mac_addr, SubscriberQuotaUpdate_Type_NO_QUOTA);
 
-  // Schedule a session termination for a configured number of seconds after
-  // session create
-  session_state.mark_as_awaiting_termination(uc);
-  MLOG(MDEBUG) << "Scheduling session for subscriber " << imsi
-               << "to be terminated in "
-               << quota_exhaustion_termination_on_init_ms_ << " ms";
-  auto imsi_set = std::unordered_set<std::string>{imsi};
-  schedule_termination(imsi_set);
+  // Valid Quota
+  MLOG(MINFO) << imsi << " Setting subscriber quota state as VALID "
+              << "for subscriber";
+  session_state.set_subscriber_quota_state(
+    SubscriberQuotaUpdate_Type_VALID_QUOTA, _);
+  report_subscriber_state_to_pipelined(
+      imsi, ue_mac_addr, SubscriberQuotaUpdate_Type_VALID_QUOTA);
+  return;
 }
 
 void LocalEnforcer::schedule_termination(std::unordered_set<std::string>& imsis) {
@@ -1048,7 +1070,6 @@ void LocalEnforcer::update_charging_credits(
       session->get_charging_pool().receive_credit(
           credit_update_resp, update_criteria);
       session->set_tgpp_context(credit_update_resp.tgpp_ctx(), update_criteria);
-
       SessionState::SessionInfo info;
       std::vector<PolicyRule> gy_rules_to_deactivate;
       session->get_session_info(info);
@@ -1146,9 +1167,7 @@ void LocalEnforcer::update_monitoring_credits_and_rules(
                      << "during update";
       }
 
-      // CWF ONLY: terminate sessions with no monitoring quota
-      if (session->is_radius_cwf_session() &&
-          !session->active_monitored_rules_exist()) {
+      if (terminate_on_wallet_exhaust() && is_wallet_exhausted(*session)) {
         subscribers_to_terminate.insert(imsi);
       }
 
@@ -1436,9 +1455,7 @@ void LocalEnforcer::init_policy_reauth_for_session(
         rules_to_activate.dynamic_rules);
   }
 
-  // [CWF-ONLY] terminate sessions with no monitoring quota
-  if (session->is_radius_cwf_session() &&
-      !session->active_monitored_rules_exist()) {
+  if (terminate_on_wallet_exhaust() && is_wallet_exhausted(*session)) {
     RulesToProcess rules;
     populate_rules_from_session_to_remove(imsi, session, rules);
     terminate_service(

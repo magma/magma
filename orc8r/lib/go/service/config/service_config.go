@@ -149,6 +149,7 @@ func getServiceConfigImpl(moduleName, serviceName, configDir, oldConfigDir, conf
 		config = updateMap(config, overrides)
 		log.Printf("Successfully loaded Override configs for service %s:%s from '%s'",
 			moduleName, serviceName, overrideFileName)
+		err = nil
 	}
 	return config, err
 }

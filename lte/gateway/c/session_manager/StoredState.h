@@ -179,6 +179,7 @@ struct StoredSessionState {
 
 struct SessionCreditUpdateCriteria {
   bool is_final;
+  FinalActionInfo final_action_info;
   bool reporting;
   ReAuthState reauth_state;
   ServiceState service_state;

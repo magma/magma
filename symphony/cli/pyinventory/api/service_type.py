@@ -90,13 +90,13 @@ def add_service_type(
                         property_name="Service Package",
                         property_kind=PropertyKind.string,
                         default_value="Public 5G",
-                        is_fixed=True,
+                        is_fixed=False,
                     ),
                     PropertyDefinition(
                         property_name="Address Family",
                         property_kind=PropertyKind.string,
                         default_value=None,
-                        is_fixed=True,
+                        is_fixed=False,
                     ),
                 )
             ```

@@ -16,7 +16,13 @@ import type {BeforeFun, TransformerRegistrationFun} from '../../types';
 const logger = logging.getLogger(module);
 let proxyTarget;
 
-const getLogBefore: BeforeFun = (tenantId, req, res, proxyCallback) => {
+export const getLogBefore: BeforeFun = (
+  tenantId,
+  groups,
+  req,
+  res,
+  proxyCallback,
+) => {
   const url = proxyTarget + '/api/tasks/' + req.params.taskId;
   // first make a HTTP request to validate that this workflow belongs to tenant
   const requestOptions = {

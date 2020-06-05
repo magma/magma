@@ -32,8 +32,8 @@ def add_equipment_port_type(
 
         Args:
             name (str): equipment port type name
-            properties: (List[ `pyinventory.common.data_class.PropertyDefinition` ]): list of property definitions
-            link_properties: (List[ `pyinventory.common.data_class.PropertyDefinition` ]): list of property definitions
+            properties (List[ `pyinventory.common.data_class.PropertyDefinition` ]): list of property definitions
+            link_properties (List[ `pyinventory.common.data_class.PropertyDefinition` ]): list of property definitions
 
         Returns:
             `pyinventory.common.data_class.EquipmentPortType` object
@@ -47,16 +47,22 @@ def add_equipment_port_type(
             from pyinventory.graphql.enum.property_kind import PropertyKind
             port_type1 = client.add_equipment_port_type(
                 name="port type 1",
-                properties=[PropertyDefinition(
-                    property_name="port property",
-                    property_kind=PropertyKind.string,
-                    default_value=None,
-                    is_fixed=True)],
-                link_properties=[PropertyDefinition(
-                    property_name="link port property",
-                    property_kind=PropertyKind.string,
-                    default_value=None,
-                    is_fixed=True)],
+                properties=[
+                    PropertyDefinition(
+                        property_name="port property",
+                        property_kind=PropertyKind.string,
+                        default_value=None,
+                        is_fixed=True
+                    )
+                ],
+                link_properties=[
+                    PropertyDefinition(
+                        property_name="link port property",
+                        property_kind=PropertyKind.string,
+                        default_value=None,
+                        is_fixed=True
+                    )
+                ],
             )
             ```
     """

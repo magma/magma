@@ -153,6 +153,7 @@ bool RedisStoreClient::write_sessions(SessionMap session_map) {
     MLOG(MERROR) << "Failed to write sessions to Redis.";
     return false;
   }
+  return true;
 }
 
 std::string RedisStoreClient::serialize_session_vec(

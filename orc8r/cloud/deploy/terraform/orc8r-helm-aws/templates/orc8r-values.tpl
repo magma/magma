@@ -110,8 +110,8 @@ metrics:
   prometheusCache:
     create: true
     image:
-      repository: ${docker_registry}/prometheus-cache
-      tag: "${docker_tag}"
+      repository: docker.io/facebookincubator/prometheus-edge-hub
+      tag: 1.0.0
     limit: 500000
   grafana:
     create: false
@@ -145,11 +145,7 @@ nms:
     certs: ${nms_certs_secret}
 
   magmalte:
-    manifests:
-      secrets: true
-      deployment: true
-      service: true
-      rbac: false
+    create: true
 
     image:
       repository: ${docker_registry}/magmalte
@@ -162,12 +158,7 @@ nms:
       grafana_address: ${user_grafana_hostname}
 
   nginx:
-    manifests:
-      configmap: true
-      secrets: true
-      deployment: true
-      service: true
-      rbac: false
+    create: true
 
     service:
       type: LoadBalancer

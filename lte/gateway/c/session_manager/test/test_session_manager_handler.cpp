@@ -41,9 +41,11 @@ protected:
     auto eventd_client = std::make_shared<MockEventdClient>();
     auto spgw_client = std::make_shared<MockSpgwServiceClient>();
     auto aaa_client = std::make_shared<MockAAAClient>();
+    auto default_mconfig = get_default_mconfig();
     local_enforcer = std::make_shared<LocalEnforcer>(
         reporter, rule_store, *session_store, pipelined_client,
-        directoryd_client, eventd_client, spgw_client, aaa_client, 0, 0);
+        directoryd_client, eventd_client, spgw_client, aaa_client, 0, 0,
+        default_mconfig);
     evb = new folly::EventBase();
     std::thread([&]() {
       std::cout << "Started event loop thread\n";

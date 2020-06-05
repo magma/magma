@@ -277,10 +277,18 @@ func decodeReceiverPostRequest(c echo.Context) (config.Receiver, error) {
 	}
 	receiver := config.Receiver{}
 	err = json.Unmarshal(body, &receiver)
-	if err != nil {
-		return config.Receiver{}, fmt.Errorf("error unmarshalling payload: %v", err)
+	if err == nil {
+		return receiver, nil
 	}
-	return receiver, nil
+
+	// Try to unmarshal into the ReceiverJSONWrapper struct if prometheus struct doesn't work
+	jsonPayload := config.ReceiverJSONWrapper{}
+	err = json.Unmarshal(body, &jsonPayload)
+	if err != nil {
+		return receiver, fmt.Errorf("error unmarshalling payload: %v", err)
+	}
+
+	return jsonPayload.ToReceiverFmt()
 }
 
 func decodeRoutePostRequest(c echo.Context) (config.Route, error) {

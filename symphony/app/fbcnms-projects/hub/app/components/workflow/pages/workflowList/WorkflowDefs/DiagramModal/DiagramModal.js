@@ -6,12 +6,13 @@ import { conductorApiUrlPrefix } from "../../../../constants";
 
 const DiagramModal = props => {
   const [meta, setMeta] = useState([]);
+  const backendApiUrlPrefix = props.backendApiUrlPrefix ?? conductorApiUrlPrefix;
 
   useEffect(() => {
     const name = props.wf.split(" / ")[0];
     const version = props.wf.split(" / ")[1];
     http
-      .get(conductorApiUrlPrefix + "/metadata/workflow/" + name + "/" + version)
+      .get(backendApiUrlPrefix + "/metadata/workflow/" + name + "/" + version)
       .then(res => {
         setMeta(res.result);
       });

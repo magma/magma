@@ -8,10 +8,10 @@
  * @format
  */
 
-import CommentsLog from './CommentsLog';
+import CommentsActivitiesLog from './CommentsActivitiesLog';
 import NewCommentInput from './NewCommentInput';
 import type {CommentEntity} from '../../mutations/__generated__/AddCommentMutation.graphql';
-import type {CommentsBox_comments} from './__generated__/CommentsBox_comments.graphql.js';
+import type {CommentsActivitiesBox_comments} from './__generated__/CommentsActivitiesBox_comments.graphql.js';
 
 import React from 'react';
 import classNames from 'classnames';
@@ -23,7 +23,7 @@ import {withSnackbar} from 'notistack';
 type Props = {
   relatedEntityId: string,
   relatedEntityType: CommentEntity,
-  comments: CommentsBox_comments,
+  comments: CommentsActivitiesBox_comments,
   boxElementsClass?: string,
   commentsLogClass?: string,
   newCommentInputClass?: string,
@@ -36,7 +36,7 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-const CommentsBox = (props: Props) => {
+const CommentsActivitiesBox = (props: Props) => {
   const classes = useStyles();
   const {
     comments,
@@ -49,7 +49,7 @@ const CommentsBox = (props: Props) => {
 
   return (
     <div className={classes.container}>
-      <CommentsLog
+      <CommentsActivitiesLog
         className={classNames(boxElementsClass, commentsLogClass)}
         comments={comments}
       />
@@ -64,10 +64,17 @@ const CommentsBox = (props: Props) => {
 
 export default withAlert(
   withSnackbar(
-    createFragmentContainer(CommentsBox, {
+    createFragmentContainer(CommentsActivitiesBox, {
       comments: graphql`
-        fragment CommentsBox_comments on Comment @relay(plural: true) {
-          ...CommentsLog_comments
+        fragment CommentsActivitiesBox_comments on Comment
+          @relay(plural: true) {
+          ...CommentsActivitiesLog_comments
+        }
+      `,
+      activities: graphql`
+        fragment CommentsActivitiesBox_activities on Activity
+          @relay(plural: true) {
+          ...CommentsActivitiesLog_activities
         }
       `,
     }),

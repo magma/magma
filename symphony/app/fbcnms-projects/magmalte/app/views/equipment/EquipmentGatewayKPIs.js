@@ -29,9 +29,9 @@ const getLatency = (resp, fn) => {
 };
 
 export default function EquipmentGatewayKPIs({
-  lte_gateways,
+  lteGateways,
 }: {
-  lte_gateways: {[string]: lte_gateway},
+  lteGateways: {[string]: lte_gateway},
 }) {
   const {match} = useRouter();
   const networkId: string = nullthrows(match.params.networkId);
@@ -80,8 +80,8 @@ export default function EquipmentGatewayKPIs({
 
   let upCount = 0;
   let downCount = 0;
-  Object.keys(lte_gateways)
-    .map((gwId: string) => lte_gateways[gwId])
+  Object.keys(lteGateways)
+    .map((gwId: string) => lteGateways[gwId])
     .filter((g: lte_gateway) => g.cellular && g.id)
     .map((gateway: lte_gateway) => {
       isGatewayHealthy(gateway) ? upCount++ : downCount++;

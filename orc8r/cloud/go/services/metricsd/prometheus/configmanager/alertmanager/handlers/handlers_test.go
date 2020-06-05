@@ -366,7 +366,7 @@ func TestDecodeReceiverPostRequest(t *testing.T) {
 		Name bool `json:"name"`
 	}{false}, http.MethodPost, "/", v1receiverPath, testNID)
 	conf, err = decodeReceiverPostRequest(c)
-	assert.EqualError(t, err, `error unmarshalling payload: json: cannot unmarshal bool into Go struct field Receiver.name of type string`)
+	assert.EqualError(t, err, `error unmarshalling payload: json: cannot unmarshal bool into Go struct field ReceiverJSONWrapper.name of type string`)
 }
 
 func TestDecodeRoutePostRequest(t *testing.T) {

@@ -76,14 +76,13 @@ bool SessionStore::create_sessions(
 }
 
 bool SessionStore::update_sessions(const SessionUpdate& update_criteria) {
-  MLOG(MDEBUG) << "Updating session changes in SessionStore (update_sessions)";
   // Read the current state
   auto subscriber_ids = std::set<std::string>{};
   for (const auto& it : update_criteria) {
     subscriber_ids.insert(it.first);
   }
   auto session_map = store_client_->read_sessions(subscriber_ids);
-
+  MLOG(MDEBUG) << "Merging updates into existing sessions";
   // Now attempt to modify the state
   for (auto& it : session_map) {
     auto imsi = it.first;
@@ -108,6 +107,7 @@ bool SessionStore::update_sessions(const SessionUpdate& update_criteria) {
       ++it2;
     }
   }
+  MLOG(MDEBUG) << "Writing into session store";
   return store_client_->write_sessions(std::move(session_map));
 }
 

@@ -62,7 +62,7 @@ func TestAssignmentsServicer(t *testing.T) {
 					Priority:            swag.Uint32(5),
 					RatingGroup:         *swag.Uint32(2),
 					TrackingType:        "ONLY_OCS",
-					AppName:			 "INSTAGRAM",
+					AppName:             "INSTAGRAM",
 					AssignedSubscribers: []models.SubscriberID{},
 				},
 			},

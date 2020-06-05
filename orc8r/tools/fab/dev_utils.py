@@ -249,6 +249,8 @@ def cloud_get(
     Returns:
         JSON-encoded response content
     """
+    if resource.startswith("/"):
+        resource = resource[1:]
     resp = requests.get(PORTAL_URL + resource, verify=False, cert=admin_cert)
     if resp.status_code != 200:
         raise Exception('Received a %d response: %s' %

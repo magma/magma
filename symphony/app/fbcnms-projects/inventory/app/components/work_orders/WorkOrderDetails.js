@@ -24,7 +24,7 @@ import AppContext from '@fbcnms/ui/context/AppContext';
 import CheckListCategoryExpandingPanel from '../checklist/checkListCategory/CheckListCategoryExpandingPanel';
 import ChecklistCategoriesMutateDispatchContext from '../checklist/ChecklistCategoriesMutateDispatchContext';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import CommentsBox from '../comments/CommentsBox';
+import CommentsActivitiesBox from '../comments/CommentsActivitiesBox';
 import EntityDocumentsTable from '../EntityDocumentsTable';
 import ExpandingPanel from '@fbcnms/ui/components/ExpandingPanel';
 import FileUploadButton from '../FileUpload/FileUploadButton';
@@ -268,8 +268,8 @@ const WorkOrderDetails = ({
   const {location} = workOrder;
   const actionsEnabled = isFeatureEnabled('planned_equipment');
 
-  const isOwner = me?.user?.email === workOrder?.owner?.email;
-  const isAssignee = me?.user?.email === workOrder?.assignedTo?.email;
+  const isOwner = me?.user?.email === propsWorkOrder?.owner?.email;
+  const isAssignee = me?.user?.email === propsWorkOrder?.assignedTo?.email;
 
   return (
     <div className={classes.root}>
@@ -563,10 +563,10 @@ const WorkOrderDetails = ({
                       </FormFieldWithPermissions>
                     </ExpandingPanel>
                     <ExpandingPanel
-                      title="Comments"
+                      title={fbt('Activity & Comments', '')}
                       detailsPaneClass={classes.commentsBoxContainer}
                       className={classes.card}>
-                      <CommentsBox
+                      <CommentsActivitiesBox
                         boxElementsClass={classes.inExpandingPanelFix}
                         commentsLogClass={classes.commentsLog}
                         relatedEntityId={propsWorkOrder.id}
@@ -634,7 +634,10 @@ export default withRouter(
             ...EntityDocumentsTable_hyperlinks
           }
           comments {
-            ...CommentsBox_comments
+            ...CommentsActivitiesBox_comments
+          }
+          activities {
+            ...CommentsActivitiesBox_activities
           }
           project {
             name

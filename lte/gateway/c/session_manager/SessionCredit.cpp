@@ -16,7 +16,6 @@
 namespace magma {
 
 float SessionCredit::USAGE_REPORTING_THRESHOLD = 0.8;
-uint64_t SessionCredit::EXTRA_QUOTA_MARGIN = 1024;
 bool SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED = true;
 std::string final_action_to_str(ChargingCredit_FinalAction final_action);
 std::string service_state_to_str(ServiceState state);
@@ -81,6 +80,7 @@ StoredSessionCredit SessionCredit::marshal() {
 SessionCreditUpdateCriteria SessionCredit::get_update_criteria() {
   SessionCreditUpdateCriteria uc{};
   uc.is_final = is_final_grant_;
+  uc.final_action_info = final_action_info_;
   uc.reauth_state = reauth_state_;
   uc.service_state = service_state_;
   uc.expiry_time = expiry_time_;
@@ -94,13 +94,14 @@ SessionCreditUpdateCriteria SessionCredit::get_update_criteria() {
 SessionCredit::SessionCredit(CreditType credit_type, ServiceState start_state)
     : credit_type_(credit_type), reporting_(false),
       reauth_state_(REAUTH_NOT_NEEDED), service_state_(start_state),
-      unlimited_quota_(false), buckets_{} {}
+      unlimited_quota_(false), buckets_{}, is_final_grant_(false){}
 
 SessionCredit::SessionCredit(CreditType credit_type, ServiceState start_state,
                              bool unlimited_quota)
     : credit_type_(credit_type), reporting_(false),
       reauth_state_(REAUTH_NOT_NEEDED), service_state_(start_state),
-      unlimited_quota_(unlimited_quota), buckets_{} {}
+      unlimited_quota_(unlimited_quota), buckets_{}, is_final_grant_(false) {}
+
 
 // by default, enable service
 SessionCredit::SessionCredit(CreditType credit_type)
@@ -197,8 +198,8 @@ void SessionCredit::receive_credit(
   set_expiry_time(validity_time, update_criteria);
   reset_reporting_credit(update_criteria);
 
-  is_final_grant_ = is_final_grant;
-  final_action_info_ = final_action_info;
+  set_is_final_grant_and_final_action(
+      is_final_grant, final_action_info, update_criteria);
 
   if (reauth_state_ == REAUTH_PROCESSING) {
     set_reauth(REAUTH_NOT_NEEDED, update_criteria);
@@ -223,10 +224,22 @@ void SessionCredit::log_quota_and_usage() const {
   MLOG(MDEBUG) << "===> Reported Tx: " << buckets_[REPORTED_TX]
                << " Rx: " << buckets_[REPORTED_RX]
                << " Total: " << buckets_[REPORTED_RX] + buckets_[REPORTED_TX];
+
+  std::string final_action = "";
+  if (is_final_grant_ ) {
+    final_action += ", with final action: ";
+    final_action +=  final_action_to_str(final_action_info_.final_action);
+    if (final_action_info_.final_action ==
+        ChargingCredit_FinalAction_REDIRECT) {
+      final_action += ", redirect_server: ";
+      final_action += final_action_info_.redirect_server.redirect_server_address();
+    }
+  }
+  MLOG(MDEBUG) << "===> Is final grant: " << is_final_grant_
+               << final_action;
 }
 
-bool SessionCredit::is_quota_exhausted(float usage_reporting_threshold,
-                                       uint64_t extra_quota_margin) const {
+bool SessionCredit::is_quota_exhausted(float usage_reporting_threshold) const {
   // used quota since last report
   uint64_t total_reported_usage = buckets_[REPORTED_TX] + buckets_[REPORTED_RX];
   uint64_t total_usage_since_report =
@@ -239,23 +252,19 @@ bool SessionCredit::is_quota_exhausted(float usage_reporting_threshold,
 
   // available quota since last report
   auto total_usage_reporting_threshold =
-      extra_quota_margin +
       std::max(0.0f, (buckets_[ALLOWED_TOTAL] - total_reported_usage) *
-                         usage_reporting_threshold);
+                usage_reporting_threshold);
 
   // reported tx/rx could be greater than allowed tx/rx
   // because some OCS/PCRF might not track tx/rx,
   // and 0 is added to the allowed credit when an credit update is received
   auto tx_usage_reporting_threshold =
-      extra_quota_margin +
       std::max(0.0f, (buckets_[ALLOWED_TX] - buckets_[REPORTED_TX]) *
                          usage_reporting_threshold);
   auto rx_usage_reporting_threshold =
-      extra_quota_margin +
       std::max(0.0f, (buckets_[ALLOWED_RX] - buckets_[REPORTED_RX]) *
                          usage_reporting_threshold);
 
-  bool is_exhausted = false;
   if (total_usage_since_report >= total_usage_reporting_threshold) {
     MLOG(MDEBUG) << "Total Quota exhausted";
     return true;
@@ -284,20 +293,10 @@ bool SessionCredit::should_deactivate_service() const {
     return false;
   }
   if (is_final_grant_ && is_quota_exhausted()) {
-    // If we've exhausted the last grant, we should terminate
+    // We only terminate when we receive a Final Unit Indication (final Grant)
+    // and we've exhausted all quota
     MLOG(MINFO) << "Terminating service because we have exhausted the given "
                 << "quota and it is the final grant";
-    return true;
-  }
-  if (is_quota_exhausted(1, SessionCredit::EXTRA_QUOTA_MARGIN)) {
-    MLOG(MINFO) << "Terminating service because we have exhausted the "
-                << "given quota AND the extra quota margin="
-                << SessionCredit::EXTRA_QUOTA_MARGIN;
-    // extra quota margin is configured in sessiond.yml
-    // We will terminate if we've exceeded (given quota + extra quota margin).
-    // If the gateway loses connection to the reporter, we should not allow the
-    // UE to use internet for too long. This quota should be reasonably big so
-    // that we don't terminate the session too easily.
     return true;
   }
   return false;
@@ -315,7 +314,7 @@ CreditUpdateType SessionCredit::get_update_type() const {
   } else if (is_final_grant_ && is_quota_exhausted()) {
     // Don't request updates if there's no quota left
     return CREDIT_NO_UPDATE;
-  } else if (is_quota_exhausted(SessionCredit::USAGE_REPORTING_THRESHOLD, 0)) {
+  } else if (is_quota_exhausted(SessionCredit::USAGE_REPORTING_THRESHOLD)) {
     return CREDIT_QUOTA_EXHAUSTED;
   } else if (validity_timer_expired()) {
     return CREDIT_VALIDITY_TIMER_EXPIRED;
@@ -353,9 +352,9 @@ SessionCredit::Usage SessionCredit::get_usage_for_reporting(
   usage.bytes_tx = std::min(usage.bytes_tx, usage_reporting_limit_);
   usage.bytes_rx =
       std::min(usage.bytes_rx, usage_reporting_limit_ - usage.bytes_tx);
-  MLOG(MDEBUG) << "Since this is not the last report, we will only report "
-               << "min(usage, usage_reporting_limit=" << usage_reporting_limit_
-               << ")";
+  MLOG(MDEBUG) << "Since this is not the last report (final grant), we will "
+               << "only report min(usage, usage_reporting_limit="
+               << usage_reporting_limit_ << ")";
 
   buckets_[REPORTING_TX] += usage.bytes_tx;
   buckets_[REPORTING_RX] += usage.bytes_rx;
@@ -424,10 +423,13 @@ RedirectServer SessionCredit::get_redirect_server() const {
   return final_action_info_.redirect_server;
 }
 
-void SessionCredit::set_is_final_grant(
-    bool is_final_grant, SessionCreditUpdateCriteria &update_criteria) {
-  is_final_grant_ = is_final_grant;
+void SessionCredit::set_is_final_grant_and_final_action(
+    bool is_final_grant, FinalActionInfo final_action_info,
+    SessionCreditUpdateCriteria& update_criteria) {
+  is_final_grant_          = is_final_grant;
   update_criteria.is_final = is_final_grant;
+  final_action_info_                = final_action_info;
+  update_criteria.final_action_info = final_action_info;
 }
 
 void SessionCredit::set_reauth(ReAuthState new_reauth_state,
