@@ -455,6 +455,7 @@ type FileInput struct {
 	FileType         *FileType `json:"fileType"`
 	MimeType         *string   `json:"mimeType"`
 	StoreKey         string    `json:"storeKey"`
+	Annotation       *string   `json:"annotation"`
 }
 
 type GeneralFilter struct {
