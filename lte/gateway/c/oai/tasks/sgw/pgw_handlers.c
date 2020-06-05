@@ -215,13 +215,25 @@ void handle_s5_create_session_request(
       break;
 
     case IPv6:
-      increment_counter(
+      // TODO: Pruthvi Generate IPv6 NI address
+      /*increment_counter(
           "ue_pdn_connection", 1, 2, "pdn_type", "ipv6", "result", "failure");
       OAILOG_ERROR_UE(
           LOG_SPGW_APP,
           new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.imsi64,
           "IPV6 PDN type NOT Supported\n");
-      sgi_create_endpoint_resp.status = SGI_STATUS_ERROR_SERVICE_NOT_SUPPORTED;
+      sgi_create_endpoint_resp.status = SGI_STATUS_ERROR_SERVICE_NOT_SUPPORTED;*/
+      pgw_handle_allocate_ipv6_address(
+          imsi,
+          apn,
+          sgi_create_endpoint_resp,
+          "ipv6",
+          context_teid,
+          eps_bearer_id,
+          spgw_state,
+          new_bearer_ctxt_info_p,
+          s5_response);
+ 
       break;
 
     case IPv4_AND_v6:
@@ -236,6 +248,7 @@ void handle_s5_create_session_request(
         spgw_state,
         new_bearer_ctxt_info_p,
         s5_response);
+      // TODO: Pruthvi Generate IPv6 NI address
       break;
 
     default:

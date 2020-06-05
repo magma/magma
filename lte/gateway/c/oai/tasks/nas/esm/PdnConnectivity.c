@@ -425,7 +425,7 @@ static int _pdn_connectivity_create(
       pdn_type,
       ue_mm_context->mme_ue_s1ap_id);
       pdn_context->pdn_type = pdn_type;
-      if (pdn_addr) {
+      if (pdn_addr) { // TODO Pruthvi check static IPv6 addr allocation
         pdn_context->paa.pdn_type = pdn_type;
         switch (pdn_type) {
           case IPv4:

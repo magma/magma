@@ -258,7 +258,8 @@ class S1ApUtil(object):
                 with self._lock:
                     self._ue_ip_map[ue_id] = ip
             else:
-                raise ValueError("PDN TYPE %s not supported" % pdn_type)
+                #raise ValueError("PDN TYPE %s not supported" % pdn_type)
+                print("IPv6 PDN type received")
         return msg
 
     def receive_emm_info(self):

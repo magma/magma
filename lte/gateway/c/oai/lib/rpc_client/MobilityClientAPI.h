@@ -95,6 +95,34 @@ int pgw_handle_allocate_ipv4_address(
   s5_create_session_response_t s5_response);
 
 /**
+ * Allocate IP address from MobilityServiceClient over gRPC (non-blocking),
+ * and handle response for PGW handler.
+ * @param subscriber_id: subscriber id string, i.e. IMSI
+ * @param apn: access point name string, e.g., "ims", "internet", etc.
+ * @param addr: contains the IP address allocated upon returning in
+ * "host byte order"
+ * @param sgi_create_endpoint_resp itti message for sgi_create_endpoint_resp
+ * @param pdn_type str for PDN type (ipv6...)
+ * @param context_teid tunnel id
+ * @param eps_bearer_id bearer id
+ * @param spgw_state spgw_state_t struct
+ * @param new_bearer_ctxt_info_p SPGW ue context struct
+ * @param s5_response itti message for s5_create_session response
+ * @return status of gRPC call
+ */
+
+int pgw_handle_allocate_ipv6_address(
+  const char* subscriber_id,
+  const char* apn,
+  itti_sgi_create_end_point_response_t sgi_create_endpoint_resp,
+  const char* pdn_type,
+  teid_t context_teid,
+  ebi_t eps_bearer_id,
+  spgw_state_t* spgw_state,
+  s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
+  s5_create_session_response_t s5_response); 
+
+/**
 * Allocate IP address from MobilityServiceClient over gRPC (non-blocking),
 * and handle response for SGW handler.
 * @param subscriber_id: subscriber id string, i.e. IMSI

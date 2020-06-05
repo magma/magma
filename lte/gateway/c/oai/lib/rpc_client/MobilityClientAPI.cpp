@@ -55,6 +55,13 @@ static itti_sgi_create_end_point_response_t handle_allocate_ipv4_address_status(
   const char* pdn_type,
   itti_sgi_create_end_point_response_t sgi_create_endpoint_resp);
 
+static itti_sgi_create_end_point_response_t handle_allocate_ipv6_address_status(
+  const char* addr,
+  const char* imsi,
+  const char* apn,
+  const char* pdn_type,
+  itti_sgi_create_end_point_response_t sgi_create_endpoint_resp);
+
 int get_assigned_ipv4_block(
   int index,
   struct in_addr* netaddr,
@@ -296,3 +303,72 @@ int get_subscriber_id_from_ipv4(
   }
   return status;
 }
+int pgw_handle_allocate_ipv6_address(
+  const char* subscriber_id,
+  const char* apn,
+  itti_sgi_create_end_point_response_t sgi_create_endpoint_resp,
+  const char* pdn_type,
+  teid_t context_teid,
+  ebi_t eps_bearer_id,
+  spgw_state_t* spgw_state,
+  s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
+  s5_create_session_response_t s5_response)
+{
+  // TODO Pruthvi Make an RPC call to Mobilityd
+  char addr_temp[INET6_ADDRSTRLEN] = "::1234:5678:abcd:e123";
+  auto sgi_resp = handle_allocate_ipv6_address_status(
+	addr_temp, subscriber_id, apn, pdn_type, sgi_create_endpoint_resp);
+
+  // create session in PCEF and return
+  s5_create_session_request_t session_req = {0};
+  session_req.context_teid = context_teid;
+  session_req.eps_bearer_id = eps_bearer_id;
+  struct pcef_create_session_data session_data;
+  get_session_req_data(
+    spgw_state,
+    &new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.saved_message,
+    &session_data);
+  pcef_create_session(
+    spgw_state,
+    subscriber_id,
+    addr_temp,
+    &session_data,
+    sgi_resp,
+    session_req,
+    new_bearer_ctxt_info_p);
+  s5_response.eps_bearer_id = eps_bearer_id;
+  s5_response.context_teid = context_teid;
+
+  return 0;
+}
+static itti_sgi_create_end_point_response_t handle_allocate_ipv6_address_status(
+  const char* addr,
+  const char* imsi,
+  const char* apn,
+  const char* pdn_type,
+  itti_sgi_create_end_point_response_t sgi_create_endpoint_resp)
+{
+    increment_counter(
+      "ue_pdn_connection",
+      1,
+      2,
+      "pdn_type",
+      pdn_type,
+      "result",
+      "success");
+    unsigned char  temp_addr[sizeof (struct in6_addr)] = {0};
+    if(inet_pton(AF_INET6, addr, temp_addr)== 1) {
+      // Copy only the interface identifier i.e the last 64 bits
+      memcpy(&sgi_create_endpoint_resp.paa.ipv6_address,&temp_addr[8], 8);
+      sgi_create_endpoint_resp.paa.ipv6_prefix_length = 64;
+      sgi_create_endpoint_resp.paa.pdn_type = IPv6;
+      OAILOG_DEBUG(
+        LOG_UTIL,
+        "Allocated IPv6 Interface identifier for imsi <%s>, apn <%s>\n",
+        imsi,
+        apn);
+      sgi_create_endpoint_resp.status = SGI_STATUS_OK;
+    }
+  return sgi_create_endpoint_resp;
+}
+

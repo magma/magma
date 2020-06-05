@@ -170,6 +170,7 @@ bstring paa_to_bstring(const paa_t *paa)
       break;
     case IPv4_OR_v6:
       // do it like that now, TODO
+      // TODO:Pruthvi check
       bstr = blk2bstr(&paa->ipv4_address.s_addr, 4);
       break;
     default:;
