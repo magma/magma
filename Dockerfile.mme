@@ -1,3 +1,4 @@
+ARG GIT_PROXY
 FROM ubuntu:bionic
 ENV MAGMA_ROOT=/magma
 ENV FEATURES=mme
@@ -8,6 +9,8 @@ RUN mkdir -p /magma/build/ && \
 
 # Add Converged MME sources to the container
 COPY ./ /magma
+
+RUN ["/bin/bash", "-c", "if [[ -v GIT_PROXY ]]; then git config --global http.proxy $GIT_PROXY; fi"]
 
 RUN apt-get update && \
     apt-get -y install autoconf automake libtool wget curl make g++ unzip git \
