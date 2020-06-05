@@ -9,7 +9,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 # pylint: disable=protected-access
 
 import asyncio
-import unittest.mock
+from unittest import TestCase, main, mock
 
 from orc8r.protos.sync_rpc_service_pb2 import GatewayRequest, GatewayResponse, \
     SyncRPCResponse, SyncRPCRequest
@@ -18,7 +18,7 @@ from magma.common.service_registry import ServiceRegistry
 from magma.magmad.sync_rpc_client import SyncRPCClient
 
 
-class SyncRPCClientTests(unittest.TestCase):
+class SyncRPCClientTests(TestCase):
     """
     Tests for the SyncRPCClient
     """
@@ -76,6 +76,13 @@ class SyncRPCClientTests(unittest.TestCase):
             else:
                 self.assertEqual(2 ** i, self._sync_rpc_client._current_delay)
 
+    def test_disconnect_sync_rpc_event(self):
+        disconnect_sync_rpc_event_mock = mock.patch(
+            'magma.magmad.events.disconnected_sync_rpc_stream')
+        with disconnect_sync_rpc_event_mock as disconnect_sync_rpc_streams:
+            self._sync_rpc_client._cleanup_and_reconnect()
+            disconnect_sync_rpc_streams.assert_called_once_with()
+
 
 if __name__ == "__main__":
-    unittest.main()
+    main()
