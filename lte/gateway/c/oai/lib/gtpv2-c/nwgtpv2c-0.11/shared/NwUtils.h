@@ -36,7 +36,6 @@
 #ifndef __NW_UTILS_H__
 #define __NW_UTILS_H__
 
-
 /**
  * @file NwUtils.h
  * @brief This header file contains utility macro and function definitions.
@@ -58,11 +57,9 @@
     ( ( ((uint64_t)x) & 0x0000000000ff0000ULL ) << 24 ) | ( ( ((uint64_t)x) & 0x00000000ff000000ULL ) << 8  )         \
     )
 
-
 #define NW_NTOHS                NW_HTONS
 #define NW_NTOHL                NW_HTONL
 #define NW_NTOHLL               NW_HTONLL
-
 
 #endif /* __NW_UTILS_H__ */
 

@@ -131,7 +131,6 @@ extern "C" {
 #define NW_GTP_MBMS_SESSION_STOP_RSP                            (236)
 #define NW_GTP_MSG_END                                          (255)
 
-
 /* Cause Values */
 #define NW_GTPV2C_CAUSE_BIT_NONE                                (0x00)
 #define NW_GTPV2C_CAUSE_BIT_CS                                  (0x01)
@@ -222,7 +221,6 @@ typedef struct nw_gtpv2c_ie_tlv_s {
 
 #pragma pack()
 
-
 /**
  * Allocate a gtpv2c message.
  *
@@ -241,7 +239,6 @@ nwGtpv2cMsgNew( NW_IN nw_gtpv2c_stack_handle_t hGtpcStackHandle,
                 NW_IN uint32_t    teid,
                 NW_IN uint32_t    seqNum,
                 NW_OUT nw_gtpv2c_msg_handle_t *phMsg);
-
 
 /**
  * Allocate a gtpv2c message from data buffer.
@@ -349,7 +346,6 @@ nwGtpv2cMsgAddIeTV1(NW_IN nw_gtpv2c_msg_handle_t hMsg,
                     NW_IN uint8_t       type,
                     NW_IN uint8_t       instance,
                     NW_IN uint8_t       value);
-
 
 /**
  * Add a gtpv2c information element of length 2 to gtpv2c message.
@@ -511,7 +507,6 @@ nwGtpv2cMsgGetIeTV1(NW_IN nw_gtpv2c_msg_handle_t hMsg,
  * @return NW_OK on success.
  */
 
-
 nw_rc_t
 nwGtpv2cMsgGetIeTV2(NW_IN nw_gtpv2c_msg_handle_t hMsg,
                     NW_IN uint8_t type,
@@ -528,7 +523,6 @@ nwGtpv2cMsgGetIeTV2(NW_IN nw_gtpv2c_msg_handle_t hMsg,
  * @return NW_OK on success.
  */
 
-
 nw_rc_t
 nwGtpv2cMsgGetIeTV4(NW_IN nw_gtpv2c_msg_handle_t hMsg,
                     NW_IN uint8_t type,
@@ -544,7 +538,6 @@ nwGtpv2cMsgGetIeTV4(NW_IN nw_gtpv2c_msg_handle_t hMsg,
  * @param[out] pVal : Pointer to IE value buffer.
  * @return NW_OK on success.
  */
-
 
 nw_rc_t
 nwGtpv2cMsgGetIeTV8(NW_IN nw_gtpv2c_msg_handle_t hMsg,
@@ -642,7 +635,6 @@ nwGtpv2cMsgHexDump(nw_gtpv2c_msg_handle_t hMsg, FILE* fp);
 #endif
 
 #endif /* __NW_GTPV2C_MSG_H__ */
-
 
 /*--------------------------------------------------------------------------*
  *                      E N D     O F    F I L E                            *

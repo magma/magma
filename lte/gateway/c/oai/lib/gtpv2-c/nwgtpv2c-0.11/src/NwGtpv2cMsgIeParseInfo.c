@@ -53,7 +53,6 @@
 extern                                  "C" {
 #endif
 
-
   typedef struct NwGtpv2cMsgIeInfo {
     uint8_t                                 ieType;
     uint8_t                                 ieMinLength;
@@ -645,24 +644,6 @@ static
 /*----------------------------------------------------------------------------*
                        P R I V A T E     F U N C T I O N S
   ----------------------------------------------------------------------------*/
-
-  /*‘nwGtpv2cMsgGroupedIeCount’ defined but not used [-Wunused-function]
-   * static uint32_t                         nwGtpv2cMsgGroupedIeCount (
-  NwGtpv2cMsgIeInfoT * pMsgIeInfo) {
-    uint32_t                                count = 0;
-    NwGtpv2cMsgIeInfoT                     *pGroupedIeInfo = pMsgIeInfo;
-
-    while (pGroupedIeInfo++) {
-      if (pGroupedIeInfo->ieType == 0) {
-        break;
-      }
-
-      count++;
-    }
-
-    return count;
-  }*/
-
   static nw_rc_t                            nwGtpv2cMsgIeParseInfoUpdate (
   nw_gtpv2c_msg_ie_parse_info_t * thiz,
   NwGtpv2cMsgIeInfoT * pMsgIeInfo) {
@@ -714,7 +695,6 @@ static
 /*----------------------------------------------------------------------------*
                          P U B L I C   F U N C T I O N S
   ----------------------------------------------------------------------------*/
-
 /**
    Constructor
    @return Pointer to the object on success.
@@ -1103,7 +1083,6 @@ static
     pError->cause = NW_GTPV2C_CAUSE_REQUEST_ACCEPTED;
     return NW_OK;
   }
-
 
 #ifdef __cplusplus
 }

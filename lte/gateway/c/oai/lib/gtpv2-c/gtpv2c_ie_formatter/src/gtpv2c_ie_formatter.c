@@ -53,10 +53,8 @@
 #include "NwGtpv2cMsg.h"
 #include "NwGtpv2cMsgParser.h"
 #include "TrafficFlowAggregateDescription.h"
-//#include "s11_common.h"
 #include "security_types.h"
 #include "common_types.h"
-//#include "PdnType.h"
 
 //------------------------------------------------------------------------------
 nw_rc_t
@@ -1013,12 +1011,6 @@ gtpv2c_bearer_context_created_ie_set (
   rc = gtpv2c_cause_ie_set (msg, &bearer->cause);
   DevAssert (NW_OK == rc);
   // todo: data forwarding..
-//  rc = nwGtpv2cMsgAddIeFteid (*msg, NW_GTPV2C_IE_INSTANCE_,
-//                              bearer->s1u_sgw_fteid.interface_type,
-//                              bearer->s1u_sgw_fteid.teid,
-//                              bearer->s1u_sgw_fteid.ipv4 ? &bearer->s1u_sgw_fteid.ipv4_address : 0,
-//                              bearer->s1u_sgw_fteid.ipv6 ? &bearer->s1u_sgw_fteid.ipv6_address : NULL);
-//  DevAssert (NW_OK == rc);
   /*
    * End section for grouped IE: bearer context created
    */

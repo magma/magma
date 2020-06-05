@@ -605,7 +605,6 @@ nw_rc_t
 nwGtpv2cProcessUlpReq( NW_IN nw_gtpv2c_stack_handle_t hGtpcStackHandle,
                        NW_IN nw_gtpv2c_ulp_api_t *ulpReq);
 
-
 /**
  Process Timer timeout Request from Timer Manager
 
@@ -615,7 +614,6 @@ nwGtpv2cProcessUlpReq( NW_IN nw_gtpv2c_stack_handle_t hGtpcStackHandle,
 
 nw_rc_t
 nwGtpv2cProcessTimeout( NW_IN void* timeoutArg);
-
 
 #ifdef __cplusplus
 }

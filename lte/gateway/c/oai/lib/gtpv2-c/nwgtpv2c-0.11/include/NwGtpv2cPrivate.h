@@ -114,7 +114,6 @@ typedef struct nw_gtpv2c_stack_s {
   NwPtrT                        hTmrMinHeap;
 } nw_gtpv2c_stack_t;
 
-
 /*--------------------------------------------------------------------------*
  * Timeout Info Type Definition
  *--------------------------------------------------------------------------*/
@@ -134,7 +133,6 @@ typedef struct nw_gtpv2c_timeout_info_s {
   uint32_t                          timerMinHeapIndex;
   struct nw_gtpv2c_timeout_info_s  *next;
 } nw_gtpv2c_timeout_info_t;
-
 
 /*---------------------------------------------------------------------------
  * GTPv2c Message Container Definition

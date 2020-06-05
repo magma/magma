@@ -482,11 +482,6 @@ static void *udp_intertask_interface(void *args_p) {
 
             udp_sd = udp_sock_p->sd;
             pthread_mutex_unlock(&udp_socket_list_mutex);
-            //        	  OAILOG_DEBUG (LOG_UDP, "[%d] Sending message of size
-            //        %u to " IN_ADDR_FMT " and port %u\n",
-            //        udp_sd, udp_data_req_p->buffer_length, PRI_IN_ADDR
-            //        (udp_data_req_p->peer_address),
-            //        udp_data_req_p->peer_port);
             bytes_written = sendto(
                 udp_sd, &udp_data_req_p->buffer[udp_data_req_p->buffer_offset],
                 udp_data_req_p->buffer_length, 0,

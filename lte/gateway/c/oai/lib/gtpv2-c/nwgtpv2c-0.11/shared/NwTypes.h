@@ -31,7 +31,6 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.          *
  *----------------------------------------------------------------------------*/
 
-
 #include <stdlib.h>
 #include <stdint.h>
 
@@ -56,7 +55,6 @@ typedef signed int              NwFdT;          /**< Use this for file descripto
 
 typedef uintptr_t               NwPtrT;         /**< Use this for generic pointers      */
 typedef uintptr_t               NwHandleT;      /**< Use this for generic handles       */
-
 
 #ifdef __cplusplus
 }

@@ -183,20 +183,13 @@ gtpv2c_pdn_type_ie_get (
   DevAssert (pdn_type );
 
   if (*ieValue == 1) {
-    /*
-     * Only IPv4
-     */
-    *pdn_type = IPv4;
+
+    *pdn_type = IPv4;  // Only IPv4
   } else if (*ieValue == 2) {
-    /*
-     * Only IPv6
-     */
-    *pdn_type = IPv6;
+
+    *pdn_type = IPv6;  // Only IPv6
   } else if (*ieValue == 3) {
-    /*
-     * IPv4 and/or IPv6
-     */
-    *pdn_type = IPv4_AND_v6;
+    *pdn_type = IPv4_AND_v6;  // IPv4 and/or IPv6
   } else {
     OAILOG_ERROR (LOG_S11, "Received unknown value for PDN Type: %u\n", *ieValue);
     return NW_GTPV2C_IE_INCORRECT;
@@ -398,15 +391,13 @@ gtpv2c_bearer_context_to_create_ie_set (
 
   DevAssert (msg );
   DevAssert (bearer_to_create );
-  /*
-   * Start section for grouped IE: bearer context to create
-   */
+
+  // Start section for grouped IE: bearer context to create
   rc = nwGtpv2cMsgGroupedIeStart (*msg, NW_GTPV2C_IE_BEARER_CONTEXT, NW_GTPV2C_IE_INSTANCE_ZERO);
   DevAssert (NW_OK == rc);
   gtpv2c_ebi_ie_set (msg, bearer_to_create->eps_bearer_id, NW_GTPV2C_IE_INSTANCE_ZERO);
-  /*
-   * End section for grouped IE: bearer context to create
-   */
+
+  // End section for grouped IE: bearer context to create
   rc = nwGtpv2cMsgGroupedIeEnd (*msg);
   DevAssert (NW_OK == rc);
   return RETURNok;
@@ -445,8 +436,6 @@ gtpv2c_bearer_context_to_be_created_within_create_bearer_request_ie_get (
       break;
 
     case NW_GTPV2C_IE_BEARER_TFT:
-      //if(!bearer_context->tft)
-       // bearer_context->tft = calloc(1, sizeof(struct traffic_flow_template_s));
       rc = gtpv2c_tft_ie_get (ie_p->t, ntohs (ie_p->l), ie_p->i, &ieValue[read + sizeof (nw_gtpv2c_ie_tlv_t)], &bearer_context->tft);
       DevAssert (NW_OK == rc);
       break;
@@ -502,9 +491,8 @@ gtpv2c_bearer_context_to_be_created_within_create_bearer_request_ie_set (
 
   DevAssert (msg );
   DevAssert (bearer_context );
-  /*
-   * Start section for grouped IE: bearer context to create
-   */
+
+ // Start section for grouped IE: bearer context to create
   rc = nwGtpv2cMsgGroupedIeStart (*msg, NW_GTPV2C_IE_BEARER_CONTEXT, NW_GTPV2C_IE_INSTANCE_ZERO);
   DevAssert (NW_OK == rc);
   gtpv2c_ebi_ie_set (msg, bearer_context->eps_bearer_id, NW_GTPV2C_IE_INSTANCE_ZERO);
@@ -529,9 +517,8 @@ gtpv2c_bearer_context_to_be_created_within_create_bearer_request_ie_set (
   gtpv2c_bearer_qos_ie_set(msg, &bearer_context->bearer_level_qos);
   gtpv2c_tft_ie_set(msg, &bearer_context->tft);
 
-  /*
-   * End section for grouped IE: bearer context to create
-   */
+
+  // End section for grouped IE: bearer context to create
   rc = nwGtpv2cMsgGroupedIeEnd (*msg);
   DevAssert (NW_OK == rc);
   return RETURNok;
@@ -546,9 +533,8 @@ int gtpv2c_bearer_context_within_create_bearer_response_ie_set (
 
   DevAssert (msg );
   DevAssert (bearer_context );
-  /*
-   * Start section for grouped IE: bearer context to create
-   */
+
+  // Start section for grouped IE: bearer context to create
   rc = nwGtpv2cMsgGroupedIeStart (*msg, NW_GTPV2C_IE_BEARER_CONTEXT, NW_GTPV2C_IE_INSTANCE_ZERO);
   DevAssert (NW_OK == rc);
   gtpv2c_ebi_ie_set (msg, bearer_context->eps_bearer_id, NW_GTPV2C_IE_INSTANCE_ZERO);
@@ -583,9 +569,7 @@ int gtpv2c_bearer_context_within_create_bearer_response_ie_set (
     gtpv2c_pco_ie_set(msg, &bearer_context->pco);
   }
 
-  /*
-   * End section for grouped IE: bearer context to create
-   */
+  // End section for grouped IE: bearer context to create
   rc = nwGtpv2cMsgGroupedIeEnd (*msg);
   DevAssert (NW_OK == rc);
   return RETURNok;
@@ -746,9 +730,8 @@ gtpv2c_bearer_context_to_be_updated_within_update_bearer_request_ie_set (
 
   DevAssert (msg );
   DevAssert (bearer_context );
-  /*
-   * Start section for grouped IE: bearer context to create
-   */
+
+  // Start section for grouped IE: bearer context to create
   rc = nwGtpv2cMsgGroupedIeStart (*msg, NW_GTPV2C_IE_BEARER_CONTEXT, NW_GTPV2C_IE_INSTANCE_ZERO);
   DevAssert (NW_OK == rc);
   gtpv2c_ebi_ie_set (msg, bearer_context->eps_bearer_id, NW_GTPV2C_IE_INSTANCE_ZERO);
@@ -758,9 +741,7 @@ gtpv2c_bearer_context_to_be_updated_within_update_bearer_request_ie_set (
   gtpv2c_bearer_qos_ie_set(msg, (const bearer_qos_t *const)&bearer_context->bearer_level_qos);
   gtpv2c_tft_ie_set(msg, (const traffic_flow_template_t *const)&bearer_context->tft);
 
-  /*
-   * End section for grouped IE: bearer context to create
-   */
+ // End section for grouped IE: bearer context to create
   rc = nwGtpv2cMsgGroupedIeEnd (*msg);
   DevAssert (NW_OK == rc);
   return RETURNok;
@@ -775,9 +756,8 @@ int gtpv2c_bearer_context_within_update_bearer_response_ie_set (
 
   DevAssert (msg );
   DevAssert (bearer_context );
-  /*
-   * Start section for grouped IE: bearer context to create
-   */
+
+  // Start section for grouped IE: bearer context to create
   rc = nwGtpv2cMsgGroupedIeStart (*msg, NW_GTPV2C_IE_BEARER_CONTEXT, NW_GTPV2C_IE_INSTANCE_ZERO);
   DevAssert (NW_OK == rc);
   gtpv2c_ebi_ie_set (msg, bearer_context->eps_bearer_id, NW_GTPV2C_IE_INSTANCE_ZERO);
@@ -792,10 +772,7 @@ int gtpv2c_bearer_context_within_update_bearer_response_ie_set (
     gtpv2c_pco_ie_set(msg, &bearer_context->pco);
   }
 
-  /*
-   * End section for grouped IE: bearer context to create
-   */
-  rc = nwGtpv2cMsgGroupedIeEnd (*msg);
+  rc = nwGtpv2cMsgGroupedIeEnd (*msg); // End section for grouped IE: bearer context to create
   DevAssert (NW_OK == rc);
   return RETURNok;
 }
@@ -918,19 +895,15 @@ gtpv2c_failed_bearer_context_within_delete_bearer_request_ie_set (
 
   DevAssert (msg );
   DevAssert (bearer_context );
-  /*
-   * Start section for grouped IE: bearer context to create
-   */
+
+  // Start section for grouped IE: bearer context to create
   rc = nwGtpv2cMsgGroupedIeStart (*msg, NW_GTPV2C_IE_BEARER_CONTEXT, NW_GTPV2C_IE_INSTANCE_ZERO);
   DevAssert (NW_OK == rc);
   gtpv2c_ebi_ie_set (msg, bearer_context->eps_bearer_id, NW_GTPV2C_IE_INSTANCE_ZERO);
 
   gtpv2c_cause_ie_set (msg, &bearer_context->cause);
 
-  /*
-   * End section for grouped IE: bearer context to create
-   */
-  rc = nwGtpv2cMsgGroupedIeEnd (*msg);
+  rc = nwGtpv2cMsgGroupedIeEnd (*msg);  // End section for grouped IE: bearer context to create
   DevAssert (NW_OK == rc);
   return RETURNok;
 }
@@ -979,9 +952,8 @@ int gtpv2c_bearer_context_within_delete_bearer_response_ie_set (
 
   DevAssert (msg );
   DevAssert (bearer_context );
-  /*
-   * Start section for grouped IE: bearer context to create
-   */
+
+  // Start section for grouped IE: bearer context to create
   rc = nwGtpv2cMsgGroupedIeStart (*msg, NW_GTPV2C_IE_BEARER_CONTEXT, NW_GTPV2C_IE_INSTANCE_ZERO);
   DevAssert (NW_OK == rc);
   gtpv2c_ebi_ie_set (msg, bearer_context->eps_bearer_id, NW_GTPV2C_IE_INSTANCE_ZERO);
@@ -991,9 +963,7 @@ int gtpv2c_bearer_context_within_delete_bearer_response_ie_set (
     gtpv2c_pco_ie_set(msg, &bearer_context->pco);
   }
 
-  /*
-   * End section for grouped IE: bearer context to create
-   */
+  // End section for grouped IE: bearer context to create
   rc = nwGtpv2cMsgGroupedIeEnd (*msg);
   DevAssert (NW_OK == rc);
   return RETURNok;
@@ -1057,16 +1027,13 @@ int gtpv2c_bearer_context_ebi_only_ie_set (
   nw_rc_t                                   rc;
 
   DevAssert (msg );
-  /*
-   * Start section for grouped IE: bearer context to create
-   */
+
+  // Start section for grouped IE: bearer context to create
   rc = nwGtpv2cMsgGroupedIeStart (*msg, NW_GTPV2C_IE_BEARER_CONTEXT, NW_GTPV2C_IE_INSTANCE_ZERO);
   DevAssert (NW_OK == rc);
   gtpv2c_ebi_ie_set (msg, ebi, NW_GTPV2C_IE_INSTANCE_ZERO);
 
-  /*
-   * End section for grouped IE: bearer context to create
-   */
+  // End section for grouped IE: bearer context to create
   rc = nwGtpv2cMsgGroupedIeEnd (*msg);
   DevAssert (NW_OK == rc);
   return RETURNok;
@@ -1082,16 +1049,14 @@ gtpv2c_bearer_context_to_be_modified_within_modify_bearer_request_ie_set (
 
   DevAssert (msg );
   DevAssert (bearer_context );
-  /*
-   * Start section for grouped IE: bearer context to create
-   */
+
+  // Start section for grouped IE: bearer context to create
   rc = nwGtpv2cMsgGroupedIeStart (*msg, NW_GTPV2C_IE_BEARER_CONTEXT, NW_GTPV2C_IE_INSTANCE_ZERO);
   DevAssert (NW_OK == rc);
   gtpv2c_ebi_ie_set (msg, bearer_context->eps_bearer_id, NW_GTPV2C_IE_INSTANCE_ZERO);
   gtpv2c_fteid_ie_set(msg, &bearer_context->s1_eNB_fteid, 0);
-  /*
-   * End section for grouped IE: bearer context to create
-   */
+
+  // End section for grouped IE: bearer context to create
   rc = nwGtpv2cMsgGroupedIeEnd (*msg);
   DevAssert (NW_OK == rc);
   return RETURNok;
@@ -1152,16 +1117,13 @@ gtpv2c_bearer_context_to_be_removed_within_modify_bearer_request_ie_set (
 
   DevAssert (msg );
   DevAssert (bearer_context );
-  /*
-   * Start section for grouped IE: bearer context to create
-   */
+
+  // Start section for grouped IE: bearer context to create
   rc = nwGtpv2cMsgGroupedIeStart (*msg, NW_GTPV2C_IE_BEARER_CONTEXT, NW_GTPV2C_IE_INSTANCE_ONE);
   DevAssert (NW_OK == rc);
   gtpv2c_ebi_ie_set (msg, bearer_context->eps_bearer_id, NW_GTPV2C_IE_INSTANCE_ZERO);
 
-  /*
-   * End section for grouped IE: bearer context to create
-   */
+  // End section for grouped IE: bearer context to create
   rc = nwGtpv2cMsgGroupedIeEnd (*msg);
   DevAssert (NW_OK == rc);
   return RETURNok;
@@ -1234,9 +1196,6 @@ gtpv2c_bearer_context_modified_ie_get (
       DevAssert (NW_OK == rc);
       break;
 
-//    case NW_GTPV2C_IE_FTEID:
-//      rc = gtpv2c_fteid_ie_get (ie_p->t, ntohs (ie_p->l), ie_p->i, &ieValue[read + sizeof (nw_gtpv2c_ie_tlv_t)], &bearer_context->s1u_sgw_fteid);
-//      break;
     case NW_GTPV2C_IE_FTEID:
       switch (ie_p->i) {
       case 0:
@@ -1318,17 +1277,15 @@ gtpv2c_bearer_context_marked_for_removal_ie_set (
 
   DevAssert (msg );
   DevAssert (bearer);
-  /*
-   * Start section for grouped IE: bearer context marked for removal
-   */
+
+  // Start section for grouped IE: bearer context marked for removal
   rc = nwGtpv2cMsgGroupedIeStart (*msg, NW_GTPV2C_IE_BEARER_CONTEXT, NW_GTPV2C_IE_INSTANCE_ONE);
   DevAssert (NW_OK == rc);
   gtpv2c_ebi_ie_set (msg, bearer->eps_bearer_id, NW_GTPV2C_IE_INSTANCE_ONE);
   rc = gtpv2c_cause_ie_set (msg, &bearer->cause);
   DevAssert (NW_OK == rc);
-  /*
-   * End section for grouped IE: bearer context marked for removal
-   */
+
+  // End section for grouped IE: bearer context marked for removal
   rc = nwGtpv2cMsgGroupedIeEnd (*msg);
   DevAssert (NW_OK == rc);
   return RETURNok;
@@ -1385,9 +1342,8 @@ gtpv2c_serving_network_ie_get (
   serving_net->mcc[2] = (ieValue[1] & 0x0F);
 
   if ((ieValue[1] & 0xF0) == 0xF0) {
-    /*
-     * Two digits MNC
-     */
+
+    // Two digits MNC
     serving_net->mnc[0] = 0;
     serving_net->mnc[1] = (ieValue[2] & 0x0F);
     serving_net->mnc[2] = (ieValue[2] & 0xF0) >> 4;
@@ -1412,16 +1368,14 @@ gtpv2c_serving_network_ie_set (
 
   DevAssert (msg );
   DevAssert (serving_network );
-  /*
-   * MCC Decimal | MCC Hundreds
-   */
+
+  // MCC Decimal | MCC Hundreds
   value[0] = ((serving_network->mcc[1] & 0x0F) << 4) | (serving_network->mcc[0] & 0x0F);
   value[1] = serving_network->mcc[2] & 0x0F;
 
   if ((serving_network->mnc[0] & 0xF) == 0xF) {
-    /*
-     * Only two digits
-     */
+
+  // Only two digits
     value[1] |= 0xF0;
     value[2] = ((serving_network->mnc[2] & 0x0F) << 4) | (serving_network->mnc[1] & 0x0F);
   } else {
@@ -1500,14 +1454,10 @@ gtpv2c_apn_ie_get (
       apn[read - 1] = ieValue[read];
       word_length--;
     } else {
-      /*
-       * This is not an alphanumeric character
-       */
-      word_length = ieValue[read];
-      /*
-       * Replace the length attribute by '.'
-       */
-      apn[read - 1] = '.';
+
+      word_length = ieValue[read];   // This is not an alphanumeric character
+
+      apn[read - 1] = '.';     // Replace the length attribute by '.'
     }
 
     read++;
@@ -1538,9 +1488,7 @@ gtpv2c_apn_ie_set (
   last_size = &value[0];
 
   while (apn[offset]) {
-    /*
-     * We replace the . by the length of the word
-     */
+    // We replace the . by the length of the word
     if (apn[offset] == '.') {
       *last_size = word_length;
       word_length = 0;
@@ -1694,22 +1642,16 @@ gtpv2c_ip_address_ie_get (
   DevAssert (ip_address );
 
   if (ieLength == 4) {
-    /*
-     * This is an IPv4 Address
-     */
-    ip_address->present = GTP_IP_ADDR_v4;
+
+    ip_address->present = GTP_IP_ADDR_v4;    // This is an IPv4 Address
     memcpy (ip_address->address.v4, ieValue, 4);
   } else if (ieLength == 16) {
-    /*
-     * This is an IPv6 Address
-     */
-    ip_address->present = GTP_IP_ADDR_v6;
+
+    ip_address->present = GTP_IP_ADDR_v6;     // This is an IPv6 Address
     memcpy (ip_address->address.v6, ieValue, 16);
   } else {
-    /*
-     * Length doesn't lie in possible values
-     */
-    return NW_GTPV2C_IE_INCORRECT;
+
+    return NW_GTPV2C_IE_INCORRECT;    // Length doesn't lie in possible values
   }
 
   return NW_OK;
@@ -1980,9 +1922,8 @@ gtpv2c_fqcsid_ie_get (
 
       memcpy (fq_csid->node_id.unicast_ipv6.__in6_u.__u6_addr8, &ieValue[1], 16);
       fq_csid->csid = (ieValue[17] << 8) | ieValue[18];
-      /*
-       * Convert the ipv6 to printable string
-       */
+
+      // Convert the ipv6 to printable string
       inet_ntop (AF_INET6, (void*)&fq_csid->node_id.unicast_ipv6, ipv6, INET6_ADDRSTRLEN);
       OAILOG_DEBUG (LOG_S11, "\t- v6 address [%s]\n", ipv6);
     }

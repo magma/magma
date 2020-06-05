@@ -84,7 +84,6 @@ nwGtpv2cMsgParserNew( NW_IN nw_gtpv2c_stack_handle_t hGtpcStackHandle,
                       NW_IN void* ieReadCallbackArg,
                       NW_IN nw_gtpv2c_msg_parser_t **pthiz);
 
-
 /**
  * Free a gtpv2c message parser.
  *
@@ -108,7 +107,6 @@ nwGtpv2cMsgParserUpdateIe( NW_IN nw_gtpv2c_msg_parser_t* thiz,
                                void* ieReadCallbackArg),
                            NW_IN void* ieReadCallbackArg);
 
-
 nw_rc_t
 nwGtpv2cMsgParserUpdateIeReadCallback( NW_IN nw_gtpv2c_msg_parser_t* thiz,
                                        NW_IN nw_rc_t (*ieReadCallback) (uint8_t ieType,
@@ -116,7 +114,6 @@ nwGtpv2cMsgParserUpdateIeReadCallback( NW_IN nw_gtpv2c_msg_parser_t* thiz,
                                            uint8_t ieInstance,
                                            uint8_t* ieValue,
                                            void* ieReadCallbackArg));
-
 
 nw_rc_t
 nwGtpv2cMsgParserUpdateIeReadCallbackArg( NW_IN nw_gtpv2c_msg_parser_t* thiz,
@@ -146,7 +143,6 @@ nwGtpv2cMsgParserRun( NW_IN nw_gtpv2c_msg_parser_t *thiz,
 #endif
 
 #endif /* __NW_GTPV2C_MSG_PARSER_H__ */
-
 
 /*--------------------------------------------------------------------------*
  *                      E N D     O F    F I L E                            *
