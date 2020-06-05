@@ -8,23 +8,13 @@
 ## Global values for NMS sub-chart
 nms:
   enabled: true
-
   magmalte:
-    manifests:
-      secrets: false
-      deployment: false
-      service: false
-      rbac: false
+    create: true
     image:
       repository: <registry>/magmalte
       tag: latest
   nginx:
-    manifests:
-      configmap: false
-      secrets: false
-      deployment: false
-      service: false
-      rbac: false
+    create: true
 
 # Reference to one or more secrets to be used when pulling images
 # ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/

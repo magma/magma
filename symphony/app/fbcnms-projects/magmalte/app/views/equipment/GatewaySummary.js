@@ -13,24 +13,20 @@ import CardHeader from '@material-ui/core/CardHeader';
 import React from 'react';
 import type {lte_gateway} from '@fbcnms/magma-api';
 
-export default function GatewaySummary({gw_info}: {gw_info: lte_gateway}) {
-  if (!gw_info) {
-    return null;
-  }
-
-  const version = gw_info?.status?.platform_info?.packages?.[0]?.version;
+export default function GatewaySummary({gwInfo}: {gwInfo: lte_gateway}) {
+  const version = gwInfo.status?.platform_info?.packages?.[0]?.version;
   return (
     <>
       <Card>
         <CardHeader
-          title={gw_info.description}
+          title={gwInfo.description}
           titleTypographyProps={{variant: 'body2'}}
         />
       </Card>
       <Card>
         <CardHeader
           title="Gateway ID"
-          subheader={gw_info.id}
+          subheader={gwInfo.id}
           titleTypographyProps={{variant: 'caption'}}
           subheaderTypographyProps={{variant: 'body2'}}
         />
@@ -39,7 +35,7 @@ export default function GatewaySummary({gw_info}: {gw_info: lte_gateway}) {
       <Card>
         <CardHeader
           title="Hardware UUID"
-          subheader={gw_info.device.hardware_id}
+          subheader={gwInfo.device.hardware_id}
           titleTypographyProps={{variant: 'caption'}}
           subheaderTypographyProps={{variant: 'body2'}}
         />

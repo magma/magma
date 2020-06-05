@@ -200,7 +200,12 @@ function sanitizeWorkflowTaskdefAfter(
 /*
 curl -H "x-auth-organization: fb-test" "localhost/proxy/api/metadata/workflow"
 */
-const getAllWorkflowsAfter: AfterFun = (tenantId, req, respObj) => {
+export const getAllWorkflowsAfter: AfterFun = (
+  tenantId,
+  groups,
+  req,
+  respObj,
+) => {
   const workflows: Array<Workflow> = anythingTo<Array<Workflow>>(respObj);
   // iterate over workflows, keep only those belonging to tenantId
   for (
@@ -229,7 +234,13 @@ const getAllWorkflowsAfter: AfterFun = (tenantId, req, respObj) => {
 curl -H "x-auth-organization: fb-test" \
   "localhost/proxy/api/metadata/workflow/2/2" -X DELETE
 */
-const deleteWorkflowBefore: BeforeFun = (tenantId, req, res, proxyCallback) => {
+const deleteWorkflowBefore: BeforeFun = (
+  tenantId,
+  groups,
+  req,
+  res,
+  proxyCallback,
+) => {
   const tenantWithInfixSeparator = withInfixSeparator(tenantId);
   // change URL: add prefix to name
   const name = tenantWithInfixSeparator + req.params.name;
@@ -245,7 +256,13 @@ const deleteWorkflowBefore: BeforeFun = (tenantId, req, res, proxyCallback) => {
 curl -H "x-auth-organization: fb-test" \
   "localhost/proxy/api/metadata/workflow/fx3?version=1"
 */
-const getWorkflowBefore: BeforeFun = (tenantId, req, res, proxyCallback) => {
+export const getWorkflowBefore: BeforeFun = (
+  tenantId,
+  groups,
+  req,
+  res,
+  proxyCallback,
+) => {
   const tenantWithInfixSeparator = withInfixSeparator(tenantId);
   const name = tenantWithInfixSeparator + req.params.name;
   let newUrl = `/api/metadata/workflow/${name}`;
@@ -260,7 +277,7 @@ const getWorkflowBefore: BeforeFun = (tenantId, req, res, proxyCallback) => {
   proxyCallback();
 };
 
-const getWorkflowAfter: AfterFun = (tenantId, req, respObj) => {
+export const getWorkflowAfter: AfterFun = (tenantId, groups, req, respObj) => {
   const workflow = anythingTo<Workflow>(respObj);
   const ok = sanitizeWorkflowdefAfter(tenantId, workflow);
   if (!ok) {
@@ -325,7 +342,13 @@ curl -X PUT -H "x-auth-organization: fb-test" \
     }
 ]'
 */
-const putWorkflowBefore: BeforeFun = (tenantId, req, res, proxyCallback) => {
+const putWorkflowBefore: BeforeFun = (
+  tenantId,
+  groups,
+  req,
+  res,
+  proxyCallback,
+) => {
   const workflows: Array<Workflow> = anythingTo<Array<Workflow>>(req.body);
   for (const workflowdef of workflows) {
     sanitizeWorkflowdefBefore(tenantId, workflowdef);
@@ -364,7 +387,13 @@ curl -X POST -H "x-auth-organization: fb-test" \
     }
 '
 */
-const postWorkflowBefore: BeforeFun = (tenantId, req, res, proxyCallback) => {
+const postWorkflowBefore: BeforeFun = (
+  tenantId,
+  groups,
+  req,
+  res,
+  proxyCallback,
+) => {
   const workflow: Workflow = anythingTo<Workflow>(req.body);
   sanitizeWorkflowdefBefore(tenantId, workflow);
   logger.debug(`Transformed request to ${JSON.stringify(workflow)}`);

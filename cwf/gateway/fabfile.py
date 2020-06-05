@@ -42,7 +42,8 @@ class SubTests(Enum):
 
 def integ_test(gateway_host=None, test_host=None, trf_host=None,
                transfer_images=False, destroy_vm=False, no_build=False,
-               tests_to_run="all", skip_unit_tests=False, test_re=None):
+               tests_to_run="all", skip_unit_tests=False, test_re=None,
+               run_tests=True):
     """
     Run the integration tests. This defaults to running on local vagrant
     machines, but can also be pointed to an arbitrary host (e.g. amazon) by
@@ -120,6 +121,11 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     _switch_to_vm_no_destroy(gateway_host, "cwag_test", "cwag_test.yml")
     execute(_start_ue_simulator)
     execute(_set_cwag_test_networking, cwag_br_mac)
+
+    if run_tests == "False":
+        print("run_test was set to false. Test will not be run\n"
+              "You can now run the tests manually from cwag_test")
+        sys.exit(0)
 
     if tests_to_run.value not in SubTests.MULTISESSIONPROXY.value:
         execute(_run_integ_tests, test_host, trf_host, tests_to_run, test_re)

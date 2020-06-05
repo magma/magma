@@ -63,7 +63,7 @@ const mockGatewaySt: lte_gateway = {
 
 describe('<GatewaySummary />', () => {
   it('renders', async () => {
-    const {container} = render(<GatewaySummary gw_info={mockGatewaySt} />);
+    const {container} = render(<GatewaySummary gwInfo={mockGatewaySt} />);
     expect(container).toHaveTextContent('mpk_dogfooding');
     expect(container).toHaveTextContent('1.1.0-1590005479-e6e781a9');
     expect(container).toHaveTextContent('e059637f-cd55-4109-816c-ce6ebc69020d');

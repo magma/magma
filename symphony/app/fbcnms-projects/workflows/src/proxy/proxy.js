@@ -21,23 +21,29 @@ import type {
   ProxyNext,
   ProxyRequest,
   ProxyResponse,
+  TransformerRegistrationFun,
 } from '../types';
 
 const logger = logging.getLogger(module);
-const router = Router<ProxyRequest, ProxyResponse>();
-router.use(bodyParser.urlencoded({extended: false}));
-router.use('/', bodyParser.json());
 
 export default async function(
   proxyTarget: string,
   schellarTarget: string,
+  transformFx: Array<TransformerRegistrationFun>,
   authorizationCheck: AuthorizationCheck,
   groupLoadingStrategy: GroupLoadingStrategy,
 ) {
-  const transformers = await transformerRegistry({
-    proxyTarget,
-    schellarTarget,
-  });
+  const router = Router<ProxyRequest, ProxyResponse>();
+  router.use(bodyParser.urlencoded({extended: false}));
+  router.use('/', bodyParser.json());
+
+  const transformers = await transformerRegistry(
+    {
+      proxyTarget,
+      schellarTarget,
+    },
+    transformFx,
+  );
 
   for (const entry of transformers) {
     logger.info(`Routing url:${entry.url}, method:${entry.method}`);
@@ -84,7 +90,7 @@ export default async function(
             logger.warn('Response is not JSON');
           }
           try {
-            entry.after(tenantId, req, respObj, res);
+            entry.after(tenantId, groups, req, respObj, res);
             res.end(JSON.stringify(respObj));
           } catch (e) {
             logger.error('Error while modifying response', {error: e});
@@ -102,8 +108,10 @@ export default async function(
       entry.url,
       async (req: ProxyRequest, res: ProxyResponse, next: ProxyNext) => {
         let tenantId: string;
+        let groups: string[];
         try {
           tenantId = getTenantId(req);
+          groups = await getUserGroups(req, groupLoadingStrategy);
         } catch (err) {
           res.status(400);
           res.send('Cannot get tenantId:' + err);
@@ -119,7 +127,7 @@ export default async function(
         };
         if (entry.before) {
           try {
-            entry.before(tenantId, req, res, proxyCallback);
+            entry.before(tenantId, groups, req, res, proxyCallback);
           } catch (err) {
             logger.error('Got error in beforeFun', err);
             res.status(500);

@@ -365,7 +365,6 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-
 	// Now run base name test cases using the rules created above
 
 	// Test Listing All Base Names

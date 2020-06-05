@@ -67,6 +67,7 @@ function InputModal(props) {
     values: []
   });
   const [waitingWfs, setWaitingWfs] = useState([]);
+  const backendApiUrlPrefix = props.backendApiUrlPrefix ?? conductorApiUrlPrefix;
 
   useEffect(() => {
     let name = props.wf.split(" / ")[0];
@@ -75,7 +76,7 @@ function InputModal(props) {
     setVersion(Number(props.wf.split(" / ")[1]));
 
     http
-      .get(conductorApiUrlPrefix + "/metadata/workflow/" + name + "/" + version)
+      .get(backendApiUrlPrefix + "/metadata/workflow/" + name + "/" + version)
       .then(res => {
         let definition = JSON.stringify(res.result, null, 2);
         let description = res.result?.description?.split("-")[0] || "";
@@ -107,7 +108,7 @@ function InputModal(props) {
       let q = 'status:"RUNNING"';
       http
         .get(
-          conductorApiUrlPrefix + "/executions/?q=&h=&freeText=" +
+          backendApiUrlPrefix + "/executions/?q=&h=&freeText=" +
             q +
             "&start=" +
             0 +
@@ -116,7 +117,7 @@ function InputModal(props) {
         .then(res => {
           let runningWfs = res.result?.hits || [];
           let promises = runningWfs.map(wf => {
-            return http.get(conductorApiUrlPrefix + "/id/" + wf.workflowId);
+            return http.get(backendApiUrlPrefix + "/id/" + wf.workflowId);
           });
 
           Promise.all(promises).then(results => {
@@ -187,7 +188,7 @@ function InputModal(props) {
       }
     }
     setStatus("Executing...");
-    http.post(conductorApiUrlPrefix + "/workflow", JSON.stringify(payload)).then(res => {
+    http.post(backendApiUrlPrefix + "/workflow", JSON.stringify(payload)).then(res => {
       setStatus(res.statusText);
       setWfId(res.body.text);
 

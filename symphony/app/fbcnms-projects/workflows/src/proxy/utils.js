@@ -14,7 +14,12 @@ import {JSONPath} from 'jsonpath-plus';
 
 const logger = logging.getLogger(module);
 
-import type {GroupLoadingStrategy, ProxyRequest, Task} from '../types';
+import type {
+  GroupLoadingStrategy,
+  ProxyRequest,
+  Task,
+  Workflow,
+} from '../types';
 
 // Global prefix for taskdefs which can be used by all tenants.
 export const GLOBAL_PREFIX: string = 'GLOBAL';
@@ -42,6 +47,28 @@ const SYSTEM_TASK_TYPES: Array<string> = [
   'KAFKA_PUBLISH',
   'DO_WHILE',
 ];
+
+export function isLabeledWithGroup(
+  workflowdef: Workflow,
+  groups: string[],
+): boolean {
+  const lowercaseGroups = groups.map(g => g.toLowerCase());
+  return getWorkflowLabels(workflowdef).some(
+    l => lowercaseGroups.indexOf(l.toLowerCase()) >= 0,
+  );
+}
+
+export function getWorkflowLabels(workflowdef: Workflow): string[] {
+  const descr = workflowdef.description;
+  if (descr && descr.match(/-(,|) [A-Z].*/g)) {
+    return descr
+      .substring(descr.indexOf('-') + 1)
+      .replace(/\s/g, '')
+      .split(',');
+  }
+
+  return [];
+}
 
 function isAllowedSystemTask(task: Task): boolean {
   return SYSTEM_TASK_TYPES.includes(task.type);
@@ -119,7 +146,7 @@ export function assertValueIsWithoutInfixSeparator(value: string): void {
   }
 }
 
-export function getTenantId(req: ProxyRequest): string {
+export function getTenantId(req: ExpressRequest): string {
   const tenantId: ?string = req.headers['x-auth-organization'];
   if (tenantId == null) {
     logger.error('x-auth-organization header not found');
@@ -132,17 +159,16 @@ export function getTenantId(req: ProxyRequest): string {
   return tenantId;
 }
 
-export function getUserRole(req: ProxyRequest): string {
+export function getUserRole(req: ExpressRequest): string {
   const role: ?string = req.headers['x-auth-user-role'];
   if (role == null) {
-    console.log(req.headers);
     logger.error('x-auth-user-role header not found');
     throw 'x-auth-user-role header not found';
   }
   return role;
 }
 
-export function getUserEmail(req: ProxyRequest): string {
+export function getUserEmail(req: ExpressRequest): string {
   const userEmail: ?string = req.headers['x-auth-user-email'];
   if (userEmail == null) {
     logger.error('x-auth-user-email header not found');
@@ -152,7 +178,7 @@ export function getUserEmail(req: ProxyRequest): string {
 }
 
 export async function getUserGroups(
-  req: ProxyRequest,
+  req: ExpressRequest,
   groupLoadingStrategy: GroupLoadingStrategy,
 ): Promise<string[]> {
   return groupLoadingStrategy(
