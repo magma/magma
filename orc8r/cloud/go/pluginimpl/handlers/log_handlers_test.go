@@ -48,6 +48,7 @@ var (
 			urlString: "",
 			expectedParams: logQueryParams{
 				Fields: []string{},
+				From:   0,
 				Size:   defaultSearchSize,
 			},
 		},
@@ -56,6 +57,7 @@ var (
 			urlString: "?size=123&start=12345&end=23456",
 			expectedParams: logQueryParams{
 				Size:      123,
+				From:      0,
 				StartTime: "12345",
 				EndTime:   "23456",
 				Fields:    []string{},
@@ -63,9 +65,10 @@ var (
 		},
 		{
 			name:      "string, list and map params",
-			urlString: "?size=123&start=12345&end=23456&fields=message&filters=test:result",
+			urlString: "?from=10&size=123&start=12345&end=23456&fields=message&filters=test:result",
 			expectedParams: logQueryParams{
 				Size:      123,
+				From:      10,
 				StartTime: "12345",
 				EndTime:   "23456",
 				Fields:    []string{"message"},
@@ -76,9 +79,30 @@ var (
 			name:      "multiple values",
 			urlString: "?fields=message,log,test&filters=test:result,key:value,foo:baz",
 			expectedParams: logQueryParams{
+				From:    0,
 				Size:    defaultSearchSize,
 				Fields:  []string{"message", "log", "test"},
 				Filters: map[string]string{"test": "result", "key": "value", "foo": "baz"},
+			},
+		},
+	}
+
+	countParamsTestCases = []countParamTestCase{
+		{
+			name:      "no params",
+			urlString: "",
+			expectedParams: logQueryParams{
+				Fields: []string{},
+			},
+		},
+		{
+			name:      "string, list and map params",
+			urlString: "?start=12345&end=23456&fields=message&filters=test:result",
+			expectedParams: logQueryParams{
+				StartTime: "12345",
+				EndTime:   "23456",
+				Fields:    []string{"message"},
+				Filters:   map[string]string{"test": "result"},
 			},
 		},
 	}
@@ -109,6 +133,15 @@ func TestGetQueryParams(t *testing.T) {
 	for _, test := range queryParamsTestCases {
 		t.Run(test.name, func(t *testing.T) {
 			runQueryParamTestCase(t, test)
+		})
+	}
+}
+
+// TestGetCountParams tests that parameters in the url are parsed correctly
+func TestGetCountParams(t *testing.T) {
+	for _, test := range countParamsTestCases {
+		t.Run(test.name, func(t *testing.T) {
+			runCountParamTestCase(t, test)
 		})
 	}
 }
@@ -230,8 +263,21 @@ type queryParamTestCase struct {
 func runQueryParamTestCase(t *testing.T, tc queryParamTestCase) {
 	req := httptest.NewRequest(echo.GET, fmt.Sprintf("/%s", tc.urlString), nil)
 	c := echo.New().NewContext(req, httptest.NewRecorder())
-
 	params, err := getQueryParameters(c)
+	assert.NoError(t, err)
+	assert.Equal(t, tc.expectedParams, params)
+}
+
+type countParamTestCase struct {
+	name           string
+	urlString      string
+	expectedParams logQueryParams
+}
+
+func runCountParamTestCase(t *testing.T, tc countParamTestCase) {
+	req := httptest.NewRequest(echo.GET, fmt.Sprintf("/%s", tc.urlString), nil)
+	c := echo.New().NewContext(req, httptest.NewRecorder())
+	params, err := getCountParameters(c)
 	assert.NoError(t, err)
 	assert.Equal(t, tc.expectedParams, params)
 }
