@@ -19,7 +19,6 @@ import logging from '@fbcnms/logging';
 import map from 'lodash/fp/map';
 import moment from 'moment';
 import transform from 'lodash/fp/transform';
-import {anythingTo} from './proxy/utils';
 
 import type {$Application, ExpressRequest, ExpressResponse} from 'express';
 import type {TaskType} from './types';
@@ -41,7 +40,7 @@ export default async function(
   baseURL: string,
   addScheduleMetadata: boolean,
 ): Promise<$Application<ExpressRequest, ExpressResponse>> {
-  const router = Router<ExpressRequest, ExpressResponse>();
+  const router = Router();
   const baseApiURL = baseURL + 'api/';
   const baseURLWorkflow = baseApiURL + 'workflow/';
   const baseURLMeta = baseApiURL + 'metadata/';
@@ -358,24 +357,21 @@ export default async function(
         );
       }
 
-      //  // required because of https://github.com/facebook/flow/issues/1414
-      const subs: Array<TaskType> = anythingTo<Array<TaskType>>(
-        filter(identity)(
-          map((task: TaskType): ?TaskType => {
-            if (task.taskType === 'SUB_WORKFLOW' && task.inputData) {
-              const subWorkflowId = task.inputData.subWorkflowId;
+      const subs = filter(identity)(
+        map((task: TaskType): ?TaskType => {
+          if (task.taskType === 'SUB_WORKFLOW' && task.inputData) {
+            const subWorkflowId = task.inputData.subWorkflowId;
 
-              if (subWorkflowId != null) {
-                return {
-                  name: task.inputData?.subWorkflowName,
-                  version: task.inputData?.subWorkflowVersion,
-                  referenceTaskName: task.referenceTaskName,
-                  subWorkflowId: subWorkflowId,
-                };
-              }
+            if (subWorkflowId != null) {
+              return {
+                name: task.inputData?.subWorkflowName,
+                version: task.inputData?.subWorkflowVersion,
+                referenceTaskName: task.referenceTaskName,
+                subWorkflowId: subWorkflowId,
+              };
             }
-          })(result.tasks || []),
-        ),
+          }
+        })(result.tasks || []),
       );
 
       const logs = map(task =>
