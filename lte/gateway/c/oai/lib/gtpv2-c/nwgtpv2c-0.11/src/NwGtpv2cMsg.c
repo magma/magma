@@ -53,7 +53,6 @@
 extern                                  "C" {
 #endif
 
-
 /*----------------------------------------------------------------------------*
                        P R I V A T E     F U N C T I O N S
   ----------------------------------------------------------------------------*/
@@ -146,7 +145,6 @@ extern                                  "C" {
   nw_rc_t                                   nwGtpv2cMsgDelete (
   NW_IN nw_gtpv2c_stack_handle_t hGtpcStackHandle,
   NW_IN nw_gtpv2c_msg_handle_t hMsg) {
-    // warning: unused variable ‘pStack’ [-Wunused-variable]: NwGtpv2cStackT                         *pStack = (NwGtpv2cStackT *) hGtpcStackHandle;
 
     OAILOG_DEBUG (LOG_GTPV2C, "Purging message 0x%" PRIxPTR "!\n", hMsg);
     ((nw_gtpv2c_msg_t *) hMsg)->next = gpGtpv2cMsgPool;
@@ -710,10 +708,9 @@ extern                                  "C" {
 
     for (n = 1; n <= size; n++) {
       if (n % 16 == 1) {
-        /*
-         * store address for this line
-         */
-        snprintf (addrstr, sizeof (addrstr), "%.4lx", ((unsigned long)p - (unsigned long)data));
+
+     // store address for this line
+       snprintf (addrstr, sizeof (addrstr), "%.4lx", ((unsigned long)p - (unsigned long)data));
       }
 
       c = *p;
@@ -722,9 +719,7 @@ extern                                  "C" {
         c = '.';
       }
 
-      /*
-       * store hex str (for left side)
-       */
+       // store hex str (for left side)
       snprintf (bytestr, sizeof (bytestr), "%02X ", *p);
       strncat (hexstr, bytestr, sizeof (hexstr) - strlen (hexstr) - 1);
       /*
@@ -734,16 +729,14 @@ extern                                  "C" {
       strncat (charstr, bytestr, sizeof (charstr) - strlen (charstr) - 1);
 
       if (n % 16 == 0) {
-        /*
-         * line completed
-         */
+
+      // line completed
         fprintf ((FILE *) fp, "[%4.4s]   %-50.50s  %s\n", addrstr, hexstr, charstr);
         hexstr[0] = 0;
         charstr[0] = 0;
       } else if (n % 8 == 0) {
-        /*
-         * half line: add whitespaces
-         */
+
+       // half line: add whitespaces
         strncat (hexstr, "  ", sizeof (hexstr) - strlen (hexstr) - 1);
         strncat (charstr, " ", sizeof (charstr) - strlen (charstr) - 1);
       }
@@ -752,9 +745,8 @@ extern                                  "C" {
     }
 
     if (strlen (hexstr) > 0) {
-      /*
-       * print rest of buffer if not empty
-       */
+
+    // print rest of buffer if not empty
       fprintf ((FILE *) fp, "[%4.4s]   %-50.50s  %s\n", addrstr, hexstr, charstr);
     }
 

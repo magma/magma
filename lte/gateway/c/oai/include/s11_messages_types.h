@@ -430,10 +430,8 @@ typedef struct itti_s11_create_session_request_s {
   // Private Extension
 
   /* S11 stack specific parameter. Not used in standalone epc mode */
-  void* trxn;
-
+ void* trxn;                 ///< Transaction identifier
  edns_peer_ip_t edns_peer_ip;
-
  uint16_t peer_port; ///< MME port for S-GW or S-GW port for MME
 } itti_s11_create_session_request_t;
 
@@ -1124,7 +1122,7 @@ typedef struct itti_s11_delete_session_request_s {
   indication_flags_t indication_flags;
 
   /* GTPv2-C specific parameters */
-  void *trxn;
+  void *trxn;                  ///< Transaction identifier
   edns_peer_ip_t edns_peer_ip;
   struct in_addr peer_ip;
 } itti_s11_delete_session_request_t;
@@ -1190,7 +1188,6 @@ typedef struct itti_s11_release_access_bearers_request_s {
   /* GTPv2-C specific parameters */
   void *trxn;
   edns_peer_ip_t edns_peer_ip;
-
 } itti_s11_release_access_bearers_request_t;
 
 //-----------------------------------------------------------------------------

@@ -50,7 +50,6 @@ extern "C" {
  * Log Macro Definition
  *--------------------------------------------------------------------------*/
 
-
 #ifdef __cplusplus
 }
 #endif

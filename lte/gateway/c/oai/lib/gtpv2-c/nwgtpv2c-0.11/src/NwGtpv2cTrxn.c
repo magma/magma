@@ -230,10 +230,8 @@ extern                                  "C" {
       pTrxn->t3Timer = 10;
       pTrxn->seqNum = thiz->seqNum;
       pTrxn->pt_trx = false;
-      /*
-       * Increment sequence number
-       */
-      thiz->seqNum++;
+
+      thiz->seqNum++; // Increment sequence number
 
       if (thiz->seqNum == 0x800000)
         thiz->seqNum = 0;
@@ -330,9 +328,8 @@ extern                                  "C" {
         NW_ASSERT (NW_OK == rc);
         pTrxn = NULL;
 
-        /*
-         * Case of duplicate request message from peer. Retransmit response.
-         */
+      // Case of duplicate request message from peer. Retransmit response.
+
         if (pCollision->pMsg) {
         	rc = pCollision->pStack->udp.udpDataReqCallback (pCollision->pStack->udp.hUdp,
           	  pCollision->pMsg->msgBuf, pCollision->pMsg->msgLen,

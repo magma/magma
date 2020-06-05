@@ -1,14 +1,14 @@
-set(GTPV2C_DIR  ${PROJECT_SOURCE_DIR}/lib/gtpv2-c/nwgtpv2c-0.11/src)
-set(GTPV2C_IE_FORMATTER_DIR ${PROJECT_SOURCE_DIR}/lib/gtpv2-c/gtpv2c_ie_formatter/src)
+set(NWGTPV2C_DIR  ${PROJECT_SOURCE_DIR}/lib/gtpv2-c/nwgtpv2c-0.11/src)
+set(NWGTPV2C_IE_FORMATTER_DIR ${PROJECT_SOURCE_DIR}/lib/gtpv2-c/gtpv2c_ie_formatter/src)
 
 add_library(LIB_GTPV2C
-    ${GTPV2C_DIR}/NwGtpv2cTrxn.c
-    ${GTPV2C_DIR}/NwGtpv2cTunnel.c
-    ${GTPV2C_DIR}/NwGtpv2cMsg.c
-    ${GTPV2C_DIR}/NwGtpv2cMsgIeParseInfo.c
-    ${GTPV2C_DIR}/NwGtpv2cMsgParser.c
-    ${GTPV2C_DIR}/NwGtpv2c.c
-    ${GTPV2C_IE_FORMATTER_DIR}/gtpv2c_ie_formatter.c
+    ${NWGTPV2C_DIR}/NwGtpv2cTrxn.c
+    ${NWGTPV2C_DIR}/NwGtpv2cTunnel.c
+    ${NWGTPV2C_DIR}/NwGtpv2cMsg.c
+    ${NWGTPV2C_DIR}/NwGtpv2cMsgIeParseInfo.c
+    ${NWGTPV2C_DIR}/NwGtpv2cMsgParser.c
+    ${NWGTPV2C_DIR}/NwGtpv2c.c
+    ${NWGTPV2C_IE_FORMATTER_DIR}/gtpv2c_ie_formatter.c
 )
 target_link_libraries(LIB_GTPV2C
     COMMON

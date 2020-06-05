@@ -68,8 +68,7 @@ extern                                  "C" {
   NW_IN void *ieReadCallbackArg,
   NW_IN nw_gtpv2c_msg_parser_t ** pthiz) {
     nw_gtpv2c_msg_parser_t                     *thiz;
-    //  NW_GTPV2C_MALLOC(hGtpcStackHandle, sizeof(NwGtpv2cMsgParserT), thiz, NwGtpv2cMsgParserT*);
-                                            thiz = (nw_gtpv2c_msg_parser_t *) malloc (sizeof (nw_gtpv2c_msg_parser_t));
+   thiz = (nw_gtpv2c_msg_parser_t *) malloc (sizeof (nw_gtpv2c_msg_parser_t));
 
     if                                      (
   thiz) {
@@ -165,8 +164,6 @@ extern                                  "C" {
 
     return NW_OK;
   }
-
-
 
   nw_rc_t                                   nwGtpv2cMsgParserRun (
   NW_IN nw_gtpv2c_msg_parser_t * thiz,

@@ -38,7 +38,6 @@
 #include "hashtable.h"
 #include "obj_hashtable.h"
 #include "log.h"
-#include "msc.h"
 #include "assertions.h"
 #include "intertask_interface.h"
 #include "hashtable.h"
@@ -77,37 +76,26 @@ s11_mme_create_session_request (
     return  RETURNerror;
   DevAssert (req_p );
   ulp_req.apiType = NW_GTPV2C_ULP_API_INITIAL_REQ;
-  /*
-   * Prepare a new Create Session Request msg
-   */
-  rc = nwGtpv2cMsgNew (*stack_p, true, NW_GTP_CREATE_SESSION_REQ, req_p->teid, 0, &(ulp_req.hMsg));
-  /** Will stay in stack until its copied into trx and sent to UE. */
 
+  // Prepare a new Create Session Request msg
+  rc = nwGtpv2cMsgNew (*stack_p, true, NW_GTP_CREATE_SESSION_REQ, req_p->teid, 0, &(ulp_req.hMsg));
+
+  /** Will stay in stack until its copied into trx and sent to UE. */
   ulp_req.u_api_info.initialReqInfo.edns_peer_ip = (struct sockaddr*)&req_p->edns_peer_ip;
 
-  //OAILOG_DEBUG(LOG_S11, "ends peer ip address %p\n", (struct sockaddr*)edns_peer_ip);
   ulp_req.u_api_info.initialReqInfo.teidLocal  = req_p->sender_fteid_for_cp.teid;
   ulp_req.u_api_info.initialReqInfo.hUlpTunnel = 0;
   ulp_req.u_api_info.initialReqInfo.hTunnel    = 0;
 
-   /*
-   * Add recovery if contacting the peer for the first time
-   */
+
+  // Add recovery if contacting the peer for the first time
   rc = nwGtpv2cMsgAddIe ((ulp_req.hMsg), NW_GTPV2C_IE_RECOVERY, 1, 0, (uint8_t *) & restart_counter);
-  //DevAssert (NW_OK == rc);
   if(rc != NW_OK)
   return  rc;
-  /*
-   * Putting the information Elements
-   */
 
-  //imsi64_t imsi64 = INVALID_IMSI64;
+  // Putting the information Elements
   imsi_t imsi ;
-  //Imsi_t Imsi ;
-  //IMSI_STRING_TO_IMSI64((char*)req_p->imsi.IMSI, &imsi64);
- //OAILOG_DEBUG(LOG_S1AP, "Received MESSAGE before\n");
   imsi_string_to_3gpp_imsi(&req_p->imsi, &imsi);
-   //OAILOG_DEBUG(LOG_S1AP, "Received MESSAGE after\n");
   gtpv2c_imsi_ie_set (&(ulp_req.hMsg), &imsi);
   gtpv2c_uli_ie_set (&(ulp_req.hMsg), &req_p->uli);
   gtpv2c_rat_type_ie_set (&(ulp_req.hMsg), &req_p->rat_type);
@@ -124,9 +112,8 @@ s11_mme_create_session_request (
    */
   gtpv2c_indication_flags_ie_set (&(ulp_req.hMsg), &req_p->indication_flags);
 
-  /*
-   * Sender F-TEID for Control Plane (MME S11)
-   */
+
+  // Sender F-TEID for Control Plane (MME S11)
   rc = nwGtpv2cMsgAddIeFteid ((ulp_req.hMsg), NW_GTPV2C_IE_INSTANCE_ZERO,
                               S11_MME_GTP_C,
                               req_p->sender_fteid_for_cp.teid,
@@ -137,12 +124,6 @@ s11_mme_create_session_request (
    * The P-GW TEID should be present on the S11 interface.
    * * * * In case of an initial attach it should be set to 0...
    */
-//  rc = nwGtpv2cMsgAddIeFteid ((ulp_req.hMsg), NW_GTPV2C_IE_INSTANCE_ONE,
-//                              S5_S8_PGW_GTP_C,
-//                              req_p->pgw_address_for_cp.teid,
-//                              req_p->pgw_address_for_cp.ipv4 ? &req_p->pgw_address_for_cp.ipv4_address : 0,
-//                              req_p->pgw_address_for_cp.ipv6 ? &req_p->pgw_address_for_cp.ipv6_address : NULL);
-
   int num_dots = 0;
   for (int i =  0; i < strlen(req_p->apn); i++) {
     if (req_p->apn[i] == '.') {
@@ -171,9 +152,6 @@ s11_mme_create_session_request (
   }
   rc = nwGtpv2cProcessUlpReq (*stack_p, &ulp_req);
   DevAssert (NW_OK == rc);
-  MSC_LOG_TX_MESSAGE (MSC_S11_MME, MSC_SGW, NULL, 0, "0 CREATE_SESSION_REQUEST local S11 teid " TEID_FMT " num bearers ctx %u",
-    req_p->sender_fteid_for_cp.teid, req_p->bearer_contexts_to_be_created->num_bearer_context);
-
   hashtable_rc_t hash_rc = hashtable_ts_insert(s11_mme_teid_2_gtv2c_teid_handle,
       (hash_key_t) req_p->sender_fteid_for_cp.teid,
       (void *)ulp_req.u_api_info.initialReqInfo.hTunnel);
@@ -204,48 +182,33 @@ s11_mme_handle_create_session_response (
 
   resp_p->teid = nwGtpv2cMsgGetTeid(pUlpApi->hMsg);
 
-  /*
-   * Create a new message parser
-   */
+
+  // Create a new message parser
   rc = nwGtpv2cMsgParserNew (*stack_p, NW_GTP_CREATE_SESSION_RSP, s11_ie_indication_generic, NULL, &pMsgParser);
   DevAssert (NW_OK == rc);
-  /*
-   * Cause IE
-   */
+
+  // Cause IE
   rc = nwGtpv2cMsgParserAddIe (pMsgParser, NW_GTPV2C_IE_CAUSE, NW_GTPV2C_IE_INSTANCE_ZERO, NW_GTPV2C_IE_PRESENCE_MANDATORY,
       gtpv2c_cause_ie_get, &resp_p->cause);
   DevAssert (NW_OK == rc);
-  /*
-   * Sender FTEID for CP IE
-   */
+
+  //  Sender FTEID for CP IE
   rc = nwGtpv2cMsgParserAddIe (pMsgParser, NW_GTPV2C_IE_FTEID, NW_GTPV2C_IE_INSTANCE_ZERO, NW_GTPV2C_IE_PRESENCE_CONDITIONAL,
       gtpv2c_fteid_ie_get, &resp_p->s11_sgw_fteid);
   DevAssert (NW_OK == rc);
-  /*
-   * Sender FTEID for PGW S5/S8 IE
-   */
+
+  // Sender FTEID for PGW S5/S8 IE
   rc = nwGtpv2cMsgParserAddIe (pMsgParser, NW_GTPV2C_IE_FTEID, NW_GTPV2C_IE_INSTANCE_ONE, NW_GTPV2C_IE_PRESENCE_CONDITIONAL,
       gtpv2c_fteid_ie_get, &resp_p->s5_s8_pgw_fteid);
   DevAssert (NW_OK == rc);
-  /*
-   * Linked EBI
-   */
 
-  //rc = nwGtpv2cMsgParserAddIe (pMsgParser, NW_GTPV2C_IE_EBI, NW_GTPV2C_IE_INSTANCE_ZERO, NW_GTPV2C_IE_PRESENCE_CONDITIONAL, gtpv2c_ebi_ie_get,
-    //  &resp_p->linked_eps_bearer_id);
-  //DevAssert (NW_OK == rc);
-  /*
-   * PAA IE
-   */
   /** Allocate the PAA IE. */
-  //resp_p->paa = calloc (1, sizeof(paa_t));
   rc = nwGtpv2cMsgParserAddIe (pMsgParser, NW_GTPV2C_IE_PAA, NW_GTPV2C_IE_INSTANCE_ZERO, NW_GTPV2C_IE_PRESENCE_CONDITIONAL,
       gtpv2c_paa_ie_get, &resp_p->paa);
   DevAssert (NW_OK == rc);
-  /*
-   * APN RESTRICTION
-   */
-  rc = nwGtpv2cMsgParserAddIe (pMsgParser, NW_GTPV2C_IE_APN_RESTRICTION, NW_GTPV2C_IE_INSTANCE_ZERO, NW_GTPV2C_IE_PRESENCE_CONDITIONAL,
+
+   // APN RESTRICTION
+   rc = nwGtpv2cMsgParserAddIe (pMsgParser, NW_GTPV2C_IE_APN_RESTRICTION, NW_GTPV2C_IE_INSTANCE_ZERO, NW_GTPV2C_IE_PRESENCE_CONDITIONAL,
       gtpv2c_apn_restriction_ie_get, &resp_p->apn_restriction);
   DevAssert (NW_OK == rc);
 
@@ -254,35 +217,29 @@ s11_mme_handle_create_session_response (
       &resp_p->ambr);
   DevAssert (NW_OK == rc);
 
-  /*
-   * PCO IE
-   */
+
+  // PCO IE
   rc = nwGtpv2cMsgParserAddIe (pMsgParser, NW_GTPV2C_IE_PCO, NW_GTPV2C_IE_INSTANCE_ZERO, NW_GTPV2C_IE_PRESENCE_CONDITIONAL,
       gtpv2c_pco_ie_get, &resp_p->pco);
   DevAssert (NW_OK == rc);
-  /*
-   * Bearer Contexts Created IE
-   */
+
+  // Bearer Contexts Created IE
   rc = nwGtpv2cMsgParserAddIe (pMsgParser, NW_GTPV2C_IE_BEARER_CONTEXT, NW_GTPV2C_IE_INSTANCE_ZERO, NW_GTPV2C_IE_PRESENCE_CONDITIONAL,
       gtpv2c_bearer_context_created_ie_get, &resp_p->bearer_contexts_created);
   DevAssert (NW_OK == rc);
-  /*
-   * Bearer Contexts Marked For Removal IE
-   */
+
+  // Bearer Contexts Marked For Removal IE
   rc = nwGtpv2cMsgParserAddIe (pMsgParser, NW_GTPV2C_IE_BEARER_CONTEXT, NW_GTPV2C_IE_INSTANCE_ONE, NW_GTPV2C_IE_PRESENCE_CONDITIONAL,
       gtpv2c_bearer_context_marked_for_removal_ie_get, &resp_p->bearer_contexts_marked_for_removal);
   DevAssert (NW_OK == rc);
-  /*
-   * Run the parser
-   */
+
+ //  Run the parser
   rc = nwGtpv2cMsgParserRun (pMsgParser, (pUlpApi->hMsg), &offendingIeType, &offendingIeInstance, &offendingIeLength);
 
   if (rc != NW_OK) {
-    MSC_LOG_RX_DISCARDED_MESSAGE (MSC_S11_MME, MSC_SGW, NULL, 0, "0 CREATE_SESSION_RESPONSE local S11 teid " TEID_FMT " ", resp_p->teid);
-    /*
-     * TODO: handle this case
-     */
-    rc = nwGtpv2cMsgParserDelete (*stack_p, pMsgParser);
+
+   // TODO: handle this case
+     rc = nwGtpv2cMsgParserDelete (*stack_p, pMsgParser);
     DevAssert (NW_OK == rc);
     rc = nwGtpv2cMsgDelete (*stack_p, (pUlpApi->hMsg));
     DevAssert (NW_OK == rc);
@@ -308,9 +265,6 @@ s11_mme_handle_create_session_response (
 	  message_p = NULL;
 	  return RETURNok;
   }
-
-  MSC_LOG_RX_MESSAGE (MSC_S11_MME, MSC_SGW, NULL, 0, "0 CREATE_SESSION_RESPONSE local S11 teid " TEID_FMT " num bearer ctxt %u", resp_p->teid,
-    resp_p->bearer_contexts_created.num_bearer_context);
   return itti_send_msg_to_task (TASK_MME_APP, INSTANCE_DEFAULT, message_p);
 }
 
@@ -322,15 +276,13 @@ s11_mme_delete_session_request (
 {
   nw_gtpv2c_ulp_api_t                         ulp_req;
   nw_rc_t                                   rc;
-  //uint8_t                                 restart_counter = 0;
 
   DevAssert (stack_p );
   DevAssert (req_p );
   memset (&ulp_req, 0, sizeof (nw_gtpv2c_ulp_api_t));
   ulp_req.apiType = NW_GTPV2C_ULP_API_INITIAL_REQ;
-  /*
-   * Prepare a new Delete Session Request msg
-   */
+
+  //  Prepare a new Delete Session Request msg
   rc = nwGtpv2cMsgNew (*stack_p, true, NW_GTP_DELETE_SESSION_REQ, req_p->teid, 0, &(ulp_req.hMsg));
   ulp_req.u_api_info.initialReqInfo.edns_peer_ip = (struct sockaddr*)&req_p->edns_peer_ip;
   ulp_req.u_api_info.initialReqInfo.teidLocal = req_p->local_teid;
@@ -347,9 +299,7 @@ s11_mme_delete_session_request (
     return RETURNerror;
   }
 
-  /*
-   * Sender F-TEID for Control Plane (MME S11)
-   */
+  // Sender F-TEID for Control Plane (MME S11)
   rc = nwGtpv2cMsgAddIeFteid ((ulp_req.hMsg), NW_GTPV2C_IE_INSTANCE_ZERO,
                               S11_MME_GTP_C,
                               req_p->sender_fteid_for_cp.teid,
@@ -364,9 +314,6 @@ s11_mme_delete_session_request (
 
   rc = nwGtpv2cProcessUlpReq (*stack_p, &ulp_req);
   DevAssert (NW_OK == rc);
-  MSC_LOG_TX_MESSAGE (MSC_S11_MME, MSC_SGW, NULL, 0, "0 DELETE_SESSION_REQUEST local S11 teid " TEID_FMT " ",
-		  req_p->local_teid);
-
   return RETURNok;
 }
 
@@ -392,40 +339,27 @@ s11_mme_handle_delete_session_response (
   resp_p->teid = nwGtpv2cMsgGetTeid(pUlpApi->hMsg);
   resp_p->internal_flags = pUlpApi->u_api_info.triggeredRspIndInfo.trx_flags;
 
-  /*
-   * Create a new message parser
-   */
+  // Create a new message parser
   rc = nwGtpv2cMsgParserNew (*stack_p, NW_GTP_DELETE_SESSION_RSP, s11_ie_indication_generic, NULL, &pMsgParser);
   DevAssert (NW_OK == rc);
-  /*
-   * Cause IE
-   */
+
+  // Cause IE
   rc = nwGtpv2cMsgParserAddIe (pMsgParser, NW_GTPV2C_IE_CAUSE, NW_GTPV2C_IE_INSTANCE_ZERO, NW_GTPV2C_IE_PRESENCE_MANDATORY,
       gtpv2c_cause_ie_get, &resp_p->cause);
   DevAssert (NW_OK == rc);
-  /*
-   * Recovery IE
-   */
-  /* TODO rc = nwGtpv2cMsgParserAddIe (pMsgParser, NW_GTPV2C_IE_RECOVERY, NW_GTPV2C_IE_INSTANCE_ZERO, NW_GTPV2C_IE_PRESENCE_CONDITIONAL, s11_fteid_ie_get,
-		  &resp_p->recovery);
-  DevAssert (NW_OK == rc); */
-  /*
-   * PCO IE
-   */
+
+  // PCO IE
   rc = nwGtpv2cMsgParserAddIe (pMsgParser, NW_GTPV2C_IE_PCO, NW_GTPV2C_IE_INSTANCE_ZERO, NW_GTPV2C_IE_PRESENCE_CONDITIONAL,
       gtpv2c_pco_ie_get, &resp_p->pco);
   DevAssert (NW_OK == rc);
 
-  /*
-   * Run the parser
-   */
+
+  // Run the parser
   rc = nwGtpv2cMsgParserRun (pMsgParser, (pUlpApi->hMsg), &offendingIeType, &offendingIeInstance, &offendingIeLength);
 
   if (rc != NW_OK) {
-    MSC_LOG_RX_DISCARDED_MESSAGE (MSC_S11_MME, MSC_SGW, NULL, 0, "0 DELETE_SESSION_RESPONSE local S11 teid " TEID_FMT " ", resp_p->teid);
-    /*
-     * TODO: handle this case
-     */
+
+    // TODO: handle this case
     itti_free (ITTI_MSG_ORIGIN_ID (message_p), message_p);
     message_p = NULL;
     rc = nwGtpv2cMsgParserDelete (*stack_p, pMsgParser);
@@ -440,8 +374,6 @@ s11_mme_handle_delete_session_response (
   rc = nwGtpv2cMsgDelete (*stack_p, (pUlpApi->hMsg));
   DevAssert (NW_OK == rc);
 
-  MSC_LOG_RX_MESSAGE (MSC_S11_MME, MSC_SGW, NULL, 0, "0 DELETE_SESSION_RESPONSE local S11 teid " TEID_FMT " ", resp_p->teid);
-
   // delete local tunnel, if nothing against
   if(pUlpApi->u_api_info.triggeredRspIndInfo.noDelete){
     OAILOG_INFO(LOG_S11, "Not deleting the local tunnel since \"noDelete\" flag is set. \n");
@@ -455,11 +387,9 @@ s11_mme_handle_delete_session_response (
         (void **)(uintptr_t)&ulp_req.u_api_info.deleteLocalTunnelInfo.hTunnel);
     if (HASH_TABLE_OK != hash_rc) {
       OAILOG_ERROR (LOG_S11, "Could not get GTPv2-C hTunnel for local teid %X (skipping deletion of tunnel)\n", resp_p->teid);
-      MSC_LOG_EVENT (MSC_S11_MME, "Failed to deleted teid " TEID_FMT "", resp_p->teid);
     } else {
       rc = nwGtpv2cProcessUlpReq (*stack_p, &ulp_req);
       DevAssert (NW_OK == rc);
-      MSC_LOG_EVENT (MSC_S11_MME, "Deleted teid " TEID_FMT "", resp_p->teid);
       hash_rc = hashtable_ts_free(s11_mme_teid_2_gtv2c_teid_handle, (hash_key_t) resp_p->teid);
       DevAssert (HASH_TABLE_OK == hash_rc);
     }

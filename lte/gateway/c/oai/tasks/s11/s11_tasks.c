@@ -40,7 +40,6 @@
 #include "assertions.h"
 #include "hashtable.h"
 #include "log.h"
-#include "msc.h"
 #include "mme_config.h"
 #include "intertask_interface.h"
 #include "itti_free_defined_msg.h"
@@ -62,9 +61,9 @@ static void s11_mme_exit (void);
 
 
 //------------------------------------------------------------------------------
-/*
-Function used for logging purposes over Gtpv2-c stack
-*/
+
+// Function used for logging purposes over Gtpv2-c stack
+
 static nw_rc_t
 s11_mme_log_wrapper (
   nw_gtpv2c_log_mgr_handle_t hLogMgr,
@@ -83,7 +82,6 @@ s11_mme_ulp_process_stack_req_cb (
   nw_gtpv2c_ulp_handle_t hUlp,
   nw_gtpv2c_ulp_api_t * pUlpApi)
 {
-  //     NwRcT rc = NW_OK;
   int                                     ret = 0;
 
   DevAssert (pUlpApi );

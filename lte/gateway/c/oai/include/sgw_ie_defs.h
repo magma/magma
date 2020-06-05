@@ -415,8 +415,6 @@ typedef struct bearer_contexts_created_s {
     bearer_contexts[MSG_CREATE_SESSION_REQUEST_MAX_BEARER_CONTEXTS];
 } bearer_contexts_created_t;
 
-
-
 //-----------------
 typedef struct bearer_context_to_be_updated_s {
   uint8_t eps_bearer_id;  ///< EBI,  Mandatory CSR

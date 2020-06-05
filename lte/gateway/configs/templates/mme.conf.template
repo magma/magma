@@ -239,11 +239,9 @@ MME :
         SCENARIO_FILE = "/usr/local/share/oai/test/MME/no_regression.xml";
     };
 
-
     S-GW :
    {
     # S-GW binded interface for S11 communication (GTPV2-C), if none selected the ITTI message interface is used
-    #SGW_INTERFACE_NAME_FOR_S11            = "{{ s11_sgw_iface_name }}";
-    SGW_IPV4_ADDRESS_FOR_S11              = "{{ s11_sgw_ip }}";
+       SGW_IPV4_ADDRESS_FOR_S11              = "{{ s11_sgw_ip }}";
    };
 };

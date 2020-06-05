@@ -209,7 +209,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # Create a private network, which allows host-only access to the machine
     # using a specific IP.
     oai_hss.vm.network "private_network", ip: "192.168.60.153", nic_type: "82540EM"
-
     config.ssh.insert_key = false
     oai_hss.vm.provider "virtualbox" do |vb|
       vb.name = "oai-hss"
