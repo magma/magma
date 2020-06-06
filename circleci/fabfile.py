@@ -247,13 +247,15 @@ def _run_remote_cwf_integ_test(repo: str, magma_root: str):
         # circleCI config.
         if result.return_code:
             services = "sessiond session_proxy pcrf ocs pipelined ingress"
-            run(f'fab transfer_service_logs:services="{services}"')
+            run(f'fab transfer_artifacts:services="{services}",'
+                'get_core_dump=True')
 
             # Copy the log files out from the node
-            local('mkdir cwf-logs')
-            get('*.log', 'cwf-logs')
+            local('mkdir cwf-artifacts')
+            get('*.log', 'cwf-artifacts')
+            get('*.tar.gz', 'cwf-artifacts')
             local('sudo mkdir -p /tmp/logs/')
-            local('sudo mv cwf-logs/*.log /tmp/logs/')
+            local('sudo mv cwf-artifacts/*.log /tmp/logs/')
         sys.exit(result.return_code)
 
 def _run_remote_lte_package(repo: str, magma_root: str,
