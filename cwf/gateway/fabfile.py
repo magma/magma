@@ -11,6 +11,7 @@ from enum import Enum
 import sys
 from fabric.api import (cd, env, execute, lcd, local, put, run, settings,
                         sudo, shell_env)
+from fabric.contrib import files
 sys.path.append('../../orc8r')
 
 from tools.fab.hosts import ansible_setup, vagrant_setup
@@ -73,6 +74,13 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     # Setup the gateway: use the provided gateway if given, else default to the
     # vagrant machine
     _switch_to_vm(gateway_host, "cwag", "cwag_dev.yml", destroy_vm)
+
+    # We will direct coredumps to be placed in this directory
+    # Clean up before every run
+    if files.exists("/var/opt/magma/cores/"):
+        run("sudo rm /var/opt/magma/cores/*", warn_only=True)
+    else:
+        run("sudo mkdir -p /var/opt/magma/cores", warn_only=True)
 
     if not skip_unit_tests:
         execute(_run_unit_tests)
@@ -152,7 +160,14 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     print('Integration Test Passed for "{}"!'.format(tests_to_run.value))
     sys.exit(0)
 
-def transfer_service_logs(services="sessiond session_proxy"):
+
+def transfer_artifacts(services="sessiond session_proxy", get_core_dump=False):
+    """
+    Fetches service logs from Docker and optionally gets core dumps
+    Args:
+        services: A list of services for which services logs are requested
+        get_core_dump: When set to True, it will fetch a tar of the core dumps
+    """
     services = services.strip().split(' ')
     print("Transferring logs for " + str(services))
 
@@ -162,6 +177,16 @@ def transfer_service_logs(services="sessiond session_proxy"):
         for service in services:
             run("docker logs -t " + service + " &> " + service + ".log")
             # For vagrant the files should already be in CWAG_ROOT
+    if get_core_dump == "True":
+        execute(_tar_coredump)
+
+
+def _tar_coredump():
+    _switch_to_vm_no_destroy(None, "cwag", "cwag_dev.yml")
+    with cd(CWAG_ROOT):
+        run("sudo tar -czvf coredump.tar.gz /var/opt/magma/cores/*", warn_only=True)
+        run("sudo rm /var/opt/magma/cores/*", warn_only=True)
+
 
 def _switch_to_vm(addr, host_name, ansible_file, destroy_vm):
     if not addr:

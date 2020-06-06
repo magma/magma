@@ -403,6 +403,7 @@ type ComplexityRoot struct {
 	}
 
 	File struct {
+		Annotation  func(childComplexity int) int
 		Category    func(childComplexity int) int
 		ContentType func(childComplexity int) int
 		FileType    func(childComplexity int) int
@@ -1288,6 +1289,8 @@ type EquipmentTypeResolver interface {
 }
 type FileResolver interface {
 	FileType(ctx context.Context, obj *ent.File) (*models.FileType, error)
+
+	Annotation(ctx context.Context, obj *ent.File) (*string, error)
 }
 type FloorPlanResolver interface {
 	LocationID(ctx context.Context, obj *ent.FloorPlan) (int, error)
@@ -2806,6 +2809,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Field.Value(childComplexity), true
+
+	case "File.annotation":
+		if e.complexity.File.Annotation == nil {
+			break
+		}
+
+		return e.complexity.File.Annotation(childComplexity), true
 
 	case "File.category":
 		if e.complexity.File.Category == nil {
@@ -7721,6 +7731,7 @@ type File implements Node {
   mimeType: String
   storeKey: String
   category: String
+  annotation: String
 }
 
 type Hyperlink implements Node {
@@ -9558,6 +9569,7 @@ input FileInput {
   fileType: FileType
   mimeType: String
   storeKey: String!
+  annotation: String
 }
 
 input SurveyTemplateQuestionInput {
@@ -18675,6 +18687,37 @@ func (ec *executionContext) _File_category(ctx context.Context, field graphql.Co
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _File_annotation(ctx context.Context, field graphql.CollectedField, obj *ent.File) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "File",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.File().Annotation(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _FloorPlan_id(ctx context.Context, field graphql.CollectedField, obj *ent.FloorPlan) (ret graphql.Marshaler) {
@@ -40942,6 +40985,12 @@ func (ec *executionContext) unmarshalInputFileInput(ctx context.Context, obj int
 			if err != nil {
 				return it, err
 			}
+		case "annotation":
+			var err error
+			it.Annotation, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -45351,6 +45400,17 @@ func (ec *executionContext) _File(ctx context.Context, sel ast.SelectionSet, obj
 			out.Values[i] = ec._File_storeKey(ctx, field, obj)
 		case "category":
 			out.Values[i] = ec._File_category(ctx, field, obj)
+		case "annotation":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._File_annotation(ctx, field, obj)
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

@@ -21,6 +21,7 @@ from orc8r.protos.sync_rpc_service_pb2 import SyncRPCResponse, SyncRPCRequest
 from orc8r.protos.sync_rpc_service_pb2_grpc import SyncRPCServiceStub
 
 from typing import List
+import magma.magmad.events as magmad_events
 
 
 class SyncRPCClient(threading.Thread):
@@ -93,6 +94,7 @@ class SyncRPCClient(threading.Thread):
         # and returns an iterator
         sync_rpc_requests = client.EstablishSyncRPCStream(
             self.send_sync_rpc_response())
+        magmad_events.established_sync_rpc_stream()
         # forward incoming requests from cloud to control_proxy
         self.forward_requests(sync_rpc_requests)
 
@@ -180,3 +182,4 @@ class SyncRPCClient(threading.Thread):
         self._conn_closed_table.clear()
         self._proxy_client.close_all_connections()
         self._retry_connect_sleep()
+        magmad_events.disconnected_sync_rpc_stream()

@@ -1119,8 +1119,7 @@ paths:
         '200':
           description: Success
           schema:
-            items:
-              $ref: '#/definitions/elastic_hit_count'
+            $ref: '#/definitions/elastic_hit_count'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 

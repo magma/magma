@@ -464,6 +464,7 @@ type File implements Node {
   mimeType: String
   storeKey: String
   category: String
+  annotation: String
 }
 
 type Hyperlink implements Node {
@@ -2301,6 +2302,7 @@ input FileInput {
   fileType: FileType
   mimeType: String
   storeKey: String!
+  annotation: String
 }
 
 input SurveyTemplateQuestionInput {

@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 26fe1e8f50e3f888dd9bf6a2fc62bcad
+ * @relayHash 7263583bd259b4c5d19181829b6ae2d8
  */
 
 /* eslint-disable */
@@ -79,6 +79,7 @@ export type FileInput = {|
   fileType?: ?FileType,
   mimeType?: ?string,
   storeKey: string,
+  annotation?: ?string,
 |};
 export type CheckListCategoryInput = {|
   id?: ?string,

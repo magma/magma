@@ -17,3 +17,7 @@ func (fileResolver) FileType(_ context.Context, file *ent.File) (*models.FileTyp
 	ft := models.FileType(file.Type)
 	return &ft, nil
 }
+
+func (fileResolver) Annotation(_ context.Context, file *ent.File) (*string, error) {
+	return nil, nil
+}

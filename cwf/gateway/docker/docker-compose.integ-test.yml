@@ -61,6 +61,16 @@ services:
   sessiond:
     volumes:
       - ../integ_tests/sessiond.yml:/etc/magma/sessiond.yml
+      - /var/opt/magma/cores:/var/opt/magma/cores
+    ulimits:
+      core: -1
+    security_opt:
+      - seccomp:unconfined
+    privileged: true
+    command: >
+      sh -c "mkdir -p /var/opt/magma/cores &&
+        sysctl -w kernel.core_pattern=/var/opt/magma/cores/core.%e.%t &&
+        /usr/local/bin/sessiond"
 
   swx_proxy:
     <<: *feggoservice
