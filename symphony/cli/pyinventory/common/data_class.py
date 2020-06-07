@@ -101,8 +101,8 @@ class Location(NamedTuple):
         id (str): ID
         latitude (Number): latitude
         longitude (Number): longitude
-        externalId (Optional[str]): external ID
-        locationTypeName (str): location type name
+        external_id (Optional[str]): external ID
+        location_type_name (str): location type name
         properties (Sequence[ `pyinventory.graphql.fragment.property.PropertyFragment` ])
     """
 
@@ -110,8 +110,8 @@ class Location(NamedTuple):
     id: str
     latitude: Number
     longitude: Number
-    externalId: Optional[str]
-    locationTypeName: str
+    external_id: Optional[str]
+    location_type_name: str
     properties: Sequence[PropertyFragment]
 
 

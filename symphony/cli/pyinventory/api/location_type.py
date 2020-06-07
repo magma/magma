@@ -129,8 +129,8 @@ def delete_locations_by_location_type(
                     name=node.name,
                     latitude=node.latitude,
                     longitude=node.longitude,
-                    externalId=node.externalId,
-                    locationTypeName=node.locationType.name,
+                    external_id=node.externalId,
+                    location_type_name=node.locationType.name,
                     properties=node.properties,
                 ),
             )

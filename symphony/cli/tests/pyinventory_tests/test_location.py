@@ -83,7 +83,7 @@ class TestLocation(BaseTest):
             properties_dict={"Mayor": "Bernard King", "Contact": "limacity@peru.pe"},
             lat=10,
             long=20,
-            externalID=self.external_id,
+            external_id=self.external_id,
         )
         self.location_child_1 = add_location(
             client=self.client,
