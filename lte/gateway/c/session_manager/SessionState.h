@@ -19,7 +19,6 @@
 #include "StoredState.h"
 
 namespace magma {
-static SessionStateUpdateCriteria UNUSED_UPDATE_CRITERIA;
 /**
  * SessionState keeps track of a current UE session in the PCEF, recording
  * usage and allowance for all charging keys
@@ -301,8 +300,7 @@ class SessionState {
   uint32_t get_credit_key_count();
 
   void set_fsm_state(
-    SessionFsmState new_state,
-    SessionStateUpdateCriteria& uc = UNUSED_UPDATE_CRITERIA);
+    SessionFsmState new_state, SessionStateUpdateCriteria& uc);
 
   StaticRuleInstall get_static_rule_install(
     const std::string& rule_id, const RuleLifetime& lifetime);
@@ -331,6 +329,8 @@ class SessionState {
                              SessionStateUpdateCriteria& update_criteria);
 
   google::protobuf::Timestamp get_revalidation_time() {return revalidation_time_;}
+
+  EventTriggerStatus get_event_triggers() {return pending_event_triggers_;}
 
  private:
   std::string imsi_;

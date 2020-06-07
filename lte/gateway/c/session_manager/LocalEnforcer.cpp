@@ -199,6 +199,15 @@ void LocalEnforcer::sync_sessions_on_restart(std::time_t current_time) {
       if (session->get_state() == SESSION_TERMINATION_SCHEDULED) {
         imsis_to_terminate.insert(imsi);
       }
+      // Reschedule Revalidation Timer if it was pending before
+      auto triggers = session->get_event_triggers();
+      auto trigger_it = triggers.find(REVALIDATION_TIMEOUT);
+      if (trigger_it != triggers.end() &&
+        triggers[REVALIDATION_TIMEOUT] == PENDING) {
+        // the bool value indicates whether the trigger has been triggered
+        auto revalidation_time = session->get_revalidation_time();
+        schedule_revalidation(imsi, *session, revalidation_time, uc);
+      }
 
       session->sync_rules_to_time(current_time, uc);
       auto ip_addr = session->get_config().ue_ipv4;
@@ -873,8 +882,8 @@ bool LocalEnforcer::init_session_credit(
   if (revalidation_scheduled) {
     // TODO This might not work since the session is not initialized properly
     // at this point
-    SessionStateUpdateCriteria uc;
-    schedule_revalidation(imsi, *session_state, revalidation_time, uc);
+    auto _ = get_default_update_criteria();
+    schedule_revalidation(imsi, *session_state, revalidation_time, _);
   }
 
   auto it = session_map.find(imsi);
