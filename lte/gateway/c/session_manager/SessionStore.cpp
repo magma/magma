@@ -119,6 +119,15 @@ bool SessionStore::merge_into_session(
     session->set_fsm_state(update_criteria.updated_fsm_state);
   }
 
+  if (update_criteria.is_pending_event_triggers_updated) {
+    for (auto it : update_criteria.pending_event_triggers) {
+      session->set_event_trigger(it.first, it.second, update_criteria);
+      if (it.first == REVALIDATION_TIMEOUT) {
+        session->set_revalidation_time(
+          update_criteria.revalidation_time, update_criteria);
+      }
+    }
+  }
   // Config
   if (update_criteria.is_config_updated) {
     session->set_config(update_criteria.updated_config);

@@ -397,7 +397,9 @@ class LocalEnforcer {
 
   void schedule_revalidation(
       const std::string& imsi,
-      const google::protobuf::Timestamp& revalidation_time);
+      SessionState& session,
+      const google::protobuf::Timestamp& revalidation_time,
+      SessionStateUpdateCriteria& update_criteria);
 
   void handle_add_ue_mac_flow_callback(
     const SubscriberID& sid,

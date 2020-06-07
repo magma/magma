@@ -870,6 +870,13 @@ bool LocalEnforcer::init_session_credit(
     }
   }
 
+  if (revalidation_scheduled) {
+    // TODO This might not work since the session is not initialized properly
+    // at this point
+    SessionStateUpdateCriteria uc;
+    schedule_revalidation(imsi, *session_state, revalidation_time, uc);
+  }
+
   auto it = session_map.find(imsi);
   if (it == session_map.end()) {
     // First time a session is created for IMSI
@@ -878,15 +885,10 @@ bool LocalEnforcer::init_session_credit(
     session_map[imsi] = std::vector<std::unique_ptr<SessionState>>();
   }
   session_map[imsi].push_back(
-      std::move(std::unique_ptr<SessionState>(session_state)));
+    std::move(std::unique_ptr<SessionState>(session_state)));
 
   if (session_state->is_radius_cwf_session() == false) {
     session_events::session_created(eventd_client_, imsi, session_id);
-  }
-  if (revalidation_scheduled) {
-    // TODO This might not work since the session is not initialized properly
-    // at this point
-    schedule_revalidation(imsi, revalidation_time);
   }
 
   return rule_update_success;
@@ -1182,7 +1184,7 @@ void LocalEnforcer::update_monitoring_credits_and_rules(
         // this IMSI
         auto revalidation_time = usage_monitor_resp.revalidation_time();
         imsis_with_revalidation.insert(imsi);
-        schedule_revalidation(imsi, revalidation_time);
+        schedule_revalidation(imsi, *session, revalidation_time, update_criteria);
       }
     }
   }
@@ -1420,7 +1422,7 @@ void LocalEnforcer::init_policy_reauth_for_session(
     bool& deactivate_success, SessionUpdate& session_update) {
   std::string imsi = request.imsi();
   SessionStateUpdateCriteria& update_criteria =
-      session_update[imsi][session->get_session_id()];
+    session_update[imsi][session->get_session_id()];
 
   activate_success   = true;
   deactivate_success = true;
@@ -1431,7 +1433,7 @@ void LocalEnforcer::init_policy_reauth_for_session(
 
   MLOG(MDEBUG) << "Processing policy reauth for subscriber " << request.imsi();
   if (revalidation_required(request.event_triggers())) {
-    schedule_revalidation(imsi, request.revalidation_time());
+    schedule_revalidation(imsi, *session, request.revalidation_time(), update_criteria);
   }
 
   process_rules_to_remove(
@@ -1620,19 +1622,35 @@ bool LocalEnforcer::revalidation_required(
 // Todo support scheduling revalidation for different sessions for a IMSI
 void LocalEnforcer::schedule_revalidation(
     const std::string& imsi,
-    const google::protobuf::Timestamp& revalidation_time) {
+    SessionState& session,
+    const google::protobuf::Timestamp& revalidation_time,
+    SessionStateUpdateCriteria& update_criteria) {
+  // Add revalidation info to session and mark as pending
+  session.add_new_event_trigger(REVALIDATION_TIMEOUT, update_criteria);
+  session.set_revalidation_time(revalidation_time, update_criteria);
+  auto session_id = session.get_session_id();
   SessionRead req = {imsi};
   auto delta = time_difference_from_now(revalidation_time);
-  MLOG(MINFO) << imsi << " Scheduling revalidation in "
-              << delta.count() << "ms";
+  MLOG(MINFO) << "Scheduling revalidation in "
+              << delta.count() << "ms for " << session_id;
   evb_->runInEventBaseThread([=] {
     evb_->timer().scheduleTimeoutFn(
         std::move([=] {
-          MLOG(MINFO) << imsi << " Revalidation timeout!";
+          MLOG(MINFO) << "Revalidation timeout! for " << session_id;
           auto session_map = session_store_.read_sessions_for_reporting(req);
           SessionUpdate update =
               SessionStore::get_default_session_update(session_map);
-          check_usage_for_reporting(session_map, update, true);
+          for (const auto& session_pair : session_map) {
+            for (const auto& session : session_pair.second) {
+              std::string imsi = session_pair.first;
+              if (session->get_session_id() == session_id) {
+                auto& update_criteria = update[imsi][session_id];
+                session->mark_event_trigger_as_triggered(
+                  REVALIDATION_TIMEOUT, update_criteria);
+              }
+            }
+          }
+          auto success = session_store_.update_sessions(update);
         }),
         delta);
   });
