@@ -29,7 +29,6 @@
 #include "SpgwServiceClient.h"
 
 namespace magma {
-
 class SessionNotFound : public std::exception {
  public:
   SessionNotFound() = default;

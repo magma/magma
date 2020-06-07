@@ -627,6 +627,47 @@ TEST_F(LocalEnforcerTest, test_sync_sessions_on_restart) {
   EXPECT_FALSE(session->is_dynamic_rule_installed("dynamic_rule4"));
 }
 
+TEST_F(LocalEnforcerTest, test_sync_sessions_on_restart_revalidation_timer) {
+  const std::string imsi = "IMSI1";
+  const std::string session_id = "1234";
+  magma::lte::TgppContext tgpp_ctx;
+  CreateSessionResponse response;
+  create_credit_update_response(imsi, 1, 1024, true,
+                                response.mutable_credits()->Add());
+  auto session_state = new SessionState(
+      imsi, session_id, session_id, test_cfg, *rule_store, tgpp_ctx);
+
+  // manually place revalidation timer
+  SessionStateUpdateCriteria uc;
+  session_state->add_new_event_trigger(REVALIDATION_TIMEOUT, uc);
+  EXPECT_EQ(uc.is_pending_event_triggers_updated, true);
+  EXPECT_EQ(uc.pending_event_triggers[REVALIDATION_TIMEOUT], false);
+  google::protobuf::Timestamp time;
+  time.set_seconds(0);
+  session_state->set_revalidation_time(time, uc);
+
+  session_map[imsi] = std::vector<std::unique_ptr<SessionState>>();
+  session_map[imsi].push_back(
+    std::move(std::unique_ptr<SessionState>(session_state)));
+
+  EXPECT_EQ(session_map[imsi].size(), 1);
+  bool success = session_store->create_sessions(imsi, std::move(session_map[imsi]));
+  EXPECT_TRUE(success);
+
+  local_enforcer->sync_sessions_on_restart(std::time_t(0));
+  // sync_sessions_on_restart should call schedule_revalidation which puts
+  // two things on the event loop
+  evb->loopOnce();
+  evb->loopOnce();
+  // We expect that the event trigger will now be marked as ready to be acted on
+  auto session_map_2 = session_store->read_sessions(SessionRead{imsi});
+  EXPECT_EQ(session_map_2[imsi].size(), 1);
+
+  auto& session = session_map_2[imsi].front();
+  auto events = session->get_event_triggers();
+  EXPECT_EQ(events[REVALIDATION_TIMEOUT], true);
+}
+
 // Make sure sessions that are scheduled to be terminated before sync are
 // correctly scheduled to be terminated again.
 TEST_F(LocalEnforcerTest, test_termination_scheduling_on_sync_sessions) {
