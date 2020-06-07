@@ -650,12 +650,15 @@ def _get_equipment_type_and_properties_dict(
         )
         property_type = property_types_with_id[0]
         property_value = _get_property_value(
-            property_type=property_type.type.value, property=property
+            property_type=property_type.property_kind.value, property=property
         )
-        if property_type.type == PropertyKind.gps_location:
-            properties_dict[property_type.name] = (property_value[0], property_value[1])
+        if property_type.property_kind == PropertyKind.gps_location:
+            properties_dict[property_type.property_name] = (
+                property_value[0],
+                property_value[1],
+            )
         else:
-            properties_dict[property_type.name] = property_value[0]
+            properties_dict[property_type.property_name] = property_value[0]
     return equipment_type, properties_dict
 
 

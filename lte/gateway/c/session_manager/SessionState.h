@@ -19,7 +19,6 @@
 #include "StoredState.h"
 
 namespace magma {
-static SessionStateUpdateCriteria UNUSED_UPDATE_CRITERIA;
 /**
  * SessionState keeps track of a current UE session in the PCEF, recording
  * usage and allowance for all charging keys
@@ -98,8 +97,7 @@ class SessionState {
   void get_updates(
       UpdateSessionRequest& update_request_out,
       std::vector<std::unique_ptr<ServiceAction>>* actions_out,
-      SessionStateUpdateCriteria& update_criteria,
-      const bool force_update = false);
+      SessionStateUpdateCriteria& update_criteria);
 
   /**
    * start_termination starts the termination process for the session.
@@ -301,8 +299,7 @@ class SessionState {
   uint32_t get_credit_key_count();
 
   void set_fsm_state(
-    SessionFsmState new_state,
-    SessionStateUpdateCriteria& uc = UNUSED_UPDATE_CRITERIA);
+    SessionFsmState new_state, SessionStateUpdateCriteria& uc);
 
   StaticRuleInstall get_static_rule_install(
     const std::string& rule_id, const RuleLifetime& lifetime);
@@ -311,6 +308,28 @@ class SessionState {
     const std::string& rule_id, const RuleLifetime& lifetime);
 
   SessionFsmState get_state();
+
+  void add_new_event_trigger(
+  magma::lte::EventTrigger trigger,
+  SessionStateUpdateCriteria& update_criteria);
+
+  void mark_event_trigger_as_triggered(
+    magma::lte::EventTrigger trigger,
+    SessionStateUpdateCriteria& update_criteria);
+
+  void set_event_trigger(
+    magma::lte::EventTrigger trigger, const EventTriggerState value,
+    SessionStateUpdateCriteria& update_criteria);
+
+  void remove_event_trigger(magma::lte::EventTrigger trigger,
+    SessionStateUpdateCriteria& update_criteria);
+
+  void set_revalidation_time(const google::protobuf::Timestamp& time,
+                             SessionStateUpdateCriteria& update_criteria);
+
+  google::protobuf::Timestamp get_revalidation_time() {return revalidation_time_;}
+
+  EventTriggerStatus get_event_triggers() {return pending_event_triggers_;}
 
  private:
   std::string imsi_;
@@ -344,6 +363,14 @@ class SessionState {
   // installed, or scheduled for installation for this session
   std::unordered_map<std::string, RuleLifetime> rule_lifetimes_;
 
+  // map of Gx event_triggers that are pending and its status (bool)
+  // If the value is true, that means an update request for that event trigger
+  // should be sent
+  EventTriggerStatus pending_event_triggers_;
+  // todo for stateless we will have to store a bit more information so we can
+  // reschedule triggers
+  google::protobuf::Timestamp revalidation_time_;
+
  private:
   /**
    * For this session, add the CreditUsageUpdate to the UpdateSessionRequest.
@@ -351,13 +378,11 @@ class SessionState {
    *
    * @param update_request_out Modified with added CreditUsageUpdate
    * @param actions_out Modified with additional actions to take on session
-   * @param force_update force updates if revalidation timer expires
    */
   void get_updates_from_charging_pool(
       UpdateSessionRequest& update_request_out,
       std::vector<std::unique_ptr<ServiceAction>>* actions_out,
-      SessionStateUpdateCriteria& update_criteria,
-      const bool force_update = false);
+      SessionStateUpdateCriteria& update_criteria);
 
   /**
    * For this session, add the UsageMonitoringUpdateRequest to the
@@ -365,13 +390,13 @@ class SessionState {
    *
    * @param update_request_out Modified with added UsdageMonitoringUpdateRequest
    * @param actions_out Modified with additional actions to take on session.
-   * @param force_update force updates if revalidation timer expires
    */
   void get_updates_from_monitor_pool(
       UpdateSessionRequest& update_request_out,
       std::vector<std::unique_ptr<ServiceAction>>* actions_out,
-      SessionStateUpdateCriteria& update_criteria,
-      const bool force_update = false);
+      SessionStateUpdateCriteria& update_criteria);
+
+  void add_common_fields_to_usage_monitor_update(UsageMonitoringUpdateRequest* req);
 
   SessionTerminateRequest make_termination_request(
     SessionStateUpdateCriteria& update_criteria);

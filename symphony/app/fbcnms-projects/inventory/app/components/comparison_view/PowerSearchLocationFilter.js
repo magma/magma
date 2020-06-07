@@ -25,6 +25,10 @@ const locationTokenizerQuery = graphql`
         node {
           id
           name
+          parentLocation {
+            id
+            name
+          }
         }
       }
     }
@@ -64,7 +68,12 @@ const PowerSearchLocationFilter = (props: FilterProps) => {
         (data.locations.edges ?? [])
           .map(edge => edge.node)
           .filter(node => !selectedLocations.find(loc => loc.id == node.id))
-          .map(location => ({id: location.id, label: location.name})),
+          .map(location => ({
+            id: location.id,
+            label: location.parentLocation
+              ? location.name + ' (' + location.parentLocation?.name + ')'
+              : location.name,
+          })),
       );
     });
 
@@ -75,7 +84,10 @@ const PowerSearchLocationFilter = (props: FilterProps) => {
         fetchQuery(RelayEnvironment, locationQuery, {id: id}).then(location =>
           setSelectedLocations([
             ...selectedLocations,
-            {id: location.node.id, label: location.node.name},
+            {
+              id: location.node.id,
+              label: location.node.name,
+            },
           ]),
         ),
       );

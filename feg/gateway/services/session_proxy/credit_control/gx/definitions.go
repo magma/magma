@@ -50,6 +50,7 @@ type CreditControlRequest struct {
 	IPCANType     credit_control.IPCANType
 	RATType       credit_control.RATType
 	TgppCtx       *protos.TgppContext
+	EventTrigger  EventTrigger
 }
 
 type QosRequestInfo struct {

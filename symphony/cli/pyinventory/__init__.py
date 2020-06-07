@@ -30,8 +30,37 @@ from pyinventory import InventoryClient
 # since inventory is multi tenant system you will need to insert which
 # partner you connect as
 client = InventoryClient(email, password, "tenant_name")
-location = client.addLocation(-1.22,2.66, ('City', 'Brooklyn'))
-client.addEquipment('HW1569', 'Antenna HW', location, {'altitude': 53.5})
+location = client.add_location(
+    location_hirerchy=[
+        ("Country", "England"),
+        ("City", "Milton Keynes"),
+        ("Site", "Bletchley Park")
+    ],
+    properties_dict={
+        "Date Property": date.today(),
+        "Lat/Lng Property": (-1.23,9.232),
+        "E-mail Property": "user@fb.com",
+        "Number Property": 11,
+        "String Property": "aa",
+        "Float Property": 1.23,
+    },
+    lat=-11.32,
+    long=98.32,
+    external_id=None
+)
+equipment = client.add_equipment(
+    name="Router X123",
+    equipment_type="Router",
+    location=location,
+    properties_dict={
+        "Date Property": date.today(),
+        "Lat/Lng Property": (-1.23,9.232),
+        "E-mail Property": "user@fb.com",
+        "Number Property": 11,
+        "String Property": "aa",
+        "Float Property": 1.23,
+    }
+)
 ```
 """
 

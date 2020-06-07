@@ -10,7 +10,6 @@ of patent rights can be found in the PATENTS file in the same directory.
 import unittest
 
 import s1ap_types
-import time
 
 from integ_tests.s1aptests import s1ap_wrapper
 

@@ -55,6 +55,13 @@ struct FinalActionInfo {
   RedirectServer redirect_server;
 };
 
+enum EventTriggerState {
+  PENDING   = 0, // trigger installed
+  READY     = 1, // ready to be reported on
+  CLEARED   = 2, // successfully reported
+};
+typedef std::unordered_map<magma::lte::EventTrigger, EventTriggerState> EventTriggerStatus;
+
 /**
  * A bucket is a counter used for tracking credit volume across sessiond.
  * These are independently incremented and reset
@@ -173,6 +180,8 @@ struct StoredSessionState {
   std::unordered_map<std::string, RuleLifetime> rule_lifetimes;
   std::vector<PolicyRule> gy_dynamic_rules;
   uint32_t request_number;
+  EventTriggerStatus pending_event_triggers;
+  google::protobuf::Timestamp revalidation_time;
 };
 
 // Update Criteria
@@ -195,6 +204,13 @@ struct SessionStateUpdateCriteria {
   SessionConfig updated_config;
   bool is_fsm_updated;
   SessionFsmState updated_fsm_state;
+  // true if any of the event trigger state is updated
+  bool is_pending_event_triggers_updated;
+  EventTriggerStatus pending_event_triggers;
+  // this value is only valid if one of the updated event trigger is
+  // revalidation time
+  google::protobuf::Timestamp revalidation_time;
+
   std::set<std::string> static_rules_to_install;
   std::set<std::string> static_rules_to_uninstall;
   std::set<std::string> new_scheduled_static_rules;

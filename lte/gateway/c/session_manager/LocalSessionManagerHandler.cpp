@@ -87,9 +87,8 @@ void LocalSessionManagerHandlerImpl::check_usage_for_reporting(
   //       https://stackoverflow.com/questions/25421346/how-to-create-an-stdfunction-from-a-move-capturing-lambda-expression
   reporter_->report_updates(
       request,
-      [this, request,
-       session_map_ptr = std::make_shared<SessionMap>(std::move(session_map)),
-       session_update  = std::move(session_update)](
+      [this, request, session_update,
+       session_map_ptr = std::make_shared<SessionMap>(std::move(session_map))](
           Status status, UpdateSessionResponse response) mutable {
         if (!status.ok()) {
           MLOG(MERROR) << "Update of size " << request.updates_size()

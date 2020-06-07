@@ -212,8 +212,13 @@ const arrayConfigs = [
     rules: [AlwaysEnabledInTestEnvRule],
   },
   {
-    id: 'work_order_activities',
-    title: 'Work Order Activities',
+    id: 'work_order_activities_hook',
+    title: 'Work Order Activities Hook',
+    enabledByDefault: true,
+  },
+  {
+    id: 'work_order_activities_display',
+    title: 'Work Order Activities Display',
     enabledByDefault: false,
     rules: [AlwaysEnabledInTestEnvRule],
   },

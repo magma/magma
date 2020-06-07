@@ -11,6 +11,7 @@
 import CommentsActivitiesLog from './CommentsActivitiesLog';
 import NewCommentInput from './NewCommentInput';
 import type {CommentEntity} from '../../mutations/__generated__/AddCommentMutation.graphql';
+import type {CommentsActivitiesBox_activities} from './__generated__/CommentsActivitiesBox_activities.graphql.js';
 import type {CommentsActivitiesBox_comments} from './__generated__/CommentsActivitiesBox_comments.graphql.js';
 
 import React from 'react';
@@ -24,6 +25,7 @@ type Props = {
   relatedEntityId: string,
   relatedEntityType: CommentEntity,
   comments: CommentsActivitiesBox_comments,
+  activities: CommentsActivitiesBox_activities,
   boxElementsClass?: string,
   commentsLogClass?: string,
   newCommentInputClass?: string,
@@ -40,6 +42,7 @@ const CommentsActivitiesBox = (props: Props) => {
   const classes = useStyles();
   const {
     comments,
+    activities,
     relatedEntityType,
     relatedEntityId,
     boxElementsClass,
@@ -52,6 +55,7 @@ const CommentsActivitiesBox = (props: Props) => {
       <CommentsActivitiesLog
         className={classNames(boxElementsClass, commentsLogClass)}
         comments={comments}
+        activities={activities}
       />
       <NewCommentInput
         className={classNames(boxElementsClass, newCommentInputClass)}

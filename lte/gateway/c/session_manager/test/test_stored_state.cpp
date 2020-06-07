@@ -137,6 +137,9 @@ protected:
     tgpp_context.set_gy_dest_host("gy");
     stored.tgpp_context = tgpp_context;
 
+    stored.pending_event_triggers[REVALIDATION_TIMEOUT] = READY;
+    stored.revalidation_time.set_seconds(32);
+
     stored.request_number = 1;
 
     return stored;
@@ -396,6 +399,10 @@ TEST_F(StoredStateTest, test_stored_session) {
 
   EXPECT_EQ(stored.tgpp_context.gx_dest_host(), "gx");
   EXPECT_EQ(stored.tgpp_context.gy_dest_host(), "gy");
+
+  EXPECT_EQ(stored.pending_event_triggers.size(), 1);
+  EXPECT_EQ(stored.pending_event_triggers[REVALIDATION_TIMEOUT], READY);
+  EXPECT_EQ(stored.revalidation_time.seconds(), 32);
 
   EXPECT_EQ(stored.request_number, 1);
 }

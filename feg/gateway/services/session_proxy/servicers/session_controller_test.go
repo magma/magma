@@ -690,6 +690,46 @@ func TestSessionTermination(t *testing.T) {
 	assert.Equal(t, genSessionID(IMSI2), termResponse.SessionId)
 }
 
+func TestEventTriggerInUpdate(t *testing.T) {
+	// Set up mocks
+	mockConfig := getTestConfig()
+	mockControlParams := getMockControllerParams(mockConfig)
+	mockPolicyDb := &MockPolicyDBClient{}
+	mockMux := getMockMultiplexor(NUMBER_SERVERS)
+
+	// Get the controller for this imsi
+	idx, err := mockMux.GetIndex(multiplex.NewContext().WithIMSI(IMSI1))
+	assert.NoError(t, err)
+	mocksGx := mockControlParams[idx].PolicyClient.(*MockPolicyClient)
+
+	// send static rules back
+	mocksGx.On("SendCreditControlRequest", mock.Anything, mock.Anything,
+		mock.MatchedBy(getGxCCRUMatcher(IMSI1_NOPREFIX, gx.RevalidationTimeout)),
+	).Return(nil).Run(func(args mock.Arguments) {
+		done := args.Get(1).(chan interface{})
+		request := args.Get(2).(*gx.CreditControlRequest)
+		done <- &gx.CreditControlAnswer{
+			ResultCode:    uint32(diameter.SuccessCode),
+			SessionID:     request.SessionID,
+			RequestNumber: request.RequestNumber,
+		}
+	}).Once()
+	ctx := context.Background()
+	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDb, mockMux)
+	_, err = srv.UpdateSession(ctx, &protos.UpdateSessionRequest{
+		UsageMonitors: []*protos.UsageMonitoringUpdateRequest{{
+			SessionId:     genSessionID(IMSI1),
+			Sid:           IMSI1_NOPREFIX,
+			RequestNumber: 4,
+			EventTrigger:  protos.EventTrigger_REVALIDATION_TIMEOUT,
+		}},
+	})
+	assert.NoError(t, err)
+
+	mocksGx.AssertExpectations(t)
+	mockPolicyDb.AssertExpectations(t)
+}
+
 func testGxUsageMonitoring(t *testing.T) {
 	// Set up mocks
 	mockConfig := getTestConfig()
@@ -1384,6 +1424,14 @@ func getGyCCRMatcher(imsi string, ccrType credit_control.CreditRequestType) inte
 func getGxCCRMatcher(imsi string, ccrType credit_control.CreditRequestType) interface{} {
 	return func(request *gx.CreditControlRequest) bool {
 		return request.Type == ccrType && request.IMSI == imsi
+	}
+}
+
+func getGxCCRUMatcher(imsi string, eventTrigger gx.EventTrigger) interface{} {
+	return func(request *gx.CreditControlRequest) bool {
+		return request.Type == credit_control.CRTUpdate &&
+			request.IMSI == imsi && request.EventTrigger == eventTrigger
+
 	}
 }
 
