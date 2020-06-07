@@ -48,8 +48,7 @@ public:
               StaticRuleStore &static_rules, DynamicRuleStore *dynamic_rules,
               std::vector<UpdateRequestType> *updates_out,
               std::vector<std::unique_ptr<ServiceAction>> *actions_out,
-              SessionStateUpdateCriteria &update_criteria,
-              const bool force_update) = 0;
+              SessionStateUpdateCriteria &update_criteria) = 0;
 
   /**
    * get_termination_updates gets updates from all credits in the pool at the
@@ -112,8 +111,7 @@ public:
                    DynamicRuleStore *dynamic_rules,
                    std::vector<CreditUsage> *updates_out,
                    std::vector<std::unique_ptr<ServiceAction>> *actions_out,
-                   SessionStateUpdateCriteria &update_criteria,
-                   const bool force_update = false) override;
+                   SessionStateUpdateCriteria &update_criteria) override;
 
   bool
   get_termination_updates(SessionTerminateRequest *termination_out,
@@ -200,8 +198,7 @@ public:
                    DynamicRuleStore *dynamic_rules,
                    std::vector<UsageMonitorUpdate> *updates_out,
                    std::vector<std::unique_ptr<ServiceAction>> *actions_out,
-                   SessionStateUpdateCriteria &update_criteria,
-                   const bool force_update = false) override;
+                   SessionStateUpdateCriteria &update_criteria) override;
 
   bool
   get_termination_updates(SessionTerminateRequest *termination_out,

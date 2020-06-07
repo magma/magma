@@ -190,12 +190,12 @@ bool SessionState::is_terminating() {
 void SessionState::get_updates_from_charging_pool(
     UpdateSessionRequest& update_request_out,
     std::vector<std::unique_ptr<ServiceAction>>* actions_out,
-    SessionStateUpdateCriteria& update_criteria, const bool force_update) {
+    SessionStateUpdateCriteria& update_criteria) {
   // charging updates
   std::vector<CreditUsage> charging_updates;
   charging_pool_.get_updates(
       imsi_, config_.ue_ipv4, static_rules_, &dynamic_rules_, &charging_updates,
-      actions_out, update_criteria, force_update);
+      actions_out, update_criteria);
   for (const auto& update : charging_updates) {
     auto new_req = update_request_out.mutable_updates()->Add();
     new_req->set_session_id(session_id_);
@@ -220,11 +220,11 @@ void SessionState::get_updates_from_charging_pool(
 void SessionState::get_updates_from_monitor_pool(
     UpdateSessionRequest& update_request_out,
     std::vector<std::unique_ptr<ServiceAction>>* actions_out,
-    SessionStateUpdateCriteria& update_criteria, const bool force_update) {
+    SessionStateUpdateCriteria& update_criteria) {
   std::vector<UsageMonitorUpdate> monitor_updates;
   monitor_pool_.get_updates(
       imsi_, config_.ue_ipv4, static_rules_, &dynamic_rules_, &monitor_updates,
-      actions_out, update_criteria, force_update);
+      actions_out, update_criteria);
   for (const auto& update : monitor_updates) {
     auto new_req = update_request_out.mutable_usage_monitors()->Add();
     add_common_fields_to_usage_monitor_update(new_req);
@@ -259,12 +259,12 @@ void SessionState::add_common_fields_to_usage_monitor_update(
 void SessionState::get_updates(
     UpdateSessionRequest& update_request_out,
     std::vector<std::unique_ptr<ServiceAction>>* actions_out,
-    SessionStateUpdateCriteria& update_criteria, const bool force_update) {
+    SessionStateUpdateCriteria& update_criteria) {
   if (curr_state_ != SESSION_ACTIVE) return;
   get_updates_from_charging_pool(
-      update_request_out, actions_out, update_criteria, force_update);
+      update_request_out, actions_out, update_criteria);
   get_updates_from_monitor_pool(
-      update_request_out, actions_out, update_criteria, force_update);
+      update_request_out, actions_out, update_criteria);
 }
 
 void SessionState::start_termination(
