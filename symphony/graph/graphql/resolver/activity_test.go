@@ -25,7 +25,7 @@ func TestAddWorkOrderActivities(t *testing.T) {
 	tim := time.Now()
 
 	defer r.Close()
-	ctx := viewertest.NewContext(context.Background(), r.client, viewertest.WithFeatures(viewer.FeatureWorkOrderActivities))
+	ctx := viewertest.NewContext(context.Background(), r.client, viewertest.WithFeatures(viewer.FeatureWorkOrderActivitiesHook))
 	u := viewer.MustGetOrCreateUser(
 		privacy.DecisionContext(ctx, privacy.Allow),
 		viewertest.DefaultUser,
@@ -86,7 +86,7 @@ func TestEditWorkOrderActivities(t *testing.T) {
 	r := newTestResolver(t)
 
 	defer r.Close()
-	ctx := viewertest.NewContext(context.Background(), r.client, viewertest.WithFeatures(viewer.FeatureWorkOrderActivities))
+	ctx := viewertest.NewContext(context.Background(), r.client, viewertest.WithFeatures(viewer.FeatureWorkOrderActivitiesHook))
 	u := viewer.MustGetOrCreateUser(
 		privacy.DecisionContext(ctx, privacy.Allow),
 		viewertest.DefaultUser,

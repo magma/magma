@@ -28,7 +28,7 @@ func TestWorkOrderActivitiesEvents(t *testing.T) {
 }
 
 func (s *workOrderActivitiesTestSuite) SetupSuite() {
-	s.eventTestSuite.SetupSuite(viewertest.WithFeatures(viewer.FeatureWorkOrderActivities))
+	s.eventTestSuite.SetupSuite(viewertest.WithFeatures(viewer.FeatureWorkOrderActivitiesHook))
 	s.typ = s.client.WorkOrderType.Create().
 		SetName("Chore").
 		SaveX(s.ctx)

@@ -41,7 +41,7 @@ func (e *Eventer) workOrderActivityHook() ent.Hook {
 			var err error
 			v := viewer.FromContext(ctx)
 			if v == nil ||
-				!v.Features().Enabled(viewer.FeatureWorkOrderActivities) {
+				!v.Features().Enabled(viewer.FeatureWorkOrderActivitiesHook) {
 				return nil
 			}
 			if entry.Operation.Is(ent.OpCreate) {

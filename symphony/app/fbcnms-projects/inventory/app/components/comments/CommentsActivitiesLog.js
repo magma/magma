@@ -52,8 +52,11 @@ const CommentsActivitiesLog = (props: Props) => {
 
   const {comments, activities, className, postClassName} = props;
   let objectsList;
-  const activityEnabled = isFeatureEnabled('work_order_activities');
-  if (!activityEnabled) {
+  const activityDisplayEnabled = isFeatureEnabled(
+    'work_order_activities_display',
+  );
+
+  if (!activityDisplayEnabled) {
     const hasComments = Array.isArray(comments) && comments.length > 0;
     objectsList = hasComments ? (
       comments.map(comment => (
