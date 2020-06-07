@@ -362,19 +362,22 @@ func (gxClient *GxClient) getInitAvps(m *diam.Message, request *CreditControlReq
 // getAdditionalAvps retrieves any extra AVPs based on the type of request.
 // For update and terminate, it returns the used credit AVPs
 func (gxClient *GxClient) getAdditionalAvps(request *CreditControlRequest) ([]*diam.AVP, error) {
-	if request.Type == credit_control.CRTInit || len(request.UsageReports) == 0 {
+	if request.Type == credit_control.CRTInit {
 		return []*diam.AVP{}, nil
 	}
-	avpList := make([]*diam.AVP, 0, len(request.UsageReports)+2)
-	if len(request.TgppCtx.GetGxDestHost()) > 0 {
-		avpList = append(avpList,
-			diam.NewAVP(avp.DestinationHost, avp.Mbit, 0, datatype.DiameterIdentity(request.TgppCtx.GetGxDestHost())))
-	}
-	for _, usage := range request.UsageReports {
-		avpList = append(avpList, getUsageMonitoringAVP(usage))
+	avpList := []*diam.AVP{}
+	if len(request.UsageReports) > 0 {
+		avpList = make([]*diam.AVP, 0, len(request.UsageReports)+2)
+		if len(request.TgppCtx.GetGxDestHost()) > 0 {
+			avpList = append(avpList,
+				diam.NewAVP(avp.DestinationHost, avp.Mbit, 0, datatype.DiameterIdentity(request.TgppCtx.GetGxDestHost())))
+		}
+		for _, usage := range request.UsageReports {
+			avpList = append(avpList, getUsageMonitoringAVP(usage))
+		}
 	}
 	if request.Type == credit_control.CRTUpdate {
-		avpList = append(avpList, gxClient.getUsageReportEventTrigger())
+		avpList = append(avpList, gxClient.getEventTriggerAVP(request.EventTrigger))
 	}
 
 	return avpList, nil
@@ -396,12 +399,13 @@ func getUsageMonitoringAVP(usage *UsageReport) *diam.AVP {
 	})
 }
 
-func (gxClient *GxClient) getUsageReportEventTrigger() *diam.AVP {
-	var urt = UsageReportTrigger
-	if gxClient.pcrf91Compliant {
-		urt = PCRF91UsageReportTrigger
+func (gxClient *GxClient) getEventTriggerAVP(eventTrigger EventTrigger) *diam.AVP {
+	if eventTrigger == UsageReportTrigger {
+		if gxClient.pcrf91Compliant {
+			eventTrigger = PCRF91UsageReportTrigger
+		}
 	}
-	return diam.NewAVP(avp.EventTrigger, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(urt))
+	return diam.NewAVP(avp.EventTrigger, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(eventTrigger))
 }
 
 // Is p all zeros?

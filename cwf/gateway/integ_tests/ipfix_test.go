@@ -12,13 +12,13 @@ package integration
 
 import (
 	"fmt"
+	"io/ioutil"
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/feg/cloud/go/protos"
 	"magma/lte/cloud/go/plugin/models"
+	"strings"
 	"testing"
 	"time"
-    "io/ioutil"
-	"strings"
 
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/go-openapi/swag"

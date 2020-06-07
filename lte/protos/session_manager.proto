@@ -358,6 +358,8 @@ message UsageMonitoringCredit {
 }
 
 // A request to update a usage monitor given its usage and session information
+// TODO this message name is misleading since we don't only use it for
+// usage reporting
 message UsageMonitoringUpdateRequest {
   UsageMonitorUpdate update = 1;
   string session_id = 2;
@@ -367,6 +369,7 @@ message UsageMonitoringUpdateRequest {
   bytes hardware_addr = 6; // MAC Address for WLAN
   RATType rat_type = 7;
   TgppContext tgpp_ctx = 8;
+  EventTrigger event_trigger = 9;
 }
 
 // Response to a usage monitor update with the credit received and session info
