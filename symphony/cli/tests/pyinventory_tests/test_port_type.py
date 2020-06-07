@@ -34,7 +34,7 @@ class TestEquipmentPortType(BaseTest):
                 PropertyDefinition(
                     property_name="port property",
                     property_kind=PropertyKind.string,
-                    default_value="port property value",
+                    default_raw_value="port property value",
                     is_fixed=False,
                 )
             ],
@@ -42,7 +42,7 @@ class TestEquipmentPortType(BaseTest):
                 PropertyDefinition(
                     property_name="link property",
                     property_kind=PropertyKind.string,
-                    default_value="link property value",
+                    default_raw_value="link property value",
                     is_fixed=False,
                 )
             ],
@@ -74,10 +74,11 @@ class TestEquipmentPortType(BaseTest):
         self.assertEqual(fetched_port_type.name, edited_port_type.name)
         self.assertEqual(len(fetched_port_type.property_types), 1)
         self.assertEqual(
-            fetched_port_type.property_types[0].stringValue, "new port property value"
+            fetched_port_type.property_types[0].default_raw_value,
+            "new port property value",
         )
         self.assertEqual(len(fetched_port_type.link_property_types), 1)
         self.assertEqual(
-            fetched_port_type.link_property_types[0].stringValue,
+            fetched_port_type.link_property_types[0].default_raw_value,
             "new link property value",
         )

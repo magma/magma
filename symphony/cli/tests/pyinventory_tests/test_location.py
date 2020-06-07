@@ -49,13 +49,13 @@ class TestLocation(BaseTest):
                 PropertyDefinition(
                     property_name="Mayor",
                     property_kind=PropertyKind.string,
-                    default_value=None,
+                    default_raw_value=None,
                     is_fixed=False,
                 ),
                 PropertyDefinition(
                     property_name="Contact",
                     property_kind=PropertyKind.email,
-                    default_value=None,
+                    default_raw_value=None,
                     is_fixed=False,
                 ),
             ],

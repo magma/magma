@@ -24,14 +24,7 @@ fragment PropertyTypeFragment on PropertyType {
   type
   index
   category
-  stringValue
-  intValue
-  booleanValue
-  floatValue
-  latitudeValue
-  longitudeValue
-  rangeFromValue
-  rangeToValue
+  rawValue
   isEditable
   isInstanceProperty
   isMandatory
@@ -48,14 +41,7 @@ class PropertyTypeFragment(DataClassJsonMixin):
     externalId: Optional[str]
     index: Optional[int]
     category: Optional[str]
-    stringValue: Optional[str]
-    intValue: Optional[int]
-    booleanValue: Optional[bool]
-    floatValue: Optional[Number]
-    latitudeValue: Optional[Number]
-    longitudeValue: Optional[Number]
-    rangeFromValue: Optional[Number]
-    rangeToValue: Optional[Number]
+    rawValue: Optional[str]
     isEditable: Optional[bool]
     isInstanceProperty: Optional[bool]
     isMandatory: Optional[bool]
