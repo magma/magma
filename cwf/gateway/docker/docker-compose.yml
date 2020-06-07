@@ -145,7 +145,7 @@ services:
         /usr/bin/ovs-vsctl set-fail-mode cwag_br0 secure &&
         /usr/bin/ovs-vsctl set bridge cwag_br0 other-config:disable-in-band=true &&
         /var/opt/magma/scripts/add_uplink_bridge_flows.sh &&
-        python3 -m magma.pipelined.main"
+        python3.5 -m magma.pipelined.main"
 
   policydb:
     <<: *ltepyservice
@@ -156,12 +156,12 @@ services:
       retries: 3
     depends_on:
       - redis
-    command: python3 -m magma.policydb.main
+    command: python3.5 -m magma.policydb.main
 
   redirectd:
     <<: *ltepyservice
     container_name: redirectd
-    command: python3 -m magma.redirectd.main
+    command: python3.5 -m magma.redirectd.main
 
   radius:
     image: ${DOCKER_REGISTRY}gateway_go:${IMAGE_VERSION}
