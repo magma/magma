@@ -12,9 +12,9 @@ import (
 	"fmt"
 	"math/rand"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
-	"strings"
 
 	"fbc/lib/go/radius"
 	cwfprotos "magma/cwf/cloud/go/protos"
@@ -50,7 +50,7 @@ const (
 	RedisPort        = 6380
 	DirectorydPort   = 8443
 
-        // If updating these, also update the ipfix exported hex values
+	// If updating these, also update the ipfix exported hex values
 	defaultMSISDN          = "5100001234"
 	defaultCalledStationID = "98-DE-D0-84-B5-47:CWF-TP-LINK_B547_5G"
 
@@ -400,7 +400,7 @@ func getEncodedIMSI(imsiStr string) (string, error) {
 		return "", err
 	}
 
-    prefixLen := len(imsiStr) - len(strings.TrimLeft(imsiStr, "0"))
-    compacted := (imsi << 2) | (prefixLen & 0x3)
-	return fmt.Sprintf("0x%016x", compacted << 1 | 0x1), nil
+	prefixLen := len(imsiStr) - len(strings.TrimLeft(imsiStr, "0"))
+	compacted := (imsi << 2) | (prefixLen & 0x3)
+	return fmt.Sprintf("0x%016x", compacted<<1|0x1), nil
 }

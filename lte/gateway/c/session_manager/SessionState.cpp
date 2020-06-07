@@ -231,6 +231,7 @@ void SessionState::get_updates_from_monitor_pool(
     new_req->set_rat_type(config_.rat_type);
     fill_protos_tgpp_context(new_req->mutable_tgpp_ctx());
     new_req->mutable_update()->CopyFrom(update);
+    new_req->set_event_trigger(USAGE_REPORT);
     request_number_++;
   }
 }
