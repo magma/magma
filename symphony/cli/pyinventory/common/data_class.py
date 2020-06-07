@@ -291,13 +291,13 @@ class Document(NamedTuple):
     Attributes:
         id (str): ID
         name (str): name
-        parentId (str): parent ID
-        parentEntity (ImageEntity): parent entity
+        parent_id (str): parent ID
+        parent_entity (ImageEntity): parent entity
         category (Optional[str]): category
     """
 
     id: str
     name: str
-    parentId: str
-    parentEntity: ImageEntity
+    parent_id: str
+    parent_entity: ImageEntity
     category: Optional[str]

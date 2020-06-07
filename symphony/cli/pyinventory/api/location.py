@@ -588,8 +588,8 @@ def get_location_documents(
         Document(
             name=file.fileName,
             id=file.id,
-            parentId=location.id,
-            parentEntity=ImageEntity.LOCATION,
+            parent_id=location.id,
+            parent_entity=ImageEntity.LOCATION,
             category=file.category,
         )
         for file in location_with_documents.files
@@ -598,8 +598,8 @@ def get_location_documents(
         Document(
             name=file.fileName,
             id=file.id,
-            parentId=location.id,
-            parentEntity=ImageEntity.LOCATION,
+            parent_id=location.id,
+            parent_entity=ImageEntity.LOCATION,
             category=file.category,
         )
         for file in location_with_documents.images
