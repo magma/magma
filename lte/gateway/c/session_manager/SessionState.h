@@ -312,6 +312,26 @@ class SessionState {
 
   SessionFsmState get_state();
 
+  void add_new_event_trigger(
+  magma::lte::EventTrigger trigger,
+  SessionStateUpdateCriteria& update_criteria);
+
+  void mark_event_trigger_as_triggered(
+    magma::lte::EventTrigger trigger,
+    SessionStateUpdateCriteria& update_criteria);
+
+  void set_event_trigger(
+    magma::lte::EventTrigger trigger, const EventTriggerState value,
+    SessionStateUpdateCriteria& update_criteria);
+
+  void remove_event_trigger(magma::lte::EventTrigger trigger,
+    SessionStateUpdateCriteria& update_criteria);
+
+  void set_revalidation_time(const google::protobuf::Timestamp& time,
+                             SessionStateUpdateCriteria& update_criteria);
+
+  google::protobuf::Timestamp get_revalidation_time() {return revalidation_time_;}
+
  private:
   std::string imsi_;
   std::string session_id_;
@@ -344,6 +364,14 @@ class SessionState {
   // installed, or scheduled for installation for this session
   std::unordered_map<std::string, RuleLifetime> rule_lifetimes_;
 
+  // map of Gx event_triggers that are pending and its status (bool)
+  // If the value is true, that means an update request for that event trigger
+  // should be sent
+  EventTriggerStatus pending_event_triggers_;
+  // todo for stateless we will have to store a bit more information so we can
+  // reschedule triggers
+  google::protobuf::Timestamp revalidation_time_;
+
  private:
   /**
    * For this session, add the CreditUsageUpdate to the UpdateSessionRequest.
@@ -372,6 +400,8 @@ class SessionState {
       std::vector<std::unique_ptr<ServiceAction>>* actions_out,
       SessionStateUpdateCriteria& update_criteria,
       const bool force_update = false);
+
+  void add_common_fields_to_usage_monitor_update(UsageMonitoringUpdateRequest* req);
 
   SessionTerminateRequest make_termination_request(
     SessionStateUpdateCriteria& update_criteria);
