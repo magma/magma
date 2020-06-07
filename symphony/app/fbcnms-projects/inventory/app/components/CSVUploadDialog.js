@@ -276,8 +276,17 @@ const CSVUploadDialog = (props: Props) => {
         return;
       }
     } catch (error) {
-      const message = error.response?.data;
-      onFail(message);
+      if (error.response.status === 504) {
+        onFail(
+          fbt(
+            'File failed to upload as it is too big. Please try upload in smaller chuncks',
+            'upload timeout message',
+          ),
+        );
+      } else {
+        const message = error.response?.data;
+        onFail(message);
+      }
     }
   };
 
