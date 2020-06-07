@@ -105,12 +105,11 @@ class LocalEnforcer {
    * Collect any credit keys that are either exhausted, timed out, or terminated
    * and apply actions to the services if need be
    * @param updates_out (out) - vector to add usage updates to, if they exist
-   * @param force_update force updates if revalidation timer expires
    */
   UpdateSessionRequest collect_updates(
       SessionMap& session_map,
       std::vector<std::unique_ptr<ServiceAction>>& actions,
-      SessionUpdate& session_update, const bool force_update = false) const;
+      SessionUpdate& session_update) const;
 
   /**
    * Perform any rule installs/removals that need to be executed given a
@@ -407,10 +406,6 @@ class LocalEnforcer {
     const std::string& ap_mac_addr,
     const std::string& ap_name,
     Status status, FlowResponse resp);
-
-  void check_usage_for_reporting(
-      SessionMap& session_map, SessionUpdate& session_update,
-      const bool force_update = false);
 
   /**
    * Deactivate rules for certain IMSI.

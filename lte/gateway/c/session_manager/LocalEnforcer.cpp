@@ -485,14 +485,14 @@ void LocalEnforcer::install_redirect_flow(
 UpdateSessionRequest LocalEnforcer::collect_updates(
     SessionMap& session_map,
     std::vector<std::unique_ptr<ServiceAction>>& actions,
-    SessionUpdate& session_update, const bool force_update) const {
+    SessionUpdate& session_update) const {
   UpdateSessionRequest request;
   for (const auto& session_pair : session_map) {
     for (const auto& session : session_pair.second) {
       std::string imsi     = session_pair.first;
       std::string sid      = session->get_session_id();
       auto& update_criteria = session_update[imsi][sid];
-      session->get_updates(request, &actions, update_criteria, force_update);
+      session->get_updates(request, &actions, update_criteria);
     }
   }
   return request;
@@ -1717,45 +1717,6 @@ void LocalEnforcer::create_bearer(
         config.bearer_id, dynamic_rules);
   }
   return;
-}
-
-void LocalEnforcer::check_usage_for_reporting(
-    SessionMap& session_map, SessionUpdate& session_update,
-    const bool force_update) {
-  std::vector<std::unique_ptr<ServiceAction>> actions;
-  auto request =
-      collect_updates(session_map, actions, session_update, force_update);
-  execute_actions(session_map, actions, session_update);
-  if (request.updates_size() == 0 && request.usage_monitors_size() == 0) {
-    return;  // nothing to report
-  }
-  MLOG(MINFO) << "Sending " << request.updates_size()
-              << " charging updates and " << request.usage_monitors_size()
-              << " monitor updates to OCS and PCRF";
-
-  // report to cloud
-  (*reporter_)
-      .report_updates(
-          request,
-          // For the context capture, pass by value, or create a new pointer so
-          // that the value is not lost
-          [this,
-           request,
-           session_map_ptr =
-               std::make_shared<SessionMap>(std::move(session_map)),
-           session_update]
-               (Status status, UpdateSessionResponse response) mutable {
-            if (!status.ok()) {
-              MLOG(MERROR) << "Update of size " << request.updates_size()
-                           << " to OCS and PCRF failed entirely: "
-                           << status.error_message();
-            } else {
-              MLOG(MDEBUG) << "Received updated responses from OCS and PCRF";
-              update_session_credits_and_rules(
-                  *session_map_ptr, response, session_update);
-              session_store_.update_sessions(session_update);
-            }
-          });
 }
 
 bool LocalEnforcer::session_with_imsi_exists(

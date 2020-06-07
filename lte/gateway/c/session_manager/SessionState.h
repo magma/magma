@@ -97,8 +97,7 @@ class SessionState {
   void get_updates(
       UpdateSessionRequest& update_request_out,
       std::vector<std::unique_ptr<ServiceAction>>* actions_out,
-      SessionStateUpdateCriteria& update_criteria,
-      const bool force_update = false);
+      SessionStateUpdateCriteria& update_criteria);
 
   /**
    * start_termination starts the termination process for the session.
@@ -379,13 +378,11 @@ class SessionState {
    *
    * @param update_request_out Modified with added CreditUsageUpdate
    * @param actions_out Modified with additional actions to take on session
-   * @param force_update force updates if revalidation timer expires
    */
   void get_updates_from_charging_pool(
       UpdateSessionRequest& update_request_out,
       std::vector<std::unique_ptr<ServiceAction>>* actions_out,
-      SessionStateUpdateCriteria& update_criteria,
-      const bool force_update = false);
+      SessionStateUpdateCriteria& update_criteria);
 
   /**
    * For this session, add the UsageMonitoringUpdateRequest to the
@@ -393,13 +390,11 @@ class SessionState {
    *
    * @param update_request_out Modified with added UsdageMonitoringUpdateRequest
    * @param actions_out Modified with additional actions to take on session.
-   * @param force_update force updates if revalidation timer expires
    */
   void get_updates_from_monitor_pool(
       UpdateSessionRequest& update_request_out,
       std::vector<std::unique_ptr<ServiceAction>>* actions_out,
-      SessionStateUpdateCriteria& update_criteria,
-      const bool force_update = false);
+      SessionStateUpdateCriteria& update_criteria);
 
   void add_common_fields_to_usage_monitor_update(UsageMonitoringUpdateRequest* req);
 
