@@ -246,6 +246,7 @@ message GxCreditControlRequest {
     // value. We will accept a request as matching if
     // (expected report - delta) < actual report < (expected report + delta)
     uint64 usage_report_delta = 12;
+    google.protobuf.Int32Value event_trigger = 13;
 }
 
 message GxCreditControlAnswer {

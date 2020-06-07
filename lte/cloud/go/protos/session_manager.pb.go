@@ -2009,6 +2009,8 @@ func (m *UsageMonitoringCredit) GetGrantedUnits() *GrantedUnits {
 }
 
 // A request to update a usage monitor given its usage and session information
+// TODO this message name is misleading since we don't only use it for
+// usage reporting
 type UsageMonitoringUpdateRequest struct {
 	Update               *UsageMonitorUpdate `protobuf:"bytes,1,opt,name=update,proto3" json:"update,omitempty"`
 	SessionId            string              `protobuf:"bytes,2,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`

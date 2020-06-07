@@ -35,6 +35,7 @@ type ccrMessage struct {
 	IPAddr           datatype.OctetString      `avp:"Framed-IP-Address"`
 	UsageMonitors    []*usageMonitorRequestAVP `avp:"Usage-Monitoring-Information"`
 	CalledStationId  string                    `avp:"Called-Station-Id"`
+	EventTrigger     datatype.Enumerated       `avp:"Event-Trigger"`
 }
 
 type subscriptionIDDiam struct {
