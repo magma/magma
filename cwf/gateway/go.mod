@@ -32,6 +32,7 @@ replace (
 require (
 	fbc/cwf/radius v0.0.0
 	fbc/lib/go/radius v0.0.0-00010101000000-000000000000
+	github.com/Microsoft/go-winio v0.4.14 // indirect
 	github.com/coreos/go-iptables v0.4.5
 	github.com/docker/distribution v2.7.1+incompatible // indirect
 	github.com/docker/docker v1.13.1
@@ -51,7 +52,6 @@ require (
 	google.golang.org/appengine v1.6.5 // indirect
 	google.golang.org/grpc v1.27.1
 	magma/cwf/cloud/go v0.0.0-00010101000000-000000000000
-	magma/feg/cloud/go v0.0.0
 	magma/feg/cloud/go/protos v0.0.0
 	magma/feg/gateway v0.0.0-00010101000000-000000000000
 	magma/gateway v0.0.0
