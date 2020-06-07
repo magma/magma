@@ -8,10 +8,13 @@
  * @format
  */
 
+import type {CommentsActivitiesLog_activities} from './__generated__/CommentsActivitiesLog_activities.graphql.js';
 import type {CommentsActivitiesLog_comments} from './__generated__/CommentsActivitiesLog_comments.graphql.js';
 
+import ActivityPost from './ActivityPost';
+import AppContext from '@fbcnms/ui/context/AppContext';
 import CommentsLogEmptyState from './CommentsLogEmptyState';
-import React, {useRef} from 'react';
+import React, {useContext, useRef} from 'react';
 import TextCommentPost from './TextCommentPost';
 import classNames from 'classnames';
 import useVerticalScrollingEffect from '@fbcnms/ui/components/design-system/hooks/useVerticalScrollingEffect';
@@ -22,6 +25,7 @@ import {withSnackbar} from 'notistack';
 
 type Props = $ReadOnly<{|
   comments: CommentsActivitiesLog_comments,
+  activities: CommentsActivitiesLog_activities,
   className?: string,
   postClassName?: string,
 |}>;
@@ -44,29 +48,64 @@ const useStyles = makeStyles(() => ({
 const CommentsActivitiesLog = (props: Props) => {
   const classes = useStyles();
   const thisElement = useRef(null);
-  const {comments, className, postClassName} = props;
+  const {isFeatureEnabled} = useContext(AppContext);
 
-  const hasComments = Array.isArray(comments) && comments.length > 0;
+  const {comments, activities, className, postClassName} = props;
+  let objectsList;
+  const activityEnabled = isFeatureEnabled('work_order_activities');
+  if (!activityEnabled) {
+    const hasComments = Array.isArray(comments) && comments.length > 0;
+    objectsList = hasComments ? (
+      comments.map(comment => (
+        <div
+          key={comment.id}
+          className={classNames(postClassName, classes.singleComment)}>
+          <TextCommentPost comment={comment} />
+        </div>
+      ))
+    ) : (
+      <CommentsLogEmptyState />
+    );
+  } else {
+    const commentObjects = comments.map(comment => {
+      return {
+        createTime: comment.createTime,
+        component: (
+          <div
+            key={comment.id}
+            className={classNames(postClassName, classes.singleComment)}>
+            <TextCommentPost comment={comment} />
+          </div>
+        ),
+      };
+    });
 
-  const commentObjects = hasComments ? (
-    comments.map(comment => (
-      <div
-        key={comment.id}
-        className={classNames(postClassName, classes.singleComment)}>
-        <TextCommentPost comment={comment} />
-      </div>
-    ))
-  ) : (
-    <CommentsLogEmptyState />
-  );
+    const activityObjects = activities
+      ? activities.map(activity => {
+          return {
+            createTime: activity.createTime,
+            component: (
+              <div key={activity.id}>
+                <ActivityPost activity={activity} />
+              </div>
+            ),
+          };
+        })
+      : [];
 
+    objectsList = objectsList = [...commentObjects, ...activityObjects]
+      .sort((a, b) => {
+        return a.createTime.localeCompare(b.createTime);
+      })
+      .map(x => x.component);
+  }
   useVerticalScrollingEffect(thisElement);
 
   return (
     <div
       ref={thisElement}
       className={classNames(className, classes.commentsLog)}>
-      {commentObjects}
+      {objectsList}
     </div>
   );
 };
@@ -78,6 +117,7 @@ export default withAlert(
         fragment CommentsActivitiesLog_comments on Comment
           @relay(plural: true) {
           id
+          createTime
           ...TextCommentPost_comment
         }
       `,
@@ -85,28 +125,8 @@ export default withAlert(
         fragment CommentsActivitiesLog_activities on Activity
           @relay(plural: true) {
           id
-          author {
-            email
-          }
-          isCreate
-          changedField
-          newRelatedNode {
-            __typename
-            ... on User {
-              id
-              email
-            }
-          }
-          oldRelatedNode {
-            __typename
-            ... on User {
-              id
-              email
-            }
-          }
-          oldValue
-          newValue
           createTime
+          ...ActivityPost_activity
         }
       `,
     }),

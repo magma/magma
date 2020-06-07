@@ -20,6 +20,7 @@ declare export opaque type CommentsActivitiesLog_comments$ref: FragmentReference
 declare export opaque type CommentsActivitiesLog_comments$fragmentType: CommentsActivitiesLog_comments$ref;
 export type CommentsActivitiesLog_comments = $ReadOnlyArray<{|
   +id: string,
+  +createTime: any,
   +$fragmentRefs: TextCommentPost_comment$ref,
   +$refType: CommentsActivitiesLog_comments$ref,
 |}>;
@@ -49,6 +50,13 @@ const node/*: ReaderFragment*/ = {
       "storageKey": null
     },
     {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "createTime",
+      "args": null,
+      "storageKey": null
+    },
+    {
       "kind": "FragmentSpread",
       "name": "TextCommentPost_comment",
       "args": null
@@ -56,5 +64,5 @@ const node/*: ReaderFragment*/ = {
   ]
 };
 // prettier-ignore
-(node/*: any*/).hash = 'e4b437292785a1a9a105a715bbccfce4';
+(node/*: any*/).hash = 'df495dc20009f04644722a4f796c7db9';
 module.exports = node;
