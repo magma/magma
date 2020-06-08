@@ -38,6 +38,9 @@ type AlertmanagerClient interface {
 	// GetRoute returns the routing tree for the given tenantID
 	GetRoute(tenantID string) (*config.Route, error)
 
+	// GetTenants returns a list of tenants configured in the system
+	GetTenants() ([]string, error)
+
 	GetGlobalConfig() (*config.GlobalConfig, error)
 	SetGlobalConfig(globalConfig config.GlobalConfig) error
 
@@ -227,6 +230,23 @@ func (c *client) GetRoute(tenantID string) (*config.Route, error) {
 		return route, nil
 	}
 	return nil, fmt.Errorf("Route for tenant %s does not exist", tenantID)
+}
+
+func (c *client) GetTenants() ([]string, error) {
+	c.RLock()
+	defer c.RUnlock()
+	conf, err := c.readConfigFile()
+	if err != nil {
+		return []string{}, err
+	}
+
+	tenants := make([]string, 0)
+	for _, rec := range conf.Receivers {
+		if strings.Contains(rec.Name, config.TenantBaseRoutePostfix) {
+			tenants = append(tenants, rec.Name[0:strings.Index(rec.Name, config.TenantBaseRoutePostfix)-1])
+		}
+	}
+	return tenants, nil
 }
 
 func (c *client) ReloadAlertmanager() error {
