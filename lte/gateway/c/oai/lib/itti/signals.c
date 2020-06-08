@@ -82,7 +82,7 @@ void __gcov_flush(void);
 // Pid:    3515
 // PPid:   3452
 // ..
-// Threads:	1
+// Threads: 1
 //
 static const char THREADS_STR[] = "Threads:";
 static const char PROC_PATH[] = "/proc/%d/status";
