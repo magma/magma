@@ -92,11 +92,12 @@ def update_subscriber(client, args):
         pre_vul = "preemption_vulnerability"
         ul = "mbr_uplink"
         dl = "mbr_downlink"
-        apn_keys = (apn_name, qci, priority, pre_cap, pre_vul, ul, dl)
+        pdn_type = "pdn_type"
+        apn_keys = (apn_name, qci, priority, pre_cap, pre_vul, ul, dl, pdn_type)
         apn_data = args.apn_config
         for apn_d in apn_data:
             apn_val = apn_d.split(",")
-            if len(apn_val) != 7:
+            if len(apn_val) != 8:
                 print(
                     "Incorrect APN parameters."
                     "Please check: subscriber_cli.py update -h"
@@ -115,6 +116,7 @@ def update_subscriber(client, args):
             )
             apn_config.ambr.max_bandwidth_ul = int(apn_dict[ul])
             apn_config.ambr.max_bandwidth_dl = int(apn_dict[dl])
+            apn_config.pdn = int(apn_dict[pdn_type])
         fields.append('non_3gpp')
 
     client.UpdateSubscriber(update)
@@ -195,9 +197,9 @@ def create_parser():
             action="append",
             help="APN parameters to add/update in the order :"
             " [apn-name, qci, priority, preemption-capability,"
-            " preemption-vulnerability, mbr-ul, mbr-dl]"
-            " [e.g --apn-config ims,5,15,1,1,1000,2000 "
-            " --apn-config internet,9,1,0,0,3000,4000]",
+            " preemption-vulnerability, mbr-ul, mbr-dl, pdn-type/*0-IPv4, 1-IPv6, 2-IPv4v6*/]"
+            " [e.g --apn-config ims,5,15,1,1,1000,2000,1"
+            " --apn-config internet,9,1,0,0,3000,4000,0]",
         )
 
 # Add function callbacks

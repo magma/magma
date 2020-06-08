@@ -95,20 +95,42 @@ static void pcef_fill_create_session_req(
 void pcef_create_session(
   spgw_state_t* state,
   const char* imsi,
-  const char* ip,
+  const char* ip4,
+  const char* ip6,
   const pcef_create_session_data* session_data,
   itti_sgi_create_end_point_response_t sgi_response,
   s5_create_session_request_t session_request,
   s_plus_p_gw_eps_bearer_context_information_t* ctx_p)
 {
   auto imsi_str = std::string(imsi);
-  auto ip_str = std::string(ip);
+  std::string ip4_str = "";
+  std::string ip6_str = "";
+
+  if (ip4) {
+    ip4_str = ip4;
+  }
+  if (ip6) {
+    ip6_str = ip6;
+  }
   // Change ip to spgw_ip. Get it from sgw_app_t sgw_app;
   magma::LocalCreateSessionRequest sreq;
 
   sreq.mutable_sid()->set_id("IMSI" + imsi_str);
   sreq.set_rat_type(magma::RATType::TGPP_LTE);
-  sreq.set_ue_ipv4(ip_str);
+  // IPv4=1; IPv6=2;IPv4v6=3
+  if ((session_data->pdn_type == 1) && (!ip4_str.empty())) {
+    sreq.set_ue_ipv4(ip4_str);
+  } else if ((session_data->pdn_type == 2) && (!ip6_str.empty())) {
+    sreq.set_ue_ipv6(ip6_str);
+  } else if ((session_data->pdn_type == 3) && (!ip4_str.empty()) && (!ip6_str.empty())) {
+    sreq.set_ue_ipv4(ip4_str);
+    sreq.set_ue_ipv6(ip6_str);
+  } else {
+    OAILOG_ERROR(
+      LOG_SPGW_APP,
+      "Invalid PDN Type \n");
+  }
+
   sreq.set_bearer_id(session_request.eps_bearer_id);
   pcef_fill_create_session_req(session_data, &sreq);
 
@@ -296,6 +318,7 @@ void get_session_req_data(
   get_imsi_plmn_from_session_req(saved_req, data);
 
   memcpy(data->apn, saved_req->apn, APN_MAX_LENGTH + 1);
+  data->pdn_type = saved_req->pdn_type;
 
   inet_ntop(
     AF_INET,

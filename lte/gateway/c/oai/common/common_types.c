@@ -165,8 +165,10 @@ bstring paa_to_bstring(const paa_t *paa)
     case IPv4_AND_v6:
       DevAssert(
         paa->ipv6_prefix_length == 64); // NAS seems to only support 64 bits
-      bstr = blk2bstr(&paa->ipv4_address.s_addr, 4);
-      bcatblk(bstr, &paa->ipv6_address, paa->ipv6_prefix_length / 8);
+//      bstr = blk2bstr(&paa->ipv4_address.s_addr, 4);
+//      bcatblk(bstr, &paa->ipv6_address, paa->ipv6_prefix_length / 8);
+      bstr = blk2bstr(&paa->ipv6_address.s6_addr, paa->ipv6_prefix_length / 8);
+      bcatblk(bstr, &paa->ipv4_address, 4);
       break;
     case IPv4_OR_v6:
       // do it like that now, TODO

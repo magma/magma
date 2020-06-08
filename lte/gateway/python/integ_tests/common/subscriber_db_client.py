@@ -158,6 +158,7 @@ class SubscriberDbGrpc(SubscriberDbClient):
             apn_config.qos_profile.preemption_vulnerability = apn["pre_vul"]
             apn_config.ambr.max_bandwidth_ul = apn["mbr_ul"]
             apn_config.ambr.max_bandwidth_dl = apn["mbr_dl"]
+            apn_config.pdn = apn["pdn_type"]
         return update
 
     def _check_invariants(self):

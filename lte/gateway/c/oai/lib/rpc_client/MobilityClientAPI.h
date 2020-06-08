@@ -185,6 +185,19 @@ int get_subscriber_id_from_ipv4(
   const struct in_addr* addr,
   char** subscriber_id);
 
+int pgw_handle_allocate_ipv4v6_address(
+  const char* subscriber_id,
+  const char* apn,
+  struct in_addr* ip4_addr,
+  itti_sgi_create_end_point_response_t sgi_create_endpoint_resp,
+  const char* pdn_type,
+  teid_t context_teid,
+  ebi_t eps_bearer_id,
+  spgw_state_t* spgw_state,
+  s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
+  s5_create_session_response_t s5_response);
+
+
 #ifdef __cplusplus
 }
 #endif

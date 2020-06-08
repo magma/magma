@@ -237,7 +237,7 @@ void handle_s5_create_session_request(
       break;
 
     case IPv4_AND_v6:
-      pgw_handle_allocate_ipv4_address(
+      pgw_handle_allocate_ipv4v6_address(
         imsi,
         apn,
         &inaddr,

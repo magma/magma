@@ -52,6 +52,7 @@ struct pcef_create_session_data {
   uint32_t pci;
   uint32_t pvi;
   uint32_t qci;
+  uint8_t pdn_type;
 };
 
 /**
@@ -62,7 +63,8 @@ struct pcef_create_session_data {
 void pcef_create_session(
   spgw_state_t* state,
   const char* imsi,
-  const char* ip,
+  const char* ip4,
+  const char* ip6,
   const struct pcef_create_session_data* session_data,
   itti_sgi_create_end_point_response_t sgi_response,
   s5_create_session_request_t bearer_request,

@@ -134,8 +134,6 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
 
             sec_apn.ambr.max_bandwidth_ul = apn.ambr.max_bandwidth_ul
             sec_apn.ambr.max_bandwidth_dl = apn.ambr.max_bandwidth_dl
-            sec_apn.pdn = (
-                s6a_proxy_pb2.UpdateLocationAnswer.APNConfiguration.IPV4
-            )
+            sec_apn.pdn = apn.pdn
 
         return ula
