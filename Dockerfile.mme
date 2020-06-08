@@ -68,7 +68,7 @@ RUN  cd grpc && \
     rm -rf third_party/protobuf && \
     ldconfig
 
-# Install grpc
+# Install GRPC
 RUN cd grpc && \
     mkdir -p cmake/build && \
     cd cmake/build && \
@@ -85,7 +85,7 @@ RUN cd grpc && \
     make -j4 && \
     make install
 
-##### Prometeus CPP
+##### Prometheus CPP
 RUN wget -qO- https://repos.influxdata.com/influxdb.key | apt-key add - 
 RUN ["/bin/bash", "-c", "source /etc/lsb-release && echo \"deb https://repos.influxdata.com/${DISTRIB_ID,,} ${DISTRIB_CODENAME} stable\" | tee /etc/apt/sources.list.d/influxdb.list"]
 RUN apt-get update && \
@@ -100,7 +100,7 @@ RUN apt-get update && \
     make -j4 && \
     make install
 
-##### REDIS-ccp
+##### Redis CPP
 RUN git clone https://github.com/cpp-redis/cpp_redis.git && \
     cd cpp_redis && \
     git checkout bbe38a7f83de943ffcc90271092d689ae02b3489 && \
