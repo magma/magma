@@ -121,7 +121,6 @@ int signal_mask(void)
 
   sigemptyset(&set);
   sigaddset(&set, SIGTIMER);
-  sigaddset(&set, SIGUSR1);
   sigaddset(&set, SIGABRT);
   sigaddset(&set, SIGSEGV);
   sigaddset(&set, SIGINT);
@@ -142,7 +141,6 @@ int signal_handle(int *end)
 
   sigemptyset(&set);
   sigaddset(&set, SIGTIMER);
-  sigaddset(&set, SIGUSR1);
   sigaddset(&set, SIGABRT);
   sigaddset(&set, SIGSEGV);
   sigaddset(&set, SIGINT);
@@ -175,14 +173,6 @@ int signal_handle(int *end)
      * Dispatch the signal to sub-handlers
      */
     switch (info.si_signo) {
-      case SIGUSR1:
-#if LINK_GCOV
-        __gcov_flush();
-#endif
-        SIG_DEBUG("Received SIGUSR1\n");
-        *end = 1;
-        break;
-
       case SIGSEGV: /* Fall through */
       case SIGABRT:
         SIG_DEBUG("Received SIGABORT\n");
