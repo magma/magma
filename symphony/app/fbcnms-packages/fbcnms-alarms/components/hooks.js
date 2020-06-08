@@ -126,7 +126,7 @@ export function useAlertRuleReceiver({
   const saveReceiver = React.useCallback(async () => {
     let updatedRoutes: AlertRoutingTree = response || {
       routes: [],
-      receiver: `${match.params.networkId || '0'}_tenant_base_route`,
+      receiver: `${match.params.networkId || 'tg'}_tenant_base_route`,
     };
     if (
       (receiver == null || receiver.trim() === '') &&
