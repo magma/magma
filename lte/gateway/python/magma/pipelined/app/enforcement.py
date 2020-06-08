@@ -51,10 +51,12 @@ class EnforcementController(PolicyMixin, MagmaController):
     APP_NAME = "enforcement"
     APP_TYPE = ControllerType.LOGICAL
     ENFORCE_DROP_PRIORITY = flows.MINIMUM_PRIORITY + 1
+    # For allowing unlcassified flows for app/service type rules.
+    UNCLASSIFIED_ALLOW_PRIORITY = ENFORCE_DROP_PRIORITY + 1
     # Should not overlap with the drop flow as drop matches all packets.
-    MIN_ENFORCE_PROGRAMMED_FLOW = ENFORCE_DROP_PRIORITY + 1
+    MIN_ENFORCE_PROGRAMMED_FLOW = UNCLASSIFIED_ALLOW_PRIORITY + 1
     MAX_ENFORCE_PRIORITY = flows.MAXIMUM_PRIORITY
-    # Effectively range is 2 -> 65535
+    # Effectively range is 3 -> 65535
     ENFORCE_PRIORITY_RANGE = MAX_ENFORCE_PRIORITY - MIN_ENFORCE_PROGRAMMED_FLOW
 
     def __init__(self, *args, **kwargs):
@@ -303,7 +305,7 @@ class EnforcementController(PolicyMixin, MagmaController):
                     flow_match,
                     passthrough_actions,
                     hard_timeout=hard_timeout,
-                    priority=priority,
+                    priority=self.UNCLASSIFIED_ALLOW_PRIORITY,
                     cookie=rule_num,
                     resubmit_table=self._enforcement_stats_scratch
                 )
