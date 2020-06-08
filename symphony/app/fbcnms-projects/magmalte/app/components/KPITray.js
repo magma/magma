@@ -11,10 +11,10 @@ import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import CardHeader from '@material-ui/core/CardHeader';
 import Grid from '@material-ui/core/Grid';
-import React from 'react';
-import Text from '@fbcnms/ui/components/design-system/Text';
 import {makeStyles} from '@material-ui/styles';
-import {gray7} from '@fbcnms/ui/theme/colors';
+import React from 'react';
+import Text from '../theme/design-system/Text';
+import {colors} from '../theme/colors';
 import type {ComponentType} from 'react';
 
 const useStyles = makeStyles(theme => ({
@@ -28,22 +28,22 @@ const useStyles = makeStyles(theme => ({
     alignItems: 'center',
   },
   kpiHeaderIcon: {
-    fill: '#545F77',
+    fill: colors.primary.comet,
     marginRight: theme.spacing(1),
   },
   kpiBlock: {
     '& + &': {
-      boxShadow: `-2px 0 0 ${gray7}`,
+      boxShadow: `-2px 0 0 ${colors.primary.concrete}`,
     },
   },
   kpiLabel: {
-    color: '#545F77',
+    color: colors.primary.comet,
     whiteSpace: 'nowrap',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
   },
   kpiValue: {
-    color: '#323845',
+    color: colors.primary.brightGray,
   },
   test: {
     width: '100%',
@@ -74,7 +74,7 @@ export default function KPITray(props: Props) {
         key="kpiTitle">
         <CardContent className={classes.kpiHeaderContent}>
           <KpiIcon className={classes.kpiHeaderIcon} />
-          <Text variant="h6" className={classes.kpiTitle}>
+          <Text variant="body1" className={classes.kpiTitle}>
             {props.description}
           </Text>
         </CardContent>
@@ -96,12 +96,12 @@ export default function KPITray(props: Props) {
           className={classes.test}
           subheader={kpi.value + (kpi.unit ?? '')}
           titleTypographyProps={{
-            variant: 'body2',
+            variant: 'body3',
             className: classes.kpiLabel,
             title: kpi.category,
           }}
           subheaderTypographyProps={{
-            variant: 'h5',
+            variant: 'body1',
             className: classes.kpiValue,
           }}
           data-testid={kpi.category}
