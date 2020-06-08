@@ -98,7 +98,7 @@ export function GatewayDetail({
           <Grid item xs={6}>
             <Tabs
               value={tabPos}
-              onChange={(event, v) => setTabPos(v)}
+              onChange={(_, v) => setTabPos(v)}
               indicatorColor="primary"
               TabIndicatorProps={{style: {height: '5px'}}}
               textColor="inherit"
