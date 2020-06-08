@@ -2085,10 +2085,11 @@ func TestListAndGetEnodebs(t *testing.T) {
 
 	_, err = configurator.CreateEntities("n1", []configurator.NetworkEntity{
 		{
-			Type:       lte.CellularEnodebType,
-			Key:        "abcdefg",
-			Name:       "abc enodeb",
-			PhysicalID: "abcdefg",
+			Type:        lte.CellularEnodebType,
+			Key:         "abcdefg",
+			Name:        "abc enodeb",
+			Description: "abc enodeb description",
+			PhysicalID:  "abcdefg",
 			Config: &lteModels.EnodebConfiguration{
 				BandwidthMhz:           20,
 				CellID:                 swag.Uint32(1234),
@@ -2102,10 +2103,11 @@ func TestListAndGetEnodebs(t *testing.T) {
 			},
 		},
 		{
-			Type:       lte.CellularEnodebType,
-			Key:        "vwxyz",
-			Name:       "xyz enodeb",
-			PhysicalID: "vwxyz",
+			Type:        lte.CellularEnodebType,
+			Key:         "vwxyz",
+			Name:        "xyz enodeb",
+			Description: "xyz enodeb description",
+			PhysicalID:  "vwxyz",
 			Config: &lteModels.EnodebConfiguration{
 				BandwidthMhz:           15,
 				CellID:                 swag.Uint32(4321),
@@ -2139,8 +2141,9 @@ func TestListAndGetEnodebs(t *testing.T) {
 				Tac:                    1,
 				TransmitEnabled:        swag.Bool(true),
 			},
-			Name:   "abc enodeb",
-			Serial: "abcdefg",
+			Name:        "abc enodeb",
+			Description: "abc enodeb description",
+			Serial:      "abcdefg",
 		},
 		"vwxyz": {
 			Config: &lteModels.EnodebConfiguration{
@@ -2154,8 +2157,9 @@ func TestListAndGetEnodebs(t *testing.T) {
 				Tac:                    2,
 				TransmitEnabled:        swag.Bool(false),
 			},
-			Name:   "xyz enodeb",
-			Serial: "vwxyz",
+			Name:        "xyz enodeb",
+			Description: "xyz enodeb description",
+			Serial:      "vwxyz",
 		},
 	}
 	tc := tests.Test{
@@ -2234,8 +2238,9 @@ func TestCreateEnodeb(t *testing.T) {
 				Tac:                    2,
 				TransmitEnabled:        swag.Bool(false),
 			},
-			Name:   "foobar",
-			Serial: "abcdef",
+			Name:        "foobar",
+			Description: "foobar description",
+			Serial:      "abcdef",
 		},
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
@@ -2248,9 +2253,10 @@ func TestCreateEnodeb(t *testing.T) {
 	expected := configurator.NetworkEntity{
 		NetworkID: "n1",
 		Type:      lte.CellularEnodebType, Key: "abcdef",
-		Name:       "foobar",
-		PhysicalID: "abcdef",
-		GraphID:    "2",
+		Name:        "foobar",
+		Description: "foobar description",
+		PhysicalID:  "abcdef",
+		GraphID:     "2",
 		Config: &lteModels.EnodebConfiguration{
 			BandwidthMhz:           15,
 			CellID:                 swag.Uint32(4321),
@@ -2310,10 +2316,11 @@ func TestUpdateEnodeb(t *testing.T) {
 
 	_, err = configurator.CreateEntities("n1", []configurator.NetworkEntity{
 		{
-			Type:       lte.CellularEnodebType,
-			Key:        "abcdefg",
-			Name:       "abc enodeb",
-			PhysicalID: "abcdefg",
+			Type:        lte.CellularEnodebType,
+			Key:         "abcdefg",
+			Name:        "abc enodeb",
+			Description: "abc enodeb description",
+			PhysicalID:  "abcdefg",
 			Config: &lteModels.EnodebConfiguration{
 				BandwidthMhz:           20,
 				CellID:                 swag.Uint32(1234),
@@ -2345,8 +2352,9 @@ func TestUpdateEnodeb(t *testing.T) {
 				Tac:                    2,
 				TransmitEnabled:        swag.Bool(false),
 			},
-			Name:   "foobar",
-			Serial: "abcdefg",
+			Name:        "foobar",
+			Description: "new description",
+			Serial:      "abcdefg",
 		},
 		ParamNames:     []string{"network_id", "enodeb_serial"},
 		ParamValues:    []string{"n1", "abcdefg"},
@@ -2359,9 +2367,10 @@ func TestUpdateEnodeb(t *testing.T) {
 	expected := configurator.NetworkEntity{
 		NetworkID: "n1",
 		Type:      lte.CellularEnodebType, Key: "abcdefg",
-		Name:       "foobar",
-		PhysicalID: "abcdefg",
-		GraphID:    "2",
+		Name:        "foobar",
+		Description: "new description",
+		PhysicalID:  "abcdefg",
+		GraphID:     "2",
 		Config: &lteModels.EnodebConfiguration{
 			BandwidthMhz:           15,
 			CellID:                 swag.Uint32(4321),

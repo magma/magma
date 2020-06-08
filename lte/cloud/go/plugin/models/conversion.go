@@ -428,6 +428,7 @@ func (m *EnodebSerials) ToCreateUpdateCriteria(networkID, gatewayID, enodebID st
 
 func (m *Enodeb) FromBackendModels(ent configurator.NetworkEntity) *Enodeb {
 	m.Name = ent.Name
+	m.Description = ent.Description
 	m.Serial = ent.Key
 	if ent.Config != nil {
 		m.Config = ent.Config.(*EnodebConfiguration)
@@ -442,10 +443,11 @@ func (m *Enodeb) FromBackendModels(ent configurator.NetworkEntity) *Enodeb {
 
 func (m *Enodeb) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
 	return configurator.EntityUpdateCriteria{
-		Type:      lte.CellularEnodebType,
-		Key:       m.Serial,
-		NewName:   swag.String(m.Name),
-		NewConfig: m.Config,
+		Type:           lte.CellularEnodebType,
+		Key:            m.Serial,
+		NewName:        swag.String(m.Name),
+		NewDescription: swag.String(m.Description),
+		NewConfig:      m.Config,
 	}
 }
 
