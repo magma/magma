@@ -10,3 +10,4 @@
 log_level: INFO
 persist_to_redis: false
 redis_port: 6380
+allocator_type: ip_pool
