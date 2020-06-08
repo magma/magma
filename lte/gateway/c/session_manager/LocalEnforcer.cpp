@@ -1646,7 +1646,7 @@ void LocalEnforcer::schedule_revalidation(
     evb_->timer().scheduleTimeoutFn(
         std::move([=] {
           MLOG(MINFO) << "Revalidation timeout! for " << session_id;
-          auto session_map = session_store_.read_sessions_for_reporting(req);
+          auto session_map = session_store_.read_sessions(req);
           SessionUpdate update =
               SessionStore::get_default_session_update(session_map);
           for (const auto& session_pair : session_map) {
