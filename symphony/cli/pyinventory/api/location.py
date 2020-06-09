@@ -498,16 +498,6 @@ def move_location(
     )
 
 
-@deprecated(deprecated_in="2.4.0", deprecated_by="get_location_by_external_id")
-def get_locations_by_external_id(
-    client: SymphonyClient, external_id: str
-) -> List[Location]:
-
-    locations = []
-    locations.append(get_location_by_external_id(client, external_id))
-    return locations
-
-
 def get_location_by_external_id(client: SymphonyClient, external_id: str) -> Location:
     """This function returns location by external ID.
 
