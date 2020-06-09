@@ -337,12 +337,12 @@ SessionCredit::Usage SessionCredit::get_all_unreported_usage_for_reporting(
 
 SessionCredit::Usage SessionCredit::get_usage_for_reporting(
     SessionCreditUpdateCriteria &update_criteria) {
-  if (is_final_grant_) {
-    return get_all_unreported_usage_for_reporting(update_criteria);
-  }
-
   if (reauth_state_ == REAUTH_REQUIRED) {
     set_reauth(REAUTH_PROCESSING, update_criteria);
+  }
+
+  if (is_final_grant_) {
+    return get_all_unreported_usage_for_reporting(update_criteria);
   }
 
   auto usage = get_unreported_usage();
