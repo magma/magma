@@ -10,26 +10,23 @@
 
 import * as React from 'react';
 import classNames from 'classnames';
-import symphony from '../default';
+import {typography} from '../default';
 import {makeStyles} from '@material-ui/styles';
 
 const styles = {
-  h1: symphony.typography.h1,
-  h2: symphony.typography.h2,
-  h3: symphony.typography.h3,
-  h4: symphony.typography.h4,
-  h5: symphony.typography.h5,
-  h6: symphony.typography.h6,
-  subtitle1: symphony.typography.subtitle1,
-  subtitle2: symphony.typography.subtitle2,
-  subtitle3: symphony.typography.subtitle3,
-  body1: symphony.typography.body1,
-  body2: symphony.typography.body2,
-  caption: symphony.typography.caption,
-  overline: symphony.typography.overline,
-  inheritColor: {
-    color: 'inherit',
-  },
+  h1: typography.h1,
+  h2: typography.h2,
+  h3: typography.h3,
+  h4: typography.h4,
+  h5: typography.h5,
+  h6: typography.h6,
+  subtitle1: typography.subtitle1,
+  subtitle2: typography.subtitle2,
+  subtitle3: typography.subtitle3,
+  body1: typography.body1,
+  body2: typography.body2,
+  caption: typography.caption,
+  overline: typography.overline,
   lightWeight: {
     fontWeight: 300,
   },
@@ -70,14 +67,6 @@ type Props = {
   className?: string,
   useEllipsis?: ?boolean,
   weight?: 'inherit' | 'light' | 'regular' | 'medium' | 'bold',
-  color?:
-    | 'light'
-    | 'regular'
-    | 'primary'
-    | 'error'
-    | 'gray'
-    | 'warning'
-    | 'inherit',
 };
 
 const Text = (props: Props) => {
@@ -85,7 +74,6 @@ const Text = (props: Props) => {
     children,
     variant = 'body1',
     className,
-    color = 'regular',
     weight = 'inherit',
     useEllipsis = false,
     ...rest
@@ -96,7 +84,6 @@ const Text = (props: Props) => {
       {...rest}
       className={classNames(
         classes[variant],
-        classes[`${color ?? 'regular'}Color`],
         classes[`${weight ? weight : 'regular'}Weight`],
         {[classes.truncate]: useEllipsis},
         className,
