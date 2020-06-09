@@ -12,7 +12,7 @@ import React from 'react';
 import EnodebKPIs from './EnodebKPIs';
 import GatewayKPIs from './GatewayKPIs';
 import Text from '../theme/design-system/Text';
-import {colors} from '../theme/colors';
+import {colors} from '../theme/default';
 import Grid from '@material-ui/core/Grid';
 import Card from '@material-ui/core/Card';
 import Paper from '@material-ui/core/Paper';
@@ -55,7 +55,7 @@ export default function() {
         </Grid>
       </Grid>
       <Card elevation={0} className={classes.eventsTable}>
-        <h1>Events Table Goes Here</h1>
+        <Text variant="h4">Events Table Goes Here</Text>
       </Card>
     </>
   );

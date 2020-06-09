@@ -14,7 +14,7 @@ import Card from '@material-ui/core/Card';
 import React from 'react';
 import TabbedTable from './TabbedTable';
 import Text from '../theme/design-system/Text';
-import {colors} from '../theme/colors';
+import {colors} from '../theme/default';
 import nullthrows from '@fbcnms/util/nullthrows';
 import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 import Grid from '@material-ui/core/Grid';

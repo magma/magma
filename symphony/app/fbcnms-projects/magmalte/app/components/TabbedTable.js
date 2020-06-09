@@ -21,7 +21,7 @@ import Tabs from '@material-ui/core/Tabs';
 import Link from '@material-ui/core/Link';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import Text from '../theme/design-system/Text';
-import {colors} from '../theme/colors';
+import {colors, typography} from '../theme/default';
 import {makeStyles, withStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(theme => ({
@@ -58,6 +58,18 @@ const MagmaTabs = withStyles({
     backgroundColor: colors.secondary.dodgerBlue,
   },
 })(Tabs);
+
+const MagmaTab = withStyles({
+  root: {
+    fontFamily: typography.body1.fontFamily,
+    fontWeight: typography.body1.fontWeight,
+    fontSize: typography.body1.fontSize,
+    lineHeight: typography.body1.lineHeight,
+    letterSpacing: typography.body1.letterSpacing,
+    color: colors.primary.brightGray,
+    textTransform: 'none',
+  },
+})(Tab);
 
 export type RowData = {
   name: string,
@@ -155,7 +167,13 @@ export default function TabbedTable(props: Props) {
         onChange={(_, newIndex: number) => setCurrTabIndex(newIndex)}
         variant="fullWidth">
         {Object.keys(props.data).map((k: string, idx: number) => {
-          return <Tab key={idx} label={k} className={classes.tab} />;
+          return (
+            <MagmaTab
+              key={idx}
+              label={`${props.data[k].length} ${k}`}
+              className={classes.tab}
+            />
+          );
         })}
       </MagmaTabs>
       {tabPanel}
