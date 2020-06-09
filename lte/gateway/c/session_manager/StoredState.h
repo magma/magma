@@ -145,13 +145,6 @@ struct StoredMonitor {
   MonitoringLevel level;
 };
 
-struct StoredChargingCreditPool {
-  std::string imsi;
-  std::unordered_map<CreditKey, StoredSessionCredit, decltype(&ccHash),
-                     decltype(&ccEqual)>
-      credit_map;
-};
-
 struct StoredUsageMonitoringCreditPool {
   std::string imsi;
   std::string session_level_key; // "" maps to nullptr
@@ -163,10 +156,13 @@ struct RuleLifetime {
   std::time_t deactivation_time; // Unix timestamp
 };
 
+typedef std::unordered_map<CreditKey, StoredSessionCredit, decltype(&ccHash),
+                     decltype(&ccEqual)> StoredChargingCreditMap;
+
 struct StoredSessionState {
   SessionFsmState fsm_state;
   SessionConfig config;
-  StoredChargingCreditPool charging_pool;
+  StoredChargingCreditMap credit_map;
   StoredUsageMonitoringCreditPool monitor_pool;
   std::string imsi;
   std::string session_id;
@@ -219,9 +215,7 @@ struct SessionStateUpdateCriteria {
   std::set<std::string> dynamic_rules_to_uninstall;
   std::vector<PolicyRule> new_scheduled_dynamic_rules;
   std::unordered_map<std::string, RuleLifetime> new_rule_lifetimes;
-  std::unordered_map<CreditKey, StoredSessionCredit, decltype(&ccHash),
-                     decltype(&ccEqual)>
-      charging_credit_to_install;
+  StoredChargingCreditMap charging_credit_to_install;
   std::unordered_map<CreditKey, SessionCreditUpdateCriteria, decltype(&ccHash),
                      decltype(&ccEqual)>
       charging_credit_map;
@@ -263,10 +257,10 @@ std::string serialize_stored_monitor(StoredMonitor &stored);
 StoredMonitor deserialize_stored_monitor(const std::string &serialized);
 
 std::string
-serialize_stored_charging_credit_pool(StoredChargingCreditPool &stored);
+serialize_stored_charging_credit_map(StoredChargingCreditMap &stored);
 
-StoredChargingCreditPool
-deserialize_stored_charging_credit_pool(std::string &serialized);
+StoredChargingCreditMap
+deserialize_stored_charging_credit_map(std::string &serialized) ;
 
 std::string
 serialize_stored_usage_monitoring_pool(StoredUsageMonitoringCreditPool &stored);

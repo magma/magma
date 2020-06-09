@@ -35,7 +35,6 @@ StoredSessionState SessionState::marshal() {
 
   marshaled.fsm_state              = curr_state_;
   marshaled.config                 = config_;
-  marshaled.charging_pool          = charging_pool_.marshal();
   marshaled.monitor_pool           = monitor_pool_.marshal();
   marshaled.imsi                   = imsi_;
   marshaled.session_id             = session_id_;
@@ -45,6 +44,14 @@ StoredSessionState SessionState::marshal() {
   marshaled.request_number         = request_number_;
   marshaled.pending_event_triggers = pending_event_triggers_;
   marshaled.revalidation_time      = revalidation_time_;
+
+  marshaled.credit_map = StoredChargingCreditMap(4, &ccHash, &ccEqual);
+  for (auto &credit_pair : credit_map_) {
+    auto key = CreditKey();
+    key.rating_group = credit_pair.first.rating_group;
+    key.service_identifier = credit_pair.first.service_identifier;
+    marshaled.credit_map[key] = credit_pair.second->marshal();
+  }
 
   for (auto& rule_id : active_static_rules_) {
     marshaled.static_rule_ids.push_back(rule_id);
@@ -76,13 +83,16 @@ SessionState::SessionState(
       core_session_id_(marshaled.core_session_id),
       subscriber_quota_state_(marshaled.subscriber_quota_state),
       tgpp_context_(marshaled.tgpp_context),
-      charging_pool_(
-          std::move(*ChargingCreditPool::unmarshal(marshaled.charging_pool))),
+      credit_map_(4, &ccHash, &ccEqual),
       monitor_pool_(std::move(
           *UsageMonitoringCreditPool::unmarshal(marshaled.monitor_pool))),
       static_rules_(rule_store),
       pending_event_triggers_(marshaled.pending_event_triggers),
       revalidation_time_(marshaled.revalidation_time) {
+
+  for (const auto &it : marshaled.credit_map) {
+    credit_map_[it.first] = SessionCredit::unmarshal(it.second, CHARGING);
+  }
 
   for (const std::string& rule_id : marshaled.static_rule_ids) {
     active_static_rules_.push_back(rule_id);
@@ -116,7 +126,7 @@ SessionState::SessionState(
       // Request number set to 1, because request 0 is INIT call
       request_number_(1),
       curr_state_(SESSION_ACTIVE),
-      charging_pool_(imsi),
+      credit_map_(4, &ccHash, &ccEqual),
       monitor_pool_(imsi),
       tgpp_context_(tgpp_context),
       static_rules_(rule_store) {}
@@ -133,7 +143,15 @@ void SessionState::finish_report(SessionStateUpdateCriteria& update_criteria) {
   }
 }
 
-void SessionState::add_used_credit(
+SessionCreditUpdateCriteria* SessionState::get_credit_uc(
+  const CreditKey &key, SessionStateUpdateCriteria &uc) {
+  if (uc.charging_credit_map.find(key) == uc.charging_credit_map.end()) {
+    uc.charging_credit_map[key] = credit_map_[key]->get_update_criteria();
+  }
+  return &(uc.charging_credit_map[key]);
+}
+
+void SessionState::add_rule_usage(
     const std::string& rule_id, uint64_t used_tx, uint64_t used_rx,
     SessionStateUpdateCriteria& update_criteria) {
   if (curr_state_ == SESSION_TERMINATING_AGGREGATING_STATS) {
@@ -146,8 +164,11 @@ void SessionState::add_used_credit(
     MLOG(MINFO) << "Updating used charging credit for Rule=" << rule_id
                 << " Rating Group=" << charging_key.rating_group
                 << " Service Identifier=" << charging_key.service_identifier;
-    charging_pool_.add_used_credit(
-        charging_key, used_tx, used_rx, update_criteria);
+    auto it = credit_map_.find(charging_key);
+    if (it != credit_map_.end()) {
+       auto credit_uc = get_credit_uc(charging_key, update_criteria);
+       it->second->add_used_credit(used_tx, used_rx, *credit_uc);
+    }
   }
   std::string monitoring_key;
   if (get_monitoring_key_for_rule_id(rule_id, &monitoring_key)) {
@@ -187,34 +208,91 @@ bool SessionState::is_terminating() {
   return true;
 }
 
+static CreditUsage::UpdateType
+convert_update_type_to_proto(CreditUpdateType update_type) {
+  switch (update_type) {
+  case CREDIT_QUOTA_EXHAUSTED:
+    return CreditUsage::QUOTA_EXHAUSTED;
+  case CREDIT_REAUTH_REQUIRED:
+    return CreditUsage::REAUTH_REQUIRED;
+  case CREDIT_VALIDITY_TIMER_EXPIRED:
+    return CreditUsage::VALIDITY_TIMER_EXPIRED;
+  }
+  MLOG(MERROR) << "Converting invalid update type " << update_type;
+  return CreditUsage::QUOTA_EXHAUSTED;
+}
+
+static CreditUsage
+get_usage_proto_from_struct(const SessionCredit::Usage &usage_in,
+                            CreditUsage::UpdateType proto_update_type,
+                            const CreditKey &charging_key) {
+  CreditUsage usage;
+  usage.set_bytes_tx(usage_in.bytes_tx);
+  usage.set_bytes_rx(usage_in.bytes_rx);
+  usage.set_type(proto_update_type);
+  charging_key.set_credit_usage(&usage);
+  return usage;
+}
+
 void SessionState::get_updates_from_charging_pool(
     UpdateSessionRequest& update_request_out,
     std::vector<std::unique_ptr<ServiceAction>>* actions_out,
-    SessionStateUpdateCriteria& update_criteria) {
-  // charging updates
-  std::vector<CreditUsage> charging_updates;
-  charging_pool_.get_updates(
-      imsi_, config_.ue_ipv4, static_rules_, &dynamic_rules_, &charging_updates,
-      actions_out, update_criteria);
-  for (const auto& update : charging_updates) {
-    auto new_req = update_request_out.mutable_updates()->Add();
-    new_req->set_session_id(session_id_);
-    new_req->set_request_number(request_number_);
-    new_req->set_sid(imsi_);
-    new_req->set_msisdn(config_.msisdn);
-    new_req->set_ue_ipv4(config_.ue_ipv4);
-    new_req->set_spgw_ipv4(config_.spgw_ipv4);
-    new_req->set_apn(config_.apn);
-    new_req->set_imei(config_.imei);
-    new_req->set_plmn_id(config_.plmn_id);
-    new_req->set_imsi_plmn_id(config_.imsi_plmn_id);
-    new_req->set_user_location(config_.user_location);
-    new_req->set_hardware_addr(config_.hardware_addr);
-    new_req->set_rat_type(config_.rat_type);
-    fill_protos_tgpp_context(new_req->mutable_tgpp_ctx());
-    new_req->mutable_usage()->CopyFrom(update);
-    request_number_++;
-    update_criteria.request_number_increment++;
+    SessionStateUpdateCriteria& uc) {
+  for (auto &credit_pair : credit_map_) {
+    auto& key = credit_pair.first;
+    auto& credit = credit_pair.second;
+
+    // get the update criteria
+    if (uc.charging_credit_map.find(key) == uc.charging_credit_map.end()) {
+      uc.charging_credit_map[key] = credit_map_[key]->get_update_criteria();
+    }
+    auto credit_uc = uc.charging_credit_map[key];
+
+    auto action_type = credit->get_action(credit_uc);
+    if (action_type != CONTINUE_SERVICE) {
+      MLOG(MDEBUG) << "Subscriber " << imsi_ << " rating group "
+                   << key << " action type " << action_type;
+      auto action = std::make_unique<ServiceAction>(action_type);
+      if (action_type == REDIRECT) {
+        action->set_credit_key(key);
+        action->set_redirect_server(credit->get_redirect_server());
+      }
+      action->set_imsi(imsi_);
+      action->set_ip_addr(config_.ue_ipv4);
+      static_rules_.get_rule_ids_for_charging_key(key,
+                                             *action->get_mutable_rule_ids());
+      dynamic_rules_.get_rule_definitions_for_charging_key(
+      key, *action->get_mutable_rule_definitions());
+      actions_out->push_back(std::move(action));
+    } else {
+      auto update_type = credit->get_update_type();
+      if (update_type != CREDIT_NO_UPDATE) {
+        MLOG(MDEBUG) << "Subscriber " << imsi_ << " rating group "
+                     << key << " updating due to type "
+                     << update_type;
+        auto usage = credit->get_usage_for_reporting(credit_uc);
+        auto p_update_type = convert_update_type_to_proto(update_type);
+        auto update = get_usage_proto_from_struct(usage, p_update_type, key);
+        auto new_req = update_request_out.mutable_updates()->Add();
+        new_req->set_session_id(session_id_);
+        new_req->set_request_number(request_number_);
+        new_req->set_sid(imsi_);
+        new_req->set_msisdn(config_.msisdn);
+        new_req->set_ue_ipv4(config_.ue_ipv4);
+        new_req->set_spgw_ipv4(config_.spgw_ipv4);
+        new_req->set_apn(config_.apn);
+        new_req->set_imei(config_.imei);
+        new_req->set_plmn_id(config_.plmn_id);
+        new_req->set_imsi_plmn_id(config_.imsi_plmn_id);
+        new_req->set_user_location(config_.user_location);
+        new_req->set_hardware_addr(config_.hardware_addr);
+        new_req->set_rat_type(config_.rat_type);
+        fill_protos_tgpp_context(new_req->mutable_tgpp_ctx());
+        new_req->mutable_usage()->CopyFrom(update);
+        request_number_++;
+        uc.request_number_increment++;
+      }
+    }
   }
 }
 
@@ -330,12 +408,194 @@ SessionTerminateRequest SessionState::make_termination_request(
   req.set_rat_type(config_.rat_type);
   fill_protos_tgpp_context(req.mutable_tgpp_ctx());
   monitor_pool_.get_termination_updates(&req, update_criteria);
-  charging_pool_.get_termination_updates(&req, update_criteria);
+  for (auto &credit_pair : credit_map_) {
+  auto credit_uc = get_credit_uc(credit_pair.first, update_criteria);
+  req.mutable_credit_usages()->Add()->CopyFrom(
+      get_usage_proto_from_struct(
+          credit_pair.second->get_all_unreported_usage_for_reporting(
+              *credit_uc),
+          CreditUsage::TERMINATED, credit_pair.first));
+  }
   return req;
 }
 
-ChargingCreditPool& SessionState::get_charging_pool() {
-  return charging_pool_;
+bool SessionState::reset_reporting_charging_credit(
+    const CreditKey &key, SessionStateUpdateCriteria &update_criteria) {
+  auto it = credit_map_.find(key);
+  if (it == credit_map_.end()) {
+    MLOG(MERROR) << "Could not reset credit for IMSI" << imsi_
+                 << " and charging key " << key << " because it wasn't found";
+    return false;
+  }
+  auto credit_uc = get_credit_uc(key, update_criteria);
+  it->second->reset_reporting_credit(*credit_uc);
+  return true;
+}
+
+
+static uint64_t get_granted_units(const CreditUnit &unit,
+                                  uint64_t default_val) {
+  return unit.is_valid() ? unit.volume() : default_val;
+}
+
+static FinalActionInfo get_final_action_info(const ChargingCredit &credit) {
+  FinalActionInfo final_action_info;
+  if (credit.is_final()) {
+    final_action_info.final_action = credit.final_action();
+    if (credit.final_action() == ChargingCredit_FinalAction_REDIRECT) {
+      final_action_info.redirect_server = credit.redirect_server();
+    }
+  }
+
+  return final_action_info;
+}
+
+static void receive_charging_credit_with_default(
+    SessionCredit &credit, const GrantedUnits &gsu, uint64_t default_volume,
+    const ChargingCredit &charging_credit,
+    SessionCreditUpdateCriteria &update_criteria) {
+  uint64_t total = get_granted_units(gsu.total(), default_volume);
+  uint64_t tx = get_granted_units(gsu.tx(), default_volume);
+  uint64_t rx = get_granted_units(gsu.rx(), default_volume);
+
+  credit.receive_credit(total, tx, rx, charging_credit.validity_time(),
+                        charging_credit.is_final(),
+                        get_final_action_info(charging_credit),
+                        update_criteria);
+}
+
+bool SessionState::receive_charging_credit(
+    const CreditUpdateResponse &update,
+    SessionStateUpdateCriteria &uc) {
+  auto it = credit_map_.find(CreditKey(update));
+  if (it == credit_map_.end()) {
+    // new credit
+    return init_charging_credit(update, uc);
+  }
+  auto credit_uc = get_credit_uc(CreditKey(update), uc);
+  if (!update.success()) {
+    // update unsuccessful, reset credit and return
+    MLOG(MDEBUG) << "Rececive_Credit_Update: Unsuccessfull";
+    it->second->mark_failure(update.result_code(), *credit_uc);
+    return false;
+  }
+  const auto &gsu = update.credit().granted_units();
+  MLOG(MDEBUG) << "Received charging credit of " << gsu.total().volume()
+               << " total bytes, " << gsu.tx().volume() << " tx bytes, and "
+               << gsu.rx().volume() << " rx bytes "
+               << "for subscriber " << imsi_ << " rating group "
+               << update.charging_key();
+  uint64_t default_volume = 0; // default to not increasing credit
+  receive_charging_credit_with_default(*(it->second), gsu, default_volume,
+                                       update.credit(), *credit_uc);
+  return true;
+}
+
+uint64_t SessionState::get_charging_credit(const CreditKey &key,
+                                        Bucket bucket) const {
+  auto it = credit_map_.find(key);
+  if (it == credit_map_.end()) {
+    return 0;
+  }
+  return it->second->get_credit(bucket);
+}
+
+bool SessionState::init_charging_credit(
+    const CreditUpdateResponse &update,
+    SessionStateUpdateCriteria &update_criteria) {
+  if (!update.success()) {
+    // init failed, don't track key
+    MLOG(MERROR) << "Credit init failed for imsi " << imsi_
+                 << " and charging key " << update.charging_key();
+    return false;
+  }
+  MLOG(MINFO) << "Initialized a charging credit for imsi " << imsi_
+              << " and charging key " << update.charging_key();
+  // unless defined, volume is defined as the maximum possible value
+  // uint64_t default_volume = std::numeric_limits<uint64_t>::max();
+  /*
+   * Setting it to 0 otherwise it will lead to data transfer even if there
+   * in no GSUs present in Gy:CCA-I
+   */
+  uint64_t default_volume = 0;
+  std::unique_ptr<SessionCredit> credit;
+  if (update.limit_type() == CreditUpdateResponse::FINITE) {
+    credit = std::make_unique<SessionCredit>(CreditType::CHARGING);
+  } else {
+    credit = std::make_unique<SessionCredit>(CreditType::CHARGING,
+                                             SERVICE_ENABLED, true);
+  }
+  SessionCreditUpdateCriteria credit_uc{};
+  receive_charging_credit_with_default(*credit, update.credit().granted_units(),
+                                       default_volume, update.credit(),
+                                       credit_uc);
+  StoredSessionCredit stored_credit = credit->marshal();
+  update_criteria.charging_credit_to_install[CreditKey(update)] =
+      credit->marshal();
+  credit_map_[CreditKey(update)] = std::move(credit);
+  return true;
+}
+
+ReAuthResult SessionState::reauth_key(const CreditKey &charging_key,
+                               SessionStateUpdateCriteria &update_criteria) {
+  auto it = credit_map_.find(charging_key);
+  if (it != credit_map_.end()) {
+    // if credit is already reporting, don't initiate update
+    if (it->second->is_reporting()) {
+      return ReAuthResult::UPDATE_NOT_NEEDED;
+    }
+    auto uc = it->second->get_update_criteria();
+    it->second->reauth(uc);
+    update_criteria.charging_credit_map[charging_key] = uc;
+    return ReAuthResult::UPDATE_INITIATED;
+  }
+  // charging_key cannot be found, initialize credit and engage reauth
+  auto credit =
+      std::make_unique<SessionCredit>(CreditType::CHARGING, SERVICE_DISABLED);
+  SessionCreditUpdateCriteria _{};
+  credit->reauth(_);
+  update_criteria.charging_credit_to_install[charging_key] = credit->marshal();
+  credit_map_[charging_key] = std::move(credit);
+  return ReAuthResult::UPDATE_INITIATED;
+}
+
+ReAuthResult
+SessionState::reauth_all(SessionStateUpdateCriteria &update_criteria) {
+  auto res = ReAuthResult::UPDATE_NOT_NEEDED;
+  for (auto &credit_pair : credit_map_) {
+    // Only update credits that aren't reporting
+    if (!credit_pair.second->is_reporting()) {
+      auto uc = credit_pair.second->get_update_criteria();
+      credit_pair.second->reauth(uc);
+      update_criteria.charging_credit_map[credit_pair.first] = uc;
+      res = ReAuthResult::UPDATE_INITIATED;
+    }
+  }
+  return res;
+}
+
+void SessionState::merge_charging_credit_update(
+    const CreditKey &key, SessionCreditUpdateCriteria &credit_update) {
+  auto it = credit_map_.find(key);
+  if (it == credit_map_.end()) {
+    return;
+  }
+  it->second->set_is_final_grant_and_final_action(credit_update.is_final, credit_update.final_action_info, credit_update);
+  it->second->set_reauth(credit_update.reauth_state, credit_update);
+  it->second->set_service_state(credit_update.service_state, credit_update);
+  it->second->set_expiry_time(credit_update.expiry_time, credit_update);
+  for (int i = USED_TX; i != MAX_VALUES; i++) {
+    Bucket bucket = static_cast<Bucket>(i);
+    it->second->add_credit(credit_update.bucket_deltas.find(bucket)->second,
+                           bucket, credit_update);
+  }
+}
+
+void SessionState::set_charging_credit(
+    const CreditKey &key, std::unique_ptr<SessionCredit> credit,
+    SessionStateUpdateCriteria &update_criteria) {
+  update_criteria.charging_credit_to_install[key] = credit->marshal();
+  credit_map_[key] = std::move(credit);
 }
 
 UsageMonitoringCreditPool& SessionState::get_monitor_pool() {
@@ -385,8 +645,11 @@ SessionState::TotalCreditUsage SessionState::get_total_credit_usage() {
         get_monitor_pool().get_credit(monitoring_key, USED_RX);
   }
   for (auto charging_key : used_charging_keys) {
-    usage.charging_tx += get_charging_pool().get_credit(charging_key, USED_TX);
-    usage.charging_rx += get_charging_pool().get_credit(charging_key, USED_RX);
+    auto it = credit_map_.find(charging_key);
+    if (it != credit_map_.end()) {
+      usage.charging_tx += it->second->get_credit(USED_TX);
+      usage.charging_rx += it->second->get_credit(USED_RX);
+    }
   }
   return usage;
 }
@@ -697,7 +960,7 @@ void SessionState::install_scheduled_static_rule(
 }
 
 uint32_t SessionState::get_credit_key_count() {
-  return charging_pool_.get_credit_key_count() +
+  return credit_map_.size() +
          monitor_pool_.get_credit_key_count();
 }
 

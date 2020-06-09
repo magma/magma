@@ -19,6 +19,9 @@
 #include "StoredState.h"
 
 namespace magma {
+typedef std::unordered_map<CreditKey, std::unique_ptr<SessionCredit>,
+                 decltype(&ccHash), decltype(&ccEqual)> CreditMap;
+static SessionStateUpdateCriteria UNUSED_UPDATE_CRITERIA;
 /**
  * SessionState keeps track of a current UE session in the PCEF, recording
  * usage and allowance for all charging keys
@@ -67,7 +70,7 @@ class SessionState {
    * notify_new_report_for_sessions sets the state of terminating session to
    * aggregating, to tell if
    * flows for the terminating session is in the latest report.
-   * Should be called before add_used_credit.
+   * Should be called before add_rule_usage.
    */
   void new_report(SessionStateUpdateCriteria& update_criteria);
 
@@ -75,16 +78,15 @@ class SessionState {
    * notify_finish_report_for_sessions updates the state of aggregating session
    * not included report
    * to specify its flows are deleted and termination can be completed.
-   * Should be called after notify_new_report_for_sessions and add_used_credit.
+   * Should be called after notify_new_report_for_sessions and add_rule_usage.
    */
   void finish_report(SessionStateUpdateCriteria& update_criteria);
 
   /**
-   * add_used_credit adds used TX/RX bytes to a particular charging key
+   * add_rule_usage adds used TX/RX bytes to a particular rule
    */
-  void add_used_credit(
-      const std::string& rule_id, uint64_t used_tx, uint64_t used_rx,
-      SessionStateUpdateCriteria& update_criteria);
+  void add_rule_usage( const std::string& rule_id, uint64_t used_tx,
+    uint64_t used_rx, SessionStateUpdateCriteria& update_criteria);
 
   /**
    * get_updates collects updates and adds them to a UpdateSessionRequest
@@ -92,7 +94,6 @@ class SessionState {
    * Only updates request number
    * @param update_request (out) - request to add new updates to
    * @param actions (out) - actions to take on services
-   * @param force_update force updates if revalidation timer expires
    */
   void get_updates(
       UpdateSessionRequest& update_request_out,
@@ -139,7 +140,29 @@ class SessionState {
   void complete_termination(
       SessionReporter& reporter, SessionStateUpdateCriteria& update_criteria);
 
-  ChargingCreditPool& get_charging_pool();
+  bool reset_reporting_charging_credit(const CreditKey &key,
+                              SessionStateUpdateCriteria &update_criteria);
+
+  bool receive_charging_credit(const CreditUpdateResponse &update,
+                               SessionStateUpdateCriteria &update_criteria);
+
+  uint64_t get_charging_credit(const CreditKey &key, Bucket bucket) const;
+
+  bool init_charging_credit(
+    const CreditUpdateResponse &update,
+    SessionStateUpdateCriteria &uc);
+
+  ReAuthResult reauth_key(const CreditKey &charging_key,
+                               SessionStateUpdateCriteria &update_criteria);
+
+  ReAuthResult reauth_all(SessionStateUpdateCriteria &update_criteria);
+
+  void merge_charging_credit_update(
+    const CreditKey &key, SessionCreditUpdateCriteria &credit_update);
+
+  void set_charging_credit(
+    const CreditKey &key, std::unique_ptr<SessionCredit> credit,
+    SessionStateUpdateCriteria &update_criteria);
 
   UsageMonitoringCreditPool& get_monitor_pool();
 
@@ -336,7 +359,6 @@ class SessionState {
   std::string session_id_;
   std::string core_session_id_;
   uint32_t request_number_;
-  ChargingCreditPool charging_pool_;
   UsageMonitoringCreditPool monitor_pool_;
   SessionFsmState curr_state_;
   SessionConfig config_;
@@ -370,6 +392,13 @@ class SessionState {
   // todo for stateless we will have to store a bit more information so we can
   // reschedule triggers
   google::protobuf::Timestamp revalidation_time_;
+  /*
+  * ChargingCreditPool manages a pool of credits for OCS-based charging. It is
+  * keyed by rating groups & service Identity (uint32, [uint32]) and receives
+  * CreditUpdateResponses to update
+  * credit
+  */
+  CreditMap credit_map_;
 
  private:
   /**
@@ -382,7 +411,7 @@ class SessionState {
   void get_updates_from_charging_pool(
       UpdateSessionRequest& update_request_out,
       std::vector<std::unique_ptr<ServiceAction>>* actions_out,
-      SessionStateUpdateCriteria& update_criteria);
+      SessionStateUpdateCriteria& uc);
 
   /**
    * For this session, add the UsageMonitoringUpdateRequest to the
@@ -410,6 +439,9 @@ class SessionState {
    * Returns true if the specified rule should be deactivated by that time
    */
   bool should_rule_be_deactivated(const std::string& rule_id, std::time_t time);
+
+  SessionCreditUpdateCriteria* get_credit_uc(
+    const CreditKey &key, SessionStateUpdateCriteria &uc);
 };
 
 }  // namespace magma

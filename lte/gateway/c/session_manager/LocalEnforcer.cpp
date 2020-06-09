@@ -284,7 +284,7 @@ void LocalEnforcer::aggregate_records(
     for (const auto& session : it->second) {
       SessionStateUpdateCriteria& uc =
           session_update[record.sid()][session->get_session_id()];
-      session->add_used_credit(
+      session->add_rule_usage(
           record.rule_id(), record.bytes_tx(), record.bytes_rx(), uc);
     }
   }
@@ -512,8 +512,7 @@ void LocalEnforcer::reset_updates(
       // When updates are reset, they aren't written back into SessionStore,
       // so we can just put in a default UpdateCriteria
       auto uc = get_default_update_criteria();
-      session->get_charging_pool().reset_reporting_credit(
-          CreditKey(update.usage()), uc);
+      session->reset_reporting_charging_credit(CreditKey(update.usage()), uc);
     }
   }
   for (const auto& update : failed_request.usage_monitors()) {
@@ -817,7 +816,7 @@ bool LocalEnforcer::init_session_credit(
   std::unordered_set<uint32_t> charging_credits_received;
   for (const auto& credit : response.credits()) {
     auto uc = get_default_update_criteria();
-    session_state->get_charging_pool().receive_credit(credit, uc);
+    session_state->receive_charging_credit(credit, uc);
     if (credit.success() && contains_credit(credit.credit().granted_units())) {
       charging_credits_received.insert(credit.charging_key());
     }
@@ -1078,8 +1077,7 @@ void LocalEnforcer::update_charging_credits(
     for (const auto& session : it->second) {
       std::string sid                             = session->get_session_id();
       SessionStateUpdateCriteria& update_criteria = session_update[imsi][sid];
-      session->get_charging_pool().receive_credit(
-          credit_update_resp, update_criteria);
+      session->receive_charging_credit(credit_update_resp, update_criteria);
       session->set_tgpp_context(credit_update_resp.tgpp_ctx(), update_criteria);
       SessionState::SessionInfo info;
       std::vector<PolicyRule> gy_rules_to_deactivate;
@@ -1310,8 +1308,7 @@ uint64_t LocalEnforcer::get_charging_credit(
     return 0;
   }
   for (const auto& session : it->second) {
-    uint64_t credit =
-        session->get_charging_pool().get_credit(charging_key, bucket);
+    uint64_t credit = session->get_charging_credit(charging_key, bucket);
     if (credit > 0) {
       return credit;
     }
@@ -1353,8 +1350,7 @@ LocalEnforcer::init_charging_reauth(SessionMap &session_map,
                  << request.session_id();
     for (const auto& session : it->second) {
       if (session->get_session_id() == request.session_id()) {
-        return session->get_charging_pool().reauth_key(
-            CreditKey(request), update_criteria);
+        return session->reauth_key(CreditKey(request), update_criteria);
       }
     }
     MLOG(MERROR) << "Could not find session for subscriber " << request.sid()
@@ -1365,7 +1361,7 @@ LocalEnforcer::init_charging_reauth(SessionMap &session_map,
                << request.sid() << " for session" << request.session_id();
   for (const auto& session : it->second) {
     if (session->get_session_id() == request.session_id()) {
-      return session->get_charging_pool().reauth_all(update_criteria);
+      return session->reauth_all(update_criteria);
     }
   }
   MLOG(MERROR) << "Could not find session for subscriber " << request.sid()
