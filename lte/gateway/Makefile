@@ -15,7 +15,6 @@ BUILD_TYPE ?= Debug
 
 # Default is agw with OpenFlow, gRPC over S6a , (no freeDiameter over s6a).
 FEATURES ?= agw_of
-
 # EXCLUSIVE_FEATURE_LIST : list of primary features that cannot be requested
 # together.
 EXCLUSIVE_FEATURE_LIST = mme agw_gtpnl agw_of
@@ -100,7 +99,6 @@ logs: ## Follow logs for all services
 # Ref: https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 help: ## Show documented commands
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-25s\033[0m %s\n", $$1, $$2}'
-
 
 # run_cmake BUILD_DIRECTORY, FILE_DIRECTORY, FLAGS, ENV
 define run_cmake

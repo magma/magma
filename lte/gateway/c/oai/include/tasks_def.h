@@ -1,3 +1,4 @@
+// This task is mandatory and must always be placed in first position
 TASK_DEF(TASK_TIMER, TASK_PRIORITY_MED, 16)
 // Other possible tasks in the process
 /// GTPV1-U task

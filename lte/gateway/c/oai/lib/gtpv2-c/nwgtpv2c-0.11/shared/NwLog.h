@@ -30,8 +30,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF   *
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.          *
  *----------------------------------------------------------------------------*/
-
-
 #ifndef __NW_LOG_H__
 #define __NW_LOG_H__
 
@@ -81,5 +79,3 @@ extern "C" {
 #endif
 
 #endif /* __NW_LOG_H__ */
-
-

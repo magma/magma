@@ -40,8 +40,6 @@
  * prototypes used by gtpv2c transactions.
  *
  **/
-
-
 #ifndef __NW_GTPV2C_TRXN_H__
 #define __NW_GTPV2C_TRXN_H__
 
