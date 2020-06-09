@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /*
  * Copyright (c) 2015, EURECOM (www.eurecom.fr)
  * All rights reserved.
