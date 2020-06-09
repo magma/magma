@@ -258,7 +258,8 @@ func TestGxQosDowngradeWithCCAUpdate(t *testing.T) {
 	var c float64 = 0.3 * 5 * MegaBytes
 	updateRequest1 := protos.NewGxCCRequest(imsi, protos.CCRequestType_UPDATE).
 		SetUsageMonitorReport(usageMonitorInfo).
-		SetUsageReportDelta(uint64(c))
+		SetUsageReportDelta(uint64(c)).
+		SetEventTrigger(int32(lteProtos.EventTrigger_USAGE_REPORT))
 	updateAnswer1 := protos.NewGxCCAnswer(diam.Success).
 		SetStaticRuleInstalls([]string{rule2Key}, []string{}).
 		SetUsageMonitorInfo(getUsageInformation(monitorKey, 10*MegaBytes))

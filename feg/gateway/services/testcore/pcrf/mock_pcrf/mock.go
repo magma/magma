@@ -51,6 +51,10 @@ func (e GxExpectation) DoesMatch(message interface{}) error {
 	if !compareUsageMonitorsAgainstExpected(ccr.UsageMonitors, expectedUsageReports, expected.GetUsageReportDelta()) {
 		return fmt.Errorf("For Request=%v, Expected: %v, Received: %v", actualPK, expectedUsageReports, ccr.UsageMonitors)
 	}
+	expectedET := expected.GetEventTrigger()
+	if expectedET != nil && expectedET.GetValue() != int32(ccr.EventTrigger) {
+		return fmt.Errorf("For Request=%v, Expected EventTrigger: %v, Received: %v", actualPK, expectedET.Value, ccr.EventTrigger)
+	}
 	return nil
 }
 

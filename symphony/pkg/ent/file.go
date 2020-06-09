@@ -48,6 +48,8 @@ type File struct {
 	StoreKey string `json:"store_key,omitempty"`
 	// Category holds the value of the "category" field.
 	Category string `json:"category,omitempty"`
+	// Annotation holds the value of the "annotation" field.
+	Annotation string `json:"annotation,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the FileQuery when eager-loading is set.
 	Edges                      FileEdges `json:"edges"`
@@ -227,6 +229,7 @@ func (*File) scanValues() []interface{} {
 		&sql.NullString{}, // content_type
 		&sql.NullString{}, // store_key
 		&sql.NullString{}, // category
+		&sql.NullString{}, // annotation
 	}
 }
 
@@ -307,7 +310,12 @@ func (f *File) assignValues(values ...interface{}) error {
 	} else if value.Valid {
 		f.Category = value.String
 	}
-	values = values[10:]
+	if value, ok := values[10].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field annotation", values[10])
+	} else if value.Valid {
+		f.Annotation = value.String
+	}
+	values = values[11:]
 	if len(values) == len(file.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field check_list_item_files", value)
@@ -455,6 +463,8 @@ func (f *File) String() string {
 	builder.WriteString(f.StoreKey)
 	builder.WriteString(", category=")
 	builder.WriteString(f.Category)
+	builder.WriteString(", annotation=")
+	builder.WriteString(f.Annotation)
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -40,7 +40,9 @@ class RpcTests(unittest.TestCase):
         mconfig.ip_block = None
 
         # Add the servicer
-        config = {'persist_to_redis': False, 'redis_port': None}
+        config = {'persist_to_redis': False,
+                  'redis_port': None,
+                  'allocator_type': "ip_pool"}
         self._servicer = MobilityServiceRpcServicer(mconfig, config)
         self._servicer.add_to_server(self._rpc_server)
         self._rpc_server.start()
@@ -200,7 +202,7 @@ class RpcTests(unittest.TestCase):
     def test_run_out_of_ip(self):
         """ should raise RESOURCE_EXHAUSTED when running out of IP """
         #  The subnet is provisioned with 16 addresses
-        #  Inside ip_allocator.py 11 addresses are reserved,
+        #  Inside ip_address_man.py 11 addresses are reserved,
         #  2 addresses are not usable (all zeros and all ones)
         #  Thus, we have a usable pool of 3 IP addresses;
         #  first three allocations should succeed, while the fourth

@@ -10102,10 +10102,10 @@ matches-selector@0.0.1:
   version "0.0.1"
   resolved "https://registry.yarnpkg.com/matches-selector/-/matches-selector-0.0.1.tgz#1df5262243ae341c1a0804dd302048267ac713bb"
 
-material-table@^1.58.2:
-  version "1.58.2"
-  resolved "https://registry.yarnpkg.com/material-table/-/material-table-1.58.2.tgz#dc0d19652848e6bb92f747d122bd7d4681cca6dc"
-  integrity sha512-s/m6ebyXFXmg07zxv1Fl6qPySKaiQhASXaOB3ubRKUFA1DkryUy3PGSEVWTjUYnRyi63kGq+N6b5nsokLR6m5A==
+material-table@^1.59.0:
+  version "1.59.0"
+  resolved "https://registry.yarnpkg.com/material-table/-/material-table-1.59.0.tgz#fb1d5cafbd4322d113805a923afe9fcd54d34157"
+  integrity sha512-gI18QcQhtmLoMGuYdhZEdtVBQurgZkB6BGuo4PF5HogoBycJyfy3qbrjLkprLXV4WrZoBZjRThFUEKq4z6zclg==
   dependencies:
     "@date-io/date-fns" "^1.1.0"
     "@material-ui/pickers" "^3.2.2"

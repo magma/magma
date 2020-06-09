@@ -106,6 +106,11 @@ func (m *GxCreditControlRequest) SetUsageReportDelta(delta uint64) *GxCreditCont
 	return m
 }
 
+func (m *GxCreditControlRequest) SetEventTrigger(eventTrigger int32) *GxCreditControlRequest {
+	m.EventTrigger = &wrappers.Int32Value{Value: eventTrigger}
+	return m
+}
+
 func NewGyCreditControlExpectation() *GyCreditControlExpectation {
 	return &GyCreditControlExpectation{}
 }

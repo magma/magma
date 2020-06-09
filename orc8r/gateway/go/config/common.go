@@ -36,7 +36,6 @@ func (val *AtomicStore) GetCurrent(defaultCfgFactory func() StructuredConfig) St
 			fcInterval = MinFreshnessCheckInterval
 		}
 		val.updateStore(cfg, fp, owfp, fcInterval)
-		(*atomic.Value)(val).Store(cn)
 		return cfg
 	}
 	if cn.notAfterTime.After(time.Now()) { // refresh, if needed

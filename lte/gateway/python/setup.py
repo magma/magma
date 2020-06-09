@@ -84,6 +84,7 @@ setup(
         # version resulting in error (this is a temporary fix)
         'scapy==2.4.3rc3',
         'flask>=1.0.2',
+        'aioeventlet>=0.4',
         'aiodns>=1.1.1',
         'pymemoize>=1.0.2',
         'wsgiserver>=1.3',

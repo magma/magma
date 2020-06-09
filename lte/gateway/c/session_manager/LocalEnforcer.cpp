@@ -199,6 +199,15 @@ void LocalEnforcer::sync_sessions_on_restart(std::time_t current_time) {
       if (session->get_state() == SESSION_TERMINATION_SCHEDULED) {
         imsis_to_terminate.insert(imsi);
       }
+      // Reschedule Revalidation Timer if it was pending before
+      auto triggers = session->get_event_triggers();
+      auto trigger_it = triggers.find(REVALIDATION_TIMEOUT);
+      if (trigger_it != triggers.end() &&
+        triggers[REVALIDATION_TIMEOUT] == PENDING) {
+        // the bool value indicates whether the trigger has been triggered
+        auto revalidation_time = session->get_revalidation_time();
+        schedule_revalidation(imsi, *session, revalidation_time, uc);
+      }
 
       session->sync_rules_to_time(current_time, uc);
       auto ip_addr = session->get_config().ue_ipv4;
@@ -476,14 +485,14 @@ void LocalEnforcer::install_redirect_flow(
 UpdateSessionRequest LocalEnforcer::collect_updates(
     SessionMap& session_map,
     std::vector<std::unique_ptr<ServiceAction>>& actions,
-    SessionUpdate& session_update, const bool force_update) const {
+    SessionUpdate& session_update) const {
   UpdateSessionRequest request;
   for (const auto& session_pair : session_map) {
     for (const auto& session : session_pair.second) {
       std::string imsi     = session_pair.first;
       std::string sid      = session->get_session_id();
       auto& update_criteria = session_update[imsi][sid];
-      session->get_updates(request, &actions, update_criteria, force_update);
+      session->get_updates(request, &actions, update_criteria);
     }
   }
   return request;
@@ -870,6 +879,13 @@ bool LocalEnforcer::init_session_credit(
     }
   }
 
+  if (revalidation_scheduled) {
+    // TODO This might not work since the session is not initialized properly
+    // at this point
+    auto _ = get_default_update_criteria();
+    schedule_revalidation(imsi, *session_state, revalidation_time, _);
+  }
+
   auto it = session_map.find(imsi);
   if (it == session_map.end()) {
     // First time a session is created for IMSI
@@ -878,15 +894,10 @@ bool LocalEnforcer::init_session_credit(
     session_map[imsi] = std::vector<std::unique_ptr<SessionState>>();
   }
   session_map[imsi].push_back(
-      std::move(std::unique_ptr<SessionState>(session_state)));
+    std::move(std::unique_ptr<SessionState>(session_state)));
 
   if (session_state->is_radius_cwf_session() == false) {
     session_events::session_created(eventd_client_, imsi, session_id);
-  }
-  if (revalidation_scheduled) {
-    // TODO This might not work since the session is not initialized properly
-    // at this point
-    schedule_revalidation(imsi, revalidation_time);
   }
 
   return rule_update_success;
@@ -1182,7 +1193,7 @@ void LocalEnforcer::update_monitoring_credits_and_rules(
         // this IMSI
         auto revalidation_time = usage_monitor_resp.revalidation_time();
         imsis_with_revalidation.insert(imsi);
-        schedule_revalidation(imsi, revalidation_time);
+        schedule_revalidation(imsi, *session, revalidation_time, update_criteria);
       }
     }
   }
@@ -1420,7 +1431,7 @@ void LocalEnforcer::init_policy_reauth_for_session(
     bool& deactivate_success, SessionUpdate& session_update) {
   std::string imsi = request.imsi();
   SessionStateUpdateCriteria& update_criteria =
-      session_update[imsi][session->get_session_id()];
+    session_update[imsi][session->get_session_id()];
 
   activate_success   = true;
   deactivate_success = true;
@@ -1431,7 +1442,7 @@ void LocalEnforcer::init_policy_reauth_for_session(
 
   MLOG(MDEBUG) << "Processing policy reauth for subscriber " << request.imsi();
   if (revalidation_required(request.event_triggers())) {
-    schedule_revalidation(imsi, request.revalidation_time());
+    schedule_revalidation(imsi, *session, request.revalidation_time(), update_criteria);
   }
 
   process_rules_to_remove(
@@ -1620,19 +1631,35 @@ bool LocalEnforcer::revalidation_required(
 // Todo support scheduling revalidation for different sessions for a IMSI
 void LocalEnforcer::schedule_revalidation(
     const std::string& imsi,
-    const google::protobuf::Timestamp& revalidation_time) {
+    SessionState& session,
+    const google::protobuf::Timestamp& revalidation_time,
+    SessionStateUpdateCriteria& update_criteria) {
+  // Add revalidation info to session and mark as pending
+  session.add_new_event_trigger(REVALIDATION_TIMEOUT, update_criteria);
+  session.set_revalidation_time(revalidation_time, update_criteria);
+  auto session_id = session.get_session_id();
   SessionRead req = {imsi};
   auto delta = time_difference_from_now(revalidation_time);
-  MLOG(MINFO) << imsi << " Scheduling revalidation in "
-              << delta.count() << "ms";
+  MLOG(MINFO) << "Scheduling revalidation in "
+              << delta.count() << "ms for " << session_id;
   evb_->runInEventBaseThread([=] {
     evb_->timer().scheduleTimeoutFn(
         std::move([=] {
-          MLOG(MINFO) << imsi << " Revalidation timeout!";
-          auto session_map = session_store_.read_sessions_for_reporting(req);
+          MLOG(MINFO) << "Revalidation timeout! for " << session_id;
+          auto session_map = session_store_.read_sessions(req);
           SessionUpdate update =
               SessionStore::get_default_session_update(session_map);
-          check_usage_for_reporting(session_map, update, true);
+          for (const auto& session_pair : session_map) {
+            for (const auto& session : session_pair.second) {
+              std::string imsi = session_pair.first;
+              if (session->get_session_id() == session_id) {
+                auto& update_criteria = update[imsi][session_id];
+                session->mark_event_trigger_as_triggered(
+                  REVALIDATION_TIMEOUT, update_criteria);
+              }
+            }
+          }
+          auto success = session_store_.update_sessions(update);
         }),
         delta);
   });
@@ -1690,45 +1717,6 @@ void LocalEnforcer::create_bearer(
         config.bearer_id, dynamic_rules);
   }
   return;
-}
-
-void LocalEnforcer::check_usage_for_reporting(
-    SessionMap& session_map, SessionUpdate& session_update,
-    const bool force_update) {
-  std::vector<std::unique_ptr<ServiceAction>> actions;
-  auto request =
-      collect_updates(session_map, actions, session_update, force_update);
-  execute_actions(session_map, actions, session_update);
-  if (request.updates_size() == 0 && request.usage_monitors_size() == 0) {
-    return;  // nothing to report
-  }
-  MLOG(MINFO) << "Sending " << request.updates_size()
-              << " charging updates and " << request.usage_monitors_size()
-              << " monitor updates to OCS and PCRF";
-
-  // report to cloud
-  (*reporter_)
-      .report_updates(
-          request,
-          // For the context capture, pass by value, or create a new pointer so
-          // that the value is not lost
-          [this,
-           request,
-           session_map_ptr =
-               std::make_shared<SessionMap>(std::move(session_map)),
-           session_update]
-               (Status status, UpdateSessionResponse response) mutable {
-            if (!status.ok()) {
-              MLOG(MERROR) << "Update of size " << request.updates_size()
-                           << " to OCS and PCRF failed entirely: "
-                           << status.error_message();
-            } else {
-              MLOG(MDEBUG) << "Received updated responses from OCS and PCRF";
-              update_session_credits_and_rules(
-                  *session_map_ptr, response, session_update);
-              session_store_.update_sessions(session_update);
-            }
-          });
 }
 
 bool LocalEnforcer::session_with_imsi_exists(

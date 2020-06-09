@@ -7,18 +7,17 @@ from typing import List, Sequence
 
 from pysymphony import SymphonyClient
 
-from .._utils import format_property_definitions, get_property_type_input
 from ..common.cache import EQUIPMENT_TYPES, LOCATION_TYPES, PORT_TYPES, SERVICE_TYPES
 from ..common.data_class import PropertyDefinition
 from ..common.data_enum import Entity
+from ..common.data_format import format_to_property_type_input
 from ..exceptions import EntityNotFoundError
-from ..graphql.fragment.property_type import PropertyTypeFragment
 from ..graphql.input.property_type import PropertyTypeInput
 
 
 def get_property_types(
     client: SymphonyClient, entity_type: Entity, entity_name: str
-) -> Sequence[PropertyTypeFragment]:
+) -> Sequence[PropertyDefinition]:
     """Get property types on specific entity. `entity_type` - ["LocationType", "EquipmentType", "ServiceType", "EquipmentPortType"]
 
         Args:
@@ -26,7 +25,7 @@ def get_property_types(
             entity_name (str): existing entity name
 
         Returns:
-            Sequence[ `pyinventory.graphql.fragment.property_type.PropertyTypeFragment` ]
+            Sequence[ `pyinventory.common.data_class.PropertyDefinition` ]
 
         Raises:
             `pyinventory.exceptions.EntityNotFoundError`: if entity type does not found or does not have property types
@@ -62,7 +61,7 @@ def get_property_types(
 
 def get_property_type(
     client: SymphonyClient, entity_type: Entity, entity_name: str, property_type_id: str
-) -> PropertyTypeFragment:
+) -> PropertyDefinition:
     """Get property type on specific entity. `entity_type` - ["LocationType", "EquipmentType", "ServiceType", "EquipmentPortType"]
 
         Args:
@@ -71,7 +70,7 @@ def get_property_type(
             property_type_id (str): property type ID
 
         Returns:
-            `pyinventory.graphql.fragment.property_type.PropertyTypeFragment` object
+            `pyinventory.common.data_class.PropertyDefinition` object
 
         Raises:
             `pyinventory.exceptions.EntityNotFoundError`: if property type with id=`property_type_id` does not found
@@ -127,7 +126,10 @@ def get_property_type_id(
         client=client, entity_type=entity_type, entity_name=entity_name
     )
     for property_type in property_types:
-        if property_type.name == property_type_name:
+        if (
+            property_type.property_name == property_type_name
+            and property_type.id is not None
+        ):
             return property_type.id
 
     raise EntityNotFoundError(
@@ -140,7 +142,7 @@ def get_property_type_by_external_id(
     entity_type: Entity,
     entity_name: str,
     property_type_external_id: str,
-) -> PropertyTypeFragment:
+) -> PropertyDefinition:
     """Get property type by external ID on specific entity. `entity_type` - ["LocationType", "EquipmentType", "ServiceType", "EquipmentPortType"]
 
         Args:
@@ -149,7 +151,7 @@ def get_property_type_by_external_id(
             property_type_external_id (str): property type external ID
 
         Returns:
-            `pyinventory.graphql.fragment.property_type.PropertyTypeFragment` object
+            `pyinventory.common.data_class.PropertyDefinition` object
 
         Raises:
             `pyinventory.exceptions.EntityNotFoundError`: property type with external_id=`property_type_external_id` is not found
@@ -167,7 +169,7 @@ def get_property_type_by_external_id(
         client=client, entity_type=entity_type, entity_name=entity_name
     )
     for property_type in property_types:
-        if property_type.externalId == property_type_external_id:
+        if property_type.external_id == property_type_external_id:
             return property_type
 
     raise EntityNotFoundError(
@@ -205,7 +207,7 @@ def edit_property_type(
                 property_definition=PropertyDefinition(
                     property_name="new_name",
                     property_kind=PropertyKind.string,
-                    default_value=None,
+                    default_raw_value=None,
                     is_fixed=False,
                     external_id="ex_12345",
                 ),
@@ -218,13 +220,13 @@ def edit_property_type(
     edited_property_types = []
 
     for property_type in property_types:
-        property_type_input = get_property_type_input(property_type, is_new=False)
+        property_type_input = format_to_property_type_input(property_type, is_new=False)
         if property_type_input.id == property_type_id:
-            formated_property_definitions = format_property_definitions(
-                [new_property_definition]
+            formated_property_definitions = format_to_property_type_input(
+                new_property_definition, is_new=False
             )
-            formated_property_definitions[0].id = property_type_input.id
-            property_type_input = formated_property_definitions[0]
+            formated_property_definitions.id = property_type_input.id
+            property_type_input = formated_property_definitions
 
         edited_property_types.append(property_type_input)
 

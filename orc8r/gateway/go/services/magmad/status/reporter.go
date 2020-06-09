@@ -12,9 +12,10 @@ package status
 import (
 	"context"
 	"encoding/json"
-	"log"
 	"strings"
 	"time"
+
+	"github.com/golang/glog"
 
 	"magma/gateway/config"
 	"magma/gateway/mconfig"
@@ -85,7 +86,7 @@ func StartReporter() {
 			fb303service := strings.ToLower(fb303service)
 			if _, nonFb303 := nonFb303Services[fb303service]; !nonFb303 {
 				if err := startServiceQuery(fb303service, metricsServices[fb303service]); err != nil {
-					log.Printf("error querying service '%s' state: %v", fb303service, err)
+					glog.Errorf("error querying service '%s' state: %v", fb303service, err)
 				}
 			}
 		}
@@ -93,14 +94,14 @@ func StartReporter() {
 
 		stateConn, err := service_registry.Get().GetSharedCloudConnection(definitions.StateServiceName)
 		if err != nil {
-			log.Printf("failed to connect to state reporting service: %v", err)
+			glog.Errorf("failed to connect to state reporting service: %v", err)
 		} else {
 			res, err := protos.NewStateServiceClient(stateConn).ReportStates(context.Background(), collect())
 			if err != nil {
-				log.Printf("ReportStates error: %v", err)
+				glog.Errorf("ReportStates error: %v", err)
 			} else if len(res.GetUnreportedStates()) > 0 {
 				resStr, _ := json.Marshal(res.GetUnreportedStates())
-				log.Printf("status unreported states: %s", resStr)
+				glog.Warningf("status unreported states: %s", resStr)
 			}
 		}
 		nextMetricsSyncTime := lastMetricsReporting.Add(time.Second * time.Duration(metricsSyncInterval))

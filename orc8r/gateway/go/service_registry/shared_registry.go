@@ -9,8 +9,10 @@ LICENSE file in the root directory of this source tree.
 package service_registry
 
 import (
-	"log"
+	"flag"
 	"sync/atomic"
+
+	"github.com/golang/glog"
 
 	platform_registry "magma/orc8r/lib/go/registry"
 	"magma/orc8r/lib/go/service/serviceregistry"
@@ -18,6 +20,8 @@ import (
 
 // default service registry shared by all GW process services
 var initializedRegistry atomic.Value
+
+const serviceRegLoadErrorFmt = "Error loading Gateway service_registry.yml: %v"
 
 // Get returns default service registry which can be shared by all GW process services
 func Get() GatewayRegistry {
@@ -28,7 +32,13 @@ func Get() GatewayRegistry {
 		// moduleName is "" since all feg configs lie in /etc/magma without a module name
 		locations, err := serviceregistry.LoadServiceRegistryConfig("")
 		if err != nil {
-			log.Printf("Error loading Gateway service_registry.yml: %v", err)
+			if flag.Parsed() {
+				glog.Warningf(serviceRegLoadErrorFmt, err)
+			} else {
+				// glog prints an additional error message if logging happens before flag.Parse(), in this case -
+				// only log with higher verbosity
+				glog.V(1).Infof(serviceRegLoadErrorFmt, err)
+			}
 			// return registry, but don't store/cache it
 			return reg
 		}

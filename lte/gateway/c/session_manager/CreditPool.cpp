@@ -125,7 +125,7 @@ void ChargingCreditPool::get_updates(
     std::string imsi, std::string ip_addr, StaticRuleStore &static_rules,
     DynamicRuleStore *dynamic_rules, std::vector<CreditUsage> *updates_out,
     std::vector<std::unique_ptr<ServiceAction>> *actions_out,
-    SessionStateUpdateCriteria &update_criteria, const bool force_update) {
+    SessionStateUpdateCriteria &update_criteria) {
   for (auto &credit_pair : credit_map_) {
     auto &credit = *(credit_pair.second);
     auto credit_uc = get_credit_update(credit_pair.first, update_criteria);
@@ -142,7 +142,7 @@ void ChargingCreditPool::get_updates(
                               dynamic_rules, action, actions_out);
     } else {
       auto update_type = credit.get_update_type();
-      if (update_type != CREDIT_NO_UPDATE || force_update) {
+      if (update_type != CREDIT_NO_UPDATE) {
         MLOG(MDEBUG) << "Subscriber " << imsi_ << " rating group "
                      << credit_pair.first << " updating due to type "
                      << update_type;
@@ -454,7 +454,7 @@ void UsageMonitoringCreditPool::get_updates(
     DynamicRuleStore *dynamic_rules,
     std::vector<UsageMonitorUpdate> *updates_out,
     std::vector<std::unique_ptr<ServiceAction>> *actions_out,
-    SessionStateUpdateCriteria &update_criteria, const bool force_update) {
+    SessionStateUpdateCriteria &update_criteria) {
   for (auto &monitor_pair : monitor_map_) {
     auto &credit = monitor_pair.second->credit;
     auto credit_uc = get_credit_update(monitor_pair.first, update_criteria);
@@ -465,7 +465,7 @@ void UsageMonitoringCreditPool::get_updates(
                               dynamic_rules, action, actions_out);
     }
     auto update_type = credit.get_update_type();
-    if (update_type != CREDIT_NO_UPDATE || force_update) {
+    if (update_type != CREDIT_NO_UPDATE) {
       MLOG(MDEBUG) << "Subscriber " << imsi_ << " monitoring key "
                    << monitor_pair.first << " updating due to type "
                    << update_type;

@@ -322,7 +322,7 @@ TEST_F(SessionStoreTest, test_read_and_write)
   // 4) Read session for IMSI1 from SessionStore
   SessionRead read_req = {};
   read_req.insert(imsi);
-  auto session_map = session_store->read_sessions_for_reporting(read_req);
+  auto session_map = session_store->read_sessions(read_req);
 
   // 5) Verify that state was written for IMSI1 and has been retrieved.
   EXPECT_EQ(session_map.size(), 1);
@@ -374,22 +374,6 @@ TEST_F(SessionStoreTest, test_read_and_write)
   EXPECT_EQ(session_map[imsi].front()->get_monitor_pool().get_credit(monitoring_key, REPORTED_TX), 7);
   EXPECT_EQ(session_map[imsi].front()->get_monitor_pool().get_credit(monitoring_key, REPORTED_RX), 8);
 
-  // 9) Check request numbers again
-  // This request number should increment in storage every time a read is done.
-  // The incremented value is set by the read request to the storage interface.
-  EXPECT_EQ(session_map[imsi].front()->get_request_number(), 2);
-
-  // 10) Read sessions for reporting to update request numbers for the session
-  // The request number should be incremented by 2 for the session, 1 for
-  // each monitoring key and charging key associated to it.
-  session_map = session_store->read_sessions_for_reporting(read_req);
-  EXPECT_EQ(session_map.size(), 1);
-  EXPECT_EQ(session_map[imsi].size(), 1);
-
-  session_map = session_store->read_sessions(read_req);
-  EXPECT_EQ(session_map.size(), 1);
-  EXPECT_EQ(session_map[imsi].front()->get_request_number(), 4);
-
   // 11) Delete sessions for IMSI1
   update_req = SessionUpdate{};
   update_criteria = SessionStateUpdateCriteria{};
@@ -398,9 +382,59 @@ TEST_F(SessionStoreTest, test_read_and_write)
   session_store->update_sessions(update_req);
 
   // 12) Verify that IMSI1 no longer has a session
-  session_map = session_store->read_sessions_for_reporting(read_req);
+  session_map = session_store->read_sessions(read_req);
   EXPECT_EQ(session_map.size(), 1);
   EXPECT_EQ(session_map[imsi].size(), 0);
+}
+
+TEST_F(SessionStoreTest, test_sync_request_numbers)
+{
+  // 1) Create SessionStore
+  auto rule_store = std::make_shared<StaticRuleStore>();
+  auto session_store = new SessionStore(rule_store);
+
+  // 2) Create bare-bones session for IMSI1
+  auto session = get_session(sid, rule_store);
+  auto uc = get_default_update_criteria();
+
+  // 3) Commit session for IMSI1 into SessionStore
+  auto sessions = std::vector<std::unique_ptr<SessionState>>{};
+  EXPECT_EQ(sessions.size(), 0);
+  sessions.push_back(std::move(session));
+  EXPECT_EQ(sessions.size(), 1);
+  session_store->create_sessions(imsi, std::move(sessions));
+
+  // 4) Read session for IMSI1 from SessionStore
+  SessionRead read_req = {};
+  read_req.insert(imsi);
+  auto session_map = session_store->read_sessions(read_req);
+
+  // 5) Verify that state was written for IMSI1 and has been retrieved.
+  EXPECT_EQ(session_map.size(), 1);
+  EXPECT_EQ(session_map[imsi].size(), 1);
+  EXPECT_EQ(session_map[imsi].front()->get_request_number(), 1);
+
+  // 6) Make updates to session via SessionUpdateCriteria
+  auto update_req = SessionUpdate{};
+  update_req[imsi] = std::unordered_map<std::string,
+      SessionStateUpdateCriteria>{};
+  auto update_criteria = get_update_criteria();
+  update_criteria.request_number_increment = 3;
+  update_req[imsi][sid] = update_criteria;
+
+  // 7) Sync updated request_numbers to SessionStore
+  session_store->sync_request_numbers(update_req);
+
+  // And then here a gRPC request would be made to another service.
+  // The callback would be scheduled onto the event loop, and in the
+  // interim, other callbacks can run and make reads to the SessionStore
+
+  // 8) Read in session for IMSI1 again to check that the update was successful
+  auto session_map_2 = session_store->read_sessions(read_req);
+  EXPECT_EQ(session_map_2.size(), 1);
+  EXPECT_EQ(session_map_2[imsi].size(), 1);
+  EXPECT_EQ(session_map_2[imsi].front()->get_session_id(), sid);
+  EXPECT_EQ(session_map_2[imsi].front()->get_request_number(), 4);
 }
 
 TEST_F(SessionStoreTest, test_get_default_session_update)

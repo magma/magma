@@ -3,7 +3,7 @@ swagger: '2.0'
 info:
   title: Alertmanager Configurer Model Definitions and Paths
   description: Alertmanager Configurer REST APIs
-  version: 1.0.1
+  version: 1.0.2
 basePath: /v1
 paths:
   /{tenant_id}/receiver:
@@ -125,6 +125,17 @@ paths:
       responses:
         '200':
           description: OK
+        default:
+          $ref: '#/responses/UnexpectedError'
+
+  /tenants:
+    get:
+      summary: List configured tenants
+      tags:
+        - Tenants
+      responses:
+        '200':
+          description: List of configured tenants
         default:
           $ref: '#/responses/UnexpectedError'
 
@@ -292,31 +303,6 @@ definitions:
       dismiss_text:
         type: string
 
-  pushover_receiver:
-    type: object
-    required:
-      - user_key
-      - token
-    properties:
-      http_config:
-        $ref: '#/definitions/http_config'
-      user_key:
-        type: string
-      token:
-        type: string
-      title:
-        type: string
-      message:
-        type: string
-      url:
-        type: string
-      priority:
-        type: string
-      retry:
-        type: string
-      expire:
-        type: string
-
   pagerduty_receiver:
     type: object
     required:
@@ -416,6 +402,31 @@ definitions:
       url:
         type: string
         format: uri
+
+  pushover_receiver:
+    type: object
+    required:
+      - user_key
+      - token
+    properties:
+      http_config:
+        $ref: '#/definitions/http_config'
+      user_key:
+        type: string
+      token:
+        type: string
+      title:
+        type: string
+      message:
+        type: string
+      url:
+        type: string
+      priority:
+        type: string
+      retry:
+        type: string
+      expire:
+        type: string
 
   routing_tree:
     type: object

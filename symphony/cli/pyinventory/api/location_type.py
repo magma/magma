@@ -7,10 +7,13 @@ from typing import List
 
 from pysymphony import SymphonyClient
 
-from .._utils import format_property_definitions
 from ..common.cache import LOCATION_TYPES
 from ..common.data_class import Location, LocationType, PropertyDefinition
 from ..common.data_enum import Entity
+from ..common.data_format import (
+    format_to_property_definitions,
+    format_to_property_type_inputs,
+)
 from ..exceptions import EntityNotFoundError
 from ..graphql.input.add_location_type import AddLocationTypeInput
 from ..graphql.mutation.add_location_type import AddLocationTypeMutation
@@ -29,7 +32,9 @@ def _populate_location_types(client: SymphonyClient) -> None:
         node = edge.node
         if node:
             LOCATION_TYPES[node.name] = LocationType(
-                name=node.name, id=node.id, property_types=node.propertyTypes
+                name=node.name,
+                id=node.id,
+                property_types=format_to_property_definitions(node.propertyTypes),
             )
 
 
@@ -60,7 +65,7 @@ def add_location_type(
                     PropertyDefinition(
                         property_name="Contact",
                         property_kind=PropertyKind.string,
-                        default_value=None,
+                        default_raw_value=None,
                         is_fixed=True
                     )
                 ],
@@ -68,7 +73,7 @@ def add_location_type(
             )
             ```
     """
-    new_property_types = format_property_definitions(properties)
+    new_property_types = format_to_property_type_inputs(data=properties)
     result = AddLocationTypeMutation.execute(
         client,
         AddLocationTypeInput(
@@ -80,7 +85,9 @@ def add_location_type(
     )
 
     location_type = LocationType(
-        name=result.name, id=result.id, property_types=result.propertyTypes
+        name=result.name,
+        id=result.id,
+        property_types=format_to_property_definitions(result.propertyTypes),
     )
     LOCATION_TYPES[result.name] = location_type
     return location_type
@@ -122,8 +129,8 @@ def delete_locations_by_location_type(
                     name=node.name,
                     latitude=node.latitude,
                     longitude=node.longitude,
-                    externalId=node.externalId,
-                    locationTypeName=node.locationType.name,
+                    external_id=node.externalId,
+                    location_type_name=node.locationType.name,
                     properties=node.properties,
                 ),
             )

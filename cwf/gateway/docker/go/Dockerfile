@@ -1,4 +1,4 @@
-ARG baseImage="ubuntu:xenial"
+ARG baseImage="ubuntu:bionic"
 FROM ${baseImage} as base
 
 # Add the magma apt repo

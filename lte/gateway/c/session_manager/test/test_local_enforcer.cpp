@@ -399,14 +399,10 @@ TEST_F(LocalEnforcerTest, test_update_session_credits_and_rules) {
   auto credit_updates_response = update_response.mutable_responses();
   create_credit_update_response("IMSI1", 1, 24, credit_updates_response->Add());
 
-  std::vector<EventTrigger> event_triggers{EventTrigger::TAI_CHANGE,
-                                           EventTrigger::REVALIDATION_TIMEOUT};
   auto monitor_updates_response =
       update_response.mutable_usage_monitor_responses();
   create_monitor_update_response("IMSI1", "1", MonitoringLevel::PCC_RULE_LEVEL,
-                                 2048, event_triggers, time(NULL),
-                                 monitor_updates_response->Add());
-  EXPECT_CALL(*reporter, report_updates(_, _)).Times(1);
+                                 2048, monitor_updates_response->Add());
   session_map = session_store->read_sessions(SessionRead{"IMSI1"});
   local_enforcer->update_session_credits_and_rules(session_map, update_response,
                                                    update);
@@ -629,6 +625,47 @@ TEST_F(LocalEnforcerTest, test_sync_sessions_on_restart) {
   EXPECT_FALSE(session->is_dynamic_rule_installed("dynamic_rule2"));
   EXPECT_TRUE(session->is_dynamic_rule_installed("dynamic_rule3"));
   EXPECT_FALSE(session->is_dynamic_rule_installed("dynamic_rule4"));
+}
+
+TEST_F(LocalEnforcerTest, test_sync_sessions_on_restart_revalidation_timer) {
+  const std::string imsi = "IMSI1";
+  const std::string session_id = "1234";
+  magma::lte::TgppContext tgpp_ctx;
+  CreateSessionResponse response;
+  create_credit_update_response(imsi, 1, 1024, true,
+                                response.mutable_credits()->Add());
+  auto session_state = new SessionState(
+      imsi, session_id, session_id, test_cfg, *rule_store, tgpp_ctx);
+
+  // manually place revalidation timer
+  SessionStateUpdateCriteria uc;
+  session_state->add_new_event_trigger(REVALIDATION_TIMEOUT, uc);
+  EXPECT_EQ(uc.is_pending_event_triggers_updated, true);
+  EXPECT_EQ(uc.pending_event_triggers[REVALIDATION_TIMEOUT], false);
+  google::protobuf::Timestamp time;
+  time.set_seconds(0);
+  session_state->set_revalidation_time(time, uc);
+
+  session_map[imsi] = std::vector<std::unique_ptr<SessionState>>();
+  session_map[imsi].push_back(
+    std::move(std::unique_ptr<SessionState>(session_state)));
+
+  EXPECT_EQ(session_map[imsi].size(), 1);
+  bool success = session_store->create_sessions(imsi, std::move(session_map[imsi]));
+  EXPECT_TRUE(success);
+
+  local_enforcer->sync_sessions_on_restart(std::time_t(0));
+  // sync_sessions_on_restart should call schedule_revalidation which puts
+  // two things on the event loop
+  evb->loopOnce();
+  evb->loopOnce();
+  // We expect that the event trigger will now be marked as ready to be acted on
+  auto session_map_2 = session_store->read_sessions(SessionRead{imsi});
+  EXPECT_EQ(session_map_2[imsi].size(), 1);
+
+  auto& session = session_map_2[imsi].front();
+  auto events = session->get_event_triggers();
+  EXPECT_EQ(events[REVALIDATION_TIMEOUT], true);
 }
 
 // Make sure sessions that are scheduled to be terminated before sync are
@@ -1345,10 +1382,14 @@ TEST_F(LocalEnforcerTest, test_revalidation_timer_on_rar) {
   success = session_store->update_sessions(update);
   EXPECT_TRUE(success);
 
-  EXPECT_CALL(*reporter, report_updates(_, _)).Times(1);
   // schedule_revalidation puts two things on the event loop
+  // updates the session's state with revalidation_requested_ set to true
   evb->loopOnce();
   evb->loopOnce();
+  session_map = session_store->read_sessions(SessionRead{"IMSI1"});
+  std::vector<std::unique_ptr<ServiceAction>> actions;
+  auto updates = local_enforcer->collect_updates(session_map, actions, update);
+  EXPECT_EQ(updates.usage_monitors_size(), 1);
 }
 
 TEST_F(LocalEnforcerTest, test_revalidation_timer_on_update) {
@@ -1407,11 +1448,15 @@ TEST_F(LocalEnforcerTest, test_revalidation_timer_on_update) {
   success = session_store->update_sessions(update);
   EXPECT_TRUE(success);
 
-  // Report 2 monitors for IMSI1
-  EXPECT_CALL(*reporter, report_updates(CheckUpdateRequestCount(2, 0), _)).Times(1);
   // a single schedule_revalidation puts two things on the event loop
+  // updates the session's state with revalidation_requested_ set to true
   evb->loopOnce();
   evb->loopOnce();
+
+  session_map = session_store->read_sessions(SessionRead{"IMSI1"});
+  std::vector<std::unique_ptr<ServiceAction>> actions;
+  auto updates = local_enforcer->collect_updates(session_map, actions, update);
+  EXPECT_EQ(updates.usage_monitors_size(), 1);
 }
 
 TEST_F(LocalEnforcerTest, test_pipelined_cwf_setup) {

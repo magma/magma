@@ -266,7 +266,7 @@ func TestGyLinksFailureOCStoFEG(t *testing.T) {
 // - Expect a CCR-T, trigger a UE disconnect, and assert the CCR-T is received.
 // NOTE : the test is only verifying that session was not terminated. Improvment is needed to validate
 //   that ovs rule is well added and traffic is being redirected.
-func TestGyCreditExhaustionRedirect(t *testing.T) {
+func testGyCreditExhaustionRedirect(t *testing.T) {
 	fmt.Println("\nRunning TestGyCreditExhaustionRedirect...")
 
 	tr, ruleManager, ue := ocsCreditExhaustionTestSetup(t)
