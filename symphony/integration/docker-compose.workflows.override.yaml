@@ -8,3 +8,8 @@ services:
     command: yarn run start:dev
     volumes:
       - ${XPLAT_FBC_DIR}/fbcnms-projects/workflows/src:/app/fbcnms-projects/workflows/src
+    networks:
+      - private
+      - public
+    ports:
+      - 8088:80

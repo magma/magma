@@ -14,6 +14,7 @@ import logging from '@fbcnms/logging';
 
 import qs from 'qs';
 import {
+  GLOBAL_PREFIX,
   addTenantIdPrefix,
   anythingTo,
   assertAllowedSystemTask,
@@ -55,7 +56,7 @@ export function sanitizeWorkflowdefBefore(
 }
 
 function sanitizeWorkflowTaskdefBefore(tenantId: string, task: Task) {
-  addTenantIdPrefix(tenantId, task);
+  addTenantIdPrefix(tenantId, task, true);
 
   // add prefix to SUB_WORKFLOW tasks' referenced workflows
   if (isSubworkflowTask(task)) {
@@ -96,9 +97,8 @@ function sanitizeWorkflowTaskdefBefore(tenantId: string, task: Task) {
 }
 
 // Utility used after getting single or all workflowdefs to remove prefix from
-// workflowdef names, taskdef names.
-// Return true iif sanitization succeeded, false iif this
-// workflowdef is invalid
+// workflowdef names, taskdef names. Taskdefs can be global or tenant prefixed.
+// Return true iif sanitization succeeded.
 export function sanitizeWorkflowdefAfter(
   tenantId: string,
   workflowdef: Workflow,
@@ -186,14 +186,15 @@ function sanitizeWorkflowTaskdefAfter(
     }
   }
 
+  if (task.name.indexOf(withInfixSeparator(GLOBAL_PREFIX)) == 0) {
+    return true;
+  }
   if (task.name.indexOf(tenantWithInfixSeparator) == 0) {
     // remove prefix
     task.name = task.name.substr(tenantWithInfixSeparator.length);
-  } else {
-    return false;
+    return true;
   }
-
-  return true;
+  return false;
 }
 
 // Retrieves all workflow definition along with blueprint
@@ -333,7 +334,7 @@ curl -X PUT -H "x-auth-organization: fb-test" \
         "inputParameters": {}
         },
         {
-        "name": "GLOBAL_GLOBAL1",
+        "name": "GLOBAL___js",
         "taskReferenceName": "globref",
         "type": "SIMPLE",
         "inputParameters": {}

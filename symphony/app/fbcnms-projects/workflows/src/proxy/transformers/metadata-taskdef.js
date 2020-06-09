@@ -13,10 +13,12 @@ import logging from '@fbcnms/logging';
 // Currently just filters result without passing prefix to conductor.
 // TODO: implement querying by prefix in conductor
 import {
+  GLOBAL_PREFIX,
   addTenantIdPrefix,
   anythingTo,
   assertAllowedSystemTask,
   createProxyOptionsBuffer,
+  removeTenantPrefix,
   withInfixSeparator,
 } from '../utils.js';
 
@@ -36,17 +38,21 @@ curl  -H "x-auth-organization: fb-test" "localhost/proxy/api/metadata/taskdefs"
 const getAllTaskdefsAfter: AfterFun = (tenantId, groups, req, respObj) => {
   const tasks = anythingTo<Array<Task>>(respObj);
   // iterate over taskdefs, keep only those belonging to tenantId or global
-  // remove tenantId prefix, keep GLOBAL_
   const tenantWithInfixSeparator = withInfixSeparator(tenantId);
+  const globalPrefix = withInfixSeparator(GLOBAL_PREFIX);
+
   for (let idx = tasks.length - 1; idx >= 0; idx--) {
     const taskdef = tasks[idx];
-    if (taskdef.name.indexOf(tenantWithInfixSeparator) == 0) {
-      taskdef.name = taskdef.name.substr(tenantWithInfixSeparator.length);
-    } else {
+    if (
+      taskdef.name.indexOf(tenantWithInfixSeparator) != 0 &&
+      taskdef.name.indexOf(globalPrefix) != 0
+    ) {
       // remove element
       tasks.splice(idx, 1);
     }
   }
+  // remove tenantId prefix, keep GLOBAL prefix
+  removeTenantPrefix(tenantId, tasks, '$[*].name', true);
 };
 
 // Used in POST and PUT
