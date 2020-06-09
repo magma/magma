@@ -94,14 +94,11 @@ export default function() {
 
   return (
     <>
-      {/* TODO: Can come back and make this a reusable component for other cards */}
       <Grid container alignItems="center" className={classes.cardTitle}>
         <Alarm className={classes.cardTitleIcon} />
         <Text variant="body1">Alerts ({alerts.length})</Text>
       </Grid>
-      {/* <Card> */}
       <TabbedTable data={data} />
-      {/* </Card> */}
     </>
   );
 }
