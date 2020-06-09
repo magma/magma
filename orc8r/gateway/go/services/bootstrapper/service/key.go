@@ -12,9 +12,10 @@ package service
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
+
+	"github.com/golang/glog"
 
 	"magma/gateway/config"
 	"magma/orc8r/lib/go/security/key"
@@ -28,7 +29,7 @@ func GetChallengeKey() (privKey interface{}, err error) {
 	if err == nil {
 		return // all good, return the key
 	}
-	log.Printf("Bootstrapper ReadKey(%s) error: %v", challengeKeyFile, err)
+	glog.Warningf("Bootstrapper ReadKey(%s) error: %v", challengeKeyFile, err)
 
 	if os.IsNotExist(err) { // file doesn't exist, try to create it
 		privKey, err = key.GenerateKey(PrivateKeyType, 0)

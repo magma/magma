@@ -17,7 +17,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"magma/gateway/service_registry"
 	"magma/orc8r/lib/go/definitions"
 	"magma/orc8r/lib/go/protos"
@@ -29,6 +28,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/golang/glog"
 	"golang.org/x/net/http2"
 )
 
@@ -128,12 +128,12 @@ func (c *SyncRpcClient) Run() {
 			// TODO
 			// Continue for retryable grpc errors
 			// Add a delay/jitter for retrying cloud connection for non retryable grpc errors
-			log.Printf("[SyncRpc] error creating cloud connection: %v", err)
+			glog.Errorf("[SyncRpc] error creating cloud connection: %v", err)
 			time.Sleep(currentBackoffInterval)
 			continue
 		} else {
 			currentBackoffInterval = MinRetryInterval // reset backoff interval
-			log.Printf("[SyncRpc] successfully connected to cloud '%s' service", definitions.DispatcherServiceName)
+			glog.Infof("[SyncRpc] successfully connected to cloud '%s' service", definitions.DispatcherServiceName)
 		}
 
 		// this should simply wait here for requests and process responses
@@ -154,7 +154,7 @@ func (c *SyncRpcClient) runSyncRpcClient(ctx context.Context, client protos.Sync
 	c.client = client
 	stream, err := c.client.EstablishSyncRPCStream(ctx)
 	if err != nil {
-		log.Printf("[SyncRPC] Failed establishing SyncRpc stream; error: %v", err)
+		glog.Errorf("[SyncRPC] Failed establishing SyncRpc stream; error: %v", err)
 		return err
 	}
 
@@ -172,7 +172,7 @@ func (c *SyncRpcClient) runSyncRpcClient(ctx context.Context, client protos.Sync
 			if !c.isReqTerminated(resp.ReqId) {
 				err := stream.Send(resp)
 				if err != nil {
-					log.Printf("[SyncRpc] send to dispatcher failed: %v", err)
+					glog.Errorf("[SyncRpc] send to dispatcher failed: %v", err)
 					return err
 				}
 				timer.Reset(c.cfg.SyncRpcHeartbeatInterval)
@@ -185,13 +185,13 @@ func (c *SyncRpcClient) runSyncRpcClient(ctx context.Context, client protos.Sync
 		case <-timer.C:
 			err := stream.Send(&protos.SyncRPCResponse{HeartBeat: true})
 			if err != nil {
-				log.Printf("[SyncRpc] heartbeat to dispatcher failed")
+				glog.Error("[SyncRpc] heartbeat to dispatcher failed")
 				return err
 			}
 			timer.Reset(c.cfg.SyncRpcHeartbeatInterval)
 
 		case <-ctx.Done():
-			log.Printf("[SyncRPC] Stopping SyncRpcClient")
+			glog.Info("[SyncRPC] Stopping SyncRpcClient")
 			return nil
 		}
 	}
@@ -241,7 +241,7 @@ func (c *SyncRpcClient) removeOutstandingReqs(reqID uint32) {
 // handleSyncRpcRequest forwards the incoming request to the appropriate destination
 func (c *SyncRpcClient) handleSyncRpcRequest(inCtx context.Context, req *protos.SyncRPCRequest) {
 	if req == nil {
-		log.Printf("[SyncRpc] error empty request received")
+		glog.Error("[SyncRpc] error empty request received")
 		return
 	}
 
@@ -271,7 +271,7 @@ func (c *SyncRpcClient) handleSyncRpcRequest(inCtx context.Context, req *protos.
 	gatewayReq := req.GetReqBody()
 	serviceAddr, err := c.serviceRegistry.GetServiceAddress(gatewayReq.Authority)
 	if err != nil {
-		log.Printf("[SyncRpc] error getting service address: %v", err)
+		glog.Errorf("[SyncRpc] error getting service address: %v", err)
 		return
 	}
 
@@ -287,14 +287,14 @@ func (c *SyncRpcClient) processStream(ctx context.Context,
 	for {
 		req, err := stream.Recv()
 		if err != nil {
-			log.Printf("[SyncRPC] error: %v, failed handling sync request", err)
+			glog.Errorf("[SyncRPC] error: %v, failed handling sync request", err)
 			return err
 		}
 
 		c.handleSyncRpcRequest(ctx, req)
 		select {
 		case <-ctx.Done():
-			log.Printf("[SyncRPC] exiting processing stream")
+			glog.Info("[SyncRPC] exiting processing stream")
 			return nil
 		default:
 			break
@@ -356,7 +356,7 @@ func (p *brokerImpl) sendInternal(ctx context.Context, serviceAddr string, req *
 		// handle and send error
 		if respErr != nil {
 			respErr = fmt.Errorf("ReqID %d failed: %v", req.ReqId, respErr)
-			log.Printf("[SyncRPC] error: %v", respErr)
+			glog.Errorf("[SyncRPC] error: %v", respErr)
 			respCh <- buildSyncRpcErrorResponse(req.ReqId, respErr.Error())
 		}
 	}()

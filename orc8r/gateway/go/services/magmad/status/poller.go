@@ -13,9 +13,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"strings"
 	"sync"
+
+	"github.com/golang/glog"
 
 	"magma/gateway/service_registry"
 	"magma/gateway/status"
@@ -61,12 +62,12 @@ func startServiceQuery(service string, queryMetrics bool) error {
 		ctx := context.Background()
 		statesResp, err := client.GetOperationalStates(ctx, &protos.Void{})
 		if err != nil {
-			log.Printf("service '%s' GetServiceInfo error: %v", service, err)
+			glog.Errorf("service '%s' GetServiceInfo error: %v", service, err)
 		}
 		if queryMetrics {
 			serviceMetrics, merr = client.GetMetrics(ctx, &protos.Void{})
 			if merr != nil {
-				log.Printf("service '%s' GetMetrics error: %v", service, err)
+				glog.Errorf("service '%s' GetMetrics error: %v", service, err)
 			}
 		}
 		pollerMu.Lock()
