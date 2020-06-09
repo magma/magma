@@ -214,6 +214,7 @@ void SessionState::get_updates_from_charging_pool(
     fill_protos_tgpp_context(new_req->mutable_tgpp_ctx());
     new_req->mutable_usage()->CopyFrom(update);
     request_number_++;
+    update_criteria.request_number_increment++;
   }
 }
 
@@ -231,6 +232,7 @@ void SessionState::get_updates_from_monitor_pool(
     new_req->mutable_update()->CopyFrom(update);
     new_req->set_event_trigger(USAGE_REPORT);
     request_number_++;
+    update_criteria.request_number_increment++;
   }
   // todo We should also handle other event triggers here too
   auto it = pending_event_triggers_.find(REVALIDATION_TIMEOUT);
@@ -239,6 +241,7 @@ void SessionState::get_updates_from_monitor_pool(
     add_common_fields_to_usage_monitor_update(new_req);
     new_req->set_event_trigger(REVALIDATION_TIMEOUT);
     request_number_++;
+    update_criteria.request_number_increment++;
     // todo we might want to make sure that the update went successfully before
     // clearing here
     remove_event_trigger(REVALIDATION_TIMEOUT, update_criteria);
