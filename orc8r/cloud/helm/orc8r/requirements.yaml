@@ -19,6 +19,6 @@ dependencies:
     repository: ""
     condition: nms.enabled
   - name: logging
-    version: 0.1.9
+    version: 0.1.10
     repository: ""
     condition: logging.enabled

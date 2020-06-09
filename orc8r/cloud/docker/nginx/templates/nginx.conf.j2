@@ -8,6 +8,25 @@ events {
 }
 
 http {
+  # Custom JSON-formatted log
+  log_format json_custom escape=json
+    '{'
+      '"time_local": "$time_local",'
+      '"remote_addr": "$remote_addr",'
+      '"request": "$request",'
+      '"request_method": "$request_method",'
+      '"request_uri": "$request_uri",'
+      '"status": $status,'
+      '"body_bytes_sent": $body_bytes_sent,'
+      '"request_length": $request_length,'
+      '"request_time": $request_time,'
+      '"server_name": "$server_name",'
+      '"clientcert_port": $srvport,'
+      '"open_port": $open_srvport,'
+      '"client_serial": "$ssl_client_serial",'
+      '"client_cn": "$ssl_client_s_dn_cn"'
+    '}';
+
   # See https://kubernetes.github.io/ingress-nginx/examples/grpc/#notes-on-using-responserequest-streams
   grpc_send_timeout 1200s;
   grpc_read_timeout 1200s;
@@ -52,7 +71,7 @@ http {
     root                /var/www;
 
     error_log  /var/log/nginx/error.log info;
-    access_log /var/log/nginx/access.log;
+    access_log /var/log/nginx/access.log json_custom;
 
     ssl_certificate     /var/opt/magma/certs/controller.crt;
     ssl_certificate_key /var/opt/magma/certs/controller.key;
@@ -78,7 +97,7 @@ http {
     root                /var/www;
 
     error_log  /var/log/nginx/error.log info;
-    access_log /var/log/nginx/access.log;
+    access_log /var/log/nginx/access.log json_custom;
 
     ssl_certificate     /var/opt/magma/certs/controller.crt;
     ssl_certificate_key /var/opt/magma/certs/controller.key;
@@ -98,7 +117,7 @@ http {
     server_name _;
 
     error_log  /var/log/nginx/error.log info;
-    access_log /var/log/nginx/access.log;
+    access_log /var/log/nginx/access.log json_custom;
 
     ssl_certificate     /var/opt/magma/certs/controller.crt;
     ssl_certificate_key /var/opt/magma/certs/controller.key;

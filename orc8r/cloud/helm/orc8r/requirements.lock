@@ -10,6 +10,6 @@ dependencies:
   version: 0.1.6
 - name: logging
   repository: ""
-  version: 0.1.9
+  version: 0.1.10
 digest: sha256:25cdc16d971bef65681a576b37021b2be3967b60fe9ce7f348ad31db9bf16c0a
 generated: "2019-11-14T21:58:25.774323-08:00"
