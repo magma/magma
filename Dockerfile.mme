@@ -141,7 +141,7 @@ RUN wget https://liblfds.org/downloads/liblfds%20release%207.1.0%20source.tar.bz
 
 ##### libgtpnl
 # review https://github.com/OPENAIRINTERFACE/openair-cn/blob/master/build/tools/build_helper.gtpnl
-RUN git clone git://git.osmocom.org/libgtpnl && \
+RUN git clone https://git.osmocom.org/libgtpnl && \
     cd libgtpnl && \
     git reset --hard 345d687 && \
     autoreconf -fi && \
