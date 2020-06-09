@@ -9,8 +9,9 @@ LICENSE file in the root directory of this source tree.
 package config
 
 import (
-	"log"
 	"time"
+
+	"github.com/golang/glog"
 
 	"magma/orc8r/lib/go/definitions"
 	"magma/orc8r/lib/go/service/config"
@@ -76,7 +77,7 @@ func (cpc *ControlProxyCfg) UpdateFromYml() (StructuredConfig, string, string) {
 	}
 	ymlFile, ymlOWFile, err := config.GetStructuredServiceConfig("", definitions.ControlProxyServiceName, newCfg)
 	if err != nil {
-		log.Printf("Error Getting Control Proxy Configs: %v,\n\tcontinue using old configs: %+v", err, cpc)
+		glog.Warningf("Error Getting Control Proxy Configs: %v,\n\tcontinue using old configs: %+v", err, cpc)
 	} else {
 		if cpc != newCfg { // success, copy if needed
 			*cpc = *newCfg

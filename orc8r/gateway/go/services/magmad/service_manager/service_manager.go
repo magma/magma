@@ -12,11 +12,12 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"os/exec"
 	"strings"
 	"sync/atomic"
+
+	"github.com/golang/glog"
 
 	"magma/gateway/config"
 )
@@ -36,7 +37,7 @@ func Get() ServiceController {
 	if contr, ok := registry[initSystem]; ok {
 		return contr
 	}
-	log.Printf("process controller for '%s' cannot be found, using '%s' controller",
+	glog.Warningf("process controller for '%s' cannot be found, using '%s' controller",
 		initSystem, defaultController.Name())
 	return defaultController
 }
