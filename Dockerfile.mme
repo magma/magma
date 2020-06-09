@@ -212,5 +212,13 @@ RUN ldconfig && \
 
 FROM ubuntu:bionic
 
-COPY --from=builder /build/c/oai_mme/mme /var/opt/magma/bin/mme
+# Copy pre-built shared object files
+COPY --from=builder /lib/x86_64-linux-gnu/*.so* /lib/x86_64-linux-gnu/ 
+COPY --from=builder /usr/lib/x86_64-linux-gnu/*.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=builder /usr/local/lib/*.so* /usr/local/lib/ 
+# Refresh library cache
+RUN ldconfig
+# Copy pre-built binary
+COPY --from=builder /build/c/oai/oai_mme/mme /var/opt/magma/bin/mme
+
 # CMD []
