@@ -8,6 +8,52 @@
  * @format
  */
 
+//  NOTE: Color Names generated from hex code at http://chir.ag/projects/name-that-color/
+
+export const colors = {
+  primary: {
+    white: '#FFFFFF',
+    selago: '#F4F7FD',
+    concrete: '#F2F2F2',
+    mercury: '#E5E5E5',
+    nobel: '#B3B3B3',
+    gullGray: '#9DA7BB',
+    comet: '#545F77',
+    brightGray: '#323845',
+    mirage: '#171B25',
+  },
+  secondary: {
+    malibu: '#88B3F9',
+    dodgerBlue: '#3984FF',
+    mariner: '#1F5BC4',
+  },
+  state: {
+    positive: '#31BF56',
+    positiveAlt: '#229A41',
+    error: '#E52240',
+    errorAlt: '#B21029',
+    errorFill: '#FFF8F9',
+    warning: '#F5DD5A',
+    warningAlt: '#B69900',
+    warningFill: '#FFFCED',
+  },
+  data: {
+    coral: '#FF824B',
+    flamePea: '#E36730',
+    portage: '#A07EEA',
+    studio: '#6649A6',
+  },
+  code: {
+    crusta: '#F76D47',
+    pelorous: '#39B6C8',
+    electricViolet: '#7D4DFF',
+    orchid: '#DA70D6',
+    chelseaCucumber: '#91B859',
+    candlelight: '#FFD715',
+    mischka: '#D4D8DE',
+  },
+};
+
 export type TextVariant =
   | 'h1'
   | 'h2'
@@ -24,111 +70,113 @@ export type TextVariant =
   | 'caption'
   | 'overline';
 
-// TODO: Load 'Inter' and 'Fira Code' fonts
+export const typography = {
+  h1: {
+    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+    fontWeight: 400,
+    fontSize: '56px',
+    lineHeight: 1.33,
+    letterSpacing: '-1px',
+  },
+  h2: {
+    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+    fontWeight: 300,
+    fontSize: '48px',
+    lineHeight: 1.33,
+    letterSpacing: '0.5px',
+  },
+  h3: {
+    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+    fontWeight: 400,
+    fontSize: '34px',
+    lineHeight: 1.33,
+    letterSpacing: '0.25px',
+  },
+  h4: {
+    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+    fontWeight: 400,
+    fontSize: '24px',
+    lineHeight: 1.33,
+    letterSpacing: '0.15px',
+  },
+  h5: {
+    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+    fontWeight: 400,
+    fontSize: '20px',
+    lineHeight: 'normal',
+    letterSpacing: '0.15px',
+  },
+  subtitle1: {
+    fontFamily: '"Inter", sans-serif',
+    fontWeight: 500,
+    fontSize: '16px',
+    lineHeight: 1.4,
+    letterSpacing: '0.15px',
+  },
+  subtitle2: {
+    fontFamily: '"Inter", sans-serif',
+    fontWeight: 700,
+    fontSize: '14px',
+    lineHeight: 1.71,
+  },
+  body1: {
+    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+    fontWeight: 500,
+    fontSize: '18px',
+    lineHeight: 1.5,
+    letterSpacing: '0.5px',
+  },
+  body2: {
+    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+    fontWeight: 500,
+    fontSize: '14px',
+    lineHeight: 1.43,
+    letterSpacing: '0.25px',
+  },
+  body3: {
+    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+    fontWeight: 500,
+    fontSize: '12px',
+    lineHeight: 1,
+  },
+  code: {
+    fontFamily: '"Fira Code", sans-serif',
+    fontWeight: 500,
+    fontSize: '12px',
+    lineHeight: 1,
+  },
+  button: {
+    fontFamily: '"Inter", sans-serif',
+    fontWeight: 600,
+    fontSize: '12px',
+    lineHeight: 1.33,
+    letterSpacing: '0.5px',
+  },
+  caption: {
+    fontFamily: '"Inter", sans-serif',
+    fontWeight: 700,
+    fontSize: '12px',
+    lineHeight: 1.33,
+    letterSpacing: '0.8px',
+  },
+  overline: {
+    fontFamily: '"Inter", sans-serif',
+    fontWeight: 500,
+    fontSize: '12px',
+    lineHeight: 0.66,
+    letterSpacing: '0.4px',
+  },
+};
 
-export default {
-  shadows: {
-    DP1: '0px 1px 4px 0px rgba(0, 0, 0, 0.17)',
-    DP2: '0px 2px 8px 1px rgba(0, 0, 0, 0.14)',
-    DP3: '0px 3px 20px 0px rgba(0, 0, 0, 0.21)',
-    DP4:
-      '0px 5px 5px -3px rgba(0, 0, 0, 0.2),0px 3px 14px 2px rgba(0, 0, 0, 0.12),0px 8px 10px 1px rgba(0, 0, 0, 0.14)',
-  },
-  typography: {
-    h1: {
-      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-      fontWeight: 400,
-      fontSize: '56px',
-      lineHeight: 1.33,
-      letterSpacing: '-1px',
-    },
-    h2: {
-      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-      fontWeight: 300,
-      fontSize: '48px',
-      lineHeight: 1.33,
-      letterSpacing: '0.5px',
-    },
-    h3: {
-      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-      fontWeight: 400,
-      fontSize: '34px',
-      lineHeight: 1.33,
-      letterSpacing: '0.25px',
-    },
-    h4: {
-      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-      fontWeight: 400,
-      fontSize: '24px',
-      lineHeight: 1.33,
-      letterSpacing: '0.15px',
-    },
-    h5: {
-      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-      fontWeight: 400,
-      fontSize: '20px',
-      lineHeight: 'normal',
-      letterSpacing: '0.15px',
-    },
-    subtitle1: {
-      fontFamily: '"Inter", sans-serif',
-      fontWeight: 500,
-      fontSize: '16px',
-      lineHeight: 1.4,
-      letterSpacing: '0.15px',
-    },
-    subtitle2: {
-      fontFamily: '"Inter", sans-serif',
-      fontWeight: 700,
-      fontSize: '14px',
-      lineHeight: 1.71,
-    },
-    body1: {
-      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-      fontWeight: 500,
-      fontSize: '18px',
-      lineHeight: 1.5,
-      letterSpacing: '0.5px',
-    },
-    body2: {
-      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-      fontWeight: 500,
-      fontSize: '14px',
-      lineHeight: 1.43,
-      letterSpacing: '0.25px',
-    },
-    body3: {
-      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-      fontWeight: 500,
-      fontSize: '12px',
-      lineHeight: 1,
-    },
-    code: {
-      fontFamily: '"Fira Code", sans-serif',
-      fontWeight: 500,
-      fontSize: '12px',
-      lineHeight: 1,
-    },
-    button: {
-      fontFamily: '"Inter", sans-serif',
-      fontWeight: 600,
-      fontSize: '12px',
-      lineHeight: 1.33,
-      letterSpacing: '0.5px',
-    },
-    caption: {
-      fontFamily: '"Inter", sans-serif',
-      fontWeight: 700,
-      fontSize: '12px',
-      lineHeight: 1.33,
-      letterSpacing: '0.8px',
-    },
-    overline: {
-      fontFamily: '"Inter", sans-serif',
-      fontWeight: 500,
-      fontSize: '12px',
-      lineHeight: 0.66,
-      letterSpacing: '0.4px',
-    },
-  },
+export const shadows = {
+  DP1:
+    '0px 0px 2px 0px rgba(0, 0, 0, 0.14), 0px 2px 2px 0px rgba(0, 0, 0, 0.12), 0px 1px 3px 0px rgba(0, 0, 0, 0.20)',
+  DP2:
+    '0px 2px 4px 0px rgba(0, 0, 0, 0.14), 0px 3px 4px 0px rgba(0, 0, 0, 0.12), 0px 1px 5px 0px rgba(0, 0, 0, 0.20)',
+  DP3:
+    '0px 2px 4px 0px rgba(0, 0, 0, 0.14), 0px 4px 5px 0px rgba(0, 0, 0, 0.12), 0px 1px 10px 0px rgba(0, 0, 0, 0.20)',
+  DP4:
+    '0px 6px 10px 0px rgba(0, 0, 0, 0.14), 0px 1px 18px 0px rgba(0, 0, 0, 0.12), 0px 3px 5px 0px rgba(0, 0, 0, 0.20)',
+  DP5:
+    '0px 24px 38px 0px rgba(0, 0, 0, 0.14), 0px 9px 46px 0px rgba(0, 0, 0, 0.12), 0px 11px 15px 0px rgba(0, 0, 0, 0.20)',
 };
