@@ -1,7 +1,6 @@
-ARG GIT_PROXY
-
 FROM ubuntu:bionic as builder
 
+ARG GIT_PROXY
 ENV MAGMA_ROOT=/magma
 ENV C_BUILD=/build/c
 
