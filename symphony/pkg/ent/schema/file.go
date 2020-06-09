@@ -37,6 +37,8 @@ func (File) Fields() []ent.Field {
 		field.String("store_key"),
 		field.String("category").
 			Optional(),
+		field.String("annotation").
+			Optional(),
 	}
 }
 

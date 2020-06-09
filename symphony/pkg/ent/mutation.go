@@ -11852,6 +11852,7 @@ type FileMutation struct {
 	content_type                 *string
 	store_key                    *string
 	category                     *string
+	annotation                   *string
 	clearedFields                map[string]struct{}
 	location                     *int
 	clearedlocation              bool
@@ -12397,6 +12398,56 @@ func (m *FileMutation) ResetCategory() {
 	delete(m.clearedFields, file.FieldCategory)
 }
 
+// SetAnnotation sets the annotation field.
+func (m *FileMutation) SetAnnotation(s string) {
+	m.annotation = &s
+}
+
+// Annotation returns the annotation value in the mutation.
+func (m *FileMutation) Annotation() (r string, exists bool) {
+	v := m.annotation
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAnnotation returns the old annotation value of the File.
+// If the File object wasn't provided to the builder, the object is fetched
+// from the database.
+// An error is returned if the mutation operation is not UpdateOne, or database query fails.
+func (m *FileMutation) OldAnnotation(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldAnnotation is allowed only on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldAnnotation requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAnnotation: %w", err)
+	}
+	return oldValue.Annotation, nil
+}
+
+// ClearAnnotation clears the value of annotation.
+func (m *FileMutation) ClearAnnotation() {
+	m.annotation = nil
+	m.clearedFields[file.FieldAnnotation] = struct{}{}
+}
+
+// AnnotationCleared returns if the field annotation was cleared in this mutation.
+func (m *FileMutation) AnnotationCleared() bool {
+	_, ok := m.clearedFields[file.FieldAnnotation]
+	return ok
+}
+
+// ResetAnnotation reset all changes of the "annotation" field.
+func (m *FileMutation) ResetAnnotation() {
+	m.annotation = nil
+	delete(m.clearedFields, file.FieldAnnotation)
+}
+
 // SetLocationID sets the location edge to Location by id.
 func (m *FileMutation) SetLocationID(id int) {
 	m.location = &id
@@ -12762,7 +12813,7 @@ func (m *FileMutation) Type() string {
 // this mutation. Note that, in order to get all numeric
 // fields that were in/decremented, call AddedFields().
 func (m *FileMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 11)
 	if m.create_time != nil {
 		fields = append(fields, file.FieldCreateTime)
 	}
@@ -12793,6 +12844,9 @@ func (m *FileMutation) Fields() []string {
 	if m.category != nil {
 		fields = append(fields, file.FieldCategory)
 	}
+	if m.annotation != nil {
+		fields = append(fields, file.FieldAnnotation)
+	}
 	return fields
 }
 
@@ -12821,6 +12875,8 @@ func (m *FileMutation) Field(name string) (ent.Value, bool) {
 		return m.StoreKey()
 	case file.FieldCategory:
 		return m.Category()
+	case file.FieldAnnotation:
+		return m.Annotation()
 	}
 	return nil, false
 }
@@ -12850,6 +12906,8 @@ func (m *FileMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldStoreKey(ctx)
 	case file.FieldCategory:
 		return m.OldCategory(ctx)
+	case file.FieldAnnotation:
+		return m.OldAnnotation(ctx)
 	}
 	return nil, fmt.Errorf("unknown File field %s", name)
 }
@@ -12929,6 +12987,13 @@ func (m *FileMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetCategory(v)
 		return nil
+	case file.FieldAnnotation:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAnnotation(v)
+		return nil
 	}
 	return fmt.Errorf("unknown File field %s", name)
 }
@@ -12986,6 +13051,9 @@ func (m *FileMutation) ClearedFields() []string {
 	if m.FieldCleared(file.FieldCategory) {
 		fields = append(fields, file.FieldCategory)
 	}
+	if m.FieldCleared(file.FieldAnnotation) {
+		fields = append(fields, file.FieldAnnotation)
+	}
 	return fields
 }
 
@@ -13011,6 +13079,9 @@ func (m *FileMutation) ClearField(name string) error {
 		return nil
 	case file.FieldCategory:
 		m.ClearCategory()
+		return nil
+	case file.FieldAnnotation:
+		m.ClearAnnotation()
 		return nil
 	}
 	return fmt.Errorf("unknown File nullable field %s", name)
@@ -13050,6 +13121,9 @@ func (m *FileMutation) ResetField(name string) error {
 		return nil
 	case file.FieldCategory:
 		m.ResetCategory()
+		return nil
+	case file.FieldAnnotation:
+		m.ResetAnnotation()
 		return nil
 	}
 	return fmt.Errorf("unknown File field %s", name)
