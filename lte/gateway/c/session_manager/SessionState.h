@@ -13,15 +13,22 @@
 
 #include <lte/protos/session_manager.grpc.pb.h>
 
-#include "CreditPool.h"
 #include "RuleStore.h"
 #include "SessionReporter.h"
 #include "StoredState.h"
+#include "CreditKey.h"
+#include "SessionCredit.h"
 
 namespace magma {
 typedef std::unordered_map<CreditKey, std::unique_ptr<SessionCredit>,
                  decltype(&ccHash), decltype(&ccEqual)> CreditMap;
 static SessionStateUpdateCriteria UNUSED_UPDATE_CRITERIA;
+struct Monitor {
+  SessionCredit credit;
+  MonitoringLevel level;
+
+  Monitor() : credit(CreditType::MONITORING) {}
+};
 /**
  * SessionState keeps track of a current UE session in the PCEF, recording
  * usage and allowance for all charging keys
@@ -56,6 +63,7 @@ class SessionState {
 
   StoredSessionState marshal();
 
+  static std::unique_ptr<Monitor> unmarshal_monitor(const StoredMonitor &marshaled);
   /**
    * Updates rules to be scheduled, active, or removed, depending on the
    * specified time.
@@ -148,10 +156,6 @@ class SessionState {
 
   uint64_t get_charging_credit(const CreditKey &key, Bucket bucket) const;
 
-  bool init_charging_credit(
-    const CreditUpdateResponse &update,
-    SessionStateUpdateCriteria &uc);
-
   ReAuthResult reauth_key(const CreditKey &charging_key,
                                SessionStateUpdateCriteria &update_criteria);
 
@@ -163,8 +167,6 @@ class SessionState {
   void set_charging_credit(
     const CreditKey &key, std::unique_ptr<SessionCredit> credit,
     SessionStateUpdateCriteria &update_criteria);
-
-  UsageMonitoringCreditPool& get_monitor_pool();
 
   /**
    * get_total_credit_usage returns the tx and rx of the session,
@@ -192,9 +194,7 @@ class SessionState {
 
   void set_config(const SessionConfig& config);
 
-  SessionConfig get_config() ;
-
-  void fill_protos_tgpp_context(magma::lte::TgppContext* tgpp_context) const;
+  SessionConfig get_config() const;
 
   void set_subscriber_quota_state(
       const magma::lte::SubscriberQuotaUpdate_Type state,
@@ -207,12 +207,6 @@ class SessionState {
   void increment_request_number(uint32_t incr);
 
   // Methods related to the session's static and dynamic rules
-  bool get_charging_key_for_rule_id(
-      const std::string& rule_id, CreditKey* charging_key);
-
-  bool get_monitoring_key_for_rule_id(
-      const std::string& rule_id, std::string* monitoring_key);
-
   bool is_dynamic_rule_installed(const std::string& rule_id);
 
   bool is_gy_dynamic_rule_installed(const std::string& rule_id);
@@ -332,6 +326,7 @@ class SessionState {
 
   SessionFsmState get_state();
 
+  // Event Triggers
   void add_new_event_trigger(
   magma::lte::EventTrigger trigger,
   SessionStateUpdateCriteria& update_criteria);
@@ -354,12 +349,31 @@ class SessionState {
 
   EventTriggerStatus get_event_triggers() {return pending_event_triggers_;}
 
+  // Monitors
+  bool receive_monitor(const UsageMonitoringUpdateResponse &update,
+                       SessionStateUpdateCriteria &uc);
+
+  void merge_monitor_updates(
+    const std::string &key, SessionCreditUpdateCriteria &update);
+
+  uint64_t get_monitor(const std::string &key, Bucket bucket) const;
+
+  bool add_to_monitor(const std::string &key, uint64_t used_tx,
+                      uint64_t used_rx, SessionStateUpdateCriteria &uc);
+
+  void set_monitor(
+    const std::string &key, std::unique_ptr<Monitor> monitor,
+    SessionStateUpdateCriteria &uc);
+
+  bool reset_reporting_monitor(
+    const std::string &key, SessionStateUpdateCriteria &uc);
+
+  std::unique_ptr<std::string> get_session_level_key() const;
  private:
   std::string imsi_;
   std::string session_id_;
   std::string core_session_id_;
   uint32_t request_number_;
-  UsageMonitoringCreditPool monitor_pool_;
   SessionFsmState curr_state_;
   SessionConfig config_;
   // Used to keep track of whether the subscriber has valid quota.
@@ -400,6 +414,9 @@ class SessionState {
   */
   CreditMap credit_map_;
 
+  std::unordered_map<std::string, std::unique_ptr<Monitor>> monitor_map_;
+  std::unique_ptr<std::string> session_level_key_;
+
  private:
   /**
    * For this session, add the CreditUsageUpdate to the UpdateSessionRequest.
@@ -408,10 +425,13 @@ class SessionState {
    * @param update_request_out Modified with added CreditUsageUpdate
    * @param actions_out Modified with additional actions to take on session
    */
-  void get_updates_from_charging_pool(
+  void get_charging_updates(
       UpdateSessionRequest& update_request_out,
       std::vector<std::unique_ptr<ServiceAction>>* actions_out,
       SessionStateUpdateCriteria& uc);
+
+  bool init_charging_credit(
+    const CreditUpdateResponse &update, SessionStateUpdateCriteria &uc);
 
   /**
    * For this session, add the UsageMonitoringUpdateRequest to the
@@ -420,7 +440,7 @@ class SessionState {
    * @param update_request_out Modified with added UsdageMonitoringUpdateRequest
    * @param actions_out Modified with additional actions to take on session.
    */
-  void get_updates_from_monitor_pool(
+  void get_monitor_updates(
       UpdateSessionRequest& update_request_out,
       std::vector<std::unique_ptr<ServiceAction>>* actions_out,
       SessionStateUpdateCriteria& update_criteria);
@@ -442,6 +462,21 @@ class SessionState {
 
   SessionCreditUpdateCriteria* get_credit_uc(
     const CreditKey &key, SessionStateUpdateCriteria &uc);
+
+  bool init_new_monitor(
+    const UsageMonitoringUpdateResponse &update,
+    SessionStateUpdateCriteria &update_criteria);
+
+  void update_session_level_key(
+    const UsageMonitoringUpdateResponse &update,
+    SessionStateUpdateCriteria &update_criteria);
+
+  SessionCreditUpdateCriteria* get_monitor_uc(
+    const std::string &key, SessionStateUpdateCriteria &uc);
+
+  StoredMonitor marshal_monitor(std::unique_ptr<Monitor> &monitor);
+
+  void fill_protos_tgpp_context(magma::lte::TgppContext* tgpp_context) const;
 };
 
 }  // namespace magma

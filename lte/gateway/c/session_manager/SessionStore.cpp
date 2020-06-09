@@ -251,14 +251,14 @@ bool SessionStore::merge_into_session(
   for (const auto& it : update_criteria.monitor_credit_map) {
     auto key           = it.first;
     auto credit_update = it.second;
-    session->get_monitor_pool().merge_credit_update(key, credit_update);
+    session->merge_monitor_updates(key, credit_update);
   }
   for (const auto& it : update_criteria.monitor_credit_to_install) {
     auto key            = it.first;
     auto stored_monitor = it.second;
     auto uc             = get_default_update_criteria();
-    session->get_monitor_pool().add_monitor(
-        key, UsageMonitoringCreditPool::unmarshal_monitor(stored_monitor), uc);
+    session->set_monitor(
+        key, SessionState::unmarshal_monitor(stored_monitor), uc);
   }
   return true;
 }

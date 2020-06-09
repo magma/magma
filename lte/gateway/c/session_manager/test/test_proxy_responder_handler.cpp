@@ -185,15 +185,15 @@ TEST_F(SessionProxyResponderHandlerTest, test_policy_reauth) {
 
   auto credit_update                               = get_monitoring_update();
   UsageMonitoringUpdateResponse& credit_update_ref = *credit_update;
-  session->get_monitor_pool().receive_credit(credit_update_ref, uc);
+  session->receive_monitor(credit_update_ref, uc);
 
   // Add some used credit
-  session->get_monitor_pool().add_used_credit(
+  session->add_to_monitor(
       monitoring_key, uint64_t(111), uint64_t(333), uc);
   EXPECT_EQ(
-      session->get_monitor_pool().get_credit(monitoring_key, USED_TX), 111);
+      session->get_monitor(monitoring_key, USED_TX), 111);
   EXPECT_EQ(
-      session->get_monitor_pool().get_credit(monitoring_key, USED_RX), 333);
+      session->get_monitor(monitoring_key, USED_RX), 333);
 
   // 3) Commit session for IMSI1 into SessionStore
   auto sessions = std::vector<std::unique_ptr<SessionState>>{};

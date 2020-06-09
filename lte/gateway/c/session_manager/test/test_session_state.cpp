@@ -128,7 +128,7 @@ protected:
                                 MonitoringLevel level) {
     UsageMonitoringUpdateResponse monitor_resp;
     create_monitor_update_response("IMSI1", mkey, level, volume, &monitor_resp);
-    session_state->get_monitor_pool().receive_credit(monitor_resp,
+    session_state->receive_monitor(monitor_resp,
                                                      update_criteria);
   }
 
@@ -324,7 +324,7 @@ TEST_F(SessionStateTest, test_marshal_unmarshal) {
 
   EXPECT_EQ(update_criteria.monitor_credit_to_install.size(), 0);
   receive_credit_from_pcrf("m1", 1024, MonitoringLevel::PCC_RULE_LEVEL);
-  EXPECT_EQ(session_state->get_monitor_pool().get_credit("m1", ALLOWED_TOTAL),
+  EXPECT_EQ(session_state->get_monitor("m1", ALLOWED_TOTAL),
             1024);
   EXPECT_EQ(update_criteria.monitor_credit_to_install.size(), 1);
 
@@ -332,7 +332,7 @@ TEST_F(SessionStateTest, test_marshal_unmarshal) {
   auto unmarshaled = SessionState::unmarshal(marshaled, *rule_store);
   EXPECT_EQ(unmarshaled->get_charging_credit(1, ALLOWED_TOTAL),
             1024);
-  EXPECT_EQ(unmarshaled->get_monitor_pool().get_credit("m1", ALLOWED_TOTAL),
+  EXPECT_EQ(unmarshaled->get_monitor("m1", ALLOWED_TOTAL),
             1024);
   EXPECT_EQ(unmarshaled->is_static_rule_installed("rule1"), true);
   EXPECT_EQ(session_state->is_dynamic_rule_installed("rule2"), false);
@@ -355,7 +355,7 @@ TEST_F(SessionStateTest, test_insert_credit) {
             1024);
 
   receive_credit_from_pcrf("m1", 1024, MonitoringLevel::PCC_RULE_LEVEL);
-  EXPECT_EQ(session_state->get_monitor_pool().get_credit("m1", ALLOWED_TOTAL),
+  EXPECT_EQ(session_state->get_monitor("m1", ALLOWED_TOTAL),
             1024);
   EXPECT_EQ(update_criteria.monitor_credit_to_install["m1"]
                 .credit.buckets[ALLOWED_TOTAL],
@@ -427,8 +427,8 @@ TEST_F(SessionStateTest, test_add_rule_usage) {
   session_state->add_rule_usage("rule1", 2000, 1000, update_criteria);
   EXPECT_EQ(session_state->get_charging_credit(1, USED_TX), 2000);
   EXPECT_EQ(session_state->get_charging_credit(1, USED_RX), 1000);
-  EXPECT_EQ(session_state->get_monitor_pool().get_credit("m1", USED_TX), 2000);
-  EXPECT_EQ(session_state->get_monitor_pool().get_credit("m1", USED_RX), 1000);
+  EXPECT_EQ(session_state->get_monitor("m1", USED_TX), 2000);
+  EXPECT_EQ(session_state->get_monitor("m1", USED_RX), 1000);
   EXPECT_EQ(
       update_criteria.charging_credit_map[CreditKey(1)].bucket_deltas[USED_TX],
       2000);
@@ -438,8 +438,8 @@ TEST_F(SessionStateTest, test_add_rule_usage) {
   session_state->add_rule_usage("dyn_rule1", 4000, 2000, update_criteria);
   EXPECT_EQ(session_state->get_charging_credit(2, USED_TX), 4000);
   EXPECT_EQ(session_state->get_charging_credit(2, USED_RX), 2000);
-  EXPECT_EQ(session_state->get_monitor_pool().get_credit("m2", USED_TX), 4000);
-  EXPECT_EQ(session_state->get_monitor_pool().get_credit("m2", USED_RX), 2000);
+  EXPECT_EQ(session_state->get_monitor("m2", USED_TX), 4000);
+  EXPECT_EQ(session_state->get_monitor("m2", USED_RX), 2000);
   EXPECT_EQ(
       update_criteria.charging_credit_map[CreditKey(2)].bucket_deltas[USED_TX],
       4000);
@@ -488,8 +488,9 @@ TEST_F(SessionStateTest, test_mixed_tracking_rules) {
             3000);
 
   session_state->add_rule_usage("dyn_rule1", 2000, 1000, update_criteria);
-  EXPECT_EQ(session_state->get_monitor_pool().get_credit("m1", USED_TX), 2000);
-  EXPECT_EQ(session_state->get_monitor_pool().get_credit("m1", USED_RX), 1000);
+  EXPECT_EQ(session_state->get_monitor("m1", USED_TX), 2000);
+  EXPECT_EQ(session_state->get_monitor("m1", USED_RX), 1000);
+
   EXPECT_EQ(update_criteria.monitor_credit_map["m1"].bucket_deltas[USED_TX],
             2000);
   EXPECT_EQ(update_criteria.monitor_credit_map["m1"].bucket_deltas[USED_RX],
@@ -507,8 +508,8 @@ TEST_F(SessionStateTest, test_mixed_tracking_rules) {
   EXPECT_EQ(
       update_criteria.charging_credit_map[CreditKey(3)].bucket_deltas[USED_TX],
       5000);
-  EXPECT_EQ(session_state->get_monitor_pool().get_credit("m3", USED_TX), 5000);
-  EXPECT_EQ(session_state->get_monitor_pool().get_credit("m3", USED_RX), 3000);
+  EXPECT_EQ(session_state->get_monitor("m3", USED_TX), 5000);
+  EXPECT_EQ(session_state->get_monitor("m3", USED_RX), 3000);
   EXPECT_EQ(update_criteria.monitor_credit_map["m3"].bucket_deltas[USED_TX],
             5000);
 
@@ -521,19 +522,20 @@ TEST_F(SessionStateTest, test_mixed_tracking_rules) {
 }
 
 TEST_F(SessionStateTest, test_session_level_key) {
-  EXPECT_EQ(nullptr, session_state->get_monitor_pool().get_session_level_key());
+  EXPECT_EQ(nullptr, session_state->get_session_level_key());
 
   receive_credit_from_pcrf("m1", 8000, MonitoringLevel::SESSION_LEVEL);
-  EXPECT_EQ("m1", *session_state->get_monitor_pool().get_session_level_key());
-  EXPECT_EQ(session_state->get_monitor_pool().get_credit("m1", ALLOWED_TOTAL),
+  EXPECT_EQ("m1", *session_state->get_session_level_key());
+  EXPECT_EQ(session_state->get_monitor("m1", ALLOWED_TOTAL),
             8000);
   EXPECT_EQ(update_criteria.monitor_credit_to_install["m1"]
                 .credit.buckets[ALLOWED_TOTAL],
             8000);
 
   session_state->add_rule_usage("rule1", 5000, 3000, update_criteria);
-  EXPECT_EQ(session_state->get_monitor_pool().get_credit("m1", USED_TX), 5000);
-  EXPECT_EQ(session_state->get_monitor_pool().get_credit("m1", USED_RX), 3000);
+  EXPECT_EQ(session_state->get_monitor("m1", USED_TX), 5000);
+  EXPECT_EQ(session_state->get_monitor("m1", USED_RX), 3000);
+
   EXPECT_EQ(update_criteria.monitor_credit_map["m1"].bucket_deltas[USED_TX],
             5000);
   EXPECT_EQ(update_criteria.monitor_credit_map["m1"].bucket_deltas[USED_RX],
@@ -651,7 +653,7 @@ TEST_F(SessionStateTest, test_tgpp_context_is_set_on_update) {
   session_state->add_rule_usage("rule1", 1024, 0, update_criteria);
   EXPECT_EQ(true, session_state->active_monitored_rules_exist());
 
-  EXPECT_EQ(session_state->get_monitor_pool().get_credit("m1", ALLOWED_TOTAL),
+  EXPECT_EQ(session_state->get_monitor("m1", ALLOWED_TOTAL),
             1024);
   EXPECT_EQ(session_state->get_charging_credit(1, ALLOWED_TOTAL),
             1024);
