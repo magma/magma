@@ -14,6 +14,7 @@ import {makeStyles} from '@material-ui/styles';
 type Props = {
   isGrey: boolean,
   isActive: boolean,
+  isFilled?: boolean,
 };
 
 const useStyles = makeStyles(() => ({
@@ -31,6 +32,7 @@ const useStyles = makeStyles(() => ({
 }));
 
 export default function DeviceStatusCircle(props: Props) {
+  const filled = props.isFilled ?? false;
   const classes = useStyles();
   if (props.isGrey) {
     return (
@@ -42,7 +44,12 @@ export default function DeviceStatusCircle(props: Props) {
     );
   } else {
     return (
-      <span className={classes.status} style={{border: '2px solid #fa3a3f'}} />
+      <span
+        className={classes.status}
+        style={
+          filled ? {backgroundColor: '#fa3a3f'} : {border: '2px solid #fa3a3f'}
+        }
+      />
     );
   }
 }
