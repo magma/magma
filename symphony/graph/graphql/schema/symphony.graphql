@@ -492,6 +492,7 @@ input AddImageInput {
   modified: Time!
   contentType: String!
   category: String
+  annotation: String
 }
 
 type Comment implements Node {

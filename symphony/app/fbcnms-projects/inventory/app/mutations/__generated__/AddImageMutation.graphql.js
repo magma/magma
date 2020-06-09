@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 1962dd8e9b3873974ac8a2ef3d11212c
+ * @relayHash 2b889ba0053544d207de9aedca5b977f
  */
 
 /* eslint-disable */
@@ -26,6 +26,7 @@ export type AddImageInput = {|
   modified: any,
   contentType: string,
   category?: ?string,
+  annotation?: ?string,
 |};
 export type AddImageMutationVariables = {|
   input: AddImageInput

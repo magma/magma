@@ -1289,8 +1289,6 @@ type EquipmentTypeResolver interface {
 }
 type FileResolver interface {
 	FileType(ctx context.Context, obj *ent.File) (*models.FileType, error)
-
-	Annotation(ctx context.Context, obj *ent.File) (*string, error)
 }
 type FloorPlanResolver interface {
 	LocationID(ctx context.Context, obj *ent.FloorPlan) (int, error)
@@ -7759,6 +7757,7 @@ input AddImageInput {
   modified: Time!
   contentType: String!
   category: String
+  annotation: String 
 }
 
 type Comment implements Node {
@@ -18700,13 +18699,13 @@ func (ec *executionContext) _File_annotation(ctx context.Context, field graphql.
 		Object:   "File",
 		Field:    field,
 		Args:     nil,
-		IsMethod: true,
+		IsMethod: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.File().Annotation(rctx, obj)
+		return obj.Annotation, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -18715,9 +18714,9 @@ func (ec *executionContext) _File_annotation(ctx context.Context, field graphql.
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _FloorPlan_id(ctx context.Context, field graphql.CollectedField, obj *ent.FloorPlan) (ret graphql.Marshaler) {
@@ -38853,6 +38852,12 @@ func (ec *executionContext) unmarshalInputAddImageInput(ctx context.Context, obj
 			if err != nil {
 				return it, err
 			}
+		case "annotation":
+			var err error
+			it.Annotation, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -45401,16 +45406,7 @@ func (ec *executionContext) _File(ctx context.Context, sel ast.SelectionSet, obj
 		case "category":
 			out.Values[i] = ec._File_category(ctx, field, obj)
 		case "annotation":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._File_annotation(ctx, field, obj)
-				return res
-			})
+			out.Values[i] = ec._File_annotation(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
