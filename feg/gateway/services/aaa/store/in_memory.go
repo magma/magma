@@ -11,12 +11,13 @@ package store
 
 import (
 	"fmt"
-	"log"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
 	"unsafe"
+
+	"github.com/golang/glog"
 
 	"magma/feg/gateway/services/aaa"
 	"magma/feg/gateway/services/aaa/metrics"
@@ -112,7 +113,7 @@ func (st *memSessionTable) AddSession(
 		if len(overwrite) > 0 && overwrite[0] {
 			if oldSession != nil {
 				oldImsi := oldSession.imsi
-				log.Printf("Session with SID: %s already exist, will overwrite. Old IMSI: %s, New IMSI: %s",
+				glog.Warningf("Session with SID: %s already exist, will overwrite. Old IMSI: %s, New IMSI: %s",
 					sid, oldImsi, imsi)
 
 				oldSession.StopTimeout()
@@ -135,7 +136,7 @@ func (st *memSessionTable) AddSession(
 				oldImsiSession.StopTimeout()
 			}
 			delete(st.sids, oldSessionId)
-			log.Printf("old session with SID: %s found for IMSI: %s, will remove", oldSessionId, imsi)
+			glog.Infof("old session with SID: %s found for IMSI: %s, will remove", oldSessionId, imsi)
 		}
 	}
 	st.sm[sid] = s
@@ -253,7 +254,7 @@ func cleanupTimer(ctx *cleanupTimerCtx) {
 			if ctx.notifyRoutine != nil {
 				notifyResult = ctx.notifyRoutine(s)
 			}
-			log.Printf(
+			glog.Infof(
 				"Timed out session '%s' for SessionId: %s; IMSI: %s; Identity: %s; MAC: %s; IP: %s; notify result: %v",
 				ctx.sidKey, s.GetSessionId(), s.GetImsi(), s.GetIdentity(), s.GetMacAddr(), s.GetIpAddr(), notifyResult)
 
