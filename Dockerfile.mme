@@ -1,39 +1,60 @@
 ARG GIT_PROXY
-FROM ubuntu:bionic
+
+FROM ubuntu:bionic as builder
+
 ENV MAGMA_ROOT=/magma
-ENV FEATURES=mme
 ENV C_BUILD=/build/c
 
-RUN mkdir -p /magma/build/ && \
-    mkdir -p /build/c
+RUN mkdir -p $C_BUILD
 
-# Add Converged MME sources to the container
-COPY ./ /magma
-
-RUN ["/bin/bash", "-c", "if [[ -v GIT_PROXY ]]; then git config --global http.proxy $GIT_PROXY; fi"]
-
-RUN apt-get update && \
-    apt-get -y install autoconf automake libtool wget curl make g++ unzip git \
-    build-essential autoconf libtool pkg-config gcc-6 g++-6 apt-transport-https \
-    ca-certificates gnupg software-properties-common wget apt-utils vim \
+RUN ["/bin/bash", "-c", "echo \"Install general purpouse packages\" && \
+    apt-get update && \
+    apt-get install -y gnupg wget software-properties-common autoconf automake \
+    libtool curl make g++ unzip git build-essential autoconf libtool pkg-config \
+    gcc-6 g++-6 apt-transport-https ca-certificates apt-utils vim \
     libssl-dev ninja-build golang python2.7 automake perl libgmp3-dev && \
-    ln -s /usr/bin/python2.7 /usr/local/bin/python && \
+    echo \"Configure C/C++ compiler v6.5 as primary\" && \
     update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 10 && \
     update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-7 10 && \
     update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-6 20 && \
-    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-6 20
-
-##### CMake
-RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | apt-key add - && \
+    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-6 20 && \
+    echo \"Add required package repository for CMake\" && \
+    wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | apt-key add - && \
     apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main' && \
+    echo \"Add required package repository for Prometheus\" && \
+    wget -qO- https://repos.influxdata.com/influxdb.key | apt-key add - && \
+    source /etc/lsb-release && \
+    echo \"deb https://repos.influxdata.com/${DISTRIB_ID,,} ${DISTRIB_CODENAME} stable\" | tee /etc/apt/sources.list.d/influxdb.list"]
+
+RUN echo "Install 3rd party dependencies" && \
     apt-get update && \
-    apt-get -y install cmake
+    echo "Install CMake" && \
+    apt-get -y install cmake && \
+    echo "Install FMT lib requirements" && \
+    apt-get -y install libunwind8-dev libelf-dev libdwarf-dev bzip2 && \
+    echo "Install Folly requirements" && \
+    apt-get -y install libboost-all-dev libevent-dev libdouble-conversion-dev \
+    libgoogle-glog-dev libgflags-dev libiberty-dev liblz4-dev liblzma-dev \
+    libsnappy-dev binutils-dev libjemalloc-dev libssl-dev pkg-config libunwind-dev && \
+    echo "Install FreeDiameter requirements" && \
+    apt-get -y install libsctp1 libsctp-dev libgnutls28-dev libgcrypt-dev \
+    bison flex libidn11-dev && \
+    echo "Install libgtpnl requirements" && \
+    apt-get -y install libmnl-dev && \
+    echo "Install Nettle requirements" && \
+    apt-get install -y libgoogle-glog-dev libconfig-dev libxml2-dev \
+    libyaml-cpp-dev nlohmann-json-dev && \
+    echo "Install Prometheus requirements" && \
+    apt-get -y install telegraf && \
+    ln -s /usr/bin/python2.7 /usr/local/bin/python
+    
 
-##### GRPC
-RUN git clone --recurse-submodules -b v1.15.0 https://github.com/grpc/grpc 
+RUN ["/bin/bash", "-c", "if [[ -v GIT_PROXY ]]; then git config --global http.proxy $GIT_PROXY; fi"]
 
-# Install c-ares
-RUN  cd grpc && \
+##### GRPC and it's dependencies
+RUN git clone --recurse-submodules -b v1.15.0 https://github.com/grpc/grpc && \
+    echo "Install c-ares" && \
+    cd grpc && \
     cd third_party/cares/cares && \
     git fetch origin && \
     git checkout cares-1_13_0 && \
@@ -43,10 +64,8 @@ RUN  cd grpc && \
     make -j4 && \
     make install && \
     cd ../../../../.. && \
-    rm -rf third_party/cares/cares  # wipe out to prevent influencing the grpc build
-
-# Install zlib
-RUN  cd grpc && \
+    rm -rf third_party/cares/cares && \
+    echo "Install zlib" && \
     cd third_party/zlib && \
     mkdir -p cmake/build && \
     cd cmake/build && \
@@ -54,10 +73,8 @@ RUN  cd grpc && \
     make -j4 && \
     make install && \
     cd ../../../.. && \
-    rm -rf third_party/zlib  # wipe out to prevent influencing the grpc build
-
-# # Install protobuf
-RUN  cd grpc && \
+    rm -rf third_party/zlib && \
+    echo "Install protobuf" && \
     cd third_party/protobuf && \
     git submodule update --init --recursive  && \
     ./autogen.sh  && \
@@ -66,10 +83,8 @@ RUN  cd grpc && \
     make install && \
     cd ../.. && \
     rm -rf third_party/protobuf && \
-    ldconfig
-
-# Install GRPC
-RUN cd grpc && \
+    ldconfig && \
+    echo "Install GRPC" && \
     mkdir -p cmake/build && \
     cd cmake/build && \
     cmake \
@@ -86,11 +101,7 @@ RUN cd grpc && \
     make install
 
 ##### Prometheus CPP
-RUN wget -qO- https://repos.influxdata.com/influxdb.key | apt-key add - 
-RUN ["/bin/bash", "-c", "source /etc/lsb-release && echo \"deb https://repos.influxdata.com/${DISTRIB_ID,,} ${DISTRIB_CODENAME} stable\" | tee /etc/apt/sources.list.d/influxdb.list"]
-RUN apt-get update && \
-    apt-get -y install telegraf && \
-    git clone https://github.com/jupp0r/prometheus-cpp.git && \
+RUN git clone https://github.com/jupp0r/prometheus-cpp.git && \
     cd prometheus-cpp && \
     git checkout 57f4ce18bec8ed4f9d8ba262078693d583d5b369 && \
     git submodule init && git submodule update && \
@@ -111,8 +122,7 @@ RUN git clone https://github.com/cpp-redis/cpp_redis.git && \
     make install
 
 ##### NETTLE
-RUN apt-get install -y libgoogle-glog-dev libconfig-dev libxml2-dev libyaml-cpp-dev nlohmann-json-dev && \
-    wget https://ftp.gnu.org/gnu/nettle/nettle-2.5.tar.gz && \
+RUN wget https://ftp.gnu.org/gnu/nettle/nettle-2.5.tar.gz && \
     tar -xf nettle-2.5.tar.gz && \
     cd nettle-2.5 && \
     mkdir build && \
@@ -131,8 +141,7 @@ RUN wget https://liblfds.org/downloads/liblfds%20release%207.1.0%20source.tar.bz
 
 ##### libgtpnl
 # review https://github.com/OPENAIRINTERFACE/openair-cn/blob/master/build/tools/build_helper.gtpnl
-RUN apt-get -y install libmnl-dev && \
-    git clone git://git.osmocom.org/libgtpnl && \
+RUN git clone git://git.osmocom.org/libgtpnl && \
     cd libgtpnl && \
     git reset --hard 345d687 && \
     autoreconf -fi && \
@@ -149,14 +158,7 @@ RUN git clone https://gitlab.eurecom.fr/oai/asn1c.git && \
     make install
 
 ##### FreeDiameter
-RUN apt-get -y install libsctp1 \
-    libsctp-dev \
-    libgnutls28-dev \
-    libgcrypt-dev \
-    bison \
-    flex \
-    libidn11-dev && \
-    git clone https://github.com/OPENAIRINTERFACE/openair-cn.git && \
+RUN git clone https://github.com/OPENAIRINTERFACE/openair-cn.git && \
     GIT_SSL_NO_VERIFY=true git clone https://gitlab.eurecom.fr/oai/freediameter.git -b eurecom-1.2.0 && \
     cd freediameter && \
     patch -p1 < /openair-cn/src/s6a/freediameter/freediameter_eurecom-1.2.0_0001-S6a-dictionary-add-CLR-Flags.patch && \
@@ -167,30 +169,14 @@ RUN apt-get -y install libsctp1 \
     make install
 
 ##### Facebook Folly C++ lib
-RUN apt-get -y install \
-    libboost-all-dev \
-    libevent-dev \
-    libdouble-conversion-dev \
-    libgoogle-glog-dev \
-    libgflags-dev \
-    libiberty-dev \
-    liblz4-dev \
-    liblzma-dev \
-    libsnappy-dev \
-    binutils-dev \
-    libjemalloc-dev \
-    libssl-dev \
-    pkg-config \
-    libunwind-dev
-
-### FMT required for folly
-RUN apt-get -y install libunwind8-dev libelf-dev libdwarf-dev bzip2 && \
+RUN echo "Install fmtlib required by Folly" && \
     git clone https://github.com/fmtlib/fmt.git && cd fmt && \
     mkdir _build && cd _build && \
     cmake .. && \
     make -j4 && \
     make install && \
     cd / && \
+    echo "Install Folly" && \
     git clone https://github.com/facebook/folly && cd folly && \
     git checkout 7c996f43bc368cd9b7e91f5bff0594a72db4fd3a && \
     mkdir _build && \
@@ -217,6 +203,14 @@ RUN apt-get -y install libunwind8-dev libelf-dev libdwarf-dev bzip2 && \
 # COPY patch_libfluid.sh /
 # RUN . /patch_libfluid.sh
 
+# Add Converged MME sources to the container
+COPY ./ /magma
+ENV FEATURES=mme
 RUN ldconfig && \
     cd /magma/lte/gateway && \
     make build_oai
+
+FROM ubuntu:bionic
+
+COPY --from=builder /build/c/oai_mme/mme /var/opt/magma/bin/mme
+# CMD []
