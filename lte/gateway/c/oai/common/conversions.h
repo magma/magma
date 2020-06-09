@@ -637,6 +637,7 @@ imsi64_t imsi_to_imsi64(const imsi_t *const imsi);
     }                                                                          \
   }
 
+void  imsi_string_to_3gpp_imsi(const Imsi_t  *Imsi, imsi_t *imsi) ;
 /*Used to convert char* IMSI/TMSI Mobile Identity to MobileIdentity(digit) format*/
 #define MOBILE_ID_CHAR_TO_MOBILE_ID_TMSI_NAS(mObId_ChAr, mObId_PtR, tMsI_LeN)  \
   {                                                                            \
@@ -650,52 +651,6 @@ imsi64_t imsi_to_imsi64(const imsi_t *const imsi);
       (mObId_PtR->tmsi)[idx] = mObId_ChAr[idx];                                \
     }                                                                          \
   }
-/*mObId_PtR->digit1 = 0xf;\
-          OAILOG_DEBUG(LOG_MME_APP, "idx %d digit1 %d\n",idx,mObId_PtR->digit1);\
-          mObId_PtR->numOfValidImsiDigits++;\
-         if(idx <= tMsI_LeN)\
-         {\
-           mObId_PtR->digit3 = (*(mObId_ChAr + idx) & 0x0f);\
-           OAILOG_DEBUG(LOG_MME_APP, "idx %d digit2 %d\n",idx,mObId_PtR->digit3);\
-           mObId_PtR->numOfValidImsiDigits ++;\
-           mObId_PtR->digit2 = ((*(mObId_ChAr + idx) & 0xf0) >> 4);\
-           OAILOG_DEBUG(LOG_MME_APP, "idx %d digit3 %d\n",idx,mObId_PtR->digit2);\
-           idx++;\
-           mObId_PtR->numOfValidImsiDigits ++;\
-         }\
-         if(idx <= tMsI_LeN)\
-         {\
-           mObId_PtR->digit5 = *(mObId_ChAr + idx) & 0x0f;\
-           OAILOG_DEBUG(LOG_MME_APP, "idx %d digit4 %d\n",idx,mObId_PtR->digit5);\
-           mObId_PtR->numOfValidImsiDigits ++;\
-           mObId_PtR->digit4 = ((*(mObId_ChAr + idx)  & 0xf0) >> 4) ;\
-           OAILOG_DEBUG(LOG_MME_APP, "idx %d digit5 %d\n",idx,mObId_PtR->digit4);\
-           idx++;\
-           mObId_PtR->numOfValidImsiDigits ++;\
-         }\
-         if(idx <= tMsI_LeN)\
-         {\
-           mObId_PtR->digit7 = *(mObId_ChAr + idx) & 0x0f;\
-           OAILOG_DEBUG(LOG_MME_APP, "idx %d digit6 %d\n",idx,mObId_PtR->digit7);\
-           mObId_PtR->numOfValidImsiDigits ++;\
-           mObId_PtR->digit6 = (*(mObId_ChAr + idx) & 0xf0) >> 4 ;\
-           OAILOG_DEBUG(LOG_MME_APP, "idx %d digit7 %d\n",idx,mObId_PtR->digit6);\
-           idx++;\
-           mObId_PtR->numOfValidImsiDigits ++;\
-         }\
-         if(idx <= tMsI_LeN)\
-         {\
-           mObId_PtR->digit9 = *(mObId_ChAr + idx) & 0x0f;\
-           OAILOG_DEBUG(LOG_MME_APP, "idx %d digit8 %d\n",idx,mObId_PtR->digit9);\
-           mObId_PtR->numOfValidImsiDigits ++;\
-           mObId_PtR->digit8 = (*(mObId_ChAr + idx) & 0xf0) >> 4 ;\
-           OAILOG_DEBUG(LOG_MME_APP, "idx %d digit9 %d\n",idx,mObId_PtR->digit8);\
-           idx++;\
-           mObId_PtR->numOfValidImsiDigits ++;\
-         }\
-         OAILOG_DEBUG(LOG_MME_APP, "numOfValidImsiDigits %d \n",mObId_PtR->numOfValidImsiDigits);\
-        } \*/
-
 
 void hexa_to_ascii(uint8_t *from, char *to, size_t length);
 

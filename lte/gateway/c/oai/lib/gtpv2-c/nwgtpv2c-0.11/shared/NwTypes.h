@@ -46,17 +46,20 @@
 extern "C" {
 #endif
 
-#define NW_IN    /**< An input argument          */
-#define NW_OUT   /**< An output argument         */
-#define NW_INOUT /**< An input and output argument */
+#define NW_IN                                   /**< An input argument          */
+#define NW_OUT                                  /**< An output argument         */
+#define NW_INOUT                                /**< An input and output argument */
 
-typedef signed int NwFdT; /**< Use this for file descriptor */
 
-typedef uintptr_t NwPtrT;    /**< Use this for generic pointers      */
-typedef uintptr_t NwHandleT; /**< Use this for generic handles       */
+typedef signed int              NwFdT;          /**< Use this for file descriptor */
+
+typedef uintptr_t               NwPtrT;         /**< Use this for generic pointers      */
+typedef uintptr_t               NwHandleT;      /**< Use this for generic handles       */
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif /* __NW_TYPES_H__ */
+
+

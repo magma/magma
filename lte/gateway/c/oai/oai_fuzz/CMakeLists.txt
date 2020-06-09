@@ -26,7 +26,7 @@ target_link_libraries(oai_fuzz
         LIB_HASHTABLE LIB_S6A_PROXY
         TASK_S1AP TASK_SCTP_SERVER TASK_SGS
         TASK_S6A TASK_MME_APP TASK_GRPC_SERVICE
-        TASK_NAS TASK_SGW
+        TASK_NAS
         ${MSC_LIB} ${ITTI_LIB} ${GCOV_LIB}
     -Wl,--end-group
     ${LFDS} pthread m sctp rt crypt ${CRYPTO_LIBRARIES} ${OPENSSL_LIBRARIES}
@@ -34,6 +34,9 @@ target_link_libraries(oai_fuzz
     ${SERVICE303_LIB} ${SERVICE_REGISTRY}
     prometheus-cpp grpc grpc++
 )
+if (EMBEDDED_SGW)
+target_link_libraries( oai_fuzz TASK_SGW)
+endif(EMBEDDED_SGW)
 
 target_include_directories(oai_fuzz PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}

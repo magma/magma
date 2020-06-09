@@ -41,28 +41,26 @@
  * @brief This header file contains utility macro and function definitions.
 */
 
-#define NW_ASSERT assert /**< Assertion */
+#define NW_ASSERT                                       assert                  /**< Assertion */
 
-#define NW_CHK_NULL_PTR(_ptr) NW_ASSERT(_ptr != NULL) /**< Null pointer check */
+#define NW_CHK_NULL_PTR(_ptr)                           NW_ASSERT(_ptr != NULL) /**< Null pointer check */
 
-#define NW_HTONS(x) ((((x) &0xff00) >> 8) | (((x) &0x00ff) << 8))
+#define NW_HTONS(x)                                     ( ( ((x) & 0xff00) >> 8 ) | ( ((x) & 0x00ff) << 8 ) )
 
-#define NW_HTONL(x)                                                            \
-  ((((x) &0xff000000) >> 24) | (((x) &0x00ff0000) >> 8) |                      \
-   (((x) &0x0000ff00) << 8) | (((x) &0x000000ff) << 24))
+#define NW_HTONL(x)                                     ( ( ((x) & 0xff000000) >> 24 ) | ( ( (x) & 0x00ff0000 ) >> 8 ) | \
+                                                        ( ( (x) & 0x0000ff00 ) << 8 ) | ( ( (x) & 0x000000ff) << 24 ) )
 
-#define NW_HTONLL(x)                                                           \
-  (((((uint64_t) x) & 0xff00000000000000ULL) >> 56) |                          \
-   ((((uint64_t) x) & 0x00ff000000000000ULL) >> 40) |                          \
-   ((((uint64_t) x) & 0x0000ff0000000000ULL) >> 24) |                          \
-   ((((uint64_t) x) & 0x000000ff00000000ULL) >> 8) |                           \
-   ((((uint64_t) x) & 0x000000000000ff00ULL) << 40) |                          \
-   ((((uint64_t) x) & 0x00000000000000ffULL) << 56) |                          \
-   ((((uint64_t) x) & 0x0000000000ff0000ULL) << 24) |                          \
-   ((((uint64_t) x) & 0x00000000ff000000ULL) << 8))
+#define NW_HTONLL(x)                                    (                                                         \
+    ( ( ((uint64_t)x) & 0xff00000000000000ULL ) >> 56 ) | ( ( ((uint64_t)x) & 0x00ff000000000000ULL ) >> 40 ) |       \
+    ( ( ((uint64_t)x) & 0x0000ff0000000000ULL ) >> 24 ) | ( ( ((uint64_t)x) & 0x000000ff00000000ULL ) >> 8  ) |       \
+    ( ( ((uint64_t)x) & 0x000000000000ff00ULL ) << 40 ) | ( ( ((uint64_t)x) & 0x00000000000000ffULL ) << 56 ) |       \
+    ( ( ((uint64_t)x) & 0x0000000000ff0000ULL ) << 24 ) | ( ( ((uint64_t)x) & 0x00000000ff000000ULL ) << 8  )         \
+    )
 
-#define NW_NTOHS NW_HTONS
-#define NW_NTOHL NW_HTONL
-#define NW_NTOHLL NW_HTONLL
+#define NW_NTOHS                NW_HTONS
+#define NW_NTOHL                NW_HTONL
+#define NW_NTOHLL               NW_HTONLL
 
 #endif /* __NW_UTILS_H__ */
+
+

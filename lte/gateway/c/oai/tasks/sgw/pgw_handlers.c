@@ -399,11 +399,7 @@ static int get_uli_from_session_req(
            ((saved_req->uli.s.ecgi.mcc[2] & 0xf));
   uli[8] = ((saved_req->uli.s.ecgi.mnc[1] & 0xf) << 4) |
            ((saved_req->uli.s.ecgi.mnc[0] & 0xf));
-  uli[9] = (saved_req->uli.s.ecgi.eci >> 24) & 0xf;
-  uli[10] = (saved_req->uli.s.ecgi.eci >> 16) & 0xff;
-  uli[11] = (saved_req->uli.s.ecgi.eci >> 8) & 0xff;
-  uli[12] = saved_req->uli.s.ecgi.eci & 0xff;
-  uli[13] = '\0';
+  uli[9] = '\0';
   return 1;
 }
 

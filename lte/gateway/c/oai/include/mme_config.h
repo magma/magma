@@ -121,6 +121,9 @@
 #define MME_CONFIG_STRING_IPV4_ADDRESS_FOR_S11_MME                             \
   "MME_IPV4_ADDRESS_FOR_S11_MME"
 #define MME_CONFIG_STRING_MME_PORT_FOR_S11 "MME_PORT_FOR_S11_MME"
+#define MME_CONFIG_STRING_SGW_INTERFACE_NAME_FOR_S11                           \
+  "SGW_INTERFACE_NAME_FOR_S11"
+#define MME_CONFIG_STRING_SGW_IPV4_ADDRESS_FOR_S11 "SGW_IPV4_ADDRESS_FOR_S11"
 
 #define MME_CONFIG_STRING_NAS_CONFIG "NAS"
 #define MME_CONFIG_STRING_NAS_SUPPORTED_INTEGRITY_ALGORITHM_LIST               \
@@ -144,6 +147,8 @@
   "DISABLE_ESM_INFORMATION_PROCEDURE"
 #define MME_CONFIG_STRING_NAS_FORCE_PUSH_DEDICATED_BEARER                      \
   "FORCE_PUSH_DEDICATED_BEARER"
+
+#define MME_CONFIG_STRING_SGW_CONFIG "S-GW"
 
 #define MME_CONFIG_STRING_SGS_CONFIG "SGS"
 #define MME_CONFIG_STRING_SGS_TS6_1_TIMER "TS6_1"
@@ -198,16 +203,18 @@ typedef struct s1ap_config_s {
   uint8_t outcome_drop_timer_sec;
 } s1ap_config_t;
 
-typedef struct ipv4_s {
+typedef struct ip_s {
   bstring if_name_s1_mme;
-  struct in_addr s1_mme;
+  struct in_addr s1_mme_v4;
+  struct in6_addr s1_mme_v6;
   int netmask_s1_mme;
 
   bstring if_name_s11;
-  struct in_addr s11;
+  struct in_addr s11_mme_v4;
+  struct in6_addr s11_mme_v6;
   int netmask_s11;
   uint16_t port_s11;
-} ipv4_t;
+} ip_t;
 
 typedef struct s6a_config_s {
   bstring conf_file;
@@ -299,7 +306,7 @@ typedef struct mme_config_s {
   log_config_t log_config;
   e_dns_config_t e_dns_emulation;
 
-  ipv4_t ipv4;
+  ip_t ip;
 
   lai_t lai;
 

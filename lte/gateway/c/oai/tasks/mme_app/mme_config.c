@@ -62,8 +62,9 @@
 #include "bstrlib.h"
 #include "mme_default_values.h"
 #include "service303.h"
+#if EMBEDDED_SGW
 #include "sgw_config.h"
-
+#endif
 static bool parse_bool(const char *str);
 
 struct mme_config_s mme_config = {.rw_lock = PTHREAD_RWLOCK_INITIALIZER, 0};
@@ -156,17 +157,17 @@ void eps_network_feature_config_init(eps_network_feature_config_t *eps_conf)
   eps_conf->location_services_via_epc = 0;
 }
 
-void ipv4_config_init(ipv4_t *ipv4)
+void ipv4_config_init(ip_t *ip)
 {
-  memset(ipv4, 0, sizeof(*ipv4));
+  memset(ip, 0, sizeof(*ip));
 
-  ipv4->if_name_s1_mme = NULL;
-  ipv4->s1_mme.s_addr = INADDR_ANY;
+  ip->if_name_s1_mme = NULL;
+  ip->s1_mme_v4.s_addr = INADDR_ANY;
 
-  ipv4->if_name_s11 = NULL;
-  ipv4->s11.s_addr = INADDR_ANY;
+  ip->if_name_s11 = NULL;
+  ip->s11_mme_v4.s_addr = INADDR_ANY;
 
-  ipv4->port_s11 = 2123;
+  ip->port_s11 = 2123;
 }
 
 void s1ap_config_init(s1ap_config_t *s1ap_conf)
@@ -258,7 +259,7 @@ void mme_config_init(mme_config_t *config)
 
   log_config_init(&config->log_config);
   eps_network_feature_config_init(&config->eps_network_feature_support);
-  ipv4_config_init(&config->ipv4);
+  ipv4_config_init(&config->ip);
   s1ap_config_init(&config->s1ap_config);
   s6a_config_init(&config->s6a_config);
   itti_config_init(&config->itti_config);
@@ -280,8 +281,8 @@ void mme_config_exit(void)
   /*
    * IP configuration
    */
-  bdestroy_wrapper(&mme_config.ipv4.if_name_s1_mme);
-  bdestroy_wrapper(&mme_config.ipv4.if_name_s11);
+  bdestroy_wrapper(&mme_config.ip.if_name_s1_mme);
+  bdestroy_wrapper(&mme_config.ip.if_name_s11);
   bdestroy_wrapper(&mme_config.s6a_config.conf_file);
   bdestroy_wrapper(&mme_config.itti_config.log_file);
 
@@ -313,7 +314,9 @@ int mme_config_parse_file(mme_config_t *config_pP)
   char *s1_mme = NULL;
   char *if_name_s11 = NULL;
   char *s11 = NULL;
+  #if !EMBEDDED_SGW
   char *sgw_ip_address_for_s11 = NULL;
+  #endif
   bool swap = false;
   bstring address = NULL;
   bstring cidr = NULL;
@@ -350,6 +353,7 @@ int mme_config_parse_file(mme_config_t *config_pP)
   setting_mme = config_lookup(&cfg, MME_CONFIG_STRING_MME_CONFIG);
 
   if (setting_mme != NULL) {
+
     // LOGGING setting
     setting = config_setting_get_member(setting_mme, LOG_CONFIG_STRING_LOGGING);
 
@@ -900,9 +904,9 @@ int mme_config_parse_file(mme_config_t *config_pP)
              (const char **) &s11) &&
            config_setting_lookup_int(
              setting, MME_CONFIG_STRING_MME_PORT_FOR_S11, &aint))) {
-        config_pP->ipv4.port_s11 = (uint16_t) aint;
+        config_pP->ip.port_s11 = (uint16_t) aint;
 
-        config_pP->ipv4.if_name_s1_mme = bfromcstr(if_name_s1_mme);
+        config_pP->ip.if_name_s1_mme = bfromcstr(if_name_s1_mme);
         cidr = bfromcstr(s1_mme);
         struct bstrList *list = bsplit(cidr, '/');
         AssertFatal(
@@ -913,21 +917,21 @@ int mme_config_parse_file(mme_config_t *config_pP)
         mask = list->entry[1];
         IPV4_STR_ADDR_TO_INADDR(
           bdata(address),
-          config_pP->ipv4.s1_mme,
+          config_pP->ip.s1_mme_v4,
           "BAD IP ADDRESS FORMAT FOR S1-MME !\n");
-        config_pP->ipv4.netmask_s1_mme = atoi((const char *) mask->data);
+        config_pP->ip.netmask_s1_mme = atoi((const char *) mask->data);
         bstrListDestroy(list);
-        in_addr_var.s_addr = config_pP->ipv4.s1_mme.s_addr;
+        in_addr_var.s_addr = config_pP->ip.s1_mme_v4.s_addr;
         OAILOG_INFO(
           LOG_MME_APP,
           "Parsing configuration file found S1-MME: %s/%d on %s\n",
           inet_ntoa(in_addr_var),
-          config_pP->ipv4.netmask_s1_mme,
-          bdata(config_pP->ipv4.if_name_s1_mme));
+          config_pP->ip.netmask_s1_mme,
+          bdata(config_pP->ip.if_name_s1_mme));
         bdestroy_wrapper(&cidr);
 
         bdestroy(cidr);
-        config_pP->ipv4.if_name_s11 = bfromcstr(if_name_s11);
+        config_pP->ip.if_name_s11 = bfromcstr(if_name_s11);
         cidr = bfromcstr(s11);
         list = bsplit(cidr, '/');
         AssertFatal(
@@ -938,18 +942,18 @@ int mme_config_parse_file(mme_config_t *config_pP)
         mask = list->entry[1];
         IPV4_STR_ADDR_TO_INADDR(
           bdata(address),
-          config_pP->ipv4.s11,
+          config_pP->ip.s11_mme_v4,
           "BAD IP ADDRESS FORMAT FOR S11 !\n");
-        config_pP->ipv4.netmask_s11 = atoi((const char *) mask->data);
+        config_pP->ip.netmask_s11 = atoi((const char *) mask->data);
         bstrListDestroy(list);
         bdestroy_wrapper(&cidr);
-        in_addr_var.s_addr = config_pP->ipv4.s11.s_addr;
+        in_addr_var.s_addr = config_pP->ip.s11_mme_v4.s_addr;
         OAILOG_INFO(
           LOG_MME_APP,
           "Parsing configuration file found S11: %s/%d on %s\n",
           inet_ntoa(in_addr_var),
-          config_pP->ipv4.netmask_s11,
-          bdata(config_pP->ipv4.if_name_s11));
+          config_pP->ip.netmask_s11,
+          bdata(config_pP->ip.if_name_s11));
         bdestroy(cidr);
       }
     }
@@ -1163,60 +1167,29 @@ int mme_config_parse_file(mme_config_t *config_pP)
         config_pP->sgs_config.ts13_sec = (uint8_t) aint;
       }
     }
-  }
+#if (!EMBEDDED_SGW)
+  // S-GW Setting
+  setting =
+     config_setting_get_member(setting_mme, MME_CONFIG_STRING_SGW_CONFIG);
 
-  setting = config_setting_get_member(
-    setting_mme, MME_CONFIG_STRING_SGW_LIST_SELECTION);
-  if (setting != NULL) {
-    num = config_setting_length(setting);
+     if (setting != NULL) {
+     if ((config_setting_lookup_string(setting,MME_CONFIG_STRING_SGW_IPV4_ADDRESS_FOR_S11,(const char **) &sgw_ip_address_for_s11)))
+                           {
 
-    AssertFatal(
-      num <= MME_CONFIG_MAX_SGW,
-      "Too many SGW entries (%d) defined (Maximum supported: %d)\n",
-      num,
-      MME_CONFIG_MAX_SGW);
+          OAILOG_DEBUG ( LOG_MME_APP, "sgw interface IP information %s\n", sgw_ip_address_for_s11);
 
-    config_pP->e_dns_emulation.nb_sgw_entries = 0;
-    for (i = 0; i < num; i++) {
-      sub2setting = config_setting_get_elem(setting, i);
-      if (sub2setting != NULL) {
-        const char *id = NULL;
-        if (!(config_setting_lookup_string(
-              sub2setting, MME_CONFIG_STRING_ID, &id))) {
-          OAILOG_ERROR(
-            LOG_SPGW_APP,
-            "Could not get SGW ID item %d in %s\n",
-            i,
-            MME_CONFIG_STRING_SGW_LIST_SELECTION);
-          break;
-        }
-        config_pP->e_dns_emulation.sgw_id[i] = bfromcstr(id);
-
-        if ((config_setting_lookup_string(
-              sub2setting,
-              SGW_CONFIG_STRING_SGW_IPV4_ADDRESS_FOR_S11,
-              (const char **) &sgw_ip_address_for_s11))) {
-          cidr = bfromcstr(sgw_ip_address_for_s11);
-          struct bstrList *list = bsplit(cidr, '/');
-          AssertFatal(
-            list->qty == CIDR_SPLIT_LIST_COUNT,
-            "Bad SGW S11 CIDR address: %s",
-            bdata(cidr));
-          address = list->entry[0];
-          IPV4_STR_ADDR_TO_INADDR(
-            bdata(address),
-            config_pP->e_dns_emulation.sgw_ip_addr[i],
+            IPV4_STR_ADDR_TO_INADDR(
+            sgw_ip_address_for_s11,
+            config_pP->e_dns_emulation.sgw_ip_addr[0],
             "BAD IP ADDRESS FORMAT FOR SGW S11 !\n");
-          bstrListDestroy(list);
-          bdestroy_wrapper(&cidr);
-          OAILOG_INFO(
+
+             OAILOG_INFO(
             LOG_SPGW_APP,
             "Parsing configuration file found S-GW S11: %s\n",
-            inet_ntoa(config_pP->e_dns_emulation.sgw_ip_addr[i]));
+            inet_ntoa(config_pP->e_dns_emulation.sgw_ip_addr[0]));
         }
-      }
-      config_pP->e_dns_emulation.nb_sgw_entries++;
-    }
+     }
+#endif
   }
 
   config_destroy(&cfg);
@@ -1356,21 +1329,33 @@ void mme_config_display(mme_config_t *config_pP)
   OAILOG_INFO(
     LOG_CONFIG,
     "    s1-MME iface .....: %s\n",
-    bdata(config_pP->ipv4.if_name_s1_mme));
+    bdata(config_pP->ip.if_name_s1_mme));
   OAILOG_INFO(
     LOG_CONFIG,
     "    s1-MME ip ........: %s\n",
-    inet_ntoa(*((struct in_addr *) &config_pP->ipv4.s1_mme)));
+    inet_ntoa(*((struct in_addr *) &config_pP->ip.s1_mme_v4)));
   OAILOG_INFO(
     LOG_CONFIG,
     "    s11 MME iface ....: %s\n",
-    bdata(config_pP->ipv4.if_name_s11));
+    bdata(config_pP->ip.if_name_s11));
   OAILOG_INFO(
-    LOG_CONFIG, "    s11 MME port .....: %d\n", config_pP->ipv4.port_s11);
+    LOG_CONFIG, "    s11 MME port .....: %d\n", config_pP->ip.port_s11);
   OAILOG_INFO(
     LOG_CONFIG,
     "    s11 MME ip .......: %s\n",
-    inet_ntoa(*((struct in_addr *) &config_pP->ipv4.s11)));
+    inet_ntoa(*((struct in_addr *) &config_pP->ip.s11_mme_v4)));
+
+  if (config_pP->e_dns_emulation.sgw_ip_addr[0].s_addr == AF_INET) {
+
+      OAILOG_INFO(LOG_CONFIG, " Address : %s\n", inet_ntoa(*((struct in_addr *) &config_pP->e_dns_emulation.sgw_ip_addr[0].s_addr)));
+
+    } else if (config_pP->e_dns_emulation.sgw_ip_addr[0].s_addr == AF_INET6) {
+      char strv6[16];
+      OAILOG_INFO(LOG_CONFIG, " Address : %s\n", inet_ntop(AF_INET6, &config_pP->e_dns_emulation.sgw_ip_addr[0].s_addr, strv6, 16));
+    } else {
+      OAILOG_INFO(LOG_CONFIG,"  Address : Unknown address family %d\n", config_pP->e_dns_emulation.sgw_ip_addr[0].s_addr);
+    }
+
   OAILOG_INFO(LOG_CONFIG, "- ITTI:\n");
   OAILOG_INFO(
     LOG_CONFIG,
@@ -1606,7 +1591,7 @@ int mme_config_parse_opt_line(int argc, char *argv[], mme_config_t *config_pP)
   /*
    * Parsing command line
    */
-  while ((c = getopt(argc, argv, "c:h:v:V")) != -1) {
+  while ((c = getopt(argc, argv, "c:s:h:v:V")) != -1) {
     switch (c) {
       case 'c': {
         /*
@@ -1633,11 +1618,18 @@ int mme_config_parse_opt_line(int argc, char *argv[], mme_config_t *config_pP)
           PACKAGE_BUGREPORT);
       } break;
 
+      case 's': {
+       OAI_FPRINTF_INFO(
+           "Ignoring command line option s as there is no embedded sgw \n");
+      } break;
+
       case 'h': /* Fall through */
+
       default:
         OAI_FPRINTF_ERR("Unknown command line option %c\n", c);
         usage(argv[0]);
         exit(0);
+
     }
   }
 
@@ -1655,6 +1647,7 @@ int mme_config_parse_opt_line(int argc, char *argv[], mme_config_t *config_pP)
    * Display the configuration
    */
   mme_config_display(config_pP);
+
   return 0;
 }
 

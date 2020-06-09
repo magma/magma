@@ -28,7 +28,6 @@ if ("${LFDS}" STREQUAL "LFDS-NOTFOUND")
   message(FATAL_ERROR "LIB LFDS not found, please install it" )
 endif()
 
-
 add_executable(mme
     ${PROJECT_SOURCE_DIR}/oai_mme/oai_mme.c
     ${PROJECT_SOURCE_DIR}/common/common_types.c
@@ -53,11 +52,13 @@ target_link_libraries(mme
 )
 
 if ( NOT EMBEDDED_SGW )
-    target_link_libraries(mme GTPV2C S11_MME)
-elseif ( EMBEDDED_SGW )
-    target_link_libraries(mme TASK_SGW)
+ target_link_libraries(mme
+  LIB_GTPV2C TASK_UDP)
+else ( EMBEDDED_SGW )
+target_link_libraries( mme TASK_SGW )
 endif ( NOT EMBEDDED_SGW )
 
+#2020/04/06: we kept master content
 if ( NOT S6A_OVER_GRPC )
     target_link_libraries(mme fdproto fdcore)
 endif ( NOT S6A_OVER_GRPC )

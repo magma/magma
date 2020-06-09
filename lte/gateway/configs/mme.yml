@@ -1,4 +1,3 @@
----
 #
 # Copyright (c) 2016-present, Facebook, Inc.
 # All rights reserved.
@@ -8,8 +7,9 @@
 # of patent rights can be found in the PATENTS file in the same directory.
 
 log_level: DEBUG
-s11_iface_name: "lo"  # 's11_ip' will be filled automatically
-s1ap_iface_name: "eth1"  # 's1_ip' will be filled automatically
+s11_iface_name: "eth1"  # 'mme_s11_ip' will be filled automatically
+remote_sgw_ip: "192.168.60.153" # IP Address of the remote IP for S11
+s1ap_iface_name: "eth1"
 realm: "magma.com"
 conf_dir: "/var/opt/magma/tmp"
 cert_dir: "/usr/local/etc/oai"

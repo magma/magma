@@ -68,7 +68,7 @@
 
 #if S1AP_DEBUG_LIST
 #define eNB_LIST_OUT(x, args...)                                               \
-  OAILOG_DEBUG(LOG_S1AP, "[eNB]%*s" x "\n", 4 * indent, "", ##args)
+  (LOG_S1AP, "[eNB]%*s" x "\n", 4 * indent, "", ##args)
 #define UE_LIST_OUT(x, args...)                                                \
   OAILOG_DEBUG(LOG_S1AP, "[UE] %*s" x "\n", 4 * indent, "", ##args)
 #else
@@ -105,7 +105,8 @@ static int s1ap_send_init_sctp(void)
   message_p->ittiMsg.sctpInit.ipv6 = 0;
   message_p->ittiMsg.sctpInit.nb_ipv4_addr = 1;
   message_p->ittiMsg.sctpInit.ipv4_address[0].s_addr =
-    mme_config.ipv4.s1_mme.s_addr;
+    mme_config.ip.s1_mme_v4.s_addr;
+    
   /*
    * SR WARNING: ipv6 multi-homing fails sometimes for localhost.
    * * * * Disable it for now.

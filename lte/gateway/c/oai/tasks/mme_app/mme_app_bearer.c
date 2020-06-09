@@ -139,8 +139,10 @@ int send_modify_bearer_req(mme_ue_s1ap_id_t ue_id, ebi_t ebi)
   s11_modify_bearer_request->bearer_contexts_to_be_modified
     .bearer_contexts[item]
     .s1_eNB_fteid.interface_type = S1_U_ENODEB_GTP_U;
-  s11_modify_bearer_request->peer_ip =
-    pdn_context_p->s_gw_address_s11_s4.address.ipv4_address;
+
+  s11_modify_bearer_request->edns_peer_ip.addr_v4.sin_addr =
+  pdn_context_p->s_gw_address_s11_s4.address.ipv4_address;
+
   s11_modify_bearer_request->teid = pdn_context_p->s_gw_teid_s11_s4;
 
   if (bearer_cntxt->enb_fteid_s1u.ipv4) {
@@ -1292,14 +1294,18 @@ void mme_app_handle_initial_context_setup_rsp(
       .bearer_contexts[item]
       .s1_eNB_fteid.interface_type = S1_U_ENODEB_GTP_U;
 
-    if (!item) {
+      if (!item) {
       ebi_t ebi = initial_ctxt_setup_rsp_pP->e_rab_id[item];
       pdn_cid_t cid =
         ue_context_p->bearer_contexts[EBI_TO_INDEX(ebi)]->pdn_cx_id;
       pdn_context_t *pdn_context = ue_context_p->pdn_contexts[cid];
+     pdn_context->s_gw_address_s11_s4.address.ipv4_address.s_addr =
+     mme_config.e_dns_emulation.sgw_ip_addr[0].s_addr;
 
-      s11_modify_bearer_request->peer_ip =
-        pdn_context->s_gw_address_s11_s4.address.ipv4_address;
+     s11_modify_bearer_request->edns_peer_ip.addr_v4.sin_addr.s_addr =
+     pdn_context->s_gw_address_s11_s4.address.ipv4_address.s_addr;
+     s11_modify_bearer_request->edns_peer_ip.addr_v4.sin_family = AF_INET;
+
       s11_modify_bearer_request->teid = pdn_context->s_gw_teid_s11_s4;
     }
     if (
@@ -3140,7 +3146,7 @@ void mme_app_handle_path_switch_request(mme_app_desc_t *mme_app_desc_p,
     if (!idx) {
       cid = ue_context_p->bearer_contexts[EBI_TO_INDEX(bearer_id)]->pdn_cx_id;
       pdn_context = ue_context_p->pdn_contexts[cid];
-      s11_modify_bearer_request->peer_ip =
+      s11_modify_bearer_request->edns_peer_ip.addr_v4.sin_addr =
         pdn_context->s_gw_address_s11_s4.address.ipv4_address;
       s11_modify_bearer_request->teid = pdn_context->s_gw_teid_s11_s4;
     }

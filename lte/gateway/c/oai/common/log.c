@@ -472,7 +472,7 @@ static void log_sync(log_queue_item_t *new_item_p)
 }
 static void log_async(shared_log_queue_item_t *new_item_p)
 {
-  log_string(new_item_p->u_app_log.log.log_level, bdata(new_item_p->bstr));
+  log_string(new_item_p->log.log_level, bdata(new_item_p->bstr));
 }
 //------------------------------------------------------------------------------
 // for sync or async logging
@@ -909,7 +909,7 @@ void log_flush_message(struct shared_log_queue_item_s *item_p)
         fflush(g_oai_log.log_fd);
       }
     } else {
-      syslog(item_p->u_app_log.log.log_level, "%s", bdata(item_p->bstr));
+      syslog(item_p->log.log_level, "%s", bdata(item_p->bstr));
     }
   }
 }
@@ -1341,7 +1341,7 @@ void log_message_start_async(
 
   if (*messageP) {
     struct timeval elapsed_time;
-    (*messageP)->u_app_log.log.log_level = log_levelP;
+    (*messageP)->log.log_level = log_levelP;
     shared_log_get_elapsed_time_since_start(&elapsed_time);
 
     // get the short file name to use for printing in log
@@ -1641,7 +1641,7 @@ void log_message_int(
       goto error_event;
     }
     rv = bvcformata((*async_context_p)->bstr, 4096, format, args); // big number
-    (*async_context_p)->u_app_log.log.log_level =
+    (*async_context_p)->log.log_level =
       g_oai_log.log_level2syslog[log_levelP];
     if (BSTR_ERR == rv) {
       OAI_FPRINTF_ERR(

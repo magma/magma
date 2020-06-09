@@ -43,16 +43,15 @@ endif
 
 ifeq ($(MAIN_FEATURE),mme)
 # Here force S6A to use freeDiameter
-OAI_FLAGS = -DS6A_OVER_GRPC=False
+# Set DS6A_OVER_GRPC=False if using OAI-HSS
+OAI_FLAGS = -DS6A_OVER_GRPC=True
 else ifeq ($(MAIN_FEATURE),agw_gtpnl)
 OAI_FLAGS = $(S6A_FLAGS) -DEMBEDDED_SGW=True -DENABLE_OPENFLOW=False -DSPGW_ENABLE_SESSIOND_AND_MOBILITYD=False
 else ifeq ($(MAIN_FEATURE),agw_of)
 OAI_FLAGS = $(S6A_FLAGS) -DEMBEDDED_SGW=True -DENABLE_OPENFLOW=True -DSPGW_ENABLE_SESSIOND_AND_MOBILITYD=True
 
 else
-# default
 OAI_FLAGS = $(S6A_FLAGS) -DEMBEDDED_SGW=True -DENABLE_OPENFLOW=True -DSPGW_ENABLE_SESSIOND_AND_MOBILITYD=True
-
 endif
 
 $(info OAI_FLAGS $(OAI_FLAGS))
@@ -100,7 +99,6 @@ logs: ## Follow logs for all services
 # Ref: https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 help: ## Show documented commands
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-25s\033[0m %s\n", $$1, $$2}'
-
 
 # run_cmake BUILD_DIRECTORY, FILE_DIRECTORY, FLAGS, ENV
 define run_cmake

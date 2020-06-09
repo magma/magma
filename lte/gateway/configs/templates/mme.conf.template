@@ -190,8 +190,8 @@ MME :
 
         # MME binded interface for S11 communication (GTPV2-C)
         MME_INTERFACE_NAME_FOR_S11_MME        = "{{ s11_iface_name }}";
-        MME_IPV4_ADDRESS_FOR_S11_MME          = "{{ s11_ip }}";
-        MME_PORT_FOR_S11_MME                  = 2124;
+        MME_IPV4_ADDRESS_FOR_S11_MME          = "{{ mme_s11_ip }}";
+        MME_PORT_FOR_S11_MME                  = 2123;
     };
 
     LOGGING :
@@ -220,6 +220,8 @@ MME :
         S1AP_LOG_LEVEL     = "{{ oai_log_level }}";
         NAS_LOG_LEVEL      = "{{ oai_log_level }}";
         MME_APP_LOG_LEVEL  = "{{ oai_log_level }}";
+        GTPV2C_LOG_LEVEL   = "{{ oai_log_level }}";
+        S11_LOG_LEVEL      = "{{ oai_log_level }}";
         S6A_LOG_LEVEL      = "{{ oai_log_level }}";
         UTIL_LOG_LEVEL     = "{{ oai_log_level }}";
         MSC_LOG_LEVEL      = "ERROR";
@@ -236,10 +238,10 @@ MME :
         # file should be copied here from source tree by following command: run_mme --install-mme-files ...
         SCENARIO_FILE = "/usr/local/share/oai/test/MME/no_regression.xml";
     };
-};
 
-S-GW :
-{
+    S-GW :
+   {
     # S-GW binded interface for S11 communication (GTPV2-C), if none selected the ITTI message interface is used
-    SGW_IPV4_ADDRESS_FOR_S11              = "{{ s11_ip }}";
+       SGW_IPV4_ADDRESS_FOR_S11              = "{{ remote_sgw_ip }}";
+   };
 };
