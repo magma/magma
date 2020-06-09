@@ -13,7 +13,8 @@ import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import Card from '@material-ui/core/Card';
 import React from 'react';
 import TabbedTable from './TabbedTable';
-import Text from '@fbcnms/ui/components/design-system/Text';
+import Text from '../theme/design-system/Text';
+import {colors} from '../theme/default';
 import nullthrows from '@fbcnms/util/nullthrows';
 import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 import Grid from '@material-ui/core/Grid';
@@ -28,7 +29,7 @@ const useStyles = makeStyles(theme => ({
     marginBottom: theme.spacing(1),
   },
   cardTitleIcon: {
-    fill: '#545F77',
+    fill: colors.primary.comet,
     marginRight: theme.spacing(1),
   },
 }));
@@ -93,14 +94,11 @@ export default function() {
 
   return (
     <>
-      {/* TODO: Can come back and make this a reusable component for other cards */}
       <Grid container alignItems="center" className={classes.cardTitle}>
         <Alarm className={classes.cardTitleIcon} />
-        <Text>Alerts ({alerts.length})</Text>
+        <Text variant="body1">Alerts ({alerts.length})</Text>
       </Grid>
-      {/* <Card> */}
       <TabbedTable data={data} />
-      {/* </Card> */}
     </>
   );
 }

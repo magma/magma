@@ -21,7 +21,8 @@ import Paper from '@material-ui/core/Paper';
 import React, {useState} from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
-import Text from '@fbcnms/ui/components/design-system/Text';
+import Text from '../../theme/design-system/Text';
+import {colors} from '../../theme/default';
 import moment from 'moment';
 import {DateTimePicker} from '@material-ui/pickers';
 import {GpsFixed, NetworkCheck, People} from '@material-ui/icons';
@@ -34,15 +35,16 @@ const useStyles = makeStyles(theme => ({
     margin: theme.spacing(5),
   },
   topBar: {
-    backgroundColor: theme.palette.magmalte.background,
+    backgroundColor: colors.primary.mirage,
     padding: '20px 40px 20px 40px',
+    color: colors.primary.white,
   },
   tabBar: {
-    backgroundColor: theme.palette.magmalte.appbar,
+    backgroundColor: colors.primary.brightGray,
     padding: `0 ${theme.spacing(5)}px`,
   },
   tabs: {
-    color: 'white',
+    color: colors.primary.white,
   },
   tab: {
     fontSize: '18px',
@@ -57,12 +59,15 @@ const useStyles = makeStyles(theme => ({
     marginRight: '8px',
   },
   input: {
-    color: 'white',
-    backgroundColor: '#545F77',
+    color: colors.primary.white,
+    backgroundColor: colors.primary.comet,
     border: 'none',
     borderRadius: '4px',
     textAlign: 'center',
     padding: `${theme.spacing(1)}px 0`,
+  },
+  dateTimeText: {
+    color: colors.primary.selago,
   },
   cardTitle: {
     marginBottom: theme.spacing(1),
@@ -87,9 +92,7 @@ function LteDashboard() {
   return (
     <>
       <div className={classes.topBar}>
-        <Text color="light" weight="medium">
-          Dashboard
-        </Text>
+        <Text variant="body2">Dashboard</Text>
       </div>
 
       <AppBar position="static" color="default" className={classes.tabBar}>
@@ -125,7 +128,9 @@ function LteDashboard() {
             alignItems="center">
             <Grid container justify="flex-end" alignItems="center" spacing={2}>
               <Grid item>
-                <Text color="light">Filter By Date</Text>
+                <Text variant="body3" className={classes.dateTimeText}>
+                  Filter By Date
+                </Text>
               </Grid>
               <DateTimePicker
                 autoOk
@@ -137,7 +142,9 @@ function LteDashboard() {
                 onChange={setStartDate}
               />
               <Grid item>
-                <Text color="light">to</Text>
+                <Text variant="body3" className={classes.dateTimeText}>
+                  to
+                </Text>
               </Grid>
               <DateTimePicker
                 autoOk
