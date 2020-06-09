@@ -78,6 +78,10 @@ void LocalSessionManagerHandlerImpl::check_usage_for_reporting(
               << " charging updates and " << request.usage_monitors_size()
               << " monitor updates to OCS and PCRF";
 
+  // Before reporting and returning control to the event loop, increment the
+  // request numbers stored for the sessions in SessionStore
+  session_store_.sync_request_numbers(session_update);
+
   // report to cloud
   // NOTE: It is not possible to construct a std::function from a move-only type
   //       So because of this, we can't directly move session_map into the
@@ -469,7 +473,7 @@ SessionMap LocalSessionManagerHandlerImpl::get_sessions_for_reporting(
   for (const RuleRecord& record : records.records()) {
     req.insert(record.sid());
   }
-  return session_store_.read_sessions_for_reporting(req);
+  return session_store_.read_sessions(req);
 }
 
 SessionMap LocalSessionManagerHandlerImpl::get_sessions_for_deletion(

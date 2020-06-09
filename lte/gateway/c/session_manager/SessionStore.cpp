@@ -35,22 +35,31 @@ SessionMap SessionStore::read_all_sessions() {
   return store_client_->read_all_sessions();
 }
 
-SessionMap SessionStore::read_sessions_for_reporting(const SessionRead& req) {
-  auto session_map   = store_client_->read_sessions(req);
-  auto session_map_2 = store_client_->read_sessions(req);
-  // For all sessions of the subscriber, increment the request numbers
-  for (const std::string& imsi : req) {
-    if (session_map_2.find(imsi) == session_map_2.end()
-          || session_map_2[imsi].size() == 0) {
-      MLOG(MWARNING) << "No sessions under " << imsi
-                     << " was found in SessionStore. This might be unexpected";
-    }
-    for (auto& session : session_map_2[imsi]) {
-      session->increment_request_number(session->get_credit_key_count());
+void SessionStore::sync_request_numbers(const SessionUpdate& update_criteria) {
+  // Read the current stored state
+  auto subscriber_ids = std::set<std::string>{};
+  for (const auto& it : update_criteria) {
+    subscriber_ids.insert(it.first);
+  }
+  auto session_map = store_client_->read_sessions(subscriber_ids);
+
+  // Sync stored state so that subsequent reads have the right request_number
+  MLOG(MDEBUG) << "Syncing request numbers into existing sessions";
+  for (auto& it : session_map) {
+    auto imsi = it.first;
+    auto it2 = it.second.begin();
+    while (it2 != it.second.end()) {
+      auto updates = update_criteria.find(it.first)->second;
+      auto session_id = (*it2)->get_session_id();
+      if (updates.find(session_id) != updates.end()) {
+        (*it2)->increment_request_number(
+            updates[session_id].request_number_increment);
+      }
+      ++it2;
     }
   }
-  store_client_->write_sessions(std::move(session_map_2));
-  return session_map;
+  MLOG(MDEBUG) << "sync_request_numbers: Writing into session store";
+  store_client_->write_sessions(std::move(session_map));
 }
 
 SessionMap SessionStore::read_sessions_for_deletion(const SessionRead& req) {
