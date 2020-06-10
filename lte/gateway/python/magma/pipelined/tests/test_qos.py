@@ -13,7 +13,7 @@ from collections import namedtuple
 from unittest.mock import MagicMock, call, patch
 
 from lte.protos.policydb_pb2 import FlowMatch
-from magma.pipelined.qos.common import QosImplType, QosManager
+from magma.pipelined.qos.common import QosImplType, QosManager, normalizeIMSI
 from magma.pipelined.qos.qos_meter_impl import MeterManager
 from magma.pipelined.qos.qos_tc_impl import TrafficClass
 from magma.pipelined.qos.types import QosInfo, get_json, get_key, get_subscriber_key
@@ -75,7 +75,7 @@ class TestQosCommon(unittest.TestCase):
         self.assertTrue(cm.output[0].endswith(exp_err))
 
     def testQosKeyUtils(self):
-        k = get_subscriber_key("imsi1234", 10, 0)
+        k = get_subscriber_key("1234", 10, 0)
         j = get_json(k)
         self.assertTrue(get_key(j) == k)
 
@@ -173,7 +173,7 @@ get_action_instruction"
         qos_mgr = QosManager(MagicMock, asyncio.new_event_loop(), self.config)
         qos_mgr._qos_store = {}
         qos_mgr._setupInternal()
-        imsi, rule_num, qos_info = "imsi1234", 0, QosInfo(100000, 100000)
+        imsi, rule_num, qos_info = "1234", 0, QosInfo(100000, 100000)
 
         # add new subscriber qos queue
         qos_mgr.add_subscriber_qos(imsi, rule_num, FlowMatch.UPLINK, qos_info)
@@ -270,20 +270,15 @@ get_action_instruction"
         qos_mgr = QosManager(MagicMock, asyncio.new_event_loop(), self.config)
         qos_mgr._qos_store = {}
         qos_mgr._setupInternal()
-        rule_list1 = [
-            ("imsi1", 0, 0),
-            ("imsi1", 1, 0),
-            ("imsi1", 2, 1),
-            ("imsi2", 0, 0),
-        ]
+        rule_list1 = [("1", 0, 0), ("1", 1, 0), ("1", 2, 1), ("2", 0, 0)]
 
         rule_list2 = [
-            ("imsi2", 1, 0),
-            ("imsi3", 0, 0),
-            ("imsi4", 0, 0),
-            ("imsi5", 0, 0),
-            ("imsi5", 1, 1),
-            ("imsi6", 0, 0),
+            ("2", 1, 0),
+            ("3", 0, 0),
+            ("4", 0, 0),
+            ("5", 0, 0),
+            ("5", 1, 1),
+            ("6", 0, 0),
         ]
 
         start_idx, end_idx = 2, 2 + len(rule_list1)
@@ -327,7 +322,7 @@ get_action_instruction"
         # deactivate same rule and check if we log properly
         with self.assertLogs("pipelined.qos.common", level="ERROR") as cm:
             qos_mgr.remove_subscriber_qos(imsi, rule_num)
-        error_msg = "unable to find rule_num 0 for imsi imsi1"
+        error_msg = "unable to find rule_num 0 for imsi 1"
         self.assertTrue(cm.output[0].endswith(error_msg))
 
         # deactivate imsi
@@ -335,7 +330,7 @@ get_action_instruction"
         qos_mgr.remove_subscriber_qos(imsi)
         remove_qos_args = []
         for imsi, rule_num, d in rule_list1[1:]:
-            if imsi != "imsi1":
+            if imsi != "1":
                 continue
 
             k = get_json(get_subscriber_key(imsi, rule_num, d))
@@ -348,12 +343,12 @@ get_action_instruction"
         else:
             self.verifyTcRemoveQosBulk(mock_traffic_cls, remove_qos_args)
 
-        self.assertTrue("imsi1" not in qos_mgr._subscriber_map)
+        self.assertTrue("1" not in qos_mgr._subscriber_map)
 
         # deactivate same imsi again and ensure nothing bad happens
         with self.assertLogs("pipelined.qos.common", level="DEBUG") as cm:
-            qos_mgr.remove_subscriber_qos("imsi1")
-        error_msg = "unable to find imsi imsi1"
+            qos_mgr.remove_subscriber_qos("1")
+        error_msg = "unable to find imsi 1"
         self.assertTrue(error_msg in cm.output[-1])
 
         # now only imsi2 should remain
@@ -438,12 +433,7 @@ get_action_instruction"
 
         # prepopulate qos_store
         old_qid_list = [2, 11, 13, 20]
-        old_rule_list = [
-            ("imsi1", 0, 0),
-            ("imsi1", 1, 0),
-            ("imsi1", 2, 1),
-            ("imsi2", 0, 0),
-        ]
+        old_rule_list = [("1", 0, 0), ("1", 1, 0), ("1", 2, 1), ("2", 0, 0)]
         populate_db(old_qid_list, old_rule_list)
 
         # mock future state
@@ -467,7 +457,7 @@ get_action_instruction"
             mock_traffic_cls.delete_class.assert_called_with(self.ul_intf, 15)
 
         # add a new rule to the qos_mgr and check if it is assigned right id
-        imsi, rule_num, d, qos_info = "imsi3", 0, 0, QosInfo(100000, 100000)
+        imsi, rule_num, d, qos_info = "3", 0, 0, QosInfo(100000, 100000)
         qos_mgr.qos_impl.get_action_instruction = MagicMock
         qos_mgr.add_subscriber_qos(imsi, rule_num, d, qos_info)
         k = get_json(get_subscriber_key(imsi, rule_num, d))

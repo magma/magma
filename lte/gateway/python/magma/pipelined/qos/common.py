@@ -43,11 +43,7 @@ class QosManager(object):
         try:
             qos_impl_type = QosImplType(config["qos"]["impl"])
         except ValueError:
-            LOG.error(
-                "{} is not a valid qos implementation type({})".format(
-                    qos_impl_type, QosImplType.list()
-                )
-            )
+            LOG.error("%s is not a valid qos impl type", qos_impl_type)
             raise
 
         if qos_impl_type == QosImplType.OVS_METER:
