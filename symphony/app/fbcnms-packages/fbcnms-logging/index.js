@@ -8,8 +8,11 @@
  * @format
  */
 
-const morgan = require('morgan');
-const winston = require('winston');
+import morgan from 'morgan';
+import winston from 'winston';
+
+import type {Morgan, StreamOptions} from 'morgan';
+
 const {
   colorize,
   combine,
@@ -59,43 +62,49 @@ function getLogFormat(callingModule) {
   }
 }
 
-module.exports = {
-  configure(options: Options) {
-    Object.assign(globalOptions, options);
-  },
-  getHttpLogger: (callingModule: any) => {
-    const logger = module.exports.getLogger(callingModule);
-    return morgan('combined', {
-      skip: (req, _) => req.baseUrl == '/healthz',
-      stream: {
-        write: message => {
-          logger.info(message);
-        },
-      },
-    });
-  },
-  getLogger: (callingModule: any): $winstonLogger<$winstonNpmLogLevels> => {
-    return winston.createLogger({
-      level: globalOptions.LOG_LEVEL,
-      format: getLogFormat(callingModule),
-      stderrLevels: ['error', 'warning'],
-      transports: [new winston.transports.Console()],
-    });
-  },
-  getValidLogLevel: (logLevel: ?string): $Keys<$winstonNpmLogLevels> => {
-    switch (logLevel) {
-      case 'error':
-      case 'warn':
-      case 'info':
-      case 'verbose':
-      case 'debug':
-      case 'silly':
-        return logLevel;
-      case undefined:
-      case null:
-        return 'info';
-      default:
-        throw new Error('Invalid log level!');
-    }
-  },
-};
+export function configure(options: Options) {
+  Object.assign(globalOptions, options);
+}
+export function getHttpLogger(callingModule: any): Morgan {
+  const logger = getLogger(callingModule);
+  const streamOptions: StreamOptions = {
+    write: message => {
+      logger.info(message);
+    },
+  };
+  return morgan('combined', {
+    skip: (req, _) => req.baseUrl == '/healthz',
+    stream: streamOptions,
+  });
+}
+export function getLogger(
+  callingModule: any,
+): $winstonLogger<$winstonNpmLogLevels> {
+  return winston.createLogger({
+    level: globalOptions.LOG_LEVEL,
+    format: getLogFormat(callingModule),
+    stderrLevels: ['error', 'warning'],
+    transports: [new winston.transports.Console()],
+  });
+}
+export function getValidLogLevel(
+  logLevel: ?string,
+): $Keys<$winstonNpmLogLevels> {
+  switch (logLevel) {
+    case 'error':
+    case 'warn':
+    case 'info':
+    case 'verbose':
+    case 'debug':
+    case 'silly':
+      return logLevel;
+    case undefined:
+    case null:
+      return 'info';
+    default:
+      throw new Error('Invalid log level!');
+  }
+}
+
+// This is required for the old school 'require' imports
+export default {configure, getHttpLogger, getLogger, getValidLogLevel};
