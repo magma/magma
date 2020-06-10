@@ -1,0 +1,16 @@
+# Automatically integrate new changes from acebookincubator/magma upstream.
+version: "1"
+rules:                      
+  - base: master            
+    upstream: wei:master    
+    mergeMethod: merge  
+    mergeUnstable: false    
+  - base: dev
+    upstream: dev        
+    assignees:              
+      - wei
+    reviewers:              
+      - astro7x
+    conflictReviewers:      # Not needed: Handled on facebook using ci-travis
+      - wei
+label: ":arrow_heading_down: pull"  
