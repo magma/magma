@@ -17,7 +17,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"magma/orc8r/lib/go/protos"
 	"net"
 	"net/http"
 	"strconv"
@@ -30,6 +29,8 @@ import (
 	"golang.org/x/net/http2"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/status"
+
+	"magma/orc8r/lib/go/protos"
 )
 
 func parseHeaders(hdr http.Header) map[string]string {

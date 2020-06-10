@@ -11,8 +11,9 @@ package config
 import (
 	"errors"
 	"fmt"
-	"log"
 	"reflect"
+
+	"github.com/golang/glog"
 )
 
 // ConfigMap represents a map generated from a service YML file.
@@ -114,7 +115,7 @@ func (c *ConfigMap) GetMap(key string) (map[interface{}]interface{}, error) {
 func (c *ConfigMap) MustGetInt(key string) int {
 	param, err := c.GetInt(key)
 	if err != nil {
-		log.Fatalf("Error retrieving %s: %v\n", key, err)
+		glog.Fatalf("Error retrieving %s: %v\n", key, err)
 	}
 	return param
 }
@@ -123,7 +124,7 @@ func (c *ConfigMap) MustGetInt(key string) int {
 func (c *ConfigMap) MustGetBool(key string) bool {
 	param, err := c.GetBool(key)
 	if err != nil {
-		log.Fatalf("Error retrieving %s: %v\n", key, err)
+		glog.Fatalf("Error retrieving %s: %v\n", key, err)
 	}
 	return param
 }
@@ -132,7 +133,7 @@ func (c *ConfigMap) MustGetBool(key string) bool {
 func (c *ConfigMap) MustGetString(key string) string {
 	str, err := c.GetString(key)
 	if err != nil {
-		log.Fatalf("Error retrieving %s: %v\n", key, err)
+		glog.Fatalf("Error retrieving %s: %v\n", key, err)
 	}
 	return str
 }
@@ -141,7 +142,7 @@ func (c *ConfigMap) MustGetString(key string) string {
 func (c *ConfigMap) MustGetStrings(key string) []string {
 	param, err := c.GetStrings(key)
 	if err != nil {
-		log.Fatalf("Error retrieving %s: %v\n", key, err)
+		glog.Fatalf("Error retrieving %s: %v\n", key, err)
 	}
 	return param
 }
@@ -150,7 +151,7 @@ func (c *ConfigMap) MustGetStrings(key string) []string {
 func (c *ConfigMap) MustGetMap(key string) map[interface{}]interface{} {
 	param, err := c.GetMap(key)
 	if err != nil {
-		log.Fatalf("Error retrieving %s: %v\n", key, err)
+		glog.Fatalf("Error retrieving %s: %v\n", key, err)
 	}
 	return param
 }

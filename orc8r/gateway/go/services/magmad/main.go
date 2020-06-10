@@ -145,7 +145,7 @@ func mainEventLoop(eventChan chan interface{}) {
 				}
 			}
 		case configurator.UpdateCompletion:
-			glog.V(1).Infof("mconfigs updated successfully for services: %v", e)
+			glog.Verbose(len(e) > 0).Infof("mconfigs updated successfully for services: %v", e)
 			// Restart all services with updated configs
 			go func() {
 				magmaServiceTable := map[string]struct{}{}

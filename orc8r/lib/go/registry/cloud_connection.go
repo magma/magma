@@ -14,11 +14,11 @@ import (
 	"crypto/x509"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"strings"
 	"sync/atomic"
 	"time"
 
+	"github.com/golang/glog"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/backoff"
@@ -162,24 +162,24 @@ func getDialOptions(serviceConfig *config.ConfigMap, authority string, useProxy 
 		// always try to add OS certs
 		certPool, err := x509.SystemCertPool()
 		if err != nil {
-			log.Printf("OS Cert Pool initialization error: %v", err)
+			glog.Warningf("OS Cert Pool initialization error: %v", err)
 			certPool = x509.NewCertPool()
 		}
 		if rootCaFile, err := serviceConfig.GetString("rootca_cert"); err == nil && len(rootCaFile) > 0 {
 			// Add magma RootCA
 			if rootCa, err := ioutil.ReadFile(rootCaFile); err == nil {
 				if !certPool.AppendCertsFromPEM(rootCa) {
-					log.Printf("Failed to append certificates from %s", rootCaFile)
+					glog.Errorf("Failed to append certificates from %s", rootCaFile)
 				}
 			} else {
-				log.Printf("Cannot load Root CA from '%s': %v", rootCaFile, err)
+				glog.Errorf("Cannot load Root CA from '%s': %v", rootCaFile, err)
 			}
 		}
 		tlsCfg := &tls.Config{ServerName: authority}
 		if len(certPool.Subjects()) > 0 {
 			tlsCfg.RootCAs = certPool
 		} else {
-			log.Print("Empty server certificate pool, using TLS InsecureSkipVerify")
+			glog.Warning("Empty server certificate pool, using TLS InsecureSkipVerify")
 			tlsCfg.InsecureSkipVerify = true
 		}
 		if clientCaFile, err := serviceConfig.GetString("gateway_cert"); err == nil && len(clientCaFile) > 0 {
@@ -188,14 +188,14 @@ func getDialOptions(serviceConfig *config.ConfigMap, authority string, useProxy 
 				if err == nil {
 					tlsCfg.Certificates = []tls.Certificate{clientCert}
 				} else {
-					log.Printf("failed to load Client Certificate & Key from '%s', '%s': %v",
+					glog.Errorf("failed to load Client Certificate & Key from '%s', '%s': %v",
 						clientCaFile, clientKeyFile, err)
 				}
 			} else {
-				log.Printf("failed to get gateway certificate key location: %v", err)
+				glog.Errorf("failed to get gateway certificate key location: %v", err)
 			}
 		} else {
-			log.Printf("failed to get gateway certificate location: %v", err)
+			glog.Errorf("failed to get gateway certificate location: %v", err)
 		}
 		opts = append(opts, grpc.WithTransportCredentials(credentials.NewTLS(tlsCfg)))
 	}

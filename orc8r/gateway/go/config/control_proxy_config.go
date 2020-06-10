@@ -14,6 +14,7 @@ import (
 	"github.com/golang/glog"
 
 	"magma/orc8r/lib/go/definitions"
+	_ "magma/orc8r/lib/go/initflag"
 	"magma/orc8r/lib/go/service/config"
 )
 
