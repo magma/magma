@@ -35,7 +35,7 @@ void RestartHandler::cleanup_previous_sessions() {
   while (!finished && rpc_try < max_cleanup_retries_) {
     std::promise<bool> directoryd_res;
     std::future<bool> directoryd_future = directoryd_res.get_future();
-    auto res = directoryd_client_->get_all_directoryd_records(
+    directoryd_client_->get_all_directoryd_records(
         [this, &directoryd_res](Status status, AllDirectoryRecords response) {
           if (!status.ok()) {
             directoryd_res.set_value(false);
