@@ -10,6 +10,8 @@ from typing import List, NamedTuple, Optional, Sequence, Tuple, Type, TypeVar, U
 from pysymphony.graphql.enum.image_entity import ImageEntity
 
 from ..graphql.enum.property_kind import PropertyKind
+from ..graphql.enum.user_role import UserRole
+from ..graphql.enum.user_status import UserStatus
 from ..graphql.fragment.equipment_port_definition import EquipmentPortDefinitionFragment
 from ..graphql.fragment.equipment_position_definition import (
     EquipmentPositionDefinitionFragment,
@@ -301,3 +303,20 @@ class Document(NamedTuple):
     parent_id: str
     parent_entity: ImageEntity
     category: Optional[str]
+
+
+class User(NamedTuple):
+    """
+    Attributes:
+        id (str): ID
+        auth_id (str): auth ID
+        email (str): email
+        status (UserStatus): status
+        role (UserRole): role
+    """
+
+    id: str
+    auth_id: str
+    email: str
+    status: UserStatus
+    role: UserRole

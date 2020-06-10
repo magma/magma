@@ -75,7 +75,6 @@ class InventoryClient(SymphonyClient):
     )
     from .api.location import (
         get_location,
-        get_locations_by_external_id,
         get_location_by_external_id,
         get_location_children,
         get_location_documents,

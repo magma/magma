@@ -311,11 +311,12 @@ func createEnodeb(c echo.Context) error {
 	}
 
 	_, err := configurator.CreateEntity(nid, configurator.NetworkEntity{
-		Type:       lte.CellularEnodebType,
-		Key:        payload.Serial,
-		Name:       payload.Name,
-		PhysicalID: payload.Serial,
-		Config:     payload.Config,
+		Type:        lte.CellularEnodebType,
+		Key:         payload.Serial,
+		Name:        payload.Name,
+		Description: payload.Description,
+		PhysicalID:  payload.Serial,
+		Config:      payload.Config,
 	})
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)

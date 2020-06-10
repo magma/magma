@@ -38,10 +38,6 @@ class PolicyMixin(metaclass=ABCMeta):
         self._rule_mapper = kwargs['rule_id_mapper']
         self._session_rule_version_mapper = kwargs[
             'session_rule_version_mapper']
-        self._relay_enabled = kwargs['mconfig'].relay_enabled
-        if not self._relay_enabled:
-            self.logger.info('Relay mode is not enabled, init finished')
-            self.init_finished = True
 
     def handle_restart(self,
                        requests: List[ActivateFlowsRequest]

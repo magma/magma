@@ -8,25 +8,25 @@ from typing import List, Optional
 from pysymphony import SymphonyClient
 
 from ..common.constant import SUPERUSER_ROLE, USER_ROLE
+from ..common.data_class import User
 from ..common.data_enum import Entity
 from ..exceptions import EntityNotFoundError
 from ..graphql.enum.user_role import UserRole
 from ..graphql.enum.user_status import UserStatus
-from ..graphql.fragment.user import UserFragment
 from ..graphql.input.edit_user import EditUserInput
 from ..graphql.mutation.edit_user import EditUserMutation
 from ..graphql.query.user import UserQuery
 from ..graphql.query.users import UsersQuery
 
 
-def get_user(client: SymphonyClient, email: str) -> UserFragment:
-    """Returns `pyinventory.graphql.fragment.user.UserFragment` object by its email
+def get_user(client: SymphonyClient, email: str) -> User:
+    """Returns `pyinventory.common.data_class.User` object by its email
 
         Args:
             email (str): the email address the user registered with
 
         Returns:
-            `pyinventory.graphql.fragment.user.UserFragment` object
+            `pyinventory.common.data_class.User` object
 
         Raises:
             `pyinventory.exceptions.EntityNotFoundError`: the user was not found
@@ -40,16 +40,16 @@ def get_user(client: SymphonyClient, email: str) -> UserFragment:
     user = UserQuery.execute(client, email)
     if user is None:
         raise EntityNotFoundError(entity=Entity.User, entity_name=email)
-    return UserFragment(
+    return User(
         id=user.id,
-        authID=user.authID,
+        auth_id=user.authID,
         email=user.email,
         status=user.status,
         role=user.role,
     )
 
 
-def add_user(client: SymphonyClient, email: str, password: str) -> UserFragment:
+def add_user(client: SymphonyClient, email: str, password: str) -> User:
     """Adds new user to inventory with its email and password
 
         Args:
@@ -57,7 +57,7 @@ def add_user(client: SymphonyClient, email: str, password: str) -> UserFragment:
             password (str): password the user would connect with
 
         Returns:
-            `pyinventory.graphql.fragment.user.UserFragment` object
+            `pyinventory.common.data_class.User` object
 
         Raises:
             `pyinventory.exceptions.EntityNotFoundError`: the user was not created properly
@@ -86,14 +86,14 @@ def add_user(client: SymphonyClient, email: str, password: str) -> UserFragment:
 
 def edit_user(
     client: SymphonyClient,
-    user: UserFragment,
+    user: User,
     new_password: Optional[str] = None,
     new_role: Optional[UserRole] = None,
 ) -> None:
     """Edit user password and role
 
         Args:
-            user ( `pyinventory.graphql.fragment.user.UserFragment` ): user to edit
+            user ( `pyinventory.common.data_class.User` ): user to edit
             new_password (Optional[str]): new password the user would connect with
             new_role ( `pyinventory.graphql.enum.user_role.UserRole` ): user new role
 
@@ -127,13 +127,13 @@ def edit_user(
         EditUserMutation.execute(client, input=EditUserInput(id=user.id, role=new_role))
 
 
-def deactivate_user(client: SymphonyClient, user: UserFragment) -> None:
+def deactivate_user(client: SymphonyClient, user: User) -> None:
     """Deactivate the user which would prevent the user from login in to symphony
        Users in symphony are never deleted. Only de-activated.
 
 
         Args:
-            user ( `pyinventory.graphql.fragment.user.UserFragment` ): user to deactivate
+            user ( `pyinventory.common.data_class.User` ): user to deactivate
 
 
         Raises:
@@ -150,11 +150,11 @@ def deactivate_user(client: SymphonyClient, user: UserFragment) -> None:
     )
 
 
-def activate_user(client: SymphonyClient, user: UserFragment) -> None:
+def activate_user(client: SymphonyClient, user: User) -> None:
     """Activate the user which would allow the user to login again to symphony
 
         Args:
-            user ( `pyinventory.graphql.fragment.user.UserFragment` ): user to activate
+            user ( `pyinventory.common.data_class.User` ): user to activate
 
         Raises:
             FailedOperationException: internal inventory error
@@ -170,11 +170,11 @@ def activate_user(client: SymphonyClient, user: UserFragment) -> None:
     )
 
 
-def get_users(client: SymphonyClient) -> List[UserFragment]:
+def get_users(client: SymphonyClient) -> List[User]:
     """Get the list of users in the system (both active and deactivate)
 
         Returns:
-            List[ `pyinventory.graphql.fragment.user.UserFragment` ]
+            List[ `pyinventory.common.data_class.User` ]
 
         Raises:
             FailedOperationException: internal inventory error
@@ -194,9 +194,9 @@ def get_users(client: SymphonyClient) -> List[UserFragment]:
         node = edge.node
         if node is not None:
             users.append(
-                UserFragment(
+                User(
                     id=node.id,
-                    authID=node.authID,
+                    auth_id=node.authID,
                     email=node.email,
                     status=node.status,
                     role=node.role,
@@ -205,11 +205,11 @@ def get_users(client: SymphonyClient) -> List[UserFragment]:
     return users
 
 
-def get_active_users(client: SymphonyClient) -> List[UserFragment]:
+def get_active_users(client: SymphonyClient) -> List[User]:
     """Get the list of the active users in the system
 
         Returns:
-            List[ `pyinventory.graphql.fragment.user.UserFragment` ]
+            List[ `pyinventory.common.data_class.User` ]
 
         Raises:
             FailedOperationException: internal inventory error

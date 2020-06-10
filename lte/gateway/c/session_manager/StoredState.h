@@ -210,6 +210,7 @@ struct SessionStateUpdateCriteria {
   // this value is only valid if one of the updated event trigger is
   // revalidation time
   google::protobuf::Timestamp revalidation_time;
+  uint32_t request_number_increment;
 
   std::set<std::string> static_rules_to_install;
   std::set<std::string> static_rules_to_uninstall;

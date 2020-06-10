@@ -140,6 +140,7 @@ type AddImageInput struct {
 	Modified    time.Time   `json:"modified"`
 	ContentType string      `json:"contentType"`
 	Category    *string     `json:"category"`
+	Annotation  *string     `json:"annotation"`
 }
 
 type AddLinkInput struct {

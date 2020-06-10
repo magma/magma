@@ -11,9 +11,12 @@ package mconfig
 import (
 	"io/ioutil"
 	"os"
+	"time"
 )
 
 func CreateLoadTempConfig(configJSON string) error {
+	StopRefreshTicker()
+
 	tmpfile, err := ioutil.TempFile("", "mconfig_test")
 	if err != nil {
 		return err
@@ -26,7 +29,7 @@ func CreateLoadTempConfig(configJSON string) error {
 	tmpfile.Close()
 	defer os.Remove(mcpath)
 
-	StopRefreshTicker()
+	time.Sleep(time.Second) // give extra time for in-flight RefreshTicker to complete
 
 	return RefreshConfigsFrom(mcpath)
 }

@@ -17,8 +17,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
-	"magma/orc8r/lib/go/protos"
 	"net"
 	"net/http"
 	"strconv"
@@ -26,10 +24,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang/glog"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/http2"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/status"
+
+	"magma/orc8r/lib/go/protos"
 )
 
 func parseHeaders(hdr http.Header) map[string]string {
@@ -118,7 +119,7 @@ func (m *magmadTestServer) TailLogs(req *protos.TailLogsRequest, s protos.Magmad
 func runTestMagmadServer(server *magmadTestServer, grpcPortCh chan string, stopCh chan struct{}) {
 	lis, err := net.Listen("tcp", fmt.Sprintf(":0"))
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		glog.Fatalf("failed to listen: %v", err)
 	}
 
 	v := strings.Split(lis.Addr().String(), ":")
@@ -218,7 +219,7 @@ func (t *testBroker) handler(w http.ResponseWriter, req *http.Request) {
 func runTestBroker(Broker *testBroker, BrokerPortCh chan string) {
 	lis, err := net.Listen("tcp", fmt.Sprintf(":0"))
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		glog.Fatalf("failed to listen: %v", err)
 	}
 
 	v := strings.Split(lis.Addr().String(), ":")

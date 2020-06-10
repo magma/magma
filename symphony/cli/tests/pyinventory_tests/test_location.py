@@ -19,9 +19,9 @@ from pyinventory.api.location import (
     delete_location,
     edit_location,
     get_location,
+    get_location_by_external_id,
     get_location_children,
     get_location_documents,
-    get_locations_by_external_id,
     move_location,
 )
 from pyinventory.api.location_type import add_location_type
@@ -139,11 +139,10 @@ class TestLocation(BaseTest):
         self.assertEqual(self.location_child_1, fetched_location)
 
     def test_location_with_external_id_created(self) -> None:
-        fetch_locations = get_locations_by_external_id(
+        fetch_location = get_location_by_external_id(
             client=self.client, external_id=self.external_id
         )
-        self.assertEqual(len(fetch_locations), 1)
-        self.assertEqual(self.location_with_ext_id, fetch_locations[0])
+        self.assertEqual(self.location_with_ext_id, fetch_location)
 
     def test_location_edited(self) -> None:
         edit_location(

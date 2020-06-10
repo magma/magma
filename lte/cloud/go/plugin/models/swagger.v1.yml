@@ -2232,6 +2232,9 @@ definitions:
         minLength: 1
         x-nullable: false
         example: Foobar EnodeB
+      description:
+        type: string
+        example: "Description of this radio"
       config:
         $ref: '#/definitions/enodeb_configuration'
       attached_gateway_id:

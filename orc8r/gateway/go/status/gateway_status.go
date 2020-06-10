@@ -113,15 +113,15 @@ func GetNetworkInfo() *NetworkInfo {
 	for i, ni := range netInterfaces {
 		// dumb down, interface status
 		status := "UNKNOWN"
-	statCovertLoop:
+	statConvertLoop:
 		for _, f := range ni.Flags {
 			switch strings.ToLower(f) {
 			case "up":
 				status = "UP"
-				break statCovertLoop
+				break statConvertLoop
 			case "down", "disabled":
 				status = "DOWN"
-				break statCovertLoop
+				break statConvertLoop
 			}
 		}
 		netIface := &NetworkInterface{

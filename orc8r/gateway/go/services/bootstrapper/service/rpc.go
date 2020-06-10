@@ -14,17 +14,17 @@ import (
 	"crypto/x509"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"strings"
 	"time"
 
-	"magma/gateway/config"
-	"magma/orc8r/lib/go/registry"
-
+	"github.com/golang/glog"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/backoff"
 	"google.golang.org/grpc/credentials"
+
+	"magma/gateway/config"
+	"magma/orc8r/lib/go/registry"
 )
 
 // GetBootstrapperCloudConnection initializes and returns Bootstrapper cloud grpc connection
@@ -41,11 +41,12 @@ func (b *Bootstrapper) GetBootstrapperCloudConnection() (*grpc.ClientConn, error
 	if err == nil {
 		return conn, ctx.Err()
 	}
-	// if the proxy is not present, we should with direct TLS connection to default and configured TLS ports
+	// in case the proxy is not present, we should try again with direct TLS connection to the default as well as
+	// the configured TLS ports
 	firstErr := fmt.Errorf("Bootstrapper dial failure for address: %s; GRPC Dial error: %s", addr, err)
 	if proxied {
 		addr = fmt.Sprintf("%s:%d", addrPieces[0], DefaultTLSBootstrapPort)
-		log.Printf("%v; trying secure connection to: %s", firstErr, addr)
+		glog.Warningf("%v; trying secure connection to: %s", firstErr, addr)
 		// Try to call cloud directly
 		ctxTls, cancelTls := context.WithTimeout(context.Background(), registry.GrpcMaxTimeoutSec*time.Second)
 		defer cancelTls()
@@ -58,7 +59,7 @@ func (b *Bootstrapper) GetBootstrapperCloudConnection() (*grpc.ClientConn, error
 		// final attempt, use direct cloud connection and configured bootstrapper port instead of default TLS port
 		if cfg.BootstrapPort != DefaultTLSBootstrapPort {
 			addr = fmt.Sprintf("%s:%d", addrPieces[0], cfg.BootstrapPort)
-			log.Printf("%v; trying: %s", err, addr)
+			glog.Warningf("%v; trying: %s", err, addr)
 			ctx2Tls, cance2lTls := context.WithTimeout(context.Background(), registry.GrpcMaxTimeoutSec*time.Second)
 			defer cance2lTls()
 			conn, err = grpc.DialContext(ctx2Tls, addr, opts...)
@@ -67,7 +68,7 @@ func (b *Bootstrapper) GetBootstrapperCloudConnection() (*grpc.ClientConn, error
 			}
 			err = fmt.Errorf("final Bootstrapper TLS dial failure for: %s; GRPC Dial error: %s", addr, err)
 		}
-		log.Print(err)
+		glog.Error(err)
 	}
 	return conn, firstErr
 }
@@ -87,16 +88,16 @@ func (b *Bootstrapper) getGrpcOpts(useProxy bool, cfg *config.ControlProxyCfg) [
 		// always try to add OS certs
 		certPool, err := x509.SystemCertPool()
 		if err != nil {
-			log.Printf("OS Cert Pool initialization error: %v", err)
+			glog.Warningf("OS Cert Pool initialization error: %v", err)
 			certPool = x509.NewCertPool()
 		}
 		// Add magma RootCA
 		if rootCa, err := ioutil.ReadFile(cfg.RootCaFile); err == nil {
 			if !certPool.AppendCertsFromPEM(rootCa) {
-				log.Printf("Failed to append certificates from %s", cfg.RootCaFile)
+				glog.Warningf("Failed to append certificates from %s", cfg.RootCaFile)
 			}
 		} else {
-			log.Printf("Cannot load Root CA from '%s': %v", cfg.RootCaFile, err)
+			glog.Warningf("Cannot load Root CA from '%s': %v", cfg.RootCaFile, err)
 		}
 		var tlsCfg *tls.Config
 		if len(certPool.Subjects()) > 0 {

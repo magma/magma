@@ -11,19 +11,18 @@ package servicers
 
 import (
 	"fmt"
-	"log"
 
-	"magma/feg/gateway/services/aaa/metrics"
-	"magma/gateway/directoryd"
-
+	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/registry"
+	"magma/feg/gateway/services/aaa/metrics"
 	"magma/feg/gateway/services/aaa/protos"
 	"magma/feg/gateway/services/aaa/session_manager"
+	"magma/gateway/directoryd"
 	lteprotos "magma/lte/cloud/go/protos"
 	orcprotos "magma/orc8r/lib/go/protos"
 )
@@ -49,14 +48,14 @@ func (srv *accountingService) AbortSession(
 	if len(sid) == 0 {
 		res.Code = lteprotos.AbortSessionResult_USER_NOT_FOUND
 		res.ErrorMessage = fmt.Sprintf("Session for IMSI: %s is not found", imsi)
-		log.Print(res.ErrorMessage)
+		glog.Error(res.ErrorMessage)
 		return res, nil
 	}
 	s := srv.sessions.GetSession(sid)
 	if s == nil {
 		res.Code = lteprotos.AbortSessionResult_SESSION_NOT_FOUND
 		res.ErrorMessage = fmt.Sprintf("Session for Radius Session ID: %s and IMSI: %s is not found", sid, imsi)
-		log.Print(res.ErrorMessage)
+		glog.Error(res.ErrorMessage)
 		return res, nil
 	}
 	s.Lock()
@@ -71,7 +70,7 @@ func (srv *accountingService) AbortSession(
 		res.ErrorMessage = fmt.Sprintf(
 			"Accounting Session ID Mismatch for RadSID %s and IMSI: %s. Requested: %s, recorded: %s",
 			sid, imsi, req.GetSessionId(), asid)
-		log.Print(res.ErrorMessage)
+		glog.Error(res.ErrorMessage)
 		return res, nil
 	}
 	if srv.config.GetAccountingEnabled() {
@@ -99,7 +98,7 @@ func (srv *accountingService) AbortSession(
 		res.Code = lteprotos.AbortSessionResult_RADIUS_SERVER_ERROR
 		res.ErrorMessage = fmt.Sprintf(
 			"Radius Disconnect Error: %v for IMSI: %s, Acct SID: %s, Radius SID: %s", err, imsi, asid, sid)
-		log.Print(res.ErrorMessage)
+		glog.Error(res.ErrorMessage)
 		return res, nil
 	}
 	return res, err

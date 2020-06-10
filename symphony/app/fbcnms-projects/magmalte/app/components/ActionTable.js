@@ -20,6 +20,7 @@ import MaterialTable from 'material-table';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
+import OpenInNewIcon from '@material-ui/icons/OpenInNew';
 import React, {useState} from 'react';
 import Remove from '@material-ui/icons/Remove';
 import Search from '@material-ui/icons/Search';
@@ -28,6 +29,7 @@ import Text from '@fbcnms/ui/components/design-system/Text';
 import {forwardRef} from 'react';
 
 const tableIcons = {
+  Export: forwardRef((props, ref) => <OpenInNewIcon {...props} ref={ref} />),
   FirstPage: forwardRef((props, ref) => <FirstPage {...props} ref={ref} />),
   LastPage: forwardRef((props, ref) => <LastPage {...props} ref={ref} />),
   NextPage: forwardRef((props, ref) => <ChevronRight {...props} ref={ref} />),
