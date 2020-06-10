@@ -17,3 +17,13 @@
  table=check_quota(main_table), priority=10,tcp,reg1=0x10,metadata=0x48c697385c73,nw_src=192.168.130.1,nw_dst=192.168.0.3 actions=resubmit(,check_quota(scratch_table_0)),resubmit(,egress(main_table)),set_field:0->reg0,set_field:0->reg3
  table=check_quota(main_table), priority=0,reg1=0x10 actions=resubmit(,egress(main_table)),set_field:0->reg0,set_field:0->reg3
  table=check_quota(main_table), priority=0,reg1=0x1 actions=resubmit(,egress(main_table)),set_field:0->reg0,set_field:0->reg3
+ table=ue_mac(scratch_table_0), priority=15,udp,tp_src=68,tp_dst=67 actions=set_field:0x1->reg6,resubmit(,ingress(main_table)),set_field:0->reg0,set_field:0->reg3
+ table=ue_mac(scratch_table_0), priority=15,udp,tp_src=67,tp_dst=68 actions=set_field:0x1->reg6,resubmit(,ue_mac(scratch_table_1)),set_field:0->reg0,set_field:0->reg3
+ table=ue_mac(scratch_table_0), priority=15,udp,tp_dst=53 actions=set_field:0x1->reg6,resubmit(,ingress(main_table)),set_field:0->reg0,set_field:0->reg3
+ table=ue_mac(scratch_table_0), priority=15,tcp,tp_dst=53 actions=set_field:0x1->reg6,resubmit(,ingress(main_table)),set_field:0->reg0,set_field:0->reg3
+ table=ue_mac(scratch_table_0), priority=15,tcp,tp_dst=853 actions=set_field:0x1->reg6,resubmit(,ingress(main_table)),set_field:0->reg0,set_field:0->reg3
+ table=ue_mac(scratch_table_0), priority=15,udp,tp_src=53 actions=set_field:0x1->reg6,resubmit(,ingress(main_table)),set_field:0->reg0,set_field:0->reg3
+ table=ue_mac(scratch_table_0), priority=15,tcp,tp_src=53 actions=set_field:0x1->reg6,resubmit(,ingress(main_table)),set_field:0->reg0,set_field:0->reg3
+ table=ue_mac(scratch_table_0), priority=15,tcp,tp_src=853 actions=set_field:0x1->reg6,resubmit(,ingress(main_table)),set_field:0->reg0,set_field:0->reg3
+ table=ue_mac(scratch_table_0), priority=0 actions=resubmit(,ingress(main_table)),set_field:0->reg0,set_field:0->reg3
+ table=ue_mac(scratch_table_1), priority=15 actions=CONTROLLER:65535,resubmit(,ingress(main_table))
