@@ -111,8 +111,8 @@ const OptionsPopoverButton = (props: Props) => {
       menuDockRight={true}
       options={menuOptions}
       onChange={handleOptionClick}
-      menuClassName={classes.menu}
-      className={classNames(classes.menuButton, popoverMenuClassName)}
+      menuClassName={classNames(classes.menu, popoverMenuClassName)}
+      className={classes.menuButton}
       onVisibilityChange={onVisibilityChange}>
       {menuIcon ?? (
         <ThreeDotsVerticalIcon

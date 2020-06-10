@@ -15,10 +15,11 @@
 /*::
 import type { ReaderFragment } from 'relay-runtime';
 import type { FragmentReference } from "relay-runtime";
-declare export opaque type LocationMoreActionsButton_location$ref: FragmentReference;
-declare export opaque type LocationMoreActionsButton_location$fragmentType: LocationMoreActionsButton_location$ref;
-export type LocationMoreActionsButton_location = {|
+declare export opaque type LocationMenu_location$ref: FragmentReference;
+declare export opaque type LocationMenu_location$fragmentType: LocationMenu_location$ref;
+export type LocationMenu_location = {|
   +id: string,
+  +name: string,
   +parentLocation: ?{|
     +id: string
   |},
@@ -37,12 +38,12 @@ export type LocationMoreActionsButton_location = {|
   +surveys: $ReadOnlyArray<?{|
     +id: string
   |}>,
-  +$refType: LocationMoreActionsButton_location$ref,
+  +$refType: LocationMenu_location$ref,
 |};
-export type LocationMoreActionsButton_location$data = LocationMoreActionsButton_location;
-export type LocationMoreActionsButton_location$key = {
-  +$data?: LocationMoreActionsButton_location$data,
-  +$fragmentRefs: LocationMoreActionsButton_location$ref,
+export type LocationMenu_location$data = LocationMenu_location;
+export type LocationMenu_location$key = {
+  +$data?: LocationMenu_location$data,
+  +$fragmentRefs: LocationMenu_location$ref,
   ...
 };
 */
@@ -61,12 +62,19 @@ v1 = [
 ];
 return {
   "kind": "Fragment",
-  "name": "LocationMoreActionsButton_location",
+  "name": "LocationMenu_location",
   "type": "Location",
   "metadata": null,
   "argumentDefinitions": [],
   "selections": [
     (v0/*: any*/),
+    {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "name",
+      "args": null,
+      "storageKey": null
+    },
     {
       "kind": "LinkedField",
       "alias": null,
@@ -131,5 +139,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'c95f9da4658ca6a495b30d5d6809b583';
+(node/*: any*/).hash = 'eff26a35c1e9acfc8f9a124eb0182a3c';
 module.exports = node;
