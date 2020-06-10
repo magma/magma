@@ -24,7 +24,7 @@ class TestAuthFailure(unittest.TestCase):
         """ Testing of sending authentication failure procedure """
         num_ues = 1
 
-        self._s1ap_wrapper.configUEDevice_ues_same_imsi(num_ues)
+        self._s1ap_wrapper.configUEDevice(num_ues)
         print("************************* sending Attach Request for ue-id : 1")
         attach_req = s1ap_types.ueAttachRequest_t()
         attach_req.ue_Id = 1
