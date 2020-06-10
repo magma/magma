@@ -13,6 +13,14 @@ services:
       - private
     restart: on-failure
 
+  workflows-wasm-worker:
+    build:
+      context: ${XPLAT_FBC_DIR}
+      dockerfile: fbcnms-projects/workflows/wasm-worker/Dockerfile
+    networks:
+      - private
+    restart: on-failure
+
 networks:
   public:
   private:

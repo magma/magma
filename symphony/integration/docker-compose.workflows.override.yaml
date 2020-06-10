@@ -13,3 +13,8 @@ services:
       - public
     ports:
       - 8088:80
+
+  workflows-wasm-worker:
+    command: yarn run start:dev
+    volumes:
+      - ${XPLAT_FBC_DIR}/fbcnms-projects/workflows/wasm-worker/src:/app/fbcnms-projects/workflows-wasm-worker/src
