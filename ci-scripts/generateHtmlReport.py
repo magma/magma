@@ -48,15 +48,28 @@ class HtmlReport():
 
 		self.analyze_sca_log()
 
-		self.buildSummaryHeader()
+		self.addPagination()
+
+		# no-S11 part
+		self.buildSummaryHeader('agw1-no-s11')
 		self.vmWakeUpRow()
-		self.makeRunRow()
-		self.statusCheckRow()
+		self.makeRunRow('agw1-no-s11')
+		self.statusCheckRow('agw1-no-s11')
 		self.vmStopCheckRow()
 		self.buildSummaryFooter()
 
-		self.testSummaryHeader()
-		self.s1apTesterTable()
+		self.testSummaryHeader('agw1-no-s11')
+		self.s1apTesterTable('agw1-no-s11')
+		self.testSummaryFooter()
+
+		# with-S11 part
+		self.buildSummaryHeader('agw1-with-s11')
+		self.makeRunRow('agw1-with-s11')
+		self.statusCheckRow('agw1-with-s11')
+		self.buildSummaryFooter()
+
+		self.testSummaryHeader('agw1-with-s11')
+		self.s1apTesterTable('agw1-with-s11')
 		self.testSummaryFooter()
 
 		self.generateFooter()
@@ -147,6 +160,7 @@ class HtmlReport():
 		self.file.write('  <br>\n')
 
 	def generateFooter(self):
+		self.file.write('  </nav>\n')
 		self.file.write('  <div class="well well-lg">End of Build Report -- Copyright <span class="glyphicon glyphicon-copyright-mark"></span> 2020 <a href="http://www.openairinterface.org/">OpenAirInterface</a>. All Rights Reserved.</div>\n')
 		self.file.write('</div></body>\n')
 		self.file.write('</html>\n')
@@ -336,8 +350,55 @@ class HtmlReport():
 			self.file.write('	  <strong>Was NOT performed (with CPPCHECK tool). <span class="glyphicon glyphicon-ban-circle"></span></strong>\n')
 			self.file.write('  </div>\n')
 
-	def buildSummaryHeader(self):
-		self.file.write('  <h2>Build Summary</h2>\n')
+	def addPagination(self):
+		self.file.write('\n')
+		self.file.write('  <nav aria-label="Page nav">\n')
+		self.file.write('  <ul class="pagination pagination-lg">\n')
+		# Check status for AGW1-noS11
+		agw1_noS11_status = False
+		cwd = os.getcwd()
+		s1ap_logfile = 'magma_run_s1ap_tester.log'
+		if os.path.isfile(cwd + '/archives/' + s1ap_logfile):
+			cmd = 'egrep -c "AGW-VM-S1AP-TESTS: OK" ' + cwd + '/archives/' + s1ap_logfile
+			try:
+				found = subprocess.check_output(cmd, shell=True, universal_newlines=True)
+			except:
+				found = '0'
+			if int(found) > 0:
+				agw1_noS11_status = True
+		if agw1_noS11_status:
+			self.file.write('     <li class="page-item"><a class="page-link" href="#agw1-no-s11-details">AGW1-no-S11 <font color = "Green"><span class="glyphicon glyphicon-ok-sign"></span></font></a></li>\n')
+		else:
+			self.file.write('     <li class="page-item"><a class="page-link" href="#agw1-no-s11-details">AGW1-no-S11 <font color = "Red"><span class="glyphicon glyphicon-remove-sign"></span></font></a></li>\n')
+
+		# Check status for AGW1-with-S11
+		agw1_wiS11_status = False
+		s1ap_logfile = 'magma_run_s1ap_tester_s11.log'
+		if os.path.isfile(cwd + '/archives/' + s1ap_logfile):
+			cmd = 'egrep -c "AGW-VM-S1AP-TESTS: OK" ' + cwd + '/archives/' + s1ap_logfile
+			try:
+				found = subprocess.check_output(cmd, shell=True, universal_newlines=True)
+			except:
+				found = '0'
+			if int(found) > 0:
+				agw1_wiS11_status = True
+		if agw1_wiS11_status:
+			self.file.write('     <li class="page-item"><a class="page-link" href="#agw1-wi-s11-details">AGW1-with-S11 <font color = "Green"><span class="glyphicon glyphicon-ok-sign"></span></font></a></li>\n')
+		else:
+			self.file.write('     <li class="page-item"><a class="page-link" href="#agw1-wi-s11-details">AGW1-with-S11 <font color = "Red"><span class="glyphicon glyphicon-remove-sign"></span></font></a></li>\n')
+		self.file.write('  </ul>\n')
+		self.file.write('\n')
+
+	def buildSummaryHeader(self, kind):
+		if kind == 'agw1-no-s11':
+			self.file.write('  <div id="agw1-no-s11-details" class="container">\n')
+			self.file.write('  <h1>AGW1 NO S11</h1>\n')
+			self.file.write('  <h2>AGW1 no S11 -- Build Summary</h2>\n')
+		if kind == 'agw1-with-s11':
+			self.file.write('  <div id="agw1-wi-s11-details" class="container">\n')
+			self.file.write('  <h1>AGW1 WITH S11</h1>\n')
+			self.file.write('  <h2>AGW1 with S11 -- Build Summary</h2>\n')
+
 		self.file.write('  <table class="table-bordered" width = "100%" align = "center" border = "1">\n')
 		self.file.write('     <tr bgcolor="#33CCFF" >\n')
 		self.file.write('       <th>Stage Name</th>\n')
@@ -443,22 +504,25 @@ class HtmlReport():
 
 		self.file.write(cell_msg)
 
-	def makeRunRow(self):
+	def makeRunRow(self, kind):
 		self.file.write('    <tr>\n')
 		self.file.write('      <td bgcolor="lightcyan" >Make Run Results</td>\n')
-		self.analyze_vagrant_make_run_log('magma')
-		self.analyze_vagrant_make_run_log('magma_test')
-		self.analyze_vagrant_make_run_log('magma_trfserver')
+		self.analyze_vagrant_make_run_log('magma', kind)
+		self.analyze_vagrant_make_run_log('magma_test', kind)
+		self.analyze_vagrant_make_run_log('magma_trfserver', kind)
 		self.file.write('    </tr>\n')
 
-	def analyze_vagrant_make_run_log(self, vmType):
+	def analyze_vagrant_make_run_log(self, vmType, kind):
 		if vmType == 'magma_test' or vmType == 'magma_trfserver':
 			cell_msg = '      <td bgcolor="LightGray"><pre style="border:none; background-color:LightGray"><b>'
 			cell_msg += 'N/A</b></pre></td>\n'
 			self.file.write(cell_msg)
 			return
 
-		logFileName = vmType.lower().replace('magma','magma_vagrant') + '_make_run.log'
+		if kind == 'agw1-no-s11':
+			logFileName = vmType.lower().replace('magma','magma_vagrant') + '_make_run.log'
+		if kind == 'agw1-with-s11':
+			logFileName = vmType.lower().replace('magma','magma_vagrant') + '_make_run2.log'
 		module_pattern = 'ninja -C  '
 		end_pattern = 'sudo service magma@magmad start'
 
@@ -468,8 +532,13 @@ class HtmlReport():
 			firstModulePassed = False
 			moduleList = ''
 			module_name = ''
+			firstLineIsOptions = True
+			optionLine = ''
 			with open(cwd + '/archives/' + logFileName, 'r') as logfile:
 				for line in logfile:
+					if firstLineIsOptions:
+						firstLineIsOptions = False
+						optionLine = line
 					result = re.search(end_pattern, line)
 					if result is not None:
 						status = True
@@ -483,10 +552,14 @@ class HtmlReport():
 			if status:
 				moduleList += '  -- ' + module_name + ': OK\n'
 				cell_msg = '      <td bgcolor="LimeGreen"><pre style="border:none; background-color:LimeGreen"><b>'
+				cell_msg += 'Build Options are: \n'
+				cell_msg += optionLine + '\n'
 				cell_msg += 'OK: \n'
 			else:
 				moduleList += '  -- ' + module_name + ': KO\n'
 				cell_msg = '      <td bgcolor="Tomato"><pre style="border:none; background-color:Tomato"><b>'
+				cell_msg += 'Build Options are: \n'
+				cell_msg += optionLine + '\n'
 				cell_msg += 'KO: \n'
 			cell_msg += moduleList
 			cell_msg += '</b></pre></td>\n'
@@ -496,22 +569,25 @@ class HtmlReport():
 
 		self.file.write(cell_msg)
 
-	def statusCheckRow(self):
+	def statusCheckRow(self, kind):
 		self.file.write('    <tr>\n')
 		self.file.write('      <td bgcolor="lightcyan" >Magma Services Status</td>\n')
-		self.analyze_status_check_log('magma')
-		self.analyze_status_check_log('magma_test')
-		self.analyze_status_check_log('magma_trfserver')
+		self.analyze_status_check_log('magma', kind)
+		self.analyze_status_check_log('magma_test', kind)
+		self.analyze_status_check_log('magma_trfserver', kind)
 		self.file.write('    </tr>\n')
 
-	def analyze_status_check_log(self, vmType):
+	def analyze_status_check_log(self, vmType, kind):
 		if vmType == 'magma_test' or vmType == 'magma_trfserver':
 			cell_msg = '      <td bgcolor="LightGray"><pre style="border:none; background-color:LightGray"><b>'
 			cell_msg += 'N/A</b></pre></td>\n'
 			self.file.write(cell_msg)
 			return
 
-		logFileName = 'magma_status.log'
+		if kind == 'agw1-no-s11':
+			logFileName = 'magma_status.log'
+		if kind == 'agw1-with-s11':
+			logFileName = 'magma_status2.log'
 		pattern_module = '● magma@'
 		active_pattern = 'Active: active'
 
@@ -552,16 +628,27 @@ class HtmlReport():
 
 		self.file.write(cell_msg)
 
-	def testSummaryHeader(self):
-		self.file.write('  <h2>Test Summary</h2>\n')
+	def testSummaryHeader(self, kind):
+		if kind == 'agw1-no-s11':
+			self.file.write('  <h2>AGW1 no S11 -- Test Summary</h2>\n')
+		if kind == 'agw1-with-s11':
+			self.file.write('  <h2>AGW1 with S11 -- Test Summary</h2>\n')
 
 	def testSummaryFooter(self):
 		self.file.write('  <br>\n')
+		self.file.write('  </div>\n')
 
-	def s1apTesterTable(self):
+	def s1apTesterTable(self, kind):
 		cwd = os.getcwd()
-		if os.path.isfile(cwd + '/archives/magma_run_s1ap_tester.log'):
-			cmd = 'egrep -c "AGW-VM-S1AP-TESTS: OK" ' + cwd + '/archives/magma_run_s1ap_tester.log'
+		if kind == 'agw1-no-s11':
+			s1ap_logfile = 'magma_run_s1ap_tester.log'
+			button_ref = 's1ap-tester'
+		if kind == 'agw1-with-s11':
+			s1ap_logfile = 'magma_run_s1ap_tester_s11.log'
+			button_ref = 's1ap-tester-s11'
+
+		if os.path.isfile(cwd + '/archives/' + s1ap_logfile):
+			cmd = 'egrep -c "AGW-VM-S1AP-TESTS: OK" ' + cwd + '/archives/' + s1ap_logfile
 			try:
 				found = subprocess.check_output(cmd, shell=True, universal_newlines=True)
 			except:
@@ -574,8 +661,8 @@ class HtmlReport():
 			self.file.write('  <h3>S1AP Tester Summary -- STATUS is <font color = "Gray"><span class="glyphicon glyphicon-question-sign"></span></font></h3>\n')
 
 		self.file.write('  <br>\n')
-		self.file.write('  <button data-toggle="collapse" data-target="#s1ap-tester">More details on S1AP Tester checks</button>\n')
-		self.file.write('  <div id="s1ap-tester" class="collapse">\n')
+		self.file.write('  <button data-toggle="collapse" data-target="#' + button_ref + '">More details on S1AP Tester checks</button>\n')
+		self.file.write('  <div id="' + button_ref + '" class="collapse">\n')
 		self.file.write('  <table class="table-bordered" width = "100%" align = "center" border = "1">\n')
 		self.file.write('     <tr bgcolor="#33CCFF" >\n')
 		self.file.write('       <th>Test Name</th>\n')
@@ -583,20 +670,21 @@ class HtmlReport():
 		self.file.write('       <th>Test Duration</th>\n')
 		self.file.write('     </tr>\n')
 
-		if os.path.isfile(cwd + '/archives/magma_run_s1ap_tester.log'):
+		if os.path.isfile(cwd + '/archives/' + s1ap_logfile):
 			pattern = 'echo "Running test: '
 			status = True
 			global_test_duration = 0.0
-			with open(cwd + '/archives/magma_run_s1ap_tester.log', 'r') as logfile:
+			with open(cwd + '/archives/' + s1ap_logfile, 'r') as logfile:
 				for line in logfile:
 					result = re.search(pattern + '(.+)$', line)
 					if result is not None:
 						test_name = result.group(1).replace('"','')
+						test_duration = 'unknown'
 					result = re.search('Ran 1 test in (.+)$', line)
 					if result is not None:
 						test_duration = result.group(1)
 						global_test_duration += float(test_duration.replace('s',''))
-					result = re.search('^OK$|^FAILED', line)
+					result = re.search('^OK$|^FAILED|^Killed by signal 15', line)
 					if result is not None:
 						listTests = '    <tr>\n'
 						listTests += '      <td bgcolor = "LightGray" >' + test_name + '</td>\n'
@@ -621,10 +709,10 @@ class HtmlReport():
 			self.file.write('     </tr>\n')
 		else:
 			self.file.write('     <tr bgcolor="Tomato" >\n')
-			self.file.write('       <td colspan=3><b>KO: logfile (magma_run_s1ap_tester.log) not found</b></td>\n')
+			self.file.write('       <td colspan=3><b>KO: logfile (' + s1ap_logfile + ') not found</b></td>\n')
 			self.file.write('     </tr>\n')
 
-		if os.path.isfile(cwd + '/archives/magma_vagrant_make_coverage_oai.log'):
+		if kind == 'agw1-no-s11' and os.path.isfile(cwd + '/archives/magma_vagrant_make_coverage_oai.log'):
 			with open(cwd + '/archives/magma_vagrant_make_coverage_oai.log', 'r') as logfile:
 				cov_global_rate = False
 				for line in logfile:
