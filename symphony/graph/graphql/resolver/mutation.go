@@ -456,6 +456,7 @@ func (r mutationResolver) CreateSurvey(ctx context.Context, data models.SurveyCr
 						}
 						return "image/jpeg"
 					}(),
+					Annotation: sr.PhotoData.Annotation,
 				},
 				func(create *ent.FileCreate) error {
 					create.SetPhotoSurveyQuestion(question)
@@ -508,6 +509,7 @@ func (r mutationResolver) addSurveyQuestionImagesData(ctx context.Context, sr *m
 					}
 					return "image/jpeg"
 				}(),
+				Annotation: imageData.Annotation,
 			},
 			func(create *ent.FileCreate) error {
 				create.SetSurveyQuestionID(surveyQuestionID)
@@ -1130,7 +1132,8 @@ func (r mutationResolver) createImage(ctx context.Context, input *models.AddImag
 			return models.FileTypeFile.String()
 		}()).
 		SetContentType(input.ContentType).
-		SetNillableCategory(input.Category)
+		SetNillableCategory(input.Category).
+		SetNillableAnnotation(input.Annotation)
 	if err := entSetter(query); err != nil {
 		return nil, err
 	}
