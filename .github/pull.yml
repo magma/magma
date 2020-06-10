@@ -3,7 +3,7 @@ version: "1"
 rules:                      
   - base: master            
     upstream: wei:master    
-    mergeMethod: merge  
+    mergeMethod: hardreset  
     mergeUnstable: false    
   - base: dev
     upstream: dev        
