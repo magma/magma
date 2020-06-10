@@ -130,8 +130,8 @@ int SpgwStateManager::read_ue_state_from_db()
   }
   auto keys = redis_client->get_keys("IMSI*" + task_name + "*");
   for (const auto& key : keys) {
-    gateway::spgw::S11BearerContext ue_proto =
-      gateway::spgw::S11BearerContext();
+    oai::S11BearerContext ue_proto =
+      oai::S11BearerContext();
     s_plus_p_gw_eps_bearer_context_information_t* ue_context =
       (s_plus_p_gw_eps_bearer_context_information_t*) (calloc(
         1, sizeof(s_plus_p_gw_eps_bearer_context_information_t)));

@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package magma.lte;
+package magma.lte.oai;
 
 // Proto file to serialize the structures in
 // magma/lte/gateway/c/lib/3gpp/...

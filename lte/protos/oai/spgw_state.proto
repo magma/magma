@@ -21,10 +21,10 @@
 
 syntax = "proto3";
 
-import "lte/gateway/c/oai/protos/common_types.proto";
-import "lte/gateway/c/oai/protos/3gpp_types.proto";
+import "lte/protos/oai/common_types.proto";
+import "lte/protos/oai/std_3gpp_types.proto";
 
-package magma.lte.gateway.spgw;
+package magma.lte.oai;
 
 // sgw_bearer_context_information
 message SgwEpsBearerContextInfo {
@@ -96,7 +96,7 @@ message CreateSessionMessage {
 message BearerContextToBeCreated {
     uint32 eps_bearer_id = 1;
     TrafficFlowTemplate tft = 2;
-    BearerQos bearer_level_qos = 3;
+    SgwBearerQos bearer_level_qos = 3;
 }
 
 // pgw_eps_bearer_context_information
@@ -132,7 +132,7 @@ message SgwEpsBearerContext {
     bytes enb_ip_address_s1u = 16;
     uint32 enb_teid_s1u = 17;
 
-    BearerQos eps_bearer_qos = 20;
+    SgwBearerQos eps_bearer_qos = 20;
     TrafficFlowTemplate tft = 21;
 
     uint32 num_sdf = 25;
@@ -167,7 +167,7 @@ message PacketFilter {
 }
 
 // eps_bearer_qos_t
-message BearerQos {
+message SgwBearerQos {
     uint32 pci = 1;
     uint32 pl = 2;
     uint32 pvi = 3;
@@ -204,7 +204,7 @@ message PccRule {
     string name = 1;
     bool is_activated = 2;
     uint32 sdf_id = 3;
-    BearerQos bearer_qos = 4;
+    SgwBearerQos bearer_qos = 4;
     uint32 precedence = 5;
 
     SdfTemplate sdf_template = 10;

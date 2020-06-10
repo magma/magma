@@ -1,9 +1,9 @@
 syntax = "proto3";
 
-import "lte/gateway/c/oai/protos/common_types.proto";
-import "lte/gateway/c/oai/protos/spgw_state.proto";
+import "lte/protos/oai/common_types.proto";
+import "lte/protos/oai/spgw_state.proto";
 
-package magma.lte;
+package magma.lte.oai;
 
 // Timers for MME and Nas
 // mme_app_timer_t and nas_timer_t
@@ -367,7 +367,7 @@ message EsmEbrContext {
   uint64 gbr_ul = 3;
   uint64 mbr_dl = 4;
   uint64 mbr_ul = 5;
-  gateway.spgw.TrafficFlowTemplate tft = 6;
+  TrafficFlowTemplate tft = 6;
   ProtocolConfigurationOptions pco = 7;
   Timer timer = 100; // nas_timer_t
 }

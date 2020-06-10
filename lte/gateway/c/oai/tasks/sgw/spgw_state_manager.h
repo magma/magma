@@ -46,8 +46,8 @@ class SpgwStateManager :
   public StateManager<
     spgw_state_t,
     s_plus_p_gw_eps_bearer_context_information_t,
-    gateway::spgw::SpgwState,
-    gateway::spgw::S11BearerContext,
+    oai::SpgwState,
+    oai::S11BearerContext,
     SpgwStateConverter> {
  public:
   /**

@@ -39,7 +39,7 @@ extern "C" {
 
 #include <google/protobuf/map.h>
 
-#include "lte/gateway/c/oai/protos/common_types.pb.h"
+#include "lte/protos/oai/common_types.pb.h"
 
 namespace magma {
 namespace lte {
@@ -144,32 +144,32 @@ class StateConverter {
     const google::protobuf::Map<unsigned long, unsigned long>& proto_map,
     hash_table_uint64_ts_t* state_htbl);
 
-  static void guti_to_proto(const guti_t& guti_state, Guti* guti_proto);
+  static void guti_to_proto(const guti_t& guti_state, oai::Guti* guti_proto);
 
-  static void ecgi_to_proto(const ecgi_t& state_ecgi, Ecgi* ecgi_proto);
+  static void ecgi_to_proto(const ecgi_t& state_ecgi, oai::Ecgi* ecgi_proto);
 
-  static void proto_to_ecgi(const Ecgi& ecgi_proto, ecgi_t* state_ecgi);
+  static void proto_to_ecgi(const oai::Ecgi& ecgi_proto, ecgi_t* state_ecgi);
 
   static void eps_subscribed_qos_profile_to_proto(
     const eps_subscribed_qos_profile_t& state_eps_subscribed_qos_profile,
-    EpsSubscribedQosProfile* eps_subscribed_qos_profile_proto);
-  static void ambr_to_proto(const ambr_t& state_ambr, Ambr* ambr_proto);
+    oai::EpsSubscribedQosProfile* eps_subscribed_qos_profile_proto);
+  static void ambr_to_proto(const ambr_t& state_ambr, oai::Ambr* ambr_proto);
   static void apn_configuration_to_proto(
     const apn_configuration_t& state_apn_configuration,
-    ApnConfig* apn_config_proto);
+    oai::ApnConfig* apn_config_proto);
   static void apn_config_profile_to_proto(
     const apn_config_profile_t& state_apn_config_profile,
-    ApnConfigProfile* apn_config_profile_proto);
+    oai::ApnConfigProfile* apn_config_profile_proto);
 
   static void proto_to_eps_subscribed_qos_profile(
-    const EpsSubscribedQosProfile& eps_subscribed_qos_profile_proto,
+    const oai::EpsSubscribedQosProfile& eps_subscribed_qos_profile_proto,
     eps_subscribed_qos_profile_t* state_eps_subscribed_qos_profile);
-  static void proto_to_ambr(const Ambr& ambr_proto, ambr_t* state_ambr);
+  static void proto_to_ambr(const oai::Ambr& ambr_proto, ambr_t* state_ambr);
   static void proto_to_apn_configuration(
-    const ApnConfig& apn_config_proto,
+    const oai::ApnConfig& apn_config_proto,
     apn_configuration_t* state_apn_configuration);
   static void proto_to_apn_config_profile(
-    const ApnConfigProfile& apn_config_profile_proto,
+    const oai::ApnConfigProfile& apn_config_profile_proto,
     apn_config_profile_t* state_apn_config_profile);
 
  private:
