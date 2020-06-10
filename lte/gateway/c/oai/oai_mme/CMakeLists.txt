@@ -48,7 +48,7 @@ target_link_libraries(mme
     -Wl,--end-group
     ${LFDS} pthread m sctp  rt crypt ${CRYPTO_LIBRARIES} ${OPENSSL_LIBRARIES}
     ${NETTLE_LIBRARIES} ${CONFIG_LIBRARIES} gnutls ${SERVICE303_LIB}
-    prometheus-cpp grpc grpc++
+    prometheus-cpp grpc grpc++ yaml-cpp
 )
 
 if ( NOT EMBEDDED_SGW )

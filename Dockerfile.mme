@@ -1,6 +1,7 @@
 FROM ubuntu:bionic as builder
 
 ARG GIT_PROXY
+ARG FEATURES=mme
 ENV MAGMA_ROOT=/magma
 ENV C_BUILD=/build/c
 
@@ -204,9 +205,9 @@ RUN echo "Install fmtlib required by Folly" && \
 
 # Add Converged MME sources to the container
 COPY ./ /magma
-ENV FEATURES=mme
 RUN ldconfig && \
     cd /magma/lte/gateway && \
+    echo $FEATURES && \ 
     make build_oai
 
 FROM ubuntu:bionic
