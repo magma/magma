@@ -7,7 +7,7 @@ services:
   workflows:
     command: yarn run start:dev
     volumes:
-      - ${XPLAT_FBC_DIR}/fbcnms-projects/workflows/src:/app/fbcnms-projects/workflows/src
+      - ${XPLAT_FBC_DIR}/fbcnms-projects/workflows/proxy/src:/app/fbcnms-projects/workflows-proxy/src
     networks:
       - private
       - public
