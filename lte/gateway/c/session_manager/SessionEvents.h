@@ -27,12 +27,12 @@ namespace magma {
 namespace session_events {
 
 void session_created(
-    std::shared_ptr<AsyncEventdClient> client,
+    AsyncEventdClient& client,
     const std::string& imsi,
     const std::string& session_id);
 
 void session_terminated(
-    std::shared_ptr<AsyncEventdClient> client,
+    AsyncEventdClient& client,
     const std::unique_ptr<SessionState>& session);
 
 }  // namespace session_events
