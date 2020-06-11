@@ -24,7 +24,7 @@ type indexerServicer struct {
 	autoEnabled bool
 }
 
-func NewIndexerServicer(reindexer reindex.Reindexer, autoReindexEnabled bool) indexer_protos.IndexerServer {
+func NewIndexerServicer(reindexer reindex.Reindexer, autoReindexEnabled bool) indexer_protos.IndexerManagerServer {
 	return &indexerServicer{reindexer: reindexer, autoEnabled: autoReindexEnabled}
 }
 
@@ -42,7 +42,7 @@ func (srv *indexerServicer) GetIndexers(ctx context.Context, req *indexer_protos
 	return ret, nil
 }
 
-func (srv *indexerServicer) StartReindex(req *indexer_protos.StartReindexRequest, stream indexer_protos.Indexer_StartReindexServer) error {
+func (srv *indexerServicer) StartReindex(req *indexer_protos.StartReindexRequest, stream indexer_protos.IndexerManager_StartReindexServer) error {
 	ctx := stream.Context()
 	if err := validateCtx(ctx); err != nil {
 		return err

@@ -6,20 +6,28 @@
 // of patent rights can be found in the PATENTS file in the same directory.
 
 syntax = "proto3";
+package magma.orc8r.state;
 
-package magma.orc8r.state.indexer;
 option go_package = "protos";
 
 // IndexerInfo provides info about a state indexer.
 message IndexerInfo {
   // indexer_id is the indexer's ID.
   string indexer_id = 1;
-
   // actual_version is the indexer's current version.
   uint32 actual_version = 2;
-
   // desired_version is the version to which the indexer will be reindexed.
   uint32 desired_version = 3;
+}
+
+// IndexerManager provides methods for manually viewing and managing state indexers.
+service IndexerManager {
+  // GetIndexers returns indexer info for all tracked indexers.
+  rpc GetIndexers (GetIndexersRequest) returns (GetIndexersResponse) {}
+
+  // StartReindex kicks off any required reindex jobs for some or all indexers.
+  // Blocks till reindex job returns, streaming loggable updates.
+  rpc StartReindex (StartReindexRequest) returns (stream StartReindexResponse) {}
 }
 
 message GetIndexersRequest {}
@@ -33,7 +41,6 @@ message StartReindexRequest {
     // indexer_id is the ID of the indexer to reindex.
     // If indexer_id is empty, will reindex all necessary indexers.
     string indexer_id = 1;
-
     // force the reindex to occur.
     // By default, start reindex will fail if automatic reindexing is enabled.
     // Set force=true to overrule this default.
@@ -43,14 +50,4 @@ message StartReindexRequest {
 message StartReindexResponse {
     // update contains a human-readable update on reindex progress
     string update = 1;
-}
-
-// Indexer provides methods for viewing and managing state indexer.
-service Indexer {
-  // GetIndexers returns indexer info for all tracked indexers.
-  rpc GetIndexers (GetIndexersRequest) returns (GetIndexersResponse) {}
-
-  // StartReindex kicks off any required reindex jobs for some or all indexers.
-  // Blocks till reindex job returns, streaming loggable updates.
-  rpc StartReindex (StartReindexRequest) returns (stream StartReindexResponse) {}
 }

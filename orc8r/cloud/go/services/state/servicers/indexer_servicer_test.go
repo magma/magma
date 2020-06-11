@@ -91,7 +91,7 @@ func TestIndexerServicer_GetIndexers(t *testing.T) {
 }
 
 func TestIndexerServicer_StartReindex(t *testing.T) {
-	stream := &state_proto_mocks.Indexer_StartReindexServer{}
+	stream := &state_proto_mocks.IndexerManager_StartReindexServer{}
 	stream.On("Send", mock.Anything).Return(nil)
 	stream.On("Context").Return(ctxBlank)
 
@@ -128,7 +128,7 @@ func TestIndexerServicer_StartReindex(t *testing.T) {
 	})
 
 	t.Run("fail when blankCtx identity is present", func(t *testing.T) {
-		stream := &state_proto_mocks.Indexer_StartReindexServer{}
+		stream := &state_proto_mocks.IndexerManager_StartReindexServer{}
 		stream.On("Context").Return(ctxWithIdentity)
 		srv := servicers.NewIndexerServicer(&reindex_mocks.Reindexer{}, true)
 

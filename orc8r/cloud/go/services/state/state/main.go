@@ -51,7 +51,7 @@ func main() {
 	stateServicer := newStateServicer(store)
 	protos.RegisterStateServiceServer(srv.GrpcServer, stateServicer)
 	indexerServicer := newIndexerServicer(db, store)
-	indexer_protos.RegisterIndexerServer(srv.GrpcServer, indexerServicer)
+	indexer_protos.RegisterIndexerManagerServer(srv.GrpcServer, indexerServicer)
 
 	go metrics.PeriodicallyReportGatewayStatus(gatewayStatusReportInterval)
 
@@ -68,7 +68,7 @@ func newStateServicer(store blobstore.BlobStorageFactory) protos.StateServiceSer
 	return servicer
 }
 
-func newIndexerServicer(db *sql.DB, store blobstore.BlobStorageFactory) state_protos.IndexerServer {
+func newIndexerServicer(db *sql.DB, store blobstore.BlobStorageFactory) state_protos.IndexerManagerServer {
 	queue := reindex.NewSQLJobQueue(reindex.DefaultMaxAttempts, db, sqorc.GetSqlBuilder())
 	err := queue.Initialize()
 	if err != nil {
