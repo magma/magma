@@ -55,7 +55,7 @@ func TestHomeSubscriberServer_GetSubscriberData(t *testing.T) {
 
 	result, err := server.GetSubscriberData(context.Background(), &id1)
 	assert.NoError(t, err)
-	assert.Equal(t, sub1, *result)
+	assert.Equal(t, sub1.String(), result.String())
 }
 
 func TestHomeSubscriberServer_UpdateSubscriber(t *testing.T) {
@@ -99,7 +99,7 @@ func TestHomeSubscriberServer_DeleteSubscriber(t *testing.T) {
 
 	result, err := server.GetSubscriberData(context.Background(), &id)
 	assert.NoError(t, err)
-	assert.Equal(t, sub, *result)
+	assert.Equal(t, sub.String(), result.String())
 
 	_, err = server.DeleteSubscriber(context.Background(), &id)
 	assert.NoError(t, err)
