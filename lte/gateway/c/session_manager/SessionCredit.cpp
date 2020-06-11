@@ -287,15 +287,22 @@ bool SessionCredit::should_deactivate_service() const {
   if (unlimited_quota_) {
     return false;
   }
-  if (!SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED) {
-    // configured in sessiond.yml
+  if ((final_action_info_.final_action ==
+        ChargingCredit_FinalAction_TERMINATE) &&
+      !SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED) {
+      // configured in sessiond.yml
+      return false;
+  }
+  if (service_state_ != SERVICE_ENABLED){
+    // service is not enabled
     return false;
   }
   if (is_final_grant_ && is_quota_exhausted()) {
-    // We only terminate when we receive a Final Unit Indication (final Grant)
-    // and we've exhausted all quota
-    MLOG(MINFO) << "Terminating service because we have exhausted the given "
-                << "quota and it is the final grant";
+    // We only deactivate service when we receive a Final Unit
+    // Indication (final Grant) and we've exhausted all quota
+    MLOG(MINFO) << "Deactivating service because we have exhausted the given "
+      << "quota and it is the final grant."
+      << "action=" << final_action_to_str(final_action_info_.final_action);
     return true;
   }
   return false;
@@ -497,6 +504,10 @@ std::string service_state_to_str(ServiceState state) {
     return "SERVICE_DISABLED";
   case SERVICE_NEEDS_ACTIVATION:
     return "SERVICE_NEEDS_ACTIVATION";
+  case SERVICE_REDIRECTED:
+    return "SERVICE_REDIRECTED";
+  case SERVICE_RESTRICTED:
+    return "SERVICE_RESTRICTED";
   default:
     return "INVALID SERVICE STATE";
   }
