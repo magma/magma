@@ -453,7 +453,6 @@ void LocalEnforcer::install_redirect_flow(
   directoryd_client_->get_directoryd_ip_field(
       imsi, [this, imsi, static_rules, gy_dynamic_rules]
         (Status status, DirectoryField resp) {
-
         if (!status.ok()) {
           MLOG(MERROR) << "Could not fetch subscriber " << imsi << " ip, "
                        << "redirection fails, error: "
@@ -465,15 +464,23 @@ void LocalEnforcer::install_redirect_flow(
             MLOG(MDEBUG) << "Session for IMSI " << imsi << " not found";
             return;
           }
-
           auto session_update =
-            session_store_.get_default_session_update(session_map);
+              session_store_.get_default_session_update(session_map);
+
+          //check if the rule has been installed already.
+          for (const auto &session : it->second) {
+            if(session->is_dynamic_rule_installed(gy_dynamic_rules.front().id())) {
+              return;
+            }
+          }
+          MLOG(MDEBUG) << "Install redirect GY flow in pipelined";
           pipelined_client_->add_gy_final_action_flow(
             imsi, resp.value(), static_rules, gy_dynamic_rules);
 
           for (const auto &session : it->second) {
             auto &uc = session_update[imsi][session->get_session_id()];
-            session->insert_gy_dynamic_rule(gy_dynamic_rules.front(), uc);
+            RuleLifetime lifetime{};
+            session->insert_gy_dynamic_rule(gy_dynamic_rules.front(), lifetime, uc);
           }
           session_store_.update_sessions(session_update);
         }

@@ -115,7 +115,9 @@ protected:
         address_type_converter(redirect_server.redirect_address_type()));
     redirect_info->set_server_address(redirect_server.redirect_server_address());
 
-    session_state->insert_gy_dynamic_rule(redirect_rule, update_criteria);
+    RuleLifetime lifetime{};
+    session_state->insert_gy_dynamic_rule(
+        redirect_rule, lifetime, update_criteria);
   }
 
   void receive_credit_from_ocs(uint32_t rating_group, uint64_t volume) {

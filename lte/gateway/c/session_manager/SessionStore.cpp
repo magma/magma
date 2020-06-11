@@ -241,10 +241,18 @@ bool SessionStore::merge_into_session(
                    << std::endl;
       return false;
     }
-    session->insert_gy_dynamic_rule(rule, uc);
-    MLOG(MERROR) << "Merge: " << session->get_session_id()
-                   << " gy dynamic rule " << rule.id()
+    if (update_criteria.new_rule_lifetimes.find(rule.id()) != update_criteria.new_rule_lifetimes.end()) {
+      auto lifetime = update_criteria.new_rule_lifetimes[rule.id()];
+      session->insert_gy_dynamic_rule(rule, lifetime, uc);
+      MLOG(MERROR) << "Merge: " << session->get_session_id()
+                   << " gy dynamic rule " << rule.id() << std::endl;
+    }
+    else{
+      MLOG(MERROR) << "Failed to merge: " << session->get_session_id()
+                   << " because gy dynamic rule lifetime is not found"
                    << std::endl;
+      return false;
+    }
   }
   for (const auto& rule_id : update_criteria.gy_dynamic_rules_to_uninstall) {
     if (session->is_gy_dynamic_rule_installed(rule_id)) {
