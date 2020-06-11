@@ -395,6 +395,14 @@ std::string serialize_stored_session(StoredSessionState &stored) {
   }
   marshaled["dynamic_rules"] = dynamic_rules;
 
+  folly::dynamic gy_dynamic_rules = folly::dynamic::array;
+  for (const auto &rule : stored.gy_dynamic_rules) {
+    std::string gy_dynamic_rule;
+    rule.SerializeToString(&gy_dynamic_rule);
+    gy_dynamic_rules.push_back(gy_dynamic_rule);
+  }
+  marshaled["gy_dynamic_rules"] = gy_dynamic_rules;
+
   marshaled["request_number"] = std::to_string(stored.request_number);
 
   std::string serialized = folly::toJson(marshaled);
@@ -438,6 +446,12 @@ StoredSessionState deserialize_stored_session(std::string &serialized) {
     PolicyRule policy_rule;
     policy_rule.ParseFromString(policy.getString());
     stored.dynamic_rules.push_back(policy_rule);
+  }
+
+  for (auto &policy : marshaled["gy_dynamic_rules"]) {
+    PolicyRule policy_rule;
+    policy_rule.ParseFromString(policy.getString());
+    stored.gy_dynamic_rules.push_back(policy_rule);
   }
 
   stored.request_number = static_cast<uint32_t>(

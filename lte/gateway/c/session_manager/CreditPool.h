@@ -46,6 +46,7 @@ public:
   virtual void
   get_updates(std::string imsi, std::string ip_addr,
               StaticRuleStore &static_rules, DynamicRuleStore *dynamic_rules,
+              DynamicRuleStore *gy_dynamic_rules,
               std::vector<UpdateRequestType> *updates_out,
               std::vector<std::unique_ptr<ServiceAction>> *actions_out,
               SessionStateUpdateCriteria &update_criteria) = 0;
@@ -109,6 +110,7 @@ public:
   void get_updates(std::string imsi, std::string ip_addr,
                    StaticRuleStore &static_rules,
                    DynamicRuleStore *dynamic_rules,
+                   DynamicRuleStore *gy_dynamic_rules,
                    std::vector<CreditUsage> *updates_out,
                    std::vector<std::unique_ptr<ServiceAction>> *actions_out,
                    SessionStateUpdateCriteria &update_criteria) override;
@@ -196,6 +198,7 @@ public:
   void get_updates(std::string imsi, std::string ip_addr,
                    StaticRuleStore &static_rules,
                    DynamicRuleStore *dynamic_rules,
+                   DynamicRuleStore *gy_dynamic_rules,
                    std::vector<UsageMonitorUpdate> *updates_out,
                    std::vector<std::unique_ptr<ServiceAction>> *actions_out,
                    SessionStateUpdateCriteria &update_criteria) override;
