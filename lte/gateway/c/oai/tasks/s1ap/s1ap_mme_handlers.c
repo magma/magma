@@ -1824,8 +1824,10 @@ int s1ap_mme_handle_path_switch_request(
 //------------------------------------------------------------------------------
 typedef struct arg_s1ap_send_enb_dereg_ind_s {
   uint8_t current_ue_index;
-  uint handled_ues;
+  uint32_t handled_ues;
   MessageDef* message_p;
+  uint32_t associated_enb_id;
+  uint32_t deregister_ue_count;
 } arg_s1ap_send_enb_dereg_ind_t;
 
 //------------------------------------------------------------------------------
@@ -1865,12 +1867,20 @@ static bool s1ap_send_enb_deregistered_ind(
         (uint8_t)(arg->handled_ues % S1AP_ITTI_UE_PER_DEREGISTER_MESSAGE);
 
     // Max UEs reached for this ITTI message, send message to MME App
-    if (arg->current_ue_index == 0 && arg->handled_ues > 0) {
-      S1AP_ENB_DEREGISTERED_IND(arg->message_p).nb_ue_to_deregister =
-          S1AP_ITTI_UE_PER_DEREGISTER_MESSAGE;
+    if (arg->handled_ues == arg->deregister_ue_count ||
+        (arg->current_ue_index == 0 && arg->handled_ues > 0)) {
+      if (arg->current_ue_index != 0) {
+        // The last batch of messages needs to be sent here
+        S1AP_ENB_DEREGISTERED_IND(arg->message_p).nb_ue_to_deregister =
+            (uint8_t) arg->current_ue_index;
+      } else {
+        S1AP_ENB_DEREGISTERED_IND(arg->message_p).nb_ue_to_deregister =
+            S1AP_ITTI_UE_PER_DEREGISTER_MESSAGE;
+      }
 
       // Sending INVALID_IMSI64 because message is not specific to any UE/IMSI
-      arg->message_p->ittiMsgHeader.imsi = INVALID_IMSI64;
+      arg->message_p->ittiMsgHeader.imsi               = INVALID_IMSI64;
+      S1AP_ENB_DEREGISTERED_IND(arg->message_p).enb_id = arg->associated_enb_id;
       itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, arg->message_p);
       arg->message_p = NULL;
     }
@@ -1919,17 +1929,11 @@ static bool construct_s1ap_mme_full_reset_req(
 int s1ap_handle_sctp_disconnection(
     s1ap_state_t* state, const sctp_assoc_id_t assoc_id, bool reset) {
   arg_s1ap_send_enb_dereg_ind_t arg  = {0};
-  uint8_t itrn                       = 0;
   MessageDef* message_p              = NULL;
   enb_description_t* enb_association = NULL;
   s1ap_timer_arg_t timer_arg         = {0};
 
   OAILOG_FUNC_IN(LOG_S1AP);
-
-  OAILOG_INFO(
-      LOG_S1AP,
-      "SCTP disconnection request for association id %u, Reset Flag = %u \n",
-      assoc_id, reset);
 
   // Checking if the assoc id has a valid eNB attached to it
   enb_association = s1ap_state_get_enb(state, assoc_id);
@@ -1937,6 +1941,12 @@ int s1ap_handle_sctp_disconnection(
     OAILOG_ERROR(LOG_S1AP, "No eNB attached to this assoc_id: %d\n", assoc_id);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
+
+  OAILOG_INFO(
+      LOG_S1AP,
+      "SCTP disconnection request for association id %u, Reset Flag = "
+      "%u. Connected UEs = %u \n",
+      assoc_id, reset, enb_association->nb_ue_associated);
 
   // First check if we can just reset the eNB state if there are no UEs
   if (!enb_association->nb_ue_associated) {
@@ -1965,40 +1975,15 @@ int s1ap_handle_sctp_disconnection(
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
   }
 
-  OAILOG_INFO(
-      LOG_S1AP,
-      "SCTP disconnection request for association id %u, Reset Flag = "
-      "%u. Connected UEs = %d \n",
-      assoc_id, reset, enb_association->nb_ue_associated);
-
   /*
    * Send S1ap deregister indication to MME app in batches of UEs where
    * UE count in each batch <= S1AP_ITTI_UE_PER_DEREGISTER_MESSAGE
    */
+  arg.associated_enb_id   = enb_association->enb_id;
+  arg.deregister_ue_count = enb_association->ue_id_coll.num_elements;
   hashtable_uint64_ts_apply_callback_on_elements(
       &enb_association->ue_id_coll, s1ap_send_enb_deregistered_ind,
       (void*) &arg, (void**) &message_p);
-
-  /*
-   * The last batch of messages needs to be sent here. Some UEs are left in the
-   * last batch to deregister if current_ue_index > 0
-   */
-  if ((uint8_t) arg.current_ue_index > 0) {
-    S1AP_ENB_DEREGISTERED_IND(message_p).nb_ue_to_deregister =
-        (uint8_t) arg.current_ue_index;
-
-    for (itrn = arg.current_ue_index;
-         itrn < S1AP_ITTI_UE_PER_DEREGISTER_MESSAGE; itrn++) {
-      S1AP_ENB_DEREGISTERED_IND(message_p).mme_ue_s1ap_id[itrn] = 0;
-      S1AP_ENB_DEREGISTERED_IND(message_p).enb_ue_s1ap_id[itrn] = 0;
-    }
-    S1AP_ENB_DEREGISTERED_IND(message_p).enb_id = enb_association->enb_id;
-    // Sending INVALID_IMSI64 because message is not specific to any UE/IMSI
-    message_p->ittiMsgHeader.imsi = INVALID_IMSI64;
-
-    itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
-    message_p = NULL;
-  }
 
   /*
    * Mark the eNB's s1 state as appropriate, the eNB will be deleted or
