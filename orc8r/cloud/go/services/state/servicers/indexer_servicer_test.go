@@ -12,7 +12,7 @@ import (
 	"context"
 	"testing"
 
-	"magma/orc8r/cloud/go/services/state/indexer/reindex"
+	"magma/orc8r/cloud/go/services/state/indexer"
 	reindex_mocks "magma/orc8r/cloud/go/services/state/indexer/reindex/mocks"
 	indexer_protos "magma/orc8r/cloud/go/services/state/protos"
 	state_proto_mocks "magma/orc8r/cloud/go/services/state/protos/mocks"
@@ -49,7 +49,7 @@ var (
 
 func TestIndexerServicer_GetIndexers(t *testing.T) {
 	t.Run("happy path", func(t *testing.T) {
-		composed := []*reindex.Version{
+		composed := []*indexer.Versions{
 			{IndexerID: id0, Actual: zero, Desired: version0},
 			{IndexerID: id1, Actual: version1, Desired: version1a},
 			{IndexerID: id2, Actual: version2, Desired: version2},
@@ -62,7 +62,7 @@ func TestIndexerServicer_GetIndexers(t *testing.T) {
 
 		r := &reindex_mocks.Reindexer{}
 		r.On("GetIndexerVersions").Return(composed, nil)
-		srv := servicers.NewIndexerServicer(r, false)
+		srv := servicers.NewIndexerManagerServicer(r, false)
 
 		got, err := srv.GetIndexers(ctxBlank, &indexer_protos.GetIndexersRequest{})
 		assert.NoError(t, err)
@@ -71,7 +71,7 @@ func TestIndexerServicer_GetIndexers(t *testing.T) {
 	})
 
 	t.Run("fail when blankCtx identity is present", func(t *testing.T) {
-		srv := servicers.NewIndexerServicer(&reindex_mocks.Reindexer{}, false)
+		srv := servicers.NewIndexerManagerServicer(&reindex_mocks.Reindexer{}, false)
 
 		_, err := srv.GetIndexers(ctxWithIdentity, &indexer_protos.GetIndexersRequest{})
 		assert.Error(t, err)
@@ -83,7 +83,7 @@ func TestIndexerServicer_GetIndexers(t *testing.T) {
 	t.Run("reindexer err", func(t *testing.T) {
 		r := &reindex_mocks.Reindexer{}
 		r.On("GetIndexerVersions").Return(nil, someErr)
-		srv := servicers.NewIndexerServicer(r, false)
+		srv := servicers.NewIndexerManagerServicer(r, false)
 
 		_, err := srv.GetIndexers(ctxBlank, &indexer_protos.GetIndexersRequest{})
 		assert.Error(t, err)
@@ -100,7 +100,7 @@ func TestIndexerServicer_StartReindex(t *testing.T) {
 		r := &reindex_mocks.Reindexer{}
 		r.On("RunUnsafe", ctxBlank, id0, mock.Anything).Return(nil)
 
-		srv := servicers.NewIndexerServicer(r, false)
+		srv := servicers.NewIndexerManagerServicer(r, false)
 		err := srv.StartReindex(&indexer_protos.StartReindexRequest{IndexerId: id0}, stream)
 		assert.NoError(t, err)
 		r.AssertExpectations(t)
@@ -110,7 +110,7 @@ func TestIndexerServicer_StartReindex(t *testing.T) {
 	t.Run("reindex multiple with override", func(t *testing.T) {
 		r := &reindex_mocks.Reindexer{}
 		r.On("RunUnsafe", ctxBlank, "", mock.Anything).Return(nil)
-		srv := servicers.NewIndexerServicer(r, true)
+		srv := servicers.NewIndexerManagerServicer(r, true)
 
 		err := srv.StartReindex(&indexer_protos.StartReindexRequest{IndexerId: "", Force: true}, stream)
 		assert.NoError(t, err)
@@ -118,7 +118,7 @@ func TestIndexerServicer_StartReindex(t *testing.T) {
 	})
 
 	t.Run("fail when auto reindex enabled", func(t *testing.T) {
-		srv := servicers.NewIndexerServicer(&reindex_mocks.Reindexer{}, true)
+		srv := servicers.NewIndexerManagerServicer(&reindex_mocks.Reindexer{}, true)
 
 		err := srv.StartReindex(&indexer_protos.StartReindexRequest{Force: false}, stream)
 		assert.Error(t, err)
@@ -130,7 +130,7 @@ func TestIndexerServicer_StartReindex(t *testing.T) {
 	t.Run("fail when blankCtx identity is present", func(t *testing.T) {
 		stream := &state_proto_mocks.IndexerManager_StartReindexServer{}
 		stream.On("Context").Return(ctxWithIdentity)
-		srv := servicers.NewIndexerServicer(&reindex_mocks.Reindexer{}, true)
+		srv := servicers.NewIndexerManagerServicer(&reindex_mocks.Reindexer{}, true)
 
 		err := srv.StartReindex(&indexer_protos.StartReindexRequest{}, stream)
 		assert.Error(t, err)
@@ -142,7 +142,7 @@ func TestIndexerServicer_StartReindex(t *testing.T) {
 	t.Run("reindexer err", func(t *testing.T) {
 		r := &reindex_mocks.Reindexer{}
 		r.On("RunUnsafe", ctxBlank, "", mock.Anything).Return(someErr)
-		srv := servicers.NewIndexerServicer(r, false)
+		srv := servicers.NewIndexerManagerServicer(r, false)
 
 		err := srv.StartReindex(&indexer_protos.StartReindexRequest{}, stream)
 		assert.Error(t, err)

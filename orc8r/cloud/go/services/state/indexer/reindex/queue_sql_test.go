@@ -391,7 +391,7 @@ func runCase(t *testing.T, test *testCase) {
 
 	indexer.DeregisterAllForTest(t)
 	if test.registered != nil {
-		err = indexer.RegisterAll(test.registered...)
+		err = indexer.RegisterIndexers(test.registered...)
 		if err != nil {
 			t.Fatalf("Error registering indexers: %v", err)
 		}

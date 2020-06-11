@@ -6,7 +6,7 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
 */
 
-// Magma microservices framework.
+// Package service outlines the Magma microservices framework.
 // The framework helps to create a microservice easily, and provides
 // the common service logic like service303, config, etc.
 package service
@@ -18,16 +18,16 @@ import (
 	"sync"
 	"time"
 
-	"github.com/golang/glog"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/encoding"
-	grpcProto "google.golang.org/grpc/encoding/proto"
-	"google.golang.org/grpc/keepalive"
-
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
 	"magma/orc8r/lib/go/service/config"
 	"magma/orc8r/lib/go/util"
+
+	"github.com/golang/glog"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/encoding"
+	grpc_proto "google.golang.org/grpc/encoding/proto"
+	"google.golang.org/grpc/keepalive"
 )
 
 const (
@@ -92,8 +92,7 @@ func NewServiceWithOptions(moduleName string, serviceName string, serverOptions 
 // NewServiceWithOptionsImpl returns a new GRPC service implementing
 // service303 with the specified grpc server options. This will not instantiate
 // the service with the identity checking middleware.
-func NewServiceWithOptionsImpl(
-	moduleName string, serviceName string, serverOptions ...grpc.ServerOption) (*Service, error) {
+func NewServiceWithOptionsImpl(moduleName string, serviceName string, serverOptions ...grpc.ServerOption) (*Service, error) {
 
 	// Load config, in case it does not exist, log
 	configMap, err := config.GetServiceConfig(moduleName, serviceName)
@@ -104,7 +103,7 @@ func NewServiceWithOptionsImpl(
 
 	// Check if service was started with print-grpc-payload flag or MAGMA_PRINT_GRPC_PAYLOAD env is set
 	if printGrpcPayload || util.IsTruthyEnv(PrintGrpcPayloadEnv) {
-		ls := logCodec{encoding.GetCodec(grpcProto.Name)}
+		ls := logCodec{encoding.GetCodec(grpc_proto.Name)}
 		if ls.protoCodec != nil {
 			glog.Errorf("Adding Debug Codec for service %s", serviceName)
 			encoding.RegisterCodec(ls)
@@ -154,7 +153,7 @@ func (service *Service) Run() error {
 	return service.GrpcServer.Serve(lis)
 }
 
-// Run the test service on a given Listener. This function blocks
+// RunTest runs the test service on a given Listener. This function blocks
 // by a signal or until the gRPC server is stopped.
 func (service *Service) RunTest(lis net.Listener) {
 	service.State = protos.ServiceInfo_ALIVE
