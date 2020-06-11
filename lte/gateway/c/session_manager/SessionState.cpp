@@ -53,6 +53,10 @@ StoredSessionState SessionState::marshal() {
   dynamic_rules_.get_rules(dynamic_rules);
   marshaled.dynamic_rules = std::move(dynamic_rules);
 
+  std::vector<PolicyRule> gy_dynamic_rules;
+  gy_dynamic_rules_.get_rules(gy_dynamic_rules);
+  marshaled.gy_dynamic_rules = std::move(gy_dynamic_rules);
+
   for (auto& rule_id : scheduled_static_rules_) {
     marshaled.scheduled_static_rules.insert(rule_id);
   }
@@ -194,8 +198,8 @@ void SessionState::get_updates_from_charging_pool(
   // charging updates
   std::vector<CreditUsage> charging_updates;
   charging_pool_.get_updates(
-      imsi_, config_.ue_ipv4, static_rules_, &dynamic_rules_, &charging_updates,
-      actions_out, update_criteria);
+      imsi_, config_.ue_ipv4, static_rules_, &dynamic_rules_,
+      &gy_dynamic_rules_, &charging_updates, actions_out, update_criteria);
   for (const auto& update : charging_updates) {
     auto new_req = update_request_out.mutable_updates()->Add();
     new_req->set_session_id(session_id_);
@@ -224,8 +228,8 @@ void SessionState::get_updates_from_monitor_pool(
     SessionStateUpdateCriteria& update_criteria) {
   std::vector<UsageMonitorUpdate> monitor_updates;
   monitor_pool_.get_updates(
-      imsi_, config_.ue_ipv4, static_rules_, &dynamic_rules_, &monitor_updates,
-      actions_out, update_criteria);
+      imsi_, config_.ue_ipv4, static_rules_, &dynamic_rules_,
+      &gy_dynamic_rules_, &monitor_updates, actions_out, update_criteria);
   for (const auto& update : monitor_updates) {
     auto new_req = update_request_out.mutable_usage_monitors()->Add();
     add_common_fields_to_usage_monitor_update(new_req);
@@ -510,7 +514,7 @@ void SessionState::insert_gy_dynamic_rule(
   if (is_gy_dynamic_rule_installed(rule.id())) {
     return;
   }
-  update_criteria.dynamic_rules_to_install.push_back(rule);
+  update_criteria.gy_dynamic_rules_to_install.push_back(rule);
   gy_dynamic_rules_.insert_rule(rule);
 }
 
@@ -549,7 +553,7 @@ bool SessionState::remove_gy_dynamic_rule(
 {
   bool removed = gy_dynamic_rules_.remove_rule(rule_id, rule_out);
   if (removed) {
-    update_criteria.dynamic_rules_to_uninstall.insert(rule_id);
+    update_criteria.gy_dynamic_rules_to_uninstall.insert(rule_id);
   }
   return removed;
 }

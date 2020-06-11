@@ -447,11 +447,11 @@ void LocalEnforcer::install_redirect_flow(
     const std::unique_ptr<ServiceAction>& action,
     SessionUpdate &session_update) {
   std::vector<std::string> static_rules;
-  std::vector<PolicyRule> dynamic_rules{create_redirect_rule(action)};
+  std::vector<PolicyRule> gy_dynamic_rules{create_redirect_rule(action)};
   const std::string &imsi = action->get_imsi();
 
   directoryd_client_->get_directoryd_ip_field(
-      imsi, [this, imsi, static_rules, dynamic_rules]
+      imsi, [this, imsi, static_rules, gy_dynamic_rules]
         (Status status, DirectoryField resp) {
 
         if (!status.ok()) {
@@ -469,11 +469,11 @@ void LocalEnforcer::install_redirect_flow(
           auto session_update =
             session_store_.get_default_session_update(session_map);
           pipelined_client_->add_gy_final_action_flow(
-            imsi, resp.value(), static_rules, dynamic_rules);
+            imsi, resp.value(), static_rules, gy_dynamic_rules);
 
           for (const auto &session : it->second) {
             auto &uc = session_update[imsi][session->get_session_id()];
-            session->insert_gy_dynamic_rule(dynamic_rules.front(), uc);
+            session->insert_gy_dynamic_rule(gy_dynamic_rules.front(), uc);
           }
           session_store_.update_sessions(session_update);
         }
