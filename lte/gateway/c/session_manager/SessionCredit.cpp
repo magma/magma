@@ -205,6 +205,7 @@ void SessionCredit::receive_credit(
     set_reauth(REAUTH_NOT_NEEDED, update_criteria);
   }
   if (!is_quota_exhausted() && (service_state_ == SERVICE_DISABLED ||
+                                service_state_ == SERVICE_REDIRECTED ||
                                 service_state_ == SERVICE_NEEDS_DEACTIVATION)) {
     // if quota no longer exhausted, reenable services as needed
     MLOG(MINFO) << "Quota available. Activating service";
@@ -306,6 +307,10 @@ bool SessionCredit::should_deactivate_service() const {
     return true;
   }
   return false;
+}
+
+bool SessionCredit::is_service_redirected() const {
+  return service_state_ == SERVICE_REDIRECTED;
 }
 
 bool SessionCredit::validity_timer_expired() const {

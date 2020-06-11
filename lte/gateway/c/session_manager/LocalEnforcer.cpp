@@ -1072,26 +1072,31 @@ void LocalEnforcer::update_charging_credits(
     for (const auto& session : it->second) {
       std::string sid                             = session->get_session_id();
       SessionStateUpdateCriteria& update_criteria = session_update[imsi][sid];
+      bool is_redirected = session->get_charging_pool().
+          is_credit_state_redirected(CreditKey(credit_update_resp));
       session->get_charging_pool().receive_credit(
           credit_update_resp, update_criteria);
       session->set_tgpp_context(credit_update_resp.tgpp_ctx(), update_criteria);
       SessionState::SessionInfo info;
-      std::vector<PolicyRule> gy_rules_to_deactivate;
-      session->get_session_info(info);
-      for (const auto &rule : info.gy_dynamic_rules) {
-        PolicyRule dy_rule;
-        auto &uc = session_update[imsi][session->get_session_id()];
-        bool is_dynamic =
-            session->remove_gy_dynamic_rule(rule.id(), &dy_rule, uc);
-        if (is_dynamic) {
-          gy_rules_to_deactivate.push_back(dy_rule);
-        }
-      }
 
-      if (!gy_rules_to_deactivate.empty()) {
-        std::vector<std::string> static_rules;
-        pipelined_client_->deactivate_flows_for_rules(
-            imsi, static_rules, gy_rules_to_deactivate, RequestOriginType::GY);
+      if (is_redirected) {
+        std::vector<PolicyRule> gy_rules_to_deactivate;
+        session->get_session_info(info);
+        for (const auto &rule : info.gy_dynamic_rules) {
+          PolicyRule dy_rule;
+          auto &uc = session_update[imsi][session->get_session_id()];
+          bool is_dynamic =
+              session->remove_gy_dynamic_rule(rule.id(), &dy_rule, uc);
+          if (is_dynamic) {
+            gy_rules_to_deactivate.push_back(dy_rule);
+          }
+        }
+
+        if (!gy_rules_to_deactivate.empty()) {
+          std::vector<std::string> static_rules;
+          pipelined_client_->deactivate_flows_for_rules(
+              imsi, static_rules, gy_rules_to_deactivate, RequestOriginType::GY);
+        }
       }
     }
   }
