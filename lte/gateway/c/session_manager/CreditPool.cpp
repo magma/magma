@@ -322,6 +322,15 @@ uint32_t ChargingCreditPool::get_credit_key_count() const {
   return credit_map_.size();
 }
 
+bool ChargingCreditPool::is_credit_state_redirected(
+    const CreditKey &charging_key) const {
+  auto it = credit_map_.find(charging_key);
+  if (it == credit_map_.end()) {
+    return false;
+  }
+  return it->second->is_service_redirected();
+}
+
 ReAuthResult
 ChargingCreditPool::reauth_key(const CreditKey &charging_key,
                                SessionStateUpdateCriteria &update_criteria) {
