@@ -152,8 +152,6 @@ public:
 
 class MockEventdClient : public AsyncEventdClient {
 public:
-  MockEventdClient() {}
-
   MOCK_METHOD2(log_event,
                void(const Event &request,
                     std::function<void(Status status, Void)> callback));
