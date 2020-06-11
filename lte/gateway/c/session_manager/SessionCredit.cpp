@@ -214,7 +214,6 @@ void SessionCredit::receive_credit(
 }
 
 void SessionCredit::log_quota_and_usage() const {
-  auto reported_sum = buckets_[REPORTED_TX] + buckets_[REPORTED_RX];
   MLOG(MDEBUG) << "===> Used     Tx: " << buckets_[USED_TX]
                << " Rx: " << buckets_[USED_RX]
                << " Total: " << buckets_[USED_TX] + buckets_[USED_RX];

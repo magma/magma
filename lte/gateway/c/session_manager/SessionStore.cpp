@@ -233,6 +233,30 @@ bool SessionStore::merge_into_session(
     session->schedule_dynamic_rule(rule, lifetime, uc);
   }
 
+  // Gy Dynamic rules
+  for (const auto& rule : update_criteria.gy_dynamic_rules_to_install) {
+    if (session->is_gy_dynamic_rule_installed(rule.id())) {
+      MLOG(MERROR) << "Failed to merge: " << session->get_session_id()
+                   << " because gy dynamic rule already installed: " << rule.id()
+                   << std::endl;
+      return false;
+    }
+    session->insert_gy_dynamic_rule(rule, uc);
+    MLOG(MERROR) << "Merge: " << session->get_session_id()
+                   << " gy dynamic rule " << rule.id()
+                   << std::endl;
+  }
+  for (const auto& rule_id : update_criteria.gy_dynamic_rules_to_uninstall) {
+    if (session->is_gy_dynamic_rule_installed(rule_id)) {
+      session->remove_gy_dynamic_rule(rule_id, _, uc);
+    } else {
+      MLOG(MERROR) << "Failed to merge: " << session->get_session_id()
+                << " because gy dynamic rule already uninstalled: " << rule_id
+                << std::endl;
+      return false;
+    }
+  }
+
   // Charging credit
   for (const auto& it : update_criteria.charging_credit_map) {
     auto key           = it.first;

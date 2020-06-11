@@ -40,4 +40,4 @@ class InternalIPAllocator:
                 ip = next(self.internal_ip_iterator, None)
                 if ip is None:
                     self.internal_ip_iterator = self.internal_ip_network.hosts()
-            return ip
+        return ip

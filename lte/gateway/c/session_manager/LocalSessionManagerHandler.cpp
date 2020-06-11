@@ -438,7 +438,6 @@ void LocalSessionManagerHandlerImpl::end_session(
     SessionMap& session_map, const LocalEndSessionRequest& request,
     std::function<void(Status, LocalEndSessionResponse)> response_callback) {
   try {
-    auto reporter = reporter_;
     auto update   = SessionStore::get_default_session_update(session_map);
     enforcer_->terminate_subscriber(
         session_map, request.sid().id(), request.apn(), update);
