@@ -3,7 +3,10 @@
 # license that can be found in the LICENSE file.
 
 # Extend base fluentd image
-FROM fluent/fluentd
+FROM fluent/fluentd:v1.9-1
+
+USER root
 
 # Install prometheus plugin
 RUN fluent-gem install fluent-plugin-prometheus
+RUN fluent-gem install fluent-plugin-rewrite-tag-filter

@@ -8,11 +8,14 @@
  * @flow strict-local
  * @format
  */
+import type {EnodebInfo} from '../../components/lte/EnodebUtils';
 import type {lte_gateway} from '@fbcnms/magma-api';
 
 import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
+import Enodeb from './EquipmentEnodeb';
+import EnodebDetail from './EnodebDetailMain';
 import Gateway from './EquipmentGateway';
 import GatewayDetail from './GatewayDetailMain';
 import Grid from '@material-ui/core/Grid';
@@ -22,14 +25,15 @@ import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import React from 'react';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
 import Tab from '@material-ui/core/Tab';
+import Tabs from '@material-ui/core/Tabs';
+import Text from '@fbcnms/ui/components/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
 import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 
-import Tabs from '@material-ui/core/Tabs';
-import Text from '@fbcnms/ui/components/design-system/Text';
-
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
+import {useEffect, useState} from 'react';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
@@ -76,20 +80,115 @@ const useStyles = makeStyles(theme => ({
 }));
 
 function EquipmentDashboard() {
-  const classes = useStyles();
   const {match, relativePath, relativeUrl} = useRouter();
   const networkId: string = nullthrows(match.params.networkId);
+  const [enbInfo, setEnbInfo] = useState<{[string]: EnodebInfo}>({});
+  const [isEnbStLoading, setIsEnbStLoading] = useState(true);
 
-  const {response, isLoading} = useMagmaAPI(
+  const enqueueSnackbar = useEnqueueSnackbar();
+
+  const {response: lteGatwayResp, isLoading: isLteRespLoading} = useMagmaAPI(
     MagmaV1API.getLteByNetworkIdGateways,
     {
       networkId: networkId,
     },
   );
-  if (!response || isLoading) {
+
+  const {response: enb, isLoading: isEnbRespLoading} = useMagmaAPI(
+    MagmaV1API.getLteByNetworkIdEnodebs,
+    {
+      networkId: networkId,
+    },
+  );
+
+  useEffect(() => {
+    const fetchEnodebState = async () => {
+      let err = false;
+      if (!enb) {
+        return;
+      }
+      const requests = Object.keys(enb).map(async k => {
+        const {serial} = enb[k];
+        try {
+          // eslint-disable-next-line max-len
+          const enbSt = await MagmaV1API.getLteByNetworkIdEnodebsByEnodebSerialState(
+            {
+              networkId: networkId,
+              enodebSerial: serial,
+            },
+          );
+          return {serial, enbSt};
+        } catch (error) {
+          err = true;
+          console.error('error getting enodeb status for ' + serial);
+          return null;
+        }
+      });
+      if (err) {
+        enqueueSnackbar(
+          'There was a problem fetching enodeb state from the server',
+          {variant: 'error'},
+        );
+      }
+      Promise.all(requests).then(allResponses => {
+        const enbInfoLocal = {};
+        allResponses.filter(Boolean).forEach(r => {
+          enbInfoLocal[r.serial] = {
+            enb: enb[r.serial],
+            enb_state: r.enbSt,
+          };
+        });
+        setEnbInfo(enbInfoLocal);
+        setIsEnbStLoading(false);
+      });
+    };
+    if (!enb && !isEnbRespLoading) {
+      setIsEnbStLoading(false);
+      return;
+    }
+    fetchEnodebState();
+  }, [networkId, enb, isEnbRespLoading, enqueueSnackbar]);
+
+  if (isLteRespLoading || isEnbStLoading) {
     return <LoadingFiller />;
   }
-  const lte_gateways: {[string]: lte_gateway} = response;
+  const lteGateways: {[string]: lte_gateway} = lteGatwayResp ?? {};
+  return (
+    <>
+      <Switch>
+        <Route
+          path={relativePath('/overview/gateway/:gatewayId')}
+          render={() => <GatewayDetail lteGateways={lteGateways} />}
+        />
+        <Route
+          path={relativePath('/overview/enodeb/:enodebSerial')}
+          render={() => <EnodebDetail enbInfo={enbInfo} />}
+        />
+        <Route
+          path={relativePath('/overview')}
+          render={() => (
+            <EquipmentDashboardInternal
+              enbInfo={enbInfo}
+              lteGateways={lteGateways}
+            />
+          )}
+        />
+        <Redirect to={relativeUrl('/overview')} />
+      </Switch>
+    </>
+  );
+}
+
+function EquipmentDashboardInternal({
+  lteGateways,
+  enbInfo,
+}: {
+  lteGateways: {[string]: lte_gateway},
+  enbInfo: {[string]: EnodebInfo},
+}) {
+  const classes = useStyles();
+  const {relativePath, relativeUrl} = useRouter();
+  const [tabPos, setTabPos] = React.useState(0);
   return (
     <>
       <div className={classes.topBar}>
@@ -102,7 +201,8 @@ function EquipmentDashboard() {
         <Grid container>
           <Grid item xs={6}>
             <Tabs
-              value={0}
+              value={tabPos}
+              onChange={(_, v) => setTabPos(v)}
               indicatorColor="primary"
               TabIndicatorProps={{style: {height: '5px'}}}
               textColor="inherit"
@@ -137,18 +237,14 @@ function EquipmentDashboard() {
           </Grid>
         </Grid>
       </AppBar>
-
       <Switch>
         <Route
-          path={relativePath('/gateway/:gatewayId')}
-          render={props => (
-            <GatewayDetail {...props} lte_gateways={lte_gateways} />
-          )}
-        />
-
-        <Route
           path={relativePath('/gateway')}
-          render={props => <Gateway {...props} lte_gateways={lte_gateways} />}
+          render={() => <Gateway lteGateways={lteGateways} />}
+        />
+        <Route
+          path={relativePath('/enodeb')}
+          render={() => <Enodeb enbInfo={enbInfo} />}
         />
         <Redirect to={relativeUrl('/gateway')} />
       </Switch>

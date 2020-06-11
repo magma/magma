@@ -35,6 +35,7 @@ export const LogEvents = {
   EDIT_LOCATION_BUTTON_CLICKED: 'edit_location_button_clicked',
   SAVE_LOCATION_BUTTON_CLICKED: 'save_location_button_clicked',
   DELETE_LOCATION_BUTTON_CLICKED: 'delete_location_button_clicked',
+  MOVE_LOCATION_BUTTON_CLICKED: 'move_location_button_clicked',
   LOCATION_CARD_TAB_CLICKED: 'location_card_tab_clicked',
   EQUIPMENT_CARD_TAB_CLICKED: 'equipment_card_tab_clicked',
   CONFIGURE_NAV_CLICKED: 'configure_nav_clicked',

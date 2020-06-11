@@ -130,11 +130,15 @@ protected:
     stored.session_id = "session_id";
     stored.core_session_id = "core_session_id";
     stored.subscriber_quota_state = SubscriberQuotaUpdate_Type_VALID_QUOTA;
+    stored.fsm_state = SESSION_TERMINATING_FLOW_DELETED;
 
     magma::lte::TgppContext tgpp_context;
     tgpp_context.set_gx_dest_host("gx");
     tgpp_context.set_gy_dest_host("gy");
     stored.tgpp_context = tgpp_context;
+
+    stored.pending_event_triggers[REVALIDATION_TIMEOUT] = READY;
+    stored.revalidation_time.set_seconds(32);
 
     stored.request_number = 1;
 
@@ -390,9 +394,15 @@ TEST_F(StoredStateTest, test_stored_session) {
   EXPECT_EQ(stored.core_session_id, "core_session_id");
   EXPECT_EQ(stored.subscriber_quota_state,
             SubscriberQuotaUpdate_Type_VALID_QUOTA);
+  EXPECT_EQ(stored.fsm_state,
+            SESSION_TERMINATING_FLOW_DELETED);
 
   EXPECT_EQ(stored.tgpp_context.gx_dest_host(), "gx");
   EXPECT_EQ(stored.tgpp_context.gy_dest_host(), "gy");
+
+  EXPECT_EQ(stored.pending_event_triggers.size(), 1);
+  EXPECT_EQ(stored.pending_event_triggers[REVALIDATION_TIMEOUT], READY);
+  EXPECT_EQ(stored.revalidation_time.seconds(), 32);
 
   EXPECT_EQ(stored.request_number, 1);
 }

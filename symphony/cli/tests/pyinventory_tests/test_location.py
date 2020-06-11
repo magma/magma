@@ -19,13 +19,15 @@ from pyinventory.api.location import (
     delete_location,
     edit_location,
     get_location,
+    get_location_by_external_id,
     get_location_children,
     get_location_documents,
-    get_locations_by_external_id,
     move_location,
 )
 from pyinventory.api.location_type import add_location_type
+from pyinventory.common.data_class import PropertyDefinition
 from pyinventory.exceptions import LocationCannotBeDeletedWithDependency
+from pyinventory.graphql.enum.property_kind import PropertyKind
 from pysymphony import SymphonyClient
 
 from ..utils.base_test import BaseTest
@@ -44,8 +46,18 @@ class TestLocation(BaseTest):
             client=self.client,
             name="City",
             properties=[
-                ("Mayor", "string", None, True),
-                ("Contact", "email", None, True),
+                PropertyDefinition(
+                    property_name="Mayor",
+                    property_kind=PropertyKind.string,
+                    default_raw_value=None,
+                    is_fixed=False,
+                ),
+                PropertyDefinition(
+                    property_name="Contact",
+                    property_kind=PropertyKind.email,
+                    default_raw_value=None,
+                    is_fixed=False,
+                ),
             ],
         )
         self.external_id = "test_external_id"
@@ -71,7 +83,7 @@ class TestLocation(BaseTest):
             properties_dict={"Mayor": "Bernard King", "Contact": "limacity@peru.pe"},
             lat=10,
             long=20,
-            externalID=self.external_id,
+            external_id=self.external_id,
         )
         self.location_child_1 = add_location(
             client=self.client,
@@ -127,11 +139,10 @@ class TestLocation(BaseTest):
         self.assertEqual(self.location_child_1, fetched_location)
 
     def test_location_with_external_id_created(self) -> None:
-        fetch_locations = get_locations_by_external_id(
+        fetch_location = get_location_by_external_id(
             client=self.client, external_id=self.external_id
         )
-        self.assertEqual(len(fetch_locations), 1)
-        self.assertEqual(self.location_with_ext_id, fetch_locations[0])
+        self.assertEqual(self.location_with_ext_id, fetch_location)
 
     def test_location_edited(self) -> None:
         edit_location(

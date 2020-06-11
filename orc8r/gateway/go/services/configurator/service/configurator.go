@@ -13,10 +13,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
-	"log"
 	"sync"
 	"time"
 
+	"github.com/golang/glog"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/any"
 
@@ -62,7 +62,7 @@ func (c *Configurator) GetName() string {
 
 func (c *Configurator) ReportError(e error) error {
 	if e != io.EOF {
-		log.Printf("gateway mconfig streaming error: %v", e)
+		glog.Errorf("gateway mconfig streaming error: %v", e)
 		sleepDuration := time.Second * time.Duration(config.GetMagmadConfigs().ConfigStreamErrorRetryInterval)
 		time.Sleep(sleepDuration)
 	}
@@ -82,23 +82,23 @@ func (c *Configurator) Update(ub *protos.DataUpdateBatch) bool {
 	cfg := &protos.GatewayConfigs{}
 	err := protos.UnmarshalMconfig(u.GetValue(), cfg)
 	if err != nil {
-		log.Printf("error unmarshaling mconfig update for GW %s: %v", u.GetKey(), err)
+		glog.Errorf("error unmarshaling mconfig update for GW %s: %v", u.GetKey(), err)
 		return false // re-establish stream on error
 	}
 	mdCfg, ok := cfg.GetConfigsByKey()["magmad"]
 	if !ok {
-		log.Printf("invalid mconfig update for GW %s - missing magmad configuration", u.GetKey())
+		glog.Errorf("invalid mconfig update for GW %s - missing magmad configuration", u.GetKey())
 		return false
 	}
 	if err = ptypes.UnmarshalAny(mdCfg, new(mconfig.MagmaD)); err != nil {
-		log.Printf("invalid magmad mconfig GW %s: %v", u.GetKey(), err)
+		glog.Errorf("invalid magmad mconfig GW %s: %v", u.GetKey(), err)
 		return false
 	}
 	c.Lock()
 	updateChan := c.updateChan
 	oldCfgJson, err := SaveConfigs(u.GetValue(), updateChan != nil)
 	if err != nil {
-		log.Printf("error saving new gateway mconfig: %v", err)
+		glog.Errorf("error saving new gateway mconfig: %v", err)
 		c.Unlock()
 		return false
 	}
@@ -111,7 +111,7 @@ func (c *Configurator) Update(ub *protos.DataUpdateBatch) bool {
 		if digest, err = cfg.GetMconfigDigest(); err == nil {
 			c.latestConfigDigest = &protos.GatewayConfigsDigest{Md5HexDigest: digest}
 		} else {
-			log.Printf("error encoding mconfig digest: %v", err)
+			glog.Errorf("error encoding mconfig digest: %v", err)
 		}
 	}
 	// check if we need to update static copy of configs & update them
@@ -157,7 +157,7 @@ func (c *Configurator) GetExtraArgs() *any.Any {
 		if err == nil {
 			return extra
 		}
-		log.Printf("error marshaling latest mconfig digest: %v", err)
+		glog.Errorf("error marshaling latest mconfig digest: %v", err)
 	}
 	return nil
 }

@@ -16,13 +16,10 @@ imagePullSecrets: []
 secret:
   certs: orc8r-certs
 
-magmalte:
-  manifests:
-    secrets: true
-    deployment: true
-    service: true
-    rbac: true
+rbac: false
 
+magmalte:
+  create: true
   env:
     api_host: orc8r-proxy.magma.svc.cluster.local:9443
     host: 0.0.0.0
@@ -33,7 +30,7 @@ magmalte:
     mysql_user: magma
     mysql_pass: password
     mysql_dialect: mysql
-    grafana_address: orc8r-user-grafana
+    grafana_address: orc8r-user-grafana:3000
 
   labels: {}
 
@@ -54,20 +51,33 @@ magmalte:
       targetport: 8081
       nodePort: ""
 
+  replicas: 1
+
+  # Resource limits & requests
+  resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+  # Define which Nodes the Pods are scheduled on.
+  # ref: https://kubernetes.io/docs/user-guide/node-selection/
+  nodeSelector: {}
+
+  # Tolerations for use with node taints
+  # ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
   tolerations: []
 
+  # Assign proxy to run on specific nodes
+  # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
   affinity: {}
 
 ## Nginx-Proxy
 #
 nginx:
-  manifests:
-    configmap: true
-    secrets: true
-    deployment: true
-    service: true
-    rbac: true
-
+  create: true
   labels: {}
 
   image:
@@ -88,30 +98,25 @@ nginx:
       ssl_cert_name: nms_nginx.pem
       ssl_cert_key_name: nms_nginx.key.pem
 
+  replicas: 1
+
+  # Resource limits & requests
+  resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+  # Define which Nodes the Pods are scheduled on.
+  # ref: https://kubernetes.io/docs/user-guide/node-selection/
+  nodeSelector: {}
+
+  # Tolerations for use with node taints
+  # ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
   tolerations: []
 
+  # Assign proxy to run on specific nodes
+  # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
   affinity: {}
-## POD Resource 
-
-pod:
-  replicas:
-    nginx:
-      server: 1
-    magmalte:
-      server: 1
-  resources:
-    enabled: False
-    nginx:
-      requests:
-        memory: "512Mi"
-        cpu: "100m"
-      limits:
-        memory: "1024Mi"
-        cpu: "2000m"
-    magmalte:
-      requests:
-        memory: "1024Mi"
-        cpu: "100m"
-      limits:
-        memory: "2048Mi"
-        cpu: "2000m"

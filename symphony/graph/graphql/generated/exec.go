@@ -403,6 +403,7 @@ type ComplexityRoot struct {
 	}
 
 	File struct {
+		Annotation  func(childComplexity int) int
 		Category    func(childComplexity int) int
 		ContentType func(childComplexity int) int
 		FileType    func(childComplexity int) int
@@ -776,6 +777,7 @@ type ComplexityRoot struct {
 		NodeType           func(childComplexity int) int
 		RangeFromVal       func(childComplexity int) int
 		RangeToVal         func(childComplexity int) int
+		RawValue           func(childComplexity int) int
 		StringVal          func(childComplexity int) int
 		Type               func(childComplexity int) int
 	}
@@ -1435,6 +1437,8 @@ type PropertyResolver interface {
 }
 type PropertyTypeResolver interface {
 	Type(ctx context.Context, obj *ent.PropertyType) (models.PropertyKind, error)
+
+	RawValue(ctx context.Context, obj *ent.PropertyType) (*string, error)
 }
 type QueryResolver interface {
 	Me(ctx context.Context) (viewer.Viewer, error)
@@ -2803,6 +2807,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Field.Value(childComplexity), true
+
+	case "File.annotation":
+		if e.complexity.File.Annotation == nil {
+			break
+		}
+
+		return e.complexity.File.Annotation(childComplexity), true
 
 	case "File.category":
 		if e.complexity.File.Category == nil {
@@ -5042,6 +5053,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.PropertyType.RangeToVal(childComplexity), true
+
+	case "PropertyType.rawValue":
+		if e.complexity.PropertyType.RawValue == nil {
+			break
+		}
+
+		return e.complexity.PropertyType.RawValue(childComplexity), true
 
 	case "PropertyType.stringValue":
 		if e.complexity.PropertyType.StringVal == nil {
@@ -7711,6 +7729,7 @@ type File implements Node {
   mimeType: String
   storeKey: String
   category: String
+  annotation: String
 }
 
 type Hyperlink implements Node {
@@ -7738,6 +7757,7 @@ input AddImageInput {
   modified: Time!
   contentType: String!
   category: String
+  annotation: String 
 }
 
 type Comment implements Node {
@@ -7753,7 +7773,10 @@ input CommentInput {
   text: String!
 }
 
-enum ActivityField @goModel(model: "github.com/facebookincubator/symphony/pkg/ent/activity.ChangedField") {
+enum ActivityField
+  @goModel(
+    model: "github.com/facebookincubator/symphony/pkg/ent/activity.ChangedField"
+  ) {
   STATUS
   PRIORITY
   ASSIGNEE
@@ -8403,6 +8426,7 @@ type PropertyType implements Node {
   nodeType: String
   index: Int
   category: String
+  rawValue: String
   stringValue: String
   intValue: Int
   booleanValue: Boolean
@@ -9544,6 +9568,7 @@ input FileInput {
   fileType: FileType
   mimeType: String
   storeKey: String!
+  annotation: String
 }
 
 input SurveyTemplateQuestionInput {
@@ -18663,6 +18688,37 @@ func (ec *executionContext) _File_category(ctx context.Context, field graphql.Co
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _File_annotation(ctx context.Context, field graphql.CollectedField, obj *ent.File) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "File",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Annotation, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _FloorPlan_id(ctx context.Context, field graphql.CollectedField, obj *ent.FloorPlan) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -27385,6 +27441,37 @@ func (ec *executionContext) _PropertyType_category(ctx context.Context, field gr
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PropertyType_rawValue(ctx context.Context, field graphql.CollectedField, obj *ent.PropertyType) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "PropertyType",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.PropertyType().RawValue(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PropertyType_stringValue(ctx context.Context, field graphql.CollectedField, obj *ent.PropertyType) (ret graphql.Marshaler) {
@@ -38765,6 +38852,12 @@ func (ec *executionContext) unmarshalInputAddImageInput(ctx context.Context, obj
 			if err != nil {
 				return it, err
 			}
+		case "annotation":
+			var err error
+			it.Annotation, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -40894,6 +40987,12 @@ func (ec *executionContext) unmarshalInputFileInput(ctx context.Context, obj int
 		case "storeKey":
 			var err error
 			it.StoreKey, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "annotation":
+			var err error
+			it.Annotation, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -45306,6 +45405,8 @@ func (ec *executionContext) _File(ctx context.Context, sel ast.SelectionSet, obj
 			out.Values[i] = ec._File_storeKey(ctx, field, obj)
 		case "category":
 			out.Values[i] = ec._File_category(ctx, field, obj)
+		case "annotation":
+			out.Values[i] = ec._File_annotation(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -47609,6 +47710,17 @@ func (ec *executionContext) _PropertyType(ctx context.Context, sel ast.Selection
 			out.Values[i] = ec._PropertyType_index(ctx, field, obj)
 		case "category":
 			out.Values[i] = ec._PropertyType_category(ctx, field, obj)
+		case "rawValue":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._PropertyType_rawValue(ctx, field, obj)
+				return res
+			})
 		case "stringValue":
 			out.Values[i] = ec._PropertyType_stringValue(ctx, field, obj)
 		case "intValue":

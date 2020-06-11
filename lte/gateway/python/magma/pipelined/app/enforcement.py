@@ -14,7 +14,7 @@ from magma.pipelined.app.base import MagmaController, ControllerType
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController, \
     IGNORE_STATS
 from magma.pipelined.app.policy_mixin import PolicyMixin
-from magma.pipelined.app.dpi import DEFAULT_DPI_ID, get_app_id
+from magma.pipelined.app.dpi import UNCLASSIFIED_PROTO_ID, get_app_id
 from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
@@ -51,10 +51,12 @@ class EnforcementController(PolicyMixin, MagmaController):
     APP_NAME = "enforcement"
     APP_TYPE = ControllerType.LOGICAL
     ENFORCE_DROP_PRIORITY = flows.MINIMUM_PRIORITY + 1
+    # For allowing unlcassified flows for app/service type rules.
+    UNCLASSIFIED_ALLOW_PRIORITY = ENFORCE_DROP_PRIORITY + 1
     # Should not overlap with the drop flow as drop matches all packets.
-    MIN_ENFORCE_PROGRAMMED_FLOW = ENFORCE_DROP_PRIORITY + 1
+    MIN_ENFORCE_PROGRAMMED_FLOW = UNCLASSIFIED_ALLOW_PRIORITY + 1
     MAX_ENFORCE_PRIORITY = flows.MAXIMUM_PRIORITY
-    # Effectively range is 2 -> 65535
+    # Effectively range is 3 -> 65535
     ENFORCE_PRIORITY_RANGE = MAX_ENFORCE_PRIORITY - MIN_ENFORCE_PROGRAMMED_FLOW
 
     def __init__(self, *args, **kwargs):
@@ -66,7 +68,6 @@ class EnforcementController(PolicyMixin, MagmaController):
         self._enforcement_stats_scratch = self._service_manager.get_table_num(
             EnforcementStatsController.APP_NAME)
         self.loop = kwargs['loop']
-        self._relay_enabled = kwargs['mconfig'].relay_enabled
 
         self._msg_hub = MessageHub(self.logger)
         self._redirect_scratch = \
@@ -75,10 +76,6 @@ class EnforcementController(PolicyMixin, MagmaController):
         self._redirect_manager = None
         self._qos_mgr = None
         self._clean_restart = kwargs['config']['clean_restart']
-        self._relay_enabled = kwargs['mconfig'].relay_enabled
-        if not self._relay_enabled:
-            self.logger.info('Relay mode is not enabled, enforcement will not'
-                             ' wait for sessiond to push flows.')
 
     def initialize_on_connect(self, datapath):
         """
@@ -90,9 +87,6 @@ class EnforcementController(PolicyMixin, MagmaController):
         self._datapath = datapath
         self._qos_mgr = QosManager(datapath, self.loop, self._config)
         self._qos_mgr.setup()
-
-        if not self._relay_enabled:
-            self._install_default_flows_if_not_installed(datapath, [])
 
         self._redirect_manager = RedirectionManager(
             self._bridge_ip_address,
@@ -290,7 +284,7 @@ class EnforcementController(PolicyMixin, MagmaController):
         if app_name:
             # We have to allow initial traffic to pass through, before it gets
             # classified by DPI, flow match set app_id to unclassified
-            flow_match.app_id = DEFAULT_DPI_ID
+            flow_match.app_id = UNCLASSIFIED_PROTO_ID
             # Set
             parser = self._datapath.ofproto_parser
             passthrough_actions = flow_match_actions + \
@@ -303,7 +297,7 @@ class EnforcementController(PolicyMixin, MagmaController):
                     flow_match,
                     passthrough_actions,
                     hard_timeout=hard_timeout,
-                    priority=priority,
+                    priority=self.UNCLASSIFIED_ALLOW_PRIORITY,
                     cookie=rule_num,
                     resubmit_table=self._enforcement_stats_scratch
                 )

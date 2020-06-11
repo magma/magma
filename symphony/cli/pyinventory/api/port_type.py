@@ -7,10 +7,14 @@ from typing import Dict, List, Optional
 
 from pysymphony import SymphonyClient
 
-from .._utils import format_property_definitions, get_graphql_property_type_inputs
+from .._utils import get_graphql_property_type_inputs
 from ..common.cache import PORT_TYPES
 from ..common.data_class import EquipmentPortType, PropertyDefinition, PropertyValue
 from ..common.data_enum import Entity
+from ..common.data_format import (
+    format_to_property_definitions,
+    format_to_property_type_inputs,
+)
 from ..exceptions import EntityNotFoundError
 from ..graphql.input.add_equipment_port_type import AddEquipmentPortTypeInput
 from ..graphql.input.edit_equipment_port_type import EditEquipmentPortTypeInput
@@ -32,8 +36,8 @@ def add_equipment_port_type(
 
         Args:
             name (str): equipment port type name
-            properties: (List[ `pyinventory.common.data_class.PropertyDefinition` ]): list of property definitions
-            link_properties: (List[ `pyinventory.common.data_class.PropertyDefinition` ]): list of property definitions
+            properties (List[ `pyinventory.common.data_class.PropertyDefinition` ]): list of property definitions
+            link_properties (List[ `pyinventory.common.data_class.PropertyDefinition` ]): list of property definitions
 
         Returns:
             `pyinventory.common.data_class.EquipmentPortType` object
@@ -47,22 +51,28 @@ def add_equipment_port_type(
             from pyinventory.graphql.enum.property_kind import PropertyKind
             port_type1 = client.add_equipment_port_type(
                 name="port type 1",
-                properties=[PropertyDefinition(
-                    property_name="port property",
-                    property_kind=PropertyKind.string,
-                    default_value=None,
-                    is_fixed=True)],
-                link_properties=[PropertyDefinition(
-                    property_name="link port property",
-                    property_kind=PropertyKind.string,
-                    default_value=None,
-                    is_fixed=True)],
+                properties=[
+                    PropertyDefinition(
+                        property_name="port property",
+                        property_kind=PropertyKind.string,
+                        default_raw_value=None,
+                        is_fixed=True
+                    )
+                ],
+                link_properties=[
+                    PropertyDefinition(
+                        property_name="link port property",
+                        property_kind=PropertyKind.string,
+                        default_raw_value=None,
+                        is_fixed=True
+                    )
+                ],
             )
             ```
     """
 
-    formated_property_types = format_property_definitions(properties)
-    formated_link_property_types = format_property_definitions(link_properties)
+    formated_property_types = format_to_property_type_inputs(data=properties)
+    formated_link_property_types = format_to_property_type_inputs(data=link_properties)
     result = AddEquipmentPortTypeMutation.execute(
         client,
         AddEquipmentPortTypeInput(
@@ -75,8 +85,8 @@ def add_equipment_port_type(
     added = EquipmentPortType(
         id=result.id,
         name=result.name,
-        property_types=result.propertyTypes,
-        link_property_types=result.linkPropertyTypes,
+        property_types=format_to_property_definitions(result.propertyTypes),
+        link_property_types=format_to_property_definitions(result.linkPropertyTypes),
     )
     PORT_TYPES[added.name] = added
     return added
@@ -111,8 +121,8 @@ def get_equipment_port_type(
     return EquipmentPortType(
         id=result.id,
         name=result.name,
-        property_types=result.propertyTypes,
-        link_property_types=result.linkPropertyTypes,
+        property_types=format_to_property_definitions(result.propertyTypes),
+        link_property_types=format_to_property_definitions(result.linkPropertyTypes),
     )
 
 
@@ -180,8 +190,8 @@ def edit_equipment_port_type(
     return EquipmentPortType(
         id=result.id,
         name=result.name,
-        property_types=result.propertyTypes,
-        link_property_types=result.linkPropertyTypes,
+        property_types=format_to_property_definitions(result.propertyTypes),
+        link_property_types=format_to_property_definitions(result.linkPropertyTypes),
     )
 
 

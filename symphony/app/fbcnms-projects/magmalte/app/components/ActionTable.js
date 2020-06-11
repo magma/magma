@@ -20,6 +20,7 @@ import MaterialTable from 'material-table';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
+import OpenInNewIcon from '@material-ui/icons/OpenInNew';
 import React, {useState} from 'react';
 import Remove from '@material-ui/icons/Remove';
 import Search from '@material-ui/icons/Search';
@@ -28,6 +29,7 @@ import Text from '@fbcnms/ui/components/design-system/Text';
 import {forwardRef} from 'react';
 
 const tableIcons = {
+  Export: forwardRef((props, ref) => <OpenInNewIcon {...props} ref={ref} />),
   FirstPage: forwardRef((props, ref) => <FirstPage {...props} ref={ref} />),
   LastPage: forwardRef((props, ref) => <LastPage {...props} ref={ref} />),
   NextPage: forwardRef((props, ref) => <ChevronRight {...props} ref={ref} />),
@@ -66,9 +68,9 @@ type ActionTableOptions = {
 export type ActionTableProps<T> = {
   titleIcon?: ComponentType<SvgIconExports>,
   title: string,
-  handleCurrRow: T => void,
+  handleCurrRow?: T => void,
   columns: Array<ActionTableColumn>,
-  menuItems: Array<ActionMenuItems>,
+  menuItems?: Array<ActionMenuItems>,
   data: Array<T>,
   options: ActionTableOptions,
 };
@@ -79,7 +81,9 @@ export default function ActionTable<T>(props: ActionTableProps<T>) {
 
   const handleClick = (event, row: T) => {
     setAnchorEl(event.currentTarget);
-    props.handleCurrRow(row);
+    if (props.handleCurrRow) {
+      props.handleCurrRow(row);
+    }
   };
 
   const handleClose = () => {
@@ -94,18 +98,19 @@ export default function ActionTable<T>(props: ActionTableProps<T>) {
       </Text>,
     );
   }
-  return (
-    <>
-      {actionTableJSX}
 
+  if (props.menuItems) {
+    const menuItems: Array<ActionMenuItems> = props.menuItems;
+    actionTableJSX.push(
       <Menu
+        key="menu"
         id="actions-menu"
         data-testid="actions-menu"
         anchorEl={anchorEl}
         keepMounted
         open={Boolean(anchorEl)}
         onClose={handleClose}>
-        {props.menuItems.map(item => (
+        {menuItems.map(item => (
           <MenuItem
             key={item.name}
             onClick={() => {
@@ -116,19 +121,28 @@ export default function ActionTable<T>(props: ActionTableProps<T>) {
             {item.name}
           </MenuItem>
         ))}
-      </Menu>
+      </Menu>,
+    );
+  }
+  return (
+    <>
+      {actionTableJSX}
       <MaterialTable
         title=""
         columns={props.columns}
         icons={tableIcons}
         data={props.data}
-        actions={[
-          {
-            icon: () => <MoreVertIcon />,
-            tooltip: 'Actions',
-            onClick: handleClick,
-          },
-        ]}
+        actions={
+          props.menuItems
+            ? [
+                {
+                  icon: () => <MoreVertIcon />,
+                  tooltip: 'Actions',
+                  onClick: handleClick,
+                },
+              ]
+            : null
+        }
         options={props.options}
       />
     </>

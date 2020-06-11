@@ -9,6 +9,7 @@
 
 #include "StoredState.h"
 #include "CreditKey.h"
+#include "magma_logging.h"
 
 namespace magma {
 
@@ -16,6 +17,7 @@ SessionStateUpdateCriteria get_default_update_criteria() {
   SessionStateUpdateCriteria uc{};
   uc.is_fsm_updated = false;
   uc.is_config_updated = false;
+  uc.request_number_increment = 0;
   uc.charging_credit_to_install =
       std::unordered_map<CreditKey, StoredSessionCredit, decltype(&ccHash),
                          decltype(&ccEqual)>(4, &ccHash, &ccEqual);
@@ -317,9 +319,47 @@ deserialize_stored_usage_monitoring_pool(std::string &serialized) {
   return stored;
 }
 
-std::string serialize_stored_session(StoredSessionState &stored) {
+EventTriggerStatus deserialize_pending_event_triggers(std::string& serialized) {
+  auto folly_serialized = folly::StringPiece(serialized);
+  folly::dynamic marshaled = folly::parseJson(folly_serialized);
+
+  auto stored = EventTriggerStatus{};
+  for (auto &key : marshaled["event_trigger_keys"]) {
+    auto map = marshaled["event_trigger_map"];
+    magma::lte::EventTrigger eventKey;
+    try {
+      eventKey = magma::lte::EventTrigger(std::stoi(key.getString()));
+    }
+    catch (std::invalid_argument const &e){
+      MLOG(MWARNING) << "Could not deserialize event triggers";
+      continue;
+    }
+    stored[eventKey] = EventTriggerState(map[key].getInt());
+  }
+
+  return stored;
+}
+
+std::string serialize_pending_event_triggers(EventTriggerStatus event_triggers) {
   folly::dynamic marshaled = folly::dynamic::object;
 
+  folly::dynamic keys = folly::dynamic::array;
+  folly::dynamic map = folly::dynamic::object;
+  for (auto &trigger_pair : event_triggers) {
+    auto key = std::to_string(int(trigger_pair.first));
+    keys.push_back(key);
+    map[key] = int(trigger_pair.second);
+  }
+  marshaled["event_trigger_keys"] = keys;
+  marshaled["event_trigger_map"] = map;
+
+  std::string serialized = folly::toJson(marshaled);
+  return serialized;
+}
+
+std::string serialize_stored_session(StoredSessionState &stored) {
+  folly::dynamic marshaled = folly::dynamic::object;
+  marshaled["fsm_state"] = static_cast<int>(stored.fsm_state);
   marshaled["config"] = serialize_stored_session_config(stored.config);
   marshaled["charging_pool"] =
       serialize_stored_charging_credit_pool(stored.charging_pool);
@@ -335,6 +375,12 @@ std::string serialize_stored_session(StoredSessionState &stored) {
   stored.tgpp_context.SerializeToString(&tgpp_context);
   marshaled["tgpp_context"] = tgpp_context;
 
+  marshaled["pending_event_triggers"] =
+    serialize_pending_event_triggers(stored.pending_event_triggers);
+  std::string revalidation_time;
+  stored.revalidation_time.SerializeToString(&revalidation_time);
+  marshaled["revalidation_time"] = revalidation_time;
+
   folly::dynamic static_rule_ids = folly::dynamic::array;
   for (const auto &rule_id : stored.static_rule_ids) {
     static_rule_ids.push_back(rule_id);
@@ -349,6 +395,14 @@ std::string serialize_stored_session(StoredSessionState &stored) {
   }
   marshaled["dynamic_rules"] = dynamic_rules;
 
+  folly::dynamic gy_dynamic_rules = folly::dynamic::array;
+  for (const auto &rule : stored.gy_dynamic_rules) {
+    std::string gy_dynamic_rule;
+    rule.SerializeToString(&gy_dynamic_rule);
+    gy_dynamic_rules.push_back(gy_dynamic_rule);
+  }
+  marshaled["gy_dynamic_rules"] = gy_dynamic_rules;
+
   marshaled["request_number"] = std::to_string(stored.request_number);
 
   std::string serialized = folly::toJson(marshaled);
@@ -360,7 +414,7 @@ StoredSessionState deserialize_stored_session(std::string &serialized) {
   folly::dynamic marshaled = folly::parseJson(folly_serialized);
 
   auto stored = StoredSessionState{};
-
+  stored.fsm_state = SessionFsmState(marshaled["fsm_state"].getInt());
   stored.config =
       deserialize_stored_session_config(marshaled["config"].getString());
   stored.charging_pool = deserialize_stored_charging_credit_pool(
@@ -374,6 +428,12 @@ StoredSessionState deserialize_stored_session(std::string &serialized) {
       static_cast<magma::lte::SubscriberQuotaUpdate_Type>(
           marshaled["subscriber_quota_state"].getInt());
 
+  google::protobuf::Timestamp revalidation_time;
+  revalidation_time.ParseFromString(marshaled["revalidation_time"].getString());
+  stored.revalidation_time = revalidation_time;
+  stored.pending_event_triggers =
+    deserialize_pending_event_triggers(marshaled["pending_event_triggers"].getString());
+
   magma::lte::TgppContext tgpp_context;
   tgpp_context.ParseFromString(marshaled["tgpp_context"].getString());
   stored.tgpp_context = tgpp_context;
@@ -386,6 +446,12 @@ StoredSessionState deserialize_stored_session(std::string &serialized) {
     PolicyRule policy_rule;
     policy_rule.ParseFromString(policy.getString());
     stored.dynamic_rules.push_back(policy_rule);
+  }
+
+  for (auto &policy : marshaled["gy_dynamic_rules"]) {
+    PolicyRule policy_rule;
+    policy_rule.ParseFromString(policy.getString());
+    stored.gy_dynamic_rules.push_back(policy_rule);
   }
 
   stored.request_number = static_cast<uint32_t>(

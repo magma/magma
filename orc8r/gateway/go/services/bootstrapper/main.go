@@ -11,9 +11,10 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"log"
 	"os"
 	"time"
+
+	"github.com/golang/glog"
 
 	"magma/gateway/config"
 	"magma/gateway/services/bootstrapper/gateway_info"
@@ -55,7 +56,7 @@ func main() {
 	if *showGwInfo {
 		info, err := gateway_info.GetFormatted()
 		if err != nil {
-			log.Print(err)
+			glog.Error(err)
 			os.Exit(1)
 		}
 		fmt.Print(info)
@@ -66,20 +67,20 @@ func main() {
 	if err := b.Initialize(); err != nil {
 		controlProxyConfigJson, _ := json.MarshalIndent(config.GetControlProxyConfigs(), "", "  ")
 		magmadProxyConfigJson, _ := json.MarshalIndent(config.GetMagmadConfigs(), "", "  ")
-		log.Fatalf(
+		glog.Fatalf(
 			"gateway '%s' bootstrap initialization error: %v, for configuration:\ncontrol_proxy: %s\nmagmad: %s",
 			b.HardwareId, err, string(controlProxyConfigJson), string(magmadProxyConfigJson))
 	}
 	// Main bootstrapper loop
-	log.Print("Starting Bootstrapper")
+	glog.Infof("Starting Bootstrapper")
 	for {
 		err := b.Start() // Start will only return on error
 		if err != nil {
-			log.Print(err)
+			glog.Error(err)
 			time.Sleep(service.BOOTSTRAP_RETRY_INTERVAL)
 			b.RefreshConfigs()
 		} else {
-			log.Fatal("unexpected Bootstrapper state")
+			glog.Fatal("unexpected Bootstrapper state")
 		}
 	}
 }

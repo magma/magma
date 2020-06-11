@@ -20,10 +20,13 @@ from lte.protos.subscriberdb_pb2 import SubscriberID
 from magma.common.rpc_utils import return_void
 from magma.subscriberdb.sid import SIDUtils
 
-from .ip_allocator import DuplicatedIPAllocationError, IPAllocator, \
-    IPBlockNotFoundError, IPNotInUseError, MappingNotFoundError, \
-    NoAvailableIPError, OverlappedIPBlocksError
+from .ip_address_man import IPAddressManager, IPNotInUseError, MappingNotFoundError
+from .ip_allocator_base import IPAllocatorType
 
+from .ip_allocator_static import IPBlockNotFoundError, NoAvailableIPError, \
+    OverlappedIPBlocksError
+
+from .ip_allocator_base import DuplicatedIPAllocationError
 
 def _get_ip_block(ip_block_str):
     """ Convert string into ipaddress.ip_network. Support both IPv4 or IPv6
@@ -49,9 +52,13 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
     def __init__(self, mconfig, config):
         # TODO: consider adding gateway mconfig to decide whether to
         # persist to Redis
-        self._ipv4_allocator = IPAllocator(
+        if config['allocator_type'] == 'ip_pool':
+            config_allocator_type = IPAllocatorType.IP_POOL
+
+        self._ipv4_allocator = IPAddressManager(
             persist_to_redis=config['persist_to_redis'],
-            redis_port=config['redis_port'])
+            redis_port=config['redis_port'],
+            allocator_type=config_allocator_type)
 
         # Load IP block from the configurable mconfig file
         # No dynamic reloading support for now, assume restart after updates

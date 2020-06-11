@@ -464,6 +464,7 @@ type File implements Node {
   mimeType: String
   storeKey: String
   category: String
+  annotation: String
 }
 
 type Hyperlink implements Node {
@@ -491,6 +492,7 @@ input AddImageInput {
   modified: Time!
   contentType: String!
   category: String
+  annotation: String
 }
 
 type Comment implements Node {
@@ -506,7 +508,10 @@ input CommentInput {
   text: String!
 }
 
-enum ActivityField @goModel(model: "github.com/facebookincubator/symphony/pkg/ent/activity.ChangedField") {
+enum ActivityField
+  @goModel(
+    model: "github.com/facebookincubator/symphony/pkg/ent/activity.ChangedField"
+  ) {
   STATUS
   PRIORITY
   ASSIGNEE
@@ -1156,6 +1161,7 @@ type PropertyType implements Node {
   nodeType: String
   index: Int
   category: String
+  rawValue: String
   stringValue: String
   intValue: Int
   booleanValue: Boolean
@@ -2297,6 +2303,7 @@ input FileInput {
   fileType: FileType
   mimeType: String
   storeKey: String!
+  annotation: String
 }
 
 input SurveyTemplateQuestionInput {

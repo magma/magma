@@ -8,8 +8,12 @@
  * @format
  */
 
-import type {ContextualLayerPosition} from './BaseContexualLayer';
+import type {
+  ContextualLayerPosition,
+  ContextualLayerRef,
+} from './BaseContexualLayer';
 import type {TRefCallbackFor} from '../types/TRefFor.flow';
+import type {TRefFor} from '../types/TRefFor.flow';
 
 import * as React from 'react';
 import BaseContexualLayer from './BaseContexualLayer';
@@ -29,12 +33,10 @@ type Props = {
   onVisibilityChange?: (isVisible: boolean) => void,
 };
 
-const BasePopoverTrigger = ({
-  children,
-  popover,
-  position = 'below',
-  onVisibilityChange,
-}: Props) => {
+const BasePopoverTrigger = (
+  {children, popover, position = 'below', onVisibilityChange}: Props,
+  ref: TRefFor<ContextualLayerRef>,
+) => {
   const [isVisible, setIsVisible] = useState(false);
   const contextRef = useRef<?HTMLElement>(null);
 
@@ -67,6 +69,7 @@ const BasePopoverTrigger = ({
       {children(onShow, onHide, refCallback)}
       {contextRef.current != null ? (
         <BaseContexualLayer
+          ref={ref}
           context={contextRef.current}
           position={position}
           hidden={!isVisible}>
@@ -83,4 +86,6 @@ const BasePopoverTrigger = ({
   );
 };
 
-export default BasePopoverTrigger;
+export default (React.forwardRef<Props, ContextualLayerRef>(
+  BasePopoverTrigger,
+): React.AbstractComponent<Props, ContextualLayerRef>);

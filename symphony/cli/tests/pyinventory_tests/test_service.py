@@ -44,13 +44,13 @@ class TestService(BaseTest):
                 PropertyDefinition(
                     property_name="Service Package",
                     property_kind=PropertyKind.string,
-                    default_value="Public 5G",
+                    default_raw_value="Public 5G",
                     is_fixed=False,
                 ),
                 PropertyDefinition(
                     property_name="Address Family",
                     property_kind=PropertyKind.string,
-                    default_value=None,
+                    default_raw_value=None,
                     is_fixed=False,
                 ),
             ],
@@ -97,7 +97,7 @@ class TestService(BaseTest):
                 PropertyDefinition(
                     property_name="port property",
                     property_kind=PropertyKind.string,
-                    default_value="port property value",
+                    default_raw_value="port property value",
                     is_fixed=False,
                 )
             ],
@@ -105,7 +105,7 @@ class TestService(BaseTest):
                 PropertyDefinition(
                     property_name="link property",
                     property_kind=PropertyKind.string,
-                    default_value="link property value",
+                    default_raw_value="link property value",
                     is_fixed=False,
                 )
             ],
@@ -113,7 +113,14 @@ class TestService(BaseTest):
         add_location_type(
             client=self.client,
             name="Room",
-            properties=[("Contact", "email", None, True)],
+            properties=[
+                PropertyDefinition(
+                    property_name="Contact",
+                    property_kind=PropertyKind.email,
+                    default_raw_value=None,
+                    is_fixed=False,
+                )
+            ],
         )
         location = add_location(
             client=self.client,
@@ -126,7 +133,14 @@ class TestService(BaseTest):
             client=self.client,
             name="Tp-Link T1600G",
             category="Router",
-            properties=[("IP", "string", None, True)],
+            properties=[
+                PropertyDefinition(
+                    property_name="IP",
+                    property_kind=PropertyKind.string,
+                    default_raw_value=None,
+                    is_fixed=False,
+                )
+            ],
             ports_dict={"Port 1": "port type 1", "Port 2": "port type 1"},
             position_list=[],
         )
@@ -178,7 +192,7 @@ class TestService(BaseTest):
                 PropertyDefinition(
                     property_name="port property",
                     property_kind=PropertyKind.string,
-                    default_value="port property value",
+                    default_raw_value="port property value",
                     is_fixed=False,
                 )
             ],
@@ -186,7 +200,7 @@ class TestService(BaseTest):
                 PropertyDefinition(
                     property_name="link property",
                     property_kind=PropertyKind.string,
-                    default_value="link property value",
+                    default_raw_value="link property value",
                     is_fixed=False,
                 )
             ],
@@ -194,7 +208,14 @@ class TestService(BaseTest):
         add_location_type(
             client=self.client,
             name="Room",
-            properties=[("Contact", "email", None, True)],
+            properties=[
+                PropertyDefinition(
+                    property_name="Contact",
+                    property_kind=PropertyKind.email,
+                    default_raw_value=None,
+                    is_fixed=False,
+                )
+            ],
         )
         location = add_location(
             client=self.client,
@@ -207,7 +228,14 @@ class TestService(BaseTest):
             client=self.client,
             name="Tp-Link T1600G",
             category="Router",
-            properties=[("IP", "string", None, True)],
+            properties=[
+                PropertyDefinition(
+                    property_name="IP",
+                    property_kind=PropertyKind.string,
+                    default_raw_value=None,
+                    is_fixed=False,
+                )
+            ],
             ports_dict={"Port 1": "port type 1", "Port 2": "port type 1"},
             position_list=[],
         )

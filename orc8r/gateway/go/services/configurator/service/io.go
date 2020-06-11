@@ -12,9 +12,10 @@ package service
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"time"
+
+	"github.com/golang/glog"
 
 	"magma/gateway/config"
 	"magma/gateway/mconfig"
@@ -34,7 +35,7 @@ func SaveConfigs(cfgJson []byte, readOldCfg bool) (oldCfgJson []byte, err error)
 	}
 	err = safeSwap(mconfig.ConfigFilePath(), cfgJson)
 	if err == nil {
-		log.Printf("successfully updated mconfig in %s", mconfigPath)
+		glog.V(1).Infof("successfully updated mconfig in %s", mconfigPath)
 	}
 	return oldCfgJson, err
 }

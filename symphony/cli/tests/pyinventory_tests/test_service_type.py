@@ -38,7 +38,7 @@ class TestServiceType(BaseTest):
                 PropertyDefinition(
                     property_name="Service Package",
                     property_kind=PropertyKind.string,
-                    default_value=None,
+                    default_raw_value=None,
                     is_fixed=False,
                 )
             ],
@@ -70,7 +70,14 @@ class TestServiceType(BaseTest):
             client=self.client,
             name="Tp-Link T1600G",
             category="Router",
-            properties=[("IP", "string", None, True)],
+            properties=[
+                PropertyDefinition(
+                    property_name="IP",
+                    property_kind=PropertyKind.string,
+                    default_raw_value=None,
+                    is_fixed=False,
+                )
+            ],
             ports_dict={},
             position_list=[],
         )
@@ -101,7 +108,9 @@ class TestServiceType(BaseTest):
         self.assertEqual(len(endpoint_definitions), 1)
         self.assertEqual(edited_service_type.name, new_name)
         self.assertEqual(len(edited_service_type.property_types), 1)
-        self.assertEqual(edited_service_type.property_types[0].stringValue, "Public 5G")
+        self.assertEqual(
+            edited_service_type.property_types[0].default_raw_value, "Public 5G"
+        )
 
     def test_service_type_delete(self) -> None:
         delete_service_type(client=self.client, service_type=self.service_type)

@@ -2,11 +2,11 @@ set(S1AP_C_DIR ${PROJECT_BINARY_DIR}/s1ap/r10.5)
 
 # compile the needed protos
 set(MMEAPP_STATE_CPP_PROTOS mme_nas_state nas_state spgw_state common_types
-  3gpp_types)
+  std_3gpp_types)
 list(APPEND PROTO_SRCS "")
 list(APPEND PROTO_HDRS "")
 
-set(LTE_OUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/lte/gateway/c/oai/protos")
+set(LTE_OUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/lte/protos/oai")
 generate_cpp_protos("${MMEAPP_STATE_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${STATE_PROTO_DIR} ${LTE_OUT_DIR})
 

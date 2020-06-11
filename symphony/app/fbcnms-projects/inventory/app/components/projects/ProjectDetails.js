@@ -22,7 +22,7 @@ import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithSnackbarProps} from 'notistack';
 
 import Breadcrumbs from '@fbcnms/ui/components/Breadcrumbs';
-import CommentsBox from '../comments/CommentsBox';
+import CommentsActivitiesBox from '../comments/CommentsActivitiesBox';
 import EditProjectMutation from '../../mutations/EditProjectMutation';
 import ExpandingPanel from '@fbcnms/ui/components/ExpandingPanel';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
@@ -123,8 +123,8 @@ const styles = (theme: Theme) => ({
     padding: '0px',
   },
   inExpandingPanelFix: {
-    paddingLeft: '24px',
-    paddingRight: '24px',
+    paddingLeft: '16px',
+    paddingRight: '40px',
   },
   commentsLog: {
     maxHeight: '400px',
@@ -395,7 +395,7 @@ class ProjectDetails extends React.Component<Props, State> {
                         title="Comments"
                         detailsPaneClass={classes.commentsBoxContainer}
                         className={classes.card}>
-                        <CommentsBox
+                        <CommentsActivitiesBox
                           boxElementsClass={classes.inExpandingPanelFix}
                           commentsLogClass={classes.commentsLog}
                           relatedEntityId={project.id}
@@ -498,7 +498,7 @@ export default withRouter(
                 ...ProjectWorkOrdersList_workOrders
               }
               comments {
-                ...CommentsBox_comments
+                ...CommentsActivitiesBox_comments
               }
             }
           `,

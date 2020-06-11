@@ -50,6 +50,7 @@ receivers:
 - name: test_receiver
 - name: receiver
 - name: other_tenant_base_route
+- name: sample_tenant_base_route
 - name: test_slack
   slack_configs:
   - api_url: http://slack.com/12345
@@ -174,8 +175,16 @@ func TestClient_GetRoute(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, config.Route{Receiver: "other_tenant_base_route", Match: map[string]string{"tenantID": "other"}}, *route)
 
-	route, err = client.GetRoute("no-network")
+	_, err = client.GetRoute("no-network")
 	assert.Error(t, err)
+}
+
+func TestClient_GetTenants(t *testing.T) {
+	client, _ := newTestClient()
+
+	tenants, err := client.GetTenants()
+	assert.NoError(t, err)
+	assert.Equal(t, []string{"other", "sample"}, tenants)
 }
 
 func newTestClient() (AlertmanagerClient, *mocks.FSClient) {

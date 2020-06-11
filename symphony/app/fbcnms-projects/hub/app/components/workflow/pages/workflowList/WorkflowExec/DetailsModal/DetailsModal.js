@@ -44,6 +44,8 @@ class DetailsModal extends Component {
       taskDetail: {},
       taskModal: false
     };
+
+    this.backendApiUrlPrefix = props.backendApiUrlPrefix ?? conductorApiUrlPrefix;
   }
 
   componentDidMount() {
@@ -55,7 +57,7 @@ class DetailsModal extends Component {
   }
 
   getData() {
-    http.get(conductorApiUrlPrefix + "/id/" + this.props.wfId).then(res => {
+    http.get(this.backendApiUrlPrefix + "/id/" + this.props.wfId).then(res => {
       let inputsArray = [
         ...new Set(
           JSON.stringify(res.meta, null, 2).match(
@@ -95,7 +97,7 @@ class DetailsModal extends Component {
   executeWorkflow() {
     this.setState({ status: "Executing..." });
     http
-      .post(conductorApiUrlPrefix + "/workflow", JSON.stringify(this.state.input))
+      .post(this.backendApiUrlPrefix + "/workflow", JSON.stringify(this.state.input))
       .then(res => {
         this.setState({
           status: res.statusText
@@ -185,31 +187,31 @@ class DetailsModal extends Component {
   }
 
   terminateWfs() {
-    http.delete(conductorApiUrlPrefix + "/bulk/terminate", [this.state.wfId]).then(() => {
+    http.delete(this.backendApiUrlPrefix + "/bulk/terminate", [this.state.wfId]).then(() => {
       this.getData();
     });
   }
 
   pauseWfs() {
-    http.put(conductorApiUrlPrefix + "/bulk/pause", [this.state.wfId]).then(() => {
+    http.put(this.backendApiUrlPrefix + "/bulk/pause", [this.state.wfId]).then(() => {
       this.getData();
     });
   }
 
   resumeWfs() {
-    http.put(conductorApiUrlPrefix + "/bulk/resume", [this.state.wfId]).then(() => {
+    http.put(this.backendApiUrlPrefix + "/bulk/resume", [this.state.wfId]).then(() => {
       this.getData();
     });
   }
 
   retryWfs() {
-    http.post(conductorApiUrlPrefix + "/bulk/retry", [this.state.wfId]).then(() => {
+    http.post(this.backendApiUrlPrefix + "/bulk/retry", [this.state.wfId]).then(() => {
       this.getData();
     });
   }
 
   restartWfs() {
-    http.post(conductorApiUrlPrefix + "/bulk/restart", [this.state.wfId]).then(() => {
+    http.post(this.backendApiUrlPrefix + "/bulk/restart", [this.state.wfId]).then(() => {
       this.getData();
     });
   }

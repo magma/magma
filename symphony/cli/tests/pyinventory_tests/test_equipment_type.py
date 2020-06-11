@@ -4,7 +4,6 @@
 # license that can be found in the LICENSE file.
 
 
-from pyinventory._utils import get_property_type_input
 from pyinventory.api.equipment_type import (
     add_equipment_type,
     edit_equipment_type_property_type,
@@ -13,6 +12,7 @@ from pyinventory.api.equipment_type import (
 from pyinventory.api.property_type import get_property_type_id, get_property_types
 from pyinventory.common.data_class import PropertyDefinition
 from pyinventory.common.data_enum import Entity
+from pyinventory.common.data_format import format_to_property_type_input
 from pyinventory.graphql.enum.property_kind import PropertyKind
 from pysymphony import SymphonyClient
 
@@ -32,7 +32,14 @@ class TestEquipmentType(BaseTest):
             client=self.client,
             name="Tp-Link T1600G",
             category="Router",
-            properties=[("IP", "string", None, True)],
+            properties=[
+                PropertyDefinition(
+                    property_name="IP",
+                    property_kind=PropertyKind.string,
+                    default_raw_value=None,
+                    is_fixed=False,
+                )
+            ],
             ports_dict={},
             position_list=[],
         )
@@ -42,7 +49,14 @@ class TestEquipmentType(BaseTest):
             client=self.client,
             name="Tp-Link T1600G",
             category="Router",
-            properties=[("IP", "string", None, True)],
+            properties=[
+                PropertyDefinition(
+                    property_name="IP",
+                    property_kind=PropertyKind.string,
+                    default_raw_value=None,
+                    is_fixed=False,
+                )
+            ],
             ports_dict={},
             position_list=[],
         )
@@ -64,7 +78,7 @@ class TestEquipmentType(BaseTest):
             new_property_definition=PropertyDefinition(
                 property_name=property_type_name,
                 property_kind=PropertyKind.string,
-                default_value=None,
+                default_raw_value=None,
                 is_fixed=False,
                 external_id="12345",
             ),
@@ -76,10 +90,10 @@ class TestEquipmentType(BaseTest):
         )
         fetched_property_type = None
         for property_type in property_types:
-            if property_type.name == property_type_name:
+            if property_type.property_name == property_type_name:
                 fetched_property_type = property_type
         self.assertIsNotNone(fetched_property_type)
-        self.assertEqual(fetched_property_type.externalId, "12345")
+        self.assertEqual(fetched_property_type.external_id, "12345")
 
     def test_equipment_type_property_type_name(self) -> None:
         equipment_type_name = self.equipment_type.name
@@ -98,7 +112,7 @@ class TestEquipmentType(BaseTest):
             new_property_definition=PropertyDefinition(
                 property_name=new_name,
                 property_kind=PropertyKind.string,
-                default_value=None,
+                default_raw_value=None,
                 is_fixed=False,
                 external_id=None,
             ),
@@ -110,12 +124,12 @@ class TestEquipmentType(BaseTest):
         )
         fetched_property_type = None
         for property_type in property_types:
-            property_type_input = get_property_type_input(property_type)
+            property_type_input = format_to_property_type_input(property_type)
             if property_type_input.name == property_type_name:
                 fetched_property_type = property_type_input
         self.assertEqual(fetched_property_type, None)
         for property_type in property_types:
-            property_type_input = get_property_type_input(property_type)
+            property_type_input = format_to_property_type_input(property_type)
             if property_type_input.name == new_name:
                 fetched_property_type = property_type_input
         self.assertIsNotNone(fetched_property_type)

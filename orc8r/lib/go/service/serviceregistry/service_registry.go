@@ -10,8 +10,9 @@ package serviceregistry
 
 import (
 	"fmt"
-	"log"
 	"strings"
+
+	"github.com/golang/glog"
 
 	"magma/orc8r/lib/go/registry"
 	"magma/orc8r/lib/go/service/config"
@@ -37,7 +38,7 @@ func LoadServiceRegistryConfig(moduleName string) ([]registry.ServiceLocation, e
 	}
 	locations, err := convertToServiceLocations(rawMap)
 	if err != nil {
-		log.Printf("Failed to load in service registry for %s:%s.yml: %v", moduleName, serviceRegistryFilename, err)
+		glog.Errorf("Failed to load in service registry for %s:%s.yml: %v", moduleName, serviceRegistryFilename, err)
 	}
 	return locations, err
 }

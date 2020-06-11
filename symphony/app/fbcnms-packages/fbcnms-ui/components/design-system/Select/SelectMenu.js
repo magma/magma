@@ -70,6 +70,7 @@ const SelectMenu = <TValue>(props: SelectMenuProps<TValue>) => {
                 onChange(value);
                 onClose();
               }}
+              disabled={option.disabled === true}
               isSelected={selectedValue === option.value}
               {...menuItemProps}
             />

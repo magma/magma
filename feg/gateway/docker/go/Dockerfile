@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------------------
 # Development image for test, precommit, etc.
 # -----------------------------------------------------------------------------
-ARG baseImage="ubuntu:xenial"
+ARG baseImage="ubuntu:bionic"
 FROM ${baseImage} as base
 
 # Add the magma apt repo
@@ -114,13 +114,13 @@ RUN ./run.sh build
 # -----------------------------------------------------------------------------
 # Go-cache base image
 # -----------------------------------------------------------------------------
-FROM ubuntu:xenial as gocache
+FROM ubuntu:bionic as gocache
 COPY --from=builder /root/.cache /root/.cache
 
 # -----------------------------------------------------------------------------
 # Production image
 # -----------------------------------------------------------------------------
-FROM ubuntu:xenial AS gateway_go
+FROM ubuntu:bionic AS gateway_go
 
 # Install envdir.
 RUN apt-get -y update && apt-get -y install daemontools netcat gettext musl

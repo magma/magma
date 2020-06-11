@@ -7,6 +7,7 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -29,9 +30,11 @@ var Set = wire.NewSet(
 // Handler implements signer endpoints.
 type Handler struct {
 	http.Handler
-	logger     log.Logger
-	bucket     *blob.Bucket
-	bucketName string
+	logger log.Logger
+	bucket struct {
+		*blob.Bucket
+		name string
+	}
 }
 
 // Config is the set of handler parameters.
@@ -43,11 +46,9 @@ type Config struct {
 
 // New creates a new sign handler from config.
 func New(cfg Config) *Handler {
-	h := &Handler{
-		logger:     cfg.Logger,
-		bucket:     cfg.Bucket,
-		bucketName: cfg.BucketName,
-	}
+	h := &Handler{logger: cfg.Logger}
+	h.bucket.Bucket = cfg.Bucket
+	h.bucket.name = cfg.BucketName
 
 	router := mux.NewRouter()
 	router.Path("/get").
@@ -78,9 +79,11 @@ func New(cfg Config) *Handler {
 	return h
 }
 
-func (h *Handler) key(r *http.Request, key string) string {
-	isGlobal := r.Header.Get("Is-Global")
-	if key != "" && isGlobal != "True" {
+func getKey(r *http.Request, key string) string {
+	if key == "" {
+		return key
+	}
+	if global, _ := strconv.ParseBool(r.Header.Get("Is-Global")); !global {
 		if ns := r.Header.Get("x-auth-organization"); ns != "" {
 			key = ns + "/" + key
 		}
@@ -91,7 +94,7 @@ func (h *Handler) key(r *http.Request, key string) string {
 func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	logger := h.logger.For(ctx)
-	key := h.key(r, mux.Vars(r)["key"])
+	key := getKey(r, mux.Vars(r)["key"])
 	if key == "" {
 		logger.Error("cannot resolve object key")
 		http.Error(w, "", http.StatusBadRequest)
@@ -118,7 +121,7 @@ func (h *Handler) put(w http.ResponseWriter, r *http.Request) {
 		err error
 	)
 	rsp.Key = uuid.New().String()
-	key := h.key(r, rsp.Key)
+	key := getKey(r, rsp.Key)
 	if rsp.URL, err = h.bucket.SignedURL(ctx, key,
 		&blob.SignedURLOptions{
 			Method:      http.MethodPut,
@@ -140,7 +143,7 @@ func (h *Handler) put(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	logger := h.logger.For(ctx)
-	key := h.key(r, mux.Vars(r)["key"])
+	key := getKey(r, mux.Vars(r)["key"])
 	if key == "" {
 		logger.Error("cannot resolve object key")
 		http.Error(w, "", http.StatusBadRequest)
@@ -162,7 +165,7 @@ func (h *Handler) download(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	vars := mux.Vars(r)
 	logger := h.logger.For(ctx)
-	key := h.key(r, vars["key"])
+	key := getKey(r, vars["key"])
 	if key == "" {
 		logger.Error("cannot resolve object key")
 		http.Error(w, "", http.StatusBadRequest)
@@ -181,7 +184,7 @@ func (h *Handler) download(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	in := &s3.GetObjectInput{
-		Bucket:                     aws.String(h.bucketName),
+		Bucket:                     aws.String(h.bucket.name),
 		Key:                        aws.String(key),
 		ResponseContentDisposition: aws.String("attachment; filename=" + filename),
 	}

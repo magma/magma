@@ -55,6 +55,7 @@ var defaultKeepaliveParams = keepalive.ServerParameters{
 
 func init() {
 	flag.BoolVar(&printGrpcPayload, PrintGrpcPayloadFlag, false, "Enable GRPC Payload Printout")
+	flag.Parse()
 }
 
 type Service struct {
@@ -83,10 +84,8 @@ type Service struct {
 
 // NewServiceWithOptions returns a new GRPC orchestrator service implementing
 // service303 with the specified grpc server options.
-// NewServiceWithOptions will also call flag.Parse() prior to cerating the service.
 // It will not instantiate the service with the identity checking middleware.
 func NewServiceWithOptions(moduleName string, serviceName string, serverOptions ...grpc.ServerOption) (*Service, error) {
-	flag.Parse()
 	return NewServiceWithOptionsImpl(moduleName, serviceName, serverOptions...)
 }
 

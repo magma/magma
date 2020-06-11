@@ -17,6 +17,8 @@ import {
   withInfixSeparator,
 } from '../utils.js';
 
+import {removeTenantPrefix} from '../utils';
+import type {AfterFun} from '../../types';
 import type {BeforeFun, Event, TransformerRegistrationFun} from '../../types';
 
 const logger = logging.getLogger(module);
@@ -61,18 +63,44 @@ function sanitizeEvent(tenantId: string, event: Event) {
   }
 }
 
-const postEventBefore: BeforeFun = (tenantId, req, res, proxyCallback) => {
+const postEventBefore: BeforeFun = (
+  tenantId,
+  groups,
+  req,
+  res,
+  proxyCallback,
+) => {
   const reqObj = req.body;
   logger.debug('Transforming', {reqObj});
   sanitizeEvent(tenantId, anythingTo<Event>(reqObj));
   proxyCallback({buffer: createProxyOptionsBuffer(reqObj, req)});
 };
 
-const putEventBefore: BeforeFun = (tenantId, req, res, proxyCallback) => {
+const putEventBefore: BeforeFun = (
+  tenantId,
+  groups,
+  req,
+  res,
+  proxyCallback,
+) => {
   const reqObj = req.body;
   logger.debug('Transforming', {reqObj});
   sanitizeEvent(tenantId, anythingTo<Event>(reqObj));
   proxyCallback({buffer: createProxyOptionsBuffer(reqObj, req)});
+};
+
+const getEventAfter: AfterFun = (tenantId, groups, req, respObj) => {
+  const events = anythingTo<Array<Event>>(respObj);
+  removeTenantPrefix(tenantId, respObj, '$[*].name', false);
+  let wfName = '';
+  for (const evnt of events) {
+    const split = evnt.event.split(':');
+    if (split.length === 3 && split[0] === 'conductor') {
+      wfName = {name: split[1]};
+      removeTenantPrefix(tenantId, wfName, '$.name', false);
+      evnt.event = `${split[0]}:${wfName.name}:${split[2]}`;
+    }
+  }
 };
 
 const registration: TransformerRegistrationFun = () => [
@@ -85,6 +113,11 @@ const registration: TransformerRegistrationFun = () => [
     method: 'put',
     url: '/api/event',
     before: putEventBefore,
+  },
+  {
+    method: 'get',
+    url: '/api/event',
+    after: getEventAfter,
   },
 ];
 

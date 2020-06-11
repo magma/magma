@@ -63,7 +63,7 @@ endif (NOT FUZZ)
 ################################################################
 # Set proto directory for state proto definitions
 ################################################################
-set(STATE_PROTO_DIR ${PROJECT_SOURCE_DIR}/protos)
+set(STATE_PROTO_DIR $ENV{MAGMA_ROOT}/lte/protos/oai)
 
 ################################################################
 # S1AP LAYER OPTIONS

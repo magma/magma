@@ -55,6 +55,13 @@ struct FinalActionInfo {
   RedirectServer redirect_server;
 };
 
+enum EventTriggerState {
+  PENDING   = 0, // trigger installed
+  READY     = 1, // ready to be reported on
+  CLEARED   = 2, // successfully reported
+};
+typedef std::unordered_map<magma::lte::EventTrigger, EventTriggerState> EventTriggerStatus;
+
 /**
  * A bucket is a counter used for tracking credit volume across sessiond.
  * These are independently incremented and reset
@@ -84,6 +91,8 @@ enum ServiceState {
   SERVICE_NEEDS_DEACTIVATION = 1,
   SERVICE_DISABLED = 2,
   SERVICE_NEEDS_ACTIVATION = 3,
+  SERVICE_REDIRECTED = 4,
+  SERVICE_RESTRICTED = 5,
 };
 
 /**
@@ -168,17 +177,20 @@ struct StoredSessionState {
   magma::lte::TgppContext tgpp_context;
   std::vector<std::string> static_rule_ids;
   std::vector<PolicyRule> dynamic_rules;
+  std::vector<PolicyRule> gy_dynamic_rules;
   std::set<std::string> scheduled_static_rules;
   std::vector<PolicyRule> scheduled_dynamic_rules;
   std::unordered_map<std::string, RuleLifetime> rule_lifetimes;
-  std::vector<PolicyRule> gy_dynamic_rules;
   uint32_t request_number;
+  EventTriggerStatus pending_event_triggers;
+  google::protobuf::Timestamp revalidation_time;
 };
 
 // Update Criteria
 
 struct SessionCreditUpdateCriteria {
   bool is_final;
+  FinalActionInfo final_action_info;
   bool reporting;
   ReAuthState reauth_state;
   ServiceState service_state;
@@ -194,11 +206,21 @@ struct SessionStateUpdateCriteria {
   SessionConfig updated_config;
   bool is_fsm_updated;
   SessionFsmState updated_fsm_state;
+  // true if any of the event trigger state is updated
+  bool is_pending_event_triggers_updated;
+  EventTriggerStatus pending_event_triggers;
+  // this value is only valid if one of the updated event trigger is
+  // revalidation time
+  google::protobuf::Timestamp revalidation_time;
+  uint32_t request_number_increment;
+
   std::set<std::string> static_rules_to_install;
   std::set<std::string> static_rules_to_uninstall;
   std::set<std::string> new_scheduled_static_rules;
   std::vector<PolicyRule> dynamic_rules_to_install;
+  std::vector<PolicyRule> gy_dynamic_rules_to_install;
   std::set<std::string> dynamic_rules_to_uninstall;
+  std::set<std::string> gy_dynamic_rules_to_uninstall;
   std::vector<PolicyRule> new_scheduled_dynamic_rules;
   std::unordered_map<std::string, RuleLifetime> new_rule_lifetimes;
   std::unordered_map<CreditKey, StoredSessionCredit, decltype(&ccHash),

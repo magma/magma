@@ -20,11 +20,11 @@ from magma.pipelined.tests.app.start_pipelined import (
 )
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.tests.pipelined_test_util import (
+    SnapshotVerifier,
     start_ryu_app_thread,
     stop_ryu_app_thread,
     create_service_manager,
-    wait_after_send,
-    assert_bridge_snapshot_match,
+    wait_after_send
 )
 
 
@@ -106,20 +106,32 @@ class UEMacAddressTest(unittest.TestCase):
         Add flows for two subscribers
         """
         imsi_1 = 'IMSI010000000088888'
+        imsi_2 = 'IMSI010000111111118'
+        imsi_3 = 'IMSI010002222222222'
         mac_1 = '5e:cc:cc:b1:49:4b'
-
+        mac_2 = '5e:a:cc:af:aa:fe'
+        mac_3 = '5e:bb:cc:aa:aa:fe'
         # Add subscriber with UE MAC address
         self.check_quota_controller.update_subscriber_quota_state(
             [
                 SubscriberQuotaUpdate(
                     sid=SubscriberID(id=imsi_1), mac_addr=mac_1,
                     update_type=SubscriberQuotaUpdate.VALID_QUOTA),
+                SubscriberQuotaUpdate(
+                    sid=SubscriberID(id=imsi_2), mac_addr=mac_2,
+                    update_type=SubscriberQuotaUpdate.TERMINATE),
+                SubscriberQuotaUpdate(
+                    sid=SubscriberID(id=imsi_3), mac_addr=mac_3,
+                    update_type=SubscriberQuotaUpdate.TERMINATE),
             ]
         )
 
-        wait_after_send(self.testing_controller)
-        assert_bridge_snapshot_match(self, self.BRIDGE, self.service_manager,
-                                     include_stats=False)
+        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
+                                             self.service_manager,
+                                             include_stats=False)
+
+        with snapshot_verifier:
+          wait_after_send(self.testing_controller)
 
     def test_add_three_subscribers(self):
         """
@@ -146,21 +158,13 @@ class UEMacAddressTest(unittest.TestCase):
                     update_type=SubscriberQuotaUpdate.VALID_QUOTA),
             ]
         )
-        wait_after_send(self.testing_controller)
 
-        assert_bridge_snapshot_match(self, self.BRIDGE, self.service_manager,
-                                     include_stats=False)
-        self.check_quota_controller.update_subscriber_quota_state(
-            [
-                SubscriberQuotaUpdate(
-                    sid=SubscriberID(id=imsi_2), mac_addr=mac_2,
-                    update_type=SubscriberQuotaUpdate.TERMINATE),
-                SubscriberQuotaUpdate(
-                    sid=SubscriberID(id=imsi_3), mac_addr=mac_3,
-                    update_type=SubscriberQuotaUpdate.TERMINATE),
-            ]
-        )
+        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
+                                             self.service_manager,
+                                             include_stats=False)
 
+        with snapshot_verifier:
+          wait_after_send(self.testing_controller)
 
 if __name__ == "__main__":
     unittest.main()

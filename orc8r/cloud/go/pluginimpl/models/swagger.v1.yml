@@ -1031,9 +1031,9 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /networks/{network_id}/logs:
+  /networks/{network_id}/logs/search:
     get:
-      summary: Get logs
+      summary: Search logs
       tags:
         - Logs
       parameters:
@@ -1058,6 +1058,11 @@ paths:
           description: Maximum number of hits returned. Defaults to 10.
           required: false
           type: string
+        - name: from
+          in: query
+          description: The starting offset to fetch from the search hits. This param along with size can be used for pagination.
+          required: false
+          type: string
         - name: start
           in: query
           description: Time to start searching
@@ -1075,6 +1080,46 @@ paths:
             type: array
             items:
               $ref: '#/definitions/elastic_hit'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /networks/{network_id}/logs/count:
+    get:
+      summary: Count logs
+      tags:
+        - Logs
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: simple_query
+          in: query
+          description: Simple Query String to execute
+          required: false
+          type: string
+        - name: fields
+          in: query
+          description: Comma-separated list of fields to search with the simple query. Defaults to the log field.
+          required: false
+          type: string
+        - name: filters
+          in: query
+          description: Comma-separated list of key:value pairs to filter the query with.
+          required: false
+          type: string
+        - name: start
+          in: query
+          description: Time to start searching
+          required: false
+          type: string
+        - name: end
+          in: query
+          description: Time to end searching
+          required: false
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/elastic_hit_count'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
@@ -1689,3 +1734,6 @@ definitions:
         type: object
         additionalProperties:
           type: string
+
+  elastic_hit_count:
+    type: number

@@ -27,22 +27,22 @@
 #define PROTOCOL_CONFIGURATION_OPTIONS_MINIMUM_LENGTH PCO_MIN_LENGTH
 #define PROTOCOL_CONFIGURATION_OPTIONS_MAXIMUM_LENGTH PCO_MAX_LENGTH
 
-typedef protocol_configuration_options_t ProtocolConfigurationOptions;
+typedef protocol_configuration_options_t oai::ProtocolConfigurationOptions;
 
 int encode_ProtocolConfigurationOptions(
-  ProtocolConfigurationOptions *protocolconfigurationoptions,
+  oai::ProtocolConfigurationOptions *protocolconfigurationoptions,
   uint8_t iei,
   uint8_t *buffer,
   uint32_t len);
 
 int decode_ProtocolConfigurationOptions(
-  ProtocolConfigurationOptions *protocolconfigurationoptions,
+  oai::ProtocolConfigurationOptions *protocolconfigurationoptions,
   const uint8_t iei,
   const uint8_t *const buffer,
   const uint32_t len);
 
 void dump_ProtocolConfigurationOptions_xml(
-  ProtocolConfigurationOptions *protocolconfigurationoptions,
+  oai::ProtocolConfigurationOptions *protocolconfigurationoptions,
   uint8_t iei);
 
 #endif /* PROTOCOL CONFIGURATION OPTIONS_H_ */
