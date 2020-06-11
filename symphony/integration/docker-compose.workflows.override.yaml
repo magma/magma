@@ -7,7 +7,7 @@ services:
   workflows:
     command: yarn run start:dev
     volumes:
-      - ${XPLAT_FBC_DIR}/fbcnms-projects/workflows/proxy/src:/app/fbcnms-projects/workflows-proxy/src
+      - ${XPLAT_FBC_DIR}/fbcnms-projects/workflows-proxy/src:/app/fbcnms-projects/workflows-proxy/src
     networks:
       - private
       - public
@@ -17,4 +17,4 @@ services:
   workflows-wasm-worker:
     command: yarn run start:dev
     volumes:
-      - ${XPLAT_FBC_DIR}/fbcnms-projects/workflows/wasm-worker/src:/app/fbcnms-projects/workflows-wasm-worker/src
+      - ${XPLAT_FBC_DIR}/fbcnms-projects/workflows-wasm-workers/src:/app/fbcnms-projects/workflows-wasm-workers/src
