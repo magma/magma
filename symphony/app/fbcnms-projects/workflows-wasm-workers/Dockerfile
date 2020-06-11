@@ -5,6 +5,8 @@ EXPOSE 8080
 # Create app directory
 WORKDIR /app
 
+RUN curl https://get.wasmer.io -sSfL | sh
+
 # Copy package dependencies
 COPY package.json yarn.lock babel.config.js ./
 COPY fbcnms-projects/workflows-wasm-workers/package.json fbcnms-projects/workflows-wasm-workers/
