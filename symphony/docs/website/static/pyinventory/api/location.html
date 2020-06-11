@@ -32,7 +32,7 @@
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="pyinventory.api.location.add_location"><code class="name flex">
-<span>def <span class="ident">add_location</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, location_hirerchy: List[Tuple[str, str]], properties_dict: Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]], lat: Union[float, NoneType] = None, long: Union[float, NoneType] = None, externalID: Union[str, NoneType] = None) -> <a title="pyinventory.common.data_class.Location" href="../common/data_class.html#pyinventory.common.data_class.Location">Location</a></span>
+<span>def <span class="ident">add_location</span></span>(<span>client: pysymphony.SymphonyClient, location_hirerchy: List[Tuple[str, str]], properties_dict: Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]], lat: Union[float, NoneType] = None, long: Union[float, NoneType] = None, external_id: Union[str, NoneType] = None) -> <a title="pyinventory.common.data_class.Location" href="../common/data_class.html#pyinventory.common.data_class.Location">Location</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Create a new location of a specific type with a specific name.
@@ -63,7 +63,7 @@ the property type, otherwise exception is raised</dd>
 <dd>latitude</dd>
 <dt><strong><code>long</code></strong> :&ensp;<code>float</code></dt>
 <dd>longitude</dd>
-<dt><strong><code>externalID</code></strong> :&ensp;<code>str</code></dt>
+<dt><strong><code>external_id</code></strong> :&ensp;<code>str</code></dt>
 <dd>location external ID</dd>
 </dl>
 <h2 id="returns">Returns</h2>
@@ -94,11 +94,11 @@ inside the chain and it is not clear where to create or what to return</dd>
     },
     lat=-11.32,
     long=98.32,
-    externalID=None)
+    external_id=None)
 </code></pre></div>
 </dd>
 <dt id="pyinventory.api.location.delete_location"><code class="name flex">
-<span>def <span class="ident">delete_location</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, location: <a title="pyinventory.common.data_class.Location" href="../common/data_class.html#pyinventory.common.data_class.Location">Location</a>) -> NoneType</span>
+<span>def <span class="ident">delete_location</span></span>(<span>client: pysymphony.SymphonyClient, location: <a title="pyinventory.common.data_class.Location" href="../common/data_class.html#pyinventory.common.data_class.Location">Location</a>) -> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>This delete existing location.</p>
@@ -119,7 +119,7 @@ client.delete_location(location=location)
 </code></pre></div>
 </dd>
 <dt id="pyinventory.api.location.edit_location"><code class="name flex">
-<span>def <span class="ident">edit_location</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, location: <a title="pyinventory.common.data_class.Location" href="../common/data_class.html#pyinventory.common.data_class.Location">Location</a>, new_name: Union[str, NoneType] = None, new_lat: Union[float, NoneType] = None, new_long: Union[float, NoneType] = None, new_external_id: Union[str, NoneType] = None, new_properties: Union[Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]], NoneType] = None) -> <a title="pyinventory.common.data_class.Location" href="../common/data_class.html#pyinventory.common.data_class.Location">Location</a></span>
+<span>def <span class="ident">edit_location</span></span>(<span>client: pysymphony.SymphonyClient, location: <a title="pyinventory.common.data_class.Location" href="../common/data_class.html#pyinventory.common.data_class.Location">Location</a>, new_name: Union[str, NoneType] = None, new_lat: Union[float, NoneType] = None, new_long: Union[float, NoneType] = None, new_external_id: Union[str, NoneType] = None, new_properties: Union[Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]], NoneType] = None) -> <a title="pyinventory.common.data_class.Location" href="../common/data_class.html#pyinventory.common.data_class.Location">Location</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function returns edited location.</p>
@@ -162,7 +162,7 @@ edited_location = client.edit_location(
 </code></pre></div>
 </dd>
 <dt id="pyinventory.api.location.get_location"><code class="name flex">
-<span>def <span class="ident">get_location</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, location_hirerchy: List[Tuple[str, str]]) -> <a title="pyinventory.common.data_class.Location" href="../common/data_class.html#pyinventory.common.data_class.Location">Location</a></span>
+<span>def <span class="ident">get_location</span></span>(<span>client: pysymphony.SymphonyClient, location_hirerchy: List[Tuple[str, str]]) -> <a title="pyinventory.common.data_class.Location" href="../common/data_class.html#pyinventory.common.data_class.Location">Location</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function returns a location of a specific type with a specific name.
@@ -203,7 +203,7 @@ location = client.get_location(location_hirerchy=[(&quot;Site&quot;, &quot;Bletc
 </code></pre></div>
 </dd>
 <dt id="pyinventory.api.location.get_location_by_external_id"><code class="name flex">
-<span>def <span class="ident">get_location_by_external_id</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, external_id: str) -> <a title="pyinventory.common.data_class.Location" href="../common/data_class.html#pyinventory.common.data_class.Location">Location</a></span>
+<span>def <span class="ident">get_location_by_external_id</span></span>(<span>client: pysymphony.SymphonyClient, external_id: str) -> <a title="pyinventory.common.data_class.Location" href="../common/data_class.html#pyinventory.common.data_class.Location">Location</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function returns location by external ID.</p>
@@ -227,7 +227,7 @@ location = client.get_location(location_hirerchy=[(&quot;Site&quot;, &quot;Bletc
 </code></pre></div>
 </dd>
 <dt id="pyinventory.api.location.get_location_children"><code class="name flex">
-<span>def <span class="ident">get_location_children</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, location_id: str) -> List[<a title="pyinventory.common.data_class.Location" href="../common/data_class.html#pyinventory.common.data_class.Location">Location</a>]</span>
+<span>def <span class="ident">get_location_children</span></span>(<span>client: pysymphony.SymphonyClient, location_id: str) -> List[<a title="pyinventory.common.data_class.Location" href="../common/data_class.html#pyinventory.common.data_class.Location">Location</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function returns all children locations of the given location</p>
@@ -249,7 +249,7 @@ children_locations = client.get_location_children(location_id=parent_location.id
 </code></pre></div>
 </dd>
 <dt id="pyinventory.api.location.get_location_documents"><code class="name flex">
-<span>def <span class="ident">get_location_documents</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, location: <a title="pyinventory.common.data_class.Location" href="../common/data_class.html#pyinventory.common.data_class.Location">Location</a>) -> List[<a title="pyinventory.common.data_class.Document" href="../common/data_class.html#pyinventory.common.data_class.Document">Document</a>]</span>
+<span>def <span class="ident">get_location_documents</span></span>(<span>client: pysymphony.SymphonyClient, location: <a title="pyinventory.common.data_class.Location" href="../common/data_class.html#pyinventory.common.data_class.Location">Location</a>) -> List[<a title="pyinventory.common.data_class.Document" href="../common/data_class.html#pyinventory.common.data_class.Document">Document</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function returns locations documents.</p>
@@ -270,7 +270,7 @@ location = client.get_location_documents(location=location)
 </code></pre></div>
 </dd>
 <dt id="pyinventory.api.location.get_locations"><code class="name flex">
-<span>def <span class="ident">get_locations</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>) -> List[<a title="pyinventory.common.data_class.Location" href="../common/data_class.html#pyinventory.common.data_class.Location">Location</a>]</span>
+<span>def <span class="ident">get_locations</span></span>(<span>client: pysymphony.SymphonyClient) -> List[<a title="pyinventory.common.data_class.Location" href="../common/data_class.html#pyinventory.common.data_class.Location">Location</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function returns all existing locations</p>
@@ -281,7 +281,7 @@ location = client.get_location_documents(location=location)
 </code></pre></div>
 </dd>
 <dt id="pyinventory.api.location.move_location"><code class="name flex">
-<span>def <span class="ident">move_location</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, location_id: str, new_parent_id: Union[str, NoneType]) -> <a title="pyinventory.common.data_class.Location" href="../common/data_class.html#pyinventory.common.data_class.Location">Location</a></span>
+<span>def <span class="ident">move_location</span></span>(<span>client: pysymphony.SymphonyClient, location_id: str, new_parent_id: Union[str, NoneType]) -> <a title="pyinventory.common.data_class.Location" href="../common/data_class.html#pyinventory.common.data_class.Location">Location</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function moves existing location to another existing parent location.</p>
