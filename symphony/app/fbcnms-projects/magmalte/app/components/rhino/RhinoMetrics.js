@@ -24,7 +24,7 @@ import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   bar: {
-    backgroundColor: theme.palette.blueGrayDark,
+    backgroundColor: '#303846',
   },
   tabs: {
     flex: 1,
