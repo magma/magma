@@ -1,5 +1,5 @@
 include_directories("${PROJECT_BINARY_DIR}")
-include_directories("${PROJECT_SOURCE_DIR}/rpc_client")
+include_directories("${PROJECT_SOURCE_DIR}/mobility_client")
 
 add_executable(mobility_client_test test_mobility_client.cpp)
 
