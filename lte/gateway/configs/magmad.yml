@@ -23,6 +23,7 @@ magma_services:
   - dnsd
   - policydb
   - state
+  - eventd
 
 # List of services that don't provide service303 interface
 non_service303_services:
@@ -36,6 +37,7 @@ registered_dynamic_services:
   - redirectd
   - td-agent-bit
   - monitord
+  - dpid
 
 # A list of group of services which are linked together in systemd
 linked_services:

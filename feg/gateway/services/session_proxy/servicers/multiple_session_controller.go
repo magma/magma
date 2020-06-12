@@ -10,7 +10,6 @@ package servicers
 
 import (
 	"fmt"
-	"strings"
 	"sync"
 
 	fegprotos "magma/feg/cloud/go/protos"
@@ -19,30 +18,26 @@ import (
 	"magma/feg/gateway/services/session_proxy/credit_control/gx"
 	"magma/feg/gateway/services/session_proxy/credit_control/gy"
 	"magma/lte/cloud/go/protos"
+	"magma/orc8r/lib/go/errors"
 	orcprotos "magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
 )
 
-/*
-* ##########################################
-* How CentralSessionControllers works
-*
-* CentralSessionControllers holds an slice of N Controllers. Each controller uses an particular diameter
-* client to an specific PCRF and OCS. Each diameter client is configured with its own src and dst port
-*
-* Subscribers are forwarded to a different controller based on their IMSI that comes either in IMSI form on
-* CreateSession or as SessionId (IMSI######-1234) for UpdateSession and Terminate session
-*
-* CreateSession and Terminate session gRPC message come per IMSI so they are forwarded to the controller directly
-*
-* UpdateSession gRPC message comes in groups, so before sending to each controller we look into each Credit and Policy
-* request and forward it to the right controller depending on IMSI
-*
-* Health, Enable and Disable returns error if any of the controllers return errors. No partial results are give.
-* ##########################################
- */
+// How CentralSessionControllers works
+//
+// CentralSessionControllers holds an slice of N Controllers. Each controller uses an particular diameter
+// client to a specific PCRF and OCS. Each diameter client is configured with its own src and dst port
+// Subscribers are forwarded to a different controller using algorithm defined in multiplex object
+//
+// CreateSession and Terminate session gRPC message come per subscriber so they are forwarded to
+// the controller directly
+//
+// UpdateSession gRPC message comes in groups, so before sending the request to each controller we look
+// into each Credit and Policy request and forward it to the right controller depending on multiplex
+//
+// Health, Enable and Disable returns error if any of the controllers return errors. No partial results are give.
 
 // CentralSessionControllerServerWithHealth is an interface just to group CentralSessionControllerServer
 // and ServiceHealthServer. This is used by NewCentralSessionControllerWithHealth to be able to return
@@ -202,16 +197,12 @@ func (srv *CentralSessionControllers) Disable(
 	ctx context.Context,
 	req *fegprotos.DisableMessage,
 ) (*orcprotos.Void, error) {
-	var hasErrors []string
-	for _, controller := range srv.centralControllers {
-		_, err := controller.Disable(ctx, req)
-		if err != nil {
-			hasErrors = append(hasErrors, err.Error())
-		}
+	if req == nil {
+		return nil, fmt.Errorf("Nil Disable Request")
 	}
-	if hasErrors != nil {
-		return nil, fmt.Errorf("Errors found while disabling SessionProxy: %s",
-			fmt.Errorf(strings.Join(hasErrors, "\n")))
+	for _, controller := range srv.centralControllers {
+		// this will never error. Error was check on req == nil
+		controller.Disable(ctx, req)
 	}
 	return &orcprotos.Void{}, nil
 }
@@ -223,18 +214,12 @@ func (srv *CentralSessionControllers) Enable(
 	ctx context.Context,
 	void *orcprotos.Void,
 ) (*orcprotos.Void, error) {
-	var hasErrors []string
-	for _, controller := range srv.centralControllers {
+	multiError := errors.NewMulti()
+	for i, controller := range srv.centralControllers {
 		_, err := controller.Enable(ctx, void)
-		if err != nil {
-			hasErrors = append(hasErrors, err.Error())
-		}
+		multiError = multiError.AddFmt(err, "error(%d):", i+1)
 	}
-	if hasErrors != nil {
-		return nil, fmt.Errorf("Errors found while disabling SessionProxy: %s",
-			fmt.Errorf(strings.Join(hasErrors, "\n")))
-	}
-	return &orcprotos.Void{}, nil
+	return &orcprotos.Void{}, multiError.AsError()
 }
 
 // GetHealthStatus retrieves a health status object which contains the current

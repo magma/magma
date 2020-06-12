@@ -9,9 +9,9 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/ent/propertytype"
 
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
@@ -132,7 +132,7 @@ func (l ImportRecord) validatePropertiesMismatch(ctx context.Context, typs []int
 }
 
 // GetPropertyInput returns a PropertyInput model from a proptypeName
-func (l ImportRecord) GetPropertyInput(client *ent.Client, ctx context.Context, typ interface{}, proptypeName string) (*models.PropertyInput, error) {
+func (l ImportRecord) GetPropertyInput(ctx context.Context, typ interface{}, proptypeName string) (*models.PropertyInput, error) {
 	var pTyp *ent.PropertyType
 	var err error
 	switch l.entity() {

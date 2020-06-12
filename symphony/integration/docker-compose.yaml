@@ -5,26 +5,6 @@
 version: "3.7"
 
 services:
-  frontier:
-    build:
-      context: ${FBCODE_FBC_DIR}/symphony
-      dockerfile: frontier/Dockerfile
-    environment:
-      INVENTORY_TARGET: http://inventory:8080
-      PROXY_TARGET: http://platform-server
-      KEY_PAIRS: HWmHsJtI8wrSkVuXkMxP5HDW32t2AUqz
-    env_file:
-      - conf/log.env
-      - conf/census.env
-    networks:
-      - public
-      - private
-    healthcheck:
-      test: curl -If localhost/healthz/liveness
-    restart: on-failure
-    ports:
-      - 8082:80
-
   platform-server:
     build:
       context: ${XPLAT_FBC_DIR}
@@ -74,7 +54,7 @@ services:
     env_file:
       - conf/graph.env
       - conf/log.env
-      - conf/census.env
+      - conf/telemetry.env
     networks:
       - private
       - public
@@ -84,11 +64,32 @@ services:
       - migrate
       - mysql
       - nats
+      - async
     healthcheck:
       test: curl -If localhost/healthz/liveness
     restart: on-failure
     ports:
       - 8083:443
+
+  async:
+    build:
+      context: ${FBCODE_FBC_DIR}/symphony
+      dockerfile: async/Dockerfile
+    image: integration_async
+    env_file:
+      - conf/async.env
+      - conf/log.env
+      - conf/telemetry.env
+    networks:
+      - private
+      - public
+    depends_on:
+      - migrate
+      - mysql
+      - nats
+    healthcheck:
+      test: curl -If localhost/healthz/liveness
+    restart: on-failure
 
   migrate:
     image: integration_graph
@@ -100,10 +101,10 @@ services:
       - mysql
     restart: on-failure
 
-  job_runner:
+  jobrunner:
     build:
       context: ${FBCODE_FBC_DIR}/symphony
-      dockerfile: integration/job_runner/Dockerfile
+      dockerfile: jobrunner/Dockerfile
     networks:
       - private
 
@@ -111,15 +112,10 @@ services:
     build:
       context: ${FBCODE_FBC_DIR}/symphony
       dockerfile: store/Dockerfile
-    environment:
-      S3_ENDPOINT: fb-test.thesymphony.cloud:9000
-      S3_BUCKET: store.blobs
-      S3_REGION: us-east-1
-      AWS_ACCESS_KEY_ID: AKIAIOSFODNN7EXAMPLE
-      AWS_SECRET_ACCESS_KEY: /wJalrXUtnFEMIK7MDENG/bPxRfiCYEXAMPLEKEY
     env_file:
+      - conf/store.env
       - conf/log.env
-      - conf/census.env
+      - conf/telemetry.env
     networks:
       - private
     healthcheck:

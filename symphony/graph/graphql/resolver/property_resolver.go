@@ -8,8 +8,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/resolverutil"
+
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/pkg/ent"
 )
 
 type propertyTypeResolver struct{}
@@ -17,8 +19,21 @@ type propertyTypeResolver struct{}
 func (propertyTypeResolver) Type(_ context.Context, obj *ent.PropertyType) (models.PropertyKind, error) {
 	return models.PropertyKind(obj.Type), nil
 }
+func (propertyTypeResolver) RawValue(ctx context.Context, propertyType *ent.PropertyType) (*string, error) {
+	raw, err := resolverutil.PropertyValue(ctx, propertyType.Type, propertyType)
+	return &raw, err
+}
 
 type propertyResolver struct{}
+
+func (propertyResolver) RawValue(ctx context.Context, property *ent.Property) (*string, error) {
+	propertyType, err := property.QueryType().Only(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("querying property type %w", err)
+	}
+	raw, err := resolverutil.PropertyValue(ctx, propertyType.Type, property)
+	return &raw, err
+}
 
 func (propertyResolver) PropertyType(ctx context.Context, obj *ent.Property) (*ent.PropertyType, error) {
 	return obj.QueryType().Only(ctx)

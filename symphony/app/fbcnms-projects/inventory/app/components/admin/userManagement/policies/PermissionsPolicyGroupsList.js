@@ -21,7 +21,9 @@ import {useGroupSearchContext} from '../utils/search/GroupSearchContext';
 import {useMemo} from 'react';
 
 const useStyles = makeStyles(() => ({
-  root: {},
+  root: {
+    flexGrow: '1',
+  },
   noGroups: {
     width: '124px',
     paddingTop: '50%',
@@ -39,10 +41,11 @@ const useStyles = makeStyles(() => ({
 
 type Props = $ReadOnly<{|
   policy: PermissionsPolicy,
+  onChange: PermissionsPolicy => void,
 |}>;
 
 export default function PermissionsPolicyGroupsList(props: Props) {
-  const {policy} = props;
+  const {policy, onChange} = props;
   const classes = useStyles();
   const groupSearch = useGroupSearchContext();
 
@@ -99,12 +102,14 @@ export default function PermissionsPolicyGroupsList(props: Props) {
         groupSearch.isEmptySearchTerm ? policy.groups : groupSearch.results
       }
       policy={policy}
+      onChange={onChange}
       assigmentButton={
         groupSearch.isEmptySearchTerm
           ? TOGGLE_BUTTON_DISPLAY.onHover
           : TOGGLE_BUTTON_DISPLAY.always
       }
       emptyState={emptyState}
+      className={classes.root}
     />
   );
 }

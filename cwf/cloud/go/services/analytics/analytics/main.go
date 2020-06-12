@@ -17,7 +17,6 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/metricsd"
-	"magma/orc8r/cloud/go/services/metricsd/confignames"
 	"magma/orc8r/lib/go/metrics"
 	"magma/orc8r/lib/go/service/config"
 
@@ -54,23 +53,23 @@ func main() {
 	}
 
 	analysisSchedule := defaultAnalysisSchedule
-	providedSchedule, _ := srv.Config.GetStringParam("analysisSchedule")
+	providedSchedule, _ := srv.Config.GetString("analysisSchedule")
 	if providedSchedule != "" {
 		analysisSchedule = providedSchedule
 	}
 
 	calculations := getAnalyticsCalculations()
 	promAPIClient := getPrometheusClient()
-	shouldExportData, _ := srv.Config.GetBoolParam("exportMetrics")
+	shouldExportData, _ := srv.Config.GetBool("exportMetrics")
 	var exporter analytics.Exporter
 	if shouldExportData {
 		glog.Errorf("Creating CWF Analytics Exporter")
 		exporter = analytics.NewWWWExporter(
-			srv.Config.GetRequiredStringParam("metricsPrefix"),
-			srv.Config.GetRequiredStringParam("appSecret"),
-			srv.Config.GetRequiredStringParam("appID"),
-			srv.Config.GetRequiredStringParam("metricExportURL"),
-			srv.Config.GetRequiredStringParam("categoryName"),
+			srv.Config.MustGetString("metricsPrefix"),
+			srv.Config.MustGetString("appSecret"),
+			srv.Config.MustGetString("appID"),
+			srv.Config.MustGetString("metricExportURL"),
+			srv.Config.MustGetString("categoryName"),
 		)
 	}
 	analyzer := analytics.NewPrometheusAnalyzer(promAPIClient, calculations, exporter)
@@ -188,7 +187,7 @@ func getPrometheusClient() v1.API {
 	if err != nil {
 		glog.Fatalf("Could not retrieve metricsd configuration: %s", err)
 	}
-	promClient, err := promAPI.NewClient(promAPI.Config{Address: metricsConfig.GetRequiredStringParam(confignames.PrometheusQueryAddress)})
+	promClient, err := promAPI.NewClient(promAPI.Config{Address: metricsConfig.MustGetString(metricsd.PrometheusQueryAddress)})
 	if err != nil {
 		glog.Fatalf("Error creating prometheus client: %s", promClient)
 	}

@@ -11,18 +11,16 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/facebookincubator/symphony/graph/viewer"
-	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
-
 	"github.com/facebookincubator/ent/dialect"
 	"github.com/facebookincubator/ent/dialect/sql"
-	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/ent/enttest"
-	"github.com/facebookincubator/symphony/graph/ent/migrate"
-	"github.com/facebookincubator/symphony/graph/event"
 	"github.com/facebookincubator/symphony/graph/graphql/resolver"
+	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/ent/enttest"
+	"github.com/facebookincubator/symphony/pkg/ent/migrate"
 	"github.com/facebookincubator/symphony/pkg/log/logtest"
+	"github.com/facebookincubator/symphony/pkg/pubsub"
 	"github.com/facebookincubator/symphony/pkg/testdb"
+	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
 	"github.com/stretchr/testify/require"
 )
 
@@ -40,7 +38,7 @@ func newResolver(t *testing.T, drv dialect.Driver) *TestJobsResolver {
 	)
 	r := resolver.New(resolver.Config{
 		Logger:     logtest.NewTestLogger(t),
-		Subscriber: event.NewNopSubscriber(),
+		Subscriber: pubsub.NewNopSubscriber(),
 	})
 	return &TestJobsResolver{
 		drv:    drv,
@@ -56,11 +54,11 @@ func syncServicesRequest(t *testing.T, r *TestJobsResolver) *http.Response {
 	h, _ := NewHandler(
 		Config{
 			Logger:     logtest.NewTestLogger(t),
-			Subscriber: event.NewNopSubscriber(),
+			Subscriber: pubsub.NewNopSubscriber(),
 		},
 	)
 
-	th := viewer.TenancyHandler(h, viewer.NewFixedTenancy(r.client))
+	th := viewertest.TestHandler(t, h, r.client)
 	server := httptest.NewServer(th)
 	defer server.Close()
 	url := server.URL + "/sync_services"

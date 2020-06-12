@@ -16,6 +16,7 @@
 import type { ReaderFragment } from 'relay-runtime';
 type ServiceEndpointsView_endpoints$ref = any;
 type ServiceLinksView_links$ref = any;
+export type DiscoveryMethod = "INVENTORY" | "MANUAL" | "%future added value";
 export type ServiceStatus = "DISCONNECTED" | "IN_SERVICE" | "MAINTENANCE" | "PENDING" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type ServicePanel_service$ref: FragmentReference;
@@ -29,14 +30,29 @@ export type ServicePanel_service = {|
     +name: string
   |},
   +serviceType: {|
-    +name: string
+    +name: string,
+    +discoveryMethod: DiscoveryMethod,
+    +endpointDefinitions: $ReadOnlyArray<{|
+      +id: string,
+      +name: string,
+      +role: ?string,
+      +equipmentType: {|
+        +id: string,
+        +name: string,
+      |},
+    |}>,
   |},
   +links: $ReadOnlyArray<?{|
     +id: string,
     +$fragmentRefs: ServiceLinksView_links$ref,
   |}>,
   +endpoints: $ReadOnlyArray<?{|
-    +$fragmentRefs: ServiceEndpointsView_endpoints$ref
+    +id: string,
+    +definition: {|
+      +id: string,
+      +name: string,
+    |},
+    +$fragmentRefs: ServiceEndpointsView_endpoints$ref,
   |}>,
   +$refType: ServicePanel_service$ref,
 |};
@@ -65,6 +81,7 @@ v1 = {
   "storageKey": null
 },
 v2 = [
+  (v0/*: any*/),
   (v1/*: any*/)
 ];
 return {
@@ -98,7 +115,9 @@ return {
       "args": null,
       "concreteType": "Customer",
       "plural": false,
-      "selections": (v2/*: any*/)
+      "selections": [
+        (v1/*: any*/)
+      ]
     },
     {
       "kind": "LinkedField",
@@ -108,7 +127,46 @@ return {
       "args": null,
       "concreteType": "ServiceType",
       "plural": false,
-      "selections": (v2/*: any*/)
+      "selections": [
+        (v1/*: any*/),
+        {
+          "kind": "ScalarField",
+          "alias": null,
+          "name": "discoveryMethod",
+          "args": null,
+          "storageKey": null
+        },
+        {
+          "kind": "LinkedField",
+          "alias": null,
+          "name": "endpointDefinitions",
+          "storageKey": null,
+          "args": null,
+          "concreteType": "ServiceEndpointDefinition",
+          "plural": true,
+          "selections": [
+            (v0/*: any*/),
+            (v1/*: any*/),
+            {
+              "kind": "ScalarField",
+              "alias": null,
+              "name": "role",
+              "args": null,
+              "storageKey": null
+            },
+            {
+              "kind": "LinkedField",
+              "alias": null,
+              "name": "equipmentType",
+              "storageKey": null,
+              "args": null,
+              "concreteType": "EquipmentType",
+              "plural": false,
+              "selections": (v2/*: any*/)
+            }
+          ]
+        }
+      ]
     },
     {
       "kind": "LinkedField",
@@ -136,6 +194,17 @@ return {
       "concreteType": "ServiceEndpoint",
       "plural": true,
       "selections": [
+        (v0/*: any*/),
+        {
+          "kind": "LinkedField",
+          "alias": null,
+          "name": "definition",
+          "storageKey": null,
+          "args": null,
+          "concreteType": "ServiceEndpointDefinition",
+          "plural": false,
+          "selections": (v2/*: any*/)
+        },
         {
           "kind": "FragmentSpread",
           "name": "ServiceEndpointsView_endpoints",
@@ -147,5 +216,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '7f357b32c905fbee028440218bf69241';
+(node/*: any*/).hash = 'ff14440bf865c0fada807dcbe20fc346';
 module.exports = node;

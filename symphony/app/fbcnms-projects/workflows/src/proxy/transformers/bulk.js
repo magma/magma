@@ -14,7 +14,9 @@ import {
   createProxyOptionsBuffer,
   findValuesByJsonPath,
   removeTenantPrefix,
-} from '../utils.js';
+} from '../utils';
+
+import type {BeforeFun, TransformerRegistrationFun} from '../../types';
 
 const logger = logging.getLogger(module);
 
@@ -34,10 +36,16 @@ curl  -H "x-auth-organization: fb-test" \
     -d '["7d40eb5f-6a0d-438d-a35c-3b2111e2744b"]'
 
 */
-function bulkOperationBefore(tenantId, req, res, proxyCallback) {
+const bulkOperationBefore: BeforeFun = (
+  tenantId,
+  groups,
+  req,
+  res,
+  proxyCallback,
+) => {
   const requestWorkflowIds = req.body; // expect JS array
   if (!Array.isArray(requestWorkflowIds) || requestWorkflowIds.length == 0) {
-    logger.error(`Expected non empty array, got ${requestWorkflowIds}`);
+    logger.error('Expected non empty array', {requestWorkflowIds});
     res.status(400);
     res.send('Expected array of workflows');
     return;
@@ -53,9 +61,13 @@ function bulkOperationBefore(tenantId, req, res, proxyCallback) {
   let query = 'workflowId+IN+(';
 
   for (const workflowId of requestWorkflowIds) {
-    // TODO: sanitize using regex
-    if (/^[a-z0-9\-]+$/i.test(workflowId)) {
+    if (typeof workflowId === 'string' && /^[a-z0-9\-]+$/i.test(workflowId)) {
       query += workflowId + ',';
+    } else {
+      logger.error('Unexpected workflowId format', {workflowId});
+      res.status(400);
+      res.send('Unexpected workflowId format');
+      return;
     }
   }
   query += ')';
@@ -90,7 +102,8 @@ function bulkOperationBefore(tenantId, req, res, proxyCallback) {
       if (requestWorkflowIds.includes(foundWorkflowId) === false) {
         logger.warn(
           `ElasticSearch returned workflow that was not requested:` +
-            ` ${foundWorkflowId.workflowId} in ${requestWorkflowIds}`,
+            ` ${foundWorkflowId.workflowId}`,
+          {requestWorkflowIds},
         );
         foundWorkflowIds.splice(idx, 1);
       }
@@ -98,11 +111,11 @@ function bulkOperationBefore(tenantId, req, res, proxyCallback) {
     logger.debug(`Sending bulk operation: ${foundWorkflowIds}`);
     proxyCallback({buffer: createProxyOptionsBuffer(foundWorkflowIds, req)});
   });
-}
+};
 
-let proxyTarget;
+let proxyTarget: string;
 
-export default function(ctx) {
+const registration: TransformerRegistrationFun = ctx => {
   proxyTarget = ctx.proxyTarget;
   return [
     {
@@ -131,4 +144,6 @@ export default function(ctx) {
       before: bulkOperationBefore,
     },
   ];
-}
+};
+
+export default registration;

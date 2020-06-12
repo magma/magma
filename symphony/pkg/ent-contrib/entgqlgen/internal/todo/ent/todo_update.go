@@ -1,7 +1,3 @@
-// Copyright (c) 2004-present Facebook All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 // Code generated (@generated) by entc, DO NOT EDIT.
 
 package ent
@@ -114,6 +110,7 @@ func (tu *TodoUpdate) Save(ctx context.Context) (int, error) {
 			}
 			tu.mutation = mutation
 			affected, err = tu.sqlSave(ctx)
+			mutation.done = true
 			return affected, err
 		})
 		for i := len(tu.hooks) - 1; i >= 0; i-- {
@@ -347,6 +344,7 @@ func (tuo *TodoUpdateOne) Save(ctx context.Context) (*Todo, error) {
 			}
 			tuo.mutation = mutation
 			node, err = tuo.sqlSave(ctx)
+			mutation.done = true
 			return node, err
 		})
 		for i := len(tuo.hooks) - 1; i >= 0; i-- {

@@ -29,6 +29,7 @@ export type aggregation_logging_configs = {
 export type agw_test_config = {
     package_repo: string,
     release_channel: string,
+    slack_webhook: string,
     target_gateway_id: string,
     target_tier: string,
 };
@@ -229,6 +230,7 @@ export type elastic_hit = {
     },
     _type: string,
 };
+export type elastic_hit_count = number;
 export type email_receiver = {
     auth_identity ? : string,
     auth_password ? : string,
@@ -248,6 +250,7 @@ export type email_receiver = {
 export type enodeb = {
     attached_gateway_id ? : string,
     config: enodeb_configuration,
+    description ? : string,
     name: string,
     serial: string,
 };
@@ -290,6 +293,14 @@ export type enodebd_test_config = {
 };
 export type error = {
     message: string,
+};
+export type event = {
+    event_type: string,
+    hardware_id: string,
+    stream_name: string,
+    tag: string,
+    timestamp: string,
+    value: {},
 };
 export type federated_network_configs = {
     feg_network_id: string,
@@ -366,7 +377,9 @@ export type gateway_cellular_configs = {
 };
 export type gateway_cwf_configs = {
     allowed_gre_peers: allowed_gre_peers,
+    gateway_health_configs ? : gateway_health_configs,
     ipdr_export_dst ? : ipdr_export_dst,
+    li_imsis ? : li_imsis,
 };
 export type gateway_description = string;
 export type gateway_device = {
@@ -374,6 +387,8 @@ export type gateway_device = {
     key: challenge_key,
 };
 export type gateway_epc_configs = {
+    dns_primary ? : string,
+    dns_secondary ? : string,
     ip_block: string,
     nat_enabled: boolean,
 };
@@ -388,6 +403,12 @@ export type gateway_federation_configs = {
     s6a: s6a,
     served_network_ids: served_network_ids,
     swx: swx,
+};
+export type gateway_health_configs = {
+    cpu_util_threshold_pct ? : number,
+    gre_probe_interval_secs ? : number,
+    icmp_probe_pkt_count ? : number,
+    mem_util_threshold_pct ? : number,
 };
 export type gateway_id = string;
 export type gateway_logging_configs = {
@@ -479,11 +500,15 @@ export type gettable_alert_silencer = {
 export type gx = {
     overwrite_apn ? : string,
     server ? : diameter_client_configs,
+    servers ? : Array < diameter_client_configs >
+        ,
 };
 export type gy = {
     init_method ? : 1 | 2,
     overwrite_apn ? : string,
     server ? : diameter_client_configs,
+    servers ? : Array < diameter_client_configs >
+        ,
 };
 export type health = {
     cloud_disable_period_secs ? : number,
@@ -528,6 +553,8 @@ export type label_pair = {
     name: string,
     value: string,
 };
+export type li_imsis = Array < string >
+;
 export type lte_gateway = {
     cellular: gateway_cellular_configs,
     connected_enodeb_serials: enodeb_serials,
@@ -627,6 +654,10 @@ export type mutable_cwf_gateway = {
     magmad: magmad_gateway_configs,
     name: gateway_name,
     tier: tier_id,
+};
+export type mutable_enodebd_e2e_test = {
+    config: enodebd_test_config,
+    pk: number,
 };
 export type mutable_federation_gateway = {
     description: gateway_description,
@@ -856,6 +887,8 @@ export type platform_info = {
 };
 export type policy_id = string;
 export type policy_rule = {
+    app_name ? : "NO_APP_NAME" | "FACEBOOK" | "FACEBOOK_MESSENGER" | "INSTAGRAM" | "YOUTUBE" | "GOOGLE" | "GMAIL" | "GOOGLE_DOCS" | "NETFLIX" | "APPLE" | "MICROSOFT" | "REDDIT" | "WHATSAPP" | "GOOGLE_PLAY" | "APPSTORE" | "AMAZON" | "WECHAT" | "TIKTOK" | "TWITTER" | "WIKIPEDIA" | "GOOGLE_MAPS" | "YAHOO" | "IMO",
+    app_service_type ? : "NO_SERVICE_TYPE" | "CHAT" | "AUDIO" | "VIDEO",
     assigned_subscribers ? : Array < subscriber_id >
         ,
     flow_list: Array < flow_description >
@@ -869,6 +902,8 @@ export type policy_rule = {
     tracking_type ? : "ONLY_OCS" | "ONLY_PCRF" | "OCS_AND_PCRF" | "NO_TRACKING",
 };
 export type policy_rule_config = {
+    app_name ? : "NO_APP_NAME" | "FACEBOOK" | "FACEBOOK_MESSENGER" | "INSTAGRAM" | "YOUTUBE" | "GOOGLE" | "GMAIL" | "GOOGLE_DOCS" | "NETFLIX" | "APPLE" | "MICROSOFT" | "REDDIT" | "WHATSAPP" | "GOOGLE_PLAY" | "APPSTORE" | "AMAZON" | "WECHAT" | "TIKTOK" | "TWITTER" | "WIKIPEDIA" | "GOOGLE_MAPS" | "YAHOO" | "IMO",
+    app_service_type ? : "NO_SERVICE_TYPE" | "CHAT" | "AUDIO" | "VIDEO",
     flow_list: Array < flow_description >
         ,
     monitoring_key ? : string,
@@ -910,6 +945,17 @@ export type prom_firing_alert = {
 };
 export type prometheus_labelset = {
     [string]: string,
+};
+export type prometheus_target_metadata = {
+    instance: string,
+    job: string,
+};
+export type prometheus_targets_metadata = {
+    help: string,
+    metric: string,
+    target: prometheus_target_metadata,
+    type: string,
+    unit: string,
 };
 export type promql_data = {
     result: promql_result,
@@ -1048,6 +1094,8 @@ export type swx = {
         ,
     register_on_auth ? : boolean,
     server ? : diameter_client_configs,
+    servers ? : Array < diameter_client_configs >
+        ,
     verify_authorization ? : boolean,
 };
 export type symphony_agent = {
@@ -1348,6 +1396,22 @@ export default class MagmaAPIBindings {
 
         return await this.request(path, 'PUT', query, body);
     }
+    static async postCiNodesByNodeIdRelease(
+        parameters: {
+            'nodeId': string,
+        }
+    ): Promise < "Node released successfully" > {
+        let path = '/ci/nodes/{node_id}/release';
+        let body;
+        let query = {};
+        if (parameters['nodeId'] === undefined) {
+            throw new Error('Missing required  parameter: nodeId');
+        }
+
+        path = path.replace('{node_id}', `${parameters['nodeId']}`);
+
+        return await this.request(path, 'POST', query, body);
+    }
     static async postCiNodesByNodeIdReleaseByLeaseId(
         parameters: {
             'nodeId': string,
@@ -1371,7 +1435,24 @@ export default class MagmaAPIBindings {
 
         return await this.request(path, 'POST', query, body);
     }
-    static async postCiReserve(): Promise < mutable_ci_node >
+    static async postCiNodesByNodeIdReserve(
+            parameters: {
+                'nodeId': string,
+            }
+        ): Promise < node_lease >
+        {
+            let path = '/ci/nodes/{node_id}/reserve';
+            let body;
+            let query = {};
+            if (parameters['nodeId'] === undefined) {
+                throw new Error('Missing required  parameter: nodeId');
+            }
+
+            path = path.replace('{node_id}', `${parameters['nodeId']}`);
+
+            return await this.request(path, 'POST', query, body);
+        }
+    static async postCiReserve(): Promise < node_lease >
         {
             let path = '/ci/reserve';
             let body;
@@ -1851,6 +1932,62 @@ export default class MagmaAPIBindings {
 
         if (parameters['device'] !== undefined) {
             body = parameters['device'];
+        }
+
+        return await this.request(path, 'PUT', query, body);
+    }
+    static async getCwfByNetworkIdGatewaysByGatewayIdLiImsis(
+            parameters: {
+                'networkId': string,
+                'gatewayId': string,
+            }
+        ): Promise < li_imsis >
+        {
+            let path = '/cwf/{network_id}/gateways/{gateway_id}/li_imsis';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['gatewayId'] === undefined) {
+                throw new Error('Missing required  parameter: gatewayId');
+            }
+
+            path = path.replace('{gateway_id}', `${parameters['gatewayId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async putCwfByNetworkIdGatewaysByGatewayIdLiImsis(
+        parameters: {
+            'networkId': string,
+            'gatewayId': string,
+            'description': li_imsis,
+        }
+    ): Promise < "Success" > {
+        let path = '/cwf/{network_id}/gateways/{gateway_id}/li_imsis';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['gatewayId'] === undefined) {
+            throw new Error('Missing required  parameter: gatewayId');
+        }
+
+        path = path.replace('{gateway_id}', `${parameters['gatewayId']}`);
+
+        if (parameters['description'] === undefined) {
+            throw new Error('Missing required  parameter: description');
+        }
+
+        if (parameters['description'] !== undefined) {
+            body = parameters['description'];
         }
 
         return await this.request(path, 'PUT', query, body);
@@ -2339,7 +2476,7 @@ export default class MagmaAPIBindings {
                 'hardwareId' ? : string,
                 'tag' ? : string,
             }
-        ): Promise < Array < string >
+        ): Promise < Array < {} >
         >
         {
             let path = '/events/{network_id}/{stream_name}';
@@ -6433,20 +6570,63 @@ export default class MagmaAPIBindings {
 
         return await this.request(path, 'PUT', query, body);
     }
-    static async getNetworksByNetworkIdLogs(
+    static async getNetworksByNetworkIdLogsCount(
+            parameters: {
+                'networkId': string,
+                'simpleQuery' ? : string,
+                'fields' ? : string,
+                'filters' ? : string,
+                'start' ? : string,
+                'end' ? : string,
+            }
+        ): Promise < elastic_hit_count >
+        {
+            let path = '/networks/{network_id}/logs/count';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['simpleQuery'] !== undefined) {
+                query['simple_query'] = parameters['simpleQuery'];
+            }
+
+            if (parameters['fields'] !== undefined) {
+                query['fields'] = parameters['fields'];
+            }
+
+            if (parameters['filters'] !== undefined) {
+                query['filters'] = parameters['filters'];
+            }
+
+            if (parameters['start'] !== undefined) {
+                query['start'] = parameters['start'];
+            }
+
+            if (parameters['end'] !== undefined) {
+                query['end'] = parameters['end'];
+            }
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async getNetworksByNetworkIdLogsSearch(
             parameters: {
                 'networkId': string,
                 'simpleQuery' ? : string,
                 'fields' ? : string,
                 'filters' ? : string,
                 'size' ? : string,
+                'from' ? : string,
                 'start' ? : string,
                 'end' ? : string,
             }
         ): Promise < Array < elastic_hit >
         >
         {
-            let path = '/networks/{network_id}/logs';
+            let path = '/networks/{network_id}/logs/search';
             let body;
             let query = {};
             if (parameters['networkId'] === undefined) {
@@ -6469,6 +6649,10 @@ export default class MagmaAPIBindings {
 
             if (parameters['size'] !== undefined) {
                 query['size'] = parameters['size'];
+            }
+
+            if (parameters['from'] !== undefined) {
+                query['from'] = parameters['from'];
             }
 
             if (parameters['start'] !== undefined) {
@@ -8868,6 +9052,8 @@ export default class MagmaAPIBindings {
             parameters: {
                 'tenantId': number,
                 'labelName': string,
+                'start': string,
+                'end' ? : string,
             }
         ): Promise < {
             data: Array < string >
@@ -8889,6 +9075,18 @@ export default class MagmaAPIBindings {
             }
 
             path = path.replace('{label_name}', `${parameters['labelName']}`);
+
+            if (parameters['start'] === undefined) {
+                throw new Error('Missing required  parameter: start');
+            }
+
+            if (parameters['start'] !== undefined) {
+                query['start'] = parameters['start'];
+            }
+
+            if (parameters['end'] !== undefined) {
+                query['end'] = parameters['end'];
+            }
 
             return await this.request(path, 'GET', query, body);
         }
@@ -9112,6 +9310,33 @@ export default class MagmaAPIBindings {
 
             return await this.request(path, 'GET', query, body);
         }
+    static async getTenantsTargetsMetadata(
+            parameters: {
+                'matchTarget' ? : string,
+                'metric' ? : string,
+                'limit' ? : string,
+            }
+        ): Promise < Array < prometheus_targets_metadata >
+        >
+        {
+            let path = '/tenants/targets_metadata';
+            let body;
+            let query = {};
+
+            if (parameters['matchTarget'] !== undefined) {
+                query['match_target'] = parameters['matchTarget'];
+            }
+
+            if (parameters['metric'] !== undefined) {
+                query['metric'] = parameters['metric'];
+            }
+
+            if (parameters['limit'] !== undefined) {
+                query['limit'] = parameters['limit'];
+            }
+
+            return await this.request(path, 'GET', query, body);
+        }
     static async getTestsE2E(): Promise < Array < e2e_test_case >
         >
         {
@@ -9132,7 +9357,7 @@ export default class MagmaAPIBindings {
         }
     static async postTestsE2EEnodebd(
         parameters: {
-            'test': enodebd_test_config,
+            'test': mutable_enodebd_e2e_test,
         }
     ): Promise < "Created" > {
         let path = '/tests/e2e/enodebd';

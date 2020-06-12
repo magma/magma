@@ -46,8 +46,9 @@ import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import nullthrows from '@fbcnms/util/nullthrows';
 import update from 'immutability-helper';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
-import {ConnectionHandler, fetchQuery, graphql} from 'relay-runtime';
 import {FormContextProvider} from '../../common/FormContext';
+import {addLocationToStore} from './LocationStoreUtils';
+import {fetchQuery, graphql} from 'relay-runtime';
 import {getInitialPropertyFromType} from '../../common/PropertyType';
 import {
   getNonInstancePropertyTypes,
@@ -228,7 +229,11 @@ class LocationAddEditCard extends React.Component<Props, State> {
     const {latitude, longitude, properties} = editingLocation;
     return (
       <Card>
-        <FormContextProvider>
+        <FormContextProvider
+          permissions={{
+            entity: 'location',
+            action: editingLocation ? 'update' : 'create',
+          }}>
           <CardContent className={this.props.classes.root}>
             <div className={this.props.classes.header}>
               <Text variant="h5">{editingLocation.locationType.name}</Text>
@@ -346,46 +351,12 @@ class LocationAddEditCard extends React.Component<Props, State> {
     };
 
     const updater = store => {
+      const parentId = this.props.parentId;
       const newNode = store.getRootField('addLocation');
       if (newNode == null) {
         return;
       }
-
-      const parentId = this.props.parentId;
-      if (!parentId) {
-        const rootQuery = store.getRoot();
-        const locations = ConnectionHandler.getConnection(
-          rootQuery,
-          'LocationsTree_locations',
-          {onlyTopLevel: true},
-        );
-        if (locations != null) {
-          const edge = ConnectionHandler.createEdge(
-            store,
-            locations,
-            newNode,
-            'LocationsEdge',
-          );
-          ConnectionHandler.insertEdgeAfter(locations, edge);
-        }
-        return;
-      }
-
-      const parentProxy = store.get(parentId);
-      if (parentProxy != null) {
-        const currNodes = parentProxy.getLinkedRecords('children') ?? [];
-        const parentLoaded =
-          currNodes !== null &&
-          (currNodes.length === 0 ||
-            !!currNodes.find(node => node != undefined));
-        if (parentLoaded) {
-          parentProxy.setLinkedRecords([...currNodes, newNode], 'children');
-          parentProxy.setValue(
-            Number(parentProxy.getValue('numChildren')) + 1,
-            'numChildren',
-          );
-        }
-      }
+      addLocationToStore(store, newNode, parentId);
     };
 
     AddLocationMutation(variables, callbacks, updater);

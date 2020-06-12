@@ -10,11 +10,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
-	"github.com/facebookincubator/symphony/graph/viewer"
-	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
+	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/ent/user"
+	"github.com/facebookincubator/symphony/pkg/viewer"
+	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
 
 	"github.com/99designs/gqlgen/client"
 	"github.com/AlekSi/pointer"
@@ -199,9 +199,9 @@ func prepareWOData(ctx context.Context, r *TestResolver, name string) woSearchDa
 
 func TestSearchEquipmentByName(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
-	c := newGraphClient(t, r)
+	c := r.GraphClient()
 
 	mr := r.Mutation()
 
@@ -266,7 +266,7 @@ func TestSearchEquipmentByName(t *testing.T) {
 
 func TestEquipmentSearch(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	owner := "Ted"
@@ -373,7 +373,7 @@ func TestEquipmentSearch(t *testing.T) {
 
 func TestUnsupportedEquipmentSearch(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	qr := r.Query()
@@ -407,7 +407,7 @@ func TestUnsupportedEquipmentSearch(t *testing.T) {
 
 func TestQueryEquipmentPossibleProperties(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
@@ -438,7 +438,7 @@ func TestQueryEquipmentPossibleProperties(t *testing.T) {
 
 func TestSearchEquipmentByLocation(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
@@ -495,7 +495,7 @@ func TestSearchEquipmentByLocation(t *testing.T) {
 
 func TestSearchEquipmentByDate(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
@@ -574,10 +574,10 @@ func TestSearchEquipmentByDate(t *testing.T) {
 
 func TestSearchWO(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := ent.NewContext(viewertest.NewContext(context.Background(), r.client), r.client)
 
-	c := newGraphClient(t, r)
+	c := r.GraphClient()
 	data := prepareWOData(ctx, r, "A")
 	/*
 		helper: data now is of type:
@@ -711,10 +711,10 @@ func TestSearchWO(t *testing.T) {
 
 func TestSearchWOByPriority(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := ent.NewContext(viewertest.NewContext(context.Background(), r.client), r.client)
 	data := prepareWOData(ctx, r, "B")
-	c := newGraphClient(t, r)
+	c := r.GraphClient()
 
 	var result woSearchResult
 	c.MustPost(
@@ -748,9 +748,9 @@ func TestSearchWOByPriority(t *testing.T) {
 
 func TestSearchWOByLocation(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
-	c := newGraphClient(t, r)
+	c := r.GraphClient()
 
 	data := prepareWOData(ctx, r, "A")
 	/*

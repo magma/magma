@@ -10,11 +10,11 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/ent/equipmentpositiondefinition"
-	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
-	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
+	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/ent/equipmentpositiondefinition"
+	"github.com/facebookincubator/symphony/pkg/ent/propertytype"
+	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
 
 	"github.com/stretchr/testify/require"
 )
@@ -162,7 +162,6 @@ func TestParentHierarchy(t *testing.T) {
 	require.Equal(t, hierarchy[3], posDef1.Name)
 	require.Equal(t, hierarchy[4], parentEquipment.Name)
 	require.Equal(t, hierarchy[5], posDef2.Name)
-
 }
 
 func TestPropertiesForCSV(t *testing.T) {

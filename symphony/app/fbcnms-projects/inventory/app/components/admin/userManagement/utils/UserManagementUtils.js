@@ -9,8 +9,17 @@
  * @format
  */
 
-// flowlint untyped-import:off
-
+import type {
+  AddPermissionsPolicyInput,
+  BasicPermissionRuleInput,
+  InventoryPolicyInput,
+  LocationCUDInput,
+  WorkforceCUDInput,
+  WorkforcePermissionRuleInput,
+  WorkforcePolicyInput,
+} from '../../../../mutations/__generated__/AddPermissionsPolicyMutation.graphql';
+import type {EntsMap} from '../../../../common/EntUtils';
+import type {GroupSearchContextQueryResponse} from './search/__generated__/GroupSearchContextQuery.graphql';
 import type {
   PermissionValue,
   UserManagementContextQueryResponse,
@@ -20,6 +29,7 @@ import type {
 } from '../__generated__/UserManagementContextQuery.graphql';
 
 import fbt from 'fbt';
+import {ent2EntsMap} from '../../../../common/EntUtils';
 import {graphql} from 'relay-runtime';
 
 graphql`
@@ -57,6 +67,116 @@ graphql`
 `;
 
 graphql`
+  fragment UserManagementUtils_inventoryPolicy on InventoryPolicy {
+    read {
+      isAllowed
+    }
+    location {
+      create {
+        isAllowed
+      }
+      update {
+        isAllowed
+      }
+      delete {
+        isAllowed
+      }
+    }
+    equipment {
+      create {
+        isAllowed
+      }
+      update {
+        isAllowed
+      }
+      delete {
+        isAllowed
+      }
+    }
+    equipmentType {
+      create {
+        isAllowed
+      }
+      update {
+        isAllowed
+      }
+      delete {
+        isAllowed
+      }
+    }
+    locationType {
+      create {
+        isAllowed
+      }
+      update {
+        isAllowed
+      }
+      delete {
+        isAllowed
+      }
+    }
+    portType {
+      create {
+        isAllowed
+      }
+      update {
+        isAllowed
+      }
+      delete {
+        isAllowed
+      }
+    }
+    serviceType {
+      create {
+        isAllowed
+      }
+      update {
+        isAllowed
+      }
+      delete {
+        isAllowed
+      }
+    }
+  }
+`;
+
+graphql`
+  fragment UserManagementUtils_workforcePolicy on WorkforcePolicy {
+    read {
+      isAllowed
+    }
+    templates {
+      create {
+        isAllowed
+      }
+      update {
+        isAllowed
+      }
+      delete {
+        isAllowed
+      }
+    }
+    data {
+      create {
+        isAllowed
+      }
+      update {
+        isAllowed
+      }
+      delete {
+        isAllowed
+      }
+      assign {
+        isAllowed
+      }
+      transferOwnership {
+        isAllowed
+      }
+    }
+  }
+`;
+
+graphql`
   fragment UserManagementUtils_policies on PermissionsPolicy {
     id
     name
@@ -65,108 +185,10 @@ graphql`
     policy {
       __typename
       ... on InventoryPolicy {
-        read {
-          isAllowed
-        }
-        location {
-          create {
-            isAllowed
-          }
-          update {
-            isAllowed
-          }
-          delete {
-            isAllowed
-          }
-        }
-        equipment {
-          create {
-            isAllowed
-          }
-          update {
-            isAllowed
-          }
-          delete {
-            isAllowed
-          }
-        }
-        equipmentType {
-          create {
-            isAllowed
-          }
-          update {
-            isAllowed
-          }
-          delete {
-            isAllowed
-          }
-        }
-        locationType {
-          create {
-            isAllowed
-          }
-          update {
-            isAllowed
-          }
-          delete {
-            isAllowed
-          }
-        }
-        portType {
-          create {
-            isAllowed
-          }
-          update {
-            isAllowed
-          }
-          delete {
-            isAllowed
-          }
-        }
-        serviceType {
-          create {
-            isAllowed
-          }
-          update {
-            isAllowed
-          }
-          delete {
-            isAllowed
-          }
-        }
+        ...UserManagementUtils_inventoryPolicy @relay(mask: false)
       }
       ... on WorkforcePolicy {
-        read {
-          isAllowed
-        }
-        templates {
-          create {
-            isAllowed
-          }
-          update {
-            isAllowed
-          }
-          delete {
-            isAllowed
-          }
-        }
-        data {
-          create {
-            isAllowed
-          }
-          update {
-            isAllowed
-          }
-          delete {
-            isAllowed
-          }
-          assign {
-            isAllowed
-          }
-          transferOwnership {
-            isAllowed
-          }
-        }
+        ...UserManagementUtils_workforcePolicy @relay(mask: false)
       }
     }
     groups {
@@ -254,7 +276,7 @@ export const GROUP_STATUSES: KeyValueEnum<UsersGroupStatus> = {
   },
   DEACTIVATED: {
     key: 'DEACTIVATED',
-    value: `${fbt('Deactivated', '')}`,
+    value: `${fbt('Inactive', '')}`,
   },
 };
 
@@ -297,6 +319,10 @@ type UsersReponseFieldsPart = $NonMaybeType<
 type GroupsReponsePart = $ElementType<
   UserManagementContextQueryResponse,
   'usersGroups',
+>;
+type GroupsSearchReponsePart = $ElementType<
+  GroupSearchContextQueryResponse,
+  'usersGroupSearch',
 >;
 type GroupsEdgesResponsePart = $ElementType<
   $NonMaybeType<GroupsReponsePart>,
@@ -344,77 +370,106 @@ export const usersResponse2Users = (usersResponse: UsersReponsePart) =>
         .filter(Boolean)
         .map<User>(userResponse2User);
 
-export type UsersMap = Map<string, User>;
-export const users2UsersMap: (Array<User>) => UsersMap = users =>
-  new Map<string, User>(users.map(user => [user.id, user]));
+export type UsersMap = EntsMap<User>;
+export const users2UsersMap = (users: Array<User>) => ent2EntsMap<User>(users);
 
 export const userFullName = (user: User) =>
   `${user.firstName} ${user.lastName}`.trim() || '_';
 
-export const groupResponse2Group: (
-  GroupReponseFieldsPart,
-  ?UsersMap,
-) => UserPermissionsGroup = (
-  groupResponse: GroupReponseFieldsPart,
+export function groupResponse2Group(
   usersMap?: ?UsersMap,
-) => ({
-  id: groupResponse.id,
-  name: groupResponse.name,
-  description: groupResponse.description || '',
-  status: groupResponse.status,
-  members: groupResponse.members,
-  memberUsers:
-    usersMap == null
-      ? []
-      : groupResponse.members
-          .map(member => usersMap.get(member.id))
-          .filter(Boolean),
-});
+): GroupReponseFieldsPart => UserPermissionsGroup {
+  return (groupResponse: GroupReponseFieldsPart) => ({
+    id: groupResponse.id,
+    name: groupResponse.name,
+    description: groupResponse.description || '',
+    status: groupResponse.status,
+    members: groupResponse.members,
+    memberUsers:
+      usersMap == null
+        ? []
+        : groupResponse.members
+            .map(member => usersMap.get(member.id))
+            .filter(Boolean),
+  });
+}
 
 export const groupsResponse2Groups = (
-  groupsResponse: GroupsReponsePart,
+  groupsResponse: GroupsReponsePart | GroupsSearchReponsePart,
   usersMap?: ?UsersMap,
-) =>
-  groupsResponse?.edges == null
-    ? []
-    : groupsResponse?.edges
-        .filter(Boolean)
-        .map(gr => gr.node)
-        .filter(Boolean)
-        .map<UserPermissionsGroup>(gr => groupResponse2Group(gr, usersMap));
+) => {
+  if (groupsResponse == null) {
+    return [];
+  }
+  const resposeNodes =
+    groupsResponse.edges != null
+      ? groupsResponse?.edges.filter(Boolean).map(gr => gr.node)
+      : groupsResponse.usersGroups != null
+      ? groupsResponse.usersGroups
+      : [];
+
+  return resposeNodes
+    .filter(Boolean)
+    .map<UserPermissionsGroup>(groupResponse2Group(usersMap));
+};
+
+export type GroupsMap = EntsMap<UserPermissionsGroup>;
+export const groups2GroupsMap = (groups: Array<UserPermissionsGroup>) =>
+  ent2EntsMap<UserPermissionsGroup>(groups);
+
+export const PERMISSION_RULE_VALUES = {
+  YES: 'YES',
+  NO: 'NO',
+  BY_CONDITION: 'BY_CONDITION',
+};
 
 export type BasicPermissionRule = $ReadOnly<{|
   isAllowed: PermissionValue,
 |}>;
 
-export type CUDPermissionsRule = $ReadOnly<{|
+export type CUDPermissions = $ReadOnly<{|
   create: BasicPermissionRule,
   update: BasicPermissionRule,
   delete: BasicPermissionRule,
+|}>;
+
+export type InventoryCatalogPolicy = $ReadOnly<{|
+  equipmentType: CUDPermissions,
+  locationType: CUDPermissions,
+  portType: CUDPermissions,
+  serviceType: CUDPermissions,
+|}>;
+
+export type InventoryEntsPolicy = $ReadOnly<{|
+  location: CUDPermissions,
+  equipment: CUDPermissions,
+  ...InventoryCatalogPolicy,
 |}>;
 
 export type InventoryPolicy = $ReadOnly<{|
   read: BasicPermissionRule,
-  location: CUDPermissionsRule,
-  equipment: CUDPermissionsRule,
-  equipmentType: CUDPermissionsRule,
-  locationType: CUDPermissionsRule,
-  portType: CUDPermissionsRule,
-  serviceType: CUDPermissionsRule,
+  ...InventoryEntsPolicy,
 |}>;
 
-export type WorkforceCUD = $ReadOnly<{|
-  create: BasicPermissionRule,
-  update: BasicPermissionRule,
-  delete: BasicPermissionRule,
-  assign: BasicPermissionRule,
-  transferOwnership: BasicPermissionRule,
+export type WorkforceBasicPermissions = BasicPermissionRule &
+  $ReadOnly<{|
+    ...BasicPermissionRule,
+    projectTypeIds?: ?$ReadOnlyArray<string>,
+    workOrderTypeIds?: ?$ReadOnlyArray<string>,
+  |}>;
+
+export type WorkforceCUDPermissions = $ReadOnly<{|
+  create: WorkforceBasicPermissions,
+  update: WorkforceBasicPermissions,
+  delete: WorkforceBasicPermissions,
+  assign: WorkforceBasicPermissions,
+  transferOwnership: WorkforceBasicPermissions,
 |}>;
 
 export type WorkforcePolicy = $ReadOnly<{|
   read: BasicPermissionRule,
-  data: WorkforceCUD,
-  templates: CUDPermissionsRule,
+  data: WorkforceCUDPermissions,
+  templates: CUDPermissions,
 |}>;
 
 export type PermissionsPolicyRules = InventoryPolicy | WorkforcePolicy | {||};
@@ -427,6 +482,7 @@ export type PermissionsPolicy = $ReadOnly<{|
   groups: Array<UserPermissionsGroup>,
   inventoryRules?: ?InventoryPolicy,
   workforceRules?: ?WorkforcePolicy,
+  isSystemDefault?: ?true,
 |}>;
 
 function tryGettingInventoryPolicy(
@@ -465,144 +521,192 @@ function tryGettingWorkforcePolicy(
   return null;
 }
 
-// line was too long. So made it shorter...
-type PPR2PP = PermissionsPoliciesReponseFieldsPart => PermissionsPolicy;
-export const permissionsPolicyResponse2PermissionsPolicy: PPR2PP = (
-  policyNode: PermissionsPoliciesReponseFieldsPart,
-) => {
-  const {__typename: type, ...policyRules} = policyNode.policy;
-  return {
-    id: policyNode.id,
-    name: policyNode.name,
-    description: policyNode.description || '',
-    type,
-    isGlobal: policyNode.isGlobal,
-    groups: [], // policyNode.groups,
-    inventoryRules: tryGettingInventoryPolicy(policyRules),
-    workforceRules: tryGettingWorkforcePolicy(policyRules),
+export function permissionsPolicyResponse2PermissionsPolicy(
+  groupsMap: GroupsMap,
+): PermissionsPoliciesReponseFieldsPart => PermissionsPolicy {
+  return (policyNode: PermissionsPoliciesReponseFieldsPart) => {
+    const {__typename: type, ...policyRules} = policyNode.policy;
+    return {
+      id: policyNode.id,
+      name: policyNode.name,
+      description: policyNode.description || '',
+      type,
+      isGlobal: policyNode.isGlobal,
+      groups: policyNode.groups
+        .filter(Boolean)
+        .map(group => groupsMap.get(group.id))
+        .filter(Boolean),
+      inventoryRules: tryGettingInventoryPolicy(policyRules),
+      workforceRules: tryGettingWorkforcePolicy(policyRules),
+    };
   };
-};
+}
 
 export const permissionsPoliciesResponse2PermissionsPolicies = (
   policiesResponse: PermissionsPoliciesReponsePart,
-) =>
-  policiesResponse?.edges == null
-    ? []
-    : policiesResponse?.edges
-        .filter(Boolean)
-        .map(ur => ur.node)
-        .filter(Boolean)
-        .map<PermissionsPolicy>(permissionsPolicyResponse2PermissionsPolicy);
-
-export const permissionPolicyBasicRule2PermissionPolicyBasicRuleInput = (
-  rule: BasicPermissionRule,
+  groupsMap: GroupsMap,
 ) => {
+  const allPolicies =
+    policiesResponse?.edges == null
+      ? []
+      : policiesResponse?.edges
+          .filter(Boolean)
+          .map(ur => ur.node)
+          .filter(Boolean)
+          .map<PermissionsPolicy>(
+            permissionsPolicyResponse2PermissionsPolicy(groupsMap),
+          );
+
+  allPolicies.unshift({
+    id: 'system_workorder',
+    name: `${fbt('Work orders editing', '')}`,
+    description: `${fbt(
+      'All active users can view and edit work orders and projects assigned to and owned by them (including changing assignment). An active user who owns the work order can transfer ownership to other user and even delete it. When a work order is part of a project, that project will be visible as well.',
+      '',
+    )}`,
+    type: POLICY_TYPES.WorkforcePolicy.key,
+    isGlobal: true,
+    groups: [],
+    isSystemDefault: true,
+  });
+
+  return allPolicies;
+};
+
+export const permissionPolicyBasicRule2PermissionPolicyBasicRuleInput: (
+  ?BasicPermissionRule,
+) => BasicPermissionRuleInput = (rule: ?BasicPermissionRule) => {
   return {
-    isAllowed: rule.isAllowed,
+    isAllowed: rule?.isAllowed ?? PERMISSION_RULE_VALUES.NO,
   };
 };
 
 export const permissionPolicyCUDRule2PermissionPolicyCUDRuleInput = (
-  rule: ?CUDPermissionsRule,
+  rule: ?CUDPermissions,
 ) => {
-  if (rule == null) {
-    return null;
-  }
   return {
     create: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
-      rule.create,
+      rule?.create,
     ),
     update: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
-      rule.update,
+      rule?.update,
     ),
     delete: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
-      rule.delete,
+      rule?.delete,
     ),
   };
 };
 
-export const permissionPolicyWFCUDRule2PermissionPolicyWFCUDRuleInput = (
-  rule: ?WorkforceCUD,
-) => {
-  if (rule == null) {
-    return null;
-  }
+export const permissionPolicyWFCUDRule2PermissionPolicyWFCUDRuleInput: (
+  ?WorkforceCUDPermissions,
+) => WorkforceCUDInput = (rule: ?WorkforceCUDPermissions) => {
   return {
-    create: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
-      rule.create,
-    ),
-    update: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
-      rule.update,
-    ),
-    delete: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
-      rule.delete,
-    ),
-    assign: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
-      rule.assign,
-    ),
-    transferOwnership: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
-      rule.transferOwnership,
+    create: wfPermissionPolicyBasicRule2wfPermissionRuleInput(rule?.create),
+    update: wfPermissionPolicyBasicRule2wfPermissionRuleInput(rule?.update),
+    delete: wfPermissionPolicyBasicRule2wfPermissionRuleInput(rule?.delete),
+    assign: wfPermissionPolicyBasicRule2wfPermissionRuleInput(rule?.assign),
+    transferOwnership: wfPermissionPolicyBasicRule2wfPermissionRuleInput(
+      rule?.transferOwnership,
     ),
   };
 };
 
-export const permissionsPolicy2PermissionsPolicyInput = (
+export const wfPermissionPolicyBasicRule2wfPermissionRuleInput: (
+  ?WorkforceBasicPermissions,
+) => WorkforcePermissionRuleInput = (rule: ?BasicPermissionRule) => {
+  return {
+    isAllowed: rule?.isAllowed ?? PERMISSION_RULE_VALUES.NO,
+  };
+};
+
+export const initInventoryRulesInput: (
+  ?InventoryPolicy,
+) => InventoryPolicyInput = (policyRules?: ?InventoryPolicy) => {
+  return {
+    read: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
+      policyRules?.read,
+    ),
+    location: permissionPolicyCUDRule2LocationPermissionPolicyCUDRuleInput(
+      policyRules?.location,
+    ),
+    equipment: permissionPolicyCUDRule2PermissionPolicyCUDRuleInput(
+      policyRules?.equipment,
+    ),
+    equipmentType: permissionPolicyCUDRule2PermissionPolicyCUDRuleInput(
+      policyRules?.equipmentType,
+    ),
+    locationType: permissionPolicyCUDRule2PermissionPolicyCUDRuleInput(
+      policyRules?.locationType,
+    ),
+    portType: permissionPolicyCUDRule2PermissionPolicyCUDRuleInput(
+      policyRules?.portType,
+    ),
+    serviceType: permissionPolicyCUDRule2PermissionPolicyCUDRuleInput(
+      policyRules?.serviceType,
+    ),
+  };
+};
+
+export const permissionPolicyCUDRule2LocationPermissionPolicyCUDRuleInput: (
+  ?CUDPermissions,
+) => LocationCUDInput = (rule: ?CUDPermissions) => {
+  const partialInput = permissionPolicyCUDRule2PermissionPolicyCUDRuleInput(
+    rule,
+  );
+  return {
+    create: {
+      ...partialInput.create,
+    },
+    update: {
+      ...partialInput.update,
+    },
+    delete: {
+      ...partialInput.delete,
+    },
+  };
+};
+
+export const initWorkforceRulesInput: (
+  ?WorkforcePolicy,
+) => WorkforcePolicyInput = (policyRules?: ?WorkforcePolicy) => {
+  return {
+    read: wfPermissionPolicyBasicRule2wfPermissionRuleInput(policyRules?.read),
+    data: permissionPolicyWFCUDRule2PermissionPolicyWFCUDRuleInput(
+      policyRules?.data,
+    ),
+    templates: permissionPolicyCUDRule2PermissionPolicyCUDRuleInput(
+      policyRules?.templates,
+    ),
+  };
+};
+
+// line was too long. So made it shorter...
+type PP2APPI = PermissionsPolicy => AddPermissionsPolicyInput;
+export const permissionsPolicy2PermissionsPolicyInput: PP2APPI = (
   policy: PermissionsPolicy,
 ) => {
-  const input = {
+  return {
     name: policy.name,
     description: policy.description,
     inventoryInput:
-      policy.inventoryRules == null
-        ? null
-        : {
-            read: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
-              policy.inventoryRules?.read,
-            ),
-            location: permissionPolicyCUDRule2PermissionPolicyCUDRuleInput(
-              policy.inventoryRules?.location,
-            ),
-            equipment: permissionPolicyCUDRule2PermissionPolicyCUDRuleInput(
-              policy.inventoryRules?.equipment,
-            ),
-            equipmentType: permissionPolicyCUDRule2PermissionPolicyCUDRuleInput(
-              policy.inventoryRules?.equipmentType,
-            ),
-            locationType: permissionPolicyCUDRule2PermissionPolicyCUDRuleInput(
-              policy.inventoryRules?.locationType,
-            ),
-            portType: permissionPolicyCUDRule2PermissionPolicyCUDRuleInput(
-              policy.inventoryRules?.portType,
-            ),
-            serviceType: permissionPolicyCUDRule2PermissionPolicyCUDRuleInput(
-              policy.inventoryRules?.serviceType,
-            ),
-          },
+      policy.type === POLICY_TYPES.InventoryPolicy.key
+        ? initInventoryRulesInput(policy.inventoryRules)
+        : null,
     workforceInput:
-      policy.workforceRules == null
-        ? null
-        : {
-            read: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
-              policy.workforceRules?.read,
-            ),
-            data: permissionPolicyWFCUDRule2PermissionPolicyWFCUDRuleInput(
-              policy.workforceRules?.data,
-            ),
-            templates: permissionPolicyCUDRule2PermissionPolicyCUDRuleInput(
-              policy.workforceRules?.templates,
-            ),
-          },
+      policy.type === POLICY_TYPES.WorkforcePolicy.key
+        ? initWorkforceRulesInput(policy.workforceRules)
+        : null,
+    isGlobal: policy.isGlobal,
+    groups: policy.groups.map(group => group.id),
   };
-
-  if (input.inventoryInput == null && input.workforceInput == null) {
-    switch (policy.type) {
-      case POLICY_TYPES.InventoryPolicy.key:
-        input.inventoryInput = {};
-        break;
-      case POLICY_TYPES.WorkforcePolicy.key:
-        input.workforceInput = {};
-        break;
-    }
-  }
-  return input;
 };
+
+export function bool2PermissionRuleValue(value: ?boolean): PermissionValue {
+  return value === true
+    ? PERMISSION_RULE_VALUES.YES
+    : PERMISSION_RULE_VALUES.NO;
+}
+
+export function permissionRuleValue2Bool(value: PermissionValue) {
+  return value === PERMISSION_RULE_VALUES.YES;
+}

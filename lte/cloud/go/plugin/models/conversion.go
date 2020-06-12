@@ -22,7 +22,7 @@ import (
 	"magma/orc8r/cloud/go/pluginimpl/handlers"
 	orc8rModels "magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/services/configurator"
-	"magma/orc8r/cloud/go/services/state"
+	state_types "magma/orc8r/cloud/go/services/state/types"
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
 	orc8rProtos "magma/orc8r/lib/go/protos"
@@ -428,6 +428,7 @@ func (m *EnodebSerials) ToCreateUpdateCriteria(networkID, gatewayID, enodebID st
 
 func (m *Enodeb) FromBackendModels(ent configurator.NetworkEntity) *Enodeb {
 	m.Name = ent.Name
+	m.Description = ent.Description
 	m.Serial = ent.Key
 	if ent.Config != nil {
 		m.Config = ent.Config.(*EnodebConfiguration)
@@ -442,14 +443,15 @@ func (m *Enodeb) FromBackendModels(ent configurator.NetworkEntity) *Enodeb {
 
 func (m *Enodeb) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
 	return configurator.EntityUpdateCriteria{
-		Type:      lte.CellularEnodebType,
-		Key:       m.Serial,
-		NewName:   swag.String(m.Name),
-		NewConfig: m.Config,
+		Type:           lte.CellularEnodebType,
+		Key:            m.Serial,
+		NewName:        swag.String(m.Name),
+		NewDescription: swag.String(m.Description),
+		NewConfig:      m.Config,
 	}
 }
 
-func (m *Subscriber) FromBackendModels(ent configurator.NetworkEntity, statesByType map[string]state.State) *Subscriber {
+func (m *Subscriber) FromBackendModels(ent configurator.NetworkEntity, statesByType map[string]state_types.State) *Subscriber {
 	m.ID = SubscriberID(ent.Key)
 	m.Lte = ent.Config.(*LteSubscription)
 	// If no profile in backend, return "default"
@@ -567,13 +569,15 @@ func (m *PolicyRule) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria 
 
 func (m *PolicyRule) getConfig() *PolicyRuleConfig {
 	return &PolicyRuleConfig{
-		FlowList:      m.FlowList,
-		MonitoringKey: m.MonitoringKey,
-		Priority:      m.Priority,
-		Qos:           m.Qos,
-		RatingGroup:   m.RatingGroup,
-		Redirect:      m.Redirect,
-		TrackingType:  m.TrackingType,
+		FlowList:       m.FlowList,
+		MonitoringKey:  m.MonitoringKey,
+		Priority:       m.Priority,
+		Qos:            m.Qos,
+		RatingGroup:    m.RatingGroup,
+		Redirect:       m.Redirect,
+		TrackingType:   m.TrackingType,
+		AppName:        m.AppName,
+		AppServiceType: m.AppServiceType,
 	}
 }
 
@@ -594,6 +598,8 @@ func (m *PolicyRule) fillFromConfig(entConfig interface{}) *PolicyRule {
 	m.RatingGroup = cfg.RatingGroup
 	m.Redirect = cfg.Redirect
 	m.TrackingType = cfg.TrackingType
+	m.AppName = cfg.AppName
+	m.AppServiceType = cfg.AppServiceType
 	return m
 }
 
@@ -610,12 +616,14 @@ func (m *PolicyRuleConfig) ToProto(id string) *protos.PolicyRule {
 		}
 	}
 	rule := &protos.PolicyRule{
-		Id:            id,
-		Priority:      swag.Uint32Value(m.Priority),
-		RatingGroup:   m.RatingGroup,
-		MonitoringKey: protoMKey,
-		TrackingType:  protos.PolicyRule_TrackingType(protos.PolicyRule_TrackingType_value[m.TrackingType]),
-		HardTimeout:   0,
+		Id:             id,
+		Priority:       swag.Uint32Value(m.Priority),
+		RatingGroup:    m.RatingGroup,
+		MonitoringKey:  protoMKey,
+		TrackingType:   protos.PolicyRule_TrackingType(protos.PolicyRule_TrackingType_value[m.TrackingType]),
+		AppName:        protos.PolicyRule_AppName(protos.PolicyRule_AppName_value[m.AppName]),
+		AppServiceType: protos.PolicyRule_AppServiceType(protos.PolicyRule_AppServiceType_value[m.AppServiceType]),
+		HardTimeout:    0,
 	}
 	if m.Redirect != nil {
 		rule.Redirect = m.Redirect.ToProto()

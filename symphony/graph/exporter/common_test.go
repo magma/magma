@@ -18,24 +18,22 @@ import (
 
 	"github.com/facebookincubator/ent/dialect"
 	"github.com/facebookincubator/ent/dialect/sql"
-	"github.com/facebookincubator/symphony/graph/authz"
-	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/ent/enttest"
-	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
-	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
-	"github.com/facebookincubator/symphony/graph/ent/equipmentpositiondefinition"
-	"github.com/facebookincubator/symphony/graph/ent/migrate"
-	"github.com/facebookincubator/symphony/graph/ent/propertytype"
-	"github.com/facebookincubator/symphony/graph/ent/serviceendpointdefinition"
-	"github.com/facebookincubator/symphony/graph/event"
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/graphql/resolver"
 	"github.com/facebookincubator/symphony/graph/importer"
-	"github.com/facebookincubator/symphony/graph/viewer"
-	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
+	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/ent/enttest"
+	"github.com/facebookincubator/symphony/pkg/ent/equipmentport"
+	"github.com/facebookincubator/symphony/pkg/ent/equipmentportdefinition"
+	"github.com/facebookincubator/symphony/pkg/ent/equipmentpositiondefinition"
+	"github.com/facebookincubator/symphony/pkg/ent/migrate"
+	"github.com/facebookincubator/symphony/pkg/ent/propertytype"
+	"github.com/facebookincubator/symphony/pkg/ent/serviceendpointdefinition"
 	"github.com/facebookincubator/symphony/pkg/log/logtest"
+	"github.com/facebookincubator/symphony/pkg/pubsub"
 	"github.com/facebookincubator/symphony/pkg/testdb"
+	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
 
 	"github.com/AlekSi/pointer"
 	"github.com/stretchr/testify/require"
@@ -110,7 +108,7 @@ func newResolver(t *testing.T, drv dialect.Driver) *TestExporterResolver {
 	logger := logtest.NewTestLogger(t)
 	r := resolver.New(resolver.Config{
 		Logger:     logger,
-		Subscriber: event.NewNopSubscriber(),
+		Subscriber: pubsub.NewNopSubscriber(),
 	})
 	e := exporter{logger, equipmentRower{logger}}
 	return &TestExporterResolver{r, drv, client, e}
@@ -381,7 +379,7 @@ func prepareData(ctx context.Context, t *testing.T, r TestExporterResolver) {
 }
 
 func prepareHandlerAndExport(t *testing.T, r *TestExporterResolver, e http.Handler) (context.Context, *http.Response) {
-	th := viewer.TenancyHandler(e, viewer.NewFixedTenancy(r.client))
+	th := viewertest.TestHandler(t, e, r.client)
 	server := httptest.NewServer(th)
 	defer server.Close()
 
@@ -412,11 +410,10 @@ func importLinksPortsFile(t *testing.T, client *ent.Client, r io.Reader, entity 
 	h, _ := importer.NewHandler(
 		importer.Config{
 			Logger:     logtest.NewTestLogger(t),
-			Subscriber: event.NewNopSubscriber(),
+			Subscriber: pubsub.NewNopSubscriber(),
 		},
 	)
-	auth := authz.AuthHandler{Handler: h, Logger: logtest.NewTestLogger(t)}
-	th := viewer.TenancyHandler(auth, viewer.NewFixedTenancy(client))
+	th := viewertest.TestHandler(t, h, client)
 	server := httptest.NewServer(th)
 	defer server.Close()
 	switch entity {

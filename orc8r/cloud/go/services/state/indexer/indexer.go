@@ -9,28 +9,32 @@
 package indexer
 
 import (
-	"magma/orc8r/cloud/go/services/state"
-	"magma/orc8r/cloud/go/storage"
+	"fmt"
+
+	state_types "magma/orc8r/cloud/go/services/state/types"
+
+	"github.com/thoas/go-funk"
 )
 
 // Version of the indexer. Capped to uint32 to fit into Postgres/Maria integer (int32).
 type Version uint32
 
-// StateErrors is a mapping of state type+key to error experienced indexing the state.
-// Type is state type, key is state reporter ID.
-type StateErrors map[storage.TypeAndKey]error
-
 // Indexer creates a set of secondary indices for consumption by a service.
 // Each Indexer should
 // 	- be owned by a single service
-//	- store per-version data in a properly isolated manner,
-// 	  e.g. different SQL tables for different indexer versions
-//	- have its generated data exposed by the owning service,
-//	  i.e. only one other service should access the generated data directly via the storage interface.
+//	- have its generated data exposed by the owning service, i.e. only one other service
+//	  should access the generated data directly via the storage interface.
+// Notes
+//	- There is an unlikely but existent race condition during a reindex
+//	  operation, where Index could be called with an outdated version of a state.
+//	  If indexers care about preventing this race condition:
+//		- add a Reindex method to indexer interface, called in-place of Index
+//		  during reindex operations
+//		- individual indexers should track received state IDs per version and
+//		  drop Reindex-ed states with stale versions.
 type Indexer interface {
 	// GetID returns the unique identifier for the indexer.
-	// Unique ID should be alphanumeric with underscores, prefixed by the owning service,
-	// e.g. directoryd_sessionid.
+	// For remote indexers, unique ID should be the service name.
 	GetID() string
 
 	// GetVersion returns the current version for the indexer.
@@ -40,24 +44,53 @@ type Indexer interface {
 	// 	- non-decreasing across successive releases
 	GetVersion() Version
 
-	// GetSubscriptions defines the composite keys this indexer is interested in.
-	GetSubscriptions() []Subscription
+	// GetTypes defines the types of states this indexer is interested in.
+	GetTypes() []string
 
 	// PrepareReindex prepares for a reindex operation.
-	// Each version should use e.g. a separate SQL table, so preparing for
-	// a reindex would include creating new table(s).
 	// isFirstReindex is set if this is the first time this indexer has been registered.
 	PrepareReindex(from, to Version, isFirstReindex bool) error
 
 	// CompleteReindex indicates the reindex operation is complete.
-	// Any internal state relevant only to the from version can subsequently be
-	// safely removed, e.g. dropping old SQL tables.
 	CompleteReindex(from, to Version) error
 
 	// Index updates secondary indices based on the added/updated states.
-	Index(networkID, reporterHWID string, states []state.State) (StateErrors, error)
+	Index(networkID string, states state_types.StatesByID) (state_types.StateErrors, error)
 
+	// TODO(4/10/20): consider adding support for removing states from an indexer
 	// IndexRemove updates secondary indices based on the removed states.
-	// NOTE: for now, we will defer IndexRemove to future efforts.
-	//IndexRemove(reporterHWID string, states []State) (map[TypeAndKey]error, error)
+	//IndexRemove(states state.StatesByID) (StateErrors, error)
+}
+
+// FilterIDs to the subset that match one of the state types.
+func FilterIDs(types []string, ids []state_types.ID) []state_types.ID {
+	var ret []state_types.ID
+	for _, id := range ids {
+		if funk.Contains(types, id.Type) {
+			ret = append(ret, id)
+		}
+	}
+	return ret
+}
+
+// FilterStates to the subset that match one of the state types.
+func FilterStates(types []string, states state_types.StatesByID) state_types.StatesByID {
+	ret := state_types.StatesByID{}
+	for id, st := range states {
+		if funk.Contains(types, id.Type) {
+			ret[id] = st
+		}
+	}
+	return ret
+}
+
+// Versions represents the discrepancy between an indexer's versions, actual vs. desired.
+type Versions struct {
+	IndexerID string
+	Actual    Version
+	Desired   Version
+}
+
+func (v *Versions) String() string {
+	return fmt.Sprintf("{id: %s, actual: %d, desired: %d}", v.IndexerID, v.Actual, v.Desired)
 }

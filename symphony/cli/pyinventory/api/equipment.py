@@ -20,22 +20,22 @@ from ..exceptions import (
     EquipmentPositionIsNotUniqueException,
     EquipmentPositionNotFoundException,
 )
-from ..graphql.add_equipment_input import AddEquipmentInput
-from ..graphql.add_equipment_mutation import AddEquipmentMutation
-from ..graphql.edit_equipment_input import EditEquipmentInput
-from ..graphql.edit_equipment_mutation import EditEquipmentMutation
-from ..graphql.equipment_filter_input import EquipmentFilterInput
-from ..graphql.equipment_filter_type_enum import EquipmentFilterType
-from ..graphql.equipment_positions_query import EquipmentPositionsQuery
-from ..graphql.equipment_search_query import EquipmentSearchQuery
-from ..graphql.equipment_type_and_properties_query import (
+from ..graphql.enum.equipment_filter_type import EquipmentFilterType
+from ..graphql.enum.filter_operator import FilterOperator
+from ..graphql.enum.property_kind import PropertyKind
+from ..graphql.input.add_equipment import AddEquipmentInput
+from ..graphql.input.edit_equipment import EditEquipmentInput
+from ..graphql.input.equipment_filter import EquipmentFilterInput
+from ..graphql.mutation.add_equipment import AddEquipmentMutation
+from ..graphql.mutation.edit_equipment import EditEquipmentMutation
+from ..graphql.mutation.remove_equipment import RemoveEquipmentMutation
+from ..graphql.query.equipment_positions import EquipmentPositionsQuery
+from ..graphql.query.equipment_search import EquipmentSearchQuery
+from ..graphql.query.equipment_type_and_properties import (
     EquipmentTypeAndPropertiesQuery,
 )
-from ..graphql.equipment_type_equipments_query import EquipmentTypeEquipmentQuery
-from ..graphql.filter_operator_enum import FilterOperator
-from ..graphql.location_equipments_query import LocationEquipmentsQuery
-from ..graphql.property_kind_enum import PropertyKind
-from ..graphql.remove_equipment_mutation import RemoveEquipmentMutation
+from ..graphql.query.equipment_type_equipments import EquipmentTypeEquipmentQuery
+from ..graphql.query.location_equipments import LocationEquipmentsQuery
 
 
 def _get_equipment_if_exists(
@@ -650,12 +650,15 @@ def _get_equipment_type_and_properties_dict(
         )
         property_type = property_types_with_id[0]
         property_value = _get_property_value(
-            property_type=property_type.type.value, property=property
+            property_type=property_type.property_kind.value, property=property
         )
-        if property_type.type == PropertyKind.gps_location:
-            properties_dict[property_type.name] = (property_value[0], property_value[1])
+        if property_type.property_kind == PropertyKind.gps_location:
+            properties_dict[property_type.property_name] = (
+                property_value[0],
+                property_value[1],
+            )
         else:
-            properties_dict[property_type.name] = property_value[0]
+            properties_dict[property_type.property_name] = property_value[0]
     return equipment_type, properties_dict
 
 

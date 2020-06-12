@@ -122,8 +122,6 @@ typedef struct pgw_config_s {
   bool force_push_pco;
   uint16_t ue_mtu;
   bool relay_enabled;
-  bool use_gtp_kernel_module;
-  bool enable_loading_gtp_kernel_module;
 
   struct {
     bool enabled;

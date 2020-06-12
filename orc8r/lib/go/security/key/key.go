@@ -77,9 +77,8 @@ func WriteKey(keyFile string, priv interface{}) error {
 func ReadKey(keyFile string) (priv interface{}, err error) {
 	byteKey, err := ioutil.ReadFile(keyFile)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to open %s for reading: %s", keyFile, err)
+		return nil, err
 	}
-
 	pemKey, _ := pem.Decode(byteKey)
 	if pemKey == nil {
 		return nil, fmt.Errorf("Failed to find PEM block in file %s", keyFile)

@@ -86,7 +86,11 @@
     Host          {{ host }}
     Port          {{ port }}
 
+    {% if is_tls_enabled %}
     tls on
+    {% else %}
+    tls off
+    {% endif %}
     tls.verify off
     tls.debug 3
     tls.ca_file {{ cacert }}

@@ -1,0 +1,14 @@
+fragment EquipmentTypeFragment on EquipmentType {
+  id
+  name
+  category
+  propertyTypes {
+    ...PropertyTypeFragment
+  }
+  positionDefinitions {
+    ...EquipmentPositionDefinitionFragment
+  }
+  portDefinitions {
+    ...EquipmentPortDefinitionFragment
+  }
+}

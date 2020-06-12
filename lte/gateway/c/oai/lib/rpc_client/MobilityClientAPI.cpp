@@ -263,6 +263,7 @@ static itti_sgi_create_end_point_response_t handle_allocate_ipv4_address_status(
        */
       release_ipv4_address(imsi, apn, &inaddr);
       // TODO - Release the GTP-tunnel corresponding to this IP address
+      sgi_create_endpoint_resp.status = SGI_STATUS_ERROR_SYSTEM_FAILURE;
     } else {
       increment_counter(
         "ue_pdn_connection",

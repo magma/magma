@@ -11,18 +11,17 @@ package accessd_test
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
 	"magma/orc8r/cloud/go/identity"
 	"magma/orc8r/cloud/go/services/accessd"
 	accessprotos "magma/orc8r/cloud/go/services/accessd/protos"
-	accessdTestService "magma/orc8r/cloud/go/services/accessd/test_init"
+	accessd_test_service "magma/orc8r/cloud/go/services/accessd/test_init"
 	"magma/orc8r/lib/go/protos"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestAccessManager(t *testing.T) {
-
-	accessdTestService.StartTestService(t)
+	accessd_test_service.StartTestService(t)
 
 	op1 := identity.NewOperator("operator1")
 	assert.NotEmpty(t, op1.ToCommonName())

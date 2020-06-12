@@ -17,11 +17,12 @@ import PageSelect from "../../../common/PageSelect";
 import WfLabels from "../../../common/WfLabels";
 import DefinitionModal from "./DefinitonModal/DefinitionModal";
 import DiagramModal from "./DiagramModal/DiagramModal";
+import SchedulingModal from "../Scheduling/SchedulingModal/SchedulingModal";
 import InputModal from "./InputModal/InputModal";
 import { HttpClient as http } from "../../../common/HttpClient";
 import { conductorApiUrlPrefix, frontendUrlPrefix } from "../../../constants";
 
-class WorkflowDefs extends Component {
+export class WorkflowDefs extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -33,6 +34,7 @@ class WorkflowDefs extends Component {
       activeWf: null,
       defModal: false,
       diagramModal: false,
+      schedulingModal: false,
       defaultPages: 20,
       pagesCount: 1,
       viewedPage: 1,
@@ -40,6 +42,7 @@ class WorkflowDefs extends Component {
     };
     this.table = React.createRef();
     this.onEditSearch = this.onEditSearch.bind(this);
+    this.backendApiUrlPrefix = props.backendApiUrlPrefix ?? conductorApiUrlPrefix;
   }
 
   componentWillMount() {
@@ -47,7 +50,7 @@ class WorkflowDefs extends Component {
   }
 
   componentDidMount() {
-    http.get(conductorApiUrlPrefix + "/metadata/workflow").then(res => {
+    http.get(this.backendApiUrlPrefix + "/metadata/workflow").then(res => {
       if (res.result) {
         let size = ~~(res.result.length / this.state.defaultPages);
         let dataset =
@@ -221,8 +224,9 @@ class WorkflowDefs extends Component {
     } else {
       data.description = "- FAVOURITE";
     }
-    http.put(conductorApiUrlPrefix + "/metadata/", [data]).then(() => {
-      http.get(conductorApiUrlPrefix + "/metadata/workflow").then(res => {
+    http.put(this.backendApiUrlPrefix + "/metadata/", [data]).then(() => {
+      // TODO: merge with componentDidMount
+      http.get(this.backendApiUrlPrefix + "/metadata/workflow").then(res => {
         let dataset =
           res.result.sort((a, b) =>
             a.name > b.name ? 1 : b.name > a.name ? -1 : 0
@@ -277,17 +281,31 @@ class WorkflowDefs extends Component {
     return labels;
   };
 
+  getActiveWorkflowName() {
+    if (this.state.activeRow != null && this.state.data[this.state.activeRow] != null) {
+      return this.state.data[this.state.activeRow].name;
+    }
+    return null;
+  }
+
+  getActiveWorkflowVersion() {
+    if (this.state.activeRow != null && this.state.data[this.state.activeRow] != null) {
+      return this.state.data[this.state.activeRow].version;
+    }
+    return null;
+  }
+
   editWorkflow() {
-    const name = this.state.activeWf.split(" / ")[0];
-    const version = this.state.activeWf.split(" / ")[1];
+    const name = this.getActiveWorkflowName();
+    const version = this.getActiveWorkflowVersion();
     this.props.history.push(`${frontendUrlPrefix}/builder/${name}/${version}`);
   }
 
   deleteWorkflow() {
-    const name = this.state.activeWf.split(" / ")[0];
-    const version = this.state.activeWf.split(" / ")[1];
+    const name = this.getActiveWorkflowName();
+    const version = this.getActiveWorkflowVersion();
     http
-      .delete(conductorApiUrlPrefix + "/metadata/workflow/" + name + "/" + version)
+      .delete(this.backendApiUrlPrefix + "/metadata/workflow/" + name + "/" + version)
       .then(() => {
         this.componentDidMount();
         let table = this.state.table;
@@ -299,6 +317,95 @@ class WorkflowDefs extends Component {
           table: table
         });
       });
+  }
+
+  repeatDeleteButton() {
+    return (
+      <Button
+      variant="outline-danger noshadow"
+      style={{ float: "right" }}
+      onClick={this.deleteWorkflow.bind(this)}
+    >
+      <i className="fas fa-trash-alt" />
+    </Button>
+    );
+  }
+
+  repeatFavouriteButton(dataset) {
+    return (
+      <Button
+        variant="outline-light noshadow"
+        onClick={this.updateFavourite.bind(this, dataset)}
+      >
+        <i
+          className={
+            dataset["description"] &&
+            dataset["description"].includes("FAVOURITE")
+              ? "fa fa-star"
+              : "far fa-star"
+          }
+          style={{ cursor: "pointer" }}
+        />
+      </Button>
+    );
+  }
+
+  repeatEditButton() {
+    return (
+      <Button
+        variant="outline-light noshadow"
+        onClick={this.editWorkflow.bind(this)}
+      >
+        Edit
+      </Button>
+    );
+  }
+
+  repeatScheduleButton(dataset) {
+    return (
+      <Button
+      variant="outline-light noshadow"
+      onClick={this.showSchedulingModal.bind(this)}
+      >
+        {dataset.hasSchedule ? 'Edit schedule' : 'Create schedule'}
+      </Button>
+    );
+  }
+
+  repeatButtons(dataset) {
+    return (
+      <div
+      style={{
+        background:
+          "linear-gradient(-120deg, rgb(0, 147, 255) 0%, rgb(0, 118, 203) 100%)",
+        padding: "15px",
+        marginBottom: "10px"
+      }}
+    >
+      <Button
+        variant="outline-light noshadow"
+        onClick={this.showInputModal.bind(this)}
+      >
+        Execute
+      </Button>
+      <Button
+        variant="outline-light noshadow"
+        onClick={this.showDefinitionModal.bind(this)}
+      >
+        Definition
+      </Button>
+      {this.repeatEditButton()}
+      <Button
+        variant="outline-light noshadow"
+        onClick={this.showDiagramModal.bind(this)}
+      >
+        Diagram
+      </Button>
+      {this.repeatScheduleButton(dataset)}
+      {this.repeatFavouriteButton(dataset)}
+      {this.repeatDeleteButton()}
+    </div>
+    );
   }
 
   repeat() {
@@ -336,60 +443,7 @@ class WorkflowDefs extends Component {
             </Accordion.Toggle>
             <Accordion.Collapse eventKey={i}>
               <Card.Body style={{ padding: "0px" }}>
-                <div
-                  style={{
-                    background:
-                      "linear-gradient(-120deg, rgb(0, 147, 255) 0%, rgb(0, 118, 203) 100%)",
-                    padding: "15px",
-                    marginBottom: "10px"
-                  }}
-                >
-                  <Button
-                    variant="outline-light noshadow"
-                    onClick={this.showInputModal.bind(this)}
-                  >
-                    Execute
-                  </Button>
-                  <Button
-                    variant="outline-light noshadow"
-                    onClick={this.showDefinitionModal.bind(this)}
-                  >
-                    Definition
-                  </Button>
-                  <Button
-                    variant="outline-light noshadow"
-                    onClick={this.editWorkflow.bind(this)}
-                  >
-                    Edit
-                  </Button>
-                  <Button
-                    variant="outline-light noshadow"
-                    onClick={this.showDiagramModal.bind(this)}
-                  >
-                    Diagram
-                  </Button>
-                  <Button
-                    variant="outline-light noshadow"
-                    onClick={this.updateFavourite.bind(this, dataset[i])}
-                  >
-                    <i
-                      className={
-                        dataset[i]["description"] &&
-                        dataset[i]["description"].includes("FAVOURITE")
-                          ? "fa fa-star"
-                          : "far fa-star"
-                      }
-                      style={{ cursor: "pointer" }}
-                    />
-                  </Button>
-                  <Button
-                    variant="outline-danger noshadow"
-                    style={{ float: "right" }}
-                    onClick={this.deleteWorkflow.bind(this)}
-                  >
-                    <i className="fas fa-trash-alt" />
-                  </Button>
-                </div>
+                {this.repeatButtons(dataset)}
                 <div className="accordBody">
                   <b>Tasks</b>
                   <br />
@@ -422,118 +476,185 @@ class WorkflowDefs extends Component {
     });
   }
 
+  showSchedulingModal() {
+    this.setState({
+      schedulingModal: true
+    });
+  }
+
   showDiagramModal() {
     this.setState({
       diagramModal: !this.state.diagramModal
     });
   }
 
-  render() {
-    let definitionModal = this.state.defModal ? (
+  onSchedulingModalClose() {
+    this.setState({
+      schedulingModal: false
+    });
+    this.componentDidMount();
+  }
+
+  getActiveRowScheduleName() {
+    if (this.state.activeRow != null && this.state.data[this.state.activeRow] != null) {
+      return this.state.data[this.state.activeRow].expectedScheduleName;
+    }
+    return null;
+  }
+  renderDefinitionModal() {
+    return this.state.defModal ? (
       <DefinitionModal
         wf={this.state.activeWf}
         modalHandler={this.showDefinitionModal.bind(this)}
         show={this.state.defModal}
+        backendApiUrlPrefix={this.backendApiUrlPrefix}
       />
     ) : null;
+  }
 
-    let inputModal = this.state.inputModal ? (
+  renderInputModal() {
+    return this.state.inputModal ? (
       <InputModal
         wf={this.state.activeWf}
         modalHandler={this.showInputModal.bind(this)}
         show={this.state.inputModal}
+        backendApiUrlPrefix={this.backendApiUrlPrefix}
       />
     ) : null;
+  }
 
-    let diagramModal = this.state.diagramModal ? (
+  renderDiagramModal() {
+    return this.state.diagramModal ? (
       <DiagramModal
         wf={this.state.activeWf}
         modalHandler={this.showDiagramModal.bind(this)}
         show={this.state.diagramModal}
+        backendApiUrlPrefix={this.backendApiUrlPrefix}
       />
     ) : null;
+  }
 
+  renderSchedulingModal() {
+    return (<SchedulingModal
+          name={this.getActiveRowScheduleName()}
+          workflowName={this.getActiveWorkflowName()}
+          workflowVersion={this.getActiveWorkflowVersion()}
+          onClose={this.onSchedulingModalClose.bind(this)}
+          show={this.state.schedulingModal}
+        />);
+  }
+
+  renderFavouritesHeader() {
+    return (<Button
+      style={{ marginBottom: "15px", marginLeft: "15px" }}
+      onClick={this.searchFavourites.bind(this)}
+      title="Favourites"
+    >
+      <i
+        className={
+          this.state.labels.length
+            ? this.state.labels.includes("FAVOURITE")
+              ? "fa fa-star"
+              : "far fa-star"
+            : "far fa-star"
+        }
+        style={{ cursor: "pointer" }}
+      />
+    </Button>);
+  }
+
+  renderSearchByLabel() {
+    return (
+      <Col>
+      <Typeahead
+        id="typeaheadDefs"
+        selected={this.state.labels}
+        onChange={this.onLabelSearch.bind(this)}
+        clearButton
+        labelKey="name"
+        multiple
+        options={this.state.allLabels}
+        placeholder="Search by label."
+      />
+    </Col>
+    );
+  }
+
+  renderSearchByKeyword() {
+    return (
+      <Col>
+      <Form.Group>
+        <Form.Control
+          value={this.state.keywords}
+          onChange={this.onEditSearch}
+          placeholder="Search by keyword."
+        />
+      </Form.Group>
+    </Col>
+    );
+  }
+
+  renderWorkflowTable() {
+    return (
+      <div className="scrollWrapper" style={{ maxHeight: "650px" }}>
+      <Table ref={this.table}>
+        <thead>
+          <tr>
+            <th>Name/Version</th>
+          </tr>
+        </thead>
+        <tbody>
+          <Accordion activeKey={this.state.activeRow}>
+            {this.repeat()}
+          </Accordion>
+        </tbody>
+      </Table>
+    </div>
+    );
+  }
+
+  renderWorkflowTableFooter() {
+    return (
+      <Container style={{ marginTop: "5px" }}>
+      <Row>
+        <Col sm={2}>
+          <PageCount
+            dataSize={
+              this.state.keywords === "" || this.state.table.length > 0
+                ? this.state.table.length
+                : this.state.data.length
+            }
+            defaultPages={this.state.defaultPages}
+            handler={this.setCountPages.bind(this)}
+          />
+        </Col>
+        <Col sm={8} />
+        <Col sm={2}>
+          <PageSelect
+            viewedPage={this.state.viewedPage}
+            count={this.state.pagesCount}
+            handler={this.setViewPage.bind(this)}
+          />
+        </Col>
+      </Row>
+    </Container>
+    );
+  }
+
+  render() {
     return (
       <div>
-        {definitionModal}
-        {inputModal}
-        {diagramModal}
+        {this.renderDefinitionModal()}
+        {this.renderInputModal()}
+        {this.renderDiagramModal()}
+        {this.renderSchedulingModal()}
         <Row>
-          <Button
-            style={{ marginBottom: "15px", marginLeft: "15px" }}
-            onClick={this.searchFavourites.bind(this)}
-            title="Favourites"
-          >
-            <i
-              className={
-                this.state.labels.length
-                  ? this.state.labels.includes("FAVOURITE")
-                    ? "fa fa-star"
-                    : "far fa-star"
-                  : "far fa-star"
-              }
-              style={{ cursor: "pointer" }}
-            />
-          </Button>
-          <Col>
-            <Typeahead
-              id="typeaheadDefs"
-              selected={this.state.labels}
-              onChange={this.onLabelSearch.bind(this)}
-              clearButton
-              labelKey="name"
-              multiple
-              options={this.state.allLabels}
-              placeholder="Search by label."
-            />
-          </Col>
-          <Col>
-            <Form.Group>
-              <Form.Control
-                value={this.state.keywords}
-                onChange={this.onEditSearch}
-                placeholder="Search by keyword."
-              />
-            </Form.Group>
-          </Col>
+          {this.renderFavouritesHeader()}
+          {this.renderSearchByLabel()}
+          {this.renderSearchByKeyword()}
         </Row>
-        <div className="scrollWrapper" style={{ maxHeight: "650px" }}>
-          <Table ref={this.table}>
-            <thead>
-              <tr>
-                <th>Name/Version</th>
-              </tr>
-            </thead>
-            <tbody>
-              <Accordion activeKey={this.state.activeRow}>
-                {this.repeat()}
-              </Accordion>
-            </tbody>
-          </Table>
-        </div>
-        <Container style={{ marginTop: "5px" }}>
-          <Row>
-            <Col sm={2}>
-              <PageCount
-                dataSize={
-                  this.state.keywords === "" || this.state.table.length > 0
-                    ? this.state.table.length
-                    : this.state.data.length
-                }
-                defaultPages={this.state.defaultPages}
-                handler={this.setCountPages.bind(this)}
-              />
-            </Col>
-            <Col sm={8} />
-            <Col sm={2}>
-              <PageSelect
-                viewedPage={this.state.viewedPage}
-                count={this.state.pagesCount}
-                handler={this.setViewPage.bind(this)}
-              />
-            </Col>
-          </Row>
-        </Container>
+        {this.renderWorkflowTable()}
+        {this.renderWorkflowTableFooter()}
       </div>
     );
   }

@@ -22,7 +22,7 @@ import {makeStyles} from '@material-ui/styles';
 
 type Props = {
   link: Link,
-  onDeleteLink: () => void,
+  onDeleteLink: ?() => void,
 };
 
 const useStyles = makeStyles(theme => ({
@@ -132,18 +132,19 @@ const ServiceLinkDetails = (props: Props) => {
           </Text>
         </div>
       </div>
-
-      <OptionsPopoverButton
-        options={[
-          {
-            caption: 'Remove Link',
-            onClick: () => {
-              ServerLogger.info(LogEvents.DELETE_SERVICE_LINK_BUTTON_CLICKED);
-              onDeleteLink();
+      {onDeleteLink ? (
+        <OptionsPopoverButton
+          options={[
+            {
+              caption: 'Remove Link',
+              onClick: () => {
+                ServerLogger.info(LogEvents.DELETE_SERVICE_LINK_BUTTON_CLICKED);
+                onDeleteLink();
+              },
             },
-          },
-        ]}
-      />
+          ]}
+        />
+      ) : null}
     </div>
   );
 };

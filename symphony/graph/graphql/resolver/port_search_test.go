@@ -9,14 +9,14 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/facebookincubator/symphony/graph/ent/serviceendpointdefinition"
+	"github.com/facebookincubator/symphony/pkg/ent/serviceendpointdefinition"
 
-	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
-	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
-	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
-	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
+	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/ent/equipmentport"
+	"github.com/facebookincubator/symphony/pkg/ent/equipmentportdefinition"
+	"github.com/facebookincubator/symphony/pkg/ent/propertytype"
+	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
 
 	"github.com/AlekSi/pointer"
 	"github.com/stretchr/testify/require"
@@ -162,7 +162,7 @@ func preparePortData(ctx context.Context, r *TestResolver) portSearchDataModels 
 
 func TestSearchPortEquipmentName(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	data := preparePortData(ctx, r)
@@ -187,7 +187,7 @@ func TestSearchPortEquipmentName(t *testing.T) {
 
 func TestSearchPortHasLink(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	preparePortData(ctx, r)
@@ -210,7 +210,7 @@ func TestSearchPortHasLink(t *testing.T) {
 
 func TestSearchPortDefinition(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	d := preparePortData(ctx, r)
@@ -232,7 +232,7 @@ func TestSearchPortDefinition(t *testing.T) {
 
 func TestSearchPortLocation(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	d := preparePortData(ctx, r)
@@ -253,7 +253,7 @@ func TestSearchPortLocation(t *testing.T) {
 
 func TestSearchPortProperties(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	preparePortData(ctx, r)
@@ -339,7 +339,7 @@ func TestSearchPortProperties(t *testing.T) {
 
 func TestSearchPortsByService(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	data := preparePortData(ctx, r)
@@ -470,7 +470,7 @@ func TestSearchPortsByService(t *testing.T) {
 
 func TestReorderEndpointDefinitions(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	data := preparePortData(ctx, r)

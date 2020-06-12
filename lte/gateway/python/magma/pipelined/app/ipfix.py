@@ -53,7 +53,6 @@ class IPFIXController(MagmaController):
         if self._dpi_enabled:
             self._ipfix_sample_tbl_num = \
                 self._service_manager.INTERNAL_IPFIX_SAMPLE_TABLE_NUM
-            self.ipfix_config.probability = 65535
         else:
             self._ipfix_sample_tbl_num = self.tbl_num
         self._datapath = None
@@ -79,11 +78,23 @@ class IPFIXController(MagmaController):
                     obs_domain_id=0, obs_point_id=0, cache_timeout=0,
                     sampling_port=0)
 
+        if collector_port == 0:
+            self.logger.error("Missing mconfig IPDR dest port")
+            return self.IPFIXConfig(enabled=False, probability=0,
+                collector_ip='', collector_port=0, collector_set_id=0,
+                obs_domain_id=0, obs_point_id=0, cache_timeout=0,
+                sampling_port=0)
+
+        if config_dict['dpi']['enabled']:
+            probability = 65535
+        else:
+            probability = config_dict['ipfix']['probability']
+
         return self.IPFIXConfig(
             enabled=config_dict['ipfix']['enabled'],
             collector_ip=collector_ip,
             collector_port=collector_port,
-            probability=config_dict['ipfix']['probability'],
+            probability=probability,
             collector_set_id=config_dict['ipfix']['collector_set_id'],
             obs_domain_id=config_dict['ipfix']['obs_domain_id'],
             obs_point_id=config_dict['ipfix']['obs_point_id'],
@@ -108,6 +119,9 @@ class IPFIXController(MagmaController):
         args = shlex.split(rm_cmd)
         ret = subprocess.call(args)
         self.logger.debug("Removed old Flow_Sample_Collector_Set ret %d", ret)
+
+        if not self.ipfix_config.enabled:
+            return
 
         action_str = (
             'ovs-vsctl -- --id=@{} get Bridge {} -- --id=@cs create '
@@ -178,6 +192,12 @@ class IPFIXController(MagmaController):
         """
         if self._datapath is None:
             self.logger.error('Datapath not initialized for adding flows')
+            return
+
+        if not self.ipfix_config.enabled:
+            #TODO logging higher than debug here will provide too much noise
+            # possible fix is making ipfix a dynamic service enabled from orc8r
+            self.logger.debug('IPFIX export dst not setup for adding flows')
             return
 
         imsi_hex = hex(encode_imsi(imsi))

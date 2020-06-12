@@ -1,3 +1,5 @@
+// +build all authenticate
+
 /*
  * Copyright (c) Facebook, Inc. and its affiliates.
  * All rights reserved.
@@ -17,6 +19,7 @@ import (
 	"magma/feg/cloud/go/protos"
 
 	"github.com/fiorix/go-diameter/v4/diam"
+	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/stretchr/testify/assert"
 )
@@ -67,46 +70,68 @@ func TestAuthenticateWithDifferentAPs(t *testing.T) {
 	time.Sleep(1 * time.Second)
 }
 
-// - Expect a CCR-I to come into PCRF, and return with Authentication Reject.
-// - Configure a UE and trigger a authentication. Assert that the expectation was
+// - Expect a Gx CCR-I to come into PCRF, and return with Authentication Reject.
+// - Configure a UE and trigger an authentication. Assert that the expectation was
 //   met, and the authentication failed.
+// - Expect a Gx CCR-I to come into PCRF, and return with Success. Expect a Gy
+//   CCR-I to come into OCS, and return with Authentication Reject.
+// - Trigger an authentication. Assert that all expectations were met, and the
+//   authentication failed.
 func TestAuthenticateFail(t *testing.T) {
 	fmt.Println("\nRunning TestAuthenticateFail...")
 	tr := NewTestRunner(t)
+
+	assert.NoError(t, useOCSMockDriver())
 	assert.NoError(t, usePCRFMockDriver())
 	defer func() {
 		// Clear hss, ocs, and pcrf
+		assert.NoError(t, clearOCSMockDriver())
 		assert.NoError(t, clearPCRFMockDriver())
 		assert.NoError(t, tr.CleanUp())
 	}()
 
-	ues, err := tr.ConfigUEs(1)
+	ues, err := tr.ConfigUEs(2)
 	assert.NoError(t, err)
 
-	// Test Authentication Fail
-	imsiFail := ues[0].GetImsi()
-	initRequest := protos.NewGxCCRequest(imsiFail, protos.CCRequestType_INITIAL, 1)
-	initAnswer := protos.NewGxCCAnswer(diam.AuthenticationRejected).
-		SetDynamicRuleInstalls([]*protos.RuleDefinition{getPassAllRuleDefinition("dynamic-pass-all", "mkey1", 100)})
-	initExpectation := protos.NewGxCreditControlExpectation().Expect(initRequest).Return(initAnswer)
+	// ----- Gx CCR-I fail -> Authentication fails -----
+	imsi := ues[0].GetImsi()
+	gxInitReq := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL)
+	gxInitAns := protos.NewGxCCAnswer(diam.AuthenticationRejected)
+	gxInitExpectation := protos.NewGxCreditControlExpectation().Expect(gxInitReq).Return(gxInitAns)
 
-	defaultAnswer := protos.NewGxCCAnswer(diam.AuthenticationRejected)
-	assert.NoError(t, setPCRFExpectations([]*protos.GxCreditControlExpectation{initExpectation}, defaultAnswer))
+	defaultGxAns := protos.NewGxCCAnswer(diam.AuthenticationRejected)
+	assert.NoError(t, setPCRFExpectations([]*protos.GxCreditControlExpectation{gxInitExpectation}, defaultGxAns))
 
-	tr.AuthenticateAndAssertFail(imsiFail)
+	tr.AuthenticateAndAssertFail(imsi)
+	tr.AssertAllGxExpectationsMetNoError()
 
-	resultByIndex, errByIndex, err := getPCRFAssertExpectationsResult()
-	assert.NoError(t, err)
-	assert.Empty(t, errByIndex)
-	expectedResult := []*protos.ExpectationResult{{ExpectationIndex: 0, ExpectationMet: true}}
-	assert.ElementsMatch(t, expectedResult, resultByIndex)
-	// Since CCR/A-I failed, there should be no rules installed
-	recordsBySubID, err := tr.GetPolicyUsage()
-	assert.NoError(t, err)
-	assert.Empty(t, recordsBySubID["IMSI"+imsiFail])
+	// Since CCR/A-I failed, pipelined should see no rules installed
+	tr.AssertPolicyEnforcementRecordIsNil(imsi)
+
+	// ----- Gx CCR-I success && Gy CCR-I fail -> Authentication fails -----
+	imsi = ues[1].GetImsi()
+	gxInitReq = protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL)
+	gxInitAns = protos.NewGxCCAnswer(diam.Success).
+		SetDynamicRuleInstall(getPassAllRuleDefinition("rule1", "", swag.Uint32(1), 0))
+	gxInitExpectation = gxInitExpectation.Expect(gxInitReq).Return(gxInitAns)
+	assert.NoError(t, setPCRFExpectations([]*protos.GxCreditControlExpectation{gxInitExpectation}, defaultGxAns))
+	// Fail on Gy
+	gyInitReq := protos.NewGyCCRequest(imsi, protos.CCRequestType_INITIAL)
+	gyInitAns := protos.NewGyCCAnswer(diam.AuthenticationRejected)
+	gyInitExpectation := protos.NewGyCreditControlExpectation().Expect(gyInitReq).Return(gyInitAns)
+	defaultGyAns := gyInitAns
+	assert.NoError(t, setOCSExpectations([]*protos.GyCreditControlExpectation{gyInitExpectation}, defaultGyAns))
+
+	tr.AuthenticateAndAssertFail(imsi)
+	// assert gx & gy init was received
+	tr.AssertAllGxExpectationsMetNoError()
+	tr.AssertAllGyExpectationsMetNoError()
+
+	// Since CCR/A-I failed, pipelined should see no rules installed
+	tr.AssertPolicyEnforcementRecordIsNil(imsi)
 }
 
-// - Set an expectation for a  CCR-I to be sent up to PCRF, to which it will
+// - Set an expectation for a CCR-I to be sent up to PCRF, to which it will
 //   respond with a rule install for a pass-all dynamic rule and 250KB of
 //   quota.
 //   Trigger a authentication and assert the CCR-I is received.
@@ -125,20 +150,15 @@ func TestAuthenticateUplinkTraffic(t *testing.T) {
 	assert.NoError(t, err)
 
 	imsi := ues[0].GetImsi()
-	usageMonitorInfo := []*protos.UsageMonitoringInformation{
-		{
-			MonitoringLevel: protos.MonitoringLevel_RuleLevel,
-			MonitoringKey:   []byte("mkey1"),
-			Octets:          &protos.Octets{TotalOctets: 250 * KiloBytes},
-		},
-	}
-	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL, 1)
+	usageMonitorInfo := getUsageInformation("mkey1", 250*KiloBytes)
+
+	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL)
 	initAnswer := protos.NewGxCCAnswer(diam.Success).
-		SetDynamicRuleInstalls([]*protos.RuleDefinition{getPassAllRuleDefinition("dynamic-pass-all", "mkey1", 100)}).
-		SetUsageMonitorInfos(usageMonitorInfo)
+		SetDynamicRuleInstall(getPassAllRuleDefinition("dynamic-pass-all", "mkey1", nil, 100)).
+		SetUsageMonitorInfo(usageMonitorInfo)
 	initExpectation := protos.NewGxCreditControlExpectation().Expect(initRequest).Return(initAnswer)
 	// return success with credit on unexpected requests
-	defaultAnswer := protos.NewGxCCAnswer(2001).SetUsageMonitorInfos(usageMonitorInfo)
+	defaultAnswer := protos.NewGxCCAnswer(2001).SetUsageMonitorInfo(usageMonitorInfo)
 	assert.NoError(t, setPCRFExpectations([]*protos.GxCreditControlExpectation{initExpectation}, defaultAnswer))
 
 	tr.AuthenticateAndAssertSuccess(imsi)
@@ -147,13 +167,7 @@ func TestAuthenticateUplinkTraffic(t *testing.T) {
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
 
-	resultByIndex, errByIndex, err := getPCRFAssertExpectationsResult()
-	assert.NoError(t, err)
-	assert.Empty(t, errByIndex)
-	expectedResult := []*protos.ExpectationResult{
-		{ExpectationIndex: 0, ExpectationMet: true},
-	}
-	assert.ElementsMatch(t, expectedResult, resultByIndex)
+	tr.AssertAllGxExpectationsMetNoError()
 
 	tr.DisconnectAndAssertSuccess(imsi)
 	fmt.Println("wait for flows to get deactivated")
@@ -183,20 +197,14 @@ func TestAuthenticateMultipleAPsUplinkTraffic(t *testing.T) {
 	assert.NoError(t, err)
 
 	imsi := ues[0].GetImsi()
-	usageMonitorInfo := []*protos.UsageMonitoringInformation{
-		{
-			MonitoringLevel: protos.MonitoringLevel_RuleLevel,
-			MonitoringKey:   []byte("mkey1"),
-			Octets:          &protos.Octets{TotalOctets: 250 * KiloBytes},
-		},
-	}
-	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL, 1)
+	usageMonitorInfo := getUsageInformation("mkey1", 250*KiloBytes)
+	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL)
 	initAnswer := protos.NewGxCCAnswer(diam.Success).
-		SetDynamicRuleInstalls([]*protos.RuleDefinition{getPassAllRuleDefinition("dynamic-pass-all", "mkey1", 100)}).
-		SetUsageMonitorInfos(usageMonitorInfo)
+		SetDynamicRuleInstall(getPassAllRuleDefinition("dynamic-pass-all", "mkey1", nil, 100)).
+		SetUsageMonitorInfo(usageMonitorInfo)
 	initExpectation := protos.NewGxCreditControlExpectation().Expect(initRequest).Return(initAnswer)
 	// return success with credit on unexpected requests
-	defaultAnswer := protos.NewGxCCAnswer(2001).SetUsageMonitorInfos(usageMonitorInfo)
+	defaultAnswer := protos.NewGxCCAnswer(2001).SetUsageMonitorInfo(usageMonitorInfo)
 	assert.NoError(t, setPCRFExpectations([]*protos.GxCreditControlExpectation{initExpectation}, defaultAnswer))
 
 	CalledStationIDs := getCalledStationIDs()
@@ -214,13 +222,7 @@ func TestAuthenticateMultipleAPsUplinkTraffic(t *testing.T) {
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
 
-	resultByIndex, errByIndex, err := getPCRFAssertExpectationsResult()
-	assert.NoError(t, err)
-	assert.Empty(t, errByIndex)
-	expectedResult := []*protos.ExpectationResult{
-		{ExpectationIndex: 0, ExpectationMet: true},
-	}
-	assert.ElementsMatch(t, expectedResult, resultByIndex)
+	tr.AssertAllGxExpectationsMetNoError()
 
 	_, err = tr.Disconnect(imsi, CalledStationIDs[1])
 	assert.NoError(t, err)

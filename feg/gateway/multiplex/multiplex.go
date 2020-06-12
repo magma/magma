@@ -7,20 +7,20 @@
  */
 
 // Package multiplex allows to create different algorithms to select out of an index base on some
-// parameters. An example of a multiplexor can be seen on StaticMultiplexByIMSI type.
-// Multiplexors in this packages use Context tyoe to obtain dynamic parameters. Right now we have
-// only identified one parameter to be used by algorithms (IMSI). But in the future more parameter
-// can be added in case other algorithms uses them
+//	parameters. An example of a multiplexor can be seen on StaticMultiplexByIMSI type.
+//	Multiplexors in this packages use Context tyoe to obtain dynamic parameters. Right now we have
+//	only identified one parameter to be used by algorithms (IMSI). But in the future more parameter
+//	can be added in case other algorithms uses them
 //
-// Addition of new algorithms:
-// - if you need new dynamic (per call) parameters:
-//   > Add them to Context.
-//   > Create "With..." receivers like the one below in order to chain the calls
-//     def:     func (mp *Context) WithNewParam(newParam Type) *Context{}
-//     usage:   muxCtx := NewContext.WithIMSI("1234").WithNewParam(newParam)
-//   > Modify the context calls on magma to make sure that parameter is included where you need it
-// - Implement multiplexor interface with your new algorithm. HEre you can add some static data when
-//   you create the multiplexor (an example could be a list of predefined imsis)
+//	Addition of new algorithms:
+//	- if you need new dynamic (per call) parameters:
+//	  > Add them to Context.
+//	  > Create "With..." receivers like the one below in order to chain the calls
+//	    def:     func (mp *Context) WithNewParam(newParam Type) *Context{}
+//	    usage:   muxCtx := NewContext.WithIMSI("1234").WithNewParam(newParam)
+//	  > Modify the context calls on magma to make sure that parameter is included where you need it
+//	- Implement multiplexor interface with your new algorithm. HEre you can add some static data when
+//	  you create the multiplexor (an example could be a list of predefined imsis)
 
 package multiplex
 

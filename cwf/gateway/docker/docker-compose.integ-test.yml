@@ -56,11 +56,21 @@ services:
         /usr/bin/ovs-vsctl --if-exists del-port cwag_br0 eth2 &&
         /usr/bin/ovs-vsctl --may-exist add-port cwag_br0 gre0 -- set interface gre0 ofport_request=32768 type=gre options:remote_ip=flow &&
         /usr/bin/ovs-vsctl set-controller cwag_br0 tcp:127.0.0.1:6633 &&
-        python3 -m magma.pipelined.main"
+        python3.5 -m magma.pipelined.main"
 
   sessiond:
     volumes:
       - ../integ_tests/sessiond.yml:/etc/magma/sessiond.yml
+      - /var/opt/magma/cores:/var/opt/magma/cores
+    ulimits:
+      core: -1
+    security_opt:
+      - seccomp:unconfined
+    privileged: true
+    command: >
+      sh -c "mkdir -p /var/opt/magma/cores &&
+        sysctl -w kernel.core_pattern=/var/opt/magma/cores/core.%e.%t &&
+        /usr/local/bin/sessiond"
 
   swx_proxy:
     <<: *feggoservice
@@ -78,7 +88,7 @@ services:
       - pcrf2
       - ocs2
     environment:
-      MAGMA_PRINT_GRPC_PAYLOAD: 0
+      MAGMA_PRINT_GRPC_PAYLOAD: 1
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/session_proxy -logtostderr=true -v=2
 
   hss:
@@ -144,6 +154,7 @@ services:
       - session-proxy.magma.test:127.0.0.1
       - sessiond.magma.test:127.0.0.1
       - aaa-server.magma.test:127.0.0.1
+      - directoryd.magma.test:127.0.0.1
     volumes:
       - ../integ_tests/nginx.conf:/etc/nginx/nginx.conf:ro
     command: /usr/sbin/nginx -g "daemon off;"

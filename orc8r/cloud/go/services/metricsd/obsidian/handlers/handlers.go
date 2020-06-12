@@ -15,7 +15,6 @@ import (
 
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/metricsd"
-	"magma/orc8r/cloud/go/services/metricsd/confignames"
 	promH "magma/orc8r/cloud/go/services/metricsd/prometheus/handlers"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/service/config"
@@ -32,7 +31,7 @@ const (
 // GetObsidianHandlers returns all obsidian handlers for metricsd
 func GetObsidianHandlers(configMap *config.ConfigMap) []obsidian.Handler {
 	var ret []obsidian.Handler
-	client, err := promAPI.NewClient(promAPI.Config{Address: configMap.GetRequiredStringParam(confignames.PrometheusQueryAddress)})
+	client, err := promAPI.NewClient(promAPI.Config{Address: configMap.MustGetString(metricsd.PrometheusQueryAddress)})
 	if err != nil {
 		ret = append(ret,
 			// V1
@@ -76,9 +75,9 @@ func GetObsidianHandlers(configMap *config.ConfigMap) []obsidian.Handler {
 		)
 	}
 
-	alertmanagerConfigServiceURL := configMap.GetRequiredStringParam(confignames.AlertmanagerConfigServiceURL)
-	prometheusConfigServiceURL := configMap.GetRequiredStringParam(confignames.PrometheusConfigServiceURL)
-	alertmanagerURL := configMap.GetRequiredStringParam(confignames.AlertmanagerApiURL)
+	alertmanagerConfigServiceURL := configMap.MustGetString(metricsd.AlertmanagerConfigServiceURL)
+	prometheusConfigServiceURL := configMap.MustGetString(metricsd.PrometheusConfigServiceURL)
+	alertmanagerURL := configMap.MustGetString(metricsd.AlertmanagerApiURL)
 
 	// V1
 	ret = append(ret,

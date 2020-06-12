@@ -32,7 +32,7 @@
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="pyinventory.api.port_type.add_equipment_port_type"><code class="name flex">
-<span>def <span class="ident">add_equipment_port_type</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, properties: List[<a title="pyinventory.common.data_class.PropertyDefinition" href="../common/data_class.html#pyinventory.common.data_class.PropertyDefinition">PropertyDefinition</a>], link_properties: List[<a title="pyinventory.common.data_class.PropertyDefinition" href="../common/data_class.html#pyinventory.common.data_class.PropertyDefinition">PropertyDefinition</a>]) -> <a title="pyinventory.common.data_class.EquipmentPortType" href="../common/data_class.html#pyinventory.common.data_class.EquipmentPortType">EquipmentPortType</a></span>
+<span>def <span class="ident">add_equipment_port_type</span></span>(<span>client: pysymphony.SymphonyClient, name: str, properties: List[<a title="pyinventory.common.data_class.PropertyDefinition" href="../common/data_class.html#pyinventory.common.data_class.PropertyDefinition">PropertyDefinition</a>], link_properties: List[<a title="pyinventory.common.data_class.PropertyDefinition" href="../common/data_class.html#pyinventory.common.data_class.PropertyDefinition">PropertyDefinition</a>]) -> <a title="pyinventory.common.data_class.EquipmentPortType" href="../common/data_class.html#pyinventory.common.data_class.EquipmentPortType">EquipmentPortType</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function creates an equipment port type.</p>
@@ -40,11 +40,9 @@
 <dl>
 <dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
 <dd>equipment port type name</dd>
-<dt><strong><code>properties</code></strong></dt>
-<dd>(List[ <code>pyinventory.common.data_class.PropertyDefinition</code> ]): list of property definitions</dd>
-<dt><strong><code>link_properties</code></strong></dt>
-<dd>(List[ <code>pyinventory.common.data_class.PropertyDefinition</code> ]): list of property definitions</dd>
 </dl>
+<p>properties (List[ <code>pyinventory.common.data_class.PropertyDefinition</code> ]): list of property definitions
+link_properties (List[ <code>pyinventory.common.data_class.PropertyDefinition</code> ]): list of property definitions</p>
 <h2 id="returns">Returns</h2>
 <p><code><a title="pyinventory.common.data_class.EquipmentPortType" href="../common/data_class.html#pyinventory.common.data_class.EquipmentPortType">EquipmentPortType</a></code> object</p>
 <h2 id="raises">Raises</h2>
@@ -54,24 +52,30 @@
 </dl>
 <h2 id="example">Example</h2>
 <pre><code>from pyinventory.common.data_class import PropertyDefinition
-from pyinventory.graphql.property_kind_enum import PropertyKind
+from pyinventory.graphql.enum.property_kind import PropertyKind
 port_type1 = client.add_equipment_port_type(
     name=&quot;port type 1&quot;,
-    properties=[PropertyDefinition(
-        property_name=&quot;port property&quot;,
-        property_kind=PropertyKind.string,
-        default_value=None,
-        is_fixed=True)],
-    link_properties=[PropertyDefinition(
-        property_name=&quot;link port property&quot;,
-        property_kind=PropertyKind.string,
-        default_value=None,
-        is_fixed=True)],
+    properties=[
+        PropertyDefinition(
+            property_name=&quot;port property&quot;,
+            property_kind=PropertyKind.string,
+            default_raw_value=None,
+            is_fixed=True
+        )
+    ],
+    link_properties=[
+        PropertyDefinition(
+            property_name=&quot;link port property&quot;,
+            property_kind=PropertyKind.string,
+            default_raw_value=None,
+            is_fixed=True
+        )
+    ],
 )
 </code></pre></div>
 </dd>
 <dt id="pyinventory.api.port_type.delete_equipment_port_type"><code class="name flex">
-<span>def <span class="ident">delete_equipment_port_type</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment_port_type_id: str) -> NoneType</span>
+<span>def <span class="ident">delete_equipment_port_type</span></span>(<span>client: pysymphony.SymphonyClient, equipment_port_type_id: str) -> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function deletes an equipment port type.
@@ -86,17 +90,17 @@ It can get only the requested equipment port type ID</p>
 </code></pre></div>
 </dd>
 <dt id="pyinventory.api.port_type.edit_equipment_port_type"><code class="name flex">
-<span>def <span class="ident">edit_equipment_port_type</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, port_type: <a title="pyinventory.common.data_class.EquipmentPortType" href="../common/data_class.html#pyinventory.common.data_class.EquipmentPortType">EquipmentPortType</a>, new_name: Union[str, NoneType] = None, new_properties: Union[Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]], NoneType] = None, new_link_properties: Union[Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]], NoneType] = None) -> <a title="pyinventory.common.data_class.EquipmentPortType" href="../common/data_class.html#pyinventory.common.data_class.EquipmentPortType">EquipmentPortType</a></span>
+<span>def <span class="ident">edit_equipment_port_type</span></span>(<span>client: pysymphony.SymphonyClient, port_type: <a title="pyinventory.common.data_class.EquipmentPortType" href="../common/data_class.html#pyinventory.common.data_class.EquipmentPortType">EquipmentPortType</a>, new_name: Union[str, NoneType] = None, new_properties: Union[Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]], NoneType] = None, new_link_properties: Union[Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]], NoneType] = None) -> <a title="pyinventory.common.data_class.EquipmentPortType" href="../common/data_class.html#pyinventory.common.data_class.EquipmentPortType">EquipmentPortType</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function edits an existing equipment port type.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt>port_type ( <code><a title="pyinventory.common.data_class.EquipmentPortType" href="../common/data_class.html#pyinventory.common.data_class.EquipmentPortType">EquipmentPortType</a></code> ): existing eqipment port type object</dt>
-<dt><strong><code>new_name</code></strong> :&ensp;<code>str</code></dt>
+<dt><strong><code>new_name</code></strong> :&ensp;<code>Optional[ str ]</code></dt>
 <dd>new name</dd>
 <dt><strong><code>new_properties</code></strong></dt>
-<dd>(Dict[str, PropertyValue]): dictionary</dd>
+<dd>(Optional[ Dict[ str, PropertyValue ] ]): dictionary</dd>
 </dl>
 <ul>
 <li>str - property type name</li>
@@ -104,7 +108,7 @@ It can get only the requested equipment port type ID</p>
 </ul>
 <dl>
 <dt><strong><code>new_link_properties</code></strong></dt>
-<dd>(Dict[str, PropertyValue]): dictionary</dd>
+<dd>(Optional[ Dict[ str, PropertyValue ] ]): dictionary</dd>
 </dl>
 <ul>
 <li>str - link property type name</li>
@@ -127,7 +131,7 @@ It can get only the requested equipment port type ID</p>
 </code></pre></div>
 </dd>
 <dt id="pyinventory.api.port_type.get_equipment_port_type"><code class="name flex">
-<span>def <span class="ident">get_equipment_port_type</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment_port_type_id: str) -> <a title="pyinventory.common.data_class.EquipmentPortType" href="../common/data_class.html#pyinventory.common.data_class.EquipmentPortType">EquipmentPortType</a></span>
+<span>def <span class="ident">get_equipment_port_type</span></span>(<span>client: pysymphony.SymphonyClient, equipment_port_type_id: str) -> <a title="pyinventory.common.data_class.EquipmentPortType" href="../common/data_class.html#pyinventory.common.data_class.EquipmentPortType">EquipmentPortType</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function returns an equipment port type.

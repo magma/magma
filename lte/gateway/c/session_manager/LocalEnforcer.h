@@ -13,6 +13,7 @@
 #include <vector>
 
 #include <folly/io/async/EventBaseManager.h>
+#include <lte/protos/mconfig/mconfigs.pb.h>
 #include <lte/protos/policydb.pb.h>
 #include <lte/protos/session_manager.grpc.pb.h>
 #include <orc8r/protos/directoryd.pb.h>
@@ -28,7 +29,6 @@
 #include "SpgwServiceClient.h"
 
 namespace magma {
-
 class SessionNotFound : public std::exception {
  public:
   SessionNotFound() = default;
@@ -47,11 +47,12 @@ class LocalEnforcer {
       std::shared_ptr<StaticRuleStore> rule_store, SessionStore& session_store,
       std::shared_ptr<PipelinedClient> pipelined_client,
       std::shared_ptr<AsyncDirectorydClient> directoryd_client,
-      std::shared_ptr<AsyncEventdClient> eventd_client,
+      AsyncEventdClient& eventd_client,
       std::shared_ptr<SpgwServiceClient> spgw_client,
       std::shared_ptr<aaa::AAAClient> aaa_client,
       long session_force_termination_timeout_ms,
-      long quota_exhaustion_termination_on_init_ms);
+      long quota_exhaustion_termination_on_init_ms,
+      magma::mconfig::SessionD mconfig);
 
   void attachEventBase(folly::EventBase* evb);
 
@@ -69,6 +70,13 @@ class LocalEnforcer {
   bool setup(
       SessionMap& session_map, const std::uint64_t& epoch,
       std::function<void(Status status, SetupFlowsResult)> callback);
+
+  /**
+   * Updates rules to be activated/deactivated based on the current time.
+   * Also schedules future rule activation and deactivation callbacks to run
+   * on the event loop.
+   */
+  void sync_sessions_on_restart(std::time_t current_time);
 
   /**
    * Insert a group of rule usage into the monitor and update credit manager
@@ -97,12 +105,11 @@ class LocalEnforcer {
    * Collect any credit keys that are either exhausted, timed out, or terminated
    * and apply actions to the services if need be
    * @param updates_out (out) - vector to add usage updates to, if they exist
-   * @param force_update force updates if revalidation timer expires
    */
   UpdateSessionRequest collect_updates(
       SessionMap& session_map,
       std::vector<std::unique_ptr<ServiceAction>>& actions,
-      SessionUpdate& session_update, const bool force_update = false) const;
+      SessionUpdate& session_update) const;
 
   /**
    * Perform any rule installs/removals that need to be executed given a
@@ -212,10 +219,6 @@ class LocalEnforcer {
       const std::vector<std::unique_ptr<ServiceAction>>& actions,
       SessionUpdate& session_update);
 
-  void set_termination_callback(
-      SessionMap& session_map, const std::string& imsi, const std::string& apn,
-      std::function<void(SessionTerminateRequest)> on_termination_callback);
-
   static uint32_t REDIRECT_FLOW_PRIORITY;
 
  private:
@@ -227,7 +230,7 @@ class LocalEnforcer {
   std::shared_ptr<StaticRuleStore> rule_store_;
   std::shared_ptr<PipelinedClient> pipelined_client_;
   std::shared_ptr<AsyncDirectorydClient> directoryd_client_;
-  std::shared_ptr<AsyncEventdClient> eventd_client_;
+  AsyncEventdClient& eventd_client_;
   std::shared_ptr<SpgwServiceClient> spgw_client_;
   std::shared_ptr<aaa::AAAClient> aaa_client_;
   std::unordered_map<std::string, std::vector<std::unique_ptr<SessionState>>>
@@ -238,6 +241,8 @@ class LocalEnforcer {
   // [CWF-ONLY] This configures how long we should wait before terminating a
   // session after it is created without any monitoring quota
   long quota_exhaustion_termination_on_init_ms_;
+  std::chrono::seconds retry_timeout_;
+  magma::mconfig::SessionD mconfig_;
 
  private:
   /**
@@ -257,16 +262,17 @@ class LocalEnforcer {
   void notify_finish_report_for_sessions(
       SessionMap& session_map, SessionUpdate& session_update);
 
-  /**
-   * Process the create session response to get rules to activate/deactivate
-   * instantly and schedule rules with activation/deactivation time info
-   * to activate/deactivate later. No state change is made.
-   */
-  void process_create_session_response(
-      SessionMap& session_map, const CreateSessionResponse& response,
-      const std::unordered_set<uint32_t>& successful_credits,
-      const std::string& imsi, const std::string& ip_addr,
-      RulesToProcess& rules_to_activate, RulesToProcess& rules_to_deactivate);
+  void filter_rule_installs(
+      std::vector<StaticRuleInstall>& static_rule_installs,
+      std::vector<DynamicRuleInstall>& dynamic_rule_installs,
+      const std::unordered_set<uint32_t>& successful_credits);
+
+  std::vector<StaticRuleInstall> to_vec(
+      const google::protobuf::RepeatedPtrField<magma::lte::StaticRuleInstall>
+          static_rule_installs);
+  std::vector<DynamicRuleInstall> to_vec(
+      const google::protobuf::RepeatedPtrField<magma::lte::DynamicRuleInstall>
+          dynamic_rule_installs);
 
   /**
    * Processes the charging component of UpdateSessionResponse.
@@ -317,12 +323,9 @@ class LocalEnforcer {
    * TODO separate out logic that modifies state vs logic that does not.
    */
   void process_rules_to_install(
-      SessionMap& session_map, const std::string& imsi,
-      const std::unique_ptr<SessionState>& session,
-      const google::protobuf::RepeatedPtrField<magma::lte::StaticRuleInstall>
-          static_rules_to_install,
-      const google::protobuf::RepeatedPtrField<magma::lte::DynamicRuleInstall>
-          dynamic_rules_to_install,
+      SessionState& session, const std::string& imsi,
+      std::vector<StaticRuleInstall> static_rule_installs,
+      std::vector<DynamicRuleInstall> dynamic_rule_installs,
       RulesToProcess& rules_to_activate, RulesToProcess& rules_to_deactivate,
       SessionStateUpdateCriteria& update_criteria);
 
@@ -364,7 +367,7 @@ class LocalEnforcer {
       const std::string& imsi, const StaticRuleInstall& static_rule);
 
   void schedule_dynamic_rule_deactivation(
-      const std::string& imsi, const DynamicRuleInstall& dynamic_rule);
+      const std::string& imsi, DynamicRuleInstall& dynamic_rule);
 
   /**
    * Get the monitoring credits from PolicyReAuthRequest (RAR) message
@@ -391,12 +394,18 @@ class LocalEnforcer {
       const google::protobuf::RepeatedField<int>& event_triggers);
 
   void schedule_revalidation(
-      SessionMap& session_map,
-      const google::protobuf::Timestamp& revalidation_time);
+      const std::string& imsi,
+      SessionState& session,
+      const google::protobuf::Timestamp& revalidation_time,
+      SessionStateUpdateCriteria& update_criteria);
 
-  void check_usage_for_reporting(
-      SessionMap& session_map, SessionUpdate& session_update,
-      const bool force_update = false);
+  void handle_add_ue_mac_flow_callback(
+    const SubscriberID& sid,
+    const std::string& ue_mac_addr,
+    const std::string& msisdn,
+    const std::string& ap_mac_addr,
+    const std::string& ap_name,
+    Status status, FlowResponse resp);
 
   /**
    * Deactivate rules for certain IMSI.
@@ -419,7 +428,9 @@ class LocalEnforcer {
   /**
    * Install flow for redirection through pipelined
    */
-  void install_redirect_flow(const std::unique_ptr<ServiceAction>& action);
+  void install_redirect_flow(
+      const std::unique_ptr<ServiceAction>& action,
+      SessionUpdate &session_update);
 
   bool rules_to_process_is_not_empty(const RulesToProcess& rules_to_process);
 
@@ -437,6 +448,12 @@ class LocalEnforcer {
   void handle_session_init_subscriber_quota_state(
       SessionMap& session_map, const std::string& imsi,
       SessionState& session_state);
+
+  bool is_wallet_exhausted(SessionState& session_state);
+
+  bool terminate_on_wallet_exhaust();
+
+  void schedule_termination(std::unordered_set<std::string>& imsis);
 };
 
 }  // namespace magma

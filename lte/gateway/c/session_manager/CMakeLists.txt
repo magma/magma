@@ -121,6 +121,8 @@ add_library(SESSION_MANAGER
     RedisStoreClient.cpp
     RedisStoreClient.h
     StoreClient.h
+    MeteringReporter.cpp
+    MeteringReporter.h
     ${PROTO_SRCS}
     ${PROTO_HDRS}
     )

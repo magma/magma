@@ -18,7 +18,7 @@ import (
 
 	"github.com/AlekSi/pointer"
 	"github.com/cenkalti/backoff/v4"
-	"github.com/facebookincubator/symphony/graph/graphgrpc"
+	"github.com/facebookincubator/symphony/graph/graphgrpc/schema"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/pkg/ctxgroup"
 	"github.com/golang/protobuf/ptypes/wrappers"
@@ -121,7 +121,7 @@ func (c *client) createTenant() error {
 	if err != nil {
 		return err
 	}
-	_, err = graphgrpc.NewTenantServiceClient(conn).
+	_, err = schema.NewTenantServiceClient(conn).
 		Create(context.Background(), &wrappers.StringValue{Value: c.tenant})
 	switch st, _ := status.FromError(err); st.Code() {
 	case codes.OK, codes.AlreadyExists:
@@ -136,8 +136,8 @@ func (c *client) createOwnerUser() error {
 	if err != nil {
 		return err
 	}
-	_, err = graphgrpc.NewUserServiceClient(conn).
-		Create(context.Background(), &graphgrpc.AddUserInput{Tenant: c.tenant, Id: c.user, IsOwner: true})
+	_, err = schema.NewUserServiceClient(conn).
+		Create(context.Background(), &schema.AddUserInput{Tenant: c.tenant, Id: c.user, IsOwner: true})
 	switch st, _ := status.FromError(err); st.Code() {
 	case codes.OK:
 	default:
@@ -146,14 +146,17 @@ func (c *client) createOwnerUser() error {
 	return nil
 }
 
-type addLocationTypeResponse struct {
-	ID   graphql.ID
-	Name graphql.String
+type locationTypeResponse struct {
+	ID            graphql.ID
+	Name          graphql.String
+	PropertyTypes []struct {
+		ID graphql.ID
+	}
 }
 
-func (c *client) addLocationType(name string, properties ...*models.PropertyTypeInput) (*addLocationTypeResponse, error) {
+func (c *client) addLocationType(name string, properties ...*models.PropertyTypeInput) (*locationTypeResponse, error) {
 	var m struct {
-		Response addLocationTypeResponse `graphql:"addLocationType(input: $input)"`
+		Response locationTypeResponse `graphql:"addLocationType(input: $input)"`
 	}
 	vars := map[string]interface{}{
 		"input": models.AddLocationTypeInput{
@@ -222,6 +225,24 @@ type queryLocationResponse struct {
 			Name graphql.String
 		} `graphql:"locationType"`
 	}
+}
+
+func (c *client) queryLocationType(id graphql.ID) (*locationTypeResponse, error) {
+	var q struct {
+		Node struct {
+			Response locationTypeResponse `graphql:"... on LocationType"`
+		} `graphql:"node(id: $id)"`
+	}
+	vars := map[string]interface{}{
+		"id": id,
+	}
+	switch err := c.client.Query(context.Background(), &q, vars); {
+	case err != nil:
+		return nil, err
+	case q.Node.Response.ID == nil:
+		return nil, errors.New("location type not found")
+	}
+	return &q.Node.Response, nil
 }
 
 func (c *client) queryLocation(id graphql.ID) (*queryLocationResponse, error) {
@@ -607,11 +628,11 @@ func TestViewer(t *testing.T) {
 	var q struct {
 		Viewer struct {
 			Tenant graphql.String
-			Email  graphql.String
+			User   User
 		} `graphql:"me"`
 	}
 	err := c.client.Query(context.Background(), &q, nil)
 	require.NoError(t, err)
 	assert.EqualValues(t, testTenant, q.Viewer.Tenant)
-	assert.EqualValues(t, testUser, q.Viewer.Email)
+	assert.EqualValues(t, testUser, q.Viewer.User.Email)
 }

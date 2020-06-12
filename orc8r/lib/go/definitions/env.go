@@ -10,6 +10,8 @@ package definitions
 
 import "os"
 
+// GetEnvWithDefault returns the string value of the environment variable,
+// defaulting to a specified value if it doesn't exist.
 func GetEnvWithDefault(variable string, defaultValue string) string {
 	value := os.Getenv(variable)
 	if len(value) == 0 {

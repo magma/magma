@@ -9,23 +9,36 @@
  */
 
 import * as React from 'react';
-import FormAlertsContext from '../Form/FormAlertsContext';
 import FormElementContext from './FormElementContext';
 import {joinNullableStrings} from '@fbcnms/util/strings';
-import {useContext, useMemo} from 'react';
+import {useFormAlertsContext} from '../Form/FormAlertsContext';
+import {useMemo} from 'react';
 
-export type PermissionHandlingProps = {|
+export type PermissionHandlingProps = $ReadOnly<{|
   ignorePermissions?: ?boolean,
-  hideOnEditLock?: ?boolean,
-  disableOnFromError?: ?boolean,
-|};
+  hideOnMissingPermissions?: ?boolean,
+|}>;
 
-type Props = {
+export type ErrorHandlingProps = $ReadOnly<{|
+  disableOnFromError?: ?boolean,
+|}>;
+
+export type EditLocksHandlingProps = $ReadOnly<{|
+  ignoreEditLocks?: ?boolean,
+|}>;
+
+export type FormActionProps = $ReadOnly<{|
   children: React.Node,
   disabled?: boolean,
   tooltip?: ?string,
+|}>;
+
+type Props = $ReadOnly<{|
+  ...FormActionProps,
   ...PermissionHandlingProps,
-};
+  ...ErrorHandlingProps,
+  ...EditLocksHandlingProps,
+|}>;
 
 const FormAction = (props: Props) => {
   const {
@@ -33,14 +46,18 @@ const FormAction = (props: Props) => {
     disabled: disabledProp = false,
     tooltip: tooltipProp,
     ignorePermissions = false,
-    hideOnEditLock = true,
+    ignoreEditLocks = false,
+    hideOnMissingPermissions = true,
     disableOnFromError = false,
   } = props;
 
-  const validationContext = useContext(FormAlertsContext);
+  const validationContext = useFormAlertsContext();
+  const missingPermissions =
+    ignorePermissions !== true && validationContext.missingPermissions.detected;
   const edittingLocked =
-    validationContext.editLock.detected && !ignorePermissions;
-  const shouldHide = edittingLocked && hideOnEditLock == true;
+    missingPermissions ||
+    (validationContext.editLock.detected && !ignoreEditLocks);
+  const shouldHide = missingPermissions && hideOnMissingPermissions == true;
   const haveDisablingError =
     validationContext.error.detected && disableOnFromError;
   const disabled: boolean =
@@ -50,13 +67,15 @@ const FormAction = (props: Props) => {
       joinNullableStrings([
         tooltipProp,
         haveDisablingError == true ? validationContext.error.message : null,
-        edittingLocked == true ? validationContext.editLock.message : null,
+        edittingLocked == true
+          ? validationContext.missingPermissions.message
+          : null,
       ]),
     [
       edittingLocked,
       haveDisablingError,
       tooltipProp,
-      validationContext.editLock.message,
+      validationContext.missingPermissions.message,
       validationContext.error.message,
     ],
   );

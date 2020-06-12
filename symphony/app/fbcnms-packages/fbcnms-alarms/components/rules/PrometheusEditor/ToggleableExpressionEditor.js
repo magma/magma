@@ -20,19 +20,22 @@ import MenuItem from '@material-ui/core/MenuItem';
 import RemoveCircleIcon from '@material-ui/icons/RemoveCircle';
 import Select from '@material-ui/core/Select';
 import Switch from '@material-ui/core/Switch';
-import Text from '@fbcnms/ui/components/design-system/Text';
 import TextField from '@material-ui/core/TextField';
 import ToggleButton from '@material-ui/lab/ToggleButton';
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
 import Tooltip from '@material-ui/core/Tooltip';
+import Typography from '@material-ui/core/Typography';
+import useRouter from '../../../hooks/useRouter';
 import {groupBy} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from '../../AlarmContext';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
-import {useRouter} from '@fbcnms/ui/hooks/index';
+import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 
 import type {InputChangeFunc} from './PrometheusEditor';
-import type {prometheus_labelset} from '@fbcnms/magma-api';
+
+type prometheus_labelset = {
+  [string]: string,
+};
 
 const useStyles = makeStyles(theme => ({
   button: {
@@ -91,7 +94,9 @@ export default function ToggleableExpressionEditor(props: {
     networkId: match.params.networkId,
   });
   if (error) {
-    enqueueSnackbar('Error retrieving metrics: ' + error);
+    enqueueSnackbar('Error retrieving metrics: ' + error, {
+      variant: 'error',
+    });
   }
   const metricsByName = groupBy(response, '__name__');
 
@@ -173,11 +178,11 @@ function ThresholdExpressionEditor(props: {
     <>
       <Grid container spacing={2} alignItems="center">
         <Grid item>
-          <Text>IF</Text>
+          <Typography variant="body2">IF</Typography>
         </Grid>
         <Grid item>{metricSelector}</Grid>
         <Grid item>
-          <Text>IS</Text>
+          <Typography variant="body2">IS</Typography>
         </Grid>
         <Grid item>
           <ToggleButtonGroup

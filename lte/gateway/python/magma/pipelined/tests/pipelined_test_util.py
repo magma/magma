@@ -121,6 +121,8 @@ class FlowVerifier:
         """
         for f, i, test in zip(self._final, self._initial, self._flow_tests):
             if test.flow_count is not None:
+                print(f)
+                print(test)
                 TestCase().assertEqual(f.flow_count, test.flow_count)
             TestCase().assertEqual(f.pkts, i.pkts + test.match_num)
 
@@ -294,6 +296,7 @@ def wait_for_enforcement_stats(controller, rule_list, wait_time=1,
     while not all(stats_reported[rule] for rule in rule_list):
         hub.sleep(wait_time)
         for reported_stats in controller._report_usage.call_args_list:
+            #logging.error(reported_stats)
             stats = reported_stats[0][0]
             for rule in rule_list:
                 if rule in stats:
@@ -462,7 +465,8 @@ class SnapshotVerifier:
 
     def __init__(self, test_case: TestCase, bridge_name: str,
                  service_manager: ServiceManager,
-                 snapshot_name: Optional[str] = None):
+                 snapshot_name: Optional[str] = None,
+                 include_stats: bool = True):
         """
         These arguments are used to call assert_bridge_snapshot_match on exit.
 
@@ -478,6 +482,7 @@ class SnapshotVerifier:
         self._bridge_name = bridge_name
         self._service_manager = service_manager
         self._snapshot_name = snapshot_name
+        self._include_stats = include_stats
 
     def __enter__(self):
         pass
@@ -492,4 +497,4 @@ class SnapshotVerifier:
             TestCase().fail(e)
         assert_bridge_snapshot_match(self._test_case, self._bridge_name,
                                      self._service_manager,
-                                     self._snapshot_name)
+                                     self._snapshot_name, self._include_stats)

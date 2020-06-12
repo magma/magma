@@ -9,11 +9,11 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/ent/equipmentpositiondefinition"
-	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
-	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
+	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/ent/equipmentpositiondefinition"
+	"github.com/facebookincubator/symphony/pkg/ent/propertytype"
+	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
 
 	"github.com/AlekSi/pointer"
 	"github.com/stretchr/testify/assert"
@@ -22,7 +22,7 @@ import (
 
 func TestAddEquipmentTypesSameName(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr := r.Mutation()
@@ -39,7 +39,7 @@ func TestAddEquipmentTypesSameName(t *testing.T) {
 
 func TestQueryEquipmentTypes(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
@@ -72,7 +72,7 @@ func TestQueryEquipmentTypes(t *testing.T) {
 
 func TestAddEquipmentTypeWithPositions(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
@@ -96,7 +96,7 @@ func TestAddEquipmentTypeWithPositions(t *testing.T) {
 
 func TestAddEquipmentTypeWithProperties(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr, etr := r.Mutation(), r.Query(), r.EquipmentType()
 	extID := "12345"
@@ -127,7 +127,7 @@ func TestAddEquipmentTypeWithProperties(t *testing.T) {
 
 func TestAddEquipmentTypeWithoutPositionNames(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr := r.Mutation()
@@ -142,7 +142,7 @@ func TestAddEquipmentTypeWithoutPositionNames(t *testing.T) {
 
 func TestAddEquipmentTypeWithPorts(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
@@ -173,7 +173,7 @@ func TestAddEquipmentTypeWithPorts(t *testing.T) {
 
 func TestRemoveEquipmentTypeWithExistingEquipments(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
@@ -210,7 +210,7 @@ func TestRemoveEquipmentTypeWithExistingEquipments(t *testing.T) {
 
 func TestRemoveEquipmentType(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr, qr := r.Mutation(), r.Query()
@@ -249,7 +249,7 @@ func TestRemoveEquipmentType(t *testing.T) {
 
 func TestEditEquipmentType(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
@@ -294,7 +294,7 @@ func TestEditEquipmentType(t *testing.T) {
 
 func TestEditEquipmentTypeRemoveCategory(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr := r.Mutation()
@@ -319,7 +319,7 @@ func TestEditEquipmentTypeRemoveCategory(t *testing.T) {
 
 func TestEditEquipmentTypeWithProperties(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr := r.Mutation()
@@ -380,7 +380,7 @@ func TestEditEquipmentTypeWithProperties(t *testing.T) {
 
 func TestEditEquipmentTypeWithPortsAndPositions(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	mr := r.Mutation()

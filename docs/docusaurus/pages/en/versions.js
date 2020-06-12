@@ -43,14 +43,14 @@ function Versions(props) {
                   </a>
                 </td>
                 <td>
-                  <a href={`${repoUrl}/releases/tag/v1.0.1`}>Release Notes</a>
+                  <a href={`${repoUrl}/releases/tag/v1.1.0`}>Release Notes</a>
                 </td>
               </tr>
             </tbody>
           </table>
           <p>
-            1.0.1 is a hotfix release for the 1.0.0 stable release. See the
-            linked release notes for the issues addressed in this release.
+            1.1.0 is a new feature release. See the linked release notes for
+            the new features introduced in this release.
           </p>
           <h3 id="rc">Pre-release versions</h3>
           <table className="versions">
@@ -93,7 +93,7 @@ function Versions(props) {
                         <a
                           href={`${siteConfig.baseUrl}${siteConfig.docsUrl}/${
                             props.language ? props.language + '/' : ''
-                          }${version}/doc1`}>
+                          }${version}/basics/introduction.html`}>
                           Documentation
                         </a>
                       </td>

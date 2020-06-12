@@ -12,6 +12,7 @@ and the config/mconfig for the service.
 """
 
 import logging
+import os
 
 from generate_service_config import generate_template_config
 from magma.configuration import load_service_config
@@ -49,6 +50,11 @@ def main():
         'throttle_interval': mc.throttle_interval or '1m',
         'files': mc.files_by_tag.items(),
     }
+    if certfile and os.path.exists(certfile):
+        context['is_tls_enabled'] = True
+    else:
+        context['is_tls_enabled'] = False
+
     generate_template_config(
         'td-agent-bit', 'td-agent-bit', CONFIG_OVERRIDE_DIR, context.copy()
     )

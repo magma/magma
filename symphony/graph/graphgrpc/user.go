@@ -7,14 +7,17 @@ package graphgrpc
 import (
 	"context"
 
-	"github.com/facebookincubator/symphony/graph/authz"
-	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/ent/user"
+	"github.com/facebookincubator/symphony/graph/graphgrpc/schema"
+	"github.com/facebookincubator/symphony/pkg/authz"
+	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/ent/user"
 
 	"github.com/golang/protobuf/ptypes/empty"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
+
+const UserServiceName = "UserService"
 
 type (
 	// UserService is a user service.
@@ -40,7 +43,7 @@ func (s UserService) createWriteGroup(ctx context.Context, client *ent.Client) e
 }
 
 // Create a user by authID, tenantID and required role.
-func (s UserService) Create(ctx context.Context, input *AddUserInput) (*User, error) {
+func (s UserService) Create(ctx context.Context, input *schema.AddUserInput) (*schema.User, error) {
 	if input.Tenant == "" {
 		return nil, status.Error(codes.InvalidArgument, "missing tenant")
 	}
@@ -57,7 +60,10 @@ func (s UserService) Create(ctx context.Context, input *AddUserInput) (*User, er
 	if input.IsOwner {
 		role = user.RoleOWNER
 	}
-
+	ctx, err = CreateServiceContext(ctx, input.Tenant, UserServiceName, user.RoleADMIN)
+	if err != nil {
+		return nil, status.FromContextError(err).Err()
+	}
 	u, err := client.User.Query().Where(user.AuthID(input.Id)).Only(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
@@ -76,11 +82,11 @@ func (s UserService) Create(ctx context.Context, input *AddUserInput) (*User, er
 		return nil, status.FromContextError(err).Err()
 	}
 
-	return &User{Id: int64(u.ID)}, nil
+	return &schema.User{Id: int64(u.ID)}, nil
 }
 
 // Delete a user by authID and tenantID.
-func (s UserService) Delete(ctx context.Context, input *UserInput) (*empty.Empty, error) {
+func (s UserService) Delete(ctx context.Context, input *schema.UserInput) (*empty.Empty, error) {
 	if input.Tenant == "" {
 		return nil, status.Error(codes.InvalidArgument, "missing tenant")
 	}
@@ -93,6 +99,10 @@ func (s UserService) Delete(ctx context.Context, input *UserInput) (*empty.Empty
 		return nil, status.FromContextError(err).Err()
 	}
 
+	ctx, err = CreateServiceContext(ctx, input.Tenant, UserServiceName, user.RoleADMIN)
+	if err != nil {
+		return nil, status.FromContextError(err).Err()
+	}
 	u, err := client.User.Query().Where(user.AuthID(input.Id)).Only(ctx)
 	if err != nil {
 		return nil, status.FromContextError(err).Err()

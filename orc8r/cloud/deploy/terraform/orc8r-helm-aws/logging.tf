@@ -14,8 +14,8 @@ resource "helm_release" "fluentd" {
   count = var.elasticsearch_endpoint == null ? 0 : 1
 
   name       = "fluentd"
-  namespace  = var.orc8r_kubernetes_namespace
-  repository = data.helm_repository.stable.id
+  namespace  = kubernetes_namespace.orc8r.metadata[0].name
+  repository = local.stable_helm_repo
   chart      = "fluentd"
   version    = "2.3.2"
   keyring    = ""
@@ -96,7 +96,7 @@ resource "helm_release" "elasticsearch_curator" {
   count = var.elasticsearch_endpoint == null ? 0 : 1
 
   name       = "elasticsearch-curator"
-  repository = data.helm_repository.stable.id
+  repository = local.stable_helm_repo
   chart      = "elasticsearch-curator"
   namespace  = "monitoring"
   version    = "2.1.3"

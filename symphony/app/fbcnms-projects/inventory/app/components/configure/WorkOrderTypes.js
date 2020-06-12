@@ -8,40 +8,31 @@
  * @format
  */
 
-import type {AddEditWorkOrderTypeCard_editingWorkOrderType} from './__generated__/AddEditWorkOrderTypeCard_editingWorkOrderType.graphql';
-import type {ContextRouter} from 'react-router-dom';
-import type {EditWorkOrderTypeMutationResponse} from '../../mutations/__generated__/EditWorkOrderTypeMutation.graphql';
-import type {WithStyles} from '@material-ui/core';
+import type {
+  WorkOrderTypesQuery,
+  WorkOrderTypesQueryResponse,
+} from './__generated__/WorkOrderTypesQuery.graphql';
 
 import AddEditWorkOrderTypeCard from './AddEditWorkOrderTypeCard';
 import Button from '@fbcnms/ui/components/design-system/Button';
-import InventoryQueryRenderer from '../InventoryQueryRenderer';
+import FormActionWithPermissions from '../../common/FormActionWithPermissions';
 import InventoryView from '../InventoryViewContainer';
-import React from 'react';
+import React, {useMemo, useState} from 'react';
 import Table from '@fbcnms/ui/components/design-system/Table/Table';
 import fbt from 'fbt';
 import withInventoryErrorBoundary from '../../common/withInventoryErrorBoundary';
-import {ButtonAction} from '@fbcnms/ui/components/design-system/View/ViewHeaderActions';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
+import {TABLE_SORT_ORDER} from '@fbcnms/ui/components/design-system/Table/TableContext';
 import {graphql} from 'relay-runtime';
-import {sortLexicographically} from '@fbcnms/ui/utils/displayUtils';
-import {withRouter} from 'react-router-dom';
-import {withStyles} from '@material-ui/core/styles';
+import {makeStyles} from '@material-ui/styles';
+import {useLazyLoadQuery} from 'react-relay/hooks';
 
-const styles = () => ({
+const useStyles = makeStyles(() => ({
   paper: {
     flexGrow: 1,
     overflowY: 'hidden',
   },
-});
-
-type Props = ContextRouter & WithStyles<typeof styles> & {};
-
-type State = {
-  dialogKey: number,
-  showAddEditCard: boolean,
-  editingWorkOrderType: ?AddEditWorkOrderTypeCard_editingWorkOrderType,
-};
+}));
 
 const workOrderTypesQuery = graphql`
   query WorkOrderTypesQuery {
@@ -51,122 +42,125 @@ const workOrderTypesQuery = graphql`
           id
           name
           description
-          ...AddEditWorkOrderTypeCard_editingWorkOrderType
+          ...AddEditWorkOrderTypeCard_workOrderType
         }
       }
     }
   }
 `;
 
-class WorkOrderTypes extends React.Component<Props, State> {
-  state = {
-    dialogKey: 1,
-    showAddEditCard: false,
-    editingWorkOrderType: null,
+type WorkOrderTypeEdge = $ElementType<
+  $ElementType<
+    $NonMaybeType<$ElementType<WorkOrderTypesQueryResponse, 'workOrderTypes'>>,
+    'edges',
+  >,
+  number,
+>;
+
+type WorkOrderTypeNode = $NonMaybeType<$ElementType<WorkOrderTypeEdge, 'node'>>;
+
+const WorkOrderTypes = () => {
+  const classes = useStyles();
+  const {
+    workOrderTypes,
+  }: WorkOrderTypesQueryResponse = useLazyLoadQuery<WorkOrderTypesQuery>(
+    workOrderTypesQuery,
+  );
+  const [dialogKey, setDialogKey] = useState(0);
+  const [showAddEditCard, setShowAddEditCard] = useState(false);
+  const [
+    editingWorkOrderType,
+    setEditingWorkOrderType,
+  ] = useState<?WorkOrderTypeNode>(null);
+
+  const tableData: Array<WorkOrderTypeNode> = useMemo(
+    () =>
+      (workOrderTypes?.edges ?? [])
+        .map((edge: WorkOrderTypeEdge) => edge.node)
+        .filter(Boolean),
+    [workOrderTypes],
+  );
+
+  const onClose = () => {
+    setEditingWorkOrderType(null);
+    setDialogKey(key => key + 1);
+    setShowAddEditCard(false);
   };
 
-  render() {
-    const {classes} = this.props;
-    const {showAddEditCard, editingWorkOrderType} = this.state;
+  const saveWorkOrder = () => {
+    ServerLogger.info(LogEvents.SAVE_WORK_ORDER_TYPE_BUTTON_CLICKED);
+    onClose();
+  };
+
+  const showAddEditWorkOrderTypeCard = (woType: ?WorkOrderTypeNode) => {
+    ServerLogger.info(LogEvents.ADD_WORK_ORDER_TYPE_BUTTON_CLICKED);
+    setEditingWorkOrderType(woType);
+    setShowAddEditCard(true);
+  };
+
+  if (showAddEditCard) {
     return (
-      <InventoryQueryRenderer
-        query={workOrderTypesQuery}
-        variables={{}}
-        render={props => {
-          const {workOrderTypes} = props;
-          if (showAddEditCard) {
-            return (
-              <div className={classes.paper}>
-                <AddEditWorkOrderTypeCard
-                  key={'new_work_order_type@' + this.state.dialogKey}
-                  open={showAddEditCard}
-                  onClose={this.hideAddEditWorkOrderTypeCard}
-                  onSave={this.saveWorkOrder}
-                  editingWorkOrderType={editingWorkOrderType}
-                />
-              </div>
-            );
-          }
-          return (
-            <InventoryView
-              header={{
-                title: <fbt desc="">Work Order Templates</fbt>,
-                subtitle: (
-                  <fbt desc="">Create and manage reusable work orders.</fbt>
-                ),
-                actionButtons: [
-                  <ButtonAction
-                    action={() => this.showAddEditWorkOrderTypeCard(null)}>
-                    <fbt desc="">Create Work Order Template</fbt>
-                  </ButtonAction>,
-                ],
-              }}>
-              <Table
-                className={classes.table}
-                data={workOrderTypes.edges
-                  .map(edge => edge.node)
-                  .sort((woTypeA, woTypeB) =>
-                    sortLexicographically(woTypeA.name, woTypeB.name),
-                  )}
-                columns={[
-                  {
-                    key: 'name',
-                    title: 'Work order template',
-                    render: row => (
-                      <Button
-                        useEllipsis={true}
-                        variant="text"
-                        onClick={() => this.showAddEditWorkOrderTypeCard(row)}>
-                        {row.name}
-                      </Button>
-                    ),
-                  },
-                  {
-                    key: 'description',
-                    title: 'Description',
-                    render: row => row.description,
-                  },
-                ]}
-              />
-            </InventoryView>
-          );
-        }}
-      />
+      <div className={classes.paper}>
+        <AddEditWorkOrderTypeCard
+          key={'new_work_order_type@' + dialogKey}
+          open={showAddEditCard}
+          onClose={onClose}
+          onSave={saveWorkOrder}
+          workOrderType={editingWorkOrderType}
+        />
+      </div>
     );
   }
+  return (
+    <InventoryView
+      header={{
+        title: <fbt desc="">Work Order Templates</fbt>,
+        subtitle: <fbt desc="">Create and manage reusable work orders.</fbt>,
+        actionButtons: [
+          <FormActionWithPermissions
+            permissions={{
+              entity: 'workorderTemplate',
+              action: 'create',
+            }}>
+            <Button onClick={() => showAddEditWorkOrderTypeCard(null)}>
+              <fbt desc="">Create Work Order Template</fbt>
+            </Button>
+            ,
+          </FormActionWithPermissions>,
+        ],
+      }}
+      permissions={{
+        entity: 'workorderTemplate',
+      }}>
+      <Table
+        data={tableData}
+        columns={[
+          {
+            key: 'name',
+            title: 'Work order template',
+            render: (row: WorkOrderTypeNode) => (
+              <Button
+                useEllipsis={true}
+                variant="text"
+                onClick={() => showAddEditWorkOrderTypeCard(row)}>
+                {row.name}
+              </Button>
+            ),
+            getSortingValue: (row: WorkOrderTypeNode) => row.name,
+          },
+          {
+            key: 'description',
+            title: 'Description',
+            render: (row: WorkOrderTypeNode) => row.description ?? '',
+          },
+        ]}
+        sortSettings={{
+          columnKey: 'name',
+          order: TABLE_SORT_ORDER.ascending,
+        }}
+      />
+    </InventoryView>
+  );
+};
 
-  showAddEditWorkOrderTypeCard = (
-    woType: ?AddEditWorkOrderTypeCard_editingWorkOrderType,
-  ) => {
-    ServerLogger.info(LogEvents.ADD_WORK_ORDER_TYPE_BUTTON_CLICKED);
-    this.setState({editingWorkOrderType: woType, showAddEditCard: true});
-  };
-
-  hideAddEditWorkOrderTypeCard = () =>
-    this.setState(prevState => ({
-      editingWorkOrderType: null,
-      showAddEditCard: false,
-      dialogKey: prevState.dialogKey + 1,
-    }));
-
-  saveWorkOrder = (
-    workOrderType: $PropertyType<
-      EditWorkOrderTypeMutationResponse,
-      'editWorkOrderType',
-    >,
-  ) => {
-    ServerLogger.info(LogEvents.SAVE_WORK_ORDER_TYPE_BUTTON_CLICKED);
-    this.setState(prevState => {
-      if (workOrderType) {
-        return {
-          dialogKey: prevState.dialogKey + 1,
-          showAddEditCard: false,
-        };
-      }
-    });
-  };
-}
-
-export default withStyles(styles)(
-  withRouter(withInventoryErrorBoundary(WorkOrderTypes)),
-);
+export default withInventoryErrorBoundary(WorkOrderTypes);

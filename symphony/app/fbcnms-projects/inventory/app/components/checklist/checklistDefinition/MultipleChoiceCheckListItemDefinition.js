@@ -49,7 +49,7 @@ const MultipleChoiceCheckListItemDefinition = ({
       <div className={classes.root}>
         <Select
           className={classes.select}
-          disabled={form.alerts.editLock.detected}
+          disabled={form.alerts.missingPermissions.detected}
           options={[
             {
               key: 'single',
@@ -79,7 +79,7 @@ const MultipleChoiceCheckListItemDefinition = ({
         <Tokenizer
           className={classes.tokenizer}
           placeholder={`${fbt('Press Enter after each value', '')}`}
-          disabled={form.alerts.editLock.detected}
+          disabled={form.alerts.missingPermissions.detected}
           searchSource="UserInput"
           tokens={enumStringToArray(item.enumValues).map(value => ({
             label: value,

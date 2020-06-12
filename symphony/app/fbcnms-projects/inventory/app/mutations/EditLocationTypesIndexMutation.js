@@ -8,8 +8,6 @@
  * @format
  */
 
-import RelayEnvironment from '../common/RelayEnvironment.js';
-import {commitMutation, graphql} from 'react-relay';
 import type {
   EditLocationTypesIndexMutation,
   EditLocationTypesIndexMutationResponse,
@@ -17,6 +15,10 @@ import type {
 } from './__generated__/EditLocationTypesIndexMutation.graphql';
 import type {MutationCallbacks} from './MutationCallbacks.js';
 import type {SelectorStoreUpdater} from 'relay-runtime';
+
+import RelayEnvironment from '../common/RelayEnvironment.js';
+import {commitMutation, graphql} from 'react-relay';
+import {getGraphError} from '../common/EntUtils';
 
 export const mutation = graphql`
   mutation EditLocationTypesIndexMutation(
@@ -32,7 +34,32 @@ export const mutation = graphql`
   }
 `;
 
-export default (
+export const saveLocationTypeIndexes = (
+  input: $ReadOnlyArray<{|
+    locationTypeID: string,
+    index: number,
+  |}>,
+): Promise<EditLocationTypesIndexMutationResponse> => {
+  const variables: EditLocationTypesIndexMutationVariables = {
+    locationTypeIndex: input,
+  };
+
+  return new Promise((resolve, reject) => {
+    const callbacks: MutationCallbacks<EditLocationTypesIndexMutationResponse> = {
+      onCompleted: (response, errors) => {
+        if (errors && errors[0]) {
+          return reject(getGraphError(errors[0]));
+        } else {
+          resolve(response);
+        }
+      },
+      onError: (error: Error) => reject(getGraphError(error)),
+    };
+    CommitEditLocationTypesIndexMutation(variables, callbacks);
+  });
+};
+
+const CommitEditLocationTypesIndexMutation = (
   variables: EditLocationTypesIndexMutationVariables,
   callbacks?: MutationCallbacks<EditLocationTypesIndexMutationResponse>,
   updater?: SelectorStoreUpdater,
@@ -46,3 +73,5 @@ export default (
     onError,
   });
 };
+
+export default CommitEditLocationTypesIndexMutation;

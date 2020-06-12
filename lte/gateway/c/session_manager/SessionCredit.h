@@ -117,6 +117,11 @@ public:
   bool is_reporting() const;
 
   /**
+   * Returns true if service is being redirected
+   */
+  bool is_service_redirected() const;
+
+  /**
    * Helper function to get the credit in a particular bucket
    */
   uint64_t get_credit(Bucket bucket) const;
@@ -137,8 +142,9 @@ public:
    * NOTE: Use only for merging updates into SessionStore
    * @param is_final_grant
    */
-  void set_is_final_grant(bool is_final_grant,
-                          SessionCreditUpdateCriteria &update_criteria);
+  void set_is_final_grant_and_final_action(
+      bool is_final_grant, FinalActionInfo final_action_info,
+      SessionCreditUpdateCriteria& update_criteria);
 
   /**
    * Set ReAuthState.
@@ -184,13 +190,6 @@ public:
   static float USAGE_REPORTING_THRESHOLD;
 
   /**
-   * Extra number of bytes an user could use after the quota is exhausted.
-   * Session manager will deactivate the service when
-   * used quota >= (granted quota + EXTRA_QUOTA_MARGIN)
-   */
-  static uint64_t EXTRA_QUOTA_MARGIN;
-
-  /**
    * Set to true to terminate service when the quota of a session is exhausted.
    * An user can still use up to the extra margin.
    * Set to false to allow users to use without any constraint.
@@ -211,7 +210,6 @@ private:
    * session manager from reporting more usage than granted
    */
   uint64_t usage_reporting_limit_;
-  static const std::set<uint32_t> transient_result_codes_;
   CreditType credit_type_;
 
 private:
@@ -225,17 +223,12 @@ private:
    * SessionUpdate.
    * We mark quota as exhausted if usage_reporting_threshold * available quota
    * is reached. (so the default is 100% of quota)
-   * We will also add a extra_quota_margin on to the available quota if it is
-   * specified.
    * Check if the session has exhausted its quota granted since the last report.
    *
    * @param usage_reporting_threshold
-   * @param extra_quota_margin Extra bytes of usage allowable before quota
-   *        is exhausted.
    * @return true if quota is exhausted for the session
    */
-  bool is_quota_exhausted(float usage_reporting_threshold = 1,
-                          uint64_t extra_quota_margin = 0) const;
+  bool is_quota_exhausted(float usage_reporting_threshold = 1) const;
 
   void log_quota_and_usage() const;
 

@@ -6,23 +6,13 @@
 # LICENSE file in the root directory of this source tree.
 ################################################################################
 
-# stable helm repository
-data "helm_repository" "stable" {
-  name = "stable"
-  url  = "https://kubernetes-charts.storage.googleapis.com"
-}
-
-# incubator helm repository
-data "helm_repository" "incubator" {
-  name = "incubator"
-  url  = "http://storage.googleapis.com/kubernetes-charts-incubator"
-}
-
 # helm tiller service account
 resource "kubernetes_service_account" "tiller" {
+  count = var.existing_tiller_service_account_name == null ? 1 : 0
+
   metadata {
     name      = "tiller"
-    namespace = "kube-system"
+    namespace = var.tiller_namespace
   }
 
   automount_service_account_token = true
@@ -30,6 +20,8 @@ resource "kubernetes_service_account" "tiller" {
 
 # helm tiller cluster role
 resource "kubernetes_cluster_role_binding" "tiller" {
+  count = var.existing_tiller_service_account_name == null ? 1 : 0
+
   metadata {
     name = "tiller"
   }
@@ -44,6 +36,6 @@ resource "kubernetes_cluster_role_binding" "tiller" {
     kind      = "ServiceAccount"
     name      = "tiller"
     api_group = ""
-    namespace = "kube-system"
+    namespace = var.tiller_namespace
   }
 }

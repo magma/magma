@@ -18,9 +18,10 @@ import SlackConfigEditor from './SlackConfigEditor';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 import WebhookConfigEditor from './WebhookConfigEditor';
+import useForm from '../../../hooks/useForm';
+import useRouter from '../../../hooks/useRouter';
 import {useAlarmContext} from '../../AlarmContext';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
-import {useForm, useRouter} from '@fbcnms/ui/hooks';
+import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 
 import type {
   AlertReceiver,

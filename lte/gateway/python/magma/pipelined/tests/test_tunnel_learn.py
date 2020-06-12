@@ -69,9 +69,10 @@ class TunnelLearnTest(unittest.TestCase):
                 'allow_unknown_arps': False,
                 'bridge_name': cls.BRIDGE,
                 'bridge_ip_address': cls.BRIDGE_IP,
+                'internal_ip_subnet': '192.168.0.0/16',
                 'nat_iface': 'eth2',
                 'enodeb_iface': 'eth1',
-                'enable_queue_pgm': False,
+                'qos': {'enable': False},
                 'clean_restart': True,
                 'access_control': {
                     'ip_blacklist': [

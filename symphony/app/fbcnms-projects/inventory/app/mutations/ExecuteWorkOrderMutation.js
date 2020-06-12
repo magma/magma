@@ -22,7 +22,7 @@ const mutation = graphql`
   mutation ExecuteWorkOrderMutation($id: ID!) {
     executeWorkOrder(id: $id) {
       equipmentAdded {
-        ...EquipmentTable_equipment
+        ...EquipmentTable_equipments
       }
       equipmentRemoved
       linkAdded {

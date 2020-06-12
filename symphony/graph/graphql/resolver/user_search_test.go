@@ -10,10 +10,10 @@ import (
 
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
 
-	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
-	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
+	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/ent/user"
+	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
 	"github.com/stretchr/testify/require"
 )
 
@@ -94,7 +94,7 @@ func searchByName(
 
 func TestSearchUsersByName(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	qr := r.Query()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	prepareUserData(ctx)

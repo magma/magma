@@ -8,10 +8,12 @@
  * @format
  */
 
-import type {PermissionHandlingProps} from '../Form/FormAction';
+import type {
+  ErrorHandlingProps,
+  PermissionHandlingProps,
+} from '../Form/FormAction';
 
 import * as React from 'react';
-import CheckIcon from '@material-ui/icons/Check';
 import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import FormElementContext from '@fbcnms/ui/components/design-system/Form/FormElementContext';
 import Text from '../Text';
@@ -23,15 +25,21 @@ const useStyles = makeStyles(() => ({
   option: {
     display: 'flex',
     alignItems: 'center',
-    padding: '6px 16px',
+    padding: '8px 16px',
     cursor: 'pointer',
-    whiteSpace: 'nowrap',
     '&:not($disabled)&:hover': {
-      backgroundColor: symphony.palette.B50,
+      backgroundColor: symphony.palette.background,
+    },
+    '&$optionWithLeftAux': {
+      paddingLeft: '12px',
+      paddingTop: '6px',
+      paddingBottom: '6px',
     },
   },
+  optionWithLeftAux: {},
   disabled: {
-    opacity: 0.5,
+    opacity: 0.38,
+    cursor: 'not-allowed',
   },
   label: {
     flexGrow: 1,
@@ -40,48 +48,104 @@ const useStyles = makeStyles(() => ({
     marginLeft: '6px',
     color: symphony.palette.primary,
   },
+  leftAux: {
+    display: 'inline-flex',
+    marginRight: '8px',
+  },
+  contentContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+  },
 }));
 
-type Props<TValue> = {|
+export type MenuItemLeftAux = $ReadOnly<
+  | {|
+      type: 'icon',
+      icon: React$ComponentType<SvgIconExports>,
+    |}
+  | {
+      type: 'node',
+      node: React.Node,
+    },
+>;
+
+export type SelectMenuItemBaseProps<TValue> = $ReadOnly<{|
   label: React.Node,
   value: TValue,
-  onClick: (value: TValue) => void,
   isSelected?: boolean,
   className?: ?string,
+  leftAux?: MenuItemLeftAux,
+  secondaryText?: React.Node,
+  disabled?: boolean,
+  skin?: 'regular' | 'red',
   ...PermissionHandlingProps,
-|};
+  ...ErrorHandlingProps,
+|}>;
+
+type Props<TValue> = $ReadOnly<{|
+  ...SelectMenuItemBaseProps<TValue>,
+  onClick: (value: TValue) => void,
+|}>;
 
 const SelectMenuItem = <TValue>({
   label,
   value,
   onClick,
   isSelected = false,
-  hideOnEditLock = false,
+  hideOnMissingPermissions = false,
   className,
-  ...permissionHandlingProps
+  leftAux,
+  secondaryText,
+  skin = 'regular',
+  disabled: disabledProp = false,
+  ...actionProps
 }: Props<TValue>) => {
   const classes = useStyles();
+  const LeftIcon = leftAux?.type === 'icon' ? leftAux.icon : null;
+  const coercedSkin = disabledProp
+    ? 'regular'
+    : skin === 'red'
+    ? 'error'
+    : skin;
   return (
-    <FormAction {...permissionHandlingProps} hideOnEditLock={hideOnEditLock}>
+    <FormAction
+      {...actionProps}
+      disabled={disabledProp}
+      hideOnMissingPermissions={hideOnMissingPermissions}>
       <FormElementContext.Consumer>
-        {context => {
-          const disabled = context.disabled;
+        {({disabled}) => {
           return (
             <div
               className={classNames(classes.option, className, {
                 [classes.disabled]: disabled,
+                [classes.optionWithLeftAux]: leftAux != null,
               })}
               onClick={disabled ? null : () => onClick(value)}>
-              {typeof label === 'string' ? (
-                <Text className={classes.label} variant="body2">
+              {leftAux != null && (
+                <div className={classes.leftAux}>
+                  {leftAux.type === 'icon'
+                    ? LeftIcon != null && (
+                        <LeftIcon
+                          color={isSelected ? 'primary' : coercedSkin}
+                          size="small"
+                        />
+                      )
+                    : leftAux.node}
+                </div>
+              )}
+              <div className={classes.contentContainer}>
+                <Text
+                  className={classes.label}
+                  variant="body2"
+                  color={isSelected ? 'primary' : coercedSkin}>
                   {label}
                 </Text>
-              ) : (
-                label
-              )}
-              {isSelected && (
-                <CheckIcon className={classes.checkIcon} fontSize="small" />
-              )}
+                {secondaryText != null && (
+                  <Text color="gray" variant="caption">
+                    {secondaryText}
+                  </Text>
+                )}
+              </div>
             </div>
           );
         }}

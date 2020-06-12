@@ -1,0 +1,35 @@
+---
+#
+# Copyright (c) 2016-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+
+# nghttpx config will be generated here and used
+nghttpx_config_location: /var/tmp/nghttpx.conf
+
+# Location for certs
+rootca_cert: /etc/magma/certs/rootCA.pem
+gateway_cert: /etc/magma/certs/gateway.crt
+gateway_key: /etc/magma/certs/gateway.key
+
+# Listening port of the proxy for local services. The port would be closed
+# for the rest of the world.
+local_port: 8443
+
+# Cloud address for reaching out to the cloud.
+cloud_address: {{.ControllerAddr}}
+cloud_port: 443
+
+# Address for reaching out to the cloud's bootstrapper.
+bootstrap_address: {{.BootstrapperAddr}}
+bootstrap_port: 443
+
+# Option to use nghttpx for proxying. If disabled, the individual
+# services would establish the TLS connections themselves.
+proxy_cloud_connections: False
+
+# Allows http_proxy usage if the environment variable is present
+allow_http_proxy: False

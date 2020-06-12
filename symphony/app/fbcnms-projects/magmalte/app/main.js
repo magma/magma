@@ -12,16 +12,20 @@
 import '@fbcnms/babel-register/polyfill';
 
 import Main from './components/Main';
+import MomentUtils from '@date-io/moment';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import nullthrows from '@fbcnms/util/nullthrows';
 import {BrowserRouter} from 'react-router-dom';
+import {MuiPickersUtilsProvider} from '@material-ui/pickers';
 
 import {} from './common/axiosConfig';
 
 ReactDOM.render(
   <BrowserRouter>
-    <Main />
+    <MuiPickersUtilsProvider utils={MomentUtils}>
+      <Main />
+    </MuiPickersUtilsProvider>
   </BrowserRouter>,
   nullthrows(document.getElementById('root')),
 );

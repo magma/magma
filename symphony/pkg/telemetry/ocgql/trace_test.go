@@ -106,6 +106,18 @@ func (s *tracerTestSuite) TestWithoutSampling() {
 	s.Assert().False(ok)
 }
 
+func (s *tracerTestSuite) TestNamedOperation() {
+	const op = "test"
+	err := s.post("query { name }",
+		client.Operation(op),
+	)
+	s.Assert().Error(err)
+
+	span, ok := s.spans[op]
+	s.Assert().True(ok)
+	s.Assert().EqualValues(trace.StatusCodeUnknown, span.Code)
+}
+
 func (s *tracerTestSuite) TestUnsupportedOperation() {
 	const query = "mutation { name }"
 	err := s.post(query)

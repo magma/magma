@@ -32,7 +32,11 @@ class FailedOperationException(Exception):
 class Reporter(ABC):
     @abstractmethod
     def log_successful_operation(
-        self, operation_name: str, variables: Dict[str, Any], operation_time: float
+        self,
+        operation_name: str,
+        variables: Dict[str, Any],
+        network_time: float,
+        decode_time: float,
     ) -> None:
         pass
 
@@ -43,10 +47,10 @@ class Reporter(ABC):
         pass
 
 
-class InventoryReporter(Reporter):
+class CSVReporter(Reporter):
     def __init__(self, out_file_path: str, err_file_path: str) -> None:
 
-        """Reporting utility for the InventoryClient to report on
+        """Reporting utility for the SymphonyClient to report on
             successful and failed operations.
             In order to report on failed operation, user is required to catch
             FailedOperationException and call logFailedOperation with date
@@ -58,8 +62,7 @@ class InventoryReporter(Reporter):
 
             Example:
             ```
-            from pyinventory.reporter import InventoryReporter, FailedOperationException
-            reporter = InventoryReporter(csvOutPath, csvErrPath)
+            reporter = CSVReporter(csvOutPath, csvErrPath)
             client = InventoryClient(email, password, "fb-test", reporter=reporter)
             try:
                 location = client.addLocation(..)
@@ -69,11 +72,15 @@ class InventoryReporter(Reporter):
 
         """
 
+        # pyre-fixme[8]: Attribute has type `UnicodeWriter`; used as `_writer`.
         self.out_file: UnicodeWriter = writer(
             open(out_file_path, "wb"), encoding="utf-8"
         )
-        self.out_file.writerow(["operation_name", "variables", "operation_time"])
+        self.out_file.writerow(
+            ["operation_name", "variables", "network_time", "decode_time"]
+        )
 
+        # pyre-fixme[8]: Attribute has type `UnicodeWriter`; used as `_writer`.
         self.err_file: UnicodeWriter = writer(
             open(err_file_path, "wb"), encoding="utf-8"
         )
@@ -89,9 +96,15 @@ class InventoryReporter(Reporter):
         )
 
     def log_successful_operation(
-        self, operation_name: str, variables: Dict[str, Any], operation_time: float
+        self,
+        operation_name: str,
+        variables: Dict[str, Any],
+        network_time: float,
+        decode_time: float,
     ) -> None:
-        self.out_file.writerow([operation_name, str(variables), operation_time])
+        self.out_file.writerow(
+            [operation_name, str(variables), network_time, decode_time]
+        )
 
     def log_failed_operation(
         self, row_identifier: str, row: Dict[str, Any], e: FailedOperationException
@@ -108,12 +121,48 @@ class InventoryReporter(Reporter):
         )
 
 
+class PrintReporter(Reporter):
+    def log_successful_operation(
+        self,
+        operation_name: str,
+        variables: Dict[str, Any],
+        network_time: float,
+        decode_time: float,
+    ) -> None:
+        print(
+            {
+                "operation_name": operation_name,
+                "variables": variables,
+                "network_time": network_time,
+                "decode_time": decode_time,
+            }
+        )
+
+    def log_failed_operation(
+        self, row_identifier: str, row: Dict[str, Any], e: FailedOperationException
+    ) -> None:
+        print(
+            {
+                "operation_name": e.operation_name,
+                "variables": str(e.variables),
+                "error_msg": e.err_msg,
+                "error_id": e.err_id,
+                "row_identifier": row_identifier,
+                "row": str(row),
+            }
+        )
+
+
 class DummyReporter(Reporter):
     def __init__(self) -> None:
         pass
 
     def log_successful_operation(
-        self, operation_name: str, variables: Dict[str, Any], operation_time: float
+        self,
+        operation_name: str,
+        variables: Dict[str, Any],
+        network_time: float,
+        decode_time: float,
     ) -> None:
         pass
 

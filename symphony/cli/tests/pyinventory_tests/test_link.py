@@ -4,7 +4,6 @@
 # license that can be found in the LICENSE file.
 
 
-from pyinventory import InventoryClient
 from pyinventory.api.equipment import add_equipment
 from pyinventory.api.equipment_type import add_equipment_type
 from pyinventory.api.link import add_link, get_link_in_port_of_equipment
@@ -14,15 +13,16 @@ from pyinventory.api.port import edit_link_properties, get_port
 from pyinventory.api.port_type import add_equipment_port_type
 from pyinventory.common.data_class import PropertyDefinition
 from pyinventory.exceptions import PortAlreadyOccupiedException
-from pyinventory.graphql.property_kind_enum import PropertyKind
+from pyinventory.graphql.enum.property_kind import PropertyKind
+from pysymphony import SymphonyClient
 
-from .grpc.rpc_pb2_grpc import TenantServiceStub
-from .utils.base_test import BaseTest
+from ..utils.base_test import BaseTest
+from ..utils.grpc.rpc_pb2_grpc import TenantServiceStub
 
 
 class TestLink(BaseTest):
     def __init__(
-        self, testName: str, client: InventoryClient, stub: TenantServiceStub
+        self, testName: str, client: SymphonyClient, stub: TenantServiceStub
     ) -> None:
         super().__init__(testName, client, stub)
 
@@ -35,7 +35,7 @@ class TestLink(BaseTest):
                 PropertyDefinition(
                     property_name="port property",
                     property_kind=PropertyKind.string,
-                    default_value="port property value",
+                    default_raw_value="port property value",
                     is_fixed=False,
                 )
             ],
@@ -43,7 +43,7 @@ class TestLink(BaseTest):
                 PropertyDefinition(
                     property_name="link property",
                     property_kind=PropertyKind.string,
-                    default_value="link property value",
+                    default_raw_value="link property value",
                     is_fixed=False,
                 )
             ],
@@ -52,8 +52,18 @@ class TestLink(BaseTest):
             client=self.client,
             name="City",
             properties=[
-                ("Mayor", "string", None, True),
-                ("Contact", "email", None, True),
+                PropertyDefinition(
+                    property_name="Mayor",
+                    property_kind=PropertyKind.string,
+                    default_raw_value=None,
+                    is_fixed=False,
+                ),
+                PropertyDefinition(
+                    property_name="Contact",
+                    property_kind=PropertyKind.email,
+                    default_raw_value=None,
+                    is_fixed=False,
+                ),
             ],
         )
         self.location = add_location(
@@ -67,7 +77,14 @@ class TestLink(BaseTest):
             client=self.client,
             name="Tp-Link T1600G",
             category="Router",
-            properties=[("IP", "string", None, True)],
+            properties=[
+                PropertyDefinition(
+                    property_name="IP",
+                    property_kind=PropertyKind.string,
+                    default_raw_value=None,
+                    is_fixed=False,
+                )
+            ],
             ports_dict={"Port 1": "port type 1", "Port 2": "port type 1"},
             position_list=[],
         )

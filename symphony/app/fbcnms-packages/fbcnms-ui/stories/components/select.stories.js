@@ -10,7 +10,6 @@
 
 import React, {useState} from 'react';
 import Select from '../../components/design-system/Select/Select';
-import Text from '../../components/design-system/Text';
 import symphony from '../../theme/symphony';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {makeStyles} from '@material-ui/styles';
@@ -33,24 +32,12 @@ const useStyles = makeStyles(_theme => ({
   },
 }));
 
-const Popover = () => {
-  const classes = useStyles();
-  return (
-    <div className={classes.popover}>
-      <Text variant="body2">
-        Below the input, with the same width. Amazing.
-      </Text>
-    </div>
-  );
-};
-
 const SelectsRoot = () => {
   const classes = useStyles();
   const [selectedValue, setSelectedValue] = useState(null);
-  const renderSelect = (disabled: boolean = false) => (
+  const renderSelect = (disabled: boolean = false, size = 'normal') => (
     <Select
       className={classes.select}
-      popover={Popover}
       label="Project"
       options={[
         {
@@ -63,15 +50,22 @@ const SelectsRoot = () => {
           label: 'Option 2',
           value: 'wow2',
         },
+        {
+          key: 'long_option',
+          label: 'Option with a long label',
+          value: 'wow3',
+        },
       ]}
       disabled={disabled}
       selectedValue={selectedValue}
+      size={size}
       onChange={value => setSelectedValue(value)}
     />
   );
   return (
     <div className={classes.root}>
       {renderSelect()}
+      {renderSelect(false, 'full')}
       {renderSelect(true)}
     </div>
   );

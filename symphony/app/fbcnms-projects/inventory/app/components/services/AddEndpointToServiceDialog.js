@@ -8,7 +8,9 @@
  * @format
  */
 
+import type {EndpointDef} from './ServiceEndpointsMenu';
 import type {Equipment, EquipmentPort} from '../../common/Equipment';
+import type {ServicePanel_service} from './__generated__/ServicePanel_service.graphql';
 import type {WithStyles} from '@material-ui/core';
 
 import AvailablePortsTable from '../AvailablePortsTable';
@@ -25,9 +27,11 @@ import Text from '@fbcnms/ui/components/design-system/Text';
 import fbt from 'fbt';
 import nullthrows from '@fbcnms/util/nullthrows';
 import symphony from '@fbcnms/ui/theme/symphony';
+import {OperatorMap} from '../comparison_view/ComparisonViewTypes';
 import {WizardContextProvider} from '@fbcnms/ui/components/design-system/Wizard/WizardContext';
+import {generateTempId} from '../../common/EntUtils';
 import {graphql} from 'react-relay';
-import {lowerCase} from 'lodash';
+
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
@@ -61,10 +65,10 @@ const styles = {
 };
 
 type Props = {
-  service: {id: string, name: string},
+  service: ServicePanel_service,
   onClose: () => void,
   onAddEndpoint: (port: EquipmentPort) => void,
-  endpointRole: string,
+  endpointDef: ?EndpointDef,
 } & WithStyles<typeof styles>;
 
 type State = {
@@ -122,11 +126,25 @@ class AddEndpointToServiceDialog extends React.Component<Props, State> {
   };
 
   getStepContent = () => {
-    const {classes} = this.props;
+    const {classes, endpointDef} = this.props;
     switch (this.state.activeStep) {
       case 0:
         return (
-          <EquipmentComparisonViewQueryRenderer limit={50}>
+          <EquipmentComparisonViewQueryRenderer
+            limit={50}
+            initialFilters={
+              endpointDef
+                ? [
+                    {
+                      id: generateTempId(),
+                      key: 'equipment_type',
+                      name: 'equipment_type',
+                      operator: OperatorMap.is_one_of,
+                      idSet: [endpointDef.equipmentTypeID],
+                    },
+                  ]
+                : []
+            }>
             {props => (
               <div className={classes.searchResults}>
                 <PowerSearchLinkFirstEquipmentResultsTable
@@ -197,7 +215,7 @@ class AddEndpointToServiceDialog extends React.Component<Props, State> {
   };
 
   render() {
-    const {classes, onAddEndpoint, service, onClose, endpointRole} = this.props;
+    const {classes, onAddEndpoint, service, onClose} = this.props;
     const {activeStep, activePort, activeEquipement} = this.state;
 
     return (
@@ -205,10 +223,7 @@ class AddEndpointToServiceDialog extends React.Component<Props, State> {
         <DialogTitle>
           <Text className={classes.title} variant="h6">
             {`${fbt(
-              'Add ' +
-                fbt.param('service endpoint role', lowerCase(endpointRole)) +
-                ' endpoint to ' +
-                fbt.param('service name', service.name),
+              'Add endpoint to ' + fbt.param('service name', service.name),
               'Title of dialog for adding an endpoint to a service',
             )}
             `}
@@ -240,7 +255,6 @@ class AddEndpointToServiceDialog extends React.Component<Props, State> {
               </Button>
               <Button
                 disabled={activePort === null}
-                color="primary"
                 onClick={() => onAddEndpoint(nullthrows(activePort))}
                 className={classes.actionButton}>
                 {Strings.common.addButton}

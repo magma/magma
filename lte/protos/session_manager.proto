@@ -315,14 +315,10 @@ message CreditUsageUpdate {
 }
 
 message CreditUpdateResponse {
-  enum ResponseType {
-    UPDATE = 0;
-  }
   bool success = 1;
   string sid = 2; // System Identification Number
   uint32 charging_key = 3;
   ChargingCredit credit = 4;
-  ResponseType type = 5;
   uint32 result_code = 6;
   ServiceIdentifier service_identifier = 7;
   enum CreditLimitType {
@@ -363,6 +359,8 @@ message UsageMonitoringCredit {
 }
 
 // A request to update a usage monitor given its usage and session information
+// TODO this message name is misleading since we don't only use it for
+// usage reporting
 message UsageMonitoringUpdateRequest {
   UsageMonitorUpdate update = 1;
   string session_id = 2;
@@ -372,6 +370,7 @@ message UsageMonitoringUpdateRequest {
   bytes hardware_addr = 6; // MAC Address for WLAN
   RATType rat_type = 7;
   TgppContext tgpp_ctx = 8;
+  EventTrigger event_trigger = 9;
 }
 
 // Response to a usage monitor update with the credit received and session info
@@ -437,12 +436,14 @@ message CreateSessionResponse {
 message StaticRuleInstall {
   string rule_id = 1;
   google.protobuf.Timestamp activation_time = 2;
+  // Optional field. Set as 0 to mark as unused
   google.protobuf.Timestamp deactivation_time = 3;
 }
 
 message DynamicRuleInstall {
   PolicyRule policy_rule = 1;
   google.protobuf.Timestamp activation_time = 2;
+  // Optional field. Set as 0 to mark as unused
   google.protobuf.Timestamp deactivation_time = 3;
 }
 

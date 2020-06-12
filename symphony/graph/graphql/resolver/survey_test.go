@@ -9,17 +9,20 @@ import (
 	"testing"
 	"time"
 
-	"github.com/facebookincubator/symphony/graph/ent/surveyquestion"
+	"github.com/facebookincubator/symphony/pkg/ent/user"
+
 	"github.com/facebookincubator/symphony/graph/graphql/models"
-	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
+	"github.com/facebookincubator/symphony/pkg/ent/surveyquestion"
+	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
 
 	"github.com/stretchr/testify/require"
 )
 
 func TestAddRemoveSurvey(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
-	ctx := viewertest.NewContext(context.Background(), r.client)
+	defer r.Close()
+	// TODO(T66882071): Remove owner role
+	ctx := viewertest.NewContext(context.Background(), r.client, viewertest.WithRole(user.RoleOWNER))
 
 	mr, qr, sr, wfr, cellr := r.Mutation(), r.Query(), r.Survey(), r.SurveyWiFiScan(), r.SurveyCellScan()
 	locationType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{

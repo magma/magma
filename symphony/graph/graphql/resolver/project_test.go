@@ -6,14 +6,17 @@ package resolver
 
 import (
 	"context"
+	"errors"
 	"testing"
 
-	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/ent/property"
-	"github.com/facebookincubator/symphony/graph/ent/propertytype"
+	"github.com/facebookincubator/symphony/pkg/ent/privacy"
+
 	"github.com/facebookincubator/symphony/graph/graphql/models"
-	"github.com/facebookincubator/symphony/graph/viewer"
-	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
+	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/ent/property"
+	"github.com/facebookincubator/symphony/pkg/ent/propertytype"
+	"github.com/facebookincubator/symphony/pkg/viewer"
+	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
 
 	"github.com/AlekSi/pointer"
 	"github.com/stretchr/testify/assert"
@@ -22,7 +25,7 @@ import (
 
 func TestNumOfProjects(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, ptr := r.Mutation(), r.ProjectType()
 
@@ -83,7 +86,7 @@ func TestProjectQuery(t *testing.T) {
 
 func TestProjectWithWorkOrders(t *testing.T) {
 	resolver := newTestResolver(t)
-	defer resolver.drv.Close()
+	defer resolver.Close()
 	ctx := viewertest.NewContext(context.Background(), resolver.client)
 	mutation := resolver.Mutation()
 
@@ -230,7 +233,7 @@ func TestProjectMutation(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, deleted)
 	deleted, err = mutation.DeleteProject(ctx, project.ID)
-	assert.EqualError(t, err, errNoProject.Error(), "project cannot be deleted twice")
+	assert.True(t, errors.Is(err, privacy.Deny))
 	assert.False(t, deleted)
 
 	deleted, err = mutation.DeleteProjectType(ctx, typ.ID)
@@ -286,7 +289,7 @@ func TestEditProject(t *testing.T) {
 
 func TestEditProjectLocation(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr := r.Mutation()
 	location := createLocation(ctx, t, *r)
@@ -314,7 +317,7 @@ func TestEditProjectLocation(t *testing.T) {
 
 func TestAddProjectWithProperties(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	mutation, ctx := mutationctx(t)
 
 	mr, qr, pr := r.Mutation(), r.Query(), r.Project()
@@ -452,7 +455,7 @@ func TestAddProjectWithProperties(t *testing.T) {
 
 func TestEditProjectType(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 	mr, qr := r.Mutation(), r.Query()
 
@@ -487,7 +490,7 @@ func TestEditProjectType(t *testing.T) {
 
 func TestProjectWithWorkOrdersAndProperties(t *testing.T) {
 	resolver := newTestResolver(t)
-	defer resolver.drv.Close()
+	defer resolver.Close()
 	ctx := viewertest.NewContext(context.Background(), resolver.client)
 	mutation := resolver.Mutation()
 

@@ -25,25 +25,29 @@ var defaultConfig = Config{
 		},
 	},
 	Gx: &GxConfig{
-		Server: &DiamClientConfig{
-			Protocol:         "tcp",
-			Retransmits:      3,
-			WatchdogInterval: 1,
-			RetryCount:       5,
-			ProductName:      "magma",
-			Host:             "magma-fedgw.magma.com",
-			Realm:            "magma.com",
+		Servers: []*DiamClientConfig{
+			{
+				Protocol:         "tcp",
+				Retransmits:      3,
+				WatchdogInterval: 1,
+				RetryCount:       5,
+				ProductName:      "magma",
+				Host:             "magma-fedgw.magma.com",
+				Realm:            "magma.com",
+			},
 		},
 	},
 	Gy: &GyConfig{
-		Server: &DiamClientConfig{
-			Protocol:         "tcp",
-			Retransmits:      3,
-			WatchdogInterval: 1,
-			RetryCount:       5,
-			ProductName:      "magma",
-			Host:             "magma-fedgw.magma.com",
-			Realm:            "magma.com",
+		Servers: []*DiamClientConfig{
+			{
+				Protocol:         "tcp",
+				Retransmits:      3,
+				WatchdogInterval: 1,
+				RetryCount:       5,
+				ProductName:      "magma",
+				Host:             "magma-fedgw.magma.com",
+				Realm:            "magma.com",
+			},
 		},
 		InitMethod: GyInitMethod_PER_SESSION,
 	},
@@ -63,14 +67,16 @@ var defaultConfig = Config{
 		StreamSubscribers: false,
 	},
 	Swx: &SwxConfig{
-		Server: &DiamClientConfig{
-			Protocol:         "sctp",
-			Retransmits:      3,
-			WatchdogInterval: 1,
-			RetryCount:       5,
-			ProductName:      "magma",
-			Host:             "magma-fedgw.magma.com",
-			Realm:            "magma.com",
+		Servers: []*DiamClientConfig{
+			&DiamClientConfig{
+				Protocol:         "sctp",
+				Retransmits:      3,
+				WatchdogInterval: 1,
+				RetryCount:       5,
+				ProductName:      "magma",
+				Host:             "magma-fedgw.magma.com",
+				Realm:            "magma.com",
+			},
 		},
 		VerifyAuthorization: false,
 		CacheTTLSeconds:     10800,

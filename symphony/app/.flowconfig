@@ -20,8 +20,9 @@
 .*/node_modules/rxjs/.*
 .*/node_modules/vis/.*
 
-; disabling flow to unblock developers, will re-enable
-.*/fbcnms-projects/workflows/src/.*
+.*/fbcnms-projects/hub/app/components/workflow/pages/diagramBuilder/NodeModels/.*
+.*/fbcnms-projects/hub/app/components/workflow/pages/diagramBuilder/Sidemenu/.*
+.*/fbcnms-projects/hub/app/components/workflow/pages/diagramBuilder/NodeModal/.*
 
 ; Mapbox disables these because of flow errors
 ; See https://github.com/mapbox/mapbox-gl-js/blob/master/.flowconfig
@@ -50,7 +51,6 @@
 .*/node_modules/express-graphql/.*
 .*/node_modules/graphql/.*
 .*/node_modules/mapbox-gl/src/.*
-.*/node_modules/react-beautiful-dnd/.*
 
 [options]
 esproposal.optional_chaining=enable
@@ -65,6 +65,8 @@ node_modules/mapbox-gl/dist/mapbox-gl.js.flow
 [declarations]
 <PROJECT_ROOT>/fbcnms-projects/inventory/node_modules/relay-runtime/.*
 <PROJECT_ROOT>/fbcnms-packages/fbcnms-ui/node_modules/relay-runtime/.*
+<PROJECT_ROOT>/node_modules/relay-runtime/.*
+.*/node_modules/react-beautiful-dnd/.*
 
 [lints]
 all=warn
@@ -92,4 +94,4 @@ untyped-import
 untyped-type-import
 
 [version]
-^0.120.0
+^0.126.1

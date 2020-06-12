@@ -9,18 +9,20 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
-	"github.com/facebookincubator/symphony/graph/ent/equipment"
-	"github.com/facebookincubator/symphony/graph/ent/file"
-	"github.com/facebookincubator/symphony/graph/ent/link"
-	"github.com/facebookincubator/symphony/graph/ent/property"
-	"github.com/facebookincubator/symphony/graph/ent/propertytype"
-	"github.com/facebookincubator/symphony/graph/ent/workorder"
-	"github.com/facebookincubator/symphony/graph/ent/workordertype"
+	"github.com/facebookincubator/symphony/pkg/ent/checklistitemdefinition"
+
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/resolverutil"
-	"github.com/facebookincubator/symphony/graph/viewer"
+	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/ent/checklistitem"
+	"github.com/facebookincubator/symphony/pkg/ent/equipment"
+	"github.com/facebookincubator/symphony/pkg/ent/file"
+	"github.com/facebookincubator/symphony/pkg/ent/link"
+	"github.com/facebookincubator/symphony/pkg/ent/property"
+	"github.com/facebookincubator/symphony/pkg/ent/propertytype"
+	"github.com/facebookincubator/symphony/pkg/ent/workorder"
+	"github.com/facebookincubator/symphony/pkg/ent/workordertype"
+	"github.com/facebookincubator/symphony/pkg/viewer"
 
 	"github.com/AlekSi/pointer"
 	"github.com/pkg/errors"
@@ -30,12 +32,12 @@ import (
 
 type workOrderDefinitionResolver struct{}
 
-func (workOrderTypeResolver) CheckListDefinitions(ctx context.Context, obj *ent.WorkOrderType) ([]*ent.CheckListItemDefinition, error) {
-	return obj.QueryCheckListDefinitions().All(ctx)
+func (checkListCategoryResolver) CheckListCategoryDefinitions(ctx context.Context, obj *ent.WorkOrderType) ([]*ent.CheckListCategoryDefinition, error) {
+	return obj.QueryCheckListCategoryDefinitions().All(ctx)
 }
 
-func (workOrderTypeResolver) CheckListCategories(ctx context.Context, obj *ent.WorkOrderType) ([]*ent.CheckListCategory, error) {
-	return obj.QueryCheckListCategories().All(ctx)
+func (workOrderTypeResolver) CheckListCategoryDefinitions(ctx context.Context, obj *ent.WorkOrderType) ([]*ent.CheckListCategoryDefinition, error) {
+	return obj.QueryCheckListCategoryDefinitions().All(ctx)
 }
 
 func (workOrderDefinitionResolver) Type(ctx context.Context, obj *ent.WorkOrderDefinition) (*ent.WorkOrderType, error) {
@@ -53,6 +55,10 @@ func (workOrderTypeResolver) NumberOfWorkOrders(ctx context.Context, obj *ent.Wo
 }
 
 type workOrderResolver struct{}
+
+func (r workOrderResolver) Activities(ctx context.Context, obj *ent.WorkOrder) ([]*ent.Activity, error) {
+	return obj.QueryActivities().All(ctx)
+}
 
 func (workOrderResolver) WorkOrderType(ctx context.Context, obj *ent.WorkOrder) (*ent.WorkOrderType, error) {
 	return obj.QueryType().Only(ctx)
@@ -100,10 +106,6 @@ func (workOrderResolver) LinksToRemove(ctx context.Context, obj *ent.WorkOrder) 
 
 func (workOrderResolver) Properties(ctx context.Context, obj *ent.WorkOrder) ([]*ent.Property, error) {
 	return obj.QueryProperties().All(ctx)
-}
-
-func (workOrderResolver) CheckList(ctx context.Context, obj *ent.WorkOrder) ([]*ent.CheckListItem, error) {
-	return obj.QueryCheckListItems().All(ctx)
 }
 
 func (workOrderResolver) CheckListCategories(ctx context.Context, obj *ent.WorkOrder) ([]*ent.CheckListCategory, error) {
@@ -174,7 +176,6 @@ func (r mutationResolver) internalAddWorkOrder(
 	input models.AddWorkOrderInput,
 	skipMandatoryPropertiesCheck bool,
 ) (*ent.WorkOrder, error) {
-	c := r.ClientFrom(ctx)
 	propInput, err := r.validatedPropertyInputsFromTemplate(ctx, input.Properties, input.WorkOrderTypeID, models.PropertyEntityWorkOrder, skipMandatoryPropertiesCheck)
 	if err != nil {
 		return nil, fmt.Errorf("validating property for template : %w", err)
@@ -215,17 +216,18 @@ func (r mutationResolver) internalAddWorkOrder(
 		}
 		mutation = mutation.SetOwner(v.User())
 	}
-	for _, clInput := range input.CheckListCategories {
-		checkListCategory, err := r.createOrUpdateCheckListCategory(ctx, clInput)
-		if err != nil {
-			return nil, errors.Wrap(err, "creating check list category")
-		}
-		mutation = mutation.AddCheckListCategories(checkListCategory)
-	}
 	wo, err := mutation.Save(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "creating work order")
 	}
+
+	for _, clInput := range input.CheckListCategories {
+		_, err := r.createOrUpdateCheckListCategory(ctx, clInput, wo.ID)
+		if err != nil {
+			return nil, errors.Wrap(err, "creating check list category")
+		}
+	}
+
 	if _, err := r.AddProperties(propInput,
 		resolverutil.AddPropertyArgs{
 			Context:    ctx,
@@ -234,20 +236,6 @@ func (r mutationResolver) internalAddWorkOrder(
 		},
 	); err != nil {
 		return nil, errors.Wrap(err, "creating work order properties")
-	}
-	for _, clInput := range input.CheckList {
-		if _, err = c.CheckListItem.Create().
-			SetTitle(clInput.Title).
-			SetType(clInput.Type.String()).
-			SetNillableIndex(clInput.Index).
-			SetNillableEnumValues(clInput.EnumValues).
-			SetNillableHelpText(clInput.HelpText).
-			SetNillableChecked(clInput.Checked).
-			SetNillableStringVal(clInput.StringValue).
-			SetWorkOrderID(wo.ID).
-			Save(ctx); err != nil {
-			return nil, errors.Wrap(err, "creating check list item")
-		}
 	}
 	return wo, nil
 }
@@ -310,36 +298,19 @@ func (r mutationResolver) EditWorkOrder(ctx context.Context, input models.EditWo
 		}
 	}
 
-	ids := make([]int, 0, len(input.CheckList))
-	for _, clInput := range input.CheckList {
-		cli, err := r.createOrUpdateCheckListItem(ctx, clInput)
-		if err != nil {
-			return nil, err
-		}
-		ids = append(ids, cli.ID)
-	}
-	currentCL, err := wo.QueryCheckListItems().IDs(ctx)
-	if err != nil {
-		return nil, errors.Wrapf(err, "querying checklist items of work order %q", wo.ID)
-	}
-	addedCLIds, deletedCLIds := resolverutil.GetDifferenceBetweenSlices(currentCL, ids)
-	mutation.
-		RemoveCheckListItemIDs(deletedCLIds...).
-		AddCheckListItemIDs(addedCLIds...)
-
-	ids = make([]int, 0, len(input.CheckListCategories))
+	ids := make([]int, 0, len(input.CheckListCategories))
 	for _, clInput := range input.CheckListCategories {
-		cli, err := r.createOrUpdateCheckListCategory(ctx, clInput)
+		cli, err := r.createOrUpdateCheckListCategory(ctx, clInput, wo.ID)
 		if err != nil {
 			return nil, err
 		}
 		ids = append(ids, cli.ID)
 	}
-	currentCL, err = wo.QueryCheckListCategories().IDs(ctx)
+	currentCL, err := wo.QueryCheckListCategories().IDs(ctx)
 	if err != nil {
 		return nil, errors.Wrapf(err, "querying checklist categories of work order %q", wo.ID)
 	}
-	addedCLIds, deletedCLIds = resolverutil.GetDifferenceBetweenSlices(currentCL, ids)
+	addedCLIds, deletedCLIds := resolverutil.GetDifferenceBetweenSlices(currentCL, ids)
 	mutation.
 		RemoveCheckListCategoryIDs(deletedCLIds...).
 		AddCheckListCategoryIDs(addedCLIds...)
@@ -370,11 +341,8 @@ func (r mutationResolver) updateProperty(
 		return errors.Wrapf(err, "querying property type %q", input.PropertyTypeID)
 	}
 	if typ.Editable && typ.IsInstanceProperty {
-		existingPropQuery := client.Property.
-			Update().
-			Where(property.ID(existingProperty.ID))
-
-		if r.updatePropValues(ctx, input, existingPropQuery) != nil {
+		updater := client.Property.UpdateOneID(existingProperty.ID)
+		if r.updatePropValues(ctx, input, updater) != nil {
 			return errors.Wrap(err, "saving work order property value update")
 		}
 	}
@@ -383,7 +351,8 @@ func (r mutationResolver) updateProperty(
 
 func (r mutationResolver) createOrUpdateCheckListCategory(
 	ctx context.Context,
-	clInput *models.CheckListCategoryInput) (*ent.CheckListCategory, error) {
+	clInput *models.CheckListCategoryInput,
+	workOrderID int) (*ent.CheckListCategory, error) {
 	client := r.ClientFrom(ctx)
 	cl := client.CheckListCategory
 	var clc *ent.CheckListCategory
@@ -392,6 +361,7 @@ func (r mutationResolver) createOrUpdateCheckListCategory(
 		clc, err = cl.Create().
 			SetTitle(clInput.Title).
 			SetNillableDescription(clInput.Description).
+			SetWorkOrderID(workOrderID).
 			Save(ctx)
 		if err != nil {
 			return nil, errors.Wrap(err, "creating check list category")
@@ -422,7 +392,7 @@ func (r mutationResolver) createOrUpdateCheckListItems(
 	inputs []*models.CheckListItemInput) ([]int, []int, error) {
 	ids := make([]int, 0, len(inputs))
 	for _, input := range inputs {
-		cli, err := r.createOrUpdateCheckListItem(ctx, input)
+		cli, err := r.createOrUpdateCheckListItem(ctx, input, clc.ID)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -437,13 +407,10 @@ func (r mutationResolver) createOrUpdateCheckListItems(
 
 func (r mutationResolver) createOrUpdateCheckListItem(
 	ctx context.Context,
-	input *models.CheckListItemInput) (*ent.CheckListItem, error) {
+	input *models.CheckListItemInput,
+	checklistCategoryID int) (*ent.CheckListItem, error) {
 	client := r.ClientFrom(ctx)
 	cl := client.CheckListItem
-	var selectionMode *string
-	if input.EnumSelectionMode != nil {
-		selectionMode = pointer.ToString(input.EnumSelectionMode.String())
-	}
 
 	var cli *ent.CheckListItem
 	var err error
@@ -456,9 +423,10 @@ func (r mutationResolver) createOrUpdateCheckListItem(
 			SetNillableHelpText(input.HelpText).
 			SetNillableChecked(input.Checked).
 			SetNillableStringVal(input.StringValue).
-			SetNillableEnumSelectionMode(selectionMode).
+			SetNillableEnumSelectionModeValue(input.EnumSelectionMode).
 			SetNillableSelectedEnumValues(input.SelectedEnumValues).
 			SetNillableYesNoVal(convertYesNoResponseToYesNoVal(input.YesNoResponse)).
+			SetCheckListCategoryID(checklistCategoryID).
 			Save(ctx)
 		if err != nil {
 			return nil, errors.Wrap(err, "creating check list item")
@@ -472,7 +440,7 @@ func (r mutationResolver) createOrUpdateCheckListItem(
 			SetNillableHelpText(input.HelpText).
 			SetNillableChecked(input.Checked).
 			SetNillableStringVal(input.StringValue).
-			SetNillableEnumSelectionMode(selectionMode).
+			SetNillableEnumSelectionModeValue(input.EnumSelectionMode).
 			SetNillableSelectedEnumValues(input.SelectedEnumValues).
 			SetNillableYesNoVal(convertYesNoResponseToYesNoVal(input.YesNoResponse)).
 			Save(ctx)
@@ -513,13 +481,11 @@ func (r mutationResolver) deleteRemovedCheckListItemFiles(ctx context.Context, i
 }
 
 func (r mutationResolver) createAddedCheckListItemFiles(ctx context.Context, item *ent.CheckListItem, fileInputs []*models.FileInput) (*ent.CheckListItem, error) {
-	client := r.ClientFrom(ctx)
-	var addedFiles []*ent.File
 	for _, input := range fileInputs {
 		if input.ID != nil {
 			continue
 		}
-		f, err := r.createImage(
+		_, err := r.createImage(
 			ctx,
 			&models.AddImageInput{
 				ImgKey:   input.StoreKey,
@@ -537,21 +503,15 @@ func (r mutationResolver) createAddedCheckListItemFiles(ctx context.Context, ite
 					}
 					return "image/jpeg"
 				}(),
+				Annotation: input.Annotation,
+			},
+			func(create *ent.FileCreate) error {
+				create.SetChecklistItem(item)
+				return nil
 			},
 		)
 		if err != nil {
 			return nil, err
-		}
-
-		addedFiles = append(addedFiles, f)
-	}
-
-	if len(addedFiles) > 0 {
-		if item, err := client.CheckListItem.
-			UpdateOne(item).
-			AddFiles(addedFiles...).
-			Save(ctx); err != nil {
-			return nil, fmt.Errorf("adding checklist file item=%q %w", item.ID, err)
 		}
 	}
 
@@ -606,50 +566,61 @@ func (r mutationResolver) createOrUpdateCheckListItemFiles(ctx context.Context, 
 	return item, nil
 }
 
+func (r mutationResolver) addWorkOrderTypeCategoryDefinitions(ctx context.Context, input models.AddWorkOrderTypeInput, workOrderTypeID int) error {
+	client := r.ClientFrom(ctx)
+
+	for _, categoryInput := range input.CheckListCategories {
+		checkListCategoryDefinition, err := client.CheckListCategoryDefinition.Create().
+			SetTitle(categoryInput.Title).
+			SetNillableDescription(categoryInput.Description).
+			SetWorkOrderTypeID(workOrderTypeID).
+			Save(ctx)
+		if err != nil {
+			return errors.Wrap(err, "creating check list category definition")
+		}
+
+		for _, clInput := range categoryInput.CheckList {
+			if _, err = client.CheckListItemDefinition.Create().
+				SetTitle(clInput.Title).
+				SetType(clInput.Type.String()).
+				SetNillableIndex(clInput.Index).
+				SetNillableHelpText(clInput.HelpText).
+				SetNillableEnumValues(clInput.EnumValues).
+				SetNillableEnumSelectionModeValue((*checklistitemdefinition.EnumSelectionModeValue)(clInput.EnumSelectionMode)).
+				SetCheckListCategoryDefinitionID(checkListCategoryDefinition.ID).
+				Save(ctx); err != nil {
+				return errors.Wrap(err, "creating check list item definition")
+			}
+		}
+	}
+	return nil
+}
+
 func (r mutationResolver) AddWorkOrderType(
 	ctx context.Context, input models.AddWorkOrderTypeInput) (*ent.WorkOrderType, error) {
-	props, err := r.AddPropertyTypes(ctx, input.Properties...)
-	if err != nil {
-		return nil, err
-	}
-
 	client := r.ClientFrom(ctx)
-	mutation := client.WorkOrderType.
+	typ, err := client.WorkOrderType.
 		Create().
 		SetName(input.Name).
 		SetNillableDescription(input.Description).
-		AddPropertyTypes(props...)
-	for _, clInput := range input.CheckListCategories {
-		checkListCategory, err := client.CheckListCategory.Create().
-			SetTitle(clInput.Title).
-			SetNillableDescription(clInput.Description).
-			Save(ctx)
-		if err != nil {
-			return nil, errors.Wrap(err, "creating check list category")
-		}
-		mutation = mutation.AddCheckListCategories(checkListCategory)
-	}
-	typ, err := mutation.Save(ctx)
+		Save(ctx)
+
 	if err != nil {
 		if ent.IsConstraintError(err) {
 			return nil, gqlerror.Errorf("A work order type with the name %v already exists", input.Name)
 		}
 		return nil, errors.Wrap(err, "creating work order type")
 	}
-
-	for _, def := range input.CheckList {
-		def := def
-		if _, err = client.CheckListItemDefinition.Create().
-			SetTitle(def.Title).
-			SetType(def.Type.String()).
-			SetNillableIndex(def.Index).
-			SetNillableHelpText(def.HelpText).
-			SetNillableEnumValues(def.EnumValues).
-			SetWorkOrderType(typ).
-			Save(ctx); err != nil {
-			return nil, errors.Wrap(err, "creating check list item")
-		}
+	if err := r.AddPropertyTypes(ctx, func(ptc *ent.PropertyTypeCreate) {
+		ptc.SetWorkOrderTypeID(typ.ID)
+	}, input.Properties...); err != nil {
+		return nil, err
 	}
+	err = r.addWorkOrderTypeCategoryDefinitions(ctx, input, typ.ID)
+	if err != nil {
+		return nil, errors.Wrap(err, "creating checklist category definitions")
+	}
+
 	return typ, nil
 }
 
@@ -669,7 +640,7 @@ func (r mutationResolver) EditWorkOrderType(
 	}
 	for _, p := range input.Properties {
 		if p.ID == nil {
-			err = r.validateAndAddNewPropertyType(ctx, p, func(b *ent.PropertyTypeUpdateOne) { b.SetWorkOrderTypeID(input.ID) })
+			err = r.validateAndAddNewPropertyType(ctx, p, func(b *ent.PropertyTypeCreate) { b.SetWorkOrderTypeID(input.ID) })
 		} else {
 			err = r.updatePropType(ctx, p)
 		}
@@ -683,24 +654,77 @@ func (r mutationResolver) EditWorkOrderType(
 		SetName(input.Name).
 		SetNillableDescription(input.Description)
 
-	currentCL := wot.QueryCheckListDefinitions().IDsX(ctx)
-	ids := make([]int, 0, len(input.CheckList))
-	for _, clInput := range input.CheckList {
-		cli, err := r.createOrUpdateCheckListDefinition(ctx, clInput, input.ID)
+	currentCategories, err := wot.QueryCheckListCategoryDefinitions().IDs(ctx)
+	if err != nil {
+		return nil, errors.Wrapf(err, "querying checklist category definitions: id=%q", wot.ID)
+	}
+
+	ids := make([]int, 0, len(input.CheckListCategories))
+	for _, categoryInput := range input.CheckListCategories {
+		category, err := r.createOrUpdateCheckListCategoryDefinition(ctx, categoryInput, wot.ID)
+		if err != nil {
+			return nil, err
+		}
+		ids = append(ids, category.ID)
+	}
+	_, deletedCategoryIds := resolverutil.GetDifferenceBetweenSlices(currentCategories, ids)
+	mutation = mutation.RemoveCheckListCategoryDefinitionIDs(deletedCategoryIds...)
+
+	return mutation.Save(ctx)
+}
+
+func (r mutationResolver) createOrUpdateCheckListCategoryDefinition(
+	ctx context.Context,
+	categoryInput *models.CheckListCategoryDefinitionInput,
+	wotID int) (*ent.CheckListCategoryDefinition, error) {
+	client := r.ClientFrom(ctx)
+	cl := client.CheckListCategoryDefinition
+	var category *ent.CheckListCategoryDefinition
+	var err error
+	if categoryInput.ID == nil {
+		category, err = cl.Create().
+			SetTitle(categoryInput.Title).
+			SetNillableDescription(categoryInput.Description).
+			SetWorkOrderTypeID(wotID).
+			Save(ctx)
+		if err != nil {
+			return nil, errors.Wrap(err, "creating check list category definition")
+		}
+	} else {
+		category, err = cl.UpdateOneID(*categoryInput.ID).
+			SetTitle(categoryInput.Title).
+			SetNillableDescription(categoryInput.Description).
+			SetWorkOrderTypeID(wotID).
+			Save(ctx)
+		if err != nil {
+			return nil, errors.Wrap(err, "updating check list category definition")
+		}
+	}
+
+	currentCL, err := category.QueryCheckListItemDefinitions().IDs(ctx)
+	if err != nil {
+		return nil, errors.Wrapf(err, "querying checklist item definitions: id=%q", category.ID)
+	}
+
+	ids := make([]int, 0, len(categoryInput.CheckList))
+	for _, clInput := range categoryInput.CheckList {
+		cli, err := r.createOrUpdateCheckListDefinition(ctx, clInput, category.ID)
 		if err != nil {
 			return nil, err
 		}
 		ids = append(ids, cli.ID)
 	}
 	_, deletedCLIds := resolverutil.GetDifferenceBetweenSlices(currentCL, ids)
-	mutation.RemoveCheckListDefinitionIDs(deletedCLIds...)
-	return mutation.Save(ctx)
+
+	return category.Update().
+		RemoveCheckListItemDefinitionIDs(deletedCLIds...).
+		Save(ctx)
 }
 
 func (r mutationResolver) createOrUpdateCheckListDefinition(
 	ctx context.Context,
 	clInput *models.CheckListDefinitionInput,
-	wotID int) (*ent.CheckListItemDefinition, error) {
+	categoryID int) (*ent.CheckListItemDefinition, error) {
 	client := r.ClientFrom(ctx)
 	cl := client.CheckListItemDefinition
 	if clInput.ID == nil {
@@ -709,8 +733,9 @@ func (r mutationResolver) createOrUpdateCheckListDefinition(
 			SetType(clInput.Type.String()).
 			SetNillableIndex(clInput.Index).
 			SetNillableEnumValues(clInput.EnumValues).
+			SetNillableEnumSelectionModeValue((*checklistitemdefinition.EnumSelectionModeValue)(clInput.EnumSelectionMode)).
 			SetNillableHelpText(clInput.HelpText).
-			SetWorkOrderTypeID(wotID).
+			SetCheckListCategoryDefinitionID(categoryID).
 			Save(ctx)
 		if err != nil {
 			return nil, errors.Wrap(err, "creating check list definition")
@@ -723,6 +748,7 @@ func (r mutationResolver) createOrUpdateCheckListDefinition(
 		SetType(clInput.Type.String()).
 		SetNillableIndex(clInput.Index).
 		SetNillableEnumValues(clInput.EnumValues).
+		SetNillableEnumSelectionModeValue((*checklistitemdefinition.EnumSelectionModeValue)(clInput.EnumSelectionMode)).
 		SetNillableHelpText(clInput.HelpText).
 		Save(ctx)
 	if err != nil {
@@ -744,11 +770,19 @@ func (r mutationResolver) RemoveWorkOrderType(ctx context.Context, id int) (int,
 		logger.Warn("work order type has existing work orders", zap.Int("count", count))
 		return id, gqlerror.Errorf("cannot delete work order type with %d existing work orders", count)
 	}
-	if _, err := client.PropertyType.Delete().
+	pTypes, err := client.PropertyType.Query().
 		Where(propertytype.HasWorkOrderTypeWith(workordertype.ID(id))).
-		Exec(ctx); err != nil {
-		logger.Error("cannot delete properties of work order type", zap.Error(err))
-		return id, fmt.Errorf("deleting work order property types: %w", err)
+		All(ctx)
+	if err != nil {
+		logger.Error("cannot query properties of work order type", zap.Error(err))
+		return id, fmt.Errorf("querying work order property types: %w", err)
+	}
+	for _, pType := range pTypes {
+		if err := client.PropertyType.DeleteOne(pType).
+			Exec(ctx); err != nil {
+			logger.Error("cannot delete property of work order type", zap.Error(err))
+			return id, fmt.Errorf("deleting work order property type: %w", err)
+		}
 	}
 	switch err := client.WorkOrderType.DeleteOneID(id).Exec(ctx); err.(type) {
 	case nil:
@@ -853,5 +887,5 @@ func (r mutationResolver) TechnicianWorkOrderUploadData(ctx context.Context, inp
 		Where(workorder.ID(input.WorkOrderID)).
 		WithComments().
 		WithCheckListCategories().
-		WithCheckListItems().Only(ctx)
+		Only(ctx)
 }

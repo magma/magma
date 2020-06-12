@@ -3,77 +3,24 @@
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
-from typing import Dict, List, Optional, Tuple
+from typing import List, Mapping, Optional
 
 from pysymphony import SymphonyClient
 
-from .._utils import PropertyValue, format_properties, get_graphql_property_inputs
+from .._utils import PropertyValue, get_graphql_property_inputs
 from ..common.cache import SERVICE_TYPES
-from ..common.data_class import (
-    Customer,
-    EquipmentPort,
-    EquipmentPortDefinition,
-    Link,
-    Service,
-    ServiceEndpoint,
-    ServiceType,
-)
+from ..common.data_class import Customer, Link, Service, ServiceEndpoint
 from ..common.data_enum import Entity
 from ..exceptions import EntityNotFoundError
-from ..graphql.add_service_endpoint_input import AddServiceEndpointInput
-from ..graphql.add_service_endpoint_mutation import AddServiceEndpointMutation
-from ..graphql.add_service_link_mutation import AddServiceLinkMutation
-from ..graphql.add_service_mutation import AddServiceMutation
-from ..graphql.add_service_type_mutation import AddServiceTypeMutation
-from ..graphql.remove_service_mutation import RemoveServiceMutation
-from ..graphql.remove_service_type_mutation import RemoveServiceTypeMutation
-from ..graphql.service_create_data_input import ServiceCreateData
-from ..graphql.service_details_query import ServiceDetailsQuery
-from ..graphql.service_status_enum import ServiceStatus
-from ..graphql.service_type_create_data_input import ServiceTypeCreateData
-from ..graphql.service_type_services_query import ServiceTypeServicesQuery
-from ..graphql.service_types_query import ServiceTypesQuery
-
-
-def _populate_service_types(client: SymphonyClient) -> None:
-    service_types = ServiceTypesQuery.execute(client)
-    if not service_types:
-        return
-    edges = service_types.edges
-    for edge in edges:
-        node = edge.node
-        if node is not None:
-            SERVICE_TYPES[node.name] = ServiceType(
-                name=node.name,
-                id=node.id,
-                hasCustomer=node.hasCustomer,
-                property_types=node.propertyTypes,
-            )
-
-
-def add_service_type(
-    client: SymphonyClient,
-    name: str,
-    hasCustomer: bool,
-    properties: List[Tuple[str, str, Optional[PropertyValue], Optional[bool]]],
-) -> ServiceType:
-
-    new_property_types = format_properties(properties)
-    result = AddServiceTypeMutation.execute(
-        client,
-        data=ServiceTypeCreateData(
-            name=name, hasCustomer=hasCustomer, properties=new_property_types
-        ),
-    )
-
-    service_type = ServiceType(
-        name=result.name,
-        id=result.id,
-        hasCustomer=result.hasCustomer,
-        property_types=result.propertyTypes,
-    )
-    SERVICE_TYPES[name] = service_type
-    return service_type
+from ..graphql.enum.service_status import ServiceStatus
+from ..graphql.input.add_service_endpoint import AddServiceEndpointInput
+from ..graphql.input.service_create_data import ServiceCreateData
+from ..graphql.mutation.add_service import AddServiceMutation
+from ..graphql.mutation.add_service_endpoint import AddServiceEndpointMutation
+from ..graphql.mutation.add_service_link import AddServiceLinkMutation
+from ..graphql.query.service_details import ServiceDetailsQuery
+from ..graphql.query.service_endpoints import ServiceEndpointsQuery
+from ..graphql.query.service_links import ServiceLinksQuery
 
 
 def add_service(
@@ -82,10 +29,41 @@ def add_service(
     external_id: Optional[str],
     service_type: str,
     customer: Optional[Customer],
-    properties_dict: Dict[str, PropertyValue],
+    properties_dict: Optional[Mapping[str, PropertyValue]],
 ) -> Service:
-    property_types = SERVICE_TYPES[service_type].property_types
-    properties = get_graphql_property_inputs(property_types, properties_dict)
+    """This function creates service.
+
+        Args:
+            name (str): service name
+            external_id (Optional[str]): service external ID
+            service_type (str): existing service type name
+            customer (Optional[ `pyinventory.common.data_class.Customer` ]): existing customer object
+
+            properties_dict (Optional[ Mapping[ str, PropertyValue ] ]): dictionary of property name to property value
+            - str - property name
+            - PropertyValue - new value of the same type for this property
+
+        Returns:
+            `pyinventory.common.data_class.Service`
+
+        Raises:
+            FailedOperationException: internal inventory error
+
+        Example:
+            ```
+            service = client.add_service(
+                name="Room 202 Internet Access",
+                external_id="S32325",
+                service_type=self.service_type.name,
+                customer=None,
+                properties_dict={"Address Family": "v4"},
+            )
+            ```
+    """
+    properties = []
+    if properties_dict is not None:
+        property_types = SERVICE_TYPES[service_type].property_types
+        properties = get_graphql_property_inputs(property_types, properties_dict)
     service_create_data = ServiceCreateData(
         name=name,
         externalId=external_id,
@@ -96,130 +74,183 @@ def add_service(
         upstreamServiceIds=[],
     )
     result = AddServiceMutation.execute(client, data=service_create_data)
-    returned_customer = result.customer
-    endpoints = []
-    for e in result.endpoints:
-        port = e.port
-        link = port.link if port else None
-        endpoints.append(
-            ServiceEndpoint(
-                id=e.id,
-                port=EquipmentPort(
-                    id=port.id,
-                    properties=port.properties,
-                    definition=EquipmentPortDefinition(
-                        id=port.definition.id, name=port.definition.name
-                    ),
-                    link=Link(
-                        link.id,
-                        properties=link.properties,
-                        service_ids=[s.id for s in link.services],
-                    )
-                    if link
-                    else None,
-                )
-                if port
-                else None,
-                # TODO add service_endpoint_type api
-                type="1",
-            )
+    if customer is not None:
+        customer = Customer(
+            id=customer.id, name=customer.name, external_id=customer.external_id
         )
     return Service(
-        name=result.name,
         id=result.id,
-        externalId=result.externalId,
-        customer=Customer(
-            name=returned_customer.name,
-            id=returned_customer.id,
-            externalId=returned_customer.externalId,
-        )
-        if returned_customer
-        else None,
-        endpoints=endpoints,
-        links=[
-            Link(
-                id=l.id, properties=l.properties, service_ids=[s.id for s in l.services]
-            )
-            for l in result.links
-        ],
+        name=result.name,
+        external_id=result.externalId,
+        service_type_name=result.serviceType.name,
+        customer=customer,
+        properties=result.properties,
     )
 
 
+def get_service(client: SymphonyClient, id: str) -> Service:
+    """This function returns service by ID.
+
+        Args:
+            id (str): existing service ID
+
+        Returns:
+            `pyinventory.common.data_class.Service`
+
+        Raises:
+            `pyinventory.exceptions.EntityNotFoundError`: service does not exist
+            FailedOperationException: internal inventory error
+
+        Example:
+            ```
+            service = client.get_service(id="12345")
+            ```
+    """
+    result = ServiceDetailsQuery.execute(client, id=id)
+    if result is None:
+        raise EntityNotFoundError(entity=Entity.Service, entity_id=id)
+    customer = result.customer if result.customer is not None else None
+    if customer is not None:
+        customer = Customer(
+            id=customer.id, name=customer.name, external_id=customer.externalId
+        )
+    return Service(
+        id=result.id,
+        name=result.name,
+        external_id=result.externalId if result.externalId else None,
+        service_type_name=result.serviceType.name,
+        customer=customer,
+        properties=result.properties,
+    )
+
+
+def get_service_endpoints(
+    client: SymphonyClient, service_id: str
+) -> List[ServiceEndpoint]:
+    """This function returns service endpoints list.
+
+        Args:
+            service_id (str): existing service ID
+
+        Returns:
+            List[ `pyinventory.common.data_class.ServiceEndpoint` ]
+
+        Raises:
+            `pyinventory.exceptions.EntityNotFoundError`: service does not exist
+            FailedOperationException: internal inventory error
+
+        Example:
+            ```
+            endpoints = client.get_service_endpoint_definitions(id="service_id")
+            ```
+    """
+    service_data = ServiceEndpointsQuery.execute(client, id=service_id)
+
+    if not service_data:
+        raise EntityNotFoundError(entity=Entity.Service, entity_id=service_id)
+
+    return [
+        ServiceEndpoint(
+            id=endpoint.id,
+            equipment_id=endpoint.equipment.id,
+            service_id=service_id,
+            definition_id=endpoint.definition.id,
+        )
+        for endpoint in service_data.endpoints
+    ]
+
+
 def add_service_endpoint(
-    client: SymphonyClient, service: Service, port: EquipmentPort
+    client: SymphonyClient,
+    service: Service,
+    equipment_id: str,
+    endpoint_definition_id: str,
 ) -> None:
+    """This function adds existing endpoint to existing service.
+
+        Args:
+            service (str): existing service object
+            equipment_id (str): existing equipment ID
+            endpoint_definition_id (str): existing endpoint definition ID
+
+        Raises:
+            FailedOperationException: internal inventory error
+
+        Example:
+            ```
+            service = client.get_service(id="service_id")
+            location = client.get_location(location_hirerchy=[("Country", "LS_IND_Prod_Copy")])
+            equipment = client.get_equipment(name="indProdCpy1_AIO", location=location)
+            client.add_service_endpoint(
+                service=service,
+                equipment_id=equipment.id,
+                endpoint_definition_id="endpoint_definition_id,
+            )
+            ```
+    """
+    endpoint_definition_ids = [
+        ed.id for ed in SERVICE_TYPES[service.service_type_name].endpoint_definitions
+    ]
+
+    if endpoint_definition_id not in endpoint_definition_ids:
+        raise EntityNotFoundError(
+            entity=Entity.ServiceEndpointDefinition, entity_id=endpoint_definition_id
+        )
+
     AddServiceEndpointMutation.execute(
         client,
         input=AddServiceEndpointInput(
-            id=service.id, portId=port.id, definition="1", equipmentID="1"
+            id=service.id, definition=endpoint_definition_id, equipmentID=equipment_id
         ),
     )
 
 
-def add_service_link(client: SymphonyClient, service: Service, link: Link) -> None:
-    AddServiceLinkMutation.execute(client, id=service.id, linkId=link.id)
+def get_service_links(client: SymphonyClient, service_id: str) -> List[Link]:
+    """This function returns list of Links.
 
+        Args:
+            service_id (str): existing service ID
 
-def get_service(client: SymphonyClient, id: str) -> Service:
-    result = ServiceDetailsQuery.execute(client, id=id)
-    if result is None:
-        raise EntityNotFoundError(entity=Entity.Service, entity_id=id)
-    customer = result.customer
-    endpoints = []
-    for e in result.endpoints:
-        port = e.port
-        link = port.link if port else None
-        endpoints.append(
-            ServiceEndpoint(
-                id=e.id,
-                port=EquipmentPort(
-                    id=port.id,
-                    properties=port.properties,
-                    definition=EquipmentPortDefinition(
-                        id=port.definition.id, name=port.definition.name
-                    ),
-                    link=Link(
-                        id=link.id,
-                        properties=link.properties,
-                        service_ids=[s.id for s in link.services],
-                    )
-                    if link
-                    else None,
-                )
-                if port
-                else None,
-                # TODO add service_endpoint_type api
-                type="1",
-            )
+        Returns:
+            List[ `pyinventory.common.data_class.Link` ]
+
+        Raises:
+            `pyinventory.exceptions.EntityNotFoundError`: service does not exist
+            FailedOperationException: internal inventory error
+
+        Example:
+            ```
+            links = client.get_service_links(id="service_id")
+            ```
+    """
+    service_data = ServiceLinksQuery.execute(client, id=service_id)
+
+    if not service_data:
+        raise EntityNotFoundError(entity=Entity.Service, entity_id=service_id)
+
+    return [
+        Link(
+            id=link.id,
+            properties=link.properties,
+            service_ids=[s.id for s in link.services],
         )
-    return Service(
-        name=result.name,
-        id=result.id,
-        externalId=result.externalId,
-        customer=Customer(
-            name=customer.name, id=customer.id, externalId=customer.externalId
-        )
-        if customer is not None
-        else None,
-        endpoints=endpoints,
-        links=[
-            Link(
-                id=l.id, properties=l.properties, service_ids=[s.id for s in l.services]
-            )
-            for l in result.links
-        ],
-    )
+        for link in service_data.links
+    ]
 
 
-def delete_service_type_with_services(
-    client: SymphonyClient, service_type: ServiceType
-) -> None:
-    service_type_with_services = ServiceTypeServicesQuery.execute(
-        client, id=service_type.id
-    )
-    if not service_type_with_services:
-        raise EntityNotFoundError(entity=Entity.ServiceType, entity_id=service_type.id)
-    services = service_type_with_services.services
-    for service in services:
-        RemoveServiceMutation.execute(client, id=service.id)
-    RemoveServiceTypeMutation.execute(client, id=service_type.id)
+def add_service_link(client: SymphonyClient, service_id: str, link_id: str) -> None:
+    """This function adds existing link to existing service.
+
+        Args:
+            service_id (str): existing service ID
+            link_id (str): existing link ID
+
+        Raises:
+            FailedOperationException: internal inventory error
+
+        Example:
+            ```
+            client.add_service_link(service_id=service.id, link_id=link.id)
+            ```
+    """
+    AddServiceLinkMutation.execute(client, id=service_id, linkId=link_id)

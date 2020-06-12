@@ -22,15 +22,17 @@ import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithSnackbarProps} from 'notistack';
 
 import Breadcrumbs from '@fbcnms/ui/components/Breadcrumbs';
-import CommentsBox from '../comments/CommentsBox';
+import CommentsActivitiesBox from '../comments/CommentsActivitiesBox';
 import EditProjectMutation from '../../mutations/EditProjectMutation';
 import ExpandingPanel from '@fbcnms/ui/components/ExpandingPanel';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
+import FormFieldWithPermissions from '../../common/FormFieldWithPermissions';
 import FormSaveCancelPanel from '@fbcnms/ui/components/design-system/Form/FormSaveCancelPanel';
 import Grid from '@material-ui/core/Grid';
 import LocationBreadcrumbsTitle from '../location/LocationBreadcrumbsTitle';
 import LocationMapSnippet from '../location/LocationMapSnippet';
 import LocationTypeahead from '../typeahead/LocationTypeahead';
+import MainContext from '../MainContext';
 import NameDescriptionSection from '@fbcnms/ui/components/NameDescriptionSection';
 import ProjectWorkOrdersList from './ProjectWorkOrdersList';
 import PropertyValueInput from '../form/PropertyValueInput';
@@ -42,6 +44,7 @@ import update from 'immutability-helper';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {FormContextProvider} from '../../common/FormContext';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
+import {NAVIGATION_OPTIONS} from '../location/LocationBreadcrumbsTitle';
 import {createFragmentContainer, graphql} from 'react-relay';
 import {getGraphError} from '../../common/EntUtils';
 import {sortPropertiesByIndex, toPropertyInput} from '../../common/Property';
@@ -120,8 +123,8 @@ const styles = (theme: Theme) => ({
     padding: '0px',
   },
   inExpandingPanelFix: {
-    paddingLeft: '24px',
-    paddingRight: '24px',
+    paddingLeft: '16px',
+    paddingRight: '40px',
   },
   commentsLog: {
     maxHeight: '400px',
@@ -214,167 +217,199 @@ class ProjectDetails extends React.Component<Props, State> {
     const {properties} = this.state;
     return (
       <div className={classes.root}>
-        <FormContextProvider>
-          <div className={classes.nameHeader}>
-            <div className={classes.breadcrumbs}>
-              <Breadcrumbs
-                breadcrumbs={[
-                  {
-                    id: 'projects',
-                    name: 'Projects',
-                    onClick: () => this.navigateToMainPage(),
-                  },
-                  {
-                    id: project.id,
-                    name: this.props.project.name,
-                    subtext: `ID: ${project.id}`,
-                  },
-                ]}
-                size="large"
-              />
-            </div>
-            <ProjectMoreActionsButton
-              className={classes.button}
-              project={project}
-              onProjectRemoved={onProjectRemoved}
-            />
-            <FormSaveCancelPanel
-              onCancel={() => this.props.history.push(this.props.match.url)}
-              onSave={this.saveProject}
-            />
-          </div>
-          <div className={classes.cards}>
-            <Grid container spacing={2}>
-              <Grid item xs={8} sm={8} lg={8} xl={8}>
-                <ExpandingPanel title="Details">
-                  <NameDescriptionSection
-                    name={project.name}
-                    description={project.description}
-                    onNameChange={value =>
-                      this._setProjectDetail('name', value)
-                    }
-                    onDescriptionChange={value =>
-                      this._setProjectDetail('description', value)
-                    }
-                  />
-                  <Grid
-                    container
-                    spacing={2}
-                    className={classes.propertiesGrid}>
-                    {project.type && (
-                      <Grid item xs={12} sm={6} lg={4} xl={4}>
-                        <FormField label="Type">
-                          <TextInput
-                            disabled={true}
-                            variant="outlined"
-                            type="string"
-                            value={project.type.name}
-                          />
-                        </FormField>
-                      </Grid>
-                    )}
-                    <Grid item xs={12} sm={6} lg={4} xl={4}>
-                      <FormField label="Location">
-                        <LocationTypeahead
-                          headline={null}
-                          className={classes.gridInput}
-                          margin="dense"
-                          selectedLocation={
-                            location
-                              ? {id: location.id, name: location.name}
-                              : null
-                          }
-                          onLocationSelection={location =>
-                            this._locationChangedHandler(location?.id ?? null)
-                          }
-                        />
-                      </FormField>
-                    </Grid>
-                    {properties.map((property, index) => (
-                      <Grid key={property.id} item xs={12} sm={6} lg={4} xl={4}>
-                        <PropertyValueInput
-                          required={!!property.propertyType.isMandatory}
-                          disabled={!property.propertyType.isInstanceProperty}
-                          headlineVariant="form"
-                          fullWidth={true}
-                          label={property.propertyType.name}
-                          className={classes.gridInput}
-                          margin="dense"
-                          inputType="Property"
-                          property={property}
-                          onChange={this._propertyChangedHandler(index)}
-                        />
-                      </Grid>
-                    ))}
-                  </Grid>
-                  <>
-                    {location && (
-                      <>
-                        <div className={classes.separator} />
-
-                        <LocationBreadcrumbsTitle
-                          locationDetails={location}
-                          size="small"
-                        />
-                        <Grid container spacing={2}>
-                          <Grid item xs={12} md={12}>
-                            <LocationMapSnippet
-                              className={classes.map}
-                              location={{
-                                id: location.id,
-                                name: location.name,
-                                latitude: location.latitude,
-                                longitude: location.longitude,
-                                locationType: {
-                                  mapType: location.locationType.mapType,
-                                  mapZoomLevel: (
-                                    location.locationType.mapZoomLevel || 8
-                                  ).toString(),
-                                },
-                              }}
-                            />
-                          </Grid>
-                        </Grid>
-                      </>
-                    )}
-                  </>
-                </ExpandingPanel>
-                <ExpandingPanel title="Work Orders">
-                  <ProjectWorkOrdersList
-                    workOrders={project.workOrders}
-                    onNavigateToWorkOrder={this.navigateToWorkOrder}
-                  />
-                </ExpandingPanel>
-              </Grid>
-              <Grid item xs={4} sm={4} lg={4} xl={4}>
-                <ExpandingPanel title="Team">
-                  <FormField>
-                    <UserTypeahead
-                      className={classes.input}
-                      selectedUser={project.createdBy}
-                      headline="Owner"
-                      onUserSelection={user =>
-                        this._setProjectDetail('createdBy', user)
-                      }
+        <MainContext.Consumer>
+          {main => {
+            const isOwner =
+              main.me?.user?.email === this.props.project.createdBy?.email;
+            return (
+              <FormContextProvider
+                permissions={{
+                  entity: 'project',
+                  action: 'update',
+                  ignorePermissions: isOwner,
+                }}>
+                <div className={classes.nameHeader}>
+                  <div className={classes.breadcrumbs}>
+                    <Breadcrumbs
+                      breadcrumbs={[
+                        {
+                          id: 'projects',
+                          name: 'Projects',
+                          onClick: () => this.navigateToMainPage(),
+                        },
+                        {
+                          id: project.id,
+                          name: this.props.project.name,
+                          subtext: `ID: ${project.id}`,
+                        },
+                      ]}
+                      size="large"
                     />
-                  </FormField>
-                </ExpandingPanel>
-                <ExpandingPanel
-                  title="Comments"
-                  detailsPaneClass={classes.commentsBoxContainer}
-                  className={classes.card}>
-                  <CommentsBox
-                    boxElementsClass={classes.inExpandingPanelFix}
-                    commentsLogClass={classes.commentsLog}
-                    relatedEntityId={project.id}
-                    relatedEntityType="PROJECT"
-                    comments={this.props.project.comments}
+                  </div>
+                  <ProjectMoreActionsButton
+                    className={classes.button}
+                    project={project}
+                    onProjectRemoved={onProjectRemoved}
                   />
-                </ExpandingPanel>
-              </Grid>
-            </Grid>
-          </div>
-        </FormContextProvider>
+                  <FormSaveCancelPanel
+                    onCancel={() =>
+                      this.props.history.push(this.props.match.url)
+                    }
+                    onSave={this.saveProject}
+                  />
+                </div>
+                <div className={classes.cards}>
+                  <Grid container spacing={2}>
+                    <Grid item xs={8} sm={8} lg={8} xl={8}>
+                      <ExpandingPanel title="Details">
+                        <NameDescriptionSection
+                          name={project.name}
+                          description={project.description}
+                          onNameChange={value =>
+                            this._setProjectDetail('name', value)
+                          }
+                          onDescriptionChange={value =>
+                            this._setProjectDetail('description', value)
+                          }
+                        />
+                        <Grid
+                          container
+                          spacing={2}
+                          className={classes.propertiesGrid}>
+                          {project.type && (
+                            <Grid item xs={12} sm={6} lg={4} xl={4}>
+                              <FormField label="Type">
+                                <TextInput
+                                  disabled={true}
+                                  variant="outlined"
+                                  type="string"
+                                  value={project.type.name}
+                                />
+                              </FormField>
+                            </Grid>
+                          )}
+                          <Grid item xs={12} sm={6} lg={4} xl={4}>
+                            <FormField label="Location">
+                              <LocationTypeahead
+                                headline={null}
+                                className={classes.gridInput}
+                                margin="dense"
+                                selectedLocation={
+                                  location
+                                    ? {id: location.id, name: location.name}
+                                    : null
+                                }
+                                onLocationSelection={location =>
+                                  this._locationChangedHandler(
+                                    location?.id ?? null,
+                                  )
+                                }
+                              />
+                            </FormField>
+                          </Grid>
+                          {properties.map((property, index) => (
+                            <Grid
+                              key={property.id}
+                              item
+                              xs={12}
+                              sm={6}
+                              lg={4}
+                              xl={4}>
+                              <PropertyValueInput
+                                required={!!property.propertyType.isMandatory}
+                                disabled={
+                                  !property.propertyType.isInstanceProperty
+                                }
+                                headlineVariant="form"
+                                fullWidth={true}
+                                label={property.propertyType.name}
+                                className={classes.gridInput}
+                                margin="dense"
+                                inputType="Property"
+                                property={property}
+                                onChange={this._propertyChangedHandler(index)}
+                              />
+                            </Grid>
+                          ))}
+                        </Grid>
+                        <>
+                          {location && (
+                            <>
+                              <div className={classes.separator} />
+
+                              <LocationBreadcrumbsTitle
+                                locationDetails={location}
+                                size="small"
+                                navigateOnClick={NAVIGATION_OPTIONS.NEW_TAB}
+                              />
+                              <Grid container spacing={2}>
+                                <Grid item xs={12} md={12}>
+                                  <LocationMapSnippet
+                                    className={classes.map}
+                                    location={{
+                                      id: location.id,
+                                      name: location.name,
+                                      latitude: location.latitude,
+                                      longitude: location.longitude,
+                                      locationType: {
+                                        mapType: location.locationType.mapType,
+                                        mapZoomLevel: (
+                                          location.locationType.mapZoomLevel ||
+                                          8
+                                        ).toString(),
+                                      },
+                                    }}
+                                  />
+                                </Grid>
+                              </Grid>
+                            </>
+                          )}
+                        </>
+                      </ExpandingPanel>
+                      <ExpandingPanel title="Work Orders">
+                        <ProjectWorkOrdersList
+                          workOrders={project.workOrders}
+                          onNavigateToWorkOrder={this.navigateToWorkOrder}
+                        />
+                      </ExpandingPanel>
+                    </Grid>
+                    <Grid item xs={4} sm={4} lg={4} xl={4}>
+                      <ExpandingPanel title="Team">
+                        <FormFieldWithPermissions
+                          permissions={{
+                            entity: 'project',
+                            action: 'transferOwnership',
+                            ignorePermissions: isOwner,
+                          }}>
+                          <UserTypeahead
+                            className={classes.input}
+                            selectedUser={project.createdBy}
+                            headline="Owner"
+                            onUserSelection={user =>
+                              this._setProjectDetail('createdBy', user)
+                            }
+                          />
+                        </FormFieldWithPermissions>
+                      </ExpandingPanel>
+                      <ExpandingPanel
+                        title="Comments"
+                        detailsPaneClass={classes.commentsBoxContainer}
+                        className={classes.card}>
+                        <CommentsActivitiesBox
+                          boxElementsClass={classes.inExpandingPanelFix}
+                          commentsLogClass={classes.commentsLog}
+                          relatedEntityId={project.id}
+                          relatedEntityType="PROJECT"
+                          comments={this.props.project.comments}
+                        />
+                      </ExpandingPanel>
+                    </Grid>
+                  </Grid>
+                </div>
+              </FormContextProvider>
+            );
+          }}
+        </MainContext.Consumer>
       </div>
     );
   }
@@ -463,7 +498,7 @@ export default withRouter(
                 ...ProjectWorkOrdersList_workOrders
               }
               comments {
-                ...CommentsBox_comments
+                ...CommentsActivitiesBox_comments
               }
             }
           `,

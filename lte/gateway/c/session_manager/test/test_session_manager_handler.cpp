@@ -38,12 +38,13 @@ protected:
     session_store = std::make_shared<SessionStore>(rule_store);
     pipelined_client = std::make_shared<MockPipelinedClient>();
     auto directoryd_client = std::make_shared<MockDirectorydClient>();
-    auto eventd_client = std::make_shared<MockEventdClient>();
     auto spgw_client = std::make_shared<MockSpgwServiceClient>();
     auto aaa_client = std::make_shared<MockAAAClient>();
+    auto default_mconfig = get_default_mconfig();
     local_enforcer = std::make_shared<LocalEnforcer>(
         reporter, rule_store, *session_store, pipelined_client,
-        directoryd_client, eventd_client, spgw_client, aaa_client, 0, 0);
+        directoryd_client, MockEventdClient::getInstance(), spgw_client, aaa_client, 0, 0,
+        default_mconfig);
     evb = new folly::EventBase();
     std::thread([&]() {
       std::cout << "Started event loop thread\n";
@@ -87,6 +88,15 @@ MATCHER_P(CheckCreateSession, imsi, "") {
   return sid->subscriber().id() == imsi;
 }
 
+MATCHER_P(CheckUpdateSessionRequest, request_number, "")
+{
+  auto request = static_cast<const UpdateSessionRequest&>(arg);
+  for (const auto& credit_usage_update : request.updates()) {
+    return credit_usage_update.request_number() == request_number;
+  }
+  return false;
+}
+
 TEST_F(SessionManagerHandlerTest, test_create_session_cfg) {
   // 1) Insert the entry for a rule
   insert_static_rule(rule_store, monitoring_key, 1, "rule1");
@@ -117,7 +127,7 @@ TEST_F(SessionManagerHandlerTest, test_create_session_cfg) {
   // Only the active sessions are not recycled, to ensure that
   // this session is not automatically scheduled for termination
   // when RAT Type is WLAN, it needs monitoring keys...
-  create_cwf_session_create_response(imsi, monitoring_key, static_rules,
+  create_session_create_response(imsi, monitoring_key, static_rules,
                                      &response);
   response.mutable_static_rules()->Add()->mutable_rule_id()->assign("rule1");
   create_credit_update_response(imsi, 1, 1536,
@@ -234,17 +244,27 @@ TEST_F(SessionManagerHandlerTest, test_report_rule_stats) {
       session_store->create_sessions(imsi, std::move(session_map[imsi]));
   EXPECT_TRUE(write_success);
 
+  // Check the request number
+  auto session_map_2 = session_store->read_sessions(SessionRead{imsi});
+  EXPECT_EQ(session_map_2[imsi].front()->get_request_number(), 1);
+
   // 2) ReportRuleStats
   grpc::ServerContext server_context;
   RuleRecordTable table;
   auto record_list = table.mutable_records();
   create_rule_record("IMSI1", "rule1", 512, 512, record_list->Add());
 
-  EXPECT_CALL(*reporter, report_updates(_, _)).Times(1);
+  EXPECT_CALL(
+      *reporter,
+      report_updates(CheckUpdateSessionRequest(1), testing::_))
+      .Times(1);
   session_manager->ReportRuleStats(
       &server_context, &table,
       [this](grpc::Status status, orc8r::Void response_out) {});
   evb->loopOnce();
+
+  session_map_2 = session_store->read_sessions(SessionRead{imsi});
+  EXPECT_EQ(session_map_2[imsi].front()->get_request_number(), 2);
   evb->loopOnce();
 }
 

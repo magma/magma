@@ -7,26 +7,44 @@
 package main
 
 import (
+	"context"
+	"fmt"
+
 	"github.com/facebookincubator/symphony/pkg/log"
-	"github.com/facebookincubator/symphony/pkg/server"
 	"github.com/facebookincubator/symphony/pkg/server/xserver"
 	"github.com/facebookincubator/symphony/store/handler"
-	"github.com/facebookincubator/symphony/store/sign/s3"
-
 	"github.com/google/wire"
+	"gocloud.dev/blob"
 	"gocloud.dev/server/health"
 )
 
-// NewServer provider a store http service from cli flags.
-func NewServer(flags *cliFlags) (*server.Server, func(), error) {
+func newApplication(ctx context.Context, flags *cliFlags) (*application, func(), error) {
 	wire.Build(
+		wire.Struct(new(application), "*"),
+		wire.FieldsOf(new(*cliFlags),
+			"ListenAddress",
+			"LogConfig",
+			"TelemetryConfig",
+		),
+		log.Provider,
 		xserver.ServiceSet,
 		xserver.DefaultViews,
-		log.Provider,
-		wire.FieldsOf(new(*cliFlags), "Census", "Log", "S3"),
 		wire.Value([]health.Checker(nil)),
-		s3.Set,
 		handler.Set,
+		newBucket,
+		newBucketName,
 	)
 	return nil, nil, nil
+}
+
+func newBucket(ctx context.Context, flags *cliFlags) (*blob.Bucket, func(), error) {
+	bucket, err := blob.OpenBucket(ctx, flags.BlobURL.String())
+	if err != nil {
+		return nil, nil, fmt.Errorf("cannot open blob bucket: %w", err)
+	}
+	return bucket, func() { _ = bucket.Close() }, nil
+}
+
+func newBucketName(flags *cliFlags) string {
+	return flags.BlobURL.Host
 }

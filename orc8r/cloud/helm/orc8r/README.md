@@ -67,16 +67,9 @@ The following table list the configurable parameters of the orchestrator chart a
 | `controller.tolerations` | If specified, the pod's tolerations. | `[]` |
 | `controller.affinity` | Assign the orchestrator proxy to run on specific nodes. | `{}` |
 | `nms.enabled` | If true, deploy the nms sub-chart | `true` |
-| `nms.magmalte.manifests.configmap` | Enable nms magmalte configmap. | `false` |
-| `nms.magmalte.manifests.secrets` | Enable nms magmalte secrets. | `false` |
-| `nms.magmalte.manifests.deployment` | Enable nms magmalte deployment. | `false` |
-| `nms.magmalte.manifests.service` | Enable nms magmalte service. | `false` |
-| `nms.magmalte.manifests.rbac` | Enable nms magmalte rbac. | `false` |
-| `nms.nginx.manifests.configmap` | Enable nms nginx configmap. | `false` |
-| `nms.nginx.manifests.secrets` | Enable nms nginx secrets. | `false` |
-| `nms.nginx.manifests.deployment` | Enable nms nginx deployment. | `false` |
-| `nms.nginx.manifests.service` | Enable nms nginx service. | `false` |
-| `nms.nginx.manifests.rbac` | Enable nms nginx rbac. | `false` |
+| `nms.nginx.create` | Enable nms nginx service. | `true` |
+| `nms.magmalte.create` | Enable nms magmalte app. | `true` |
+| `nms.rbac` | Enable rbac for nginx and magmalte app. | `false` |
 | `logging.enabled` | If true, deploy the logging sub-chart | `true` |
 
 ## Running in Minikube

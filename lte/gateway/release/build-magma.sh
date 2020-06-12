@@ -15,7 +15,7 @@ shopt -s extglob
 
 # Please update the version number accordingly for beta/stable builds
 # Test builds are versioned automatically by fabfile.py
-VERSION=1.0.2 # magma version number
+VERSION=1.1.0 # magma version number
 SCTPD_MIN_VERSION=1.0.2 # earliest version of sctpd with which this version is compatible
 
 # RelWithDebInfo or Debug
@@ -231,6 +231,7 @@ ORC8R_PY_DEPS=`${RELEASE_DIR}/pydep lockfile ${RELEASE_DIR}/magma.lockfile`
 
 cd ${PY_LTE}
 make protos
+make swagger
 PKG_VERSION=${FULL_VERSION} ${PY_VERSION} setup.py install --root ${PY_TMP_BUILD} --install-layout deb \
     --no-compile --single-version-externally-managed
 ${RELEASE_DIR}/pydep finddep -l ${RELEASE_DIR}/magma.lockfile setup.py

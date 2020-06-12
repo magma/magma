@@ -11,17 +11,13 @@
 import type {UserPermissionsGroup} from '../utils/UserManagementUtils';
 
 import * as React from 'react';
+import Card from '@fbcnms/ui/components/design-system/Card/Card';
 import ViewHeader from '@fbcnms/ui/components/design-system/View/ViewHeader';
 import classNames from 'classnames';
 import fbt from 'fbt';
-import symphony from '@fbcnms/ui/theme/symphony';
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles(() => ({
-  root: {
-    backgroundColor: symphony.palette.white,
-  },
-}));
+const useStyles = makeStyles(() => ({}));
 
 type Props = {
   group: UserPermissionsGroup,
@@ -35,9 +31,9 @@ export default function PermissionsGroupPoliciesPane({
   const classes = useStyles();
 
   return (
-    <div className={classNames(classes.root, className)}>
+    <Card className={classNames(classes.root, className)} margins="none">
       <ViewHeader title={<fbt desc="">Policies</fbt>} />
       {group.name} Policies
-    </div>
+    </Card>
   );
 }

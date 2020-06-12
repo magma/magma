@@ -26,10 +26,12 @@ non_service303_services:
   - control_proxy
   - redis
   - radius
+  - td-agent-bit
 
 # List of all possible dynamic services (enabled from gateway.mconfig)
 registered_dynamic_services:
   - redirectd
+  - td-agent-bit
 
 # list of services that are required to have meta before checking in
 # (meta = data gathered via MagmaService.register_get_status_callback())
@@ -56,6 +58,7 @@ upgrader_factory:
   module: magma.magmad.upgrade.docker_upgrader
   class: DockerUpgraderFactory
   gateway_module: cwf
+  use_proxy: True
 
 mconfig_modules:
   - orc8r.protos.mconfig.mconfigs_pb2

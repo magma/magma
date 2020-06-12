@@ -12,12 +12,12 @@ import type {PermissionsPolicy} from '../utils/UserManagementUtils';
 import type {TabProps} from '@fbcnms/ui/components/design-system/Tabs/TabsBar';
 
 import * as React from 'react';
+import Card from '@fbcnms/ui/components/design-system/Card/Card';
 import PermissionsPolicyInventoryCatalogRulesTab from './PermissionsPolicyInventoryCatalogRulesTab';
 import PermissionsPolicyInventoryDataRulesTab from './PermissionsPolicyInventoryDataRulesTab';
 import PermissionsPolicyWorkforceDataRulesTab from './PermissionsPolicyWorkforceDataRulesTab';
 import PermissionsPolicyWorkforceTemplatesRulesTab from './PermissionsPolicyWorkforceTemplatesRulesTab';
 import TabsBar from '@fbcnms/ui/components/design-system/Tabs/TabsBar';
-import classNames from 'classnames';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
 import {POLICY_TYPES} from '../utils/UserManagementUtils';
@@ -25,12 +25,6 @@ import {makeStyles} from '@material-ui/styles';
 import {useCallback, useMemo, useState} from 'react';
 
 const useStyles = makeStyles(() => ({
-  root: {
-    maxHeight: '100%',
-    overflow: 'hidden',
-    display: 'flex',
-    flexDirection: 'column',
-  },
   tabsContainer: {
     paddingLeft: '24px',
   },
@@ -137,7 +131,7 @@ export default function PermissionsPolicyRulesPane(props: Props) {
   ]);
 
   return (
-    <div className={classNames(classes.root, className)}>
+    <Card className={className} margins="none">
       <TabsBar
         className={classes.tabsContainer}
         tabs={ruleTypes.map(type => type.tab)}
@@ -146,6 +140,6 @@ export default function PermissionsPolicyRulesPane(props: Props) {
         spread={false}
       />
       <div className={classes.viewContainer}>{ruleTypes[activeTab].view}</div>
-    </div>
+    </Card>
   );
 }

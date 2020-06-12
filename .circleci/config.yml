@@ -6,6 +6,15 @@ refs:
       branches:
         only: master
 
+aliases:
+  - &appdir
+    working_directory: "symphony/app"
+
+executors:
+  node:
+    docker:
+      - image: circleci/node:10-buster-browsers-legacy
+
 orbs:
   artifactory: circleci/artifactory@0.0.7
   build:
@@ -66,6 +75,22 @@ commands:
           }
           cd << parameters.workdir >>
           retry << parameters.command >>
+
+  yarn-install:
+    steps:
+      - restore_cache:
+          name: Restore Yarn Package Cache
+          keys:
+            - yarn-packages-{{ checksum "symphony/app/yarn.lock" }}
+      - run:
+          name: Install Dependencies
+          <<: *appdir
+          command: yarn install --frozen-lockfile
+      - save_cache:
+          name: Save Yarn Package Cache
+          key: yarn-packages-{{ checksum "symphony/app/yarn.lock" }}
+          paths:
+            - ~/.cache/yarn
 
 jobs:
   integ-test:
@@ -353,6 +378,41 @@ jobs:
             cd ${MAGMA_ROOT}/symphony/app/fbcnms-projects/magmalte
             docker-compose build magmalte
 
+  nms-yarn-test:
+    executor: node
+    steps:
+      - checkout
+      - yarn-install
+      - run:
+          name: yarn test
+          <<: *appdir
+          command: yarn test:ci
+
+  nms-flow-test:
+    executor: node
+    steps:
+      - checkout
+      - run:
+          name: install flow
+          <<: *appdir
+          # Extract the specified flow version from the .flowconfig
+          command: yarn add --dev -W flow-bin@$(x=$(grep "\[version\]" .flowconfig -A 1 | tail -n 1); echo ${x:1})
+      - yarn-install
+      - run:
+          name: flow typecheck
+          <<: *appdir
+          command: yarn run flow
+
+  eslint:
+    executor: node
+    steps:
+      - checkout
+      - yarn-install
+      - run:
+          name: eslint
+          <<: *appdir
+          command: yarn run eslint ./
+
   fossa-analyze:
     docker:
       - image: ubuntu:xenial
@@ -533,19 +593,26 @@ workflows:
       - orc8r-gateway-test
       - lte-test
       - insync-checkin
+      - nms-flow-test
+      - fossa-analyze
+      - eslint
+      - nms-yarn-test:
+          requires:
+            - nms-flow-test
       - orc8r-core-build:
           requires:
             - cloud-test
             - orc8r-gateway-test
+            - insync-checkin
       - orc8r-noncore-build:
           requires:
             - cloud-test
             - orc8r-gateway-test
+            - insync-checkin
       - nms-build:
           requires:
               - cloud-test
               - orc8r-gateway-test
-      - fossa-analyze
 
   docusaurus_build_and_deploy:
     jobs:

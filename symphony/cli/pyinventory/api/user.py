@@ -11,12 +11,12 @@ from ..common.constant import SUPERUSER_ROLE, USER_ROLE
 from ..common.data_class import User
 from ..common.data_enum import Entity
 from ..exceptions import EntityNotFoundError
-from ..graphql.edit_user_input import EditUserInput
-from ..graphql.edit_user_mutation import EditUserMutation
-from ..graphql.user_query import UserQuery
-from ..graphql.user_role_enum import UserRole
-from ..graphql.user_status_enum import UserStatus
-from ..graphql.users_query import UsersQuery
+from ..graphql.enum.user_role import UserRole
+from ..graphql.enum.user_status import UserStatus
+from ..graphql.input.edit_user import EditUserInput
+from ..graphql.mutation.edit_user import EditUserMutation
+from ..graphql.query.user import UserQuery
+from ..graphql.query.users import UsersQuery
 
 
 def get_user(client: SymphonyClient, email: str) -> User:
@@ -81,7 +81,7 @@ def add_user(client: SymphonyClient, email: str, password: str) -> User:
             raise AssertionError(error_message)
         raise
 
-    return get_user(client, email)
+    return get_user(client=client, email=email)
 
 
 def edit_user(
@@ -95,7 +95,7 @@ def edit_user(
         Args:
             user ( `pyinventory.common.data_class.User` ): user to edit
             new_password (Optional[str]): new password the user would connect with
-            new_role ( `pyinventory.graphql.user_role_enum.UserRole` ): user new role
+            new_role ( `pyinventory.graphql.enum.user_role.UserRole` ): user new role
 
         Raises:
             FailedOperationException: internal inventory error
@@ -221,5 +221,5 @@ def get_active_users(client: SymphonyClient) -> List[User]:
                 print(user.email)
             ```
     """
-    users = get_users(client)
+    users = get_users(client=client)
     return [user for user in users if user.status == UserStatus.ACTIVE]

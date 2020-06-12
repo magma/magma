@@ -12,8 +12,11 @@ import type {PermissionsPolicy} from '../utils/UserManagementUtils';
 import type {TableRowDataType} from '@fbcnms/ui/components/design-system/Table/Table';
 
 import * as React from 'react';
+import LockIcon from '@fbcnms/ui/components/design-system/Icons/Indications/LockIcon';
 import Table from '@fbcnms/ui/components/design-system/Table/Table';
+import Text from '@fbcnms/ui/components/design-system/Text';
 import fbt from 'fbt';
+import symphony from '@fbcnms/ui/theme/symphony';
 import {POLICY_TYPES} from '../utils/UserManagementUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
@@ -24,6 +27,8 @@ export const PERMISSION_POLICIES_VIEW_NAME = fbt(
   'Polices',
   'Header for view showing system permissions policies settings',
 );
+
+export const SYSTEM_DEFAULT_POLICY_PREFIX = fbt('Default Policy', '');
 
 const ALL_USERS = `${fbt('All Users', '')}`;
 
@@ -37,6 +42,18 @@ const useStyles = makeStyles(() => ({
   wideColumn: {
     width: '170%',
   },
+  nameCell: {
+    display: 'flex',
+    alignItems: 'center',
+    fill: symphony.palette.D700,
+    '&>:not(:first-child)': {
+      marginLeft: '8px',
+    },
+  },
+  defaultPolicyPrefix: {
+    textDecoration: 'underline',
+    marginRight: '4px',
+  },
 }));
 
 type PolicyTableRow = TableRowDataType<PermissionsPolicy>;
@@ -45,6 +62,7 @@ type PolicyTableData = Array<PolicyTableRow>;
 const policy2PolicyTableRow: PermissionsPolicy => PolicyTableRow = policy => ({
   key: policy.id,
   ...policy,
+  alwaysShowOnTop: policy.isSystemDefault,
 });
 
 const getPolicyUsersCount = (PolicyRow: PolicyTableRow) =>
@@ -78,7 +96,12 @@ export default function PermissionsPoliciesView() {
         </fbt>
       ),
       getSortingValue: PolicyRow => PolicyRow.name,
-      render: PolicyRow => PolicyRow.name,
+      render: PolicyRow => (
+        <div className={classes.nameCell}>
+          {PolicyRow.isSystemDefault && <LockIcon color="inherit" />}
+          <span>{PolicyRow.name}</span>
+        </div>
+      ),
     },
     {
       key: 'description',
@@ -88,7 +111,16 @@ export default function PermissionsPoliciesView() {
         </fbt>
       ),
       getSortingValue: PolicyRow => PolicyRow.description,
-      render: PolicyRow => PolicyRow.description,
+      render: PolicyRow => (
+        <>
+          {PolicyRow.isSystemDefault && (
+            <Text variant="body2" className={classes.defaultPolicyPrefix}>
+              {SYSTEM_DEFAULT_POLICY_PREFIX}:
+            </Text>
+          )}
+          {PolicyRow.description}
+        </>
+      ),
       titleClassName: classes.wideColumn,
       className: classes.wideColumn,
     },
@@ -108,7 +140,7 @@ export default function PermissionsPoliciesView() {
       key: 'groups',
       title: (
         <fbt desc="Gropus Applied column header in permission groups table">
-          Gropus Applied
+          Groups Applied
         </fbt>
       ),
       getSortingValue: getPolicyUsersCount,

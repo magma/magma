@@ -12,25 +12,26 @@ import (
 	"github.com/AlekSi/pointer"
 	"github.com/pkg/errors"
 
-	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/ent/service"
-	"github.com/facebookincubator/symphony/graph/ent/servicetype"
+	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/ent/service"
+	"github.com/facebookincubator/symphony/pkg/ent/servicetype"
+	"github.com/facebookincubator/symphony/pkg/viewer"
 )
 
 type serviceEquipmentListData struct {
 	EquipmentList []*ent.Equipment
 }
 
-const maxEndpoints = 5
+const MaxEndpoints = 5
 
 // syncServices job syncs the services according to changes
 func (m *jobs) syncServices(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-
+	v := viewer.FromContext(ctx)
 	sc := getServicesContext(ctx)
 	log := m.logger.For(ctx)
 	client := ent.FromContext(ctx)
-	log.Info("services-Sync run")
+	log.Info("services sync run. tenant: " + v.Tenant())
 
 	services, err := client.Service.Query().Where(
 		service.HasTypeWith(servicetype.DiscoveryMethodEQ(servicetype.DiscoveryMethodINVENTORY))).
@@ -41,7 +42,7 @@ func (m *jobs) syncServices(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Info("service Sync - delete outdated services")
+	log.Info("service sync - looking for outdated services to delete")
 	for _, srvc := range services {
 		typ, err := srvc.QueryType().Only(ctx)
 		if err != nil {
@@ -56,7 +57,6 @@ func (m *jobs) syncServices(w http.ResponseWriter, r *http.Request) {
 				continue
 			}
 			sc.deleted++
-
 		}
 		err = m.validateEndpointsExistAndLinked(ctx, srvc)
 		if err != nil {

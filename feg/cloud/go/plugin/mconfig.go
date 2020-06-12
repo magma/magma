@@ -15,28 +15,39 @@ import (
 	"magma/feg/cloud/go/plugin/models"
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/orc8r/cloud/go/services/configurator"
+	configuratorprotos "magma/orc8r/cloud/go/services/configurator/protos"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/ptypes"
+	"github.com/golang/protobuf/ptypes/any"
 	"github.com/pkg/errors"
 )
 
 type Builder struct{}
+type FegMconfigBuilderServicer struct{}
 
-func (*Builder) Build(
-	networkID string,
-	gatewayID string,
-	graph configurator.EntityGraph,
-	network configurator.Network,
-	mconfigOut map[string]proto.Message) error {
-
-	gwConfig, err := getFegConfig(gatewayID, network, graph)
+func (s *FegMconfigBuilderServicer) Build(
+	request *configuratorprotos.BuildMconfigRequest,
+) (*configuratorprotos.BuildMconfigResponse, error) {
+	ret := &configuratorprotos.BuildMconfigResponse{
+		ConfigsByKey: map[string]*any.Any{},
+	}
+	network, err := (configurator.Network{}).FromStorageProto(request.GetNetwork())
+	if err != nil {
+		return ret, err
+	}
+	graph, err := (configurator.EntityGraph{}).FromStorageProto(request.GetEntityGraph())
+	if err != nil {
+		return ret, err
+	}
+	gwConfig, err := getFegConfig(request.GetGatewayId(), network, graph)
 	if err == merrors.ErrNotFound {
-		return nil
+		return ret, nil
 	}
 	if err != nil {
-		return errors.WithStack(err)
+		return ret, err
 	}
 	// Network health config takes priority. Only use gw health config
 	// if network health config is nil
@@ -55,8 +66,9 @@ func (*Builder) Build(
 	csfb := gwConfig.Csfb
 	healthc := protos.SafeInit(healthConfig).(*models.Health)
 
+	vals := map[string]proto.Message{}
 	if s6ac != nil {
-		mconfigOut["s6a_proxy"] = &mconfig.S6AConfig{
+		vals["s6a_proxy"] = &mconfig.S6AConfig{
 			LogLevel:                protos.LogLevel_INFO,
 			Server:                  s6ac.Server.ToMconfig(),
 			RequestFailureThreshold: healthc.RequestFailureThreshold,
@@ -76,7 +88,7 @@ func (*Builder) Build(
 				OverwriteApn: gxc.OverwriteApn,
 				Servers:      models.ToMultipleServersMconfig(gxc.Server, gxc.Servers),
 			}
-			// TODO: once backwards compatibility is not needed, remove server from swagger, remove server from mconfg
+			// TODO: remove this once backwards compatibility is not needed for the field server, remove server from swagger and mconfg
 			if len(mc.Gx.Servers) > 0 {
 				mc.Gx.Server = mc.Gx.Servers[0]
 			}
@@ -87,51 +99,97 @@ func (*Builder) Build(
 				OverwriteApn: gyc.OverwriteApn,
 				Servers:      models.ToMultipleServersMconfig(gyc.Server, gyc.Servers),
 			}
-			// TODO: once backwards compatibility is not needed, remove server from swagger, remove server from mconfg
+			// TODO: remove this once backwards compatibility is not needed for the field server, remove server from swagger and mconfg
 			if len(mc.Gy.Servers) > 0 {
 				mc.Gy.Server = mc.Gy.Servers[0]
 			}
 		}
-		mconfigOut["session_proxy"] = mc
+		vals["session_proxy"] = mc
 	}
 
 	if healthConfig != nil {
 		mc := &mconfig.GatewayHealthConfig{}
 		protos.FillIn(healthc, mc)
-		mconfigOut["health"] = mc
+		vals["health"] = mc
 	}
 
 	if hss != nil {
 		mc := &mconfig.HSSConfig{
 			SubProfiles: map[string]*mconfig.HSSConfig_SubscriptionProfile{}} // legacy: avoid nil map
 		protos.FillIn(hss, mc)
-		mconfigOut["hss"] = mc
+		vals["hss"] = mc
 	}
 
 	if swxc != nil {
 		mc := &mconfig.SwxConfig{LogLevel: protos.LogLevel_INFO}
 		protos.FillIn(swxc, mc)
-		mconfigOut["swx_proxy"] = mc
+
+		// TODO: remove this once backwards compatibility is not needed for the field server, remove server from swagger and mconfg
+		mc.Servers = models.ToMultipleServersMconfig(swxc.Server, swxc.Servers)
+		vals["swx_proxy"] = mc
 	}
 
 	if eapAka != nil {
 		mc := &mconfig.EapAkaConfig{LogLevel: protos.LogLevel_INFO}
 		protos.FillIn(eapAka, mc)
-		mconfigOut["eap_aka"] = mc
+		vals["eap_aka"] = mc
 	}
 
 	if aaa != nil {
 		mc := &mconfig.AAAConfig{LogLevel: protos.LogLevel_INFO}
 		protos.FillIn(aaa, mc)
-		mconfigOut["aaa_server"] = mc
+		vals["aaa_server"] = mc
 	}
 
 	if csfb != nil {
 		mc := &mconfig.CsfbConfig{LogLevel: protos.LogLevel_INFO}
 		protos.FillIn(csfb, mc)
-		mconfigOut["csfb"] = mc
+		vals["csfb"] = mc
 	}
-
+	for k, v := range vals {
+		ret.ConfigsByKey[k], err = ptypes.MarshalAny(v)
+		if err != nil {
+			return ret, err
+		}
+	}
+	return ret, nil
+}
+func (*Builder) Build(
+	networkID string,
+	gatewayID string,
+	graph configurator.EntityGraph,
+	network configurator.Network,
+	mconfigOut map[string]proto.Message) error {
+	servicer := &FegMconfigBuilderServicer{}
+	networkProto, err := network.ToStorageProto()
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	graphProto, err := graph.ToStorageProto()
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	request := &configuratorprotos.BuildMconfigRequest{
+		NetworkId:   networkID,
+		GatewayId:   gatewayID,
+		EntityGraph: graphProto,
+		Network:     networkProto,
+	}
+	res, err := servicer.Build(request)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	for k, v := range res.GetConfigsByKey() {
+		mconfigMessage, err := ptypes.Empty(v)
+		if err != nil {
+			return err
+		}
+		err = ptypes.UnmarshalAny(v, mconfigMessage)
+		if err != nil {
+			return err
+		}
+		mconfigOut[k] = mconfigMessage
+	}
 	return nil
 }
 

@@ -10,8 +10,8 @@
 
 import * as React from 'react';
 import axios from 'axios';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
-import {useRouter} from '@fbcnms/ui/hooks';
+import useRouter from '../hooks/useRouter';
+import {useEnqueueSnackbar} from '../hooks/useSnackbar';
 
 import type {AlertRoutingTree} from './AlarmAPIType';
 import type {ApiUtil} from './AlarmsApi';
@@ -126,7 +126,7 @@ export function useAlertRuleReceiver({
   const saveReceiver = React.useCallback(async () => {
     let updatedRoutes: AlertRoutingTree = response || {
       routes: [],
-      receiver: `${match.params.networkId || '0'}_tenant_base_route`,
+      receiver: `${match.params.networkId || 'tg'}_tenant_base_route`,
     };
     if (
       (receiver == null || receiver.trim() === '') &&

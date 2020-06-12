@@ -23,7 +23,6 @@
       "logLevel": "INFO",
       "ueIpBlock": "192.168.128.0/24",
       "natEnabled": false,
-      "relayEnabled": true,
       "apps": [],
       "services": [
       ],
@@ -51,6 +50,17 @@
       "radiusMetricsPort": 9100,
       "radiusMetricsPath": "metrics",
       "updateIntervalSecs": 60
+    },
+    "dpid": {
+      "@type": "type.googleapis.com/magma.mconfig.DPID",
+      "logLevel": "INFO"
+    },
+    "td-agent-bit": {
+      "@type": "type.googleapis.com/magma.mconfig.FluentBit",
+      "extraTags": {},
+      "throttleRate": 1000,
+      "throttleWindow": 5,
+      "throttleInterval": "1m"
     }
   }
 }

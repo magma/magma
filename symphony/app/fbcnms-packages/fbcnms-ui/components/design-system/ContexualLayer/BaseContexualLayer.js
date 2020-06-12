@@ -8,10 +8,18 @@
  * @format
  */
 
+import type {TRefFor} from '../types/TRefFor.flow';
+
 import * as React from 'react';
 import Portal from '../Core/Portal';
 import {makeStyles} from '@material-ui/styles';
-import {useCallback, useLayoutEffect, useRef, useState} from 'react';
+import {
+  useCallback,
+  useImperativeHandle,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -20,19 +28,24 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
+export type ContextualLayerRef = $ReadOnly<{
+  reposition: () => void,
+  ...
+}>;
+
 export type ContextualLayerPosition = 'below' | 'above';
 
 export type ContextualLayerOptions = $ReadOnly<{|
-  align?: 'middle',
+  align?: 'middle' | 'stretch',
   position?: ContextualLayerPosition,
 |}>;
 
-type PositionRect = {
+type PositionRect = {|
   bottom: number,
   left: number,
   right: number,
   top: number,
-};
+|};
 
 function getElementPosition(element: Element): PositionRect {
   const rect = element.getBoundingClientRect();
@@ -44,44 +57,74 @@ function getElementPosition(element: Element): PositionRect {
   };
 }
 
-type Props = {
+type Props = $ReadOnly<{|
   ...ContextualLayerOptions,
   children: React.Node,
   context: Element,
   hidden?: boolean,
-};
+|}>;
 
-const BaseContexualLayer = ({
-  children,
-  position,
-  context,
-  hidden = false,
-}: Props) => {
+const BaseContexualLayer = (props: Props, ref: TRefFor<ContextualLayerRef>) => {
+  const {
+    children,
+    position: preferredPosition,
+    context,
+    hidden = false,
+    align = 'middle',
+  } = props;
   const classes = useStyles();
+  const [position, setPosition] = useState(() => preferredPosition);
 
   const [_hasCalculated, setHasCalculated] = useState(false);
   const contextualLayerRef = useRef<HTMLDivElement | null>(null);
 
   const recalculateStyles = useCallback(() => {
+    const contextualLayerElement = contextualLayerRef.current;
+    const documentElement = document.documentElement;
+    if (contextualLayerElement == null || documentElement == null) {
+      return;
+    }
+
     const contextRect = getElementPosition(context);
+    const documentRect = getElementPosition(documentElement);
+
     const getPositioningStyles = () => {
       const style = {};
       switch (position) {
         case 'below':
+          if (
+            contextRect.bottom + contextualLayerElement.clientHeight >
+            documentRect.bottom
+          ) {
+            setPosition('above');
+            break;
+          }
+
           style.top = contextRect.bottom;
           style.left = contextRect.left;
           break;
         case 'above':
           style.left = contextRect.left;
+
+          if (
+            contextRect.top - contextualLayerElement.clientHeight <
+            documentRect.top
+          ) {
+            setPosition('below');
+            break;
+          }
+
           style.top = contextRect.top;
           style.transform = 'translate(0, -100%)';
           break;
       }
-      style.width = contextRect.right - contextRect.left;
+      if (align === 'stretch') {
+        style.width = contextRect.right - contextRect.left;
+      }
+
       return style;
     };
 
-    const contextualLayerElement = contextualLayerRef.current;
     if (contextualLayerElement != null) {
       contextualLayerElement.removeAttribute('style'); // Unset all styles
       const style = getPositioningStyles();
@@ -94,7 +137,16 @@ const BaseContexualLayer = ({
       });
     }
     setHasCalculated(true);
-  }, [context, position]);
+  }, [context, position, align]);
+
+  const preferredPositionRef = useRef(preferredPosition);
+  useLayoutEffect(() => {
+    if (preferredPosition !== preferredPositionRef.current) {
+      setPosition(preferredPosition);
+      recalculateStyles();
+    }
+    preferredPositionRef.current = preferredPosition;
+  }, [preferredPosition, recalculateStyles]);
 
   useLayoutEffect(() => {
     if (!hidden) {
@@ -110,6 +162,16 @@ const BaseContexualLayer = ({
     [recalculateStyles],
   );
 
+  useImperativeHandle(
+    ref,
+    (): ContextualLayerRef => ({
+      reposition() {
+        recalculateStyles();
+      },
+    }),
+    [recalculateStyles],
+  );
+
   return (
     <Portal target={document.body}>
       <div
@@ -122,4 +184,6 @@ const BaseContexualLayer = ({
   );
 };
 
-export default BaseContexualLayer;
+export default (React.forwardRef<Props, ContextualLayerRef>(
+  BaseContexualLayer,
+): React.AbstractComponent<Props, ContextualLayerRef>);

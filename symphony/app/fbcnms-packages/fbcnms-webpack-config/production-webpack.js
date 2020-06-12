@@ -9,7 +9,6 @@
  */
 'use strict';
 
-const autoprefixer = require('autoprefixer');
 const paths = require('./paths');
 const webpack = require('webpack');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer')
@@ -99,18 +98,7 @@ function createProductionWebpackConfig(options: Options) {
                     // Necessary for external CSS imports to work
                     // https://github.com/facebookincubator/create-react-app/issues/2677
                     ident: 'postcss',
-                    plugins: () => [
-                      require('postcss-flexbugs-fixes'),
-                      autoprefixer({
-                        browsers: [
-                          '>1%',
-                          'last 4 versions',
-                          'Firefox ESR',
-                          'not ie < 9', // React doesn't support IE8 anyway
-                        ],
-                        flexbox: 'no-2009',
-                      }),
-                    ],
+                    plugins: () => [require('postcss-flexbugs-fixes')],
                   },
                 },
               ],
@@ -148,7 +136,7 @@ function createProductionWebpackConfig(options: Options) {
       tls: 'empty',
     },
     output: {
-      chunkFilename: 'static/js/[name].chunk.js',
+      chunkFilename: '[name].[chunkhash].chunk.js',
       filename: '[name].[chunkhash].js',
       path: paths.distPath,
       pathinfo: true,
@@ -162,19 +150,13 @@ function createProductionWebpackConfig(options: Options) {
         analyzerMode: 'static',
         reportFilename: 'report.html',
       }),
-      new webpack.NoEmitOnErrorsPlugin(),
       // remove excess locales in moment bloating the bundle
       new webpack.ContextReplacementPlugin(/moment[/\\]locale$/, /en/),
     ],
     optimization: {
       minimizer: [
         new TerserPlugin({
-          chunkFilter: chunk => {
-            if (chunk.name === 'vendor') {
-              return false;
-            }
-            return true;
-          },
+          chunkFilter: chunk => chunk.name !== 'vendor',
           parallel: true,
         }),
       ],
@@ -182,9 +164,10 @@ function createProductionWebpackConfig(options: Options) {
         cacheGroups: {
           vendor: {
             test: /[\\/]node_modules[\\/]/,
-            chunks: 'all',
+            chunks: 'initial',
             name: 'vendor',
-            filename: 'vendor.[chunkhash].js',
+            priority: 10,
+            enforce: true,
           },
         },
       },

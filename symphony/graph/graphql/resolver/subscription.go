@@ -8,24 +8,27 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/AlekSi/pointer"
+	"github.com/facebookincubator/symphony/pkg/pubsub"
+
 	"github.com/facebookincubator/symphony/graph/event"
-	"github.com/facebookincubator/symphony/graph/viewer"
+	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/viewer"
 	"go.uber.org/zap"
 )
 
 type subscriptionResolver struct{ resolver }
 
-func (r subscriptionResolver) subscribeAndListen(ctx context.Context, name string, handler event.Handler) {
+func (r subscriptionResolver) subscribeAndListen(ctx context.Context, name string, handler pubsub.Handler) {
 	logger := r.logger.For(ctx)
-	err := event.SubscribeAndListen(ctx, event.ListenerConfig{
+	err := pubsub.SubscribeAndListen(ctx, pubsub.ListenerConfig{
 		Subscriber: r.event.Subscriber,
 		Logger:     logger,
-		Tenant:     viewer.FromContext(ctx).Tenant(),
+		Tenant:     pointer.ToString(viewer.FromContext(ctx).Tenant()),
 		Events:     []string{name},
 		Handler:    handler,
 	})
-	logger.Debug("subscription termination", zap.Error(err))
+	logger.Info("subscription termination", zap.Error(err))
 }
 
 func (r subscriptionResolver) workOrderAddedDone(ctx context.Context, name string) (<-chan *ent.WorkOrder, error) {
@@ -36,9 +39,9 @@ func (r subscriptionResolver) workOrderAddedDone(ctx context.Context, name strin
 	go func() {
 		defer close(events)
 		r.subscribeAndListen(ctx, name,
-			event.HandlerFunc(func(_ context.Context, _ string, body []byte) error {
+			pubsub.HandlerFunc(func(_ context.Context, _, _ string, body []byte) error {
 				var wo *ent.WorkOrder
-				if err := event.Unmarshal(body, &wo); err != nil {
+				if err := pubsub.Unmarshal(body, &wo); err != nil {
 					return fmt.Errorf("cannot unmarshal work order: %w", err)
 				}
 				events <- client.Instantiate(wo)

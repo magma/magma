@@ -6,15 +6,36 @@ title: Release Notes
 ### Work In Progress
 
 The team is currently working on:
-* Saved Searches: Ability to save past searches as bookmarks
 * Mobile app: View work orders and site surveys in the mobile app
 * Permission model: Customizeable infrastructure to enable roles and policies
-* API documentation: Improving documentation for existing APIs
-* Check lists for work orders: Enable check list items for work orders
-* Enable SSO integration via Keycloak
+* Workorder history: Show activity history for every workorder
+* Integration between work order and inventory (planned equipment)
 
 
 ### Release Notes
+* 5/22/2020
+	* Platform	
+		* **[User Management]** **[Roles & Policies]**	User management, Roles & Policies	Added the ability to define and customize more specific editing permissions via the Administrative tools. Specific roles and policies are enforced via both UI and GraphQL API
+		* **[Property type]**	Support of "User" property	Users can now add "user" as "property type" while creating/editing templates/catalog and assign a specific value from a drop-down list
+
+	* Inventory Management	
+		* **[Services]**	Added "discovery method" field in Services:	Users can now choose "inventory" as "discovery method" during the creation of a service type. When a new "service type" is defined and the option "inventory" is selected, all Services matching that specific "service type" definition will be automatically detected every hour and presented in the list of Services.
+		* **[Services]**	Added "export" for Services:	Users can now export the list of Services in csv format
+		* **[Services]**	Added "filter by location" for Services:	Users can now filter Services also by "location type"
+
+	* Workforce management	
+		* **[Work Orders]** **[UI]**	Work Order's location opened in a new tab:	When opening a Work order page, users can click on the work order's location and a new tab in the browser will be opened, allowing the user to keep both tabs (Work order and Location's tabs) opened at the same time.  
+		* **[Work Orders]** **[Templates]**	Checklist definition:	Users are now able to define checklist categories on a template and easily create work orders that inherit them. 
+		* **[Work Orders]** **[Checklist]**	Checklist response view enabled:	Users are now able to view the responses within the checklist categories even when the work order's is in "done" status.
+
+	* Mobile App	
+		* **[My Tasks]** **[Checklist]**	Photos upload in checklist:	Users are now able to upload more than 1 photo per checklist item during site survey. The user can choose whether to upload photos from the phone gallery or take photos via the camera.
+		* **[My Tasks]**	Offline mode:	Users can now complete a work order tasks even if the device does not have internet connection.
+	
+	* API 	
+		* **[GraphQL API]**	Queries with pagination:	Users are now able to query all entities by using pagination and improving data handling. Queries are: "equipment", "ports", "links", "projects".
+
+
 * 4/30/2020
     * Mobile App
         * **New Release**: New major app release. This release includes work order: view work orders, edit work orders, edit checklist. Download from here: [https://play.google.com/apps/testing/cloud.thesymphony](https://play.google.com/apps/testing/cloud.thesymphony)

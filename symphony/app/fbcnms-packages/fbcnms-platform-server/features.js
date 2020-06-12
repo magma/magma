@@ -147,7 +147,6 @@ const arrayConfigs = [
     id: 'planned_equipment',
     title: 'Planned Equipment',
     enabledByDefault: false,
-    rules: [AlwaysEnabledInTestEnvRule],
   },
   {
     id: 'multi_subject_reports',
@@ -181,29 +180,45 @@ const arrayConfigs = [
     rules: [AlwaysEnabledInTestEnvRule],
   },
   {
-    id: 'read_only_users',
-    title: 'Read Only Users',
-    enabledByDefault: false,
-  },
-  {
     id: 'user_management_dev',
     title: 'User Management - Dev mode',
     enabledByDefault: false,
   },
   {
-    id: 'grafana_metrics',
-    title: 'Include tab for Grafana in the Metrics page',
-    enabledByDefault: false,
-  },
-  {
-    id: 'service_endpoints',
-    title: 'Service Endpoints',
+    id: 'permission_policies',
+    title: 'Permission - Policies',
     enabledByDefault: false,
     rules: [AlwaysEnabledInTestEnvRule],
   },
   {
+    id: 'permissions_ui_enforcement',
+    title: 'Permissions - UI enforcement',
+    enabledByDefault: true,
+  },
+  {
+    id: 'grafana_metrics',
+    title: 'Include tab for Grafana in the Metrics page',
+    enabledByDefault: true,
+  },
+  {
+    id: 'graph_event_logging',
+    title: 'Graph Event Loggng',
+    enabledByDefault: false,
+  },
+  {
     id: 'dashboard_v2',
     title: 'V2 LTE Dashboard',
+    enabledByDefault: false,
+    rules: [AlwaysEnabledInTestEnvRule],
+  },
+  {
+    id: 'work_order_activities_hook',
+    title: 'Work Order Activities Hook',
+    enabledByDefault: true,
+  },
+  {
+    id: 'work_order_activities_display',
+    title: 'Work Order Activities Display',
     enabledByDefault: false,
     rules: [AlwaysEnabledInTestEnvRule],
   },

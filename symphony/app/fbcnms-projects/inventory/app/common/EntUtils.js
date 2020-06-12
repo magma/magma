@@ -10,8 +10,11 @@
 
 import shortid from 'shortid';
 
+import {camelCase, startCase, toUpper} from 'lodash';
+
 type EntWithID = $ReadOnly<{
   id?: ?string,
+  ...
 }>;
 
 export type NamedNode = {id: string, name: string};
@@ -20,6 +23,48 @@ export type ShortUser = $ReadOnly<{
   id: string,
   email: string,
 }>;
+
+// http://github.com/golang/lint/blob/master/lint.go
+const commonGoInitialisms = [
+  'ACL',
+  'API',
+  'ASCII',
+  'CPU',
+  'CSS',
+  'DNS',
+  'EOF',
+  'GUID',
+  'HTML',
+  'HTTP',
+  'HTTPS',
+  'ID',
+  'IP',
+  'JSON',
+  'LHS',
+  'QPS',
+  'RAM',
+  'RHS',
+  'RPC',
+  'SLA',
+  'SMTP',
+  'SQL',
+  'SSH',
+  'TCP',
+  'TLS',
+  'TTL',
+  'UDP',
+  'UI',
+  'UID',
+  'UUID',
+  'URI',
+  'URL',
+  'UTF8',
+  'VM',
+  'XML',
+  'XMPP',
+  'XSRF',
+  'XSS',
+];
 
 export const ENT_TEMP_ID_PREFIX = '@tmp';
 
@@ -33,7 +78,8 @@ export const isTempId = (id: string): boolean => {
 
 export const getGraphError = (error: Error): string => {
   if (error.hasOwnProperty('source')) {
-    // $FlowFixMe verified there's sources
+    // eslint-disable-next-line no-warning-comments
+    // $FlowFixMe verified there's sources T58630520
     return error.source.errors[0].message;
   }
   return error.message;
@@ -51,6 +97,13 @@ export const removeTempIDs = (ents: Iterable<EntWithID>) => {
   return Array.prototype.map.call(ents, removeTempID);
 };
 
+export const pascalCaseGoStyle = (word: string) => {
+  return startCase(camelCase(word))
+    .split(' ')
+    .map(w => (commonGoInitialisms.includes(toUpper(w)) ? toUpper(w) : w))
+    .join('');
+};
+
 export function haveDifferentValues<T_ENT>(entA: T_ENT, entB: T_ENT): boolean {
   if (
     entA == null ||
@@ -64,4 +117,11 @@ export function haveDifferentValues<T_ENT>(entA: T_ENT, entB: T_ENT): boolean {
     entA.hasOwnProperty(prop),
   );
   return !!propsToCompare.find(prop => entA[prop] != entB[prop]);
+}
+
+export type EntsMap<T: EntWithID> = Map<string, T>;
+export function ent2EntsMap<T: EntWithID>(ents: Array<T>): EntsMap<T> {
+  return new Map<string, T>(
+    ents.filter(ent => ent.id != null).map(ent => [ent.id || '', ent]),
+  );
 }

@@ -13,43 +13,58 @@ import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 
 import * as React from 'react';
 import Breadcrumbs from '@fbcnms/ui/components/Breadcrumbs';
+import Button from '@fbcnms/ui/components/design-system/Button';
+import Card from '@fbcnms/ui/components/design-system/Card/Card';
 import DeleteIcon from '@fbcnms/ui/components/design-system/Icons/Actions/DeleteIcon';
+import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import Grid from '@material-ui/core/Grid';
+import IconButton from '@fbcnms/ui/components/design-system/IconButton';
 import InventoryErrorBoundary from '../../../../common/InventoryErrorBoundary';
+import LockIcon from '@fbcnms/ui/components/design-system/Icons/Indications/LockIcon';
 import PermissionsPolicyDetailsPane from './PermissionsPolicyDetailsPane';
 import PermissionsPolicyGroupsPane from './PermissionsPolicyGroupsPane';
 import PermissionsPolicyRulesPane from './PermissionsPolicyRulesPane';
 import Strings from '@fbcnms/strings/Strings';
+import Text from '@fbcnms/ui/components/design-system/Text';
 import ViewContainer from '@fbcnms/ui/components/design-system/View/ViewContainer';
+import classNames from 'classnames';
 import fbt from 'fbt';
-import symphony from '@fbcnms/ui/theme/symphony';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
+import {FormContextProvider} from '../../../../common/FormContext';
 import {
-  ButtonAction,
-  IconAction,
-} from '@fbcnms/ui/components/design-system/View/ViewHeaderActions';
-import {NEW_DIALOG_PARAM, POLICY_TYPES} from '../utils/UserManagementUtils';
+  NEW_DIALOG_PARAM,
+  PERMISSION_RULE_VALUES,
+  POLICY_TYPES,
+} from '../utils/UserManagementUtils';
 import {PERMISSION_POLICIES_VIEW_NAME} from './PermissionsPoliciesView';
+import {SYSTEM_DEFAULT_POLICY_PREFIX} from './PermissionsPoliciesView';
 import {generateTempId} from '../../../../common/EntUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useFormAlertsContext} from '@fbcnms/ui/components/design-system/Form/FormAlertsContext';
 import {useLocation} from 'react-router-dom';
 import {useParams} from 'react-router';
 import {useUserManagement} from '../UserManagementContext';
 
 const useStyles = makeStyles(() => ({
-  detailsPane: {
-    display: 'flex',
-    flexDirection: 'column',
-    borderRadius: '4px',
-    boxShadow: symphony.shadows.DP1,
-    '&:not(:first-child)': {
+  container: {
+    maxHeight: '100%',
+  },
+  vertical: {
+    '&>:not(:first-child)': {
       marginTop: '16px',
     },
   },
-  container: {
-    maxHeight: '100%',
+  defaultPolicyMessage: {
+    display: 'flex',
+    flexDirection: 'row',
+    '&>:not(:first-child)': {
+      marginLeft: '8px',
+    },
+  },
+  defaultPolicyMessageHeader: {
+    display: 'block',
   },
 }));
 
@@ -58,6 +73,68 @@ type Props = $ReadOnly<{|
   onClose: () => void,
   ...WithAlert,
 |}>;
+
+const initialBasicRule = {
+  isAllowed: PERMISSION_RULE_VALUES.NO,
+};
+
+const initialCUDRule = {
+  create: {
+    ...initialBasicRule,
+  },
+  update: {
+    ...initialBasicRule,
+  },
+  delete: {
+    ...initialBasicRule,
+  },
+};
+
+const initialInventoryRules = {
+  read: {
+    isAllowed: PERMISSION_RULE_VALUES.YES,
+  },
+  location: {
+    ...initialCUDRule,
+  },
+  equipment: {
+    ...initialCUDRule,
+  },
+  equipmentType: {
+    ...initialCUDRule,
+  },
+  locationType: {
+    ...initialCUDRule,
+  },
+  portType: {
+    ...initialCUDRule,
+  },
+  serviceType: {
+    ...initialCUDRule,
+  },
+};
+
+const initialWorkforceCUDRules = {
+  ...initialCUDRule,
+  assign: {
+    ...initialBasicRule,
+  },
+  transferOwnership: {
+    ...initialBasicRule,
+  },
+};
+
+const initialWorkforceRules = {
+  read: {
+    ...initialBasicRule,
+  },
+  data: {
+    ...initialWorkforceCUDRules,
+  },
+  templates: {
+    ...initialCUDRule,
+  },
+};
 
 const getInitialNewPolicy: (policyType: ?string) => PermissionsPolicy = (
   policyType: ?string,
@@ -74,12 +151,15 @@ const getInitialNewPolicy: (policyType: ?string) => PermissionsPolicy = (
     type,
     isGlobal: false,
     groups: [],
+    inventoryRules:
+      type === POLICY_TYPES.InventoryPolicy.key ? initialInventoryRules : null,
+    workforceRules:
+      type === POLICY_TYPES.WorkforcePolicy.key ? initialWorkforceRules : null,
   };
 };
 
 function PermissionsPolicyCard(props: Props) {
   const {redirectToPoliciesView, onClose} = props;
-  const classes = useStyles();
   const location = useLocation();
   const {
     policies,
@@ -126,54 +206,70 @@ function PermissionsPolicyCard(props: Props) {
         name: isOnNewPolicy ? `${fbt('New Policy', '')}` : policy?.name || '',
       },
     ];
-    const actions = [
-      <ButtonAction skin="regular" action={onClose}>
-        {Strings.common.cancelButton}
-      </ButtonAction>,
-      <ButtonAction
-        disableOnFromError={true}
-        action={() => {
-          if (policy == null) {
-            return;
-          }
+    const actions =
+      policy?.isSystemDefault === true
+        ? [
+            <FormAction ignorePermissions={true} ignoreEditLocks={true}>
+              <Button onClick={onClose}>{Strings.common.doneButton}</Button>
+            </FormAction>,
+          ]
+        : [
+            <FormAction ignorePermissions={true}>
+              <Button skin="regular" onClick={onClose}>
+                {Strings.common.cancelButton}
+              </Button>
+            </FormAction>,
+            <FormAction disableOnFromError={true}>
+              <Button
+                onClick={() => {
+                  if (policy == null) {
+                    return;
+                  }
 
-          const saveAction = isOnNewPolicy
-            ? addPermissionsPolicy
-            : editPermissionsPolicy;
-          saveAction(policy)
-            .then(onClose)
-            .catch(handleError);
-        }}>
-        {Strings.common.saveButton}
-      </ButtonAction>,
-    ];
-    if (!isOnNewPolicy) {
+                  const saveAction = isOnNewPolicy
+                    ? addPermissionsPolicy
+                    : editPermissionsPolicy;
+                  saveAction(policy)
+                    .then(onClose)
+                    .catch(handleError);
+                }}>
+                {Strings.common.saveButton}
+              </Button>
+            </FormAction>,
+          ];
+    if (!isOnNewPolicy && policy?.isSystemDefault !== true) {
       actions.unshift(
-        <IconAction
-          icon={DeleteIcon}
-          skin="gray"
-          action={() => {
-            if (policy == null) {
-              return;
-            }
-            props
-              .confirm(
-                <fbt desc="">Are you sure you want to delete this policy?</fbt>,
-              )
-              .then(confirm => {
-                if (!confirm) {
-                  return;
-                }
-                return deletePermissionsPolicy(policy.id).then(onClose);
-              })
-              .catch(handleError);
-          }}
-        />,
+        <FormAction>
+          <IconButton
+            icon={DeleteIcon}
+            skin="gray"
+            onClick={() => {
+              if (policy == null) {
+                return;
+              }
+              props
+                .confirm(
+                  <fbt desc="">
+                    Are you sure you want to delete this policy?
+                  </fbt>,
+                )
+                .then(confirm => {
+                  if (!confirm) {
+                    return;
+                  }
+                  return deletePermissionsPolicy(policy.id).then(onClose);
+                })
+                .catch(handleError);
+            }}
+          />
+        </FormAction>,
       );
     }
     return {
       title: <Breadcrumbs breadcrumbs={breadcrumbs} />,
-      subtitle: fbt('Edit this policy and apply it to groups.', ''),
+      subtitle: policy?.isSystemDefault
+        ? fbt('Default policy details.', '')
+        : fbt('Edit this policy and apply it to groups.', ''),
       actionButtons: actions,
     };
   }, [
@@ -193,29 +289,86 @@ function PermissionsPolicyCard(props: Props) {
   }
   return (
     <InventoryErrorBoundary>
-      <ViewContainer header={header} useBodyScrollingEffect={false}>
-        <Grid container spacing={2} className={classes.container}>
-          <Grid item xs={8} sm={8} lg={8} xl={8} className={classes.container}>
-            <PermissionsPolicyDetailsPane
-              policy={policy}
-              onChange={setPolicy}
-              className={classes.detailsPane}
-            />
-            <PermissionsPolicyRulesPane
-              policy={policy}
-              onChange={setPolicy}
-              className={classes.detailsPane}
-            />
-          </Grid>
-          <Grid item xs={4} sm={4} lg={4} xl={4} className={classes.container}>
-            <PermissionsPolicyGroupsPane
-              policy={policy}
-              className={classes.detailsPane}
-            />
-          </Grid>
-        </Grid>
-      </ViewContainer>
+      <FormContextProvider permissions={{adminRightsRequired: true}}>
+        <ViewContainer header={header} useBodyScrollingEffect={false}>
+          <PermissionsPolicyCardBody policy={policy} onChange={setPolicy} />
+        </ViewContainer>
+      </FormContextProvider>
     </InventoryErrorBoundary>
+  );
+}
+
+type PermissionsPolicyCardBodyProps = $ReadOnly<{|
+  policy: PermissionsPolicy,
+  onChange: PermissionsPolicy => void,
+|}>;
+
+function PermissionsPolicyCardBody(props: PermissionsPolicyCardBodyProps) {
+  const {policy, onChange} = props;
+  const classes = useStyles();
+
+  const alerts = useFormAlertsContext();
+  alerts.editLock.check({
+    fieldId: 'system_default_policy',
+    fieldDisplayName: 'Workforce Default Policy',
+    value: policy.isSystemDefault,
+    checkCallback: isSystemDefault =>
+      isSystemDefault
+        ? `${fbt(
+            'This policy is applied to all users by default. It cannot be edited or removed.',
+            '',
+          )}`
+        : '',
+  });
+
+  const policyDetailsPart = (
+    <PermissionsPolicyDetailsPane policy={policy} onChange={onChange} />
+  );
+
+  if (policy.isSystemDefault) {
+    return (
+      <Grid container spacing={2} className={classes.container}>
+        <Grid item xs={12} className={classes.container}>
+          <Card
+            variant="message"
+            contentClassName={classes.defaultPolicyMessage}>
+            <LockIcon />
+            <div>
+              <Text
+                variant="subtitle1"
+                className={classes.defaultPolicyMessageHeader}>
+                {SYSTEM_DEFAULT_POLICY_PREFIX}
+              </Text>
+              <Text variant="body2">
+                <fbt desc="">
+                  This policy is applied to all users by default. It cannot be
+                  edited or removed.
+                </fbt>
+              </Text>
+            </div>
+          </Card>
+          {policyDetailsPart}
+        </Grid>
+      </Grid>
+    );
+  }
+
+  return (
+    <Grid container spacing={2} className={classes.container}>
+      <Grid
+        item
+        xs={8}
+        sm={8}
+        lg={8}
+        xl={8}
+        className={classNames(classes.container, classes.vertical)}>
+        {policyDetailsPart}
+        <PermissionsPolicyRulesPane policy={policy} onChange={onChange} />
+      </Grid>
+      <Grid item xs={4} sm={4} lg={4} xl={4} className={classes.container}>
+        <PermissionsPolicyGroupsPane policy={policy} onChange={onChange} />
+      </Grid>
+    </Grid>
   );
 }
 

@@ -32,7 +32,7 @@ func (srv *CentralSessionController) sendInitialGxRequest(imsi string, pReq *pro
 		SessionID:     pReq.SessionId,
 		Type:          credit_control.CRTInit,
 		IMSI:          imsi,
-		RequestNumber: 1,
+		RequestNumber: 0,
 		IPAddr:        pReq.UeIpv4,
 		SpgwIPV4:      pReq.SpgwIpv4,
 		Apn:           pReq.Apn,
@@ -280,15 +280,14 @@ func (srv *CentralSessionController) getSingleUsageMonitorResponseFromCCA(
 		DynamicRulesToInstall: dynamicRules,
 		TgppCtx:               tgppCtx,
 	}
-	if len(answer.UsageMonitors) == 0 {
-		glog.Infof("No usage monitor response in CCA for subscriber %s", request.IMSI)
-		res.Credit =
-			&protos.UsageMonitoringCredit{
-				Action:        protos.UsageMonitoringCredit_DISABLE,
-				MonitoringKey: request.UsageReports[0].MonitoringKey,
-				Level:         protos.MonitoringLevel(request.UsageReports[0].Level)}
-	} else {
+	if len(answer.UsageMonitors) != 0 {
 		res.Credit = answer.UsageMonitors[0].ToUsageMonitoringCredit()
+	} else if len(request.UsageReports) != 0 {
+		glog.Infof("No usage monitor response in CCA for subscriber %s", request.IMSI)
+		res.Credit = &protos.UsageMonitoringCredit{
+			Action:        protos.UsageMonitoringCredit_DISABLE,
+			MonitoringKey: request.UsageReports[0].MonitoringKey,
+			Level:         protos.MonitoringLevel(request.UsageReports[0].Level)}
 	}
 
 	res.EventTriggers, res.RevalidationTime = gx.GetEventTriggersRelatedInfo(

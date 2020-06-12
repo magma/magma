@@ -11,48 +11,68 @@ package integration
 import (
 	"fmt"
 	"math/rand"
-	"reflect"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
 	"fbc/lib/go/radius"
-	"fbc/lib/go/radius/rfc2869"
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/cwf/gateway/registry"
 	"magma/cwf/gateway/services/uesim"
-	"magma/feg/gateway/services/eap"
 	"magma/lte/cloud/go/crypto"
 	lteprotos "magma/lte/cloud/go/protos"
 
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
 )
 
 // todo make Op configurable, or export it in the UESimServer.
 const (
-	Op              = "\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"
-	Secret          = "123456"
-	MockHSSRemote   = "HSS_REMOTE"
-	MockPCRFRemote  = "PCRF_REMOTE"
-	MockOCSRemote   = "OCS_REMOTE"
-	MockPCRFRemote2 = "PCRF_REMOTE2"
-	MockOCSRemote2  = "OCS_REMOTE2"
-	PipelinedRemote = "pipelined.local"
-	RedisRemote     = "REDIS"
-	CwagIP          = "192.168.70.101"
-	OCSPort         = 9201
-	PCRFPort        = 9202
-	OCSPort2        = 9205
-	PCRFPort2       = 9206
-	HSSPort         = 9204
-	PipelinedPort   = 8443
-	RedisPort       = 6380
+	Op               = "\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"
+	Secret           = "123456"
+	MockHSSRemote    = "HSS_REMOTE"
+	MockPCRFRemote   = "PCRF_REMOTE"
+	MockOCSRemote    = "OCS_REMOTE"
+	MockPCRFRemote2  = "PCRF_REMOTE2"
+	MockOCSRemote2   = "OCS_REMOTE2"
+	PipelinedRemote  = "pipelined.local"
+	DirectorydRemote = "DIRECTORYD"
+	RedisRemote      = "REDIS"
+	CwagIP           = "192.168.70.101"
+	TrafficCltIP     = "192.168.128.2"
+	IPDRControllerIP = "192.168.40.11"
+	OCSPort          = 9201
+	PCRFPort         = 9202
+	OCSPort2         = 9205
+	PCRFPort2        = 9206
+	HSSPort          = 9204
+	PipelinedPort    = 8443
+	RedisPort        = 6380
+	DirectorydPort   = 8443
 
+	// If updating these, also update the ipfix exported hex values
 	defaultMSISDN          = "5100001234"
 	defaultCalledStationID = "98-DE-D0-84-B5-47:CWF-TP-LINK_B547_5G"
+
+	ipfixMSISDN        = "0x35313030303031323334000000000000"
+	ipfixApnMacAddress = "0x98ded084b547"
+	ipfixApnName       = "0x4357462d54502d4c494e4b5f423534375f35470000000000"
+
+	KiloBytes                = 1024
+	MegaBytes                = 1024 * KiloBytes
+	Buffer                   = 100 * KiloBytes
+	RevalidationTimeoutEvent = 17
+
+	ReAuthMaxUsageBytes   = 5 * MegaBytes
+	ReAuthMaxUsageTimeSec = 1000 // in second
+	ReAuthValidityTime    = 60   // in second
+
+	GyMaxUsageBytes = 5 * MegaBytes
+	GyMaxUsageTime  = 1000 // in second
+	GyValidityTime  = 60   // in second
 )
 
+//TestRunner helps setting up all associated services
 type TestRunner struct {
 	t           *testing.T
 	imsis       map[string]bool
@@ -78,6 +98,8 @@ func NewTestRunner(t *testing.T) *TestRunner {
 	registry.AddService(PipelinedRemote, CwagIP, PipelinedPort)
 	fmt.Printf("Adding Redis service at %s:%d\n", CwagIP, RedisPort)
 	registry.AddService(RedisRemote, CwagIP, RedisPort)
+	fmt.Printf("Adding Directoryd service at %s:%d\n", CwagIP, DirectorydPort)
+	registry.AddService(DirectorydRemote, CwagIP, DirectorydPort)
 
 	testRunner := &TestRunner{t: t,
 		activePCRFs: []string{MockPCRFRemote},
@@ -186,33 +208,6 @@ func (tr *TestRunner) Authenticate(imsi, calledStationID string) (*radius.Packet
 	return radiusP, nil
 }
 
-func (tr *TestRunner) AuthenticateAndAssertSuccess(imsi string) {
-	radiusP, err := tr.Authenticate(imsi, defaultCalledStationID)
-	assert.NoError(tr.t, err)
-
-	eapMessage := radiusP.Attributes.Get(rfc2869.EAPMessage_Type)
-	assert.NotNil(tr.t, eapMessage, fmt.Sprintf("EAP Message from authentication is nil"))
-	assert.True(tr.t, reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode), fmt.Sprintf("UE Authentication did not return success"))
-}
-
-func (tr *TestRunner) AuthenticateAndAssertFail(imsi string) {
-	radiusP, err := tr.Authenticate(imsi, defaultCalledStationID)
-	assert.NoError(tr.t, err)
-
-	eapMessage := radiusP.Attributes.Get(rfc2869.EAPMessage_Type)
-	assert.NotNil(tr.t, eapMessage)
-	assert.True(tr.t, reflect.DeepEqual(int(eapMessage[0]), eap.FailureCode))
-}
-
-func (tr *TestRunner) AuthenticateWithCalledIDAndAssertSuccess(imsi, calledStationID string) {
-	radiusP, err := tr.Authenticate(imsi, calledStationID)
-	assert.NoError(tr.t, err)
-
-	eapMessage := radiusP.Attributes.Get(rfc2869.EAPMessage_Type)
-	assert.NotNil(tr.t, eapMessage, fmt.Sprintf("EAP Message from authentication is nil"))
-	assert.True(tr.t, reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode), fmt.Sprintf("UE Authentication did not return success"))
-}
-
 // Authenticate simulates an authentication between the UE and the HSS with the specified
 // IMSI and CalledStationID, and returns the resulting Radius packet.
 func (tr *TestRunner) Disconnect(imsi, calledStationID string) (*radius.Packet, error) {
@@ -230,11 +225,6 @@ func (tr *TestRunner) Disconnect(imsi, calledStationID string) (*radius.Packet, 
 	}
 	tr.t.Logf("Finished Discconnecting UE. Resulting RADIUS Packet: %d\n", radiusP)
 	return radiusP, nil
-}
-
-func (tr *TestRunner) DisconnectAndAssertSuccess(imsi string) {
-	_, err := tr.Disconnect(imsi, defaultCalledStationID)
-	assert.NoError(tr.t, err)
 }
 
 // ResetUESeq reset sequence for a UE allowing multiple authentication.
@@ -401,4 +391,16 @@ func makeSubscriber(imsi string, key []byte, opc []byte, seq uint64) *lteprotos.
 			ApnConfig:           []*lteprotos.APNConfiguration{&lteprotos.APNConfiguration{}},
 		},
 	}
+}
+
+// Get the Pipelined encoded version of IMSI (set in metadata register)
+func getEncodedIMSI(imsiStr string) (string, error) {
+	imsi, err := strconv.Atoi(imsiStr)
+	if err != nil {
+		return "", err
+	}
+
+	prefixLen := len(imsiStr) - len(strings.TrimLeft(imsiStr, "0"))
+	compacted := (imsi << 2) | (prefixLen & 0x3)
+	return fmt.Sprintf("0x%016x", compacted<<1|0x1), nil
 }

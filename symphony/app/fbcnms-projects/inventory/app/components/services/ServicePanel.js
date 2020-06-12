@@ -31,9 +31,7 @@ import type {ServicePanel_service} from './__generated__/ServicePanel_service.gr
 
 import AddServiceEndpointMutation from '../../mutations/AddServiceEndpointMutation';
 import AddServiceLinkMutation from '../../mutations/AddServiceLinkMutation';
-import AppContext from '@fbcnms/ui/context/AppContext';
 import Button from '@fbcnms/ui/components/design-system/Button';
-import Card from '@fbcnms/ui/components/design-system/Card/Card';
 import EditServiceMutation from '../../mutations/EditServiceMutation';
 import ExpandingPanel from '@fbcnms/ui/components/ExpandingPanel';
 import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
@@ -53,7 +51,6 @@ import {
   serviceStatusToColor,
   serviceStatusToVisibleNames,
 } from '../../common/Service';
-import {useContext} from 'react';
 
 type Props = {
   service: ServicePanel_service,
@@ -72,7 +69,6 @@ const useStyles = makeStyles(() => ({
     backgroundColor: symphony.palette.white,
   },
   detailsCard: {
-    boxShadow: 'none',
     padding: '32px 32px 12px 32px',
     position: 'relative',
   },
@@ -140,17 +136,15 @@ const ServicePanel = React.forwardRef((props: Props, ref) => {
   const [endpointsExpanded, setEndpointsExpanded] = useState(false);
   const [linksExpanded, setLinksExpanded] = useState(false);
 
-  const autoServiceEndpoints = useContext(AppContext).isFeatureEnabled(
-    'service_endpoints',
-  );
+  const hideEditButtons = service.serviceType?.discoveryMethod != 'MANUAL';
 
-  const onAddEndpoint = (port: EquipmentPort, role: string) => {
+  const onAddEndpoint = (port: EquipmentPort, endpointDefinition: string) => {
     const variables: AddServiceEndpointMutationVariables = {
       input: {
         id: service.id,
         portId: port.id,
         equipmentID: port.parentEquipment.id,
-        definition: '0' + role, //TODO - AddServiceEndpointDefinition Flow
+        definition: endpointDefinition,
       },
     };
     const callbacks: MutationCallbacks<AddServiceEndpointMutationResponse> = {
@@ -223,7 +217,7 @@ const ServicePanel = React.forwardRef((props: Props, ref) => {
 
   return (
     <div className={classes.root} ref={ref}>
-      <Card className={classes.detailsCard}>
+      <div className={classes.detailsCard}>
         <div className={classes.detail}>
           <Text variant="h6" className={classes.text}>
             {service.name}
@@ -271,7 +265,7 @@ const ServicePanel = React.forwardRef((props: Props, ref) => {
             </Text>
           </Button>
         </div>
-      </Card>
+      </div>
       <>
         <div className={classes.separator} />
         <ExpandingPanel
@@ -284,16 +278,16 @@ const ServicePanel = React.forwardRef((props: Props, ref) => {
           expanded={endpointsExpanded}
           onChange={expanded => setEndpointsExpanded(expanded)}
           rightContent={
-            autoServiceEndpoints ? null : (
+            hideEditButtons ? null : (
               <ServiceEndpointsMenu
-                service={{id: service.id, name: service.name}}
+                service={service}
                 onAddEndpoint={onAddEndpoint}
               />
             )
           }>
           <ServiceEndpointsView
             endpoints={service.endpoints}
-            onDeleteEndpoint={onDeleteEndpoint}
+            onDeleteEndpoint={hideEditButtons ? null : onDeleteEndpoint}
           />
         </ExpandingPanel>
       </>
@@ -308,14 +302,17 @@ const ServicePanel = React.forwardRef((props: Props, ref) => {
         expanded={linksExpanded}
         onChange={expanded => setLinksExpanded(expanded)}
         rightContent={
-          autoServiceEndpoints ? null : (
+          hideEditButtons ? null : (
             <ServiceLinksSubservicesMenu
               service={{id: service.id, name: service.name}}
               onAddLink={onAddLink}
             />
           )
         }>
-        <ServiceLinksView links={service.links} onDeleteLink={onDeleteLink} />
+        <ServiceLinksView
+          links={service.links}
+          onDeleteLink={hideEditButtons ? null : onDeleteLink}
+        />
       </ExpandingPanel>
       <div className={classes.separator} />
     </div>
@@ -334,12 +331,27 @@ export default createFragmentContainer(ServicePanel, {
       }
       serviceType {
         name
+        discoveryMethod
+        endpointDefinitions {
+          id
+          name
+          role
+          equipmentType {
+            id
+            name
+          }
+        }
       }
       links {
         id
         ...ServiceLinksView_links
       }
       endpoints {
+        id
+        definition {
+          id
+          name
+        }
         ...ServiceEndpointsView_endpoints
       }
     }

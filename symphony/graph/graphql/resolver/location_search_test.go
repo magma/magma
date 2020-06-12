@@ -8,11 +8,11 @@ import (
 	"context"
 	"testing"
 
-	"github.com/facebookincubator/symphony/graph/ent/propertytype"
+	"github.com/facebookincubator/symphony/pkg/ent/propertytype"
 
-	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
-	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
+	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
 
 	"github.com/AlekSi/pointer"
 	"github.com/stretchr/testify/require"
@@ -25,7 +25,6 @@ type locationSearchDataModels struct {
 	locType2 *ent.LocationType
 }
 
-// nolint: errcheck
 func prepareLocationData(ctx context.Context, r *TestResolver) locationSearchDataModels {
 	mr := r.Mutation()
 	locType1, _ := mr.AddLocationType(ctx, models.AddLocationTypeInput{
@@ -90,7 +89,7 @@ func prepareLocationData(ctx context.Context, r *TestResolver) locationSearchDat
 
 func TestSearchLocationAncestors(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	data := prepareLocationData(ctx, r)
@@ -132,7 +131,7 @@ func TestSearchLocationAncestors(t *testing.T) {
 
 func TestSearchLocationByExternalID(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	data := prepareLocationData(ctx, r)
@@ -162,7 +161,7 @@ func TestSearchLocationByExternalID(t *testing.T) {
 
 func TestSearchLocationByName(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	data := prepareLocationData(ctx, r)
@@ -192,7 +191,7 @@ func TestSearchLocationByName(t *testing.T) {
 
 func TestSearchLocationByType(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	data := prepareLocationData(ctx, r)
@@ -216,7 +215,7 @@ func TestSearchLocationByType(t *testing.T) {
 
 func TestSearchLocationHasEquipment(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	prepareLocationData(ctx, r)
@@ -250,7 +249,7 @@ func TestSearchLocationHasEquipment(t *testing.T) {
 
 func TestSearchMultipleFilters(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	data := prepareLocationData(ctx, r)
@@ -285,7 +284,7 @@ func TestSearchMultipleFilters(t *testing.T) {
 
 func TestSearchLocationProperties(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 
 	prepareLocationData(ctx, r)

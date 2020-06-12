@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/facebookincubator/symphony/graph/graphql/models"
-	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
+	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
 
 	"github.com/AlekSi/pointer"
 	"github.com/stretchr/testify/require"
@@ -17,7 +17,7 @@ import (
 
 func TestAddDeleteAndSearchCustomers(t *testing.T) {
 	r := newTestResolver(t)
-	defer r.drv.Close()
+	defer r.Close()
 	qr, mr := r.Query(), r.Mutation()
 	ctx := viewertest.NewContext(context.Background(), r.client)
 

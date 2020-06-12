@@ -3,38 +3,36 @@
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
-from typing import Dict, List, Optional, Sequence, Tuple
+from typing import Dict, List, Optional
 
 from pysymphony import SymphonyClient
 
-from .._utils import (
-    format_properties,
-    get_port_definition_input,
-    get_position_definition_input,
-    get_property_type_input,
-)
+from .._utils import get_port_definition_input, get_position_definition_input
 from ..common.cache import EQUIPMENT_TYPES, PORT_TYPES
 from ..common.data_class import (
     Equipment,
     EquipmentPortType,
     EquipmentType,
     PropertyDefinition,
-    PropertyValue,
 )
 from ..common.data_enum import Entity
+from ..common.data_format import (
+    format_to_property_definitions,
+    format_to_property_type_input,
+    format_to_property_type_inputs,
+)
 from ..exceptions import EntityNotFoundError
-from ..graphql.add_equipment_type_input import AddEquipmentTypeInput
-from ..graphql.add_equipment_type_mutation import AddEquipmentTypeMutation
-from ..graphql.edit_equipment_type_input import EditEquipmentTypeInput
-from ..graphql.edit_equipment_type_mutation import EditEquipmentTypeMutation
-from ..graphql.equipment_port_input import EquipmentPortInput
-from ..graphql.equipment_port_types import EquipmentPortTypesQuery
-from ..graphql.equipment_position_input import EquipmentPositionInput
-from ..graphql.equipment_type_equipments_query import EquipmentTypeEquipmentQuery
-from ..graphql.equipment_types_query import EquipmentTypesQuery
-from ..graphql.property_type_fragment import PropertyTypeFragment
-from ..graphql.property_type_input import PropertyTypeInput
-from ..graphql.remove_equipment_type_mutation import RemoveEquipmentTypeMutation
+from ..graphql.input.add_equipment_type import AddEquipmentTypeInput
+from ..graphql.input.edit_equipment_type import EditEquipmentTypeInput
+from ..graphql.input.equipment_port import EquipmentPortInput
+from ..graphql.input.equipment_position import EquipmentPositionInput
+from ..graphql.input.property_type import PropertyTypeInput
+from ..graphql.mutation.add_equipment_type import AddEquipmentTypeMutation
+from ..graphql.mutation.edit_equipment_type import EditEquipmentTypeMutation
+from ..graphql.mutation.remove_equipment_type import RemoveEquipmentTypeMutation
+from ..graphql.query.equipment_port_types import EquipmentPortTypesQuery
+from ..graphql.query.equipment_type_equipments import EquipmentTypeEquipmentQuery
+from ..graphql.query.equipment_types import EquipmentTypesQuery
 from .equipment import delete_equipment
 from .property_type import (
     edit_property_type,
@@ -53,7 +51,7 @@ def _populate_equipment_types(client: SymphonyClient) -> None:
                 name=node.name,
                 category=node.category,
                 id=node.id,
-                property_types=node.propertyTypes,
+                property_types=format_to_property_definitions(node.propertyTypes),
                 position_definitions=node.positionDefinitions,
                 port_definitions=node.portDefinitions,
             )
@@ -68,8 +66,10 @@ def _populate_equipment_port_types(client: SymphonyClient) -> None:
             PORT_TYPES[node.name] = EquipmentPortType(
                 id=node.id,
                 name=node.name,
-                property_types=node.propertyTypes,
-                link_property_types=node.linkPropertyTypes,
+                property_types=format_to_property_definitions(node.propertyTypes),
+                link_property_types=format_to_property_definitions(
+                    node.linkPropertyTypes
+                ),
             )
 
 
@@ -97,7 +97,7 @@ def get_or_create_equipment_type(
     client: SymphonyClient,
     name: str,
     category: str,
-    properties: Sequence[Tuple[str, str, Optional[PropertyValue], Optional[bool]]],
+    properties: List[PropertyDefinition],
     ports_dict: Dict[str, str],
     position_list: List[str],
 ) -> EquipmentType:
@@ -107,13 +107,7 @@ def get_or_create_equipment_type(
         Args:
             name (str): equipment name
             category (str): category name
-            properties (Sequence[Tuple[str, str, Optional[PropertyValue], Optional[bool]]]):
-            - str - type name
-            - str - enum["string", "int", "bool", "float", "date", "enum", "range",
-            "email", "gps_location", "equipment", "location", "service", "datetime_local"]
-            - PropertyValue - default property value
-            - bool - fixed value flag
-
+            properties (List[ `pyinventory.common.data_class.PropertyDefinition` ]): list of property definitions
             ports_dict (Dict[str, str]): dict of property name to property value
             - str - port name
             - str - port type name
@@ -131,7 +125,14 @@ def get_or_create_equipment_type(
             e_type = client.get_or_create_equipment_type(
                 name="Tp-Link T1600G",
                 category="Router",
-                properties=[("IP", "string", None, True)],
+                properties=[
+                    PropertyDefinition(
+                        property_name="IP",
+                        property_kind=PropertyKind.string,
+                        default_raw_value=None,
+                        is_fixed=True
+                    )
+                ],
                 ports_dict={"Port 1": "eth port", "port 2": "eth port"},
                 position_list=[],
             )
@@ -189,7 +190,7 @@ def _update_equipment_type(
         name=equipment_type.name,
         category=equipment_type.category,
         id=equipment_type.id,
-        property_types=equipment_type.propertyTypes,
+        property_types=format_to_property_definitions(equipment_type.propertyTypes),
         position_definitions=equipment_type.positionDefinitions,
         port_definitions=equipment_type.portDefinitions,
     )
@@ -201,7 +202,7 @@ def add_equipment_type(
     client: SymphonyClient,
     name: str,
     category: str,
-    properties: Sequence[Tuple[str, str, Optional[PropertyValue], Optional[bool]]],
+    properties: List[PropertyDefinition],
     ports_dict: Dict[str, str],
     position_list: List[str],
 ) -> EquipmentType:
@@ -210,13 +211,7 @@ def add_equipment_type(
         Args:
             name (str): equipment type name
             category (str): category name
-            properties (Sequence[Tuple[str, str, Optional[PropertyValue], Optional[bool]]]):
-            - str - type name
-            - str - enum["string", "int", "bool", "float", "date", "enum", "range",
-            "email", "gps_location", "equipment", "location", "service", "datetime_local"]
-            - PropertyValue - default property value
-            - bool - fixed value flag
-
+            properties (List[ `pyinventory.common.data_class.PropertyDefinition` ]): list of property definitions
             ports_dict (Dict[str, str]): dictionary of port name to port type name
             - str - port name
             - str - port type name
@@ -234,13 +229,20 @@ def add_equipment_type(
             e_type = client.add_equipment_type(
                 name="Tp-Link T1600G",
                 category="Router",
-                properties=[("IP", "string", None, True)],
+                properties=[
+                    PropertyDefinition(
+                        property_name="IP",
+                        property_kind=PropertyKind.string,
+                        default_raw_value=None,
+                        is_fixed=True
+                    )
+                ],
                 ports_dict={"Port 1": "eth port", "port 2": "eth port"},
                 position_list=[],
             )
             ```
     """
-    new_property_types = format_properties(properties)
+    new_property_types = format_to_property_type_inputs(data=properties)
 
     port_definitions = [
         EquipmentPortInput(name=name, portTypeID=PORT_TYPES[_type].id)
@@ -261,7 +263,7 @@ def add_equipment_type(
         name=equipment_type.name,
         category=equipment_type.category,
         id=equipment_type.id,
-        property_types=equipment_type.propertyTypes,
+        property_types=format_to_property_definitions(equipment_type.propertyTypes),
         position_definitions=equipment_type.positionDefinitions,
         port_definitions=equipment_type.portDefinitions,
     )
@@ -301,7 +303,7 @@ def edit_equipment_type(
     """
     equipment_type = EQUIPMENT_TYPES[name]
     edited_property_types = [
-        get_property_type_input(property_type)
+        format_to_property_type_input(property_type)
         for property_type in equipment_type.property_types
     ]
     position_definitions = [
@@ -353,7 +355,7 @@ def copy_equipment_type(
     equipment_type = EQUIPMENT_TYPES[curr_equipment_type_name]
 
     new_property_types = [
-        get_property_type_input(property_type)
+        format_to_property_type_input(property_type)
         for property_type in equipment_type.property_types
     ]
 
@@ -380,7 +382,7 @@ def copy_equipment_type(
         name=equipment_type.name,
         category=equipment_type.category,
         id=equipment_type.id,
-        property_types=equipment_type.propertyTypes,
+        property_types=format_to_property_definitions(equipment_type.propertyTypes),
         position_definitions=equipment_type.positionDefinitions,
         port_definitions=equipment_type.portDefinitions,
     )
@@ -391,7 +393,7 @@ def copy_equipment_type(
 
 def get_equipment_type_property_type(
     client: SymphonyClient, equipment_type_name: str, property_type_id: str
-) -> PropertyTypeFragment:
+) -> PropertyDefinition:
     """Get property type by ID on specific equipment type.
 
         Args:
@@ -399,7 +401,7 @@ def get_equipment_type_property_type(
             property_type_id (str): property type ID
 
         Returns:
-            `pyinventory.graphql.property_type_fragment.PropertyTypeFragment`  object
+            `pyinventory.common.data_class.PropertyDefinition`  object
 
         Raises:
             `pyinventory.exceptions.EntityNotFoundError`: property type with id=`property_type_id` is not found
@@ -422,7 +424,7 @@ def get_equipment_type_property_type(
 
 def get_equipment_type_property_type_by_external_id(
     client: SymphonyClient, equipment_type_name: str, property_type_external_id: str
-) -> PropertyTypeFragment:
+) -> PropertyDefinition:
     """Get property type by external ID on specific equipment type.
 
         Args:
@@ -430,7 +432,7 @@ def get_equipment_type_property_type_by_external_id(
             property_type_external_id (str): property type external ID
 
         Returns:
-            `pyinventory.graphql.property_type_fragment.PropertyTypeFragment`  object
+            `pyinventory.common.data_class.PropertyDefinition`  object
 
         Raises:
             `pyinventory.exceptions.EntityNotFoundError`: property type with external_id=`property_type_external_id` is not found
@@ -479,7 +481,7 @@ def edit_equipment_type_property_type(
                 new_property_definition=PropertyDefinition(
                     property_name=property_type_name,
                     property_kind=PropertyKind.string,
-                    default_value=None,
+                    default_raw_value=None,
                     is_fixed=False,
                     external_id="12345",
                 ),

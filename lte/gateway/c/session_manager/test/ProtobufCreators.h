@@ -8,6 +8,7 @@
  */
 #pragma once
 
+#include <lte/protos/mconfig/mconfigs.pb.h>
 #include <lte/protos/session_manager.grpc.pb.h>
 #include <lte/protos/pipelined.grpc.pb.h>
 
@@ -88,9 +89,17 @@ void create_subscriber_quota_update(
   const SubscriberQuotaUpdate_Type state,
   SubscriberQuotaUpdate* update);
 
-void create_cwf_session_create_response(
+void create_session_create_response(
   const std::string& imsi,
   const std::string& monitoring_key,
   std::vector<std::string>& static_rules,
   CreateSessionResponse* response);
+
+void create_policy_rule(
+  const std::string &rule_id,
+  const std::string &m_key,
+  uint32_t rating_group,
+  PolicyRule* rule);
+
+magma::mconfig::SessionD get_default_mconfig();
 } // namespace magma

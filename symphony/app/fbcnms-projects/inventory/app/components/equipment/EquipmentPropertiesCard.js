@@ -168,12 +168,9 @@ const useStyles = makeStyles(theme => ({
     overflow: 'hidden',
     height: '100%',
     width: '100%',
-    backgroundColor: theme.palette.common.white,
   },
   equipmentDetails: {
     marginTop: '20px',
-    paddingLeft: theme.spacing(3),
-    paddingRight: theme.spacing(3),
   },
   cardHeader: {
     padding: '0px',
@@ -192,9 +189,6 @@ const useStyles = makeStyles(theme => ({
   },
   tabsContainer: {
     marginBottom: '16px',
-  },
-  documentsTable: {
-    padding: '24px',
   },
 }));
 
@@ -228,7 +222,11 @@ const EquipmentPropertiesCard = (props: Props) => {
 
             return (
               <div className={classes.root}>
-                <FormContextProvider>
+                <FormContextProvider
+                  permissions={{
+                    entity: 'equipment',
+                    action: 'update',
+                  }}>
                   <div className={classes.cardHeader}>
                     <div>
                       <div className={classes.equipmentBreadcrumbs}>
@@ -289,17 +287,15 @@ const EquipmentPropertiesCard = (props: Props) => {
                   <div className={classes.cardContent}>
                     <PerfectScrollbar>
                       {selectedTab === 'details' ? (
-                        <div className={classes.equipmentDetails}>
-                          <EquipmentDetails
-                            equipment={equipment}
-                            workOrderId={workOrderId}
-                            onAttachingEquipmentToPosition={
-                              props.onAttachingEquipmentToPosition
-                            }
-                            onEquipmentClicked={props.onEquipmentClicked}
-                            onWorkOrderSelected={props.onWorkOrderSelected}
-                          />
-                        </div>
+                        <EquipmentDetails
+                          equipment={equipment}
+                          workOrderId={workOrderId}
+                          onAttachingEquipmentToPosition={
+                            props.onAttachingEquipmentToPosition
+                          }
+                          onEquipmentClicked={props.onEquipmentClicked}
+                          onWorkOrderSelected={props.onWorkOrderSelected}
+                        />
                       ) : null}
                       {selectedTab === 'ports' ? (
                         <EquipmentPortsTable
@@ -316,10 +312,7 @@ const EquipmentPropertiesCard = (props: Props) => {
                         <EquipmentServicesTable services={equipment.services} />
                       ) : null}
                       {selectedTab === 'documents' ? (
-                        <EquipmentDocumentsCard
-                          className={classes.documentsTable}
-                          equipment={equipment}
-                        />
+                        <EquipmentDocumentsCard equipment={equipment} />
                       ) : null}
                     </PerfectScrollbar>
                   </div>

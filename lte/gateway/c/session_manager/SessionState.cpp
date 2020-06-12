@@ -12,6 +12,8 @@
 #include <unordered_set>
 #include <utility>
 #include <vector>
+#include <google/protobuf/timestamp.pb.h>
+#include <google/protobuf/util/time_util.h>
 
 #include "CreditKey.h"
 #include "RuleStore.h"
@@ -41,6 +43,8 @@ StoredSessionState SessionState::marshal() {
   marshaled.subscriber_quota_state = subscriber_quota_state_;
   marshaled.tgpp_context           = tgpp_context_;
   marshaled.request_number         = request_number_;
+  marshaled.pending_event_triggers = pending_event_triggers_;
+  marshaled.revalidation_time      = revalidation_time_;
 
   for (auto& rule_id : active_static_rules_) {
     marshaled.static_rule_ids.push_back(rule_id);
@@ -48,6 +52,20 @@ StoredSessionState SessionState::marshal() {
   std::vector<PolicyRule> dynamic_rules;
   dynamic_rules_.get_rules(dynamic_rules);
   marshaled.dynamic_rules = std::move(dynamic_rules);
+
+  std::vector<PolicyRule> gy_dynamic_rules;
+  gy_dynamic_rules_.get_rules(gy_dynamic_rules);
+  marshaled.gy_dynamic_rules = std::move(gy_dynamic_rules);
+
+  for (auto& rule_id : scheduled_static_rules_) {
+    marshaled.scheduled_static_rules.insert(rule_id);
+  }
+  std::vector<PolicyRule> scheduled_dynamic_rules;
+  scheduled_dynamic_rules_.get_rules(scheduled_dynamic_rules);
+  marshaled.scheduled_dynamic_rules = std::move(scheduled_dynamic_rules);
+  for (auto& it : rule_lifetimes_) {
+    marshaled.rule_lifetimes[it.first] = it.second;
+  }
 
   return marshaled;
 }
@@ -66,12 +84,28 @@ SessionState::SessionState(
           std::move(*ChargingCreditPool::unmarshal(marshaled.charging_pool))),
       monitor_pool_(std::move(
           *UsageMonitoringCreditPool::unmarshal(marshaled.monitor_pool))),
-      static_rules_(rule_store) {
+      static_rules_(rule_store),
+      pending_event_triggers_(marshaled.pending_event_triggers),
+      revalidation_time_(marshaled.revalidation_time) {
+
   for (const std::string& rule_id : marshaled.static_rule_ids) {
     active_static_rules_.push_back(rule_id);
   }
   for (auto& rule : marshaled.dynamic_rules) {
     dynamic_rules_.insert_rule(rule);
+  }
+
+  for (const std::string& rule_id : marshaled.scheduled_static_rules) {
+    scheduled_static_rules_.insert(rule_id);
+  }
+  for (auto& rule : marshaled.scheduled_dynamic_rules) {
+    scheduled_dynamic_rules_.insert_rule(rule);
+  }
+  for (auto& it : marshaled.rule_lifetimes) {
+    rule_lifetimes_[it.first] = it.second;
+  }
+  for (auto& rule : marshaled.gy_dynamic_rules) {
+    gy_dynamic_rules_.insert_rule(rule);
   }
 }
 
@@ -83,8 +117,8 @@ SessionState::SessionState(
       session_id_(session_id),
       core_session_id_(core_session_id),
       config_(cfg),
-      // Request number set to 2, because request 1 is INIT call
-      request_number_(2),
+      // Request number set to 1, because request 0 is INIT call
+      request_number_(1),
       curr_state_(SESSION_ACTIVE),
       charging_pool_(imsi),
       monitor_pool_(imsi),
@@ -146,15 +180,26 @@ bool SessionState::active_monitored_rules_exist() {
   return total_monitored_rules_count() > 0;
 }
 
+SessionFsmState SessionState::get_state() {
+  return curr_state_;
+}
+
+bool SessionState::is_terminating() {
+  if (is_active() || curr_state_ == SESSION_TERMINATION_SCHEDULED) {
+    return false;
+  }
+  return true;
+}
+
 void SessionState::get_updates_from_charging_pool(
     UpdateSessionRequest& update_request_out,
     std::vector<std::unique_ptr<ServiceAction>>* actions_out,
-    SessionStateUpdateCriteria& update_criteria, const bool force_update) {
+    SessionStateUpdateCriteria& update_criteria) {
   // charging updates
   std::vector<CreditUsage> charging_updates;
   charging_pool_.get_updates(
-      imsi_, config_.ue_ipv4, static_rules_, &dynamic_rules_, &charging_updates,
-      actions_out, update_criteria, force_update);
+      imsi_, config_.ue_ipv4, static_rules_, &dynamic_rules_,
+      &gy_dynamic_rules_, &charging_updates, actions_out, update_criteria);
   for (const auto& update : charging_updates) {
     auto new_req = update_request_out.mutable_updates()->Add();
     new_req->set_session_id(session_id_);
@@ -173,51 +218,65 @@ void SessionState::get_updates_from_charging_pool(
     fill_protos_tgpp_context(new_req->mutable_tgpp_ctx());
     new_req->mutable_usage()->CopyFrom(update);
     request_number_++;
+    update_criteria.request_number_increment++;
   }
 }
 
 void SessionState::get_updates_from_monitor_pool(
     UpdateSessionRequest& update_request_out,
     std::vector<std::unique_ptr<ServiceAction>>* actions_out,
-    SessionStateUpdateCriteria& update_criteria, const bool force_update) {
-  // monitor updates
+    SessionStateUpdateCriteria& update_criteria) {
   std::vector<UsageMonitorUpdate> monitor_updates;
   monitor_pool_.get_updates(
-      imsi_, config_.ue_ipv4, static_rules_, &dynamic_rules_, &monitor_updates,
-      actions_out, update_criteria, force_update);
+      imsi_, config_.ue_ipv4, static_rules_, &dynamic_rules_,
+      &gy_dynamic_rules_, &monitor_updates, actions_out, update_criteria);
   for (const auto& update : monitor_updates) {
     auto new_req = update_request_out.mutable_usage_monitors()->Add();
-    new_req->set_session_id(session_id_);
-    new_req->set_request_number(request_number_);
-    new_req->set_sid(imsi_);
-    new_req->set_ue_ipv4(config_.ue_ipv4);
-    new_req->set_hardware_addr(config_.hardware_addr);
-    new_req->set_rat_type(config_.rat_type);
-    fill_protos_tgpp_context(new_req->mutable_tgpp_ctx());
+    add_common_fields_to_usage_monitor_update(new_req);
     new_req->mutable_update()->CopyFrom(update);
+    new_req->set_event_trigger(USAGE_REPORT);
     request_number_++;
+    update_criteria.request_number_increment++;
   }
+  // todo We should also handle other event triggers here too
+  auto it = pending_event_triggers_.find(REVALIDATION_TIMEOUT);
+  if (it != pending_event_triggers_.end() && it->second == READY) {
+    auto new_req = update_request_out.mutable_usage_monitors()->Add();
+    add_common_fields_to_usage_monitor_update(new_req);
+    new_req->set_event_trigger(REVALIDATION_TIMEOUT);
+    request_number_++;
+    update_criteria.request_number_increment++;
+    // todo we might want to make sure that the update went successfully before
+    // clearing here
+    remove_event_trigger(REVALIDATION_TIMEOUT, update_criteria);
+  }
+}
+
+void SessionState::add_common_fields_to_usage_monitor_update(
+  UsageMonitoringUpdateRequest* req) {
+    req->set_session_id(session_id_);
+    req->set_request_number(request_number_);
+    req->set_sid(imsi_);
+    req->set_ue_ipv4(config_.ue_ipv4);
+    req->set_hardware_addr(config_.hardware_addr);
+    req->set_rat_type(config_.rat_type);
+    fill_protos_tgpp_context(req->mutable_tgpp_ctx());
 }
 
 void SessionState::get_updates(
     UpdateSessionRequest& update_request_out,
     std::vector<std::unique_ptr<ServiceAction>>* actions_out,
-    SessionStateUpdateCriteria& update_criteria, const bool force_update) {
+    SessionStateUpdateCriteria& update_criteria) {
   if (curr_state_ != SESSION_ACTIVE) return;
   get_updates_from_charging_pool(
-      update_request_out, actions_out, update_criteria, force_update);
+      update_request_out, actions_out, update_criteria);
   get_updates_from_monitor_pool(
-      update_request_out, actions_out, update_criteria, force_update);
+      update_request_out, actions_out, update_criteria);
 }
 
 void SessionState::start_termination(
     SessionStateUpdateCriteria& update_criteria) {
   set_fsm_state(SESSION_TERMINATING_FLOW_ACTIVE, update_criteria);
-}
-
-void SessionState::set_termination_callback(
-    std::function<void(SessionTerminateRequest)> on_termination_callback) {
-  on_termination_callback_ = on_termination_callback;
 }
 
 bool SessionState::can_complete_termination() const {
@@ -234,57 +293,27 @@ SubscriberQuotaUpdate_Type SessionState::get_subscriber_quota_state() const {
 }
 
 void SessionState::complete_termination(
-    SessionStateUpdateCriteria& update_criteria) {
-  if (curr_state_ == SESSION_TERMINATED) {
-    // session is already terminated. Do nothing.
-    return;
-  }
-  if (!can_complete_termination()) {
-    MLOG(MERROR) << "Encountered unexpected state("
-                 << session_fsm_state_to_str(curr_state_)
-                 << ") while terminating session for IMSI " << imsi_
-                 << " and session id " << session_id_
-                 << ". Forcefully terminating session.";
-  }
-  // mark entire session as terminated
-  set_fsm_state(SESSION_TERMINATED, update_criteria);
-
-  auto termination_req = make_termination_request(update_criteria);
-  try {
-    on_termination_callback_(termination_req);
-  } catch (std::bad_function_call&) {
-    MLOG(MERROR) << "Missing termination callback function while terminating "
-                    "session for IMSI "
-                 << imsi_ << " and session id " << session_id_;
-  }
-}
-
-void SessionState::complete_termination(
     SessionReporter& reporter, SessionStateUpdateCriteria& update_criteria) {
-  if (curr_state_ == SESSION_TERMINATED) {
-    // session is already terminated. Do nothing.
-    return;
-  }
-  if (!can_complete_termination()) {
-    MLOG(MERROR) << "Encountered unexpected state(" << curr_state_
-                 << ") while terminating session for IMSI " << imsi_
-                 << " and session id " << session_id_
-                 << ". Forcefully terminating session.";
+  switch (curr_state_) {
+    case SESSION_ACTIVE:
+      MLOG(MERROR) << imsi_ << " Encountered unexpected state 'ACTIVE' when "
+                   << "forcefully completing termination. ";
+      return;
+    case SESSION_TERMINATED:
+      // session is already terminated. Do nothing.
+      return;
+    case SESSION_TERMINATING_FLOW_ACTIVE:
+    case SESSION_TERMINATING_AGGREGATING_STATS:
+      MLOG(MINFO) << imsi_ << " Forcefully terminating session since it did "
+                  << "not receive usage from pipelined in time.";
+    default: // Continue termination but no logs are necessary for other states
+      break;
   }
   // mark entire session as terminated
   set_fsm_state(SESSION_TERMINATED, update_criteria);
-
   auto termination_req = make_termination_request(update_criteria);
-  try {
-    on_termination_callback_(termination_req);
-  } catch (std::bad_function_call&) {
-    on_termination_callback_ = [&reporter](SessionTerminateRequest term_req) {
-      // report to cloud
-      auto logging_cb = SessionReporter::get_terminate_logging_cb(term_req);
-      reporter.report_terminate_session(term_req, logging_cb);
-    };
-    on_termination_callback_(termination_req);
-  }
+  auto logging_cb = SessionReporter::get_terminate_logging_cb(termination_req);
+  reporter.report_terminate_session(termination_req, logging_cb);
 }
 
 SessionTerminateRequest SessionState::make_termination_request(
@@ -385,22 +414,6 @@ std::string SessionState::get_session_id() const {
   return session_id_;
 }
 
-std::string SessionState::get_subscriber_ip_addr() const {
-  return config_.ue_ipv4;
-}
-
-std::string SessionState::get_mac_addr() const {
-  return config_.mac_addr;
-}
-
-std::string SessionState::get_msisdn() const {
-  return config_.msisdn;
-}
-
-std::string SessionState::get_apn() const {
-  return config_.apn;
-}
-
 SessionConfig SessionState::get_config() {
   return config_;
 }
@@ -413,31 +426,12 @@ bool SessionState::is_radius_cwf_session() const {
   return (config_.rat_type == RATType::TGPP_WLAN);
 }
 
-std::string SessionState::get_radius_session_id() const {
-  return config_.radius_session_id;
-}
-
 void SessionState::get_session_info(SessionState::SessionInfo& info) {
   info.imsi    = imsi_;
   info.ip_addr = config_.ue_ipv4;
   get_dynamic_rules().get_rules(info.dynamic_rules);
+  get_gy_dynamic_rules().get_rules(info.gy_dynamic_rules);
   info.static_rules = active_static_rules_;
-}
-
-uint32_t SessionState::get_qci() const {
-  if (!config_.qos_info.enabled) {
-    MLOG(MWARNING) << "QoS is not enabled.";
-    return 0;
-  }
-  return config_.qos_info.qci;
-}
-
-uint32_t SessionState::get_bearer_id() const {
-  return config_.bearer_id;
-}
-
-bool SessionState::qos_enabled() const {
-  return config_.qos_info.enabled;
 }
 
 void SessionState::set_tgpp_context(
@@ -478,9 +472,23 @@ bool SessionState::get_monitoring_key_for_rule_id(
   return static_rules_.get_monitoring_key_for_rule_id(rule_id, monitoring_key);
 }
 
+bool SessionState::is_dynamic_rule_scheduled(const std::string& rule_id) {
+  auto _ = new PolicyRule();
+  return scheduled_dynamic_rules_.get_rule(rule_id, _);
+}
+
+bool SessionState::is_static_rule_scheduled(const std::string& rule_id) {
+  return scheduled_static_rules_.count(rule_id) == 1;
+}
+
 bool SessionState::is_dynamic_rule_installed(const std::string& rule_id) {
   auto _ = new PolicyRule();
   return dynamic_rules_.get_rule(rule_id, _);
+}
+
+bool SessionState::is_gy_dynamic_rule_installed(const std::string& rule_id) {
+  auto _ = new PolicyRule();
+  return gy_dynamic_rules_.get_rule(rule_id, _);
 }
 
 bool SessionState::is_static_rule_installed(const std::string& rule_id) {
@@ -490,18 +498,41 @@ bool SessionState::is_static_rule_installed(const std::string& rule_id) {
 }
 
 void SessionState::insert_dynamic_rule(
-    const PolicyRule& rule, SessionStateUpdateCriteria& update_criteria) {
+    const PolicyRule& rule, RuleLifetime& lifetime,
+    SessionStateUpdateCriteria& update_criteria) {
   if (is_dynamic_rule_installed(rule.id())) {
     return;
   }
-  update_criteria.dynamic_rules_to_install.push_back(rule);
+  rule_lifetimes_[rule.id()] = lifetime;
   dynamic_rules_.insert_rule(rule);
+  update_criteria.dynamic_rules_to_install.push_back(rule);
+  update_criteria.new_rule_lifetimes[rule.id()] = lifetime;
+}
+
+void SessionState::insert_gy_dynamic_rule(
+    const PolicyRule& rule, RuleLifetime& lifetime,
+    SessionStateUpdateCriteria& update_criteria) {
+  if (is_gy_dynamic_rule_installed(rule.id())) {
+    MLOG(MDEBUG) << "Tried to insert "<< rule.id()
+                 <<" (gy dynamic rule), but it already existed";
+    return;
+  }
+  update_criteria.gy_dynamic_rules_to_install.push_back(rule);
+  rule_lifetimes_[rule.id()] = lifetime;
+  gy_dynamic_rules_.insert_rule(rule);
+  update_criteria.dynamic_rules_to_install.push_back(rule);
+  update_criteria.new_rule_lifetimes[rule.id()] = lifetime;
+
+
 }
 
 void SessionState::activate_static_rule(
-    const std::string& rule_id, SessionStateUpdateCriteria& update_criteria) {
-  update_criteria.static_rules_to_install.insert(rule_id);
+    const std::string& rule_id, RuleLifetime& lifetime,
+    SessionStateUpdateCriteria& update_criteria) {
+  rule_lifetimes_[rule_id] = lifetime;
   active_static_rules_.push_back(rule_id);
+  update_criteria.static_rules_to_install.insert(rule_id);
+  update_criteria.new_rule_lifetimes[rule_id] = lifetime;
 }
 
 bool SessionState::remove_dynamic_rule(
@@ -510,6 +541,27 @@ bool SessionState::remove_dynamic_rule(
   bool removed = dynamic_rules_.remove_rule(rule_id, rule_out);
   if (removed) {
     update_criteria.dynamic_rules_to_uninstall.insert(rule_id);
+  }
+  return removed;
+}
+
+bool SessionState::remove_scheduled_dynamic_rule(
+    const std::string& rule_id, PolicyRule* rule_out,
+    SessionStateUpdateCriteria& update_criteria) {
+  bool removed = scheduled_dynamic_rules_.remove_rule(rule_id, rule_out);
+  if (removed) {
+    update_criteria.dynamic_rules_to_uninstall.insert(rule_id);
+  }
+  return removed;
+}
+
+bool SessionState::remove_gy_dynamic_rule(
+  const std::string& rule_id, PolicyRule *rule_out,
+  SessionStateUpdateCriteria& update_criteria)
+{
+  bool removed = gy_dynamic_rules_.remove_rule(rule_id, rule_out);
+  if (removed) {
+    update_criteria.gy_dynamic_rules_to_uninstall.insert(rule_id);
   }
   return removed;
 }
@@ -526,22 +578,134 @@ bool SessionState::deactivate_static_rule(
   return true;
 }
 
+bool SessionState::deactivate_scheduled_static_rule(
+    const std::string& rule_id, SessionStateUpdateCriteria& update_criteria) {
+  if (scheduled_static_rules_.count(rule_id) == 0) {
+    return false;
+  }
+  scheduled_static_rules_.erase(rule_id);
+  return true;
+}
+
+void SessionState::sync_rules_to_time(
+    std::time_t current_time, SessionStateUpdateCriteria& update_criteria) {
+  PolicyRule _rule_unused;
+  // Update active static rules
+  for (const std::string& rule_id : active_static_rules_) {
+    if (should_rule_be_deactivated(rule_id, current_time)) {
+      deactivate_static_rule(rule_id, update_criteria);
+    }
+  }
+  // Update scheduled static rules
+  std::set<std::string> scheduled_rule_ids = scheduled_static_rules_;
+  for (const std::string& rule_id : scheduled_rule_ids) {
+    if (should_rule_be_active(rule_id, current_time)) {
+      install_scheduled_static_rule(rule_id, update_criteria);
+    } else if (should_rule_be_deactivated(rule_id, current_time)) {
+      scheduled_static_rules_.erase(rule_id);
+      update_criteria.static_rules_to_uninstall.insert(rule_id);
+    }
+  }
+  // Update active dynamic rules
+  std::vector<std::string> dynamic_rule_ids;
+  dynamic_rules_.get_rule_ids(dynamic_rule_ids);
+  for (const std::string& rule_id : dynamic_rule_ids) {
+    if (should_rule_be_deactivated(rule_id, current_time)) {
+      remove_dynamic_rule(rule_id, &_rule_unused, update_criteria);
+    }
+  }
+  // Update scheduled dynamic rules
+  scheduled_dynamic_rules_.get_rule_ids(dynamic_rule_ids);
+  for (const std::string& rule_id : dynamic_rule_ids) {
+    if (should_rule_be_active(rule_id, current_time)) {
+      install_scheduled_dynamic_rule(rule_id, update_criteria);
+    } else if (should_rule_be_deactivated(rule_id, current_time)) {
+      remove_scheduled_dynamic_rule(rule_id, &_rule_unused, update_criteria);
+    }
+  }
+}
+
+std::vector<std::string>& SessionState::get_static_rules() {
+  return active_static_rules_;
+}
+
+std::set<std::string>& SessionState::get_scheduled_static_rules() {
+  return scheduled_static_rules_;
+}
+
 DynamicRuleStore& SessionState::get_dynamic_rules() {
   return dynamic_rules_;
+}
+
+DynamicRuleStore& SessionState::get_scheduled_dynamic_rules() {
+  return scheduled_dynamic_rules_;
+}
+
+RuleLifetime& SessionState::get_rule_lifetime(const std::string& rule_id) {
+  return rule_lifetimes_[rule_id];
+}
+
+DynamicRuleStore& SessionState::get_gy_dynamic_rules()
+{
+  return gy_dynamic_rules_;
 }
 
 uint32_t SessionState::total_monitored_rules_count() {
   uint32_t monitored_dynamic_rules = dynamic_rules_.monitored_rules_count();
   uint32_t monitored_static_rules  = 0;
   for (auto& rule_id : active_static_rules_) {
-    std::string mkey;  // ignore value
+    std::string _;
     auto is_monitored =
-        static_rules_.get_monitoring_key_for_rule_id(rule_id, &mkey);
+        static_rules_.get_monitoring_key_for_rule_id(rule_id, &_);
     if (is_monitored) {
       monitored_static_rules++;
     }
   }
   return monitored_dynamic_rules + monitored_static_rules;
+}
+
+void SessionState::schedule_dynamic_rule(
+    const PolicyRule& rule, RuleLifetime& lifetime,
+    SessionStateUpdateCriteria& update_criteria) {
+  update_criteria.new_rule_lifetimes[rule.id()] = lifetime;
+  update_criteria.new_scheduled_dynamic_rules.push_back(rule);
+  rule_lifetimes_[rule.id()] = lifetime;
+  scheduled_dynamic_rules_.insert_rule(rule);
+}
+
+void SessionState::schedule_static_rule(
+    const std::string& rule_id, RuleLifetime& lifetime,
+    SessionStateUpdateCriteria& update_criteria) {
+  update_criteria.new_rule_lifetimes[rule_id] = lifetime;
+  update_criteria.new_scheduled_static_rules.insert(rule_id);
+  rule_lifetimes_[rule_id] = lifetime;
+  scheduled_static_rules_.insert(rule_id);
+}
+
+void SessionState::install_scheduled_dynamic_rule(
+    const std::string& rule_id, SessionStateUpdateCriteria& update_criteria) {
+  PolicyRule dynamic_rule;
+  bool removed = scheduled_dynamic_rules_.remove_rule(rule_id, &dynamic_rule);
+  if (!removed) {
+    MLOG(MERROR) << "Failed to mark a scheduled dynamic rule as installed "
+                 << "with rule_id: " << rule_id;
+    return;
+  }
+  update_criteria.dynamic_rules_to_install.push_back(dynamic_rule);
+  dynamic_rules_.insert_rule(dynamic_rule);
+}
+
+void SessionState::install_scheduled_static_rule(
+    const std::string& rule_id, SessionStateUpdateCriteria& update_criteria) {
+  auto it = scheduled_static_rules_.find(rule_id);
+  if (it == scheduled_static_rules_.end()) {
+    MLOG(MERROR) << "Failed to mark a scheduled static rule as installed "
+                    "with rule_id: "
+                 << rule_id;
+  }
+  update_criteria.static_rules_to_install.insert(rule_id);
+  scheduled_static_rules_.erase(rule_id);
+  active_static_rules_.push_back(rule_id);
 }
 
 uint32_t SessionState::get_credit_key_count() {
@@ -583,5 +747,88 @@ std::string session_fsm_state_to_str(SessionFsmState state) {
   default:
     return "INVALID SESSION FSM STATE";
   }
+}
+
+bool SessionState::should_rule_be_active(
+    const std::string& rule_id, std::time_t time) {
+  auto lifetime = rule_lifetimes_[rule_id];
+  bool deactivated =
+      (lifetime.deactivation_time > 0) && (lifetime.deactivation_time < time);
+  return lifetime.activation_time < time && !deactivated;
+}
+
+bool SessionState::should_rule_be_deactivated(
+    const std::string& rule_id, std::time_t time) {
+  auto lifetime = rule_lifetimes_[rule_id];
+  return lifetime.deactivation_time > 0 && lifetime.deactivation_time < time;
+}
+
+StaticRuleInstall SessionState::get_static_rule_install(
+  const std::string& rule_id, const RuleLifetime& lifetime) {
+  StaticRuleInstall rule_install{};
+  rule_install.set_rule_id(rule_id);
+  rule_install.mutable_activation_time()->set_seconds(lifetime.activation_time);
+  rule_install.mutable_deactivation_time()->set_seconds(lifetime.deactivation_time);
+  return rule_install;
+}
+
+DynamicRuleInstall SessionState::get_dynamic_rule_install(
+  const std::string& rule_id, const RuleLifetime& lifetime) {
+  DynamicRuleInstall rule_install{};
+  PolicyRule* policy_rule = rule_install.mutable_policy_rule();
+  if (!dynamic_rules_.get_rule(rule_id, policy_rule)) {
+    scheduled_dynamic_rules_.get_rule(rule_id, policy_rule);
+  }
+  rule_install.mutable_activation_time()->set_seconds(lifetime.activation_time);
+  rule_install.mutable_deactivation_time()->set_seconds(lifetime.deactivation_time);
+  return rule_install;
+}
+
+// Event Triggers
+void SessionState::add_new_event_trigger(
+  magma::lte::EventTrigger trigger,
+  SessionStateUpdateCriteria& update_criteria) {
+    MLOG(MINFO) << "Event Trigger " << trigger << " is pending for "
+                << session_id_;
+    set_event_trigger(trigger, PENDING, update_criteria);
+}
+
+void SessionState::mark_event_trigger_as_triggered(
+  magma::lte::EventTrigger trigger,
+  SessionStateUpdateCriteria& update_criteria) {
+    auto it = pending_event_triggers_.find(trigger);
+    if (it == pending_event_triggers_.end() ||
+        pending_event_triggers_[trigger] != PENDING) {
+      MLOG(MWARNING) << "Event Trigger " << trigger << " requested to be "
+                     << "triggered is not pending for " << session_id_;
+    }
+    MLOG(MINFO) << "Event Trigger " << trigger << " is ready to update for "
+                << session_id_;
+    set_event_trigger(trigger, READY, update_criteria);
+}
+
+void SessionState::remove_event_trigger(
+  magma::lte::EventTrigger trigger,
+  SessionStateUpdateCriteria& update_criteria) {
+    MLOG(MINFO) << "Event Trigger " << trigger << " is removed for "
+                << session_id_;
+    pending_event_triggers_.erase(trigger);
+    set_event_trigger(trigger, CLEARED, update_criteria);
+}
+
+void SessionState::set_event_trigger(
+  magma::lte::EventTrigger trigger,
+  const EventTriggerState value,
+  SessionStateUpdateCriteria& update_criteria) {
+    pending_event_triggers_[trigger] = value;
+    update_criteria.is_pending_event_triggers_updated = true;
+    update_criteria.pending_event_triggers[trigger] = value;
+}
+
+void SessionState::set_revalidation_time(
+  const google::protobuf::Timestamp& time,
+  SessionStateUpdateCriteria& update_criteria) {
+  revalidation_time_ = time;
+  update_criteria.revalidation_time = time;
 }
 }  // namespace magma

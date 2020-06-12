@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash ee1330e28bb1d8ecbe4c1974af196a79
+ * @relayHash f01e19bdbea4d4c0875e494f217aaf7d
  */
 
 /* eslint-disable */
@@ -15,7 +15,7 @@
 
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
-type AddEditWorkOrderTypeCard_editingWorkOrderType$ref = any;
+type AddEditWorkOrderTypeCard_workOrderType$ref = any;
 export type WorkOrderTypesQueryVariables = {||};
 export type WorkOrderTypesQueryResponse = {|
   +workOrderTypes: ?{|
@@ -24,7 +24,7 @@ export type WorkOrderTypesQueryResponse = {|
         +id: string,
         +name: string,
         +description: ?string,
-        +$fragmentRefs: AddEditWorkOrderTypeCard_editingWorkOrderType$ref,
+        +$fragmentRefs: AddEditWorkOrderTypeCard_workOrderType$ref,
       |}
     |}>
   |}
@@ -44,7 +44,7 @@ query WorkOrderTypesQuery {
         id
         name
         description
-        ...AddEditWorkOrderTypeCard_editingWorkOrderType
+        ...AddEditWorkOrderTypeCard_workOrderType
         __typename
       }
       cursor
@@ -56,7 +56,7 @@ query WorkOrderTypesQuery {
   }
 }
 
-fragment AddEditWorkOrderTypeCard_editingWorkOrderType on WorkOrderType {
+fragment AddEditWorkOrderTypeCard_workOrderType on WorkOrderType {
   id
   name
   description
@@ -79,6 +79,21 @@ fragment AddEditWorkOrderTypeCard_editingWorkOrderType on WorkOrderType {
     isMandatory
     isInstanceProperty
     isDeleted
+    category
+  }
+  checkListCategoryDefinitions {
+    id
+    title
+    description
+    checklistItemDefinitions {
+      id
+      title
+      type
+      index
+      enumValues
+      enumSelectionMode
+      helpText
+    }
   }
 }
 */
@@ -150,7 +165,28 @@ v6 = [
     "name": "first",
     "value": 500
   }
-];
+],
+v7 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "type",
+  "args": null,
+  "storageKey": null
+},
+v8 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "index",
+  "args": null,
+  "storageKey": null
+},
+v9 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "title",
+  "args": null,
+  "storageKey": null
+};
 return {
   "kind": "Request",
   "fragment": {
@@ -193,7 +229,7 @@ return {
                   (v3/*: any*/),
                   {
                     "kind": "FragmentSpread",
-                    "name": "AddEditWorkOrderTypeCard_editingWorkOrderType",
+                    "name": "AddEditWorkOrderTypeCard_workOrderType",
                     "args": null
                   }
                 ]
@@ -259,13 +295,7 @@ return {
                     "selections": [
                       (v0/*: any*/),
                       (v1/*: any*/),
-                      {
-                        "kind": "ScalarField",
-                        "alias": null,
-                        "name": "type",
-                        "args": null,
-                        "storageKey": null
-                      },
+                      (v7/*: any*/),
                       {
                         "kind": "ScalarField",
                         "alias": null,
@@ -273,13 +303,7 @@ return {
                         "args": null,
                         "storageKey": null
                       },
-                      {
-                        "kind": "ScalarField",
-                        "alias": null,
-                        "name": "index",
-                        "args": null,
-                        "storageKey": null
-                      },
+                      (v8/*: any*/),
                       {
                         "kind": "ScalarField",
                         "alias": null,
@@ -363,6 +387,63 @@ return {
                         "name": "isDeleted",
                         "args": null,
                         "storageKey": null
+                      },
+                      {
+                        "kind": "ScalarField",
+                        "alias": null,
+                        "name": "category",
+                        "args": null,
+                        "storageKey": null
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "LinkedField",
+                    "alias": null,
+                    "name": "checkListCategoryDefinitions",
+                    "storageKey": null,
+                    "args": null,
+                    "concreteType": "CheckListCategoryDefinition",
+                    "plural": true,
+                    "selections": [
+                      (v0/*: any*/),
+                      (v9/*: any*/),
+                      (v2/*: any*/),
+                      {
+                        "kind": "LinkedField",
+                        "alias": null,
+                        "name": "checklistItemDefinitions",
+                        "storageKey": null,
+                        "args": null,
+                        "concreteType": "CheckListItemDefinition",
+                        "plural": true,
+                        "selections": [
+                          (v0/*: any*/),
+                          (v9/*: any*/),
+                          (v7/*: any*/),
+                          (v8/*: any*/),
+                          {
+                            "kind": "ScalarField",
+                            "alias": null,
+                            "name": "enumValues",
+                            "args": null,
+                            "storageKey": null
+                          },
+                          {
+                            "kind": "ScalarField",
+                            "alias": null,
+                            "name": "enumSelectionMode",
+                            "args": null,
+                            "storageKey": null
+                          },
+                          {
+                            "kind": "ScalarField",
+                            "alias": null,
+                            "name": "helpText",
+                            "args": null,
+                            "storageKey": null
+                          }
+                        ]
                       }
                     ]
                   },
@@ -390,7 +471,7 @@ return {
     "operationKind": "query",
     "name": "WorkOrderTypesQuery",
     "id": null,
-    "text": "query WorkOrderTypesQuery {\n  workOrderTypes(first: 500) {\n    edges {\n      node {\n        id\n        name\n        description\n        ...AddEditWorkOrderTypeCard_editingWorkOrderType\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n}\n\nfragment AddEditWorkOrderTypeCard_editingWorkOrderType on WorkOrderType {\n  id\n  name\n  description\n  numberOfWorkOrders\n  propertyTypes {\n    id\n    name\n    type\n    nodeType\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    isEditable\n    isMandatory\n    isInstanceProperty\n    isDeleted\n  }\n}\n",
+    "text": "query WorkOrderTypesQuery {\n  workOrderTypes(first: 500) {\n    edges {\n      node {\n        id\n        name\n        description\n        ...AddEditWorkOrderTypeCard_workOrderType\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n}\n\nfragment AddEditWorkOrderTypeCard_workOrderType on WorkOrderType {\n  id\n  name\n  description\n  numberOfWorkOrders\n  propertyTypes {\n    id\n    name\n    type\n    nodeType\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    isEditable\n    isMandatory\n    isInstanceProperty\n    isDeleted\n    category\n  }\n  checkListCategoryDefinitions {\n    id\n    title\n    description\n    checklistItemDefinitions {\n      id\n      title\n      type\n      index\n      enumValues\n      enumSelectionMode\n      helpText\n    }\n  }\n}\n",
     "metadata": {
       "connection": [
         {
@@ -407,5 +488,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '3e0fc1bd76b63e226a77a03c54ef2ccc';
+(node/*: any*/).hash = '3ccc96c93793d16a4cd794405847c2f5';
 module.exports = node;

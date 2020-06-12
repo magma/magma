@@ -32,7 +32,7 @@
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="pyinventory.api.link.add_link"><code class="name flex">
-<span>def <span class="ident">add_link</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment_a: <a title="pyinventory.common.data_class.Equipment" href="../common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>, port_name_a: str, equipment_b: <a title="pyinventory.common.data_class.Equipment" href="../common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>, port_name_b: str) -> <a title="pyinventory.common.data_class.Link" href="../common/data_class.html#pyinventory.common.data_class.Link">Link</a></span>
+<span>def <span class="ident">add_link</span></span>(<span>client: pysymphony.SymphonyClient, equipment_a: <a title="pyinventory.common.data_class.Equipment" href="../common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>, port_name_a: str, equipment_b: <a title="pyinventory.common.data_class.Equipment" href="../common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>, port_name_b: str) -> <a title="pyinventory.common.data_class.Link" href="../common/data_class.html#pyinventory.common.data_class.Link">Link</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Connects a link between two ports of two equipments.</p>
@@ -79,7 +79,7 @@ client.add_link(
 </code></pre></div>
 </dd>
 <dt id="pyinventory.api.link.get_all_links_and_port_names_of_equipment"><code class="name flex">
-<span>def <span class="ident">get_all_links_and_port_names_of_equipment</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment: <a title="pyinventory.common.data_class.Equipment" href="../common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>) -> List[Tuple[<a title="pyinventory.common.data_class.Link" href="../common/data_class.html#pyinventory.common.data_class.Link">Link</a>, str]]</span>
+<span>def <span class="ident">get_all_links_and_port_names_of_equipment</span></span>(<span>client: pysymphony.SymphonyClient, equipment: <a title="pyinventory.common.data_class.Equipment" href="../common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>) -> List[Tuple[<a title="pyinventory.common.data_class.Link" href="../common/data_class.html#pyinventory.common.data_class.Link">Link</a>, str]]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Returns all links and port names in equipment.</p>
@@ -108,7 +108,7 @@ client.get_all_links_and_port_names_of_equipment(equipment=equipment)
 </code></pre></div>
 </dd>
 <dt id="pyinventory.api.link.get_link_in_port_of_equipment"><code class="name flex">
-<span>def <span class="ident">get_link_in_port_of_equipment</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment: <a title="pyinventory.common.data_class.Equipment" href="../common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>, port_name: str) -> <a title="pyinventory.common.data_class.Link" href="../common/data_class.html#pyinventory.common.data_class.Link">Link</a></span>
+<span>def <span class="ident">get_link_in_port_of_equipment</span></span>(<span>client: pysymphony.SymphonyClient, equipment: <a title="pyinventory.common.data_class.Equipment" href="../common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>, port_name: str) -> <a title="pyinventory.common.data_class.Link" href="../common/data_class.html#pyinventory.common.data_class.Link">Link</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Returns link in specific port by name in equipment.</p>

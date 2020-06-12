@@ -12,16 +12,16 @@ import (
 	"sort"
 
 	"github.com/AlekSi/pointer"
-	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/ent/equipment"
-	"github.com/facebookincubator/symphony/graph/ent/location"
-	"github.com/facebookincubator/symphony/graph/ent/locationtype"
-	"github.com/facebookincubator/symphony/graph/ent/reportfilter"
-	"github.com/facebookincubator/symphony/graph/ent/workorder"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
-	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/pkg/actions"
 	"github.com/facebookincubator/symphony/pkg/actions/core"
+	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/ent/equipment"
+	"github.com/facebookincubator/symphony/pkg/ent/location"
+	"github.com/facebookincubator/symphony/pkg/ent/locationtype"
+	"github.com/facebookincubator/symphony/pkg/ent/reportfilter"
+	"github.com/facebookincubator/symphony/pkg/ent/workorder"
+	"github.com/facebookincubator/symphony/pkg/viewer"
 
 	"go.uber.org/zap"
 )
@@ -117,6 +117,24 @@ func (r queryResolver) EquipmentPortDefinitions(
 		Paginate(ctx, after, first, before, last)
 }
 
+func (r queryResolver) EquipmentPorts(
+	ctx context.Context,
+	after *ent.Cursor, first *int,
+	before *ent.Cursor, last *int,
+) (*ent.EquipmentPortConnection, error) {
+	return r.ClientFrom(ctx).EquipmentPort.Query().
+		Paginate(ctx, after, first, before, last)
+}
+
+func (r queryResolver) Equipments(
+	ctx context.Context,
+	after *ent.Cursor, first *int,
+	before *ent.Cursor, last *int,
+) (*ent.EquipmentConnection, error) {
+	return r.ClientFrom(ctx).Equipment.Query().
+		Paginate(ctx, after, first, before, last)
+}
+
 func (r queryResolver) WorkOrders(
 	ctx context.Context,
 	after *ent.Cursor, first *int,
@@ -140,70 +158,6 @@ func (r queryResolver) WorkOrderTypes(
 ) (*ent.WorkOrderTypeConnection, error) {
 	return r.ClientFrom(ctx).WorkOrderType.Query().
 		Paginate(ctx, after, first, before, last)
-}
-
-func (r queryResolver) SearchForEntity(
-	ctx context.Context, name string,
-	_ *ent.Cursor, limit *int,
-	_ *ent.Cursor, _ *int,
-) (*models.SearchEntriesConnection, error) {
-	if limit == nil {
-		return nil, errors.New("first is a mandatory param")
-	}
-	client := r.ClientFrom(ctx)
-	locations, err := client.Location.Query().
-		Where(
-			location.Or(
-				location.NameContainsFold(name),
-				location.ExternalIDContainsFold(name),
-			),
-		).
-		Limit(*limit).
-		All(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("querying locations: %w", err)
-	}
-
-	edges := make([]*models.SearchEntryEdge, len(locations))
-	for i, l := range locations {
-		lt := l.QueryType().FirstX(ctx)
-		edges[i] = &models.SearchEntryEdge{
-			Node: &models.SearchEntry{
-				EntityType: "location",
-				EntityID:   l.ID,
-				Name:       l.Name,
-				Type:       lt.Name,
-				ExternalID: &l.ExternalID,
-			},
-		}
-	}
-	if len(locations) == *limit {
-		return &models.SearchEntriesConnection{Edges: edges}, nil
-	}
-
-	equipments, err := client.Equipment.Query().
-		Where(equipment.Or(
-			equipment.NameContainsFold(name),
-			equipment.ExternalIDContainsFold(name),
-		)).
-		Limit(*limit - len(locations)).
-		All(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("querying equipment: %w", err)
-	}
-	for _, e := range equipments {
-		et := e.QueryType().FirstX(ctx)
-		edges = append(edges, &models.SearchEntryEdge{
-			Node: &models.SearchEntry{
-				EntityType: "equipment",
-				EntityID:   e.ID,
-				Name:       e.Name,
-				Type:       et.Name,
-				ExternalID: &e.ExternalID,
-			},
-		})
-	}
-	return &models.SearchEntriesConnection{Edges: edges}, nil
 }
 
 func (r queryResolver) SearchForNode(

@@ -1,18 +1,47 @@
-import { saveAs } from "file-saver";
 import React from "react";
 import { Button, Container, Tab, Tabs } from "react-bootstrap";
 import { withRouter } from "react-router-dom";
 import { HttpClient as http } from "../../common/HttpClient";
 import WorkflowDefs from "./WorkflowDefs/WorkflowDefs";
 import WorkflowExec from "./WorkflowExec/WorkflowExec";
+import Scheduling from "./Scheduling/Scheduling";
 import { conductorApiUrlPrefix, frontendUrlPrefix } from "../../constants";
+import {changeUrl, exportButton} from './workflowUtils'
 
-const JSZip = require("jszip");
+const workflowModifyButtons = (openFileUpload, history) => {
+  return [
+      <Button
+          variant="outline-primary"
+          style={{ marginLeft: "30px" }}
+          onClick={() => history.push(frontendUrlPrefix + "/builder")}
+      >
+        <i className="fas fa-plus" />
+        &nbsp;&nbsp;New
+      </Button>,
+      <Button
+      variant="outline-primary"
+      style={{ marginLeft: "5px" }}
+      onClick={openFileUpload}
+  >
+    <i className="fas fa-file-import" />
+    &nbsp;&nbsp;Import
+  </Button>
+  ];
+}
+
+const upperMenu = (history, openFileUpload) => {
+  return(
+    <h1 style={{ marginBottom: "20px" }}>
+    <i style={{ color: "grey" }} className="fas fa-cogs" />
+    &nbsp;&nbsp;Workflows
+    { workflowModifyButtons(openFileUpload, history) }
+    { exportButton() }
+  </h1>);
+}
 
 const WorkflowList = (props) => {
-  const changeUrl = (e) => {
-    props.history.push(frontendUrlPrefix + "/" + e);
-  };
+  let urlUpdater = changeUrl(props.history);
+  let query = props.match.params.wfid ? props.match.params.wfid : null;
 
   const importFiles = (e) => {
     const files = e.currentTarget.files;
@@ -29,7 +58,7 @@ const WorkflowList = (props) => {
         let definition = JSON.parse(e.target.result);
         fileList.push(definition);
         if (!--count) {
-          http.put(conductorApiUrlPrefix + "/metadata", fileList).then(() => {
+          http.put(conductorApiUrlPrefix + '/metadata', fileList).then(() => {
             window.location.reload();
           });
         }
@@ -38,23 +67,6 @@ const WorkflowList = (props) => {
     }
   };
 
-  const exportFile = () => {
-    http.get(conductorApiUrlPrefix + "/metadata/workflow").then((res) => {
-      const zip = new JSZip();
-      let workflows = res.result || [];
-
-      workflows.forEach((wf) => {
-        zip.file(wf.name + ".json", JSON.stringify(wf, null, 2));
-      });
-
-      zip.generateAsync({ type: "blob" }).then(function(content) {
-        saveAs(content, "workflows.zip");
-      });
-    });
-  };
-
-  let query = props.match.params.wfid ? props.match.params.wfid : null;
-
   const openFileUpload = () => {
     document.getElementById("upload-files").click();
     document
@@ -62,49 +74,26 @@ const WorkflowList = (props) => {
       .addEventListener("change", importFiles);
   };
 
+  let menu = upperMenu(props.history, openFileUpload);
+
   return (
     <Container style={{ textAlign: "left", marginTop: "20px" }}>
-      <h1 style={{ marginBottom: "20px" }}>
-        <i style={{ color: "grey" }} className="fas fa-cogs" />
-        &nbsp;&nbsp;Workflows
-        <Button
-          variant="outline-primary"
-          style={{ marginLeft: "30px" }}
-          onClick={() => props.history.push(frontendUrlPrefix + "/builder")}
-        >
-          <i className="fas fa-plus" />
-          &nbsp;&nbsp;New
-        </Button>
-        <Button
-          variant="outline-primary"
-          style={{ marginLeft: "5px" }}
-          onClick={openFileUpload}
-        >
-          <i className="fas fa-file-import" />
-          &nbsp;&nbsp;Import
-        </Button>
-        <Button
-          variant="outline-primary"
-          style={{ marginLeft: "5px" }}
-          onClick={exportFile}
-        >
-          <i className="fas fa-file-export" />
-          &nbsp;&nbsp;Export
-        </Button>
-      </h1>
+      {menu}
       <input id="upload-files" multiple type="file" hidden />
       <Tabs
-        onSelect={(e) => changeUrl(e)}
+        onSelect={(e) => urlUpdater(e)}
         defaultActiveKey={props.match.params.type || "defs"}
         style={{ marginBottom: "20px" }}
       >
-        <Tab eventKey="defs" title="Definitions">
+        <Tab mountOnEnter unmountOnExit eventKey="defs" title="Definitions">
           <WorkflowDefs />
         </Tab>
         <Tab mountOnEnter unmountOnExit eventKey="exec" title="Executed">
           <WorkflowExec query={query} />
         </Tab>
-        <Tab eventKey="scheduled" title="Scheduled" disabled></Tab>
+        <Tab mountOnEnter unmountOnExit eventKey="scheduled" title="Scheduled">
+          <Scheduling />
+        </Tab>
       </Tabs>
     </Container>
   );

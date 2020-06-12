@@ -14,7 +14,6 @@ import type {
   AddServiceTypeMutationVariables,
   ServiceTypeCreateData,
 } from '../../mutations/__generated__/AddServiceTypeMutation.graphql';
-import type {AppContextType} from '@fbcnms/ui/context/AppContext';
 import type {
   EditServiceTypeMutationResponse,
   EditServiceTypeMutationVariables,
@@ -31,7 +30,6 @@ import type {WithSnackbarProps} from 'notistack';
 import type {WithStyles} from '@material-ui/core';
 
 import AddServiceTypeMutation from '../../mutations/AddServiceTypeMutation';
-import AppContext from '@fbcnms/ui/context/AppContext';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import CardSection from '../CardSection';
 import EditServiceTypeMutation from '../../mutations/EditServiceTypeMutation';
@@ -46,12 +44,13 @@ import ServiceEndpointDefinitionTable from './ServiceEndpointDefinitionTable';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import TextField from '@material-ui/core/TextField';
-import fbt from 'fbt';
 import nullthrows from 'nullthrows';
 import update from 'immutability-helper';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {ConnectionHandler} from 'relay-runtime';
+import {FormContextProvider} from '../../common/FormContext';
 import {createFragmentContainer, graphql} from 'react-relay';
+import {discoveryMethods} from '../../common/Service';
 import {generateTempId, removeTempIDs} from '../../common/EntUtils';
 import {getGraphError} from '../../common/EntUtils';
 import {getPropertyDefaultValue} from '../../common/PropertyType';
@@ -101,29 +100,15 @@ type State = {
   editingServiceType: ServiceType,
 };
 
-const discoveryMethods = {
-  MANUAL: fbt('Manual (default)', 'title for no discovery method'),
-  INVENTORY: fbt(
-    'Inventory',
-    'title for discovering this service using inventory data',
-  ),
-};
-
 class AddEditServiceTypeCard extends React.Component<Props, State> {
   state = {
     error: '',
     editingServiceType: this.getEditingServiceType(),
   };
 
-  static contextType = AppContext;
-  context: AppContextType;
-
   render() {
     const {classes, onClose} = this.props;
     const {editingServiceType} = this.state;
-    const serviceEndpointsEnabled = this.context.isFeatureEnabled(
-      'service_endpoints',
-    );
 
     const propertyTypes = editingServiceType.propertyTypes
       .slice()
@@ -132,15 +117,18 @@ class AddEditServiceTypeCard extends React.Component<Props, State> {
       .slice()
       .sort(sortByIndex);
 
+    const isOnEdit = !!this.props.editingServiceType;
     return (
-      <>
+      <FormContextProvider
+        permissions={{
+          entity: 'serviceType',
+          action: isOnEdit ? 'update' : 'create',
+        }}>
         <div className={classes.cards}>
           <SectionedCard>
             <div className={classes.header}>
               <Text className={classes.headerText}>
-                {this.props.editingServiceType
-                  ? 'Edit Service Type'
-                  : 'New Service Type'}
+                {isOnEdit ? 'Edit Service Type' : 'New Service Type'}
               </Text>
             </div>
             <Grid container spacing={1}>
@@ -156,59 +144,53 @@ class AddEditServiceTypeCard extends React.Component<Props, State> {
                   />
                 </FormField>
               </Grid>
-              {serviceEndpointsEnabled ? (
-                <Grid item xs={12} xl={7}>
-                  <FormField label="Discovery Method" className={classes.input}>
-                    <TextField
-                      select
-                      variant="outlined"
-                      disabled={this.props.editingServiceType != null}
-                      className={classes.input}
-                      value={
-                        editingServiceType.discoveryMethod ??
-                        discoveryMethods.MANUAL
-                      }
-                      onChange={this.discoveryMethodChanged}
-                      SelectProps={{
-                        classes: {selectMenu: classes.selectMenu},
-                        MenuProps: {
-                          className: classes.menu,
-                        },
-                      }}
-                      margin="dense">
-                      {Object.keys(discoveryMethods).map(discoveryMethod => {
-                        return (
-                          <MenuItem
-                            key={discoveryMethod}
-                            value={discoveryMethod}>
-                            {discoveryMethods[discoveryMethod] ?? ''}
-                          </MenuItem>
-                        );
-                      })}
-                    </TextField>
-                  </FormField>
-                </Grid>
-              ) : null}
+              <Grid item xs={12} xl={7}>
+                <FormField label="Discovery Method" className={classes.input}>
+                  <TextField
+                    select
+                    variant="outlined"
+                    disabled={this.props.editingServiceType != null}
+                    className={classes.input}
+                    value={
+                      editingServiceType.discoveryMethod ??
+                      discoveryMethods.MANUAL
+                    }
+                    onChange={this.discoveryMethodChanged}
+                    SelectProps={{
+                      classes: {selectMenu: classes.selectMenu},
+                      MenuProps: {
+                        className: classes.menu,
+                      },
+                    }}
+                    margin="dense">
+                    {Object.keys(discoveryMethods).map(discoveryMethod => {
+                      return (
+                        <MenuItem key={discoveryMethod} value={discoveryMethod}>
+                          {discoveryMethods[discoveryMethod] ?? ''}
+                        </MenuItem>
+                      );
+                    })}
+                  </TextField>
+                </FormField>
+              </Grid>
             </Grid>
           </SectionedCard>
-          {serviceEndpointsEnabled ? (
-            <SectionedCard>
-              <Grid container direction="column" spacing={3}>
-                <Grid item xs={12} xl={7}>
-                  <CardSection
-                    className={classes.section}
-                    title="Service Endpoints">
-                    <ServiceEndpointDefinitionTable
-                      serviceEndpointDefinitions={endpointDefinitions}
-                      onServiceEndpointDefinitionsChanged={
-                        this._endpointChangedHandler
-                      }
-                    />
-                  </CardSection>
-                </Grid>
+          <SectionedCard>
+            <Grid container direction="column" spacing={3}>
+              <Grid item xs={12} xl={7}>
+                <CardSection
+                  className={classes.section}
+                  title="Service Endpoints">
+                  <ServiceEndpointDefinitionTable
+                    serviceEndpointDefinitions={endpointDefinitions}
+                    onServiceEndpointDefinitionsChanged={
+                      this._endpointChangedHandler
+                    }
+                  />
+                </CardSection>
               </Grid>
-            </SectionedCard>
-          ) : null}
+            </Grid>
+          </SectionedCard>
           <SectionedCard>
             <Grid container direction="column" spacing={3}>
               <Grid item xs={12} xl={7}>
@@ -233,7 +215,7 @@ class AddEditServiceTypeCard extends React.Component<Props, State> {
             Save
           </Button>
         </PageFooter>
-      </>
+      </FormContextProvider>
     );
   }
 
@@ -252,8 +234,8 @@ class AddEditServiceTypeCard extends React.Component<Props, State> {
       !endpointWithNames.every(
         endpointType => endpointType.equipmentType && endpointType.name,
       ) ||
-      endpointWithNames.length == 1 ||
-      endpointWithNames.length > 5
+      (serviceType.discoveryMethod != 'MANUAL' &&
+        (endpointWithNames.length == 1 || endpointWithNames.length > 5))
     );
   }
 
@@ -488,7 +470,7 @@ class AddEditServiceTypeCard extends React.Component<Props, State> {
       id: editingServiceType?.id ?? 'ServiceType@tmp0',
       name: editingServiceType?.name ?? '',
       numberOfServices: editingServiceType?.numberOfServices ?? 0,
-      discoveryMethod: editingServiceType?.discoveryMethod,
+      discoveryMethod: editingServiceType?.discoveryMethod ?? 'MANUAL',
       propertyTypes:
         propertyTypes.length > 0
           ? propertyTypes

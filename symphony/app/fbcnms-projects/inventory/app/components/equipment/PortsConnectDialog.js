@@ -314,7 +314,6 @@ class PortsConnectDialog extends React.Component<Props, State> {
           {lastStep && (
             <Button
               disabled={activeStep < steps.length - 1}
-              color="primary"
               onClick={() =>
                 this.props.onConnectPorts(
                   nullthrows(targetPort),

@@ -1,18 +1,27 @@
-import * as SRD from "@projectstorm/react-diagrams";
-import { ForkNode } from "./ForkNode";
-import { ForkNodeModel } from "./ForkNodeModel";
-import * as React from "react";
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ * @flow
+ * @format
+ */
+import * as React from 'react';
+import * as SRD from '@projectstorm/react-diagrams';
+import {ForkNode} from './ForkNode';
+import {ForkNodeModel} from './ForkNodeModel';
 
 export class ForkNodeFactory extends SRD.AbstractNodeFactory {
   constructor() {
-    super("fork");
+    super('fork');
   }
 
   generateReactWidget(
     diagramEngine: SRD.DiagramEngine,
-    node: SRD.NodeModel
+    node: SRD.NodeModel,
   ): JSX.Element {
-    return <ForkNode node={node} />;
+    return <ForkNode node={node} diagramEngine={diagramEngine} />;
   }
 
   getNewInstance() {

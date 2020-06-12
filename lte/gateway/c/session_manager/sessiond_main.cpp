@@ -32,7 +32,6 @@
 #define MAX_USAGE_REPORTING_THRESHOLD 1.1
 #define DEFAULT_USAGE_REPORTING_THRESHOLD 0.8
 #define DEFAULT_QUOTA_EXHAUSTION_TERMINATION_MS 30000 // 30sec
-#define DEFAULT_EXTRA_QUOTA_MARGIN 1024
 
 #ifdef DEBUG
 extern "C" void __gcov_flush(void);
@@ -43,6 +42,8 @@ static magma::mconfig::SessionD get_default_mconfig()
   magma::mconfig::SessionD mconfig;
   mconfig.set_log_level(magma::orc8r::LogLevel::INFO);
   mconfig.set_relay_enabled(false);
+  auto wallet_config = mconfig.mutable_wallet_exhaust_detection();
+  wallet_config->set_terminate_on_exhaust(false);
   return mconfig;
 }
 
@@ -134,10 +135,10 @@ int main(int argc, char *argv[])
     directoryd_client->rpc_response_loop();
   });
 
-  auto eventd_client = std::make_shared<magma::AsyncEventdClient>();
+  auto& eventd_client = magma::AsyncEventdClient::getInstance();
   std::thread eventd_thread([&]() {
     MLOG(MINFO) << "Started eventd response thread";
-    eventd_client->rpc_response_loop();
+    eventd_client.rpc_response_loop();
   });
 
   std::shared_ptr<magma::AsyncSpgwServiceClient> spgw_client;
@@ -173,24 +174,6 @@ int main(int argc, char *argv[])
   }
   magma::SessionCredit::USAGE_REPORTING_THRESHOLD = reporting_threshold;
 
-  uint64_t margin = DEFAULT_EXTRA_QUOTA_MARGIN;
-  if (config["extra_quota_margin"].IsDefined()) {
-    auto margin_from_config = config["extra_quota_margin"].as<uint64_t>();
-    // This value specifies the amount the usage can exceed the quota before
-    // terminating the session entirely. This is for the case where pipelined
-    // reports usage faster than sessiond can report it. This value should be
-    // reasonably big, as the usage will be eventually reported properly.
-    // So use the default value if it seems small.
-    if (margin_from_config >= DEFAULT_EXTRA_QUOTA_MARGIN) {
-      margin = margin_from_config;
-    } else {
-      MLOG(MWARNING) << "The extra_quota_margin from the config "
-                     << margin_from_config << " is smaller than the default "
-                     << DEFAULT_EXTRA_QUOTA_MARGIN
-                     << ", using the default value instead.";
-    }
-  }
-  magma::SessionCredit::EXTRA_QUOTA_MARGIN = margin;
   magma::SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED =
    config["terminate_service_when_quota_exhausted"].as<bool>();
 
@@ -230,6 +213,7 @@ int main(int argc, char *argv[])
     session_store = new magma::SessionStore(rule_store, store_client);
     MLOG(MINFO) << "Successfully connected to Redis";
   } else {
+    MLOG(MINFO) << "Session store in memory";
     session_store = new magma::SessionStore(rule_store);
   }
   auto monitor = std::make_shared<magma::LocalEnforcer>(
@@ -242,7 +226,8 @@ int main(int argc, char *argv[])
     spgw_client,
     aaa_client,
     config["session_force_termination_timeout_ms"].as<long>(),
-    quota_exhaust_termination_on_init_ms);
+    quota_exhaust_termination_on_init_ms,
+    mconfig);
 
   magma::service303::MagmaService server(SESSIOND_SERVICE, SESSIOND_VERSION);
   auto local_handler = std::make_unique<magma::LocalSessionManagerHandlerImpl>(
@@ -282,6 +267,7 @@ int main(int argc, char *argv[])
 
   // Block on main monitor (to keep evb in this thread)
   monitor->attachEventBase(evb);
+  monitor->sync_sessions_on_restart(time(NULL));
   monitor->start();
   server.Stop();
 

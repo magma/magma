@@ -11,6 +11,9 @@
 import type {Property} from './Property';
 import type {PropertyFormField_property} from '../components/form/__generated__/PropertyFormField_property.graphql';
 import type {PropertyKind} from '../components/form/__generated__/PropertyTypeFormField_propertyType.graphql';
+import type {PropertyTypeInput} from '../components/configure/mutations/__generated__/EditProjectTypeMutation.graphql';
+
+import {isTempId} from './EntUtils';
 
 export type PropertyType = {|
   id: string,
@@ -114,3 +117,16 @@ export const toMutablePropertyType = (
   isMandatory: immutablePropertyType.isMandatory,
   isDeleted: immutablePropertyType.isDeleted,
 });
+
+export const convertPropertyTypeToMutationInput = (
+  propertyTypes: Array<PropertyType>,
+): Array<PropertyTypeInput> => {
+  return propertyTypes
+    .filter(propType => !!propType.name)
+    .map(prop => {
+      return {
+        ...prop,
+        id: isTempId(prop.id) ? undefined : prop.id,
+      };
+    });
+};

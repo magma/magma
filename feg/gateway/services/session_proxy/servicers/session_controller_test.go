@@ -147,27 +147,9 @@ func (mp *MockMultiplexor) GetIndex(muxCtx *multiplex.Context) (int, error) {
 }
 
 // ---- TESTS ----
-func TestSessionControllerPerSessionInit_SingleServer(t *testing.T) {
-	numberServers := 1
-	mockConfig := getTestConfig(gy.PerSessionInit)
-	mockControlParams := getMockControllerParams(mockConfig)
-	mockPolicyDb := &MockPolicyDBClient{}
-	mockMux := getMockMultiplexor(numberServers)
-	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDb, mockMux)
-	standardUsageTest(t, srv, mockControlParams, mockPolicyDb, mockMux, gy.PerSessionInit)
-}
 
-func TestSessionControllerPerSessionInit(t *testing.T) {
-	mockConfig := getTestConfig(gy.PerSessionInit)
-	mockControlParams := getMockControllerParams(mockConfig)
-	mockPolicyDb := &MockPolicyDBClient{}
-	mockMux := getMockMultiplexor(NUMBER_SERVERS)
-	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDb, mockMux)
-	standardUsageTest(t, srv, mockControlParams, mockPolicyDb, mockMux, gy.PerSessionInit)
-}
-
-func TestSessionControllerPerKeyInit(t *testing.T) {
-	mockConfig := getTestConfig(gy.PerKeyInit)
+func TestSessionControllerInit(t *testing.T) {
+	mockConfig := getTestConfig()
 	mockControlParams := getMockControllerParams(mockConfig)
 	mockPolicyDb := &MockPolicyDBClient{}
 	mockMux := getMockMultiplexor(NUMBER_SERVERS)
@@ -177,7 +159,7 @@ func TestSessionControllerPerKeyInit(t *testing.T) {
 
 func TestStartSessionGxFail(t *testing.T) {
 	// Set up mocks
-	mockConfig := getTestConfig(gy.PerKeyInit)
+	mockConfig := getTestConfig()
 	mockControlParams := getMockControllerParams(mockConfig)
 	mockPolicyDb := &MockPolicyDBClient{}
 	mockMux := getMockMultiplexor(NUMBER_SERVERS)
@@ -213,7 +195,7 @@ func TestStartSessionGxFail(t *testing.T) {
 
 func TestStartSessionGyFail(t *testing.T) {
 	// Set up mocks
-	mockConfig := getTestConfig(gy.PerSessionInit)
+	mockConfig := getTestConfig()
 	mockControlParams := getMockControllerParams(mockConfig)
 	mockPolicyDb := &MockPolicyDBClient{}
 	mockMux := getMockMultiplexor(NUMBER_SERVERS)
@@ -451,7 +433,6 @@ func standardUsageTest(
 		assert.False(t, update.Credit.GrantedUnits.Rx.IsValid)
 		assert.False(t, update.Credit.GrantedUnits.Tx.IsValid)
 		assert.Equal(t, uint32(3600), update.Credit.ValidityTime)
-		assert.Equal(t, protos.CreditUpdateResponse_UPDATE, update.Type)
 	}
 	assert.ElementsMatch(t, ratingGroups, []uint32{1, 2, 10, 11, 20, 21})
 
@@ -509,7 +490,7 @@ func standardUsageTest(
 
 func TestSessionCreateWithOmnipresentRules(t *testing.T) {
 	// Set up mocks
-	mockConfig := getTestConfig(gy.PerSessionInit)
+	mockConfig := getTestConfig()
 	mockControlParams := getMockControllerParams(mockConfig)
 	mockPolicyDb := &MockPolicyDBClient{}
 	mockMux := getMockMultiplexor(NUMBER_SERVERS)
@@ -564,7 +545,7 @@ func TestSessionCreateWithOmnipresentRules(t *testing.T) {
 
 func TestSessionControllerTimeouts(t *testing.T) {
 	// Set up mocks
-	mockConfig := getTestConfig(gy.PerSessionInit)
+	mockConfig := getTestConfig()
 	mockControlParams := getMockControllerParams(mockConfig)
 	mockPolicyDb := &MockPolicyDBClient{}
 	mockMux := getMockMultiplexor(NUMBER_SERVERS)
@@ -648,7 +629,7 @@ func TestSessionControllerTimeouts(t *testing.T) {
 
 func TestSessionTermination(t *testing.T) {
 	// Set up mocks
-	mockConfig := getTestConfig(gy.PerSessionInit)
+	mockConfig := getTestConfig()
 	mockControlParams := getMockControllerParams(mockConfig)
 	mockPolicyDb := &MockPolicyDBClient{}
 	mockMux := getMockMultiplexor(NUMBER_SERVERS)
@@ -709,9 +690,49 @@ func TestSessionTermination(t *testing.T) {
 	assert.Equal(t, genSessionID(IMSI2), termResponse.SessionId)
 }
 
+func TestEventTriggerInUpdate(t *testing.T) {
+	// Set up mocks
+	mockConfig := getTestConfig()
+	mockControlParams := getMockControllerParams(mockConfig)
+	mockPolicyDb := &MockPolicyDBClient{}
+	mockMux := getMockMultiplexor(NUMBER_SERVERS)
+
+	// Get the controller for this imsi
+	idx, err := mockMux.GetIndex(multiplex.NewContext().WithIMSI(IMSI1))
+	assert.NoError(t, err)
+	mocksGx := mockControlParams[idx].PolicyClient.(*MockPolicyClient)
+
+	// send static rules back
+	mocksGx.On("SendCreditControlRequest", mock.Anything, mock.Anything,
+		mock.MatchedBy(getGxCCRUMatcher(IMSI1_NOPREFIX, gx.RevalidationTimeout)),
+	).Return(nil).Run(func(args mock.Arguments) {
+		done := args.Get(1).(chan interface{})
+		request := args.Get(2).(*gx.CreditControlRequest)
+		done <- &gx.CreditControlAnswer{
+			ResultCode:    uint32(diameter.SuccessCode),
+			SessionID:     request.SessionID,
+			RequestNumber: request.RequestNumber,
+		}
+	}).Once()
+	ctx := context.Background()
+	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDb, mockMux)
+	_, err = srv.UpdateSession(ctx, &protos.UpdateSessionRequest{
+		UsageMonitors: []*protos.UsageMonitoringUpdateRequest{{
+			SessionId:     genSessionID(IMSI1),
+			Sid:           IMSI1_NOPREFIX,
+			RequestNumber: 4,
+			EventTrigger:  protos.EventTrigger_REVALIDATION_TIMEOUT,
+		}},
+	})
+	assert.NoError(t, err)
+
+	mocksGx.AssertExpectations(t)
+	mockPolicyDb.AssertExpectations(t)
+}
+
 func testGxUsageMonitoring(t *testing.T) {
 	// Set up mocks
-	mockConfig := getTestConfig(gy.PerSessionInit)
+	mockConfig := getTestConfig()
 	mockControlParams := getMockControllerParams(mockConfig)
 	mockPolicyDb := &MockPolicyDBClient{}
 	mockMux := getMockMultiplexor(NUMBER_SERVERS)
@@ -991,7 +1012,7 @@ func TestGetHealthStatus(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Set up mocks
-	mockConfig := getTestConfig(gy.PerSessionInit)
+	mockConfig := getTestConfig()
 	mockControlParams := getMockControllerParams(mockConfig)
 	mockPolicyDb := &MockPolicyDBClient{}
 	mockMux := getMockMultiplexor(NUMBER_SERVERS)
@@ -1130,7 +1151,7 @@ func getMockControllerParams(mockConfig []*servicers.SessionControllerConfig) []
 	return controlParams
 }
 
-func getTestConfig(initMethod gy.InitMethod) []*servicers.SessionControllerConfig {
+func getTestConfig() []*servicers.SessionControllerConfig {
 	serverCfg := make([]*servicers.SessionControllerConfig, len(ocs_server_ports))
 	for i := 0; i < NUMBER_SERVERS; i++ {
 		ocs_port := ocs_server_ports[i]
@@ -1145,7 +1166,6 @@ func getTestConfig(initMethod gy.InitMethod) []*servicers.SessionControllerConfi
 				Protocol: "tcp"},
 			},
 			RequestTimeout: time.Millisecond,
-			InitMethod:     initMethod,
 		}
 		serverCfg[i] = srv
 	}
@@ -1407,10 +1427,18 @@ func getGxCCRMatcher(imsi string, ccrType credit_control.CreditRequestType) inte
 	}
 }
 
+func getGxCCRUMatcher(imsi string, eventTrigger gx.EventTrigger) interface{} {
+	return func(request *gx.CreditControlRequest) bool {
+		return request.Type == credit_control.CRTUpdate &&
+			request.IMSI == imsi && request.EventTrigger == eventTrigger
+
+	}
+}
+
 /***** UseGyForAuthOnlySuccess Test Cases *****/
 func TestSessionControllerUseGyForAuthOnlySuccess(t *testing.T) {
 	// Set up mocks
-	mockConfig := getTestConfig(gy.PerKeyInit)
+	mockConfig := getTestConfig()
 	mockControlParams := getMockControllerParams(mockConfig)
 	mockPolicyDb := &MockPolicyDBClient{}
 	mockMux := getMockMultiplexor(NUMBER_SERVERS)
@@ -1479,7 +1507,7 @@ func TestSessionControllerUseGyForAuthOnlySuccess(t *testing.T) {
 
 func TestSessionControllerUseGyForAuthOnlyNoRatingGroup(t *testing.T) {
 	// Set up mocks
-	mockConfig := getTestConfig(gy.PerKeyInit)
+	mockConfig := getTestConfig()
 	mockControlParams := getMockControllerParams(mockConfig)
 	mockPolicyDb := &MockPolicyDBClient{}
 	mockMux := getMockMultiplexor(NUMBER_SERVERS)
@@ -1552,7 +1580,7 @@ func returnGySuccessNoRatingGroup(args mock.Arguments) {
 
 func TestSessionControllerUseGyForAuthOnlyCreditLimitReached(t *testing.T) {
 	// Set up mocks
-	mockConfig := getTestConfig(gy.PerKeyInit)
+	mockConfig := getTestConfig()
 	mockControlParams := getMockControllerParams(mockConfig)
 	mockPolicyDb := &MockPolicyDBClient{}
 	mockMux := getMockMultiplexor(NUMBER_SERVERS)
@@ -1628,7 +1656,7 @@ func returnGySuccessCreditLimitReached(args mock.Arguments) {
 
 func TestSessionControllerUseGyForAuthOnlySubscriberBarred(t *testing.T) {
 	// Set up mocks
-	mockConfig := getTestConfig(gy.PerKeyInit)
+	mockConfig := getTestConfig()
 	mockControlParams := getMockControllerParams(mockConfig)
 	mockPolicyDb := &MockPolicyDBClient{}
 	mockMux := getMockMultiplexor(NUMBER_SERVERS)
@@ -1791,7 +1819,7 @@ func revalidationTimerTest(
 
 func TestSessionControllerRevalidationTimerUsed(t *testing.T) {
 	// Set up mocks
-	mockConfig := getTestConfig(gy.PerSessionInit)
+	mockConfig := getTestConfig()
 	mockControlParams := getMockControllerParams(mockConfig)
 	mockPolicyDb := &MockPolicyDBClient{}
 	mockMux := getMockMultiplexor(NUMBER_SERVERS)
@@ -1804,7 +1832,7 @@ func TestSessionControllerRevalidationTimerUsed(t *testing.T) {
 func TestSessionControllerUseGyForAuthOnlyRevalidationTimerUsed(t *testing.T) {
 
 	numberServers := 1
-	mockConfig := getTestConfig(gy.PerKeyInit)
+	mockConfig := getTestConfig()
 	mockConfig[0].UseGyForAuthOnly = true
 	mockControlParams := getMockControllerParams(mockConfig)
 	mockPolicyDb := &MockPolicyDBClient{}

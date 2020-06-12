@@ -1,9 +1,10 @@
 # Builder image to generate proto files
 # -----------------------------------------------------------------------------
-FROM ubuntu:xenial AS builder
+FROM ubuntu:bionic AS builder
 
 # Install the runtime deps from apt.
-RUN apt-get -y update && apt-get -y install curl make virtualenv zip
+RUN apt-get -y update && apt-get -y install curl make virtualenv zip \
+  apt-utils software-properties-common apt-transport-https
 
 # Install protobuf compiler.
 RUN curl -Lfs https://github.com/google/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-x86_64.zip -o protoc3.zip && \
@@ -13,6 +14,10 @@ RUN curl -Lfs https://github.com/google/protobuf/releases/download/v3.1.0/protoc
   cp -r protoc3/include/google /usr/include/ && \
   chmod -R a+Xr /usr/include/google && \
   rm -rf protoc3.zip protoc3
+
+# Install python3.5 since it's not native on bionic
+RUN apt-add-repository "ppa:deadsnakes/ppa"
+RUN apt-get -y update && apt-get -y install python3.5
 
 ENV MAGMA_ROOT /magma
 ENV PYTHON_BUILD /build/python
@@ -30,7 +35,7 @@ RUN make -C $MAGMA_ROOT/lte/gateway/python protos
 # -----------------------------------------------------------------------------
 # Production image
 # -----------------------------------------------------------------------------
-FROM ubuntu:xenial AS gateway_python
+FROM ubuntu:bionic AS gateway_python
 
 # Add the magma apt repo
 RUN apt-get update && \
@@ -38,7 +43,11 @@ RUN apt-get update && \
 COPY orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub /tmp/jfrog.pub
 COPY cwf/gateway/deploy/roles/ovs/files/magma-preferences /etc/apt/preferences.d/
 RUN apt-key add /tmp/jfrog.pub && \
-    apt-add-repository "deb https://magma.jfrog.io/magma/list/dev/ xenial main"
+    apt-add-repository "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev/ xenial main"
+
+# Install python3.5 since it's not native on bionic
+RUN apt-add-repository "ppa:deadsnakes/ppa"
+RUN apt-get -y update && apt-get -y install python3.5
 
 # Install the runtime deps from apt.
 RUN apt-get -y update && apt-get -y install \
@@ -46,7 +55,6 @@ RUN apt-get -y update && apt-get -y install \
   fabric \
   libc-ares2 \
   libev4 \
-  libevent-openssl-2.0-5 \
   libffi-dev \
   libjansson4 \
   libjemalloc1 \
@@ -59,6 +67,7 @@ RUN apt-get -y update && apt-get -y install \
   pkg-config \
   python-cffi \
   python3-pip \
+  python3.5-dev \
   redis-server
 
 RUN curl -sSL https://get.docker.com/ > /tmp/get_docker.sh && \
@@ -67,7 +76,7 @@ RUN curl -sSL https://get.docker.com/ > /tmp/get_docker.sh && \
 
 # Install python code.
 COPY orc8r/gateway/python /tmp/orc8r
-RUN pip3 install /tmp/orc8r
+RUN python3.5 -m pip install /tmp/orc8r
 
 # Copy the build artifacts.
 COPY --from=builder /build/python/gen /usr/local/lib/python3.5/dist-packages/

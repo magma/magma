@@ -10,17 +10,17 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/facebookincubator/symphony/graph/event"
-	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/pkg/actions/action/magmarebootnode"
 	"github.com/facebookincubator/symphony/pkg/actions/executor"
 	"github.com/facebookincubator/symphony/pkg/actions/trigger/magmaalert"
 	"github.com/facebookincubator/symphony/pkg/log"
 	"github.com/facebookincubator/symphony/pkg/mysql"
-	"github.com/facebookincubator/symphony/pkg/oc"
 	"github.com/facebookincubator/symphony/pkg/orc8r"
+	"github.com/facebookincubator/symphony/pkg/pubsub"
 	"github.com/facebookincubator/symphony/pkg/server"
 	"github.com/facebookincubator/symphony/pkg/server/xserver"
+	"github.com/facebookincubator/symphony/pkg/telemetry"
+	"github.com/facebookincubator/symphony/pkg/viewer"
 	"go.opencensus.io/stats/view"
 
 	"github.com/google/wire"
@@ -32,9 +32,9 @@ import (
 type Config struct {
 	Tenancy      viewer.Tenancy
 	AuthURL      *url.URL
-	Subscriber   event.Subscriber
+	Subscriber   pubsub.Subscriber
 	Logger       log.Logger
-	Census       oc.Options
+	Telemetry    *telemetry.Config
 	HealthChecks []health.Checker
 	Orc8r        orc8r.Config
 }
@@ -44,7 +44,7 @@ func NewServer(cfg Config) (*server.Server, func(), error) {
 	wire.Build(
 		xserver.ServiceSet,
 		provideViews,
-		wire.FieldsOf(new(Config), "Logger", "Census", "HealthChecks"),
+		wire.FieldsOf(new(Config), "Logger", "Telemetry", "HealthChecks"),
 		newRouterConfig,
 		newRouter,
 		wire.Bind(new(http.Handler), new(*mux.Router)),
@@ -73,6 +73,6 @@ func newRouterConfig(config Config) (cfg routerConfig, err error) {
 func provideViews() []*view.View {
 	views := xserver.DefaultViews()
 	views = append(views, mysql.DefaultViews...)
-	views = append(views, event.DefaultViews...)
+	views = append(views, pubsub.DefaultViews...)
 	return views
 }

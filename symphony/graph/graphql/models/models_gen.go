@@ -12,19 +12,16 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/facebookincubator/symphony/graph/authz/models"
-	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/ent/user"
-	"github.com/facebookincubator/symphony/graph/ent/usersgroup"
 	"github.com/facebookincubator/symphony/pkg/actions/core"
+	"github.com/facebookincubator/symphony/pkg/authz/models"
+	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/ent/checklistitem"
+	"github.com/facebookincubator/symphony/pkg/ent/user"
+	"github.com/facebookincubator/symphony/pkg/ent/usersgroup"
 )
 
 type NamedNode interface {
 	IsNamedNode()
-}
-
-type SystemPolicy interface {
-	IsSystemPolicy()
 }
 
 type ActionsAction struct {
@@ -143,6 +140,7 @@ type AddImageInput struct {
 	Modified    time.Time   `json:"modified"`
 	ContentType string      `json:"contentType"`
 	Category    *string     `json:"category"`
+	Annotation  *string     `json:"annotation"`
 }
 
 type AddLinkInput struct {
@@ -177,6 +175,7 @@ type AddPermissionsPolicyInput struct {
 	IsGlobal       *bool                        `json:"isGlobal"`
 	InventoryInput *models.InventoryPolicyInput `json:"inventoryInput"`
 	WorkforceInput *models.WorkforcePolicyInput `json:"workforceInput"`
+	Groups         []int                        `json:"groups"`
 }
 
 type AddProjectInput struct {
@@ -206,6 +205,8 @@ type AddServiceEndpointInput struct {
 type AddUsersGroupInput struct {
 	Name        string  `json:"name"`
 	Description *string `json:"description"`
+	Members     []int   `json:"members"`
+	Policies    []int   `json:"policies"`
 }
 
 type AddWorkOrderInput struct {
@@ -227,25 +228,17 @@ type AddWorkOrderInput struct {
 }
 
 type AddWorkOrderTypeInput struct {
-	Name                string                      `json:"name"`
-	Description         *string                     `json:"description"`
-	Properties          []*PropertyTypeInput        `json:"properties"`
-	CheckList           []*CheckListDefinitionInput `json:"checkList"`
-	CheckListCategories []*CheckListCategoryInput   `json:"checkListCategories"`
+	Name                string                              `json:"name"`
+	Description         *string                             `json:"description"`
+	Properties          []*PropertyTypeInput                `json:"properties"`
+	CheckListCategories []*CheckListCategoryDefinitionInput `json:"checkListCategories"`
 }
 
-type AdministrativePolicy struct {
-	Access *BasicPermissionRule `json:"access"`
-}
-
-type BasicPermissionRule struct {
-	IsAllowed models.PermissionValue `json:"isAllowed"`
-}
-
-type Cud struct {
-	Create *BasicPermissionRule `json:"create"`
-	Update *BasicPermissionRule `json:"update"`
-	Delete *BasicPermissionRule `json:"delete"`
+type CheckListCategoryDefinitionInput struct {
+	ID          *int                        `json:"id"`
+	Title       string                      `json:"title"`
+	Description *string                     `json:"description"`
+	CheckList   []*CheckListDefinitionInput `json:"checkList"`
 }
 
 type CheckListCategoryInput struct {
@@ -256,27 +249,28 @@ type CheckListCategoryInput struct {
 }
 
 type CheckListDefinitionInput struct {
-	ID         *int              `json:"id"`
-	Title      string            `json:"title"`
-	Type       CheckListItemType `json:"type"`
-	Index      *int              `json:"index"`
-	EnumValues *string           `json:"enumValues"`
-	HelpText   *string           `json:"helpText"`
+	ID                *int                                  `json:"id"`
+	Title             string                                `json:"title"`
+	Type              CheckListItemType                     `json:"type"`
+	Index             *int                                  `json:"index"`
+	EnumValues        *string                               `json:"enumValues"`
+	EnumSelectionMode *checklistitem.EnumSelectionModeValue `json:"enumSelectionMode"`
+	HelpText          *string                               `json:"helpText"`
 }
 
 type CheckListItemInput struct {
-	ID                 *int                            `json:"id"`
-	Title              string                          `json:"title"`
-	Type               CheckListItemType               `json:"type"`
-	Index              *int                            `json:"index"`
-	HelpText           *string                         `json:"helpText"`
-	EnumValues         *string                         `json:"enumValues"`
-	EnumSelectionMode  *CheckListItemEnumSelectionMode `json:"enumSelectionMode"`
-	SelectedEnumValues *string                         `json:"selectedEnumValues"`
-	StringValue        *string                         `json:"stringValue"`
-	Checked            *bool                           `json:"checked"`
-	Files              []*FileInput                    `json:"files"`
-	YesNoResponse      *YesNoResponse                  `json:"yesNoResponse"`
+	ID                 *int                                  `json:"id"`
+	Title              string                                `json:"title"`
+	Type               CheckListItemType                     `json:"type"`
+	Index              *int                                  `json:"index"`
+	HelpText           *string                               `json:"helpText"`
+	EnumValues         *string                               `json:"enumValues"`
+	EnumSelectionMode  *checklistitem.EnumSelectionModeValue `json:"enumSelectionMode"`
+	SelectedEnumValues *string                               `json:"selectedEnumValues"`
+	StringValue        *string                               `json:"stringValue"`
+	Checked            *bool                                 `json:"checked"`
+	Files              []*FileInput                          `json:"files"`
+	YesNoResponse      *YesNoResponse                        `json:"yesNoResponse"`
 }
 
 type CommentInput struct {
@@ -351,6 +345,7 @@ type EditPermissionsPolicyInput struct {
 	IsGlobal       *bool                        `json:"isGlobal"`
 	InventoryInput *models.InventoryPolicyInput `json:"inventoryInput"`
 	WorkforceInput *models.WorkforcePolicyInput `json:"workforceInput"`
+	Groups         []int                        `json:"groups"`
 }
 
 type EditProjectInput struct {
@@ -390,6 +385,8 @@ type EditUsersGroupInput struct {
 	Name        *string            `json:"name"`
 	Description *string            `json:"description"`
 	Status      *usersgroup.Status `json:"status"`
+	Members     []int              `json:"members"`
+	Policies    []int              `json:"policies"`
 }
 
 type EditWorkOrderInput struct {
@@ -412,12 +409,11 @@ type EditWorkOrderInput struct {
 }
 
 type EditWorkOrderTypeInput struct {
-	ID                  int                         `json:"id"`
-	Name                string                      `json:"name"`
-	Description         *string                     `json:"description"`
-	Properties          []*PropertyTypeInput        `json:"properties"`
-	CheckList           []*CheckListDefinitionInput `json:"checkList"`
-	CheckListCategories []*CheckListCategoryInput   `json:"checkListCategories"`
+	ID                  int                                 `json:"id"`
+	Name                string                              `json:"name"`
+	Description         *string                             `json:"description"`
+	Properties          []*PropertyTypeInput                `json:"properties"`
+	CheckListCategories []*CheckListCategoryDefinitionInput `json:"checkListCategories"`
 }
 
 type EquipmentFilterInput struct {
@@ -460,6 +456,7 @@ type FileInput struct {
 	FileType         *FileType `json:"fileType"`
 	MimeType         *string   `json:"mimeType"`
 	StoreKey         string    `json:"storeKey"`
+	Annotation       *string   `json:"annotation"`
 }
 
 type GeneralFilter struct {
@@ -483,18 +480,6 @@ type GeneralFilterInput struct {
 	BoolValue     *bool              `json:"boolValue"`
 	PropertyValue *PropertyTypeInput `json:"propertyValue"`
 }
-
-type InventoryPolicy struct {
-	Read          *BasicPermissionRule `json:"read"`
-	Location      *Cud                 `json:"location"`
-	Equipment     *Cud                 `json:"equipment"`
-	EquipmentType *Cud                 `json:"equipmentType"`
-	LocationType  *Cud                 `json:"locationType"`
-	PortType      *Cud                 `json:"portType"`
-	ServiceType   *Cud                 `json:"serviceType"`
-}
-
-func (InventoryPolicy) IsSystemPolicy() {}
 
 type LatestPythonPackageResult struct {
 	LastPythonPackage         *PythonPackage `json:"lastPythonPackage"`
@@ -545,13 +530,6 @@ type LocationTypeIndex struct {
 type NetworkTopology struct {
 	Nodes []ent.Noder     `json:"nodes"`
 	Links []*TopologyLink `json:"links"`
-}
-
-type PermissionSettings struct {
-	CanWrite        bool                  `json:"canWrite"`
-	AdminPolicy     *AdministrativePolicy `json:"adminPolicy"`
-	InventoryPolicy *InventoryPolicy      `json:"inventoryPolicy"`
-	WorkforcePolicy *WorkforcePolicy      `json:"workforcePolicy"`
 }
 
 type PermissionsPolicyFilterInput struct {
@@ -835,11 +813,6 @@ type TechnicianCheckListItemInput struct {
 	FilesData          []*FileInput          `json:"filesData"`
 }
 
-type TechnicianInput struct {
-	Name  string `json:"name"`
-	Email string `json:"email"`
-}
-
 type TechnicianWorkOrderUploadInput struct {
 	WorkOrderID int                             `json:"workOrderId"`
 	Checklist   []*TechnicianCheckListItemInput `json:"checklist"`
@@ -851,22 +824,10 @@ type TopologyLink struct {
 	Target ent.Noder        `json:"target"`
 }
 
-type UpdateGroupsInPermissionsPolicyInput struct {
-	ID             int   `json:"id"`
-	AddGroupIds    []int `json:"addGroupIds"`
-	RemoveGroupIds []int `json:"removeGroupIds"`
-}
-
 type UpdateUserGroupsInput struct {
 	ID             int   `json:"id"`
 	AddGroupIds    []int `json:"addGroupIds"`
 	RemoveGroupIds []int `json:"removeGroupIds"`
-}
-
-type UpdateUsersGroupMembersInput struct {
-	ID            int   `json:"id"`
-	AddUserIds    []int `json:"addUserIds"`
-	RemoveUserIds []int `json:"removeUserIds"`
 }
 
 type UserFilterInput struct {
@@ -927,22 +888,6 @@ type WorkOrderSearchResult struct {
 	Count      int              `json:"count"`
 }
 
-type WorkforceCud struct {
-	Create            *BasicPermissionRule `json:"create"`
-	Update            *BasicPermissionRule `json:"update"`
-	Delete            *BasicPermissionRule `json:"delete"`
-	Assign            *BasicPermissionRule `json:"assign"`
-	TransferOwnership *BasicPermissionRule `json:"transferOwnership"`
-}
-
-type WorkforcePolicy struct {
-	Read      *BasicPermissionRule `json:"read"`
-	Data      *WorkforceCud        `json:"data"`
-	Templates *Cud                 `json:"templates"`
-}
-
-func (WorkforcePolicy) IsSystemPolicy() {}
-
 type CellularNetworkType string
 
 const (
@@ -985,47 +930,6 @@ func (e *CellularNetworkType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e CellularNetworkType) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-type CheckListItemEnumSelectionMode string
-
-const (
-	CheckListItemEnumSelectionModeSingle   CheckListItemEnumSelectionMode = "single"
-	CheckListItemEnumSelectionModeMultiple CheckListItemEnumSelectionMode = "multiple"
-)
-
-var AllCheckListItemEnumSelectionMode = []CheckListItemEnumSelectionMode{
-	CheckListItemEnumSelectionModeSingle,
-	CheckListItemEnumSelectionModeMultiple,
-}
-
-func (e CheckListItemEnumSelectionMode) IsValid() bool {
-	switch e {
-	case CheckListItemEnumSelectionModeSingle, CheckListItemEnumSelectionModeMultiple:
-		return true
-	}
-	return false
-}
-
-func (e CheckListItemEnumSelectionMode) String() string {
-	return string(e)
-}
-
-func (e *CheckListItemEnumSelectionMode) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = CheckListItemEnumSelectionMode(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid CheckListItemEnumSelectionMode", str)
-	}
-	return nil
-}
-
-func (e CheckListItemEnumSelectionMode) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
@@ -1124,16 +1028,18 @@ func (e CommentEntity) MarshalGQL(w io.Writer) {
 type DiscoveryMethod string
 
 const (
+	DiscoveryMethodManual    DiscoveryMethod = "MANUAL"
 	DiscoveryMethodInventory DiscoveryMethod = "INVENTORY"
 )
 
 var AllDiscoveryMethod = []DiscoveryMethod{
+	DiscoveryMethodManual,
 	DiscoveryMethodInventory,
 }
 
 func (e DiscoveryMethod) IsValid() bool {
 	switch e {
-	case DiscoveryMethodInventory:
+	case DiscoveryMethodManual, DiscoveryMethodInventory:
 		return true
 	}
 	return false
@@ -1784,6 +1690,7 @@ type ServiceFilterType string
 const (
 	ServiceFilterTypeServiceInstName         ServiceFilterType = "SERVICE_INST_NAME"
 	ServiceFilterTypeServiceStatus           ServiceFilterType = "SERVICE_STATUS"
+	ServiceFilterTypeServiceDiscoveryMethod  ServiceFilterType = "SERVICE_DISCOVERY_METHOD"
 	ServiceFilterTypeServiceType             ServiceFilterType = "SERVICE_TYPE"
 	ServiceFilterTypeServiceInstExternalID   ServiceFilterType = "SERVICE_INST_EXTERNAL_ID"
 	ServiceFilterTypeServiceInstCustomerName ServiceFilterType = "SERVICE_INST_CUSTOMER_NAME"
@@ -1795,6 +1702,7 @@ const (
 var AllServiceFilterType = []ServiceFilterType{
 	ServiceFilterTypeServiceInstName,
 	ServiceFilterTypeServiceStatus,
+	ServiceFilterTypeServiceDiscoveryMethod,
 	ServiceFilterTypeServiceType,
 	ServiceFilterTypeServiceInstExternalID,
 	ServiceFilterTypeServiceInstCustomerName,
@@ -1805,7 +1713,7 @@ var AllServiceFilterType = []ServiceFilterType{
 
 func (e ServiceFilterType) IsValid() bool {
 	switch e {
-	case ServiceFilterTypeServiceInstName, ServiceFilterTypeServiceStatus, ServiceFilterTypeServiceType, ServiceFilterTypeServiceInstExternalID, ServiceFilterTypeServiceInstCustomerName, ServiceFilterTypeProperty, ServiceFilterTypeLocationInst, ServiceFilterTypeEquipmentInService:
+	case ServiceFilterTypeServiceInstName, ServiceFilterTypeServiceStatus, ServiceFilterTypeServiceDiscoveryMethod, ServiceFilterTypeServiceType, ServiceFilterTypeServiceInstExternalID, ServiceFilterTypeServiceInstCustomerName, ServiceFilterTypeProperty, ServiceFilterTypeLocationInst, ServiceFilterTypeEquipmentInService:
 		return true
 	}
 	return false
@@ -2108,12 +2016,10 @@ type WorkOrderFilterType string
 const (
 	WorkOrderFilterTypeWorkOrderName         WorkOrderFilterType = "WORK_ORDER_NAME"
 	WorkOrderFilterTypeWorkOrderStatus       WorkOrderFilterType = "WORK_ORDER_STATUS"
-	WorkOrderFilterTypeWorkOrderOwner        WorkOrderFilterType = "WORK_ORDER_OWNER"
 	WorkOrderFilterTypeWorkOrderOwnedBy      WorkOrderFilterType = "WORK_ORDER_OWNED_BY"
 	WorkOrderFilterTypeWorkOrderType         WorkOrderFilterType = "WORK_ORDER_TYPE"
 	WorkOrderFilterTypeWorkOrderCreationDate WorkOrderFilterType = "WORK_ORDER_CREATION_DATE"
 	WorkOrderFilterTypeWorkOrderInstallDate  WorkOrderFilterType = "WORK_ORDER_INSTALL_DATE"
-	WorkOrderFilterTypeWorkOrderAssignee     WorkOrderFilterType = "WORK_ORDER_ASSIGNEE"
 	WorkOrderFilterTypeWorkOrderAssignedTo   WorkOrderFilterType = "WORK_ORDER_ASSIGNED_TO"
 	WorkOrderFilterTypeWorkOrderLocationInst WorkOrderFilterType = "WORK_ORDER_LOCATION_INST"
 	WorkOrderFilterTypeWorkOrderPriority     WorkOrderFilterType = "WORK_ORDER_PRIORITY"
@@ -2123,12 +2029,10 @@ const (
 var AllWorkOrderFilterType = []WorkOrderFilterType{
 	WorkOrderFilterTypeWorkOrderName,
 	WorkOrderFilterTypeWorkOrderStatus,
-	WorkOrderFilterTypeWorkOrderOwner,
 	WorkOrderFilterTypeWorkOrderOwnedBy,
 	WorkOrderFilterTypeWorkOrderType,
 	WorkOrderFilterTypeWorkOrderCreationDate,
 	WorkOrderFilterTypeWorkOrderInstallDate,
-	WorkOrderFilterTypeWorkOrderAssignee,
 	WorkOrderFilterTypeWorkOrderAssignedTo,
 	WorkOrderFilterTypeWorkOrderLocationInst,
 	WorkOrderFilterTypeWorkOrderPriority,
@@ -2137,7 +2041,7 @@ var AllWorkOrderFilterType = []WorkOrderFilterType{
 
 func (e WorkOrderFilterType) IsValid() bool {
 	switch e {
-	case WorkOrderFilterTypeWorkOrderName, WorkOrderFilterTypeWorkOrderStatus, WorkOrderFilterTypeWorkOrderOwner, WorkOrderFilterTypeWorkOrderOwnedBy, WorkOrderFilterTypeWorkOrderType, WorkOrderFilterTypeWorkOrderCreationDate, WorkOrderFilterTypeWorkOrderInstallDate, WorkOrderFilterTypeWorkOrderAssignee, WorkOrderFilterTypeWorkOrderAssignedTo, WorkOrderFilterTypeWorkOrderLocationInst, WorkOrderFilterTypeWorkOrderPriority, WorkOrderFilterTypeLocationInst:
+	case WorkOrderFilterTypeWorkOrderName, WorkOrderFilterTypeWorkOrderStatus, WorkOrderFilterTypeWorkOrderOwnedBy, WorkOrderFilterTypeWorkOrderType, WorkOrderFilterTypeWorkOrderCreationDate, WorkOrderFilterTypeWorkOrderInstallDate, WorkOrderFilterTypeWorkOrderAssignedTo, WorkOrderFilterTypeWorkOrderLocationInst, WorkOrderFilterTypeWorkOrderPriority, WorkOrderFilterTypeLocationInst:
 		return true
 	}
 	return false

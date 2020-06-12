@@ -14,15 +14,16 @@ import (
 	"os"
 	"testing"
 
-	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/ent/equipmentposition"
-	"github.com/facebookincubator/symphony/graph/ent/equipmentpositiondefinition"
-	"github.com/facebookincubator/symphony/graph/ent/location"
-	"github.com/facebookincubator/symphony/graph/ent/property"
-	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
-	"github.com/facebookincubator/symphony/graph/viewer"
-	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
+	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/ent/equipmentposition"
+	"github.com/facebookincubator/symphony/pkg/ent/equipmentpositiondefinition"
+	"github.com/facebookincubator/symphony/pkg/ent/location"
+	"github.com/facebookincubator/symphony/pkg/ent/property"
+	"github.com/facebookincubator/symphony/pkg/ent/propertytype"
+	"github.com/facebookincubator/symphony/pkg/log/logtest"
+	"github.com/facebookincubator/symphony/pkg/viewer"
+	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
 
 	"github.com/stretchr/testify/require"
 )
@@ -43,7 +44,11 @@ func importEquipmentExportedData(ctx context.Context, t *testing.T, r *TestImpor
 	contentType := bw.FormDataContentType()
 	require.NoError(t, bw.Close())
 
-	th := viewer.TenancyHandler(http.HandlerFunc(r.importer.processExportedEquipment), viewer.NewFixedTenancy(r.client))
+	th := viewer.TenancyHandler(
+		http.HandlerFunc(r.importer.processExportedEquipment),
+		viewer.NewFixedTenancy(r.client),
+		logtest.NewTestLogger(t),
+	)
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		th.ServeHTTP(w, r.WithContext(ctx))
 	})

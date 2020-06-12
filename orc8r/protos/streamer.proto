@@ -60,3 +60,9 @@ service Streamer {
   // The RPC call would be kept open to push new updates as they happen.
   rpc GetUpdates (StreamRequest) returns (stream DataUpdateBatch) {}
 }
+
+// StreamProvider provides an interface that individual Orchestrator modules
+// can implement. The Streamer service defined above will call these providers
+service StreamProvider {
+  rpc GetUpdates(StreamRequest) returns (DataUpdateBatch) {}
+}

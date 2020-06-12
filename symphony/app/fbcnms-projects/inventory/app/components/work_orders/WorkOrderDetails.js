@@ -24,15 +24,16 @@ import AppContext from '@fbcnms/ui/context/AppContext';
 import CheckListCategoryExpandingPanel from '../checklist/checkListCategory/CheckListCategoryExpandingPanel';
 import ChecklistCategoriesMutateDispatchContext from '../checklist/ChecklistCategoriesMutateDispatchContext';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import CloudUploadOutlinedIcon from '@material-ui/icons/CloudUploadOutlined';
-import CommentsBox from '../comments/CommentsBox';
+import CommentsActivitiesBox from '../comments/CommentsActivitiesBox';
 import EntityDocumentsTable from '../EntityDocumentsTable';
 import ExpandingPanel from '@fbcnms/ui/components/ExpandingPanel';
 import FileUploadButton from '../FileUpload/FileUploadButton';
 import FormContext, {FormContextProvider} from '../../common/FormContext';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
+import FormFieldWithPermissions from '../../common/FormFieldWithPermissions';
 import Grid from '@material-ui/core/Grid';
-import InsertLinkIcon from '@material-ui/icons/InsertLink';
+import IconButton from '@fbcnms/ui/components/design-system/IconButton';
+import LinkIcon from '@fbcnms/ui/components/design-system/Icons/Actions/LinkIcon';
 import LocationBreadcrumbsTitle from '../location/LocationBreadcrumbsTitle';
 import LocationMapSnippet from '../location/LocationMapSnippet';
 import LocationTypeahead from '../typeahead/LocationTypeahead';
@@ -44,12 +45,14 @@ import Select from '@fbcnms/ui/components/design-system/Select/Select';
 import Strings from '@fbcnms/strings/Strings';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
+import UploadIcon from '@fbcnms/ui/components/design-system/Icons/Actions/UploadIcon';
 import UserTypeahead from '../typeahead/UserTypeahead';
 import WorkOrderDetailsPane from './WorkOrderDetailsPane';
 import WorkOrderHeader from './WorkOrderHeader';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
+import {NAVIGATION_OPTIONS} from '../location/LocationBreadcrumbsTitle';
 import {createFragmentContainer, graphql} from 'react-relay';
 import {doneStatus, priorityValues, statusValues} from '../../common/WorkOrder';
 import {formatDateForTextInput} from '@fbcnms/ui/utils/displayUtils';
@@ -59,6 +62,7 @@ import {
 } from '../checklist/ChecklistCategoriesMutateReducer';
 import {makeStyles} from '@material-ui/styles';
 import {sortPropertiesByIndex, toMutableProperty} from '../../common/Property';
+import {useMainContext} from '../MainContext';
 import {withRouter} from 'react-router-dom';
 
 type Props = {
@@ -112,7 +116,8 @@ const useStyles = makeStyles(() => ({
     fill: symphony.palette.primary,
   },
   minimizedButton: {
-    minWidth: 'unset',
+    marginRight: '4px',
+    marginLeft: '8px',
   },
   dense: {
     paddingTop: '9px',
@@ -129,8 +134,8 @@ const useStyles = makeStyles(() => ({
     padding: '0px',
   },
   inExpandingPanelFix: {
-    paddingLeft: '24px',
-    paddingRight: '24px',
+    paddingLeft: '16px',
+    paddingRight: '40px',
   },
   commentsLog: {
     maxHeight: '400px',
@@ -159,7 +164,9 @@ const WorkOrderDetails = ({
   );
   const [locationId, setLocationId] = useState(propsWorkOrder.location?.id);
   const [isLoadingDocument, setIsLoadingDocument] = useState(false);
-  const {user, isFeatureEnabled} = useContext(AppContext);
+  const {isFeatureEnabled} = useContext(AppContext);
+
+  const {me} = useMainContext();
 
   const [editingCategories, dispatch] = useReducer<
     ChecklistCategoriesStateType,
@@ -260,9 +267,18 @@ const WorkOrderDetails = ({
 
   const {location} = workOrder;
   const actionsEnabled = isFeatureEnabled('planned_equipment');
+
+  const isOwner = me?.user?.email === propsWorkOrder?.owner?.email;
+  const isAssignee = me?.user?.email === propsWorkOrder?.assignedTo?.email;
+
   return (
     <div className={classes.root}>
-      <FormContextProvider>
+      <FormContextProvider
+        permissions={{
+          entity: 'workorder',
+          action: 'update',
+          ignorePermissions: isOwner || isAssignee,
+        }}>
         <WorkOrderHeader
           workOrderName={propsWorkOrder.name}
           workOrder={workOrder}
@@ -274,12 +290,6 @@ const WorkOrderDetails = ({
         />
         <FormContext.Consumer>
           {form => {
-            const noOwnerError = form.alerts.error.check({
-              fieldId: 'Owner',
-              fieldDisplayName: 'Owner',
-              value: workOrder.owner,
-              required: true,
-            });
             form.alerts.editLock.check({
               fieldId: 'status',
               fieldDisplayName: 'Status',
@@ -288,28 +298,6 @@ const WorkOrderDetails = ({
                 value === doneStatus.value
                   ? `Work order is on '${doneStatus.label}' state`
                   : '',
-            });
-            form.alerts.editLock.check({
-              fieldId: 'OwnerRule',
-              fieldDisplayName: 'Owner rule',
-              value: {user, workOrder: propsWorkOrder},
-              checkCallback: checkData =>
-                checkData?.user.isSuperUser ||
-                checkData?.user.email === checkData?.workOrder.owner.email ||
-                checkData?.user.email === checkData?.workOrder.assignedTo?.email
-                  ? ''
-                  : 'User is not allowed to edit this work order',
-            });
-            const nonOwnerAssignee = form.alerts.editLock.check({
-              fieldId: 'NonOwnerAssigneeRule',
-              fieldDisplayName: 'Non Owner assignee rule',
-              value: {user, workOrder: propsWorkOrder},
-              checkCallback: checkData =>
-                checkData?.user.email !== checkData?.workOrder.owner.email &&
-                checkData?.user.email === checkData?.workOrder.assignedTo?.email
-                  ? 'Assignee is not allowed to change owner'
-                  : '',
-              notAggregated: true,
             });
             return (
               <div className={classes.cards}>
@@ -461,6 +449,7 @@ const WorkOrderDetails = ({
                             <LocationBreadcrumbsTitle
                               locationDetails={location}
                               size="small"
+                              navigateOnClick={NAVIGATION_OPTIONS.NEW_TAB}
                             />
                             <Grid container spacing={2}>
                               <Grid item xs={12} md={12}>
@@ -496,23 +485,23 @@ const WorkOrderDetails = ({
                         <div className={classes.uploadButtonContainer}>
                           <AddHyperlinkButton
                             className={classes.minimizedButton}
-                            skin="regular"
+                            variant="text"
                             entityType="WORK_ORDER"
                             allowCategories={false}
                             entityId={workOrder.id}>
-                            <InsertLinkIcon color="primary" />
+                            <IconButton icon={LinkIcon} />
                           </AddHyperlinkButton>
                           {isLoadingDocument ? (
                             <CircularProgress size={24} />
                           ) : (
                             <FileUploadButton
-                              className={classes.minimizedButton}
                               onFileUploaded={onDocumentUploaded}
                               onProgress={() => setIsLoadingDocument(true)}>
                               {openFileUploadDialog => (
-                                <CloudUploadOutlinedIcon
-                                  className={classes.uploadButton}
+                                <IconButton
+                                  className={classes.minimizedButton}
                                   onClick={openFileUploadDialog}
+                                  icon={UploadIcon}
                                 />
                               )}
                             </FileUploadButton>
@@ -538,13 +527,16 @@ const WorkOrderDetails = ({
                   </Grid>
                   <Grid item xs={4} sm={4} lg={4} xl={4}>
                     <ExpandingPanel title="Team" className={classes.card}>
-                      <FormField
+                      <FormFieldWithPermissions
                         className={classes.input}
                         label="Owner"
+                        permissions={{
+                          entity: 'workorder',
+                          action: 'transferOwnership',
+                          ignorePermissions: isOwner,
+                        }}
                         required={true}
-                        hasError={!!noOwnerError}
-                        errorText={noOwnerError}
-                        disabled={!!nonOwnerAssignee}>
+                        validation={{id: 'owner', value: workOrder.owner?.id}}>
                         <UserTypeahead
                           selectedUser={workOrder.owner}
                           onUserSelection={user =>
@@ -552,8 +544,15 @@ const WorkOrderDetails = ({
                           }
                           margin="dense"
                         />
-                      </FormField>
-                      <FormField label="Assignee" className={classes.input}>
+                      </FormFieldWithPermissions>
+                      <FormFieldWithPermissions
+                        label="Assignee"
+                        className={classes.input}
+                        permissions={{
+                          entity: 'workorder',
+                          action: 'assign',
+                          ignorePermissions: isOwner || isAssignee,
+                        }}>
                         <UserTypeahead
                           selectedUser={workOrder.assignedTo}
                           onUserSelection={user =>
@@ -561,18 +560,19 @@ const WorkOrderDetails = ({
                           }
                           margin="dense"
                         />
-                      </FormField>
+                      </FormFieldWithPermissions>
                     </ExpandingPanel>
                     <ExpandingPanel
-                      title="Comments"
+                      title={fbt('Activity & Comments', '')}
                       detailsPaneClass={classes.commentsBoxContainer}
                       className={classes.card}>
-                      <CommentsBox
+                      <CommentsActivitiesBox
                         boxElementsClass={classes.inExpandingPanelFix}
                         commentsLogClass={classes.commentsLog}
                         relatedEntityId={propsWorkOrder.id}
                         relatedEntityType="WORK_ORDER"
                         comments={propsWorkOrder.comments}
+                        activities={propsWorkOrder.activities}
                       />
                     </ExpandingPanel>
                   </Grid>
@@ -635,7 +635,10 @@ export default withRouter(
             ...EntityDocumentsTable_hyperlinks
           }
           comments {
-            ...CommentsBox_comments
+            ...CommentsActivitiesBox_comments
+          }
+          activities {
+            ...CommentsActivitiesBox_activities
           }
           project {
             name

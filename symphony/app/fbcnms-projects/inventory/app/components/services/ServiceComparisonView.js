@@ -15,7 +15,7 @@ import Button from '@fbcnms/ui/components/design-system/Button';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import CardFooter from '@fbcnms/ui/components/CardFooter';
-import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
+import FormActionWithPermissions from '../../common/FormActionWithPermissions';
 import PowerSearchBar from '../power_search/PowerSearchBar';
 import React, {useCallback, useState} from 'react';
 import ServiceComparisonViewQueryRenderer from './ServiceComparisonViewQueryRenderer';
@@ -110,7 +110,10 @@ const ServiceComparisonView = () => {
   const hideDialog = useCallback(() => setDialogOpen(false), [setDialogOpen]);
 
   return (
-    <FormContextProvider>
+    <FormContextProvider
+      permissions={{
+        entity: 'service',
+      }}>
       <Card className={classes.cardRoot}>
         <CardContent className={classes.cardContent}>
           <div className={classes.root}>
@@ -153,9 +156,10 @@ const ServiceComparisonView = () => {
           </div>
         </CardContent>
         <CardFooter className={classes.footer} alignItems="left">
-          <FormAction>
+          <FormActionWithPermissions
+            permissions={{entity: 'service', action: 'create'}}>
             <Button onClick={showDialog}>Add Service</Button>
-          </FormAction>
+          </FormActionWithPermissions>
         </CardFooter>
         <AddServiceDialog
           key={`new_service_${dialogKey}`}

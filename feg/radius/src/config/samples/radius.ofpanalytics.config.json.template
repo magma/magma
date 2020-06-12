@@ -1,0 +1,45 @@
+{
+  "monitoring": {
+    "ods": {
+      "category_id": "958",
+      "access_token": "$ODS_ACCESS_TOKEN",
+      "entity": "goradius",
+      "graph_url": "https://graph.facebook.com/ods_metrics",
+      "unique_entity": true,
+      "debug_prints": true
+    },
+    "scuba": {
+      "message_queue_size": 2000,
+      "flush_interval_sec": 2,
+      "batch_size": 15,
+      "graph_url": "https://graph.facebook.com/scribe_logs",
+      "access_token": "$SCUBA_ACCESS_TOKEN"
+    }
+  },
+  "server": {
+    "sessionStorage": {
+      "storageType": "memory"
+    },
+    "secret": "$RADIUS_SECRET",
+    "dedupWindow": "500ms",
+    "listeners": [
+      {
+        "name": "auth",
+        "extra": {
+          "port": 1812
+        },
+        "type": "udp",
+        "modules": [
+          {
+            "name": "ofpanalytics",
+            "config": {
+              "URI": "$AAA_ENDPOINT",
+              "AccessToken": "$AAA_ACCESS_TOKEN",
+              "DryRun": false
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

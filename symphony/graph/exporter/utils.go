@@ -13,35 +13,26 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/facebookincubator/symphony/graph/ent/property"
-	"github.com/facebookincubator/symphony/graph/ent/propertytype"
-	"github.com/facebookincubator/symphony/graph/ent/workorder"
+	"github.com/facebookincubator/symphony/graph/resolverutil"
 
-	"github.com/facebookincubator/symphony/graph/ent/location"
+	"github.com/facebookincubator/symphony/pkg/ent/property"
+	"github.com/facebookincubator/symphony/pkg/ent/propertytype"
+	"github.com/facebookincubator/symphony/pkg/ent/workorder"
 
-	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/ent/equipment"
-	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
-	"github.com/facebookincubator/symphony/graph/ent/link"
-	"github.com/facebookincubator/symphony/graph/ent/service"
+	"github.com/facebookincubator/symphony/pkg/ent/location"
+
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/ent/equipment"
+	"github.com/facebookincubator/symphony/pkg/ent/equipmentport"
+	"github.com/facebookincubator/symphony/pkg/ent/link"
+	"github.com/facebookincubator/symphony/pkg/ent/service"
 
 	"github.com/pkg/errors"
 )
 
 const (
 	maxEquipmentParents = 3
-	boolVal             = "bool"
-	emailVal            = "email"
-	stringVal           = "string"
-	dateVal             = "date"
-	intVal              = "int"
-	floatVal            = "float"
-	gpsLocationVal      = "gps_location"
-	rangeVal            = "range"
-	enum                = "enum"
-	datetimeLocalVal    = "datetime_local"
-	nodeVal             = "node"
 )
 
 func toIntSlice(a []string) ([]int, error) {
@@ -196,6 +187,45 @@ func locationHierarchy(ctx context.Context, location *ent.Location, orderedLocTy
 	return parents, nil
 }
 
+func getLastLocations(ctx context.Context, e *ent.Equipment, level int) (*string, error) {
+	ppos, err := e.QueryParentPosition().Only(ctx)
+	if err != nil && !ent.IsNotFound(err) {
+		return nil, fmt.Errorf("querying parent position: %w", err)
+	}
+
+	var lastPosition *ent.EquipmentPosition
+	for ppos != nil {
+		lastPosition = ppos
+		ppos, err = ppos.QueryParent().QueryParentPosition().Only(ctx)
+		if err != nil && !ent.IsNotFound(err) {
+			return nil, fmt.Errorf("querying parent position: %w", err)
+		}
+	}
+	var query *ent.LocationQuery
+	if lastPosition != nil {
+		query = lastPosition.QueryParent().QueryLocation()
+	} else {
+		query = e.QueryLocation()
+	}
+	loc, err := query.Only(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("querying equipemnt location: %w", err)
+	}
+	locations := loc.Name
+
+	for i := 0; i < level-1; i++ {
+		loc, err = loc.QueryParent().Only(ctx)
+		if ent.MaskNotFound(err) != nil {
+			return nil, fmt.Errorf("querying location for equipment: %w", err)
+		}
+		if ent.IsNotFound(err) || loc == nil {
+			break
+		}
+		locations = loc.Name + "; " + locations
+	}
+	return &locations, nil
+}
+
 // nolint: funlen
 func propertyTypesSlice(ctx context.Context, ids []int, c *ent.Client, entity models.PropertyEntity) ([]string, error) {
 	var (
@@ -294,7 +324,6 @@ func propertyTypesSlice(ctx context.Context, ids []int, c *ent.Client, entity mo
 				} else {
 					relevantPortTypes = append(relevantPortTypes, *portType)
 				}
-
 			} else if entity == models.PropertyEntityPort {
 				// TODO (T59268484) solve the case where there are too many IDs to check (trying to optimize)
 				if len(ids) < 50 {
@@ -459,7 +488,7 @@ func propertiesSlice(ctx context.Context, instance interface{}, propertyTypes []
 		if idx == -1 {
 			continue
 		}
-		val, err := propertyValue(ctx, typ.Type, typ)
+		val, err := resolverutil.PropertyValue(ctx, typ.Type, typ)
 		if err != nil {
 			return nil, err
 		}
@@ -477,61 +506,11 @@ func propertiesSlice(ctx context.Context, instance interface{}, propertyTypes []
 			return nil, errors.Errorf("Property type does not exist in header: %s", propTypeName)
 		}
 		typ := propTyp.Type
-		val, err := propertyValue(ctx, typ, p)
+		val, err := resolverutil.PropertyValue(ctx, typ, p)
 		if err != nil {
 			return nil, err
 		}
 		ret[idx] = val
 	}
 	return ret, nil
-}
-
-func propertyValue(ctx context.Context, typ string, v interface{}) (string, error) {
-	switch v.(type) {
-	case *ent.PropertyType, *ent.Property:
-	default:
-		return "", errors.Errorf("invalid type: %T", v)
-	}
-	vo := reflect.ValueOf(v).Elem()
-	switch typ {
-	case emailVal, stringVal, dateVal, enum, datetimeLocalVal:
-		return vo.FieldByName("StringVal").String(), nil
-	case intVal:
-		i := vo.FieldByName("IntVal").Int()
-		return strconv.Itoa(int(i)), nil
-	case floatVal:
-		return fmt.Sprintf("%.3f", vo.FieldByName("FloatVal").Float()), nil
-	case gpsLocationVal:
-		la, lo := vo.FieldByName("LatitudeVal").Float(), vo.FieldByName("LongitudeVal").Float()
-		return fmt.Sprintf("%f", la) + ", " + fmt.Sprintf("%f", lo), nil
-	case rangeVal:
-		rf, rt := vo.FieldByName("RangeFromVal").Float(), vo.FieldByName("RangeToVal").Float()
-		return fmt.Sprintf("%.3f", rf) + " - " + fmt.Sprintf("%.3f", rt), nil
-	case boolVal:
-		return strconv.FormatBool(vo.FieldByName("BoolVal").Bool()), nil
-	case nodeVal:
-		p, ok := v.(*ent.Property)
-		if !ok {
-			return "", nil
-		}
-		var id int
-		if i, err := p.QueryEquipmentValue().OnlyID(ctx); err == nil {
-			id = i
-		}
-		if i, err := p.QueryLocationValue().OnlyID(ctx); err == nil {
-			id = i
-		}
-		if i, err := p.QueryServiceValue().OnlyID(ctx); err == nil {
-			id = i
-		}
-		if i, err := p.QueryWorkOrderValue().OnlyID(ctx); err == nil {
-			id = i
-		}
-		if i, err := p.QueryUserValue().OnlyID(ctx); err == nil {
-			id = i
-		}
-		return strconv.Itoa(id), nil
-	default:
-		return "", errors.Errorf("type not supported %s", typ)
-	}
 }

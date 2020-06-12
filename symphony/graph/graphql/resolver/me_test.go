@@ -7,27 +7,25 @@ package resolver
 import (
 	"testing"
 
-	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
+	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestQueryMe(t *testing.T) {
 	resolver := newTestResolver(t)
-	defer resolver.drv.Close()
-	c := newGraphClient(t, resolver)
+	defer resolver.Close()
+	c := resolver.GraphClient()
 
 	var rsp struct {
 		Me struct {
 			Tenant string
-			Email  string
 			User   struct {
 				AuthID string
 			}
 		}
 	}
-	c.MustPost("query { me { tenant, email user { authID } } }", &rsp)
+	c.MustPost("query { me { tenant, user { authID } } }", &rsp)
 	assert.Equal(t, viewertest.DefaultTenant, rsp.Me.Tenant)
-	assert.Equal(t, viewertest.DefaultUser, rsp.Me.Email)
 	assert.Equal(t, viewertest.DefaultUser, rsp.Me.User.AuthID)
 }

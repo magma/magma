@@ -35,6 +35,7 @@ export const LogEvents = {
   EDIT_LOCATION_BUTTON_CLICKED: 'edit_location_button_clicked',
   SAVE_LOCATION_BUTTON_CLICKED: 'save_location_button_clicked',
   DELETE_LOCATION_BUTTON_CLICKED: 'delete_location_button_clicked',
+  MOVE_LOCATION_BUTTON_CLICKED: 'move_location_button_clicked',
   LOCATION_CARD_TAB_CLICKED: 'location_card_tab_clicked',
   EQUIPMENT_CARD_TAB_CLICKED: 'equipment_card_tab_clicked',
   CONFIGURE_NAV_CLICKED: 'configure_nav_clicked',
@@ -113,8 +114,7 @@ export const LogEvents = {
     'view_equipment_service_button_clicked',
   ADD_EQUIPMENT_LINK_BUTTON_CLICKED: 'add_equipment_link_button_clicked',
   DELETE_SERVICE_LINK_BUTTON_CLICKED: 'delete_service_link_button_clicked',
-  ADD_CONSUMER_ENDPOINT_BUTTON_CLICKED: 'add_consumer_endpoint_button_clicked',
-  ADD_PROVIDER_ENDPOINT_BUTTON_CLICKED: 'add_provider_endpoint_button_clicked',
+  ADD_ENDPOINT_BUTTON_CLICKED: 'add_endpoint_button_clicked',
   DELETE_SERVICE_ENDPOINT_BUTTON_CLICKED:
     'delete_service_endpoint_button_clicked',
 };

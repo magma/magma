@@ -11,6 +11,7 @@ import type {ServiceTypeItem_serviceType} from './__generated__/ServiceTypeItem_
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
 
+import CommonStrings from '@fbcnms/strings/Strings';
 import ConfigureExpansionPanel from './ConfigureExpansionPanel';
 import DynamicPropertyTypesGrid from '../DynamicPropertyTypesGrid';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
@@ -21,6 +22,7 @@ import LinearScaleIcon from '@material-ui/icons/LinearScale';
 import React from 'react';
 import RemoveServiceTypeMutation from '../../mutations/RemoveServiceTypeMutation';
 import ServiceEndpointDefinitionStaticTable from './ServiceEndpointDefinitionStaticTable';
+import fbt from 'fbt';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {ConnectionHandler} from 'relay-runtime';
 import {createFragmentContainer, graphql} from 'react-relay';
@@ -49,12 +51,14 @@ class ServiceTypeItem extends React.Component<Props> {
         <ExpansionPanel>
           <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
             <ConfigureExpansionPanel
+              entityName="serviceType"
               icon={<LinearScaleIcon />}
               name={serviceType.name}
               instanceCount={serviceType.numberOfServices}
               instanceNameSingular="service"
               instanceNamePlural="services"
               onDelete={this.onDelete}
+              allowDelete={true}
               onEdit={onEdit}
             />
           </ExpansionPanelSummary>
@@ -80,9 +84,18 @@ class ServiceTypeItem extends React.Component<Props> {
 
   onDelete = () => {
     this.props
-      .confirm(
-        `Are you sure you want to delete "${this.props.serviceType.name}"?`,
-      )
+      .confirm({
+        title: <fbt desc="">Delete Service Type?</fbt>,
+        message: fbt(
+          'Are you sure you want to delete' +
+            fbt.param('service name', this.props.serviceType.name) +
+            "? The service type, and all it's instances will be deleted soon, in the background",
+          'deletion message',
+        ),
+        cancelLabel: CommonStrings.common.cancelButton,
+        confirmLabel: CommonStrings.common.deleteButton,
+        skin: 'red',
+      })
       .then(confirm => {
         if (!confirm) {
           return;

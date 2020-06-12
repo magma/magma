@@ -56,7 +56,6 @@ void create_credit_update_response(
   response->set_success(true);
   response->set_sid(imsi);
   response->set_charging_key(charging_key);
-  response->set_type(CreditUpdateResponse::UPDATE);
 }
 
 void create_usage_update(
@@ -177,7 +176,7 @@ void create_subscriber_quota_update(
   update->set_update_type(state);
 }
 
-void create_cwf_session_create_response(
+void create_session_create_response(
   const std::string& imsi,
   const std::string& monitoring_key,
   std::vector<std::string>& static_rules,
@@ -198,4 +197,33 @@ void create_cwf_session_create_response(
   }
 }
 
+void create_policy_rule(
+  const std::string &rule_id,
+  const std::string &m_key,
+  uint32_t rating_group,
+  PolicyRule* rule)
+{
+  rule->set_id(rule_id);
+  rule->set_rating_group(rating_group);
+  rule->set_monitoring_key(m_key);
+  if (rating_group == 0 && m_key.length() > 0) {
+    rule->set_tracking_type(PolicyRule::ONLY_PCRF);
+  } else if (rating_group > 0 && m_key.length() == 0) {
+    rule->set_tracking_type(PolicyRule::ONLY_OCS);
+  } else if (rating_group > 0 && m_key.length() > 0) {
+    rule->set_tracking_type(PolicyRule::OCS_AND_PCRF);
+  } else {
+    rule->set_tracking_type(PolicyRule::NO_TRACKING);
+  }
+}
+
+magma::mconfig::SessionD get_default_mconfig()
+{
+  magma::mconfig::SessionD mconfig;
+  mconfig.set_log_level(magma::orc8r::LogLevel::INFO);
+  mconfig.set_relay_enabled(false);
+  auto wallet_config = mconfig.mutable_wallet_exhaust_detection();
+  wallet_config->set_terminate_on_exhaust(false);
+  return mconfig;
+}
 } // namespace magma

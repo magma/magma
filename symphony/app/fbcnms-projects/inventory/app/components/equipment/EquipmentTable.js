@@ -8,7 +8,7 @@
  * @format
  */
 
-import type {EquipmentTable_equipment} from './__generated__/EquipmentTable_equipment.graphql';
+import type {EquipmentTable_equipments} from './__generated__/EquipmentTable_equipments.graphql';
 import type {MutationCallbacks} from '../../mutations/MutationCallbacks.js';
 import type {
   RemoveEquipmentMutationResponse,
@@ -22,6 +22,7 @@ import AppContext from '@fbcnms/ui/context/AppContext';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import CommonStrings from '@fbcnms/strings/Strings';
 import DeviceStatusCircle from '@fbcnms/ui/components/icons/DeviceStatusCircle';
+import FormActionWithPermissions from '../../common/FormActionWithPermissions';
 import IconButton from '@fbcnms/ui/components/design-system/IconButton';
 import React, {useCallback, useContext, useMemo} from 'react';
 import RemoveEquipmentMutation from '../../mutations/RemoveEquipmentMutation';
@@ -62,7 +63,7 @@ const useStyles = makeStyles(() => ({
 }));
 
 type Props = $ReadOnly<{|
-  equipment: EquipmentTable_equipment,
+  equipments: EquipmentTable_equipments,
   selectedWorkOrderId: ?string,
   onEquipmentSelected: RelayEquipment => void,
   onWorkOrderSelected: (workOrderId: string) => void,
@@ -70,18 +71,18 @@ type Props = $ReadOnly<{|
   ...WithAlert,
 |}>;
 
-export type RelayEquipment = $ElementType<EquipmentTable_equipment, number>;
+export type RelayEquipment = $ElementType<EquipmentTable_equipments, number>;
 
-const getEquipmentStatus = eq =>
-  eq.futureState
-    ? `${capitalize(lowerCase(eq.workOrder?.status))} ${lowerCase(
-        eq.futureState,
+const getEquipmentStatus = row =>
+  row.equipment.futureState
+    ? `${capitalize(lowerCase(row.equipment.workOrder?.status))} ${lowerCase(
+        row.equipment.futureState,
       )}`
     : '';
 const getIsEquipmentDeviceActive = (eq: TableRowDataType<RelayEquipment>) =>
   eq.device?.up;
-const getEquipmentType = eq => eq.equipmentType.name || '';
-const getEquipmentName = eq => eq.name || '';
+const getEquipmentType = row => row.equipment.equipmentType.name || '';
+const getEquipmentName = row => row.equipment.name || '';
 
 const handleDelete = (props: Props) => (
   equipment: TableRowDataType<RelayEquipment>,
@@ -138,19 +139,23 @@ const handleDelete = (props: Props) => (
 };
 
 const EquipmentTable = (props: Props) => {
-  const {equipment, onEquipmentSelected, onWorkOrderSelected} = props;
+  const {equipments, onEquipmentSelected, onWorkOrderSelected} = props;
   const classes = useStyles();
   const {isFeatureEnabled} = useContext(AppContext);
 
   const onDelete = useCallback(handleDelete(props), [props]);
 
-  const data: Array<TableRowDataType<RelayEquipment>> = useMemo(
+  const data: $ReadOnlyArray<
+    TableRowDataType<{|equipment: RelayEquipment|}>,
+  > = useMemo(
     () =>
-      equipment.filter(Boolean).map(e => ({
-        key: e.id,
-        ...e,
-      })),
-    [equipment],
+      equipments == null
+        ? []
+        : equipments.filter(Boolean).map(equipment => ({
+            key: equipment.id,
+            equipment,
+          })),
+    [equipments],
   );
 
   const equipmetStatusEnabled = isFeatureEnabled('planned_equipment');
@@ -166,14 +171,11 @@ const EquipmentTable = (props: Props) => {
           <Button
             variant="text"
             useEllipsis={true}
-            onClick={() => {
-              const {key: _, ...eq} = row;
-              onEquipmentSelected(eq);
-            }}>
+            onClick={() => onEquipmentSelected(row.equipment)}>
             {equipmentLiveStatusEnabled ? (
               <DeviceStatusCircle
-                isGrey={!getIsEquipmentDeviceActive(row)}
-                isActive={!!getIsEquipmentDeviceActive(row)}
+                isGrey={!getIsEquipmentDeviceActive(row.equipment)}
+                isActive={!!getIsEquipmentDeviceActive(row.equipment)}
               />
             ) : null}
             {getEquipmentName(row)}
@@ -196,7 +198,9 @@ const EquipmentTable = (props: Props) => {
           <Button
             variant="text"
             useEllipsis={true}
-            onClick={() => onWorkOrderSelected(nullthrows(row?.workOrder?.id))}>
+            onClick={() =>
+              onWorkOrderSelected(nullthrows(row?.equipment.workOrder?.id))
+            }>
             {getEquipmentStatus(row)}
           </Button>
         ),
@@ -208,7 +212,13 @@ const EquipmentTable = (props: Props) => {
       titleClassName: classes.iconColumn,
       className: classes.iconColumn,
       render: row => (
-        <IconButton icon={DeleteIcon} onClick={() => onDelete(row)} />
+        <FormActionWithPermissions
+          permissions={{entity: 'equipment', action: 'delete'}}>
+          <IconButton
+            icon={DeleteIcon}
+            onClick={() => onDelete(row.equipment)}
+          />
+        </FormActionWithPermissions>
       ),
     });
     return colsToReturn;
@@ -221,7 +231,7 @@ const EquipmentTable = (props: Props) => {
     onWorkOrderSelected,
   ]);
 
-  if (equipment.length === 0) {
+  if (data.length === 0) {
     return null;
   }
 
@@ -239,8 +249,8 @@ const EquipmentTable = (props: Props) => {
 export default withAlert(
   withSnackbar(
     createFragmentContainer(EquipmentTable, {
-      equipment: graphql`
-        fragment EquipmentTable_equipment on Equipment @relay(plural: true) {
+      equipments: graphql`
+        fragment EquipmentTable_equipments on Equipment @relay(plural: true) {
           id
           name
           futureState

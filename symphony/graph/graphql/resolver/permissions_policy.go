@@ -8,9 +8,14 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/facebookincubator/symphony/graph/authz"
-	"github.com/facebookincubator/symphony/graph/ent"
+	models2 "github.com/facebookincubator/symphony/pkg/authz/models"
+
+	"github.com/facebookincubator/symphony/graph/resolverutil"
+	"github.com/pkg/errors"
+
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/pkg/authz"
+	"github.com/facebookincubator/symphony/pkg/ent"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
@@ -21,10 +26,10 @@ func (r queryResolver) PermissionsPolicies(ctx context.Context, after *ent.Curso
 		Paginate(ctx, after, first, before, last)
 }
 
-func (r permissionsPolicyResolver) Policy(ctx context.Context, obj *ent.PermissionsPolicy) (models.SystemPolicy, error) {
+func (r permissionsPolicyResolver) Policy(ctx context.Context, obj *ent.PermissionsPolicy) (models2.SystemPolicy, error) {
 	if obj.InventoryPolicy != nil {
 		return authz.AppendInventoryPolicies(
-			authz.NewInventoryPolicy(false, false),
+			authz.NewInventoryPolicy(false),
 			obj.InventoryPolicy), nil
 	}
 	return authz.AppendWorkforcePolicies(
@@ -40,12 +45,14 @@ func (mutationResolver) AddPermissionsPolicy(
 	ctx context.Context,
 	input models.AddPermissionsPolicyInput,
 ) (*ent.PermissionsPolicy, error) {
-
 	client := ent.FromContext(ctx)
 	mutation := client.PermissionsPolicy.Create().
 		SetName(input.Name).
 		SetNillableDescription(input.Description).
 		SetNillableIsGlobal(input.IsGlobal)
+	if input.Groups != nil {
+		mutation = mutation.AddGroupIDs(input.Groups...)
+	}
 	if input.InventoryInput != nil && input.WorkforceInput != nil {
 		return nil, fmt.Errorf("policy cannot be of both inventory and workforce types")
 	}
@@ -59,7 +66,7 @@ func (mutationResolver) AddPermissionsPolicy(
 	}
 	policy, err := mutation.Save(ctx)
 	if ent.IsConstraintError(err) {
-		return nil, fmt.Errorf("policy with the given name already exists: %s", input.Name)
+		return nil, gqlerror.Errorf("A policy with the given name already exists: %s", input.Name)
 	}
 	return policy, err
 }
@@ -68,7 +75,6 @@ func (mutationResolver) EditPermissionsPolicy(
 	ctx context.Context,
 	input models.EditPermissionsPolicyInput,
 ) (*ent.PermissionsPolicy, error) {
-
 	client := ent.FromContext(ctx)
 	p, err := client.PermissionsPolicy.Get(ctx, input.ID)
 	if err != nil {
@@ -80,6 +86,16 @@ func (mutationResolver) EditPermissionsPolicy(
 		SetNillableIsGlobal(input.IsGlobal)
 	if input.Name != nil {
 		upd = upd.SetName(*input.Name)
+	}
+	if input.Groups != nil {
+		currentGroups, err := client.PermissionsPolicy.QueryGroups(p).IDs(ctx)
+		if err != nil {
+			return nil, errors.Wrapf(err, "querying groups of permissionPolicy %q", input.ID)
+		}
+		addGroupIds, removeGroupIds := resolverutil.GetDifferenceBetweenSlices(currentGroups, input.Groups)
+		upd = upd.
+			AddGroupIDs(addGroupIds...).
+			RemoveGroupIDs(removeGroupIds...)
 	}
 	switch {
 	case input.InventoryInput != nil && input.WorkforceInput != nil:
@@ -97,20 +113,20 @@ func (mutationResolver) EditPermissionsPolicy(
 
 	if err != nil {
 		if ent.IsConstraintError(err) {
-			return nil, gqlerror.Errorf("A permissionsPolicy with the name %v already exists", input.Name)
+			return nil, gqlerror.Errorf("A policy with the name %v already exists", *input.Name)
 		}
 		return nil, fmt.Errorf("updating permissionsPolicy %q: %w", input.ID, err)
 	}
 	return p, nil
 }
 
-func (r mutationResolver) UpdateGroupsInPermissionsPolicy(
-	ctx context.Context,
-	input models.UpdateGroupsInPermissionsPolicyInput,
-) (*ent.PermissionsPolicy, error) {
-
-	return r.ClientFrom(ctx).PermissionsPolicy.UpdateOneID(input.ID).
-		AddGroupIDs(input.AddGroupIds...).
-		RemoveGroupIDs(input.RemoveGroupIds...).
-		Save(ctx)
+func (r mutationResolver) DeletePermissionsPolicy(ctx context.Context, id int) (bool, error) {
+	client := r.ClientFrom(ctx)
+	if err := client.PermissionsPolicy.DeleteOneID(id).Exec(ctx); err != nil {
+		if ent.IsNotFound(err) {
+			return false, gqlerror.Errorf("permissionsPolicy doesn't exist")
+		}
+		return false, fmt.Errorf("deleting permissionsPolicy: %w", err)
+	}
+	return true, nil
 }

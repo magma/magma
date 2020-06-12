@@ -13,11 +13,21 @@ import logging from '@fbcnms/logging';
 // Currently just filters result without passing prefix to conductor.
 // TODO: implement querying by prefix in conductor
 import {
+  GLOBAL_PREFIX,
   addTenantIdPrefix,
+  anythingTo,
   assertAllowedSystemTask,
   createProxyOptionsBuffer,
+  removeTenantPrefix,
   withInfixSeparator,
 } from '../utils.js';
+
+import type {
+  AfterFun,
+  BeforeFun,
+  Task,
+  TransformerRegistrationFun,
+} from '../../types';
 
 const logger = logging.getLogger(module);
 
@@ -25,23 +35,28 @@ const logger = logging.getLogger(module);
 /*
 curl  -H "x-auth-organization: fb-test" "localhost/proxy/api/metadata/taskdefs"
 */
-function getAllTaskdefsAfter(tenantId, req, respObj) {
+const getAllTaskdefsAfter: AfterFun = (tenantId, groups, req, respObj) => {
+  const tasks = anythingTo<Array<Task>>(respObj);
   // iterate over taskdefs, keep only those belonging to tenantId or global
-  // remove tenantId prefix, keep GLOBAL_
   const tenantWithInfixSeparator = withInfixSeparator(tenantId);
-  for (let idx = respObj.length - 1; idx >= 0; idx--) {
-    const taskdef = respObj[idx];
-    if (taskdef.name.indexOf(tenantWithInfixSeparator) == 0) {
-      taskdef.name = taskdef.name.substr(tenantWithInfixSeparator.length);
-    } else {
+  const globalPrefix = withInfixSeparator(GLOBAL_PREFIX);
+
+  for (let idx = tasks.length - 1; idx >= 0; idx--) {
+    const taskdef = tasks[idx];
+    if (
+      taskdef.name.indexOf(tenantWithInfixSeparator) != 0 &&
+      taskdef.name.indexOf(globalPrefix) != 0
+    ) {
       // remove element
-      respObj.splice(idx, 1);
+      tasks.splice(idx, 1);
     }
   }
-}
+  // remove tenantId prefix, keep GLOBAL prefix
+  removeTenantPrefix(tenantId, tasks, '$[*].name', true);
+};
 
 // Used in POST and PUT
-function sanitizeTaskdefBefore(tenantId, taskdef) {
+function sanitizeTaskdefBefore(tenantId: string, taskdef: Task): void {
   // only whitelisted system tasks are allowed
   assertAllowedSystemTask(taskdef);
   // prepend tenantId
@@ -68,15 +83,26 @@ curl -X POST -H "x-auth-organization: fb-test"  \
 '
 */
 // TODO: should this be disabled?
-function postTaskdefsBefore(tenantId, req, res, proxyCallback) {
+const postTaskdefsBefore: BeforeFun = (
+  tenantId,
+  groups,
+  req,
+  res,
+  proxyCallback,
+) => {
   // iterate over taskdefs, prefix with tenantId
   const reqObj = req.body;
-  for (let idx = 0; idx < reqObj.length; idx++) {
-    const taskdef = reqObj[idx];
-    sanitizeTaskdefBefore(tenantId, taskdef);
+  if (reqObj != null && Array.isArray(reqObj)) {
+    for (let idx = 0; idx < reqObj.length; idx++) {
+      const taskdef = anythingTo<Task>(reqObj[idx]);
+      sanitizeTaskdefBefore(tenantId, taskdef);
+    }
+    proxyCallback({buffer: createProxyOptionsBuffer(reqObj, req)});
+  } else {
+    logger.error('Expected req.body to be array in postTaskdefsBefore');
+    throw 'Expected req.body to be array in postTaskdefsBefore';
   }
-  proxyCallback({buffer: createProxyOptionsBuffer(reqObj, req)});
-}
+};
 
 // Update an existing task
 // Underscore in name is not allowed.
@@ -97,40 +123,62 @@ curl -X PUT -H "x-auth-organization: fb-test" \
 '
 */
 // TODO: should this be disabled?
-function putTaskdefBefore(tenantId, req, res, proxyCallback) {
+const putTaskdefBefore: BeforeFun = (
+  tenantId,
+  groups,
+  req,
+  res,
+  proxyCallback,
+) => {
   const reqObj = req.body;
-  const taskdef = reqObj;
-  sanitizeTaskdefBefore(tenantId, taskdef);
-  proxyCallback({buffer: createProxyOptionsBuffer(reqObj, req)});
-}
+  if (reqObj != null && typeof reqObj === 'object') {
+    const taskdef = anythingTo<Task>(reqObj);
+    sanitizeTaskdefBefore(tenantId, taskdef);
+    proxyCallback({buffer: createProxyOptionsBuffer(reqObj, req)});
+  } else {
+    logger.error('Expected req.body to be object in putTaskdefBefore');
+    throw 'Expected req.body to be object in putTaskdefBefore';
+  }
+};
 
 /*
 curl -H "x-auth-organization: fb-test" \
  "localhost/proxy/api/metadata/taskdefs/frinx"
 */
 // Gets the task definition
-function getTaskdefByNameBefore(tenantId, req, res, proxyCallback) {
+const getTaskdefByNameBefore: BeforeFun = (
+  tenantId,
+  groups,
+  req,
+  res,
+  proxyCallback,
+) => {
   req.params.name = withInfixSeparator(tenantId) + req.params.name;
   // modify url
   req.url = '/api/metadata/taskdefs/' + req.params.name;
   proxyCallback();
-}
+};
 
-function getTaskdefByNameAfter(tenantId, req, respObj, res) {
-  if (res.status == 200) {
-    const tenantWithInfixSeparator = withInfixSeparator(tenantId);
-    // remove prefix
-    if (respObj.name && respObj.name.indexOf(tenantWithInfixSeparator) == 0) {
-      respObj.name = respObj.name.substr(tenantWithInfixSeparator.length);
-    } else {
-      logger.error(
-        `Tenant Id prefix '${tenantId}' not found, taskdef name: '${respObj.name}'`,
-      );
-      res.status(400);
-      res.send('Prefix not found'); // TODO: this exits the process
-    }
+const getTaskdefByNameAfter: AfterFun = (
+  tenantId,
+  groups,
+  req,
+  respObj,
+  res,
+) => {
+  const task = anythingTo<Task>(respObj);
+  const tenantWithInfixSeparator = withInfixSeparator(tenantId);
+  // remove prefix
+  if (task.name.indexOf(tenantWithInfixSeparator) == 0) {
+    task.name = task.name.substr(tenantWithInfixSeparator.length);
+  } else {
+    logger.error(
+      `Tenant Id prefix '${tenantId}' not found, taskdef name: '${task.name}'`,
+    );
+    res.status(400);
+    res.send('Prefix not found');
   }
-}
+};
 
 // TODO: can this be disabled?
 // Remove a task definition
@@ -138,40 +186,46 @@ function getTaskdefByNameAfter(tenantId, req, respObj, res) {
 curl -H "x-auth-organization: fb-test" \
  "localhost/api/metadata/taskdefs/bar" -X DELETE -v
 */
-function deleteTaskdefByNameBefore(tenantId, req, res, proxyCallback) {
+const deleteTaskdefByNameBefore: BeforeFun = (
+  tenantId,
+  groups,
+  req,
+  res,
+  proxyCallback,
+) => {
   req.params.name = withInfixSeparator(tenantId) + req.params.name;
   // modify url
   req.url = '/api/metadata/taskdefs/' + req.params.name;
   proxyCallback();
-}
+};
 
-export default function() {
-  return [
-    {
-      method: 'get',
-      url: '/api/metadata/taskdefs',
-      after: getAllTaskdefsAfter,
-    },
-    {
-      method: 'post',
-      url: '/api/metadata/taskdefs',
-      before: postTaskdefsBefore,
-    },
-    {
-      method: 'put',
-      url: '/api/metadata/taskdefs',
-      before: putTaskdefBefore,
-    },
-    {
-      method: 'get',
-      url: '/api/metadata/taskdefs/:name',
-      before: getTaskdefByNameBefore,
-      after: getTaskdefByNameAfter,
-    },
-    {
-      method: 'delete',
-      url: '/api/metadata/taskdefs/:name',
-      before: deleteTaskdefByNameBefore,
-    },
-  ];
-}
+const registration: TransformerRegistrationFun = () => [
+  {
+    method: 'get',
+    url: '/api/metadata/taskdefs',
+    after: getAllTaskdefsAfter,
+  },
+  {
+    method: 'post',
+    url: '/api/metadata/taskdefs',
+    before: postTaskdefsBefore,
+  },
+  {
+    method: 'put',
+    url: '/api/metadata/taskdefs',
+    before: putTaskdefBefore,
+  },
+  {
+    method: 'get',
+    url: '/api/metadata/taskdefs/:name',
+    before: getTaskdefByNameBefore,
+    after: getTaskdefByNameAfter,
+  },
+  {
+    method: 'delete',
+    url: '/api/metadata/taskdefs/:name',
+    before: deleteTaskdefByNameBefore,
+  },
+];
+
+export default registration;

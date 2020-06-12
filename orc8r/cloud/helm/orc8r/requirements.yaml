@@ -7,18 +7,18 @@
 
 dependencies:
   - name: secrets
-    version: 0.1.3
+    version: 0.1.4
     repository: ""
     condition: secrets.create
   - name: metrics
-    version: 1.4.12
+    version: 1.4.13
     repository: ""
     condition: metrics.enabled
   - name: nms
-    version: 0.1.4
+    version: 0.1.7
     repository: ""
     condition: nms.enabled
   - name: logging
-    version: 0.1.9
+    version: 0.1.10
     repository: ""
     condition: logging.enabled

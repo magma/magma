@@ -12,13 +12,11 @@ import type {User} from '../admin/userManagement/utils/UserManagementUtils';
 import type {UserManagementContext_UserQuery} from '../admin/userManagement/__generated__/UserManagementContext_UserQuery.graphql';
 
 import * as React from 'react';
-import LoadingIndicator from '../../common/LoadingIndicator';
+import InventorySuspense from '../../common/InventorySuspense';
 import UserAccountPane from '../admin/userManagement/users/UserAccountPane';
 import ViewContainer from '@fbcnms/ui/components/design-system/View/ViewContainer';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
-import {FormContextProvider} from '../../common/FormContext';
-import {Suspense} from 'react';
 import {UserManagementContextProvider} from '../admin/userManagement/UserManagementContext';
 import {graphql, useLazyLoadQuery} from 'react-relay/hooks';
 import {makeStyles} from '@material-ui/styles';
@@ -83,24 +81,19 @@ function UserAccountWrapper() {
         title: <fbt desc="">User Settings</fbt>,
         subtitle: <fbt desc="">Manage your own private settings.</fbt>,
       }}>
-      <FormContextProvider ignorePermissions={true}>
-        <div className={classes.settingsPage}>
-          <UserAccountPane
-            user={loggedInUser}
-            isForCurrentUserSettings={true}
-          />
-        </div>
-      </FormContextProvider>
+      <div className={classes.settingsPage}>
+        <UserAccountPane user={loggedInUser} isForCurrentUserSettings={true} />
+      </div>
     </ViewContainer>
   );
 }
 
 export default function AccountSettings() {
   return (
-    <Suspense fallback={<LoadingIndicator />}>
+    <InventorySuspense>
       <UserManagementContextProvider>
         <UserAccountWrapper />
       </UserManagementContextProvider>
-    </Suspense>
+    </InventorySuspense>
   );
 }

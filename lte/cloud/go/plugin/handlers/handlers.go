@@ -21,6 +21,7 @@ import (
 	orc8rmodels "magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/state"
+	state_types "magma/orc8r/cloud/go/services/state/types"
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
 
@@ -310,11 +311,12 @@ func createEnodeb(c echo.Context) error {
 	}
 
 	_, err := configurator.CreateEntity(nid, configurator.NetworkEntity{
-		Type:       lte.CellularEnodebType,
-		Key:        payload.Serial,
-		Name:       payload.Name,
-		PhysicalID: payload.Serial,
-		Config:     payload.Config,
+		Type:        lte.CellularEnodebType,
+		Key:         payload.Serial,
+		Name:        payload.Name,
+		Description: payload.Description,
+		PhysicalID:  payload.Serial,
+		Config:      payload.Config,
 	})
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
@@ -466,11 +468,11 @@ func listSubscribers(c echo.Context) error {
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
-	statesByTypeBySid := map[string]map[string]state.State{}
+	statesByTypeBySid := map[string]map[string]state_types.State{}
 	for stateID, st := range subStates {
 		byType, ok := statesByTypeBySid[stateID.DeviceID]
 		if !ok {
-			byType = map[string]state.State{}
+			byType = map[string]state_types.State{}
 		}
 		byType[stateID.Type] = st
 		statesByTypeBySid[stateID.DeviceID] = byType
@@ -532,7 +534,7 @@ func getSubscriber(c echo.Context) error {
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
-	statesByType := map[string]state.State{}
+	statesByType := map[string]state_types.State{}
 	for stateID, st := range states {
 		statesByType[stateID.Type] = st
 	}

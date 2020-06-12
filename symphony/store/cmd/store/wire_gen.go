@@ -10,55 +10,64 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"github.com/facebookincubator/symphony/pkg/log"
-	"github.com/facebookincubator/symphony/pkg/oc"
 	"github.com/facebookincubator/symphony/pkg/server"
 	"github.com/facebookincubator/symphony/pkg/server/xserver"
+	"github.com/facebookincubator/symphony/pkg/telemetry"
 	"github.com/facebookincubator/symphony/store/handler"
-	"github.com/facebookincubator/symphony/store/sign/s3"
+	"gocloud.dev/blob"
 	"gocloud.dev/server/health"
+)
+
+import (
+	_ "gocloud.dev/blob/s3blob"
 )
 
 // Injectors from wire.go:
 
-func NewServer(flags *cliFlags) (*server.Server, func(), error) {
-	config := flags.Log
-	logger, cleanup, err := log.Provider(config)
+func newApplication(ctx context.Context, flags *cliFlags) (*application, func(), error) {
+	config := flags.LogConfig
+	logger, cleanup, err := log.ProvideLogger(config)
 	if err != nil {
 		return nil, nil, err
 	}
-	s3Config := flags.S3
-	signer, err := s3.NewSigner(s3Config)
+	zapLogger := log.ProvideZapLogger(logger)
+	bucket, cleanup2, err := newBucket(ctx, flags)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
 	}
+	string2 := newBucketName(flags)
 	handlerConfig := handler.Config{
-		Logger: logger,
-		Signer: signer,
+		Logger:     logger,
+		Bucket:     bucket,
+		BucketName: string2,
 	}
 	handlerHandler := handler.New(handlerConfig)
-	zapLogger := xserver.NewRequestLogger(logger)
+	xserverZapLogger := xserver.NewRequestLogger(logger)
 	v := _wireValue
 	v2 := xserver.DefaultViews()
-	exporter, err := xserver.NewPrometheusExporter(logger)
+	telemetryConfig := &flags.TelemetryConfig
+	exporter, err := telemetry.ProvideViewExporter(telemetryConfig)
 	if err != nil {
+		cleanup2()
 		cleanup()
 		return nil, nil, err
 	}
-	options := flags.Census
-	jaegerOptions := oc.JaegerOptions(options)
-	traceExporter, cleanup2, err := xserver.NewJaegerExporter(logger, jaegerOptions)
+	traceExporter, cleanup3, err := telemetry.ProvideTraceExporter(telemetryConfig)
 	if err != nil {
+		cleanup2()
 		cleanup()
 		return nil, nil, err
 	}
 	profilingEnabler := _wireProfilingEnablerValue
-	sampler := oc.TraceSampler(options)
+	sampler := telemetry.ProvideTraceSampler(telemetryConfig)
 	handlerFunc := xserver.NewRecoveryHandler(logger)
 	defaultDriver := _wireDefaultDriverValue
-	serverOptions := &server.Options{
-		RequestLogger:         zapLogger,
+	options := &server.Options{
+		RequestLogger:         xserverZapLogger,
 		HealthChecks:          v,
 		Views:                 v2,
 		ViewExporter:          exporter,
@@ -68,8 +77,15 @@ func NewServer(flags *cliFlags) (*server.Server, func(), error) {
 		RecoveryHandler:       handlerFunc,
 		Driver:                defaultDriver,
 	}
-	serverServer := server.New(handlerHandler, serverOptions)
-	return serverServer, func() {
+	serverServer := server.New(handlerHandler, options)
+	tcpAddr := flags.ListenAddress
+	mainApplication := &application{
+		Logger: zapLogger,
+		server: serverServer,
+		addr:   tcpAddr,
+	}
+	return mainApplication, func() {
+		cleanup3()
 		cleanup2()
 		cleanup()
 	}, nil
@@ -80,3 +96,17 @@ var (
 	_wireProfilingEnablerValue = server.ProfilingEnabler(true)
 	_wireDefaultDriverValue    = &server.DefaultDriver{}
 )
+
+// wire.go:
+
+func newBucket(ctx context.Context, flags *cliFlags) (*blob.Bucket, func(), error) {
+	bucket, err := blob.OpenBucket(ctx, flags.BlobURL.String())
+	if err != nil {
+		return nil, nil, fmt.Errorf("cannot open blob bucket: %w", err)
+	}
+	return bucket, func() { _ = bucket.Close() }, nil
+}
+
+func newBucketName(flags *cliFlags) string {
+	return flags.BlobURL.Host
+}

@@ -114,6 +114,20 @@ message SessionD {
     orc8r.LogLevel log_level = 1;
     // Enable forwarding S6a related requests to Federated GW
     bool relay_enabled = 2;
+    WalletExhaustDetection wallet_exhaust_detection = 3;
+}
+
+message WalletExhaustDetection {
+    // Enable the feature where session is terminated on wallet exhaust
+    bool terminate_on_exhaust = 1;
+    enum Method {
+        // If # of Gx Tracked Rules are > 0, then the wallet is still valid
+        GxTrackedRules = 0;
+    }
+    // How wallet exhast is detected on SessionD
+    Method method = 2;
+    // How long to wait before terminating a out-of-wallet subscriber on attach
+    uint32 timeout_ms = 3;
 }
 
 //------------------------------------------------------------------------------
@@ -192,6 +206,11 @@ message MME {
     // DEPRECATED
     // Use relay_enabled instead
     // bool s6a_relay_enabled = 13;
+
+    // Primary DNS server
+    string dns_primary = 20;
+    // Secondary DNS server
+    string dns_secondary = 21;
 }
 
 
@@ -230,4 +249,11 @@ message LighttpD {
 message MonitorD {
     orc8r.LogLevel log_level = 1;
     int32 polling_interval = 60;
+}
+
+//------------------------------------------------------------------------------
+// DPID configs
+//------------------------------------------------------------------------------
+message DPID {
+    orc8r.LogLevel log_level = 1;
 }

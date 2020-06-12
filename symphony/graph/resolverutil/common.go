@@ -7,21 +7,87 @@ package resolverutil
 import (
 	"context"
 	"fmt"
+	"reflect"
+	"strconv"
 
-	"github.com/facebookincubator/symphony/graph/ent/user"
+	"github.com/facebookincubator/symphony/pkg/ent/user"
 
-	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/ent/predicate"
-	"github.com/facebookincubator/symphony/graph/ent/property"
-	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/ent/predicate"
+	"github.com/facebookincubator/symphony/pkg/ent/property"
+	"github.com/facebookincubator/symphony/pkg/ent/propertytype"
 	"github.com/pkg/errors"
+)
+
+const (
+	boolVal          = "bool"
+	emailVal         = "email"
+	stringVal        = "string"
+	dateVal          = "date"
+	intVal           = "int"
+	floatVal         = "float"
+	gpsLocationVal   = "gps_location"
+	rangeVal         = "range"
+	enum             = "enum"
+	datetimeLocalVal = "datetime_local"
+	nodeVal          = "node"
 )
 
 type AddPropertyArgs struct {
 	Context    context.Context
 	EntSetter  func(*ent.PropertyCreate)
 	IsTemplate *bool
+}
+
+func PropertyValue(ctx context.Context, typ string, v interface{}) (string, error) {
+	switch v.(type) {
+	case *ent.PropertyType, *ent.Property:
+	default:
+		return "", errors.Errorf("invalid type: %T", v)
+	}
+	vo := reflect.ValueOf(v).Elem()
+	switch typ {
+	case emailVal, stringVal, dateVal, enum, datetimeLocalVal:
+		return vo.FieldByName("StringVal").String(), nil
+	case intVal:
+		i := vo.FieldByName("IntVal").Int()
+		return strconv.Itoa(int(i)), nil
+	case floatVal:
+		return fmt.Sprintf("%.3f", vo.FieldByName("FloatVal").Float()), nil
+	case gpsLocationVal:
+		la, lo := vo.FieldByName("LatitudeVal").Float(), vo.FieldByName("LongitudeVal").Float()
+		return fmt.Sprintf("%f", la) + ", " + fmt.Sprintf("%f", lo), nil
+	case rangeVal:
+		rf, rt := vo.FieldByName("RangeFromVal").Float(), vo.FieldByName("RangeToVal").Float()
+		return fmt.Sprintf("%.3f", rf) + " - " + fmt.Sprintf("%.3f", rt), nil
+	case boolVal:
+		return strconv.FormatBool(vo.FieldByName("BoolVal").Bool()), nil
+	case nodeVal:
+		p, ok := v.(*ent.Property)
+		if !ok {
+			return "", nil
+		}
+		var id int
+		if i, err := p.QueryEquipmentValue().OnlyID(ctx); err == nil {
+			id = i
+		}
+		if i, err := p.QueryLocationValue().OnlyID(ctx); err == nil {
+			id = i
+		}
+		if i, err := p.QueryServiceValue().OnlyID(ctx); err == nil {
+			id = i
+		}
+		if i, err := p.QueryWorkOrderValue().OnlyID(ctx); err == nil {
+			id = i
+		}
+		if i, err := p.QueryUserValue().OnlyID(ctx); err == nil {
+			id = i
+		}
+		return strconv.Itoa(id), nil
+	default:
+		return "", errors.Errorf("type not supported %s", typ)
+	}
 }
 
 // GetPropertyPredicate returns the property predicate for the filter

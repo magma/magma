@@ -4,7 +4,6 @@
 # license that can be found in the LICENSE file.
 
 
-from pyinventory import InventoryClient
 from pyinventory.api.equipment_type import _populate_equipment_port_types
 from pyinventory.api.port_type import (
     add_equipment_port_type,
@@ -13,15 +12,16 @@ from pyinventory.api.port_type import (
 )
 from pyinventory.common.cache import PORT_TYPES
 from pyinventory.common.data_class import PropertyDefinition
-from pyinventory.graphql.property_kind_enum import PropertyKind
+from pyinventory.graphql.enum.property_kind import PropertyKind
+from pysymphony import SymphonyClient
 
-from .grpc.rpc_pb2_grpc import TenantServiceStub
-from .utils.base_test import BaseTest
+from ..utils.base_test import BaseTest
+from ..utils.grpc.rpc_pb2_grpc import TenantServiceStub
 
 
 class TestEquipmentPortType(BaseTest):
     def __init__(
-        self, testName: str, client: InventoryClient, stub: TenantServiceStub
+        self, testName: str, client: SymphonyClient, stub: TenantServiceStub
     ) -> None:
         super().__init__(testName, client, stub)
 
@@ -34,7 +34,7 @@ class TestEquipmentPortType(BaseTest):
                 PropertyDefinition(
                     property_name="port property",
                     property_kind=PropertyKind.string,
-                    default_value="port property value",
+                    default_raw_value="port property value",
                     is_fixed=False,
                 )
             ],
@@ -42,7 +42,7 @@ class TestEquipmentPortType(BaseTest):
                 PropertyDefinition(
                     property_name="link property",
                     property_kind=PropertyKind.string,
-                    default_value="link property value",
+                    default_raw_value="link property value",
                     is_fixed=False,
                 )
             ],
@@ -74,10 +74,11 @@ class TestEquipmentPortType(BaseTest):
         self.assertEqual(fetched_port_type.name, edited_port_type.name)
         self.assertEqual(len(fetched_port_type.property_types), 1)
         self.assertEqual(
-            fetched_port_type.property_types[0].stringValue, "new port property value"
+            fetched_port_type.property_types[0].default_raw_value,
+            "new port property value",
         )
         self.assertEqual(len(fetched_port_type.link_property_types), 1)
         self.assertEqual(
-            fetched_port_type.link_property_types[0].stringValue,
+            fetched_port_type.link_property_types[0].default_raw_value,
             "new link property value",
         )

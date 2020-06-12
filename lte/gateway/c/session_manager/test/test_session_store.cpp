@@ -17,8 +17,10 @@
 #include "SessionState.h"
 #include "SessionStore.h"
 #include "StoredState.h"
+#include "MagmaService.h"
 #include "magma_logging.h"
 
+using magma::orc8r::MetricsContainer;
 using ::testing::Test;
 
 namespace magma {
@@ -123,6 +125,12 @@ class SessionStoreTest : public ::testing::Test {
     update_criteria.static_rules_to_install.insert(rule_id_1);
     update_criteria.dynamic_rules_to_install = std::vector<PolicyRule>{};
     update_criteria.dynamic_rules_to_install.push_back(get_dynamic_rule());
+    RuleLifetime lifetime{
+      .activation_time = std::time_t(0),
+      .deactivation_time = std::time_t(0),
+    };
+    update_criteria.new_rule_lifetimes[rule_id_1] = lifetime;
+    update_criteria.new_rule_lifetimes[dynamic_rule_id_1] = lifetime;
 
     // Monitoring credit installation
     update_criteria.monitor_credit_to_install =
@@ -174,6 +182,13 @@ class SessionStoreTest : public ::testing::Test {
     return update_criteria;
   }
 
+  bool is_equal(
+      io::prometheus::client::LabelPair label_pair, const char*& name,
+      const char*& value) {
+    return label_pair.name().compare(name) == 0 &&
+           label_pair.value().compare(value) == 0;
+  }
+
  protected:
   std::string imsi;
   std::string imsi2;
@@ -188,6 +203,71 @@ class SessionStoreTest : public ::testing::Test {
   std::string dynamic_rule_id_1;
   std::string dynamic_rule_id_2;
 };
+
+TEST_F(SessionStoreTest, test_metering_reporting)
+{
+  // 1) Create SessionStore
+  auto rule_store = std::make_shared<StaticRuleStore>();
+  auto session_store = new SessionStore(rule_store);
+
+  // 2) Create a single session and write it into the store
+  auto session1 = get_session(sid, rule_store);
+  auto session_vec = std::vector<std::unique_ptr<SessionState>>{};
+  session_vec.push_back(std::move(session1));
+  session_store->create_sessions(imsi, std::move(session_vec));
+
+  // 3) Try to update the session in SessionStore with a rule installation
+  auto session_map = session_store->read_sessions(SessionRead{imsi});
+  auto session_update = SessionStore::get_default_session_update(session_map);
+
+  auto uc = get_default_update_criteria();
+  uc.static_rules_to_install.insert("RULE_asdf");
+  RuleLifetime lifetime{
+      .activation_time = std::time_t(0),
+      .deactivation_time = std::time_t(0),
+  };
+  uc.new_rule_lifetimes["RULE_asdf"] = lifetime;
+
+  // Record some credit usage
+  auto DIRECTION_LABEL   = "direction";
+  auto DIRECTION_UP   = "up";
+  auto DIRECTION_DOWN = "down";
+  auto UPLOADED_BYTES   = 5;
+  auto DOWNLOADED_BYTES = 7;
+  SessionCreditUpdateCriteria credit_uc{};
+  credit_uc.bucket_deltas[USED_TX]      = UPLOADED_BYTES;
+  credit_uc.bucket_deltas[USED_RX]      = DOWNLOADED_BYTES;
+  uc.monitor_credit_map[monitoring_key] = credit_uc;
+
+  session_update[imsi][sid] = uc;
+
+  auto update_success = session_store->update_sessions(session_update);
+  EXPECT_TRUE(update_success);
+
+  // verify if UE traffic metrics are recorded properly
+  auto resp = new MetricsContainer();
+  auto magma_service =
+      std::make_shared<service303::MagmaService>("test_service", "1.0");
+  magma_service->GetMetrics(nullptr, nullptr, resp);
+  auto reported_metrics = 0;
+  for (auto const& fam : resp->family()) {
+    if (fam.name().compare("ue_traffic") == 0) {
+      for (auto const& m : fam.metric()) {
+        for (auto const& l : m.label()) {
+          if (is_equal(l, DIRECTION_LABEL, DIRECTION_UP)) {
+            EXPECT_EQ(m.counter().value(), UPLOADED_BYTES);
+            reported_metrics += 1;
+          } else if (is_equal(l, DIRECTION_LABEL, DIRECTION_DOWN)) {
+            EXPECT_EQ(m.counter().value(), DOWNLOADED_BYTES);
+            reported_metrics += 1;
+          }
+        }
+      }
+      break;
+    }
+  }
+  EXPECT_EQ(reported_metrics, 2);
+}
 
 /**
  * End to end test of the SessionStore.
@@ -214,9 +294,13 @@ TEST_F(SessionStoreTest, test_read_and_write)
   // 2) Create bare-bones session for IMSI1
   auto session = get_session(sid, rule_store);
   auto uc = get_default_update_criteria();
-  session->activate_static_rule(rule_id_3, uc);
+  RuleLifetime lifetime{
+    .activation_time = std::time_t(0),
+    .deactivation_time = std::time_t(0),
+  };
+  session->activate_static_rule(rule_id_3, lifetime, uc);
   EXPECT_EQ(session->get_session_id(), sid);
-  EXPECT_EQ(session->get_request_number(), 2);
+  EXPECT_EQ(session->get_request_number(), 1);
   EXPECT_EQ(session->is_static_rule_installed(rule_id_3),true);
 
   auto credit_update = get_monitoring_update();
@@ -238,12 +322,12 @@ TEST_F(SessionStoreTest, test_read_and_write)
   // 4) Read session for IMSI1 from SessionStore
   SessionRead read_req = {};
   read_req.insert(imsi);
-  auto session_map = session_store->read_sessions_for_reporting(read_req);
+  auto session_map = session_store->read_sessions(read_req);
 
   // 5) Verify that state was written for IMSI1 and has been retrieved.
   EXPECT_EQ(session_map.size(), 1);
   EXPECT_EQ(session_map[imsi].size(), 1);
-  EXPECT_EQ(session_map[imsi].front()->get_request_number(), 2);
+  EXPECT_EQ(session_map[imsi].front()->get_request_number(), 1);
 
   // 6) Make updates to session via SessionUpdateCriteria
   auto update_req = SessionUpdate{};
@@ -253,7 +337,8 @@ TEST_F(SessionStoreTest, test_read_and_write)
   update_req[imsi][sid] = update_criteria;
 
   // 7) Commit updates to SessionStore
-  session_store->update_sessions(update_req);
+  auto success = session_store->update_sessions(update_req);
+  EXPECT_TRUE(success);
 
   // 8) Read in session for IMSI1 again to check that the update was successful
   session_map = session_store->read_sessions(read_req);
@@ -289,22 +374,6 @@ TEST_F(SessionStoreTest, test_read_and_write)
   EXPECT_EQ(session_map[imsi].front()->get_monitor_pool().get_credit(monitoring_key, REPORTED_TX), 7);
   EXPECT_EQ(session_map[imsi].front()->get_monitor_pool().get_credit(monitoring_key, REPORTED_RX), 8);
 
-  // 9) Check request numbers again
-  // This request number should increment in storage every time a read is done.
-  // The incremented value is set by the read request to the storage interface.
-  EXPECT_EQ(session_map[imsi].front()->get_request_number(), 3);
-
-  // 10) Read sessions for reporting to update request numbers for the session
-  // The request number should be incremented by 2 for the session, 1 for
-  // each monitoring key and charging key associated to it.
-  session_map = session_store->read_sessions_for_reporting(read_req);
-  EXPECT_EQ(session_map.size(), 1);
-  EXPECT_EQ(session_map[imsi].size(), 1);
-
-  session_map = session_store->read_sessions(read_req);
-  EXPECT_EQ(session_map.size(), 1);
-  EXPECT_EQ(session_map[imsi].front()->get_request_number(), 5);
-
   // 11) Delete sessions for IMSI1
   update_req = SessionUpdate{};
   update_criteria = SessionStateUpdateCriteria{};
@@ -313,9 +382,59 @@ TEST_F(SessionStoreTest, test_read_and_write)
   session_store->update_sessions(update_req);
 
   // 12) Verify that IMSI1 no longer has a session
-  session_map = session_store->read_sessions_for_reporting(read_req);
+  session_map = session_store->read_sessions(read_req);
   EXPECT_EQ(session_map.size(), 1);
   EXPECT_EQ(session_map[imsi].size(), 0);
+}
+
+TEST_F(SessionStoreTest, test_sync_request_numbers)
+{
+  // 1) Create SessionStore
+  auto rule_store = std::make_shared<StaticRuleStore>();
+  auto session_store = new SessionStore(rule_store);
+
+  // 2) Create bare-bones session for IMSI1
+  auto session = get_session(sid, rule_store);
+  auto uc = get_default_update_criteria();
+
+  // 3) Commit session for IMSI1 into SessionStore
+  auto sessions = std::vector<std::unique_ptr<SessionState>>{};
+  EXPECT_EQ(sessions.size(), 0);
+  sessions.push_back(std::move(session));
+  EXPECT_EQ(sessions.size(), 1);
+  session_store->create_sessions(imsi, std::move(sessions));
+
+  // 4) Read session for IMSI1 from SessionStore
+  SessionRead read_req = {};
+  read_req.insert(imsi);
+  auto session_map = session_store->read_sessions(read_req);
+
+  // 5) Verify that state was written for IMSI1 and has been retrieved.
+  EXPECT_EQ(session_map.size(), 1);
+  EXPECT_EQ(session_map[imsi].size(), 1);
+  EXPECT_EQ(session_map[imsi].front()->get_request_number(), 1);
+
+  // 6) Make updates to session via SessionUpdateCriteria
+  auto update_req = SessionUpdate{};
+  update_req[imsi] = std::unordered_map<std::string,
+      SessionStateUpdateCriteria>{};
+  auto update_criteria = get_update_criteria();
+  update_criteria.request_number_increment = 3;
+  update_req[imsi][sid] = update_criteria;
+
+  // 7) Sync updated request_numbers to SessionStore
+  session_store->sync_request_numbers(update_req);
+
+  // And then here a gRPC request would be made to another service.
+  // The callback would be scheduled onto the event loop, and in the
+  // interim, other callbacks can run and make reads to the SessionStore
+
+  // 8) Read in session for IMSI1 again to check that the update was successful
+  auto session_map_2 = session_store->read_sessions(read_req);
+  EXPECT_EQ(session_map_2.size(), 1);
+  EXPECT_EQ(session_map_2[imsi].size(), 1);
+  EXPECT_EQ(session_map_2[imsi].front()->get_session_id(), sid);
+  EXPECT_EQ(session_map_2[imsi].front()->get_request_number(), 4);
 }
 
 TEST_F(SessionStoreTest, test_get_default_session_update)
@@ -359,6 +478,11 @@ TEST_F(SessionStoreTest, test_update_session_rules)
 
   auto uc = get_default_update_criteria();
   uc.static_rules_to_install.insert("RULE_asdf");
+  RuleLifetime lifetime{
+    .activation_time = std::time_t(0),
+    .deactivation_time = std::time_t(0),
+  };
+  uc.new_rule_lifetimes["RULE_asdf"] = lifetime;
   session_update[imsi][sid] = uc;
 
   auto update_success = session_store->update_sessions(session_update);

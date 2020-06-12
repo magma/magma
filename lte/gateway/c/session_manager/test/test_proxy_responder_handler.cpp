@@ -57,12 +57,13 @@ class SessionProxyResponderHandlerTest : public ::testing::Test {
     session_store          = std::make_shared<SessionStore>(rule_store);
     pipelined_client       = std::make_shared<MockPipelinedClient>();
     auto directoryd_client = std::make_shared<MockDirectorydClient>();
-    auto eventd_client     = std::make_shared<MockEventdClient>();
     auto spgw_client       = std::make_shared<MockSpgwServiceClient>();
     auto aaa_client        = std::make_shared<MockAAAClient>();
+    auto default_mconfig = get_default_mconfig();
     local_enforcer         = std::make_shared<LocalEnforcer>(
         reporter, rule_store, *session_store, pipelined_client,
-        directoryd_client, eventd_client, spgw_client, aaa_client, 0, 0);
+        directoryd_client, MockEventdClient::getInstance(), spgw_client, aaa_client,
+        0, 0, default_mconfig);
     session_map = SessionMap{};
 
     proxy_responder = std::make_shared<SessionProxyResponderHandlerImpl>(
@@ -172,9 +173,13 @@ TEST_F(SessionProxyResponderHandlerTest, test_policy_reauth) {
   // 2) Create bare-bones session for IMSI1
   auto uc      = get_default_update_criteria();
   auto session = get_session(sid, rule_store);
-  session->activate_static_rule(rule_id_3, uc);
+  RuleLifetime lifetime{
+    .activation_time = std::time_t(0),
+    .deactivation_time = std::time_t(0),
+  };
+  session->activate_static_rule(rule_id_3, lifetime, uc);
   EXPECT_EQ(session->get_session_id(), sid);
-  EXPECT_EQ(session->get_request_number(), 2);
+  EXPECT_EQ(session->get_request_number(), 1);
   EXPECT_EQ(session->is_static_rule_installed(rule_id_3), true);
 
   auto credit_update                               = get_monitoring_update();
@@ -202,7 +207,7 @@ TEST_F(SessionProxyResponderHandlerTest, test_policy_reauth) {
   auto session_map = session_store->read_sessions(read_req);
   EXPECT_EQ(session_map.size(), 1);
   EXPECT_EQ(session_map[imsi].size(), 1);
-  EXPECT_EQ(session_map[imsi].front()->get_request_number(), 2);
+  EXPECT_EQ(session_map[imsi].front()->get_request_number(), 1);
   EXPECT_EQ(
       session_map[imsi].front()->is_static_rule_installed("static_1"), false);
 
@@ -223,7 +228,7 @@ TEST_F(SessionProxyResponderHandlerTest, test_policy_reauth) {
   session_map = session_store->read_sessions(read_req);
   EXPECT_EQ(session_map.size(), 1);
   EXPECT_EQ(session_map[imsi].size(), 1);
-  EXPECT_EQ(session_map[imsi].front()->get_request_number(), 2);
+  EXPECT_EQ(session_map[imsi].front()->get_request_number(), 1);
   EXPECT_EQ(
       session_map[imsi].front()->is_static_rule_installed("static_1"), true);
 }

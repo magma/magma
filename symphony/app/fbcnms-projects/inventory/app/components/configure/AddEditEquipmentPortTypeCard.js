@@ -38,6 +38,7 @@ import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import update from 'immutability-helper';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {ConnectionHandler} from 'relay-runtime';
+import {FormContextProvider} from '../../common/FormContext';
 import {createFragmentContainer, graphql} from 'react-relay';
 import {getGraphError} from '../../common/EntUtils';
 import {getPropertyDefaultValue} from '../../common/PropertyType';
@@ -111,8 +112,14 @@ class AddEditEquipmentPortTypeCard extends React.Component<Props, State> {
     const linkPropertyTypes = editingEquipmentPortType.linkPropertyTypes
       .slice()
       .sort(sortByIndex);
+
+    const isOnEdit = !!this.props.editingEquipmentPortType;
     return (
-      <>
+      <FormContextProvider
+        permissions={{
+          entity: 'portType',
+          action: isOnEdit ? 'update' : 'create',
+        }}>
         <div className={classes.cards}>
           <SectionedCard>
             <div className={classes.header}>
@@ -179,7 +186,7 @@ class AddEditEquipmentPortTypeCard extends React.Component<Props, State> {
             Save
           </Button>
         </PageFooter>
-      </>
+      </FormContextProvider>
     );
   }
 

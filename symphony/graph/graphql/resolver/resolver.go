@@ -8,9 +8,10 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/event"
+	"github.com/facebookincubator/symphony/pkg/pubsub"
+
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
+	"github.com/facebookincubator/symphony/pkg/ent"
 	"github.com/facebookincubator/symphony/pkg/log"
 )
 
@@ -19,7 +20,7 @@ type (
 	Config struct {
 		Client     *ent.Client
 		Logger     log.Logger
-		Subscriber event.Subscriber
+		Subscriber pubsub.Subscriber
 	}
 
 	// Option allows for managing resolver configuration using functional options.
@@ -27,7 +28,7 @@ type (
 
 	resolver struct {
 		logger   log.Logger
-		event    struct{ event.Subscriber }
+		event    struct{ pubsub.Subscriber }
 		mutation struct{ transactional bool }
 		orc8r    struct{ client *http.Client }
 	}
@@ -206,6 +207,10 @@ func (resolver) CheckListItem() generated.CheckListItemResolver {
 	return checkListItemResolver{}
 }
 
+func (resolver) CheckListCategoryDefinition() generated.CheckListCategoryDefinitionResolver {
+	return checkListCategoryDefinitionResolver{}
+}
+
 func (resolver) CheckListItemDefinition() generated.CheckListItemDefinitionResolver {
 	return checkListItemDefinitionResolver{}
 }
@@ -244,4 +249,8 @@ func (r resolver) ServiceEndpointDefinition() generated.ServiceEndpointDefinitio
 
 func (r resolver) PermissionsPolicy() generated.PermissionsPolicyResolver {
 	return permissionsPolicyResolver{}
+}
+
+func (r resolver) Activity() generated.ActivityResolver {
+	return activityResolver{}
 }

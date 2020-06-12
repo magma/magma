@@ -10,9 +10,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/pkg/ent"
 )
 
 // txResolver wraps a mutation resolver and executes every mutation under a transaction.
@@ -91,20 +91,6 @@ func (tr txResolver) UpdateUserGroups(ctx context.Context, input models.UpdateUs
 	var result, zero *ent.User
 	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr generated.MutationResolver) (err error) {
 		result, err = mr.UpdateUserGroups(ctx, input)
-		return
-	}); err != nil {
-		return zero, err
-	}
-	if result != nil {
-		result = result.Unwrap()
-	}
-	return result, nil
-}
-
-func (tr txResolver) UpdateUsersGroupMembers(ctx context.Context, input models.UpdateUsersGroupMembersInput) (*ent.UsersGroup, error) {
-	var result, zero *ent.UsersGroup
-	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr generated.MutationResolver) (err error) {
-		result, err = mr.UpdateUsersGroupMembers(ctx, input)
 		return
 	}); err != nil {
 		return zero, err
@@ -759,20 +745,6 @@ func (tr txResolver) EditLocationTypesIndex(ctx context.Context, locationTypesIn
 	return result, nil
 }
 
-func (tr txResolver) AddTechnician(ctx context.Context, input models.TechnicianInput) (*ent.Technician, error) {
-	var result, zero *ent.Technician
-	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr generated.MutationResolver) (err error) {
-		result, err = mr.AddTechnician(ctx, input)
-		return
-	}); err != nil {
-		return zero, err
-	}
-	if result != nil {
-		result = result.Unwrap()
-	}
-	return result, nil
-}
-
 func (tr txResolver) AddWorkOrder(ctx context.Context, input models.AddWorkOrderInput) (*ent.WorkOrder, error) {
 	var result, zero *ent.WorkOrder
 	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr generated.MutationResolver) (err error) {
@@ -1091,16 +1063,13 @@ func (tr txResolver) EditPermissionsPolicy(ctx context.Context, input models.Edi
 	return result, nil
 }
 
-func (tr txResolver) UpdateGroupsInPermissionsPolicy(ctx context.Context, input models.UpdateGroupsInPermissionsPolicyInput) (*ent.PermissionsPolicy, error) {
-	var result, zero *ent.PermissionsPolicy
+func (tr txResolver) DeletePermissionsPolicy(ctx context.Context, id int) (bool, error) {
+	var result, zero bool
 	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr generated.MutationResolver) (err error) {
-		result, err = mr.UpdateGroupsInPermissionsPolicy(ctx, input)
+		result, err = mr.DeletePermissionsPolicy(ctx, id)
 		return
 	}); err != nil {
 		return zero, err
-	}
-	if result != nil {
-		result = result.Unwrap()
 	}
 	return result, nil
 }

@@ -11,16 +11,16 @@ import (
 	"github.com/facebookincubator/ent/dialect"
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/schema"
-	entmigrate "github.com/facebookincubator/symphony/graph/ent/migrate"
 	"github.com/facebookincubator/symphony/graph/graphgrpc"
 	"github.com/facebookincubator/symphony/graph/migrate"
+	entmigrate "github.com/facebookincubator/symphony/pkg/ent/migrate"
 	"github.com/facebookincubator/symphony/pkg/log"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang/protobuf/ptypes/empty"
 	"go.uber.org/zap"
 	"gopkg.in/alecthomas/kingpin.v2"
 
-	_ "github.com/facebookincubator/symphony/graph/ent/runtime"
+	_ "github.com/facebookincubator/symphony/pkg/ent/runtime"
 )
 
 func main() {
@@ -35,7 +35,7 @@ func main() {
 	logcfg := log.AddFlags(kingpin.CommandLine)
 	kingpin.Parse()
 
-	logger, _, _ := log.Provider(*logcfg)
+	logger, _, _ := log.ProvideLogger(*logcfg)
 	driver, err := sql.Open(*drv, *dsn)
 	if err != nil {
 		logger.Background().Fatal("opening database", zap.Error(err))

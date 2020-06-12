@@ -49,10 +49,7 @@ const WorkOrdersView = (props: Props) => {
           title: 'Name',
           getSortingValue: row => row.name,
           render: row => (
-            <Button
-              variant="text"
-              useEllipsis={true}
-              onClick={() => onWorkOrderSelected(row.id)}>
+            <Button variant="text" onClick={() => onWorkOrderSelected(row.id)}>
               {row.name}
             </Button>
           ),
@@ -110,7 +107,11 @@ const WorkOrdersView = (props: Props) => {
           getSortingValue: row => row.location?.name,
           render: row =>
             row.location ? (
-              <LocationLink title={row.location.name} id={row.location.id} />
+              <LocationLink
+                title={row.location.name}
+                id={row.location.id}
+                newTab={true}
+              />
             ) : null,
         },
         {

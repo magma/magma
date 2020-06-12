@@ -18,23 +18,39 @@ import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {createFragmentContainer, graphql} from 'react-relay';
 import {withRouter} from 'react-router-dom';
 
+export const NAVIGATION_OPTIONS = {
+  NEW_TAB: 'NEW_TAB',
+  SAME_TAB: 'SAME_TAB',
+  NONE: 'NONE',
+};
+
+type NavigationOption = $Keys<typeof NAVIGATION_OPTIONS>;
+
 type Props = ContextRouter & {
   locationDetails: Location,
   hideTypes: boolean,
-  navigateOnClick?: boolean,
+  navigateOnClick?: ?NavigationOption,
   size?: 'default' | 'small' | 'large',
 };
 
 const LocationBreadcrumbsTitle = (props: Props) => {
-  const {locationDetails, hideTypes, size, navigateOnClick = true} = props;
+  const {
+    locationDetails,
+    hideTypes,
+    size,
+    navigateOnClick = NAVIGATION_OPTIONS.SAME_TAB,
+  } = props;
 
   const navigateToLocation = React.useCallback(
     (selectedLocationId: string) => {
       ServerLogger.info(LogEvents.NAVIGATE_TO_LOCATION, {
         locationId: selectedLocationId,
       });
-
-      props.history.push(InventoryAPIUrls.location(selectedLocationId));
+      if (navigateOnClick == NAVIGATION_OPTIONS.SAME_TAB) {
+        props.history.push(InventoryAPIUrls.location(selectedLocationId));
+      } else if (navigateOnClick == NAVIGATION_OPTIONS.NEW_TAB) {
+        window.open(InventoryAPIUrls.location(selectedLocationId));
+      }
     },
     [props.history],
   );
@@ -44,7 +60,7 @@ const LocationBreadcrumbsTitle = (props: Props) => {
       ServerLogger.info(LogEvents.LOCATION_CARD_BREADCRUMB_CLICKED, {
         locationId: id,
       });
-      if (id && navigateOnClick) {
+      if (id && navigateOnClick != NAVIGATION_OPTIONS.NONE) {
         navigateToLocation(id);
       }
     },

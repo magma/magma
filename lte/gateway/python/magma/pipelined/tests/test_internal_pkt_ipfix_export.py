@@ -14,6 +14,7 @@ import warnings
 
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
 from lte.protos.policydb_pb2 import FlowMatch
+from lte.protos.pipelined_pb2 import FlowRequest
 from magma.pipelined.app.dpi import DPIController
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.tests.app.start_pipelined import PipelinedController, \
@@ -69,6 +70,7 @@ class InternalPktIpfixExportTest(unittest.TestCase):
             config={
                 'bridge_name': cls.BRIDGE,
                 'bridge_ip_address': '192.168.128.1',
+                'internal_ip_subnet': '192.168.0.0/16',
                 'nat_iface': 'eth2',
                 'enodeb_iface': 'eth1',
                 'enable_queue_pgm': False,
@@ -122,7 +124,8 @@ class InternalPktIpfixExportTest(unittest.TestCase):
             direction=FlowMatch.UPLINK
         )
         self.dpi_controller.add_classify_flow(
-            flow_match, 'base.ip.http.facebook', 'tbd', ue_mac, dst_mac)
+            flow_match, FlowRequest.FLOW_FINAL_CLASSIFICATION,
+            'base.ip.http.facebook', 'tbd', ue_mac, dst_mac)
 
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager)

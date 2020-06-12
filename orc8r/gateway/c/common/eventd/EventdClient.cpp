@@ -16,28 +16,32 @@
 #include "GRPCReceiver.h"
 #include "ServiceRegistrySingleton.h"
 
-using grpc::Status;
 using grpc::ClientContext;
+using grpc::Status;
+using magma::orc8r::Event;
+using magma::orc8r::EventService;
+using magma::orc8r::Void;
 
 namespace magma {
 
-AsyncEventdClient::AsyncEventdClient(std::shared_ptr<grpc::Channel> channel):
-    stub_(EventService::NewStub(channel)) {
+AsyncEventdClient& AsyncEventdClient::getInstance() {
+  static AsyncEventdClient instance;
+  return instance;
 }
 
-AsyncEventdClient::AsyncEventdClient():
-  AsyncEventdClient(ServiceRegistrySingleton::Instance()->GetGrpcChannel(
-    "eventd",
-    ServiceRegistrySingleton::LOCAL)) {
+AsyncEventdClient::AsyncEventdClient() {
+  std::shared_ptr<Channel> channel;
+  channel = ServiceRegistrySingleton::Instance()->GetGrpcChannel(
+          "eventd", ServiceRegistrySingleton::LOCAL);
+  stub_ = EventService::NewStub(channel);
 }
 
 void AsyncEventdClient::log_event(
-    const Event& request,
-    std::function<void(Status status, Void)> callback) {
+    const Event& request, std::function<void(Status status, Void)> callback) {
   auto local_response =
-    new AsyncLocalResponse<Void>(std::move(callback), RESPONSE_TIMEOUT);
+      new AsyncLocalResponse<Void>(std::move(callback), RESPONSE_TIMEOUT);
   local_response->set_response_reader(std::move(
-        stub_->AsyncLogEvent(local_response->get_context(), request, &queue_)));
+      stub_->AsyncLogEvent(local_response->get_context(), request, &queue_)));
 }
 
 }  // namespace magma

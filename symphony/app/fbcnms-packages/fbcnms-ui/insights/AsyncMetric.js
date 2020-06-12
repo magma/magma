@@ -20,13 +20,40 @@ import {useEffect, useMemo, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 
+type AxesOptions = {
+  gridLines: {
+    drawBorder?: boolean,
+    display?: boolean,
+  },
+  ticks: {
+    maxTicksLimit: number,
+  },
+};
+
+export type ChartStyle = {
+  options: {
+    xAxes: AxesOptions,
+    yAxes: AxesOptions,
+  },
+  data: {
+    lineTension: number,
+    pointRadius: number,
+  },
+  legend: {
+    position: string,
+    align: string,
+  },
+};
+
 type Props = {
   label: string,
   unit: string,
   queries: Array<string>,
   legendLabels?: Array<string>,
   timeRange: TimeRange,
+  startEnd?: [moment, moment],
   networkId?: string,
+  style?: ChartStyle,
 };
 
 const useStyles = makeStyles(() => ({
@@ -176,15 +203,56 @@ function getUnit(timeRange: TimeRange) {
   return RANGE_VALUES[timeRange].unit;
 }
 
+function getStepUnit(startEnd: [moment, moment]): [string, string] {
+  const [start, end] = startEnd;
+  const d = moment.duration(end.diff(start));
+  const hrs = d.asHours();
+  const days = d.asDays();
+  let r: RangeValue;
+  if (hrs <= 24) {
+    if (hrs <= 3) {
+      r = RANGE_VALUES['3_hours'];
+    } else if (hrs <= 6) {
+      r = RANGE_VALUES['6_hours'];
+    } else if (hrs <= 12) {
+      r = RANGE_VALUES['12_hours'];
+    } else {
+      r = RANGE_VALUES['24_hours'];
+    }
+  } else {
+    if (days <= 7) {
+      r = RANGE_VALUES['7_days'];
+    } else if (days <= 14) {
+      r = RANGE_VALUES['14_days'];
+    } else {
+      r = RANGE_VALUES['30_days'];
+    }
+  }
+  return [r.step, r.unit];
+}
+
 function getColorForIndex(index: number) {
   return COLORS[index % COLORS.length];
 }
 
 function useDatasetsFetcher(props: Props) {
   const {match} = useRouter();
-  const startEnd = useMemo(() => getStartEnd(props.timeRange), [
-    props.timeRange,
-  ]);
+  const startEnd = useMemo(() => {
+    if (props.startEnd) {
+      const [start, end] = props.startEnd;
+      const [step] = getStepUnit(props.startEnd);
+      return {
+        start: start.toISOString(),
+        startUnix: start.unix() * 1000,
+        end: end.toISOString(),
+        endUnix: end.unix() * 1000,
+        step,
+      };
+    } else {
+      return getStartEnd(props.timeRange);
+    }
+  }, [props.timeRange, props.startEnd]);
+
   const [allDatasets, setAllDatasets] = useState<?Array<Dataset>>(null);
   const enqueueSnackbar = useEnqueueSnackbar();
   const stringedQueries = JSON.stringify(props.queries);
@@ -196,6 +264,7 @@ function useDatasetsFetcher(props: Props) {
       const queries = props.queries;
       const requests = queries.map(async (query, index) => {
         try {
+          // eslint-disable-next-line max-len
           const response = await MagmaV1API.getNetworksByNetworkIdPrometheusQueryRange(
             {
               networkId: props.networkId || match.params.networkId,
@@ -218,6 +287,7 @@ function useDatasetsFetcher(props: Props) {
       Promise.all(requests).then(allResponses => {
         let index = 0;
         const datasets = [];
+        const {style} = props;
         allResponses.filter(Boolean).forEach(r => {
           const response = r.response;
           const label = r.label;
@@ -229,9 +299,9 @@ function useDatasetsFetcher(props: Props) {
                 label: label || dbHelper.getLegendLabel(it, tagSets),
                 unit: props.unit || '',
                 fill: false,
-                lineTension: 0,
+                lineTension: style ? style.data.lineTension : 0,
                 pointHitRadius: 10,
-                pointRadius: 0,
+                pointRadius: style ? style.data.pointRadius : 0,
                 borderWidth: 2,
                 backgroundColor: getColorForIndex(index),
                 borderColor: getColorForIndex(index++),
@@ -282,7 +352,14 @@ export default function AsyncMetric(props: Props) {
   if (!allDatasets || allDatasets?.length === 0) {
     return <Text variant="body2">No Data</Text>;
   }
-
+  const {style} = props;
+  const {startEnd} = props;
+  let unit: string;
+  if (startEnd) {
+    [, unit] = getStepUnit(startEnd);
+  } else {
+    unit = getUnit(props.timeRange);
+  }
   return (
     <Line
       options={{
@@ -291,9 +368,11 @@ export default function AsyncMetric(props: Props) {
         scales: {
           xAxes: [
             {
+              gridLines: style ? style.options.xAxes.gridLines : {},
+              ticks: style ? style.options.xAxes.ticks : {},
               type: 'time',
               time: {
-                unit: getUnit(props.timeRange),
+                unit,
                 round: 'second',
                 tooltipFormat: ' YYYY/MM/DD h:mm:ss a',
               },
@@ -305,6 +384,8 @@ export default function AsyncMetric(props: Props) {
           ],
           yAxes: [
             {
+              gridLines: style ? style.options.yAxes.gridLines : {},
+              ticks: style ? style.options.yAxes.ticks : {},
               position: 'left',
               scaleLabel: {
                 display: true,
@@ -328,7 +409,8 @@ export default function AsyncMetric(props: Props) {
       }}
       legend={{
         display: allDatasets.length < 5,
-        position: 'bottom',
+        position: style ? style.legend.position : 'bottom',
+        align: style ? style.legend.align : 'center',
         labels: {
           boxWidth: 12,
         },

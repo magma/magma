@@ -7,40 +7,31 @@
  * @flow
  * @format
  */
-import type {ContextRouter} from 'react-router-dom';
+
 import type {
-  EditLocationTypesIndexMutationResponse,
-  EditLocationTypesIndexMutationVariables,
-} from '../../mutations/__generated__/EditLocationTypesIndexMutation.graphql';
-import type {LocationTypeItem_locationType} from './__generated__/LocationTypeItem_locationType.graphql';
-import type {MutationCallbacks} from '../../mutations/MutationCallbacks.js';
-import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
-import type {WithSnackbarProps} from 'notistack';
-import type {WithStyles} from '@material-ui/core';
+  LocationTypesQuery,
+  LocationTypesQueryResponse,
+} from './__generated__/LocationTypesQuery.graphql';
 
 import AddEditLocationTypeCard from './AddEditLocationTypeCard';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import ConfigueTitle from '@fbcnms/ui/components/ConfigureTitle';
 import DroppableTableBody from '../draggable/DroppableTableBody';
-import EditLocationTypesIndexMutation from '../../mutations/EditLocationTypesIndexMutation';
-import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
-import InventoryQueryRenderer from '../InventoryQueryRenderer';
+import FormActionWithPermissions from '../../common/FormActionWithPermissions';
 import LocationTypeItem from './LocationTypeItem';
-import React from 'react';
+import React, {useState} from 'react';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
-import withAlert from '@fbcnms/ui/components/Alert/withAlert';
-import withInventoryErrorBoundary from '../../common/withInventoryErrorBoundary';
 import {FormContextProvider} from '../../common/FormContext';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
-import {getGraphError} from '../../common/EntUtils';
 import {graphql} from 'relay-runtime';
+import {makeStyles} from '@material-ui/styles';
 import {reorder, sortByIndex} from '../draggable/DraggableUtils';
-import {withRouter} from 'react-router-dom';
-import {withSnackbar} from 'notistack';
-import {withStyles} from '@material-ui/core/styles';
+import {saveLocationTypeIndexes} from '../../mutations/EditLocationTypesIndexMutation';
+import {useEnqueueSnackbar} from '@fbcnms/alarms/hooks/useSnackbar';
+import {useLazyLoadQuery} from 'react-relay/hooks';
 
-const styles = theme => ({
+const useStyles = makeStyles(theme => ({
   header: {
     margin: '10px',
     display: 'flex',
@@ -87,20 +78,22 @@ const styles = theme => ({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-});
+}));
 
-type Props = ContextRouter &
-  WithStyles<typeof styles> &
-  WithSnackbarProps &
-  WithAlert & {};
-
-type State = {
-  dialogKey: number,
-  errorMessage: ?string,
-  showAddEditCard: boolean,
-  editingLocationType: ?LocationTypeItem_locationType,
-  isSaving: boolean,
-};
+type ResponseLocationType = $NonMaybeType<
+  $ElementType<
+    $ElementType<
+      $ElementType<
+        $NonMaybeType<
+          $ElementType<LocationTypesQueryResponse, 'locationTypes'>,
+        >,
+        'edges',
+      >,
+      number,
+    >,
+    'node',
+  >,
+>;
 
 const locationTypesQuery = graphql`
   query LocationTypesQuery {
@@ -118,179 +111,145 @@ const locationTypesQuery = graphql`
   }
 `;
 
-class LocationTypes extends React.Component<Props, State> {
-  state = {
-    dialogKey: 1,
-    errorMessage: null,
-    showAddEditCard: false,
-    editingLocationType: null,
-    isSaving: false,
+const LocationTypes = () => {
+  const classes = useStyles();
+  const {
+    locationTypes,
+  }: LocationTypesQueryResponse = useLazyLoadQuery<LocationTypesQuery>(
+    locationTypesQuery,
+  );
+
+  const locationTypesData: Array<ResponseLocationType> =
+    locationTypes?.edges.map(edge => edge.node).filter(Boolean) ?? [];
+
+  const [
+    editingLocationType,
+    setEditingLocationType,
+  ] = useState<?ResponseLocationType>(null);
+  const [showAddEditCard, setShowAddEditCard] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const enqueueSnackbar = useEnqueueSnackbar();
+
+  const showAddEditLocationTypeCard = (locType: ?ResponseLocationType) => {
+    ServerLogger.info(LogEvents.ADD_LOCATION_TYPE_BUTTON_CLICKED);
+    setEditingLocationType(locType);
+    setShowAddEditCard(true);
   };
 
-  render() {
-    const {classes} = this.props;
-    const {showAddEditCard, editingLocationType} = this.state;
+  const hideNewLocationTypeCard = () => {
+    setEditingLocationType(null);
+    setShowAddEditCard(false);
+  };
 
+  const saveLocation = () => {
+    ServerLogger.info(LogEvents.SAVE_LOCATION_TYPE_BUTTON_CLICKED);
+    setEditingLocationType(null);
+    setShowAddEditCard(false);
+  };
+
+  if (showAddEditCard) {
     return (
-      <InventoryQueryRenderer
-        query={locationTypesQuery}
-        variables={{}}
-        render={props => {
-          const {locationTypes} = props;
-          if (showAddEditCard) {
-            return (
-              <div className={classes.paper}>
-                <AddEditLocationTypeCard
-                  key={'new_location_type@' + this.state.dialogKey}
-                  open={showAddEditCard}
-                  onClose={this.hideAddEditLocationTypeCard}
-                  onSave={this.saveLocation}
-                  editingLocationType={editingLocationType}
-                />
-              </div>
-            );
-          }
-          return (
-            <FormContextProvider>
-              <div className={classes.typesList}>
-                <div className={classes.firstRow}>
-                  <ConfigueTitle
-                    className={classes.title}
-                    title={'Location Types'}
-                    subtitle={
-                      'Drag and drop location types to arrange them by size, from largest to smallest'
-                    }
-                  />
-                  <div className={classes.addButtonContainer}>
-                    {this.state.isSaving ? (
-                      <CircularProgress className={classes.progress} />
-                    ) : null}
-                    <FormAction>
-                      <Button
-                        className={classes.addButton}
-                        onClick={() => this.showAddEditLocationTypeCard(null)}>
-                        Add Location Type
-                      </Button>
-                    </FormAction>
-                  </div>
-                </div>
-                <div className={classes.root}>
-                  <DroppableTableBody
-                    isDragDisabled={this.state.isSaving}
-                    className={classes.table}
-                    onDragEnd={res => this._onDragEnd(res, locationTypes)}>
-                    {locationTypes.edges
-                      .map(edge => edge.node)
-                      .sort(sortByIndex)
-                      .map((locType, i) => {
-                        return (
-                          <div
-                            className={classes.listItem}
-                            key={`${locType.id}_${locType.index}`}>
-                            <LocationTypeItem
-                              locationType={locType}
-                              position={i}
-                              onEdit={() =>
-                                this.showAddEditLocationTypeCard(locType)
-                              }
-                            />
-                          </div>
-                        );
-                      })}
-                  </DroppableTableBody>
-                </div>
-              </div>
-            </FormContextProvider>
-          );
-        }}
-      />
+      <div className={classes.paper}>
+        <AddEditLocationTypeCard
+          open={showAddEditCard}
+          onClose={hideNewLocationTypeCard}
+          onSave={saveLocation}
+          editingLocationType={editingLocationType}
+        />
+      </div>
     );
   }
 
-  _onDragEnd = (result, locationTypes) => {
-    if (!result.destination) {
+  const buildMutationVariables = (newItems: Array<ResponseLocationType>) => {
+    return newItems
+      .map(item => {
+        if (item.index == null) {
+          return null;
+        }
+        return {
+          locationTypeID: item.id,
+          index: item.index,
+        };
+      })
+      .filter(Boolean);
+  };
+
+  const saveOrder = newItems => {
+    setIsSaving(true);
+    saveLocationTypeIndexes(buildMutationVariables(newItems))
+      .catch((errorMessage: string) =>
+        enqueueSnackbar(errorMessage, {
+          children: (key: string) => (
+            <SnackbarItem id={key} message={errorMessage} variant="error" />
+          ),
+        }),
+      )
+      .finally(() => setIsSaving(false));
+  };
+
+  const onDragEnd = ({source, destination}) => {
+    if (destination == null) {
       return;
     }
-    locationTypes = locationTypes.edges
-      .map(edge => edge.node)
-      .sort(sortByIndex);
 
     ServerLogger.info(LogEvents.LOCATION_TYPE_REORDERED);
-    const items = reorder(
-      locationTypes,
-      result.source.index,
-      result.destination.index,
-    );
-    const newItems = items.map((locTyp, i) => ({...locTyp, index: i}));
-    this.saveOrder(newItems);
-  };
-
-  saveOrder = newItems => {
-    const variables: EditLocationTypesIndexMutationVariables = {
-      locationTypeIndex: this.buildMutationVariables(newItems),
-    };
-    this.setState({isSaving: true});
-    // eslint-disable-next-line max-len
-    const callbacks: MutationCallbacks<EditLocationTypesIndexMutationResponse> = {
-      onCompleted: (response, errors) => {
-        this.setState({isSaving: false});
-        if (errors && errors[0]) {
-          this.props.enqueueSnackbar(errors[0].message, {
-            children: key => (
-              <SnackbarItem
-                id={key}
-                message={errors[0].message}
-                variant="error"
-              />
-            ),
-          });
-        } else {
-          this.setState({isSaving: false});
-        }
-      },
-      onError: (error: Error) => {
-        this.setState({errorMessage: getGraphError(error), isSaving: false});
-      },
-    };
-    EditLocationTypesIndexMutation(variables, callbacks);
-  };
-
-  showAddEditLocationTypeCard = (locType: ?LocationTypeItem_locationType) => {
-    ServerLogger.info(LogEvents.ADD_LOCATION_TYPE_BUTTON_CLICKED);
-    this.setState({editingLocationType: locType, showAddEditCard: true});
-  };
-
-  hideAddEditLocationTypeCard = () =>
-    this.setState(prevState => ({
-      editingLocationType: null,
-      showAddEditCard: false,
-      dialogKey: prevState.dialogKey + 1,
+    const items = reorder(locationTypesData, source.index, destination.index);
+    const newItems = items.map((locTyp: ResponseLocationType, i) => ({
+      ...locTyp,
+      index: i,
     }));
-
-  saveLocation = (locationType: LocationTypeItem_locationType) => {
-    ServerLogger.info(LogEvents.SAVE_LOCATION_TYPE_BUTTON_CLICKED);
-    this.setState(prevState => {
-      if (locationType) {
-        return {
-          dialogKey: prevState.dialogKey + 1,
-          showAddEditCard: false,
-        };
-      }
-    });
+    saveOrder(newItems);
   };
 
-  buildMutationVariables = newItems => {
-    return newItems.map(item => {
-      return {
-        locationTypeID: item.id,
-        index: item.index,
-      };
-    });
-  };
-}
+  return (
+    <FormContextProvider
+      permissions={{
+        entity: 'locationType',
+      }}>
+      <div className={classes.typesList}>
+        <div className={classes.firstRow}>
+          <ConfigueTitle
+            className={classes.title}
+            title={'Location Types'}
+            subtitle={
+              'Drag and drop location types to arrange them by size, from largest to smallest'
+            }
+          />
+          <div className={classes.addButtonContainer}>
+            {isSaving ? (
+              <CircularProgress className={classes.progress} />
+            ) : null}
+            <FormActionWithPermissions
+              permissions={{entity: 'locationType', action: 'create'}}>
+              <Button
+                className={classes.addButton}
+                onClick={() => showAddEditLocationTypeCard(null)}>
+                Add Location Type
+              </Button>
+            </FormActionWithPermissions>
+          </div>
+        </div>
+        <div className={classes.root}>
+          <DroppableTableBody
+            isDragDisabled={isSaving}
+            className={classes.table}
+            onDragEnd={onDragEnd}>
+            {locationTypesData.sort(sortByIndex).map((locType, i) => {
+              return (
+                <div className={classes.listItem} key={`${locType.id}_${i}`}>
+                  <LocationTypeItem
+                    locationType={locType}
+                    position={i}
+                    onEdit={() => showAddEditLocationTypeCard(locType)}
+                  />
+                </div>
+              );
+            })}
+          </DroppableTableBody>
+        </div>
+      </div>
+    </FormContextProvider>
+  );
+};
 
-export default withStyles(styles)(
-  withAlert(
-    withSnackbar(withRouter(withInventoryErrorBoundary(LocationTypes))),
-  ),
-);
+export default LocationTypes;

@@ -31,10 +31,14 @@ func main() {
 		glog.Fatalf("Error creating Swx Proxy service: %s", err)
 	}
 
-	servicer, err := servicers.NewSwxProxy(servicers.GetSwxProxyConfig())
+	// Create servicers
+	servicer, err := servicers.NewSwxProxiesWithHealthAndDefaultMultiplexor(
+		servicers.GetSwxProxyConfig())
 	if err != nil {
 		glog.Fatalf("Failed to create SwxProxy: %v", err)
 	}
+
+	// Register services
 	protos.RegisterSwxProxyServer(srv.GrpcServer, servicer)
 	protos.RegisterServiceHealthServer(srv.GrpcServer, servicer)
 

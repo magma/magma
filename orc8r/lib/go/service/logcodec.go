@@ -11,8 +11,8 @@ package service
 import (
 	"bytes"
 	"fmt"
-	"log"
 
+	"github.com/golang/glog"
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/proto"
 	"google.golang.org/grpc/encoding"
@@ -38,7 +38,7 @@ func printMessage(prefix string, v interface{}) {
 	} else {
 		payload = fmt.Sprintf("\n\t %T is not proto.Message; %+v", v, v)
 	}
-	log.Printf("%s%T: %s", prefix, v, payload)
+	glog.Infof("%s%T: %s", prefix, v, payload)
 }
 
 // Marshal of GRPC Codec interface

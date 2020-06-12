@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 3bca0a33295020ff7587d39b593251ae
+ * @relayHash 557bdf091692bd9f31d232162e911b03
  */
 
 /* eslint-disable */
@@ -25,6 +25,10 @@ export type PowerSearchLocationFilterQueryResponse = {|
       +node: ?{|
         +id: string,
         +name: string,
+        +parentLocation: ?{|
+          +id: string,
+          +name: string,
+        |},
       |}
     |}>
   |}
@@ -46,6 +50,10 @@ query PowerSearchLocationFilterQuery(
       node {
         id
         name
+        parentLocation {
+          id
+          name
+        }
       }
     }
   }
@@ -67,7 +75,21 @@ var v0 = [
     "defaultValue": null
   }
 ],
-v1 = [
+v1 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "id",
+  "args": null,
+  "storageKey": null
+},
+v2 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "name",
+  "args": null,
+  "storageKey": null
+},
+v3 = [
   {
     "kind": "LinkedField",
     "alias": null,
@@ -111,19 +133,20 @@ v1 = [
             "concreteType": "Location",
             "plural": false,
             "selections": [
+              (v1/*: any*/),
+              (v2/*: any*/),
               {
-                "kind": "ScalarField",
+                "kind": "LinkedField",
                 "alias": null,
-                "name": "id",
+                "name": "parentLocation",
+                "storageKey": null,
                 "args": null,
-                "storageKey": null
-              },
-              {
-                "kind": "ScalarField",
-                "alias": null,
-                "name": "name",
-                "args": null,
-                "storageKey": null
+                "concreteType": "Location",
+                "plural": false,
+                "selections": [
+                  (v1/*: any*/),
+                  (v2/*: any*/)
+                ]
               }
             ]
           }
@@ -140,23 +163,23 @@ return {
     "type": "Query",
     "metadata": null,
     "argumentDefinitions": (v0/*: any*/),
-    "selections": (v1/*: any*/)
+    "selections": (v3/*: any*/)
   },
   "operation": {
     "kind": "Operation",
     "name": "PowerSearchLocationFilterQuery",
     "argumentDefinitions": (v0/*: any*/),
-    "selections": (v1/*: any*/)
+    "selections": (v3/*: any*/)
   },
   "params": {
     "operationKind": "query",
     "name": "PowerSearchLocationFilterQuery",
     "id": null,
-    "text": "query PowerSearchLocationFilterQuery(\n  $name: String!\n  $types: [ID!]\n) {\n  locations(name: $name, first: 10, types: $types) {\n    edges {\n      node {\n        id\n        name\n      }\n    }\n  }\n}\n",
+    "text": "query PowerSearchLocationFilterQuery(\n  $name: String!\n  $types: [ID!]\n) {\n  locations(name: $name, first: 10, types: $types) {\n    edges {\n      node {\n        id\n        name\n        parentLocation {\n          id\n          name\n        }\n      }\n    }\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'c2aaf778bfd1a263c4290d97b0253930';
+(node/*: any*/).hash = '4361823ce4f9bdf393a3e64e6060a46d';
 module.exports = node;

@@ -21,13 +21,14 @@ import PolicyGroupListItem from './PolicyGroupListItem';
 type Props = $ReadOnly<{|
   groups: $ReadOnlyArray<UserPermissionsGroup>,
   policy?: ?PermissionsPolicy,
+  onChange: PermissionsPolicy => void,
   emptyState?: ?React.Node,
   className?: ?string,
   ...AssigenmentButtonProp,
 |}>;
 
 export default function PolicyGroupsList(props: Props) {
-  const {groups, policy, assigmentButton, ...rest} = props;
+  const {groups, policy, onChange, assigmentButton, ...rest} = props;
 
   return (
     <List items={groups} {...rest}>
@@ -36,6 +37,7 @@ export default function PolicyGroupsList(props: Props) {
           group={group}
           assigmentButton={assigmentButton}
           policy={policy}
+          onChange={onChange}
         />
       )}
     </List>

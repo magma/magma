@@ -16,6 +16,7 @@ import (
 	"magma/orc8r/cloud/go/services/directoryd"
 	"magma/orc8r/cloud/go/services/directoryd/servicers"
 	"magma/orc8r/cloud/go/services/directoryd/storage"
+	indexer_protos "magma/orc8r/cloud/go/services/state/protos"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/test_utils"
 	"magma/orc8r/lib/go/protos"
@@ -30,15 +31,17 @@ func StartTestService(t *testing.T) {
 	// Init storage
 	db, err := sqorc.Open("sqlite3", ":memory:")
 	assert.NoError(t, err)
-	fact := blobstore.NewEntStorage(storage.DirectorydTableBlobstore, db, sqorc.GetSqlBuilder())
+	fact := blobstore.NewSQLBlobStorageFactory(storage.DirectorydTableBlobstore, db, sqorc.GetSqlBuilder())
 	err = fact.InitializeFactory()
 	assert.NoError(t, err)
 	store := storage.NewDirectorydBlobstore(fact)
 
 	// Add servicers
-	servicer, err := servicers.NewDirectoryLookupServicer(store)
+	directoryServicer, err := servicers.NewDirectoryLookupServicer(store)
 	assert.NoError(t, err)
-	protos.RegisterDirectoryLookupServer(srv.GrpcServer, servicer)
+	protos.RegisterDirectoryLookupServer(srv.GrpcServer, directoryServicer)
+	protos.RegisterGatewayDirectoryServiceServer(srv.GrpcServer, servicers.NewDirectoryUpdateServicer())
+	indexer_protos.RegisterIndexerServer(srv.GrpcServer, servicers.NewDirectoryIndexer())
 
 	// Run service
 	go srv.RunTest(lis)

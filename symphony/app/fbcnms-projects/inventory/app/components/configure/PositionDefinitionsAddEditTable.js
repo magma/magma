@@ -14,13 +14,16 @@ import Button from '@fbcnms/ui/components/design-system/Button';
 import CardSection from '../CardSection';
 import DraggableTableRow from '../draggable/DraggableTableRow';
 import DroppableTableBody from '../draggable/DroppableTableBody';
+import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
+import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
 import IconButton from '@fbcnms/ui/components/design-system/IconButton';
 import React, {useCallback} from 'react';
 import Table from '@material-ui/core/Table';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import TextField from '@material-ui/core/TextField';
+import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
+import fbt from 'fbt';
 import inventoryTheme from '../../common/theme';
 import update from 'immutability-helper';
 import {DeleteIcon, PlusIcon} from '@fbcnms/ui/components/design-system/Icons';
@@ -29,16 +32,14 @@ import {makeStyles} from '@material-ui/styles';
 import {reorder} from '../draggable/DraggableUtils';
 
 const useStyles = makeStyles(_theme => ({
-  table: {
-    marginBottom: '12px',
-  },
+  table: inventoryTheme.table,
   input: {
     ...inventoryTheme.textField,
     marginTop: '0px',
     marginBottom: '0px',
   },
   cell: {
-    ...inventoryTheme.textField,
+    // ...inventoryTheme.textCell,
     paddingLeft: '0px',
   },
   addButton: {
@@ -158,36 +159,34 @@ const PositionDefinitionsAddEditTable = (props: Props) => {
           {positionDefinitions.map((definition, i) => (
             <DraggableTableRow key={i} id={definition.id} index={i}>
               <TableCell className={classes.cell} component="div" scope="row">
-                <TextField
-                  className={classes.input}
-                  name={'name'}
-                  fullWidth={true}
-                  placeholder={'Name'}
-                  variant="outlined"
-                  value={definition.name ?? ''}
-                  onChange={({target}) =>
-                    onPositionDefinitionsChanged(target.value, 'name', i)
-                  }
-                  margin="dense"
-                />
+                <FormField>
+                  <TextInput
+                    placeholder={`${fbt('Name', '')}`}
+                    variant="outlined"
+                    className={classes.input}
+                    value={definition.name ?? ''}
+                    onChange={({target}) =>
+                      onPositionDefinitionsChanged(target.value, 'name', i)
+                    }
+                  />
+                </FormField>
               </TableCell>
               <TableCell component="div" className={classes.cell} align="left">
-                <TextField
-                  className={classes.input}
-                  name={'visibleLabel'}
-                  fullWidth={true}
-                  placeholder={'Visible Label'}
-                  variant="outlined"
-                  value={definition.visibleLabel ?? ''}
-                  onChange={({target}) =>
-                    onPositionDefinitionsChanged(
-                      target.value,
-                      'visibleLabel',
-                      i,
-                    )
-                  }
-                  margin="dense"
-                />
+                <FormField>
+                  <TextInput
+                    placeholder={`${fbt('Visible Label', '')}`}
+                    variant="outlined"
+                    className={classes.input}
+                    value={definition.visibleLabel ?? ''}
+                    onChange={({target}) =>
+                      onPositionDefinitionsChanged(
+                        target.value,
+                        'visibleLabel',
+                        i,
+                      )
+                    }
+                  />
+                </FormField>
               </TableCell>
               <TableCell component="div" align="right">
                 <IconButton
@@ -200,14 +199,15 @@ const PositionDefinitionsAddEditTable = (props: Props) => {
           ))}
         </DroppableTableBody>
       </Table>
-      <Button
-        className={classes.addButton}
-        color="primary"
-        variant="text"
-        leftIcon={PlusIcon}
-        onClick={onAddPosition}>
-        Add Position
-      </Button>
+      <FormAction>
+        <Button
+          className={classes.addButton}
+          variant="text"
+          leftIcon={PlusIcon}
+          onClick={onAddPosition}>
+          Add Position
+        </Button>
+      </FormAction>
     </CardSection>
   );
 };

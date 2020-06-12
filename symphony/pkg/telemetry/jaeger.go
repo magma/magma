@@ -5,6 +5,7 @@
 package telemetry
 
 import (
+	"fmt"
 	"os"
 
 	"contrib.go.opencensus.io/exporter/jaeger"
@@ -38,7 +39,7 @@ func NewJaegerExporter(opts TraceExporterOptions) (trace.Exporter, error) {
 	}
 	exporter, err := jaeger.NewExporter(o)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("cannot create jaeger exporter: %w", err)
 	}
 	return exporter, nil
 }

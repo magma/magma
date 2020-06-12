@@ -21,11 +21,15 @@ import fbt from 'fbt';
 import {useContext, useMemo} from 'react';
 import {useFormContext} from '../../../common/FormContext';
 
-type Props = {
+type Props = $ReadOnly<{|
   categories: ChecklistCategoriesStateType,
-};
+  isDefinitionsOnly?: boolean,
+|}>;
 
-const CheckListCategoryExpandingPanel = ({categories}: Props) => {
+const CheckListCategoryExpandingPanel = ({
+  categories,
+  isDefinitionsOnly,
+}: Props) => {
   const appContext = useContext(AppContext);
   const dispatch = useContext(ChecklistCategoriesMutateDispatchContext);
   const form = useFormContext();
@@ -42,16 +46,19 @@ const CheckListCategoryExpandingPanel = ({categories}: Props) => {
       allowExpandCollapse={hasCheckListCategories}
       title={fbt('Checklist Categories', 'Checklist section header')}
       rightContent={
-        form.alerts.editLock.detected ? null : (
+        form.alerts.missingPermissions.detected ? null : (
           <Button
             variant="text"
-            disabled={form.alerts.editLock.detected}
+            disabled={form.alerts.missingPermissions.detected}
             onClick={() => dispatch({type: 'ADD_CATEGORY'})}>
             <AddIcon color="primary" />
           </Button>
         )
       }>
-      <CheckListCategoryTable categories={categories} />
+      <CheckListCategoryTable
+        categories={categories}
+        isDefinitionsOnly={isDefinitionsOnly}
+      />
     </ExpandingPanel>
   );
 };

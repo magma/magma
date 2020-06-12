@@ -20,7 +20,7 @@
 # Changes to this file has to be replicated in pipelined.yml_prod
 
 # Differentiate between the setup type(CWF or LTE)
-setup_type: CWF
+setup_type: XWF
 
 log_level: INFO
 # Enable the services in PipelineD. Tables will be assigned to the services in
@@ -55,7 +55,7 @@ access_control:
   ip_blacklist: []
 
 meter:
-  enabled: true
+  enabled: false
   poll_interval: 5
   idle_timeout: 0
 
@@ -86,7 +86,7 @@ allow_unknown_arps: true
 
 # Configuration for IPFIX sampling
 ipfix:
-  enabled: true
+  enabled: false
   collector_ip: '10.22.20.116'
   collector_port: 4740
   probability: 650
@@ -105,8 +105,17 @@ bridge_name: cwag_br0
 # Bridge ip comes from 99-ovscfg.yaml
 bridge_ip_address: 192.168.128.1
 
-#QoS Queue Programming
-enable_queue_pgm: true
+# QoS parameters
+qos:
+ enable: false
+ impl: linux_tc
+ max_rate: 1000000000
+ linux_tc:
+  min_idx: 2
+  max_idx: 65534
+ ovs_meter:
+  min_idx: 2
+  max_idx: 100000
 
 monitored_ifaces: ['cwag_br0',
                    'gre0',

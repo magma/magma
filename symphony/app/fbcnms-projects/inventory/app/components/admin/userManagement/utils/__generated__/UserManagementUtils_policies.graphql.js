@@ -163,50 +163,37 @@ v1 = [
     "storageKey": null
   }
 ],
-v2 = {
-  "kind": "LinkedField",
-  "alias": null,
-  "name": "read",
-  "storageKey": null,
-  "args": null,
-  "concreteType": "BasicPermissionRule",
-  "plural": false,
-  "selections": (v1/*: any*/)
-},
-v3 = {
-  "kind": "LinkedField",
-  "alias": null,
-  "name": "create",
-  "storageKey": null,
-  "args": null,
-  "concreteType": "BasicPermissionRule",
-  "plural": false,
-  "selections": (v1/*: any*/)
-},
-v4 = {
-  "kind": "LinkedField",
-  "alias": null,
-  "name": "update",
-  "storageKey": null,
-  "args": null,
-  "concreteType": "BasicPermissionRule",
-  "plural": false,
-  "selections": (v1/*: any*/)
-},
-v5 = {
-  "kind": "LinkedField",
-  "alias": null,
-  "name": "delete",
-  "storageKey": null,
-  "args": null,
-  "concreteType": "BasicPermissionRule",
-  "plural": false,
-  "selections": (v1/*: any*/)
-},
-v6 = [
-  (v3/*: any*/),
-  (v4/*: any*/),
-  (v5/*: any*/)
+v2 = [
+  {
+    "kind": "LinkedField",
+    "alias": null,
+    "name": "create",
+    "storageKey": null,
+    "args": null,
+    "concreteType": "BasicPermissionRule",
+    "plural": false,
+    "selections": (v1/*: any*/)
+  },
+  {
+    "kind": "LinkedField",
+    "alias": null,
+    "name": "update",
+    "storageKey": null,
+    "args": null,
+    "concreteType": "BasicPermissionRule",
+    "plural": false,
+    "selections": (v1/*: any*/)
+  },
+  {
+    "kind": "LinkedField",
+    "alias": null,
+    "name": "delete",
+    "storageKey": null,
+    "args": null,
+    "concreteType": "BasicPermissionRule",
+    "plural": false,
+    "selections": (v1/*: any*/)
+  }
 ];
 return {
   "kind": "Fragment",
@@ -257,16 +244,56 @@ return {
           "kind": "InlineFragment",
           "type": "InventoryPolicy",
           "selections": [
-            (v2/*: any*/),
+            {
+              "kind": "LinkedField",
+              "alias": null,
+              "name": "read",
+              "storageKey": null,
+              "args": null,
+              "concreteType": "BasicPermissionRule",
+              "plural": false,
+              "selections": (v1/*: any*/)
+            },
             {
               "kind": "LinkedField",
               "alias": null,
               "name": "location",
               "storageKey": null,
               "args": null,
-              "concreteType": "CUD",
+              "concreteType": "LocationCUD",
               "plural": false,
-              "selections": (v6/*: any*/)
+              "selections": [
+                {
+                  "kind": "LinkedField",
+                  "alias": null,
+                  "name": "create",
+                  "storageKey": null,
+                  "args": null,
+                  "concreteType": "LocationPermissionRule",
+                  "plural": false,
+                  "selections": (v1/*: any*/)
+                },
+                {
+                  "kind": "LinkedField",
+                  "alias": null,
+                  "name": "update",
+                  "storageKey": null,
+                  "args": null,
+                  "concreteType": "LocationPermissionRule",
+                  "plural": false,
+                  "selections": (v1/*: any*/)
+                },
+                {
+                  "kind": "LinkedField",
+                  "alias": null,
+                  "name": "delete",
+                  "storageKey": null,
+                  "args": null,
+                  "concreteType": "LocationPermissionRule",
+                  "plural": false,
+                  "selections": (v1/*: any*/)
+                }
+              ]
             },
             {
               "kind": "LinkedField",
@@ -276,7 +303,7 @@ return {
               "args": null,
               "concreteType": "CUD",
               "plural": false,
-              "selections": (v6/*: any*/)
+              "selections": (v2/*: any*/)
             },
             {
               "kind": "LinkedField",
@@ -286,7 +313,7 @@ return {
               "args": null,
               "concreteType": "CUD",
               "plural": false,
-              "selections": (v6/*: any*/)
+              "selections": (v2/*: any*/)
             },
             {
               "kind": "LinkedField",
@@ -296,7 +323,7 @@ return {
               "args": null,
               "concreteType": "CUD",
               "plural": false,
-              "selections": (v6/*: any*/)
+              "selections": (v2/*: any*/)
             },
             {
               "kind": "LinkedField",
@@ -306,7 +333,7 @@ return {
               "args": null,
               "concreteType": "CUD",
               "plural": false,
-              "selections": (v6/*: any*/)
+              "selections": (v2/*: any*/)
             },
             {
               "kind": "LinkedField",
@@ -316,7 +343,7 @@ return {
               "args": null,
               "concreteType": "CUD",
               "plural": false,
-              "selections": (v6/*: any*/)
+              "selections": (v2/*: any*/)
             }
           ]
         },
@@ -324,7 +351,16 @@ return {
           "kind": "InlineFragment",
           "type": "WorkforcePolicy",
           "selections": [
-            (v2/*: any*/),
+            {
+              "kind": "LinkedField",
+              "alias": null,
+              "name": "read",
+              "storageKey": null,
+              "args": null,
+              "concreteType": "WorkforcePermissionRule",
+              "plural": false,
+              "selections": (v1/*: any*/)
+            },
             {
               "kind": "LinkedField",
               "alias": null,
@@ -333,7 +369,7 @@ return {
               "args": null,
               "concreteType": "CUD",
               "plural": false,
-              "selections": (v6/*: any*/)
+              "selections": (v2/*: any*/)
             },
             {
               "kind": "LinkedField",
@@ -344,16 +380,43 @@ return {
               "concreteType": "WorkforceCUD",
               "plural": false,
               "selections": [
-                (v3/*: any*/),
-                (v4/*: any*/),
-                (v5/*: any*/),
+                {
+                  "kind": "LinkedField",
+                  "alias": null,
+                  "name": "create",
+                  "storageKey": null,
+                  "args": null,
+                  "concreteType": "WorkforcePermissionRule",
+                  "plural": false,
+                  "selections": (v1/*: any*/)
+                },
+                {
+                  "kind": "LinkedField",
+                  "alias": null,
+                  "name": "update",
+                  "storageKey": null,
+                  "args": null,
+                  "concreteType": "WorkforcePermissionRule",
+                  "plural": false,
+                  "selections": (v1/*: any*/)
+                },
+                {
+                  "kind": "LinkedField",
+                  "alias": null,
+                  "name": "delete",
+                  "storageKey": null,
+                  "args": null,
+                  "concreteType": "WorkforcePermissionRule",
+                  "plural": false,
+                  "selections": (v1/*: any*/)
+                },
                 {
                   "kind": "LinkedField",
                   "alias": null,
                   "name": "assign",
                   "storageKey": null,
                   "args": null,
-                  "concreteType": "BasicPermissionRule",
+                  "concreteType": "WorkforcePermissionRule",
                   "plural": false,
                   "selections": (v1/*: any*/)
                 },
@@ -363,7 +426,7 @@ return {
                   "name": "transferOwnership",
                   "storageKey": null,
                   "args": null,
-                  "concreteType": "BasicPermissionRule",
+                  "concreteType": "WorkforcePermissionRule",
                   "plural": false,
                   "selections": (v1/*: any*/)
                 }
@@ -389,5 +452,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'da8a33d22e94ba5de8c8977355541f33';
+(node/*: any*/).hash = 'a33eb88c53331ea99def4342b27065dd';
 module.exports = node;

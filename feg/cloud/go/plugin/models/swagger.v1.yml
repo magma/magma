@@ -891,6 +891,10 @@ definitions:
     properties:
       server:
         $ref: '#/definitions/diameter_client_configs'
+      servers:
+        type: array
+        items:
+          $ref: '#/definitions/diameter_client_configs'
       verify_authorization:
         type: boolean
         example: false

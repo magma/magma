@@ -21,7 +21,7 @@ import type {SelectorStoreUpdater} from 'relay-runtime';
 export const mutation = graphql`
   mutation EditEquipmentMutation($input: EditEquipmentInput!) {
     editEquipment(input: $input) {
-      ...EquipmentTable_equipment
+      ...EquipmentTable_equipments
     }
   }
 `;

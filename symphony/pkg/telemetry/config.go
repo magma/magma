@@ -84,8 +84,11 @@ func ViewExporterHelp() string {
 func AddFlagsVar(a *kingpin.Application, config *Config) {
 	a.Flag(TraceExporterFlag, TraceExporterHelp()).
 		Envar(TraceExporterEnvar).
-		Default("jaeger").
-		StringVar(&config.Trace.ExporterName)
+		Default("nop").
+		EnumVar(
+			&config.Trace.ExporterName,
+			AvailableTraceExporters()...,
+		)
 	a.Flag(TraceServiceFlag, TraceServiceHelp).
 		Envar(TraceServiceEnvar).
 		Default(func() string {
@@ -104,7 +107,10 @@ func AddFlagsVar(a *kingpin.Application, config *Config) {
 	a.Flag(ViewExporterFlag, ViewExporterHelp()).
 		Envar(ViewExporterEnvar).
 		Default("prometheus").
-		StringVar(&config.View.ExporterName)
+		EnumVar(
+			&config.View.ExporterName,
+			AvailableViewExporters()...,
+		)
 	config.View.Labels = map[string]string{}
 	a.Flag(ViewLabelsFlag, ViewLabelsHelp).
 		Envar(ViewLabelsEnvar).
@@ -121,7 +127,8 @@ func AddFlags(a *kingpin.Application) *Config {
 // ProvideTraceExporter is a wire provider that produces trace exporter from config.
 func ProvideTraceExporter(config *Config) (trace.Exporter, func(), error) {
 	exporter, err := GetTraceExporter(
-		config.Trace.ExporterName, config.Trace.TraceExporterOptions,
+		config.Trace.ExporterName,
+		config.Trace.TraceExporterOptions,
 	)
 	if err != nil {
 		return nil, nil, err
@@ -134,13 +141,16 @@ func ProvideTraceExporter(config *Config) (trace.Exporter, func(), error) {
 
 // ProvideTraceSampler is a wire provider that produces trace sampler from config.
 func ProvideTraceSampler(config *Config) trace.Sampler {
-	return trace.ProbabilitySampler(config.Trace.SamplingProbability)
+	return trace.ProbabilitySampler(
+		config.Trace.SamplingProbability,
+	)
 }
 
 // ProvideViewExporter is a wire provider that produces view exporter from config.
 func ProvideViewExporter(config *Config) (view.Exporter, error) {
 	return GetViewExporter(
-		config.View.ExporterName, config.View.ViewExporterOptions,
+		config.View.ExporterName,
+		config.View.ViewExporterOptions,
 	)
 }
 

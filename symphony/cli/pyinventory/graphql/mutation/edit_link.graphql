@@ -1,0 +1,5 @@
+mutation EditLinkMutation($input: EditLinkInput!) {
+  editLink(input: $input) {
+    ...LinkFragment
+  }
+}

@@ -12,10 +12,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/resolverutil"
 	"github.com/facebookincubator/symphony/pkg/ctxgroup"
+	"github.com/facebookincubator/symphony/pkg/ent"
 	"github.com/facebookincubator/symphony/pkg/log"
 
 	"github.com/AlekSi/pointer"
@@ -212,7 +212,7 @@ func paramToLinkFilterInput(params string) ([]*models.LinkFilterInput, error) {
 		}
 		intIDSet, err := toIntSlice(f.IDSet)
 		if err != nil {
-			return nil, fmt.Errorf("wrong id set %q: %w", f.IDSet, err)
+			return nil, fmt.Errorf("wrong id set %v: %w", f.IDSet, err)
 		}
 		inp := models.LinkFilterInput{
 			FilterType:    models.LinkFilterType(upperName),

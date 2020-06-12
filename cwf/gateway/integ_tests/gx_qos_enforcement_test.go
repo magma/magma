@@ -1,3 +1,5 @@
+// +build all qos
+
 /*
  * Copyright (c) Facebook, Inc. and its affiliates.
  * All rights reserved.
@@ -39,7 +41,6 @@ func verifyEgressRate(t *testing.T, tr *TestRunner, req *cwfprotos.GenTrafficReq
 	}
 	// Wait for the traffic to go through
 	time.Sleep(6 * time.Second)
-
 	if resp != nil {
 		var perfResp map[string]interface{}
 		json.Unmarshal([]byte(resp.Output), &perfResp)
@@ -48,7 +49,7 @@ func verifyEgressRate(t *testing.T, tr *TestRunner, req *cwfprotos.GenTrafficReq
 		b := respEndRcvMap["bits_per_second"].(float64)
 
 		errRate := math.Abs((b-expRate)/expRate) * 100
-		fmt.Printf("bit rate observed at server %f err rate %f", b, errRate)
+		fmt.Printf("bit rate observed at server %.0fbps, err rate %.2f%%\n", b, errRate)
 		if (b > expRate) && (errRate > ErrMargin) {
 			fmt.Printf("recd bps %f exp bps %f\n", b, expRate)
 			assert.Fail(t, "error greater than acceptable margin")
@@ -65,6 +66,9 @@ func verifyEgressRate(t *testing.T, tr *TestRunner, req *cwfprotos.GenTrafficReq
 // bitrate
 func TestGxUplinkTrafficQosEnforcement(t *testing.T) {
 	fmt.Println("\nRunning TestGxUplinkTrafficQosEnforcement")
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
 	tr := NewTestRunner(t)
 	ruleManager, err := NewRuleManager()
 	assert.NoError(t, err)
@@ -92,11 +96,11 @@ func TestGxUplinkTrafficQosEnforcement(t *testing.T) {
 	assert.NoError(t, err)
 	tr.WaitForPoliciesToSync()
 
-	usageMonitorInfo := getUsageInformation(monitorKey, 1*MegaBytes)
-	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL, 1)
+	usageMonitorInfo := getUsageInformation(monitorKey, 10*MegaBytes)
+	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL)
 	initAnswer := protos.NewGxCCAnswer(diam.Success).
 		SetStaticRuleInstalls([]string{ruleKey}, []string{}).
-		SetUsageMonitorInfos(usageMonitorInfo)
+		SetUsageMonitorInfo(usageMonitorInfo)
 	initExpectation := protos.NewGxCreditControlExpectation().Expect(initRequest).Return(initAnswer)
 
 	// On unexpected requests, just return the default update answer
@@ -106,7 +110,7 @@ func TestGxUplinkTrafficQosEnforcement(t *testing.T) {
 	tr.AuthenticateAndAssertSuccess(imsi)
 	req := &cwfprotos.GenTrafficRequest{
 		Imsi:   imsi,
-		Volume: &wrappers.StringValue{Value: *swag.String("1M")},
+		Volume: &wrappers.StringValue{Value: *swag.String("5M")},
 	}
 	verifyEgressRate(t, tr, req, float64(uplinkBwMax))
 
@@ -157,11 +161,11 @@ func TestGxDownlinkTrafficQosEnforcement(t *testing.T) {
 	assert.NoError(t, err)
 	tr.WaitForPoliciesToSync()
 
-	usageMonitorInfo := getUsageInformation(monitorKey, 1*MegaBytes)
-	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL, 1)
+	usageMonitorInfo := getUsageInformation(monitorKey, 10*MegaBytes)
+	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL)
 	initAnswer := protos.NewGxCCAnswer(diam.Success).
 		SetStaticRuleInstalls([]string{ruleKey}, []string{}).
-		SetUsageMonitorInfos(usageMonitorInfo)
+		SetUsageMonitorInfo(usageMonitorInfo)
 	initExpectation := protos.NewGxCreditControlExpectation().Expect(initRequest).Return(initAnswer)
 
 	// On unexpected requests, just return the default update answer
@@ -172,7 +176,7 @@ func TestGxDownlinkTrafficQosEnforcement(t *testing.T) {
 	req := &cwfprotos.GenTrafficRequest{
 		Imsi:        imsi,
 		ReverseMode: true,
-		Volume:      &wrappers.StringValue{Value: *swag.String("1M")},
+		Volume:      &wrappers.StringValue{Value: *swag.String("5M")},
 	}
 	verifyEgressRate(t, tr, req, float64(downlinkBwMax))
 
@@ -202,6 +206,9 @@ func TestGxDownlinkTrafficQosEnforcement(t *testing.T) {
 // that the observed bitrate maches the newly configured bitrate
 func TestGxQosDowngradeWithCCAUpdate(t *testing.T) {
 	fmt.Println("\nRunning TestGxQosDowngradeWithCCAUpdate")
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
 	tr := NewTestRunner(t)
 	ruleManager, err := NewRuleManager()
 	assert.NoError(t, err)
@@ -240,21 +247,22 @@ func TestGxQosDowngradeWithCCAUpdate(t *testing.T) {
 	tr.WaitForPoliciesToSync()
 
 	// usage monitor for init and upgrade
-	usageMonitorInfo := getUsageInformation(monitorKey, 1*MegaBytes)
-	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL, 1)
+	usageMonitorInfo := getUsageInformation(monitorKey, 5*MegaBytes)
+	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL)
 	initAnswer := protos.NewGxCCAnswer(diam.Success).
 		SetStaticRuleInstalls([]string{rule1Key}, []string{}).
-		SetUsageMonitorInfos(usageMonitorInfo)
+		SetUsageMonitorInfo(usageMonitorInfo)
 	initExpectation := protos.NewGxCreditControlExpectation().Expect(initRequest).Return(initAnswer)
 
 	// We expect an update request with some usage update (probably around 80-100% of the given quota)
-	var c float64 = 0.3 * 1 * MegaBytes
-	updateRequest1 := protos.NewGxCCRequest(imsi, protos.CCRequestType_UPDATE, 2).
-		SetUsageMonitorReports(usageMonitorInfo).
-		SetUsageReportDelta(uint64(c))
+	var c float64 = 0.3 * 5 * MegaBytes
+	updateRequest1 := protos.NewGxCCRequest(imsi, protos.CCRequestType_UPDATE).
+		SetUsageMonitorReport(usageMonitorInfo).
+		SetUsageReportDelta(uint64(c)).
+		SetEventTrigger(int32(lteProtos.EventTrigger_USAGE_REPORT))
 	updateAnswer1 := protos.NewGxCCAnswer(diam.Success).
 		SetStaticRuleInstalls([]string{rule2Key}, []string{}).
-		SetUsageMonitorInfos(getUsageInformation(monitorKey, 2*MegaBytes))
+		SetUsageMonitorInfo(getUsageInformation(monitorKey, 10*MegaBytes))
 	updateExpectation1 := protos.NewGxCreditControlExpectation().Expect(updateRequest1).Return(updateAnswer1)
 
 	expectations := []*protos.GxCreditControlExpectation{initExpectation, updateExpectation1}
@@ -264,14 +272,14 @@ func TestGxQosDowngradeWithCCAUpdate(t *testing.T) {
 
 	tr.AuthenticateAndAssertSuccess(imsi)
 
-	req := &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: *swag.String("1M")}}
+	req := &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: *swag.String("5M")}}
 	verifyEgressRate(t, tr, req, float64(uplinkBwInitial))
 
 	// wait for the update to kick in
 	time.Sleep(3 * time.Second)
 
 	// verify with lower bitrate and check if constraints are met
-	req = &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: *swag.String("1M")}}
+	req = &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: *swag.String("5M")}}
 	verifyEgressRate(t, tr, req, float64(uplinkBwFinal))
 
 	// wait for the update to kick in
@@ -287,18 +295,11 @@ func TestGxQosDowngradeWithCCAUpdate(t *testing.T) {
 	record = recordsBySubID["IMSI"+imsi][rule2Key]
 	assert.NotNil(t, record, fmt.Sprintf("No policy usage record for imsi: %v", imsi))
 
-	// Assert that reasonable CCR-I and at least one CCR-U were sent up to the PCRF
-	resultByIndex, errByIndex, err := getPCRFAssertExpectationsResult()
-	assert.NoError(t, err)
-	assert.Empty(t, errByIndex)
-	expectedResult := []*protos.ExpectationResult{
-		{ExpectationIndex: 0, ExpectationMet: true},
-		{ExpectationIndex: 1, ExpectationMet: true},
-	}
-	assert.ElementsMatch(t, expectedResult, resultByIndex)
+	// Assert that a CCR-I and at least one CCR-U were sent up to the PCRF
+	tr.AssertAllGxExpectationsMetNoError()
 
 	// When we initiate a UE disconnect, we expect a terminate request to go up
-	terminateRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_TERMINATION, 4)
+	terminateRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_TERMINATION)
 	terminateAnswer := protos.NewGxCCAnswer(diam.Success)
 	terminateExpectation := protos.NewGxCreditControlExpectation().Expect(terminateRequest).Return(terminateAnswer)
 	expectations = []*protos.GxCreditControlExpectation{terminateExpectation}
@@ -309,13 +310,7 @@ func TestGxQosDowngradeWithCCAUpdate(t *testing.T) {
 	time.Sleep(6 * time.Second)
 
 	// Assert that we saw a Terminate request
-	resultByIndex, errByIndex, err = getPCRFAssertExpectationsResult()
-	assert.NoError(t, err)
-	assert.Empty(t, errByIndex)
-	expectedResult = []*protos.ExpectationResult{
-		{ExpectationIndex: 0, ExpectationMet: true},
-	}
-	assert.ElementsMatch(t, expectedResult, resultByIndex)
+	tr.AssertAllGxExpectationsMetNoError()
 }
 
 //TestGxQosDowngradeWithReAuth
@@ -331,6 +326,9 @@ func TestGxQosDowngradeWithCCAUpdate(t *testing.T) {
 // downgraded bitrate
 func TestGxQosDowngradeWithReAuth(t *testing.T) {
 	fmt.Println("\nRunning TestGxQosDowngradeWithReAuth")
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
 	tr := NewTestRunner(t)
 	ruleManager, err := NewRuleManager()
 	assert.NoError(t, err)
@@ -361,14 +359,14 @@ func TestGxQosDowngradeWithReAuth(t *testing.T) {
 	}
 	tr.WaitForPoliciesToSync()
 
-	err = ruleManager.AddUsageMonitor(imsi, monitorKey, 2*MegaBytes, 1*MegaBytes)
+	err = ruleManager.AddUsageMonitor(imsi, monitorKey, 20*MegaBytes, 1*MegaBytes)
 	err = ruleManager.AddRulesToPCRF(imsi, []string{rule1Key}, []string{})
 	assert.NoError(t, err)
 
 	tr.AuthenticateAndAssertSuccess(imsi)
 	req := &cwfprotos.GenTrafficRequest{
 		Imsi:   imsi,
-		Volume: &wrappers.StringValue{Value: *swag.String("1M")},
+		Volume: &wrappers.StringValue{Value: *swag.String("5M")},
 	}
 	verifyEgressRate(t, tr, req, float64(uplinkBwInitial))
 
@@ -378,7 +376,7 @@ func TestGxQosDowngradeWithReAuth(t *testing.T) {
 		&fegProtos.PolicyReAuthTarget{
 			Imsi:                 imsi,
 			RulesToInstall:       &fegProtos.RuleInstalls{RuleNames: []string{rule2Key}},
-			UsageMonitoringInfos: rarUsageMonitor,
+			UsageMonitoringInfos: []*fegProtos.UsageMonitoringInformation{rarUsageMonitor},
 		},
 	)
 	assert.NoError(t, err)

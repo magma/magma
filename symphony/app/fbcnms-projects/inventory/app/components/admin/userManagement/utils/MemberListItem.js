@@ -17,14 +17,13 @@ import PlusIcon from '@fbcnms/ui/components/design-system/Icons/Actions/PlusIcon
 import Strings from '@fbcnms/strings/Strings';
 import fbt from 'fbt';
 import {makeStyles} from '@material-ui/styles';
-import {useCallback} from 'react';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 
 const useStyles = makeStyles(() => ({
   itemDetails: {
     flexBasis: '10px',
     flexGrow: 1,
     flexShrink: 1,
+    overflow: 'hidden',
   },
 }));
 
@@ -41,7 +40,7 @@ type Props<T> = $ReadOnly<{|
   member: MemberItem<T>,
   className?: ?string,
   ...AssigenmentButtonProp,
-  onAssignToggle: () => Promise<void>,
+  onAssignToggle: () => void,
   children: React.Node,
 |}>;
 
@@ -49,18 +48,10 @@ export default function MemberListItem<T>(props: Props<T>) {
   const {member, assigmentButton, onAssignToggle, children, className} = props;
   const classes = useStyles();
 
-  const enqueueSnackbar = useEnqueueSnackbar();
-  const handleError = useCallback(
-    (error: string) => {
-      enqueueSnackbar(error, {variant: 'error'});
-    },
-    [enqueueSnackbar],
-  );
-
   const toggleButton = {
     isOn: member.isMember,
     displayVariants: assigmentButton,
-    onToggleClicked: () => onAssignToggle().catch(handleError),
+    onToggleClicked: onAssignToggle,
     onContent: {
       regularContent: (
         <>

@@ -12,15 +12,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/ent/privacy"
-	"github.com/facebookincubator/symphony/graph/event"
 	"github.com/facebookincubator/symphony/graph/graphql/directive"
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
 	"github.com/facebookincubator/symphony/graph/graphql/resolver"
-	"github.com/facebookincubator/symphony/graph/viewer"
+	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/ent/privacy"
 	"github.com/facebookincubator/symphony/pkg/log"
+	"github.com/facebookincubator/symphony/pkg/pubsub"
 	"github.com/facebookincubator/symphony/pkg/telemetry/ocgql"
+	"github.com/facebookincubator/symphony/pkg/viewer"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/handler"
@@ -38,7 +38,7 @@ import (
 type HandlerConfig struct {
 	Client      *ent.Client
 	Logger      log.Logger
-	Subscriber  event.Subscriber
+	Subscriber  pubsub.Subscriber
 	Orc8rClient *http.Client
 }
 

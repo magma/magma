@@ -78,6 +78,10 @@ void LocalSessionManagerHandlerImpl::check_usage_for_reporting(
               << " charging updates and " << request.usage_monitors_size()
               << " monitor updates to OCS and PCRF";
 
+  // Before reporting and returning control to the event loop, increment the
+  // request numbers stored for the sessions in SessionStore
+  session_store_.sync_request_numbers(session_update);
+
   // report to cloud
   // NOTE: It is not possible to construct a std::function from a move-only type
   //       So because of this, we can't directly move session_map into the
@@ -87,9 +91,8 @@ void LocalSessionManagerHandlerImpl::check_usage_for_reporting(
   //       https://stackoverflow.com/questions/25421346/how-to-create-an-stdfunction-from-a-move-capturing-lambda-expression
   reporter_->report_updates(
       request,
-      [this, request,
-       session_map_ptr = std::make_shared<SessionMap>(std::move(session_map)),
-       session_update  = std::move(session_update)](
+      [this, request, session_update,
+       session_map_ptr = std::make_shared<SessionMap>(std::move(session_map))](
           Status status, UpdateSessionResponse response) mutable {
         if (!status.ok()) {
           MLOG(MERROR) << "Update of size " << request.updates_size()
@@ -113,45 +116,43 @@ bool LocalSessionManagerHandlerImpl::is_pipelined_restarted() {
 void LocalSessionManagerHandlerImpl::handle_setup_callback(
     const std::uint64_t& epoch, Status status, SetupFlowsResult resp) {
   using namespace std::placeholders;
+
+  if (status.ok() && resp.result() == resp.SUCCESS) {
+    MLOG(MDEBUG) << "Successfully setup pipelined with epoch" << epoch;
+    return;
+  }
+
+  if (current_epoch_ != epoch) {
+    MLOG(MDEBUG) << "Received stale Pipelined setup callback for " << epoch
+                 << ", current epoch is " << current_epoch_;
+    return;
+  }
+
   if (!status.ok()) {
     MLOG(MERROR) << "Could not setup pipelined, rpc failed with: "
-                 << status.error_message() << ", retrying pipelined setup.";
+                 << status.error_message() << ", retrying pipelined setup "
+                 << "for epoch " << epoch;
 
-    enforcer_->get_event_base().runInEventBaseThread([=] {
-      enforcer_->get_event_base().timer().scheduleTimeoutFn(
-          std::move([=] {
-            auto session_map = session_store_.read_all_sessions();
-            enforcer_->setup(
-                session_map, epoch,
-                std::bind(
-                    &LocalSessionManagerHandlerImpl::handle_setup_callback,
-                    this, epoch, _1, _2));
-          }),
-          retry_timeout_);
-    });
-  }
-
-  if (resp.result() == resp.OUTDATED_EPOCH) {
+  } else if (resp.result() == resp.OUTDATED_EPOCH) {
     MLOG(MWARNING) << "Pipelined setup call has outdated epoch, abandoning.";
+    return;
   } else if (resp.result() == resp.FAILURE) {
     MLOG(MWARNING) << "Pipelined setup failed, retrying pipelined setup "
-                      "for epoch "
-                   << epoch;
-    enforcer_->get_event_base().runInEventBaseThread([=] {
-      enforcer_->get_event_base().timer().scheduleTimeoutFn(
-          std::move([=] {
-            auto session_map = session_store_.read_all_sessions();
-            enforcer_->setup(
-                session_map, epoch,
-                std::bind(
-                    &LocalSessionManagerHandlerImpl::handle_setup_callback,
-                    this, epoch, _1, _2));
-          }),
-          retry_timeout_);
-    });
-  } else {
-    MLOG(MDEBUG) << "Successfully setup pipelined.";
+                      "for epoch " << epoch;
   }
+
+  enforcer_->get_event_base().runInEventBaseThread([=] {
+    enforcer_->get_event_base().timer().scheduleTimeoutFn(
+        std::move([=] {
+          auto session_map = session_store_.read_all_sessions();
+          enforcer_->setup(
+              session_map, epoch,
+              std::bind(
+                  &LocalSessionManagerHandlerImpl::handle_setup_callback,
+                  this, epoch, _1, _2));
+        }),
+        retry_timeout_);
+  });
 }
 
 bool LocalSessionManagerHandlerImpl::restart_pipelined(
@@ -437,7 +438,6 @@ void LocalSessionManagerHandlerImpl::end_session(
     SessionMap& session_map, const LocalEndSessionRequest& request,
     std::function<void(Status, LocalEndSessionResponse)> response_callback) {
   try {
-    auto reporter = reporter_;
     auto update   = SessionStore::get_default_session_update(session_map);
     enforcer_->terminate_subscriber(
         session_map, request.sid().id(), request.apn(), update);
@@ -472,7 +472,7 @@ SessionMap LocalSessionManagerHandlerImpl::get_sessions_for_reporting(
   for (const RuleRecord& record : records.records()) {
     req.insert(record.sid());
   }
-  return session_store_.read_sessions_for_reporting(req);
+  return session_store_.read_sessions(req);
 }
 
 SessionMap LocalSessionManagerHandlerImpl::get_sessions_for_deletion(

@@ -17,11 +17,11 @@ import SimpleTable from './table/SimpleTable';
 import TableActionDialog from './table/TableActionDialog';
 import TableAddButton from './table/TableAddButton';
 import axios from 'axios';
+import useRouter from '../hooks/useRouter';
 import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from './AlarmContext';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../hooks/useSnackbar';
 import {useLoadRules} from './hooks';
-import {useRouter} from '@fbcnms/ui/hooks';
 import type {ColumnData} from './table/SimpleTable';
 import type {GenericRule} from './rules/RuleInterface';
 

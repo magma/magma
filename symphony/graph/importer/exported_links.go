@@ -13,12 +13,12 @@ import (
 
 	"github.com/facebookincubator/symphony/graph/resolverutil"
 
-	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
-	"github.com/facebookincubator/symphony/graph/ent/equipmenttype"
+	"github.com/facebookincubator/symphony/pkg/ent/equipmentportdefinition"
+	"github.com/facebookincubator/symphony/pkg/ent/equipmenttype"
 
-	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/ent/link"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/ent/link"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
@@ -289,7 +289,6 @@ func (m *importer) getLinkSide(ctx context.Context, client *ent.Client, portReco
 	var equipment *ent.Equipment
 	if commit {
 		equipment, _, err = m.getOrCreateEquipment(ctx, m.r.Mutation(), en, equipmentType, nil, parentLoc, pos, nil)
-
 	} else {
 		equipment, err = m.getEquipmentIfExist(ctx, en, equipmentType, parentLoc, pos)
 		if equipment == nil && err == nil {

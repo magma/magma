@@ -19,12 +19,39 @@ proxy:
   service:
     enabled: true
     legacyEnabled: true
+    %{~ if create_nginx ~}
+    %{~ else ~}
     extraAnnotations:
       bootstrapLagacy:
         external-dns.alpha.kubernetes.io/hostname: bootstrapper-${controller_hostname}
       clientcertLegacy:
         external-dns.alpha.kubernetes.io/hostname: ${controller_hostname},${api_hostname}
+    %{~ endif ~}
     name: orc8r-bootstrap-legacy
+    type: LoadBalancer
+  spec:
+    hostname: ${controller_hostname}
+
+nginx:
+  create: ${create_nginx}
+
+  podDisruptionBudget:
+    enabled: true
+  image:
+    repository: ${docker_registry}/nginx
+    tag: "${docker_tag}"
+  replicas: ${nginx_replicas}
+  service:
+    enabled: true
+    legacyEnabled: true
+    extraAnnotations:
+      proxy:
+        external-dns.alpha.kubernetes.io/hostname: ${api_hostname}
+      bootstrapLagacy:
+        external-dns.alpha.kubernetes.io/hostname: bootstrapper-${controller_hostname}
+      clientcertLegacy:
+        external-dns.alpha.kubernetes.io/hostname: ${controller_hostname}
+    name: orc8r-bootstrap-nginx
     type: LoadBalancer
   spec:
     hostname: ${controller_hostname}
@@ -56,26 +83,35 @@ metrics:
         volumeSpec:
           persistentVolumeClaim:
             claimName: ${metrics_pvc_promcfg}
+
   prometheus:
     create: true
     includeOrc8rAlerts: true
+    prometheusCacheHostname: ${prometheus_cache_hostname}
+    alertmanagerHostname: ${alertmanager_hostname}
+
   alertmanager:
     create: true
+
   prometheusConfigurer:
     create: true
     image:
       repository: ${docker_registry}/prometheus-configurer
       tag: "${docker_tag}"
+    prometheusURL: ${prometheus_url}
+
   alertmanagerConfigurer:
     create: true
     image:
       repository: ${docker_registry}/alertmanager-configurer
       tag: "${docker_tag}"
+    alertmanagerURL: ${alertmanager_url}
+
   prometheusCache:
     create: true
     image:
-      repository: ${docker_registry}/prometheus-cache
-      tag: "${docker_tag}"
+      repository: docker.io/facebookincubator/prometheus-edge-hub
+      tag: 1.0.0
     limit: 500000
   grafana:
     create: false
@@ -109,11 +145,7 @@ nms:
     certs: ${nms_certs_secret}
 
   magmalte:
-    manifests:
-      secrets: true
-      deployment: true
-      service: true
-      rbac: false
+    create: true
 
     image:
       repository: ${docker_registry}/magmalte
@@ -123,18 +155,15 @@ nms:
       api_host: ${api_hostname}
       mysql_host: ${nms_db_host}
       mysql_user: ${nms_db_user}
+      grafana_address: ${user_grafana_hostname}
+
   nginx:
-    manifests:
-      configmap: true
-      secrets: true
-      deployment: true
-      service: true
-      rbac: false
+    create: true
 
     service:
       type: LoadBalancer
       annotations:
-        external-dns.alpha.kubernetes.io/hostname: ${nms_hostname}
+        external-dns.alpha.kubernetes.io/hostname: "${nms_hostname}"
 
     deployment:
       spec:

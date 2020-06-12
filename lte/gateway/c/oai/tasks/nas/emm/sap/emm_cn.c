@@ -633,6 +633,7 @@ static int _emm_cn_cs_response_success(emm_cn_cs_response_success_t* msg_pP)
       /*
        * Return indication that ESM procedure failed
        */
+      bdestroy_wrapper(&rsp);
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
     }
   } else {
@@ -645,6 +646,7 @@ static int _emm_cn_cs_response_success(emm_cn_cs_response_success_t* msg_pP)
    * if attach_type == EMM_ATTACH_TYPE_COMBINED_EPS_IMSI
    */
   if (_emm_proc_combined_attach_req(emm_ctx, rsp) == RETURNok) {
+    bdestroy_wrapper(&rsp);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
   }
 
@@ -806,16 +808,11 @@ static int _emm_cn_activate_dedicated_bearer_req(
     msg->bearer_qos.mbr.br_ul;
   esm_sap.data.eps_dedicated_bearer_context_activate.mbr_dl =
     msg->bearer_qos.mbr.br_dl;
-  // stole ref if any
-  msg->tft = NULL;
   esm_sap.data.eps_dedicated_bearer_context_activate.pco = msg->pco;
-  // stole ref if any
-  msg->pco = NULL;
   memcpy(&esm_sap.data.eps_dedicated_bearer_context_activate.sgw_fteid,
     &msg->sgw_fteid, sizeof(fteid_t));
 
   rc = esm_sap_send(&esm_sap);
-
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
@@ -1162,6 +1159,7 @@ static int _emm_cn_pdn_disconnect_rsp(emm_cn_pdn_disconnect_rsp_t* msg)
     &rsp,
     true /*UE triggered*/);
 
+  bdestroy_wrapper(&rsp);
   if (rc != RETURNok) {
     OAILOG_ERROR(
       LOG_NAS_EMM,

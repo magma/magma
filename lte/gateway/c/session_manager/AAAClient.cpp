@@ -36,14 +36,15 @@ aaa::add_sessions_request create_add_sessions_req(
       if (!session->is_radius_cwf_session()) {
         continue;
       }
+      auto config = session->get_config();
       magma::SessionState::SessionInfo session_info;
       session->get_session_info(session_info);
       ctx.set_imsi(session_info.imsi);
-      ctx.set_session_id(session->get_radius_session_id());
+      ctx.set_session_id(config.radius_session_id);
       ctx.set_acct_session_id(session->get_session_id());
-      ctx.set_mac_addr(session->get_mac_addr());
-      ctx.set_msisdn(session->get_msisdn());
-      ctx.set_apn(session->get_apn());
+      ctx.set_mac_addr(config.mac_addr);
+      ctx.set_msisdn(config.msisdn);
+      ctx.set_apn(config.apn);
       auto mutable_sessions = req.mutable_sessions();
       mutable_sessions->Add()->CopyFrom(ctx);
     }

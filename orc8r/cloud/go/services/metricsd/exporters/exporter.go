@@ -6,20 +6,25 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
 */
 
-// The Exporter is an interface for converting protobuf Metrics into timeseries
-// datapoints. It also handles writing these datapoints into storage
+// Package exporters provides an interface for converting protobuf metrics to
+// timeseries datapoints and writing these datapoints to storage.
 package exporters
 
 import (
+	"magma/orc8r/lib/go/protos"
+
 	dto "github.com/prometheus/client_model/go"
 )
 
 // Exporter exports metrics received by the metricsd servicer to a datasink.
 type Exporter interface {
-	// This method has to be thread-safe
-	// Submit submits metrics to the exporter
+	// Submit metrics to the exporter.
+	// This method must be thread-safe.
 	Submit(metrics []MetricAndContext) error
 
+	// Start the metrics export loop.
+	// This method is async, i.e. the callee begins a goroutine and
+	// returns immediately.
 	Start()
 }
 
@@ -41,7 +46,7 @@ type AdditionalMetricContext interface {
 }
 
 type CloudMetricContext struct {
-	// Hostname of the cloud host that this metric comes from
+	// CloudHost is the hostname of the cloud host which originated the metric.
 	CloudHost string
 }
 
@@ -58,3 +63,36 @@ type PushedMetricContext struct {
 }
 
 func (c *PushedMetricContext) isExtraMetricContext() {}
+
+// ConvertMetricAndContextToProto converts metricAndContext objects to their
+// protobuf representation.
+func ConvertMetricAndContextToProto(metric MetricAndContext) *protos.MetricAndContext {
+	metricAndContext := &protos.MetricAndContext{
+		Family: metric.Family,
+		Context: &protos.MetricContext{
+			MetricName: metric.Context.MetricName,
+		},
+	}
+	switch additionalCtx := metric.Context.AdditionalContext.(type) {
+	case *CloudMetricContext:
+		metricAndContext.Context.MetricOriginContext = &protos.MetricContext_CloudMetric{
+			CloudMetric: &protos.CloudMetricContext{
+				CloudHost: additionalCtx.CloudHost,
+			},
+		}
+	case *GatewayMetricContext:
+		metricAndContext.Context.MetricOriginContext = &protos.MetricContext_GatewayMetric{
+			GatewayMetric: &protos.GatewayMetricContext{
+				NetworkId: additionalCtx.NetworkID,
+				GatewayId: additionalCtx.GatewayID,
+			},
+		}
+	case *PushedMetricContext:
+		metricAndContext.Context.MetricOriginContext = &protos.MetricContext_PushedMetric{
+			PushedMetric: &protos.PushedMetricContext{
+				NetworkId: additionalCtx.NetworkID,
+			},
+		}
+	}
+	return metricAndContext
+}

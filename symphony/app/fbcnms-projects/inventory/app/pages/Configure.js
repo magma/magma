@@ -12,6 +12,8 @@ import type {TabProps} from '@fbcnms/ui/components/design-system/Tabs/TabsBar';
 import AppContext from '@fbcnms/ui/context/AppContext';
 import EquipmentPortTypes from '../components/configure/EquipmentPortTypes';
 import EquipmentTypes from '../components/configure/EquipmentTypes';
+import InventoryErrorBoundary from '../common/InventoryErrorBoundary';
+import InventorySuspense from '../common/InventorySuspense';
 import LocationTypes from '../components/configure/LocationTypes';
 import React, {useContext, useEffect, useMemo, useState} from 'react';
 import ServiceTypes from '../components/configure/ServiceTypes';
@@ -20,8 +22,8 @@ import fbt from 'fbt';
 import {LogEvents, ServerLogger} from '../common/LoggingUtils';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
+import {useHistory, useLocation} from 'react-router';
 import {useRelativeUrl} from '@fbcnms/ui/hooks/useRouter';
-import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -55,7 +57,8 @@ type RouteTab = {
 
 export default function Configure() {
   const relativeUrl = useRelativeUrl();
-  const {history, location} = useRouter();
+  const history = useHistory();
+  const location = useLocation();
   const classes = useStyles();
   const servicesEnabled = useContext(AppContext).isFeatureEnabled('services');
   const tabBars: Array<RouteTab> = useMemo(
@@ -95,8 +98,9 @@ export default function Configure() {
     ],
     [servicesEnabled],
   );
-  const tabURI = location.pathname.match(/([^\/]*)\/*$/)[1];
-  const tabIndex = tabBars.findIndex(el => el.id == tabURI);
+  const tabMatch = location.pathname.match(/([^\/]*)\/*$/);
+  const tabIndex =
+    tabMatch == null ? -1 : tabBars.findIndex(el => el.id === tabMatch[1]);
   const [activeTabBar, setActiveTabBar] = useState<number>(
     tabIndex !== -1 ? tabIndex : 0,
   );
@@ -117,25 +121,32 @@ export default function Configure() {
         activeTabIndex={activeTabBar}
         onChange={setActiveTabBar}
       />
-      <Switch>
-        <Route
-          path={relativeUrl('/equipment_types')}
-          component={EquipmentTypes}
-        />
-        <Route
-          path={relativeUrl('/location_types')}
-          component={LocationTypes}
-        />
-        <Route
-          path={relativeUrl('/port_types')}
-          component={EquipmentPortTypes}
-        />
-        <Route path={relativeUrl('/service_types')} component={ServiceTypes} />
-        <Redirect
-          from={relativeUrl('/')}
-          to={relativeUrl('/equipment_types')}
-        />
-      </Switch>
+      <InventoryErrorBoundary>
+        <InventorySuspense>
+          <Switch>
+            <Route
+              path={relativeUrl('/equipment_types')}
+              component={EquipmentTypes}
+            />
+            <Route
+              path={relativeUrl('/location_types')}
+              component={LocationTypes}
+            />
+            <Route
+              path={relativeUrl('/port_types')}
+              component={EquipmentPortTypes}
+            />
+            <Route
+              path={relativeUrl('/service_types')}
+              component={ServiceTypes}
+            />
+            <Redirect
+              from={relativeUrl('/')}
+              to={relativeUrl('/equipment_types')}
+            />
+          </Switch>
+        </InventorySuspense>
+      </InventoryErrorBoundary>
     </div>
   );
 }

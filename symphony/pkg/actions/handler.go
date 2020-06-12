@@ -16,7 +16,6 @@ import (
 
 // Handler adds actions framework registry to incoming requests.
 func Handler(next http.Handler, logger log.Logger, registry *executor.Registry) http.Handler {
-
 	dataLoader := executor.BasicDataLoader{
 		Rules: []core.Rule{},
 	}

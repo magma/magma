@@ -14,7 +14,7 @@
 
 /*::
 import type { ReaderFragment } from 'relay-runtime';
-export type DiscoveryMethod = "INVENTORY" | "%future added value";
+export type DiscoveryMethod = "INVENTORY" | "MANUAL" | "%future added value";
 export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "float" | "gps_location" | "int" | "node" | "range" | "string" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type AddEditServiceTypeCard_editingServiceType$ref: FragmentReference;
@@ -23,7 +23,7 @@ export type AddEditServiceTypeCard_editingServiceType = {|
   +id: string,
   +name: string,
   +numberOfServices: number,
-  +discoveryMethod: ?DiscoveryMethod,
+  +discoveryMethod: DiscoveryMethod,
   +propertyTypes: $ReadOnlyArray<?{|
     +id: string,
     +name: string,
@@ -42,7 +42,7 @@ export type AddEditServiceTypeCard_editingServiceType = {|
     +isMandatory: ?boolean,
     +isInstanceProperty: ?boolean,
   |}>,
-  +endpointDefinitions: $ReadOnlyArray<?{|
+  +endpointDefinitions: $ReadOnlyArray<{|
     +id: string,
     +index: number,
     +role: ?string,

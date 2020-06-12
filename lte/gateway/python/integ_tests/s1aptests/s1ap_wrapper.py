@@ -32,6 +32,18 @@ class TestWrapper(object):
     Module wrapping boiler plate code for all test setups and cleanups.
     """
 
+    # With the current mask value of 24 in TEST_IP_BLOCK, we can allocate a
+    # maximum of 255 UE IP addresses only. Moreover, magma has reserved 12 IP
+    # addresses for testing purpose, hence maximum allowed free IP addresses
+    # are 243. We need to change this mask value in order to allocate more than
+    # 243 UE IP addresses. Therefore, with the mask value of n, the maximum
+    # number of UE IP addresses allowed will be ((2^(32-n)) - 13).
+    # Example:
+    #  mask value 24, max allowed UE IP addresses = ((2^(32-24)) - 13) = 243
+    #  mask value 20, max allowed UE IP addresses = ((2^(32-20)) - 13) = 4083
+    #  mask value 17, max allowed UE IP addresses = ((2^(32-17)) - 13) = 32755
+    # Decreasing the mask value will provide more UE IP addresses in the free
+    # IP address pool
     TEST_IP_BLOCK = "192.168.128.0/24"
     MSX_S1_RETRY = 2
 

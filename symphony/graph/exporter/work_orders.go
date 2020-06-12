@@ -14,10 +14,10 @@ import (
 	"time"
 
 	"github.com/AlekSi/pointer"
-	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/resolverutil"
 	"github.com/facebookincubator/symphony/pkg/ctxgroup"
+	"github.com/facebookincubator/symphony/pkg/ent"
 	"github.com/facebookincubator/symphony/pkg/log"
 
 	"github.com/pkg/errors"
@@ -28,7 +28,7 @@ type woFilterInput struct {
 	Name          models.EquipmentFilterType `json:"name"`
 	Operator      models.FilterOperator      `jsons:"operator"`
 	StringValue   string                     `json:"stringValue"`
-	IDSet         []int                      `json:"idSet"`
+	IDSet         []string                   `json:"idSet"`
 	StringSet     []string                   `json:"stringSet"`
 	PropertyValue models.PropertyTypeInput   `json:"propertyValue"`
 	BoolValue     bool                       `json:"boolValue"`
@@ -173,11 +173,15 @@ func paramToWOFilterInput(params string) ([]*models.WorkOrderFilterInput, error)
 		upperName := strings.ToUpper(f.Name.String())
 		upperOp := strings.ToUpper(f.Operator.String())
 		propertyValue := f.PropertyValue
+		intIDSet, err := toIntSlice(f.IDSet)
+		if err != nil {
+			return nil, fmt.Errorf("wrong id set %v: %w", f.IDSet, err)
+		}
 		inp := models.WorkOrderFilterInput{
 			FilterType:    models.WorkOrderFilterType(upperName),
 			Operator:      models.FilterOperator(upperOp),
 			StringValue:   pointer.ToString(f.StringValue),
-			IDSet:         f.IDSet,
+			IDSet:         intIDSet,
 			StringSet:     f.StringSet,
 			PropertyValue: &propertyValue,
 			MaxDepth:      pointer.ToInt(5),

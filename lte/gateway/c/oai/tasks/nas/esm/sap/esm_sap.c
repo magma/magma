@@ -44,6 +44,7 @@
 #include "common_defs.h"
 #include "emm_data.h"
 #include "mme_config.h"
+#include "dynamic_memory_check.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -232,6 +233,7 @@ int esm_sap_send(esm_sap_t *msg)
         msg->recv,
         msg->send,
         &msg->err);
+      bdestroy_wrapper((bstring*) &msg->recv);
       break;
 
     case ESM_DEDICATED_EPS_BEARER_CONTEXT_ACTIVATE_REQ: {
@@ -853,7 +855,7 @@ static int _esm_sap_recv(
     *err = ESM_SAP_DISCARDED;
     rc = RETURNok;
   }
-
+  bdestroy_wrapper(&rsp);
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
 }
 
@@ -985,6 +987,6 @@ static int _esm_sap_send(
       rc = (*esm_procedure)(is_standalone, emm_context, ebi, &rsp, sent_by_ue);
     }
   }
-
+  bdestroy_wrapper(&rsp);
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
 }

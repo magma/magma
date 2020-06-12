@@ -9,7 +9,7 @@
  */
 
 import type {ButtonProps} from '../Button';
-import type {OptionProps} from './SelectMenu';
+import type {SelectMenuProps} from './SelectMenu';
 
 import * as React from 'react';
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
@@ -54,28 +54,26 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-type Props<TValue> = {
+type Props<TValue> = $ReadOnly<{|
   className?: string,
   label?: React.Node,
-  options: Array<OptionProps<TValue>>,
-  onChange: (value: TValue) => void | (() => void),
-  selectedValue: ?TValue,
   ...ButtonProps,
-};
+  ...SelectMenuProps<TValue>,
+|}>;
 
-const Select = <TValue>({
-  label,
-  className,
-  ...selectMenuProps
-}: Props<TValue>) => {
-  const classes = useStyles();
+const Select = <TValue>(props: Props<TValue>) => {
   const {
-    options,
-    selectedValue,
-    skin,
-    variant,
+    label,
+    className,
     disabled: disabledProp,
-  } = selectMenuProps;
+    skin,
+    tooltip,
+    useEllipsis = true,
+    variant,
+    ...selectMenuProps
+  } = props;
+  const {selectedValue, options} = selectMenuProps;
+  const classes = useStyles();
   const {disabled: contextDisabled} = useFormElementContext();
   const disabled = useMemo(
     () => (disabledProp ? disabledProp : contextDisabled),
@@ -95,7 +93,9 @@ const Select = <TValue>({
           variant={variant}
           disabled={disabled}
           rightIcon={ArrowDropDownIcon}
-          rightIconClass={classNames({[classes.disabled]: disabled})}>
+          rightIconClass={classNames({[classes.disabled]: disabled})}
+          tooltip={tooltip}
+          useEllipsis={useEllipsis}>
           <Text variant="body2">
             <span className={classes.label}>{label}</span>
             {selectedValue != null && !!label ? ': ' : null}

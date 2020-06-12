@@ -103,23 +103,12 @@ func (srv *CentralSessionController) CreateSession(
 	credits := []*protos.CreditUpdateResponse{}
 
 	if len(chargingKeys) > 0 {
-		if srv.cfg.InitMethod == gy.PerSessionInit {
-			_, err = srv.sendSingleCreditRequest(getCCRInitRequest(imsi, request))
-			metrics.UpdateGyRecentRequestMetrics(err)
-			if err != nil {
-				metrics.OcsCcrInitSendFailures.Inc()
-				glog.Errorf("Failed to send first single credit request: %s", err)
-				return nil, err
-			}
-			metrics.OcsCcrInitRequests.Inc()
-		}
-
-		gyCCRInit := getCCRInitialCreditRequest(imsi, request, chargingKeys, srv.cfg.InitMethod)
+		gyCCRInit := getCCRInitialCreditRequest(imsi, request, chargingKeys)
 		gyCCAInit, err := srv.sendSingleCreditRequest(gyCCRInit)
 		metrics.UpdateGyRecentRequestMetrics(err)
 		if err != nil {
 			metrics.OcsCcrInitSendFailures.Inc()
-			glog.Errorf("Failed to send second single credit request: %s", err)
+			glog.Errorf("Failed to send initial credit request: %s", err)
 			return nil, err
 		}
 		gyOriginHost = gyCCAInit.OriginHost

@@ -1,4 +1,4 @@
-ARG baseImage="ubuntu:xenial"
+ARG baseImage="ubuntu:bionic"
 FROM ${baseImage} as base
 
 # Add the magma apt repo
@@ -6,7 +6,7 @@ RUN apt-get update && \
     apt-get install -y apt-utils software-properties-common apt-transport-https
 COPY orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub /tmp/jfrog.pub
 RUN apt-key add /tmp/jfrog.pub && \
-    apt-add-repository "deb https://magma.jfrog.io/magma/list/dev/ xenial main"
+    apt-add-repository "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev/ xenial main"
 
 # Install the runtime deps.
 RUN apt-get update && apt-get install -y \

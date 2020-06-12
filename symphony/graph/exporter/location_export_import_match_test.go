@@ -15,13 +15,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/facebookincubator/symphony/graph/authz"
-	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/event"
 	"github.com/facebookincubator/symphony/graph/importer"
-	"github.com/facebookincubator/symphony/graph/viewer"
-	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
+	"github.com/facebookincubator/symphony/pkg/ent"
 	"github.com/facebookincubator/symphony/pkg/log/logtest"
+	"github.com/facebookincubator/symphony/pkg/pubsub"
+	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
 	"github.com/stretchr/testify/require"
 )
 
@@ -75,9 +73,9 @@ func writeModifiedLocationsCSV(t *testing.T, r *csv.Reader, method method, withV
 		lines[3][5] = "should"
 		lines[3][6] = "fail"
 	}
-	for _, l := range lines {
-		stringLine := strings.Join(l, ",")
-		fileWriter.Write([]byte(stringLine + "\n"))
+	for _, line := range lines {
+		stringLine := strings.Join(line, ",")
+		_, _ = io.WriteString(fileWriter, stringLine+"\n")
 	}
 	ct := bw.FormDataContentType()
 	require.NoError(t, bw.Close())
@@ -88,14 +86,14 @@ func importLocationsFile(t *testing.T, client *ent.Client, r io.Reader, method m
 	readr := csv.NewReader(r)
 	buf, contentType := writeModifiedLocationsCSV(t, readr, method, withVerify, skipLines)
 
+	logger := logtest.NewTestLogger(t)
 	h, _ := importer.NewHandler(
 		importer.Config{
-			Logger:     logtest.NewTestLogger(t),
-			Subscriber: event.NewNopSubscriber(),
+			Logger:     logger,
+			Subscriber: pubsub.NewNopSubscriber(),
 		},
 	)
-	auth := authz.AuthHandler{Handler: h, Logger: logtest.NewTestLogger(t)}
-	th := viewer.TenancyHandler(auth, viewer.NewFixedTenancy(client))
+	th := viewertest.TestHandler(t, h, client)
 	server := httptest.NewServer(th)
 	defer server.Close()
 

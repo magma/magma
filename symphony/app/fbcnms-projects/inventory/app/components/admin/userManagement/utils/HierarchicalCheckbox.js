@@ -10,7 +10,7 @@
 
 import * as React from 'react';
 import Checkbox from '@fbcnms/ui/components/design-system/Checkbox/Checkbox';
-import Text from '@fbcnms/ui/components/design-system/Text';
+import classNames from 'classnames';
 import useSideEffectCallback from './useSideEffectCallback';
 import {
   HierarchyContextProvider,
@@ -24,50 +24,78 @@ const useStyles = makeStyles(() => ({
     display: 'flex',
     flexDirection: 'column',
   },
-  checkContainer: {
-    display: 'flex',
-  },
   children: {
     marginLeft: '24px',
   },
 }));
 
+export const HIERARCHICAL_RELATION = {
+  BI_DIRECTIONAL_INCLUSIVE: 'BI_DIRECTIONAL_INCLUSIVE',
+  PARENT_REQUIRED: 'PARENT_REQUIRED',
+};
+type HierarchicalRelationType = $Keys<typeof HIERARCHICAL_RELATION>;
+
 type SubTreeProps = $ReadOnly<{|
   title: React.Node,
+  disabled?: ?boolean,
   onChange: (?boolean) => void,
+  hierarchicalRelation: HierarchicalRelationType,
   children?: React.Node,
+  className?: ?string,
 |}>;
 
 function CheckboxSubTree(props: SubTreeProps) {
-  const {onChange, title, children} = props;
+  const {
+    onChange,
+    hierarchicalRelation,
+    title,
+    disabled,
+    className,
+    children,
+  } = props;
   const classes = useStyles();
 
   const hierarchyContext = useHierarchyContext();
 
   const propagateValue = useSideEffectCallback(() => {
     const allChildren = hierarchyContext.childrenValues;
-    const hasFalseChild = allChildren.findKey(child => child === false) != null;
     const hasTrueChild = allChildren.findKey(child => child === true) != null;
-    const hasNullChild = allChildren.findKey(child => child == null) != null;
-
-    const childTypesCount =
-      (hasFalseChild ? 1 : 0) + (hasTrueChild ? 1 : 0) + (hasNullChild ? 1 : 0);
 
     let aggregatedValue;
-    if (childTypesCount === 0) {
-      if (hierarchyContext.parentValue == null) {
-        aggregatedValue = false;
+
+    if (hierarchicalRelation === HIERARCHICAL_RELATION.PARENT_REQUIRED) {
+      if (hasTrueChild) {
+        aggregatedValue = true;
       } else {
         return;
       }
-    } else if (childTypesCount > 1 || hasNullChild) {
-      aggregatedValue = null;
-    } else if (hasFalseChild) {
-      aggregatedValue = false;
-    } else if (hasTrueChild) {
-      aggregatedValue = true;
-    } else {
-      return;
+    } else if (
+      hierarchicalRelation === HIERARCHICAL_RELATION.BI_DIRECTIONAL_INCLUSIVE
+    ) {
+      const hasFalseChild =
+        allChildren.findKey(child => child === false) != null;
+      const hasNullChild = allChildren.findKey(child => child == null) != null;
+
+      const childTypesCount =
+        (hasFalseChild ? 1 : 0) +
+        (hasTrueChild ? 1 : 0) +
+        (hasNullChild ? 1 : 0);
+
+      if (childTypesCount === 0) {
+        if (hierarchyContext.parentValue == null) {
+          aggregatedValue = false;
+        } else {
+          return;
+        }
+      } else if (childTypesCount > 1 || hasNullChild) {
+        aggregatedValue = null;
+      } else if (hasFalseChild) {
+        aggregatedValue = false;
+      } else if (hasTrueChild) {
+        aggregatedValue = true;
+      } else {
+        return;
+      }
     }
 
     if (aggregatedValue != hierarchyContext.parentValue) {
@@ -83,62 +111,95 @@ function CheckboxSubTree(props: SubTreeProps) {
   );
 
   return (
-    <div className={classes.root}>
-      <div className={classes.checkContainer}>
-        <Checkbox
-          checked={hierarchyContext.parentValue === true}
-          indeterminate={
-            hierarchyContext.parentValue == null &&
-            !hierarchyContext.childrenValues.isEmpty()
-          }
-          onChange={status => onChange(status === 'checked')}
-        />
-        <Text>{title}</Text>
-      </div>
+    <div className={classNames(classes.root, className)}>
+      <Checkbox
+        checked={hierarchyContext.parentValue === true}
+        disabled={disabled}
+        indeterminate={
+          hierarchyContext.parentValue == null &&
+          !hierarchyContext.childrenValues.isEmpty()
+        }
+        title={title}
+        onChange={status => onChange(status === 'checked')}
+      />
       <div className={classes.children}>{children}</div>
     </div>
   );
 }
 
 type Props = $ReadOnly<{|
+  ...SubTreeProps,
   id: string,
-  title: React.Node,
   value?: ?boolean,
-  onChange?: ?(boolean) => void,
-  children?: React.Node,
+  onChange?: ?(?boolean) => void,
+  hierarchicalRelation?: ?HierarchicalRelationType,
 |}>;
 
-export function HierarchicalCheckbox(props: Props) {
-  const {id, value: propValue, title, children} = props;
+export default function HierarchicalCheckbox(props: Props) {
+  const {
+    id,
+    value: propValue,
+    hierarchicalRelation: hierarchicalRelationProp,
+    onChange,
+    ...subTreeProps
+  } = props;
   const [value, setValue] = useState<?boolean>(null);
   const hierarchyContext = useHierarchyContext();
+
+  const hierarchicalRelation =
+    hierarchicalRelationProp ?? HIERARCHICAL_RELATION.BI_DIRECTIONAL_INCLUSIVE;
+
+  const updateValueInContext = hierarchyContext.setChildValue;
+  const isRegistered = hierarchyContext.childrenValues.has(id);
 
   const updateMyValue = useCallback(
     newValue => {
       setValue(newValue);
-      hierarchyContext.setChildValue(id, newValue);
+      updateValueInContext(id, newValue);
     },
-    [hierarchyContext, id],
+    [updateValueInContext, id],
   );
 
   useEffect(() => {
-    if (hierarchyContext.childrenValues.has(id)) {
-      if (hierarchyContext.parentValue != null) {
-        updateMyValue(hierarchyContext.parentValue);
+    updateMyValue(propValue);
+  }, [propValue, updateMyValue]);
+
+  useEffect(
+    () => {
+      if (isRegistered) {
+        if (
+          hierarchyContext.parentValue != null &&
+          hierarchyContext.parentValue != value
+        ) {
+          if (
+            hierarchicalRelation ===
+              HIERARCHICAL_RELATION.BI_DIRECTIONAL_INCLUSIVE ||
+            (hierarchicalRelation === HIERARCHICAL_RELATION.PARENT_REQUIRED &&
+              hierarchyContext.parentValue !== true)
+          ) {
+            updateMyValue(hierarchyContext.parentValue);
+            if (onChange) {
+              onChange(hierarchyContext.parentValue);
+            }
+          }
+        }
       }
-    } else {
-      updateMyValue(propValue ?? hierarchyContext.parentValue);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hierarchyContext.parentValue, id, propValue]);
+    }, // eslint-disable-next-line react-hooks/exhaustive-deps
+    [isRegistered, hierarchyContext.parentValue, updateMyValue],
+  );
 
   return (
     <HierarchyContextProvider parentValue={value}>
-      <CheckboxSubTree title={title} onChange={updateMyValue}>
-        {children}
-      </CheckboxSubTree>
+      <CheckboxSubTree
+        {...subTreeProps}
+        hierarchicalRelation={hierarchicalRelation}
+        onChange={newValue => {
+          updateMyValue(newValue);
+          if (onChange) {
+            onChange(newValue);
+          }
+        }}
+      />
     </HierarchyContextProvider>
   );
 }
-
-export default HierarchicalCheckbox;

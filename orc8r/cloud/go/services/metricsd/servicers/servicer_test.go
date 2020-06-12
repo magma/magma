@@ -54,9 +54,10 @@ func (e *testMetricExporter) Submit(metrics []exporters.MetricAndContext) error 
 	for _, metricAndContext := range metrics {
 		family := metricAndContext.Family
 		for _, metric := range family.GetMetric() {
+			convertedMetricAndContext := exporters.ConvertMetricAndContextToProto(metricAndContext)
 			e.queue = append(
 				e.queue,
-				exporters.GetSamplesForMetrics(metricAndContext, metric)...,
+				exporters.GetSamplesForMetrics(convertedMetricAndContext, metric)...,
 			)
 		}
 	}

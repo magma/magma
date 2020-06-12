@@ -11,18 +11,18 @@ import (
 
 	"github.com/prometheus/common/log"
 
-	"github.com/facebookincubator/symphony/graph/ent/equipment"
-	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
-	"github.com/facebookincubator/symphony/graph/ent/equipmenttype"
-	"github.com/facebookincubator/symphony/graph/ent/link"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/pkg/ent/equipment"
+	"github.com/facebookincubator/symphony/pkg/ent/equipmentport"
+	"github.com/facebookincubator/symphony/pkg/ent/equipmenttype"
+	"github.com/facebookincubator/symphony/pkg/ent/link"
 	"github.com/pkg/errors"
 
-	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/ent/service"
-	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
-	"github.com/facebookincubator/symphony/graph/ent/serviceendpointdefinition"
-	"github.com/facebookincubator/symphony/graph/ent/servicetype"
+	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/ent/service"
+	"github.com/facebookincubator/symphony/pkg/ent/serviceendpoint"
+	"github.com/facebookincubator/symphony/pkg/ent/serviceendpointdefinition"
+	"github.com/facebookincubator/symphony/pkg/ent/servicetype"
 )
 
 func getStructuredCurrentServicesForType(ctx context.Context, sType *ent.ServiceType) ([]serviceEquipmentListData, error) {
@@ -72,8 +72,8 @@ func (m *jobs) getServicesDetailsList(ctx context.Context, sType *ent.ServiceTyp
 		return nil, err
 	}
 
-	if len(endpointDefs) < 2 || len(endpointDefs) > maxEndpoints {
-		log.Info("[SKIPPING SERVICE TYPE] wither too many or not enough endpoint types " + sType.Name)
+	if len(endpointDefs) < 2 || len(endpointDefs) > MaxEndpoints {
+		log.Info("[SKIPPING SERVICE TYPE] either too many or not enough endpoint types " + sType.Name)
 		return nil, err
 	}
 
@@ -89,6 +89,7 @@ func (m *jobs) getServicesDetailsList(ctx context.Context, sType *ent.ServiceTyp
 		}
 		for _, e2 := range e2s {
 			if len(endpointDefs) == 2 {
+				log.Info("adding service to 'toAdd' list: ", sType.Name, "equipment:", e1.ID, e2.ID)
 				serviceDataList = append(serviceDataList, serviceEquipmentListData{
 					[]*ent.Equipment{e1, e2},
 				})
@@ -100,6 +101,7 @@ func (m *jobs) getServicesDetailsList(ctx context.Context, sType *ent.ServiceTyp
 			}
 			for _, e3 := range e3s {
 				if len(endpointDefs) == 3 {
+					log.Info("adding service to 'toAdd' list: ", sType.Name, "equipment:", e1.ID, e2.ID, e3.ID)
 					serviceDataList = append(serviceDataList, serviceEquipmentListData{
 						[]*ent.Equipment{e1, e2, e3},
 					})
@@ -111,6 +113,7 @@ func (m *jobs) getServicesDetailsList(ctx context.Context, sType *ent.ServiceTyp
 				}
 				for _, e4 := range e4s {
 					if len(endpointDefs) == 4 {
+						log.Info("adding service to 'toAdd' list: ", sType.Name, "equipment:", e1.ID, e2.ID, e3.ID, e4.ID)
 						serviceDataList = append(serviceDataList, serviceEquipmentListData{
 							[]*ent.Equipment{e1, e2, e3, e4},
 						})
@@ -121,9 +124,10 @@ func (m *jobs) getServicesDetailsList(ctx context.Context, sType *ent.ServiceTyp
 						return nil, err
 					}
 					for _, e5 := range e5s {
-						if len(endpointDefs) != maxEndpoints {
+						if len(endpointDefs) != MaxEndpoints {
 							return nil, errors.Errorf("service types support up to 5 endpoint definitions")
 						}
+						log.Info("adding service to 'toAdd' list: ", sType.Name, "equipment:", e1.ID, e2.ID, e3.ID, e4.ID, e5.ID)
 						serviceDataList = append(serviceDataList, serviceEquipmentListData{
 							[]*ent.Equipment{e1, e2, e3, e4, e5},
 						})
@@ -171,10 +175,13 @@ func (m *jobs) createServicesFromList(ctx context.Context, serviceDetails []serv
 	for _, serviceData := range serviceDetails {
 		// TODO search can be optimized
 		if isServiceEquipmentListAlreadyExists(existingServicesStructuredList, serviceData) {
+			log.Info("skipping new service: already exists. type:", serviceType.Name, " first equipment:", serviceData.EquipmentList[0].Name, serviceData.EquipmentList[0].ID)
 			continue
 		}
+		log.Info("saving new service. type:", serviceType.Name, " first equipment:", serviceData.EquipmentList[0].Name, serviceData.EquipmentList[0].ID)
+
 		links, err := getLinksFromEquipmentList(ctx, serviceData.EquipmentList)
-		if err != nil {
+		if err != nil || len(links) == 0 {
 			return errors.Wrapf(err, "can't get links for service")
 		}
 		srvc, err := client.Service.Create().
@@ -247,7 +254,6 @@ func getLinksFromEquipmentList(ctx context.Context, equipmentList []*ent.Equipme
 		prev  *ent.Equipment
 	)
 	for _, curr := range equipmentList {
-
 		if prev == nil {
 			prev = curr
 			continue

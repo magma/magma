@@ -1,3 +1,5 @@
+// +build all gy
+
 /*
  * Copyright (c) Facebook, Inc. and its affiliates.
  * All rights reserved.
@@ -20,12 +22,6 @@ import (
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/stretchr/testify/assert"
-)
-
-const (
-	ReAuthMaxUsageBytes   = 5 * MegaBytes
-	ReAuthMaxUsageTimeSec = 1000 // in second
-	ReAuthValidityTime    = 60   // in second
 )
 
 func TestGyReAuth(t *testing.T) {

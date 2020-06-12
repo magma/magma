@@ -1,9 +1,0 @@
-query GetLocationsQuery {
-  locations {
-    edges {
-      node {
-        ...LocationFragment
-      }
-    }
-  }
-}

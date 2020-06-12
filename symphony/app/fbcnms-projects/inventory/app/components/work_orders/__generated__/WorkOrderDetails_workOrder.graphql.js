@@ -14,7 +14,8 @@
 
 /*::
 import type { ReaderFragment } from 'relay-runtime';
-type CommentsBox_comments$ref = any;
+type CommentsActivitiesBox_activities$ref = any;
+type CommentsActivitiesBox_comments$ref = any;
 type EntityDocumentsTable_files$ref = any;
 type EntityDocumentsTable_hyperlinks$ref = any;
 type LocationBreadcrumbsTitle_locationDetails$ref = any;
@@ -106,7 +107,10 @@ export type WorkOrderDetails_workOrder = {|
     +$fragmentRefs: EntityDocumentsTable_hyperlinks$ref
   |}>,
   +comments: $ReadOnlyArray<?{|
-    +$fragmentRefs: CommentsBox_comments$ref
+    +$fragmentRefs: CommentsActivitiesBox_comments$ref
+  |}>,
+  +activities: $ReadOnlyArray<{|
+    +$fragmentRefs: CommentsActivitiesBox_activities$ref
   |}>,
   +project: ?{|
     +name: string,
@@ -593,7 +597,23 @@ return {
       "selections": [
         {
           "kind": "FragmentSpread",
-          "name": "CommentsBox_comments",
+          "name": "CommentsActivitiesBox_comments",
+          "args": null
+        }
+      ]
+    },
+    {
+      "kind": "LinkedField",
+      "alias": null,
+      "name": "activities",
+      "storageKey": null,
+      "args": null,
+      "concreteType": "Activity",
+      "plural": true,
+      "selections": [
+        {
+          "kind": "FragmentSpread",
+          "name": "CommentsActivitiesBox_activities",
           "args": null
         }
       ]
@@ -962,5 +982,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'fb370fac5f00650bdabe4198889bd759';
+(node/*: any*/).hash = 'd11da7b4168f4e7a88e0e63a6de0467c';
 module.exports = node;

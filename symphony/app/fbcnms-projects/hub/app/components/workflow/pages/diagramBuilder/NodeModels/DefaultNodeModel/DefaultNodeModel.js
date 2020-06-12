@@ -1,6 +1,15 @@
-import { NodeModel, DiagramEngine, Toolkit } from "@projectstorm/react-diagrams";
-import * as _ from "lodash";
-import { DefaultPortModel } from "./DefaultPortModel";
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ * @flow
+ * @format
+ */
+import * as _ from 'lodash';
+import {DefaultPortModel} from './DefaultPortModel';
+import {DiagramEngine, NodeModel, Toolkit} from '@projectstorm/react-diagrams';
 
 export class DefaultNodeModel extends NodeModel {
   name: string;
@@ -8,17 +17,17 @@ export class DefaultNodeModel extends NodeModel {
   inputs: {};
 
   constructor(
-    name: string = "Untitled",
-    color: string = "rgb(0,192,255)",
-    inputs: {}
+    name: string = 'Untitled',
+    color: string = 'rgb(0,192,255)',
+    inputs: {},
   ) {
-    super("default");
+    super('default');
     this.name = name;
     this.color = color;
-    super.extras = { inputs: inputs };
+    super.extras = {inputs: inputs};
 
-    this.addInPort("In");
-    this.addOutPort("Out");
+    this.addInPort('In');
+    this.addOutPort('Out');
   }
 
   addInPort(label: string): DefaultPortModel {
@@ -38,7 +47,7 @@ export class DefaultNodeModel extends NodeModel {
   serialize() {
     return _.merge(super.serialize(), {
       name: this.name,
-      color: this.color
+      color: this.color,
     });
   }
 

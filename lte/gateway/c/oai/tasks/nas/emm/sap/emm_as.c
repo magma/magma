@@ -1592,6 +1592,9 @@ static int _emm_as_data_req(
         emm_free_send_cs_service_notification(
           &emm_msg->cs_service_notification);
         break;
+      case EMM_AS_NAS_DATA_ATTACH_ACCEPT:
+        bdestroy_wrapper(&(emm_msg->attach_accept.esmmessagecontainer));
+        break;
     }
 
     if (bytes > 0) {

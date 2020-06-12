@@ -1,7 +1,3 @@
-// Copyright (c) 2004-present Facebook All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 // Code generated (@generated) by entc, DO NOT EDIT.
 
 package ent
@@ -25,7 +21,7 @@ type TodoQuery struct {
 	config
 	limit      *int
 	offset     *int
-	order      []Order
+	order      []OrderFunc
 	unique     []string
 	predicates []predicate.Todo
 	// eager-loading edges.
@@ -56,7 +52,7 @@ func (tq *TodoQuery) Offset(offset int) *TodoQuery {
 }
 
 // Order adds an order step to the query.
-func (tq *TodoQuery) Order(o ...Order) *TodoQuery {
+func (tq *TodoQuery) Order(o ...OrderFunc) *TodoQuery {
 	tq.order = append(tq.order, o...)
 	return tq
 }
@@ -267,7 +263,7 @@ func (tq *TodoQuery) Clone() *TodoQuery {
 		config:     tq.config,
 		limit:      tq.limit,
 		offset:     tq.offset,
-		order:      append([]Order{}, tq.order...),
+		order:      append([]OrderFunc{}, tq.order...),
 		unique:     append([]string{}, tq.unique...),
 		predicates: append([]predicate.Todo{}, tq.predicates...),
 		// clone intermediate query.
@@ -534,14 +530,14 @@ func (tq *TodoQuery) sqlQuery() *sql.Selector {
 type TodoGroupBy struct {
 	config
 	fields []string
-	fns    []Aggregate
+	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (tgb *TodoGroupBy) Aggregate(fns ...Aggregate) *TodoGroupBy {
+func (tgb *TodoGroupBy) Aggregate(fns ...AggregateFunc) *TodoGroupBy {
 	tgb.fns = append(tgb.fns, fns...)
 	return tgb
 }

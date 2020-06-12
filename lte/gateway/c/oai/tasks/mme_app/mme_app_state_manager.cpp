@@ -215,7 +215,7 @@ int MmeNasStateManager::read_ue_state_from_db() {
     auto keys = redis_client->get_keys("IMSI*" + task_name + "*");
     for (const auto& key : keys) {
       OAILOG_DEBUG(log_task, "Reading UE state from db for %s", key.c_str());
-      UeContext ue_proto = UeContext();
+      oai::UeContext ue_proto = oai::UeContext();
       auto* ue_context =
           (ue_mm_context_t*) (calloc(1, sizeof(ue_mm_context_t)));
       if (redis_client->read_proto(key.c_str(), ue_proto) != RETURNok) {

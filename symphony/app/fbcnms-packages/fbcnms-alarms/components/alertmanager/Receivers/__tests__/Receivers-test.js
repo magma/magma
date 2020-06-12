@@ -22,10 +22,10 @@ import {alarmTestUtil, useMagmaAPIMock} from '../../../../test/testHelpers';
 
 const enqueueSnackbarMock = jest.fn();
 jest
-  .spyOn(require('@fbcnms/ui/hooks/useSnackbar'), 'useEnqueueSnackbar')
+  .spyOn(require('../../../../hooks/useSnackbar'), 'useEnqueueSnackbar')
   .mockReturnValue(enqueueSnackbarMock);
 jest
-  .spyOn(require('@fbcnms/ui/hooks/useRouter'), 'default')
+  .spyOn(require('../../../../hooks/useRouter'), 'default')
   .mockReturnValue({match: {params: {networkId: 'test'}}});
 
 afterEach(() => {

@@ -38,7 +38,7 @@ func StartTestService(t *testing.T) {
 	} else {
 		caMap[protos.CertType_VPN] = &servicers.CAInfo{Cert: vpnCert, PrivKey: vpnKey}
 	}
-	store := test_utils.NewEntStorage(t, storage.CertifierTableBlobstore)
+	store := test_utils.NewSQLBlobstore(t, storage.CertifierTableBlobstore)
 	certStore := storage.NewCertifierBlobstore(store)
 	certServer, err := servicers.NewCertifierServer(certStore, caMap)
 	if err != nil {

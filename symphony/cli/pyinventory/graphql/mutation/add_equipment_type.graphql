@@ -1,0 +1,5 @@
+mutation AddEquipmentTypeMutation($input: AddEquipmentTypeInput!) {
+  addEquipmentType(input: $input) {
+    ...EquipmentTypeFragment
+  }
+}

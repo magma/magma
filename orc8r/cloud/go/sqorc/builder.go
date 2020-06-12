@@ -22,8 +22,8 @@ import (
 )
 
 const (
-	postgresDialect = "psql"
-	mariaDialect    = "maria"
+	PostgresDialect = "psql"
+	MariaDialect    = "maria"
 )
 
 // GetSqlBuilder returns a squirrel Builder for the configured SQL dialect as
@@ -36,9 +36,9 @@ func GetSqlBuilder() StatementBuilder {
 	}
 
 	switch strings.ToLower(dialect) {
-	case postgresDialect:
+	case PostgresDialect:
 		return NewPostgresStatementBuilder()
-	case mariaDialect:
+	case MariaDialect:
 		return NewMariaDBStatementBuilder()
 	default:
 		panic(fmt.Sprintf("unsupported sql dialect %s", dialect))

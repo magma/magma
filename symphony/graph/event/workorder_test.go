@@ -11,10 +11,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
+	"github.com/AlekSi/pointer"
 
-	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/pubsub"
+	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -45,12 +47,12 @@ func (s *workOrderTestSuite) TestWorkOrderCreate() {
 		for i := range events {
 			emitted[events[i]] = struct{}{}
 		}
-		err := SubscribeAndListen(ctx, ListenerConfig{
+		err := pubsub.SubscribeAndListen(ctx, pubsub.ListenerConfig{
 			Subscriber: s.subscriber,
 			Logger:     s.logger.Background(),
-			Tenant:     viewertest.DefaultTenant,
+			Tenant:     pointer.ToString(viewertest.DefaultTenant),
 			Events:     events,
-			Handler: HandlerFunc(func(_ context.Context, name string, body []byte) error {
+			Handler: pubsub.HandlerFunc(func(_ context.Context, _ string, name string, body []byte) error {
 				s.Assert().NotEmpty(body)
 				_, ok := emitted[name]
 				s.Assert().True(ok)
@@ -63,8 +65,12 @@ func (s *workOrderTestSuite) TestWorkOrderCreate() {
 		})
 		s.Require().True(errors.Is(err, context.Canceled))
 	}()
+	woType := s.client.WorkOrderType.Create().
+		SetName("CleanType").
+		SaveX(s.ctx)
 	s.client.WorkOrder.Create().
 		SetName("Clean").
+		SetType(woType).
 		SetCreationDate(time.Now()).
 		SetOwner(s.user).
 		SetStatus(models.WorkOrderStatusDone.String()).
@@ -86,12 +92,12 @@ func (s *workOrderTestSuite) TestWorkOrderUpdateOne() {
 	go func() {
 		defer wg.Done()
 		ctx, cancel := context.WithCancel(s.ctx)
-		err := SubscribeAndListen(ctx, ListenerConfig{
+		err := pubsub.SubscribeAndListen(ctx, pubsub.ListenerConfig{
 			Subscriber: s.subscriber,
 			Logger:     s.logger.Background(),
-			Tenant:     viewertest.DefaultTenant,
+			Tenant:     pointer.ToString(viewertest.DefaultTenant),
 			Events:     []string{WorkOrderDone},
-			Handler: HandlerFunc(func(_ context.Context, name string, body []byte) error {
+			Handler: pubsub.HandlerFunc(func(_ context.Context, tenant string, name string, body []byte) error {
 				s.Assert().Equal(WorkOrderDone, name)
 				s.Assert().NotEmpty(body)
 				cancel()
@@ -101,8 +107,12 @@ func (s *workOrderTestSuite) TestWorkOrderUpdateOne() {
 		s.Require().True(errors.Is(err, context.Canceled))
 	}()
 
+	woType := s.client.WorkOrderType.Create().
+		SetName("VacuumType").
+		SaveX(s.ctx)
 	wo := s.client.WorkOrder.Create().
 		SetName("Vacuum").
+		SetType(woType).
 		SetCreationDate(time.Now()).
 		SetOwner(s.user).
 		SaveX(s.ctx)

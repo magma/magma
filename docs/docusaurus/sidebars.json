@@ -11,10 +11,37 @@
           "orc8r/deploy_install",
           "orc8r/deploy_upgrade"
         ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Orchestrator Users Guide",
+        "ids": [
+          "orc8r/ue_metering"
+        ]
       }
     ],
-    "Access Gateway": ["lte/setup_deb", "lte/config_agw", "lte/enodebd",
-      "lte/tr069", "lte/s1ap_tests", "lte/dev_notes"],
+    "NMS User Guide": ["nms/nms_organizations", "nms/nms_grafana"],
+    "Access Gateway": [
+      {
+        "type": "subcategory",
+        "label": "Deploying AGWs",
+        "ids": [
+          "lte/setup_deb",
+          "lte/config_agw",
+          "lte/enodebd",
+          "lte/agw_110_upgrade"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "AGW Development",
+        "ids": [
+          "lte/tr069",
+          "lte/s1ap_tests",
+          "lte/dev_notes"
+        ]
+      }
+    ],
     "Federation Gateway": [
       {
         "type": "subcategory",
@@ -26,7 +53,6 @@
         ]
       }
     ],
-    "Symphony": ["symphony/quick_start", "symphony/download_requirements", "symphony/building_the_symphony_agent"],
-    "NMS User Guide": ["nms/nms_organizations", "nms/nms_grafana"]
+    "FAQ": ["faq/magma_faq"]
   }
 }

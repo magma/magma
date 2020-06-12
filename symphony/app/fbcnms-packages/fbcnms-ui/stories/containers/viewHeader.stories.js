@@ -8,16 +8,14 @@
  * @format
  */
 
+import Button from '../../components/design-system/Button';
 import DeleteIcon from '../../components/design-system/Icons/Actions/DeleteIcon';
+import IconButton from '../../components/design-system/IconButton';
 import ListAltIcon from '@material-ui/icons/ListAlt';
 import MapIcon from '@material-ui/icons/Map';
+import PopoverMenu from '../../components/design-system/Select/PopoverMenu';
 import React from 'react';
 import ViewHeader from '../../components/design-system/View/ViewHeader';
-import {
-  ButtonAction,
-  IconAction,
-  OptionsAction,
-} from '../../components/design-system/View/ViewHeaderActions';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {makeStyles} from '@material-ui/styles';
 import {storiesOf} from '@storybook/react';
@@ -37,18 +35,15 @@ const ViewHeaderRoot = () => {
   const [selectedButton, setSelectedButton] = useState('1');
 
   const actionButtons = [
-    <IconAction
+    <IconButton
       icon={DeleteIcon}
       skin="gray"
-      action={() => alert('Doing DELETE')}
+      onClick={() => alert('Doing DELETE')}
     />,
-    <ButtonAction
-      variant="text"
-      skin="gray"
-      action={() => alert('Doing action!')}>
+    <Button variant="text" skin="gray" onClick={() => alert('Doing action!')}>
       Do action
-    </ButtonAction>,
-    <OptionsAction
+    </Button>,
+    <PopoverMenu
       options={[
         {
           key: '1',
@@ -61,9 +56,10 @@ const ViewHeaderRoot = () => {
           label: 'option B',
         },
       ]}
-      optionAction={option => alert(`Doing option #${option}`)}>
+      skin="primary"
+      onChange={option => alert(`Doing option #${option}`)}>
       pick option
-    </OptionsAction>,
+    </PopoverMenu>,
   ];
 
   const subTitle =

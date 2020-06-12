@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 61d82aeb57c07ab7d2cdf92e109463c1
+ * @relayHash 1c75648d2d718621d7ab192611ac38fc
  */
 
 /* eslint-disable */
@@ -15,7 +15,7 @@
 
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
-export type DiscoveryMethod = "INVENTORY" | "%future added value";
+export type DiscoveryMethod = "INVENTORY" | "MANUAL" | "%future added value";
 export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "float" | "gps_location" | "int" | "node" | "range" | "string" | "%future added value";
 export type ServiceTypeCreateData = {|
   name: string,
@@ -59,7 +59,7 @@ export type AddServiceTypeMutationResponse = {|
   +addServiceType: {|
     +id: string,
     +name: string,
-    +discoveryMethod: ?DiscoveryMethod,
+    +discoveryMethod: DiscoveryMethod,
     +propertyTypes: $ReadOnlyArray<?{|
       +id: string,
       +name: string,
@@ -80,7 +80,7 @@ export type AddServiceTypeMutationResponse = {|
       +category: ?string,
       +isDeleted: ?boolean,
     |}>,
-    +endpointDefinitions: $ReadOnlyArray<?{|
+    +endpointDefinitions: $ReadOnlyArray<{|
       +id: string,
       +index: number,
       +role: ?string,

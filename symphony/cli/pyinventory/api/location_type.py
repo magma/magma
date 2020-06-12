@@ -3,20 +3,23 @@
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
-from typing import List, Optional, Tuple
+from typing import List
 
 from pysymphony import SymphonyClient
 
-from .._utils import format_properties
 from ..common.cache import LOCATION_TYPES
-from ..common.data_class import Location, LocationType, PropertyValue
+from ..common.data_class import Location, LocationType, PropertyDefinition
 from ..common.data_enum import Entity
+from ..common.data_format import (
+    format_to_property_definitions,
+    format_to_property_type_inputs,
+)
 from ..exceptions import EntityNotFoundError
-from ..graphql.add_location_type_input import AddLocationTypeInput
-from ..graphql.add_location_type_mutation import AddLocationTypeMutation
-from ..graphql.location_type_locations_query import LocationTypeLocationsQuery
-from ..graphql.location_types_query import LocationTypesQuery
-from ..graphql.remove_location_type_mutation import RemoveLocationTypeMutation
+from ..graphql.input.add_location_type import AddLocationTypeInput
+from ..graphql.mutation.add_location_type import AddLocationTypeMutation
+from ..graphql.mutation.remove_location_type import RemoveLocationTypeMutation
+from ..graphql.query.location_type_locations import LocationTypeLocationsQuery
+from ..graphql.query.location_types import LocationTypesQuery
 from .location import delete_location
 
 
@@ -29,27 +32,23 @@ def _populate_location_types(client: SymphonyClient) -> None:
         node = edge.node
         if node:
             LOCATION_TYPES[node.name] = LocationType(
-                name=node.name, id=node.id, property_types=node.propertyTypes
+                name=node.name,
+                id=node.id,
+                property_types=format_to_property_definitions(node.propertyTypes),
             )
 
 
 def add_location_type(
     client: SymphonyClient,
     name: str,
-    properties: List[Tuple[str, str, Optional[PropertyValue], Optional[bool]]],
+    properties: List[PropertyDefinition],
     map_zoom_level: int = 8,
 ) -> LocationType:
     """This function creates new location type.
 
         Args:
             name (str): location type name
-            properties (List[Tuple[str, str, Optional[PropertyValue], Optional[bool]]]):
-            - str - type name
-            - str - enum["string", "int", "bool", "float", "date", "enum", "range",
-            "email", "gps_location", "equipment", "location", "service", "datetime_local"]
-            - PropertyValue - default property value
-            - bool - fixed value flag
-
+            properties (List[ `pyinventory.common.data_class.PropertyDefinition` ]): list of property definitions
             map_zoom_level (int): map zoom level
 
         Returns:
@@ -62,12 +61,19 @@ def add_location_type(
             ```
             location_type = client.add_location_type(
                 name="city",
-                properties=[("Contact", "email", None, True)],
+                properties=[
+                    PropertyDefinition(
+                        property_name="Contact",
+                        property_kind=PropertyKind.string,
+                        default_raw_value=None,
+                        is_fixed=True
+                    )
+                ],
                 map_zoom_level=5,
             )
             ```
     """
-    new_property_types = format_properties(properties)
+    new_property_types = format_to_property_type_inputs(data=properties)
     result = AddLocationTypeMutation.execute(
         client,
         AddLocationTypeInput(
@@ -79,7 +85,9 @@ def add_location_type(
     )
 
     location_type = LocationType(
-        name=result.name, id=result.id, property_types=result.propertyTypes
+        name=result.name,
+        id=result.id,
+        property_types=format_to_property_definitions(result.propertyTypes),
     )
     LOCATION_TYPES[result.name] = location_type
     return location_type
@@ -121,8 +129,9 @@ def delete_locations_by_location_type(
                     name=node.name,
                     latitude=node.latitude,
                     longitude=node.longitude,
-                    externalId=node.externalId,
-                    locationTypeName=node.locationType.name,
+                    external_id=node.externalId,
+                    location_type_name=node.locationType.name,
+                    properties=node.properties,
                 ),
             )
 
