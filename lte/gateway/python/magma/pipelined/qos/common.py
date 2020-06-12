@@ -109,7 +109,9 @@ class QosManager(object):
                             continue
                         in_store_qid.add(v)
                         _, imsi, rule_num, d = get_key(k)
-                        self._subscriber_map[imsi][rule_num] = (v, d)
+                        if rule_num not in self._subscriber_map[imsi]:
+                            self._subscriber_map[imsi][rule_num] = []
+                        self._subscriber_map[imsi][rule_num].append((v, d))
 
                     # purge entries from qos_store
                     for k in purge_store_set:
