@@ -70,7 +70,7 @@ generated your certificates into in the steps above.
 containers that you built earlier.
 
 Make sure that the `source` variables for the module definitions point to
-`github.com/facebookincubator/magma//orc8r/cloud/deploy/terraform/<module>`.
+`github.com/facebookincubator/magma//orc8r/cloud/deploy/terraform/<module>?ref=v1.1`.
 Adjust any other parameters as you see fit - check the READMEs for the
 relevant Terraform modules to see additional variables that can be set.
 
