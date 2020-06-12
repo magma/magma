@@ -1,0 +1,42 @@
+{
+  "updateTime": 1591954554994,
+  "name": "Search equipment by name",
+  "description": "List all equipment that matches name - INVENTORY,EQUIPMENT",
+  "version": 1,
+  "tasks": [
+    {
+      "name": "equipment_query",
+      "taskReferenceName": "equimpent_query",
+      "inputParameters": {
+        "server": "${workflow.input.server}",
+        "user": "${workflow.input.tenant}",
+        "role": "${workflow.input.role}",
+        "tenant": "${workflow.input.tenant}",
+        "query": "query EquipmentSearchQuery { equipmentSearch(filters:{ filterType: EQUIP_INST_NAME operator: CONTAINS stringValue:\"${workflow.input.instanceName}\" }) { equipment { id name } }}"
+      },
+      "type": "SUB_WORKFLOW",
+      "startDelay": 0,
+      "subWorkflowParam": {
+        "name": "GraphQL query",
+        "version": 1
+      },
+      "optional": false,
+      "asyncComplete": false
+    }
+  ],
+  "inputParameters": [
+    "server[graphQL server][integration_graph_1]",
+    "user[username][fbuser@fb.com]",
+    "tenant[tenant][fb-test]",
+    "role[user role][OWNER]",
+    "instanceName[(part of) a name of equipment to look for]"
+  ],
+  "outputParameters": {
+    "data": "${equimpent_query.output.data}"
+  },
+  "schemaVersion": 2,
+  "restartable": true,
+  "workflowStatusListenerEnabled": true,
+  "hasSchedule": false,
+  "expectedScheduleName": "Search equipment by name:1"
+}
