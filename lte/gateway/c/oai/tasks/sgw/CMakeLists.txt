@@ -43,7 +43,7 @@ target_compile_definitions(TASK_SGW PRIVATE
 target_link_libraries(TASK_SGW
     COMMON
     ${GTPNL_LIBRARIES}
-    LIB_BSTR LIB_HASHTABLE LIB_RPC_CLIENT LIB_PCEF
+    LIB_BSTR LIB_HASHTABLE LIB_MOBILITY_CLIENT LIB_PCEF
     TASK_GTPV1U
     cpp_redis tacopie protobuf
 )
