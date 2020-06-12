@@ -27,7 +27,7 @@ add_library(LIB_PCEF
 target_link_libraries(LIB_PCEF
   COMMON
   ${ITTI_LIB} ${ASYNC_GRPC} ${SERVICE_REGISTRY}
-  ${CONFIG} LIB_BSTR LIB_HASHTABLE LIB_RPC_CLIENT yaml-cpp
+  ${CONFIG} LIB_BSTR LIB_HASHTABLE LIB_MOBILITY_CLIENT yaml-cpp
 )
 target_include_directories(LIB_PCEF PUBLIC
   ${MAGMA_LIB_DIR}/async_grpc

@@ -37,20 +37,20 @@ link_directories(
         ${MAGMA_LIB_DIR}/async_grpc
 )
 
-add_library(LIB_RPC_CLIENT
+add_library(LIB_MOBILITY_CLIENT
     MobilityServiceClient.cpp
     MobilityClientAPI.cpp
     ${PROTO_SRCS}
     ${PROTO_HDRS}
 )
 
-target_link_libraries(LIB_RPC_CLIENT
+target_link_libraries(LIB_MOBILITY_CLIENT
         COMMON
         LIB_BSTR
         LIB_PCEF
 )
 
-target_include_directories(LIB_RPC_CLIENT PUBLIC
+target_include_directories(LIB_MOBILITY_CLIENT PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ASYNC_GRPC COMMON
 )
