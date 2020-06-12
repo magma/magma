@@ -29,7 +29,7 @@ magmalte:
     mysql_db: magma
     mysql_user: magma
     mysql_pass: password
-    mysql_dialect: mysql
+    mysql_dialect: mariadb
     grafana_address: orc8r-user-grafana:3000
 
   labels: {}
