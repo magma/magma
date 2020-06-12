@@ -249,6 +249,7 @@ int pgw_config_parse_file(pgw_config_t *config_pP)
   int prefix_mask    = 0;
   char* pcscf_ipv4   = NULL;
   char* pcscf_ipv6   = NULL;
+  char* ipv6_addr_prefix   = NULL;
 
   config_init(&cfg);
 
@@ -391,6 +392,22 @@ int pgw_config_parse_file(pgw_config_t *config_pP)
         OAILOG_WARNING(
           LOG_SPGW_APP, "CONFIG POOL ADDR IPV4: NO IPV4 ADDRESS FOUND\n");
       }
+
+      if (config_setting_lookup_string(
+        setting_pgw, PGW_IPV6_ADDRESS_PREFIX,
+        (const char**) &ipv6_addr_prefix)) {
+        char *temp_prefix, *len;
+        len = strdup(ipv6_addr_prefix);
+        temp_prefix = strsep(&len, "/");
+        config_pP->ipv6_address_prefix_len = atoi((const char*)len);
+        IPV6_STR_ADDR_TO_INADDR(
+          temp_prefix, config_pP->ipv6_address_prefix,
+          "BAD IPv6 ADDRESS PREFIX FORMAT!\n");
+        OAILOG_DEBUG(
+          LOG_SPGW_APP, "Parsing configuration file IPv6 address prefix\n");
+        } else {
+          OAILOG_WARNING(LOG_SPGW_APP, "NO IPv6 PREFIX CONFIGURATION FOUND\n");
+        }
 
       if (
         config_setting_lookup_string(

@@ -56,20 +56,22 @@ static itti_sgi_create_end_point_response_t handle_allocate_ipv4_address_status(
   itti_sgi_create_end_point_response_t sgi_create_endpoint_resp);
 
 static itti_sgi_create_end_point_response_t handle_allocate_ipv6_address_status(
-  const char* addr,
+  struct in6_addr addr,
   const char* imsi,
   const char* apn,
   const char* pdn_type,
-  itti_sgi_create_end_point_response_t sgi_create_endpoint_resp);
+  itti_sgi_create_end_point_response_t sgi_create_endpoint_resp,
+  uint8_t ipv6_prefix_len);
 
 static itti_sgi_create_end_point_response_t handle_allocate_ipv4v6_address_status(
   const grpc::Status& status,
   struct in_addr ip4_addr,
-  const char* ip6_addr,
+  struct in6_addr ip6_addr,
   const char* imsi,
   const char* apn,
   const char* pdn_type,
-  itti_sgi_create_end_point_response_t sgi_create_endpoint_resp);
+  itti_sgi_create_end_point_response_t sgi_create_endpoint_resp,
+  uint8_t ipv6_prefix_len);
 
 int get_assigned_ipv4_block(
   int index,
@@ -314,21 +316,62 @@ int get_subscriber_id_from_ipv4(
   return status;
 }
 
+struct in6_addr* generate_random_ip6_interface_id(struct in6_addr config_ipv6_prefix)
+{
+  char *ip6_addr = (char*)malloc(INET6_ADDRSTRLEN);
+  char *temp_prefix[4];
+  char *buf_ipv6 = ip6_addr;
+  struct in6_addr* ip6_prefix = (struct in6_addr*)malloc(INET6_ADDRSTRLEN);
+  unsigned int random[4] = {0};
+  int itrn = 0;
+
+  // Fetch IPv6 prefix from the config
+  inet_ntop(AF_INET6, &config_ipv6_prefix, buf_ipv6, INET6_ADDRSTRLEN);
+  for (itrn=0; itrn<4; itrn++){
+    temp_prefix[itrn] = (char*)malloc(4);
+    temp_prefix[itrn] = strsep(&buf_ipv6, ":");
+  }
+  // Generate Random Interface Identifier
+  for (itrn=0; itrn<4; itrn++){
+    random[itrn] = rand()%0xffff;
+  }
+  sprintf(ip6_addr,"%s:%s:%s:%s:%x:%x:%x:%x",
+    temp_prefix[0],temp_prefix[1],temp_prefix[2],temp_prefix[3],
+    random[0],random[1],random[2],random[3]);
+
+  // Convert the IPv6 address into in6_addr format
+  inet_pton(AF_INET6, ip6_addr, ip6_prefix);
+  return ip6_prefix;
+}
+
 int pgw_handle_allocate_ipv6_address(
   const char* subscriber_id,
   const char* apn,
+  struct in6_addr* ip6_prefix,
   itti_sgi_create_end_point_response_t sgi_create_endpoint_resp,
   const char* pdn_type,
   teid_t context_teid,
   ebi_t eps_bearer_id,
   spgw_state_t* spgw_state,
   s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
-  s5_create_session_response_t s5_response)
+  s5_create_session_response_t s5_response,
+  struct in6_addr config_ipv6_prefix,
+  uint8_t ipv6_prefix_len)
 {
   // TODO Pruthvi Make an RPC call to Mobilityd
-  char ip6_addr[INET6_ADDRSTRLEN] = "::1234:5678:abcd:e123";
+
+  // TODO Temporary code to be removed once Mobilityd is ready
+  ip6_prefix = generate_random_ip6_interface_id(config_ipv6_prefix);
   auto sgi_resp = handle_allocate_ipv6_address_status(
-	ip6_addr, subscriber_id, apn, pdn_type, sgi_create_endpoint_resp);
+	*ip6_prefix, subscriber_id, apn, pdn_type, sgi_create_endpoint_resp, ipv6_prefix_len);
+
+  char ip6_str[INET6_ADDRSTRLEN];
+  inet_ntop(AF_INET6, ip6_prefix, ip6_str, INET6_ADDRSTRLEN);
+  OAILOG_INFO(
+    LOG_UTIL,
+    "Allocated IPv6 Address <%s>, PDN Type <%s>\n",
+    ip6_str,
+    pdn_type);
 
   // create session in PCEF and return
   s5_create_session_request_t session_req = {0};
@@ -343,45 +386,40 @@ int pgw_handle_allocate_ipv6_address(
     spgw_state,
     subscriber_id,
     NULL,
-    ip6_addr,
+    ip6_str,
     &session_data,
     sgi_resp,
     session_req,
     new_bearer_ctxt_info_p);
-  s5_response.eps_bearer_id = eps_bearer_id;
-  s5_response.context_teid = context_teid;
   increment_counter("spgw_create_session", 1, 1, "result", "success");
-
   return 0;
 }
+
 static itti_sgi_create_end_point_response_t handle_allocate_ipv6_address_status(
-  const char* addr,
+  struct in6_addr addr,
   const char* imsi,
   const char* apn,
   const char* pdn_type,
-  itti_sgi_create_end_point_response_t sgi_create_endpoint_resp)
+  itti_sgi_create_end_point_response_t sgi_create_endpoint_resp,
+  uint8_t ipv6_prefix_len)
 {
-    increment_counter(
-      "ue_pdn_connection",
-      1,
-      2,
-      "pdn_type",
-      pdn_type,
-      "result",
-      "success");
-    unsigned char  temp_addr[sizeof (struct in6_addr)] = {0};
-    if(inet_pton(AF_INET6, addr, temp_addr)== 1) {
-      // Copy only the interface identifier i.e the last 64 bits
-      memcpy(&sgi_create_endpoint_resp.paa.ipv6_address,&temp_addr[8], 8);
-      sgi_create_endpoint_resp.paa.ipv6_prefix_length = 64;
-      sgi_create_endpoint_resp.paa.pdn_type = IPv6;
-      OAILOG_DEBUG(
-        LOG_UTIL,
-        "Allocated IPv6 Interface identifier for imsi <%s>, apn <%s>\n",
-        imsi,
-        apn);
-      sgi_create_endpoint_resp.status = SGI_STATUS_OK;
-    }
+  increment_counter(
+    "ue_pdn_connection",
+    1,
+    2,
+    "pdn_type",
+    pdn_type,
+    "result",
+    "success");
+    sgi_create_endpoint_resp.paa.ipv6_address = addr;
+    sgi_create_endpoint_resp.paa.ipv6_prefix_length = ipv6_prefix_len;
+    sgi_create_endpoint_resp.paa.pdn_type = IPv6;
+    OAILOG_INFO(
+      LOG_UTIL,
+      "Allocated IPv6 Address for imsi <%s>, apn <%s>\n",
+      imsi,
+      apn);
+    sgi_create_endpoint_resp.status = SGI_STATUS_OK;
   return sgi_create_endpoint_resp;
 }
 
@@ -389,13 +427,16 @@ int pgw_handle_allocate_ipv4v6_address(
   const char* subscriber_id,
   const char* apn,
   struct in_addr* ip4_addr,
+  struct in6_addr* ip6_prefix,
   itti_sgi_create_end_point_response_t sgi_create_endpoint_resp,
   const char* pdn_type,
   teid_t context_teid,
   ebi_t eps_bearer_id,
   spgw_state_t* spgw_state,
   s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
-  s5_create_session_response_t s5_response)
+  s5_create_session_response_t s5_response,
+  struct in6_addr config_ipv6_prefix,
+  uint8_t ipv6_prefix_len)
 {
   // Get IPv4 address
   MobilityServiceClient::getInstance().AllocateIPv4AddressAsync(
@@ -405,33 +446,53 @@ int pgw_handle_allocate_ipv4v6_address(
       memcpy(ip4_addr, ip_msg.mutable_address()->c_str(), sizeof(in_addr));
  
     // TODO Pruthvi Make an RPC call to Mobilityd to get IPv6 address
-    char ip6_addr[INET6_ADDRSTRLEN] = "::1234:5678:abcd:e123";
+
+    // TODO Remove the below temporary code once Mobilitid is ready
+    struct in6_addr* ip6_prefix_temp = generate_random_ip6_interface_id(config_ipv6_prefix);
+    memcpy(ip6_prefix, ip6_prefix_temp, sizeof(struct in6_addr));
+
     auto sgi_resp = handle_allocate_ipv4v6_address_status(
-      status, *ip4_addr, ip6_addr, subscriber_id, apn, pdn_type, sgi_create_endpoint_resp);
+      status, *ip4_addr, *ip6_prefix, subscriber_id, apn, pdn_type, sgi_create_endpoint_resp,
+      ipv6_prefix_len);
 
     // create session in PCEF and return
-    s5_create_session_request_t session_req = {0};
-    session_req.context_teid = context_teid;
-    session_req.eps_bearer_id = eps_bearer_id;
-    char ip4_str[INET_ADDRSTRLEN];
-    inet_ntop(AF_INET, &(ip4_addr->s_addr), ip4_str, INET_ADDRSTRLEN);
+    if (sgi_resp.status == SGI_STATUS_OK) {
+      s5_create_session_request_t session_req = {0};
+      session_req.context_teid = context_teid;
+      session_req.eps_bearer_id = eps_bearer_id;
+      char ip4_str[INET_ADDRSTRLEN];
+      inet_ntop(AF_INET, &(ip4_addr->s_addr), ip4_str, INET_ADDRSTRLEN);
+      char ip6_str[INET6_ADDRSTRLEN];
+      inet_ntop(AF_INET6, ip6_prefix, ip6_str, INET6_ADDRSTRLEN);
+      OAILOG_INFO(
+        LOG_UTIL,
+        "Allocated IPv4 Address <%s>, IPv6 Address <%s>, PDN Type <%s>\n",
+        ip4_str,
+        ip6_str,
+        pdn_type);
  
-    struct pcef_create_session_data session_data;
-    get_session_req_data(
-      spgw_state,
-      &new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.saved_message,
-      &session_data);
-    pcef_create_session(
-      spgw_state,
-      subscriber_id,
-      ip4_str,
-      ip6_addr,
-      &session_data,
-      sgi_resp,
-      session_req,
-      new_bearer_ctxt_info_p);
+      struct pcef_create_session_data session_data;
+      get_session_req_data(
+        spgw_state,
+        &new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.saved_message,
+        &session_data);
+      pcef_create_session(
+        spgw_state,
+        subscriber_id,
+        ip4_str,
+        ip6_str,
+        &session_data,
+        sgi_resp,
+        session_req,
+        new_bearer_ctxt_info_p);
+      s5_response.eps_bearer_id = eps_bearer_id;
+      s5_response.context_teid = context_teid;
+      OAILOG_FUNC_OUT(LOG_PGW_APP);
+    }
     s5_response.eps_bearer_id = eps_bearer_id;
     s5_response.context_teid = context_teid;
+    handle_s5_create_session_response(
+      spgw_state, new_bearer_ctxt_info_p, s5_response);
     OAILOG_FUNC_OUT(LOG_PGW_APP);
   });
   return 0;
@@ -440,11 +501,12 @@ int pgw_handle_allocate_ipv4v6_address(
 static itti_sgi_create_end_point_response_t handle_allocate_ipv4v6_address_status(
   const Status& status,
   struct in_addr ip4_addr,
-  const char* ip6_addr,
+  struct in6_addr ip6_addr,
   const char* imsi,
   const char* apn,
   const char* pdn_type,
-  itti_sgi_create_end_point_response_t sgi_create_endpoint_resp)
+  itti_sgi_create_end_point_response_t sgi_create_endpoint_resp,
+  uint8_t ipv6_prefix_len)
 {
   if (status.ok()) {
     increment_counter(
@@ -456,7 +518,6 @@ static itti_sgi_create_end_point_response_t handle_allocate_ipv4v6_address_statu
       "result",
       "success");
     sgi_create_endpoint_resp.paa.ipv4_address = ip4_addr;
-    sgi_create_endpoint_resp.paa.pdn_type = IPv4;
 
     OAILOG_DEBUG(
       LOG_UTIL,
@@ -492,31 +553,26 @@ static itti_sgi_create_end_point_response_t handle_allocate_ipv4v6_address_statu
         "failure");
       OAILOG_ERROR(
         LOG_UTIL,
-        "Failed to allocate IPv4v6 PAA for PDN type IPv4v6 for "
+        "Failed to allocate IPv4 PAA for PDN type IPv4v6 for "
         "imsi <%s> and apn <%s>\n",
         imsi,
         apn);
     }
   }
-   
-  unsigned char  temp_addr[sizeof (struct in6_addr)] = {0};
-  if(inet_pton(AF_INET6, ip6_addr, temp_addr)== 1) {
-    // Copy only the interface identifier i.e the last 64 bits
-    memcpy(&sgi_create_endpoint_resp.paa.ipv6_address,&temp_addr[8], 8);
-    sgi_create_endpoint_resp.paa.ipv6_prefix_length = 64;
-    sgi_create_endpoint_resp.paa.pdn_type = IPv6;
-  } else {
-    OAILOG_ERROR(
-      LOG_UTIL,
-        "Failed to allocate IPv6 PAA for PDN type IPv4v6 for "
-        "imsi <%s> and apn <%s>\n",
-        imsi,
-        apn);
-  }
-
-  if ((sgi_create_endpoint_resp.status == SGI_STATUS_OK) && (sgi_create_endpoint_resp.paa.ipv6_prefix_length == 64)) {
+  // Assign IPv6 address
+  sgi_create_endpoint_resp.paa.ipv6_address = ip6_addr;
+  sgi_create_endpoint_resp.paa.ipv6_prefix_length = ipv6_prefix_len;
+  // Set PDN Type
+  if (sgi_create_endpoint_resp.status == SGI_STATUS_OK) {
     sgi_create_endpoint_resp.paa.pdn_type = IPv4_AND_v6;
+  } else {
+    sgi_create_endpoint_resp.paa.pdn_type = IPv6;
   }
+  OAILOG_DEBUG(
+    LOG_UTIL,
+    "Allocated IPv6 Address for imsi <%s>, apn <%s>\n",
+    imsi,
+    apn);
   return sgi_create_endpoint_resp;
 }
 

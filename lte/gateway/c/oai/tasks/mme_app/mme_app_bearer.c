@@ -1218,8 +1218,24 @@ int mme_app_handle_create_sess_resp(
   emm_cn_cs_response_success_t nas_pdn_cs_respose_success = {0};
   nas_pdn_cs_respose_success.pdn_cid = pdn_cx_id;
   nas_pdn_cs_respose_success.pti = transaction_identifier; // NAS internal ref
-  nas_pdn_cs_respose_success.pdn_addr =
-    paa_to_bstring(&create_sess_resp_pP->paa);
+
+  /* In Create session response IPv6 prefix + interface idntifier is sent.
+   * Copy only the interface identifier to be sent in NAS ESM message
+   */
+  if (create_sess_resp_pP->paa.pdn_type == IPv4) {
+    nas_pdn_cs_respose_success.pdn_addr =
+      paa_to_bstring(&create_sess_resp_pP->paa);
+  } else {
+    paa_t paa_temp;
+    paa_temp.pdn_type = create_sess_resp_pP->paa.pdn_type;
+    paa_temp.ipv6_prefix_length = create_sess_resp_pP->paa.ipv6_prefix_length;
+    memcpy(&paa_temp.ipv6_address, &create_sess_resp_pP->paa.ipv6_address.s6_addr[IPV6_INTERFACE_ID_LEN], IPV6_INTERFACE_ID_LEN);
+    if (create_sess_resp_pP->paa.pdn_type == IPv4_AND_v6) {
+      paa_temp.ipv4_address = create_sess_resp_pP->paa.ipv4_address;
+    }
+    nas_pdn_cs_respose_success.pdn_addr =
+      paa_to_bstring(&paa_temp);
+  }
   nas_pdn_cs_respose_success.pdn_type = create_sess_resp_pP->paa.pdn_type;
 
   // ASSUME NO HO now, so assume 1 bearer only and is default bearer

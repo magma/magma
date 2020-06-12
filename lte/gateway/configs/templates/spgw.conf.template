@@ -65,6 +65,8 @@ P-GW =
                     );
     };
 
+    # IPv6 address prefix
+    IPV6_ADDRESS_PREFIX = "2001:1470:26:307::/64";
     # DNS address communicated to UEs
     DEFAULT_DNS_IPV4_ADDRESS     = "{{ ipv4_dns }}";
     DEFAULT_DNS_SEC_IPV4_ADDRESS = "{{ ipv4_sec_dns }}";

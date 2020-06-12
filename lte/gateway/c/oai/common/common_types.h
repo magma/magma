@@ -121,6 +121,9 @@ typedef uint64_t imsi64_t;
 #define MAX_APN_PER_UE (10)
 
 //------------------------------------------------------------------------------
+// IPv6 Interface Identifier length in bytes
+#define IPV6_INTERFACE_ID_LEN 8
+//------------------------------------------------------------------------------
 typedef uint8_t ksi_t;
 #define KSI_NO_KEY_AVAILABLE 0x07
 

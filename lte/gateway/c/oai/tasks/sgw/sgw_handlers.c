@@ -989,6 +989,7 @@ int sgw_handle_sgi_endpoint_deleted(
           break;
 
         case IPv6:
+          // TODO Pruthvi Release IPv6 address
           OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
               "Failed to release IPv6 PAA for PDN type IPv6\n");
           break;
@@ -1003,6 +1004,7 @@ int sgw_handle_sgi_endpoint_deleted(
             OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
               "Failed to release IPv4 PAA for PDN type IPv4_AND_v6\n");
           }
+          // TODO Pruthvi Release IPv6 address
           break;
 
         default:

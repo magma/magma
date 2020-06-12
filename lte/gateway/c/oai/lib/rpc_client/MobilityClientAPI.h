@@ -114,13 +114,16 @@ int pgw_handle_allocate_ipv4_address(
 int pgw_handle_allocate_ipv6_address(
   const char* subscriber_id,
   const char* apn,
+  struct in6_addr* ip6_prefix,
   itti_sgi_create_end_point_response_t sgi_create_endpoint_resp,
   const char* pdn_type,
   teid_t context_teid,
   ebi_t eps_bearer_id,
   spgw_state_t* spgw_state,
   s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
-  s5_create_session_response_t s5_response); 
+  s5_create_session_response_t s5_response,
+  struct in6_addr config_ipv6_prefix,
+  uint8_t ipv6_address_prefix_len);
 
 /**
 * Allocate IP address from MobilityServiceClient over gRPC (non-blocking),
@@ -189,14 +192,16 @@ int pgw_handle_allocate_ipv4v6_address(
   const char* subscriber_id,
   const char* apn,
   struct in_addr* ip4_addr,
+  struct in6_addr* ip6_prefix,
   itti_sgi_create_end_point_response_t sgi_create_endpoint_resp,
   const char* pdn_type,
   teid_t context_teid,
   ebi_t eps_bearer_id,
   spgw_state_t* spgw_state,
   s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
-  s5_create_session_response_t s5_response);
-
+  s5_create_session_response_t s5_response,
+  struct in6_addr config_ipv6_prefix,
+  uint8_t ipv6_address_prefix_len);
 
 #ifdef __cplusplus
 }

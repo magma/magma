@@ -117,20 +117,14 @@ void pcef_create_session(
 
   sreq.mutable_sid()->set_id("IMSI" + imsi_str);
   sreq.set_rat_type(magma::RATType::TGPP_LTE);
-  // IPv4=1; IPv6=2;IPv4v6=3
-  if ((session_data->pdn_type == 1) && (!ip4_str.empty())) {
+  if ((session_data->pdn_type == IPv4) && (!ip4_str.empty())) {
     sreq.set_ue_ipv4(ip4_str);
-  } else if ((session_data->pdn_type == 2) && (!ip6_str.empty())) {
+  } else if ((session_data->pdn_type == IPv6) && (!ip6_str.empty())) {
     sreq.set_ue_ipv6(ip6_str);
-  } else if ((session_data->pdn_type == 3) && (!ip4_str.empty()) && (!ip6_str.empty())) {
+  } else if ((session_data->pdn_type == IPv4_AND_v6) && (!ip4_str.empty()) && (!ip6_str.empty())) {
     sreq.set_ue_ipv4(ip4_str);
     sreq.set_ue_ipv6(ip6_str);
-  } else {
-    OAILOG_ERROR(
-      LOG_SPGW_APP,
-      "Invalid PDN Type \n");
   }
-
   sreq.set_bearer_id(session_request.eps_bearer_id);
   pcef_fill_create_session_req(session_data, &sreq);
 
