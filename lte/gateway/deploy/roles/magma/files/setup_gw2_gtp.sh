@@ -48,6 +48,10 @@ check_success "Installing kernel gtp module"
 # Update the module symbols
 depmod -a
 
+# Change the SGI interface from OVS bridge gtp_br0 to eth2
+sed -e '/pgw_uplink/ s/gtp_br0/eth2/' -i /etc/magma/spgw.yml
+check_success "Switching SGI from gtp_br0 to eth2"
+
 # Enable NATing on the SGI interface, i.e. eth2
 iptables -t nat -A POSTROUTING -o eth2 -j MASQUERADE
 check_success "Installing NAT rule for eth2"
