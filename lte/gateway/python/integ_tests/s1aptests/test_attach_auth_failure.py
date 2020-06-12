@@ -13,6 +13,7 @@ import s1ap_types
 
 from integ_tests.s1aptests import s1ap_wrapper
 
+
 class TestAuthFailure(unittest.TestCase):
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
@@ -39,14 +40,14 @@ class TestAuthFailure(unittest.TestCase):
         attach_req.useOldSecCtxt = sec_ctxt
         attach_req.pdnType_pr = pdn_type
 
-        print("Sending Attach Request ue-id", attach_req.ue_Id)
+        print("Sending Attach Request for ue-id", attach_req.ue_Id)
         self._s1ap_wrapper._s1_util.issue_cmd(
             s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertTrue(response, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value)
-        print("Received auth req ind ")
+        print("Received Authentication Request message ")
 
         auth_failure = s1ap_types.ueAuthFailure_t()
         auth_failure.ue_Id = 1
@@ -54,10 +55,14 @@ class TestAuthFailure(unittest.TestCase):
         # sending random/zero auts value to simulate failure scenario
         for idx1 in range(14):
             auth_failure.auts[idx1] = 0
-        print("Sending Auth Failure ue-id", auth_failure.ue_Id)
+        print("Sending Authentication Failure for ue-id", auth_failure.ue_Id)
         self._s1ap_wrapper._s1_util.issue_cmd(
             s1ap_types.tfwCmd.UE_AUTH_FAILURE, auth_failure
         )
+        response = self._s1ap_wrapper.s1_util.get_response()
+        self.assertTrue(response, s1ap_types.tfwCmd.UE_AUTH_REJ_IND.value)
+        print("Received Authentication Reject message")
+
 
 if __name__ == "__main__":
     unittest.main()
