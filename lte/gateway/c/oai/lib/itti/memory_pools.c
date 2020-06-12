@@ -166,7 +166,7 @@ static inline items_group_index_t items_group_get_free_item(
   items_group_position_t put;
   items_group_position_t get;
   items_group_position_t free_items;
-  items_group_index_t index = ITEMS_GROUP_INDEX_INVALID;
+  items_group_index_t index = ITEMS_GROUP_INDEX_INVALID, tmp;
 
   /*
    * Get current put position
@@ -185,9 +185,16 @@ static inline items_group_index_t items_group_get_free_item(
     __sync_fetch_and_sub(&items_group->positions.ind.get, 1);
   } else {
     /*
-     * Get index at current get position
+     * Get index at current get position,
+     * atomically compare this index and index at the get position
+     * to either make the index unavailable or receive an invalid
+     * index as, due to race conditions, another thread acquired this index.
      */
     index = items_group->indexes[get];
+    tmp = __sync_val_compare_and_swap(&items_group->indexes[get], index, ITEMS_GROUP_INDEX_INVALID);
+    if (tmp != index) {
+      index = ITEMS_GROUP_INDEX_INVALID;
+    }
 
     if (index <= ITEMS_GROUP_INDEX_INVALID) {
       /*
@@ -211,11 +218,6 @@ static inline items_group_index_t items_group_get_free_item(
       while (items_group->minimum > free_items) {
         items_group->minimum = free_items;
       }
-
-      /*
-       * Clear index at current get position to indicate that item is free
-       */
-      items_group->indexes[get] = ITEMS_GROUP_INDEX_INVALID;
     }
   }
 
