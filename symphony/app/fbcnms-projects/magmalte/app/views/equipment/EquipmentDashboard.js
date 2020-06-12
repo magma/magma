@@ -27,7 +27,7 @@ import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import Text from '../../theme/design-system/Text';
-import {colors} from '../../theme/default';
+import {colors, typography} from '../../theme/default';
 import nullthrows from '@fbcnms/util/nullthrows';
 import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 
@@ -66,6 +66,19 @@ const useStyles = makeStyles(theme => ({
   tabIconLabel: {
     marginRight: '8px',
   },
+  appBarBtn: {
+    color: colors.primary.white,
+    background: colors.primary.comet,
+    fontFamily: typography.button.fontFamily,
+    fontWeight: typography.button.fontWeight,
+    fontSize: typography.button.fontSize,
+    lineHeight: typography.button.lineHeight,
+    letterSpacing: typography.button.letterSpacing,
+
+    '&:hover': {
+      background: colors.primary.mirage,
+    },
+  },
   appBarBtnSecondary: {
     color: colors.primary.white,
   },
@@ -77,7 +90,6 @@ const useStyles = makeStyles(theme => ({
     height: 100,
     padding: theme.spacing(10),
     textAlign: 'center',
-    color: theme.palette.text.secondary,
   },
   formControl: {
     margin: theme.spacing(1),
@@ -241,7 +253,7 @@ function EquipmentDashboardInternal({
                 </Button>
               </Grid>
               <Grid item>
-                <Button color="primary" variant="contained">
+                <Button variant="contained" className={classes.appBarBtn}>
                   Create New
                 </Button>
               </Grid>

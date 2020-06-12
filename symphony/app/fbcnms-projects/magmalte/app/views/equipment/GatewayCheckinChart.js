@@ -16,15 +16,26 @@ import CardHeader from '@material-ui/core/CardHeader';
 import DataUsageIcon from '@material-ui/icons/DataUsage';
 import Grid from '@material-ui/core/Grid';
 import React, {useState} from 'react';
-import Text from '@fbcnms/ui/components/design-system/Text';
-import TimeRangeSelector from '@fbcnms/ui/insights/TimeRangeSelector';
+import Text from '../../theme/design-system/Text';
+import {colors} from '../../theme/default';
+import TimeRangeSelector from '../../theme/design-system/TimeRangeSelector';
 
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(theme => ({
+  cardTitle: {
+    marginBottom: theme.spacing(1),
+  },
+  cardTitleIcon: {
+    fill: colors.primary.comet,
+    marginRight: theme.spacing(1),
+  },
   formControl: {
     margin: theme.spacing(1),
     minWidth: 150,
+  },
+  cardFilters: {
+    marginBottom: theme.spacing(1),
   },
 }));
 
@@ -65,20 +76,26 @@ export default function() {
   };
   return (
     <>
-      <Grid container align="top" alignItems="flex-start">
+      <Grid container alignItems="center">
         <Grid item xs={6}>
-          <Text>
-            <DataUsageIcon />
-            Gateway Check-Ins
-          </Text>
+          <Grid container alignItems="center" className={classes.cardTitle}>
+            <DataUsageIcon className={classes.cardTitleIcon} />
+            <Text variant="body1">Gateway Check-Ins</Text>
+          </Grid>
         </Grid>
         <Grid item xs={6}>
-          <Grid container justify="flex-end" alignItems="center" spacing={1}>
+          <Grid
+            container
+            justify="flex-end"
+            alignItems="center"
+            spacing={1}
+            className={classes.cardFilters}>
             <Grid item>
-              <Text>Filter By Time</Text>
+              <Text variant="body3">Filter By Time</Text>
             </Grid>
             <Grid item>
               <TimeRangeSelector
+                variant="outlined"
                 className={classes.formControl}
                 value={timeRange}
                 onChange={setTimeRange}
@@ -89,7 +106,7 @@ export default function() {
       </Grid>
       <Card>
         <CardHeader
-          title={<Text variant="h6">{state.title}</Text>}
+          title={<Text variant="body2">{state.title}</Text>}
           subheader={
             <AsyncMetric
               style={chartStyle}
