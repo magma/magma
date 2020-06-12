@@ -81,10 +81,8 @@ func (d *directoryUpdateServicer) DeleteRecord(c context.Context, r *protos.Dele
 	}
 	_, err = client.DeleteStates(
 		makeOutgoingCtx(c),
-		&protos.DeleteStatesRequest{
-			Ids: []*protos.StateID{
-				&protos.StateID{
-					Type: orc8r.DirectoryRecordType, DeviceID: r.Id}}})
+		&protos.DeleteStatesRequest{Ids: []*protos.StateID{{Type: orc8r.DirectoryRecordType, DeviceID: r.Id}}},
+	)
 
 	return ret, err
 }
@@ -106,7 +104,9 @@ func (d *directoryUpdateServicer) GetDirectoryField(
 		makeOutgoingCtx(c),
 		&protos.GetStatesRequest{
 			NetworkID: networkId,
-			Ids:       []*protos.StateID{&protos.StateID{Type: orc8r.DirectoryRecordType, DeviceID: r.GetId()}}})
+			Ids:       []*protos.StateID{{Type: orc8r.DirectoryRecordType, DeviceID: r.GetId()}},
+		},
+	)
 	if err != nil {
 		return ret, err
 	}

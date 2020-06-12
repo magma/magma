@@ -32,8 +32,9 @@ const (
 	// ErrIndex indicates error source is indexer Index call.
 	ErrIndex Error = "state index error: error from Index"
 
-	maxRetry     = 3
-	defaultSleep = 10 * time.Second
+	maxRetry          = 3
+	nIndexWorkers     = 5
+	defaultIndexSleep = 10 * time.Second
 )
 
 // Index forwards states to all registered indexers, according to their subscriptions.
@@ -47,35 +48,49 @@ func Index(networkID string, states state_types.StatesByID) {
 	glog.V(2).Infof("Completed state index for network %s with %d states", networkID, len(states))
 }
 
+// indexImpl makes Index calls via worker goroutines.
+//	- each indexer gets up to maxRetry attempts
+//	- returns after all goroutines have completed
 func indexImpl(networkID string, states state_types.StatesByID) []error {
-	errByIdx := map[string]error{}
-	indexers := indexer.GetAllIndexers()
-
-	// Retry indexing, up to a max number of times
-	for i := 0; len(indexers) != 0 && i < maxRetry; i++ {
-		var failed []indexer.Indexer
-		for _, x := range indexers {
-			err := indexOne(networkID, x, states)
-			if err != nil {
-				errByIdx[x.GetID()] = err
-				failed = append(failed, x)
+	index := func(in chan indexer.Indexer, out chan error) {
+		for x := range in {
+			var indexErr error
+			for i := 0; i < maxRetry; i++ {
+				indexErr = indexOne(networkID, x, states)
+				if indexErr == nil {
+					break
+				}
+				clock.Sleep(defaultIndexSleep)
 			}
+			out <- indexErr
 		}
-
-		indexers = failed
-		clock.Sleep(defaultSleep)
+	}
+	in := make(chan indexer.Indexer)
+	out := make(chan error)
+	for i := 0; i < nIndexWorkers; i++ {
+		go index(in, out)
 	}
 
-	var errs []error
-	for _, idx := range indexers {
-		errs = append(errs, errByIdx[idx.GetID()])
+	indexers := indexer.GetIndexers()
+	go func() {
+		for _, x := range indexers {
+			in <- x
+		}
+		close(in)
+	}()
+
+	var indexErrs []error
+	for i := 0; i < len(indexers); i++ {
+		if e := <-out; e != nil {
+			indexErrs = append(indexErrs, e)
+		}
 	}
 
-	return errs
+	return indexErrs
 }
 
 func indexOne(networkID string, idx indexer.Indexer, states state_types.StatesByID) error {
-	filtered := indexer.FilterStates(idx.GetSubscriptions(), states)
+	filtered := indexer.FilterStates(idx.GetTypes(), states)
 	if len(filtered) == 0 {
 		return nil
 	}
@@ -83,16 +98,16 @@ func indexOne(networkID string, idx indexer.Indexer, states state_types.StatesBy
 	id := idx.GetID()
 	version := getVersion(idx)
 
-	errs, err := idx.Index(networkID, filtered)
+	indexErrs, err := idx.Index(networkID, filtered)
 	if err != nil {
 		return wrap(err, ErrIndex, id)
 	}
-	if len(errs) == len(filtered) {
+	if len(indexErrs) == len(filtered) {
 		err := errors.New("all state IDs experienced per-state index errors")
 		return wrap(err, ErrIndex, id)
-	} else if len(errs) != 0 {
-		metrics.IndexErrors.WithLabelValues(id, version, metrics.SourceValueIndex).Add(float64(len(errs)))
-		err := wrap(fmt.Errorf("%s", errs), ErrIndexPerState, id)
+	} else if len(indexErrs) != 0 {
+		metrics.IndexErrors.WithLabelValues(id, version, metrics.SourceValueIndex).Add(float64(len(indexErrs)))
+		err := wrap(fmt.Errorf("%s", indexErrs), ErrIndexPerState, id)
 		glog.Warning(err)
 		return nil
 	}

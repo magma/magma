@@ -68,7 +68,7 @@ type Reindexer interface {
 	RunUnsafe(ctx context.Context, indexerID string, sendUpdate func(string)) error
 
 	// GetIndexerVersions returns version info for all tracked indexers, keyed by indexer ID.
-	GetIndexerVersions() ([]*Version, error)
+	GetIndexerVersions() ([]*indexer.Versions, error)
 }
 
 type reindexerImpl struct {
@@ -127,7 +127,7 @@ func (r *reindexerImpl) RunUnsafe(ctx context.Context, indexerID string, sendUpd
 	return nil
 }
 
-func (r *reindexerImpl) GetIndexerVersions() ([]*Version, error) {
+func (r *reindexerImpl) GetIndexerVersions() ([]*indexer.Versions, error) {
 	return r.queue.GetIndexerVersions()
 }
 
@@ -144,11 +144,11 @@ func (r *reindexerImpl) claimAndReindexOne(ctx context.Context, batches []reinde
 
 	jobErr := executeJob(ctx, job, batches)
 
-	glog.V(2).Infof("Attempting to complete state reindex job %+v with job err %+v", job, jobErr)
-	completeErr := r.queue.CompleteJob(job, jobErr)
-	if completeErr != nil {
-		glog.Errorf("Failed to complete state reindex job %+v with job err <%s>: %s", job, jobErr, completeErr)
+	err = r.queue.CompleteJob(job, jobErr)
+	if err != nil {
+		return fmt.Errorf("error completing state reindex job %+v with job err <%s>: %s", job, jobErr, err)
 	}
+	glog.V(2).Infof("Completed state reindex job %+v with job err %+v", job, jobErr)
 
 	duration := clock.Since(start).Seconds()
 	metrics.ReindexDuration.WithLabelValues(job.Idx.GetID()).Set(duration)
@@ -197,9 +197,9 @@ func (r *reindexerImpl) reportStatusMetrics() {
 		if info.Status != StatusComplete {
 			continue
 		}
-		idx, err := indexer.GetIndexer(id)
-		if err != nil {
-			glog.Errorf("Report reindex metrics failed to get indexer %s from registry: %v", id, err)
+		idx := indexer.GetIndexer(id)
+		if idx == nil {
+			glog.Errorf("Report reindex metrics failed to get indexer %s from registry", id)
 			continue
 		}
 		metrics.IndexerVersion.WithLabelValues(id).Set(float64(idx.GetVersion()))
@@ -219,13 +219,14 @@ func (r *reindexerImpl) getReindexBatches(ctx context.Context) []reindexBatch {
 			return nil
 		}
 		ids, err := r.store.GetAllIDs()
-		if err == nil {
-			idsByNetwork = ids
-			break
+		if err != nil {
+			err = wrap(err, ErrDefault, "")
+			glog.Errorf("Failed to get all state IDs for state indexer reindexing, will retry: %v", err)
+			clock.Sleep(failedGetBatchesSleep)
+			continue
 		}
-		err = wrap(err, ErrDefault, "")
-		glog.Errorf("Failed to get all state IDs for state indexer reindexing, will retry: %v", err)
-		clock.Sleep(failedGetBatchesSleep)
+		idsByNetwork = ids
+		break
 	}
 
 	var current, rest []state_types.ID
@@ -243,7 +244,7 @@ func (r *reindexerImpl) getReindexBatches(ctx context.Context) []reindexBatch {
 
 func executeJob(ctx context.Context, job *Job, batches []reindexBatch) error {
 	id := job.Idx.GetID()
-	subs := job.Idx.GetSubscriptions()
+	stateTypes := job.Idx.GetTypes()
 
 	isFirst := job.From == 0
 	err := job.Idx.PrepareReindex(job.From, job.To, isFirst)
@@ -255,7 +256,7 @@ func executeJob(ctx context.Context, job *Job, batches []reindexBatch) error {
 		if isCanceled(ctx) {
 			return wrap(err, ErrDefault, "context canceled")
 		}
-		ids := indexer.FilterIDs(subs, b.stateIDs)
+		ids := indexer.FilterIDs(stateTypes, b.stateIDs)
 		if len(ids) == 0 {
 			continue
 		}
@@ -289,7 +290,7 @@ func executeJob(ctx context.Context, job *Job, batches []reindexBatch) error {
 }
 
 func getIndexers(indexerID string) ([]indexer.Indexer, error) {
-	idxs := indexer.GetAllIndexers()
+	idxs := indexer.GetIndexers()
 	if indexerID == "" {
 		return idxs, nil
 	}

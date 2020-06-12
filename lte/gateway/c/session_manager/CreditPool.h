@@ -136,6 +136,8 @@ public:
 
   uint32_t get_credit_key_count() const override;
 
+  bool is_credit_state_redirected(const CreditKey &charging_key) const;
+
   ReAuthResult reauth_key(const CreditKey &charging_key,
                           SessionStateUpdateCriteria &update_criteria);
 

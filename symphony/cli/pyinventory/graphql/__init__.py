@@ -6,3 +6,6 @@ import typing
 
 
 __all__: typing.List[str]
+__pdoc__: typing.Dict[str, bool] = {}
+__pdoc__["mutation"] = False
+__pdoc__["query"] = False

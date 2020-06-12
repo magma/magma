@@ -46,13 +46,12 @@ protected:
     session_store = std::make_shared<SessionStore>(rule_store);
     pipelined_client = std::make_shared<MockPipelinedClient>();
     directoryd_client = std::make_shared<MockDirectorydClient>();
-    eventd_client = std::make_shared<MockEventdClient>();
     spgw_client = std::make_shared<MockSpgwServiceClient>();
     aaa_client = std::make_shared<MockAAAClient>();
     auto default_mconfig = get_default_mconfig();
     local_enforcer = std::make_unique<LocalEnforcer>(
         reporter, rule_store, *session_store, pipelined_client,
-        directoryd_client, eventd_client, spgw_client,
+        directoryd_client, MockEventdClient::getInstance(), spgw_client,
         aaa_client, 0, 0, default_mconfig);
     evb = folly::EventBaseManager::get()->getEventBase();
     local_enforcer->attachEventBase(evb);
@@ -100,7 +99,6 @@ protected:
   std::unique_ptr<LocalEnforcer> local_enforcer;
   std::shared_ptr<MockPipelinedClient> pipelined_client;
   std::shared_ptr<MockDirectorydClient> directoryd_client;
-  std::shared_ptr<MockEventdClient> eventd_client;
   std::shared_ptr<MockSpgwServiceClient> spgw_client;
   std::shared_ptr<MockAAAClient> aaa_client;
   SessionMap session_map;

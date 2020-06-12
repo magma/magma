@@ -170,9 +170,9 @@ func (s *sqlJobQueue) ClaimAvailableJob() (*Job, error) {
 		return nil, err
 	}
 
-	idx, err := indexer.GetIndexer(reindexJob.id)
-	if err != nil {
-		return nil, errors.Wrapf(err, "get indexer %s from registry", reindexJob.id)
+	idx := indexer.GetIndexer(reindexJob.id)
+	if idx == nil {
+		return nil, fmt.Errorf("indexer %s not found in registry", reindexJob.id)
 	}
 
 	job := &Job{
@@ -257,7 +257,7 @@ func (s *sqlJobQueue) GetJobInfos() (map[string]JobInfo, error) {
 	return infos, nil
 }
 
-func (s *sqlJobQueue) GetIndexerVersions() ([]*Version, error) {
+func (s *sqlJobQueue) GetIndexerVersions() ([]*indexer.Versions, error) {
 	txFn := func(tx *sql.Tx) (interface{}, error) {
 		return s.getIndexerVersionsImpl(tx)
 	}
@@ -265,7 +265,7 @@ func (s *sqlJobQueue) GetIndexerVersions() ([]*Version, error) {
 	if err != nil {
 		return nil, err
 	}
-	ret := txRet.([]*Version)
+	ret := txRet.([]*indexer.Versions)
 	return ret, nil
 }
 
@@ -477,7 +477,7 @@ func (s *sqlJobQueue) selectAll() squirrel.SelectBuilder {
 	return s.builder.Select(idCol, fromCol, toCol, statusCol, attemptsCol, errorCol, lastChangeCol)
 }
 
-func (s *sqlJobQueue) getIndexerVersionsImpl(tx *sql.Tx) ([]*Version, error) {
+func (s *sqlJobQueue) getIndexerVersionsImpl(tx *sql.Tx) ([]*indexer.Versions, error) {
 	old, err := s.getTrackedVersions(tx)
 	if err != nil {
 		return nil, err
@@ -511,8 +511,8 @@ func (s *sqlJobQueue) setIndexerActualVersionImpl(tx *sql.Tx, indexerID string, 
 	return nil
 }
 
-func (s *sqlJobQueue) getTrackedVersions(tx *sql.Tx) ([]*Version, error) {
-	var ret []*Version
+func (s *sqlJobQueue) getTrackedVersions(tx *sql.Tx) ([]*indexer.Versions, error) {
+	var ret []*indexer.Versions
 
 	rows, err := s.builder.Select(idColVersions, actualColVersions, desiredColVersions).
 		From(versionTableName).
@@ -542,11 +542,11 @@ func (s *sqlJobQueue) getTrackedVersions(tx *sql.Tx) ([]*Version, error) {
 	if err != nil {
 		return ret, errors.Wrap(err, "get all indexer versions, SQL rows error")
 	}
-	sort.Slice(ret, func(i, j int) bool { return ret[i].IndexerID < ret[j].IndexerID }) // for deterministic equality
+	sort.Slice(ret, func(i, j int) bool { return ret[i].IndexerID < ret[j].IndexerID }) // make deterministic
 	return ret, nil
 }
 
-func (s *sqlJobQueue) overwriteAllVersions(tx *sql.Tx, versions []*Version) error {
+func (s *sqlJobQueue) overwriteAllVersions(tx *sql.Tx, versions []*indexer.Versions) error {
 	_, err := s.builder.Delete(versionTableName).RunWith(tx).Exec()
 	if err != nil {
 		return errors.Wrap(err, "overwrite all indexer versions, delete existing versions")
@@ -614,9 +614,9 @@ func scanJobs(rows *sql.Rows) (map[string]*reindexJob, error) {
 //	- new_desired	-- desired version from indexer registry
 //	- old_desired	-- desired version from existing reindex jobs
 //	- actual		-- actual version updated upon successful reindex job completion
-func getComposedVersions(old []*Version) []*Version {
-	newv := indexer.GetAllIndexerVersionsByID()
-	composed := map[string]*Version{}
+func getComposedVersions(old []*indexer.Versions) []*indexer.Versions {
+	newv := getIndexerVersionsByID()
+	composed := map[string]*indexer.Versions{}
 
 	// Insert all old versions -- old_desired and actual values
 	for _, v := range old {
@@ -628,18 +628,28 @@ func getComposedVersions(old []*Version) []*Version {
 		if _, present := composed[id]; present {
 			composed[id].Desired = newDesired
 		} else {
-			composed[id] = &Version{IndexerID: id, Actual: 0, Desired: newDesired}
+			composed[id] = &indexer.Versions{IndexerID: id, Actual: 0, Desired: newDesired}
 		}
 	}
 
-	ret := funk.Map(composed, func(k string, v *Version) *Version { return v }).([]*Version)
-	sort.Slice(ret, func(i, j int) bool { return ret[i].IndexerID < ret[j].IndexerID }) // for deterministic equality
+	ret := funk.Map(composed, func(k string, v *indexer.Versions) *indexer.Versions { return v }).([]*indexer.Versions)
+	sort.Slice(ret, func(i, j int) bool { return ret[i].IndexerID < ret[j].IndexerID }) // make deterministic
+	return ret
+}
+
+// getIndexerVersionsByID returns a map of registered indexer IDs to their registered ("desired") versions.
+func getIndexerVersionsByID() map[string]indexer.Version {
+	indexers := indexer.GetIndexers()
+	ret := map[string]indexer.Version{}
+	for _, x := range indexers {
+		ret[x.GetID()] = x.GetVersion()
+	}
 	return ret
 }
 
 // newVersions returns a new indexer versions view.
 // First checks the indexer versions fit in an indexer.Version.
-func newVersions(indexerID string, actualVersion, desiredVersion int64) (*Version, error) {
+func newVersions(indexerID string, actualVersion, desiredVersion int64) (*indexer.Versions, error) {
 	td, ta := indexer.Version(desiredVersion), indexer.Version(actualVersion)
 	if int64(td) < desiredVersion || int64(ta) < actualVersion {
 		return nil, fmt.Errorf(
@@ -647,7 +657,7 @@ func newVersions(indexerID string, actualVersion, desiredVersion int64) (*Versio
 			indexerID, desiredVersion, actualVersion, indexer.Version(0),
 		)
 	}
-	v := &Version{
+	v := &indexer.Versions{
 		IndexerID: indexerID,
 		Actual:    ta,
 		Desired:   td,

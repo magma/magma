@@ -3,7 +3,7 @@
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
-__version__ = "2.6.1"
+__version__ = "3.0.0"
 
 EQUIPMENTS_TO_SEARCH = 10
 LOCATIONS_TO_SEARCH = 5
