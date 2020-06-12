@@ -466,6 +466,19 @@ get_action_instruction"
         self.assertTrue(qos_mgr._qos_store[k] == exp_id)
         self.assertTrue(qos_mgr._subscriber_map[imsi][rule_num][0] == (exp_id, d))
 
+        # delete the restored rule - ensure that it gets cleaned properly
+        purge_imsi = "1"
+        purge_rule_num = 0
+        purge_qos_handle = 2
+        qos_mgr.remove_subscriber_qos(purge_imsi, purge_rule_num)
+        self.assertTrue(purge_rule_num not in qos_mgr._subscriber_map[purge_imsi])
+        if self.config["qos"]["impl"] == QosImplType.OVS_METER:
+            mock_meter_cls.del_meter.assert_called_with(MagicMock, purge_qos_handle)
+        else:
+            mock_traffic_cls.delete_class.assert_called_with(
+                self.ul_intf, purge_qos_handle
+            )
+
         # case 2 - check with empty qos configs, qos_map gets purged
         mock_meter_cls.reset_mock()
         mock_traffic_cls.reset_mock()
