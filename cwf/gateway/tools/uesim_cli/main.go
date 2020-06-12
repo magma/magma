@@ -93,6 +93,7 @@ func handleAuthCmd(cmd *commands.Command, args []string) int {
 	imsi := strings.TrimSpace(f.Arg(0))
 	req := &protos.AuthenticateRequest{
 		Imsi: imsi,
+		CalledStationID: "76-02-DE-AD-BE-FF",
 	}
 	res, err := uesim.Authenticate(req)
 	if err != nil || res == nil {
