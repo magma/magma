@@ -82,6 +82,7 @@ const FilesCheckListItemFilling = ({
               : undefined,
             uploaded: file.uploadTime ? `${file.uploadTime}` : undefined,
             storeKey: file.storeKey,
+            annotation: file.annotation,
           }}
           onFileDeleted={removeItemFile}
         />
@@ -109,6 +110,7 @@ const FilesCheckListItemFilling = ({
               sizeInBytes: file.size,
               modificationTime: new Date().getTime(),
               uploadTime: new Date().getTime(),
+              annotation: file.annotation,
             },
           })
         }>
