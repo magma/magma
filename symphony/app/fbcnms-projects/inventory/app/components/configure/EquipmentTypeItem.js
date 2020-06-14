@@ -48,6 +48,11 @@ const styles = {
 class EquipmentTypeItem extends React.Component<Props> {
   render() {
     const {classes, equipmentType, onEdit} = this.props;
+
+    if (equipmentType == null) {
+      return null;
+    }
+
     return (
       <div>
         <ExpansionPanel>
