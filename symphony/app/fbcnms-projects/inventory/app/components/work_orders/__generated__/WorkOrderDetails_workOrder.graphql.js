@@ -145,7 +145,6 @@ export type WorkOrderDetails_workOrder = {|
         +fileType: ?FileType,
         +storeKey: ?string,
         +category: ?string,
-        +annotation: ?string,
       |}>,
       +cellData: ?$ReadOnlyArray<{|
         +id: string,
@@ -762,14 +761,7 @@ return {
                   "args": null,
                   "storageKey": null
                 },
-                (v16/*: any*/),
-                {
-                  "kind": "ScalarField",
-                  "alias": null,
-                  "name": "annotation",
-                  "args": null,
-                  "storageKey": null
-                }
+                (v16/*: any*/)
               ]
             },
             {
@@ -990,5 +982,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'a88ff2f8c282a68e89219a98db8d19bc';
+(node/*: any*/).hash = 'd11da7b4168f4e7a88e0e63a6de0467c';
 module.exports = node;

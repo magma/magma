@@ -185,7 +185,6 @@ const WorkOrderDetails = ({
         fileSize: file.size,
         modified: new Date(file.lastModified).toISOString(),
         contentType: file.type,
-        annotation: file.annotation,
       },
     };
 
@@ -674,7 +673,6 @@ export default withRouter(
                 fileType
                 storeKey
                 category
-                annotation
               }
               cellData {
                 id

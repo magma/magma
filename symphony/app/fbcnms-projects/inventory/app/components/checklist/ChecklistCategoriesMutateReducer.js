@@ -44,7 +44,6 @@ export function getInitialState(
         id: file.id,
         storeKey: file.storeKey ?? '',
         fileName: file.fileName,
-        annotation: file.annotation,
       })),
       cellData: item.cellData,
       wifiData: item.wifiData,

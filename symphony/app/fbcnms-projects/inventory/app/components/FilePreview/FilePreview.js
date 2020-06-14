@@ -105,7 +105,7 @@ const FilePreview = ({
           color="light"
           weight="medium"
           useEllipsis={true}>
-          {file.annotation ? file.annotation : file.fileName}
+          {file.fileName}
         </Text>
       </div>
       <div className={classes.overlay} />
