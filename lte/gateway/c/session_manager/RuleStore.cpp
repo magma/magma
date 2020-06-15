@@ -141,7 +141,9 @@ bool PolicyRuleBiMap::get_rule(const std::string& rule_id, PolicyRule* rule)
   if (it == rules_by_rule_id_.end()) {
     return false;
   }
-  rule->CopyFrom(*it->second);
+  if (rule != NULL) {
+    rule->CopyFrom(*it->second);
+  }
   return true;
 }
 

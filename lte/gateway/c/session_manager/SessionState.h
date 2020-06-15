@@ -215,7 +215,8 @@ class SessionState {
       SessionStateUpdateCriteria& update_criteria);
 
   void insert_gy_dynamic_rule(
-      const PolicyRule& rule, SessionStateUpdateCriteria& update_criteria);
+      const PolicyRule& rule, RuleLifetime& lifetime,
+      SessionStateUpdateCriteria& update_criteria);
 
   /**
    * Remove a currently active dynamic rule to mark it as deactivated.

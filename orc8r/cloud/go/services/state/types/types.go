@@ -11,6 +11,7 @@ package types
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/lib/go/protos"
@@ -57,6 +58,9 @@ type State struct {
 // IDsByNetwork are a set of state IDs, keyed by network ID.
 type IDsByNetwork map[string][]ID
 
+// StateErrors is a mapping of state ID to error experienced handling the state.
+type StateErrors map[ID]error
+
 // SerializedStateWithMeta includes reported operational states and additional info
 type SerializedStateWithMeta struct {
 	ReporterID              string
@@ -66,7 +70,26 @@ type SerializedStateWithMeta struct {
 	Version                 uint64
 }
 
-// MakeStatesByID converts state protos to state structs, keyed by state ID.
+// MakeStateErrors converts proto state errors to native state errors.
+func MakeStateErrors(errs []*protos.IDAndError) StateErrors {
+	ret := StateErrors{}
+	for _, e := range errs {
+		id := ID{Type: e.Type, DeviceID: e.DeviceID}
+		ret[id] = fmt.Errorf("%v", e.Error)
+	}
+	return ret
+}
+
+// MakeProtoStateErrors converts state errors to proto state errors.
+func MakeProtoStateErrors(errs StateErrors) []*protos.IDAndError {
+	var ret []*protos.IDAndError
+	for id, e := range errs {
+		ret = append(ret, &protos.IDAndError{Type: id.Type, DeviceID: id.DeviceID, Error: e.Error()})
+	}
+	return ret
+}
+
+// MakeStatesByID converts proto states to native states keyed by state ID.
 func MakeStatesByID(states []*protos.State) (StatesByID, error) {
 	byID := StatesByID{}
 	for _, p := range states {
@@ -80,7 +103,7 @@ func MakeStatesByID(states []*protos.State) (StatesByID, error) {
 	return byID, nil
 }
 
-// MakeState converts a state proto to a state structs.
+// MakeState converts a proto state to a native state.
 func MakeState(p *protos.State) (State, error) {
 	// Recover state struct
 	serialized := &SerializedStateWithMeta{}
@@ -101,4 +124,40 @@ func MakeState(p *protos.State) (State, error) {
 	}
 
 	return st, err
+}
+
+// MakeProtoStates converts states by ID to proto states.
+func MakeProtoStates(states StatesByID) ([]*protos.State, error) {
+	var ret []*protos.State
+	for id, st := range states {
+		p, err := MakeProtoState(id, st)
+		if err != nil {
+			return nil, err
+		}
+		ret = append(ret, p)
+	}
+	return ret, nil
+}
+
+// MakeProtoState converts a state and ID to a proto state.
+func MakeProtoState(id ID, st State) (*protos.State, error) {
+	reportedState, err := serde.Serialize(SerdeDomain, st.Type, st.ReportedState)
+	if err != nil {
+		return nil, err
+	}
+
+	stWithMeta := &SerializedStateWithMeta{
+		ReporterID:              st.ReporterID,
+		TimeMs:                  st.TimeMs,
+		CertExpirationTime:      st.CertExpirationTime,
+		SerializedReportedState: reportedState,
+		Version:                 st.Version,
+	}
+	bytes, err := json.Marshal(stWithMeta)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to marshal to json-encoded state proto value")
+	}
+
+	p := &protos.State{Type: st.Type, DeviceID: id.DeviceID, Value: bytes, Version: st.Version}
+	return p, nil
 }

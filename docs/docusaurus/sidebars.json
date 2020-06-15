@@ -52,6 +52,7 @@
           "feg/deploy_install"
         ]
       }
-    ]
+    ],
+    "FAQ": ["faq/magma_faq"]
   }
 }

@@ -67,7 +67,7 @@ meter:
   idle_timeout: 0
 
 enforcement:
-  poll_interval: 2
+  poll_interval: 5
 
 # Enable polling mobilityd to identify which subscriber sessions need to be
 # terminated. If disabling this, make sure to set a valid idle_timeout for

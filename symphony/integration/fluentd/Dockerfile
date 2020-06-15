@@ -9,3 +9,4 @@ USER root
 
 # Install prometheus plugin
 RUN fluent-gem install fluent-plugin-prometheus
+RUN fluent-gem install fluent-plugin-rewrite-tag-filter

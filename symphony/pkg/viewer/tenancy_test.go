@@ -98,7 +98,7 @@ func TestMySQLTenancy(t *testing.T) {
 
 	db, err := sql.Open("mysql", dsn)
 	require.NoError(t, err)
-	tenancy, err := viewer.NewMySQLTenancy(dsn)
+	tenancy, err := viewer.NewMySQLTenancy(dsn, 10)
 	require.NoError(t, err)
 
 	assert.Implements(t, (*health.Checker)(nil), tenancy)

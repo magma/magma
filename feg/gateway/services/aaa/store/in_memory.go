@@ -173,6 +173,19 @@ func (st *memSessionTable) FindSession(imsi string) (sid string) {
 	return sid
 }
 
+// GetSessionByImsi returns session corresponding to the given IMSI or nil if not found
+func (st *memSessionTable) GetSessionByImsi(imsi string) aaa.Session {
+	var s *memSession
+	if st != nil {
+		st.rwl.RLock()
+		if sid, ok := st.sids[imsi]; ok {
+			s, _ = st.sm[sid]
+		}
+		st.rwl.RUnlock()
+	}
+	return s
+}
+
 // RemoveSession - removes the session with the given SID and returns it
 func (st *memSessionTable) RemoveSession(sid string) aaa.Session {
 	if st != nil {

@@ -17,9 +17,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"magma/gateway/service_registry"
-	"magma/orc8r/lib/go/definitions"
-	"magma/orc8r/lib/go/protos"
 	"net"
 	"net/http"
 	"net/url"
@@ -30,6 +27,11 @@ import (
 
 	"github.com/golang/glog"
 	"golang.org/x/net/http2"
+
+	"magma/gateway/service_registry"
+	"magma/orc8r/lib/go/definitions"
+	_ "magma/orc8r/lib/go/initflag"
+	"magma/orc8r/lib/go/protos"
 )
 
 const (

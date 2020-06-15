@@ -68,7 +68,6 @@ class EnforcementController(PolicyMixin, MagmaController):
         self._enforcement_stats_scratch = self._service_manager.get_table_num(
             EnforcementStatsController.APP_NAME)
         self.loop = kwargs['loop']
-        self._relay_enabled = kwargs['mconfig'].relay_enabled
 
         self._msg_hub = MessageHub(self.logger)
         self._redirect_scratch = \
@@ -77,10 +76,6 @@ class EnforcementController(PolicyMixin, MagmaController):
         self._redirect_manager = None
         self._qos_mgr = None
         self._clean_restart = kwargs['config']['clean_restart']
-        self._relay_enabled = kwargs['mconfig'].relay_enabled
-        if not self._relay_enabled:
-            self.logger.info('Relay mode is not enabled, enforcement will not'
-                             ' wait for sessiond to push flows.')
 
     def initialize_on_connect(self, datapath):
         """
@@ -92,9 +87,6 @@ class EnforcementController(PolicyMixin, MagmaController):
         self._datapath = datapath
         self._qos_mgr = QosManager(datapath, self.loop, self._config)
         self._qos_mgr.setup()
-
-        if not self._relay_enabled:
-            self._install_default_flows_if_not_installed(datapath, [])
 
         self._redirect_manager = RedirectionManager(
             self._bridge_ip_address,

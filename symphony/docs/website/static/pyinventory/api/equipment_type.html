@@ -32,7 +32,7 @@
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="pyinventory.api.equipment_type.add_equipment_type"><code class="name flex">
-<span>def <span class="ident">add_equipment_type</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, category: str, properties: Sequence[Tuple[str, str, Union[datetime.date, float, int, str, bool, Tuple[float, float], NoneType], Union[bool, NoneType]]], ports_dict: Dict[str, str], position_list: List[str]) -> <a title="pyinventory.common.data_class.EquipmentType" href="../common/data_class.html#pyinventory.common.data_class.EquipmentType">EquipmentType</a></span>
+<span>def <span class="ident">add_equipment_type</span></span>(<span>client: pysymphony.SymphonyClient, name: str, category: str, properties: List[<a title="pyinventory.common.data_class.PropertyDefinition" href="../common/data_class.html#pyinventory.common.data_class.PropertyDefinition">PropertyDefinition</a>], ports_dict: Dict[str, str], position_list: List[str]) -> <a title="pyinventory.common.data_class.EquipmentType" href="../common/data_class.html#pyinventory.common.data_class.EquipmentType">EquipmentType</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function creates new equipment type.</p>
@@ -42,14 +42,7 @@
 <dd>equipment type name</dd>
 <dt><strong><code>category</code></strong> :&ensp;<code>str</code></dt>
 <dd>category name</dd>
-</dl>
-<p>properties (Sequence[Tuple[str, str, Optional[PropertyValue], Optional[bool]]]):
-- str - type name
-- str - enum["string", "int", "bool", "float", "date", "enum", "range",
-"email", "gps_location", "equipment", "location", "service", "datetime_local"]
-- PropertyValue - default property value
-- bool - fixed value flag</p>
-<dl>
+<dt>properties (List[ <code>pyinventory.common.data_class.PropertyDefinition</code> ]): list of property definitions</dt>
 <dt><strong><code>ports_dict</code></strong> :&ensp;<code>Dict[str, str]</code></dt>
 <dd>dictionary of port name to port type name</dd>
 </dl>
@@ -72,14 +65,21 @@
 <pre><code>e_type = client.add_equipment_type(
     name=&quot;Tp-Link T1600G&quot;,
     category=&quot;Router&quot;,
-    properties=[(&quot;IP&quot;, &quot;string&quot;, None, True)],
+    properties=[
+        PropertyDefinition(
+            property_name=&quot;IP&quot;,
+            property_kind=PropertyKind.string,
+            default_raw_value=None,
+            is_fixed=True
+        )
+    ],
     ports_dict={&quot;Port 1&quot;: &quot;eth port&quot;, &quot;port 2&quot;: &quot;eth port&quot;},
     position_list=[],
 )
 </code></pre></div>
 </dd>
 <dt id="pyinventory.api.equipment_type.copy_equipment_type"><code class="name flex">
-<span>def <span class="ident">copy_equipment_type</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, curr_equipment_type_name: str, new_equipment_type_name: str) -> <a title="pyinventory.common.data_class.EquipmentType" href="../common/data_class.html#pyinventory.common.data_class.EquipmentType">EquipmentType</a></span>
+<span>def <span class="ident">copy_equipment_type</span></span>(<span>client: pysymphony.SymphonyClient, curr_equipment_type_name: str, new_equipment_type_name: str) -> <a title="pyinventory.common.data_class.EquipmentType" href="../common/data_class.html#pyinventory.common.data_class.EquipmentType">EquipmentType</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Copy existing equipment type.</p>
@@ -105,7 +105,7 @@
 </code></pre></div>
 </dd>
 <dt id="pyinventory.api.equipment_type.delete_equipment_type_with_equipments"><code class="name flex">
-<span>def <span class="ident">delete_equipment_type_with_equipments</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment_type: <a title="pyinventory.common.data_class.EquipmentType" href="../common/data_class.html#pyinventory.common.data_class.EquipmentType">EquipmentType</a>) -> NoneType</span>
+<span>def <span class="ident">delete_equipment_type_with_equipments</span></span>(<span>client: pysymphony.SymphonyClient, equipment_type: <a title="pyinventory.common.data_class.EquipmentType" href="../common/data_class.html#pyinventory.common.data_class.EquipmentType">EquipmentType</a>) -> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Delete equipment type with existing equipments.</p>
@@ -125,7 +125,7 @@ client.delete_equipment_type_with_equipments(equipment_type=equipment_type)
 </code></pre></div>
 </dd>
 <dt id="pyinventory.api.equipment_type.edit_equipment_type"><code class="name flex">
-<span>def <span class="ident">edit_equipment_type</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, new_positions_list: List[str], new_ports_dict: Dict[str, str]) -> <a title="pyinventory.common.data_class.EquipmentType" href="../common/data_class.html#pyinventory.common.data_class.EquipmentType">EquipmentType</a></span>
+<span>def <span class="ident">edit_equipment_type</span></span>(<span>client: pysymphony.SymphonyClient, name: str, new_positions_list: List[str], new_ports_dict: Dict[str, str]) -> <a title="pyinventory.common.data_class.EquipmentType" href="../common/data_class.html#pyinventory.common.data_class.EquipmentType">EquipmentType</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Edit existing equipment type.</p>
@@ -158,7 +158,7 @@ client.delete_equipment_type_with_equipments(equipment_type=equipment_type)
 </code></pre></div>
 </dd>
 <dt id="pyinventory.api.equipment_type.edit_equipment_type_property_type"><code class="name flex">
-<span>def <span class="ident">edit_equipment_type_property_type</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment_type_name: str, property_type_id: str, new_property_definition: <a title="pyinventory.common.data_class.PropertyDefinition" href="../common/data_class.html#pyinventory.common.data_class.PropertyDefinition">PropertyDefinition</a>) -> <a title="pyinventory.common.data_class.EquipmentType" href="../common/data_class.html#pyinventory.common.data_class.EquipmentType">EquipmentType</a></span>
+<span>def <span class="ident">edit_equipment_type_property_type</span></span>(<span>client: pysymphony.SymphonyClient, equipment_type_name: str, property_type_id: str, new_property_definition: <a title="pyinventory.common.data_class.PropertyDefinition" href="../common/data_class.html#pyinventory.common.data_class.PropertyDefinition">PropertyDefinition</a>) -> <a title="pyinventory.common.data_class.EquipmentType" href="../common/data_class.html#pyinventory.common.data_class.EquipmentType">EquipmentType</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Edit specific property type on specific equipment type.</p>
@@ -166,8 +166,8 @@ client.delete_equipment_type_with_equipments(equipment_type=equipment_type)
 <dl>
 <dt><strong><code>equipment_type_name</code></strong> :&ensp;<code>str</code></dt>
 <dd>existing equipment type name</dd>
-<dt><strong><code>property_type_name</code></strong> :&ensp;<code>str</code></dt>
-<dd>existing property type name</dd>
+<dt><strong><code>property_type_id</code></strong> :&ensp;<code>str</code></dt>
+<dd>existing property type id</dd>
 </dl>
 <p>new_property_definition ( <code><a title="pyinventory.common.data_class.PropertyDefinition" href="../common/data_class.html#pyinventory.common.data_class.PropertyDefinition">PropertyDefinition</a></code> ): new property definition</p>
 <h2 id="returns">Returns</h2>
@@ -179,15 +179,21 @@ client.delete_equipment_type_with_equipments(equipment_type=equipment_type)
 <dd>internal inventory error</dd>
 </dl>
 <h2 id="example">Example</h2>
-<pre><code>e_type = client.edit_equipment_type_property_type_name(
+<pre><code>e_type = client.edit_equipment_type_property_type(
     equipment_type_name=&quot;Card&quot;,
-    property_type_name=&quot;contact&quot;,
-    new_name=&quot;contact information&quot;,
+    property_type_id=&quot;111669149698&quot;,
+    new_property_definition=PropertyDefinition(
+        property_name=property_type_name,
+        property_kind=PropertyKind.string,
+        default_raw_value=None,
+        is_fixed=False,
+        external_id=&quot;12345&quot;,
+    ),
 )
 </code></pre></div>
 </dd>
 <dt id="pyinventory.api.equipment_type.get_equipment_type_property_type"><code class="name flex">
-<span>def <span class="ident">get_equipment_type_property_type</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment_type_name: str, property_type_id: str) -> <a title="pyinventory.graphql.property_type_fragment.PropertyTypeFragment" href="../graphql/property_type_fragment.html#pyinventory.graphql.property_type_fragment.PropertyTypeFragment">PropertyTypeFragment</a></span>
+<span>def <span class="ident">get_equipment_type_property_type</span></span>(<span>client: pysymphony.SymphonyClient, equipment_type_name: str, property_type_id: str) -> <a title="pyinventory.common.data_class.PropertyDefinition" href="../common/data_class.html#pyinventory.common.data_class.PropertyDefinition">PropertyDefinition</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Get property type by ID on specific equipment type.</p>
@@ -199,7 +205,7 @@ client.delete_equipment_type_with_equipments(equipment_type=equipment_type)
 <dd>property type ID</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<p><code><a title="pyinventory.graphql.property_type_fragment.PropertyTypeFragment" href="../graphql/property_type_fragment.html#pyinventory.graphql.property_type_fragment.PropertyTypeFragment">PropertyTypeFragment</a></code>
+<p><code><a title="pyinventory.common.data_class.PropertyDefinition" href="../common/data_class.html#pyinventory.common.data_class.PropertyDefinition">PropertyDefinition</a></code>
 object</p>
 <h2 id="raises">Raises</h2>
 <p><code><a title="pyinventory.exceptions.EntityNotFoundError" href="../exceptions.html#pyinventory.exceptions.EntityNotFoundError">EntityNotFoundError</a></code>: property type with id=<code>property_type_id</code> is not found</p>
@@ -211,7 +217,7 @@ object</p>
 </code></pre></div>
 </dd>
 <dt id="pyinventory.api.equipment_type.get_equipment_type_property_type_by_external_id"><code class="name flex">
-<span>def <span class="ident">get_equipment_type_property_type_by_external_id</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment_type_name: str, property_type_external_id: str) -> <a title="pyinventory.graphql.property_type_fragment.PropertyTypeFragment" href="../graphql/property_type_fragment.html#pyinventory.graphql.property_type_fragment.PropertyTypeFragment">PropertyTypeFragment</a></span>
+<span>def <span class="ident">get_equipment_type_property_type_by_external_id</span></span>(<span>client: pysymphony.SymphonyClient, equipment_type_name: str, property_type_external_id: str) -> <a title="pyinventory.common.data_class.PropertyDefinition" href="../common/data_class.html#pyinventory.common.data_class.PropertyDefinition">PropertyDefinition</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Get property type by external ID on specific equipment type.</p>
@@ -223,7 +229,7 @@ object</p>
 <dd>property type external ID</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<p><code><a title="pyinventory.graphql.property_type_fragment.PropertyTypeFragment" href="../graphql/property_type_fragment.html#pyinventory.graphql.property_type_fragment.PropertyTypeFragment">PropertyTypeFragment</a></code>
+<p><code><a title="pyinventory.common.data_class.PropertyDefinition" href="../common/data_class.html#pyinventory.common.data_class.PropertyDefinition">PropertyDefinition</a></code>
 object</p>
 <h2 id="raises">Raises</h2>
 <p><code><a title="pyinventory.exceptions.EntityNotFoundError" href="../exceptions.html#pyinventory.exceptions.EntityNotFoundError">EntityNotFoundError</a></code>: property type with external_id=<code>property_type_external_id</code> is not found</p>
@@ -235,7 +241,7 @@ object</p>
 </code></pre></div>
 </dd>
 <dt id="pyinventory.api.equipment_type.get_or_create_equipment_type"><code class="name flex">
-<span>def <span class="ident">get_or_create_equipment_type</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, category: str, properties: Sequence[Tuple[str, str, Union[datetime.date, float, int, str, bool, Tuple[float, float], NoneType], Union[bool, NoneType]]], ports_dict: Dict[str, str], position_list: List[str]) -> <a title="pyinventory.common.data_class.EquipmentType" href="../common/data_class.html#pyinventory.common.data_class.EquipmentType">EquipmentType</a></span>
+<span>def <span class="ident">get_or_create_equipment_type</span></span>(<span>client: pysymphony.SymphonyClient, name: str, category: str, properties: List[<a title="pyinventory.common.data_class.PropertyDefinition" href="../common/data_class.html#pyinventory.common.data_class.PropertyDefinition">PropertyDefinition</a>], ports_dict: Dict[str, str], position_list: List[str]) -> <a title="pyinventory.common.data_class.EquipmentType" href="../common/data_class.html#pyinventory.common.data_class.EquipmentType">EquipmentType</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function checks equipment type existence,
@@ -246,14 +252,7 @@ in case it is not found, creates one.</p>
 <dd>equipment name</dd>
 <dt><strong><code>category</code></strong> :&ensp;<code>str</code></dt>
 <dd>category name</dd>
-</dl>
-<p>properties (Sequence[Tuple[str, str, Optional[PropertyValue], Optional[bool]]]):
-- str - type name
-- str - enum["string", "int", "bool", "float", "date", "enum", "range",
-"email", "gps_location", "equipment", "location", "service", "datetime_local"]
-- PropertyValue - default property value
-- bool - fixed value flag</p>
-<dl>
+<dt>properties (List[ <code>pyinventory.common.data_class.PropertyDefinition</code> ]): list of property definitions</dt>
 <dt><strong><code>ports_dict</code></strong> :&ensp;<code>Dict[str, str]</code></dt>
 <dd>dict of property name to property value</dd>
 </dl>
@@ -276,7 +275,14 @@ in case it is not found, creates one.</p>
 <pre><code>e_type = client.get_or_create_equipment_type(
     name=&quot;Tp-Link T1600G&quot;,
     category=&quot;Router&quot;,
-    properties=[(&quot;IP&quot;, &quot;string&quot;, None, True)],
+    properties=[
+        PropertyDefinition(
+            property_name=&quot;IP&quot;,
+            property_kind=PropertyKind.string,
+            default_raw_value=None,
+            is_fixed=True
+        )
+    ],
     ports_dict={&quot;Port 1&quot;: &quot;eth port&quot;, &quot;port 2&quot;: &quot;eth port&quot;},
     position_list=[],
 )

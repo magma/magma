@@ -52,8 +52,8 @@ class S1apStateManager :
   public StateManager<
     s1ap_state_t,
     ue_description_t,
-    magma::lte::gateway::s1ap::S1apState,
-    magma::lte::gateway::s1ap::UeDescription,
+    magma::lte::oai::S1apState,
+    magma::lte::oai::UeDescription,
     S1apStateConverter> {
  public:
   /**

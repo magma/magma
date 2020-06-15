@@ -230,6 +230,7 @@ export type elastic_hit = {
     },
     _type: string,
 };
+export type elastic_hit_count = number;
 export type email_receiver = {
     auth_identity ? : string,
     auth_password ? : string,
@@ -249,6 +250,7 @@ export type email_receiver = {
 export type enodeb = {
     attached_gateway_id ? : string,
     config: enodeb_configuration,
+    description ? : string,
     name: string,
     serial: string,
 };
@@ -885,6 +887,8 @@ export type platform_info = {
 };
 export type policy_id = string;
 export type policy_rule = {
+    app_name ? : "NO_APP_NAME" | "FACEBOOK" | "FACEBOOK_MESSENGER" | "INSTAGRAM" | "YOUTUBE" | "GOOGLE" | "GMAIL" | "GOOGLE_DOCS" | "NETFLIX" | "APPLE" | "MICROSOFT" | "REDDIT" | "WHATSAPP" | "GOOGLE_PLAY" | "APPSTORE" | "AMAZON" | "WECHAT" | "TIKTOK" | "TWITTER" | "WIKIPEDIA" | "GOOGLE_MAPS" | "YAHOO" | "IMO",
+    app_service_type ? : "NO_SERVICE_TYPE" | "CHAT" | "AUDIO" | "VIDEO",
     assigned_subscribers ? : Array < subscriber_id >
         ,
     flow_list: Array < flow_description >
@@ -898,6 +902,8 @@ export type policy_rule = {
     tracking_type ? : "ONLY_OCS" | "ONLY_PCRF" | "OCS_AND_PCRF" | "NO_TRACKING",
 };
 export type policy_rule_config = {
+    app_name ? : "NO_APP_NAME" | "FACEBOOK" | "FACEBOOK_MESSENGER" | "INSTAGRAM" | "YOUTUBE" | "GOOGLE" | "GMAIL" | "GOOGLE_DOCS" | "NETFLIX" | "APPLE" | "MICROSOFT" | "REDDIT" | "WHATSAPP" | "GOOGLE_PLAY" | "APPSTORE" | "AMAZON" | "WECHAT" | "TIKTOK" | "TWITTER" | "WIKIPEDIA" | "GOOGLE_MAPS" | "YAHOO" | "IMO",
+    app_service_type ? : "NO_SERVICE_TYPE" | "CHAT" | "AUDIO" | "VIDEO",
     flow_list: Array < flow_description >
         ,
     monitoring_key ? : string,
@@ -6564,20 +6570,63 @@ export default class MagmaAPIBindings {
 
         return await this.request(path, 'PUT', query, body);
     }
-    static async getNetworksByNetworkIdLogs(
+    static async getNetworksByNetworkIdLogsCount(
+            parameters: {
+                'networkId': string,
+                'simpleQuery' ? : string,
+                'fields' ? : string,
+                'filters' ? : string,
+                'start' ? : string,
+                'end' ? : string,
+            }
+        ): Promise < elastic_hit_count >
+        {
+            let path = '/networks/{network_id}/logs/count';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['simpleQuery'] !== undefined) {
+                query['simple_query'] = parameters['simpleQuery'];
+            }
+
+            if (parameters['fields'] !== undefined) {
+                query['fields'] = parameters['fields'];
+            }
+
+            if (parameters['filters'] !== undefined) {
+                query['filters'] = parameters['filters'];
+            }
+
+            if (parameters['start'] !== undefined) {
+                query['start'] = parameters['start'];
+            }
+
+            if (parameters['end'] !== undefined) {
+                query['end'] = parameters['end'];
+            }
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async getNetworksByNetworkIdLogsSearch(
             parameters: {
                 'networkId': string,
                 'simpleQuery' ? : string,
                 'fields' ? : string,
                 'filters' ? : string,
                 'size' ? : string,
+                'from' ? : string,
                 'start' ? : string,
                 'end' ? : string,
             }
         ): Promise < Array < elastic_hit >
         >
         {
-            let path = '/networks/{network_id}/logs';
+            let path = '/networks/{network_id}/logs/search';
             let body;
             let query = {};
             if (parameters['networkId'] === undefined) {
@@ -6600,6 +6649,10 @@ export default class MagmaAPIBindings {
 
             if (parameters['size'] !== undefined) {
                 query['size'] = parameters['size'];
+            }
+
+            if (parameters['from'] !== undefined) {
+                query['from'] = parameters['from'];
             }
 
             if (parameters['start'] !== undefined) {

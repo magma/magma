@@ -15,24 +15,24 @@ import (
 
 func TestConfigFlag(t *testing.T) {
 	const goodURL = "file://test"
-	var cfg Config
-	err := cfg.Set(goodURL)
+	var cfgURL URL
+	err := cfgURL.Set(goodURL)
 	assert.NoError(t, err)
-	assert.Equal(t, goodURL, cfg.String())
+	assert.Equal(t, goodURL, cfgURL.String())
 
 	var badURL = string([]byte{0x7f})
-	err = cfg.Set(badURL)
+	err = cfgURL.Set(badURL)
 	assert.Error(t, err)
 }
 
 func TestProvider(t *testing.T) {
-	cfg := Config{url: mempubsub.Scheme + "://" + uuid.New().String()}
+	cfg := newConfig(mempubsub.Scheme + "://" + uuid.New().String())
 	t.Run("Emitter", func(t *testing.T) {
 		emitter, shutdown, err := ProvideEmitter(context.Background(), cfg)
 		assert.NoError(t, err)
 		assert.NotNil(t, emitter)
 		assert.NotNil(t, shutdown)
-		_, _, err = ProvideEmitter(context.Background(), Config{url: string([]byte{0x7f})})
+		_, _, err = ProvideEmitter(context.Background(), newConfig(string([]byte{0x7f})))
 		assert.Error(t, err)
 	})
 	t.Run("Subscriber", func(t *testing.T) {

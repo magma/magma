@@ -53,7 +53,6 @@ func GenerateLteAuthVectors(numVectors uint32, milenage *crypto.MilenageCipher, 
 	lteAuthNextSeq := subscriber.GetState().GetLteAuthNextSeq()
 	for i := uint32(0); i < numVectors; i++ {
 		vector, nextSeq, err := GenerateLteAuthVector(milenage, subscriber, plmn, lteAuthOp, authSqnInd)
-		lteAuthNextSeq = nextSeq
 		if err != nil {
 			// If we have already generated an auth vector successfully, then we can
 			// return it. Otherwise, we must signal an error.
@@ -65,6 +64,8 @@ func GenerateLteAuthVectors(numVectors uint32, milenage *crypto.MilenageCipher, 
 			break
 		}
 		vectors = append(vectors, vector)
+		lteAuthNextSeq = nextSeq
+		subscriber.State.LteAuthNextSeq = lteAuthNextSeq
 	}
 	return vectors, lteAuthNextSeq, nil
 }

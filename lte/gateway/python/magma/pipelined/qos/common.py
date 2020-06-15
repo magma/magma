@@ -7,18 +7,25 @@ LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
 import asyncio
+import logging
 from collections import defaultdict
 from enum import Enum
-from magma.pipelined.qos.qos_tc_impl import TCManager
-from magma.pipelined.qos.qos_meter_impl import MeterManager
-from magma.pipelined.qos.types import (QosInfo, get_json, get_key,
-                                       get_subscriber_key)
-from magma.pipelined.qos.utils import QosStore
 
 from lte.protos.policydb_pb2 import FlowMatch
-import logging
+from magma.pipelined.qos.qos_meter_impl import MeterManager
+from magma.pipelined.qos.qos_tc_impl import TCManager
+from magma.pipelined.qos.types import QosInfo, get_json, get_key, get_subscriber_key
+from magma.pipelined.qos.utils import QosStore
 
-LOG = logging.getLogger('pipelined.qos.common')
+
+LOG = logging.getLogger("pipelined.qos.common")
+
+
+def normalizeIMSI(imsi: str) -> str:
+    imsi = imsi.lower()
+    if imsi.startswith("imsi"):
+        imsi = imsi[4:]
+    return imsi
 
 
 class QosImplType(Enum):
@@ -36,8 +43,7 @@ class QosManager(object):
         try:
             qos_impl_type = QosImplType(config["qos"]["impl"])
         except ValueError:
-            print("{} is not a valid qos implementation type({})".format(
-                qos_impl_type, QosImplType.list()))
+            LOG.error("%s is not a valid qos impl type", qos_impl_type)
             raise
 
         if qos_impl_type == QosImplType.OVS_METER:
@@ -54,13 +60,13 @@ class QosManager(object):
 
     def __init__(self, datapath, loop, config):
         # pylint: disable=unnecessary-lambda
-        self._enable_qos = config['qos']['enable']
+        self._enable_qos = config["qos"]["enable"]
         if not self._enable_qos:
             return
         self.qos_impl = QosManager.getqos_impl(datapath, loop, config)
         self._loop = loop
         self._subscriber_map = defaultdict(lambda: defaultdict())
-        self._clean_restart = config['clean_restart']
+        self._clean_restart = config["clean_restart"]
         self._qos_store = QosStore(self.__class__.__name__)
         self._initialized = False
         self._redis_conn_retry_secs = 1
@@ -72,11 +78,13 @@ class QosManager(object):
         if self.redisAvailable():
             return self._setupInternal()
         else:
-            LOG.info("failed to connect to redis..retrying in %d secs",
-                     self._redis_conn_retry_secs)
+            LOG.info(
+                "failed to connect to redis..retrying in %d secs",
+                self._redis_conn_retry_secs,
+            )
             self._loop.call_later(self._redis_conn_retry_secs, self.setup)
 
-    def _setupInternal(self, ):
+    def _setupInternal(self):
         LOG.info("Qos Setup")
         if self._clean_restart:
             LOG.info("clean start, wiping out existing state")
@@ -101,7 +109,9 @@ class QosManager(object):
                             continue
                         in_store_qid.add(v)
                         _, imsi, rule_num, d = get_key(k)
-                        self._subscriber_map[imsi][rule_num] = (v, d)
+                        if rule_num not in self._subscriber_map[imsi]:
+                            self._subscriber_map[imsi][rule_num] = []
+                        self._subscriber_map[imsi][rule_num].append((v, d))
 
                     # purge entries from qos_store
                     for k in purge_store_set:
@@ -112,8 +122,7 @@ class QosManager(object):
                     for qos_handle, d in qos_state.items():
                         if qos_handle not in in_store_qid:
                             LOG.debug("removing qos_handle %d", qos_handle)
-                            self.qos_impl.remove_qos(qos_handle, d,
-                                                     recovery_mode=True)
+                            self.qos_impl.remove_qos(qos_handle, d, recovery_mode=True)
 
                     self._initialized = True
                     LOG.info("init complete with state recovered successfully")
@@ -122,20 +131,29 @@ class QosManager(object):
                     LOG.error("error %s. restarting clean", str(e))
                     self._clean_restart = True
                     self.setup()
-            asyncio.ensure_future(self.qos_impl.read_all_state(),
-                                  loop=self._loop).add_done_callback(callback)
 
-    def add_subscriber_qos(self,
-                           imsi: str,
-                           rule_num: int,
-                           direction: FlowMatch.Direction,
-                           qos_info: QosInfo):
+            asyncio.ensure_future(
+                self.qos_impl.read_all_state(), loop=self._loop
+            ).add_done_callback(callback)
+
+    def add_subscriber_qos(
+        self,
+        imsi: str,
+        rule_num: int,
+        direction: FlowMatch.Direction,
+        qos_info: QosInfo,
+    ):
         if not self._enable_qos or not self._initialized:
-            LOG.error("add_subscriber_qos failed imsi %s rule_num %d \
+            LOG.error(
+                "add_subscriber_qos failed imsi %s rule_num %d \
                       direction %d failed qos not enabled or uninitialized",
-                      imsi, rule_num, direction)
+                imsi,
+                rule_num,
+                direction,
+            )
             return (None, None)
 
+        imsi = normalizeIMSI(imsi)
         LOG.debug("adding qos for imsi %s rule_num %d", imsi, rule_num)
         k = get_subscriber_key(imsi, rule_num, direction)
         qos_handle = self._qos_store.get(get_json(k))
@@ -144,17 +162,24 @@ class QosManager(object):
             return self.qos_impl.get_action_instruction(qos_handle)
 
         qos_handle = self.qos_impl.add_qos(direction, qos_info)
-        self._subscriber_map[imsi][rule_num] = (qos_handle, direction)
+        if rule_num not in self._subscriber_map[imsi]:
+            self._subscriber_map[imsi][rule_num] = []
+
+        self._subscriber_map[imsi][rule_num].append((qos_handle, direction))
         self._qos_store[get_json(k)] = qos_handle
         return self.qos_impl.get_action_instruction(qos_handle)
 
     def remove_subscriber_qos(self, imsi: str = "", rule_num: int = -1):
         if not self._enable_qos or not self._initialized:
-            LOG.error("remove_subscriber_qos failed imsi %s rule_num %d \
-                      failed qos not enabled or uninitialized", imsi,
-                      rule_num)
+            LOG.error(
+                "remove_subscriber_qos failed imsi %s rule_num %d \
+                      failed qos not enabled or uninitialized",
+                imsi,
+                rule_num,
+            )
             return
 
+        imsi = normalizeIMSI(imsi)
         LOG.debug("removing Qos for imsi %s rule_num %d", imsi, rule_num)
         if imsi:
             if imsi not in self._subscriber_map:
@@ -164,36 +189,39 @@ class QosManager(object):
             if rule_num != -1:
                 # delete queue associated with this rule
                 if rule_num not in self._subscriber_map[imsi]:
-                    LOG.error("unable to find rule_num %d for imsi %s",
-                              rule_num, imsi)
+                    LOG.error("unable to find rule_num %d for imsi %s", rule_num, imsi)
                     return
 
-                v = self._subscriber_map[imsi][rule_num]
-                self.qos_impl.remove_qos(*v)
+                for (qos_handle, direction) in self._subscriber_map[imsi][rule_num]:
+                    self.qos_impl.remove_qos(qos_handle, direction)
+                    del self._qos_store[
+                        get_json(get_subscriber_key(imsi, rule_num, direction))
+                    ]
+
                 if len(self._subscriber_map[imsi]) == 1:
                     del self._subscriber_map[imsi]
                 else:
                     del self._subscriber_map[imsi][rule_num]
 
-                # delete from qos store
-                k = get_subscriber_key(imsi, rule_num, v[1])
-                del self._qos_store[get_json(k)]
             else:
                 # delete all queues associated with this subscriber
-                for rule_num, v in self._subscriber_map[imsi].items():
-                    self.qos_impl.remove_qos(*v)
-                    del self._qos_store[get_json(get_subscriber_key(imsi,
-                                        rule_num, v[1]))]
+                for rule_num, qd_list in self._subscriber_map[imsi].items():
+                    for (qos_handle, direction) in qd_list:
+                        self.qos_impl.remove_qos(qos_handle, direction)
+                        del self._qos_store[
+                            get_json(get_subscriber_key(imsi, rule_num, direction))
+                        ]
 
                 self._subscriber_map.pop(imsi)
         else:
             # delete Qos queues associated with all subscribers
             LOG.info("removing Qos for all subscribers")
             for imsi, rule_map in self._subscriber_map.items():
-                for rule_num, v in rule_map.items():
-                    self.qos_impl.remove_qos(*v)
-                    # delete from qos store
-                    del self._qos_store[get_json(get_subscriber_key(imsi,
-                                                 rule_num, v[1]))]
-
+                for rule_num, qd_list in rule_map.items():
+                    for (qos_handle, direction) in qd_list:
+                        self.qos_impl.remove_qos(qos_handle, direction)
+                        # delete from qos store
+                        del self._qos_store[
+                            get_json(get_subscriber_key(imsi, rule_num, direction))
+                        ]
             self._subscriber_map.clear()

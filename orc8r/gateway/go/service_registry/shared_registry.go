@@ -9,11 +9,11 @@ LICENSE file in the root directory of this source tree.
 package service_registry
 
 import (
-	"flag"
 	"sync/atomic"
 
 	"github.com/golang/glog"
 
+	_ "magma/orc8r/lib/go/initflag"
 	platform_registry "magma/orc8r/lib/go/registry"
 	"magma/orc8r/lib/go/service/serviceregistry"
 )
@@ -32,13 +32,7 @@ func Get() GatewayRegistry {
 		// moduleName is "" since all feg configs lie in /etc/magma without a module name
 		locations, err := serviceregistry.LoadServiceRegistryConfig("")
 		if err != nil {
-			if flag.Parsed() {
-				glog.Warningf(serviceRegLoadErrorFmt, err)
-			} else {
-				// glog prints an additional error message if logging happens before flag.Parse(), in this case -
-				// only log with higher verbosity
-				glog.V(1).Infof(serviceRegLoadErrorFmt, err)
-			}
+			glog.Warningf(serviceRegLoadErrorFmt, err)
 			// return registry, but don't store/cache it
 			return reg
 		}

@@ -44,7 +44,7 @@ const autoSuggestStyles = theme => ({
     ...symphony.typography.subtitle1,
     position: 'fixed',
     boxShadow: theme.shadows[2],
-    zIndex: 2,
+    zIndex: 5,
     transition: 'top 100ms ease-out 0s',
   },
   suggestionsList: {
