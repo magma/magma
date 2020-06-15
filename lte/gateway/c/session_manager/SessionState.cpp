@@ -53,6 +53,10 @@ StoredSessionState SessionState::marshal() {
   dynamic_rules_.get_rules(dynamic_rules);
   marshaled.dynamic_rules = std::move(dynamic_rules);
 
+  std::vector<PolicyRule> gy_dynamic_rules;
+  gy_dynamic_rules_.get_rules(gy_dynamic_rules);
+  marshaled.gy_dynamic_rules = std::move(gy_dynamic_rules);
+
   for (auto& rule_id : scheduled_static_rules_) {
     marshaled.scheduled_static_rules.insert(rule_id);
   }
@@ -194,8 +198,8 @@ void SessionState::get_updates_from_charging_pool(
   // charging updates
   std::vector<CreditUsage> charging_updates;
   charging_pool_.get_updates(
-      imsi_, config_.ue_ipv4, static_rules_, &dynamic_rules_, &charging_updates,
-      actions_out, update_criteria);
+      imsi_, config_.ue_ipv4, static_rules_, &dynamic_rules_,
+      &gy_dynamic_rules_, &charging_updates, actions_out, update_criteria);
   for (const auto& update : charging_updates) {
     auto new_req = update_request_out.mutable_updates()->Add();
     new_req->set_session_id(session_id_);
@@ -224,8 +228,8 @@ void SessionState::get_updates_from_monitor_pool(
     SessionStateUpdateCriteria& update_criteria) {
   std::vector<UsageMonitorUpdate> monitor_updates;
   monitor_pool_.get_updates(
-      imsi_, config_.ue_ipv4, static_rules_, &dynamic_rules_, &monitor_updates,
-      actions_out, update_criteria);
+      imsi_, config_.ue_ipv4, static_rules_, &dynamic_rules_,
+      &gy_dynamic_rules_, &monitor_updates, actions_out, update_criteria);
   for (const auto& update : monitor_updates) {
     auto new_req = update_request_out.mutable_usage_monitors()->Add();
     add_common_fields_to_usage_monitor_update(new_req);
@@ -469,8 +473,7 @@ bool SessionState::get_monitoring_key_for_rule_id(
 }
 
 bool SessionState::is_dynamic_rule_scheduled(const std::string& rule_id) {
-  auto _ = new PolicyRule();
-  return scheduled_dynamic_rules_.get_rule(rule_id, _);
+  return scheduled_dynamic_rules_.get_rule(rule_id, NULL);
 }
 
 bool SessionState::is_static_rule_scheduled(const std::string& rule_id) {
@@ -478,13 +481,11 @@ bool SessionState::is_static_rule_scheduled(const std::string& rule_id) {
 }
 
 bool SessionState::is_dynamic_rule_installed(const std::string& rule_id) {
-  auto _ = new PolicyRule();
-  return dynamic_rules_.get_rule(rule_id, _);
+  return dynamic_rules_.get_rule(rule_id, NULL);
 }
 
 bool SessionState::is_gy_dynamic_rule_installed(const std::string& rule_id) {
-  auto _ = new PolicyRule();
-  return gy_dynamic_rules_.get_rule(rule_id, _);
+  return gy_dynamic_rules_.get_rule(rule_id, NULL);
 }
 
 bool SessionState::is_static_rule_installed(const std::string& rule_id) {
@@ -506,12 +507,20 @@ void SessionState::insert_dynamic_rule(
 }
 
 void SessionState::insert_gy_dynamic_rule(
-    const PolicyRule& rule,  SessionStateUpdateCriteria& update_criteria) {
+    const PolicyRule& rule, RuleLifetime& lifetime,
+    SessionStateUpdateCriteria& update_criteria) {
   if (is_gy_dynamic_rule_installed(rule.id())) {
+    MLOG(MDEBUG) << "Tried to insert "<< rule.id()
+                 <<" (gy dynamic rule), but it already existed";
     return;
   }
-  update_criteria.dynamic_rules_to_install.push_back(rule);
+  update_criteria.gy_dynamic_rules_to_install.push_back(rule);
+  rule_lifetimes_[rule.id()] = lifetime;
   gy_dynamic_rules_.insert_rule(rule);
+  update_criteria.dynamic_rules_to_install.push_back(rule);
+  update_criteria.new_rule_lifetimes[rule.id()] = lifetime;
+
+
 }
 
 void SessionState::activate_static_rule(
@@ -549,7 +558,7 @@ bool SessionState::remove_gy_dynamic_rule(
 {
   bool removed = gy_dynamic_rules_.remove_rule(rule_id, rule_out);
   if (removed) {
-    update_criteria.dynamic_rules_to_uninstall.insert(rule_id);
+    update_criteria.gy_dynamic_rules_to_uninstall.insert(rule_id);
   }
   return removed;
 }

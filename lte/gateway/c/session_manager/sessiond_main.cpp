@@ -135,10 +135,10 @@ int main(int argc, char *argv[])
     directoryd_client->rpc_response_loop();
   });
 
-  auto eventd_client = std::make_shared<magma::AsyncEventdClient>();
+  auto& eventd_client = magma::AsyncEventdClient::getInstance();
   std::thread eventd_thread([&]() {
     MLOG(MINFO) << "Started eventd response thread";
-    eventd_client->rpc_response_loop();
+    eventd_client.rpc_response_loop();
   });
 
   std::shared_ptr<magma::AsyncSpgwServiceClient> spgw_client;

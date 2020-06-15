@@ -64,6 +64,7 @@ class SymphonyClient(GraphqlClient):
             else SYMPHONY_URI.format(tenant)
         )
         graphql_endpoint_address = self.address + SYMPHONY_GRAPHQL
+        self.app = app
 
         self.session: Session = Session()
         auth = HTTPBasicAuth(email, password)
@@ -117,13 +118,17 @@ class SymphonyClient(GraphqlClient):
         # TODO(T64504906): Remove after basic auth is enabled
         if "x-csrf-token" not in self.session.headers:
             self._login()
-        return self.session.post("".join([self.address, url]), json=json)
+        return self.session.post(
+            "".join([self.address, url]), json=json, headers={"User-Agent": self.app}
+        )
 
     def put(self, url: str, json: Optional[Dict[str, Any]] = None) -> Response:
         # TODO(T64504906): Remove after basic auth is enabled
         if "x-csrf-token" not in self.session.headers:
             self._login()
-        return self.session.put("".join([self.address, url]), json=json)
+        return self.session.put(
+            "".join([self.address, url]), json=json, headers={"User-Agent": self.app}
+        )
 
     def _login(self) -> None:
         login_endpoint = self.address + SYMPHONY_LOGIN

@@ -123,33 +123,46 @@ void UsageMonitoringCreditPool::populate_output_actions(
 
 void ChargingCreditPool::get_updates(
     std::string imsi, std::string ip_addr, StaticRuleStore &static_rules,
-    DynamicRuleStore *dynamic_rules, std::vector<CreditUsage> *updates_out,
+    DynamicRuleStore *dynamic_rules, DynamicRuleStore *gy_dynamic_rules,
+    std::vector<CreditUsage> *updates_out,
     std::vector<std::unique_ptr<ServiceAction>> *actions_out,
     SessionStateUpdateCriteria &update_criteria) {
   for (auto &credit_pair : credit_map_) {
     auto &credit = *(credit_pair.second);
     auto credit_uc = get_credit_update(credit_pair.first, update_criteria);
     auto action_type = credit.get_action(*credit_uc);
-    if (action_type != CONTINUE_SERVICE) {
-      MLOG(MDEBUG) << "Subscriber " << imsi_ << " rating group "
-                   << credit_pair.first << " action type " << action_type;
-      auto action = std::make_unique<ServiceAction>(action_type);
-      if (action_type == REDIRECT) {
+    auto action = std::make_unique<ServiceAction>(action_type);
+    switch (action_type) {
+      case CONTINUE_SERVICE:
+        {
+          auto update_type = credit.get_update_type();
+          if (update_type != CREDIT_NO_UPDATE) {
+            MLOG(MDEBUG) << "Subscriber " << imsi_ << " rating group "
+                         << credit_pair.first << " updating due to type "
+                         << update_type;
+            updates_out->push_back(get_usage_proto_from_struct(
+                  credit.get_usage_for_reporting(*credit_uc),
+                  convert_update_type_to_proto(update_type), credit_pair.first));
+          }
+        }
+        break;
+      case REDIRECT:
+        if (credit_uc &&
+            credit_uc->service_state == SERVICE_REDIRECTED) {
+          MLOG(MDEBUG) << "Redirection already activated.";
+          continue;
+        }
         action->set_credit_key(credit_pair.first);
         action->set_redirect_server(credit.get_redirect_server());
-      }
-      populate_output_actions(imsi, ip_addr, credit_pair.first, static_rules,
-                              dynamic_rules, action, actions_out);
-    } else {
-      auto update_type = credit.get_update_type();
-      if (update_type != CREDIT_NO_UPDATE) {
+        credit.set_service_state(SERVICE_REDIRECTED, *credit_uc);
+      case TERMINATE_SERVICE:
+      case ACTIVATE_SERVICE:
+      case RESTRICT_ACCESS:
         MLOG(MDEBUG) << "Subscriber " << imsi_ << " rating group "
-                     << credit_pair.first << " updating due to type "
-                     << update_type;
-        updates_out->push_back(get_usage_proto_from_struct(
-            credit.get_usage_for_reporting(*credit_uc),
-            convert_update_type_to_proto(update_type), credit_pair.first));
-      }
+                     << credit_pair.first << " action type " << action_type;
+        populate_output_actions(imsi, ip_addr, credit_pair.first, static_rules,
+            dynamic_rules, action, actions_out);
+        break;
     }
   }
 }
@@ -309,6 +322,15 @@ uint32_t ChargingCreditPool::get_credit_key_count() const {
   return credit_map_.size();
 }
 
+bool ChargingCreditPool::is_credit_state_redirected(
+    const CreditKey &charging_key) const {
+  auto it = credit_map_.find(charging_key);
+  if (it == credit_map_.end()) {
+    return false;
+  }
+  return it->second->is_service_redirected();
+}
+
 ReAuthResult
 ChargingCreditPool::reauth_key(const CreditKey &charging_key,
                                SessionStateUpdateCriteria &update_criteria) {
@@ -451,7 +473,7 @@ get_monitor_update_from_struct(const SessionCredit::Usage &usage_in,
 
 void UsageMonitoringCreditPool::get_updates(
     std::string imsi, std::string ip_addr, StaticRuleStore &static_rules,
-    DynamicRuleStore *dynamic_rules,
+    DynamicRuleStore *dynamic_rules, DynamicRuleStore *gy_dynamic_rules,
     std::vector<UsageMonitorUpdate> *updates_out,
     std::vector<std::unique_ptr<ServiceAction>> *actions_out,
     SessionStateUpdateCriteria &update_criteria) {

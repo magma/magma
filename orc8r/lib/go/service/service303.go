@@ -13,10 +13,10 @@ import (
 	"fmt"
 	"strconv"
 
+	"golang.org/x/net/context"
+
 	"magma/orc8r/lib/go/metrics"
 	"magma/orc8r/lib/go/protos"
-
-	"golang.org/x/net/context"
 )
 
 // GetServiceInfo returns service-level info (name, version, status, etc...)

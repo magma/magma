@@ -34,9 +34,13 @@ def log_event(event: Event) -> None:
         # Location will be filled in by directory service
         client.LogEvent(event, DEFAULT_GRPC_TIMEOUT)
     except grpc.RpcError as err:
-        logging.error(
-            "LogEvent error for event: %s, [%s] %s",
-            MessageToDict(event),
-            err.code(),
-            err.details(),
-        )
+        if err.code() == grpc.StatusCode.UNAVAILABLE:
+            logging.debug("LogEvent will not occur unless eventd configuration "
+                          "is set up.")
+        else:
+            logging.error(
+                "LogEvent error for event: %s, [%s] %s",
+                MessageToDict(event),
+                err.code(),
+                err.details(),
+            )

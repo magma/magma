@@ -13,6 +13,8 @@
 //	- TEST_DATABASE_PORT_POSTGRES=5433
 //	- TEST_DATABASE_PORT_MARIA=3307
 
+// integ_test.go tests indexing and reindexing using remote indexers.
+
 package indexer_test
 
 import (
@@ -29,7 +31,6 @@ import (
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	configurator_test "magma/orc8r/cloud/go/services/configurator/test_utils"
 	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
-	"magma/orc8r/cloud/go/services/directoryd"
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/services/state/indexer"
 	"magma/orc8r/cloud/go/services/state/indexer/mocks"
@@ -45,30 +46,20 @@ import (
 )
 
 const (
-	id0   = "some_indexerid_0"
 	nid0  = "some_networkid_0"
 	hwid0 = "some_hwid_0"
-
-	zero     indexer.Version = 0
-	version0 indexer.Version = 100
 
 	indexTimeout = 5 * time.Second
 )
 
 var (
-	subs0 = []indexer.Subscription{{Type: orc8r.DirectoryRecordType, KeyMatcher: indexer.NewMatchExact(imsi0)}}
-	sid0  = state_types.ID{Type: orc8r.DirectoryRecordType, DeviceID: imsi0}
-
+	sid0     = state_types.ID{Type: orc8r.GatewayStateType, DeviceID: "some_imsi"}
 	hwidByID = map[state_types.ID]string{
 		sid0: hwid0,
 	}
-	recordByID = map[state_types.ID]*directoryd.DirectoryRecord{
-		sid0: {LocationHistory: []string{hwid0}},
+	statusByID = map[state_types.ID]*models.GatewayStatus{
+		sid0: {Meta: map[string]string{"foo": "bar"}},
 	}
-
-	prepare0  = make(chan mock.Arguments)
-	complete0 = make(chan mock.Arguments)
-	index0    = make(chan mock.Arguments)
 )
 
 func init() {
@@ -76,23 +67,40 @@ func init() {
 }
 
 func TestStateIndexing(t *testing.T) {
+	const (
+		serviceName                 = "SOME_SERVICE_NAME"
+		zero        indexer.Version = 0
+		version0    indexer.Version = 100
+	)
+	var (
+		types     = []string{orc8r.GatewayStateType}
+		prepare0  = make(chan mock.Arguments)
+		complete0 = make(chan mock.Arguments)
+		index0    = make(chan mock.Arguments)
+	)
+
 	clock.SkipSleeps(t)
 	defer clock.ResumeSleeps(t)
+
+	idx0 := mocks.NewMockIndexer("some_id", version0, types, prepare0, complete0, index0)
+	remoteIdx0 := indexer.NewRemoteIndexer(serviceName, version0, types...)
+	state_test_init.StartNewTestIndexer(t, serviceName, idx0)
 
 	dbName := "state___integ_test"
 	r, q := initTestServices(t, dbName)
 
-	idx0 := mocks.NewMockIndexer(id0, version0, subs0, prepare0, complete0, index0)
-	err := indexer.RegisterAll(idx0)
+	// Register remote, to be called by this test code (which forwards over the network to the locally-registered idx)
+	indexer.DeregisterAllForTest(t)
+	err := indexer.RegisterIndexers(remoteIdx0)
 	assert.NoError(t, err)
 
 	t.Run("index", func(t *testing.T) {
-		reportDirectoryStateForID(t, sid0)
+		reportGatewayStatusForID(t, sid0)
 
 		// Index args: (networkID string, states state_types.StatesByID)
 		recv := recvArgs(t, index0, "index0")
 		assertEqualStr(t, nid0, recv[0])
-		assertEqualRecord(t, recv[1], sid0)
+		assertEqualStatus(t, recv[1], sid0)
 	})
 
 	_, err = q.PopulateJobs()
@@ -111,7 +119,7 @@ func TestStateIndexing(t *testing.T) {
 		// Index args: (networkID string, states state_types.StatesByID)
 		recvIndex0 := recvArgs(t, index0, "index0")
 		assertEqualStr(t, nid0, recvIndex0[0])
-		assertEqualRecord(t, recvIndex0[1], sid0)
+		assertEqualStatus(t, recvIndex0[1], sid0)
 
 		// Complete args: (from, to Version)
 		recvComplete0 := recvArgs(t, complete0, "complete0")
@@ -132,17 +140,17 @@ func initTestServices(t *testing.T, dbName string) (reindex.Reindexer, reindex.J
 	return state_test_init.StartTestServiceInternal(t, dbName, sqorc.PostgresDriver)
 }
 
-func reportDirectoryStateForID(t *testing.T, id state_types.ID) {
+func reportGatewayStatusForID(t *testing.T, id state_types.ID) {
 	ctx := state_test.GetContextWithCertificate(t, hwidByID[id])
-	record := recordByID[id]
+	status := statusByID[id]
 
 	client, err := state.GetStateClient()
 	assert.NoError(t, err)
 
-	serialized, err := serde.Serialize(state.SerdeDomain, orc8r.DirectoryRecordType, record)
+	serialized, err := serde.Serialize(state.SerdeDomain, orc8r.GatewayStateType, status)
 	assert.NoError(t, err)
 	pState := &protos.State{
-		Type:     orc8r.DirectoryRecordType,
+		Type:     orc8r.GatewayStateType,
 		DeviceID: id.DeviceID,
 		Value:    serialized,
 	}
@@ -179,12 +187,12 @@ func assertEqualBool(t *testing.T, expected bool, recv interface{}) {
 	assert.Equal(t, expected, recvVal)
 }
 
-func assertEqualRecord(t *testing.T, recv interface{}, sid state_types.ID) {
+func assertEqualStatus(t *testing.T, recv interface{}, sid state_types.ID) {
 	hwid := hwidByID[sid]
-	reported := recordByID[sid]
+	reported := statusByID[sid]
 	recvStates := recv.(state_types.StatesByID)
 	assert.Len(t, recvStates, 1)
-	assert.Equal(t, orc8r.DirectoryRecordType, recvStates[sid].Type)
+	assert.Equal(t, orc8r.GatewayStateType, recvStates[sid].Type)
 	assert.Equal(t, hwid, recvStates[sid].ReporterID)
 	assert.Equal(t, reported, recvStates[sid].ReportedState)
 }

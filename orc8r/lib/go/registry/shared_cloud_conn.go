@@ -11,10 +11,10 @@ package registry
 
 import (
 	"fmt"
-	"log"
 	"sync/atomic"
 	"time"
 
+	"github.com/golang/glog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
 
@@ -109,9 +109,9 @@ func (registry *ServiceRegistry) GetSharedCloudConnectionFromServiceConfig(
 					// connection and retry later then fail the call
 					registry.cloudConnMu.Unlock() // UNLOCK
 
-					log.Printf(
-						"failed to create a new service '%s' cloud connection: %v; using expired",
-						service, connectErr)
+					glog.Errorf(
+						"failed to create a new service '%s' cloud connection to '%s': %v; using expired",
+						service, conn.Target(), connectErr)
 					return conn.ClientConn, nil
 				}
 				// connection is expired, but is still valid, give existing users time to complete
@@ -122,12 +122,12 @@ func (registry *ServiceRegistry) GetSharedCloudConnectionFromServiceConfig(
 						conn.Close()
 					}()
 				}()
-				log.Printf("service '%s' cloud connection is expired, will reconnect", service)
+				glog.Warningf("service '%s' cloud connection is expired, will reconnect", service)
 			}
 		} else { // if connState := conn.GetState(); connState == connectivity.Ready ... else
 			// connection is already broken, close on return without delay
 			defer conn.Close()
-			log.Printf("unhealthy state '%s' of service '%s' cloud connection", connState, service)
+			glog.Warningf("unhealthy state '%s' of service '%s' cloud connection", connState, service)
 		}
 	}
 	if connectErr == nil {

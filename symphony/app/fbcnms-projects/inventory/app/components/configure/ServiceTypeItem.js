@@ -46,6 +46,11 @@ const styles = {
 class ServiceTypeItem extends React.Component<Props> {
   render() {
     const {classes, serviceType, onEdit} = this.props;
+
+    if (serviceType == null) {
+      return null;
+    }
+
     return (
       <div>
         <ExpansionPanel>

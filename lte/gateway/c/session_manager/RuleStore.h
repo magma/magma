@@ -65,6 +65,10 @@ class PolicyRuleBiMap {
 
   virtual void insert_rule(const PolicyRule& rule);
 
+  // Get the rule definition associated with the given rule_id
+  // If the rule is found, copy the rule into the output parameter and return
+  // true. Otherwise, return false.
+  // If the output rule param is NULL, the rule object is not copied.
   virtual bool get_rule(const std::string& rule_id, PolicyRule* rule);
 
   // Remove a rule from the store by ID. Returns true if the rule ID was found.

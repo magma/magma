@@ -54,7 +54,6 @@ static void handle_command_level_result_code(
     const std::string& imsi, const uint32_t result_code,
     std::unordered_set<std::string>& subscribers_to_terminate);
 static bool is_valid_mac_address(const char* mac);
-static int get_apn_split_locaion(const std::string& apn);
 static bool parse_apn(
     const std::string& apn, std::string& mac_addr, std::string& name);
 
@@ -67,7 +66,7 @@ LocalEnforcer::LocalEnforcer(
     std::shared_ptr<StaticRuleStore> rule_store, SessionStore& session_store,
     std::shared_ptr<PipelinedClient> pipelined_client,
     std::shared_ptr<AsyncDirectorydClient> directoryd_client,
-    std::shared_ptr<AsyncEventdClient> eventd_client,
+    AsyncEventdClient& eventd_client,
     std::shared_ptr<SpgwServiceClient> spgw_client,
     std::shared_ptr<aaa::AAAClient> aaa_client,
     long session_force_termination_timeout_ms,
@@ -448,13 +447,12 @@ void LocalEnforcer::install_redirect_flow(
     const std::unique_ptr<ServiceAction>& action,
     SessionUpdate &session_update) {
   std::vector<std::string> static_rules;
-  std::vector<PolicyRule> dynamic_rules{create_redirect_rule(action)};
+  std::vector<PolicyRule> gy_dynamic_rules{create_redirect_rule(action)};
   const std::string &imsi = action->get_imsi();
 
-  auto request = directoryd_client_->get_directoryd_ip_field(
-      imsi, [this, imsi, static_rules, dynamic_rules]
+  directoryd_client_->get_directoryd_ip_field(
+      imsi, [this, imsi, static_rules, gy_dynamic_rules]
         (Status status, DirectoryField resp) {
-
         if (!status.ok()) {
           MLOG(MERROR) << "Could not fetch subscriber " << imsi << " ip, "
                        << "redirection fails, error: "
@@ -466,18 +464,25 @@ void LocalEnforcer::install_redirect_flow(
             MLOG(MDEBUG) << "Session for IMSI " << imsi << " not found";
             return;
           }
-
           auto session_update =
-            session_store_.get_default_session_update(session_map);
+              session_store_.get_default_session_update(session_map);
+
+          //check if the rule has been installed already.
+          for (const auto &session : it->second) {
+            if(session->is_dynamic_rule_installed(gy_dynamic_rules.front().id())) {
+              return;
+            }
+          }
+          MLOG(MDEBUG) << "Install redirect GY flow in pipelined";
           pipelined_client_->add_gy_final_action_flow(
-            imsi, resp.value(), static_rules, dynamic_rules);
+            imsi, resp.value(), static_rules, gy_dynamic_rules);
 
           for (const auto &session : it->second) {
             auto &uc = session_update[imsi][session->get_session_id()];
-            session->insert_gy_dynamic_rule(dynamic_rules.front(), uc);
+            RuleLifetime lifetime{};
+            session->insert_gy_dynamic_rule(gy_dynamic_rules.front(), lifetime, uc);
           }
-          auto update_success =
-            session_store_.update_sessions(session_update);
+          session_store_.update_sessions(session_update);
         }
       });
 }
@@ -605,8 +610,7 @@ void LocalEnforcer::schedule_static_rule_activation(
                     static_rule.rule_id(), uc);
               }
             }
-            auto update_success =
-                session_store_.update_sessions(session_update);
+            session_store_.update_sessions(session_update);
           }
         }),
         delta);
@@ -644,8 +648,7 @@ void LocalEnforcer::schedule_dynamic_rule_activation(
                     dynamic_rule.policy_rule().id(), uc);
               }
             }
-            auto update_success =
-                session_store_.update_sessions(session_update);
+            session_store_.update_sessions(session_update);
           }
         }),
         delta);
@@ -682,8 +685,7 @@ void LocalEnforcer::schedule_static_rule_deactivation(
                     << "Could not find rule " << static_rule.rule_id()
                     << "for IMSI " << imsi << " during static rule removal";
             }
-            auto update_success =
-                session_store_.update_sessions(session_update);
+            session_store_.update_sessions(session_update);
           }
         }),
         delta);
@@ -720,8 +722,7 @@ void LocalEnforcer::schedule_dynamic_rule_deactivation(
               session->remove_dynamic_rule(
                   dynamic_rule.policy_rule().id(), &rule_dont_care, uc);
             }
-            auto update_success =
-                session_store_.update_sessions(session_update);
+            session_store_.update_sessions(session_update);
           }
         }),
         delta);
@@ -1078,26 +1079,31 @@ void LocalEnforcer::update_charging_credits(
     for (const auto& session : it->second) {
       std::string sid                             = session->get_session_id();
       SessionStateUpdateCriteria& update_criteria = session_update[imsi][sid];
+      bool is_redirected = session->get_charging_pool().
+          is_credit_state_redirected(CreditKey(credit_update_resp));
       session->get_charging_pool().receive_credit(
           credit_update_resp, update_criteria);
       session->set_tgpp_context(credit_update_resp.tgpp_ctx(), update_criteria);
       SessionState::SessionInfo info;
-      std::vector<PolicyRule> gy_rules_to_deactivate;
-      session->get_session_info(info);
-      for (const auto &rule : info.gy_dynamic_rules) {
-        PolicyRule dy_rule;
-        auto &uc = session_update[imsi][session->get_session_id()];
-        bool is_dynamic =
-            session->remove_gy_dynamic_rule(rule.id(), &dy_rule, uc);
-        if (is_dynamic) {
-          gy_rules_to_deactivate.push_back(dy_rule);
-        }
-      }
 
-      if (!gy_rules_to_deactivate.empty()) {
-        std::vector<std::string> static_rules;
-        bool deactivate_success = pipelined_client_->deactivate_flows_for_rules(
-            imsi, static_rules, gy_rules_to_deactivate, RequestOriginType::GY);
+      if (is_redirected) {
+        std::vector<PolicyRule> gy_rules_to_deactivate;
+        session->get_session_info(info);
+        for (const auto &rule : info.gy_dynamic_rules) {
+          PolicyRule dy_rule;
+          auto &uc = session_update[imsi][session->get_session_id()];
+          bool is_dynamic =
+              session->remove_gy_dynamic_rule(rule.id(), &dy_rule, uc);
+          if (is_dynamic) {
+            gy_rules_to_deactivate.push_back(dy_rule);
+          }
+        }
+
+        if (!gy_rules_to_deactivate.empty()) {
+          std::vector<std::string> static_rules;
+          pipelined_client_->deactivate_flows_for_rules(
+              imsi, static_rules, gy_rules_to_deactivate, RequestOriginType::GY);
+        }
       }
     }
   }
@@ -1659,7 +1665,7 @@ void LocalEnforcer::schedule_revalidation(
               }
             }
           }
-          auto success = session_store_.update_sessions(update);
+          session_store_.update_sessions(update);
         }),
         delta);
   });

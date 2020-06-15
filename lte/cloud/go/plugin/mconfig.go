@@ -132,7 +132,6 @@ func (s *LteMconfigBuilderServicer) Build(
 			UeIpBlock:     gwEpc.IPBlock,
 			NatEnabled:    swag.BoolValue(gwEpc.NatEnabled),
 			DefaultRuleId: nwEpc.DefaultRuleID,
-			RelayEnabled:  swag.BoolValue(nwEpc.RelayEnabled),
 			Services:      pipelineDServices,
 		},
 		"subscriberdb": &mconfig.SubscriberDB{

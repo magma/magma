@@ -7,6 +7,7 @@ package handler
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	"github.com/facebookincubator/symphony/pkg/authz"
 	"github.com/facebookincubator/symphony/pkg/ent"
@@ -66,17 +67,33 @@ func NewServer(cfg Config) *Server {
 }
 
 // Subscribe returns listener to the relevant events.
-func (s *Server) Subscribe(ctx context.Context) (*pubsub.Listener, error) {
+func (s *Server) Subscribe(ctx context.Context, wg *sync.WaitGroup) (*pubsub.Listener, error) {
 	return pubsub.NewListener(ctx, pubsub.ListenerConfig{
 		Subscriber: s.subscriber,
 		Logger:     s.logger.For(ctx),
 		Events:     []string{pubsub.EntMutation},
-		Handler:    s.handleEventLog(s.handlers),
+		Handler: pubsub.HandlerFunc(func(ctx context.Context, tenant string, _ string, body []byte) error {
+			wg.Add(1)
+			var entry pubsub.LogEntry
+			err := pubsub.Unmarshal(body, &entry)
+			if err != nil {
+				wg.Done()
+				return fmt.Errorf("cannot unmarshal log entry: %w", err)
+			}
+			go func() {
+				defer wg.Done()
+				err := s.handleEventLog(s.handlers)(context.Background(), tenant, entry)
+				if err != nil {
+					s.logger.For(ctx).Error("failed to handle event", zap.Error(err))
+				}
+			}()
+			return nil
+		}),
 	})
 }
 
-func (s *Server) handleEventLog(handlers []Handler) pubsub.Handler {
-	return pubsub.HandlerFunc(func(ctx context.Context, tenant string, name string, body []byte) error {
+func (s *Server) handleEventLog(handlers []Handler) func(context.Context, string, pubsub.LogEntry) error {
+	return func(ctx context.Context, tenant string, entry pubsub.LogEntry) error {
 		client, err := s.tenancy.ClientFor(ctx, tenant)
 		if err != nil {
 			const msg = "cannot get tenancy client"
@@ -97,22 +114,13 @@ func (s *Server) handleEventLog(handlers []Handler) pubsub.Handler {
 		}
 		ctx = authz.NewContext(ctx, permissions)
 
-		var entry pubsub.LogEntry
-		err = pubsub.Unmarshal(body, &entry)
-		if err != nil {
-			const msg = "cannot unmarshal log entry"
-			s.logger.For(ctx).Error(msg,
-				zap.Error(err),
-			)
-			return fmt.Errorf("%s: %w", msg, err)
-		}
 		for _, h := range handlers {
 			if err := s.runHandlerWithTransaction(ctx, h, entry); err != nil {
-				return fmt.Errorf("running handler: %w", err)
+				s.logger.For(ctx).Error("running handler", zap.Error(err))
 			}
 		}
 		return nil
-	})
+	}
 }
 func (s *Server) runHandlerWithTransaction(ctx context.Context, h Handler, entry pubsub.LogEntry) error {
 	tx, err := ent.FromContext(ctx).Tx(ctx)

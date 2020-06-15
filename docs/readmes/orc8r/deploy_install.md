@@ -46,6 +46,8 @@ cd ~/secrets/certs
 MAGMA_ROOT/orc8r/cloud/deploy/scripts/create_application_certs.sh yourdomain.com
 ```
 
+NOTE: `yourdomain.com` should match with what will be entered in `main.tf` in the subsequent sections. If in `main.tf` the orc8r_domain_name is `orc8r.yourdomain.com` then the same nomenclature should be used when creating new self-signed certs.
+
 ## Infrastructure and Application Installation
 
 Create a new root Terraform module in a location of your choice by creating a
@@ -95,7 +97,7 @@ Apply complete! Resources: 70 added, 0 changed, 0 destroyed.
 This `terraform apply` will create a Kubeconfig file in the same directory as
 your root Terraform module. To get access to the k8s cluster, either set your
 KUBECONFIG environment variable to point to this file or pull this file into
-your default kubeconfig file at `~/.kube/config`. See 
+your default kubeconfig file at `~/.kube/config`. See
 https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/
 for more details.
 

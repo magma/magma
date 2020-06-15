@@ -6,5 +6,6 @@
  LICENSE file in the root directory of this source tree.
 */
 
-//go:generate bash -c "protoc -I . -I /usr/include -I $MAGMA_ROOT/protos --proto_path=$MAGMA_ROOT --go_out=plugins=grpc:. *.proto"
+//go:generate bash -c "protoc -I . -I /usr/include -I $MAGMA_ROOT/protos -I $MAGMA_ROOT/orc8r/protos/prometheus --proto_path=$MAGMA_ROOT --go_out=plugins=grpc:. *.proto"
+
 package protos

@@ -187,7 +187,7 @@ function ThresholdExpressionEditor(props: {
         <Grid item>
           <ToggleButtonGroup
             exclusive={true}
-            value={props.expression.comparator}
+            value={props.expression.comparator.op}
             onChange={(event, val) => {
               props.onChange({
                 ...props.expression,

@@ -49,9 +49,9 @@ func reportMetrics(maxQueueLen int) error {
 	return err
 }
 
-func enqueueMetrics(service string, serviceMetrics *protos.MetricsContainer) {
+func enqueueMetrics(service string, serviceMetrics *protos.MetricsContainer) int {
 	if len(serviceMetrics.GetFamily()) == 0 {
-		return
+		return 0
 	}
 	for _, f := range serviceMetrics.Family {
 		if f != nil {
@@ -63,7 +63,7 @@ func enqueueMetrics(service string, serviceMetrics *protos.MetricsContainer) {
 			}
 		}
 	}
-	metricsQueue.Append(serviceMetrics.Family...)
+	return metricsQueue.Append(serviceMetrics.Family...)
 }
 
 func collectMetrics() (result []*prometheus.MetricFamily) {

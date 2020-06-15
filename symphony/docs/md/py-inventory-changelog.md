@@ -14,8 +14,10 @@ This is template for release notes
  Bug fixes
 ***
 -->
+
+
 ***
-## 3.0.0 - release date 9.6.2020
+## 3.0.0 - release date 10.6.2020
 ### Features
 - ServiceType
     - `add_service_type`
