@@ -89,7 +89,7 @@ export default function KPITray(props: Props) {
         container
         xs
         zeroMinWidth
-        key={'data-' + i}
+        key={i}
         className={classes.kpiBlock}
         alignItems="center">
         <CardHeader
