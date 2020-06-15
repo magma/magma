@@ -29,6 +29,9 @@ aliases:
   - &appdir
     working_directory: app
 
+  - &alarmsdir
+    working_directory: app/fbcnms-packages/fbcnms-alarms
+
 orbs:
   artifactory: circleci/artifactory@1.0.0
   docker: circleci/docker@1.0.0
@@ -546,6 +549,30 @@ jobs:
           <<: *appdir
           command: yarn run eslint ./
 
+  npm-publish-alarms:
+    executor: yarnnode
+    steps:
+      - checkout
+      - run:
+          <<: *alarmsdir
+          name: End step if version has not changed
+          command: |
+            publishedVersion=$(npm show @fbcnms/alarms version);
+            # Extract version from package.json
+            packageVersion=$(grep "version" package.json | awk '{print $2}'); packageVersion=${packageVersion:1}; packageVersion=${packageVersion%??}
+            if [[ $publishedVersion == $packageVersion ]]; then
+              circleci step halt
+            fi
+      - yarn-install
+      - run:
+          <<: *alarmsdir
+          name: Authenticate with registry
+          command: echo "//registry.npmjs.org/:_authToken=$npm_TOKEN_FBCNMS" > ~/.npmrc
+      - run:
+          <<: *alarmsdir
+          name: Publish package to npm
+          command: npm publish --access public
+
 workflows:
   version: 2.1
   all:
@@ -557,6 +584,9 @@ workflows:
       - yarntest:
           requires:
             - flowtest
+      - npm-publish-alarms:
+          requires:
+            - yarntest
       - docker-publish:
           name: graph/publish
           dockerfile: graph/Dockerfile
