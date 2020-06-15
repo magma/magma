@@ -47,9 +47,8 @@ const useStyles = makeStyles(theme => ({
   kpiValue: {
     color: colors.primary.brightGray,
   },
-  test: {
+  kpiBox: {
     width: '100%',
-
     '& div': {
       width: '100%',
     },
@@ -95,7 +94,7 @@ export default function KPITray(props: Props) {
         alignItems="center">
         <CardHeader
           title={kpi.category}
-          className={classes.test}
+          className={classes.kpiBox}
           subheader={kpi.value + (kpi.unit ?? '')}
           titleTypographyProps={{
             variant: 'body3',

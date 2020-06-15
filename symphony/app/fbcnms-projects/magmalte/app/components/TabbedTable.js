@@ -29,7 +29,6 @@ const useStyles = makeStyles(theme => ({
     backgroundColor: colors.primary.white,
     borderRadius: '4px 4px 0 0',
     boxShadow: `inset 0 -2px 0 0 ${colors.primary.concrete}`,
-
     '& + &': {
       marginLeft: '4px',
     },
