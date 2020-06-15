@@ -12,6 +12,7 @@ package main
 import (
 	"context"
 	"fmt"
+
 	"github.com/facebookincubator/symphony/async/handler"
 	"github.com/facebookincubator/symphony/pkg/log"
 	"github.com/facebookincubator/symphony/pkg/mysql"
@@ -24,11 +25,11 @@ import (
 	"go.opencensus.io/stats/view"
 	"go.uber.org/zap"
 	"gocloud.dev/server/health"
-)
 
-import (
 	_ "github.com/go-sql-driver/mysql"
+
 	_ "gocloud.dev/pubsub/mempubsub"
+
 	_ "gocloud.dev/pubsub/natspubsub"
 )
 
@@ -101,7 +102,7 @@ func NewApplication(ctx context.Context, flags *cliFlags) (*application, func(),
 	}
 	serverServer := server.New(router, options)
 	logger2 := log.ProvideZapLogger(logger)
-	mainApplication := newApplication(handlerServer, serverServer, logger2)
+	mainApplication := newApplication(handlerServer, serverServer, logger2, flags)
 	return mainApplication, func() {
 		cleanup3()
 		cleanup2()
@@ -116,11 +117,12 @@ var (
 
 // wire.go:
 
-func newApplication(server2 *handler.Server, http *server.Server, logger *zap.Logger) *application {
+func newApplication(server2 *handler.Server, http *server.Server, logger *zap.Logger, flags *cliFlags) *application {
 	var app application
 	app.logger = logger
 	app.server = server2
-	app.http = http
+	app.http.Server = http
+	app.http.addr = flags.HTTPAddr.String()
 	return &app
 }
 

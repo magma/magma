@@ -52,11 +52,12 @@ func NewApplication(ctx context.Context, flags *cliFlags) (*application, func(),
 	return nil, nil, nil
 }
 
-func newApplication(server *handler.Server, http *server.Server, logger *zap.Logger) *application {
+func newApplication(server *handler.Server, http *server.Server, logger *zap.Logger, flags *cliFlags) *application {
 	var app application
 	app.logger = logger
 	app.server = server
-	app.http = http
+	app.http.Server = http
+	app.http.addr = flags.HTTPAddr.String()
 	return &app
 }
 

@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	stdlog "log"
+	"net"
 	"os"
 	"sync"
 	"syscall"
@@ -31,6 +32,7 @@ import (
 )
 
 type cliFlags struct {
+	HTTPAddr        *net.TCPAddr
 	MySQLConfig     mysql.Config
 	EventConfig     pubsub.Config
 	LogConfig       log.Config
@@ -48,6 +50,12 @@ func main() {
 		Envar("MYSQL_DSN").
 		Required().
 		SetValue(&cf.MySQLConfig)
+	kingpin.Flag(
+		"web.listen-address",
+		"Web address to listen on",
+	).
+		Default(":http").
+		TCPVar(&cf.HTTPAddr)
 	pubsub.AddFlagsVar(kingpin.CommandLine, &cf.EventConfig)
 	log.AddFlagsVar(kingpin.CommandLine, &cf.LogConfig)
 	telemetry.AddFlagsVar(kingpin.CommandLine, &cf.TelemetryConfig)
@@ -72,7 +80,10 @@ func main() {
 
 type application struct {
 	logger *zap.Logger
-	http   *server.Server
+	http   struct {
+		*server.Server
+		addr string
+	}
 	server *handler.Server
 }
 
@@ -85,7 +96,7 @@ func (app *application) run(ctx context.Context) error {
 	ctx, cancel := context.WithCancel(ctx)
 	g := ctxgroup.WithContext(ctx)
 	g.Go(func(context.Context) error {
-		err := app.http.ListenAndServe(":80")
+		err := app.http.ListenAndServe(app.http.addr)
 		app.logger.Debug("server terminated", zap.Error(err))
 		return err
 	})
