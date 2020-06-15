@@ -62,4 +62,11 @@ yarn.lock
 # .idea
 .idea/
 
+# Dependency directories
+**/node_modules/*
+yarn.lock
+
+# .idea
+.idea/
+
 # End of https://www.gitignore.io/api/git,terraform,mercurial
