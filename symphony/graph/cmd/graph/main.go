@@ -69,13 +69,7 @@ func main() {
 	).
 		Envar("WS_AUTH_URL").
 		URLVar(&cf.AuthURL)
-	kingpin.Flag(
-		"event.pubsub-url",
-		"events pubsub url",
-	).
-		Envar("EVENT_PUBSUB_URL").
-		Default("mem://events").
-		SetValue(&cf.EventConfig)
+	pubsub.AddFlagsVar(kingpin.CommandLine, &cf.EventConfig)
 	log.AddFlagsVar(kingpin.CommandLine, &cf.LogConfig)
 	telemetry.AddFlagsVar(kingpin.CommandLine, &cf.TelemetryConfig)
 	orc8r.AddFlagsVar(kingpin.CommandLine, &cf.Orc8rConfig)

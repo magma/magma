@@ -9,6 +9,7 @@ import (
 	"fmt"
 	stdlog "log"
 	"os"
+	"sync"
 	"syscall"
 
 	"github.com/facebookincubator/symphony/async/handler"
@@ -45,13 +46,7 @@ func main() {
 		Envar("MYSQL_DSN").
 		Required().
 		SetValue(&cf.MySQLConfig)
-	kingpin.Flag(
-		"event.pubsub-url",
-		"events pubsub url",
-	).
-		Envar("EVENT_PUBSUB_URL").
-		Default("mem://events").
-		SetValue(&cf.EventConfig)
+	pubsub.AddFlagsVar(kingpin.CommandLine, &cf.EventConfig)
 	log.AddFlagsVar(kingpin.CommandLine, &cf.LogConfig)
 	telemetry.AddFlagsVar(kingpin.CommandLine, &cf.TelemetryConfig)
 	kingpin.Parse()
@@ -79,27 +74,52 @@ type application struct {
 }
 
 func (app *application) run(ctx context.Context) error {
+	var wg sync.WaitGroup
+	listener, err := app.server.Subscribe(ctx, &wg)
+	if err != nil {
+		return fmt.Errorf("creating event listener: %w", err)
+	}
+	ctx, cancel := context.WithCancel(ctx)
 	g := ctxgroup.WithContext(ctx)
 	g.Go(func(context.Context) error {
 		err := app.http.ListenAndServe(":80")
 		app.logger.Debug("server terminated", zap.Error(err))
 		return err
 	})
-	g.Go(func(context.Context) error {
-		listener, err := app.server.Subscribe(ctx)
-		if err != nil {
-			return fmt.Errorf("creating event listener: %w", err)
-		}
-		defer listener.Shutdown(ctx)
-		return listener.Listen(ctx)
+	g.Go(func(ctx context.Context) error {
+		err := listener.Listen(ctx)
+		app.logger.Debug("listener terminated", zap.Error(err))
+		return err
+	})
+	g.Go(func(ctx context.Context) error {
+		defer cancel()
+		<-ctx.Done()
+		return nil
 	})
 	<-ctx.Done()
+
+	app.logger.Warn("start application termination",
+		zap.NamedError("reason", ctx.Err()),
+	)
+	defer app.logger.Debug("end application termination")
 
 	g.Go(func(context.Context) error {
 		app.logger.Debug("start server termination")
 		err := app.http.Shutdown(context.Background())
 		app.logger.Debug("end server termination", zap.Error(err))
 		return err
+	})
+	g.Go(func(context.Context) error {
+		app.logger.Debug("start listener termination")
+		err := listener.Shutdown(context.Background())
+		app.logger.Debug("end listener termination", zap.Error(err))
+		return err
+	})
+	g.Go(func(context.Context) error {
+		app.logger.Debug("wait for event handlers to end")
+		wg.Wait()
+		app.logger.Debug("event handlers ended")
+		return nil
 	})
 	return g.Wait()
 }
