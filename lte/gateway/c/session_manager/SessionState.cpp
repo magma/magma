@@ -473,8 +473,7 @@ bool SessionState::get_monitoring_key_for_rule_id(
 }
 
 bool SessionState::is_dynamic_rule_scheduled(const std::string& rule_id) {
-  auto _ = new PolicyRule();
-  return scheduled_dynamic_rules_.get_rule(rule_id, _);
+  return scheduled_dynamic_rules_.get_rule(rule_id, NULL);
 }
 
 bool SessionState::is_static_rule_scheduled(const std::string& rule_id) {
@@ -482,13 +481,11 @@ bool SessionState::is_static_rule_scheduled(const std::string& rule_id) {
 }
 
 bool SessionState::is_dynamic_rule_installed(const std::string& rule_id) {
-  auto _ = new PolicyRule();
-  return dynamic_rules_.get_rule(rule_id, _);
+  return dynamic_rules_.get_rule(rule_id, NULL);
 }
 
 bool SessionState::is_gy_dynamic_rule_installed(const std::string& rule_id) {
-  auto _ = new PolicyRule();
-  return gy_dynamic_rules_.get_rule(rule_id, _);
+  return gy_dynamic_rules_.get_rule(rule_id, NULL);
 }
 
 bool SessionState::is_static_rule_installed(const std::string& rule_id) {
