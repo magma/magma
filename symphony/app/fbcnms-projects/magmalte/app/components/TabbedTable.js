@@ -99,8 +99,7 @@ function TabPanel(props: TabPanelProps) {
           <TableContainer component={Paper} elevation={0}>
             <Table>
               <TableBody>
-                {itemData.map((rowItem, rowIdx) => {
-                  return (
+                {itemData.map((rowItem, rowIdx) => (
                     <TableRow key={rowIdx} data-testid={'alertName' + rowIdx}>
                       <TableCell component="th" scope="row">
                         <Text variant="body3" className={classes.rowTitle}>
@@ -117,8 +116,7 @@ function TabPanel(props: TabPanelProps) {
                         );
                       })}
                     </TableRow>
-                  );
-                })}
+                ))}
               </TableBody>
             </Table>
           </TableContainer>
