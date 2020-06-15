@@ -40,7 +40,7 @@ func main() {
 		zap.Stringp("tenant", tenantName),
 		zap.Stringp("user", username),
 	)
-	tenancy, err := viewer.NewMySQLTenancy(*dsn)
+	tenancy, err := viewer.NewMySQLTenancy(*dsn, 1)
 	if err != nil {
 		logger.For(ctx).Fatal("cannot connect to graph database",
 			zap.Stringp("dsn", dsn),

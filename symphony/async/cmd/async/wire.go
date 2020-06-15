@@ -11,8 +11,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"go.uber.org/zap"
-
 	"github.com/facebookincubator/symphony/async/handler"
 	"github.com/facebookincubator/symphony/pkg/log"
 	"github.com/facebookincubator/symphony/pkg/mysql"
@@ -20,9 +18,11 @@ import (
 	"github.com/facebookincubator/symphony/pkg/server"
 	"github.com/facebookincubator/symphony/pkg/server/xserver"
 	"github.com/facebookincubator/symphony/pkg/viewer"
+
 	"github.com/google/wire"
 	"github.com/gorilla/mux"
 	"go.opencensus.io/stats/view"
+	"go.uber.org/zap"
 	"gocloud.dev/server/health"
 )
 
@@ -34,6 +34,7 @@ func NewApplication(ctx context.Context, flags *cliFlags) (*application, func(),
 			"EventConfig",
 			"LogConfig",
 			"TelemetryConfig",
+			"TenancyConfig",
 		),
 		log.Provider,
 		newTenancy,
@@ -67,8 +68,8 @@ func newHealthChecks(tenancy *viewer.MySQLTenancy) []health.Checker {
 	return []health.Checker{tenancy}
 }
 
-func newMySQLTenancy(config mysql.Config, logger log.Logger) (*viewer.MySQLTenancy, error) {
-	tenancy, err := viewer.NewMySQLTenancy(config.String())
+func newMySQLTenancy(mySQLConfig mysql.Config, tenancyConfig viewer.Config, logger log.Logger) (*viewer.MySQLTenancy, error) {
+	tenancy, err := viewer.NewMySQLTenancy(mySQLConfig.String(), tenancyConfig.TenantMaxConn)
 	if err != nil {
 		return nil, fmt.Errorf("creating mysql tenancy: %w", err)
 	}

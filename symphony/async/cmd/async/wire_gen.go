@@ -36,12 +36,13 @@ import (
 
 func NewApplication(ctx context.Context, flags *cliFlags) (*application, func(), error) {
 	config := flags.MySQLConfig
+	viewerConfig := flags.TenancyConfig
 	logConfig := flags.LogConfig
 	logger, cleanup, err := log.ProvideLogger(logConfig)
 	if err != nil {
 		return nil, nil, err
 	}
-	mySQLTenancy, err := newMySQLTenancy(config, logger)
+	mySQLTenancy, err := newMySQLTenancy(config, viewerConfig, logger)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
@@ -131,8 +132,8 @@ func newHealthChecks(tenancy *viewer.MySQLTenancy) []health.Checker {
 	return []health.Checker{tenancy}
 }
 
-func newMySQLTenancy(config mysql.Config, logger log.Logger) (*viewer.MySQLTenancy, error) {
-	tenancy, err := viewer.NewMySQLTenancy(config.String())
+func newMySQLTenancy(mySQLConfig mysql.Config, tenancyConfig viewer.Config, logger log.Logger) (*viewer.MySQLTenancy, error) {
+	tenancy, err := viewer.NewMySQLTenancy(mySQLConfig.String(), tenancyConfig.TenantMaxConn)
 	if err != nil {
 		return nil, fmt.Errorf("creating mysql tenancy: %w", err)
 	}

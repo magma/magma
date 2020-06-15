@@ -20,6 +20,7 @@ import (
 	"github.com/facebookincubator/symphony/pkg/pubsub"
 	"github.com/facebookincubator/symphony/pkg/server"
 	"github.com/facebookincubator/symphony/pkg/telemetry"
+	"github.com/facebookincubator/symphony/pkg/viewer"
 	"gopkg.in/alecthomas/kingpin.v2"
 
 	"go.uber.org/zap"
@@ -34,6 +35,7 @@ type cliFlags struct {
 	EventConfig     pubsub.Config
 	LogConfig       log.Config
 	TelemetryConfig telemetry.Config
+	TenancyConfig   viewer.Config
 }
 
 func main() {
@@ -49,6 +51,7 @@ func main() {
 	pubsub.AddFlagsVar(kingpin.CommandLine, &cf.EventConfig)
 	log.AddFlagsVar(kingpin.CommandLine, &cf.LogConfig)
 	telemetry.AddFlagsVar(kingpin.CommandLine, &cf.TelemetryConfig)
+	viewer.AddFlagsVar(kingpin.CommandLine, &cf.TenancyConfig)
 	kingpin.Parse()
 
 	ctx := ctxutil.WithSignal(
