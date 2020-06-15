@@ -91,40 +91,7 @@ function TabPanel(props: TabPanelProps) {
   const classes = useStyles();
   const {currTabIndex, index, itemData, label} = props;
 
-  if (itemData.length > 0) {
-    return (
-      <>
-        {currTabIndex === index ? (
-          <TableContainer component={Paper} elevation={0}>
-            <Table>
-              <TableBody>
-                {itemData.map((rowItem, rowIdx) => {
-                  return (
-                    <TableRow key={rowIdx} data-testid={'alertName' + rowIdx}>
-                      <TableCell component="th" scope="row">
-                        <Text variant="body3" className={classes.rowTitle}>
-                          {rowItem.name}
-                        </Text>
-                      </TableCell>
-                      {rowItem.cols.map((cellItem, cellIdx) => {
-                        return (
-                          <TableCell key={rowIdx + '-' + cellIdx}>
-                            <Text variant="body3" className={classes.rowText}>
-                              {cellItem}
-                            </Text>
-                          </TableCell>
-                        );
-                      })}
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        ) : null}
-      </>
-    );
-  } else {
+  if (itemData.length === 0) {
     return currTabIndex === index ? (
       <Paper elevation={0}>
         <Grid
@@ -143,6 +110,39 @@ function TabPanel(props: TabPanelProps) {
       </Paper>
     ) : null;
   }
+
+  return (
+    <>
+      {currTabIndex === index ? (
+        <TableContainer component={Paper} elevation={0}>
+          <Table>
+            <TableBody>
+              {itemData.map((rowItem, rowIdx) => {
+                return (
+                  <TableRow key={rowIdx} data-testid={'alertName' + rowIdx}>
+                    <TableCell component="th" scope="row">
+                      <Text variant="body3" className={classes.rowTitle}>
+                        {rowItem.name}
+                      </Text>
+                    </TableCell>
+                    {rowItem.cols.map((cellItem, cellIdx) => {
+                      return (
+                        <TableCell key={rowIdx + '-' + cellIdx}>
+                          <Text variant="body3" className={classes.rowText}>
+                            {cellItem}
+                          </Text>
+                        </TableCell>
+                      );
+                    })}
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      ) : null}
+    </>
+  );
 }
 
 export default function TabbedTable(props: Props) {
