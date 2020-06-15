@@ -7,15 +7,17 @@
  * @flow strict-local
  * @format
  */
+import type {ComponentType} from 'react';
+
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import CardHeader from '@material-ui/core/CardHeader';
 import Grid from '@material-ui/core/Grid';
-import {makeStyles} from '@material-ui/styles';
 import React from 'react';
 import Text from '../theme/design-system/Text';
+
 import {colors} from '../theme/default';
-import type {ComponentType} from 'react';
+import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(theme => ({
   kpiHeaderBlock: {
