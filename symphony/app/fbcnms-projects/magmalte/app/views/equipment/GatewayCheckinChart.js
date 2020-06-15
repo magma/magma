@@ -104,7 +104,7 @@ export default function() {
           </Grid>
         </Grid>
       </Grid>
-      <Card>
+      <Card elevation={0}>
         <CardHeader
           title={<Text variant="body2">{state.title}</Text>}
           subheader={
