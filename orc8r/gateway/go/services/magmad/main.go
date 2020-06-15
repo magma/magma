@@ -25,6 +25,7 @@ import (
 	"magma/gateway/services/magmad/service_manager"
 	"magma/gateway/services/magmad/status"
 	sync_rpc "magma/gateway/services/sync_rpc/service"
+	"magma/orc8r/lib/go/profile"
 )
 
 const (
@@ -53,7 +54,7 @@ Examples:
 
 var (
 	showGwInfo      = flag.Bool("show", false, "Print out gateway information needed for GW registration")
-	gcPersent       = flag.Int("gc_percent", 20, "GC Percent")
+	gcPercent       = flag.Int("gc_percent", 20, "GC Percent")
 	freeMemInterval = flag.Duration("memory_purge_interval", time.Hour*6, "Force GC & unused memory purge interval")
 )
 
@@ -78,7 +79,7 @@ func main() {
 	}
 
 	if _, isset := os.LookupEnv("GOGC"); !isset {
-		debug.SetGCPercent(*gcPersent)
+		debug.SetGCPercent(*gcPercent)
 	}
 	eventChan := make(chan interface{}, 2)
 
@@ -175,8 +176,12 @@ func mainEventLoop(eventChan <-chan interface{}, freeMemChan <-chan time.Time) {
 			} // switch
 		case _, ok := <-freeMemChan:
 			if ok {
-				glog.Info("Purging unused memory")
+				glog.Info("purging unused memory")
 				debug.FreeOSMemory()
+				// write out heap profile if built with -tags with_profiler, noop otherwise
+				// to use:
+				//    go tool pprof -http=127.0.0.1:9999 <path/to/magmad> <profiles_dir/memory_MMDD_HH.mm.SS.pprof>
+				profile.MemWrite()
 			}
 		} // select
 	}
