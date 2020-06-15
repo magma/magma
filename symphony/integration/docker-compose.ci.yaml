@@ -42,6 +42,8 @@ services:
     env_file:
       - conf/graph.env
       - conf/log.env
+    environment:
+      - WS_AUTH_URL=http://front/user/me
     depends_on:
       - mysql
       - nats

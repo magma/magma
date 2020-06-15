@@ -10,18 +10,11 @@ from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import DataClassJsonMixin
 
-from gql.gql.enum_utils import enum_field
-from ..enum.file_type import FileType
-
+from ..input.check_list_definition import CheckListDefinitionInput
 @dataclass
-class FileInput(DataClassJsonMixin):
-    fileName: str
-    storeKey: str
+class CheckListCategoryDefinitionInput(DataClassJsonMixin):
+    title: str
+    checkList: List[CheckListDefinitionInput]
     id: Optional[str] = None
-    sizeInBytes: Optional[int] = None
-    modificationTime: Optional[int] = None
-    uploadTime: Optional[int] = None
-    fileType: Optional[FileType] = None
-    mimeType: Optional[str] = None
-    annotation: Optional[str] = None
+    description: Optional[str] = None
 

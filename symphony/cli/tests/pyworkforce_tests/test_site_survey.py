@@ -6,6 +6,7 @@
 
 import os
 from datetime import datetime
+from unittest import skip
 
 from pyinventory.api.location import add_location
 from pyinventory.api.location_type import add_location_type
@@ -20,6 +21,7 @@ from ..utils.base_test import BaseTest
 from ..utils.grpc.rpc_pb2_grpc import TenantServiceStub
 
 
+@skip("site survey is deprecated")
 class TestSiteSurvey(BaseTest):
     def __init__(
         self, testName: str, client: SymphonyClient, stub: TenantServiceStub

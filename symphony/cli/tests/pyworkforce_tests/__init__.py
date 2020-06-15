@@ -18,9 +18,10 @@ def load_tests(
 ) -> TestSuite:
 
     from .test_site_survey import TestSiteSurvey
+    from .test_workorder_subscription import TestWorkOrderSubscription
     from ..utils.grpc.rpc_pb2_grpc import TenantServiceStub
 
-    TESTS = [TestSiteSurvey]
+    TESTS = [TestSiteSurvey, TestWorkOrderSubscription]
 
     print("Waiting for symphony to be ready")
     wait_for_platform()

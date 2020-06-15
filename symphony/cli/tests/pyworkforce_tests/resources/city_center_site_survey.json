@@ -1,5 +1,5 @@
 {
-  "$schema": "../../../cli/pyinventory/survey_schema.json",
+  "$schema": "../../../pyworkforce/survey_schema.json",
   "translations": {
     "Form": "Forma",
     "Question": "Pregunta",
@@ -68,12 +68,38 @@
             {
               "questionName": "From",
               "questionType": "TEXT",
-              "options": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+              "options": [
+                "January",
+                "February",
+                "March",
+                "April",
+                "May",
+                "June",
+                "July",
+                "August",
+                "September",
+                "October",
+                "November",
+                "December"
+              ]
             },
             {
               "questionName": "Up to",
               "questionType": "TEXT",
-              "options": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+              "options": [
+                "January",
+                "February",
+                "March",
+                "April",
+                "May",
+                "June",
+                "July",
+                "August",
+                "September",
+                "October",
+                "November",
+                "December"
+              ]
             }
           ]
         },
