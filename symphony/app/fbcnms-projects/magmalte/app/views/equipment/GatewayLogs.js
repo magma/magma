@@ -18,6 +18,7 @@ import moment from 'moment';
 import nullthrows from '@fbcnms/util/nullthrows';
 import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 
+import {colors} from '../../theme/default';
 import {Bar} from 'react-chartjs-2';
 import {DateTimePicker} from '@material-ui/pickers';
 import {makeStyles} from '@material-ui/styles';
@@ -30,15 +31,15 @@ const useStyles = makeStyles(theme => ({
     flexGrow: 1,
   },
   topBar: {
-    backgroundColor: '#171B25',
+    backgroundColor: colors.primary.mirage,
     padding: '20px 40px 20px 40px',
   },
   tabBar: {
-    backgroundColor: '#323845',
+    backgroundColor: colors.primary.brightGray,
     padding: '0 0 0 20px',
   },
   tabs: {
-    color: 'white',
+    color: colors.primary.white,
   },
   tab: {
     fontSize: '18px',

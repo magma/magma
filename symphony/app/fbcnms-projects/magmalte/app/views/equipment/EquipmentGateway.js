@@ -18,6 +18,7 @@ import Grid from '@material-ui/core/Grid';
 import React, {useState} from 'react';
 import isGatewayHealthy from '../../components/GatewayUtils';
 
+import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
 
@@ -27,15 +28,15 @@ const useStyles = makeStyles(theme => ({
     flexGrow: 1,
   },
   topBar: {
-    backgroundColor: '#171B25',
+    backgroundColor: colors.primary.mirage,
     padding: '20px 40px 20px 40px',
   },
   tabBar: {
-    backgroundColor: '#323845',
+    backgroundColor: colors.primary.brightGray,
     padding: '0 0 0 20px',
   },
   tabs: {
-    color: 'white',
+    color: colors.primary.white,
   },
   tab: {
     fontSize: '18px',
