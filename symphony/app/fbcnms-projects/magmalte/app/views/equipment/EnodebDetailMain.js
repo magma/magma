@@ -13,6 +13,7 @@ import type {EnodebInfo} from '../../components/lte/EnodebUtils';
 import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
 import DashboardIcon from '@material-ui/icons/Dashboard';
+import EnodebConfig from './EnodebDetailConfig';
 import EnodebThroughputChart from './EnodebThroughputChart';
 import GatewayLogs from './GatewayLogs';
 import GraphicEqIcon from '@material-ui/icons/GraphicEq';
@@ -141,6 +142,10 @@ export function EnodebDetail({enbInfo}: {enbInfo: {[string]: EnodebInfo}}) {
         <Route
           path={relativePath('/overview')}
           render={() => <Overview enbInfo={enbInfo[enodebSerial]} />}
+        />
+        <Route
+          path={relativePath('/config')}
+          render={() => <EnodebConfig enbInfo={enbInfo[enodebSerial]} />}
         />
         <Route path={relativePath('/logs')} component={GatewayLogs} />
         <Redirect to={relativeUrl('/overview')} />
