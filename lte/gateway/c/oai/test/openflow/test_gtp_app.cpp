@@ -41,11 +41,13 @@ class GTPApplicationTest : public ::testing::Test {
   static constexpr const char *TEST_GTP_MAC = "1.2.3.4.5.6";
   static const uint32_t TEST_GTP_PORT = 123;
   static const uint32_t TEST_MTR_PORT = 1155;
+  static const uint32_t TEST_UPLINK_PORT = of13::OFPP_LOCAL;
 
  protected:
   virtual void SetUp()
   {
-    gtp_app = new GTPApplication(TEST_GTP_MAC, TEST_GTP_PORT, TEST_MTR_PORT);
+    gtp_app = new GTPApplication(TEST_GTP_MAC, TEST_GTP_PORT, TEST_MTR_PORT,
+		                             TEST_UPLINK_PORT);
     messenger = std::shared_ptr<MockMessenger>(new MockMessenger());
 
     controller = std::unique_ptr<OpenflowController>(
