@@ -65,7 +65,6 @@ const (
 // - Generate traffic and verify if the traffic observed bitrate matches the configured
 // bitrate, restart pipelined and verify if Qos remains enforced
 func testQosEnforcementRestart(t *testing.T, cfgCh chan string, restartCfg string) {
-	assert.True(t, false)
 	tr := NewTestRunner(t)
 
 	// do not use restartPipeline functon. Otherwise we are not testing the case where attach
