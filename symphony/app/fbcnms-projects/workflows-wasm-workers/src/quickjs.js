@@ -15,9 +15,10 @@ import {executeWasmer} from './wasmer.js';
 const quickJsPath = process.env.QUICKJS_PATH || 'wasm/quickjs/quickjs.wasm';
 
 export async function executeQuickJs(script, args) {
-  const preamble =
-    `const argv = ${argsToJsonArray(args)};\n` +
-    `console.error = function(...args) { std.err.puts(args.join(' '));std.err.puts('\\n'); }\n`;
+  const preamble = `
+const argv = ${argsToJsonArray(args)};
+console.error = function(...args) { std.err.puts(args.join(' '));std.err.puts('\\n'); }
+`;
   script = preamble + script;
   const wasmerArgs = ['run', quickJsPath, '--', '--std', '-e', script];
   try {

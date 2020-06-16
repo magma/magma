@@ -16,11 +16,30 @@ const pythonBinPath = process.env.PYTHON_PATH || 'wasm/python/bin/python.wasm';
 const pythonLibPath = process.env.PYTHON_LIB_PATH || 'wasm/python/lib';
 
 export async function executePython(script, args) {
-  const preamble = `argv = ${argsToJsonArray(args)};\n`;
+  const preamble = `
+argv = ${argsToJsonArray(args)};
+import sys
+def eprint(*args, **kwargs):
+  print(*args, file=sys.stderr, **kwargs)
+
+`;
   script = preamble + script;
-  const wasmerArgs = ['run', pythonBinPath, '--mapdir=lib:' + pythonLibPath];
+  // options:
+  // -q: quiet, do not print python version
+  // -B: do not write .pyc files on import
+  // -c script: execute passed script
+  const wasmerArgs = [
+    'run',
+    pythonBinPath,
+    '--mapdir=lib:' + pythonLibPath,
+    '--',
+    '-B',
+    '-q',
+    '-c',
+    script,
+  ];
   try {
-    const {stdout, stderr} = await executeWasmer(wasmerArgs, script);
+    const {stdout, stderr} = await executeWasmer(wasmerArgs);
     logger.info('executePython succeeded', {stdout, stderr});
     return {stdout, stderr};
   } catch (error) {
@@ -31,8 +50,11 @@ export async function executePython(script, args) {
 
 export async function pythonHealthCheck() {
   try {
-    const {stdout, stderr} = await executePython(`print('stdout');`, []);
-    if (stdout == 'stdout\n') {
+    const {stdout, stderr} = await executePython(
+      `print('stdout');eprint('stderr');`,
+      [],
+    );
+    if (stdout == 'stdout\n' && stderr == 'stderr\n') {
       return true;
     }
     logger.warn('Unexpected healthcheck result', {stdout, stderr});
