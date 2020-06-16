@@ -101,14 +101,9 @@ protected:
     return stored;
   }
 
-  StoredChargingCreditPool get_stored_charging_credit_pool() {
-    StoredChargingCreditPool stored;
-    stored.imsi = "IMSI1";
-    auto credit_map =
-        std::unordered_map<CreditKey, StoredSessionCredit, decltype(&ccHash),
-                           decltype(&ccEqual)>(4, &ccHash, &ccEqual);
-    credit_map[CreditKey(1, 2)] = get_stored_session_credit();
-    stored.credit_map = credit_map;
+  StoredChargingCreditMap get_stored_charging_credit_map() {
+    StoredChargingCreditMap stored(4, &ccHash, &ccEqual);
+    stored[CreditKey(1, 2)] = get_stored_session_credit();
     return stored;
   }
 
@@ -124,7 +119,7 @@ protected:
     StoredSessionState stored;
 
     stored.config = get_stored_session_config();
-    stored.charging_pool = get_stored_charging_credit_pool();
+    stored.credit_map = get_stored_charging_credit_map();
     stored.monitor_pool = get_stored_monitor_pool();
     stored.imsi = "IMSI1";
     stored.session_id = "session_id";
@@ -263,13 +258,13 @@ TEST_F(StoredStateTest, test_stored_monitor) {
   EXPECT_EQ(deserialized.level, MonitoringLevel::PCC_RULE_LEVEL);
 }
 
-TEST_F(StoredStateTest, test_stored_charging_credit_pool) {
-  auto stored = get_stored_charging_credit_pool();
+TEST_F(StoredStateTest, test_stored_charging_credit_map) {
+  auto stored = get_stored_charging_credit_map();
 
-  auto serialized = serialize_stored_charging_credit_pool(stored);
-  auto deserialized = deserialize_stored_charging_credit_pool(serialized);
+  auto serialized = serialize_stored_charging_credit_map(stored);
+  auto deserialized = deserialize_stored_charging_credit_map(serialized);
 
-  auto stored_credit = deserialized.credit_map[CreditKey(1, 2)];
+  auto stored_credit = deserialized[CreditKey(1, 2)];
   EXPECT_EQ(stored_credit.reporting, true);
   EXPECT_EQ(stored_credit.is_final, true);
   EXPECT_EQ(stored_credit.unlimited_quota, true);
@@ -344,8 +339,7 @@ TEST_F(StoredStateTest, test_stored_session) {
   EXPECT_EQ(config.qos_info.enabled, true);
   EXPECT_EQ(config.qos_info.qci, 123);
 
-  auto charging_pool = deserialized.charging_pool;
-  auto stored_credit = charging_pool.credit_map[CreditKey(1, 2)];
+  auto stored_credit = deserialized.credit_map[CreditKey(1, 2)];
   EXPECT_EQ(stored_credit.reporting, true);
   EXPECT_EQ(stored_credit.is_final, true);
   EXPECT_EQ(stored_credit.unlimited_quota, true);
