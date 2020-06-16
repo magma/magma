@@ -247,7 +247,6 @@ TEST_F(SessionManagerHandlerTest, test_report_rule_stats) {
   // Check the request number
   auto session_map_2 = session_store->read_sessions(SessionRead{imsi});
   EXPECT_EQ(session_map_2[imsi].front()->get_request_number(), 1);
-
   // 2) ReportRuleStats
   grpc::ServerContext server_context;
   RuleRecordTable table;
