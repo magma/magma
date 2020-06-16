@@ -14,12 +14,28 @@ import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
 import DataUsageIcon from '@material-ui/icons/DataUsage';
 import Grid from '@material-ui/core/Grid';
-import React from 'react';
-import Text from '@fbcnms/ui/components/design-system/Text';
 import moment from 'moment';
+import React from 'react';
+import Text from '../../theme/design-system/Text';
 
+import {colors} from '../../theme/default';
 import {DateTimePicker} from '@material-ui/pickers';
+import {makeStyles} from '@material-ui/styles';
 import {useState} from 'react';
+
+const useStyles = makeStyles(theme => ({
+  cardTitleRow: {
+    marginBottom: theme.spacing(1),
+    minHeight: '36px',
+  },
+  cardTitleIcon: {
+    fill: colors.primary.comet,
+    marginRight: theme.spacing(1),
+  },
+  dateTimeText: {
+    color: colors.primary.comet,
+  },
+}));
 
 export type EnbThroughputChartProps = {
   title: string,
@@ -28,27 +44,28 @@ export type EnbThroughputChartProps = {
 };
 
 export default function EnodebThroughputChart(props: EnbThroughputChartProps) {
+  const classes = useStyles();
   const [startDate, setStartDate] = useState(moment().subtract(3, 'hours'));
   const [endDate, setEndDate] = useState(moment());
 
   return (
     <>
-      <Grid container align="top" alignItems="flex-start">
-        <Grid item xs={6}>
-          <Text>
-            <DataUsageIcon />
-            {props.title}
-          </Text>
+      <Grid container alignItems="center" className={classes.cardTitleRow}>
+        <Grid container xs={6}>
+          <DataUsageIcon className={classes.cardTitleIcon} />
+          <Text variant="body1">{props.title}</Text>
         </Grid>
-        <Grid item xs={6}>
+        <Grid item xs={6} className={classes.dateFilters}>
           <Grid container justify="flex-end" alignItems="center" spacing={1}>
             <Grid item>
-              <Text>Filter By Date</Text>
+              <Text variant="body3" className={classes.dateTimeText}>
+                Filter By Date
+              </Text>
             </Grid>
             <Grid item>
               <DateTimePicker
                 autoOk
-                variant="inline"
+                variant="outlined"
                 inputVariant="outlined"
                 maxDate={endDate}
                 disableFuture
@@ -57,12 +74,14 @@ export default function EnodebThroughputChart(props: EnbThroughputChartProps) {
               />
             </Grid>
             <Grid item>
-              <Text>To</Text>
+              <Text variant="body3" className={classes.dateTimeText}>
+                to
+              </Text>
             </Grid>
             <Grid item>
               <DateTimePicker
                 autoOk
-                variant="inline"
+                variant="outlined"
                 inputVariant="outlined"
                 disableFuture
                 value={endDate}
@@ -74,7 +93,7 @@ export default function EnodebThroughputChart(props: EnbThroughputChartProps) {
       </Grid>
       <Card>
         <CardHeader
-          title={<Text variant="h6">{props.title}</Text>}
+          title={<Text variant="body2">Frequency of {props.title}</Text>}
           subheader={
             <AsyncMetric
               style={{
@@ -105,7 +124,7 @@ export default function EnodebThroughputChart(props: EnbThroughputChartProps) {
                   align: 'end',
                 },
               }}
-              label={props.title}
+              label={`Frequency of ${props.title}`}
               unit=""
               queries={props.queries}
               timeRange={'3_hours'}

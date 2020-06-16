@@ -19,11 +19,12 @@ import SettingsEthernetIcon from '@material-ui/icons/SettingsEthernet';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import Tooltip from '@material-ui/core/Tooltip';
 import classNames from 'classnames';
+import {colors} from '../theme/default';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(theme => ({
   button: {
-    backgroundColor: theme.palette.common.white,
+    backgroundColor: colors.primary.white,
     width: '28px',
     height: '28px',
     fontSize: '28px',
@@ -33,9 +34,9 @@ const useStyles = makeStyles(theme => ({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: '20px',
-    border: `1px solid ${theme.palette.common.white}`,
+    border: `1px solid ${colors.primary.white}`,
     '&:hover, &$openButton': {
-      border: `1px solid ${theme.palette.blue60}`,
+      border: `1px solid ${colors.secondary.dodgerBlue}`,
     },
   },
   openButton: {},
@@ -61,17 +62,17 @@ const useStyles = makeStyles(theme => ({
     lineHeight: '16px',
   },
   selectedNetwork: {
-    color: theme.palette.blue60,
+    color: colors.secondary.dodgerBlue,
     fontSize: '20px',
   },
   selectedListItem: {
     '& $networkItemText': {
-      color: theme.palette.blue60,
+      color: colors.secondary.dodgerBlue,
     },
   },
   listItemRoot: {
     '&$selectedListItem': {
-      backgroundColor: theme.palette.blue05,
+      backgroundColor: 'lime',
     },
     '&:not(:last-child)': {
       marginBottom: '8px',

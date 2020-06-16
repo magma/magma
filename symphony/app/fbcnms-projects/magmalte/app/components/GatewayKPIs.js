@@ -8,17 +8,19 @@
  * @format
  */
 
+import type {KPIData} from './KPITray';
+import type {lte_gateway} from '@fbcnms/magma-api';
+
 import CellWifiIcon from '@material-ui/icons/CellWifi';
+import isGatewayHealthy from './GatewayUtils';
 import KPITray from './KPITray';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
-import React from 'react';
-import isGatewayHealthy from './GatewayUtils';
 import nullthrows from '@fbcnms/util/nullthrows';
+import React from 'react';
 import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
+
 import {useRouter} from '@fbcnms/ui/hooks';
-import type {KPIData} from './KPITray';
-import type {lte_gateway} from '@fbcnms/magma-api';
 
 export default function GatewayKPIs() {
   const {match} = useRouter();

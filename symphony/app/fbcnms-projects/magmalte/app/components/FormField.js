@@ -28,7 +28,6 @@ const useStyles = makeStyles(theme => ({
     textAlign: 'right',
   },
   secondaryHeading: {
-    color: theme.palette.text.secondary,
     flexBasis: '66.66%',
   },
   icon: {

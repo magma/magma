@@ -8,7 +8,7 @@
  * @format
  */
 
-import AppContent from '@fbcnms/ui/components/layout/AppContent';
+import AppContent from '../layout/AppContent';
 import AppContext, {AppContextProvider} from '@fbcnms/ui/context/AppContext';
 import AppSideBar from '@fbcnms/ui/components/layout/AppSideBar';
 import ApplicationMain from '@fbcnms/ui/components/ApplicationMain';

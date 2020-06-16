@@ -10,6 +10,8 @@
 
 //  NOTE: Color Names generated from hex code at http://chir.ag/projects/name-that-color/
 
+import {createMuiTheme} from '@material-ui/core/styles';
+
 export const colors = {
   primary: {
     white: '#FFFFFF',
@@ -26,6 +28,10 @@ export const colors = {
     malibu: '#88B3F9',
     dodgerBlue: '#3984FF',
     mariner: '#1F5BC4',
+  },
+  button: {
+    lightOutline: '#CCD0DB',
+    fill: '#FAFAFB',
   },
   state: {
     positive: '#31BF56',
@@ -180,3 +186,143 @@ export const shadows = {
   DP5:
     '0px 24px 38px 0px rgba(0, 0, 0, 0.14), 0px 9px 46px 0px rgba(0, 0, 0, 0.12), 0px 11px 15px 0px rgba(0, 0, 0, 0.20)',
 };
+
+export default createMuiTheme({
+  palette: {
+    primary: {
+      light: colors.secondary.malibu,
+      main: colors.secondary.dodgerBlue,
+      dark: colors.secondary.mariner,
+    },
+    blueGrayDark: colors.primary.brightGray,
+  },
+  overrides: {
+    MuiAppBar: {
+      colorPrimary: {
+        color: colors.primary.white,
+      },
+    },
+    MuiButton: {
+      root: {
+        borderRadius: 4,
+        cursor: 'pointer',
+        fontSize: '14px',
+        textTransform: 'capitalize',
+        padding: '8px 12px',
+        fontWeight: 500,
+        lineHeight: '16px',
+      },
+      contained: {
+        boxShadow: 'none',
+      },
+    },
+    MuiFormControl: {
+      marginDense: {
+        marginTop: '0px',
+        marginBottom: '0px',
+      },
+    },
+    MuiToggleButtonGroup: {
+      '&$selected': {
+        boxShadow: 'none',
+        borderRadius: 4,
+        border: `1px solid ${colors.secondary.dodgerBlue}`,
+      },
+    },
+    MuiToggleButton: {
+      root: {
+        color: colors.secondary.dodgerBlue,
+        backgroundColor: colors.primary.white,
+        textTransform: 'none',
+        '&$selected': {
+          color: colors.primary.white,
+          backgroundColor: colors.secondary.dodgerBlue,
+        },
+      },
+    },
+    MuiListItemText: {
+      root: {
+        marginBottom: '0px',
+        marginTop: '0px',
+      },
+    },
+    MuiSelect: {
+      selectMenu: {
+        backgroundColor: colors.button.fill,
+      },
+    },
+    MuiTableRow: {
+      root: {
+        backgroundColor: 'white',
+      },
+    },
+    MuiIconButton: {
+      root: {
+        color: colors.secondary.dodgerBlue,
+      },
+    },
+    MuiAvatar: {
+      colorDefault: {
+        backgroundColor: '#e4f0f6',
+        color: colors.secondary.dodgerBlue,
+      },
+    },
+    MuiInputLabel: {
+      outlined: {
+        transform: 'translate(14px, 16px) scale(1)',
+      },
+    },
+    MuiOutlinedInput: {
+      root: {
+        '&$notchedOutline': {
+          borderColor: '#CCD0D5',
+        },
+        '&$focused $notchedOutline': {
+          borderColor: 'rgba(0, 0, 0, 0.87)',
+          borderWidth: '1px',
+        },
+        '&$disabled': {
+          // background: gray0,
+        },
+      },
+      input: {
+        padding: '8px 16px',
+        color: colors.primary.brightGray,
+        fontFamily: typography.button.fontFamily,
+        fontWeight: typography.button.fontWeight,
+        fontSize: typography.button.fontSize,
+        lineHeight: typography.button.lineHeight,
+        letterSpacing: typography.button.letterSpacing,
+        backgroundColor: colors.button.fill,
+        '&::-webkit-input-placeholder': {
+          opacity: 1,
+        },
+        '&::-moz-placeholder': {
+          opacity: 1,
+        },
+        '&::-ms-input-placeholder': {
+          opacity: 1,
+        },
+      },
+      inputMarginDense: {
+        paddingTop: '9px',
+        paddingBottom: '9px',
+        fontSize: '14px',
+        lineHeight: '14px',
+        height: '14px',
+        '&::placeholder': {
+          color: '#8895ad',
+        },
+        '&::-webkit-input-placeholder': {
+          opacity: 1,
+        },
+        '&::-moz-placeholder': {
+          opacity: 1,
+        },
+        '&::-ms-input-placeholder': {
+          opacity: 1,
+        },
+      },
+    },
+  },
+});

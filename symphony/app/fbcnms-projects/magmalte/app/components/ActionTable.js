@@ -16,6 +16,7 @@ import ChevronRight from '@material-ui/icons/ChevronRight';
 import Clear from '@material-ui/icons/Clear';
 import FilterList from '@material-ui/icons/FilterList';
 import FirstPage from '@material-ui/icons/FirstPage';
+import Grid from '@material-ui/core/Grid';
 import LastPage from '@material-ui/icons/LastPage';
 import MaterialTable from 'material-table';
 import Menu from '@material-ui/core/Menu';
@@ -25,9 +26,22 @@ import React, {useState} from 'react';
 import Remove from '@material-ui/icons/Remove';
 import SaveAlt from '@material-ui/icons/SaveAlt';
 import Search from '@material-ui/icons/Search';
-import Text from '@fbcnms/ui/components/design-system/Text';
+import Text from '../theme/design-system/Text';
 
+import {colors} from '../theme/default';
 import {forwardRef} from 'react';
+import {makeStyles} from '@material-ui/styles';
+
+const useStyles = makeStyles(theme => ({
+  cardTitleRow: {
+    marginBottom: theme.spacing(1),
+    minHeight: '36px',
+  },
+  cardTitleIcon: {
+    fill: colors.primary.comet,
+    marginRight: theme.spacing(1),
+  },
+}));
 
 const tableIcons = {
   Export: forwardRef((props, ref) => <SaveAlt {...props} ref={ref} />),
@@ -94,6 +108,7 @@ export type ActionTableProps<T> = {
 };
 
 export default function ActionTable<T>(props: ActionTableProps<T>) {
+  const classes = useStyles();
   const [anchorEl, setAnchorEl] = useState(null);
   const actionTableJSX = [];
 
@@ -111,12 +126,18 @@ export default function ActionTable<T>(props: ActionTableProps<T>) {
   if (props.titleIcon) {
     const TitleIcon = props.titleIcon;
     actionTableJSX.push(
-      <Text key="title">
-        <TitleIcon /> {props.title} ({props.data.length})
-      </Text>,
+      <Grid
+        container
+        alignItems="center"
+        className={classes.cardTitleRow}
+        key="title">
+        <TitleIcon className={classes.cardTitleIcon} />
+        <Text variant="body1">
+          {props.title} ({props.data.length})
+        </Text>
+      </Grid>,
     );
   }
-
   if (props.menuItems) {
     const menuItems: Array<ActionMenuItems> = props.menuItems;
     actionTableJSX.push(
@@ -145,6 +166,7 @@ export default function ActionTable<T>(props: ActionTableProps<T>) {
   return (
     <>
       {actionTableJSX}
+      {/* TODO: How do I modify this component??? Such as changine paper elevation, search placement (should be toggle open/closed), etc. */}
       <MaterialTable
         title=""
         columns={props.columns}
