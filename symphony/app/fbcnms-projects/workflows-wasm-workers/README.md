@@ -1,3 +1,36 @@
+# Lambda workers (js & python) executed using WASM engine
+
+Run lambda tasks inside a web assembly engine [wasmer](https://wasmer.io/).
+Every execution spawns a new short lived process.
+
+## Usage
+
+Currently supports two task types: `GLOBAL___js` and `GLOBAL___py`.
+
+* `args` - arguments to the script. To use workflow input: `${workflow.input.enter_your_name}`
+To read from previous task: `${some_task_ref.output.result}`
+* `outputIsJson` - if set to `true`, output will be interpreted as JSON. Otherwise interpreted as plaintext.
+* `script` - script to be executed
+
+## Javascript engine
+Task `GLOBAL___js` uses [QuickJs](https://bellard.org/quickjs/) engine, compiled to wasm [(demo)](https://wapm.io/package/quickjs).
+
+### APIs
+Task result is written using `console.log`.
+
+Log messages are written using `console.error`.
+
+Arguments are available in `argv` global variable.
+
+## Python interpreter
+Task `GLOBAL___py` uses CPython 3.6 compiled to wasm [(demo)](https://wapm.io/package/python).
+
+### APIs
+Task result is written using `print`.
+
+Log messages are written using `eprint`.
+
+Arguments are available in `argv` global variable.
 
 ## Example workflow
 
@@ -15,8 +48,6 @@ json.name_length = json.name.length;
 console.log(JSON.stringify(json));
 console.error('logging from js');
 ```
-Everything written to stdout (`print`, `console.log`) will be interpreted as task result,
-whereas stderr (`eprint`, `console.error`) will end up as task logs.
 
 ### Set conductor proxy as CONDUCTOR_API variable
 ```shell script
