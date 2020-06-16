@@ -302,35 +302,23 @@ void SessionState::get_monitor_updates(
     auto mkey = monitor_pair.first;
     auto& credit = monitor_pair.second->credit;
     auto credit_uc = get_monitor_uc(mkey, update_criteria);
-    auto action_type = credit.get_action(*credit_uc);
-    // TODO Check if we ever reach this for monitors
-    if (action_type != CONTINUE_SERVICE) {
-      auto action = std::make_unique<ServiceAction>(action_type);
-      action->set_imsi(imsi_);
-      action->set_ip_addr(config_.ue_ipv4);
-      static_rules_.get_rule_ids_for_monitoring_key(
-        mkey, *action->get_mutable_rule_ids());
-      dynamic_rules_.get_rule_definitions_for_monitoring_key(
-        mkey, *action->get_mutable_rule_definitions());
-      actions_out->push_back(std::move(action));
-    }
-
     auto update_type = credit.get_update_type();
-    if (update_type != CREDIT_NO_UPDATE) {
-      MLOG(MDEBUG) << "Subscriber " << imsi_ << " monitoring key "
-                   << mkey << " updating due to type "
-                   << update_type;
-      auto usage = credit.get_usage_for_reporting(*credit_uc);
-      auto update = make_usage_monitor_update(
-          usage, mkey, monitor_pair.second->level);
-
-      auto new_req = update_request_out.mutable_usage_monitors()->Add();
-      add_common_fields_to_usage_monitor_update(new_req);
-      new_req->mutable_update()->CopyFrom(update);
-      new_req->set_event_trigger(USAGE_REPORT);
-      request_number_++;
-      update_criteria.request_number_increment++;
+    if (update_type == CREDIT_NO_UPDATE) {
+      continue;
     }
+    MLOG(MDEBUG) << "Subscriber " << imsi_ << " monitoring key "
+                 << mkey << " updating due to type "
+                 << update_type;
+    auto usage = credit.get_usage_for_reporting(*credit_uc);
+    auto update = make_usage_monitor_update(
+        usage, mkey, monitor_pair.second->level);
+
+    auto new_req = update_request_out.mutable_usage_monitors()->Add();
+    add_common_fields_to_usage_monitor_update(new_req);
+    new_req->mutable_update()->CopyFrom(update);
+    new_req->set_event_trigger(USAGE_REPORT);
+    request_number_++;
+    update_criteria.request_number_increment++;
   }
   // todo We should also handle other event triggers here too
   auto it = pending_event_triggers_.find(REVALIDATION_TIMEOUT);
