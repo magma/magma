@@ -14,9 +14,7 @@ import "fmt"
 func dumpPipelinedState(tr *TestRunner) {
 	fmt.Println("******************* Dumping Pipelined State *******************")
 	cmdList := [][]string{
-		{"ovs-vsctl", "show"},
-		{"ovs-ofctl", "-O", "OpenFlow15", "meter-stats", "cwag_br0"},
-		{"ovs-ofctl", "-O", "OpenFlow15", "dump-meters", "cwag_br0"},
+		{"pipelined_cli.py", "debug", "qos"},
 		{"pipelined_cli.py", "debug", "display_flows"},
 	}
 	cmdOutputList, err := tr.RunCommandInContainer("pipelined", cmdList)

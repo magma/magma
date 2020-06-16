@@ -13,10 +13,10 @@ from enum import Enum
 
 from lte.protos.policydb_pb2 import FlowMatch
 from magma.pipelined.qos.qos_meter_impl import MeterManager
-from magma.pipelined.qos.qos_tc_impl import TCManager
+from magma.pipelined.qos.qos_tc_impl import TCManager, TrafficClass
 from magma.pipelined.qos.types import QosInfo, get_json, get_key, get_subscriber_key
 from magma.pipelined.qos.utils import QosStore
-
+from magma.configuration.service_configs import load_service_config
 
 LOG = logging.getLogger("pipelined.qos.common")
 
@@ -50,6 +50,23 @@ class QosManager(object):
             return MeterManager(datapath, loop, config)
         else:
             return TCManager(datapath, loop, config)
+
+    @classmethod
+    def debug(cls, *args):
+        config = load_service_config('pipelined')
+        qos_impl_type = QosImplType(config["qos"]["impl"])
+        qos_store = QosStore(cls.__name__)
+        for k, v in qos_store.items():
+            _, imsi, rule_num, d = get_key(k)
+            print('imsi :', imsi)
+            print('rule_num :', rule_num)
+            print('direction :', d)
+            print('qos_handle:', v)
+            if qos_impl_type == QosImplType.OVS_METER:
+                MeterManager.dump_meter_state(v)
+            else:
+                intf = 'nat_iface' if d == FlowMatch.UPLINK else 'enodeb_iface'
+                TrafficClass.dump_class_state(config[intf], v)
 
     def redisAvailable(self):
         try:
