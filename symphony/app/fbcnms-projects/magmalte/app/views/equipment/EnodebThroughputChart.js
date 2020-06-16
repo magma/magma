@@ -35,14 +35,6 @@ const useStyles = makeStyles(theme => ({
   dateTimeText: {
     color: colors.primary.comet,
   },
-  input: {
-    color: colors.primary.brightGray,
-    backgroundColor: colors.button.fill,
-    border: `1px solid ${colors.primary.brightGray}`,
-    borderRadius: '4px',
-    textAlign: 'center',
-    padding: `${theme.spacing(0.5)}px 0`,
-  },
 }));
 
 export type EnbThroughputChartProps = {
@@ -73,12 +65,11 @@ export default function EnodebThroughputChart(props: EnbThroughputChartProps) {
             <Grid item>
               <DateTimePicker
                 autoOk
-                variant="inline"
+                variant="outlined"
                 inputVariant="outlined"
                 maxDate={endDate}
                 disableFuture
                 value={startDate}
-                inputProps={{className: classes.input}}
                 onChange={setStartDate}
               />
             </Grid>
@@ -90,11 +81,10 @@ export default function EnodebThroughputChart(props: EnbThroughputChartProps) {
             <Grid item>
               <DateTimePicker
                 autoOk
-                variant="inline"
+                variant="outlined"
                 inputVariant="outlined"
                 disableFuture
                 value={endDate}
-                inputProps={{className: classes.input}}
                 onChange={setEndDate}
               />
             </Grid>

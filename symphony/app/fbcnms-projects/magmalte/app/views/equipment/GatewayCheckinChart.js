@@ -31,6 +31,9 @@ const useStyles = makeStyles(theme => ({
     fill: colors.primary.comet,
     marginRight: theme.spacing(1),
   },
+  dateTimeText: {
+    color: colors.primary.comet,
+  },
   formControl: {
     margin: theme.spacing(1),
     minWidth: 150,
@@ -89,9 +92,12 @@ export default function() {
             container
             justify="flex-end"
             alignItems="center"
-            className={classes.cardFilters}>
+            className={classes.cardFilters}
+            spacing={1}>
             <Grid item>
-              <Text variant="body3">Filter By Time</Text>
+              <Text variant="body3" className={classes.dateTimeText}>
+                Filter By Time
+              </Text>
             </Grid>
             <Grid item>
               <TimeRangeSelector
