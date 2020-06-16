@@ -14,11 +14,13 @@ import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
 import DataUsageIcon from '@material-ui/icons/DataUsage';
 import Grid from '@material-ui/core/Grid';
-import React from 'react';
-import Text from '@fbcnms/ui/components/design-system/Text';
 import moment from 'moment';
+import React from 'react';
+import Text from '../../theme/design-system/Text';
 
+import {colors} from '../../theme/default';
 import {DateTimePicker} from '@material-ui/pickers';
+import {makeStyles} from '@material-ui/styles';
 import {useState} from 'react';
 
 const useStyles = makeStyles(theme => ({

@@ -15,6 +15,7 @@ import CellWifiIcon from '@material-ui/icons/CellWifi';
 import EquipmentGatewayKPIs from './EquipmentGatewayKPIs';
 import GatewayCheckinChart from './GatewayCheckinChart';
 import Grid from '@material-ui/core/Grid';
+import Paper from '@material-ui/core/Paper';
 import React, {useState} from 'react';
 import isGatewayHealthy from '../../components/GatewayUtils';
 

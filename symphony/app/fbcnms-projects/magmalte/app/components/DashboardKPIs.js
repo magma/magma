@@ -8,14 +8,15 @@
  * @format
  */
 
-import React from 'react';
+import Card from '@material-ui/core/Card';
 import EnodebKPIs from './EnodebKPIs';
 import GatewayKPIs from './GatewayKPIs';
-import Text from '../theme/design-system/Text';
-import {colors} from '../theme/default';
 import Grid from '@material-ui/core/Grid';
-import Card from '@material-ui/core/Card';
 import Paper from '@material-ui/core/Paper';
+import React from 'react';
+import Text from '../theme/design-system/Text';
+
+import {colors} from '../theme/default';
 import {GpsFixed} from '@material-ui/icons';
 import {makeStyles} from '@material-ui/styles';
 
