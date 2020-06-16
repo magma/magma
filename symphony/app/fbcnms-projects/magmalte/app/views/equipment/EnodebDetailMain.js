@@ -26,7 +26,7 @@ import SettingsIcon from '@material-ui/icons/Settings';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
-import Text from '@fbcnms/ui/components/design-system/Text';
+import Text from '../../theme/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
 
 import {colors} from '../../theme/default';
@@ -85,9 +85,7 @@ export function EnodebDetail({enbInfo}: {enbInfo: {[string]: EnodebInfo}}) {
   return (
     <>
       <div className={classes.topBar}>
-        <Text color="light" weight="medium">
-          Equipment/{enbInfo[enodebSerial].enb.name}
-        </Text>
+        <Text variant="body2">Equipment/{enbInfo[enodebSerial].enb.name}</Text>
       </div>
 
       <AppBar position="static" color="default" className={classes.tabBar}>

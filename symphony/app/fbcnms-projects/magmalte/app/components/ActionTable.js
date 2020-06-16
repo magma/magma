@@ -90,6 +90,7 @@ export type ActionTableProps<T> = {
 };
 
 export default function ActionTable<T>(props: ActionTableProps<T>) {
+  const classes = useStyles();
   const [anchorEl, setAnchorEl] = useState(null);
   const actionTableJSX = [];
 
@@ -147,7 +148,7 @@ export default function ActionTable<T>(props: ActionTableProps<T>) {
   return (
     <>
       {actionTableJSX}
-      {/* TODO: How do I change the elevation of this component??? */}
+      {/* TODO: How do I modify this component??? Such as changine paper elevation, search placement (should be toggle open/closed), etc. */}
       <MaterialTable
         title=""
         columns={props.columns}

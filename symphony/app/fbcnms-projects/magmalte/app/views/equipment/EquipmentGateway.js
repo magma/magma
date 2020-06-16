@@ -78,8 +78,10 @@ export default function Gateway({
         <Grid item xs={12}>
           <GatewayCheckinChart />
         </Grid>
-        <Grid item xs={12}>
-          <EquipmentGatewayKPIs lteGateways={lteGateways} />
+        <Grid zeroMinWidth item xs={12}>
+          <Paper elevation={0}>
+            <EquipmentGatewayKPIs lteGateways={lteGateways} />
+          </Paper>
         </Grid>
         <Grid item xs={12}>
           <GatewayTable lteGateways={lteGateways} />
