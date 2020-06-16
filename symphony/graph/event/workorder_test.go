@@ -16,6 +16,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/pkg/ent"
 	"github.com/facebookincubator/symphony/pkg/pubsub"
+	"github.com/facebookincubator/symphony/pkg/viewer"
 	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
 	"github.com/stretchr/testify/suite"
 )
@@ -30,7 +31,7 @@ func TestWorkOrderEvents(t *testing.T) {
 }
 
 func (s *workOrderTestSuite) SetupSuite() {
-	s.eventTestSuite.SetupSuite()
+	s.eventTestSuite.SetupSuite(viewertest.WithFeatures(viewer.FeatureMoveWorkOrderActivitiesToAsyncService))
 	s.typ = s.client.WorkOrderType.Create().
 		SetName("Chore").
 		SaveX(s.ctx)

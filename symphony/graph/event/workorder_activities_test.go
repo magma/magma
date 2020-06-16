@@ -13,8 +13,6 @@ import (
 	"github.com/facebookincubator/symphony/pkg/ent"
 	"github.com/facebookincubator/symphony/pkg/ent/activity"
 	"github.com/facebookincubator/symphony/pkg/ent/user"
-	"github.com/facebookincubator/symphony/pkg/viewer"
-	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -28,7 +26,7 @@ func TestWorkOrderActivitiesEvents(t *testing.T) {
 }
 
 func (s *workOrderActivitiesTestSuite) SetupSuite() {
-	s.eventTestSuite.SetupSuite(viewertest.WithFeatures(viewer.FeatureWorkOrderActivitiesHook))
+	s.eventTestSuite.SetupSuite()
 	s.typ = s.client.WorkOrderType.Create().
 		SetName("Chore").
 		SaveX(s.ctx)
