@@ -193,6 +193,11 @@ func buildFromConfigs(nwConfig *models.NetworkCarrierWifiConfigs, gwConfig *mode
 		protos.FillIn(healthCfg, mc)
 		mc.GrePeers = getHealthServiceGrePeers(allowedGrePeers)
 		ret["health"] = mc
+	} else {
+		mc := &cwfmconfig.CwfGatewayHealthConfig{
+			GrePeers: getHealthServiceGrePeers(allowedGrePeers),
+		}
+		ret["health"] = mc
 	}
 	return ret, err
 }
