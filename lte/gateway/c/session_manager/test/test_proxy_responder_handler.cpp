@@ -57,13 +57,12 @@ class SessionProxyResponderHandlerTest : public ::testing::Test {
     session_store          = std::make_shared<SessionStore>(rule_store);
     pipelined_client       = std::make_shared<MockPipelinedClient>();
     auto directoryd_client = std::make_shared<MockDirectorydClient>();
-    auto eventd_client     = std::make_shared<MockEventdClient>();
     auto spgw_client       = std::make_shared<MockSpgwServiceClient>();
     auto aaa_client        = std::make_shared<MockAAAClient>();
     auto default_mconfig = get_default_mconfig();
     local_enforcer         = std::make_shared<LocalEnforcer>(
         reporter, rule_store, *session_store, pipelined_client,
-        directoryd_client, eventd_client, spgw_client, aaa_client,
+        directoryd_client, MockEventdClient::getInstance(), spgw_client, aaa_client,
         0, 0, default_mconfig);
     session_map = SessionMap{};
 

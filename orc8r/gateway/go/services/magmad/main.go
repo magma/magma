@@ -12,6 +12,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"runtime/debug"
 	"time"
 
 	"github.com/golang/glog"
@@ -24,6 +25,7 @@ import (
 	"magma/gateway/services/magmad/service_manager"
 	"magma/gateway/services/magmad/status"
 	sync_rpc "magma/gateway/services/sync_rpc/service"
+	"magma/orc8r/lib/go/profile"
 )
 
 const (
@@ -50,7 +52,11 @@ Examples:
 
 `
 
-var showGwInfo = flag.Bool("show", false, "Print out gateway information needed for GW registration")
+var (
+	showGwInfo      = flag.Bool("show", false, "Print out gateway information needed for GW registration")
+	gcPercent       = flag.Int("gc_percent", 20, "GC Percent")
+	freeMemInterval = flag.Duration("memory_purge_interval", time.Hour*6, "Force GC & unused memory purge interval")
+)
 
 func main() {
 	oldUsage := flag.Usage
@@ -72,10 +78,13 @@ func main() {
 		os.Exit(0)
 	}
 
+	if _, isset := os.LookupEnv("GOGC"); !isset {
+		debug.SetGCPercent(*gcPercent)
+	}
 	eventChan := make(chan interface{}, 2)
 
 	// Start event loop in a dedicated routine
-	go mainEventLoop(eventChan)
+	go mainEventLoop(eventChan, time.Tick(*freeMemInterval))
 
 	// Create bootstrapper
 	b := bootstrapper.NewBootstrapper(eventChan)
@@ -124,44 +133,56 @@ func main() {
 	}
 }
 
-func mainEventLoop(eventChan chan interface{}) {
-	for i := range eventChan {
-		switch e := i.(type) {
-		case bootstrapper.BootstrapCompletion:
-			if e.Result != nil {
-				glog.Errorf("bootstrap failure: %v for Gateway ID: %s", e.Result, e.HardwareId)
-			} else {
-				glog.Infof("bootstrapped GW %s", e.HardwareId)
-				if config.GetControlProxyConfigs().ProxyCloudConnection {
-					// TODO: restart control proxy only
+func mainEventLoop(eventChan <-chan interface{}, freeMemChan <-chan time.Time) {
+	for {
+		select {
+		case evnt := <-eventChan:
+			switch e := evnt.(type) {
+			case bootstrapper.BootstrapCompletion:
+				if e.Result != nil {
+					glog.Errorf("bootstrap failure: %v for Gateway ID: %s", e.Result, e.HardwareId)
 				} else {
-					// Restart all magma services
-					go func() {
-						controller := service_manager.Get()
-						for _, service := range config.GetMagmadConfigs().MagmaServices {
-							controller.Restart(service)
-						}
-					}()
-				}
-			}
-		case configurator.UpdateCompletion:
-			glog.V(1).Infof("mconfigs updated successfully for services: %v", e)
-			// Restart all services with updated configs
-			go func() {
-				magmaServiceTable := map[string]struct{}{}
-				for _, service := range config.GetMagmadConfigs().MagmaServices {
-					magmaServiceTable[service] = struct{}{}
-				}
-				controller := service_manager.Get()
-				for _, service := range e {
-					// restart only if it's this GW's service
-					if _, ok := magmaServiceTable[service]; ok {
-						controller.Restart(service)
+					glog.Infof("bootstrapped GW %s", e.HardwareId)
+					if config.GetControlProxyConfigs().ProxyCloudConnection {
+						// TODO: restart control proxy only
+					} else {
+						// Restart all magma services
+						go func() {
+							controller := service_manager.Get()
+							for _, service := range config.GetMagmadConfigs().MagmaServices {
+								controller.Restart(service)
+							}
+						}()
 					}
 				}
-			}()
-		default:
-			glog.Errorf("unknown completion type: %T", e)
-		}
+			case configurator.UpdateCompletion:
+				glog.Verbose(len(e) > 0).Infof("mconfigs updated successfully for services: %v", e)
+				// Restart all services with updated configs
+				go func() {
+					magmaServiceTable := map[string]struct{}{}
+					for _, service := range config.GetMagmadConfigs().MagmaServices {
+						magmaServiceTable[service] = struct{}{}
+					}
+					controller := service_manager.Get()
+					for _, service := range e {
+						// restart only if it's this GW's service
+						if _, ok := magmaServiceTable[service]; ok {
+							controller.Restart(service)
+						}
+					}
+				}()
+			default:
+				glog.Errorf("unknown completion type: %T", e)
+			} // switch
+		case _, ok := <-freeMemChan:
+			if ok {
+				glog.Info("purging unused memory")
+				debug.FreeOSMemory()
+				// write out heap profile if built with -tags with_profiler, noop otherwise
+				// to use:
+				//    go tool pprof -http=127.0.0.1:9999 <path/to/magmad> <profiles_dir/memory_MMDD_HH.mm.SS.pprof>
+				profile.MemWrite()
+			}
+		} // select
 	}
 }

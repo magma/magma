@@ -56,12 +56,12 @@ func globalPre(cmd *cobra.Command, args []string) {
 	plugin.LoadAllPluginsFatalOnError(&plugin.DefaultOrchestratorPluginLoader{})
 }
 
-func getClient() indexer_protos.IndexerClient {
+func getClient() indexer_protos.IndexerManagerClient {
 	conn, err := registry.GetConnection(state.ServiceName)
 	if err != nil {
 		log.Fatal(err)
 	}
-	return indexer_protos.NewIndexerClient(conn)
+	return indexer_protos.NewIndexerManagerClient(conn)
 }
 
 func stderrln(msg string) {

@@ -52,7 +52,7 @@ extern "C" {
 
 #define NW_GTP_VERSION (0x02) /**< GTP Version                         */
 #define NW_GTPV2C_MINIMUM_HEADER_SIZE                                          \
-  (8) /**< Size of GTPv2c minimun header       */
+  (8) /**< Size of GTPv2c minimum header       */
 #define NW_GTPV2C_EPC_SPECIFIC_HEADER_SIZE                                     \
   (12) /**< Size of GTPv2c EPC specific header  */
 

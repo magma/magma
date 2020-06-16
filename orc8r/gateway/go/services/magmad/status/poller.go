@@ -33,7 +33,7 @@ var (
 	clientStates map[string]*serviceInfoClientState = map[string]*serviceInfoClientState{}
 )
 
-func startServiceQuery(service string, queryMetrics bool) error {
+func startServiceQuery(service string, queryMetrics bool, maxMetricsQueueSz int) error {
 	conn, err := service_registry.Get().GetConnection(strings.ToUpper(service))
 	if err != nil {
 		return err
@@ -78,7 +78,9 @@ func startServiceQuery(service string, queryMetrics bool) error {
 		pollerMu.Unlock()
 
 		if queryMetrics && merr == nil {
-			enqueueMetrics(service, serviceMetrics)
+			if qlen := enqueueMetrics(service, serviceMetrics); qlen > maxMetricsQueueSz && glog.V(1) {
+				glog.Warningf("metrics queue length %d exceeds max %d", qlen, maxMetricsQueueSz)
+			}
 		}
 	}()
 	return nil
@@ -90,20 +92,21 @@ func collect() *protos.ReportStatesRequest {
 		marshaledGwState, _ = json.Marshal(&status.GatewayStatus{
 			Meta: map[string]string{"error": err.Error()},
 		})
+		glog.Errorf("failed to marshal gw_state: %v", err)
 	}
-	gwState := &protos.State{
+	states := []*protos.State{{
 		Type:     "gw_state",
 		DeviceID: status.GetHwId(),
 		Value:    marshaledGwState,
-	}
+	}}
 
 	pollerMu.Lock()
-	states := make([]*protos.State, 0, 1)
-	states = append(states, gwState)
-	for _, clientState := range clientStates {
+	for service, clientState := range clientStates {
 		if clientState != nil && len(clientState.states) > 0 {
 			states = append(states, clientState.states...)
 			clientState.states = nil
+		} else {
+			glog.V(2).Infof("no states to report from '%s'", service)
 		}
 	}
 	pollerMu.Unlock()

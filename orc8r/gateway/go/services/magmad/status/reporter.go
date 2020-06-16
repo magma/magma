@@ -26,9 +26,9 @@ import (
 )
 
 const (
-	DefaultCheckinIntervalSeconds int32 = 60
-	MinCheckinIntervalSeconds           = 30
-	serviceCollectDelay                 = time.Second * 10
+	MinCheckinIntervalSeconds     = 30
+	DefaultCheckinIntervalSeconds = MinCheckinIntervalSeconds * 2
+	serviceCollectDelay           = time.Second * 10
 )
 
 // StartReporter starts state collection & reporting loop
@@ -73,10 +73,10 @@ func StartReporter() {
 			resetMetricsQueue()
 			metricsEnabled = newMetricsEnabled
 		}
-
-		lastMetricsCollection := time.Now() // lastMetricsCollection is current time now
+		now := time.Now()
 		// use !After() to check if it's <= now
-		if metricsEnabled && !nextMetricsCollectionTime.After(lastMetricsCollection) {
+		if metricsEnabled && !nextMetricsCollectionTime.After(now) {
+			lastMetricsCollection = now
 			for _, s := range mdc.Metricsd.Services {
 				s := strings.ToLower(s)
 				metricsServices[s] = true
@@ -85,42 +85,52 @@ func StartReporter() {
 		for _, fb303service := range fb303services {
 			fb303service := strings.ToLower(fb303service)
 			if _, nonFb303 := nonFb303Services[fb303service]; !nonFb303 {
-				if err := startServiceQuery(fb303service, metricsServices[fb303service]); err != nil {
+				err := startServiceQuery(fb303service, metricsServices[fb303service], mdc.Metricsd.QueueLength)
+				if err != nil {
 					glog.Errorf("error querying service '%s' state: %v", fb303service, err)
 				}
 			}
 		}
 		time.Sleep(serviceCollectDelay)
 
+		serviceStates := collect()
 		stateConn, err := service_registry.Get().GetSharedCloudConnection(definitions.StateServiceName)
 		if err != nil {
 			glog.Errorf("failed to connect to state reporting service: %v", err)
 		} else {
-			res, err := protos.NewStateServiceClient(stateConn).ReportStates(context.Background(), collect())
+			res, err := protos.NewStateServiceClient(stateConn).ReportStates(context.Background(), serviceStates)
 			if err != nil {
 				glog.Errorf("ReportStates error: %v", err)
 			} else if len(res.GetUnreportedStates()) > 0 {
 				resStr, _ := json.Marshal(res.GetUnreportedStates())
 				glog.Warningf("status unreported states: %s", resStr)
+			} else {
+				glog.V(1).Info("states report success")
 			}
 		}
 		nextMetricsSyncTime := lastMetricsReporting.Add(time.Second * time.Duration(metricsSyncInterval))
-		lastMetricsReporting = time.Now()
+		now = time.Now()
 		// use !After() to check if it's <= now
-		if metricsEnabled && !nextMetricsSyncTime.After(lastMetricsReporting) {
-			reportMetrics(mdc.Metricsd.QueueLength)
+		if metricsEnabled && !nextMetricsSyncTime.After(now) {
+			lastMetricsReporting = now
+			err = reportMetrics(mdc.Metricsd.QueueLength)
+			if err != nil {
+				glog.Errorf("metrics reporting error: %v", err)
+			} else {
+				glog.V(1).Info("metrics report success")
+			}
 		}
-		<-timer.C // wait for timer
+		<-timer.C // wait on timer for the remainder of intervalSeconds
 
 		// update timer based on the latest configs
 		intervalSeconds := DefaultCheckinIntervalSeconds
 		mconf := &mconfig_proto.MagmaD{}
 		err = mconfig.GetServiceConfigs(definitions.MagmadServiceName, mconf)
-		if err == nil && mconf.CheckinInterval != 0 {
-			intervalSeconds = mconf.CheckinInterval
-		}
-		if intervalSeconds < MinCheckinIntervalSeconds {
-			intervalSeconds = MinCheckinIntervalSeconds
+		if err == nil && mconf.CheckinInterval > 0 {
+			intervalSeconds = int(mconf.CheckinInterval)
+			if intervalSeconds < MinCheckinIntervalSeconds {
+				intervalSeconds = MinCheckinIntervalSeconds
+			}
 		}
 		timer.Reset(time.Second * time.Duration(intervalSeconds))
 	}

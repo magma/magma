@@ -111,4 +111,7 @@ export const MagmaAlarmsApiUtil: ApiUtil = {
   //alertmanager global config
   getGlobalConfig: _ => Promise.reject('Disabled feature'),
   editGlobalConfig: _ => Promise.reject('Disabled feature'),
+
+  // Tenants
+  getTenants: _ => Promise.reject('Disabled feature'),
 };

@@ -9,6 +9,9 @@
 
 #include "SessionEvents.h"
 
+using magma::orc8r::Event;
+using magma::orc8r::Void;
+
 namespace magma {
 namespace session_events {
 
@@ -30,7 +33,7 @@ namespace session_events {
 
 
 void session_created(
-    std::shared_ptr<AsyncEventdClient> client,
+    AsyncEventdClient& client,
     const std::string& imsi,
     const std::string& session_id) {
   auto event = Event();
@@ -44,7 +47,7 @@ void session_created(
   std::string event_value_string = folly::toJson(event_value);
   event.set_value(event_value_string);
 
-  client->log_event(
+  client.log_event(
       event, [=](Status status, Void v) {
       if (!status.ok()) {
       MLOG(MERROR)
@@ -55,7 +58,7 @@ void session_created(
 }
 
 void session_terminated(
-    std::shared_ptr<AsyncEventdClient> client,
+    AsyncEventdClient& client,
     const std::unique_ptr<SessionState>& session) {
   auto event = Event();
   SessionState::SessionInfo session_info;
@@ -77,7 +80,7 @@ void session_terminated(
   std::string event_value_string = folly::toJson(event_value);
   event.set_value(event_value_string);
 
-  client->log_event(
+  client.log_event(
       event, [=](Status status, Void v) {
       if (!status.ok()) {
       MLOG(MERROR)

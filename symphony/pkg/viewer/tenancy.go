@@ -12,6 +12,8 @@ import (
 	"strings"
 	"sync"
 
+	"gopkg.in/alecthomas/kingpin.v2"
+
 	"github.com/facebookincubator/ent/dialect"
 	entsql "github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/symphony/pkg/ent"
@@ -25,6 +27,21 @@ import (
 	"gocloud.dev/server/health"
 	"gocloud.dev/server/health/sqlhealth"
 )
+
+type Config struct {
+	TenantMaxConn int
+}
+
+// AddFlagsVar adds the flags used by this package to the Kingpin application.
+func AddFlagsVar(a *kingpin.Application, config *Config) {
+	a.Flag(
+		"tenancy.db_max_conn",
+		"max connections to database per tenant",
+	).
+		Envar("TENANCY_DB_MAX_CONN").
+		Required().
+		IntVar(&config.TenantMaxConn)
+}
 
 // Tenancy provides tenant client for key.
 type Tenancy interface {
@@ -103,13 +120,14 @@ func (c *CacheTenancy) CheckHealth() error {
 // MySQLTenancy provides logical database per tenant.
 type MySQLTenancy struct {
 	health.Checker
-	logger  log.Logger
-	config  *mysql.Config
-	closers []func()
+	logger        log.Logger
+	config        *mysql.Config
+	tenantMaxConn int
+	closers       []func()
 }
 
 // NewMySQLTenancy creates mysql tenancy for data source.
-func NewMySQLTenancy(dsn string) (*MySQLTenancy, error) {
+func NewMySQLTenancy(dsn string, tenantMaxConn int) (*MySQLTenancy, error) {
 	config, err := mysql.ParseDSN(dsn)
 	if err != nil {
 		return nil, fmt.Errorf("parsing dsn: %w", err)
@@ -117,10 +135,11 @@ func NewMySQLTenancy(dsn string) (*MySQLTenancy, error) {
 	db := pkgmysql.Open(dsn)
 	checker := sqlhealth.New(db)
 	tenancy := &MySQLTenancy{
-		Checker: checker,
-		config:  config,
-		logger:  log.NewNopLogger(),
-		closers: []func(){checker.Stop},
+		Checker:       checker,
+		config:        config,
+		tenantMaxConn: tenantMaxConn,
+		logger:        log.NewNopLogger(),
+		closers:       []func(){checker.Stop},
 	}
 	runtime.SetFinalizer(tenancy, func(tenancy *MySQLTenancy) {
 		for _, closer := range tenancy.closers {
@@ -161,7 +180,7 @@ func (m *MySQLTenancy) migrate(ctx context.Context, client *ent.Client) error {
 func (m *MySQLTenancy) dbFor(name string) *sql.DB {
 	m.config.DBName = DBName(name)
 	db := pkgmysql.Open(m.config.FormatDSN())
-	db.SetMaxOpenConns(10)
+	db.SetMaxOpenConns(m.tenantMaxConn)
 	m.closers = append(m.closers, pkgmysql.RecordStats(db))
 	return db
 }

@@ -7,11 +7,18 @@ from typing import Any, Dict, Optional, Tuple
 from colorama import Fore
 from gql.gql.graphql_client import GraphqlClient
 from gql.gql.reporter import DUMMY_REPORTER, Reporter
+from pysymphony.common.endpoint import (
+    LOCALHOST_SYMPHONY,
+    SYMPHONY_GRAPHQL,
+    SYMPHONY_LOGIN,
+    SYMPHONY_STORE_DELETE,
+    SYMPHONY_STORE_PUT,
+    SYMPHONY_URI,
+)
 from requests import Session
 from requests.auth import HTTPBasicAuth
 from requests.models import Response
 
-from ..pysymphony.common import endpoint
 from .common.constant import __version__
 from .common.data_class import (
     EquipmentPortType,
@@ -66,11 +73,11 @@ class SymphonyClient(GraphqlClient):
         self.email = email
         self.password = password
         self.address: str = (
-            endpoint.LOCALHOST_SYMPHONY.format(tenant)
+            LOCALHOST_SYMPHONY.format(tenant)
             if is_local_host
-            else endpoint.SYMPHONY_URI.format(tenant)
+            else SYMPHONY_URI.format(tenant)
         )
-        graphql_endpoint_address = self.address + endpoint.SYMPHONY_GRAPHQL
+        graphql_endpoint_address = self.address + SYMPHONY_GRAPHQL
 
         self.session: Session = Session()
         auth = HTTPBasicAuth(email, password)
@@ -81,8 +88,8 @@ class SymphonyClient(GraphqlClient):
 
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-        self.put_endpoint: str = self.address + endpoint.SYMPHONY_STORE_PUT
-        self.delete_endpoint: str = self.address + endpoint.SYMPHONY_STORE_DELETE
+        self.put_endpoint: str = self.address + SYMPHONY_STORE_PUT
+        self.delete_endpoint: str = self.address + SYMPHONY_STORE_DELETE
 
         super().__init__(
             graphql_endpoint_address,
@@ -183,7 +190,7 @@ class SymphonyClient(GraphqlClient):
         return self.session.put("".join([self.address, url]), json=json)
 
     def _login(self) -> None:
-        login_endpoint = self.address + endpoint.SYMPHONY_LOGIN
+        login_endpoint = self.address + SYMPHONY_LOGIN
         response = self.session.get(login_endpoint)
         match = re.search(b'"csrfToken":"([^"]+)"', response.content)
         assert match is not None, "Problem with inventory login"

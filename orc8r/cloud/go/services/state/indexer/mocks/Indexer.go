@@ -39,16 +39,16 @@ func (_m *Indexer) GetID() string {
 	return r0
 }
 
-// GetSubscriptions provides a mock function with given fields:
-func (_m *Indexer) GetSubscriptions() []indexer.Subscription {
+// GetTypes provides a mock function with given fields:
+func (_m *Indexer) GetTypes() []string {
 	ret := _m.Called()
 
-	var r0 []indexer.Subscription
-	if rf, ok := ret.Get(0).(func() []indexer.Subscription); ok {
+	var r0 []string
+	if rf, ok := ret.Get(0).(func() []string); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]indexer.Subscription)
+			r0 = ret.Get(0).([]string)
 		}
 	}
 
@@ -70,15 +70,15 @@ func (_m *Indexer) GetVersion() indexer.Version {
 }
 
 // Index provides a mock function with given fields: networkID, states
-func (_m *Indexer) Index(networkID string, states types.StatesByID) (indexer.StateErrors, error) {
+func (_m *Indexer) Index(networkID string, states types.StatesByID) (types.StateErrors, error) {
 	ret := _m.Called(networkID, states)
 
-	var r0 indexer.StateErrors
-	if rf, ok := ret.Get(0).(func(string, types.StatesByID) indexer.StateErrors); ok {
+	var r0 types.StateErrors
+	if rf, ok := ret.Get(0).(func(string, types.StatesByID) types.StateErrors); ok {
 		r0 = rf(networkID, states)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(indexer.StateErrors)
+			r0 = ret.Get(0).(types.StateErrors)
 		}
 	}
 

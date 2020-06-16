@@ -129,6 +129,7 @@ class EventDRpcServicer(eventd_pb2_grpc.EventServiceServicer):
                 }).encode('utf-8'))
         except socket.error as e:
             logging.error('Connection to FluentBit failed: %s', e)
+            logging.info('Fluentbit may not be configured correctly.')
             context.set_code(grpc.StatusCode.UNAVAILABLE)
             context.set_details(
                 'Could not connect to FluentBit locally, Details: {}'

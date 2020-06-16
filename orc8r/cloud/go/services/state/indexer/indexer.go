@@ -9,14 +9,15 @@
 package indexer
 
 import (
+	"fmt"
+
 	state_types "magma/orc8r/cloud/go/services/state/types"
+
+	"github.com/thoas/go-funk"
 )
 
 // Version of the indexer. Capped to uint32 to fit into Postgres/Maria integer (int32).
 type Version uint32
-
-// StateErrors is a mapping of state ID to error experienced indexing the state.
-type StateErrors map[state_types.ID]error
 
 // Indexer creates a set of secondary indices for consumption by a service.
 // Each Indexer should
@@ -33,8 +34,7 @@ type StateErrors map[state_types.ID]error
 //		  drop Reindex-ed states with stale versions.
 type Indexer interface {
 	// GetID returns the unique identifier for the indexer.
-	// Unique ID should be alphanumeric with underscores, prefixed by the owning service,
-	// e.g. directoryd_sessionid.
+	// For remote indexers, unique ID should be the service name.
 	GetID() string
 
 	// GetVersion returns the current version for the indexer.
@@ -44,8 +44,8 @@ type Indexer interface {
 	// 	- non-decreasing across successive releases
 	GetVersion() Version
 
-	// GetSubscriptions defines the composite keys this indexer is interested in.
-	GetSubscriptions() []Subscription
+	// GetTypes defines the types of states this indexer is interested in.
+	GetTypes() []string
 
 	// PrepareReindex prepares for a reindex operation.
 	// isFirstReindex is set if this is the first time this indexer has been registered.
@@ -55,9 +55,42 @@ type Indexer interface {
 	CompleteReindex(from, to Version) error
 
 	// Index updates secondary indices based on the added/updated states.
-	Index(networkID string, states state_types.StatesByID) (StateErrors, error)
+	Index(networkID string, states state_types.StatesByID) (state_types.StateErrors, error)
 
 	// TODO(4/10/20): consider adding support for removing states from an indexer
 	// IndexRemove updates secondary indices based on the removed states.
 	//IndexRemove(states state.StatesByID) (StateErrors, error)
+}
+
+// FilterIDs to the subset that match one of the state types.
+func FilterIDs(types []string, ids []state_types.ID) []state_types.ID {
+	var ret []state_types.ID
+	for _, id := range ids {
+		if funk.Contains(types, id.Type) {
+			ret = append(ret, id)
+		}
+	}
+	return ret
+}
+
+// FilterStates to the subset that match one of the state types.
+func FilterStates(types []string, states state_types.StatesByID) state_types.StatesByID {
+	ret := state_types.StatesByID{}
+	for id, st := range states {
+		if funk.Contains(types, id.Type) {
+			ret[id] = st
+		}
+	}
+	return ret
+}
+
+// Versions represents the discrepancy between an indexer's versions, actual vs. desired.
+type Versions struct {
+	IndexerID string
+	Actual    Version
+	Desired   Version
+}
+
+func (v *Versions) String() string {
+	return fmt.Sprintf("{id: %s, actual: %d, desired: %d}", v.IndexerID, v.Actual, v.Desired)
 }

@@ -32,7 +32,7 @@
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="pyinventory.api.port.edit_link_properties"><code class="name flex">
-<span>def <span class="ident">edit_link_properties</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment: <a title="pyinventory.common.data_class.Equipment" href="../common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>, port_name: str, new_link_properties: Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]]) -> <a title="pyinventory.common.data_class.EquipmentPort" href="../common/data_class.html#pyinventory.common.data_class.EquipmentPort">EquipmentPort</a></span>
+<span>def <span class="ident">edit_link_properties</span></span>(<span>client: pysymphony.SymphonyClient, equipment: <a title="pyinventory.common.data_class.Equipment" href="../common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>, port_name: str, new_link_properties: Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]]) -> <a title="pyinventory.common.data_class.EquipmentPort" href="../common/data_class.html#pyinventory.common.data_class.EquipmentPort">EquipmentPort</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function returns edited port in equipment based on its name.</p>
@@ -64,7 +64,7 @@ edited_port = client.edit_link_properties(
 </code></pre></div>
 </dd>
 <dt id="pyinventory.api.port.edit_port_properties"><code class="name flex">
-<span>def <span class="ident">edit_port_properties</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment: <a title="pyinventory.common.data_class.Equipment" href="../common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>, port_name: str, new_properties: Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]]) -> <a title="pyinventory.common.data_class.EquipmentPort" href="../common/data_class.html#pyinventory.common.data_class.EquipmentPort">EquipmentPort</a></span>
+<span>def <span class="ident">edit_port_properties</span></span>(<span>client: pysymphony.SymphonyClient, equipment: <a title="pyinventory.common.data_class.Equipment" href="../common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>, port_name: str, new_properties: Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]]) -> <a title="pyinventory.common.data_class.EquipmentPort" href="../common/data_class.html#pyinventory.common.data_class.EquipmentPort">EquipmentPort</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function returns edited port in equipment based on its name.</p>
@@ -100,7 +100,7 @@ edited_port = client.edit_port_properties(
 </code></pre></div>
 </dd>
 <dt id="pyinventory.api.port.get_port"><code class="name flex">
-<span>def <span class="ident">get_port</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment: <a title="pyinventory.common.data_class.Equipment" href="../common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>, port_name: str) -> <a title="pyinventory.common.data_class.EquipmentPort" href="../common/data_class.html#pyinventory.common.data_class.EquipmentPort">EquipmentPort</a></span>
+<span>def <span class="ident">get_port</span></span>(<span>client: pysymphony.SymphonyClient, equipment: <a title="pyinventory.common.data_class.Equipment" href="../common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>, port_name: str) -> <a title="pyinventory.common.data_class.EquipmentPort" href="../common/data_class.html#pyinventory.common.data_class.EquipmentPort">EquipmentPort</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function returns port in equipment based on its name.</p>

@@ -7,15 +7,17 @@
  * @flow strict-local
  * @format
  */
+import type {ComponentType} from 'react';
+
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import CardHeader from '@material-ui/core/CardHeader';
 import Grid from '@material-ui/core/Grid';
-import {makeStyles} from '@material-ui/styles';
 import React from 'react';
 import Text from '../theme/design-system/Text';
+
 import {colors} from '../theme/default';
-import type {ComponentType} from 'react';
+import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(theme => ({
   kpiHeaderBlock: {
@@ -45,9 +47,8 @@ const useStyles = makeStyles(theme => ({
   kpiValue: {
     color: colors.primary.brightGray,
   },
-  test: {
+  kpiBox: {
     width: '100%',
-
     '& div': {
       width: '100%',
     },
@@ -88,12 +89,12 @@ export default function KPITray(props: Props) {
         container
         xs
         zeroMinWidth
-        key={'data-' + i}
+        key={i}
         className={classes.kpiBlock}
         alignItems="center">
         <CardHeader
           title={kpi.category}
-          className={classes.test}
+          className={classes.kpiBox}
           subheader={kpi.value + (kpi.unit ?? '')}
           titleTypographyProps={{
             variant: 'body3',

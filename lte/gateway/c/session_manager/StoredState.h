@@ -91,6 +91,8 @@ enum ServiceState {
   SERVICE_NEEDS_DEACTIVATION = 1,
   SERVICE_DISABLED = 2,
   SERVICE_NEEDS_ACTIVATION = 3,
+  SERVICE_REDIRECTED = 4,
+  SERVICE_RESTRICTED = 5,
 };
 
 /**
@@ -175,10 +177,10 @@ struct StoredSessionState {
   magma::lte::TgppContext tgpp_context;
   std::vector<std::string> static_rule_ids;
   std::vector<PolicyRule> dynamic_rules;
+  std::vector<PolicyRule> gy_dynamic_rules;
   std::set<std::string> scheduled_static_rules;
   std::vector<PolicyRule> scheduled_dynamic_rules;
   std::unordered_map<std::string, RuleLifetime> rule_lifetimes;
-  std::vector<PolicyRule> gy_dynamic_rules;
   uint32_t request_number;
   EventTriggerStatus pending_event_triggers;
   google::protobuf::Timestamp revalidation_time;
@@ -216,7 +218,9 @@ struct SessionStateUpdateCriteria {
   std::set<std::string> static_rules_to_uninstall;
   std::set<std::string> new_scheduled_static_rules;
   std::vector<PolicyRule> dynamic_rules_to_install;
+  std::vector<PolicyRule> gy_dynamic_rules_to_install;
   std::set<std::string> dynamic_rules_to_uninstall;
+  std::set<std::string> gy_dynamic_rules_to_uninstall;
   std::vector<PolicyRule> new_scheduled_dynamic_rules;
   std::unordered_map<std::string, RuleLifetime> new_rule_lifetimes;
   std::unordered_map<CreditKey, StoredSessionCredit, decltype(&ccHash),

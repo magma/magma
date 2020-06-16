@@ -117,6 +117,11 @@ public:
   bool is_reporting() const;
 
   /**
+   * Returns true if service is being redirected
+   */
+  bool is_service_redirected() const;
+
+  /**
    * Helper function to get the credit in a particular bucket
    */
   uint64_t get_credit(Bucket bucket) const;

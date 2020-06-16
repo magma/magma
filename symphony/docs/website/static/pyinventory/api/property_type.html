@@ -32,7 +32,7 @@
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="pyinventory.api.property_type.edit_property_type"><code class="name flex">
-<span>def <span class="ident">edit_property_type</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, entity_type: <a title="pyinventory.common.data_enum.Entity" href="../common/data_enum.html#pyinventory.common.data_enum.Entity">Entity</a>, entity_name: str, property_type_id: str, new_property_definition: <a title="pyinventory.common.data_class.PropertyDefinition" href="../common/data_class.html#pyinventory.common.data_class.PropertyDefinition">PropertyDefinition</a>) -> List[<a title="pyinventory.graphql.property_type_input.PropertyTypeInput" href="../graphql/property_type_input.html#pyinventory.graphql.property_type_input.PropertyTypeInput">PropertyTypeInput</a>]</span>
+<span>def <span class="ident">edit_property_type</span></span>(<span>client: pysymphony.SymphonyClient, entity_type: <a title="pyinventory.common.data_enum.Entity" href="../common/data_enum.html#pyinventory.common.data_enum.Entity">Entity</a>, entity_name: str, property_type_id: str, new_property_definition: <a title="pyinventory.common.data_class.PropertyDefinition" href="../common/data_class.html#pyinventory.common.data_class.PropertyDefinition">PropertyDefinition</a>) -> List[<a title="pyinventory.graphql.input.property_type.PropertyTypeInput" href="../graphql/input/property_type.html#pyinventory.graphql.input.property_type.PropertyTypeInput">PropertyTypeInput</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Edit specific property type on specific entity. <code>entity_type</code> - ["LocationType", "EquipmentType", "ServiceType", "EquipmentPortType"]</p>
@@ -46,7 +46,7 @@
 </dl>
 <p>new_property_definition ( <code><a title="pyinventory.common.data_class.PropertyDefinition" href="../common/data_class.html#pyinventory.common.data_class.PropertyDefinition">PropertyDefinition</a></code> ): new property definition</p>
 <h2 id="returns">Returns</h2>
-<p>List[ <code>pyinventory.graphql.property_type_input.PropertyTypeInput</code> ]</p>
+<p>List[ <code>pyinventory.graphql.input.property_type.PropertyTypeInput</code> ]</p>
 <h2 id="raises">Raises</h2>
 <p><code><a title="pyinventory.exceptions.EntityNotFoundError" href="../exceptions.html#pyinventory.exceptions.EntityNotFoundError">EntityNotFoundError</a></code>: property type with external_id=<code>property_type_external_id</code> is not found</p>
 <h2 id="example">Example</h2>
@@ -57,7 +57,7 @@
     property_definition=PropertyDefinition(
         property_name=&quot;new_name&quot;,
         property_kind=PropertyKind.string,
-        default_value=None,
+        default_raw_value=None,
         is_fixed=False,
         external_id=&quot;ex_12345&quot;,
     ),
@@ -65,7 +65,7 @@
 </code></pre></div>
 </dd>
 <dt id="pyinventory.api.property_type.get_property_type"><code class="name flex">
-<span>def <span class="ident">get_property_type</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, entity_type: <a title="pyinventory.common.data_enum.Entity" href="../common/data_enum.html#pyinventory.common.data_enum.Entity">Entity</a>, entity_name: str, property_type_id: str) -> <a title="pyinventory.graphql.property_type_fragment.PropertyTypeFragment" href="../graphql/property_type_fragment.html#pyinventory.graphql.property_type_fragment.PropertyTypeFragment">PropertyTypeFragment</a></span>
+<span>def <span class="ident">get_property_type</span></span>(<span>client: pysymphony.SymphonyClient, entity_type: <a title="pyinventory.common.data_enum.Entity" href="../common/data_enum.html#pyinventory.common.data_enum.Entity">Entity</a>, entity_name: str, property_type_id: str) -> <a title="pyinventory.common.data_class.PropertyDefinition" href="../common/data_class.html#pyinventory.common.data_class.PropertyDefinition">PropertyDefinition</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Get property type on specific entity. <code>entity_type</code> - ["LocationType", "EquipmentType", "ServiceType", "EquipmentPortType"]</p>
@@ -78,7 +78,7 @@
 <dd>property type ID</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<p><code><a title="pyinventory.graphql.property_type_fragment.PropertyTypeFragment" href="../graphql/property_type_fragment.html#pyinventory.graphql.property_type_fragment.PropertyTypeFragment">PropertyTypeFragment</a></code> object</p>
+<p><code><a title="pyinventory.common.data_class.PropertyDefinition" href="../common/data_class.html#pyinventory.common.data_class.PropertyDefinition">PropertyDefinition</a></code> object</p>
 <h2 id="raises">Raises</h2>
 <p><code><a title="pyinventory.exceptions.EntityNotFoundError" href="../exceptions.html#pyinventory.exceptions.EntityNotFoundError">EntityNotFoundError</a></code>: if property type with id=<code>property_type_id</code> does not found</p>
 <h2 id="example">Example</h2>
@@ -90,7 +90,7 @@
 </code></pre></div>
 </dd>
 <dt id="pyinventory.api.property_type.get_property_type_by_external_id"><code class="name flex">
-<span>def <span class="ident">get_property_type_by_external_id</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, entity_type: <a title="pyinventory.common.data_enum.Entity" href="../common/data_enum.html#pyinventory.common.data_enum.Entity">Entity</a>, entity_name: str, property_type_external_id: str) -> <a title="pyinventory.graphql.property_type_fragment.PropertyTypeFragment" href="../graphql/property_type_fragment.html#pyinventory.graphql.property_type_fragment.PropertyTypeFragment">PropertyTypeFragment</a></span>
+<span>def <span class="ident">get_property_type_by_external_id</span></span>(<span>client: pysymphony.SymphonyClient, entity_type: <a title="pyinventory.common.data_enum.Entity" href="../common/data_enum.html#pyinventory.common.data_enum.Entity">Entity</a>, entity_name: str, property_type_external_id: str) -> <a title="pyinventory.common.data_class.PropertyDefinition" href="../common/data_class.html#pyinventory.common.data_class.PropertyDefinition">PropertyDefinition</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Get property type by external ID on specific entity. <code>entity_type</code> - ["LocationType", "EquipmentType", "ServiceType", "EquipmentPortType"]</p>
@@ -103,7 +103,7 @@
 <dd>property type external ID</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<p><code><a title="pyinventory.graphql.property_type_fragment.PropertyTypeFragment" href="../graphql/property_type_fragment.html#pyinventory.graphql.property_type_fragment.PropertyTypeFragment">PropertyTypeFragment</a></code> object</p>
+<p><code><a title="pyinventory.common.data_class.PropertyDefinition" href="../common/data_class.html#pyinventory.common.data_class.PropertyDefinition">PropertyDefinition</a></code> object</p>
 <h2 id="raises">Raises</h2>
 <p><code><a title="pyinventory.exceptions.EntityNotFoundError" href="../exceptions.html#pyinventory.exceptions.EntityNotFoundError">EntityNotFoundError</a></code>: property type with external_id=<code>property_type_external_id</code> is not found</p>
 <h2 id="example">Example</h2>
@@ -115,7 +115,7 @@
 </code></pre></div>
 </dd>
 <dt id="pyinventory.api.property_type.get_property_type_id"><code class="name flex">
-<span>def <span class="ident">get_property_type_id</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, entity_type: <a title="pyinventory.common.data_enum.Entity" href="../common/data_enum.html#pyinventory.common.data_enum.Entity">Entity</a>, entity_name: str, property_type_name: str) -> str</span>
+<span>def <span class="ident">get_property_type_id</span></span>(<span>client: pysymphony.SymphonyClient, entity_type: <a title="pyinventory.common.data_enum.Entity" href="../common/data_enum.html#pyinventory.common.data_enum.Entity">Entity</a>, entity_name: str, property_type_name: str) -> str</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Get property type ID on specific entity. <code>entity_type</code> - ["LocationType", "EquipmentType", "ServiceType", "EquipmentPortType"]</p>
@@ -143,7 +143,7 @@
 </code></pre></div>
 </dd>
 <dt id="pyinventory.api.property_type.get_property_types"><code class="name flex">
-<span>def <span class="ident">get_property_types</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, entity_type: <a title="pyinventory.common.data_enum.Entity" href="../common/data_enum.html#pyinventory.common.data_enum.Entity">Entity</a>, entity_name: str) -> Sequence[<a title="pyinventory.graphql.property_type_fragment.PropertyTypeFragment" href="../graphql/property_type_fragment.html#pyinventory.graphql.property_type_fragment.PropertyTypeFragment">PropertyTypeFragment</a>]</span>
+<span>def <span class="ident">get_property_types</span></span>(<span>client: pysymphony.SymphonyClient, entity_type: <a title="pyinventory.common.data_enum.Entity" href="../common/data_enum.html#pyinventory.common.data_enum.Entity">Entity</a>, entity_name: str) -> Sequence[<a title="pyinventory.common.data_class.PropertyDefinition" href="../common/data_class.html#pyinventory.common.data_class.PropertyDefinition">PropertyDefinition</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Get property types on specific entity. <code>entity_type</code> - ["LocationType", "EquipmentType", "ServiceType", "EquipmentPortType"]</p>
@@ -154,7 +154,7 @@
 <dd>existing entity name</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<p>Sequence[ <code>pyinventory.graphql.property_type_fragment.PropertyTypeFragment</code> ]</p>
+<p>Sequence[ <code>pyinventory.common.data_class.PropertyDefinition</code> ]</p>
 <h2 id="raises">Raises</h2>
 <p><code><a title="pyinventory.exceptions.EntityNotFoundError" href="../exceptions.html#pyinventory.exceptions.EntityNotFoundError">EntityNotFoundError</a></code>: if entity type does not found or does not have property types</p>
 <h2 id="example">Example</h2>

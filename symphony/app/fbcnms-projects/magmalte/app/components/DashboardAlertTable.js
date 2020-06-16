@@ -8,21 +8,23 @@
  * @format
  */
 
+import type {RowData} from './TabbedTable';
+import type {prom_firing_alert} from '@fbcnms/magma-api';
+
+import Card from '@material-ui/core/Card';
+import Grid from '@material-ui/core/Grid';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
-import Card from '@material-ui/core/Card';
+import nullthrows from '@fbcnms/util/nullthrows';
 import React from 'react';
 import TabbedTable from './TabbedTable';
 import Text from '../theme/design-system/Text';
-import {colors} from '../theme/default';
-import nullthrows from '@fbcnms/util/nullthrows';
 import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
-import Grid from '@material-ui/core/Grid';
+
 import {Alarm} from '@material-ui/icons';
+import {colors} from '../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
-import type {RowData} from './TabbedTable';
-import type {prom_firing_alert} from '@fbcnms/magma-api';
 
 const useStyles = makeStyles(theme => ({
   cardTitleRow: {

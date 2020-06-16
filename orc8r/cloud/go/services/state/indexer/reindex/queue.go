@@ -46,13 +46,6 @@ type JobInfo struct {
 	Attempts  uint
 }
 
-// Version represents the discrepancy between an indexer's versions, actual vs. desired.
-type Version struct {
-	IndexerID string
-	Actual    indexer.Version
-	Desired   indexer.Version
-}
-
 // JobQueue is a static, unordered job queue containing state indexers.
 // State indexers are added to the queue for reindexing at initialization, and removed from the queue after the reindex is complete.
 // ClaimAvailableJob should be polled periodically, as jobs may become available at any time.
@@ -78,7 +71,7 @@ type JobQueue interface {
 
 	// GetIndexerVersions returns version info for all tracked indexers, keyed by indexer ID.
 	// Intended for use when automatic reindexing is disabled.
-	GetIndexerVersions() ([]*Version, error)
+	GetIndexerVersions() ([]*indexer.Versions, error)
 
 	// SetIndexerActualVersion sets the actual version of an indexer, post-reindex.
 	// Intended for use when automatic reindexing is disabled.
@@ -141,7 +134,7 @@ func GetStatuses(queue JobQueue) (map[string]Status, error) {
 
 // GetIndexerVersion gets the tracked indexer versions for an indexer ID.
 // Returns nil if not found.
-func GetIndexerVersion(queue JobQueue, indexerID string) (*Version, error) {
+func GetIndexerVersion(queue JobQueue, indexerID string) (*indexer.Versions, error) {
 	versions, err := queue.GetIndexerVersions()
 	if err != nil {
 		return nil, err
@@ -158,13 +151,9 @@ func (j *Job) String() string {
 	return fmt.Sprintf("{id: %s, from: %d, to: %d}", j.Idx.GetID(), j.From, j.To)
 }
 
-func (v *Version) String() string {
-	return fmt.Sprintf("{id: %s, actual: %d, desired: %d}", v.IndexerID, v.Actual, v.Desired)
-}
-
 // EqualVersions returns true iff the slices are equal.
 // Assumes the slices are already sorted. Any nil elements results in false.
-func EqualVersions(a []*Version, b []*Version) bool {
+func EqualVersions(a []*indexer.Versions, b []*indexer.Versions) bool {
 	if len(a) != len(b) {
 		return false
 	}

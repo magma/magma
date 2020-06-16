@@ -16,18 +16,19 @@ import EnodebKPIs from '../EnodebKPIs';
 import EventAlertChart from '../EventAlertChart';
 import GatewayKPIs from '../GatewayKPIs';
 import Grid from '@material-ui/core/Grid';
+import moment from 'moment';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import Paper from '@material-ui/core/Paper';
 import React, {useState} from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import Text from '../../theme/design-system/Text';
+
 import {colors} from '../../theme/default';
-import moment from 'moment';
 import {DateTimePicker} from '@material-ui/pickers';
 import {GpsFixed, NetworkCheck, People} from '@material-ui/icons';
-import {Redirect, Route, Switch} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
+import {Redirect, Route, Switch} from 'react-router-dom';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({

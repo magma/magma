@@ -69,6 +69,11 @@ const styles = theme => ({
 class LocationTypeItem extends React.Component<Props> {
   render() {
     const {classes, locationType, onEdit, position} = this.props;
+
+    if (locationType == null) {
+      return null;
+    }
+
     return (
       <div>
         <DraggableTableRow

@@ -48,7 +48,6 @@ class SessiondTest : public ::testing::Test {
 
     pipelined_client = std::make_shared<AsyncPipelinedClient>(test_channel);
     directoryd_client = std::make_shared<AsyncDirectorydClient>(test_channel);
-    eventd_client = std::make_shared<AsyncEventdClient>(test_channel);
     spgw_client = std::make_shared<AsyncSpgwServiceClient>(test_channel);
     auto rule_store = std::make_shared<StaticRuleStore>();
     session_store = std::make_shared<SessionStore>(rule_store);
@@ -64,7 +63,7 @@ class SessiondTest : public ::testing::Test {
       *session_store,
       pipelined_client,
       directoryd_client,
-      eventd_client,
+      MockEventdClient::getInstance(),
       spgw_client,
       nullptr,
       SESSION_TERMINATION_TIMEOUT_MS,
@@ -183,7 +182,6 @@ class SessiondTest : public ::testing::Test {
   std::shared_ptr<service303::MagmaService> test_service;
   std::shared_ptr<AsyncPipelinedClient> pipelined_client;
   std::shared_ptr<AsyncDirectorydClient> directoryd_client;
-  std::shared_ptr<AsyncEventdClient> eventd_client;
   std::shared_ptr<AsyncSpgwServiceClient> spgw_client;
   std::shared_ptr<SessionStore> session_store;
   SessionMap session_map;

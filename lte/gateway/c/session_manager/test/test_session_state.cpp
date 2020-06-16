@@ -115,7 +115,9 @@ protected:
         address_type_converter(redirect_server.redirect_address_type()));
     redirect_info->set_server_address(redirect_server.redirect_server_address());
 
-    session_state->insert_gy_dynamic_rule(redirect_rule, update_criteria);
+    RuleLifetime lifetime{};
+    session_state->insert_gy_dynamic_rule(
+        redirect_rule, lifetime, update_criteria);
   }
 
   void receive_credit_from_ocs(uint32_t rating_group, uint64_t volume) {
@@ -740,6 +742,9 @@ TEST_F(SessionStateTest, test_install_gy_rules) {
   EXPECT_EQ(rules_out_ptr.size(), 1);
   EXPECT_EQ(rules_out_ptr[0], "redirect");
 
+  EXPECT_EQ(session_state->is_gy_dynamic_rule_installed("redirect"), true);
+  EXPECT_EQ(update_criteria.gy_dynamic_rules_to_install.size(), 1);
+
   PolicyRule rule_out;
   EXPECT_EQ(true, session_state->remove_gy_dynamic_rule("redirect", &rule_out,
                                                         update_criteria));
@@ -747,6 +752,9 @@ TEST_F(SessionStateTest, test_install_gy_rules) {
   rules_out = {};
   session_state->get_gy_dynamic_rules().get_rule_ids(rules_out_ptr);
   EXPECT_EQ(rules_out_ptr.size(), 0);
+
+  EXPECT_EQ(session_state->is_gy_dynamic_rule_installed("redirect"), false);
+  EXPECT_EQ(update_criteria.gy_dynamic_rules_to_uninstall.size(), 1);
 
   rules_out = {};
   session_state->get_gy_dynamic_rules().get_rule_ids_for_monitoring_key("m1",
