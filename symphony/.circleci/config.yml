@@ -20,6 +20,11 @@ aliases:
       branches:
         only: master
 
+  - &onlypr
+    filters:
+      branches:
+        ignore: master
+
   - &tfworkdir
     working_directory: infra/deploy
 
@@ -340,8 +345,18 @@ jobs:
       dlc: true
     resource_class: large
     environment:
-      COMPOSE_FILE: integration/docker-compose.ci.yaml
+      COMPOSE_FILE: <<parameters.compose_file>>
       DOCKER_REGISTRY: facebookconnectivity-symphony-dev-docker.jfrog.io
+    parameters:
+      compose_file:
+        type: string
+        default: integration/docker-compose.pr.yaml
+      pull_images:
+        type: boolean
+        default: false
+      extra_build_args:
+        type: string
+        default: ""
     steps:
       - checkout
       - docker/check:
@@ -350,12 +365,15 @@ jobs:
           name: Setup environment variables
           command: echo "export TAG=$CIRCLE_SHA1" >> $BASH_ENV
       - *mktestdir
-      - run:
-          name: Pull service images
-          command: docker-compose pull
+      - when:
+          condition: <<parameters.pull_images>>
+          steps:
+            - run:
+                name: Pull service images
+                command: docker-compose pull
       - run:
           name: Build services
-          command: docker-compose build --pull
+          command: docker-compose build <<parameters.extra_build_args>>
       - run:
           name: Start containers
           command: docker-compose up -d --scale tests=0 --scale pytests=0
@@ -594,45 +612,59 @@ workflows:
           requires: &dpreq
             - lint
             - unit
+          <<: *onlymaster
       - docker-publish:
           name: store/publish
           dockerfile: store/Dockerfile
           image: store
           requires: *dpreq
+          <<: *onlymaster
       - docker-publish:
           name: async/publish
           dockerfile: async/Dockerfile
           image: async
           requires: *dpreq
+          <<: *onlymaster
       - docker-publish:
           name: docs/publish
           path: docs
           image: docs
           requires: *dpreq
+          <<: *onlymaster
       - docker-publish:
           name: front/publish
           dockerfile: fbcnms-projects/platform-server/Dockerfile.prod
           path: app
           image: front
           requires: *dpreq
+          <<: *onlymaster
       - docker-publish:
           name: storybook/publish
           dockerfile: fbcnms-projects/storybook/Dockerfile
           path: app
           image: storybook
           requires: *dpreq
+          <<: *onlymaster
       - docker-publish:
           name: jobrunner/publish
           dockerfile: jobrunner/Dockerfile
           image: jobrunner
           requires: *dpreq
+          <<: *onlymaster
       - helm-lint
       - tflint
       - integration:
+          name: integration/pr
+          <<: *onlypr
+      - integration:
+          pull_images: true
+          extra_build_args: --pull
+          compose_file: integration/docker-compose.ci.yaml
           requires:
             - graph/publish
             - store/publish
             - front/publish
+          <<: *onlymaster
       - promote-images: &promote
           requires:
             - integration

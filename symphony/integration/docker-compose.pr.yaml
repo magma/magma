@@ -21,7 +21,9 @@ services:
     restart: on-failure
 
   front:
-    image: ${DOCKER_REGISTRY}/front:${TAG}
+    build:
+      context: ../app
+      dockerfile: fbcnms-projects/platform-server/Dockerfile.prod
     environment:
       PORT: 80
       MYSQL_HOST: mysql
@@ -38,7 +40,9 @@ services:
     restart: on-failure
 
   graph:
-    image: ${DOCKER_REGISTRY}/graph:${TAG}
+    build:
+      context: ..
+      dockerfile: graph/Dockerfile
     env_file:
       - conf/graph.env
       - conf/log.env
@@ -52,7 +56,9 @@ services:
     restart: on-failure
 
   store:
-    image: ${DOCKER_REGISTRY}/store:${TAG}
+    build:
+      context: ..
+      dockerfile: store/Dockerfile
     env_file:
       - conf/store.env
       - conf/log.env
