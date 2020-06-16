@@ -168,14 +168,8 @@ func getDiffOfUniqueEdgeAsString(entry *LogEntry, edge string) (*string, *string
 
 func HandleActivityLog(ctx context.Context, entry LogEntry) error {
 	var err error
-	if entry.PrevState != nil {
-		if entry.PrevState.Type != "WorkOrder" {
-			return nil
-		}
-	} else {
-		if entry.CurrState.Type != "WorkOrder" {
-			return nil
-		}
+	if entry.Type != ent.TypeWorkOrder {
+		return nil
 	}
 	if entry.Operation.Is(ent.OpCreate) {
 		err = updateActivitiesOnWOCreate(ctx, &entry)

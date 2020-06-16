@@ -21,6 +21,7 @@ type LogEntry struct {
 	UserName  string    `json:"user_name"`
 	UserID    *int      `json:"user_id"`
 	Time      time.Time `json:"time"`
+	Type      string    `json:"type"`
 	Operation ent.Op    `json:"operation"`
 	PrevState *ent.Node `json:"prevState"`
 	CurrState *ent.Node `json:"currState"`

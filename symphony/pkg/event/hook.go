@@ -27,6 +27,7 @@ func LogHook(handler func(context.Context, LogEntry) error, logger log.Logger) e
 				UserName:  v.Name(),
 				Operation: m.Op(),
 				Time:      time.Now(),
+				Type:      m.Type(),
 			}
 			if v, ok := v.(*viewer.UserViewer); ok {
 				entry.UserID = &v.User().ID
