@@ -65,8 +65,11 @@ const (
 // - Generate traffic and verify if the traffic observed bitrate matches the configured
 // bitrate, restart pipelined and verify if Qos remains enforced
 func testQosEnforcementRestart(t *testing.T, cfgCh chan string, restartCfg string) {
+	assert.True(t, false)
 	tr := NewTestRunner(t)
 
+	// do not use restartPipeline functon. Otherwise we are not testing the case where attach
+	// comes while pipelined is still rebooting.
 	err := tr.RestartService("pipelined")
 	if err != nil {
 		fmt.Printf("error restarting pipelined %v", err)
@@ -123,22 +126,10 @@ func testQosEnforcementRestart(t *testing.T, cfgCh chan string, restartCfg strin
 	record := recordsBySubID["IMSI"+imsi][ruleKey]
 	assert.NotNil(t, record, fmt.Sprintf("No policy usage record for imsi: %v", imsi))
 
-	// restart the pipelined service and verify that Qos is still enforced
-	oldCnt := tr.ScanContainerLogs("pipelined", "Starting pipelined")
-
 	// modify pipelined yml to set clean_restart
 	cfgCh <- restartCfg
-	err = tr.RestartService("pipelined")
-	if err != nil {
-		fmt.Printf("error restarting pipelined %v", err)
-		assert.Fail(t, "failed restarting pipelined")
-	}
-	waitForPipelinedRestart := func() bool {
-		cnt := tr.ScanContainerLogs("pipelined", "Starting pipelined")
-		fmt.Printf("curr restart count %d old count %d\n", cnt, oldCnt)
-		return ((oldCnt + 1) == cnt)
-	}
-	assert.Eventually(t, waitForPipelinedRestart, time.Minute, 2*time.Second)
+
+	restartPipelined(t, tr)
 
 	// verify the egress rate after the restart of pipelined
 	verifyEgressRate(t, tr, req, float64(uplinkBwMax))
@@ -146,6 +137,21 @@ func testQosEnforcementRestart(t *testing.T, cfgCh chan string, restartCfg strin
 	tr.DisconnectAndAssertSuccess(imsi)
 	assert.NoError(t, err)
 	time.Sleep(3 * time.Second)
+}
+
+func restartPipelined(t *testing.T, tr *TestRunner) {
+	oldCount := tr.ScanContainerLogs("pipelined", "Starting pipelined")
+	err := tr.RestartService("pipelined")
+	if err != nil {
+		fmt.Printf("error restarting pipelined %v", err)
+		assert.Fail(t, "failed restarting pipelined")
+	}
+	waitForPipelinedRestart := func() bool {
+		cnt := tr.ScanContainerLogs("pipelined", "Starting pipelined")
+		fmt.Printf("curr restart count %d old count %d\n", cnt, oldCount)
+		return ((oldCount + 1) == cnt)
+	}
+	assert.Eventually(t, waitForPipelinedRestart, time.Minute, 2*time.Second)
 }
 
 func TestQosRestartMeter(t *testing.T) {
