@@ -277,7 +277,8 @@ class MagmaService(Service303Servicer):
             config_level = None
         else:
             config_level = self._config.get('log_level', None)
-
+            if config_level is None and self._mconfig is not None:
+                config_level = LogLevel.Name(self._mconfig.log_level)
         try:
             proto_level = LogLevel.Value(config_level)
         except ValueError:
