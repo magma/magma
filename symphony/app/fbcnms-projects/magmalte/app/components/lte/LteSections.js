@@ -22,6 +22,8 @@ import Logs from '@fbcnms/ui/insights/Logs/Logs';
 import LteConfigure from '../LteConfigure';
 import LteDashboard from './LteDashboard';
 import LteMetrics from './LteMetrics';
+import NetworkCheckIcon from '@material-ui/icons/NetworkCheck';
+import NetworkDashboard from '../../views/network/NetworkDashboard';
 import PeopleIcon from '@material-ui/icons/People';
 import PublicIcon from '@material-ui/icons/Public';
 import React from 'react';
@@ -105,6 +107,12 @@ export function getLteSections(
       label: 'EquipmentV2',
       icon: <RouterIcon />,
       component: EquipmentDashboard,
+    });
+    sections[1].splice(4, 0, {
+      path: 'network',
+      label: 'NetworkV2',
+      icon: <NetworkCheckIcon />,
+      component: NetworkDashboard,
     });
   }
   return sections;

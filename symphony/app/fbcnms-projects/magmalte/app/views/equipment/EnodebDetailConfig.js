@@ -185,7 +185,7 @@ function EnodebRanConfig({
               value={earfcndl}
               label="EARFCNDL"
               onChange={({target}) => setEarFcnDl(target.value)}
-              InputProps={{disableUnderline: true, readOnly: {readOnly}}}
+              InputProps={{disableUnderline: true, readOnly: readOnly}}
             />
           </ListItem>
           <ListItem>
@@ -194,7 +194,7 @@ function EnodebRanConfig({
               value={specialSubframePattern}
               label="Special Subframe Pattern"
               onChange={({target}) => setSpecialSubframePattern(target.value)}
-              InputProps={{disableUnderline: true, readOnly: {readOnly}}}
+              InputProps={{disableUnderline: true, readOnly: readOnly}}
             />
           </ListItem>
           <ListItem>
@@ -203,7 +203,7 @@ function EnodebRanConfig({
               value={subframeAssignment}
               label="Subframe Assignment"
               onChange={({target}) => setSubFrameAssignment(target.value)}
-              InputProps={{disableUnderline: true, readOnly: {readOnly}}}
+              InputProps={{disableUnderline: true, readOnly: readOnly}}
             />
           </ListItem>
         </Collapse>
@@ -228,7 +228,7 @@ function EnodebRanConfig({
                   value={earfcndl}
                   label="EARFCNDL"
                   onChange={({target}) => setEarFcnDl(target.value)}
-                  InputProps={{disableUnderline: true, readOnly: {readOnly}}}
+                  InputProps={{disableUnderline: true, readOnly: readOnly}}
                 />
               </Grid>
               <Grid item xs={6}>
@@ -237,7 +237,7 @@ function EnodebRanConfig({
                   value={earfcnul}
                   label="EARFCNUL"
                   onChange={({target}) => setEarFcnUl(target.value)}
-                  InputProps={{disableUnderline: true, readOnly: {readOnly}}}
+                  InputProps={{disableUnderline: true, readOnly: readOnly}}
                 />
               </Grid>
             </Grid>
@@ -254,7 +254,7 @@ function EnodebRanConfig({
           value={bandwidth}
           label="Bandwidth"
           onChange={({target}) => setBandwidth(target.value)}
-          InputProps={{disableUnderline: true, readOnly: {readOnly}}}
+          InputProps={{disableUnderline: true, readOnly: readOnly}}
         />
       </ListItem>
       <Divider />
@@ -264,7 +264,7 @@ function EnodebRanConfig({
           value={cellID}
           label="Cell ID"
           onChange={({target}) => setCellID(target.value)}
-          InputProps={{disableUnderline: true, readOnly: {readOnly}}}
+          InputProps={{disableUnderline: true, readOnly: readOnly}}
         />
       </ListItem>
       <Divider />
@@ -277,7 +277,7 @@ function EnodebRanConfig({
           value={pci}
           label="PCI"
           onChange={({target}) => setPci(target.value)}
-          InputProps={{disableUnderline: true, readOnly: {readOnly}}}
+          InputProps={{disableUnderline: true, readOnly: readOnly}}
         />
       </ListItem>
       <Divider />
@@ -287,7 +287,7 @@ function EnodebRanConfig({
           value={tac}
           label="TAC"
           onChange={({target}) => setTac(target.value)}
-          InputProps={{disableUnderline: true, readOnly: {readOnly}}}
+          InputProps={{disableUnderline: true, readOnly: readOnly}}
         />
       </ListItem>
       <Divider />
@@ -326,7 +326,7 @@ function EnodebInfoConfig({
           value={name}
           label="Name"
           onChange={({target}) => setName(target.value)}
-          InputProps={{disableUnderline: true, readOnly: {readOnly}}}
+          InputProps={{disableUnderline: true, readOnly: readOnly}}
         />
       </ListItem>
       <Divider />
@@ -336,7 +336,7 @@ function EnodebInfoConfig({
           value={serial}
           label="Serial Number"
           onChange={({target}) => setSerial(target.value)}
-          InputProps={{disableUnderline: true, readOnly: {readOnly}}}
+          InputProps={{disableUnderline: true, readOnly: readOnly}}
         />
       </ListItem>
       <Divider />
@@ -346,7 +346,7 @@ function EnodebInfoConfig({
           value={description}
           label="Description"
           onChange={({target}) => setDescription(target.value)}
-          InputProps={{disableUnderline: true, readOnly: {readOnly}}}
+          InputProps={{disableUnderline: true, readOnly: readOnly}}
         />
       </ListItem>
     </List>
