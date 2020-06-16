@@ -91,7 +91,7 @@ export default function EnodebThroughputChart(props: EnbThroughputChartProps) {
           </Grid>
         </Grid>
       </Grid>
-      <Card>
+      <Card elevation={0}>
         <CardHeader
           title={<Text variant="body2">Frequency of {props.title}</Text>}
           subheader={
