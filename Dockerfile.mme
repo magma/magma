@@ -1,4 +1,4 @@
-FROM ubuntu:bionic as builder
+FROM ubuntu:bionic as conv-builder
 
 ARG GIT_PROXY
 ARG FEATURES=mme
@@ -210,15 +210,53 @@ RUN ldconfig && \
     echo $FEATURES && \ 
     make build_oai
 
-FROM ubuntu:bionic
+FROM ubuntu:bionic as conv-mme
 
 # Copy pre-built shared object files
-COPY --from=builder /lib/x86_64-linux-gnu/*.so* /lib/x86_64-linux-gnu/ 
-COPY --from=builder /usr/lib/x86_64-linux-gnu/*.so* /usr/lib/x86_64-linux-gnu/
-COPY --from=builder /usr/local/lib/*.so* /usr/local/lib/ 
+COPY --from=conv-builder /usr/lib/x86_64-linux-gnu/libasan.so.3 /usr/lib/x86_64-linux-gnu/
+COPY --from=conv-builder /usr/lib/x86_64-linux-gnu/libcrypto.so.1.1 /usr/lib/x86_64-linux-gnu/
+COPY --from=conv-builder /usr/lib/x86_64-linux-gnu/libconfig.so.9 /usr/lib/x86_64-linux-gnu/
+COPY --from=conv-builder /usr/lib/x86_64-linux-gnu/libglog.so.0  /usr/lib/x86_64-linux-gnu/
+COPY --from=conv-builder /usr/lib/x86_64-linux-gnu/libyaml-cpp.so.0.5 /usr/lib/x86_64-linux-gnu/
+COPY --from=conv-builder /usr/lib/x86_64-linux-gnu/libsctp.so.1 /usr/lib/x86_64-linux-gnu/
+COPY --from=conv-builder /usr/lib/x86_64-linux-gnu/libunwind.so.8 /usr/lib/x86_64-linux-gnu/
+COPY --from=conv-builder /usr/lib/x86_64-linux-gnu/libboost_context.so.1.65.1 /usr/lib/x86_64-linux-gnu/
+COPY --from=conv-builder /usr/lib/x86_64-linux-gnu/libboost_filesystem.so.1.65.1 /usr/lib/x86_64-linux-gnu/
+COPY --from=conv-builder /usr/lib/x86_64-linux-gnu/libboost_program_options.so.1.65.1 /usr/lib/x86_64-linux-gnu/
+COPY --from=conv-builder /usr/lib/x86_64-linux-gnu/libboost_regex.so.1.65.1 /usr/lib/x86_64-linux-gnu/
+COPY --from=conv-builder /usr/lib/x86_64-linux-gnu/libboost_system.so.1.65.1 /usr/lib/x86_64-linux-gnu/
+COPY --from=conv-builder /usr/lib/x86_64-linux-gnu/libdouble-conversion.so.1 /usr/lib/x86_64-linux-gnu/
+COPY --from=conv-builder /usr/lib/x86_64-linux-gnu/libevent-2.1.so.6 /usr/lib/x86_64-linux-gnu/
+COPY --from=conv-builder /usr/lib/x86_64-linux-gnu/libssl.so.1.1 /usr/lib/x86_64-linux-gnu/
+COPY --from=conv-builder /usr/lib/x86_64-linux-gnu/libsnappy.so.1 /usr/lib/x86_64-linux-gnu/
+COPY --from=conv-builder /usr/lib/x86_64-linux-gnu/libicui18n.so.60 /usr/lib/x86_64-linux-gnu/
+COPY --from=conv-builder /usr/lib/x86_64-linux-gnu/libicuuc.so.60 /usr/lib/x86_64-linux-gnu/
+COPY --from=conv-builder /usr/lib/x86_64-linux-gnu/libicudata.so.60 /usr/lib/x86_64-linux-gnu/
+
+COPY --from=conv-builder /usr/local/lib/libfdproto.so.6 /usr/local/lib/
+COPY --from=conv-builder /usr/local/lib/libfdcore.so.6 /usr/local/lib/
+COPY --from=conv-builder /usr/local/lib/libgrpc++.so /usr/local/lib/
+COPY --from=conv-builder /usr/local/lib/libprotobuf.so.17 /usr/local/lib/
+COPY --from=conv-builder /usr/local/lib/libfolly.so /usr/local/lib/
+COPY --from=conv-builder /usr/local/lib/libgrpc.so /usr/local/lib/
+COPY --from=conv-builder /usr/local/lib/libgpr.so /usr/local/lib/
+COPY --from=conv-builder /usr/local/lib/libgflags.so.2.2 /usr/local/lib/
+COPY --from=conv-builder /usr/local/lib/libcares.so.2 /usr/local/lib/
+COPY --from=conv-builder /usr/local/lib/libaddress_sorting.so /usr/local/lib/
+
+COPY --from=conv-builder /lib/x86_64-linux-gnu/libidn.so.11 /usr/lib/x86_64-linux-gnu/
+
 # Refresh library cache
 RUN ldconfig
+
+WORKDIR /conv-mme/bin
 # Copy pre-built binary
-COPY --from=builder /build/c/oai/oai_mme/mme /var/opt/magma/bin/mme
+COPY --from=conv-builder /build/c/oai/oai_mme/mme oai_mme
+
+WORKDIR /conv-mme/etc
+COPY --from=conv-builder /magma/lte/gateway/configs/templates/mme.conf.template .
+COPY --from=conv-builder /magma/lte/gateway/configs/templates/mme_fd.conf.template .
+
+WORKDIR /conv-mme
 
 # CMD []
