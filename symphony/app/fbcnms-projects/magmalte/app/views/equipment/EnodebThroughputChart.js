@@ -21,6 +21,15 @@ import moment from 'moment';
 import {DateTimePicker} from '@material-ui/pickers';
 import {useState} from 'react';
 
+const useStyles = makeStyles(theme => ({
+  cardTitleRow: {
+    marginBottom: theme.spacing(1),
+    minHeight: '36px',
+  },
+  cardTitleIcon: {
+    fill: colors.primary.comet,
+    marginRight: theme.spacing(1),
+  },
 export type EnbThroughputChartProps = {
   title: string,
   queries: Array<string>,
@@ -33,12 +42,10 @@ export default function EnodebThroughputChart(props: EnbThroughputChartProps) {
 
   return (
     <>
-      <Grid container align="top" alignItems="flex-start">
-        <Grid item xs={6}>
-          <Text>
-            <DataUsageIcon />
-            {props.title}
-          </Text>
+      <Grid container alignItems="center" className={classes.cardTitleRow}>
+        <Grid container xs={6}>
+          <DataUsageIcon className={classes.cardTitleIcon} />
+          <Text variant="body1">{props.title}</Text>
         </Grid>
         <Grid item xs={6}>
           <Grid container justify="flex-end" alignItems="center" spacing={1}>

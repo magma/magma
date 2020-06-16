@@ -69,12 +69,6 @@ const useStyles = makeStyles(theme => ({
   dateTimeText: {
     color: colors.primary.selago,
   },
-  cardTitle: {
-    marginBottom: theme.spacing(1),
-  },
-  cardTitleIcon: {
-    marginRight: theme.spacing(1),
-  },
   // TODO: remove this when we actually fill out the grid sections
   contentPlaceholder: {
     padding: '50px 0',

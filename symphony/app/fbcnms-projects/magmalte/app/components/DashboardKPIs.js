@@ -20,8 +20,9 @@ import {GpsFixed} from '@material-ui/icons';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(theme => ({
-  cardTitle: {
+  cardTitleRow: {
     marginBottom: theme.spacing(1),
+    minHeight: '36px',
   },
   cardTitleIcon: {
     fill: colors.primary.comet,
@@ -38,7 +39,7 @@ export default function() {
   return (
     <>
       {/* TODO: Can come back and make this a reusable component for other cards */}
-      <Grid container xs={12} className={classes.cardTitle}>
+      <Grid container xs={12} className={classes.cardTitleRow}>
         <GpsFixed className={classes.cardTitleIcon} />
         <Text variant="body1">Events (388)</Text>
       </Grid>

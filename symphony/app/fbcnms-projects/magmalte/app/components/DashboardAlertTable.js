@@ -25,8 +25,9 @@ import type {RowData} from './TabbedTable';
 import type {prom_firing_alert} from '@fbcnms/magma-api';
 
 const useStyles = makeStyles(theme => ({
-  cardTitle: {
+  cardTitleRow: {
     marginBottom: theme.spacing(1),
+    minHeight: '36px',
   },
   cardTitleIcon: {
     fill: colors.primary.comet,
@@ -94,7 +95,7 @@ export default function() {
 
   return (
     <>
-      <Grid container alignItems="center" className={classes.cardTitle}>
+      <Grid container alignItems="center" className={classes.cardTitleRow}>
         <Alarm className={classes.cardTitleIcon} />
         <Text variant="body1">Alerts ({alerts.length})</Text>
       </Grid>

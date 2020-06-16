@@ -23,8 +23,9 @@ import TimeRangeSelector from '../../theme/design-system/TimeRangeSelector';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(theme => ({
-  cardTitle: {
+  cardTitleRow: {
     marginBottom: theme.spacing(1),
+    minHeight: '36px',
   },
   cardTitleIcon: {
     fill: colors.primary.comet,
@@ -78,7 +79,7 @@ export default function() {
     <>
       <Grid container alignItems="center">
         <Grid item xs={6}>
-          <Grid container alignItems="center" className={classes.cardTitle}>
+          <Grid container alignItems="center" className={classes.cardTitleRow}>
             <DataUsageIcon className={classes.cardTitleIcon} />
             <Text variant="body1">Gateway Check-Ins</Text>
           </Grid>
@@ -88,7 +89,6 @@ export default function() {
             container
             justify="flex-end"
             alignItems="center"
-            spacing={1}
             className={classes.cardFilters}>
             <Grid item>
               <Text variant="body3">Filter By Time</Text>

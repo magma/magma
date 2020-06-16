@@ -28,6 +28,17 @@ import Text from '@fbcnms/ui/components/design-system/Text';
 
 import {forwardRef} from 'react';
 
+const useStyles = makeStyles(theme => ({
+  cardTitleRow: {
+    marginBottom: theme.spacing(1),
+    minHeight: '36px',
+  },
+  cardTitleIcon: {
+    fill: colors.primary.comet,
+    marginRight: theme.spacing(1),
+  },
+}));
+
 const tableIcons = {
   Export: forwardRef((props, ref) => <OpenInNewIcon {...props} ref={ref} />),
   FirstPage: forwardRef((props, ref) => <FirstPage {...props} ref={ref} />),
@@ -93,12 +104,18 @@ export default function ActionTable<T>(props: ActionTableProps<T>) {
   if (props.titleIcon) {
     const TitleIcon = props.titleIcon;
     actionTableJSX.push(
-      <Text key="title">
-        <TitleIcon /> {props.title} ({props.data.length})
-      </Text>,
+      <Grid
+        container
+        alignItems="center"
+        className={classes.cardTitleRow}
+        key="title">
+        <TitleIcon className={classes.cardTitleIcon} />
+        <Text variant="body1">
+          {props.title} ({props.data.length})
+        </Text>
+      </Grid>,
     );
   }
-
   if (props.menuItems) {
     const menuItems: Array<ActionMenuItems> = props.menuItems;
     actionTableJSX.push(
