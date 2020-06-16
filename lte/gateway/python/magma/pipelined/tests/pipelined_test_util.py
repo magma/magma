@@ -348,7 +348,14 @@ def create_service_manager(services: List[int],
     magma_service.config = {
         'static_services': static_services
     }
-    return ServiceManager(magma_service)
+    service_manager = ServiceManager(magma_service)
+
+    # Workaround as we don't use redis in unit tests
+    service_manager.rule_id_mapper._rule_nums_by_rule = {}
+    service_manager.rule_id_mapper._rules_by_rule_num = {}
+    service_manager.session_rule_version_mapper._version_by_imsi_and_rule = {}
+
+    return service_manager
 
 
 def _parse_flow(flow):

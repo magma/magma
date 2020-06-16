@@ -28,6 +28,7 @@ should not be accessible to apps from other services.
 # pylint does not play well with aioeventlet, as it uses asyncio.async which
 # produces a parse error
 
+import time
 import asyncio
 import logging
 from concurrent.futures import Future
@@ -375,6 +376,8 @@ class ServiceManager:
                           type=None,
                           order_priority=0)]
         self._table_manager = _TableManager()
+
+        self.rule_id_mapper = RuleIDToNumMapper()
         self.session_rule_version_mapper = SessionRuleToVersionMapper()
 
         apps = self._get_static_apps()
@@ -431,10 +434,16 @@ class ServiceManager:
         Instantiates and schedules the Ryu app eventlets in the service
         eventloop.
         """
+
+        # Wait for redis as multiple controllers rely on it
+        while not redisAvailable(self.rule_id_mapper.redis_cli):
+            logging.warning("Pipelined waiting for redis...")
+            time.sleep(1)
+
         manager = AppManager.get_instance()
         manager.load_apps([app.module for app in self._apps])
         contexts = manager.create_contexts()
-        contexts['rule_id_mapper'] = RuleIDToNumMapper()
+        contexts['rule_id_mapper'] = self.rule_id_mapper
         contexts[
             'session_rule_version_mapper'] = self.session_rule_version_mapper
         contexts['app_futures'] = {app.name: Future() for app in self._apps}
@@ -526,3 +535,12 @@ class ServiceManager:
         table number, and app name.
         """
         return self._table_manager.get_all_table_assignments()
+
+
+def redisAvailable(redis_cli):
+    try:
+        redis_cli.ping()
+    except Exception as e:
+        logging.error(e)
+        return False
+    return True
