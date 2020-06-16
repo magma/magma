@@ -147,17 +147,12 @@ struct StoredMonitor {
   MonitoringLevel level;
 };
 
-struct StoredUsageMonitoringCreditPool {
-  std::string imsi;
-  std::string session_level_key; // "" maps to nullptr
-  std::unordered_map<std::string, StoredMonitor> monitor_map;
-};
-
 struct RuleLifetime {
   std::time_t activation_time; // Unix timestamp
   std::time_t deactivation_time; // Unix timestamp
 };
 
+typedef std::unordered_map<std::string, StoredMonitor> StoredMonitorMap;
 typedef std::unordered_map<CreditKey, StoredSessionCredit, decltype(&ccHash),
                      decltype(&ccEqual)> StoredChargingCreditMap;
 
@@ -165,7 +160,8 @@ struct StoredSessionState {
   SessionFsmState fsm_state;
   SessionConfig config;
   StoredChargingCreditMap credit_map;
-  StoredUsageMonitoringCreditPool monitor_pool;
+  StoredMonitorMap monitor_map;
+  std::string session_level_key; // "" maps to nullptr
   std::string imsi;
   std::string session_id;
   std::string core_session_id;
@@ -223,7 +219,7 @@ struct SessionStateUpdateCriteria {
   std::unordered_map<CreditKey, SessionCreditUpdateCriteria, decltype(&ccHash),
                      decltype(&ccEqual)>
       charging_credit_map;
-  std::unordered_map<std::string, StoredMonitor> monitor_credit_to_install;
+  StoredMonitorMap monitor_credit_to_install;
   std::unordered_map<std::string, SessionCreditUpdateCriteria>
       monitor_credit_map;
   TgppContext updated_tgpp_context;
@@ -267,10 +263,10 @@ StoredChargingCreditMap
 deserialize_stored_charging_credit_map(std::string &serialized) ;
 
 std::string
-serialize_stored_usage_monitoring_pool(StoredUsageMonitoringCreditPool &stored);
+serialize_stored_usage_monitor_map(StoredMonitorMap &stored);
 
-StoredUsageMonitoringCreditPool
-deserialize_stored_usage_monitoring_pool(std::string &serialized);
+StoredMonitorMap
+deserialize_stored_usage_monitor_map(std::string &serialized);
 
 std::string serialize_stored_session(StoredSessionState &stored);
 

@@ -532,8 +532,7 @@ void LocalEnforcer::reset_updates(
       // When updates are reset, they aren't written back into SessionStore,
       // so we can just put in a default UpdateCriteria
       auto uc = get_default_update_criteria();
-      session->get_monitor_pool().reset_reporting_credit(
-          update.update().monitoring_key(), uc);
+      session->reset_reporting_monitor(update.update().monitoring_key(), uc);
     }
   }
 }
@@ -846,7 +845,7 @@ bool LocalEnforcer::init_session_credit(
                        << " and some without";
       }
     auto uc = get_default_update_criteria();
-    session_state->get_monitor_pool().receive_credit(monitor, uc);
+    session_state->receive_monitor(monitor, uc);
   }
 
   auto rule_update_success = handle_session_init_rule_updates(
@@ -1135,7 +1134,7 @@ void LocalEnforcer::update_monitoring_credits_and_rules(
 
     for (const auto& session : it->second) {
       auto& update_criteria = session_update[imsi][session->get_session_id()];
-      session->get_monitor_pool().receive_credit(
+      session->receive_monitor(
           usage_monitor_resp, update_criteria);
       session->set_tgpp_context(usage_monitor_resp.tgpp_ctx(), update_criteria);
 
@@ -1330,7 +1329,7 @@ uint64_t LocalEnforcer::get_monitor_credit(
     return 0;
   }
   for (const auto& session : it->second) {
-    uint64_t credit = session->get_monitor_pool().get_credit(mkey, bucket);
+    uint64_t credit = session->get_monitor(mkey, bucket);
     if (credit > 0) {
       return credit;
     }
@@ -1495,7 +1494,7 @@ void LocalEnforcer::receive_monitoring_credit_from_rar(
   for (const auto& usage_monitoring_credit :
        request.usage_monitoring_credits()) {
     credit->CopyFrom(usage_monitoring_credit);
-    session->get_monitor_pool().receive_credit(
+    session->receive_monitor(
         monitoring_credit, update_criteria);
   }
 }

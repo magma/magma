@@ -108,8 +108,6 @@ add_library(SESSION_MANAGER
     DiameterCodes.cpp
     DiameterCodes.h
     CreditKey.h
-    CreditPool.cpp
-    CreditPool.h
     SessionProxyResponderHandler.cpp
     SessionProxyResponderHandler.h
     StoredState.cpp
