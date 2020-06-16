@@ -7,7 +7,7 @@
 # LICENSE file in the root directory of this source tree. An additional grant
 # of patent rights can be found in the PATENTS file in the same directory.
 
-log_level: INFO
+# log_level is set in mconfig. it can be overridden here
 
 # Host address of the Diameter/S6A MME server
 host_address: 0.0.0.0 # Bind to all interfaces
