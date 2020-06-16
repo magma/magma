@@ -9,82 +9,21 @@
  */
 'use strict';
 
-const ConductorClient = require('conductor-client').default;
-const util = require('util');
-const execFile = util.promisify(require('child_process').execFile);
 import logging from '@fbcnms/logging';
+import {checkWasmer} from './wasmer.js';
+import {executePython, pythonHealthCheck} from './python.js';
+import {executeQuickJs, quickJsHealthCheck} from './quickjs.js';
 const logger = logging.getLogger(module);
+
+const ConductorClient = require('conductor-client').default;
 // properties
 const conductorApiUrl =
   process.env.CONDUCTOR_API_URL || 'http://conductor-server:8080/api';
 const maxRunner = process.env.MAX_RUNNER || 1;
-const wasmerPath = process.env.WASMER_PATH || '/root/.wasmer/bin/wasmer';
-const quickJsPath = process.env.QUICKJS_PATH || 'wasm/quickjs/quickjs.wasm';
-const maximumWasmerTimeoutMillis = process.env.MAX_WASMER_TIMEOUT_MS || 10000;
-//
 
 const conductorClient = new ConductorClient({
   baseURL: conductorApiUrl,
 });
-
-async function executeWasmer(wasmerArgs) {
-  logger.info('executeWasmer', {wasmerArgs});
-  try {
-    return await execFile(wasmerPath, wasmerArgs, {
-      timeout: maximumWasmerTimeoutMillis,
-    });
-  } catch (e) {
-    logger.warn('executeWasmer failed', {wasmerArgs, e});
-    throw e;
-  }
-}
-
-async function checkWasmer() {
-  // will end with rejected promise if exit code != 0
-  const {stdout} = await executeWasmer(['--version']);
-  logger.info('Wasmer version: ' + stdout);
-}
-
-function argsToJsonArray(args) {
-  if (!Array.isArray(args)) {
-    if (typeof args !== 'string') {
-      // serialize it to a string
-      args = JSON.stringify(args);
-    }
-    args = [args];
-  }
-  // 0-th argument is the program name
-  args.unshift('script');
-  return JSON.stringify(args);
-}
-
-async function executeQuickJs(script, args) {
-  const preamble =
-    `const process = {argv:${argsToJsonArray(args)}};\n` +
-    `console.error = function(...args) { std.err.puts(args.join(' '));std.err.puts('\\n'); }\n`;
-  script = preamble + script;
-  const wasmerArgs = ['run', quickJsPath, '--', '--std', '-e', script];
-  try {
-    const {stdout, stderr} = await executeWasmer(wasmerArgs);
-    logger.info('executeQuickJs succeeded', {stdout, stderr});
-    return {stdout, stderr};
-  } catch (e) {
-    logger.warn('executeQuickJs failed', {script, args, e});
-    throw e;
-  }
-}
-
-async function quickJsHealthCheck() {
-  const {stdout, stderr} = await executeQuickJs(
-    `console.log('stdout');console.error('stderr');`,
-    [],
-  );
-  if (stdout == 'stdout\n' && stderr == 'stderr\n') {
-    return true;
-  }
-  logger.warn('Unexpected healthcheck result', {stdout, stderr});
-  return false;
-}
 
 function registerWasmWorker(workerSuffix, callback) {
   conductorClient.registerWatcher(
@@ -119,22 +58,18 @@ async function createTaskResult(
   });
 }
 
-async function init() {
-  await checkWasmer();
-  if (!(await quickJsHealthCheck())) {
-    logger.warn('QuickJs healthcheck failed');
+async function checkAndRegister(wasmSuffix, healthCheckFn, executeFn) {
+  if (!(await healthCheckFn())) {
+    logger.warn(wasmSuffix + ' healthcheck failed');
   }
-
-  // TODO conductorClient.registerTaskDefs(taskDefs)
-
-  registerWasmWorker('js', async (data, updater) => {
-    logger.info('Got new task', {inputData: data.inputData});
+  registerWasmWorker(wasmSuffix, async (data, updater) => {
+    logger.info(wasmSuffix + ' got new task', {inputData: data.inputData});
     const inputData = data.inputData;
     const args = inputData.args;
     const outputIsJson = inputData.outputIsJson === 'true';
     const script = inputData.script;
     try {
-      const {stdout, stderr} = await executeQuickJs(script, args);
+      const {stdout, stderr} = await executeFn(script, args);
       await createTaskResult(
         outputIsJson,
         {result: stdout},
@@ -153,7 +88,7 @@ async function init() {
       if (e.killed) {
         reasonForIncompletion = 'Timeout';
       } else if (e.code != null && e.code != 0) {
-        reasonForIncompletion = 'Exited with error';
+        reasonForIncompletion = 'Exited with error ' + e.code;
       }
       await createTaskResult(
         outputIsJson,
@@ -164,6 +99,53 @@ async function init() {
       );
     }
   });
+}
+
+async function registerTaskDefs() {
+  const taskDefs = [
+    {
+      name: 'GLOBAL___js',
+      type: 'SIMPLE',
+      retryCount: 3,
+      retryLogic: 'FIXED',
+      retryDelaySeconds: 10,
+      timeoutSeconds: 300,
+      timeoutPolicy: 'TIME_OUT_WF',
+      responseTimeoutSeconds: 180,
+      ownerEmail: 'example@example.com',
+    },
+    {
+      name: 'GLOBAL___py',
+      type: 'SIMPLE',
+      retryCount: 3,
+      retryLogic: 'FIXED',
+      retryDelaySeconds: 10,
+      timeoutSeconds: 300,
+      timeoutPolicy: 'TIME_OUT_WF',
+      responseTimeoutSeconds: 180,
+      ownerEmail: 'example@example.com',
+    },
+  ];
+  await conductorClient.registerTaskDefs(taskDefs);
+}
+
+async function init() {
+  await checkWasmer();
+
+  await registerTaskDefs();
+
+  const workers = new Map([
+    ['js', {healthCheckFn: quickJsHealthCheck, executeFn: executeQuickJs}],
+    ['py', {healthCheckFn: pythonHealthCheck, executeFn: executePython}],
+  ]);
+
+  for (const [wasmSuffix, {healthCheckFn, executeFn}] of workers) {
+    try {
+      await checkAndRegister(wasmSuffix, healthCheckFn, executeFn);
+    } catch (error) {
+      logger.warn('Error in checkAndRegister of ' + wasmSuffix, {error});
+    }
+  }
 }
 
 init();
