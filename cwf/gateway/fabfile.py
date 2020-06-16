@@ -131,6 +131,7 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     execute(_set_cwag_test_networking, cwag_br_mac)
 
     if run_tests == "False":
+        execute(_add_docker_host_remote_network_envvar)
         print("run_test was set to false. Test will not be run\n"
               "You can now run the tests manually from cwag_test")
         sys.exit(0)
@@ -361,6 +362,13 @@ def _run_unit_tests():
     """ Run the cwag unit tests """
     with cd(CWAG_ROOT):
         run('make test')
+
+
+def _add_docker_host_remote_network_envvar():
+    sudo(
+        "grep -q 'DOCKER_HOST=tcp://%s:2375' /etc/environment || "
+        "echo 'DOCKER_HOST=tcp://%s:2375' >> /etc/environment && "
+        "echo 'DOCKER_API_VERSION=1.40' >> /etc/environment" % (CWAG_IP, CWAG_IP))
 
 
 def _run_integ_tests(test_host, trf_host, tests_to_run: SubTests,

@@ -154,8 +154,8 @@ func restartPipelined(t *testing.T, tr *TestRunner) {
 	assert.Eventually(t, waitForPipelinedRestart, time.Minute, 2*time.Second)
 }
 
-func TestQosRestartMeter(t *testing.T) {
-	fmt.Println("\nRunning TestQosRestartMeter")
+func TestQosRestartMeterClean(t *testing.T) {
+	fmt.Println("\nRunning TestQosRestartMeterClean...")
 	cfgCh, err := configFileManager(pipelinedCfgFn)
 	defer func() {
 		close(cfgCh)
@@ -170,8 +170,8 @@ func TestQosRestartMeter(t *testing.T) {
 	testQosEnforcementRestart(t, cfgCh, cleanRestartYaml)
 }
 
-func TestQosRestartMeterNonCleanRestart(t *testing.T) {
-	fmt.Println("\nRunning TestQosRestartMeterNonCleanRestart...")
+func TestQosRestartMeterNonClean(t *testing.T) {
+	fmt.Println("\nRunning TestQosRestartMeterNonClean...")
 	cfgCh, err := configFileManager(pipelinedCfgFn)
 	defer func() {
 		close(cfgCh)

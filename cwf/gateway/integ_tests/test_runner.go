@@ -204,7 +204,7 @@ func (tr *TestRunner) Authenticate(imsi, calledStationID string) (*radius.Packet
 		fmt.Println(err)
 		return &radius.Packet{}, err
 	}
-	tr.t.Logf("Finished Authenticating UE. Resulting RADIUS Packet: %d\n", radiusP)
+	tr.t.Log("Finished Authenticating UE" )
 	return radiusP, nil
 }
 
@@ -223,7 +223,7 @@ func (tr *TestRunner) Disconnect(imsi, calledStationID string) (*radius.Packet, 
 		fmt.Println(err)
 		return &radius.Packet{}, err
 	}
-	tr.t.Logf("Finished Discconnecting UE. Resulting RADIUS Packet: %d\n", radiusP)
+	tr.t.Log("Finished Discconnecting UE")
 	return radiusP, nil
 }
 

@@ -11,7 +11,6 @@ package models
 import (
 	"encoding/base64"
 	"fmt"
-	"log"
 	"sort"
 	"time"
 
@@ -610,7 +609,7 @@ func (m *PolicyRuleConfig) ToProto(id string) *protos.PolicyRule {
 	)
 	if len(m.MonitoringKey) > 0 {
 		if protoMKey, err = base64.StdEncoding.DecodeString(m.MonitoringKey); err != nil {
-			log.Printf("Error decoding Monitoring Key '%q' for rule ID '%s', will use as is. Err: %v",
+			glog.Warning("Can't decode Monitoring Key '%q' for rule ID '%s', will use as is. Err: %v",
 				m.MonitoringKey, id, err)
 			protoMKey = []byte(m.MonitoringKey)
 		}
