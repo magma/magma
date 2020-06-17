@@ -1713,7 +1713,7 @@ void log_message_int_prefix_id(
       goto error_event;
     }
     rv = bvcformata((*async_context_p)->bstr, 4096, format, args); // big number
-    (*async_context_p)->u_app_log.log.log_level =
+    (*async_context_p)->log.log_level =
         g_oai_log.log_level2syslog[log_levelP];
     if (BSTR_ERR == rv) {
       OAI_FPRINTF_ERR(
