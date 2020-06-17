@@ -1,0 +1,49 @@
+{
+  "updateTime": 1591950144336,
+  "name": "GraphQL mutation",
+  "description": "Any graphQL mutation - INVENTORY",
+  "version": 1,
+  "tasks": [
+    {
+      "name": "query",
+      "taskReferenceName": "query",
+      "inputParameters": {
+        "http_request": {
+          "uri": "http://${workflow.input.server}/query",
+          "method": "POST",
+          "contentType": "application/json",
+          "accept": "application/json",
+          "headers": {
+            "x-auth-user-email": "${workflow.input.user}",
+            "x-auth-organization": "${workflow.input.tenant}",
+            "x-auth-user-role": "${workflow.input.role}"
+          },
+          "connectionTimeOut": "3600",
+          "readTimeOut": "3600",
+          "body": {
+            "query": "${workflow.input.mutation}"
+          }
+        }
+      },
+      "type": "HTTP",
+      "startDelay": 0,
+      "optional": false,
+      "asyncComplete": false
+    }
+  ],
+  "inputParameters": [
+    "server[graphQL server][integration_graph_1]",
+    "user[username][fbuser@fb.com]",
+    "tenant[tenant][fb-test]",
+    "role[user role][OWNER]",
+    "mutation[graphQL mutation]"
+  ],
+  "outputParameters": {
+    "data": "${query.output.response.body.data}"
+  },
+  "schemaVersion": 2,
+  "restartable": true,
+  "workflowStatusListenerEnabled": true,
+  "hasSchedule": false,
+  "expectedScheduleName": "GraphQL mutation:1"
+}

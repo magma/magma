@@ -1,0 +1,41 @@
+{
+  "updateTime": 1591948629107,
+  "name": "List equipment",
+  "description": "List all equipment - INVENTORY,EQUIPMENT",
+  "version": 1,
+  "tasks": [
+    {
+      "name": "equipment_query",
+      "taskReferenceName": "equimpent_query",
+      "inputParameters": {
+        "server": "${workflow.input.server}",
+        "user": "${workflow.input.tenant}",
+        "role": "${workflow.input.role}",
+        "tenant": "${workflow.input.tenant}",
+        "query": "query EquipmentListQuery { equipments { edges { node {id name equipmentType {id name}}}}}"
+      },
+      "type": "SUB_WORKFLOW",
+      "startDelay": 0,
+      "subWorkflowParam": {
+        "name": "GraphQL query",
+        "version": 1
+      },
+      "optional": false,
+      "asyncComplete": false
+    }
+  ],
+  "inputParameters": [
+    "server[graphQL server][integration_graph_1]",
+    "user[username][fbuser@fb.com]",
+    "tenant[tenant][fb-test]",
+    "role[user role][OWNER]"
+  ],
+  "outputParameters": {
+    "data": "${equimpent_query.output.data}"
+  },
+  "schemaVersion": 2,
+  "restartable": true,
+  "workflowStatusListenerEnabled": true,
+  "hasSchedule": false,
+  "expectedScheduleName": "List equipment:1"
+}
